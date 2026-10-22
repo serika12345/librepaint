@@ -55,6 +55,8 @@ class QDomDocument;
 class KisReferenceImagesLayer;
 class KisUniqueColorSet;
 class KoProgressProxy;
+class QIODevice;
+namespace LibrePaint::Document::Gpu { class PaintDocument; }
 
 #include <KisImportExportMimeType.h>
 
@@ -628,6 +630,12 @@ public:
     bool newImage(const QString& name, qint32 width, qint32 height, const KoColorSpace * cs, const KoColor &bgColor, KisConfig::BackgroundStyle bgStyle,
                   int numberOfLayers, const QString &imageDescription, const double imageResolution);
 
+    /** Synchronous native import for the ordinary GPU session. The borrowed,
+     * open seekable source stays open. Unsupported features leave the current
+     * image unchanged and supply an error message. Uses the application thread.
+     */
+    KisImportExportErrorCode importGpuKra(QIODevice &source);
+
     bool isSaving() const;
     void waitForSavingToComplete();
 
@@ -810,6 +818,8 @@ private:
     };
 
     void copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy);
+    void setCurrentImageImpl(KisImageSP image, bool forceInitialUpdate, KisNodeSP preActivatedNode,
+                             std::shared_ptr<LibrePaint::Document::Gpu::PaintDocument> fileDocument);
 
     QString prettyPath() const;
 

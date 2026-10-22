@@ -140,6 +140,11 @@ std::shared_ptr<LibrePaint::Image::Gpu::Execution> KisPart::gpuExecution(QString
     return execution;
 }
 
+bool KisPart::gpuEngineEnabled() const
+{
+    return qgetenv("LIBREPAINT_GPU_ENGINE") == "1";
+}
+
 KisPart::KisPart()
     : d(new Private(this))
 {

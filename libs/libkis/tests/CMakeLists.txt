@@ -12,7 +12,7 @@ kis_add_tests(
     LINK_LIBRARIES kritalibkis kritatestsdk
     )
 
-target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp TestNodeLayerProperties.cpp)
+target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp TestNodeLayerProperties.cpp TestNodeDocumentSession.cpp)
 target_sources(TestDocument PRIVATE TestDocumentKraPreview.cpp TestDocumentJpegExport.cpp)
 
 add_dependencies(TestDocument
@@ -21,6 +21,7 @@ add_dependencies(TestDocument
     kritapatterngenerator kritacolorgenerator)
 add_dependencies(TestNode kritakraimport kritakraexport kritapngexport kritalcmsengine)
 add_dependencies(TestNode kritaroundmarkerpaintop)
+add_dependencies(TestNode kritadefaulttools)
 add_dependencies(TestNode kritatoolcrop)
 add_dependencies(TestNode kritalayerdocker)
 target_link_libraries(TestDocument kritaimpexkra kritadocumentpainting)

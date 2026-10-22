@@ -28,6 +28,7 @@
 #include <QtConcurrentRun>
 #include <QTemporaryFile>
 #include <QScopeGuard>
+#include <QPointer>
 
 #include <klocalizedstring.h>
 
@@ -334,6 +335,7 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
 
     ConversionResult result = KisImportExportErrorCode(ImportExportCodes::OK);
     if (direction == Import) {
+        const QPointer<KisDocument> document = m_document;
 
         KisUsageLogger::log(QString("Importing %1 to %2. Location: %3. Real location: %4. Batchmode: %5")
                                 .arg(QString::fromLatin1(from), QString::fromLatin1(to), location,
@@ -351,6 +353,7 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
         } else {
             result = doImport(location, filter);
         }
+        if (!document) return result;
         if (result.status().isOk()) {
             KisImageSP image = m_document->image().toStrongRef();
             if (image) {

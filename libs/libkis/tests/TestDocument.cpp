@@ -140,13 +140,21 @@ void TestDocument::testColorHistoryReplacementAndCopyKeepNewestFirst()
 void TestDocument::testNativeSavingKeepsColorHistoryOrderAndSelectedColor_data()
 {
     QTest::addColumn<bool>("gpu");
-    QTest::newRow("ordinary") << false;
-    QTest::newRow("gpu") << true;
+    QTest::addColumn<bool>("gpuSession");
+    QTest::newRow("ordinary") << false << false;
+    QTest::newRow("gpu") << true << false;
+    QTest::newRow("gpu-session") << true << true;
 }
 
 void TestDocument::testNativeSavingKeepsColorHistoryOrderAndSelectedColor()
 {
     QFETCH(bool, gpu);
+    QFETCH(bool, gpuSession);
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", gpuSession ? "1" : "0");
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     document->setFileBatchMode(true);
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
@@ -184,7 +192,8 @@ void TestDocument::testNativeSavingKeepsColorHistoryOrderAndSelectedColor()
     QVERIFY(directory.isValid());
     const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
     QVERIFY(QDir().mkpath(destination));
-    const auto prefix = gpu ? QStringLiteral("color-history-gpu") : QStringLiteral("color-history-native");
+    const auto prefix = gpuSession ? QStringLiteral("color-history-session") :
+        gpu ? QStringLiteral("color-history-gpu") : QStringLiteral("color-history-native");
     const auto path = QDir(destination).filePath(prefix + QStringLiteral(".kra"));
     const auto preserveFailure = qScopeGuard([&] {
         if (QTest::currentTestFailed()) {
@@ -198,6 +207,7 @@ void TestDocument::testNativeSavingKeepsColorHistoryOrderAndSelectedColor()
     QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
     reopened->setFileBatchMode(true);
     QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QCOMPARE(bool(reopened->image()->gpuImage()), gpuSession);
     QCOMPARE(reopened->assistantsGlobalColor(), QColor(17, 63, 129, 201));
     const auto restored = reopened->colorHistoryColors();
     QCOMPARE(restored.size(), 2);
@@ -209,7 +219,7 @@ void TestDocument::testNativeSavingKeepsColorHistoryOrderAndSelectedColor()
     QVERIFY(paint);
     auto selectedColor = restored[0];
     selectedColor.convertTo(paint->colorSpace());
-    paint->paintDevice()->fill(QRect(1, 1, 1, 1), selectedColor);
+    paint->paintDevice()->writeBytes(selectedColor.data(), 1, 1, 1, 1);
     QByteArray pixel(4, '\0');
     paint->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 1, 1, 1, 1);
     QCOMPARE(pixel, QByteArray::fromHex("4011c0ff"));
@@ -229,6 +239,7 @@ void TestDocument::testNativeSavingKeepsColorHistoryOrderAndSelectedColor()
         reopened.reset(KisPart::instance()->createDocument());
         reopened->setFileBatchMode(true);
         QVERIFY2(reopened->openPath(nextPath, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        QCOMPARE(bool(reopened->image()->gpuImage()), gpuSession);
         QCOMPARE(reopened->assistantsGlobalColor(), assistants);
         QCOMPARE(reopened->colorHistoryColors().size(), history.size());
         if (!clearHistory) QCOMPARE(reopened->colorHistoryColors().first().toQColor(), selected);
@@ -769,18 +780,30 @@ void TestDocument::testOrdinaryKraKeepsLayerHierarchyThroughResaving()
 
 void TestDocument::testOrdinaryCreationPreservesInitialDocumentState_data()
 {
+    QTest::addColumn<bool>("gpuSession");
     QTest::addColumn<int>("style");
     QTest::addColumn<int>("layerCount");
-    QTest::newRow("raster-one-layer") << int(KisConfig::RASTER_LAYER) << 1;
-    QTest::newRow("raster-two-layers") << int(KisConfig::RASTER_LAYER) << 2;
-    QTest::newRow("canvas-one-layer") << int(KisConfig::CANVAS_COLOR) << 1;
-    QTest::newRow("canvas-two-layers") << int(KisConfig::CANVAS_COLOR) << 2;
+    for (const bool gpu : {false, true}) for (const auto style : {KisConfig::RASTER_LAYER, KisConfig::CANVAS_COLOR}) {
+        for (const int layers : {1, 2}) {
+            const auto name = QStringLiteral("%1-%2-%3-layers")
+                .arg(gpu ? QStringLiteral("gpu") : QStringLiteral("ordinary"))
+                .arg(style == KisConfig::RASTER_LAYER ? QStringLiteral("raster") : QStringLiteral("canvas")).arg(layers);
+            QTest::newRow(qPrintable(name)) << gpu << int(style) << layers;
+        }
+    }
 }
 
 void TestDocument::testOrdinaryCreationPreservesInitialDocumentState()
 {
+    QFETCH(bool, gpuSession);
     QFETCH(int, style);
     QFETCH(int, layerCount);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", gpuSession ? "1" : "0");
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
     const KoColor color(QColor(17, 34, 51, 128), cs);
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
@@ -788,6 +811,7 @@ void TestDocument::testOrdinaryCreationPreservesInitialDocumentState()
                                 KisConfig::BackgroundStyle(style), layerCount, QStringLiteral("Kept description"), 2),
              qPrintable(document->errorMessage()));
     const auto image = KisImageSP(document->image());
+    QCOMPARE(bool(image->gpuImage()), gpuSession);
     QCOMPARE(image->bounds().size(), QSize(32, 16));
     QCOMPARE(image->root()->childCount(), quint32(layerCount));
     QCOMPARE(document->undoStack()->count(), 0);
@@ -816,6 +840,7 @@ void TestDocument::testOrdinaryCreationPreservesInitialDocumentState()
     QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
     reopened->setFileBatchMode(true);
     QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QCOMPARE(bool(reopened->image()->gpuImage()), gpuSession);
     Document publicReopened(reopened.data(), false);
     QCOMPARE(publicReopened.pixelData(3, 3, 1, 1), publicDocument.pixelData(3, 3, 1, 1));
     QCOMPARE(reopened->image()->defaultProjectionColor(), image->defaultProjectionColor());
@@ -829,6 +854,120 @@ void TestDocument::testOrdinaryCreationPreservesInitialDocumentState()
                                 KisConfig::BackgroundStyle(style), 1, {}, 1));
     QCOMPARE(document->image(), original);
     QVERIFY(!document->isModified());
+}
+
+void TestDocument::testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsupportedEdits()
+{
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
+    QVERIFY(QDir().mkpath(destination));
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) { directory.setAutoRemove(false); qInfo() << "GPU native admission artifacts at" << destination; }
+    });
+    const auto source = directory.filePath(QStringLiteral("source.kra"));
+    Kra::Document value;
+    value.image.size = {4, 4};
+    value.image.layers = {{QStringLiteral("Paint"), true,
+        QUuid(QStringLiteral("{11223344-5566-7788-99aa-bbccddeeff00}")), {}, {17, 34, 51, 128}}};
+    value.files.insert(QStringLiteral("private/format-data"), QByteArrayLiteral("retained native format data"));
+    QImage projection(4, 4, QImage::Format_RGBA8888);
+    projection.fill(QColor(17, 34, 51, 128));
+    QFile input(source);
+    QVERIFY(input.open(QIODevice::ReadWrite));
+    const auto encoded = Kra::RasterCodec::write(input, value, projection);
+    QVERIFY2(encoded.code == Kra::Status::Success, qPrintable(encoded.diagnostic));
+    QVERIFY(input.seek(0));
+    const auto original = Kra::RasterCodec::read(input);
+    QVERIFY2(original.code == Kra::Status::Success, qPrintable(original.diagnostic));
+    input.close();
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    const QList<KoColor> retainedColors{KoColor(QColor(192, 17, 64), KoColorSpaceRegistry::instance()->rgb8())};
+    QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
+    reference->setFileBatchMode(true);
+    reference->setColorHistoryColors(retainedColors);
+    QVERIFY2(reference->openPath(source, KisDocument::DontAddToRecent), qPrintable(reference->errorMessage()));
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setColorHistoryColors(retainedColors);
+    QVERIFY2(document->openPath(source, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+    QVERIFY(document->image()->gpuImage());
+    QCOMPARE(document->mirrorAxisConfig(), reference->mirrorAxisConfig());
+    QCOMPARE(document->image()->mirrorAxesCenter(), reference->image()->mirrorAxesCenter());
+    QCOMPARE(document->image()->profile()->rawData(), reference->image()->profile()->rawData());
+    QCOMPARE(document->colorHistoryColors(), reference->colorHistoryColors());
+    QCOMPARE(document->colorHistoryColors(), retainedColors);
+    Document api(document.data(), false);
+    QCOMPARE(api.pixelData(0, 0, 1, 1), QByteArray::fromHex("33221180"));
+    document->documentInfo()->setAboutInfo("title", QStringLiteral("Fixed GPU import"));
+    document->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
+    document->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
+    settings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    const auto saved = QDir(destination).filePath(QStringLiteral("gpu-session-import.kra"));
+    document->setModified(true);
+    QVERIFY2(document->saveAs(saved, KisDocument::nativeFormatMimeType(), false, settings), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QFile result(saved);
+    QVERIFY(result.open(QIODevice::ReadOnly));
+    const auto decoded = Kra::RasterCodec::read(result);
+    QVERIFY2(decoded.code == Kra::Status::Success, qPrintable(decoded.diagnostic));
+    QCOMPARE(decoded.document.files.value(QStringLiteral("private/format-data")), value.files.value(QStringLiteral("private/format-data")));
+    const auto image = document->image();
+    const auto unchanged = image->gpuImage()->operations().recoveryData();
+    QBuffer malformed;
+    malformed.setData(QByteArrayLiteral("invalid native archive"));
+    QVERIFY(malformed.open(QIODevice::ReadOnly));
+    auto invalidStatus = document->importGpuKra(malformed);
+    QVERIFY(invalidStatus == KisImportExportErrorCode(ImportExportCodes::FileFormatIncorrect));
+    QCOMPARE(document->image(), image);
+    QCOMPARE(image->gpuImage()->operations().recoveryData(), unchanged);
+    for (const auto feature : {QStringLiteral("layerstyle"), QStringLiteral("grid")}) {
+        auto unsupported = original.document;
+        QDomDocument xml;
+        QVERIFY(xml.setContent(unsupported.description));
+        auto imageElement = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        if (feature == QLatin1String("grid")) imageElement.appendChild(xml.createElement(feature));
+        else imageElement.firstChildElement(QStringLiteral("layers")).firstChildElement().setAttribute(feature,
+            QStringLiteral("{10203040-5060-7080-90a0-b0c0d0e0f000}"));
+        unsupported.description = xml.toByteArray();
+        const auto badPath = directory.filePath(feature + QStringLiteral(".kra"));
+        QFile bad(badPath);
+        QVERIFY(bad.open(QIODevice::WriteOnly));
+        const auto written = Kra::RasterCodec::write(bad, unsupported, projection);
+        QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+        bad.close();
+        QVERIFY(!document->openPath(badPath, KisDocument::DontAddToRecent));
+        QVERIFY2(document->errorMessage().contains(feature), qPrintable(document->errorMessage()));
+        QCOMPARE(document->image(), image);
+        QCOMPARE(document->localFilePath(), saved);
+        QCOMPARE(image->gpuImage()->operations().recoveryData(), unchanged);
+        QVERIFY(!document->isModified());
+    }
+    QScopedPointer<KisDocument> closing(KisPart::instance()->createDocument());
+    closing->setFileBatchMode(true);
+    bool metadataBeforeImage = false, closed = false;
+    connect(closing->documentInfo(), &KoDocumentInfo::infoUpdated, this,
+            [&](const QString &key, const QString &) {
+        if (key != QLatin1String("title")) return;
+        if (!closing->image() || !closing->image()->gpuImage()) { metadataBeforeImage = true; return; }
+        QCOMPARE(closing->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("Fixed GPU import"));
+        closed = true;
+        closing.reset();
+    });
+    auto *caller = closing.data();
+    caller->openPath(saved, KisDocument::DontAddToRecent);
+    QVERIFY2(!metadataBeforeImage, "Native metadata notifications must observe the adopted GPU image and file owner");
+    QVERIFY(closed);
+    QVERIFY(!closing);
 }
 
 void TestDocument::testBackgroundApiKeepsHistoryAndPinnedPixels()

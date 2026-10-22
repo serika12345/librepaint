@@ -465,6 +465,28 @@ Undo／Redo、同じ接続を使う復旧と、最後の参照による接続解
 復旧の成功通知は新しい画像状態とファイル情報を同時に観測し、
 外側のハッシュが正しい不正な操作記録は、画像とファイル情報を維持して拒否する。
 
+### 通常文書でのGPU作成と読込
+
+移行中の製品起動環境へ`LIBREPAINT_GPU_ENGINE=1`を指定すると、通常の「新規作成」とKRAの
+「開く」がGPU文書を作る。同じ文書タブ、ツール、履歴と保存操作を使う。
+新規作成は既定の8ビットRGB色空間と、ラスターまたはキャンバスの背景を受け入れる。
+ブラシはQuick Brushを選び、通常合成または消去を使う。
+KRA取込みは対応するRGBA8・sRGBの描画レイヤーとグループ、合成方式と属性を検査する。
+グリッド、ガイド、アニメーション、レイヤー効果など未移行の編集情報は、意味を保持して編集する
+実装が必要なため理由を表示して受入れを止める。既定構成の切替えは各機能と対象OSの受入れに従う。
+この起動設定と対応する既存エンジンへの分岐は、[#89](https://github.com/serika12345/librepaint/issues/89)の
+標準化で撤去する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test TestDocument
+./scripts/run-shared-test-env ./scripts/run-test TestNode
+```
+
+`TestDocument`は通常作成・再読込の画像所有者、背景、レイヤー、解像度、文書情報と形式情報を検査する。
+`TestNodeDocumentSession.cpp`は新規作成ダイアログ、Quick Brush編集、Undo／Redo、KRA保存、
+通常再読込と追加編集、作成拒否後のダイアログ保持を検査する。
+画面を表示する環境の検証と、`QT_QPA_PLATFORM=offscreen`で文書・UI接続を検査する実行を区別する。
+
 ### GPUタイルの画素契約
 
 MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試験で検証する。

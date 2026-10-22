@@ -47,6 +47,12 @@ FileOpenOutcome PaintDocument::openKra(std::shared_ptr<Execution> execution, con
     return openKraImpl(*execution, execution, path, limits);
 }
 
+FileOpenOutcome PaintDocument::openKra(std::shared_ptr<Execution> execution, const Kra::Document &document, Limits limits)
+{
+    if (!execution) return {FileCode::InvalidData, {}, QStringLiteral("Opening requires a GPU execution owner")};
+    return adoptKraImpl(*execution, execution, document, {}, limits);
+}
+
 FileOpenOutcome PaintDocument::openKraImpl(Execution &execution, std::shared_ptr<Execution> retainedExecution,
                                           const QString &path, Limits limits)
 {
@@ -54,13 +60,21 @@ FileOpenOutcome PaintDocument::openKraImpl(Execution &execution, std::shared_ptr
     if (!input.open(QIODevice::ReadOnly)) return {FileCode::IoFailure, {}, input.errorString()};
     const auto loaded = Kra::RasterCodec::read(input, Private::formatLimits(limits));
     if (loaded.code != Kra::Status::Success) return {fileCode(loaded.code), {}, loaded.diagnostic};
+    return adoptKraImpl(execution, retainedExecution, loaded.document, path, limits);
+}
+
+FileOpenOutcome PaintDocument::adoptKraImpl(Execution &execution, std::shared_ptr<Execution> retainedExecution,
+                                           const Kra::Document &loaded, const QString &path, Limits limits)
+{
+    const auto metadata = Kra::RasterCodec::validateMetadata(loaded.description, loaded.files, Private::formatLimits(limits));
+    if (metadata.code != Kra::Status::Success) return {fileCode(metadata.code), {}, metadata.diagnostic};
     try {
-        const auto image = retainedExecution ? PaintImageSP::create(retainedExecution, loaded.document.image, limits) :
-                                              PaintImageSP::create(execution, loaded.document.image, limits);
+        const auto image = retainedExecution ? PaintImageSP::create(retainedExecution, loaded.image, limits) :
+                                              PaintImageSP::create(execution, loaded.image, limits);
         auto document = std::make_unique<PaintDocument>(image, limits);
         document->m_d->path = path;
-        document->m_d->description = loaded.document.description;
-        document->m_d->files = loaded.document.files;
+        document->m_d->description = loaded.description;
+        document->m_d->files = loaded.files;
         return {FileCode::Success, std::move(document), {}};
     } catch (const std::length_error &error) {
         return {FileCode::CapacityExceeded, {}, QString::fromUtf8(error.what())};

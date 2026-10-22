@@ -179,6 +179,16 @@ GPU実装の製品採用は、対応する通常操作、公開API、ファイ�
 
 #### 保持する描画操作と文書版
 
+通常文書のGPU作成とKRA取込みは`libs/ui/document/KisDocument.cpp`が所有する。
+`libs/application/ui/orchestration/KisPart.cpp`は共有GPU実行と移行中の起動設定
+`LIBREPAINT_GPU_ENGINE=1`を提供する。新規作成は検証済みの背景・レイヤー値からGPU画像を
+直接作り、既存の文書・ツール・キャンバスへ接続する。作成ダイアログは失敗理由を表示し、設定を修正できる状態を保つ。
+`plugins/impex/kra/kra_import.cpp`は同じ起動設定で通常のKRA取込みを文書所有者へ渡す。
+形式所有者が解析した値について、文書所有者が編集可能な属性を検査してからGPU画像を採用する。
+`libs/document/files/gpu/KisGpuKraDocumentFile.cpp`の値入力は、画像と元の形式情報を一緒に保持する。
+この起動設定は、未移行のブラシ・精度・効果・形式と対象OSの受入れを完了し、
+[#89](https://github.com/serika12345/librepaint/issues/89)の標準経路へ統一した段階で撤去する。
+
 `libs/image/gpu/KisGpuOperationDocument.{h,cpp}`は、`LibrePaint::Image::Gpu`の
 `OperationDocument`として、円形ブラシの設定、乱数種、筆圧・傾き・回転・時刻を含む入力、
 自由描画・直線・楕円・矩形・角丸矩形・折れ線・多角形・経路の形状、レイヤーの種類と親子関係をCPU値として保持する。
