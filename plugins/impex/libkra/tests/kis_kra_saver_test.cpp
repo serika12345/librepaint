@@ -19,6 +19,7 @@
 #include <QBuffer>
 #include <QDateTime>
 #include <QDir>
+#include <QDomDocument>
 #include <QFile>
 #include <QScopeGuard>
 #include <QTemporaryDir>
@@ -135,6 +136,81 @@ void KisKraSaverTest::testSaveEmpty()
 
     delete doc2;
     delete doc;
+}
+
+void KisKraSaverTest::testChannelProtectionSurvivesResaving_data()
+{
+    QTest::addColumn<QString>("flags");
+    QTest::newRow("default-writable") << QString();
+    QTest::newRow("explicit-writable") << QStringLiteral("1111");
+    QTest::newRow("alpha-protected") << QStringLiteral("1110");
+    QTest::newRow("one-writable") << QStringLiteral("0100");
+    QTest::newRow("all-protected") << QStringLiteral("0000");
+}
+
+void KisKraSaverTest::testChannelProtectionSurvivesResaving()
+{
+    QFETCH(QString, flags);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    KisImageSP image = new KisImage(nullptr, 2, 1, cs, QStringLiteral("Channel protection"));
+    KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Paint"), 255);
+    layer->setUuid(QUuid(QStringLiteral("{52334fd3-f4e4-498f-8a49-8fa5873ed931}")));
+    QBitArray channelFlags(flags.size());
+    for (int i = 0; i < flags.size(); ++i) channelFlags.setBit(i, flags[i] == QLatin1Char('1'));
+    layer->setChannelLockFlags(channelFlags);
+    const auto pixels = QByteArray::fromHex("332211ff66554480");
+    layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixels.constData()), 0, 0, 2, 1);
+    image->addNode(layer);
+    document->setCurrentImage(image);
+    image->initialRefreshGraph();
+    image->waitForDone();
+
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Channel protection artifacts retained at" << output.path();
+        }
+    });
+    const auto expectedFlags = flags == QStringLiteral("1111") ? QString() : flags;
+    const auto expectedChannels = channelFlags.isEmpty() ? QBitArray(4, true) : channelFlags;
+    for (int cycle = 0; cycle < 2; ++cycle) {
+        const auto path = output.filePath(QStringLiteral("saved-%1.kra").arg(cycle));
+        QVERIFY(document->exportDocumentSync(path, KisDocument::nativeFormatMimeType()));
+        QScopedPointer<KoStore> store(KoStore::createStore(path, KoStore::Read, "", KoStore::Zip));
+        QVERIFY(!store->bad());
+        QVERIFY(store->open(QStringLiteral("maindoc.xml")));
+        QDomDocument xml;
+        QVERIFY(xml.setContent(store->device()->readAll()));
+        QVERIFY(store->close());
+        const auto layers = xml.elementsByTagName(QStringLiteral("layer"));
+        QCOMPARE(layers.size(), 1);
+        const auto attributes = layers.item(0).toElement();
+        QVERIFY(attributes.hasAttribute(QStringLiteral("channellockflags")));
+        QCOMPARE(attributes.attribute(QStringLiteral("channellockflags")), expectedFlags);
+
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent));
+        reopened->image()->waitForDone();
+        const auto paint = qobject_cast<KisPaintLayer *>(reopened->image()->root()->firstChild().data());
+        QVERIFY(paint);
+        const auto actualFlags = paint->channelLockFlags();
+        QCOMPARE(actualFlags.isEmpty() ? QBitArray(4, true) : actualFlags, expectedChannels);
+        QByteArray actual(pixels.size(), Qt::Uninitialized);
+        paint->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 0, 0, 2, 1);
+        QCOMPARE(actual, pixels);
+        document.reset(reopened.take());
+    }
 }
 
 void KisKraSaverTest::testSavedPreviewPreservesImagePixels_data()
