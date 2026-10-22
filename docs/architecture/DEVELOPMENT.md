@@ -368,6 +368,11 @@ KRAとPNGを保存する。PNGの全バイトと、同じ描画所有者のKRA�
 パスに使えないタイトルやパス長の上限では格納名の保持、移動先の衝突では更新全体の拒否を照合する。
 `TestDocument`は通常のGPU保存と改名後の書き出しを、既存のKRA読込みによる画像名・ICC・画素の復元まで検査する。
 色履歴はCPU・GPU文書の一括設定、スナップショット、別文書への復元と元文書の終了後も最新順を保つことを検査する。
+`testGpuDocumentCopyKeepsLayerImageMetadata`はルート・グループ・描画レイヤーの画像メタデータを、
+スナップショット、文書複製と別文書への置換で照合する。置換のサイズ変更通知時点の値と、元文書の変更からの独立性も検査する。
+`testGpuRasterExportKeepsLayerImageMetadata`は固定したTIFF Make値、RGBA8画素、日時と設定で、
+通常操作・公開APIから書き出したPNG・JPEGをCPU参照と全バイト比較する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`layer-image-<操作・形式>-{cpu,gpu}.{png,jpg}`を出力する。
 通常・GPUのKRA保存は固定したUUID、文書情報と日時で`color-history-native.kra`と`color-history-gpu.kra`を出力し、
 再読込み後の色順序と、その色を文書の色空間へ変換して描いた画素を全成分で照合する。
 同じ文書の色履歴と補助線の共通色を変更して再保存し、`-updated.kra`と`-cleared.kra`で置換と履歴消去を検査する。

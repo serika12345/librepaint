@@ -76,6 +76,7 @@
 #include "kis_strokes_queue_undo_result.h"
 #include "kis_transaction.h"
 #include "kis_meta_data_merge_strategy.h"
+#include "kis_meta_data_store.h"
 #include "kis_memory_statistics_server.h"
 #include "kis_node.h"
 #include "kis_types.h"
@@ -595,6 +596,18 @@ void KisImage::copyFromImageImpl(const KisImage &rhs, int policy, LibrePaint::Im
         // Publish the replacement as a complete subtree, matching CPU clones.
         newRoot->setGraphListener(nullptr);
         synchronizeGpuNodes();
+        QQueue<KisNodeSP> sourceNodes;
+        KisLayerUtils::recursiveApplyNodes(sourceRoot, [&sourceNodes](KisNodeSP node) {
+            sourceNodes.enqueue(node);
+        });
+        KisLayerUtils::recursiveApplyNodes(newRoot, [&sourceNodes](KisNodeSP node) {
+            auto source = sourceNodes.dequeue();
+            auto *layer = qobject_cast<KisLayer *>(node.data());
+            auto *sourceLayer = qobject_cast<KisLayer *>(source.data());
+            if (layer && sourceLayer) {
+                layer->metaData()->copyFrom(sourceLayer->metaData());
+            }
+        });
         auto source = sourceRoot->firstChild();
         for (auto node = newRoot->firstChild(); node && source; node = node->nextSibling(), source = source->nextSibling()) {
             node->setGraphListener(nullptr);

@@ -69,6 +69,10 @@ private Q_SLOTS:
     void testGpuSaveNotificationLifetimes_data();
     void testGpuSaveNotificationLifetimes();
     void testGpuSnapshotKeepsIndependentPixelsAndDocumentMetadata();
+    void testGpuDocumentCopyKeepsLayerImageMetadata_data();
+    void testGpuDocumentCopyKeepsLayerImageMetadata();
+    void testGpuRasterExportKeepsLayerImageMetadata_data();
+    void testGpuRasterExportKeepsLayerImageMetadata();
     void testThumbnail();
     void testCreateFillLayer();
     void testCreateCloneLayer();

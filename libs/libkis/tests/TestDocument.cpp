@@ -39,6 +39,10 @@
 #include <KisGpuExportRasterRows.h>
 #include <QImageReader>
 #include <metadata/KoDocumentInfo.h>
+#include <metadata/kis_meta_data_store.h>
+#include <metadata/kis_meta_data_entry.h>
+#include <metadata/kis_meta_data_value.h>
+#include <metadata/kis_meta_data_schema_registry.h>
 #include <kra/KisKraRasterCodec.h>
 
 #include <KoColorSpaceRegistry.h>
@@ -2563,6 +2567,193 @@ void TestDocument::testGpuSnapshotKeepsIndependentPixelsAndDocumentMetadata()
     QByteArray bytes(4, Qt::Uninitialized);
     retained->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 5, 5, 1, 1);
     QCOMPARE(bytes, QByteArray::fromHex("665544ff"));
+}
+
+void TestDocument::testGpuDocumentCopyKeepsLayerImageMetadata_data()
+{
+    QTest::addColumn<QString>("operation");
+    for (const auto &operation : {QStringLiteral("snapshot"), QStringLiteral("clone"), QStringLiteral("replace")})
+        QTest::newRow(qPrintable(operation)) << operation;
+}
+
+void TestDocument::testGpuDocumentCopyKeepsLayerImageMetadata()
+{
+    QFETCH(QString, operation);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    const QUuid group(QStringLiteral("{88223344-5566-7788-9900-aabbccddeeff}"));
+    Gpu::RasterImage input;
+    input.size = {8, 8};
+    input.layers = {{QStringLiteral("Outside"), true, {}, {}},
+                    {QStringLiteral("Inside"), true, {}, {}},
+                    {QStringLiteral("Group"), true, group, {}}};
+    input.layers[1].parentUuid = group;
+    input.layers[2].kind = Gpu::LayerKind::Group;
+    const auto owner = Gpu::PaintImageSP::create(execution, input);
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Layer metadata source"));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(image);
+    const QString uri = QStringLiteral("http://ns.adobe.com/tiff/1.0/");
+    const auto schema = KisMetaData::SchemaRegistry::instance()->schemaFromUri(uri);
+    QVERIFY(schema);
+    KisNodeList sourceNodes{image->root()};
+    QMap<QString, QString> expected;
+    for (qsizetype i = 0; i < sourceNodes.size(); ++i) {
+        for (auto child = sourceNodes[i]->firstChild(); child; child = child->nextSibling()) sourceNodes.append(child);
+        auto *layer = qobject_cast<KisLayer *>(sourceNodes[i].data());
+        QVERIFY(layer);
+        const QString value = QStringLiteral("Camera for ") + layer->name();
+        QVERIFY(layer->metaData()->addEntry(KisMetaData::Entry(schema, QStringLiteral("Make"), KisMetaData::Value(QVariant(value)))));
+        expected.insert(layer->name(), value);
+    }
+    const auto version = owner->operations().snapshot();
+    QScopedPointer<KisDocument> copied;
+    bool resized = false;
+    bool metadataReadyOnResize = false;
+    if (operation == QLatin1String("snapshot")) copied.reset(document->lockAndCreateSnapshot());
+    else if (operation == QLatin1String("clone")) copied.reset(document->cloneWithImageReadLock());
+    else {
+        copied.reset(KisPart::instance()->createDocument());
+        initializeGpuDocument(copied.data(), {4, 4}, QStringLiteral("Replaced metadata"));
+        const auto target = copied->image().toStrongRef();
+        connect(target.data(), &KisImage::sigSizeChanged, copied.data(), [&] {
+            resized = true;
+            auto *layer = qobject_cast<KisLayer *>(copied->image()->root()->firstChild().data());
+            metadataReadyOnResize = layer && layer->metaData()->containsEntry(schema, QStringLiteral("Make"));
+        });
+        copied->copyFromDocument(*document);
+    }
+    QVERIFY(copied && copied->image()->gpuImage());
+    if (operation == QLatin1String("replace")) {
+        QVERIFY(resized);
+        QVERIFY(metadataReadyOnResize);
+    }
+    KisNodeList copiedNodes{copied->image()->root()};
+    for (qsizetype i = 0; i < copiedNodes.size(); ++i)
+        for (auto child = copiedNodes[i]->firstChild(); child; child = child->nextSibling()) copiedNodes.append(child);
+    QCOMPARE(copiedNodes.size(), sourceNodes.size());
+    for (qsizetype i = 0; i < copiedNodes.size(); ++i) {
+        auto *layer = qobject_cast<KisLayer *>(copiedNodes[i].data());
+        QVERIFY(layer);
+        QVERIFY2(layer->metaData()->containsEntry(schema, QStringLiteral("Make")), qPrintable(layer->name()));
+        QCOMPARE(layer->metaData()->getValue(uri, QStringLiteral("Make")).asVariant().toString(), expected.value(layer->name()));
+    }
+    for (qsizetype i = 0; i < sourceNodes.size(); ++i) {
+        auto *layer = qobject_cast<KisLayer *>(sourceNodes[i].data());
+        layer->metaData()->removeEntry(schema, QStringLiteral("Make"));
+        QVERIFY(layer->metaData()->addEntry(KisMetaData::Entry(schema, QStringLiteral("Make"), KisMetaData::Value(QVariant(QStringLiteral("Changed source"))))));
+    }
+    for (qsizetype i = 0; i < copiedNodes.size(); ++i) {
+        auto *layer = qobject_cast<KisLayer *>(copiedNodes[i].data());
+        QCOMPARE(layer->metaData()->getValue(uri, QStringLiteral("Make")).asVariant().toString(), expected.value(layer->name()));
+    }
+    QCOMPARE(owner->operations().snapshot(), version);
+}
+
+void TestDocument::testGpuRasterExportKeepsLayerImageMetadata_data()
+{
+    QTest::addColumn<QByteArray>("mime");
+    QTest::addColumn<QString>("extension");
+    QTest::addColumn<bool>("menuExport");
+    for (bool menu : {false, true}) {
+        const QByteArray prefix = menu ? "menu-" : "api-";
+        const QByteArray pngRow = prefix + "png-metadata";
+        const QByteArray jpegRow = prefix + "jpeg-metadata";
+        QTest::newRow(pngRow.constData()) << QByteArrayLiteral("image/png") << QStringLiteral("png") << menu;
+        QTest::newRow(jpegRow.constData()) << QByteArrayLiteral("image/jpeg") << QStringLiteral("jpg") << menu;
+    }
+}
+
+void TestDocument::testGpuRasterExportKeepsLayerImageMetadata()
+{
+    QFETCH(QByteArray, mime);
+    QFETCH(QString, extension);
+    QFETCH(bool, menuExport);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto retainFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Layer metadata export artifacts retained at" << directory.path();
+        }
+    });
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), {16, 8}, QStringLiteral("Metadata export"));
+    KisImageSP image = document->image().toStrongRef();
+    const auto owner = image->gpuImage();
+    QCOMPARE(owner->replaceRgbaPixels(owner->operations().activeLayer(), image->bounds(), QByteArray::fromHex("112233ff").repeated(128)),
+             LibrePaint::Image::Gpu::Result::Success);
+    KisImageSP referenceImage = new KisImage(reference->createUndoStore(), 16, 8, image->colorSpace(), QStringLiteral("Metadata reference"));
+    KisPaintLayerSP referenceLayer = new KisPaintLayer(referenceImage, QStringLiteral("Metadata layer"), 255);
+    referenceLayer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(QByteArray::fromHex("332211ff").repeated(128).constData()), 0, 0, 16, 8);
+    referenceImage->addNode(referenceLayer);
+    referenceImage->initialRefreshGraph();
+    referenceImage->waitForDone();
+    reference->setCurrentImage(referenceImage);
+    document->setFileBatchMode(true);
+    reference->setFileBatchMode(true);
+    const QString uri = QStringLiteral("http://ns.adobe.com/tiff/1.0/");
+    const auto schema = KisMetaData::SchemaRegistry::instance()->schemaFromUri(uri);
+    QVERIFY(schema);
+    auto *sourceLayer = qobject_cast<KisLayer *>(image->root()->firstChild().data());
+    QVERIFY(sourceLayer);
+    for (auto *layer : {sourceLayer, static_cast<KisLayer *>(referenceLayer.data())})
+        QVERIFY(layer->metaData()->addEntry(KisMetaData::Entry(schema, QStringLiteral("Make"), KisMetaData::Value(QVariant(QStringLiteral("Fixture camera"))))));
+    for (auto *item : {document.data(), reference.data()}) {
+        item->documentInfo()->setAboutInfo(QStringLiteral("date"), QStringLiteral("2001-02-03T04:05:06Z"));
+        item->documentInfo()->setAboutInfo(QStringLiteral("creation-date"), QStringLiteral("2000-01-02T03:04:05Z"));
+    }
+    KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
+    settings->setProperty("alpha", true);
+    settings->setProperty("indexed", false);
+    settings->setProperty("interlaced", false);
+    settings->setProperty("compression", 3);
+    settings->setProperty("saveSRGBProfile", true);
+    settings->setProperty("forceSRGB", false);
+    settings->setProperty("storeMetaData", true);
+    settings->setProperty("storeAuthor", false);
+    settings->setProperty("exif", true);
+    settings->setProperty("iptc", true);
+    settings->setProperty("xmp", true);
+    const auto expectedPath = directory.filePath(QStringLiteral("reference.") + extension);
+    QVERIFY2(reference->exportDocumentSync(expectedPath, mime, settings), qPrintable(reference->errorMessage()));
+    QFile expectedFile(expectedPath);
+    QVERIFY(expectedFile.open(QIODevice::ReadOnly));
+    const auto expected = expectedFile.readAll();
+    referenceLayer->metaData()->removeEntry(schema, QStringLiteral("Make"));
+    const auto withoutPath = directory.filePath(QStringLiteral("without-metadata.") + extension);
+    QVERIFY(reference->exportDocumentSync(withoutPath, mime, settings));
+    QFile withoutFile(withoutPath);
+    QVERIFY(withoutFile.open(QIODevice::ReadOnly));
+    QVERIFY2(expected != withoutFile.readAll(), "The CPU export must actually encode the populated layer metadata");
+    const auto version = owner->operations().snapshot();
+    const auto history = owner->operations().undoCount();
+    const auto path = directory.filePath(QStringLiteral("export.") + extension);
+    Document api(document.data(), false);
+    InfoObject publicSettings(settings);
+    const bool success = menuExport ? document->exportDocument(path, mime, false, false, settings) : api.exportImage(path, publicSettings);
+    QVERIFY2(success, qPrintable(document->errorMessage()));
+    QFile output(path);
+    QVERIFY(output.open(QIODevice::ReadOnly));
+    const auto actual = output.readAll();
+    QCOMPARE(actual, expected);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const QString prefix = QStringLiteral("layer-image-") + QString::fromLatin1(QTest::currentDataTag());
+        for (const auto &entry : {qMakePair(QStringLiteral("-cpu."), expected), qMakePair(QStringLiteral("-gpu."), actual)}) {
+            QSaveFile artifact(QDir(results).filePath(prefix + entry.first + extension));
+            QVERIFY(artifact.open(QIODevice::WriteOnly));
+            QCOMPARE(artifact.write(entry.second), entry.second.size());
+            QVERIFY(artifact.commit());
+        }
+    }
+    QCOMPARE(sourceLayer->metaData()->getValue(uri, QStringLiteral("Make")).asVariant().toString(), QStringLiteral("Fixture camera"));
+    QCOMPARE(owner->operations().snapshot(), version);
+    QCOMPARE(owner->operations().undoCount(), history);
 }
 
 void TestDocument::testThumbnail()
