@@ -36,6 +36,20 @@ FileCode fileCode(ExecutionCode code)
     }
     return FileCode::DeviceFailure;
 }
+
+RasterLayer rasterLayerDescription(const Layer &layer)
+{
+    RasterLayer value{layer.name, layer.visible, layer.uuid, {}, layer.defaultPixel, layer.opacity,
+                      layer.userLocked, layer.pinnedToTimeline, layer.channelWriteMask};
+    value.position = layer.position;
+    value.kind = layer.kind;
+    value.parentUuid = layer.parentUuid;
+    value.colorLabelIndex = layer.colorLabelIndex;
+    value.projectionChannelMask = layer.projectionChannelMask;
+    value.passThrough = layer.passThrough;
+    value.blendMode = layer.blendMode;
+    return value;
+}
 }
 
 FileOpenOutcome PaintDocument::openKra(Execution &execution, const QString &path, Limits limits)
@@ -99,6 +113,15 @@ FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadat
     Kra::Document value;
     value.description = m_d->description;
     value.files = m_d->files;
+    if (metadata.layerXmp) {
+        const auto version = m_d->image->operations().snapshot();
+        value.image.size = version->size;
+        value.image.projectionBackground = version->projectionBackground;
+        for (const auto &layer : version->layers) {
+            if (layer.id == version->activeLayer) value.image.activeLayer = value.image.layers.size();
+            value.image.layers.append(rasterLayerDescription(layer));
+        }
+    }
     const auto outcome = Kra::RasterCodec::updateImageMetadata(value, metadata, Private::formatLimits(m_d->limits));
     if (outcome.code != Kra::Status::Success) return {fileCode(outcome.code), {}, outcome.diagnostic};
     m_d->description = std::move(value.description);
@@ -142,14 +165,7 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
     qsizetype rasterBytes = 0;
     for (const auto &layer : pinned->layers) {
         if (pinned->activeLayer == layer.id) output.image.activeLayer = output.image.layers.size();
-        RasterLayer saved{layer.name, layer.visible, layer.uuid, {}, layer.defaultPixel, layer.opacity, layer.userLocked, layer.pinnedToTimeline, layer.channelWriteMask};
-        saved.position = layer.position;
-        saved.kind = layer.kind;
-        saved.parentUuid = layer.parentUuid;
-        saved.colorLabelIndex = layer.colorLabelIndex;
-        saved.projectionChannelMask = layer.projectionChannelMask;
-        saved.passThrough = layer.passThrough;
-        saved.blendMode = layer.blendMode;
+        RasterLayer saved = rasterLayerDescription(layer);
         if (layer.kind == LayerKind::Paint) {
             const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
             if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};

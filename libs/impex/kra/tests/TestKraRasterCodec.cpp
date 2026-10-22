@@ -139,6 +139,10 @@ private Q_SLOTS:
     void projectionChannelsSurviveEditingAndResaving_data();
     void projectionChannelsSurviveEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
+    void layerImageMetadataFollowsIdentityThroughReplacement();
+    void invalidLayerImageMetadataPreservesTheDocument_data();
+    void invalidLayerImageMetadataPreservesTheDocument();
+    void newLayersKeepUnownedMetadataFilesIndependent();
     void documentColorSettingsSurviveReplacementAndClearing();
     void documentTitlesMoveAssociatedFilesAtomically();
     void imageProfileIdentitySurvivesMetadataUpdates_data();
@@ -1388,6 +1392,136 @@ void TestKraRasterCodec::zipDirectoryCapacityPreservesTheOutput()
     QVERIFY(rejected.open(QIODevice::WriteOnly));
     QCOMPARE(Kra::RasterCodec::write(rejected, source, merged({1, 1}), limits).code, Kra::Status::CapacityExceeded);
     QVERIFY(untouched.isEmpty());
+}
+
+void TestKraRasterCodec::layerImageMetadataFollowsIdentityThroughReplacement()
+{
+    const auto encode = [](const Kra::Document &value) {
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        if (!output.open(QIODevice::WriteOnly) || Kra::RasterCodec::write(output, value, merged(value.image.size)).code != Kra::Status::Success) return QByteArray();
+        return bytes;
+    };
+    const auto names = [](const Kra::Document &value) {
+        QMap<QUuid, QString> result;
+        QDomDocument xml;
+        if (!xml.setContent(value.description)) return result;
+        const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        const auto elements = image.elementsByTagName(QStringLiteral("layer"));
+        for (int i = 0; i < elements.size(); ++i) {
+            const auto element = elements.at(i).toElement();
+            result.insert(QUuid(element.attribute(QStringLiteral("uuid"))), image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename")) + QStringLiteral(".xmp.metadata"));
+        }
+        return result;
+    };
+    auto initial = load(encode(document()));
+    QCOMPARE(initial.code, Kra::Status::Success);
+    auto &value = initial.document;
+    const auto oldNames = names(value);
+    const auto kept = value.image.layers[0].uuid;
+    const auto removed = value.image.layers[1].uuid;
+    value.files.insert(QStringLiteral("image/layers/.xmp.metadata"), QByteArrayLiteral("root-packet"));
+    value.files.insert(oldNames.value(kept), QByteArrayLiteral("kept-packet"));
+    value.files.insert(oldNames.value(removed), QByteArrayLiteral("removed-packet"));
+    const auto extracted = Kra::RasterCodec::readImageMetadata(value.description, value.files);
+    QCOMPARE(extracted.code, Kra::Status::Success);
+    QVERIFY(extracted.metadata.rootLayerXmp.has_value());
+    QVERIFY(extracted.metadata.layerXmp.has_value());
+    QCOMPARE(*extracted.metadata.rootLayerXmp, QByteArrayLiteral("root-packet"));
+    QCOMPARE(extracted.metadata.layerXmp->value(kept), QByteArrayLiteral("kept-packet"));
+    Kra::ImageMetadata unowned;
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(value, unowned).code, Kra::Status::Success);
+    QCOMPARE(value.files.value(oldNames.value(kept)), QByteArrayLiteral("kept-packet"));
+    QCOMPARE(value.files.value(QStringLiteral("image/layers/.xmp.metadata")), QByteArrayLiteral("root-packet"));
+
+    value.image.layers.removeLast();
+    const QUuid created(QStringLiteral("{6a080099-1122-3344-5566-778899aabbcc}"));
+    value.image.layers.append({QStringLiteral("New layer"), true, created, {}});
+    value.image.activeLayer = 1;
+    Kra::ImageMetadata replacement;
+    replacement.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    replacement.profileName = QStringLiteral("Fixture embedded sRGB");
+    replacement.rootLayerXmp = QByteArrayLiteral("updated-root");
+    replacement.layerXmp = QMap<QUuid, QByteArray>{{kept, QByteArrayLiteral("updated-kept")}, {created, QByteArrayLiteral("created-packet")}};
+    const auto updated = Kra::RasterCodec::updateImageMetadata(value, replacement);
+    QVERIFY2(updated.code == Kra::Status::Success, qPrintable(updated.diagnostic));
+    QVERIFY(!value.files.contains(oldNames.value(removed)));
+    const auto after = Kra::RasterCodec::readImageMetadata(value.description, value.files);
+    QCOMPARE(after.code, Kra::Status::Success);
+    QCOMPARE(*after.metadata.rootLayerXmp, QByteArrayLiteral("updated-root"));
+    QCOMPARE(*after.metadata.layerXmp, *replacement.layerXmp);
+    const auto reopened = load(encode(value));
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    const auto saved = Kra::RasterCodec::readImageMetadata(reopened.document.description, reopened.document.files);
+    QCOMPARE(*saved.metadata.layerXmp, *replacement.layerXmp);
+    QCOMPARE(saved.metadata.rootLayerXmp, replacement.rootLayerXmp);
+    QCOMPARE(reopened.document.image.layers[0].tiles[0].rgba, value.image.layers[0].tiles[0].rgba);
+    QCOMPARE(reopened.document.files.value(QStringLiteral("notes/custom.bin")), document().files.value(QStringLiteral("notes/custom.bin")));
+    replacement.rootLayerXmp = QByteArray();
+    replacement.layerXmp = QMap<QUuid, QByteArray>();
+    auto cleared = reopened.document;
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(cleared, replacement).code, Kra::Status::Success);
+    QVERIFY(!cleared.files.contains(QStringLiteral("image/layers/.xmp.metadata")));
+    for (const auto &name : names(cleared)) QVERIFY(!cleared.files.contains(name));
+    const auto absent = Kra::RasterCodec::readImageMetadata(cleared.description, cleared.files);
+    QCOMPARE(absent.code, Kra::Status::Success);
+    QVERIFY(!absent.metadata.rootLayerXmp.has_value());
+    cleared.files.insert(QStringLiteral("image/layers/.xmp.metadata"), {});
+    const auto empty = Kra::RasterCodec::readImageMetadata(cleared.description, cleared.files);
+    QCOMPARE(empty.code, Kra::Status::Success);
+    QVERIFY(empty.metadata.rootLayerXmp.has_value());
+    QVERIFY(empty.metadata.rootLayerXmp->isEmpty());
+}
+
+void TestKraRasterCodec::invalidLayerImageMetadataPreservesTheDocument_data()
+{
+    QTest::addColumn<QString>("reason");
+    QTest::newRow("foreign-layer") << QStringLiteral("foreign");
+    QTest::newRow("null-layer") << QStringLiteral("null");
+    QTest::newRow("packet-capacity") << QStringLiteral("capacity");
+}
+
+void TestKraRasterCodec::invalidLayerImageMetadataPreservesTheDocument()
+{
+    QFETCH(QString, reason);
+    auto value = document();
+    const auto originalDescription = value.description;
+    const auto originalFiles = value.files;
+    Kra::Limits limits;
+    Kra::ImageMetadata metadata;
+    metadata.layerXmp = QMap<QUuid, QByteArray>();
+    Kra::Status expected = Kra::Status::InvalidData;
+    if (reason == QLatin1String("foreign")) metadata.layerXmp->insert(QUuid(QStringLiteral("{6a080099-1122-3344-5566-778899aabbcc}")), QByteArrayLiteral("foreign"));
+    else if (reason == QLatin1String("null")) metadata.layerXmp->insert({}, QByteArrayLiteral("null"));
+    else {
+        limits.archiveBytes = 65536;
+        metadata.rootLayerXmp = QByteArray(limits.archiveBytes + 1, 'x');
+        expected = Kra::Status::CapacityExceeded;
+    }
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(value, metadata, limits).code, expected);
+    QCOMPARE(value.description, originalDescription);
+    QCOMPARE(value.files, originalFiles);
+}
+
+void TestKraRasterCodec::newLayersKeepUnownedMetadataFilesIndependent()
+{
+    Kra::Document value;
+    value.image.size = {1, 1};
+    value.image.layers = {{QStringLiteral("New paint"), true, QUuid(QStringLiteral("{6a080099-1122-3344-5566-778899aabbcc}")), {}}};
+    const QString orphan = QStringLiteral("image/layers/layer1.xmp.metadata");
+    value.files.insert(orphan, QByteArrayLiteral("unowned-packet"));
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, value, merged({1, 1})).code, Kra::Status::Success);
+    const auto files = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
+    const QString associated = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + layer.attribute(QStringLiteral("filename")) + QStringLiteral(".xmp.metadata");
+    QVERIFY(!files.contains(associated));
+    QCOMPARE(files.value(orphan), QByteArrayLiteral("unowned-packet"));
 }
 
 void TestKraRasterCodec::legacyLayerWithoutUuidGetsOnePersistentIdentity()

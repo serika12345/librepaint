@@ -373,6 +373,15 @@ KRAとPNGを保存する。PNGの全バイトと、同じ描画所有者のKRA�
 `testGpuRasterExportKeepsLayerImageMetadata`は固定したTIFF Make値、RGBA8画素、日時と設定で、
 通常操作・公開APIから書き出したPNG・JPEGをCPU参照と全バイト比較する。
 `LIBREPAINT_GPU_RESULT_DIR`へ`layer-image-<操作・形式>-{cpu,gpu}.{png,jpg}`を出力する。
+`testNativeLayerImageMetadataSurvivesEditing`はCPU保存に由来するルート・グループ・描画レイヤーのXMPを
+通常の読込、変更・消去、保存と両エンジンでの再読込、PNG・JPEG書出しで照合する。
+TIFF Make・Artist・Model、UUID、RGBA8画素、文書情報・時刻と設定を固定し、書出しをCPU参照と全バイト比較する。
+`testNativeLayerRemovalDoesNotReassignMetadata`は削除のUndo／Redo、保存再読込後のレイヤー作成とメタデータ設定を照合する。
+`testNativeMalformedLayerMetadataKeepsWarningAndOtherValues`は不正なXMPの警告と、他のレイヤーの値の保持を検査する。
+`testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest`は通常の自動保存で開始時の値を固定し、
+復旧要求では追加変更を含む最新の値を保存してから完了することを検査する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`native-layer-metadata-{cpu,gpu}-{source,updated,replacements}.kra`、
+`native-layer-metadata-{cpu,gpu}-export.{png,jpg}`と`native-layer-metadata-gpu-autosave-{autosave,recovery}.kra`を出力する。
 通常・GPUのKRA保存は固定したUUID、文書情報と日時で`color-history-native.kra`と`color-history-gpu.kra`を出力し、
 再読込み後の色順序と、その色を文書の色空間へ変換して描いた画素を全成分で照合する。
 同じ文書の色履歴と補助線の共通色を変更して再保存し、`-updated.kra`と`-cleared.kra`で置換と履歴消去を検査する。

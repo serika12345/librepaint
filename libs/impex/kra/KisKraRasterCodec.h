@@ -9,6 +9,7 @@
 #include <QMap>
 #include <kritaimpexkra_export.h>
 #include <functional>
+#include <optional>
 
 class QIODevice;
 class QImage;
@@ -56,6 +57,13 @@ struct ImageMetadata
     QByteArray animationMetadata;
     /** Nonempty values replace the saved profile label; empty retains its current label. */
     QString profileName;
+    /** Root and public-layer XMP packets. Missing values preserve unowned data;
+     * present empty values clear the corresponding owned packets. Updating
+     * layerXmp uses the current structure in Document::image, without encoding
+     * its raster tiles. Keys identify the current paint layers and groups.
+     */
+    std::optional<QByteArray> rootLayerXmp;
+    std::optional<QMap<QUuid, QByteArray>> layerXmp;
 };
 struct Outcome
 {

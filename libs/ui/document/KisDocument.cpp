@@ -31,6 +31,9 @@
 #include <limits>
 #include <optional>
 #include <metadata/KoDocumentInfo.h>
+#include <metadata/kis_meta_data_store.h>
+#include <metadata/kis_meta_data_backend_registry.h>
+#include <metadata/kis_meta_data_io_backend.h>
 #include <KoUnit.h>
 #include <KoID.h>
 #include <KoProgressProxy.h>
@@ -95,6 +98,7 @@
 #include <QSignalBlocker>
 #include <QStringList>
 #include <QTimer>
+#include <QThread>
 #include <QWidget>
 #include <QFuture>
 #include <QFutureWatcher>
@@ -299,9 +303,13 @@ KisImportExportErrorCode readStaticKraSettings(const QByteArray &bytes, StaticKr
     return ImportExportCodes::OK;
 }
 
-LibrePaint::ImportExport::Kra::ImageMetadata gpuKraMetadata(KisDocument &document,
+LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document,
+                                                        LibrePaint::Document::Gpu::PaintDocument &fileDocument,
                                                         const QDateTime &saveTime = QDateTime::currentDateTime())
 {
+    using LibrePaint::Document::Gpu::FileCode;
+    if (QThread::currentThread() != document.thread())
+        return {FileCode::InvalidData, {}, i18n("Image metadata requires the document thread.")};
     LibrePaint::ImportExport::Kra::ImageMetadata metadata;
     KisImageSP image = document.image();
     metadata.resolution = {image->xRes() * 72, image->yRes() * 72};
@@ -347,7 +355,41 @@ LibrePaint::ImportExport::Kra::ImageMetadata gpuKraMetadata(KisDocument &documen
         if (*entry && !(*entry)->type().isEmpty() && (*entry)->type() != QLatin1String("icc"))
             metadata.annotations.append({(*entry)->type(), (*entry)->description(), (*entry)->annotation()});
     }
-    return metadata;
+    KisMetaData::IOBackend *backend = nullptr;
+    FileCode metadataStatus = FileCode::Success;
+    QString diagnostic;
+    const auto encode = [&](KisNodeSP node, QByteArray &packet) {
+        auto *layer = qobject_cast<KisLayer *>(node.data());
+        if (!layer || layer->metaData()->isEmpty()) return true;
+        if (!backend) backend = KisMetadataBackendRegistry::instance()->get(QStringLiteral("xmp"));
+        if (!backend || !backend->supportSaving()) {
+            metadataStatus = FileCode::UnsupportedData;
+            diagnostic = i18n("The XMP metadata writer is unavailable.");
+            return false;
+        }
+        QBuffer buffer;
+        if (!backend->saveTo(layer->metaData(), &buffer)) {
+            metadataStatus = FileCode::InvalidData;
+            diagnostic = i18n("Could not save metadata for layer %1.", layer->name());
+            return false;
+        }
+        packet = buffer.data();
+        return true;
+    };
+    KisNodeSP root = image->root();
+    QByteArray rootPacket;
+    if (!encode(root, rootPacket)) return {metadataStatus, {}, diagnostic};
+    metadata.rootLayerXmp = std::move(rootPacket);
+    metadata.layerXmp.emplace();
+    bool captured = true;
+    KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
+        if (!captured || node == root) return;
+        QByteArray packet;
+        captured = encode(node, packet);
+        if (captured && !packet.isEmpty()) metadata.layerXmp->insert(node->uuid(), std::move(packet));
+    });
+    if (!captured) return {metadataStatus, {}, diagnostic};
+    return fileDocument.setKraImageMetadata(metadata);
 }
 
 QString gpuKraEditingError(const QDomElement &image)
@@ -1133,7 +1175,7 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
         QPointer<KisDocument> guard(this);
         d->gpuSaving = true;
         if (!exporting) d->modificationState.markSavingStarted();
-        auto outcome = fileDocument->setKraImageMetadata(gpuKraMetadata(*this, saveTime));
+        auto outcome = applyGpuKraMetadata(*this, *fileDocument, saveTime);
         if (outcome.code == GpuDocument::FileCode::Success)
             outcome = exporting ? fileDocument->exportKra(job.filePath) : fileDocument->saveKra(job.filePath);
         const bool success = outcome.code == GpuDocument::FileCode::Success;
@@ -1211,7 +1253,7 @@ QByteArray KisDocument::serializeToNativeByteArray()
     if (const auto fileDocument = d->gpuDocument) {
         if (!buffer.open(QIODevice::ReadWrite)) return {};
         try {
-            auto outcome = fileDocument->setKraImageMetadata(gpuKraMetadata(*this));
+            auto outcome = applyGpuKraMetadata(*this, *fileDocument);
             if (outcome.code == LibrePaint::Document::Gpu::FileCode::Success)
                 outcome = fileDocument->exportKra(buffer);
             d->lastErrorMessage = outcome.diagnostic;
@@ -1743,7 +1785,7 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::Private::startGpuAutoSave(
     modificationState.markSavingStarted();
     modificationState.markAutoSaveStarted();
     autoSaveState.markAutoSaveExportStarted();
-    const auto prepared = fileDocument->setKraImageMetadata(gpuKraMetadata(*q));
+    const auto prepared = applyGpuKraMetadata(*q, *fileDocument);
     gpuAutoSaveJob = [this, fileDocument, pinned, prepared, job, mode] {
         if (gpuDocument != fileDocument) {
             gpuSaving = false;
@@ -3149,6 +3191,26 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
         registry->createColorProfileFromData(QStringLiteral("RGBA"), QStringLiteral("U8"), metadata.metadata.iccProfile);
     const auto cs = profile ? registry->colorSpace(QStringLiteral("RGBA"), QStringLiteral("U8"), profile) : nullptr;
     if (!cs) return reject(i18n("The KRA color profile cannot be loaded."), ImportExportCodes::FormatColorSpaceUnsupported);
+    KisMetaData::Store rootMetadata;
+    QMap<QUuid, KisMetaData::Store> layerMetadata;
+    QStringList metadataWarnings;
+    if (metadata.metadata.rootLayerXmp || (metadata.metadata.layerXmp && !metadata.metadata.layerXmp->isEmpty())) {
+        const auto backend = KisMetadataBackendRegistry::instance()->get(QStringLiteral("xmp"));
+        if (!backend || !backend->supportLoading()) return reject(i18n("The XMP metadata reader is unavailable."));
+        const auto decode = [&](QByteArray packet, const QString &name, KisMetaData::Store &store) {
+            QBuffer buffer(&packet);
+            KisMetaData::Store decoded;
+            if (backend->loadFrom(&decoded, &buffer)) store.copyFrom(&decoded);
+            else metadataWarnings.append(i18n("Could not load metadata for layer %1.", name));
+        };
+        if (metadata.metadata.rootLayerXmp) decode(*metadata.metadata.rootLayerXmp, QStringLiteral("root"), rootMetadata);
+        if (metadata.metadata.layerXmp) {
+            for (const auto &layer : loaded.document.image.layers) {
+                const auto it = metadata.metadata.layerXmp->constFind(layer.uuid);
+                if (it != metadata.metadata.layerXmp->cend()) decode(it.value(), layer.name, layerMetadata[layer.uuid]);
+            }
+        }
+    }
     QString diagnostic;
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
     if (!execution) return reject(diagnostic, ImportExportCodes::Failure);
@@ -3156,6 +3218,14 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
     if (opened.code != Files::FileCode::Success) return reject(opened.diagnostic, gpuFileStatus(opened.code));
     const std::shared_ptr<Files::PaintDocument> fileDocument = std::move(opened.document);
     auto image = KisImage::fromGpuImage(fileDocument->image(), imageElement.attribute(QStringLiteral("name")), cs);
+    KisNodeSP root = image->root();
+    qobject_cast<KisLayer *>(root.data())->metaData()->copyFrom(&rootMetadata);
+    KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
+        if (node == root) return;
+        const auto it = layerMetadata.constFind(node->uuid());
+        auto *layer = qobject_cast<KisLayer *>(node.data());
+        if (layer && it != layerMetadata.cend()) layer->metaData()->copyFrom(&it.value());
+    });
     image->setResolution(metadata.metadata.resolution.x() / 72, metadata.metadata.resolution.y() / 72);
     auto *animation = image->animationInterface();
     if (timing.framerate) animation->setFramerate(*timing.framerate);
@@ -3179,6 +3249,7 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
     }
     d->mirrorAxisConfig = mirror;
     d->globalAssistantsColor = assistants;
+    if (!metadataWarnings.isEmpty()) setWarningMessage(metadataWarnings.join(QLatin1Char('\n')));
     setColorHistoryColors(colors);
     if (!guard) return ImportExportCodes::OK;
     setCurrentImageImpl(image, true, {}, fileDocument);

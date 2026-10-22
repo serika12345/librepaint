@@ -73,6 +73,13 @@ private Q_SLOTS:
     void testGpuDocumentCopyKeepsLayerImageMetadata();
     void testGpuRasterExportKeepsLayerImageMetadata_data();
     void testGpuRasterExportKeepsLayerImageMetadata();
+    void testNativeLayerImageMetadataSurvivesEditing_data();
+    void testNativeLayerImageMetadataSurvivesEditing();
+    void testNativeLayerRemovalDoesNotReassignMetadata_data();
+    void testNativeLayerRemovalDoesNotReassignMetadata();
+    void testNativeMalformedLayerMetadataKeepsWarningAndOtherValues_data();
+    void testNativeMalformedLayerMetadataKeepsWarningAndOtherValues();
+    void testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest();
     void testThumbnail();
     void testCreateFillLayer();
     void testCreateCloneLayer();
