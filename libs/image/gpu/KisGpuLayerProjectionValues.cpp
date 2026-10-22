@@ -37,7 +37,9 @@ std::array<quint8, 4> separableProjectionPixel(std::array<quint8, 4> destination
     for (int channel = 0; channel < 3; ++channel) {
         if (!(mask & (1u << channel))) continue;
         const auto multiplied = multiplyByte(source[channel], destination[channel]);
-        const auto product = quint8(mode == LayerBlendMode::Darken ? qMin(source[channel], destination[channel]) :
+        const auto product = quint8(mode == LayerBlendMode::Addition || mode == LayerBlendMode::LinearDodge ?
+            qMin(255, int(source[channel]) + destination[channel]) :
+            mode == LayerBlendMode::Darken ? qMin(source[channel], destination[channel]) :
             mode == LayerBlendMode::Lighten ? qMax(source[channel], destination[channel]) :
             mode == LayerBlendMode::Screen ? source[channel] + destination[channel] - multiplied : multiplied);
         if (locked || oldAlpha == 255) {

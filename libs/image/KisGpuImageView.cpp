@@ -103,7 +103,8 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         auto *group = qobject_cast<KisGroupLayer*>(node.data());
         if (!layer || (!paint && !group) || (paint && node->childCount()) ||
             (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT && layer->compositeOpId() != COMPOSITE_SCREEN &&
-             layer->compositeOpId() != COMPOSITE_DARKEN && layer->compositeOpId() != COMPOSITE_LIGHTEN) ||
+             layer->compositeOpId() != COMPOSITE_DARKEN && layer->compositeOpId() != COMPOSITE_LIGHTEN &&
+             layer->compositeOpId() != COMPOSITE_ADD && layer->compositeOpId() != COMPOSITE_LINEAR_DODGE) ||
             node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
             layer->temporary() || (paint && paint->hasTemporaryTarget()) ||
             *layer->colorSpace() != *colorSpace()) return false;
@@ -116,7 +117,9 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         properties.blendMode = layer->compositeOpId() == COMPOSITE_MULT ? Gpu::LayerBlendMode::Multiply :
                     layer->compositeOpId() == COMPOSITE_SCREEN ? Gpu::LayerBlendMode::Screen :
                     layer->compositeOpId() == COMPOSITE_DARKEN ? Gpu::LayerBlendMode::Darken :
-                    layer->compositeOpId() == COMPOSITE_LIGHTEN ? Gpu::LayerBlendMode::Lighten : Gpu::LayerBlendMode::Normal;
+                    layer->compositeOpId() == COMPOSITE_LIGHTEN ? Gpu::LayerBlendMode::Lighten :
+                    layer->compositeOpId() == COMPOSITE_ADD ? Gpu::LayerBlendMode::Addition :
+                    layer->compositeOpId() == COMPOSITE_LINEAR_DODGE ? Gpu::LayerBlendMode::LinearDodge : Gpu::LayerBlendMode::Normal;
         properties.name = node->name();
         properties.uuid = node->uuid();
         properties.parentUuid = roots.contains(node) ? (parent == root() ? QUuid() : parent->uuid()) : node->parent()->uuid();
@@ -259,7 +262,8 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         auto *group = qobject_cast<KisGroupLayer*>(node.data());
         if (!source || !layer || (!paint && !group) || (paint && node->childCount()) ||
             (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT && layer->compositeOpId() != COMPOSITE_SCREEN &&
-             layer->compositeOpId() != COMPOSITE_DARKEN && layer->compositeOpId() != COMPOSITE_LIGHTEN) || node->isAnimated() ||
+             layer->compositeOpId() != COMPOSITE_DARKEN && layer->compositeOpId() != COMPOSITE_LIGHTEN &&
+             layer->compositeOpId() != COMPOSITE_ADD && layer->compositeOpId() != COMPOSITE_LINEAR_DODGE) || node->isAnimated() ||
             !node->keyframeChannels().isEmpty() || layer->layerStyle() || layer->temporary() ||
             (paint && paint->hasTemporaryTarget()) ||
             *layer->colorSpace() != *colorSpace() || pending.size() > owner->limits().layerCount) return {};
@@ -482,7 +486,9 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             node->setCompositeOpId(layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Multiply ? COMPOSITE_MULT :
                 layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Screen ? COMPOSITE_SCREEN :
                 layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Darken ? COMPOSITE_DARKEN :
-                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Lighten ? COMPOSITE_LIGHTEN : COMPOSITE_OVER);
+                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Lighten ? COMPOSITE_LIGHTEN :
+                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Addition ? COMPOSITE_ADD :
+                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::LinearDodge ? COMPOSITE_LINEAR_DODGE : COMPOSITE_OVER);
             if (changed()) break;
             node->setVisible(layer.visible);
             if (changed()) break;

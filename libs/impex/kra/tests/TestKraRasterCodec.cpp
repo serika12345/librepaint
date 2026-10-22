@@ -639,7 +639,7 @@ void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving()
 
 void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
 {
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten}) {
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge}) {
         auto source = document();
         RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
         group.kind = LayerKind::Group;
@@ -651,6 +651,16 @@ void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
         QBuffer output(&bytes);
         QVERIFY(output.open(QIODevice::WriteOnly));
         QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+        QDomDocument xml;
+        QVERIFY(xml.setContent(entries(bytes).value(QStringLiteral("maindoc.xml"))));
+        const auto elements = xml.elementsByTagName(QStringLiteral("layer"));
+        for (int i = 0; i < elements.size(); ++i) {
+            const auto element = elements.item(i).toElement();
+            if (element.attribute(QStringLiteral("uuid")) != group.uuid.toString() &&
+                element.attribute(QStringLiteral("uuid")) != source.image.layers[0].uuid.toString()) continue;
+            if (mode == LayerBlendMode::Addition) QCOMPARE(element.attribute(QStringLiteral("compositeop")), QStringLiteral("add"));
+            if (mode == LayerBlendMode::LinearDodge) QCOMPARE(element.attribute(QStringLiteral("compositeop")), QStringLiteral("linear_dodge"));
+        }
         const auto imported = load(bytes);
         QCOMPARE(imported.code, Kra::Status::Success);
         for (const auto &expected : source.image.layers) {
@@ -668,7 +678,7 @@ void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
         const auto reopened = load(saved);
         QCOMPARE(reopened.code, Kra::Status::Success);
         for (const auto &layer : reopened.document.image.layers) QCOMPARE(layer.blendMode, LayerBlendMode::Normal);
-        edited.image.layers[0].blendMode = LayerBlendMode(5);
+        edited.image.layers[0].blendMode = LayerBlendMode(7);
         const auto retained = saved;
         QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::InvalidData);
         QCOMPARE(saved, retained);

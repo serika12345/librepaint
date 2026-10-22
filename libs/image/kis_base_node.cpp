@@ -157,7 +157,8 @@ void KisBaseNode::setCompositeOpId(const QString& compositeOp)
     const auto currentImage = image();
     if (currentImage && !currentImage->isSynchronizingGpuNodes() &&
         (compositeOp == COMPOSITE_OVER || compositeOp == COMPOSITE_MULT || compositeOp == COMPOSITE_SCREEN ||
-         compositeOp == COMPOSITE_DARKEN || compositeOp == COMPOSITE_LIGHTEN)) {
+         compositeOp == COMPOSITE_DARKEN || compositeOp == COMPOSITE_LIGHTEN ||
+         compositeOp == COMPOSITE_ADD || compositeOp == COMPOSITE_LINEAR_DODGE)) {
         if (const auto owner = currentImage->gpuImage()) {
             namespace Gpu = LibrePaint::Image::Gpu;
             for (const auto &layer : owner->operations().snapshot()->layers) {
@@ -166,7 +167,9 @@ void KisBaseNode::setCompositeOpId(const QString& compositeOp)
                     compositeOp == COMPOSITE_MULT ? Gpu::LayerBlendMode::Multiply :
                     compositeOp == COMPOSITE_SCREEN ? Gpu::LayerBlendMode::Screen :
                     compositeOp == COMPOSITE_DARKEN ? Gpu::LayerBlendMode::Darken :
-                    compositeOp == COMPOSITE_LIGHTEN ? Gpu::LayerBlendMode::Lighten : Gpu::LayerBlendMode::Normal);
+                    compositeOp == COMPOSITE_LIGHTEN ? Gpu::LayerBlendMode::Lighten :
+                    compositeOp == COMPOSITE_ADD ? Gpu::LayerBlendMode::Addition :
+                    compositeOp == COMPOSITE_LINEAR_DODGE ? Gpu::LayerBlendMode::LinearDodge : Gpu::LayerBlendMode::Normal);
                 if (result != Gpu::Result::Success)
                     throw std::runtime_error("GPU layer blending mode write failed: " + std::to_string(int(result)));
                 if (m_d->compositeOp == compositeOp) return;

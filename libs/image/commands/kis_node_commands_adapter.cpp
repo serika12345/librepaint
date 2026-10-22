@@ -193,7 +193,8 @@ void KisNodeCommandsAdapter::setCompositeOp(KisNodeSP node,
     if (const auto owner = currentImage->gpuImage()) {
         namespace Gpu = LibrePaint::Image::Gpu;
         if (compositeOp->id() != COMPOSITE_OVER && compositeOp->id() != COMPOSITE_MULT && compositeOp->id() != COMPOSITE_SCREEN &&
-            compositeOp->id() != COMPOSITE_DARKEN && compositeOp->id() != COMPOSITE_LIGHTEN) {
+            compositeOp->id() != COMPOSITE_DARKEN && compositeOp->id() != COMPOSITE_LIGHTEN &&
+            compositeOp->id() != COMPOSITE_ADD && compositeOp->id() != COMPOSITE_LINEAR_DODGE) {
             qWarning("The selected GPU layer blending mode is unavailable");
             return;
         }
@@ -201,7 +202,9 @@ void KisNodeCommandsAdapter::setCompositeOp(KisNodeSP node,
             compositeOp->id() == COMPOSITE_MULT ? Gpu::LayerBlendMode::Multiply :
                     compositeOp->id() == COMPOSITE_SCREEN ? Gpu::LayerBlendMode::Screen :
                     compositeOp->id() == COMPOSITE_DARKEN ? Gpu::LayerBlendMode::Darken :
-                    compositeOp->id() == COMPOSITE_LIGHTEN ? Gpu::LayerBlendMode::Lighten : Gpu::LayerBlendMode::Normal,
+                    compositeOp->id() == COMPOSITE_LIGHTEN ? Gpu::LayerBlendMode::Lighten :
+                    compositeOp->id() == COMPOSITE_ADD ? Gpu::LayerBlendMode::Addition :
+                    compositeOp->id() == COMPOSITE_LINEAR_DODGE ? Gpu::LayerBlendMode::LinearDodge : Gpu::LayerBlendMode::Normal,
             Gpu::PropertyHistory::MergeConsecutive);
         if (result != Gpu::Result::Success)
             throw std::runtime_error("GPU layer blending mode edit failed: " + std::to_string(int(result)));

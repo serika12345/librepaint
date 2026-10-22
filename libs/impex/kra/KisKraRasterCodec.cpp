@@ -157,12 +157,14 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("multiply") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("screen") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("darken") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("lighten")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("lighten") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("add") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("linear_dodge")) ||
         element.attribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA")) != QLatin1String("RGBA") ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (!group && !child.isNull()) || (group && !child.isNull() &&
             (child.tagName() != QLatin1String("layers") || !child.nextSiblingElement().isNull())))
-        return unsupported(QStringLiteral("KRA requires RGBA8 paint layers and groups with normal, multiply, screen, darken or lighten compositing"));
+        return unsupported(QStringLiteral("KRA requires RGBA8 paint layers and groups with normal, multiply, screen, darken, lighten, addition or linear dodge compositing"));
     const auto passThrough = element.attribute(QStringLiteral("passthrough"), QStringLiteral("0"));
     if ((passThrough != QLatin1String("0") && passThrough != QLatin1String("1")) ||
         (!group && passThrough != QLatin1String("0")))
@@ -567,7 +569,9 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         layer.blendMode = element.attribute(QStringLiteral("compositeop")) == QLatin1String("multiply") ? LayerBlendMode::Multiply :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("screen") ? LayerBlendMode::Screen :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("darken") ? LayerBlendMode::Darken :
-            element.attribute(QStringLiteral("compositeop")) == QLatin1String("lighten") ? LayerBlendMode::Lighten : LayerBlendMode::Normal;
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("lighten") ? LayerBlendMode::Lighten :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("add") ? LayerBlendMode::Addition :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("linear_dodge") ? LayerBlendMode::LinearDodge : LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;
@@ -743,7 +747,9 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         element.setAttribute(QStringLiteral("compositeop"), layer.blendMode == LayerBlendMode::Multiply ? QStringLiteral("multiply") :
                              layer.blendMode == LayerBlendMode::Screen ? QStringLiteral("screen") :
                              layer.blendMode == LayerBlendMode::Darken ? QStringLiteral("darken") :
-                             layer.blendMode == LayerBlendMode::Lighten ? QStringLiteral("lighten") : QStringLiteral("normal"));
+                             layer.blendMode == LayerBlendMode::Lighten ? QStringLiteral("lighten") :
+                             layer.blendMode == LayerBlendMode::Addition ? QStringLiteral("add") :
+                             layer.blendMode == LayerBlendMode::LinearDodge ? QStringLiteral("linear_dodge") : QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));

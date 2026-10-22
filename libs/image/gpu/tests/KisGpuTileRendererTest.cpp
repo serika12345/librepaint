@@ -18,6 +18,7 @@
 #include "KisGpuMultiplyProjectionFixture_p.h"
 #include "KisGpuScreenProjectionFixture_p.h"
 #include "KisGpuMinMaxProjectionFixture_p.h"
+#include "KisGpuAdditionProjectionFixture_p.h"
 
 using namespace LibrePaint::Image::Gpu;
 using LibrePaint::Image::Gpu::Test::legacyRecovery;
@@ -901,11 +902,12 @@ void KisGpuTileRendererTest::separableLayerProjectionMatchesNativePixels_data()
     QTest::addColumn<bool>("implicit");
     QTest::addColumn<QByteArray>("expected");
     QTest::addColumn<int>("blendMode");
-    for (int mode : {1, 2, 3, 4}) {
+    for (int mode : {1, 2, 3, 4, 5, 6}) {
         const auto references = mode == 1 ? LibrePaint::Image::Gpu::Test::multiplyProjectionReferences() :
             mode == 2 ? LibrePaint::Image::Gpu::Test::screenProjectionReferences() :
             mode == 3 ? LibrePaint::Image::Gpu::Test::darkenProjectionReferences() :
-            LibrePaint::Image::Gpu::Test::lightenProjectionReferences();
+            mode == 4 ? LibrePaint::Image::Gpu::Test::lightenProjectionReferences() :
+            LibrePaint::Image::Gpu::Test::additionProjectionReferences();
         qsizetype row = 0;
         for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
         for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {
@@ -930,7 +932,9 @@ void KisGpuTileRendererTest::separableLayerProjectionMatchesNativePixels()
     QFETCH(QByteArray, expected);
     RasterImage input;
     input.size = {256, 256};
-    const std::array<quint8, 4> colors[] = {{37, 89, 151, quint8(destinationAlpha)}, {201, 41, 93, quint8(sourceAlpha)}};
+    const std::array<quint8, 4> colors[] = {{37, 89, 151, quint8(destinationAlpha)},
+        blendMode >= int(LayerBlendMode::Addition) ? std::array<quint8, 4>{208, 224, 240, quint8(sourceAlpha)} :
+        std::array<quint8, 4>{201, 41, 93, quint8(sourceAlpha)}};
     for (int index = 0; index < 2; ++index) {
         RasterLayer layer;
         layer.opacity = index == 0 ? 255 : opacity;

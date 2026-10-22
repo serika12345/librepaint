@@ -93,7 +93,7 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory_d
         const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-") + "pass-through-" + (accept ? "accept" : "cancel");
         QTest::newRow(tag.constData()) << gpu << false << accept << true << false << true << QString() << 153 << false << true << QStringLiteral("normal");
     }
-    for (const auto &mode : {QStringLiteral("multiply"), QStringLiteral("screen"), QStringLiteral("darken"), QStringLiteral("lighten")})
+    for (const auto &mode : {QStringLiteral("multiply"), QStringLiteral("screen"), QStringLiteral("darken"), QStringLiteral("lighten"), QStringLiteral("add"), QStringLiteral("linear_dodge")})
     for (bool gpu : {false, true}) for (bool group : {false, true}) for (bool accept : {false, true}) {
         const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-") + mode.toLatin1() + '-' +
             (group ? "group-" : "paint-") + (accept ? "accept" : "cancel");
@@ -483,7 +483,9 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
                 if (layer.uuid == firstUuid || layer.uuid == secondUuid)
                     QCOMPARE(layer.blendMode, (blendMode == QLatin1String("screen") ? Gpu::LayerBlendMode::Screen :
                         blendMode == QLatin1String("darken") ? Gpu::LayerBlendMode::Darken :
-                        blendMode == QLatin1String("lighten") ? Gpu::LayerBlendMode::Lighten : Gpu::LayerBlendMode::Multiply));
+                        blendMode == QLatin1String("lighten") ? Gpu::LayerBlendMode::Lighten :
+                        blendMode == QLatin1String("add") ? Gpu::LayerBlendMode::Addition :
+                        blendMode == QLatin1String("linear_dodge") ? Gpu::LayerBlendMode::LinearDodge : Gpu::LayerBlendMode::Multiply));
                 if (layer.uuid == source->uuid()) sourceId = layer.id;
             }
             QVERIFY(sourceId);
@@ -514,7 +516,7 @@ void TestNode::testBlendModeChangesPreservePublicHistory_data()
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("entry");
     QTest::addColumn<QString>("blendMode");
-    for (const auto &mode : {QStringLiteral("multiply"), QStringLiteral("screen"), QStringLiteral("darken"), QStringLiteral("lighten")})
+    for (const auto &mode : {QStringLiteral("multiply"), QStringLiteral("screen"), QStringLiteral("darken"), QStringLiteral("lighten"), QStringLiteral("add"), QStringLiteral("linear_dodge")})
     for (bool gpu : {false, true}) for (const auto &entry : {QStringLiteral("api"), QStringLiteral("panel"), QStringLiteral("direct")}) {
         const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") + entry.toLatin1() + '-' + mode.toLatin1();
         QTest::newRow(name.constData()) << gpu << entry << mode;
@@ -548,7 +550,8 @@ void TestNode::testBlendModeChangesPreservePublicHistory()
     auto upper = image->root()->lastChild();
     QScopedPointer<Node> destination(Node::createNode(image, lower));
     QScopedPointer<Node> source(Node::createNode(image, upper));
-    const auto sourcePixels = QByteArray::fromHex("5d29c989");
+    const bool addition = blendMode == QLatin1String("add") || blendMode == QLatin1String("linear_dodge");
+    const auto sourcePixels = QByteArray::fromHex(addition ? "f0e0d089" : "5d29c989");
     QVERIFY(destination->setPixelData(QByteArray::fromHex("975925ad"), 1, 1, 1, 1));
     QVERIFY(source->setPixelData(sourcePixels, 1, 1, 1, 1));
     Document api(document.data(), false);
@@ -563,7 +566,7 @@ void TestNode::testBlendModeChangesPreservePublicHistory()
     QCOMPARE(source->blendingMode(), blendMode);
     QCOMPARE(document->undoStack()->index(), entry == QLatin1String("direct") ? 0 : 1);
     api.refreshProjection();
-    const auto blended = QByteArray::fromHex(blendMode == QLatin1String("screen") ? "9a5b65c5" :
+    const auto blended = QByteArray::fromHex(addition ? "bc946ec5" : blendMode == QLatin1String("screen") ? "9a5b65c5" :
         blendMode == QLatin1String("darken") ? "814739c5" : blendMode == QLatin1String("lighten") ? "915464c5" : "784138c5");
     QCOMPARE(api.pixelData(1, 1, 1, 1), blended);
     QCOMPARE(source->pixelData(1, 1, 1, 1), sourcePixels);
@@ -591,7 +594,9 @@ void TestNode::testBlendModeChangesPreservePublicHistory()
         const auto owner = image->gpuImage();
         QCOMPARE(owner->operations().snapshot()->layers[1].blendMode, (blendMode == QLatin1String("screen") ? Gpu::LayerBlendMode::Screen :
                         blendMode == QLatin1String("darken") ? Gpu::LayerBlendMode::Darken :
-                        blendMode == QLatin1String("lighten") ? Gpu::LayerBlendMode::Lighten : Gpu::LayerBlendMode::Multiply));
+                        blendMode == QLatin1String("lighten") ? Gpu::LayerBlendMode::Lighten :
+                        blendMode == QLatin1String("add") ? Gpu::LayerBlendMode::Addition :
+                        blendMode == QLatin1String("linear_dodge") ? Gpu::LayerBlendMode::LinearDodge : Gpu::LayerBlendMode::Multiply));
         const auto stroke = owner->beginStroke(2, Gpu::Brush{}, 43);
         QCOMPARE(owner->appendSamples(stroke, {{{3, 3}}}), Gpu::Result::Success);
         const auto pending = owner->operations().preview();

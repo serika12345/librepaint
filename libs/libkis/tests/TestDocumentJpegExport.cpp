@@ -129,9 +129,14 @@ void TestDocument::testGpuJpegExportPreservesOptionsAndDocument_data()
 {
     QTest::addColumn<int>("option");
     QTest::addColumn<bool>("menuExport");
+    QTest::addColumn<QString>("blendMode");
     for (int option = 0; option < int(std::size(jpegOptions)); ++option) for (const bool menu : {false, true}) {
         const QByteArray name = (menu ? QByteArrayLiteral("menu-") : QByteArrayLiteral("api-")) + jpegOptions[option];
-        QTest::newRow(name.constData()) << option << menu;
+        QTest::newRow(name.constData()) << option << menu << QString();
+    }
+    for (const auto &mode : {QStringLiteral("add"), QStringLiteral("linear_dodge")}) for (bool menu : {false, true}) {
+        const QByteArray name = QByteArray(menu ? "menu-" : "api-") + mode.toLatin1();
+        QTest::newRow(name.constData()) << 0 << menu << mode;
     }
 }
 
@@ -139,6 +144,7 @@ void TestDocument::testGpuJpegExportPreservesOptionsAndDocument()
 {
     QFETCH(int, option);
     QFETCH(bool, menuExport);
+    QFETCH(QString, blendMode);
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
     const auto remove = qScopeGuard([&] {
@@ -154,6 +160,13 @@ void TestDocument::testGpuJpegExportPreservesOptionsAndDocument()
     const auto rgba = jpegPixels(size);
     const auto layer = owner->operations().activeLayer();
     QCOMPARE(owner->replaceRgbaPixels(layer, image->bounds(), rgba), Gpu::Result::Success);
+    if (!blendMode.isEmpty()) {
+        const auto upper = owner->addLayer(QStringLiteral("Addition"));
+        QVERIFY(upper);
+        QCOMPARE(owner->replaceRgbaPixels(upper, image->bounds(), QByteArray::fromHex("d0e0f089").repeated(size.width() * size.height())), Gpu::Result::Success);
+        QCOMPARE(owner->setLayerOpacity(upper, 137), Gpu::Result::Success);
+        QCOMPARE(owner->setLayerBlendMode(upper, blendMode == QLatin1String("add") ? Gpu::LayerBlendMode::Addition : Gpu::LayerBlendMode::LinearDodge), Gpu::Result::Success);
+    }
     image->setResolution(300.0 / 72, 150.0 / 72);
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -178,6 +191,16 @@ void TestDocument::testGpuJpegExportPreservesOptionsAndDocument()
     const auto savedIndex = owner->operations().savedHistoryIndex();
     const auto settings = jpegConfiguration(option, image->colorSpace());
     jpegCpuDocument(reference.data(), size, image->colorSpace(), rgba);
+    if (!blendMode.isEmpty()) {
+        KisImageSP referenceImage = reference->image().toStrongRef();
+        KisPaintLayerSP upper = new KisPaintLayer(referenceImage, QStringLiteral("Addition"), 137);
+        const auto nativePixels = QByteArray::fromHex("f0e0d089").repeated(size.width() * size.height());
+        upper->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(nativePixels.constData()), 0, 0, size.width(), size.height());
+        upper->setCompositeOpId(blendMode);
+        referenceImage->addNode(upper);
+        referenceImage->initialRefreshGraph();
+        referenceImage->waitForDone();
+    }
     QVERIFY(fixedJpegInformation(reference.data()));
     const auto referencePath = directory.filePath(QStringLiteral("reference.jpg"));
     QVERIFY2(reference->exportDocumentSync(referencePath, QByteArrayLiteral("image/jpeg"), settings), qPrintable(reference->errorMessage()));

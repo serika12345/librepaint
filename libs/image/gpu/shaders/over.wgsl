@@ -147,6 +147,7 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
             case 2u: { product = source[channel] + destination[channel] - multiplied; }
             case 3u: { product = min(source[channel], destination[channel]); }
             case 4u: { product = max(source[channel], destination[channel]); }
+            case 5u, 6u: { product = min(255u, source[channel] + destination[channel]); }
             default: {}
         }
         if (locked || oldAlpha == 255u) {
