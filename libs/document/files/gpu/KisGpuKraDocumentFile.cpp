@@ -89,6 +89,7 @@ FileOpenOutcome PaintDocument::adoptKraImpl(Execution &execution, std::shared_pt
         document->m_d->path = path;
         document->m_d->description = loaded.description;
         document->m_d->files = loaded.files;
+        document->m_d->compressRaster = loaded.compressRaster;
         return {FileCode::Success, std::move(document), {}};
     } catch (const std::length_error &error) {
         return {FileCode::CapacityExceeded, {}, QString::fromUtf8(error.what())};
@@ -126,6 +127,7 @@ FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadat
     if (outcome.code != Kra::Status::Success) return {fileCode(outcome.code), {}, outcome.diagnostic};
     m_d->description = std::move(value.description);
     m_d->files = std::move(value.files);
+    m_d->compressRaster = value.compressRaster;
     return {FileCode::Success, m_d->image->operations().snapshot(), {}};
 }
 
@@ -160,6 +162,7 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
     Kra::Document output;
     output.description = d.description;
     output.files = d.files;
+    output.compressRaster = d.compressRaster;
     output.image.size = pinned->size;
     output.image.projectionBackground = pinned->projectionBackground;
     qsizetype rasterBytes = 0;

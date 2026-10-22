@@ -22,7 +22,7 @@ class KoStore;
 class KRITALIBKRA_EXPORT KisKraSaveVisitor : public KisNodeVisitor
 {
 public:
-    KisKraSaveVisitor(KoStore *store, const QString & name, QMap<const KisNode*, QString> nodeFileNames);
+    KisKraSaveVisitor(KoStore *store, const QString & name, QMap<const KisNode*, QString> nodeFileNames, bool compressRaster);
     ~KisKraSaveVisitor() override;
     using KisNodeVisitor::visit;
 
@@ -76,6 +76,7 @@ private:
 private:
 
     KoStore *m_store;
+    bool m_compressRaster;
     bool m_external;
     QString m_uri;
     QString m_name;

@@ -18,6 +18,7 @@
 #include <KisMimeDatabase.h>
 
 #include <KoCanvasBase.h>
+#include <KritaVersionWrapper.h>
 #include <KoColor.h>
 #include <kis_dom_utils.h>
 #include <KoColorProfile.h>
@@ -305,7 +306,8 @@ KisImportExportErrorCode readStaticKraSettings(const QByteArray &bytes, StaticKr
 
 LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document,
                                                         LibrePaint::Document::Gpu::PaintDocument &fileDocument,
-                                                        const QDateTime &saveTime = QDateTime::currentDateTime())
+                                                        const QDateTime &saveTime = QDateTime::currentDateTime(),
+                                                        std::optional<bool> compressRaster = {})
 {
     using LibrePaint::Document::Gpu::FileCode;
     if (QThread::currentThread() != document.thread())
@@ -313,6 +315,8 @@ LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document
     LibrePaint::ImportExport::Kra::ImageMetadata metadata;
     KisImageSP image = document.image();
     metadata.resolution = {image->xRes() * 72, image->yRes() * 72};
+    metadata.producerVersion = KritaVersionWrapper::versionString(false);
+    metadata.compressRaster = compressRaster.value_or(KisConfig(true).compressKra());
     auto info = KisDocument::createDomDocument(QStringLiteral("document-info"), QStringLiteral("document-info"), QStringLiteral("1.1"));
     metadata.documentInfo = document.documentInfo()->save(info, document.isAutosaving(), document.isModified(), saveTime).toByteArray();
     metadata.iccProfile = image->profile()->rawData();
@@ -922,9 +926,13 @@ KisDocument *KisDocument::clone(bool addStorage)
 
 bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPropertiesConfigurationSP exportConfiguration, bool isAdvancedExporting)
 {
-    if (job.mimeType == nativeFormatMimeType() && exportConfiguration && exportConfiguration->hasProperty("documentSaveTime")) {
-        exportConfiguration = KisPropertiesConfigurationSP(new KisPropertiesConfiguration(*exportConfiguration));
-        exportConfiguration->setPropertyNotSaved("documentSaveTime");
+    if (job.mimeType == nativeFormatMimeType()) {
+        exportConfiguration = exportConfiguration ? KisPropertiesConfigurationSP(new KisPropertiesConfiguration(*exportConfiguration)) :
+                                                    KisPropertiesConfigurationSP(new KisPropertiesConfiguration);
+        if (!exportConfiguration->hasProperty("compressRasterData"))
+            exportConfiguration->setProperty("compressRasterData", KisConfig(true).compressKra());
+        exportConfiguration->setPropertyNotSaved("compressRasterData");
+        if (exportConfiguration->hasProperty("documentSaveTime")) exportConfiguration->setPropertyNotSaved("documentSaveTime");
     }
     if (d->gpuDocument && job.mimeType != nativeFormatMimeType() &&
         job.mimeType != QByteArrayLiteral("image/png") && job.mimeType != QByteArrayLiteral("image/jpeg"))
@@ -1175,7 +1183,8 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
         QPointer<KisDocument> guard(this);
         d->gpuSaving = true;
         if (!exporting) d->modificationState.markSavingStarted();
-        auto outcome = applyGpuKraMetadata(*this, *fileDocument, saveTime);
+        auto outcome = applyGpuKraMetadata(*this, *fileDocument, saveTime,
+            exportConfiguration ? std::optional<bool>(exportConfiguration->getBool("compressRasterData", KisConfig(true).compressKra())) : std::nullopt);
         if (outcome.code == GpuDocument::FileCode::Success)
             outcome = exporting ? fileDocument->exportKra(job.filePath) : fileDocument->saveKra(job.filePath);
         const bool success = outcome.code == GpuDocument::FileCode::Success;
@@ -3108,7 +3117,8 @@ bool KisDocument::openPathInternal(const QString &path)
     ret = openFile();
     if (!guard) return ret;
 
-    if (!ret && d->identity.mimeType() == nativeFormatMimeType()) {
+    if (!ret && (d->identity.mimeType() == nativeFormatMimeType() ||
+                 KisPart::instance()->gpuEngineEnabled())) {
         const bool pathChanged = d->identity.path() != previousIdentity.path();
         d->identity = previousIdentity;
         if (pathChanged) Q_EMIT sigPathChanged(d->identity.path());

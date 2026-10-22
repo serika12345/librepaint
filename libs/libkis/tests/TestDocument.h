@@ -45,6 +45,10 @@ private Q_SLOTS:
     void testSavedPngDensityUsesDocumentResolution();
     void testPngWithoutPhysicalResolutionKeepsImageDefault_data();
     void testPngWithoutPhysicalResolutionKeepsImageDefault();
+    void testGpuSessionOpensPngWithGpuPixelOwnership_data();
+    void testGpuSessionOpensPngWithGpuPixelOwnership();
+    void testGpuPngRejectedOpenKeepsDocument_data();
+    void testGpuPngRejectedOpenKeepsDocument();
     void testSavedSourceOverPixelsAgreeAcrossBackends_data();
     void testSavedSourceOverPixelsAgreeAcrossBackends();
     void testSavedKraEmbeddedPngsAgreeAcrossBackends_data();

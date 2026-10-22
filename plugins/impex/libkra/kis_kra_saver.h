@@ -24,7 +24,7 @@ class KRITALIBKRA_EXPORT KisKraSaver
 {
 public:
 
-    KisKraSaver(KisDocument* document, const QString &filename, bool addMergedImage = true);
+    KisKraSaver(KisDocument* document, const QString &filename, bool addMergedImage, bool compressRaster);
 
     ~KisKraSaver();
 

@@ -18,6 +18,7 @@ struct PaintDocument::Private
     QString path;
     QByteArray description;
     QMap<QString, QByteArray> files;
+    bool compressRaster = false;
     static ImportExport::Kra::Limits formatLimits(Paint::Limits limits)
     {
         ImportExport::Kra::Limits result;

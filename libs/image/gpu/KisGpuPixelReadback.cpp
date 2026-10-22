@@ -381,6 +381,11 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
                                          QRect region, const QList<LayerId> &layers, bool includeProjection, PixelReadArea area)
 {
     if (!m_d->onThread()) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read requires the GPU thread"));
+    if (!m_d->active && !m_d->device->isRecordingFrame() && m_d->device->readbackPending()) {
+        if (!m_d->device->finish())
+            return failure(ExecutionCode::DeviceFailure, QStringLiteral("Earlier GPU pixel completion failed"));
+        retireCompletedReadback();
+    }
     auto pending = readPixelsAsync(handle, pinned, region, layers, includeProjection, area);
     if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
         return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU pixel completion failed"));
@@ -409,8 +414,9 @@ PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snap
     constexpr qsizetype capacity = 256 * 1024 * 1024;
     const auto area = layer ? PixelReadArea::LayerCoordinates : PixelReadArea::Canvas;
     const QList<LayerId> selected = layer ? QList<LayerId>{layer} : QList<LayerId>{};
-    auto outcome = readPixelsAsyncImpl(handle, pinned, {}, selected, !layer, area, false, true).get();
+    auto outcome = readPixels(handle, pinned, {}, selected, !layer, area);
     if (outcome.code != ExecutionCode::Success) return outcome;
+    outcome.bounds = QRect();
     outcome.region = layer ? QRect(-limit, -limit, 2 * limit, 2 * limit) : QRect(QPoint(), pinned->size);
     QSet<quint64> coordinates;
     const qsizetype columns = (pinned->size.width() + TileRenderer::TileSize - 1) / TileRenderer::TileSize;

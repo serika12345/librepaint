@@ -359,6 +359,17 @@ KRAとPNGを保存する。PNGの全バイトと、同じ描画所有者のKRA�
 `testPngWithoutPhysicalResolutionKeepsImageDefault`は、通常のPNG読込でpHYs未指定時の画像の既定解像度を検査する。
 固定した2×1 RGBA8のPNGを単独、および単位未指定・メートル指定のPNGの後に読み込み、
 CPU／GPUの各セッション設定で同じ解像度と画素を照合する。
+`testGpuSessionOpensPngWithGpuPixelOwnership`は、通常のPNG読込でGPU画素の所有を検査する。
+透明な画素のRGB、部分アルファ、パレット、インターレース、pHYsとXMPを持つ固定入力を使い、
+元画素・投影・プロファイル・解像度・UUID、KRA再読込とPNG／JPEG書出しを照合する。
+文書情報、選択、日時、色履歴、補助色と圧縮設定を固定し、CPU／GPUのKRA・PNG・JPEGを全バイト比較する。
+`LIBREPAINT_GPU_RESULT_DIR`を指定すると、各入力の成果物を`png-import-<入力条件>/`へ出力する。
+`testGpuPngRejectedOpenKeepsDocument`は、不正な署名、途中で切れた入力、未対応精度と容量超過について、
+元の画像・履歴・変更済み状態・メタデータ・パスの保持を照合する。
+通常画面の`testGpuSessionUsesOrdinaryCreationPaintingAndReopen:existing-png`は、PNGを開いてブラシで描画し、
+Undo／Redo、KRA再読込後の追加描画とPNG書出し設定の確定を操作する。
+同じ出力先の`existing-png/`へ、元PNG、描画段階の画素列、2段階のKRAと最終PNGを出力する。
+
 `TestDocumentKraPreview.cpp`は、3画素、整数・端数倍率の拡大、面積縮小と細長い文書について、
 同じRGBA8入力から通常保存したCPU／GPUの統合画素と保存プレビューの全RGBA成分を比較する。
 同じ保存に含まれる`mergedimage.png`と`preview.png`も、それぞれ全バイトで照合する。
@@ -511,6 +522,11 @@ GPU文書の初期状態と保存へ保持し、書出し名の補完は従来�
 Quick Brush編集、Undo／Redo、KRA保存、通常再読込と追加編集、作成拒否後のダイアログ保持を検査する。
 画面を表示する環境の検証と、`QT_QPA_PLATFORM=offscreen`で文書・UI接続を検査する実行を区別する。
 
+`KisGpuPixelReadbackTest::synchronousPreviewsCompleteEarlierAsynchronousReads`は、別文書の非同期画素読取り・
+透明性判定の直後に、サムネイル・投影画像・描画範囲を同期取得する。先行要求の固定版、
+同期取得の結果、新しい編集要求と公開状態の保持を照合する。先行転送が未完了の場合は、
+追加の非同期要求が待機せずBusyを返すことも検査する。
+
 ### GPUタイルの画素契約
 
 MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試験で検証する。
@@ -544,7 +560,7 @@ GPU喪失を伴う実機検証は、この再現可能な検査エラーの試�
 作成・複製したレイヤーの公開APIからの挿入は、位置、UUID、投影、変更済み状態、
 一回の履歴追加とUndo／Redo後の同じノード・画素デバイスの保持を検査する。
 CPU入力の65タイルの分割取込みと、容量超過・不正な属性の拒否後の画素と履歴を照合する。
-この対象はKRA読込・保存とPNG書出しのプラグインを宣言済み依存として構築する。
+この対象はKRA読込・保存とPNG読込・書出しのプラグインを宣言済み依存として構築する。
 位置を持つKRAレイヤーの読込は、公開`Node.position()`、画像座標の画素、複製、
 CPU・GPU複製からの挿入、削除後の参照、履歴、復旧、公開保存と固定版の再読込を照合する。
 固定したUUIDと負座標・タイル境界を含む4位置を使い、

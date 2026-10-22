@@ -128,7 +128,9 @@ public:
 
     /**
      * Synchronous external read of a retained version belonging to an attached
-     * document. Preserves newer requests and publication. Reads selected layers,
+     * document. Completes earlier admitted native reads before starting this read;
+     * an unsubmitted frame remains Busy. Preserves newer requests and publication.
+     * Reads selected layers,
      * including hidden ones, and optionally the visible projection. Returns full
      * sparse tiles intersecting the document-clipped region by default.
      * LayerCoordinates preserves off-canvas layer tiles; the projection remains

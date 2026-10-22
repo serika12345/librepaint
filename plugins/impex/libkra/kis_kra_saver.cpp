@@ -78,6 +78,7 @@ struct KisKraSaver::Private
     QStringList warningMessages;
     QStringList specialAnnotations;
     bool addMergedImage {false};
+    bool compressRaster {false};
     QList<KoResourceLoadResult> linkedDocumentResources;
 
     Private() {
@@ -86,12 +87,13 @@ struct KisKraSaver::Private
 
 };
 
-KisKraSaver::KisKraSaver(KisDocument* document, const QString &filename, bool addMergedImage)
+KisKraSaver::KisKraSaver(KisDocument* document, const QString &filename, bool addMergedImage, bool compressRaster)
     : m_d(new Private)
 {
     m_d->doc = document;
     m_d->filename = filename;
     m_d->addMergedImage = addMergedImage;
+    m_d->compressRaster = compressRaster;
     m_d->linkedDocumentResources = document->linkedDocumentResources();
 
     m_d->imageName = m_d->doc->documentInfo()->aboutInfo("title");
@@ -120,8 +122,8 @@ QDomElement KisKraSaver::saveXML(QDomDocument& doc,  KisImageSP image)
     if (image->profile() && image->profile()-> valid()) {
         imageElement.setAttribute(PROFILE, image->profile()->name());
     }
-    imageElement.setAttribute(X_RESOLUTION, KisDomUtils::toString(image->xRes()*72.0));
-    imageElement.setAttribute(Y_RESOLUTION, KisDomUtils::toString(image->yRes()*72.0));
+    imageElement.setAttribute(X_RESOLUTION, QString::number(image->xRes()*72.0, 'g', 17));
+    imageElement.setAttribute(Y_RESOLUTION, QString::number(image->yRes()*72.0, 'g', 17));
 
     //now the proofing options:
     if (image->proofingConfiguration()) {
@@ -492,7 +494,7 @@ bool KisKraSaver::saveBinaryData(KoStore* store, KisImageSP image, const QString
     QString location;
 
     // Save the layers data
-    KisKraSaveVisitor visitor(store, m_d->imageName, m_d->nodeFileNames);
+    KisKraSaveVisitor visitor(store, m_d->imageName, m_d->nodeFileNames, m_d->compressRaster);
 
     if (external)
         visitor.setExternalUri(uri);
@@ -667,7 +669,7 @@ bool KisKraSaver::saveBinaryData(KoStore* store, KisImageSP image, const QString
         store->setCompressionEnabled(false);
         r = KisPNGConverter::saveDeviceToStore("mergedimage.png", image->bounds(), image->xRes(), image->yRes(), dev, store);
         savingMergedImageSuccess = savingMergedImageSuccess && r;
-        store->setCompressionEnabled(KisConfig(true).compressKra());
+        store->setCompressionEnabled(m_d->compressRaster);
     }
 
     if (!savingMergedImageSuccess) {

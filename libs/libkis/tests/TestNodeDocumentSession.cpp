@@ -6,6 +6,8 @@
 #include <simpletest.h>
 #include <Document.h>
 #include <Node.h>
+#include <InfoObject.h>
+#include <QDomDocument>
 #include <KoColor.h>
 #include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
@@ -78,14 +80,17 @@ void configureNewDocument(QWidget *widget)
 
 void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen_data()
 {
-    QTest::addColumn<bool>("existingStaticDocument");
-    QTest::newRow("new-document") << false;
-    QTest::newRow("existing-static-native") << true;
+    QTest::addColumn<int>("sourceFormat");
+    QTest::newRow("new-document") << 0;
+    QTest::newRow("existing-static-native") << 1;
+    QTest::newRow("existing-png") << 2;
 }
 
 void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
 {
-    QFETCH(bool, existingStaticDocument);
+    QFETCH(int, sourceFormat);
+    const bool existingStaticDocument = sourceFormat == 1;
+    const bool existingPng = sourceFormat == 2;
     const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restore = qScopeGuard([&] {
         if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previous);
@@ -94,7 +99,7 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path()) +
-        (existingStaticDocument ? QStringLiteral("/existing-static") : QString());
+        (existingStaticDocument ? QStringLiteral("/existing-static") : existingPng ? QStringLiteral("/existing-png") : QString());
     QVERIFY(QDir().mkpath(destination));
     const auto retainFailure = qScopeGuard([&] {
         if (QTest::currentTestFailed()) { directory.setAutoRemove(false); qInfo() << "Ordinary GPU session artifacts at" << destination; }
@@ -114,7 +119,16 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
         QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     });
     window->show();
-    if (existingStaticDocument) {
+    if (existingPng) {
+        // Fixed 64 x 64 RGBA8 PNG, white RGB under zero alpha, no ancillary chunks.
+        const auto input = QByteArray::fromHex("89504e470d0a1a0a0000000d4948445200000040000000400806000000aa6971de000000a849444154789ce5ce210100000c04a1ef5ffa1603318167d53ee3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed07840e3018d07341ed00e2e94d2c2bbd932340000000049454e44ae426082");
+        const auto path = QDir(destination).filePath(QStringLiteral("existing-png-source.png"));
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(input), input.size());
+        file.close();
+        QVERIFY(window->openDocument(path, KisMainWindow::None));
+    } else if (existingStaticDocument) {
         qputenv("LIBREPAINT_GPU_ENGINE", "0");
         std::unique_ptr<KisDocument> source(KisPart::instance()->createDocument());
         source->setFileBatchMode(true);
@@ -167,7 +181,7 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     auto image = KisImageSP(document->image());
     QVERIFY(image->gpuImage());
     QCOMPARE(image->size(), QSize(64, 64));
-    QCOMPARE(image->root()->childCount(), 2U);
+    QCOMPARE(image->root()->childCount(), existingPng ? 1U : 2U);
     if (existingStaticDocument) {
         QCOMPARE(image->animationInterface()->framerate(), 30);
         QCOMPARE(image->animationInterface()->currentUITime(), 17);
@@ -217,8 +231,10 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
         current->image()->waitForDone();
         QScopedPointer<Node> target(Node::createNode(current->image(), view->currentNode()));
         QCOMPARE(target->pixelData(int(midpoint.x()), int(midpoint.y()), 1, 1), QByteArray::fromHex("0000ffff"));
-        QScopedPointer<Node> background(Node::createNode(current->image(), current->image()->root()->firstChild()));
-        QCOMPARE(background->pixelData(int(midpoint.x()), int(midpoint.y()), 1, 1), QByteArray(4, '\0'));
+        if (!existingPng) {
+            QScopedPointer<Node> background(Node::createNode(current->image(), current->image()->root()->firstChild()));
+            QCOMPARE(background->pixelData(int(midpoint.x()), int(midpoint.y()), 1, 1), QByteArray(4, '\0'));
+        }
     };
     paint(document, {12, 16}, {52, 16});
     QCOMPARE(api.pixelData(32, 16, 1, 1), QByteArray::fromHex("0000ffff"));
@@ -231,8 +247,22 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     document->undoStack()->redo();
     image->waitForDone();
     QCOMPARE(api.pixelData(0, 0, 64, 64), pixels);
-    const auto path = directory.filePath(QStringLiteral("ordinary-session.kra"));
-    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    KisPropertiesConfigurationSP nativeSettings;
+    if (existingPng) {
+        QDomDocument fixedInfo;
+        QVERIFY(fixedInfo.setContent(QByteArrayLiteral("<document-info><about><title>Ordinary PNG session</title>"
+            "<creation-date>2000-01-02T03:04:05Z</creation-date><date>2001-02-03T04:05:06Z</date>"
+            "<editing-cycles>7</editing-cycles><editing-time>10</editing-time><language>en</language></about>"
+            "<author><full-name>LibrePaint fixture</full-name></author></document-info>")));
+        QVERIFY(document->documentInfo()->load(fixedInfo));
+        document->setColorHistoryColors({});
+        document->setAssistantsGlobalColor(QColor(17, 63, 129, 201));
+        nativeSettings = new KisPropertiesConfiguration;
+        nativeSettings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    }
+    const auto path = existingPng ? QDir(destination).filePath(QStringLiteral("ordinary-session.kra")) :
+                                    directory.filePath(QStringLiteral("ordinary-session.kra"));
+    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false, nativeSettings), qPrintable(document->errorMessage()));
     document->waitForSavingToComplete();
     window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
     QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
@@ -251,6 +281,34 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     QCOMPARE(reopened.pixelData(32, 40, 1, 1), QByteArray::fromHex("0000ffff"));
     QCOMPARE(document->undoStack()->count(), 1);
     QVERIFY(document->isModified());
+    if (existingPng) {
+        document->setColorHistoryColors({});
+        QVERIFY2(document->saveAs(QDir(destination).filePath(QStringLiteral("reopened-edited.kra")),
+                                  KisDocument::nativeFormatMimeType(), false, nativeSettings), qPrintable(document->errorMessage()));
+        document->waitForSavingToComplete();
+        InfoObject outputSettings;
+        outputSettings.setProperty("alpha", true);
+        outputSettings.setProperty("compression", 3);
+        outputSettings.setProperty("saveSRGBProfile", true);
+        outputSettings.setProperty("indexed", false);
+        outputSettings.setProperty("interlaced", false);
+        outputSettings.setProperty("forceSRGB", false);
+        bool exportDialogVisited = false;
+        QTimer interaction;
+        interaction.setInterval(1);
+        connect(&interaction, &QTimer::timeout, this, [&] {
+            if (auto *dialog = qobject_cast<QDialog *>(QApplication::activeModalWidget())) {
+                interaction.stop();
+                exportDialogVisited = true;
+                dialog->accept();
+            }
+        });
+        interaction.start();
+        QVERIFY2(reopened.exportImage(QDir(destination).filePath(QStringLiteral("reopened-edited.png")), outputSettings),
+                 qPrintable(document->errorMessage()));
+        QVERIFY(exportDialogVisited);
+    }
+
 }
 
 void TestNode::testGpuSessionCreationRefusalKeepsTheDialog()

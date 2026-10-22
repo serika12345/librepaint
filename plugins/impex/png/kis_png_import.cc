@@ -11,6 +11,8 @@
 #include <KisImportExportManager.h>
 
 #include <document/KisDocument.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <QPointer>
 
 #include <application/ui/workspace/KisViewManager.h>
 #include <qcontainerfwd.h>
@@ -34,8 +36,17 @@ KisPNGImport::~KisPNGImport()
 KisImportExportErrorCode KisPNGImport::convert(KisDocument *document, QIODevice *io,  KisPropertiesConfigurationSP /*configuration*/)
 {
     KisPNGConverter ib(document, batchMode());
-    KisImportExportErrorCode res = ib.buildImage(io);
-    if (res.isOk()){
+    QPointer<KisDocument> guard(document);
+    KisImportExportErrorCode res;
+    if (KisPart::instance()->gpuEngineEnabled()) {
+        res = ib.prepareGpuImage(io);
+        if (!res.isOk() || !guard) return res;
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        if (!execution) return KisImportExportErrorCode(diagnostic);
+        res = ib.buildGpuImage(execution);
+    } else res = ib.buildImage(io);
+    if (res.isOk() && guard){
         document->setCurrentImage(ib.image());
     }
     return res;

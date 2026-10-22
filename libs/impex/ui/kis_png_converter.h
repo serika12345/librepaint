@@ -11,12 +11,16 @@
 
 #include <QColor>
 #include <atomic>
+#include <memory>
+#include <QPointer>
 
 #include "kis_types.h"
 #include "kis_global.h"
 #include "kis_annotation.h"
 #include <kritaui_export.h>
 #include <KisImportExportErrorCode.h>
+
+namespace LibrePaint::Image::Gpu { class Execution; }
 
 class KoStore;
 class KisDocument;
@@ -92,6 +96,13 @@ public:
      * @param iod device to access the data
      */
     KisImportExportErrorCode buildImage(QIODevice* iod);
+    /** Validates and decodes supported RGBA8 PNG input before acquiring a GPU.
+     * Prepared pixels belong to this converter until buildGpuImage() consumes them.
+     * Failure leaves the document and its current image unchanged.
+     */
+    KisImportExportErrorCode prepareGpuImage(QIODevice *iod);
+    /** Constructs a saved GPU image using shared execution on its owning thread. */
+    KisImportExportErrorCode buildGpuImage(std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution);
     /**
      * Save a layer to a PNG using a temporary file and atomic replacement.
      * Cancellation and conversion failure preserve the destination's contents
@@ -129,6 +140,9 @@ public Q_SLOTS:
     /** Requests encoding cancellation from any thread while the converter remains alive. */
     virtual void cancel();
 private:
+    struct PreparedImage;
+    std::unique_ptr<PreparedImage> m_prepared;
+    KisImportExportErrorCode decodeImage(QIODevice *iod, bool gpu);
     KisImportExportErrorCode encodeRows(QIODevice*, const KisExportRasterRows &rows, qreal xRes, qreal yRes,
                                        vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd,
                                        KisPNGOptions options, KisMetaData::Store *metaData);
@@ -136,7 +150,7 @@ private:
 private:
     png_uint_32 m_max_row;
     KisImageSP m_image;
-    KisDocument *m_doc;
+    QPointer<KisDocument> m_doc;
     std::atomic_bool m_stop;
     bool m_batchMode;
     QString m_path;

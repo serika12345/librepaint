@@ -17,6 +17,7 @@
 
 #include <KisExportCheckRegistry.h>
 #include <document/KisDocument.h>
+#include <application/kis_config.h>
 #include <kis_shape_layer.h>
 #include <kis_properties_configuration.h>
 #include <qcontainerfwd.h>
@@ -54,7 +55,8 @@ KisImportExportErrorCode KraExport::convert(KisDocument *document, QIODevice *io
         document->setErrorMessage(i18n("The document save time is invalid."));
         return ImportExportCodes::FormatFeaturesUnsupported;
     }
-    KisImportExportErrorCode res = kraConverter.buildFile(io, filename(), !document->isAutosaving(), saveTime);
+    KisImportExportErrorCode res = kraConverter.buildFile(io, filename(), !document->isAutosaving(), saveTime,
+        configuration ? configuration->getBool("compressRasterData", KisConfig(true).compressKra()) : KisConfig(true).compressKra());
     dbgFile << "KraExport::convert result =" << res;
     return res;
 }

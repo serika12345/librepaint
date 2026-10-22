@@ -19,7 +19,7 @@ add_dependencies(TestDocument
     kritakraimport kritakraexport kritapngimport kritapngexport kritajpegexport kritalcmsengine
     kritaexif kritaiptc kritaxmp
     kritapatterngenerator kritacolorgenerator)
-add_dependencies(TestNode kritakraimport kritakraexport kritapngexport kritalcmsengine)
+add_dependencies(TestNode kritakraimport kritakraexport kritapngimport kritapngexport kritalcmsengine)
 add_dependencies(TestNode kritaroundmarkerpaintop)
 add_dependencies(TestNode kritadefaulttools)
 add_dependencies(TestNode kritatoolcrop)

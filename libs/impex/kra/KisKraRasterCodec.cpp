@@ -123,15 +123,17 @@ Outcome description(const QByteArray &bytes, QDomDocument &xml, QDomElement &ima
 }
 QDomElement createDescription(QDomDocument &xml)
 {
-    xml = QDomDocument(QDomImplementation().createDocumentType(QStringLiteral("DOC"), QStringLiteral("-//KDE//DTD krita 2.0//EN"),
-                                                              QStringLiteral("http://www.calligra.org/DTD/krita-2.0.dtd")));
-    auto root = xml.createElement(QStringLiteral("DOC"));
-    root.setAttribute(QStringLiteral("xmlns"), QStringLiteral("http://www.calligra.org/DTD/krita"));
-    root.setAttribute(QStringLiteral("syntaxVersion"), QStringLiteral("2"));
+    QDomImplementation implementation;
+    const auto type = implementation.createDocumentType(QStringLiteral("DOC"), QStringLiteral("-//KDE//DTD krita 2.0//EN"),
+                                                        QStringLiteral("http://www.calligra.org/DTD/krita-2.0.dtd"));
+    xml = implementation.createDocument(QStringLiteral("http://www.calligra.org/DTD/krita"), QStringLiteral("DOC"), type);
+    auto root = xml.documentElement();
+    xml.insertBefore(xml.createProcessingInstruction(QStringLiteral("xml"), QStringLiteral("version=\"1.0\" encoding=\"UTF-8\"")), root);
+    root.setAttribute(QStringLiteral("syntaxVersion"), QStringLiteral("2.0"));
     root.setAttribute(QStringLiteral("editor"), QStringLiteral("LibrePaint"));
-    xml.appendChild(root);
     auto image = xml.createElement(QStringLiteral("IMAGE"));
     image.setAttribute(QStringLiteral("name"), QStringLiteral("image"));
+    image.setAttribute(QStringLiteral("description"), QString());
     image.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
     image.setAttribute(QStringLiteral("profile"), QStringLiteral("sRGB built-in"));
     image.setAttribute(QStringLiteral("mime"), QStringLiteral("application/x-kra"));
@@ -139,7 +141,34 @@ QDomElement createDescription(QDomDocument &xml)
     image.setAttribute(QStringLiteral("y-res"), QStringLiteral("72"));
     root.appendChild(image);
     image.appendChild(xml.createElement(QStringLiteral("layers")));
+    auto background = xml.createElement(QStringLiteral("ProjectionBackgroundColor"));
+    background.setAttribute(QStringLiteral("ColorData"), QStringLiteral("AAAAAA=="));
+    image.appendChild(background);
+    image.appendChild(xml.createElement(QStringLiteral("Palettes")));
+    image.appendChild(xml.createElement(QStringLiteral("resources")));
     return image;
+}
+QByteArray serializeDescription(QDomDocument &xml)
+{
+    // Parsing loses the root's namespace representation and rewrites the XML
+    // declaration. Reconstruct those owned fields through the DOM so both
+    // image owners emit the same native document header.
+    const auto old = xml.documentElement();
+    auto root = xml.createElementNS(QStringLiteral("http://www.calligra.org/DTD/krita"), QStringLiteral("DOC"));
+    const auto attributes = old.attributes();
+    for (int i = 0; i < attributes.count(); ++i) {
+        const auto attribute = attributes.item(i).toAttr();
+        if (attribute.name() != QLatin1String("xmlns")) root.setAttributeNode(attribute.cloneNode().toAttr());
+    }
+    while (!old.firstChild().isNull()) root.appendChild(old.firstChild());
+    xml.replaceChild(root, old);
+    for (auto node = xml.firstChild(); !node.isNull();) {
+        const auto next = node.nextSibling();
+        if (node.isProcessingInstruction() && node.toProcessingInstruction().target() == QLatin1String("xml")) xml.removeChild(node);
+        node = next;
+    }
+    xml.insertBefore(xml.createProcessingInstruction(QStringLiteral("xml"), QStringLiteral("version=\"1.0\" encoding=\"UTF-8\"")), xml.firstChild());
+    return xml.toByteArray();
 }
 bool integer(const QDomElement &element, const QString &name, int &value, const QString &fallback = {})
 {
@@ -335,28 +364,66 @@ protected:
 private:
     qsizetype m_maximum;
 };
-Outcome writeArchive(QIODevice &destination, const QMap<QString, QByteArray> &files, Limits limits)
+Outcome writeArchive(QIODevice &destination, const QMap<QString, QByteArray> &files, const QDomElement &image,
+                     bool compressRaster, Limits limits)
 {
     QByteArray bytes;
     ArchiveBuffer buffer(&bytes, limits.archiveBytes);
     if (!buffer.open(QIODevice::WriteOnly)) return ioFailure();
     QuaZip archive(&buffer);
     archive.setAutoClose(false);
+    archive.setDataDescriptorWritingEnabled(false);
+    archive.setZip64Enabled(false);
+    archive.setFileNameCodec("UTF-8");
     archive.setOsCode(3); // ZIP creator code for Unix, shared by all saving hosts.
     if (!archive.open(QuaZip::mdCreate)) return ioFailure();
-    auto write = [&](const QString &name, int method) {
+    auto write = [&](const QString &name, int method, int level) {
         QuaZipFile file(&archive);
         QuaZipNewInfo info(name);
         info.dateTime = QDateTime(QDate(1980, 1, 1), QTime(0, 0), QTimeZone(QTimeZone::UTC));
-        if (!file.open(QIODevice::WriteOnly, info, nullptr, 0, method)) return false;
+        info.setPermissions(QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther);
+        if (!file.open(QIODevice::WriteOnly, info, nullptr, 0, method, level)) return false;
         const auto &bytes = files[name];
         if (file.write(bytes) != bytes.size()) return false;
         file.close();
         return file.getZipError() == 0;
     };
-    if (!write(QStringLiteral("mimetype"), 0)) return buffer.exceeded ? capacity() : ioFailure();
-    for (auto file = files.cbegin(); file != files.cend(); ++file) {
-        if (file.key() != QLatin1String("mimetype") && !write(file.key(), Z_DEFLATED)) return buffer.exceeded ? capacity() : ioFailure();
+    QStringList order;
+    QSet<QString> emitted;
+    QSet<QString> rasterFiles;
+    const auto append = [&](const QString &name) {
+        if (files.contains(name) && !emitted.contains(name)) { order.append(name); emitted.insert(name); }
+    };
+    for (const auto &name : {QStringLiteral("mimetype"), QStringLiteral("maindoc.xml"),
+                             QStringLiteral("documentinfo.xml"), QStringLiteral("preview.png")}) append(name);
+    const auto folder = image.attribute(QStringLiteral("name"));
+    append(folder + QStringLiteral("/layers/.xmp.metadata"));
+    QList<QDomElement> layers;
+    const auto result = collectLayerElements(image.firstChildElement(QStringLiteral("layers")), limits.layers, layers);
+    if (result.code != Status::Success) return result;
+    for (const auto &layer : layers) {
+        const auto path = folder + QStringLiteral("/layers/") + layer.attribute(QStringLiteral("filename"));
+        if (layer.attribute(QStringLiteral("nodetype")) == QLatin1String("paintlayer")) {
+            append(path); append(path + QStringLiteral(".defaultpixel"));
+            rasterFiles.insert(path); rasterFiles.insert(path + QStringLiteral(".defaultpixel"));
+            append(path + QStringLiteral(".icc"));
+        }
+        append(path + QStringLiteral(".xmp.metadata"));
+    }
+    append(folder + QStringLiteral("/annotations/exif"));
+    append(folder + QStringLiteral("/annotations/icc"));
+    const auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
+    for (auto annotation = annotations.firstChildElement(); !annotation.isNull(); annotation = annotation.nextSiblingElement())
+        append(folder + QStringLiteral("/annotations/") + annotation.attribute(QStringLiteral("type")));
+    append(QStringLiteral("mergedimage.png"));
+    append(folder + QStringLiteral("/animation/index.xml"));
+    // Associated data retained by the format owner follows the owned entries.
+    for (auto file = files.cbegin(); file != files.cend(); ++file) append(file.key());
+    for (const auto &name : order) {
+        const bool plain = name == QLatin1String("mimetype") || name == QLatin1String("mergedimage.png") ||
+            (!compressRaster && (rasterFiles.contains(name) || name == folder + QStringLiteral("/animation/index.xml")));
+        if (!write(name, name == QLatin1String("mimetype") ? 0 : Z_DEFLATED, plain ? Z_NO_COMPRESSION : Z_DEFAULT_COMPRESSION))
+            return buffer.exceeded ? capacity() : ioFailure();
     }
     archive.close();
     if (buffer.exceeded) return capacity();
@@ -406,7 +473,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         if (element.isNull()) {
             element = xml.createElement(QStringLiteral("layer"));
             QString filename;
-            for (int suffix = 1; filename.isEmpty(); ++suffix) {
+            for (int suffix = 2; filename.isEmpty(); ++suffix) {
                 const auto candidate = QStringLiteral("layer%1").arg(suffix);
                 if (!filenames.contains(candidate)) filename = candidate;
             }
@@ -414,6 +481,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             element.setAttribute(QStringLiteral("filename"), filename);
             element.setAttribute(QStringLiteral("x"), QStringLiteral("0"));
             element.setAttribute(QStringLiteral("y"), QStringLiteral("0"));
+            element.setAttribute(QStringLiteral("collapsed"), QStringLiteral("0"));
+            if (layer.kind == LayerKind::Paint) element.setAttribute(QStringLiteral("onionskin"), QStringLiteral("0"));
         }
         const auto path = folder + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename"));
         const QPoint offset = layer.position;
@@ -444,7 +513,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         element.setAttribute(QStringLiteral("name"), layer.name);
         element.setAttribute(QStringLiteral("uuid"), layer.uuid.toString());
         element.setAttribute(QStringLiteral("visible"), layer.visible ? QStringLiteral("1") : QStringLiteral("0"));
-        element.setAttribute(QStringLiteral("selected"), i == value.activeLayer ? QStringLiteral("true") : QStringLiteral("false"));
+        if (i == value.activeLayer) element.setAttribute(QStringLiteral("selected"), QStringLiteral("true"));
+        else element.removeAttribute(QStringLiteral("selected"));
         element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") : QStringLiteral("grouplayer"));
         element.setAttribute(QStringLiteral("compositeop"), layer.blendMode == LayerBlendMode::Multiply ? QStringLiteral("multiply") :
                              layer.blendMode == LayerBlendMode::Screen ? QStringLiteral("screen") :
@@ -471,7 +541,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                 paintFlags += layer.channelWriteMask & (1u << (channel == 3 ? 3 : 2 - channel)) ? QLatin1Char('1') : QLatin1Char('0');
             element.setAttribute(QStringLiteral("channellockflags"), paintFlags);
         } else {
-            element.removeAttribute(QStringLiteral("channellockflags"));
+            if (layer.kind == LayerKind::Paint) element.setAttribute(QStringLiteral("channellockflags"), QString());
+            else element.removeAttribute(QStringLiteral("channellockflags"));
         }
         prepared.insert(layer.uuid, element);
     }
@@ -502,6 +573,7 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     if (!qIsFinite(metadata.resolution.x()) || !qIsFinite(metadata.resolution.y()) ||
         metadata.resolution.x() <= 0 || metadata.resolution.y() <= 0)
         return invalid(QStringLiteral("Invalid KRA image resolution"));
+    if (!validName(metadata.producerVersion)) return invalid(QStringLiteral("Invalid KRA producer version"));
     if (!validName(metadata.profileName)) return invalid(QStringLiteral("Invalid KRA profile name"));
     if (metadata.documentInfo.size() > limits.xmlBytes || metadata.mirrorAxis.size() > limits.xmlBytes) return capacity();
     QDomDocument mirrorAxis;
@@ -528,6 +600,7 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         result = description(document.description, xml, image);
         if (result.code != Status::Success) return result;
     }
+    if (!metadata.producerVersion.isEmpty()) xml.documentElement().setAttribute(QStringLiteral("kritaVersion"), metadata.producerVersion);
     for (auto old = image.firstChildElement(QStringLiteral("MirrorAxis")); !old.isNull();) {
         const auto next = old.nextSiblingElement(QStringLiteral("MirrorAxis"));
         image.removeChild(old);
@@ -631,12 +704,21 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         if (metadata.rootLayerXmp->isEmpty()) files.remove(path);
         else files.insert(path, *metadata.rootLayerXmp);
     }
-    const auto bytes = xml.toByteArray();
+    // Native image fields follow the same semantic order on both image owners.
+    QDomNode previous = image.firstChildElement(QStringLiteral("layers"));
+    for (const auto &tag : {QStringLiteral("ProjectionBackgroundColor"), QStringLiteral("GlobalAssistantsColor"),
+                            QStringLiteral("MirrorAxis"), QStringLiteral("ColorHistory"), QStringLiteral("Palettes"),
+                            QStringLiteral("resources"), QStringLiteral("animation"), QStringLiteral("Annotations")}) {
+        auto element = image.firstChildElement(tag);
+        if (!element.isNull()) { image.insertAfter(element, previous); previous = element; }
+    }
+    const auto bytes = serializeDescription(xml);
     files.insert(QStringLiteral("maindoc.xml"), bytes);
     result = validateMetadata(bytes, files, limits);
     if (result.code != Status::Success) return result;
     document.description = bytes;
     document.files = std::move(files);
+    document.compressRaster = metadata.compressRaster;
     return {Status::Success, {}};
 }
 
@@ -875,7 +957,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         files.insert(path, std::move(pixels));
         files.insert(path + QStringLiteral(".defaultpixel"), Detail::bgra(layer.defaultPixel));
     }
-    files.insert(QStringLiteral("maindoc.xml"), xml.toByteArray());
+    files.insert(QStringLiteral("maindoc.xml"), serializeDescription(xml));
     if (files.value(QStringLiteral("maindoc.xml")).size() > limits.xmlBytes) return capacity();
     files.insert(QStringLiteral("mimetype"), QByteArrayLiteral("application/x-krita"));
     const auto density = [](qreal dpi) {
@@ -900,6 +982,6 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     if (!png(projection, QStringLiteral("mergedimage.png")) ||
         !png(Detail::makePreview(projection), QStringLiteral("preview.png"))) return ioFailure();
     result = validateFiles(files, limits);
-    return result.code == Status::Success ? writeArchive(destination, files, limits) : result;
+    return result.code == Status::Success ? writeArchive(destination, files, image, document.compressRaster, limits) : result;
 }
 }

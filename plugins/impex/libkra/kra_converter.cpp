@@ -24,6 +24,7 @@
 #include <kra/KisKraRasterCodec.h>
 
 #include <document/KisDocument.h>
+#include <application/kis_config.h>
 #include <KritaVersionWrapper.h>
 #include <kis_clone_layer.h>
 #include <kis_image.h>
@@ -155,7 +156,7 @@ StoryboardCommentList KraConverter::storyboardCommentList()
 }
 
 KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &filename, bool addMergedImage,
-                                               const QDateTime &saveTime)
+                                               const QDateTime &saveTime, std::optional<bool> compressRaster)
 {
     if (!saveTime.isValid()) return ImportExportCodes::FormatFeaturesUnsupported;
     if (m_image->size().isEmpty()) {
@@ -174,7 +175,7 @@ KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &f
 
     setProgress(20);
 
-    m_kraSaver = new KisKraSaver(m_doc, filename, addMergedImage);
+    m_kraSaver = new KisKraSaver(m_doc, filename, addMergedImage, compressRaster.value_or(KisConfig(true).compressKra()));
 
     KisImportExportErrorCode resultCode = saveRootDocuments(m_store, saveTime);
 

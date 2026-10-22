@@ -41,6 +41,8 @@ private Q_SLOTS:
     void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping_data();
     void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping();
     void asynchronousPixelsKeepThePinnedVersionAndNewerRequests();
+    void synchronousPreviewsCompleteEarlierAsynchronousReads_data();
+    void synchronousPreviewsCompleteEarlierAsynchronousReads();
     void asynchronousResultsOutliveClosedDocumentsAndTheDevice();
     void discardedAsynchronousReadsReleaseTheirNativeStorage();
     void projectionTransparencyUsesPinnedPixelsAndCanvasClipping();
@@ -1075,6 +1077,89 @@ void KisGpuPixelReadbackTest::asynchronousPixelsKeepThePinnedVersionAndNewerRequ
     const auto failure = rejected.get();
     QCOMPARE(failure.code, ExecutionCode::InvalidRequest);
     QVERIFY(failure.tiles.isEmpty());
+}
+
+void KisGpuPixelReadbackTest::synchronousPreviewsCompleteEarlierAsynchronousReads_data()
+{
+    QTest::addColumn<bool>("summary");
+    QTest::addColumn<int>("preview");
+    QTest::newRow("pixels-thumbnail") << false << 0;
+    QTest::newRow("pixels-resized-projection") << false << 1;
+    QTest::newRow("pixels-bounds") << false << 2;
+    QTest::newRow("transparency-thumbnail") << true << 0;
+    QTest::newRow("transparency-resized-projection") << true << 1;
+    QTest::newRow("transparency-bounds") << true << 2;
+}
+
+void KisGpuPixelReadbackTest::synchronousPreviewsCompleteEarlierAsynchronousReads()
+{
+    QFETCH(bool, summary);
+    QFETCH(int, preview);
+    RasterImage input;
+    input.size = {64, 64};
+    input.layers = {{QStringLiteral("Preview"), true, {},
+                     {{{0, 0}, QByteArray::fromHex("11223349").repeated(RgbaTile::ByteCount / 4)}}}};
+    OperationDocument document(input);
+    input.layers[0].tiles[0].rgba = QByteArray::fromHex("536d89bf").repeated(RgbaTile::ByteCount / 4);
+    OperationDocument exported(input);
+    const auto fixed = document.snapshot();
+    const auto exportedFixed = exported.snapshot();
+    Execution execution(m_device, 8 * TileRenderer::TileBytes, 2, TileRenderer::TileBytes);
+    const auto handle = execution.open(fixed).handle;
+    const auto exportedHandle = execution.open(exportedFixed).handle;
+    QVERIFY(handle && exportedHandle);
+    const auto readPreview = [&] {
+        return preview == 0 ? execution.readThumbnail(handle, fixed, 0, {0, 0, 64, 64}, {8, 8}, 256)
+                            : execution.readResizedProjectionImage(handle, fixed, {8, 8}, 256);
+    };
+    QImage expected;
+    if (preview != 2) {
+        const auto initial = readPreview();
+        QVERIFY2(initial.code == ExecutionCode::Success, qPrintable(initial.diagnostic));
+        expected = initial.image;
+        QVERIFY(!expected.isNull());
+    }
+    auto pending = summary ? execution.readTransparencyAsync(exportedHandle, exportedFixed, {0, 0, 64, 64})
+                           : execution.readPixelsAsync(exportedHandle, exportedFixed, {0, 0, 64, 64});
+    const bool unfinished = pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready;
+    qInfo() << "Earlier native read still pending:" << unfinished;
+    if (unfinished) {
+        auto deferred = execution.readPixelsAsync(handle, fixed, {0, 0, 64, 64});
+        QCOMPARE(deferred.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+        const auto busy = deferred.get();
+        QCOMPARE(busy.code, ExecutionCode::Busy);
+        QVERIFY(busy.tiles.isEmpty());
+    }
+    QCOMPARE(exported.setLayerOpacity(exportedFixed->layers.first().id, 0), Result::Success);
+    const auto latest = exported.snapshot();
+    QCOMPARE(execution.request(exportedHandle, latest).code, ExecutionCode::Success);
+    if (preview == 2) {
+        const auto bounds = execution.readBounds(handle, fixed, 0);
+        QVERIFY2(bounds.code == ExecutionCode::Success, qPrintable(bounds.diagnostic));
+        QCOMPARE(bounds.bounds, std::optional<QRect>(QRect(0, 0, 64, 64)));
+    } else {
+        const auto result = readPreview();
+        QVERIFY2(result.code == ExecutionCode::Success, qPrintable(result.diagnostic));
+        QCOMPARE(result.image, expected);
+    }
+    QCOMPARE(pending.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+    const auto prior = pending.get();
+    QVERIFY2(prior.code == ExecutionCode::Success, qPrintable(prior.diagnostic));
+    QCOMPARE(prior.document, exportedFixed);
+    if (summary) {
+        QVERIFY(prior.containsTransparency.value_or(false));
+        QVERIFY(prior.tiles.isEmpty());
+    } else {
+        QCOMPARE(pixel(prior, 0, {12, 12}), QByteArray::fromHex("536d89bf"));
+    }
+    QCOMPARE(execution.requested(handle), fixed);
+    QCOMPARE(execution.requested(exportedHandle), latest);
+    QVERIFY(!execution.published(handle));
+    QVERIFY(!execution.published(exportedHandle));
+    QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(exported.snapshot(), latest);
+    QVERIFY(!m_device->isRecordingFrame());
+    QCOMPARE(execution.pollReadbacks().code, ExecutionCode::Success);
 }
 
 void KisGpuPixelReadbackTest::asynchronousResultsOutliveClosedDocumentsAndTheDevice()

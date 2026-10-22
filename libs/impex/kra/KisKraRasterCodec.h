@@ -29,6 +29,8 @@ struct Document
     Image::Gpu::RasterImage image;
     QByteArray description;
     QMap<QString, QByteArray> files;
+    /** Current save setting for layer checkpoints and trailing metadata. */
+    bool compressRaster = false;
 };
 struct Annotation
 {
@@ -39,6 +41,9 @@ struct Annotation
 struct ImageMetadata
 {
     QPointF resolution{72, 72};
+    /** Saving application version; empty retains the existing producer value. */
+    QString producerVersion;
+    bool compressRaster = false;
     QByteArray documentInfo;
     QByteArray iccProfile;
     QList<Annotation> annotations;

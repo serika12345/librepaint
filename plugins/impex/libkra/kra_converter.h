@@ -11,6 +11,7 @@
 #include <QPointer>
 #include <QString>
 #include <QDateTime>
+#include <optional>
 
 #include <KisImportExportErrorCode.h>
 #include <kis_types.h>
@@ -37,7 +38,8 @@ public:
 
     KisImportExportErrorCode buildImage(QIODevice *io);
     KisImportExportErrorCode buildFile(QIODevice *io, const QString &filename, bool addMergedImage = true,
-                                      const QDateTime &saveTime = QDateTime::currentDateTime());
+                                      const QDateTime &saveTime = QDateTime::currentDateTime(),
+                                      std::optional<bool> compressRaster = {});
     /**
      * Retrieve the constructed image
      */
