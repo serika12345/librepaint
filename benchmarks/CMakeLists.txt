@@ -66,6 +66,12 @@ target_link_libraries(KisFourPointInterpolatorBenchmark   kritaimage  kritatests
 
 
 ko_compile_for_all_implementations_no_scalar(__per_arch_composition_objects kis_composition_benchmark.cpp)
+# Direct alpha-darken comparisons preserve the owner's staged binary32 math.
+if(MSVC)
+    set_property(SOURCE ${__per_arch_composition_objects} APPEND PROPERTY COMPILE_OPTIONS /fp:strict)
+else()
+    set_property(SOURCE ${__per_arch_composition_objects} APPEND PROPERTY COMPILE_OPTIONS -ffp-contract=off)
+endif()
 message("Following objects are generated for the composition benchmark")
 foreach(_obj IN LISTS __per_arch_composition_objects)
     string(REPLACE "\.cpp" "" _target ${_obj})
@@ -87,7 +93,7 @@ foreach(_obj IN LISTS __per_arch_composition_objects)
 
     configure_file(kis_composition_benchmark.h ${_fake_header} COPYONLY)
 
-    target_link_libraries(${_target} kritaimage kritatestsdk kritamultiarch)
+    target_link_libraries(${_target} kritapigment kritatestsdk kritamultiarch)
 endforeach()
 
 target_link_libraries(KisThumbnailBenchmark  kritaimage  kritatestsdk)
