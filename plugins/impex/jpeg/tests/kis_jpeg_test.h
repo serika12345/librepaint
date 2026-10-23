@@ -17,10 +17,15 @@ private Q_SLOTS:
     void testImportFromWriteonly();
     void testExportToReadonly();
     void testImportIncorrectFormat();
+    void testInvalidEmbeddedProfileIsRejected();
+    void testGpuPreparationRejectsRasterCapacity_data();
+    void testGpuPreparationRejectsRasterCapacity();
     void testRowsKeepExistingColorAndPrecision_data();
     void testRowsKeepExistingColorAndPrecision();
     void testRowsPropagateReadCancellationAndWriteFailure_data();
     void testRowsPropagateReadCancellationAndWriteFailure();
+    void testInputFragmentationKeepsImportedLayerIdentity_data();
+    void testInputFragmentationKeepsImportedLayerIdentity();
 };
 
 #endif

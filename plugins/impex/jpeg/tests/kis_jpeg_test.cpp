@@ -14,7 +14,9 @@
 #include <QImage>
 #include <QScopeGuard>
 #include <QTemporaryDir>
+#include <QtEndian>
 #include <cstring>
+#include <algorithm>
 
 #include <KisExportRasterRows.h>
 #include <KoColorSpace.h>
@@ -27,6 +29,8 @@
 #include "filestest.h"
 #include "jpeglib.h"
 #include <kis_meta_data_backend_registry.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <document/KisDocument.h>
 #include <testui.h>
 
 #ifndef FILES_DATA_DIR
@@ -63,6 +67,73 @@ protected:
         return -1;
     }
 };
+
+class FragmentedJpegInput final : public QIODevice
+{
+public:
+    FragmentedJpegInput(QByteArray bytes, qint64 fragment)
+        : m_bytes(std::move(bytes)), m_fragment(fragment)
+    { open(QIODevice::ReadOnly | QIODevice::Unbuffered); }
+    bool isSequential() const override { return true; }
+protected:
+    qint64 readData(char *data, qint64 maximum) override
+    {
+        const auto count = std::min({maximum, m_fragment, qint64(m_bytes.size()) - m_offset});
+        if (count > 0) std::memcpy(data, m_bytes.constData() + m_offset, size_t(count));
+        m_offset += count;
+        return count;
+    }
+    qint64 writeData(const char *, qint64) override { return -1; }
+private:
+    QByteArray m_bytes;
+    qint64 m_fragment;
+    qint64 m_offset = 0;
+};
+}
+
+void KisJpegTest::testInputFragmentationKeepsImportedLayerIdentity_data()
+{
+    QTest::addColumn<int>("fragment");
+    QTest::addColumn<bool>("trailer");
+    QTest::newRow("single-byte") << 1 << false;
+    QTest::newRow("short-read-and-trailer") << 7 << true;
+    QTest::newRow("buffer-boundary-and-trailer") << 4096 << true;
+}
+
+void KisJpegTest::testInputFragmentationKeepsImportedLayerIdentity()
+{
+    // Native saving uses the imported layer identity. The same JPEG image must
+    // keep it across source fragmentation and unread data following its EOI.
+    QFETCH(int, fragment);
+    QFETCH(bool, trailer);
+    KisMetadataBackendRegistry::instance();
+    QFile source(QStringLiteral(FILES_DATA_DIR) + QStringLiteral("/sources/transform_rotate_test_1.jpg"));
+    QVERIFY(source.open(QIODevice::ReadOnly));
+    const auto bytes = source.readAll();
+    // Exercise a marker spanning the input buffer boundary as well.
+    QByteArray encoded = bytes.left(2) + QByteArray::fromHex("fffe2002") + QByteArray(8192, '*') + bytes.mid(2);
+    QBuffer referenceInput(&encoded);
+    QVERIFY(referenceInput.open(QIODevice::ReadOnly));
+    QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
+    KisJPEGConverter referenceConverter(reference.data(), true);
+    auto result = referenceConverter.buildImage(&referenceInput);
+    QVERIFY2(result.isOk(), qPrintable(result.errorMessage()));
+    KisImageSP referenceImage = referenceConverter.image();
+    QVERIFY(referenceImage);
+    referenceImage->waitForDone();
+    const auto expected = referenceImage->root()->firstChild()->uuid();
+    QVERIFY(!expected.isNull());
+
+    FragmentedJpegInput input(encoded + (trailer ? QByteArrayLiteral("following-stream-data") : QByteArray()), fragment);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisJPEGConverter converter(document.data(), true);
+    result = converter.buildImage(&input);
+    QVERIFY2(result.isOk(), qPrintable(result.errorMessage()));
+    KisImageSP image = converter.image();
+    QVERIFY(image);
+    image->waitForDone();
+    QVERIFY2(image->root()->firstChild()->uuid() == expected,
+             "The same JPEG image must keep its imported layer identity across fragmented reads and trailing data");
 }
 
 void KisJpegTest::testRowsKeepExistingColorAndPrecision_data()
@@ -231,6 +302,58 @@ void KisJpegTest::testExportToReadonly()
 void KisJpegTest::testImportIncorrectFormat()
 {
     TestUtil::testImportIncorrectFormat(JpegMimetype);
+}
+
+void KisJpegTest::testInvalidEmbeddedProfileIsRejected()
+{
+    QFile source(QStringLiteral(FILES_DATA_DIR) + QStringLiteral("/sources/transform_rotate_test_1.jpg"));
+    QVERIFY(source.open(QIODevice::ReadOnly));
+    const auto bytes = source.readAll();
+    const auto payload = QByteArrayLiteral("ICC_PROFILE\0\1\1not-an-ICC-profile");
+    QByteArray encoded = bytes.left(2) + QByteArray::fromHex("ffe2") +
+        QByteArray(1, char(0)) + QByteArray(1, char(payload.size() + 2)) + payload + bytes.mid(2);
+    QBuffer input(&encoded);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisJPEGConverter converter(document.data(), true);
+    auto result = converter.buildImage(&input);
+    QVERIFY2(result == ImportExportCodes::FileFormatIncorrect, qPrintable(result.errorMessage()));
+    QVERIFY(!converter.image());
+    QVERIFY(!document->image());
+}
+
+void KisJpegTest::testGpuPreparationRejectsRasterCapacity_data()
+{
+    QTest::addColumn<QSize>("size");
+    QTest::newRow("oversized-raster") << QSize(32768, 32768);
+    // The unpadded pixels fit in 256MiB, but the required tiles exceed it.
+    QTest::newRow("padded-tile-capacity") << QSize(16385, 3841);
+}
+
+void KisJpegTest::testGpuPreparationRejectsRasterCapacity()
+{
+    QFETCH(QSize, size);
+    KisMetadataBackendRegistry::instance();
+    QFile source(QStringLiteral(FILES_DATA_DIR) + QStringLiteral("/sources/transform_rotate_test_1.jpg"));
+    QVERIFY(source.open(QIODevice::ReadOnly));
+    auto encoded = source.readAll();
+    QBuffer initial(&encoded);
+    QVERIFY(initial.open(QIODevice::ReadOnly));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisJPEGConverter converter(document.data(), true);
+    auto result = converter.buildImage(&initial);
+    QVERIFY2(result.isOk(), qPrintable(result.errorMessage()));
+    KisImageSP previous = converter.image();
+    QVERIFY(previous);
+    const auto frame = encoded.indexOf(QByteArray::fromHex("ffc0"));
+    QVERIFY(frame >= 0);
+    qToBigEndian(quint16(size.height()), reinterpret_cast<uchar *>(encoded.data() + frame + 5));
+    qToBigEndian(quint16(size.width()), reinterpret_cast<uchar *>(encoded.data() + frame + 7));
+    QBuffer oversized(&encoded);
+    QVERIFY(oversized.open(QIODevice::ReadOnly));
+    result = converter.prepareGpuImage(&oversized);
+    QVERIFY2(result == ImportExportCodes::InsufficientMemory, qPrintable(result.errorMessage()));
+    QCOMPARE(converter.image(), previous);
 }
 KISTEST_MAIN(KisJpegTest)
 

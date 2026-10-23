@@ -44,6 +44,7 @@ extern "C" {
 #endif
 
 #include <QFile>
+#include <QCryptographicHash>
 #include <QBuffer>
 #include <QApplication>
 #include <QScopeGuard>
@@ -73,6 +74,7 @@ extern "C" {
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
 #include <kis_transform_worker.h>
+#include <gpu/KisGpuPaintImage.h>
 
 #define ICC_MARKER  (JPEG_APP0 + 2) /* JPEG marker code for ICC */
 #define ICC_OVERHEAD_LEN  14    /* size of non-profile data in APP2 */
@@ -124,10 +126,57 @@ QString getColorSpaceModelForColorType(J_COLOR_SPACE color_type)
     return "";
 }
 
+void orientJpegRaster(LibrePaint::Image::Gpu::RasterImage &image, int orientation)
+{
+    if (orientation < 2 || orientation > 8) return;
+    using LibrePaint::Image::Gpu::RgbaTile;
+    const int width = image.size.width(), height = image.size.height();
+    // Device origins remain public layer positions; tile coordinates stay in image space.
+    if (orientation == 3) image.layers[0].position = QPoint(width - 1, height - 1);
+    else if (orientation >= 5 && orientation <= 7) image.layers[0].position = QPoint(height - 1, 0);
+    else if (orientation == 8) image.layers[0].position = QPoint(0, width - 1);
+    const QSize size = orientation >= 5 ? QSize(height, width) : image.size;
+    const int columns = (size.width() + RgbaTile::Size - 1) / RgbaTile::Size;
+    const int rows = (size.height() + RgbaTile::Size - 1) / RgbaTile::Size;
+    QList<RgbaTile> tiles;
+    for (int y = 0; y < rows; ++y)
+        for (int x = 0; x < columns; ++x)
+            tiles.append({QPoint(x, y), QByteArray(RgbaTile::ByteCount, '\0')});
+    const int sourceColumns = (width + RgbaTile::Size - 1) / RgbaTile::Size;
+    const auto &source = image.layers[0].tiles;
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            int dx = x, dy = y;
+            switch (orientation) {
+            case 2: dx = width - 1 - x; break;
+            case 3: dx = width - 1 - x; dy = height - 1 - y; break;
+            case 4: dy = height - 1 - y; break;
+            case 5: dx = y; dy = x; break;
+            case 6: dx = height - 1 - y; dy = x; break;
+            case 7: dx = height - 1 - y; dy = width - 1 - x; break;
+            case 8: dx = y; dy = width - 1 - x; break;
+            }
+            const auto &input = source[(y / RgbaTile::Size) * sourceColumns + x / RgbaTile::Size];
+            auto &output = tiles[(dy / RgbaTile::Size) * columns + dx / RgbaTile::Size];
+            std::memcpy(output.rgba.data() + ((dy % RgbaTile::Size) * RgbaTile::Size + dx % RgbaTile::Size) * 4,
+                        input.rgba.constData() + ((y % RgbaTile::Size) * RgbaTile::Size + x % RgbaTile::Size) * 4, 4);
+        }
+    }
+    image.layers[0].tiles = std::move(tiles);
+    image.size = size;
+}
+
 }
 
 struct KisJPEGConverter::Private
 {
+    struct PreparedImage
+    {
+        LibrePaint::Image::Gpu::RasterImage raster;
+        const KoColorSpace *colorSpace = nullptr;
+        QPointF resolution{1, 1};
+        KisMetaData::Store metadata;
+    };
     Private(KisDocument *doc, bool batchMode)
         : doc(doc),
           stop(false),
@@ -138,6 +187,7 @@ struct KisJPEGConverter::Private
     KisDocument *doc;
     bool stop;
     bool batchMode;
+    std::unique_ptr<PreparedImage> prepared;
 };
 
 KisJPEGConverter::KisJPEGConverter(KisDocument *doc, bool batchMode)
@@ -149,10 +199,16 @@ KisJPEGConverter::~KisJPEGConverter()
 {
 }
 
-KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
+KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu)
 {
-    struct jpeg_decompress_struct cinfo;
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!io || !io->isReadable()) return ImportExportCodes::NoAccessToRead;
+    struct jpeg_decompress_struct cinfo{};
     struct jpeg_error_mgr jerr;
+    QCryptographicHash inputHash{QCryptographicHash::Sha256};
+    const bool newImage = !m_d->image;
+    auto prepared = gpu ? std::make_unique<Private::PreparedImage>() : nullptr;
+    const auto cleanup = qScopeGuard([&] { if (cinfo.mem) jpeg_destroy_decompress(&cinfo); });
 
     cinfo.err = jpeg_std_error(&jerr);
     jerr.error_exit = jpegErrorExit;
@@ -160,7 +216,7 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
     try {
         jpeg_create_decompress(&cinfo);
 
-        KisJPEGSource::setSource(&cinfo, io);
+        KisJPEGSource::setSource(&cinfo, io, &inputHash);
 
         jpeg_save_markers(&cinfo, JPEG_COM, 0xFFFF);
         /* Save APP0..APP15 markers */
@@ -172,14 +228,21 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
         // read header
         jpeg_read_header(&cinfo, (boolean)true);
 
-        // start reading
-        jpeg_start_decompress(&cinfo);
+        if (gpu) {
+            if (!cinfo.image_width || !cinfo.image_height || cinfo.image_width > Gpu::OperationDocument::CoordinateLimit ||
+                cinfo.image_height > Gpu::OperationDocument::CoordinateLimit)
+                return ImportExportCodes::FormatFeaturesUnsupported;
+            const quint64 columns = (quint64(cinfo.image_width) + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+            const quint64 rows = (quint64(cinfo.image_height) + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+            if (columns * rows > quint64(Gpu::Limits{}.rasterBytes / Gpu::RgbaTile::ByteCount))
+                return ImportExportCodes::InsufficientMemory;
+            if (cinfo.data_precision != 8) return ImportExportCodes::FormatColorSpaceUnsupported;
+        }
 
         // Get the colorspace
         QString modelId = getColorSpaceModelForColorType(cinfo.out_color_space);
         if (modelId.isEmpty()) {
             dbgFile << "unsupported colorspace :" << cinfo.out_color_space;
-            jpeg_destroy_decompress(&cinfo);
             return ImportExportCodes::FormatColorSpaceUnsupported;
         }
 
@@ -194,6 +257,9 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
             free(profile_data);
 
             profile = KoColorSpaceRegistry::instance()->createColorProfile(modelId, Integer8BitsColorDepthID.id(), profile_rawdata);
+            if (!profile) return ImportExportCodes::FileFormatIncorrect;
+            if (gpu && profile_rawdata != KoColorSpaceRegistry::instance()->rgb8()->profile()->rawData())
+                return ImportExportCodes::FormatColorSpaceUnsupported;
             dbgFile <<"profile name:" << profile->name() <<" product information:" << profile->info();
             //This is stadard for profiles like this
             if (!profile->isSuitableForWorkspace()) {
@@ -222,27 +288,39 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
 
         if (cs == 0) {
             dbgFile << "unknown colorspace";
-            jpeg_destroy_decompress(&cinfo);
             return ImportExportCodes::FormatColorSpaceUnsupported;
         }
 
         // Create the cmsTransform if needed
-        KoColorTransformation* transform = 0;
+        std::unique_ptr<KoColorTransformation> transform;
         if (profile && !profile->isSuitableForWorkspace() && profile->isSuitableForInput()) {
-            transform = KoColorSpaceRegistry::instance()
+            transform.reset(KoColorSpaceRegistry::instance()
                 ->colorSpace(modelId, Integer8BitsColorDepthID.id(), profile)
-                ->createColorConverter(cs, KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
+                ->createColorConverter(cs, KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags()));
         }
 
         // Apparently an invalid transform was created from the profile. See bug https://bugs.kde.org/show_bug.cgi?id=255451.
         // After 2.3: warn the user!
         if (transform && !transform->isValid()) {
-            delete transform;
-            transform = 0;
+            transform.reset();
         }
 
         // Creating the KisImageSP
-        if (!m_d->image) {
+        if (gpu) {
+            if (cinfo.out_color_space != JCS_RGB || cs->id() != QStringLiteral("RGBA") || transform ||
+                cs->profile()->rawData() != KoColorSpaceRegistry::instance()->rgb8()->profile()->rawData())
+                return ImportExportCodes::FormatColorSpaceUnsupported;
+            prepared->colorSpace = cs;
+            prepared->raster.size = QSize(cinfo.image_width, cinfo.image_height);
+            Gpu::RasterLayer layer;
+            layer.name = i18nc("Name for the bottom-most layer in the layerstack", "Background");
+            const int columns = (cinfo.image_width + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+            const int rows = (cinfo.image_height + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+            for (int y = 0; y < rows; ++y)
+                for (int x = 0; x < columns; ++x)
+                    layer.tiles.append({QPoint(x, y), QByteArray(Gpu::RgbaTile::ByteCount, '\0')});
+            prepared->raster.layers.append(std::move(layer));
+        } else if (!m_d->image) {
             m_d->image = new KisImage(m_d->doc->createUndoStore(),  cinfo.image_width,  cinfo.image_height, cs, "built image");
             Q_CHECK_PTR(m_d->image);
         }
@@ -262,18 +340,40 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
         if (yres < 72) {
             yres = 72;
         }
-        m_d->image->setResolution(POINT_TO_INCH(xres), POINT_TO_INCH(yres));   // It is the "invert" macro because we convert from pointer-per-inch to points
+        if (gpu) prepared->resolution = QPointF(POINT_TO_INCH(xres), POINT_TO_INCH(yres));
+        else m_d->image->setResolution(POINT_TO_INCH(xres), POINT_TO_INCH(yres));
 
         // Create layer
-        KisPaintLayerSP layer = KisPaintLayerSP(new KisPaintLayer(m_d->image.data(), m_d->image -> nextLayerName(), quint8_MAX));
+        KisPaintLayerSP layer;
+        if (!gpu) layer = new KisPaintLayer(m_d->image.data(), m_d->image->nextLayerName(), quint8_MAX);
+        auto *metadata = gpu ? &prepared->metadata : layer->metaData();
+        int orientation = 1;
 
         // Read data
-        JSAMPROW row_pointer = new JSAMPLE[cinfo.image_width*cinfo.num_components];
+        jpeg_start_decompress(&cinfo);
+        auto row = std::make_unique<JSAMPLE[]>(size_t(cinfo.image_width) * cinfo.num_components);
+        JSAMPROW row_pointer = row.get();
 
         for (; cinfo.output_scanline < cinfo.image_height;) {
-            KisHLineIteratorSP it = layer->paintDevice()->createHLineIteratorNG(0, cinfo.output_scanline, cinfo.image_width);
+            const auto y = cinfo.output_scanline;
+            KisHLineIteratorSP it;
+            if (!gpu) it = layer->paintDevice()->createHLineIteratorNG(0, y, cinfo.image_width);
             jpeg_read_scanlines(&cinfo, &row_pointer, 1);
             quint8 *src = row_pointer;
+            if (gpu) {
+                const int columns = (cinfo.image_width + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+                auto &tiles = prepared->raster.layers[0].tiles;
+                for (quint32 x = 0; x < cinfo.image_width; ++x) {
+                    auto &tile = tiles[(y / Gpu::RgbaTile::Size) * columns + x / Gpu::RgbaTile::Size];
+                    auto *destination = reinterpret_cast<quint8 *>(tile.rgba.data()) +
+                        ((y % Gpu::RgbaTile::Size) * Gpu::RgbaTile::Size + x % Gpu::RgbaTile::Size) * 4;
+                    destination[0] = src[x * 3];
+                    destination[1] = src[x * 3 + 1];
+                    destination[2] = src[x * 3 + 2];
+                    destination[3] = 255;
+                }
+                continue;
+            }
             switch (cinfo.out_color_space) {
             case JCS_GRAYSCALE:
                 do {
@@ -312,7 +412,7 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
             }
         }
 
-        m_d->image->addNode(KisNodeSP(layer.data()), m_d->image->rootLayer().data());
+        if (!gpu) m_d->image->addNode(KisNodeSP(layer.data()), m_d->image->rootLayer().data());
 
         // Read exif information
 
@@ -338,12 +438,14 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
             Q_ASSERT(exifIO);
             QByteArray byteArray((const char*)marker->data + 6, marker->data_length - 6);
             QBuffer buf(&byteArray);
-            exifIO->loadFrom(layer->metaData(), &buf);
+            buf.open(QIODevice::ReadOnly);
+            exifIO->loadFrom(metadata, &buf);
             // Interpret orientation tag
-            if (layer->metaData()->containsEntry("http://ns.adobe.com/tiff/1.0/", "Orientation")) {
-                KisMetaData::Entry& entry = layer->metaData()->getEntry("http://ns.adobe.com/tiff/1.0/", "Orientation");
+            if (metadata->containsEntry("http://ns.adobe.com/tiff/1.0/", "Orientation")) {
+                KisMetaData::Entry& entry = metadata->getEntry("http://ns.adobe.com/tiff/1.0/", "Orientation");
                 if (entry.value().type() == KisMetaData::Value::Variant) {
-                    switch (entry.value().asVariant().toInt()) {
+                    if (gpu) orientation = entry.value().asVariant().toInt();
+                    else switch (entry.value().asVariant().toInt()) {
                     case 2:
                         KisTransformWorker::mirrorX(layer->paintDevice());
                         break;
@@ -354,15 +456,16 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
                         KisTransformWorker::mirrorY(layer->paintDevice());
                         break;
                     case 5:
-                        image()->rotateImage(M_PI / 2);
+                        // Finish direct pixel writes before queuing rotation.
                         KisTransformWorker::mirrorY(layer->paintDevice());
+                        image()->rotateImage(M_PI / 2);
                         break;
                     case 6:
                         image()->rotateImage(M_PI / 2);
                         break;
                     case 7:
-                        image()->rotateImage(M_PI / 2);
                         KisTransformWorker::mirrorX(layer->paintDevice());
+                        image()->rotateImage(M_PI / 2);
                         break;
                     case 8:
                         image()->rotateImage(-M_PI / 2 + M_PI*2);
@@ -408,7 +511,8 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
                     // Decode the IPTC data
                     QByteArray byteArray((const char*)(record + sizeHdr), sizeIptc);
                     QBuffer buf(&byteArray);
-                    iptcIO->loadFrom(layer->metaData(), &buf);
+                    buf.open(QIODevice::ReadOnly);
+                    iptcIO->loadFrom(metadata, &buf);
                 } else {
                     dbgFile << "IPTC Not found in Photoshop marker";
                 }
@@ -431,30 +535,41 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
             QByteArray byteArray((const char*)marker->data + 29, marker->data_length - 29);
             KisMetaData::IOBackend *xmpIO = KisMetadataBackendRegistry::instance()->value("xmp");
             Q_ASSERT(xmpIO);
-            xmpIO->loadFrom(layer->metaData(), new QBuffer(&byteArray));
+            QBuffer buf(&byteArray);
+            buf.open(QIODevice::ReadOnly);
+            xmpIO->loadFrom(metadata, &buf);
             break;
         }
 
         // Dump loaded metadata
-        layer->metaData()->debugDump();
+        metadata->debugDump();
 
         // Check whether the metadata has resolution info, too...
-        if (cinfo.density_unit == 0 && layer->metaData()->containsEntry("tiff:XResolution") && layer->metaData()->containsEntry("tiff:YResolution")) {
-            double xres = layer->metaData()->getEntry("tiff:XResolution").value().asDouble();
-            double yres = layer->metaData()->getEntry("tiff:YResolution").value().asDouble();
+        if (cinfo.density_unit == 0 && metadata->containsEntry("tiff:XResolution") && metadata->containsEntry("tiff:YResolution")) {
+            double xres = metadata->getEntry("tiff:XResolution").value().asDouble();
+            double yres = metadata->getEntry("tiff:YResolution").value().asDouble();
             if (xres != 0 && yres != 0) {
-                m_d->image->setResolution(POINT_TO_INCH(xres), POINT_TO_INCH(yres));   // It is the "invert" macro because we convert from pointer-per-inch to points
+                if (gpu) prepared->resolution = QPointF(POINT_TO_INCH(xres), POINT_TO_INCH(yres));
+                else m_d->image->setResolution(POINT_TO_INCH(xres), POINT_TO_INCH(yres));
             }
         }
 
         // Finish decompression
         jpeg_finish_decompress(&cinfo);
-        jpeg_destroy_decompress(&cinfo);
-        delete [] row_pointer;
+        if (gpu || newImage) {
+            // JPEG carries no layer identity. The versioned format namespace
+            // and consumed input give repeated imports the same identity.
+            const auto uuid = QUuid::createUuidV5(QUuid(QStringLiteral("{4463a421-f12b-40ef-bbd7-8b7885ad3698}")), inputHash.result());
+            if (gpu) prepared->raster.layers[0].uuid = uuid;
+            else layer->setUuid(uuid);
+        }
+        if (gpu) {
+            orientJpegRaster(prepared->raster, orientation);
+            m_d->prepared = std::move(prepared);
+        }
         return ImportExportCodes::OK;
     }
     catch( std::runtime_error &) {
-        jpeg_destroy_decompress(&cinfo);
         return ImportExportCodes::FileFormatIncorrect;
     }
 }
@@ -463,7 +578,31 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io)
 
 KisImportExportErrorCode KisJPEGConverter::buildImage(QIODevice *io)
 {
-    return decode(io);
+    return decode(io, false);
+}
+
+KisImportExportErrorCode KisJPEGConverter::prepareGpuImage(QIODevice *io)
+{
+    m_d->prepared.reset();
+    try { return decode(io, true); }
+    catch (const std::bad_alloc &) { return ImportExportCodes::InsufficientMemory; }
+}
+
+KisImportExportErrorCode KisJPEGConverter::buildGpuImage(std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution)
+{
+    if (!m_d->prepared || !execution) return ImportExportCodes::Failure;
+    auto prepared = std::move(m_d->prepared);
+    try {
+        auto image = KisImage::fromGpuImage(
+            LibrePaint::Image::Gpu::PaintImageSP::create(execution, prepared->raster),
+            QStringLiteral("built image"), prepared->colorSpace);
+        image->setResolution(prepared->resolution.x(), prepared->resolution.y());
+        auto *layer = qobject_cast<KisLayer *>(image->root()->firstChild().data());
+        layer->metaData()->copyFrom(&prepared->metadata);
+        m_d->image = image;
+        return ImportExportCodes::OK;
+    } catch (const std::bad_alloc &) { return ImportExportCodes::InsufficientMemory; }
+    catch (const std::exception &error) { return KisImportExportErrorCode(QString::fromUtf8(error.what())); }
 }
 
 

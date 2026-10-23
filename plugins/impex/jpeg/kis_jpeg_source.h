@@ -13,10 +13,14 @@ extern "C" {
 }
 
 class QIODevice;
+class QCryptographicHash;
 
 namespace KisJPEGSource
 {
-    void setSource(j_decompress_ptr cinfo, QIODevice* inputDevice);
+    /** The optional digest is borrowed until decompression ends. Successful
+     * finish hashes the consumed JPEG codestream, independent of read-ahead.
+     */
+    void setSource(j_decompress_ptr cinfo, QIODevice* inputDevice, QCryptographicHash *digest = nullptr);
 }
 
 #endif

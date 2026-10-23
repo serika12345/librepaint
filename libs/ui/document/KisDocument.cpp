@@ -3117,8 +3117,7 @@ bool KisDocument::openPathInternal(const QString &path)
     ret = openFile();
     if (!guard) return ret;
 
-    if (!ret && (d->identity.mimeType() == nativeFormatMimeType() ||
-                 KisPart::instance()->gpuEngineEnabled())) {
+    if (!ret) {
         const bool pathChanged = d->identity.path() != previousIdentity.path();
         d->identity = previousIdentity;
         if (pathChanged) Q_EMIT sigPathChanged(d->identity.path());

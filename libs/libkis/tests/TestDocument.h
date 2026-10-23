@@ -47,6 +47,10 @@ private Q_SLOTS:
     void testPngWithoutPhysicalResolutionKeepsImageDefault();
     void testGpuSessionOpensPngWithGpuPixelOwnership_data();
     void testGpuSessionOpensPngWithGpuPixelOwnership();
+    void testGpuSessionOpensJpegWithGpuPixelOwnership_data();
+    void testGpuSessionOpensJpegWithGpuPixelOwnership();
+    void testJpegRejectedOpenKeepsDocument_data();
+    void testJpegRejectedOpenKeepsDocument();
     void testGpuPngRejectedOpenKeepsDocument_data();
     void testGpuPngRejectedOpenKeepsDocument();
     void testSavedSourceOverPixelsAgreeAcrossBackends_data();

@@ -804,6 +804,20 @@ CTestの資源ロックで相互の実行を順序付ける。
 ファイル名を指定する変換は、取消し・変換拒否・成功と保存先の有無を組み合わせ、元ファイルと
 正常な符号化結果を検査する。POSIXでは一時ファイルを作成できないディレクトリー、Windowsでは
 他の利用者が置換を許可していないファイルを用いて、置換失敗後の元ファイルの保持を検査する。
+`TestDocument::testGpuSessionOpensJpegWithGpuPixelOwnership`は通常のOpenから、
+画素、Exifの8種類の向き、レイヤー位置、JFIF・Exifの解像度、ICC、画像メタデータと初期状態を照合する。
+CPUの作業スレッドは4に固定し、向き5・7には複数タイルの画像を使って反転と回転の順序を検査する。
+編集、Undo／Redo、KRA保存・再読込・追加編集後の再保存、PNG・JPEG書出しをCPU文書と比較する。
+文書情報・著者・時刻・圧縮設定を固定し、各形式のファイル全体を完全比較する。
+終端マーカー欠落からの既存の回復も同じ契約で検査する。
+`testJpegRejectedOpenKeepsDocument`は不正入力、未対応の色・精度・ICCと容量超過に対し、
+編集中の画像・画素・履歴・保存先・変更状態と、後続のUndoを検査する。
+回転とタイル境界の試験は`plugins/impex/jpeg/tests/data/sources/HPIM0760.JPG`を参照する。
+独立した試験環境へ配置するときも、`QFINDTESTDATA`が解決するソース相対位置を保持する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`jpeg-import-<条件>/`を作成し、`cpu.kra`と`gpu.kra`、
+追加編集後の`cpu-after.kra`と`gpu-after.kra`、それぞれの`.png`と`.jpg`を出力する。
+`kis_jpeg_test`は短い読取り・先読み・入力バッファー境界でのインポートUUID、不正ICCの拒否、
+復号前の余白込みタイル容量の拒否と、変換所有者が保持する元画像を検査する。
 `kis_jpeg_test`はRGBA・Gray・CMYKの8/16 bitとLab16について、描画面入力と行入力の
 JPEG全体を比較する。固定した色とアルファ、Lab16からRGB8を経由するsRGB変換の量子化境界、
 行の読取順、読取り中の取消し、入力不足と書込み失敗を検査する。

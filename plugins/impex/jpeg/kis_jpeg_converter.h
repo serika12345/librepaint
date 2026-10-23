@@ -14,12 +14,14 @@ extern "C" {
 }
 
 #include <QColor>
+#include <memory>
 
 #include "kis_types.h"
 #include "kis_annotation.h"
 #include <KisImportExportErrorCode.h>
 class KisDocument;
 struct KisExportRasterRows;
+namespace LibrePaint::Image::Gpu { class Execution; }
 
 namespace KisMetaData
 {
@@ -57,6 +59,12 @@ public:
     ~KisJPEGConverter() override;
 public:
     KisImportExportErrorCode buildImage(QIODevice *io);
+    /** Decode supported RGB8 input into temporary tiles before acquiring a GPU.
+     * Failure preserves the converter's previous image and the document.
+     */
+    KisImportExportErrorCode prepareGpuImage(QIODevice *io);
+    /** Consume prepared pixels using shared execution on its owning thread. */
+    KisImportExportErrorCode buildGpuImage(std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution);
     KisImportExportErrorCode buildFile(QIODevice *io, KisPaintLayerSP layer, KisJPEGOptions options, KisMetaData::Store* metaData);
     KisImportExportErrorCode buildFile(QIODevice *io, const KisExportRasterRows &rows,
         qreal xRes, qreal yRes, KisJPEGOptions options, KisMetaData::Store *metaData);
@@ -66,7 +74,7 @@ public:
 public Q_SLOTS:
     virtual void cancel();
 private:
-    KisImportExportErrorCode decode(QIODevice *io);
+    KisImportExportErrorCode decode(QIODevice *io, bool gpu);
     KisImportExportErrorCode encodeRows(QIODevice *io, const KisExportRasterRows &rows,
         qreal xRes, qreal yRes, const KisJPEGOptions &options, KisMetaData::Store *metaData);
 private:

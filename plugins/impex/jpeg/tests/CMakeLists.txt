@@ -11,7 +11,7 @@ else()
     target_include_directories(kis_jpeg_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/.. ${ICCJPEG_SOURCE_DIR})
     target_link_libraries(kis_jpeg_test ${kritajpeg_LIBRARIES} ${LCMS2_LIBRARIES} LibExiv2::LibExiv2)
 endif()
-target_link_libraries(kis_jpeg_test kritaimpex)
+target_link_libraries(kis_jpeg_test kritaimpex kritagpuimage)
 add_dependencies(kis_jpeg_test
     kritajpegimport kritajpegexport kritalcmsengine kritaexif kritaiptc kritaxmp)
 
