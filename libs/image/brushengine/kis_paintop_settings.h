@@ -68,7 +68,7 @@ const QString SPACING_USE_UPDATES = "PaintOpSettings/updateSpacingBetweenDabs";
 class KRITAIMAGE_EXPORT KisPaintOpSettings : public KisPropertiesConfiguration
 {
 public:
-    struct UpdateListener {
+    struct KRITAIMAGE_EXPORT UpdateListener {
         virtual ~UpdateListener();
         virtual void setDirty(bool value) = 0;
         virtual bool isDirty() const = 0;
