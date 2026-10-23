@@ -1218,6 +1218,13 @@ Gaussianの複合パスは移動命令の前後で間隔を共有し、個別の
 `LIBREPAINT_GPU_RESULT_DIR`へ`gaussian-path-calls-<条件>.rgba`を出力する。通常文書の
 `TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles`は、新規・読込文書の複合パス、
 個別パスと二種類の交互呼出しについて、追記・履歴・KRA保存再読込み・PNG/JPEGを書込みバイトまで照合する。
+Gaussianの三次曲線は、開いた曲線、始点へ戻る曲線、複合・個別のパスと直線との混在を固定入力とする。
+`libs/image/gpu/tests/KisGpuGaussianBrushFixture_p.h`は、通常の資源取得から保存した形式39の
+ブラシ設定を保持する。資源の版、倍精度の筆圧応答、流量と不透明度を同じ値で再生する。
+`KisGpuTileRendererTest::gaussianCubicPathsKeepPixelsInputHistoryAndRecovery`は、通常CPU描画の全画素、
+制御点を保持したプレビュー、保持済み画素、取消し、履歴と復旧を検査する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`gaussian-cubic-<条件>.rgba`を出力し、環境間で全バイトを比較する。
+通常文書の同じ5操作は、新規・読込文書での追加編集、履歴、KRA再読込とPNG/JPEGの全バイトを照合する。
 三次曲線は、始終点が同じ場合も制御点が異なれば経路を分割し、全点が一致する場合は静止点として扱う。
 `kis_paintop_test::testCubicTraversalKeepsGeometryAndInput`は、閉曲線と等価な中点分割のブラシ呼出しを照合する。
 通常の曲線、同一直線上の閉曲線と静止点について、始終点、連続した筆圧・時刻と曲線点列を検査する。

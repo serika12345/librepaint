@@ -14,6 +14,7 @@
 #include <gpu/KisGpuReadbackBatch_p.h>
 #include <webgpu/wgpu.h>
 #include "KisGpuLegacyRecoveryFixture_p.h"
+#include "KisGpuGaussianBrushFixture_p.h"
 
 #include "KisGpuMultiplyProjectionFixture_p.h"
 #include "KisGpuScreenProjectionFixture_p.h"
@@ -60,6 +61,8 @@ private Q_SLOTS:
     void gaussianLineShapeEditsPreserveInputHistoryAndRecovery();
     void gaussianPathCallsKeepDistanceHistoryAndRecovery_data();
     void gaussianPathCallsKeepDistanceHistoryAndRecovery();
+    void gaussianCubicPathsKeepPixelsInputHistoryAndRecovery_data();
+    void gaussianCubicPathsKeepPixelsInputHistoryAndRecovery();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery_data();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery();
     void filledInteriorRespectsRegionAndTileBudget();
@@ -356,6 +359,111 @@ void KisGpuTileRendererTest::gaussianPathCallsKeepDistanceHistoryAndRecovery()
     QVERIFY(undone && undone->tiles(restored.activeLayer()).isEmpty());
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(readTile(render(renderer, restored.snapshot(), undone), restored.activeLayer(), {0, 0}), tile);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    const auto cancelled = render(renderer, document.snapshot(), changed);
+    QVERIFY(cancelled && cancelled->tiles(layer).isEmpty());
+}
+
+void KisGpuTileRendererTest::gaussianCubicPathsKeepPixelsInputHistoryAndRecovery_data()
+{
+    QTest::addColumn<int>("kind");
+    QTest::addColumn<QByteArray>("expectedSha256");
+    // Unchanged normal CPU figure calls at 2d57883297 with the captured brush.
+    // Only BGRA/RGBA byte-channel order was converted for the complete images.
+    QTest::newRow("open") << 0 << QByteArrayLiteral("fd9cfb1e45be12615d7764cc8250e9fbfe963a12086c79067c1b6be49f194841");
+    QTest::newRow("closed") << 1 << QByteArrayLiteral("6e4827361a867bc92a15fe38c2d8f9f777f8ef15886a682f5d4941d869ada5ae");
+    QTest::newRow("compound") << 2 << QByteArrayLiteral("6826252ac05a1a397cefc746c98b4061fe3da7ebffbc66cc04dfb900c3e25a10");
+    QTest::newRow("separate") << 3 << QByteArrayLiteral("4500dcdb3d60097b00cbc222370dee64c2458992db7f65cf260701da1860b61e");
+    QTest::newRow("line-cubic-line") << 4 << QByteArrayLiteral("efb5ac9576f8202c28e17aeb27296e183ca8f401b4ad820f1d6c05710f81e700");
+}
+
+void KisGpuTileRendererTest::gaussianCubicPathsKeepPixelsInputHistoryAndRecovery()
+{
+    QFETCH(int, kind);
+    QFETCH(QByteArray, expectedSha256);
+    OperationDocument captured(QSize(1, 1));
+    QCOMPARE(captured.restoreRecovery(LibrePaint::Image::Gpu::Test::defaultGaussianBrushRecoveryV39()), Result::Success);
+    const auto operation = std::get<PaintSnapshot>(captured.snapshot()->layers.first().operations.last());
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::CubicTo};
+    QList<InputSample> input{{{12.25, 13.75}, 1}, {{18.5, 48.75}, 1}, {{86.125, 5.25}, 1}, {{105.5, 91.25}, 1}};
+    shape.pathCalls = {{0, 4}};
+    if (kind == 1) {
+        input[1].position = {114.125, -15.75};
+        input[2].position = {-26.375, 115.25};
+        input[3].position = input[0].position;
+    } else if (kind >= 2) {
+        const QList<InputSample> second{{{18.125, 91.5}, 1}, {{21.75, 43.125}, 1},
+                                        {{108.25, 120.375}, 1}, {{112.5, 78.25}, 1}};
+        if (kind == 4) {
+            input = {{{12.25, 13.75}, .2}, {{105.5, 25.75}, .8}};
+            input.append(second);
+            input.append({{24.25, 48.125}, .9});
+            input.append({{101.5, 53.75}, .4});
+            shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::MoveTo,
+                                  PathCommand::CubicTo, PathCommand::MoveTo, PathCommand::LineTo};
+            shape.pathCalls = {{2, 6}};
+        } else {
+            input.append(second);
+            shape.pathCommands.append({PathCommand::MoveTo, PathCommand::CubicTo});
+            shape.pathCalls = kind == 2 ? QList<QPair<qsizetype, qsizetype>>{{0, 8}} :
+                                         QList<QPair<qsizetype, qsizetype>>{{0, 4}, {4, 8}};
+        }
+    }
+    auto outline = shape;
+    outline.pathCommands.clear();
+    for (const auto command : shape.pathCommands) {
+        if (command == PathCommand::CubicTo)
+            outline.pathCommands.append({PathCommand::LineTo, PathCommand::LineTo, PathCommand::LineTo});
+        else outline.pathCommands.append(command);
+    }
+    OperationDocument document(QSize(128, 128));
+    const auto layer = document.activeLayer();
+    const auto stroke = document.beginStroke(layer, operation->brush, 0);
+    QCOMPARE(document.appendSamples(stroke, input), Result::Success);
+    QCOMPARE(document.updateShape(stroke, outline), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto initial = render(renderer, document.preview());
+    QVERIFY(initial);
+    const auto initialPixels = readTile(initial, layer, {0, 0});
+    QCOMPARE(document.updateShape(stroke, shape), Result::Success);
+    const auto preview = document.preview();
+    const auto changed = render(renderer, preview, initial);
+    QVERIFY(changed);
+    const auto tile = readTile(changed, layer, {0, 0});
+    QCOMPARE(tile.size(), TileRenderer::TileBytes);
+    QVERIFY(tile != initialPixels);
+    QCOMPARE(readTile(initial, layer, {0, 0}), initialPixels);
+    const auto retained = std::get<PaintSnapshot>(preview->layers.first().operations.last());
+    QCOMPARE(retained->inputSamples(), input);
+    QCOMPARE(retained->shape.pathCommands, shape.pathCommands);
+    QCOMPARE(retained->shape.pathCalls, shape.pathCalls);
+    QByteArray pixels;
+    for (int y = 0; y < 128; ++y) pixels.append(tile.mid(y * RgbaTile::Size * 4, 128 * 4));
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile file(QDir(directory).filePath(QStringLiteral("gaussian-cubic-") +
+                   QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(pixels), pixels.size());
+    }
+    QCOMPARE(QCryptographicHash::hash(pixels, QCryptographicHash::Sha256).toHex(), expectedSha256);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recovered = render(renderer, restored.preview());
+    QVERIFY(recovered);
+    QCOMPARE(readTile(recovered, restored.activeLayer(), {0, 0}), tile);
+    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
+    QCOMPARE(restored.undo(), Result::Success);
+    const auto undone = render(renderer, restored.snapshot(), recovered);
+    QVERIFY(undone && undone->tiles(restored.activeLayer()).isEmpty());
+    QCOMPARE(restored.redo(), Result::Success);
+    const auto redone = render(renderer, restored.snapshot());
+    QVERIFY(redone);
+    QCOMPARE(readTile(redone, restored.activeLayer(), {0, 0}), tile);
+    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->inputSamples(), input);
     QCOMPARE(document.cancelStroke(stroke), Result::Success);
     const auto cancelled = render(renderer, document.snapshot(), changed);
     QVERIFY(cancelled && cancelled->tiles(layer).isEmpty());

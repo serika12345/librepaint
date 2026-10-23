@@ -161,6 +161,25 @@ void paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
             KisFigurePaintingOptions::StrokeStyleForeground, KisFigurePaintingOptions::FillStyleNone);
         if (calls == 0) {
             for (int i = 1; i < points.size(); ++i) operation.paintLine(points[i - 1], points[i]);
+        } else if (calls >= 5) {
+            const QPointF firstPoint = QPointF(12.25, 13.75) + offset;
+            QPainterPath first(firstPoint);
+            if (calls == 6)
+                first.cubicTo(QPointF(114.125, -15.75) + offset, QPointF(-26.375, 115.25) + offset, firstPoint);
+            else
+                first.cubicTo(QPointF(18.5, 48.75) + offset, QPointF(86.125, 5.25) + offset, QPointF(105.5, 91.25) + offset);
+            QPainterPath second(QPointF(18.125, 91.5) + offset);
+            second.cubicTo(QPointF(21.75, 43.125) + offset, QPointF(108.25, 120.375) + offset,
+                           QPointF(112.5, 78.25) + offset);
+            if (calls <= 6) operation.paintPainterPath(first);
+            else if (calls == 7) { first.addPath(second); operation.paintPainterPath(first); }
+            else if (calls == 8) { operation.paintPainterPath(first); operation.paintPainterPath(second); }
+            else {
+                operation.paintLine(KisPaintInformation(firstPoint, .2), KisPaintInformation(QPointF(105.5, 25.75) + offset, .8));
+                operation.paintPainterPath(second);
+                operation.paintLine(KisPaintInformation(QPointF(24.25, 48.125) + offset, .9),
+                                    KisPaintInformation(QPointF(101.5, 53.75) + offset, .4));
+            }
         } else {
             QPainterPath first(QPointF(12.25, 13.75) + offset);
             first.lineTo(QPointF(105.5, 25.75) + offset);
@@ -203,9 +222,11 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
         }
         const auto name = QStringLiteral("%1-opacity-%2-half-flow").arg(fresh ? "new" : "opened").arg(opacity);
         QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << 0;
-        for (int calls = 1; calls <= 4; ++calls) {
+        for (int calls = 1; calls <= 9; ++calls) {
             const auto kind = calls == 1 ? "compound-path" : calls == 2 ? "separate-paths" :
-                              calls == 3 ? "line-path-line" : "path-line-path";
+                              calls == 3 ? "line-path-line" : calls == 4 ? "path-line-path" :
+                              calls == 5 ? "cubic-open" : calls == 6 ? "cubic-closed" :
+                              calls == 7 ? "cubic-compound" : calls == 8 ? "cubic-separate" : "line-cubic-line";
             const auto group = QStringLiteral("%1-%2-opacity-%3").arg(fresh ? "new" : "opened").arg(QLatin1String(kind)).arg(opacity);
             QTest::newRow(qPrintable(group)) << opacity << qreal(.5) << 2 << fresh << calls;
         }

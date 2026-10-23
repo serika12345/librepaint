@@ -130,6 +130,44 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation)
         }
         return true;
     };
+    qsizetype cubicSegments = 0;
+    const auto cubic = [&](InputSample first, QPointF control1, QPointF control2, InputSample last) {
+        struct Curve { InputSample first; QPointF control1, control2; InputSample last; };
+        QList<Curve> pending{{first, control1, control2, last}};
+        const auto same = [](QPointF a, QPointF b) { return a.x() == b.x() && a.y() == b.y(); };
+        while (!pending.isEmpty()) {
+            const auto curve = pending.takeLast();
+            bool flat;
+            if (same(curve.first.position, curve.last.position)) {
+                flat = same(curve.control1, curve.first.position) && same(curve.control2, curve.first.position);
+            } else {
+                const auto delta = curve.last.position - curve.first.position;
+                const qreal length = std::sqrt(delta.x() * delta.x() + delta.y() * delta.y());
+                const QPointF normal = length > 0 ? QPointF(-delta.y() / length, delta.x() / length) :
+                                                   QPointF(-delta.y(), delta.x());
+                const qreal offset = -QPointF::dotProduct(curve.first.position, normal);
+                const qreal d1 = std::abs(QPointF::dotProduct(normal, curve.control1) + offset);
+                const qreal d2 = std::abs(QPointF::dotProduct(normal, curve.control2) + offset);
+                flat = (d1 < .5 && d2 < .5) || std::isnan(d1) || std::isnan(d2);
+            }
+            if (flat) {
+                if (cubicSegments++ >= PathGeometrySegmentLimit || !line(curve.first, curve.last)) return false;
+                continue;
+            }
+            // Match ordinary cubic brush calls before deriving Gaussian dabs.
+            const auto left = (curve.first.position + curve.control1) / 2;
+            const auto center = (curve.control1 + curve.control2) / 2;
+            const auto right = (curve.control2 + curve.last.position) / 2;
+            const auto leftInner = (left + center) / 2;
+            const auto rightInner = (center + right) / 2;
+            auto middle = curve.first;
+            middle.position = (leftInner + rightInner) / 2;
+            middle.pressure = .5 * curve.first.pressure + .5 * curve.last.pressure;
+            pending.append({middle, rightInner, right, curve.last});
+            pending.append({curve.first, left, leftInner, middle});
+        }
+        return true;
+    };
     if (input.isEmpty()) return result;
     if (operation.shape.kind == ShapeKind::Path) {
         qsizetype index = 0, call = 0;
@@ -144,10 +182,15 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation)
                 spacing = .5;
                 accumulated = 0;
             }
-            if (command == PathCommand::CubicTo) return std::nullopt;
-            const auto point = input[index++];
-            if (command == PathCommand::LineTo && !line(previous, point)) return std::nullopt;
-            previous = point;
+            if (command == PathCommand::CubicTo) {
+                if (!cubic(previous, input[index].position, input[index + 1].position, input[index + 2])) return std::nullopt;
+                previous = input[index + 2];
+                index += 3;
+            } else {
+                const auto point = input[index++];
+                if (command == PathCommand::LineTo && !line(previous, point)) return std::nullopt;
+                previous = point;
+            }
             if (call < operation.shape.pathCalls.size() && index == operation.shape.pathCalls[call].second) {
                 spacing = lineSpacing;
                 accumulated = lineAccumulated;
