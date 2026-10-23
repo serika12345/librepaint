@@ -84,10 +84,15 @@ if (TARGET FreehandStrokeContractTest)
         ${CMAKE_CURRENT_SOURCE_DIR}/brush
         ${CMAKE_SOURCE_DIR}/plugins/paintops/libpaintop
     )
-    target_link_libraries(FreehandStrokeContractTest
-        kritapaintopruntime
-        kritapixelbrushobjects
-    )
+    if (WIN32)
+        # Brush objects import the shared paint-op ABI on Windows.
+        target_link_libraries(FreehandStrokeContractTest kritapixelbrush)
+    else()
+        target_link_libraries(FreehandStrokeContractTest
+            kritapaintopruntime
+            kritapixelbrushobjects
+        )
+    endif()
 endif()
 
 install(TARGETS kritadefaultpaintops  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

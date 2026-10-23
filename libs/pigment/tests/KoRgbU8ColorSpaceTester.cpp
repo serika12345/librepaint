@@ -28,6 +28,9 @@
 #define BLUE_CHANNEL 2
 #define ALPHA_CHANNEL 3
 #include <KoColorProfile.h>
+#include <KoAlphaMaskApplicatorBase.h>
+#include <KoAlphaMaskApplicator.h>
+#include <memory>
 
 void KoRgbU8ColorSpaceTester::testSourceOverPreservesDivisionRounding_data()
 {
@@ -162,6 +165,74 @@ void KoRgbU8ColorSpaceTester::testSourceOverPreservesPixelsAcrossBatchBoundaries
                   nullptr, 0, 1, width, opacity / 255.0f);
     QCOMPARE(destination, expected);
     QCOMPARE(source, unchangedSource);
+}
+
+void KoRgbU8ColorSpaceTester::testInverseFloatMaskPreservesPixelsAcrossBatches_data()
+{
+    QTest::addColumn<bool>("fill");
+    QTest::addColumn<bool>("scalar");
+    QTest::newRow("existing-color-selected") << false << false;
+    QTest::newRow("brush-color-selected") << true << false;
+    QTest::newRow("existing-color-scalar") << false << true;
+    QTest::newRow("brush-color-scalar") << true << true;
+}
+
+void KoRgbU8ColorSpaceTester::testInverseFloatMaskPreservesPixelsAcrossBatches()
+{
+    QFETCH(bool, fill);
+    QFETCH(bool, scalar);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(cs);
+    std::unique_ptr<KoAlphaMaskApplicatorBase> scalarApplicator;
+    if (scalar) scalarApplicator = std::make_unique<KoAlphaMaskApplicator<quint8, 4, 3, xsimd::generic>>();
+    const QByteArray brushColor = QByteArray::fromHex("112233c9");
+    const auto apply = [&](quint8 *pixels, const float *mask, int count) {
+        if (fill) {
+            const auto color = reinterpret_cast<const quint8 *>(brushColor.constData());
+            if (scalar) scalarApplicator->fillInverseAlphaNormedFloatMaskWithColor(pixels, mask, color, count);
+            else cs->fillInverseAlphaNormedFloatMaskWithColor(pixels, mask, color, count);
+        } else {
+            if (scalar) scalarApplicator->applyInverseNormedFloatMask(pixels, mask, count);
+            else cs->applyInverseNormedFloatMask(pixels, mask, count);
+        }
+    };
+
+    // Brush masks update editable pixels. Preserve the SIMD body's nearest-even
+    // alpha, including exact half values, when rows or jobs split the same mask.
+    struct Case { float mask; int alpha, applied, filled; };
+    const Case cases[] = {
+        {0.0f, 17, 17, 255}, {1.0f, 255, 0, 0},
+        {0.5f, 1, 0, 128}, {0.5f, 3, 2, 128},
+        {0.5f, 127, 64, 128}, {0.5f, 129, 64, 128},
+        {0.25f, 2, 2, 191}, {0.25f, 6, 4, 191},
+        {0.75f, 2, 0, 64}, {0.75f, 6, 2, 64},
+        {0.1875f, 255, 207, 207}, {0.6875f, 255, 80, 80},
+    };
+    for (const auto &c : cases) {
+        for (const int count : {0, 1, 3, 4, 5, 7, 8, 9, 12, 15, 16, 17, 31}) {
+            for (const int offset : {0, 4}) {
+                QByteArray pixels(offset + count * 4 + 16, char(0x5a));
+                const QByteArray original = QByteArray::fromHex("a1b2c3") + char(c.alpha);
+                pixels.replace(offset, count * 4, original.repeated(count));
+                auto expected = pixels;
+                // Both implementations replace the brush color's alpha with mask coverage.
+                const QByteArray output = (fill ? brushColor.first(3) : original.first(3)) + char(fill ? c.filled : c.applied);
+                expected.replace(offset, count * 4, output.repeated(count));
+                auto partitioned = pixels;
+                const QList<float> mask(count + 2, c.mask);
+                const auto unchangedMask = mask;
+                apply(reinterpret_cast<quint8 *>(pixels.data() + offset), mask.constData() + 1, count);
+                for (int i = 0; i < count; ++i)
+                    apply(reinterpret_cast<quint8 *>(partitioned.data() + offset + i * 4), mask.constData() + 1 + i, 1);
+                const auto context = QStringLiteral("mask=%1 input-alpha=%2 count=%3 offset=%4")
+                    .arg(c.mask).arg(c.alpha).arg(count).arg(offset).toUtf8();
+                QVERIFY2(pixels == expected, context.constData());
+                QVERIFY2(partitioned == expected, context.constData());
+                QCOMPARE(mask, unchangedMask);
+                QCOMPARE(brushColor, QByteArray::fromHex("112233c9"));
+            }
+        }
+    }
 }
 
 void KoRgbU8ColorSpaceTester::testBasics()

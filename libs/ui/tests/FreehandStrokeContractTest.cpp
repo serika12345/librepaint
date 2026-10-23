@@ -69,13 +69,7 @@ const QByteArray maintainedPressureGradientDigest("e9740f2b00ef8670a37aade2c4f96
 const QRect maintainedFuzzySeed17Bounds(142, 142, 271, 271);
 const QByteArray maintainedFuzzySeed17Digest("34a090d8b904e9950f2bf7868b2c7b1f78c2d5bb3ddb8a531a90f203721c21d3");
 const QRect maintainedSpacing025Bounds(50, 50, 353, 353);
-#if defined(Q_OS_ANDROID) && defined(Q_PROCESSOR_X86_64)
-const QByteArray maintainedSpacing025Digest("2ddab997fbbb9608d884c0a6097df0c8d8496b13cf18c090997b7a3c77af684b");
-#elif defined(Q_OS_LINUX) && defined(Q_PROCESSOR_X86_64) && !defined(Q_OS_ANDROID)
-const QByteArray maintainedSpacing025Digest("24fcf5246719d87bd091c837098ffe4841280b47b507e7a3e2ea2d5cf325f2ba");
-#else
-const QByteArray maintainedSpacing025Digest("8bdf0e95ea7526b6289bf2393397c7bb005b69da6866891c2cb12bf991d7f210");
-#endif
+const QByteArray maintainedSpacing025Digest("9342d0c1e5bbb15abe0c20a19be7b651d6b87e9061ad1572d86012f3e01800c1");
 const QRect maintainedSpeed05Bounds(125, 125, 235, 235);
 const QByteArray maintainedSpeed05Digest("3c7c2e19b4b91a27b8d1ddb1068db753012e01f98244eb9e6f688026db4f551a");
 const QRect rectangularSelectionBounds(225, 225, 100, 100);
@@ -623,6 +617,14 @@ void FreehandStrokeContractTest::brushSpacingProducesMaintainedPixels()
     if (digest != maintainedSpacing025Digest) {
         QDir().mkpath(QStringLiteral(FILES_OUTPUT_DIR));
         layer.save(QStringLiteral(FILES_OUTPUT_DIR) + QStringLiteral("/freehand-contract-spacing-025-actual.png"));
+    }
+    // An isotropic circle on the fixed diagonal path preserves all channels
+    // when x and y are exchanged, including the feathered edge.
+    for (int y = 0; y < imageHeight; ++y) {
+        for (int x = 0; x < y; ++x) {
+            QVERIFY2(layer.pixel(x, y) == layer.pixel(y, x),
+                     qPrintable(QStringLiteral("circular stroke is asymmetric at %1,%2").arg(x).arg(y)));
+        }
     }
     QCOMPARE(digest, maintainedSpacing025Digest);
 }

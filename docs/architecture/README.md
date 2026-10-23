@@ -1277,6 +1277,9 @@ PaintOpの実行処理は`plugins/paintops/libpaintop`の`kritapaintopruntime`�
 自由描画の基準契約は[FreehandStrokeContractTest.cpp](../../libs/ui/tests/FreehandStrokeContractTest.cpp)です。
 フォント検索先は、試験に付属するDejaVu Sansだけを含む一時ディレクトリーに固定します。
 画素ブラシの資源初期化をホストのフォントから独立させ、文字画像のプラグインを必要とする構築範囲を避けます。
+Windowsの自由描画契約は、製品の画素ブラシ集約`kritapixelbrush`から共有ブラシ実装へ接続し、
+DLLの公開関数を利用します。ほかの環境では`kritapaintopruntime`と`kritapixelbrushobjects`を
+直接利用し、描画操作の構築範囲で同じ入力・画素契約を検査します。
 sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autobrush_300px.kpp`、
 `(200, 200)`から`(300, 300)`までの2入力点、筆圧1、傾き・回転・接線方向筆圧・時刻・速度0、
 遠近1、非ミラー、無選択、不透明度1、作業スレッド1本を固定します。プリセットは直径300、比率1、
@@ -1307,7 +1310,9 @@ sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autob
 ブラシ間隔の契約は同じ固定入力で自動ブラシの間隔だけを0.1から0.25へ変更します。
 レイヤーと投影の正確な描画領域は`QRect(50, 50, 353, 353)`、RGBA8888へ正規化した
 全画素のSHA-256は
-`8bdf0e95ea7526b6289bf2393397c7bb005b69da6866891c2cb12bf991d7f210`です。既定間隔0.1の
+`9342d0c1e5bbb15abe0c20a19be7b651d6b87e9061ad1572d86012f3e01800c1`です。
+各マスク演算を単精度へ丸め、最後の被覆を最近接偶数で8ビットへ丸めます。
+対角線を軸に全チャネルが対称となる結果を環境共通の基準とします。既定間隔0.1の
 385×385画素領域より小さい結果を維持し、間隔設定から自由描画補間の描点配置までを検査します。
 
 速度応答の契約は寸法センサーをSpeedへ切り替え、2入力点の速度を0.5へ固定します。
@@ -1357,6 +1362,14 @@ GPU実行所有者の交換でも、同じ公開文書と画面を利用する�
 待機中のノード再選択は、発行元が現在の画像に一致する場合に画面へ届ける。
 通常のKRA読込は`libs/ui/document/KisDocument.cpp`から既存の形式プラグインへ渡し、
 レイヤー階層、色精度、注釈、解像度と文書情報を含む文書を公開する。
+`libs/pigment/KoAlphaMaskApplicator.h`は、正規化した逆アルファマスクのRGBA8画素への適用を所有する。
+既存アルファとの積を単精度で求め、最後に最近接偶数丸めを一回適用する。色を塗り付ける場合は、
+ブラシのRGBとマスクの被覆からアルファを作る。スカラー、SIMD本体と端数部分は同じ結果を返す。
+`libs/image/kis_brush_mask_vector_applicator.h`は、この色空間の操作へ自動ブラシのマスクを渡す。
+`libs/image/kis_brush_circle_mask_processor_factories.cpp`は、円形自動ブラシのSIMDマスク行を生成する。
+`libs/image/CMakeLists.txt`は、この生成ソースの暗黙の積和結合を抑え、
+円形の被覆の対称性とISA間の画素一致を保つ。Gaussian、曲線と矩形の行計算は
+`libs/image/kis_brush_mask_processor_factories.cpp`が所有する。
 `libs/pigment/KoColorSpaceRegistry.cpp`と`KoColorSpaceFactory.cpp`は、明示されたプロファイルの
 名前と実データを組にして色空間を再利用する。`KoColorConversionSystem.cpp`も実データで
 変換経路を区別し、各経路が必要なプロファイルの複製を所有する。同名プロファイルの追加・登録解除は、

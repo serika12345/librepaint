@@ -24,6 +24,8 @@ private Q_SLOTS:
     void testSourceOverPreservesDivisionRounding();
     void testSourceOverPreservesPixelsAcrossBatchBoundaries_data();
     void testSourceOverPreservesPixelsAcrossBatchBoundaries();
+    void testInverseFloatMaskPreservesPixelsAcrossBatches_data();
+    void testInverseFloatMaskPreservesPixelsAcrossBatches();
 };
 
 #endif

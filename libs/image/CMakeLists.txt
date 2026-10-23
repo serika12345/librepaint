@@ -22,9 +22,19 @@ endif()
 
 ko_compile_for_all_implementations_no_scalar(__per_arch_circle_mask_generator_objs kis_brush_mask_applicator_factories.cpp)
 ko_compile_for_all_implementations_no_scalar(_per_arch_processor_objs kis_brush_mask_processor_factories.cpp)
+ko_compile_for_all_implementations_no_scalar(_per_arch_circle_processor_objs kis_brush_circle_mask_processor_factories.cpp)
+
+# Circle coverage preserves x/y symmetry before RGBA8 quantization on every ISA.
+if(_per_arch_circle_processor_objs)
+  if(MSVC)
+    set_property(SOURCE ${_per_arch_circle_processor_objs} APPEND PROPERTY COMPILE_OPTIONS /fp:strict)
+  else()
+    set_property(SOURCE ${_per_arch_circle_processor_objs} APPEND PROPERTY COMPILE_OPTIONS -ffp-contract=off)
+  endif()
+endif()
 
 message("Following objects are generated from the per-arch lib")
-foreach(_obj IN LISTS __per_arch_circle_mask_generator_objs _per_arch_processor_objs)
+foreach(_obj IN LISTS __per_arch_circle_mask_generator_objs _per_arch_processor_objs _per_arch_circle_processor_objs)
   message("    * ${_obj}")
 endforeach()
 
@@ -2247,6 +2257,7 @@ set(kritaimage_LIB_SRCS
    kis_gauss_rect_mask_generator.cpp
    ${__per_arch_circle_mask_generator_objs}
    ${_per_arch_processor_objs}
+   ${_per_arch_circle_processor_objs}
    kis_brush_mask_applicator_factories_Scalar.cpp
    kis_curve_circle_mask_generator.cpp
    kis_curve_rect_mask_generator.cpp
