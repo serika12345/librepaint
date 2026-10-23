@@ -105,6 +105,7 @@ private Q_SLOTS:
     void colorFillSavesReopensAndContinuesIdentically();
     void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
     void weightedSmoothingSaveReopenAndContinuePreservesPixels();
+    void gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
     void acceptedChangesUpdateOneAttachedDocument();
     void pinnedSavePreservesLaterEditsAndHistory();
@@ -357,6 +358,90 @@ void KisGpuPaintDocumentTest::weightedSmoothingSaveReopenAndContinuePreservesPix
     QCOMPARE(loaded->undo(), Result::Success);
     QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, painted.bytes.size()).bytes, painted.bytes);
     QCOMPARE(loaded->redo(), Result::Success);
+}
+
+void KisGpuPaintDocumentTest::gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {512, 512};
+    initial.layers.append({QStringLiteral("Gaussian line"), true,
+                          QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000023}")), {}});
+    PaintDocument document(execution, initial), reference(execution, initial);
+    QFile profile(QStringLiteral(":/gpu-paint-results/sRGB-elle-V2-srgbtrc.icc"));
+    QVERIFY(profile.open(QIODevice::ReadOnly));
+    Kra::ImageMetadata metadata;
+    metadata.resolution = {300, 150};
+    metadata.iccProfile = profile.readAll();
+    metadata.documentInfo = QByteArrayLiteral("<document-info><title>Gaussian line</title></document-info>");
+    QCOMPARE(document.setKraImageMetadata(metadata).code, FileCode::Success);
+    QCOMPARE(reference.setKraImageMetadata(metadata).code, FileCode::Success);
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255};
+    brush.diameter = 20;
+    auto &settings = brush.gaussianWash.emplace();
+    settings.resourceDigest = QByteArray(32, 'r');
+    settings.flow = .5;
+    settings.canvasOpacity = .57;
+    settings.sizeUsesPressureDirectly = settings.opacityUsesPressureDirectly = true;
+    for (int i = 0; i < 256; ++i) settings.sizePressure[i] = settings.opacityPressure[i] = qreal(i) / 255;
+    const QList<InputSample> samples{{{32, 40}, .2}, {{128, 76}, 1}, {{224, 40}, .8}};
+    Shape path;
+    path.kind = ShapeKind::Path;
+    path.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::LineTo};
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    const Shape line{ShapeKind::Line, {304, 464}, {464, 384}};
+    QCOMPARE(image->paintFigure(layer, brush, samples, line, FigureStyle{}, 42), Result::Success);
+    const auto referenceImage = reference.image();
+    const auto referenceLayer = referenceImage->operations().activeLayer();
+    QCOMPARE(referenceImage->paintFigure(referenceLayer, brush,
+        {{{304, 464}, .2}, {{384, 424}, 1}, {{464, 384}, .8}}, path, FigureStyle{}, 42), Result::Success);
+    const QRect region(QPoint(), initial.size);
+    const qsizetype maximumBytes = 512 * 512 * 4;
+    const auto painted = image->readRgbaPixels(layer, region, maximumBytes);
+    QCOMPARE(painted.code, ExecutionCode::Success);
+    QCOMPARE(painted.bytes, referenceImage->readRgbaPixels(referenceLayer, region, maximumBytes).bytes);
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto requested = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const QDir destination(requested.isEmpty() ? temporary.path() : requested + QStringLiteral("/gaussian-line"));
+    QVERIFY(QDir().mkpath(destination.path()));
+    const auto saved = destination.filePath(QStringLiteral("saved.kra"));
+    const auto expected = destination.filePath(QStringLiteral("reference.kra"));
+    QCOMPARE(document.saveKra(saved).code, FileCode::Success);
+    QCOMPARE(reference.exportKra(expected).code, FileCode::Success);
+    QCOMPARE(fileBytes(saved), fileBytes(expected));
+    auto reopened = PaintDocument::openKra(execution, saved);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    const auto loadedLayer = loaded->operations().activeLayer();
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, maximumBytes).bytes, painted.bytes);
+    const Shape next{ShapeKind::Line, {40, 300}, {120, 380}};
+    for (const auto &target : {image, loaded})
+        QCOMPARE(target->paintFigure(target->operations().activeLayer(), brush, samples, next, FigureStyle{}, 43), Result::Success);
+    QCOMPARE(referenceImage->paintFigure(referenceLayer, brush,
+        {{{40, 300}, .2}, {{80, 340}, 1}, {{120, 380}, .8}}, path, FigureStyle{}, 43), Result::Success);
+    QCOMPARE(loaded->undo(), Result::Success);
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, maximumBytes).bytes, painted.bytes);
+    QCOMPARE(loaded->redo(), Result::Success);
+    const auto continued = loaded->readRgbaPixels(loadedLayer, region, maximumBytes);
+    QCOMPARE(continued.code, ExecutionCode::Success);
+    QCOMPARE(continued.bytes, image->readRgbaPixels(layer, region, maximumBytes).bytes);
+    QCOMPARE(continued.bytes, referenceImage->readRgbaPixels(referenceLayer, region, maximumBytes).bytes);
+    const auto edited = destination.filePath(QStringLiteral("edited.kra"));
+    QCOMPARE(reopened.document->saveKra(edited).code, FileCode::Success);
+    QCOMPARE(reference.exportKra(expected).code, FileCode::Success);
+    QCOMPARE(fileBytes(edited), fileBytes(expected));
+    const auto continuous = destination.filePath(QStringLiteral("continuous.kra"));
+    QCOMPARE(document.exportKra(continuous).code, FileCode::Success);
+    QCOMPARE(fileBytes(continuous), fileBytes(edited));
+    for (const auto &value : {qMakePair(QStringLiteral("saved.rgba"), painted.bytes),
+                              qMakePair(QStringLiteral("edited.rgba"), continued.bytes)}) {
+        QFile file(destination.filePath(value.first));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(value.second), value.second.size());
+    }
 }
 
 void KisGpuPaintDocumentTest::fixedEditsSaveReopenAndExportIdenticalResults()

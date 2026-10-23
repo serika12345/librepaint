@@ -60,7 +60,22 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation)
         operation.figureStyle.fill || brush.mirrorHorizontal || brush.mirrorVertical ||
         brush.erase || brush.alphaLocked || brush.channelWriteMask != 15) return std::nullopt;
     const auto &settings = *brush.gaussianWash;
-    const auto input = operation.inputSamples();
+    auto input = operation.inputSamples();
+    if (operation.shape.kind == ShapeKind::Line && !input.isEmpty()) {
+        const auto first = input.first().position;
+        const auto delta = input.last().position - first;
+        const qreal lengthSquared = QPointF::dotProduct(delta, delta);
+        const auto lineDelta = operation.shape.second - operation.shape.first;
+        if (input.size() == 1) input.append(input.first());
+        for (qsizetype i = 1; i + 1 < input.size(); ++i) {
+            const qreal fraction = lengthSquared > 0 ?
+                std::clamp(QPointF::dotProduct(input[i].position - first, delta) / lengthSquared, qreal(0), qreal(1)) :
+                qreal(i) / (input.size() - 1);
+            input[i].position = operation.shape.first + lineDelta * fraction;
+        }
+        input.first().position = operation.shape.first;
+        input.last().position = operation.shape.second;
+    }
     QList<GaussianDab> result;
     qreal spacing = .5, accumulated = 0, averageOpacity = 0;
     const auto append = [&](const InputSample &point) {

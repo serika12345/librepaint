@@ -56,6 +56,8 @@ private Q_SLOTS:
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void gaussianWashProducesCoverageAndRetainsPixelsThroughRecovery();
     void gaussianWashSkipsDabsBelowTheBrushMinimum();
+    void gaussianLineShapeEditsPreserveInputHistoryAndRecovery_data();
+    void gaussianLineShapeEditsPreserveInputHistoryAndRecovery();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery_data();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery();
     void filledInteriorRespectsRegionAndTileBudget();
@@ -178,6 +180,106 @@ void KisGpuTileRendererTest::gaussianWashSkipsDabsBelowTheBrushMinimum()
     const auto painted = render(renderer, document.snapshot());
     QVERIFY(painted);
     QVERIFY(painted->tiles(document.activeLayer()).isEmpty());
+}
+
+void KisGpuTileRendererTest::gaussianLineShapeEditsPreserveInputHistoryAndRecovery_data()
+{
+    QTest::addColumn<int>("inputKind");
+    QTest::newRow("endpoints") << 0;
+    QTest::newRow("projected-pressure") << 1;
+    QTest::newRow("single-sample") << 2;
+    QTest::newRow("coincident-input") << 3;
+}
+
+void KisGpuTileRendererTest::gaussianLineShapeEditsPreserveInputHistoryAndRecovery()
+{
+    QFETCH(int, inputKind);
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255};
+    brush.diameter = 20;
+    auto &settings = brush.gaussianWash.emplace();
+    settings.resourceDigest = QByteArray(32, 'r');
+    settings.flow = .5;
+    settings.canvasOpacity = .57;
+    settings.sizeUsesPressureDirectly = settings.opacityUsesPressureDirectly = true;
+    for (int i = 0; i < 256; ++i) settings.sizePressure[i] = settings.opacityPressure[i] = qreal(i) / 255;
+    QList<InputSample> samples{{{32, 40}, .2, .1, -.2, .3, 16}, {{224, 40}, .8, -.1, .2, -.3, 48}};
+    if (inputKind == 1 || inputKind == 3) samples.insert(1, {{128, 76}, 1, .2, .1, .4, 32});
+    if (inputKind == 2) samples = {samples.first()};
+    if (inputKind == 3) for (auto &sample : samples) sample.position = {32, 40};
+
+    OperationDocument document({512, 512});
+    const auto layer = document.activeLayer();
+    const auto stroke = document.beginStroke(layer, brush, 1789);
+    QCOMPARE(document.appendSamples(stroke, samples), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto initial = render(renderer, document.preview());
+    QVERIFY(initial);
+    const auto initialPixels = readTile(initial, layer, {0, 0});
+    RenderedSnapshot previous = initial;
+    QByteArray pixels;
+    QPoint coordinate;
+    for (const auto &shape : {Shape{ShapeKind::Line, {32, 368}, {224, 368}},
+                              Shape{ShapeKind::Line, {304, 464}, {464, 384}}}) {
+        // A newly entered straight path is the same drawing with explicit
+        // positions. Original sensor values remain attached to their samples.
+        auto placed = samples;
+        if (placed.size() == 1) placed.append(placed.first());
+        placed.first().position = shape.first;
+        placed.last().position = shape.second;
+        if (placed.size() == 3) placed[1].position = (shape.first + shape.second) / 2;
+        OperationDocument reference({512, 512});
+        const auto referenceStroke = reference.beginStroke(reference.activeLayer(), brush, 1789);
+        QCOMPARE(reference.appendSamples(referenceStroke, placed), Result::Success);
+        Shape path;
+        path.kind = ShapeKind::Path;
+        path.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo};
+        if (placed.size() == 3) path.pathCommands.append(PathCommand::LineTo);
+        QCOMPARE(reference.updateShape(referenceStroke, path), Result::Success);
+        const auto expected = render(renderer, reference.preview());
+        QVERIFY(expected);
+
+        QCOMPARE(document.updateShape(stroke, shape), Result::Success);
+        const auto edited = render(renderer, document.preview(), previous);
+        QVERIFY(edited);
+        coordinate = {int(shape.first.x()) / RgbaTile::Size, int(shape.first.y()) / RgbaTile::Size};
+        QCOMPARE(edited->tiles(layer).size(), 1);
+        pixels = readTile(edited, layer, coordinate);
+        QCOMPARE(pixels.size(), TileRenderer::TileBytes);
+        QCOMPARE(pixels, readTile(expected, reference.activeLayer(), coordinate));
+        const auto operation = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+        QCOMPARE(operation->inputSamples(), samples);
+        previous = edited;
+    }
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recovered = render(renderer, restored.preview());
+    QVERIFY(recovered);
+    QCOMPARE(readTile(recovered, restored.activeLayer(), coordinate), pixels);
+    const auto retained = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
+    QCOMPARE(retained->inputSamples(), samples);
+    QCOMPARE(retained->brush, brush);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    const auto cancelled = render(renderer, document.snapshot(), previous);
+    QVERIFY(cancelled && cancelled->tiles(layer).isEmpty());
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
+    QCOMPARE(restored.undoCount(), 1);
+    QCOMPARE(restored.undo(), Result::Success);
+    const auto undone = render(renderer, restored.snapshot(), recovered);
+    QVERIFY(undone && undone->tiles(restored.activeLayer()).isEmpty());
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, restored.snapshot(), undone), restored.activeLayer(), coordinate), pixels);
+    QCOMPARE(readTile(initial, layer, {0, 0}), initialPixels);
+    QCOMPARE(readTile(previous, layer, coordinate), pixels);
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile file(QDir(directory).filePath(QStringLiteral("gaussian-line-") +
+                   QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(pixels), pixels.size());
+    }
 }
 
 void KisGpuTileRendererTest::isolatedGroupsKeepProjectionAndRetainedSubtreePixels_data()

@@ -1197,8 +1197,14 @@ GPU所有者の試験は保持した旧版、使用中・読取り容量・座�
 `ellipse-tool.{kra,png}`、`rectangle-tool.{kra,png}`、`rounded-rectangle-tool.{kra,png}`、
 `polyline-tool.{kra,png}`と`polygon-tool.{kra,png}`を出力する。
 これらのSHA-256を環境間で照合し、通常入力の表示座標による差と保存結果を区別する。
-直線の途中の筆圧は、入力の始終点を結ぶ線への位置の投影を維持し、自由描画の同じ
+円形マーカーの直線の途中の筆圧は、入力の始終点を結ぶ線への位置の投影を維持し、自由描画の同じ
 座標・筆圧列とタイル全体の画素を照合する。直線を移動した場合も同じ筆圧分布を照合する。
+Gaussian WASHの直線は、保持した入力位置を変更後の始終点へ投影し、元の筆圧・傾き・時刻を保持する。
+`KisGpuTileRendererTest::gaussianLineShapeEditsPreserveInputHistoryAndRecovery`は、中間筆圧、単一標本、
+同位置の入力からの移動・拡縮、旧タイルの除去、取消し、Undo／Redoと復旧を、明示した直線パスと照合する。
+`KisGpuPaintDocumentTest::gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition`は、固定UUIDの文書で
+別タイルへ移した直線のKRA保存・再読込みと追記を照合する。`LIBREPAINT_GPU_RESULT_DIR`へ
+`gaussian-line-<条件>.rgba`と`gaussian-line/`内のKRA・RGBA画素を出力し、環境間で全バイトを比較する。
 既存KRA読取側との照合は登録済みKRAプラグインを直接利用し、新しい読込と独立した画素・構造の
 検査を維持する。JPEG XLとRGBEの形式試験も、この読取側で比較用KRAの色・画素を取得する。
 KRAの付属情報は解像度、ICC、文書情報、注釈と対称軸を照合し、不正な解像度・文書情報と欠落・重複した
