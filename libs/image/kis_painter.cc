@@ -1219,11 +1219,17 @@ static void getBezierCurvePoints(const KisVector2D &pos1,
                                  const KisVector2D &pos2,
                                  vQPointF& points)
 {
-    LineEquation line = LineEquation::Through(pos1, pos2);
-    qreal d1 = line.absDistance(control1);
-    qreal d2 = line.absDistance(control2);
+    bool flat;
+    if ((pos1.array() == pos2.array()).all()) {
+        flat = (control1.array() == pos1.array()).all() && (control2.array() == pos1.array()).all();
+    } else {
+        const LineEquation line = LineEquation::Through(pos1, pos2);
+        const qreal d1 = line.absDistance(control1);
+        const qreal d2 = line.absDistance(control2);
+        flat = d1 < BEZIER_FLATNESS_THRESHOLD && d2 < BEZIER_FLATNESS_THRESHOLD;
+    }
 
-    if (d1 < BEZIER_FLATNESS_THRESHOLD && d2 < BEZIER_FLATNESS_THRESHOLD) {
+    if (flat) {
         points.push_back(toQPointF(pos1));
     } else {
         // Midpoint subdivision. See Foley & Van Dam Computer Graphics P.508

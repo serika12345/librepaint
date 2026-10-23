@@ -17,6 +17,13 @@
 #include "kis_painter.h"
 #include "kis_spacing_information.h"
 #include "brushengine/kis_paintop_utils.h"
+#include "brushengine/kis_paint_information.h"
+#include "kis_distance_information.h"
+#include <QDir>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 class TestPaintOp : public KisPaintOp
 {
@@ -209,6 +216,109 @@ void KisPaintopTest::testScaledBrushSkipsSubpixelDabs()
     QVERIFY(KisPaintOpUtils::checkSizeTooSmall(1.0, 0.009, 10.0));
     QVERIFY(KisPaintOpUtils::checkSizeTooSmall(1.0, 10.0, 0.009));
     QVERIFY(!KisPaintOpUtils::checkSizeTooSmall(1.0, 0.01, 0.01));
+}
+
+void KisPaintopTest::testCubicTraversalKeepsGeometryAndInput_data()
+{
+    QTest::addColumn<int>("kind");
+    QTest::newRow("open") << 0;
+    QTest::newRow("closed") << 1;
+    QTest::newRow("closed-collinear") << 2;
+    QTest::newRow("point") << 3;
+}
+
+void KisPaintopTest::testCubicTraversalKeepsGeometryAndInput()
+{
+    QFETCH(int, kind);
+    // Brush plugins consume these virtual line calls. A closed cubic must
+    // retain its traversal and sensors when supplied as two equal halves.
+    class LineRecordingPaintOp : public TestPaintOp {
+    public:
+        using TestPaintOp::TestPaintOp;
+        QList<QPair<KisPaintInformation, KisPaintInformation>> lines;
+        void paintLine(const KisPaintInformation &first, const KisPaintInformation &last,
+                       KisDistanceInformation *) override
+        {
+            lines.append(qMakePair(first, last));
+        }
+    };
+    const QPointF first(12.25, 13.75);
+    const QPointF last = kind == 0 ? QPointF(105.5, 91.25) : first;
+    const QPointF control1 = kind == 2 ? first + QPointF(96, 0) :
+                            kind == 3 ? first : QPointF(114.125, -15.75);
+    const QPointF control2 = kind == 2 ? first - QPointF(96, 0) :
+                            kind == 3 ? first : QPointF(-26.375, 115.25);
+    KisPaintInformation start(first, .2), end(last, .8);
+    start.setCurrentTime(16);
+    end.setCurrentTime(48);
+    KisPainter painter;
+    LineRecordingPaintOp actual(&painter), split(&painter);
+    KisDistanceInformation distance;
+    actual.paintBezierCurve(start, control1, control2, end, &distance);
+    QVERIFY(!actual.lines.isEmpty());
+    QCOMPARE(actual.lines.first().first.pos(), first);
+    QCOMPARE(actual.lines.last().second.pos(), last);
+    QCOMPARE(actual.lines.first().first.pressure(), start.pressure());
+    QCOMPARE(actual.lines.last().second.pressure(), end.pressure());
+    QCOMPARE(actual.lines.first().first.currentTime(), start.currentTime());
+    QCOMPARE(actual.lines.last().second.currentTime(), end.currentTime());
+    bool moved = false;
+    QJsonArray recorded;
+    for (qsizetype i = 0; i < actual.lines.size(); ++i) {
+        const auto &line = actual.lines[i];
+        moved |= line.first.pos() != line.second.pos();
+        QVERIFY(line.first.pressure() <= line.second.pressure());
+        QVERIFY(line.first.currentTime() <= line.second.currentTime());
+        if (i) {
+            QCOMPARE(actual.lines[i - 1].second.pos(), line.first.pos());
+            QCOMPARE(actual.lines[i - 1].second.pressure(), line.first.pressure());
+            QCOMPARE(actual.lines[i - 1].second.currentTime(), line.first.currentTime());
+        }
+        recorded.append(QJsonArray{line.first.pos().x(), line.first.pos().y(), line.second.pos().x(), line.second.pos().y(),
+                                   line.first.pressure(), line.second.pressure(), line.first.currentTime(), line.second.currentTime()});
+    }
+    QCOMPARE(moved, kind != 3);
+    vQPointF points;
+    painter.getBezierCurvePoints(first, control1, control2, last, points);
+    QVERIFY(!points.isEmpty());
+    QCOMPARE(points.first(), first);
+    bool hasExcursion = false;
+    QJsonArray flattened;
+    for (const auto &point : points) {
+        hasExcursion |= point != first;
+        flattened.append(QJsonArray{point.x(), point.y()});
+    }
+    QCOMPARE(hasExcursion, kind != 3);
+    if (kind != 3) {
+        const auto left = (first + control1) / 2;
+        const auto middleControl = (control1 + control2) / 2;
+        const auto right = (control2 + last) / 2;
+        const auto leftInner = (left + middleControl) / 2;
+        const auto rightInner = (middleControl + right) / 2;
+        const auto midpoint = (leftInner + rightInner) / 2;
+        const auto middle = KisPaintInformation::mix(midpoint, .5, start, end);
+        split.paintBezierCurve(start, left, leftInner, middle, &distance);
+        split.paintBezierCurve(middle, rightInner, right, end, &distance);
+        QCOMPARE(actual.lines.size(), split.lines.size());
+        for (qsizetype i = 0; i < actual.lines.size(); ++i) {
+            QCOMPARE(actual.lines[i].first.pos(), split.lines[i].first.pos());
+            QCOMPARE(actual.lines[i].second.pos(), split.lines[i].second.pos());
+            QCOMPARE(actual.lines[i].first.pressure(), split.lines[i].first.pressure());
+            QCOMPARE(actual.lines[i].second.pressure(), split.lines[i].second.pressure());
+            QCOMPARE(actual.lines[i].first.currentTime(), split.lines[i].first.currentTime());
+            QCOMPARE(actual.lines[i].second.currentTime(), split.lines[i].second.currentTime());
+        }
+    }
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile file(QDir(directory).filePath(QStringLiteral("cubic-traversal-") +
+                   QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".json")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        const auto bytes = QJsonDocument(QJsonObject{{QStringLiteral("lines"), recorded},
+                                                     {QStringLiteral("points"), flattened}}).toJson(QJsonDocument::Compact);
+        QCOMPARE(file.write(bytes), bytes.size());
+    }
 }
 
 
