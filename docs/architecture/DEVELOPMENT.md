@@ -339,6 +339,10 @@ MSVCの`/fp:strict`で積と和の途中丸めを保持する。
 元アルファ51・下地8・不透明度0.5・履歴値0.8の結果は、単精度の商から33へ丸められる。
 半筆圧の円形ブラシ契約は、固定対角線上の全画素と転置画素の一致、および全OS共通のRGBA8888ハッシュを照合する。
 円形自動ブラシのSIMDマスク行は、GCC/Clangの`-ffp-contract=off`、MSVCの`/fp:strict`で構築する。
+筆圧曲線の所有者`kritaimagecubiccurveobjects`も同じ設定で積と和の途中丸めを保持する。
+`KisCubicCurveContractTest`は出荷ブラシBasic-5 Size Opacityのサイズ・不透明度曲線について、
+256要素の倍精度転送表を共通ハッシュで照合する。`LIBREPAINT_GPU_RESULT_DIR`へ
+`default-brush-pressure-<条件>.f64be`を出力し、各値をビッグエンディアンのIEEE 754 binary64として環境間で比較する。
 `FreehandStrokeContractTest`の間隔0.25の円形筆跡は、対角線を軸にした全チャネルの対称性と
 環境共通のRGBA8888全画素ハッシュを照合する。
 AArch64の混色率はハードウェア除算で計算する。数値ライブラリーの演算子を変更する場合は、

@@ -971,6 +971,12 @@ target_compile_definitions(kritaimagecubiccurveobjects PRIVATE
    kritaglobal_EXPORTS
    kritaimage_EXPORTS
 )
+# Brush snapshots retain double transfer values, including intermediate rounding.
+if(MSVC)
+   target_compile_options(kritaimagecubiccurveobjects PRIVATE /fp:strict)
+else()
+   target_compile_options(kritaimagecubiccurveobjects PRIVATE -ffp-contract=off)
+endif()
 target_include_directories(kritaimagecubiccurveobjects
    PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
