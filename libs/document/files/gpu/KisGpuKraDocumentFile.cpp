@@ -172,6 +172,7 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
         if (layer.kind == LayerKind::Paint) {
             const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
             if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};
+            saved.writtenAreas = pixels.writtenAreas;
             for (const auto &tile : pixels.tiles) {
                 saved.tiles.append({tile.coordinate, tile.rgba});
                 rasterBytes += tile.rgba.size();

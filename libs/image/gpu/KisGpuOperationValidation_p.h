@@ -129,6 +129,15 @@ inline bool validSample(const InputSample &sample)
 
 inline bool validBrush(const Brush &brush)
 {
+    if (brush.gaussianWash) {
+        const auto &value = *brush.gaussianWash;
+        const auto unit = [](qreal number) { return std::isfinite(number) && number >= 0 && number <= 1; };
+        if (value.resourceDigest.size() != 32 || value.sizePressure.size() != 256 ||
+            value.opacityPressure.size() != 256 || !std::isfinite(value.angle) ||
+            !unit(value.canvasOpacity) || !unit(value.flow)) return false;
+        for (const auto number : value.sizePressure) if (!unit(number)) return false;
+        for (const auto number : value.opacityPressure) if (!unit(number)) return false;
+    }
     if (brush.weightedSmoothing) {
         const auto &value = *brush.weightedSmoothing;
         if (!brush.basicSmoothing || !std::isfinite(value.distanceMin) || !std::isfinite(value.distanceMax) ||

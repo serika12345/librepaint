@@ -900,7 +900,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                 if (pixel.size() != 4) return fail(invalid(QStringLiteral("Invalid KRA default pixel")));
                 layer.defaultPixel = {quint8(pixel[2]), quint8(pixel[1]), quint8(pixel[0]), quint8(pixel[3])};
             }
-            result = Detail::readTiles(document.files.value(path), layer.defaultPixel, offset, limits.rasterBytes - rasterBytes, layer.tiles);
+            result = Detail::readTiles(document.files.value(path), layer.defaultPixel, offset, limits.rasterBytes - rasterBytes,
+                                       layer.tiles, &layer.writtenAreas);
             if (result.code != Status::Success) return fail(result);
             rasterBytes += layer.tiles.size() * RgbaTile::ByteCount;
             document.files.remove(path);
@@ -965,7 +966,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         const auto path = folder + QStringLiteral("/layers/") + layerFiles.value(layer.uuid);
         const QPoint offset = layer.position;
         QByteArray pixels;
-        result = Detail::writeTiles(layer.tiles, layer.defaultPixel, offset, limits.rasterBytes - rasterBytes, pixels);
+        result = Detail::writeTiles(layer.tiles, layer.defaultPixel, offset, limits.rasterBytes - rasterBytes, pixels, layer.writtenAreas);
         if (result.code != Status::Success) return result;
         rasterBytes += layer.tiles.size() * RgbaTile::ByteCount;
         files.insert(path, std::move(pixels));

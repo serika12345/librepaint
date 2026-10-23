@@ -8,6 +8,7 @@
 
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuPaintGeometry_p.h"
+#include "KisGpuGaussianBrush_p.h"
 #include <array>
 #include <vector>
 
@@ -30,6 +31,7 @@ struct PaintJob
     std::shared_ptr<NativeBuffer> fillEdges;
     NativeBindings bindings;
     QList<PaintSegment> geometry;
+    QList<GaussianDab> gaussianGeometry;
     QList<PaintSegment> appendedGeometry;
     quint64 coverageCoordinate = 0;
     bool retainCoverage = false;

@@ -158,7 +158,41 @@ private Q_SLOTS:
     void zipDirectoryCapacityPreservesTheOutput();
     void legacyLayerWithoutUuidGetsOnePersistentIdentity();
     void emptyDocumentsRequireAnExplicitLayerContainer();
+    void defaultOnlyStorageBlocksSurviveSavingAndReopening();
 };
+
+void TestKraRasterCodec::defaultOnlyStorageBlocksSurviveSavingAndReopening()
+{
+    const auto encode = [](const Kra::Document &document) {
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        if (!output.open(QIODevice::WriteOnly)) return QByteArray{};
+        if (Kra::RasterCodec::write(output, document, merged(document.image.size)).code != Kra::Status::Success)
+            return QByteArray{};
+        return bytes;
+    };
+    auto value = document();
+    value.image.layers.resize(1);
+    value.image.activeLayer = 0;
+    auto &layer = value.image.layers.first();
+    layer.defaultPixel = {};
+    layer.tiles = {{{-1, -1}, QByteArray(RgbaTile::ByteCount, '\0')}};
+    layer.writtenAreas = {QRect(-64, -64, 64, 64)};
+    const auto first = encode(value);
+    QVERIFY(!first.isEmpty());
+    const auto files = entries(first);
+    QDomDocument description;
+    QVERIFY(description.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    const auto image = description.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto element = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
+    const QString path = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename"));
+    const auto stream = files.value(path);
+    QVERIFY(stream.startsWith(QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 4\nDATA 1\n-64,-64,LZF,")));
+    const auto restored = load(first);
+    QCOMPARE(restored.code, Kra::Status::Success);
+    QCOMPARE(restored.document.image.layers.first().writtenAreas, layer.writtenAreas);
+    QCOMPARE(entries(encode(restored.document)).value(path), stream);
+}
 
 void TestKraRasterCodec::layerTileEncodingMatchesTheCpuWriter_data()
 {

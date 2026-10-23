@@ -53,6 +53,7 @@ private Q_SLOTS:
     void rectangularWritesPreserveOtherRegionsAcrossHistoryAndRecovery();
     void rectangularWritesValidateBeforeMutationAndCrossTileBoundaries();
     void rectangularHistoryEditsPreserveIndependentUntrackedPixels();
+    void gaussianWashKeepsIndependentPixelWritesAcrossUndo();
     void interiorPixelWritesRemainWithTheirFilledHistory();
     void idleSmoothingPublishesAcceptedVersionsWithoutDuplicateNotifications();
     void derivedGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites_data();
@@ -1441,6 +1442,31 @@ void KisGpuPaintImageTest::rectangularHistoryEditsPreserveIndependentUntrackedPi
              QByteArray::fromHex("ff0000ff"));
     QCOMPARE(execution.readRgbaPixels(image.handle(), image.operations().snapshot(), {96, 96, 1, 1}, 1, 4).bytes, raw);
     QVERIFY(!image.operations().isModified());
+}
+
+void KisGpuPaintImageTest::gaussianWashKeepsIndependentPixelWritesAcrossUndo()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(128, 128));
+    Brush brush;
+    brush.diameter = 40;
+    auto &settings = brush.gaussianWash.emplace();
+    settings.resourceDigest = QByteArray(32, 'r');
+    settings.sizePressure.fill(.1);
+    settings.opacityPressure.fill(1);
+    const auto id = image.beginStroke(1, brush, 1789);
+    QVERIFY(!id.isNull());
+    QCOMPARE(image.appendSamples(id, {{{50, 32}, 1}}), Result::Success);
+    QCOMPARE(image.commitStroke(id), Result::Success);
+    const auto independent = QByteArray::fromHex("112233ff");
+    QCOMPARE(image.writeRgbaPixels(1, {70, 32, 1, 1}, independent), Result::Success);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(1, {70, 32, 1, 1}, 4).bytes, independent);
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(1, {70, 32, 1, 1}, 4).bytes, independent);
 }
 
 void KisGpuPaintImageTest::damagedPixelSharingRecoveryPreservesTheLiveImage()

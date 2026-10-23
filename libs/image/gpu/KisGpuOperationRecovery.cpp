@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 37;
+constexpr quint16 FormatVersion = 38;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -120,6 +120,18 @@ QByteArray OperationDocument::recoveryData() const
                              (quint8(operation.brush.mirrorHorizontal) << 6) | (quint8(operation.brush.mirrorVertical) << 7));
             if (operation.brush.mirrorHorizontal || operation.brush.mirrorVertical)
                 stream << qint32(operation.brush.mirrorCenter.x()) << qint32(operation.brush.mirrorCenter.y());
+            stream << quint8(bool(operation.brush.gaussianWash));
+            if (operation.brush.gaussianWash) {
+                constexpr qint64 bytesRequired = 32 + 3 * 8 + 1 + 2 * 256 * 8;
+                if (m_limits.recoveryBytes - DigestSize - bytes.size() < bytesRequired) return {};
+                const auto &value = *operation.brush.gaussianWash;
+                stream.writeRawData(value.resourceDigest.constData(), 32);
+                stream << value.angle << value.canvasOpacity << value.flow
+                       << quint8(quint8(value.creamy) | (quint8(value.sizeUsesPressureDirectly) << 1) |
+                                 (quint8(value.opacityUsesPressureDirectly) << 2));
+                for (const auto number : value.sizePressure) stream << number;
+                for (const auto number : value.opacityPressure) stream << number;
+            }
             stream << operation.randomSeed << quint8(operation.shape.kind)
                    << operation.shape.first.x() << operation.shape.first.y()
                    << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation;
@@ -386,6 +398,26 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             operation->brush.mirrorCenter = {x, y};
             operation->brush.mirrorHorizontal = brushFlags & 64;
             operation->brush.mirrorVertical = brushFlags & 128;
+        }
+        if (format >= 38) {
+            quint8 gaussian = 0;
+            stream >> gaussian;
+            if (gaussian > 1) return Result::InvalidRecovery;
+            if (gaussian) {
+                constexpr qint64 bytesRequired = 32 + 3 * 8 + 1 + 2 * 256 * 8;
+                if (stream.device()->bytesAvailable() < bytesRequired) return Result::InvalidRecovery;
+                auto &value = operation->brush.gaussianWash.emplace();
+                value.resourceDigest.resize(32);
+                if (stream.readRawData(value.resourceDigest.data(), 32) != 32) return Result::InvalidRecovery;
+                quint8 flags = 0;
+                stream >> value.angle >> value.canvasOpacity >> value.flow >> flags;
+                if (flags > 7) return Result::InvalidRecovery;
+                value.creamy = flags & 1;
+                value.sizeUsesPressureDirectly = flags & 2;
+                value.opacityUsesPressureDirectly = flags & 4;
+                for (auto &number : value.sizePressure) stream >> number;
+                for (auto &number : value.opacityPressure) stream >> number;
+            }
         }
         stream >> operation->randomSeed >> shape >> x1 >> y1 >> x2 >> y2 >> operation->shape.rotation;
         if (shape >= quint8(ShapeKind::RoundedRectangle) && format < 11) return Result::InvalidRecovery;

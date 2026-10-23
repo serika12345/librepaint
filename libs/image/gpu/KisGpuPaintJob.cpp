@@ -23,8 +23,12 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
     if (!alignment || (alignment & (alignment - 1))) return false;
     const auto aligned = [alignment](quint64 bytes) { return (bytes + alignment - 1) / alignment * alignment; };
     const quint64 parameterStride = aligned(sizeof(PaintParameters));
+    const auto geometryBytes = [](const PaintJob &job) {
+        return job.gaussianGeometry.isEmpty() ? quint64(job.geometry.size()) * sizeof(PaintSegment) :
+            quint64(job.gaussianGeometry.size()) * sizeof(GaussianDab);
+    };
     const auto stride = [&](const PaintJob &job) {
-        return parameterStride + aligned(quint64(job.geometry.size()) * sizeof(PaintSegment));
+        return parameterStride + aligned(geometryBytes(job));
     };
     constexpr quint64 batchLimit = 64 * 1024;
     while (first < jobs.size()) {
@@ -32,7 +36,7 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
         quint64 bytes = 0;
         do {
             const auto &job = jobs[end];
-            if (!job.output || quint64(job.geometry.size()) > limits.maxStorageBufferBindingSize / sizeof(PaintSegment)) return false;
+            if (!job.output || geometryBytes(job) > limits.maxStorageBufferBindingSize) return false;
             const quint64 jobBytes = stride(job);
             if (jobBytes > limits.maxBufferSize) return false;
             if (end != first && (bytes + jobBytes > batchLimit || bytes + jobBytes > limits.maxBufferSize)) break;
@@ -54,6 +58,9 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
             if (!job.geometry.isEmpty())
                 std::memcpy(mapped + offset + parameterStride, job.geometry.constData(),
                             std::size_t(job.geometry.size()) * sizeof(PaintSegment));
+            if (!job.gaussianGeometry.isEmpty())
+                std::memcpy(mapped + offset + parameterStride, job.gaussianGeometry.constData(),
+                            std::size_t(geometryBytes(job)));
             offset += stride(job);
         }
         wgpuBufferUnmap(buffer.get());
@@ -63,7 +70,7 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
             wgpuBufferAddRef(buffer.get());
             job.inputs.reset(buffer.get());
             WGPUBindGroupEntry entries[7]{};
-            WGPUBuffer buffers[] = {job.inputs.get(), job.geometry.isEmpty() ? zero : job.inputs.get(),
+            WGPUBuffer buffers[] = {job.inputs.get(), geometryBytes(job) == 0 ? zero : job.inputs.get(),
                                     job.input ? job.input->pixels.get() : zero, job.output->pixels.get(),
                                     job.fillEdges ? job.fillEdges->get() : zero,
                                     job.coverageInput ? job.coverageInput->pixels.get() : zero,
@@ -75,9 +82,9 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
             }
             entries[0].offset = offset;
             entries[0].size = sizeof(PaintParameters);
-            if (!job.geometry.isEmpty()) {
+            if (geometryBytes(job) != 0) {
                 entries[1].offset = offset + parameterStride;
-                entries[1].size = quint64(job.geometry.size()) * sizeof(PaintSegment);
+                entries[1].size = geometryBytes(job);
             }
             WGPUBindGroupDescriptor descriptor{};
             descriptor.layout = layout;

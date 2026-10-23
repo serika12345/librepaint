@@ -9,12 +9,85 @@ struct Parameters {
 }
 struct Segment { endpoints: vec4<i32>, values: vec4<u32>, }
 @group(0) @binding(0) var<uniform> parameters: Parameters;
-@group(0) @binding(1) var<storage, read> segments: array<Segment>;
+@group(0) @binding(1) var<storage, read> geometryWords: array<u32>;
 @group(0) @binding(2) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(3) var<storage, read_write> outputPixels: array<u32>;
 @group(0) @binding(4) var<storage, read> fillEdges: array<Segment>;
 @group(0) @binding(5) var<storage, read> previousCoverage: array<u32>;
 @group(0) @binding(6) var<storage, read_write> retainedCoverage: array<u32>;
+
+fn geometryFour(index: u32) -> vec4<u32> {
+    return vec4<u32>(geometryWords[index], geometryWords[index + 1u], geometryWords[index + 2u], geometryWords[index + 3u]);
+}
+fn gaussianDab(index: u32) -> MaskDab {
+    let offset = index * 24u;
+    return MaskDab(geometryFour(offset), geometryFour(offset + 4u), geometryFour(offset + 8u),
+                   geometryFour(offset + 12u), geometryFour(offset + 16u), geometryFour(offset + 20u));
+}
+
+fn washAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {
+    let flow = values.y;
+    var opacity = values.x;
+    var average = values.z;
+    if (values.w == 0u) {
+        opacity = floatMultiply(opacity, flow);
+        average = floatMultiply(average, flow);
+    }
+    let opacityByte = floatMultiply(0x437f0000u, opacity);
+    let averageByte = floatMultiply(0x437f0000u, average);
+    let mask = floatMultiply(bitcast<u32>(f32(coverage)), 0x3b808081u);
+    let source = floatMultiply(mask, opacityByte);
+    if (source == 0u) { return destination; }
+    let current = bitcast<u32>(f32(destination));
+    var fullFlow = current;
+    if (average > opacity) {
+        if (averageByte > current) {
+            fullFlow = floatAdd(floatMultiply(floatSubtract(averageByte, source), floatDivide(current, averageByte)), source);
+        }
+    } else if (opacityByte > current) {
+        fullFlow = floatAdd(floatMultiply(floatSubtract(opacityByte, current), mask), current);
+    }
+    if (flow == 0x3f800000u) { return projectionByte(fullFlow); }
+    var zeroFlow = current;
+    if (values.w == 0u) {
+        zeroFlow = floatSubtract(floatAdd(source, current), floatMultiply(floatMultiply(source, current), 0x3b808081u));
+    }
+    return projectionByte(floatAdd(floatMultiply(floatSubtract(fullFlow, zeroFlow), flow), zeroFlow));
+}
+
+fn gaussianPixel(pixel: vec2<i32>, base: vec4<u32>, color: vec4<u32>) -> u32 {
+    var alpha = 0u;
+    for (var index = 0u; index < parameters.counts.x; index += 1u) {
+        let dab = gaussianDab(index);
+        let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
+        if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
+        var coverage: u32;
+        if (dab.size.z > 1u) { coverage = smallCircleAlpha(dab, vec2<u32>(point)); }
+        else { coverage = circleAlpha(dab, vec2<u32>(point)); }
+        alpha = washAlpha(alpha, coverage, dab.application);
+    }
+    let opacity = bitcast<u32>(parameters.tile.z);
+    if (alpha == 0u || opacity == 0u) { return packPixel(base); }
+    let sourceAlpha = projectionScaleByte(opacity, alpha);
+    var resultAlpha = base.w;
+    var blend: u32;
+    if (base.w == 255u) { blend = projectionMultiply(sourceAlpha, 0x3b808081u); }
+    else if (base.w == 0u) {
+        resultAlpha = projectionByte(sourceAlpha);
+        blend = 0x3f800000u;
+    } else {
+        let value = projectionAlpha(sourceAlpha, base.w);
+        resultAlpha = projectionByte(value);
+        blend = projectionDivide(sourceAlpha, value);
+    }
+    var result = color.xyz;
+    if (blend != 0x3f800000u) {
+        for (var channel = 0u; channel < 3u; channel += 1u) {
+            result[channel] = projectionColor(base[channel], color[channel], blend);
+        }
+    }
+    return packPixel(vec4<u32>(result, resultAlpha));
+}
 
 // Low word first; 16-bit products preserve the complete 64-bit result.
 fn product(a: u32, b: u32) -> vec2<u32> {
@@ -108,6 +181,10 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = local.y * 256u + local.x;
     if (parameters.counts.z != 0u) { outputPixels[index] = parameters.brush.x; return; }
     let pixel = parameters.tile.xy + vec2<i32>(local);
+    if ((parameters.counts.w & 512u) != 0u) {
+        outputPixels[index] = gaussianPixel(pixel, unpackPixel(basePixels[index]), unpackPixel(parameters.brush.x));
+        return;
+    }
     var mask = 0u;
     if ((parameters.counts.w & 128u) != 0u) { mask = previousCoverage[index]; }
     let mirrorMode = (parameters.counts.w >> 5u) & 3u;
@@ -117,7 +194,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             if ((reflection & mirrorMode) != reflection) { continue; }
             let center = reflected(pixel * 16 + vec2<i32>(8), reflection);
             for (var s = 0u; s < parameters.counts.x && mask != 65535u; s += 1u) {
-                let segment = segments[s];
+                let segment = Segment(bitcast<vec4<i32>>(geometryFour(s * 8u)), geometryFour(s * 8u + 4u));
                 let maximumReach = i32(parameters.counts.y / 2u + 8u);
                 if (any(center < min(segment.endpoints.xy, segment.endpoints.zw) - vec2<i32>(maximumReach)) ||
                     any(center > max(segment.endpoints.xy, segment.endpoints.zw) + vec2<i32>(maximumReach))) { continue; }

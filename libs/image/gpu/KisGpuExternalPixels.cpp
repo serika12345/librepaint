@@ -4,6 +4,7 @@
  */
 #include "KisGpuPaintImage_p.h"
 #include "KisGpuPaintGeometry_p.h"
+#include "KisGpuGaussianBrush_p.h"
 #include <QHash>
 #include <QMap>
 #include <algorithm>
@@ -14,7 +15,11 @@
 namespace LibrePaint::Image::Gpu {
 namespace {
 using Lineage = QList<QPair<quint64, quint64>>;
-using GeometryCache = QHash<const PaintOperation *, std::optional<Detail::PaintGeometry>>;
+struct GeometryCache
+{
+    QHash<const PaintOperation *, std::optional<Detail::PaintGeometry>> markers;
+    QHash<const PaintOperation *, std::optional<QList<Detail::GaussianDab>>> gaussian;
+};
 
 bool writeIntersects(const TileWriteOperation &write, const QRect &block)
 {
@@ -29,10 +34,18 @@ bool writeIntersects(const TileWriteOperation &write, const QRect &block)
 
 std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &block, GeometryCache &geometry)
 {
-    auto found = geometry.constFind(&paint);
-    if (found == geometry.cend()) {
+    if (paint.brush.gaussianWash) {
+        auto found = geometry.gaussian.constFind(&paint);
+        if (found == geometry.gaussian.cend()) found = geometry.gaussian.insert(&paint, Detail::gaussianDabs(paint));
+        if (!*found) return std::nullopt;
+        if (!paint.figureStyle.outline) return false;
+        for (const auto &dab : **found) if (dab.bounds().intersects(block)) return true;
+        return false;
+    }
+    auto found = geometry.markers.constFind(&paint);
+    if (found == geometry.markers.cend()) {
         const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
-        found = geometry.insert(&paint, Detail::paintGeometry(paint, step));
+        found = geometry.markers.insert(&paint, Detail::paintGeometry(paint, step));
     }
     if (!*found) return std::nullopt;
     const auto &mesh = **found;

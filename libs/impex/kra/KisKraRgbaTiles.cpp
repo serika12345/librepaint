@@ -9,6 +9,7 @@
 #include <QSet>
 #include <cstring>
 #include <limits>
+#include <algorithm>
 
 namespace LibrePaint::ImportExport::Kra::Detail {
 using namespace Image::Gpu;
@@ -36,7 +37,7 @@ QByteArray bgra(const std::array<quint8, 4> &pixel)
 { return rgba({pixel[2], pixel[1], pixel[0], pixel[3]}); }
 
 Outcome readTiles(const QByteArray &data, const std::array<quint8, 4> &defaultPixel,
-                  QPoint offset, qsizetype maximumBytes, QList<RgbaTile> &output)
+                  QPoint offset, qsizetype maximumBytes, QList<RgbaTile> &output, QList<QRect> *writtenAreas)
 {
     QBuffer input;
     input.setData(data);
@@ -52,6 +53,7 @@ Outcome readTiles(const QByteArray &data, const std::array<quint8, 4> &defaultPi
     if (!ok || countLine[0] != QByteArrayLiteral("DATA")) return invalid();
     if (count > quint64(maximumBytes / FileTileBytes)) return capacity();
     QMap<Coordinates, QByteArray> result;
+    QList<QRect> areas;
     QSet<QPoint> seen;
     const auto fallback = rgba(defaultPixel);
     KisLzfCompression compression;
@@ -79,6 +81,16 @@ Outcome readTiles(const QByteArray &data, const std::array<quint8, 4> &defaultPi
                                                       reinterpret_cast<quint8 *>(pixels.data()), pixels.size(), 4);
         } else return invalid();
         const qint64 originX = qint64(x) + offset.x(), originY = qint64(y) + offset.y();
+        const qint64 left = std::max<qint64>(originX, -RgbaTile::CoordinateLimit);
+        const qint64 top = std::max<qint64>(originY, -RgbaTile::CoordinateLimit);
+        const qint64 right = std::min<qint64>(originX + FileTileSize, RgbaTile::CoordinateLimit);
+        const qint64 bottom = std::min<qint64>(originY + FileTileSize, RgbaTile::CoordinateLimit);
+        if (writtenAreas && left < right && top < bottom) {
+            const QRect area(int(left), int(top), int(right - left), int(bottom - top));
+            for (int ty = floorDivide(top, RgbaTile::Size); ty <= floorDivide(bottom - 1, RgbaTile::Size); ++ty)
+                for (int tx = floorDivide(left, RgbaTile::Size); tx <= floorDivide(right - 1, RgbaTile::Size); ++tx)
+                    areas.append(area.intersected(QRect(tx * RgbaTile::Size, ty * RgbaTile::Size, RgbaTile::Size, RgbaTile::Size)));
+        }
         for (int py = 0; py < FileTileSize; ++py) {
             for (int px = 0; px < FileTileSize; ++px) {
                 const auto source = pixels.constData() + (py * FileTileSize + px) * 4;
@@ -104,16 +116,35 @@ Outcome readTiles(const QByteArray &data, const std::array<quint8, 4> &defaultPi
     QList<RgbaTile> values;
     for (auto tile = result.cbegin(); tile != result.cend(); ++tile) values.append({{tile.key().second, tile.key().first}, tile.value()});
     output = std::move(values);
+    if (writtenAreas) *writtenAreas = std::move(areas);
     return {Status::Success, {}};
 }
 
 Outcome writeTiles(const QList<RgbaTile> &tiles, const std::array<quint8, 4> &defaultPixel,
-                   QPoint offset, qsizetype maximumBytes, QByteArray &output)
+                   QPoint offset, qsizetype maximumBytes, QByteArray &output, const QList<QRect> &writtenAreas)
 {
     if (tiles.size() > maximumBytes / RgbaTile::ByteCount) return capacity();
     QSet<QPoint> seen;
     QMap<Coordinates, QByteArray> result;
     const auto fallback = rgba(defaultPixel), fileFallback = bgra(defaultPixel);
+    if (writtenAreas.size() > maximumBytes / qsizetype(sizeof(QRect))) return capacity();
+    for (const auto &area : writtenAreas) {
+        if (area.isEmpty() || area.x() < -RgbaTile::CoordinateLimit || area.y() < -RgbaTile::CoordinateLimit ||
+            qint64(area.x()) + area.width() > RgbaTile::CoordinateLimit ||
+            qint64(area.y()) + area.height() > RgbaTile::CoordinateLimit) return invalid();
+        const int left = floorDivide(qint64(area.left()) - offset.x(), FileTileSize);
+        const int right = floorDivide(qint64(area.right()) - offset.x(), FileTileSize);
+        const int top = floorDivide(qint64(area.top()) - offset.y(), FileTileSize);
+        const int bottom = floorDivide(qint64(area.bottom()) - offset.y(), FileTileSize);
+        if (qint64(right - left + 1) * (bottom - top + 1) > maximumBytes / FileTileBytes) return capacity();
+        for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+            const Coordinates coordinate{y, x};
+            if (!result.contains(coordinate)) {
+                if (result.size() >= maximumBytes / FileTileBytes) return capacity();
+                result.insert(coordinate, fileFallback.repeated(FileTileBytes / 4));
+            }
+        }
+    }
     for (const auto &tile : tiles) {
         if (tile.rgba.size() != RgbaTile::ByteCount || seen.contains(tile.coordinate)) return invalid();
         seen.insert(tile.coordinate);

@@ -88,7 +88,32 @@ struct WeightedSmoothing
     }
 };
 
-/** Frozen settings for the resource-free circular brush, algorithm version 1. */
+/** Hard Gaussian circle with pressure-controlled size and opacity, WASH version 1.
+ * Transfer values and the resource digest are frozen before input is accepted.
+ */
+struct GaussianWash
+{
+    QByteArray resourceDigest;
+    qreal angle = 0;
+    qreal canvasOpacity = 1;
+    qreal flow = 1;
+    bool creamy = true;
+    bool sizeUsesPressureDirectly = false;
+    bool opacityUsesPressureDirectly = false;
+    QList<qreal> sizePressure = QList<qreal>(256, 0);
+    QList<qreal> opacityPressure = QList<qreal>(256, 0);
+
+    bool operator==(const GaussianWash &other) const
+    {
+        return resourceDigest == other.resourceDigest && angle == other.angle &&
+            canvasOpacity == other.canvasOpacity && flow == other.flow && creamy == other.creamy &&
+            sizeUsesPressureDirectly == other.sizeUsesPressureDirectly &&
+            opacityUsesPressureDirectly == other.opacityUsesPressureDirectly &&
+            sizePressure == other.sizePressure && opacityPressure == other.opacityPressure;
+    }
+};
+
+/** Frozen circular marker or Gaussian WASH settings. */
 struct Brush
 {
     std::array<quint8, 4> rgba{0, 0, 0, 255};
@@ -109,6 +134,7 @@ struct Brush
     bool basicSmoothing = false;
     /** Weighted positions feed basic interpolation; distances are frozen in document pixels. */
     std::optional<WeightedSmoothing> weightedSmoothing{};
+    std::optional<GaussianWash> gaussianWash{};
 
     bool operator==(const Brush &other) const
     {
@@ -117,7 +143,8 @@ struct Brush
             alphaLocked == other.alphaLocked && channelWriteMask == other.channelWriteMask &&
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
             mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect &&
-            basicSmoothing == other.basicSmoothing && weightedSmoothing == other.weightedSmoothing;
+            basicSmoothing == other.basicSmoothing && weightedSmoothing == other.weightedSmoothing &&
+            gaussianWash == other.gaussianWash;
     }
 };
 
@@ -226,6 +253,8 @@ struct RasterLayer
     /** Groups contribute their descendants directly to the enclosing composition. */
     bool passThrough = false;
     LayerBlendMode blendMode = LayerBlendMode::Normal;
+    /** Explicitly written pixel regions, including regions containing only defaults. */
+    QList<QRect> writtenAreas{};
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.

@@ -35,7 +35,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     for (const auto &source : image.layers) {
         const auto uuid = source.uuid.isNull() ? QUuid::createUuid() : source.uuid;
         if (identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 || source.projectionChannelMask > 15 ||
-            (source.kind == LayerKind::Group && (!source.tiles.isEmpty() ||
+            (source.kind == LayerKind::Group && (!source.tiles.isEmpty() || !source.writtenAreas.isEmpty() ||
                 source.defaultPixel != std::array<quint8, 4>{} || source.channelWriteMask != 15)) ||
             source.tiles.size() > (limits.rasterBytes - initial->rasterBytes) / RgbaTile::ByteCount) {
             throw std::invalid_argument("invalid raster layer identity, name or pixel capacity");
@@ -70,9 +70,13 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         if (!operation->tiles.isEmpty()) {
             operation->id = {m_identity, ++m_nextOperation};
             operation->layer = layer.id;
+            operation->writtenAreas = source.writtenAreas;
+            if (!source.writtenAreas.isEmpty()) operation->writeGroup = operation->id.sequence;
+            if (!Detail::validWrittenAreas(*operation)) throw std::invalid_argument("invalid raster written areas");
             layer.operations.append(TileWriteSnapshot(operation));
             initial->rasterBytes += operation->tiles.size() * RgbaTile::ByteCount;
         }
+        if (source.tiles.isEmpty() && !source.writtenAreas.isEmpty()) throw std::invalid_argument("written areas require raster tiles");
         initial->layers.append(layer);
     }
     m_nextLayer = initial->layers.size();

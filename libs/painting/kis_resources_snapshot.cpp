@@ -20,6 +20,10 @@
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <brushengine/kis_paintop_registry.h>
+#include <brushengine/KisPaintopSettingsIds.h>
+#include <compositeops/KoAlphaDarkenParamsWrapper.h>
+#include <QCryptographicHash>
+#include <QDomDocument>
 #include <resources/KoPattern.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoCanvasResourcesInterface.h>
@@ -39,6 +43,90 @@
 #include "kis_algebra_2d.h"
 #include "KisGlobalResourcesInterface.h"
 #include "kis_types.h"
+#include "kis_cubic_curve.h"
+#include <algorithm>
+#include <cmath>
+#include <utility>
+
+namespace {
+bool captureGaussianWash(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush, qreal opacity)
+{
+    if (settings->getInt("PaintOpAction") != 2 || settings->getString("ColorSource/Type", "plain") != QLatin1String("plain") ||
+        settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag) || settings->getBool("Texture/Pattern/Enabled") ||
+        settings->getBool("PaintOpSettings/isAirbrushing") || settings->getBool("PaintOpSettings/ignoreSpacing") ||
+        settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") || settings->getBool("FlowUseCurve", true) ||
+        settings->getBool("HorizontalMirrorEnabled") || settings->getBool("VerticalMirrorEnabled") ||
+        settings->getBool("KisPrecisionOption/AutoPrecisionEnabled", true) || settings->getInt("KisPrecisionOption/precisionLevel", 5) != 5 ||
+        brush.erase || brush.alphaLocked || brush.mirrorHorizontal || brush.mirrorVertical) return false;
+    for (const auto *name : {"PressureDarken", "PressureMirror", "PressureMix", "PressureRate", "PressureRatio",
+                            "PressureRotation", "PressureScatter", "PressureSharpness", "PressureSoftness",
+                            "PressureSpacing", "Pressureh", "Pressures", "Pressurev"})
+        if (settings->getBool(QLatin1String(name))) return false;
+    QDomDocument definition;
+    if (!definition.setContent(settings->getString("brush_definition"))) return false;
+    const auto root = definition.documentElement();
+    const auto mask = root.firstChildElement(QStringLiteral("MaskGenerator"));
+    if (root.attribute(QStringLiteral("type")) != QLatin1String("auto_brush") ||
+        mask.attribute(QStringLiteral("id")) != QLatin1String("gauss") ||
+        mask.attribute(QStringLiteral("type")) != QLatin1String("circle")) return false;
+    const auto equalNumber = [](const QDomElement &element, const QString &name, double expected) {
+        bool ok = false;
+        const double value = element.attribute(name).toDouble(&ok);
+        return ok && value == expected;
+    };
+    for (const auto &entry : {std::pair{QStringLiteral("ratio"), 1.}, {QStringLiteral("hfade"), 1.},
+                              {QStringLiteral("vfade"), 1.}, {QStringLiteral("spikes"), 2.},
+                              {QStringLiteral("antialiasEdges"), 1.}})
+        if (!equalNumber(mask, entry.first, entry.second)) return false;
+    if (!equalNumber(root, QStringLiteral("randomness"), 0) || !equalNumber(root, QStringLiteral("density"), 1) ||
+        !equalNumber(root, QStringLiteral("useAutoSpacing"), 0) || settings->getDouble("SizeValue", 1) != 1 ||
+        !qIsFinite(brush.diameter) || brush.diameter < 1 || brush.diameter != std::floor(brush.diameter)) return false;
+    LibrePaint::Image::Gpu::GaussianWash value;
+    bool angleOk = false, spacingOk = false;
+    value.angle = root.attribute(QStringLiteral("angle")).toDouble(&angleOk);
+    brush.spacing = root.attribute(QStringLiteral("spacing")).toDouble(&spacingOk);
+    value.canvasOpacity = opacity;
+    value.flow = settings->getDouble("FlowValue", 1);
+    value.creamy = useCreamyAlphaDarken();
+    if (!angleOk || !spacingOk || !qIsFinite(value.angle) || !qIsFinite(brush.spacing) ||
+        brush.spacing <= 0 || brush.spacing > 1 || !qIsFinite(value.flow) || value.flow < 0 || value.flow > 1) return false;
+    const auto pressureCurve = [&](const QString &name, QList<qreal> &transfer, bool &direct) {
+        transfer.fill(1);
+        if ((name == QLatin1String("Size") && !settings->getBool("PressureSize")) ||
+            !settings->getBool(name + QStringLiteral("UseCurve"), true)) return true;
+        if (settings->getInt(name + QStringLiteral("curveMode"), 0) != 0) return false;
+        QDomDocument sensor;
+        if (!sensor.setContent(settings->getString(name + QStringLiteral("Sensor")))) return false;
+        const auto element = sensor.documentElement();
+        if (element.attribute(QStringLiteral("id")) != QLatin1String("pressure")) return false;
+        QString curve = element.firstChildElement(QStringLiteral("curve")).text();
+        if (settings->getBool(name + QStringLiteral("UseSameCurve"), true))
+            curve = settings->getString(name + QStringLiteral("commonCurve"), curve);
+        if (curve.isEmpty()) curve = QStringLiteral("0,0;1,1;");
+        QList<QPointF> points;
+        for (const auto &text : curve.split(QLatin1Char(';'), Qt::SkipEmptyParts)) {
+            const auto pair = text.split(QLatin1Char(','));
+            if (pair.size() != 2) return false;
+            bool xOk = false, yOk = false;
+            const double x = pair[0].toDouble(&xOk), y = pair[1].toDouble(&yOk);
+            if (!xOk || !yOk || !qIsFinite(x) || !qIsFinite(y) || x < 0 || x > 1 || y < 0 || y > 1 ||
+                (!points.isEmpty() && x <= points.last().x())) return false;
+            points.append({x, y});
+        }
+        if (points.size() < 2 || points.first().x() != 0 || points.last().x() != 1) return false;
+        const KisCubicCurve parsed(points);
+        direct = parsed.isIdentity();
+        const auto values = parsed.floatTransfer(256);
+        std::copy(values.cbegin(), values.cend(), transfer.begin());
+        return true;
+    };
+    if (!pressureCurve(QStringLiteral("Size"), value.sizePressure, value.sizeUsesPressureDirectly) ||
+        !pressureCurve(QStringLiteral("Opacity"), value.opacityPressure, value.opacityUsesPressureDirectly)) return false;
+    value.resourceDigest = QCryptographicHash::hash(settings->toXML().toUtf8(), QCryptographicHash::Sha256);
+    brush.gaussianWash = std::move(value);
+    return true;
+}
+}
 
 KisGpuBrushResources captureGpuBrushResources(
     KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources)
@@ -56,8 +144,8 @@ KisGpuBrushResources captureGpuBrushResources(
     if (!result.layer)
         return reject(i18n("A stroke could not be started on this GPU paint layer."));
     const auto preset = resources->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
-    if (!preset || preset->paintOp().id() != QLatin1String("roundmarker"))
-        return reject(i18n("Painting this document currently requires the circular brush."));
+    if (!preset || (preset->paintOp().id() != QLatin1String("roundmarker") && preset->paintOp().id() != QLatin1String("paintbrush")))
+        return reject(i18n("This brush is not yet available for GPU painting."));
     const QString composite = resources->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
     if (composite != QLatin1String("normal") && composite != QLatin1String("erase"))
         return reject(i18n("This blend mode is not yet available for this document."));
@@ -82,6 +170,8 @@ KisGpuBrushResources captureGpuBrushResources(
     brush.opacity = quint8(qRound(255 * opacity));
     brush.erase = composite == QLatin1String("erase") || resources->resource(KoCanvasResource::EraserMode).toBool();
     brush.alphaLocked = !brush.erase && resources->resource(KoCanvasResource::GlobalAlphaLock).toBool();
+    if (preset->paintOp().id() == QLatin1String("paintbrush") && !captureGaussianWash(preset->settings(), brush, opacity))
+        return reject(i18n("These brush settings are not yet available for GPU painting."));
     return result;
 }
 

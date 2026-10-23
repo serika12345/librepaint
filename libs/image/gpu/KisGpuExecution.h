@@ -56,6 +56,8 @@ struct PixelReadbackOutcome
     QString diagnostic;
     std::optional<bool> containsTransparency{};
     std::optional<QRect> bounds{};
+    /** Explicitly written regions retained by complete-layer reads for lossless saving. */
+    QList<QRect> writtenAreas{};
 };
 struct ImageReadbackOutcome
 {

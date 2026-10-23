@@ -26,6 +26,7 @@ install(TARGETS kritaimagegpuoperations ${INSTALL_TARGETS_DEFAULT_ARGS})
 find_package(WGPUNative REQUIRED)
 add_library(kritaimagegputiles OBJECT
     KisGpuPaintGeometry.cpp
+    KisGpuGaussianBrush.cpp
     KisGpuDevice.cpp
     KisGpuPresentationSurface.cpp
     KisGpuExecution.cpp
@@ -45,7 +46,7 @@ target_link_libraries(kritaimagegputiles PRIVATE WGPUNative::WGPUNative)
 set_target_properties(kritaimagegputiles PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 qt6_add_resources(kritaimagegputiles krita_gpu_tiles
     PREFIX "/librepaint/gpu"
-    FILES shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl shaders/transparency.wgsl shaders/bounds.wgsl shaders/translate.wgsl shaders/crop.wgsl shaders/thumbnail.wgsl shaders/resize.wgsl shaders/sample-color.wgsl
+    FILES shaders/binary32.wgsl shaders/gaussian.wgsl shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl shaders/transparency.wgsl shaders/bounds.wgsl shaders/translate.wgsl shaders/crop.wgsl shaders/thumbnail.wgsl shaders/resize.wgsl shaders/sample-color.wgsl
 )
 krita_ios_add_static_resource(krita_gpu_tiles)
 

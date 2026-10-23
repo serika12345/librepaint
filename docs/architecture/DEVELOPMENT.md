@@ -783,7 +783,13 @@ ICC、解像度とインターレース設定を照合する。書出し後の�
 元ファイルの保護と出力する固定版を検査する。PNGの名前を付けた保存と再保存は、
 公開API、保存先・形式の採用、保存済み位置、Undo／Redo、再読込と失敗後の状態を検査する。
 KRAとPNGの保存済み通知中の編集、文書終了、画像交換と完了通知中の破棄も検査する。
-これらの契約は`TestDocument`が所有する。同じ試験対象で公開APIから生成・変更する
+これらの契約は`TestDocument`が所有する。
+`TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles`は、同梱の`b) Basic-5 Size Opacity`設定で線分を重ね、筆圧、流量とキャンバス不透明度を固定してCPU・GPUの結果を照合する。
+新規作成と固定した文書の読込みから、Undo／Redo、KRA保存・再読込み後の追記、KRA・PNG・JPEGの全バイトを比較する。
+成果物は`LIBREPAINT_GPU_RESULT_DIR/default-brush/<条件>/{cpu,gpu}/`へ保持する。新規文書の比較対は一方が生成したレイヤー識別子を共有し、読込み条件は固定識別子を持つ。
+`TestKraRasterCodec::defaultOnlyStorageBlocksSurviveSavingAndReopening`は、負座標にある既定画素だけの格納領域を保存・再読込みで保持する。
+
+`TestDocument`の公開APIから生成・変更する
 パターンと単色の塗りつぶしには、それぞれの生成プラグインへの直接の構築依存を持つ。
 `TestNode`は公開APIによるグレースケールへの変更に使う色管理プラグインへ直接依存する。
 `TestNode::testHistoryNavigationWaitsForImageJobs`は背景の画像処理を明示的に待機させ、

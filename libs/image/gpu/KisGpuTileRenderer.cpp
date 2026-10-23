@@ -11,6 +11,7 @@
 #include <QThread>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <limits>
 #include <stdexcept>
 #include <vector>
@@ -46,7 +47,25 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         error = QStringLiteral("GPU compute resources could not be loaded");
         return {};
     }
-    const QByteArray source = shared.readAll() + '\n' + shader.readAll();
+    QByteArray source = shared.readAll() + '\n';
+    const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
+    if (painting || path.endsWith(QLatin1String("/over.wgsl"))) {
+        QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
+        if (!arithmetic.open(QIODevice::ReadOnly)) {
+            error = QStringLiteral("GPU RGBA8 arithmetic could not be loaded");
+            return {};
+        }
+        source += arithmetic.readAll() + '\n';
+    }
+    if (painting) {
+        QFile gaussian(QStringLiteral(":/librepaint/gpu/shaders/gaussian.wgsl"));
+        if (!gaussian.open(QIODevice::ReadOnly)) {
+            error = QStringLiteral("GPU Gaussian brush arithmetic could not be loaded");
+            return {};
+        }
+        source += gaussian.readAll() + '\n';
+    }
+    source += shader.readAll();
     WGPUShaderSourceWGSL code{};
     code.chain.sType = WGPUSType_ShaderSourceWGSL;
     code.code = {source.constData(), size_t(source.size())};
@@ -327,7 +346,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     const auto current = std::get_if<PaintSnapshot>(&layer.operations.back());
                     changingStroke = previous && current && *previous != *current && (*previous)->id == (*current)->id &&
                         (*previous)->brush == (*current)->brush;
-                    if (changingStroke && !(*current)->brush.pixelPerfect && !(*current)->brush.basicSmoothing && (*previous)->shape.kind == ShapeKind::Freehand &&
+                    if (changingStroke && !(*current)->brush.gaussianWash && !(*current)->brush.pixelPerfect && !(*current)->brush.basicSmoothing && (*previous)->shape.kind == ShapeKind::Freehand &&
                         (*current)->shape.kind == ShapeKind::Freehand && (*current)->sampleCount >= (*previous)->sampleCount)
                         previousSamples = (*previous)->sampleCount;
                     if (changingStroke) --shared;
@@ -439,14 +458,16 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 if (!operation.figureStyle.outline && !operation.figureStyle.fill) continue;
                 const bool pending = document->pendingOperation() == operation.id;
                 const bool extending = appendedFrom && op == layer.operations.size() - 1;
-                const bool retainCoverage = pending && operation.shape.kind == ShapeKind::Freehand &&
+                const bool retainCoverage = pending && !operation.brush.gaussianWash && operation.shape.kind == ShapeKind::Freehand &&
                     !operation.brush.pixelPerfect && !operation.brush.basicSmoothing && !operation.figureStyle.fill;
                 if (retainCoverage) pendingCoverageLayer = layer.id;
                 if (pending) data->strokeInputs[layer.id];
                 if (pending && extending) data->strokeInputs[layer.id] = strokeInputs;
                 const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
                 const auto step = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * operation.brush.spacing * 16)));
-                const auto geometry = paintGeometry(operation, step);
+                const auto gaussian = operation.brush.gaussianWash ? gaussianDabs(operation) : std::optional<QList<GaussianDab>>(QList<GaussianDab>{});
+                if (!gaussian) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("This Gaussian WASH geometry or brush setting is not yet supported")};
+                const auto geometry = operation.brush.gaussianWash ? std::optional<PaintGeometry>(PaintGeometry{}) : paintGeometry(operation, step);
                 if (!geometry) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU derived geometry limit exceeded")};
                 const auto &segments = geometry->outline;
                 bool appendedOnly = extending && retainCoverage && preserveCoverage &&
@@ -471,8 +492,32 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     }
                 }
                 QMap<quint64, QList<PaintSegment>> affected;
+                QMap<quint64, QList<GaussianDab>> gaussianAffected;
+                qsizetype gaussianReferences = 0;
                 QSet<quint64> changedCoordinates;
                 QMap<quint64, QList<PaintSegment>> appendedGeometry;
+                for (const auto &dab : *gaussian) {
+                    if (!operation.figureStyle.outline) break;
+                    const auto bounds = dab.bounds().intersected(paintRegion);
+                    if (bounds.isEmpty()) continue;
+                    const int left = pixelTileIndex(bounds.left(), TileSize), right = pixelTileIndex(bounds.right(), TileSize);
+                    const int top = pixelTileIndex(bounds.top(), TileSize), bottom = pixelTileIndex(bounds.bottom(), TileSize);
+                    if (qint64(right - left + 1) * (bottom - top + 1) > d.budget->limit / TileBytes)
+                        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU Gaussian tile budget exhausted")};
+                    for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                        const auto coordinate = key(x, y);
+                        if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
+                        const auto checkpoint = checkpoints.constFind(coordinate);
+                        if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
+                        affected[coordinate];
+                        if (gaussianReferences == PathGeometrySegmentLimit)
+                            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU Gaussian geometry reference limit exceeded")};
+                        gaussianAffected[coordinate].append(dab);
+                        ++gaussianReferences;
+                        if (affected.size() > d.budget->limit / TileBytes)
+                            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU Gaussian tile budget exhausted")};
+                    }
+                }
                 for (qsizetype index = appendedOnly ? *appendedFrom : 0;
                      operation.figureStyle.outline && index < segments.size(); ++index) {
                     const auto &segment = segments[index];
@@ -546,6 +591,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.output = output;
                     if (!job.output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
                     job.geometry = tile.value();
+                    job.gaussianGeometry = gaussianAffected.value(tile.key());
                     job.retainCoverage = retainCoverage;
                     job.coverageCoordinate = tile.key();
                     job.extendsCoverage = extending;
@@ -560,6 +606,12 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                   operation.figureStyle.fill ? packedPixel(*operation.figureStyle.fill) : 0,
                                   quint32(bool(operation.figureStyle.fill)) | (operation.figureStyle.outline ? 0u : 2u) |
                                       (operation.shape.windingFill ? 4u : 0u)};
+                    if (operation.brush.gaussianWash) {
+                        const float opacity = float(operation.brush.gaussianWash->canvasOpacity);
+                        std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));
+                        job.values.count = quint32(job.gaussianGeometry.size());
+                        job.values.paintFlags |= 512u;
+                    }
                     job.output->mayContainHiddenRgb = operation.brush.alphaLocked || operation.brush.erase ||
                         (job.input && job.input->mayContainHiddenRgb);
                     tiles[tile.key()] = job.output;

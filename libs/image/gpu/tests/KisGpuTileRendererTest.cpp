@@ -54,6 +54,8 @@ private Q_SLOTS:
     void previewProjectionTracksBackgroundPropertiesAndRetainedPixels();
     void switchingDocumentsReleasesPreviewDerivedPixelsAtCapacity();
     void roundBrushProducesRgbaPixelsOnTheGpu();
+    void gaussianWashProducesCoverageAndRetainsPixelsThroughRecovery();
+    void gaussianWashSkipsDabsBelowTheBrushMinimum();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery_data();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery();
     void filledInteriorRespectsRegionAndTileBudget();
@@ -121,6 +123,62 @@ private:
                               QRect visible, const ProjectedSnapshot &base = {});
     DevicePtr m_device;
 };
+
+void KisGpuTileRendererTest::gaussianWashProducesCoverageAndRetainsPixelsThroughRecovery()
+{
+    OperationDocument document(QSize(64, 64));
+    Brush brush;
+    brush.rgba = {17, 34, 51, 255};
+    brush.diameter = 40;
+    auto &settings = brush.gaussianWash.emplace();
+    settings.resourceDigest = QByteArray(32, 'r');
+    settings.flow = .5;
+    settings.canvasOpacity = .57;
+    settings.sizePressure.fill(1);
+    settings.opacityPressure.fill(1);
+    const auto id = document.beginStroke(document.activeLayer(), brush, 1789);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.appendSamples(id, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    TileRenderer renderer(m_device, 8 * TileRenderer::TileBytes);
+    const auto painted = render(renderer, document.snapshot());
+    QVERIFY(painted);
+    const auto pixels = readTile(painted, document.activeLayer(), {0, 0});
+    // One half-flow stamp has alpha 128 at its center; canvas opacity is
+    // applied once at merge. The edge's Gaussian mask alpha is 126.
+    QCOMPARE(pixels.mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("11223349"));
+    QCOMPARE(pixels.mid((32 * TileRenderer::TileSize + 51) * 4, 4), QByteArray::fromHex("11223324"));
+    QCOMPARE(pixels.mid((12 * TileRenderer::TileSize + 12) * 4, 4), QByteArray(4, '\0'));
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), pixels);
+    QCOMPARE(restored.undo(), Result::Success);
+    const auto undone = render(renderer, restored.snapshot());
+    QVERIFY(undone);
+    QVERIFY(undone->tiles(restored.activeLayer()).isEmpty());
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), pixels);
+    QCOMPARE(readTile(painted, document.activeLayer(), {0, 0}), pixels);
+}
+
+void KisGpuTileRendererTest::gaussianWashSkipsDabsBelowTheBrushMinimum()
+{
+    OperationDocument document(QSize(64, 64));
+    Brush brush;
+    brush.diameter = 40;
+    auto &settings = brush.gaussianWash.emplace();
+    settings.resourceDigest = QByteArray(32, 'r');
+    settings.sizeUsesPressureDirectly = true;
+    settings.opacityPressure.fill(1);
+    const auto id = document.beginStroke(document.activeLayer(), brush, 1789);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.appendSamples(id, {{{32, 32}, .0002}}), Result::Success);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto painted = render(renderer, document.snapshot());
+    QVERIFY(painted);
+    QVERIFY(painted->tiles(document.activeLayer()).isEmpty());
+}
 
 void KisGpuTileRendererTest::isolatedGroupsKeepProjectionAndRetainedSubtreePixels_data()
 {

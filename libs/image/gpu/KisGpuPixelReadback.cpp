@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuExecution_p.h"
+#include "KisGpuGaussianBrush_p.h"
 #include "KisGpuReadbackBatch_p.h"
 #include "KisGpuPaintJob_p.h"
 #include <QColorSpace>
@@ -152,6 +153,25 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
         } else {
             if (needed.isEmpty()) continue;
             const auto &paint = **std::get_if<PaintSnapshot>(&operation);
+            if (paint.brush.gaussianWash) {
+                const auto dabs = Detail::gaussianDabs(paint);
+                if (!dabs) return std::nullopt;
+                if (!paint.figureStyle.outline) continue;
+                for (const auto &dab : *dabs) {
+                    const auto bounds = dab.bounds().intersected(needed);
+                    if (bounds.isEmpty()) continue;
+                    const int left = Detail::pixelTileIndex(bounds.left(), TileRenderer::TileSize);
+                    const int right = Detail::pixelTileIndex(bounds.right(), TileRenderer::TileSize);
+                    const int top = Detail::pixelTileIndex(bounds.top(), TileRenderer::TileSize);
+                    const int bottom = Detail::pixelTileIndex(bounds.bottom(), TileRenderer::TileSize);
+                    if (qint64(right - left + 1) * (bottom - top + 1) > stageMaximum) return std::nullopt;
+                    for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                        coordinates.insert(Detail::key(x, y));
+                        if (coordinates.size() > stageMaximum) return std::nullopt;
+                    }
+                }
+                continue;
+            }
             const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
             const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
             const auto geometry = Detail::paintGeometry(paint, step);
@@ -229,6 +249,29 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
     outcome.region = {-limit, -limit, 2 * limit, 2 * limit};
     const Layer *selected = nullptr;
     for (const auto &value : pinned->layers) if (value.id == layer) selected = &value;
+    for (const auto &operation : selected->operations) {
+        if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
+            if ((*write)->writtenAreas.size() > maximumBytes / qsizetype(sizeof(QRect)) - outcome.writtenAreas.size())
+                return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
+            outcome.writtenAreas.append((*write)->writtenAreas);
+        } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
+            for (auto &area : outcome.writtenAreas) area = area.translated((*translation)->offset).intersected(outcome.region);
+        } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
+            for (auto &area : outcome.writtenAreas) area &= (*crop)->rect.normalized();
+        } else {
+            const auto &paint = *std::get<PaintSnapshot>(operation);
+            if (paint.brush.gaussianWash && paint.figureStyle.outline) {
+                const auto dabs = Detail::gaussianDabs(paint);
+                if (!dabs) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Layer written-area geometry is unsupported"));
+                if (dabs->size() > maximumBytes / qsizetype(sizeof(QRect)) - outcome.writtenAreas.size())
+                    return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
+                for (const auto &dab : *dabs) outcome.writtenAreas.append(dab.bounds().intersected(outcome.region));
+            }
+        }
+        if (outcome.writtenAreas.size() > maximumBytes / qsizetype(sizeof(QRect)))
+            return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
+    }
+    outcome.writtenAreas.removeIf([](const QRect &area) { return area.isEmpty(); });
     const auto coordinates = layerCoordinates(pinned, *selected, outcome.region, maximumBytes / TileRenderer::TileBytes);
     if (!coordinates) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Complete layer pixel capacity exceeded"));
     if (coordinates->isEmpty()) return outcome;

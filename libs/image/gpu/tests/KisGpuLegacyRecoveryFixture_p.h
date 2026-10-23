@@ -468,6 +468,7 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 Q_ASSERT(format >= 19 || !operation.brush.pixelPerfect);
                 Q_ASSERT(!operation.brush.basicSmoothing);
                 Q_ASSERT(!operation.brush.weightedSmoothing);
+                Q_ASSERT(!operation.brush.gaussianWash);
                 Q_ASSERT(format >= 18 || operation.shape.kind != ShapeKind::Path);
                 Q_ASSERT(format >= 17 || (operation.figureStyle.outline && !operation.figureStyle.fill));
                 QByteArray prefix;
@@ -483,6 +484,8 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                                  (quint8(operation.brush.mirrorHorizontal) << 6) | (quint8(operation.brush.mirrorVertical) << 7));
                 if (operation.brush.mirrorHorizontal || operation.brush.mirrorVertical)
                     stream << qint32(operation.brush.mirrorCenter.x()) << qint32(operation.brush.mirrorCenter.y());
+                const auto gaussianOffset = prefix.size();
+                stream << quint8(0);
                 stream << operation.randomSeed << quint8(operation.shape.kind)
                        << operation.shape.first.x() << operation.shape.first.y()
                        << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation;
@@ -503,6 +506,7 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 }
                 if (format < 19) payload.remove(position + prefix.size() + styleSize, 1);
                 if (format < 17) payload.remove(position + prefix.size(), styleSize);
+                if (format < 38) payload.remove(position + gaussianOffset, 1);
             }
         }
     }

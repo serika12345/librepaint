@@ -180,6 +180,8 @@ private Q_SLOTS:
     void damagedSmoothingRecoveryPreservesTheActiveDocument();
     void emptyPathsPreserveHistoryAndPendingRecovery();
     void invalidPathsPreserveHistoryAndInputBudgets();
+    void gaussianWashSettingsSurviveHistoryAndRecovery();
+    void invalidGaussianWashSettingsPreserveTheDocument();
     void cancelAndRejectedInputPreserveRedo();
     void documentChangesShareOneHistory();
     void savesPinTheirVersionWhileEditingContinues();
@@ -4010,6 +4012,65 @@ void KisGpuOperationDocumentTest::invalidPathsPreserveHistoryAndInputBudgets()
     QCOMPARE(bounded.paintFigure(bounded.activeLayer(), Brush{}, samples, shape, FigureStyle{}, 42), Result::CapacityExceeded);
     QCOMPARE(bounded.recoveryData(), boundedBefore);
     QVERIFY(bounded.activeOperation().isNull());
+}
+
+void KisGpuOperationDocumentTest::gaussianWashSettingsSurviveHistoryAndRecovery()
+{
+    OperationDocument document(QSize(128, 128));
+    Brush brush;
+    GaussianWash settings;
+    settings.resourceDigest = QByteArray(32, 'r');
+    settings.angle = 6.28319;
+    settings.canvasOpacity = .57;
+    settings.flow = .5;
+    settings.creamy = false;
+    for (std::size_t i = 0; i < settings.sizePressure.size(); ++i) {
+        settings.sizePressure[i] = qreal(i * i) / (255 * 255);
+        settings.opacityPressure[i] = qreal(i) / 255;
+    }
+    brush.gaussianWash = settings;
+    Shape shape;
+    shape.kind = ShapeKind::Line;
+    shape.first = {12.25, 13.75};
+    shape.second = {60.125, 31.5};
+    QCOMPARE(document.paintFigure(document.activeLayer(), brush,
+        {sample(12.25, 13.75, .12), sample(60.125, 31.5, .75)}, shape, FigureStyle{}, 1789), Result::Success);
+    brush.gaussianWash->flow = 1;
+    const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
+    QVERIFY(operation->brush.gaussianWash == std::optional<GaussianWash>(settings));
+    const auto record = document.recoveryData();
+    QVERIFY(!record.isEmpty());
+    QCOMPARE(document.undo(), Result::Success);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.redo(), Result::Success);
+    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QVERIFY(recovered->brush == operation->brush);
+    QCOMPARE(restored.recoveryData(), record);
+}
+
+void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument()
+{
+    OperationDocument document(QSize(64, 64));
+    Brush brush;
+    brush.gaussianWash.emplace();
+    brush.gaussianWash->resourceDigest = QByteArray(32, 'r');
+    const auto before = document.recoveryData();
+    for (int invalid = 0; invalid < 8; ++invalid) {
+        auto bad = brush;
+        switch (invalid) {
+        case 0: bad.gaussianWash->flow = -1; break;
+        case 1: bad.gaussianWash->canvasOpacity = 1.01; break;
+        case 2: bad.gaussianWash->angle = std::numeric_limits<qreal>::infinity(); break;
+        case 3: bad.gaussianWash->sizePressure[128] = std::numeric_limits<qreal>::quiet_NaN(); break;
+        case 4: bad.gaussianWash->opacityPressure[128] = 2; break;
+        case 5: bad.gaussianWash->resourceDigest.clear(); break;
+        case 6: bad.gaussianWash->sizePressure.removeLast(); break;
+        case 7: bad.gaussianWash->opacityPressure.append(1); break;
+        }
+        QVERIFY(document.beginStroke(document.activeLayer(), bad, 1789).isNull());
+        QCOMPARE(document.recoveryData(), before);
+    }
 }
 
 QTEST_GUILESS_MAIN(KisGpuOperationDocumentTest)
