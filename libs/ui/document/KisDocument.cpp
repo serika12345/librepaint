@@ -385,12 +385,14 @@ LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document
     if (!encode(root, rootPacket)) return {metadataStatus, {}, diagnostic};
     metadata.rootLayerXmp = std::move(rootPacket);
     metadata.layerXmp.emplace();
+    metadata.layerCollapsed.emplace();
     bool captured = true;
     KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
         if (!captured || node == root) return;
         QByteArray packet;
         captured = encode(node, packet);
         if (captured && !packet.isEmpty()) metadata.layerXmp->insert(node->uuid(), std::move(packet));
+        if (captured) metadata.layerCollapsed->insert(node->uuid(), node->collapsed());
     });
     if (!captured) return {metadataStatus, {}, diagnostic};
     return fileDocument.setKraImageMetadata(metadata);
@@ -422,9 +424,8 @@ QString gpuKraEditingError(const QDomElement &image)
             if (!supported.contains(name))
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", name);
         }
-        if (element != image && (element.attribute(QStringLiteral("onionskin"), QStringLiteral("0")) != QLatin1String("0") ||
-                                  element.attribute(QStringLiteral("collapsed"), QStringLiteral("0")) != QLatin1String("0")))
-            return i18n("The new painting engine cannot yet restore onion skins or collapsed groups.");
+        if (element != image && element.attribute(QStringLiteral("onionskin"), QStringLiteral("0")) != QLatin1String("0"))
+            return i18n("The new painting engine cannot yet restore onion skins.");
         for (auto child = element.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
             if (element == image && !imageChildren.contains(child.tagName()))
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
@@ -3234,6 +3235,7 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
         const auto it = layerMetadata.constFind(node->uuid());
         auto *layer = qobject_cast<KisLayer *>(node.data());
         if (layer && it != layerMetadata.cend()) layer->metaData()->copyFrom(&it.value());
+        if (metadata.metadata.layerCollapsed) node->setCollapsed(metadata.metadata.layerCollapsed->value(node->uuid()));
     });
     image->setResolution(metadata.metadata.resolution.x() / 72, metadata.metadata.resolution.y() / 72);
     auto *animation = image->animationInterface();

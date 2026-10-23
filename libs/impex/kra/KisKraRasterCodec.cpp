@@ -681,7 +681,7 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     else files.insert(QStringLiteral("documentinfo.xml"), metadata.documentInfo);
     image.setAttribute(QStringLiteral("x-res"), QString::number(metadata.resolution.x(), 'g', 17));
     image.setAttribute(QStringLiteral("y-res"), QString::number(metadata.resolution.y(), 'g', 17));
-    if (metadata.layerXmp) {
+    if (metadata.layerXmp || metadata.layerCollapsed) {
         const auto &value = document.image;
         if (value.size.width() <= 0 || value.size.height() <= 0 || value.size.width() > RgbaTile::CoordinateLimit ||
             value.size.height() > RgbaTile::CoordinateLimit || value.activeLayer < 0 ||
@@ -692,11 +692,23 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         QMap<QUuid, QString> layerFiles;
         result = prepareLayerDescriptions(xml, image, value, files, limits, layerFiles);
         if (result.code != Status::Success) return result;
-        const QString prefix = folder + QStringLiteral("/layers/");
-        for (const auto &filename : layerFiles) files.remove(prefix + filename + QStringLiteral(".xmp.metadata"));
-        for (auto it = metadata.layerXmp->cbegin(); it != metadata.layerXmp->cend(); ++it) {
-            if (it.key().isNull() || !layerFiles.contains(it.key())) return invalid(QStringLiteral("KRA metadata requires a current layer identity"));
-            if (!it.value().isEmpty()) files.insert(prefix + layerFiles.value(it.key()) + QStringLiteral(".xmp.metadata"), it.value());
+        if (metadata.layerXmp) {
+            const QString prefix = folder + QStringLiteral("/layers/");
+            for (const auto &filename : layerFiles) files.remove(prefix + filename + QStringLiteral(".xmp.metadata"));
+            for (auto it = metadata.layerXmp->cbegin(); it != metadata.layerXmp->cend(); ++it) {
+                if (it.key().isNull() || !layerFiles.contains(it.key())) return invalid(QStringLiteral("KRA metadata requires a current layer identity"));
+                if (!it.value().isEmpty()) files.insert(prefix + layerFiles.value(it.key()) + QStringLiteral(".xmp.metadata"), it.value());
+            }
+        }
+        if (metadata.layerCollapsed) {
+            for (auto it = metadata.layerCollapsed->cbegin(); it != metadata.layerCollapsed->cend(); ++it)
+                if (it.key().isNull() || !layerFiles.contains(it.key()))
+                    return invalid(QStringLiteral("KRA collapsed state requires a current layer identity"));
+            QList<QDomElement> elements;
+            result = collectLayerElements(image.firstChildElement(QStringLiteral("layers")), limits.layers, elements);
+            if (result.code != Status::Success) return result;
+            for (auto element : elements)
+                element.setAttribute(QStringLiteral("collapsed"), metadata.layerCollapsed->value(QUuid(element.attribute(QStringLiteral("uuid")))) ? 1 : 0);
         }
     }
     if (metadata.rootLayerXmp) {
@@ -782,10 +794,12 @@ MetadataOutcome RasterCodec::readImageMetadata(const QByteArray &bytes, const QM
     const QString rootXmp = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/.xmp.metadata");
     if (files.contains(rootXmp)) metadata.rootLayerXmp = files.value(rootXmp);
     metadata.layerXmp.emplace();
+    metadata.layerCollapsed.emplace();
     for (const auto &element : elements) {
         const QUuid uuid(element.attribute(QStringLiteral("uuid")));
         if (!uuid.isNull()) {
             labels.insert(uuid, element.attribute(QStringLiteral("colorlabel"), QStringLiteral("0")).toInt());
+            metadata.layerCollapsed->insert(uuid, element.attribute(QStringLiteral("collapsed"), QStringLiteral("0")) != QLatin1String("0"));
             const QString path = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename")) + QStringLiteral(".xmp.metadata");
             if (files.contains(path)) metadata.layerXmp->insert(uuid, files.value(path));
         }

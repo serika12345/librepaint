@@ -69,6 +69,11 @@ struct ImageMetadata
      */
     std::optional<QByteArray> rootLayerXmp;
     std::optional<QMap<QUuid, QByteArray>> layerXmp;
+    /** Public node expansion state, independent of painting history. Missing
+     * preserves retained values; present values update the current structure,
+     * with omitted identities expanded. Keys require current layer UUIDs.
+     */
+    std::optional<QMap<QUuid, bool>> layerCollapsed;
 };
 struct Outcome
 {

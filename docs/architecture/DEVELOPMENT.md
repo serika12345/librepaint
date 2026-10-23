@@ -766,6 +766,14 @@ KRAとPNGの保存済み通知中の編集、文書終了、画像交換と完�
 `testDeferredHistoryRequestsPreserveOrderAndLifetime`は、要求順序と一回の通知、画像交換、
 文書終了と通知中の破棄、終了通知からの遅い履歴要求、保持したノードの画素を検査する。
 この二つの契約は、Qtの画面外環境で実行できる。
+`TestDocument::testCollapsedStateSurvivesDocumentCopies`はスナップショット、保存用複製と
+公開文書の複製について、階層内の折りたたみ状態と元文書からの独立性を検査する。
+`testNativeCollapsedLayersSurviveEditing`は、固定UUIDを持つ入れ子のグループと描画レイヤーを
+CPUの通常保存で生成し、CPU・GPUの通常読込、編集、Undo／Redo、削除取消しと再保存を照合する。
+折りたたみだけの変更は、画素、変更状態、履歴と変更通知を保持する。
+文書情報、時刻、色資源と書出し設定を固定し、KRAの圧縮の有無についてファイル全体を比較する。
+`LIBREPAINT_GPU_RESULT_DIR`の`native-collapsed-{raw,compressed}/`へ、入力`source.kra`、
+CPU・GPUそれぞれの`.kra`、追加編集後の`-after.kra`、`.png`と`.jpg`を保存する。
 `KisGpuPaintDocumentTest`は、形式処理が完成した
 固定版の採用と、後続編集・保存先・保存済み位置の復旧を検査する。
 `KisDocumentReplaceTest`は、定期自動保存のタイマー入口、公開回復要求と休止時保存を検査する。

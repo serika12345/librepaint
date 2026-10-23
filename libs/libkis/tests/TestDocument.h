@@ -81,6 +81,10 @@ private Q_SLOTS:
     void testGpuSnapshotKeepsIndependentPixelsAndDocumentMetadata();
     void testGpuDocumentCopyKeepsLayerImageMetadata_data();
     void testGpuDocumentCopyKeepsLayerImageMetadata();
+    void testCollapsedStateSurvivesDocumentCopies_data();
+    void testCollapsedStateSurvivesDocumentCopies();
+    void testNativeCollapsedLayersSurviveEditing_data();
+    void testNativeCollapsedLayersSurviveEditing();
     void testGpuRasterExportKeepsLayerImageMetadata_data();
     void testGpuRasterExportKeepsLayerImageMetadata();
     void testNativeLayerImageMetadataSurvivesEditing_data();

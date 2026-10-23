@@ -114,7 +114,7 @@ FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadat
     Kra::Document value;
     value.description = m_d->description;
     value.files = m_d->files;
-    if (metadata.layerXmp) {
+    if (metadata.layerXmp || metadata.layerCollapsed) {
         const auto version = m_d->image->operations().snapshot();
         value.image.size = version->size;
         value.image.projectionBackground = version->projectionBackground;

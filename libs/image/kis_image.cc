@@ -602,6 +602,7 @@ void KisImage::copyFromImageImpl(const KisImage &rhs, int policy, LibrePaint::Im
         });
         KisLayerUtils::recursiveApplyNodes(newRoot, [&sourceNodes](KisNodeSP node) {
             auto source = sourceNodes.dequeue();
+            node->setCollapsed(source->collapsed());
             auto *layer = qobject_cast<KisLayer *>(node.data());
             auto *sourceLayer = qobject_cast<KisLayer *>(source.data());
             if (layer && sourceLayer) {
