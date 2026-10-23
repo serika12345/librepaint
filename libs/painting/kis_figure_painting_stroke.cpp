@@ -43,8 +43,35 @@ struct KisFigurePaintingStroke::GpuStroke
 
     void setFigure(const Gpu::Shape &value, const QList<Gpu::InputSample> &input)
     {
+        if (!resources.diagnostic.isEmpty()) return;
+        const auto &document = owner->operations();
+        const auto limits = document.limits();
+        if (input.size() > limits.samplesPerStroke - samples.size() ||
+            input.size() > limits.samplesPerDocument - document.snapshot()->sampleCount - samples.size()) {
+            resources.diagnostic = QStringLiteral("GPU figure input exceeds the document input budget.");
+            return;
+        }
         if (shape) {
-            resources.diagnostic = QStringLiteral("Multiple figures require a grouped GPU painting operation.");
+            const auto isPathOrLine = [](Gpu::ShapeKind kind) {
+                return kind == Gpu::ShapeKind::Line || kind == Gpu::ShapeKind::Path;
+            };
+            if (fillStyle != KisFigurePaintingOptions::FillStyleNone ||
+                !isPathOrLine(shape->kind) || !isPathOrLine(value.kind)) {
+                resources.diagnostic = QStringLiteral("This GPU figure group requires separate fill or shape operations.");
+                return;
+            }
+            if (shape->kind == Gpu::ShapeKind::Line) {
+                Gpu::Shape path;
+                path.kind = Gpu::ShapeKind::Path;
+                path.pathCommands = {Gpu::PathCommand::MoveTo, Gpu::PathCommand::LineTo};
+                shape = path;
+            }
+            // Each call starts an independent subpath. Keeping both endpoint
+            // samples preserves sensors even when consecutive positions match.
+            if (value.kind == Gpu::ShapeKind::Line)
+                shape->pathCommands.append({Gpu::PathCommand::MoveTo, Gpu::PathCommand::LineTo});
+            else shape->pathCommands.append(value.pathCommands);
+            samples.append(input);
             return;
         }
         shape = value;

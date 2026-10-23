@@ -659,6 +659,10 @@ macOSの非表示検証は`QT_QPA_PLATFORM=offscreen`で実行し、ネイティ
 矩形・楕円・多角形の単色塗りは、前景色・背景色と輪郭の有無、複製後の参照で検査する。
 塗り内部、外側の輪郭と完全に被覆された重なりを照合し、色見本の透明度から独立した描画結果を検査する。
 公開APIのパスは、直線・三次曲線・複数の部分パスと、偶奇・巻き数による穴の塗り分けを照合する。
+`TestNode`の図形グループ契約は、通常のGPU文書に複数の直線・経路を描き、部分パス間の透明領域、
+端点の入力値、一回の履歴、Undo／Redo、復旧とKRA再読込を照合する。
+入力数が上限ちょうどの確定と、グループ全体の上限超過による画素・履歴・Redoの保持も検査する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`figure-groups/<condition>/`の描画・復旧・再読込したRGBA8列とKRAを出力する。
 通常の消去アクションは、選択中とは別のアクティブレイヤー、単一・複数選択、
 ロックされたレイヤー、キャンバス内外の画素、一回の履歴、Undo／Redo、KRA保存とPNG書出しを
 `KisGpuDocumentViewTest::clearActionPreservesSelectedLayersAndHistory`で検査する。
