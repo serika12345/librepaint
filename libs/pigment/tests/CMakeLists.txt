@@ -453,6 +453,13 @@ kis_add_tests(
     LINK_LIBRARIES kritapigment KF${KF_MAJOR}::I18n kritatestsdk
     )
 
+# The direct scalar alpha-darken contract uses the owner's staged binary32 math.
+if(MSVC)
+    set_property(SOURCE KoRgbU8ColorSpaceTester.cpp APPEND PROPERTY COMPILE_OPTIONS /fp:strict)
+else()
+    set_property(SOURCE KoRgbU8ColorSpaceTester.cpp APPEND PROPERTY COMPILE_OPTIONS -ffp-contract=off)
+endif()
+
 kis_add_test(
     TestCompositeOpInversion.cpp TestCompositeOpInversion_p.cpp
     TEST_NAME TestCompositeOpInversion

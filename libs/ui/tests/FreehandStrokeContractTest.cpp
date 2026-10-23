@@ -57,13 +57,8 @@ constexpr qreal inputTime = 0.0;
 constexpr qreal inputSpeed = 0.0;
 const QRect maintainedStrokeBounds(50, 50, 385, 385);
 const QRect maintainedHalfPressureStrokeBounds(126, 126, 234, 234);
-#if defined(Q_OS_ANDROID) && defined(Q_PROCESSOR_X86_64)
-const QByteArray maintainedHalfPressureDigest("4a73b991ca36c42e199a8194b2cd8e166bfd6e67018d6ba6de226bdcdd302831");
-#elif defined(Q_OS_LINUX) && defined(Q_PROCESSOR_X86_64) && !defined(Q_OS_ANDROID)
-const QByteArray maintainedHalfPressureDigest("4a73b991ca36c42e199a8194b2cd8e166bfd6e67018d6ba6de226bdcdd302831");
-#else
+// A constant-pressure isotropic circle on x == y preserves transposed pixels.
 const QByteArray maintainedHalfPressureDigest("ffdae59742d86fcfcc3764eeb7d2e82c126cd9cb08fb7c7c97a94e8b46cd5bb9");
-#endif
 const QRect maintainedPressureGradientBounds(154, 154, 229, 229);
 const QByteArray maintainedPressureGradientDigest("e9740f2b00ef8670a37aade2c4f96cec8197dfc96eb3e18adcc20f938b5f87c0");
 const QRect maintainedFuzzySeed17Bounds(142, 142, 271, 271);
@@ -193,6 +188,23 @@ QByteArray imageDigest(const QImage &image)
                                              normalized.width() * 4));
     }
     return hash.result().toHex();
+}
+
+bool diagonalPixelsMatch(const QImage &image, QPoint &mismatch)
+{
+    if (image.width() != image.height()) {
+        mismatch = QPoint(-1, -1);
+        return false;
+    }
+    for (int y = 0; y < image.height(); ++y) {
+        for (int x = 0; x < y; ++x) {
+            if (image.pixel(x, y) != image.pixel(y, x)) {
+                mismatch = QPoint(x, y);
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 class FreehandStrokeFixture
@@ -515,11 +527,16 @@ void FreehandStrokeContractTest::pressureResponseProducesMaintainedPixels()
     QVERIFY(expectedBounds.width() < maintainedStrokeBounds.width());
     QVERIFY(expectedBounds.height() < maintainedStrokeBounds.height());
 
-    if (actualDigest != expectedDigest) {
+    QPoint symmetryMismatch;
+    const bool symmetric = startPressure != endPressure || diagonalPixelsMatch(layer, symmetryMismatch);
+    if (actualDigest != expectedDigest || !symmetric) {
         QDir().mkpath(QStringLiteral(FILES_OUTPUT_DIR));
         layer.save(QStringLiteral(FILES_OUTPUT_DIR)
                    + QStringLiteral("/freehand-contract-%1-actual.png").arg(resultName));
     }
+    QVERIFY2(symmetric,
+             qPrintable(QStringLiteral("constant-pressure circular stroke is asymmetric at %1,%2")
+                            .arg(symmetryMismatch.x()).arg(symmetryMismatch.y())));
     QCOMPARE(actualDigest, expectedDigest);
 }
 
@@ -620,12 +637,10 @@ void FreehandStrokeContractTest::brushSpacingProducesMaintainedPixels()
     }
     // An isotropic circle on the fixed diagonal path preserves all channels
     // when x and y are exchanged, including the feathered edge.
-    for (int y = 0; y < imageHeight; ++y) {
-        for (int x = 0; x < y; ++x) {
-            QVERIFY2(layer.pixel(x, y) == layer.pixel(y, x),
-                     qPrintable(QStringLiteral("circular stroke is asymmetric at %1,%2").arg(x).arg(y)));
-        }
-    }
+    QPoint symmetryMismatch;
+    QVERIFY2(diagonalPixelsMatch(layer, symmetryMismatch),
+             qPrintable(QStringLiteral("circular stroke is asymmetric at %1,%2")
+                            .arg(symmetryMismatch.x()).arg(symmetryMismatch.y())));
     QCOMPARE(digest, maintainedSpacing025Digest);
 }
 

@@ -8,31 +8,12 @@
 #include "KoOptimizedCompositeOpFactoryPerArch.h"
 
 #if XSIMD_UNIVERSAL_BUILD_PASS
-#include "KoOptimizedCompositeOpAlphaDarken32.h"
 #include "KoOptimizedCompositeOpAlphaDarken128.h"
 #include "KoOptimizedCompositeOpOver32.h"
 #include "KoOptimizedCompositeOpOver128.h"
 #include "KoOptimizedCompositeOpCopy128.h"
 
 #include <KoCompositeOpRegistry.h>
-
-template<>
-template<>
-KoCompositeOp *
-KoOptimizedCompositeOpFactoryPerArch<KoOptimizedCompositeOpAlphaDarkenHard32>::
-    create<xsimd::current_arch>(const KoColorSpace *param)
-{
-    return new KoOptimizedCompositeOpAlphaDarkenHard32<xsimd::current_arch>(param);
-}
-
-template<>
-template<>
-KoCompositeOp *KoOptimizedCompositeOpFactoryPerArch<
-    KoOptimizedCompositeOpAlphaDarkenCreamy32>::
-    create<xsimd::current_arch>(const KoColorSpace *param)
-{
-    return new KoOptimizedCompositeOpAlphaDarkenCreamy32<xsimd::current_arch>(param);
-}
 
 template<>
 template<>

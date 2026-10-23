@@ -87,6 +87,9 @@ struct OverCompositor32 {
              * be converted to zeroes, which is exactly what we need
              */
             new_alpha = dst_alpha + (uint8Max - dst_alpha) * src_alpha * uint8MaxRec1;
+            // Empty lanes retain the same already-rounded source alpha as the
+            // scalar and all-empty paths, including in a mixed tile row.
+            new_alpha = xsimd::select(dst_alpha == zeroValue, src_alpha, new_alpha);
 
 #if XSIMD_WITH_NEON64
         // xsimd's NEON float division refines a reciprocal estimate, including
@@ -95,6 +98,7 @@ struct OverCompositor32 {
 #else
         src_blend = src_alpha / new_alpha;
 #endif
+            src_blend = xsimd::select(dst_alpha == uint8Max, src_alpha * uint8MaxRec1, src_blend);
 
         }
 

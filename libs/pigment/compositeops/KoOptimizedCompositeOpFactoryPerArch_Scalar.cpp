@@ -18,24 +18,6 @@
 template<>
 template<>
 KoCompositeOp *
-KoOptimizedCompositeOpFactoryPerArch<KoOptimizedCompositeOpAlphaDarkenHard32>::
-    create<xsimd::generic>(const KoColorSpace *param)
-{
-    return new KoCompositeOpAlphaDarken<KoBgrU8Traits, KoAlphaDarkenParamsWrapperHard>(param);
-}
-
-template<>
-template<>
-KoCompositeOp *KoOptimizedCompositeOpFactoryPerArch<
-    KoOptimizedCompositeOpAlphaDarkenCreamy32>::
-    create<xsimd::generic>(const KoColorSpace *param)
-{
-    return new KoCompositeOpAlphaDarken<KoBgrU8Traits, KoAlphaDarkenParamsWrapperCreamy>(param);
-}
-
-template<>
-template<>
-KoCompositeOp *
 KoOptimizedCompositeOpFactoryPerArch<KoOptimizedCompositeOpOver32>::create<
     xsimd::generic>(const KoColorSpace *param)
 {

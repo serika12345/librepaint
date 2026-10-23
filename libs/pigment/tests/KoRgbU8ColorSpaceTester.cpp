@@ -30,6 +30,10 @@
 #include <KoColorProfile.h>
 #include <KoAlphaMaskApplicatorBase.h>
 #include <KoAlphaMaskApplicator.h>
+#include <KoOptimizedCompositeOpFactory.h>
+#include <KoCompositeOpAlphaDarken.h>
+#include <KoAlphaDarkenParamsWrapper.h>
+#include <KoBgrColorSpaceTraits.h>
 #include <memory>
 
 void KoRgbU8ColorSpaceTester::testSourceOverPreservesDivisionRounding_data()
@@ -230,6 +234,228 @@ void KoRgbU8ColorSpaceTester::testInverseFloatMaskPreservesPixelsAcrossBatches()
                 QVERIFY2(partitioned == expected, context.constData());
                 QCOMPARE(mask, unchangedMask);
                 QCOMPARE(brushColor, QByteArray::fromHex("112233c9"));
+            }
+        }
+    }
+}
+
+void KoRgbU8ColorSpaceTester::testSourceOverPreservesMixedDestinationPixels()
+{
+    const auto op = KoColorSpaceRegistry::instance()->rgb8()->compositeOp(COMPOSITE_OVER);
+    QVERIFY(op);
+    const auto start = [](QByteArray &bytes, int offset) {
+        return 32 + int((32 - (reinterpret_cast<quintptr>(bytes.data()) & 31)) & 31) + offset;
+    };
+    for (bool masked : {false, true}) for (int count : {1, 4, 8, 17, 57, 64, 257}) {
+        for (int offset : {0, 4, 8, 12, 16, 20, 24, 28}) {
+            QByteArray source(count * 4, '\0'), mask(count, '\0');
+            QByteArray whole(count * 4 + 128, char(0x5a)), split(count * 4 + 128, char(0x5a));
+            const int wholeStart = start(whole, offset), splitStart = start(split, offset);
+            for (int i = 0; i < count; ++i) {
+                const quint8 src[] = {117, 29, 201, 250};
+                const quint8 dst[] = {102, 85, 68, quint8(i % 3 == 0 ? 0 : i % 3 == 1 ? 128 : 255)};
+                memcpy(source.data() + i * 4, src, 4);
+                memcpy(whole.data() + wholeStart + i * 4, dst, 4);
+                memcpy(split.data() + splitStart + i * 4, dst, 4);
+                mask[i] = char((i * 73 + 128) % 256);
+            }
+            const auto compose = [&](QByteArray &dst, int begin, int first, int length) {
+                op->composite(reinterpret_cast<quint8 *>(dst.data() + begin + first * 4), count * 4,
+                              reinterpret_cast<const quint8 *>(source.constData() + first * 4), count * 4,
+                              masked ? reinterpret_cast<const quint8 *>(mask.constData() + first) : nullptr,
+                              masked ? count : 0, 1, length, .57f);
+            };
+            compose(whole, wholeStart, 0, count);
+            for (int i = 0; i < count; ++i) compose(split, splitStart, i, 1);
+            const auto context = QStringLiteral("mixed destination count=%1 offset=%2 masked=%3")
+                .arg(count).arg(offset).arg(masked).toUtf8();
+            const auto actual = whole.sliced(wholeStart, count * 4);
+            QVERIFY2(actual == split.sliced(splitStart, count * 4), context.constData());
+            if (!masked) {
+                // The actual default brush supplies A=250 at opacity .57 to an
+                // empty layer. Its binary32 alpha is 142.5, rounded to even 142.
+                for (int i = 0; i < count; i += 3)
+                    QCOMPARE(actual.sliced(i * 4, 4), QByteArray::fromHex("751dc98e"));
+            }
+            struct GuardedPixels { const QByteArray *bytes; int begin; };
+            const GuardedPixels guarded[] = {{&whole, wholeStart}, {&split, splitStart}};
+            for (const auto &item : guarded) {
+                QCOMPARE(item.bytes->first(item.begin), QByteArray(item.begin, char(0x5a)));
+                const int end = item.begin + count * 4;
+                QCOMPARE(item.bytes->sliced(end), QByteArray(item.bytes->size() - end, char(0x5a)));
+            }
+        }
+    }
+}
+
+void KoRgbU8ColorSpaceTester::testAlphaDarkenPreservesPixelsAcrossBatches_data()
+{
+    QTest::addColumn<bool>("hard");
+    QTest::addColumn<bool>("generic");
+    QTest::newRow("creamy-selected") << false << false;
+    QTest::newRow("creamy-generic") << false << true;
+    QTest::newRow("hard-selected") << true << false;
+    QTest::newRow("hard-generic") << true << true;
+}
+
+void KoRgbU8ColorSpaceTester::testAlphaDarkenPreservesPixelsAcrossBatches()
+{
+    QFETCH(bool, hard);
+    QFETCH(bool, generic);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto create = [&](bool fallback) -> std::unique_ptr<KoCompositeOp> {
+        if (fallback) {
+            if (hard) return std::make_unique<KoCompositeOpAlphaDarken<KoBgrU8Traits, KoAlphaDarkenParamsWrapperHard>>(cs);
+            return std::make_unique<KoCompositeOpAlphaDarken<KoBgrU8Traits, KoAlphaDarkenParamsWrapperCreamy>>(cs);
+        }
+        return std::unique_ptr<KoCompositeOp>(hard ? KoOptimizedCompositeOpFactory::createAlphaDarkenOpHard32(cs)
+                                                  : KoOptimizedCompositeOpFactory::createAlphaDarkenOpCreamy32(cs));
+    };
+    const auto op = create(generic);
+    const auto other = create(!generic);
+    QVERIFY(op && other);
+    const auto composite = [](const KoCompositeOp *active, quint8 *dst, const quint8 *src,
+                              const quint8 *mask, int count, float opacity, float flow, float average) {
+        KoCompositeOp::ParameterInfo p;
+        p.dstRowStart = dst;
+        p.srcRowStart = src;
+        p.maskRowStart = mask;
+        p.dstRowStride = p.srcRowStride = qMax(1, count) * 4;
+        p.maskRowStride = mask ? qMax(1, count) : 0;
+        p.rows = 1;
+        p.cols = count;
+        p.flow = flow;
+        p.setOpacityAndAverage(opacity, average);
+        active->composite(p);
+    };
+    // WASH callers split dabs at tile boundaries. Control absolute alignment as
+    // well as the offset so allocation layout cannot hide a scalar prefix.
+    struct Pixels {
+        QByteArray bytes;
+        int begin;
+        Pixels(int count, int offset) : bytes(count * 4 + 128, char(0x5a))
+        {
+            const auto alignment = reinterpret_cast<quintptr>(bytes.data()) & 31;
+            begin = 32 + int((32 - alignment) & 31) + offset;
+        }
+        quint8 *data() { return reinterpret_cast<quint8 *>(bytes.data() + begin); }
+        const quint8 *constData() const { return reinterpret_cast<const quint8 *>(bytes.constData() + begin); }
+    };
+    struct Case { const char *src; const char *dst; const char *expected; float opacity; int mask; float average; };
+    const Case cases[] = {
+        // Byte-domain binary32 alpha and final nearest-even quantization.
+        {"11223332", "66554400", "1122331c", .57f, -1, .57f},
+        {"11223396", "66554400", "11223356", .57f, -1, .57f},
+        {"112233fa", "66554400", "1122338e", .57f, -1, .57f},
+        {"0103ffff", "00000080", "00028080", .5f, -1, .5f},
+        {"112233ff", "66554400", "11223340", .5f, 128, .5f},
+        // Round each binary32 product and sum before quantizing the byte.
+        {"000000cd", "00000033", "00000070", .5f, -1, .5f},
+        {"000000dd", "0000003c", "00000076", .5f, -1, .5f},
+        {"00000096", "00000066", "00000080", .57f, -1, .57f},
+        // Decreasing pressure keeps the same correctly rounded quotient.
+        {"00000033", "00000008", "00000021", .5f, -1, .8f},
+        {"00000011", "00000004", "0000000e", .57f, -1, .8f},
+        // A zero contribution preserves even the destination's transparent RGB.
+        {"11223300", "66554400", "66554400", .57f, -1, .57f},
+        {"112233ff", "66554400", "66554400", .57f, 0, .57f},
+        {"112233ff", "66554480", "66554480", .57f, 0, .57f},
+        {"112233ff", "66554400", "66554400", 0.0f, -1, 0.0f},
+    };
+    for (const auto &c : cases) {
+        for (int count : {0, 1, 3, 4, 7, 8, 9, 17, 31}) for (int offset : {0, 4, 8, 12, 16, 20, 24, 28}) {
+            Pixels source(count, 4), whole(count, offset), split(count, offset);
+            const auto src = QByteArray::fromHex(c.src).repeated(count);
+            const auto dst = QByteArray::fromHex(c.dst).repeated(count);
+            memcpy(source.data(), src.constData(), src.size());
+            memcpy(whole.data(), dst.constData(), dst.size());
+            memcpy(split.data(), dst.constData(), dst.size());
+            QByteArray expectedWhole(whole.bytes.constData(), whole.bytes.size());
+            QByteArray expectedSplit(split.bytes.constData(), split.bytes.size());
+            const auto expected = QByteArray::fromHex(c.expected).repeated(count);
+            memcpy(expectedWhole.data() + whole.begin, expected.constData(), expected.size());
+            memcpy(expectedSplit.data() + split.begin, expected.constData(), expected.size());
+            const QByteArray mask(qMax(1, count), char(c.mask));
+            const auto maskData = c.mask < 0 ? nullptr : reinterpret_cast<const quint8 *>(mask.constData());
+            composite(op.get(), whole.data(), source.constData(), maskData, count, c.opacity, 1, c.average);
+            for (int i = 0; i < count; ++i)
+                composite(op.get(), split.data() + 4 * i, source.constData() + 4 * i,
+                          maskData ? maskData + i : nullptr, 1, c.opacity, 1, c.average);
+            const auto context = QStringLiteral("source=%1 mask=%2 count=%3 offset=%4 actual=%5 expected=%6")
+                .arg(QLatin1String(c.src)).arg(c.mask).arg(count).arg(offset)
+                .arg(QString::fromLatin1(whole.bytes.toHex()), QString::fromLatin1(expectedWhole.toHex())).toUtf8();
+            QVERIFY2(whole.bytes == expectedWhole, context.constData());
+            QCOMPARE(split.bytes, expectedSplit);
+        }
+    }
+
+    const int alphas[] = {0, 50, 150, 250, 255, 128, 17, 1};
+    const int masks[] = {255, 0, 128, 64, 0, 1, 255, 128};
+    for (bool masked : {false, true}) for (float flow : {1.0f, .5f}) for (float average : {.57f, .8f}) {
+        for (int count : {1, 4, 8, 17, 31, 257}) for (int offset : {0, 4, 8, 12, 16, 20, 24, 28}) {
+            Pixels source(count, 4), whole(count, offset), split(count, offset), alternate(count, offset);
+            QByteArray mask(count, '\0');
+            quint32 state = 0x719f2a63;
+            const auto sample = [&]() -> quint8 {
+                state = state * 1664525u + 1013904223u;
+                return state >> 24;
+            };
+            for (int i = 0; i < count; ++i) {
+                const quint8 src[] = {sample(), sample(), sample(), i < 32 ? quint8(alphas[i % 8]) : sample()};
+                const quint8 dst[] = {sample(), sample(), sample(), i < 32 ? quint8(alphas[(i + 2) % 8]) : sample()};
+                memcpy(source.data() + i * 4, src, 4);
+                for (auto *pixels : {&whole, &split, &alternate}) memcpy(pixels->data() + i * 4, dst, 4);
+                mask[i] = char(i < 32 ? quint8(masks[i % 8]) : sample());
+            }
+            const auto maskData = masked ? reinterpret_cast<const quint8 *>(mask.constData()) : nullptr;
+            composite(op.get(), whole.data(), source.constData(), maskData, count, .57f, flow, average);
+            composite(other.get(), alternate.data(), source.constData(), maskData, count, .57f, flow, average);
+            for (int i = 0; i < count; ++i)
+                composite(op.get(), split.data() + i * 4, source.constData() + i * 4,
+                          maskData ? maskData + i : nullptr, 1, .57f, flow, average);
+            const auto context = QStringLiteral("mixed count=%1 offset=%2 masked=%3 flow=%4 average=%5")
+                .arg(count).arg(offset).arg(masked).arg(flow).arg(average).toUtf8();
+            const QByteArray result(reinterpret_cast<const char *>(whole.constData()), count * 4);
+            QVERIFY2(result == QByteArray(reinterpret_cast<const char *>(split.constData()), count * 4), context.constData());
+            QVERIFY2(result == QByteArray(reinterpret_cast<const char *>(alternate.constData()), count * 4), context.constData());
+            for (const auto *pixels : {&whole, &split, &alternate}) {
+                QCOMPARE(pixels->bytes.first(pixels->begin), QByteArray(pixels->begin, char(0x5a)));
+                const auto end = pixels->begin + count * 4;
+                QCOMPARE(pixels->bytes.sliced(end), QByteArray(pixels->bytes.size() - end, char(0x5a)));
+            }
+        }
+    }
+
+    // A half-pressure stroke crosses these alpha pairs repeatedly. Every pair
+    // must survive a tile split with the same staged binary32 result.
+    constexpr int count = 256 * 256;
+    for (float opacity : {.5f, .57f}) for (float flow : {1.0f, .5f})
+        for (float average : {opacity, .8f}) for (bool sourceVariesFirst : {false, true}) {
+        for (int offset : {0, 4}) {
+            Pixels source(count, 4), whole(count, offset), split(count, offset), alternate(count, offset);
+            for (int i = 0; i < count; ++i) {
+                const quint8 src[] = {0, 0, 0, quint8(sourceVariesFirst ? i % 256 : i / 256)};
+                const quint8 dst[] = {0, 0, 0, quint8(sourceVariesFirst ? i / 256 : i % 256)};
+                memcpy(source.data() + i * 4, src, 4);
+                for (auto *pixels : {&whole, &split, &alternate}) memcpy(pixels->data() + i * 4, dst, 4);
+            }
+            composite(op.get(), whole.data(), source.constData(), nullptr, count, opacity, flow, average);
+            composite(other.get(), alternate.data(), source.constData(), nullptr, count, opacity, flow, average);
+            for (int i = 0; i < count; ++i)
+                composite(op.get(), split.data() + i * 4, source.constData() + i * 4, nullptr, 1, opacity, flow, average);
+            for (int i = 0; i < count; ++i) {
+                const auto *w = whole.constData() + i * 4;
+                const auto *s = split.constData() + i * 4;
+                const auto *g = alternate.constData() + i * 4;
+                if (!memcmp(w, s, 4) && !memcmp(w, g, 4)) continue;
+                const auto actual = QByteArray(reinterpret_cast<const char *>(w), 4);
+                const auto partitioned = QByteArray(reinterpret_cast<const char *>(s), 4);
+                const auto fallback = QByteArray(reinterpret_cast<const char *>(g), 4);
+                const auto context = QStringLiteral("source=%1 destination=%2 opacity=%3 flow=%4 average=%5 offset=%6 whole=%7 split=%8 other=%9")
+                    .arg(int(source.constData()[i * 4 + 3])).arg(sourceVariesFirst ? i / 256 : i % 256)
+                    .arg(opacity).arg(flow).arg(average).arg(offset).arg(QString::fromLatin1(actual.toHex()), QString::fromLatin1(partitioned.toHex()),
+                                                QString::fromLatin1(fallback.toHex())).toUtf8();
+                QFAIL(context.constData());
             }
         }
     }

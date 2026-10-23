@@ -1,6 +1,17 @@
 project(kritapigment)
 
 ko_compile_for_all_implementations_no_scalar(__per_arch_factory_objs compositeops/KoOptimizedCompositeOpFactoryPerArch.cpp)
+ko_compile_for_all_implementations_no_scalar(__per_arch_alpha_darken32_factory_objs compositeops/KoOptimizedCompositeOpAlphaDarken32FactoryPerArch.cpp)
+# Each binary32 product and sum is rounded before the final alpha byte.
+if(MSVC)
+    set_property(SOURCE ${__per_arch_alpha_darken32_factory_objs}
+        compositeops/KoOptimizedCompositeOpAlphaDarken32FactoryPerArch_Scalar.cpp
+        APPEND PROPERTY COMPILE_OPTIONS /fp:strict)
+else()
+    set_property(SOURCE ${__per_arch_alpha_darken32_factory_objs}
+        compositeops/KoOptimizedCompositeOpAlphaDarken32FactoryPerArch_Scalar.cpp
+        APPEND PROPERTY COMPILE_OPTIONS -ffp-contract=off)
+endif()
 ko_compile_for_all_implementations(__per_arch_alpha_applicator_factory_objs KoAlphaMaskApplicatorFactoryImpl.cpp)
 ko_compile_for_all_implementations(__per_arch_rgb_scaler_factory_objs KoOptimizedPixelDataScalerU8ToU16FactoryImpl.cpp)
 set(__per_arch_rgb_scaler_scalar_objs ${__per_arch_rgb_scaler_factory_objs})
@@ -9,7 +20,7 @@ set(__per_arch_rgb_scaler_vector_objs ${__per_arch_rgb_scaler_factory_objs})
 list(FILTER __per_arch_rgb_scaler_vector_objs EXCLUDE REGEX "_Scalar\\.cpp$")
 
 message("Following objects are generated from the per-arch lib")
-foreach(_obj IN LISTS __per_arch_factory_objs __per_arch_alpha_applicator_factory_objs __per_arch_rgb_scaler_factory_objs)
+foreach(_obj IN LISTS __per_arch_factory_objs __per_arch_alpha_darken32_factory_objs __per_arch_alpha_applicator_factory_objs __per_arch_rgb_scaler_factory_objs)
     message("    * ${_obj}")
 endforeach()
 
@@ -428,7 +439,9 @@ set(kritapigment_SRCS
     colorspaces/KoSimpleColorSpaceEngine.cpp
     compositeops/KoOptimizedCompositeOpFactory.cpp
     compositeops/KoOptimizedCompositeOpFactoryPerArch_Scalar.cpp
+    compositeops/KoOptimizedCompositeOpAlphaDarken32FactoryPerArch_Scalar.cpp
     ${__per_arch_factory_objs}
+    ${__per_arch_alpha_darken32_factory_objs}
     ${__per_arch_alpha_applicator_factory_objs}
     KoAlphaMaskApplicatorFactory.cpp
     colorprofiles/KoDummyColorProfile.cpp
