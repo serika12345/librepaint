@@ -71,8 +71,13 @@ void FastRowProcessor<KisGaussCircleMaskGenerator>::process<xsimd::current_arch>
         const float_v xr = x_ * vCosa - vSinaY_;
         const float_v yr = x_ * vSina + vCosaY_;
 
-        float_v dist =
-            xsimd::sqrt(xsimd::pow2(xr) + xsimd::pow2(yr * vYCoeff));
+        const float_v squaredDistance = xsimd::pow2(xr) + xsimd::pow2(yr * vYCoeff);
+#if XSIMD_WITH_NEON64
+        // A reciprocal square-root estimate can change the final RGBA8 coverage.
+        float_v dist = vsqrtq_f32(squaredDistance);
+#else
+        float_v dist = xsimd::sqrt(squaredDistance);
+#endif
 
         // Apply FadeMaker mask and operations
         const float_m excludeMask = d->fadeMaker.needFade(dist);

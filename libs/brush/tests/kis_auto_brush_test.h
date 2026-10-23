@@ -19,6 +19,7 @@ private Q_SLOTS:
     void testDabSize();
     void testCopyMasking();
     void testClone();
+    void testGaussianMaskRoundsDistanceBeforeAlpha();
 
 };
 
