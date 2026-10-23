@@ -29,6 +29,8 @@ private Q_SLOTS:
     void testBackgroundNotificationLifetimes();
     void testOrdinaryCreationPreservesInitialDocumentState_data();
     void testOrdinaryCreationPreservesInitialDocumentState();
+    void testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data();
+    void testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles();
     void testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsupportedEdits();
     void testGpuSessionOpensExistingStaticNativeDocuments_data();
     void testGpuSessionOpensExistingStaticNativeDocuments();
