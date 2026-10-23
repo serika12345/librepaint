@@ -381,6 +381,73 @@ inline QByteArray blendModesRecoveryV34()
         "a16f1b9f5ed51a3e8bd2d603d900");
 }
 
+// Format 38 produced by the normal compound-path caller at 1c93d9c2d4.
+// Basic-5 Size Opacity from Krita_4_Default_Resources.bundle, SHA-256
+// bd0610171db6d3eca006e7b12697d7baf3868ef34cbf3b1e792592d2f0957939.
+// RGBA8 128x128, flow .5, canvas opacity .57, seed 0; the two straight
+// subpaths share one distance state. Captured UUIDs are fixed reader input.
+inline QByteArray gaussianCompoundPathRecoveryV38()
+{
+    return qUncompress(QByteArray::fromBase64(
+        "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"
+        "57jEF7//AuAjKeQ="
+    ));
+}
+
 // Emits earlier records for the maintained legacy reader contracts.
 inline QByteArray legacyRecovery(const OperationDocument &document, quint8 format)
 {
@@ -491,9 +558,13 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                        << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation;
                 if (operation.shape.kind == ShapeKind::RoundedRectangle)
                     stream << operation.shape.cornerRadii.width() << operation.shape.cornerRadii.height();
+                qsizetype pathCallsOffset = -1;
                 if (operation.shape.kind == ShapeKind::Path) {
                     stream << quint8(operation.shape.windingFill) << quint32(operation.shape.pathCommands.size());
                     for (const auto command : operation.shape.pathCommands) stream << quint8(command);
+                    Q_ASSERT(operation.shape.pathCalls.isEmpty());
+                    pathCallsOffset = prefix.size();
+                    stream << quint32(0);
                 }
                 const auto position = payload.indexOf(prefix);
                 Q_ASSERT(position >= 0 && position == payload.lastIndexOf(prefix));
@@ -506,6 +577,7 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 }
                 if (format < 19) payload.remove(position + prefix.size() + styleSize, 1);
                 if (format < 17) payload.remove(position + prefix.size(), styleSize);
+                if (format < 39 && pathCallsOffset >= 0) payload.remove(position + pathCallsOffset, 4);
                 if (format < 38) payload.remove(position + gaussianOffset, 1);
             }
         }

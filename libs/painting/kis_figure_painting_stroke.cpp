@@ -70,7 +70,12 @@ struct KisFigurePaintingStroke::GpuStroke
             // samples preserves sensors even when consecutive positions match.
             if (value.kind == Gpu::ShapeKind::Line)
                 shape->pathCommands.append({Gpu::PathCommand::MoveTo, Gpu::PathCommand::LineTo});
-            else shape->pathCommands.append(value.pathCommands);
+            else {
+                shape->pathCommands.append(value.pathCommands);
+                const auto offset = samples.size();
+                for (const auto &call : value.pathCalls)
+                    shape->pathCalls.append({offset + call.first, offset + call.second});
+            }
             samples.append(input);
             return;
         }
@@ -333,6 +338,7 @@ void KisFigurePaintingStroke::paintPainterPath(const QPainterPath &path)
                 return;
             }
         }
+        if (!samples.isEmpty()) shape.pathCalls = {{0, samples.size()}};
         m_gpuStroke->setFigure(shape, samples);
         return;
     }

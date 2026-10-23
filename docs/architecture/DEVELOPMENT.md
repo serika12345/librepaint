@@ -1205,6 +1205,15 @@ Gaussian WASHの直線は、保持した入力位置を変更後の始終点へ�
 `KisGpuPaintDocumentTest::gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition`は、固定UUIDの文書で
 別タイルへ移した直線のKRA保存・再読込みと追記を照合する。`LIBREPAINT_GPU_RESULT_DIR`へ
 `gaussian-line-<条件>.rgba`と`gaussian-line/`内のKRA・RGBA画素を出力し、環境間で全バイトを比較する。
+Gaussianの複合パスは移動命令の前後で間隔を共有し、個別のパス呼出しはそれぞれの間隔を持つ。
+直線とパスの交互呼出しは、直線の間隔を再開し、不透明度の平均を一つのストロークで保持する。
+復旧形式39は各パス呼出しの半開入力範囲を保持し、範囲の重複・入力外・命令途中の境界を拒否する。
+`KisGpuOperationDocumentTest`は作業中の入力、履歴と旧形式38の固定記録を検査する。
+`KisGpuTileRendererTest::gaussianPathCallsKeepDistanceHistoryAndRecovery`は、変更前の通常CPU描画から
+固定した全画素、間隔だけを変えるプレビュー、取消し、保持済み版、履歴と復旧を検査する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`gaussian-path-calls-<条件>.rgba`を出力する。通常文書の
+`TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles`は、新規・読込文書の複合パス、
+個別パスと二種類の交互呼出しについて、追記・履歴・KRA保存再読込み・PNG/JPEGを書込みバイトまで照合する。
 三次曲線は、始終点が同じ場合も制御点が異なれば経路を分割し、全点が一致する場合は静止点として扱う。
 `kis_paintop_test::testCubicTraversalKeepsGeometryAndInput`は、閉曲線と等価な中点分割のブラシ呼出しを照合する。
 通常の曲線、同一直線上の閉曲線と静止点について、始終点、連続した筆圧・時刻と曲線点列を検査する。

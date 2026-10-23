@@ -161,7 +161,7 @@ inline bool validShape(const Shape &shape)
         shape.cornerRadii.width() > OperationDocument::CoordinateLimit ||
         shape.cornerRadii.height() > OperationDocument::CoordinateLimit ||
         (shape.kind != ShapeKind::RoundedRectangle && shape.cornerRadii != QSizeF(0, 0)) ||
-        (shape.kind != ShapeKind::Path && (!shape.pathCommands.isEmpty() || shape.windingFill))) {
+        (shape.kind != ShapeKind::Path && (!shape.pathCommands.isEmpty() || shape.windingFill || !shape.pathCalls.isEmpty()))) {
         return false;
     }
     switch (shape.kind) {
@@ -170,12 +170,18 @@ inline bool validShape(const Shape &shape)
     case ShapeKind::Polyline:
     case ShapeKind::Polygon:
         return true;
-    case ShapeKind::Path:
+    case ShapeKind::Path: {
         if (!shape.pathCommands.isEmpty() && shape.pathCommands.first() != PathCommand::MoveTo) return false;
         for (const auto command : shape.pathCommands) {
             if (command != PathCommand::MoveTo && command != PathCommand::LineTo && command != PathCommand::CubicTo) return false;
         }
+        qsizetype previousEnd = 0;
+        for (const auto &call : shape.pathCalls) {
+            if (call.first < previousEnd || call.second <= call.first) return false;
+            previousEnd = call.second;
+        }
         return true;
+    }
     case ShapeKind::Ellipse:
     case ShapeKind::Rectangle:
     case ShapeKind::RoundedRectangle:
@@ -187,12 +193,24 @@ inline bool validShape(const Shape &shape)
 inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 {
     if (shape.kind == ShapeKind::Path) {
+        qsizetype position = 0, call = 0;
+        bool insideCall = false;
         for (const auto command : shape.pathCommands) {
+            if (call < shape.pathCalls.size() && position == shape.pathCalls[call].first) {
+                if (command != PathCommand::MoveTo) return false;
+                insideCall = true;
+            }
             const qsizetype points = command == PathCommand::CubicTo ? 3 : 1;
             if (count < points) return false;
             count -= points;
+            position += points;
+            if (call < shape.pathCalls.size()) {
+                const auto &range = shape.pathCalls[call];
+                if ((!insideCall && range.first < position) || (insideCall && range.second < position)) return false;
+                if (insideCall && range.second == position) { ++call; insideCall = false; }
+            }
         }
-        return count == 0;
+        return count == 0 && call == shape.pathCalls.size() && !insideCall;
     }
     return (shape.kind != ShapeKind::Polyline && shape.kind != ShapeKind::Polygon) || count >= 2;
 }

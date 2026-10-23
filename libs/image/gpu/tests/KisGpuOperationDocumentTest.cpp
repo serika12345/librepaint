@@ -173,6 +173,11 @@ private Q_SLOTS:
     void filledFiguresPreserveStylesHistoryAndRecovery();
     void emptyFigureIntentPreservesHistoryAndRecovery();
     void pathsPreserveCommandsControlPointsAndRecovery();
+    void pathCallsRetainInputHistoryAndRecovery();
+    void invalidPathCallsPreserveTheActiveDocument_data();
+    void invalidPathCallsPreserveTheActiveDocument();
+    void legacyGaussianPathKeepsItsRecordedInput();
+    void damagedPathCallRecoveryPreservesTheActiveDocument();
     void pixelCorrectionRetainsOriginalSensorsAndPendingRecovery();
     void basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent();
     void weightedSmoothingRetainsFrozenSettingsSpeedAndRecovery();
@@ -3744,6 +3749,140 @@ void KisGpuOperationDocumentTest::pathsPreserveCommandsControlPointsAndRecovery(
     QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->inputSamples(), samples);
+}
+
+void KisGpuOperationDocumentTest::pathCallsRetainInputHistoryAndRecovery()
+{
+    OperationDocument document(QSize(128, 128));
+    const QList<InputSample> samples{{{12, 24}, .2}, {{42, 24}, .8}, {{76, 96}, 1},
+                                    {{80, 80}, 1}, {{100, 80}, 1}, {{112, 96}, 1}};
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::MoveTo, PathCommand::CubicTo};
+    const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 42);
+    QCOMPARE(document.appendSamples(stroke, samples), Result::Success);
+    QCOMPARE(document.updateShape(stroke, shape), Result::Success);
+    const auto pinned = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    shape.pathCalls = {{0, 2}, {2, 6}};
+    QCOMPARE(document.updateShape(stroke, shape), Result::Success);
+    QVERIFY(pinned->shape.pathCalls.isEmpty());
+    QCOMPARE(pinned->inputSamples(), samples);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QVERIFY(restored.hasActiveStroke());
+    const auto recovered = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
+    QCOMPARE(recovered->shape.pathCalls, shape.pathCalls);
+    QCOMPARE(recovered->inputSamples(), samples);
+    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
+    QCOMPARE(restored.undoCount(), 1);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(restored.redo(), Result::Success);
+    const auto redone = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(redone->shape.pathCalls, shape.pathCalls);
+    QCOMPARE(redone->inputSamples(), samples);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+}
+
+void KisGpuOperationDocumentTest::invalidPathCallsPreserveTheActiveDocument_data()
+{
+    QTest::addColumn<int>("error");
+    QTest::newRow("overlap") << 0;
+    QTest::newRow("out-of-input") << 1;
+    QTest::newRow("non-move-start") << 2;
+    QTest::newRow("split-cubic") << 3;
+    QTest::newRow("empty-range") << 4;
+    QTest::newRow("non-path") << 5;
+}
+
+void KisGpuOperationDocumentTest::invalidPathCallsPreserveTheActiveDocument()
+{
+    QFETCH(int, error);
+    OperationDocument document(QSize(128, 128));
+    const QList<InputSample> samples{{{12, 24}, 1}, {{42, 24}, 1}, {{76, 96}, 1},
+                                    {{80, 80}, 1}, {{100, 80}, 1}, {{112, 96}, 1}};
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::MoveTo, PathCommand::CubicTo};
+    shape.pathCalls = {{0, 2}, {2, 6}};
+    const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 42);
+    QCOMPARE(document.appendSamples(stroke, samples), Result::Success);
+    QCOMPARE(document.updateShape(stroke, shape), Result::Success);
+    const auto pinned = document.preview();
+    const auto recovery = document.recoveryData();
+    if (error == 0) shape.pathCalls = {{0, 6}, {2, 6}};
+    else if (error == 1) shape.pathCalls = {{0, 7}};
+    else if (error == 2) shape.pathCalls = {{1, 2}};
+    else if (error == 3) shape.pathCalls = {{0, 5}};
+    else if (error == 4) shape.pathCalls = {{2, 2}};
+    else { shape.kind = ShapeKind::Line; shape.pathCommands.clear(); }
+    QCOMPARE(document.updateShape(stroke, shape), Result::InvalidInput);
+    QCOMPARE(document.preview(), pinned);
+    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.undoCount(), 0);
+    OperationDocument empty(QSize(128, 128));
+    const auto before = empty.snapshot();
+    QCOMPARE(empty.paintFigure(empty.activeLayer(), Brush{}, samples, shape, {}, 42), Result::InvalidInput);
+    QCOMPARE(empty.snapshot(), before);
+    QCOMPARE(empty.undoCount(), 0);
+}
+
+void KisGpuOperationDocumentTest::legacyGaussianPathKeepsItsRecordedInput()
+{
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(LibrePaint::Image::Gpu::Test::gaussianCompoundPathRecoveryV38()), Result::Success);
+    QCOMPARE(restored.snapshot()->size, QSize(128, 128));
+    const auto operation = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->shape.kind, ShapeKind::Path);
+    QVERIFY(operation->shape.pathCalls.isEmpty());
+    const QList<InputSample> samples{{{12.25, 13.75}, 1}, {{105.5, 25.75}, 1},
+                                    {{18.125, 91.5}, 1}, {{112.5, 78.25}, 1}};
+    QCOMPARE(operation->inputSamples(), samples);
+    QVERIFY(operation->brush.gaussianWash);
+    // The record identifies the frozen settings XML, including its half flow.
+    QCOMPARE(operation->brush.gaussianWash->resourceDigest.toHex(), QByteArrayLiteral("1167275f113c8d34d6915343428acc1831e2f19b96ff42614d64a9c30ce6116d"));
+    OperationDocument again(QSize(1, 1));
+    QCOMPARE(again.restoreRecovery(restored.recoveryData()), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(again.snapshot()->layers.first().operations.last())->inputSamples(), samples);
+    QCOMPARE(again.undo(), Result::Success);
+    QCOMPARE(again.redo(), Result::Success);
+}
+
+void KisGpuOperationDocumentTest::damagedPathCallRecoveryPreservesTheActiveDocument()
+{
+    OperationDocument source(QSize(128, 128)), target(QSize(128, 128));
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::MoveTo, PathCommand::LineTo};
+    shape.pathCalls = {{0, 2}, {2, 4}};
+    const QList<InputSample> samples{{{12, 24}, 1}, {{42, 24}, 1}, {{76, 96}, 1}, {{112, 96}, 1}};
+    QCOMPARE(source.paintFigure(source.activeLayer(), Brush{}, samples, shape, {}, 42), Result::Success);
+    const auto stroke = target.beginStroke(target.activeLayer(), Brush{}, 7);
+    QCOMPARE(target.appendSamples(stroke, {{{16, 32}, .5}}), Result::Success);
+    const auto pinned = target.preview();
+    const auto recovery = target.recoveryData();
+    const auto payload = source.recoveryData().chopped(32);
+    QByteArray pathRecord;
+    QDataStream pathStream(&pathRecord, QIODevice::WriteOnly);
+    pathStream << quint8(0) << quint32(4) << quint8(0) << quint8(1) << quint8(0) << quint8(1)
+               << quint32(2) << quint32(0) << quint32(2) << quint32(2) << quint32(4);
+    const auto position = payload.indexOf(pathRecord);
+    QVERIFY(position >= 0 && position == payload.lastIndexOf(pathRecord));
+    const QList<QPair<qsizetype, quint32>> damage{{9, std::numeric_limits<quint32>::max()},
+                                                {13, 1}, {17, 3}, {25, 5}};
+    for (const auto &field : damage) {
+        auto corrupted = payload;
+        QByteArray word;
+        QDataStream stream(&word, QIODevice::WriteOnly);
+        stream << field.second;
+        corrupted.replace(position + field.first, 4, word);
+        corrupted.append(QCryptographicHash::hash(corrupted, QCryptographicHash::Sha256));
+        QCOMPARE(target.restoreRecovery(corrupted), Result::InvalidRecovery);
+        QCOMPARE(target.preview(), pinned);
+        QCOMPARE(target.recoveryData(), recovery);
+        QVERIFY(target.hasActiveStroke());
+    }
 }
 
 void KisGpuOperationDocumentTest::pixelCorrectionRetainsOriginalSensorsAndPendingRecovery()

@@ -132,13 +132,27 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation)
     };
     if (input.isEmpty()) return result;
     if (operation.shape.kind == ShapeKind::Path) {
-        qsizetype index = 0;
+        qsizetype index = 0, call = 0;
+        qreal lineSpacing = spacing, lineAccumulated = accumulated;
         InputSample previous;
         for (const auto command : operation.shape.pathCommands) {
+            // A painter-path call owns its distance, while opacity averaging
+            // belongs to the whole brush stroke, including intervening lines.
+            if (call < operation.shape.pathCalls.size() && index == operation.shape.pathCalls[call].first) {
+                lineSpacing = spacing;
+                lineAccumulated = accumulated;
+                spacing = .5;
+                accumulated = 0;
+            }
             if (command == PathCommand::CubicTo) return std::nullopt;
             const auto point = input[index++];
             if (command == PathCommand::LineTo && !line(previous, point)) return std::nullopt;
             previous = point;
+            if (call < operation.shape.pathCalls.size() && index == operation.shape.pathCalls[call].second) {
+                spacing = lineSpacing;
+                accumulated = lineAccumulated;
+                ++call;
+            }
         }
     } else if (operation.shape.kind == ShapeKind::Line || operation.shape.kind == ShapeKind::Freehand ||
                operation.shape.kind == ShapeKind::Polyline) {

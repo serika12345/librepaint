@@ -10,6 +10,7 @@
 #include <QByteArray>
 #include <QList>
 #include <QHash>
+#include <QPair>
 #include <QPointF>
 #include <QRect>
 #include <QSharedPointer>
@@ -162,6 +163,11 @@ struct Shape
     /** Commands consume one input point, or three for the cubic controls and endpoint. */
     QList<PathCommand> pathCommands{};
     bool windingFill = false;
+    /** Half-open input ranges for separate painter-path calls. Each call owns
+     * its distance state; line calls share the state outside these ranges.
+     * Empty preserves one compound path, including earlier recovery records.
+     */
+    QList<QPair<qsizetype, qsizetype>> pathCalls{};
 };
 
 /** Solid figure coverage, separate from the outline brush and its color. */

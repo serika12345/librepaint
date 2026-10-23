@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 38;
+constexpr quint16 FormatVersion = 39;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -141,6 +141,12 @@ QByteArray OperationDocument::recoveryData() const
                 if (operation.shape.pathCommands.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 5) return {};
                 stream << quint8(operation.shape.windingFill) << quint32(operation.shape.pathCommands.size());
                 for (const auto command : operation.shape.pathCommands) stream << quint8(command);
+                const auto remaining = m_limits.recoveryBytes - DigestSize - bytes.size();
+                if (remaining < 4 || quint64(operation.sampleCount) > std::numeric_limits<quint32>::max() ||
+                    quint64(operation.shape.pathCalls.size()) > std::numeric_limits<quint32>::max() ||
+                    operation.shape.pathCalls.size() > (remaining - 4) / 8) return {};
+                stream << quint32(operation.shape.pathCalls.size());
+                for (const auto &call : operation.shape.pathCalls) stream << quint32(call.first) << quint32(call.second);
             }
             stream << quint8(quint8(operation.figureStyle.outline) | (operation.figureStyle.fill ? 2 : 0));
             if (operation.figureStyle.fill)
@@ -438,6 +444,17 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 quint8 command = 0;
                 stream >> command;
                 operation->shape.pathCommands.append(static_cast<PathCommand>(command));
+            }
+            if (format >= 39) {
+                quint32 calls = 0;
+                stream >> calls;
+                if (!readableCount(stream, calls, m_limits.samplesPerStroke, 8)) return Result::InvalidRecovery;
+                operation->shape.pathCalls.reserve(calls);
+                for (quint32 i = 0; i < calls; ++i) {
+                    quint32 first = 0, last = 0;
+                    stream >> first >> last;
+                    operation->shape.pathCalls.append({qsizetype(first), qsizetype(last)});
+                }
             }
         }
         if (format >= 17) {

@@ -128,7 +128,7 @@ bool save(KisDocument *document, const QDir &out, const QString &name)
     return raw.open(QIODevice::WriteOnly) && raw.write(bytes) == bytes.size();
 }
 
-void paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int profile, int stroke)
+void paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int profile, int stroke, int calls)
 {
     KisImageSP image = document->image();
     const auto layer = paintLayer(document);
@@ -159,7 +159,31 @@ void paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
     {
         KisFigurePaintingStroke operation(kundo2_i18n("Default brush contract"), image, layer, &resources,
             KisFigurePaintingOptions::StrokeStyleForeground, KisFigurePaintingOptions::FillStyleNone);
-        for (int i = 1; i < points.size(); ++i) operation.paintLine(points[i - 1], points[i]);
+        if (calls == 0) {
+            for (int i = 1; i < points.size(); ++i) operation.paintLine(points[i - 1], points[i]);
+        } else {
+            QPainterPath first(QPointF(12.25, 13.75) + offset);
+            first.lineTo(QPointF(105.5, 25.75) + offset);
+            QPainterPath second(QPointF(18.125, 91.5) + offset);
+            second.lineTo(QPointF(112.5, 78.25) + offset);
+            QPainterPath third(QPointF(24.25, 48.125) + offset);
+            third.lineTo(QPointF(101.5, 53.75) + offset);
+            if (calls == 1) {
+                first.addPath(second);
+                operation.paintPainterPath(first);
+            } else if (calls == 2) {
+                operation.paintPainterPath(first);
+                operation.paintPainterPath(second);
+            } else if (calls == 3) {
+                operation.paintLine(KisPaintInformation(first.pointAtPercent(0), .2), KisPaintInformation(first.pointAtPercent(1), .8));
+                operation.paintPainterPath(second);
+                operation.paintLine(KisPaintInformation(third.pointAtPercent(0), .9), KisPaintInformation(third.pointAtPercent(1), .4));
+            } else {
+                operation.paintPainterPath(first);
+                operation.paintLine(KisPaintInformation(second.pointAtPercent(0), .2), KisPaintInformation(second.pointAtPercent(1), .8));
+                operation.paintPainterPath(third);
+            }
+        }
     }
     image->waitForDone();
 }
@@ -171,13 +195,20 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
     QTest::addColumn<qreal>("flow");
     QTest::addColumn<int>("profile");
     QTest::addColumn<bool>("newDocument");
+    QTest::addColumn<int>("calls");
     for (bool fresh : {false, true}) for (qreal opacity : {qreal(1), qreal(.57)}) {
         for (int profile = 0; profile < 3; ++profile) {
             const auto name = QStringLiteral("%1-opacity-%2-pressure-%3").arg(fresh ? "new" : "opened").arg(opacity).arg(profile);
-            QTest::newRow(qPrintable(name)) << opacity << qreal(1) << profile << fresh;
+            QTest::newRow(qPrintable(name)) << opacity << qreal(1) << profile << fresh << 0;
         }
         const auto name = QStringLiteral("%1-opacity-%2-half-flow").arg(fresh ? "new" : "opened").arg(opacity);
-        QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh;
+        QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << 0;
+        for (int calls = 1; calls <= 4; ++calls) {
+            const auto kind = calls == 1 ? "compound-path" : calls == 2 ? "separate-paths" :
+                              calls == 3 ? "line-path-line" : "path-line-path";
+            const auto group = QStringLiteral("%1-%2-opacity-%3").arg(fresh ? "new" : "opened").arg(QLatin1String(kind)).arg(opacity);
+            QTest::newRow(qPrintable(group)) << opacity << qreal(.5) << 2 << fresh << calls;
+        }
     }
 }
 
@@ -187,6 +218,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
     QFETCH(qreal, flow);
     QFETCH(int, profile);
     QFETCH(bool, newDocument);
+    QFETCH(int, calls);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     KisImageConfig imageConfig(false);
     const auto previousThreads = imageConfig.maxNumberOfThreads();
@@ -254,7 +286,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
         QVERIFY(QDir().mkpath(out.path()));
         for (int stroke = 0; stroke < 2; ++stroke) {
             const int before = document->undoStack()->index();
-            paint(document, preset, opacity, profile, stroke);
+            paint(document, preset, opacity, profile, stroke, calls);
             const auto bytes = layerPixels(document);
             QFile actual(out.filePath(QStringLiteral("stroke-%1.bgra").arg(stroke)));
             QVERIFY(actual.open(QIODevice::WriteOnly));
@@ -275,7 +307,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
         QCOMPARE(bool(reopened->image()->gpuImage()), bool(owner));
         QCOMPARE(layerPixels(reopened.data()), painted);
         const auto before = layerPixels(reopened.data());
-        paint(reopened.data(), preset, opacity, profile, 2);
+        paint(reopened.data(), preset, opacity, profile, 2, calls);
         const auto after = layerPixels(reopened.data());
         QVERIFY(after != before);
         reopened->undoStack()->undo();
