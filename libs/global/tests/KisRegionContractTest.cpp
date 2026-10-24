@@ -40,6 +40,8 @@ class KisRegionContractTest : public QObject
 private Q_SLOTS:
     void constructorsMergeSparseRectsAndReportGeometry();
     void mergeSparseRectsMergesHorizontalAndVerticalNeighbors();
+    void sparseMergingPreservesNonIntersectingArea_data();
+    void sparseMergingPreservesNonIntersectingArea();
     void overlappingApproximationAndGridUniquenessCoverInputs();
     void qRegionRoundTripAndIntersectionPreserveArea();
     void translationReturnsCopyAndMutatesInPlace();
@@ -95,6 +97,45 @@ void KisRegionContractTest::mergeSparseRectsMergesHorizontalAndVerticalNeighbors
     tiles.erase(end, tiles.end());
 
     QCOMPARE(tiles, QVector<QRect>{QRect(0, 0, 20, 20)});
+}
+
+void KisRegionContractTest::sparseMergingPreservesNonIntersectingArea_data()
+{
+    QTest::addColumn<QVector<QRect>>("rects");
+
+    QTest::newRow("horizontal-diagonal") << QVector<QRect> {
+        QRect(-64, 0, 64, 64),
+        QRect(0, 64, 64, 64),
+    };
+    QTest::newRow("vertical-different-heights") << QVector<QRect> {
+        QRect(-64, 0, 64, 32),
+        QRect(0, 32, 64, 64),
+    };
+
+    // Recorded CPU temporary tiles from the fixed Basic-smoothed closed stroke.
+    QTest::newRow("basic-closed-stroke-tiles") << QVector<QRect> {
+        QRect(-64, -64, 64, 64),
+        QRect(0, -64, 64, 64),
+        QRect(-64, 0, 64, 64),
+        QRect(0, 0, 64, 64),
+        QRect(64, 0, 64, 64),
+        QRect(0, 64, 64, 64),
+        QRect(64, 64, 64, 64),
+        QRect(128, 64, 64, 64),
+    };
+}
+
+void KisRegionContractTest::sparseMergingPreservesNonIntersectingArea()
+{
+    QFETCH(QVector<QRect>, rects);
+    const QRegion sourceArea = regionForRects(rects);
+
+    const KisRegion copied(rects);
+    QCOMPARE(copied.toQRegion(), sourceArea);
+
+    QVector<QRect> movableRects = rects;
+    const KisRegion moved(std::move(movableRects));
+    QCOMPARE(moved.toQRegion(), sourceArea);
 }
 
 void KisRegionContractTest::overlappingApproximationAndGridUniquenessCoverInputs()
