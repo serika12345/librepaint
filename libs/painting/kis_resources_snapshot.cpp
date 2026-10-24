@@ -57,7 +57,7 @@ bool captureGaussianWash(const KisPaintOpSettingsSP &settings, LibrePaint::Image
         settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") || settings->getBool("FlowUseCurve", true) ||
         settings->getBool("HorizontalMirrorEnabled") || settings->getBool("VerticalMirrorEnabled") ||
         settings->getBool("KisPrecisionOption/AutoPrecisionEnabled", true) || settings->getInt("KisPrecisionOption/precisionLevel", 5) != 5 ||
-        brush.erase || brush.alphaLocked || brush.mirrorHorizontal || brush.mirrorVertical) return false;
+        brush.alphaLocked || brush.mirrorHorizontal || brush.mirrorVertical) return false;
     for (const auto *name : {"PressureDarken", "PressureMirror", "PressureMix", "PressureRate", "PressureRatio",
                             "PressureRotation", "PressureScatter", "PressureSharpness", "PressureSoftness",
                             "PressureSpacing", "Pressureh", "Pressures", "Pressurev"})

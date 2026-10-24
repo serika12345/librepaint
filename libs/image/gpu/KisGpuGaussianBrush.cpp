@@ -58,7 +58,7 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, 
     const auto &brush = operation.brush;
     if (!brush.gaussianWash || brush.basicSmoothing || brush.pixelPerfect ||
         operation.figureStyle.fill || brush.mirrorHorizontal || brush.mirrorVertical ||
-        brush.erase || brush.alphaLocked || brush.channelWriteMask != 15) return std::nullopt;
+        brush.alphaLocked || brush.channelWriteMask != 15) return std::nullopt;
     const auto &settings = *brush.gaussianWash;
     auto input = operation.inputSamples();
     if (operation.shape.kind == ShapeKind::Line && !input.isEmpty()) {

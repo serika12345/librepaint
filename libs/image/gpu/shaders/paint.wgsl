@@ -68,6 +68,11 @@ fn gaussianPixel(pixel: vec2<i32>, base: vec4<u32>, color: vec4<u32>) -> u32 {
     }
     let opacity = bitcast<u32>(parameters.tile.z);
     if (alpha == 0u || opacity == 0u) { return packPixel(base); }
+    if (parameters.brush.z != 0u) {
+        // Erase rounds canvas opacity to a byte before its two alpha products.
+        let opacityByte = u32(bitcast<f32>(floatAdd(projectionScaleByte(opacity, 255u), 0x3f000000u)));
+        return packPixel(vec4<u32>(base.xyz, mul255(base.w, 255u - mul255(alpha, opacityByte))));
+    }
     let sourceAlpha = projectionScaleByte(opacity, alpha);
     var resultAlpha = base.w;
     var blend: u32;

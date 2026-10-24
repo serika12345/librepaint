@@ -56,6 +56,8 @@ private Q_SLOTS:
     void switchingDocumentsReleasesPreviewDerivedPixelsAtCapacity();
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void gaussianWashProducesCoverageAndRetainsPixelsThroughRecovery();
+    void gaussianEraseKeepsColorsHistoryAndRecovery_data();
+    void gaussianEraseKeepsColorsHistoryAndRecovery();
     void gaussianFreehandKeepsInitialDistanceAndFinalTap_data();
     void gaussianFreehandKeepsInitialDistanceAndFinalTap();
     void gaussianWashSkipsDabsBelowTheBrushMinimum();
@@ -266,6 +268,149 @@ void KisGpuTileRendererTest::gaussianFreehandKeepsInitialDistanceAndFinalTap()
     QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), tile.rgba);
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), actual);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(readTile(render(renderer, document.snapshot(), preview), target, {0, 0}), tile.rgba);
+}
+
+void KisGpuTileRendererTest::gaussianEraseKeepsColorsHistoryAndRecovery_data()
+{
+    QTest::addColumn<int>("calls");
+    QTest::addColumn<qreal>("flow");
+    QTest::addColumn<qreal>("opacity");
+    QTest::addColumn<QByteArray>("expectedSha256");
+    // Normal CPU figure erase at 62cfadd521, shipped Basic-5 preset,
+    // pressure profile (.12,.91,.18), four worker threads and the fixed
+    // alpha-gradient background below. Only BGRA/RGBA channel order changes.
+    QTest::newRow("line") << 0 << qreal(0.5) << qreal(0.57)
+        << QByteArrayLiteral("3c71e36b0b28727bf75c49a3f996f2fd94edd29e4675c70d5cba9b91cae8d0cd");
+    QTest::newRow("cubic-open") << 5 << qreal(0.5) << qreal(0.57)
+        << QByteArrayLiteral("d825b60fbe1ae9a35115c6cd573260a5b97d438be668c9a78075acdfeac6c5fe");
+    QTest::newRow("cubic-closed") << 6 << qreal(0.5) << qreal(1)
+        << QByteArrayLiteral("593e84384a8121987d9856c1148fe4e92c70d452d43cc04cd50a95d651f4f1e1");
+    QTest::newRow("mixed") << 9 << qreal(1) << qreal(1)
+        << QByteArrayLiteral("232813697f63e549ab6af1ede44dbdf42baa4594289e04fd5224145a6e35d951");
+    QTest::newRow("zero-flow") << 0 << qreal(0) << qreal(1)
+        << QByteArrayLiteral("dc1393988897084bb62a1142bc4d7fc6c4d3b03c10fafe253824863cb311901f");
+    QTest::newRow("zero-opacity") << 0 << qreal(1) << qreal(0)
+        << QByteArrayLiteral("dc1393988897084bb62a1142bc4d7fc6c4d3b03c10fafe253824863cb311901f");
+    QTest::newRow("half-opacity-byte") << 0 << qreal(1) << qreal(0.49607843137254903)
+        << QByteArrayLiteral("59238903eb5152baf26cc05eaa97934fefa0c2243ea924692cef0e7a035069d3");
+    QTest::newRow("low-opacity-byte") << 0 << qreal(1) << qreal(0.0058823529411764705)
+        << QByteArrayLiteral("5498ca9ca9d477ca17eafd7fbcd49cbe9af263dbda817f959a1714acd73f0dbf");
+}
+
+void KisGpuTileRendererTest::gaussianEraseKeepsColorsHistoryAndRecovery()
+{
+    QFETCH(int, calls);
+    QFETCH(qreal, flow);
+    QFETCH(qreal, opacity);
+    QFETCH(QByteArray, expectedSha256);
+    OperationDocument captured(QSize(1, 1));
+    QCOMPARE(captured.restoreRecovery(LibrePaint::Image::Gpu::Test::defaultGaussianBrushRecoveryV39()), Result::Success);
+    auto brush = std::get<PaintSnapshot>(captured.snapshot()->layers.first().operations.last())->brush;
+    brush.erase = true;
+    brush.opacity = quint8(qRound(255 * opacity));
+    brush.gaussianWash->flow = flow;
+    brush.gaussianWash->canvasOpacity = opacity;
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    QList<InputSample> input;
+    if (calls == 0) {
+        shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::MoveTo, PathCommand::LineTo};
+        input = {{{12.25, 13.75}, .12}, {{60.125, 31.5}, .91}, {{60.125, 31.5}, .91}, {{105.5, 91.25}, .18}};
+    } else {
+        shape.pathCommands = {PathCommand::MoveTo, PathCommand::CubicTo};
+        shape.pathCalls = {{0, 4}};
+        input = {{{12.25, 13.75}, 1}, {{18.5, 48.75}, 1}, {{86.125, 5.25}, 1}, {{105.5, 91.25}, 1}};
+        if (calls == 6) {
+            input[1].position = {114.125, -15.75};
+            input[2].position = {-26.375, 115.25};
+            input[3].position = input[0].position;
+        } else if (calls == 9) {
+            input = {{{12.25, 13.75}, .2}, {{105.5, 25.75}, .8},
+                     {{18.125, 91.5}, 1}, {{21.75, 43.125}, 1}, {{108.25, 120.375}, 1}, {{112.5, 78.25}, 1},
+                     {{24.25, 48.125}, .9}, {{101.5, 53.75}, .4}};
+            shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::MoveTo,
+                                  PathCommand::CubicTo, PathCommand::MoveTo, PathCommand::LineTo};
+            shape.pathCalls = {{2, 6}};
+        }
+    }
+    RgbaTile tile{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')};
+    const std::array<int, 8> alphas{{0, 1, 2, 63, 127, 128, 254, 255}};
+    for (int y = 0; y < 128; ++y) for (int x = 0; x < 128; ++x) {
+        auto *pixel = tile.rgba.data() + 4 * (y * RgbaTile::Size + x);
+        pixel[0] = char((x * 7 + y * 13) % 256);
+        pixel[1] = char((x * 5 + y * 11) % 256);
+        pixel[2] = char((x * 17 + y * 3) % 256);
+        pixel[3] = char(alphas[(x / 16 + y / 16) % alphas.size()]);
+    }
+    RasterImage image;
+    image.size = {128, 128};
+    RasterLayer layer;
+    layer.name = QStringLiteral("Paint");
+    layer.uuid = QUuid(QStringLiteral("{33b00003-1122-3344-5566-778899aabbcc}"));
+    layer.tiles = {tile};
+    image.layers = {layer};
+    OperationDocument document(image);
+    const auto target = document.activeLayer();
+    TileRenderer renderer(m_device);
+    const auto background = render(renderer, document.snapshot());
+    QVERIFY(background);
+    const auto stroke = document.beginStroke(target, brush, 1789);
+    QCOMPARE(document.appendSamples(stroke, input), Result::Success);
+    QCOMPARE(document.updateShape(stroke, shape), Result::Success);
+    const auto preview = render(renderer, document.preview(), background);
+    QVERIFY(preview);
+    const auto actual = readTile(preview, target, {0, 0});
+    QByteArray pixels;
+    for (int y = 0; y < 128; ++y) pixels.append(actual.mid(y * RgbaTile::Size * 4, 128 * 4));
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile file(QDir(directory).filePath(QStringLiteral("gaussian-erase-") + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(pixels), pixels.size());
+    }
+    QCOMPARE(QCryptographicHash::hash(pixels, QCryptographicHash::Sha256).toHex(), expectedSha256);
+    for (qsizetype i = 0; i < actual.size(); i += 4) {
+        QCOMPARE(actual.mid(i, 3), tile.rgba.mid(i, 3));
+        QVERIFY(quint8(actual[i + 3]) <= quint8(tile.rgba[i + 3]));
+    }
+    QCOMPARE(readTile(background, target, {0, 0}), tile.rgba);
+    const auto retained = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QCOMPARE(retained->inputSamples(), input);
+    QCOMPARE(retained->brush, brush);
+    const auto pendingRecord = document.recoveryData();
+    OperationDocument recovered(QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(pendingRecord), Result::Success);
+    QCOMPARE(recovered.recoveryData(), pendingRecord);
+    QCOMPARE(readTile(render(renderer, recovered.preview()), recovered.activeLayer(), {0, 0}), actual);
+    QCOMPARE(recovered.commitStroke(recovered.activeOperation()), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), actual);
+    const auto committedRecord = recovered.recoveryData();
+    OperationDocument committedRecovery(QSize(1, 1));
+    QCOMPARE(committedRecovery.restoreRecovery(committedRecord), Result::Success);
+    QCOMPARE(committedRecovery.recoveryData(), committedRecord);
+    QCOMPARE(readTile(render(renderer, committedRecovery.snapshot()), committedRecovery.activeLayer(), {0, 0}), actual);
+    QCOMPARE(std::get<PaintSnapshot>(committedRecovery.snapshot()->layers.first().operations.last())->inputSamples(), input);
+    QCOMPARE(std::get<PaintSnapshot>(committedRecovery.snapshot()->layers.first().operations.last())->brush, brush);
+    if (!directory.isEmpty()) {
+        const auto prefix = QStringLiteral("gaussian-erase-") + QString::fromLatin1(QTest::currentDataTag());
+        for (bool pending : {false, true}) {
+            QFile record(QDir(directory).filePath(prefix +
+                (pending ? QStringLiteral(".pending.recovery") : QStringLiteral(".recovery"))));
+            QVERIFY(record.open(QIODevice::WriteOnly));
+            const auto &bytes = pending ? pendingRecord : committedRecord;
+            QVERIFY(!bytes.isEmpty());
+            QCOMPARE(record.write(bytes), bytes.size());
+        }
+    }
+    QCOMPARE(recovered.undoCount(), 1);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), tile.rgba);
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), actual);
     QCOMPARE(document.cancelStroke(stroke), Result::Success);
     QCOMPARE(document.undoCount(), 0);
     QCOMPARE(readTile(render(renderer, document.snapshot(), preview), target, {0, 0}), tile.rgba);
