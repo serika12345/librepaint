@@ -786,9 +786,13 @@ GPU描画済みの固定版、公開版の保持、画像終了・デバイス�
 通常画面の試験は、小さい資源バンドルと円形ブラシ設定を試験用の資源データベースへ登録する。
 公開文書と通常ウィンドウを使い、GPU画像の提示、編集とUndoの反映、未対応パネルの理由表示、
 タブ終了時の文書と表示面の解放、終了後の遅延更新を検査する。
-通常画面の契約は、文書・入力の`libs-ui-KisGpuDocumentViewTest`と
-レイヤーパネルの`libs-ui-layers-KisGpuDocumentViewTest`に分けて直列に実行する。
-`run-test KisGpuDocumentViewTest`は両群を実行し、各群の既定の時間上限を適用する。
+通常画面の契約は、文書・入力の`libs-ui-KisGpuDocumentViewTest`、レイヤーパネルの
+`libs-ui-layers-KisGpuDocumentViewTest`、画素操作の`libs-ui-pixels-KisGpuDocumentViewTest`、
+背景設定の`libs-ui-background-<condition>-KisGpuDocumentViewTest`、切り抜き表示の
+`libs-ui-crop-KisGpuDocumentViewTest`に分けて直列に実行する。
+`run-test KisGpuDocumentViewTest`は全群を実行し、各群の既定の時間上限を適用する。
+構成変更でネイティブキャンバスを作り直した場合、表示後のウィジェット寸法をビューポートへ再適用し、
+ツールオプションの変更でキャンバスが既定寸法へ縮まないことを確認する。
 同じ画面でUndo／Redoアクション、公開履歴の件数と位置、保存済み状態、
 最初の未確定入力と既存履歴上の未確定入力の取消しを検査する。
 履歴パネルの行数、選択位置と、パネルからの履歴位置の変更も照合する。
@@ -1343,6 +1347,8 @@ Qtの8ビット乗算済みアルファ合成との全画素一致と、元のGP
 パン・ズーム・23度回転・設定変更後の全画素と文書画素・履歴・変更状態を照合する。
 固定・追従と半透明の2条件を組み合わせ、`ordinary-canvas-background-<condition>-<stage>-{actual,expected}.png`を保存する。
 最大幅の文書では1画素の模様を使い、末尾と余白を表示した後のパンでも全画素と文書状態を照合する。
+試験中はスクロールバーを非表示にし、表示内容とキャンバス境界を比較する。ネイティブ子ウィンドウの
+外縁2物理画素に含まれるウィンドウ影は表示契約から除外し、その内側の全画素を照合する。
 低水準の固定画素は環境間で照合し、通常画面の取得は各環境の表示座標との接続を検査する。
 
 `KisGpuTilePresentationTest`は、輪郭の移動・線幅・消去と不透明・半透明・透明背景の全RGBA画素を照合する。

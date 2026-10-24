@@ -1183,12 +1183,12 @@ add_dependencies(kis_view_signals_test kritalcmsengine kritadefaulttools kritaro
 set(gpu_document_input_cases
     presentsEditsAndReleasesTheClosedTab
     brushOutlineFollowsTheOrdinaryPointerWithoutEditing
-    canvasBackgroundFollowsPreferencesWithoutEditing
     freehandInputCommitsOneHistoryEntryAndCanBeCancelled
     paintingBackendChangesRebindTheCanvas
     replacementUpdatesPresentationInputHistoryAndSaving
     ordinaryLayerChangesDuringInput
-    lineToolPreservesPreviewCancellationAndHistory
+    lineToolPreservesPreviewCancellationAndHistory)
+set(gpu_document_crop_cases
     cropPreviewPreservesPixelsHistoryAndCancellation)
 set(gpu_document_layer_cases
     layerPanelThumbnailsReadOnlyReducedGpuPixels
@@ -1213,7 +1213,19 @@ add_test(NAME ${gpu_document_layer_test}
 set(gpu_document_pixel_test libs-ui-pixels-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_pixel_test}
     COMMAND KisGpuDocumentViewTest clearActionPreservesSelectedLayersAndHistory colorFillActionsPreservePixelsHistoryAndSaving)
-set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test} ${gpu_document_pixel_test})
+set(gpu_document_background_tests)
+foreach(background_row IN ITEMS
+        fixed-opaque scrolling-opaque fixed-translucent scrolling-translucent scrolling-image-limit)
+    set(background_test libs-ui-background-${background_row}-KisGpuDocumentViewTest)
+    add_test(NAME ${background_test}
+        COMMAND KisGpuDocumentViewTest canvasBackgroundFollowsPreferencesWithoutEditing:${background_row})
+    list(APPEND gpu_document_background_tests ${background_test})
+endforeach()
+set(gpu_document_crop_test libs-ui-crop-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_crop_test}
+    COMMAND KisGpuDocumentViewTest ${gpu_document_crop_cases})
+set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
+    ${gpu_document_pixel_test} ${gpu_document_background_tests} ${gpu_document_crop_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop)
@@ -1290,6 +1302,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 elseif(WIN32)
     set_tests_properties(${gpu_document_view_tests} PROPERTIES TIMEOUT 300)
 endif()
+# Five background rows each cover capture retries under a fully loaded GUI.
+set_tests_properties(${gpu_document_background_tests} PROPERTIES TIMEOUT 180)
 
 
 ##### Tests that currently fail and should be fixed #####
