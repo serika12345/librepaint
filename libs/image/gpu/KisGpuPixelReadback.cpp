@@ -90,7 +90,8 @@ bool validPixelRegion(QRect region)
         qint64(region.y()) + region.height() <= limit;
 }
 
-std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect region, qsizetype maximum)
+std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect region, qsizetype maximum,
+                                                  OperationId pendingOperation)
 {
     constexpr int limit = RgbaTile::CoordinateLimit;
     const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
@@ -154,7 +155,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
             if (needed.isEmpty()) continue;
             const auto &paint = **std::get_if<PaintSnapshot>(&operation);
             if (paint.brush.gaussianWash) {
-                const auto dabs = Detail::gaussianDabs(paint);
+                const auto dabs = Detail::gaussianDabs(paint, paint.id == pendingOperation);
                 if (!dabs) return std::nullopt;
                 if (!paint.figureStyle.outline) continue;
                 for (const auto &dab : *dabs) {
@@ -201,7 +202,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
 
 std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const Layer &layer, QRect region, qsizetype maximum)
 {
-    if (layer.kind == LayerKind::Paint) return paintLayerCoordinates(layer, region, maximum);
+    if (layer.kind == LayerKind::Paint) return paintLayerCoordinates(layer, region, maximum, document->pendingOperation());
     QHash<QUuid, QList<const Layer *>> children;
     for (const auto &value : document->layers) children[value.parentUuid].append(&value);
     QList<const Layer *> pending{&layer};
@@ -211,7 +212,7 @@ std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const L
             if (!child->visible || !child->opacity) continue;
             if (child->kind == LayerKind::Group) pending.append(child);
             else {
-                const auto tiles = paintLayerCoordinates(*child, region, maximum);
+                const auto tiles = paintLayerCoordinates(*child, region, maximum, document->pendingOperation());
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
@@ -261,7 +262,7 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
         } else {
             const auto &paint = *std::get<PaintSnapshot>(operation);
             if (paint.brush.gaussianWash && paint.figureStyle.outline) {
-                const auto dabs = Detail::gaussianDabs(paint);
+                const auto dabs = Detail::gaussianDabs(paint, paint.id == pinned->pendingOperation());
                 if (!dabs) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Layer written-area geometry is unsupported"));
                 if (dabs->size() > maximumBytes / qsizetype(sizeof(QRect)) - outcome.writtenAreas.size())
                     return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));

@@ -465,7 +465,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 if (pending && extending) data->strokeInputs[layer.id] = strokeInputs;
                 const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
                 const auto step = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * operation.brush.spacing * 16)));
-                const auto gaussian = operation.brush.gaussianWash ? gaussianDabs(operation) : std::optional<QList<GaussianDab>>(QList<GaussianDab>{});
+                const auto gaussian = operation.brush.gaussianWash ? gaussianDabs(operation, pending) : std::optional<QList<GaussianDab>>(QList<GaussianDab>{});
                 if (!gaussian) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("This Gaussian WASH geometry or brush setting is not yet supported")};
                 const auto geometry = operation.brush.gaussianWash ? std::optional<PaintGeometry>(PaintGeometry{}) : paintGeometry(operation, step);
                 if (!geometry) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU derived geometry limit exceeded")};

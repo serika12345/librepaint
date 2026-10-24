@@ -53,7 +53,7 @@ int maskSide(qreal metric, qreal subpixel)
 }
 }
 
-std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation)
+std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, bool pending)
 {
     const auto &brush = operation.brush;
     if (!brush.gaussianWash || brush.basicSmoothing || brush.pixelPerfect ||
@@ -199,7 +199,8 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation)
         }
     } else if (operation.shape.kind == ShapeKind::Line || operation.shape.kind == ShapeKind::Freehand ||
                operation.shape.kind == ShapeKind::Polyline) {
-        if (operation.shape.kind == ShapeKind::Freehand && !append(input.first())) return std::nullopt;
+        if (operation.shape.kind == ShapeKind::Freehand && input.size() == 1 && !pending &&
+            !append(input.first())) return std::nullopt;
         for (qsizetype i = 1; i < input.size(); ++i)
             if (!line(input[i - 1], input[i])) return std::nullopt;
     } else return std::nullopt;

@@ -36,7 +36,7 @@ std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &bl
 {
     if (paint.brush.gaussianWash) {
         auto found = geometry.gaussian.constFind(&paint);
-        if (found == geometry.gaussian.cend()) found = geometry.gaussian.insert(&paint, Detail::gaussianDabs(paint));
+        if (found == geometry.gaussian.cend()) found = geometry.gaussian.insert(&paint, Detail::gaussianDabs(paint, false));
         if (!*found) return std::nullopt;
         if (!paint.figureStyle.outline) return false;
         for (const auto &dab : **found) if (dab.bounds().intersects(block)) return true;

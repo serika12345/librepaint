@@ -38,6 +38,11 @@
 #include <QScopeGuard>
 #include <QTemporaryDir>
 #include <array>
+#include <KoPointerEvent.h>
+#include <kis_painting_information_builder.h>
+#include <kis_smoothing_options.h>
+#include <tool/kis_tool_freehand_helper.h>
+#include <QMouseEvent>
 
 namespace {
 constexpr int side = 128;
@@ -128,7 +133,7 @@ bool save(KisDocument *document, const QDir &out, const QString &name)
     return raw.open(QIODevice::WriteOnly) && raw.write(bytes) == bytes.size();
 }
 
-void paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int profile, int stroke, int calls)
+bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int profile, int stroke, int calls)
 {
     KisImageSP image = document->image();
     const auto layer = paintLayer(document);
@@ -155,6 +160,38 @@ void paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
         point.setCurrentTime(i * 16);
         point.setRandomSource(random);
         points.append(point);
+    }
+    if (calls < 0) {
+        auto path = positions;
+        if (calls == -2) path = path.first(1);
+        else if (calls == -3) path = path.first(2);
+        else if (calls == -4) path.append(path.first());
+        else if (calls == -5) path = {path.first(), path.first(), path.first()};
+        else if (calls == -6) path = {path.first(), path.first(), path.last()};
+        else if (calls == -7) path = {path.first(), path[1], path.first()};
+        KisPaintingInformationBuilder builder;
+        auto *options = new KisSmoothingOptions(false);
+        options->setSmoothingType(KisSmoothingOptions::NO_SMOOTHING);
+        KisToolFreehandHelper helper(&builder, &resources, kundo2_i18n("Default brush input contract"), options);
+        QStringList errors;
+        QObject::connect(&helper, &KisToolFreehandHelper::requestErrorMessage, &helper,
+                         [&](const QString &message) { errors.append(message); });
+        const auto before = layerPixels(document);
+        bool initialUnchanged = false;
+        for (qsizetype i = 0; i < path.size(); ++i) {
+            const auto point = path[i] + offset;
+            QMouseEvent event(i ? QEvent::MouseMove : QEvent::MouseButtonPress, point, point,
+                              i ? Qt::NoButton : Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+            event.setTimestamp(1000 + i * 16);
+            KoPointerEvent pointer(&event, point);
+            if (!i) {
+                helper.initPaint(&pointer, point, image, layer, image.data());
+                initialUnchanged = layerPixels(document) == before;
+            } else helper.paintEvent(&pointer);
+        }
+        helper.endPaint();
+        image->waitForDone();
+        return initialUnchanged && !helper.isRunning() && errors.isEmpty();
     }
     {
         KisFigurePaintingStroke operation(kundo2_i18n("Default brush contract"), image, layer, &resources,
@@ -205,6 +242,7 @@ void paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
         }
     }
     image->waitForDone();
+    return true;
 }
 }
 
@@ -229,6 +267,13 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
                               calls == 7 ? "cubic-compound" : calls == 8 ? "cubic-separate" : "line-cubic-line";
             const auto group = QStringLiteral("%1-%2-opacity-%3").arg(fresh ? "new" : "opened").arg(QLatin1String(kind)).arg(opacity);
             QTest::newRow(qPrintable(group)) << opacity << qreal(.5) << 2 << fresh << calls;
+        }
+    }
+    const std::array<const char *, 7> kinds{{"move", "tap", "two", "closed", "stationary", "duplicate-first", "return"}};
+    for (bool fresh : {false, true}) for (qreal opacity : {qreal(1), qreal(.57)}) {
+        for (std::size_t i = 0; i < kinds.size(); ++i) {
+            const auto name = QStringLiteral("%1-freehand-%2-opacity-%3").arg(fresh ? "new" : "opened").arg(QLatin1String(kinds[i])).arg(opacity);
+            QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << -int(i + 1);
         }
     }
 }
@@ -307,7 +352,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
         QVERIFY(QDir().mkpath(out.path()));
         for (int stroke = 0; stroke < 2; ++stroke) {
             const int before = document->undoStack()->index();
-            paint(document, preset, opacity, profile, stroke, calls);
+            QVERIFY(paint(document, preset, opacity, profile, stroke, calls));
             const auto bytes = layerPixels(document);
             QFile actual(out.filePath(QStringLiteral("stroke-%1.bgra").arg(stroke)));
             QVERIFY(actual.open(QIODevice::WriteOnly));
@@ -317,7 +362,8 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
             QCOMPARE(document->undoStack()->index(), before + 1);
         }
         const auto painted = layerPixels(document);
-        QVERIFY(painted != QByteArray(painted.size(), '\0'));
+        if (calls == -5) QCOMPARE(painted, QByteArray(painted.size(), '\0'));
+        else QVERIFY(painted != QByteArray(painted.size(), '\0'));
         QVERIFY(save(document, out, QStringLiteral("painted")));
         QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
         reopened->setFileBatchMode(true);
@@ -328,9 +374,10 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
         QCOMPARE(bool(reopened->image()->gpuImage()), bool(owner));
         QCOMPARE(layerPixels(reopened.data()), painted);
         const auto before = layerPixels(reopened.data());
-        paint(reopened.data(), preset, opacity, profile, 2, calls);
+        QVERIFY(paint(reopened.data(), preset, opacity, profile, 2, calls));
         const auto after = layerPixels(reopened.data());
-        QVERIFY(after != before);
+        if (calls == -5) QCOMPARE(after, before);
+        else QVERIFY(after != before);
         reopened->undoStack()->undo();
         reopened->image()->waitForDone();
         QCOMPARE(layerPixels(reopened.data()), before);

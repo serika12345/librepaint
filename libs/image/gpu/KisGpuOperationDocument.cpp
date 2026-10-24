@@ -673,10 +673,12 @@ Result OperationDocument::commitStroke(OperationId id)
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
     if (!m_preview) return Result::EmptyOperation;
-    if (m_edit->brush.basicSmoothing) {
+    // A Gaussian tap gains its only dab when the pending input is committed.
+    if (m_edit->brush.basicSmoothing || (m_edit->brush.gaussianWash &&
+        m_edit->shape.kind == ShapeKind::Freehand && m_edit->sampleCount == 1)) {
         if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
         auto operation = QSharedPointer<PaintOperation>::create(*m_edit);
-        operation->smoothingFinished = true;
+        if (operation->brush.basicSmoothing) operation->smoothingFinished = true;
         ++operation->version;
         replacePreview(operation);
     }

@@ -16,6 +16,7 @@ struct GaussianDab
 };
 static_assert(sizeof(GaussianDab) == 96);
 
-std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation);
+/** Pending intent belongs to the pinned version; a lone point stamps only after commit. */
+std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, bool pending);
 }
 #endif

@@ -1225,6 +1225,13 @@ Gaussianの三次曲線は、開いた曲線、始点へ戻る曲線、複合・
 制御点を保持したプレビュー、保持済み画素、取消し、履歴と復旧を検査する。
 `LIBREPAINT_GPU_RESULT_DIR`へ`gaussian-cubic-<条件>.rgba`を出力し、環境間で全バイトを比較する。
 通常文書の同じ5操作は、新規・読込文書での追加編集、履歴、KRA再読込とPNG/JPEGの全バイトを照合する。
+平滑化なしのGaussianフリーハンドは、通常のマウス入力からタップ、2点、移動、閉経路、
+静止、始点の反復と折返しを検査する。押下直後の下地、追加編集、履歴と保存ファイルを
+`TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles`でCPU経路と照合する。
+`KisGpuTileRendererTest::gaussianFreehandKeepsInitialDistanceAndFinalTap`は、通常CPUツールの全画素、
+入力中・確定後の復旧、保持済み版と取消しを検査する。固定レイヤー識別子の条件で
+`LIBREPAINT_GPU_RESULT_DIR`へ`gaussian-freehand-<条件>.rgba`、`.pending.recovery`と`.recovery`を
+出力し、画素と入力・ブラシ設定を含む復旧記録の全バイトを環境間で比較する。
 三次曲線は、始終点が同じ場合も制御点が異なれば経路を分割し、全点が一致する場合は静止点として扱う。
 `kis_paintop_test::testCubicTraversalKeepsGeometryAndInput`は、閉曲線と等価な中点分割のブラシ呼出しを照合する。
 通常の曲線、同一直線上の閉曲線と静止点について、始終点、連続した筆圧・時刻と曲線点列を検査する。
