@@ -14,6 +14,7 @@
 #include <QMap>
 #include <QScopeGuard>
 #include <QThread>
+#include <cstring>
 #include <gpu/KisGpuTileRenderer.h>
 #include <gpu/KisGpuDevice.h>
 #include <gpu/KisGpuReadbackBatch_p.h>
@@ -22,6 +23,7 @@
 #include "KisGpuGaussianBrushFixture_p.h"
 #include "KisGpuGaussianBasicSmoothingFixture_p.h"
 #include "KisGpuGaussianWeightedSmoothingFixture_p.h"
+#include "KisGpuGaussianPixelPerfectFixture_p.h"
 #include "gpu/KisGpuBasicCurveControls.h"
 
 #include "KisGpuMultiplyProjectionFixture_p.h"
@@ -44,6 +46,8 @@ private Q_SLOTS:
     void gaussianWeightedKeepsCpuPixelsAndRecovery_data();
     void gaussianWeightedKeepsCpuPixelsAndRecovery();
     void gaussianWeightedOnImportedPixelKeepsCpuMergeByte();
+    void gaussianPixelCorrectionKeepsCpuExtentAndRecovery_data();
+    void gaussianPixelCorrectionKeepsCpuExtentAndRecovery();
     void isolatedGroupsKeepProjectionAndRetainedSubtreePixels_data();
     void isolatedGroupsKeepProjectionAndRetainedSubtreePixels();
     void transparentLayerPixelsFollowRootProjectionSemantics_data();
@@ -191,6 +195,183 @@ void KisGpuTileRendererTest::basicCurveControlsPreserveClosedSegmentDecisions()
         QCOMPARE((*controls)[0], expected1);
         QCOMPARE((*controls)[1], expected2);
     }
+}
+
+void KisGpuTileRendererTest::gaussianPixelCorrectionKeepsCpuExtentAndRecovery_data()
+{
+    QTest::addColumn<int>("index");
+    const auto cases = Test::gaussianPixelPerfectCases();
+    for (qsizetype i = 0; i < cases.size(); ++i) QTest::newRow(cases[i].name) << int(i);
+}
+
+void KisGpuTileRendererTest::gaussianPixelCorrectionKeepsCpuExtentAndRecovery()
+{
+    QFETCH(int, index);
+    qInfo() << "Gaussian pixel correction platform" << QGuiApplication::platformName();
+    const auto test = Test::gaussianPixelPerfectCases()[index];
+    QCOMPARE(test.rgba.size(), test.extent.width() * test.extent.height() * 4);
+    OperationDocument captured(QSize(1, 1));
+    QCOMPARE(captured.restoreRecovery(Test::defaultGaussianBrushRecoveryV39()), Result::Success);
+    auto brush = std::get<PaintSnapshot>(captured.snapshot()->layers.first().operations.last())->brush;
+    QVERIFY(brush.gaussianWash);
+    brush.gaussianWash->flow = .57;
+    brush.pixelPerfect = true;
+    RasterImage canvas; canvas.size = {128, 128};
+    RasterLayer paintLayer; paintLayer.name = QStringLiteral("Paint Layer 1");
+    paintLayer.uuid = QUuid(QStringLiteral("{33b00011-1122-3344-5566-778899aabbcc}"));
+    canvas.layers = {paintLayer};
+    OperationDocument document(canvas);
+    const auto layer = document.activeLayer();
+    const auto id = document.beginStroke(layer, brush, 0);
+    QVERIFY(!id.isNull());
+    TileRenderer renderer(m_device);
+    using Tiles = QMap<QPair<int, int>, QByteArray>;
+    const auto tileIndex = [](int value) {
+        return value >= 0 ? value / RgbaTile::Size : (value - RgbaTile::Size + 1) / RgbaTile::Size;
+    };
+    const auto tiles = [&](const RenderedSnapshot &version, LayerId target) {
+        Tiles result;
+        if (version) for (const auto &tile : version->tiles(target))
+            result.insert({tile.coordinate.x(), tile.coordinate.y()}, readTile(version, target, tile.coordinate));
+        return result;
+    };
+    const auto region = [&](const Tiles &source, QRect bounds) {
+        QByteArray result(bounds.width() * bounds.height() * 4, '\0');
+        for (int y = bounds.top(); y <= bounds.bottom(); ++y) for (int x = bounds.left(); x <= bounds.right(); ++x) {
+            const int tx = tileIndex(x), ty = tileIndex(y);
+            const auto found = source.constFind({tx, ty});
+            if (found == source.cend() || found->size() != RgbaTile::ByteCount) continue;
+            const qsizetype offset = ((y - ty * RgbaTile::Size) * RgbaTile::Size + x - tx * RgbaTile::Size) * 4;
+            std::memcpy(result.data() + ((y - bounds.y()) * bounds.width() + x - bounds.x()) * 4,
+                        found->constData() + offset, 4);
+        }
+        return result;
+    };
+    Tiles expected;
+    for (int y = 0; y < test.extent.height(); ++y) for (int x = 0; x < test.extent.width(); ++x) {
+        const auto pixel = test.rgba.mid((y * test.extent.width() + x) * 4, 4);
+        if (pixel == QByteArray(4, '\0')) continue;
+        const int gx = test.extent.x() + x, gy = test.extent.y() + y;
+        const int tx = tileIndex(gx), ty = tileIndex(gy);
+        auto found = expected.find({tx, ty});
+        if (found == expected.end()) found = expected.insert({tx, ty}, QByteArray(RgbaTile::ByteCount, '\0'));
+        const qsizetype offset = ((gy - ty * RgbaTile::Size) * RgbaTile::Size + gx - tx * RgbaTile::Size) * 4;
+        std::memcpy(found->data() + offset, pixel.constData(), 4);
+    }
+    QVERIFY(!expected.isEmpty());
+    QMap<QString, QByteArray> artifacts{{QStringLiteral(".expected.full-extent.rgba"), test.rgba}};
+    QJsonArray inputs, tileCoordinates, pendingTileCoordinates;
+    for (const auto &sample : test.input)
+        inputs.append(QJsonObject{{"x", sample.position.x()}, {"y", sample.position.y()},
+            {"pressure", sample.pressure}, {"xTilt", sample.xTilt}, {"yTilt", sample.yTilt},
+            {"rotation", sample.rotation}, {"elapsed", qint64(sample.timestamp)}, {"speed", sample.speed}});
+    QString phase = QStringLiteral("begin");
+    qsizetype completedInputs = 0;
+    const auto retain = qScopeGuard([&] {
+        const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (directory.isEmpty()) return;
+        QVERIFY(QDir().mkpath(directory));
+        artifacts[QStringLiteral(".input.json")] = QJsonDocument(QJsonObject{
+            {"platform", QGuiApplication::platformName()}, {"phase", phase},
+            {"completedInputs", int(completedInputs)}, {"input", inputs},
+            {"extent", QJsonArray{test.extent.x(), test.extent.y(), test.extent.width(), test.extent.height()}},
+            {"tileCoordinates", tileCoordinates}, {"pendingTileCoordinates", pendingTileCoordinates},
+            {"tileSize", RgbaTile::Size}, {"flow", brush.gaussianWash->flow},
+            {"canvasOpacity", brush.gaussianWash->canvasOpacity}, {"failed", QTest::currentTestFailed()}}).toJson();
+        for (auto it = artifacts.cbegin(); it != artifacts.cend(); ++it) {
+            QFile file(QDir(directory).filePath(QStringLiteral("gaussian-pixel-perfect-") +
+                QString::fromLatin1(test.name) + it.key()));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(it.value()), qint64(it.value().size()));
+        }
+    });
+    const auto packedTiles = [](const Tiles &source, QJsonArray &coordinates) {
+        QByteArray result;
+        for (auto it = source.cbegin(); it != source.cend(); ++it) {
+            coordinates.append(QJsonArray{it.key().first, it.key().second});
+            result.append(it.value());
+        }
+        return result;
+    };
+    RenderedSnapshot incremental;
+    QList<RenderedSnapshot> retained;
+    QList<Snapshot> retainedIntents;
+    QList<Tiles> retainedPixels;
+    for (qsizetype i = 0; i < test.input.size(); ++i) {
+        QCOMPARE(document.appendSamples(id, {test.input[i]}), Result::Success);
+        completedInputs = i + 1;
+        artifacts[QStringLiteral(".pending.recovery")] = document.recoveryData();
+        phase = QStringLiteral("input-%1-render").arg(i);
+        incremental = render(renderer, document.preview(), incremental);
+        QVERIFY2(incremental, "Gaussian pixel-corrected pending rendering must be supported");
+        const auto rebuilt = render(renderer, document.preview());
+        QVERIFY(rebuilt);
+        const auto pending = tiles(incremental, layer);
+        QVERIFY(pending == tiles(rebuilt, layer));
+        // A raw tap, and every still-single corrected prefix, retain Gaussian's
+        // empty stationary preview. A held corner is not flushed on release.
+        const auto name = QByteArray(test.name);
+        if (i < 2 || name.startsWith("static") || name == "held-corner" ||
+            name == "initial-tile-removed" || (name == "flushed-corner" && i < 3))
+            QVERIFY(pending.isEmpty());
+        retained.append(incremental);
+        retainedIntents.append(document.preview());
+        retainedPixels.append(pending);
+    }
+    const auto pending = tiles(incremental, layer);
+    artifacts[QStringLiteral(".pending.tiles.rgba")] = packedTiles(pending, pendingTileCoordinates);
+    const auto pendingRecord = document.recoveryData();
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(pendingRecord), Result::Success);
+    QCOMPARE(restored.recoveryData(), pendingRecord);
+    phase = QStringLiteral("pending-recovery");
+    const auto restoredPending = render(renderer, restored.preview());
+    QVERIFY(restoredPending);
+    QVERIFY(tiles(restoredPending, restored.activeLayer()) == pending);
+    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
+    const auto committedRecord = restored.recoveryData();
+    artifacts[QStringLiteral(".recovery")] = committedRecord;
+    phase = QStringLiteral("committed-render");
+    const auto final = render(renderer, restored.snapshot(), restoredPending);
+    QVERIFY(final);
+    const auto actual = tiles(final, restored.activeLayer());
+    artifacts[QStringLiteral(".tiles.rgba")] = packedTiles(actual, tileCoordinates);
+    artifacts[QStringLiteral(".full-extent.rgba")] = region(actual, test.extent);
+    artifacts[QStringLiteral(".rgba")] = region(actual, {0, 0, 128, 128});
+    // Whole native tiles include zeros outside the CPU extent and expose any
+    // abandoned first tile or extra off-canvas print, beyond the logical canvas.
+    QVERIFY2(actual == expected, "Gaussian pixel correction must preserve the complete CPU pixels and sparse tiles");
+    const auto operation = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->inputSamples(), test.input);
+    QCOMPARE(operation->brush, brush);
+    phase = QStringLiteral("committed-recovery-history");
+    OperationDocument recovered(QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(committedRecord), Result::Success);
+    QCOMPARE(recovered.recoveryData(), committedRecord);
+    const auto replayed = render(renderer, recovered.snapshot());
+    QVERIFY(replayed);
+    QVERIFY(tiles(replayed, recovered.activeLayer()) == actual);
+    QCOMPARE(restored.undoCount(), 1);
+    QCOMPARE(restored.undo(), Result::Success);
+    const auto undone = render(renderer, restored.snapshot(), final);
+    QVERIFY(undone);
+    QVERIFY(undone->tiles(restored.activeLayer()).isEmpty());
+    QCOMPARE(restored.redo(), Result::Success);
+    const auto redone = render(renderer, restored.snapshot());
+    QVERIFY(redone);
+    QVERIFY(tiles(redone, restored.activeLayer()) == actual);
+    QCOMPARE(document.cancelStroke(id), Result::Success);
+    QCOMPARE(document.undoCount(), 0);
+    const auto cancelled = render(renderer, document.snapshot(), incremental);
+    QVERIFY(cancelled);
+    QVERIFY(cancelled->tiles(layer).isEmpty());
+    for (qsizetype i = 0; i < retained.size(); ++i) {
+        QVERIFY(tiles(retained[i], layer) == retainedPixels[i]);
+        const auto replay = render(renderer, retainedIntents[i]);
+        QVERIFY(replay);
+        QVERIFY(tiles(replay, layer) == retainedPixels[i]);
+    }
+    phase = QStringLiteral("complete");
 }
 
 void KisGpuTileRendererTest::gaussianWeightedKeepsCpuPixelsAndRecovery_data()

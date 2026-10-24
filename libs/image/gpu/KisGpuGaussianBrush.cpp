@@ -56,10 +56,11 @@ int maskSide(qreal metric, qreal subpixel)
 std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, bool pending)
 {
     const auto &brush = operation.brush;
-    if (!brush.gaussianWash || brush.pixelPerfect ||
+    if (!brush.gaussianWash ||
         operation.figureStyle.fill || brush.mirrorHorizontal || brush.mirrorVertical ||
         brush.alphaLocked || brush.channelWriteMask != 15) return std::nullopt;
-    if (brush.basicSmoothing && operation.shape.kind != ShapeKind::Freehand) return std::nullopt;
+    if ((brush.basicSmoothing || brush.pixelPerfect) && operation.shape.kind != ShapeKind::Freehand)
+        return std::nullopt;
     const auto &settings = *brush.gaussianWash;
     const auto originalInput = operation.inputSamples();
     auto input = originalInput;
@@ -67,7 +68,7 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, 
         const auto corrected = weightedInput(input, *brush.weightedSmoothing);
         if (!corrected) return std::nullopt;
         input = *corrected;
-    }
+    } else if (brush.pixelPerfect) input = pixelPerfectInput(input);
     if (operation.shape.kind == ShapeKind::Line && !input.isEmpty()) {
         const auto first = input.first().position;
         const auto delta = input.last().position - first;

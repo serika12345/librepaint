@@ -1268,6 +1268,15 @@ CPU保存画素を維持する。被覆の丸め境界を含む入力で、プ�
 通常文書の描画・保存契約は、新規・読込文書、通常合成と二つの消去指定で、
 マウス入力、筆圧変化を持つペン入力、停止処理と追加編集、KRA再読込とPNG/JPEGを全バイトで照合する。
 静止入力はGPU文書の一回のタップと比較し、同じ画素と保存ファイルになることを検査する。
+Gaussian WASHのピクセルに合わせた補正は`KisGpuTileRendererTest::gaussianPixelPerfectKeepsPixelsInputHistoryAndRecovery`で、
+タップ、2・3・8標本の静止入力、保留・確定する折れ点、最初のタイルが除かれる入力と負座標を検査する。
+`libs/image/gpu/tests/KisGpuGaussianPixelPerfectFixture_p.h`は、元の座標・時刻と参照画素の由来を保持する。
+参照画素はタップと移動を通常CPU描画、補正後が1点となる入力をその画素中心での通常POINT描画から得る。
+入力中・確定後の復旧、保持した版、取消しと履歴を照合し、
+`LIBREPAINT_GPU_RESULT_DIR`へ`gaussian-pixel-<条件>`の画素と復旧記録を出力して全バイトを環境間で比較する。
+通常文書の同じ描画・保存契約は、新規・読込文書で全8入力と追加編集、KRA再読込、PNG/JPEGを照合する。
+保留・確定する折れ点は通常合成と二つの消去指定を扱う。座標の移動は画素中心への丸めより先に適用し、
+移動によって複数点になる入力は、その生入力を使う通常CPU描画と比較する。
 Gaussian WASHの消去は`KisGpuTileRendererTest::gaussianEraseKeepsColorsHistoryAndRecovery`で、
 通常CPUの固定画素、透明画素を含むRGB保持、アルファの非増加、入力中・確定後の復旧、
 取消しとUndo／Redoを照合する。直線、開いた曲線、閉曲線と混在、流量・不透明度ゼロ、

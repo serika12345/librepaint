@@ -277,6 +277,8 @@ std::optional<PaintGeometry> basicGeometry(const PaintOperation &operation, cons
     return result;
 }
 
+}
+
 QList<InputSample> pixelPerfectInput(const QList<InputSample> &input)
 {
     if (input.size() < 2) return input;
@@ -310,6 +312,7 @@ QList<InputSample> pixelPerfectInput(const QList<InputSample> &input)
     return points;
 }
 
+namespace {
 std::optional<PaintGeometry> pathGeometry(const PaintOperation &operation, const QList<InputSample> &input,
                                          quint32 step)
 {
