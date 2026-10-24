@@ -42,7 +42,7 @@ add_library(kritaimagegputiles OBJECT
 )
 target_compile_definitions(kritaimagegputiles PRIVATE kritagpuimage_EXPORTS)
 target_link_libraries(kritaimagegputiles PUBLIC kritaimagegpuoperations Qt6::Gui)
-target_link_libraries(kritaimagegputiles PRIVATE WGPUNative::WGPUNative)
+target_link_libraries(kritaimagegputiles PRIVATE WGPUNative::WGPUNative Boost::boost)
 set_target_properties(kritaimagegputiles PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 qt6_add_resources(kritaimagegputiles krita_gpu_tiles
     PREFIX "/librepaint/gpu"

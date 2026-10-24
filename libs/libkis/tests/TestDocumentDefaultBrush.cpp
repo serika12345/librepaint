@@ -26,6 +26,7 @@
 #include <kis_paint_device.h>
 #include <kis_properties_configuration.h>
 #include <kis_random_source.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <metadata/KoDocumentInfo.h>
 #include <document/KisDocument.h>
 #include <kundo2stack.h>
@@ -45,9 +46,58 @@
 #include <kis_smoothing_options.h>
 #include <tool/kis_tool_freehand_helper.h>
 #include <QMouseEvent>
+#include <QGuiApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <cmath>
+#include <cstring>
 
 namespace {
 constexpr int side = 128;
+
+class TimedFreehandHelper final : public KisToolFreehandHelper
+{
+public:
+    using KisToolFreehandHelper::KisToolFreehandHelper;
+
+    void setElapsedStrokeTime(int time) { m_time = time; }
+
+    enum PrimitiveKind { Point, Line, Curve };
+    struct Primitive {
+        PrimitiveKind kind;
+        KisPaintInformation first;
+        KisPaintInformation last;
+        QPointF control1;
+        QPointF control2;
+    };
+    void recordPrimitives() { m_recordPrimitives = true; }
+    const QList<Primitive> &primitives() const { return m_primitives; }
+
+protected:
+    int elapsedStrokeTime() const override { return m_time; }
+    void paintAt(const KisPaintInformation &pi) override
+    {
+        if (m_recordPrimitives) m_primitives.append({Point, pi, pi, {}, {}});
+        KisToolFreehandHelper::paintAt(pi);
+    }
+    void paintLine(const KisPaintInformation &first, const KisPaintInformation &last) override
+    {
+        if (m_recordPrimitives) m_primitives.append({Line, first, last, {}, {}});
+        KisToolFreehandHelper::paintLine(first, last);
+    }
+    void paintBezierCurve(const KisPaintInformation &first, const QPointF &control1,
+                          const QPointF &control2, const KisPaintInformation &last) override
+    {
+        if (m_recordPrimitives) m_primitives.append({Curve, first, last, control1, control2});
+        KisToolFreehandHelper::paintBezierCurve(first, control1, control2, last);
+    }
+
+private:
+    int m_time = 0;
+    bool m_recordPrimitives = false;
+    QList<Primitive> m_primitives;
+};
 
 KisPaintLayerSP paintLayer(KisDocument *document)
 {
@@ -59,6 +109,53 @@ QByteArray layerPixels(KisDocument *document)
     QByteArray bytes(side * side * 4, '\0');
     paintLayer(document)->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 0, 0, side, side);
     return bytes;
+}
+
+bool setInitialLayerIdentity(KisDocument *document, const QUuid &uuid)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisImageSP image = document->image();
+    KisPaintLayerSP layer = paintLayer(document);
+    if (!layer || layer->uuid().isNull() || uuid.isNull()) return false;
+    const auto owner = image->gpuImage();
+    if (!owner) {
+        layer->setUuid(uuid);
+        return layer->uuid() == uuid;
+    }
+    const auto before = owner->operations().snapshot();
+    if (before->layers.size() != 1 || before->size != image->size() ||
+        before->activeLayer != before->layers.first().id || owner->operations().hasActiveStroke() ||
+        owner->operations().undoCount() || owner->operations().redoCount()) return false;
+    const auto &initial = before->layers.first();
+    if (initial.uuid != layer->uuid() || initial.kind != Gpu::LayerKind::Paint ||
+        !initial.parentUuid.isNull() || !initial.operations.isEmpty()) return false;
+    const auto pixels = layerPixels(document);
+    if (pixels != QByteArray(pixels.size(), '\0')) return false;
+    Gpu::RasterLayer input{initial.name, initial.visible, uuid, {}, initial.defaultPixel, initial.opacity,
+                          initial.userLocked, initial.pinnedToTimeline, initial.channelWriteMask};
+    input.position = initial.position;
+    input.kind = initial.kind;
+    input.parentUuid = initial.parentUuid;
+    input.colorLabelIndex = initial.colorLabelIndex;
+    input.projectionChannelMask = initial.projectionChannelMask;
+    input.passThrough = initial.passThrough;
+    input.blendMode = initial.blendMode;
+    Gpu::OperationDocument fixed(Gpu::RasterImage{before->size, {input}, 0, before->projectionBackground}, owner->limits());
+    if (owner->restoreRecovery(fixed.recoveryData()) != Gpu::Result::Success) return false;
+    layer = paintLayer(document);
+    const auto after = owner->operations().snapshot();
+    if (!layer || after->layers.size() != 1) return false;
+    const auto &actual = after->layers.first();
+    return actual.uuid == uuid && layer->uuid() == uuid && actual.name == initial.name &&
+        actual.visible == initial.visible && actual.defaultPixel == initial.defaultPixel &&
+        actual.opacity == initial.opacity && actual.userLocked == initial.userLocked &&
+        actual.pinnedToTimeline == initial.pinnedToTimeline && actual.channelWriteMask == initial.channelWriteMask &&
+        actual.position == initial.position && actual.kind == initial.kind && actual.parentUuid == initial.parentUuid &&
+        actual.colorLabelIndex == initial.colorLabelIndex && actual.projectionChannelMask == initial.projectionChannelMask &&
+        actual.passThrough == initial.passThrough && actual.blendMode == initial.blendMode && actual.operations.isEmpty() &&
+        after->size == before->size && after->projectionBackground == before->projectionBackground &&
+        after->activeLayer == actual.id && !owner->operations().hasActiveStroke() &&
+        !owner->operations().undoCount() && !owner->operations().redoCount() && layerPixels(document) == pixels;
 }
 
 KisPaintOpPresetSP defaultBrush(qreal flow, QString &diagnostic)
@@ -206,16 +303,21 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
         else if (calls == -6) path = {path.first(), path.first(), path.last()};
         else if (calls == -7) path = {path.first(), path[1], path.first()};
         else if (calls == -8 || calls == -9) path = QList<QPointF>(calls == -8 ? 2 : 8, path.first());
+        else if (calls == -10 || calls == -11) path.append(QPointF(40.5, 102.25));
         KisPaintingInformationBuilder builder;
+        KisPaintingInformationSettings settings;
+        settings.useEventTimestamps = true;
+        builder.setSettings(settings);
         auto *options = new KisSmoothingOptions(false);
         options->setSmoothingType(basicSmoothing ? KisSmoothingOptions::SIMPLE_SMOOTHING : KisSmoothingOptions::NO_SMOOTHING);
-        KisToolFreehandHelper helper(&builder, &resources, kundo2_i18n("Default brush input contract"), options);
+        TimedFreehandHelper helper(&builder, &resources, kundo2_i18n("Default brush input contract"), options);
         QStringList errors;
         QObject::connect(&helper, &KisToolFreehandHelper::requestErrorMessage, &helper,
                          [&](const QString &message) { errors.append(message); });
         const auto before = layerPixels(document);
         bool initialUnchanged = false;
         for (qsizetype i = 0; i < path.size(); ++i) {
+            helper.setElapsedStrokeTime(i * 16);
             const auto point = path[i] + offset;
             QMouseEvent event(i ? QEvent::MouseMove : QEvent::MouseButtonPress, point, point,
                               i ? Qt::NoButton : Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
@@ -225,9 +327,13 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
                 helper.initPaint(&pointer, point, image, layer, image.data());
                 initialUnchanged = layerPixels(document) == before;
             } else helper.paintEvent(&pointer);
+            if ((calls == -10 && i == 1) || (calls == -11 && i == 2)) {
+                if (!QMetaObject::invokeMethod(&helper, "finishStroke", Qt::DirectConnection)) return false;
+            }
         }
         helper.endPaint();
         image->waitForDone();
+        if (!errors.isEmpty()) qWarning() << "Default brush input rejected" << errors;
         return initialUnchanged && !helper.isRunning() && errors.isEmpty();
     }
     {
@@ -283,6 +389,249 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
 }
 }
 
+void TestDocument::testDefaultBrushMouseInputKeepsFixedTimeThroughRecovery_data()
+{
+    QTest::addColumn<bool>("weighted");
+    QTest::addColumn<bool>("idleFlush");
+    QTest::newRow("gpu-none") << false << false;
+    QTest::newRow("cpu-weighted-end") << true << false;
+    QTest::newRow("cpu-weighted-duplicate-idle") << true << true;
+}
+
+void TestDocument::testDefaultBrushMouseInputKeepsFixedTimeThroughRecovery()
+{
+    QFETCH(bool, weighted);
+    QFETCH(bool, idleFlush);
+    qInfo() << "Fixed time input platform" << QGuiApplication::platformName();
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    KisImageConfig imageConfig(false);
+    const auto previousThreads = imageConfig.maxNumberOfThreads();
+    const auto restore = qScopeGuard([&] {
+        if (weighted) imageConfig.setMaxNumberOfThreads(previousThreads);
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", weighted ? "0" : "1");
+    if (weighted) imageConfig.setMaxNumberOfThreads(4);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setAutoSaveActive(false);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(document->newImage(QStringLiteral("Fixed time input contract"), side, side, cs,
+        KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    KisImageSP image = document->image();
+    const auto layer = paintLayer(document.data());
+    const auto owner = image->gpuImage();
+    QVERIFY(layer);
+    QCOMPARE(bool(owner), !weighted);
+    QString diagnostic;
+    const auto preset = defaultBrush(.57, diagnostic);
+    QVERIFY2(preset, qPrintable(diagnostic));
+    KoCanvasResourceProvider resources;
+    KisViewManager::initializeResourceManager(&resources);
+    resources.setResource(KoCanvasResource::CurrentKritaNode, QVariant::fromValue(KisNodeSP(layer)));
+    resources.setResource(KoCanvasResource::CurrentPaintOpPreset, QVariant::fromValue(preset));
+    resources.setResource(KoCanvasResource::Opacity, qreal(.57));
+    resources.setResource(KoCanvasResource::CurrentCompositeOp, COMPOSITE_OVER);
+    resources.setResource(KoCanvasResource::EraserMode, false);
+    resources.setResource(KoCanvasResource::MirrorHorizontal, false);
+    resources.setResource(KoCanvasResource::MirrorVertical, false);
+    resources.setForegroundColor(KoColor(QColor(17, 34, 51), cs));
+    KisPaintingInformationBuilder builder;
+    KisPaintingInformationSettings settings;
+    settings.useEventTimestamps = true;
+    settings.maximumSpeed = 40;
+    settings.speedSmoothingSamples = 1;
+    builder.setSettings(settings);
+    builder.reset();
+    auto *options = new KisSmoothingOptions(false);
+    options->setSmoothingType(weighted ? KisSmoothingOptions::WEIGHTED_SMOOTHING : KisSmoothingOptions::NO_SMOOTHING);
+    if (weighted) {
+        options->setSmoothnessDistanceMin(24);
+        options->setSmoothnessDistanceMax(24);
+        options->setUseScalableDistance(false);
+        options->setTailAggressiveness(.01);
+        options->setSmoothPressure(false);
+    }
+    TimedFreehandHelper helper(&builder, &resources, kundo2_i18n("Fixed time input contract"), options);
+    QStringList errors;
+    QObject::connect(&helper, &KisToolFreehandHelper::requestErrorMessage, &helper,
+                     [&](const QString &message) { errors.append(message); });
+    if (weighted) {
+        helper.recordPrimitives();
+        const QList<int> times{7, 41, 79, 113, 157, 211};
+        QList<QPointF> positions{{10, 10}, {12, 18}, {18, 14}, {22, 8}, {28, 15}, {32, 11}};
+        if (idleFlush) positions[1] = positions[0];
+        const auto before = layerPixels(document.data());
+        const int initialHistory = document->undoStack()->index();
+        QJsonArray boundaries;
+        bool flushesValid = true;
+        const auto flush = [&](const char *phase) {
+            const auto count = helper.primitives().size();
+            const bool first = QMetaObject::invokeMethod(&helper, "finishStroke", Qt::DirectConnection);
+            const auto once = helper.primitives().size();
+            const bool second = QMetaObject::invokeMethod(&helper, "finishStroke", Qt::DirectConnection);
+            boundaries.append(QJsonObject{{"phase", QString::fromLatin1(phase)}, {"before", int(count)},
+                                          {"once", int(once)}, {"twice", int(helper.primitives().size())}});
+            return first && second && once == count + 1 && helper.primitives().size() == once;
+        };
+        for (qsizetype i = 0; i < positions.size(); ++i) {
+            helper.setElapsedStrokeTime(times[i]);
+            const auto point = positions[i];
+            QMouseEvent event(i ? QEvent::MouseMove : QEvent::MouseButtonPress, point, point,
+                              i ? Qt::NoButton : Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+            event.setTimestamp(100 + i * 10);
+            KoPointerEvent pointer(&event, point);
+            if (!i) helper.initPaint(&pointer, point, image, layer, image.data());
+            else helper.paintEvent(&pointer);
+            QVERIFY2(errors.isEmpty(), qPrintable(errors.join(QLatin1Char('\n'))));
+            QVERIFY(helper.isRunning());
+            boundaries.append(QJsonObject{{"phase", "input"}, {"index", int(i)},
+                                          {"primitives", int(helper.primitives().size())}});
+            // Flush after weighted position filtering has started.
+            if (idleFlush && i == 4) flushesValid &= flush("idle");
+        }
+        if (idleFlush) flushesValid &= flush("tail");
+        const auto beforeEnd = helper.primitives().size();
+        helper.endPaint();
+        image->waitForDone();
+        const auto painted = layerPixels(document.data());
+        boundaries.append(QJsonObject{{"phase", "end"}, {"before", int(beforeEnd)},
+                                      {"primitives", int(helper.primitives().size())}});
+
+        // Record interpolation values for diagnosing shared-control differences.
+        const auto bits = [](qreal value) {
+            const double number = value;
+            quint64 raw;
+            static_assert(sizeof(raw) == sizeof(number));
+            std::memcpy(&raw, &number, sizeof(raw));
+            return QString::number(raw, 16).rightJustified(16, QLatin1Char('0'));
+        };
+        const auto info = [&](const KisPaintInformation &pi) {
+            return QJsonArray{bits(pi.pos().x()), bits(pi.pos().y()), bits(pi.currentTime()),
+                              bits(pi.pressure()), bits(pi.xTilt()), bits(pi.yTilt()),
+                              bits(pi.rotation()), bits(pi.tangentialPressure()),
+                              bits(pi.perspective()), bits(pi.drawingSpeed())};
+        };
+        QJsonArray primitives, inputs;
+        for (qsizetype i = 0; i < positions.size(); ++i)
+            inputs.append(QJsonObject{{"x", bits(positions[i].x())}, {"y", bits(positions[i].y())},
+                                      {"elapsed", times[i]}, {"eventTimestamp", int(100 + i * 10)}});
+        for (const auto &primitive : helper.primitives())
+            primitives.append(QJsonObject{{"kind", int(primitive.kind)},
+                {"first", info(primitive.first)}, {"last", info(primitive.last)},
+                {"control1", QJsonArray{bits(primitive.control1.x()), bits(primitive.control1.y())}},
+                {"control2", QJsonArray{bits(primitive.control2.x()), bits(primitive.control2.y())}}});
+        QTemporaryDir temporary;
+        QVERIFY(temporary.isValid());
+        const QDir destination(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path()) +
+            QStringLiteral("/fixed-time/") + QString::fromLatin1(QTest::currentDataTag()));
+        QVERIFY(QDir().mkpath(destination.path()));
+        const auto retainFailure = qScopeGuard([&] {
+            if (QTest::currentTestFailed()) {
+                temporary.setAutoRemove(false);
+                qInfo() << "Weighted input artifacts at" << destination.path();
+            }
+        });
+        QFile trace(destination.filePath(QStringLiteral("input.json")));
+        QVERIFY(trace.open(QIODevice::WriteOnly));
+        const auto data = QJsonDocument(QJsonObject{{"platform", QGuiApplication::platformName()}, {"input", inputs}, {"boundaries", boundaries},
+            {"primitives", primitives}, {"infoOrder", "x,y,time,pressure,xTilt,yTilt,rotation,tangentialPressure,perspective,speed"},
+            {"paintedSha256", QString::fromLatin1(QCryptographicHash::hash(painted, QCryptographicHash::Sha256).toHex())}}).toJson();
+        QCOMPARE(trace.write(data), qint64(data.size()));
+        trace.close();
+        QFile pixels(destination.filePath(QStringLiteral("painted.bgra")));
+        QVERIFY(pixels.open(QIODevice::WriteOnly));
+        QCOMPARE(pixels.write(painted), qint64(painted.size()));
+        pixels.close();
+
+        // Fixed CPU output of this elapsed-time mouse input before sharing curve controls.
+        const auto expectedPixels = idleFlush ?
+            QByteArrayLiteral("09b141425f64557c9178665198da3e7fd09c784448c2e73a393494129d8cb4cc") :
+            QByteArrayLiteral("f1b6d3b71965ac268c49f2086d258ee3927f80415f1e7c83b855df819855d64d");
+        QCOMPARE(QCryptographicHash::hash(painted, QCryptographicHash::Sha256).toHex(), expectedPixels);
+        QVERIFY(errors.isEmpty());
+        QVERIFY(!helper.isRunning());
+        QVERIFY(flushesValid);
+        QCOMPARE(helper.primitives().size(), qsizetype(5));
+        const QList<int> firstTimes = idleFlush ? QList<int>{41, 41, 79, 113, 157} : QList<int>{7, 41, 79, 113, 157};
+        const QList<int> lastTimes = idleFlush ? QList<int>{79, 79, 113, 157, 211} : QList<int>{41, 79, 113, 157, 211};
+        for (qsizetype i = 0; i < helper.primitives().size(); ++i) {
+            const auto &primitive = helper.primitives()[i];
+            QCOMPARE(int(primitive.kind), int(idleFlush && !i ? TimedFreehandHelper::Line : TimedFreehandHelper::Curve));
+            QCOMPARE(primitive.first.currentTime(), qreal(firstTimes[i]));
+            QCOMPARE(primitive.last.currentTime(), qreal(lastTimes[i]));
+            for (const auto &pi : {primitive.first, primitive.last}) {
+                const int index = times.indexOf(int(pi.currentTime()));
+                QVERIFY(index >= 0);
+                QCOMPARE(pi.pressure(), qreal(1));
+                QCOMPARE(pi.xTilt(), qreal(0));
+                QCOMPARE(pi.yTilt(), qreal(0));
+                QCOMPARE(pi.rotation(), qreal(0));
+                QCOMPARE(pi.tangentialPressure(), qreal(0));
+                QCOMPARE(pi.perspective(), qreal(1));
+                if (index < 4) QCOMPARE(pi.pos(), positions[index]);
+                else {
+                    QVERIFY(std::isfinite(pi.pos().x()) && std::isfinite(pi.pos().y()));
+                    QVERIFY(pi.pos().x() >= 10 && pi.pos().x() < positions[index].x());
+                    QVERIFY(pi.pos().y() >= 8 && pi.pos().y() <= 18);
+                }
+            }
+            if (primitive.kind == TimedFreehandHelper::Curve) {
+                QVERIFY(std::isfinite(primitive.control1.x()) && std::isfinite(primitive.control1.y()));
+                QVERIFY(std::isfinite(primitive.control2.x()) && std::isfinite(primitive.control2.y()));
+            }
+        }
+        QVERIFY(painted != before);
+        QCOMPARE(document->undoStack()->index(), initialHistory + 1);
+        document->undoStack()->undo();
+        image->waitForDone();
+        QCOMPARE(layerPixels(document.data()), before);
+        document->undoStack()->redo();
+        image->waitForDone();
+        QCOMPARE(layerPixels(document.data()), painted);
+        return;
+    }
+    const QList<Gpu::InputSample> expected{{{10, 10}, 1, 0, 0, 0, 7, 0},
+                                         {{20, 10}, 1, 0, 0, 0, 41, .0125},
+                                         {{30, 10}, 1, 0, 0, 0, 79, .025}};
+    const auto samples = [](const Gpu::Snapshot &version) {
+        return std::get<Gpu::PaintSnapshot>(version->layers.first().operations.last())->inputSamples();
+    };
+    for (qsizetype i = 0; i < expected.size(); ++i) {
+        helper.setElapsedStrokeTime(int(expected[i].timestamp));
+        const auto point = expected[i].position;
+        QMouseEvent event(i ? QEvent::MouseMove : QEvent::MouseButtonPress, point, point,
+                          i ? Qt::NoButton : Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+        event.setTimestamp(100 + i * 10);
+        KoPointerEvent pointer(&event, point);
+        if (!i) helper.initPaint(&pointer, point, image, layer, image.data());
+        else helper.paintEvent(&pointer);
+        QVERIFY2(errors.isEmpty(), qPrintable(errors.join(QLatin1Char('\n'))));
+        QVERIFY(helper.isRunning());
+        const auto pending = samples(owner->operations().preview());
+        QCOMPARE(pending.size(), i + 1);
+        QCOMPARE(pending.last().timestamp, expected[i].timestamp);
+        QCOMPARE(pending.last().speed, expected[i].speed);
+        QCOMPARE(pending, expected.first(i + 1));
+    }
+    Gpu::OperationDocument pendingRecovery(QSize(1, 1));
+    QCOMPARE(pendingRecovery.restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
+    QVERIFY(pendingRecovery.hasActiveStroke());
+    QCOMPARE(samples(pendingRecovery.preview()), expected);
+    helper.endPaint();
+    image->waitForDone();
+    QVERIFY(errors.isEmpty());
+    QVERIFY(!helper.isRunning());
+    QVERIFY(!owner->operations().hasActiveStroke());
+    QCOMPARE(samples(owner->operations().snapshot()), expected);
+    Gpu::OperationDocument committedRecovery(QSize(1, 1));
+    QCOMPARE(committedRecovery.restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
+    QVERIFY(!committedRecovery.hasActiveStroke());
+    QCOMPARE(samples(committedRecovery.snapshot()), expected);
+}
+
 void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
 {
     QTest::addColumn<qreal>("opacity");
@@ -291,20 +640,21 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
     QTest::addColumn<bool>("newDocument");
     QTest::addColumn<int>("calls");
     QTest::addColumn<int>("eraser");
+    QTest::addColumn<bool>("basicSmoothing");
     for (bool fresh : {false, true}) for (qreal opacity : {qreal(1), qreal(.57)}) {
         for (int profile = 0; profile < 3; ++profile) {
             const auto name = QStringLiteral("%1-opacity-%2-pressure-%3").arg(fresh ? "new" : "opened").arg(opacity).arg(profile);
-            QTest::newRow(qPrintable(name)) << opacity << qreal(1) << profile << fresh << 0 << 0;
+            QTest::newRow(qPrintable(name)) << opacity << qreal(1) << profile << fresh << 0 << 0 << false;
         }
         const auto name = QStringLiteral("%1-opacity-%2-half-flow").arg(fresh ? "new" : "opened").arg(opacity);
-        QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << 0 << 0;
+        QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << 0 << 0 << false;
         for (int calls = 1; calls <= 9; ++calls) {
             const auto kind = calls == 1 ? "compound-path" : calls == 2 ? "separate-paths" :
                               calls == 3 ? "line-path-line" : calls == 4 ? "path-line-path" :
                               calls == 5 ? "cubic-open" : calls == 6 ? "cubic-closed" :
                               calls == 7 ? "cubic-compound" : calls == 8 ? "cubic-separate" : "line-cubic-line";
             const auto group = QStringLiteral("%1-%2-opacity-%3").arg(fresh ? "new" : "opened").arg(QLatin1String(kind)).arg(opacity);
-            QTest::newRow(qPrintable(group)) << opacity << qreal(.5) << 2 << fresh << calls << 0;
+            QTest::newRow(qPrintable(group)) << opacity << qreal(.5) << 2 << fresh << calls << 0 << false;
         }
     }
     const std::array<const char *, 9> kinds{{"move", "tap", "two", "closed", "stationary", "duplicate-first", "return",
@@ -312,7 +662,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
     for (bool fresh : {false, true}) for (qreal opacity : {qreal(1), qreal(.57)}) {
         for (std::size_t i = 0; i < kinds.size(); ++i) {
             const auto name = QStringLiteral("%1-freehand-%2-opacity-%3").arg(fresh ? "new" : "opened").arg(QLatin1String(kinds[i])).arg(opacity);
-            QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << -int(i + 1) << 0;
+            QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << -int(i + 1) << 0 << false;
         }
     }
     for (bool fresh : {false, true}) for (int eraser : {1, 2}) {
@@ -323,14 +673,24 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
                                                  "zero-flow", "zero-opacity", "half-opacity-byte", "low-opacity-byte"}};
         for (std::size_t i = 0; i < calls.size(); ++i) {
             const auto name = QStringLiteral("%1-erase-%2-%3").arg(fresh ? "new" : "opened").arg(eraser).arg(QLatin1String(figures[i]));
-            QTest::newRow(qPrintable(name)) << opacity[i] << flow[i] << 2 << fresh << calls[i] << eraser;
+            QTest::newRow(qPrintable(name)) << opacity[i] << flow[i] << 2 << fresh << calls[i] << eraser << false;
         }
         for (qreal opacity : {qreal(1), qreal(.57)}) {
             for (std::size_t i = 0; i < kinds.size(); ++i) {
                 const auto name = QStringLiteral("%1-erase-%2-freehand-%3-opacity-%4").arg(fresh ? "new" : "opened")
                     .arg(eraser).arg(QLatin1String(kinds[i])).arg(opacity);
-                QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << -int(i + 1) << eraser;
+                    QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << -int(i + 1) << eraser << false;
             }
+        }
+    }
+    const std::array<const char *, 11> basicKinds{{"tap", "two", "curve", "closed", "stationary3", "duplicate-first", "return",
+                                                "idle-two-continue", "idle-curve-continue", "stationary2", "stationary8"}};
+    const std::array<int, 11> basicCalls{{-2, -3, -1, -4, -5, -6, -7, -10, -11, -8, -9}};
+    for (bool fresh : {false, true}) for (int eraser : {0, 1, 2}) {
+        for (std::size_t i = 0; i < basicKinds.size(); ++i) {
+            const auto name = QStringLiteral("%1-basic-%2-erase-%3").arg(fresh ? "new" : "opened")
+                .arg(QLatin1String(basicKinds[i])).arg(eraser);
+            QTest::newRow(qPrintable(name)) << qreal(.57) << qreal(.5) << 2 << fresh << basicCalls[i] << eraser << true;
         }
     }
 }
@@ -343,6 +703,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
     QFETCH(bool, newDocument);
     QFETCH(int, calls);
     QFETCH(int, eraser);
+    QFETCH(bool, basicSmoothing);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     KisImageConfig imageConfig(false);
     const auto previousThreads = imageConfig.maxNumberOfThreads();
@@ -380,6 +741,10 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
     QVERIFY(create(0));
     auto cpuLayer = paintLayer(documents[0].data());
     QVERIFY(cpuLayer);
+    QVERIFY(!cpuLayer->uuid().isNull());
+    const QUuid inputUuid(newDocument ? QStringLiteral("{33b00002-1122-3344-5566-778899aabbcc}") :
+                                       QStringLiteral("{33b00001-1122-3344-5566-778899aabbcc}"));
+    QVERIFY(setInitialLayerIdentity(documents[0].data(), inputUuid));
     cpuLayer->setName(QStringLiteral("Paint"));
     const auto initializePixels = [&](KisDocument *document) {
         if (!eraser) return true;
@@ -393,13 +758,11 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
     if (newDocument) {
         QVERIFY(create(1));
         QVERIFY(paintLayer(documents[1].data()));
-        // One new document supplies the identity for the paired CPU reference.
-        // Fixed imported documents below also retain whole-file identity across hosts.
-        cpuLayer->setUuid(paintLayer(documents[1].data())->uuid());
+        // Fixed layer identity is part of the input for whole-file comparisons.
+        QVERIFY(setInitialLayerIdentity(documents[1].data(), inputUuid));
         paintLayer(documents[1].data())->setName(QStringLiteral("Paint"));
         QVERIFY(initializePixels(documents[1].data()));
     } else {
-        cpuLayer->setUuid(QUuid(QStringLiteral("{33b00001-1122-3344-5566-778899aabbcc}")));
         cpuLayer->setPinnedToTimeline(false);
         QVERIFY(save(documents[0].data(), destination, QStringLiteral("source")));
         qputenv("LIBREPAINT_GPU_ENGINE", "1");
@@ -421,7 +784,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
         const auto baseline = layerPixels(document);
         for (int stroke = 0; stroke < 2; ++stroke) {
             const int before = document->undoStack()->index();
-            QVERIFY(paint(document, preset, opacity, profile, stroke, calls, false, eraser));
+            QVERIFY(paint(document, preset, opacity, profile, stroke, calls, basicSmoothing, eraser));
             const auto bytes = layerPixels(document);
             QFile actual(out.filePath(QStringLiteral("stroke-%1.bgra").arg(stroke)));
             QVERIFY(actual.open(QIODevice::WriteOnly));
@@ -454,7 +817,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
         QCOMPARE(bool(reopened->image()->gpuImage()), bool(owner));
         QCOMPARE(layerPixels(reopened.data()), painted);
         const auto before = layerPixels(reopened.data());
-        QVERIFY(paint(reopened.data(), preset, opacity, profile, 2, calls, false, eraser));
+        QVERIFY(paint(reopened.data(), preset, opacity, profile, 2, calls, basicSmoothing, eraser));
         const auto after = layerPixels(reopened.data());
         if (eraser && (opacity == 0 || flow == 0)) QCOMPARE(after, before);
         else QVERIFY(after != before);
@@ -484,12 +847,12 @@ void TestDocument::testDefaultBrushStationaryInputKeepsOneTap_data()
     QTest::addColumn<bool>("basicSmoothing");
     QTest::addColumn<int>("repetitions");
     QTest::addColumn<int>("eraser");
-    for (int configuration = 0; configuration < 3; ++configuration) {
+    for (int configuration = 0; configuration < 4; ++configuration) {
         for (int repetitions : {2, 3, 8}) for (int eraser : {0, 1, 2}) {
-            auto name = QStringLiteral("%1-%2").arg(configuration == 2 ? "gpu-none" :
-                configuration == 1 ? "cpu-basic" : "cpu-none").arg(repetitions);
+            auto name = QStringLiteral("%1-%2").arg(configuration == 3 ? "gpu-basic" :
+                configuration == 2 ? "gpu-none" : configuration == 1 ? "cpu-basic" : "cpu-none").arg(repetitions);
             if (eraser) name += QStringLiteral("-erase-%1").arg(eraser);
-            QTest::newRow(qPrintable(name)) << (configuration == 2) << (configuration == 1) << repetitions << eraser;
+            QTest::newRow(qPrintable(name)) << (configuration >= 2) << (configuration == 1 || configuration == 3) << repetitions << eraser;
         }
     }
 }
@@ -531,7 +894,8 @@ void TestDocument::testDefaultBrushStationaryInputKeepsOneTap()
     QVERIFY(document->newImage(QStringLiteral("Stationary tap contract"), side, side, cs,
         KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
     QCOMPARE(bool(document->image()->gpuImage()), gpu);
-    const auto layer = paintLayer(document.data());
+    QVERIFY(setInitialLayerIdentity(document.data(), QUuid(QStringLiteral("{33b00003-1122-3344-5566-778899aabbcc}"))));
+    KisPaintLayerSP layer = paintLayer(document.data());
     QVERIFY(layer);
     const auto background = partialAlphaBackground();
     QScopedPointer<Node> node(Node::createNode(document->image(), layer));

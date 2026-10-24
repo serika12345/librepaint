@@ -56,9 +56,10 @@ int maskSide(qreal metric, qreal subpixel)
 std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, bool pending)
 {
     const auto &brush = operation.brush;
-    if (!brush.gaussianWash || brush.basicSmoothing || brush.pixelPerfect ||
+    if (!brush.gaussianWash || brush.weightedSmoothing || brush.pixelPerfect ||
         operation.figureStyle.fill || brush.mirrorHorizontal || brush.mirrorVertical ||
         brush.alphaLocked || brush.channelWriteMask != 15) return std::nullopt;
+    if (brush.basicSmoothing && operation.shape.kind != ShapeKind::Freehand) return std::nullopt;
     const auto &settings = *brush.gaussianWash;
     auto input = operation.inputSamples();
     if (operation.shape.kind == ShapeKind::Line && !input.isEmpty()) {
@@ -169,6 +170,60 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, 
         return true;
     };
     if (input.isEmpty()) return result;
+    if (brush.basicSmoothing) {
+        InputSample previous = input.first(), older;
+        QPointF previousTangent;
+        bool haveTangent = false, paintIssued = false, inputMoved = false;
+        qsizetype flushIndex = 0;
+        const auto tangent = [](const InputSample &a, const InputSample &b) {
+            return (b.position - a.position) / qreal(std::max<quint64>(1, b.timestamp - a.timestamp));
+        };
+        const auto basicCurve = [&](const InputSample &first, const InputSample &last,
+                                    QPointF firstTangent, QPointF lastTangent) {
+            const auto controls = basicCurveControls(first.position, last.position, firstTangent, lastTangent);
+            if (!controls) return true;
+            paintIssued = true;
+            return cubic(first, (*controls)[0], (*controls)[1], last);
+        };
+        const auto finish = [&] {
+            if (!haveTangent) return true;
+            haveTangent = false;
+            return basicCurve(older, previous, previousTangent, tangent(older, previous));
+        };
+        for (qsizetype index = 1; index < input.size(); ++index) {
+            const auto &point = input[index];
+            inputMoved = inputMoved || point.position.x() != input.first().position.x() ||
+                                       point.position.y() != input.first().position.y();
+            if (!haveTangent) {
+                haveTangent = true;
+                previousTangent = tangent(previous, point);
+            } else {
+                const auto nextTangent = tangent(older, point);
+                if (nextTangent.isNull() || previousTangent.isNull()) {
+                    paintIssued = true;
+                    if (!line(previous, point)) return std::nullopt;
+                } else if (!basicCurve(older, previous, previousTangent, nextTangent)) {
+                    return std::nullopt;
+                }
+                previousTangent = nextTangent;
+            }
+            older = previous;
+            previous = point;
+            if (flushIndex < operation.smoothingFlushes.size() &&
+                operation.smoothingFlushes[flushIndex] == index + 1) {
+                if (!finish()) return std::nullopt;
+                ++flushIndex;
+            }
+        }
+        if (operation.smoothingFinished) {
+            const bool completeStationary = paintIssued && !inputMoved;
+            if (!paintIssued) {
+                if (!append(previous)) return std::nullopt;
+            } else if (!finish()) return std::nullopt;
+            if (completeStationary && result.isEmpty() && !append(previous)) return std::nullopt;
+        }
+        return result;
+    }
     if (operation.shape.kind == ShapeKind::Path) {
         qsizetype index = 0, call = 0;
         qreal lineSpacing = spacing, lineAccumulated = accumulated;

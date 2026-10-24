@@ -7,11 +7,99 @@
 #include "KisGpuPaintGeometry_p.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <limits>
+#include <boost/multiprecision/cpp_int.hpp>
 #include <QSet>
 #include <QLineF>
 #include <QVector2D>
 
-namespace LibrePaint::Image::Gpu::Detail {
+namespace LibrePaint::Image::Gpu {
+namespace {
+bool closedSegmentsHaveUniqueIntersection(QPointF a, QPointF b, QPointF c, QPointF d)
+{
+    static_assert(sizeof(qreal) == sizeof(quint64) && std::numeric_limits<qreal>::is_iec559 &&
+                  std::numeric_limits<qreal>::radix == 2 && std::numeric_limits<qreal>::digits == 53 &&
+                  std::numeric_limits<qreal>::min_exponent == -1021 &&
+                  std::numeric_limits<qreal>::max_exponent == 1024);
+    const std::array<qreal, 8> values{a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), d.x(), d.y()};
+    std::array<quint64, 8> bits, significands;
+    std::array<int, 8> exponents;
+    int smallestExponent = std::numeric_limits<int>::max();
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        std::memcpy(&bits[i], &values[i], sizeof(qreal));
+        const auto exponent = (bits[i] >> 52) & 0x7ff;
+        if (exponent == 0x7ff) return false;
+        significands[i] = bits[i] & ((quint64(1) << 52) - 1);
+        exponents[i] = exponent ? int(exponent) - 1075 : -1074;
+        if (exponent) significands[i] |= quint64(1) << 52;
+        if (significands[i]) smallestExponent = std::min(smallestExponent, exponents[i]);
+    }
+    // Keep the represented endpoints exact before taking differences and cross products.
+    using boost::multiprecision::cpp_int;
+    std::array<cpp_int, 8> coordinates;
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (!significands[i]) continue;
+        coordinates[i] = cpp_int(significands[i]) << (exponents[i] - smallestExponent);
+        if (bits[i] >> 63) coordinates[i] = -coordinates[i];
+    }
+    const cpp_int rx = coordinates[2] - coordinates[0], ry = coordinates[3] - coordinates[1];
+    const cpp_int sx = coordinates[6] - coordinates[4], sy = coordinates[7] - coordinates[5];
+    const cpp_int wx = coordinates[4] - coordinates[0], wy = coordinates[5] - coordinates[1];
+    cpp_int denominator = rx * sy - ry * sx;
+    if (denominator == 0) return false;
+    cpp_int firstNumerator = wx * sy - wy * sx;
+    cpp_int secondNumerator = wx * ry - wy * rx;
+    if (denominator < 0) {
+        denominator = -denominator;
+        firstNumerator = -firstNumerator;
+        secondNumerator = -secondNumerator;
+    }
+    return firstNumerator >= 0 && firstNumerator <= denominator &&
+           secondNumerator >= 0 && secondNumerator <= denominator;
+}
+}
+
+std::optional<std::array<QPointF, 2>> basicCurveControls(QPointF first, QPointF last,
+                                                      QPointF tangent1, QPointF tangent2)
+{
+    if (tangent1.isNull() || tangent2.isNull()) return std::nullopt;
+    QLineF line1(first, first + tangent1);
+    QLineF line2(last, last - tangent2);
+    QLineF controls(line1.p2(), line2.p2());
+    QLineF chord(first, last);
+    QPointF intersection, target1, target2;
+    if (closedSegmentsHaveUniqueIntersection(controls.p1(), controls.p2(), chord.p1(), chord.p2())) {
+        const auto length = chord.length() / 2;
+        line1.setLength(length);
+        line2.setLength(length);
+        target1 = line1.p2();
+        target2 = line2.p2();
+    } else {
+        const auto type = line1.intersects(line2, &intersection);
+        if (type == QLineF::NoIntersection || intersection.manhattanLength() > 1e6)
+            intersection = (first + last) / 2;
+        target1 = target2 = intersection;
+    }
+    auto velocity1 = QLineF(QPointF(), tangent1).length();
+    auto velocity2 = QLineF(QPointF(), tangent2).length();
+    if (velocity1 == 0 || velocity2 == 0) velocity1 = velocity2 = 1e-6;
+    const auto similarity = std::max(qreal(0.5), std::min(velocity1 / velocity2, velocity2 / velocity1));
+    qreal coefficient = qreal(0.8) * (1 - std::max(qreal(0), similarity - qreal(0.8)));
+    QPointF control1, control2;
+    if (velocity1 > velocity2) {
+        control1 = first * (1 - coefficient) + coefficient * target1;
+        coefficient *= similarity;
+        control2 = last * (1 - coefficient) + coefficient * target2;
+    } else {
+        control2 = last * (1 - coefficient) + coefficient * target2;
+        coefficient *= similarity;
+        control1 = first * (1 - coefficient) + coefficient * target1;
+    }
+    return std::array<QPointF, 2>{control1, control2};
+}
+
+namespace Detail {
 namespace {
 quint32 integerRoot(quint64 value)
 {
@@ -80,40 +168,8 @@ bool appendCubic(QList<PaintSegment> &result, InputSample first, QPointF control
 bool appendBasicCurve(QList<PaintSegment> &result, const InputSample &first, const InputSample &last,
                       QPointF tangent1, QPointF tangent2, quint32 step, quint32 &phase)
 {
-    if (tangent1.isNull() || tangent2.isNull()) return true;
-    QLineF line1(first.position, first.position + tangent1);
-    QLineF line2(last.position, last.position - tangent2);
-    QLineF controls(line1.p2(), line2.p2());
-    QLineF chord(first.position, last.position);
-    QPointF intersection, target1, target2;
-    if (controls.intersects(chord, &intersection) == QLineF::BoundedIntersection) {
-        const auto length = chord.length() / 2;
-        line1.setLength(length);
-        line2.setLength(length);
-        target1 = line1.p2();
-        target2 = line2.p2();
-    } else {
-        const auto type = line1.intersects(line2, &intersection);
-        if (type == QLineF::NoIntersection || intersection.manhattanLength() > 1e6)
-            intersection = (first.position + last.position) / 2;
-        target1 = target2 = intersection;
-    }
-    auto velocity1 = QLineF(QPointF(), tangent1).length();
-    auto velocity2 = QLineF(QPointF(), tangent2).length();
-    if (velocity1 == 0 || velocity2 == 0) velocity1 = velocity2 = 1e-6;
-    const auto similarity = std::max(qreal(0.5), std::min(velocity1 / velocity2, velocity2 / velocity1));
-    qreal coefficient = qreal(0.8) * (1 - std::max(qreal(0), similarity - qreal(0.8)));
-    QPointF control1, control2;
-    if (velocity1 > velocity2) {
-        control1 = first.position * (1 - coefficient) + coefficient * target1;
-        coefficient *= similarity;
-        control2 = last.position * (1 - coefficient) + coefficient * target2;
-    } else {
-        control2 = last.position * (1 - coefficient) + coefficient * target2;
-        coefficient *= similarity;
-        control1 = first.position * (1 - coefficient) + coefficient * target1;
-    }
-    return appendCubic(result, first, control1, control2, last, step, phase);
+    const auto controls = basicCurveControls(first.position, last.position, tangent1, tangent2);
+    return !controls || appendCubic(result, first, (*controls)[0], (*controls)[1], last, step, phase);
 }
 
 std::optional<QList<InputSample>> weightedInput(const QList<InputSample> &input, const WeightedSmoothing &settings)
@@ -511,4 +567,5 @@ std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &input, quint
     return mirrorMode ? result.values() : direct;
 }
 
+}
 }

@@ -1247,6 +1247,13 @@ Gaussianの三次曲線は、開いた曲線、始点へ戻る曲線、複合・
 `LIBREPAINT_GPU_RESULT_DIR`へ`gaussian-freehand-<条件>.rgba`、`.pending.recovery`と`.recovery`を
 出力し、画素と入力・ブラシ設定を含む復旧記録の全バイトを環境間で比較する。
 静止入力は2・3・8標本を独立した一回のタップと全画素比較し、移動した閉経路と極短移動を区別する。
+Gaussian WASHの基本補正は`KisGpuTileRendererTest::gaussianBasicKeepsCpuPixelsFlushesAndRecovery`で、
+通常CPU描画の固定全画素、入力停止時の補間、入力中・確定後の復旧、取消しと履歴を照合する。
+`libs/image/gpu/tests/KisGpuGaussianBasicSmoothingFixture_p.h`は、元の座標・筆圧・時刻とCPU参照の由来を保持する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`gaussian-basic-<条件>`の画素と復旧記録を出力し、環境間で全バイトを比較する。
+通常文書の同じ描画・保存契約は、基本補正のタップ、短い入力、閉経路、折返し、停止時の補間と
+静止入力を、新規・読込文書、通常合成と二つの消去指定で検査する。
+レイヤー識別子を描画前の入力として固定し、KRA、PNG、JPEGを全バイトで照合する。
 Gaussian WASHの消去は`KisGpuTileRendererTest::gaussianEraseKeepsColorsHistoryAndRecovery`で、
 通常CPUの固定画素、透明画素を含むRGB保持、アルファの非増加、入力中・確定後の復旧、
 取消しとUndo／Redoを照合する。直線、開いた曲線、閉曲線と混在、流量・不透明度ゼロ、
@@ -1255,7 +1262,16 @@ Gaussian WASHの消去は`KisGpuTileRendererTest::gaussianEraseKeepsColorsHistor
 図形とフリーハンドの消去、RGB保持・アルファの非増加、追加編集と全保存ファイルを照合する。
 同じ固定入力の復旧記録は`gaussian-erase-<条件>.pending.recovery`と`.recovery`へ出力し、
 入力列・ブラシ設定・履歴を含む全バイトを環境間で比較する。
-`TestDocument::testDefaultBrushStationaryInputKeepsOneTap`は、CPUの補正なし・基本補正とGPUの補正なしを
+`TestDocument::testDefaultBrushMouseInputKeepsFixedTimeThroughRecovery`は、通常マウス入力から
+入力構築・自由描画・操作記録を通る経過時間と速度を検査する。入力イベントの時刻と描画の
+経過時間をそれぞれ固定し、入力中・確定後の復旧記録まで同じ標本が届くことを照合する。
+同じ試験のCPU加重補正条件は、固定した6標本で非ゼロの補正距離、終端の補完、
+始点の反復、停止後の継続と停止処理の反復を扱う。描画前後の全画素、
+入力時刻とセンサー値、一回の履歴とUndo／Redoを照合し、
+`fixed-time/<条件>/`へ`painted.bgra`と入力・制御点の診断記録`input.json`を出力する。
+`KisGpuTileRendererTest::basicCurveControlsPreserveClosedSegmentDecisions`は、
+閉線分の内側・端点・外側と平行・交線なしの制御点を検査する。
+`TestDocument::testDefaultBrushStationaryInputKeepsOneTap`は、CPU・GPUの補正なし・基本補正を
 通常マウス入力から検査する。同じ文書でタップ、Undo、反復入力を行い、不均一な下地、履歴と
 KRA・PNG・JPEGの全バイトを照合する。同じ保存済み結果の再読込み後にも、タップと反復入力の追加編集を比較する。
 保存ごとに既存の文書情報・時刻・設定を固定し、同じファイル名の別ディレクトリーへ出力する。

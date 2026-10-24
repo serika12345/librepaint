@@ -6,6 +6,7 @@
 #define KIS_GPU_PAINT_GEOMETRY_P_H
 
 #include "KisGpuOperationDocument.h"
+#include "KisGpuBasicCurveControls.h"
 #include <QRect>
 #include <optional>
 

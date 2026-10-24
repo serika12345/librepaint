@@ -90,7 +90,6 @@ Q_SIGNALS:
 
 protected:
     void cancelPaint();
-    int elapsedStrokeTime() const;
 
     void initPaintImpl(qreal startAngle,
                        const KisPaintInformation &pi,
@@ -133,6 +132,8 @@ protected:
                                   const QPointF &control1,
                                   const QPointF &control2,
                                   const KisPaintInformation &pi2);
+
+    virtual int elapsedStrokeTime() const;
 
 private:
     void paint(KisPaintInformation &info );

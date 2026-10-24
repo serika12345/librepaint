@@ -28,6 +28,7 @@
 #include "kis_painting_information_builder.h"
 #include "kis_image.h"
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuBasicCurveControls.h>
 #include "kis_painter.h"
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_utils.h>
@@ -53,7 +54,6 @@
 
 #include <math.h>
 #include <QtGlobal>
-#include <qline.h>
 #include <qlist.h>
 #include <qmath.h>
 #include <qnumeric.h>
@@ -495,91 +495,9 @@ KoCanvasResourceProvider *KisToolFreehandHelper::resourceManager() const
 void KisToolFreehandHelper::paintBezierSegment(KisPaintInformation pi1, KisPaintInformation pi2,
                                                QPointF tangent1, QPointF tangent2)
 {
-    if (tangent1.isNull() || tangent2.isNull()) return;
-
-    const qreal maxSanePoint = 1e6;
-
-    QPointF controlTarget1;
-    QPointF controlTarget2;
-
-    // Shows the direction in which control points go
-    QPointF controlDirection1 = pi1.pos() + tangent1;
-    QPointF controlDirection2 = pi2.pos() - tangent2;
-
-    // Lines in the direction of the control points
-    QLineF line1(pi1.pos(), controlDirection1);
-    QLineF line2(pi2.pos(), controlDirection2);
-
-    // Lines to check whether the control points lay on the opposite
-    // side of the line
-    QLineF line3(controlDirection1, controlDirection2);
-    QLineF line4(pi1.pos(), pi2.pos());
-
-    QPointF intersection;
-    if (line3.intersects(line4, &intersection) == QLineF::BoundedIntersection) {
-        qreal controlLength = line4.length() / 2;
-
-        line1.setLength(controlLength);
-        line2.setLength(controlLength);
-
-        controlTarget1 = line1.p2();
-        controlTarget2 = line2.p2();
-    } else {
-        QLineF::IntersectType type = line1.intersects(line2, &intersection);
-
-        if (type == QLineF::NoIntersection ||
-            intersection.manhattanLength() > maxSanePoint) {
-
-            intersection = 0.5 * (pi1.pos() + pi2.pos());
-//            dbgKrita << "WARNING: there is no intersection point "
-//                     << "in the basic smoothing algorithms";
-        }
-
-        controlTarget1 = intersection;
-        controlTarget2 = intersection;
-    }
-
-    // shows how near to the controlTarget the value raises
-    qreal coeff = 0.8;
-
-    qreal velocity1 = QLineF(QPointF(), tangent1).length();
-    qreal velocity2 = QLineF(QPointF(), tangent2).length();
-
-    if (velocity1 == 0.0 || velocity2 == 0.0) {
-        velocity1 = 1e-6;
-        velocity2 = 1e-6;
-        warnKrita << "WARNING: Basic Smoothing: Velocity is Zero! Please report a bug:" << ppVar(velocity1) << ppVar(velocity2);
-    }
-
-    qreal similarity = qMin(velocity1/velocity2, velocity2/velocity1);
-
-    // the controls should not differ more than 50%
-    similarity = qMax(similarity, qreal(0.5));
-
-    // when the controls are symmetric, their size should be smaller
-    // to avoid corner-like curves
-    coeff *= 1 - qMax(qreal(0.0), similarity - qreal(0.8));
-
-    Q_ASSERT(coeff > 0);
-
-
-    QPointF control1;
-    QPointF control2;
-
-    if (velocity1 > velocity2) {
-        control1 = pi1.pos() * (1.0 - coeff) + coeff * controlTarget1;
-        coeff *= similarity;
-        control2 = pi2.pos() * (1.0 - coeff) + coeff * controlTarget2;
-    } else {
-        control2 = pi2.pos() * (1.0 - coeff) + coeff * controlTarget2;
-        coeff *= similarity;
-        control1 = pi1.pos() * (1.0 - coeff) + coeff * controlTarget1;
-    }
-
-    paintBezierCurve(pi1,
-                     control1,
-                     control2,
-                     pi2);
+    const auto controls = LibrePaint::Image::Gpu::basicCurveControls(pi1.pos(), pi2.pos(), tangent1, tangent2);
+    if (!controls) return;
+    paintBezierCurve(pi1, (*controls)[0], (*controls)[1], pi2);
 }
 
 qreal KisToolFreehandHelper::Private::effectiveSmoothnessDistance(qreal speed) const
