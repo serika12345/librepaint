@@ -172,6 +172,8 @@ bool appendBasicCurve(QList<PaintSegment> &result, const InputSample &first, con
     return !controls || appendCubic(result, first, (*controls)[0], (*controls)[1], last, step, phase);
 }
 
+}
+
 std::optional<QList<InputSample>> weightedInput(const QList<InputSample> &input, const WeightedSmoothing &settings)
 {
     auto points = input;
@@ -226,6 +228,7 @@ std::optional<QList<InputSample>> weightedInput(const QList<InputSample> &input,
     return points;
 }
 
+namespace {
 std::optional<PaintGeometry> basicGeometry(const PaintOperation &operation, const QList<InputSample> &input,
                                           quint32 step)
 {

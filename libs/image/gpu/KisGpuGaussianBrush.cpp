@@ -56,12 +56,18 @@ int maskSide(qreal metric, qreal subpixel)
 std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, bool pending)
 {
     const auto &brush = operation.brush;
-    if (!brush.gaussianWash || brush.weightedSmoothing || brush.pixelPerfect ||
+    if (!brush.gaussianWash || brush.pixelPerfect ||
         operation.figureStyle.fill || brush.mirrorHorizontal || brush.mirrorVertical ||
         brush.alphaLocked || brush.channelWriteMask != 15) return std::nullopt;
     if (brush.basicSmoothing && operation.shape.kind != ShapeKind::Freehand) return std::nullopt;
     const auto &settings = *brush.gaussianWash;
-    auto input = operation.inputSamples();
+    const auto originalInput = operation.inputSamples();
+    auto input = originalInput;
+    if (brush.weightedSmoothing) {
+        const auto corrected = weightedInput(input, *brush.weightedSmoothing);
+        if (!corrected) return std::nullopt;
+        input = *corrected;
+    }
     if (operation.shape.kind == ShapeKind::Line && !input.isEmpty()) {
         const auto first = input.first().position;
         const auto delta = input.last().position - first;
@@ -192,8 +198,8 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, 
         };
         for (qsizetype index = 1; index < input.size(); ++index) {
             const auto &point = input[index];
-            inputMoved = inputMoved || point.position.x() != input.first().position.x() ||
-                                       point.position.y() != input.first().position.y();
+            inputMoved = inputMoved || originalInput[index].position.x() != originalInput.first().position.x() ||
+                                       originalInput[index].position.y() != originalInput.first().position.y();
             if (!haveTangent) {
                 haveTangent = true;
                 previousTangent = tangent(previous, point);
@@ -220,7 +226,12 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, 
             if (!paintIssued) {
                 if (!append(previous)) return std::nullopt;
             } else if (!finish()) return std::nullopt;
-            if (completeStationary && result.isEmpty() && !append(previous)) return std::nullopt;
+            if (completeStationary && result.isEmpty()) {
+                auto tap = previous;
+                // A stroke with unchanged raw positions finishes at that exact position.
+                tap.position = originalInput.last().position;
+                if (!append(tap)) return std::nullopt;
+            }
         }
         return result;
     }

@@ -1258,6 +1258,16 @@ Gaussian WASHの基本補正は`KisGpuTileRendererTest::gaussianBasicKeepsCpuPix
 通常文書の同じ描画・保存契約は、基本補正のタップ、短い入力、閉経路、折返し、停止時の補間と
 静止入力を、新規・読込文書、通常合成と二つの消去指定で検査する。
 レイヤー識別子を描画前の入力として固定し、KRA、PNG、JPEGを全バイトで照合する。
+Gaussian WASHの加重補正は`KisGpuTileRendererTest::gaussianWeightedKeepsCpuPixelsAndRecovery`で、
+タップ、2・3・8標本の静止入力、筆圧に応じた可変距離、移動、始点の反復と停止後の継続を扱う。
+`libs/image/gpu/tests/KisGpuGaussianWeightedSmoothingFixture_p.h`は元の入力と設定、CPU参照画素の由来を保持する。
+入力中・確定後の復旧、保持した版、取消しと履歴を照合し、停止処理の反復による記録の不変を検査する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`gaussian-weighted-<条件>`の画素と復旧記録を出力する。
+`gaussianWeightedOnImportedPixelKeepsCpuMergeByte`は、半透明の読込画素へ続けて描いたときの
+CPU保存画素を維持する。被覆の丸め境界を含む入力で、プレビュー、確定と復旧後の値を比較する。
+通常文書の描画・保存契約は、新規・読込文書、通常合成と二つの消去指定で、
+マウス入力、筆圧変化を持つペン入力、停止処理と追加編集、KRA再読込とPNG/JPEGを全バイトで照合する。
+静止入力はGPU文書の一回のタップと比較し、同じ画素と保存ファイルになることを検査する。
 Gaussian WASHの消去は`KisGpuTileRendererTest::gaussianEraseKeepsColorsHistoryAndRecovery`で、
 通常CPUの固定画素、透明画素を含むRGB保持、アルファの非増加、入力中・確定後の復旧、
 取消しとUndo／Redoを照合する。直線、開いた曲線、閉曲線と混在、流量・不透明度ゼロ、

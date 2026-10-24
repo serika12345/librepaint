@@ -46,6 +46,8 @@
 #include <kis_smoothing_options.h>
 #include <tool/kis_tool_freehand_helper.h>
 #include <QMouseEvent>
+#include <QPointingDevice>
+#include <QTabletEvent>
 #include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -265,7 +267,7 @@ bool save(KisDocument *document, const QDir &out, const QString &name)
 }
 
 bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int profile, int stroke, int calls,
-           bool basicSmoothing = false, int eraser = 0)
+           bool basicSmoothing = false, int eraser = 0, bool weightedSmoothing = false)
 {
     KisImageSP image = document->image();
     const auto layer = paintLayer(document);
@@ -280,6 +282,7 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
     resources.setResource(KoCanvasResource::MirrorVertical, false);
     resources.setResource(KoCanvasResource::HdrExposure, qreal(0));
     resources.setResource(KoCanvasResource::EffectiveZoom, qreal(1));
+    if (weightedSmoothing) resources.setResource(KoCanvasResource::DisablePressure, true);
     const auto color = stroke == 0 ? QColor(17, 34, 51) : stroke == 1 ? QColor(201, 29, 117) : QColor(83, 177, 41);
     resources.setForegroundColor(KoColor(color, image->colorSpace()));
     resources.setBackgroundColor(KoColor(Qt::white, image->colorSpace()));
@@ -304,32 +307,109 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
         else if (calls == -7) path = {path.first(), path[1], path.first()};
         else if (calls == -8 || calls == -9) path = QList<QPointF>(calls == -8 ? 2 : 8, path.first());
         else if (calls == -10 || calls == -11) path.append(QPointF(40.5, 102.25));
+        const bool weightedMoving = weightedSmoothing && calls <= -12;
+        if (weightedMoving) {
+            path = {{10, 10}, {12, 18}, {18, 14}, {22, 8}, {28, 15}, {32, 11}};
+            if (calls == -13) path[1] = path[0];
+        }
         KisPaintingInformationBuilder builder;
         KisPaintingInformationSettings settings;
         settings.useEventTimestamps = true;
+        if (weightedSmoothing) {
+            settings.maximumSpeed = 40;
+            settings.speedSmoothingSamples = 1;
+        }
         builder.setSettings(settings);
+        if (weightedSmoothing) builder.reset();
         auto *options = new KisSmoothingOptions(false);
-        options->setSmoothingType(basicSmoothing ? KisSmoothingOptions::SIMPLE_SMOOTHING : KisSmoothingOptions::NO_SMOOTHING);
+        options->setSmoothingType(weightedSmoothing ? KisSmoothingOptions::WEIGHTED_SMOOTHING :
+            basicSmoothing ? KisSmoothingOptions::SIMPLE_SMOOTHING : KisSmoothingOptions::NO_SMOOTHING);
+        if (weightedSmoothing) {
+            options->setSmoothnessDistanceMin(24);
+            options->setSmoothnessDistanceMax(calls == -14 ? 48 : 24);
+            options->setUseScalableDistance(false);
+            options->setTailAggressiveness(.01);
+            options->setSmoothPressure(calls == -14);
+        }
         TimedFreehandHelper helper(&builder, &resources, kundo2_i18n("Default brush input contract"), options);
         QStringList errors;
         QObject::connect(&helper, &KisToolFreehandHelper::requestErrorMessage, &helper,
                          [&](const QString &message) { errors.append(message); });
         const auto before = layerPixels(document);
         bool initialUnchanged = false;
+        const QList<int> times{7, 41, 79, 113, 157, 211};
+        const QList<qreal> pressures{1, .8, .6, .4, .2, .1};
+        const QPointingDevice device(QStringLiteral("Weighted contract stylus"), 1,
+            QInputDevice::DeviceType::Stylus, QPointingDevice::PointerType::Pen,
+            QInputDevice::Capability::Position | QInputDevice::Capability::Pressure, 1, 1);
+        namespace Gpu = LibrePaint::Image::Gpu;
+        QList<Gpu::InputSample> expectedInput;
+        const auto gpu = image->gpuImage();
+        const auto flush = [&] {
+            if (!QMetaObject::invokeMethod(&helper, "finishStroke", Qt::DirectConnection)) return false;
+            const auto once = gpu ? gpu->operations().recoveryData() : QByteArray();
+            if (!QMetaObject::invokeMethod(&helper, "finishStroke", Qt::DirectConnection)) return false;
+            return !gpu || gpu->operations().recoveryData() == once;
+        };
         for (qsizetype i = 0; i < path.size(); ++i) {
-            helper.setElapsedStrokeTime(i * 16);
+            const int elapsed = weightedMoving ? times[i] : i * 16;
+            helper.setElapsedStrokeTime(elapsed);
             const auto point = path[i] + offset;
-            QMouseEvent event(i ? QEvent::MouseMove : QEvent::MouseButtonPress, point, point,
-                              i ? Qt::NoButton : Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-            event.setTimestamp(1000 + i * 16);
-            KoPointerEvent pointer(&event, point);
-            if (!i) {
-                helper.initPaint(&pointer, point, image, layer, image.data());
-                initialUnchanged = layerPixels(document) == before;
-            } else helper.paintEvent(&pointer);
+            const auto consume = [&](KoPointerEvent &pointer) {
+                if (!i) {
+                    helper.initPaint(&pointer, point, image, layer, image.data());
+                    initialUnchanged = layerPixels(document) == before;
+                } else helper.paintEvent(&pointer);
+                if (weightedSmoothing && gpu) {
+                    if (!helper.isRunning() || !errors.isEmpty()) return false;
+                    const auto observed = builder.hover(point, &pointer, true);
+                    expectedInput.append({point, builder.pressureToCurve(pointer.pressure()), pointer.xTilt(),
+                        pointer.yTilt(), pointer.rotation(), quint64(elapsed), observed.drawingSpeed()});
+                    const auto preview = gpu->operations().preview();
+                    if (!preview || preview->layers.isEmpty() || preview->layers.first().operations.isEmpty()) return false;
+                    const auto operation = std::get<Gpu::PaintSnapshot>(preview->layers.first().operations.last());
+                    const auto actualInput = operation->inputSamples();
+                    if (actualInput != expectedInput || !operation->brush.basicSmoothing ||
+                        !operation->brush.weightedSmoothing ||
+                        !(*operation->brush.weightedSmoothing == Gpu::WeightedSmoothing{24, calls == -14 ? 48. : 24., .01, calls == -14}))
+                        return false;
+                    for (qsizetype sample = 0; sample < actualInput.size(); ++sample) {
+                        if (actualInput[sample].position.x() != expectedInput[sample].position.x() ||
+                            actualInput[sample].position.y() != expectedInput[sample].position.y()) {
+                            qWarning() << "GPU input position changed" << sample
+                                       << actualInput[sample].position << expectedInput[sample].position;
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            };
+            if (calls == -14) {
+                QTabletEvent event(i ? QEvent::TabletMove : QEvent::TabletPress, &device, point, point,
+                    pressures[i], 0, 0, 0, 0, 0, Qt::NoModifier,
+                    i ? Qt::NoButton : Qt::LeftButton, Qt::LeftButton);
+                event.setTimestamp(100 + i * 10);
+                KoPointerEvent pointer(&event, point);
+                if (!consume(pointer)) return false;
+            } else {
+                QMouseEvent event(i ? QEvent::MouseMove : QEvent::MouseButtonPress, point, point,
+                                  i ? Qt::NoButton : Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+                event.setTimestamp(weightedMoving ? 100 + i * 10 : 1000 + i * 16);
+                KoPointerEvent pointer(&event, point);
+                if (!consume(pointer)) return false;
+            }
             if ((calls == -10 && i == 1) || (calls == -11 && i == 2)) {
                 if (!QMetaObject::invokeMethod(&helper, "finishStroke", Qt::DirectConnection)) return false;
             }
+            if (calls == -13 && i == 4 && !flush()) return false;
+        }
+        if (calls == -13 && !flush()) return false;
+        if (weightedSmoothing && gpu) {
+            Gpu::OperationDocument restored(QSize(1, 1));
+            const auto record = gpu->operations().recoveryData();
+            if (restored.restoreRecovery(record) != Gpu::Result::Success || restored.recoveryData() != record ||
+                !restored.hasActiveStroke() || std::get<Gpu::PaintSnapshot>(restored.preview()->layers.first().operations.last())->inputSamples() != expectedInput)
+                return false;
         }
         helper.endPaint();
         image->waitForDone();
@@ -641,20 +721,21 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
     QTest::addColumn<int>("calls");
     QTest::addColumn<int>("eraser");
     QTest::addColumn<bool>("basicSmoothing");
+    QTest::addColumn<bool>("weightedSmoothing");
     for (bool fresh : {false, true}) for (qreal opacity : {qreal(1), qreal(.57)}) {
         for (int profile = 0; profile < 3; ++profile) {
             const auto name = QStringLiteral("%1-opacity-%2-pressure-%3").arg(fresh ? "new" : "opened").arg(opacity).arg(profile);
-            QTest::newRow(qPrintable(name)) << opacity << qreal(1) << profile << fresh << 0 << 0 << false;
+            QTest::newRow(qPrintable(name)) << opacity << qreal(1) << profile << fresh << 0 << 0 << false << false;
         }
         const auto name = QStringLiteral("%1-opacity-%2-half-flow").arg(fresh ? "new" : "opened").arg(opacity);
-        QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << 0 << 0 << false;
+        QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << 0 << 0 << false << false;
         for (int calls = 1; calls <= 9; ++calls) {
             const auto kind = calls == 1 ? "compound-path" : calls == 2 ? "separate-paths" :
                               calls == 3 ? "line-path-line" : calls == 4 ? "path-line-path" :
                               calls == 5 ? "cubic-open" : calls == 6 ? "cubic-closed" :
                               calls == 7 ? "cubic-compound" : calls == 8 ? "cubic-separate" : "line-cubic-line";
             const auto group = QStringLiteral("%1-%2-opacity-%3").arg(fresh ? "new" : "opened").arg(QLatin1String(kind)).arg(opacity);
-            QTest::newRow(qPrintable(group)) << opacity << qreal(.5) << 2 << fresh << calls << 0 << false;
+            QTest::newRow(qPrintable(group)) << opacity << qreal(.5) << 2 << fresh << calls << 0 << false << false;
         }
     }
     const std::array<const char *, 9> kinds{{"move", "tap", "two", "closed", "stationary", "duplicate-first", "return",
@@ -662,7 +743,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
     for (bool fresh : {false, true}) for (qreal opacity : {qreal(1), qreal(.57)}) {
         for (std::size_t i = 0; i < kinds.size(); ++i) {
             const auto name = QStringLiteral("%1-freehand-%2-opacity-%3").arg(fresh ? "new" : "opened").arg(QLatin1String(kinds[i])).arg(opacity);
-            QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << -int(i + 1) << 0 << false;
+            QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << -int(i + 1) << 0 << false << false;
         }
     }
     for (bool fresh : {false, true}) for (int eraser : {1, 2}) {
@@ -673,13 +754,13 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
                                                  "zero-flow", "zero-opacity", "half-opacity-byte", "low-opacity-byte"}};
         for (std::size_t i = 0; i < calls.size(); ++i) {
             const auto name = QStringLiteral("%1-erase-%2-%3").arg(fresh ? "new" : "opened").arg(eraser).arg(QLatin1String(figures[i]));
-            QTest::newRow(qPrintable(name)) << opacity[i] << flow[i] << 2 << fresh << calls[i] << eraser << false;
+            QTest::newRow(qPrintable(name)) << opacity[i] << flow[i] << 2 << fresh << calls[i] << eraser << false << false;
         }
         for (qreal opacity : {qreal(1), qreal(.57)}) {
             for (std::size_t i = 0; i < kinds.size(); ++i) {
                 const auto name = QStringLiteral("%1-erase-%2-freehand-%3-opacity-%4").arg(fresh ? "new" : "opened")
                     .arg(eraser).arg(QLatin1String(kinds[i])).arg(opacity);
-                    QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << -int(i + 1) << eraser << false;
+                    QTest::newRow(qPrintable(name)) << opacity << qreal(.5) << 2 << fresh << -int(i + 1) << eraser << false << false;
             }
         }
     }
@@ -690,7 +771,15 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
         for (std::size_t i = 0; i < basicKinds.size(); ++i) {
             const auto name = QStringLiteral("%1-basic-%2-erase-%3").arg(fresh ? "new" : "opened")
                 .arg(QLatin1String(basicKinds[i])).arg(eraser);
-            QTest::newRow(qPrintable(name)) << qreal(.57) << qreal(.5) << 2 << fresh << basicCalls[i] << eraser << true;
+            QTest::newRow(qPrintable(name)) << qreal(.57) << qreal(.5) << 2 << fresh << basicCalls[i] << eraser << true << false;
+        }
+    }
+    for (bool fresh : {false, true}) for (int eraser : {0, 1, 2}) {
+        for (int calls : {-12, -13, -14}) {
+            const auto kind = calls == -12 ? "mouse-end" : calls == -13 ? "mouse-duplicate-idle" : "tablet-variable";
+            const auto name = QStringLiteral("%1-weighted-%2-erase-%3").arg(fresh ? "new" : "opened")
+                .arg(QLatin1String(kind)).arg(eraser);
+            QTest::newRow(qPrintable(name)) << qreal(.57) << qreal(.57) << 2 << fresh << calls << eraser << false << true;
         }
     }
 }
@@ -704,6 +793,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
     QFETCH(int, calls);
     QFETCH(int, eraser);
     QFETCH(bool, basicSmoothing);
+    QFETCH(bool, weightedSmoothing);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     KisImageConfig imageConfig(false);
     const auto previousThreads = imageConfig.maxNumberOfThreads();
@@ -784,7 +874,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
         const auto baseline = layerPixels(document);
         for (int stroke = 0; stroke < 2; ++stroke) {
             const int before = document->undoStack()->index();
-            QVERIFY(paint(document, preset, opacity, profile, stroke, calls, basicSmoothing, eraser));
+            QVERIFY(paint(document, preset, opacity, profile, stroke, calls, basicSmoothing, eraser, weightedSmoothing));
             const auto bytes = layerPixels(document);
             QFile actual(out.filePath(QStringLiteral("stroke-%1.bgra").arg(stroke)));
             QVERIFY(actual.open(QIODevice::WriteOnly));
@@ -817,7 +907,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
         QCOMPARE(bool(reopened->image()->gpuImage()), bool(owner));
         QCOMPARE(layerPixels(reopened.data()), painted);
         const auto before = layerPixels(reopened.data());
-        QVERIFY(paint(reopened.data(), preset, opacity, profile, 2, calls, basicSmoothing, eraser));
+        QVERIFY(paint(reopened.data(), preset, opacity, profile, 2, calls, basicSmoothing, eraser, weightedSmoothing));
         const auto after = layerPixels(reopened.data());
         if (eraser && (opacity == 0 || flow == 0)) QCOMPARE(after, before);
         else QVERIFY(after != before);
@@ -847,12 +937,13 @@ void TestDocument::testDefaultBrushStationaryInputKeepsOneTap_data()
     QTest::addColumn<bool>("basicSmoothing");
     QTest::addColumn<int>("repetitions");
     QTest::addColumn<int>("eraser");
-    for (int configuration = 0; configuration < 4; ++configuration) {
+    QTest::addColumn<bool>("weightedSmoothing");
+    for (int configuration = 0; configuration < 5; ++configuration) {
         for (int repetitions : {2, 3, 8}) for (int eraser : {0, 1, 2}) {
-            auto name = QStringLiteral("%1-%2").arg(configuration == 3 ? "gpu-basic" :
+            auto name = QStringLiteral("%1-%2").arg(configuration == 4 ? "gpu-weighted" : configuration == 3 ? "gpu-basic" :
                 configuration == 2 ? "gpu-none" : configuration == 1 ? "cpu-basic" : "cpu-none").arg(repetitions);
             if (eraser) name += QStringLiteral("-erase-%1").arg(eraser);
-            QTest::newRow(qPrintable(name)) << (configuration >= 2) << (configuration == 1 || configuration == 3) << repetitions << eraser;
+            QTest::newRow(qPrintable(name)) << (configuration >= 2) << (configuration == 1 || configuration == 3) << repetitions << eraser << (configuration == 4);
         }
     }
 }
@@ -861,6 +952,7 @@ void TestDocument::testDefaultBrushStationaryInputKeepsOneTap()
 {
     QFETCH(bool, gpu);
     QFETCH(bool, basicSmoothing);
+    QFETCH(bool, weightedSmoothing);
     QFETCH(int, repetitions);
     QFETCH(int, eraser);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
@@ -909,7 +1001,7 @@ void TestDocument::testDefaultBrushStationaryInputKeepsOneTap()
         return out;
     };
     const QDir tap = output(QStringLiteral("tap"));
-    QVERIFY(paint(document.data(), preset, .57, 2, 0, -2, basicSmoothing, eraser));
+    QVERIFY(paint(document.data(), preset, .57, 2, 0, -2, basicSmoothing, eraser, weightedSmoothing));
     const auto expected = layerPixels(document.data());
     QVERIFY(expected != background);
     QCOMPARE(document->undoStack()->index(), initialHistory + 1);
@@ -918,7 +1010,7 @@ void TestDocument::testDefaultBrushStationaryInputKeepsOneTap()
     document->image()->waitForDone();
     QCOMPARE(layerPixels(document.data()), background);
     const int calls = repetitions == 2 ? -8 : repetitions == 3 ? -5 : -9;
-    QVERIFY(paint(document.data(), preset, .57, 2, 0, calls, basicSmoothing, eraser));
+    QVERIFY(paint(document.data(), preset, .57, 2, 0, calls, basicSmoothing, eraser, weightedSmoothing));
     const auto actual = layerPixels(document.data());
     QFile actualPixels(destination.filePath(QStringLiteral("repeated-input.bgra")));
     QVERIFY(actualPixels.open(QIODevice::WriteOnly));
@@ -962,7 +1054,7 @@ void TestDocument::testDefaultBrushStationaryInputKeepsOneTap()
         reopened[i]->image()->waitForDone();
         QCOMPARE(bool(reopened[i]->image()->gpuImage()), gpu);
         QCOMPARE(layerPixels(reopened[i].data()), expected);
-        QVERIFY(paint(reopened[i].data(), preset, .57, 2, 2, i ? calls : -2, basicSmoothing, eraser));
+        QVERIFY(paint(reopened[i].data(), preset, .57, 2, 2, i ? calls : -2, basicSmoothing, eraser, weightedSmoothing));
         const auto after = layerPixels(reopened[i].data());
         QVERIFY(after != expected);
         if (!i) afterTap = after;

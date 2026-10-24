@@ -30,6 +30,9 @@ struct PaintGeometry
     QList<PaintSegment> fill;
 };
 constexpr qsizetype PathGeometrySegmentLimit = 1024 * 1024;
+/** Derived positions/pressure preserve raw input; excessive replay returns nullopt. */
+std::optional<QList<InputSample>> weightedInput(const QList<InputSample> &input,
+                                               const WeightedSmoothing &settings);
 std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quint32 step);
 std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, const Brush &brush,
                                              QRect region, qsizetype maximumCoordinates,

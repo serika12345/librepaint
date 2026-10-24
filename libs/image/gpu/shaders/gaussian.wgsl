@@ -218,6 +218,28 @@ fn floatSqrt(value: u32) -> u32 {
     return (u32(exponent + 127) << 23u) | (root & 0x7fffffu);
 }
 
+// Gaussian coverage rounds y*y before the single-rounded x*x + y*y sum.
+fn gaussianSquaredDistance(x: u32, y: u32) -> u32 {
+    let xx = x & 0x7fffffffu;
+    let yy = floatMultiply(y, y);
+    if (xx == 0u) { return yy; }
+    if (yy == 0u) { return floatMultiply(x, x); }
+    let product = projectionProduct(projectionMantissa(xx), projectionMantissa(xx));
+    let productPower = 2 * projectionPower(xx);
+    let yPower = projectionPower(yy);
+    // Align the larger term at bit 55, retaining low guard space before a
+    // discarded tail becomes sticky. The positive sum fits in 57 bits.
+    let productTop = productPower + i32(63u - countLeadingZeros(product.y));
+    let power = max(productTop, yPower + 23) - 55;
+    var first = product;
+    if (productPower < power) { first = wordJam(first, u32(power - productPower)); }
+    else { first = wordLeft(first, u32(productPower - power)); }
+    var second = Word64(projectionMantissa(yy), 0u);
+    if (yPower < power) { second = wordJam(second, u32(power - yPower)); }
+    else { second = wordLeft(second, u32(yPower - power)); }
+    return projectionFloat(wordAdd(first, second), power);
+}
+
 struct MaskDab {
     size: vec4<u32>,
     center: vec4<u32>,
@@ -255,7 +277,7 @@ fn circleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
     let sine = floatFromDouble(dab.rotation.zw);
     let xr = floatSubtract(floatMultiply(dx, cosine), floatMultiply(sine, dy));
     let yr = floatAdd(floatMultiply(dx, sine), floatMultiply(cosine, dy));
-    let distance = floatSqrt(floatAdd(floatMultiply(xr, xr), floatMultiply(yr, yr)));
+    let distance = floatSqrt(gaussianSquaredDistance(xr, yr));
     let radius = floatFromDouble(dab.radius.xy);
     let start = floatFromDouble(dab.radius.zw);
     if (distance > radius) { return 0u; }
