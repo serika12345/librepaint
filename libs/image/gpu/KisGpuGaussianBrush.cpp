@@ -199,8 +199,12 @@ std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, 
         }
     } else if (operation.shape.kind == ShapeKind::Line || operation.shape.kind == ShapeKind::Freehand ||
                operation.shape.kind == ShapeKind::Polyline) {
-        if (operation.shape.kind == ShapeKind::Freehand && input.size() == 1 && !pending &&
-            !append(input.first())) return std::nullopt;
+        const bool stationaryFreehand = operation.shape.kind == ShapeKind::Freehand &&
+            std::all_of(input.cbegin(), input.cend(), [&](const InputSample &point) {
+                return point.position.x() == input.first().position.x() &&
+                       point.position.y() == input.first().position.y();
+            });
+        if (stationaryFreehand && !pending && !append(input.last())) return std::nullopt;
         for (qsizetype i = 1; i < input.size(); ++i)
             if (!line(input[i - 1], input[i])) return std::nullopt;
     } else return std::nullopt;

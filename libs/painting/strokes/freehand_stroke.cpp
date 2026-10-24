@@ -192,7 +192,11 @@ void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
         case Data::POINT:
             d->pi1.setRandomSource(rnd);
             d->pi1.setPerStrokeRandomSource(strokeRnd);
-            maskedPainter->paintAt(d->pi1);
+            if (d->onlyIfEmpty) {
+                maskedPainter->paintAtIfEmpty(d->pi1);
+            } else {
+                maskedPainter->paintAt(d->pi1);
+            }
             m_d->efficiencyMeasurer.addSample(d->pi1.pos());
             break;
         case Data::LINE:

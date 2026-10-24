@@ -37,6 +37,8 @@ public:
     KisPaintOpPresetSP preset() const;
 
     void paintAt(const KisPaintInformation& pi);
+    // Complete each painter that has produced neither a dab nor changed pixels.
+    void paintAtIfEmpty(const KisPaintInformation &pi);
 
     void paintLine(const KisPaintInformation &pi1,
                    const KisPaintInformation &pi2);
@@ -72,6 +74,8 @@ private:
 private:
     KisFreehandStrokeInfo *m_stroke = 0;
     KisFreehandStrokeInfo *m_mask = 0;
+    bool m_strokeHasPainted = false;
+    bool m_maskHasPainted = false;
 };
 
 #endif // KISMASKEDPAINTINGSTROKEDATA_H

@@ -6,7 +6,9 @@
 #include <simpletest.h>
 #include <Document.h>
 #include <InfoObject.h>
+#include <Node.h>
 #include <KisGlobalResourcesInterface.h>
+#include <KisImageBarrierLock.h>
 #include <KoCanvasResourceProvider.h>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
@@ -108,11 +110,27 @@ bool fixInformation(KisDocument *document)
 
 bool save(KisDocument *document, const QDir &out, const QString &name)
 {
-    if (!fixInformation(document)) return false;
+    QString lastStatus;
+    const auto statusConnection = QObject::connect(document, &KisDocument::statusBarMessage,
+        document, [&](const QString &text, int) { lastStatus = text; });
+    const auto disconnectStatus = qScopeGuard([&] { QObject::disconnect(statusConnection); });
+    const auto failed = [&](const char *stage) {
+        qWarning() << "Default brush save failed" << stage << out.filePath(name)
+                   << document->errorMessage() << lastStatus
+                   << "image idle" << document->image()->isIdle()
+                   << "saving" << document->isSaving();
+        return false;
+    };
+    if (!fixInformation(document)) return failed("document information");
     KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
     settings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
     document->setModified(true);
-    if (!document->saveAs(out.filePath(name + QStringLiteral(".kra")), KisDocument::nativeFormatMimeType(), false, settings)) return false;
+    {
+        // Hold the observed image version through save's event processing and clone.
+        KisImageReadOnlyBarrierLock imageLock(document->image());
+        if (!document->saveAs(out.filePath(name + QStringLiteral(".kra")), KisDocument::nativeFormatMimeType(), false, settings))
+            return failed("KRA start");
+    }
     document->waitForSavingToComplete();
     Document api(document, false);
     InfoObject options;
@@ -127,13 +145,16 @@ bool save(KisDocument *document, const QDir &out, const QString &name)
     options.setProperty("iptc", true);
     options.setProperty("xmp", true);
     for (const auto &extension : {QStringLiteral("png"), QStringLiteral("jpg")})
-        if (!api.exportImage(out.filePath(name + QLatin1Char('.') + extension), options)) return false;
+        if (!api.exportImage(out.filePath(name + QLatin1Char('.') + extension), options))
+            return failed(qPrintable(extension));
     QFile raw(out.filePath(name + QStringLiteral(".bgra")));
     const auto bytes = layerPixels(document);
-    return raw.open(QIODevice::WriteOnly) && raw.write(bytes) == bytes.size();
+    if (!raw.open(QIODevice::WriteOnly) || raw.write(bytes) != bytes.size()) return failed("raw pixels");
+    return true;
 }
 
-bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int profile, int stroke, int calls)
+bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int profile, int stroke, int calls,
+           bool basicSmoothing = false)
 {
     KisImageSP image = document->image();
     const auto layer = paintLayer(document);
@@ -169,9 +190,10 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
         else if (calls == -5) path = {path.first(), path.first(), path.first()};
         else if (calls == -6) path = {path.first(), path.first(), path.last()};
         else if (calls == -7) path = {path.first(), path[1], path.first()};
+        else if (calls == -8 || calls == -9) path = QList<QPointF>(calls == -8 ? 2 : 8, path.first());
         KisPaintingInformationBuilder builder;
         auto *options = new KisSmoothingOptions(false);
-        options->setSmoothingType(KisSmoothingOptions::NO_SMOOTHING);
+        options->setSmoothingType(basicSmoothing ? KisSmoothingOptions::SIMPLE_SMOOTHING : KisSmoothingOptions::NO_SMOOTHING);
         KisToolFreehandHelper helper(&builder, &resources, kundo2_i18n("Default brush input contract"), options);
         QStringList errors;
         QObject::connect(&helper, &KisToolFreehandHelper::requestErrorMessage, &helper,
@@ -269,7 +291,8 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
             QTest::newRow(qPrintable(group)) << opacity << qreal(.5) << 2 << fresh << calls;
         }
     }
-    const std::array<const char *, 7> kinds{{"move", "tap", "two", "closed", "stationary", "duplicate-first", "return"}};
+    const std::array<const char *, 9> kinds{{"move", "tap", "two", "closed", "stationary", "duplicate-first", "return",
+                                          "stationary-two", "stationary-eight"}};
     for (bool fresh : {false, true}) for (qreal opacity : {qreal(1), qreal(.57)}) {
         for (std::size_t i = 0; i < kinds.size(); ++i) {
             const auto name = QStringLiteral("%1-freehand-%2-opacity-%3").arg(fresh ? "new" : "opened").arg(QLatin1String(kinds[i])).arg(opacity);
@@ -362,8 +385,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
             QCOMPARE(document->undoStack()->index(), before + 1);
         }
         const auto painted = layerPixels(document);
-        if (calls == -5) QCOMPARE(painted, QByteArray(painted.size(), '\0'));
-        else QVERIFY(painted != QByteArray(painted.size(), '\0'));
+        QVERIFY(painted != QByteArray(painted.size(), '\0'));
         QVERIFY(save(document, out, QStringLiteral("painted")));
         QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
         reopened->setFileBatchMode(true);
@@ -376,8 +398,7 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
         const auto before = layerPixels(reopened.data());
         QVERIFY(paint(reopened.data(), preset, opacity, profile, 2, calls));
         const auto after = layerPixels(reopened.data());
-        if (calls == -5) QCOMPARE(after, before);
-        else QVERIFY(after != before);
+        QVERIFY(after != before);
         reopened->undoStack()->undo();
         reopened->image()->waitForDone();
         QCOMPARE(layerPixels(reopened.data()), before);
@@ -396,4 +417,152 @@ void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles()
             }
         }
     }
+}
+
+void TestDocument::testDefaultBrushStationaryInputKeepsOneTap_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("basicSmoothing");
+    QTest::addColumn<int>("repetitions");
+    for (int configuration = 0; configuration < 3; ++configuration) {
+        for (int repetitions : {2, 3, 8}) {
+            const auto name = QStringLiteral("%1-%2").arg(configuration == 2 ? "gpu-none" :
+                configuration == 1 ? "cpu-basic" : "cpu-none").arg(repetitions);
+            QTest::newRow(qPrintable(name)) << (configuration == 2) << (configuration == 1) << repetitions;
+        }
+    }
+}
+
+void TestDocument::testDefaultBrushStationaryInputKeepsOneTap()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, basicSmoothing);
+    QFETCH(int, repetitions);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    KisImageConfig imageConfig(false);
+    const auto previousThreads = imageConfig.maxNumberOfThreads();
+    KisConfig config(false);
+    const auto previousCompression = config.readEntry<bool>("compressLayers", true);
+    const auto restore = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+        imageConfig.setMaxNumberOfThreads(previousThreads);
+        config.writeEntry("compressLayers", previousCompression);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+    imageConfig.setMaxNumberOfThreads(4);
+    config.writeEntry("compressLayers", true);
+    QString diagnostic;
+    const auto preset = defaultBrush(.5, diagnostic);
+    QVERIFY2(preset, qPrintable(diagnostic));
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const QDir destination(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path()) +
+        QStringLiteral("/stationary-tap/") + QString::fromLatin1(QTest::currentDataTag()));
+    QVERIFY(QDir().mkpath(destination.path()));
+    const auto retainFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) { temporary.setAutoRemove(false); qInfo() << "Stationary tap artifacts at" << destination.path(); }
+    });
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setAutoSaveActive(false);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(document->newImage(QStringLiteral("Stationary tap contract"), side, side, cs,
+        KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    QCOMPARE(bool(document->image()->gpuImage()), gpu);
+    const auto layer = paintLayer(document.data());
+    QVERIFY(layer);
+    QByteArray background(side * side * 4, '\0');
+    const std::array<int, 8> alphas{{0, 1, 2, 63, 127, 128, 254, 255}};
+    for (int y = 0; y < side; ++y) for (int x = 0; x < side; ++x) {
+        auto *pixel = background.data() + 4 * (y * side + x);
+        pixel[0] = char((x * 17 + y * 3) % 256);
+        pixel[1] = char((x * 5 + y * 11) % 256);
+        pixel[2] = char((x * 7 + y * 13) % 256);
+        pixel[3] = char(alphas[(x / 16 + y / 16) % alphas.size()]);
+    }
+    QScopedPointer<Node> node(Node::createNode(document->image(), layer));
+    QVERIFY(node->setPixelData(background, 0, 0, side, side));
+    document->image()->waitForDone();
+    QCOMPARE(layerPixels(document.data()), background);
+    const int initialHistory = document->undoStack()->index();
+    const auto output = [&](const QString &name) {
+        const QDir out(destination.filePath(name));
+        QDir().mkpath(out.path());
+        return out;
+    };
+    const QDir tap = output(QStringLiteral("tap"));
+    QVERIFY(paint(document.data(), preset, .57, 2, 0, -2, basicSmoothing));
+    const auto expected = layerPixels(document.data());
+    QVERIFY(expected != background);
+    QCOMPARE(document->undoStack()->index(), initialHistory + 1);
+    QVERIFY(save(document.data(), tap, QStringLiteral("document")));
+    document->undoStack()->undo();
+    document->image()->waitForDone();
+    QCOMPARE(layerPixels(document.data()), background);
+    const int calls = repetitions == 2 ? -8 : repetitions == 3 ? -5 : -9;
+    QVERIFY(paint(document.data(), preset, .57, 2, 0, calls, basicSmoothing));
+    const auto actual = layerPixels(document.data());
+    QFile actualPixels(destination.filePath(QStringLiteral("repeated-input.bgra")));
+    QVERIFY(actualPixels.open(QIODevice::WriteOnly));
+    QCOMPARE(actualPixels.write(actual), qint64(actual.size()));
+    actualPixels.close();
+    QCOMPARE(actual, expected);
+    QCOMPARE(document->undoStack()->index(), initialHistory + 1);
+    document->undoStack()->undo();
+    document->image()->waitForDone();
+    QCOMPARE(layerPixels(document.data()), background);
+    document->undoStack()->redo();
+    document->image()->waitForDone();
+    QCOMPARE(layerPixels(document.data()), expected);
+    const QDir repeated = output(QStringLiteral("repeated"));
+    QVERIFY(save(document.data(), repeated, QStringLiteral("document")));
+    const auto compareFiles = [&](const QDir &first, const QDir &second) {
+        for (const auto &extension : {QStringLiteral("bgra"), QStringLiteral("kra"), QStringLiteral("png"), QStringLiteral("jpg")}) {
+            QFile reference(first.filePath(QStringLiteral("document.") + extension));
+            QFile actual(second.filePath(QStringLiteral("document.") + extension));
+            if (!reference.open(QIODevice::ReadOnly) || !actual.open(QIODevice::ReadOnly)) {
+                qWarning() << "Cannot read stationary tap artifacts" << reference.fileName() << actual.fileName();
+                return false;
+            }
+            const auto bytes = reference.readAll();
+            if (bytes.isEmpty() || bytes != actual.readAll()) {
+                qWarning() << "Stationary tap file differs" << reference.fileName() << actual.fileName();
+                return false;
+            }
+        }
+        return true;
+    };
+    QVERIFY(compareFiles(tap, repeated));
+    QScopedPointer<KisDocument> reopened[2];
+    QByteArray afterTap;
+    for (int i = 0; i < 2; ++i) {
+        reopened[i].reset(KisPart::instance()->createDocument());
+        reopened[i]->setFileBatchMode(true);
+        reopened[i]->setAutoSaveActive(false);
+        QVERIFY2(reopened[i]->openPath(repeated.filePath(QStringLiteral("document.kra")), KisDocument::DontAddToRecent),
+                 qPrintable(reopened[i]->errorMessage()));
+        reopened[i]->image()->waitForDone();
+        QCOMPARE(bool(reopened[i]->image()->gpuImage()), gpu);
+        QCOMPARE(layerPixels(reopened[i].data()), expected);
+        QVERIFY(paint(reopened[i].data(), preset, .57, 2, 2, i ? calls : -2, basicSmoothing));
+        const auto after = layerPixels(reopened[i].data());
+        QVERIFY(after != expected);
+        if (!i) afterTap = after;
+        else {
+            QFile actualPixels(destination.filePath(QStringLiteral("reopened-repeated-input.bgra")));
+            QVERIFY(actualPixels.open(QIODevice::WriteOnly));
+            QCOMPARE(actualPixels.write(after), qint64(after.size()));
+            actualPixels.close();
+            QCOMPARE(after, afterTap);
+        }
+        reopened[i]->undoStack()->undo();
+        reopened[i]->image()->waitForDone();
+        QCOMPARE(layerPixels(reopened[i].data()), expected);
+        reopened[i]->undoStack()->redo();
+        reopened[i]->image()->waitForDone();
+        QCOMPARE(layerPixels(reopened[i].data()), after);
+        QVERIFY(save(reopened[i].data(), output(i ? QStringLiteral("after-repeated") : QStringLiteral("after-tap")),
+                     QStringLiteral("document")));
+    }
+    QVERIFY(compareFiles(output(QStringLiteral("after-tap")), output(QStringLiteral("after-repeated"))));
 }

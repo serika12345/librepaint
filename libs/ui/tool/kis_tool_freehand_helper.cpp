@@ -108,6 +108,8 @@ struct KisToolFreehandHelper::Private
     QPointF previousTangent;
 
     bool hasPaintAtLeastOnce;
+    bool hasInputMovement = false;
+    bool paintAtOnlyIfEmpty = false;
 
     QElapsedTimer strokeTime;
     QTimer strokeTimeoutTimer;
@@ -426,6 +428,8 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
     m_d->previousTangent = QPointF();
 
     m_d->hasPaintAtLeastOnce = false;
+    m_d->hasInputMovement = false;
+    m_d->paintAtOnlyIfEmpty = false;
 
     m_d->previousPaintInformation = pi;
 
@@ -623,6 +627,8 @@ void KisToolFreehandHelper::paintEvent(KoPointerEvent *event)
 
 void KisToolFreehandHelper::paint(KisPaintInformation &info)
 { 
+    m_d->hasInputMovement |= info.pos().x() != m_d->previousPaintInformation.pos().x() ||
+                             info.pos().y() != m_d->previousPaintInformation.pos().y();
     /**
      * Smooth the coordinates out using the history and the
      * distance. This is a heavily modified version of an algo used in
@@ -854,10 +860,19 @@ void KisToolFreehandHelper::endPaint()
         }
         return;
     }
+    const auto smoothingType = m_d->smoothingOptions->smoothingType();
+    const bool completeStationaryStroke = m_d->hasPaintAtLeastOnce && !m_d->hasInputMovement &&
+        (smoothingType == KisSmoothingOptions::NO_SMOOTHING ||
+         smoothingType == KisSmoothingOptions::SIMPLE_SMOOTHING);
     if (!m_d->hasPaintAtLeastOnce) {
         paintAt(m_d->previousPaintInformation);
     } else if (m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::NO_SMOOTHING) {
         finishStroke();
+    }
+    if (completeStationaryStroke) {
+        m_d->paintAtOnlyIfEmpty = true;
+        paintAt(m_d->previousPaintInformation);
+        m_d->paintAtOnlyIfEmpty = false;
     }
     m_d->strokeTimeoutTimer.stop();
 
@@ -1183,8 +1198,10 @@ void KisToolFreehandHelper::paintAt(int strokeInfoId,
                                     const KisPaintInformation &pi)
 {
     m_d->hasPaintAtLeastOnce = true;
+    auto *data = new FreehandStrokeStrategy::Data(strokeInfoId, pi);
+    data->onlyIfEmpty = m_d->paintAtOnlyIfEmpty;
     m_d->strokesFacade->addJob(m_d->strokeId,
-                               new FreehandStrokeStrategy::Data(strokeInfoId, pi));
+                               data);
 
 }
 

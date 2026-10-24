@@ -16,7 +16,7 @@ struct GaussianDab
 };
 static_assert(sizeof(GaussianDab) == 96);
 
-/** Pending intent belongs to the pinned version; a lone point stamps only after commit. */
+/** Pending intent belongs to the pinned version; stationary input stamps its last point after commit. */
 std::optional<QList<GaussianDab>> gaussianDabs(const PaintOperation &operation, bool pending);
 }
 #endif

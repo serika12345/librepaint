@@ -115,7 +115,8 @@ public:
         Data(const Data &rhs, int levelOfDetail)
             : KisStrokeJobData(rhs),
               strokeInfoId(rhs.strokeInfoId),
-              type(rhs.type)
+              type(rhs.type),
+              onlyIfEmpty(rhs.onlyIfEmpty)
         {
             KisLodTransform t(levelOfDetail);
 
@@ -163,6 +164,7 @@ public:
         int strokeInfoId;
 
         DabType type;
+        bool onlyIfEmpty = false;
         KisPaintInformation pi1;
         KisPaintInformation pi2;
         QPointF control1;

@@ -31,6 +31,8 @@ private Q_SLOTS:
     void testOrdinaryCreationPreservesInitialDocumentState();
     void testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data();
     void testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles();
+    void testDefaultBrushStationaryInputKeepsOneTap_data();
+    void testDefaultBrushStationaryInputKeepsOneTap();
     void testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsupportedEdits();
     void testGpuSessionOpensExistingStaticNativeDocuments_data();
     void testGpuSessionOpensExistingStaticNativeDocuments();

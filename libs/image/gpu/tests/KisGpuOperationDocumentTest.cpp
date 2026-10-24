@@ -186,6 +186,8 @@ private Q_SLOTS:
     void emptyPathsPreserveHistoryAndPendingRecovery();
     void invalidPathsPreserveHistoryAndInputBudgets();
     void gaussianWashSettingsSurviveHistoryAndRecovery();
+    void stationaryGaussianCommitInvalidatesPendingPixelsAndRetainsInput_data();
+    void stationaryGaussianCommitInvalidatesPendingPixelsAndRetainsInput();
     void invalidGaussianWashSettingsPreserveTheDocument();
     void cancelAndRejectedInputPreserveRedo();
     void documentChangesShareOneHistory();
@@ -4186,6 +4188,53 @@ void KisGpuOperationDocumentTest::gaussianWashSettingsSurviveHistoryAndRecovery(
     const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
     QVERIFY(recovered->brush == operation->brush);
     QCOMPARE(restored.recoveryData(), record);
+}
+
+void KisGpuOperationDocumentTest::stationaryGaussianCommitInvalidatesPendingPixelsAndRetainsInput_data()
+{
+    QTest::addColumn<int>("count");
+    for (int count : {1, 2, 3, 8, 1025})
+        QTest::newRow(qPrintable(QString::number(count))) << count;
+}
+
+void KisGpuOperationDocumentTest::stationaryGaussianCommitInvalidatesPendingPixelsAndRetainsInput()
+{
+    QFETCH(int, count);
+    OperationDocument document(QSize(128, 128));
+    Brush brush;
+    brush.gaussianWash.emplace();
+    brush.gaussianWash->resourceDigest = QByteArray(32, 'r');
+    const auto id = document.beginStroke(document.activeLayer(), brush, 1789);
+    QList<InputSample> input;
+    for (int i = 0; i < count; ++i)
+        input.append({{12.25, 13.75}, qreal(i + 1) / count,
+                      qreal(i % 91), -qreal(i % 91), qreal(i % 360), quint64(i * 16), qreal(i) / count});
+    QCOMPARE(document.appendSamples(id, input), Result::Success);
+    const auto pending = document.preview();
+    const auto operation = std::get<PaintSnapshot>(pending->layers.first().operations.last());
+    const auto record = document.recoveryData();
+    OperationDocument recovered(QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(record), Result::Success);
+    for (auto *value : {&document, &recovered}) {
+        const auto intent = value->preview();
+        const auto before = std::get<PaintSnapshot>(intent->layers.first().operations.last());
+        QCOMPARE(value->commitStroke(value->activeOperation()), Result::Success);
+        const auto after = std::get<PaintSnapshot>(value->snapshot()->layers.first().operations.last());
+        // Pixel caches distinguish the empty pending stroke from its final tap
+        // by the operation version, while retained input remains immutable.
+        QVERIFY(after->version > before->version);
+        QCOMPARE(after->id, before->id);
+        QCOMPARE(after->inputSamples(), input);
+        QCOMPARE(before->inputSamples(), input);
+        QCOMPARE(intent->pendingOperation(), before->id);
+        QVERIFY(value->snapshot()->pendingOperation().isNull());
+        QCOMPARE(value->undoCount(), 1);
+    }
+    QCOMPARE(operation->inputSamples(), input);
+    QCOMPARE(pending->pendingOperation(), id);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->inputSamples(), input);
 }
 
 void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument()

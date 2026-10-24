@@ -143,9 +143,13 @@ void KisGpuTileRendererTest::gaussianFreehandKeepsInitialDistanceAndFinalTap_dat
     QTest::newRow("two") << 1 << QByteArrayLiteral("4141da91dfe824fa1fe8c468c369e318bb62aac2da13a825aa936f020601513f");
     QTest::newRow("curve") << 2 << QByteArrayLiteral("9768513405d0c7bb276ff79b7a6475bbd15f76122c16cd02d90a857c45e450f2");
     QTest::newRow("closed") << 3 << QByteArrayLiteral("16a05f0a9afe0944736109eb6359ef301c5126040dafb51d4e178f9576032413");
-    QTest::newRow("stationary") << 4 << QByteArrayLiteral("dc1393988897084bb62a1142bc4d7fc6c4d3b03c10fafe253824863cb311901f");
+    // Repeated stationary input uses the maintained single-tap baseline.
+    QTest::newRow("stationary-two") << -2 << QByteArrayLiteral("5e82950920eb254d739d256f1593368d009cab3fc5fbf5248537b5acf1f950ce");
+    QTest::newRow("stationary") << -3 << QByteArrayLiteral("5e82950920eb254d739d256f1593368d009cab3fc5fbf5248537b5acf1f950ce");
+    QTest::newRow("stationary-eight") << -8 << QByteArrayLiteral("5e82950920eb254d739d256f1593368d009cab3fc5fbf5248537b5acf1f950ce");
     QTest::newRow("duplicate-first") << 5 << QByteArrayLiteral("6149e497bf814729e64b66d409c9ee605ef32900d4970afc0103080413c99725");
     QTest::newRow("return") << 6 << QByteArrayLiteral("add58eb08c2539e1fa3db420d884a0a21b835dc8b5b6d98a141ee36974879294");
+    QTest::newRow("subspacing") << 7 << QByteArrayLiteral("dc1393988897084bb62a1142bc4d7fc6c4d3b03c10fafe253824863cb311901f");
 }
 
 void KisGpuTileRendererTest::gaussianFreehandKeepsInitialDistanceAndFinalTap()
@@ -159,10 +163,20 @@ void KisGpuTileRendererTest::gaussianFreehandKeepsInitialDistanceAndFinalTap()
     if (kind == 0) input = input.first(1);
     else if (kind == 1) input = input.first(2);
     else if (kind == 3) input.append(input.first());
-    else if (kind == 4) input = {input.first(), input.first(), input.first()};
+    else if (kind < 0) input = QList<InputSample>(-kind, input.first());
     else if (kind == 5) input = {input.first(), input.first(), input.last()};
     else if (kind == 6) input = {input.first(), input[1], input.first()};
-    for (qsizetype i = 0; i < input.size(); ++i) input[i].timestamp = i * 16;
+    else if (kind == 7) input = {input.first(), {{input.first().position.x() + 1e-12, input.first().position.y()}, 1}};
+    for (qsizetype i = 0; i < input.size(); ++i) {
+        input[i].timestamp = i * 16;
+        if (kind < 0) {
+            input[i].pressure = qreal(i + 1) / input.size();
+            input[i].xTilt = i * 7 - 28;
+            input[i].yTilt = 14 - i * 3;
+            input[i].rotation = i * 11;
+            input[i].speed = qreal(i) / input.size();
+        }
+    }
     RgbaTile tile{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')};
     const std::array<int, 8> alphas{{0, 1, 2, 63, 127, 128, 254, 255}};
     for (int y = 0; y < 128; ++y) for (int x = 0; x < 128; ++x) {
@@ -184,14 +198,20 @@ void KisGpuTileRendererTest::gaussianFreehandKeepsInitialDistanceAndFinalTap()
     const auto stroke = document.beginStroke(target, brush, 0);
     TileRenderer renderer(m_device);
     RenderedSnapshot preview;
+    QList<Snapshot> retainedIntents;
+    QList<RenderedSnapshot> retainedPreviews;
+    QList<QByteArray> retainedPixels;
     for (qsizetype i = 0; i < input.size(); ++i) {
         QCOMPARE(document.appendSamples(stroke, {input[i]}), Result::Success);
         preview = render(renderer, document.preview(), preview);
         QVERIFY(preview);
-        if (!i) QCOMPARE(readTile(preview, target, {0, 0}), tile.rgba);
+        if (!i || kind < 0) QCOMPARE(readTile(preview, target, {0, 0}), tile.rgba);
         const auto rebuilt = render(renderer, document.preview());
         QVERIFY(rebuilt);
         QCOMPARE(readTile(preview, target, {0, 0}), readTile(rebuilt, target, {0, 0}));
+        retainedIntents.append(document.preview());
+        retainedPreviews.append(preview);
+        retainedPixels.append(readTile(preview, target, {0, 0}));
     }
     const auto pendingPixels = readTile(preview, target, {0, 0});
     OperationDocument restored(QSize(1, 1));
@@ -205,7 +225,22 @@ void KisGpuTileRendererTest::gaussianFreehandKeepsInitialDistanceAndFinalTap()
     const auto final = render(renderer, restored.snapshot(), pendingRecovery);
     QVERIFY(final);
     const auto actual = readTile(final, restored.activeLayer(), {0, 0});
-    QCOMPARE(readTile(preview, target, {0, 0}), pendingPixels);
+    for (qsizetype i = 0; i < retainedIntents.size(); ++i) {
+        QCOMPARE(readTile(retainedPreviews[i], target, {0, 0}), retainedPixels[i]);
+        QCOMPARE(readTile(render(renderer, retainedIntents[i]), target, {0, 0}), retainedPixels[i]);
+    }
+    QByteArray tapPixels;
+    if (kind <= 0) {
+        OperationDocument tap(image);
+        const auto tapStroke = tap.beginStroke(tap.activeLayer(), brush, 0);
+        QCOMPARE(tap.appendSamples(tapStroke, {input.last()}), Result::Success);
+        QCOMPARE(tap.commitStroke(tapStroke), Result::Success);
+        tapPixels = readTile(render(renderer, tap.snapshot()), tap.activeLayer(), {0, 0});
+    }
+    OperationDocument recovered(QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(restored.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), actual);
+    QCOMPARE(std::get<PaintSnapshot>(recovered.snapshot()->layers.first().operations.last())->inputSamples(), input);
     QByteArray pixels;
     for (int y = 0; y < 128; ++y) pixels.append(actual.mid(y * RgbaTile::Size * 4, 128 * 4));
     const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
@@ -223,6 +258,7 @@ void KisGpuTileRendererTest::gaussianFreehandKeepsInitialDistanceAndFinalTap()
             QCOMPARE(record.write(bytes), bytes.size());
         }
     }
+    if (kind <= 0) QCOMPARE(actual, tapPixels);
     QCOMPARE(QCryptographicHash::hash(pixels, QCryptographicHash::Sha256).toHex(), expectedSha256);
     QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->inputSamples(), input);
     QCOMPARE(restored.undoCount(), 1);
