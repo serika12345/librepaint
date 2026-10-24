@@ -8,6 +8,7 @@
 #include <QGuiApplication>
 #include <QMutex>
 #include <QMutexLocker>
+#include <QPointer>
 #include <QThread>
 #include <cstring>
 
@@ -20,6 +21,44 @@ QString messageText(WGPUStringView message)
     const auto size = message.length == WGPU_STRLEN ? std::strlen(message.data) : message.length;
     return QString::fromUtf8(message.data, qsizetype(size));
 }
+
+class ApplicationInstance;
+QPointer<ApplicationInstance> applicationInstance;
+
+class ApplicationInstance final : public QObject
+{
+public:
+    explicit ApplicationInstance(std::shared_ptr<NativeInstance> native)
+        : instance(std::move(native)) {}
+    ~ApplicationInstance() override
+    {
+        // QObject clears QPointer after this class's members are released.
+        applicationInstance.clear();
+    }
+    std::shared_ptr<NativeInstance> instance;
+};
+
+std::shared_ptr<NativeInstance> nativeInstance(QGuiApplication *application)
+{
+    if (applicationInstance) return applicationInstance->instance;
+    WGPUInstanceExtras extras{};
+    extras.chain.sType = WGPUSType(WGPUSType_InstanceExtras);
+#ifdef Q_OS_DARWIN
+    extras.backends = WGPUInstanceBackend_Metal;
+#else
+    extras.backends = WGPUInstanceBackend_Vulkan;
+#endif
+    WGPUInstanceDescriptor descriptor{};
+    descriptor.nextInChain = &extras.chain;
+    NativeInstance instance(wgpuCreateInstance(&descriptor));
+    if (!instance) return {};
+    auto shared = std::make_shared<NativeInstance>(std::move(instance));
+    auto *owner = new ApplicationInstance(shared);
+    // Parent assignment can synchronously reenter through ChildAdded.
+    applicationInstance = owner;
+    owner->setParent(application);
+    return shared;
+}
 }
 
 struct Device::Private
@@ -28,9 +67,9 @@ struct Device::Private
     mutable QMutex mutex;
     QString error;
     std::atomic<bool> lost{false}, failed{false};
-    // Callback addresses survive native device and instance cleanup.
+    // Callback addresses survive per-device native cleanup.
     std::shared_ptr<ReadbackBatch> readback;
-    NativeInstance instance;
+    std::shared_ptr<NativeInstance> instance;
     NativeAdapter adapter;
     NativeDevice device;
     NativeQueue queue;
@@ -55,7 +94,7 @@ Device::~Device()
     wgpuDeviceDestroy(m_d->device.get());
     wgpuDevicePoll(m_d->device.get(), true, nullptr);
 }
-WGPUInstance Device::instance() const { return m_d->instance.get(); }
+WGPUInstance Device::instance() const { return m_d->instance->get(); }
 WGPUAdapter Device::adapter() const { return m_d->adapter.get(); }
 WGPUDevice Device::nativeDevice() const { return m_d->device.get(); }
 WGPUQueue Device::queue() const { return m_d->queue.get(); }
@@ -110,8 +149,9 @@ DevicePtr Device::createNative(QString &diagnostic)
 DevicePtr Device::createNative(QString &diagnostic, bool enableTimestampQueries)
 {
     diagnostic.clear();
-    if (!qobject_cast<QGuiApplication *>(QCoreApplication::instance()) ||
-        QCoreApplication::instance()->thread() != QThread::currentThread()) {
+    auto *application = qobject_cast<QGuiApplication *>(QCoreApplication::instance());
+    if (QCoreApplication::closingDown() || !application ||
+        application->thread() != QThread::currentThread()) {
         diagnostic = QStringLiteral("Native GPU creation requires the GUI application thread");
         return {};
     }
@@ -120,16 +160,7 @@ DevicePtr Device::createNative(QString &diagnostic, bool enableTimestampQueries)
         return {};
     }
     auto data = std::make_unique<Private>();
-    WGPUInstanceExtras extras{};
-    extras.chain.sType = WGPUSType(WGPUSType_InstanceExtras);
-#ifdef Q_OS_DARWIN
-    extras.backends = WGPUInstanceBackend_Metal;
-#else
-    extras.backends = WGPUInstanceBackend_Vulkan;
-#endif
-    WGPUInstanceDescriptor instanceDescriptor{};
-    instanceDescriptor.nextInChain = &extras.chain;
-    data->instance.reset(wgpuCreateInstance(&instanceDescriptor));
+    data->instance = nativeInstance(application);
     if (!data->instance) {
         diagnostic = QStringLiteral("The native GPU instance could not be created");
         return {};
@@ -149,7 +180,7 @@ DevicePtr Device::createNative(QString &diagnostic, bool enableTimestampQueries)
         if (status == WGPURequestAdapterStatus_Success) data->adapter.reset(adapter);
         else data->fail(message);
     };
-    wgpuInstanceRequestAdapter(data->instance.get(), &options, adapterCallback);
+    wgpuInstanceRequestAdapter(data->instance->get(), &options, adapterCallback);
     if (!data->adapter) {
         diagnostic = data->error.isEmpty() ? QStringLiteral("The required native GPU adapter is unavailable") : data->error;
         return {};

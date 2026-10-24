@@ -17,6 +17,10 @@
 #include <limits>
 #include <cmath>
 #include <stdexcept>
+#ifdef Q_OS_LINUX
+#include <QFileInfo>
+#include <sys/stat.h>
+#endif
 
 using namespace LibrePaint::Image::Gpu;
 
@@ -24,6 +28,7 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void sequentialConnectionsReleaseDevicesAndKeepGpuDescriptorsBounded();
     void rasterCopiesRetainFixedPixelsAndExecution_data();
     void rasterCopiesRetainFixedPixelsAndExecution();
     void positionedPixelWritesPreservePixelsVersionsAndRecovery_data();
@@ -61,6 +66,52 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::sequentialConnectionsReleaseDevicesAndKeepGpuDescriptorsBounded()
+{
+#ifdef Q_OS_LINUX
+    QVERIFY2(QDir(QStringLiteral("/proc/self/fd")).isReadable(),
+             "Linux GPU descriptor accounting requires readable /proc/self/fd");
+    const auto gpuDescriptors = [] {
+        const QDir descriptors(QStringLiteral("/proc/self/fd"));
+        QStringList result;
+        const auto entries = descriptors.entryList(QDir::AllEntries | QDir::System | QDir::NoDotAndDotDot);
+        for (const auto &entry : entries) {
+            const auto path = descriptors.filePath(entry);
+            struct stat status{};
+            if (::stat(QFile::encodeName(path).constData(), &status) != 0 || !S_ISCHR(status.st_mode)) continue;
+            const auto target = QFileInfo(path).symLinkTarget();
+            if (target.startsWith(QStringLiteral("/dev/nvidia")) || target.startsWith(QStringLiteral("/dev/dri/")))
+                result.append(entry + QStringLiteral(": ") + target);
+        }
+        return result;
+    };
+#endif
+    QString diagnostic;
+    auto warm = Device::createNative(diagnostic);
+    QVERIFY2(warm, qPrintable(diagnostic));
+    const std::weak_ptr<Device> warmLifetime = warm;
+    warm.reset();
+    QVERIFY(warmLifetime.expired());
+#ifdef Q_OS_LINUX
+    const auto baseline = gpuDescriptors();
+    qInfo() << "GPU descriptors after warmup:" << baseline;
+#endif
+    for (int cycle = 1; cycle <= 32; ++cycle) {
+        auto device = Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        const std::weak_ptr<Device> lifetime = device;
+        device.reset();
+        QVERIFY2(lifetime.expired(), "The last connection reference must release its logical Device");
+#ifdef Q_OS_LINUX
+        const auto remaining = gpuDescriptors();
+        qInfo() << "GPU descriptors after connection" << cycle << ':' << remaining;
+        QVERIFY2(remaining.size() <= baseline.size(), qPrintable(QStringLiteral(
+            "GPU character descriptors grew after connection %1: warmup=%2 remaining=%3")
+            .arg(cycle).arg(baseline.size()).arg(remaining.size())));
+#endif
+    }
+}
 
 void KisGpuPaintImageTest::rasterCopiesRetainFixedPixelsAndExecution_data()
 {

@@ -565,6 +565,20 @@ Nixの開発環境はCMakeの探索先にネイティブGPU依存を追加し、
 `KisGpuExecutionTest`は実際のC APIで不正な待機番号、未写像バッファーの読取り、
 同じ命令列の再送信を拒否させ、通知、後続命令の拒否と所有者の解放を検査する。
 GPU喪失を伴う実機検証は、この再現可能な検査エラーの試験とは別に記録する。
+`KisGpuPaintImageTest::sequentialConnectionsReleaseDevicesAndKeepGpuDescriptorsBounded`は、
+最後の接続参照を反復して解放し、各デバイスの弱参照が失効することを検査する。
+Linuxでは`/proc/self/fd`のGPU文字デバイスを各回新たに列挙し、初回の解放後を基準に
+接続を反復した後の数が基準値以内に収まることを検査する。Vulkan接続自身の資源数を測る検証は、対象を構築した後、
+Qtの非表示基盤で実行ファイルを直接起動する。
+
+```sh
+./scripts/run-shared-test-env env QT_QPA_PLATFORM=offscreen \
+  build/tdd-linux/bin/KisGpuPaintImageTest \
+  sequentialConnectionsReleaseDevicesAndKeepGpuDescriptorsBounded
+```
+
+個別デバイスのエラー、未完了読取り、終了・交換後の返却値と所有者の解放は、
+既存の`KisGpuExecutionTest`と`KisGpuPixelReadbackTest`で検査する。
 共通GPU定義とパッチの変更は、Windows・Android・iOSの増分環境を更新する入力として扱う。
 ネイティブの開発環境を更新した後は、対象のプリセットで
 `cmake --preset <preset> -U 'WGPUNative_*'`を実行し、GPU依存物の探索結果を更新する。
