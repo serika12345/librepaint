@@ -1898,6 +1898,10 @@ add_library(kritaimagetiledextentmanagerobjects OBJECT
    tiles3/KisTiledExtentManager.cpp
 )
 target_compile_definitions(kritaimagetiledextentmanagerobjects PRIVATE kritaimage_EXPORTS)
+if (WIN32)
+   # Keep assertion calls direct for the standalone contract's local handlers.
+   target_compile_definitions(kritaimagetiledextentmanagerobjects PRIVATE KRITAGLOBAL_STATIC_DEFINE)
+endif()
 target_include_directories(kritaimagetiledextentmanagerobjects
    PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

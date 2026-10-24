@@ -308,6 +308,7 @@ QRect KisTiledExtentManager::extent() const
 
 void KisTiledExtentManager::updateExtent()
 {
+    QWriteLocker lock(&m_extentLock);
     qint32 minX, width, minY, height;
 
     {
@@ -334,6 +335,5 @@ void KisTiledExtentManager::updateExtent()
         }
     }
 
-    QWriteLocker lock(&m_extentLock);
     m_currentExtent = QRect(minX, minY, width, height);
 }
