@@ -433,6 +433,10 @@ TIFF Make・Artist・Model、UUID、RGBA8画素、文書情報・時刻と設定
 形式処理の対象はQt Core・Gui・Xml、QuaZip、操作値、LZF圧縮・展開へ依存し、画面と旧CPU文書の構築を必要としない。
 `TestKraRasterCodec`は、CPU保存に由来する固定タイル列と、固定した乱数列の非圧縮形式を
 全バイトで照合する。符号化後の読込みは透明画素のRGBを含む全成分を保持する。
+`unicodePathsIgnoreTheDefaultZipFilenameCodec`は、ZIP項目名の既定文字コードをLatin1へ固定し、
+日本語の文書フォルダー、ICC、注釈と全画素の読込み、保存バイト列の保持を検査する。
+固定した文書を`LIBREPAINT_GPU_RESULT_DIR`へ`utf8-internal-paths.kra`として出力し、
+環境間でファイル全体を照合する。
 失敗時のタイル列と入力画素は`LIBREPAINT_GPU_RESULT_DIR`または診断用の一時ディレクトリーへ保持する。
 色ラベルの読込み・変更・再保存と、不正な番号表記による文書全体の拒否を形式試験で検査する。
 `TestNode`の属性変更試験は、公開APIの色ラベル変更が画素のUndo／Redoと通常のKRA保存再読込みを通じて保持されることを照合する。

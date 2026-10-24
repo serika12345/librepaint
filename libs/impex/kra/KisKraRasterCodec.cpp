@@ -57,6 +57,7 @@ Outcome readArchive(QIODevice &source, Limits limits, QMap<QString, QByteArray> 
     if (source.size() > limits.archiveBytes) return capacity();
     QuaZip archive(&source);
     archive.setAutoClose(false);
+    archive.setFileNameCodec("UTF-8");
     if (!archive.open(QuaZip::mdUnzip)) return invalid(QStringLiteral("Invalid KRA ZIP archive"));
     const int count = archive.getEntriesCount();
     if (count <= 0) return invalid(QStringLiteral("Empty KRA archive"));

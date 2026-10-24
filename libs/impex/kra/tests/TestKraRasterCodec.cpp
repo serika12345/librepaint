@@ -15,6 +15,7 @@
 #include <QTest>
 #include <QTemporaryDir>
 #include <QScopeGuard>
+#include <QtCore5Compat/QTextCodec>
 #include <cmath>
 #include <limits>
 #include <cstring>
@@ -145,6 +146,7 @@ private Q_SLOTS:
     void newLayersKeepUnownedMetadataFilesIndependent();
     void documentColorSettingsSurviveReplacementAndClearing();
     void documentTitlesMoveAssociatedFilesAtomically();
+    void unicodePathsIgnoreTheDefaultZipFilenameCodec();
     void imageProfileIdentitySurvivesMetadataUpdates_data();
     void imageProfileIdentitySurvivesMetadataUpdates();
     void existingPaintFilesPreservePixelsAndDefaults_data();
@@ -878,6 +880,89 @@ void TestKraRasterCodec::imageProfileIdentitySurvivesMetadataUpdates()
         QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::InvalidData);
         QCOMPARE(source.description, unchanged.description);
         QCOMPARE(source.files, unchanged.files);
+    }
+}
+
+void TestKraRasterCodec::unicodePathsIgnoreTheDefaultZipFilenameCodec()
+{
+    auto source = document();
+    const QString title = QStringLiteral("保存契約");
+    Kra::ImageMetadata metadata;
+    metadata.documentInfo = QStringLiteral("<document-info><about><title>%1</title></about></document-info>")
+        .arg(title).toUtf8();
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.profileName = QStringLiteral("Fixture embedded sRGB");
+    metadata.annotations = {{QStringLiteral("notes"), QStringLiteral("Kept annotation"),
+                             QByteArray::fromHex("ff00017f")}};
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+
+    // Existing KRA writers use UTF-8 names without the ZIP UTF-8 flag.
+    QBuffer inspection(&bytes);
+    QVERIFY(inspection.open(QIODevice::ReadOnly));
+    QuaZip archive(&inspection);
+    archive.setFileNameCodec("UTF-8");
+    QVERIFY(archive.open(QuaZip::mdUnzip));
+    QVERIFY(archive.setCurrentFile(title + QStringLiteral("/annotations/icc")));
+    QuaZipFileInfo64 entry;
+    QVERIFY(archive.getCurrentFileInfo(&entry));
+    QVERIFY(!(entry.flags & 0x0800));
+    archive.close();
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile artifact(QDir(directory).filePath(QStringLiteral("utf8-internal-paths.kra")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(bytes), bytes.size());
+    }
+
+    QuaZip originalDefaults;
+    auto *const previousCodec = originalDefaults.getFileNameCodec();
+    QVERIFY(previousCodec);
+    {
+        const auto restore = qScopeGuard([&] {
+            QuaZip::setDefaultFileNameCodec(previousCodec);
+            QuaZip restoredDefaults;
+            QCOMPARE(restoredDefaults.getFileNameCodec(), previousCodec);
+            qInfo() << "Restored ZIP filename codec" << restoredDefaults.getFileNameCodec()->name();
+        });
+        auto *const latin1 = QTextCodec::codecForName("ISO-8859-1");
+        QVERIFY(latin1);
+        QuaZip::setDefaultFileNameCodec(latin1);
+        QuaZip changedDefaults;
+        QCOMPARE(changedDefaults.getFileNameCodec(), latin1);
+        qInfo() << "ZIP filename codec" << previousCodec->name() << "forced to" << latin1->name();
+        QByteArray encodedAgain;
+        QBuffer secondOutput(&encodedAgain);
+        QVERIFY(secondOutput.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(secondOutput, source, merged(source.image.size)).code, Kra::Status::Success);
+        QCOMPARE(encodedAgain, bytes);
+        const auto restored = load(bytes);
+        QVERIFY2(restored.code == Kra::Status::Success, qPrintable(restored.diagnostic));
+        QCOMPARE(restored.document.image.size, source.image.size);
+        QCOMPARE(restored.document.image.layers.size(), source.image.layers.size());
+        for (int i = 0; i < source.image.layers.size(); ++i) {
+            const auto &expected = source.image.layers[i];
+            const auto &actual = restored.document.image.layers[i];
+            QCOMPARE(actual.uuid, expected.uuid);
+            QCOMPARE(actual.defaultPixel, expected.defaultPixel);
+            QCOMPARE(actual.tiles.size(), expected.tiles.size());
+            for (int tile = 0; tile < expected.tiles.size(); ++tile) {
+                QCOMPARE(actual.tiles[tile].coordinate, expected.tiles[tile].coordinate);
+                QCOMPARE(actual.tiles[tile].rgba, expected.tiles[tile].rgba);
+            }
+        }
+        QCOMPARE(restored.document.files.value(title + QStringLiteral("/annotations/icc")), metadata.iccProfile);
+        const auto values = Kra::RasterCodec::readImageMetadata(restored.document.description, restored.document.files);
+        QCOMPARE(values.code, Kra::Status::Success);
+        QCOMPARE(values.metadata.profileName, metadata.profileName);
+        QCOMPARE(values.metadata.iccProfile, metadata.iccProfile);
+        QCOMPARE(values.metadata.annotations.size(), 1);
+        QCOMPARE(values.metadata.annotations.first().type, metadata.annotations.first().type);
+        QCOMPARE(values.metadata.annotations.first().bytes, metadata.annotations.first().bytes);
     }
 }
 
