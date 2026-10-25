@@ -149,7 +149,6 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
     result->m_nextOperation = m_nextOperation;
     result->m_nextRevision = m_nextRevision;
     result->m_savedRevision = version->m_modifiedRevision;
-    result->m_selectionRect = m_selectionRect;
     return result;
 }
 
@@ -166,6 +165,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
     if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
     if (m_layerHistoryChanges[index].filledLayer) return HistoryAction::FillLayer;
+    if (m_layerHistoryChanges[index].changedSelection) return HistoryAction::ChangeSelection;
     if (m_layerHistoryChanges[index].crop) return HistoryAction::CropLayer;
     if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
         return resize->cropLayers ? HistoryAction::CropImage : HistoryAction::ResizeCanvas;
@@ -230,21 +230,24 @@ Result OperationDocument::setSelectionRect(const QRect &rect)
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     const auto normalized = rect.normalized();
-    if (normalized.isEmpty()) return clearSelection();
-    if (!Detail::validSelectionRect(normalized)) return Result::InvalidInput;
-    m_selectionRect = normalized;
+    if (!normalized.isEmpty() && !Detail::validSelectionRect(normalized)) return Result::InvalidInput;
+    if (normalized == snapshot()->selection) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->selection = normalized;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    change.changedSelection = true;
+    change.selectionBefore = snapshot()->selection;
+    change.selectionAfter = normalized;
+    commitVersion(version, change);
     return Result::Success;
 }
 
 Result OperationDocument::clearSelection()
-{
-    const auto status = checkMutation();
-    if (status != Result::Success) return status;
-    m_selectionRect = {};
-    return Result::Success;
-}
+{ return setSelectionRect({}); }
 
-QRect OperationDocument::selectionRect() const { return m_selectionRect; }
+QRect OperationDocument::selectionRect() const { return snapshot()->selection; }
 
 qsizetype OperationDocument::layerIndex(LayerId layer) const
 {
@@ -528,7 +531,7 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
     operation->brush.channelWriteMask &= snapshot()->layers[index].channelWriteMask;
     operation->brush.alphaLocked |= !(operation->brush.channelWriteMask & 8);
     operation->randomSeed = randomSeed;
-    operation->selectionRect = m_selectionRect;
+    operation->selectionRect = snapshot()->selection;
     m_edit = operation;
     return operation->id;
 }

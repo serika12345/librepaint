@@ -321,6 +321,7 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 
 `KisGpuOperationDocumentTest::selectionRectIsFrozenInOperationsAndRecovery`は、描画開始時の
 選択矩形が操作と復旧記録に残り、入力中の選択変更を拒否し、後の選択変更が既存操作を書き換えないことを検査する。
+選択変更は取消し可能な履歴項目となり、Undo／Redoと復旧後の履歴移動で版ごとの選択を復元する。
 `KisGpuTileRendererTest::selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery`は、
 矩形選択の外側が描画・塗り・消去の前後で不変であること、内側の画素、Undo／Redo、
 復旧後の再描画が同じ結果になることを検査する。現在の対象は文書座標の矩形選択である。

@@ -3967,6 +3967,17 @@ void KisGpuOperationDocumentTest::selectionRectIsFrozenInOperationsAndRecovery()
     QCOMPARE(document.commitStroke(later), Result::Success);
     QVERIFY(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->selectionRect.isEmpty());
     QCOMPARE(std::get<PaintSnapshot>(recovered[0])->selectionRect, QRect(10, 20, 30, 40));
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.selectionRect().isEmpty());
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.selectionRect(), QRect(50, 60, 20, 10));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.selectionRect(), QRect(50, 60, 20, 10));
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.selectionRect().isEmpty());
 }
 
 void KisGpuOperationDocumentTest::basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent()

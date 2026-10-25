@@ -31,6 +31,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     initial->m_document = m_identity;
     initial->m_committed = true;
     initial->size = image.size;
+    initial->selection = image.selection;
     initial->projectionBackground = image.projectionBackground;
     QSet<QUuid> identities;
     for (const auto &source : image.layers) {
@@ -85,7 +86,6 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     if (initial->activeLayer) initial->selectedLayers = {initial->activeLayer};
     m_history.append(initial);
     m_layerHistoryChanges.append(LayerHistoryChange{});
-    m_selectionRect = image.selection;
 }
 
 Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)

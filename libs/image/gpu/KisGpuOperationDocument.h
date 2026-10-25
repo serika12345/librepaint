@@ -337,6 +337,8 @@ public:
     QList<Layer> layers;
     LayerId activeLayer = 0;
     QList<LayerId> selectedLayers;
+    /** Document selection for this history state; empty means no selection. */
+    QRect selection{};
     qsizetype sampleCount = 0;
     qsizetype rasterBytes = 0;
 
@@ -406,7 +408,8 @@ enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
-    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode
+    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
+    ChangeSelection
 };
 
 struct Limits
@@ -655,6 +658,8 @@ private:
         std::optional<CanvasResize> canvasResize;
         QList<LayerPropertyEdit> propertyEdits;
         bool changedLayerProperties = false;
+        bool changedSelection = false;
+        QRect selectionBefore, selectionAfter;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,
@@ -701,7 +706,6 @@ private:
     QSharedPointer<const PaintOperation> m_edit;
     TranslationSnapshot m_translation;
     Snapshot m_preview;
-    QRect m_selectionRect;
     bool m_closed = false;
 };
 

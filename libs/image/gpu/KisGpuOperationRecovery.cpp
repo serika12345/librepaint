@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 40;
+constexpr quint16 FormatVersion = 41;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -97,8 +97,8 @@ QByteArray OperationDocument::recoveryData() const
     };
     stream << Magic << FormatVersion << qint32(snapshot()->size.width()) << qint32(snapshot()->size.height())
            << m_nextRevision << m_nextOperation << m_nextLayer << m_savedRevision
-           << qint32(m_selectionRect.x()) << qint32(m_selectionRect.y())
-           << qint32(m_selectionRect.width()) << qint32(m_selectionRect.height())
+           << qint32(snapshot()->selection.x()) << qint32(snapshot()->selection.y())
+           << qint32(snapshot()->selection.width()) << qint32(snapshot()->selection.height())
            << quint32(tiles.size());
     if (!withinLimit()) return {};
     for (const auto &tile : tiles) {
@@ -230,6 +230,9 @@ QByteArray OperationDocument::recoveryData() const
             stream << quint32(state->selectedLayers.size());
             for (const auto layer : state->selectedLayers) stream << layer;
         }
+        if (FormatVersion >= 41)
+            stream << qint32(state->selection.x()) << qint32(state->selection.y())
+                   << qint32(state->selection.width()) << qint32(state->selection.height());
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
@@ -599,6 +602,15 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 state->selectedLayers.append(layer);
             }
         } else if (state->activeLayer) state->selectedLayers = {state->activeLayer};
+        if (format >= 41) {
+            qint32 x = 0, y = 0, w = 0, h = 0;
+            stream >> x >> y >> w >> h;
+            state->selection = QRect(x, y, w, h);
+            if (stream.status() != QDataStream::Ok || !validSelectionRect(state->selection))
+                return Result::InvalidRecovery;
+        } else {
+            state->selection = selectionRect;
+        }
         if (state->revision() > nextRevision || state->m_modifiedRevision > state->revision() ||
             stateRevisions.contains(state->revision()) ||
             (i > 0 && state->m_modifiedRevision <= previousModifiedRevision) ||
@@ -914,6 +926,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
     } else if (previewRevision != 0) return Result::InvalidRecovery;
     if (referencedOperations.size() != operations.size()) return Result::InvalidRecovery;
     if (history[currentIndex]->size != QSize(width, height)) return Result::InvalidRecovery;
+    for (qsizetype index = 1; index < history.size(); ++index)
+        changes[index].changedSelection = history[index]->selection != history[index - 1]->selection;
     m_identity = identity;
     m_history = history;
     m_layerHistoryChanges = changes;
@@ -922,7 +936,6 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
     m_nextOperation = nextOperation;
     m_nextLayer = nextLayer;
     m_savedRevision = savedRevision;
-    m_selectionRect = selectionRect;
     m_edit = edit;
     m_translation = translation;
     m_preview = preview;

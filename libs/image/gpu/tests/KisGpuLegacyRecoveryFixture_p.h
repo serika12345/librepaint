@@ -467,6 +467,32 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
         payload.remove(int(header.device()->pos()), 16);
     }
     auto versions = document.historyVersions();
+    if (format < 41) {
+        for (const auto &version : document.historyVersions()) {
+            QByteArray prefix;
+            QDataStream stream(&prefix, QIODevice::WriteOnly);
+            stream.setVersion(QDataStream::Qt_5_15);
+            stream.setByteOrder(QDataStream::BigEndian);
+            stream << qint32(version->size.width()) << qint32(version->size.height());
+            for (const auto component : version->projectionBackground) stream << component;
+            const bool explicitSelection = version->selectedLayers.size() > 1 ||
+                (!version->selectedLayers.isEmpty() && version->selectedLayers.first() != version->activeLayer);
+            stream << version->revision() << version->historyRevision() << version->activeLayer
+                   << (quint32(version->layers.size()) | (explicitSelection ? 0x80000000u : 0u));
+            const auto offset = payload.indexOf(prefix);
+            Q_ASSERT(offset >= 0 && offset == payload.lastIndexOf(prefix));
+            qsizetype selectionOffset = offset + prefix.size();
+            if (explicitSelection) {
+                QDataStream selected(payload.mid(selectionOffset, 4));
+                selected.setVersion(QDataStream::Qt_5_15);
+                selected.setByteOrder(QDataStream::BigEndian);
+                quint32 count = 0;
+                selected >> count;
+                selectionOffset += 4 + qsizetype(count) * 8;
+            }
+            payload.remove(selectionOffset, 16);
+        }
+    }
     if (format < 27) {
         for (int i = 0; i < versions.size(); ++i) {
             const auto &version = versions[i];
