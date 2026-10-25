@@ -574,6 +574,17 @@ Rec.709と異なる凍結係数が画素へ反映されること、Undo／Redo�
 アルファを変えた65,536画素について、YUVのゼロ設定、Undo／Redoと復旧後の全バイト保持を検査する。
 `LIBREPAINT_GPU_RESULT_DIR`へ`yuv-reset.rgba`を出力する。非ゼロのYUV参照値は
 `RGBToYUV()`・`YUVToRGB()`と製品のスライダー倍率から得た値を使い、選択被覆の整数補間も照合する。
+`KisGpuTileRendererTest::yuvUsesProductPrecisionAcrossRecovery`は、
+`libs/image/gpu/tests/data/yuv-product-rgba8.json`に記録した製品CPUの全画素ハッシュと照合する。
+各65,536画素に隠れRGBを含め、文書RGBA係数、負の補正、倍率の上下限、係数和が1以外の
+ゼロ設定、極小の緑係数と1に近い係数を検査する。生成元と演算順の構築条件はJSONが所有する。
+Undo／Redo・復旧後の全バイトも照合し、`LIBREPAINT_GPU_RESULT_DIR`へ
+`yuv-product-<case>.rgba`を出力する。
+`TestColorConversion::testYUVKeepsCancellationIndependentOfFusedMultiplyAdd`は、製品の
+YUV往復変換で積の個別丸めを維持し、相殺後の緑成分が結合命令の有無で変わることを防ぐ。
+`KisGpuPaintDocumentTest::yuvPrecisionSurvivesSavingRecoveryAndFurtherEditing`は、
+YUVの丸め境界の画素・隠れRGB・選択外画素を、Undo／Redo、復旧、KRA保存・再読込で
+保持し、再読込後の反転編集と取消しを検査する。
 `KisGpuTileRendererTest::colorizeUsesProductLumaRoundingAcrossRecovery`は、Rec.709、
 四分の一単位と微小な正係数に加え、元のRec.709と組込みRGBA8の係数について、
 Colorizeの輝度計算と復旧後の全バイトを検査する。

@@ -109,6 +109,7 @@ private Q_SLOTS:
     void grayscaleSavesReopensAndRecoversPixels();
     void hsvAdjustmentSavesReopensAndRecoversPixels();
     void hsvAdjustmentLumaModesSaveReopenAndRecoverPixels();
+    void yuvPrecisionSurvivesSavingRecoveryAndFurtherEditing();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
     void patternFillSavesReopensAndPreservesSelectionPixels();
@@ -712,6 +713,76 @@ void KisGpuPaintDocumentTest::hsvAdjustmentLumaModesSaveReopenAndRecoverPixels()
     QCOMPARE(pixel(continued.bytes, 120, 120), QByteArray::fromHex("14b414ff"));
     QCOMPARE(pixel(continued.bytes, 100, 100), QByteArray::fromHex("06390644"));
     QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("00142828"));
+}
+
+void KisGpuPaintDocumentTest::yuvPrecisionSurvivesSavingRecoveryAndFurtherEditing()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {256, 256};
+    RasterLayer source;
+    source.name = QStringLiteral("YUV precision");
+    source.uuid = QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000058}"));
+    QByteArray bytes = QByteArray::fromHex("ce0155cf").repeated(RgbaTile::Size * RgbaTile::Size);
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * RgbaTile::Size + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("ce0155cf"));
+    set(20, 20, QByteArray::fromHex("ce015500"));
+    set(50, 50, QByteArray::fromHex("ae2115ff"));
+    set(100, 100, QByteArray::fromHex("ce0155cf"));
+    source.tiles.append({{0, 0}, bytes});
+    initial.layers.append(source);
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    QCOMPARE(image->setSelectionRect(QRect(0, 0, 64, 64)), Result::Success);
+    HsvAdjustment settings{50, 0, 0, HsvAdjustmentType::Yuv, false};
+    settings.luma = {0.25, 0.5, 0.25};
+    settings.lumaFrozen = true;
+    QCOMPARE(image->hsvAdjustment(layer, settings), Result::Success);
+    const QRect region(QPoint(), initial.size);
+    const auto filtered = image->readRgbaPixels(layer, region, bytes.size());
+    QCOMPARE(filtered.code, ExecutionCode::Success);
+    auto expected = bytes;
+    // Product CPU precision-boundary pixels, including hidden RGB. The old
+    // binary32 GPU conversion produced 186 and 94 for these blue channels.
+    for (int y = 0; y < 64; ++y)
+        for (int x = 0; x < 64; ++x)
+            expected.replace((y * 256 + x) * 4, 4, QByteArray::fromHex("ce00bbcf"));
+    expected.replace((20 * 256 + 20) * 4, 4, QByteArray::fromHex("ce00bb00"));
+    expected.replace((50 * 256 + 50) * 4, 4, QByteArray::fromHex("ae005fff"));
+    QCOMPARE(filtered.bytes, expected);
+    QCOMPARE(image->undo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, bytes.size()).bytes, bytes);
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, bytes.size()).bytes, expected);
+
+    PaintDocument recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.image()->readRgbaPixels(recovered.image()->operations().activeLayer(),
+             region, bytes.size()).bytes, expected);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto path = QDir(destination).filePath(QStringLiteral("yuv-precision.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    const auto loadedLayer = loaded->operations().activeLayer();
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, bytes.size()).bytes, expected);
+    QCOMPARE(loaded->clearSelection(), Result::Success);
+    QCOMPARE(loaded->invertColors(loadedLayer), Result::Success);
+    auto inverted = expected;
+    for (qsizetype offset = 0; offset < inverted.size(); offset += 4)
+        for (int channel = 0; channel < 3; ++channel)
+            inverted[offset + channel] = char(255 - quint8(expected[offset + channel]));
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, bytes.size()).bytes, inverted);
+    QCOMPARE(loaded->undo(), Result::Success);
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, bytes.size()).bytes, expected);
 }
 
 void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra()

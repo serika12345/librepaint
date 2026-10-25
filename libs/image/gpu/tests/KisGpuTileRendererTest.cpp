@@ -83,6 +83,8 @@ private Q_SLOTS:
     void hsvAdjustmentUsesProductValuesAndNeutralPixels();
     void hsvAdjustmentClipsCoverageAndSupportsLegacyConversion();
     void yuvResetPreservesStoredPixelsAcrossRecovery();
+    void yuvUsesProductPrecisionAcrossRecovery_data();
+    void yuvUsesProductPrecisionAcrossRecovery();
     void colorizeUsesProductLumaRoundingAcrossRecovery_data();
     void colorizeUsesProductLumaRoundingAcrossRecovery();
     void colorizePreservesDocumentLumaAcrossRecovery_data();
@@ -4235,6 +4237,96 @@ void KisGpuTileRendererTest::yuvResetPreservesStoredPixelsAcrossRecovery()
     QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), bytes);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), bytes);
+}
+
+void KisGpuTileRendererTest::yuvUsesProductPrecisionAcrossRecovery_data()
+{
+    QTest::addColumn<int>("hue");
+    QTest::addColumn<int>("saturation");
+    QTest::addColumn<int>("value");
+    QTest::addColumn<qreal>("lumaRed");
+    QTest::addColumn<qreal>("lumaGreen");
+    QTest::addColumn<qreal>("lumaBlue");
+    QTest::addColumn<QByteArray>("sourcePixel");
+    QTest::addColumn<QByteArray>("productSha256");
+    QFile fixture(QFINDTESTDATA("data/yuv-product-rgba8.json"));
+    QVERIFY(fixture.open(QIODevice::ReadOnly));
+    const auto rows = QJsonDocument::fromJson(fixture.readAll()).object().value("rows").toArray();
+    QVERIFY(!rows.isEmpty());
+    for (const auto &value : rows) {
+        const auto row = value.toObject();
+        const auto luma = row.value("luma").toArray();
+        const auto source = row.value("sourceRgba").toArray();
+        const auto controls = row.value("controls").toArray();
+        QCOMPARE(controls.size(), 3);
+        QCOMPARE(luma.size(), 3);
+        QCOMPARE(source.size(), 4);
+        QByteArray pixel;
+        for (const auto &channel : source) pixel.append(char(channel.toInt()));
+        QTest::newRow(qPrintable(row.value("name").toString()))
+            << controls[0].toInt() << controls[1].toInt() << controls[2].toInt()
+            << qreal(luma[0].toDouble()) << qreal(luma[1].toDouble()) << qreal(luma[2].toDouble())
+            << pixel << row.value("rgbaSha256").toString().toLatin1();
+    }
+}
+
+void KisGpuTileRendererTest::yuvUsesProductPrecisionAcrossRecovery()
+{
+    QFETCH(int, hue);
+    QFETCH(int, saturation);
+    QFETCH(int, value);
+    QFETCH(qreal, lumaRed);
+    QFETCH(qreal, lumaGreen);
+    QFETCH(qreal, lumaBlue);
+    QFETCH(QByteArray, sourcePixel);
+    QFETCH(QByteArray, productSha256);
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    for (int y = 0; y < TileRenderer::TileSize; ++y) {
+        for (int x = 0; x < TileRenderer::TileSize; ++x) {
+            const int offset = (y * TileRenderer::TileSize + x) * 4;
+            bytes[offset] = char(x);
+            bytes[offset + 1] = char(y);
+            bytes[offset + 2] = char((73 * x + 151 * y) % 256);
+            bytes[offset + 3] = char((x + y) % 256);
+        }
+    }
+    bytes.replace(0, 4, sourcePixel);
+    auto hiddenPixel = sourcePixel;
+    hiddenPixel[3] = '\0';
+    bytes.replace(4, 4, hiddenPixel);
+    RasterImage input;
+    input.size = {TileRenderer::TileSize, TileRenderer::TileSize};
+    RasterLayer source;
+    source.name = QStringLiteral("YUV precision");
+    source.uuid = QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000057}"));
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    OperationDocument document(input);
+    HsvAdjustment settings{hue, saturation, value, HsvAdjustmentType::Yuv, false};
+    QVERIFY(freezeLumaCoefficients({lumaRed, lumaGreen, lumaBlue}, &settings.luma));
+    settings.lumaFrozen = true;
+    QCOMPARE(document.hsvAdjustment(document.activeLayer(), settings), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto actual = readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0});
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        const auto name = QStringLiteral("yuv-product-%1").arg(QString::fromLatin1(QTest::currentDataTag()));
+        QFile file(QDir(directory).filePath(name + QStringLiteral(".rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(actual), qint64(actual.size()));
+    }
+    // The fixed hash comes from the complete product CPU transform, with
+    // separately rounded binary64 operations, rather than a second algorithm
+    // in this test. Include every RGB and alpha byte in the comparison.
+    QCOMPARE(QCryptographicHash::hash(actual, QCryptographicHash::Sha256).toHex(), productSha256);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0}), bytes);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0}), actual);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), actual);
 }
 
 void KisGpuTileRendererTest::colorizeUsesProductLumaRoundingAcrossRecovery_data()

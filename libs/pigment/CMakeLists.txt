@@ -289,6 +289,14 @@ target_include_directories(kritapigmentcolorconversionsobjects
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 target_link_libraries(kritapigmentcolorconversionsobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+# Product conversions round each written product before its surrounding sum.
+# In YUV, cancellation can amplify a contracted product into a different
+# stored RGBA8 byte, so this numerical owner uses the same order on every CPU.
+if(MSVC)
+    target_compile_options(kritapigmentcolorconversionsobjects PRIVATE /fp:strict)
+else()
+    target_compile_options(kritapigmentcolorconversionsobjects PRIVATE -ffp-contract=off)
+endif()
 set_target_properties(kritapigmentcolorconversionsobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON

@@ -9,11 +9,15 @@ struct FilterParameters {
     // Raw HSV/HSL/HSY/YUV Adjustment values: h, s, v and
     // type | legacy << 8 | colorize << 9.
     adjustment: vec4<i32>,
-    // Binary32 conversions used by the existing non-Colorize rules.
+    // Binary32 conversions used by the HSV/HSL/HSI/HSY rules.
     luma: vec4<f32>,
-    // Original binary64 coefficient bits used by Colorize.
+    // Original binary64 coefficient bits used by Colorize and YUV.
     lumaLow: vec4<u32>,
     lumaHigh: vec4<u32>,
+    // Profile/control-only constants: 1-R, 1-B, inverse green weights,
+    // blue/red chroma gains, and luma offset, in product binary64 precision.
+    yuvLow: array<vec4<u32>, 2>,
+    yuvHigh: array<vec4<u32>, 2>,
 }
 
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
@@ -426,26 +430,6 @@ fn legacyHcyToRgb(hcy: vec3<f32>, luma: vec3<f32>) -> vec3<f32> {
     return vec3<f32>(r + shift, g + shift, b + shift);
 }
 
-// The YUV product rule: hue scales the blue chroma, saturation the red
-// chroma and value offsets luma. It has no legacy variant.
-fn yuvAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, luma: vec3<f32>) -> vec3<f32> {
-    let lumaValue = rgb.x * luma.x + rgb.y * luma.y + rgb.z * luma.z;
-    let chromaBlue = 0.5 * ((rgb.z - lumaValue) / (1.0 - luma.z)) + 0.5;
-    let chromaRed = 0.5 * ((rgb.x - lumaValue) / (1.0 - luma.x)) + 0.5;
-    let adjustedBlue = chromaBlue * (dh + 1.0);
-    let adjustedRed = chromaRed * (ds + 1.0);
-    let adjustedLuma = lumaValue + dv;
-    let blueChroma = adjustedBlue - 0.5;
-    let redChroma = adjustedRed - 0.5;
-    let negB = 1.0 - luma.z;
-    let negR = 1.0 - luma.x;
-    let red = adjustedLuma + redChroma * (negR / 0.5);
-    let green = adjustedLuma - blueChroma * ((luma.z * negB) / (0.5 * luma.y)) -
-        redChroma * ((luma.x * negR) / (0.5 * luma.y));
-    let blue = adjustedLuma + blueChroma * (negB / 0.5);
-    return vec3<f32>(red, green, blue);
-}
-
 // Product RGB conversions round qreal intermediate products and sums before
 // the final binary32 value. For binary32 operands each product has at most
 // 48 significant bits. Integer significands preserve these results across GPU
@@ -595,6 +579,206 @@ fn productRgbInputChannel(channel: u32) -> f32 {
     return bitcast<f32>(((leading + 119u) << 23u) | (mantissa & 0x7fffffu));
 }
 
+// YUV conversion uses signed qreal intermediates, including cancellation and
+// division. Represent a normal binary64 value as signed M * 2^E, with M's
+// leading bit at 52. Integer operations round each written product operation
+// to nearest-even at 53 bits, independently of backend float contraction.
+// The admitted positive coefficient range and -100..100 controls keep every
+// nonzero intermediate normal and finite in binary64; zero is explicit.
+struct YuvValue {
+    mantissa: vec2<u32>,
+    exponent: i32,
+    negative: bool,
+}
+
+fn yuvWordsLess(a: vec2<u32>, b: vec2<u32>) -> bool {
+    return a.y < b.y || (a.y == b.y && a.x < b.x);
+}
+
+fn yuvSubtractWords(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+    return vec2<u32>(a.x - b.x, a.y - b.y - u32(a.x < b.x));
+}
+
+fn yuvParameter(index: u32) -> YuvValue {
+    let low = parameters.yuvLow[index / 4u][index % 4u];
+    let high = parameters.yuvHigh[index / 4u][index % 4u];
+    let negative = (high & 0x80000000u) != 0u;
+    if (low == 0u && (high & 0x7fffffffu) == 0u) {
+        return YuvValue(vec2<u32>(0u), 0, negative);
+    }
+    return YuvValue(vec2<u32>(low, (high & 0xfffffu) | 0x100000u),
+                    i32((high >> 20u) & 2047u) - 1075, negative);
+}
+
+fn yuvInput(channel: f32) -> YuvValue {
+    let bits = bitcast<u32>(channel);
+    if (bits == 0u) { return YuvValue(vec2<u32>(0u), 0, false); }
+    return YuvValue(colorizeShiftLeft(vec2<u32>((bits & 0x7fffffu) | 0x800000u, 0u), 29u),
+                    i32((bits >> 23u) & 255u) - 179, false);
+}
+
+fn yuvLumaTerm(term: ColorizeLumaTerm) -> YuvValue {
+    return YuvValue(vec2<u32>((term.significand.x >> 3u) | (term.significand.y << 29u),
+                              term.significand.y >> 3u), term.exponent + 3, false);
+}
+
+fn yuvScale(value: YuvValue, exponent: i32) -> YuvValue {
+    return YuvValue(value.mantissa, value.exponent + exponent, value.negative);
+}
+
+fn yuvAdd(first: YuvValue, second: YuvValue) -> YuvValue {
+    if (all(first.mantissa == vec2<u32>(0u))) {
+        if (all(second.mantissa == vec2<u32>(0u))) {
+            return YuvValue(vec2<u32>(0u), 0, first.negative && second.negative);
+        }
+        return second;
+    }
+    if (all(second.mantissa == vec2<u32>(0u))) { return first; }
+    var larger = first;
+    var smaller = second;
+    if (second.exponent > first.exponent ||
+        (second.exponent == first.exponent && yuvWordsLess(first.mantissa, second.mantissa))) {
+        larger = second;
+        smaller = first;
+    }
+    let large = colorizeShiftLeft(larger.mantissa, 3u);
+    let small = colorizeShiftRightJam(colorizeShiftLeft(smaller.mantissa, 3u),
+                                      u32(larger.exponent - smaller.exponent));
+    var total: vec2<u32>;
+    if (larger.negative == smaller.negative) { total = colorizeAddWords(large, small); }
+    else { total = yuvSubtractWords(large, small); }
+    if (all(total == vec2<u32>(0u))) { return YuvValue(vec2<u32>(0u), 0, false); }
+    var leading = firstLeadingBit(total.x);
+    if (total.y != 0u) { leading = 32u + firstLeadingBit(total.y); }
+    var exponent = larger.exponent - 3;
+    if (leading > 55u) {
+        total = colorizeShiftRightJam(total, leading - 55u);
+        exponent += i32(leading - 55u);
+    } else {
+        total = colorizeShiftLeft(total, 55u - leading);
+        exponent -= i32(55u - leading);
+    }
+    let discarded = total.x & 7u;
+    var retained = vec2<u32>((total.x >> 3u) | (total.y << 29u), total.y >> 3u);
+    retained = colorizeAddWords(retained, vec2<u32>(
+        u32(discarded > 4u || (discarded == 4u && (retained.x & 1u) != 0u)), 0u));
+    exponent += 3;
+    if ((retained.y & 0x200000u) != 0u) {
+        retained = vec2<u32>((retained.x >> 1u) | (retained.y << 31u), retained.y >> 1u);
+        exponent += 1;
+    }
+    return YuvValue(retained, exponent, larger.negative);
+}
+
+fn yuvSubtract(first: YuvValue, second: YuvValue) -> YuvValue {
+    return yuvAdd(first, YuvValue(second.mantissa, second.exponent, !second.negative));
+}
+
+fn yuvMultiply(first: YuvValue, second: YuvValue) -> YuvValue {
+    let negative = first.negative != second.negative;
+    if (all(first.mantissa == vec2<u32>(0u)) || all(second.mantissa == vec2<u32>(0u))) {
+        return YuvValue(vec2<u32>(0u), 0, negative);
+    }
+    let a = array<u32, 4>(first.mantissa.x & 0xffffu, first.mantissa.x >> 16u,
+                           first.mantissa.y & 0xffffu, first.mantissa.y >> 16u);
+    let b = array<u32, 4>(second.mantissa.x & 0xffffu, second.mantissa.x >> 16u,
+                           second.mantissa.y & 0xffffu, second.mantissa.y >> 16u);
+    var digits: array<u32, 8>;
+    for (var i = 0u; i < 4u; i += 1u) {
+        var carry = 0u;
+        for (var j = 0u; j < 4u; j += 1u) {
+            // 65535^2 + 65535 + 65535 fits exactly in one u32.
+            let value = a[i] * b[j] + digits[i + j] + carry;
+            digits[i + j] = value & 0xffffu;
+            carry = value >> 16u;
+        }
+        digits[i + 4u] = carry;
+    }
+    let words = vec4<u32>(digits[0] | (digits[1] << 16u), digits[2] | (digits[3] << 16u),
+                           digits[4] | (digits[5] << 16u), digits[6] | (digits[7] << 16u));
+    let shift = firstLeadingBit(words.w) + 44u; // 52 or 53 discarded bits.
+    let across = shift - 32u;
+    var retained = vec2<u32>((words.y >> across) | (words.z << (32u - across)),
+                              (words.z >> across) | (words.w << (32u - across)));
+    let remainderHigh = words.y & ((1u << across) - 1u);
+    let halfHigh = 1u << (across - 1u);
+    let increment = u32(remainderHigh > halfHigh ||
+        (remainderHigh == halfHigh && (words.x != 0u || (retained.x & 1u) != 0u)));
+    retained = colorizeAddWords(retained, vec2<u32>(increment, 0u));
+    var exponent = first.exponent + second.exponent + i32(shift);
+    if ((retained.y & 0x200000u) != 0u) {
+        retained = vec2<u32>((retained.x >> 1u) | (retained.y << 31u), retained.y >> 1u);
+        exponent += 1;
+    }
+    return YuvValue(retained, exponent, negative);
+}
+
+fn yuvDivide(first: YuvValue, second: YuvValue) -> YuvValue {
+    // Both YUV denominators are positive 1-coefficient > 2^-25 under the
+    // existing admission contract, so division by zero is unreachable.
+    let negative = first.negative != second.negative;
+    if (all(first.mantissa == vec2<u32>(0u))) {
+        return YuvValue(vec2<u32>(0u), 0, negative);
+    }
+    var quotient = vec2<u32>(0u);
+    var remainder = first.mantissa;
+    var steps = 53u;
+    if (!yuvWordsLess(first.mantissa, second.mantissa)) {
+        quotient.x = 1u;
+        remainder = yuvSubtractWords(first.mantissa, second.mantissa);
+        steps = 52u;
+    }
+    for (var i = 0u; i < steps; i += 1u) {
+        remainder = colorizeShiftLeft(remainder, 1u);
+        let bit = !yuvWordsLess(remainder, second.mantissa);
+        if (bit) { remainder = yuvSubtractWords(remainder, second.mantissa); }
+        quotient = colorizeAddWords(colorizeShiftLeft(quotient, 1u), vec2<u32>(u32(bit), 0u));
+    }
+    let twice = colorizeShiftLeft(remainder, 1u);
+    let tie = all(twice == second.mantissa);
+    let increment = u32(!yuvWordsLess(twice, second.mantissa) &&
+                          (!tie || (quotient.x & 1u) != 0u));
+    quotient = colorizeAddWords(quotient, vec2<u32>(increment, 0u));
+    var exponent = first.exponent - second.exponent - i32(steps);
+    if ((quotient.y & 0x200000u) != 0u) {
+        quotient = vec2<u32>((quotient.x >> 1u) | (quotient.y << 31u), quotient.y >> 1u);
+        exponent += 1;
+    }
+    return YuvValue(quotient, exponent, negative);
+}
+
+fn yuvOutput(value: YuvValue) -> f32 {
+    // RGBA8 clamps after the product qreal-to-float cast. Clamping outside
+    // [0,1] first preserves those bytes even when that cast would overflow.
+    if (value.negative || all(value.mantissa == vec2<u32>(0u))) { return 0.0; }
+    if (value.exponent >= -52) { return 1.0; }
+    return colorizeLumaToFloat(ColorizeLumaTerm(colorizeShiftLeft(value.mantissa, 3u), value.exponent - 3));
+}
+
+// The YUV product rule: hue scales blue chroma, saturation red chroma, and
+// value offsets luma. Preserve each written qreal operation's rounding.
+fn yuvAdjustment(base: vec3<u32>) -> vec3<f32> {
+    let rgb = vec3<f32>(productRgbInputChannel(base.x), productRgbInputChannel(base.y),
+                         productRgbInputChannel(base.z));
+    let redLuma = yuvLumaTerm(colorizeQrealProduct(rgb.x, parameters.lumaLow.x, parameters.lumaHigh.x));
+    let greenLuma = yuvLumaTerm(colorizeQrealProduct(rgb.y, parameters.lumaLow.y, parameters.lumaHigh.y));
+    let blueLuma = yuvLumaTerm(colorizeQrealProduct(rgb.z, parameters.lumaLow.z, parameters.lumaHigh.z));
+    let luma = yuvAdd(yuvAdd(redLuma, greenLuma), blueLuma);
+    let half = YuvValue(vec2<u32>(0u, 0x100000u), -53, false);
+    let negR = yuvParameter(0u);
+    let negB = yuvParameter(1u);
+    let chromaBlue = yuvAdd(yuvScale(yuvDivide(yuvSubtract(yuvInput(rgb.z), luma), negB), -1), half);
+    let chromaRed = yuvAdd(yuvScale(yuvDivide(yuvSubtract(yuvInput(rgb.x), luma), negR), -1), half);
+    let blueChroma = yuvSubtract(yuvMultiply(chromaBlue, yuvParameter(4u)), half);
+    let redChroma = yuvSubtract(yuvMultiply(chromaRed, yuvParameter(5u)), half);
+    let adjustedLuma = yuvAdd(luma, yuvParameter(6u));
+    let red = yuvAdd(adjustedLuma, yuvMultiply(redChroma, yuvScale(negR, 1)));
+    let green = yuvSubtract(yuvSubtract(adjustedLuma, yuvMultiply(blueChroma, yuvParameter(2u))),
+                            yuvMultiply(redChroma, yuvParameter(3u)));
+    let blue = yuvAdd(adjustedLuma, yuvMultiply(blueChroma, yuvScale(negB, 1)));
+    return vec3<f32>(yuvOutput(red), yuvOutput(green), yuvOutput(blue));
+}
+
 // The product Colorize rule: the adjusted luma becomes the HSL lightness and
 // the hue and saturation sliders set the HSL hue and saturation. The product
 // applies its legacy HSL conversion here regardless of the compatibility flag.
@@ -677,7 +861,7 @@ fn hsvAdjustmentPixel(base: vec4<u32>, adjustment: vec4<i32>) -> vec4<u32> {
                                    productRgbInputChannel(base.z));
         result = colorizeAdjustment(productRgb, dh, ds, dv);
     } else if (mode == HSV_MODE_YUV) {
-        result = yuvAdjustment(rgb, dh, ds, dv, luma);
+        result = yuvAdjustment(base.xyz);
     } else if (legacy) {
         var legacyRgb = rgb;
         if (mode == HSV_MODE_LIGHTNESS) {

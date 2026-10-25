@@ -349,6 +349,25 @@ void TestColorConversion::testYUV()
     QVERIFY(isClose(b, 0.6));
 }
 
+void TestColorConversion::testYUVKeepsCancellationIndependentOfFusedMultiplyAdd()
+{
+    // The RGBA8 adjustment promotes normalized binary32 channels to qreal.
+    // Separately rounded products cancel here. Contracting the inverse green
+    // subtraction instead produces a huge value that clamps to a different
+    // stored byte on CPUs with fused multiply-add instructions.
+    const qreal red = float(3) / 255.0f;
+    const qreal blue = float(219) / 255.0f;
+    qreal y = 0.0;
+    qreal u = 0.0;
+    qreal v = 0.0;
+    RGBToYUV(red, 0.0, blue, &y, &u, &v, 0.75, 1e-45, 0.25);
+    qreal r = 0.0;
+    qreal g = 0.0;
+    qreal b = 0.0;
+    YUVToRGB(y, u, v, &r, &g, &b, 0.75, 1e-45, 0.25);
+    QCOMPARE(g, qreal(0.0));
+}
+
 void TestColorConversion::testLabLCH()
 {
     qreal L = 0.0;

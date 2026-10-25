@@ -9,7 +9,8 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 // Must match the FilterParameters uniform layout in filter.wgsl: three
-// vec4<i32> words, binary32 luma, and low/high binary64 coefficient words.
+// vec4<i32> words, binary32 luma, original binary64 coefficients, and the
+// profile/control-only YUV constants as low/high binary64 words.
 struct FilterParameters
 {
     qint32 tile[4];
@@ -18,8 +19,10 @@ struct FilterParameters
     float luma[4];
     quint32 lumaLow[4];
     quint32 lumaHigh[4];
+    quint32 yuvLow[2][4];
+    quint32 yuvHigh[2][4];
 };
-static_assert(sizeof(FilterParameters) == 96,
+static_assert(sizeof(FilterParameters) == 160,
               "filter parameter layout must match filter.wgsl");
 }
 
@@ -78,6 +81,20 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     else if (filter.selectionKind == SelectionKind::Ellipse) flags |= 4u;
     if (filter.selectionInverted) flags |= 8u;
     if (filter.selectionRect.isEmpty() && !masked) flags = 0u;
+    // These constants depend only on the frozen profile and sliders. Pixel
+    // conversion and its ordered qreal rounding stay entirely on the GPU.
+    std::array<double, 7> yuv{};
+    if (filter.kind == FilterKind::HsvAdjustment &&
+        filter.hsvType == HsvAdjustmentType::Yuv && !filter.colorize) {
+        const double negR = 1.0 - filter.luma[0];
+        const double negB = 1.0 - filter.luma[2];
+        yuv = {negR, negB,
+               (filter.luma[2] * negB) / (0.5 * filter.luma[1]),
+               (filter.luma[0] * negR) / (0.5 * filter.luma[1]),
+               1.0 + double(filter.hue) / 100.0,
+               1.0 + double(filter.saturation) / 100.0,
+               double(filter.value) / 100.0};
+    }
     for (const auto coordinate : planned) {
         const auto input = source.value(coordinate, fallback);
         if (!input) continue;
@@ -94,8 +111,8 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         const QPoint origin = Detail::coordinate(coordinate) * TileSize;
         // The adjustment word carries the frozen product values for the HSV
         // kind and zero for the other kinds. Colorize and the legacy flag
-        // share the high bits of the mode word. Colorize consumes original
-        // coefficients; the other rules use their binary32 conversions.
+        // share the high bits of the mode word. Colorize and YUV consume
+        // original coefficients; the other rules use binary32 conversions.
         qint32 adjustment = 0;
         FilterParameters parameterValues{};
         if (filter.kind == FilterKind::HsvAdjustment) {
@@ -107,6 +124,12 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
                 std::memcpy(&bits, &filter.luma[i], sizeof(bits));
                 parameterValues.lumaLow[i] = quint32(bits);
                 parameterValues.lumaHigh[i] = quint32(bits >> 32);
+            }
+            for (qsizetype i = 0; i < qsizetype(yuv.size()); ++i) {
+                quint64 bits = 0;
+                std::memcpy(&bits, &yuv[i], sizeof(bits));
+                parameterValues.yuvLow[i / 4][i % 4] = quint32(bits);
+                parameterValues.yuvHigh[i / 4][i % 4] = quint32(bits >> 32);
             }
         }
         const qint32 values[]{origin.x(), origin.y(), qint32(filter.kind), qint32(flags),
