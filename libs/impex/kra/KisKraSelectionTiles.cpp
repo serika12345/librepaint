@@ -41,11 +41,13 @@ bool ellipseContains(int x, int y, const QRect &rect)
 
 Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint offset,
                            QRect imageBounds, qsizetype maximumBytes, QRect &selection, bool &inverted,
-                           LibrePaint::Image::Gpu::SelectionKind &kind)
+                           LibrePaint::Image::Gpu::SelectionKind &kind,
+                           LibrePaint::Image::Gpu::SelectionMaskSP &mask)
 {
     selection = {};
     inverted = false;
     kind = LibrePaint::Image::Gpu::SelectionKind::Rectangle;
+    mask.clear();
     if (defaultPixel != 0) return unsupported();
     QBuffer input;
     input.setData(data);
@@ -185,12 +187,30 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
             return {Status::Success, {}};
         }
     }
+    if (!selectedOutsideImage && !imageBits.isNull()) {
+        QByteArray coverage(imageBounds.width() * imageBounds.height(), '\0');
+        for (int y = imageBounds.top(); y <= imageBounds.bottom(); ++y)
+            for (int x = imageBounds.left(); x <= imageBounds.right(); ++x)
+                if (imageBits.testBit((y - imageBounds.top()) * imageBounds.width() + x - imageBounds.left()))
+                    coverage[(y - imageBounds.top()) * imageBounds.width() + x - imageBounds.left()] = char(255);
+        auto arbitrary = LibrePaint::Image::Gpu::SelectionMask::fromCoverage(imageBounds, coverage, imageBounds);
+        if (arbitrary) {
+            selection = arbitrary->bounds();
+            kind = LibrePaint::Image::Gpu::SelectionKind::Freehand;
+            mask = arbitrary;
+            return {Status::Success, {}};
+        }
+    }
     return unsupported();
 }
 
 Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &imageBounds,
-                            LibrePaint::Image::Gpu::SelectionKind kind, qsizetype maximumBytes, QByteArray &output)
+                            LibrePaint::Image::Gpu::SelectionKind kind,
+                            const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
+                            qsizetype maximumBytes, QByteArray &output)
 {
+    if (kind == LibrePaint::Image::Gpu::SelectionKind::Freehand &&
+        (!mask || mask->isEmpty() || mask->bounds() != selection)) return invalid();
     const QRect area = inverted ? imageBounds : selection;
     if (area.isEmpty()) {
         output = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 1\nDATA 0\n");
@@ -215,7 +235,19 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
         for (int x = left; x <= right; ++x) {
             std::fill(pixels.begin(), pixels.end(), inverted ? char(255) : char(0));
             const QRect tile(x * FileTileSize, y * FileTileSize, FileTileSize, FileTileSize);
-            if (inverted) {
+            if (kind == LibrePaint::Image::Gpu::SelectionKind::Freehand) {
+                for (int py = tile.top(); py <= tile.bottom(); ++py) {
+                    const int row = py - y * FileTileSize;
+                    for (int px = tile.left(); px <= tile.right(); ++px) {
+                        const bool covered = imageBounds.contains(px, py) && mask->contains(px, py);
+                        if (inverted) {
+                            if (covered) pixels[row * FileTileSize + px - x * FileTileSize] = char(0);
+                        } else if (covered) {
+                            pixels[row * FileTileSize + px - x * FileTileSize] = char(255);
+                        }
+                    }
+                }
+            } else if (inverted) {
                 if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
                     for (int py = tile.top(); py <= tile.bottom(); ++py) {
                         const int row = py - y * FileTileSize;

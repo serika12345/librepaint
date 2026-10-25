@@ -67,6 +67,18 @@ inline bool validSelectionRect(const QRect &rect)
     if (rect.isEmpty()) return rect.x() == 0 && rect.y() == 0;
     return validCropRect(rect) && rect.width() > 0 && rect.height() > 0;
 }
+/** Rectangular and elliptical kinds carry no coverage; Freehand requires a
+ * nonempty mask whose tight bounds equal the recorded selection rectangle.
+ */
+inline bool validSelectionState(const QRect &rect, SelectionKind kind, const SelectionMaskSP &mask)
+{
+    if (kind != SelectionKind::Rectangle && kind != SelectionKind::Ellipse && kind != SelectionKind::Freehand)
+        return false;
+    if (kind == SelectionKind::Freehand)
+        return mask && !mask->isEmpty() && !rect.isEmpty() && rect == mask->bounds() &&
+            mask->byteCount() <= SelectionMask::MaximumBytes;
+    return !mask;
+}
 inline bool validCanvasRect(const QRect &rect)
 {
     return validCropRect(rect) && rect.width() > 0 && rect.height() > 0 &&

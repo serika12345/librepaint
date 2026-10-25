@@ -69,6 +69,7 @@ struct TileRenderer::Private
     std::shared_ptr<Detail::Budget> budget;
     Detail::NativeBuffer zero;
     Detail::NativeBuffer unusedCoverage;
+    Detail::NativeBuffer unusedSelection;
     Detail::NativeBindingLayout layout;
     Detail::NativeComputePipeline pipeline;
     Detail::NativeBindingLayout projectionLayout;
@@ -90,6 +91,7 @@ struct TileRenderer::Private
     Detail::NativeBindingLayout colorSampleLayout;
     Detail::NativeComputePipeline colorSamplePipeline;
     bool zeroUploaded = false;
+    bool selectionZeroUploaded = false;
     QString error;
     QWeakPointer<const RenderedVersion> coverageVersion;
     LayerId coverageLayer = 0;

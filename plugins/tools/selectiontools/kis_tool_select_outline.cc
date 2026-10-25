@@ -65,6 +65,21 @@ void KisToolSelectOutline::finishOutline(const QVector<QPointF>& points)
     const QRectF boundingRect = KisAlgebra2D::accumulateBounds(points);
     const QRectF boundingViewRect = pixelToView(boundingRect);
 
+    if (currentImage() && currentImage()->gpuImage()) {
+        if (points.count() < 3) return;
+        if (growSelection() != 0 || featherSelection() != 0 ||
+            selectionAction() != SELECTION_REPLACE) {
+            kisCanvas->showToolMessage(
+                i18n("The GPU painting engine supports a hard-edged replacement freehand selection only."),
+                QStringLiteral("object-locked"));
+            return;
+        }
+        if (currentImage()->setGpuSelectionFreehand(QList<QPointF>(points.cbegin(), points.cend()))) return;
+        kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
+                                   QStringLiteral("object-locked"));
+        return;
+    }
+
     KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Freehand Selection"));
 
     if (helper.tryDeselectCurrentSelection(boundingViewRect, selectionAction())) {

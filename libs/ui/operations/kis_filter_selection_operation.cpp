@@ -27,6 +27,12 @@
 void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewManager* view, const KisOperationConfiguration& config)
 {
     if (view->image() && view->image()->gpuImage()) {
+        if (view->image()->gpuSelectionFreehand()) {
+            delete filter;
+            view->showFloatingMessage(
+                i18n("Grow, shrink and invert are not yet available for a freehand GPU selection."), QIcon());
+            return;
+        }
         if (config.id() == QLatin1String("invertselection")) {
             delete filter;
             const QRect current = view->image()->gpuSelectionRect();

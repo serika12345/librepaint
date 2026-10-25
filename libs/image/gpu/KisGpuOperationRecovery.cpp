@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 43;
+constexpr quint16 FormatVersion = 44;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -33,6 +33,8 @@ void configure(QDataStream &stream)
     stream.setByteOrder(QDataStream::BigEndian);
     stream.setFloatingPointPrecision(QDataStream::DoublePrecision);
 }
+quint8 maximumSelectionKind(quint16 format)
+{ return format >= 44 ? quint8(SelectionKind::Freehand) : quint8(SelectionKind::Ellipse); }
 QByteArray digest(const QByteArray &data, qsizetype length)
 {
     QCryptographicHash hash(QCryptographicHash::Sha256);
@@ -67,11 +69,19 @@ QByteArray OperationDocument::recoveryData() const
     QHash<const void *, quint32> indices;
     QList<QSharedPointer<const RasterTile>> tiles;
     QHash<const RasterTile *, quint32> tileIndices;
+    QList<SelectionMaskSP> masks;
+    QHash<const SelectionMask *, quint32> maskIndices;
+    const auto registerMask = [&](const SelectionMaskSP &mask) {
+        if (!mask || maskIndices.contains(mask.data())) return;
+        maskIndices.insert(mask.data(), quint32(masks.size()));
+        masks.append(mask);
+    };
     const auto registerOperation = [&](const LayerOperation &operation) {
         const auto pointer = operationPointer(operation);
         if (indices.contains(pointer)) return;
         indices.insert(pointer, quint32(operations.size()));
         operations.append(operation);
+        if (const auto paint = std::get_if<PaintSnapshot>(&operation)) registerMask((*paint)->selectionMask);
         if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
             for (const auto &tile : (*write)->tiles) {
                 if (!tileIndices.contains(tile.data())) {
@@ -82,13 +92,15 @@ QByteArray OperationDocument::recoveryData() const
         }
     };
     for (const auto &state : m_history) {
+        registerMask(state->selectionMask);
         for (const auto &layer : state->layers) {
             for (const auto &operation : layer.operations) registerOperation(operation);
         }
     }
     if (m_edit) registerOperation(m_edit);
     if (m_translation) registerOperation(m_translation);
-    if (quint64(operations.size()) >= NoOperation || quint64(tiles.size()) >= NoOperation) return {};
+    if (quint64(operations.size()) >= NoOperation || quint64(tiles.size()) >= NoOperation ||
+        quint64(masks.size()) >= NoOperation) return {};
     QByteArray bytes;
     QDataStream stream(&bytes, QIODevice::WriteOnly);
     configure(stream);
@@ -106,6 +118,19 @@ QByteArray OperationDocument::recoveryData() const
         if (data.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 12) return {};
         stream << qint32(tile->coordinate().x()) << qint32(tile->coordinate().y()) << quint32(data.size());
         stream.writeRawData(data.constData(), int(data.size()));
+    }
+    if (FormatVersion >= 44) {
+        stream << quint32(masks.size());
+        for (const auto &mask : masks) {
+            if (!mask || mask->isEmpty() || quint64(mask->tiles().size()) > NoOperation) return {};
+            stream << quint32(mask->tiles().size());
+            for (auto tile = mask->tiles().cbegin(); tile != mask->tiles().cend(); ++tile) {
+                if (tile.value().size() != SelectionMask::TileBytes) return {};
+                if (m_limits.recoveryBytes - DigestSize - bytes.size() < SelectionMask::TileBytes + 8) return {};
+                stream << qint32(tile.key().first) << qint32(tile.key().second);
+                stream.writeRawData(tile.value().constData(), SelectionMask::TileBytes);
+            }
+        }
     }
     stream << quint32(operations.size());
     if (!withinLimit()) return {};
@@ -177,6 +202,10 @@ QByteArray OperationDocument::recoveryData() const
             stream << qint32(operation.selectionRect.x()) << qint32(operation.selectionRect.y())
                    << qint32(operation.selectionRect.width()) << qint32(operation.selectionRect.height())
                    << quint8(operation.selectionInverted) << quint8(operation.selectionKind);
+            if (FormatVersion >= 44 && operation.selectionKind == SelectionKind::Freehand) {
+                if (!operation.selectionMask || !maskIndices.contains(operation.selectionMask.data())) return {};
+                stream << maskIndices.value(operation.selectionMask.data());
+            }
         } else if (const auto tileWrite = std::get_if<TileWriteSnapshot>(&value)) {
             const auto &write = **tileWrite;
             stream << quint32(write.tiles.size());
@@ -236,6 +265,10 @@ QByteArray OperationDocument::recoveryData() const
                    << qint32(state->selection.width()) << qint32(state->selection.height());
         if (FormatVersion >= 42) stream << quint8(state->selectionInverted);
         if (FormatVersion >= 43) stream << quint8(state->selectionKind);
+        if (FormatVersion >= 44 && state->selectionKind == SelectionKind::Freehand) {
+            if (!state->selectionMask || !maskIndices.contains(state->selectionMask.data())) return {};
+            stream << maskIndices.value(state->selectionMask.data());
+        }
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
@@ -319,7 +352,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         if (format >= 43) {
             quint8 kind = 0;
             stream >> kind;
-            if (kind > quint8(SelectionKind::Ellipse)) return Result::InvalidRecovery;
+            if (kind > maximumSelectionKind(format)) return Result::InvalidRecovery;
             selectionKind = SelectionKind(kind);
         }
         if (stream.status() != QDataStream::Ok || !validSelectionRect(selectionRect)) return Result::InvalidRecovery;
@@ -344,6 +377,32 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         const auto tile = RasterTile::fromCompressed({x, y}, compressed);
         if (!tile) return Result::InvalidRecovery;
         tiles.append(tile);
+    }
+    QList<SelectionMaskSP> masks;
+    if (format >= 44) {
+        quint32 maskCount = 0;
+        stream >> maskCount;
+        if (!readableCount(stream, maskCount, payload.size(), 8)) return Result::InvalidRecovery;
+        for (quint32 i = 0; i < maskCount; ++i) {
+            quint32 maskTileCount = 0;
+            stream >> maskTileCount;
+            if (!readableCount(stream, maskTileCount, payload.size() / (SelectionMask::TileBytes + 8), 12))
+                return Result::InvalidRecovery;
+            SelectionTileMap maskTiles;
+            for (quint32 j = 0; j < maskTileCount; ++j) {
+                qint32 x = 0, y = 0;
+                stream >> x >> y;
+                const SelectionTileKey maskKey(x, y);
+                if (maskTiles.contains(maskKey)) return Result::InvalidRecovery;
+                QByteArray bytes(SelectionMask::TileBytes, Qt::Uninitialized);
+                if (stream.readRawData(bytes.data(), int(bytes.size())) != int(bytes.size()))
+                    return Result::InvalidRecovery;
+                maskTiles.insert(maskKey, bytes);
+            }
+            const auto mask = SelectionMask::fromTiles(maskTiles);
+            if (!mask || mask->tiles().size() != qsizetype(maskTileCount)) return Result::InvalidRecovery;
+            masks.append(mask);
+        }
     }
     quint32 operationCount = 0;
     stream >> operationCount;
@@ -573,9 +632,18 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             if (format >= 43) {
                 quint8 kind = 0;
                 stream >> kind;
-                if (kind > quint8(SelectionKind::Ellipse)) return Result::InvalidRecovery;
+                if (kind > maximumSelectionKind(format)) return Result::InvalidRecovery;
                 operation->selectionKind = SelectionKind(kind);
             }
+            if (format >= 44 && operation->selectionKind == SelectionKind::Freehand) {
+                quint32 maskIndex = NoOperation;
+                stream >> maskIndex;
+                if (maskIndex >= masks.size()) return Result::InvalidRecovery;
+                operation->selectionMask = masks[maskIndex];
+            }
+            if (stream.status() != QDataStream::Ok ||
+                !validSelectionState(operation->selectionRect, operation->selectionKind, operation->selectionMask))
+                return Result::InvalidRecovery;
         }
         operations.append(PaintSnapshot(operation));
     }
@@ -641,10 +709,17 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             if (format >= 43) {
                 quint8 kind = 0;
                 stream >> kind;
-                if (kind > quint8(SelectionKind::Ellipse)) return Result::InvalidRecovery;
+                if (kind > maximumSelectionKind(format)) return Result::InvalidRecovery;
                 state->selectionKind = SelectionKind(kind);
             }
-            if (stream.status() != QDataStream::Ok || !validSelectionRect(state->selection))
+            if (format >= 44 && state->selectionKind == SelectionKind::Freehand) {
+                quint32 maskIndex = NoOperation;
+                stream >> maskIndex;
+                if (maskIndex >= masks.size()) return Result::InvalidRecovery;
+                state->selectionMask = masks[maskIndex];
+            }
+            if (stream.status() != QDataStream::Ok || !validSelectionRect(state->selection) ||
+                !validSelectionState(state->selection, state->selectionKind, state->selectionMask))
                 return Result::InvalidRecovery;
         } else {
             state->selection = selectionRect;

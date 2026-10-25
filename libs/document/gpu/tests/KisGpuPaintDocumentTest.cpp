@@ -105,6 +105,7 @@ private Q_SLOTS:
     void colorFillSavesReopensAndContinuesIdentically();
     void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
     void rectangularSelectionSavesReopensAndLimitsPainting();
+    void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void weightedSmoothingSaveReopenAndContinuePreservesPixels();
     void gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
@@ -356,6 +357,93 @@ void KisGpuPaintDocumentTest::rectangularSelectionSavesReopensAndLimitsPainting(
     QCOMPARE(again.document->image()->selectionRect(), QRect(64, 32, 32, 64));
     QCOMPARE(again.document->image()->readRgbaPixels(again.document->image()->operations().activeLayer(), region,
              continued.size()).bytes, continued);
+}
+
+void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {128, 128};
+    initial.layers.append({QStringLiteral("Freehand"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000024}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    const QList<QPointF> polygon{{8, 8}, {120, 8}, {8, 120}};
+    const auto mask = SelectionMask::fromPolygon(polygon, QRect(QPoint(), initial.size));
+    QVERIFY(mask);
+    QCOMPARE(image->setSelectionMask(mask), Result::Success);
+    QCOMPARE(image->selectionKind(), SelectionKind::Freehand);
+    QCOMPARE(image->selectionRect(), mask->bounds());
+
+    Brush brush;
+    brush.rgba = {31, 97, 163, 255};
+    brush.diameter = 16;
+    QCOMPARE(image->paintFigure(layer, brush, {{{8, 64}, 1}, {{120, 64}, 1}}, Shape{}, FigureStyle{}, 9), Result::Success);
+    const QRect region(QPoint(), initial.size);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 128 + x) * 4, 4); };
+    const auto painted = image->readRgbaPixels(layer, region, 128 * 128 * 4);
+    QCOMPARE(painted.code, ExecutionCode::Success);
+    QCOMPARE(pixel(painted.bytes, 32, 64), QByteArray::fromHex("1f61a3ff"));
+    QCOMPARE(pixel(painted.bytes, 96, 64), QByteArray(4, char(0)));
+
+    // Keep a painted marker outside the mask so erase clipping remains observable.
+    QCOMPARE(image->clearSelection(), Result::Success);
+    QCOMPARE(image->paintFigure(layer, brush, {{{100, 100}, 1}}, Shape{}, FigureStyle{}, 10), Result::Success);
+    QCOMPARE(image->setSelectionMask(mask), Result::Success);
+    QCOMPARE(image->fillLayer(layer, {19, 211, 97}, 255, false, false), Result::Success);
+    const auto filled = image->readRgbaPixels(layer, region, 128 * 128 * 4);
+    QCOMPARE(filled.code, ExecutionCode::Success);
+    QCOMPARE(pixel(filled.bytes, 24, 24), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(pixel(filled.bytes, 100, 100), QByteArray::fromHex("1f61a3ff"));
+    QCOMPARE(pixel(filled.bytes, 110, 110), QByteArray(4, char(0)));
+
+    QCOMPARE(image->fillLayer(layer, {0, 0, 0}, 255, true, false), Result::Success);
+    const auto erased = image->readRgbaPixels(layer, region, 128 * 128 * 4);
+    QCOMPARE(erased.code, ExecutionCode::Success);
+    QCOMPARE(quint8(pixel(erased.bytes, 24, 24).at(3)), 0);
+    QCOMPARE(pixel(erased.bytes, 100, 100), QByteArray::fromHex("1f61a3ff"));
+
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("freehand-selection.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    QCOMPARE(loaded->selectionKind(), SelectionKind::Freehand);
+    QCOMPARE(loaded->selectionRect(), mask->bounds());
+    QVERIFY(loaded->selectionMask());
+    QVERIFY(*loaded->selectionMask() == *mask);
+    const auto loadedPixels = loaded->readRgbaPixels(loaded->operations().activeLayer(), region, 128 * 128 * 4);
+    QCOMPARE(loadedPixels.code, ExecutionCode::Success);
+    QCOMPARE(loadedPixels.bytes, erased.bytes);
+
+    QCOMPARE(loaded->setSelectionMask(loaded->selectionMask(), true), Result::Success);
+    QVERIFY(loaded->selectionInverted());
+    QCOMPARE(loaded->fillLayer(loaded->operations().activeLayer(), {211, 19, 97}, 255, false, false), Result::Success);
+    const auto inverted = loaded->readRgbaPixels(loaded->operations().activeLayer(), region, 128 * 128 * 4);
+    QCOMPARE(inverted.code, ExecutionCode::Success);
+    QCOMPARE(quint8(pixel(inverted.bytes, 24, 24).at(3)), 0);
+    QCOMPARE(pixel(inverted.bytes, 100, 100), QByteArray::fromHex("d31361ff"));
+    QCOMPARE(pixel(inverted.bytes, 8, 120), QByteArray::fromHex("d31361ff"));
+
+    // The KRA stream stores coverage, so an inverted freehand selection returns
+    // as the equivalent complement mask rather than a shape plus a flag.
+    const auto invertedPath = directory.filePath(QStringLiteral("inverted-freehand-selection.kra"));
+    QCOMPARE(reopened.document->saveKra(invertedPath).code, FileCode::Success);
+    const auto reopenedInverted = PaintDocument::openKra(execution, invertedPath);
+    QVERIFY2(reopenedInverted.code == FileCode::Success, qPrintable(reopenedInverted.diagnostic));
+    const auto loadedInverted = reopenedInverted.document->image();
+    QCOMPARE(loadedInverted->selectionKind(), SelectionKind::Freehand);
+    QVERIFY(!loadedInverted->selectionInverted());
+    QVERIFY(loadedInverted->selectionMask());
+    QVERIFY(!loadedInverted->selectionMask()->contains(24, 24));
+    QVERIFY(loadedInverted->selectionMask()->contains(100, 100));
+    const auto invertedPixels = loadedInverted->readRgbaPixels(loadedInverted->operations().activeLayer(), region,
+                                                               128 * 128 * 4);
+    QCOMPARE(invertedPixels.code, ExecutionCode::Success);
+    QCOMPARE(invertedPixels.bytes, inverted.bytes);
 }
 
 void KisGpuPaintDocumentTest::weightedSmoothingSaveReopenAndContinuePreservesPixels()

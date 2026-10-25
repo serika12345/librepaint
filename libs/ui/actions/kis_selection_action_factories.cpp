@@ -382,6 +382,11 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
 
     if (const auto owner = image->gpuImage()) {
         namespace Gpu = LibrePaint::Image::Gpu;
+        if (owner->selectionKind() == Gpu::SelectionKind::Freehand) {
+            view->showFloatingMessage(
+                i18n("Copying or cutting a freehand GPU selection is not supported yet."), QIcon());
+            return;
+        }
         const QRect selected = owner->selectionRect();
         if (!selected.isEmpty()) {
             KisNodeSP node = view->activeNode();
@@ -571,6 +576,11 @@ void KisCopyMergedActionFactory::run(KisViewManager *view)
     if (!guard || view->image().data() != image.data()) return;
 
     if (const auto owner = image->gpuImage()) {
+        if (owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Freehand) {
+            view->showFloatingMessage(
+                i18n("Copying a freehand GPU selection is not supported yet."), QIcon());
+            return;
+        }
         const bool inverted = owner->selectionInverted();
         const bool ellipse = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse;
         std::optional<GpuClipboardMask> mask;

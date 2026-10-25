@@ -147,6 +147,14 @@ Result PaintImage::setSelectionEllipse(const QRect &rect, bool inverted)
         effectiveInverted == m_d->document->selectionInverted()) return Result::Success;
     return publish(m_d->document->setSelectionEllipse(rect, inverted));
 }
+Result PaintImage::setSelectionMask(const SelectionMaskSP &mask, bool inverted)
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (mask && m_d->document->selectionKind() == SelectionKind::Freehand &&
+        m_d->document->selectionMask() == mask && m_d->document->selectionInverted() == inverted)
+        return Result::Success;
+    return publish(m_d->document->setSelectionMask(mask, inverted));
+}
 Result PaintImage::clearSelection()
 {
     if (!onThread()) return Result::InvalidInput;
@@ -160,6 +168,8 @@ bool PaintImage::selectionInverted() const
 { return onThread() && m_d->document->selectionInverted(); }
 SelectionKind PaintImage::selectionKind() const
 { return onThread() ? m_d->document->selectionKind() : SelectionKind::Rectangle; }
+SelectionMaskSP PaintImage::selectionMask() const
+{ return onThread() ? m_d->document->selectionMask() : SelectionMaskSP{}; }
 void PaintImage::refreshLayerPixelReferences()
 {
     const auto version = layerPixelVersion();

@@ -30,6 +30,8 @@ struct PaintJob
     std::shared_ptr<Tile> coverageInput, coverageOutput;
     NativeBuffer inputs;
     std::shared_ptr<NativeBuffer> fillEdges;
+    /** Frozen selection coverage for this tile; null binds the zero tile. */
+    std::shared_ptr<NativeBuffer> selectionCoverage;
     NativeBindings bindings;
     QList<PaintSegment> geometry;
     QList<GaussianDab> gaussianGeometry;
@@ -42,6 +44,7 @@ struct PaintJob
 
 quint32 packedPixel(const std::array<quint8, 4> &rgba);
 bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<PaintJob> &jobs,
-                      std::size_t first, WGPUBuffer zero, WGPUBuffer unusedCoverage);
+                      std::size_t first, WGPUBuffer zero, WGPUBuffer unusedCoverage,
+                      WGPUBuffer unusedSelection);
 }
 #endif

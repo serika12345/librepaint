@@ -118,9 +118,10 @@ FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadat
         const auto version = m_d->image->operations().snapshot();
         value.image.size = version->size;
         value.image.projectionBackground = version->projectionBackground;
-        value.image.selection = m_d->image->selectionRect();
-        value.image.selectionInverted = m_d->image->selectionInverted();
-        value.image.selectionKind = m_d->image->selectionKind();
+        value.image.selection = version->selection;
+        value.image.selectionInverted = version->selectionInverted;
+        value.image.selectionKind = version->selectionKind;
+        value.image.selectionMask = version->selectionMask;
         for (const auto &layer : version->layers) {
             if (layer.id == version->activeLayer) value.image.activeLayer = value.image.layers.size();
             value.image.layers.append(rasterLayerDescription(layer));
@@ -168,9 +169,10 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
     output.compressRaster = d.compressRaster;
     output.image.size = pinned->size;
     output.image.projectionBackground = pinned->projectionBackground;
-    output.image.selection = d.image->selectionRect();
-    output.image.selectionInverted = d.image->selectionInverted();
-    output.image.selectionKind = d.image->selectionKind();
+    output.image.selection = pinned->selection;
+    output.image.selectionInverted = pinned->selectionInverted;
+    output.image.selectionKind = pinned->selectionKind;
+    output.image.selectionMask = pinned->selectionMask;
     qsizetype rasterBytes = 0;
     for (const auto &layer : pinned->layers) {
         if (pinned->activeLayer == layer.id) output.image.activeLayer = output.image.layers.size();

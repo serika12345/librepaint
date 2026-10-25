@@ -1,6 +1,7 @@
 find_package(ZLIB 1.2.9 REQUIRED)
 kis_add_library(kritaimagegpuoperations SHARED
     KisGpuOperationDocument.cpp
+    KisGpuSelectionMask.cpp
     KisGpuLayerTranslation.cpp
     KisGpuCanvasResize.cpp
     KisGpuLayerProjectionValues.cpp

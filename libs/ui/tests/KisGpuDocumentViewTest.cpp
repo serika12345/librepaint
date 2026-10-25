@@ -133,6 +133,7 @@ private Q_SLOTS:
     void invertedSelectionLimitsPaintingAndKra();
     void ellipticalSelectionLimitsPaintingAndKra();
     void ellipticalToolCreatesDocumentSelection();
+    void freehandToolCreatesArbitraryMaskSelection();
     void pasteClipboardImageCreatesGpuLayer();
     void reselectRestoresGpuSelection();
     void arrowKeysNudgeGpuSelection();
@@ -2630,6 +2631,101 @@ void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), movedSecond);
     QVERIFY(owner->selectionInverted());
+}
+
+void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Freehand tool")));
+    QSignalSpy windowReady(KisPart::instance(), &KisPart::sigMainWindowCreated);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->activateWindow();
+    QTRY_VERIFY(!windowReady.isEmpty());
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    QTRY_VERIFY(!converter->getCanvasWidgetSize().isEmpty());
+    view->zoomManager()->zoomTo100();
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    const auto imageSize = converter->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
+            if (canvas->isVisible()) native = canvas;
+    QVERIFY(native);
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectOutline"));
+    QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectOutline"));
+    window->activateWindow();
+    native->requestActivate();
+    view->canvasBase()->canvasWidget()->setFocus();
+    QTest::qWait(100);
+    const auto point = [&](QPointF image) { return converter->imageToWidget(image).toPoint(); };
+    const QList<QPointF> polygon{{64, 64}, {192, 64}, {192, 128}, {128, 192}, {64, 192}};
+    QTest::mouseMove(native.data(), point(polygon.first()));
+    const auto start = point(polygon.first());
+    QEnterEvent entered(start, start, native->mapToGlobal(start));
+    QApplication::sendEvent(native.data(), &entered);
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, start);
+    for (qsizetype i = 1; i < polygon.size(); ++i)
+        QTest::mouseMove(native.data(), point(polygon[i]), 20);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point(polygon.last()));
+    QTRY_COMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
+    const auto mask = owner->selectionMask();
+    QVERIFY(mask);
+    QVERIFY(mask->contains(80, 80));
+    QVERIFY(!mask->contains(176, 176));
+    QCOMPARE(owner->selectionRect(), mask->bounds());
+    QTRY_VERIFY(lifetime->image()->globalSelection());
+    QTRY_COMPARE(lifetime->image()->globalSelection()->selectedExactRect(), mask->bounds());
+    QCOMPARE(owner->operations().undoCount(), 1);
+
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
+    resources->setOpacity(1);
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color"));
+    QVERIFY(fill);
+    fill->trigger();
+    QTRY_COMPARE(owner->operations().undoCount(), 2);
+    const QRect region(QPoint(), QSize(256, 256));
+    const auto filled = owner->readRgbaPixels(owner->operations().activeLayer(), region, 256 * 256 * 4);
+    QCOMPARE(filled.code, Gpu::ExecutionCode::Success);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 256 + x) * 4, 4); };
+    QCOMPARE(pixel(filled.bytes, 80, 80), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(pixel(filled.bytes, 176, 176), QByteArray(4, char(0)));
+
+    QVERIFY(lifetime->image()->clearGpuSelection());
+    QTRY_VERIFY(owner->selectionRect().isEmpty());
+    QVERIFY(lifetime->image()->reselectGpuSelection());
+    QTRY_COMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
+    QVERIFY(owner->selectionMask());
+    QVERIFY(owner->selectionMask()->contains(80, 80));
+    QVERIFY(!owner->selectionMask()->contains(176, 176));
+    QCOMPARE(owner->selectionRect(), mask->bounds());
 }
 
 void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer()

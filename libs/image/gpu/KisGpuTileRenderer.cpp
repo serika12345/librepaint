@@ -31,10 +31,12 @@ TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
     : device(std::move(device)), budget(std::make_shared<Budget>(Budget{this->device, byteBudget})),
       zero(createBuffer(this->device->nativeDevice(), TileBytes,
                         WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst)),
-      unusedCoverage(createBuffer(this->device->nativeDevice(), sizeof(quint32), WGPUBufferUsage_Storage))
+      unusedCoverage(createBuffer(this->device->nativeDevice(), sizeof(quint32), WGPUBufferUsage_Storage)),
+      unusedSelection(createBuffer(this->device->nativeDevice(), SelectionMask::TileBytes,
+                                   WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst))
 {
     pipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/paint.wgsl"));
-    if (!zero || !unusedCoverage || !pipeline) return;
+    if (!zero || !unusedCoverage || !unusedSelection || !pipeline) return;
     layout.reset(wgpuComputePipelineGetBindGroupLayout(pipeline.get(), 0));
     if (!layout) error = QStringLiteral("GPU paint bindings could not be created");
     if (error.isEmpty()) initializeProjection();
@@ -171,6 +173,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU versions require their owning device and document")};
     }
     if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
+    if (!d.selectionZeroUploaded) {
+        wgpuCommandEncoderClearBuffer(commands, d.unusedSelection.get(), 0, SelectionMask::TileBytes);
+        d.selectionZeroUploaded = true;
+    }
     QSet<LayerId> available, selected, requestedGroups;
     QHash<LayerId, const Layer *> nodes;
     QHash<QUuid, QList<const Layer *>> children;
@@ -216,11 +222,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     struct Checkpoint { qsizetype operation = 0; QSharedPointer<const RasterTile> pixels; };
     struct Upload { std::shared_ptr<Tile> tile; QByteArray rgba; };
     std::vector<Upload> uploads;
+    struct MaskUpload { std::shared_ptr<NativeBuffer> buffer; QByteArray bytes; };
+    std::vector<MaskUpload> maskUploads;
+    QHash<QPoint, std::shared_ptr<NativeBuffer>> selectionMaskBuffers;
     LayerId pendingCoverageLayer = 0;
     bool preserveCoverage = false;
     Tiles nextCoverage;
     bool coverageInitialized = false;
-    size_t recordedJobs = 0, recordedFills = 0, recordedUploads = 0;
+    size_t recordedJobs = 0, recordedFills = 0, recordedUploads = 0, recordedMaskUploads = 0;
     QList<std::shared_ptr<Tile>> spatialPins;
     const auto flushPaint = [&]() -> std::optional<RenderOutcome> {
         const bool reuseCoverage = preserveCoverage && d.coverageVersion.toStrongRef() == base &&
@@ -251,7 +260,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 }
             }
         }
-        if (!preparePaintJobs(*d.device, d.layout.get(), jobs, recordedJobs, d.zero.get(), d.unusedCoverage.get()))
+        if (!preparePaintJobs(*d.device, d.layout.get(), jobs, recordedJobs, d.zero.get(),
+                              d.unusedCoverage.get(), d.unusedSelection.get()))
             return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
         if (!d.zeroUploaded) {
             wgpuCommandEncoderClearBuffer(commands, d.zero.get(), 0, TileBytes);
@@ -265,6 +275,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         for (size_t i = recordedUploads; i < uploads.size(); ++i) {
             const auto &upload = uploads[i];
             wgpuQueueWriteBuffer(d.device->queue(), upload.tile->pixels.get(), 0, upload.rgba.constData(), size_t(upload.rgba.size()));
+        }
+        for (size_t i = recordedMaskUploads; i < maskUploads.size(); ++i) {
+            const auto &upload = maskUploads[i];
+            wgpuQueueWriteBuffer(d.device->queue(), upload.buffer->get(), 0, upload.bytes.constData(), size_t(upload.bytes.size()));
         }
         if (recordedJobs < jobs.size()) {
             const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
@@ -280,6 +294,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         recordedJobs = jobs.size();
         recordedFills = fillUploads.size();
         recordedUploads = uploads.size();
+        recordedMaskUploads = maskUploads.size();
         return std::nullopt;
     };
     if (base && base->document()->projectionBackground == document->projectionBackground)
@@ -612,6 +627,28 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.values.selectionHeight = operation.selectionRect.height();
                     if (operation.selectionInverted) job.values.paintFlags |= 1024u;
                     if (operation.selectionKind == SelectionKind::Ellipse) job.values.paintFlags |= 2048u;
+                    if (operation.selectionKind == SelectionKind::Freehand) {
+                        if (!operation.selectionMask || operation.selectionMask->isEmpty())
+                            return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU freehand selection has no coverage")};
+                        job.values.paintFlags |= 4096u;
+                        const QPoint maskTile = coordinate(tile.key());
+                        auto cached = selectionMaskBuffers.constFind(maskTile);
+                        if (cached != selectionMaskBuffers.cend()) {
+                            job.selectionCoverage = *cached;
+                        } else {
+                            const auto coverage = operation.selectionMask->tiles().constFind(
+                                SelectionTileKey(maskTile.x(), maskTile.y()));
+                            if (coverage != operation.selectionMask->tiles().cend()) {
+                                auto buffer = std::make_shared<NativeBuffer>(createBuffer(d.device->nativeDevice(),
+                                    SelectionMask::TileBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst));
+                                if (!*buffer)
+                                    return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU selection coverage allocation failed")};
+                                maskUploads.push_back({buffer, coverage.value()});
+                                selectionMaskBuffers.insert(maskTile, buffer);
+                                job.selectionCoverage = buffer;
+                            }
+                        }
+                    }
                     if (operation.brush.gaussianWash) {
                         const float opacity = float(operation.brush.gaussianWash->canvasOpacity);
                         std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));

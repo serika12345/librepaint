@@ -34,6 +34,7 @@ class KisToolSelectOutline : public KisToolSelectUiBase<__KisToolSelectOutlineLo
 public:
     KisToolSelectOutline(KoCanvasBase *canvas);
 
+    bool supportsGpuSelection() const override { return true; }
     bool primaryActionSupportsHiResEvents() const override;
     bool alternateActionSupportsHiResEvents(KisTool::AlternateAction action) const override;
     void resetCursorStyle() override;

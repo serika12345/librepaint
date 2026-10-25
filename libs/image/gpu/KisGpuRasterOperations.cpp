@@ -26,7 +26,9 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         throw std::invalid_argument("invalid raster document dimensions, layers or limits");
     }
     if (!validRasterLayerHierarchy(image.layers)) throw std::invalid_argument("invalid raster layer hierarchy");
-    if (!Detail::validSelectionRect(image.selection)) throw std::invalid_argument("invalid raster selection rectangle");
+    if (!Detail::validSelectionRect(image.selection) ||
+        !Detail::validSelectionState(image.selection, image.selectionKind, image.selectionMask))
+        throw std::invalid_argument("invalid raster selection");
     QSharedPointer<DocumentVersion> initial(new DocumentVersion);
     initial->m_document = m_identity;
     initial->m_committed = true;
@@ -34,6 +36,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     initial->selection = image.selection;
     initial->selectionInverted = image.selectionInverted;
     initial->selectionKind = image.selectionKind;
+    initial->selectionMask = image.selectionMask;
     initial->projectionBackground = image.projectionBackground;
     QSet<QUuid> identities;
     for (const auto &source : image.layers) {

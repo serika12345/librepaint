@@ -452,6 +452,34 @@ inline QByteArray gaussianCompoundPathRecoveryV38()
 inline QByteArray legacyRecovery(const OperationDocument &document, quint8 format)
 {
     auto payload = document.recoveryData().chopped(32);
+    if (format < 44) {
+        // The current writer records a shared selection-mask table after the
+        // raster tiles. These legacy records carry no arbitrary mask.
+        QDataStream header(&payload, QIODevice::ReadOnly);
+        header.setVersion(QDataStream::Qt_5_15);
+        header.setByteOrder(QDataStream::BigEndian);
+        quint32 magic = 0;
+        quint16 version = 0;
+        qint32 width = 0, height = 0;
+        quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
+        qint32 selectionX = 0, selectionY = 0, selectionWidth = 0, selectionHeight = 0;
+        quint8 inverted = 0, kind = 0;
+        header >> magic >> version >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision;
+        header >> selectionX >> selectionY >> selectionWidth >> selectionHeight >> inverted >> kind;
+        quint32 tileCount = 0;
+        header >> tileCount;
+        for (quint32 i = 0; i < tileCount; ++i) {
+            qint32 x = 0, y = 0;
+            quint32 size = 0;
+            header >> x >> y >> size;
+            header.skipRawData(int(size));
+        }
+        const int maskOffset = int(header.device()->pos());
+        quint32 maskCount = 0;
+        header >> maskCount;
+        Q_ASSERT(maskCount == 0);
+        payload.remove(maskOffset, 4);
+    }
     if (format < 40) {
         // Format 40 adds the current selection rectangle after savedRevision.
         QByteArray selection;

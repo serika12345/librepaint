@@ -239,6 +239,7 @@ Result OperationDocument::setSelectionRect(const QRect &rect, bool inverted)
     version->selection = normalized;
     version->selectionInverted = effectiveInverted;
     version->selectionKind = SelectionKind::Rectangle;
+    version->selectionMask.clear();
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.changedSelection = true;
@@ -266,6 +267,7 @@ Result OperationDocument::setSelectionEllipse(const QRect &rect, bool inverted)
     version->selection = normalized;
     version->selectionInverted = effectiveInverted;
     version->selectionKind = SelectionKind::Ellipse;
+    version->selectionMask.clear();
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.changedSelection = true;
@@ -279,6 +281,34 @@ Result OperationDocument::setSelectionEllipse(const QRect &rect, bool inverted)
     return Result::Success;
 }
 
+Result OperationDocument::setSelectionMask(const SelectionMaskSP &mask, bool inverted)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (!mask) return setSelectionRect({}, false);
+    if (mask->isEmpty() || mask->bounds().isEmpty() || mask->byteCount() > SelectionMask::MaximumBytes)
+        return Result::InvalidInput;
+    if (snapshot()->selectionKind == SelectionKind::Freehand && snapshot()->selectionMask == mask &&
+        snapshot()->selectionInverted == inverted) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->selection = mask->bounds();
+    version->selectionInverted = inverted;
+    version->selectionKind = SelectionKind::Freehand;
+    version->selectionMask = mask;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    change.changedSelection = true;
+    change.selectionBefore = snapshot()->selection;
+    change.selectionAfter = version->selection;
+    change.selectionInvertedBefore = snapshot()->selectionInverted;
+    change.selectionInvertedAfter = inverted;
+    change.selectionKindBefore = snapshot()->selectionKind;
+    change.selectionKindAfter = SelectionKind::Freehand;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
 Result OperationDocument::clearSelection()
 { return setSelectionRect({}, false); }
 
@@ -287,6 +317,8 @@ QRect OperationDocument::selectionRect() const { return snapshot()->selection; }
 bool OperationDocument::selectionInverted() const { return snapshot()->selectionInverted; }
 
 SelectionKind OperationDocument::selectionKind() const { return snapshot()->selectionKind; }
+
+SelectionMaskSP OperationDocument::selectionMask() const { return snapshot()->selectionMask; }
 
 qsizetype OperationDocument::layerIndex(LayerId layer) const
 {
@@ -573,6 +605,7 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
     operation->selectionRect = snapshot()->selection;
     operation->selectionInverted = snapshot()->selectionInverted;
     operation->selectionKind = snapshot()->selectionKind;
+    operation->selectionMask = snapshot()->selectionMask;
     m_edit = operation;
     return operation->id;
 }

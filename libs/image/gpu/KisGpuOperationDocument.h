@@ -20,6 +20,7 @@
 #include <QUuid>
 #include <kritaimagegpuoperations_export.h>
 #include "KisGpuRasterPixels.h"
+#include "KisGpuSelectionMask.h"
 #include <variant>
 #include <memory>
 #include <optional>
@@ -27,7 +28,7 @@
 namespace LibrePaint::Image::Gpu {
 
 using LayerId = quint64;
-enum class SelectionKind : quint8 { Rectangle, Ellipse };
+enum class SelectionKind : quint8 { Rectangle, Ellipse, Freehand };
 
 /** Attributes enabled for one layer by the properties dialog. Component masks
  * select the RGBA bits whose values participate in Undo and Redo.
@@ -202,6 +203,8 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
     QRect selectionRect{};
     bool selectionInverted = false;
     SelectionKind selectionKind = SelectionKind::Rectangle;
+    /** Frozen arbitrary coverage for SelectionKind::Freehand. */
+    SelectionMaskSP selectionMask;
 
     QList<InputSample> inputSamples() const;
 };
@@ -284,6 +287,8 @@ struct RasterImage
     /** When true, the rectangle is a hole and the rest of the image is selected. */
     bool selectionInverted = false;
     SelectionKind selectionKind = SelectionKind::Rectangle;
+    /** Arbitrary coverage for SelectionKind::Freehand. */
+    SelectionMaskSP selectionMask;
 };
 
 struct Layer
@@ -349,6 +354,8 @@ public:
     QRect selection{};
     bool selectionInverted = false;
     SelectionKind selectionKind = SelectionKind::Rectangle;
+    /** Frozen arbitrary coverage; null for rectangular and elliptical kinds. */
+    SelectionMaskSP selectionMask;
     qsizetype sampleCount = 0;
     qsizetype rasterBytes = 0;
 
@@ -482,10 +489,15 @@ public:
      */
     Result setSelectionRect(const QRect &rect, bool inverted = false);
     Result setSelectionEllipse(const QRect &rect, bool inverted = false);
+    /** Freezes arbitrary hard coverage as one selection history entry.
+     * A null mask clears the selection; the mask bounds become selectionRect().
+     */
+    Result setSelectionMask(const SelectionMaskSP &mask, bool inverted = false);
     Result clearSelection();
     QRect selectionRect() const;
     bool selectionInverted() const;
     SelectionKind selectionKind() const;
+    SelectionMaskSP selectionMask() const;
 
     /** Returns an empty identifier for a closed/busy document or invalid brush/layer. */
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 randomSeed);

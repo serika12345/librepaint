@@ -103,10 +103,12 @@ public:
     /** Selection state for subsequent painting; accepted operations freeze it. */
     Result setSelectionRect(const QRect &rect, bool inverted = false);
     Result setSelectionEllipse(const QRect &rect, bool inverted = false);
+    Result setSelectionMask(const SelectionMaskSP &mask, bool inverted = false);
     Result clearSelection();
     bool selectionInverted() const;
     LibrePaint::Image::Gpu::SelectionKind selectionKind() const;
     QRect selectionRect() const;
+    SelectionMaskSP selectionMask() const;
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);

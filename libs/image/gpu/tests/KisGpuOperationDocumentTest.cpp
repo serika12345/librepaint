@@ -182,6 +182,7 @@ private Q_SLOTS:
     void selectionRectIsFrozenInOperationsAndRecovery();
     void invertedSelectionSurvivesRecovery();
     void ellipticalSelectionSurvivesRecovery();
+    void freehandSelectionFreezesCoverageHistoryAndRecovery();
     void basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent();
     void weightedSmoothingRetainsFrozenSettingsSpeedAndRecovery();
     void basicSmoothingRejectsConflictingModesAndShapeChanges();
@@ -4023,6 +4024,73 @@ void KisGpuOperationDocumentTest::ellipticalSelectionSurvivesRecovery()
     QCOMPARE(restored.selectionKind(), SelectionKind::Rectangle);
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(restored.selectionKind(), SelectionKind::Ellipse);
+
+    OperationDocument previous(QSize(1, 1));
+    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 43)), Result::Success);
+    QCOMPARE(previous.selectionRect(), QRect(8, 8, 32, 24));
+    QCOMPARE(previous.selectionKind(), SelectionKind::Ellipse);
+    QCOMPARE(previous.undo(), Result::Success);
+    QCOMPARE(previous.selectionKind(), SelectionKind::Rectangle);
+    QCOMPARE(previous.redo(), Result::Success);
+    QCOMPARE(previous.selectionKind(), SelectionKind::Ellipse);
+}
+
+void KisGpuOperationDocumentTest::freehandSelectionFreezesCoverageHistoryAndRecovery()
+{
+    OperationDocument document(QSize(64, 64));
+    const QList<QPointF> polygon{{8, 8}, {56, 8}, {8, 56}};
+    const auto mask = SelectionMask::fromPolygon(polygon, QRect(QPoint(), QSize(64, 64)));
+    QVERIFY(mask);
+    QVERIFY(mask->contains(12, 12));
+    QVERIFY(!mask->contains(48, 48));
+    QCOMPARE(document.setSelectionMask(mask), Result::Success);
+    QCOMPARE(document.selectionKind(), SelectionKind::Freehand);
+    QCOMPARE(document.selectionRect(), mask->bounds());
+    QVERIFY(document.selectionMask() == mask);
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
+
+    const auto id = document.beginStroke(document.activeLayer(), Brush{}, 5);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.appendSamples(id, {{{16, 16}, 1}}), Result::Success);
+    const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QCOMPARE(pending->selectionKind, SelectionKind::Freehand);
+    QVERIFY(pending->selectionMask == mask);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+
+    QCOMPARE(document.setSelectionRect(QRect(0, 0, 8, 8)), Result::Success);
+    QCOMPARE(document.selectionKind(), SelectionKind::Rectangle);
+    QCOMPARE(document.undoCount(), 3);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.selectionKind(), SelectionKind::Freehand);
+    QVERIFY(document.selectionMask() == mask);
+
+    const auto bytes = document.recoveryData();
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(restored.selectionKind(), SelectionKind::Freehand);
+    QCOMPARE(restored.selectionRect(), mask->bounds());
+    QVERIFY(restored.selectionMask());
+    QVERIFY(*restored.selectionMask() == *mask);
+    QVERIFY(restored.selectionMask()->contains(12, 12));
+    QVERIFY(!restored.selectionMask()->contains(48, 48));
+    QCOMPARE(restored.recoveryData(), bytes);
+    const auto restoredPaint = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(restoredPaint->selectionKind, SelectionKind::Freehand);
+    QVERIFY(restoredPaint->selectionMask);
+    QVERIFY(restoredPaint->selectionMask && *restoredPaint->selectionMask == *mask);
+
+    QCOMPARE(restored.setSelectionMask(mask, true), Result::Success);
+    QVERIFY(restored.selectionInverted());
+    const auto invertedBytes = restored.recoveryData();
+    OperationDocument inverted(QSize(1, 1));
+    QCOMPARE(inverted.restoreRecovery(invertedBytes), Result::Success);
+    QVERIFY(inverted.selectionInverted());
+    QVERIFY(*inverted.selectionMask() == *mask);
+
+    QCOMPARE(inverted.setSelectionMask(SelectionMaskSP{}), Result::Success);
+    QVERIFY(inverted.selectionRect().isEmpty());
+    QVERIFY(!inverted.selectionMask());
+    QCOMPARE(inverted.selectionKind(), SelectionKind::Rectangle);
 }
 
 void KisGpuOperationDocumentTest::basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent()

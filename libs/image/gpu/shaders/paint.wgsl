@@ -16,6 +16,7 @@ struct Segment { endpoints: vec4<i32>, values: vec4<u32>, }
 @group(0) @binding(4) var<storage, read> fillEdges: array<Segment>;
 @group(0) @binding(5) var<storage, read> previousCoverage: array<u32>;
 @group(0) @binding(6) var<storage, read_write> retainedCoverage: array<u32>;
+@group(0) @binding(7) var<storage, read> selectionCoverage: array<u32>;
 
 fn geometryFour(index: u32) -> vec4<u32> {
     return vec4<u32>(geometryWords[index], geometryWords[index + 1u], geometryWords[index + 2u], geometryWords[index + 3u]);
@@ -188,16 +189,24 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if (parameters.counts.z != 0u) { outputPixels[index] = parameters.brush.x; return; }
     let pixel = parameters.tile.xy + vec2<i32>(local);
     let selection = parameters.selection;
-    if (selection.z > 0 && selection.w > 0) {
-        let outside = pixel.x < selection.x || pixel.y < selection.y ||
-            pixel.x >= selection.x + selection.z || pixel.y >= selection.y + selection.w;
-        var inside = !outside;
-        if ((parameters.counts.w & 2048u) != 0u) {
-            let center = vec2<f32>(f32(selection.x) + f32(selection.z) * 0.5,
-                                   f32(selection.y) + f32(selection.w) * 0.5);
-            let radius = vec2<f32>(f32(selection.z) * 0.5, f32(selection.w) * 0.5);
-            let relative = (vec2<f32>(f32(pixel.x) + 0.5, f32(pixel.y) + 0.5) - center) / radius;
-            inside = dot(relative, relative) <= 1.0;
+    let freehand = (parameters.counts.w & 4096u) != 0u;
+    if (freehand || (selection.z > 0 && selection.w > 0)) {
+        var inside = false;
+        if (freehand) {
+            // One bit per tile pixel; the renderer binds the frozen coverage tile.
+            let coverageIndex = index;
+            inside = ((selectionCoverage[coverageIndex >> 5u] >> (coverageIndex & 31u)) & 1u) != 0u;
+        } else {
+            let outside = pixel.x < selection.x || pixel.y < selection.y ||
+                pixel.x >= selection.x + selection.z || pixel.y >= selection.y + selection.w;
+            inside = !outside;
+            if ((parameters.counts.w & 2048u) != 0u) {
+                let center = vec2<f32>(f32(selection.x) + f32(selection.z) * 0.5,
+                                       f32(selection.y) + f32(selection.w) * 0.5);
+                let radius = vec2<f32>(f32(selection.z) * 0.5, f32(selection.w) * 0.5);
+                let relative = (vec2<f32>(f32(pixel.x) + 0.5, f32(pixel.y) + 0.5) - center) / radius;
+                inside = dot(relative, relative) <= 1.0;
+            }
         }
         let inverted = (parameters.counts.w & 1024u) != 0u;
         var masked = !inside;

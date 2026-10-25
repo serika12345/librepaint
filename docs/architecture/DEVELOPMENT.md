@@ -325,10 +325,16 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 `KisGpuTileRendererTest::selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery`は、
 矩形選択の外側が描画・塗り・消去の前後で不変であること、内側の画素、Undo／Redo、
 復旧後の再描画が同じ結果になることを検査する。現在の対象は文書座標の矩形選択である。
+`KisGpuOperationDocumentTest::freehandSelectionFreezesCoverageHistoryAndRecovery`は、
+任意の閉じた境界から硬い被覆マスクを作り、選択変更が一回の履歴になること、描画操作が
+開始時のマスクを固定すること、Undo／Redoと復旧が被覆・反転状態・操作のマスクを保つことを検査する。
+復旧形式44は共有する任意被覆マスクを256×256タイルの表として一度だけ記録し、文書版と描画操作は
+その添字を共有する。形式43以前の矩形・楕円選択は従来の記録から読み込む。
 `KisGpuDocumentViewTest::rectangularSelectionLimitsPainting`は、通常の矩形選択ツールで
 選択範囲を作成し、GPU選択とCPU表示用マスクの一致、選択内だけの描画、選択外の不変、
 解除後の描画、選択変更を含むUndoの件数を検査する。
-矩形以外の選択ツール、選択移動、選択フィルターはGPU文書で拒否する。
+自由選択ツールは任意被覆をGPU文書へ固定する。多角形・経路など残りの選択ツールはGPU文書で拒否し、
+自由選択の移動・拡大・縮小・反転・コピー・切り取りは任意被覆の出力を追加するまで診断付きで拒否する。
 `KisGpuDocumentViewTest::selectionFillUsesGpuSelection`は、GPU文書の矩形選択内だけの
 前景色塗りつぶし、選択外の不変、Undo／Redoを検査する。
 `KisGpuDocumentViewTest::selectionMergedCopyUsesGpuSelection`は、矩形選択の投影だけを
@@ -364,11 +370,19 @@ Undoによる除去を検査する。
 `KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection`は、通常の楕円選択ツールの
 ネイティブドラッグが画像座標の楕円選択を生成し、続くドラッグで楕円と反転楕円の穴を
 移動して一回の履歴でUndo／Redoできることを検査する。
+`KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection`は、通常の自由選択ツールの
+ネイティブドラッグが任意の閉じた境界をGPU文書の硬い被覆マスクへ固定し、CPU表示用マスクの輪郭、
+選択内だけの塗りつぶし、選択外の不変、解除後の再選択が同じ被覆を復元することを検査する。
 `TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening`は、GPU文書のKRAが
 ルートの`selectionmask`と`PIXELSIZE 1`の`.pixelselection`を矩形選択として読み書きし、
 再保存・再読込後も選択とレイヤー画素を保持することを検査する。
+任意被覆の選択は同じストリームの0か255の画素から復元し、矩形・楕円に一致しない場合に
+`SelectionKind::Freehand`の被覆マスクとして読み込む。
 `KisGpuPaintDocumentTest::rectangularSelectionSavesReopensAndLimitsPainting`は、
 選択内だけの描画、保存・再読込、選択変更後の旧画素保持と追加描画を照合する。
+`KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra`は、
+任意被覆マスクによる描画・塗りつぶし・消去のクリップ、マスク外の保持、反転マスク、
+KRA保存・再読込後の被覆・画素・反転状態を照合する。
 `KoRgbU8ColorSpaceTester`は、通常合成の厳密な色が5494/33となる固定入力について、
 単一画素、ベクトルと端数を含む画素列、開始位置をずらした画素列で、166へ丸める結果を照合する。
 異なるRGB成分とレイヤー不透明度を持つ固定画素も、同じ条件でスカラーとSIMDの一致を検査する。

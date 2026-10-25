@@ -162,6 +162,13 @@ public:
                 else if (event->modifiers().testFlag(Qt::ControlModifier)) delta *= 100;
                 else if (event->modifiers().testFlag(Qt::ShiftModifier)) delta *= 10;
                 const QRect current = this->image()->gpuSelectionRect();
+                if (!current.isEmpty() && this->image()->gpuSelectionFreehand()) {
+                    toolCanvas()->showToolMessage(
+                        i18n("Moving a freehand GPU selection is not supported yet."),
+                        QStringLiteral("object-locked"));
+                    event->accept();
+                    return;
+                }
                 if (!current.isEmpty()) {
                     const bool ok = this->image()->gpuSelectionEllipse()
                         ? this->image()->setGpuSelectionEllipse(current.translated(delta),
@@ -276,6 +283,12 @@ public:
             return;
         }
         if (gpu && locateSelectionMaskUnderCursor(this->convertToPixelCoord(event->point), event->modifiers())) {
+            if (this->image()->gpuSelectionFreehand()) {
+                toolCanvas()->showToolMessage(
+                    i18n("Moving a freehand GPU selection is not supported yet."),
+                    QStringLiteral("object-locked"));
+                return;
+            }
             if (selectionAction() != SELECTION_REPLACE) {
                 toolCanvas()->showToolMessage(
                     i18n("The GPU painting engine supports replacement selection actions only."),
