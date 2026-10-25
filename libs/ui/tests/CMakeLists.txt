@@ -1191,7 +1191,8 @@ set(gpu_document_input_cases
     rectangularSelectionLimitsPainting
     selectionFillUsesGpuSelection
     selectionMergedCopyUsesGpuSelection
-    selectionCopyAndCutUseGpuSelection)
+    selectionCopyAndCutUseGpuSelection
+    selectionShrinkUsesGpuSelection)
 set(gpu_document_crop_cases
     cropPreviewPreservesPixelsHistoryAndCancellation)
 set(gpu_document_layer_cases
@@ -1236,7 +1237,8 @@ set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
-    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop)
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop
+    kritamodifyselection)
 if(NOT IOS)
     add_dependencies(KisGpuDocumentViewTest kritatextproperties)
 endif()

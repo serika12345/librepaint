@@ -27,7 +27,31 @@
 void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewManager* view, const KisOperationConfiguration& config)
 {
     if (view->image() && view->image()->gpuImage()) {
-        view->showFloatingMessage(i18n("The GPU painting engine currently supports rectangular selections only."), QIcon());
+        if (config.id() == QLatin1String("shrinkselection")) {
+            const int xRadius = config.getInt("x-radius", 1);
+            const int yRadius = config.getInt("y-radius", 1);
+            const bool edgeLock = config.getBool("edgeLock", false);
+            const QRect current = view->image()->gpuSelectionRect();
+            delete filter;
+            if (xRadius < 0 || yRadius < 0) {
+                view->showFloatingMessage(i18n("The shrink radius is invalid."), QIcon());
+                return;
+            }
+            if (current.isEmpty() || (xRadius == 0 && yRadius == 0)) return;
+            int left = xRadius, right = xRadius, top = yRadius, bottom = yRadius;
+            if (edgeLock) {
+                if (current.left() <= 0) left = 0;
+                if (current.top() <= 0) top = 0;
+                if (current.right() + 1 >= view->image()->width()) right = 0;
+                if (current.bottom() + 1 >= view->image()->height()) bottom = 0;
+            }
+            const QRect shrunk = current.adjusted(left, top, -right, -bottom);
+            if (shrunk.isEmpty()) view->image()->clearGpuSelection();
+            else if (!view->image()->setGpuSelectionRect(shrunk))
+                view->showFloatingMessage(i18n("The selection could not be shrunk."), QIcon());
+            return;
+        }
+        view->showFloatingMessage(i18n("Only shrinking a rectangular selection is available for GPU documents."), QIcon());
         delete filter;
         return;
     }

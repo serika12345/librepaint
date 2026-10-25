@@ -44,6 +44,9 @@
 #include <application/ui/workspace/KisView.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <actions/input/KisApplicationInputActions.h>
+#include <operations/kis_operation_configuration.h>
+#include <operations/kis_filter_selection_operation.h>
+#include <kis_selection_filters.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <canvas/KisMirrorAxisConfig.h>
 #include <canvas/kis_coordinates_converter.h>
@@ -128,6 +131,7 @@ private Q_SLOTS:
     void selectionFillUsesGpuSelection();
     void selectionMergedCopyUsesGpuSelection();
     void selectionCopyAndCutUseGpuSelection();
+    void selectionShrinkUsesGpuSelection();
     void selectionMovePreviewsAndCommitsOneHistory();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
@@ -2138,6 +2142,63 @@ void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
     QTRY_VERIFY(lifetime->image()->globalSelection() &&
                 lifetime->image()->globalSelection()->selectedExactRect() == moved);
     QCOMPARE(owner->operations().undoCount(), history);
+}
+
+void KisGpuDocumentViewTest::selectionShrinkUsesGpuSelection()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Selection shrink")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    const QRect selected(64, 64, 128, 128);
+    QVERIFY(lifetime->image()->setGpuSelectionRect(selected));
+    QTRY_COMPARE(owner->selectionRect(), selected);
+    const auto shrink = [&](int x, int y) {
+        KisOperationConfigurationSP config = new KisOperationConfiguration("shrinkselection");
+        config->setProperty("x-radius", x);
+        config->setProperty("y-radius", y);
+        config->setProperty("edgeLock", false);
+        window->viewManager()->actionManager()->runOperationFromConfiguration(config);
+        lifetime->image()->waitForDone();
+    };
+    shrink(8, 4);
+    const QRect shrunk(72, 68, 112, 120);
+    QTRY_COMPARE(owner->selectionRect(), shrunk);
+    QTRY_VERIFY(lifetime->image()->globalSelection() &&
+                lifetime->image()->globalSelection()->selectedExactRect() == shrunk);
+    QCOMPARE(owner->operations().undoCount(), 2);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), selected);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), shrunk);
+    shrink(100, 100);
+    QTRY_VERIFY(owner->selectionRect().isEmpty());
+    QTRY_VERIFY(!lifetime->image()->globalSelection() ||
+                lifetime->image()->globalSelection()->selectedExactRect().isEmpty());
+    QCOMPARE(owner->operations().undoCount(), 3);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), shrunk);
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
