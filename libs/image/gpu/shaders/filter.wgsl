@@ -6,8 +6,11 @@ struct FilterParameters {
     tile: vec4<i32>,
     // Selection rectangle x/y/width/height.
     selection: vec4<i32>,
-    // Raw HSV/HSL Adjustment values: h, s, v and type | legacy << 8.
+    // Raw HSV/HSL/HSY/YUV Adjustment values: h, s, v and
+    // type | legacy << 8 | colorize << 9.
     adjustment: vec4<i32>,
+    // Effective document luma coefficients rounded once to binary32.
+    luma: vec4<f32>,
 }
 
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
@@ -27,11 +30,17 @@ const FILTER_INVERT_COLORS: u32 = 0u;
 const FILTER_GRAYSCALE: u32 = 1u;
 const FILTER_HSV_ADJUSTMENT: u32 = 2u;
 
-// Product HSV/HSL Adjustment modes whose CPU pixel rule depends only on the
-// stored RGB value. The product `type` key selects them.
+// Product HSV/HSL Adjustment modes selected by the product `type` key. HSY
+// and YUV, like the product Colorize option, also use the document luma
+// coefficients frozen with the operation.
 const HSV_MODE_VALUE: u32 = 0u;
 const HSV_MODE_LIGHTNESS: u32 = 1u;
 const HSV_MODE_INTENSITY: u32 = 2u;
+const HSV_MODE_LUMA: u32 = 3u;
+const HSV_MODE_YUV: u32 = 4u;
+
+const HSV_LEGACY_FLAG: i32 = 256;
+const HSV_COLORIZE_FLAG: i32 = 512;
 
 // The product transformation is evaluated in binary32 (the CPU filter stores
 // qreal parameters but converts them to float before the per-pixel loop), so
@@ -109,13 +118,17 @@ fn modeHasChroma(mode: u32, value: f32) -> bool {
     return value > HSV_EPSILON && value < 1.0 - HSV_EPSILON;
 }
 
-fn modeValue(mode: u32, rgb: vec3<f32>, minimum: f32, maximum: f32) -> f32 {
+fn modeValue(mode: u32, rgb: vec3<f32>, minimum: f32, maximum: f32, luma: vec3<f32>) -> f32 {
     if (mode == HSV_MODE_LIGHTNESS) { return 0.5 * (maximum + minimum); }
     if (mode == HSV_MODE_INTENSITY) { return (rgb.x + rgb.y + rgb.z) / 3.0; }
+    if (mode == HSV_MODE_LUMA) {
+        return rgb.x * luma.x + rgb.y * luma.y + rgb.z * luma.z;
+    }
     return maximum;
 }
 
 fn modeFixChroma(mode: u32, chroma: f32, value: f32) -> f32 {
+    if (mode == HSV_MODE_LUMA) { return chroma; }
     if (mode == HSV_MODE_LIGHTNESS) {
         if (value >= 0.5) { return min(chroma, 2.0 - 2.0 * value); }
         return min(chroma, 2.0 * value);
@@ -128,7 +141,15 @@ fn modeFixChroma(mode: u32, chroma: f32, value: f32) -> f32 {
     return min(value, chroma);
 }
 
-fn modeWrite(mode: u32, sextant: i32, x: f32, chroma: f32, value: f32) -> vec3<f32> {
+fn modeWrite(mode: u32, sextant: i32, x: f32, chroma: f32, value: f32,
+             luma: vec3<f32>) -> vec3<f32> {
+    if (mode == HSV_MODE_LUMA) {
+        // The HCY policy writes the pure hue and then shifts all components by
+        // the difference between the requested luma and the written luma.
+        let base = writeSimple(sextant, x, 0.0, chroma);
+        let shift = value - (base.x * luma.x + base.y * luma.y + base.z * luma.z);
+        return base + vec3<f32>(shift);
+    }
     if (mode == HSV_MODE_LIGHTNESS) {
         let maximum = value + 0.5 * chroma;
         let minimum = value - 0.5 * chroma;
@@ -143,15 +164,16 @@ fn modeWrite(mode: u32, sextant: i32, x: f32, chroma: f32, value: f32) -> vec3<f
     return writeSimple(sextant, x, value - chroma, value);
 }
 
-// The modern product transformation (`HSVTransform` with the HSV, HSL or HCI
-// policy). Hue and saturation adjustments do not create chroma on a neutral
-// pixel; the value adjustment moves both value and chroma toward the requested
-// endpoint, exactly as the product rule does.
-fn modernAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, mode: u32) -> vec3<f32> {
+// The modern product transformation (`HSVTransform` with the HSV, HSL, HCI or
+// HCY policy). Hue and saturation adjustments do not create chroma on a
+// neutral pixel; the value adjustment moves both value and chroma toward the
+// requested endpoint, exactly as the product rule does.
+fn modernAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, mode: u32,
+                     luma: vec3<f32>) -> vec3<f32> {
     let maximum = max(rgb.x, max(rgb.y, rgb.z));
     let minimum = min(rgb.x, min(rgb.y, rgb.z));
     var chroma = maximum - minimum;
-    var value = modeValue(mode, rgb, minimum, maximum);
+    var value = modeValue(mode, rgb, minimum, maximum, luma);
     var hue = 0.0;
     if (!modeHasChroma(mode, value)) {
         chroma = 0.0;
@@ -200,14 +222,15 @@ fn modernAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, mode: u32) -> vec
     } else {
         x = chroma * fraction;
     }
-    return modeWrite(mode, sextant, x, chroma, value);
+    return modeWrite(mode, sextant, x, chroma, value, luma);
 }
 
 // ---- Pre-4.3 compatibility conversions -----------------------------------
 //
-// These reproduce KoColorConversions' RGBToHSV/HSVToRGB, RGBToHSL/HSLToRGB and
-// RGBToHCI/HCIToRGB for the legacy mode. The product enables this path only
-// through its `compatibilityMode` key, which is frozen with the values.
+// These reproduce KoColorConversions' RGBToHSV/HSVToRGB, RGBToHSL/HSLToRGB,
+// RGBToHCI/HCIToRGB and RGBToHCY/HCYToRGB for the legacy mode. The product
+// enables this path only through its `compatibilityMode` key, which is frozen
+// with the values.
 
 fn legacyRgbToHsv(rgb: vec3<f32>) -> vec3<f32> {
     let maximum = max(rgb.x, max(rgb.y, rgb.z));
@@ -348,7 +371,103 @@ fn legacyHciToRgb(hci: vec3<f32>) -> vec3<f32> {
     return vec3<f32>(r + m, g + m, b + m);
 }
 
-fn legacyAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, mode: u32) -> vec3<f32> {
+// The HCY functions are the qreal conversions used by the product's legacy
+// HSY rule. The modern HSY rule uses the HCYPolicy above instead.
+fn legacyRgbToHcy(rgb: vec3<f32>, luma: vec3<f32>) -> vec3<f32> {
+    let minimum = min(rgb.x, min(rgb.y, rgb.z));
+    let maximum = max(rgb.x, max(rgb.y, rgb.z));
+    var lumaValue = luma.x * rgb.x + luma.y * rgb.y + luma.z * rgb.z;
+    var chroma = maximum - minimum;
+    var hue = 0.0;
+    if (chroma == 0.0) {
+        hue = 0.0;
+    } else {
+        if (maximum == rgb.x) {
+            if (minimum == rgb.z) {
+                hue = (rgb.y - rgb.z) / chroma;
+            } else {
+                hue = (rgb.y - rgb.z) / chroma + 6.0;
+            }
+        } else if (maximum == rgb.y) {
+            hue = (rgb.z - rgb.x) / chroma + 2.0;
+        } else if (maximum == rgb.z) {
+            hue = (rgb.x - rgb.y) / chroma + 4.0;
+        }
+        hue = hue / 6.0;
+    }
+    if (chroma < 0.0) { chroma = 0.0; }
+    if (lumaValue < 0.0) { lumaValue = 0.0; }
+    return vec3<f32>(clamp(hue, 0.0, 1.0), chroma, lumaValue);
+}
+
+fn legacyHcyToRgb(hcy: vec3<f32>, luma: vec3<f32>) -> vec3<f32> {
+    var hue = hcy.x;
+    let chroma = hcy.y;
+    let lumaValue = hcy.z;
+    if (hue > 1.0 || hue < 0.0) { hue = fmodValue(hue * 2.0, 2.0) / 2.0; }
+    let fract = i32(hue * 6.0);
+    let x = (1.0 - abs(fmodValue(hue * 6.0, 2.0) - 1.0)) * chroma;
+    var r = 0.0;
+    var g = 0.0;
+    var b = 0.0;
+    if (fract == 0) { r = chroma; g = x; b = 0.0; }
+    else if (fract == 1) { r = x; g = chroma; b = 0.0; }
+    else if (fract == 2) { r = 0.0; g = chroma; b = x; }
+    else if (fract == 3) { r = 0.0; g = x; b = chroma; }
+    else if (fract == 4) { r = x; g = 0.0; b = chroma; }
+    else if (fract == 5) { r = chroma; g = 0.0; b = x; }
+    // The product conversion orders the weights R, B, G.
+    let shift = lumaValue - (luma.x * r + luma.z * b + luma.y * g);
+    return vec3<f32>(r + shift, g + shift, b + shift);
+}
+
+// The YUV product rule: hue scales the blue chroma, saturation the red
+// chroma and value offsets luma. It has no legacy variant.
+fn yuvAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, luma: vec3<f32>) -> vec3<f32> {
+    let lumaValue = rgb.x * luma.x + rgb.y * luma.y + rgb.z * luma.z;
+    let chromaBlue = 0.5 * ((rgb.z - lumaValue) / (1.0 - luma.z));
+    let chromaRed = 0.5 * ((rgb.x - lumaValue) / (1.0 - luma.x));
+    let adjustedBlue = chromaBlue * (dh + 1.0);
+    let adjustedRed = chromaRed * (ds + 1.0);
+    let adjustedLuma = lumaValue + dv;
+    let blueChroma = adjustedBlue - 0.5;
+    let redChroma = adjustedRed - 0.5;
+    let negB = 1.0 - luma.z;
+    let negR = 1.0 - luma.x;
+    let red = adjustedLuma + redChroma * (negR / 0.5);
+    let green = adjustedLuma - blueChroma * ((luma.z * negB) / (0.5 * luma.y)) -
+        redChroma * ((luma.x * negR) / (0.5 * luma.y));
+    let blue = adjustedLuma + blueChroma * (negB / 0.5);
+    return vec3<f32>(red, green, blue);
+}
+
+// The product Colorize rule: the adjusted luma becomes the HSL lightness and
+// the hue and saturation sliders set the HSL hue and saturation. The product
+// applies its legacy HSL conversion here regardless of the compatibility flag.
+fn colorizeAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32,
+                      luma: vec3<f32>) -> vec3<f32> {
+    var hue = dh * 360.0;
+    if (hue >= 360.0) { hue = 0.0; }
+    let saturation = ds;
+    var lumaValue = rgb.x * luma.x + rgb.y * luma.y + rgb.z * luma.z;
+    if (dv > 0.0) {
+        lumaValue = lumaValue * (1.0 - dv);
+        lumaValue = lumaValue + (1.0 - (1.0 - dv));
+    } else if (dv < 0.0) {
+        lumaValue = lumaValue * (dv + 1.0);
+    }
+    return legacyHslToRgb(vec3<f32>(hue, saturation, lumaValue));
+}
+
+fn legacyAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, mode: u32,
+                    luma: vec3<f32>) -> vec3<f32> {
+    if (mode == HSV_MODE_LUMA) {
+        let hcy = legacyRgbToHcy(rgb, luma);
+        let hue = normalizeDegrees(hcy.x * 360.0 + dh * 180.0);
+        let saturation = hcy.y * (ds + 1.0);
+        let lumaValue = hcy.z + dv;
+        return legacyHcyToRgb(vec3<f32>(hue / 360.0, saturation, lumaValue), luma);
+    }
     if (mode == HSV_MODE_LIGHTNESS) {
         let hsl = legacyRgbToHsl(rgb);
         let hue = normalizeDegrees(hsl.x + dh * 180.0);
@@ -381,17 +500,33 @@ fn adjustChannel(value: f32) -> u32 {
 }
 
 fn hsvAdjustmentPixel(base: vec4<u32>, adjustment: vec4<i32>) -> vec4<u32> {
-    let dh = f32(adjustment.x) / 180.0;
+    let mode = u32(adjustment.w & 255);
+    let legacy = (adjustment.w & HSV_LEGACY_FLAG) != 0;
+    let colorize = (adjustment.w & HSV_COLORIZE_FLAG) != 0;
+    var dh = f32(adjustment.x);
     let ds = f32(adjustment.y) / 100.0;
     let dv = f32(adjustment.z) / 100.0;
-    let mode = u32(adjustment.w & 255);
-    let legacy = (adjustment.w >> 8) != 0;
+    // The product scales the hue slider by 180 for the HSV/HSL/HSI/HSY
+    // adjustments and by 100 for YUV. Colorize uses the displayed 0..360
+    // range for types 0 through 3 and the 0..100 Yellow-Blue range for YUV.
+    if (colorize) {
+        dh = dh / select(360.0, 100.0, mode == HSV_MODE_YUV);
+    } else if (mode == HSV_MODE_YUV) {
+        dh = dh / 100.0;
+    } else {
+        dh = dh / 180.0;
+    }
+    let luma = vec3<f32>(parameters.luma.x, parameters.luma.y, parameters.luma.z);
     let rgb = vec3<f32>(f32(base.x) / 255.0, f32(base.y) / 255.0, f32(base.z) / 255.0);
     var result: vec3<f32>;
-    if (legacy) {
-        result = legacyAdjustment(rgb, dh, ds, dv, mode);
+    if (colorize) {
+        result = colorizeAdjustment(rgb, dh, ds, dv, luma);
+    } else if (mode == HSV_MODE_YUV) {
+        result = yuvAdjustment(rgb, dh, ds, dv, luma);
+    } else if (legacy) {
+        result = legacyAdjustment(rgb, dh, ds, dv, mode, luma);
     } else {
-        result = modernAdjustment(rgb, dh, ds, dv, mode);
+        result = modernAdjustment(rgb, dh, ds, dv, mode, luma);
     }
     // Alpha is carried through unchanged, matching the product transformation
     // and the other GPU filter kinds.

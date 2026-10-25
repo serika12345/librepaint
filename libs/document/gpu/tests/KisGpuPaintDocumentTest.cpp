@@ -108,6 +108,7 @@ private Q_SLOTS:
     void invertColorsSavesReopensAndRecoversPixels();
     void grayscaleSavesReopensAndRecoversPixels();
     void hsvAdjustmentSavesReopensAndRecoversPixels();
+    void hsvAdjustmentLumaModesSaveReopenAndRecoverPixels();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
     void patternFillSavesReopensAndPreservesSelectionPixels();
@@ -612,6 +613,105 @@ void KisGpuPaintDocumentTest::hsvAdjustmentSavesReopensAndRecoversPixels()
     QCOMPARE(pixel(continued.bytes, 120, 120), QByteArray::fromHex("643233ff"));
     QCOMPARE(pixel(continued.bytes, 80, 80), QByteArray::fromHex("808080ff"));
     QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("3b434b28"));
+}
+
+void KisGpuPaintDocumentTest::hsvAdjustmentLumaModesSaveReopenAndRecoverPixels()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {256, 256};
+    initial.layers.append({QStringLiteral("Luma HSV"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000044}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    QByteArray bytes(RgbaTile::ByteCount, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * RgbaTile::Size + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("0a141e28"));
+    set(40, 40, QByteArray::fromHex("0a141e00"));
+    set(50, 50, QByteArray::fromHex("c81e46ff"));
+    set(80, 80, QByteArray::fromHex("808080ff"));
+    set(100, 100, QByteArray::fromHex("11223344"));
+    set(120, 120, QByteArray::fromHex("646464ff"));
+    QCOMPARE(image->replaceTiles(layer, {RgbaTile{{0, 0}, bytes}}), Result::Success);
+    QCOMPARE(image->setSelectionRect(QRect(0, 0, 64, 64)), Result::Success);
+
+    // HSY freezes the document luma coefficients; this non-Rec.709 set proves
+    // the filter uses the frozen values rather than a live color-space object.
+    const std::array<float, 3> luma{0.25f, 0.5f, 0.25f};
+    HsvAdjustment hsy{0, 50, 0, HsvAdjustmentType::Hsy, false};
+    hsy.luma = luma;
+    hsy.lumaFrozen = true;
+    QVERIFY(hsy.isValid());
+    QCOMPARE(image->hsvAdjustment(layer, hsy), Result::Success);
+    const auto count = image->operations().undoCount();
+    QCOMPARE(count, 3);
+    QCOMPARE(image->operations().historyAction(count), HistoryAction::HsvAdjustment);
+
+    const QRect region(QPoint(), initial.size);
+    const auto pixel = [&](const QByteArray &value, int x, int y) { return value.mid((y * 256 + x) * 4, 4); };
+    const auto filtered = image->readRgbaPixels(layer, region, 256 * 256 * 4);
+    QCOMPARE(filtered.code, ExecutionCode::Success);
+    QCOMPARE(pixel(filtered.bytes, 10, 10), QByteArray::fromHex("00142828"));
+    QCOMPARE(pixel(filtered.bytes, 40, 40), QByteArray::fromHex("00142800"));
+    QCOMPARE(pixel(filtered.bytes, 50, 50), QByteArray::fromHex("ff0440ff"));
+    QCOMPARE(pixel(filtered.bytes, 80, 80), QByteArray::fromHex("808080ff"));
+    QCOMPARE(pixel(filtered.bytes, 100, 100), QByteArray::fromHex("11223344"));
+    QCOMPARE(pixel(filtered.bytes, 120, 120), QByteArray::fromHex("646464ff"));
+
+    QCOMPARE(image->undo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, 256 * 256 * 4).bytes, bytes);
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, 256 * 256 * 4).bytes, filtered.bytes);
+
+    // Recovery keeps the mode, the frozen coefficients and the result pixels.
+    PaintDocument recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recoveredImage = recovered.image();
+    QCOMPARE(recoveredImage->operations().historyAction(count), HistoryAction::HsvAdjustment);
+    const auto recoveredOperation =
+        std::get<FilterSnapshot>(recoveredImage->operations().snapshot()->layers.first().operations.last());
+    QCOMPARE(recoveredOperation->hsvType, HsvAdjustmentType::Hsy);
+    QVERIFY(!recoveredOperation->colorize);
+    QVERIFY(recoveredOperation->luma == luma);
+    QCOMPARE(recoveredImage->readRgbaPixels(recoveredImage->operations().activeLayer(), region,
+             filtered.bytes.size()).bytes, filtered.bytes);
+
+    // KRA saves the filter result, not the operation history.
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto path = QDir(destination).filePath(QStringLiteral("hsv-adjustment-luma.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    QCOMPARE(loaded->operations().undoCount(), 0);
+    QCOMPARE(loaded->readRgbaPixels(loaded->operations().activeLayer(), region, filtered.bytes.size()).bytes,
+             filtered.bytes);
+
+    // A Colorize filter after reopening uses a new selection and its own
+    // frozen coefficients while preserving the earlier result elsewhere.
+    QCOMPARE(loaded->clearSelection(), Result::Success);
+    QCOMPARE(loaded->setSelectionRect(QRect(96, 96, 32, 32)), Result::Success);
+    HsvAdjustment colorize{120, 80, 0, HsvAdjustmentType::Hsv, false};
+    colorize.colorize = true;
+    colorize.luma = {0.2126f, 0.7152f, 0.0722f};
+    colorize.lumaFrozen = true;
+    QVERIFY(colorize.isValid());
+    QCOMPARE(loaded->hsvAdjustment(loaded->operations().activeLayer(), colorize), Result::Success);
+    QCOMPARE(loaded->operations().historyAction(loaded->operations().undoCount()),
+             HistoryAction::HsvAdjustment);
+    const auto continued = loaded->readRgbaPixels(loaded->operations().activeLayer(), region,
+                                                  filtered.bytes.size());
+    QCOMPARE(continued.code, ExecutionCode::Success);
+    QCOMPARE(pixel(continued.bytes, 120, 120), QByteArray::fromHex("14b414ff"));
+    QCOMPARE(pixel(continued.bytes, 100, 100), QByteArray::fromHex("06390644"));
+    QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("00142828"));
 }
 
 void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra()

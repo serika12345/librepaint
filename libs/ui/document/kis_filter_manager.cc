@@ -9,6 +9,7 @@
 #include <klocalizedstring.h>
 
 
+#include <array>
 #include <QHash>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -69,11 +70,12 @@ namespace {
 /** Product HSV/HSL Adjustment keys translated to the GPU operation values.
  *
  * The product filter's `defaultConfiguration()` supplies h = s = v = 0,
- * type = 1 (HSL) and compatibilityMode = false. The GPU rule mirrors the
- * product modes whose CPU pixel rule depends only on stored RGB (type 0 HSV,
- * 1 HSL and 2 HSI). Type 3 (HSY), type 4 (YUV) and Colorize read the document
- * color space's luma coefficients, which the operation does not freeze, so
- * they are rejected instead of approximated.
+ * type = 1 (HSL) and compatibilityMode = false. All five product modes and
+ * the Colorize option are representable: the GPU rule freezes the effective
+ * document luma coefficients once, at apply time, instead of reading a live
+ * color-space object while filtering tiles. Invalid modes and values outside
+ * the product slider range for the selected mode are diagnosed without
+ * starting the CPU filter.
  */
 struct GpuHsvConfiguration
 {
@@ -82,7 +84,8 @@ struct GpuHsvConfiguration
     QString diagnostic;
 };
 
-GpuHsvConfiguration gpuHsvConfiguration(KisFilterConfigurationSP config)
+GpuHsvConfiguration gpuHsvConfiguration(KisFilterConfigurationSP config,
+                                        const KoColorSpace *colorSpace)
 {
     GpuHsvConfiguration result;
     if (!config) return result;
@@ -95,21 +98,42 @@ GpuHsvConfiguration gpuHsvConfiguration(KisFilterConfigurationSP config)
     const int hue = config->getInt("h", 0);
     const int saturation = config->getInt("s", 0);
     const int value = config->getInt("v", 0);
-    if (colorize) {
-        result.diagnostic = i18n("HSV Adjustment Colorize mode is not available for GPU documents.");
-        return result;
-    }
-    if (type < 0 || type > 2) {
+    if (type < 0 || type > 4) {
         result.diagnostic = i18n("This HSV Adjustment mode is not available for GPU documents.");
         return result;
     }
-    if (hue < -180 || hue > 180 || saturation < -100 || saturation > 100 ||
-        value < -100 || value > 100) {
+    const bool yuv = type == 4;
+    if (colorize) {
+        // Colorize shows the 0..360 hue slider for types 0 through 3 and the
+        // 0..100 Yellow-Blue slider for YUV.
+        if (hue < 0 || hue > (yuv ? 100 : 360) || saturation < 0 || saturation > 100 ||
+            value < -100 || value > 100) {
+            result.diagnostic = i18n("HSV Adjustment values are outside the product slider ranges.");
+            return result;
+        }
+    } else if (hue < (yuv ? -100 : -180) || hue > (yuv ? 100 : 180) ||
+               saturation < -100 || saturation > 100 || value < -100 || value > 100) {
         result.diagnostic = i18n("HSV Adjustment values are outside the product slider ranges.");
         return result;
     }
-    result.settings = {hue, saturation, value,
-                       LibrePaint::Image::Gpu::HsvAdjustmentType(type), compatibilityMode};
+    using LibrePaint::Image::Gpu::HsvAdjustmentType;
+    result.settings = {hue, saturation, value, HsvAdjustmentType(type), compatibilityMode};
+    result.settings.colorize = colorize;
+    if (result.settings.needsLuma()) {
+        const QVector<qreal> coefficients = colorSpace ? colorSpace->lumaCoefficients()
+                                                       : QVector<qreal>();
+        std::array<qreal, 3> source{};
+        if (coefficients.size() < 3) {
+            result.diagnostic = i18n("The document color space does not provide HSV Adjustment luma coefficients.");
+            return result;
+        }
+        source = {coefficients[0], coefficients[1], coefficients[2]};
+        if (!LibrePaint::Image::Gpu::freezeLumaCoefficients(source, &result.settings.luma)) {
+            result.diagnostic = i18n("The document color space does not provide usable HSV Adjustment luma coefficients.");
+            return result;
+        }
+        result.settings.lumaFrozen = true;
+    }
     result.valid = true;
     return result;
 }
@@ -194,7 +218,7 @@ bool KisFilterManager::applyGpuHsvConfiguration(KisFilterConfigurationSP config)
     if (!d->view || !config) return false;
     KisImageWSP image = d->view->image();
     if (!image || !image->gpuImage()) return false;
-    const auto parsed = gpuHsvConfiguration(config);
+    const auto parsed = gpuHsvConfiguration(config, image->colorSpace());
     if (!parsed.valid) {
         showGpuDiagnostic(d->view, parsed.diagnostic);
         return false;

@@ -7,6 +7,7 @@
 #define KIS_GPU_OPERATION_DOCUMENT_H
 
 #include <array>
+#include <cmath>
 #include <QByteArray>
 #include <QList>
 #include <QHash>
@@ -290,22 +291,32 @@ using CropSnapshot = QSharedPointer<const CropOperation>;
  */
 enum class FilterKind : quint8 { InvertColors, Grayscale, HsvAdjustment };
 
-/** Product HSV/HSL Adjustment modes whose CPU pixel rule depends only on the
- * stored RGB value: HSV (0), HSL (1) and HSI (2), matching the product
- * filter's `type` key. HSY, YUV and Colorize additionally read the document
- * color space's luma coefficients and are not available to GPU documents.
+/** Product HSV/HSL Adjustment modes, matching the product filter's `type` key.
+ *
+ * HSV (0), HSL (1) and HSI (2) depend only on the stored RGB value. HSY (3)
+ * and YUV (4), and the product's Colorize option, additionally use the luma
+ * coefficients of the document color space. Those coefficients are frozen in
+ * the accepted operation rather than read per tile.
  */
-enum class HsvAdjustmentType : quint8 { Hsv = 0, Hsl = 1, Hsi = 2 };
+enum class HsvAdjustmentType : quint8 { Hsv = 0, Hsl = 1, Hsi = 2, Hsy = 3, Yuv = 4 };
 
 /** Frozen product HSV/HSL Adjustment settings.
  *
- * The product keys are `h`, `s`, `v`, `type` and `compatibilityMode`. Hue is
- * degrees in [-180, 180]; saturation and value are percentages in
- * [-100, 100]. Zero is the product reset value for all three. The product
+ * The product keys are `h`, `s`, `v`, `type`, `colorize` and
+ * `compatibilityMode`. Hue is degrees, saturation and value are percentages,
+ * and zero is the product reset value for all three. The product
  * `defaultConfiguration()` writes type 1 (HSL) and the modern rule, so those
  * are the defaults here. The legacy compatibility mode reproduces the
  * product's pre-4.3 conversion and changes neutral-pixel behavior, so it is
  * frozen with the values.
+ *
+ * The product Colorize option keeps the `type` key only for slider scaling:
+ * types 0 through 3 write the hue slider as 0..360 degrees and type 4 (YUV)
+ * writes Yellow-Blue as 0..100 percent. It ignores the mode and the legacy
+ * flag in its pixel rule. Colorize, HSY and YUV use the document luma
+ * coefficients; `luma` holds the effective values rounded once to binary32,
+ * the precision the GPU rule consumes, and `lumaFrozen` records that the
+ * caller resolved them from the document color space.
  */
 struct HsvAdjustment
 {
@@ -314,29 +325,67 @@ struct HsvAdjustment
     qint32 value = 0;
     HsvAdjustmentType type = HsvAdjustmentType::Hsl;
     bool compatibilityMode = false;
+    bool colorize = false;
+    std::array<float, 3> luma{0.2126f, 0.7152f, 0.0722f};
+    bool lumaFrozen = false;
 
     bool operator==(const HsvAdjustment &other) const
     {
         return hue == other.hue && saturation == other.saturation && value == other.value &&
-            type == other.type && compatibilityMode == other.compatibilityMode;
+            type == other.type && compatibilityMode == other.compatibilityMode &&
+            colorize == other.colorize && luma == other.luma && lumaFrozen == other.lumaFrozen;
     }
     bool operator!=(const HsvAdjustment &other) const { return !(*this == other); }
-    /** True for a configuration the GPU RGBA8 rule can reproduce. */
+    /** True when the mode, the product slider range and any required luma
+     * coefficients make the settings reproducible by the GPU RGBA8 rule.
+     */
+    bool needsLuma() const
+    {
+        return colorize || type == HsvAdjustmentType::Hsy || type == HsvAdjustmentType::Yuv;
+    }
     bool isValid() const
     {
-        return (type == HsvAdjustmentType::Hsv || type == HsvAdjustmentType::Hsl ||
-                type == HsvAdjustmentType::Hsi) &&
-            hue >= -180 && hue <= 180 && saturation >= -100 && saturation <= 100 &&
-            value >= -100 && value <= 100;
+        if (type > HsvAdjustmentType::Yuv) return false;
+        if (colorize) {
+            if (hue < 0 || saturation < 0 || saturation > 100 ||
+                value < -100 || value > 100) return false;
+            if (hue > (type == HsvAdjustmentType::Yuv ? 100 : 360)) return false;
+        } else {
+            if (saturation < -100 || saturation > 100 ||
+                value < -100 || value > 100) return false;
+            if (type == HsvAdjustmentType::Yuv) {
+                if (hue < -100 || hue > 100) return false;
+            } else if (hue < -180 || hue > 180) return false;
+        }
+        if (!needsLuma()) return true;
+        if (!lumaFrozen) return false;
+        for (const float coefficient : luma) {
+            if (!std::isfinite(coefficient) || coefficient <= 0.0f || coefficient >= 1.0f)
+                return false;
+        }
+        return true;
     }
 };
+
+/** Rounds the document luma coefficients to the binary32 values frozen in an
+ * HsvAdjustment and validates that the product rules can use them. The
+ * product transformation substitutes Rec.709 when any supplied coefficient is
+ * non-positive, so that fallback is applied here; a missing, non-finite or
+ * non-positive-after-rounding coefficient is rejected instead. Coefficients
+ * at or above one are rejected because the YUV rule divides by `1 - R` and
+ * `1 - B`. Callers pass the document color space coefficients once at apply
+ * time; no color-space object is kept by the operation.
+ */
+KRITAIMAGEGPUOPERATIONS_EXPORT bool freezeLumaCoefficients(
+    const std::array<qreal, 3> &coefficients, std::array<float, 3> *frozen);
 
 /** Whole-layer pixel filter over preceding retained pixels.
  *
  * The selection coverage, its inversion and the filter kind are frozen when
  * the operation is accepted. An HSV/HSL Adjustment also freezes its raw
- * product values (`hue`, `saturation`, `value`), its color mode and the legacy
- * compatibility flag. Only RGB participates: alpha is preserved, and
+ * product values (`hue`, `saturation`, `value`), its color mode, the legacy
+ * compatibility flag, the Colorize flag and the effective document luma
+ * coefficients. Only RGB participates: alpha is preserved, and
  * transparent pixels keep alpha zero while their hidden RGB is filtered like
  * the corresponding channel-mask arithmetic. Coverage and settings are
  * retained for every document version, recovery record and Undo/Redo step.
@@ -353,6 +402,10 @@ struct FilterOperation
     qint32 value = 0;
     HsvAdjustmentType hsvType = HsvAdjustmentType::Hsv;
     bool compatibilityMode = false;
+    /** Product Colorize rule, frozen with its mode-dependent slider scaling. */
+    bool colorize = false;
+    /** Effective document luma coefficients for HSY, YUV and Colorize. */
+    std::array<float, 3> luma{0.2126f, 0.7152f, 0.0722f};
     QRect selectionRect{};
     bool selectionInverted = false;
     SelectionKind selectionKind = SelectionKind::Rectangle;
@@ -831,11 +884,13 @@ public:
     Result grayscale(LayerId layer);
     /** Applies the product HSV/HSL Adjustment settings to one paint layer
      * inside the current selection coverage as one history entry. The raw
-     * product slider values and the color mode are frozen in the operation;
-     * out-of-range values and luma-dependent product modes are rejected
-     * without changing history. Alpha is preserved and pixels outside the
-     * coverage retain their exact values. The selection rectangle, inversion,
-     * kind and mask are frozen in the operation.
+     * product slider values, the color mode, the Colorize flag and the
+     * document luma coefficients required by HSY, YUV and Colorize are frozen
+     * in the operation. Invalid modes, out-of-range values and unfrozen or
+     * unusable coefficients are rejected without changing history. Alpha is
+     * preserved and pixels outside the coverage retain their exact values.
+     * The selection rectangle, inversion, kind and mask are frozen in the
+     * operation.
      */
     Result hsvAdjustment(LayerId layer, const HsvAdjustment &settings);
     Result undo();

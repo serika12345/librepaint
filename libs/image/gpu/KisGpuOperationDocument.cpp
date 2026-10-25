@@ -9,6 +9,7 @@
 
 #include <limits>
 #include <algorithm>
+#include <cmath>
 #include <stdexcept>
 #include <type_traits>
 #include <QScopeGuard>
@@ -17,6 +18,30 @@
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
+
+bool freezeLumaCoefficients(const std::array<qreal, 3> &coefficients,
+                            std::array<float, 3> *frozen)
+{
+    if (!frozen) return false;
+    std::array<qreal, 3> effective = coefficients;
+    for (const qreal coefficient : effective) {
+        if (!std::isfinite(coefficient)) return false;
+    }
+    // The product transformation substitutes its Rec.709 defaults when any
+    // coefficient supplied by the document color space is non-positive.
+    if (effective[0] <= 0.0 || effective[1] <= 0.0 || effective[2] <= 0.0)
+        effective = {0.2126, 0.7152, 0.0722};
+    const std::array<float, 3> rounded{
+        float(effective[0]), float(effective[1]), float(effective[2])};
+    for (const float coefficient : rounded) {
+        // The YUV rule divides by (1 - R) and (1 - B); zero and one are not
+        // usable document coefficients for any of the luma-dependent modes.
+        if (!std::isfinite(coefficient) || coefficient <= 0.0f || coefficient >= 1.0f)
+            return false;
+    }
+    *frozen = rounded;
+    return true;
+}
 
 namespace {
 SelectionMaskSP selectionCoverage(const DocumentVersion &version)
@@ -1714,12 +1739,16 @@ Result OperationDocument::applyFilter(LayerId layer, FilterKind kind, const HsvA
     operation->layer = layer;
     operation->kind = kind;
     if (kind == FilterKind::HsvAdjustment) {
-        // hsvAdjustment() validated the settings before admission.
+        // hsvAdjustment() validated the settings before admission. The luma
+        // coefficients are copied from the frozen value rather than resolved
+        // from a live color-space object while rendering tiles.
         operation->hue = settings->hue;
         operation->saturation = settings->saturation;
         operation->value = settings->value;
         operation->hsvType = settings->type;
         operation->compatibilityMode = settings->compatibilityMode;
+        operation->colorize = settings->colorize;
+        operation->luma = settings->luma;
     }
     operation->selectionRect = snapshot()->selection;
     operation->selectionInverted = snapshot()->selectionInverted;

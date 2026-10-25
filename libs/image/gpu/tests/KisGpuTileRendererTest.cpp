@@ -82,6 +82,8 @@ private Q_SLOTS:
     void grayscaleClipsEllipseInvertedBinaryAndAlphaCoverage();
     void hsvAdjustmentUsesProductValuesAndNeutralPixels();
     void hsvAdjustmentClipsCoverageAndSupportsLegacyConversion();
+    void hsvAdjustmentUsesLumaDependentProductRulesAndFrozenCoefficients();
+    void hsvAdjustmentLumaModesClipAlphaAndSelectionCoverage();
     void patternFillTilesAcrossSelectionHistoryAndRecovery();
     void patternFillClipsAlphaCompositesErasesAndRejectsInvalidInput();
     void fillBlendModesMatchLayerComposition_data();
@@ -4173,6 +4175,304 @@ void KisGpuTileRendererTest::hsvAdjustmentClipsCoverageAndSupportsLegacyConversi
     QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::HsvAdjustment);
     QVERIFY(std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last())->compatibilityMode);
     QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), legacy);
+}
+
+void KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozenCoefficients()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * TileRenderer::TileSize + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("c81e46ff"));  // 200,30,70,255
+    set(20, 20, QByteArray::fromHex("808080ff"));  // neutral gray
+    set(30, 30, QByteArray::fromHex("000000ff"));  // black
+    set(40, 40, QByteArray::fromHex("646464ff"));  // neutral gray 100
+    set(50, 50, QByteArray::fromHex("0a141e28"));  // 10,20,30, alpha 40
+    set(200, 10, QByteArray::fromHex("11223344")); // outside the selection
+    RasterImage input;
+    input.size = {256, 256};
+    RasterLayer source;
+    source.name = QStringLiteral("Luma");
+    source.uuid = QUuid::createUuid();
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    TileRenderer renderer(m_device);
+
+    const std::array<float, 3> srgb{0.2126f, 0.7152f, 0.0722f};
+    const auto lumaSettings = [](qint32 hue, qint32 saturation, qint32 value,
+                                 HsvAdjustmentType type, bool legacy, bool colorize,
+                                 const std::array<float, 3> &luma) {
+        HsvAdjustment settings{hue, saturation, value, type, legacy};
+        settings.colorize = colorize;
+        settings.luma = luma;
+        settings.lumaFrozen = true;
+        return settings;
+    };
+
+    // HSY (type 3) uses the product HCY policy: the luma coefficients select
+    // the value channel and the requested hue and chroma are shifted back to
+    // the requested luma. A neutral pixel ignores hue and saturation.
+    OperationDocument hsyDocument(input);
+    const auto hsyLayer = hsyDocument.activeLayer();
+    QCOMPARE(hsyDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    const auto hsy = lumaSettings(0, 50, 0, HsvAdjustmentType::Hsy, false, false, srgb);
+    QCOMPARE(hsyDocument.hsvAdjustment(hsyLayer, hsy), Result::Success);
+    const auto hsyOperation =
+        std::get<FilterSnapshot>(hsyDocument.snapshot()->layers.first().operations.last());
+    QCOMPARE(hsyOperation->hsvType, HsvAdjustmentType::Hsy);
+    QVERIFY(!hsyOperation->colorize);
+    QVERIFY(hsyOperation->luma == srgb);
+    const auto hsyBytes = readTile(render(renderer, hsyDocument.snapshot()), hsyLayer, {0, 0});
+    QCOMPARE(pixel(hsyBytes, 10, 10), QByteArray::fromHex("ff0a46ff"));
+    QCOMPARE(pixel(hsyBytes, 20, 20), QByteArray::fromHex("808080ff"));
+    QCOMPARE(pixel(hsyBytes, 30, 30), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixel(hsyBytes, 40, 40), QByteArray::fromHex("646464ff"));
+    QCOMPARE(pixel(hsyBytes, 50, 50), QByteArray::fromHex("01152928"));
+    QCOMPARE(pixel(hsyBytes, 200, 10), QByteArray::fromHex("11223344"));
+
+    // The legacy HSY conversion is the product's qreal HCY conversion and
+    // produces a different fractional byte on the same input.
+    OperationDocument legacyHsyDocument(input);
+    const auto legacyHsyLayer = legacyHsyDocument.activeLayer();
+    QCOMPARE(legacyHsyDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    const auto legacyHsy =
+        lumaSettings(0, 50, 0, HsvAdjustmentType::Hsy, true, false, srgb);
+    QCOMPARE(legacyHsyDocument.hsvAdjustment(legacyHsyLayer, legacyHsy), Result::Success);
+    const auto legacyHsyBytes =
+        readTile(render(renderer, legacyHsyDocument.snapshot()), legacyHsyLayer, {0, 0});
+    QCOMPARE(pixel(legacyHsyBytes, 10, 10), QByteArray::fromHex("ff0a46ff"));
+    QCOMPARE(pixel(legacyHsyBytes, 20, 20), QByteArray::fromHex("808080ff"));
+    QCOMPARE(pixel(legacyHsyBytes, 50, 50), QByteArray::fromHex("06152428"));
+    QCOMPARE(pixel(legacyHsyBytes, 200, 10), QByteArray::fromHex("11223344"));
+
+    // YUV (type 4) scales the blue chroma by the hue slider, the red chroma by
+    // the saturation slider and offsets luma. It has no legacy variant.
+    OperationDocument yuvDocument(input);
+    const auto yuvLayer = yuvDocument.activeLayer();
+    QCOMPARE(yuvDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    const auto yuv = lumaSettings(30, 20, -10, HsvAdjustmentType::Yuv, false, false, srgb);
+    QCOMPARE(yuvDocument.hsvAdjustment(yuvLayer, yuv), Result::Success);
+    const auto yuvOperation =
+        std::get<FilterSnapshot>(yuvDocument.snapshot()->layers.first().operations.last());
+    QCOMPARE(yuvOperation->hsvType, HsvAdjustmentType::Yuv);
+    QVERIFY(!yuvOperation->colorize);
+    QVERIFY(yuvOperation->luma == srgb);
+    const auto yuvBytes = readTile(render(renderer, yuvDocument.snapshot()), yuvLayer, {0, 0});
+    QCOMPARE(pixel(yuvBytes, 10, 10), QByteArray::fromHex("005000ff"));
+    QCOMPARE(pixel(yuvBytes, 20, 20), QByteArray::fromHex("00ba00ff"));
+    QCOMPARE(pixel(yuvBytes, 30, 30), QByteArray::fromHex("003a00ff"));
+    QCOMPARE(pixel(yuvBytes, 40, 40), QByteArray::fromHex("009e00ff"));
+    QCOMPARE(pixel(yuvBytes, 50, 50), QByteArray::fromHex("004e0028"));
+    QCOMPARE(pixel(yuvBytes, 200, 10), QByteArray::fromHex("11223344"));
+
+    // Colorize uses the adjusted document luma as HSL lightness. The mode key
+    // remains observable only through its slider range.
+    OperationDocument colorizeDocument(input);
+    const auto colorizeLayer = colorizeDocument.activeLayer();
+    QCOMPARE(colorizeDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    const auto colorize =
+        lumaSettings(120, 80, 0, HsvAdjustmentType::Hsv, false, true, srgb);
+    QCOMPARE(colorizeDocument.hsvAdjustment(colorizeLayer, colorize), Result::Success);
+    const auto colorizeOperation =
+        std::get<FilterSnapshot>(colorizeDocument.snapshot()->layers.first().operations.last());
+    QVERIFY(colorizeOperation->colorize);
+    QVERIFY(colorizeOperation->luma == srgb);
+    const auto colorizeBytes =
+        readTile(render(renderer, colorizeDocument.snapshot()), colorizeLayer, {0, 0});
+    QCOMPARE(pixel(colorizeBytes, 10, 10), QByteArray::fromHex("0e7c0eff"));
+    QCOMPARE(pixel(colorizeBytes, 20, 20), QByteArray::fromHex("1ae61aff"));
+    QCOMPARE(pixel(colorizeBytes, 30, 30), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixel(colorizeBytes, 40, 40), QByteArray::fromHex("14b414ff"));
+    QCOMPARE(pixel(colorizeBytes, 50, 50), QByteArray::fromHex("04210428"));
+    QCOMPARE(pixel(colorizeBytes, 200, 10), QByteArray::fromHex("11223344"));
+
+    // Colorize with the YUV mode keeps the product's 0..100 Yellow-Blue
+    // scaling. Its result differs from the type 0 Colorize rule.
+    OperationDocument colorizeYuvDocument(input);
+    const auto colorizeYuvLayer = colorizeYuvDocument.activeLayer();
+    QCOMPARE(colorizeYuvDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    const auto colorizeYuv =
+        lumaSettings(50, 80, 20, HsvAdjustmentType::Yuv, true, true, srgb);
+    QCOMPARE(colorizeYuvDocument.hsvAdjustment(colorizeYuvLayer, colorizeYuv), Result::Success);
+    const auto colorizeYuvOperation =
+        std::get<FilterSnapshot>(colorizeYuvDocument.snapshot()->layers.first().operations.last());
+    QCOMPARE(colorizeYuvOperation->hsvType, HsvAdjustmentType::Yuv);
+    QVERIFY(colorizeYuvOperation->colorize);
+    const auto colorizeYuvBytes =
+        readTile(render(renderer, colorizeYuvDocument.snapshot()), colorizeYuvLayer, {0, 0});
+    QCOMPARE(pixel(colorizeYuvBytes, 10, 10), QByteArray::fromHex("15bfbfff"));
+    QCOMPARE(pixel(colorizeYuvBytes, 20, 20), QByteArray::fromHex("48ebebff"));
+    QCOMPARE(pixel(colorizeYuvBytes, 50, 50), QByteArray::fromHex("0d777728"));
+    QCOMPARE(pixel(colorizeYuvBytes, 200, 10), QByteArray::fromHex("11223344"));
+
+    // A different frozen coefficient set changes the result even though the
+    // operation no longer reads a color-space object. The values are rounded
+    // once to binary32 at admission.
+    const std::array<float, 3> custom{0.25f, 0.5f, 0.25f};
+    const std::array<qreal, 3> supplied{0.25, 0.5, 0.25};
+    std::array<float, 3> rounded{};
+    QVERIFY(freezeLumaCoefficients(supplied, &rounded));
+    QVERIFY(rounded == custom);
+    OperationDocument customDocument(input);
+    const auto customLayer = customDocument.activeLayer();
+    QCOMPARE(customDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    const auto customHsy =
+        lumaSettings(0, 50, 0, HsvAdjustmentType::Hsy, false, false, rounded);
+    QCOMPARE(customDocument.hsvAdjustment(customLayer, customHsy), Result::Success);
+    const auto customBytes =
+        readTile(render(renderer, customDocument.snapshot()), customLayer, {0, 0});
+    QCOMPARE(pixel(customBytes, 10, 10), QByteArray::fromHex("ff0440ff"));
+    QCOMPARE(pixel(customBytes, 20, 20), QByteArray::fromHex("808080ff"));
+    QCOMPARE(pixel(customBytes, 50, 50), QByteArray::fromHex("00142828"));
+    QCOMPARE(pixel(customBytes, 200, 10), QByteArray::fromHex("11223344"));
+
+    // YUV and Colorize consume the same frozen coefficient set, so changing it
+    // changes their pixels as well.
+    OperationDocument customYuvDocument(input);
+    const auto customYuvLayer = customYuvDocument.activeLayer();
+    QCOMPARE(customYuvDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(customYuvDocument.hsvAdjustment(
+                 customYuvLayer,
+                 lumaSettings(30, 20, -10, HsvAdjustmentType::Yuv, false, false, rounded)),
+             Result::Success);
+    const auto customYuvBytes =
+        readTile(render(renderer, customYuvDocument.snapshot()), customYuvLayer, {0, 0});
+    QCOMPARE(pixel(customYuvBytes, 10, 10), QByteArray::fromHex("07ba00ff"));
+    QCOMPARE(pixel(customYuvBytes, 20, 20), QByteArray::fromHex("00ff00ff"));
+    QCOMPARE(pixel(customYuvBytes, 30, 30), QByteArray::fromHex("00a600ff"));
+    QCOMPARE(pixel(customYuvBytes, 50, 50), QByteArray::fromHex("00b90028"));
+    QCOMPARE(pixel(customYuvBytes, 200, 10), QByteArray::fromHex("11223344"));
+
+    OperationDocument customColorizeDocument(input);
+    const auto customColorizeLayer = customColorizeDocument.activeLayer();
+    QCOMPARE(customColorizeDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(customColorizeDocument.hsvAdjustment(
+                 customColorizeLayer,
+                 lumaSettings(120, 80, 0, HsvAdjustmentType::Hsv, false, true, rounded)),
+             Result::Success);
+    const auto customColorizeBytes =
+        readTile(render(renderer, customColorizeDocument.snapshot()), customColorizeLayer, {0, 0});
+    QCOMPARE(pixel(customColorizeBytes, 10, 10), QByteArray::fromHex("119511ff"));
+    QCOMPARE(pixel(customColorizeBytes, 20, 20), QByteArray::fromHex("1ae61aff"));
+    QCOMPARE(pixel(customColorizeBytes, 50, 50), QByteArray::fromHex("04240428"));
+    QCOMPARE(pixel(customColorizeBytes, 200, 10), QByteArray::fromHex("11223344"));
+
+    // Undo restores the source bytes and redo restores the filtered bytes.
+    QCOMPARE(yuvDocument.undo(), Result::Success);
+    QCOMPARE(yuvDocument.undo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, yuvDocument.snapshot()), yuvLayer, {0, 0}), bytes);
+    QCOMPARE(yuvDocument.redo(), Result::Success);
+    QCOMPARE(yuvDocument.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, yuvDocument.snapshot()), yuvLayer, {0, 0}), yuvBytes);
+
+    // Recovery retains Colorize, the custom coefficients and the same pixels.
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(customDocument.recoveryData()), Result::Success);
+    const auto recoveredOperation =
+        std::get<FilterSnapshot>(recovered.snapshot()->layers.first().operations.last());
+    QCOMPARE(recoveredOperation->hsvType, HsvAdjustmentType::Hsy);
+    QVERIFY(recoveredOperation->luma == custom);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}),
+             customBytes);
+
+    OperationDocument recoveredColorize({1, 1});
+    QCOMPARE(recoveredColorize.restoreRecovery(colorizeYuvDocument.recoveryData()), Result::Success);
+    const auto recoveredColorizeOperation =
+        std::get<FilterSnapshot>(recoveredColorize.snapshot()->layers.first().operations.last());
+    QVERIFY(recoveredColorizeOperation->colorize);
+    QCOMPARE(recoveredColorizeOperation->hsvType, HsvAdjustmentType::Yuv);
+    QVERIFY(recoveredColorizeOperation->luma == srgb);
+    QCOMPARE(readTile(render(renderer, recoveredColorize.snapshot()),
+                      recoveredColorize.activeLayer(), {0, 0}), colorizeYuvBytes);
+}
+
+void KisGpuTileRendererTest::hsvAdjustmentLumaModesClipAlphaAndSelectionCoverage()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * TileRenderer::TileSize + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("0a141e28"));
+    set(20, 20, QByteArray::fromHex("0a141e28"));
+    set(30, 30, QByteArray::fromHex("0a141e28"));
+    set(40, 40, QByteArray::fromHex("646464ff"));
+    set(100, 100, QByteArray::fromHex("11223344"));
+    RasterImage input;
+    input.size = {256, 256};
+    RasterLayer source;
+    source.name = QStringLiteral("Luma coverage");
+    source.uuid = QUuid::createUuid();
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    TileRenderer renderer(m_device);
+    const std::array<float, 3> luma{0.2126f, 0.7152f, 0.0722f};
+    const auto settings = [&](qint32 hue, qint32 saturation, qint32 value,
+                              HsvAdjustmentType type, bool colorize) {
+        HsvAdjustment result{hue, saturation, value, type, false};
+        result.colorize = colorize;
+        result.luma = luma;
+        result.lumaFrozen = true;
+        return result;
+    };
+
+    // A feathered alpha selection interpolates the YUV result; alpha itself is
+    // carried through unchanged.
+    OperationDocument alphaDocument(input);
+    const QRect clip(QPoint(), QSize(256, 256));
+    QByteArray coverage(256 * 256, '\0');
+    coverage[20 * 256 + 20] = char(128);
+    coverage[30 * 256 + 30] = char(255);
+    const auto alpha = SelectionMask::fromAlphaCoverage(clip, coverage, clip);
+    QVERIFY(alpha);
+    QCOMPARE(alphaDocument.setSelectionMask(alpha), Result::Success);
+    QCOMPARE(alphaDocument.hsvAdjustment(alphaDocument.activeLayer(),
+                                        settings(0, 0, 50, HsvAdjustmentType::Yuv, false)),
+             Result::Success);
+    const auto alphaBytes = readTile(render(renderer, alphaDocument.snapshot()),
+                                     alphaDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(alphaBytes, 20, 20), QByteArray::fromHex("057e0f28"));
+    QCOMPARE(pixel(alphaBytes, 30, 30), QByteArray::fromHex("00e70028"));
+    QCOMPARE(pixel(alphaBytes, 10, 10), QByteArray::fromHex("0a141e28"));
+    QCOMPARE(pixel(alphaBytes, 40, 40), QByteArray::fromHex("646464ff"));
+
+    // Colorize also filters only the complement of an inverted rectangle.
+    OperationDocument invertedDocument(input);
+    QCOMPARE(invertedDocument.setSelectionRect(QRect(0, 0, 64, 64), true), Result::Success);
+    QCOMPARE(invertedDocument.hsvAdjustment(invertedDocument.activeLayer(),
+                                           settings(120, 80, 0, HsvAdjustmentType::Hsv, true)),
+             Result::Success);
+    const auto inverted = readTile(render(renderer, invertedDocument.snapshot()),
+                                   invertedDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(inverted, 10, 10), QByteArray::fromHex("0a141e28"));
+    QCOMPARE(pixel(inverted, 100, 100), QByteArray::fromHex("06390644"));
+
+    // YUV follows the elliptical coverage pixel test.
+    OperationDocument ellipseDocument(input);
+    QCOMPARE(ellipseDocument.setSelectionEllipse(QRect(64, 64, 128, 128)), Result::Success);
+    QCOMPARE(ellipseDocument.hsvAdjustment(ellipseDocument.activeLayer(),
+                                          settings(0, 0, 50, HsvAdjustmentType::Yuv, false)),
+             Result::Success);
+    const auto ellipse = readTile(render(renderer, ellipseDocument.snapshot()),
+                                  ellipseDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(ellipse, 10, 10), QByteArray::fromHex("0a141e28"));
+    QCOMPARE(pixel(ellipse, 100, 100), QByteArray::fromHex("00f50044"));
+
+    // Recovery retains the frozen coefficients and coverage; the same pixels
+    // are produced without re-reading a color-space object.
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(ellipseDocument.recoveryData()), Result::Success);
+    const auto recoveredOperation =
+        std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QVERIFY(recoveredOperation->luma == luma);
+    QCOMPARE(recoveredOperation->hsvType, HsvAdjustmentType::Yuv);
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}),
+             ellipse);
 }
 
 void KisGpuTileRendererTest::featheredSelectionClipsPaintFillEraseHistoryAndRecovery()

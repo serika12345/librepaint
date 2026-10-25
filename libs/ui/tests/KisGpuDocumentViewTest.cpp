@@ -2,6 +2,7 @@
  * SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
+#include <array>
 #include <QApplication>
 #include <QClipboard>
 #include <kis_clipboard.h>
@@ -2296,51 +2297,120 @@ void KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("c81e46ff"));
 
-    // Luma-dependent and Colorize configurations keep their action but report
-    // a diagnostic; they must not start the CPU filter on the view copy.
+    // HSY, YUV and Colorize are applied through the GPU path. The UI freezes
+    // the document color space's luma coefficients at apply time; no CPU
+    // filter stroke runs against the view's paint-device copy.
     QSignalSpy messages(window->viewManager(), &KisViewManager::floatingMessageRequested);
     QVERIFY(messages.isValid());
-    const auto beforeUnsupported = owner->operations().snapshot();
-    const auto beforeCount = owner->operations().undoCount();
-    KisFilterConfigurationSP lumaMode(new KisFilterConfiguration(
-        QStringLiteral("hsvadjustment"), 1, KisGlobalResourcesInterface::instance()));
-    lumaMode->setProperty("h", 30);
-    lumaMode->setProperty("s", 20);
-    lumaMode->setProperty("v", 10);
-    lumaMode->setProperty("type", 3);
-    window->viewManager()->filterManager()->apply(lumaMode);
-    QTRY_COMPARE(messages.size(), 1);
-    QVERIFY(messages.first().at(0).toString().contains(QStringLiteral("not available for GPU documents")));
-    QCOMPARE(owner->operations().snapshot(), beforeUnsupported);
-    QCOMPARE(owner->operations().undoCount(), beforeCount);
+    const auto configuration = [](int type, int hue, int saturation, int value,
+                                  bool colorize, bool compatibility = false) {
+        KisFilterConfigurationSP result(new KisFilterConfiguration(
+            QStringLiteral("hsvadjustment"), 1, KisGlobalResourcesInterface::instance()));
+        result->setProperty("h", hue);
+        result->setProperty("s", saturation);
+        result->setProperty("v", value);
+        result->setProperty("type", type);
+        result->setProperty("colorize", colorize);
+        result->setProperty("compatibilityMode", compatibility);
+        return result;
+    };
+    const auto documentLuma = [&] {
+        const QVector<qreal> coefficients = view->image()->colorSpace()->lumaCoefficients();
+        return std::array<float, 3>{float(coefficients[0]), float(coefficients[1]),
+                                    float(coefficients[2])};
+    };
+    const auto lastFilterOperation = [&] {
+        return std::get<Gpu::FilterSnapshot>(
+            owner->operations().snapshot()->layers.first().operations.last());
+    };
+
+    window->viewManager()->filterManager()->apply(configuration(3, 0, 50, 0, false));
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::HsvAdjustment);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes,
+             QByteArray::fromHex("ff0a46ff"));
+    {
+        const auto operation = lastFilterOperation();
+        QCOMPARE(operation->hsvType, Gpu::HsvAdjustmentType::Hsy);
+        QVERIFY(!operation->colorize);
+        QVERIFY(operation->luma == documentLuma());
+    }
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
     QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
 
-    KisFilterConfigurationSP colorizeConfiguration(new KisFilterConfiguration(
-        QStringLiteral("hsvadjustment"), 1, KisGlobalResourcesInterface::instance()));
-    colorizeConfiguration->setProperty("h", 120);
-    colorizeConfiguration->setProperty("s", 80);
-    colorizeConfiguration->setProperty("v", 0);
-    colorizeConfiguration->setProperty("type", 0);
-    colorizeConfiguration->setProperty("colorize", true);
-    window->viewManager()->filterManager()->apply(colorizeConfiguration);
-    QTRY_COMPARE(messages.size(), 2);
+    window->viewManager()->filterManager()->apply(configuration(4, 30, 20, -10, false));
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::HsvAdjustment);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes,
+             QByteArray::fromHex("005000ff"));
+    {
+        const auto operation = lastFilterOperation();
+        QCOMPARE(operation->hsvType, Gpu::HsvAdjustmentType::Yuv);
+        QVERIFY(!operation->colorize);
+        QVERIFY(operation->luma == documentLuma());
+    }
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
+
+    // The product dialog's Colorize option reaches the GPU operation without
+    // starting a CPU preview stroke.
+    try { action->trigger(); } catch (const std::exception &error) { QFAIL(error.what()); }
+    QTRY_VERIFY((dialog = window->findChild<QDialog *>(QStringLiteral("gpuHsvAdjustmentDialog"))));
+    QVERIFY(dialog);
+    QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
+    hue = dialog->findChild<QSpinBox *>(QStringLiteral("hSpinBox"));
+    saturation = dialog->findChild<QSpinBox *>(QStringLiteral("sSpinBox"));
+    value = dialog->findChild<QSpinBox *>(QStringLiteral("vSpinBox"));
+    type = dialog->findChild<QComboBox *>(QStringLiteral("cmbType"));
+    colorize = dialog->findChild<QCheckBox *>(QStringLiteral("chkColorize"));
+    buttons = dialog->findChild<QDialogButtonBox *>();
+    QVERIFY(hue);
+    QVERIFY(saturation);
+    QVERIFY(value);
+    QVERIFY(type);
+    QVERIFY(colorize);
+    QVERIFY(buttons);
+    hue->setValue(120);
+    saturation->setValue(80);
+    value->setValue(0);
+    type->setCurrentIndex(0);
+    colorize->setChecked(true);
+    buttons->button(QDialogButtonBox::Ok)->click();
+    QTRY_COMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+                 Gpu::HistoryAction::HsvAdjustment);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes,
+             QByteArray::fromHex("0e7c0eff"));
+    {
+        const auto operation = lastFilterOperation();
+        QVERIFY(operation->colorize);
+        QVERIFY(operation->luma == documentLuma());
+    }
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
+
+    // Unsupported modes and values outside the selected product slider range
+    // are diagnosed without changing pixels or history.
+    const auto beforeRejected = owner->operations().snapshot();
+    const auto beforeRejectedCount = owner->operations().undoCount();
+    window->viewManager()->filterManager()->apply(configuration(5, 0, 0, 0, false));
+    QTRY_COMPARE(messages.size(), 1);
     QVERIFY(messages.last().at(0).toString().contains(QStringLiteral("not available for GPU documents")));
-    QCOMPARE(owner->operations().snapshot(), beforeUnsupported);
-    QCOMPARE(owner->operations().undoCount(), beforeCount);
+    QCOMPARE(owner->operations().snapshot(), beforeRejected);
+    QCOMPARE(owner->operations().undoCount(), beforeRejectedCount);
+
+    // Colorize with the YUV mode uses the 0..100 Yellow-Blue range.
+    window->viewManager()->filterManager()->apply(configuration(4, 120, 80, 0, true));
+    QTRY_COMPARE(messages.size(), 2);
+    QVERIFY(messages.last().at(0).toString().contains(QStringLiteral("outside the product slider ranges")));
+    QCOMPARE(owner->operations().snapshot(), beforeRejected);
+    QCOMPARE(owner->operations().undoCount(), beforeRejectedCount);
 
     // Out-of-range product values are rejected rather than clamped.
-    KisFilterConfigurationSP outOfRange(new KisFilterConfiguration(
-        QStringLiteral("hsvadjustment"), 1, KisGlobalResourcesInterface::instance()));
-    outOfRange->setProperty("h", 200);
-    outOfRange->setProperty("s", 0);
-    outOfRange->setProperty("v", 0);
-    outOfRange->setProperty("type", 0);
-    outOfRange->setProperty("compatibilityMode", false);
-    window->viewManager()->filterManager()->apply(outOfRange);
+    window->viewManager()->filterManager()->apply(configuration(0, 200, 0, 0, false));
     QTRY_COMPARE(messages.size(), 3);
     QVERIFY(messages.last().at(0).toString().contains(QStringLiteral("outside the product slider ranges")));
-    QCOMPARE(owner->operations().snapshot(), beforeUnsupported);
-    QCOMPARE(owner->operations().undoCount(), beforeCount);
+    QCOMPARE(owner->operations().snapshot(), beforeRejected);
+    QCOMPARE(owner->operations().undoCount(), beforeRejectedCount);
     QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
 }
 

@@ -139,9 +139,10 @@ public:
      */
     bool grayscaleGpuLayerColors(KisNodeSP layer);
     /** Applies the product HSV/HSL Adjustment values on the GPU paint layer for
-     * the current selection as one history entry. False reports invalid or
-     * luma-dependent settings, a group, mask or foreign node, a locked layer or
-     * an off-thread call; no history entry is added in that case.
+     * the current selection as one history entry. The settings must carry the
+     * effective document luma coefficients for HSY, YUV and Colorize; false
+     * reports invalid or unfrozen settings, a group, mask or foreign node, a
+     * locked layer or an off-thread call, and adds no history entry.
      */
     bool hsvAdjustmentGpuLayerColors(KisNodeSP layer,
                                      const LibrePaint::Image::Gpu::HsvAdjustment &settings);

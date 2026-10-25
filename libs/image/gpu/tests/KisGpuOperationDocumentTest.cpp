@@ -97,6 +97,61 @@ QList<LayerInsertion> insertionForest(const Snapshot &source, const QUuid &paren
     return result;
 }
 
+/** Rebuilds a controlled format 53 record as an older record by dropping the
+ * Colorize flag and luma words that format 53 adds to one HSV Adjustment
+ * operation. The caller keeps a single tileless HSV operation in the record.
+ */
+QByteArray olderHsvRecovery(const QByteArray &recovery, quint16 format)
+{
+    if (recovery.size() <= 32) return {};
+    QByteArray payload = recovery.first(recovery.size() - 32);
+    QBuffer buffer(&payload);
+    if (!buffer.open(QIODevice::ReadWrite)) return {};
+    QDataStream stream(&buffer);
+    stream.setVersion(QDataStream::Qt_5_15);
+    stream.setByteOrder(QDataStream::BigEndian);
+    quint32 magic = 0;
+    quint16 sourceFormat = 0;
+    stream >> magic >> sourceFormat;
+    if (magic != 0x4c504f52 || sourceFormat != 53) return {};
+    qint32 width = 0, height = 0, sx = 0, sy = 0, sw = 0, sh = 0;
+    quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
+    quint8 inverted = 0, selectionKind = 0;
+    quint32 tileCount = 0, maskCount = 0, operationCount = 0;
+    stream >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision
+           >> sx >> sy >> sw >> sh >> inverted >> selectionKind >> tileCount;
+    if (stream.status() != QDataStream::Ok || tileCount != 0) return {};
+    stream >> maskCount;
+    if (maskCount != 0) return {};
+    stream >> operationCount;
+    if (operationCount != 1) return {};
+    quint8 kind = 0;
+    quint64 sequence = 0, version = 0, layer = 0;
+    stream >> kind >> sequence >> version >> layer;
+    if (kind != 4) return {};
+    quint8 filterKind = 0, filterInverted = 0, filterSelectionKind = 0;
+    qint32 x = 0, y = 0, w = 0, h = 0;
+    stream >> filterKind >> x >> y >> w >> h >> filterInverted >> filterSelectionKind;
+    if (filterKind != quint8(FilterKind::HsvAdjustment)) return {};
+    qint32 hue = 0, saturation = 0, value = 0;
+    quint8 type = 0, compatibilityMode = 0;
+    stream >> hue >> saturation >> value >> type >> compatibilityMode;
+    const qint64 offset = buffer.pos();
+    buffer.close();
+    if (offset < 0 || offset + 13 > payload.size()) return {};
+    payload.remove(int(offset), 13);
+    QBuffer patcher(&payload);
+    if (!patcher.open(QIODevice::ReadWrite)) return {};
+    QDataStream patchStream(&patcher);
+    patchStream.setVersion(QDataStream::Qt_5_15);
+    patchStream.setByteOrder(QDataStream::BigEndian);
+    if (!patcher.seek(4)) return {};
+    patchStream << format;
+    patcher.close();
+    payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
+    return payload;
+}
+
 
 }
 
@@ -146,8 +201,10 @@ private Q_SLOTS:
     void grayscaleFilterFreezesCoverageAndRecovers();
     void grayscaleRecoveryKeepsItsKindAcrossFormatBumps();
     void hsvAdjustmentFreezesSettingsAndRecovers();
+    void hsvAdjustmentFreezesLumaDependentModesAndRecovers();
     void hsvAdjustmentRejectsInvalidSettingsAndPreservesHistory();
-    void hsvAdjustmentRecoveryRequiresFormat52();
+    void hsvAdjustmentRejectsUnfrozenLumaAndInvalidRanges();
+    void hsvAdjustmentRecoveryRequiresFormat53();
     void previousTranslatedRecoveryPreservesPendingInputAndCropHistory();
     void layerTranslationPreservesInputVersionsAndOneHistoryEntry();
     void previousPlacedRecoveryPreservesPendingInputAndPosition();
@@ -2068,9 +2125,9 @@ void KisGpuOperationDocumentTest::grayscaleRecoveryKeepsItsKindAcrossFormatBumps
     quint16 format = 0;
     headerStream >> magic >> format;
     QCOMPARE(magic, quint32(0x4c504f52));
-    QCOMPARE(format, quint16(52));
+    QCOMPARE(format, quint16(53));
 
-    // The same record restores at format 52.
+    // The same record restores at format 53.
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
     QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::Grayscale);
@@ -2091,8 +2148,13 @@ void KisGpuOperationDocumentTest::grayscaleRecoveryKeepsItsKindAcrossFormatBumps
         return payload;
     };
 
-    // Format 51 also knows Grayscale, so the same payload relabelled as 51 is
-    // still readable with the same kind.
+    // Formats 52 and 51 also know Grayscale, so the same payload relabelled
+    // as either version is still readable with the same kind.
+    OperationDocument at52({1, 1});
+    QCOMPARE(at52.restoreRecovery(relabel(52)), Result::Success);
+    QCOMPARE(at52.historyAction(at52.undoCount()), HistoryAction::Grayscale);
+    QCOMPARE(std::get<FilterSnapshot>(at52.snapshot()->layers.first().operations.last())->kind,
+             FilterKind::Grayscale);
     OperationDocument at51({1, 1});
     QCOMPARE(at51.restoreRecovery(relabel(51)), Result::Success);
     QCOMPARE(at51.historyAction(at51.undoCount()), HistoryAction::Grayscale);
@@ -2214,6 +2276,174 @@ void KisGpuOperationDocumentTest::hsvAdjustmentFreezesSettingsAndRecovers()
     QVERIFY(!maskOperation->compatibilityMode);
 }
 
+void KisGpuOperationDocumentTest::hsvAdjustmentFreezesLumaDependentModesAndRecovers()
+{
+    RasterImage source;
+    source.size = {256, 256};
+    RasterLayer target;
+    target.name = QStringLiteral("Target");
+    target.uuid = QUuid::createUuid();
+    source.layers.append(target);
+    OperationDocument document(source);
+    const auto layer = document.activeLayer();
+    const auto before = document.snapshot();
+
+    // The document color space supplies qreal coefficients; the operation
+    // freezes the binary32 values the GPU rule consumes.
+    const std::array<qreal, 3> supplied{0.212612345678901, 0.715287654321099, 0.072199999999999};
+    std::array<float, 3> luma{};
+    QVERIFY(freezeLumaCoefficients(supplied, &luma));
+    QCOMPARE(luma[0], float(supplied[0]));
+    QCOMPARE(luma[1], float(supplied[1]));
+    QCOMPARE(luma[2], float(supplied[2]));
+    QVERIFY(double(luma[0]) != supplied[0]);
+    QVERIFY(double(luma[1]) != supplied[1]);
+
+    QCOMPARE(document.setSelectionEllipse(QRect(16, 16, 64, 48), true), Result::Success);
+    HsvAdjustment hsy{30, 20, -10, HsvAdjustmentType::Hsy, false};
+    hsy.luma = luma;
+    hsy.lumaFrozen = true;
+    QVERIFY(hsy.isValid());
+    QCOMPARE(document.hsvAdjustment(layer, hsy), Result::Success);
+    const auto hsyOperation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(hsyOperation->hsvType, HsvAdjustmentType::Hsy);
+    QVERIFY(!hsyOperation->colorize);
+    QVERIFY(hsyOperation->luma == luma);
+    QCOMPARE(hsyOperation->selectionRect, QRect(16, 16, 64, 48));
+    QVERIFY(hsyOperation->selectionInverted);
+
+    // YUV always uses the frozen luma coefficients.
+    HsvAdjustment yuv{40, 15, 5, HsvAdjustmentType::Yuv, false};
+    yuv.luma = luma;
+    yuv.lumaFrozen = true;
+    QVERIFY(yuv.isValid());
+    QCOMPARE(document.hsvAdjustment(layer, yuv), Result::Success);
+    const auto yuvOperation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(yuvOperation->hsvType, HsvAdjustmentType::Yuv);
+    QVERIFY(!yuvOperation->colorize);
+    QVERIFY(yuvOperation->luma == luma);
+
+    // Colorize keeps the mode only for slider scaling and is frozen with the
+    // coefficients its luminance rule consumes.
+    HsvAdjustment colorize{120, 80, -20, HsvAdjustmentType::Hsv, false};
+    colorize.colorize = true;
+    colorize.luma = luma;
+    colorize.lumaFrozen = true;
+    QVERIFY(colorize.isValid());
+    QCOMPARE(document.hsvAdjustment(layer, colorize), Result::Success);
+    const auto colorizeOperation =
+        std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(colorizeOperation->hsvType, HsvAdjustmentType::Hsv);
+    QVERIFY(colorizeOperation->colorize);
+    QVERIFY(colorizeOperation->luma == luma);
+
+    // Later color-space or selection changes do not rewrite the frozen values.
+    QCOMPARE(document.setSelectionRect(QRect(1, 1, 2, 2)), Result::Success);
+    const auto frozen = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QVERIFY(frozen->luma == luma);
+    QVERIFY(frozen->colorize);
+    QCOMPARE(frozen->selectionRect, QRect(16, 16, 64, 48));
+
+    // Undo/Redo walk the three filter entries and retain their settings.
+    for (int i = 0; i < 5; ++i) QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    for (int i = 0; i < 5; ++i) QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->luma == luma);
+
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recoveredOperations = recovered.snapshot()->layers.first().operations;
+    QCOMPARE(recoveredOperations.size(), 3);
+    QCOMPARE(std::get<FilterSnapshot>(recoveredOperations[0])->hsvType, HsvAdjustmentType::Hsy);
+    QVERIFY(std::get<FilterSnapshot>(recoveredOperations[0])->luma == luma);
+    QCOMPARE(std::get<FilterSnapshot>(recoveredOperations[1])->hsvType, HsvAdjustmentType::Yuv);
+    QVERIFY(std::get<FilterSnapshot>(recoveredOperations[1])->luma == luma);
+    QVERIFY(std::get<FilterSnapshot>(recoveredOperations[2])->colorize);
+    QVERIFY(std::get<FilterSnapshot>(recoveredOperations[2])->luma == luma);
+    QCOMPARE(recovered.snapshot()->layers.first().operations.size(), 3);
+    QCOMPARE(document.snapshot()->layers.first().operations.size(), 3);
+}
+
+void KisGpuOperationDocumentTest::hsvAdjustmentRejectsUnfrozenLumaAndInvalidRanges()
+{
+    // The product rule falls back to Rec.709 when any document coefficient is
+    // non-positive. Coefficients that cannot be used by the YUV division are
+    // rejected instead of approximated.
+    std::array<float, 3> luma{};
+    QVERIFY(freezeLumaCoefficients({0.0, 0.5, 0.5}, &luma));
+    QVERIFY(luma == (std::array<float, 3>{0.2126f, 0.7152f, 0.0722f}));
+    QVERIFY(freezeLumaCoefficients({0.25, -0.25, 1.0}, &luma));
+    QVERIFY(luma == (std::array<float, 3>{0.2126f, 0.7152f, 0.0722f}));
+    QVERIFY(!freezeLumaCoefficients({0.5, 1.0, 0.5}, &luma));
+    QVERIFY(!freezeLumaCoefficients({0.5, 0.25, 1.5}, &luma));
+    QVERIFY(!freezeLumaCoefficients({std::numeric_limits<qreal>::quiet_NaN(), 0.5, 0.5}, &luma));
+    QVERIFY(!freezeLumaCoefficients({0.5, 0.25, std::numeric_limits<qreal>::infinity()}, &luma));
+
+    const std::array<float, 3> rec709{0.2126f, 0.7152f, 0.0722f};
+
+    // Modes that use luma are invalid until the caller freezes coefficients.
+    HsvAdjustment hsy{0, 50, 0, HsvAdjustmentType::Hsy, false};
+    QVERIFY(!hsy.isValid());
+    hsy.luma = rec709;
+    hsy.lumaFrozen = true;
+    QVERIFY(hsy.isValid());
+
+    HsvAdjustment yuv{0, 0, 0, HsvAdjustmentType::Yuv, false};
+    QVERIFY(!yuv.isValid());
+    yuv.luma = rec709;
+    yuv.lumaFrozen = true;
+    QVERIFY(yuv.isValid());
+    yuv.hue = 101;
+    QVERIFY(!yuv.isValid());
+    yuv.hue = -100;
+    QVERIFY(yuv.isValid());
+
+    HsvAdjustment colorize{0, 0, 0, HsvAdjustmentType::Hsv, false};
+    colorize.colorize = true;
+    QVERIFY(!colorize.isValid());
+    colorize.luma = rec709;
+    colorize.lumaFrozen = true;
+    QVERIFY(colorize.isValid());
+    colorize.hue = 360;
+    QVERIFY(colorize.isValid());
+    colorize.hue = 361;
+    QVERIFY(!colorize.isValid());
+    colorize.hue = 100;
+    colorize.type = HsvAdjustmentType::Yuv;
+    QVERIFY(colorize.isValid());
+    colorize.hue = 101;
+    QVERIFY(!colorize.isValid());
+    colorize.hue = 50;
+    colorize.saturation = -1;
+    QVERIFY(!colorize.isValid());
+
+    HsvAdjustment unsupported{0, 0, 0, HsvAdjustmentType(5), false};
+    QVERIFY(!unsupported.isValid());
+
+    // Rejected settings leave history and the accepted operation untouched.
+    RasterImage source;
+    source.size = {64, 64};
+    RasterLayer paint;
+    paint.name = QStringLiteral("Paint");
+    paint.uuid = QUuid::createUuid();
+    source.layers.append(paint);
+    OperationDocument document(source);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.hsvAdjustment(layer, {0, 0, 0, HsvAdjustmentType::Hsv, false}), Result::Success);
+    const auto before = document.snapshot();
+    const auto count = document.undoCount();
+    HsvAdjustment unfrozenHsy{0, 50, 0, HsvAdjustmentType::Hsy, false};
+    QCOMPARE(document.hsvAdjustment(layer, unfrozenHsy), Result::InvalidInput);
+    unfrozenHsy.colorize = true;
+    unfrozenHsy.type = HsvAdjustmentType::Hsv;
+    QCOMPARE(document.hsvAdjustment(layer, unfrozenHsy), Result::InvalidInput);
+    HsvAdjustment unfrozenYuv{0, 50, 0, HsvAdjustmentType::Yuv, false};
+    QCOMPARE(document.hsvAdjustment(layer, unfrozenYuv), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.undoCount(), count);
+}
+
 void KisGpuOperationDocumentTest::hsvAdjustmentRejectsInvalidSettingsAndPreservesHistory()
 {
     RasterImage source;
@@ -2246,8 +2476,8 @@ void KisGpuOperationDocumentTest::hsvAdjustmentRejectsInvalidSettingsAndPreserve
     QVERIFY(!defaults.compatibilityMode);
     QVERIFY(defaults.isValid());
 
-    // Product slider ranges are [-180, 180] and [-100, 100]; other modes are
-    // represented by HsvAdjustmentType but invalid enum values are rejected.
+    // Product slider ranges are [-180, 180] and [-100, 100]; invalid enum
+    // values are rejected, and luma-dependent modes require frozen luma.
     const HsvAdjustment invalid[] = {
         {181, 0, 0, HsvAdjustmentType::Hsv, false},
         {-181, 0, 0, HsvAdjustmentType::Hsv, false},
@@ -2255,7 +2485,7 @@ void KisGpuOperationDocumentTest::hsvAdjustmentRejectsInvalidSettingsAndPreserve
         {0, -101, 0, HsvAdjustmentType::Hsv, false},
         {0, 0, 101, HsvAdjustmentType::Hsv, false},
         {0, 0, -101, HsvAdjustmentType::Hsv, false},
-        {0, 0, 0, HsvAdjustmentType(3), false},
+        {0, 0, 0, HsvAdjustmentType(5), false},
     };
     for (const auto &settings : invalid) {
         QVERIFY(!settings.isValid());
@@ -2297,7 +2527,7 @@ void KisGpuOperationDocumentTest::hsvAdjustmentRejectsInvalidSettingsAndPreserve
     QVERIFY(!std::get<FilterSnapshot>(operations[1])->compatibilityMode);
 }
 
-void KisGpuOperationDocumentTest::hsvAdjustmentRecoveryRequiresFormat52()
+void KisGpuOperationDocumentTest::hsvAdjustmentRecoveryRequiresFormat53()
 {
     RasterImage source;
     source.size = {64, 64};
@@ -2322,7 +2552,7 @@ void KisGpuOperationDocumentTest::hsvAdjustmentRecoveryRequiresFormat52()
     quint16 format = 0;
     headerStream >> magic >> format;
     QCOMPARE(magic, quint32(0x4c504f52));
-    QCOMPARE(format, quint16(52));
+    QCOMPARE(format, quint16(53));
 
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
@@ -2334,6 +2564,50 @@ void KisGpuOperationDocumentTest::hsvAdjustmentRecoveryRequiresFormat52()
     QCOMPARE(restoredOperation->value, 40);
     QCOMPARE(restoredOperation->hsvType, HsvAdjustmentType::Hsv);
     QVERIFY(restoredOperation->compatibilityMode);
+    QVERIFY(!restoredOperation->colorize);
+
+    // Format 52 records remain readable; the dropped Colorize flag and luma
+    // words decode as the product's non-Colorize modern defaults.
+    RasterImage olderSource;
+    olderSource.size = {64, 64};
+    RasterLayer olderTarget;
+    olderTarget.name = QStringLiteral("Older");
+    olderTarget.uuid = QUuid::createUuid();
+    olderSource.layers.append(olderTarget);
+    OperationDocument olderDocument(olderSource);
+    HsvAdjustment olderSettings{25, -15, 35, HsvAdjustmentType::Hsl, false};
+    olderSettings.lumaFrozen = true;
+    olderSettings.luma = {0.25f, 0.5f, 0.25f};
+    QVERIFY(olderSettings.isValid());
+    QCOMPARE(olderDocument.hsvAdjustment(olderDocument.activeLayer(), olderSettings), Result::Success);
+    const auto older52 = olderHsvRecovery(olderDocument.recoveryData(), 52);
+    QVERIFY(!older52.isEmpty());
+    OperationDocument restored52({1, 1});
+    QCOMPARE(restored52.restoreRecovery(older52), Result::Success);
+    const auto restored52Operation =
+        std::get<FilterSnapshot>(restored52.snapshot()->layers.first().operations.last());
+    QCOMPARE(restored52Operation->hue, 25);
+    QCOMPARE(restored52Operation->saturation, -15);
+    QCOMPARE(restored52Operation->value, 35);
+    QCOMPARE(restored52Operation->hsvType, HsvAdjustmentType::Hsl);
+    QVERIFY(!restored52Operation->colorize);
+    QVERIFY(!restored52Operation->compatibilityMode);
+
+    // Format 52 did not record luma, so a luma-dependent mode cannot be
+    // restored from an older record.
+    OperationDocument lumaDocument(olderSource);
+    HsvAdjustment lumaSettings{0, 50, 0, HsvAdjustmentType::Hsy, false};
+    lumaSettings.luma = {0.25f, 0.5f, 0.25f};
+    lumaSettings.lumaFrozen = true;
+    QVERIFY(lumaSettings.isValid());
+    QCOMPARE(lumaDocument.hsvAdjustment(lumaDocument.activeLayer(), lumaSettings), Result::Success);
+    const auto luma52 = olderHsvRecovery(lumaDocument.recoveryData(), 52);
+    QVERIFY(!luma52.isEmpty());
+    OperationDocument live52({64, 64});
+    const auto live52Before = live52.snapshot();
+    QCOMPARE(live52.restoreRecovery(luma52), Result::InvalidRecovery);
+    QCOMPARE(live52.snapshot(), live52Before);
+
 
     // Re-labelling the payload as format 51 must reject the HSV kind, because
     // format 51 knew only Invert Colors and Grayscale.

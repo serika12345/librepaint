@@ -10,6 +10,7 @@
 #include <QCryptographicHash>
 #include <QDataStream>
 #include <algorithm>
+#include <cstring>
 #include <QHash>
 #include <QIODevice>
 #include <QSet>
@@ -19,7 +20,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 52;
+constexpr quint16 FormatVersion = 53;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -39,6 +40,18 @@ void configure(QDataStream &stream)
 }
 quint8 maximumSelectionKind(quint16 format)
 { return format >= 44 ? quint8(SelectionKind::Freehand) : quint8(SelectionKind::Ellipse); }
+quint32 floatBits(float value)
+{
+    quint32 bits = 0;
+    std::memcpy(&bits, &value, sizeof(bits));
+    return bits;
+}
+float floatFromBits(quint32 bits)
+{
+    float value = 0;
+    std::memcpy(&value, &bits, sizeof(value));
+    return value;
+}
 QByteArray digest(const QByteArray &data, qsizetype length)
 {
     QCryptographicHash hash(QCryptographicHash::Sha256);
@@ -248,9 +261,16 @@ QByteArray OperationDocument::recoveryData() const
                    << qint32(operation.selectionRect.width()) << qint32(operation.selectionRect.height())
                    << quint8(operation.selectionInverted) << quint8(operation.selectionKind);
             if (FormatVersion >= 52 && operation.kind == FilterKind::HsvAdjustment) {
-                // Format 52 freezes the product HSV/HSL Adjustment values and mode.
+                // Format 52 freezes the product HSV/HSL Adjustment values and
+                // mode; format 53 adds Colorize and the effective luma
+                // coefficients as their binary32 bit patterns.
                 stream << operation.hue << operation.saturation << operation.value
                        << quint8(operation.hsvType) << quint8(operation.compatibilityMode);
+                if (FormatVersion >= 53) {
+                    stream << quint8(operation.colorize);
+                    for (const float coefficient : operation.luma)
+                        stream << floatBits(coefficient);
+                }
             }
             if (operation.selectionKind == SelectionKind::Freehand) {
                 if (!operation.selectionMask || !maskIndices.contains(operation.selectionMask.data())) return {};
@@ -503,8 +523,9 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             qint32 x = 0, y = 0, width = 0, height = 0;
             quint8 inverted = 0, selectionKind = 0;
             stream >> filterKind >> x >> y >> width >> height >> inverted >> selectionKind;
-            // Format 50 knew only Invert Colors; format 51 adds Grayscale and
-            // format 52 adds the HSV/HSL Adjustment settings.
+            // Format 50 knew only Invert Colors; format 51 adds Grayscale,
+            // format 52 adds the HSV/HSL Adjustment settings and format 53
+            // adds Colorize and the frozen luma coefficients.
             const quint8 maximumFilterKind = format >= 52 ? quint8(FilterKind::HsvAdjustment) :
                 format >= 51 ? quint8(FilterKind::Grayscale) : quint8(FilterKind::InvertColors);
             if (filterKind > maximumFilterKind || inverted > 1 ||
@@ -517,14 +538,32 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 qint32 hue = 0, saturation = 0, value = 0;
                 quint8 type = 0, compatibilityMode = 0;
                 stream >> hue >> saturation >> value >> type >> compatibilityMode;
-                const HsvAdjustment settings{hue, saturation, value, HsvAdjustmentType(type),
-                                             compatibilityMode != 0};
+                HsvAdjustment settings;
+                settings.hue = hue;
+                settings.saturation = saturation;
+                settings.value = value;
+                settings.type = HsvAdjustmentType(type);
+                settings.compatibilityMode = compatibilityMode != 0;
+                if (format >= 53) {
+                    // Format 53 freezes the Colorize flag and the effective
+                    // document luma coefficients as binary32 bit patterns.
+                    quint8 colorize = 0;
+                    std::array<quint32, 3> luma{};
+                    stream >> colorize >> luma[0] >> luma[1] >> luma[2];
+                    if (colorize > 1) return Result::InvalidRecovery;
+                    settings.colorize = colorize != 0;
+                    for (qsizetype i = 0; i < 3; ++i)
+                        settings.luma[i] = floatFromBits(luma[i]);
+                    settings.lumaFrozen = true;
+                }
                 if (compatibilityMode > 1 || !settings.isValid()) return Result::InvalidRecovery;
                 operation->hue = settings.hue;
                 operation->saturation = settings.saturation;
                 operation->value = settings.value;
                 operation->hsvType = settings.type;
                 operation->compatibilityMode = settings.compatibilityMode;
+                operation->colorize = settings.colorize;
+                operation->luma = settings.luma;
             }
             if (operation->selectionKind == SelectionKind::Freehand) {
                 quint32 maskIndex = NoOperation;

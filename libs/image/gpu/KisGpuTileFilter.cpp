@@ -3,9 +3,23 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuTileStorage_p.h"
+#include <cstring>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
+namespace {
+// Must match the FilterParameters uniform layout in filter.wgsl: three
+// vec4<i32> words followed by the binary32 luma coefficients in a vec4<f32>.
+struct FilterParameters
+{
+    qint32 tile[4];
+    qint32 selection[4];
+    qint32 adjustment[4];
+    float luma[4];
+};
+static_assert(sizeof(FilterParameters) == 64,
+              "filter parameter layout must match filter.wgsl");
+}
 
 TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     WGPUCommandEncoder commands, const Tiles &source, const FilterOperation &filter,
@@ -77,16 +91,22 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         }
         const QPoint origin = Detail::coordinate(coordinate) * TileSize;
         // The adjustment word carries the frozen product values for the HSV
-        // kind and zero for the other kinds.
+        // kind and zero for the other kinds. Colorize and the legacy flag
+        // share the high bits of the mode word; the luma coefficients are
+        // already frozen to binary32 by the accepted operation.
         qint32 adjustment = 0;
+        FilterParameters parameterValues{};
         if (filter.kind == FilterKind::HsvAdjustment) {
-            adjustment = qint32(filter.hsvType) | (filter.compatibilityMode ? 0x100 : 0);
+            adjustment = qint32(filter.hsvType) |
+                (filter.compatibilityMode ? 0x100 : 0) | (filter.colorize ? 0x200 : 0);
+            for (qsizetype i = 0; i < 3; ++i) parameterValues.luma[i] = filter.luma[i];
         }
         const qint32 values[]{origin.x(), origin.y(), qint32(filter.kind), qint32(flags),
                               filter.selectionRect.x(), filter.selectionRect.y(),
                               filter.selectionRect.width(), filter.selectionRect.height(),
                               filter.hue, filter.saturation, filter.value, adjustment};
-        auto parameters = createBuffer(device->nativeDevice(), sizeof(values),
+        std::memcpy(parameterValues.tile, values, sizeof(values));
+        auto parameters = createBuffer(device->nativeDevice(), sizeof(parameterValues),
                                        WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
         if (!parameters) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter parameter allocation failed")};
         WGPUBindGroupEntry entries[4]{};
@@ -104,7 +124,8 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &descriptor));
         if (!bindings || !device->diagnostic().isEmpty())
             return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter binding failed")};
-        wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
+        wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0,
+                             &parameterValues, sizeof(parameterValues));
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
         if (!pass) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter commands failed")};
         wgpuComputePassEncoderSetPipeline(pass, filterPipeline.get());

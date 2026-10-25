@@ -520,7 +520,7 @@ Undo／Redo、復旧後の履歴種別と選択被覆（部分アルファ値を
 楕円・反転・アルファ被覆の凍結、Grayscale履歴種別、一度の履歴、Undo／Redo、
 復旧後の種別と選択被覆（部分アルファ値を含む）を検査する。
 `KisGpuOperationDocumentTest::grayscaleRecoveryKeepsItsKindAcrossFormatBumps`は、復旧記録が
-形式52を名乗ること、形式52と形式51ではGrayscaleが復元されること、同じ記録を形式50として
+形式53を名乗ること、形式53・52・51ではGrayscaleが復元されること、同じ記録を形式50として
 再署名するとInvert Colorsだけを許す検証がGrayscaleを拒否して現行文書を変えないことを検査する。
 `KisGpuPaintDocumentTest::grayscaleSavesReopensAndRecoversPixels`は、生タイルの
 Grayscale適用、隠れRGBのフィルターとアルファ0の保持、無彩色の保持、選択外の保持、
@@ -534,9 +534,18 @@ Undo／Redo、復旧後の同じ設定と選択被覆を検査する。
 製品スライダー範囲外の値と未対応の`type`を履歴・画素を変えずに拒否すること、
 ロック済みレイヤー・グループ・不在レイヤー・入力中・終了後の拒否、
 範囲境界値の受入れを検査する。
-`KisGpuOperationDocumentTest::hsvAdjustmentRecoveryRequiresFormat52`は、復旧記録が形式52を
-名乗ること、形式52で設定が復元されること、同じ記録を形式51として再署名すると
-HSV Adjustmentを拒否して現行文書を変えないことを検査する。
+`KisGpuOperationDocumentTest::hsvAdjustmentFreezesLumaDependentModesAndRecovers`は、
+HSY・YUV・Colorizeの`type`・`colorize`・実効luma係数の凍結、qreal係数のbinary32丸め、
+楕円・反転の凍結、Undo／Redo、復旧後の同じ設定と係数を検査する。
+`KisGpuOperationDocumentTest::hsvAdjustmentRejectsUnfrozenLumaAndInvalidRanges`は、
+非正係数のRec.709置換、1以上・非有限係数の拒否、未凍結lumaでのHSY・YUV・Colorizeの拒否、
+モード別スライダー範囲（YUVの-100〜100、Colorizeの0〜360と0〜100）の境界、
+拒否時の履歴保持を検査する。
+`KisGpuOperationDocumentTest::hsvAdjustmentRecoveryRequiresFormat53`は、復旧記録が形式53を
+名乗ること、形式53で設定・Colorize・luma係数が復元されること、形式52の記録が
+Colorizeなしの`type` 0〜2として復元されること、形式52として再署名したHSYが拒否され
+現行文書を変えないこと、同じ記録を形式51として再署名するとHSV Adjustmentを拒否することを
+検査する。
 `KisGpuTileRendererTest::hsvAdjustmentUsesProductValuesAndNeutralPixels`は、
 HSV方針の彩度・明度・色相写像、無彩色画素が色相と彩度を無視して明度だけに従うこと、
 `int(v * 255 + 0.5)`の四捨五入、アルファ保持、透明画素の隠れRGB、選択外の保持、
@@ -544,16 +553,28 @@ HSL方針との差、設定と被覆の凍結、一度の履歴、Undo／Redo、
 `KisGpuTileRendererTest::hsvAdjustmentClipsCoverageAndSupportsLegacyConversion`は、
 アルファ被覆の補間、反転矩形、楕円被覆、旧互換モードで彩度上昇が無彩色へ色を与えること、
 旧互換の明度規則が現代方針と異なること、旧互換フラグの凍結と復旧を検査する。
+`KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozenCoefficients`は、
+HSYの現代HCY方針と旧HCY変換、YUVの色相・彩度・値写像、Colorize（`type` 0とYUVの
+スライダー範囲）、無彩色画素、アルファ保持、透明画素の隠れRGB、選択外の保持、
+Rec.709と異なる凍結係数が画素へ反映されること、Undo／Redo、復旧後の同じ画素を検査する。
+`KisGpuTileRendererTest::hsvAdjustmentLumaModesClipAlphaAndSelectionCoverage`は、
+アルファ被覆によるYUVの補間、反転矩形でのColorize、楕円被覆でのYUV、復旧後の
+同じ係数と画素を検査する。
 `KisGpuPaintDocumentTest::hsvAdjustmentSavesReopensAndRecoversPixels`は、生タイルへの
 HSV Adjustment適用、隠れRGBとアルファ0の保持、選択外の保持、一回のGPU履歴と
 Undo／Redo、復旧後の設定と画素、KRA保存・再読込後の結果画素、再読込後の
 旧互換モードによる再適用を検査する。
+`KisGpuPaintDocumentTest::hsvAdjustmentLumaModesSaveReopenAndRecoverPixels`は、
+Rec.709と異なる凍結luma係数を持つHSYの画素、隠れRGBとアルファ0、選択外の保持、
+Undo／Redo、復旧後の係数、KRA保存・再読込後の結果画素、再読込後のColorize適用を検査する。
 `KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument`は、
 `krita_filter_hsvadjustment`アクションが製品設定ウィジェットを開き、CPUフィルター
 ストロークを開始せず、確定した`h`・`s`・`v`・`type`をGPU文書のアクティブペイント
 レイヤーへ一度の履歴として適用すること、履歴ラベル、選択内だけの変更、選択外の保持、
-Undo／Redo、`type`省略時の製品既定HSL、範囲外値、未対応のHSY/YUV/Colorize設定が
-画素と履歴を変えずに診断を表示することを検査する。
+Undo／Redo、`type`省略時の製品既定HSL、HSY・YUV・Colorizeが文書色空間のluma係数を
+凍結してGPU履歴へ適用されること、Colorizeが設定ダイアログからCPUストロークなしで
+到達すること、未対応モードとモード別範囲外値が画素と履歴を変えずに診断を表示することを
+検査する。
 `KisGpuDocumentViewTest::invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters`は、
 `krita_filter_invert`アクションがGPU文書のアクティブペイントレイヤーへ一度の履歴として
 適用され、Undo／Redoが同じ画素を復元すること、未対応フィルターが履歴と画素を変えずに
@@ -976,7 +997,9 @@ KRA再読込後の全レイヤー画素とPNG書出しを検査し、`LIBREPAINT
 復旧形式50は画素フィルター操作とその凍結選択を保存し、形式49以前はフィルターなしとして読み込む。
 復旧形式51はフィルター種別（Invert ColorsとGrayscale）を保存し、形式50の記録はInvert Colorsだけを
 受け付ける。復旧形式52はHSV Adjustmentの生値`h`・`s`・`v`・`type`・`compatibilityMode`を
-同じフィルター操作へ保存し、形式51以前はHSV Adjustmentを受け付けない。
+同じフィルター操作へ保存し、`type` 0〜2だけを受け付ける。復旧形式53はこれにColorizeフラグと
+実効luma係数のbinary32ビット列を加え、形式52以前の記録はColorizeなし・lumaなしとして読む。
+形式51以前はHSV Adjustmentを受け付けない。
 復旧形式47は凍結パターンの寸法と直線RGBA8画素を操作へ保存し、形式17から46の
 図形塗りつぶし入力も引き続き読み込む。
 描線・塗りなしの矩形と塗れる面積のない頂点列は、画素を保った一回の履歴とUndo／Redoを照合する。
