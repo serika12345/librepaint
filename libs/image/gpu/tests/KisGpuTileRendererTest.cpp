@@ -12,6 +12,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMap>
+#include <QPainter>
+#include <QPainterPath>
 #include <QScopeGuard>
 #include <QThread>
 #include <cstring>
@@ -117,6 +119,10 @@ private Q_SLOTS:
     void gaussianCubicPathsKeepPixelsInputHistoryAndRecovery();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery_data();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery();
+    void figureFillMatchesPainterCoverage_data();
+    void figureFillMatchesPainterCoverage();
+    void longFillEdgesKeepPixelsAcrossRegions();
+    void emptyFillKeepsPointOutline();
     void filledInteriorRespectsRegionAndTileBudget();
     void collinearFillPreservesPixelsWithinTileBudget_data();
     void collinearFillPreservesPixelsWithinTileBudget();
@@ -5879,7 +5885,9 @@ void KisGpuTileRendererTest::solidFiguresPreserveFillOutlineHistoryAndRecovery()
     QCOMPARE(pixels.size(), TileRenderer::TileBytes);
     const auto pixel = [&](int x, int y) { return pixels.mid((y * TileRenderer::TileSize + x) * 4, 4); };
     QCOMPARE(pixel(32, 24), QByteArray::fromHex("dd112cff"));
-    QCOMPARE(pixel(32, 8), QByteArray::fromHex("dd112cff"));
+    const auto topPixel = shapeKind == ShapeKind::Ellipse ?
+        (outline ? QByteArray::fromHex("1181f1ff") : QByteArray::fromHex("dd112cfa")) : QByteArray::fromHex("dd112cff");
+    QCOMPARE(pixel(32, 8), topPixel);
     QCOMPARE(pixel(32, 7), outline ? QByteArray::fromHex("1181f1ff") : QByteArray(4, char(0)));
     QCOMPARE(pixel(0, 0), QByteArray(4, char(0)));
     QCOMPARE(document.undo(), Result::Success);
@@ -5895,6 +5903,205 @@ void KisGpuTileRendererTest::solidFiguresPreserveFillOutlineHistoryAndRecovery()
     const auto restored = render(renderer, recovered.snapshot());
     QVERIFY(restored);
     QCOMPARE(readTile(restored, layer, {0, 0}), pixels);
+}
+
+void KisGpuTileRendererTest::figureFillMatchesPainterCoverage_data()
+{
+    QTest::addColumn<QString>("kind");
+    for (const auto *kind : {"ellipse", "ellipse-48", "rounded-rectangle", "triangle", "reverse-triangle",
+                             "small-curve", "clipped-curve", "odd-even", "winding", "mirrored", "mirrored-half-grid", "mirrored-collapsed",
+                             "large-coordinates", "large-vertical", "distant-mirror"})
+        QTest::newRow(kind) << QString::fromLatin1(kind);
+}
+
+void KisGpuTileRendererTest::figureFillMatchesPainterCoverage()
+{
+    QFETCH(QString, kind);
+    const bool distantMirror = kind == QLatin1String("distant-mirror");
+    const QPoint origin(distantMirror ? int(OperationDocument::CoordinateLimit) - 256 : 0, 0);
+    QPainterPath path;
+    const bool mirrored = kind.startsWith(QLatin1String("mirrored"));
+    if (kind == QLatin1String("mirrored-collapsed")) path.addRect(QRectF(16 + 1. / 128, 16, 1. / 128, 16));
+    else if (kind == QLatin1String("mirrored-half-grid")) path.addRect(QRectF(16 + 1. / 128, 16 + 1. / 128, 32, 32));
+    else if (kind == QLatin1String("ellipse") || mirrored) path.addEllipse(QRectF(16, 16, 32, 32));
+    else if (kind == QLatin1String("ellipse-48")) path.addEllipse(QRectF(8, 8, 48, 48));
+    else if (kind == QLatin1String("rounded-rectangle")) path.addRoundedRect(QRectF(16, 16, 32, 32), 14, 14);
+    else if (kind == QLatin1String("small-curve")) {
+        path.moveTo(16, 16);
+        path.cubicTo(16.25, 16.0625, 16.5, 16.0625, 16.75, 16);
+        path.lineTo(16.75, 17);
+        path.lineTo(16, 17);
+    } else if (kind == QLatin1String("clipped-curve")) {
+        path.addEllipse(QRectF(-9.25, -7.125, 32.5, 40.75));
+    } else if (kind == QLatin1String("odd-even") || kind == QLatin1String("winding")) {
+        path.addEllipse(QRectF(8.125, 8.25, 48, 48));
+        path.addEllipse(QRectF(16.375, 16.5, 32, 32));
+        if (kind == QLatin1String("winding")) path.setFillRule(Qt::WindingFill);
+    } else if (kind == QLatin1String("large-coordinates")) {
+        const auto limit = OperationDocument::CoordinateLimit;
+        path.moveTo(-limit, -limit);
+        path.lineTo(limit, -limit);
+        path.lineTo(limit, limit);
+    } else if (kind == QLatin1String("large-vertical")) {
+        const auto limit = OperationDocument::CoordinateLimit;
+        path.addRect(QRectF(-limit / 2, -limit / 2, limit, limit));
+    } else if (distantMirror) {
+        path.addRect(QRectF(OperationDocument::CoordinateLimit - .5, 0, .5, 1));
+    } else {
+        path.moveTo(16, 16);
+        path.lineTo(48, 16);
+        path.lineTo(48, 48);
+        if (kind == QLatin1String("reverse-triangle")) path = path.toReversed();
+    }
+    path.closeSubpath();
+    Brush brush;
+    if (mirrored) {
+        brush.mirrorHorizontal = brush.mirrorVertical = true;
+        brush.mirrorCenter = {32, 32};
+    } else if (distantMirror) {
+        brush.mirrorHorizontal = true;
+        brush.mirrorCenter = {-int(OperationDocument::CoordinateLimit), 0};
+    }
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.windingFill = path.fillRule() == Qt::WindingFill;
+    QList<InputSample> samples;
+    for (int i = 0; i < path.elementCount(); ++i) {
+        const auto point = path.elementAt(i);
+        shape.pathCommands.append(point.isMoveTo() ? PathCommand::MoveTo :
+                                  point.isLineTo() ? PathCommand::LineTo : PathCommand::CubicTo);
+        samples.append({point, 1});
+        if (point.isCurveTo()) {
+            samples.append({path.elementAt(++i), 1});
+            samples.append({path.elementAt(++i), 1});
+        }
+    }
+    QImage mask(256, 256, QImage::Format_ARGB32_Premultiplied);
+    mask.fill(Qt::transparent);
+    {
+        QPainter painter(&mask);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.translate(-origin);
+        painter.fillPath(path, Qt::white);
+        if (mirrored) {
+            for (const auto &scale : {QPointF(-1, 1), QPointF(1, -1), QPointF(-1, -1)}) {
+                QTransform mirror;
+                mirror.translate(32, 32).scale(scale.x(), scale.y()).translate(-32, -32);
+                painter.fillPath(mirror.map(path), Qt::white);
+            }
+        }
+    }
+    QByteArray expected(TileRenderer::TileBytes, '\0');
+    for (int y = 0; y < mask.height(); ++y) {
+        for (int x = 0; x < mask.width(); ++x) {
+            const int alpha = qAlpha(mask.pixel(x, y));
+            if (!alpha) continue;
+            const int offset = (y * 256 + x) * 4;
+            expected[offset] = 17;
+            expected[offset + 1] = char(129);
+            expected[offset + 2] = char(241);
+            expected[offset + 3] = char(alpha);
+        }
+    }
+    OperationDocument document(QSize(origin.x() + 256, 256));
+    FigureStyle style;
+    style.outline = false;
+    style.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    QCOMPARE(document.paintFigure(document.activeLayer(), brush, samples, shape, style, 42), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    auto finishFrame = qScopeGuard([&] { m_device->submitCommands(true); });
+    const auto rendered = renderer.recordRegion(commands, document.snapshot(), QRect(origin, QSize(256, 256)), {document.activeLayer()});
+    QCOMPARE(rendered.code, RenderOutcome::Recorded);
+    QVERIFY(m_device->submitCommands(true));
+    finishFrame.dismiss();
+    const auto actual = readTile(rendered.version, document.activeLayer(), {origin.x() / 256, 0});
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        for (const auto &entry : {qMakePair(QStringLiteral("actual"), actual), qMakePair(QStringLiteral("expected"), expected)}) {
+            QFile file(QDir(directory).filePath(QStringLiteral("figure-fill-%1-%2.rgba").arg(kind, entry.first)));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(entry.second), qint64(entry.second.size()));
+        }
+    }
+    QCOMPARE(actual, expected);
+}
+
+void KisGpuTileRendererTest::emptyFillKeepsPointOutline()
+{
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo};
+    const QList<InputSample> samples{{{16, 16}, 1}, {{16, 16}, 1}};
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255};
+    brush.diameter = 8;
+    brush.opacity = 128;
+    QByteArray reference;
+    for (bool filled : {false, true}) {
+        OperationDocument document(QSize(64, 64));
+        const auto layer = document.activeLayer();
+        FigureStyle style;
+        if (filled) style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+        QCOMPARE(document.paintFigure(layer, brush, samples, shape, style, 42), Result::Success);
+        TileRenderer renderer(m_device);
+        const auto version = render(renderer, document.snapshot());
+        QVERIFY(version);
+        const auto pixels = readTile(version, layer, {0, 0});
+        QCOMPARE(pixels.size(), TileRenderer::TileBytes);
+        QCOMPARE(pixels.mid((16 * TileRenderer::TileSize + 16) * 4, 4), QByteArray::fromHex("1181f180"));
+        if (!filled) reference = pixels;
+        else QCOMPARE(pixels, reference);
+        QCOMPARE(document.undo(), Result::Success);
+        const auto undone = render(renderer, document.snapshot(), version);
+        QVERIFY(undone);
+        QVERIFY(undone->tiles(layer).isEmpty());
+        QCOMPARE(document.redo(), Result::Success);
+        const auto redone = render(renderer, document.snapshot(), undone);
+        QVERIFY(redone);
+        QCOMPARE(readTile(redone, layer, {0, 0}), pixels);
+        OperationDocument recovered(QSize(1, 1));
+        QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+        const auto restored = render(renderer, recovered.snapshot());
+        QVERIFY(restored);
+        QCOMPARE(readTile(restored, layer, {0, 0}), pixels);
+    }
+}
+
+void KisGpuTileRendererTest::longFillEdgesKeepPixelsAcrossRegions()
+{
+    const auto limit = OperationDocument::CoordinateLimit;
+    OperationDocument document(QSize(1024, 256));
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::LineTo, PathCommand::LineTo};
+    const QList<InputSample> samples{{{-limit, 16.25}, 1}, {{limit, 16.265625}, 1},
+                                     {{limit, 48}, 1}, {{-limit, 48}, 1}};
+    FigureStyle style;
+    style.outline = false;
+    style.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, samples, shape, style, 42), Result::Success);
+    TileRenderer renderer(m_device);
+    QByteArray reference;
+    for (const auto &region : {QRect(0, 0, 256, 256), QRect(-256, 0, 768, 256), QRect(0, 0, 768, 256)}) {
+        const auto commands = m_device->beginCommands();
+        QVERIFY(commands);
+        auto finishFrame = qScopeGuard([&] { m_device->submitCommands(true); });
+        const auto version = renderer.recordRegion(commands, document.snapshot(), region, {document.activeLayer()});
+        QCOMPARE(version.code, RenderOutcome::Recorded);
+        QVERIFY(m_device->submitCommands(true));
+        finishFrame.dismiss();
+        const auto pixels = readTile(version.version, document.activeLayer(), {0, 0});
+        QCOMPARE(pixels.size(), TileRenderer::TileBytes);
+        // The original 26.6 endpoints span 4/256 pixel vertically. At x=0,
+        // integer cell splitting retains y=16*256+66, hence coverage 190.
+        // Clipping the line before quantization would discard this precision.
+        QCOMPARE(pixels.mid(16 * 256 * 4, 4), QByteArray::fromHex("1181f1be"));
+        if (reference.isEmpty()) reference = pixels;
+        else QCOMPARE(pixels, reference);
+    }
 }
 
 void KisGpuTileRendererTest::pathCommandsPreserveCoverageHistoryAndRecovery_data()

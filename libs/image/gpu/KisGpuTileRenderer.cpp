@@ -228,7 +228,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     const QRect layerDomain(-limit, -limit, 2 * limit, 2 * limit);
     const QRect paintRegion = region ? region->intersected(layerDomain) : layerDomain;
     std::vector<PaintJob> jobs;
-    struct FillUpload { std::shared_ptr<NativeBuffer> buffer; QList<PaintSegment> edges; };
+    struct FillUpload { std::shared_ptr<NativeBuffer> buffer; QList<FigureFillEdge> edges; };
     std::vector<FillUpload> fillUploads;
     struct Checkpoint { qsizetype operation = 0; QSharedPointer<const RasterTile> pixels; };
     struct Upload { std::shared_ptr<Tile> tile; QByteArray rgba; };
@@ -282,7 +282,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         for (size_t i = recordedFills; i < fillUploads.size(); ++i) {
             const auto &upload = fillUploads[i];
             wgpuQueueWriteBuffer(d.device->queue(), upload.buffer->get(), 0, upload.edges.constData(),
-                                 quint64(upload.edges.size()) * sizeof(PaintSegment));
+                                 quint64(upload.edges.size()) * sizeof(FigureFillEdge));
         }
         for (size_t i = recordedUploads; i < uploads.size(); ++i) {
             const auto &upload = uploads[i];
@@ -596,8 +596,11 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 }
                 std::shared_ptr<NativeBuffer> fillBuffer;
                 if (fillEnabled && !affected.isEmpty()) {
-                    const auto &edges = geometry->fill;
-                    const quint64 bytes = quint64(edges.size()) * sizeof(PaintSegment);
+                    auto edges = geometry->fill;
+                    // A point outline can survive an empty fill. Storage bindings
+                    // still require one edge; a zero edge contributes no area.
+                    if (edges.isEmpty()) edges.append(FigureFillEdge{});
+                    const quint64 bytes = quint64(edges.size()) * sizeof(FigureFillEdge);
                     if (bytes > std::numeric_limits<quint32>::max())
                         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU fill geometry limit exceeded")};
                     fillBuffer = std::make_shared<NativeBuffer>(createBuffer(d.device->nativeDevice(), bytes,

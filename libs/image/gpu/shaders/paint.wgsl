@@ -10,11 +10,12 @@ struct Parameters {
     pattern: vec4<u32>,
 }
 struct Segment { endpoints: vec4<i32>, values: vec4<u32>, }
+struct FigureFillEdge { endpoints: vec4<i32>, mirroredRounding: vec4<i32>, }
 @group(0) @binding(0) var<uniform> parameters: Parameters;
 @group(0) @binding(1) var<storage, read> geometryWords: array<u32>;
 @group(0) @binding(2) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(3) var<storage, read_write> outputPixels: array<u32>;
-@group(0) @binding(4) var<storage, read> fillEdges: array<Segment>;
+@group(0) @binding(4) var<storage, read> fillEdges: array<FigureFillEdge>;
 @group(0) @binding(5) var<storage, read> previousCoverage: array<u32>;
 @group(0) @binding(6) var<storage, read_write> retainedCoverage: array<u32>;
 @group(0) @binding(7) var<storage, read> selectionCoverage: array<u32>;
@@ -180,27 +181,142 @@ fn reflected(point: vec2<i32>, reflection: u32) -> vec2<i32> {
                   vec2<bool>((reflection & 1u) != 0u, (reflection & 2u) != 0u));
 }
 
-fn fillInside(point: vec2<i32>) -> bool {
-    var insidePolygon = false;
-    var winding = 0;
-    for (var i = 0u; i < arrayLength(&fillEdges); i += 1u) {
-        let a = fillEdges[i].endpoints.xy;
-        let b = fillEdges[i].endpoints.zw;
-        if ((a.y > point.y) == (b.y > point.y)) { continue; }
-        let cross = add64(signedProduct(b.x - a.x, point.y - a.y),
-                          negate64(signedProduct(point.x - a.x, b.y - a.y)));
-        let positive = i32(cross.y) >= 0 && any(cross != vec2<u32>(0u));
-        let negative = i32(cross.y) < 0;
-        if (b.y > a.y && positive) {
-            insidePolygon = !insidePolygon;
-            winding += 1;
-        } else if (b.y < a.y && negative) {
-            insidePolygon = !insidePolygon;
-            winding -= 1;
+// Signed 64-bit arithmetic keeps 26.6 endpoints valid across the document
+// coordinate range. Cell intersections use Qt's floor division, followed by
+// signed area >> 9 before absolute coverage (qtbase v6.11.1 qgrayraster.c).
+fn cellSigned(value: i32) -> vec2<u32> {
+    return vec2<u32>(bitcast<u32>(value), select(0u, 0xffffffffu, value < 0));
+}
+fn cellShift(value: vec2<u32>) -> vec2<u32> {
+    return vec2<u32>(value.x << 2u, (value.y << 2u) | (value.x >> 30u));
+}
+fn cellMultiply(value: vec2<u32>, factor: u32) -> vec2<u32> {
+    let low = product(value.x, factor);
+    return vec2<u32>(low.x, low.y + value.y * factor);
+}
+fn cellLessEqual(a: vec2<u32>, b: vec2<u32>) -> bool {
+    if (a.y != b.y) { return i32(a.y) < i32(b.y); }
+    return a.x <= b.x;
+}
+fn cellFloorDivide(numerator: vec2<u32>, denominator: u32) -> vec2<u32> {
+    let negative = i32(numerator.y) < 0;
+    var magnitude = numerator;
+    if (negative) { magnitude = negate64(magnitude); }
+    var remainder = magnitude.y % denominator;
+    var low = 0u;
+    for (var bit = 31; bit >= 0; bit -= 1) {
+        remainder = (remainder << 1u) | ((magnitude.x >> u32(bit)) & 1u);
+        if (remainder >= denominator) {
+            remainder -= denominator;
+            low |= 1u << u32(bit);
         }
     }
-    if ((bitcast<u32>(parameters.mirror.w) & 4u) != 0u) { return winding != 0; }
-    return insidePolygon;
+    var quotient = vec2<u32>(low, magnitude.y / denominator);
+    if (negative) {
+        if (remainder != 0u) { quotient = add64(quotient, vec2<u32>(1u, 0u)); }
+        quotient = negate64(quotient);
+    }
+    return quotient;
+}
+fn cellRowX(origin: vec2<u32>, yOrigin: i32, delta: vec2<i32>, y: i32) -> vec2<u32> {
+    var numerator = add64(cellShift(signedProduct(-yOrigin, delta.x)), signedProduct(y, delta.x));
+    if (delta.y < 0) { numerator = negate64(numerator); }
+    return add64(cellShift(origin), cellFloorDivide(numerator, u32(abs(delta.y))));
+}
+// The quotient is at most one pixel (256 subpixels). Nine comparisons avoid
+// narrowing a wide edge's denominator or its clipped intersection numerator.
+fn cellHeight(along: vec2<u32>, width: vec2<u32>, height: i32) -> i32 {
+    let numerator = cellMultiply(along, u32(abs(height)));
+    var quotient = 0u;
+    for (var bit = 8; bit >= 0; bit -= 1) {
+        let candidate = quotient | (1u << u32(bit));
+        if (lessEqual64(cellMultiply(width, candidate), numerator)) { quotient = candidate; }
+    }
+    if (height < 0) {
+        if (any(cellMultiply(width, quotient) != numerator)) { quotient += 1u; }
+        return -i32(quotient);
+    }
+    return i32(quotient);
+}
+fn fillEdgeArea(edge: FigureFillEdge, pixel: vec2<i32>, reflection: u32) -> i32 {
+    let a = edge.endpoints.xy;
+    let b = edge.endpoints.zw;
+    var originX = cellSigned(a.x);
+    var originY = cellSigned(a.y);
+    var delta = b - a;
+    if ((reflection & 1u) != 0u) {
+        originX = add64(cellSigned(parameters.mirror.x * 8), negate64(originX));
+        originX = add64(originX, cellSigned(edge.mirroredRounding.x));
+        delta.x = -delta.x + edge.mirroredRounding.z - edge.mirroredRounding.x;
+    }
+    if ((reflection & 2u) != 0u) {
+        originY = add64(cellSigned(parameters.mirror.y * 8), negate64(originY));
+        originY = add64(originY, cellSigned(edge.mirroredRounding.y));
+        delta.y = -delta.y + edge.mirroredRounding.w - edge.mirroredRounding.y;
+    }
+    originX = add64(originX, negate64(cellSigned(pixel.x * 64)));
+    originY = add64(originY, negate64(cellSigned(pixel.y * 64)));
+    let endY = add64(originY, cellSigned(delta.y));
+    let rowStart = vec2<u32>(0u);
+    let rowEnd = vec2<u32>(64u, 0u);
+    if (delta.y == 0 || (cellLessEqual(originY, rowStart) && cellLessEqual(endY, rowStart)) ||
+        (cellLessEqual(rowEnd, originY) && cellLessEqual(rowEnd, endY))) { return 0; }
+    // An intersecting edge's relative y endpoints fit its bounded signed delta.
+    let yOrigin = i32(originY.x);
+    let y1 = clamp(yOrigin, 0, 64) * 4;
+    let y2 = clamp(i32(endY.x), 0, 64) * 4;
+    let x1 = cellRowX(originX, yOrigin, delta, y1);
+    let x2 = cellRowX(originX, yOrigin, delta, y2);
+    let zero = vec2<u32>(0u);
+    let right = vec2<u32>(256u, 0u);
+    if (cellLessEqual(x1, zero) && cellLessEqual(x2, zero)) { return 512 * (y2 - y1); }
+    if (cellLessEqual(right, x1) && cellLessEqual(right, x2)) { return 0; }
+    if (cellLessEqual(x1, x2)) {
+        let width = add64(x2, negate64(x1));
+        var ya = y1;
+        var yb = y2;
+        var xa = i32(x1.x);
+        var xb = i32(x2.x);
+        if (cellLessEqual(x1, zero)) {
+            ya += cellHeight(negate64(x1), width, y2 - y1);
+            xa = 0;
+        }
+        if (cellLessEqual(right, x2)) {
+            yb = y1 + cellHeight(add64(right, negate64(x1)), width, y2 - y1);
+            xb = 256;
+        }
+        return 512 * (yb - y1) - (xa + xb) * (yb - ya);
+    }
+    let width = add64(x1, negate64(x2));
+    var ya = y1;
+    var yb = y2;
+    var xa = i32(x1.x);
+    var xb = i32(x2.x);
+    if (cellLessEqual(right, x1)) {
+        ya += cellHeight(add64(x1, negate64(right)), width, y2 - y1);
+        xa = 256;
+    }
+    if (cellLessEqual(x2, zero)) {
+        yb = y1 + cellHeight(x1, width, y2 - y1);
+        xb = 0;
+    }
+    return 512 * (y2 - ya) - (xa + xb) * (yb - ya);
+}
+fn fillPixelCoverage(pixel: vec2<i32>, reflection: u32) -> u32 {
+    var area = vec2<u32>(0u);
+    for (var i = 0u; i < arrayLength(&fillEdges); i += 1u) {
+        area = add64(area, cellSigned(fillEdgeArea(fillEdges[i], pixel, reflection)));
+    }
+    // Arithmetic right shift of a negative area rounds down before abs.
+    var magnitude = area;
+    if (i32(area.y) < 0) { magnitude = add64(negate64(area), vec2<u32>(511u, 0u)); }
+    if ((bitcast<u32>(parameters.mirror.w) & 4u) == 0u) {
+        let coverage = (magnitude.x >> 9u) & 511u;
+        if (coverage > 256u) { return 512u - coverage; }
+        return min(coverage, 255u);
+    }
+    if (magnitude.y != 0u) { return 255u; }
+    return min(magnitude.x >> 9u, 255u);
 }
 
 fn paintAlpha(destination: vec4<u32>, source: vec4<u32>, alpha: u32) -> vec4<u32> {
@@ -324,17 +440,12 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         }
     }
     if ((parameters.counts.w & 256u) != 0u) { retainedCoverage[index] = mask; }
-    var fillMask = 0u;
+    var fillCoverage = 0u;
     if ((figureFlags & 1u) != 0u) {
-        for (var reflection = 0u; reflection < 4u && fillMask != 65535u; reflection += 1u) {
+        for (var reflection = 0u; reflection < 4u; reflection += 1u) {
             if ((reflection & mirrorMode) != reflection) { continue; }
-            for (var y = 0u; y < 4u; y += 1u) {
-                for (var x = 0u; x < 4u; x += 1u) {
-                    let bit = 1u << (y * 4u + x);
-                    let point = reflected(pixel * 16 + vec2<i32>(i32(x * 4u + 2u), i32(y * 4u + 2u)), reflection);
-                    if ((fillMask & bit) == 0u && fillInside(point)) { fillMask |= bit; }
-                }
-            }
+            let coverage = fillPixelCoverage(pixel, reflection);
+            fillCoverage = 255u - mul255(255u - fillCoverage, 255u - coverage);
         }
     }
     var destination = unpackPixel(basePixels[index]);
@@ -345,7 +456,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if ((figureFlags & 1u) != 0u) {
         var fillColor = unpackPixel(bitcast<u32>(parameters.mirror.z));
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
-        let fillAlpha = mul255((fillColor.w * countOneBits(fillMask) + 8u) / 16u, selectionAlpha);
+        let fillAlpha = mul255(mul255(fillColor.w, fillCoverage), selectionAlpha);
         let strokeAlpha = mul255((strokeColor.w * countOneBits(mask) + 8u) / 16u, selectionAlpha);
         // The circular marker retains the first color at equal coverage.
         let source = select(fillColor, strokeColor, strokeAlpha > fillAlpha);

@@ -21,13 +21,23 @@ struct PaintSegment
 };
 static_assert(sizeof(PaintSegment) == 32);
 
+struct FigureFillEdge
+{
+    qint32 ax, ay, bx, by;
+    /** Per-coordinate correction for reflecting raw positions before rounding. */
+    std::array<qint32, 4> mirroredRounding;
+};
+static_assert(sizeof(FigureFillEdge) == 32);
+
 inline quint64 key(int x, int y) { return (quint64(quint32(y)) << 32) | quint32(x); }
 inline QPoint coordinate(quint64 key) { return {int(quint32(key)), int(quint32(key >> 32))}; }
 
 struct PaintGeometry
 {
+    /** Brush dabs use 1/16-pixel positions. */
     QList<PaintSegment> outline;
-    QList<PaintSegment> fill;
+    /** Closed figure edges use 26.6 positions for integer GPU cell coverage. */
+    QList<FigureFillEdge> fill;
 };
 constexpr qsizetype PathGeometrySegmentLimit = 1024 * 1024;
 /** Derived positions/pressure preserve raw input; excessive replay returns nullopt. */
@@ -36,7 +46,7 @@ std::optional<QList<InputSample>> weightedInput(const QList<InputSample> &input,
 /** Retains raw tap/sensors; subsequent pixel centers hold adjacent corners. */
 QList<InputSample> pixelPerfectInput(const QList<InputSample> &input);
 std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quint32 step);
-std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, const Brush &brush,
+std::optional<QList<quint64>> figureFillTiles(const QList<FigureFillEdge> &edges, const Brush &brush,
                                              QRect region, qsizetype maximumCoordinates,
                                              int tileSize = RgbaTile::Size);
 std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter, const Brush &brush,
