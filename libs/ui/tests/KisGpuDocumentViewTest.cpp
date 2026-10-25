@@ -5034,8 +5034,12 @@ void KisGpuDocumentViewTest::brushBlendModeUsesEffectiveCompositeOpAndRejectsUns
         QCOMPARE(captured.brush.erase, mapping.first == QLatin1String("erase"));
     }
 
-    // Unsupported effective composite ops stay rejected before input creates a stroke.
+    // Leave eraser mode before exercising the unsupported painting blend.
+    resources->setEraserMode(false);
+    QVERIFY(!resources->eraserMode());
     const auto unsupported = capture(QStringLiteral("overlay"));
+    QCOMPARE(resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString(),
+             QStringLiteral("overlay"));
     QVERIFY(!unsupported.diagnostic.isEmpty());
     QCOMPARE(unsupported.brush.blendMode, Gpu::LayerBlendMode::Normal);
 
