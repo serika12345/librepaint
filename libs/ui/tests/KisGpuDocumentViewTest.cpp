@@ -2342,7 +2342,7 @@ void KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument
     QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
              Gpu::HistoryAction::HsvAdjustment);
     QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes,
-             QByteArray::fromHex("005000ff"));
+             QByteArray::fromHex("f10074ff"));
     {
         const auto operation = lastFilterOperation();
         QCOMPARE(operation->hsvType, Gpu::HsvAdjustmentType::Yuv);

@@ -82,6 +82,7 @@ private Q_SLOTS:
     void grayscaleClipsEllipseInvertedBinaryAndAlphaCoverage();
     void hsvAdjustmentUsesProductValuesAndNeutralPixels();
     void hsvAdjustmentClipsCoverageAndSupportsLegacyConversion();
+    void yuvResetPreservesStoredPixelsAcrossRecovery();
     void hsvAdjustmentUsesLumaDependentProductRulesAndFrozenCoefficients();
     void hsvAdjustmentLumaModesClipAlphaAndSelectionCoverage();
     void patternFillTilesAcrossSelectionHistoryAndRecovery();
@@ -4177,6 +4178,53 @@ void KisGpuTileRendererTest::hsvAdjustmentClipsCoverageAndSupportsLegacyConversi
     QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), legacy);
 }
 
+void KisGpuTileRendererTest::yuvResetPreservesStoredPixelsAcrossRecovery()
+{
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    for (int y = 0; y < TileRenderer::TileSize; ++y) {
+        for (int x = 0; x < TileRenderer::TileSize; ++x) {
+            const int offset = (y * TileRenderer::TileSize + x) * 4;
+            bytes[offset] = char(x);
+            bytes[offset + 1] = char(y);
+            bytes[offset + 2] = char((73 * x + 151 * y) % 256);
+            bytes[offset + 3] = char((x + y) % 256);
+        }
+    }
+    RasterImage input;
+    input.size = {TileRenderer::TileSize, TileRenderer::TileSize};
+    RasterLayer source;
+    source.name = QStringLiteral("YUV reset");
+    source.uuid = QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000054}"));
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    OperationDocument document(input);
+    const auto layer = document.activeLayer();
+    HsvAdjustment reset{0, 0, 0, HsvAdjustmentType::Yuv, false};
+    reset.lumaFrozen = true;
+    QCOMPARE(document.hsvAdjustment(layer, reset), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto actual = readTile(render(renderer, document.snapshot()), layer, {0, 0});
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile file(QDir(directory).filePath(QStringLiteral("yuv-reset.rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(actual), qint64(actual.size()));
+    }
+    // RGBToYUV stores both neutral chroma components at 0.5. With zero
+    // slider values, YUVToRGB restores every stored color and alpha byte.
+    QCOMPARE(actual, bytes);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::HsvAdjustment);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), bytes);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), bytes);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), bytes);
+}
+
 void KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozenCoefficients()
 {
     const auto pixel = [](const QByteArray &bytes, int x, int y) {
@@ -4250,6 +4298,7 @@ void KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozen
 
     // YUV (type 4) scales the blue chroma by the hue slider, the red chroma by
     // the saturation slider and offsets luma. It has no legacy variant.
+    // References use RGBToYUV/YUVToRGB with the product's slider scaling.
     OperationDocument yuvDocument(input);
     const auto yuvLayer = yuvDocument.activeLayer();
     QCOMPARE(yuvDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
@@ -4261,11 +4310,11 @@ void KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozen
     QVERIFY(!yuvOperation->colorize);
     QVERIFY(yuvOperation->luma == srgb);
     const auto yuvBytes = readTile(render(renderer, yuvDocument.snapshot()), yuvLayer, {0, 0});
-    QCOMPARE(pixel(yuvBytes, 10, 10), QByteArray::fromHex("005000ff"));
-    QCOMPARE(pixel(yuvBytes, 20, 20), QByteArray::fromHex("00ba00ff"));
-    QCOMPARE(pixel(yuvBytes, 30, 30), QByteArray::fromHex("003a00ff"));
-    QCOMPARE(pixel(yuvBytes, 40, 40), QByteArray::fromHex("009e00ff"));
-    QCOMPARE(pixel(yuvBytes, 50, 50), QByteArray::fromHex("004e0028"));
+    QCOMPARE(pixel(yuvBytes, 10, 10), QByteArray::fromHex("f10074ff"));
+    QCOMPARE(pixel(yuvBytes, 20, 20), QByteArray::fromHex("8f53adff"));
+    QCOMPARE(pixel(yuvBytes, 30, 30), QByteArray::fromHex("0f002dff"));
+    QCOMPARE(pixel(yuvBytes, 40, 40), QByteArray::fromHex("733791ff"));
+    QCOMPARE(pixel(yuvBytes, 50, 50), QByteArray::fromHex("17004f28"));
     QCOMPARE(pixel(yuvBytes, 200, 10), QByteArray::fromHex("11223344"));
 
     // Colorize uses the adjusted document luma as HSL lightness. The mode key
@@ -4340,10 +4389,10 @@ void KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozen
              Result::Success);
     const auto customYuvBytes =
         readTile(render(renderer, customYuvDocument.snapshot()), customYuvLayer, {0, 0});
-    QCOMPARE(pixel(customYuvBytes, 10, 10), QByteArray::fromHex("07ba00ff"));
-    QCOMPARE(pixel(customYuvBytes, 20, 20), QByteArray::fromHex("00ff00ff"));
-    QCOMPARE(pixel(customYuvBytes, 30, 30), QByteArray::fromHex("00a600ff"));
-    QCOMPARE(pixel(customYuvBytes, 50, 50), QByteArray::fromHex("00b90028"));
+    QCOMPARE(pixel(customYuvBytes, 10, 10), QByteArray::fromHex("ec0062ff"));
+    QCOMPARE(pixel(customYuvBytes, 20, 20), QByteArray::fromHex("8d37a0ff"));
+    QCOMPARE(pixel(customYuvBytes, 30, 30), QByteArray::fromHex("0d0020ff"));
+    QCOMPARE(pixel(customYuvBytes, 50, 50), QByteArray::fromHex("15004128"));
     QCOMPARE(pixel(customYuvBytes, 200, 10), QByteArray::fromHex("11223344"));
 
     OperationDocument customColorizeDocument(input);
@@ -4436,8 +4485,8 @@ void KisGpuTileRendererTest::hsvAdjustmentLumaModesClipAlphaAndSelectionCoverage
              Result::Success);
     const auto alphaBytes = readTile(render(renderer, alphaDocument.snapshot()),
                                      alphaDocument.activeLayer(), {0, 0});
-    QCOMPARE(pixel(alphaBytes, 20, 20), QByteArray::fromHex("057e0f28"));
-    QCOMPARE(pixel(alphaBytes, 30, 30), QByteArray::fromHex("00e70028"));
+    QCOMPARE(pixel(alphaBytes, 20, 20), QByteArray::fromHex("4a545e28"));
+    QCOMPARE(pixel(alphaBytes, 30, 30), QByteArray::fromHex("8a949e28"));
     QCOMPARE(pixel(alphaBytes, 10, 10), QByteArray::fromHex("0a141e28"));
     QCOMPARE(pixel(alphaBytes, 40, 40), QByteArray::fromHex("646464ff"));
 
@@ -4461,7 +4510,7 @@ void KisGpuTileRendererTest::hsvAdjustmentLumaModesClipAlphaAndSelectionCoverage
     const auto ellipse = readTile(render(renderer, ellipseDocument.snapshot()),
                                   ellipseDocument.activeLayer(), {0, 0});
     QCOMPARE(pixel(ellipse, 10, 10), QByteArray::fromHex("0a141e28"));
-    QCOMPARE(pixel(ellipse, 100, 100), QByteArray::fromHex("00f50044"));
+    QCOMPARE(pixel(ellipse, 100, 100), QByteArray::fromHex("91a2b344"));
 
     // Recovery retains the frozen coefficients and coverage; the same pixels
     // are produced without re-reading a color-space object.

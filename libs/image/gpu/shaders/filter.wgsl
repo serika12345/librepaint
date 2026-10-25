@@ -42,9 +42,8 @@ const HSV_MODE_YUV: u32 = 4u;
 const HSV_LEGACY_FLAG: i32 = 256;
 const HSV_COLORIZE_FLAG: i32 = 512;
 
-// The product transformation is evaluated in binary32 (the CPU filter stores
-// qreal parameters but converts them to float before the per-pixel loop), so
-// the same epsilon values are used here.
+// Epsilon values from the product's modern HSV transform and legacy color
+// conversion rules.
 const HSV_EPSILON: f32 = 1e-9;
 const CONVERSION_EPSILON: f32 = 1e-6;
 
@@ -79,12 +78,8 @@ fn selectedness(pixel: vec2<i32>, index: u32, flags: u32) -> u32 {
 // value in [-100, 100] percent. The CPU filter scales them by 180 and 100
 // respectively before the pixel loop.
 //
-// The CPU rule is binary32 RGB arithmetic rounded once to RGBA8. The shader
-// keeps the same operation order and rounds half up, matching that rule as
-// closely as the stored 8-bit encoding allows. Two differences are inherent:
-// the CPU filter returns a byte through `int(v * 255 + 0.5)` while this rule
-// performs the same clamp and rounding explicitly, and GPU implementations may
-// contract a multiply-add unless the compiler preserves the written form.
+// Stored channels are decoded to binary32 RGB. The output is clamped and
+// rounded half up to RGBA8, with alpha carried through unchanged.
 //
 // Neutral pixels follow the selected product mode exactly. In the modern HSV
 // policy a pixel with zero chroma ignores hue and saturation and only follows
@@ -425,8 +420,8 @@ fn legacyHcyToRgb(hcy: vec3<f32>, luma: vec3<f32>) -> vec3<f32> {
 // chroma and value offsets luma. It has no legacy variant.
 fn yuvAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, luma: vec3<f32>) -> vec3<f32> {
     let lumaValue = rgb.x * luma.x + rgb.y * luma.y + rgb.z * luma.z;
-    let chromaBlue = 0.5 * ((rgb.z - lumaValue) / (1.0 - luma.z));
-    let chromaRed = 0.5 * ((rgb.x - lumaValue) / (1.0 - luma.x));
+    let chromaBlue = 0.5 * ((rgb.z - lumaValue) / (1.0 - luma.z)) + 0.5;
+    let chromaRed = 0.5 * ((rgb.x - lumaValue) / (1.0 - luma.x)) + 0.5;
     let adjustedBlue = chromaBlue * (dh + 1.0);
     let adjustedRed = chromaRed * (ds + 1.0);
     let adjustedLuma = lumaValue + dv;
