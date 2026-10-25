@@ -635,7 +635,11 @@ void KisSelectionManager::cutToNewLayer()
         const auto owner = image->gpuImage();
         KisNodeSP node = m_view->activeNode();
         if (selection.isEmpty() || !owner || !node) return;
-        cut();
+        LibrePaint::Image::Gpu::LayerId sourceLayer = 0;
+        for (const auto &candidate : owner->operations().snapshot()->layers)
+            if (candidate.uuid == node->uuid()) sourceLayer = candidate.id;
+        if (!sourceLayer) return;
+        copy();
         const auto *mime = QGuiApplication::clipboard()->mimeData();
         const QImage copied = mime ? KisClipboard::instance()->getImageWithFallback(mime) : QImage();
         const QPoint position = image->gpuSelectionInverted() ? QPoint(0, 0) : selection.topLeft();
@@ -649,6 +653,9 @@ void KisSelectionManager::cutToNewLayer()
             if (candidate.id == layer) uuid = candidate.uuid;
         if (const auto node = KisLayerUtils::findNodeByUuid(image->root(), uuid))
             m_view->nodeManager()->slotUiActivatedNode(node);
+        if (owner->fillLayer(sourceLayer, {0, 0, 0}, 255, true, false) !=
+            LibrePaint::Image::Gpu::Result::Success)
+            m_view->showFloatingMessage(i18n("The source selection could not be cleared."), QIcon());
         return;
     }
     cut();
