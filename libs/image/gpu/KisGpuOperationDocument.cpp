@@ -820,11 +820,11 @@ LayerId OperationDocument::addLayer(const QString &name, qsizetype index, bool p
 }
 
 LayerId OperationDocument::insertLayer(const OperationDocument &source, LayerId sourceLayer,
-                                      const RasterLayer &properties, qsizetype index)
-{ return insertVersion(source.snapshot(), sourceLayer, properties, index); }
+                                      const RasterLayer &properties, qsizetype index, bool activate)
+{ return insertVersion(source.snapshot(), sourceLayer, properties, index, activate); }
 
 LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceLayer,
-                                        const RasterLayer &properties, qsizetype index)
+                                        const RasterLayer &properties, qsizetype index, bool activate)
 {
     if (!source) return 0;
     const auto found = std::find_if(source->layers.cbegin(), source->layers.cend(),
@@ -833,11 +833,14 @@ LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceL
         (found->kind == LayerKind::Group &&
          std::any_of(source->layers.cbegin(), source->layers.cend(),
                      [&](const Layer &layer) { return layer.parentUuid == found->uuid; }))) return 0;
-    return insertLayers({{source, sourceLayer, properties}}, index) == Result::Success
-        ? snapshot()->activeLayer : 0;
+    if (insertLayers({{source, sourceLayer, properties}}, index, activate) != Result::Success) return 0;
+    if (activate) return snapshot()->activeLayer;
+    for (const auto &layer : snapshot()->layers)
+        if (layer.uuid == properties.uuid) return layer.id;
+    return 0;
 }
 
-Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsizetype index)
+Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -903,7 +906,11 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         copyLayerOperations(added[i], copy, m_identity, nextOperation);
         if (!inserted.contains(copy.parentUuid)) version->selectedLayers.append(copy.id);
     }
-    version->activeLayer = version->selectedLayers.first();
+    if (activate) version->activeLayer = version->selectedLayers.first();
+    else {
+        version->activeLayer = before->activeLayer;
+        version->selectedLayers = before->selectedLayers;
+    }
     version->sampleCount = samples;
     version->rasterBytes = pixels;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;

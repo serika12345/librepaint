@@ -530,13 +530,13 @@ public:
      * default and immutable blocks. Zero reports rejected input or capacity.
      */
     LayerId insertLayer(const OperationDocument &source, LayerId sourceLayer,
-                        const RasterLayer &properties, qsizetype index);
+                        const RasterLayer &properties, qsizetype index, bool activate = true);
     /** Adopts a prepared forest in list order as one history entry. Parent UUIDs
      * refer to existing groups or other prepared nodes. Selects its roots and
      * activates the first root; Undo restores the original selection and active
      * layer. Rejected requests retain the complete document and input state.
      */
-    Result insertLayers(const QList<LayerInsertion> &layers, qsizetype index);
+    Result insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate = true);
     /** Selection is screen state; selecting an existing layer adds no history entry. */
     Result selectLayer(LayerId layer);
     /** A nonempty screen selection and an independent existing active layer.
@@ -678,7 +678,7 @@ private:
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,
-                          const RasterLayer &properties, qsizetype index);
+                          const RasterLayer &properties, qsizetype index, bool activate = true);
     std::unique_ptr<OperationDocument> cloneVersion(const Snapshot &source, bool preserveLayerUuids,
                                                   LayerId onlyLayer = 0) const;
     struct VersionPixelWrite

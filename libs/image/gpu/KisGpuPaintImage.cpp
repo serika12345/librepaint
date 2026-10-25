@@ -311,26 +311,26 @@ LayerId PaintImage::addLayer(const QString &name, qsizetype index, bool pinnedTo
     return id;
 }
 LayerId PaintImage::insertLayer(const OperationDocument &source, LayerId layer,
-                               const RasterLayer &properties, qsizetype index)
+                               const RasterLayer &properties, qsizetype index, bool activate)
 {
     if (!onThread()) return 0;
-    const auto id = m_d->document->insertLayer(source, layer, properties, index);
+    const auto id = m_d->document->insertLayer(source, layer, properties, index, activate);
     if (id) publish(Result::Success);
     return id;
 }
 
 LayerId PaintImage::insertLayer(const PaintImage &source, const LayerPixelReferenceSP &pixels,
-                               const RasterLayer &properties, qsizetype index)
+                               const RasterLayer &properties, qsizetype index, bool activate)
 {
     if (!onThread() || !source.onThread() || !pixels || !pixels->version() ||
         pixels->version()->documentId() != source.operations().snapshot()->documentId()) return 0;
-    const auto id = m_d->document->insertVersion(pixels->version(), pixels->layer(), properties, index);
+    const auto id = m_d->document->insertVersion(pixels->version(), pixels->layer(), properties, index, activate);
     if (id) publish(Result::Success);
     return id;
 }
 
-Result PaintImage::insertLayers(const QList<LayerInsertion> &layers, qsizetype index)
-{ return onThread() ? publish(m_d->document->insertLayers(layers, index)) : Result::InvalidInput; }
+Result PaintImage::insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate)
+{ return onThread() ? publish(m_d->document->insertLayers(layers, index, activate)) : Result::InvalidInput; }
 
 Result PaintImage::duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource)
 { return onThread() ? publish(m_d->document->duplicateLayers(layers, names, activeSource)) : Result::InvalidInput; }

@@ -159,12 +159,12 @@ public:
      * supplied fresh public identity. Rejections leave history unchanged.
      */
     LayerId insertLayer(const OperationDocument &source, LayerId layer,
-                        const RasterLayer &properties, qsizetype index);
+                        const RasterLayer &properties, qsizetype index, bool activate = true);
     /** Uses retained pixels, including removed layers, without reading back GPU pixels. */
     LayerId insertLayer(const PaintImage &source, const LayerPixelReferenceSP &pixels,
-                        const RasterLayer &properties, qsizetype index);
+                        const RasterLayer &properties, qsizetype index, bool activate = true);
     /** Publishes one prepared forest and one notification after atomic adoption. */
-    Result insertLayers(const QList<LayerInsertion> &layers, qsizetype index);
+    Result insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate = true);
     Result selectLayer(LayerId layer);
     Result selectLayers(const QList<LayerId> &layers, LayerId active);
     Result duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource);

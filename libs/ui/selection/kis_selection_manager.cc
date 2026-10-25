@@ -14,6 +14,9 @@
 #include <QClipboard>
 #include <QColor>
 #include <QMimeData>
+#include <QGuiApplication>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuOperationDocument.h>
 
 #include <QAction>
 #include <klocalizedstring.h>
@@ -83,6 +86,32 @@
 #include "application/ui/orchestration/kis_action_manager.h"
 //new
 #include "kis_config_notifier.h"
+
+namespace {
+LibrePaint::Image::Gpu::LayerId insertGpuClipboardLayer(KisImageSP image, const QImage &source, QPoint position, const QString &name)
+{
+    const auto owner = image ? image->gpuImage() : nullptr;
+    if (!owner || source.isNull()) return 0;
+    const QImage rgba = source.convertToFormat(QImage::Format_RGBA8888);
+    if (rgba.isNull()) return 0;
+    auto temporary = LibrePaint::Image::Gpu::PaintImageSP::create(owner->execution(), rgba.size());
+    const auto temporaryLayer = temporary->addLayer(name);
+    const QByteArray bytes(reinterpret_cast<const char *>(rgba.constBits()), rgba.sizeInBytes());
+    if (!temporaryLayer ||
+        temporary->writeRgbaPixels(temporaryLayer, QRect(QPoint(), rgba.size()), bytes) !=
+            LibrePaint::Image::Gpu::Result::Success) return 0;
+    const auto pixels = temporary->retainLayerPixels(temporaryLayer);
+    const auto version = owner->operations().snapshot();
+    qsizetype index = version->layers.size();
+    for (qsizetype i = 0; i < version->layers.size(); ++i)
+        if (version->layers[i].id == version->activeLayer) index = i + 1;
+    LibrePaint::Image::Gpu::RasterLayer properties;
+    properties.name = name;
+    properties.uuid = QUuid::createUuid();
+    properties.position = position;
+    return owner->insertLayer(*temporary, pixels, properties, index, false);
+}
+}
 
 KisSelectionManager::KisSelectionManager(KisViewManager * view)
         : m_view(view)
@@ -574,8 +603,15 @@ void KisSelectionManager::fillPatternOpacity()
 
 void KisSelectionManager::copySelectionToNewLayer()
 {
-    if (m_view->image() && m_view->image()->gpuImage()) {
-        m_view->showFloatingMessage(i18n("Copying a selection to a new layer is not yet available for GPU documents."), QIcon());
+    if (KisImageSP image = m_view->image(); image && image->gpuImage()) {
+        const QRect selection = image->gpuSelectionRect();
+        if (selection.isEmpty()) return;
+        copy();
+        const auto *mime = QGuiApplication::clipboard()->mimeData();
+        const QImage copied = mime ? KisClipboard::instance()->getImageWithFallback(mime) : QImage();
+        const QPoint position = image->gpuSelectionInverted() ? QPoint(0, 0) : selection.topLeft();
+        if (copied.isNull() || !insertGpuClipboardLayer(image, copied, position, i18n("Copied Selection")))
+            m_view->showFloatingMessage(i18n("The selected area could not be copied to a new layer."), QIcon());
         return;
     }
     copy();
@@ -585,8 +621,19 @@ void KisSelectionManager::copySelectionToNewLayer()
 
 void KisSelectionManager::cutToNewLayer()
 {
-    if (m_view->image() && m_view->image()->gpuImage()) {
-        m_view->showFloatingMessage(i18n("Cutting a selection to a new layer is not yet available for GPU documents."), QIcon());
+    if (KisImageSP image = m_view->image(); image && image->gpuImage()) {
+        const QRect selection = image->gpuSelectionRect();
+        const auto owner = image->gpuImage();
+        KisNodeSP node = m_view->activeNode();
+        if (selection.isEmpty() || !owner || !node) return;
+        cut();
+        const auto *mime = QGuiApplication::clipboard()->mimeData();
+        const QImage copied = mime ? KisClipboard::instance()->getImageWithFallback(mime) : QImage();
+        const QPoint position = image->gpuSelectionInverted() ? QPoint(0, 0) : selection.topLeft();
+        if (copied.isNull() || !insertGpuClipboardLayer(image, copied, position, i18n("Cut Selection"))) {
+            m_view->showFloatingMessage(i18n("The selected area could not be cut to a new layer."), QIcon());
+            return;
+        }
         return;
     }
     cut();

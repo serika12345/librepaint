@@ -136,7 +136,7 @@ private Q_SLOTS:
     void pasteClipboardImageCreatesGpuLayer();
     void reselectRestoresGpuSelection();
     void arrowKeysNudgeGpuSelection();
-    void copySelectionToNewLayerRejectsGpuDocument();
+    void copySelectionToNewLayerUsesGpuPixels();
     void selectionMovePreviewsAndCommitsOneHistory();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
@@ -2752,7 +2752,7 @@ void KisGpuDocumentViewTest::arrowKeysNudgeGpuSelection()
     QVERIFY(owner->selectionInverted());
 }
 
-void KisGpuDocumentViewTest::copySelectionToNewLayerRejectsGpuDocument()
+void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
@@ -2763,6 +2763,7 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerRejectsGpuDocument()
     QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255, false, false) == Gpu::Result::Success);
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    const auto baseLayer = saved->activeLayer;
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Copy selection layer")));
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
@@ -2780,14 +2781,40 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerRejectsGpuDocument()
     });
     window->viewManager()->setCurrentView(view);
     window->show();
-    QVERIFY(lifetime->image()->setGpuSelectionRect(QRect(16, 16, 32, 32)));
-    QTRY_COMPARE(owner->selectionRect(), QRect(16, 16, 32, 32));
+    const QRect selected(16, 16, 32, 32);
+    QVERIFY(lifetime->image()->setGpuSelectionRect(selected));
+    QTRY_COMPARE(owner->selectionRect(), selected);
     auto *action = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_selection_to_new_layer"));
     QVERIFY(action);
     action->trigger();
-    QTest::qWait(50);
-    QCOMPARE(owner->operations().snapshot()->layers.size(), 1);
-    QCOMPARE(owner->operations().undoCount(), 2);
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
+    const QRect region(QPoint(), QSize(64, 64));
+    LibrePaint::Image::Gpu::LayerId copiedLayer = 0;
+    for (const auto &layer : owner->operations().snapshot()->layers)
+        if (layer.name == QStringLiteral("Copied Selection")) copiedLayer = layer.id;
+    QVERIFY(copiedLayer);
+    const auto copiedPixels = owner->readRgbaPixels(copiedLayer, region, 8 * 1024 * 1024);
+    QCOMPARE(copiedPixels.code, Gpu::ExecutionCode::Success);
+    int copiedMatches = 0;
+    for (qsizetype offset = 0; offset + 3 < copiedPixels.bytes.size(); offset += 4)
+        if (copiedPixels.bytes.mid(offset, 4) == QByteArray::fromHex("1181f1ff")) ++copiedMatches;
+    QCOMPARE(copiedMatches, 32 * 32);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
+
+    auto *cutAction = window->viewManager()->actionManager()->actionByName(QStringLiteral("cut_selection_to_new_layer"));
+    QVERIFY(cutAction);
+    cutAction->trigger();
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
+    const auto basePixels = owner->readRgbaPixels(baseLayer, region, 8 * 1024 * 1024);
+    QCOMPARE(basePixels.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(quint8(basePixels.bytes.mid((24 * 64 + 24) * 4 + 3, 1).front()), 0);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
+    const auto restored = owner->readRgbaPixels(baseLayer, region, 8 * 1024 * 1024);
+    QCOMPARE(restored.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(restored.bytes.mid((24 * 64 + 24) * 4, 4), QByteArray::fromHex("1181f1ff"));
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
