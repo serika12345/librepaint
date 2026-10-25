@@ -9,8 +9,11 @@ struct FilterParameters {
     // Raw HSV/HSL/HSY/YUV Adjustment values: h, s, v and
     // type | legacy << 8 | colorize << 9.
     adjustment: vec4<i32>,
-    // Effective document luma coefficients rounded once to binary32.
+    // Binary32 conversions used by the existing non-Colorize rules.
     luma: vec4<f32>,
+    // Original binary64 coefficient bits used by Colorize.
+    lumaLow: vec4<u32>,
+    lumaHigh: vec4<u32>,
 }
 
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
@@ -443,11 +446,10 @@ fn yuvAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, luma: vec3<f32>) -> 
     return vec3<f32>(red, green, blue);
 }
 
-// Colorize multiplies binary32 RGB by qreal luma coefficients and rounds the
-// left-associated sum to binary32 once. For frozen binary32 coefficients,
-// each product has at most 48 significant bits. Keep the products and the
-// two binary64 additions in integer significands so a GPU multiply-add cannot
-// move a stored RGBA8 result across a rounding boundary.
+// Product RGB conversions round qreal intermediate products and sums before
+// the final binary32 value. For binary32 operands each product has at most
+// 48 significant bits. Integer significands preserve these results across GPU
+// backends, including the lower-lightness legacy HSL conversion.
 struct ColorizeLumaTerm {
     significand: vec2<u32>, // Low word first, leading bit at position 55.
     exponent: i32,
@@ -515,9 +517,7 @@ fn colorizeAddLumaTerms(first: ColorizeLumaTerm, second: ColorizeLumaTerm) -> Co
     return ColorizeLumaTerm(sum, exponent);
 }
 
-fn productRgbWeightedSum(rgb: vec3<f32>, luma: vec3<f32>) -> f32 {
-    let redGreen = colorizeAddLumaTerms(colorizeLumaProduct(rgb.x, luma.x), colorizeLumaProduct(rgb.y, luma.y));
-    let total = colorizeAddLumaTerms(redGreen, colorizeLumaProduct(rgb.z, luma.z));
+fn colorizeLumaToFloat(total: ColorizeLumaTerm) -> f32 {
     if (all(total.significand == vec2<u32>(0u))) { return 0.0; }
     var exponent = total.exponent + 182;
     let extra = u32(max(1 - exponent, 0));
@@ -527,6 +527,63 @@ fn productRgbWeightedSum(rgb: vec3<f32>, luma: vec3<f32>) -> f32 {
     if (exponent <= 0) { return bitcast<f32>(mantissa); }
     if (mantissa == 0x1000000u) { mantissa >>= 1u; exponent += 1; }
     return bitcast<f32>((u32(exponent) << 23u) | (mantissa & 0x7fffffu));
+}
+
+fn productRgbWeightedSum(rgb: vec3<f32>, luma: vec3<f32>) -> f32 {
+    let redGreen = colorizeAddLumaTerms(colorizeLumaProduct(rgb.x, luma.x), colorizeLumaProduct(rgb.y, luma.y));
+    return colorizeLumaToFloat(colorizeAddLumaTerms(redGreen, colorizeLumaProduct(rgb.z, luma.z)));
+}
+
+// A 24-bit RGB mantissa times a 53-bit coefficient. Sixteen-bit digits keep
+// both multiplication passes within u32; the result occupies at most 77 bits.
+fn colorizeMultiplyQrealMantissa(channel: u32, low: u32, high: u32) -> vec3<u32> {
+    let coefficients = array<u32, 4>(low & 0xffffu, low >> 16u,
+                                     high & 0xffffu, ((high >> 16u) & 15u) | 16u);
+    var digits = array<u32, 5>(0u, 0u, 0u, 0u, 0u);
+    var carry = 0u;
+    for (var i = 0u; i < 4u; i += 1u) {
+        let value = (channel & 0xffffu) * coefficients[i] + carry;
+        digits[i] = value & 0xffffu;
+        carry = value >> 16u;
+    }
+    digits[4] = carry;
+    carry = 0u;
+    for (var i = 0u; i < 4u; i += 1u) {
+        let value = (channel >> 16u) * coefficients[i] + digits[i + 1u] + carry;
+        digits[i + 1u] = value & 0xffffu;
+        carry = value >> 16u;
+    }
+    return vec3<u32>(digits[0] | (digits[1] << 16u),
+                      digits[2] | (digits[3] << 16u), digits[4]);
+}
+
+fn colorizeQrealProduct(channel: f32, low: u32, high: u32) -> ColorizeLumaTerm {
+    let input = bitcast<u32>(channel);
+    if (input == 0u) { return ColorizeLumaTerm(vec2<u32>(0u), 0); }
+    // Admission preserves the existing positive binary32 coefficient range.
+    // Nonzero U8 RGB and these coefficients are normal binary64 operands, and
+    // their product exceeds 2^-158, so only normal binary64 rounding is needed.
+    let product = colorizeMultiplyQrealMantissa((input & 0x7fffffu) | 0x800000u, low, high);
+    let shift = 12u + firstLeadingBit(product.z); // 23 or 24 discarded bits.
+    var retained = vec2<u32>((product.x >> shift) | (product.y << (32u - shift)),
+                              (product.y >> shift) | (product.z << (32u - shift)));
+    let remainder = product.x & ((1u << shift) - 1u);
+    let half = 1u << (shift - 1u);
+    retained = colorizeAddWords(retained, vec2<u32>(
+        u32(remainder > half || (remainder == half && (retained.x & 1u) != 0u)), 0u));
+    var exponent = i32((input >> 23u) & 255u) + i32((high >> 20u) & 2047u) - 1225 + i32(shift) - 3;
+    if ((retained.y & 0x200000u) != 0u) {
+        retained = vec2<u32>((retained.x >> 1u) | (retained.y << 31u), retained.y >> 1u);
+        exponent += 1;
+    }
+    return ColorizeLumaTerm(colorizeShiftLeft(retained, 3u), exponent);
+}
+
+fn colorizeProductLuma(rgb: vec3<f32>) -> f32 {
+    let red = colorizeQrealProduct(rgb.x, parameters.lumaLow.x, parameters.lumaHigh.x);
+    let green = colorizeQrealProduct(rgb.y, parameters.lumaLow.y, parameters.lumaHigh.y);
+    let blue = colorizeQrealProduct(rgb.z, parameters.lumaLow.z, parameters.lumaHigh.z);
+    return colorizeLumaToFloat(colorizeAddLumaTerms(colorizeAddLumaTerms(red, green), blue));
 }
 
 fn productRgbInputChannel(channel: u32) -> f32 {
@@ -541,12 +598,11 @@ fn productRgbInputChannel(channel: u32) -> f32 {
 // The product Colorize rule: the adjusted luma becomes the HSL lightness and
 // the hue and saturation sliders set the HSL hue and saturation. The product
 // applies its legacy HSL conversion here regardless of the compatibility flag.
-fn colorizeAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32,
-                      luma: vec3<f32>) -> vec3<f32> {
+fn colorizeAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32) -> vec3<f32> {
     var hue = dh * 360.0;
     if (hue >= 360.0) { hue = 0.0; }
     let saturation = ds;
-    var lumaValue = productRgbWeightedSum(rgb, luma);
+    var lumaValue = colorizeProductLuma(rgb);
     if (dv > 0.0) {
         lumaValue = lumaValue * (1.0 - dv);
         lumaValue = lumaValue + (1.0 - (1.0 - dv));
@@ -619,7 +675,7 @@ fn hsvAdjustmentPixel(base: vec4<u32>, adjustment: vec4<i32>) -> vec4<u32> {
     if (colorize) {
         let productRgb = vec3<f32>(productRgbInputChannel(base.x), productRgbInputChannel(base.y),
                                    productRgbInputChannel(base.z));
-        result = colorizeAdjustment(productRgb, dh, ds, dv, luma);
+        result = colorizeAdjustment(productRgb, dh, ds, dv);
     } else if (mode == HSV_MODE_YUV) {
         result = yuvAdjustment(rgb, dh, ds, dv, luma);
     } else if (legacy) {

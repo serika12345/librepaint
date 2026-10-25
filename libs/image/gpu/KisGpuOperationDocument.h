@@ -314,8 +314,8 @@ enum class HsvAdjustmentType : quint8 { Hsv = 0, Hsl = 1, Hsi = 2, Hsy = 3, Yuv 
  * types 0 through 3 write the hue slider as 0..360 degrees and type 4 (YUV)
  * writes Yellow-Blue as 0..100 percent. It ignores the mode and the legacy
  * flag in its pixel rule. Colorize, HSY and YUV use the document luma
- * coefficients; `luma` holds the effective values rounded once to binary32,
- * the precision the GPU rule consumes, and `lumaFrozen` records that the
+ * coefficients; `luma` holds the effective original qreal values as binary64,
+ * and `lumaFrozen` records that the
  * caller resolved them from the document color space.
  */
 struct HsvAdjustment
@@ -326,7 +326,7 @@ struct HsvAdjustment
     HsvAdjustmentType type = HsvAdjustmentType::Hsl;
     bool compatibilityMode = false;
     bool colorize = false;
-    std::array<float, 3> luma{0.2126f, 0.7152f, 0.0722f};
+    std::array<double, 3> luma{0.2126, 0.7152, 0.0722};
     bool lumaFrozen = false;
 
     bool operator==(const HsvAdjustment &other) const
@@ -359,6 +359,7 @@ struct HsvAdjustment
         }
         if (!needsLuma()) return true;
         if (!lumaFrozen) return false;
+        // Preserve the coefficient range consumed by the binary32 rules.
         for (const float coefficient : luma) {
             if (!std::isfinite(coefficient) || coefficient <= 0.0f || coefficient >= 1.0f)
                 return false;
@@ -367,8 +368,8 @@ struct HsvAdjustment
     }
 };
 
-/** Rounds the document luma coefficients to the binary32 values frozen in an
- * HsvAdjustment and validates that the product rules can use them. The
+/** Freezes the original document luma coefficients in an HsvAdjustment and
+ * validates that the product rules can use their binary32 conversions. The
  * product transformation substitutes Rec.709 when any supplied coefficient is
  * non-positive, so that fallback is applied here; a missing, non-finite or
  * non-positive-after-rounding coefficient is rejected instead. Coefficients
@@ -377,7 +378,7 @@ struct HsvAdjustment
  * time; no color-space object is kept by the operation.
  */
 KRITAIMAGEGPUOPERATIONS_EXPORT bool freezeLumaCoefficients(
-    const std::array<qreal, 3> &coefficients, std::array<float, 3> *frozen);
+    const std::array<qreal, 3> &coefficients, std::array<double, 3> *frozen);
 
 /** Whole-layer pixel filter over preceding retained pixels.
  *
@@ -405,7 +406,7 @@ struct FilterOperation
     /** Product Colorize rule, frozen with its mode-dependent slider scaling. */
     bool colorize = false;
     /** Effective document luma coefficients for HSY, YUV and Colorize. */
-    std::array<float, 3> luma{0.2126f, 0.7152f, 0.0722f};
+    std::array<double, 3> luma{0.2126, 0.7152, 0.0722};
     QRect selectionRect{};
     bool selectionInverted = false;
     SelectionKind selectionKind = SelectionKind::Rectangle;

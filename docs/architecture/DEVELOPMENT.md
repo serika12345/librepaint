@@ -543,14 +543,14 @@ Undo／Redo、復旧後の同じ設定と選択被覆を検査する。
 ロック済みレイヤー・グループ・不在レイヤー・入力中・終了後の拒否、
 範囲境界値の受入れを検査する。
 `KisGpuOperationDocumentTest::hsvAdjustmentFreezesLumaDependentModesAndRecovers`は、
-HSY・YUV・Colorizeの`type`・`colorize`・実効luma係数の凍結、qreal係数のbinary32丸め、
+HSY・YUV・Colorizeの`type`・`colorize`・元のqreal luma係数の凍結、
 楕円・反転の凍結、Undo／Redo、復旧後の同じ設定と係数を検査する。
 `KisGpuOperationDocumentTest::hsvAdjustmentRejectsUnfrozenLumaAndInvalidRanges`は、
 非正係数のRec.709置換、1以上・非有限係数の拒否、未凍結lumaでのHSY・YUV・Colorizeの拒否、
 モード別スライダー範囲（YUVの-100〜100、Colorizeの0〜360と0〜100）の境界、
 拒否時の履歴保持を検査する。
-`KisGpuOperationDocumentTest::hsvAdjustmentRecoveryRequiresFormat53`は、復旧記録が形式53を
-名乗ること、形式53で設定・Colorize・luma係数が復元されること、形式52の記録が
+`KisGpuOperationDocumentTest::hsvAdjustmentRecoveryKeepsSettingsAndOlderFormats`は、復旧記録が形式54を
+名乗ること、形式54で設定・Colorize・元のluma係数が復元されること、形式52の記録が
 Colorizeなしの`type` 0〜2として復元されること、形式52として再署名したHSYが拒否され
 現行文書を変えないこと、同じ記録を形式51として再署名するとHSV Adjustmentを拒否することを
 検査する。
@@ -575,11 +575,18 @@ Rec.709と異なる凍結係数が画素へ反映されること、Undo／Redo�
 `LIBREPAINT_GPU_RESULT_DIR`へ`yuv-reset.rgba`を出力する。非ゼロのYUV参照値は
 `RGBToYUV()`・`YUVToRGB()`と製品のスライダー倍率から得た値を使い、選択被覆の整数補間も照合する。
 `KisGpuTileRendererTest::colorizeUsesProductLumaRoundingAcrossRecovery`は、Rec.709、
-四分の一単位と微小な正係数について、Colorizeの輝度計算と復旧後の全バイトを検査する。
-参照計算は製品のRGBA8変換と同じく、入力をbinary32へ正規化し、凍結係数を`qreal`へ
-昇格した積和を一度だけbinary32へ丸める。無彩色化の65,536画素には、RGB `(2,43,46)`の
+四分の一単位と微小な正係数に加え、元のRec.709と組込みRGBA8の係数について、
+Colorizeの輝度計算と復旧後の全バイトを検査する。
+参照計算は製品のRGBA8変換と同じく、入力をbinary32へ正規化し、係数との積と左結合加算を
+`qreal`で計算してからbinary32へ丸める。無彩色化の65,536画素には、RGB `(2,43,46)`の
 丸め境界とアルファ0の隠れRGBを含む。`LIBREPAINT_GPU_RESULT_DIR`へ係数別の
 `colorize-rounding-<case>.rgba`を出力する。
+`KisGpuTileRendererTest::colorizePreservesDocumentLumaAcrossRecovery`は、元の組込みRGBA8係数と
+Rec.709への置換について、係数をbinary32へ丸めると1変わる画素、Undo／Redoと復旧を検査する。
+`KisGpuTileRendererTest::colorizeRestoresFormat53CoefficientMeaning`は、
+`libs/image/gpu/tests/data/colorize-profile-v53.recovery`の係数と結果画素を保持して読み込み、
+Undo／Redoと現行形式への再保存・再読込を検査する。同名のJSONが生成元、設定、期待画素と
+記録のハッシュを所有する。
 `KisGpuPaintDocumentTest::hsvAdjustmentSavesReopensAndRecoversPixels`は、生タイルへの
 HSV Adjustment適用、隠れRGBとアルファ0の保持、選択外の保持、一回のGPU履歴と
 Undo／Redo、復旧後の設定と画素、KRA保存・再読込後の結果画素、再読込後の
@@ -1023,6 +1030,7 @@ KRA再読込後の全レイヤー画素とPNG書出しを検査し、`LIBREPAINT
 受け付ける。復旧形式52はHSV Adjustmentの生値`h`・`s`・`v`・`type`・`compatibilityMode`を
 同じフィルター操作へ保存し、`type` 0〜2だけを受け付ける。復旧形式53はこれにColorizeフラグと
 実効luma係数のbinary32ビット列を加え、形式52以前の記録はColorizeなし・lumaなしとして読む。
+復旧形式54は元の実効luma係数のbinary64ビット列を保存し、形式53の係数は正確な拡大で読み込む。
 形式51以前はHSV Adjustmentを受け付けない。
 復旧形式47は凍結パターンの寸法と直線RGBA8画素を操作へ保存し、形式17から46の
 図形塗りつぶし入力も引き続き読み込む。

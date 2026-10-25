@@ -640,7 +640,7 @@ void KisGpuPaintDocumentTest::hsvAdjustmentLumaModesSaveReopenAndRecoverPixels()
 
     // HSY freezes the document luma coefficients; this non-Rec.709 set proves
     // the filter uses the frozen values rather than a live color-space object.
-    const std::array<float, 3> luma{0.25f, 0.5f, 0.25f};
+    const std::array<double, 3> luma{0.25f, 0.5f, 0.25f};
     HsvAdjustment hsy{0, 50, 0, HsvAdjustmentType::Hsy, false};
     hsy.luma = luma;
     hsy.lumaFrozen = true;

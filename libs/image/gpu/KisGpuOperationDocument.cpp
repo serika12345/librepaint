@@ -20,7 +20,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 
 bool freezeLumaCoefficients(const std::array<qreal, 3> &coefficients,
-                            std::array<float, 3> *frozen)
+                            std::array<double, 3> *frozen)
 {
     if (!frozen) return false;
     std::array<qreal, 3> effective = coefficients;
@@ -39,7 +39,7 @@ bool freezeLumaCoefficients(const std::array<qreal, 3> &coefficients,
         if (!std::isfinite(coefficient) || coefficient <= 0.0f || coefficient >= 1.0f)
             return false;
     }
-    *frozen = rounded;
+    *frozen = {double(effective[0]), double(effective[1]), double(effective[2])};
     return true;
 }
 

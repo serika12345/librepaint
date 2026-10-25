@@ -2201,8 +2201,8 @@ void KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument
     };
     const auto documentLuma = [&] {
         const QVector<qreal> coefficients = view->image()->colorSpace()->lumaCoefficients();
-        return std::array<float, 3>{float(coefficients[0]), float(coefficients[1]),
-                                    float(coefficients[2])};
+        return std::array<double, 3>{double(coefficients[0]), double(coefficients[1]),
+                                     double(coefficients[2])};
     };
     const auto lastFilterOperation = [&] {
         return std::get<Gpu::FilterSnapshot>(

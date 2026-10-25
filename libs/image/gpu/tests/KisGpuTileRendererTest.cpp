@@ -85,6 +85,9 @@ private Q_SLOTS:
     void yuvResetPreservesStoredPixelsAcrossRecovery();
     void colorizeUsesProductLumaRoundingAcrossRecovery_data();
     void colorizeUsesProductLumaRoundingAcrossRecovery();
+    void colorizePreservesDocumentLumaAcrossRecovery_data();
+    void colorizePreservesDocumentLumaAcrossRecovery();
+    void colorizeRestoresFormat53CoefficientMeaning();
     void hsvAdjustmentUsesLumaDependentProductRulesAndFrozenCoefficients();
     void hsvAdjustmentLumaModesClipAlphaAndSelectionCoverage();
     void patternFillTilesAcrossSelectionHistoryAndRecovery();
@@ -4236,19 +4239,21 @@ void KisGpuTileRendererTest::yuvResetPreservesStoredPixelsAcrossRecovery()
 
 void KisGpuTileRendererTest::colorizeUsesProductLumaRoundingAcrossRecovery_data()
 {
-    QTest::addColumn<float>("lumaRed");
-    QTest::addColumn<float>("lumaGreen");
-    QTest::addColumn<float>("lumaBlue");
-    QTest::newRow("rec709") << 0.2126f << 0.7152f << 0.0722f;
-    QTest::newRow("quarters") << 0.25f << 0.5f << 0.25f;
-    QTest::newRow("small-coefficients") << 1e-30f << 0.9f << 1e-38f;
+    QTest::addColumn<qreal>("lumaRed");
+    QTest::addColumn<qreal>("lumaGreen");
+    QTest::addColumn<qreal>("lumaBlue");
+    QTest::newRow("rec709") << qreal(0.2126f) << qreal(0.7152f) << qreal(0.0722f);
+    QTest::newRow("quarters") << qreal(0.25f) << qreal(0.5f) << qreal(0.25f);
+    QTest::newRow("small-coefficients") << qreal(1e-30f) << qreal(0.9f) << qreal(1e-38f);
+    QTest::newRow("original-rec709") << qreal(0.2126) << qreal(0.7152) << qreal(0.0722);
+    QTest::newRow("rgba-profile") << qreal(0.2224884) << qreal(0.71690369) << qreal(0.06060791);
 }
 
 void KisGpuTileRendererTest::colorizeUsesProductLumaRoundingAcrossRecovery()
 {
-    QFETCH(float, lumaRed);
-    QFETCH(float, lumaGreen);
-    QFETCH(float, lumaBlue);
+    QFETCH(qreal, lumaRed);
+    QFETCH(qreal, lumaGreen);
+    QFETCH(qreal, lumaBlue);
     QByteArray bytes(TileRenderer::TileBytes, '\0');
     for (int y = 0; y < TileRenderer::TileSize; ++y) {
         for (int x = 0; x < TileRenderer::TileSize; ++x) {
@@ -4308,6 +4313,95 @@ void KisGpuTileRendererTest::colorizeUsesProductLumaRoundingAcrossRecovery()
     QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), actual);
 }
 
+void KisGpuTileRendererTest::colorizePreservesDocumentLumaAcrossRecovery_data()
+{
+    QTest::addColumn<qreal>("lumaRed");
+    QTest::addColumn<qreal>("lumaGreen");
+    QTest::addColumn<qreal>("lumaBlue");
+    QTest::addColumn<QByteArray>("sourcePixel");
+    QTest::addColumn<QByteArray>("expectedPixel");
+    // KoDummyColorProfile's colorants, normalised by KoColorSpace, are the
+    // unmanaged RGBA8 document coefficients. The product hsv_adjustment
+    // transform gives 173; first rounding these coefficients to float gives 172.
+    QTest::newRow("rgba-profile") << qreal(0.2224884) << qreal(0.71690369) << qreal(0.06060791)
+        << QByteArray::fromHex("80b9bcff") << QByteArray::fromHex("adadadff");
+    // The product substitutes its qreal Rec.709 constants for a non-positive
+    // coefficient. Its result is 33, while float-rounded constants give 32.
+    QTest::newRow("rec709-fallback") << qreal(-1.0) << qreal(0.7152) << qreal(0.0722)
+        << QByteArray::fromHex("630477ff") << QByteArray::fromHex("212121ff");
+}
+
+void KisGpuTileRendererTest::colorizePreservesDocumentLumaAcrossRecovery()
+{
+    QFETCH(qreal, lumaRed);
+    QFETCH(qreal, lumaGreen);
+    QFETCH(qreal, lumaBlue);
+    QFETCH(QByteArray, sourcePixel);
+    QFETCH(QByteArray, expectedPixel);
+    RasterImage input;
+    input.size = {8, 8};
+    RasterLayer source;
+    source.name = QStringLiteral("Document luma");
+    source.uuid = QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000056}"));
+    for (int i = 0; i < 4; ++i) source.defaultPixel[i] = quint8(sourcePixel[i]);
+    input.layers.append(source);
+    OperationDocument document(input);
+    HsvAdjustment settings{0, 0, 0, HsvAdjustmentType::Hsv, false};
+    settings.colorize = true;
+    QVERIFY(freezeLumaCoefficients({lumaRed, lumaGreen, lumaBlue}, &settings.luma));
+    settings.lumaFrozen = true;
+    QCOMPARE(document.hsvAdjustment(document.activeLayer(), settings), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto actual = readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0});
+    const auto recovery = document.recoveryData();
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        const auto name = QStringLiteral("colorize-original-%1").arg(QString::fromLatin1(QTest::currentDataTag()));
+        for (const auto &entry : {qMakePair(name + QStringLiteral(".rgba"), actual),
+                                  qMakePair(name + QStringLiteral(".recovery"), recovery)}) {
+            QFile file(QDir(directory).filePath(entry.first));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(entry.second), qint64(entry.second.size()));
+        }
+    }
+    QCOMPARE(actual.left(4), expectedPixel);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = project(renderer, render(renderer, document.snapshot()), QRect(0, 0, 8, 8));
+    QVERIFY(undone);
+    QVERIFY(!undone->tiles().isEmpty());
+    QCOMPARE(readBuffer(undone->tiles().first().pixels).left(4), sourcePixel);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0}), actual);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(recovery), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), actual);
+}
+
+void KisGpuTileRendererTest::colorizeRestoresFormat53CoefficientMeaning()
+{
+    QFile file(QFINDTESTDATA("data/colorize-profile-v53.recovery"));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    OperationDocument document({1, 1});
+    QCOMPARE(document.restoreRecovery(file.readAll()), Result::Success);
+    const auto operation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(double(operation->luma[0]), double(0.2224884f));
+    QCOMPARE(double(operation->luma[1]), double(0.71690369f));
+    QCOMPARE(double(operation->luma[2]), double(0.06060791f));
+    TileRenderer renderer(m_device);
+    const auto actual = readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0});
+    QCOMPARE(actual.left(4), QByteArray::fromHex("acacacff"));
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = project(renderer, render(renderer, document.snapshot()), QRect(0, 0, 8, 8));
+    QVERIFY(undone);
+    QVERIFY(!undone->tiles().isEmpty());
+    QCOMPARE(readBuffer(undone->tiles().first().pixels).left(4), QByteArray::fromHex("80b9bcff"));
+    QCOMPARE(document.redo(), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), actual);
+}
+
 void KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozenCoefficients()
 {
     const auto pixel = [](const QByteArray &bytes, int x, int y) {
@@ -4332,10 +4426,10 @@ void KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozen
     input.layers.append(source);
     TileRenderer renderer(m_device);
 
-    const std::array<float, 3> srgb{0.2126f, 0.7152f, 0.0722f};
+    const std::array<double, 3> srgb{0.2126f, 0.7152f, 0.0722f};
     const auto lumaSettings = [](qint32 hue, qint32 saturation, qint32 value,
                                  HsvAdjustmentType type, bool legacy, bool colorize,
-                                 const std::array<float, 3> &luma) {
+                                 const std::array<double, 3> &luma) {
         HsvAdjustment settings{hue, saturation, value, type, legacy};
         settings.colorize = colorize;
         settings.luma = luma;
@@ -4441,11 +4535,11 @@ void KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozen
     QCOMPARE(pixel(colorizeYuvBytes, 200, 10), QByteArray::fromHex("11223344"));
 
     // A different frozen coefficient set changes the result even though the
-    // operation no longer reads a color-space object. The values are rounded
-    // once to binary32 at admission.
-    const std::array<float, 3> custom{0.25f, 0.5f, 0.25f};
+    // operation no longer reads a color-space object. The original values
+    // remain fixed at admission.
+    const std::array<double, 3> custom{0.25f, 0.5f, 0.25f};
     const std::array<qreal, 3> supplied{0.25, 0.5, 0.25};
-    std::array<float, 3> rounded{};
+    std::array<double, 3> rounded{};
     QVERIFY(freezeLumaCoefficients(supplied, &rounded));
     QVERIFY(rounded == custom);
     OperationDocument customDocument(input);
@@ -4543,7 +4637,7 @@ void KisGpuTileRendererTest::hsvAdjustmentLumaModesClipAlphaAndSelectionCoverage
     source.tiles.append({{0, 0}, bytes});
     input.layers.append(source);
     TileRenderer renderer(m_device);
-    const std::array<float, 3> luma{0.2126f, 0.7152f, 0.0722f};
+    const std::array<double, 3> luma{0.2126f, 0.7152f, 0.0722f};
     const auto settings = [&](qint32 hue, qint32 saturation, qint32 value,
                               HsvAdjustmentType type, bool colorize) {
         HsvAdjustment result{hue, saturation, value, type, false};

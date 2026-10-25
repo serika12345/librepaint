@@ -358,15 +358,17 @@ GPU文書は適用時に得た画素を保存・復旧・再読込でも保持�
 無彩色画素は現代のHSV/HSL/HSI/HSY方針では色相・彩度の変更を受けず
 明度・輝度・lumaだけに従う。旧互換モードは製品の4.3以前の変換を使うため、彩度上昇が
 無彩色へ色を与える場合がある。HSY・YUV・Colorizeは文書色空間のluma係数を必要とするため、
-適用時に一度だけ解決してbinary32へ丸め、`FilterOperation`へ凍結する。タイル処理は
+適用時に一度だけ解決し、元の`qreal`値をbinary64として`FilterOperation`へ凍結する。タイル処理は
 色空間オブジェクトを参照しない。製品規則と同じく非正の係数はRec.709へ置換し、
 欠落・非有限・1以上の係数は表現不能として診断し、操作を追加しない。YUVは色差成分の中心を0.5へ移し、
 色相で青、彩度で赤の色差成分を倍率変更して、値でlumaを加算する。RGBへの変換は色差成分から0.5を引き、
 ゼロ設定は元のRGBとアルファを保持する。Colorizeはモードをスライダー
 範囲（`type` 0〜3は0〜360、YUVは0〜100）の選択にだけ使い、調整後のlumaをHSLの明度として
-製品の旧HSL変換でRGBを求める。Colorizeの輝度は、凍結したbinary32係数とRGBの積を保持し、
-53ビット仮数による二回の左結合加算を整数演算で再現してからbinary32へ丸める。
+製品の旧HSL変換でRGBを求める。Colorizeの輝度は、元のbinary64係数とbinary32のRGBを掛け、
+各積を53ビット仮数へ丸めた後、二回の左結合加算を整数演算で再現してからbinary32へ丸める。
 これにより、積和の途中の単精度丸めでRGBA8の丸め境界を越えることを防ぐ。
+他のモードは保持した係数をbinary32へ変換して使う。係数の受入れ範囲は、その変換後に
+有限かつ0より大きく1未満となる値である。
 入力の8ビット値からbinary32への正規化も整数で最近接偶数丸めを決定する。
 旧互換HSLも同じ入力正規化を使う。明度が0.5以下のRGB最大値は
 `lightness * (1.0 + saturation)`の倍精度中間値を保持してからbinary32へ丸める。
@@ -472,10 +474,11 @@ Undo／Redoは保持済みの版を選ぶ。並替えは選択したレイヤー
 保存済み位置と独立した編集は区切りを保持する。変更前へ戻った不透明度・表示・ロックは履歴から取り除き、
 名前の変更は通常文書と同じ取消し可能な一件を保持する。固定済みの版は結合前の値を保つ。
 
-`libs/image/gpu/KisGpuOperationRecovery.cpp`は内部の復旧形式53を所有し、形式9〜52の記録も読み込む。
-形式53は画素フィルターの種別（Invert Colors・Grayscale・HSV Adjustment）と、HSV Adjustmentの
-生値`h`・`s`・`v`・`type`・`compatibilityMode`、Colorizeフラグ、実効luma係数のbinary32
-ビット列を保存する。形式52はColorizeフラグとluma係数を持たず、HSV Adjustmentの`type` 0〜2だけを
+`libs/image/gpu/KisGpuOperationRecovery.cpp`は内部の復旧形式54を所有し、形式9〜53の記録も読み込む。
+形式54は画素フィルターの種別（Invert Colors・Grayscale・HSV Adjustment）と、HSV Adjustmentの
+生値`h`・`s`・`v`・`type`・`compatibilityMode`、Colorizeフラグ、元の実効luma係数のbinary64
+ビット列を保存する。形式53のbinary32係数は正確にbinary64へ拡大し、記録済みの値と結果を保持する。
+形式52はColorizeフラグとluma係数を持たず、HSV Adjustmentの`type` 0〜2だけを
 復元する。形式51はInvert ColorsとGrayscaleだけを、形式50はInvert Colorsだけを許す。
 形式49はブラシ被覆の合成方式をブラシ指定の直後へ保存し、形式48以前は通常方式として読み込む。
 形式48は描画操作の塗り合成方式を図形指定の後ろへ保存し、形式47以前は通常方式として読み込む。
