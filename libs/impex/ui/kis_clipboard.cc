@@ -724,7 +724,7 @@ bool KisClipboard::setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy
     return true;
 }
 
-bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes, QRect region)
+bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes, QRect region, std::optional<QRect> hole)
 {
     const auto owner = image ? image->gpuImage() : nullptr;
     if (!owner || QThread::currentThread() != thread() || QThread::currentThread() != owner->thread() ||
@@ -737,6 +737,14 @@ bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetByte
         const auto copied = owner->cloneRasterLayer(version, 0, captured,
                                                     QUuid::createUuid(), memoryBudgetBytes);
         if (!copied) return false;
+        if (hole && !hole->isEmpty()) {
+            const QRect clear = hole->normalized().intersected(QRect(QPoint(), copied->operations().snapshot()->size));
+            if (!clear.isEmpty()) {
+                QByteArray zeros(clear.width() * clear.height() * 4, ' ');
+                if (copied->writeRgbaPixels(copied->operations().activeLayer(), clear, zeros) != LibrePaint::Image::Gpu::Result::Success)
+                    return false;
+            }
+        }
         if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;
         auto captured = KisImage::fromGpuImage(copied, QStringLiteral("Projection"), image->colorSpace());
         captured->setResolution(image->xRes(), image->yRes());
@@ -750,7 +758,7 @@ bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetByte
     }
 }
 
-bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes, QRect region)
+bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes, QRect region, std::optional<QRect> hole)
 {
     const auto owner = image ? image->gpuImage() : nullptr;
     if (!owner || layer.isNull() || QThread::currentThread() != thread() ||
@@ -767,6 +775,14 @@ bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype m
     try {
         const auto copied = owner->cloneRasterLayer(version, layerId, captured, QUuid::createUuid(), memoryBudgetBytes);
         if (!copied) return false;
+        if (hole && !hole->isEmpty()) {
+            const QRect clear = hole->normalized().intersected(QRect(QPoint(), copied->operations().snapshot()->size));
+            if (!clear.isEmpty()) {
+                QByteArray zeros(clear.width() * clear.height() * 4, ' ');
+                if (copied->writeRgbaPixels(copied->operations().activeLayer(), clear, zeros) != LibrePaint::Image::Gpu::Result::Success)
+                    return false;
+            }
+        }
         if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;
         auto capturedImage = KisImage::fromGpuImage(copied, QStringLiteral("Layer"), image->colorSpace());
         capturedImage->setResolution(image->xRes(), image->yRes());

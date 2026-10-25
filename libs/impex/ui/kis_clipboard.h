@@ -14,6 +14,7 @@
 #include <QRect>
 #include <QUuid>
 #include <QSize>
+#include <optional>
 
 #include <kis_types.h>
 
@@ -127,10 +128,11 @@ public:
      * pixels, padded raster tiles and their checkpoint encoding. Refusal keeps
      * the previous clipboard and source state; the copy retains execution.
      */
-    bool setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes = 256 * 1024 * 1024, QRect region = {});
+    bool setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes = 256 * 1024 * 1024, QRect region = {},
+                          std::optional<QRect> hole = {});
     /** Captures one GPU layer's pixels in region; false keeps the previous clipboard. */
     bool setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes = 256 * 1024 * 1024,
-                     QRect region = {});
+                     QRect region = {}, std::optional<QRect> hole = {});
     bool hasLayers() const;
     bool hasLayerStyles() const;
 
