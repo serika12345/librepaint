@@ -114,7 +114,7 @@ void KisBusyWaitBrokerContractTest::notificationsOutsideApplicationLifetimeAreIg
     QVERIFY(process.waitForFinished());
     QCOMPARE(process.exitStatus(), QProcess::NormalExit);
     QCOMPARE(process.exitCode(), 0);
-    QCOMPARE(process.readAllStandardOutput(), QByteArray("wait notifications ignored\n"));
+    QCOMPARE(process.readAllStandardOutput(), QByteArray("wait notifications ignored"));
 }
 
 static int probeWithoutApplication(int argc, char **argv, bool destroyApplication)
@@ -132,7 +132,7 @@ static int probeWithoutApplication(int argc, char **argv, bool destroyApplicatio
     if (broker.guiThreadIsWaitingForBetterWeather()) return 3;
     broker.notifyGeneralWaitEnded();
     if (broker.guiThreadIsWaitingForBetterWeather()) return 4;
-    std::fputs("wait notifications ignored\n", stdout);
+    std::fputs("wait notifications ignored", stdout);
     return 0;
 }
 
