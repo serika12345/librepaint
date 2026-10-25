@@ -76,9 +76,16 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU filter coverage budget exhausted")};
         }
         const QPoint origin = Detail::coordinate(coordinate) * TileSize;
+        // The adjustment word carries the frozen product values for the HSV
+        // kind and zero for the other kinds.
+        qint32 adjustment = 0;
+        if (filter.kind == FilterKind::HsvAdjustment) {
+            adjustment = qint32(filter.hsvType) | (filter.compatibilityMode ? 0x100 : 0);
+        }
         const qint32 values[]{origin.x(), origin.y(), qint32(filter.kind), qint32(flags),
                               filter.selectionRect.x(), filter.selectionRect.y(),
-                              filter.selectionRect.width(), filter.selectionRect.height()};
+                              filter.selectionRect.width(), filter.selectionRect.height(),
+                              filter.hue, filter.saturation, filter.value, adjustment};
         auto parameters = createBuffer(device->nativeDevice(), sizeof(values),
                                        WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
         if (!parameters) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter parameter allocation failed")};

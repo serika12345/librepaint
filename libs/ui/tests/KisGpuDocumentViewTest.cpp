@@ -8,6 +8,11 @@
 #include <selection/kis_selection_manager.h>
 #include <QBitArray>
 #include <QCheckBox>
+#include <QComboBox>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QSpinBox>
 #include <QColorSpace>
 #include <QMouseEvent>
 #include <QDockWidget>
@@ -16,6 +21,7 @@
 #include <QItemSelectionModel>
 #include <QIcon>
 #include <QPointer>
+#include <QPushButton>
 #include <QPainter>
 #include <QSignalSpy>
 #include <QStatusBar>
@@ -73,10 +79,12 @@
 #include <kis_transparency_mask.h>
 #include <kis_resources_snapshot.h>
 #include <kis_tool_utils.h>
+#include <filter/kis_color_transformation_configuration.h>
 #include <filter/kis_color_transformation_filter.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
 #include <filter/kis_filter_registry.h>
+#include <kis_config_widget.h>
 #include <document/kis_filter_manager.h>
 #include <KoColorTransformation.h>
 #include <nodes/kis_node_manager.h>
@@ -134,6 +142,103 @@ public:
     KoColorTransformation *createTransformation(const KoColorSpace *cs, const KisFilterConfigurationSP) const override
     { return cs->createInvertTransformation(); }
 };
+
+/** Stands in for the colors filter plugin's HSV/HSL Adjustment widget. It
+ * exposes the same product keys and control names so the GPU dialog routing
+ * is exercised without loading the plugin.
+ */
+class GpuDocumentHsvConfigWidget : public KisConfigWidget
+{
+public:
+    explicit GpuDocumentHsvConfigWidget(QWidget *parent = nullptr)
+        : KisConfigWidget(parent)
+    {
+        auto *form = new QFormLayout(this);
+        m_hue = new QSpinBox(this);
+        m_hue->setObjectName(QStringLiteral("hSpinBox"));
+        m_hue->setRange(-180, 180);
+        m_saturation = new QSpinBox(this);
+        m_saturation->setObjectName(QStringLiteral("sSpinBox"));
+        m_saturation->setRange(-100, 100);
+        m_value = new QSpinBox(this);
+        m_value->setObjectName(QStringLiteral("vSpinBox"));
+        m_value->setRange(-100, 100);
+        m_type = new QComboBox(this);
+        m_type->setObjectName(QStringLiteral("cmbType"));
+        m_type->addItems({QStringLiteral("HSV"), QStringLiteral("HSL"), QStringLiteral("HSI"),
+                          QStringLiteral("HSY"), QStringLiteral("YUV")});
+        m_colorize = new QCheckBox(this);
+        m_colorize->setObjectName(QStringLiteral("chkColorize"));
+        m_compatibility = new QCheckBox(this);
+        m_compatibility->setObjectName(QStringLiteral("chkCompatibilityMode"));
+        form->addRow(QStringLiteral("Hue"), m_hue);
+        form->addRow(QStringLiteral("Saturation"), m_saturation);
+        form->addRow(QStringLiteral("Value"), m_value);
+        form->addRow(QStringLiteral("Type"), m_type);
+        form->addRow(m_colorize);
+        form->addRow(m_compatibility);
+    }
+
+    void setConfiguration(const KisPropertiesConfigurationSP config) override
+    {
+        m_hue->setValue(config ? config->getInt("h", 0) : 0);
+        m_saturation->setValue(config ? config->getInt("s", 0) : 0);
+        m_value->setValue(config ? config->getInt("v", 0) : 0);
+        m_type->setCurrentIndex(config ? config->getInt("type", 1) : 1);
+        m_colorize->setChecked(config ? config->getBool("colorize", false) : false);
+        m_compatibility->setChecked(config ? config->getBool("compatibilityMode", false) : false);
+    }
+
+    KisPropertiesConfigurationSP configuration() const override
+    {
+        auto config = new KisColorTransformationConfiguration(
+            QStringLiteral("hsvadjustment"), 0, KisGlobalResourcesInterface::instance());
+        config->setProperty("h", m_hue->value());
+        config->setProperty("s", m_saturation->value());
+        config->setProperty("v", m_value->value());
+        config->setProperty("type", m_type->currentIndex());
+        config->setProperty("colorize", m_colorize->isChecked());
+        config->setProperty("compatibilityMode", m_compatibility->isChecked());
+        return config;
+    }
+
+private:
+    QSpinBox *m_hue = nullptr;
+    QSpinBox *m_saturation = nullptr;
+    QSpinBox *m_value = nullptr;
+    QComboBox *m_type = nullptr;
+    QCheckBox *m_colorize = nullptr;
+    QCheckBox *m_compatibility = nullptr;
+};
+
+class GpuDocumentHsvAdjustmentFilter : public KisColorTransformationFilter
+{
+public:
+    GpuDocumentHsvAdjustmentFilter()
+        : KisColorTransformationFilter(KoID(QStringLiteral("hsvadjustment"), i18n("HSV/HSL Adjustment")),
+                                       FiltersCategoryAdjustId, i18n("&HSV Adjustment..."))
+    {
+        setColorSpaceIndependence(FULLY_INDEPENDENT);
+        setSupportsPainting(true);
+        setShowConfigurationWidget(true);
+        setSupportsLevelOfDetail(true);
+    }
+    KisConfigWidget *createConfigurationWidget(QWidget *parent, const KisPaintDeviceSP, bool) const override
+    { return new GpuDocumentHsvConfigWidget(parent); }
+    KisFilterConfigurationSP defaultConfiguration(KisResourcesInterfaceSP resourcesInterface) const override
+    {
+        auto config = factoryConfiguration(resourcesInterface);
+        config->setProperty("h", 0);
+        config->setProperty("s", 0);
+        config->setProperty("v", 0);
+        config->setProperty("type", 1);
+        config->setProperty("colorize", false);
+        config->setProperty("compatibilityMode", false);
+        return config;
+    }
+    KoColorTransformation *createTransformation(const KoColorSpace *cs, const KisFilterConfigurationSP) const override
+    { return cs->createInvertTransformation(); }
+};
 }
 
 class KisGpuDocumentViewTest : public QObject
@@ -183,6 +288,7 @@ private Q_SLOTS:
     void transparencyMaskActionsUseTheActiveGpuPaintLayer();
     void invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters();
     void desaturateActionAppliesGrayscaleOnGpuDocument();
+    void hsvAdjustmentActionUsesProductSettingsOnGpuDocument();
     void layerPanelShowsAndSelectsGpuTransparencyMaskChild();
     void layerPanelTogglesAndRemovesGpuTransparencyMaskChild();
     void layerPanelGpuTransparencyMaskChildSurvivesSaving();
@@ -2082,6 +2188,160 @@ void KisGpuDocumentViewTest::desaturateActionAppliesGrayscaleOnGpuDocument()
     QVERIFY(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes == QByteArray::fromHex("c81e46ff"));
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("454545ff"));
+}
+
+void KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!KisFilterRegistry::instance()->value(QStringLiteral("hsvadjustment")))
+        KisFilterRegistry::instance()->add(KisFilterSP(new GpuDocumentHsvAdjustmentFilter));
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->fillLayer(layer, {200, 30, 70}), Gpu::Result::Success);
+    QCOMPARE(owner->setSelectionRect(QRect(16, 16, 32, 32)), Gpu::Result::Success);
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("HSV Adjustment action")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto *manager = window->viewManager()->nodeManager();
+    const auto node = view->image()->root()->firstChild();
+    QVERIFY(node);
+    manager->slotUiActivatedNode(node);
+
+    auto *action = window->viewManager()->actionManager()->actionByName(
+        QStringLiteral("krita_filter_hsvadjustment"));
+    QVERIFY(action);
+    QVERIFY(action->isEnabled());
+    const auto count = lifetime->undoStack()->count();
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(8, 8, 1, 1), 4).bytes, QByteArray::fromHex("c81e46ff"));
+    try { action->trigger(); } catch (const std::exception &error) { QFAIL(error.what()); }
+
+    // The action opens the product settings dialog and starts no CPU filter
+    // stroke against the view's paint-device copy.
+    QDialog *dialog = nullptr;
+    QTRY_VERIFY((dialog = window->findChild<QDialog *>(QStringLiteral("gpuHsvAdjustmentDialog"))));
+    QVERIFY(dialog);
+    QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
+    auto *hue = dialog->findChild<QSpinBox *>(QStringLiteral("hSpinBox"));
+    auto *saturation = dialog->findChild<QSpinBox *>(QStringLiteral("sSpinBox"));
+    auto *value = dialog->findChild<QSpinBox *>(QStringLiteral("vSpinBox"));
+    auto *type = dialog->findChild<QComboBox *>(QStringLiteral("cmbType"));
+    auto *colorize = dialog->findChild<QCheckBox *>(QStringLiteral("chkColorize"));
+    auto *compatibility = dialog->findChild<QCheckBox *>(QStringLiteral("chkCompatibilityMode"));
+    QVERIFY(hue);
+    QVERIFY(saturation);
+    QVERIFY(value);
+    QVERIFY(type);
+    QVERIFY(colorize);
+    QVERIFY(compatibility);
+    hue->setValue(60);
+    saturation->setValue(0);
+    value->setValue(0);
+    type->setCurrentIndex(0);
+    colorize->setChecked(false);
+    compatibility->setChecked(false);
+    auto *buttons = dialog->findChild<QDialogButtonBox *>();
+    QVERIFY(buttons);
+    buttons->button(QDialogButtonBox::Ok)->click();
+
+    QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()), Gpu::HistoryAction::HsvAdjustment);
+    QCOMPARE(lifetime->undoStack()->undoText(), kundo2_i18n("HSV Adjustment").toString());
+    QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
+    const auto filtered = owner->readRgbaPixels(layer, QRect(0, 0, 64, 64), 64 * 64 * 4);
+    QCOMPARE(filtered.code, Gpu::ExecutionCode::Success);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 64 + x) * 4, 4); };
+    // Hue +60 on (200,30,70) is (200,160,30); the selection clips the result.
+    QCOMPARE(pixel(filtered.bytes, 16, 16), QByteArray::fromHex("c8a01eff"));
+    QCOMPARE(pixel(filtered.bytes, 47, 47), QByteArray::fromHex("c8a01eff"));
+    QCOMPARE(pixel(filtered.bytes, 48, 48), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(pixel(filtered.bytes, 8, 8), QByteArray::fromHex("c81e46ff"));
+
+    // The action's undo entry restores the unfiltered pixels and redo reapplies.
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("c8a01eff"));
+
+    // A configuration without a `type` key follows the product default (HSL).
+    // The same saturation value differs from the HSV rule asserted above.
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    KisFilterConfigurationSP defaultMode(new KisFilterConfiguration(
+        QStringLiteral("hsvadjustment"), 1, KisGlobalResourcesInterface::instance()));
+    defaultMode->setProperty("h", 0);
+    defaultMode->setProperty("s", 50);
+    defaultMode->setProperty("v", 0);
+    defaultMode->setProperty("compatibilityMode", false);
+    window->viewManager()->filterManager()->apply(defaultMode);
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()), Gpu::HistoryAction::HsvAdjustment);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("e60036ff"));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("c81e46ff"));
+
+    // Luma-dependent and Colorize configurations keep their action but report
+    // a diagnostic; they must not start the CPU filter on the view copy.
+    QSignalSpy messages(window->viewManager(), &KisViewManager::floatingMessageRequested);
+    QVERIFY(messages.isValid());
+    const auto beforeUnsupported = owner->operations().snapshot();
+    const auto beforeCount = owner->operations().undoCount();
+    KisFilterConfigurationSP lumaMode(new KisFilterConfiguration(
+        QStringLiteral("hsvadjustment"), 1, KisGlobalResourcesInterface::instance()));
+    lumaMode->setProperty("h", 30);
+    lumaMode->setProperty("s", 20);
+    lumaMode->setProperty("v", 10);
+    lumaMode->setProperty("type", 3);
+    window->viewManager()->filterManager()->apply(lumaMode);
+    QTRY_COMPARE(messages.size(), 1);
+    QVERIFY(messages.first().at(0).toString().contains(QStringLiteral("not available for GPU documents")));
+    QCOMPARE(owner->operations().snapshot(), beforeUnsupported);
+    QCOMPARE(owner->operations().undoCount(), beforeCount);
+    QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
+
+    KisFilterConfigurationSP colorizeConfiguration(new KisFilterConfiguration(
+        QStringLiteral("hsvadjustment"), 1, KisGlobalResourcesInterface::instance()));
+    colorizeConfiguration->setProperty("h", 120);
+    colorizeConfiguration->setProperty("s", 80);
+    colorizeConfiguration->setProperty("v", 0);
+    colorizeConfiguration->setProperty("type", 0);
+    colorizeConfiguration->setProperty("colorize", true);
+    window->viewManager()->filterManager()->apply(colorizeConfiguration);
+    QTRY_COMPARE(messages.size(), 2);
+    QVERIFY(messages.last().at(0).toString().contains(QStringLiteral("not available for GPU documents")));
+    QCOMPARE(owner->operations().snapshot(), beforeUnsupported);
+    QCOMPARE(owner->operations().undoCount(), beforeCount);
+
+    // Out-of-range product values are rejected rather than clamped.
+    KisFilterConfigurationSP outOfRange(new KisFilterConfiguration(
+        QStringLiteral("hsvadjustment"), 1, KisGlobalResourcesInterface::instance()));
+    outOfRange->setProperty("h", 200);
+    outOfRange->setProperty("s", 0);
+    outOfRange->setProperty("v", 0);
+    outOfRange->setProperty("type", 0);
+    outOfRange->setProperty("compatibilityMode", false);
+    window->viewManager()->filterManager()->apply(outOfRange);
+    QTRY_COMPARE(messages.size(), 3);
+    QVERIFY(messages.last().at(0).toString().contains(QStringLiteral("outside the product slider ranges")));
+    QCOMPARE(owner->operations().snapshot(), beforeUnsupported);
+    QCOMPARE(owner->operations().undoCount(), beforeCount);
+    QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
 }
 
 void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()

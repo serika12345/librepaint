@@ -161,9 +161,10 @@ struct TileRenderer::Private
         Detail::Tiles tiles;
         QString diagnostic;
     };
-    /** Complements RGB inside the frozen coverage for every existing tile that
-     * intersects it. Each tile is transformed by its own compute pass, so the
-     * filter never reads the layer back through the CPU.
+    /** Applies the frozen filter kind (Invert Colors, Grayscale or HSV
+     * Adjustment) to RGB inside the frozen coverage for every existing tile
+     * that intersects it. Each tile is transformed by its own compute pass, so
+     * the filter never reads the layer back through the CPU.
      */
     FilterResult filterTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
                              const FilterOperation &filter, const std::shared_ptr<Detail::Tile> &fallback,

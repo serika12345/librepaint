@@ -80,6 +80,8 @@ private Q_SLOTS:
     void invertColorsInterpolatesFeatheredAndInvertedCoverage();
     void grayscaleUsesRec709CoefficientsWithIntegerRounding();
     void grayscaleClipsEllipseInvertedBinaryAndAlphaCoverage();
+    void hsvAdjustmentUsesProductValuesAndNeutralPixels();
+    void hsvAdjustmentClipsCoverageAndSupportsLegacyConversion();
     void patternFillTilesAcrossSelectionHistoryAndRecovery();
     void patternFillClipsAlphaCompositesErasesAndRejectsInvalidInput();
     void fillBlendModesMatchLayerComposition_data();
@@ -3913,6 +3915,264 @@ void KisGpuTileRendererTest::grayscaleClipsEllipseInvertedBinaryAndAlphaCoverage
     const auto ellipse = readTile(render(renderer, ellipseDocument.snapshot()), ellipseDocument.activeLayer(), {0, 0});
     QCOMPARE(pixel(ellipse, 10, 10), QByteArray::fromHex("0a141e28"));
     QCOMPARE(pixel(ellipse, 128, 128), gray(20, 30, 40, 255));
+}
+
+void KisGpuTileRendererTest::hsvAdjustmentUsesProductValuesAndNeutralPixels()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * TileRenderer::TileSize + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("c81e46ff"));  // 200, 30, 70, 255
+    set(20, 20, QByteArray::fromHex("808080ff"));  // neutral gray
+    set(30, 30, QByteArray::fromHex("000000ff"));  // black
+    set(40, 40, QByteArray::fromHex("646464ff"));  // neutral gray 100
+    set(50, 50, QByteArray::fromHex("0a141e28"));  // 10, 20, 30, alpha 40
+    set(200, 10, QByteArray::fromHex("11223344"));
+    RasterImage input;
+    input.size = {256, 256};
+    RasterLayer source;
+    source.name = QStringLiteral("HSV");
+    source.uuid = QUuid::createUuid();
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    TileRenderer renderer(m_device);
+
+    // Saturation moves chroma but not value: the product's modern HSV rule.
+    OperationDocument document(input);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    const HsvAdjustment saturation{0, 50, 0, HsvAdjustmentType::Hsv, false};
+    QCOMPARE(document.hsvAdjustment(layer, saturation), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::HsvAdjustment);
+    const auto operation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->kind, FilterKind::HsvAdjustment);
+    QCOMPARE(operation->hue, 0);
+    QCOMPARE(operation->saturation, 50);
+    QCOMPARE(operation->value, 0);
+    QCOMPARE(operation->hsvType, HsvAdjustmentType::Hsv);
+    QVERIFY(!operation->compatibilityMode);
+
+    const auto filtered = render(renderer, document.snapshot());
+    QVERIFY(filtered);
+    const auto filteredBytes = readTile(filtered, layer, {0, 0});
+    QCOMPARE(pixel(filteredBytes, 10, 10), QByteArray::fromHex("c8002fff"));
+    // Neutral pixels ignore hue and saturation; alpha is carried through.
+    QCOMPARE(pixel(filteredBytes, 20, 20), QByteArray::fromHex("808080ff"));
+    QCOMPARE(pixel(filteredBytes, 30, 30), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixel(filteredBytes, 40, 40), QByteArray::fromHex("646464ff"));
+    QCOMPARE(pixel(filteredBytes, 50, 50), QByteArray::fromHex("000f1e28"));
+    QCOMPARE(pixel(filteredBytes, 200, 10), QByteArray::fromHex("11223344"));
+
+    // Frozen settings survive a later selection edit.
+    QCOMPARE(document.setSelectionRect(QRect(200, 200, 8, 8)), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), filteredBytes);
+
+    // One filter history entry: undo restores the source, redo the result.
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), bytes);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), filteredBytes);
+
+    // Recovery retains the frozen settings and the same pixels.
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.historyAction(2), HistoryAction::HsvAdjustment);
+    const auto recovered = std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(recovered->saturation, 50);
+    QCOMPARE(recovered->value, 0);
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), filteredBytes);
+
+    // Value moves value and chroma toward the endpoint; saturation is unchanged
+    // in the product rule, so a neutral pixel simply gets brighter.
+    OperationDocument valueDocument(input);
+    const auto valueLayer = valueDocument.activeLayer();
+    QCOMPARE(valueDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(valueDocument.hsvAdjustment(valueLayer, {0, 0, 25, HsvAdjustmentType::Hsv, false}),
+             Result::Success);
+    const auto valueBytes = readTile(render(renderer, valueDocument.snapshot()), valueLayer, {0, 0});
+    QCOMPARE(pixel(valueBytes, 10, 10), QByteArray::fromHex("d65674ff"));
+    QCOMPARE(pixel(valueBytes, 20, 20), QByteArray::fromHex("a0a0a0ff"));
+    QCOMPARE(pixel(valueBytes, 30, 30), QByteArray::fromHex("404040ff"));
+    QCOMPARE(pixel(valueBytes, 50, 50), QByteArray::fromHex("474f5628"));
+
+    // The byte conversion rounds half up, matching the CPU rule.
+    OperationDocument rounding(input);
+    const auto roundingLayer = rounding.activeLayer();
+    QCOMPARE(rounding.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(rounding.hsvAdjustment(roundingLayer, {0, 0, 10, HsvAdjustmentType::Hsv, false}),
+             Result::Success);
+    const auto roundingBytes = readTile(render(renderer, rounding.snapshot()), roundingLayer, {0, 0});
+    // 100 + 0.1 * (255 - 100) = 115.5 in byte units, rounded to 116.
+    QCOMPARE(pixel(roundingBytes, 40, 40), QByteArray::fromHex("747474ff"));
+    QCOMPARE(pixel(roundingBytes, 20, 20), QByteArray::fromHex("8d8d8dff"));
+
+    // Hue rotation leaves neutral pixels unchanged.
+    OperationDocument hueDocument(input);
+    const auto hueLayer = hueDocument.activeLayer();
+    QCOMPARE(hueDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(hueDocument.hsvAdjustment(hueLayer, {60, 0, 0, HsvAdjustmentType::Hsv, false}),
+             Result::Success);
+    const auto hueBytes = readTile(render(renderer, hueDocument.snapshot()), hueLayer, {0, 0});
+    QCOMPARE(pixel(hueBytes, 10, 10), QByteArray::fromHex("c8a01eff"));
+    QCOMPARE(pixel(hueBytes, 20, 20), QByteArray::fromHex("808080ff"));
+
+    // The product `type` key selects the HSL policy; the same slider values
+    // produce a different result from the HSV policy.
+    OperationDocument hslDocument(input);
+    const auto hslLayer = hslDocument.activeLayer();
+    QCOMPARE(hslDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(hslDocument.hsvAdjustment(hslLayer, {0, 50, 0, HsvAdjustmentType::Hsl, false}),
+             Result::Success);
+    const auto hslOperation = std::get<FilterSnapshot>(hslDocument.snapshot()->layers.first().operations.last());
+    QCOMPARE(hslOperation->hsvType, HsvAdjustmentType::Hsl);
+    const auto hslBytes = readTile(render(renderer, hslDocument.snapshot()), hslLayer, {0, 0});
+    QCOMPARE(pixel(hslBytes, 10, 10), QByteArray::fromHex("e60036ff"));
+    QCOMPARE(pixel(hslBytes, 20, 20), QByteArray::fromHex("808080ff"));
+
+    // HSI (type 2) uses the product's HCI policy.
+    OperationDocument hsiDocument(input);
+    const auto hsiLayer = hsiDocument.activeLayer();
+    QCOMPARE(hsiDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(hsiDocument.hsvAdjustment(hsiLayer, {0, 50, 0, HsvAdjustmentType::Hsi, false}),
+             Result::Success);
+    const auto hsiBytes = readTile(render(renderer, hsiDocument.snapshot()), hsiLayer, {0, 0});
+    QCOMPARE(pixel(hsiBytes, 10, 10), QByteArray::fromHex("ed043bff"));
+    QCOMPARE(pixel(hsiBytes, 20, 20), QByteArray::fromHex("808080ff"));
+
+    // The legacy conversions apply to HSL and HSI as well.
+    OperationDocument legacyHslDocument(input);
+    const auto legacyHslLayer = legacyHslDocument.activeLayer();
+    QCOMPARE(legacyHslDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(legacyHslDocument.hsvAdjustment(legacyHslLayer,
+                                             {0, 50, 0, HsvAdjustmentType::Hsl, true}), Result::Success);
+    const auto legacyHslBytes = readTile(render(renderer, legacyHslDocument.snapshot()),
+                                         legacyHslLayer, {0, 0});
+    // The product legacy HSL rule is (242, 0, 48) on the CPU; the GPU's
+    // single-rounding evaluation lands one byte away on these half steps.
+    QCOMPARE(pixel(legacyHslBytes, 10, 10), QByteArray::fromHex("f3002fff"));
+
+    OperationDocument legacyHsiDocument(input);
+    const auto legacyHsiLayer = legacyHsiDocument.activeLayer();
+    QCOMPARE(legacyHsiDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(legacyHsiDocument.hsvAdjustment(legacyHsiLayer,
+                                             {0, 50, 0, HsvAdjustmentType::Hsi, true}), Result::Success);
+    const auto legacyHsiBytes = readTile(render(renderer, legacyHsiDocument.snapshot()),
+                                         legacyHsiLayer, {0, 0});
+    QCOMPARE(pixel(legacyHsiBytes, 10, 10), QByteArray::fromHex("ff0035ff"));
+}
+
+void KisGpuTileRendererTest::hsvAdjustmentClipsCoverageAndSupportsLegacyConversion()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * TileRenderer::TileSize + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("0a141e28"));
+    set(20, 20, QByteArray::fromHex("0a141e28"));
+    set(30, 30, QByteArray::fromHex("0a141e28"));
+    set(40, 40, QByteArray::fromHex("646464ff"));
+    set(100, 100, QByteArray::fromHex("11223344"));
+    RasterImage input;
+    input.size = {256, 256};
+    RasterLayer source;
+    source.name = QStringLiteral("Coverage");
+    source.uuid = QUuid::createUuid();
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    TileRenderer renderer(m_device);
+
+    // Alpha coverage interpolates between the source and the adjusted pixel.
+    OperationDocument alphaDocument(input);
+    const QRect clip(QPoint(), QSize(256, 256));
+    QByteArray coverage(256 * 256, '\0');
+    coverage[20 * 256 + 20] = char(128);
+    coverage[30 * 256 + 30] = char(255);
+    const auto alpha = SelectionMask::fromAlphaCoverage(clip, coverage, clip);
+    QVERIFY(alpha);
+    QCOMPARE(alphaDocument.setSelectionMask(alpha), Result::Success);
+    QCOMPARE(alphaDocument.hsvAdjustment(alphaDocument.activeLayer(), {0, 0, 50, HsvAdjustmentType::Hsv, false}),
+             Result::Success);
+    const auto alphaBytes = readTile(render(renderer, alphaDocument.snapshot()),
+                                     alphaDocument.activeLayer(), {0, 0});
+    // 10,20,30 adjusted to 133,138,143 at 128/255 coverage.
+    QCOMPARE(pixel(alphaBytes, 20, 20), QByteArray::fromHex("484f5728"));
+    QCOMPARE(pixel(alphaBytes, 30, 30), QByteArray::fromHex("858a8f28"));
+    QCOMPARE(pixel(alphaBytes, 10, 10), QByteArray::fromHex("0a141e28"));
+
+    // An inverted rectangle filters only the outside.
+    OperationDocument invertedDocument(input);
+    QCOMPARE(invertedDocument.setSelectionRect(QRect(0, 0, 64, 64), true), Result::Success);
+    QCOMPARE(invertedDocument.hsvAdjustment(invertedDocument.activeLayer(),
+                                            {0, 0, 50, HsvAdjustmentType::Hsv, false}), Result::Success);
+    const auto inverted = readTile(render(renderer, invertedDocument.snapshot()),
+                                   invertedDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(inverted, 10, 10), QByteArray::fromHex("0a141e28"));
+    QCOMPARE(pixel(inverted, 100, 100), QByteArray::fromHex("88919944"));
+
+    // Elliptical coverage intersects its bounding box before the pixel test.
+    OperationDocument ellipseDocument(input);
+    QCOMPARE(ellipseDocument.setSelectionEllipse(QRect(64, 64, 128, 128)), Result::Success);
+    QCOMPARE(ellipseDocument.hsvAdjustment(ellipseDocument.activeLayer(),
+                                           {0, 0, 50, HsvAdjustmentType::Hsv, false}), Result::Success);
+    const auto ellipse = readTile(render(renderer, ellipseDocument.snapshot()),
+                                  ellipseDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(ellipse, 10, 10), QByteArray::fromHex("0a141e28"));
+    // The unset pixel is transparent; its hidden RGB still follows the filter.
+    QCOMPARE(pixel(ellipse, 128, 128), QByteArray::fromHex("80808000"));
+
+    // The legacy conversion can color a neutral pixel when saturation rises;
+    // the modern HSV rule cannot. This difference is frozen with the settings.
+    OperationDocument modernDocument(input);
+    QCOMPARE(modernDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(modernDocument.hsvAdjustment(modernDocument.activeLayer(),
+                                          {0, 50, 0, HsvAdjustmentType::Hsv, false}), Result::Success);
+    const auto modern = readTile(render(renderer, modernDocument.snapshot()),
+                                 modernDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(modern, 40, 40), QByteArray::fromHex("646464ff"));
+
+    OperationDocument legacyDocument(input);
+    QCOMPARE(legacyDocument.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(legacyDocument.hsvAdjustment(legacyDocument.activeLayer(),
+                                          {0, 50, 0, HsvAdjustmentType::Hsv, true}), Result::Success);
+    const auto legacyOperation = std::get<FilterSnapshot>(legacyDocument.snapshot()->layers.first().operations.last());
+    QVERIFY(legacyOperation->compatibilityMode);
+    const auto legacy = readTile(render(renderer, legacyDocument.snapshot()),
+                                 legacyDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(legacy, 40, 40), QByteArray::fromHex("643233ff"));
+
+    // The legacy value adjustment differs from the modern rule by more than
+    // one byte on the same neutral input.
+    OperationDocument legacyValue(input);
+    QCOMPARE(legacyValue.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(legacyValue.hsvAdjustment(legacyValue.activeLayer(),
+                                       {0, 0, 10, HsvAdjustmentType::Hsv, true}), Result::Success);
+    const auto legacyValueBytes = readTile(render(renderer, legacyValue.snapshot()),
+                                           legacyValue.activeLayer(), {0, 0});
+    QCOMPARE(pixel(legacyValueBytes, 40, 40), QByteArray::fromHex("7e7e7eff"));
+    OperationDocument modernValue(input);
+    QCOMPARE(modernValue.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(modernValue.hsvAdjustment(modernValue.activeLayer(),
+                                       {0, 0, 10, HsvAdjustmentType::Hsv, false}), Result::Success);
+    const auto modernValueBytes = readTile(render(renderer, modernValue.snapshot()),
+                                           modernValue.activeLayer(), {0, 0});
+    QCOMPARE(pixel(modernValueBytes, 40, 40), QByteArray::fromHex("747474ff"));
+
+    // Recovery retains the legacy flag and the same pixels.
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(legacyDocument.recoveryData()), Result::Success);
+    QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::HsvAdjustment);
+    QVERIFY(std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last())->compatibilityMode);
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), legacy);
 }
 
 void KisGpuTileRendererTest::featheredSelectionClipsPaintFillEraseHistoryAndRecovery()

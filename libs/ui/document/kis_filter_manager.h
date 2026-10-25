@@ -61,6 +61,16 @@ private Q_SLOTS:
     void filterDialogHasFinished(int);
 
 private:
+    /** Routes a filter identity to the GPU operation document. False reports a
+     * non-GPU document; every GPU document is handled without starting a CPU
+     * filter stroke. Interactive requests use the product settings widget for
+     * filters that carry settings.
+     */
+    bool applyGpuFilter(const QString &filterId, KisFilterConfigurationSP config, bool interactive);
+    /** Parses and applies one product HSV/HSL Adjustment configuration. */
+    bool applyGpuHsvConfiguration(KisFilterConfigurationSP config);
+    void showGpuHsvFilterDialog(const QString &filterId, KisFilterConfigurationSP config);
+
     struct Private;
     QScopedPointer<Private> d;
 };

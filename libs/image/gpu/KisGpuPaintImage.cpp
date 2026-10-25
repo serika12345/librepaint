@@ -761,6 +761,8 @@ Result PaintImage::invertColors(LayerId layer)
 { return onThread() ? publish(m_d->document->invertColors(layer)) : Result::InvalidInput; }
 Result PaintImage::grayscale(LayerId layer)
 { return onThread() ? publish(m_d->document->grayscale(layer)) : Result::InvalidInput; }
+Result PaintImage::hsvAdjustment(LayerId layer, const HsvAdjustment &settings)
+{ return onThread() ? publish(m_d->document->hsvAdjustment(layer, settings)) : Result::InvalidInput; }
 Result PaintImage::selectLayers(const QList<LayerId> &layers, LayerId active)
 { return onThread() ? publish(m_d->document->selectLayers(layers, active)) : Result::InvalidInput; }
 Result PaintImage::selectLayer(LayerId layer)

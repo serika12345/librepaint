@@ -191,8 +191,14 @@ HistoryAction OperationDocument::historyAction(int index) const
     if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
     if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
     if (m_layerHistoryChanges[index].filledLayer) return HistoryAction::FillLayer;
-    if (m_layerHistoryChanges[index].filteredLayer) return m_layerHistoryChanges[index].filterKind ==
-        FilterKind::Grayscale ? HistoryAction::Grayscale : HistoryAction::InvertColors;
+    if (m_layerHistoryChanges[index].filteredLayer) {
+        switch (m_layerHistoryChanges[index].filterKind) {
+        case FilterKind::Grayscale: return HistoryAction::Grayscale;
+        case FilterKind::HsvAdjustment: return HistoryAction::HsvAdjustment;
+        case FilterKind::InvertColors: break;
+        }
+        return HistoryAction::InvertColors;
+    }
     if (m_layerHistoryChanges[index].changedSelection) return HistoryAction::ChangeSelection;
     if (m_layerHistoryChanges[index].crop) return HistoryAction::CropLayer;
     if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
@@ -1686,8 +1692,15 @@ Result OperationDocument::invertColors(LayerId layer)
 Result OperationDocument::grayscale(LayerId layer)
 { return applyFilter(layer, FilterKind::Grayscale); }
 
-Result OperationDocument::applyFilter(LayerId layer, FilterKind kind)
+Result OperationDocument::hsvAdjustment(LayerId layer, const HsvAdjustment &settings)
 {
+    if (!settings.isValid()) return Result::InvalidInput;
+    return applyFilter(layer, FilterKind::HsvAdjustment, &settings);
+}
+
+Result OperationDocument::applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings)
+{
+    if (kind == FilterKind::HsvAdjustment && !settings) return Result::InvalidInput;
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     const auto index = layerIndex(layer);
@@ -1700,6 +1713,14 @@ Result OperationDocument::applyFilter(LayerId layer, FilterKind kind)
     operation->version = 1;
     operation->layer = layer;
     operation->kind = kind;
+    if (kind == FilterKind::HsvAdjustment) {
+        // hsvAdjustment() validated the settings before admission.
+        operation->hue = settings->hue;
+        operation->saturation = settings->saturation;
+        operation->value = settings->value;
+        operation->hsvType = settings->type;
+        operation->compatibilityMode = settings->compatibilityMode;
+    }
     operation->selectionRect = snapshot()->selection;
     operation->selectionInverted = snapshot()->selectionInverted;
     operation->selectionKind = snapshot()->selectionKind;

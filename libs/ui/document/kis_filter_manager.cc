@@ -10,6 +10,10 @@
 
 
 #include <QHash>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QPointer>
+#include <QVBoxLayout>
 #include <KisSignalMapper.h>
 
 #include <QMessageBox>
@@ -25,6 +29,8 @@
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter_configuration.h>
+#include <kis_config_widget.h>
+#include <gpu/KisGpuOperationDocument.h>
 #include <kis_paint_device.h>
 #include <kis_image_animation_interface.h>
 #include <kis_time_span.h>
@@ -60,39 +66,57 @@
 #include <qset.h>
 
 namespace {
-/**
- * GPU documents own their pixels in the GPU operation document, so the generic
- * CPU filter stroke would edit an unrelated view copy. Invert Colors and the
- * product Desaturate filter map to GPU pixel filters; every other filter keeps
- * its action and reports a diagnostic instead of running on a copy.
+/** Product HSV/HSL Adjustment keys translated to the GPU operation values.
  *
- * The GPU grayscale result is a fixed documented rule (Rec.709 luminance of the
- * stored sRGB-encoded bytes) because the operation freezes the filter kind
- * rather than a dialog configuration. The CPU Desaturate mode selection is
- * therefore not consulted for GPU documents.
+ * The product filter's `defaultConfiguration()` supplies h = s = v = 0,
+ * type = 1 (HSL) and compatibilityMode = false. The GPU rule mirrors the
+ * product modes whose CPU pixel rule depends only on stored RGB (type 0 HSV,
+ * 1 HSL and 2 HSI). Type 3 (HSY), type 4 (YUV) and Colorize read the document
+ * color space's luma coefficients, which the operation does not freeze, so
+ * they are rejected instead of approximated.
  */
-bool applyGpuFilter(KisViewManager *view, const QString &filterId)
+struct GpuHsvConfiguration
 {
-    if (!view) return false;
-    KisImageWSP image = view->image();
-    if (!image || !image->gpuImage()) return false;
-    if (filterId == QLatin1String("invert")) {
-        if (!image->invertGpuLayerColors(view->activeNode())) {
-            view->showFloatingMessage(i18n("Invert Colors requires an editable GPU paint layer."),
-                                      QIcon(), 2000, KisFloatingMessage::Low);
-        }
-        return true;
+    LibrePaint::Image::Gpu::HsvAdjustment settings;
+    bool valid = false;
+    QString diagnostic;
+};
+
+GpuHsvConfiguration gpuHsvConfiguration(KisFilterConfigurationSP config)
+{
+    GpuHsvConfiguration result;
+    if (!config) return result;
+    const int type = config->getInt("type", 1);
+    const bool colorize = config->getBool("colorize", false);
+    // The product transformation treats a missing key as legacy mode; its
+    // default configuration writes the key as false, so the dialog path stays
+    // in the modern rule.
+    const bool compatibilityMode = config->getBool("compatibilityMode", true);
+    const int hue = config->getInt("h", 0);
+    const int saturation = config->getInt("s", 0);
+    const int value = config->getInt("v", 0);
+    if (colorize) {
+        result.diagnostic = i18n("HSV Adjustment Colorize mode is not available for GPU documents.");
+        return result;
     }
-    if (filterId == QLatin1String("desaturate")) {
-        if (!image->grayscaleGpuLayerColors(view->activeNode())) {
-            view->showFloatingMessage(i18n("Desaturate requires an editable GPU paint layer."),
-                                      QIcon(), 2000, KisFloatingMessage::Low);
-        }
-        return true;
+    if (type < 0 || type > 2) {
+        result.diagnostic = i18n("This HSV Adjustment mode is not available for GPU documents.");
+        return result;
     }
-    view->showFloatingMessage(i18n("This filter is not yet available for GPU documents."),
-                              QIcon(), 2000, KisFloatingMessage::Low);
-    return true;
+    if (hue < -180 || hue > 180 || saturation < -100 || saturation > 100 ||
+        value < -100 || value > 100) {
+        result.diagnostic = i18n("HSV Adjustment values are outside the product slider ranges.");
+        return result;
+    }
+    result.settings = {hue, saturation, value,
+                       LibrePaint::Image::Gpu::HsvAdjustmentType(type), compatibilityMode};
+    result.valid = true;
+    return result;
+}
+
+void showGpuDiagnostic(KisViewManager *view, const QString &message)
+{
+    view->showFloatingMessage(message, QIcon(), 2000, KisFloatingMessage::Low);
 }
 }
 
@@ -120,6 +144,10 @@ struct KisFilterManager::Private {
      * \note parent QWidget is set to mainwindow, so we delegate deletion of this widget to Qt (we don't `delete` it ourselves)
      */
     KisDlgFilter *filterDialog = nullptr;
+    /** GPU HSV settings use the product configuration widget without a CPU
+     * preview stroke; one dialog applies one accepted configuration.
+     */
+    QPointer<QDialog> gpuFilterDialog;
 };
 
 KisFilterManager::KisFilterManager(KisViewManager * view)
@@ -130,6 +158,101 @@ KisFilterManager::KisFilterManager(KisViewManager * view)
 
 KisFilterManager::~KisFilterManager()
 {
+}
+
+bool KisFilterManager::applyGpuFilter(const QString &filterId, KisFilterConfigurationSP config, bool interactive)
+{
+    if (!d->view) return false;
+    KisImageWSP image = d->view->image();
+    if (!image || !image->gpuImage()) return false;
+    if (filterId == QLatin1String("invert")) {
+        if (!image->invertGpuLayerColors(d->view->activeNode())) {
+            showGpuDiagnostic(d->view, i18n("Invert Colors requires an editable GPU paint layer."));
+        }
+        return true;
+    }
+    if (filterId == QLatin1String("desaturate")) {
+        if (!image->grayscaleGpuLayerColors(d->view->activeNode())) {
+            showGpuDiagnostic(d->view, i18n("Desaturate requires an editable GPU paint layer."));
+        }
+        return true;
+    }
+    if (filterId == QLatin1String("hsvadjustment")) {
+        if (interactive || !config) {
+            showGpuHsvFilterDialog(filterId, config);
+        } else {
+            applyGpuHsvConfiguration(config);
+        }
+        return true;
+    }
+    showGpuDiagnostic(d->view, i18n("This filter is not yet available for GPU documents."));
+    return true;
+}
+
+bool KisFilterManager::applyGpuHsvConfiguration(KisFilterConfigurationSP config)
+{
+    if (!d->view || !config) return false;
+    KisImageWSP image = d->view->image();
+    if (!image || !image->gpuImage()) return false;
+    const auto parsed = gpuHsvConfiguration(config);
+    if (!parsed.valid) {
+        showGpuDiagnostic(d->view, parsed.diagnostic);
+        return false;
+    }
+    if (!image->hsvAdjustmentGpuLayerColors(d->view->activeNode(), parsed.settings)) {
+        showGpuDiagnostic(d->view, i18n("HSV Adjustment requires an editable GPU paint layer."));
+        return false;
+    }
+    // Keep Apply Filter Again consistent with the CPU path, which records the
+    // accepted configuration after its stroke finishes.
+    d->lastConfiguration = config;
+    if (d->reapplyAction) {
+        d->reapplyAction->setEnabled(true);
+        if (KisFilterSP filter = KisFilterRegistry::instance()->value(config->name()))
+            d->reapplyAction->setText(i18n("Apply Filter Again: %1", filter->name()));
+    }
+    return true;
+}
+
+void KisFilterManager::showGpuHsvFilterDialog(const QString &filterId, KisFilterConfigurationSP config)
+{
+    if (!d->view || !d->view->activeNode()) return;
+    if (d->gpuFilterDialog) {
+        d->gpuFilterDialog->raise();
+        d->gpuFilterDialog->activateWindow();
+        return;
+    }
+    KisFilterSP filter = KisFilterRegistry::instance()->value(filterId);
+    if (!filter) return;
+    auto *dialog = new QDialog(d->view->mainWindow());
+    dialog->setObjectName(QStringLiteral("gpuHsvAdjustmentDialog"));
+    dialog->setWindowTitle(i18nc("@title:window", "Filter: %1", filter->name()));
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setModal(false);
+    auto *layout = new QVBoxLayout(dialog);
+    KisConfigWidget *widget = filter->createConfigurationWidget(
+        dialog, d->view->activeNode()->paintDevice(), false);
+    if (!widget) {
+        delete dialog;
+        return;
+    }
+    const KisFilterConfigurationSP initial =
+        config ? config : filter->defaultConfiguration(KisGlobalResourcesInterface::instance());
+    widget->blockSignals(true);
+    widget->setConfiguration(initial);
+    widget->blockSignals(false);
+    layout->addWidget(widget);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, dialog);
+    layout->addWidget(buttons);
+    connect(buttons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
+    connect(dialog, &QDialog::accepted, this, [this, widget] {
+        auto properties = widget->configuration();
+        auto *accepted = dynamic_cast<KisFilterConfiguration *>(properties.data());
+        if (accepted) applyGpuHsvConfiguration(KisFilterConfigurationSP(accepted));
+    });
+    d->gpuFilterDialog = dialog;
+    dialog->show();
 }
 
 void KisFilterManager::setView(QPointer<KisView>imageView)
@@ -227,8 +350,7 @@ void KisFilterManager::reapplyLastFilter()
     // A GPU document owns its pixels in the operation document. Reapply must
     // take the same intercepted path as the action instead of starting a CPU
     // stroke and finishing a filter that never ran.
-    if (d->view && d->view->image() && d->view->image()->gpuImage() &&
-        applyGpuFilter(d->view, d->lastConfiguration->name())) return;
+    if (applyGpuFilter(d->lastConfiguration->name(), d->lastConfiguration, false)) return;
     apply(d->lastConfiguration);
     finish();
 }
@@ -242,7 +364,7 @@ void KisFilterManager::reapplyLastFilterReprompt()
 
 void KisFilterManager::showFilterDialog(const QString &filterId, KisFilterConfigurationSP overrideDefaultConfig)
 {
-    if (applyGpuFilter(d->view, filterId)) return;
+    if (applyGpuFilter(filterId, overrideDefaultConfig, true)) return;
 
     if (!d->view->activeNode()->isEditable()) {
         d->view->showFloatingMessage(i18n("Cannot apply filter to locked layer."),
@@ -326,7 +448,7 @@ void KisFilterManager::showFilterDialog(const QString &filterId, KisFilterConfig
 
 void KisFilterManager::apply(KisFilterConfigurationSP _filterConfig)
 {
-    if (_filterConfig && applyGpuFilter(d->view, _filterConfig->name())) return;
+    if (_filterConfig && applyGpuFilter(_filterConfig->name(), _filterConfig, false)) return;
 
     KisFilterConfigurationSP filterConfig = _filterConfig->cloneWithResourcesSnapshot();
 

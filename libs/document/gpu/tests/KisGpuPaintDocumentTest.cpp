@@ -107,6 +107,7 @@ private Q_SLOTS:
     void rectangularSelectionSavesReopensAndLimitsPainting();
     void invertColorsSavesReopensAndRecoversPixels();
     void grayscaleSavesReopensAndRecoversPixels();
+    void hsvAdjustmentSavesReopensAndRecoversPixels();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
     void patternFillSavesReopensAndPreservesSelectionPixels();
@@ -519,6 +520,98 @@ void KisGpuPaintDocumentTest::grayscaleSavesReopensAndRecoversPixels()
     QCOMPARE(continued.code, ExecutionCode::Success);
     QCOMPARE(pixel(continued.bytes, 120, 120), QByteArray::fromHex("767676ff"));
     QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("13131328"));
+}
+
+void KisGpuPaintDocumentTest::hsvAdjustmentSavesReopensAndRecoversPixels()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {256, 256};
+    initial.layers.append({QStringLiteral("HSV"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000043}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    QByteArray bytes(RgbaTile::ByteCount, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * RgbaTile::Size + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("0a141e28"));  // 10,20,30,40
+    set(40, 40, QByteArray::fromHex("0a141e00"));  // hidden RGB under alpha 0
+    set(50, 50, QByteArray::fromHex("c81e46ff"));  // 200,30,70,255
+    set(80, 80, QByteArray::fromHex("808080ff"));  // neutral gray
+    set(100, 100, QByteArray::fromHex("11223344"));
+    set(120, 120, QByteArray::fromHex("646464ff"));
+    QCOMPARE(image->replaceTiles(layer, {RgbaTile{{0, 0}, bytes}}), Result::Success);
+    QCOMPARE(image->setSelectionRect(QRect(0, 0, 64, 64)), Result::Success);
+    QCOMPARE(image->hsvAdjustment(layer, {0, 0, 20, HsvAdjustmentType::Hsv, false}), Result::Success);
+    const auto count = image->operations().undoCount();
+    QCOMPARE(count, 3);
+    QCOMPARE(image->operations().historyAction(count), HistoryAction::HsvAdjustment);
+
+    const QRect region(QPoint(), initial.size);
+    const auto pixel = [&](const QByteArray &value, int x, int y) { return value.mid((y * 256 + x) * 4, 4); };
+    const auto filtered = image->readRgbaPixels(layer, region, 256 * 256 * 4);
+    QCOMPARE(filtered.code, ExecutionCode::Success);
+    QCOMPARE(pixel(filtered.bytes, 10, 10), QByteArray::fromHex("3b434b28"));
+    // Hidden RGB is filtered and alpha stays zero, matching the other filters.
+    QCOMPARE(pixel(filtered.bytes, 40, 40), QByteArray::fromHex("3b434b00"));
+    QCOMPARE(pixel(filtered.bytes, 50, 50), QByteArray::fromHex("d34b6bff"));
+    QCOMPARE(pixel(filtered.bytes, 80, 80), QByteArray::fromHex("808080ff"));
+    QCOMPARE(pixel(filtered.bytes, 100, 100), QByteArray::fromHex("11223344"));
+    QCOMPARE(pixel(filtered.bytes, 120, 120), QByteArray::fromHex("646464ff"));
+
+    // One undo step restores the raw tile; redo restores the filter result.
+    QCOMPARE(image->undo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, 256 * 256 * 4).bytes, bytes);
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, 256 * 256 * 4).bytes, filtered.bytes);
+
+    // Recovery retains the frozen values, mode and selection.
+    PaintDocument recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recoveredImage = recovered.image();
+    QCOMPARE(recoveredImage->operations().undoCount(), count);
+    QCOMPARE(recoveredImage->operations().historyAction(count), HistoryAction::HsvAdjustment);
+    const auto recoveredOperation =
+        std::get<FilterSnapshot>(recoveredImage->operations().snapshot()->layers.first().operations.last());
+    QCOMPARE(recoveredOperation->hue, 0);
+    QCOMPARE(recoveredOperation->saturation, 0);
+    QCOMPARE(recoveredOperation->value, 20);
+    QCOMPARE(recoveredOperation->hsvType, HsvAdjustmentType::Hsv);
+    QVERIFY(!recoveredOperation->compatibilityMode);
+    QCOMPARE(recoveredImage->readRgbaPixels(recoveredImage->operations().activeLayer(), region,
+             filtered.bytes.size()).bytes, filtered.bytes);
+
+    // KRA saving reads the filter result; reopening reproduces the same pixels.
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto path = QDir(destination).filePath(QStringLiteral("hsv-adjustment.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    QCOMPARE(loaded->operations().undoCount(), 0);
+    QCOMPARE(loaded->readRgbaPixels(loaded->operations().activeLayer(), region, filtered.bytes.size()).bytes,
+             filtered.bytes);
+
+    // A reopened layer stays editable; a later legacy-mode adjustment uses the
+    // new selection and the frozen compatibility flag.
+    QCOMPARE(loaded->clearSelection(), Result::Success);
+    QCOMPARE(loaded->setSelectionRect(QRect(96, 96, 32, 32)), Result::Success);
+    QCOMPARE(loaded->hsvAdjustment(loaded->operations().activeLayer(),
+                                   {0, 50, 0, HsvAdjustmentType::Hsv, true}), Result::Success);
+    QCOMPARE(loaded->operations().historyAction(loaded->operations().undoCount()), HistoryAction::HsvAdjustment);
+    const auto continued = loaded->readRgbaPixels(loaded->operations().activeLayer(), region, filtered.bytes.size());
+    QCOMPARE(continued.code, ExecutionCode::Success);
+    // The legacy saturation rule can color the neutral gray produced by the
+    // first adjustment; pixels outside the new selection keep their values.
+    QCOMPARE(pixel(continued.bytes, 120, 120), QByteArray::fromHex("643233ff"));
+    QCOMPARE(pixel(continued.bytes, 80, 80), QByteArray::fromHex("808080ff"));
+    QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("3b434b28"));
 }
 
 void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra()

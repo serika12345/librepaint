@@ -46,7 +46,8 @@ class KisProofingConfiguration;
 class KisPaintDevice;
 class KisImageGlobalSelectionManagementInterface;
 struct KisGpuImageViewState;
-namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; enum class SelectionKind : quint8;
+namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; struct HsvAdjustment;
+enum class SelectionKind : quint8;
 using SelectionMaskSP = QSharedPointer<const SelectionMask>; }
 
 namespace KisMetaData
@@ -137,6 +138,13 @@ public:
      * or an off-thread call; no history entry is added in that case.
      */
     bool grayscaleGpuLayerColors(KisNodeSP layer);
+    /** Applies the product HSV/HSL Adjustment values on the GPU paint layer for
+     * the current selection as one history entry. False reports invalid or
+     * luma-dependent settings, a group, mask or foreign node, a locked layer or
+     * an off-thread call; no history entry is added in that case.
+     */
+    bool hsvAdjustmentGpuLayerColors(KisNodeSP layer,
+                                     const LibrePaint::Image::Gpu::HsvAdjustment &settings);
     bool setGpuTransparencyMaskVisible(KisNodeSP layer, bool visible);
     bool removeGpuTransparencyMask(KisNodeSP layer);
     bool gpuTransparencyMaskVisible(KisNodeSP layer) const;

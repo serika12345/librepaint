@@ -19,7 +19,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 51;
+constexpr quint16 FormatVersion = 52;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -247,6 +247,11 @@ QByteArray OperationDocument::recoveryData() const
                    << qint32(operation.selectionRect.x()) << qint32(operation.selectionRect.y())
                    << qint32(operation.selectionRect.width()) << qint32(operation.selectionRect.height())
                    << quint8(operation.selectionInverted) << quint8(operation.selectionKind);
+            if (FormatVersion >= 52 && operation.kind == FilterKind::HsvAdjustment) {
+                // Format 52 freezes the product HSV/HSL Adjustment values and mode.
+                stream << operation.hue << operation.saturation << operation.value
+                       << quint8(operation.hsvType) << quint8(operation.compatibilityMode);
+            }
             if (operation.selectionKind == SelectionKind::Freehand) {
                 if (!operation.selectionMask || !maskIndices.contains(operation.selectionMask.data())) return {};
                 stream << maskIndices.value(operation.selectionMask.data());
@@ -498,15 +503,29 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             qint32 x = 0, y = 0, width = 0, height = 0;
             quint8 inverted = 0, selectionKind = 0;
             stream >> filterKind >> x >> y >> width >> height >> inverted >> selectionKind;
-            // Format 50 knew only Invert Colors; format 51 adds Grayscale.
-            const quint8 maximumFilterKind = format >= 51 ? quint8(FilterKind::Grayscale) :
-                quint8(FilterKind::InvertColors);
+            // Format 50 knew only Invert Colors; format 51 adds Grayscale and
+            // format 52 adds the HSV/HSL Adjustment settings.
+            const quint8 maximumFilterKind = format >= 52 ? quint8(FilterKind::HsvAdjustment) :
+                format >= 51 ? quint8(FilterKind::Grayscale) : quint8(FilterKind::InvertColors);
             if (filterKind > maximumFilterKind || inverted > 1 ||
                 selectionKind > maximumSelectionKind(format) || version == 0) return Result::InvalidRecovery;
             operation->kind = FilterKind(filterKind);
             operation->selectionRect = QRect(x, y, width, height);
             operation->selectionInverted = inverted != 0;
             operation->selectionKind = SelectionKind(selectionKind);
+            if (operation->kind == FilterKind::HsvAdjustment) {
+                qint32 hue = 0, saturation = 0, value = 0;
+                quint8 type = 0, compatibilityMode = 0;
+                stream >> hue >> saturation >> value >> type >> compatibilityMode;
+                const HsvAdjustment settings{hue, saturation, value, HsvAdjustmentType(type),
+                                             compatibilityMode != 0};
+                if (compatibilityMode > 1 || !settings.isValid()) return Result::InvalidRecovery;
+                operation->hue = settings.hue;
+                operation->saturation = settings.saturation;
+                operation->value = settings.value;
+                operation->hsvType = settings.type;
+                operation->compatibilityMode = settings.compatibilityMode;
+            }
             if (operation->selectionKind == SelectionKind::Freehand) {
                 quint32 maskIndex = NoOperation;
                 stream >> maskIndex;

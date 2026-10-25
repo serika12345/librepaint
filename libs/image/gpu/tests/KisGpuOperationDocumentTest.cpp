@@ -144,7 +144,10 @@ private Q_SLOTS:
     void invertColorsFreezesCoverageAndRecovers();
     void rejectedInvertColorsPreserveHistoryAndInput();
     void grayscaleFilterFreezesCoverageAndRecovers();
-    void grayscaleRecoveryRequiresFormat51();
+    void grayscaleRecoveryKeepsItsKindAcrossFormatBumps();
+    void hsvAdjustmentFreezesSettingsAndRecovers();
+    void hsvAdjustmentRejectsInvalidSettingsAndPreservesHistory();
+    void hsvAdjustmentRecoveryRequiresFormat52();
     void previousTranslatedRecoveryPreservesPendingInputAndCropHistory();
     void layerTranslationPreservesInputVersionsAndOneHistoryEntry();
     void previousPlacedRecoveryPreservesPendingInputAndPosition();
@@ -2040,7 +2043,7 @@ void KisGpuOperationDocumentTest::grayscaleFilterFreezesCoverageAndRecovers()
     QCOMPARE(maskOperation->selectionMask->coverage(8, 8), quint8(96));
 }
 
-void KisGpuOperationDocumentTest::grayscaleRecoveryRequiresFormat51()
+void KisGpuOperationDocumentTest::grayscaleRecoveryKeepsItsKindAcrossFormatBumps()
 {
     RasterImage source;
     source.size = {64, 64};
@@ -2065,17 +2068,275 @@ void KisGpuOperationDocumentTest::grayscaleRecoveryRequiresFormat51()
     quint16 format = 0;
     headerStream >> magic >> format;
     QCOMPARE(magic, quint32(0x4c504f52));
-    QCOMPARE(format, quint16(51));
+    QCOMPARE(format, quint16(52));
 
-    // The same record restores at format 51.
+    // The same record restores at format 52.
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
     QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::Grayscale);
     QCOMPARE(std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last())->kind,
              FilterKind::Grayscale);
 
+    const auto relabel = [&](quint16 value) {
+        auto payload = bytes.first(bytes.size() - 32);
+        QBuffer patcher(&payload);
+        if (!patcher.open(QIODevice::ReadWrite)) return QByteArray();
+        QDataStream patchStream(&patcher);
+        patchStream.setVersion(QDataStream::Qt_5_15);
+        patchStream.setByteOrder(QDataStream::BigEndian);
+        patcher.seek(4);
+        patchStream << value;
+        patcher.close();
+        payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
+        return payload;
+    };
+
+    // Format 51 also knows Grayscale, so the same payload relabelled as 51 is
+    // still readable with the same kind.
+    OperationDocument at51({1, 1});
+    QCOMPARE(at51.restoreRecovery(relabel(51)), Result::Success);
+    QCOMPARE(at51.historyAction(at51.undoCount()), HistoryAction::Grayscale);
+    QCOMPARE(std::get<FilterSnapshot>(at51.snapshot()->layers.first().operations.last())->kind,
+             FilterKind::Grayscale);
+
     // Re-labelling the payload as format 50 must reject the Grayscale kind,
     // because format 50 knew only Invert Colors.
+    OperationDocument live({64, 64});
+    const auto liveBefore = live.snapshot();
+    QCOMPARE(live.restoreRecovery(relabel(50)), Result::InvalidRecovery);
+    QCOMPARE(live.snapshot(), liveBefore);
+    QCOMPARE(live.undoCount(), 0);
+}
+
+void KisGpuOperationDocumentTest::hsvAdjustmentFreezesSettingsAndRecovers()
+{
+    RasterImage source;
+    source.size = {256, 256};
+    RasterLayer target;
+    target.name = QStringLiteral("Target");
+    target.uuid = QUuid::createUuid();
+    target.tiles.append({{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')});
+    source.layers.append(target);
+    OperationDocument document(source);
+    const auto layer = document.activeLayer();
+    const auto before = document.snapshot();
+    QCOMPARE(document.setSelectionEllipse(QRect(32, 32, 64, 48), true), Result::Success);
+    const HsvAdjustment settings{45, -20, 30, HsvAdjustmentType::Hsl, true};
+    QCOMPARE(document.hsvAdjustment(layer, settings), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::HsvAdjustment);
+    const auto operation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->layer, layer);
+    QCOMPARE(operation->kind, FilterKind::HsvAdjustment);
+    QCOMPARE(operation->version, quint64(1));
+    QCOMPARE(operation->hue, 45);
+    QCOMPARE(operation->saturation, -20);
+    QCOMPARE(operation->value, 30);
+    QCOMPARE(operation->hsvType, HsvAdjustmentType::Hsl);
+    QVERIFY(operation->compatibilityMode);
+    QCOMPARE(operation->selectionRect, QRect(32, 32, 64, 48));
+    QCOMPARE(operation->selectionKind, SelectionKind::Ellipse);
+    QVERIFY(operation->selectionInverted);
+    QVERIFY(!operation->selectionMask);
+
+    // Later selection edits do not rewrite the frozen filter settings or coverage.
+    QCOMPARE(document.setSelectionRect(QRect(1, 1, 2, 2)), Result::Success);
+    const auto frozen = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(frozen->hue, 45);
+    QCOMPARE(frozen->saturation, -20);
+    QCOMPARE(frozen->value, 30);
+    QCOMPARE(frozen->hsvType, HsvAdjustmentType::Hsl);
+    QCOMPARE(frozen->selectionRect, QRect(32, 32, 64, 48));
+
+    // Duplication copies the settings with a fresh operation identity.
+    QCOMPARE(document.duplicateLayers({layer}, {QStringLiteral("Copy")}, layer), Result::Success);
+    const auto copied = document.snapshot()->layers.last();
+    const auto copiedFilter = std::get<FilterSnapshot>(copied.operations.last());
+    QCOMPARE(copiedFilter->layer, copied.id);
+    QVERIFY(copiedFilter->id.sequence != operation->id.sequence);
+    QCOMPARE(copiedFilter->hue, 45);
+    QCOMPARE(copiedFilter->hsvType, HsvAdjustmentType::Hsl);
+    // Undo the duplication and the later selection; the filter itself remains
+    // one entry. Further Undo removes it and the first selection. Redo walks
+    // back to the filter state.
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(std::holds_alternative<FilterSnapshot>(document.snapshot()->layers.first().operations.last()));
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!std::holds_alternative<FilterSnapshot>(document.snapshot()->layers.first().operations.last()));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->hue, 45);
+
+    QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.undoCount(), 2);
+    QCOMPARE(recovered.historyAction(2), HistoryAction::HsvAdjustment);
+    const auto recoveredOperation = std::get<FilterSnapshot>(recovered.snapshot()->layers.first().operations.last());
+    QCOMPARE(recoveredOperation->kind, FilterKind::HsvAdjustment);
+    QCOMPARE(recoveredOperation->hue, 45);
+    QCOMPARE(recoveredOperation->saturation, -20);
+    QCOMPARE(recoveredOperation->value, 30);
+    QCOMPARE(recoveredOperation->hsvType, HsvAdjustmentType::Hsl);
+    QVERIFY(recoveredOperation->compatibilityMode);
+    QCOMPARE(recoveredOperation->selectionRect, QRect(32, 32, 64, 48));
+    QCOMPARE(recovered.savedHistoryIndex(), 2);
+
+    // Alpha (feathered) freehand coverage is retained with the settings.
+    const QRect clip(QPoint(), QSize(32, 32));
+    QByteArray coverage(32 * 32, '\0');
+    coverage[8 * 32 + 8] = char(96);
+    const auto soft = SelectionMask::fromAlphaCoverage(clip, coverage, clip);
+    QVERIFY(soft);
+    RasterImage maskSource;
+    maskSource.size = {32, 32};
+    RasterLayer maskLayer;
+    maskLayer.name = QStringLiteral("Masked");
+    maskLayer.uuid = QUuid::createUuid();
+    maskLayer.tiles.append({{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')});
+    maskSource.layers.append(maskLayer);
+    OperationDocument masked(maskSource);
+    QCOMPARE(masked.setSelectionMask(soft), Result::Success);
+    QCOMPARE(masked.hsvAdjustment(masked.activeLayer(), {10, 20, -30, HsvAdjustmentType::Hsv, false}),
+             Result::Success);
+    OperationDocument maskRecovered({1, 1});
+    QCOMPARE(maskRecovered.restoreRecovery(masked.recoveryData()), Result::Success);
+    const auto maskOperation = std::get<FilterSnapshot>(maskRecovered.snapshot()->layers.first().operations.last());
+    QVERIFY(maskOperation->selectionMask);
+    QVERIFY(*maskOperation->selectionMask == *soft);
+    QCOMPARE(maskOperation->hue, 10);
+    QCOMPARE(maskOperation->saturation, 20);
+    QCOMPARE(maskOperation->value, -30);
+    QCOMPARE(maskOperation->hsvType, HsvAdjustmentType::Hsv);
+    QVERIFY(!maskOperation->compatibilityMode);
+}
+
+void KisGpuOperationDocumentTest::hsvAdjustmentRejectsInvalidSettingsAndPreservesHistory()
+{
+    RasterImage source;
+    source.size = {64, 64};
+    RasterLayer paint;
+    paint.name = QStringLiteral("Paint");
+    paint.uuid = QUuid::createUuid();
+    RasterLayer locked;
+    locked.name = QStringLiteral("Locked");
+    locked.uuid = QUuid::createUuid();
+    locked.userLocked = true;
+    RasterLayer group;
+    group.name = QStringLiteral("Group");
+    group.uuid = QUuid::createUuid();
+    group.kind = LayerKind::Group;
+    source.layers = {paint, locked, group};
+    OperationDocument document(source);
+    const auto before = document.snapshot();
+    const auto paintId = before->layers[0].id;
+    const auto lockedId = before->layers[1].id;
+    const auto groupId = before->layers[2].id;
+
+    // The product default configuration is zero h/s/v, type 1 (HSL) and the
+    // modern (non-legacy) rule.
+    const HsvAdjustment defaults;
+    QCOMPARE(defaults.hue, 0);
+    QCOMPARE(defaults.saturation, 0);
+    QCOMPARE(defaults.value, 0);
+    QCOMPARE(defaults.type, HsvAdjustmentType::Hsl);
+    QVERIFY(!defaults.compatibilityMode);
+    QVERIFY(defaults.isValid());
+
+    // Product slider ranges are [-180, 180] and [-100, 100]; other modes are
+    // represented by HsvAdjustmentType but invalid enum values are rejected.
+    const HsvAdjustment invalid[] = {
+        {181, 0, 0, HsvAdjustmentType::Hsv, false},
+        {-181, 0, 0, HsvAdjustmentType::Hsv, false},
+        {0, 101, 0, HsvAdjustmentType::Hsv, false},
+        {0, -101, 0, HsvAdjustmentType::Hsv, false},
+        {0, 0, 101, HsvAdjustmentType::Hsv, false},
+        {0, 0, -101, HsvAdjustmentType::Hsv, false},
+        {0, 0, 0, HsvAdjustmentType(3), false},
+    };
+    for (const auto &settings : invalid) {
+        QVERIFY(!settings.isValid());
+        QCOMPARE(document.hsvAdjustment(paintId, settings), Result::InvalidInput);
+        QCOMPARE(document.snapshot(), before);
+        QCOMPARE(document.undoCount(), 0);
+    }
+
+    QCOMPARE(document.hsvAdjustment(lockedId, {}), Result::LayerUnavailable);
+    QCOMPARE(document.hsvAdjustment(groupId, {}), Result::LayerUnavailable);
+    QCOMPARE(document.hsvAdjustment(999, {}), Result::LayerUnavailable);
+    QCOMPARE(document.snapshot(), before);
+
+    const auto pending = document.beginStroke(paintId, Brush{}, 7);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(document.appendSamples(pending, {{{8, 8}, 1}}), Result::Success);
+    QCOMPARE(document.hsvAdjustment(paintId, {}), Result::EditInProgress);
+    QCOMPARE(document.cancelStroke(pending), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    document.close();
+    QCOMPARE(document.hsvAdjustment(paintId, {}), Result::Closed);
+    QCOMPARE(document.snapshot(), before);
+
+    // Product boundary values are accepted and frozen verbatim.
+    OperationDocument bounds({64, 64});
+    const auto boundsLayer = bounds.activeLayer();
+    QCOMPARE(bounds.hsvAdjustment(boundsLayer, {-180, -100, -100, HsvAdjustmentType::Hsv, true}),
+             Result::Success);
+    QCOMPARE(bounds.hsvAdjustment(boundsLayer, {180, 100, 100, HsvAdjustmentType::Hsi, false}),
+             Result::Success);
+    QCOMPARE(bounds.undoCount(), 2);
+    auto operations = bounds.snapshot()->layers.first().operations;
+    QCOMPARE(std::get<FilterSnapshot>(operations[0])->hue, -180);
+    QCOMPARE(std::get<FilterSnapshot>(operations[0])->saturation, -100);
+    QCOMPARE(std::get<FilterSnapshot>(operations[0])->value, -100);
+    QVERIFY(std::get<FilterSnapshot>(operations[0])->compatibilityMode);
+    QCOMPARE(std::get<FilterSnapshot>(operations[1])->hue, 180);
+    QCOMPARE(std::get<FilterSnapshot>(operations[1])->hsvType, HsvAdjustmentType::Hsi);
+    QVERIFY(!std::get<FilterSnapshot>(operations[1])->compatibilityMode);
+}
+
+void KisGpuOperationDocumentTest::hsvAdjustmentRecoveryRequiresFormat52()
+{
+    RasterImage source;
+    source.size = {64, 64};
+    RasterLayer target;
+    target.name = QStringLiteral("Target");
+    target.uuid = QUuid::createUuid();
+    source.layers.append(target);
+    OperationDocument document(source);
+    QCOMPARE(document.setSelectionRect(QRect(8, 8, 16, 16)), Result::Success);
+    QCOMPARE(document.hsvAdjustment(document.activeLayer(), {-60, 25, 40, HsvAdjustmentType::Hsv, true}),
+             Result::Success);
+    const auto bytes = document.recoveryData();
+    QVERIFY(!bytes.isEmpty());
+
+    QBuffer header;
+    header.setData(bytes);
+    QVERIFY(header.open(QIODevice::ReadOnly));
+    QDataStream headerStream(&header);
+    headerStream.setVersion(QDataStream::Qt_5_15);
+    headerStream.setByteOrder(QDataStream::BigEndian);
+    quint32 magic = 0;
+    quint16 format = 0;
+    headerStream >> magic >> format;
+    QCOMPARE(magic, quint32(0x4c504f52));
+    QCOMPARE(format, quint16(52));
+
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::HsvAdjustment);
+    const auto restoredOperation = std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(restoredOperation->kind, FilterKind::HsvAdjustment);
+    QCOMPARE(restoredOperation->hue, -60);
+    QCOMPARE(restoredOperation->saturation, 25);
+    QCOMPARE(restoredOperation->value, 40);
+    QCOMPARE(restoredOperation->hsvType, HsvAdjustmentType::Hsv);
+    QVERIFY(restoredOperation->compatibilityMode);
+
+    // Re-labelling the payload as format 51 must reject the HSV kind, because
+    // format 51 knew only Invert Colors and Grayscale.
     auto payload = bytes.first(bytes.size() - 32);
     QBuffer patcher(&payload);
     QVERIFY(patcher.open(QIODevice::ReadWrite));
@@ -2083,7 +2344,7 @@ void KisGpuOperationDocumentTest::grayscaleRecoveryRequiresFormat51()
     patchStream.setVersion(QDataStream::Qt_5_15);
     patchStream.setByteOrder(QDataStream::BigEndian);
     QVERIFY(patcher.seek(4));
-    patchStream << quint16(50);
+    patchStream << quint16(51);
     patcher.close();
     payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
     OperationDocument live({64, 64});

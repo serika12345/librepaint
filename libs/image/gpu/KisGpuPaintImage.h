@@ -249,6 +249,12 @@ public:
      * survives recovery, Undo/Redo and KRA pixel saving.
      */
     Result grayscale(LayerId layer);
+    /** Applies the product HSV/HSL Adjustment values within the current
+     * selection coverage as one history entry. The settings and mode are
+     * frozen in the operation; alpha and unselected pixels stay intact, and
+     * the frozen operation survives recovery, Undo/Redo and KRA pixel saving.
+     */
+    Result hsvAdjustment(LayerId layer, const HsvAdjustment &settings);
     Result undo();
     Result redo();
     Result setHistoryIndex(int index);

@@ -622,6 +622,16 @@ bool KisImage::grayscaleGpuLayerColors(KisNodeSP layer)
     return layerId && owner->grayscale(layerId) == LibrePaint::Image::Gpu::Result::Success;
 }
 
+bool KisImage::hsvAdjustmentGpuLayerColors(KisNodeSP layer,
+                                           const LibrePaint::Image::Gpu::HsvAdjustment &settings)
+{
+    const auto owner = gpuImage();
+    if (!owner || !layer || layer->image() != this ||
+        QThread::currentThread() != owner->thread() || !settings.isValid()) return false;
+    const auto layerId = gpuPaintLayerId(owner->operations().snapshot(), layer);
+    return layerId && owner->hsvAdjustment(layerId, settings) == LibrePaint::Image::Gpu::Result::Success;
+}
+
 bool KisImage::addGpuTransparencyMaskFromSelection(KisNodeSP layer)
 {
     const auto owner = gpuImage();

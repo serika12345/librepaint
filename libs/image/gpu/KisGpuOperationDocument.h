@@ -284,17 +284,62 @@ using CropSnapshot = QSharedPointer<const CropOperation>;
  * InvertColors complements stored RGB. Grayscale replaces RGB with the
  * Rec.709 luminance (0.2126 R + 0.7152 G + 0.0722 B) of the stored
  * sRGB-encoded bytes, rounded half up by the integer rule
- * `(2126 R + 7152 G + 722 B + 5000) / 10000`. Both kinds preserve alpha.
+ * `(2126 R + 7152 G + 722 B + 5000) / 10000`. HsvAdjustment applies the
+ * product HSV/HSL Adjustment slider values to stored RGB. All kinds preserve
+ * alpha.
  */
-enum class FilterKind : quint8 { InvertColors, Grayscale };
+enum class FilterKind : quint8 { InvertColors, Grayscale, HsvAdjustment };
+
+/** Product HSV/HSL Adjustment modes whose CPU pixel rule depends only on the
+ * stored RGB value: HSV (0), HSL (1) and HSI (2), matching the product
+ * filter's `type` key. HSY, YUV and Colorize additionally read the document
+ * color space's luma coefficients and are not available to GPU documents.
+ */
+enum class HsvAdjustmentType : quint8 { Hsv = 0, Hsl = 1, Hsi = 2 };
+
+/** Frozen product HSV/HSL Adjustment settings.
+ *
+ * The product keys are `h`, `s`, `v`, `type` and `compatibilityMode`. Hue is
+ * degrees in [-180, 180]; saturation and value are percentages in
+ * [-100, 100]. Zero is the product reset value for all three. The product
+ * `defaultConfiguration()` writes type 1 (HSL) and the modern rule, so those
+ * are the defaults here. The legacy compatibility mode reproduces the
+ * product's pre-4.3 conversion and changes neutral-pixel behavior, so it is
+ * frozen with the values.
+ */
+struct HsvAdjustment
+{
+    qint32 hue = 0;
+    qint32 saturation = 0;
+    qint32 value = 0;
+    HsvAdjustmentType type = HsvAdjustmentType::Hsl;
+    bool compatibilityMode = false;
+
+    bool operator==(const HsvAdjustment &other) const
+    {
+        return hue == other.hue && saturation == other.saturation && value == other.value &&
+            type == other.type && compatibilityMode == other.compatibilityMode;
+    }
+    bool operator!=(const HsvAdjustment &other) const { return !(*this == other); }
+    /** True for a configuration the GPU RGBA8 rule can reproduce. */
+    bool isValid() const
+    {
+        return (type == HsvAdjustmentType::Hsv || type == HsvAdjustmentType::Hsl ||
+                type == HsvAdjustmentType::Hsi) &&
+            hue >= -180 && hue <= 180 && saturation >= -100 && saturation <= 100 &&
+            value >= -100 && value <= 100;
+    }
+};
 
 /** Whole-layer pixel filter over preceding retained pixels.
  *
  * The selection coverage, its inversion and the filter kind are frozen when
- * the operation is accepted. Only RGB participates: alpha is preserved, and
+ * the operation is accepted. An HSV/HSL Adjustment also freezes its raw
+ * product values (`hue`, `saturation`, `value`), its color mode and the legacy
+ * compatibility flag. Only RGB participates: alpha is preserved, and
  * transparent pixels keep alpha zero while their hidden RGB is filtered like
- * the corresponding channel-mask arithmetic. Coverage is retained for every
- * document version, recovery record and Undo/Redo step.
+ * the corresponding channel-mask arithmetic. Coverage and settings are
+ * retained for every document version, recovery record and Undo/Redo step.
  */
 struct FilterOperation
 {
@@ -302,6 +347,12 @@ struct FilterOperation
     quint64 version = 1;
     LayerId layer = 0;
     FilterKind kind = FilterKind::InvertColors;
+    /** Frozen HSV/HSL Adjustment settings; meaningful when kind is HsvAdjustment. */
+    qint32 hue = 0;
+    qint32 saturation = 0;
+    qint32 value = 0;
+    HsvAdjustmentType hsvType = HsvAdjustmentType::Hsv;
+    bool compatibilityMode = false;
     QRect selectionRect{};
     bool selectionInverted = false;
     SelectionKind selectionKind = SelectionKind::Rectangle;
@@ -510,7 +561,7 @@ enum class HistoryAction {
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
     ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
     ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors,
-    Grayscale
+    Grayscale, HsvAdjustment
 };
 
 struct Limits
@@ -778,6 +829,15 @@ public:
      * rectangle, inversion, kind and mask are frozen in the operation.
      */
     Result grayscale(LayerId layer);
+    /** Applies the product HSV/HSL Adjustment settings to one paint layer
+     * inside the current selection coverage as one history entry. The raw
+     * product slider values and the color mode are frozen in the operation;
+     * out-of-range values and luma-dependent product modes are rejected
+     * without changing history. Alpha is preserved and pixels outside the
+     * coverage retain their exact values. The selection rectangle, inversion,
+     * kind and mask are frozen in the operation.
+     */
+    Result hsvAdjustment(LayerId layer, const HsvAdjustment &settings);
     Result undo();
     Result redo();
     /** Selects one retained history state without executing intermediate edits. */
@@ -844,7 +904,7 @@ private:
                               Snapshot *retainedVersion = nullptr);
     Result fillLayerStyle(LayerId layer, const std::array<quint8, 4> &color, const FigureStyle &style,
                           quint8 opacity, bool erase, bool alphaLocked);
-    Result applyFilter(LayerId layer, FilterKind kind);
+    Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member,
