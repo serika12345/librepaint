@@ -162,19 +162,17 @@ public:
                 else if (event->modifiers().testFlag(Qt::ControlModifier)) delta *= 100;
                 else if (event->modifiers().testFlag(Qt::ShiftModifier)) delta *= 10;
                 const QRect current = this->image()->gpuSelectionRect();
-                if (!current.isEmpty() && this->image()->gpuSelectionFreehand()) {
-                    toolCanvas()->showToolMessage(
-                        i18n("Moving a freehand GPU selection is not supported yet."),
-                        QStringLiteral("object-locked"));
-                    event->accept();
-                    return;
-                }
                 if (!current.isEmpty()) {
-                    const bool ok = this->image()->gpuSelectionEllipse()
-                        ? this->image()->setGpuSelectionEllipse(current.translated(delta),
-                                                                this->image()->gpuSelectionInverted())
-                        : this->image()->setGpuSelectionRect(current.translated(delta),
-                                                             this->image()->gpuSelectionInverted());
+                    bool ok = false;
+                    if (this->image()->gpuSelectionFreehand()) {
+                        ok = this->image()->moveGpuSelectionBy(delta);
+                    } else {
+                        ok = this->image()->gpuSelectionEllipse()
+                            ? this->image()->setGpuSelectionEllipse(current.translated(delta),
+                                                                    this->image()->gpuSelectionInverted())
+                            : this->image()->setGpuSelectionRect(current.translated(delta),
+                                                                 this->image()->gpuSelectionInverted());
+                    }
                     if (!ok) toolCanvas()->showToolMessage(i18n("The selection could not be moved."),
                                                            QStringLiteral("object-locked"));
                 }
@@ -183,8 +181,11 @@ public:
             }
         }
         if (event->key() == Qt::Key_Escape && m_gpuMovingSelection) {
-            this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
-                                                   m_gpuSelectionStartInverted);
+            if (this->image()->gpuSelectionFreehand())
+                this->image()->previewGpuSelectionMoveBy(QPoint());
+            else
+                this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
+                                                       m_gpuSelectionStartInverted);
             m_gpuMovingSelection = false;
             endMoveSelectionInteraction();
             event->accept();
@@ -283,12 +284,6 @@ public:
             return;
         }
         if (gpu && locateSelectionMaskUnderCursor(this->convertToPixelCoord(event->point), event->modifiers())) {
-            if (this->image()->gpuSelectionFreehand()) {
-                toolCanvas()->showToolMessage(
-                    i18n("Moving a freehand GPU selection is not supported yet."),
-                    QStringLiteral("object-locked"));
-                return;
-            }
             if (selectionAction() != SELECTION_REPLACE) {
                 toolCanvas()->showToolMessage(
                     i18n("The GPU painting engine supports replacement selection actions only."),
@@ -336,7 +331,13 @@ public:
             const QRect moved = m_gpuSelectionStartRect.translated((pos - m_gpuSelectionDragStart).toPoint());
             if (moved != m_gpuSelectionPreviewRect) {
                 m_gpuSelectionPreviewRect = moved;
-this->image()->previewGpuSelectionRect(moved, m_gpuSelectionStartEllipse, m_gpuSelectionStartInverted);
+                if (this->image()->gpuSelectionFreehand()) {
+                    this->image()->previewGpuSelectionMoveBy(
+                        moved.topLeft() - m_gpuSelectionStartRect.topLeft());
+                } else {
+                    this->image()->previewGpuSelectionRect(moved, m_gpuSelectionStartEllipse,
+                                                           m_gpuSelectionStartInverted);
+                }
             }
             return;
         }
@@ -356,12 +357,23 @@ this->image()->previewGpuSelectionRect(moved, m_gpuSelectionStartEllipse, m_gpuS
         if (m_gpuMovingSelection) {
             m_gpuMovingSelection = false;
             endMoveSelectionInteraction();
-            if (m_gpuSelectionPreviewRect != m_gpuSelectionStartRect &&
-                !(m_gpuSelectionStartEllipse
-                      ? this->image()->setGpuSelectionEllipse(m_gpuSelectionPreviewRect, m_gpuSelectionStartInverted)
-                      : this->image()->setGpuSelectionRect(m_gpuSelectionPreviewRect, m_gpuSelectionStartInverted))) {
-                this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
-                                                       m_gpuSelectionStartInverted);
+            bool movedOk = true;
+            if (m_gpuSelectionPreviewRect != m_gpuSelectionStartRect) {
+                if (this->image()->gpuSelectionFreehand()) {
+                    movedOk = this->image()->moveGpuSelectionBy(
+                        m_gpuSelectionPreviewRect.topLeft() - m_gpuSelectionStartRect.topLeft());
+                } else {
+                    movedOk = m_gpuSelectionStartEllipse
+                        ? this->image()->setGpuSelectionEllipse(m_gpuSelectionPreviewRect, m_gpuSelectionStartInverted)
+                        : this->image()->setGpuSelectionRect(m_gpuSelectionPreviewRect, m_gpuSelectionStartInverted);
+                }
+            }
+            if (!movedOk) {
+                if (this->image()->gpuSelectionFreehand())
+                    this->image()->previewGpuSelectionMoveBy(QPoint());
+                else
+                    this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
+                                                           m_gpuSelectionStartInverted);
                 toolCanvas()->showToolMessage(
                     i18n("The selection could not be moved."),
                     QStringLiteral("object-locked"));

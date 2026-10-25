@@ -2741,6 +2741,18 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QCOMPARE(layerCopy.pixelColor(80 - mask->bounds().x(), 80 - mask->bounds().y()), QColor(17, 129, 241));
     QCOMPARE(layerCopy.pixelColor(176 - mask->bounds().x(), 176 - mask->bounds().y()).alpha(), 0);
 
+    const QRect beforeMove = owner->selectionRect();
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point({80, 80}));
+    QTest::mouseMove(native.data(), point({96, 96}), 30);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({96, 96}));
+    QTRY_COMPARE(owner->selectionRect(), beforeMove.translated(16, 16));
+    QVERIFY(owner->selectionMask());
+    QVERIFY(owner->selectionMask()->contains(96, 96));
+    QVERIFY(!owner->selectionMask()->contains(beforeMove.left(), beforeMove.top()));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), beforeMove);
+    QVERIFY(owner->selectionMask()->contains(80, 80));
+
     QVERIFY(lifetime->image()->clearGpuSelection());
     QTRY_VERIFY(owner->selectionRect().isEmpty());
     QVERIFY(lifetime->image()->reselectGpuSelection());

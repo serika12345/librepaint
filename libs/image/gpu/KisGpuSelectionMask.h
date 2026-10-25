@@ -55,6 +55,8 @@ public:
      * repeated or empty tiles.
      */
     static QSharedPointer<const SelectionMask> fromTiles(const SelectionTileMap &tiles);
+    /** Translates the selected pixels by `delta`, clipping them to `clip`. */
+    QSharedPointer<const SelectionMask> translated(QPoint delta, const QRect &clip) const;
 
     bool isEmpty() const { return m_bounds.isEmpty(); }
     /** Tight bounds of the selected pixels. */

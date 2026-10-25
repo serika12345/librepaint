@@ -414,6 +414,25 @@ bool KisImage::gpuSelectionFreehand() const
     return owner && owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Freehand;
 }
 
+bool KisImage::moveGpuSelectionBy(QPoint delta)
+{
+    const auto owner = gpuImage();
+    if (!owner) return false;
+    const auto mask = owner->selectionMask();
+    const auto moved = mask ? mask->translated(delta, QRect(QPoint(), size())) : nullptr;
+    return moved && owner->setSelectionMask(moved, owner->selectionInverted()) ==
+        LibrePaint::Image::Gpu::Result::Success;
+}
+
+void KisImage::previewGpuSelectionMoveBy(QPoint delta)
+{
+    const auto owner = gpuImage();
+    if (!owner || !owner->selectionMask()) return;
+    const auto moved = owner->selectionMask()->translated(delta, QRect(QPoint(), size()));
+    updateGpuSelectionMask(moved ? moved->bounds() : QRect(), owner->selectionInverted(),
+                           LibrePaint::Image::Gpu::SelectionKind::Freehand, moved);
+}
+
 bool KisImage::reselectGpuSelection()
 {
     if (!m_hasLastGpuSelection || m_lastGpuSelection.isEmpty()) return false;
@@ -463,6 +482,13 @@ void KisImage::previewGpuSelectionRect(const QRect &rect, bool ellipse, bool inv
     updateGpuSelectionMask(rect, inverted,
                            ellipse ? LibrePaint::Image::Gpu::SelectionKind::Ellipse
                                    : LibrePaint::Image::Gpu::SelectionKind::Rectangle);
+}
+
+void KisImage::previewGpuSelectionMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask, bool inverted)
+{
+    if (!gpuImage()) return;
+    updateGpuSelectionMask(mask ? mask->bounds() : QRect(), inverted,
+                           LibrePaint::Image::Gpu::SelectionKind::Freehand, mask);
 }
 
 void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePaint::Image::Gpu::SelectionKind kind,

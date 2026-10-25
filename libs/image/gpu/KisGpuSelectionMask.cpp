@@ -177,6 +177,35 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTiles(const SelectionTile
     return make(bounds, tiles);
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, const QRect &clip) const
+{
+    if (isEmpty() || clip.isEmpty() ||
+        std::abs(delta.x()) > CoordinateLimit || std::abs(delta.y()) > CoordinateLimit) return {};
+    CoverageBuilder builder;
+    for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) {
+        const int tileX = tile.key().first * TileSize;
+        const int tileY = tile.key().second * TileSize;
+        for (int row = 0; row < TileSize; ++row) {
+            const int worldY = tileY + row + delta.y();
+            if (worldY < clip.top() || worldY > clip.bottom()) continue;
+            const qsizetype base = qsizetype(row) * TileSize / 8;
+            int runStart = -1;
+            for (int x = 0; x <= TileSize; ++x) {
+                const bool selected = x < TileSize &&
+                    (quint8(tile.value().at(base + (x >> 3))) & (1u << (x & 7)));
+                if (selected && runStart < 0) runStart = x;
+                else if (!selected && runStart >= 0) {
+                    const int first = std::max(clip.left(), tileX + runStart + delta.x());
+                    const int last = std::min(clip.right(), tileX + x - 1 + delta.x());
+                    if (first <= last) builder.addSpan(worldY, first, last);
+                    runStart = -1;
+                }
+            }
+        }
+    }
+    return make(builder.bounds, std::move(builder.tiles));
+}
+
 bool SelectionMask::contains(int x, int y) const
 {
     if (!m_bounds.contains(x, y)) return false;
