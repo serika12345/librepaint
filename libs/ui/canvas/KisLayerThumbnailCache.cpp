@@ -210,8 +210,15 @@ QImage KisLayerThumbnailCache::thumbnail(KisNodeSP node) const
     if (m_d->image && m_d->image->gpuImage() && node) {
         const int sequence = node->thumbnailSeqNo();
         const auto previous = m_d->cache.constFind(node);
-        if (previous == m_d->cache.cend() || previous->seqNo != sequence || previous->maxSize != m_d->maxSize)
-            m_d->cache[node] = {node->createThumbnail(m_d->maxSize, m_d->maxSize), sequence, m_d->maxSize};
+        if (previous == m_d->cache.cend() || previous->seqNo != sequence || previous->maxSize != m_d->maxSize) {
+            // Mask coverage can have narrower bounds than the requested
+            // thumbnail, so preserve its aspect ratio instead of stretching it
+            // beyond the source device.
+            const QImage thumbnail = node->inherits("KisTransparencyMask")
+                ? node->createThumbnail(m_d->maxSize, m_d->maxSize, Qt::KeepAspectRatio)
+                : node->createThumbnail(m_d->maxSize, m_d->maxSize);
+            m_d->cache[node] = {thumbnail, sequence, m_d->maxSize};
+        }
     }
     QImage image;
 

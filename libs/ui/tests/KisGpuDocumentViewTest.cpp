@@ -67,6 +67,9 @@
 #include <kis_paint_layer.h>
 #include <kis_properties_configuration.h>
 #include <kis_selection.h>
+#include <kis_layer_properties_icons.h>
+#include <kis_transparency_mask.h>
+#include <kis_resources_snapshot.h>
 #include <kis_tool_utils.h>
 #include <nodes/kis_node_manager.h>
 #include <nodes/kis_node_filter_proxy_model.h>
@@ -127,6 +130,9 @@ private Q_SLOTS:
     void layerPanelThumbnailsReadOnlyReducedGpuPixels();
     void rectangularSelectionLimitsPainting();
     void transparencyMaskActionsUseTheActiveGpuPaintLayer();
+    void layerPanelShowsAndSelectsGpuTransparencyMaskChild();
+    void layerPanelTogglesAndRemovesGpuTransparencyMaskChild();
+    void layerPanelGpuTransparencyMaskChildSurvivesSaving();
     void selectionFillUsesGpuSelection();
     void selectionMergedCopyUsesGpuSelection();
     void selectionCopyAndCutUseGpuSelection();
@@ -1846,6 +1852,309 @@ void KisGpuDocumentViewTest::transparencyMaskActionsUseTheActiveGpuPaintLayer()
     QVERIFY(!image->addGpuTransparencyMaskFromSelection(node));
     QCOMPARE(owner->operations().undoCount(), count);
     QVERIFY(!owner->operations().snapshot()->layers.first().transparencyMask);
+}
+
+void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Mask child")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    auto image = KisImageSP(lifetime->image());
+    const auto layer = image->root()->firstChild();
+    QVERIFY(layer);
+    const auto maskNode = layer->firstChild();
+    QVERIFY(!maskNode);
+
+    // A nonuniform coverage proves the thumbnail is derived from the mask.
+    QByteArray coverage(32 * 32, '\0');
+    for (int y = 0; y < 32; ++y) {
+        for (int x = 0; x < 16; ++x) coverage[y * 32 + x] = 1;
+        // Keep the covered bounds square so the precise thumbnail retains both
+        // selected and unselected columns.
+        coverage[y * 32 + 31] = 1;
+    }
+    const auto selectionMask = Gpu::SelectionMask::fromCoverage(QRect(0, 0, 32, 32), coverage,
+                                                                QRect(0, 0, 64, 64));
+    QVERIFY(selectionMask);
+    QVERIFY(image->setGpuSelectionMask(selectionMask));
+    QVERIFY(image->addGpuTransparencyMaskFromSelection(layer));
+
+    auto child = layer->firstChild();
+    QVERIFY(child);
+    QVERIFY(child->inherits("KisTransparencyMask"));
+    QVERIFY(image->isGpuTransparencyMaskView(child));
+
+    auto *panel = window->findChild<QDockWidget*>(QStringLiteral("KisLayerBox"));
+    QVERIFY(panel);
+    auto *tree = panel->findChild<QTreeView*>(QStringLiteral("listLayers"));
+    QVERIFY(tree);
+    auto *proxy = qobject_cast<KisNodeFilterProxyModel*>(tree->model());
+    QVERIFY(proxy);
+    auto *model = qobject_cast<KisNodeModel*>(proxy->sourceModel());
+    QVERIFY(model);
+    model->setPreferredThumnalSize(32);
+    QTRY_VERIFY(proxy->indexFromNode(child).isValid());
+    const auto index = proxy->indexFromNode(child);
+    const auto thumbnail = proxy->data(index, int(KisNodeModel::BeginThumbnailRole) + 32).value<QImage>();
+    QVERIFY(!thumbnail.isNull());
+    QCOMPARE(thumbnail.size(), QSize(32, 32));
+    QCOMPARE(qGray(thumbnail.pixel(4, 16)), 255);
+    QCOMPARE(qGray(thumbnail.pixel(28, 16)), 0);
+
+    auto *manager = window->viewManager()->nodeManager();
+    QCOMPARE(view->currentNode(), layer);
+    const auto undoCount = lifetime->undoStack()->count();
+    manager->slotUiActivatedNode(child);
+    QCOMPARE(view->currentNode(), child);
+    QCOMPARE(manager->activeNode(), child);
+    QVERIFY(view->currentMask());
+    QCOMPARE(view->currentMask().data(), child.data());
+    QCOMPARE(lifetime->undoStack()->count(), undoCount);
+
+    // Direct painting is rejected instead of falling back to the paint layer.
+    const auto brush = captureGpuBrushResources(image, child, view->canvasBase()->resourceManager());
+    QCOMPARE(brush.layer, Gpu::LayerId(0));
+    QVERIFY(!brush.diagnostic.isEmpty());
+
+    manager->slotUiActivatedNode(layer);
+    QCOMPARE(view->currentNode(), layer);
+    QVERIFY(!view->currentMask());
+    QCOMPARE(lifetime->undoStack()->count(), undoCount);
+}
+
+void KisGpuDocumentViewTest::layerPanelTogglesAndRemovesGpuTransparencyMaskChild()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Mask child actions")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    auto image = KisImageSP(lifetime->image());
+    const auto layer = image->root()->firstChild();
+    QVERIFY(layer);
+    QVERIFY(image->setGpuSelectionRect(QRect(8, 8, 32, 32)));
+    QVERIFY(image->addGpuTransparencyMaskFromSelection(layer));
+    const auto child = layer->firstChild();
+    QVERIFY(child);
+    QVERIFY(child->inherits("KisTransparencyMask"));
+
+    auto *panel = window->findChild<QDockWidget*>(QStringLiteral("KisLayerBox"));
+    QVERIFY(panel);
+    auto *tree = panel->findChild<QTreeView*>(QStringLiteral("listLayers"));
+    QVERIFY(tree);
+    auto *proxy = qobject_cast<KisNodeFilterProxyModel*>(tree->model());
+    QVERIFY(proxy);
+    auto *model = qobject_cast<KisNodeModel*>(proxy->sourceModel());
+    QVERIFY(model);
+    QTRY_VERIFY(proxy->indexFromNode(child).isValid());
+    const auto index = proxy->indexFromNode(child);
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotUiActivatedNode(child);
+    manager->slotSetSelectedNodes({child});
+    QCOMPARE(view->currentNode(), child);
+
+    // The panel's visibility toggle is the mask visibility action.
+    auto properties = child->sectionModelProperties();
+    bool found = false;
+    for (auto &property : properties) {
+        if (property.id == KisLayerPropertiesIcons::visible.id()) {
+            property.state = false;
+            found = true;
+        }
+    }
+    QVERIFY(found);
+    const auto visibilityHistory = lifetime->undoStack()->count();
+    QVERIFY(proxy->setData(index, QVariant::fromValue(properties), KisNodeModel::PropertiesRole));
+    QVERIFY(!image->gpuTransparencyMaskVisible(layer));
+    QVERIFY(!child->visible());
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::ChangeMaskVisibility);
+    QCOMPARE(lifetime->undoStack()->count(), visibilityHistory + 1);
+
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QApplication::sendPostedEvents();
+    QApplication::processEvents();
+    QVERIFY(image->gpuTransparencyMaskVisible(layer));
+    QVERIFY(child->visible());
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QApplication::sendPostedEvents();
+    QApplication::processEvents();
+    QVERIFY(!image->gpuTransparencyMaskVisible(layer));
+    QVERIFY(!child->visible());
+
+    // Deleting the panel child removes the retained GPU mask.
+    manager->slotUiActivatedNode(child);
+    manager->slotSetSelectedNodes({child});
+    const auto removalHistory = lifetime->undoStack()->count();
+    manager->removeNode();
+    image->waitForDone();
+    QApplication::sendPostedEvents();
+    QApplication::processEvents();
+    QVERIFY(!owner->operations().snapshot()->layers.first().transparencyMask);
+    QVERIFY(!layer->firstChild());
+    QCOMPARE(view->currentNode(), layer);
+    QVERIFY(!view->currentMask());
+    QCOMPARE(lifetime->undoStack()->count(), removalHistory + 1);
+
+    // Undo restores both the child and the visibility it had before removal.
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QApplication::sendPostedEvents();
+    QApplication::processEvents();
+    const auto restored = layer->firstChild();
+    QVERIFY(restored);
+    QVERIFY(restored->inherits("KisTransparencyMask"));
+    QVERIFY(owner->operations().snapshot()->layers.first().transparencyMask);
+    QVERIFY(!image->gpuTransparencyMaskVisible(layer));
+    QVERIFY(!restored->visible());
+    QCOMPARE(view->currentNode(), layer);
+
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QApplication::sendPostedEvents();
+    QApplication::processEvents();
+    QVERIFY(!layer->firstChild());
+    QVERIFY(!owner->operations().snapshot()->layers.first().transparencyMask);
+}
+
+void KisGpuDocumentViewTest::layerPanelGpuTransparencyMaskChildSurvivesSaving()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Mask child saving")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    auto image = KisImageSP(lifetime->image());
+    const auto layer = image->root()->firstChild();
+    QVERIFY(layer);
+
+    QByteArray coverage(32 * 32, '\0');
+    for (int y = 0; y < 32; ++y)
+        for (int x = 0; x < 16; ++x) coverage[y * 32 + x] = 1;
+    const auto selectionMask = Gpu::SelectionMask::fromCoverage(QRect(0, 0, 32, 32), coverage,
+                                                                QRect(0, 0, 64, 64));
+    QVERIFY(selectionMask);
+    QVERIFY(image->setGpuSelectionMask(selectionMask));
+    QVERIFY(image->addGpuTransparencyMaskFromSelection(layer));
+    QVERIFY(image->setGpuTransparencyMaskVisible(layer, false));
+    const auto child = layer->firstChild();
+    QVERIFY(child);
+    QVERIFY(child->inherits("KisTransparencyMask"));
+    QVERIFY(!child->visible());
+
+    auto *panel = window->findChild<QDockWidget*>(QStringLiteral("KisLayerBox"));
+    QVERIFY(panel);
+    auto *tree = panel->findChild<QTreeView*>(QStringLiteral("listLayers"));
+    QVERIFY(tree);
+    auto *proxy = qobject_cast<KisNodeFilterProxyModel*>(tree->model());
+    QVERIFY(proxy);
+    QTRY_VERIFY(proxy->indexFromNode(child).isValid());
+    window->viewManager()->nodeManager()->slotUiActivatedNode(child);
+    QCOMPARE(view->currentNode(), child);
+
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("mask-child.kra"));
+    lifetime->setFileBatchMode(true);
+    QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QVERIFY(loaded.document.image.layers.first().transparencyMask);
+    QVERIFY(!loaded.document.image.layers.first().transparencyMaskVisible);
+    QCOMPARE(loaded.document.image.layers.first().transparencyMask->coverage(4, 16), quint8(255));
+    QCOMPARE(loaded.document.image.layers.first().transparencyMask->coverage(28, 16), quint8(0));
+
+    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    QVERIFY(reopened);
+    lifetime->setCurrentImage(KisImage::fromGpuImage(reopened, QStringLiteral("Reopened mask child")));
+    QTRY_VERIFY(view->currentNode());
+    QApplication::sendPostedEvents();
+    QApplication::processEvents();
+    auto reopenedImage = KisImageSP(lifetime->image());
+    QVERIFY(reopenedImage);
+    const auto reopenedLayer = reopenedImage->root()->firstChild();
+    QVERIFY(reopenedLayer);
+    const auto reopenedChild = reopenedLayer->firstChild();
+    QVERIFY(reopenedChild);
+    QVERIFY(reopenedChild->inherits("KisTransparencyMask"));
+    QVERIFY(reopenedImage->isGpuTransparencyMaskView(reopenedChild));
+    QVERIFY(!reopenedChild->visible());
+    QVERIFY(!reopened->operations().snapshot()->layers.first().transparencyMaskVisible);
+    quint8 selected = 0;
+    quint8 unselected = 255;
+    reopenedChild->paintDevice()->readBytes(&selected, 4, 16, 1, 1);
+    reopenedChild->paintDevice()->readBytes(&unselected, 28, 16, 1, 1);
+    QCOMPARE(selected, quint8(255));
+    QCOMPARE(unselected, quint8(0));
+
+    QTRY_VERIFY(proxy->indexFromNode(reopenedChild).isValid());
 }
 
 void KisGpuDocumentViewTest::rectangularSelectionLimitsPainting()

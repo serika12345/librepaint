@@ -327,6 +327,19 @@ void KisNodeManager::LifecycleAccess::connectReselectionInput(KisNodeManager *ma
             connection->start(source, active, selected);
         }
     }, Qt::DirectConnection);
+
+    // GPU transparency mask views are removed as a consequence of a document
+    // version change. Returning to the owning paint layer keeps the active
+    // node valid after panel deletion and after Undo/Redo.
+    QObject::connect(source.data(), &KisImage::sigRemoveNodeAsync, manager,
+                     [manager, source](KisNodeSP node) {
+        if (!manager->m_d->imageView || !source || QThread::currentThread() != manager->thread()) return;
+        KisImageSP image = source.toStrongRef();
+        if (!image || image.data() != manager->m_d->imageView->image().data()) return;
+        if (!image->isGpuTransparencyMaskView(node) || manager->activeNode() != node) return;
+        const KisNodeSP next = ImageStateAccess::nearestNodeAfterRemoval(node);
+        if (next) manager->slotImageRequestNodeReselection(next, KisNodeList{next});
+    }, Qt::DirectConnection);
 }
 
 void KisNodeManager::LifecycleAccess::notifyResourceProvider(KisNodeManager *manager, KisNodeSP node)
@@ -627,14 +640,18 @@ void KisNodeManager::TreeOperationAccess::duplicateNodes(KisNodeManager *manager
     namespace Gpu = LibrePaint::Image::Gpu;
     auto image = KisImageSP(manager->m_d->view->image());
     if (const auto owner = image->gpuImage()) {
+        KisNodeList filteredNodes;
+        for (const auto &node : nodes)
+            if (!image->isGpuTransparencyMaskView(node)) filteredNodes.append(node);
         QSet<QUuid> selected;
-        for (const auto &node : nodes) {
+        for (const auto &node : filteredNodes) {
             if (!node || !node->parent() || KisLayerUtils::findRoot(node) != image->root() || selected.contains(node->uuid())) {
                 ModificationAccess::showWarning(manager, i18n("The selected layers could not be duplicated."));
                 return;
             }
             selected.insert(node->uuid());
         }
+        if (selected.isEmpty()) return;
         const auto version = owner->operations().snapshot();
         QList<Gpu::LayerId> layers;
         QList<QString> names;
@@ -1393,9 +1410,28 @@ void KisNodeManager::RemovalAccess::removeNodes(KisNodeManager *manager, const K
 {
     auto image = KisImageSP(manager->m_d->view->image());
     if (const auto owner = image->gpuImage()) {
+        KisNodeList layers;
+        QList<KisNodeSP> maskViews;
+        for (const auto &node : nodes) {
+            if (image->isGpuTransparencyMaskView(node)) maskViews.append(node);
+            else layers.append(node);
+        }
+        QSet<QUuid> removedMasks;
+        for (const auto &mask : maskViews) {
+            const KisNodeSP layer = mask ? mask->parent() : KisNodeSP();
+            if (!layer) continue;
+            if (layers.contains(layer)) continue;
+            if (removedMasks.contains(layer->uuid())) continue;
+            removedMasks.insert(layer->uuid());
+            if (!image->removeGpuTransparencyMask(layer)) {
+                ModificationAccess::showWarning(manager, i18n("The transparency mask could not be removed. Finish the active operation and try again."));
+                return;
+            }
+        }
+        if (layers.isEmpty()) return;
         const auto version = owner->operations().snapshot();
         QList<LibrePaint::Image::Gpu::LayerId> removed;
-        for (const auto &node : nodes) {
+        for (const auto &node : layers) {
             if (!node || node->image() != image.data() || !node->parent()) {
                 ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
                 return;
@@ -1788,6 +1824,10 @@ void KisNodeManager::ToggleAccess::setProperty(KisNodeManager *manager,
                                                          manager->m_d->view->image());
         return;
     case ToggleProperty::Visible:
+        if (KisImageSP image = manager->m_d->view->image(); image && image->isGpuTransparencyMaskView(node)) {
+            image->setGpuTransparencyMaskVisible(node->parent(), value);
+            return;
+        }
         KisLayerPropertiesIcons::setNodePropertyAutoUndo(node,
                                                          KisLayerPropertiesIcons::visible,
                                                          value,

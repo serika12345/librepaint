@@ -12,9 +12,11 @@
 #include "kis_selection.h"
 #include "kis_selection_mask.h"
 #include "kis_pixel_selection.h"
+#include "kis_transparency_mask.h"
 #include "KisImageResolutionProxy.h"
 #include "kis_pointer_utils.h"
 #include <kis_meta_data_store.h>
+#include <klocalizedstring.h>
 #include "gpu/KisGpuPaintImage.h"
 #include <KoColorSpaceRegistry.h>
 #include <KoChannelInfo.h>
@@ -35,6 +37,8 @@ struct KisGpuImageViewState
     LibrePaint::Image::Gpu::Snapshot synchronized;
     quint64 previewRevision = 0;
     QHash<QUuid, KisNodeSP> nodes;
+    /** Last mask coverage written into each layer's layer-panel view node. */
+    QHash<QUuid, LibrePaint::Image::Gpu::SelectionMaskSP> transparencyMasks;
 };
 
 namespace {
@@ -68,6 +72,67 @@ qsizetype gpuInsertionIndex(KisImage *image, const LibrePaint::Image::Gpu::Snaps
         [&](const auto &layer) { return layer.uuid == anchor->uuid(); });
     return found == version->layers.cend() ? -1 : std::distance(version->layers.cbegin(), found) + after;
 }
+
+/** True when this node is the layer-panel view of a GPU paint layer's
+ * transparency mask. The coverage itself stays owned by the GPU document.
+ */
+bool isGpuTransparencyMaskViewNode(KisNodeSP node)
+{
+    if (!node || !node->inherits("KisTransparencyMask")) return false;
+    const KisNodeSP parent = node->parent();
+    const KisImageSP image = parent ? parent->image().toStrongRef() : KisImageSP();
+    if (!image || !image->gpuImage()) return false;
+    const auto version = image->gpuImage()->operations().snapshot();
+    return std::any_of(version->layers.cbegin(), version->layers.cend(),
+        [&](const auto &layer) {
+            return layer.uuid == parent->uuid() &&
+                layer.kind == LibrePaint::Image::Gpu::LayerKind::Paint;
+        });
+}
+
+KisTransparencyMaskSP findTransparencyMaskChild(KisNodeSP parent)
+{
+    if (!parent) return {};
+    for (auto child = parent->firstChild(); child; child = child->nextSibling())
+        if (child->inherits("KisTransparencyMask"))
+            return qobject_cast<KisTransparencyMask *>(child.data());
+    return {};
+}
+
+bool hasNonMaskChild(KisNodeSP node)
+{
+    if (!node) return false;
+    for (auto child = node->firstChild(); child; child = child->nextSibling())
+        if (!isGpuTransparencyMaskViewNode(child)) return true;
+    return false;
+}
+
+/** Writes retained GPU coverage into a view-only alpha selection. The mask node
+ * is refreshed only when the document version's coverage changes.
+ */
+void writeGpuTransparencyMaskPixels(KisTransparencyMask *mask,
+                                    const LibrePaint::Image::Gpu::SelectionMaskSP &coverage,
+                                    const QRect &clip)
+{
+    if (!mask) return;
+    KisSelectionSP selection = mask->selection();
+    if (!selection || !selection->pixelSelection()) return;
+    KisPixelSelectionSP pixels = selection->pixelSelection();
+    pixels->setDefaultPixel(KoColor(Qt::transparent, pixels->colorSpace()));
+    pixels->clear();
+    if (coverage) {
+        const QRect covered = coverage->bounds().intersected(clip);
+        if (!covered.isEmpty()) {
+            QByteArray values(covered.width() * covered.height(), '\0');
+            for (int y = covered.top(); y <= covered.bottom(); ++y)
+                for (int x = covered.left(); x <= covered.right(); ++x)
+                    values[(y - covered.top()) * covered.width() + x - covered.left()] =
+                        char(coverage->coverage(x, y));
+            pixels->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), covered);
+        }
+    }
+    pixels->setDirty();
+}
 }
 
 KisNodeSP KisImage::addGpuPaintLayer(const QString &name, KisNodeSP parent, qsizetype index, bool pinnedToTimeline)
@@ -87,7 +152,7 @@ KisNodeSP KisImage::addGpuPaintLayer(const QString &name, KisNodeSP parent, qsiz
 
 bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent)
 {
-    return node && !node->childCount() && insertGpuLayers({node}, index, parent);
+    return node && !hasNonMaskChild(node) && insertGpuLayers({node}, index, parent);
 }
 
 bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNodeSP parent)
@@ -108,7 +173,8 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         if (node->uuid().isNull() || state->nodes.contains(node->uuid()) || identities.contains(node->uuid()) ||
             nodes.size() > owner->limits().layerCount - owner->operations().snapshot()->layers.size()) return false;
         identities.insert(node->uuid());
-        for (auto child = node->firstChild(); child; child = child->nextSibling()) nodes.append(child);
+        for (auto child = node->firstChild(); child; child = child->nextSibling())
+            if (!isGpuTransparencyMaskViewNode(child)) nodes.append(child);
     }
     QList<Gpu::LayerInsertion> prepared;
     qsizetype preparedBytes = 0;
@@ -116,7 +182,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         auto *layer = qobject_cast<KisLayer*>(node.data());
         auto *paint = qobject_cast<KisPaintLayer*>(node.data());
         auto *group = qobject_cast<KisGroupLayer*>(node.data());
-        if (!layer || (!paint && !group) || (paint && node->childCount()) ||
+        if (!layer || (!paint && !group) || (paint && hasNonMaskChild(node)) ||
             (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT && layer->compositeOpId() != COMPOSITE_SCREEN &&
              layer->compositeOpId() != COMPOSITE_DARKEN && layer->compositeOpId() != COMPOSITE_LIGHTEN &&
              layer->compositeOpId() != COMPOSITE_ADD && layer->compositeOpId() != COMPOSITE_LINEAR_DODGE) ||
@@ -275,7 +341,7 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         auto *layer = qobject_cast<KisLayer*>(node.data());
         auto *paint = qobject_cast<KisPaintLayer*>(node.data());
         auto *group = qobject_cast<KisGroupLayer*>(node.data());
-        if (!source || !layer || (!paint && !group) || (paint && node->childCount()) ||
+        if (!source || !layer || (!paint && !group) || (paint && hasNonMaskChild(node)) ||
             (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT && layer->compositeOpId() != COMPOSITE_SCREEN &&
              layer->compositeOpId() != COMPOSITE_DARKEN && layer->compositeOpId() != COMPOSITE_LIGHTEN &&
              layer->compositeOpId() != COMPOSITE_ADD && layer->compositeOpId() != COMPOSITE_LINEAR_DODGE) || node->isAnimated() ||
@@ -302,7 +368,8 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         properties.parentUuid = pending[i].second;
         prepared.append({version, source->id, properties});
         for (auto child = node->firstChild(); child; child = child->nextSibling())
-            pending.append({child, properties.uuid});
+            if (!isGpuTransparencyMaskViewNode(child))
+                pending.append({child, properties.uuid});
     }
     const auto copied = owner->cloneLayerForest(prepared);
     if (!copied) return {};
@@ -335,6 +402,11 @@ KisNodeList KisImage::cloneGpuNodes(const KisNodeList &roots) const
     QScopedValueRollback<bool> syncing(view->m_synchronizingGpuNodes, true);
     KisNodeList result;
     while (const auto node = view->root()->firstChild()) {
+        for (auto child = node->firstChild(); child;) {
+            auto next = child->nextSibling();
+            if (isGpuTransparencyMaskViewNode(child)) view->removeNode(child);
+            child = next;
+        }
         if (!view->removeNode(node)) return {};
         result.append(node);
     }
@@ -556,6 +628,20 @@ bool KisImage::gpuTransparencyMaskVisible(KisNodeSP layer) const
     if (!owner || QThread::currentThread() != owner->thread()) return false;
     const auto layerId = gpuPaintLayerId(owner->operations().snapshot(), layer);
     return layerId && owner->layerTransparencyMaskVisible(layerId);
+}
+
+bool KisImage::isGpuTransparencyMaskView(KisNodeSP node) const
+{
+    const auto owner = gpuImage();
+    if (!owner || !node || !node->inherits("KisTransparencyMask")) return false;
+    const KisNodeSP parent = node->parent();
+    if (!parent || parent->image() != this) return false;
+    const auto version = owner->operations().snapshot();
+    return std::any_of(version->layers.cbegin(), version->layers.cend(),
+        [&](const auto &layer) {
+            return layer.uuid == parent->uuid() &&
+                layer.kind == LibrePaint::Image::Gpu::LayerKind::Paint;
+        });
 }
 
 void KisImage::adoptGpuSelectionMask()
@@ -831,7 +917,9 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         for (qsizetype i = 1; i < attached.size(); ++i) {
             const auto node = attached[i];
             existing.insert(node->uuid(), node);
-            if (!node->inherits("KisSelectionMask") && !desired.contains(node->uuid()) && node->parent() &&
+            const bool retainedMaskView = isGpuTransparencyMaskViewNode(node) && node->parent() &&
+                desired.contains(node->parent()->uuid());
+            if (!node->inherits("KisSelectionMask") && !retainedMaskView && !desired.contains(node->uuid()) && node->parent() &&
                 (node->parent() == view->root() || desired.contains(node->parent()->uuid()))) view->removeNode(node);
             if (changed()) break;
         }
@@ -922,6 +1010,51 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         }
         if (view->gpuImage() != owner) return;
         if (changed()) continue;
+        for (const auto &layer : version->layers) {
+            if (layer.kind != LibrePaint::Image::Gpu::LayerKind::Paint) continue;
+            KisNodeSP layerNode = existing.value(layer.uuid);
+            if (!layerNode) continue;
+            auto maskView = findTransparencyMaskChild(layerNode);
+            if (!layer.transparencyMask) {
+                if (maskView) {
+                    view->removeNode(maskView);
+                    if (state) state->transparencyMasks.remove(layer.uuid);
+                    if (view->gpuImage() != owner) return;
+                    if (changed()) break;
+                }
+                continue;
+            }
+            const bool contentChanged = !state ||
+                state->transparencyMasks.value(layer.uuid) != layer.transparencyMask;
+            if (!maskView) {
+                KisLayerSP layerView = qobject_cast<KisLayer *>(layerNode.data());
+                if (!layerView) continue;
+                maskView = new KisTransparencyMask(view, i18n("Transparency Mask"));
+                maskView->initSelection(layerView);
+                writeGpuTransparencyMaskPixels(maskView.data(), layer.transparencyMask,
+                                               QRect(QPoint(), version->size));
+                view->addNode(maskView, layerNode, layerNode->lastChild(),
+                              KisNodeAdditionFlags(KisNodeAdditionFlag::DontActivateNode));
+                if (view->gpuImage() != owner) return;
+                if (changed()) break;
+            } else if (contentChanged) {
+                writeGpuTransparencyMaskPixels(maskView.data(), layer.transparencyMask,
+                                               QRect(QPoint(), version->size));
+            }
+            if (state) state->transparencyMasks.insert(layer.uuid, layer.transparencyMask);
+            if (maskView->visible() != layer.transparencyMaskVisible)
+                maskView->setVisible(layer.transparencyMaskVisible);
+            if (view->gpuImage() != owner) return;
+            if (changed()) break;
+        }
+        if (view->gpuImage() != owner) return;
+        if (changed()) continue;
+        if (state) {
+            for (auto it = state->transparencyMasks.begin(); it != state->transparencyMasks.end();) {
+                if (!desired.contains(it.key())) it = state->transparencyMasks.erase(it);
+                else ++it;
+            }
+        }
         if (retainedNodes) {
             QHash<QUuid, KisNodeSP> retained;
             for (const auto &state : owner->operations().historyVersions()) {

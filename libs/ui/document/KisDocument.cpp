@@ -388,7 +388,8 @@ LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document
     metadata.layerCollapsed.emplace();
     bool captured = true;
     KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
-        if (!captured || node == root || node->inherits("KisSelectionMask")) return;
+        if (!captured || node == root || node->inherits("KisSelectionMask") ||
+            image->isGpuTransparencyMaskView(node)) return;
         QByteArray packet;
         captured = encode(node, packet);
         if (captured && !packet.isEmpty()) metadata.layerXmp->insert(node->uuid(), std::move(packet));

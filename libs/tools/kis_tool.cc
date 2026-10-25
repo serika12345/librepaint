@@ -630,6 +630,12 @@ bool KisTool::nodeEditable()
         return false;
     }
 
+    if (KisImageSP image = this->image().toStrongRef(); image && image->isGpuTransparencyMaskView(node)) {
+        toolCanvas(canvas())->showToolMessage(i18n("Painting into a GPU transparency mask is not yet supported."),
+                                              QStringLiteral("object-locked"));
+        return false;
+    }
+
     if (!currentPaintOpPreset()) {
         return false;
     }

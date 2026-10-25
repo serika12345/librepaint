@@ -1209,7 +1209,10 @@ set(gpu_document_layer_cases
     layerSelectionCanCloseTheWindowDuringNotification
     layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry
     layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry
-    layerPanelAddsAtSelectionWithOneHistoryEntry)
+    layerPanelAddsAtSelectionWithOneHistoryEntry
+    layerPanelShowsAndSelectsGpuTransparencyMaskChild
+    layerPanelTogglesAndRemovesGpuTransparencyMaskChild
+    layerPanelGpuTransparencyMaskChildSurvivesSaving)
 kis_add_test(KisGpuDocumentViewTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc

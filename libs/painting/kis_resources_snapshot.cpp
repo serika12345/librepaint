@@ -139,6 +139,8 @@ KisGpuBrushResources captureGpuBrushResources(
     };
     if (!image || !image->gpuImage() || !node || node->image().data() != image.data() || !resources)
         return reject(i18n("A stroke could not be started on this GPU paint layer."));
+    if (image->isGpuTransparencyMaskView(node))
+        return reject(i18n("Painting into a GPU transparency mask is not yet supported."));
     for (const auto &layer : image->gpuImage()->operations().snapshot()->layers)
         if (layer.uuid == node->uuid()) result.layer = layer.id;
     if (!result.layer)

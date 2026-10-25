@@ -129,6 +129,11 @@ public:
     bool setGpuTransparencyMaskVisible(KisNodeSP layer, bool visible);
     bool removeGpuTransparencyMask(KisNodeSP layer);
     bool gpuTransparencyMaskVisible(KisNodeSP layer) const;
+    /** True when this node is the read-only layer-panel view of a paint
+     * layer's retained GPU transparency mask. The GPU document version
+     * remains the owner of the coverage.
+     */
+    bool isGpuTransparencyMaskView(KisNodeSP node) const;
     /** Adds a GPU paint layer at a bottom-to-top child index in the given
      * group. Returns the adopted node, or null on invalid input or capacity.
      */
