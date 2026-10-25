@@ -2401,6 +2401,33 @@ void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
     QCOMPARE(reopenedPixels.code, Gpu::ExecutionCode::Success);
     QCOMPARE(pixel(reopenedPixels.bytes, 32, 32), QByteArray::fromHex("1181f1ff"));
     QCOMPARE(pixel(reopenedPixels.bytes, 16, 16), QByteArray(4, char(0)));
+
+    const auto runFilter = [&](const QString &id, int x, int y) {
+        KisOperationConfigurationSP config = new KisOperationConfiguration(id);
+        config->setProperty("x-radius", x);
+        config->setProperty("y-radius", y);
+        config->setProperty("edgeLock", false);
+        window->viewManager()->actionManager()->runOperationFromConfiguration(config);
+        lifetime->image()->waitForDone();
+    };
+    runFilter(QStringLiteral("growselection"), 4, 4);
+    QTRY_COMPARE(owner->selectionRect(), QRect(12, 12, 40, 40));
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    runFilter(QStringLiteral("shrinkselection"), 4, 4);
+    QTRY_COMPARE(owner->selectionRect(), ellipseRect);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    runFilter(QStringLiteral("invertselection"), 0, 0);
+    QTRY_VERIFY(owner->selectionInverted());
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    const auto invertedPath = directory.filePath(QStringLiteral("inverted-ellipse.kra"));
+    QVERIFY2(lifetime->saveAs(invertedPath, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+    QFile invertedFile(invertedPath);
+    QVERIFY(invertedFile.open(QIODevice::ReadOnly));
+    const auto invertedLoaded = LibrePaint::ImportExport::Kra::RasterCodec::read(invertedFile);
+    QVERIFY2(invertedLoaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(invertedLoaded.diagnostic));
+    QCOMPARE(invertedLoaded.document.image.selection, ellipseRect);
+    QCOMPARE(invertedLoaded.document.image.selectionKind, Gpu::SelectionKind::Ellipse);
+    QVERIFY(invertedLoaded.document.image.selectionInverted);
 }
 
 void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()

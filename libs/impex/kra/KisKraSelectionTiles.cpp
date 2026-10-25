@@ -144,6 +144,30 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
             return {Status::Success, {}};
         }
     }
+    if (!imageBits.isNull() && unselectedInImage > 0 &&
+        qint64(imageBounds.width()) * imageBounds.height() == selected + unselectedInImage) {
+        const qint64 holeWidth = qint64(holeMaximumX) - holeMinimumX + 1;
+        const qint64 holeHeight = qint64(holeMaximumY) - holeMinimumY + 1;
+        if (holeWidth > 0 && holeHeight > 0) {
+            bool match = true;
+            const QRect hole(holeMinimumX, holeMinimumY, int(holeWidth), int(holeHeight));
+            for (int y = imageBounds.top(); y <= imageBounds.bottom() && match; ++y)
+                for (int x = imageBounds.left(); x <= imageBounds.right(); ++x) {
+                    const bool stored = imageBits.testBit((y - imageBounds.top()) * imageBounds.width() +
+                                                           x - imageBounds.left());
+                    if (stored == ellipseContains(x, y, hole)) {
+                        match = false;
+                        break;
+                    }
+                }
+            if (match) {
+                selection = hole;
+                inverted = true;
+                kind = LibrePaint::Image::Gpu::SelectionKind::Ellipse;
+                return {Status::Success, {}};
+            }
+        }
+    }
     if (!selectedOutsideImage && !imageBits.isNull() && imageBounds.contains(QRect(minimumX, minimumY, int(width), int(height)))) {
         bool ellipse = true;
         for (int y = minimumY; y <= maximumY && ellipse; ++y)
@@ -167,8 +191,6 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
 Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &imageBounds,
                             LibrePaint::Image::Gpu::SelectionKind kind, qsizetype maximumBytes, QByteArray &output)
 {
-    if (inverted && kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse)
-        return {Status::UnsupportedData, QStringLiteral("Inverted KRA ellipse selection is unsupported")};
     const QRect area = inverted ? imageBounds : selection;
     if (area.isEmpty()) {
         output = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 1\nDATA 0\n");
@@ -194,11 +216,20 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
             std::fill(pixels.begin(), pixels.end(), inverted ? char(255) : char(0));
             const QRect tile(x * FileTileSize, y * FileTileSize, FileTileSize, FileTileSize);
             if (inverted) {
-                const QRect hole = tile.intersected(QRect(selection).intersected(area));
-                for (int py = hole.top(); py <= hole.bottom(); ++py) {
-                    const int row = py - y * FileTileSize;
-                    std::fill(pixels.begin() + row * FileTileSize + hole.left() - x * FileTileSize,
-                              pixels.begin() + row * FileTileSize + hole.right() - x * FileTileSize + 1, char(0));
+                if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
+                    for (int py = tile.top(); py <= tile.bottom(); ++py) {
+                        const int row = py - y * FileTileSize;
+                        for (int px = tile.left(); px <= tile.right(); ++px)
+                            if (ellipseContains(px, py, selection))
+                                pixels[row * FileTileSize + px - x * FileTileSize] = char(0);
+                    }
+                } else {
+                    const QRect hole = tile.intersected(QRect(selection).intersected(area));
+                    for (int py = hole.top(); py <= hole.bottom(); ++py) {
+                        const int row = py - y * FileTileSize;
+                        std::fill(pixels.begin() + row * FileTileSize + hole.left() - x * FileTileSize,
+                                  pixels.begin() + row * FileTileSize + hole.right() - x * FileTileSize + 1, char(0));
+                    }
                 }
             } else if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
                 for (int py = tile.top(); py <= tile.bottom(); ++py) {

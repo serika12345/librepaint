@@ -93,7 +93,7 @@ public:
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
     /** Replaces the GPU document selection and updates the CPU selection mirror. */
     bool setGpuSelectionRect(const QRect &rect, bool inverted = false);
-    bool setGpuSelectionEllipse(const QRect &rect);
+    bool setGpuSelectionEllipse(const QRect &rect, bool inverted = false);
     QRect gpuSelectionRect() const;
     bool gpuSelectionInverted() const;
     LibrePaint::Image::Gpu::SelectionKind gpuSelectionKind() const;

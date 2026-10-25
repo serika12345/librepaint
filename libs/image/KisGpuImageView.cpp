@@ -363,10 +363,10 @@ bool KisImage::setGpuSelectionRect(const QRect &rect, bool inverted)
     return owner && owner->setSelectionRect(rect, inverted) == LibrePaint::Image::Gpu::Result::Success;
 }
 
-bool KisImage::setGpuSelectionEllipse(const QRect &rect)
+bool KisImage::setGpuSelectionEllipse(const QRect &rect, bool inverted)
 {
     const auto owner = gpuImage();
-    return owner && owner->setSelectionEllipse(rect) == LibrePaint::Image::Gpu::Result::Success;
+    return owner && owner->setSelectionEllipse(rect, inverted) == LibrePaint::Image::Gpu::Result::Success;
 }
 
 QRect KisImage::gpuSelectionRect() const
@@ -447,10 +447,22 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
     if (!rect.isEmpty()) {
         if (inverted) {
             pixels->select(bounds());
-            pixels->clear(rect);
+            if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
+                const qreal cx = rect.x() + rect.width() / 2.0, cy = rect.y() + rect.height() / 2.0;
+                const qreal rx = rect.width() / 2.0, ry = rect.height() / 2.0;
+                for (int y = rect.top(); y <= rect.bottom(); ++y) {
+                    const qreal dy = (y + 0.5 - cy) / ry;
+                    if (qAbs(dy) > 1.0) continue;
+                    const qreal dx = rx * std::sqrt(1.0 - dy * dy);
+                    const int left = qCeil(cx - dx - 0.5), right = qFloor(cx + dx - 0.5);
+                    if (right >= left) pixels->clear(QRect(left, y, right - left + 1, 1));
+                }
+                outline.addEllipse(rect);
+            } else {
+                pixels->clear(rect);
+                outline.addRect(rect);
+            }
             outline.addRect(bounds());
-            if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) outline.addEllipse(rect);
-            else outline.addRect(rect);
         } else if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
             QByteArray mask(rect.width() * rect.height(), ' ');
             const qreal cx = rect.x() + rect.width() / 2.0, cy = rect.y() + rect.height() / 2.0;

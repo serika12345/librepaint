@@ -138,13 +138,14 @@ Result PaintImage::setSelectionRect(const QRect &rect, bool inverted)
         m_d->document->selectionKind() == SelectionKind::Rectangle) return Result::Success;
     return publish(m_d->document->setSelectionRect(rect, inverted));
 }
-Result PaintImage::setSelectionEllipse(const QRect &rect)
+Result PaintImage::setSelectionEllipse(const QRect &rect, bool inverted)
 {
     if (!onThread()) return Result::InvalidInput;
+    const bool effectiveInverted = !rect.isEmpty() && inverted;
     if (rect.normalized() == m_d->document->selectionRect() &&
         m_d->document->selectionKind() == SelectionKind::Ellipse &&
-        !m_d->document->selectionInverted()) return Result::Success;
-    return publish(m_d->document->setSelectionEllipse(rect));
+        effectiveInverted == m_d->document->selectionInverted()) return Result::Success;
+    return publish(m_d->document->setSelectionEllipse(rect, inverted));
 }
 Result PaintImage::clearSelection()
 {

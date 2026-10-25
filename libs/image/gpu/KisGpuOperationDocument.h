@@ -481,7 +481,7 @@ public:
      * when their input began, so later selection changes do not rewrite history.
      */
     Result setSelectionRect(const QRect &rect, bool inverted = false);
-    Result setSelectionEllipse(const QRect &rect);
+    Result setSelectionEllipse(const QRect &rect, bool inverted = false);
     Result clearSelection();
     QRect selectionRect() const;
     bool selectionInverted() const;

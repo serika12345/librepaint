@@ -252,18 +252,19 @@ Result OperationDocument::setSelectionRect(const QRect &rect, bool inverted)
     return Result::Success;
 }
 
-Result OperationDocument::setSelectionEllipse(const QRect &rect)
+Result OperationDocument::setSelectionEllipse(const QRect &rect, bool inverted)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     const auto normalized = rect.normalized();
     if (normalized.isEmpty() || !Detail::validSelectionRect(normalized)) return Result::InvalidInput;
+    const bool effectiveInverted = !normalized.isEmpty() && inverted;
     if (normalized == snapshot()->selection && snapshot()->selectionKind == SelectionKind::Ellipse &&
-        !snapshot()->selectionInverted) return Result::Success;
+        effectiveInverted == snapshot()->selectionInverted) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->selection = normalized;
-    version->selectionInverted = false;
+    version->selectionInverted = effectiveInverted;
     version->selectionKind = SelectionKind::Ellipse;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
@@ -271,7 +272,7 @@ Result OperationDocument::setSelectionEllipse(const QRect &rect)
     change.selectionBefore = snapshot()->selection;
     change.selectionAfter = normalized;
     change.selectionInvertedBefore = snapshot()->selectionInverted;
-    change.selectionInvertedAfter = false;
+    change.selectionInvertedAfter = effectiveInverted;
     change.selectionKindBefore = snapshot()->selectionKind;
     change.selectionKindAfter = SelectionKind::Ellipse;
     commitVersion(version, change);
