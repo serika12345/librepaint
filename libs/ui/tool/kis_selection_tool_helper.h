@@ -8,7 +8,11 @@
 
 #include <kritaui_export.h>
 #include <QList>
+#include <QPainterPath>
 #include <QPointer>
+#include <QSize>
+
+#include <gpu/KisGpuSelectionMask.h>
 
 #include "kundo2magicstring.h"
 #include "kis_selection.h"
@@ -42,6 +46,20 @@ public:
     static QMenu* getSelectionContextMenu(KoCanvasBase* canvas);
 
     SelectionMode tryOverrideSelectionMode(KisSelectionSP activeSelection, SelectionMode currentMode, SelectionAction currentAction) const;
+
+    /** Rasterizes the closed polygon `vertices`, in document pixels, into
+     * frozen binary GPU coverage clipped to `imageSize`. Null reports fewer
+     * than three vertices, non-finite coordinates or no selected pixel.
+     */
+    static LibrePaint::Image::Gpu::SelectionMaskSP gpuSelectionMaskFromPolygon(
+        const QList<QPointF> &vertices, const QSize &imageSize);
+
+    /** Flattens the closed `path`, in document pixels, into one polygon of
+     * vertices for gpuSelectionMaskFromPolygon(). Empty reports no contour, a
+     * path with several contours, or a degenerate polygon instead of silently
+     * approximating part of the path.
+     */
+    static QList<QPointF> gpuSelectionPolygonVertices(const QPainterPath &path);
 
 
 private:

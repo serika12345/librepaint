@@ -153,6 +153,7 @@ private Q_SLOTS:
     void existingPaintFilesPreservePixelsAndDefaults();
     void roundTripRetainsLayersHiddenRgbAndAssociatedFiles();
     void rectangularSelectionSurvivesSavingAndReopening();
+    void binaryFreehandSelectionSurvivesSavingAndReopening();
     void featheredSelectionAlphaSurvivesSavingAndReopening();
     void transparencyMasksSurviveSavingAndReopening();
     void offsetsAndDescriptionMetadataSurviveEditing();
@@ -1364,6 +1365,45 @@ void TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening()
     const auto without = load(cleared);
     QVERIFY2(without.code == Kra::Status::Success, qPrintable(without.diagnostic));
     QVERIFY(without.document.image.selection.isEmpty());
+}
+
+void TestKraRasterCodec::binaryFreehandSelectionSurvivesSavingAndReopening()
+{
+    auto source = document();
+    const QRect clip(QPoint(), source.image.size);
+    const QList<QPointF> polygon{{40, 38}, {84, 38}, {84, 74}, {62, 74}, {62, 110}, {40, 110}};
+    const auto mask = SelectionMask::fromPolygon(polygon, clip);
+    QVERIFY(mask);
+    QVERIFY(!mask->isAlpha());
+    QVERIFY(mask->contains(48, 48));
+    QVERIFY(!mask->contains(70, 100));
+    source.image.selection = mask->bounds();
+    source.image.selectionKind = SelectionKind::Freehand;
+    source.image.selectionMask = mask;
+
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+    QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+    const auto result = load(bytes);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.selection, mask->bounds());
+    QCOMPARE(result.document.image.selectionKind, SelectionKind::Freehand);
+    QVERIFY(!result.document.image.selectionInverted);
+    QVERIFY(result.document.image.selectionMask);
+    QVERIFY(!result.document.image.selectionMask->isAlpha());
+    QVERIFY(*result.document.image.selectionMask == *mask);
+
+    QByteArray resaved;
+    QBuffer destination(&resaved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, result.document, merged(result.document.image.size)).code,
+             Kra::Status::Success);
+    const auto again = load(resaved);
+    QVERIFY2(again.code == Kra::Status::Success, qPrintable(again.diagnostic));
+    QVERIFY(again.document.image.selectionMask && !again.document.image.selectionMask->isAlpha());
+    QVERIFY(*again.document.image.selectionMask == *mask);
 }
 
 void TestKraRasterCodec::featheredSelectionAlphaSurvivesSavingAndReopening()

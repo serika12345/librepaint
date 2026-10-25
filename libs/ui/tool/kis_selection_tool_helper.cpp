@@ -60,6 +60,21 @@ KisSelectionToolHelper::~KisSelectionToolHelper()
 {
 }
 
+LibrePaint::Image::Gpu::SelectionMaskSP KisSelectionToolHelper::gpuSelectionMaskFromPolygon(
+    const QList<QPointF> &vertices, const QSize &imageSize)
+{
+    if (imageSize.isEmpty()) return {};
+    return LibrePaint::Image::Gpu::SelectionMask::fromPolygon(
+        vertices, QRect(QPoint(), imageSize));
+}
+
+QList<QPointF> KisSelectionToolHelper::gpuSelectionPolygonVertices(const QPainterPath &path)
+{
+    const QList<QPolygonF> contours = path.toSubpathPolygons();
+    if (contours.size() != 1 || contours.first().size() < 3) return {};
+    return QList<QPointF>(contours.first().cbegin(), contours.first().cend());
+}
+
 struct LazyInitGlobalSelection : public KisTransactionBasedCommand {
     LazyInitGlobalSelection(KisView *view) : m_view(view) {}
     KisView *m_view;

@@ -68,6 +68,7 @@
 #include <kis_paint_layer.h>
 #include <kis_properties_configuration.h>
 #include <kis_selection.h>
+#include <kis_selection_tool_helper.h>
 #include <kis_layer_properties_icons.h>
 #include <kis_transparency_mask.h>
 #include <kis_resources_snapshot.h>
@@ -143,6 +144,10 @@ private Q_SLOTS:
     void ellipticalSelectionLimitsPaintingAndKra();
     void ellipticalToolCreatesDocumentSelection();
     void freehandToolCreatesArbitraryMaskSelection();
+    void polygonToolVerticesCreateFrozenCoverage();
+    void pathToolClosedPathCreatesPolygonCoverage();
+    void polygonalToolCreatesArbitraryMaskSelection();
+    void pathToolCreatesArbitraryMaskSelection();
     void featherActionSoftensFreehandSelection();
     void pasteClipboardImageCreatesGpuLayer();
     void reselectRestoresGpuSelection();
@@ -3347,6 +3352,264 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QVERIFY(owner->selectionMask()->contains(80, 80));
     QVERIFY(!owner->selectionMask()->contains(176, 176));
     QCOMPARE(owner->selectionRect(), mask->bounds());
+}
+
+void KisGpuDocumentViewTest::polygonToolVerticesCreateFrozenCoverage()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Polygon tool coverage"));
+    QVERIFY(image);
+
+    // Document-pixel vertices as collected by the polygonal tool. The L-shape
+    // separates a closed polygon from the line or triangle a truncated input
+    // sequence would produce.
+    const QList<QPointF> vertices{{16, 16}, {96, 16}, {96, 64}, {48, 64}, {48, 96}, {16, 96}};
+    const auto expected = [](int x, int y) {
+        return (x >= 16 && x < 96 && y >= 16 && y < 64) ||
+            (x >= 16 && x < 48 && y >= 64 && y < 96);
+    };
+    const auto mask = KisSelectionToolHelper::gpuSelectionMaskFromPolygon(vertices, QSize(128, 128));
+    QVERIFY(mask);
+    QVERIFY(!mask->isAlpha());
+    QCOMPARE(mask->bounds(), QRect(16, 16, 80, 80));
+    for (int y = 0; y < 128; ++y) {
+        for (int x = 0; x < 128; ++x) {
+            if (mask->contains(x, y) != expected(x, y)) {
+                QFAIL(qPrintable(QStringLiteral("coverage mismatch at %1,%2").arg(x).arg(y)));
+            }
+        }
+    }
+
+    // The tool commits that frozen coverage as one replacement history entry.
+    QVERIFY(image->setGpuSelectionMask(mask));
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
+    QVERIFY(owner->selectionMask() == mask);
+    QCOMPARE(owner->selectionRect(), mask->bounds());
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(owner->operations().historyAction(1), Gpu::HistoryAction::ChangeSelection);
+    QTRY_VERIFY(image->globalSelection());
+    QTRY_COMPARE(image->globalSelection()->selectedExactRect(), mask->bounds());
+
+    // It uses the same coverage path as freehand for the shared filters.
+    QVERIFY(image->growGpuSelectionMask(2, 2));
+    QTRY_VERIFY(owner->selectionMask()->contains(14, 16));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_VERIFY(owner->selectionMask() == mask);
+    QVERIFY(image->invertGpuSelectionMask());
+    QTRY_VERIFY(owner->selectionMask() && !owner->selectionMask()->contains(16, 16));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_VERIFY(owner->selectionMask() == mask);
+}
+
+void KisGpuDocumentViewTest::pathToolClosedPathCreatesPolygonCoverage()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Path tool coverage"));
+    QVERIFY(image);
+
+    QPainterPath path;
+    path.moveTo(16, 16);
+    path.lineTo(80, 16);
+    path.lineTo(80, 64);
+    path.lineTo(16, 64);
+    path.closeSubpath();
+
+    const QList<QPointF> vertices = KisSelectionToolHelper::gpuSelectionPolygonVertices(path);
+    QVERIFY(vertices.size() >= 3);
+    const auto mask = KisSelectionToolHelper::gpuSelectionMaskFromPolygon(vertices, QSize(128, 128));
+    QVERIFY(mask);
+    QCOMPARE(mask->bounds(), QRect(16, 16, 64, 48));
+    for (int y = 0; y < 128; ++y) {
+        for (int x = 0; x < 128; ++x) {
+            const bool expected = x >= 16 && x < 80 && y >= 16 && y < 64;
+            if (mask->contains(x, y) != expected) {
+                QFAIL(qPrintable(QStringLiteral("coverage mismatch at %1,%2").arg(x).arg(y)));
+            }
+        }
+    }
+    QVERIFY(image->setGpuSelectionMask(mask));
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
+    QCOMPARE(owner->operations().undoCount(), 1);
+
+    // A curved closed path flattens to a single polygon instead of being
+    // dropped or reduced to its endpoints.
+    QPainterPath curved;
+    curved.moveTo(32, 96);
+    curved.cubicTo(32, 32, 96, 32, 96, 96);
+    curved.closeSubpath();
+    const QList<QPointF> curvedVertices = KisSelectionToolHelper::gpuSelectionPolygonVertices(curved);
+    QVERIFY(curvedVertices.size() > 4);
+    QVERIFY(KisSelectionToolHelper::gpuSelectionMaskFromPolygon(curvedVertices, QSize(128, 128)));
+
+    // Several contours cannot become one polygon, so the tool reports a
+    // conversion failure instead of selecting only part of the path.
+    QPainterPath contours;
+    contours.addRect(QRectF(8, 8, 16, 16));
+    contours.addRect(QRectF(48, 48, 16, 16));
+    const QList<QPointF> contourVertices = KisSelectionToolHelper::gpuSelectionPolygonVertices(contours);
+    QVERIFY(contourVertices.isEmpty());
+    QVERIFY(!KisSelectionToolHelper::gpuSelectionMaskFromPolygon(contourVertices, QSize(128, 128)));
+}
+
+void KisGpuDocumentViewTest::polygonalToolCreatesArbitraryMaskSelection()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Polygon tool")));
+    QSignalSpy windowReady(KisPart::instance(), &KisPart::sigMainWindowCreated);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->activateWindow();
+    QTRY_VERIFY(!windowReady.isEmpty());
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    QTRY_VERIFY(!converter->getCanvasWidgetSize().isEmpty());
+    view->zoomManager()->zoomTo100();
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    const auto imageSize = converter->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
+            if (canvas->isVisible()) native = canvas;
+    QVERIFY(native);
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectPolygonal"));
+    QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectPolygonal"));
+    window->activateWindow();
+    native->requestActivate();
+    view->canvasBase()->canvasWidget()->setFocus();
+    QTest::qWait(100);
+    const auto point = [&](QPointF image) { return converter->imageToWidget(image).toPoint(); };
+    const QList<QPointF> vertices{{64, 64}, {192, 64}, {192, 192}, {64, 192}};
+
+    QTest::mouseMove(native.data(), point(vertices.first()));
+    const auto start = point(vertices.first());
+    QEnterEvent entered(start, start, native->mapToGlobal(start));
+    QApplication::sendEvent(native.data(), &entered);
+    for (const QPointF &vertex : vertices) {
+        QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point(vertex));
+        QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point(vertex));
+    }
+    // The double-click ends the polyline without adding a new corner.
+    QTest::mouseDClick(native.data(), Qt::LeftButton, Qt::NoModifier, point(vertices.last()));
+    QTRY_COMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
+    const auto mask = owner->selectionMask();
+    QVERIFY(mask);
+    QCOMPARE(mask->bounds(), QRect(64, 64, 128, 128));
+    QVERIFY(mask->contains(80, 80));
+    QVERIFY(mask->contains(176, 176));
+    QVERIFY(!mask->contains(48, 48));
+    QVERIFY(!mask->contains(208, 208));
+    QCOMPARE(owner->selectionRect(), mask->bounds());
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QTRY_VERIFY(lifetime->image()->globalSelection());
+    QTRY_COMPARE(lifetime->image()->globalSelection()->selectedExactRect(), mask->bounds());
+}
+
+void KisGpuDocumentViewTest::pathToolCreatesArbitraryMaskSelection()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Path tool")));
+    QSignalSpy windowReady(KisPart::instance(), &KisPart::sigMainWindowCreated);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->activateWindow();
+    QTRY_VERIFY(!windowReady.isEmpty());
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    QTRY_VERIFY(!converter->getCanvasWidgetSize().isEmpty());
+    view->zoomManager()->zoomTo100();
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    const auto imageSize = converter->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
+            if (canvas->isVisible()) native = canvas;
+    QVERIFY(native);
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectPath"));
+    QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectPath"));
+    window->activateWindow();
+    native->requestActivate();
+    view->canvasBase()->canvasWidget()->setFocus();
+    QTest::qWait(100);
+    const auto point = [&](QPointF image) { return converter->imageToWidget(image).toPoint(); };
+    const QList<QPointF> vertices{{64, 64}, {192, 64}, {192, 192}, {64, 192}};
+
+    QTest::mouseMove(native.data(), point(vertices.first()));
+    const auto start = point(vertices.first());
+    QEnterEvent entered(start, start, native->mapToGlobal(start));
+    QApplication::sendEvent(native.data(), &entered);
+    for (const QPointF &vertex : vertices) {
+        QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point(vertex));
+        QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point(vertex));
+    }
+    QTest::mouseDClick(native.data(), Qt::LeftButton, Qt::NoModifier, point(vertices.last()));
+    QTRY_COMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
+    const auto mask = owner->selectionMask();
+    QVERIFY(mask);
+    QCOMPARE(mask->bounds(), QRect(64, 64, 128, 128));
+    QVERIFY(mask->contains(80, 80));
+    QVERIFY(mask->contains(176, 176));
+    QVERIFY(!mask->contains(48, 48));
+    QVERIFY(!mask->contains(208, 208));
+    QCOMPARE(owner->selectionRect(), mask->bounds());
+    QCOMPARE(owner->operations().undoCount(), 1);
 }
 
 void KisGpuDocumentViewTest::featherActionSoftensFreehandSelection()

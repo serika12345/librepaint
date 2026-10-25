@@ -1243,6 +1243,18 @@ add_test(NAME ${gpu_document_ellipse_tool_test}
 set(gpu_document_freehand_tool_test libs-ui-freehand-tool-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_freehand_tool_test}
     COMMAND KisGpuDocumentViewTest freehandToolCreatesArbitraryMaskSelection)
+set(gpu_document_polygon_tool_test libs-ui-polygon-tool-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_polygon_tool_test}
+    COMMAND KisGpuDocumentViewTest polygonToolVerticesCreateFrozenCoverage)
+set(gpu_document_polygon_input_test libs-ui-polygon-input-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_polygon_input_test}
+    COMMAND KisGpuDocumentViewTest polygonalToolCreatesArbitraryMaskSelection)
+set(gpu_document_path_tool_test libs-ui-path-tool-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_path_tool_test}
+    COMMAND KisGpuDocumentViewTest pathToolClosedPathCreatesPolygonCoverage)
+set(gpu_document_path_input_test libs-ui-path-input-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_path_input_test}
+    COMMAND KisGpuDocumentViewTest pathToolCreatesArbitraryMaskSelection)
 set(gpu_document_feather_test libs-ui-feather-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_feather_test}
     COMMAND KisGpuDocumentViewTest featherActionSoftensFreehandSelection)
@@ -1254,12 +1266,14 @@ add_test(NAME ${gpu_document_crop_test}
     COMMAND KisGpuDocumentViewTest ${gpu_document_crop_cases})
 set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
-    ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_feather_test}
+    ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test}
+    ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_path_tool_test}
+    ${gpu_document_path_input_test} ${gpu_document_feather_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop
-    kritamodifyselection)
+    kritamodifyselection kritaselectiontools)
 if(NOT IOS)
     add_dependencies(KisGpuDocumentViewTest kritatextproperties)
 endif()

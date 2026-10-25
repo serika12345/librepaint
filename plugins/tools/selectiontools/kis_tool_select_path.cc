@@ -175,6 +175,36 @@ void __KisToolSelectPathLocalTool::addPathShape(KoPathShape* pathShape)
 
     KisImageWSP image = kisCanvas->image();
 
+    if (image && image->gpuImage()) {
+        if (m_selectionTool->growSelection() != 0 || m_selectionTool->featherSelection() != 0 ||
+            m_selectionTool->selectionAction() != SELECTION_REPLACE) {
+            kisCanvas->showToolMessage(
+                i18n("The GPU painting engine supports a hard-edged replacement path selection only."),
+                QStringLiteral("object-locked"));
+            delete pathShape;
+            return;
+        }
+
+        QTransform matrix;
+        matrix.scale(image->xRes(), image->yRes());
+        matrix.translate(pathShape->position().x(), pathShape->position().y());
+        const QList<QPointF> vertices =
+            KisSelectionToolHelper::gpuSelectionPolygonVertices(matrix.map(pathShape->outline()));
+        const auto mask =
+            KisSelectionToolHelper::gpuSelectionMaskFromPolygon(vertices, image->size());
+        if (mask && image->setGpuSelectionMask(mask)) {
+            delete pathShape;
+            return;
+        }
+
+        kisCanvas->showToolMessage(
+            mask ? i18n("The GPU document selection could not be updated.")
+                 : i18n("The closed path cannot be converted to a polygon selection."),
+            QStringLiteral("object-locked"));
+        delete pathShape;
+        return;
+    }
+
     KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select by Bezier Curve"));
 
     const SelectionMode mode =

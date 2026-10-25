@@ -352,7 +352,10 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 `KisGpuDocumentViewTest::rectangularSelectionLimitsPainting`は、通常の矩形選択ツールで
 選択範囲を作成し、GPU選択とCPU表示用マスクの一致、選択内だけの描画、選択外の不変、
 解除後の描画、選択変更を含むUndoの件数を検査する。
-自由選択ツールは任意被覆をGPU文書へ固定する。多角形・経路など残りの選択ツールはGPU文書で拒否し、
+自由選択ツールは任意被覆をGPU文書へ固定する。多角形選択ツールは文書座標の頂点列を閉じた
+多角形の硬い被覆として固定し、置換アクションだけを一回の履歴で適用する。ベジェ曲線選択ツールは
+単一の閉じた輪郭を多角形へ平坦化して同じ被覆へ変換し、複数輪郭や退化した経路はCPU選択へ
+切り替えず拒否して診断を表示する。拡大・縮小・ぼかしオプションは両ツールともGPU文書では拒否する。
 自由選択の移動は被覆を平行移動し、CPU表示写像のプレビューと確定時の一回の履歴を使う。
 拡大・縮小は矩形半径による被覆の膨張・収縮、反転は画像内の補集合、境界選択は内側境界帯として適用する。
 コピー・切り取りは任意被覆をアルファ画像としてクリップボードへ渡す。
@@ -398,9 +401,23 @@ Undoによる除去を検査する。
 `KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection`は、通常の自由選択ツールの
 ネイティブドラッグが任意の閉じた境界をGPU文書の硬い被覆マスクへ固定し、CPU表示用マスクの輪郭、
 選択内だけの塗りつぶし、選択外の不変、解除後の再選択が同じ被覆を復元することを検査する。
+`KisGpuDocumentViewTest::polygonToolVerticesCreateFrozenCoverage`は、多角形選択ツールが扱う
+文書座標の頂点列を共有の変換ヘルパーへ渡し、L字の閉じた多角形の全画素が期待する被覆と一致すること、
+硬い被覆として一回の履歴で固定されること、CPU表示写像の選択矩形、拡大・反転・Undoが
+自由選択と同じ被覆経路を使うことを検査する。ネイティブクリック列には依存しない。
+`KisGpuDocumentViewTest::pathToolClosedPathCreatesPolygonCoverage`は、閉じた直線経路と
+曲線経路が単一の多角形へ平坦化されて期待する被覆になること、複数輪郭の経路が空の頂点列として
+拒否されることを検査する。
+`KisGpuDocumentViewTest::polygonalToolCreatesArbitraryMaskSelection`と
+`KisGpuDocumentViewTest::pathToolCreatesArbitraryMaskSelection`は、通常の多角形選択ツールと
+ベジェ曲線選択ツールのネイティブ入力が閉じた頂点列を任意被覆の硬いマスクとして固定し、
+一回の履歴になることを検査する。各ツールの入力試験は独立したプロセスで実行する。
 `TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening`は、GPU文書のKRAが
 ルートの`selectionmask`と`PIXELSIZE 1`の`.pixelselection`を矩形選択として読み書きし、
 再保存・再読込後も選択とレイヤー画素を保持することを検査する。
+`TestKraRasterCodec::binaryFreehandSelectionSurvivesSavingAndReopening`は、多角形選択と同じ
+硬い任意被覆がKRAの8ビット被覆ストリームへ書き出され、再読込・再保存後も硬い被覆・選択矩形・
+`SelectionKind::Freehand`を保つことを検査する。
 `TestKraRasterCodec::featheredSelectionAlphaSurvivesSavingAndReopening`は、部分被覆のアルファマスクが
 KRAのアルファストリームへ書き出され、再読込・再保存後も被覆値・選択形状・画素・反転状態を
 保つことを検査する。
