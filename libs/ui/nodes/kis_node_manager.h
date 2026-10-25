@@ -383,7 +383,7 @@ protected:
         static bool containsOnionSkin(const KisBaseNode::PropertyList &properties);
         static bool hasOpaqueBackground(KisNodeSP node);
         static void showOnionSkinTransparencyWarning(const KisNodeManager *manager);
-        static void applyProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties);
+        static bool applyProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties);
     };
 
     struct KRITAUI_EXPORT PropertyDialogAccess {
