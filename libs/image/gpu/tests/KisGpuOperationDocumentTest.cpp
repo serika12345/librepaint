@@ -141,6 +141,8 @@ private Q_SLOTS:
     void previousCroppedRecoveryPreservesInputAndCanvasHistory();
     void layerCropPreservesValuesHistoryAndRecovery();
     void rejectedLayerCropsKeepRedoPendingInputAndClosedState();
+    void invertColorsFreezesCoverageAndRecovers();
+    void rejectedInvertColorsPreserveHistoryAndInput();
     void previousTranslatedRecoveryPreservesPendingInputAndCropHistory();
     void layerTranslationPreservesInputVersionsAndOneHistoryEntry();
     void previousPlacedRecoveryPreservesPendingInputAndPosition();
@@ -1829,6 +1831,128 @@ void KisGpuOperationDocumentTest::rejectedLayerCropsKeepRedoPendingInputAndClose
     const auto closed = document.snapshot();
     QCOMPARE(document.cropLayer(layer, QRect(1, 2, 3, 4)), Result::Closed);
     QCOMPARE(document.snapshot(), closed);
+}
+
+void KisGpuOperationDocumentTest::invertColorsFreezesCoverageAndRecovers()
+{
+    RasterImage source;
+    source.size = {256, 256};
+    RasterLayer target;
+    target.name = QStringLiteral("Target");
+    target.uuid = QUuid::createUuid();
+    target.tiles.append({{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')});
+    source.layers.append(target);
+    OperationDocument document(source);
+    const auto layer = document.activeLayer();
+    const auto before = document.snapshot();
+    QCOMPARE(document.setSelectionEllipse(QRect(32, 32, 64, 48), true), Result::Success);
+    QCOMPARE(document.invertColors(layer), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::InvertColors);
+    const auto operation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->layer, layer);
+    QCOMPARE(operation->kind, FilterKind::InvertColors);
+    QCOMPARE(operation->version, quint64(1));
+    QCOMPARE(operation->selectionRect, QRect(32, 32, 64, 48));
+    QCOMPARE(operation->selectionKind, SelectionKind::Ellipse);
+    QVERIFY(operation->selectionInverted);
+    QVERIFY(!operation->selectionMask);
+    QVERIFY(!std::holds_alternative<FilterSnapshot>(before->layers.first().operations.last()));
+
+    // Later selection edits do not rewrite the frozen filter coverage.
+    QCOMPARE(document.setSelectionRect(QRect(1, 1, 2, 2)), Result::Success);
+    QCOMPARE(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->selectionRect,
+             QRect(32, 32, 64, 48));
+
+    // Duplication copies the filter with a fresh operation identity.
+    QCOMPARE(document.duplicateLayers({layer}, {QStringLiteral("Copy")}, layer), Result::Success);
+    const auto copied = document.snapshot()->layers.last();
+    const auto copiedFilter = std::get<FilterSnapshot>(copied.operations.last());
+    QCOMPARE(copiedFilter->layer, copied.id);
+    QVERIFY(copiedFilter->id.sequence != operation->id.sequence);
+    QCOMPARE(copiedFilter->selectionRect, operation->selectionRect);
+    QCOMPARE(document.undo(), Result::Success);
+
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!std::holds_alternative<FilterSnapshot>(document.snapshot()->layers.first().operations.last()));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->selectionRect,
+             QRect(32, 32, 64, 48));
+
+    QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.undoCount(), 2);
+    QCOMPARE(recovered.historyAction(2), HistoryAction::InvertColors);
+    const auto recoveredOperation = std::get<FilterSnapshot>(recovered.snapshot()->layers.first().operations.last());
+    QCOMPARE(recoveredOperation->selectionRect, QRect(32, 32, 64, 48));
+    QCOMPARE(recoveredOperation->selectionKind, SelectionKind::Ellipse);
+    QVERIFY(recoveredOperation->selectionInverted);
+    QCOMPARE(recovered.savedHistoryIndex(), 2);
+
+    // Alpha (feathered) freehand coverage is retained by the operation and its
+    // recovery record, including the fractional bytes.
+    const QRect clip(QPoint(), QSize(32, 32));
+    QByteArray coverage(32 * 32, '\0');
+    coverage[8 * 32 + 8] = char(96);
+    const auto soft = SelectionMask::fromAlphaCoverage(clip, coverage, clip);
+    QVERIFY(soft);
+    RasterImage maskSource;
+    maskSource.size = {32, 32};
+    RasterLayer maskLayer;
+    maskLayer.name = QStringLiteral("Masked");
+    maskLayer.uuid = QUuid::createUuid();
+    maskLayer.tiles.append({{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')});
+    maskSource.layers.append(maskLayer);
+    OperationDocument masked(maskSource);
+    QCOMPARE(masked.setSelectionMask(soft), Result::Success);
+    QCOMPARE(masked.invertColors(masked.activeLayer()), Result::Success);
+    QVERIFY(std::get<FilterSnapshot>(masked.snapshot()->layers.first().operations.last())->selectionMask == soft);
+    OperationDocument maskRecovered({1, 1});
+    QCOMPARE(maskRecovered.restoreRecovery(masked.recoveryData()), Result::Success);
+    const auto maskOperation = std::get<FilterSnapshot>(maskRecovered.snapshot()->layers.first().operations.last());
+    QVERIFY(maskOperation->selectionMask);
+    QVERIFY(*maskOperation->selectionMask == *soft);
+    QVERIFY(maskOperation->selectionMask->isAlpha());
+    QCOMPARE(maskOperation->selectionMask->coverage(8, 8), quint8(96));
+}
+
+void KisGpuOperationDocumentTest::rejectedInvertColorsPreserveHistoryAndInput()
+{
+    RasterImage source;
+    source.size = {64, 64};
+    RasterLayer paint;
+    paint.name = QStringLiteral("Paint");
+    paint.uuid = QUuid::createUuid();
+    RasterLayer locked;
+    locked.name = QStringLiteral("Locked");
+    locked.uuid = QUuid::createUuid();
+    locked.userLocked = true;
+    RasterLayer group;
+    group.name = QStringLiteral("Group");
+    group.uuid = QUuid::createUuid();
+    group.kind = LayerKind::Group;
+    source.layers = {paint, locked, group};
+    OperationDocument document(source);
+    const auto before = document.snapshot();
+    const auto paintId = before->layers[0].id;
+    const auto lockedId = before->layers[1].id;
+    const auto groupId = before->layers[2].id;
+    QCOMPARE(document.invertColors(lockedId), Result::LayerUnavailable);
+    QCOMPARE(document.invertColors(groupId), Result::LayerUnavailable);
+    QCOMPARE(document.invertColors(999), Result::LayerUnavailable);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.undoCount(), 0);
+    const auto pending = document.beginStroke(paintId, Brush{}, 7);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(document.appendSamples(pending, {{{8, 8}, 1}}), Result::Success);
+    QCOMPARE(document.invertColors(paintId), Result::EditInProgress);
+    QCOMPARE(document.cancelStroke(pending), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    document.close();
+    QCOMPARE(document.invertColors(paintId), Result::Closed);
+    QCOMPARE(document.snapshot(), before);
 }
 
 void KisGpuOperationDocumentTest::previousTranslatedRecoveryPreservesPendingInputAndCropHistory()

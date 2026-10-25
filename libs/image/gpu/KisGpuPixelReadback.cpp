@@ -91,7 +91,7 @@ bool validPixelRegion(QRect region)
 }
 
 std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect region, qsizetype maximum,
-                                                  OperationId pendingOperation)
+                                                  OperationId pendingOperation, QSize documentSize)
 {
     constexpr int limit = RgbaTile::CoordinateLimit;
     const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
@@ -151,6 +151,24 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
                 else ++tile;
             }
             needed = target;
+        } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
+            // A filter over canvas-wide default content synthesizes tiles in the
+            // renderer, so its coverage participates in the retained layer extent.
+            if (!Detail::packedPixel(layer.defaultPixel)) continue;
+            QRect area = needed;
+            if (!(*filter)->selectionRect.isEmpty() && !(*filter)->selectionInverted)
+                area = area.intersected((*filter)->selectionRect);
+            area = area.intersected(QRect(QPoint(), documentSize));
+            if (area.isEmpty()) continue;
+            const int left = Detail::pixelTileIndex(area.left(), TileRenderer::TileSize);
+            const int right = Detail::pixelTileIndex(area.right(), TileRenderer::TileSize);
+            const int top = Detail::pixelTileIndex(area.top(), TileRenderer::TileSize);
+            const int bottom = Detail::pixelTileIndex(area.bottom(), TileRenderer::TileSize);
+            if (qint64(right - left + 1) * (bottom - top + 1) > stageMaximum) return std::nullopt;
+            for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                coordinates.insert(Detail::key(x, y));
+                if (coordinates.size() > stageMaximum) return std::nullopt;
+            }
         } else {
             if (needed.isEmpty()) continue;
             const auto &paint = **std::get_if<PaintSnapshot>(&operation);
@@ -202,7 +220,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
 
 std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const Layer &layer, QRect region, qsizetype maximum)
 {
-    if (layer.kind == LayerKind::Paint) return paintLayerCoordinates(layer, region, maximum, document->pendingOperation());
+    if (layer.kind == LayerKind::Paint) return paintLayerCoordinates(layer, region, maximum, document->pendingOperation(), document->size);
     QHash<QUuid, QList<const Layer *>> children;
     for (const auto &value : document->layers) children[value.parentUuid].append(&value);
     QList<const Layer *> pending{&layer};
@@ -212,7 +230,7 @@ std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const L
             if (!child->visible || !child->opacity) continue;
             if (child->kind == LayerKind::Group) pending.append(child);
             else {
-                const auto tiles = paintLayerCoordinates(*child, region, maximum, document->pendingOperation());
+                const auto tiles = paintLayerCoordinates(*child, region, maximum, document->pendingOperation(), document->size);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
@@ -259,6 +277,9 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
             for (auto &area : outcome.writtenAreas) area = area.translated((*translation)->offset).intersected(outcome.region);
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             for (auto &area : outcome.writtenAreas) area &= (*crop)->rect.normalized();
+        } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
+            if (!(*filter)->selectionRect.isEmpty())
+                outcome.writtenAreas.append((*filter)->selectionRect.intersected(outcome.region));
         } else {
             const auto &paint = *std::get<PaintSnapshot>(operation);
             if (paint.brush.gaussianWash && paint.figureStyle.outline) {

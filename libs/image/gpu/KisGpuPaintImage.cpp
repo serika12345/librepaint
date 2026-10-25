@@ -757,6 +757,8 @@ Result PaintImage::fillLayerPattern(LayerId layer, const PatternFill &pattern,
                                     quint8 opacity, bool erase, bool alphaLocked,
                                     LayerBlendMode blendMode)
 { return onThread() ? publish(m_d->document->fillLayerPattern(layer, pattern, opacity, erase, alphaLocked, blendMode)) : Result::InvalidInput; }
+Result PaintImage::invertColors(LayerId layer)
+{ return onThread() ? publish(m_d->document->invertColors(layer)) : Result::InvalidInput; }
 Result PaintImage::selectLayers(const QList<LayerId> &layers, LayerId active)
 { return onThread() ? publish(m_d->document->selectLayers(layers, active)) : Result::InvalidInput; }
 Result PaintImage::selectLayer(LayerId layer)

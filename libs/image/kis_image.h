@@ -126,6 +126,11 @@ public:
      * paint layer currently represented in the GPU document.
      */
     bool addGpuTransparencyMaskFromSelection(KisNodeSP layer);
+    /** Complements RGB on the GPU paint layer for the current selection as one
+     * history entry. False reports a group, mask or foreign node, a locked layer
+     * or an off-thread call; no history entry is added in that case.
+     */
+    bool invertGpuLayerColors(KisNodeSP layer);
     bool setGpuTransparencyMaskVisible(KisNodeSP layer, bool visible);
     bool removeGpuTransparencyMask(KisNodeSP layer);
     bool gpuTransparencyMaskVisible(KisNodeSP layer) const;

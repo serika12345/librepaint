@@ -76,6 +76,8 @@ private Q_SLOTS:
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery();
     void featheredSelectionClipsPaintFillEraseHistoryAndRecovery();
+    void invertColorsComplementsRgbPreservesAlphaAndClipsSelection();
+    void invertColorsInterpolatesFeatheredAndInvertedCoverage();
     void patternFillTilesAcrossSelectionHistoryAndRecovery();
     void patternFillClipsAlphaCompositesErasesAndRejectsInvalidInput();
     void fillBlendModesMatchLayerComposition_data();
@@ -3600,6 +3602,142 @@ void KisGpuTileRendererTest::fillBlendModePreservesOpacityAlphaLockAndChannelMas
                                        LayerBlendMode::Multiply), Result::Success);
     const auto channelPixels = readTile(render(renderer, channelDocument.snapshot()), channelLayer, {0, 0});
     QCOMPARE(pixel(channelPixels, 24, 24), QByteArray::fromHex("110209ff"));
+}
+
+void KisGpuTileRendererTest::invertColorsComplementsRgbPreservesAlphaAndClipsSelection()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * TileRenderer::TileSize + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("0a141e28"));
+    set(20, 20, QByteArray::fromHex("00000000"));
+    set(30, 30, QByteArray::fromHex("ff8000ff"));
+    set(200, 10, QByteArray::fromHex("11223344"));
+    RasterImage input;
+    input.size = {256, 256};
+    RasterLayer source;
+    source.name = QStringLiteral("Invert");
+    source.uuid = QUuid::createUuid();
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    OperationDocument document(input);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setSelectionRect(QRect(0, 0, 64, 64)), Result::Success);
+    QCOMPARE(document.invertColors(layer), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::InvertColors);
+    const auto operation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->kind, FilterKind::InvertColors);
+    QCOMPARE(operation->selectionRect, QRect(0, 0, 64, 64));
+    QVERIFY(!operation->selectionInverted);
+
+    // Selection changes after acceptance do not rewrite the frozen coverage.
+    QCOMPARE(document.setSelectionRect(QRect(200, 200, 8, 8)), Result::Success);
+    QCOMPARE(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->selectionRect,
+             QRect(0, 0, 64, 64));
+
+    TileRenderer renderer(m_device);
+    const auto inverted = render(renderer, document.snapshot());
+    QVERIFY(inverted);
+    const auto invertedBytes = readTile(inverted, layer, {0, 0});
+    QCOMPARE(pixel(invertedBytes, 10, 10), QByteArray::fromHex("f5ebe128"));
+    // Transparent pixels keep alpha zero; their hidden RGB follows the same
+    // complement as the channel-mask arithmetic used for locked painting.
+    QCOMPARE(pixel(invertedBytes, 20, 20), QByteArray::fromHex("ffffff00"));
+    QCOMPARE(pixel(invertedBytes, 30, 30), QByteArray::fromHex("007fffff"));
+    QCOMPARE(pixel(invertedBytes, 200, 10), QByteArray::fromHex("11223344"));
+    QCOMPARE(pixel(invertedBytes, 64, 64), QByteArray(4, '\0'));
+
+    // One history entry: undo restores the exact source pixels, redo the filter.
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto original = readTile(render(renderer, document.snapshot()), layer, {0, 0});
+    QCOMPARE(original, bytes);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), invertedBytes);
+
+    // Recovery retains the frozen operation over the current document selection.
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.historyAction(2), HistoryAction::InvertColors);
+    const auto recovered = std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(recovered->selectionRect, QRect(0, 0, 64, 64));
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), invertedBytes);
+}
+
+void KisGpuTileRendererTest::invertColorsInterpolatesFeatheredAndInvertedCoverage()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    const auto mixed = [](int base, int selected) {
+        const int complement = 255 - base;
+        const int keep = 255 - selected;
+        return quint8((base * keep + complement * selected + 127) / 255);
+    };
+    const QRect clip(QPoint(), QSize(256, 256));
+    QByteArray coverage(256 * 256, '\0');
+    coverage[20 * 256 + 20] = char(128);
+    coverage[30 * 256 + 30] = char(255);
+    const auto soft = SelectionMask::fromAlphaCoverage(clip, coverage, clip);
+    QVERIFY(soft);
+    QVERIFY(soft->isAlpha());
+
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * TileRenderer::TileSize + x) * 4, rgba.constData(), 4);
+    };
+    set(20, 20, QByteArray::fromHex("0a141e28"));
+    set(30, 30, QByteArray::fromHex("ff8000ff"));
+    set(10, 10, QByteArray::fromHex("10203040"));
+    RasterImage input;
+    input.size = {256, 256};
+    RasterLayer source;
+    source.name = QStringLiteral("Feather");
+    source.uuid = QUuid::createUuid();
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    OperationDocument document(input);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setSelectionMask(soft), Result::Success);
+    QCOMPARE(document.invertColors(layer), Result::Success);
+    QCOMPARE(document.historyAction(2), HistoryAction::InvertColors);
+    TileRenderer renderer(m_device);
+    const auto filtered = render(renderer, document.snapshot());
+    QVERIFY(filtered);
+    const auto filteredBytes = readTile(filtered, layer, {0, 0});
+    QByteArray fractional(4, '\0');
+    fractional[0] = char(mixed(10, 128));
+    fractional[1] = char(mixed(20, 128));
+    fractional[2] = char(mixed(30, 128));
+    fractional[3] = char(40);
+    QCOMPARE(pixel(filteredBytes, 20, 20), fractional);
+    QCOMPARE(pixel(filteredBytes, 30, 30), QByteArray::fromHex("007fffff"));
+    // Unselected pixels remain byte-identical.
+    QCOMPARE(pixel(filteredBytes, 10, 10), QByteArray::fromHex("10203040"));
+
+    // An inverted rectangular selection complements only the outside.
+    OperationDocument invertedDocument(input);
+    const auto invertedLayer = invertedDocument.activeLayer();
+    QCOMPARE(invertedDocument.setSelectionRect(QRect(0, 0, 64, 64), true), Result::Success);
+    QCOMPARE(invertedDocument.invertColors(invertedLayer), Result::Success);
+    const auto inverted = readTile(render(renderer, invertedDocument.snapshot()), invertedLayer, {0, 0});
+    QCOMPARE(pixel(inverted, 10, 10), QByteArray::fromHex("10203040"));
+    QCOMPARE(pixel(inverted, 200, 10), QByteArray::fromHex("ffffff00"));
+
+    // Elliptical coverage intersects its bounding box before the pixel test.
+    OperationDocument ellipseDocument(input);
+    const auto ellipseLayer = ellipseDocument.activeLayer();
+    QCOMPARE(ellipseDocument.setSelectionEllipse(QRect(64, 64, 128, 128)), Result::Success);
+    QCOMPARE(ellipseDocument.invertColors(ellipseLayer), Result::Success);
+    const auto ellipse = readTile(render(renderer, ellipseDocument.snapshot()), ellipseLayer, {0, 0});
+    QCOMPARE(pixel(ellipse, 10, 10), QByteArray::fromHex("10203040"));
+    QCOMPARE(pixel(ellipse, 128, 128), QByteArray::fromHex("ffffff00"));
 }
 
 void KisGpuTileRendererTest::featheredSelectionClipsPaintFillEraseHistoryAndRecovery()

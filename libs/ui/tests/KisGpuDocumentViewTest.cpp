@@ -73,6 +73,12 @@
 #include <kis_transparency_mask.h>
 #include <kis_resources_snapshot.h>
 #include <kis_tool_utils.h>
+#include <filter/kis_color_transformation_filter.h>
+#include <filter/kis_filter_category_ids.h>
+#include <filter/kis_filter_configuration.h>
+#include <filter/kis_filter_registry.h>
+#include <document/kis_filter_manager.h>
+#include <KoColorTransformation.h>
 #include <nodes/kis_node_manager.h>
 #include <nodes/kis_node_filter_proxy_model.h>
 #include <nodes/kis_node_model.h>
@@ -87,6 +93,27 @@
 #include <exception>
 #include <memory>
 #include <thread>
+
+namespace {
+/** The colors filter plugin provides this identity in the application; the UI
+ * test registers it directly because test binaries do not load filter plugins.
+ */
+class GpuDocumentInvertFilter : public KisColorTransformationFilter
+{
+public:
+    GpuDocumentInvertFilter()
+        : KisColorTransformationFilter(KoID(QStringLiteral("invert"), i18n("Invert")),
+                                       FiltersCategoryAdjustId, i18n("&Invert"))
+    {
+        setColorSpaceIndependence(FULLY_INDEPENDENT);
+        setSupportsPainting(true);
+        setShowConfigurationWidget(false);
+        setSupportsLevelOfDetail(true);
+    }
+    KoColorTransformation *createTransformation(const KoColorSpace *cs, const KisFilterConfigurationSP) const override
+    { return cs->createInvertTransformation(); }
+};
+}
 
 class KisGpuDocumentViewTest : public QObject
 {
@@ -133,6 +160,7 @@ private Q_SLOTS:
     void layerPanelThumbnailsReadOnlyReducedGpuPixels();
     void rectangularSelectionLimitsPainting();
     void transparencyMaskActionsUseTheActiveGpuPaintLayer();
+    void invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters();
     void layerPanelShowsAndSelectsGpuTransparencyMaskChild();
     void layerPanelTogglesAndRemovesGpuTransparencyMaskChild();
     void layerPanelGpuTransparencyMaskChildSurvivesSaving();
@@ -1898,6 +1926,79 @@ void KisGpuDocumentViewTest::transparencyMaskActionsUseTheActiveGpuPaintLayer()
     QVERIFY(!image->addGpuTransparencyMaskFromSelection(node));
     QCOMPARE(owner->operations().undoCount(), count);
     QVERIFY(!owner->operations().snapshot()->layers.first().transparencyMask);
+}
+
+void KisGpuDocumentViewTest::invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!KisFilterRegistry::instance()->value(QStringLiteral("invert")))
+        KisFilterRegistry::instance()->add(KisFilterSP(new GpuDocumentInvertFilter));
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->fillLayer(layer, {200, 30, 70}), Gpu::Result::Success);
+    QCOMPARE(owner->setSelectionRect(QRect(16, 16, 32, 32)), Gpu::Result::Success);
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Invert Colors action")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto *manager = window->viewManager()->nodeManager();
+    const auto node = view->image()->root()->firstChild();
+    QVERIFY(node);
+    manager->slotUiActivatedNode(node);
+
+    auto *action = window->viewManager()->actionManager()->actionByName(QStringLiteral("krita_filter_invert"));
+    QVERIFY(action);
+    QVERIFY(action->isEnabled());
+    const auto count = lifetime->undoStack()->count();
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(8, 8, 1, 1), 4).bytes, QByteArray::fromHex("c81e46ff"));
+    try { action->trigger(); } catch (const std::exception &error) { QFAIL(error.what()); }
+    QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::InvertColors);
+    const auto inverted = owner->readRgbaPixels(layer, QRect(0, 0, 64, 64), 64 * 64 * 4);
+    QCOMPARE(inverted.code, Gpu::ExecutionCode::Success);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 64 + x) * 4, 4); };
+    QCOMPARE(pixel(inverted.bytes, 16, 16), QByteArray::fromHex("37e1b9ff"));
+    QCOMPARE(pixel(inverted.bytes, 47, 47), QByteArray::fromHex("37e1b9ff"));
+    QCOMPARE(pixel(inverted.bytes, 48, 48), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(pixel(inverted.bytes, 8, 8), QByteArray::fromHex("c81e46ff"));
+
+    // The action's undo entry restores the unfiltered pixels and redo reapplies.
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes == QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("37e1b9ff"));
+
+    // Unsupported filter identities keep their action but report a diagnostic;
+    // they must not run the CPU filter against a view copy.
+    QSignalSpy messages(window->viewManager(), &KisViewManager::floatingMessageRequested);
+    QVERIFY(messages.isValid());
+    KisFilterConfigurationSP unsupported(new KisFilterConfiguration(
+        QStringLiteral("levels"), 1, KisGlobalResourcesInterface::instance()));
+    const auto beforeUnsupported = owner->operations().snapshot();
+    window->viewManager()->filterManager()->apply(unsupported);
+    QTRY_COMPARE(messages.size(), 1);
+    QVERIFY(messages.first().at(0).toString().contains(QStringLiteral("not yet available for GPU documents")));
+    QCOMPARE(owner->operations().snapshot(), beforeUnsupported);
+    QCOMPARE(lifetime->undoStack()->count(), count + 1);
 }
 
 void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()

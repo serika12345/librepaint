@@ -279,7 +279,30 @@ struct CropOperation
     QRect rect;
 };
 using CropSnapshot = QSharedPointer<const CropOperation>;
-using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot>;
+/** Pixel filter kinds available to GPU paint layers. */
+enum class FilterKind : quint8 { InvertColors };
+
+/** Whole-layer pixel filter over preceding retained pixels.
+ *
+ * The selection coverage, its inversion and the filter kind are frozen when
+ * the operation is accepted. Only RGB participates: alpha is preserved, and
+ * transparent pixels keep alpha zero while their hidden RGB is complemented
+ * like the corresponding channel-mask arithmetic. Coverage is retained for
+ * every document version, recovery record and Undo/Redo step.
+ */
+struct FilterOperation
+{
+    OperationId id;
+    quint64 version = 1;
+    LayerId layer = 0;
+    FilterKind kind = FilterKind::InvertColors;
+    QRect selectionRect{};
+    bool selectionInverted = false;
+    SelectionKind selectionKind = SelectionKind::Rectangle;
+    SelectionMaskSP selectionMask;
+};
+using FilterSnapshot = QSharedPointer<const FilterOperation>;
+using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot, FilterSnapshot>;
 
 enum class LayerKind : quint8 { Paint, Group };
 
@@ -480,7 +503,7 @@ enum class HistoryAction {
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
     ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
-    ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility
+    ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors
 };
 
 struct Limits
@@ -732,6 +755,13 @@ public:
     Result fillLayerPattern(LayerId layer, const PatternFill &pattern, quint8 opacity = 255,
                             bool erase = false, bool alphaLocked = false,
                             LayerBlendMode blendMode = LayerBlendMode::Normal);
+    /** Complements RGB on one paint layer inside the current selection coverage
+     * as one history entry. The selection rectangle, inversion, kind and mask
+     * are frozen in the operation. Alpha is preserved and pixels outside the
+     * coverage retain their exact values. Locked layers and active input are
+     * rejected without changing history.
+     */
+    Result invertColors(LayerId layer);
     Result undo();
     Result redo();
     /** Selects one retained history state without executing intermediate edits. */
@@ -766,6 +796,8 @@ private:
         bool duplicatedLayers = false;
         bool clearedLayers = false;
         bool filledLayer = false;
+        /** One paint layer gained an RGB filter operation in its retained version. */
+        bool filteredLayer = false;
         CropSnapshot crop;
         std::optional<CanvasResize> canvasResize;
         QList<LayerPropertyEdit> propertyEdits;

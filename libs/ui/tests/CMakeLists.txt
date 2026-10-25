@@ -1267,11 +1267,16 @@ add_test(NAME ${gpu_document_selection_move_test}
 set(gpu_document_crop_test libs-ui-crop-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_crop_test}
     COMMAND KisGpuDocumentViewTest ${gpu_document_crop_cases})
+set(gpu_document_filter_test libs-ui-filter-invert-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_filter_test}
+    COMMAND KisGpuDocumentViewTest invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters)
+set_tests_properties(${gpu_document_filter_test} PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=cocoa" RUN_SERIAL TRUE TIMEOUT 60)
 set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
     ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_brush_blend_test}
     ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_path_tool_test}
-    ${gpu_document_path_input_test} ${gpu_document_feather_test}
+    ${gpu_document_path_input_test} ${gpu_document_feather_test} ${gpu_document_filter_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop

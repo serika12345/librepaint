@@ -238,6 +238,11 @@ public:
     Result fillLayerPattern(LayerId layer, const PatternFill &pattern, quint8 opacity = 255,
                             bool erase = false, bool alphaLocked = false,
                             LayerBlendMode blendMode = LayerBlendMode::Normal);
+    /** Complements RGB within the current selection coverage as one history
+     * entry. The filter operation freezes the selection and survives recovery,
+     * Undo/Redo and KRA pixel saving; alpha and unselected pixels stay intact.
+     */
+    Result invertColors(LayerId layer);
     Result undo();
     Result redo();
     Result setHistoryIndex(int index);

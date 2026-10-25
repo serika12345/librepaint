@@ -51,11 +51,38 @@
 #include "kis_icon_utils.h"
 #include "kis_layer_utils.h"
 #include <KisGlobalResourcesInterface.h>
+#include <kis_image.h>
+#include <kis_floating_message.h>
 #include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
 #include <qset.h>
+
+namespace {
+/**
+ * GPU documents own their pixels in the GPU operation document, so the generic
+ * CPU filter stroke would edit an unrelated view copy. Invert Colors is the
+ * first supported GPU pixel filter; every other filter keeps its action and
+ * reports a diagnostic instead of running on a copy.
+ */
+bool applyGpuFilter(KisViewManager *view, const QString &filterId)
+{
+    if (!view) return false;
+    KisImageWSP image = view->image();
+    if (!image || !image->gpuImage()) return false;
+    if (filterId != QLatin1String("invert")) {
+        view->showFloatingMessage(i18n("This filter is not yet available for GPU documents."),
+                                  QIcon(), 2000, KisFloatingMessage::Low);
+        return true;
+    }
+    if (!image->invertGpuLayerColors(view->activeNode())) {
+        view->showFloatingMessage(i18n("Invert Colors requires an editable GPU paint layer."),
+                                  QIcon(), 2000, KisFloatingMessage::Low);
+    }
+    return true;
+}
+}
 
 struct KisFilterManager::Private {
     KisAction* reapplyAction = nullptr;
@@ -198,6 +225,8 @@ void KisFilterManager::reapplyLastFilterReprompt()
 
 void KisFilterManager::showFilterDialog(const QString &filterId, KisFilterConfigurationSP overrideDefaultConfig)
 {
+    if (applyGpuFilter(d->view, filterId)) return;
+
     if (!d->view->activeNode()->isEditable()) {
         d->view->showFloatingMessage(i18n("Cannot apply filter to locked layer."),
                                       KisIconUtils::loadIcon("object-locked"));
@@ -280,6 +309,8 @@ void KisFilterManager::showFilterDialog(const QString &filterId, KisFilterConfig
 
 void KisFilterManager::apply(KisFilterConfigurationSP _filterConfig)
 {
+    if (_filterConfig && applyGpuFilter(d->view, _filterConfig->name())) return;
+
     KisFilterConfigurationSP filterConfig = _filterConfig->cloneWithResourcesSnapshot();
 
     KisFilterSP filter = KisFilterRegistry::instance()->value(filterConfig->name());

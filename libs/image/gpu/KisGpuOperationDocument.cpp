@@ -72,6 +72,11 @@ void copyLayerOperations(const Layer &source, Layer &copy, const QUuid &identity
             operation->id = id;
             operation->layer = copy.id;
             copy.operations.append(CropSnapshot(operation));
+        } else if (const auto filter = std::get_if<FilterSnapshot>(&sourceOperation)) {
+            auto operation = QSharedPointer<FilterOperation>::create(**filter);
+            operation->id = id;
+            operation->layer = copy.id;
+            copy.operations.append(FilterSnapshot(operation));
         } else {
             auto operation = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(sourceOperation));
             operation->id = id;
@@ -152,6 +157,10 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
                 auto copied = QSharedPointer<CropOperation>::create(**crop);
                 copied->id.document = result->m_identity;
                 operation = CropSnapshot(copied);
+            } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
+                auto copied = QSharedPointer<FilterOperation>::create(**filter);
+                copied->id.document = result->m_identity;
+                operation = FilterSnapshot(copied);
             } else {
                 auto copied = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(operation));
                 copied->id.document = result->m_identity;
@@ -182,6 +191,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
     if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
     if (m_layerHistoryChanges[index].filledLayer) return HistoryAction::FillLayer;
+    if (m_layerHistoryChanges[index].filteredLayer) return HistoryAction::InvertColors;
     if (m_layerHistoryChanges[index].changedSelection) return HistoryAction::ChangeSelection;
     if (m_layerHistoryChanges[index].crop) return HistoryAction::CropLayer;
     if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
@@ -1667,6 +1677,33 @@ Result OperationDocument::fillLayerStyle(LayerId layer, const std::array<quint8,
                                     {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0);
     if (result == Result::Success) m_layerHistoryChanges[m_index].filledLayer = true;
     return result;
+}
+
+Result OperationDocument::invertColors(LayerId layer)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
+        snapshot()->layers[index].userLocked) return Result::LayerUnavailable;
+    if (m_nextOperation == std::numeric_limits<quint64>::max() ||
+        m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto operation = QSharedPointer<FilterOperation>::create();
+    operation->id = {m_identity, ++m_nextOperation};
+    operation->version = 1;
+    operation->layer = layer;
+    operation->kind = FilterKind::InvertColors;
+    operation->selectionRect = snapshot()->selection;
+    operation->selectionInverted = snapshot()->selectionInverted;
+    operation->selectionKind = snapshot()->selectionKind;
+    operation->selectionMask = snapshot()->selectionMask;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].operations.append(FilterSnapshot(operation));
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    change.filteredLayer = true;
+    commitVersion(version, change);
+    return Result::Success;
 }
 
 Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QString &replacementName)

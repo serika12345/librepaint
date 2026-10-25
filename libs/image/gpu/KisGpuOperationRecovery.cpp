@@ -9,6 +9,7 @@
 
 #include <QCryptographicHash>
 #include <QDataStream>
+#include <algorithm>
 #include <QHash>
 #include <QIODevice>
 #include <QSet>
@@ -18,7 +19,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 49;
+constexpr quint16 FormatVersion = 50;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -26,6 +27,7 @@ constexpr quint8 PassThroughProperty = 253;
 constexpr quint8 BlendModeProperty = 252;
 constexpr quint8 MaskStateProperty = 251;
 constexpr quint8 MaskVisibilityProperty = 250;
+constexpr quint8 FilterProperty = 249;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -84,6 +86,7 @@ QByteArray OperationDocument::recoveryData() const
         indices.insert(pointer, quint32(operations.size()));
         operations.append(operation);
         if (const auto paint = std::get_if<PaintSnapshot>(&operation)) registerMask((*paint)->selectionMask);
+        if (const auto filter = std::get_if<FilterSnapshot>(&operation)) registerMask((*filter)->selectionMask);
         if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
             for (const auto &tile : (*write)->tiles) {
                 if (!tileIndices.contains(tile.data())) {
@@ -140,8 +143,10 @@ QByteArray OperationDocument::recoveryData() const
     if (!withinLimit()) return {};
     for (const auto &value : operations) {
         const auto paint = std::get_if<PaintSnapshot>(&value);
+        const auto filter = std::get_if<FilterSnapshot>(&value);
         stream << quint8(paint ? 0 : std::holds_alternative<TileWriteSnapshot>(value) ? 1 :
-                        std::holds_alternative<TranslationSnapshot>(value) ? 2 : 3)
+                        std::holds_alternative<TranslationSnapshot>(value) ? 2 :
+                        std::holds_alternative<CropSnapshot>(value) ? 3 : 4)
                << operationId(value).sequence << operationVersion(value) << operationLayer(value);
         if (paint) {
             const auto &operation = **paint;
@@ -236,6 +241,16 @@ QByteArray OperationDocument::recoveryData() const
         } else if (const auto crop = std::get_if<CropSnapshot>(&value)) {
             const auto &rect = (*crop)->rect;
             stream << qint32(rect.x()) << qint32(rect.y()) << qint32(rect.width()) << qint32(rect.height());
+        } else if (const auto filterValue = std::get_if<FilterSnapshot>(&value)) {
+            const auto &operation = **filterValue;
+            stream << quint8(operation.kind)
+                   << qint32(operation.selectionRect.x()) << qint32(operation.selectionRect.y())
+                   << qint32(operation.selectionRect.width()) << qint32(operation.selectionRect.height())
+                   << quint8(operation.selectionInverted) << quint8(operation.selectionKind);
+            if (operation.selectionKind == SelectionKind::Freehand) {
+                if (!operation.selectionMask || !maskIndices.contains(operation.selectionMask.data())) return {};
+                stream << maskIndices.value(operation.selectionMask.data());
+            }
         } else {
             const auto &translation = *std::get<TranslationSnapshot>(value);
             stream << qint32(translation.offset.x()) << qint32(translation.offset.y());
@@ -309,6 +324,7 @@ QByteArray OperationDocument::recoveryData() const
         }
         const auto &change = m_layerHistoryChanges[stateIndex];
         stream << quint8(change.addedTransparencyMask || change.removedTransparencyMask ? MaskStateProperty :
+                         change.filteredLayer ? FilterProperty :
                          change.property == LayerProperty::MaskVisible ? MaskVisibilityProperty :
                          change.changedLayerProperties ? LayerProperties :
                          change.property == LayerProperty::ProjectionMask ? ProjectionMaskProperty :
@@ -457,7 +473,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         quint64 sequence = 0, version = 0;
         LayerId layer = 0;
         stream >> kind >> sequence >> version >> layer;
-        if (kind > (format >= 26 ? 3 : format >= 25 ? 2 : 1) || sequence == 0 || sequence > nextOperation || operationIndices.contains(sequence) ||
+        if (kind > (format >= 50 ? 4 : format >= 26 ? 3 : format >= 25 ? 2 : 1) || sequence == 0 || sequence > nextOperation || operationIndices.contains(sequence) ||
             layer == 0 || layer > nextLayer || version > nextRevision) return Result::InvalidRecovery;
         operationIndices.insert(sequence, quint32(operations.size()));
         if (kind == 3) {
@@ -470,6 +486,34 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             operation->layer = layer;
             operation->rect = QRect(x, y, width, height);
             operations.append(CropSnapshot(operation));
+            continue;
+        }
+        if (kind == 4) {
+            if (format < 50) return Result::InvalidRecovery;
+            auto operation = QSharedPointer<FilterOperation>::create();
+            operation->id = {identity, sequence};
+            operation->version = version;
+            operation->layer = layer;
+            quint8 filterKind = 0;
+            qint32 x = 0, y = 0, width = 0, height = 0;
+            quint8 inverted = 0, selectionKind = 0;
+            stream >> filterKind >> x >> y >> width >> height >> inverted >> selectionKind;
+            if (filterKind > quint8(FilterKind::InvertColors) || inverted > 1 ||
+                selectionKind > maximumSelectionKind(format) || version == 0) return Result::InvalidRecovery;
+            operation->kind = FilterKind(filterKind);
+            operation->selectionRect = QRect(x, y, width, height);
+            operation->selectionInverted = inverted != 0;
+            operation->selectionKind = SelectionKind(selectionKind);
+            if (operation->selectionKind == SelectionKind::Freehand) {
+                quint32 maskIndex = NoOperation;
+                stream >> maskIndex;
+                if (maskIndex >= masks.size()) return Result::InvalidRecovery;
+                operation->selectionMask = masks[maskIndex];
+            }
+            if (stream.status() != QDataStream::Ok ||
+                !validSelectionState(operation->selectionRect, operation->selectionKind, operation->selectionMask))
+                return Result::InvalidRecovery;
+            operations.append(FilterSnapshot(operation));
             continue;
         }
         if (kind == 2) {
@@ -905,9 +949,11 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         const bool blendModeChange = format >= 34 && property == BlendModeProperty;
         const bool maskStateChange = format >= 46 && property == MaskStateProperty;
         const bool maskVisibilityChange = format >= 46 && property == MaskVisibilityProperty;
+        const bool filteredChange = format >= 50 && property == FilterProperty;
         change.changedLayerProperties = multipleProperties;
+        change.filteredLayer = filteredChange;
         if (projectionChange || multipleProperties || passThroughChange || blendModeChange ||
-            maskStateChange || maskVisibilityChange) property = 0;
+            maskStateChange || maskVisibilityChange || filteredChange) property = 0;
         if (format >= 27 && (property & 8u)) {
             property &= 247u;
             qint32 x = 0, y = 0, w = 0, h = 0;
@@ -1036,6 +1082,24 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             change.property = LayerProperty::None;
             change.before.clear();
             change.after.clear();
+        }
+        if (filteredChange) {
+            if (i == 0 || property != quint8(LayerProperty::None) ||
+                state->layers.size() != history.last()->layers.size()) return Result::InvalidRecovery;
+            qsizetype filteredIndex = -1;
+            for (qsizetype layer = 0; layer < state->layers.size(); ++layer) {
+                if (state->layers[layer].id != history.last()->layers[layer].id) return Result::InvalidRecovery;
+                const auto &now = state->layers[layer].operations;
+                const auto &before = history.last()->layers[layer].operations;
+                if (now == before) continue;
+                if (filteredIndex >= 0 || now.size() != before.size() + 1 ||
+                    !std::holds_alternative<FilterSnapshot>(now.last()) ||
+                    !std::equal(before.cbegin(), before.cend(), now.cbegin()))
+                    return Result::InvalidRecovery;
+                filteredIndex = layer;
+            }
+            if (filteredIndex < 0) return Result::InvalidRecovery;
+            change.layer = state->layers[filteredIndex].id;
         }
         if (multipleProperties) {
             quint32 count = 0;

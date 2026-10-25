@@ -445,7 +445,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         for (qsizetype epoch = prefix; epoch < layer.operations.size();) {
             qsizetype end = epoch;
             while (end < layer.operations.size() && !std::holds_alternative<TranslationSnapshot>(layer.operations[end]) &&
-                   !std::holds_alternative<CropSnapshot>(layer.operations[end])) ++end;
+                   !std::holds_alternative<CropSnapshot>(layer.operations[end]) &&
+                   !std::holds_alternative<FilterSnapshot>(layer.operations[end])) ++end;
             const auto paintRegion = operationRegions[epoch];
             QMap<quint64, std::array<std::shared_ptr<Tile>, 2>> writable;
             QMap<quint64, Checkpoint> checkpoints;
@@ -712,6 +713,11 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                            operationRegions[end + 1], spatialPins);
                 if (cropped.code != RenderOutcome::Recorded) return {cropped.code, {}, cropped.diagnostic};
                 tiles = std::move(cropped.tiles);
+            } else if (const auto filter = std::get_if<FilterSnapshot>(&layer.operations[end])) {
+                auto filtered = d.filterTiles(commands, tiles, **filter, data->defaults.value(layer.id),
+                                              document->size, operationRegions[end + 1], spatialPins);
+                if (filtered.code != RenderOutcome::Recorded) return {filtered.code, {}, filtered.diagnostic};
+                tiles = std::move(filtered.tiles);
             } else {
                 const auto &translation = std::get<TranslationSnapshot>(layer.operations[end]);
                 auto moved = d.translateTiles(commands, tiles, data->defaults.value(layer.id), translation->offset,

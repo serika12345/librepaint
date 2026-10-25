@@ -62,6 +62,13 @@ std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &bl
     return false;
 }
 
+bool filterIntersects(const FilterOperation &filter, const QRect &block)
+{
+    if (filter.selectionRect.isEmpty()) return true;
+    return filter.selectionInverted ? !filter.selectionRect.contains(block) :
+        filter.selectionRect.intersects(block);
+}
+
 std::optional<bool> blockExistsBefore(const Layer &layer, qsizetype before, QRect block, GeometryCache &geometry)
 {
     while (before-- > 0) {
@@ -73,6 +80,9 @@ std::optional<bool> blockExistsBefore(const Layer &layer, qsizetype before, QRec
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             if (!(*crop)->rect.normalized().intersects(block)) return false;
             // A partially cropped history block stays allocated even when its remaining pixels are defaults.
+        } else if (std::holds_alternative<FilterSnapshot>(operation)) {
+            // A filter rewrites existing pixels and allocates no source block.
+            continue;
         } else {
             const auto intersects = paintIntersects(*std::get<PaintSnapshot>(operation), block, geometry);
             if (!intersects || *intersects) return intersects;
@@ -106,6 +116,10 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCac
                 block = block.intersected(keep);
                 if (block.isEmpty()) break;
             }
+        } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
+            // Filters retain their frozen coverage; a block inside that coverage
+            // gains one lineage entry so later external writes can distinguish it.
+            if (filterIntersects(**filter, block)) result.append({(*filter)->id.sequence, (*filter)->version});
         } else {
             const auto &paint = *std::get<PaintSnapshot>(operation);
             const auto intersects = paintIntersects(paint, block, geometry);

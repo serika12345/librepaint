@@ -334,6 +334,20 @@ KRAはペイントレイヤーの子として`transparencymask`ノードを書�
 追加は既存の「透明マスクを追加」操作、描画はブラシツール、塗りつぶしは選択範囲の塗りつぶし操作、
 表示切替と削除は子ノードのパネル操作と
 アクティブなGPUペイントレイヤーに対する専用操作の両方から実行できる。
+GPUペイントレイヤーの画素フィルターは、最初の対応としてInvert Colors（RGB反転）を持つ。
+フィルターは適用時の選択矩形・選択種別・反転と任意被覆を操作へ凍結し、
+レイヤーの既存画素を文書座標で処理する一回の取消し可能な履歴項目となる。
+RGBだけを反転してアルファを変更せず、透明画素はアルファ0を保つ。反転した透明画素のRGBは、
+チャンネル保護描画と同じく隠れRGBとして保持し、投影の合成規則に従って扱う。
+部分被覆の選択では元画素と反転画素を被覆率で補間する。
+描画所有者はタイルごとに入力・出力・選択被覆を結ぶ計算経路を使い、
+既存タイルの範囲だけを処理するため、レイヤー全体の読み戻しを行わない。
+フィルター後の追描画は保持した画素へ順に適用し、Undo／Redoは保持済みの版を選ぶだけで
+フィルターを再実行しない。復旧記録は凍結した操作と選択被覆を保持し、KRAは履歴ではなく
+結果画素を保存する。再読込したレイヤーは同じ画素から通常の描画を続けられる。
+GPU文書の既存フィルターアクションのうち`krita_filter_invert`だけをGPU経路へ接続し、
+他のフィルターは操作を変えずに診断を表示する。CPUフィルター処理はGPU画素の一部を
+所有する表示写像へ適用しない。
 操作・履歴・復旧・圧縮画素の値は、Qt Coreとzlibに依存する共有ライブラリ
 `kritaimagegpuoperations`が所有する。形式処理はこの値の所有者を直接利用する。
 GPU実行・派生画素・画像接続の共有ライブラリ`kritagpuimage`は、その操作の値と
@@ -343,8 +357,9 @@ wgpu-nativeに依存する。`kritaimage`は公開画像APIの接続を所有し
 実装ファイルは`libs/image/gpu/`に置き、`libs/image/gpu/CMakeLists.txt`が両所有者を構築する。
 `KisGpuOperationDocument.cpp`、`KisGpuOperationRecovery.cpp`、`KisGpuRasterPixels.cpp`、
 `KisGpuRasterOperations.cpp`は操作の値に属する。`KisGpuPaintGeometry.cpp`、
-`KisGpuDevice.cpp`、`KisGpuExecution.cpp`、描画・合成・読取りと`KisGpuPaintImage.cpp`は
-GPU実行の所有者に属する。公開ヘッダーは各所有者の生成した公開シンボル宣言を使う。
+`KisGpuDevice.cpp`、`KisGpuExecution.cpp`、描画・合成・読取り、タイル単位のクロップ・
+平行移動・画素フィルターと`KisGpuPaintImage.cpp`はGPU実行の所有者に属する。
+公開ヘッダーは各所有者の生成した公開シンボル宣言を使う。
 
 `KisGpuRasterPixels.{h,cpp}`はRGBA8の256×256画素ブロックを圧縮した不変値として保持する。
 展開は固定長の出力領域を使い、展開長、圧縮入力の消費量、座標の範囲を検査する。

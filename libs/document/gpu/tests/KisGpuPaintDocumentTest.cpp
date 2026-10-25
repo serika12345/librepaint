@@ -105,6 +105,7 @@ private Q_SLOTS:
     void colorFillSavesReopensAndContinuesIdentically();
     void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
     void rectangularSelectionSavesReopensAndLimitsPainting();
+    void invertColorsSavesReopensAndRecoversPixels();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
     void patternFillSavesReopensAndPreservesSelectionPixels();
@@ -361,6 +362,81 @@ void KisGpuPaintDocumentTest::rectangularSelectionSavesReopensAndLimitsPainting(
     QCOMPARE(again.document->image()->selectionRect(), QRect(64, 32, 32, 64));
     QCOMPARE(again.document->image()->readRgbaPixels(again.document->image()->operations().activeLayer(), region,
              continued.size()).bytes, continued);
+}
+
+void KisGpuPaintDocumentTest::invertColorsSavesReopensAndRecoversPixels()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {128, 128};
+    initial.layers.append({QStringLiteral("Invert"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000041}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    Brush brush;
+    brush.rgba = {31, 97, 163, 255};
+    brush.opacity = 128;
+    brush.diameter = 16;
+    QCOMPARE(image->paintFigure(layer, brush, {{{16, 64}, 1}, {{112, 64}, 1}}, Shape{}, FigureStyle{}, 9), Result::Success);
+    QCOMPARE(image->setSelectionRect(QRect(32, 32, 64, 64)), Result::Success);
+    QCOMPARE(image->invertColors(layer), Result::Success);
+    const auto count = image->operations().undoCount();
+    QCOMPARE(count, 3);
+    QCOMPARE(image->operations().historyAction(count), HistoryAction::InvertColors);
+
+    const QRect region(QPoint(), initial.size);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 128 + x) * 4, 4); };
+    const auto inverted = image->readRgbaPixels(layer, region, 128 * 128 * 4);
+    QCOMPARE(inverted.code, ExecutionCode::Success);
+    QCOMPARE(pixel(inverted.bytes, 64, 64), QByteArray::fromHex("e09e5c80"));
+    QCOMPARE(pixel(inverted.bytes, 16, 64), QByteArray::fromHex("1f61a380"));
+    // Fully transparent pixels keep alpha zero and retain complemented RGB.
+    QCOMPARE(pixel(inverted.bytes, 40, 40), QByteArray::fromHex("ffffff00"));
+    QCOMPARE(pixel(inverted.bytes, 100, 20), QByteArray(4, char(0)));
+
+    // One undo step restores the stroke pixels; redo restores the filter result.
+    QCOMPARE(image->undo(), Result::Success);
+    const auto original = image->readRgbaPixels(layer, region, 128 * 128 * 4);
+    QCOMPARE(pixel(original.bytes, 64, 64), QByteArray::fromHex("1f61a380"));
+    QCOMPARE(pixel(original.bytes, 40, 40), QByteArray(4, char(0)));
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, 128 * 128 * 4).bytes, inverted.bytes);
+
+    // Recovery retains the frozen filter selection and its pixels.
+    PaintDocument recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recoveredImage = recovered.image();
+    QCOMPARE(recoveredImage->operations().undoCount(), count);
+    QCOMPARE(recoveredImage->operations().historyAction(count), HistoryAction::InvertColors);
+    QCOMPARE(recoveredImage->readRgbaPixels(recoveredImage->operations().activeLayer(), region,
+             inverted.bytes.size()).bytes, inverted.bytes);
+
+    // KRA saving reads the filter result; reopening reproduces the same pixels.
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto path = QDir(destination).filePath(QStringLiteral("invert-colors.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    QCOMPARE(loaded->operations().undoCount(), 0);
+    QCOMPARE(loaded->readRgbaPixels(loaded->operations().activeLayer(), region, inverted.bytes.size()).bytes,
+             inverted.bytes);
+
+    // A reopened layer stays editable and a later filter uses the new selection.
+    QCOMPARE(loaded->clearSelection(), Result::Success);
+    QCOMPARE(loaded->setSelectionRect(QRect(0, 0, 32, 32)), Result::Success);
+    QCOMPARE(loaded->invertColors(loaded->operations().activeLayer()), Result::Success);
+    QCOMPARE(loaded->operations().historyAction(loaded->operations().undoCount()), HistoryAction::InvertColors);
+    const auto continued = loaded->readRgbaPixels(loaded->operations().activeLayer(), region, inverted.bytes.size());
+    QCOMPARE(continued.code, ExecutionCode::Success);
+    QCOMPARE(pixel(continued.bytes, 64, 64), QByteArray::fromHex("e09e5c80"));
+    QCOMPARE(pixel(continued.bytes, 16, 64), QByteArray::fromHex("1f61a380"));
+    QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("ffffff00"));
 }
 
 void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra()

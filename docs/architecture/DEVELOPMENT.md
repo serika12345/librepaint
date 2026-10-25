@@ -492,6 +492,29 @@ GPU履歴のUndo／Redo、選択の無い追加の拒否を検査する。
 削除前の表示状態が復元されること、Redoで再び除去されることを検査する。
 `KisGpuDocumentViewTest::layerPanelGpuTransparencyMaskChildSurvivesSaving`は、
 KRA保存・再読込後の子ノード、被覆、表示状態、サムネイルのパネル項目を検査する。
+`KisGpuTileRendererTest::invertColorsComplementsRgbPreservesAlphaAndClipsSelection`は、
+固定RGBA8タイルの選択内だけをRGB反転し、アルファ、選択外の全バイト、透明画素のアルファ0と
+隠れRGB、一回の履歴と履歴種別、Undo／Redo、復旧後の同じ画素、適用後の選択変更が
+凍結被覆を書き換えないことを検査する。
+`KisGpuTileRendererTest::invertColorsInterpolatesFeatheredAndInvertedCoverage`は、
+アルファ被覆の部分選択を被覆率で補間した整数RGB8、完全被覆、被覆外の保持、
+反転矩形の補集合、楕円被覆の画素判定を検査する。
+`KisGpuOperationDocumentTest::invertColorsFreezesCoverageAndRecovers`は、
+矩形・楕円・反転・アルファ被覆の凍結、一度の履歴、複製時の操作識別子、
+Undo／Redo、復旧後の履歴種別と選択被覆（部分アルファ値を含む）を検査する。
+`KisGpuOperationDocumentTest::rejectedInvertColorsPreserveHistoryAndInput`は、
+ロック済みレイヤー・グループ・不在レイヤー・入力中の拒否、取消し後の履歴と画素の保持、
+終了後の拒否を検査する。
+`KisGpuPaintDocumentTest::invertColorsSavesReopensAndRecoversPixels`は、
+部分アルファの描画と選択内の反転、透明画素の隠れRGB、一回のGPU履歴とUndo／Redo、
+復旧後の同じ画素、KRA保存・再読込後の結果画素、再読込後の新しい選択による再適用を検査する。
+`KisGpuDocumentViewTest::invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters`は、
+`krita_filter_invert`アクションがGPU文書のアクティブペイントレイヤーへ一度の履歴として
+適用され、Undo／Redoが同じ画素を復元すること、未対応フィルターが履歴と画素を変えずに
+GPU文書向けの診断を表示することを検査する。UI試験は`QT_QPA_PLATFORM=cocoa`で実行し、
+`KIS_TEST_PREFIX_PATH`を増分構築ディレクトリーへ設定する。単独実行は
+`./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentViewTest libs-ui-filter-invert-KisGpuDocumentViewTest`
+を使う。
 任意被覆の選択は同じストリームの画素から復元し、0か255の画素が矩形・楕円に一致しない場合に
 `SelectionKind::Freehand`の硬い被覆マスクとして、部分的なアルファ値を持つ場合は
 同じ種類のアルファ被覆マスクとして読み込む。
@@ -898,6 +921,7 @@ KRA再読込後の全レイヤー画素とPNG書出しを検査し、`LIBREPAINT
 復旧形式23は塗りつぶしの履歴種別を保持し、形式9から22の入力も引き続き検査する。
 復旧形式48は塗りつぶしの合成方式を操作へ保存し、形式47以前は通常方式として読み込む。
 復旧形式49はブラシ被覆の合成方式を操作へ保存し、形式48以前は通常方式として読み込む。
+復旧形式50は画素フィルター操作とその凍結選択を保存し、形式49以前はフィルターなしとして読み込む。
 復旧形式47は凍結パターンの寸法と直線RGBA8画素を操作へ保存し、形式17から46の
 図形塗りつぶし入力も引き続き読み込む。
 描線・塗りなしの矩形と塗れる面積のない頂点列は、画素を保った一回の履歴とUndo／Redoを照合する。

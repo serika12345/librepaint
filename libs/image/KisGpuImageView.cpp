@@ -604,6 +604,15 @@ bool KisImage::clearGpuSelection()
     return owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
 }
 
+bool KisImage::invertGpuLayerColors(KisNodeSP layer)
+{
+    const auto owner = gpuImage();
+    if (!owner || !layer || layer->image() != this ||
+        QThread::currentThread() != owner->thread()) return false;
+    const auto layerId = gpuPaintLayerId(owner->operations().snapshot(), layer);
+    return layerId && owner->invertColors(layerId) == LibrePaint::Image::Gpu::Result::Success;
+}
+
 bool KisImage::addGpuTransparencyMaskFromSelection(KisNodeSP layer)
 {
     const auto owner = gpuImage();

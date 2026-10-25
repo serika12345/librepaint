@@ -106,6 +106,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline translationPipeline;
     Detail::NativeBindingLayout cropLayout;
     Detail::NativeComputePipeline cropPipeline;
+    Detail::NativeBindingLayout filterLayout;
+    Detail::NativeComputePipeline filterPipeline;
     Detail::NativeBindingLayout thumbnailLayout;
     Detail::NativeComputePipeline thumbnailPipeline;
     Detail::NativeBindingLayout resizeLayout;
@@ -154,6 +156,19 @@ struct TileRenderer::Private
     };
     CropResult cropTiles(WGPUCommandEncoder commands, const Detail::Tiles &source, QRect keep,
                         quint32 defaultPixel, QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
+    struct FilterResult {
+        RenderOutcome::Code code;
+        Detail::Tiles tiles;
+        QString diagnostic;
+    };
+    /** Complements RGB inside the frozen coverage for every existing tile that
+     * intersects it. Each tile is transformed by its own compute pass, so the
+     * filter never reads the layer back through the CPU.
+     */
+    FilterResult filterTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
+                             const FilterOperation &filter, const std::shared_ptr<Detail::Tile> &fallback,
+                             QSize documentSize, QRect region,
+                             QList<std::shared_ptr<Detail::Tile>> &pins);
 };
 }
 #endif
