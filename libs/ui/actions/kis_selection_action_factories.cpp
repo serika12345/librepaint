@@ -379,6 +379,34 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
 
     if (!view->blockUntilOperationsFinished(image)) return;
 
+    if (const auto owner = image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QRect selected = owner->selectionRect();
+        if (!selected.isEmpty()) {
+            KisNodeSP node = view->activeNode();
+            Gpu::LayerId layer = 0;
+            for (const auto &candidate : owner->operations().snapshot()->layers)
+                if (node && candidate.uuid == node->uuid()) layer = candidate.id;
+            if (!node || !node->hasEditablePaintDevice() || !layer) {
+                view->showFloatingMessage(i18n("The selected layer cannot be copied from this GPU document."), QIcon());
+                return;
+            }
+            if (!KisClipboard::instance()->setGpuLayer(image, node->uuid(), 256 * 1024 * 1024, selected)) {
+                view->showFloatingMessage(i18n("The selected area could not be copied."), QIcon());
+                return;
+            }
+            if (flags & CutClip) {
+                const auto result = owner->fillLayer(layer, {0, 0, 0}, 255, true, false);
+                if (result != Gpu::Result::Success) {
+                    view->showFloatingMessage(i18n("The selected area could not be cleared."), QIcon());
+                    return;
+                }
+                view->canvasResourceProvider()->slotPainting();
+            }
+            return;
+        }
+    }
+
     // Reference layers is a fake node, so it isn't added to the layer stack, this results in KisSelectedShapesProxy not
     // being aware of the active shapeManager and its selected shapes.
     const auto currentToolHasSelection =

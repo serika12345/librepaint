@@ -333,6 +333,9 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 前景色塗りつぶし、選択外の不変、Undo／Redoを検査する。
 `KisGpuDocumentViewTest::selectionMergedCopyUsesGpuSelection`は、矩形選択の投影だけを
 クリップボード画像として切り出すことを検査する。
+`KisGpuDocumentViewTest::selectionCopyAndCutUseGpuSelection`は、通常のコピーが
+アクティブレイヤーの選択範囲だけを切り出し、切り取りが選択内を透明化して
+選択外を保持し、Undo／Redoできることを検査する。
 `TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening`は、GPU文書のKRAが
 ルートの`selectionmask`と`PIXELSIZE 1`の`.pixelselection`を矩形選択として読み書きし、
 再保存・再読込後も選択とレイヤー画素を保持することを検査する。

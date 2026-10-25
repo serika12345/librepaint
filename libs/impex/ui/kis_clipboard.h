@@ -12,6 +12,7 @@
 
 #include <QObject>
 #include <QRect>
+#include <QUuid>
 #include <QSize>
 
 #include <kis_types.h>
@@ -127,6 +128,9 @@ public:
      * the previous clipboard and source state; the copy retains execution.
      */
     bool setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes = 256 * 1024 * 1024, QRect region = {});
+    /** Captures one GPU layer's pixels in region; false keeps the previous clipboard. */
+    bool setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes = 256 * 1024 * 1024,
+                     QRect region = {});
     bool hasLayers() const;
     bool hasLayerStyles() const;
 

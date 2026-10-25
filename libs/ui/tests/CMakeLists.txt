@@ -1190,7 +1190,8 @@ set(gpu_document_input_cases
     lineToolPreservesPreviewCancellationAndHistory
     rectangularSelectionLimitsPainting
     selectionFillUsesGpuSelection
-    selectionMergedCopyUsesGpuSelection)
+    selectionMergedCopyUsesGpuSelection
+    selectionCopyAndCutUseGpuSelection)
 set(gpu_document_crop_cases
     cropPreviewPreservesPixelsHistoryAndCancellation)
 set(gpu_document_layer_cases

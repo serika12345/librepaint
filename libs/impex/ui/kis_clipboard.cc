@@ -750,6 +750,36 @@ bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetByte
     }
 }
 
+bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes, QRect region)
+{
+    const auto owner = image ? image->gpuImage() : nullptr;
+    if (!owner || layer.isNull() || QThread::currentThread() != thread() ||
+        QThread::currentThread() != owner->thread() || !owner->handle() ||
+        owner->operations().hasActiveStroke() || memoryBudgetBytes < 0) return false;
+    const auto version = owner->operations().snapshot();
+    LibrePaint::Image::Gpu::LayerId layerId = 0;
+    for (const auto &candidate : version->layers)
+        if (candidate.uuid == layer) layerId = candidate.id;
+    if (!layerId) return false;
+    const QRect captured = region.isNull() ? QRect(QPoint(), version->size) :
+        region.normalized().intersected(QRect(QPoint(), version->size));
+    if (captured.isEmpty()) return false;
+    try {
+        const auto copied = owner->cloneRasterLayer(version, layerId, captured, QUuid::createUuid(), memoryBudgetBytes);
+        if (!copied) return false;
+        if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;
+        auto capturedImage = KisImage::fromGpuImage(copied, QStringLiteral("Layer"), image->colorSpace());
+        capturedImage->setResolution(image->xRes(), image->yRes());
+        auto *data = KisMimeData::mimeForLayers({capturedImage->root()->firstChild()}, capturedImage, true);
+        if (!data) return false;
+        d->clipboard->setMimeData(data);
+        return true;
+    } catch (const std::exception &error) {
+        qWarning() << "Could not capture a GPU layer region:" << error.what();
+        return false;
+    }
+}
+
 bool KisClipboard::hasLayers() const
 {
     const QByteArray mimeType = QByteArrayLiteral("application/x-krita-node-internal-pointer");
