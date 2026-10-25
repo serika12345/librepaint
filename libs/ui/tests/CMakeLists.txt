@@ -1230,6 +1230,9 @@ foreach(background_row IN ITEMS
         COMMAND KisGpuDocumentViewTest canvasBackgroundFollowsPreferencesWithoutEditing:${background_row})
     list(APPEND gpu_document_background_tests ${background_test})
 endforeach()
+set(gpu_document_selection_nudge_test libs-ui-selection-nudge-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_selection_nudge_test}
+    COMMAND KisGpuDocumentViewTest arrowKeysNudgeGpuSelection)
 set(gpu_document_ellipse_tool_test libs-ui-ellipse-tool-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_ellipse_tool_test}
     COMMAND KisGpuDocumentViewTest ellipticalToolCreatesDocumentSelection)
@@ -1240,7 +1243,8 @@ set(gpu_document_crop_test libs-ui-crop-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_crop_test}
     COMMAND KisGpuDocumentViewTest ${gpu_document_crop_cases})
 set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
-    ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_ellipse_tool_test}
+    ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
+    ${gpu_document_ellipse_tool_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop

@@ -147,6 +147,31 @@ public:
 
     void keyPressEvent(QKeyEvent *event) override
     {
+        if (this->image() && this->image()->gpuImage() && !isSelecting() && !m_gpuMovingSelection) {
+            QPoint delta;
+            switch (event->key()) {
+            case Qt::Key_Left: delta = QPoint(-1, 0); break;
+            case Qt::Key_Right: delta = QPoint(1, 0); break;
+            case Qt::Key_Up: delta = QPoint(0, -1); break;
+            case Qt::Key_Down: delta = QPoint(0, 1); break;
+            default: break;
+            }
+            if (!delta.isNull()) {
+                if (event->modifiers().testFlag(Qt::ShiftModifier)) delta *= 10;
+                const QRect current = this->image()->gpuSelectionRect();
+                if (!current.isEmpty()) {
+                    const bool ok = this->image()->gpuSelectionEllipse()
+                        ? this->image()->setGpuSelectionEllipse(current.translated(delta),
+                                                                this->image()->gpuSelectionInverted())
+                        : this->image()->setGpuSelectionRect(current.translated(delta),
+                                                             this->image()->gpuSelectionInverted());
+                    if (!ok) toolCanvas()->showToolMessage(i18n("The selection could not be moved."),
+                                                           QStringLiteral("object-locked"));
+                }
+                event->accept();
+                return;
+            }
+        }
         if (event->key() == Qt::Key_Escape && m_gpuMovingSelection) {
             this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
                                                    m_gpuSelectionStartInverted);

@@ -135,6 +135,7 @@ private Q_SLOTS:
     void ellipticalToolCreatesDocumentSelection();
     void pasteClipboardImageCreatesGpuLayer();
     void reselectRestoresGpuSelection();
+    void arrowKeysNudgeGpuSelection();
     void selectionMovePreviewsAndCommitsOneHistory();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
@@ -2700,6 +2701,52 @@ void KisGpuDocumentViewTest::reselectRestoresGpuSelection()
     QTRY_VERIFY(owner->selectionRect().isEmpty());
     manager->reselect();
     QTRY_COMPARE(owner->selectionRect(), ellipse);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    QVERIFY(owner->selectionInverted());
+}
+
+void KisGpuDocumentViewTest::arrowKeysNudgeGpuSelection()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Nudge")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectRectangular"));
+    QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectRectangular"));
+    view->canvasBase()->canvasWidget()->setFocus();
+    const QRect selected(16, 24, 48, 40);
+    QVERIFY(lifetime->image()->setGpuSelectionRect(selected));
+    QTRY_COMPARE(owner->selectionRect(), selected);
+    QTest::keyClick(view->canvasBase()->canvasWidget(), Qt::Key_Right);
+    QTRY_COMPARE(owner->selectionRect(), selected.translated(1, 0));
+    QTest::keyClick(view->canvasBase()->canvasWidget(), Qt::Key_Down, Qt::ShiftModifier);
+    QTRY_COMPARE(owner->selectionRect(), selected.translated(1, 10));
+    const QRect ellipse(24, 32, 40, 32);
+    QVERIFY(lifetime->image()->setGpuSelectionEllipse(ellipse, true));
+    QTRY_VERIFY(owner->selectionInverted());
+    QTest::keyClick(view->canvasBase()->canvasWidget(), Qt::Key_Left);
+    QTRY_COMPARE(owner->selectionRect(), ellipse.translated(-1, 0));
     QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
     QVERIFY(owner->selectionInverted());
 }
