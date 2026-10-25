@@ -2515,7 +2515,7 @@ void KisGpuDocumentViewTest::rectangularSelectionLimitsPainting()
     view->canvasController()->resetCanvasRotation();
     view->canvasController()->mirrorCanvas(false);
     const auto imageSize = converter->imageRectInWidgetPixels().size();
-    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2 + 0.5, imageSize.height() / 2 + 0.5});
     QTRY_COMPARE(execution->published(owner->handle()), saved);
     QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
     for (auto *candidate : QGuiApplication::allWindows())
@@ -3242,7 +3242,7 @@ void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()
     view->canvasController()->resetCanvasRotation();
     view->canvasController()->mirrorCanvas(false);
     const auto imageSize = converter->imageRectInWidgetPixels().size();
-    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2 + 0.5, imageSize.height() / 2 + 0.5});
     QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
     for (auto *candidate : QGuiApplication::allWindows())
         if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
