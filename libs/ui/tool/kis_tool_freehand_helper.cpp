@@ -383,9 +383,9 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         disconnect(m_d->gpuCancellation);
         m_d->gpuImage = owner;
         m_d->gpuOperation = {};
-        if (overrideNode || bounds || image->globalSelection()) {
+        if (overrideNode || bounds) {
             m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("Selection and overridden paint nodes are not yet supported for GPU freehand input."));
+            Q_EMIT requestErrorMessage(i18n("Overridden paint nodes are not yet supported for GPU freehand input."));
             return;
         }
         auto resources = captureGpuBrushResources(image, currentNode, resourceManager);

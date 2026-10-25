@@ -325,6 +325,10 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 `KisGpuTileRendererTest::selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery`は、
 矩形選択の外側が描画・塗り・消去の前後で不変であること、内側の画素、Undo／Redo、
 復旧後の再描画が同じ結果になることを検査する。現在の対象は文書座標の矩形選択である。
+`KisGpuDocumentViewTest::rectangularSelectionLimitsPainting`は、通常の矩形選択ツールで
+選択範囲を作成し、GPU選択とCPU表示用マスクの一致、選択内だけの描画、選択外の不変、
+解除後の描画、選択変更を含むUndoの件数を検査する。
+矩形以外の選択ツール、選択移動、選択フィルターはGPU文書で拒否する。
 `TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening`は、GPU文書のKRAが
 ルートの`selectionmask`と`PIXELSIZE 1`の`.pixelselection`を矩形選択として読み書きし、
 再保存・再読込後も選択とレイヤー画素を保持することを検査する。

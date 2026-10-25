@@ -91,6 +91,9 @@ public:
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
+    /** Replaces the GPU document selection and updates the CPU selection mirror. */
+    bool setGpuSelectionRect(const QRect &rect);
+    bool clearGpuSelection();
     /** Adds a GPU paint layer at a bottom-to-top child index in the given
      * group. Returns the adopted node, or null on invalid input or capacity.
      */
@@ -1309,6 +1312,8 @@ private:
     void synchronizeGpuLayerViews(KisGpuImageViewState *state);
     QSharedPointer<KisGpuImageViewState> &gpuViewState();
     void connectGpuImageUpdates();
+    void adoptGpuSelectionMask();
+    void synchronizeGpuSelectionToMask();
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> cloneGpuImage(bool exactCopy) const;
     KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy);
     KisImage& operator=(const KisImage& rhs);
@@ -1340,6 +1345,8 @@ private:
     class KisImagePrivate;
     KisImagePrivate * m_d;
     bool m_synchronizingGpuNodes = false;
+    QRect m_gpuSelectionMirrorRect;
+    bool m_hasGpuSelectionMirror = false;
 };
 
 #endif // KIS_IMAGE_H_

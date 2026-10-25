@@ -56,9 +56,23 @@ void KisToolSelectRectangular::finishRect(const QRectF& rect, qreal roundCorners
     if (!kisCanvas)
         return;
 
-    KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Rectangle"));
-
+    const bool gpu = currentImage() && currentImage()->gpuImage();
+    if (gpu && (roundCornersX > 0 || roundCornersY > 0 || getRotationAngle() != 0 ||
+                selectionAction() != SELECTION_REPLACE)) {
+        kisCanvas->showToolMessage(i18n("The GPU painting engine supports replacement with an unrotated rectangular selection only."),
+                                   QStringLiteral("object-locked"));
+        return;
+    }
     QRect rc(rect.normalized().toRect());
+    if (gpu) {
+        if (!rc.isValid()) return;
+        if (currentImage()->setGpuSelectionRect(rc)) return;
+        kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
+                                   QStringLiteral("object-locked"));
+        return;
+    }
+
+    KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Rectangle"));
 
     if (helper.tryDeselectCurrentSelection(pixelToView(rc), selectionAction())) {
         return;

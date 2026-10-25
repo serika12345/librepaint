@@ -18,6 +18,7 @@
 #include <KoCompositeOpIds.h>
 #include <KoToolProxy.h>
 #include <KisOptimizedBrushOutline.h>
+#include <kis_selection.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <QApplication>
@@ -146,6 +147,11 @@ bool KisGpuCanvasWidget::updateToolDecorations()
         toolProxy()->paint(painter, *canvas()->viewConverter());
         painter.end();
         if (!guard || !m_window) return false;
+    }
+    if (const auto selection = canvas()->image()->globalSelection(); selection && selection->outlineCacheValid()) {
+        const auto transform = coordinatesConverter()->imageToWidgetTransform();
+        for (const auto &contour : selection->outlineCache().toSubpathPolygons(transform))
+            m_toolOutline.contours.append(contour);
     }
     m_window->setToolOutline(std::move(m_toolOutline));
     m_window->setCropPreview(std::move(m_cropPreview));

@@ -22,6 +22,7 @@
 #include <kis_selection.h>
 #include <kis_selection_modifier_mapping.h>
 #include <kis_tool.h>
+#include <klocalizedstring.h>
 #include <kritatools_export.h>
 #include <strokes/move_stroke_strategy.h>
 
@@ -55,6 +56,10 @@ public:
         : BaseClass(canvas, cursor, delegateTool)
     {
     }
+
+    /** Whether the concrete tool's selection can be represented by the GPU
+     * document selection contract. */
+    virtual bool supportsGpuSelection() const { return false; }
 
     SelectionAction selectionAction() const
     {
@@ -223,6 +228,19 @@ public:
 
     void beginPrimaryAction(KoPointerEvent *event) override
     {
+        const bool gpu = this->image() && this->image()->gpuImage();
+        if (gpu && !supportsGpuSelection()) {
+            toolCanvas()->showToolMessage(
+                i18n("The GPU painting engine currently supports rectangular selections only."),
+                QStringLiteral("object-locked"));
+            return;
+        }
+        if (gpu && locateSelectionMaskUnderCursor(this->convertToPixelCoord(event->point), event->modifiers())) {
+            toolCanvas()->showToolMessage(
+                i18n("Moving an existing selection is not available for GPU documents."),
+                QStringLiteral("object-locked"));
+            return;
+        }
         if (isSelecting()) {
             BaseClass::beginPrimaryAction(event);
             return;

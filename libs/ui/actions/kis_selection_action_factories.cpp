@@ -168,6 +168,12 @@ void KisSelectAllActionFactory::run(KisViewManager *view)
     KisImageWSP image = view->image();
     if (!image) return;
 
+    if (image->gpuImage()) {
+        if (image->setGpuSelectionRect(image->bounds())) return;
+        view->showFloatingMessage(i18n("The document selection could not be updated."), QIcon());
+        return;
+    }
+
     if (view->canvasBase()->toolProxy()->selectAll()) {
         return;
     }
@@ -206,6 +212,12 @@ void KisDeselectActionFactory::run(KisViewManager *view)
     KisImageWSP image = view->image();
     if (!image) return;
 
+    if (image->gpuImage()) {
+        if (image->clearGpuSelection()) return;
+        view->showFloatingMessage(i18n("The document selection could not be updated."), QIcon());
+        return;
+    }
+
     if (view->canvasBase()->toolProxy()->hasSelection()) {
         // see KisCutCopyActionFactory::run
         KisImageBarrierLock lock(image, std::try_to_lock);
@@ -226,6 +238,10 @@ void KisReselectActionFactory::run(KisViewManager *view)
 {
     KisImageWSP image = view->image();
     if (!image) return;
+    if (image->gpuImage()) {
+        view->showFloatingMessage(i18n("Reselecting a previous selection is not available for GPU documents."), QIcon());
+        return;
+    }
 
     KUndo2Command *cmd = new KisReselectActiveSelectionCommand(view->activeNode(), image);
 

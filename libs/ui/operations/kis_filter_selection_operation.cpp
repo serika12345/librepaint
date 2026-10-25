@@ -26,6 +26,11 @@
 
 void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewManager* view, const KisOperationConfiguration& config)
 {
+    if (view->image() && view->image()->gpuImage()) {
+        view->showFloatingMessage(i18n("The GPU painting engine currently supports rectangular selections only."), QIcon());
+        delete filter;
+        return;
+    }
     KisSelectionSP selection = view->selection();
     if (!selection) return;
 

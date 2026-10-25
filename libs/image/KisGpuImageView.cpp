@@ -9,6 +9,11 @@
 #include "kis_group_layer.h"
 #include "kis_paint_device.h"
 #include "kis_default_bounds.h"
+#include "kis_selection.h"
+#include "kis_selection_mask.h"
+#include "kis_pixel_selection.h"
+#include "KisImageResolutionProxy.h"
+#include "kis_pointer_utils.h"
 #include <kis_meta_data_store.h>
 #include "gpu/KisGpuPaintImage.h"
 #include <KoColorSpaceRegistry.h>
@@ -338,6 +343,7 @@ KisImageSP KisImage::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, co
         throw std::invalid_argument("GPU image views require the validated RGBA8/sRGB encoding");
     KisImageSP result = new KisImage(image, name, colorSpace);
     result->synchronizeGpuNodes();
+    result->adoptGpuSelectionMask();
     result->connectGpuImageUpdates();
     return result;
 }
@@ -349,6 +355,55 @@ QSharedPointer<LibrePaint::Image::Gpu::PaintImage> KisImage::cloneGpuImage(bool 
     auto result = owner->clone(exactCopy);
     if (!result) throw std::invalid_argument("GPU image cloning requires the owning thread");
     return result;
+}
+
+bool KisImage::setGpuSelectionRect(const QRect &rect)
+{
+    const auto owner = gpuImage();
+    return owner && owner->setSelectionRect(rect) == LibrePaint::Image::Gpu::Result::Success;
+}
+
+bool KisImage::clearGpuSelection()
+{
+    const auto owner = gpuImage();
+    return owner && owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
+}
+
+void KisImage::adoptGpuSelectionMask()
+{ synchronizeGpuSelectionToMask(); }
+
+void KisImage::synchronizeGpuSelectionToMask()
+{
+    const auto owner = gpuImage();
+    if (!owner) return;
+    const QRect rect = owner->selectionRect();
+    KisSelectionMaskSP mask = rootLayer() ? rootLayer()->selectionMask() : KisSelectionMaskSP();
+    if (!mask && rect.isEmpty()) return;
+    if (mask && m_hasGpuSelectionMirror && m_gpuSelectionMirrorRect == rect) return;
+    if (!mask) {
+        mask = new KisSelectionMask(this);
+        mask->initSelection(rootLayer());
+        KisSelectionSP selection = new KisSelection(new KisSelectionEmptyBounds(this),
+                                                   toQShared(new KisImageResolutionProxy(this)));
+        mask->setSelection(selection);
+        mask->setActive(true);
+        if (!addNode(mask, rootLayer(), rootLayer()->lastChild(), KisNodeAdditionFlag::DontActivateNode)) return;
+    }
+    KisSelectionSP selection = mask->selection();
+    if (!selection || !selection->pixelSelection()) return;
+    KisPixelSelectionSP pixels = selection->pixelSelection();
+    const QRect previousRect = pixels->selectedExactRect();
+    pixels->clear();
+    QPainterPath outline;
+    if (!rect.isEmpty()) {
+        pixels->select(rect);
+        outline.addRect(rect);
+    }
+    pixels->setOutlineCache(outline);
+    selection->updateProjection(rect.isEmpty() ? bounds() : rect);
+    mask->setDirty(previousRect.united(rect));
+    m_gpuSelectionMirrorRect = rect;
+    m_hasGpuSelectionMirror = true;
 }
 
 void KisImage::connectGpuImageUpdates()
@@ -392,6 +447,7 @@ void KisImage::connectGpuImageUpdates()
             }
             synchronized = retainedView->gpuImage()->operations().snapshot();
             retainedView->setSize(synchronized->size);
+            retainedView->synchronizeGpuSelectionToMask();
             const auto &operations = retainedView->gpuImage()->operations();
             const auto versions = operations.historyVersions();
             int previousIndex = -1;
@@ -461,7 +517,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         for (qsizetype i = 1; i < attached.size(); ++i) {
             const auto node = attached[i];
             existing.insert(node->uuid(), node);
-            if (!desired.contains(node->uuid()) && node->parent() &&
+            if (!node->inherits("KisSelectionMask") && !desired.contains(node->uuid()) && node->parent() &&
                 (node->parent() == view->root() || desired.contains(node->parent()->uuid()))) view->removeNode(node);
             if (changed()) break;
         }
