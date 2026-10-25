@@ -2820,6 +2820,23 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     QCOMPARE(invertedMatches, 64 * 64 - 32 * 32);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
+    const QRect ellipseRect(16, 16, 32, 32);
+    QVERIFY(lifetime->image()->setGpuSelectionEllipse(ellipseRect));
+    QTRY_COMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    action->trigger();
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
+    LibrePaint::Image::Gpu::LayerId ellipseLayer = 0;
+    for (const auto &layer : owner->operations().snapshot()->layers)
+        if (layer.name == QStringLiteral("Copied Selection")) ellipseLayer = layer.id;
+    QVERIFY(ellipseLayer);
+    QCOMPARE(owner->operations().activeLayer(), ellipseLayer);
+    const auto ellipsePixels = owner->readRgbaPixels(ellipseLayer, region, 8 * 1024 * 1024);
+    QCOMPARE(ellipsePixels.code, Gpu::ExecutionCode::Success);
+    const auto ellipsePixel = [&](int x, int y) { return ellipsePixels.bytes.mid((y * 64 + x) * 4, 4); };
+    QCOMPARE(ellipsePixel(32, 32), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(ellipsePixel(16, 16), QByteArray(4, char(0)));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
     QVERIFY(lifetime->image()->setGpuSelectionRect(selected));
 
     auto *cutAction = window->viewManager()->actionManager()->actionByName(QStringLiteral("cut_selection_to_new_layer"));

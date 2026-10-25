@@ -95,11 +95,11 @@ LibrePaint::Image::Gpu::LayerId insertGpuClipboardLayer(KisImageSP image, const 
     if (!owner || source.isNull()) return 0;
     const QImage rgba = source.convertToFormat(QImage::Format_RGBA8888);
     if (rgba.isNull()) return 0;
-    auto temporary = LibrePaint::Image::Gpu::PaintImageSP::create(owner->execution(), rgba.size());
+    auto temporary = LibrePaint::Image::Gpu::PaintImageSP::create(owner->execution(), image->size());
     const auto temporaryLayer = temporary->addLayer(name);
     const QByteArray bytes(reinterpret_cast<const char *>(rgba.constBits()), rgba.sizeInBytes());
     if (!temporaryLayer ||
-        temporary->writeRgbaPixels(temporaryLayer, QRect(QPoint(), rgba.size()), bytes) !=
+        temporary->writeRgbaPixels(temporaryLayer, QRect(position, rgba.size()), bytes) !=
             LibrePaint::Image::Gpu::Result::Success) return 0;
     const auto pixels = temporary->retainLayerPixels(temporaryLayer);
     const auto version = owner->operations().snapshot();
@@ -109,7 +109,7 @@ LibrePaint::Image::Gpu::LayerId insertGpuClipboardLayer(KisImageSP image, const 
     LibrePaint::Image::Gpu::RasterLayer properties;
     properties.name = name;
     properties.uuid = QUuid::createUuid();
-    properties.position = position;
+    properties.position = QPoint();
     return owner->insertLayer(*temporary, pixels, properties, index, false);
 }
 }
