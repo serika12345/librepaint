@@ -232,11 +232,13 @@ Result OperationDocument::setSelectionRect(const QRect &rect, bool inverted)
     const auto normalized = rect.normalized();
     if (!normalized.isEmpty() && !Detail::validSelectionRect(normalized)) return Result::InvalidInput;
     const bool effectiveInverted = !normalized.isEmpty() && inverted;
-    if (normalized == snapshot()->selection && effectiveInverted == snapshot()->selectionInverted) return Result::Success;
+    if (normalized == snapshot()->selection && effectiveInverted == snapshot()->selectionInverted &&
+        snapshot()->selectionKind == SelectionKind::Rectangle) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->selection = normalized;
     version->selectionInverted = effectiveInverted;
+    version->selectionKind = SelectionKind::Rectangle;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.changedSelection = true;
@@ -244,6 +246,34 @@ Result OperationDocument::setSelectionRect(const QRect &rect, bool inverted)
     change.selectionAfter = normalized;
     change.selectionInvertedBefore = snapshot()->selectionInverted;
     change.selectionInvertedAfter = effectiveInverted;
+    change.selectionKindBefore = snapshot()->selectionKind;
+    change.selectionKindAfter = SelectionKind::Rectangle;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
+Result OperationDocument::setSelectionEllipse(const QRect &rect)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto normalized = rect.normalized();
+    if (normalized.isEmpty() || !Detail::validSelectionRect(normalized)) return Result::InvalidInput;
+    if (normalized == snapshot()->selection && snapshot()->selectionKind == SelectionKind::Ellipse &&
+        !snapshot()->selectionInverted) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->selection = normalized;
+    version->selectionInverted = false;
+    version->selectionKind = SelectionKind::Ellipse;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    change.changedSelection = true;
+    change.selectionBefore = snapshot()->selection;
+    change.selectionAfter = normalized;
+    change.selectionInvertedBefore = snapshot()->selectionInverted;
+    change.selectionInvertedAfter = false;
+    change.selectionKindBefore = snapshot()->selectionKind;
+    change.selectionKindAfter = SelectionKind::Ellipse;
     commitVersion(version, change);
     return Result::Success;
 }
@@ -254,6 +284,8 @@ Result OperationDocument::clearSelection()
 QRect OperationDocument::selectionRect() const { return snapshot()->selection; }
 
 bool OperationDocument::selectionInverted() const { return snapshot()->selectionInverted; }
+
+SelectionKind OperationDocument::selectionKind() const { return snapshot()->selectionKind; }
 
 qsizetype OperationDocument::layerIndex(LayerId layer) const
 {
@@ -539,6 +571,7 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
     operation->randomSeed = randomSeed;
     operation->selectionRect = snapshot()->selection;
     operation->selectionInverted = snapshot()->selectionInverted;
+    operation->selectionKind = snapshot()->selectionKind;
     m_edit = operation;
     return operation->id;
 }

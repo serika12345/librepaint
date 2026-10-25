@@ -1193,7 +1193,8 @@ set(gpu_document_input_cases
     selectionMergedCopyUsesGpuSelection
     selectionCopyAndCutUseGpuSelection
     selectionGrowAndShrinkUseGpuSelection
-    invertedSelectionLimitsPaintingAndKra)
+    invertedSelectionLimitsPaintingAndKra
+    ellipticalSelectionLimitsPaintingAndKra)
 set(gpu_document_crop_cases
     cropPreviewPreservesPixelsHistoryAndCancellation)
 set(gpu_document_layer_cases

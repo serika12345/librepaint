@@ -57,6 +57,22 @@ void KisToolSelectElliptical::finishRect(const QRectF &rect, qreal roundCornersX
     KisCanvas2 * kisCanvas = dynamic_cast<KisCanvas2*>(canvas());
     Q_ASSERT(kisCanvas);
 
+    const bool gpu = currentImage() && currentImage()->gpuImage();
+    if (gpu && (getRotationAngle() != 0 || growSelection() != 0 || featherSelection() != 0 ||
+                selectionAction() != SELECTION_REPLACE)) {
+        kisCanvas->showToolMessage(i18n("The GPU painting engine supports an unrotated, hard-edged replacement ellipse only."),
+                                   QStringLiteral("object-locked"));
+        return;
+    }
+    if (gpu) {
+        const QRect rc = rect.normalized().toRect();
+        if (rc.isEmpty()) return;
+        if (!currentImage()->setGpuSelectionEllipse(rc))
+            kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
+                                       QStringLiteral("object-locked"));
+        return;
+    }
+
     KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Ellipse"));
 
     if (helper.tryDeselectCurrentSelection(pixelToView(rect), selectionAction())) {

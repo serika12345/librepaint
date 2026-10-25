@@ -242,14 +242,15 @@ public:
         const bool gpu = this->image() && this->image()->gpuImage();
         if (gpu && !supportsGpuSelection()) {
             toolCanvas()->showToolMessage(
-                i18n("The GPU painting engine currently supports rectangular selections only."),
+                i18n("The GPU painting engine currently supports rectangular and elliptical selections only."),
                 QStringLiteral("object-locked"));
             return;
         }
         if (gpu && locateSelectionMaskUnderCursor(this->convertToPixelCoord(event->point), event->modifiers())) {
-            if (this->image()->gpuSelectionInverted()) {
+            if (this->image()->gpuSelectionInverted() ||
+                this->image()->gpuSelectionEllipse()) {
                 toolCanvas()->showToolMessage(
-                    i18n("Moving an inverted GPU selection is not available."),
+                    i18n("Moving this GPU selection is not available."),
                     QStringLiteral("object-locked"));
                 return;
             }

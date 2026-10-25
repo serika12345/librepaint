@@ -363,6 +363,12 @@ bool KisImage::setGpuSelectionRect(const QRect &rect, bool inverted)
     return owner && owner->setSelectionRect(rect, inverted) == LibrePaint::Image::Gpu::Result::Success;
 }
 
+bool KisImage::setGpuSelectionEllipse(const QRect &rect)
+{
+    const auto owner = gpuImage();
+    return owner && owner->setSelectionEllipse(rect) == LibrePaint::Image::Gpu::Result::Success;
+}
+
 QRect KisImage::gpuSelectionRect() const
 {
     const auto owner = gpuImage();
@@ -373,6 +379,18 @@ bool KisImage::gpuSelectionInverted() const
 {
     const auto owner = gpuImage();
     return owner && owner->selectionInverted();
+}
+
+LibrePaint::Image::Gpu::SelectionKind KisImage::gpuSelectionKind() const
+{
+    const auto owner = gpuImage();
+    return owner ? owner->selectionKind() : LibrePaint::Image::Gpu::SelectionKind::Rectangle;
+}
+
+bool KisImage::gpuSelectionEllipse() const
+{
+    const auto owner = gpuImage();
+    return owner && owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse;
 }
 
 bool KisImage::clearGpuSelection()
@@ -390,18 +408,20 @@ void KisImage::synchronizeGpuSelectionToMask()
     if (!owner) return;
     const QRect rect = owner->selectionRect();
     const bool inverted = owner->selectionInverted();
+    const auto kind = owner->selectionKind();
     if (rootLayer() && rootLayer()->selectionMask() && m_hasGpuSelectionMirror &&
-        m_gpuSelectionMirrorRect == rect && m_gpuSelectionMirrorInverted == inverted) return;
-    updateGpuSelectionMask(rect, inverted);
+        m_gpuSelectionMirrorRect == rect && m_gpuSelectionMirrorInverted == inverted &&
+        m_gpuSelectionMirrorKind == quint8(kind)) return;
+    updateGpuSelectionMask(rect, inverted, kind);
 }
 
 void KisImage::previewGpuSelectionRect(const QRect &rect)
 {
     if (!gpuImage()) return;
-    updateGpuSelectionMask(rect, false);
+    updateGpuSelectionMask(rect, false, LibrePaint::Image::Gpu::SelectionKind::Rectangle);
 }
 
-void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted)
+void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePaint::Image::Gpu::SelectionKind kind)
 {
     KisSelectionMaskSP mask = rootLayer() ? rootLayer()->selectionMask() : KisSelectionMaskSP();
     if (!mask && rect.isEmpty()) return;
@@ -419,7 +439,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted)
     KisPixelSelectionSP pixels = selection->pixelSelection();
     const QRect previousRect = pixels->selectedExactRect();
     if (previousRect == rect && m_hasGpuSelectionMirror && m_gpuSelectionMirrorRect == rect &&
-        m_gpuSelectionMirrorInverted == inverted) return;
+        m_gpuSelectionMirrorInverted == inverted && m_gpuSelectionMirrorKind == quint8(kind)) return;
     pixels->clear();
     QPainterPath outline;
     if (!rect.isEmpty()) {
@@ -427,7 +447,21 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted)
             pixels->select(bounds());
             pixels->clear(rect);
             outline.addRect(bounds());
-            outline.addRect(rect);
+            if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) outline.addEllipse(rect);
+            else outline.addRect(rect);
+        } else if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
+            QByteArray mask(rect.width() * rect.height(), ' ');
+            const qreal cx = rect.x() + rect.width() / 2.0, cy = rect.y() + rect.height() / 2.0;
+            const qreal rx = rect.width() / 2.0, ry = rect.height() / 2.0;
+            for (int y = 0; y < rect.height(); ++y)
+                for (int x = 0; x < rect.width(); ++x) {
+                    const qreal dx = (rect.x() + x + 0.5 - cx) / rx;
+                    const qreal dy = (rect.y() + y + 0.5 - cy) / ry;
+                    if (dx * dx + dy * dy <= 1.0) mask[y * rect.width() + x] = char(255);
+                }
+            pixels->writeBytes(reinterpret_cast<const quint8 *>(mask.constData()), rect.x(), rect.y(),
+                               rect.width(), rect.height());
+            outline.addEllipse(rect);
         } else {
             pixels->select(rect);
             outline.addRect(rect);
@@ -438,6 +472,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted)
     mask->setDirty(inverted ? bounds() : previousRect.united(rect));
     m_gpuSelectionMirrorRect = rect;
     m_gpuSelectionMirrorInverted = inverted;
+    m_gpuSelectionMirrorKind = quint8(kind);
     m_hasGpuSelectionMirror = true;
 }
 

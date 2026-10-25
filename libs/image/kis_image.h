@@ -44,7 +44,7 @@ class KisProofingConfiguration;
 class KisPaintDevice;
 class KisImageGlobalSelectionManagementInterface;
 struct KisGpuImageViewState;
-namespace LibrePaint::Image::Gpu { class PaintImage; }
+namespace LibrePaint::Image::Gpu { class PaintImage; enum class SelectionKind : quint8; }
 
 namespace KisMetaData
 {
@@ -93,8 +93,11 @@ public:
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
     /** Replaces the GPU document selection and updates the CPU selection mirror. */
     bool setGpuSelectionRect(const QRect &rect, bool inverted = false);
+    bool setGpuSelectionEllipse(const QRect &rect);
     QRect gpuSelectionRect() const;
     bool gpuSelectionInverted() const;
+    LibrePaint::Image::Gpu::SelectionKind gpuSelectionKind() const;
+    bool gpuSelectionEllipse() const;
     /** Updates only the CPU display mirror for a pending selection move. */
     void previewGpuSelectionRect(const QRect &rect);
     bool clearGpuSelection();
@@ -1318,7 +1321,7 @@ private:
     void connectGpuImageUpdates();
     void adoptGpuSelectionMask();
     void synchronizeGpuSelectionToMask();
-    void updateGpuSelectionMask(const QRect &rect, bool inverted);
+    void updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePaint::Image::Gpu::SelectionKind kind);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> cloneGpuImage(bool exactCopy) const;
     KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy);
     KisImage& operator=(const KisImage& rhs);
@@ -1352,6 +1355,7 @@ private:
     bool m_synchronizingGpuNodes = false;
     QRect m_gpuSelectionMirrorRect;
     bool m_gpuSelectionMirrorInverted = false;
+    quint8 m_gpuSelectionMirrorKind = 0;
     bool m_hasGpuSelectionMirror = false;
 };
 

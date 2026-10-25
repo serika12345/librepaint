@@ -7,6 +7,7 @@
 #include <tiles3/swap/kis_lzf_compression.h>
 #include <QBuffer>
 #include <QSet>
+#include <QBitArray>
 #include <algorithm>
 #include <limits>
 
@@ -27,11 +28,24 @@ QByteArray line(QBuffer &input)
 }
 }
 
+namespace {
+bool ellipseContains(int x, int y, const QRect &rect)
+{
+    const qreal cx = rect.x() + rect.width() / 2.0, cy = rect.y() + rect.height() / 2.0;
+    const qreal rx = rect.width() / 2.0, ry = rect.height() / 2.0;
+    if (rx <= 0 || ry <= 0) return false;
+    const qreal dx = (x + 0.5 - cx) / rx, dy = (y + 0.5 - cy) / ry;
+    return dx * dx + dy * dy <= 1.0;
+}
+}
+
 Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint offset,
-                           QRect imageBounds, qsizetype maximumBytes, QRect &selection, bool &inverted)
+                           QRect imageBounds, qsizetype maximumBytes, QRect &selection, bool &inverted,
+                           LibrePaint::Image::Gpu::SelectionKind &kind)
 {
     selection = {};
     inverted = false;
+    kind = LibrePaint::Image::Gpu::SelectionKind::Rectangle;
     if (defaultPixel != 0) return unsupported();
     QBuffer input;
     input.setData(data);
@@ -53,6 +67,12 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
     qint32 holeMinimumX = std::numeric_limits<qint32>::max(), holeMinimumY = std::numeric_limits<qint32>::max();
     qint32 holeMaximumX = std::numeric_limits<qint32>::min(), holeMaximumY = std::numeric_limits<qint32>::min();
     qint64 selected = 0, unselectedInImage = 0;
+    bool selectedOutsideImage = false;
+    QBitArray imageBits;
+    if (imageBounds.isValid() && !imageBounds.isEmpty() &&
+        qint64(imageBounds.width()) * imageBounds.height() <= 64 * 1024 * 1024) {
+        imageBits.resize(imageBounds.width() * imageBounds.height());
+    }
     QByteArray pixels;
     for (quint32 tile = 0; tile < count; ++tile) {
         const auto fields = line(input).split(',');
@@ -94,6 +114,12 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
                 minimumY = qMin<qint32>(minimumY, qint32(worldY));
                 maximumX = qMax<qint32>(maximumX, qint32(worldX));
                 maximumY = qMax<qint32>(maximumY, qint32(worldY));
+                if (imageBounds.contains(QPoint(int(worldX), int(worldY)))) {
+                    if (!imageBits.isNull()) imageBits.setBit((int(worldY) - imageBounds.top()) * imageBounds.width() +
+                                                              int(worldX) - imageBounds.left());
+                } else {
+                    selectedOutsideImage = true;
+                }
                 ++selected;
             }
         }
@@ -118,12 +144,31 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
             return {Status::Success, {}};
         }
     }
+    if (!selectedOutsideImage && !imageBits.isNull() && imageBounds.contains(QRect(minimumX, minimumY, int(width), int(height)))) {
+        bool ellipse = true;
+        for (int y = minimumY; y <= maximumY && ellipse; ++y)
+            for (int x = minimumX; x <= maximumX; ++x) {
+                const bool stored = imageBits.testBit((y - imageBounds.top()) * imageBounds.width() +
+                                                       x - imageBounds.left());
+                if (stored != ellipseContains(x, y, QRect(minimumX, minimumY, int(width), int(height)))) {
+                    ellipse = false;
+                    break;
+                }
+            }
+        if (ellipse) {
+            selection = QRect(minimumX, minimumY, int(width), int(height));
+            kind = LibrePaint::Image::Gpu::SelectionKind::Ellipse;
+            return {Status::Success, {}};
+        }
+    }
     return unsupported();
 }
 
 Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &imageBounds,
-                            qsizetype maximumBytes, QByteArray &output)
+                            LibrePaint::Image::Gpu::SelectionKind kind, qsizetype maximumBytes, QByteArray &output)
 {
+    if (inverted && kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse)
+        return {Status::UnsupportedData, QStringLiteral("Inverted KRA ellipse selection is unsupported")};
     const QRect area = inverted ? imageBounds : selection;
     if (area.isEmpty()) {
         output = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 1\nDATA 0\n");
@@ -154,6 +199,13 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
                     const int row = py - y * FileTileSize;
                     std::fill(pixels.begin() + row * FileTileSize + hole.left() - x * FileTileSize,
                               pixels.begin() + row * FileTileSize + hole.right() - x * FileTileSize + 1, char(0));
+                }
+            } else if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
+                for (int py = tile.top(); py <= tile.bottom(); ++py) {
+                    const int row = py - y * FileTileSize;
+                    for (int px = tile.left(); px <= tile.right(); ++px)
+                        if (area.contains(px, py) && ellipseContains(px, py, area))
+                            pixels[row * FileTileSize + px - x * FileTileSize] = char(255);
                 }
             } else {
                 const QRect selected = tile.intersected(area);

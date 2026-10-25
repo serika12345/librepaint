@@ -611,6 +611,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.values.selectionWidth = operation.selectionRect.width();
                     job.values.selectionHeight = operation.selectionRect.height();
                     if (operation.selectionInverted) job.values.paintFlags |= 1024u;
+                    if (operation.selectionKind == SelectionKind::Ellipse) job.values.paintFlags |= 2048u;
                     if (operation.brush.gaussianWash) {
                         const float opacity = float(operation.brush.gaussianWash->canvasOpacity);
                         std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));

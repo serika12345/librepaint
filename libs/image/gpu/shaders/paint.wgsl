@@ -191,9 +191,17 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if (selection.z > 0 && selection.w > 0) {
         let outside = pixel.x < selection.x || pixel.y < selection.y ||
             pixel.x >= selection.x + selection.z || pixel.y >= selection.y + selection.w;
+        var inside = !outside;
+        if ((parameters.counts.w & 2048u) != 0u) {
+            let center = vec2<f32>(f32(selection.x) + f32(selection.z) * 0.5,
+                                   f32(selection.y) + f32(selection.w) * 0.5);
+            let radius = vec2<f32>(f32(selection.z) * 0.5, f32(selection.w) * 0.5);
+            let relative = (vec2<f32>(f32(pixel.x) + 0.5, f32(pixel.y) + 0.5) - center) / radius;
+            inside = dot(relative, relative) <= 1.0;
+        }
         let inverted = (parameters.counts.w & 1024u) != 0u;
-        var masked = outside;
-        if (inverted) { masked = !outside; }
+        var masked = !inside;
+        if (inverted) { masked = inside; }
         if (masked) {
             outputPixels[index] = basePixels[index];
             return;

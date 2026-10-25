@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 42;
+constexpr quint16 FormatVersion = 43;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -99,7 +99,7 @@ QByteArray OperationDocument::recoveryData() const
            << m_nextRevision << m_nextOperation << m_nextLayer << m_savedRevision
            << qint32(snapshot()->selection.x()) << qint32(snapshot()->selection.y())
            << qint32(snapshot()->selection.width()) << qint32(snapshot()->selection.height())
-           << quint8(snapshot()->selectionInverted) << quint32(tiles.size());
+           << quint8(snapshot()->selectionInverted) << quint8(snapshot()->selectionKind) << quint32(tiles.size());
     if (!withinLimit()) return {};
     for (const auto &tile : tiles) {
         const auto data = tile->compressedData();
@@ -176,7 +176,7 @@ QByteArray OperationDocument::recoveryData() const
             }
             stream << qint32(operation.selectionRect.x()) << qint32(operation.selectionRect.y())
                    << qint32(operation.selectionRect.width()) << qint32(operation.selectionRect.height())
-                   << quint8(operation.selectionInverted);
+                   << quint8(operation.selectionInverted) << quint8(operation.selectionKind);
         } else if (const auto tileWrite = std::get_if<TileWriteSnapshot>(&value)) {
             const auto &write = **tileWrite;
             stream << quint32(write.tiles.size());
@@ -235,6 +235,7 @@ QByteArray OperationDocument::recoveryData() const
             stream << qint32(state->selection.x()) << qint32(state->selection.y())
                    << qint32(state->selection.width()) << qint32(state->selection.height());
         if (FormatVersion >= 42) stream << quint8(state->selectionInverted);
+        if (FormatVersion >= 43) stream << quint8(state->selectionKind);
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
@@ -305,6 +306,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
     stream >> magic >> format >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision;
     QRect selectionRect;
     bool selectionInverted = false;
+    SelectionKind selectionKind = SelectionKind::Rectangle;
     if (format >= 40) {
         qint32 x = 0, y = 0, w = 0, h = 0;
         stream >> x >> y >> w >> h;
@@ -313,6 +315,12 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             quint8 inverted = 0;
             stream >> inverted;
             selectionInverted = inverted != 0;
+        }
+        if (format >= 43) {
+            quint8 kind = 0;
+            stream >> kind;
+            if (kind > quint8(SelectionKind::Ellipse)) return Result::InvalidRecovery;
+            selectionKind = SelectionKind(kind);
         }
         if (stream.status() != QDataStream::Ok || !validSelectionRect(selectionRect)) return Result::InvalidRecovery;
     }
@@ -562,6 +570,12 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 stream >> inverted;
                 operation->selectionInverted = inverted != 0;
             }
+            if (format >= 43) {
+                quint8 kind = 0;
+                stream >> kind;
+                if (kind > quint8(SelectionKind::Ellipse)) return Result::InvalidRecovery;
+                operation->selectionKind = SelectionKind(kind);
+            }
         }
         operations.append(PaintSnapshot(operation));
     }
@@ -624,11 +638,18 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 stream >> inverted;
                 state->selectionInverted = inverted != 0;
             }
+            if (format >= 43) {
+                quint8 kind = 0;
+                stream >> kind;
+                if (kind > quint8(SelectionKind::Ellipse)) return Result::InvalidRecovery;
+                state->selectionKind = SelectionKind(kind);
+            }
             if (stream.status() != QDataStream::Ok || !validSelectionRect(state->selection))
                 return Result::InvalidRecovery;
         } else {
             state->selection = selectionRect;
             state->selectionInverted = selectionInverted;
+            state->selectionKind = selectionKind;
         }
         if (state->revision() > nextRevision || state->m_modifiedRevision > state->revision() ||
             stateRevisions.contains(state->revision()) ||
@@ -947,7 +968,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
     if (history[currentIndex]->size != QSize(width, height)) return Result::InvalidRecovery;
     for (qsizetype index = 1; index < history.size(); ++index)
         changes[index].changedSelection = history[index]->selection != history[index - 1]->selection ||
-            history[index]->selectionInverted != history[index - 1]->selectionInverted;
+            history[index]->selectionInverted != history[index - 1]->selectionInverted ||
+            history[index]->selectionKind != history[index - 1]->selectionKind;
     m_identity = identity;
     m_history = history;
     m_layerHistoryChanges = changes;

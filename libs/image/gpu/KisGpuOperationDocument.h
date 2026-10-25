@@ -27,6 +27,7 @@
 namespace LibrePaint::Image::Gpu {
 
 using LayerId = quint64;
+enum class SelectionKind : quint8 { Rectangle, Ellipse };
 
 /** Attributes enabled for one layer by the properties dialog. Component masks
  * select the RGBA bits whose values participate in Undo and Redo.
@@ -200,6 +201,7 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
      * When inverted, the rectangle is a hole and the rest of the image is selected. */
     QRect selectionRect{};
     bool selectionInverted = false;
+    SelectionKind selectionKind = SelectionKind::Rectangle;
 
     QList<InputSample> inputSamples() const;
 };
@@ -281,6 +283,7 @@ struct RasterImage
     QRect selection{};
     /** When true, the rectangle is a hole and the rest of the image is selected. */
     bool selectionInverted = false;
+    SelectionKind selectionKind = SelectionKind::Rectangle;
 };
 
 struct Layer
@@ -345,6 +348,7 @@ public:
      * Inverted selections select the image outside the rectangle. */
     QRect selection{};
     bool selectionInverted = false;
+    SelectionKind selectionKind = SelectionKind::Rectangle;
     qsizetype sampleCount = 0;
     qsizetype rasterBytes = 0;
 
@@ -477,9 +481,11 @@ public:
      * when their input began, so later selection changes do not rewrite history.
      */
     Result setSelectionRect(const QRect &rect, bool inverted = false);
+    Result setSelectionEllipse(const QRect &rect);
     Result clearSelection();
     QRect selectionRect() const;
     bool selectionInverted() const;
+    SelectionKind selectionKind() const;
 
     /** Returns an empty identifier for a closed/busy document or invalid brush/layer. */
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 randomSeed);
@@ -668,6 +674,7 @@ private:
         bool changedSelection = false;
         QRect selectionBefore, selectionAfter;
         bool selectionInvertedBefore = false, selectionInvertedAfter = false;
+        SelectionKind selectionKindBefore = SelectionKind::Rectangle, selectionKindAfter = SelectionKind::Rectangle;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,

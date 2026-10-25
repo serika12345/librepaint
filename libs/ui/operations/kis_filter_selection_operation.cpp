@@ -31,6 +31,10 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
             delete filter;
             const QRect current = view->image()->gpuSelectionRect();
             if (current.isEmpty()) return;
+            if (view->image()->gpuSelectionEllipse()) {
+                view->showFloatingMessage(i18n("Inverting a non-rectangular GPU selection is not available."), QIcon());
+                return;
+            }
             if (!view->image()->setGpuSelectionRect(current, !view->image()->gpuSelectionInverted()))
                 view->showFloatingMessage(i18n("The selection could not be inverted."), QIcon());
             return;
@@ -48,6 +52,10 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
                 return;
             }
             if (current.isEmpty() || (xRadius == 0 && yRadius == 0)) return;
+            if (view->image()->gpuSelectionEllipse()) {
+                view->showFloatingMessage(i18n("Growing or shrinking an elliptical GPU selection is not available."), QIcon());
+                return;
+            }
             const QRect imageBounds(QPoint(), view->image()->size());
             if (view->image()->gpuSelectionInverted()) {
                 if (edgeLock) {

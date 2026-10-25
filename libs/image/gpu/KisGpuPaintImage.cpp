@@ -134,19 +134,31 @@ Result PaintImage::setSelectionRect(const QRect &rect, bool inverted)
     if (!onThread()) return Result::InvalidInput;
     const bool effectiveInverted = !rect.isEmpty() && inverted;
     if (rect.normalized() == m_d->document->selectionRect() &&
-        effectiveInverted == m_d->document->selectionInverted()) return Result::Success;
+        effectiveInverted == m_d->document->selectionInverted() &&
+        m_d->document->selectionKind() == SelectionKind::Rectangle) return Result::Success;
     return publish(m_d->document->setSelectionRect(rect, inverted));
+}
+Result PaintImage::setSelectionEllipse(const QRect &rect)
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (rect.normalized() == m_d->document->selectionRect() &&
+        m_d->document->selectionKind() == SelectionKind::Ellipse &&
+        !m_d->document->selectionInverted()) return Result::Success;
+    return publish(m_d->document->setSelectionEllipse(rect));
 }
 Result PaintImage::clearSelection()
 {
     if (!onThread()) return Result::InvalidInput;
-    if (m_d->document->selectionRect().isEmpty() && !m_d->document->selectionInverted()) return Result::Success;
+    if (m_d->document->selectionRect().isEmpty() && !m_d->document->selectionInverted() &&
+        m_d->document->selectionKind() == SelectionKind::Rectangle) return Result::Success;
     return publish(m_d->document->clearSelection());
 }
 QRect PaintImage::selectionRect() const
 { return onThread() ? m_d->document->selectionRect() : QRect{}; }
 bool PaintImage::selectionInverted() const
 { return onThread() && m_d->document->selectionInverted(); }
+SelectionKind PaintImage::selectionKind() const
+{ return onThread() ? m_d->document->selectionKind() : SelectionKind::Rectangle; }
 void PaintImage::refreshLayerPixelReferences()
 {
     const auto version = layerPixelVersion();

@@ -345,6 +345,9 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 反転選択の穴に対する拡大・縮小、穴を透明にした合成コピー・レイヤーコピー、
 選択された外側だけの切り取りを検査する。
 `KisGpuOperationDocumentTest::invertedSelectionSurvivesRecovery`は、反転フラグの履歴と復旧を検査する。
+`KisGpuOperationDocumentTest::ellipticalSelectionSurvivesRecovery`は、楕円形状の履歴と復旧を検査する。
+`KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra`は、楕円内の塗りつぶし、
+楕円外の不変、Undo／Redo、KRA保存・再読込後の楕円形状と画素を検査する。
 `TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening`は、GPU文書のKRAが
 ルートの`selectionmask`と`PIXELSIZE 1`の`.pixelselection`を矩形選択として読み書きし、
 再保存・再読込後も選択とレイヤー画素を保持することを検査する。

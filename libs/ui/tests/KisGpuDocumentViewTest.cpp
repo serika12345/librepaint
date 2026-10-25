@@ -131,6 +131,7 @@ private Q_SLOTS:
     void selectionCopyAndCutUseGpuSelection();
     void selectionGrowAndShrinkUseGpuSelection();
     void invertedSelectionLimitsPaintingAndKra();
+    void ellipticalSelectionLimitsPaintingAndKra();
     void selectionMovePreviewsAndCommitsOneHistory();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
@@ -2326,6 +2327,79 @@ void KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra()
     runFilter(QStringLiteral("shrinkselection"), 4, 4);
     QTRY_COMPARE(owner->selectionRect(), hole);
     QVERIFY(owner->selectionInverted());
+}
+
+void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Elliptical selection")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    const QRect ellipseRect(16, 16, 32, 32);
+    QVERIFY(lifetime->image()->setGpuSelectionEllipse(ellipseRect));
+    QTRY_COMPARE(owner->selectionRect(), ellipseRect);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    QTRY_VERIFY(lifetime->image()->globalSelection());
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
+    resources->setOpacity(1);
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color"));
+    QVERIFY(fill);
+    fill->trigger();
+    QTRY_COMPARE(owner->operations().undoCount(), 2);
+    const QRect region(QPoint(), QSize(64, 64));
+    const auto filled = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(filled.code, Gpu::ExecutionCode::Success);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 64 + x) * 4, 4); };
+    QCOMPARE(pixel(filled.bytes, 32, 32), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(pixel(filled.bytes, 16, 16), QByteArray(4, char(0)));
+    QCOMPARE(pixel(filled.bytes, 47, 47), QByteArray(4, char(0)));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    const auto undone = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(undone.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(pixel(undone.bytes, 32, 32), QByteArray(4, char(0)));
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("elliptical-selection.kra"));
+    lifetime->setFileBatchMode(true);
+    QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.selection, ellipseRect);
+    QCOMPARE(loaded.document.image.selectionKind, Gpu::SelectionKind::Ellipse);
+    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    QCOMPARE(reopened->selectionKind(), Gpu::SelectionKind::Ellipse);
+    QCOMPARE(reopened->selectionRect(), ellipseRect);
+    const auto reopenedPixels = reopened->readRgbaPixels(reopened->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(reopenedPixels.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(pixel(reopenedPixels.bytes, 32, 32), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(pixel(reopenedPixels.bytes, 16, 16), QByteArray(4, char(0)));
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
