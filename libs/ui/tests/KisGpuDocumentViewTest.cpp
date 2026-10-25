@@ -2757,6 +2757,9 @@ void KisGpuDocumentViewTest::arrowKeysNudgeGpuSelection()
     QTRY_COMPARE(owner->selectionRect(), selected.translated(1, 10));
     QTest::keyClick(view->canvasBase()->canvasWidget(), Qt::Key_Right, Qt::ControlModifier);
     QTRY_COMPARE(owner->selectionRect(), selected.translated(101, 10));
+    QTest::keyClick(view->canvasBase()->canvasWidget(), Qt::Key_Right,
+                    Qt::ControlModifier | Qt::ShiftModifier);
+    QTRY_COMPARE(owner->selectionRect(), selected.translated(1101, 10));
     const QRect ellipse(24, 32, 40, 32);
     QVERIFY(lifetime->image()->setGpuSelectionEllipse(ellipse, true));
     QTRY_VERIFY(owner->selectionInverted());

@@ -351,7 +351,7 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 選択範囲を新規レイヤーへコピー・切り取りし、画素数、位置、レイヤー数、新規レイヤーの
 自動選択、反転矩形・反転楕円の補集合、楕円選択の位置と被覆、Undoを検査する。GPUレイヤーの活性化は`libs-ui-layers-KisGpuDocumentViewTest`でも検査する。
 `KisGpuDocumentViewTest::arrowKeysNudgeGpuSelection`は、矢印キーとShift併用が
-GPU選択を1画素・10画素・100画素単位で移動し、形状と反転状態を保持することを検査する。
+GPU選択を1画素・10画素・100画素・1000画素単位で移動し、形状と反転状態を保持することを検査する。
 `KisGpuDocumentViewTest::reselectRestoresGpuSelection`は、解除した矩形選択と反転楕円選択を
 再選択で復元することを検査する。
 `KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer`は、クリップボード画像を
