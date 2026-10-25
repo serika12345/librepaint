@@ -2278,6 +2278,21 @@ void KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra()
     const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
     QVERIFY(reopened->selectionInverted());
     QCOMPARE(reopened->selectionRect(), hole);
+
+    const auto runFilter = [&](const QString &id, int x, int y) {
+        KisOperationConfigurationSP config = new KisOperationConfiguration(id);
+        config->setProperty("x-radius", x);
+        config->setProperty("y-radius", y);
+        config->setProperty("edgeLock", false);
+        window->viewManager()->actionManager()->runOperationFromConfiguration(config);
+        lifetime->image()->waitForDone();
+    };
+    runFilter(QStringLiteral("growselection"), 4, 4);
+    QTRY_COMPARE(owner->selectionRect(), QRect(20, 20, 24, 24));
+    QVERIFY(owner->selectionInverted());
+    runFilter(QStringLiteral("shrinkselection"), 4, 4);
+    QTRY_COMPARE(owner->selectionRect(), hole);
+    QVERIFY(owner->selectionInverted());
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()

@@ -44,12 +44,23 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
             const QRect current = view->image()->gpuSelectionRect();
             delete filter;
             if (xRadius < 0 || yRadius < 0) {
-                view->showFloatingMessage(i18n("The shrink radius is invalid."), QIcon());
+                view->showFloatingMessage(i18n("The selection radius is invalid."), QIcon());
                 return;
             }
             if (current.isEmpty() || (xRadius == 0 && yRadius == 0)) return;
+            const QRect imageBounds(QPoint(), view->image()->size());
             if (view->image()->gpuSelectionInverted()) {
-                view->showFloatingMessage(i18n("Growing or shrinking an inverted GPU selection is not available."), QIcon());
+                if (edgeLock) {
+                    view->showFloatingMessage(i18n("Edge-locked shrinking of an inverted GPU selection is not available."), QIcon());
+                    return;
+                }
+                const QRect hole = grow
+                    ? current.adjusted(xRadius, yRadius, -xRadius, -yRadius)
+                    : current.adjusted(-xRadius, -yRadius, xRadius, yRadius).intersected(imageBounds);
+                if (hole.isEmpty()) view->image()->setGpuSelectionRect(imageBounds);
+                else if (hole == imageBounds) view->image()->clearGpuSelection();
+                else if (!view->image()->setGpuSelectionRect(hole, true))
+                    view->showFloatingMessage(i18n("The selection could not be updated."), QIcon());
                 return;
             }
             QRect updated;
