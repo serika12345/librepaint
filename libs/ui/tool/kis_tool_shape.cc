@@ -9,6 +9,7 @@
 #include <QWidget>
 #include <QLayout>
 #include <QGridLayout>
+#include <QPointer>
 
 #include <KoUnit.h>
 #include <KoShape.h>
@@ -126,6 +127,27 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
     }
     resources.setForegroundColor(strokeStyle() == KisFigurePaintingOptions::StrokeStyleBackground ?
                                  source->backgroundColor() : source->foregroundColor());
+    if (!style.outline) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const KisImageSP retainedImage = image().toStrongRef();
+        const KisNodeSP retainedNode = currentNode();
+        const auto captured = captureGpuFillResources(retainedImage, retainedNode, &resources);
+        if (!captured.diagnostic.isEmpty()) {
+            Q_EMIT statusTextChanged(captured.diagnostic);
+            return;
+        }
+        const auto owner = retainedImage->gpuImage();
+        style.fillBlendMode = captured.brush.blendMode;
+        QList<Gpu::InputSample> samples{{shape.first, 1}};
+        for (qsizetype i = 1; i < points.size(); ++i) samples.append({points[i], 1});
+        const QPointer<KisToolShape> tool(this);
+        const auto result = captured.transparencyMask ?
+            owner->paintTransparencyMaskFigure(captured.layer, captured.brush, samples, shape, style, 0) :
+            owner->paintFigure(captured.layer, captured.brush, samples, shape, style, 0);
+        if (tool && result != Gpu::Result::Success)
+            Q_EMIT tool->statusTextChanged(i18n("The figure could not be drawn on this GPU paint layer."));
+        return;
+    }
     KisPaintingInformationBuilder builder;
     KisToolGpuFigureHelper helper(&builder, &resources, name);
     connect(&helper, &KisToolFreehandHelper::requestErrorMessage, this, &KoToolBase::statusTextChanged);

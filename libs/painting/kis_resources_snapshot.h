@@ -24,7 +24,7 @@ class KoPattern;
 class KisInterstrokeDataFactory;
 class KoCanvasResourceProvider;
 
-/** Frozen circular-brush resources for the GPU painting consumers.
+/** Frozen target and painting resources for the GPU painting consumers.
  * Image, node and provider are borrowed for capture only. A nonempty diagnostic
  * rejects painting before an operation or history entry is created.
  */
@@ -38,6 +38,10 @@ struct KRITAPAINTING_EXPORT KisGpuBrushResources
 };
 
 KRITAPAINTING_EXPORT KisGpuBrushResources captureGpuBrushResources(
+    KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources);
+
+/** Captures a solid figure fill independently of the selected brush tip. */
+KRITAPAINTING_EXPORT KisGpuBrushResources captureGpuFillResources(
     KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources);
 
 /**

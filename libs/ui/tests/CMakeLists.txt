@@ -1306,7 +1306,7 @@ kis_add_test(KisEllipseToolDocumentTest.cpp ../../../krita/krita.qrc
     TEST_ARGS drawingPreservesShapeHistoryAndSaving
     LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk)
 add_dependencies(KisEllipseToolDocumentTest
-    kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
+    kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop kritadefaultpaintops
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritakraexport kritapngexport
     kritatoolpolyline kritatoolpolygon)
 if(NOT IOS)
@@ -1318,7 +1318,11 @@ add_test(NAME ${ellipse_tool_solid_test}
 set(ellipse_tool_ordinary_solid_test libs-ui-ordinary-solid-fills-KisEllipseToolDocumentTest)
 add_test(NAME ${ellipse_tool_ordinary_solid_test}
     COMMAND KisEllipseToolDocumentTest ordinarySolidFillsPreserveShapeHistoryAndSaving)
-set(ellipse_tool_document_tests ${ellipse_tool_document_test} ${ellipse_tool_solid_test} ${ellipse_tool_ordinary_solid_test})
+set(ellipse_tool_preset_test libs-ui-preset-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_preset_test}
+    COMMAND KisEllipseToolDocumentTest fillOnlyUsesSelectedPreset)
+set(ellipse_tool_document_tests ${ellipse_tool_document_test} ${ellipse_tool_solid_test} ${ellipse_tool_ordinary_solid_test}
+    ${ellipse_tool_preset_test})
 set_tests_properties(${ellipse_tool_document_tests} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_tests_properties(${ellipse_tool_document_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")

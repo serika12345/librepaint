@@ -9,6 +9,7 @@
 #include <QMouseEvent>
 #include <QEnterEvent>
 #include <QFile>
+#include <QFileInfo>
 #include <QIcon>
 #include <QPointer>
 #include <QScopeGuard>
@@ -38,6 +39,7 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_preset.h>
+#include <brushengine/kis_paintop_settings.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <canvas/kis_coordinates_converter.h>
 #include <canvas/kis_canvas_controller.h>
@@ -60,6 +62,7 @@
 #include <testui.h>
 #include <algorithm>
 #include <memory>
+#include <utility>
 
 enum class FigureKind { Ellipse, Rectangle, RoundedRectangle, Polyline, Polygon };
 Q_DECLARE_METATYPE(FigureKind)
@@ -89,6 +92,14 @@ private Q_SLOTS:
         m_preset->setImage(preview);
         KisResourceModel presets(ResourceType::PaintOpPresets);
         QVERIFY(presets.addResource(m_preset));
+        m_fillPreset.reset(new KisPaintOpPreset(QStringLiteral(KRITA_SOURCE_DIR "/krita/data/paintoppresets/b)_Basic-5_Size_default.kpp")));
+        QVERIFY(m_fillPreset->load(KisGlobalResourcesInterface::instance()));
+        m_fillPreset->setFilename(QFileInfo(m_fillPreset->filename()).fileName());
+        QVERIFY(presets.addResource(m_fillPreset));
+        KisResourceModel brushes(ResourceType::Brushes);
+        QVERIFY(brushes.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/libs/brush/tests/data/brush.gbr"), false));
+        KisResourceModel patterns(ResourceType::Patterns);
+        QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
     }
     void drawingPreservesShapeHistoryAndSaving_data();
     void drawingPreservesShapeHistoryAndSaving();
@@ -96,10 +107,13 @@ private Q_SLOTS:
     void solidFillsPreserveShapeHistoryAndSaving();
     void ordinarySolidFillsPreserveShapeHistoryAndSaving_data();
     void ordinarySolidFillsPreserveShapeHistoryAndSaving();
+    void fillOnlyUsesSelectedPreset_data();
+    void fillOnlyUsesSelectedPreset();
 private:
     void addSolidFigureRows(bool gpu);
-    void exerciseFigure();
+    void exerciseFigure(KisPaintOpPresetSP preset = {}, bool gpuForPreset = false, QByteArray *firstPixels = nullptr);
     KisPaintOpPresetSP m_preset;
+    KisPaintOpPresetSP m_fillPreset;
 };
 
 void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving_data()
@@ -196,9 +210,51 @@ void KisEllipseToolDocumentTest::ordinarySolidFillsPreserveShapeHistoryAndSaving
     exerciseFigure();
 }
 
-void KisEllipseToolDocumentTest::exerciseFigure()
+void KisEllipseToolDocumentTest::fillOnlyUsesSelectedPreset_data()
+{
+    QTest::addColumn<FigureKind>("figure");
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("closeOnError");
+    QTest::addColumn<bool>("canonical");
+    QTest::addColumn<bool>("closeOnPublish");
+    QTest::addColumn<int>("fillStyle");
+    QTest::addColumn<int>("outlineStyle");
+    for (const auto &entry : {std::pair{FigureKind::Ellipse, "ellipse"}, {FigureKind::Rectangle, "rectangle"},
+                              {FigureKind::RoundedRectangle, "rounded-rectangle"}, {FigureKind::Polyline, "polyline"},
+                              {FigureKind::Polygon, "polygon"}}) {
+        QTest::newRow(entry.second) << entry.first << false << false << true << false
+            << int(entry.first == FigureKind::Ellipse ? KisFigurePaintingOptions::FillStyleForegroundColor :
+                                                       KisFigurePaintingOptions::FillStyleBackgroundColor)
+            << int(KisFigurePaintingOptions::StrokeStyleNone);
+    }
+    for (const auto &entry : {std::pair{FigureKind::Rectangle, "rectangle-close-on-publish"},
+                              std::pair{FigureKind::Polygon, "polygon-close-on-publish"}}) {
+        QTest::newRow(entry.second) << entry.first << true << false << true << true
+            << int(KisFigurePaintingOptions::FillStyleForegroundColor)
+            << int(KisFigurePaintingOptions::StrokeStyleNone);
+    }
+}
+
+void KisEllipseToolDocumentTest::fillOnlyUsesSelectedPreset()
+{
+    QFETCH(bool, closeOnPublish);
+    if (closeOnPublish) {
+        exerciseFigure(m_fillPreset, true);
+        return;
+    }
+    QByteArray cpu, gpu;
+    exerciseFigure(m_fillPreset, false, &cpu);
+    if (QTest::currentTestFailed()) return;
+    exerciseFigure(m_fillPreset, true, &gpu);
+    if (QTest::currentTestFailed()) return;
+    QCOMPARE(gpu, cpu);
+}
+
+void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool gpuForPreset, QByteArray *firstPixels)
 {
     QFETCH(bool, gpu);
+    const bool selectedPresetFill = bool(preset);
+    if (selectedPresetFill) gpu = gpuForPreset;
     QFETCH(bool, closeOnError);
     QFETCH(bool, canonical);
     QFETCH(FigureKind, figure);
@@ -275,7 +331,7 @@ void KisEllipseToolDocumentTest::exerciseFigure()
                                  QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/input"));
     profiles->loadProfiles();
     auto *resources = window->viewManager()->canvasResourceProvider();
-    resources->setPaintOpPreset(m_preset);
+    resources->setPaintOpPreset(preset ? preset : m_preset);
     resources->setSize(8);
     resources->setOpacity(1);
     resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
@@ -315,6 +371,14 @@ void KisEllipseToolDocumentTest::exerciseFigure()
     const auto size = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
     view->canvasController()->setPreferredCenter({size.width() / 2, size.height() / 2});
     if (gpu) {
+        if (selectedPresetFill && QGuiApplication::platformName() == QLatin1String("offscreen")) {
+            QCOMPARE(execution->beginReadbackFrame().code, Gpu::ExecutionCode::Success);
+            auto cancelFrame = qScopeGuard([&] { execution->cancelFrame(); });
+            QCOMPARE(execution->project(owner->handle(), QRect(0, 0, 64, 64)).code, Gpu::RenderOutcome::Recorded);
+            const auto submitted = execution->submitFrame();
+            cancelFrame.dismiss();
+            QCOMPARE(submitted.code, Gpu::ExecutionCode::Success);
+        }
         QTRY_COMPARE(execution->published(owner->handle()), owner->operations().snapshot());
         for (auto *candidate : QGuiApplication::allWindows())
             if (qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = candidate;
@@ -399,7 +463,10 @@ void KisEllipseToolDocumentTest::exerciseFigure()
         const auto before = owner->operations().snapshot();
         bool closing = false;
         connect(owner.data(), &Gpu::PaintImage::changed, window.get(), [&] {
-            if (closing || !owner->operations().hasActiveStroke()) return;
+            if (closing) return;
+            if (selectedPresetFill) {
+                if (owner->operations().snapshot() == before) return;
+            } else if (!owner->operations().hasActiveStroke()) return;
             closing = true;
             lifetime->setModified(false);
             window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
@@ -409,7 +476,11 @@ void KisEllipseToolDocumentTest::exerciseFigure()
         release();
         QTRY_VERIFY(!lifetime);
         QTRY_VERIFY(!native);
-        QCOMPARE(owner->operations().snapshot(), before);
+        if (selectedPresetFill) {
+            QVERIFY(owner->operations().snapshot() != before);
+            QCOMPARE(owner->operations().undoCount(), 1);
+            QVERIFY(!tool);
+        } else QCOMPARE(owner->operations().snapshot(), before);
         QVERIFY(!owner->operations().hasActiveStroke());
         return;
     }
@@ -432,6 +503,10 @@ void KisEllipseToolDocumentTest::exerciseFigure()
         QVERIFY(std::any_of(status.begin(), status.end(), [&](const QList<QVariant> &values) { return values.first().toString() == expected; }));
         return;
     }
+    const auto selectedPreset = view->canvasBase()->resourceManager()->resource(KoCanvasResource::CurrentPaintOpPreset)
+        .value<KisPaintOpPresetSP>();
+    const auto presetSettings = selectedPreset->settings()->toXML();
+    QSignalSpy diagnostics(tool, &KoToolBase::statusTextChanged);
     start();
     if (!gpu) QTRY_VERIFY(currentPresetCacheIsValid());
     QCOMPARE(lifetime->undoStack()->count(), 0);
@@ -442,7 +517,26 @@ void KisEllipseToolDocumentTest::exerciseFigure()
         QFAIL(error.what());
     }
     image->waitForDone();
+    if (selectedPresetFill && !diagnostics.isEmpty())
+        qInfo() << "Fill-only tool diagnostic:" << diagnostics.last().first().toString();
     QTRY_COMPARE(lifetime->undoStack()->count(), 1);
+    if (selectedPresetFill) {
+        QCOMPARE(view->canvasBase()->resourceManager()->resource(KoCanvasResource::CurrentPaintOpPreset)
+                     .value<KisPaintOpPresetSP>(), selectedPreset);
+        QCOMPARE(selectedPreset->settings()->toXML(), presetSettings);
+    }
+    if (firstPixels) {
+        firstPixels->resize(64 * 64 * 4);
+        image->root()->firstChild()->paintDevice()->readBytes(reinterpret_cast<quint8 *>(firstPixels->data()), 0, 0, 64, 64);
+        const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!results.isEmpty()) {
+            QVERIFY(QDir().mkpath(results));
+            QFile file(QDir(results).filePath(QStringLiteral("selected-preset-fill-%1-%2.pixels")
+                .arg(gpu ? QStringLiteral("gpu") : QStringLiteral("ordinary"), QString::number(int(figure)))));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(*firstPixels), qint64(firstPixels->size()));
+        }
+    }
     QCOMPARE(pixel(outlineProbe), firstOutlinePixel);
     if (solid) {
         QCOMPARE(pixel({40, 24}), fillPixel);
@@ -469,12 +563,14 @@ void KisEllipseToolDocumentTest::exerciseFigure()
     tool->requestStrokeCancellation();
     if (!pathFigure) release();
     QCOMPARE(lifetime->undoStack()->count(), 1);
-    outline->setCurrentIndex(KisFigurePaintingOptions::StrokeStyleBackground);
+    if (selectedPresetFill) fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleBackgroundColor);
+    else outline->setCurrentIndex(KisFigurePaintingOptions::StrokeStyleBackground);
+    const QPoint editProbe = selectedPresetFill ? QPoint(40, 24) : outlineProbe;
     start();
     release();
     image->waitForDone();
     QTRY_COMPARE(lifetime->undoStack()->count(), 2);
-    QCOMPARE(pixel(outlineProbe), QByteArray::fromHex("2c11ddff"));
+    QCOMPARE(pixel(editProbe), QByteArray::fromHex("2c11ddff"));
     QCOMPARE(resources->fgColor().toQColor(), QColor(17, 129, 241));
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -492,22 +588,22 @@ void KisEllipseToolDocumentTest::exerciseFigure()
     const auto saved = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
     QVERIFY2(saved.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(saved.diagnostic));
     QCOMPARE(saved.document.image.layers.size(), 1);
-    QCOMPARE(saved.document.image.layers.first().tiles.first().rgba.mid((outlineProbe.y() * 256 + outlineProbe.x()) * 4, 4), QByteArray::fromHex("dd112cff"));
+    QCOMPARE(saved.document.image.layers.first().tiles.first().rgba.mid((editProbe.y() * 256 + editProbe.x()) * 4, 4), QByteArray::fromHex("dd112cff"));
     resources->setEraserMode(true);
     start();
     release();
     image->waitForDone();
     QTRY_COMPARE(lifetime->undoStack()->count(), 3);
-    QCOMPARE(pixel(outlineProbe), QByteArray::fromHex("2c11dd00"));
+    QCOMPARE(pixel(editProbe), QByteArray::fromHex("2c11dd00"));
     lifetime->undoStack()->undo();
     image->waitForDone();
-    QCOMPARE(pixel(outlineProbe), QByteArray::fromHex("2c11ddff"));
+    QCOMPARE(pixel(editProbe), QByteArray::fromHex("2c11ddff"));
     QTRY_COMPARE(lifetime->undoStack()->index(), 2);
     QTRY_VERIFY2(!lifetime->isModified(), qPrintable(QStringLiteral("index=%1 count=%2 clean=%3 saving=%4")
                  .arg(lifetime->undoStack()->index()).arg(lifetime->undoStack()->count())
                  .arg(lifetime->undoStack()->cleanIndex()).arg(lifetime->isSaving())));
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (canonical && !results.isEmpty()) {
+    if (gpu && canonical && !results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
         const auto figurePrefix = polygon ? QStringLiteral("polygon-tool") : pathFigure ? QStringLiteral("polyline-tool") : rounded ? QStringLiteral("rounded-rectangle-tool") :
                                   rectangle ? QStringLiteral("rectangle-tool") : QStringLiteral("ellipse-tool");

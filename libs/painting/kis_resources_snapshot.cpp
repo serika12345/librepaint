@@ -126,10 +126,9 @@ bool captureGaussianWash(const KisPaintOpSettingsSP &settings, LibrePaint::Image
     brush.gaussianWash = std::move(value);
     return true;
 }
-}
 
-KisGpuBrushResources captureGpuBrushResources(
-    KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources)
+KisGpuBrushResources captureGpuPaintingResources(
+    KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources, bool withBrushTip)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     KisGpuBrushResources result;
@@ -153,7 +152,8 @@ KisGpuBrushResources captureGpuBrushResources(
         result.transparencyMask = true;
     }
     const auto preset = resources->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
-    if (!preset || (preset->paintOp().id() != QLatin1String("roundmarker") && preset->paintOp().id() != QLatin1String("paintbrush")))
+    if (withBrushTip && (!preset || (preset->paintOp().id() != QLatin1String("roundmarker") &&
+                                    preset->paintOp().id() != QLatin1String("paintbrush"))))
         return reject(i18n("This brush is not yet available for GPU painting."));
     const QString composite = resources->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
     const bool eraserMode = resources->resource(KoCanvasResource::EraserMode).toBool();
@@ -191,18 +191,32 @@ KisGpuBrushResources captureGpuBrushResources(
         brush.mirrorCenter = center.toPoint();
     }
     const QColor color = resources->foregroundColor().toQColor();
-    // Circular marker coverage owns alpha; canvas opacity is applied separately.
+    // Figure or brush coverage owns alpha; canvas opacity is applied separately.
     brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
-    brush.diameter = resources->resource(KoCanvasResource::Size).toReal();
+    if (withBrushTip) brush.diameter = resources->resource(KoCanvasResource::Size).toReal();
     const qreal opacity = resources->resource(KoCanvasResource::Opacity).toReal();
     if (!qIsFinite(opacity) || opacity < 0 || opacity > 1)
         return reject(i18n("The brush opacity is invalid."));
     brush.opacity = quint8(qRound(255 * opacity));
     brush.erase = erase;
     brush.alphaLocked = !brush.erase && resources->resource(KoCanvasResource::GlobalAlphaLock).toBool();
-    if (preset->paintOp().id() == QLatin1String("paintbrush") && !captureGaussianWash(preset->settings(), brush, opacity))
+    if (withBrushTip && preset->paintOp().id() == QLatin1String("paintbrush") &&
+        !captureGaussianWash(preset->settings(), brush, opacity))
         return reject(i18n("These brush settings are not yet available for GPU painting."));
     return result;
+}
+}
+
+KisGpuBrushResources captureGpuBrushResources(
+    KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources)
+{
+    return captureGpuPaintingResources(image, node, resources, true);
+}
+
+KisGpuBrushResources captureGpuFillResources(
+    KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources)
+{
+    return captureGpuPaintingResources(image, node, resources, false);
 }
 
 struct KisResourcesSnapshot::Private {

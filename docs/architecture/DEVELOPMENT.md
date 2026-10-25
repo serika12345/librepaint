@@ -1448,6 +1448,10 @@ Undo／RedoとKRA保存をCPU画像とGPU画像で検査する。吸着を無効
 塗りつぶし通知中のタブ終了では、履歴と画素の保持を検査する。
 輪郭、既存経路の単色塗り、GPUの単色塗りの画面試験は同じQt試験対象の別のCTestとして登録し、それぞれの時間制限と直列実行を維持する。
 単色塗りは通常のポインター列と固定座標で、前景色・背景色、輪郭なし、取消し、保存、消去とUndoを検査する。
+`fillOnlyUsesSelectedPreset`は配布するBasic-5の選択と設定を保持し、輪郭なしの五図形を
+CPU画像とGPU画像の全画素で比較する。追加編集、Undo／Redo、KRA保存とPNG書出し、
+矩形・多角形の完成版通知中に終了した文書の履歴も検査する。
+専用の`libs-ui-preset-solid-fills-KisEllipseToolDocumentTest`は同じ試験対象から実行する。
 固定した塗りは`LIBREPAINT_GPU_RESULT_DIR`へ`filled-<図形>-tool`と`fill-only-rectangle-tool`のKRA・PNGを出力する。
 折れ線・多角形はクリックした頂点をダブルクリックで確定する。描画通知中のタブ終了では進行中の操作を取り消す。
 `KisToolProxyContractTest`は、継続を辞退したダブルクリックの直後に、次の描画の開始入力が届くことを検査する。
