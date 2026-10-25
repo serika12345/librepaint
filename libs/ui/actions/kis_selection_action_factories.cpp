@@ -239,7 +239,8 @@ void KisReselectActionFactory::run(KisViewManager *view)
     KisImageWSP image = view->image();
     if (!image) return;
     if (image->gpuImage()) {
-        view->showFloatingMessage(i18n("Reselecting a previous selection is not available for GPU documents."), QIcon());
+        if (!image->reselectGpuSelection())
+            view->showFloatingMessage(i18n("There is no previous GPU selection to restore."), QIcon());
         return;
     }
 

@@ -98,6 +98,7 @@ public:
     bool gpuSelectionInverted() const;
     LibrePaint::Image::Gpu::SelectionKind gpuSelectionKind() const;
     bool gpuSelectionEllipse() const;
+    bool reselectGpuSelection();
     /** Updates only the CPU display mirror for a pending selection move. */
     void previewGpuSelectionRect(const QRect &rect, bool ellipse = false, bool inverted = false);
     bool clearGpuSelection();
@@ -1356,6 +1357,10 @@ private:
     QRect m_gpuSelectionMirrorRect;
     bool m_gpuSelectionMirrorInverted = false;
     quint8 m_gpuSelectionMirrorKind = 0;
+    QRect m_lastGpuSelection;
+    bool m_lastGpuSelectionInverted = false;
+    quint8 m_lastGpuSelectionKind = 0;
+    bool m_hasLastGpuSelection = false;
     bool m_hasGpuSelectionMirror = false;
 };
 

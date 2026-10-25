@@ -393,10 +393,27 @@ bool KisImage::gpuSelectionEllipse() const
     return owner && owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse;
 }
 
+bool KisImage::reselectGpuSelection()
+{
+    if (!m_hasLastGpuSelection || m_lastGpuSelection.isEmpty()) return false;
+    if (m_lastGpuSelectionKind == quint8(LibrePaint::Image::Gpu::SelectionKind::Ellipse))
+        return setGpuSelectionEllipse(m_lastGpuSelection, m_lastGpuSelectionInverted);
+    return setGpuSelectionRect(m_lastGpuSelection, m_lastGpuSelectionInverted);
+}
+
 bool KisImage::clearGpuSelection()
 {
     const auto owner = gpuImage();
-    return owner && owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
+    if (!owner) return false;
+    const QRect rect = owner->selectionRect();
+    const bool inverted = owner->selectionInverted();
+    if (!rect.isEmpty() || inverted) {
+        m_lastGpuSelection = rect;
+        m_lastGpuSelectionInverted = inverted;
+        m_lastGpuSelectionKind = quint8(owner->selectionKind());
+        m_hasLastGpuSelection = true;
+    }
+    return owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
 }
 
 void KisImage::adoptGpuSelectionMask()
