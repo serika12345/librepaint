@@ -673,20 +673,25 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 }
                 const auto position = payload.indexOf(prefix);
                 Q_ASSERT(position >= 0 && position == payload.lastIndexOf(prefix));
-                const auto styleSize = 1 + (operation.figureStyle.fill ? 4 : 0);
+                const auto patternBytes = operation.figureStyle.pattern ?
+                    qsizetype(12 + operation.figureStyle.pattern->byteCount()) : 0;
+                // Format 48 appends the frozen fill blend mode after the fill data.
+                const auto styleSize = 1 + (operation.figureStyle.fill ? 4 : 0) + patternBytes + 1;
                 Q_ASSERT(payload.at(position + prefix.size() + styleSize) == char(operation.brush.pixelPerfect));
+                if (format < 48) payload.remove(position + prefix.size() + styleSize - 1, 1);
+                const auto retainedStyleSize = styleSize - (format < 48 ? 1 : 0);
                 if (format < 40) {
                     // Format 40 appends the selection rectangle after the samples.
-                    const auto samples = position + prefix.size() + styleSize + 1 + 4;
+                    const auto samples = position + prefix.size() + retainedStyleSize + 1 + 4;
                     payload.remove(samples + qsizetype(operation.sampleCount) * 64, 18);
                 }
                 if (format < 21) {
-                    const auto samples = position + prefix.size() + styleSize + 1 + 4;
+                    const auto samples = position + prefix.size() + retainedStyleSize + 1 + 4;
                     for (qsizetype index = operation.sampleCount; index > 0; --index)
                         payload.remove(samples + (index - 1) * 64 + 56, 8);
                 }
-                if (format < 19) payload.remove(position + prefix.size() + styleSize, 1);
-                if (format < 17) payload.remove(position + prefix.size(), styleSize);
+                if (format < 19) payload.remove(position + prefix.size() + retainedStyleSize, 1);
+                if (format < 17) payload.remove(position + prefix.size(), retainedStyleSize);
                 if (format < 39 && pathCallsOffset >= 0) payload.remove(position + pathCallsOffset, 4);
                 if (format < 38) payload.remove(position + gaussianOffset, 1);
             }

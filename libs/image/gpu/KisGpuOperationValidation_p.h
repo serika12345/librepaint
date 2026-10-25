@@ -242,6 +242,11 @@ inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 inline bool validFigureStyle(const Shape &shape, const FigureStyle &style)
 {
     if (style.pattern && !style.pattern->isValid()) return false;
+    if (style.fillBlendMode > LayerBlendMode::LinearDodge) return false;
+    // A non-normal fill mode owns only the fill source. Outline brush
+    // compositing stays source-over, so this combination is rejected rather
+    // than silently blending the outline.
+    if (style.fillBlendMode != LayerBlendMode::Normal && (!hasFigureFill(style) || style.outline)) return false;
     return !hasFigureFill(style) || (shape.kind != ShapeKind::Freehand && shape.kind != ShapeKind::Line);
 }
 }

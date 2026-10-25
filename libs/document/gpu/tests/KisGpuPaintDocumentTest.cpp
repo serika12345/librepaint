@@ -1111,14 +1111,37 @@ void KisGpuPaintDocumentTest::colorFillSavesReopensAndContinuesIdentically_data(
     QTest::addColumn<quint8>("channelMask");
     QTest::addColumn<QByteArray>("blank");
     QTest::addColumn<QByteArray>("covered");
+    QTest::addColumn<int>("blendMode");
     QTest::newRow("opacity") << quint8(128) << false << false << quint8(15)
-        << QByteArray::fromHex("1181f180") << QByteArray::fromHex("225281ff");
+        << QByteArray::fromHex("1181f180") << QByteArray::fromHex("225281ff")
+        << int(LayerBlendMode::Normal);
     QTest::newRow("alpha-lock") << quint8(255) << false << true << quint8(15)
-        << QByteArray::fromHex("1181f100") << QByteArray::fromHex("1181f1ff");
+        << QByteArray::fromHex("1181f100") << QByteArray::fromHex("1181f1ff")
+        << int(LayerBlendMode::Normal);
     QTest::newRow("erase") << quint8(255) << true << false << quint8(15)
-        << QByteArray::fromHex("00000000") << QByteArray::fromHex("33221100");
+        << QByteArray::fromHex("00000000") << QByteArray::fromHex("33221100")
+        << int(LayerBlendMode::Normal);
     QTest::newRow("channel-lock") << quint8(255) << false << false << quint8(14)
-        << QByteArray::fromHex("0081f1ff") << QByteArray::fromHex("3381f1ff");
+        << QByteArray::fromHex("0081f1ff") << QByteArray::fromHex("3381f1ff")
+        << int(LayerBlendMode::Normal);
+    QTest::newRow("multiply") << quint8(255) << false << false << quint8(15)
+        << QByteArray::fromHex("1181f1ff") << QByteArray::fromHex("031110ff")
+        << int(LayerBlendMode::Multiply);
+    QTest::newRow("screen") << quint8(255) << false << false << quint8(15)
+        << QByteArray::fromHex("1181f1ff") << QByteArray::fromHex("4192f2ff")
+        << int(LayerBlendMode::Screen);
+    QTest::newRow("darken") << quint8(255) << false << false << quint8(15)
+        << QByteArray::fromHex("1181f1ff") << QByteArray::fromHex("112211ff")
+        << int(LayerBlendMode::Darken);
+    QTest::newRow("lighten") << quint8(255) << false << false << quint8(15)
+        << QByteArray::fromHex("1181f1ff") << QByteArray::fromHex("3381f1ff")
+        << int(LayerBlendMode::Lighten);
+    QTest::newRow("add") << quint8(255) << false << false << quint8(15)
+        << QByteArray::fromHex("1181f1ff") << QByteArray::fromHex("44a3ffff")
+        << int(LayerBlendMode::Addition);
+    QTest::newRow("linear-dodge") << quint8(255) << false << false << quint8(15)
+        << QByteArray::fromHex("1181f1ff") << QByteArray::fromHex("44a3ffff")
+        << int(LayerBlendMode::LinearDodge);
 }
 
 void KisGpuPaintDocumentTest::colorFillSavesReopensAndContinuesIdentically()
@@ -1129,6 +1152,7 @@ void KisGpuPaintDocumentTest::colorFillSavesReopensAndContinuesIdentically()
     QFETCH(quint8, channelMask);
     QFETCH(QByteArray, blank);
     QFETCH(QByteArray, covered);
+    QFETCH(int, blendMode);
     QFile profile(QStringLiteral(":/gpu-paint-results/sRGB-elle-V2-srgbtrc.icc"));
     QVERIFY(profile.open(QIODevice::ReadOnly));
     Kra::ImageMetadata metadata;
@@ -1173,7 +1197,8 @@ void KisGpuPaintDocumentTest::colorFillSavesReopensAndContinuesIdentically()
         const auto image = document.image();
         const auto layer = image->operations().snapshot()->layers[0].id;
         const auto active = image->operations().activeLayer();
-        QCOMPARE(image->fillLayer(layer, {17, 129, 241}, opacity, erase, alphaLocked), Result::Success);
+        QCOMPARE(image->fillLayer(layer, {17, 129, 241}, opacity, erase, alphaLocked,
+                                  LayerBlendMode(blendMode)), Result::Success);
         QCOMPARE(image->operations().undoCount(), 1);
         QCOMPARE(image->operations().historyAction(1), HistoryAction::FillLayer);
         QCOMPARE(image->operations().activeLayer(), active);

@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 47;
+constexpr quint16 FormatVersion = 48;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -195,6 +195,7 @@ QByteArray OperationDocument::recoveryData() const
                        << quint32(pattern->byteCount());
                 stream.writeRawData(pattern->rgba.constData(), int(pattern->byteCount()));
             }
+            stream << quint8(operation.figureStyle.fillBlendMode);
             stream << quint8(quint8(operation.brush.pixelPerfect) | (quint8(operation.brush.basicSmoothing) << 1) |
                               (quint8(operation.smoothingFinished) << 2) | (operation.brush.weightedSmoothing ? 8 : 0));
             if (operation.brush.weightedSmoothing) {
@@ -604,6 +605,12 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 PatternFill pattern{QSize(int(width), int(height)), std::move(pixels)};
                 if (!pattern.isValid()) return Result::InvalidRecovery;
                 operation->figureStyle.pattern = std::move(pattern);
+            }
+            if (format >= 48) {
+                quint8 blendMode = 0;
+                stream >> blendMode;
+                if (blendMode > quint8(LayerBlendMode::LinearDodge)) return Result::InvalidRecovery;
+                operation->figureStyle.fillBlendMode = static_cast<LayerBlendMode>(blendMode);
             }
         }
         if (format >= 19) {

@@ -335,6 +335,21 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 `KisGpuTileRendererTest::patternFillClipsAlphaCompositesErasesAndRejectsInvalidInput`は、
 部分アルファ選択とパターンアルファ・不透明度の乗算、通常合成の直線RGBA、
 消去時のRGB保持と選択外の保持、不正なパターン画素の拒否を検査する。
+`KisGpuTileRendererTest::fillBlendModesMatchLayerComposition`は、通常の下地に対する
+乗算・スクリーン・比較（暗）・比較（明）・加算・線形覆い焼きの塗りがレイヤー合成と同じ
+整数RGBA8結果になること、選択内だけの適用、一回の履歴、Undo／Redo、復旧後の同じ画素を検査する。
+`KisGpuTileRendererTest::patternFillBlendModeMatchesLayerComposition`は、部分アルファの
+パターンと選択矩形を乗算方式で塗り、パターンアルファ・選択外の保持、一回の履歴、
+Undo／Redo、復旧後の同じ画素を検査する。
+`KisGpuTileRendererTest::fillBlendModePreservesOpacityAlphaLockAndChannelMask`は、
+塗り不透明度を乗じた方式合成、アルファ保護時のアルファと透明画素RGBの保持、
+チャンネル保護成分の保持を検査する。
+`KisGpuOperationDocumentTest::fillBlendModesFreezeHistoryAndRecovery`は、各塗り合成方式を
+操作へ固定し、一回の履歴、Undo／Redo、復旧の同一バイトと形式47の通常方式読込みを検査する。
+`KisGpuOperationDocumentTest::patternFillBlendModeFreezesHistoryAndRecovery`は、
+パターン塗りと方式の同時固定、履歴、Undo／Redo、復旧後の同一操作を検査する。
+`KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput`は、
+未知の方式、輪郭付き図形、塗りのない方式指定を採用前に拒否し、消去が方式を持たないことを検査する。
 `KisGpuOperationDocumentTest::patternFillFreezesPixelsHistoryAndRecovery`は、
 凍結パターン画素、塗りつぶしの履歴種別、一回の履歴とUndo／Redo、復旧の同一バイト、
 ラスタ容量超過と輪郭を持たない自由描画への適用拒否を検査する。
@@ -621,8 +636,9 @@ Undo／Redo・KRA書出しを2回実行する。連続編集と再読込み後�
 
 `KisGpuPaintDocumentTest::colorFillSavesReopensAndContinuesIdentically`は、
 32×16のRGBA8文書、2枚の固定UUIDレイヤー、同梱sRGB ICC、300×150 dpi、
-文書日時と塗りつぶし設定を固定する。不透明度、アルファ保護、消去、チャンネル保護の
-各条件で、対象レイヤーとアクティブレイヤーの区別、キャンバス外の画素、履歴、
+文書日時と塗りつぶし設定を固定する。不透明度、アルファ保護、消去、チャンネル保護と
+乗算・スクリーン・比較（暗）・比較（明）・加算・線形覆い焼きの各条件で、
+対象レイヤーとアクティブレイヤーの区別、キャンバス外の画素、履歴、
 再読込後の保護設定と追加の塗りつぶしを検査する。
 再読込直後のKRA書出し、連続編集と再読込後の追加編集、2回の反復について、
 ファイル全体をバイト単位で照合する。結果は比較用ディレクトリーの
@@ -860,11 +876,13 @@ PNG画素のRGBA8列を出力する。同じ条件の画素列を環境間で完
 アルファ・チャンネル保護、消去、キャンバス外の画素、一回の履歴とUndo／Redoを照合する。
 KRA再読込後の全レイヤー画素とPNG書出しを検査し、`LIBREPAINT_GPU_RESULT_DIR`へ
 各条件のKRA・PNG・画素列を出力する。現在のパターン資源を使う通常・不透明度・消去の
-塗りつぶし、未対応合成の拒否、通知中の画面終了も検査する。
+塗りつぶし、乗算方式のパターン、各対応合成方式の写像、未対応合成の拒否、
+通知中の画面終了も検査する。
 消去と塗りつぶしの利用側契約は、`libs-ui-pixels-KisGpuDocumentViewTest`でまとめて実行する。
 画像所有者の塗りつぶし試験は固定版、復旧後の履歴種別、容量不足・ロック・進行中操作に
 よる拒否と取消し後のRedo、通知前のGPU要求更新と通知中の最終参照解放を照合する。
 復旧形式23は塗りつぶしの履歴種別を保持し、形式9から22の入力も引き続き検査する。
+復旧形式48は塗りつぶしの合成方式を操作へ保存し、形式47以前は通常方式として読み込む。
 復旧形式47は凍結パターンの寸法と直線RGBA8画素を操作へ保存し、形式17から46の
 図形塗りつぶし入力も引き続き読み込む。
 描線・塗りなしの矩形と塗れる面積のない頂点列は、画素を保った一回の履歴とUndo／Redoを照合する。

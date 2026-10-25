@@ -302,7 +302,27 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
             }
         }
         const auto composite = resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
-        if (composite != QLatin1String("normal") && composite != QLatin1String("erase")) {
+        const bool erase = composite == COMPOSITE_ERASE || resources->eraserMode();
+        Gpu::LayerBlendMode fillBlendMode = Gpu::LayerBlendMode::Normal;
+        if (erase) {
+            // Erase remains a coverage removal and never carries a blend mode.
+            if (composite != COMPOSITE_ERASE && composite != COMPOSITE_OVER) {
+                reject(i18n("This blend mode is not yet available for this document."));
+                return;
+            }
+        } else if (composite == COMPOSITE_MULT) {
+            fillBlendMode = Gpu::LayerBlendMode::Multiply;
+        } else if (composite == COMPOSITE_SCREEN) {
+            fillBlendMode = Gpu::LayerBlendMode::Screen;
+        } else if (composite == COMPOSITE_DARKEN) {
+            fillBlendMode = Gpu::LayerBlendMode::Darken;
+        } else if (composite == COMPOSITE_LIGHTEN) {
+            fillBlendMode = Gpu::LayerBlendMode::Lighten;
+        } else if (composite == COMPOSITE_ADD) {
+            fillBlendMode = Gpu::LayerBlendMode::Addition;
+        } else if (composite == COMPOSITE_LINEAR_DODGE) {
+            fillBlendMode = Gpu::LayerBlendMode::LinearDodge;
+        } else if (composite != COMPOSITE_OVER) {
             reject(i18n("This blend mode is not yet available for this document."));
             return;
         }
@@ -313,12 +333,15 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         }
         const auto color = (useBgColor ? resources->bgColor() : resources->fgColor()).toQColor();
         const std::array<quint8, 3> rgb{quint8(color.red()), quint8(color.green()), quint8(color.blue())};
-        const bool erase = composite == QLatin1String("erase") || resources->eraserMode();
         const bool alphaLocked = !resources->eraserMode() &&
             resources->resourceManager()->resource(KoCanvasResource::GlobalAlphaLock).toBool();
         Gpu::LayerId layer = 0;
         // A selected mask child fills the parent layer's retained coverage.
         const bool maskTarget = image->isGpuTransparencyMaskView(node);
+        if (maskTarget && fillBlendMode != Gpu::LayerBlendMode::Normal) {
+            reject(i18n("Blend modes are not available for transparency mask fills."));
+            return;
+        }
         const KisNodeSP fillNode = maskTarget ? node->parent() : node;
         for (const auto &candidate : owner->operations().snapshot()->layers)
             if (fillNode && candidate.uuid == fillNode->uuid()) layer = candidate.id;
@@ -327,8 +350,8 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         const auto result = maskTarget
             ? (usePattern ? owner->fillTransparencyMaskPattern(layer, patternFill, quint8(qRound(255 * opacity)), erase, alphaLocked)
                           : owner->fillTransparencyMask(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked))
-            : (usePattern ? owner->fillLayerPattern(layer, patternFill, quint8(qRound(255 * opacity)), erase, alphaLocked)
-                          : owner->fillLayer(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked));
+            : (usePattern ? owner->fillLayerPattern(layer, patternFill, quint8(qRound(255 * opacity)), erase, alphaLocked, fillBlendMode)
+                          : owner->fillLayer(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked, fillBlendMode));
         if (result != Gpu::Result::Success) {
             reject(maskTarget ? i18n("The GPU transparency mask could not be filled.")
                               : i18n("The GPU layer could not be filled."));

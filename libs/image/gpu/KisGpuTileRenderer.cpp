@@ -62,11 +62,13 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
     if (painting || path.endsWith(QLatin1String("/over.wgsl"))) {
         QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
-        if (!arithmetic.open(QIODevice::ReadOnly)) {
+        QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
+        if (!arithmetic.open(QIODevice::ReadOnly) || !separable.open(QIODevice::ReadOnly)) {
             error = QStringLiteral("GPU RGBA8 arithmetic could not be loaded");
             return {};
         }
         source += arithmetic.readAll() + '\n';
+        source += separable.readAll() + '\n';
     }
     if (painting) {
         QFile gaussian(QStringLiteral(":/librepaint/gpu/shaders/gaussian.wgsl"));
@@ -655,6 +657,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         job.values.patternWidth = quint32(operation.figureStyle.pattern->size.width());
                         job.values.patternHeight = quint32(operation.figureStyle.pattern->size.height());
                     }
+                    job.values.fillBlendMode = quint32(operation.figureStyle.fillBlendMode);
                     job.values.selectionX = operation.selectionRect.x();
                     job.values.selectionY = operation.selectionRect.y();
                     job.values.selectionWidth = operation.selectionRect.width();

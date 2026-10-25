@@ -336,7 +336,16 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         let strokeAlpha = mul255((strokeColor.w * countOneBits(mask) + 8u) / 16u, selectionAlpha);
         // The circular marker retains the first color at equal coverage.
         let source = select(fillColor, strokeColor, strokeAlpha > fillAlpha);
-        destination = paintAlpha(destination, source, mul255(max(fillAlpha, strokeAlpha), parameters.brush.y));
+        let alpha = mul255(max(fillAlpha, strokeAlpha), parameters.brush.y);
+        // Fill-only figures may freeze a separable blend mode. Masking writable
+        // channels after blending preserves alpha lock and hidden RGB exactly
+        // like the normal fill path below.
+        if (parameters.pattern.z != 0u && parameters.brush.z == 0u) {
+            destination = unpackPixel(separableProjectionPixel(
+                destination, vec4<u32>(source.xyz, alpha), 255u, 15u, parameters.pattern.z));
+        } else {
+            destination = paintAlpha(destination, source, alpha);
+        }
     } else {
         let alpha = mul255((mul255(strokeColor.w, parameters.brush.y) * countOneBits(mask) + 8u) / 16u, selectionAlpha);
         destination = paintAlpha(destination, strokeColor, alpha);

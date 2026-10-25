@@ -171,6 +171,10 @@ private Q_SLOTS:
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
     void filledFiguresPreserveStylesHistoryAndRecovery();
+    void fillBlendModesFreezeHistoryAndRecovery_data();
+    void fillBlendModesFreezeHistoryAndRecovery();
+    void patternFillBlendModeFreezesHistoryAndRecovery();
+    void rejectedFillBlendModesPreserveHistoryAndInput();
     void patternFillFreezesPixelsHistoryAndRecovery();
     void emptyFigureIntentPreservesHistoryAndRecovery();
     void pathsPreserveCommandsControlPointsAndRecovery();
@@ -3705,6 +3709,135 @@ void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistoryAndRecovery(
     QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->figureStyle.fill, style.fill);
+}
+
+void KisGpuOperationDocumentTest::fillBlendModesFreezeHistoryAndRecovery_data()
+{
+    QTest::addColumn<int>("mode");
+    for (const auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken,
+                            LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge}) {
+        const auto name = mode == LayerBlendMode::Multiply ? QByteArray("multiply") :
+            mode == LayerBlendMode::Screen ? QByteArray("screen") :
+            mode == LayerBlendMode::Darken ? QByteArray("darken") :
+            mode == LayerBlendMode::Lighten ? QByteArray("lighten") :
+            mode == LayerBlendMode::Addition ? QByteArray("addition") : QByteArray("linear-dodge");
+        QTest::newRow(name.constData()) << int(mode);
+    }
+}
+
+void KisGpuOperationDocumentTest::fillBlendModesFreezeHistoryAndRecovery()
+{
+    QFETCH(int, mode);
+    OperationDocument document(QSize(64, 64));
+    const auto layer = document.activeLayer();
+    const auto initial = document.snapshot();
+    QCOMPARE(document.fillLayer(layer, {221, 17, 44}, 255, false, false, LayerBlendMode(mode)),
+             Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::FillLayer);
+    const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
+    QVERIFY(!operation->figureStyle.outline);
+    QCOMPARE(operation->figureStyle.fill, (std::array<quint8, 4>{221, 17, 44, 255}));
+    QCOMPARE(operation->figureStyle.fillBlendMode, LayerBlendMode(mode));
+    const auto committed = document.snapshot();
+
+    // One fill is one history entry; undo removes it and redo restores the
+    // same frozen mode.
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
+    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), committed);
+
+    // Recovery persists the mode and reproduces the same record.
+    const auto recovery = document.recoveryData();
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    QCOMPARE(restored.recoveryData(), recovery);
+    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(recovered->figureStyle.fillBlendMode, LayerBlendMode(mode));
+
+    // Records predating format 48 have no fill mode and read as Normal.
+    OperationDocument previous(QSize(1, 1));
+    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 47)), Result::Success);
+    const auto previousFill = std::get<PaintSnapshot>(previous.snapshot()->layers.first().operations.last());
+    QCOMPARE(previousFill->figureStyle.fillBlendMode, LayerBlendMode::Normal);
+    QCOMPARE(previousFill->figureStyle.fill, (std::array<quint8, 4>{221, 17, 44, 255}));
+}
+
+void KisGpuOperationDocumentTest::patternFillBlendModeFreezesHistoryAndRecovery()
+{
+    PatternFill pattern;
+    pattern.size = QSize(2, 2);
+    pattern.rgba = QByteArray::fromHex("030507ff3f051bff7b0005ff0b141eff");
+    QVERIFY(pattern.isValid());
+
+    OperationDocument document({64, 32});
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.fillLayerPattern(layer, pattern, 255, false, false, LayerBlendMode::Multiply),
+             Result::Success);
+    const auto committed = document.snapshot();
+    const auto operation = std::get<PaintSnapshot>(committed->layers.first().operations.last());
+    QVERIFY(operation->figureStyle.pattern);
+    QCOMPARE(*operation->figureStyle.pattern, pattern);
+    QCOMPARE(operation->figureStyle.fillBlendMode, LayerBlendMode::Multiply);
+    QCOMPARE(document.historyAction(1), HistoryAction::FillLayer);
+
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), committed);
+
+    const auto recovery = document.recoveryData();
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    QCOMPARE(restored.recoveryData(), recovery);
+    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QVERIFY(recovered->figureStyle.pattern);
+    QCOMPARE(*recovered->figureStyle.pattern, pattern);
+    QCOMPARE(recovered->figureStyle.fillBlendMode, LayerBlendMode::Multiply);
+}
+
+void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput()
+{
+    OperationDocument document(QSize(32, 32));
+    const auto layer = document.activeLayer();
+    const auto initial = document.snapshot();
+
+    QCOMPARE(document.fillLayer(layer, {17, 129, 241}, 255, false, false, LayerBlendMode(7)),
+             Result::InvalidInput);
+    QCOMPARE(document.snapshot(), initial);
+    QCOMPARE(document.undoCount(), 0);
+
+    const QList<InputSample> samples{{{4, 4}, 1}, {{28, 28}, 1}};
+    FigureStyle outOfRange;
+    outOfRange.outline = false;
+    outOfRange.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    outOfRange.fillBlendMode = LayerBlendMode(7);
+    QCOMPARE(document.paintFigure(layer, Brush{}, samples, {ShapeKind::Rectangle, {4, 4}, {28, 28}, 0},
+                                  outOfRange, 42), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), initial);
+
+    FigureStyle blendedOutline;
+    blendedOutline.outline = true;
+    blendedOutline.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    blendedOutline.fillBlendMode = LayerBlendMode::Multiply;
+    QCOMPARE(document.paintFigure(layer, Brush{}, samples, {ShapeKind::Rectangle, {4, 4}, {28, 28}, 0},
+                                  blendedOutline, 42), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), initial);
+
+    FigureStyle modeWithoutFill;
+    modeWithoutFill.outline = false;
+    modeWithoutFill.fillBlendMode = LayerBlendMode::Multiply;
+    QCOMPARE(document.paintFigure(layer, Brush{}, samples, {ShapeKind::Rectangle, {4, 4}, {28, 28}, 0},
+                                  modeWithoutFill, 42), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), initial);
+
+    // Erase remains coverage removal: the frozen mode is Normal.
+    QCOMPARE(document.fillLayer(layer, {17, 129, 241}, 255, true, false, LayerBlendMode::Multiply),
+             Result::Success);
+    const auto erased = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(erased->figureStyle.fillBlendMode, LayerBlendMode::Normal);
 }
 
 void KisGpuOperationDocumentTest::patternFillFreezesPixelsHistoryAndRecovery()

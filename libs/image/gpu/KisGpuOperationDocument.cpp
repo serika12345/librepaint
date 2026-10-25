@@ -1626,22 +1626,26 @@ Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
 }
 
 Result OperationDocument::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
-                                    quint8 opacity, bool erase, bool alphaLocked)
+                                    quint8 opacity, bool erase, bool alphaLocked,
+                                    LayerBlendMode blendMode)
 {
     const std::array<quint8, 4> color{rgb[0], rgb[1], rgb[2], 255};
     FigureStyle style;
     style.outline = false;
     style.fill = color;
+    style.fillBlendMode = erase ? LayerBlendMode::Normal : blendMode;
     return fillLayerStyle(layer, color, style, opacity, erase, alphaLocked);
 }
 
 Result OperationDocument::fillLayerPattern(LayerId layer, const PatternFill &pattern,
-                                           quint8 opacity, bool erase, bool alphaLocked)
+                                           quint8 opacity, bool erase, bool alphaLocked,
+                                           LayerBlendMode blendMode)
 {
     if (!pattern.isValid()) return Result::InvalidInput;
     FigureStyle style;
     style.outline = false;
     style.pattern = pattern;
+    style.fillBlendMode = erase ? LayerBlendMode::Normal : blendMode;
     return fillLayerStyle(layer, {0, 0, 0, 255}, style, opacity, erase, alphaLocked);
 }
 

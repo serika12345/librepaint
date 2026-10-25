@@ -40,13 +40,15 @@ void KisGpuProjectionArithmeticTest::normalRgba8AlphaAndQuotientsPreserveNearest
     QVERIFY2(device, qPrintable(diagnostic));
     QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl"));
     QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
+    QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
     QFile over(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"));
     QVERIFY(shared.open(QIODevice::ReadOnly));
     QVERIFY(arithmetic.open(QIODevice::ReadOnly));
+    QVERIFY(separable.open(QIODevice::ReadOnly));
     QVERIFY(over.open(QIODevice::ReadOnly));
     // Exercise alpha normalization and division on every opacity/source/
     // destination alpha combination that reaches normal RGBA8 division.
-    const QByteArray source = shared.readAll() + '\n' + arithmetic.readAll() + '\n' + over.readAll() + R"(
+    const QByteArray source = shared.readAll() + '\n' + arithmetic.readAll() + '\n' + separable.readAll() + '\n' + over.readAll() + R"(
 @compute @workgroup_size(64)
 fn quotientContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;
@@ -148,14 +150,16 @@ void KisGpuProjectionArithmeticTest::normalRgba8ColorsPreserveBothRoundingSteps(
     QVERIFY2(device, qPrintable(diagnostic));
     QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl"));
     QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
+    QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
     QFile over(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"));
     QVERIFY(shared.open(QIODevice::ReadOnly));
     QVERIFY(arithmetic.open(QIODevice::ReadOnly));
+    QVERIFY(separable.open(QIODevice::ReadOnly));
     QVERIFY(over.open(QIODevice::ReadOnly));
     // Normal layer projection supplies the same blend to every RGB channel.
     // Saving and exporting must retain the single-rounded binary32 color,
     // including its subsequent nearest-even quantization to an RGBA8 byte.
-    const QByteArray source = shared.readAll() + '\n' + arithmetic.readAll() + '\n' + over.readAll() + R"(
+    const QByteArray source = shared.readAll() + '\n' + arithmetic.readAll() + '\n' + separable.readAll() + '\n' + over.readAll() + R"(
 @compute @workgroup_size(64)
 fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;

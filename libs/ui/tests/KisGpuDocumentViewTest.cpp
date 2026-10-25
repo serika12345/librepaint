@@ -302,6 +302,20 @@ void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving_data
         << QByteArray::fromHex("66442264") << QByteArray::fromHex("322f2cff");
     QTest::newRow("gpu-pattern-erase") << true << QStringLiteral("pattern-erase")
         << QByteArray::fromHex("00000000") << QByteArray::fromHex("11223337");
+    QTest::newRow("gpu-multiply") << true << QStringLiteral("multiply")
+        << QByteArray::fromHex("f18111ff") << QByteArray::fromHex("101103ff");
+    QTest::newRow("gpu-screen") << true << QStringLiteral("screen")
+        << QByteArray::fromHex("f18111ff") << QByteArray::fromHex("f29241ff");
+    QTest::newRow("gpu-darken") << true << QStringLiteral("darken")
+        << QByteArray::fromHex("f18111ff") << QByteArray::fromHex("112211ff");
+    QTest::newRow("gpu-lighten") << true << QStringLiteral("lighten")
+        << QByteArray::fromHex("f18111ff") << QByteArray::fromHex("f18133ff");
+    QTest::newRow("gpu-add") << true << QStringLiteral("add")
+        << QByteArray::fromHex("f18111ff") << QByteArray::fromHex("ffa344ff");
+    QTest::newRow("gpu-linear-dodge") << true << QStringLiteral("linear_dodge")
+        << QByteArray::fromHex("f18111ff") << QByteArray::fromHex("ffa344ff");
+    QTest::newRow("gpu-pattern-multiply") << true << QStringLiteral("pattern-multiply")
+        << QByteArray::fromHex("664422c8") << QByteArray::fromHex("090e10ff");
     for (const auto &scenario : {"reject-pattern-blend", "reject-blend", "close-during-fill"}) {
         const QByteArray name = QByteArray("gpu-") + scenario;
         QTest::newRow(name.constData()) << true << QString::fromLatin1(scenario)
@@ -391,11 +405,18 @@ void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving()
     }
     const bool eraseScenario = scenario == QLatin1String("erase") || scenario == QLatin1String("pattern-erase");
     resources->setEraserMode(eraseScenario);
-    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    QString compositeOp = QStringLiteral("normal");
+    if (scenario == QLatin1String("pattern-multiply"))
+        compositeOp = QStringLiteral("multiply");
+    else if (scenario == QLatin1String("multiply") || scenario == QLatin1String("screen") ||
+             scenario == QLatin1String("darken") || scenario == QLatin1String("lighten") ||
+             scenario == QLatin1String("add") || scenario == QLatin1String("linear_dodge"))
+        compositeOp = scenario;
+    else if (scenario.startsWith(QLatin1String("reject-")))
+        compositeOp = QStringLiteral("overlay");
+    resources->setCurrentCompositeOp(compositeOp);
     resources->resourceManager()->setResource(KoCanvasResource::GlobalAlphaLock,
         scenario == QLatin1String("alpha-lock") || eraseScenario);
-    if (scenario == QLatin1String("reject-blend") || scenario == QLatin1String("reject-pattern-blend"))
-        resources->setCurrentCompositeOp(QStringLiteral("multiply"));
     const auto count = lifetime->undoStack()->count();
     const auto index = lifetime->undoStack()->index();
     if (owner) QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);

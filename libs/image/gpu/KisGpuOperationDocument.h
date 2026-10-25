@@ -153,6 +153,8 @@ struct Brush
 
 enum class ShapeKind { Freehand, Line, Ellipse, Rectangle, RoundedRectangle, Polyline, Polygon, Path };
 enum class PathCommand : quint8 { MoveTo, LineTo, CubicTo };
+/** Separable RGB blend modes shared by layer composition and solid/pattern fill. */
+enum class LayerBlendMode : quint8 { Normal, Multiply, Screen, Darken, Lighten, Addition, LinearDodge };
 
 struct Shape
 {
@@ -196,13 +198,15 @@ struct PatternFill
 
 /** Solid figure coverage, separate from the outline brush and its color. A
  * pattern replaces the solid fill color while retaining the same coverage,
- * selection, compositing and channel behavior.
+ * selection, compositing and channel behavior. The fill blend mode applies to
+ * fill-only figures and is frozen with the fill intent.
  */
 struct FigureStyle
 {
     bool outline = true;
     std::optional<std::array<quint8, 4>> fill;
     std::optional<PatternFill> pattern;
+    LayerBlendMode fillBlendMode = LayerBlendMode::Normal;
 };
 
 /** True when this figure contributes filled interior coverage. */
@@ -274,7 +278,6 @@ using CropSnapshot = QSharedPointer<const CropOperation>;
 using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot>;
 
 enum class LayerKind : quint8 { Paint, Group };
-enum class LayerBlendMode : quint8 { Normal, Multiply, Screen, Darken, Lighten, Addition, LinearDodge };
 
 struct RasterLayer
 {
@@ -710,15 +713,21 @@ public:
      * canvas without layer cropping preserves the current version and history.
      */
     Result resizeCanvas(const QRect &rect, bool cropLayers);
-    /** Fills canvas bounds on one layer as one history step, preserving pixels outside them. */
+    /** Fills canvas bounds on one layer as one history step, preserving pixels outside them.
+     * The fill blend mode is frozen with the fill intent; Normal preserves the
+     * historical source-over result and erase ignores the mode.
+     */
     Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, quint8 opacity = 255,
-                     bool erase = false, bool alphaLocked = false);
+                     bool erase = false, bool alphaLocked = false,
+                     LayerBlendMode blendMode = LayerBlendMode::Normal);
     /** Fills canvas bounds on one layer with a frozen pattern resource as one
      * history step. The pattern repeats from the document origin; selection
-     * coverage clips and scales its alpha exactly as a solid fill.
+     * coverage clips and scales its alpha exactly as a solid fill. The fill
+     * blend mode is frozen with the fill intent.
      */
     Result fillLayerPattern(LayerId layer, const PatternFill &pattern, quint8 opacity = 255,
-                            bool erase = false, bool alphaLocked = false);
+                            bool erase = false, bool alphaLocked = false,
+                            LayerBlendMode blendMode = LayerBlendMode::Normal);
     Result undo();
     Result redo();
     /** Selects one retained history state without executing intermediate edits. */
@@ -780,8 +789,7 @@ private:
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
     Result fillLayerStyle(LayerId layer, const std::array<quint8, 4> &color, const FigureStyle &style,
-                          quint8 opacity, bool erase, bool alphaLocked);
-    QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
+                          quint8 opacity, bool erase, bool alphaLocked);    QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member,
                                               const T &value, quint8 componentMask = 15);

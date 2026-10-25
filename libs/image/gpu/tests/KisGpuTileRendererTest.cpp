@@ -78,6 +78,10 @@ private Q_SLOTS:
     void featheredSelectionClipsPaintFillEraseHistoryAndRecovery();
     void patternFillTilesAcrossSelectionHistoryAndRecovery();
     void patternFillClipsAlphaCompositesErasesAndRejectsInvalidInput();
+    void fillBlendModesMatchLayerComposition_data();
+    void fillBlendModesMatchLayerComposition();
+    void patternFillBlendModeMatchesLayerComposition();
+    void fillBlendModePreservesOpacityAlphaLockAndChannelMask();
     void layerTransparencyMaskMultipliesCompositionAlpha();
     void gaussianWashProducesCoverageAndRetainsPixelsThroughRecovery();
     void gaussianEraseKeepsColorsHistoryAndRecovery_data();
@@ -3025,11 +3029,17 @@ RenderedSnapshot KisGpuTileRendererTest::render(TileRenderer &renderer, const Sn
 {
     WGPUCommandEncoder commands = nullptr;
     commands = m_device->beginCommands();
-    if (!commands) return {};
+    if (!commands) {
+        qWarning() << "GPU command recording unavailable" << m_device->diagnostic();
+        return {};
+    }
     const auto result = renderer.record(commands, snapshot, base);
     const auto submitted = m_device->submitCommands(true);
     if (result.code != RenderOutcome::Recorded) qWarning() << result.diagnostic;
-    if (!submitted) return {};
+    if (!submitted) {
+        qWarning() << "GPU command submission failed" << m_device->diagnostic();
+        return {};
+    }
     return result.version;
 }
 
@@ -3300,6 +3310,149 @@ void KisGpuTileRendererTest::patternFillClipsAlphaCompositesErasesAndRejectsInva
     PatternFill malformed{QSize(2, 2), QByteArray(3, '\0')};
     QCOMPARE(document.fillLayerPattern(layer, malformed), Result::InvalidInput);
     QCOMPARE(document.snapshot(), before);
+}
+
+void KisGpuTileRendererTest::fillBlendModesMatchLayerComposition_data()
+{
+    QTest::addColumn<int>("mode");
+    QTest::addColumn<QByteArray>("expected");
+    QTest::newRow("multiply") << int(LayerBlendMode::Multiply) << QByteArray::fromHex("0f0209ff");
+    QTest::newRow("screen") << int(LayerBlendMode::Screen) << QByteArray::fromHex("df3156ff");
+    QTest::newRow("darken") << int(LayerBlendMode::Darken) << QByteArray::fromHex("11112cff");
+    QTest::newRow("lighten") << int(LayerBlendMode::Lighten) << QByteArray::fromHex("dd2233ff");
+    QTest::newRow("addition") << int(LayerBlendMode::Addition) << QByteArray::fromHex("ee335fff");
+    QTest::newRow("linear-dodge") << int(LayerBlendMode::LinearDodge) << QByteArray::fromHex("ee335fff");
+}
+
+void KisGpuTileRendererTest::fillBlendModesMatchLayerComposition()
+{
+    QFETCH(int, mode);
+    QFETCH(QByteArray, expected);
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    const auto base = QByteArray::fromHex("112233ff");
+    OperationDocument document(QSize(64, 64));
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.fillLayer(layer, {17, 34, 51}), Result::Success);
+    QCOMPARE(document.setSelectionRect(QRect(16, 16, 32, 32)), Result::Success);
+    const auto historyBefore = document.undoCount();
+    QCOMPARE(document.fillLayer(layer, {221, 17, 44}, 255, false, false, LayerBlendMode(mode)),
+             Result::Success);
+    QCOMPARE(document.undoCount(), historyBefore + 1);
+    QCOMPARE(document.historyAction(historyBefore + 1), HistoryAction::FillLayer);
+    TileRenderer renderer(m_device);
+    const auto rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    const auto filled = readTile(rendered, layer, {0, 0});
+    QCOMPARE(pixel(filled, 24, 24), expected);
+    QCOMPARE(pixel(filled, 16, 16), expected);
+    QCOMPARE(pixel(filled, 47, 47), expected);
+    QCOMPARE(pixel(filled, 15, 16), base);
+    QCOMPARE(pixel(filled, 48, 48), base);
+    QCOMPARE(pixel(filled, 8, 8), base);
+    QCOMPARE(quint8(pixel(filled, 24, 24).at(3)), 255);
+
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undoneVersion = render(renderer, document.snapshot());
+    QVERIFY(undoneVersion);
+    const auto undone = readTile(undoneVersion, layer, {0, 0});
+    QCOMPARE(pixel(undone, 24, 24), base);
+    QCOMPARE(document.redo(), Result::Success);
+    const auto redone = render(renderer, document.snapshot());
+    QVERIFY(redone);
+    QCOMPARE(readTile(redone, layer, {0, 0}), filled);
+
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recoveredVersion = render(renderer, restored.snapshot());
+    QVERIFY(recoveredVersion);
+    const auto recovered = readTile(recoveredVersion, restored.activeLayer(), {0, 0});
+    QCOMPARE(pixel(recovered, 24, 24), expected);
+    QCOMPARE(pixel(recovered, 15, 16), base);
+}
+
+void KisGpuTileRendererTest::patternFillBlendModeMatchesLayerComposition()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    const auto base = QByteArray::fromHex("112233ff");
+    PatternFill pattern;
+    pattern.size = QSize(2, 2);
+    pattern.rgba = QByteArray(2 * 2 * 4, '\0');
+    for (qsizetype index = 0; index < pattern.rgba.size(); index += 4) {
+        pattern.rgba[index + 0] = char(34);
+        pattern.rgba[index + 1] = char(68);
+        pattern.rgba[index + 2] = char(102);
+        pattern.rgba[index + 3] = char(200);
+    }
+
+    OperationDocument document(QSize(64, 64));
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.fillLayer(layer, {17, 34, 51}), Result::Success);
+    QCOMPARE(document.setSelectionRect(QRect(16, 16, 4, 4)), Result::Success);
+    QCOMPARE(document.fillLayerPattern(layer, pattern, 255, false, false, LayerBlendMode::Multiply),
+             Result::Success);
+    TileRenderer renderer(m_device);
+    const auto filled = readTile(render(renderer, document.snapshot()), layer, {0, 0});
+    // Pattern alpha 200 times selection alpha 255 and Multiply over the opaque base.
+    const auto expected = QByteArray::fromHex("050e1bff");
+    QCOMPARE(pixel(filled, 16, 16), expected);
+    QCOMPARE(pixel(filled, 19, 19), expected);
+    QCOMPARE(pixel(filled, 20, 16), base);
+    QCOMPARE(pixel(filled, 8, 8), base);
+    QCOMPARE(quint8(pixel(filled, 16, 16).at(3)), 255);
+
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(pixel(readTile(render(renderer, document.snapshot()), layer, {0, 0}), 16, 16), base);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), filled);
+
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(pixel(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), 16, 16),
+             expected);
+}
+
+void KisGpuTileRendererTest::fillBlendModePreservesOpacityAlphaLockAndChannelMask()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    TileRenderer renderer(m_device);
+
+    // Fill opacity multiplies the source alpha before the blend.
+    OperationDocument opacityDocument(QSize(64, 64));
+    const auto opacityLayer = opacityDocument.activeLayer();
+    QCOMPARE(opacityDocument.fillLayer(opacityLayer, {17, 34, 51}), Result::Success);
+    QCOMPARE(opacityDocument.fillLayer(opacityLayer, {221, 17, 44}, 128, false, false,
+                                       LayerBlendMode::Multiply), Result::Success);
+    const auto opacityPixels = readTile(render(renderer, opacityDocument.snapshot()), opacityLayer, {0, 0});
+    QCOMPARE(pixel(opacityPixels, 24, 24), QByteArray::fromHex("10121eff"));
+
+    // Alpha lock keeps the destination alpha, including hidden RGB.
+    OperationDocument alphaDocument(QSize(64, 64));
+    const auto alphaLayer = alphaDocument.activeLayer();
+    QCOMPARE(alphaDocument.fillLayer(alphaLayer, {17, 34, 51}, 128), Result::Success);
+    QCOMPARE(alphaDocument.fillLayer(alphaLayer, {221, 17, 44}, 255, false, true,
+                                     LayerBlendMode::Multiply), Result::Success);
+    const auto alphaPixels = readTile(render(renderer, alphaDocument.snapshot()), alphaLayer, {0, 0});
+    QCOMPARE(pixel(alphaPixels, 24, 24), QByteArray::fromHex("76091a80"));
+    QCOMPARE(alphaDocument.undo(), Result::Success);
+    QCOMPARE(pixel(readTile(render(renderer, alphaDocument.snapshot()), alphaLayer, {0, 0}), 24, 24),
+             QByteArray::fromHex("11223380"));
+
+    // Channel protection keeps the protected component while the writable
+    // components use the same blend as composition.
+    OperationDocument channelDocument(QSize(64, 64));
+    const auto channelLayer = channelDocument.activeLayer();
+    QCOMPARE(channelDocument.fillLayer(channelLayer, {17, 34, 51}), Result::Success);
+    QCOMPARE(channelDocument.setLayerChannelMask(channelLayer, 14), Result::Success);
+    QCOMPARE(channelDocument.fillLayer(channelLayer, {221, 17, 44}, 255, false, false,
+                                       LayerBlendMode::Multiply), Result::Success);
+    const auto channelPixels = readTile(render(renderer, channelDocument.snapshot()), channelLayer, {0, 0});
+    QCOMPARE(pixel(channelPixels, 24, 24), QByteArray::fromHex("110209ff"));
 }
 
 void KisGpuTileRendererTest::featheredSelectionClipsPaintFillEraseHistoryAndRecovery()

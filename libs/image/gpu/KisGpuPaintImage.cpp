@@ -750,11 +750,13 @@ Result PaintImage::resizeCanvas(const QRect &rect, bool cropLayers)
     return document.snapshot() == before ? result : publish(result);
 }
 Result PaintImage::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
-                             quint8 opacity, bool erase, bool alphaLocked)
-{ return onThread() ? publish(m_d->document->fillLayer(layer, rgb, opacity, erase, alphaLocked)) : Result::InvalidInput; }
+                             quint8 opacity, bool erase, bool alphaLocked,
+                             LayerBlendMode blendMode)
+{ return onThread() ? publish(m_d->document->fillLayer(layer, rgb, opacity, erase, alphaLocked, blendMode)) : Result::InvalidInput; }
 Result PaintImage::fillLayerPattern(LayerId layer, const PatternFill &pattern,
-                                    quint8 opacity, bool erase, bool alphaLocked)
-{ return onThread() ? publish(m_d->document->fillLayerPattern(layer, pattern, opacity, erase, alphaLocked)) : Result::InvalidInput; }
+                                    quint8 opacity, bool erase, bool alphaLocked,
+                                    LayerBlendMode blendMode)
+{ return onThread() ? publish(m_d->document->fillLayerPattern(layer, pattern, opacity, erase, alphaLocked, blendMode)) : Result::InvalidInput; }
 Result PaintImage::selectLayers(const QList<LayerId> &layers, LayerId active)
 { return onThread() ? publish(m_d->document->selectLayers(layers, active)) : Result::InvalidInput; }
 Result PaintImage::selectLayer(LayerId layer)
