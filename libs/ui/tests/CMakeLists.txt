@@ -1192,7 +1192,7 @@ set(gpu_document_input_cases
     selectionFillUsesGpuSelection
     selectionMergedCopyUsesGpuSelection
     selectionCopyAndCutUseGpuSelection
-    selectionShrinkUsesGpuSelection)
+    selectionGrowAndShrinkUseGpuSelection)
 set(gpu_document_crop_cases
     cropPreviewPreservesPixelsHistoryAndCancellation)
 set(gpu_document_layer_cases

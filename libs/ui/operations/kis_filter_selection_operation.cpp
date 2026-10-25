@@ -27,7 +27,9 @@
 void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewManager* view, const KisOperationConfiguration& config)
 {
     if (view->image() && view->image()->gpuImage()) {
-        if (config.id() == QLatin1String("shrinkselection")) {
+        if (config.id() == QLatin1String("shrinkselection") ||
+            config.id() == QLatin1String("growselection")) {
+            const bool grow = config.id() == QLatin1String("growselection");
             const int xRadius = config.getInt("x-radius", 1);
             const int yRadius = config.getInt("y-radius", 1);
             const bool edgeLock = config.getBool("edgeLock", false);
@@ -38,20 +40,26 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
                 return;
             }
             if (current.isEmpty() || (xRadius == 0 && yRadius == 0)) return;
-            int left = xRadius, right = xRadius, top = yRadius, bottom = yRadius;
-            if (edgeLock) {
-                if (current.left() <= 0) left = 0;
-                if (current.top() <= 0) top = 0;
-                if (current.right() + 1 >= view->image()->width()) right = 0;
-                if (current.bottom() + 1 >= view->image()->height()) bottom = 0;
+            QRect updated;
+            if (grow) {
+                updated = current.adjusted(-xRadius, -yRadius, xRadius, yRadius)
+                    .intersected(QRect(QPoint(), view->image()->size()));
+            } else {
+                int left = xRadius, right = xRadius, top = yRadius, bottom = yRadius;
+                if (edgeLock) {
+                    if (current.left() <= 0) left = 0;
+                    if (current.top() <= 0) top = 0;
+                    if (current.right() + 1 >= view->image()->width()) right = 0;
+                    if (current.bottom() + 1 >= view->image()->height()) bottom = 0;
+                }
+                updated = current.adjusted(left, top, -right, -bottom);
             }
-            const QRect shrunk = current.adjusted(left, top, -right, -bottom);
-            if (shrunk.isEmpty()) view->image()->clearGpuSelection();
-            else if (!view->image()->setGpuSelectionRect(shrunk))
-                view->showFloatingMessage(i18n("The selection could not be shrunk."), QIcon());
+            if (updated.isEmpty()) view->image()->clearGpuSelection();
+            else if (!view->image()->setGpuSelectionRect(updated))
+                view->showFloatingMessage(i18n("The selection could not be updated."), QIcon());
             return;
         }
-        view->showFloatingMessage(i18n("Only shrinking a rectangular selection is available for GPU documents."), QIcon());
+        view->showFloatingMessage(i18n("Only growing and shrinking a rectangular selection are available for GPU documents."), QIcon());
         delete filter;
         return;
     }

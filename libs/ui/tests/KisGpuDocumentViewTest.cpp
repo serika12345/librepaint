@@ -45,8 +45,6 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <actions/input/KisApplicationInputActions.h>
 #include <operations/kis_operation_configuration.h>
-#include <operations/kis_filter_selection_operation.h>
-#include <kis_selection_filters.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <canvas/KisMirrorAxisConfig.h>
 #include <canvas/kis_coordinates_converter.h>
@@ -131,7 +129,7 @@ private Q_SLOTS:
     void selectionFillUsesGpuSelection();
     void selectionMergedCopyUsesGpuSelection();
     void selectionCopyAndCutUseGpuSelection();
-    void selectionShrinkUsesGpuSelection();
+    void selectionGrowAndShrinkUseGpuSelection();
     void selectionMovePreviewsAndCommitsOneHistory();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
@@ -2144,7 +2142,7 @@ void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
     QCOMPARE(owner->operations().undoCount(), history);
 }
 
-void KisGpuDocumentViewTest::selectionShrinkUsesGpuSelection()
+void KisGpuDocumentViewTest::selectionGrowAndShrinkUseGpuSelection()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
@@ -2174,15 +2172,15 @@ void KisGpuDocumentViewTest::selectionShrinkUsesGpuSelection()
     const QRect selected(64, 64, 128, 128);
     QVERIFY(lifetime->image()->setGpuSelectionRect(selected));
     QTRY_COMPARE(owner->selectionRect(), selected);
-    const auto shrink = [&](int x, int y) {
-        KisOperationConfigurationSP config = new KisOperationConfiguration("shrinkselection");
+    const auto runFilter = [&](const QString &id, int x, int y) {
+        KisOperationConfigurationSP config = new KisOperationConfiguration(id);
         config->setProperty("x-radius", x);
         config->setProperty("y-radius", y);
         config->setProperty("edgeLock", false);
         window->viewManager()->actionManager()->runOperationFromConfiguration(config);
         lifetime->image()->waitForDone();
     };
-    shrink(8, 4);
+    runFilter(QStringLiteral("shrinkselection"), 8, 4);
     const QRect shrunk(72, 68, 112, 120);
     QTRY_COMPARE(owner->selectionRect(), shrunk);
     QTRY_VERIFY(lifetime->image()->globalSelection() &&
@@ -2192,13 +2190,20 @@ void KisGpuDocumentViewTest::selectionShrinkUsesGpuSelection()
     QTRY_COMPARE(owner->selectionRect(), selected);
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), shrunk);
-    shrink(100, 100);
-    QTRY_VERIFY(owner->selectionRect().isEmpty());
-    QTRY_VERIFY(!lifetime->image()->globalSelection() ||
-                lifetime->image()->globalSelection()->selectedExactRect().isEmpty());
+    runFilter(QStringLiteral("growselection"), 8, 4);
+    QTRY_COMPARE(owner->selectionRect(), selected);
     QCOMPARE(owner->operations().undoCount(), 3);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), shrunk);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), selected);
+    runFilter(QStringLiteral("shrinkselection"), 100, 100);
+    QTRY_VERIFY(owner->selectionRect().isEmpty());
+    QTRY_VERIFY(!lifetime->image()->globalSelection() ||
+                lifetime->image()->globalSelection()->selectedExactRect().isEmpty());
+    QCOMPARE(owner->operations().undoCount(), 4);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), selected);
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
