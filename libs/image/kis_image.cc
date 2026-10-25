@@ -872,6 +872,7 @@ KisSelectionSP KisImage::globalSelection() const
 
 bool KisImage::canReselectGlobalSelection()
 {
+    if (m_d->gpuImage) return m_hasLastGpuSelection && !m_lastGpuSelection.isEmpty();
     return m_d->deselectedGlobalSelectionMask;
 }
 

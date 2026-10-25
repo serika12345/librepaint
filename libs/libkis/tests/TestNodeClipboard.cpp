@@ -39,6 +39,7 @@
 #include <kundo2stack.h>
 #include <nodes/kis_node_insertion_adapter.h>
 #include <nodes/kis_node_manager.h>
+#include <selection/kis_selection_manager.h>
 #include <QApplication>
 #include <QClipboard>
 #include <QDateTime>
@@ -438,18 +439,29 @@ void TestNode::testNormalPasteRetainsMultipleClipboardRoots_data()
 {
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("scenario");
+    QTest::addColumn<bool>("selectedPixels");
+    QTest::addColumn<bool>("normalPaste");
     for (const bool gpu : {false, true})
         for (const auto &scenario : {QStringLiteral("inside"), QStringLiteral("outside"), QStringLiteral("capacity"),
                                     QStringLiteral("outside-capacity")}) {
             if (!gpu && scenario.contains(QLatin1String("capacity"))) continue;
-            QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + scenario)) << gpu << scenario;
+            for (const bool selectedPixels : {false, true}) {
+                const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + scenario +
+                    (selectedPixels ? QStringLiteral("-selection") : QString());
+                QTest::newRow(qPrintable(name)) << gpu << scenario << selectedPixels << true;
+            }
         }
+    for (const bool gpu : {false, true})
+        QTest::newRow(gpu ? "gpu-direct-layer-selection" : "ordinary-direct-layer-selection")
+            << gpu << QStringLiteral("inside") << true << false;
 }
 
 void TestNode::testNormalPasteRetainsMultipleClipboardRoots()
 try {
     QFETCH(bool, gpu);
     QFETCH(QString, scenario);
+    QFETCH(bool, selectedPixels);
+    QFETCH(bool, normalPaste);
     KisConfig(true).disableOpenGL();
     auto *clipboard = QApplication::clipboard();
     clipboard->clear();
@@ -484,8 +496,14 @@ try {
     QTRY_COMPARE(manager->activeNode(), group);
     auto *copy = window->viewManager()->actionManager()->actionByName(QStringLiteral("edit_copy"));
     auto *paste = window->viewManager()->actionManager()->actionByName(QStringLiteral("edit_paste"));
+    auto *layerPaste = window->viewManager()->actionManager()->actionByName(QStringLiteral("paste_layer_from_clipboard"));
     QVERIFY(copy);
     QVERIFY(paste);
+    QVERIFY(layerPaste);
+    const auto pasteLayers = [&] {
+        if (normalPaste) paste->trigger();
+        else layerPaste->trigger();
+    };
     copy->trigger();
     const auto mime = qobject_cast<const KisMimeData *>(KisClipboard::instance()->layersMimeData());
     QVERIFY(mime);
@@ -494,6 +512,11 @@ try {
     const auto capturedImage = captured.first()->image();
     QScopedPointer<Node> capturedPixels(Node::createNode({}, captured.first()->firstChild()));
     QCOMPARE(capturedPixels->pixelData(point.x(), point.y(), 1, 1), QByteArray::fromHex("00ff00ff"));
+    if (selectedPixels) {
+        window->viewManager()->selectionManager()->selectAll();
+        image->waitForDone();
+        QTRY_VERIFY(view->selection());
+    }
     const auto history = lifetime->undoStack()->index();
     if (scenario.contains(QLatin1String("capacity"))) {
         namespace Gpu = LibrePaint::Image::Gpu;
@@ -503,10 +526,11 @@ try {
             catch (const std::length_error &) { break; }
         }
         QVERIFY(!blockers.isEmpty());
-        paste->trigger();
+        pasteLayers();
         image->waitForDone();
         QCOMPARE(lifetime->undoStack()->index(), history);
         QCOMPARE(group->childCount(), 1u);
+        QCOMPARE(bool(view->selection()), selectedPixels);
         QCOMPARE(KisClipboard::instance()->layersMimeData(), mime);
         QCOMPARE(capturedPixels->pixelData(point.x(), point.y(), 1, 1), QByteArray::fromHex("00ff00ff"));
     }
@@ -514,9 +538,10 @@ try {
         manager->slotNonUiActivatedNode(group);
         manager->slotSetSelectedNodes({group});
         QTRY_COMPARE(manager->activeNode(), group);
-        paste->trigger();
+        pasteLayers();
         image->waitForDone();
         QCOMPARE(lifetime->undoStack()->index(), history + iteration + 1);
+        QTRY_COMPARE(bool(view->selection()), selectedPixels && !normalPaste);
         QCOMPARE(group->childCount(), quint32(3 + iteration * 2));
         const auto pastedTop = group->lastChild();
         const auto pastedGroup = pastedTop->prevSibling();
@@ -543,13 +568,28 @@ try {
         lifetime->undoStack()->undo();
         image->waitForDone();
         QCOMPARE(lifetime->undoStack()->index(), history + iteration);
+        QTRY_COMPARE(bool(view->selection()), selectedPixels && (!normalPaste || iteration == 0));
         QCOMPARE(group->childCount(), quint32(1 + iteration * 2));
     }
     for (int iteration = 0; iteration < 2; ++iteration) {
         lifetime->undoStack()->redo();
         image->waitForDone();
         QCOMPARE(lifetime->undoStack()->index(), history + iteration + 1);
+        QTRY_COMPARE(bool(view->selection()), selectedPixels && !normalPaste);
         QCOMPARE(group->childCount(), quint32(3 + iteration * 2));
+    }
+    if (selectedPixels && normalPaste) {
+        auto *reselect = window->viewManager()->actionManager()->actionByName(QStringLiteral("reselect"));
+        QVERIFY(reselect);
+        QTRY_VERIFY(reselect->isEnabled());
+        reselect->trigger();
+        image->waitForDone();
+        QTRY_VERIFY(view->selection());
+        lifetime->undoStack()->undo();
+        image->waitForDone();
+        QTRY_VERIFY(!view->selection());
+        QCOMPARE(lifetime->undoStack()->index(), history + 2);
+        QCOMPARE(group->childCount(), 5u);
     }
     QTemporaryDir output;
     QVERIFY(output.isValid());
@@ -564,7 +604,10 @@ try {
     const auto expected = source.pixelData(0, 0, 32, 16);
     const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", output.path());
     QVERIFY(QDir().mkpath(destination));
-    const auto stem = QStringLiteral("normal-layer-paste-%1-%2").arg(gpu ? QStringLiteral("gpu") : QStringLiteral("ordinary"), scenario);
+    const auto stem = QStringLiteral("normal-layer-paste-%1-%2%3%4")
+        .arg(gpu ? QStringLiteral("gpu") : QStringLiteral("ordinary"), scenario,
+             selectedPixels ? QStringLiteral("-selection") : QString(),
+             normalPaste ? QString() : QStringLiteral("-direct-layer"));
     QFile pixelsFile(QDir(destination).filePath(stem + QStringLiteral(".pixels")));
     QVERIFY(pixelsFile.open(QIODevice::WriteOnly));
     QCOMPARE(pixelsFile.write(expected), qint64(expected.size()));

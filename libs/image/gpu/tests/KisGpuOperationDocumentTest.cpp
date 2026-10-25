@@ -160,6 +160,8 @@ class KisGpuOperationDocumentTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void preparedLayerForestsKeepPixelsSelectionAndAtomicHistory();
+    void layerForestInsertionCanClearPixelSelectionAtomically_data();
+    void layerForestInsertionCanClearPixelSelectionAtomically();
     void rejectedLayerForestsPreservePendingInputAndHistory();
     void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
     void colorLabelsPreserveFixedVersionsPendingInputAndRecovery();
@@ -295,6 +297,63 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
 };
+
+void KisGpuOperationDocumentTest::layerForestInsertionCanClearPixelSelectionAtomically_data()
+{
+    QTest::addColumn<bool>("clearPixelSelection");
+    QTest::newRow("preserve") << false;
+    QTest::newRow("paste-and-deselect") << true;
+}
+
+void KisGpuOperationDocumentTest::layerForestInsertionCanClearPixelSelectionAtomically()
+{
+    QFETCH(bool, clearPixelSelection);
+    OperationDocument source(nestedImage());
+    OperationDocument destination(nestedImage());
+    const auto mask = SelectionMask::fromPolygon({{1, 1}, {30, 1}, {1, 15}}, QRect(0, 0, 64, 32));
+    QVERIFY(mask);
+    QCOMPARE(destination.setSelectionMask(mask, true), Result::Success);
+    const auto before = destination.snapshot();
+    const auto count = destination.undoCount();
+    const auto inputs = insertionForest(source.snapshot(), before->layers[1].uuid);
+    QCOMPARE(destination.insertLayers({}, 1, true, clearPixelSelection), Result::InvalidInput);
+    QCOMPARE(destination.snapshot(), before);
+    QCOMPARE(destination.undoCount(), count);
+    const auto result = clearPixelSelection ? destination.insertLayers(inputs, 1, true, true)
+                                           : destination.insertLayers(inputs, 1);
+    QCOMPARE(result, Result::Success);
+    QCOMPARE(destination.undoCount(), count + 1);
+    QCOMPARE(destination.snapshot()->layers.size(), before->layers.size() + inputs.size());
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(destination.recoveryData()), Result::Success);
+    for (auto *value : {&destination, &recovered}) {
+        QCOMPARE(value->historyAction(count + 1), HistoryAction::AddLayer);
+        const auto verifySelection = [&] {
+            if (clearPixelSelection) {
+                QVERIFY(value->selectionRect().isEmpty());
+                QCOMPARE(value->selectionKind(), SelectionKind::Rectangle);
+                QVERIFY(!value->selectionInverted());
+                QVERIFY(!value->selectionMask());
+            } else {
+                QCOMPARE(value->selectionRect(), before->selection);
+                QCOMPARE(value->selectionKind(), SelectionKind::Freehand);
+                QVERIFY(value->selectionInverted());
+                QVERIFY(value->selectionMask() && *value->selectionMask() == *mask);
+            }
+        };
+        verifySelection();
+        QCOMPARE(value->undo(), Result::Success);
+        QCOMPARE(value->snapshot()->layers.size(), before->layers.size());
+        QCOMPARE(value->selectionRect(), before->selection);
+        QCOMPARE(value->selectionKind(), SelectionKind::Freehand);
+        QVERIFY(value->selectionInverted());
+        QVERIFY(value->selectionMask() && *value->selectionMask() == *mask);
+        QCOMPARE(value->redo(), Result::Success);
+        verifySelection();
+    }
+    QCOMPARE(before->selectionKind, SelectionKind::Freehand);
+    QVERIFY(before->selectionMask == mask && before->selectionInverted);
+}
 
 void KisGpuOperationDocumentTest::preparedLayerForestsKeepPixelsSelectionAndAtomicHistory()
 {

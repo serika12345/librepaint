@@ -62,6 +62,7 @@ struct PasteRequest {
     bool changeOffset;
     QPointF offset;
     KisProcessingApplicator *applicator;
+    bool clearPixelSelection;
 };
 
 KisNodeList selectedNodesValue;
@@ -151,9 +152,10 @@ void KisNodeManager::ClipboardAccess::insertMimeLayersAsLastChild(KisNodeManager
                                                                   bool copyNode,
                                                                   bool changeOffset,
                                                                   QPointF offset,
-                                                                  KisProcessingApplicator *applicator)
+                                                                  KisProcessingApplicator *applicator,
+                                                                  bool clearPixelSelection)
 {
-    pasteRequests.append({data, targetNode, copyNode, changeOffset, offset, applicator});
+    pasteRequests.append({data, targetNode, copyNode, changeOffset, offset, applicator, clearPixelSelection});
 }
 
 class KisNodeManagerClipboardContractTest : public QObject
@@ -291,6 +293,7 @@ void KisNodeManagerClipboardContractTest::pasteUsesActiveNodeOrRootAndPreservesA
     QCOMPARE(pasteRequests[0].changeOffset, true);
     QCOMPARE(pasteRequests[0].offset, offset);
     QCOMPARE(pasteRequests[0].applicator, applicator);
+    QCOMPARE(pasteRequests[0].clearPixelSelection, false);
 
     activeNodeValue.clear();
     manager.pasteLayersFromClipboard();
@@ -303,6 +306,16 @@ void KisNodeManagerClipboardContractTest::pasteUsesActiveNodeOrRootAndPreservesA
     QCOMPARE(pasteRequests[1].changeOffset, false);
     QCOMPARE(pasteRequests[1].offset, QPointF());
     QCOMPARE(pasteRequests[1].applicator, nullptr);
+    QCOMPARE(pasteRequests[1].clearPixelSelection, false);
+
+    manager.pasteLayersFromClipboard(true, offset, nullptr, true);
+
+    QCOMPARE(pasteRequests.size(), 3);
+    QCOMPARE(pasteRequests[2].targetNode, rootNodeValue);
+    QCOMPARE(pasteRequests[2].changeOffset, true);
+    QCOMPARE(pasteRequests[2].offset, offset);
+    QCOMPARE(pasteRequests[2].applicator, nullptr);
+    QCOMPARE(pasteRequests[2].clearPixelSelection, true);
 }
 
 QTEST_GUILESS_MAIN(KisNodeManagerClipboardContractTest)

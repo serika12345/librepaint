@@ -167,8 +167,11 @@ public:
     /** Adopts detached paint/group subtrees in one history entry. Validates the
      * entire forest before binding any node or device; preserves their public
      * references through Undo/Redo. Root order follows the supplied list.
+     * clearPixelSelection includes selection removal in that history entry and
+     * retains the removed selection for Reselect. Rejection preserves both.
      */
-    bool insertGpuLayers(const KisNodeList &nodes, qsizetype index, KisNodeSP parent = {});
+    bool insertGpuLayers(const KisNodeList &nodes, qsizetype index, KisNodeSP parent = {},
+                         bool clearPixelSelection = false);
     /** Detached copies of supported GPU subtrees, preserving supplied root order
      * and independent overlapping roots. Their pixel devices share one copied
      * image and retain its execution. Invalid input returns an empty list;

@@ -1936,7 +1936,8 @@ void KisNodeManager::ClipboardAccess::insertMimeLayersAsLastChild(KisNodeManager
                                                                   bool copyNode,
                                                                   bool changeOffset,
                                                                   QPointF offset,
-                                                                  KisProcessingApplicator *applicator)
+                                                                  KisProcessingApplicator *applicator,
+                                                                  bool clearPixelSelection)
 {
     KisShapeController *shapeController =
         dynamic_cast<KisShapeController *>(manager->m_d->imageView->document()->shapeController());
@@ -1959,7 +1960,8 @@ void KisNodeManager::ClipboardAccess::insertMimeLayersAsLastChild(KisNodeManager
                                   manager->nodeInsertionAdapter(),
                                   changeOffset,
                                   offset,
-                                  applicator);
+                                  applicator,
+                                  clearPixelSelection);
 }
 
 KisNodeOperationBatch *KisNodeManager::QuickGroupAccess::operationBatch(KisNodeManager *manager,

@@ -283,7 +283,8 @@ public Q_SLOTS:
 
     void cutLayersToClipboard();
     void copyLayersToClipboard();
-    void pasteLayersFromClipboard(bool changeOffset = false, QPointF offset = QPointF(), KisProcessingApplicator *applicator = nullptr);
+    void pasteLayersFromClipboard(bool changeOffset = false, QPointF offset = QPointF(),
+                                  KisProcessingApplicator *applicator = nullptr, bool clearPixelSelection = false);
 
     void createQuickGroup();
     void createQuickClippingGroup();
@@ -538,7 +539,8 @@ protected:
                                                 bool copyNode,
                                                 bool changeOffset,
                                                 QPointF offset,
-                                                KisProcessingApplicator *applicator);
+                                                KisProcessingApplicator *applicator,
+                                                bool clearPixelSelection);
     };
 
     struct KRITAUI_EXPORT SplitAlphaAccess {

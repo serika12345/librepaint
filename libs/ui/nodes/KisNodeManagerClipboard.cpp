@@ -39,7 +39,8 @@ void KisNodeManager::copyLayersToClipboard()
     ClipboardAccess::setLayers(this, ClipboardAccess::selectedNodes(this), true);
 }
 
-void KisNodeManager::pasteLayersFromClipboard(bool changeOffset, QPointF offset, KisProcessingApplicator *applicator)
+void KisNodeManager::pasteLayersFromClipboard(bool changeOffset, QPointF offset, KisProcessingApplicator *applicator,
+                                             bool clearPixelSelection)
 {
     const QMimeData *data = ClipboardAccess::layersMimeData();
     if (!data) {
@@ -51,5 +52,6 @@ void KisNodeManager::pasteLayersFromClipboard(bool changeOffset, QPointF offset,
         targetNode = ClipboardAccess::rootNode(this);
     }
 
-    ClipboardAccess::insertMimeLayersAsLastChild(this, data, targetNode, false, changeOffset, offset, applicator);
+    ClipboardAccess::insertMimeLayersAsLastChild(this, data, targetNode, false, changeOffset, offset, applicator,
+                                                clearPixelSelection);
 }

@@ -161,7 +161,8 @@ bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent)
     return node && !hasNonMaskChild(node) && insertGpuLayers({node}, index, parent);
 }
 
-bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNodeSP parent)
+bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNodeSP parent,
+                               bool clearPixelSelection)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto owner = gpuImage();
@@ -320,10 +321,29 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         prepared.append({version, sourceId, properties});
     }
     KisImageSP retained = this;
+    QScopedValueRollback<QRect> previousSelection(m_lastGpuSelection);
+    QScopedValueRollback<bool> previousInverted(m_lastGpuSelectionInverted);
+    QScopedValueRollback<quint8> previousKind(m_lastGpuSelectionKind);
+    QScopedValueRollback<Gpu::SelectionMaskSP> previousMask(m_lastGpuSelectionMask);
+    QScopedValueRollback<bool> previousRemembered(m_hasLastGpuSelection);
+    if (clearPixelSelection && (!owner->selectionRect().isEmpty() || owner->selectionInverted())) {
+        m_lastGpuSelection = owner->selectionRect();
+        m_lastGpuSelectionInverted = owner->selectionInverted();
+        m_lastGpuSelectionKind = quint8(owner->selectionKind());
+        m_lastGpuSelectionMask = owner->selectionMask();
+        m_hasLastGpuSelection = true;
+    }
     for (const auto &node : nodes) state->nodes.insert(node->uuid(), node);
-    const auto result = owner->insertLayers(prepared, insertion);
-    if (result != Gpu::Result::Success)
+    const auto result = owner->insertLayers(prepared, insertion, true, clearPixelSelection);
+    if (result != Gpu::Result::Success) {
         for (const auto &node : nodes) state->nodes.remove(node->uuid());
+    } else {
+        previousSelection.commit();
+        previousInverted.commit();
+        previousKind.commit();
+        previousMask.commit();
+        previousRemembered.commit();
+    }
     return result == Gpu::Result::Success;
 }
 
@@ -713,7 +733,15 @@ void KisImage::previewGpuSelectionMask(const LibrePaint::Image::Gpu::SelectionMa
 void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePaint::Image::Gpu::SelectionKind kind,
                                       const LibrePaint::Image::Gpu::SelectionMaskSP &coverage)
 {
+    KisImageSP retained = this;
     KisSelectionMaskSP mask = rootLayer() ? rootLayer()->selectionMask() : KisSelectionMaskSP();
+    if (rect.isEmpty() && !inverted) {
+        if (!mask) return;
+        m_hasGpuSelectionMirror = false;
+        removeNode(mask);
+        retained->notifySelectionChanged();
+        return;
+    }
     if (!mask && rect.isEmpty()) return;
     if (!mask) {
         mask = new KisSelectionMask(this);
@@ -838,7 +866,6 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
     m_gpuSelectionMirrorKind = quint8(kind);
     m_gpuSelectionMirrorMask = coverage;
     m_hasGpuSelectionMirror = true;
-    KisImageSP retained = this;
     retained->notifySelectionChanged();
 }
 

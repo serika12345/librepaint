@@ -237,7 +237,10 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
 
     const QPointF docPos = view->canvasBase()->canvasController()->currentCursorPosition();
 
-    if (const auto owner = image->gpuImage()) {
+    const bool gpuDocument = bool(image->gpuImage());
+    const bool internalLayers =
+        qobject_cast<const KisMimeData *>(KisClipboard::instance()->layersMimeData());
+    if (const auto owner = image->gpuImage(); owner && !internalLayers) {
         const auto *mime = QGuiApplication::clipboard()->mimeData();
         const QImage pastedImage = mime ? KisClipboard::instance()->getImageWithFallback(mime) : QImage();
         if (pastedImage.isNull()) {
@@ -280,13 +283,13 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
     }
 
     // Activate the current tool's paste functionality
-    if (view->canvasBase()->toolProxy()->paste()) {
+    if (!gpuDocument && view->canvasBase()->toolProxy()->paste()) {
         // XXX: "Add saving of XML data for Paste of shapes"
         return;
     }
 
     // Paste shapes
-    if (tryPasteShapes(flags, view)) {
+    if (!gpuDocument && tryPasteShapes(flags, view)) {
         return;
     }
 
@@ -328,7 +331,7 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
 
         if (placementFailed) return;
 
-        if (view->selection()) {
+        if (view->selection() && !gpuDocument) {
             /// TODO: we are relying on a sticky translated string from KisImageLayerAddCommand
             ///       change the string after Krita 5.2.5
             KisProcessingApplicator *ap = beginAction(view, kundo2_i18n("Add Layer"));
@@ -340,7 +343,9 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
             endAction(ap, KisOperationConfiguration(id()).toXML());
         } else {
             view->nodeManager()->pasteLayersFromClipboard(pasteAtCursorPosition,
-                                                          offsetTopLeft);
+                                                          offsetTopLeft,
+                                                          nullptr,
+                                                          gpuDocument);
         }
 
         return;

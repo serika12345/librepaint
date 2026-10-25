@@ -224,7 +224,9 @@ HistoryAction OperationDocument::historyAction(int index) const
         }
         return HistoryAction::InvertColors;
     }
-    if (m_layerHistoryChanges[index].changedSelection) return HistoryAction::ChangeSelection;
+    if (m_layerHistoryChanges[index].changedSelection &&
+        m_history[index - 1]->layers.size() == m_history[index]->layers.size())
+        return HistoryAction::ChangeSelection;
     if (m_layerHistoryChanges[index].crop) return HistoryAction::CropLayer;
     if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
         return resize->cropLayers ? HistoryAction::CropImage : HistoryAction::ResizeCanvas;
@@ -970,7 +972,8 @@ LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceL
     return 0;
 }
 
-Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate)
+Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate,
+                                       bool clearPixelSelection)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -1041,12 +1044,25 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         version->activeLayer = before->activeLayer;
         version->selectedLayers = before->selectedLayers;
     }
+    LayerHistoryChange change;
+    if (clearPixelSelection) {
+        change.changedSelection = !before->selection.isEmpty() || before->selectionInverted ||
+            before->selectionKind != SelectionKind::Rectangle || bool(before->selectionMask);
+        change.selectionBefore = before->selection;
+        change.selectionInvertedBefore = before->selectionInverted;
+        change.selectionKindBefore = before->selectionKind;
+        change.selectionKindAfter = SelectionKind::Rectangle;
+        version->selection = {};
+        version->selectionInverted = false;
+        version->selectionKind = SelectionKind::Rectangle;
+        version->selectionMask.clear();
+    }
     version->sampleCount = samples;
     version->rasterBytes = pixels;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     m_nextLayer = nextLayer;
     m_nextOperation = nextOperation;
-    commitVersion(version);
+    commitVersion(version, change);
     return Result::Success;
 }
 

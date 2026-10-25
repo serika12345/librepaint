@@ -551,7 +551,8 @@ bool KisMimeData::insertMimeLayers(const QMimeData *data,
                                    NodeInsertionInterface *nodeInsertionAdapter,
                                    bool changeOffset,
                                    QPointF offset,
-                                   KisProcessingApplicator *applicator)
+                                   KisProcessingApplicator *applicator,
+                                   bool clearPixelSelection)
 {
     QList<KisNodeSP> nodes = loadNodesFast(data, image, shapeController, copyNode /* IN-OUT */);
 
@@ -577,6 +578,13 @@ bool KisMimeData::insertMimeLayers(const QMimeData *data,
     KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(parentDummy, false);
 
     KisNodeSP aboveThisNode = aboveThisDummy ? aboveThisDummy->node() : 0;
+
+    if (clearPixelSelection) {
+        if (!image->gpuImage() || applicator || !copyNode) return false;
+        const auto parent = parentDummy->node();
+        return image->insertGpuLayers(nodes, aboveThisNode ? parent->index(aboveThisNode) + 1 : 0,
+                                       parent, true);
+    }
 
     if (!applicator) {
         if (copyNode) {

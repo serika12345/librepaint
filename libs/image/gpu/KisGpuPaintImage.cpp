@@ -722,8 +722,9 @@ LayerId PaintImage::insertLayer(const PaintImage &source, const LayerPixelRefere
     return id;
 }
 
-Result PaintImage::insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate)
-{ return onThread() ? publish(m_d->document->insertLayers(layers, index, activate)) : Result::InvalidInput; }
+Result PaintImage::insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate,
+                                bool clearPixelSelection)
+{ return onThread() ? publish(m_d->document->insertLayers(layers, index, activate, clearPixelSelection)) : Result::InvalidInput; }
 
 Result PaintImage::duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource)
 { return onThread() ? publish(m_d->document->duplicateLayers(layers, names, activeSource)) : Result::InvalidInput; }
