@@ -172,6 +172,8 @@ inline bool validBrush(const Brush &brush)
     return !(brush.basicSmoothing && brush.pixelPerfect) &&
         std::abs(qint64(brush.mirrorCenter.x())) <= OperationDocument::CoordinateLimit &&
         std::abs(qint64(brush.mirrorCenter.y())) <= OperationDocument::CoordinateLimit &&
+        brush.blendMode <= LayerBlendMode::LinearDodge &&
+        (!brush.erase || brush.blendMode == LayerBlendMode::Normal) &&
         brush.channelWriteMask <= 15 && std::isfinite(brush.diameter) && brush.diameter > 0 &&
         brush.diameter <= OperationDocument::CoordinateLimit &&
         std::isfinite(brush.spacing) && brush.spacing > 0 && brush.spacing <= 1;

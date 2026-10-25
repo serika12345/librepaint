@@ -123,6 +123,7 @@ private Q_SLOTS:
     void canvasBackgroundFollowsPreferencesWithoutEditing();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled();
+    void brushBlendModeUsesEffectiveCompositeOpAndRejectsUnsupported();
     void paintingBackendChangesRebindTheCanvas_data();
     void paintingBackendChangesRebindTheCanvas();
     void replacementUpdatesPresentationInputHistoryAndSaving_data();
@@ -4543,6 +4544,170 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         QCOMPARE(imported->readRgbaPixels(imported->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
                  QByteArray::fromHex("0a141e80"));
     }
+}
+
+void KisGpuDocumentViewTest::brushBlendModeUsesEffectiveCompositeOpAndRejectsUnsupported()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    const auto execution = std::make_shared<Gpu::Execution>(device);
+    Gpu::RasterImage raster;
+    raster.size = {64, 64};
+    Gpu::RasterLayer paintLayer;
+    paintLayer.name = QStringLiteral("Paint Layer 1");
+    paintLayer.uuid = QUuid(QStringLiteral("{7187a4a8-3f6c-4d0d-9b71-2f8a2bc3d4e5}"));
+    paintLayer.defaultPixel = {17, 34, 51, 255};
+    raster.layers = {paintLayer};
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Brush blend mode")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    bool pressed = false;
+    const auto releaseWindow = qScopeGuard([&] {
+        if (pressed && native) {
+            if (lifetime) lifetime->image()->requestStrokeCancellation();
+            QTest::mouseRelease(native.data(), Qt::LeftButton);
+        }
+        if (lifetime) {
+            lifetime->setModified(false);
+            auto *close = window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"));
+            if (close) close->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->statusBar()->show();
+    window->activateWindow();
+
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(m_preset);
+    resources->setSize(24);
+    resources->setOpacity(1);
+    resources->setEraserMode(false);
+    resources->setFGColor(KoColor(QColor(221, 17, 44), KoColorSpaceRegistry::instance()->rgb8()));
+    auto image = KisImageSP(lifetime->image());
+    auto layerNode = image->root()->firstChild();
+    QVERIFY(layerNode);
+    const auto capture = [&](const QString &composite) {
+        resources->setCurrentCompositeOp(composite);
+        return captureGpuBrushResources(image, layerNode, view->canvasBase()->resourceManager());
+    };
+
+    const QList<QPair<QString, Gpu::LayerBlendMode>> mappings = {
+        {QStringLiteral("normal"), Gpu::LayerBlendMode::Normal},
+        {QStringLiteral("multiply"), Gpu::LayerBlendMode::Multiply},
+        {QStringLiteral("screen"), Gpu::LayerBlendMode::Screen},
+        {QStringLiteral("darken"), Gpu::LayerBlendMode::Darken},
+        {QStringLiteral("lighten"), Gpu::LayerBlendMode::Lighten},
+        {QStringLiteral("add"), Gpu::LayerBlendMode::Addition},
+        {QStringLiteral("linear_dodge"), Gpu::LayerBlendMode::LinearDodge},
+        {QStringLiteral("erase"), Gpu::LayerBlendMode::Normal}
+    };
+    for (const auto &mapping : mappings) {
+        const auto captured = capture(mapping.first);
+        QVERIFY2(captured.diagnostic.isEmpty(), qPrintable(mapping.first + QStringLiteral(": ") + captured.diagnostic));
+        QCOMPARE(captured.brush.blendMode, mapping.second);
+        QCOMPARE(captured.brush.erase, mapping.first == QLatin1String("erase"));
+    }
+
+    // Unsupported effective composite ops stay rejected before input creates a stroke.
+    const auto unsupported = capture(QStringLiteral("overlay"));
+    QVERIFY(!unsupported.diagnostic.isEmpty());
+    QCOMPARE(unsupported.brush.blendMode, Gpu::LayerBlendMode::Normal);
+
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KritaShape/KisToolBrush"));
+    auto *brushTool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
+    QVERIFY(brushTool);
+    QSignalSpy errors(brushTool, &KoToolBase::statusTextChanged);
+    view->canvasBase()->canvasWidget()->setFocus();
+    QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= 64 && view->canvasBase()->canvasWidget()->height() >= 64);
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    view->zoomManager()->zoomTo100();
+    const auto imageSize = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    QTRY_COMPARE(owner->execution().published(owner->handle()), owner->operations().snapshot());
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
+    QVERIFY(native);
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    const auto enterAt = [&](QPointF imagePoint) {
+        QTest::mouseMove(native.data(), converter->imageToWidget(imagePoint).toPoint());
+        QTest::qWait(10);
+        const auto point = converter->imageToWidget(imagePoint).toPoint();
+        QEnterEvent entered(point, point, native->mapToGlobal(point));
+        QApplication::sendEvent(native.data(), &entered);
+        return point;
+    };
+    const auto first = enterAt({24, 24});
+    auto last = converter->imageToWidget(QPointF(40, 40)).toPoint();
+    QVERIFY(view->canvasBase()->canvasWidget()->rect().contains(first));
+
+    // A mapped mode reaches the frozen operation and paints pixels.
+    resources->setCurrentCompositeOp(QStringLiteral("multiply"));
+    pressed = true;
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, first);
+    QVERIFY2(owner->operations().hasActiveStroke(),
+             errors.isEmpty() ? "The pointer press did not start a stroke" : qPrintable(errors.first().first().toString()));
+    QTest::mouseMove(native.data(), last);
+    QTest::qWait(10);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, last);
+    pressed = false;
+    QVERIFY(!owner->operations().hasActiveStroke());
+    QCOMPARE(owner->operations().undoCount(), 1);
+    const auto operation = std::get<Gpu::PaintSnapshot>(
+        owner->operations().snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->brush.blendMode, Gpu::LayerBlendMode::Multiply);
+    const auto layerId = owner->operations().activeLayer();
+    const auto painted = owner->readRgbaPixels(layerId, QRect(32, 32, 1, 1), 4);
+    QCOMPARE(painted.code, Gpu::ExecutionCode::Success);
+    QVERIFY(quint8(painted.bytes.at(3)) > 0);
+
+    // The rejected overlay mode must not add a history entry or draw pixels.
+    resources->setCurrentCompositeOp(QStringLiteral("overlay"));
+    const auto beforeRejected = owner->operations().snapshot();
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, first);
+    QTest::qWait(20);
+    QVERIFY(!owner->operations().hasActiveStroke());
+    QCOMPARE(owner->operations().snapshot(), beforeRejected);
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QStringList reasons;
+    for (const auto &notification : errors)
+        if (!notification.first().toString().isEmpty()) reasons.append(notification.first().toString());
+    QVERIFY(!reasons.isEmpty());
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, first);
+
+    // KRA stores the resulting blended pixels, not the blend intent.
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    lifetime->setFileBatchMode(true);
+    const auto path = directory.filePath(QStringLiteral("brush-blend.kra"));
+    QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    lifetime->waitForSavingToComplete();
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QString reopenDiagnostic;
+    const auto reopenExecution = KisPart::instance()->gpuExecution(reopenDiagnostic);
+    QVERIFY2(reopenExecution, qPrintable(reopenDiagnostic));
+    Gpu::PaintImage reopened(reopenExecution, loaded.document.image);
+    const auto reopenedPixel = reopened.readRgbaPixels(reopened.operations().activeLayer(), QRect(32, 32, 1, 1), 4);
+    QCOMPARE(reopenedPixel.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(reopenedPixel.bytes, painted.bytes);
 }
 
 void KisGpuDocumentViewTest::paintingBackendChangesRebindTheCanvas_data()

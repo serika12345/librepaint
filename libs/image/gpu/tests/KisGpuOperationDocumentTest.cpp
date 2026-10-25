@@ -173,6 +173,9 @@ private Q_SLOTS:
     void filledFiguresPreserveStylesHistoryAndRecovery();
     void fillBlendModesFreezeHistoryAndRecovery_data();
     void fillBlendModesFreezeHistoryAndRecovery();
+    void strokeBlendModesFreezeHistoryAndRecovery_data();
+    void strokeBlendModesFreezeHistoryAndRecovery();
+    void rejectedStrokeBlendModesPreserveHistoryAndInput();
     void patternFillBlendModeFreezesHistoryAndRecovery();
     void rejectedFillBlendModesPreserveHistoryAndInput();
     void patternFillFreezesPixelsHistoryAndRecovery();
@@ -3838,6 +3841,101 @@ void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput(
              Result::Success);
     const auto erased = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QCOMPARE(erased->figureStyle.fillBlendMode, LayerBlendMode::Normal);
+}
+
+void KisGpuOperationDocumentTest::strokeBlendModesFreezeHistoryAndRecovery_data()
+{
+    QTest::addColumn<int>("mode");
+    for (const auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken,
+                            LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge}) {
+        const auto name = mode == LayerBlendMode::Multiply ? QByteArray("multiply") :
+            mode == LayerBlendMode::Screen ? QByteArray("screen") :
+            mode == LayerBlendMode::Darken ? QByteArray("darken") :
+            mode == LayerBlendMode::Lighten ? QByteArray("lighten") :
+            mode == LayerBlendMode::Addition ? QByteArray("addition") : QByteArray("linear-dodge");
+        QTest::newRow(name.constData()) << int(mode);
+    }
+}
+
+void KisGpuOperationDocumentTest::strokeBlendModesFreezeHistoryAndRecovery()
+{
+    QFETCH(int, mode);
+    OperationDocument document(QSize(64, 64));
+    const auto layer = document.activeLayer();
+    const auto initial = document.snapshot();
+    Brush brush;
+    brush.rgba = {221, 17, 44, 255};
+    brush.diameter = 24;
+    brush.blendMode = LayerBlendMode(mode);
+    const auto stroke = document.beginStroke(layer, brush, 17);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+
+    // The mode belongs to the accepted input, not to the caller's later values.
+    brush.blendMode = LayerBlendMode::Normal;
+    const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QCOMPARE(pending->brush.blendMode, LayerBlendMode(mode));
+    QCOMPARE(pending->brush.rgba, (std::array<quint8, 4>{221, 17, 44, 255}));
+
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::PaintStroke);
+    const auto committed = document.snapshot();
+    const auto operation = std::get<PaintSnapshot>(committed->layers.first().operations.last());
+    QCOMPARE(operation->brush.blendMode, LayerBlendMode(mode));
+
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
+    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), committed);
+    QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->brush.blendMode,
+             LayerBlendMode(mode));
+
+    // Recovery persists the mode and reproduces the same record.
+    const auto recovery = document.recoveryData();
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    QCOMPARE(restored.recoveryData(), recovery);
+    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(recovered->brush.blendMode, LayerBlendMode(mode));
+
+    // Records predating format 49 have no stroke mode and read as Normal.
+    OperationDocument previous(QSize(1, 1));
+    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 48)), Result::Success);
+    const auto previousStroke = std::get<PaintSnapshot>(previous.snapshot()->layers.first().operations.last());
+    QCOMPARE(previousStroke->brush.blendMode, LayerBlendMode::Normal);
+    QCOMPARE(previousStroke->brush.rgba, (std::array<quint8, 4>{221, 17, 44, 255}));
+}
+
+void KisGpuOperationDocumentTest::rejectedStrokeBlendModesPreserveHistoryAndInput()
+{
+    OperationDocument document(QSize(32, 32));
+    const auto layer = document.activeLayer();
+    const auto initial = document.snapshot();
+
+    Brush outOfRange;
+    outOfRange.blendMode = LayerBlendMode(7);
+    QVERIFY(document.beginStroke(layer, outOfRange, 0).isNull());
+
+    // Erase remains coverage removal and rejects a blend mode before history.
+    Brush erased;
+    erased.erase = true;
+    erased.blendMode = LayerBlendMode::Multiply;
+    QVERIFY(document.beginStroke(layer, erased, 0).isNull());
+    QCOMPARE(document.snapshot(), initial);
+    QCOMPARE(document.undoCount(), 0);
+
+    // A normal erase stroke remains accepted and freezes the Normal fallback.
+    erased.blendMode = LayerBlendMode::Normal;
+    const auto stroke = document.beginStroke(layer, erased, 0);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {{{16, 16}, 1}}), Result::Success);
+    const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QCOMPARE(pending->brush.erase, true);
+    QCOMPARE(pending->brush.blendMode, LayerBlendMode::Normal);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
 }
 
 void KisGpuOperationDocumentTest::patternFillFreezesPixelsHistoryAndRecovery()

@@ -116,6 +116,9 @@ struct GaussianWash
     }
 };
 
+/** Separable RGB blend modes shared by layer composition, fill and stroke coverage. */
+enum class LayerBlendMode : quint8 { Normal, Multiply, Screen, Darken, Lighten, Addition, LinearDodge };
+
 /** Frozen circular marker or Gaussian WASH settings. */
 struct Brush
 {
@@ -125,6 +128,8 @@ struct Brush
     quint8 opacity = 255;
     bool erase = false;
     bool alphaLocked = false;
+    /** Stroke coverage blend mode, frozen at stroke start. Erase never blends. */
+    LayerBlendMode blendMode = LayerBlendMode::Normal;
     /** Writable R, G, B, A channels in bits 0 through 3, frozen at stroke start. */
     quint8 channelWriteMask = 15;
     bool mirrorHorizontal = false;
@@ -143,7 +148,8 @@ struct Brush
     {
         return rgba == other.rgba && diameter == other.diameter &&
             spacing == other.spacing && opacity == other.opacity && erase == other.erase &&
-            alphaLocked == other.alphaLocked && channelWriteMask == other.channelWriteMask &&
+            alphaLocked == other.alphaLocked && blendMode == other.blendMode &&
+            channelWriteMask == other.channelWriteMask &&
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
             mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect &&
             basicSmoothing == other.basicSmoothing && weightedSmoothing == other.weightedSmoothing &&
@@ -153,8 +159,6 @@ struct Brush
 
 enum class ShapeKind { Freehand, Line, Ellipse, Rectangle, RoundedRectangle, Polyline, Polygon, Path };
 enum class PathCommand : quint8 { MoveTo, LineTo, CubicTo };
-/** Separable RGB blend modes shared by layer composition and solid/pattern fill. */
-enum class LayerBlendMode : quint8 { Normal, Multiply, Screen, Darken, Lighten, Addition, LinearDodge };
 
 struct Shape
 {

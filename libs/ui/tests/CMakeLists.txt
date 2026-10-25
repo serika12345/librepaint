@@ -1243,6 +1243,9 @@ add_test(NAME ${gpu_document_ellipse_tool_test}
 set(gpu_document_freehand_tool_test libs-ui-freehand-tool-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_freehand_tool_test}
     COMMAND KisGpuDocumentViewTest freehandToolCreatesArbitraryMaskSelection)
+set(gpu_document_brush_blend_test libs-ui-brush-blend-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_brush_blend_test}
+    COMMAND KisGpuDocumentViewTest brushBlendModeUsesEffectiveCompositeOpAndRejectsUnsupported)
 set(gpu_document_polygon_tool_test libs-ui-polygon-tool-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_polygon_tool_test}
     COMMAND KisGpuDocumentViewTest polygonToolVerticesCreateFrozenCoverage)
@@ -1266,7 +1269,7 @@ add_test(NAME ${gpu_document_crop_test}
     COMMAND KisGpuDocumentViewTest ${gpu_document_crop_cases})
 set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
-    ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test}
+    ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_brush_blend_test}
     ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_path_tool_test}
     ${gpu_document_path_input_test} ${gpu_document_feather_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})

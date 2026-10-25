@@ -21,7 +21,7 @@ struct PaintParameters
     qint32 mirrorX = 0, mirrorY = 0;
     quint32 fillColor = 0, figureFlags = 0;
     qint32 selectionX = 0, selectionY = 0, selectionWidth = 0, selectionHeight = 0;
-    quint32 patternWidth = 0, patternHeight = 0, fillBlendMode = 0, padding = 0;
+    quint32 patternWidth = 0, patternHeight = 0, fillBlendMode = 0, strokeBlendMode = 0;
 };
 static_assert(sizeof(PaintParameters) == 96);
 

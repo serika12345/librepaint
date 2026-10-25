@@ -156,9 +156,30 @@ KisGpuBrushResources captureGpuBrushResources(
     if (!preset || (preset->paintOp().id() != QLatin1String("roundmarker") && preset->paintOp().id() != QLatin1String("paintbrush")))
         return reject(i18n("This brush is not yet available for GPU painting."));
     const QString composite = resources->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
-    if (composite != QLatin1String("normal") && composite != QLatin1String("erase"))
+    const bool eraserMode = resources->resource(KoCanvasResource::EraserMode).toBool();
+    const bool erase = composite == COMPOSITE_ERASE || eraserMode;
+    Gpu::LayerBlendMode blendMode = Gpu::LayerBlendMode::Normal;
+    if (erase) {
+        // Erase remains coverage removal and never carries a blend mode.
+        if (composite != COMPOSITE_ERASE && composite != COMPOSITE_OVER)
+            return reject(i18n("This blend mode is not yet available for this document."));
+    } else if (composite == COMPOSITE_MULT) {
+        blendMode = Gpu::LayerBlendMode::Multiply;
+    } else if (composite == COMPOSITE_SCREEN) {
+        blendMode = Gpu::LayerBlendMode::Screen;
+    } else if (composite == COMPOSITE_DARKEN) {
+        blendMode = Gpu::LayerBlendMode::Darken;
+    } else if (composite == COMPOSITE_LIGHTEN) {
+        blendMode = Gpu::LayerBlendMode::Lighten;
+    } else if (composite == COMPOSITE_ADD) {
+        blendMode = Gpu::LayerBlendMode::Addition;
+    } else if (composite == COMPOSITE_LINEAR_DODGE) {
+        blendMode = Gpu::LayerBlendMode::LinearDodge;
+    } else if (composite != COMPOSITE_OVER) {
         return reject(i18n("This blend mode is not yet available for this document."));
+    }
     auto &brush = result.brush;
+    brush.blendMode = blendMode;
     brush.mirrorHorizontal = resources->resource(KoCanvasResource::MirrorHorizontal).toBool();
     brush.mirrorVertical = resources->resource(KoCanvasResource::MirrorVertical).toBool();
     if (brush.mirrorHorizontal || brush.mirrorVertical) {
@@ -177,7 +198,7 @@ KisGpuBrushResources captureGpuBrushResources(
     if (!qIsFinite(opacity) || opacity < 0 || opacity > 1)
         return reject(i18n("The brush opacity is invalid."));
     brush.opacity = quint8(qRound(255 * opacity));
-    brush.erase = composite == QLatin1String("erase") || resources->resource(KoCanvasResource::EraserMode).toBool();
+    brush.erase = erase;
     brush.alphaLocked = !brush.erase && resources->resource(KoCanvasResource::GlobalAlphaLock).toBool();
     if (preset->paintOp().id() == QLatin1String("paintbrush") && !captureGaussianWash(preset->settings(), brush, opacity))
         return reject(i18n("These brush settings are not yet available for GPU painting."));

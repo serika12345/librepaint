@@ -99,6 +99,16 @@ fn gaussianPixel(pixel: vec2<i32>, base: vec4<u32>, color: vec4<u32>, selectionA
     }
     var sourceAlpha = projectionScaleByte(opacity, alpha);
     if (selectionAlpha != 255u) { sourceAlpha = projectionMultiply(sourceAlpha, selectionScale); }
+    if (parameters.pattern.w != 0u) {
+        // Brush coverage uses the same separable blend as fill and composition.
+        // Alpha lock and channel protection stay in the final write mask.
+        let writable = parameters.counts.w >> 1u;
+        let writeMask = select(writable, writable & 7u, (parameters.counts.w & 1u) != 0u);
+        let blended = unpackPixel(separableProjectionPixel(base,
+            vec4<u32>(color.xyz, projectionByte(sourceAlpha)), 255u, 15u, parameters.pattern.w));
+        return packPixel(select(base, blended, vec4<bool>((writeMask & 1u) != 0u,
+            (writeMask & 2u) != 0u, (writeMask & 4u) != 0u, (writeMask & 8u) != 0u)));
+    }
     var resultAlpha = base.w;
     var blend: u32;
     if (base.w == 255u) { blend = projectionMultiply(sourceAlpha, 0x3b808081u); }
@@ -329,6 +339,9 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     }
     var destination = unpackPixel(basePixels[index]);
     let strokeColor = unpackPixel(parameters.brush.x);
+    let strokeBlendMode = parameters.pattern.w;
+    var writable = parameters.counts.w >> 1u;
+    if ((parameters.counts.w & 1u) != 0u && parameters.brush.z == 0u) { writable &= 7u; }
     if ((figureFlags & 1u) != 0u) {
         var fillColor = unpackPixel(bitcast<u32>(parameters.mirror.z));
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
@@ -343,14 +356,23 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         if (parameters.pattern.z != 0u && parameters.brush.z == 0u) {
             destination = unpackPixel(separableProjectionPixel(
                 destination, vec4<u32>(source.xyz, alpha), 255u, 15u, parameters.pattern.z));
+        } else if (strokeBlendMode != 0u && parameters.brush.z == 0u && strokeAlpha > fillAlpha) {
+            // A blended outline uses its own coverage; the fill keeps its
+            // separate fill blend mode or source-over fallback.
+            destination = unpackPixel(separableProjectionPixel(
+                destination, vec4<u32>(strokeColor.xyz, alpha), 255u, 15u, strokeBlendMode));
         } else {
             destination = paintAlpha(destination, source, alpha);
         }
     } else {
         let alpha = mul255((mul255(strokeColor.w, parameters.brush.y) * countOneBits(mask) + 8u) / 16u, selectionAlpha);
-        destination = paintAlpha(destination, strokeColor, alpha);
+        if (strokeBlendMode != 0u) {
+            destination = unpackPixel(separableProjectionPixel(
+                destination, vec4<u32>(strokeColor.xyz, alpha), 255u, 15u, strokeBlendMode));
+        } else {
+            destination = paintAlpha(destination, strokeColor, alpha);
+        }
     }
-    let writable = parameters.counts.w >> 1u;
     let original = unpackPixel(basePixels[index]);
     destination = select(original, destination, vec4<bool>((writable & 1u) != 0u,
         (writable & 2u) != 0u, (writable & 4u) != 0u, (writable & 8u) != 0u));

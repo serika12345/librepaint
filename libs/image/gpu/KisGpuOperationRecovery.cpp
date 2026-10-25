@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 48;
+constexpr quint16 FormatVersion = 49;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -150,6 +150,7 @@ QByteArray OperationDocument::recoveryData() const
                    << quint8(quint8(operation.brush.erase) | (quint8(operation.brush.alphaLocked) << 1) |
                              ((15u ^ operation.brush.channelWriteMask) << 2) |
                              (quint8(operation.brush.mirrorHorizontal) << 6) | (quint8(operation.brush.mirrorVertical) << 7));
+            if (FormatVersion >= 49) stream << quint8(operation.brush.blendMode);
             if (operation.brush.mirrorHorizontal || operation.brush.mirrorVertical)
                 stream << qint32(operation.brush.mirrorCenter.x()) << qint32(operation.brush.mirrorCenter.y());
             stream << quint8(bool(operation.brush.gaussianWash));
@@ -525,6 +526,12 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         qreal x1 = 0, y1 = 0, x2 = 0, y2 = 0;
         quint32 sampleCount = 0;
         stream >> operation->brush.diameter >> operation->brush.spacing >> operation->brush.opacity >> brushFlags;
+        if (format >= 49) {
+            quint8 blendMode = 0;
+            stream >> blendMode;
+            if (blendMode > quint8(LayerBlendMode::LinearDodge)) return Result::InvalidRecovery;
+            operation->brush.blendMode = static_cast<LayerBlendMode>(blendMode);
+        }
         if (format >= 14 && (brushFlags & 192)) {
             qint32 x = 0, y = 0;
             stream >> x >> y;

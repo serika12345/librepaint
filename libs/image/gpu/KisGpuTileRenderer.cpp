@@ -658,6 +658,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         job.values.patternHeight = quint32(operation.figureStyle.pattern->size.height());
                     }
                     job.values.fillBlendMode = quint32(operation.figureStyle.fillBlendMode);
+                    job.values.strokeBlendMode = quint32(operation.brush.blendMode);
                     job.values.selectionX = operation.selectionRect.x();
                     job.values.selectionY = operation.selectionRect.y();
                     job.values.selectionWidth = operation.selectionRect.width();

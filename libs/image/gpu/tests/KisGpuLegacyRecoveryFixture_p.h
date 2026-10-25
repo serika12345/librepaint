@@ -654,6 +654,9 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                        << quint8(quint8(operation.brush.erase) | (quint8(operation.brush.alphaLocked) << 1) |
                                  ((15u ^ operation.brush.channelWriteMask) << 2) |
                                  (quint8(operation.brush.mirrorHorizontal) << 6) | (quint8(operation.brush.mirrorVertical) << 7));
+                // Format 49 appends the frozen stroke blend mode after the brush flags.
+                const auto strokeBlendOffset = prefix.size();
+                stream << quint8(operation.brush.blendMode);
                 if (operation.brush.mirrorHorizontal || operation.brush.mirrorVertical)
                     stream << qint32(operation.brush.mirrorCenter.x()) << qint32(operation.brush.mirrorCenter.y());
                 const auto gaussianOffset = prefix.size();
@@ -694,6 +697,7 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 if (format < 17) payload.remove(position + prefix.size(), retainedStyleSize);
                 if (format < 39 && pathCallsOffset >= 0) payload.remove(position + pathCallsOffset, 4);
                 if (format < 38) payload.remove(position + gaussianOffset, 1);
+                if (format < 49) payload.remove(position + strokeBlendOffset, 1);
             }
         }
     }
