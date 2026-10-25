@@ -2465,6 +2465,19 @@ void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()
     QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
     QTRY_VERIFY(lifetime->image()->globalSelection() &&
                 lifetime->image()->globalSelection()->selectedExactRect() == ellipseRect);
+
+    QVERIFY(lifetime->image()->clearGpuSelection());
+    QTRY_VERIFY(owner->selectionRect().isEmpty());
+    const QRect secondRect(32, 48, 128, 152);
+    QTest::mouseMove(native.data(), point(secondRect.topLeft()));
+    const auto secondStart = point(secondRect.topLeft());
+    QEnterEvent secondEntered(secondStart, secondStart, native->mapToGlobal(secondStart));
+    QApplication::sendEvent(native.data(), &secondEntered);
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, secondStart);
+    QTest::mouseMove(native.data(), point({160, 200}), 30);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({160, 200}));
+    QTRY_COMPARE(owner->selectionRect(), secondRect);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
