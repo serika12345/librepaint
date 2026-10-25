@@ -415,10 +415,10 @@ void KisImage::synchronizeGpuSelectionToMask()
     updateGpuSelectionMask(rect, inverted, kind);
 }
 
-void KisImage::previewGpuSelectionRect(const QRect &rect, bool ellipse)
+void KisImage::previewGpuSelectionRect(const QRect &rect, bool ellipse, bool inverted)
 {
     if (!gpuImage()) return;
-    updateGpuSelectionMask(rect, false,
+    updateGpuSelectionMask(rect, inverted,
                            ellipse ? LibrePaint::Image::Gpu::SelectionKind::Ellipse
                                    : LibrePaint::Image::Gpu::SelectionKind::Rectangle);
 }

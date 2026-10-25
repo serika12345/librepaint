@@ -2115,7 +2115,22 @@ void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
     QTRY_VERIFY(lifetime->image()->globalSelection() &&
                 lifetime->image()->globalSelection()->selectedExactRect() == selected);
 
+    QVERIFY(lifetime->image()->setGpuSelectionRect(selected, true));
+    QTRY_VERIFY(owner->selectionInverted());
     const QPoint delta(16, 16);
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point({32, 32}));
+    QTest::mouseMove(native.data(), point({48, 48}), 30);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({48, 48}));
+    QTRY_COMPARE(owner->selectionRect(), selected.translated(delta));
+    QVERIFY(owner->selectionInverted());
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), selected);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_VERIFY(!owner->selectionInverted());
+    QVERIFY(lifetime->image()->setGpuSelectionRect(selected));
+    QTRY_COMPARE(owner->selectionRect(), selected);
+    QCOMPARE(owner->operations().undoCount(), 1);
+
     const QRect moved = selected.translated(delta);
     QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point(selected.center()));
     QTest::mouseMove(native.data(), point(selected.center() + QPointF(delta)), 30);
@@ -2144,6 +2159,8 @@ void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
     QTRY_VERIFY(lifetime->image()->globalSelection() &&
                 lifetime->image()->globalSelection()->selectedExactRect() == moved);
     QCOMPARE(owner->operations().undoCount(), history);
+
+
 }
 
 void KisGpuDocumentViewTest::selectionGrowAndShrinkUseGpuSelection()
@@ -2577,6 +2594,19 @@ void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), movedSecond);
     QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+
+    QVERIFY(lifetime->image()->setGpuSelectionEllipse(movedSecond, true));
+    QTRY_VERIFY(owner->selectionInverted());
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point({200, 200}));
+    QTest::mouseMove(native.data(), point({216, 216}), 30);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({216, 216}));
+    const QRect invertedEllipse = movedSecond.translated(delta);
+    QTRY_COMPARE(owner->selectionRect(), invertedEllipse);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    QVERIFY(owner->selectionInverted());
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), movedSecond);
+    QVERIFY(owner->selectionInverted());
 }
 
 void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer()

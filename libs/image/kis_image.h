@@ -99,7 +99,7 @@ public:
     LibrePaint::Image::Gpu::SelectionKind gpuSelectionKind() const;
     bool gpuSelectionEllipse() const;
     /** Updates only the CPU display mirror for a pending selection move. */
-    void previewGpuSelectionRect(const QRect &rect, bool ellipse = false);
+    void previewGpuSelectionRect(const QRect &rect, bool ellipse = false, bool inverted = false);
     bool clearGpuSelection();
     /** Adds a GPU paint layer at a bottom-to-top child index in the given
      * group. Returns the adopted node, or null on invalid input or capacity.

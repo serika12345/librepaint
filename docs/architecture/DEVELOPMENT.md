@@ -337,7 +337,8 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 アクティブレイヤーの選択範囲だけを切り出し、切り取りが選択内を透明化して
 選択外を保持し、Undo／Redoできることを検査する。
 `KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory`は、ドラッグ中の
-表示写像だけの追従、確定時の一回のGPU履歴、Undo／Redo、Escapeによる取消しを検査する。
+表示写像だけの追従、確定時の一回のGPU履歴、Undo／Redo、Escapeによる取消し、
+反転選択の穴の移動を検査する。
 `KisGpuDocumentViewTest::selectionGrowAndShrinkUseGpuSelection`は、矩形選択のX／Y半径による
 拡大・縮小、画像端でのクリップ、選択が空になる場合の解除、一回の履歴、Undo／Redoを検査する。
 `KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra`は、反転選択の作成、
@@ -353,8 +354,8 @@ GPU文書の新しい描画レイヤーへ一回の履歴で貼り付け、Undo�
 反転楕円のKRA往復、楕円の合成コピー・レイヤーコピー・切り取り、
 反転楕円のコピー・切り取り、反転楕円の穴に対する拡大・縮小を検査する。
 `KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection`は、通常の楕円選択ツールの
-ネイティブドラッグが画像座標の楕円選択を生成し、続くドラッグで楕円を移動して
-一回の履歴でUndo／Redoできることを検査する。
+ネイティブドラッグが画像座標の楕円選択を生成し、続くドラッグで楕円と反転楕円の穴を
+移動して一回の履歴でUndo／Redoできることを検査する。
 `TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening`は、GPU文書のKRAが
 ルートの`selectionmask`と`PIXELSIZE 1`の`.pixelselection`を矩形選択として読み書きし、
 再保存・再読込後も選択とレイヤー画素を保持することを検査する。
