@@ -343,7 +343,7 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 拡大・縮小、画像端でのクリップ、選択が空になる場合の解除、一回の履歴、Undo／Redoを検査する。
 `KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra`は、反転選択の作成、
 矩形内の塗りつぶし除外、矩形外の塗りつぶし、Undo／Redo、KRA保存・再読込後の反転状態、
-反転選択の穴に対する拡大・縮小、穴を透明にした合成コピー・レイヤーコピー、
+反転選択の穴に対する拡大・縮小、edgeLock付き拡大・縮小、穴を透明にした合成コピー・レイヤーコピー、
 選択された外側だけの切り取りを検査する。
 `KisGpuOperationDocumentTest::invertedSelectionSurvivesRecovery`は、反転フラグの履歴と復旧を検査する。
 `KisGpuOperationDocumentTest::ellipticalSelectionSurvivesRecovery`は、楕円形状の履歴と復旧を検査する。

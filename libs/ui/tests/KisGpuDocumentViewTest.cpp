@@ -2287,6 +2287,19 @@ void KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra()
     QCOMPARE(undone.code, Gpu::ExecutionCode::Success);
     QCOMPARE(pixel(undone.bytes, 4, 4), QByteArray(4, char(0)));
     QCOMPARE(owner->redo(), Gpu::Result::Success);
+    {
+        KisOperationConfigurationSP growInverted = new KisOperationConfiguration("growselection");
+        growInverted->setProperty("x-radius", 2);
+        growInverted->setProperty("y-radius", 2);
+        growInverted->setProperty("edgeLock", true);
+        window->viewManager()->actionManager()->runOperationFromConfiguration(growInverted);
+        lifetime->image()->waitForDone();
+        QTRY_COMPARE(owner->selectionRect(), hole.adjusted(2, 2, -2, -2));
+        QVERIFY(owner->selectionInverted());
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QTRY_COMPARE(owner->selectionRect(), hole);
+        QVERIFY(owner->selectionInverted());
+    }
     auto *copyMerged = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_merged"));
     QVERIFY(copyMerged);
     copyMerged->trigger();
