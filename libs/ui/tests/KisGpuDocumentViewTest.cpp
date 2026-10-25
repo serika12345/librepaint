@@ -128,6 +128,7 @@ private Q_SLOTS:
     void selectionFillUsesGpuSelection();
     void selectionMergedCopyUsesGpuSelection();
     void selectionCopyAndCutUseGpuSelection();
+    void selectionMovePreviewsAndCommitsOneHistory();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
     void lineToolPreservesPreviewCancellationAndHistory();
@@ -2044,6 +2045,99 @@ void KisGpuDocumentViewTest::selectionCopyAndCutUseGpuSelection()
     QCOMPARE(redone.code, Gpu::ExecutionCode::Success);
     QCOMPARE(quint8(pixel(redone.bytes, 24, 24).at(3)), 0);
     QCOMPARE(pixel(redone.bytes, 8, 8), QByteArray::fromHex("1181f1ff"));
+}
+
+void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Selection move")));
+    QSignalSpy windowReady(KisPart::instance(), &KisPart::sigMainWindowCreated);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->activateWindow();
+    QTRY_VERIFY(!windowReady.isEmpty());
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    QTRY_VERIFY(!converter->getCanvasWidgetSize().isEmpty());
+    view->zoomManager()->zoomTo100();
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    const auto imageSize = converter->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
+            if (canvas->isVisible()) native = canvas;
+    QVERIFY(native);
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectRectangular"));
+    QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectRectangular"));
+    window->activateWindow();
+    native->requestActivate();
+    view->canvasBase()->canvasWidget()->setFocus();
+    QTest::qWait(100);
+    const auto point = [&](QPointF image) { return converter->imageToWidget(image).toPoint(); };
+    const QRect selected(64, 64, 128, 128);
+    QTest::mouseMove(native.data(), point(selected.topLeft()));
+    const auto start = point(selected.topLeft());
+    QEnterEvent entered(start, start, native->mapToGlobal(start));
+    QApplication::sendEvent(native.data(), &entered);
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, start);
+    QTest::mouseMove(native.data(), point({192, 192}), 30);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({192, 192}));
+    QTRY_COMPARE(owner->selectionRect(), selected);
+    QTRY_VERIFY(lifetime->image()->globalSelection() &&
+                lifetime->image()->globalSelection()->selectedExactRect() == selected);
+
+    const QPoint delta(16, 16);
+    const QRect moved = selected.translated(delta);
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point(selected.center()));
+    QTest::mouseMove(native.data(), point(selected.center() + QPointF(delta)), 30);
+    QTRY_VERIFY(lifetime->image()->globalSelection() &&
+                lifetime->image()->globalSelection()->selectedExactRect() == moved);
+    QCOMPARE(owner->selectionRect(), selected);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point(selected.center() + QPointF(delta)));
+    QTRY_COMPARE(owner->selectionRect(), moved);
+    QCOMPARE(owner->operations().undoCount(), 2);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), selected);
+    QTRY_VERIFY(lifetime->image()->globalSelection() &&
+                lifetime->image()->globalSelection()->selectedExactRect() == selected);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), moved);
+    QTRY_VERIFY(lifetime->image()->globalSelection() &&
+                lifetime->image()->globalSelection()->selectedExactRect() == moved);
+
+    const int history = owner->operations().undoCount();
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point(moved.center()));
+    QTest::mouseMove(native.data(), point(moved.center() + QPointF(delta)), 30);
+    QTRY_VERIFY(lifetime->image()->globalSelection() &&
+                lifetime->image()->globalSelection()->selectedExactRect() == moved.translated(delta));
+    QTest::keyClick(view->canvasBase()->canvasWidget(), Qt::Key_Escape);
+    QTRY_COMPARE(owner->selectionRect(), moved);
+    QTRY_VERIFY(lifetime->image()->globalSelection() &&
+                lifetime->image()->globalSelection()->selectedExactRect() == moved);
+    QCOMPARE(owner->operations().undoCount(), history);
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()

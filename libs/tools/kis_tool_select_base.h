@@ -121,6 +121,7 @@ public:
 
         KisToolCanvas *canvasInterface = toolCanvas();
         KisSelectionSP selection = canvasInterface->currentSelectionForTool();
+        if (this->image() && this->image()->gpuImage()) selection = this->image()->globalSelection();
         if (selection && selection->outlineCacheValid()) {
             const qreal handleRadius =
                 qreal(this->handleRadius()) /
@@ -129,8 +130,11 @@ public:
             samplePath.addEllipse(pos, handleRadius, handleRadius);
 
             const QPainterPath selectionPath = selection->outlineCache();
-            if (selectionPath.intersects(samplePath) &&
-                !selectionPath.contains(samplePath)) {
+            const bool edge = selectionPath.intersects(samplePath) &&
+                !selectionPath.contains(samplePath);
+            const bool gpuInterior = this->image() && this->image()->gpuImage() &&
+                selectionPath.contains(pos);
+            if (edge || gpuInterior) {
                 KisNodeSP parent = selection->parentNode();
                 if (parent && parent->isEditable()) {
                     return parent;
@@ -143,6 +147,13 @@ public:
 
     void keyPressEvent(QKeyEvent *event) override
     {
+        if (event->key() == Qt::Key_Escape && m_gpuMovingSelection) {
+            this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect);
+            m_gpuMovingSelection = false;
+            endMoveSelectionInteraction();
+            event->accept();
+            return;
+        }
         const Qt::Key key = normalizedSelectionModifierKey(event);
         m_currentModifiers = Qt::NoModifier;
         if (key == Qt::Key_Control ||
@@ -236,9 +247,18 @@ public:
             return;
         }
         if (gpu && locateSelectionMaskUnderCursor(this->convertToPixelCoord(event->point), event->modifiers())) {
-            toolCanvas()->showToolMessage(
-                i18n("Moving an existing selection is not available for GPU documents."),
-                QStringLiteral("object-locked"));
+            if (selectionAction() != SELECTION_REPLACE) {
+                toolCanvas()->showToolMessage(
+                    i18n("The GPU painting engine supports replacement selection actions only."),
+                    QStringLiteral("object-locked"));
+                return;
+            }
+            const QRect start = this->image()->gpuSelectionRect();
+            if (start.isEmpty() || !beginMoveSelectionInteraction()) return;
+            m_gpuMovingSelection = true;
+            m_gpuSelectionStartRect = start;
+            m_gpuSelectionPreviewRect = start;
+            m_gpuSelectionDragStart = this->convertToPixelCoord(event->point);
             return;
         }
         if (isSelecting()) {
@@ -267,6 +287,15 @@ public:
 
     void continuePrimaryAction(KoPointerEvent *event) override
     {
+        if (m_gpuMovingSelection) {
+            const QPointF pos = this->convertToPixelCoord(event->point);
+            const QRect moved = m_gpuSelectionStartRect.translated((pos - m_gpuSelectionDragStart).toPoint());
+            if (moved != m_gpuSelectionPreviewRect) {
+                m_gpuSelectionPreviewRect = moved;
+                this->image()->previewGpuSelectionRect(moved);
+            }
+            return;
+        }
         if (isMovingSelection()) {
             const QPointF pos = this->convertToPixelCoord(event->point);
             const QPoint offset((pos - m_dragStartPos).toPoint());
@@ -280,6 +309,18 @@ public:
 
     void endPrimaryAction(KoPointerEvent *event) override
     {
+        if (m_gpuMovingSelection) {
+            m_gpuMovingSelection = false;
+            endMoveSelectionInteraction();
+            if (m_gpuSelectionPreviewRect != m_gpuSelectionStartRect &&
+                !this->image()->setGpuSelectionRect(m_gpuSelectionPreviewRect)) {
+                this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect);
+                toolCanvas()->showToolMessage(
+                    i18n("The selection could not be moved."),
+                    QStringLiteral("object-locked"));
+            }
+            return;
+        }
         if (isMovingSelection()) {
             this->image()->endStroke(m_moveStrokeId);
             m_moveStrokeId.clear();
@@ -293,6 +334,16 @@ public:
     bool selectionDidMove() const
     {
         return m_didMove;
+    }
+
+    void deactivatePrimaryAction() override
+    {
+        if (m_gpuMovingSelection) {
+            this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect);
+            m_gpuMovingSelection = false;
+            endMoveSelectionInteraction();
+        }
+        BaseClass::deactivatePrimaryAction();
     }
 
     KisPopupWidgetInterface *popupWidget() override
@@ -367,6 +418,11 @@ private:
         Interaction_Select,
         Interaction_MoveSelection
     };
+
+    bool m_gpuMovingSelection = false;
+    QRect m_gpuSelectionStartRect;
+    QRect m_gpuSelectionPreviewRect;
+    QPointF m_gpuSelectionDragStart;
 
     SelectionAction mappedSelectionAction() const
     {

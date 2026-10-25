@@ -93,6 +93,9 @@ public:
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
     /** Replaces the GPU document selection and updates the CPU selection mirror. */
     bool setGpuSelectionRect(const QRect &rect);
+    QRect gpuSelectionRect() const;
+    /** Updates only the CPU display mirror for a pending selection move. */
+    void previewGpuSelectionRect(const QRect &rect);
     bool clearGpuSelection();
     /** Adds a GPU paint layer at a bottom-to-top child index in the given
      * group. Returns the adopted node, or null on invalid input or capacity.
@@ -1314,6 +1317,7 @@ private:
     void connectGpuImageUpdates();
     void adoptGpuSelectionMask();
     void synchronizeGpuSelectionToMask();
+    void updateGpuSelectionMask(const QRect &rect);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> cloneGpuImage(bool exactCopy) const;
     KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy);
     KisImage& operator=(const KisImage& rhs);

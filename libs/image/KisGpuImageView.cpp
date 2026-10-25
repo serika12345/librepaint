@@ -363,6 +363,12 @@ bool KisImage::setGpuSelectionRect(const QRect &rect)
     return owner && owner->setSelectionRect(rect) == LibrePaint::Image::Gpu::Result::Success;
 }
 
+QRect KisImage::gpuSelectionRect() const
+{
+    const auto owner = gpuImage();
+    return owner ? owner->selectionRect() : QRect();
+}
+
 bool KisImage::clearGpuSelection()
 {
     const auto owner = gpuImage();
@@ -377,9 +383,21 @@ void KisImage::synchronizeGpuSelectionToMask()
     const auto owner = gpuImage();
     if (!owner) return;
     const QRect rect = owner->selectionRect();
+    if (rootLayer() && rootLayer()->selectionMask() &&
+        m_hasGpuSelectionMirror && m_gpuSelectionMirrorRect == rect) return;
+    updateGpuSelectionMask(rect);
+}
+
+void KisImage::previewGpuSelectionRect(const QRect &rect)
+{
+    if (!gpuImage()) return;
+    updateGpuSelectionMask(rect);
+}
+
+void KisImage::updateGpuSelectionMask(const QRect &rect)
+{
     KisSelectionMaskSP mask = rootLayer() ? rootLayer()->selectionMask() : KisSelectionMaskSP();
     if (!mask && rect.isEmpty()) return;
-    if (mask && m_hasGpuSelectionMirror && m_gpuSelectionMirrorRect == rect) return;
     if (!mask) {
         mask = new KisSelectionMask(this);
         mask->initSelection(rootLayer());
@@ -393,6 +411,7 @@ void KisImage::synchronizeGpuSelectionToMask()
     if (!selection || !selection->pixelSelection()) return;
     KisPixelSelectionSP pixels = selection->pixelSelection();
     const QRect previousRect = pixels->selectedExactRect();
+    if (previousRect == rect && m_hasGpuSelectionMirror && m_gpuSelectionMirrorRect == rect) return;
     pixels->clear();
     QPainterPath outline;
     if (!rect.isEmpty()) {
