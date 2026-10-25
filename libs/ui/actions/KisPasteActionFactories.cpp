@@ -247,14 +247,18 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
         const QImage rgba = pastedImage.convertToFormat(QImage::Format_RGBA8888);
         if (rgba.isNull()) return;
         const QSize targetSize = owner->operations().snapshot()->size;
+        QImage source = rgba;
+        if (source.width() > targetSize.width() || source.height() > targetSize.height())
+            source = source.copy(0, 0, qMin(source.width(), targetSize.width()),
+                                 qMin(source.height(), targetSize.height()));
         auto temporary = LibrePaint::Image::Gpu::PaintImageSP::create(owner->execution(), targetSize);
         const auto temporaryLayer = temporary->addLayer(QStringLiteral("Pasted"));
-        const QByteArray bytes(reinterpret_cast<const char *>(rgba.constBits()), rgba.sizeInBytes());
+        const QByteArray bytes(reinterpret_cast<const char *>(source.constBits()), source.sizeInBytes());
         QPoint position = docPos.toPoint();
-        position.setX(qBound(0, position.x(), qMax(0, targetSize.width() - rgba.width())));
-        position.setY(qBound(0, position.y(), qMax(0, targetSize.height() - rgba.height())));
+        position.setX(qBound(0, position.x(), qMax(0, targetSize.width() - source.width())));
+        position.setY(qBound(0, position.y(), qMax(0, targetSize.height() - source.height())));
         if (!temporaryLayer ||
-            temporary->writeRgbaPixels(temporaryLayer, QRect(position, rgba.size()), bytes) !=
+            temporary->writeRgbaPixels(temporaryLayer, QRect(position, source.size()), bytes) !=
                 LibrePaint::Image::Gpu::Result::Success) {
             view->showFloatingMessage(i18n("The pasted image could not be prepared."), QIcon());
             return;

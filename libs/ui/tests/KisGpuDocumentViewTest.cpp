@@ -2656,6 +2656,18 @@ void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer()
     QCOMPARE(matches, 16 * 16);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
+
+    QImage large(128, 128, QImage::Format_RGBA8888);
+    large.fill(QColor(241, 129, 17));
+    QGuiApplication::clipboard()->setImage(large);
+    manager->paste();
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
+    const auto cropped = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(cropped.code, Gpu::ExecutionCode::Success);
+    int croppedMatches = 0;
+    for (qsizetype offset = 0; offset + 3 < cropped.bytes.size(); offset += 4)
+        if (cropped.bytes.mid(offset, 4) == QByteArray::fromHex("f18111ff")) ++croppedMatches;
+    QCOMPARE(croppedMatches, 64 * 64);
 }
 
 void KisGpuDocumentViewTest::reselectRestoresGpuSelection()

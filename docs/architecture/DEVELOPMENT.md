@@ -355,7 +355,8 @@ GPU選択を1画素・10画素単位で移動し、形状と反転状態を保�
 `KisGpuDocumentViewTest::reselectRestoresGpuSelection`は、解除した矩形選択と反転楕円選択を
 再選択で復元することを検査する。
 `KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer`は、クリップボード画像を
-GPU文書の新しい描画レイヤーへ一回の履歴で貼り付け、Undoで除去できることを検査する。
+GPU文書の新しい描画レイヤーへ一回の履歴で貼り付け、キャンバスより大きい画像の左上トリミングと
+Undoによる除去を検査する。
 `KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra`は、楕円内の塗りつぶし、
 楕円外の不変、Undo／Redo、KRA保存・再読込後の楕円形状と画素、楕円の拡大縮小、
 反転楕円のKRA往復、楕円の合成コピー・レイヤーコピー・切り取り、
