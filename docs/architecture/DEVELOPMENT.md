@@ -319,6 +319,11 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 ./scripts/run-shared-test-env ./scripts/run-test KisNodeCommandsAdapterTest
 ```
 
+`KisGpuOperationDocumentTest::selectionRectIsFrozenInOperationsAndRecovery`は、描画開始時の
+選択矩形が操作と復旧記録に残り、入力中の選択変更を拒否し、後の選択変更が既存操作を書き換えないことを検査する。
+`KisGpuTileRendererTest::selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery`は、
+矩形選択の外側が描画・塗り・消去の前後で不変であること、内側の画素、Undo／Redo、
+復旧後の再描画が同じ結果になることを検査する。現在の対象は文書座標の矩形選択である。
 `KoRgbU8ColorSpaceTester`は、通常合成の厳密な色が5494/33となる固定入力について、
 単一画素、ベクトルと端数を含む画素列、開始位置をずらした画素列で、166へ丸める結果を照合する。
 異なるRGB成分とレイヤー不透明度を持つ固定画素も、同じ条件でスカラーとSIMDの一致を検査する。

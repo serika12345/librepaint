@@ -59,6 +59,14 @@ inline bool validCropRect(qint32 x, qint32 y, qint32 width, qint32 height)
 }
 inline bool validCropRect(const QRect &rect)
 { return validCropRect(rect.x(), rect.y(), rect.width(), rect.height()); }
+/** Null/empty rectangles disable selection; nonempty rectangles use positive
+ * extents inside the absolute document coordinate limit.
+ */
+inline bool validSelectionRect(const QRect &rect)
+{
+    if (rect.isEmpty()) return rect.x() == 0 && rect.y() == 0;
+    return validCropRect(rect) && rect.width() > 0 && rect.height() > 0;
+}
 inline bool validCanvasRect(const QRect &rect)
 {
     return validCropRect(rect) && rect.width() > 0 && rect.height() > 0 &&

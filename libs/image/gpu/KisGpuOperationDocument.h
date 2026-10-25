@@ -196,6 +196,8 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
     /** Accepted input counts at which an idle timeout completed the current curve. */
     QList<qsizetype> smoothingFlushes{};
     bool smoothingFinished = false;
+    /** Document rectangle that limited this operation; empty means no selection. */
+    QRect selectionRect{};
 
     QList<InputSample> inputSamples() const;
 };
@@ -459,6 +461,14 @@ public:
     bool hasActiveStroke() const;
     OperationId activeOperation() const;
 
+    /** Limits subsequent painting to a document rectangle. Empty clears the
+     * selection. Accepted operations retain the rectangle that was current
+     * when their input began, so later selection changes do not rewrite history.
+     */
+    Result setSelectionRect(const QRect &rect);
+    Result clearSelection();
+    QRect selectionRect() const;
+
     /** Returns an empty identifier for a closed/busy document or invalid brush/layer. */
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 randomSeed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
@@ -689,6 +699,7 @@ private:
     QSharedPointer<const PaintOperation> m_edit;
     TranslationSnapshot m_translation;
     Snapshot m_preview;
+    QRect m_selectionRect;
     bool m_closed = false;
 };
 

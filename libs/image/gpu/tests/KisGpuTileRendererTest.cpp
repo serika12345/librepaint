@@ -74,6 +74,7 @@ private Q_SLOTS:
     void previewProjectionTracksBackgroundPropertiesAndRetainedPixels();
     void switchingDocumentsReleasesPreviewDerivedPixelsAtCapacity();
     void roundBrushProducesRgbaPixelsOnTheGpu();
+    void selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery();
     void gaussianWashProducesCoverageAndRetainsPixelsThroughRecovery();
     void gaussianEraseKeepsColorsHistoryAndRecovery_data();
     void gaussianEraseKeepsColorsHistoryAndRecovery();
@@ -3081,6 +3082,74 @@ void KisGpuTileRendererTest::roundBrushProducesRgbaPixelsOnTheGpu()
     QCOMPARE(preview->tiles(document.activeLayer()).size(), 1);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     QCOMPARE(readTile(render(renderer, document.snapshot(), preview), document.activeLayer(), {0, 0}), bytes);
+}
+
+void KisGpuTileRendererTest::selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    OperationDocument document({256, 256});
+    Brush brush;
+    brush.rgba = {210, 40, 90, 255};
+    brush.diameter = 32;
+    QCOMPARE(document.setSelectionRect(QRect(64, 64, 64, 64)), Result::Success);
+    const auto first = document.beginStroke(document.activeLayer(), brush, 0);
+    QCOMPARE(document.appendSamples(first, {{{32, 96}, 1}, {{224, 96}, 1}}), Result::Success);
+    const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QCOMPARE(pending->selectionRect, QRect(64, 64, 64, 64));
+    QCOMPARE(document.setSelectionRect(QRect(0, 0, 1, 1)), Result::EditInProgress);
+    QCOMPARE(document.commitStroke(first), Result::Success);
+
+    QCOMPARE(document.setSelectionRect(QRect(160, 64, 64, 64)), Result::Success);
+    const auto second = document.beginStroke(document.activeLayer(), brush, 0);
+    QCOMPARE(document.appendSamples(second, {{{32, 96}, 1}, {{224, 96}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(second), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto painted = render(renderer, document.snapshot());
+    QVERIFY(painted);
+    const auto bytes = readTile(painted, document.activeLayer(), {0, 0});
+    QCOMPARE(pixel(bytes, 96, 96), QByteArray::fromHex("d2285aff"));
+    QCOMPARE(pixel(bytes, 192, 96), QByteArray::fromHex("d2285aff"));
+    QCOMPARE(pixel(bytes, 32, 96), QByteArray(4, '\0'));
+    QCOMPARE(pixel(bytes, 224, 96), QByteArray(4, '\0'));
+
+    // Both operations retain their own selection through recovery and replay.
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.selectionRect(), QRect(160, 64, 64, 64));
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), bytes);
+
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0});
+    QCOMPARE(pixel(undone, 96, 96), QByteArray::fromHex("d2285aff"));
+    QCOMPARE(pixel(undone, 192, 96), QByteArray(4, '\0'));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0}), bytes);
+
+    // Fill and erase use the same frozen selection.
+    OperationDocument fillDocument({256, 256});
+    QCOMPARE(fillDocument.setSelectionRect(QRect(32, 32, 64, 64)), Result::Success);
+    QCOMPARE(fillDocument.fillLayer(fillDocument.activeLayer(), {17, 34, 51}), Result::Success);
+    const auto filled = readTile(render(renderer, fillDocument.snapshot()), fillDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(filled, 64, 64), QByteArray::fromHex("112233ff"));
+    QCOMPARE(pixel(filled, 16, 64), QByteArray(4, '\0'));
+    QCOMPARE(pixel(filled, 128, 64), QByteArray(4, '\0'));
+
+    OperationDocument eraseDocument({256, 256});
+    QCOMPARE(eraseDocument.fillLayer(eraseDocument.activeLayer(), {20, 80, 160}), Result::Success);
+    QCOMPARE(eraseDocument.setSelectionRect(QRect(32, 32, 64, 64)), Result::Success);
+    Brush eraser = brush;
+    eraser.rgba[3] = 255;
+    eraser.erase = true;
+    const auto erase = eraseDocument.beginStroke(eraseDocument.activeLayer(), eraser, 0);
+    QCOMPARE(eraseDocument.appendSamples(erase, {{{64, 64}, 1}}), Result::Success);
+    QCOMPARE(eraseDocument.commitStroke(erase), Result::Success);
+    const auto erased = readTile(render(renderer, eraseDocument.snapshot()), eraseDocument.activeLayer(), {0, 0});
+    QVERIFY(pixel(erased, 16, 16)[3] == char(255));
+    QCOMPARE(pixel(erased, 64, 64), QByteArray::fromHex("1450a000"));
+    QCOMPARE(eraseDocument.clearSelection(), Result::Success);
+    QVERIFY(eraseDocument.selectionRect().isEmpty());
 }
 
 void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()

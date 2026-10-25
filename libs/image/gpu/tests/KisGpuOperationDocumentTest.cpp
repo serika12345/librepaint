@@ -179,6 +179,7 @@ private Q_SLOTS:
     void legacyGaussianPathKeepsItsRecordedInput();
     void damagedPathCallRecoveryPreservesTheActiveDocument();
     void pixelCorrectionRetainsOriginalSensorsAndPendingRecovery();
+    void selectionRectIsFrozenInOperationsAndRecovery();
     void basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent();
     void weightedSmoothingRetainsFrozenSettingsSpeedAndRecovery();
     void basicSmoothingRejectsConflictingModesAndShapeChanges();
@@ -3590,11 +3591,18 @@ void KisGpuOperationDocumentTest::damagedRasterRecoveryPreservesTheLiveDocument(
     QBuffer reader;
     reader.setData(originalPayload);
     QVERIFY(reader.open(QIODevice::ReadOnly));
-    QVERIFY(reader.seek(50)); // The fixed header includes the tile count.
+    QVERIFY(reader.seek(46)); // magic, format, size, revisions, saved revision.
     QDataStream input(&reader);
     input.setVersion(QDataStream::Qt_5_15);
     input.setByteOrder(QDataStream::BigEndian);
-    for (int i = 0; i < 2; ++i) {
+    // Format 40 stores the current selection rectangle before the tile count.
+    qint32 selectionX = 0, selectionY = 0, selectionWidth = 0, selectionHeight = 0;
+    input >> selectionX >> selectionY >> selectionWidth >> selectionHeight;
+    quint32 tileCount = 0;
+    input >> tileCount;
+    QCOMPARE(tileCount, quint32(2));
+    const auto firstTile = reader.pos();
+    for (quint32 i = 0; i < tileCount; ++i) {
         qint32 x = 0, y = 0;
         quint32 size = 0;
         input >> x >> y >> size;
@@ -3616,10 +3624,10 @@ void KisGpuOperationDocumentTest::damagedRasterRecoveryPreservesTheLiveDocument(
         output.setVersion(QDataStream::Qt_5_15);
         output.setByteOrder(QDataStream::BigEndian);
         if (damage == 0) {
-            QVERIFY(buffer.seek(58));
+            QVERIFY(buffer.seek(firstTile + 8));
             output << quint32(RasterTile::maximumCompressedBytes() + 1);
         } else if (damage == 1) {
-            payload[62] ^= char(0xff); // Invalid zlib header with a valid outer digest.
+            payload[firstTile + 12] ^= char(0xff); // Invalid zlib header with a valid outer digest.
         } else if (damage == 2) {
             QVERIFY(buffer.seek(firstTileReference));
             output << quint32(2); // Out-of-range index in the first tile-write operation.
@@ -3916,6 +3924,49 @@ void KisGpuOperationDocumentTest::pixelCorrectionRetainsOriginalSensorsAndPendin
     QCOMPARE(restored.snapshot(), painted);
     QCOMPARE(document.cancelStroke(id), Result::Success);
     QCOMPARE(document.undoCount(), 0);
+}
+
+void KisGpuOperationDocumentTest::selectionRectIsFrozenInOperationsAndRecovery()
+{
+    OperationDocument document(QSize(128, 128));
+    QCOMPARE(document.setSelectionRect(QRect(10, 20, 30, 40)), Result::Success);
+    QCOMPARE(document.selectionRect(), QRect(10, 20, 30, 40));
+    const auto first = document.beginStroke(document.activeLayer(), Brush{}, 1);
+    QVERIFY(!first.isNull());
+    QCOMPARE(document.appendSamples(first, {{{16, 32}, 1}, {{28, 48}, 1}}), Result::Success);
+    const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QCOMPARE(pending->selectionRect, QRect(10, 20, 30, 40));
+    QCOMPARE(document.setSelectionRect(QRect(0, 0, 2, 2)), Result::EditInProgress);
+    QCOMPARE(document.clearSelection(), Result::EditInProgress);
+    QCOMPARE(document.commitStroke(first), Result::Success);
+
+    QCOMPARE(document.setSelectionRect(QRect(50, 60, 20, 10)), Result::Success);
+    const auto second = document.beginStroke(document.activeLayer(), Brush{}, 2);
+    QVERIFY(!second.isNull());
+    QCOMPARE(document.appendSamples(second, {{{54, 62}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(second), Result::Success);
+    const auto &operations = document.snapshot()->layers.first().operations;
+    QCOMPARE(operations.size(), 2);
+    QCOMPARE(std::get<PaintSnapshot>(operations[0])->selectionRect, QRect(10, 20, 30, 40));
+    QCOMPARE(std::get<PaintSnapshot>(operations[1])->selectionRect, QRect(50, 60, 20, 10));
+
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.selectionRect(), QRect(50, 60, 20, 10));
+    const auto &recovered = restored.snapshot()->layers.first().operations;
+    QCOMPARE(std::get<PaintSnapshot>(recovered[0])->selectionRect, QRect(10, 20, 30, 40));
+    QCOMPARE(std::get<PaintSnapshot>(recovered[1])->selectionRect, QRect(50, 60, 20, 10));
+
+    QCOMPARE(document.setSelectionRect(QRect(OperationDocument::CoordinateLimit, 0, 2, 2)), Result::InvalidInput);
+    QCOMPARE(document.selectionRect(), QRect(50, 60, 20, 10));
+    QCOMPARE(document.clearSelection(), Result::Success);
+    QVERIFY(document.selectionRect().isEmpty());
+    const auto later = document.beginStroke(document.activeLayer(), Brush{}, 3);
+    QVERIFY(!later.isNull());
+    QCOMPARE(document.appendSamples(later, {{{8, 8}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(later), Result::Success);
+    QVERIFY(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->selectionRect.isEmpty());
+    QCOMPARE(std::get<PaintSnapshot>(recovered[0])->selectionRect, QRect(10, 20, 30, 40));
 }
 
 void KisGpuOperationDocumentTest::basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent()

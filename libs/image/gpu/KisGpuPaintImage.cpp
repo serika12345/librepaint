@@ -129,6 +129,12 @@ LayerPixelReferenceSP PaintImage::retainLayerPixels(LayerId layer)
     }
     return reference;
 }
+Result PaintImage::setSelectionRect(const QRect &rect)
+{ return onThread() ? m_d->document->setSelectionRect(rect) : Result::InvalidInput; }
+Result PaintImage::clearSelection()
+{ return onThread() ? m_d->document->clearSelection() : Result::InvalidInput; }
+QRect PaintImage::selectionRect() const
+{ return onThread() ? m_d->document->selectionRect() : QRect{}; }
 void PaintImage::refreshLayerPixelReferences()
 {
     const auto version = layerPixelVersion();

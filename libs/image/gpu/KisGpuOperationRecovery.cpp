@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 39;
+constexpr quint16 FormatVersion = 40;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -96,7 +96,10 @@ QByteArray OperationDocument::recoveryData() const
         return stream.status() == QDataStream::Ok && bytes.size() <= m_limits.recoveryBytes - DigestSize;
     };
     stream << Magic << FormatVersion << qint32(snapshot()->size.width()) << qint32(snapshot()->size.height())
-           << m_nextRevision << m_nextOperation << m_nextLayer << m_savedRevision << quint32(tiles.size());
+           << m_nextRevision << m_nextOperation << m_nextLayer << m_savedRevision
+           << qint32(m_selectionRect.x()) << qint32(m_selectionRect.y())
+           << qint32(m_selectionRect.width()) << qint32(m_selectionRect.height())
+           << quint32(tiles.size());
     if (!withinLimit()) return {};
     for (const auto &tile : tiles) {
         const auto data = tile->compressedData();
@@ -171,6 +174,8 @@ QByteArray OperationDocument::recoveryData() const
                 if (block->size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 64) return {};
                 for (const auto &sample : *block) writeSample(stream, sample);
             }
+            stream << qint32(operation.selectionRect.x()) << qint32(operation.selectionRect.y())
+                   << qint32(operation.selectionRect.width()) << qint32(operation.selectionRect.height());
         } else if (const auto tileWrite = std::get_if<TileWriteSnapshot>(&value)) {
             const auto &write = **tileWrite;
             stream << quint32(write.tiles.size());
@@ -292,7 +297,15 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
     quint16 format = 0;
     qint32 width = 0, height = 0;
     quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
-    stream >> magic >> format >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision >> tileCount;
+    stream >> magic >> format >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision;
+    QRect selectionRect;
+    if (format >= 40) {
+        qint32 x = 0, y = 0, w = 0, h = 0;
+        stream >> x >> y >> w >> h;
+        selectionRect = QRect(x, y, w, h);
+        if (stream.status() != QDataStream::Ok || !validSelectionRect(selectionRect)) return Result::InvalidRecovery;
+    }
+    stream >> tileCount;
     if (magic != Magic || format < 9 || format > FormatVersion || width <= 0 || height <= 0 ||
         width > CoordinateLimit || height > CoordinateLimit || savedRevision > nextRevision ||
         !readableCount(stream, tileCount, payload.size(), 12)) return Result::InvalidRecovery;
@@ -527,6 +540,13 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         }
         if (sampleCount) operation->sampleBlocks.append(samples);
         operation->sampleCount = sampleCount;
+        if (format >= 40) {
+            qint32 x = 0, y = 0, w = 0, h = 0;
+            stream >> x >> y >> w >> h;
+            if (stream.status() != QDataStream::Ok || !validSelectionRect(QRect(x, y, w, h)))
+                return Result::InvalidRecovery;
+            operation->selectionRect = QRect(x, y, w, h);
+        }
         operations.append(PaintSnapshot(operation));
     }
     for (const auto &value : operations) {
@@ -902,6 +922,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
     m_nextOperation = nextOperation;
     m_nextLayer = nextLayer;
     m_savedRevision = savedRevision;
+    m_selectionRect = selectionRect;
     m_edit = edit;
     m_translation = translation;
     m_preview = preview;

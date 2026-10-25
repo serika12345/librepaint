@@ -606,6 +606,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                   operation.figureStyle.fill ? packedPixel(*operation.figureStyle.fill) : 0,
                                   quint32(bool(operation.figureStyle.fill)) | (operation.figureStyle.outline ? 0u : 2u) |
                                       (operation.shape.windingFill ? 4u : 0u)};
+                    job.values.selectionX = operation.selectionRect.x();
+                    job.values.selectionY = operation.selectionRect.y();
+                    job.values.selectionWidth = operation.selectionRect.width();
+                    job.values.selectionHeight = operation.selectionRect.height();
                     if (operation.brush.gaussianWash) {
                         const float opacity = float(operation.brush.gaussianWash->canvasOpacity);
                         std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));

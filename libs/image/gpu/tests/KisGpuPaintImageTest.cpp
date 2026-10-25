@@ -1538,6 +1538,9 @@ void KisGpuPaintImageTest::damagedPixelSharingRecoveryPreservesTheLiveImage()
     QDataStream reader(&input);
     reader.setVersion(QDataStream::Qt_5_15);
     reader.setByteOrder(QDataStream::BigEndian);
+    // Format 40 stores the current selection rectangle before the tile count.
+    qint32 selectionX = 0, selectionY = 0, selectionWidth = 0, selectionHeight = 0;
+    reader >> selectionX >> selectionY >> selectionWidth >> selectionHeight;
     quint32 tileCount = 0;
     reader >> tileCount;
     for (quint32 i = 0; i < tileCount; ++i) {

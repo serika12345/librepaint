@@ -149,6 +149,7 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
     result->m_nextOperation = m_nextOperation;
     result->m_nextRevision = m_nextRevision;
     result->m_savedRevision = version->m_modifiedRevision;
+    result->m_selectionRect = m_selectionRect;
     return result;
 }
 
@@ -223,6 +224,27 @@ bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevisi
 bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation; }
 OperationId OperationDocument::activeOperation() const
 { return m_edit ? m_edit->id : m_translation ? m_translation->id : OperationId{}; }
+
+Result OperationDocument::setSelectionRect(const QRect &rect)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto normalized = rect.normalized();
+    if (normalized.isEmpty()) return clearSelection();
+    if (!Detail::validSelectionRect(normalized)) return Result::InvalidInput;
+    m_selectionRect = normalized;
+    return Result::Success;
+}
+
+Result OperationDocument::clearSelection()
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    m_selectionRect = {};
+    return Result::Success;
+}
+
+QRect OperationDocument::selectionRect() const { return m_selectionRect; }
 
 qsizetype OperationDocument::layerIndex(LayerId layer) const
 {
@@ -506,6 +528,7 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
     operation->brush.channelWriteMask &= snapshot()->layers[index].channelWriteMask;
     operation->brush.alphaLocked |= !(operation->brush.channelWriteMask & 8);
     operation->randomSeed = randomSeed;
+    operation->selectionRect = m_selectionRect;
     m_edit = operation;
     return operation->id;
 }

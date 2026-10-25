@@ -452,6 +452,20 @@ inline QByteArray gaussianCompoundPathRecoveryV38()
 inline QByteArray legacyRecovery(const OperationDocument &document, quint8 format)
 {
     auto payload = document.recoveryData().chopped(32);
+    if (format < 40) {
+        // Format 40 adds the current selection rectangle after savedRevision.
+        QByteArray selection;
+        QDataStream header(&payload, QIODevice::ReadOnly);
+        header.setVersion(QDataStream::Qt_5_15);
+        header.setByteOrder(QDataStream::BigEndian);
+        quint32 magic = 0;
+        quint16 version = 0;
+        qint32 width = 0, height = 0;
+        quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
+        header >> magic >> version >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision;
+        Q_ASSERT(magic == 0x4c504f52 && version == 40);
+        payload.remove(int(header.device()->pos()), 16);
+    }
     auto versions = document.historyVersions();
     if (format < 27) {
         for (int i = 0; i < versions.size(); ++i) {
@@ -570,6 +584,11 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 Q_ASSERT(position >= 0 && position == payload.lastIndexOf(prefix));
                 const auto styleSize = 1 + (operation.figureStyle.fill ? 4 : 0);
                 Q_ASSERT(payload.at(position + prefix.size() + styleSize) == char(operation.brush.pixelPerfect));
+                if (format < 40) {
+                    // Format 40 appends the selection rectangle after the samples.
+                    const auto samples = position + prefix.size() + styleSize + 1 + 4;
+                    payload.remove(samples + qsizetype(operation.sampleCount) * 64, 16);
+                }
                 if (format < 21) {
                     const auto samples = position + prefix.size() + styleSize + 1 + 4;
                     for (qsizetype index = operation.sampleCount; index > 0; --index)
