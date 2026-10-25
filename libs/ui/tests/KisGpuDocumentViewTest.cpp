@@ -2793,6 +2793,7 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     for (const auto &layer : owner->operations().snapshot()->layers)
         if (layer.name == QStringLiteral("Copied Selection")) copiedLayer = layer.id;
     QVERIFY(copiedLayer);
+    QCOMPARE(owner->operations().activeLayer(), copiedLayer);
     const auto copiedPixels = owner->readRgbaPixels(copiedLayer, region, 8 * 1024 * 1024);
     QCOMPARE(copiedPixels.code, Gpu::ExecutionCode::Success);
     int copiedMatches = 0;

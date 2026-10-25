@@ -67,6 +67,7 @@
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_iterator_ng.h"
 #include "kis_clipboard.h"
+#include "kis_layer_utils.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_selection_filters.h"
 #include <kis_figure_painting_stroke.h>
@@ -610,11 +611,16 @@ void KisSelectionManager::copySelectionToNewLayer()
         const auto *mime = QGuiApplication::clipboard()->mimeData();
         const QImage copied = mime ? KisClipboard::instance()->getImageWithFallback(mime) : QImage();
         const QPoint position = image->gpuSelectionInverted() ? QPoint(0, 0) : selection.topLeft();
-        if (copied.isNull() || !insertGpuClipboardLayer(image, copied, position, i18n("Copied Selection"))) {
+        const auto layer = copied.isNull() ? 0 : insertGpuClipboardLayer(image, copied, position, i18n("Copied Selection"));
+        if (!layer) {
             m_view->showFloatingMessage(i18n("The selected area could not be copied to a new layer."), QIcon());
             return;
         }
-        m_view->showFloatingMessage(i18n("The selection was added as a new layer. Select it in the Layers panel."), QIcon());
+        QUuid uuid;
+        for (const auto &candidate : image->gpuImage()->operations().snapshot()->layers)
+            if (candidate.id == layer) uuid = candidate.uuid;
+        if (const auto node = KisLayerUtils::findNodeByUuid(image->root(), uuid))
+            m_view->nodeManager()->slotUiActivatedNode(node);
         return;
     }
     copy();
@@ -633,11 +639,16 @@ void KisSelectionManager::cutToNewLayer()
         const auto *mime = QGuiApplication::clipboard()->mimeData();
         const QImage copied = mime ? KisClipboard::instance()->getImageWithFallback(mime) : QImage();
         const QPoint position = image->gpuSelectionInverted() ? QPoint(0, 0) : selection.topLeft();
-        if (copied.isNull() || !insertGpuClipboardLayer(image, copied, position, i18n("Cut Selection"))) {
+        const auto layer = copied.isNull() ? 0 : insertGpuClipboardLayer(image, copied, position, i18n("Cut Selection"));
+        if (!layer) {
             m_view->showFloatingMessage(i18n("The selected area could not be cut to a new layer."), QIcon());
             return;
         }
-        m_view->showFloatingMessage(i18n("The selection was added as a new layer. Select it in the Layers panel."), QIcon());
+        QUuid uuid;
+        for (const auto &candidate : image->gpuImage()->operations().snapshot()->layers)
+            if (candidate.id == layer) uuid = candidate.uuid;
+        if (const auto node = KisLayerUtils::findNodeByUuid(image->root(), uuid))
+            m_view->nodeManager()->slotUiActivatedNode(node);
         return;
     }
     cut();

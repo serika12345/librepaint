@@ -175,6 +175,16 @@ bool KisNodeManager::Private::activateNodeImpl(KisNodeSP node)
     } else {
         previouslyActiveNode = q->activeNode();
 
+        if (imageView->image() && imageView->image()->gpuImage() && node->inherits("KisLayer")) {
+            KisLayerSP layer = qobject_cast<KisLayer *>(node.data());
+            if (!layer) return false;
+            selection->setActiveLayer(0);
+            imageView->setCurrentNode(node);
+            maskManager.activateMask(0);
+            layerManager.activateLayer(layer);
+            return true;
+        }
+
         KoShape * shape = view->document()->shapeForNode(node);
 
         KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(shape, false);
