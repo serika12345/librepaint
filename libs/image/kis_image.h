@@ -111,6 +111,7 @@ public:
     bool invertGpuSelectionMask();
     bool growGpuSelectionMask(int xRadius, int yRadius);
     bool shrinkGpuSelectionMask(int xRadius, int yRadius);
+    bool borderGpuSelectionMask(int xRadius, int yRadius);
     bool reselectGpuSelection();
     /** Updates only the CPU display mirror for a pending selection move. */
     void previewGpuSelectionRect(const QRect &rect, bool ellipse = false, bool inverted = false);

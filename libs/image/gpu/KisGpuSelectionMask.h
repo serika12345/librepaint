@@ -62,6 +62,10 @@ public:
     /** Expands or contracts the coverage by a rectangular radius, clipped to `clip`. */
     QSharedPointer<const SelectionMask> grown(int xRadius, int yRadius, const QRect &clip) const;
     QSharedPointer<const SelectionMask> shrunk(int xRadius, int yRadius, const QRect &clip) const;
+    /** Returns the pixels selected here but not in `other`, clipped to `clip`. */
+    QSharedPointer<const SelectionMask> subtracted(const SelectionMask &other, const QRect &clip) const;
+    /** Returns the inside border band of the given rectangular radius. */
+    QSharedPointer<const SelectionMask> border(int xRadius, int yRadius, const QRect &clip) const;
 
     bool isEmpty() const { return m_bounds.isEmpty(); }
     /** Tight bounds of the selected pixels. */

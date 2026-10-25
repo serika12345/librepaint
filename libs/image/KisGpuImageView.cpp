@@ -451,6 +451,15 @@ bool KisImage::shrinkGpuSelectionMask(int xRadius, int yRadius)
                   : owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
 }
 
+bool KisImage::borderGpuSelectionMask(int xRadius, int yRadius)
+{
+    const auto owner = gpuImage();
+    if (!owner || !owner->selectionMask()) return false;
+    const auto border = owner->selectionMask()->border(xRadius, yRadius, QRect(QPoint(), size()));
+    return border ? owner->setSelectionMask(border, false) == LibrePaint::Image::Gpu::Result::Success
+                  : owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
+}
+
 void KisImage::previewGpuSelectionMoveBy(QPoint delta)
 {
     const auto owner = gpuImage();

@@ -2774,6 +2774,11 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QVERIFY(owner->selectionMask()->contains(176, 176));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_VERIFY(owner->selectionMask()->contains(80, 80));
+    runFilter(QStringLiteral("borderselection"), 2, 2);
+    QTRY_VERIFY(owner->selectionMask() && !owner->selectionMask()->contains(80, 80));
+    QVERIFY(owner->selectionMask()->contains(64, 80));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_VERIFY(owner->selectionMask()->contains(80, 80));
 
     QVERIFY(lifetime->image()->clearGpuSelection());
     QTRY_VERIFY(owner->selectionRect().isEmpty());

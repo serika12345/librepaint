@@ -49,6 +49,14 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
                 if (!ok) view->showFloatingMessage(i18n("The selection could not be updated."), QIcon());
                 return;
             }
+            if (config.id() == QLatin1String("borderselection")) {
+                const int xRadius = config.getInt("x-radius", 1);
+                const int yRadius = config.getInt("y-radius", 1);
+                if (xRadius <= 0 || yRadius <= 0) return;
+                if (!view->image()->borderGpuSelectionMask(xRadius, yRadius))
+                    view->showFloatingMessage(i18n("The selection border could not be created."), QIcon());
+                return;
+            }
             view->showFloatingMessage(
                 i18n("This selection filter is not yet available for a freehand GPU selection."), QIcon());
             return;

@@ -260,6 +260,31 @@ QSharedPointer<const SelectionMask> SelectionMask::shrunk(int xRadius, int yRadi
     return result;
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::subtracted(const SelectionMask &other, const QRect &clip) const
+{
+    if (isEmpty() || clip.isEmpty()) return {};
+    CoverageBuilder builder;
+    const QRect area = m_bounds.intersected(clip);
+    for (int y = area.top(); y <= area.bottom(); ++y) {
+        int runStart = -1;
+        for (int x = area.left(); x <= area.right() + 1; ++x) {
+            const bool selected = x <= area.right() && contains(x, y) && !other.contains(x, y);
+            if (selected && runStart < 0) runStart = x;
+            else if (!selected && runStart >= 0) {
+                builder.addSpan(y, runStart, x - 1);
+                runStart = -1;
+            }
+        }
+    }
+    return make(builder.bounds, std::move(builder.tiles));
+}
+
+QSharedPointer<const SelectionMask> SelectionMask::border(int xRadius, int yRadius, const QRect &clip) const
+{
+    const auto inner = shrunk(xRadius, yRadius, clip);
+    return inner ? subtracted(*inner, clip) : make(m_bounds.intersected(clip), m_tiles);
+}
+
 bool SelectionMask::contains(int x, int y) const
 {
     if (!m_bounds.contains(x, y)) return false;
