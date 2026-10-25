@@ -157,7 +157,8 @@ public:
             default: break;
             }
             if (!delta.isNull()) {
-                if (event->modifiers().testFlag(Qt::ShiftModifier)) delta *= 10;
+                if (event->modifiers().testFlag(Qt::ControlModifier)) delta *= 100;
+                else if (event->modifiers().testFlag(Qt::ShiftModifier)) delta *= 10;
                 const QRect current = this->image()->gpuSelectionRect();
                 if (!current.isEmpty()) {
                     const bool ok = this->image()->gpuSelectionEllipse()
