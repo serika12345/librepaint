@@ -12,7 +12,7 @@
 #include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QFormLayout>
+#include <QDir>
 #include <QSpinBox>
 #include <QColorSpace>
 #include <QMouseEvent>
@@ -64,6 +64,7 @@
 #include <KoCanvasResourcesIds.h>
 #include <KoPattern.h>
 #include <KoToolBase.h>
+#include <KoResourcePaths.h>
 #include <KoColorSpaceRegistry.h>
 #include <document/KisDocument.h>
 #include <gpu/KisGpuExecution.h>
@@ -80,12 +81,10 @@
 #include <kis_transparency_mask.h>
 #include <kis_resources_snapshot.h>
 #include <kis_tool_utils.h>
-#include <filter/kis_color_transformation_configuration.h>
 #include <filter/kis_color_transformation_filter.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_config_widget.h>
 #include <document/kis_filter_manager.h>
 #include <KoColorTransformation.h>
 #include <nodes/kis_node_manager.h>
@@ -104,8 +103,8 @@
 #include <thread>
 
 namespace {
-/** The colors filter plugin provides this identity in the application; the UI
- * test registers it directly because test binaries do not load filter plugins.
+/** The example filter plugin owns this identity. The fixture supplies an
+ * Invert transformation for its GPU routing contract.
  */
 class GpuDocumentInvertFilter : public KisColorTransformationFilter
 {
@@ -122,124 +121,6 @@ public:
     KoColorTransformation *createTransformation(const KoColorSpace *cs, const KisFilterConfigurationSP) const override
     { return cs->createInvertTransformation(); }
 };
-
-/** The colors filter plugin provides the product Desaturate identity. The GPU
- * path must intercept it before any CPU transformation is created; the
- * transformation below exists only so a regression fails on pixels and history
- * rather than dereferencing null.
- */
-class GpuDocumentDesaturateFilter : public KisColorTransformationFilter
-{
-public:
-    GpuDocumentDesaturateFilter()
-        : KisColorTransformationFilter(KoID(QStringLiteral("desaturate"), i18n("Desaturate")),
-                                       FiltersCategoryAdjustId, i18n("&Desaturate..."))
-    {
-        setColorSpaceIndependence(FULLY_INDEPENDENT);
-        setSupportsPainting(true);
-        setShowConfigurationWidget(false);
-        setSupportsLevelOfDetail(true);
-    }
-    KoColorTransformation *createTransformation(const KoColorSpace *cs, const KisFilterConfigurationSP) const override
-    { return cs->createInvertTransformation(); }
-};
-
-/** Stands in for the colors filter plugin's HSV/HSL Adjustment widget. It
- * exposes the same product keys and control names so the GPU dialog routing
- * is exercised without loading the plugin.
- */
-class GpuDocumentHsvConfigWidget : public KisConfigWidget
-{
-public:
-    explicit GpuDocumentHsvConfigWidget(QWidget *parent = nullptr)
-        : KisConfigWidget(parent)
-    {
-        auto *form = new QFormLayout(this);
-        m_hue = new QSpinBox(this);
-        m_hue->setObjectName(QStringLiteral("hSpinBox"));
-        m_hue->setRange(-180, 180);
-        m_saturation = new QSpinBox(this);
-        m_saturation->setObjectName(QStringLiteral("sSpinBox"));
-        m_saturation->setRange(-100, 100);
-        m_value = new QSpinBox(this);
-        m_value->setObjectName(QStringLiteral("vSpinBox"));
-        m_value->setRange(-100, 100);
-        m_type = new QComboBox(this);
-        m_type->setObjectName(QStringLiteral("cmbType"));
-        m_type->addItems({QStringLiteral("HSV"), QStringLiteral("HSL"), QStringLiteral("HSI"),
-                          QStringLiteral("HSY"), QStringLiteral("YUV")});
-        m_colorize = new QCheckBox(this);
-        m_colorize->setObjectName(QStringLiteral("chkColorize"));
-        m_compatibility = new QCheckBox(this);
-        m_compatibility->setObjectName(QStringLiteral("chkCompatibilityMode"));
-        form->addRow(QStringLiteral("Hue"), m_hue);
-        form->addRow(QStringLiteral("Saturation"), m_saturation);
-        form->addRow(QStringLiteral("Value"), m_value);
-        form->addRow(QStringLiteral("Type"), m_type);
-        form->addRow(m_colorize);
-        form->addRow(m_compatibility);
-    }
-
-    void setConfiguration(const KisPropertiesConfigurationSP config) override
-    {
-        m_hue->setValue(config ? config->getInt("h", 0) : 0);
-        m_saturation->setValue(config ? config->getInt("s", 0) : 0);
-        m_value->setValue(config ? config->getInt("v", 0) : 0);
-        m_type->setCurrentIndex(config ? config->getInt("type", 1) : 1);
-        m_colorize->setChecked(config ? config->getBool("colorize", false) : false);
-        m_compatibility->setChecked(config ? config->getBool("compatibilityMode", false) : false);
-    }
-
-    KisPropertiesConfigurationSP configuration() const override
-    {
-        auto config = new KisColorTransformationConfiguration(
-            QStringLiteral("hsvadjustment"), 0, KisGlobalResourcesInterface::instance());
-        config->setProperty("h", m_hue->value());
-        config->setProperty("s", m_saturation->value());
-        config->setProperty("v", m_value->value());
-        config->setProperty("type", m_type->currentIndex());
-        config->setProperty("colorize", m_colorize->isChecked());
-        config->setProperty("compatibilityMode", m_compatibility->isChecked());
-        return config;
-    }
-
-private:
-    QSpinBox *m_hue = nullptr;
-    QSpinBox *m_saturation = nullptr;
-    QSpinBox *m_value = nullptr;
-    QComboBox *m_type = nullptr;
-    QCheckBox *m_colorize = nullptr;
-    QCheckBox *m_compatibility = nullptr;
-};
-
-class GpuDocumentHsvAdjustmentFilter : public KisColorTransformationFilter
-{
-public:
-    GpuDocumentHsvAdjustmentFilter()
-        : KisColorTransformationFilter(KoID(QStringLiteral("hsvadjustment"), i18n("HSV/HSL Adjustment")),
-                                       FiltersCategoryAdjustId, i18n("&HSV Adjustment..."))
-    {
-        setColorSpaceIndependence(FULLY_INDEPENDENT);
-        setSupportsPainting(true);
-        setShowConfigurationWidget(true);
-        setSupportsLevelOfDetail(true);
-    }
-    KisConfigWidget *createConfigurationWidget(QWidget *parent, const KisPaintDeviceSP, bool) const override
-    { return new GpuDocumentHsvConfigWidget(parent); }
-    KisFilterConfigurationSP defaultConfiguration(KisResourcesInterfaceSP resourcesInterface) const override
-    {
-        auto config = factoryConfiguration(resourcesInterface);
-        config->setProperty("h", 0);
-        config->setProperty("s", 0);
-        config->setProperty("v", 0);
-        config->setProperty("type", 1);
-        config->setProperty("colorize", false);
-        config->setProperty("compatibilityMode", false);
-        return config;
-    }
-    KoColorTransformation *createTransformation(const KoColorSpace *cs, const KisFilterConfigurationSP) const override
-    { return cs->createInvertTransformation(); }
-};
 }
 
 class KisGpuDocumentViewTest : public QObject
@@ -249,6 +130,12 @@ private Q_SLOTS:
     void initTestCase()
     {
         Q_INIT_RESOURCE(krita);
+        const auto prefix = qEnvironmentVariable("KIS_TEST_PREFIX_PATH");
+        const auto stagedActions = QDir(prefix).filePath(QStringLiteral("share/krita/actions"));
+        const auto actions = !prefix.isEmpty() &&
+            QFile::exists(QDir(stagedActions).filePath(QStringLiteral("krita.action"))) ? stagedActions :
+            QStringLiteral(KRITA_SOURCE_DIR "/krita");
+        KoResourcePaths::addAssetDir(QStringLiteral("kis_actions"), actions);
         QIcon::setThemeSearchPaths({QStringLiteral(":/icons")});
         QIcon::setFallbackSearchPaths({QStringLiteral(":/icons")});
         KLocalizedString::setApplicationDomain("krita");
@@ -1074,7 +961,7 @@ void KisGpuDocumentViewTest::lineToolPreservesPreviewCancellationAndHistory()
     try {
         if (reject) {
             const auto before = owner->operations().snapshot();
-            resources->setCurrentCompositeOp(QStringLiteral("multiply"));
+            resources->setCurrentCompositeOp(QStringLiteral("overlay"));
             press({16, 16});
             move({40, 16});
             if (rejectOnRelease) release({40, 16});
@@ -2133,8 +2020,7 @@ void KisGpuDocumentViewTest::invertColorsActionUsesGpuDocumentAndDiagnosesUnsupp
 void KisGpuDocumentViewTest::desaturateActionAppliesGrayscaleOnGpuDocument()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
-    if (!KisFilterRegistry::instance()->value(QStringLiteral("desaturate")))
-        KisFilterRegistry::instance()->add(KisFilterSP(new GpuDocumentDesaturateFilter));
+    QVERIFY(KisFilterRegistry::instance()->value(QStringLiteral("desaturate")));
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
@@ -2194,8 +2080,7 @@ void KisGpuDocumentViewTest::desaturateActionAppliesGrayscaleOnGpuDocument()
 void KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
-    if (!KisFilterRegistry::instance()->value(QStringLiteral("hsvadjustment")))
-        KisFilterRegistry::instance()->add(KisFilterSP(new GpuDocumentHsvAdjustmentFilter));
+    QVERIFY(KisFilterRegistry::instance()->value(QStringLiteral("hsvadjustment")));
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
@@ -2370,21 +2255,24 @@ void KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument
     QVERIFY(type);
     QVERIFY(colorize);
     QVERIFY(buttons);
+    type->setCurrentIndex(0);
+    colorize->setChecked(true);
     hue->setValue(120);
     saturation->setValue(80);
     value->setValue(0);
-    type->setCurrentIndex(0);
-    colorize->setChecked(true);
     buttons->button(QDialogButtonBox::Ok)->click();
     QTRY_COMPARE(owner->operations().historyAction(owner->operations().undoCount()),
                  Gpu::HistoryAction::HsvAdjustment);
-    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes,
-             QByteArray::fromHex("0e7c0eff"));
     {
         const auto operation = lastFilterOperation();
         QVERIFY(operation->colorize);
+        QCOMPARE(operation->hue, 120);
+        QCOMPARE(operation->saturation, 80);
+        QCOMPARE(operation->value, 0);
         QVERIFY(operation->luma == documentLuma());
     }
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes,
+             QByteArray::fromHex("0e7c0eff"));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
 

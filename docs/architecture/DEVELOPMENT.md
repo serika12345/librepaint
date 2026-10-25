@@ -591,6 +591,10 @@ Undo／Redo、`type`省略時の製品既定HSL、HSY・YUV・Colorizeが文書�
 凍結してGPU履歴へ適用されること、Colorizeが設定ダイアログからCPUストロークなしで
 到達すること、未対応モードとモード別範囲外値が画素と履歴を変えずに診断を表示することを
 検査する。
+HSV Adjustmentと彩度除去は、試験の構築依存に含む製品の`kritacolorsfilters`を読み込む。
+Colorizeの入力はモードを切り替えてから設定し、GPU履歴に固定された色相・彩度・値と
+結果画素を照合する。ツールのアクション情報は、構築済みの`krita.action`または
+ソースの`krita/krita.action`から、入力・ツールの初期化前に登録する。
 `KisGpuDocumentViewTest::invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters`は、
 `krita_filter_invert`アクションがGPU文書のアクティブペイントレイヤーへ一度の履歴として
 適用され、Undo／Redoが同じ画素を復元すること、未対応フィルターが履歴と画素を変えずに
