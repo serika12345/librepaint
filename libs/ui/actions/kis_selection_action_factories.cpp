@@ -387,18 +387,17 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
             Gpu::LayerId layer = 0;
             for (const auto &candidate : owner->operations().snapshot()->layers)
                 if (node && candidate.uuid == node->uuid()) layer = candidate.id;
-            if (owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
-                view->showFloatingMessage(i18n("Copying or cutting an elliptical GPU selection is not available."), QIcon());
-                return;
-            }
             if (!node || !node->hasEditablePaintDevice() || !layer) {
                 view->showFloatingMessage(i18n("The selected layer cannot be copied from this GPU document."), QIcon());
                 return;
             }
             const bool inverted = owner->selectionInverted();
-            const std::optional<QRect> hole = inverted ? std::optional<QRect>(selected) : std::nullopt;
+            const bool ellipse = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse;
+            std::optional<GpuClipboardMask> mask;
+            if (inverted) mask = GpuClipboardMask{selected, ellipse, false};
+            else if (ellipse) mask = GpuClipboardMask{selected, true, true};
             if (!KisClipboard::instance()->setGpuLayer(image, node->uuid(), 256 * 1024 * 1024,
-                                                       inverted ? QRect() : selected, hole)) {
+                                                       inverted ? QRect() : selected, mask)) {
                 view->showFloatingMessage(i18n("The selected area could not be copied."), QIcon());
                 return;
             }
@@ -571,14 +570,13 @@ void KisCopyMergedActionFactory::run(KisViewManager *view)
     if (!guard || view->image().data() != image.data()) return;
 
     if (const auto owner = image->gpuImage()) {
-        if (owner->selectionKind() != LibrePaint::Image::Gpu::SelectionKind::Rectangle) {
-            if (guard) view->showFloatingMessage(i18n("Copying an elliptical GPU selection is not available."), QIcon());
-            return;
-        }
         const bool inverted = owner->selectionInverted();
-        const std::optional<QRect> hole = inverted ? std::optional<QRect>(owner->selectionRect()) : std::nullopt;
+        const bool ellipse = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse;
+        std::optional<GpuClipboardMask> mask;
+        if (inverted) mask = GpuClipboardMask{owner->selectionRect(), ellipse, false};
+        else if (ellipse) mask = GpuClipboardMask{owner->selectionRect(), true, true};
         if (!KisClipboard::instance()->setGpuProjection(image, 256 * 1024 * 1024,
-                                                        inverted ? QRect() : owner->selectionRect(), hole) && guard) {
+                                                        inverted ? QRect() : owner->selectionRect(), mask) && guard) {
             view->showFloatingMessage(i18n("The merged image could not be copied."), QIcon());
         }
         return;

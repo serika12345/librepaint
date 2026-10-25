@@ -2402,6 +2402,31 @@ void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
     QCOMPARE(pixel(reopenedPixels.bytes, 32, 32), QByteArray::fromHex("1181f1ff"));
     QCOMPARE(pixel(reopenedPixels.bytes, 16, 16), QByteArray(4, char(0)));
 
+    auto *copyMerged = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_merged"));
+    QVERIFY(copyMerged);
+    copyMerged->trigger();
+    QTRY_VERIFY(KisClipboard::instance()->hasImage());
+    const auto *ellipseClipboard = QGuiApplication::clipboard()->mimeData();
+    QVERIFY(ellipseClipboard);
+    const QImage copiedEllipse = KisClipboard::instance()->getImageWithFallback(ellipseClipboard);
+    QVERIFY(!copiedEllipse.isNull());
+    QCOMPARE(copiedEllipse.size(), QSize(32, 32));
+    QCOMPARE(copiedEllipse.pixelColor(16, 16), QColor(17, 129, 241));
+    QCOMPARE(copiedEllipse.pixelColor(0, 0).alpha(), 0);
+    auto *manager = window->viewManager()->selectionManager();
+    QVERIFY(manager);
+    manager->copy();
+    const auto *layerClipboard = QGuiApplication::clipboard()->mimeData();
+    QVERIFY(layerClipboard);
+    const QImage copiedEllipseLayer = KisClipboard::instance()->getImageWithFallback(layerClipboard);
+    QVERIFY(!copiedEllipseLayer.isNull());
+    QCOMPARE(copiedEllipseLayer.size(), QSize(32, 32));
+    QCOMPARE(copiedEllipseLayer.pixelColor(0, 0).alpha(), 0);
+    manager->cut();
+    const auto cutEllipse = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(cutEllipse.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(quint8(pixel(cutEllipse.bytes, 32, 32).at(3)), 0);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
     const auto runFilter = [&](const QString &id, int x, int y) {
         KisOperationConfigurationSP config = new KisOperationConfiguration(id);
         config->setProperty("x-radius", x);
@@ -2428,6 +2453,26 @@ void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
     QCOMPARE(invertedLoaded.document.image.selection, ellipseRect);
     QCOMPARE(invertedLoaded.document.image.selectionKind, Gpu::SelectionKind::Ellipse);
     QVERIFY(invertedLoaded.document.image.selectionInverted);
+
+    fill->trigger();
+    QTRY_VERIFY(owner->selectionInverted());
+    copyMerged->trigger();
+    const auto *invertedClipboard = QGuiApplication::clipboard()->mimeData();
+    QVERIFY(invertedClipboard);
+    const QImage copiedInverted = KisClipboard::instance()->getImageWithFallback(invertedClipboard);
+    QVERIFY(!copiedInverted.isNull());
+    QCOMPARE(copiedInverted.size(), QSize(64, 64));
+    QCOMPARE(copiedInverted.pixelColor(4, 4), QColor(17, 129, 241));
+    QCOMPARE(copiedInverted.pixelColor(32, 32).alpha(), 0);
+    manager->cut();
+    const auto cutInverted = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(cutInverted.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(quint8(pixel(cutInverted.bytes, 4, 4).at(3)), 0);
+    QCOMPARE(pixel(cutInverted.bytes, 32, 32), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    const auto restoredInverted = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(restoredInverted.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(pixel(restoredInverted.bytes, 4, 4), QByteArray::fromHex("1181f1ff"));
 }
 
 void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()

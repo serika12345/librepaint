@@ -25,6 +25,13 @@ class QMimeData;
 class KisTimeSpan;
 class KoColorSpace;
 
+struct GpuClipboardMask
+{
+    QRect rect;
+    bool ellipse = false;
+    bool keepInside = false;
+};
+
 class KisClipboardPrivate;
 
 /**
@@ -129,10 +136,10 @@ public:
      * the previous clipboard and source state; the copy retains execution.
      */
     bool setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes = 256 * 1024 * 1024, QRect region = {},
-                          std::optional<QRect> hole = {});
+                          std::optional<GpuClipboardMask> mask = {});
     /** Captures one GPU layer's pixels in region; false keeps the previous clipboard. */
     bool setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes = 256 * 1024 * 1024,
-                     QRect region = {}, std::optional<QRect> hole = {});
+                     QRect region = {}, std::optional<GpuClipboardMask> mask = {});
     bool hasLayers() const;
     bool hasLayerStyles() const;
 

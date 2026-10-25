@@ -18,6 +18,8 @@
 #include <QTemporaryFile>
 #include <QThread>
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
+#include <cstring>
 #include <stdexcept>
 
 // kritaglobal
@@ -724,7 +726,7 @@ bool KisClipboard::setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy
     return true;
 }
 
-bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes, QRect region, std::optional<QRect> hole)
+bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes, QRect region, std::optional<GpuClipboardMask> mask)
 {
     const auto owner = image ? image->gpuImage() : nullptr;
     if (!owner || QThread::currentThread() != thread() || QThread::currentThread() != owner->thread() ||
@@ -737,11 +739,27 @@ bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetByte
         const auto copied = owner->cloneRasterLayer(version, 0, captured,
                                                     QUuid::createUuid(), memoryBudgetBytes);
         if (!copied) return false;
-        if (hole && !hole->isEmpty()) {
-            const QRect clear = hole->normalized().intersected(QRect(QPoint(), copied->operations().snapshot()->size));
-            if (!clear.isEmpty()) {
-                QByteArray zeros(clear.width() * clear.height() * 4, ' ');
-                if (copied->writeRgbaPixels(copied->operations().activeLayer(), clear, zeros) != LibrePaint::Image::Gpu::Result::Success)
+        if (mask && !mask->rect.isEmpty()) {
+            const QRect area = mask->rect.translated(-captured.topLeft()).normalized().intersected(QRect(QPoint(), copied->operations().snapshot()->size));
+            if (!area.isEmpty()) {
+                const auto pixels = copied->readRgbaPixels(copied->operations().activeLayer(), area, memoryBudgetBytes);
+                if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success) return false;
+                QByteArray bytes = pixels.bytes;
+                const qreal cx = area.x() + area.width() / 2.0, cy = area.y() + area.height() / 2.0;
+                const qreal rx = area.width() / 2.0, ry = area.height() / 2.0;
+                for (int y = 0; y < area.height(); ++y) {
+                    for (int x = 0; x < area.width(); ++x) {
+                        bool inside = true;
+                        if (mask->ellipse) {
+                            const qreal dx = (area.x() + x + 0.5 - cx) / rx;
+                            const qreal dy = (area.y() + y + 0.5 - cy) / ry;
+                            inside = dx * dx + dy * dy <= 1.0;
+                        }
+                        const bool clear = mask->keepInside ? !inside : inside;
+                        if (clear) std::memset(bytes.data() + (y * area.width() + x) * 4, 0, 4);
+                    }
+                }
+                if (copied->writeRgbaPixels(copied->operations().activeLayer(), area, bytes) != LibrePaint::Image::Gpu::Result::Success)
                     return false;
             }
         }
@@ -758,7 +776,7 @@ bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetByte
     }
 }
 
-bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes, QRect region, std::optional<QRect> hole)
+bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes, QRect region, std::optional<GpuClipboardMask> mask)
 {
     const auto owner = image ? image->gpuImage() : nullptr;
     if (!owner || layer.isNull() || QThread::currentThread() != thread() ||
@@ -775,11 +793,27 @@ bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype m
     try {
         const auto copied = owner->cloneRasterLayer(version, layerId, captured, QUuid::createUuid(), memoryBudgetBytes);
         if (!copied) return false;
-        if (hole && !hole->isEmpty()) {
-            const QRect clear = hole->normalized().intersected(QRect(QPoint(), copied->operations().snapshot()->size));
-            if (!clear.isEmpty()) {
-                QByteArray zeros(clear.width() * clear.height() * 4, ' ');
-                if (copied->writeRgbaPixels(copied->operations().activeLayer(), clear, zeros) != LibrePaint::Image::Gpu::Result::Success)
+        if (mask && !mask->rect.isEmpty()) {
+            const QRect area = mask->rect.translated(-captured.topLeft()).normalized().intersected(QRect(QPoint(), copied->operations().snapshot()->size));
+            if (!area.isEmpty()) {
+                const auto pixels = copied->readRgbaPixels(copied->operations().activeLayer(), area, memoryBudgetBytes);
+                if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success) return false;
+                QByteArray bytes = pixels.bytes;
+                const qreal cx = area.x() + area.width() / 2.0, cy = area.y() + area.height() / 2.0;
+                const qreal rx = area.width() / 2.0, ry = area.height() / 2.0;
+                for (int y = 0; y < area.height(); ++y) {
+                    for (int x = 0; x < area.width(); ++x) {
+                        bool inside = true;
+                        if (mask->ellipse) {
+                            const qreal dx = (area.x() + x + 0.5 - cx) / rx;
+                            const qreal dy = (area.y() + y + 0.5 - cy) / ry;
+                            inside = dx * dx + dy * dy <= 1.0;
+                        }
+                        const bool clear = mask->keepInside ? !inside : inside;
+                        if (clear) std::memset(bytes.data() + (y * area.width() + x) * 4, 0, 4);
+                    }
+                }
+                if (copied->writeRgbaPixels(copied->operations().activeLayer(), area, bytes) != LibrePaint::Image::Gpu::Result::Success)
                     return false;
             }
         }
