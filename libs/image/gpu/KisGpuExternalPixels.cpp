@@ -55,7 +55,7 @@ std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &bl
         const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, block, 1, 1);
         if (!tiles || !tiles->isEmpty()) return true;
     }
-    if (paint.figureStyle.fill) {
+    if (hasFigureFill(paint.figureStyle)) {
         const auto tiles = Detail::figureFillTiles(mesh.fill, paint.brush, block, 1, Detail::PixelHistoryBlockSize);
         if (!tiles || !tiles->isEmpty()) return true;
     }

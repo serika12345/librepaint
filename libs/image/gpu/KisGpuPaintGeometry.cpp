@@ -322,7 +322,7 @@ std::optional<PaintGeometry> pathGeometry(const PaintOperation &operation, const
     quint32 phase = 0;
     std::optional<InputSample> first, previous;
     const auto close = [&] {
-        if (!operation.figureStyle.fill || !first || !previous) return true;
+        if (!hasFigureFill(operation.figureStyle) || !first || !previous) return true;
         const qint32 ax = fixed(previous->position.x()), ay = fixed(previous->position.y());
         const qint32 bx = fixed(first->position.x()), by = fixed(first->position.y());
         if (ax == bx && ay == by) return true;
@@ -346,7 +346,7 @@ std::optional<PaintGeometry> pathGeometry(const PaintOperation &operation, const
         }
     }
     if (!close() || result.outline.size() + closures.size() > PathGeometrySegmentLimit) return std::nullopt;
-    if (operation.figureStyle.fill) {
+    if (hasFigureFill(operation.figureStyle)) {
         result.fill = result.outline;
         result.fill.append(closures);
     }
@@ -458,7 +458,7 @@ std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quin
         const auto &b = points[i];
         if (!appendSegment(result.outline, a, b, step, phase, points.size())) return std::nullopt;
     }
-    if (operation.figureStyle.fill) {
+    if (hasFigureFill(operation.figureStyle)) {
         result.fill = result.outline;
         if (!result.fill.isEmpty() && (result.fill.last().bx != result.fill.first().ax || result.fill.last().by != result.fill.first().ay)) {
             result.fill.append({result.fill.last().bx, result.fill.last().by, result.fill.first().ax, result.fill.first().ay, 0, 0, 0, 0});

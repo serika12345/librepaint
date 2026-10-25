@@ -545,6 +545,25 @@ Result PaintImage::fillTransparencyMask(LayerId layer, const std::array<quint8, 
                                        {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0, true);
 }
 
+Result PaintImage::fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
+                                               quint8 opacity, bool erase, bool alphaLocked)
+{
+    Q_UNUSED(alphaLocked);
+    if (!pattern.isValid()) return Result::InvalidInput;
+    Brush brush;
+    brush.rgba = {0, 0, 0, 255};
+    brush.opacity = opacity;
+    brush.erase = erase;
+    brush.channelWriteMask = 15;
+    FigureStyle style;
+    style.outline = false;
+    style.pattern = pattern;
+    const QSize size = m_d->document->snapshot()->size;
+    const QPointF end(size.width(), size.height());
+    return paintTransparencyMaskFigure(layer, brush, {{{0, 0}, 1}, {end, 1}},
+                                       {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0, true);
+}
+
 Result PaintImage::replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask)
 {
     if (!onThread()) return Result::InvalidInput;
@@ -733,6 +752,9 @@ Result PaintImage::resizeCanvas(const QRect &rect, bool cropLayers)
 Result PaintImage::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
                              quint8 opacity, bool erase, bool alphaLocked)
 { return onThread() ? publish(m_d->document->fillLayer(layer, rgb, opacity, erase, alphaLocked)) : Result::InvalidInput; }
+Result PaintImage::fillLayerPattern(LayerId layer, const PatternFill &pattern,
+                                    quint8 opacity, bool erase, bool alphaLocked)
+{ return onThread() ? publish(m_d->document->fillLayerPattern(layer, pattern, opacity, erase, alphaLocked)) : Result::InvalidInput; }
 Result PaintImage::selectLayers(const QList<LayerId> &layers, LayerId active)
 { return onThread() ? publish(m_d->document->selectLayers(layers, active)) : Result::InvalidInput; }
 Result PaintImage::selectLayer(LayerId layer)

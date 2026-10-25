@@ -76,6 +76,8 @@ private Q_SLOTS:
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery();
     void featheredSelectionClipsPaintFillEraseHistoryAndRecovery();
+    void patternFillTilesAcrossSelectionHistoryAndRecovery();
+    void patternFillClipsAlphaCompositesErasesAndRejectsInvalidInput();
     void layerTransparencyMaskMultipliesCompositionAlpha();
     void gaussianWashProducesCoverageAndRetainsPixelsThroughRecovery();
     void gaussianEraseKeepsColorsHistoryAndRecovery_data();
@@ -3152,6 +3154,152 @@ void KisGpuTileRendererTest::selectionLimitsPaintFillAndEraseAcrossHistoryAndRec
     QCOMPARE(pixel(erased, 64, 64), QByteArray::fromHex("1450a000"));
     QCOMPARE(eraseDocument.clearSelection(), Result::Success);
     QVERIFY(eraseDocument.selectionRect().isEmpty());
+}
+
+void KisGpuTileRendererTest::patternFillTilesAcrossSelectionHistoryAndRecovery()
+{
+    const auto patternPixel = [](int x, int y) {
+        const int px = ((x % 4) + 4) % 4;
+        const int py = ((y % 4) + 4) % 4;
+        QByteArray value(4, '\0');
+        value[0] = char(px * 60 + 3);
+        value[1] = char(py * 60 + 5);
+        value[2] = char((px + py) * 20 + 7);
+        value[3] = char(255);
+        return value;
+    };
+    PatternFill pattern;
+    pattern.size = QSize(4, 4);
+    pattern.rgba = QByteArray(4 * 4 * 4, '\0');
+    for (int y = 0; y < 4; ++y) {
+        for (int x = 0; x < 4; ++x) {
+            const auto value = patternPixel(x, y);
+            std::memcpy(pattern.rgba.data() + (y * 4 + x) * 4, value.constData(), 4);
+        }
+    }
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+
+    // The selection crosses all four 256-pixel tiles; the pattern repeats from
+    // the document origin, so tile boundaries do not shift its phase.
+    OperationDocument document({512, 512});
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setSelectionRect(QRect(200, 200, 120, 120)), Result::Success);
+    QCOMPARE(document.fillLayerPattern(layer, pattern), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::FillLayer);
+    TileRenderer renderer(m_device);
+    auto rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    const auto bytes00 = readTile(rendered, layer, {0, 0});
+    const auto bytes10 = readTile(rendered, layer, {1, 0});
+    const auto bytes01 = readTile(rendered, layer, {0, 1});
+    const auto bytes11 = readTile(rendered, layer, {1, 1});
+    QCOMPARE(bytes00.size(), TileRenderer::TileBytes);
+    QCOMPARE(bytes10.size(), TileRenderer::TileBytes);
+    QCOMPARE(bytes01.size(), TileRenderer::TileBytes);
+    QCOMPARE(bytes11.size(), TileRenderer::TileBytes);
+    QCOMPARE(pixel(bytes00, 200, 200), patternPixel(200, 200));
+    QCOMPARE(pixel(bytes00, 201, 200), patternPixel(201, 200));
+    QCOMPARE(pixel(bytes00, 255, 255), patternPixel(255, 255));
+    QCOMPARE(pixel(bytes10, 0, 200), patternPixel(256, 200));
+    QCOMPARE(pixel(bytes01, 200, 0), patternPixel(200, 256));
+    QCOMPARE(pixel(bytes11, 0, 0), patternPixel(256, 256));
+    QCOMPARE(pixel(bytes11, 63, 63), patternPixel(319, 319));
+    QCOMPARE(pixel(bytes00, 199, 200), QByteArray(4, '\0'));
+    QCOMPARE(pixel(bytes10, 64, 200), QByteArray(4, '\0'));
+    QCOMPARE(pixel(bytes01, 200, 64), QByteArray(4, '\0'));
+    QCOMPARE(pixel(bytes11, 64, 64), QByteArray(4, '\0'));
+
+    // The fill is one history entry; undo removes the filled tiles and redo
+    // restores the same pixels.
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(render(renderer, document.snapshot())->tiles(layer).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    QCOMPARE(readTile(rendered, layer, {0, 0}), bytes00);
+    QCOMPARE(readTile(rendered, layer, {1, 0}), bytes10);
+    QCOMPARE(readTile(rendered, layer, {0, 1}), bytes01);
+    QCOMPARE(readTile(rendered, layer, {1, 1}), bytes11);
+
+    // Recovery retains the frozen pattern resource and its selection.
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.undoCount(), 2);
+    const auto recovered = render(renderer, restored.snapshot());
+    QVERIFY(recovered);
+    QCOMPARE(readTile(recovered, restored.activeLayer(), {0, 0}), bytes00);
+    QCOMPARE(readTile(recovered, restored.activeLayer(), {1, 0}), bytes10);
+    QCOMPARE(readTile(recovered, restored.activeLayer(), {0, 1}), bytes01);
+    QCOMPARE(readTile(recovered, restored.activeLayer(), {1, 1}), bytes11);
+}
+
+void KisGpuTileRendererTest::patternFillClipsAlphaCompositesErasesAndRejectsInvalidInput()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    const QRect clip(QPoint(), QSize(64, 64));
+    const QByteArray coverage = QByteArray::fromHex(
+        "ff804001" "20c80af0" "50a01464" "fa05823c");
+    const auto mask = SelectionMask::fromAlphaCoverage(QRect(16, 16, 4, 4), coverage, clip);
+    QVERIFY(mask);
+    QCOMPARE(mask->bounds(), QRect(16, 16, 4, 4));
+    QCOMPARE(mask->coverage(16, 16), quint8(255));
+    QCOMPARE(mask->coverage(17, 16), quint8(128));
+
+    // Pattern alpha times selection alpha times fill opacity, with straight
+    // RGBA over a transparent destination.
+    PatternFill pattern;
+    pattern.size = QSize(2, 2);
+    pattern.rgba = QByteArray(2 * 2 * 4, '\0');
+    for (qsizetype i = 0; i < pattern.rgba.size(); i += 4) {
+        pattern.rgba[i + 0] = char(10);
+        pattern.rgba[i + 1] = char(20);
+        pattern.rgba[i + 2] = char(30);
+        pattern.rgba[i + 3] = char(200);
+    }
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setSelectionMask(mask), Result::Success);
+    QCOMPARE(document.fillLayerPattern(layer, pattern, 128), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto clipped = readTile(render(renderer, document.snapshot()), layer, {0, 0});
+    QCOMPARE(pixel(clipped, 16, 16), QByteArray::fromHex("0a141e64"));
+    QCOMPARE(pixel(clipped, 17, 16), QByteArray::fromHex("0a141e32"));
+    QCOMPARE(pixel(clipped, 18, 16), QByteArray::fromHex("0a141e19"));
+    QCOMPARE(pixel(clipped, 19, 16), QByteArray::fromHex("0a141e01"));
+    QCOMPARE(pixel(clipped, 15, 16), QByteArray(4, '\0'));
+    QCOMPARE(pixel(clipped, 20, 16), QByteArray(4, '\0'));
+
+    // Erase mode removes pattern alpha times selection alpha from the retained
+    // destination while preserving its RGB values.
+    OperationDocument eraseDocument({64, 64});
+    const auto eraseLayer = eraseDocument.activeLayer();
+    QCOMPARE(eraseDocument.fillLayer(eraseLayer, {200, 30, 70}), Result::Success);
+    QCOMPARE(eraseDocument.setSelectionMask(mask), Result::Success);
+    const auto undoBefore = eraseDocument.undoCount();
+    QCOMPARE(eraseDocument.fillLayerPattern(eraseLayer, pattern, 255, true), Result::Success);
+    QCOMPARE(eraseDocument.undoCount(), undoBefore + 1);
+    const auto erased = readTile(render(renderer, eraseDocument.snapshot()), eraseLayer, {0, 0});
+    QCOMPARE(pixel(erased, 16, 16), QByteArray::fromHex("c81e4637"));
+    QCOMPARE(pixel(erased, 17, 16), QByteArray::fromHex("c81e469b"));
+    QCOMPARE(pixel(erased, 18, 16), QByteArray::fromHex("c81e46cd"));
+    QCOMPARE(pixel(erased, 19, 16), QByteArray::fromHex("c81e46fe"));
+    QCOMPARE(pixel(erased, 15, 16), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(eraseDocument.undo(), Result::Success);
+    const auto restored = readTile(render(renderer, eraseDocument.snapshot()), eraseLayer, {0, 0});
+    QCOMPARE(pixel(restored, 16, 16), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(eraseDocument.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, eraseDocument.snapshot()), eraseLayer, {0, 0}), erased);
+
+    // Malformed frozen pixels are rejected before touching history or pixels.
+    const auto before = document.snapshot();
+    PatternFill malformed{QSize(2, 2), QByteArray(3, '\0')};
+    QCOMPARE(document.fillLayerPattern(layer, malformed), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), before);
 }
 
 void KisGpuTileRendererTest::featheredSelectionClipsPaintFillEraseHistoryAndRecovery()

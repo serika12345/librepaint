@@ -84,6 +84,7 @@ struct TileRenderer::Private
     Detail::NativeBuffer zero;
     Detail::NativeBuffer unusedCoverage;
     Detail::NativeBuffer unusedSelection;
+    Detail::NativeBuffer unusedPattern;
     /** Opaque 256 x 256 coverage bound for layers without a transparency mask. */
     Detail::NativeBuffer opaqueMask;
     struct MaskCacheEntry {

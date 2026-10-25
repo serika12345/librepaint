@@ -24,6 +24,8 @@ inline qsizetype operationSamples(const LayerOperation &value)
 }
 inline qsizetype operationRasterBytes(const LayerOperation &value)
 {
+    if (const auto paint = std::get_if<PaintSnapshot>(&value))
+        return (*paint)->figureStyle.pattern ? (*paint)->figureStyle.pattern->byteCount() : 0;
     const auto write = std::get_if<TileWriteSnapshot>(&value);
     return write ? (*write)->tiles.size() * RgbaTile::ByteCount : 0;
 }

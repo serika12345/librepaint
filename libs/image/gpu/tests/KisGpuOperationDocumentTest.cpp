@@ -171,6 +171,7 @@ private Q_SLOTS:
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
     void filledFiguresPreserveStylesHistoryAndRecovery();
+    void patternFillFreezesPixelsHistoryAndRecovery();
     void emptyFigureIntentPreservesHistoryAndRecovery();
     void pathsPreserveCommandsControlPointsAndRecovery();
     void pathCallsRetainInputHistoryAndRecovery();
@@ -3704,6 +3705,67 @@ void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistoryAndRecovery(
     QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->figureStyle.fill, style.fill);
+}
+
+void KisGpuOperationDocumentTest::patternFillFreezesPixelsHistoryAndRecovery()
+{
+    PatternFill pattern;
+    pattern.size = QSize(2, 2);
+    pattern.rgba = QByteArray::fromHex("030507ff3f051bff7b0005ff0b141eff");
+    QVERIFY(pattern.isValid());
+
+    OperationDocument document({64, 32});
+    const auto layer = document.activeLayer();
+    const auto before = document.snapshot();
+    PatternFill malformed{QSize(2, 2), QByteArray(3, '\0')};
+    QCOMPARE(document.fillLayerPattern(layer, malformed), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.undoCount(), 0);
+
+    QCOMPARE(document.fillLayerPattern(layer, pattern), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::FillLayer);
+    const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
+    QVERIFY(!operation->figureStyle.outline);
+    QVERIFY(!operation->figureStyle.fill);
+    QVERIFY(operation->figureStyle.pattern);
+    QCOMPARE(*operation->figureStyle.pattern, pattern);
+    QCOMPARE(operation->selectionRect, QRect());
+
+    // One history entry owns the frozen resource; undo removes the fill and
+    // redo restores the same operation.
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(*std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->figureStyle.pattern,
+             pattern);
+
+    // Recovery persists the frozen RGBA pixels with the same operation values.
+    const auto recovery = document.recoveryData();
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    QCOMPARE(restored.recoveryData(), recovery);
+    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QVERIFY(recovered->figureStyle.pattern);
+    QCOMPARE(*recovered->figureStyle.pattern, pattern);
+    QCOMPARE(restored.historyAction(1), HistoryAction::FillLayer);
+
+    // The frozen resource participates in the raster capacity limit.
+    Limits limits;
+    limits.rasterBytes = pattern.byteCount() - 1;
+    OperationDocument bounded({64, 32}, limits);
+    QCOMPARE(bounded.fillLayerPattern(bounded.activeLayer(), pattern), Result::CapacityExceeded);
+    QCOMPARE(bounded.undoCount(), 0);
+    QVERIFY(bounded.snapshot()->layers.first().operations.isEmpty());
+
+    // Pattern coverage is filled interior coverage, not an outline stroke.
+    FigureStyle style;
+    style.outline = false;
+    style.pattern = pattern;
+    Shape freehand;
+    freehand.kind = ShapeKind::Freehand;
+    QCOMPARE(document.paintFigure(layer, Brush{}, {{{1, 1}, 1}}, freehand, style, 0), Result::InvalidInput);
+    QCOMPARE(document.recoveryData(), recovery);
 }
 
 void KisGpuOperationDocumentTest::emptyFigureIntentPreservesHistoryAndRecovery()

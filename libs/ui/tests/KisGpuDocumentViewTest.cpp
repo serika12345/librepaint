@@ -55,6 +55,7 @@
 #include <KoToolManager.h>
 #include <KoSnapGuide.h>
 #include <KoCanvasResourcesIds.h>
+#include <KoPattern.h>
 #include <KoToolBase.h>
 #include <KoColorSpaceRegistry.h>
 #include <document/KisDocument.h>
@@ -290,7 +291,13 @@ void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving_data
         QTest::newRow(name.constData()) << gpu << QString::fromLatin1(c.name)
             << QByteArray::fromHex(c.blank) << QByteArray::fromHex(c.covered);
     }
-    for (const auto &scenario : {"reject-pattern", "reject-blend", "close-during-fill"}) {
+    QTest::newRow("gpu-pattern") << true << QStringLiteral("pattern")
+        << QByteArray::fromHex("664422c8") << QByteArray::fromHex("543d26ff");
+    QTest::newRow("gpu-pattern-opacity") << true << QStringLiteral("pattern-opacity")
+        << QByteArray::fromHex("66442264") << QByteArray::fromHex("322f2cff");
+    QTest::newRow("gpu-pattern-erase") << true << QStringLiteral("pattern-erase")
+        << QByteArray::fromHex("00000000") << QByteArray::fromHex("11223337");
+    for (const auto &scenario : {"reject-pattern-blend", "reject-blend", "close-during-fill"}) {
         const QByteArray name = QByteArray("gpu-") + scenario;
         QTest::newRow(name.constData()) << true << QString::fromLatin1(scenario)
             << QByteArray::fromHex("f18111ff") << QByteArray::fromHex("f18111ff");
@@ -369,17 +376,28 @@ void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving()
     resources->setBGColor(KoColor(QColor(221, 17, 44), cs));
     const bool withOpacity = scenario.endsWith(QLatin1String("opacity"));
     resources->setOpacity(scenario == QLatin1String("zero-opacity") ? 0 : qreal(withOpacity ? 128 : 64) / 255);
-    resources->setEraserMode(scenario == QLatin1String("erase"));
+    const bool patternScenario = scenario.startsWith(QLatin1String("pattern")) ||
+        scenario.startsWith(QLatin1String("reject-pattern"));
+    if (patternScenario) {
+        QImage patternImage(2, 2, QImage::Format_ARGB32);
+        patternImage.fill(QColor(34, 68, 102, 200));
+        resources->slotPatternActivated(KoPatternSP(new KoPattern(patternImage,
+            QStringLiteral("GPU test pattern"), QString())));
+    }
+    const bool eraseScenario = scenario == QLatin1String("erase") || scenario == QLatin1String("pattern-erase");
+    resources->setEraserMode(eraseScenario);
     resources->setCurrentCompositeOp(QStringLiteral("normal"));
     resources->resourceManager()->setResource(KoCanvasResource::GlobalAlphaLock,
-        scenario == QLatin1String("alpha-lock") || scenario == QLatin1String("erase"));
-    if (scenario == QLatin1String("reject-blend")) resources->setCurrentCompositeOp(QStringLiteral("multiply"));
+        scenario == QLatin1String("alpha-lock") || eraseScenario);
+    if (scenario == QLatin1String("reject-blend") || scenario == QLatin1String("reject-pattern-blend"))
+        resources->setCurrentCompositeOp(QStringLiteral("multiply"));
     const auto count = lifetime->undoStack()->count();
     const auto index = lifetime->undoStack()->index();
     if (owner) QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
     else lifetime->undoStack()->setClean();
-    const auto actionName = scenario == QLatin1String("reject-pattern") ? QStringLiteral("fill_selection_pattern") : QStringLiteral("fill_selection_") +
-        (scenario.startsWith(QLatin1String("background")) ? QStringLiteral("background_color") : QStringLiteral("foreground_color")) +
+    const auto actionName = (patternScenario ? QStringLiteral("fill_selection_pattern") :
+        QStringLiteral("fill_selection_") +
+            (scenario.startsWith(QLatin1String("background")) ? QStringLiteral("background_color") : QStringLiteral("foreground_color"))) +
         (withOpacity ? QStringLiteral("_opacity") : QString());
     auto *action = window->viewManager()->actionManager()->actionByName(actionName);
     QVERIFY(action);

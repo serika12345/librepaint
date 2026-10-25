@@ -712,7 +712,11 @@ Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const Q
     if (samples.size() > m_limits.samplesPerStroke ||
         samples.size() > m_limits.samplesPerDocument - snapshot()->sampleCount ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
-        m_nextRevision > std::numeric_limits<quint64>::max() - (samples.isEmpty() ? 1 : 2)) return Result::CapacityExceeded;
+        m_nextRevision > std::numeric_limits<quint64>::max() - (samples.isEmpty() ? 1 : 2) ||
+        (style.pattern && (style.pattern->byteCount() > m_limits.rasterBytes ||
+                           snapshot()->rasterBytes > m_limits.rasterBytes - style.pattern->byteCount()))) {
+        return Result::CapacityExceeded;
+    }
     const auto id = beginStroke(layer, brush, randomSeed);
     if (id.isNull()) return Result::LayerUnavailable;
     const auto rollback = qScopeGuard([&] { if (m_edit && m_edit->id == id) cancelStroke(id); });
@@ -737,6 +741,9 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
         (m_edit->brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (m_edit->sampleCount == 0 && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;
+    if (style.pattern && (style.pattern->byteCount() > m_limits.rasterBytes ||
+                          snapshot()->rasterBytes > m_limits.rasterBytes - style.pattern->byteCount()))
+        return Result::CapacityExceeded;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<PaintOperation> operation(new PaintOperation(*m_edit));
     operation->shape = shape;
@@ -751,6 +758,7 @@ void OperationDocument::replacePreview(const QSharedPointer<const PaintOperation
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[layerIndex(operation->layer)].operations.append(operation);
     version->sampleCount += operation->sampleCount;
+    version->rasterBytes += operationRasterBytes(LayerOperation(PaintSnapshot(operation)));
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     version->m_committed = false;
     version->m_pendingOperation = operation->id;
@@ -1620,15 +1628,36 @@ Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
 Result OperationDocument::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
                                     quint8 opacity, bool erase, bool alphaLocked)
 {
+    const std::array<quint8, 4> color{rgb[0], rgb[1], rgb[2], 255};
+    FigureStyle style;
+    style.outline = false;
+    style.fill = color;
+    return fillLayerStyle(layer, color, style, opacity, erase, alphaLocked);
+}
+
+Result OperationDocument::fillLayerPattern(LayerId layer, const PatternFill &pattern,
+                                           quint8 opacity, bool erase, bool alphaLocked)
+{
+    if (!pattern.isValid()) return Result::InvalidInput;
+    FigureStyle style;
+    style.outline = false;
+    style.pattern = pattern;
+    return fillLayerStyle(layer, {0, 0, 0, 255}, style, opacity, erase, alphaLocked);
+}
+
+Result OperationDocument::fillLayerStyle(LayerId layer, const std::array<quint8, 4> &color,
+                                         const FigureStyle &style, quint8 opacity,
+                                         bool erase, bool alphaLocked)
+{
+    if (style.pattern && (style.pattern->byteCount() > m_limits.rasterBytes ||
+                          snapshot()->rasterBytes > m_limits.rasterBytes - style.pattern->byteCount()))
+        return Result::CapacityExceeded;
     Brush brush;
-    brush.rgba = {rgb[0], rgb[1], rgb[2], 255};
+    brush.rgba = color;
     brush.opacity = opacity;
     brush.erase = erase;
     brush.alphaLocked = alphaLocked;
     brush.channelWriteMask = alphaLocked ? 7 : 15;
-    FigureStyle style;
-    style.outline = false;
-    style.fill = brush.rgba;
     const QPointF end(snapshot()->size.width(), snapshot()->size.height());
     const auto result = paintFigure(layer, brush, {{{0, 0}, 1}, {end, 1}},
                                     {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0);

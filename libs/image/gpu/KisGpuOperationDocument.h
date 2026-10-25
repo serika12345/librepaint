@@ -172,12 +172,42 @@ struct Shape
     QList<QPair<qsizetype, qsizetype>> pathCalls{};
 };
 
-/** Solid figure coverage, separate from the outline brush and its color. */
+/** Frozen straight RGBA8 pattern resource. The pixels repeat from the document
+ * origin; the resource itself is not retained by document versions.
+ */
+struct PatternFill
+{
+    static constexpr qsizetype MaximumBytes = 64 * 1024 * 1024;
+
+    QSize size;
+    QByteArray rgba;
+
+    bool isValid() const
+    {
+        if (size.width() <= 0 || size.height() <= 0 ||
+            size.width() > RgbaTile::CoordinateLimit || size.height() > RgbaTile::CoordinateLimit) return false;
+        const qint64 bytes = qint64(size.width()) * size.height() * 4;
+        return bytes > 0 && bytes <= MaximumBytes && rgba.size() == bytes;
+    }
+    qsizetype byteCount() const { return rgba.size(); }
+    bool operator==(const PatternFill &other) const { return size == other.size && rgba == other.rgba; }
+    bool operator!=(const PatternFill &other) const { return !(*this == other); }
+};
+
+/** Solid figure coverage, separate from the outline brush and its color. A
+ * pattern replaces the solid fill color while retaining the same coverage,
+ * selection, compositing and channel behavior.
+ */
 struct FigureStyle
 {
     bool outline = true;
     std::optional<std::array<quint8, 4>> fill;
+    std::optional<PatternFill> pattern;
 };
+
+/** True when this figure contributes filled interior coverage. */
+inline bool hasFigureFill(const FigureStyle &style)
+{ return style.fill.has_value() || style.pattern.has_value(); }
 
 /**
  * The input and intent of one stroke. GPU dabs and pixels are derived values.
@@ -683,6 +713,12 @@ public:
     /** Fills canvas bounds on one layer as one history step, preserving pixels outside them. */
     Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, quint8 opacity = 255,
                      bool erase = false, bool alphaLocked = false);
+    /** Fills canvas bounds on one layer with a frozen pattern resource as one
+     * history step. The pattern repeats from the document origin; selection
+     * coverage clips and scales its alpha exactly as a solid fill.
+     */
+    Result fillLayerPattern(LayerId layer, const PatternFill &pattern, quint8 opacity = 255,
+                            bool erase = false, bool alphaLocked = false);
     Result undo();
     Result redo();
     /** Selects one retained history state without executing intermediate edits. */
@@ -743,6 +779,8 @@ private:
     };
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
+    Result fillLayerStyle(LayerId layer, const std::array<quint8, 4> &color, const FigureStyle &style,
+                          quint8 opacity, bool erase, bool alphaLocked);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member,

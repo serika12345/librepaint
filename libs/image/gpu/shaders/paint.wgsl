@@ -7,6 +7,7 @@ struct Parameters {
     counts: vec4<u32>,
     mirror: vec4<i32>,
     selection: vec4<i32>,
+    pattern: vec4<u32>,
 }
 struct Segment { endpoints: vec4<i32>, values: vec4<u32>, }
 @group(0) @binding(0) var<uniform> parameters: Parameters;
@@ -17,6 +18,19 @@ struct Segment { endpoints: vec4<i32>, values: vec4<u32>, }
 @group(0) @binding(5) var<storage, read> previousCoverage: array<u32>;
 @group(0) @binding(6) var<storage, read_write> retainedCoverage: array<u32>;
 @group(0) @binding(7) var<storage, read> selectionCoverage: array<u32>;
+@group(0) @binding(8) var<storage, read> patternPixels: array<u32>;
+
+// Pattern pixels repeat from the document origin; negative document
+// coordinates wrap into the same tile.
+fn patternPixel(pixel: vec2<i32>) -> vec4<u32> {
+    let width = max(parameters.pattern.x, 1u);
+    let height = max(parameters.pattern.y, 1u);
+    var x = pixel.x % i32(width);
+    if (x < 0) { x += i32(width); }
+    var y = pixel.y % i32(height);
+    if (y < 0) { y += i32(height); }
+    return unpackPixel(patternPixels[u32(y) * width + u32(x)]);
+}
 
 fn geometryFour(index: u32) -> vec4<u32> {
     return vec4<u32>(geometryWords[index], geometryWords[index + 1u], geometryWords[index + 2u], geometryWords[index + 3u]);
@@ -316,7 +330,8 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     var destination = unpackPixel(basePixels[index]);
     let strokeColor = unpackPixel(parameters.brush.x);
     if ((figureFlags & 1u) != 0u) {
-        let fillColor = unpackPixel(bitcast<u32>(parameters.mirror.z));
+        var fillColor = unpackPixel(bitcast<u32>(parameters.mirror.z));
+        if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
         let fillAlpha = mul255((fillColor.w * countOneBits(fillMask) + 8u) / 16u, selectionAlpha);
         let strokeAlpha = mul255((strokeColor.w * countOneBits(mask) + 8u) / 16u, selectionAlpha);
         // The circular marker retains the first color at equal coverage.

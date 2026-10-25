@@ -140,6 +140,8 @@ public:
      */
     Result fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
                                 quint8 opacity = 255, bool erase = false, bool alphaLocked = false);
+    Result fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
+                                       quint8 opacity = 255, bool erase = false, bool alphaLocked = false);
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
@@ -230,6 +232,8 @@ public:
     /** Publishes one canvas-bounded color fill before notifying attached consumers. */
     Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, quint8 opacity = 255,
                      bool erase = false, bool alphaLocked = false);
+    Result fillLayerPattern(LayerId layer, const PatternFill &pattern, quint8 opacity = 255,
+                            bool erase = false, bool alphaLocked = false);
     Result undo();
     Result redo();
     Result setHistoryIndex(int index);

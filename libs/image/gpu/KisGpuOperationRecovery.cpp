@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 46;
+constexpr quint16 FormatVersion = 47;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -180,9 +180,21 @@ QByteArray OperationDocument::recoveryData() const
                 stream << quint32(operation.shape.pathCalls.size());
                 for (const auto &call : operation.shape.pathCalls) stream << quint32(call.first) << quint32(call.second);
             }
-            stream << quint8(quint8(operation.figureStyle.outline) | (operation.figureStyle.fill ? 2 : 0));
+            const auto &pattern = operation.figureStyle.pattern;
+            stream << quint8(quint8(operation.figureStyle.outline) | (operation.figureStyle.fill ? 2 : 0) |
+                             (pattern ? 4 : 0));
             if (operation.figureStyle.fill)
                 for (const auto component : *operation.figureStyle.fill) stream << component;
+            if (pattern) {
+                const auto remaining = m_limits.recoveryBytes - DigestSize - bytes.size();
+                if (!pattern->isValid() || pattern->byteCount() > m_limits.rasterBytes ||
+                    pattern->size.width() > std::numeric_limits<quint32>::max() ||
+                    pattern->size.height() > std::numeric_limits<quint32>::max() ||
+                    pattern->byteCount() > remaining - 12) return {};
+                stream << quint32(pattern->size.width()) << quint32(pattern->size.height())
+                       << quint32(pattern->byteCount());
+                stream.writeRawData(pattern->rgba.constData(), int(pattern->byteCount()));
+            }
             stream << quint8(quint8(operation.brush.pixelPerfect) | (quint8(operation.brush.basicSmoothing) << 1) |
                               (quint8(operation.smoothingFinished) << 2) | (operation.brush.weightedSmoothing ? 8 : 0));
             if (operation.brush.weightedSmoothing) {
@@ -574,12 +586,24 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         if (format >= 17) {
             quint8 figureFlags = 0;
             stream >> figureFlags;
-            if (figureFlags > 3) return Result::InvalidRecovery;
+            if (figureFlags > (format >= 47 ? 7 : 3)) return Result::InvalidRecovery;
             operation->figureStyle.outline = figureFlags & 1;
             if (figureFlags & 2) {
                 std::array<quint8, 4> fill;
                 for (auto &component : fill) stream >> component;
                 operation->figureStyle.fill = fill;
+            }
+            if (format >= 47 && (figureFlags & 4)) {
+                quint32 width = 0, height = 0, length = 0;
+                stream >> width >> height >> length;
+                if (!width || !height || !readableCount(stream, length, m_limits.rasterBytes, 1) ||
+                    quint64(width) * height * 4 != length || quint64(width) > RgbaTile::CoordinateLimit ||
+                    quint64(height) > RgbaTile::CoordinateLimit) return Result::InvalidRecovery;
+                QByteArray pixels(length, Qt::Uninitialized);
+                if (stream.readRawData(pixels.data(), int(length)) != int(length)) return Result::InvalidRecovery;
+                PatternFill pattern{QSize(int(width), int(height)), std::move(pixels)};
+                if (!pattern.isValid()) return Result::InvalidRecovery;
+                operation->figureStyle.pattern = std::move(pattern);
             }
         }
         if (format >= 19) {
@@ -1059,6 +1083,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 value->m_modifiedRevision = value->m_revision = previewRevision;
                 value->layers[index].operations.append(edit);
                 value->sampleCount += edit->sampleCount;
+                value->rasterBytes += operationRasterBytes(LayerOperation(edit));
                 preview = value;
             } else if (previewRevision != 0 || edit->shape.kind != ShapeKind::Freehand) return Result::InvalidRecovery;
         } else if (const auto value = std::get_if<TranslationSnapshot>(&operations[pendingIndex])) {

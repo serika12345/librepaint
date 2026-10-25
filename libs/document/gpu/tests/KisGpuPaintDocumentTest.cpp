@@ -107,6 +107,7 @@ private Q_SLOTS:
     void rectangularSelectionSavesReopensAndLimitsPainting();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
+    void patternFillSavesReopensAndPreservesSelectionPixels();
     void transparencyMaskComposesSavesReopensAndContinues();
     void transparencyMaskAcceptsDirectBrushEraseFillAndRoundTrips();
     void weightedSmoothingSaveReopenAndContinuePreservesPixels();
@@ -447,6 +448,112 @@ void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTr
                                                                128 * 128 * 4);
     QCOMPARE(invertedPixels.code, ExecutionCode::Success);
     QCOMPARE(invertedPixels.bytes, inverted.bytes);
+}
+
+void KisGpuPaintDocumentTest::patternFillSavesReopensAndPreservesSelectionPixels()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {512, 256};
+    initial.layers.append({QStringLiteral("Pattern"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000028}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    const auto patternPixel = [](int x, int y) {
+        const int px = ((x % 4) + 4) % 4;
+        const int py = ((y % 4) + 4) % 4;
+        QByteArray value(4, '\0');
+        value[0] = char(px * 60 + 3);
+        value[1] = char(py * 60 + 5);
+        value[2] = char((px + py) * 20 + 7);
+        value[3] = char(255);
+        return value;
+    };
+    PatternFill pattern;
+    pattern.size = QSize(4, 4);
+    pattern.rgba = QByteArray(4 * 4 * 4, '\0');
+    for (int y = 0; y < 4; ++y) {
+        for (int x = 0; x < 4; ++x) {
+            const auto value = patternPixel(x, y);
+            std::memcpy(pattern.rgba.data() + (y * 4 + x) * 4, value.constData(), 4);
+        }
+    }
+
+    const QRect region(QPoint(), initial.size);
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * 512 + x) * 4, 4);
+    };
+    QCOMPARE(image->setSelectionRect(QRect(100, 60, 300, 100)), Result::Success);
+    QCOMPARE(image->fillLayerPattern(layer, pattern), Result::Success);
+    QCOMPARE(image->operations().undoCount(), 2);
+    QCOMPARE(image->operations().historyAction(2), HistoryAction::FillLayer);
+    const auto filled = image->readRgbaPixels(layer, region, 512 * 256 * 4);
+    QVERIFY2(filled.code == ExecutionCode::Success, qPrintable(filled.diagnostic));
+    QCOMPARE(pixel(filled.bytes, 99, 60), QByteArray(4, '\0'));
+    QCOMPARE(pixel(filled.bytes, 100, 60), patternPixel(100, 60));
+    QCOMPARE(pixel(filled.bytes, 255, 159), patternPixel(255, 159));
+    QCOMPARE(pixel(filled.bytes, 256, 60), patternPixel(256, 60));
+    QCOMPARE(pixel(filled.bytes, 399, 159), patternPixel(399, 159));
+    QCOMPARE(pixel(filled.bytes, 400, 60), QByteArray(4, '\0'));
+
+    QCOMPARE(image->undo(), Result::Success);
+    const auto undone = image->readRgbaPixels(layer, region, 512 * 256 * 4);
+    QCOMPARE(pixel(undone.bytes, 100, 60), QByteArray(4, '\0'));
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, 512 * 256 * 4).bytes, filled.bytes);
+
+    // KRA stores the resulting pixels; the frozen pattern resource is not a
+    // document property.
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("pattern-fill.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    const auto loadedPixels = loaded->readRgbaPixels(loaded->operations().activeLayer(), region, 512 * 256 * 4);
+    QVERIFY2(loadedPixels.code == ExecutionCode::Success, qPrintable(loadedPixels.diagnostic));
+    QCOMPARE(loadedPixels.bytes, filled.bytes);
+    QCOMPARE(pixel(loadedPixels.bytes, 256, 60), patternPixel(256, 60));
+    QCOMPARE(pixel(loadedPixels.bytes, 400, 60), QByteArray(4, '\0'));
+
+    // Pattern fill through a retained transparency mask uses the same frozen
+    // coverage and remains one history entry.
+    RasterImage maskInitial;
+    maskInitial.size = {128, 128};
+    maskInitial.layers.append({QStringLiteral("Mask pattern"), true,
+                               QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000029}")), {}});
+    PaintDocument maskDocument(execution, maskInitial);
+    const auto maskImage = maskDocument.image();
+    const auto maskLayer = maskImage->operations().activeLayer();
+    QCOMPARE(maskImage->fillLayer(maskLayer, {19, 211, 97}), Result::Success);
+    QCOMPARE(maskImage->setSelectionRect(QRect(16, 16, 32, 32)), Result::Success);
+    QCOMPARE(maskImage->addTransparencyMaskFromSelection(maskLayer), Result::Success);
+    QCOMPARE(maskImage->clearSelection(), Result::Success);
+    QCOMPARE(maskImage->setSelectionRect(QRect(64, 64, 16, 16)), Result::Success);
+    PatternFill opaque;
+    opaque.size = QSize(2, 2);
+    opaque.rgba = QByteArray(2 * 2 * 4, '\0');
+    for (qsizetype i = 0; i < opaque.rgba.size(); i += 4) {
+        opaque.rgba[i + 0] = char(10);
+        opaque.rgba[i + 1] = char(20);
+        opaque.rgba[i + 2] = char(30);
+        opaque.rgba[i + 3] = char(255);
+    }
+    const auto undoBefore = maskImage->operations().undoCount();
+    QCOMPARE(maskImage->fillTransparencyMaskPattern(maskLayer, opaque), Result::Success);
+    QCOMPARE(maskImage->operations().undoCount(), undoBefore + 1);
+    QCOMPARE(maskImage->operations().historyAction(maskImage->operations().undoCount()), HistoryAction::FillLayer);
+    const auto mask = maskImage->layerTransparencyMask(maskLayer);
+    QVERIFY(mask);
+    QCOMPARE(mask->coverage(68, 68), quint8(255));
+    QCOMPARE(mask->coverage(24, 24), quint8(255));
+    QCOMPARE(mask->coverage(0, 0), quint8(0));
+    QCOMPARE(maskImage->undo(), Result::Success);
+    QCOMPARE(maskImage->layerTransparencyMask(maskLayer)->coverage(68, 68), quint8(0));
+    QCOMPARE(maskImage->redo(), Result::Success);
+    QCOMPARE(maskImage->layerTransparencyMask(maskLayer)->coverage(68, 68), quint8(255));
 }
 
 void KisGpuPaintDocumentTest::featheredSelectionClipsPaintAndRoundTripsKra()

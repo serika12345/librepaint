@@ -185,7 +185,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
                     if (coordinates.size() > stageMaximum) return std::nullopt;
                 }
             }
-            if (paint.figureStyle.fill) {
+            if (hasFigureFill(paint.figureStyle)) {
                 const auto tiles = Detail::figureFillTiles(geometry->fill, paint.brush, needed, stageMaximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {

@@ -241,7 +241,8 @@ inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 
 inline bool validFigureStyle(const Shape &shape, const FigureStyle &style)
 {
-    return !style.fill || (shape.kind != ShapeKind::Freehand && shape.kind != ShapeKind::Line);
+    if (style.pattern && !style.pattern->isValid()) return false;
+    return !hasFigureFill(style) || (shape.kind != ShapeKind::Freehand && shape.kind != ShapeKind::Line);
 }
 }
 #endif

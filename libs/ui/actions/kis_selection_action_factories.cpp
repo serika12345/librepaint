@@ -13,7 +13,9 @@
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 
 #include <QMimeData>
+#include <QImage>
 #include <QPointer>
+#include <KoPattern.h>
 #include <gpu/KisGpuPaintImage.h>
 
 #include <klocalizedstring.h>
@@ -274,11 +276,31 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         const auto reject = [&](const QString &message) {
             if (lifetime) lifetime->showFloatingMessage(message, QIcon(), 2000, KisFloatingMessage::Low);
         };
-        if (usePattern) {
-            reject(i18n("Pattern fills are not yet available for this GPU document."));
-            return;
-        }
         auto *resources = view->canvasResourceProvider();
+        Gpu::PatternFill patternFill;
+        if (usePattern) {
+            const KoPatternSP pattern = resources->currentPattern();
+            const QImage source = pattern ? pattern->pattern() : QImage();
+            if (source.isNull()) {
+                reject(i18n("No pattern is selected for this document."));
+                return;
+            }
+            if (qint64(source.width()) * source.height() * 4 > Gpu::PatternFill::MaximumBytes) {
+                reject(i18n("The selected pattern is too large for this document."));
+                return;
+            }
+            const QImage pixels = source.convertToFormat(QImage::Format_RGBA8888);
+            if (pixels.isNull()) {
+                reject(i18n("The selected pattern could not be read."));
+                return;
+            }
+            patternFill.size = pixels.size();
+            patternFill.rgba = QByteArray(reinterpret_cast<const char *>(pixels.constBits()), pixels.sizeInBytes());
+            if (!patternFill.isValid()) {
+                reject(i18n("The selected pattern could not be read."));
+                return;
+            }
+        }
         const auto composite = resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
         if (composite != QLatin1String("normal") && composite != QLatin1String("erase")) {
             reject(i18n("This blend mode is not yet available for this document."));
@@ -303,8 +325,10 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         if (!layer || !view->blockUntilOperationsFinished(image)) return;
         if (!lifetime || lifetime->image().data() != image.data() || image->gpuImage() != owner) return;
         const auto result = maskTarget
-            ? owner->fillTransparencyMask(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked)
-            : owner->fillLayer(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked);
+            ? (usePattern ? owner->fillTransparencyMaskPattern(layer, patternFill, quint8(qRound(255 * opacity)), erase, alphaLocked)
+                          : owner->fillTransparencyMask(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked))
+            : (usePattern ? owner->fillLayerPattern(layer, patternFill, quint8(qRound(255 * opacity)), erase, alphaLocked)
+                          : owner->fillLayer(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked));
         if (result != Gpu::Result::Success) {
             reject(maskTarget ? i18n("The GPU transparency mask could not be filled.")
                               : i18n("The GPU layer could not be filled."));

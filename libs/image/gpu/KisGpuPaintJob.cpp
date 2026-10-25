@@ -15,7 +15,7 @@ quint32 packedPixel(const std::array<quint8, 4> &rgba)
 
 bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<PaintJob> &jobs,
                       std::size_t first, WGPUBuffer zero, WGPUBuffer unusedCoverage,
-                      WGPUBuffer unusedSelection)
+                      WGPUBuffer unusedSelection, WGPUBuffer unusedPattern)
 {
     if (first == jobs.size()) return true;
     WGPULimits limits{};
@@ -70,14 +70,15 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
             auto &job = jobs[index];
             wgpuBufferAddRef(buffer.get());
             job.inputs.reset(buffer.get());
-            WGPUBindGroupEntry entries[8]{};
+            WGPUBindGroupEntry entries[9]{};
             WGPUBuffer buffers[] = {job.inputs.get(), geometryBytes(job) == 0 ? zero : job.inputs.get(),
                                     job.input ? job.input->pixels.get() : zero, job.output->pixels.get(),
                                     job.fillEdges ? job.fillEdges->get() : zero,
                                     job.coverageInput ? job.coverageInput->pixels.get() : zero,
                                     job.coverageOutput ? job.coverageOutput->pixels.get() : unusedCoverage,
-                                    job.selectionCoverage ? job.selectionCoverage->get() : unusedSelection};
-            for (quint32 i = 0; i < 8; ++i) {
+                                    job.selectionCoverage ? job.selectionCoverage->get() : unusedSelection,
+                                    job.pattern ? job.pattern->get() : unusedPattern};
+            for (quint32 i = 0; i < 9; ++i) {
                 entries[i].binding = i;
                 entries[i].buffer = buffers[i];
                 entries[i].size = wgpuBufferGetSize(buffers[i]);
@@ -90,7 +91,7 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
             }
             WGPUBindGroupDescriptor descriptor{};
             descriptor.layout = layout;
-            descriptor.entryCount = 8;
+            descriptor.entryCount = 9;
             descriptor.entries = entries;
             job.bindings.reset(wgpuDeviceCreateBindGroup(device.nativeDevice(), &descriptor));
             if (!job.bindings || !device.diagnostic().isEmpty()) return false;
