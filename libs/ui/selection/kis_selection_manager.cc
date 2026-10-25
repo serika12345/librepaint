@@ -574,6 +574,10 @@ void KisSelectionManager::fillPatternOpacity()
 
 void KisSelectionManager::copySelectionToNewLayer()
 {
+    if (m_view->image() && m_view->image()->gpuImage()) {
+        m_view->showFloatingMessage(i18n("Copying a selection to a new layer is not yet available for GPU documents."), QIcon());
+        return;
+    }
     copy();
     KisPasteActionFactory factory;
     factory.run(KisPasteActionFactory::ForceNewLayer, m_view);
@@ -581,6 +585,10 @@ void KisSelectionManager::copySelectionToNewLayer()
 
 void KisSelectionManager::cutToNewLayer()
 {
+    if (m_view->image() && m_view->image()->gpuImage()) {
+        m_view->showFloatingMessage(i18n("Cutting a selection to a new layer is not yet available for GPU documents."), QIcon());
+        return;
+    }
     cut();
     KisPasteActionFactory factory;
     factory.run(KisPasteActionFactory::ForceNewLayer, m_view);

@@ -136,6 +136,7 @@ private Q_SLOTS:
     void pasteClipboardImageCreatesGpuLayer();
     void reselectRestoresGpuSelection();
     void arrowKeysNudgeGpuSelection();
+    void copySelectionToNewLayerRejectsGpuDocument();
     void selectionMovePreviewsAndCommitsOneHistory();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
@@ -2749,6 +2750,44 @@ void KisGpuDocumentViewTest::arrowKeysNudgeGpuSelection()
     QTRY_COMPARE(owner->selectionRect(), ellipse.translated(-1, 0));
     QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
     QVERIFY(owner->selectionInverted());
+}
+
+void KisGpuDocumentViewTest::copySelectionToNewLayerRejectsGpuDocument()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255, false, false) == Gpu::Result::Success);
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Copy selection layer")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    QVERIFY(lifetime->image()->setGpuSelectionRect(QRect(16, 16, 32, 32)));
+    QTRY_COMPARE(owner->selectionRect(), QRect(16, 16, 32, 32));
+    auto *action = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_selection_to_new_layer"));
+    QVERIFY(action);
+    action->trigger();
+    QTest::qWait(50);
+    QCOMPARE(owner->operations().snapshot()->layers.size(), 1);
+    QCOMPARE(owner->operations().undoCount(), 2);
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()

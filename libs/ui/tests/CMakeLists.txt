@@ -1196,7 +1196,8 @@ set(gpu_document_input_cases
     invertedSelectionLimitsPaintingAndKra
     ellipticalSelectionLimitsPaintingAndKra
     pasteClipboardImageCreatesGpuLayer
-    reselectRestoresGpuSelection)
+    reselectRestoresGpuSelection
+    copySelectionToNewLayerRejectsGpuDocument)
 set(gpu_document_crop_cases
     cropPreviewPreservesPixelsHistoryAndCancellation)
 set(gpu_document_layer_cases
