@@ -20,6 +20,25 @@ const COVERAGE_MASK: u32 = 2u;
 const COVERAGE_ELLIPSE: u32 = 4u;
 const COVERAGE_INVERTED: u32 = 8u;
 
+// Filter kinds frozen by the accepted operation.
+const FILTER_INVERT_COLORS: u32 = 0u;
+const FILTER_GRAYSCALE: u32 = 1u;
+
+// Grayscale is the Rec.709 luminance of the stored sRGB-encoded RGBA8 bytes:
+// 0.2126 R + 0.7152 G + 0.0722 B. The integer coefficients sum to 10000, so
+// neutral gray (R = G = B) is preserved exactly, and the rule is linear and
+// neutral in the stored sRGB encoding because no transfer-function
+// linearization is applied. Adding 5000 before the division rounds half up,
+// making the RGBA8 result independent of floating-point behavior. Alpha is
+// carried through unchanged, matching Invert Colors.
+fn filtered(base: vec4<u32>, kind: u32) -> vec4<u32> {
+    if (kind == FILTER_GRAYSCALE) {
+        let luminance = (2126u * base.x + 7152u * base.y + 722u * base.z + 5000u) / 10000u;
+        return vec4<u32>(luminance, luminance, luminance, base.w);
+    }
+    return vec4<u32>(255u - base.x, 255u - base.y, 255u - base.z, base.w);
+}
+
 // Straight RGBA8 bytes in one word: red is the low byte, alpha the high byte.
 fn selectedness(pixel: vec2<i32>, index: u32, flags: u32) -> u32 {
     if ((flags & COVERAGE_PRESENT) == 0u) { return 255u; }
@@ -55,17 +74,18 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         return;
     }
     let base = unpackPixel(basePixels[index]);
-    let complement = vec4<u32>(255u - base.x, 255u - base.y, 255u - base.z, base.w);
+    let result = filtered(base, u32(parameters.tile.z));
     if (selected == 255u) {
-        outputPixels[index] = packPixel(complement);
+        outputPixels[index] = packPixel(result);
         return;
     }
-    // Fractional coverage interpolates between the source and its complement;
-    // alpha is carried through unchanged so transparent pixels stay transparent.
+    // Fractional coverage interpolates between the source and the filtered
+    // pixel; alpha is carried through unchanged so transparent pixels stay
+    // transparent.
     let keep = 255u - selected;
     outputPixels[index] = packPixel(vec4<u32>(
-        (base.x * keep + complement.x * selected + 127u) / 255u,
-        (base.y * keep + complement.y * selected + 127u) / 255u,
-        (base.z * keep + complement.z * selected + 127u) / 255u,
+        (base.x * keep + result.x * selected + 127u) / 255u,
+        (base.y * keep + result.y * selected + 127u) / 255u,
+        (base.z * keep + result.z * selected + 127u) / 255u,
         base.w));
 }

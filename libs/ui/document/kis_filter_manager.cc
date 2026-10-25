@@ -62,24 +62,36 @@
 namespace {
 /**
  * GPU documents own their pixels in the GPU operation document, so the generic
- * CPU filter stroke would edit an unrelated view copy. Invert Colors is the
- * first supported GPU pixel filter; every other filter keeps its action and
- * reports a diagnostic instead of running on a copy.
+ * CPU filter stroke would edit an unrelated view copy. Invert Colors and the
+ * product Desaturate filter map to GPU pixel filters; every other filter keeps
+ * its action and reports a diagnostic instead of running on a copy.
+ *
+ * The GPU grayscale result is a fixed documented rule (Rec.709 luminance of the
+ * stored sRGB-encoded bytes) because the operation freezes the filter kind
+ * rather than a dialog configuration. The CPU Desaturate mode selection is
+ * therefore not consulted for GPU documents.
  */
 bool applyGpuFilter(KisViewManager *view, const QString &filterId)
 {
     if (!view) return false;
     KisImageWSP image = view->image();
     if (!image || !image->gpuImage()) return false;
-    if (filterId != QLatin1String("invert")) {
-        view->showFloatingMessage(i18n("This filter is not yet available for GPU documents."),
-                                  QIcon(), 2000, KisFloatingMessage::Low);
+    if (filterId == QLatin1String("invert")) {
+        if (!image->invertGpuLayerColors(view->activeNode())) {
+            view->showFloatingMessage(i18n("Invert Colors requires an editable GPU paint layer."),
+                                      QIcon(), 2000, KisFloatingMessage::Low);
+        }
         return true;
     }
-    if (!image->invertGpuLayerColors(view->activeNode())) {
-        view->showFloatingMessage(i18n("Invert Colors requires an editable GPU paint layer."),
-                                  QIcon(), 2000, KisFloatingMessage::Low);
+    if (filterId == QLatin1String("desaturate")) {
+        if (!image->grayscaleGpuLayerColors(view->activeNode())) {
+            view->showFloatingMessage(i18n("Desaturate requires an editable GPU paint layer."),
+                                      QIcon(), 2000, KisFloatingMessage::Low);
+        }
+        return true;
     }
+    view->showFloatingMessage(i18n("This filter is not yet available for GPU documents."),
+                              QIcon(), 2000, KisFloatingMessage::Low);
     return true;
 }
 }
@@ -212,6 +224,11 @@ void KisFilterManager::reapplyLastFilter()
 {
     if (!d->lastConfiguration) return;
 
+    // A GPU document owns its pixels in the operation document. Reapply must
+    // take the same intercepted path as the action instead of starting a CPU
+    // stroke and finishing a filter that never ran.
+    if (d->view && d->view->image() && d->view->image()->gpuImage() &&
+        applyGpuFilter(d->view, d->lastConfiguration->name())) return;
     apply(d->lastConfiguration);
     finish();
 }

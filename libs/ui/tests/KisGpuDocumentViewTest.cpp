@@ -113,6 +113,27 @@ public:
     KoColorTransformation *createTransformation(const KoColorSpace *cs, const KisFilterConfigurationSP) const override
     { return cs->createInvertTransformation(); }
 };
+
+/** The colors filter plugin provides the product Desaturate identity. The GPU
+ * path must intercept it before any CPU transformation is created; the
+ * transformation below exists only so a regression fails on pixels and history
+ * rather than dereferencing null.
+ */
+class GpuDocumentDesaturateFilter : public KisColorTransformationFilter
+{
+public:
+    GpuDocumentDesaturateFilter()
+        : KisColorTransformationFilter(KoID(QStringLiteral("desaturate"), i18n("Desaturate")),
+                                       FiltersCategoryAdjustId, i18n("&Desaturate..."))
+    {
+        setColorSpaceIndependence(FULLY_INDEPENDENT);
+        setSupportsPainting(true);
+        setShowConfigurationWidget(false);
+        setSupportsLevelOfDetail(true);
+    }
+    KoColorTransformation *createTransformation(const KoColorSpace *cs, const KisFilterConfigurationSP) const override
+    { return cs->createInvertTransformation(); }
+};
 }
 
 class KisGpuDocumentViewTest : public QObject
@@ -161,6 +182,7 @@ private Q_SLOTS:
     void rectangularSelectionLimitsPainting();
     void transparencyMaskActionsUseTheActiveGpuPaintLayer();
     void invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters();
+    void desaturateActionAppliesGrayscaleOnGpuDocument();
     void layerPanelShowsAndSelectsGpuTransparencyMaskChild();
     void layerPanelTogglesAndRemovesGpuTransparencyMaskChild();
     void layerPanelGpuTransparencyMaskChildSurvivesSaving();
@@ -1999,6 +2021,67 @@ void KisGpuDocumentViewTest::invertColorsActionUsesGpuDocumentAndDiagnosesUnsupp
     QVERIFY(messages.first().at(0).toString().contains(QStringLiteral("not yet available for GPU documents")));
     QCOMPARE(owner->operations().snapshot(), beforeUnsupported);
     QCOMPARE(lifetime->undoStack()->count(), count + 1);
+}
+
+void KisGpuDocumentViewTest::desaturateActionAppliesGrayscaleOnGpuDocument()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!KisFilterRegistry::instance()->value(QStringLiteral("desaturate")))
+        KisFilterRegistry::instance()->add(KisFilterSP(new GpuDocumentDesaturateFilter));
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->fillLayer(layer, {200, 30, 70}), Gpu::Result::Success);
+    QCOMPARE(owner->setSelectionRect(QRect(16, 16, 32, 32)), Gpu::Result::Success);
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Desaturate action")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto *manager = window->viewManager()->nodeManager();
+    const auto node = view->image()->root()->firstChild();
+    QVERIFY(node);
+    manager->slotUiActivatedNode(node);
+
+    auto *action = window->viewManager()->actionManager()->actionByName(QStringLiteral("krita_filter_desaturate"));
+    QVERIFY(action);
+    QVERIFY(action->isEnabled());
+    const auto count = lifetime->undoStack()->count();
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(8, 8, 1, 1), 4).bytes, QByteArray::fromHex("c81e46ff"));
+    try { action->trigger(); } catch (const std::exception &error) { QFAIL(error.what()); }
+    QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::Grayscale);
+    const auto filtered = owner->readRgbaPixels(layer, QRect(0, 0, 64, 64), 64 * 64 * 4);
+    QCOMPARE(filtered.code, Gpu::ExecutionCode::Success);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 64 + x) * 4, 4); };
+    // Rec.709 luminance of (200, 30, 70) is 69 (0x45).
+    QCOMPARE(pixel(filtered.bytes, 16, 16), QByteArray::fromHex("454545ff"));
+    QCOMPARE(pixel(filtered.bytes, 47, 47), QByteArray::fromHex("454545ff"));
+    QCOMPARE(pixel(filtered.bytes, 48, 48), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(pixel(filtered.bytes, 8, 8), QByteArray::fromHex("c81e46ff"));
+
+    // The action's undo entry restores the unfiltered pixels and redo reapplies.
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes == QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("454545ff"));
 }
 
 void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()

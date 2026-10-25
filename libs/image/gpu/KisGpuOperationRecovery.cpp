@@ -19,7 +19,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 50;
+constexpr quint16 FormatVersion = 51;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -498,7 +498,10 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             qint32 x = 0, y = 0, width = 0, height = 0;
             quint8 inverted = 0, selectionKind = 0;
             stream >> filterKind >> x >> y >> width >> height >> inverted >> selectionKind;
-            if (filterKind > quint8(FilterKind::InvertColors) || inverted > 1 ||
+            // Format 50 knew only Invert Colors; format 51 adds Grayscale.
+            const quint8 maximumFilterKind = format >= 51 ? quint8(FilterKind::Grayscale) :
+                quint8(FilterKind::InvertColors);
+            if (filterKind > maximumFilterKind || inverted > 1 ||
                 selectionKind > maximumSelectionKind(format) || version == 0) return Result::InvalidRecovery;
             operation->kind = FilterKind(filterKind);
             operation->selectionRect = QRect(x, y, width, height);
@@ -1100,6 +1103,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             }
             if (filteredIndex < 0) return Result::InvalidRecovery;
             change.layer = state->layers[filteredIndex].id;
+            change.filterKind = std::get<FilterSnapshot>(state->layers[filteredIndex].operations.last())->kind;
         }
         if (multipleProperties) {
             quint32 count = 0;

@@ -131,6 +131,12 @@ public:
      * or an off-thread call; no history entry is added in that case.
      */
     bool invertGpuLayerColors(KisNodeSP layer);
+    /** Replaces RGB with the documented Rec.709 luminance of the stored
+     * sRGB-encoded bytes on the GPU paint layer for the current selection as one
+     * history entry. False reports a group, mask or foreign node, a locked layer
+     * or an off-thread call; no history entry is added in that case.
+     */
+    bool grayscaleGpuLayerColors(KisNodeSP layer);
     bool setGpuTransparencyMaskVisible(KisNodeSP layer, bool visible);
     bool removeGpuTransparencyMask(KisNodeSP layer);
     bool gpuTransparencyMaskVisible(KisNodeSP layer) const;

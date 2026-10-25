@@ -191,7 +191,8 @@ HistoryAction OperationDocument::historyAction(int index) const
     if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
     if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
     if (m_layerHistoryChanges[index].filledLayer) return HistoryAction::FillLayer;
-    if (m_layerHistoryChanges[index].filteredLayer) return HistoryAction::InvertColors;
+    if (m_layerHistoryChanges[index].filteredLayer) return m_layerHistoryChanges[index].filterKind ==
+        FilterKind::Grayscale ? HistoryAction::Grayscale : HistoryAction::InvertColors;
     if (m_layerHistoryChanges[index].changedSelection) return HistoryAction::ChangeSelection;
     if (m_layerHistoryChanges[index].crop) return HistoryAction::CropLayer;
     if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
@@ -1680,6 +1681,12 @@ Result OperationDocument::fillLayerStyle(LayerId layer, const std::array<quint8,
 }
 
 Result OperationDocument::invertColors(LayerId layer)
+{ return applyFilter(layer, FilterKind::InvertColors); }
+
+Result OperationDocument::grayscale(LayerId layer)
+{ return applyFilter(layer, FilterKind::Grayscale); }
+
+Result OperationDocument::applyFilter(LayerId layer, FilterKind kind)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -1692,7 +1699,7 @@ Result OperationDocument::invertColors(LayerId layer)
     operation->id = {m_identity, ++m_nextOperation};
     operation->version = 1;
     operation->layer = layer;
-    operation->kind = FilterKind::InvertColors;
+    operation->kind = kind;
     operation->selectionRect = snapshot()->selection;
     operation->selectionInverted = snapshot()->selectionInverted;
     operation->selectionKind = snapshot()->selectionKind;
@@ -1702,6 +1709,7 @@ Result OperationDocument::invertColors(LayerId layer)
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.filteredLayer = true;
+    change.filterKind = kind;
     commitVersion(version, change);
     return Result::Success;
 }

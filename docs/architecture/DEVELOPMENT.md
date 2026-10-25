@@ -508,12 +508,36 @@ Undo／Redo、復旧後の履歴種別と選択被覆（部分アルファ値を
 `KisGpuPaintDocumentTest::invertColorsSavesReopensAndRecoversPixels`は、
 部分アルファの描画と選択内の反転、透明画素の隠れRGB、一回のGPU履歴とUndo／Redo、
 復旧後の同じ画素、KRA保存・再読込後の結果画素、再読込後の新しい選択による再適用を検査する。
+`KisGpuTileRendererTest::grayscaleUsesRec709CoefficientsWithIntegerRounding`は、
+保存済みsRGB符号化バイトに対するRec.709係数（2126/7152/722、分母10000、+5000の四捨五入）の
+輝度、無彩色の厳密な保持、0.7152の切り上げと0.0722の切り捨て、アルファ保持、
+透明画素の隠れRGBフィルター、選択外のバイト保持、フィルター種別と被覆の凍結、
+一回の履歴、Undo／Redo、復旧後の同じ画素を検査する。
+`KisGpuTileRendererTest::grayscaleClipsEllipseInvertedBinaryAndAlphaCoverage`は、
+二値マスク・アルファ被覆の補間・反転矩形・楕円被覆によるGrayscaleのクリップと、
+選択外画素の保持を検査する。
+`KisGpuOperationDocumentTest::grayscaleFilterFreezesCoverageAndRecovers`は、
+楕円・反転・アルファ被覆の凍結、Grayscale履歴種別、一度の履歴、Undo／Redo、
+復旧後の種別と選択被覆（部分アルファ値を含む）を検査する。
+`KisGpuOperationDocumentTest::grayscaleRecoveryRequiresFormat51`は、復旧記録が形式51を
+名乗ること、形式51ではGrayscaleが復元されること、同じ記録を形式50として再署名すると
+Invert Colorsだけを許す検証がGrayscaleを拒否して現行文書を変えないことを検査する。
+`KisGpuPaintDocumentTest::grayscaleSavesReopensAndRecoversPixels`は、生タイルの
+Grayscale適用、隠れRGBのフィルターとアルファ0の保持、無彩色の保持、選択外の保持、
+一回のGPU履歴とUndo／Redo、復旧後の種別と画素、KRA保存・再読込後の結果画素、
+再読込後の新しい選択による再適用を検査する。
 `KisGpuDocumentViewTest::invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters`は、
 `krita_filter_invert`アクションがGPU文書のアクティブペイントレイヤーへ一度の履歴として
 適用され、Undo／Redoが同じ画素を復元すること、未対応フィルターが履歴と画素を変えずに
-GPU文書向けの診断を表示することを検査する。UI試験は`QT_QPA_PLATFORM=cocoa`で実行し、
+GPU文書向けの診断を表示することを検査する。
+`KisGpuDocumentViewTest::desaturateActionAppliesGrayscaleOnGpuDocument`は、
+`krita_filter_desaturate`アクションがGPU文書のアクティブペイントレイヤーへ
+Grayscaleの一度の履歴として適用され、選択内だけがRec.709輝度になり、選択外が保たれ、
+Undo／Redoが同じ画素を復元することを検査する。UI試験は`QT_QPA_PLATFORM=cocoa`で実行し、
 `KIS_TEST_PREFIX_PATH`を増分構築ディレクトリーへ設定する。単独実行は
 `./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentViewTest libs-ui-filter-invert-KisGpuDocumentViewTest`
+または
+`./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentViewTest libs-ui-filter-grayscale-KisGpuDocumentViewTest`
 を使う。
 任意被覆の選択は同じストリームの画素から復元し、0か255の画素が矩形・楕円に一致しない場合に
 `SelectionKind::Freehand`の硬い被覆マスクとして、部分的なアルファ値を持つ場合は
@@ -922,6 +946,8 @@ KRA再読込後の全レイヤー画素とPNG書出しを検査し、`LIBREPAINT
 復旧形式48は塗りつぶしの合成方式を操作へ保存し、形式47以前は通常方式として読み込む。
 復旧形式49はブラシ被覆の合成方式を操作へ保存し、形式48以前は通常方式として読み込む。
 復旧形式50は画素フィルター操作とその凍結選択を保存し、形式49以前はフィルターなしとして読み込む。
+復旧形式51はフィルター種別（Invert ColorsとGrayscale）を保存し、形式50の記録はInvert Colorsだけを
+受け付ける。
 復旧形式47は凍結パターンの寸法と直線RGBA8画素を操作へ保存し、形式17から46の
 図形塗りつぶし入力も引き続き読み込む。
 描線・塗りなしの矩形と塗れる面積のない頂点列は、画素を保った一回の履歴とUndo／Redoを照合する。

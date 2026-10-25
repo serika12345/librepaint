@@ -143,6 +143,8 @@ private Q_SLOTS:
     void rejectedLayerCropsKeepRedoPendingInputAndClosedState();
     void invertColorsFreezesCoverageAndRecovers();
     void rejectedInvertColorsPreserveHistoryAndInput();
+    void grayscaleFilterFreezesCoverageAndRecovers();
+    void grayscaleRecoveryRequiresFormat51();
     void previousTranslatedRecoveryPreservesPendingInputAndCropHistory();
     void layerTranslationPreservesInputVersionsAndOneHistoryEntry();
     void previousPlacedRecoveryPreservesPendingInputAndPosition();
@@ -1953,6 +1955,142 @@ void KisGpuOperationDocumentTest::rejectedInvertColorsPreserveHistoryAndInput()
     document.close();
     QCOMPARE(document.invertColors(paintId), Result::Closed);
     QCOMPARE(document.snapshot(), before);
+}
+
+void KisGpuOperationDocumentTest::grayscaleFilterFreezesCoverageAndRecovers()
+{
+    RasterImage source;
+    source.size = {256, 256};
+    RasterLayer target;
+    target.name = QStringLiteral("Target");
+    target.uuid = QUuid::createUuid();
+    target.tiles.append({{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')});
+    source.layers.append(target);
+    OperationDocument document(source);
+    const auto layer = document.activeLayer();
+    const auto before = document.snapshot();
+    QCOMPARE(document.grayscale(999), Result::LayerUnavailable);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.setSelectionEllipse(QRect(32, 32, 64, 48), true), Result::Success);
+    QCOMPARE(document.grayscale(layer), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::Grayscale);
+    const auto operation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->layer, layer);
+    QCOMPARE(operation->kind, FilterKind::Grayscale);
+    QCOMPARE(operation->version, quint64(1));
+    QCOMPARE(operation->selectionRect, QRect(32, 32, 64, 48));
+    QCOMPARE(operation->selectionKind, SelectionKind::Ellipse);
+    QVERIFY(operation->selectionInverted);
+    QVERIFY(!operation->selectionMask);
+    QVERIFY(!std::holds_alternative<FilterSnapshot>(before->layers.first().operations.last()));
+
+    // Later selection edits do not rewrite the frozen filter coverage.
+    QCOMPARE(document.setSelectionRect(QRect(1, 1, 2, 2)), Result::Success);
+    QCOMPARE(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->selectionRect,
+             QRect(32, 32, 64, 48));
+
+    // One history entry per filter; the selection entries remain separate.
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::Grayscale);
+    QVERIFY(std::holds_alternative<FilterSnapshot>(document.snapshot()->layers.first().operations.last()));
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!std::holds_alternative<FilterSnapshot>(document.snapshot()->layers.first().operations.last()));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->kind,
+             FilterKind::Grayscale);
+
+    QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.undoCount(), 2);
+    QCOMPARE(recovered.historyAction(2), HistoryAction::Grayscale);
+    const auto recoveredOperation = std::get<FilterSnapshot>(recovered.snapshot()->layers.first().operations.last());
+    QCOMPARE(recoveredOperation->kind, FilterKind::Grayscale);
+    QCOMPARE(recoveredOperation->selectionRect, QRect(32, 32, 64, 48));
+    QCOMPARE(recoveredOperation->selectionKind, SelectionKind::Ellipse);
+    QVERIFY(recoveredOperation->selectionInverted);
+    QCOMPARE(recovered.savedHistoryIndex(), 2);
+
+    // Alpha (feathered) freehand coverage freezes with the Grayscale kind.
+    const QRect clip(QPoint(), QSize(32, 32));
+    QByteArray coverage(32 * 32, '\0');
+    coverage[8 * 32 + 8] = char(96);
+    const auto soft = SelectionMask::fromAlphaCoverage(clip, coverage, clip);
+    QVERIFY(soft);
+    RasterImage maskSource;
+    maskSource.size = {32, 32};
+    RasterLayer maskLayer;
+    maskLayer.name = QStringLiteral("Masked");
+    maskLayer.uuid = QUuid::createUuid();
+    maskLayer.tiles.append({{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')});
+    maskSource.layers.append(maskLayer);
+    OperationDocument masked(maskSource);
+    QCOMPARE(masked.setSelectionMask(soft), Result::Success);
+    QCOMPARE(masked.grayscale(masked.activeLayer()), Result::Success);
+    QCOMPARE(masked.historyAction(2), HistoryAction::Grayscale);
+    QVERIFY(std::get<FilterSnapshot>(masked.snapshot()->layers.first().operations.last())->selectionMask == soft);
+    OperationDocument maskRecovered({1, 1});
+    QCOMPARE(maskRecovered.restoreRecovery(masked.recoveryData()), Result::Success);
+    const auto maskOperation = std::get<FilterSnapshot>(maskRecovered.snapshot()->layers.first().operations.last());
+    QCOMPARE(maskOperation->kind, FilterKind::Grayscale);
+    QVERIFY(maskOperation->selectionMask);
+    QVERIFY(*maskOperation->selectionMask == *soft);
+    QVERIFY(maskOperation->selectionMask->isAlpha());
+    QCOMPARE(maskOperation->selectionMask->coverage(8, 8), quint8(96));
+}
+
+void KisGpuOperationDocumentTest::grayscaleRecoveryRequiresFormat51()
+{
+    RasterImage source;
+    source.size = {64, 64};
+    RasterLayer target;
+    target.name = QStringLiteral("Target");
+    target.uuid = QUuid::createUuid();
+    source.layers.append(target);
+    OperationDocument document(source);
+    QCOMPARE(document.setSelectionRect(QRect(8, 8, 16, 16)), Result::Success);
+    QCOMPARE(document.grayscale(document.activeLayer()), Result::Success);
+    const auto bytes = document.recoveryData();
+    QVERIFY(!bytes.isEmpty());
+
+    // The record carries the bumped format number.
+    QBuffer header;
+    header.setData(bytes);
+    QVERIFY(header.open(QIODevice::ReadOnly));
+    QDataStream headerStream(&header);
+    headerStream.setVersion(QDataStream::Qt_5_15);
+    headerStream.setByteOrder(QDataStream::BigEndian);
+    quint32 magic = 0;
+    quint16 format = 0;
+    headerStream >> magic >> format;
+    QCOMPARE(magic, quint32(0x4c504f52));
+    QCOMPARE(format, quint16(51));
+
+    // The same record restores at format 51.
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::Grayscale);
+    QCOMPARE(std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last())->kind,
+             FilterKind::Grayscale);
+
+    // Re-labelling the payload as format 50 must reject the Grayscale kind,
+    // because format 50 knew only Invert Colors.
+    auto payload = bytes.first(bytes.size() - 32);
+    QBuffer patcher(&payload);
+    QVERIFY(patcher.open(QIODevice::ReadWrite));
+    QDataStream patchStream(&patcher);
+    patchStream.setVersion(QDataStream::Qt_5_15);
+    patchStream.setByteOrder(QDataStream::BigEndian);
+    QVERIFY(patcher.seek(4));
+    patchStream << quint16(50);
+    patcher.close();
+    payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
+    OperationDocument live({64, 64});
+    const auto liveBefore = live.snapshot();
+    QCOMPARE(live.restoreRecovery(payload), Result::InvalidRecovery);
+    QCOMPARE(live.snapshot(), liveBefore);
+    QCOMPARE(live.undoCount(), 0);
 }
 
 void KisGpuOperationDocumentTest::previousTranslatedRecoveryPreservesPendingInputAndCropHistory()

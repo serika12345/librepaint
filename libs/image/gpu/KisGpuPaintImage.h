@@ -243,6 +243,12 @@ public:
      * Undo/Redo and KRA pixel saving; alpha and unselected pixels stay intact.
      */
     Result invertColors(LayerId layer);
+    /** Replaces RGB with the documented Rec.709 luminance of the stored
+     * sRGB-encoded bytes inside the current selection coverage as one history
+     * entry. Alpha and unselected pixels stay intact; the frozen operation
+     * survives recovery, Undo/Redo and KRA pixel saving.
+     */
+    Result grayscale(LayerId layer);
     Result undo();
     Result redo();
     Result setHistoryIndex(int index);

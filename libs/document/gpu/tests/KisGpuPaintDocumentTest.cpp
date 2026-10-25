@@ -106,6 +106,7 @@ private Q_SLOTS:
     void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
     void rectangularSelectionSavesReopensAndLimitsPainting();
     void invertColorsSavesReopensAndRecoversPixels();
+    void grayscaleSavesReopensAndRecoversPixels();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
     void patternFillSavesReopensAndPreservesSelectionPixels();
@@ -437,6 +438,87 @@ void KisGpuPaintDocumentTest::invertColorsSavesReopensAndRecoversPixels()
     QCOMPARE(pixel(continued.bytes, 64, 64), QByteArray::fromHex("e09e5c80"));
     QCOMPARE(pixel(continued.bytes, 16, 64), QByteArray::fromHex("1f61a380"));
     QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("ffffff00"));
+}
+
+void KisGpuPaintDocumentTest::grayscaleSavesReopensAndRecoversPixels()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {256, 256};
+    initial.layers.append({QStringLiteral("Grayscale"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000042}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    QByteArray bytes(RgbaTile::ByteCount, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * RgbaTile::Size + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("0a141e28"));  // 10,20,30,40
+    set(40, 40, QByteArray::fromHex("0a141e00"));  // hidden RGB under alpha 0
+    set(50, 50, QByteArray::fromHex("ff8000ff"));  // 255,128,0,255
+    set(80, 80, QByteArray::fromHex("808080ff"));  // neutral gray
+    set(100, 100, QByteArray::fromHex("11223344"));
+    set(120, 120, QByteArray::fromHex("c86432ff"));
+    QCOMPARE(image->replaceTiles(layer, {RgbaTile{{0, 0}, bytes}}), Result::Success);
+    QCOMPARE(image->setSelectionRect(QRect(0, 0, 64, 64)), Result::Success);
+    QCOMPARE(image->grayscale(layer), Result::Success);
+    const auto count = image->operations().undoCount();
+    QCOMPARE(count, 3);
+    QCOMPARE(image->operations().historyAction(count), HistoryAction::Grayscale);
+
+    const QRect region(QPoint(), initial.size);
+    const auto pixel = [&](const QByteArray &value, int x, int y) { return value.mid((y * 256 + x) * 4, 4); };
+    const auto filtered = image->readRgbaPixels(layer, region, 256 * 256 * 4);
+    QCOMPARE(filtered.code, ExecutionCode::Success);
+    QCOMPARE(pixel(filtered.bytes, 10, 10), QByteArray::fromHex("13131328"));
+    // Hidden RGB is filtered and alpha stays zero, matching Invert Colors.
+    QCOMPARE(pixel(filtered.bytes, 40, 40), QByteArray::fromHex("13131300"));
+    QCOMPARE(pixel(filtered.bytes, 50, 50), QByteArray::fromHex("929292ff"));
+    QCOMPARE(pixel(filtered.bytes, 80, 80), QByteArray::fromHex("808080ff"));
+    QCOMPARE(pixel(filtered.bytes, 100, 100), QByteArray::fromHex("11223344"));
+    QCOMPARE(pixel(filtered.bytes, 120, 120), QByteArray::fromHex("c86432ff"));
+
+    // One undo step restores the raw tile; redo restores the filter result.
+    QCOMPARE(image->undo(), Result::Success);
+    const auto original = image->readRgbaPixels(layer, region, 256 * 256 * 4);
+    QCOMPARE(original.bytes, bytes);
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, 256 * 256 * 4).bytes, filtered.bytes);
+
+    // Recovery retains the frozen Grayscale kind, its coverage and its pixels.
+    PaintDocument recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recoveredImage = recovered.image();
+    QCOMPARE(recoveredImage->operations().undoCount(), count);
+    QCOMPARE(recoveredImage->operations().historyAction(count), HistoryAction::Grayscale);
+    QCOMPARE(recoveredImage->readRgbaPixels(recoveredImage->operations().activeLayer(), region,
+             filtered.bytes.size()).bytes, filtered.bytes);
+
+    // KRA saving reads the filter result; reopening reproduces the same pixels.
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto path = QDir(destination).filePath(QStringLiteral("grayscale.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    QCOMPARE(loaded->operations().undoCount(), 0);
+    QCOMPARE(loaded->readRgbaPixels(loaded->operations().activeLayer(), region, filtered.bytes.size()).bytes,
+             filtered.bytes);
+
+    // A reopened layer stays editable and a later filter uses the new selection.
+    QCOMPARE(loaded->clearSelection(), Result::Success);
+    QCOMPARE(loaded->setSelectionRect(QRect(96, 96, 32, 32)), Result::Success);
+    QCOMPARE(loaded->grayscale(loaded->operations().activeLayer()), Result::Success);
+    QCOMPARE(loaded->operations().historyAction(loaded->operations().undoCount()), HistoryAction::Grayscale);
+    const auto continued = loaded->readRgbaPixels(loaded->operations().activeLayer(), region, filtered.bytes.size());
+    QCOMPARE(continued.code, ExecutionCode::Success);
+    QCOMPARE(pixel(continued.bytes, 120, 120), QByteArray::fromHex("767676ff"));
+    QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("13131328"));
 }
 
 void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra()

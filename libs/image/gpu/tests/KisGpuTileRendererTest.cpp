@@ -78,6 +78,8 @@ private Q_SLOTS:
     void featheredSelectionClipsPaintFillEraseHistoryAndRecovery();
     void invertColorsComplementsRgbPreservesAlphaAndClipsSelection();
     void invertColorsInterpolatesFeatheredAndInvertedCoverage();
+    void grayscaleUsesRec709CoefficientsWithIntegerRounding();
+    void grayscaleClipsEllipseInvertedBinaryAndAlphaCoverage();
     void patternFillTilesAcrossSelectionHistoryAndRecovery();
     void patternFillClipsAlphaCompositesErasesAndRejectsInvalidInput();
     void fillBlendModesMatchLayerComposition_data();
@@ -3738,6 +3740,179 @@ void KisGpuTileRendererTest::invertColorsInterpolatesFeatheredAndInvertedCoverag
     const auto ellipse = readTile(render(renderer, ellipseDocument.snapshot()), ellipseLayer, {0, 0});
     QCOMPARE(pixel(ellipse, 10, 10), QByteArray::fromHex("10203040"));
     QCOMPARE(pixel(ellipse, 128, 128), QByteArray::fromHex("ffffff00"));
+}
+
+void KisGpuTileRendererTest::grayscaleUsesRec709CoefficientsWithIntegerRounding()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    // The documented rule: Rec.709 weights applied to stored sRGB-encoded
+    // bytes, integer denominator 10000, round half up.
+    const auto luma = [](int r, int g, int b) {
+        return quint8((2126 * r + 7152 * g + 722 * b + 5000) / 10000);
+    };
+    const auto gray = [&](int r, int g, int b, int a) {
+        const auto value = luma(r, g, b);
+        QByteArray result(4, '\0');
+        result[0] = result[1] = result[2] = char(value);
+        result[3] = char(a);
+        return result;
+    };
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * TileRenderer::TileSize + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("0a141e28"));  // 10,20,30,40
+    set(20, 20, QByteArray::fromHex("000100ff"));  // 0.7152 rounds up to 1
+    set(30, 30, QByteArray::fromHex("000001ff"));  // 0.0722 rounds down to 0
+    set(40, 40, QByteArray::fromHex("6496c880"));  // 100,150,200,128 rounds up
+    set(50, 50, QByteArray::fromHex("ff0000ff"));
+    set(60, 60, QByteArray::fromHex("00ff00ff"));
+    set(70, 70, QByteArray::fromHex("0000ffff"));
+    set(80, 80, QByteArray::fromHex("808080ff"));  // neutral gray is preserved
+    set(90, 90, QByteArray::fromHex("ffffff00"));  // hidden RGB, alpha stays 0
+    set(200, 10, QByteArray::fromHex("11223344"));
+    RasterImage input;
+    input.size = {256, 256};
+    RasterLayer source;
+    source.name = QStringLiteral("Grayscale");
+    source.uuid = QUuid::createUuid();
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    OperationDocument document(input);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setSelectionRect(QRect(0, 0, 100, 100)), Result::Success);
+    QCOMPARE(document.grayscale(layer), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::Grayscale);
+
+    // The filter kind and coverage are frozen in the accepted operation.
+    const auto operation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->kind, FilterKind::Grayscale);
+    QCOMPARE(operation->selectionRect, QRect(0, 0, 100, 100));
+    QCOMPARE(document.setSelectionRect(QRect(200, 200, 8, 8)), Result::Success);
+    QCOMPARE(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->selectionRect,
+             QRect(0, 0, 100, 100));
+
+    TileRenderer renderer(m_device);
+    const auto filtered = render(renderer, document.snapshot());
+    QVERIFY(filtered);
+    const auto filteredBytes = readTile(filtered, layer, {0, 0});
+    QCOMPARE(pixel(filteredBytes, 10, 10), gray(10, 20, 30, 40));
+    QCOMPARE(pixel(filteredBytes, 20, 20), gray(0, 1, 0, 255));
+    QCOMPARE(pixel(filteredBytes, 30, 30), gray(0, 0, 1, 255));
+    QCOMPARE(pixel(filteredBytes, 40, 40), gray(100, 150, 200, 128));
+    QCOMPARE(pixel(filteredBytes, 50, 50), gray(255, 0, 0, 255));
+    QCOMPARE(pixel(filteredBytes, 60, 60), gray(0, 255, 0, 255));
+    QCOMPARE(pixel(filteredBytes, 70, 70), gray(0, 0, 255, 255));
+    QCOMPARE(pixel(filteredBytes, 80, 80), QByteArray::fromHex("808080ff"));
+    QCOMPARE(pixel(filteredBytes, 90, 90), gray(255, 255, 255, 0));
+    QCOMPARE(pixel(filteredBytes, 200, 10), QByteArray::fromHex("11223344"));
+    QCOMPARE(luma(255, 0, 0), quint8(54));
+    QCOMPARE(luma(0, 255, 0), quint8(182));
+    QCOMPARE(luma(0, 0, 255), quint8(18));
+    QCOMPARE(luma(0, 1, 0), quint8(1));
+    QCOMPARE(luma(0, 0, 1), quint8(0));
+
+    // One filter history entry: undo restores the source bytes, redo the result.
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), bytes);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), filteredBytes);
+
+    // Recovery retains the kind, the frozen coverage and the same pixels.
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.historyAction(2), HistoryAction::Grayscale);
+    const auto recovered = std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(recovered->kind, FilterKind::Grayscale);
+    QCOMPARE(recovered->selectionRect, QRect(0, 0, 100, 100));
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), filteredBytes);
+}
+
+void KisGpuTileRendererTest::grayscaleClipsEllipseInvertedBinaryAndAlphaCoverage()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    const auto luma = [](int r, int g, int b) {
+        return quint8((2126 * r + 7152 * g + 722 * b + 5000) / 10000);
+    };
+    const auto gray = [&](int r, int g, int b, int a) {
+        const auto value = luma(r, g, b);
+        QByteArray result(4, '\0');
+        result[0] = result[1] = result[2] = char(value);
+        result[3] = char(a);
+        return result;
+    };
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    const auto set = [&](int x, int y, const QByteArray &rgba) {
+        std::memcpy(bytes.data() + (y * TileRenderer::TileSize + x) * 4, rgba.constData(), 4);
+    };
+    set(10, 10, QByteArray::fromHex("0a141e28"));
+    set(20, 20, QByteArray::fromHex("10203040"));
+    set(30, 30, QByteArray::fromHex("ff8000ff"));
+    set(100, 100, QByteArray::fromHex("11223344"));
+    set(120, 120, QByteArray::fromHex("c86432ff"));
+    set(128, 128, QByteArray::fromHex("141e28ff"));
+    RasterImage input;
+    input.size = {256, 256};
+    RasterLayer source;
+    source.name = QStringLiteral("Coverage");
+    source.uuid = QUuid::createUuid();
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    TileRenderer renderer(m_device);
+
+    // A binary freehand mask clips exactly to its selected tiles and pixels.
+    OperationDocument binaryDocument(input);
+    const QRect clip(QPoint(), QSize(256, 256));
+    QByteArray binaryCoverage(256 * 256, '\0');
+    for (int y = 0; y < 64; ++y)
+        for (int x = 0; x < 64; ++x) binaryCoverage[y * 256 + x] = char(255);
+    const auto binary = SelectionMask::fromCoverage(clip, binaryCoverage, clip);
+    QVERIFY(binary);
+    QCOMPARE(binaryDocument.setSelectionMask(binary), Result::Success);
+    QCOMPARE(binaryDocument.grayscale(binaryDocument.activeLayer()), Result::Success);
+    const auto binaryBytes = readTile(render(renderer, binaryDocument.snapshot()), binaryDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(binaryBytes, 10, 10), QByteArray::fromHex("13131328"));
+    QCOMPARE(pixel(binaryBytes, 20, 20), gray(16, 32, 48, 64));
+    QCOMPARE(pixel(binaryBytes, 30, 30), QByteArray::fromHex("929292ff"));
+    QCOMPARE(pixel(binaryBytes, 100, 100), QByteArray::fromHex("11223344"));
+
+    // Alpha coverage interpolates between the source and the gray value.
+    OperationDocument alphaDocument(input);
+    QByteArray alphaCoverage(256 * 256, '\0');
+    alphaCoverage[20 * 256 + 20] = char(128);
+    alphaCoverage[30 * 256 + 30] = char(255);
+    const auto alpha = SelectionMask::fromAlphaCoverage(clip, alphaCoverage, clip);
+    QVERIFY(alpha);
+    QCOMPARE(alphaDocument.setSelectionMask(alpha), Result::Success);
+    QCOMPARE(alphaDocument.grayscale(alphaDocument.activeLayer()), Result::Success);
+    const auto alphaBytes = readTile(render(renderer, alphaDocument.snapshot()), alphaDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(alphaBytes, 20, 20), QByteArray::fromHex("171f2740"));
+    QCOMPARE(pixel(alphaBytes, 30, 30), QByteArray::fromHex("929292ff"));
+    QCOMPARE(pixel(alphaBytes, 10, 10), QByteArray::fromHex("0a141e28"));
+
+    // An inverted rectangle filters only the outside.
+    OperationDocument invertedDocument(input);
+    QCOMPARE(invertedDocument.setSelectionRect(QRect(0, 0, 64, 64), true), Result::Success);
+    QCOMPARE(invertedDocument.grayscale(invertedDocument.activeLayer()), Result::Success);
+    const auto inverted = readTile(render(renderer, invertedDocument.snapshot()), invertedDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(inverted, 10, 10), QByteArray::fromHex("0a141e28"));
+    QCOMPARE(pixel(inverted, 100, 100), QByteArray::fromHex("20202044"));
+    QCOMPARE(pixel(inverted, 120, 120), QByteArray::fromHex("767676ff"));
+
+    // Elliptical coverage intersects its bounding box before the pixel test.
+    OperationDocument ellipseDocument(input);
+    QCOMPARE(ellipseDocument.setSelectionEllipse(QRect(64, 64, 128, 128)), Result::Success);
+    QCOMPARE(ellipseDocument.grayscale(ellipseDocument.activeLayer()), Result::Success);
+    const auto ellipse = readTile(render(renderer, ellipseDocument.snapshot()), ellipseDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(ellipse, 10, 10), QByteArray::fromHex("0a141e28"));
+    QCOMPARE(pixel(ellipse, 128, 128), gray(20, 30, 40, 255));
 }
 
 void KisGpuTileRendererTest::featheredSelectionClipsPaintFillEraseHistoryAndRecovery()

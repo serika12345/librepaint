@@ -279,16 +279,22 @@ struct CropOperation
     QRect rect;
 };
 using CropSnapshot = QSharedPointer<const CropOperation>;
-/** Pixel filter kinds available to GPU paint layers. */
-enum class FilterKind : quint8 { InvertColors };
+/** Pixel filter kinds available to GPU paint layers.
+ *
+ * InvertColors complements stored RGB. Grayscale replaces RGB with the
+ * Rec.709 luminance (0.2126 R + 0.7152 G + 0.0722 B) of the stored
+ * sRGB-encoded bytes, rounded half up by the integer rule
+ * `(2126 R + 7152 G + 722 B + 5000) / 10000`. Both kinds preserve alpha.
+ */
+enum class FilterKind : quint8 { InvertColors, Grayscale };
 
 /** Whole-layer pixel filter over preceding retained pixels.
  *
  * The selection coverage, its inversion and the filter kind are frozen when
  * the operation is accepted. Only RGB participates: alpha is preserved, and
- * transparent pixels keep alpha zero while their hidden RGB is complemented
- * like the corresponding channel-mask arithmetic. Coverage is retained for
- * every document version, recovery record and Undo/Redo step.
+ * transparent pixels keep alpha zero while their hidden RGB is filtered like
+ * the corresponding channel-mask arithmetic. Coverage is retained for every
+ * document version, recovery record and Undo/Redo step.
  */
 struct FilterOperation
 {
@@ -503,7 +509,8 @@ enum class HistoryAction {
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
     ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
-    ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors
+    ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors,
+    Grayscale
 };
 
 struct Limits
@@ -762,6 +769,15 @@ public:
      * rejected without changing history.
      */
     Result invertColors(LayerId layer);
+    /** Replaces RGB with the documented Rec.709 luminance of the stored
+     * sRGB-encoded bytes inside the current selection coverage as one history
+     * entry. The synthetic luminance is computed with integer coefficients
+     * `(2126 R + 7152 G + 722 B + 5000) / 10000`, so neutral gray survives
+     * exactly and the rule is deterministic across devices. Alpha is preserved
+     * and pixels outside the coverage retain their exact values. The selection
+     * rectangle, inversion, kind and mask are frozen in the operation.
+     */
+    Result grayscale(LayerId layer);
     Result undo();
     Result redo();
     /** Selects one retained history state without executing intermediate edits. */
@@ -798,6 +814,8 @@ private:
         bool filledLayer = false;
         /** One paint layer gained an RGB filter operation in its retained version. */
         bool filteredLayer = false;
+        /** Filter applied by that operation; recovered from the operation. */
+        FilterKind filterKind = FilterKind::InvertColors;
         CropSnapshot crop;
         std::optional<CanvasResize> canvasResize;
         QList<LayerPropertyEdit> propertyEdits;
@@ -825,7 +843,9 @@ private:
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
     Result fillLayerStyle(LayerId layer, const std::array<quint8, 4> &color, const FigureStyle &style,
-                          quint8 opacity, bool erase, bool alphaLocked);    QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
+                          quint8 opacity, bool erase, bool alphaLocked);
+    Result applyFilter(LayerId layer, FilterKind kind);
+    QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member,
                                               const T &value, quint8 componentMask = 15);

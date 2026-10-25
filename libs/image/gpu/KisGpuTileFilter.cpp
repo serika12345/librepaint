@@ -105,8 +105,9 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        // Complementing zero RGB produces hidden color under alpha zero; the
-        // projection already normalizes such tiles when the flag is set.
+        // Filtering RGB independently of alpha can produce hidden color under
+        // alpha zero (for example complemented black); the projection already
+        // normalizes such tiles when the flag is set.
         output->mayContainHiddenRgb = true;
         result.insert(coordinate, output);
         pins.append(input);

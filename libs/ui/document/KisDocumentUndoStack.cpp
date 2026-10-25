@@ -50,6 +50,7 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::ClearPixels: return kundo2_i18n("Clear");
     case HistoryAction::FillLayer: return kundo2_i18n("Flood Fill Layer");
     case HistoryAction::InvertColors: return kundo2_i18n("Invert Colors");
+    case HistoryAction::Grayscale: return kundo2_i18n("Grayscale");
     case HistoryAction::CropLayer: return kundo2_i18n("Crop Layer");
     case HistoryAction::CropImage: return kundo2_i18n("Crop Image");
     case HistoryAction::ResizeCanvas: return kundo2_i18n("Resize Image");
