@@ -52,10 +52,6 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
             }
             if (current.isEmpty() || (xRadius == 0 && yRadius == 0)) return;
             const bool ellipse = view->image()->gpuSelectionEllipse();
-            if (ellipse && view->image()->gpuSelectionInverted()) {
-                view->showFloatingMessage(i18n("Growing or shrinking an inverted elliptical GPU selection is not available."), QIcon());
-                return;
-            }
             const QRect imageBounds(QPoint(), view->image()->size());
             if (view->image()->gpuSelectionInverted()) {
                 if (edgeLock) {
@@ -67,7 +63,8 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
                     : current.adjusted(-xRadius, -yRadius, xRadius, yRadius).intersected(imageBounds);
                 if (hole.isEmpty()) view->image()->setGpuSelectionRect(imageBounds);
                 else if (hole == imageBounds) view->image()->clearGpuSelection();
-                else if (!view->image()->setGpuSelectionRect(hole, true))
+                else if (!(ellipse ? view->image()->setGpuSelectionEllipse(hole, true)
+                                   : view->image()->setGpuSelectionRect(hole, true)))
                     view->showFloatingMessage(i18n("The selection could not be updated."), QIcon());
                 return;
             }

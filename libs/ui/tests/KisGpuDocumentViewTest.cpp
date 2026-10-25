@@ -2473,6 +2473,15 @@ void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
     const auto restoredInverted = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
     QCOMPARE(restoredInverted.code, Gpu::ExecutionCode::Success);
     QCOMPARE(pixel(restoredInverted.bytes, 4, 4), QByteArray::fromHex("1181f1ff"));
+
+    runFilter(QStringLiteral("growselection"), 4, 4);
+    QTRY_COMPARE(owner->selectionRect(), QRect(20, 20, 24, 24));
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    QVERIFY(owner->selectionInverted());
+    runFilter(QStringLiteral("shrinkselection"), 4, 4);
+    QTRY_COMPARE(owner->selectionRect(), ellipseRect);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    QVERIFY(owner->selectionInverted());
 }
 
 void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()

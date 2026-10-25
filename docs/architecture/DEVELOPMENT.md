@@ -349,7 +349,7 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 `KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra`は、楕円内の塗りつぶし、
 楕円外の不変、Undo／Redo、KRA保存・再読込後の楕円形状と画素、楕円の拡大縮小、
 反転楕円のKRA往復、楕円の合成コピー・レイヤーコピー・切り取り、
-反転楕円のコピー・切り取りを検査する。
+反転楕円のコピー・切り取り、反転楕円の穴に対する拡大・縮小を検査する。
 `KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection`は、通常の楕円選択ツールの
 ネイティブドラッグが画像座標の楕円選択を生成し、続くドラッグで楕円を移動して
 一回の履歴でUndo／Redoできることを検査する。
