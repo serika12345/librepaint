@@ -838,6 +838,8 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
     m_gpuSelectionMirrorKind = quint8(kind);
     m_gpuSelectionMirrorMask = coverage;
     m_hasGpuSelectionMirror = true;
+    KisImageSP retained = this;
+    retained->notifySelectionChanged();
 }
 
 void KisImage::connectGpuImageUpdates()

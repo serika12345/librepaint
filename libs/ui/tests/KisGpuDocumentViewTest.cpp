@@ -3700,6 +3700,7 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
 
     auto *copyMerged = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_merged"));
     QVERIFY(copyMerged);
+    QTRY_VERIFY(copyMerged->isEnabled());
     copyMerged->trigger();
     QTRY_VERIFY(KisClipboard::instance()->hasImage());
     const auto *mergedClipboard = QGuiApplication::clipboard()->mimeData();
@@ -3723,6 +3724,7 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
 
     auto *copyLayer = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_selection_to_new_layer"));
     QVERIFY(copyLayer);
+    QTRY_VERIFY(copyLayer->isEnabled());
     copyLayer->trigger();
     QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
     QVERIFY(owner->operations().activeLayer() != owner->operations().snapshot()->layers.first().id);
@@ -4346,11 +4348,19 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     });
     window->viewManager()->setCurrentView(view);
     window->show();
+    auto *action = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_selection_to_new_layer"));
+    QVERIFY(action);
+    QTRY_VERIFY(!action->isEnabled());
+    QSignalSpy selectionChanges(window->viewManager()->selectionManager(),
+                                &KisSelectionManager::currentSelectionChanged);
+    QVERIFY(selectionChanges.isValid());
     const QRect selected(16, 16, 32, 32);
     QVERIFY(lifetime->image()->setGpuSelectionRect(selected));
     QTRY_COMPARE(owner->selectionRect(), selected);
-    auto *action = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_selection_to_new_layer"));
-    QVERIFY(action);
+    QVERIFY(lifetime->image()->globalSelection());
+    QVERIFY(lifetime->image()->globalSelection()->hasNonEmptyPixelSelection());
+    QTRY_VERIFY(!selectionChanges.isEmpty());
+    QTRY_VERIFY(action->isEnabled());
     action->trigger();
     QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
     const QRect region(QPoint(), QSize(64, 64));
