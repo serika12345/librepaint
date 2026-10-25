@@ -398,6 +398,8 @@ KRAのアルファストリームへ書き出され、再読込・再保存後�
 `KisGpuOperationDocumentTest::transparencyMaskHistoryCompositionAndRecovery`は、矩形選択からの
 透明マスク追加、描画後の被覆保持、表示切替、削除、Undo／Redo、復旧後の被覆と表示状態、
 追加・表示切替・削除の履歴種別を検査する。
+`KisGpuOperationDocumentTest::transparencyMaskFollowsCanvasResize`は、キャンバスのリサイズで
+透明マスク被覆が新しい原点へ移動し、新しい境界へクリップされ、Undoで元の被覆へ戻ることを検査する。
 `KisGpuOperationDocumentTest::transparencyMaskFromSelectionShapesAndRejections`は、楕円・
 アルファ被覆・反転選択からのマスク作成、グループとロック済みレイヤーの拒否、
 二重追加とマスク無しの表示切替・削除の拒否を検査する。

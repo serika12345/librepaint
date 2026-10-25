@@ -33,6 +33,9 @@ Result OperationDocument::resizeCanvas(const QRect &rect, bool cropLayers)
             crop->rect = rect;
             layer.operations.append(CropSnapshot(crop));
         }
+        if (layer.transparencyMask) {
+            layer.transparencyMask = layer.transparencyMask->translated(offset, QRect(QPoint(), rect.size()));
+        }
         if (!offset.isNull()) {
             auto combined = offset;
             if (!layer.operations.isEmpty()) {
