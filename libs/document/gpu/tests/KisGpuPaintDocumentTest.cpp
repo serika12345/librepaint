@@ -107,6 +107,7 @@ private Q_SLOTS:
     void rectangularSelectionSavesReopensAndLimitsPainting();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
+    void transparencyMaskComposesSavesReopensAndContinues();
     void weightedSmoothingSaveReopenAndContinuePreservesPixels();
     void gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
@@ -505,6 +506,104 @@ void KisGpuPaintDocumentTest::featheredSelectionClipsPaintAndRoundTripsKra()
     QCOMPARE(loadedPixels.code, ExecutionCode::Success);
     QCOMPARE(loadedPixels.bytes, filled.bytes);
     QCOMPARE(quint8(pixel(loadedPixels.bytes, 32, 64).at(3)), edge);
+}
+
+void KisGpuPaintDocumentTest::transparencyMaskComposesSavesReopensAndContinues()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {128, 128};
+    initial.layers.append({QStringLiteral("Masked"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000026}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    const QRect region(QPoint(), initial.size);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 128 + x) * 4, 4); };
+    const auto projectionBytes = [&](PaintImage &target) {
+        const auto outcome = execution.readProjectionImage(target.handle(), target.operations().snapshot(), 128 * 128 * 4);
+        if (outcome.code != ExecutionCode::Success) return QByteArray();
+        const auto converted = outcome.image.convertToFormat(QImage::Format_RGBA8888);
+        return QByteArray(reinterpret_cast<const char *>(converted.constBits()), converted.sizeInBytes());
+    };
+
+    QCOMPARE(image->setSelectionRect(QRect(32, 32, 64, 64)), Result::Success);
+    QCOMPARE(image->addTransparencyMaskFromSelection(layer), Result::Success);
+    QCOMPARE(image->clearSelection(), Result::Success);
+    QVERIFY(image->layerTransparencyMask(layer));
+    QVERIFY(image->layerTransparencyMaskVisible(layer));
+    QCOMPARE(image->fillLayer(layer, {19, 211, 97}), Result::Success);
+    const auto layerPixels = image->readRgbaPixels(layer, region, 128 * 128 * 4);
+    QCOMPARE(layerPixels.code, ExecutionCode::Success);
+    QCOMPARE(pixel(layerPixels.bytes, 64, 64), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(pixel(layerPixels.bytes, 8, 8), QByteArray::fromHex("13d361ff"));
+    const auto composed = projectionBytes(*image);
+    QCOMPARE(composed.size(), 128 * 128 * 4);
+    QCOMPARE(pixel(composed, 64, 64), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(pixel(composed, 8, 8), QByteArray(4, '\0'));
+    QCOMPARE(pixel(composed, 120, 120), QByteArray(4, '\0'));
+
+    QCOMPARE(image->setTransparencyMaskVisible(layer, false), Result::Success);
+    const auto visible = projectionBytes(*image);
+    QCOMPARE(pixel(visible, 8, 8), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(image->setTransparencyMaskVisible(layer, true), Result::Success);
+    QCOMPARE(projectionBytes(*image), composed);
+
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("transparency-mask.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    const auto loadedLayer = loaded->operations().activeLayer();
+    const auto loadedMask = loaded->layerTransparencyMask(loadedLayer);
+    QVERIFY(loadedMask);
+    QCOMPARE(loadedMask->bounds(), image->layerTransparencyMask(layer)->bounds());
+    QCOMPARE(loadedMask->coverage(64, 64), quint8(255));
+    QCOMPARE(loadedMask->coverage(8, 8), quint8(0));
+    QVERIFY(loaded->layerTransparencyMaskVisible(loadedLayer));
+    QCOMPARE(projectionBytes(*loaded), composed);
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, 128 * 128 * 4).bytes, layerPixels.bytes);
+
+    // Continuing to paint outside the mask keeps the composition hidden while
+    // the layer's own pixels retain the stroke.
+    Brush brush;
+    brush.rgba = {211, 97, 19, 255};
+    brush.diameter = 12;
+    QCOMPARE(loaded->paintFigure(loadedLayer, brush, {{{100, 100}, 1}}, Shape{}, FigureStyle{}, 23), Result::Success);
+    const auto continued = projectionBytes(*loaded);
+    QCOMPARE(pixel(continued, 100, 100), QByteArray(4, '\0'));
+    QCOMPARE(pixel(continued, 64, 64), QByteArray::fromHex("13d361ff"));
+    const auto continuedPixels = loaded->readRgbaPixels(loadedLayer, region, 128 * 128 * 4);
+    QCOMPARE(continuedPixels.code, ExecutionCode::Success);
+    QCOMPARE(quint8(pixel(continuedPixels.bytes, 100, 100).at(3)), 255);
+    const auto savedPath = directory.filePath(QStringLiteral("transparency-mask-continued.kra"));
+    QCOMPARE(reopened.document->saveKra(savedPath).code, FileCode::Success);
+    const auto again = PaintDocument::openKra(execution, savedPath);
+    QVERIFY2(again.code == FileCode::Success, qPrintable(again.diagnostic));
+    const auto againImage = again.document->image();
+    QVERIFY(againImage->layerTransparencyMask(againImage->operations().activeLayer()));
+    QCOMPARE(projectionBytes(*againImage), continued);
+    QCOMPARE(againImage->readRgbaPixels(againImage->operations().activeLayer(), region, 128 * 128 * 4).bytes,
+             continuedPixels.bytes);
+
+    // Undo removes the stroke, not the mask; removing the mask restores full
+    // composition coverage and persists across another round trip.
+    QCOMPARE(againImage->removeTransparencyMask(againImage->operations().activeLayer()), Result::Success);
+    QCOMPARE(againImage->undo(), Result::Success);
+    QVERIFY(againImage->layerTransparencyMask(againImage->operations().activeLayer()));
+    QCOMPARE(againImage->redo(), Result::Success);
+    QVERIFY(!againImage->layerTransparencyMask(againImage->operations().activeLayer()));
+    const auto unmasked = projectionBytes(*againImage);
+    QCOMPARE(pixel(unmasked, 8, 8), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(pixel(unmasked, 64, 64), QByteArray::fromHex("13d361ff"));
+    const auto removedPath = directory.filePath(QStringLiteral("transparency-mask-removed.kra"));
+    QCOMPARE(again.document->saveKra(removedPath).code, FileCode::Success);
+    const auto removed = PaintDocument::openKra(execution, removedPath);
+    QVERIFY2(removed.code == FileCode::Success, qPrintable(removed.diagnostic));
+    QVERIFY(!removed.document->image()->layerTransparencyMask(removed.document->image()->operations().activeLayer()));
+    QCOMPARE(projectionBytes(*removed.document->image()), unmasked);
 }
 
 void KisGpuPaintDocumentTest::weightedSmoothingSaveReopenAndContinuePreservesPixels()

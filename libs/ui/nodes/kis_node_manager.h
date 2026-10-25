@@ -263,6 +263,12 @@ public Q_SLOTS:
     void toggleVisibility();
     void toggleAlphaLock();
     void toggleInheritAlpha();
+    /** Transparency-mask actions for GPU paint layers. The mask remains owned
+     * by the GPU document versions rather than a CPU mask node, so the layer
+     * panel exposes these actions for the active layer instead of a child node.
+     */
+    void toggleGpuTransparencyMask();
+    void removeGpuTransparencyMask();
 
     /** Open a dialog to change layer's fast color overlay mask properties. */
     void colorOverlayMaskProperties(KisNodeSP node);
@@ -497,6 +503,7 @@ protected:
     struct KRITAUI_EXPORT ToggleAccess {
         static KisNodeList selectedNodes(KisNodeManager *manager);
         static KisNodeSP activeNode(KisNodeManager *manager);
+        static KisImageSP image(KisNodeManager *manager);
         static bool supportsProperty(KisNodeSP node, ToggleProperty property);
         static bool propertyState(KisNodeSP node, ToggleProperty property);
         static void setProperty(KisNodeManager *manager, KisNodeSP node, ToggleProperty property, bool value);

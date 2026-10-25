@@ -1733,6 +1733,12 @@ KisNodeList KisNodeManager::ToggleAccess::selectedNodes(KisNodeManager *manager)
     return manager->selectedNodes();
 }
 
+KisImageSP KisNodeManager::ToggleAccess::image(KisNodeManager *manager)
+{
+    if (!manager->m_d->view) return KisImageSP();
+    return manager->m_d->view->image();
+}
+
 KisNodeSP KisNodeManager::ToggleAccess::activeNode(KisNodeManager *manager)
 {
     return manager->activeNode();

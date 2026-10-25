@@ -41,3 +41,19 @@ void KisNodeManager::toggleInheritAlpha()
 {
     toggleNodeProperty(ToggleProperty::InheritAlpha);
 }
+
+void KisNodeManager::toggleGpuTransparencyMask()
+{
+    KisImageSP image = ToggleAccess::image(this);
+    const KisNodeSP node = ToggleAccess::activeNode(this);
+    if (!image || !image->gpuImage() || !node) return;
+    image->setGpuTransparencyMaskVisible(node, !image->gpuTransparencyMaskVisible(node));
+}
+
+void KisNodeManager::removeGpuTransparencyMask()
+{
+    KisImageSP image = ToggleAccess::image(this);
+    const KisNodeSP node = ToggleAccess::activeNode(this);
+    if (!image || !image->gpuImage() || !node) return;
+    image->removeGpuTransparencyMask(node);
+}

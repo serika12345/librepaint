@@ -214,6 +214,13 @@ KisNodeSP KisMaskManager::createSelectionMask(KisNodeSP activeNode, KisPaintDevi
 
 KisNodeSP KisMaskManager::createTransparencyMask(KisNodeSP activeNode, KisPaintDeviceSP copyFrom, bool convertActiveNode)
 {
+    if (KisImageSP image = m_view->image(); image && image->gpuImage()) {
+        // GPU transparency masks are owned by document versions, not by a CPU
+        // mask node. The action derives coverage from the current selection;
+        // conversion to a mask removes the source layer and is not supported.
+        if (convertActiveNode || copyFrom || !activeNode) return 0;
+        return image->addGpuTransparencyMaskFromSelection(activeNode) ? activeNode : 0;
+    }
     if (!m_view->nodeManager()->canModifyLayer(activeNode)) return 0;
 
     KisMaskSP mask = new KisTransparencyMask(m_view->image(), "");

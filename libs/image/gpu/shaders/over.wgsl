@@ -10,6 +10,13 @@ struct CompositeParameters { opacityBits: u32, normalizeBase: u32, channelMask: 
 struct CompositePairParameters { first: CompositeParameters, second: CompositeParameters, }
 @group(0) @binding(4) var<storage, read> secondLayerPixels: array<u32>;
 @group(0) @binding(5) var<uniform> pairParameters: CompositePairParameters;
+// Four alpha bytes per word. Opaque coverage is bound for layers without a mask.
+@group(0) @binding(6) var<storage, read> firstMaskCoverage: array<u32>;
+@group(0) @binding(7) var<storage, read> secondMaskCoverage: array<u32>;
+
+fn coverageAlpha(words: u32, index: u32) -> u32 {
+    return (words >> ((index & 3u) * 8u)) & 255u;
+}
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -57,10 +64,11 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
     return packPixel(destination);
 }
 
-fn projectionOver(base: u32, layer: u32, values: CompositeParameters) -> u32 {
+fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha: u32) -> u32 {
     var destination = unpackPixel(base);
     if (values.normalizeBase != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
-    let source = unpackPixel(layer);
+    var source = unpackPixel(layer);
+    if (maskAlpha != 255u) { source.w = multiplyByte(source.w, maskAlpha); }
     if ((values.blendModeOpacity & 255u) != 0u) {
         return separableProjectionPixel(destination, source, values.blendModeOpacity >> 8u, values.channelMask, values.blendModeOpacity & 255u);
     }
@@ -119,7 +127,8 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let position = invocation.xy;
     if (any(position >= vec2<u32>(256u))) { return; }
     let index = position.y * 256u + position.x;
-    outputPixels[index] = projectionOver(basePixels[index], layerPixels[index], parameters);
+    let maskAlpha = coverageAlpha(firstMaskCoverage[index >> 2u], index);
+    outputPixels[index] = projectionOver(basePixels[index], layerPixels[index], parameters, maskAlpha);
 }
 
 @compute @workgroup_size(8, 8)
@@ -127,6 +136,8 @@ fn mainPair(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let position = invocation.xy;
     if (any(position >= vec2<u32>(256u))) { return; }
     let index = position.y * 256u + position.x;
-    let first = projectionOver(basePixels[index], layerPixels[index], pairParameters.first);
-    outputPixels[index] = projectionOver(first, secondLayerPixels[index], pairParameters.second);
+    let firstMask = coverageAlpha(firstMaskCoverage[index >> 2u], index);
+    let secondMask = coverageAlpha(secondMaskCoverage[index >> 2u], index);
+    let first = projectionOver(basePixels[index], layerPixels[index], pairParameters.first, firstMask);
+    outputPixels[index] = projectionOver(first, secondLayerPixels[index], pairParameters.second, secondMask);
 }

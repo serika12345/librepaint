@@ -194,6 +194,8 @@ private Q_SLOTS:
     void stationaryGaussianCommitInvalidatesPendingPixelsAndRetainsInput_data();
     void stationaryGaussianCommitInvalidatesPendingPixelsAndRetainsInput();
     void invalidGaussianWashSettingsPreserveTheDocument();
+    void transparencyMaskHistoryCompositionAndRecovery();
+    void transparencyMaskFromSelectionShapesAndRejections();
     void cancelAndRejectedInputPreserveRedo();
     void documentChangesShareOneHistory();
     void savesPinTheirVersionWhileEditingContinues();
@@ -4500,6 +4502,181 @@ void KisGpuOperationDocumentTest::stationaryGaussianCommitInvalidatesPendingPixe
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->inputSamples(), input);
+}
+
+void KisGpuOperationDocumentTest::transparencyMaskHistoryCompositionAndRecovery()
+{
+    const QSize size(64, 64);
+    const QRect clip(QPoint(), size);
+    const QRect selection(8, 8, 32, 24);
+    OperationDocument document(size);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setSelectionRect(selection), Result::Success);
+    QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::AddTransparencyMask);
+    const auto expected = SelectionMask::fromRectangle(selection, clip);
+    QVERIFY(expected);
+    const auto mask = document.layerTransparencyMask(layer);
+    QVERIFY(mask);
+    QVERIFY(*mask == *expected);
+    QVERIFY(document.layerTransparencyMaskVisible(layer));
+
+    // Painting retains the frozen mask and never synchronizes it per stroke.
+    const auto stroke = document.beginStroke(layer, Brush{}, 7);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {{{16, 16}, 1}, {{40, 20}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.historyAction(3), HistoryAction::PaintStroke);
+    QVERIFY(document.layerTransparencyMask(layer) == mask);
+    QVERIFY(document.layerTransparencyMaskVisible(layer));
+
+    QCOMPARE(document.setTransparencyMaskVisible(layer, false), Result::Success);
+    QCOMPARE(document.historyAction(4), HistoryAction::ChangeMaskVisibility);
+    QVERIFY(!document.layerTransparencyMaskVisible(layer));
+    QVERIFY(document.layerTransparencyMask(layer) == mask);
+    QCOMPARE(document.setTransparencyMaskVisible(layer, false), Result::Success);
+    QCOMPARE(document.undoCount(), 4);
+
+    QCOMPARE(document.removeTransparencyMask(layer), Result::Success);
+    QCOMPARE(document.historyAction(5), HistoryAction::RemoveTransparencyMask);
+    QVERIFY(!document.layerTransparencyMask(layer));
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.layerTransparencyMask(layer) == mask);
+    QVERIFY(!document.layerTransparencyMaskVisible(layer));
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.layerTransparencyMaskVisible(layer));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!document.layerTransparencyMask(layer));
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.layerTransparencyMask(layer) == mask);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(!document.layerTransparencyMask(layer));
+    QCOMPARE(document.undoCount(), 5);
+
+    // Recovery retains masks on every version, their visibility and the
+    // add/toggle/remove history actions.
+    const auto bytes = document.recoveryData();
+    OperationDocument restored(size);
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(restored.undoCount(), 5);
+    QCOMPARE(restored.redoCount(), 0);
+    QVERIFY(!restored.layerTransparencyMask(restored.snapshot()->layers.first().id));
+    QCOMPARE(restored.historyAction(2), HistoryAction::AddTransparencyMask);
+    QCOMPARE(restored.historyAction(3), HistoryAction::PaintStroke);
+    QCOMPARE(restored.historyAction(4), HistoryAction::ChangeMaskVisibility);
+    QCOMPARE(restored.historyAction(5), HistoryAction::RemoveTransparencyMask);
+    QCOMPARE(restored.undo(), Result::Success);
+    const auto restoredLayer = restored.snapshot()->layers.first().id;
+    QVERIFY(restored.layerTransparencyMask(restoredLayer));
+    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *mask);
+    QVERIFY(!restored.layerTransparencyMaskVisible(restoredLayer));
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(restored.layerTransparencyMaskVisible(restoredLayer));
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(!restored.layerTransparencyMask(restoredLayer));
+    QCOMPARE(restored.redo(), Result::Success);
+    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *mask);
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.redo(), Result::Success);
+    QVERIFY(!restored.layerTransparencyMaskVisible(restoredLayer));
+    QCOMPARE(restored.redo(), Result::Success);
+    QVERIFY(!restored.layerTransparencyMask(restoredLayer));
+    QCOMPARE(restored.undoCount(), 5);
+    QCOMPARE(restored.recoveryData(), bytes);
+}
+
+void KisGpuOperationDocumentTest::transparencyMaskFromSelectionShapesAndRejections()
+{
+    const QSize size(96, 96);
+    const QRect clip(QPoint(), size);
+
+    {
+        OperationDocument document(size);
+        const auto layer = document.activeLayer();
+        QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::InvalidInput);
+        QCOMPARE(document.setSelectionEllipse(QRect(16, 16, 48, 32)), Result::Success);
+        QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
+        const auto expected = SelectionMask::fromEllipse(QRect(16, 16, 48, 32), clip);
+        QVERIFY(expected);
+        QVERIFY(document.layerTransparencyMask(layer));
+        QVERIFY(*document.layerTransparencyMask(layer) == *expected);
+        QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::InvalidInput);
+        QCOMPARE(document.removeTransparencyMask(layer), Result::Success);
+        QVERIFY(!document.layerTransparencyMask(layer));
+        QCOMPARE(document.removeTransparencyMask(layer), Result::LayerUnavailable);
+        QCOMPARE(document.setTransparencyMaskVisible(layer, true), Result::LayerUnavailable);
+        QCOMPARE(document.undo(), Result::Success);
+        QVERIFY(document.layerTransparencyMask(layer));
+        QCOMPARE(document.undo(), Result::Success);
+        QVERIFY(!document.layerTransparencyMask(layer));
+        QCOMPARE(document.redo(), Result::Success);
+        QVERIFY(document.layerTransparencyMask(layer));
+        QCOMPARE(document.redo(), Result::Success);
+        QVERIFY(!document.layerTransparencyMask(layer));
+    }
+
+    {
+        // Alpha selection coverage becomes the mask's fractional alpha.
+        OperationDocument document(size);
+        const auto layer = document.activeLayer();
+        const QRect bounds(20, 18, 28, 24);
+        QByteArray alpha(bounds.width() * bounds.height(), '\0');
+        for (int y = 0; y < bounds.height(); ++y)
+            for (int x = 0; x < bounds.width(); ++x)
+                alpha[y * bounds.width() + x] = char(quint8((x * 255) / (bounds.width() - 1)));
+        const auto soft = SelectionMask::fromAlphaCoverage(bounds, alpha, clip);
+        QVERIFY(soft && soft->isAlpha());
+        QCOMPARE(document.setSelectionMask(soft), Result::Success);
+        QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
+        QVERIFY(document.layerTransparencyMask(layer));
+        QVERIFY(document.layerTransparencyMask(layer) == soft);
+        QCOMPARE(document.layerTransparencyMask(layer)->coverage(20, 18), soft->coverage(20, 18));
+        QCOMPARE(document.layerTransparencyMask(layer)->coverage(47, 18), soft->coverage(47, 18));
+        QCOMPARE(document.undo(), Result::Success);
+        QCOMPARE(document.undo(), Result::Success);
+        QCOMPARE(document.setSelectionMask(soft, true), Result::Success);
+        QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
+        const auto expected = soft->inverted(clip);
+        QVERIFY(expected);
+        QVERIFY(*document.layerTransparencyMask(layer) == *expected);
+        QVERIFY(document.layerTransparencyMask(layer)->coverage(0, 0) > 0);
+        QCOMPARE(document.layerTransparencyMask(layer)->coverage(34, 30),
+                 quint8(255u - soft->coverage(34, 30)));
+    }
+
+    {
+        // Inverted rectangular selections become the complement coverage.
+        OperationDocument document(size);
+        const auto layer = document.activeLayer();
+        const QRect hole(24, 20, 16, 24);
+        QCOMPARE(document.setSelectionRect(hole, true), Result::Success);
+        QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
+        const auto expected = SelectionMask::fromRectangle(hole, clip)->inverted(clip);
+        QVERIFY(expected);
+        QVERIFY(*document.layerTransparencyMask(layer) == *expected);
+        QCOMPARE(document.layerTransparencyMask(layer)->coverage(0, 0), quint8(255));
+        QCOMPARE(document.layerTransparencyMask(layer)->coverage(30, 30), quint8(0));
+    }
+
+    {
+        // Only unlocked paint layers own a transparency mask.
+        OperationDocument document(nestedImage());
+        const auto group = std::find_if(document.snapshot()->layers.cbegin(), document.snapshot()->layers.cend(),
+            [](const Layer &layer) { return layer.kind == LayerKind::Group; });
+        QVERIFY(group != document.snapshot()->layers.cend());
+        QCOMPARE(document.setSelectionRect(QRect(4, 4, 16, 16)), Result::Success);
+        QCOMPARE(document.addTransparencyMaskFromSelection(group->id), Result::LayerUnavailable);
+        const auto paint = document.activeLayer();
+        QCOMPARE(document.setLayerLocked(paint, true), Result::Success);
+        QCOMPARE(document.addTransparencyMaskFromSelection(paint), Result::LayerUnavailable);
+        QCOMPARE(document.setLayerLocked(paint, false), Result::Success);
+        QCOMPARE(document.addTransparencyMaskFromSelection(paint), Result::Success);
+    }
 }
 
 void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument()

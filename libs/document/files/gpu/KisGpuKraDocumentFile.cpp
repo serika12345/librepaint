@@ -48,6 +48,8 @@ RasterLayer rasterLayerDescription(const Layer &layer)
     value.projectionChannelMask = layer.projectionChannelMask;
     value.passThrough = layer.passThrough;
     value.blendMode = layer.blendMode;
+    value.transparencyMask = layer.transparencyMask;
+    value.transparencyMaskVisible = layer.transparencyMaskVisible;
     return value;
 }
 }

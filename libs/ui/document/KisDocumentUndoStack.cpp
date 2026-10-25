@@ -35,6 +35,9 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::ChangePassThrough: return kundo2_i18n("Change group pass-through mode");
     case HistoryAction::ChangeBlendMode: return kundo2_i18n("Change blending mode");
     case HistoryAction::ChangeSelection: return kundo2_i18n("Change selection");
+    case HistoryAction::AddTransparencyMask: return kundo2_i18n("Add transparency mask");
+    case HistoryAction::RemoveTransparencyMask: return kundo2_i18n("Remove transparency mask");
+    case HistoryAction::ChangeMaskVisibility: return kundo2_i18n("Change transparency mask visibility");
     case HistoryAction::ChangeTimelinePin: return kundo2_i18n("Change timeline pin");
     case HistoryAction::PaintStroke: return kundo2_i18n("Paint stroke");
     case HistoryAction::DrawLine: return kundo2_i18n("Draw line");

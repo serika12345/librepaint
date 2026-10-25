@@ -1550,6 +1550,11 @@ void KisGpuPaintImageTest::damagedPixelSharingRecoveryPreservesTheLiveImage()
         reader >> x >> y >> size;
         QVERIFY(input.seek(input.pos() + size));
     }
+    // Format 44 and later store the shared arbitrary-coverage table after the
+    // raster tiles; this record has no selection masks.
+    quint32 maskCount = 0;
+    reader >> maskCount;
+    QCOMPARE(maskCount, quint32(0));
     quint32 operationCount = 0, count = 0;
     quint8 kind = 0;
     quint64 sequence = 0, version = 0, layer = 0;

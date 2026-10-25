@@ -170,6 +170,29 @@ SelectionKind PaintImage::selectionKind() const
 { return onThread() ? m_d->document->selectionKind() : SelectionKind::Rectangle; }
 SelectionMaskSP PaintImage::selectionMask() const
 { return onThread() ? m_d->document->selectionMask() : SelectionMaskSP{}; }
+Result PaintImage::addTransparencyMaskFromSelection(LayerId layer)
+{
+    if (!onThread()) return Result::InvalidInput;
+    return publish(m_d->document->addTransparencyMaskFromSelection(layer));
+}
+Result PaintImage::setTransparencyMaskVisible(LayerId layer, bool visible)
+{
+    if (!onThread()) return Result::InvalidInput;
+    return publish(m_d->document->setTransparencyMaskVisible(layer, visible));
+}
+Result PaintImage::removeTransparencyMask(LayerId layer)
+{
+    if (!onThread()) return Result::InvalidInput;
+    return publish(m_d->document->removeTransparencyMask(layer));
+}
+SelectionMaskSP PaintImage::layerTransparencyMask(LayerId layer) const
+{
+    return onThread() ? m_d->document->layerTransparencyMask(layer) : SelectionMaskSP{};
+}
+bool PaintImage::layerTransparencyMaskVisible(LayerId layer) const
+{
+    return onThread() && m_d->document->layerTransparencyMaskVisible(layer);
+}
 void PaintImage::refreshLayerPixelReferences()
 {
     const auto version = layerPixelVersion();

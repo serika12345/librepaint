@@ -64,6 +64,15 @@ public:
      */
     static QSharedPointer<const SelectionMask> fromAlphaCoverage(const QRect &bounds, const QByteArray &coverage,
                                                                  const QRect &clip);
+    /** Rasterizes a filled rectangle with binary coverage clipped to `clip`.
+     * Empty rectangles and rectangles entirely outside `clip` return null.
+     */
+    static QSharedPointer<const SelectionMask> fromRectangle(const QRect &rect, const QRect &clip);
+    /** Rasterizes a filled ellipse centered in `rect` at pixel centers with
+     * binary coverage clipped to `clip`. Empty or fully clipped shapes return
+     * null.
+     */
+    static QSharedPointer<const SelectionMask> fromEllipse(const QRect &rect, const QRect &clip);
     /** Adopts bit-packed tiles. Tile coordinates use TileSize units. The
      * selected bounds are derived from the bits. Null reports invalid,
      * repeated or empty tiles.

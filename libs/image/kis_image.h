@@ -120,6 +120,15 @@ public:
     void previewGpuSelectionRect(const QRect &rect, bool ellipse = false, bool inverted = false);
     void previewGpuSelectionMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask, bool inverted = false);
     bool clearGpuSelection();
+    /** Adds one transparency mask to a GPU paint layer from the current
+     * selection coverage. The mask is retained by GPU document versions and
+     * composition; no CPU mask becomes its owner. The node must identify a
+     * paint layer currently represented in the GPU document.
+     */
+    bool addGpuTransparencyMaskFromSelection(KisNodeSP layer);
+    bool setGpuTransparencyMaskVisible(KisNodeSP layer, bool visible);
+    bool removeGpuTransparencyMask(KisNodeSP layer);
+    bool gpuTransparencyMaskVisible(KisNodeSP layer) const;
     /** Adds a GPU paint layer at a bottom-to-top child index in the given
      * group. Returns the adopted node, or null on invalid input or capacity.
      */

@@ -33,10 +33,17 @@ TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
                         WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst)),
       unusedCoverage(createBuffer(this->device->nativeDevice(), sizeof(quint32), WGPUBufferUsage_Storage)),
       unusedSelection(createBuffer(this->device->nativeDevice(), SelectionMask::AlphaTileBytes,
-                                   WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst))
+                                   WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst)),
+      opaqueMask(createBuffer(this->device->nativeDevice(), SelectionMask::AlphaTileBytes,
+                              WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst))
 {
+    if (opaqueMask) {
+        const QByteArray opaque(SelectionMask::AlphaTileBytes, char(255));
+        wgpuQueueWriteBuffer(this->device->queue(), opaqueMask.get(), 0,
+                             opaque.constData(), opaque.size());
+    }
     pipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/paint.wgsl"));
-    if (!zero || !unusedCoverage || !unusedSelection || !pipeline) return;
+    if (!zero || !unusedCoverage || !unusedSelection || !opaqueMask || !pipeline) return;
     layout.reset(wgpuComputePipelineGetBindGroupLayout(pipeline.get(), 0));
     if (!layout) error = QStringLiteral("GPU paint bindings could not be created");
     if (error.isEmpty()) initializeProjection();

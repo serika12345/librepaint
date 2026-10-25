@@ -26,9 +26,53 @@ struct CompositeJob
 {
     std::shared_ptr<Tile> base, output;
     std::shared_ptr<Tile> layers[2];
+    std::shared_ptr<CoverageTile> masks[2];
     NativeBindings bindings;
 };
 }
+
+std::shared_ptr<CoverageTile> TileRenderer::Private::coverageTile(const SelectionMaskSP &mask, quint64 key)
+{
+    if (!mask) return {};
+    auto &entry = maskTiles[mask.data()];
+    if (!entry.source) entry.source = mask;
+    const auto cached = entry.tiles.constFind(key);
+    if (cached != entry.tiles.cend()) return *cached;
+    if (qsizetype(SelectionMask::AlphaTileBytes) > budget->limit - budget->used) {
+        clearMaskTiles();
+        if (qsizetype(SelectionMask::AlphaTileBytes) > budget->limit - budget->used) return {};
+    }
+    auto pixels = createBuffer(device->nativeDevice(), SelectionMask::AlphaTileBytes,
+                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
+    if (!pixels || !device->diagnostic().isEmpty()) return {};
+    QByteArray alpha(SelectionMask::AlphaTileBytes, '\0');
+    const int tileX = int(quint32(key)), tileY = int(quint32(key >> 32));
+    const auto stored = mask->tiles().constFind(SelectionTileKey(tileX, tileY));
+    if (stored != mask->tiles().cend()) {
+        const auto &bytes = stored.value();
+        if (mask->isAlpha()) {
+            if (bytes.size() == SelectionMask::AlphaTileBytes) alpha = bytes;
+        } else if (bytes.size() == SelectionMask::TileBytes) {
+            for (qsizetype index = 0; index < SelectionMask::AlphaTileBytes; ++index)
+                if (quint8(bytes.at(index >> 3)) & (1u << (index & 7))) alpha[index] = char(255);
+        }
+    }
+    wgpuQueueWriteBuffer(device->queue(), pixels.get(), 0, alpha.constData(), alpha.size());
+    auto tile = std::make_shared<CoverageTile>(std::move(pixels), budget);
+    entry.tiles.insert(key, tile);
+    // Coverage for at most a few masks stays resident; documents that replace
+    // masks release the older uploads instead of retaining unbounded memory.
+    if (maskTiles.size() > 4) {
+        for (auto current = maskTiles.begin(); current != maskTiles.end();) {
+            if (current.key() != mask.data()) current = maskTiles.erase(current);
+            else ++current;
+        }
+    }
+    return tile;
+}
+
+void TileRenderer::Private::clearMaskTiles()
+{ maskTiles.clear(); }
 
 void TileRenderer::Private::initializeProjection()
 {
@@ -174,13 +218,17 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     }
     QList<const Layer *> children;
     for (const auto &layer : document->document()->layers) if (layer.parentUuid == parent) children.append(&layer);
-    data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 && children.first()->projectionChannelMask == 15 && !children.first()->passThrough && children.first()->blendMode == LayerBlendMode::Normal :
+    data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 && children.first()->projectionChannelMask == 15 && !children.first()->passThrough && children.first()->blendMode == LayerBlendMode::Normal && !hasEnabledTransparencyMask(*children.first()) :
         document->document()->directProjectionLayer() != 0;
     data->region = group ? region : region.intersected(QRect(QPoint(0, 0), document->document()->size));
     if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
     }
     const auto inputs = document->document()->projectionInputs(group);
+    QHash<LayerId, SelectionMaskSP> layerMasks;
+    for (const auto &layer : document->document()->layers)
+        if (layer.transparencyMask && layer.transparencyMaskVisible)
+            layerMasks.insert(layer.id, layer.transparencyMask);
     QSet<quint64> coordinates;
     // A single fully opaque paint layer supplies the legacy transparent-root projection,
     // including the RGB components of pixels whose alpha is zero.
@@ -217,11 +265,14 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const auto &tiles = document->m_data->layers[layer.layer];
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
-            if (pixels) data->inputs[coordinate].append({pixels, layer.opacity, layer.channelMask, layer.blendMode});
+            if (!pixels) continue;
+            ProjectionInput input{pixels, layer.opacity, layer.channelMask, layer.blendMode};
+            input.mask = layerMasks.value(layer.layer);
+            data->inputs[coordinate].append(input);
         }
     }
     const auto firstComposition = [&](const auto &inputs) {
-        return inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && (inputs.size() > 1 || background || data->directLayerProjection ||
+        return inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
                                                 !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
     };
     const bool cachedBase = !group && base && d.backdropVersion.toStrongRef() == base &&
@@ -295,6 +346,11 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             for (int layer = 0; layer < count; ++layer) {
                 const auto &source = tile.value()[i + layer];
                 job.layers[layer] = source.pixels;
+                if (source.mask) {
+                    job.masks[layer] = d.coverageTile(source.mask, tile.key());
+                    if (!job.masks[layer])
+                        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU layer mask coverage capacity exceeded")};
+                }
                 const float opacity = float(source.opacity) / 255.0f;
                 std::memcpy(&values[layer].opacityBits, &opacity, sizeof(opacity));
                 values[layer].channelMask = source.channelMask;
@@ -316,12 +372,29 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 parameterBuffers.insert(parameterKey, parameters);
                 uniforms.push_back(std::move(uniform));
             }
-            WGPUBuffer buffers[] = {job.base ? job.base->pixels.get() : d.zero.get(), job.layers[0]->pixels.get(),
-                                    job.output->pixels.get(), paired ? job.layers[1]->pixels.get() : parameters, parameters};
-            WGPUBindGroupEntry entries[5]{};
-            const quint32 bindingCount = paired ? 5 : 4;
+            WGPUBuffer buffers[7]{};
+            quint32 bindingIndices[7]{};
+            quint32 bindingCount = 0;
+            const auto addBinding = [&](quint32 binding, WGPUBuffer buffer) {
+                buffers[bindingCount] = buffer;
+                bindingIndices[bindingCount] = binding;
+                ++bindingCount;
+            };
+            addBinding(0, job.base ? job.base->pixels.get() : d.zero.get());
+            addBinding(1, job.layers[0]->pixels.get());
+            addBinding(2, job.output->pixels.get());
+            if (paired) {
+                addBinding(4, job.layers[1]->pixels.get());
+                addBinding(5, parameters);
+                addBinding(6, job.masks[0] ? job.masks[0]->pixels.get() : d.opaqueMask.get());
+                addBinding(7, job.masks[1] ? job.masks[1]->pixels.get() : d.opaqueMask.get());
+            } else {
+                addBinding(3, parameters);
+                addBinding(6, job.masks[0] ? job.masks[0]->pixels.get() : d.opaqueMask.get());
+            }
+            WGPUBindGroupEntry entries[7]{};
             for (quint32 index = 0; index < bindingCount; ++index) {
-                entries[index].binding = paired && index >= 3 ? index + 1 : index;
+                entries[index].binding = bindingIndices[index];
                 entries[index].buffer = buffers[index];
                 entries[index].size = wgpuBufferGetSize(buffers[index]);
             }

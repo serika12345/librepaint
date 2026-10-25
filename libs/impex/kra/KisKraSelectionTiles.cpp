@@ -314,4 +314,109 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
     output = std::move(bytes);
     return {Status::Success, {}};
 }
+
+Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageBounds,
+                             qsizetype maximumBytes,
+                             LibrePaint::Image::Gpu::SelectionMaskSP &mask)
+{
+    mask.clear();
+    if (imageBounds.isEmpty() || maximumBytes <= 0) return invalid();
+    QBuffer input;
+    input.setData(data);
+    input.open(QIODevice::ReadOnly);
+    if (line(input) != QByteArrayLiteral("VERSION 2"))
+        return {Status::UnsupportedData, QStringLiteral("KRA transparency mask requires version 2")};
+    if (line(input) != QByteArrayLiteral("TILEWIDTH 64") || line(input) != QByteArrayLiteral("TILEHEIGHT 64") ||
+        line(input) != QByteArrayLiteral("PIXELSIZE 1")) return invalid();
+    const auto countLine = line(input).split(' ');
+    bool ok = false;
+    const auto count = countLine.size() == 2 ? countLine[1].toUInt(&ok) : 0;
+    if (!ok || countLine[0] != QByteArrayLiteral("DATA")) return invalid();
+    if (count > quint64(maximumBytes / FileTileBytes)) return capacity();
+    constexpr qint64 limit = RgbaTile::CoordinateLimit;
+    QSet<QPoint> seen;
+    KisLzfCompression compression;
+    SelectionTileMap tiles;
+    qsizetype bytes = 0;
+    QByteArray pixels;
+    for (quint32 index = 0; index < count; ++index) {
+        const auto fields = line(input).split(',');
+        if (fields.size() != 4 || fields[2] != QByteArrayLiteral("LZF")) return invalid();
+        const int x = fields[0].toInt(&ok);
+        if (!ok || x % FileTileSize) return invalid();
+        const int y = fields[1].toInt(&ok);
+        if (!ok || y % FileTileSize || seen.contains({x, y})) return invalid();
+        seen.insert({x, y});
+        const int size = fields[3].toInt(&ok);
+        if (!ok || size < 1 || size > FileTileBytes + 1 || size > input.bytesAvailable()) return invalid();
+        const auto encoded = input.read(size);
+        if (encoded[0] == 0) {
+            if (size != FileTileBytes + 1) return invalid();
+            pixels = encoded.mid(1);
+        } else if (encoded[0] == 1) {
+            pixels.resize(FileTileBytes);
+            if (compression.decompress(reinterpret_cast<const quint8 *>(encoded.constData() + 1), size - 1,
+                                       reinterpret_cast<quint8 *>(pixels.data()), pixels.size()) != FileTileBytes) return invalid();
+        } else return invalid();
+        for (int row = 0; row < FileTileSize; ++row) {
+            for (int column = 0; column < FileTileSize; ++column) {
+                const quint8 value = quint8(pixels.at(row * FileTileSize + column));
+                if (!value) continue;
+                const qint64 worldX = qint64(x) + column + offset.x();
+                const qint64 worldY = qint64(y) + row + offset.y();
+                if (worldX < -limit || worldY < -limit || worldX >= limit || worldY >= limit) return invalid();
+                if (!imageBounds.contains(int(worldX), int(worldY))) continue;
+                const int tileX = floorDivide(worldX, SelectionMask::TileSize);
+                const int tileY = floorDivide(worldY, SelectionMask::TileSize);
+                const SelectionTileKey key(tileX, tileY);
+                auto tile = tiles.find(key);
+                if (tile == tiles.end()) {
+                    if (bytes + SelectionMask::AlphaTileBytes >
+                        std::min<qsizetype>(SelectionMask::MaximumBytes, maximumBytes)) return capacity();
+                    tile = tiles.insert(key, QByteArray(SelectionMask::AlphaTileBytes, '\0'));
+                    bytes += SelectionMask::AlphaTileBytes;
+                }
+                const int localX = int(worldX) - tileX * SelectionMask::TileSize;
+                const int localY = int(worldY) - tileY * SelectionMask::TileSize;
+                tile.value()[qsizetype(localY) * SelectionMask::TileSize + localX] = char(value);
+            }
+        }
+    }
+    if (!input.atEnd()) return invalid();
+    if (tiles.isEmpty())
+        return {Status::UnsupportedData, QStringLiteral("KRA transparency mask requires nonempty coverage")};
+    mask = SelectionMask::fromAlphaTiles(tiles);
+    if (!mask)
+        return {Status::UnsupportedData, QStringLiteral("KRA transparency mask coverage could not be adopted")};
+    return {Status::Success, {}};
+}
+
+Outcome writeTransparencyMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
+                              const QRect &imageBounds, qsizetype maximumBytes,
+                              QByteArray &output)
+{
+    if (!mask || mask->isEmpty() || mask->bounds().isEmpty() || imageBounds.isEmpty())
+        return {Status::InvalidData, QStringLiteral("KRA transparency mask coverage is empty")};
+    const QRect area = mask->bounds().intersected(imageBounds);
+    if (area.isEmpty())
+        return {Status::InvalidData, QStringLiteral("KRA transparency mask coverage is outside the image")};
+    // Canvas changes can leave a retained mask partially outside the saved
+    // image; the stream stores the visible intersection.
+    if (area != mask->bounds()) {
+        if (qint64(area.width()) * qint64(area.height()) > maximumBytes) return capacity();
+        QByteArray coverage(area.width() * area.height(), '\0');
+        for (int y = area.top(); y <= area.bottom(); ++y)
+            for (int x = area.left(); x <= area.right(); ++x)
+                coverage[(y - area.top()) * area.width() + x - area.left()] = char(mask->coverage(x, y));
+        const auto clipped = LibrePaint::Image::Gpu::SelectionMask::fromAlphaCoverage(area, coverage, area);
+        if (!clipped || clipped->isEmpty())
+            return {Status::UnsupportedData, QStringLiteral("KRA transparency mask coverage is fully clipped")};
+        return writeSelectionTiles(clipped->bounds(), false, imageBounds,
+                                   LibrePaint::Image::Gpu::SelectionKind::Freehand, clipped,
+                                   maximumBytes, output);
+    }
+    return writeSelectionTiles(mask->bounds(), false, imageBounds,
+                               LibrePaint::Image::Gpu::SelectionKind::Freehand, mask,
+                               maximumBytes, output);
+}
 }

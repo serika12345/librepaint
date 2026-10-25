@@ -126,6 +126,7 @@ private Q_SLOTS:
     void layerPanelEditsUseOneDocumentHistory();
     void layerPanelThumbnailsReadOnlyReducedGpuPixels();
     void rectangularSelectionLimitsPainting();
+    void transparencyMaskActionsUseTheActiveGpuPaintLayer();
     void selectionFillUsesGpuSelection();
     void selectionMergedCopyUsesGpuSelection();
     void selectionCopyAndCutUseGpuSelection();
@@ -1791,6 +1792,60 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
         QCOMPARE(lifetime->undoStack()->count(), 3);
         QCOMPARE(lifetime->undoStack()->command(2)->text().toString(), i18n("Rename layer"));
     }
+}
+
+void KisGpuDocumentViewTest::transparencyMaskActionsUseTheActiveGpuPaintLayer()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Transparency mask actions"));
+    QVERIFY(image);
+    const auto node = image->root()->firstChild();
+    QVERIFY(node);
+    const auto layer = owner->operations().activeLayer();
+    QVERIFY(image->setGpuSelectionRect(QRect(32, 32, 64, 64)));
+    QSignalSpy changes(owner.data(), &Gpu::PaintImage::changed);
+
+    QVERIFY(!owner->layerTransparencyMask(layer));
+    QVERIFY(image->addGpuTransparencyMaskFromSelection(node));
+    QCOMPARE(changes.size(), 1);
+    auto version = owner->operations().snapshot();
+    QVERIFY(version->layers.first().transparencyMask);
+    QCOMPARE(version->layers.first().transparencyMask->bounds(), QRect(32, 32, 64, 64));
+    QVERIFY(image->gpuTransparencyMaskVisible(node));
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::AddTransparencyMask);
+
+    QVERIFY(image->setGpuTransparencyMaskVisible(node, false));
+    QVERIFY(!owner->layerTransparencyMaskVisible(layer));
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::ChangeMaskVisibility);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(owner->layerTransparencyMaskVisible(layer));
+    QVERIFY(image->gpuTransparencyMaskVisible(node));
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QVERIFY(!owner->layerTransparencyMaskVisible(layer));
+
+    QVERIFY(image->removeGpuTransparencyMask(node));
+    QVERIFY(!owner->layerTransparencyMask(layer));
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::RemoveTransparencyMask);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(owner->layerTransparencyMask(layer));
+
+    // Adding without a selection is rejected without adding history.
+    QVERIFY(image->removeGpuTransparencyMask(node));
+    QVERIFY(image->clearGpuSelection());
+    const auto count = owner->operations().undoCount();
+    QVERIFY(!image->addGpuTransparencyMaskFromSelection(node));
+    QCOMPARE(owner->operations().undoCount(), count);
+    QVERIFY(!owner->operations().snapshot()->layers.first().transparencyMask);
 }
 
 void KisGpuDocumentViewTest::rectangularSelectionLimitsPainting()

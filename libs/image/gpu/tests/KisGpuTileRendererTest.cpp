@@ -76,6 +76,7 @@ private Q_SLOTS:
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery();
     void featheredSelectionClipsPaintFillEraseHistoryAndRecovery();
+    void layerTransparencyMaskMultipliesCompositionAlpha();
     void gaussianWashProducesCoverageAndRetainsPixelsThroughRecovery();
     void gaussianEraseKeepsColorsHistoryAndRecovery_data();
     void gaussianEraseKeepsColorsHistoryAndRecovery();
@@ -3230,6 +3231,88 @@ void KisGpuTileRendererTest::featheredSelectionClipsPaintFillEraseHistoryAndReco
     QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
     QVERIFY(restored.selectionMask()->isAlpha());
     QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), bytes);
+}
+
+void KisGpuTileRendererTest::layerTransparencyMaskMultipliesCompositionAlpha()
+{
+    const QRect clip(QPoint(), QSize(64, 64));
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    const auto projectedBytes = [&](const ProjectedSnapshot &projected) {
+        for (const auto &tile : projected->tiles())
+            if (tile.coordinate == QPoint(0, 0)) return readBuffer(tile.pixels);
+        return QByteArray();
+    };
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.fillLayer(layer, {200, 30, 70}), Result::Success);
+    QCOMPARE(document.setSelectionRect(QRect(16, 16, 16, 16)), Result::Success);
+    QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
+    TileRenderer renderer(m_device);
+    auto rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    // The paint layer retains its own pixels; composition applies the mask.
+    const auto layerBytes = readTile(rendered, layer, {0, 0});
+    QCOMPARE(pixel(layerBytes, 8, 8), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(pixel(layerBytes, 24, 24), QByteArray::fromHex("c81e46ff"));
+    auto projected = project(renderer, rendered, {0, 0, 64, 64});
+    QVERIFY(projected);
+    auto composed = projectedBytes(projected);
+    QCOMPARE(composed.size(), TileRenderer::TileBytes);
+    QCOMPARE(pixel(composed, 24, 24), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(pixel(composed, 8, 8), QByteArray(4, '\0'));
+    QCOMPARE(pixel(composed, 40, 40), QByteArray(4, '\0'));
+
+    // Hiding the mask disables its composition effect without deleting it.
+    QCOMPARE(document.setTransparencyMaskVisible(layer, false), Result::Success);
+    rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    projected = project(renderer, rendered, {0, 0, 64, 64});
+    QVERIFY(projected);
+    composed = projectedBytes(projected);
+    QCOMPARE(pixel(composed, 8, 8), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(pixel(composed, 24, 24), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(document.setTransparencyMaskVisible(layer, true), Result::Success);
+
+    // Removal restores full coverage; undo reinstates the retained mask.
+    QCOMPARE(document.removeTransparencyMask(layer), Result::Success);
+    rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    projected = project(renderer, rendered, {0, 0, 64, 64});
+    QVERIFY(projected);
+    composed = projectedBytes(projected);
+    QCOMPARE(pixel(composed, 8, 8), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(document.undo(), Result::Success);
+    rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    projected = project(renderer, rendered, {0, 0, 64, 64});
+    QVERIFY(projected);
+    composed = projectedBytes(projected);
+    QCOMPARE(pixel(composed, 8, 8), QByteArray(4, '\0'));
+    QCOMPARE(pixel(composed, 24, 24), QByteArray::fromHex("c81e46ff"));
+    QCOMPARE(document.undo(), Result::Success); // hide
+    QCOMPARE(document.undo(), Result::Success); // show
+    QCOMPARE(document.undo(), Result::Success); // remove mask addition
+    QVERIFY(!document.layerTransparencyMask(layer));
+
+    // Fractional selection coverage becomes fractional composition alpha and
+    // masks pixels outside its bounds completely.
+    QByteArray coverage(64 * 64, '\0');
+    for (int y = 32; y < 48; ++y)
+        for (int x = 32; x < 48; ++x) coverage[y * 64 + x] = char(128);
+    const auto soft = SelectionMask::fromAlphaCoverage(QRect(QPoint(), QSize(64, 64)), coverage, clip);
+    QVERIFY(soft && soft->isAlpha());
+    QCOMPARE(document.setSelectionMask(soft), Result::Success);
+    QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
+    rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    projected = project(renderer, rendered, {0, 0, 64, 64});
+    QVERIFY(projected);
+    composed = projectedBytes(projected);
+    QCOMPARE(pixel(composed, 40, 40), QByteArray::fromHex("c81e4680"));
+    QCOMPARE(pixel(composed, 8, 8), QByteArray(4, '\0'));
+    QCOMPARE(pixel(composed, 56, 56), QByteArray(4, '\0'));
 }
 
 void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()

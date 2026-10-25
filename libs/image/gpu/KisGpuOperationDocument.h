@@ -270,6 +270,12 @@ struct RasterLayer
     LayerBlendMode blendMode = LayerBlendMode::Normal;
     /** Explicitly written pixel regions, including regions containing only defaults. */
     QList<QRect> writtenAreas{};
+    /** Optional document-coordinate alpha coverage applied to this paint
+     * layer's pixels during composition. Null means no transparency mask.
+     */
+    SelectionMaskSP transparencyMask;
+    /** False retains the coverage but ignores it during composition. */
+    bool transparencyMaskVisible = true;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -311,7 +317,18 @@ struct Layer
     /** Groups contribute their descendants directly to the enclosing composition. */
     bool passThrough = false;
     LayerBlendMode blendMode = LayerBlendMode::Normal;
+    /** Optional document-coordinate alpha coverage applied to this paint
+     * layer's pixels during composition. Owned by the document version; a CPU
+     * mask is never the permanent owner of GPU layer state.
+     */
+    SelectionMaskSP transparencyMask;
+    /** False retains the coverage but ignores it during composition. */
+    bool transparencyMaskVisible = true;
 };
+
+/** True when this layer's retained transparency mask contributes to composition. */
+inline bool hasEnabledTransparencyMask(const Layer &layer)
+{ return layer.transparencyMask && layer.transparencyMaskVisible; }
 
 /** One visible layer contributed to a composition boundary, after passing
  * ancestor opacity and immediate-parent channel selection through groups.
@@ -369,7 +386,7 @@ public:
             if (only) return 0;
             only = &layer;
         }
-        return only && only->blendMode == LayerBlendMode::Normal && !only->passThrough && only->visible && only->opacity == 255 && only->projectionChannelMask == 15 ? only->id : 0;
+        return only && only->blendMode == LayerBlendMode::Normal && !only->passThrough && only->visible && only->opacity == 255 && only->projectionChannelMask == 15 && !hasEnabledTransparencyMask(*only) ? only->id : 0;
     }
 
 private:
@@ -426,7 +443,7 @@ enum class HistoryAction {
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
     ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
-    ChangeSelection
+    ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility
 };
 
 struct Limits
@@ -577,6 +594,19 @@ public:
     Result writeLayerPassThrough(LayerId layer, bool enabled);
     Result setLayerBlendMode(LayerId layer, LayerBlendMode mode, PropertyHistory history = PropertyHistory::Separate);
     Result writeLayerBlendMode(LayerId layer, LayerBlendMode mode);
+    /** Adds one transparency mask to a paint layer from the current selection
+     * coverage in one history entry. The layer keeps its pixels and the mask
+     * becomes part of every retained document version, recovery record and
+     * saved document; no per-stroke synchronization occurs. A layer that
+     * already owns a mask or a document without a selection is rejected.
+     */
+    Result addTransparencyMaskFromSelection(LayerId layer);
+    /** Toggles the retained mask's composition effect in one history entry. */
+    Result setTransparencyMaskVisible(LayerId layer, bool visible);
+    /** Removes the retained mask in one history entry, preserving layer pixels. */
+    Result removeTransparencyMask(LayerId layer);
+    SelectionMaskSP layerTransparencyMask(LayerId layer) const;
+    bool layerTransparencyMaskVisible(LayerId layer) const;
     /** Direct background writes preserve history, pending input and fixed snapshots. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
     /** Direct property writes preserve history transitions, pending input and fixed snapshots. */
@@ -665,7 +695,7 @@ public:
 
 private:
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible };
     struct LayerPropertyEdit {
         LayerProperty property;
         LayerId layer;
@@ -685,6 +715,9 @@ private:
         QList<LayerPropertyEdit> propertyEdits;
         bool changedLayerProperties = false;
         bool changedSelection = false;
+        /** Adds or removes one layer's transparency mask in its retained version. */
+        bool addedTransparencyMask = false;
+        bool removedTransparencyMask = false;
         QRect selectionBefore, selectionAfter;
         bool selectionInvertedBefore = false, selectionInvertedAfter = false;
         SelectionKind selectionKindBefore = SelectionKind::Rectangle, selectionKindAfter = SelectionKind::Rectangle;

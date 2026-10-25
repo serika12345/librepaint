@@ -23,6 +23,10 @@ bool validLayerHierarchy(const QList<LayerValue> &layers)
         if (layer.kind != LayerKind::Paint && layer.kind != LayerKind::Group) return false;
         if (layer.kind != LayerKind::Group && layer.passThrough) return false;
         if (layer.blendMode > LayerBlendMode::LinearDodge) return false;
+        if (layer.kind == LayerKind::Group && layer.transparencyMask) return false;
+        if (layer.transparencyMask &&
+            (layer.transparencyMask->isEmpty() ||
+             layer.transparencyMask->byteCount() > SelectionMask::MaximumBytes)) return false;
         if (!layer.uuid.isNull()) {
             if (identities.contains(layer.uuid)) return false;
             identities.insert(layer.uuid, &layer);

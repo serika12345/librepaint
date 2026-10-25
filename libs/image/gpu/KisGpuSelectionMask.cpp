@@ -245,6 +245,43 @@ QSharedPointer<const SelectionMask> SelectionMask::fromCoverage(const QRect &bou
     return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Binary);
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::fromRectangle(const QRect &rect, const QRect &clip)
+{
+    const QRect normalized = rect.normalized();
+    if (normalized.isEmpty() || clip.isEmpty()) return {};
+    const QRect area = normalized.intersected(clip);
+    if (area.isEmpty()) return {};
+    CoverageBuilder builder;
+    for (int y = area.top(); y <= area.bottom() && builder.bytes >= 0; ++y)
+        builder.addSpan(y, area.left(), area.right());
+    if (builder.bytes < 0) return {};
+    return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Binary);
+}
+
+QSharedPointer<const SelectionMask> SelectionMask::fromEllipse(const QRect &rect, const QRect &clip)
+{
+    const QRect normalized = rect.normalized();
+    if (normalized.isEmpty() || clip.isEmpty()) return {};
+    const QRect area = normalized.intersected(clip);
+    if (area.isEmpty()) return {};
+    const qreal centerX = normalized.x() + normalized.width() / 2.0;
+    const qreal centerY = normalized.y() + normalized.height() / 2.0;
+    const qreal radiusX = normalized.width() / 2.0;
+    const qreal radiusY = normalized.height() / 2.0;
+    if (radiusX <= 0 || radiusY <= 0) return {};
+    CoverageBuilder builder;
+    for (int y = area.top(); y <= area.bottom() && builder.bytes >= 0; ++y) {
+        const qreal deltaY = (y + 0.5 - centerY) / radiusY;
+        if (std::abs(deltaY) > 1.0) continue;
+        const qreal deltaX = radiusX * std::sqrt(1.0 - deltaY * deltaY);
+        const qint64 first = std::max<qint64>(area.left(), qint64(std::ceil(centerX - deltaX - 0.5)));
+        const qint64 last = std::min<qint64>(area.right(), qint64(std::floor(centerX + deltaX - 0.5)));
+        if (first <= last) builder.addSpan(y, int(first), int(last));
+    }
+    if (builder.bytes < 0) return {};
+    return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Binary);
+}
+
 QSharedPointer<const SelectionMask> SelectionMask::fromAlphaCoverage(const QRect &bounds, const QByteArray &coverage,
                                                                      const QRect &clip)
 {

@@ -38,6 +38,16 @@ struct KisGpuImageViewState
 };
 
 namespace {
+LibrePaint::Image::Gpu::LayerId gpuPaintLayerId(const LibrePaint::Image::Gpu::Snapshot &version,
+                                                const KisNodeSP &node)
+{
+    if (!version || !node || node->uuid().isNull()) return 0;
+    for (const auto &layer : version->layers)
+        if (layer.uuid == node->uuid() && layer.kind == LibrePaint::Image::Gpu::LayerKind::Paint)
+            return layer.id;
+    return 0;
+}
+
 qsizetype gpuInsertionIndex(KisImage *image, const LibrePaint::Image::Gpu::Snapshot &version,
                            KisNodeSP parent, qsizetype index)
 {
@@ -516,6 +526,38 @@ bool KisImage::clearGpuSelection()
     return owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
 }
 
+bool KisImage::addGpuTransparencyMaskFromSelection(KisNodeSP layer)
+{
+    const auto owner = gpuImage();
+    if (!owner || QThread::currentThread() != owner->thread()) return false;
+    const auto layerId = gpuPaintLayerId(owner->operations().snapshot(), layer);
+    return layerId && owner->addTransparencyMaskFromSelection(layerId) == LibrePaint::Image::Gpu::Result::Success;
+}
+
+bool KisImage::setGpuTransparencyMaskVisible(KisNodeSP layer, bool visible)
+{
+    const auto owner = gpuImage();
+    if (!owner || QThread::currentThread() != owner->thread()) return false;
+    const auto layerId = gpuPaintLayerId(owner->operations().snapshot(), layer);
+    return layerId && owner->setTransparencyMaskVisible(layerId, visible) == LibrePaint::Image::Gpu::Result::Success;
+}
+
+bool KisImage::removeGpuTransparencyMask(KisNodeSP layer)
+{
+    const auto owner = gpuImage();
+    if (!owner || QThread::currentThread() != owner->thread()) return false;
+    const auto layerId = gpuPaintLayerId(owner->operations().snapshot(), layer);
+    return layerId && owner->removeTransparencyMask(layerId) == LibrePaint::Image::Gpu::Result::Success;
+}
+
+bool KisImage::gpuTransparencyMaskVisible(KisNodeSP layer) const
+{
+    const auto owner = gpuImage();
+    if (!owner || QThread::currentThread() != owner->thread()) return false;
+    const auto layerId = gpuPaintLayerId(owner->operations().snapshot(), layer);
+    return layerId && owner->layerTransparencyMaskVisible(layerId);
+}
+
 void KisImage::adoptGpuSelectionMask()
 { synchronizeGpuSelectionToMask(); }
 
@@ -651,7 +693,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
             }
             outline.addRect(bounds());
         } else if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
-            QByteArray mask(rect.width() * rect.height(), ' ');
+            QByteArray mask(rect.width() * rect.height(), '\0');
             const qreal cx = rect.x() + rect.width() / 2.0, cy = rect.y() + rect.height() / 2.0;
             const qreal rx = rect.width() / 2.0, ry = rect.height() / 2.0;
             for (int y = 0; y < rect.height(); ++y)

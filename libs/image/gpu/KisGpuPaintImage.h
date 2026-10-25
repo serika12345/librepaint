@@ -110,6 +110,17 @@ public:
     QRect selectionRect() const;
     SelectionMaskSP selectionMask() const;
 
+    /** Adds a transparency mask to one paint layer from the current selection
+     * coverage. The mask is retained by document versions and composition; it
+     * is not synchronized per stroke. Returns InvalidInput for a layer that
+     * already owns a mask or a document without a selection.
+     */
+    Result addTransparencyMaskFromSelection(LayerId layer);
+    Result setTransparencyMaskVisible(LayerId layer, bool visible);
+    Result removeTransparencyMask(LayerId layer);
+    SelectionMaskSP layerTransparencyMask(LayerId layer) const;
+    bool layerTransparencyMaskVisible(LayerId layer) const;
+
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
     Result flushSmoothing(OperationId id);

@@ -19,6 +19,21 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 
 namespace {
+SelectionMaskSP selectionCoverage(const DocumentVersion &version)
+{
+    const QRect clip(QPoint(0, 0), version.size);
+    if (version.selection.isEmpty() || clip.isEmpty()) return {};
+    SelectionMaskSP coverage;
+    if (version.selectionKind == SelectionKind::Freehand && version.selectionMask)
+        coverage = version.selectionMask;
+    else if (version.selectionKind == SelectionKind::Ellipse)
+        coverage = SelectionMask::fromEllipse(version.selection, clip);
+    else
+        coverage = SelectionMask::fromRectangle(version.selection, clip);
+    if (!coverage || coverage->isEmpty()) return {};
+    return version.selectionInverted ? coverage->inverted(clip) : coverage;
+}
+
 void includeLayerDescendants(const QList<Layer> &layers, QSet<LayerId> &included)
 {
     QHash<QUuid, QList<const Layer *>> children;
@@ -161,6 +176,8 @@ QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
+    if (m_layerHistoryChanges[index].addedTransparencyMask) return HistoryAction::AddTransparencyMask;
+    if (m_layerHistoryChanges[index].removedTransparencyMask) return HistoryAction::RemoveTransparencyMask;
     if (m_layerHistoryChanges[index].changedLayerProperties) return HistoryAction::ChangeLayerProperties;
     if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
     if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
@@ -180,6 +197,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     case LayerProperty::Position: return HistoryAction::TranslateLayer;
     case LayerProperty::None: break;
     case LayerProperty::ColorLabel: break;
+    case LayerProperty::MaskVisible: return HistoryAction::ChangeMaskVisibility;
     case LayerProperty::PassThrough: return HistoryAction::ChangePassThrough;
     case LayerProperty::BlendMode: return HistoryAction::ChangeBlendMode;
     }
@@ -486,6 +504,10 @@ Result OperationDocument::restoreLayerPropertyEdit(const LayerPropertyEdit &chan
     case LayerProperty::ColorLabel: return writeLayerColorLabel(change.layer, value.toInt());
     case LayerProperty::PassThrough: return writeLayerPassThrough(change.layer, value.toBool());
     case LayerProperty::BlendMode: return writeLayerBlendMode(change.layer, LayerBlendMode(value.toUInt()));
+    case LayerProperty::MaskVisible:
+        // The retained versions carry their own mask state, so history
+        // navigation restores it without rewriting neighbouring versions.
+        return Result::Success;
     }
     return Result::InvalidInput;
 }
@@ -1187,6 +1209,75 @@ Result OperationDocument::setLayerBlendMode(LayerId layer, LayerBlendMode mode, 
     commitPropertyVersion(version, {LayerProperty::BlendMode, layer,
         QVariant::fromValue(quint8(snapshot()->layers[index].blendMode)), QVariant::fromValue(quint8(mode))}, history);
     return Result::Success;
+}
+
+Result OperationDocument::addTransparencyMaskFromSelection(LayerId layer)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].userLocked) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].transparencyMask) return Result::InvalidInput;
+    const auto mask = selectionCoverage(*snapshot());
+    if (!mask || mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].transparencyMask = mask;
+    version->layers[index].transparencyMaskVisible = true;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    change.layer = layer;
+    change.addedTransparencyMask = true;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
+Result OperationDocument::setTransparencyMaskVisible(LayerId layer, bool visible)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].transparencyMaskVisible == visible) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].transparencyMaskVisible = visible;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitVersion(version, {LayerProperty::MaskVisible, layer,
+        QVariant::fromValue(snapshot()->layers[index].transparencyMaskVisible), QVariant::fromValue(visible)});
+    return Result::Success;
+}
+
+Result OperationDocument::removeTransparencyMask(LayerId layer)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].transparencyMask.clear();
+    version->layers[index].transparencyMaskVisible = true;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    change.layer = layer;
+    change.removedTransparencyMask = true;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
+SelectionMaskSP OperationDocument::layerTransparencyMask(LayerId layer) const
+{
+    const auto index = layerIndex(layer);
+    return index < 0 ? SelectionMaskSP{} : snapshot()->layers[index].transparencyMask;
+}
+
+bool OperationDocument::layerTransparencyMaskVisible(LayerId layer) const
+{
+    const auto index = layerIndex(layer);
+    return index >= 0 && snapshot()->layers[index].transparencyMask &&
+        snapshot()->layers[index].transparencyMaskVisible;
 }
 
 Result OperationDocument::writeLayerProjectionMask(LayerId layer, quint8 mask)

@@ -24,5 +24,18 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
                             LibrePaint::Image::Gpu::SelectionKind kind,
                             const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
                             qsizetype maximumBytes, QByteArray &output);
+/** Reads one KRA alpha8 pixel-selection stream as layer transparency coverage.
+ * Coordinates are shifted by `offset` and clipped to `imageBounds`. Zero
+ * coverage is retained as unselected; an empty stream or coverage returns
+ * UnsupportedData because a fully hidden layer mask has no representation in
+ * the retained coverage model.
+ */
+Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageBounds,
+                             qsizetype maximumBytes,
+                             LibrePaint::Image::Gpu::SelectionMaskSP &mask);
+/** Writes layer transparency coverage as one KRA alpha8 pixel-selection stream. */
+Outcome writeTransparencyMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
+                              const QRect &imageBounds, qsizetype maximumBytes,
+                              QByteArray &output);
 }
 #endif

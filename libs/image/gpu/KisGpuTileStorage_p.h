@@ -26,13 +26,27 @@ struct Tile
     ~Tile() { budget->used -= TileRenderer::TileBytes; }
 };
 using Tiles = QMap<quint64, std::shared_ptr<Tile>>;
+/** Alpha coverage tile uploaded for layer composition; one byte per pixel. */
+struct CoverageTile
+{
+    std::shared_ptr<Budget> budget;
+    NativeBuffer pixels;
+    CoverageTile(NativeBuffer pixels, std::shared_ptr<Budget> budget)
+        : budget(std::move(budget)), pixels(std::move(pixels))
+    { this->budget->used += SelectionMask::AlphaTileBytes; }
+    ~CoverageTile() { budget->used -= SelectionMask::AlphaTileBytes; }
+};
+using CoverageTiles = QMap<quint64, std::shared_ptr<CoverageTile>>;
 struct ProjectionInput {
     std::shared_ptr<Tile> pixels;
     quint8 opacity = 255;
     quint8 channelMask = 15;
     LayerBlendMode blendMode = LayerBlendMode::Normal;
+    /** Null means the layer contributes without alpha coverage. */
+    SelectionMaskSP mask;
     bool operator==(const ProjectionInput &other) const {
-        return pixels == other.pixels && opacity == other.opacity && channelMask == other.channelMask && blendMode == other.blendMode;
+        return pixels == other.pixels && opacity == other.opacity && channelMask == other.channelMask &&
+            blendMode == other.blendMode && mask == other.mask;
     }
 };
 using ProjectionInputs = QMap<quint64, QList<ProjectionInput>>;
@@ -70,6 +84,13 @@ struct TileRenderer::Private
     Detail::NativeBuffer zero;
     Detail::NativeBuffer unusedCoverage;
     Detail::NativeBuffer unusedSelection;
+    /** Opaque 256 x 256 coverage bound for layers without a transparency mask. */
+    Detail::NativeBuffer opaqueMask;
+    struct MaskCacheEntry {
+        SelectionMaskSP source;
+        Detail::CoverageTiles tiles;
+    };
+    QHash<const SelectionMask *, MaskCacheEntry> maskTiles;
     Detail::NativeBindingLayout layout;
     Detail::NativeComputePipeline pipeline;
     Detail::NativeBindingLayout projectionLayout;
@@ -114,6 +135,9 @@ struct TileRenderer::Private
                           WGPUBuffer parameters, quint32 count);
     std::shared_ptr<Detail::Tile> allocateTile();
     bool ensureTileCapacity(qsizetype count);
+    /** Uploads the mask's alpha tile for one document tile coordinate. */
+    std::shared_ptr<Detail::CoverageTile> coverageTile(const SelectionMaskSP &mask, quint64 coordinate);
+    void clearMaskTiles();
     struct TranslationResult {
         RenderOutcome::Code code;
         Detail::Tiles tiles;

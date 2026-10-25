@@ -1275,6 +1275,14 @@ void LayerBox::updateLayerOpMenu(const QModelIndex &index, QMenu &menu) {
         addActionToMenu(locksMenu, "toggle_layer_lock");
         addActionToMenu(locksMenu, "toggle_layer_inherit_alpha");
         addActionToMenu(locksMenu, "toggle_layer_alpha_lock");
+        if (m_image && m_image->gpuImage()) {
+            // GPU transparency masks are document-version state rather than
+            // layer-panel child nodes, so their toggle and removal operate on
+            // the active paint layer through these actions.
+            QMenu *maskMenu = menu.addMenu(i18n("&Transparency Mask"));
+            addActionToMenu(maskMenu, "toggle_gpu_transparency_mask");
+            addActionToMenu(maskMenu, "remove_gpu_transparency_mask");
+        }
 
         if (singleNode) {
             QMenu *addLayerMenu = menu.addMenu(i18n("&Add"));

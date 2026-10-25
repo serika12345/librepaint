@@ -154,6 +154,7 @@ private Q_SLOTS:
     void roundTripRetainsLayersHiddenRgbAndAssociatedFiles();
     void rectangularSelectionSurvivesSavingAndReopening();
     void featheredSelectionAlphaSurvivesSavingAndReopening();
+    void transparencyMasksSurviveSavingAndReopening();
     void offsetsAndDescriptionMetadataSurviveEditing();
     void unsupportedAndInvalidContentsReturnNoDocument();
     void capacityAndFailedWritesPreserveCallerValues();
@@ -1415,6 +1416,110 @@ void TestKraRasterCodec::featheredSelectionAlphaSurvivesSavingAndReopening()
     QVERIFY(again.document.image.selectionMask->isAlpha());
     QVERIFY(*again.document.image.selectionMask == *mask);
     QCOMPARE(again.document.image.layers.size(), source.image.layers.size());
+}
+
+void TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening()
+{
+    auto source = document();
+    const QRect imageRect(QPoint(), source.image.size);
+    const QRect softBounds(40, 38, 44, 36);
+    QByteArray alpha(softBounds.width() * softBounds.height(), '\0');
+    for (int y = 0; y < softBounds.height(); ++y)
+        for (int x = 0; x < softBounds.width(); ++x)
+            alpha[y * softBounds.width() + x] =
+                char(quint8(1 + ((x + y) * 253) / (softBounds.width() + softBounds.height() - 2)));
+    const auto soft = SelectionMask::fromAlphaCoverage(softBounds, alpha, imageRect);
+    QVERIFY(soft && soft->isAlpha());
+    const auto hard = SelectionMask::fromRectangle(QRect(100, 80, 60, 40), imageRect);
+    QVERIFY(hard && !hard->isAlpha());
+    source.image.selection = {};
+    source.image.layers[0].transparencyMask = soft;
+    source.image.layers[0].transparencyMaskVisible = false;
+    source.image.layers[1].transparencyMask = hard;
+    source.image.layers[1].transparencyMaskVisible = true;
+
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+    QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+    const auto saved = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(saved.value(QStringLiteral("maindoc.xml"))));
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto folder = image.attribute(QStringLiteral("name"));
+    int maskElements = 0;
+    for (auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement();
+         !layer.isNull(); layer = layer.nextSiblingElement()) {
+        if (layer.attribute(QStringLiteral("nodetype")) != QLatin1String("paintlayer")) continue;
+        for (auto mask = layer.firstChildElement(); !mask.isNull(); mask = mask.nextSiblingElement()) {
+            QCOMPARE(mask.tagName(), QStringLiteral("mask"));
+            QCOMPARE(mask.attribute(QStringLiteral("nodetype")), QStringLiteral("transparencymask"));
+            QVERIFY(!mask.attribute(QStringLiteral("filename")).isEmpty());
+            QVERIFY(saved.contains(folder + QStringLiteral("/layers/") +
+                                   mask.attribute(QStringLiteral("filename")) + QStringLiteral(".pixelselection")));
+            ++maskElements;
+        }
+    }
+    QCOMPARE(maskElements, 2);
+
+    const auto result = load(bytes);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.layers.size(), 2);
+    QVERIFY(result.document.image.layers[0].transparencyMask);
+    QVERIFY(result.document.image.layers[0].transparencyMask->isAlpha());
+    QVERIFY(*result.document.image.layers[0].transparencyMask == *soft);
+    QVERIFY(!result.document.image.layers[0].transparencyMaskVisible);
+    QVERIFY(result.document.image.layers[1].transparencyMask);
+    QCOMPARE(result.document.image.layers[1].transparencyMask->bounds(), hard->bounds());
+    QCOMPARE(result.document.image.layers[1].transparencyMask->coverage(120, 100), quint8(255));
+    QCOMPARE(result.document.image.layers[1].transparencyMask->coverage(80, 60), quint8(0));
+    QVERIFY(result.document.image.layers[1].transparencyMaskVisible);
+
+    // Resaving the loaded document preserves both mask representations, their
+    // visibility and the layer pixels.
+    QByteArray resaved;
+    QBuffer destination(&resaved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, result.document, merged(result.document.image.size)).code,
+             Kra::Status::Success);
+    const auto again = load(resaved);
+    QVERIFY2(again.code == Kra::Status::Success, qPrintable(again.diagnostic));
+    QVERIFY(again.document.image.layers[0].transparencyMask);
+    QVERIFY(*again.document.image.layers[0].transparencyMask == *soft);
+    QVERIFY(!again.document.image.layers[0].transparencyMaskVisible);
+    QVERIFY(again.document.image.layers[1].transparencyMask);
+    QCOMPARE(again.document.image.layers[1].transparencyMask->bounds(), hard->bounds());
+    QCOMPARE(again.document.image.layers[1].transparencyMask->coverage(120, 100), quint8(255));
+    QCOMPARE(again.document.image.layers[1].transparencyMask->coverage(80, 60), quint8(0));
+    QVERIFY(again.document.image.layers[1].transparencyMaskVisible);
+    for (int i = 0; i < 2; ++i)
+        for (const auto &tile : source.image.layers[i].tiles)
+            QCOMPARE(rgbaAt(again.document.image.layers[i], tile.coordinate * 256), tile.rgba.first(4));
+
+    // Removing a mask removes its mask element and pixel-selection entry.
+    auto cleared = again.document;
+    cleared.image.layers[0].transparencyMask.clear();
+    QByteArray withoutMask;
+    QBuffer clearedOutput(&withoutMask);
+    QVERIFY(clearedOutput.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(clearedOutput, cleared, merged(cleared.image.size)).code, Kra::Status::Success);
+    const auto clearedFiles = entries(withoutMask);
+    QDomDocument clearedXml;
+    QVERIFY(clearedXml.setContent(clearedFiles.value(QStringLiteral("maindoc.xml"))));
+    const auto clearedImage = clearedXml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    int remainingMasks = 0;
+    for (auto layer = clearedImage.firstChildElement(QStringLiteral("layers")).firstChildElement();
+         !layer.isNull(); layer = layer.nextSiblingElement())
+        for (auto mask = layer.firstChildElement(); !mask.isNull(); mask = mask.nextSiblingElement())
+            if (mask.attribute(QStringLiteral("nodetype")) == QLatin1String("transparencymask")) ++remainingMasks;
+    QCOMPARE(remainingMasks, 1);
+    const auto clearedResult = load(withoutMask);
+    QVERIFY2(clearedResult.code == Kra::Status::Success, qPrintable(clearedResult.diagnostic));
+    QVERIFY(!clearedResult.document.image.layers[0].transparencyMask);
+    QVERIFY(clearedResult.document.image.layers[1].transparencyMask);
+    QCOMPARE(clearedResult.document.image.layers[1].transparencyMask->bounds(), hard->bounds());
+    QCOMPARE(clearedResult.document.image.layers[1].transparencyMask->coverage(120, 100), quint8(255));
 }
 
 void TestKraRasterCodec::offsetsAndDescriptionMetadataSurviveEditing()

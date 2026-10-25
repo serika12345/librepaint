@@ -541,6 +541,43 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
         }
     }
     versions.append(document.preview());
+    if (format < 46) {
+        // Format 46 adds a per-layer transparency mask reference and its
+        // visibility after the blend mode. This fixture produces records with
+        // no layer masks, so the five trailing bytes are removed here before
+        // older field layouts are stripped below.
+        QSet<QByteArray> records;
+        for (const auto &version : versions) {
+            if (!version) continue;
+            for (const auto &layer : version->layers) {
+                Q_ASSERT(!layer.transparencyMask);
+                QByteArray record;
+                QDataStream stream(&record, QIODevice::WriteOnly);
+                stream.setVersion(QDataStream::Qt_5_15);
+                stream.setByteOrder(QDataStream::BigEndian);
+                const auto name = layer.name.toUtf8();
+                stream << layer.id << quint32(name.size());
+                stream.writeRawData(name.constData(), name.size());
+                stream << quint8(layer.visible) << layer.uuid;
+                for (const auto component : layer.defaultPixel) stream << component;
+                stream << layer.opacity << quint8(layer.userLocked)
+                       << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1));
+                stream << qint32(layer.position.x()) << qint32(layer.position.y());
+                stream << quint8(layer.kind) << layer.parentUuid;
+                stream << qint32(layer.colorLabelIndex) << layer.projectionChannelMask
+                       << quint8(layer.passThrough) << quint8(layer.blendMode);
+                if (records.contains(record)) continue;
+                records.insert(record);
+                qsizetype next = 0;
+                for (;;) {
+                    const auto found = payload.indexOf(record, next);
+                    if (found < 0) break;
+                    payload.remove(found + record.size(), 5);
+                    next = found + record.size();
+                }
+            }
+        }
+    }
     if (format < 34) {
         QSet<QByteArray> records;
         for (const auto &version : versions) {
