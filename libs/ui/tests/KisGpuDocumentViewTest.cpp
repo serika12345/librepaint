@@ -2478,6 +2478,23 @@ void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()
     QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({160, 200}));
     QTRY_COMPARE(owner->selectionRect(), secondRect);
     QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+
+    const QPoint delta(16, 16);
+    const QRect movedSecond = secondRect.translated(delta);
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point(secondRect.center()));
+    QTest::mouseMove(native.data(), point(secondRect.center() + QPointF(delta)), 30);
+    QTRY_VERIFY(lifetime->image()->globalSelection() &&
+                lifetime->image()->globalSelection()->selectedExactRect() == movedSecond);
+    QCOMPARE(owner->selectionRect(), secondRect);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point(secondRect.center() + QPointF(delta)));
+    QTRY_COMPARE(owner->selectionRect(), movedSecond);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), secondRect);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), movedSecond);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()

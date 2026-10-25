@@ -148,7 +148,7 @@ public:
     void keyPressEvent(QKeyEvent *event) override
     {
         if (event->key() == Qt::Key_Escape && m_gpuMovingSelection) {
-            this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect);
+            this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse);
             m_gpuMovingSelection = false;
             endMoveSelectionInteraction();
             event->accept();
@@ -247,10 +247,9 @@ public:
             return;
         }
         if (gpu && locateSelectionMaskUnderCursor(this->convertToPixelCoord(event->point), event->modifiers())) {
-            if (this->image()->gpuSelectionInverted() ||
-                this->image()->gpuSelectionEllipse()) {
+            if (this->image()->gpuSelectionInverted()) {
                 toolCanvas()->showToolMessage(
-                    i18n("Moving this GPU selection is not available."),
+                    i18n("Moving an inverted GPU selection is not available."),
                     QStringLiteral("object-locked"));
                 return;
             }
@@ -265,6 +264,7 @@ public:
             m_gpuMovingSelection = true;
             m_gpuSelectionStartRect = start;
             m_gpuSelectionPreviewRect = start;
+            m_gpuSelectionStartEllipse = this->image()->gpuSelectionEllipse();
             m_gpuSelectionDragStart = this->convertToPixelCoord(event->point);
             return;
         }
@@ -299,7 +299,7 @@ public:
             const QRect moved = m_gpuSelectionStartRect.translated((pos - m_gpuSelectionDragStart).toPoint());
             if (moved != m_gpuSelectionPreviewRect) {
                 m_gpuSelectionPreviewRect = moved;
-                this->image()->previewGpuSelectionRect(moved);
+                this->image()->previewGpuSelectionRect(moved, m_gpuSelectionStartEllipse);
             }
             return;
         }
@@ -320,8 +320,10 @@ public:
             m_gpuMovingSelection = false;
             endMoveSelectionInteraction();
             if (m_gpuSelectionPreviewRect != m_gpuSelectionStartRect &&
-                !this->image()->setGpuSelectionRect(m_gpuSelectionPreviewRect)) {
-                this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect);
+                !(m_gpuSelectionStartEllipse
+                      ? this->image()->setGpuSelectionEllipse(m_gpuSelectionPreviewRect)
+                      : this->image()->setGpuSelectionRect(m_gpuSelectionPreviewRect))) {
+                this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse);
                 toolCanvas()->showToolMessage(
                     i18n("The selection could not be moved."),
                     QStringLiteral("object-locked"));
@@ -346,7 +348,7 @@ public:
     void deactivatePrimaryAction() override
     {
         if (m_gpuMovingSelection) {
-            this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect);
+            this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse);
             m_gpuMovingSelection = false;
             endMoveSelectionInteraction();
         }
@@ -429,6 +431,7 @@ private:
     bool m_gpuMovingSelection = false;
     QRect m_gpuSelectionStartRect;
     QRect m_gpuSelectionPreviewRect;
+    bool m_gpuSelectionStartEllipse = false;
     QPointF m_gpuSelectionDragStart;
 
     SelectionAction mappedSelectionAction() const

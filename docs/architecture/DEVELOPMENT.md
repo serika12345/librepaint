@@ -349,7 +349,8 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 `KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra`は、楕円内の塗りつぶし、
 楕円外の不変、Undo／Redo、KRA保存・再読込後の楕円形状と画素を検査する。
 `KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection`は、通常の楕円選択ツールの
-ネイティブドラッグが画像座標の楕円選択を生成することを検査する。
+ネイティブドラッグが画像座標の楕円選択を生成し、続くドラッグで楕円を移動して
+一回の履歴でUndo／Redoできることを検査する。
 `TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening`は、GPU文書のKRAが
 ルートの`selectionmask`と`PIXELSIZE 1`の`.pixelselection`を矩形選択として読み書きし、
 再保存・再読込後も選択とレイヤー画素を保持することを検査する。
