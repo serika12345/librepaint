@@ -225,6 +225,10 @@ HistoryAction OperationDocument::historyAction(int index) const
             }
         }
     }
+    // A retained mask-only edit leaves the layer inputs untouched and is
+    // identified by its coverage; recovery reconstructs the same comparison.
+    for (int layer = 0; layer < after.size(); ++layer)
+        if (before[layer].transparencyMask != after[layer].transparencyMask) return HistoryAction::PaintStroke;
     return HistoryAction::ReplacePixels;
 }
 CropSnapshot OperationDocument::historyCrop(int index) const
@@ -239,9 +243,30 @@ int OperationDocument::savedHistoryIndex() const
     return -1;
 }
 bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevision != m_savedRevision; }
-bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation; }
+bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_externalOperation.isNull(); }
 OperationId OperationDocument::activeOperation() const
-{ return m_edit ? m_edit->id : m_translation ? m_translation->id : OperationId{}; }
+{
+    if (m_edit) return m_edit->id;
+    if (m_translation) return m_translation->id;
+    return m_externalOperation;
+}
+
+Result OperationDocument::beginExternalStroke(const OperationId &id)
+{
+    if (m_closed) return Result::Closed;
+    if (hasActiveStroke()) return Result::EditInProgress;
+    if (id.isNull()) return Result::InvalidInput;
+    m_externalOperation = id;
+    return Result::Success;
+}
+
+Result OperationDocument::endExternalStroke(const OperationId &id)
+{
+    if (m_closed) return Result::Closed;
+    if (m_externalOperation.isNull() || m_externalOperation != id) return Result::StaleOperation;
+    m_externalOperation = {};
+    return Result::Success;
+}
 
 Result OperationDocument::setSelectionRect(const QRect &rect, bool inverted)
 {
@@ -1267,6 +1292,28 @@ Result OperationDocument::removeTransparencyMask(LayerId layer)
     return Result::Success;
 }
 
+Result OperationDocument::replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, bool filled)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
+        !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (!mask || mask->isEmpty() || mask->bounds().isEmpty() ||
+        mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
+    if (snapshot()->layers[index].transparencyMask == mask) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].transparencyMask = mask;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    // The changed coverage identifies the brush action; a fill additionally
+    // records its operation kind for the history display.
+    change.filledLayer = filled;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
 SelectionMaskSP OperationDocument::layerTransparencyMask(LayerId layer) const
 {
     const auto index = layerIndex(layer);
@@ -1716,6 +1763,7 @@ void OperationDocument::close()
     m_preview.clear();
     m_history.swap(remaining);
     m_translation.clear();
+    m_externalOperation = {};
     m_layerHistoryChanges = {LayerHistoryChange{}};
     m_index = 0;
     m_closed = true;

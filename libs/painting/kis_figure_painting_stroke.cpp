@@ -108,7 +108,9 @@ struct KisFigurePaintingStroke::GpuStroke
                                 foregroundColor : backgroundColor).toQColor();
             style.fill = std::array<quint8, 4>{quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
         }
-        const auto result = owner->paintFigure(resources.layer, resources.brush, samples, *shape, style, 0);
+        const auto result = resources.transparencyMask
+            ? owner->paintTransparencyMaskFigure(resources.layer, resources.brush, samples, *shape, style, 0)
+            : owner->paintFigure(resources.layer, resources.brush, samples, *shape, style, 0);
         if (result != Gpu::Result::Success) {
             warnKrita << "A GPU figure stroke was rejected:" << int(result);
         }

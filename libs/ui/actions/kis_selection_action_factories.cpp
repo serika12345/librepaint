@@ -295,13 +295,19 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         const bool alphaLocked = !resources->eraserMode() &&
             resources->resourceManager()->resource(KoCanvasResource::GlobalAlphaLock).toBool();
         Gpu::LayerId layer = 0;
+        // A selected mask child fills the parent layer's retained coverage.
+        const bool maskTarget = image->isGpuTransparencyMaskView(node);
+        const KisNodeSP fillNode = maskTarget ? node->parent() : node;
         for (const auto &candidate : owner->operations().snapshot()->layers)
-            if (candidate.uuid == node->uuid()) layer = candidate.id;
+            if (fillNode && candidate.uuid == fillNode->uuid()) layer = candidate.id;
         if (!layer || !view->blockUntilOperationsFinished(image)) return;
         if (!lifetime || lifetime->image().data() != image.data() || image->gpuImage() != owner) return;
-        const auto result = owner->fillLayer(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked);
+        const auto result = maskTarget
+            ? owner->fillTransparencyMask(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked)
+            : owner->fillLayer(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked);
         if (result != Gpu::Result::Success) {
-            reject(i18n("The GPU layer could not be filled."));
+            reject(maskTarget ? i18n("The GPU transparency mask could not be filled.")
+                              : i18n("The GPU layer could not be filled."));
             return;
         }
         if (lifetime) lifetime->canvasResourceProvider()->slotPainting();

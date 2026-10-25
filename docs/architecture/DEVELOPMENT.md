@@ -398,6 +398,10 @@ KRAのアルファストリームへ書き出され、再読込・再保存後�
 `KisGpuOperationDocumentTest::transparencyMaskHistoryCompositionAndRecovery`は、矩形選択からの
 透明マスク追加、描画後の被覆保持、表示切替、削除、Undo／Redo、復旧後の被覆と表示状態、
 追加・表示切替・削除の履歴種別を検査する。
+`KisGpuOperationDocumentTest::transparencyMaskCoverageReplacementSurvivesRecovery`は、
+保持した透明マスクの被覆だけを一回の履歴で置き換え、レイヤーの入力列を変えないこと、
+同一被覆とnullの拒否、マスク無しレイヤーの拒否、Undo／Redo、塗りつぶしの履歴種別、
+復旧後の被覆・履歴種別・再復旧の同一性を検査する。
 `KisGpuOperationDocumentTest::transparencyMaskFollowsCanvasResize`は、キャンバスのリサイズで
 透明マスク被覆が新しい原点へ移動し、新しい境界へクリップされ、Undoで元の被覆へ戻ることを検査する。
 `KisGpuOperationDocumentTest::transparencyMaskFollowsLayerCrop`は、レイヤー単体のクロップで
@@ -411,6 +415,10 @@ KRAのアルファストリームへ書き出され、再読込・再保存後�
 `KisGpuPaintDocumentTest::transparencyMaskComposesSavesReopensAndContinues`は、マスク付き
 レイヤーの投影、表示切替、KRA保存・再読込後の被覆・表示状態・投影・画素、再読込後の
 マスク外への描画と再保存、削除とUndo／Redoを検査する。
+`KisGpuPaintDocumentTest::transparencyMaskAcceptsDirectBrushEraseFillAndRoundTrips`は、
+マスク子ノードを対象にしたブラシ描画が被覆だけを広げてレイヤー画素を変えないこと、
+消しゴムが被覆だけを減らすこと、選択範囲の塗りつぶしが選択内だけの被覆を加えること、
+操作ごとに一回のGPU履歴と履歴種別、Undo／Redo、投影、KRA保存・再読込後の被覆・画素・投影を検査する。
 `TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening`は、
 ペイントレイヤー子の`transparencymask`要素と`.pixelselection`の往復、アルファ被覆と
 表示状態、複数レイヤーのマスク、再保存、マスク削除時の要素とファイルの除去を検査する。
@@ -420,8 +428,12 @@ GPU履歴のUndo／Redo、選択の無い追加の拒否を検査する。
 `KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild`は、
 マスク追加後にレイヤーパネルが親ペイントレイヤーの子として透明マスクノードを表示すること、
 被覆率から生成したサムネイル、子ノードの選択によるアクティブマスク化、親レイヤー選択による復帰、
-選択自体が履歴を追加しないこと、マスクがアクティブな間のGPU描画資源取得が診断付きで拒否され、
-ペイントレイヤーへ暗黙に描画しないことを検査する。
+選択自体が履歴を追加しないこと、子ノードを対象にしたGPU描画資源取得が親レイヤーのマスクを指すこと、
+ブラシ描画が一回の履歴で被覆と子ノード画素・サムネイルだけを更新すること、
+選択範囲の塗りつぶし操作がマスク被覆だけを更新しレイヤー画素を変えないことを検査する。
+`KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage`は、マスク子ノードを選んだ
+状態で通常のブラシツールのネイティブ入力が親レイヤーの保持マスクだけを編集し、レイヤー画素・
+文書の描画入力列・他の編集を変えず、一回のGPU履歴と子ノード画素を更新することを検査する。
 `KisGpuDocumentViewTest::layerPanelTogglesAndRemovesGpuTransparencyMaskChild`は、
 パネルの子ノードの表示切替がマスク表示状態の履歴になること、Undo／Redo、
 子ノードの削除が保持マスクの削除になり親レイヤーへ戻ること、削除のUndoで子ノードと

@@ -139,12 +139,19 @@ KisGpuBrushResources captureGpuBrushResources(
     };
     if (!image || !image->gpuImage() || !node || node->image().data() != image.data() || !resources)
         return reject(i18n("A stroke could not be started on this GPU paint layer."));
-    if (image->isGpuTransparencyMaskView(node))
-        return reject(i18n("Painting into a GPU transparency mask is not yet supported."));
+    // The layer-panel mask child targets its parent layer's retained mask.
+    const bool maskView = image->isGpuTransparencyMaskView(node);
+    const KisNodeSP target = maskView ? node->parent() : node;
+    if (!target) return reject(i18n("A stroke could not be started on this GPU paint layer."));
     for (const auto &layer : image->gpuImage()->operations().snapshot()->layers)
-        if (layer.uuid == node->uuid()) result.layer = layer.id;
+        if (layer.uuid == target->uuid() && layer.kind == Gpu::LayerKind::Paint) result.layer = layer.id;
     if (!result.layer)
         return reject(i18n("A stroke could not be started on this GPU paint layer."));
+    if (maskView) {
+        if (!image->gpuImage()->layerTransparencyMask(result.layer))
+            return reject(i18n("The transparency mask is unavailable for this GPU paint layer."));
+        result.transparencyMask = true;
+    }
     const auto preset = resources->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
     if (!preset || (preset->paintOp().id() != QLatin1String("roundmarker") && preset->paintOp().id() != QLatin1String("paintbrush")))
         return reject(i18n("This brush is not yet available for GPU painting."));

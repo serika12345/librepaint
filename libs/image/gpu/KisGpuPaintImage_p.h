@@ -10,6 +10,17 @@
 #include <QHash>
 
 namespace LibrePaint::Image::Gpu {
+/** Temporary GPU input for one retained-mask edit. The image starts from the
+ * frozen coverage and is discarded after its alpha becomes one mask version.
+ */
+struct MaskStroke
+{
+    PaintImageSP image;
+    LayerId layer = 0;
+    LayerId imageLayer = 0;
+    OperationId id;
+};
+
 struct PaintImage::Private
 {
     std::shared_ptr<Execution> retainedExecution;
@@ -19,6 +30,7 @@ struct PaintImage::Private
     quint64 handle = 0;
     ExecutionOutcome lastRequest{ExecutionCode::Success, {}};
     QHash<QUuid, QWeakPointer<LayerPixelReference>> layerPixels{};
+    std::unique_ptr<MaskStroke> maskStroke;
 };
 }
 #endif

@@ -17,6 +17,182 @@ Execution &requireExecution(const std::shared_ptr<Execution> &execution)
     if (!execution) throw std::invalid_argument("Image construction requires an execution owner");
     return *execution;
 }
+
+Result resultFor(ExecutionCode code)
+{
+    switch (code) {
+    case ExecutionCode::Success: return Result::Success;
+    case ExecutionCode::CapacityExceeded: return Result::CapacityExceeded;
+    case ExecutionCode::Busy: return Result::EditInProgress;
+    case ExecutionCode::DeviceFailure: return Result::DeviceFailure;
+    case ExecutionCode::InvalidRequest:
+    case ExecutionCode::SurfaceOutOfDate: return Result::InvalidInput;
+    }
+    return Result::DeviceFailure;
+}
+
+/** Converts retained alpha coverage into the transparent RGBA layer that hosts
+ * one temporary mask edit. Only covered tiles are allocated; the stored RGB
+ * values are irrelevant because the commit reads the alpha channel back.
+ */
+bool maskInputTiles(const SelectionMaskSP &mask, const QRect &canvas, qsizetype maximumBytes,
+                    QList<RgbaTile> &tiles)
+{
+    if (!mask || mask->isEmpty() || canvas.isEmpty()) return false;
+    if (mask->tiles().size() > maximumBytes / RgbaTile::ByteCount) return false;
+    for (auto tile = mask->tiles().cbegin(); tile != mask->tiles().cend(); ++tile) {
+        const QPoint origin(tile.key().first * SelectionMask::TileSize,
+                            tile.key().second * SelectionMask::TileSize);
+        const QRect area = QRect(origin, QSize(SelectionMask::TileSize, SelectionMask::TileSize)).intersected(canvas);
+        if (area.isEmpty() || tile.value().size() != mask->tileBytes()) continue;
+        RgbaTile output;
+        output.coordinate = QPoint(tile.key().first, tile.key().second);
+        output.rgba = QByteArray(RgbaTile::ByteCount, '\0');
+        bool covered = false;
+        for (int y = area.top(); y <= area.bottom(); ++y) {
+            const int localY = y - origin.y();
+            for (int x = area.left(); x <= area.right(); ++x) {
+                const int localX = x - origin.x();
+                const qsizetype index = qsizetype(localY) * SelectionMask::TileSize + localX;
+                const quint8 value = mask->isAlpha()
+                    ? quint8(tile.value().at(index))
+                    : ((quint8(tile.value().at(index >> 3)) & (1u << (index & 7))) ? 255 : 0);
+                if (!value) continue;
+                covered = true;
+                const qsizetype pixel = index * 4;
+                output.rgba[pixel + 0] = char(255);
+                output.rgba[pixel + 1] = char(255);
+                output.rgba[pixel + 2] = char(255);
+                output.rgba[pixel + 3] = char(value);
+            }
+        }
+        if (covered) tiles.append(std::move(output));
+    }
+    return !tiles.isEmpty();
+}
+
+RasterImage maskInputImage(const DocumentVersion &version, const SelectionMaskSP &mask, qsizetype maximumBytes)
+{
+    QList<RgbaTile> tiles;
+    const QRect canvas(QPoint(), version.size);
+    if (!maskInputTiles(mask, canvas, maximumBytes, tiles)) return {};
+    RasterImage image;
+    image.size = version.size;
+    RasterLayer host;
+    host.name = QStringLiteral("Transparency Mask");
+    host.uuid = QUuid::createUuid();
+    host.tiles = std::move(tiles);
+    host.defaultPixel = {0, 0, 0, 0};
+    image.layers.append(std::move(host));
+    image.activeLayer = 0;
+    image.selection = version.selection;
+    image.selectionInverted = version.selectionInverted;
+    image.selectionKind = version.selectionKind;
+    image.selectionMask = version.selectionMask;
+    return image;
+}
+
+/** Reads the temporary layer's sparse RGBA and retains nonzero alpha as
+ * document coverage. Tiles are transferred per tile row when one read would
+ * exceed the execution's transfer budget, and unchanged alpha tiles retain the
+ * previous mask's immutable block instead of allocating a history copy.
+ */
+SelectionMaskSP readMaskCoverage(const PaintImage &source, LayerId layer, QSize size,
+                                 const SelectionMaskSP &previous, Result &status)
+{
+    status = Result::Success;
+    const QRect canvas(QPoint(), size);
+    if (canvas.isEmpty()) {
+        status = Result::InvalidInput;
+        return {};
+    }
+    const auto version = source.operations().snapshot();
+    Execution &execution = source.execution();
+    QList<PixelTile> pixels;
+    auto read = execution.readPixels(source.handle(), version, canvas, {layer}, false, PixelReadArea::Canvas);
+    if (read.code == ExecutionCode::Success) {
+        pixels = std::move(read.tiles);
+    } else if (read.code == ExecutionCode::CapacityExceeded) {
+        for (int y = 0; y < size.height(); y += SelectionMask::TileSize) {
+            const QRect band(0, y, size.width(), std::min(SelectionMask::TileSize, size.height() - y));
+            auto part = execution.readPixels(source.handle(), version, band, {layer}, false, PixelReadArea::Canvas);
+            if (part.code != ExecutionCode::Success) {
+                status = resultFor(part.code);
+                return {};
+            }
+            pixels.append(part.tiles);
+        }
+    } else {
+        status = resultFor(read.code);
+        return {};
+    }
+    SelectionTileMap alphaTiles;
+    for (const auto &tile : pixels) {
+        if (tile.layer != layer || tile.rgba.size() != RgbaTile::ByteCount) continue;
+        const QPoint origin = tile.coordinate * SelectionMask::TileSize;
+        const QRect area = QRect(origin, QSize(SelectionMask::TileSize, SelectionMask::TileSize)).intersected(canvas);
+        if (area.isEmpty()) continue;
+        QByteArray coverage;
+        for (int y = area.top(); y <= area.bottom(); ++y) {
+            const int localY = y - origin.y();
+            for (int x = area.left(); x <= area.right(); ++x) {
+                const int localX = x - origin.x();
+                const qsizetype index = qsizetype(localY) * SelectionMask::TileSize + localX;
+                const quint8 alpha = quint8(tile.rgba.at(index * 4 + 3));
+                if (!alpha) continue;
+                if (coverage.isEmpty()) coverage = QByteArray(SelectionMask::AlphaTileBytes, '\0');
+                coverage[index] = char(alpha);
+            }
+        }
+        if (coverage.isEmpty()) continue;
+        const SelectionTileKey key(tile.coordinate.x(), tile.coordinate.y());
+        if (previous && previous->isAlpha()) {
+            const auto old = previous->tiles().constFind(key);
+            if (old != previous->tiles().cend() && old.value() == coverage) coverage = old.value();
+        }
+        alphaTiles.insert(key, coverage);
+    }
+    auto mask = SelectionMask::fromAlphaTiles(alphaTiles);
+    if (!mask) {
+        // Coverage must stay representable across history, recovery and KRA.
+        // Fully erased input keeps the smallest visible sample so the retained
+        // mask continues to hide the layer almost completely.
+        const QByteArray visible(1, char(1));
+        mask = SelectionMask::fromAlphaCoverage(QRect(0, 0, 1, 1), visible, canvas);
+    }
+    if (!mask) status = Result::CapacityExceeded;
+    return mask;
+}
+
+const Layer *maskPaintLayer(const Snapshot &version, LayerId layer)
+{
+    if (!version) return nullptr;
+    for (const auto &value : version->layers)
+        if (value.id == layer && value.kind == LayerKind::Paint && value.transparencyMask &&
+            !value.userLocked && value.visible) return &value;
+    return nullptr;
+}
+
+RasterImage safeMaskInputImage(const DocumentVersion &version, const SelectionMaskSP &mask,
+                               qsizetype maximumBytes) noexcept
+{
+    try {
+        return maskInputImage(version, mask, maximumBytes);
+    } catch (const std::bad_alloc &) {
+        return {};
+    }
+}
+
+SelectionMaskSP safeReadMaskCoverage(const PaintImage &source, LayerId layer, QSize size,
+                                     const SelectionMaskSP &previous, Result &status) noexcept
+{
+    try {
+        return readMaskCoverage(source, layer, size, previous, status);
+    } catch (const std::bad_alloc &) {
+        status = Result::CapacityExceeded;
+        return {};
+    }
+}
 }
 PaintImage::PaintImage(Execution &execution, QSize size, Limits limits)
     : PaintImage(execution, std::make_unique<OperationDocument>(size, limits), limits) {}
@@ -242,26 +418,191 @@ Result PaintImage::publish(Result result)
 }
 OperationId PaintImage::beginStroke(LayerId layer, const Brush &brush, quint64 seed)
 { return onThread() ? m_d->document->beginStroke(layer, brush, seed) : OperationId{}; }
+OperationId PaintImage::beginTransparencyMaskStroke(LayerId layer, const Brush &brush, quint64 seed)
+{
+    if (!onThread() || !m_d->handle || m_d->maskStroke || m_d->document->hasActiveStroke()) return {};
+    const auto version = m_d->document->snapshot();
+    const Layer *target = maskPaintLayer(version, layer);
+    if (!target) return {};
+    RasterImage input = safeMaskInputImage(*version, target->transparencyMask, m_d->limits.rasterBytes);
+    if (input.layers.isEmpty()) return {};
+    PaintImageSP image;
+    try {
+        image.reset(new PaintImage(m_d->execution, input, m_d->limits));
+    } catch (const std::length_error &) {
+        return {};
+    } catch (const std::invalid_argument &) {
+        return {};
+    }
+    Brush maskBrush = brush;
+    // Mask coverage owns its own alpha; layer channel locks and alpha locks
+    // must not prevent the retained mask from changing.
+    maskBrush.alphaLocked = false;
+    maskBrush.channelWriteMask = 15;
+    const LayerId imageLayer = image->operations().activeLayer();
+    const auto id = image->beginStroke(imageLayer, maskBrush, seed);
+    if (id.isNull()) return {};
+    if (m_d->document->beginExternalStroke(id) != Result::Success) {
+        image->cancelStroke(id);
+        return {};
+    }
+    m_d->maskStroke.reset(new MaskStroke{image, layer, imageLayer, id});
+    return id;
+}
 Result PaintImage::appendSamples(OperationId id, const QList<InputSample> &samples)
-{ return onThread() ? publish(m_d->document->appendSamples(id, samples)) : Result::InvalidInput; }
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (m_d->maskStroke) {
+        if (m_d->maskStroke->id != id) return Result::StaleOperation;
+        return m_d->maskStroke->image->appendSamples(id, samples);
+    }
+    return publish(m_d->document->appendSamples(id, samples));
+}
 Result PaintImage::flushSmoothing(OperationId id)
 {
     if (!onThread()) return Result::InvalidInput;
+    if (m_d->maskStroke) {
+        if (m_d->maskStroke->id != id) return Result::StaleOperation;
+        return m_d->maskStroke->image->flushSmoothing(id);
+    }
     const auto before = m_d->document->preview();
     const auto result = m_d->document->flushSmoothing(id);
     return m_d->document->preview() == before ? result : publish(result);
 }
 Result PaintImage::updateShape(OperationId id, const Shape &shape)
-{ return onThread() ? publish(m_d->document->updateShape(id, shape)) : Result::InvalidInput; }
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (m_d->maskStroke) {
+        if (m_d->maskStroke->id != id) return Result::StaleOperation;
+        return m_d->maskStroke->image->updateShape(id, shape);
+    }
+    return publish(m_d->document->updateShape(id, shape));
+}
 Result PaintImage::updateFigure(OperationId id, const Shape &shape, const FigureStyle &style)
-{ return onThread() ? publish(m_d->document->updateFigure(id, shape, style)) : Result::InvalidInput; }
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (m_d->maskStroke) {
+        if (m_d->maskStroke->id != id) return Result::StaleOperation;
+        return m_d->maskStroke->image->updateFigure(id, shape, style);
+    }
+    return publish(m_d->document->updateFigure(id, shape, style));
+}
 Result PaintImage::paintFigure(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
                                const Shape &shape, const FigureStyle &style, quint64 randomSeed)
 { return onThread() ? publish(m_d->document->paintFigure(layer, brush, samples, shape, style, randomSeed)) : Result::InvalidInput; }
+
+Result PaintImage::paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
+                                               const QList<InputSample> &samples, const Shape &shape,
+                                               const FigureStyle &style, quint64 randomSeed)
+{
+    return paintTransparencyMaskFigure(layer, brush, samples, shape, style, randomSeed, false);
+}
+
+Result PaintImage::paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
+                                               const QList<InputSample> &samples, const Shape &shape,
+                                               const FigureStyle &style, quint64 randomSeed, bool filled)
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (!m_d->handle) return Result::Closed;
+    if (m_d->maskStroke || m_d->document->hasActiveStroke()) return Result::EditInProgress;
+    const auto version = m_d->document->snapshot();
+    const Layer *target = maskPaintLayer(version, layer);
+    if (!target) return Result::LayerUnavailable;
+    RasterImage input = safeMaskInputImage(*version, target->transparencyMask, m_d->limits.rasterBytes);
+    if (input.layers.isEmpty()) return Result::CapacityExceeded;
+    PaintImageSP image;
+    try {
+        image.reset(new PaintImage(m_d->execution, input, m_d->limits));
+    } catch (const std::length_error &) {
+        return Result::CapacityExceeded;
+    } catch (const std::invalid_argument &) {
+        return Result::InvalidInput;
+    }
+    Brush maskBrush = brush;
+    maskBrush.alphaLocked = false;
+    maskBrush.channelWriteMask = 15;
+    const LayerId imageLayer = image->operations().activeLayer();
+    const auto result = image->paintFigure(imageLayer, maskBrush, samples, shape, style, randomSeed);
+    if (result != Result::Success) return result;
+    return replaceMaskFromImage(layer, *image, imageLayer, filled);
+}
+
+Result PaintImage::fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
+                                        quint8 opacity, bool erase, bool alphaLocked)
+{
+    Q_UNUSED(alphaLocked);
+    Brush brush;
+    brush.rgba = {rgb[0], rgb[1], rgb[2], 255};
+    brush.opacity = opacity;
+    brush.erase = erase;
+    brush.channelWriteMask = 15;
+    FigureStyle style;
+    style.outline = false;
+    style.fill = brush.rgba;
+    const QSize size = m_d->document->snapshot()->size;
+    const QPointF end(size.width(), size.height());
+    return paintTransparencyMaskFigure(layer, brush, {{{0, 0}, 1}, {end, 1}},
+                                       {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0, true);
+}
+
+Result PaintImage::replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask)
+{
+    if (!onThread()) return Result::InvalidInput;
+    return publish(m_d->document->replaceTransparencyMask(layer, mask));
+}
+
+Result PaintImage::replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled)
+{
+    if (!onThread()) return Result::InvalidInput;
+    Result status = Result::Success;
+    const auto mask = safeReadMaskCoverage(source, sourceLayer, m_d->document->snapshot()->size,
+                                           m_d->document->layerTransparencyMask(layer), status);
+    if (!mask) return status;
+    return publish(m_d->document->replaceTransparencyMask(layer, mask, filled));
+}
+
+Result PaintImage::commitMaskStroke()
+{
+    std::unique_ptr<MaskStroke> session = std::move(m_d->maskStroke);
+    const auto committed = session->image->commitStroke(session->id);
+    if (committed != Result::Success) {
+        m_d->document->endExternalStroke(session->id);
+        return committed;
+    }
+    Result status = Result::Success;
+    const auto mask = safeReadMaskCoverage(*session->image, session->imageLayer,
+                                          m_d->document->snapshot()->size,
+                                          m_d->document->layerTransparencyMask(session->layer), status);
+    if (!mask) {
+        m_d->document->endExternalStroke(session->id);
+        return status;
+    }
+    const auto ended = m_d->document->endExternalStroke(session->id);
+    if (ended != Result::Success) return ended;
+    return publish(m_d->document->replaceTransparencyMask(session->layer, mask));
+}
+
 Result PaintImage::commitStroke(OperationId id)
-{ return onThread() ? publish(m_d->document->commitStroke(id)) : Result::InvalidInput; }
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (m_d->maskStroke) {
+        if (m_d->maskStroke->id != id) return Result::StaleOperation;
+        return commitMaskStroke();
+    }
+    return publish(m_d->document->commitStroke(id));
+}
 Result PaintImage::cancelStroke(OperationId id)
-{ return onThread() ? publish(m_d->document->cancelStroke(id)) : Result::InvalidInput; }
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (m_d->maskStroke) {
+        if (m_d->maskStroke->id != id) return Result::StaleOperation;
+        std::unique_ptr<MaskStroke> session = std::move(m_d->maskStroke);
+        const auto cancelled = session->image->cancelStroke(id);
+        m_d->document->endExternalStroke(id);
+        return cancelled;
+    }
+    return publish(m_d->document->cancelStroke(id));
+}
 OperationId PaintImage::beginLayerTranslation(LayerId layer)
 { return onThread() ? m_d->document->beginLayerTranslation(layer) : OperationId{}; }
 Result PaintImage::updateLayerTranslation(OperationId id, QPoint offset)
@@ -451,6 +792,11 @@ Result PaintImage::setHistoryIndex(int index)
 void PaintImage::close()
 {
     if (!onThread() || !m_d->handle) return;
+    if (m_d->maskStroke) {
+        std::unique_ptr<MaskStroke> session = std::move(m_d->maskStroke);
+        session->image->cancelStroke(session->id);
+        m_d->document->endExternalStroke(session->id);
+    }
     m_d->execution.close(m_d->handle);
     m_d->handle = 0;
     m_d->document->close();
@@ -470,6 +816,7 @@ Result PaintImage::restoreRecovery(const QByteArray &data, const QHash<QUuid, in
     auto &d = *m_d;
     if (!onThread()) return Result::InvalidRecovery;
     if (!d.handle) return Result::Closed;
+    if (d.maskStroke || d.document->hasActiveStroke()) return Result::EditInProgress;
     auto document = std::make_unique<OperationDocument>(QSize(1, 1), d.limits);
     if (document->restoreRecovery(data, legacyColorLabels) != Result::Success) return Result::InvalidRecovery;
     const auto replaced = d.execution.replaceDocument(d.handle, document->preview());

@@ -605,6 +605,13 @@ public:
     Result setTransparencyMaskVisible(LayerId layer, bool visible);
     /** Removes the retained mask in one history entry, preserving layer pixels. */
     Result removeTransparencyMask(LayerId layer);
+    /** Replaces the retained mask coverage in one history entry, preserving
+     * layer pixels and the mask's composition visibility. Null coverage removes
+     * nothing; removeTransparencyMask() owns mask removal. Equal coverage
+     * preserves the current version. `filled` marks a selection fill rather
+     * than a brush stroke for the history action.
+     */
+    Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, bool filled = false);
     SelectionMaskSP layerTransparencyMask(LayerId layer) const;
     bool layerTransparencyMaskVisible(LayerId layer) const;
     /** Direct background writes preserve history, pending input and fixed snapshots. */
@@ -749,6 +756,12 @@ private:
     Result restoreLayerPropertyEdits(const QList<LayerPropertyEdit> &edits);
     Result checkOperation(OperationId id) const;
     Result checkMutation() const;
+    /** An external edit (a mask stroke on a derived GPU image) borrows this
+     * document's active-input state so saving and mutation stay blocked without
+     * recording the derived operation as document history.
+     */
+    Result beginExternalStroke(const OperationId &id);
+    Result endExternalStroke(const OperationId &id);
     qsizetype layerIndex(LayerId layer) const;
     void replacePreview(const QSharedPointer<const PaintOperation> &operation);
     void commitVersion(const Snapshot &version);
@@ -766,6 +779,8 @@ private:
     quint64 m_savedRevision = 0;
     QSharedPointer<const PaintOperation> m_edit;
     TranslationSnapshot m_translation;
+    /** Operation identity of a derived mask edit; carries no document history. */
+    OperationId m_externalOperation;
     Snapshot m_preview;
     bool m_closed = false;
 };

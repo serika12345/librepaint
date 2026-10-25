@@ -196,6 +196,7 @@ private Q_SLOTS:
     void invalidGaussianWashSettingsPreserveTheDocument();
     void transparencyMaskHistoryCompositionAndRecovery();
     void transparencyMaskFromSelectionShapesAndRejections();
+    void transparencyMaskCoverageReplacementSurvivesRecovery();
     void transparencyMaskFollowsCanvasResize();
     void transparencyMaskFollowsLayerCrop();
     void cancelAndRejectedInputPreserveRedo();
@@ -4725,6 +4726,72 @@ void KisGpuOperationDocumentTest::transparencyMaskFromSelectionShapesAndRejectio
         QCOMPARE(document.setLayerLocked(paint, false), Result::Success);
         QCOMPARE(document.addTransparencyMaskFromSelection(paint), Result::Success);
     }
+}
+
+void KisGpuOperationDocumentTest::transparencyMaskCoverageReplacementSurvivesRecovery()
+{
+    const QSize size(96, 96);
+    const QRect clip(QPoint(), size);
+    OperationDocument document(size);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setSelectionRect(QRect(8, 8, 32, 32)), Result::Success);
+    QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
+    const auto original = document.layerTransparencyMask(layer);
+    QVERIFY(original);
+    const auto operationsBefore = document.snapshot()->layers.first().operations;
+    const int undoBefore = document.undoCount();
+
+    // Editing coverage leaves layer inputs untouched and appends exactly one
+    // undoable version; the history action is derived from the changed mask.
+    const QRect bounds(40, 36, 24, 20);
+    QByteArray alpha(bounds.width() * bounds.height(), '\0');
+    for (int y = 0; y < bounds.height(); ++y)
+        for (int x = 0; x < bounds.width(); ++x)
+            alpha[y * bounds.width() + x] = char(quint8(1 + (x * 253) / (bounds.width() - 1)));
+    const auto edited = SelectionMask::fromAlphaCoverage(bounds, alpha, clip);
+    QVERIFY(edited && edited->isAlpha());
+    QCOMPARE(document.replaceTransparencyMask(layer, edited), Result::Success);
+    QCOMPARE(document.undoCount(), undoBefore + 1);
+    QCOMPARE(document.historyAction(undoBefore + 1), HistoryAction::PaintStroke);
+    QVERIFY(document.layerTransparencyMask(layer) == edited);
+    QVERIFY(document.layerTransparencyMaskVisible(layer));
+    QCOMPARE(document.snapshot()->layers.first().operations, operationsBefore);
+    QCOMPARE(document.replaceTransparencyMask(layer, edited), Result::Success);
+    QCOMPARE(document.undoCount(), undoBefore + 1);
+    QCOMPARE(document.replaceTransparencyMask(layer, SelectionMaskSP{}), Result::InvalidInput);
+    QCOMPARE(document.replaceTransparencyMask(layer + 1, edited), Result::LayerUnavailable);
+
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.layerTransparencyMask(layer) == original);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.layerTransparencyMask(layer) == edited);
+
+    // A fill records its own history kind while retaining the same mask version.
+    QCOMPARE(document.replaceTransparencyMask(layer, original, true), Result::Success);
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::FillLayer);
+    QVERIFY(document.layerTransparencyMask(layer) == original);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.layerTransparencyMask(layer) == edited);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.layerTransparencyMask(layer) == original);
+
+    const auto bytes = document.recoveryData();
+    OperationDocument restored(size);
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(restored.undoCount(), document.undoCount());
+    const auto restoredLayer = restored.snapshot()->layers.first().id;
+    QVERIFY(restored.layerTransparencyMask(restoredLayer));
+    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *original);
+    QCOMPARE(restored.historyAction(undoBefore + 1), HistoryAction::PaintStroke);
+    QCOMPARE(restored.historyAction(undoBefore + 2), HistoryAction::FillLayer);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *edited);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *original);
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.redo(), Result::Success);
+    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *original);
+    QCOMPARE(restored.recoveryData(), bytes);
 }
 
 void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument()

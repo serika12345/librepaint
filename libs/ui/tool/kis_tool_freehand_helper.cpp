@@ -404,7 +404,9 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
             Q_EMIT requestErrorMessage(resources.diagnostic);
             return;
         }
-        m_d->gpuOperation = owner->beginStroke(resources.layer, resources.brush, 0);
+        m_d->gpuOperation = resources.transparencyMask
+            ? owner->beginTransparencyMaskStroke(resources.layer, resources.brush, 0)
+            : owner->beginStroke(resources.layer, resources.brush, 0);
         if (m_d->gpuOperation.isNull()) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(i18n("A stroke could not be started on this GPU paint layer."));

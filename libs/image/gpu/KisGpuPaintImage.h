@@ -118,8 +118,28 @@ public:
     Result addTransparencyMaskFromSelection(LayerId layer);
     Result setTransparencyMaskVisible(LayerId layer, bool visible);
     Result removeTransparencyMask(LayerId layer);
+    /** Replaces retained mask coverage as one history entry; null is rejected. */
+    Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
     SelectionMaskSP layerTransparencyMask(LayerId layer) const;
     bool layerTransparencyMaskVisible(LayerId layer) const;
+
+    /** Starts brush/erase input against the layer's retained transparency mask.
+     * The input paints a temporary GPU image initialized from the frozen
+     * coverage; committing converts its alpha back into one mask version and one
+     * history entry. Layer pixels and other layers stay unchanged. The returned
+     * identity participates in active-input, cancel and undo blocking like a
+     * normal stroke, although the temporary input has no document history.
+     */
+    OperationId beginTransparencyMaskStroke(LayerId layer, const Brush &brush, quint64 seed);
+    /** Adopts one completed figure into the retained mask as one history entry. */
+    Result paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
+                                       const QList<InputSample> &samples, const Shape &shape,
+                                       const FigureStyle &style, quint64 randomSeed);
+    /** Fills the retained mask through the current selection as one history entry.
+     * `erase` clears selected coverage instead of adding it.
+     */
+    Result fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
+                                quint8 opacity = 255, bool erase = false, bool alphaLocked = false);
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
@@ -238,6 +258,11 @@ private:
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory,
                            Snapshot *retainedVersion = nullptr);
+    Result commitMaskStroke();
+    Result paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
+                                       const QList<InputSample> &samples, const Shape &shape,
+                                       const FigureStyle &style, quint64 randomSeed, bool filled);
+    Result replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled);
     struct Private;
     std::unique_ptr<Private> m_d;
 };

@@ -108,6 +108,7 @@ private Q_SLOTS:
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
     void transparencyMaskComposesSavesReopensAndContinues();
+    void transparencyMaskAcceptsDirectBrushEraseFillAndRoundTrips();
     void weightedSmoothingSaveReopenAndContinuePreservesPixels();
     void gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
@@ -604,6 +605,131 @@ void KisGpuPaintDocumentTest::transparencyMaskComposesSavesReopensAndContinues()
     QVERIFY2(removed.code == FileCode::Success, qPrintable(removed.diagnostic));
     QVERIFY(!removed.document->image()->layerTransparencyMask(removed.document->image()->operations().activeLayer()));
     QCOMPARE(projectionBytes(*removed.document->image()), unmasked);
+}
+
+void KisGpuPaintDocumentTest::transparencyMaskAcceptsDirectBrushEraseFillAndRoundTrips()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {128, 128};
+    initial.layers.append({QStringLiteral("Direct mask"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000027}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    const QRect region(QPoint(), initial.size);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 128 + x) * 4, 4); };
+    const auto projectionBytes = [&](PaintImage &target) {
+        const auto outcome = execution.readProjectionImage(target.handle(), target.operations().snapshot(), 128 * 128 * 4);
+        if (outcome.code != ExecutionCode::Success) return QByteArray();
+        const auto converted = outcome.image.convertToFormat(QImage::Format_RGBA8888);
+        return QByteArray(reinterpret_cast<const char *>(converted.constBits()), converted.sizeInBytes());
+    };
+
+    QCOMPARE(image->fillLayer(layer, {19, 211, 97}), Result::Success);
+    QCOMPARE(image->setSelectionRect(QRect(32, 32, 64, 64)), Result::Success);
+    QCOMPARE(image->addTransparencyMaskFromSelection(layer), Result::Success);
+    QCOMPARE(image->clearSelection(), Result::Success);
+    const auto originalMask = image->layerTransparencyMask(layer);
+    QVERIFY(originalMask);
+    const auto layerPixels = image->readRgbaPixels(layer, region, 128 * 128 * 4);
+    QCOMPARE(layerPixels.code, ExecutionCode::Success);
+    const auto originalProjection = projectionBytes(*image);
+    QCOMPARE(pixel(originalProjection, 64, 64), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(pixel(originalProjection, 4, 4), QByteArray(4, '\0'));
+
+    // A brush stroke outside the original coverage expands the retained mask
+    // and leaves the layer's own pixels untouched.
+    Brush brush;
+    brush.rgba = {211, 97, 19, 255};
+    brush.diameter = 16;
+    int undo = image->operations().undoCount();
+    auto stroke = image->beginTransparencyMaskStroke(layer, brush, 7);
+    QVERIFY(!stroke.isNull());
+    QVERIFY(image->operations().hasActiveStroke());
+    QCOMPARE(image->operations().activeOperation(), stroke);
+    QCOMPARE(image->appendSamples(stroke, {{{16, 16}, 1}}), Result::Success);
+    QCOMPARE(image->commitStroke(stroke), Result::Success);
+    QVERIFY(!image->operations().hasActiveStroke());
+    QCOMPARE(image->operations().undoCount(), undo + 1);
+    QCOMPARE(image->operations().historyAction(image->operations().undoCount()),
+             HistoryAction::PaintStroke);
+    const auto brushedMask = image->layerTransparencyMask(layer);
+    QVERIFY(brushedMask);
+    QCOMPARE(brushedMask->coverage(16, 16), quint8(255));
+    QCOMPARE(brushedMask->coverage(64, 64), quint8(255));
+    QCOMPARE(brushedMask->coverage(4, 4), quint8(0));
+    QCOMPARE(image->readRgbaPixels(layer, region, 128 * 128 * 4).bytes, layerPixels.bytes);
+    const auto brushedProjection = projectionBytes(*image);
+    QCOMPARE(pixel(brushedProjection, 16, 16), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(pixel(brushedProjection, 4, 4), QByteArray(4, '\0'));
+
+    QCOMPARE(image->undo(), Result::Success);
+    QVERIFY(image->layerTransparencyMask(layer) == originalMask);
+    QCOMPARE(projectionBytes(*image), originalProjection);
+    QCOMPARE(image->redo(), Result::Success);
+    QVERIFY(image->layerTransparencyMask(layer) == brushedMask);
+
+    // Erasing reduces only coverage inside the mask.
+    Brush eraser = brush;
+    eraser.erase = true;
+    undo = image->operations().undoCount();
+    stroke = image->beginTransparencyMaskStroke(layer, eraser, 11);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(image->appendSamples(stroke, {{{64, 64}, 1}}), Result::Success);
+    QCOMPARE(image->commitStroke(stroke), Result::Success);
+    QCOMPARE(image->operations().undoCount(), undo + 1);
+    QCOMPARE(image->operations().historyAction(image->operations().undoCount()),
+             HistoryAction::PaintStroke);
+    const auto erasedMask = image->layerTransparencyMask(layer);
+    QVERIFY(erasedMask);
+    QCOMPARE(erasedMask->coverage(64, 64), quint8(0));
+    QCOMPARE(image->readRgbaPixels(layer, region, 128 * 128 * 4).bytes, layerPixels.bytes);
+    const auto erasedProjection = projectionBytes(*image);
+    QCOMPARE(pixel(erasedProjection, 64, 64), QByteArray(4, '\0'));
+    QCOMPARE(pixel(erasedProjection, 16, 16), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(image->undo(), Result::Success);
+    QVERIFY(image->layerTransparencyMask(layer) == brushedMask);
+    QCOMPARE(image->redo(), Result::Success);
+    QVERIFY(image->layerTransparencyMask(layer) == erasedMask);
+
+    // Selection fill reveals only the selected coverage inside the mask.
+    QCOMPARE(image->setSelectionRect(QRect(104, 16, 16, 16)), Result::Success);
+    undo = image->operations().undoCount();
+    QCOMPARE(image->fillTransparencyMask(layer, {17, 129, 241}), Result::Success);
+    QVERIFY(image->layerTransparencyMask(layer));
+    QCOMPARE(image->operations().undoCount(), undo + 1);
+    QCOMPARE(image->operations().historyAction(image->operations().undoCount()),
+             HistoryAction::FillLayer);
+    const auto filledMask = image->layerTransparencyMask(layer);
+    QVERIFY(filledMask->coverage(112, 24) > 0);
+    QCOMPARE(filledMask->coverage(112, 40), quint8(0));
+    QCOMPARE(filledMask->coverage(4, 4), quint8(0));
+    QCOMPARE(image->readRgbaPixels(layer, region, 128 * 128 * 4).bytes, layerPixels.bytes);
+    const auto filledProjection = projectionBytes(*image);
+    QCOMPARE(pixel(filledProjection, 112, 24), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(pixel(filledProjection, 112, 40), QByteArray(4, '\0'));
+    QCOMPARE(image->clearSelection(), Result::Success);
+
+    // Saving and reopening retains the edited coverage, composition and pixels.
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("direct-mask.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    const auto loadedLayer = loaded->operations().activeLayer();
+    const auto loadedMask = loaded->layerTransparencyMask(loadedLayer);
+    QVERIFY(loadedMask);
+    QCOMPARE(loadedMask->coverage(16, 16), quint8(255));
+    QCOMPARE(loadedMask->coverage(64, 64), quint8(0));
+    QVERIFY(loadedMask->coverage(112, 24) > 0);
+    QCOMPARE(loadedMask->coverage(112, 40), quint8(0));
+    QCOMPARE(loadedMask->coverage(4, 4), quint8(0));
+    QVERIFY(loaded->layerTransparencyMaskVisible(loadedLayer));
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, 128 * 128 * 4).bytes, layerPixels.bytes);
+    QCOMPARE(projectionBytes(*loaded), filledProjection);
 }
 
 void KisGpuPaintDocumentTest::weightedSmoothingSaveReopenAndContinuePreservesPixels()

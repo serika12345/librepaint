@@ -133,6 +133,7 @@ private Q_SLOTS:
     void layerPanelShowsAndSelectsGpuTransparencyMaskChild();
     void layerPanelTogglesAndRemovesGpuTransparencyMaskChild();
     void layerPanelGpuTransparencyMaskChildSurvivesSaving();
+    void maskChildFreehandStrokeEditsOnlyCoverage();
     void selectionFillUsesGpuSelection();
     void selectionMergedCopyUsesGpuSelection();
     void selectionCopyAndCutUseGpuSelection();
@@ -1933,15 +1934,182 @@ void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()
     QCOMPARE(view->currentMask().data(), child.data());
     QCOMPARE(lifetime->undoStack()->count(), undoCount);
 
-    // Direct painting is rejected instead of falling back to the paint layer.
+    // A selected mask child routes brush input into the parent layer's retained
+    // mask instead of falling back to the paint layer. One stroke adds exactly
+    // one history entry and refreshes the panel child and its thumbnail.
+    QVERIFY(image->clearGpuSelection());
+    const auto layerId = owner->operations().activeLayer();
+    const auto maskBefore = owner->layerTransparencyMask(layerId);
+    QVERIFY(maskBefore);
+    QCOMPARE(maskBefore->coverage(20, 20), quint8(0));
     const auto brush = captureGpuBrushResources(image, child, view->canvasBase()->resourceManager());
-    QCOMPARE(brush.layer, Gpu::LayerId(0));
-    QVERIFY(!brush.diagnostic.isEmpty());
+    QCOMPARE(brush.layer, layerId);
+    QVERIFY(brush.diagnostic.isEmpty());
+    QVERIFY(brush.transparencyMask);
+    const auto beforeThumbnail = proxy->data(index, int(KisNodeModel::BeginThumbnailRole) + 32).value<QImage>();
+    const auto maskHistory = lifetime->undoStack()->count();
+    const auto stroke = owner->beginTransparencyMaskStroke(layerId, brush.brush, 0);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(owner->appendSamples(stroke, {{{20, 20}, 1}}), Gpu::Result::Success);
+    QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
+    QCOMPARE(lifetime->undoStack()->count(), maskHistory + 1);
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::PaintStroke);
+    QVERIFY(owner->layerTransparencyMask(layerId)->coverage(20, 20) > 0);
+    quint8 painted = 0;
+    child->paintDevice()->readBytes(&painted, 20, 20, 1, 1);
+    QVERIFY(painted > 0);
+    QTRY_VERIFY(proxy->data(index, int(KisNodeModel::BeginThumbnailRole) + 32).value<QImage>() != beforeThumbnail);
+
+    // The selection fill action targets the retained mask as well and leaves
+    // the parent layer's pixels untouched.
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
+    resources->setOpacity(1);
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    QVERIFY(image->setGpuSelectionRect(QRect(40, 40, 8, 8)));
+    QTRY_COMPARE(owner->selectionRect(), QRect(40, 40, 8, 8));
+    auto *fillAction = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color"));
+    QVERIFY(fillAction);
+    QVERIFY(fillAction->isEnabled());
+    fillAction->trigger();
+    QTRY_COMPARE(lifetime->undoStack()->count(), maskHistory + 3);
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::FillLayer);
+    QVERIFY(owner->layerTransparencyMask(layerId)->coverage(44, 44) > 0);
+    quint8 filled = 0;
+    child->paintDevice()->readBytes(&filled, 44, 44, 1, 1);
+    QVERIFY(filled > 0);
+    const auto layerPixels = owner->readRgbaPixels(layerId, QRect(44, 44, 1, 1), 4);
+    QCOMPARE(layerPixels.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(quint8(layerPixels.bytes.at(3)), quint8(0));
 
     manager->slotUiActivatedNode(layer);
     QCOMPARE(view->currentNode(), layer);
     QVERIFY(!view->currentMask());
-    QCOMPARE(lifetime->undoStack()->count(), undoCount);
+    QCOMPARE(lifetime->undoStack()->count(), maskHistory + 3);
+}
+
+void KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    const auto layerId = owner->operations().activeLayer();
+    QCOMPARE(owner->setSelectionRect(QRect(8, 8, 24, 24)), Gpu::Result::Success);
+    QCOMPARE(owner->addTransparencyMaskFromSelection(layerId), Gpu::Result::Success);
+    QCOMPARE(owner->clearSelection(), Gpu::Result::Success);
+    const auto originalMask = owner->layerTransparencyMask(layerId);
+    QVERIFY(originalMask);
+    QCOMPARE(originalMask->coverage(44, 44), quint8(0));
+
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Mask freehand input")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    bool pressed = false;
+    const auto releaseWindow = qScopeGuard([&] {
+        if (pressed && native) {
+            if (lifetime) lifetime->image()->requestStrokeCancellation();
+            QTest::mouseRelease(native.data(), Qt::LeftButton);
+        }
+        if (lifetime) {
+            lifetime->setModified(false);
+            auto *close = window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"));
+            if (close) close->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->statusBar()->show();
+    window->activateWindow();
+    QTest::qWait(100);
+    auto image = KisImageSP(lifetime->image());
+    auto layer = image->root()->firstChild();
+    QVERIFY(layer);
+    auto child = layer->firstChild();
+    QVERIFY(child);
+    QVERIFY(child->inherits("KisTransparencyMask"));
+    QVERIFY(image->isGpuTransparencyMaskView(child));
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotUiActivatedNode(child);
+    QCOMPARE(view->currentNode(), child);
+    QCOMPARE(view->currentMask().data(), child.data());
+
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(m_preset);
+    resources->setSize(8);
+    resources->setOpacity(1);
+    resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KritaShape/KisToolBrush"));
+    auto *brushTool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
+    QVERIFY(brushTool);
+    QSignalSpy errors(brushTool, &KoToolBase::statusTextChanged);
+    view->canvasBase()->canvasWidget()->setFocus();
+    QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= 64 && view->canvasBase()->canvasWidget()->height() >= 64);
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    view->zoomManager()->zoomTo100();
+    const auto imageSize = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    QTRY_COMPARE(owner->execution().published(owner->handle()), owner->operations().snapshot());
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
+    QVERIFY(native);
+
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    const auto pointAt = [&](QPointF imagePoint) {
+        const auto point = converter->imageToWidget(imagePoint).toPoint();
+        QTest::mouseMove(native.data(), point);
+        QTest::qWait(10);
+        return point;
+    };
+    const auto start = pointAt({40, 40});
+    QVERIFY(view->canvasBase()->canvasWidget()->rect().contains(start));
+    QEnterEvent entered(start, start, native->mapToGlobal(start));
+    QApplication::sendEvent(native.data(), &entered);
+    QTest::qWait(10);
+    const int undoBefore = owner->operations().undoCount();
+    pressed = true;
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, start);
+    QVERIFY2(owner->operations().hasActiveStroke(),
+             errors.isEmpty() ? "The pointer press did not start a mask stroke" : qPrintable(errors.first().first().toString()));
+    QVERIFY(owner->operations().snapshot()->layers.first().operations.isEmpty());
+    const auto end = pointAt({48, 48});
+    QTest::qWait(10);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, end);
+    pressed = false;
+    QTRY_COMPARE(owner->operations().undoCount(), undoBefore + 1);
+    QVERIFY(!owner->operations().hasActiveStroke());
+    QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
+             Gpu::HistoryAction::PaintStroke);
+    const auto edited = owner->layerTransparencyMask(layerId);
+    QVERIFY(edited);
+    QVERIFY(edited->coverage(44, 44) > 0);
+    QCOMPARE(edited->coverage(12, 12), quint8(255));
+    QVERIFY(owner->operations().snapshot()->layers.first().operations.isEmpty());
+    const auto layerPixels = owner->readRgbaPixels(layerId, QRect(44, 44, 1, 1), 4);
+    QCOMPARE(layerPixels.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(quint8(layerPixels.bytes.at(3)), quint8(0));
+    quint8 childPixel = 0;
+    child->paintDevice()->readBytes(&childPixel, 44, 44, 1, 1);
+    QVERIFY(childPixel > 0);
 }
 
 void KisGpuDocumentViewTest::layerPanelTogglesAndRemovesGpuTransparencyMaskChild()
