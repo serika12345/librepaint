@@ -373,6 +373,24 @@ void KisImageResizeToSelectionActionFactory::run(KisViewManager *view)
     view->image()->cropImage(selection->selectedExactRect());
 }
 
+namespace {
+
+QImage freehandClipboardCoverage(const QRect &bounds,
+                                 const LibrePaint::Image::Gpu::SelectionMaskSP &mask)
+{
+    QImage coverage(bounds.size(), QImage::Format_Alpha8);
+    if (!mask || coverage.isNull()) return {};
+    coverage.fill(0);
+    for (int y = 0; y < bounds.height(); ++y) {
+        uchar *line = coverage.scanLine(y);
+        for (int x = 0; x < bounds.width(); ++x)
+            if (mask->contains(bounds.x() + x, bounds.y() + y)) line[x] = 255;
+    }
+    return coverage;
+}
+
+}
+
 void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
 {
     KisImageSP image = view->image();
@@ -382,11 +400,6 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
 
     if (const auto owner = image->gpuImage()) {
         namespace Gpu = LibrePaint::Image::Gpu;
-        if (owner->selectionKind() == Gpu::SelectionKind::Freehand) {
-            view->showFloatingMessage(
-                i18n("Copying or cutting a freehand GPU selection is not supported yet."), QIcon());
-            return;
-        }
         const QRect selected = owner->selectionRect();
         if (!selected.isEmpty()) {
             KisNodeSP node = view->activeNode();
@@ -398,9 +411,18 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
                 return;
             }
             const bool inverted = owner->selectionInverted();
-            const bool ellipse = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse;
+            const bool freehand = owner->selectionKind() == Gpu::SelectionKind::Freehand;
+            const bool ellipse = owner->selectionKind() == Gpu::SelectionKind::Ellipse;
             std::optional<GpuClipboardMask> mask;
-            if (inverted) mask = GpuClipboardMask{selected, ellipse, false};
+            if (freehand && !inverted) {
+                const QImage coverage = freehandClipboardCoverage(selected, owner->selectionMask());
+                if (coverage.isNull()) {
+                    view->showFloatingMessage(i18n("The freehand selection could not be copied."), QIcon());
+                    return;
+                }
+                mask = GpuClipboardMask{selected, false, true, coverage};
+            }
+            else if (inverted) mask = GpuClipboardMask{selected, ellipse, false};
             else if (ellipse) mask = GpuClipboardMask{selected, true, true};
             if (!KisClipboard::instance()->setGpuLayer(image, node->uuid(), 256 * 1024 * 1024,
                                                        inverted ? QRect() : selected, mask)) {
@@ -576,15 +598,19 @@ void KisCopyMergedActionFactory::run(KisViewManager *view)
     if (!guard || view->image().data() != image.data()) return;
 
     if (const auto owner = image->gpuImage()) {
-        if (owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Freehand) {
-            view->showFloatingMessage(
-                i18n("Copying a freehand GPU selection is not supported yet."), QIcon());
-            return;
-        }
         const bool inverted = owner->selectionInverted();
+        const bool freehand = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Freehand;
         const bool ellipse = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse;
         std::optional<GpuClipboardMask> mask;
-        if (inverted) mask = GpuClipboardMask{owner->selectionRect(), ellipse, false};
+        if (freehand && !inverted) {
+            const QImage coverage = freehandClipboardCoverage(owner->selectionRect(), owner->selectionMask());
+            if (coverage.isNull()) {
+                view->showFloatingMessage(i18n("The freehand selection could not be copied."), QIcon());
+                return;
+            }
+            mask = GpuClipboardMask{owner->selectionRect(), false, true, coverage};
+        }
+        else if (inverted) mask = GpuClipboardMask{owner->selectionRect(), ellipse, false};
         else if (ellipse) mask = GpuClipboardMask{owner->selectionRect(), true, true};
         if (!KisClipboard::instance()->setGpuProjection(image, 256 * 1024 * 1024,
                                                         inverted ? QRect() : owner->selectionRect(), mask) && guard) {

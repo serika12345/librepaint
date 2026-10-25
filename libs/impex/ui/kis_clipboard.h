@@ -19,6 +19,7 @@
 #include <kis_types.h>
 
 #include <kritaui_export.h>
+#include <QImage>
 
 class QRect;
 class QMimeData;
@@ -30,6 +31,7 @@ struct GpuClipboardMask
     QRect rect;
     bool ellipse = false;
     bool keepInside = false;
+    QImage coverage;
 };
 
 class KisClipboardPrivate;

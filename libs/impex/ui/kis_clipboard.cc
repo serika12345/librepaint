@@ -750,7 +750,13 @@ bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetByte
                 for (int y = 0; y < area.height(); ++y) {
                     for (int x = 0; x < area.width(); ++x) {
                         bool inside = true;
-                        if (mask->ellipse) {
+                        if (!mask->coverage.isNull()) {
+                            const QPoint local = QPoint(area.x() + x, area.y() + y) +
+                                captured.topLeft() - mask->rect.topLeft();
+                            inside = local.x() >= 0 && local.y() >= 0 &&
+                                local.x() < mask->coverage.width() && local.y() < mask->coverage.height() &&
+                                mask->coverage.constScanLine(local.y())[local.x()] != 0;
+                        } else if (mask->ellipse) {
                             const qreal dx = (area.x() + x + 0.5 - cx) / rx;
                             const qreal dy = (area.y() + y + 0.5 - cy) / ry;
                             inside = dx * dx + dy * dy <= 1.0;
@@ -804,7 +810,13 @@ bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype m
                 for (int y = 0; y < area.height(); ++y) {
                     for (int x = 0; x < area.width(); ++x) {
                         bool inside = true;
-                        if (mask->ellipse) {
+                        if (!mask->coverage.isNull()) {
+                            const QPoint local = QPoint(area.x() + x, area.y() + y) +
+                                captured.topLeft() - mask->rect.topLeft();
+                            inside = local.x() >= 0 && local.y() >= 0 &&
+                                local.x() < mask->coverage.width() && local.y() < mask->coverage.height() &&
+                                mask->coverage.constScanLine(local.y())[local.x()] != 0;
+                        } else if (mask->ellipse) {
                             const qreal dx = (area.x() + x + 0.5 - cx) / rx;
                             const qreal dy = (area.y() + y + 0.5 - cy) / ry;
                             inside = dx * dx + dy * dy <= 1.0;

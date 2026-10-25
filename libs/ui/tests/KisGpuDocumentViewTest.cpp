@@ -2718,6 +2718,29 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QCOMPARE(pixel(filled.bytes, 80, 80), QByteArray::fromHex("1181f1ff"));
     QCOMPARE(pixel(filled.bytes, 176, 176), QByteArray(4, char(0)));
 
+    auto *copyMerged = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_merged"));
+    QVERIFY(copyMerged);
+    copyMerged->trigger();
+    QTRY_VERIFY(KisClipboard::instance()->hasImage());
+    const auto *mergedClipboard = QGuiApplication::clipboard()->mimeData();
+    QVERIFY(mergedClipboard);
+    const QImage merged = KisClipboard::instance()->getImageWithFallback(mergedClipboard);
+    QVERIFY(!merged.isNull());
+    QCOMPARE(merged.size(), mask->bounds().size());
+    QCOMPARE(merged.pixelColor(80 - mask->bounds().x(), 80 - mask->bounds().y()), QColor(17, 129, 241));
+    QCOMPARE(merged.pixelColor(176 - mask->bounds().x(), 176 - mask->bounds().y()).alpha(), 0);
+
+    auto *manager = window->viewManager()->selectionManager();
+    QVERIFY(manager);
+    manager->copy();
+    const auto *layerClipboard = QGuiApplication::clipboard()->mimeData();
+    QVERIFY(layerClipboard);
+    const QImage layerCopy = KisClipboard::instance()->getImageWithFallback(layerClipboard);
+    QVERIFY(!layerCopy.isNull());
+    QCOMPARE(layerCopy.size(), mask->bounds().size());
+    QCOMPARE(layerCopy.pixelColor(80 - mask->bounds().x(), 80 - mask->bounds().y()), QColor(17, 129, 241));
+    QCOMPARE(layerCopy.pixelColor(176 - mask->bounds().x(), 176 - mask->bounds().y()).alpha(), 0);
+
     QVERIFY(lifetime->image()->clearGpuSelection());
     QTRY_VERIFY(owner->selectionRect().isEmpty());
     QVERIFY(lifetime->image()->reselectGpuSelection());
