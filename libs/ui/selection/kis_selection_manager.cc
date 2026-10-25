@@ -610,8 +610,11 @@ void KisSelectionManager::copySelectionToNewLayer()
         const auto *mime = QGuiApplication::clipboard()->mimeData();
         const QImage copied = mime ? KisClipboard::instance()->getImageWithFallback(mime) : QImage();
         const QPoint position = image->gpuSelectionInverted() ? QPoint(0, 0) : selection.topLeft();
-        if (copied.isNull() || !insertGpuClipboardLayer(image, copied, position, i18n("Copied Selection")))
+        if (copied.isNull() || !insertGpuClipboardLayer(image, copied, position, i18n("Copied Selection"))) {
             m_view->showFloatingMessage(i18n("The selected area could not be copied to a new layer."), QIcon());
+            return;
+        }
+        m_view->showFloatingMessage(i18n("The selection was added as a new layer. Select it in the Layers panel."), QIcon());
         return;
     }
     copy();
@@ -634,6 +637,7 @@ void KisSelectionManager::cutToNewLayer()
             m_view->showFloatingMessage(i18n("The selected area could not be cut to a new layer."), QIcon());
             return;
         }
+        m_view->showFloatingMessage(i18n("The selection was added as a new layer. Select it in the Layers panel."), QIcon());
         return;
     }
     cut();
