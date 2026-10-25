@@ -550,6 +550,8 @@ Colorizeなしの`type` 0〜2として復元されること、形式52として�
 HSV方針の彩度・明度・色相写像、無彩色画素が色相と彩度を無視して明度だけに従うこと、
 `int(v * 255 + 0.5)`の四捨五入、アルファ保持、透明画素の隠れRGB、選択外の保持、
 HSL方針との差、設定と被覆の凍結、一度の履歴、Undo／Redo、復旧後の同じ画素を検査する。
+旧互換HSLのRGB `(200,30,70)`・彩度+50の参照値は、製品変換の`(243,0,48)`を使う。
+`LIBREPAINT_GPU_RESULT_DIR`へ`hsv-legacy-hsl.rgba`としてタイル全体を出力する。
 `KisGpuTileRendererTest::hsvAdjustmentClipsCoverageAndSupportsLegacyConversion`は、
 アルファ被覆の補間、反転矩形、楕円被覆、旧互換モードで彩度上昇が無彩色へ色を与えること、
 旧互換の明度規則が現代方針と異なること、旧互換フラグの凍結と復旧を検査する。

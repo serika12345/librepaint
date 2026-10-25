@@ -302,8 +302,15 @@ fn legacyHslToRgb(hsl: vec3<f32>) -> vec3<f32> {
     var hue = hsl.x;
     let saturation = hsl.y;
     let lightness = hsl.z;
-    let value = select(lightness + saturation - lightness * saturation,
-                       lightness * (1.0 + saturation), lightness <= 0.5);
+    var value: f32;
+    if (lightness <= 0.5) {
+        // The product's double literal keeps 1 + saturation and its product
+        // with lightness in binary64 until the assignment to float.
+        value = productRgbWeightedSum(vec3<f32>(lightness, lightness, 0.0),
+                                      vec3<f32>(1.0, saturation, 0.0));
+    } else {
+        value = lightness + saturation - lightness * saturation;
+    }
     if (value <= 0.0) { return vec3<f32>(0.0); }
     let minimum = lightness + lightness - value;
     let sv = (value - minimum) / value;
@@ -508,7 +515,7 @@ fn colorizeAddLumaTerms(first: ColorizeLumaTerm, second: ColorizeLumaTerm) -> Co
     return ColorizeLumaTerm(sum, exponent);
 }
 
-fn colorizeProductLuma(rgb: vec3<f32>, luma: vec3<f32>) -> f32 {
+fn productRgbWeightedSum(rgb: vec3<f32>, luma: vec3<f32>) -> f32 {
     let redGreen = colorizeAddLumaTerms(colorizeLumaProduct(rgb.x, luma.x), colorizeLumaProduct(rgb.y, luma.y));
     let total = colorizeAddLumaTerms(redGreen, colorizeLumaProduct(rgb.z, luma.z));
     if (all(total.significand == vec2<u32>(0u))) { return 0.0; }
@@ -522,7 +529,7 @@ fn colorizeProductLuma(rgb: vec3<f32>, luma: vec3<f32>) -> f32 {
     return bitcast<f32>((u32(exponent) << 23u) | (mantissa & 0x7fffffu));
 }
 
-fn colorizeInputChannel(channel: u32) -> f32 {
+fn productRgbInputChannel(channel: u32) -> f32 {
     if (channel == 0u) { return 0.0; }
     if (channel == 255u) { return 1.0; }
     let leading = firstLeadingBit(channel);
@@ -539,7 +546,7 @@ fn colorizeAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32,
     var hue = dh * 360.0;
     if (hue >= 360.0) { hue = 0.0; }
     let saturation = ds;
-    var lumaValue = colorizeProductLuma(rgb, luma);
+    var lumaValue = productRgbWeightedSum(rgb, luma);
     if (dv > 0.0) {
         lumaValue = lumaValue * (1.0 - dv);
         lumaValue = lumaValue + (1.0 - (1.0 - dv));
@@ -610,13 +617,18 @@ fn hsvAdjustmentPixel(base: vec4<u32>, adjustment: vec4<i32>) -> vec4<u32> {
     let rgb = vec3<f32>(f32(base.x) / 255.0, f32(base.y) / 255.0, f32(base.z) / 255.0);
     var result: vec3<f32>;
     if (colorize) {
-        let productRgb = vec3<f32>(colorizeInputChannel(base.x), colorizeInputChannel(base.y),
-                                   colorizeInputChannel(base.z));
+        let productRgb = vec3<f32>(productRgbInputChannel(base.x), productRgbInputChannel(base.y),
+                                   productRgbInputChannel(base.z));
         result = colorizeAdjustment(productRgb, dh, ds, dv, luma);
     } else if (mode == HSV_MODE_YUV) {
         result = yuvAdjustment(rgb, dh, ds, dv, luma);
     } else if (legacy) {
-        result = legacyAdjustment(rgb, dh, ds, dv, mode, luma);
+        var legacyRgb = rgb;
+        if (mode == HSV_MODE_LIGHTNESS) {
+            legacyRgb = vec3<f32>(productRgbInputChannel(base.x), productRgbInputChannel(base.y),
+                                   productRgbInputChannel(base.z));
+        }
+        result = legacyAdjustment(legacyRgb, dh, ds, dv, mode, luma);
     } else {
         result = modernAdjustment(rgb, dh, ds, dv, mode, luma);
     }
