@@ -2753,6 +2753,28 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QTRY_COMPARE(owner->selectionRect(), beforeMove);
     QVERIFY(owner->selectionMask()->contains(80, 80));
 
+    const auto runFilter = [&](const QString &id, int x, int y) {
+        KisOperationConfigurationSP config = new KisOperationConfiguration(id);
+        config->setProperty("x-radius", x);
+        config->setProperty("y-radius", y);
+        config->setProperty("edgeLock", false);
+        window->viewManager()->actionManager()->runOperationFromConfiguration(config);
+        lifetime->image()->waitForDone();
+    };
+    runFilter(QStringLiteral("growselection"), 2, 2);
+    QTRY_VERIFY(owner->selectionMask()->contains(62, 80));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), beforeMove);
+    runFilter(QStringLiteral("shrinkselection"), 2, 2);
+    QTRY_VERIFY(!owner->selectionMask()->contains(64, 80));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionRect(), beforeMove);
+    runFilter(QStringLiteral("invertselection"), 0, 0);
+    QTRY_VERIFY(owner->selectionMask() && !owner->selectionMask()->contains(80, 80));
+    QVERIFY(owner->selectionMask()->contains(176, 176));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_VERIFY(owner->selectionMask()->contains(80, 80));
+
     QVERIFY(lifetime->image()->clearGpuSelection());
     QTRY_VERIFY(owner->selectionRect().isEmpty());
     QVERIFY(lifetime->image()->reselectGpuSelection());

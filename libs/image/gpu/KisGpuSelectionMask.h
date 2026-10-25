@@ -57,6 +57,11 @@ public:
     static QSharedPointer<const SelectionMask> fromTiles(const SelectionTileMap &tiles);
     /** Translates the selected pixels by `delta`, clipping them to `clip`. */
     QSharedPointer<const SelectionMask> translated(QPoint delta, const QRect &clip) const;
+    /** Returns the complement inside `clip`; null means no selected pixels. */
+    QSharedPointer<const SelectionMask> inverted(const QRect &clip) const;
+    /** Expands or contracts the coverage by a rectangular radius, clipped to `clip`. */
+    QSharedPointer<const SelectionMask> grown(int xRadius, int yRadius, const QRect &clip) const;
+    QSharedPointer<const SelectionMask> shrunk(int xRadius, int yRadius, const QRect &clip) const;
 
     bool isEmpty() const { return m_bounds.isEmpty(); }
     /** Tight bounds of the selected pixels. */

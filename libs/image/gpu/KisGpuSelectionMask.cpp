@@ -206,6 +206,60 @@ QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, cons
     return make(builder.bounds, std::move(builder.tiles));
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::inverted(const QRect &clip) const
+{
+    if (clip.isEmpty()) return {};
+    CoverageBuilder builder;
+    for (int y = clip.top(); y <= clip.bottom(); ++y) {
+        int runStart = -1;
+        for (int x = clip.left(); x <= clip.right() + 1; ++x) {
+            const bool selected = x <= clip.right() && !contains(x, y);
+            if (selected && runStart < 0) runStart = x;
+            else if (!selected && runStart >= 0) {
+                builder.addSpan(y, runStart, x - 1);
+                runStart = -1;
+            }
+        }
+    }
+    return make(builder.bounds, std::move(builder.tiles));
+}
+
+QSharedPointer<const SelectionMask> SelectionMask::grown(int xRadius, int yRadius, const QRect &clip) const
+{
+    if (isEmpty() || clip.isEmpty() || xRadius < 0 || yRadius < 0) return {};
+    CoverageBuilder builder;
+    for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) {
+        const int tileX = tile.key().first * TileSize;
+        const int tileY = tile.key().second * TileSize;
+        for (int row = 0; row < TileSize; ++row) {
+            const int worldY = tileY + row;
+            const qsizetype base = qsizetype(row) * TileSize / 8;
+            for (int x = 0; x < TileSize; ++x) {
+                if ((quint8(tile.value().at(base + (x >> 3))) & (1u << (x & 7))) == 0) continue;
+                const int first = std::max(clip.left(), tileX + x - xRadius);
+                const int last = std::min(clip.right(), tileX + x + xRadius);
+                for (int y = std::max(clip.top(), worldY - yRadius);
+                     y <= std::min(clip.bottom(), worldY + yRadius); ++y)
+                    builder.addSpan(y, first, last);
+            }
+        }
+    }
+    return make(builder.bounds, std::move(builder.tiles));
+}
+
+QSharedPointer<const SelectionMask> SelectionMask::shrunk(int xRadius, int yRadius, const QRect &clip) const
+{
+    if (isEmpty() || clip.isEmpty() || xRadius < 0 || yRadius < 0) return {};
+    const auto complement = inverted(clip);
+    if (!complement) {
+        if (xRadius != 0 || yRadius != 0) return {};
+        return make(m_bounds.intersected(clip), m_tiles);
+    }
+    const auto grownComplement = complement->grown(xRadius, yRadius, clip);
+    const auto result = grownComplement ? grownComplement->inverted(clip) : inverted(clip);
+    return result;
+}
+
 bool SelectionMask::contains(int x, int y) const
 {
     if (!m_bounds.contains(x, y)) return false;

@@ -29,8 +29,28 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
     if (view->image() && view->image()->gpuImage()) {
         if (view->image()->gpuSelectionFreehand()) {
             delete filter;
+            if (config.id() == QLatin1String("invertselection")) {
+                if (!view->image()->invertGpuSelectionMask())
+                    view->showFloatingMessage(i18n("The selection could not be inverted."), QIcon());
+                return;
+            }
+            if (config.id() == QLatin1String("shrinkselection") ||
+                config.id() == QLatin1String("growselection")) {
+                const int xRadius = config.getInt("x-radius", 1);
+                const int yRadius = config.getInt("y-radius", 1);
+                if (xRadius < 0 || yRadius < 0) {
+                    view->showFloatingMessage(i18n("The selection radius is invalid."), QIcon());
+                    return;
+                }
+                if (xRadius == 0 && yRadius == 0) return;
+                const bool ok = config.id() == QLatin1String("growselection")
+                    ? view->image()->growGpuSelectionMask(xRadius, yRadius)
+                    : view->image()->shrinkGpuSelectionMask(xRadius, yRadius);
+                if (!ok) view->showFloatingMessage(i18n("The selection could not be updated."), QIcon());
+                return;
+            }
             view->showFloatingMessage(
-                i18n("Grow, shrink and invert are not yet available for a freehand GPU selection."), QIcon());
+                i18n("This selection filter is not yet available for a freehand GPU selection."), QIcon());
             return;
         }
         if (config.id() == QLatin1String("invertselection")) {

@@ -424,6 +424,33 @@ bool KisImage::moveGpuSelectionBy(QPoint delta)
         LibrePaint::Image::Gpu::Result::Success;
 }
 
+bool KisImage::invertGpuSelectionMask()
+{
+    const auto owner = gpuImage();
+    if (!owner || !owner->selectionMask()) return false;
+    const auto inverted = owner->selectionMask()->inverted(QRect(QPoint(), size()));
+    return inverted ? owner->setSelectionMask(inverted, false) == LibrePaint::Image::Gpu::Result::Success
+                    : owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
+}
+
+bool KisImage::growGpuSelectionMask(int xRadius, int yRadius)
+{
+    const auto owner = gpuImage();
+    if (!owner || !owner->selectionMask()) return false;
+    const auto grown = owner->selectionMask()->grown(xRadius, yRadius, QRect(QPoint(), size()));
+    return grown ? owner->setSelectionMask(grown, false) == LibrePaint::Image::Gpu::Result::Success
+                 : owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
+}
+
+bool KisImage::shrinkGpuSelectionMask(int xRadius, int yRadius)
+{
+    const auto owner = gpuImage();
+    if (!owner || !owner->selectionMask()) return false;
+    const auto shrunk = owner->selectionMask()->shrunk(xRadius, yRadius, QRect(QPoint(), size()));
+    return shrunk ? owner->setSelectionMask(shrunk, false) == LibrePaint::Image::Gpu::Result::Success
+                  : owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
+}
+
 void KisImage::previewGpuSelectionMoveBy(QPoint delta)
 {
     const auto owner = gpuImage();
