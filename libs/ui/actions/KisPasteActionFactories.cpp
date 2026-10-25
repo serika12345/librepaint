@@ -60,6 +60,9 @@
 #include <KoShapeStroke.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <QApplication>
+#include <QGuiApplication>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuOperationDocument.h>
 #include <QClipboard>
 #include <QDebug>
 #include <QPointer>
@@ -237,6 +240,40 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
     // Activate the current tool's paste functionality
     if (view->canvasBase()->toolProxy()->paste()) {
         // XXX: "Add saving of XML data for Paste of shapes"
+        return;
+    }
+
+    if (const auto owner = image->gpuImage()) {
+        const auto *mime = QGuiApplication::clipboard()->mimeData();
+        const QImage pastedImage = mime ? KisClipboard::instance()->getImageWithFallback(mime) : QImage();
+        if (pastedImage.isNull()) {
+            view->showFloatingMessage(i18n("Only image clipboard data can be pasted into a GPU document."), QIcon());
+            return;
+        }
+        const QImage rgba = pastedImage.convertToFormat(QImage::Format_RGBA8888);
+        if (rgba.isNull()) return;
+        auto temporary = LibrePaint::Image::Gpu::PaintImageSP::create(owner->execution(), rgba.size());
+        const auto temporaryLayer = temporary->addLayer(QStringLiteral("Pasted"));
+        const QByteArray bytes(reinterpret_cast<const char *>(rgba.constBits()), rgba.sizeInBytes());
+        if (!temporaryLayer ||
+            temporary->writeRgbaPixels(temporaryLayer, QRect(QPoint(), rgba.size()), bytes) !=
+                LibrePaint::Image::Gpu::Result::Success) {
+            view->showFloatingMessage(i18n("The pasted image could not be prepared."), QIcon());
+            return;
+        }
+        const auto pixels = temporary->retainLayerPixels(temporaryLayer);
+        const auto version = owner->operations().snapshot();
+        qsizetype index = version->layers.size();
+        for (qsizetype i = 0; i < version->layers.size(); ++i)
+            if (version->layers[i].id == version->activeLayer) index = i + 1;
+        LibrePaint::Image::Gpu::RasterLayer properties;
+        properties.name = i18n("Pasted Layer");
+        properties.uuid = QUuid::createUuid();
+        properties.position = docPos.toPoint();
+        if (!owner->insertLayer(*temporary, pixels, properties, index)) {
+            view->showFloatingMessage(i18n("The pasted image could not be added."), QIcon());
+            return;
+        }
         return;
     }
 

@@ -346,6 +346,8 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 選択された外側だけの切り取りを検査する。
 `KisGpuOperationDocumentTest::invertedSelectionSurvivesRecovery`は、反転フラグの履歴と復旧を検査する。
 `KisGpuOperationDocumentTest::ellipticalSelectionSurvivesRecovery`は、楕円形状の履歴と復旧を検査する。
+`KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer`は、クリップボード画像を
+GPU文書の新しい描画レイヤーへ一回の履歴で貼り付け、Undoで除去できることを検査する。
 `KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra`は、楕円内の塗りつぶし、
 楕円外の不変、Undo／Redo、KRA保存・再読込後の楕円形状と画素、楕円の拡大縮小、
 反転楕円のKRA往復、楕円の合成コピー・レイヤーコピー・切り取り、

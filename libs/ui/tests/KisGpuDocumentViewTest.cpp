@@ -133,6 +133,7 @@ private Q_SLOTS:
     void invertedSelectionLimitsPaintingAndKra();
     void ellipticalSelectionLimitsPaintingAndKra();
     void ellipticalToolCreatesDocumentSelection();
+    void pasteClipboardImageCreatesGpuLayer();
     void selectionMovePreviewsAndCommitsOneHistory();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
@@ -2576,6 +2577,52 @@ void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), movedSecond);
     QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+}
+
+void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Paste image")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    QImage pasted(16, 16, QImage::Format_RGBA8888);
+    pasted.fill(QColor(17, 129, 241));
+    QGuiApplication::clipboard()->setImage(pasted);
+    auto *manager = window->viewManager()->selectionManager();
+    QVERIFY(manager);
+    manager->paste();
+    QTRY_COMPARE(owner->operations().undoCount(), 1);
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
+    const QRect region(QPoint(), QSize(64, 64));
+    const auto pixels = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
+    int matches = 0;
+    for (qsizetype offset = 0; offset + 3 < pixels.bytes.size(); offset += 4)
+        if (pixels.bytes.mid(offset, 4) == QByteArray::fromHex("1181f1ff")) ++matches;
+    QCOMPARE(matches, 16 * 16);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
