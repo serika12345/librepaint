@@ -1558,6 +1558,9 @@ Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
     operation->layer = layer;
     operation->rect = rect;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    if (version->layers[index].transparencyMask)
+        version->layers[index].transparencyMask =
+            version->layers[index].transparencyMask->translated(QPoint(), rect);
     version->layers[index].operations.append(CropSnapshot(operation));
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     ++m_nextOperation;

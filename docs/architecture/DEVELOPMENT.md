@@ -400,6 +400,8 @@ KRAのアルファストリームへ書き出され、再読込・再保存後�
 追加・表示切替・削除の履歴種別を検査する。
 `KisGpuOperationDocumentTest::transparencyMaskFollowsCanvasResize`は、キャンバスのリサイズで
 透明マスク被覆が新しい原点へ移動し、新しい境界へクリップされ、Undoで元の被覆へ戻ることを検査する。
+`KisGpuOperationDocumentTest::transparencyMaskFollowsLayerCrop`は、レイヤー単体のクロップで
+透明マスク被覆がクロップ矩形へクリップされ、Undoで元の被覆へ戻ることを検査する。
 `KisGpuOperationDocumentTest::transparencyMaskFromSelectionShapesAndRejections`は、楕円・
 アルファ被覆・反転選択からのマスク作成、グループとロック済みレイヤーの拒否、
 二重追加とマスク無しの表示切替・削除の拒否を検査する。

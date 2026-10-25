@@ -197,6 +197,7 @@ private Q_SLOTS:
     void transparencyMaskHistoryCompositionAndRecovery();
     void transparencyMaskFromSelectionShapesAndRejections();
     void transparencyMaskFollowsCanvasResize();
+    void transparencyMaskFollowsLayerCrop();
     void cancelAndRejectedInputPreserveRedo();
     void documentChangesShareOneHistory();
     void savesPinTheirVersionWhileEditingContinues();
@@ -4589,6 +4590,28 @@ void KisGpuOperationDocumentTest::transparencyMaskHistoryCompositionAndRecovery(
     QVERIFY(!restored.layerTransparencyMask(restoredLayer));
     QCOMPARE(restored.undoCount(), 5);
     QCOMPARE(restored.recoveryData(), bytes);
+}
+
+void KisGpuOperationDocumentTest::transparencyMaskFollowsLayerCrop()
+{
+    const QSize size(64, 64);
+    const QRect selection(8, 8, 32, 24);
+    OperationDocument document(size);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setSelectionRect(selection), Result::Success);
+    QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
+    const auto original = document.layerTransparencyMask(layer);
+    QVERIFY(original);
+
+    const QRect cropped(16, 16, 32, 32);
+    QCOMPARE(document.cropLayer(layer, cropped), Result::Success);
+    const auto clipped = document.layerTransparencyMask(layer);
+    QVERIFY(clipped);
+    QVERIFY(clipped->contains(16, 16));
+    QVERIFY(!clipped->contains(8, 8));
+    QVERIFY(!clipped->contains(40, 40));
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.layerTransparencyMask(layer) == original);
 }
 
 void KisGpuOperationDocumentTest::transparencyMaskFollowsCanvasResize()
