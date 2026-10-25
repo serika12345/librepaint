@@ -273,8 +273,8 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         const auto reject = [&](const QString &message) {
             if (lifetime) lifetime->showFloatingMessage(message, QIcon(), 2000, KisFloatingMessage::Low);
         };
-        if (selection || usePattern) {
-            reject(i18n("Selection and pattern fills are not yet available for this GPU document."));
+        if (usePattern) {
+            reject(i18n("Pattern fills are not yet available for this GPU document."));
             return;
         }
         auto *resources = view->canvasResourceProvider();
@@ -535,10 +535,8 @@ void KisCopyMergedActionFactory::run(KisViewManager *view)
     if (!view->blockUntilOperationsFinished(image)) return;
     if (!guard || view->image().data() != image.data()) return;
 
-    if (image->gpuImage()) {
-        if (view->selection()) {
-            view->showFloatingMessage(i18n("Copying the selected area is not available for this document."), QIcon());
-        } else if (!KisClipboard::instance()->setGpuProjection(image) && guard) {
+    if (const auto owner = image->gpuImage()) {
+        if (!KisClipboard::instance()->setGpuProjection(image, 256 * 1024 * 1024, owner->selectionRect()) && guard) {
             view->showFloatingMessage(i18n("The merged image could not be copied."), QIcon());
         }
         return;

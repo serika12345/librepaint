@@ -1188,7 +1188,9 @@ set(gpu_document_input_cases
     replacementUpdatesPresentationInputHistoryAndSaving
     ordinaryLayerChangesDuringInput
     lineToolPreservesPreviewCancellationAndHistory
-    rectangularSelectionLimitsPainting)
+    rectangularSelectionLimitsPainting
+    selectionFillUsesGpuSelection
+    selectionMergedCopyUsesGpuSelection)
 set(gpu_document_crop_cases
     cropPreviewPreservesPixelsHistoryAndCancellation)
 set(gpu_document_layer_cases

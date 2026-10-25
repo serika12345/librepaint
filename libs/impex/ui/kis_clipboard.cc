@@ -724,14 +724,17 @@ bool KisClipboard::setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy
     return true;
 }
 
-bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes)
+bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes, QRect region)
 {
     const auto owner = image ? image->gpuImage() : nullptr;
     if (!owner || QThread::currentThread() != thread() || QThread::currentThread() != owner->thread() ||
         !owner->handle() || owner->operations().hasActiveStroke() || memoryBudgetBytes < 0) return false;
     const auto version = owner->operations().snapshot();
+    const QRect captured = region.isNull() ? QRect(QPoint(), version->size) :
+        region.normalized().intersected(QRect(QPoint(), version->size));
+    if (captured.isEmpty()) return false;
     try {
-        const auto copied = owner->cloneRasterLayer(version, 0, QRect(QPoint(), version->size),
+        const auto copied = owner->cloneRasterLayer(version, 0, captured,
                                                     QUuid::createUuid(), memoryBudgetBytes);
         if (!copied) return false;
         if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;

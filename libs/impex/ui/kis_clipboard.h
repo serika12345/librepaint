@@ -11,6 +11,7 @@
 #define __KIS_CLIPBOARD_H_
 
 #include <QObject>
+#include <QRect>
 #include <QSize>
 
 #include <kis_types.h>
@@ -125,7 +126,7 @@ public:
      * pixels, padded raster tiles and their checkpoint encoding. Refusal keeps
      * the previous clipboard and source state; the copy retains execution.
      */
-    bool setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes = 256 * 1024 * 1024);
+    bool setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes = 256 * 1024 * 1024, QRect region = {});
     bool hasLayers() const;
     bool hasLayerStyles() const;
 

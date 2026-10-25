@@ -329,6 +329,10 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 選択範囲を作成し、GPU選択とCPU表示用マスクの一致、選択内だけの描画、選択外の不変、
 解除後の描画、選択変更を含むUndoの件数を検査する。
 矩形以外の選択ツール、選択移動、選択フィルターはGPU文書で拒否する。
+`KisGpuDocumentViewTest::selectionFillUsesGpuSelection`は、GPU文書の矩形選択内だけの
+前景色塗りつぶし、選択外の不変、Undo／Redoを検査する。
+`KisGpuDocumentViewTest::selectionMergedCopyUsesGpuSelection`は、矩形選択の投影だけを
+クリップボード画像として切り出すことを検査する。
 `TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening`は、GPU文書のKRAが
 ルートの`selectionmask`と`PIXELSIZE 1`の`.pixelselection`を矩形選択として読み書きし、
 再保存・再読込後も選択とレイヤー画素を保持することを検査する。
