@@ -433,7 +433,12 @@ QString gpuKraEditingError(const QDomElement &image)
                 (child.hasAttributes() || !child.firstChildElement().isNull()))
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
             if (child.tagName() == QLatin1String("layers"))
-                for (auto layer = child.firstChildElement(); !layer.isNull(); layer = layer.nextSiblingElement()) pending.append(layer);
+                for (auto layer = child.firstChildElement(); !layer.isNull(); layer = layer.nextSiblingElement()) {
+                    // The root selection mask is represented by the GPU document selection.
+                    if (layer.tagName() == QLatin1String("mask") &&
+                        layer.attribute(QStringLiteral("nodetype")) == QLatin1String("selectionmask")) continue;
+                    pending.append(layer);
+                }
         }
     }
     return {};

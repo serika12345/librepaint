@@ -152,6 +152,7 @@ private Q_SLOTS:
     void existingPaintFilesPreservePixelsAndDefaults_data();
     void existingPaintFilesPreservePixelsAndDefaults();
     void roundTripRetainsLayersHiddenRgbAndAssociatedFiles();
+    void rectangularSelectionSurvivesSavingAndReopening();
     void offsetsAndDescriptionMetadataSurviveEditing();
     void unsupportedAndInvalidContentsReturnNoDocument();
     void capacityAndFailedWritesPreserveCallerValues();
@@ -1317,6 +1318,50 @@ void TestKraRasterCodec::roundTripRetainsLayersHiddenRgbAndAssociatedFiles()
     storedProjection.setColorSpace({});
     QCOMPARE(QImage::fromData(saved.value(QStringLiteral("mergedimage.png"))).convertToFormat(QImage::Format_RGBA8888), storedProjection);
     QCOMPARE(document().image.layers[0].tiles[0].rgba, source.image.layers[0].tiles[0].rgba);
+}
+
+void TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening()
+{
+    auto source = document();
+    source.image.selection = QRect(37, 51, 113, 79);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+    QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+    const auto saved = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(saved.value(QStringLiteral("maindoc.xml"))));
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto mask = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("mask"));
+    QCOMPARE(mask.attribute(QStringLiteral("nodetype")), QStringLiteral("selectionmask"));
+    const auto selectionPath = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") +
+        mask.attribute(QStringLiteral("filename")) + QStringLiteral(".pixelselection");
+    QVERIFY(!saved.value(selectionPath).isEmpty());
+    QCOMPARE(saved.value(image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") +
+        mask.attribute(QStringLiteral("filename")) + QStringLiteral(".defaultpixel")), QByteArray(1, '\0'));
+
+    const auto result = load(bytes);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.selection, QRect(37, 51, 113, 79));
+    QByteArray resaved;
+    QBuffer destination(&resaved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, result.document, merged(result.document.image.size)).code, Kra::Status::Success);
+    const auto again = load(resaved);
+    QVERIFY2(again.code == Kra::Status::Success, qPrintable(again.diagnostic));
+    QCOMPARE(again.document.image.selection, QRect(37, 51, 113, 79));
+    QCOMPARE(again.document.image.layers.size(), source.image.layers.size());
+
+    auto clearedDocument = result.document;
+    clearedDocument.image.selection = {};
+    QByteArray cleared;
+    QBuffer clearedOutput(&cleared);
+    QVERIFY(clearedOutput.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(clearedOutput, clearedDocument, merged(clearedDocument.image.size)).code, Kra::Status::Success);
+    const auto without = load(cleared);
+    QVERIFY2(without.code == Kra::Status::Success, qPrintable(without.diagnostic));
+    QVERIFY(without.document.image.selection.isEmpty());
 }
 
 void TestKraRasterCodec::offsetsAndDescriptionMetadataSurviveEditing()

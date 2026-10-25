@@ -324,6 +324,11 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 `KisGpuTileRendererTest::selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery`は、
 矩形選択の外側が描画・塗り・消去の前後で不変であること、内側の画素、Undo／Redo、
 復旧後の再描画が同じ結果になることを検査する。現在の対象は文書座標の矩形選択である。
+`TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening`は、GPU文書のKRAが
+ルートの`selectionmask`と`PIXELSIZE 1`の`.pixelselection`を矩形選択として読み書きし、
+再保存・再読込後も選択とレイヤー画素を保持することを検査する。
+`KisGpuPaintDocumentTest::rectangularSelectionSavesReopensAndLimitsPainting`は、
+選択内だけの描画、保存・再読込、選択変更後の旧画素保持と追加描画を照合する。
 `KoRgbU8ColorSpaceTester`は、通常合成の厳密な色が5494/33となる固定入力について、
 単一画素、ベクトルと端数を含む画素列、開始位置をずらした画素列で、166へ丸める結果を照合する。
 異なるRGB成分とレイヤー不透明度を持つ固定画素も、同じ条件でスカラーとSIMDの一致を検査する。

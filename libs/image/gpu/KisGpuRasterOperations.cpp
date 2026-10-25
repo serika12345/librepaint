@@ -26,6 +26,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         throw std::invalid_argument("invalid raster document dimensions, layers or limits");
     }
     if (!validRasterLayerHierarchy(image.layers)) throw std::invalid_argument("invalid raster layer hierarchy");
+    if (!Detail::validSelectionRect(image.selection)) throw std::invalid_argument("invalid raster selection rectangle");
     QSharedPointer<DocumentVersion> initial(new DocumentVersion);
     initial->m_document = m_identity;
     initial->m_committed = true;
@@ -84,6 +85,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     if (initial->activeLayer) initial->selectedLayers = {initial->activeLayer};
     m_history.append(initial);
     m_layerHistoryChanges.append(LayerHistoryChange{});
+    m_selectionRect = image.selection;
 }
 
 Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)

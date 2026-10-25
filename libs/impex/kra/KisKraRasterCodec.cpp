@@ -5,6 +5,7 @@
 
 #include "KisKraRasterCodec.h"
 #include "KisKraRgbaTiles_p.h"
+#include "KisKraSelectionTiles_p.h"
 #include "KisKraPreview_p.h"
 #include <QBuffer>
 #include <QColorSpace>
@@ -227,7 +228,11 @@ Outcome collectLayerElements(const QDomElement &layers, qsizetype maximum, QList
 {
     QList<QDomElement> pending;
     const auto append = [&](const QDomElement &container) {
+        const bool root = container.parentNode().toElement().tagName() == QLatin1String("IMAGE");
         for (auto child = container.lastChildElement(); !child.isNull(); child = child.previousSiblingElement()) {
+            // The root selection mask is a document value, not a paint layer.
+            if (root && child.tagName() == QLatin1String("mask") &&
+                child.attribute(QStringLiteral("nodetype")) == QLatin1String("selectionmask")) continue;
             if (pending.size() + elements.size() >= maximum) return false;
             pending.append(child);
         }
@@ -439,6 +444,14 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
     QSet<QString> filenames;
     auto layers = image.firstChildElement(QStringLiteral("layers"));
     if (layers.isNull()) { layers = xml.createElement(QStringLiteral("layers")); image.appendChild(layers); }
+    QDomElement selectionMask;
+    for (auto child = layers.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
+        if (child.tagName() != QLatin1String("mask") ||
+            child.attribute(QStringLiteral("nodetype")) != QLatin1String("selectionmask")) continue;
+        if (!selectionMask.isNull()) return invalid(QStringLiteral("Multiple KRA selection masks"));
+        selectionMask = child;
+    }
+    const auto oldSelectionName = selectionMask.isNull() ? QString() : selectionMask.attribute(QStringLiteral("filename"));
     QList<QDomElement> elements;
     auto result = collectLayerElements(layers, limits.layers, elements);
     if (result.code != Status::Success) return result;
@@ -558,6 +571,58 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             files.remove(path); files.remove(path + QStringLiteral(".defaultpixel")); files.remove(path + QStringLiteral(".icc"));
             files.remove(path + QStringLiteral(".xmp.metadata"));
         }
+    }
+    const auto selectionPrefix = folder + QStringLiteral("/layers/");
+    if (value.selection.isEmpty()) {
+        if (!oldSelectionName.isEmpty()) {
+            const auto oldPath = selectionPrefix + oldSelectionName;
+            files.remove(oldPath + QStringLiteral(".pixelselection"));
+            files.remove(oldPath + QStringLiteral(".defaultpixel"));
+            files.remove(oldPath + QStringLiteral(".xmp.metadata"));
+        }
+    } else {
+        QString selectionName = oldSelectionName;
+        if (selectionName.isEmpty() || filenames.contains(selectionName)) {
+            for (int suffix = 0; selectionName.isEmpty(); ++suffix) {
+                const auto candidate = QStringLiteral("mask%1").arg(suffix);
+                if (!filenames.contains(candidate) && !files.contains(selectionPrefix + candidate + QStringLiteral(".pixelselection")))
+                    selectionName = candidate;
+            }
+        }
+        if (!oldSelectionName.isEmpty() && oldSelectionName != selectionName) {
+            const auto oldPath = selectionPrefix + oldSelectionName;
+            files.remove(oldPath + QStringLiteral(".pixelselection"));
+            files.remove(oldPath + QStringLiteral(".defaultpixel"));
+        }
+        filenames.insert(selectionName);
+        const auto path = selectionPrefix + selectionName;
+        QByteArray pixels;
+        auto selectionResult = Detail::writeSelectionTiles(value.selection, limits.rasterBytes, pixels);
+        if (selectionResult.code != Status::Success) return selectionResult;
+        files.insert(path + QStringLiteral(".pixelselection"), std::move(pixels));
+        files.insert(path + QStringLiteral(".defaultpixel"), QByteArray(1, '\0'));
+        if (selectionMask.isNull()) {
+            selectionMask = xml.createElement(QStringLiteral("mask"));
+            selectionMask.setAttribute(QStringLiteral("name"), QStringLiteral("Selection Mask"));
+            selectionMask.setAttribute(QStringLiteral("uuid"),
+                QUuid::createUuidV5(QUuid(QStringLiteral("{9c1f8a2e-3b5d-4c7a-8e6f-1a2b3c4d5e6f}")), folder.toUtf8()).toString());
+            selectionMask.setAttribute(QStringLiteral("visible"), QStringLiteral("1"));
+            selectionMask.setAttribute(QStringLiteral("locked"), QStringLiteral("0"));
+            selectionMask.setAttribute(QStringLiteral("active"), QStringLiteral("1"));
+            selectionMask.setAttribute(QStringLiteral("colorlabel"), QStringLiteral("0"));
+            selectionMask.setAttribute(QStringLiteral("intimeline"), QStringLiteral("0"));
+        }
+        QUuid selectionUuid(selectionMask.attribute(QStringLiteral("uuid")));
+        if (selectionUuid.isNull()) {
+            selectionUuid = QUuid::createUuidV5(QUuid(QStringLiteral("{9c1f8a2e-3b5d-4c7a-8e6f-1a2b3c4d5e6f}")), folder.toUtf8());
+            selectionMask.setAttribute(QStringLiteral("uuid"), selectionUuid.toString());
+        }
+        if (uuids.contains(selectionUuid)) return invalid(QStringLiteral("Duplicate KRA selection mask identity"));
+        selectionMask.setAttribute(QStringLiteral("filename"), selectionName);
+        selectionMask.setAttribute(QStringLiteral("nodetype"), QStringLiteral("selectionmask"));
+        selectionMask.setAttribute(QStringLiteral("x"), QStringLiteral("0"));
+        selectionMask.setAttribute(QStringLiteral("y"), QStringLiteral("0"));
+        layers.insertBefore(selectionMask, layers.firstChild());
     }
     image.setAttribute(QStringLiteral("width"), value.size.width());
     image.setAttribute(QStringLiteral("height"), value.size.height());
@@ -844,6 +909,45 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
     int selected = -1;
     bool generatedUuids = false;
     const auto layers = image.firstChildElement(QStringLiteral("layers"));
+    QDomElement selectionMask;
+    for (auto child = layers.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
+        if (child.tagName() != QLatin1String("mask") ||
+            child.attribute(QStringLiteral("nodetype")) != QLatin1String("selectionmask")) continue;
+        if (!selectionMask.isNull()) return fail(invalid(QStringLiteral("Multiple KRA selection masks")));
+        selectionMask = child;
+    }
+    if (!selectionMask.isNull()) {
+        const auto filename = selectionMask.attribute(QStringLiteral("filename"));
+        bool xOk = false, yOk = false;
+        const int x = selectionMask.attribute(QStringLiteral("x"), QStringLiteral("0")).toInt(&xOk);
+        const int y = selectionMask.attribute(QStringLiteral("y"), QStringLiteral("0")).toInt(&yOk);
+        if (filename.isEmpty() || !xOk || !yOk || filenames.contains(filename))
+            return fail(invalid(QStringLiteral("Invalid KRA selection mask identity")));
+        const QUuid uuid(selectionMask.attribute(QStringLiteral("uuid")));
+        if (!uuid.isNull()) {
+            if (uuids.contains(uuid)) return fail(invalid(QStringLiteral("Duplicate KRA selection mask identity")));
+            uuids.insert(uuid);
+        }
+        filenames.insert(filename);
+        const auto path = folder + QStringLiteral("/layers/") + filename;
+        quint8 defaultPixel = 0;
+        if (document.files.contains(path + QStringLiteral(".defaultpixel"))) {
+            const auto value = document.files.value(path + QStringLiteral(".defaultpixel"));
+            if (value.size() != 1) return fail(invalid(QStringLiteral("Invalid KRA selection default pixel")));
+            defaultPixel = quint8(value.front());
+        }
+        QRect selection;
+        if (document.files.contains(path + QStringLiteral(".pixelselection"))) {
+            result = Detail::readSelectionTiles(document.files.value(path + QStringLiteral(".pixelselection")),
+                                                defaultPixel, {x, y}, limits.rasterBytes, selection);
+            if (result.code != Status::Success) return fail(result);
+        } else if (defaultPixel != 0) {
+            return fail(unsupported(QStringLiteral("KRA requires a rectangular pixel selection")));
+        }
+        document.image.selection = selection;
+        document.files.remove(path + QStringLiteral(".pixelselection"));
+        document.files.remove(path + QStringLiteral(".defaultpixel"));
+    }
     QList<QDomElement> elements;
     result = collectLayerElements(layers, limits.layers, elements);
     if (result.code != Status::Success) return fail(result);

@@ -2,6 +2,7 @@ kis_add_library(kritaimpexkra SHARED
     KisKraRasterCodec.cpp
     KisKraPreview.cpp
     KisKraRgbaTiles.cpp
+    KisKraSelectionTiles.cpp
 )
 generate_export_header(kritaimpexkra BASE_NAME kritaimpexkra
     EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/../kritaimpexkra_export.h)

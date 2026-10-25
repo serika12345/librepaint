@@ -104,6 +104,7 @@ private Q_SLOTS:
     void colorFillSavesReopensAndContinuesIdentically_data();
     void colorFillSavesReopensAndContinuesIdentically();
     void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
+    void rectangularSelectionSavesReopensAndLimitsPainting();
     void weightedSmoothingSaveReopenAndContinuePreservesPixels();
     void gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
@@ -298,6 +299,63 @@ void KisGpuPaintDocumentTest::curvedPathFillsSaveAndReopenAcrossInteriorTiles()
              QCryptographicHash::hash(painted.bytes, QCryptographicHash::Sha256));
     QCOMPARE(image->operations().undoCount(), 1);
     QVERIFY(!image->operations().isModified());
+}
+
+void KisGpuPaintDocumentTest::rectangularSelectionSavesReopensAndLimitsPainting()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {128, 128};
+    initial.layers.append({QStringLiteral("Selection"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000023}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    QCOMPARE(image->setSelectionRect(QRect(32, 32, 64, 64)), Result::Success);
+    Brush brush;
+    brush.rgba = {31, 97, 163, 255};
+    brush.diameter = 16;
+    QCOMPARE(image->paintFigure(layer, brush, {{{16, 64}, 1}, {{112, 64}, 1}}, Shape{}, FigureStyle{}, 9), Result::Success);
+    const QRect region(QPoint(), initial.size);
+    const auto painted = image->readRgbaPixels(layer, region, 128 * 128 * 4);
+    QCOMPARE(painted.code, ExecutionCode::Success);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 128 + x) * 4, 4); };
+    QCOMPARE(pixel(painted.bytes, 64, 64), QByteArray::fromHex("1f61a3ff"));
+    QCOMPARE(pixel(painted.bytes, 16, 64), QByteArray(4, char(0)));
+    QCOMPARE(pixel(painted.bytes, 112, 64), QByteArray(4, char(0)));
+
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto path = QDir(destination).filePath(QStringLiteral("rectangular-selection.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    QCOMPARE(loaded->selectionRect(), QRect(32, 32, 64, 64));
+    QCOMPARE(loaded->readRgbaPixels(loaded->operations().activeLayer(), region, painted.bytes.size()).bytes, painted.bytes);
+
+    // A later selection leaves the earlier painted pixels intact on both owners.
+    QCOMPARE(image->setSelectionRect(QRect(64, 32, 32, 64)), Result::Success);
+    QCOMPARE(loaded->setSelectionRect(QRect(64, 32, 32, 64)), Result::Success);
+    QCOMPARE(image->paintFigure(layer, brush, {{{80, 80}, 1}}, Shape{}, FigureStyle{}, 10), Result::Success);
+    QCOMPARE(loaded->paintFigure(loaded->operations().activeLayer(), brush, {{{80, 80}, 1}}, Shape{}, FigureStyle{}, 10), Result::Success);
+    const auto continued = image->readRgbaPixels(layer, region, painted.bytes.size()).bytes;
+    QCOMPARE(loaded->readRgbaPixels(loaded->operations().activeLayer(), region, painted.bytes.size()).bytes, continued);
+    QCOMPARE(pixel(continued, 64, 64), QByteArray::fromHex("1f61a3ff"));
+    QCOMPARE(pixel(continued, 16, 64), QByteArray(4, char(0)));
+    QCOMPARE(pixel(continued, 80, 80), QByteArray::fromHex("1f61a3ff"));
+    QCOMPARE(pixel(continued, 64, 112), QByteArray(4, char(0)));
+
+    const auto secondPath = QDir(destination).filePath(QStringLiteral("rectangular-selection-continued.kra"));
+    QCOMPARE(reopened.document->saveKra(secondPath).code, FileCode::Success);
+    const auto again = PaintDocument::openKra(execution, secondPath);
+    QVERIFY2(again.code == FileCode::Success, qPrintable(again.diagnostic));
+    QCOMPARE(again.document->image()->selectionRect(), QRect(64, 32, 32, 64));
+    QCOMPARE(again.document->image()->readRgbaPixels(again.document->image()->operations().activeLayer(), region,
+             continued.size()).bytes, continued);
 }
 
 void KisGpuPaintDocumentTest::weightedSmoothingSaveReopenAndContinuePreservesPixels()

@@ -275,6 +275,8 @@ struct RasterImage
     /** Bottom-to-top list index; zero for an empty document. */
     qsizetype activeLayer = 0;
     std::array<quint8, 4> projectionBackground{};
+    /** Rectangular document selection; empty means no selection. */
+    QRect selection{};
 };
 
 struct Layer
