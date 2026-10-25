@@ -180,6 +180,7 @@ private Q_SLOTS:
     void damagedPathCallRecoveryPreservesTheActiveDocument();
     void pixelCorrectionRetainsOriginalSensorsAndPendingRecovery();
     void selectionRectIsFrozenInOperationsAndRecovery();
+    void invertedSelectionSurvivesRecovery();
     void basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent();
     void weightedSmoothingRetainsFrozenSettingsSpeedAndRecovery();
     void basicSmoothingRejectsConflictingModesAndShapeChanges();
@@ -3597,7 +3598,8 @@ void KisGpuOperationDocumentTest::damagedRasterRecoveryPreservesTheLiveDocument(
     input.setByteOrder(QDataStream::BigEndian);
     // Format 40 stores the current selection rectangle before the tile count.
     qint32 selectionX = 0, selectionY = 0, selectionWidth = 0, selectionHeight = 0;
-    input >> selectionX >> selectionY >> selectionWidth >> selectionHeight;
+    quint8 selectionInverted = 0;
+    input >> selectionX >> selectionY >> selectionWidth >> selectionHeight >> selectionInverted;
     quint32 tileCount = 0;
     input >> tileCount;
     QCOMPARE(tileCount, quint32(2));
@@ -3978,6 +3980,27 @@ void KisGpuOperationDocumentTest::selectionRectIsFrozenInOperationsAndRecovery()
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.redo(), Result::Success);
     QVERIFY(document.selectionRect().isEmpty());
+}
+
+void KisGpuOperationDocumentTest::invertedSelectionSurvivesRecovery()
+{
+    OperationDocument document(QSize(64, 64));
+    QCOMPARE(document.setSelectionRect(QRect(8, 8, 32, 32), true), Result::Success);
+    QCOMPARE(document.selectionRect(), QRect(8, 8, 32, 32));
+    QVERIFY(document.selectionInverted());
+    QCOMPARE(document.setSelectionRect(QRect(8, 8, 32, 32)), Result::Success);
+    QVERIFY(!document.selectionInverted());
+    QCOMPARE(document.setSelectionRect(QRect(8, 8, 32, 32), true), Result::Success);
+    QVERIFY(document.selectionInverted());
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.selectionRect(), QRect(8, 8, 32, 32));
+    QVERIFY(restored.selectionInverted());
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(!restored.selectionInverted());
+    QCOMPARE(restored.redo(), Result::Success);
+    QVERIFY(restored.selectionInverted());
 }
 
 void KisGpuOperationDocumentTest::basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent()

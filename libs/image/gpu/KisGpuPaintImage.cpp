@@ -129,20 +129,24 @@ LayerPixelReferenceSP PaintImage::retainLayerPixels(LayerId layer)
     }
     return reference;
 }
-Result PaintImage::setSelectionRect(const QRect &rect)
+Result PaintImage::setSelectionRect(const QRect &rect, bool inverted)
 {
     if (!onThread()) return Result::InvalidInput;
-    if (rect.normalized() == m_d->document->selectionRect()) return Result::Success;
-    return publish(m_d->document->setSelectionRect(rect));
+    const bool effectiveInverted = !rect.isEmpty() && inverted;
+    if (rect.normalized() == m_d->document->selectionRect() &&
+        effectiveInverted == m_d->document->selectionInverted()) return Result::Success;
+    return publish(m_d->document->setSelectionRect(rect, inverted));
 }
 Result PaintImage::clearSelection()
 {
     if (!onThread()) return Result::InvalidInput;
-    if (m_d->document->selectionRect().isEmpty()) return Result::Success;
+    if (m_d->document->selectionRect().isEmpty() && !m_d->document->selectionInverted()) return Result::Success;
     return publish(m_d->document->clearSelection());
 }
 QRect PaintImage::selectionRect() const
 { return onThread() ? m_d->document->selectionRect() : QRect{}; }
+bool PaintImage::selectionInverted() const
+{ return onThread() && m_d->document->selectionInverted(); }
 void PaintImage::refreshLayerPixelReferences()
 {
     const auto version = layerPixelVersion();

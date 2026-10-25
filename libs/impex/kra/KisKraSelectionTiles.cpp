@@ -28,9 +28,10 @@ QByteArray line(QBuffer &input)
 }
 
 Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint offset,
-                           qsizetype maximumBytes, QRect &selection)
+                           QRect imageBounds, qsizetype maximumBytes, QRect &selection, bool &inverted)
 {
     selection = {};
+    inverted = false;
     if (defaultPixel != 0) return unsupported();
     QBuffer input;
     input.setData(data);
@@ -49,7 +50,9 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
     KisLzfCompression compression;
     qint32 minimumX = std::numeric_limits<qint32>::max(), minimumY = std::numeric_limits<qint32>::max();
     qint32 maximumX = std::numeric_limits<qint32>::min(), maximumY = std::numeric_limits<qint32>::min();
-    qint64 selected = 0;
+    qint32 holeMinimumX = std::numeric_limits<qint32>::max(), holeMinimumY = std::numeric_limits<qint32>::max();
+    qint32 holeMaximumX = std::numeric_limits<qint32>::min(), holeMaximumY = std::numeric_limits<qint32>::min();
+    qint64 selected = 0, unselectedInImage = 0;
     QByteArray pixels;
     for (quint32 tile = 0; tile < count; ++tile) {
         const auto fields = line(input).split(',');
@@ -72,12 +75,21 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
         } else return invalid();
         for (int py = 0; py < FileTileSize; ++py) {
             for (int px = 0; px < FileTileSize; ++px) {
-                const auto value = quint8(pixels.at(py * FileTileSize + px));
-                if (value == 0) continue;
-                if (value != 255) return unsupported();
                 const qint64 worldX = qint64(x) + px + offset.x(), worldY = qint64(y) + py + offset.y();
                 constexpr qint64 limit = RgbaTile::CoordinateLimit;
                 if (worldX < -limit || worldY < -limit || worldX >= limit || worldY >= limit) return invalid();
+                const auto value = quint8(pixels.at(py * FileTileSize + px));
+                if (value == 0) {
+                    if (imageBounds.contains(QPoint(int(worldX), int(worldY)))) {
+                        holeMinimumX = qMin<qint32>(holeMinimumX, qint32(worldX));
+                        holeMinimumY = qMin<qint32>(holeMinimumY, qint32(worldY));
+                        holeMaximumX = qMax<qint32>(holeMaximumX, qint32(worldX));
+                        holeMaximumY = qMax<qint32>(holeMaximumY, qint32(worldY));
+                        ++unselectedInImage;
+                    }
+                    continue;
+                }
+                if (value != 255) return unsupported();
                 minimumX = qMin<qint32>(minimumX, qint32(worldX));
                 minimumY = qMin<qint32>(minimumY, qint32(worldY));
                 maximumX = qMax<qint32>(maximumX, qint32(worldX));
@@ -90,26 +102,40 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
     if (!selected) return {Status::Success, {}};
     const qint64 width = qint64(maximumX) - minimumX + 1;
     const qint64 height = qint64(maximumY) - minimumY + 1;
-    if (width <= 0 || height <= 0 || width > RgbaTile::CoordinateLimit || height > RgbaTile::CoordinateLimit ||
-        width * height != selected) return unsupported();
-    selection = QRect(minimumX, minimumY, int(width), int(height));
-    return {Status::Success, {}};
+    if (width > 0 && height > 0 && width <= RgbaTile::CoordinateLimit && height <= RgbaTile::CoordinateLimit &&
+        width * height == selected) {
+        selection = QRect(minimumX, minimumY, int(width), int(height));
+        return {Status::Success, {}};
+    }
+    if (imageBounds.isValid() && !imageBounds.isEmpty() && unselectedInImage > 0 &&
+        qint64(imageBounds.width()) * imageBounds.height() == selected + unselectedInImage &&
+        imageBounds.contains(QRect(minimumX, minimumY, int(width), int(height)))) {
+        const qint64 holeWidth = qint64(holeMaximumX) - holeMinimumX + 1;
+        const qint64 holeHeight = qint64(holeMaximumY) - holeMinimumY + 1;
+        if (holeWidth > 0 && holeHeight > 0 && holeWidth * holeHeight == unselectedInImage) {
+            selection = QRect(holeMinimumX, holeMinimumY, int(holeWidth), int(holeHeight));
+            inverted = true;
+            return {Status::Success, {}};
+        }
+    }
+    return unsupported();
 }
 
-Outcome writeSelectionTiles(const QRect &selection, qsizetype maximumBytes, QByteArray &output)
+Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &imageBounds,
+                            qsizetype maximumBytes, QByteArray &output)
 {
-    if (selection.isEmpty()) {
+    const QRect area = inverted ? imageBounds : selection;
+    if (area.isEmpty()) {
         output = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 1\nDATA 0\n");
         return {Status::Success, {}};
     }
     constexpr qint64 limit = RgbaTile::CoordinateLimit;
-    if (selection.x() < -limit || selection.y() < -limit ||
-        qint64(selection.x()) + selection.width() > limit ||
-        qint64(selection.y()) + selection.height() > limit) return invalid();
-    const int left = floorDivide(selection.left(), FileTileSize);
-    const int right = floorDivide(selection.right(), FileTileSize);
-    const int top = floorDivide(selection.top(), FileTileSize);
-    const int bottom = floorDivide(selection.bottom(), FileTileSize);
+    if (area.x() < -limit || area.y() < -limit ||
+        qint64(area.x()) + area.width() > limit || qint64(area.y()) + area.height() > limit) return invalid();
+    const int left = floorDivide(area.left(), FileTileSize);
+    const int right = floorDivide(area.right(), FileTileSize);
+    const int top = floorDivide(area.top(), FileTileSize);
+    const int bottom = floorDivide(area.bottom(), FileTileSize);
     const qint64 count = qint64(right - left + 1) * (bottom - top + 1);
     if (count <= 0 || count > maximumBytes / FileTileBytes || count > std::numeric_limits<quint32>::max()) return capacity();
     QByteArray bytes = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 1\nDATA ") +
@@ -120,13 +146,22 @@ Outcome writeSelectionTiles(const QRect &selection, qsizetype maximumBytes, QByt
     QByteArray pixels(FileTileBytes, '\0');
     for (int y = top; y <= bottom; ++y) {
         for (int x = left; x <= right; ++x) {
-            std::fill(pixels.begin(), pixels.end(), '\0');
+            std::fill(pixels.begin(), pixels.end(), inverted ? char(255) : char(0));
             const QRect tile(x * FileTileSize, y * FileTileSize, FileTileSize, FileTileSize);
-            const QRect selected = tile.intersected(selection);
-            for (int py = selected.top(); py <= selected.bottom(); ++py) {
-                const int row = py - y * FileTileSize;
-                std::fill(pixels.begin() + row * FileTileSize + selected.left() - x * FileTileSize,
-                          pixels.begin() + row * FileTileSize + selected.right() - x * FileTileSize + 1, char(255));
+            if (inverted) {
+                const QRect hole = tile.intersected(QRect(selection).intersected(area));
+                for (int py = hole.top(); py <= hole.bottom(); ++py) {
+                    const int row = py - y * FileTileSize;
+                    std::fill(pixels.begin() + row * FileTileSize + hole.left() - x * FileTileSize,
+                              pixels.begin() + row * FileTileSize + hole.right() - x * FileTileSize + 1, char(0));
+                }
+            } else {
+                const QRect selected = tile.intersected(area);
+                for (int py = selected.top(); py <= selected.bottom(); ++py) {
+                    const int row = py - y * FileTileSize;
+                    std::fill(pixels.begin() + row * FileTileSize + selected.left() - x * FileTileSize,
+                              pixels.begin() + row * FileTileSize + selected.right() - x * FileTileSize + 1, char(255));
+                }
             }
             const auto compressedBytes = compression.compress(reinterpret_cast<const quint8 *>(pixels.constData()), FileTileBytes,
                                                               reinterpret_cast<quint8 *>(encoded.data()), encodedCapacity);

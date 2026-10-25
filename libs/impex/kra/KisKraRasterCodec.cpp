@@ -597,7 +597,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         filenames.insert(selectionName);
         const auto path = selectionPrefix + selectionName;
         QByteArray pixels;
-        auto selectionResult = Detail::writeSelectionTiles(value.selection, limits.rasterBytes, pixels);
+        auto selectionResult = Detail::writeSelectionTiles(value.selection, value.selectionInverted,
+                                                           QRect(QPoint(), value.size), limits.rasterBytes, pixels);
         if (selectionResult.code != Status::Success) return selectionResult;
         files.insert(path + QStringLiteral(".pixelselection"), std::move(pixels));
         files.insert(path + QStringLiteral(".defaultpixel"), QByteArray(1, '\0'));
@@ -937,14 +938,17 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             defaultPixel = quint8(value.front());
         }
         QRect selection;
+        bool selectionInverted = false;
         if (document.files.contains(path + QStringLiteral(".pixelselection"))) {
             result = Detail::readSelectionTiles(document.files.value(path + QStringLiteral(".pixelselection")),
-                                                defaultPixel, {x, y}, limits.rasterBytes, selection);
+                                                defaultPixel, {x, y}, QRect(QPoint(x, y), document.image.size),
+                                                limits.rasterBytes, selection, selectionInverted);
             if (result.code != Status::Success) return fail(result);
         } else if (defaultPixel != 0) {
             return fail(unsupported(QStringLiteral("KRA requires a rectangular pixel selection")));
         }
         document.image.selection = selection;
+        document.image.selectionInverted = selectionInverted;
         document.files.remove(path + QStringLiteral(".pixelselection"));
         document.files.remove(path + QStringLiteral(".defaultpixel"));
     }

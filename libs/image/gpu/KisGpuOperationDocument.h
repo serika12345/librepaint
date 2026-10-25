@@ -196,8 +196,10 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
     /** Accepted input counts at which an idle timeout completed the current curve. */
     QList<qsizetype> smoothingFlushes{};
     bool smoothingFinished = false;
-    /** Document rectangle that limited this operation; empty means no selection. */
+    /** Document rectangle that limited this operation; empty means no selection.
+     * When inverted, the rectangle is a hole and the rest of the image is selected. */
     QRect selectionRect{};
+    bool selectionInverted = false;
 
     QList<InputSample> inputSamples() const;
 };
@@ -277,6 +279,8 @@ struct RasterImage
     std::array<quint8, 4> projectionBackground{};
     /** Rectangular document selection; empty means no selection. */
     QRect selection{};
+    /** When true, the rectangle is a hole and the rest of the image is selected. */
+    bool selectionInverted = false;
 };
 
 struct Layer
@@ -337,8 +341,10 @@ public:
     QList<Layer> layers;
     LayerId activeLayer = 0;
     QList<LayerId> selectedLayers;
-    /** Document selection for this history state; empty means no selection. */
+    /** Document selection for this history state; empty means no selection.
+     * Inverted selections select the image outside the rectangle. */
     QRect selection{};
+    bool selectionInverted = false;
     qsizetype sampleCount = 0;
     qsizetype rasterBytes = 0;
 
@@ -470,9 +476,10 @@ public:
      * selection. Accepted operations retain the rectangle that was current
      * when their input began, so later selection changes do not rewrite history.
      */
-    Result setSelectionRect(const QRect &rect);
+    Result setSelectionRect(const QRect &rect, bool inverted = false);
     Result clearSelection();
     QRect selectionRect() const;
+    bool selectionInverted() const;
 
     /** Returns an empty identifier for a closed/busy document or invalid brush/layer. */
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 randomSeed);
@@ -660,6 +667,7 @@ private:
         bool changedLayerProperties = false;
         bool changedSelection = false;
         QRect selectionBefore, selectionAfter;
+        bool selectionInvertedBefore = false, selectionInvertedAfter = false;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,

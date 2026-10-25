@@ -247,6 +247,12 @@ public:
             return;
         }
         if (gpu && locateSelectionMaskUnderCursor(this->convertToPixelCoord(event->point), event->modifiers())) {
+            if (this->image()->gpuSelectionInverted()) {
+                toolCanvas()->showToolMessage(
+                    i18n("Moving an inverted GPU selection is not available."),
+                    QStringLiteral("object-locked"));
+                return;
+            }
             if (selectionAction() != SELECTION_REPLACE) {
                 toolCanvas()->showToolMessage(
                     i18n("The GPU painting engine supports replacement selection actions only."),

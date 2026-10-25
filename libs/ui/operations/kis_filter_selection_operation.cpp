@@ -27,6 +27,14 @@
 void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewManager* view, const KisOperationConfiguration& config)
 {
     if (view->image() && view->image()->gpuImage()) {
+        if (config.id() == QLatin1String("invertselection")) {
+            delete filter;
+            const QRect current = view->image()->gpuSelectionRect();
+            if (current.isEmpty()) return;
+            if (!view->image()->setGpuSelectionRect(current, !view->image()->gpuSelectionInverted()))
+                view->showFloatingMessage(i18n("The selection could not be inverted."), QIcon());
+            return;
+        }
         if (config.id() == QLatin1String("shrinkselection") ||
             config.id() == QLatin1String("growselection")) {
             const bool grow = config.id() == QLatin1String("growselection");
@@ -40,6 +48,10 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
                 return;
             }
             if (current.isEmpty() || (xRadius == 0 && yRadius == 0)) return;
+            if (view->image()->gpuSelectionInverted()) {
+                view->showFloatingMessage(i18n("Growing or shrinking an inverted GPU selection is not available."), QIcon());
+                return;
+            }
             QRect updated;
             if (grow) {
                 updated = current.adjusted(-xRadius, -yRadius, xRadius, yRadius)
@@ -59,7 +71,7 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
                 view->showFloatingMessage(i18n("The selection could not be updated."), QIcon());
             return;
         }
-        view->showFloatingMessage(i18n("Only growing and shrinking a rectangular selection are available for GPU documents."), QIcon());
+        view->showFloatingMessage(i18n("Only invert, grow and shrink are available for a rectangular GPU selection."), QIcon());
         delete filter;
         return;
     }

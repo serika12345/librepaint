@@ -225,29 +225,35 @@ bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation
 OperationId OperationDocument::activeOperation() const
 { return m_edit ? m_edit->id : m_translation ? m_translation->id : OperationId{}; }
 
-Result OperationDocument::setSelectionRect(const QRect &rect)
+Result OperationDocument::setSelectionRect(const QRect &rect, bool inverted)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     const auto normalized = rect.normalized();
     if (!normalized.isEmpty() && !Detail::validSelectionRect(normalized)) return Result::InvalidInput;
-    if (normalized == snapshot()->selection) return Result::Success;
+    const bool effectiveInverted = !normalized.isEmpty() && inverted;
+    if (normalized == snapshot()->selection && effectiveInverted == snapshot()->selectionInverted) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->selection = normalized;
+    version->selectionInverted = effectiveInverted;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.changedSelection = true;
     change.selectionBefore = snapshot()->selection;
     change.selectionAfter = normalized;
+    change.selectionInvertedBefore = snapshot()->selectionInverted;
+    change.selectionInvertedAfter = effectiveInverted;
     commitVersion(version, change);
     return Result::Success;
 }
 
 Result OperationDocument::clearSelection()
-{ return setSelectionRect({}); }
+{ return setSelectionRect({}, false); }
 
 QRect OperationDocument::selectionRect() const { return snapshot()->selection; }
+
+bool OperationDocument::selectionInverted() const { return snapshot()->selectionInverted; }
 
 qsizetype OperationDocument::layerIndex(LayerId layer) const
 {
@@ -532,6 +538,7 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
     operation->brush.alphaLocked |= !(operation->brush.channelWriteMask & 8);
     operation->randomSeed = randomSeed;
     operation->selectionRect = snapshot()->selection;
+    operation->selectionInverted = snapshot()->selectionInverted;
     m_edit = operation;
     return operation->id;
 }

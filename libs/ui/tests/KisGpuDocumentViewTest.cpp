@@ -130,6 +130,7 @@ private Q_SLOTS:
     void selectionMergedCopyUsesGpuSelection();
     void selectionCopyAndCutUseGpuSelection();
     void selectionGrowAndShrinkUseGpuSelection();
+    void invertedSelectionLimitsPaintingAndKra();
     void selectionMovePreviewsAndCommitsOneHistory();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
@@ -2204,6 +2205,79 @@ void KisGpuDocumentViewTest::selectionGrowAndShrinkUseGpuSelection()
     QCOMPARE(owner->operations().undoCount(), 4);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), selected);
+}
+
+void KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Inverted selection")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    const QRect hole(16, 16, 32, 32);
+    QVERIFY(lifetime->image()->setGpuSelectionRect(hole));
+    QTRY_COMPARE(owner->selectionRect(), hole);
+    KisOperationConfigurationSP invert = new KisOperationConfiguration("invertselection");
+    window->viewManager()->actionManager()->runOperationFromConfiguration(invert);
+    QTRY_VERIFY(owner->selectionInverted());
+    QTRY_COMPARE(owner->selectionRect(), hole);
+    QCOMPARE(owner->operations().undoCount(), 2);
+    QTRY_VERIFY(lifetime->image()->globalSelection() &&
+                lifetime->image()->globalSelection()->selectedExactRect() == QRect(QPoint(), QSize(64, 64)));
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
+    resources->setOpacity(1);
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color"));
+    QVERIFY(fill);
+    fill->trigger();
+    QTRY_COMPARE(owner->operations().undoCount(), 3);
+    const QRect region(QPoint(), QSize(64, 64));
+    const auto filled = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(filled.code, Gpu::ExecutionCode::Success);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 64 + x) * 4, 4); };
+    QCOMPARE(pixel(filled.bytes, 4, 4), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(pixel(filled.bytes, 24, 24), QByteArray(4, char(0)));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    const auto undone = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
+    QCOMPARE(undone.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(pixel(undone.bytes, 4, 4), QByteArray(4, char(0)));
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("inverted-selection.kra"));
+    lifetime->setFileBatchMode(true);
+    QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.selection, hole);
+    QVERIFY(loaded.document.image.selectionInverted);
+    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    QVERIFY(reopened->selectionInverted());
+    QCOMPARE(reopened->selectionRect(), hole);
 }
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()

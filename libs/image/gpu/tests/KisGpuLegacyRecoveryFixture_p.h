@@ -464,10 +464,10 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
         quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
         header >> magic >> version >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision;
         Q_ASSERT(magic == 0x4c504f52 && version == 40);
-        payload.remove(int(header.device()->pos()), 16);
+        payload.remove(int(header.device()->pos()), 17);
     }
     auto versions = document.historyVersions();
-    if (format < 41) {
+    if (format < 42) {
         for (const auto &version : document.historyVersions()) {
             QByteArray prefix;
             QDataStream stream(&prefix, QIODevice::WriteOnly);
@@ -490,7 +490,7 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 selected >> count;
                 selectionOffset += 4 + qsizetype(count) * 8;
             }
-            payload.remove(selectionOffset, 16);
+            payload.remove(selectionOffset, 17);
         }
     }
     if (format < 27) {
@@ -613,7 +613,7 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 if (format < 40) {
                     // Format 40 appends the selection rectangle after the samples.
                     const auto samples = position + prefix.size() + styleSize + 1 + 4;
-                    payload.remove(samples + qsizetype(operation.sampleCount) * 64, 16);
+                    payload.remove(samples + qsizetype(operation.sampleCount) * 64, 17);
                 }
                 if (format < 21) {
                     const auto samples = position + prefix.size() + styleSize + 1 + 4;

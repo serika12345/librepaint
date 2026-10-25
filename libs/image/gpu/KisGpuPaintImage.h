@@ -101,8 +101,9 @@ public:
     LayerPixelReferenceSP retainLayerPixels(LayerId layer);
 
     /** Selection state for subsequent painting; accepted operations freeze it. */
-    Result setSelectionRect(const QRect &rect);
+    Result setSelectionRect(const QRect &rect, bool inverted = false);
     Result clearSelection();
+    bool selectionInverted() const;
     QRect selectionRect() const;
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);

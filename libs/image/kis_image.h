@@ -92,8 +92,9 @@ public:
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
     /** Replaces the GPU document selection and updates the CPU selection mirror. */
-    bool setGpuSelectionRect(const QRect &rect);
+    bool setGpuSelectionRect(const QRect &rect, bool inverted = false);
     QRect gpuSelectionRect() const;
+    bool gpuSelectionInverted() const;
     /** Updates only the CPU display mirror for a pending selection move. */
     void previewGpuSelectionRect(const QRect &rect);
     bool clearGpuSelection();
@@ -1317,7 +1318,7 @@ private:
     void connectGpuImageUpdates();
     void adoptGpuSelectionMask();
     void synchronizeGpuSelectionToMask();
-    void updateGpuSelectionMask(const QRect &rect);
+    void updateGpuSelectionMask(const QRect &rect, bool inverted);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> cloneGpuImage(bool exactCopy) const;
     KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy);
     KisImage& operator=(const KisImage& rhs);
@@ -1350,6 +1351,7 @@ private:
     KisImagePrivate * m_d;
     bool m_synchronizingGpuNodes = false;
     QRect m_gpuSelectionMirrorRect;
+    bool m_gpuSelectionMirrorInverted = false;
     bool m_hasGpuSelectionMirror = false;
 };
 

@@ -119,6 +119,7 @@ FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadat
         value.image.size = version->size;
         value.image.projectionBackground = version->projectionBackground;
         value.image.selection = m_d->image->selectionRect();
+        value.image.selectionInverted = m_d->image->selectionInverted();
         for (const auto &layer : version->layers) {
             if (layer.id == version->activeLayer) value.image.activeLayer = value.image.layers.size();
             value.image.layers.append(rasterLayerDescription(layer));
@@ -167,6 +168,7 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
     output.image.size = pinned->size;
     output.image.projectionBackground = pinned->projectionBackground;
     output.image.selection = d.image->selectionRect();
+    output.image.selectionInverted = d.image->selectionInverted();
     qsizetype rasterBytes = 0;
     for (const auto &layer : pinned->layers) {
         if (pinned->activeLayer == layer.id) output.image.activeLayer = output.image.layers.size();

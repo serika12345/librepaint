@@ -32,6 +32,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     initial->m_committed = true;
     initial->size = image.size;
     initial->selection = image.selection;
+    initial->selectionInverted = image.selectionInverted;
     initial->projectionBackground = image.projectionBackground;
     QSet<QUuid> identities;
     for (const auto &source : image.layers) {

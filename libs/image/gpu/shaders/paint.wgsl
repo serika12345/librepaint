@@ -188,11 +188,16 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if (parameters.counts.z != 0u) { outputPixels[index] = parameters.brush.x; return; }
     let pixel = parameters.tile.xy + vec2<i32>(local);
     let selection = parameters.selection;
-    if (selection.z > 0 && selection.w > 0 &&
-        (pixel.x < selection.x || pixel.y < selection.y ||
-         pixel.x >= selection.x + selection.z || pixel.y >= selection.y + selection.w)) {
-        outputPixels[index] = basePixels[index];
-        return;
+    if (selection.z > 0 && selection.w > 0) {
+        let outside = pixel.x < selection.x || pixel.y < selection.y ||
+            pixel.x >= selection.x + selection.z || pixel.y >= selection.y + selection.w;
+        let inverted = (parameters.counts.w & 1024u) != 0u;
+        var masked = outside;
+        if (inverted) { masked = !outside; }
+        if (masked) {
+            outputPixels[index] = basePixels[index];
+            return;
+        }
     }
     if ((parameters.counts.w & 512u) != 0u) {
         outputPixels[index] = gaussianPixel(pixel, unpackPixel(basePixels[index]), unpackPixel(parameters.brush.x));

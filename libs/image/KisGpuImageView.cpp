@@ -357,16 +357,22 @@ QSharedPointer<LibrePaint::Image::Gpu::PaintImage> KisImage::cloneGpuImage(bool 
     return result;
 }
 
-bool KisImage::setGpuSelectionRect(const QRect &rect)
+bool KisImage::setGpuSelectionRect(const QRect &rect, bool inverted)
 {
     const auto owner = gpuImage();
-    return owner && owner->setSelectionRect(rect) == LibrePaint::Image::Gpu::Result::Success;
+    return owner && owner->setSelectionRect(rect, inverted) == LibrePaint::Image::Gpu::Result::Success;
 }
 
 QRect KisImage::gpuSelectionRect() const
 {
     const auto owner = gpuImage();
     return owner ? owner->selectionRect() : QRect();
+}
+
+bool KisImage::gpuSelectionInverted() const
+{
+    const auto owner = gpuImage();
+    return owner && owner->selectionInverted();
 }
 
 bool KisImage::clearGpuSelection()
@@ -383,18 +389,19 @@ void KisImage::synchronizeGpuSelectionToMask()
     const auto owner = gpuImage();
     if (!owner) return;
     const QRect rect = owner->selectionRect();
-    if (rootLayer() && rootLayer()->selectionMask() &&
-        m_hasGpuSelectionMirror && m_gpuSelectionMirrorRect == rect) return;
-    updateGpuSelectionMask(rect);
+    const bool inverted = owner->selectionInverted();
+    if (rootLayer() && rootLayer()->selectionMask() && m_hasGpuSelectionMirror &&
+        m_gpuSelectionMirrorRect == rect && m_gpuSelectionMirrorInverted == inverted) return;
+    updateGpuSelectionMask(rect, inverted);
 }
 
 void KisImage::previewGpuSelectionRect(const QRect &rect)
 {
     if (!gpuImage()) return;
-    updateGpuSelectionMask(rect);
+    updateGpuSelectionMask(rect, false);
 }
 
-void KisImage::updateGpuSelectionMask(const QRect &rect)
+void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted)
 {
     KisSelectionMaskSP mask = rootLayer() ? rootLayer()->selectionMask() : KisSelectionMaskSP();
     if (!mask && rect.isEmpty()) return;
@@ -411,17 +418,26 @@ void KisImage::updateGpuSelectionMask(const QRect &rect)
     if (!selection || !selection->pixelSelection()) return;
     KisPixelSelectionSP pixels = selection->pixelSelection();
     const QRect previousRect = pixels->selectedExactRect();
-    if (previousRect == rect && m_hasGpuSelectionMirror && m_gpuSelectionMirrorRect == rect) return;
+    if (previousRect == rect && m_hasGpuSelectionMirror && m_gpuSelectionMirrorRect == rect &&
+        m_gpuSelectionMirrorInverted == inverted) return;
     pixels->clear();
     QPainterPath outline;
     if (!rect.isEmpty()) {
-        pixels->select(rect);
-        outline.addRect(rect);
+        if (inverted) {
+            pixels->select(bounds());
+            pixels->clear(rect);
+            outline.addRect(bounds());
+            outline.addRect(rect);
+        } else {
+            pixels->select(rect);
+            outline.addRect(rect);
+        }
     }
     pixels->setOutlineCache(outline);
-    selection->updateProjection(rect.isEmpty() ? bounds() : rect);
-    mask->setDirty(previousRect.united(rect));
+    selection->updateProjection(inverted ? bounds() : (rect.isEmpty() ? bounds() : rect));
+    mask->setDirty(inverted ? bounds() : previousRect.united(rect));
     m_gpuSelectionMirrorRect = rect;
+    m_gpuSelectionMirrorInverted = inverted;
     m_hasGpuSelectionMirror = true;
 }
 
