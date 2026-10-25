@@ -10,7 +10,7 @@
 #include <QMutexLocker>
 
 #include <QThread>
-#include <QApplication>
+#include <QCoreApplication>
 #include <functional>
 #include <qhash.h>
 
@@ -48,7 +48,8 @@ KisBusyWaitBroker *KisBusyWaitBroker::instance()
 
 void KisBusyWaitBroker::notifyWaitOnImageStarted(KisImage* image)
 {
-    if (QThread::currentThread() != qApp->thread()) return;
+    const auto *application = QCoreApplication::instance();
+    if (!application || QThread::currentThread() != application->thread()) return;
 
     bool needsStartCallback = false;
 
@@ -68,7 +69,8 @@ void KisBusyWaitBroker::notifyWaitOnImageStarted(KisImage* image)
 
 void KisBusyWaitBroker::notifyWaitOnImageEnded(KisImage* image)
 {
-    if (QThread::currentThread() != qApp->thread()) return;
+    const auto *application = QCoreApplication::instance();
+    if (!application || QThread::currentThread() != application->thread()) return;
 
     {
         QMutexLocker l(&m_d->lock);
@@ -85,7 +87,8 @@ void KisBusyWaitBroker::notifyWaitOnImageEnded(KisImage* image)
 
 void KisBusyWaitBroker::notifyGeneralWaitStarted()
 {
-    if (QThread::currentThread() != qApp->thread()) return;
+    const auto *application = QCoreApplication::instance();
+    if (!application || QThread::currentThread() != application->thread()) return;
 
     QMutexLocker l(&m_d->lock);
     m_d->guiThreadLockCount++;
@@ -93,7 +96,8 @@ void KisBusyWaitBroker::notifyGeneralWaitStarted()
 
 void KisBusyWaitBroker::notifyGeneralWaitEnded()
 {
-    if (QThread::currentThread() != qApp->thread()) return;
+    const auto *application = QCoreApplication::instance();
+    if (!application || QThread::currentThread() != application->thread()) return;
 
     QMutexLocker l(&m_d->lock);
     m_d->guiThreadLockCount--;

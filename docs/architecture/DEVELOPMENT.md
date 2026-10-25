@@ -182,6 +182,10 @@ ctest --preset tdd-macos --output-on-failure -R '<影響範囲の正規表現>'
 Linuxでは`tdd-linux`を使う。プリセットは試験用資源の探索先と標準の画面外方式を設定する。
 XCBを要求するLinuxの画面試験は、デスクトップまたは独立したXvfbで実行する。
 
+`KisBusyWaitBrokerContractTest`は、画像解放から呼ばれる待機通知を、アプリの生成前・破棄後にも
+子プロセスで実行する。通知はアプリの生存期間内のGUIスレッドから受け付け、通常の入れ子の
+待機状態と、ワーカースレッドからの通知を無視する契約を検査する。
+
 `verify`は高速検査、ネイティブ全ターゲットの構築、通常CTestを実行する。
 macOSは`tdd-macos`、Linuxは`tdd-linux`のCMakeプリセットを使う。
 両方とも`BUILD_TESTING=ON`、`KRITA_ENABLE_BROKEN_TESTS=OFF`、
