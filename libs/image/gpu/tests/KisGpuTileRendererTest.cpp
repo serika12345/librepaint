@@ -83,6 +83,8 @@ private Q_SLOTS:
     void hsvAdjustmentUsesProductValuesAndNeutralPixels();
     void hsvAdjustmentClipsCoverageAndSupportsLegacyConversion();
     void yuvResetPreservesStoredPixelsAcrossRecovery();
+    void colorizeUsesProductLumaRoundingAcrossRecovery_data();
+    void colorizeUsesProductLumaRoundingAcrossRecovery();
     void hsvAdjustmentUsesLumaDependentProductRulesAndFrozenCoefficients();
     void hsvAdjustmentLumaModesClipAlphaAndSelectionCoverage();
     void patternFillTilesAcrossSelectionHistoryAndRecovery();
@@ -4223,6 +4225,80 @@ void KisGpuTileRendererTest::yuvResetPreservesStoredPixelsAcrossRecovery()
     QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), bytes);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), bytes);
+}
+
+void KisGpuTileRendererTest::colorizeUsesProductLumaRoundingAcrossRecovery_data()
+{
+    QTest::addColumn<float>("lumaRed");
+    QTest::addColumn<float>("lumaGreen");
+    QTest::addColumn<float>("lumaBlue");
+    QTest::newRow("rec709") << 0.2126f << 0.7152f << 0.0722f;
+    QTest::newRow("quarters") << 0.25f << 0.5f << 0.25f;
+    QTest::newRow("small-coefficients") << 1e-30f << 0.9f << 1e-38f;
+}
+
+void KisGpuTileRendererTest::colorizeUsesProductLumaRoundingAcrossRecovery()
+{
+    QFETCH(float, lumaRed);
+    QFETCH(float, lumaGreen);
+    QFETCH(float, lumaBlue);
+    QByteArray bytes(TileRenderer::TileBytes, '\0');
+    for (int y = 0; y < TileRenderer::TileSize; ++y) {
+        for (int x = 0; x < TileRenderer::TileSize; ++x) {
+            const int offset = (y * TileRenderer::TileSize + x) * 4;
+            bytes[offset] = char(x);
+            bytes[offset + 1] = char(y);
+            bytes[offset + 2] = char((73 * x + 151 * y) % 256);
+            bytes[offset + 3] = char((x + y) % 256);
+        }
+    }
+    const int opaqueOffset = (43 * TileRenderer::TileSize + 2) * 4;
+    const int hiddenOffset = opaqueOffset + 4;
+    bytes.replace(opaqueOffset, 4, QByteArray::fromHex("022b2eff"));
+    bytes.replace(hiddenOffset, 4, QByteArray::fromHex("022b2e00"));
+    RasterImage input;
+    input.size = {TileRenderer::TileSize, TileRenderer::TileSize};
+    RasterLayer source;
+    source.name = QStringLiteral("Colorize rounding");
+    source.uuid = QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000055}"));
+    source.tiles.append({{0, 0}, bytes});
+    input.layers.append(source);
+    OperationDocument document(input);
+    HsvAdjustment colorize{0, 0, 0, HsvAdjustmentType::Hsv, false};
+    colorize.colorize = true;
+    colorize.luma = {lumaRed, lumaGreen, lumaBlue};
+    colorize.lumaFrozen = true;
+    QByteArray expected = bytes;
+    for (int offset = 0; offset < bytes.size(); offset += 4) {
+        const float red = quint8(bytes.at(offset)) / 255.0f;
+        const float green = quint8(bytes.at(offset + 1)) / 255.0f;
+        const float blue = quint8(bytes.at(offset + 2)) / 255.0f;
+        const float lightness = red * qreal(lumaRed) + green * qreal(lumaGreen) + blue * qreal(lumaBlue);
+        const char value = char(int(qBound(0.0f, lightness * 255.0f, 255.0f) + 0.5f));
+        expected[offset] = value;
+        expected[offset + 1] = value;
+        expected[offset + 2] = value;
+    }
+    QCOMPARE(document.hsvAdjustment(document.activeLayer(), colorize), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto actual = readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0});
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile file(QDir(directory).filePath(QStringLiteral("colorize-rounding-%1.rgba")
+                                               .arg(QString::fromLatin1(QTest::currentDataTag()))));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(actual), qint64(actual.size()));
+    }
+    // This scalar reference matches the product's hsv_adjustment transform
+    // across the full tile. Rec.709 maps the boundary pixel to 35, including
+    // when the coefficients are first frozen to binary32.
+    QCOMPARE(actual.mid(opaqueOffset, 4), expected.mid(opaqueOffset, 4));
+    QCOMPARE(actual.mid(hiddenOffset, 4), expected.mid(hiddenOffset, 4));
+    QCOMPARE(actual, expected);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), recovered.activeLayer(), {0, 0}), actual);
 }
 
 void KisGpuTileRendererTest::hsvAdjustmentUsesLumaDependentProductRulesAndFrozenCoefficients()

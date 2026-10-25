@@ -564,6 +564,12 @@ Rec.709と異なる凍結係数が画素へ反映されること、Undo／Redo�
 アルファを変えた65,536画素について、YUVのゼロ設定、Undo／Redoと復旧後の全バイト保持を検査する。
 `LIBREPAINT_GPU_RESULT_DIR`へ`yuv-reset.rgba`を出力する。非ゼロのYUV参照値は
 `RGBToYUV()`・`YUVToRGB()`と製品のスライダー倍率から得た値を使い、選択被覆の整数補間も照合する。
+`KisGpuTileRendererTest::colorizeUsesProductLumaRoundingAcrossRecovery`は、Rec.709、
+四分の一単位と微小な正係数について、Colorizeの輝度計算と復旧後の全バイトを検査する。
+参照計算は製品のRGBA8変換と同じく、入力をbinary32へ正規化し、凍結係数を`qreal`へ
+昇格した積和を一度だけbinary32へ丸める。無彩色化の65,536画素には、RGB `(2,43,46)`の
+丸め境界とアルファ0の隠れRGBを含む。`LIBREPAINT_GPU_RESULT_DIR`へ係数別の
+`colorize-rounding-<case>.rgba`を出力する。
 `KisGpuPaintDocumentTest::hsvAdjustmentSavesReopensAndRecoversPixels`は、生タイルへの
 HSV Adjustment適用、隠れRGBとアルファ0の保持、選択外の保持、一回のGPU履歴と
 Undo／Redo、復旧後の設定と画素、KRA保存・再読込後の結果画素、再読込後の

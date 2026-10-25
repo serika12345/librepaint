@@ -436,6 +436,101 @@ fn yuvAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, luma: vec3<f32>) -> 
     return vec3<f32>(red, green, blue);
 }
 
+// Colorize multiplies binary32 RGB by qreal luma coefficients and rounds the
+// left-associated sum to binary32 once. For frozen binary32 coefficients,
+// each product has at most 48 significant bits. Keep the products and the
+// two binary64 additions in integer significands so a GPU multiply-add cannot
+// move a stored RGBA8 result across a rounding boundary.
+struct ColorizeLumaTerm {
+    significand: vec2<u32>, // Low word first, leading bit at position 55.
+    exponent: i32,
+}
+
+fn colorizeShiftLeft(value: vec2<u32>, shift: u32) -> vec2<u32> {
+    if (shift == 0u) { return value; }
+    if (shift < 32u) { return vec2<u32>(value.x << shift, (value.y << shift) | (value.x >> (32u - shift))); }
+    return vec2<u32>(0u, value.x << (shift - 32u));
+}
+
+fn colorizeShiftRightJam(value: vec2<u32>, shift: u32) -> vec2<u32> {
+    if (shift == 0u) { return value; }
+    if (shift < 32u) {
+        let sticky = u32((value.x << (32u - shift)) != 0u);
+        return vec2<u32>((value.x >> shift) | (value.y << (32u - shift)) | sticky, value.y >> shift);
+    }
+    if (shift == 32u) { return vec2<u32>(value.y | u32(value.x != 0u), 0u); }
+    if (shift < 64u) {
+        let sticky = u32(value.x != 0u || (value.y << (64u - shift)) != 0u);
+        return vec2<u32>((value.y >> (shift - 32u)) | sticky, 0u);
+    }
+    return vec2<u32>(u32(any(value != vec2<u32>(0u))), 0u);
+}
+
+fn colorizeAddWords(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+    let low = a.x + b.x;
+    return vec2<u32>(low, a.y + b.y + u32(low < a.x));
+}
+
+fn colorizeLumaProduct(channel: f32, coefficient: f32) -> ColorizeLumaTerm {
+    let a = bitcast<u32>(channel);
+    let b = bitcast<u32>(coefficient);
+    if (a == 0u || b == 0u) { return ColorizeLumaTerm(vec2<u32>(0u), 0); }
+    let ae = (a >> 23u) & 255u;
+    let be = (b >> 23u) & 255u;
+    let am = (a & 0x7fffffu) | select(0u, 0x800000u, ae != 0u);
+    let bm = (b & 0x7fffffu) | select(0u, 0x800000u, be != 0u);
+    let lowProduct = (am & 0xffffu) * (bm & 0xffffu);
+    let crossProduct = (am >> 16u) * (bm & 0xffffu) + (am & 0xffffu) * (bm >> 16u);
+    let low = lowProduct + (crossProduct << 16u);
+    let high = (am >> 16u) * (bm >> 16u) + (crossProduct >> 16u) + u32(low < lowProduct);
+    var leading = firstLeadingBit(low);
+    if (high != 0u) { leading = 32u + firstLeadingBit(high); }
+    let shift = 55u - leading;
+    let exponent = i32(max(ae, 1u) + max(be, 1u)) - 300 - i32(shift);
+    return ColorizeLumaTerm(colorizeShiftLeft(vec2<u32>(low, high), shift), exponent);
+}
+
+fn colorizeAddLumaTerms(first: ColorizeLumaTerm, second: ColorizeLumaTerm) -> ColorizeLumaTerm {
+    if (all(first.significand == vec2<u32>(0u))) { return second; }
+    if (all(second.significand == vec2<u32>(0u))) { return first; }
+    var larger = first;
+    var smaller = second;
+    if (second.exponent > first.exponent) { larger = second; smaller = first; }
+    let aligned = colorizeShiftRightJam(smaller.significand, u32(larger.exponent - smaller.exponent));
+    var sum = colorizeAddWords(larger.significand, aligned);
+    var exponent = larger.exponent;
+    if ((sum.y & 0x1000000u) != 0u) { sum = colorizeShiftRightJam(sum, 1u); exponent += 1; }
+    let discarded = sum.x & 7u;
+    let increment = u32(discarded > 4u || (discarded == 4u && (sum.x & 8u) != 0u));
+    let retained = vec2<u32>((sum.x >> 3u) | (sum.y << 29u), sum.y >> 3u);
+    sum = colorizeShiftLeft(colorizeAddWords(retained, vec2<u32>(increment, 0u)), 3u);
+    if ((sum.y & 0x1000000u) != 0u) { sum = colorizeShiftRightJam(sum, 1u); exponent += 1; }
+    return ColorizeLumaTerm(sum, exponent);
+}
+
+fn colorizeProductLuma(rgb: vec3<f32>, luma: vec3<f32>) -> f32 {
+    let redGreen = colorizeAddLumaTerms(colorizeLumaProduct(rgb.x, luma.x), colorizeLumaProduct(rgb.y, luma.y));
+    let total = colorizeAddLumaTerms(redGreen, colorizeLumaProduct(rgb.z, luma.z));
+    if (all(total.significand == vec2<u32>(0u))) { return 0.0; }
+    var exponent = total.exponent + 182;
+    let extra = u32(max(1 - exponent, 0));
+    let roundedInput = colorizeShiftRightJam(total.significand, 29u + extra).x;
+    let discarded = roundedInput & 7u;
+    var mantissa = (roundedInput >> 3u) + u32(discarded > 4u || (discarded == 4u && (roundedInput & 8u) != 0u));
+    if (exponent <= 0) { return bitcast<f32>(mantissa); }
+    if (mantissa == 0x1000000u) { mantissa >>= 1u; exponent += 1; }
+    return bitcast<f32>((u32(exponent) << 23u) | (mantissa & 0x7fffffu));
+}
+
+fn colorizeInputChannel(channel: u32) -> f32 {
+    if (channel == 0u) { return 0.0; }
+    if (channel == 255u) { return 1.0; }
+    let leading = firstLeadingBit(channel);
+    let numerator = channel << (31u - leading);
+    let mantissa = numerator / 255u + u32(numerator % 255u >= 128u);
+    return bitcast<f32>(((leading + 119u) << 23u) | (mantissa & 0x7fffffu));
+}
+
 // The product Colorize rule: the adjusted luma becomes the HSL lightness and
 // the hue and saturation sliders set the HSL hue and saturation. The product
 // applies its legacy HSL conversion here regardless of the compatibility flag.
@@ -444,7 +539,7 @@ fn colorizeAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32,
     var hue = dh * 360.0;
     if (hue >= 360.0) { hue = 0.0; }
     let saturation = ds;
-    var lumaValue = rgb.x * luma.x + rgb.y * luma.y + rgb.z * luma.z;
+    var lumaValue = colorizeProductLuma(rgb, luma);
     if (dv > 0.0) {
         lumaValue = lumaValue * (1.0 - dv);
         lumaValue = lumaValue + (1.0 - (1.0 - dv));
@@ -515,7 +610,9 @@ fn hsvAdjustmentPixel(base: vec4<u32>, adjustment: vec4<i32>) -> vec4<u32> {
     let rgb = vec3<f32>(f32(base.x) / 255.0, f32(base.y) / 255.0, f32(base.z) / 255.0);
     var result: vec3<f32>;
     if (colorize) {
-        result = colorizeAdjustment(rgb, dh, ds, dv, luma);
+        let productRgb = vec3<f32>(colorizeInputChannel(base.x), colorizeInputChannel(base.y),
+                                   colorizeInputChannel(base.z));
+        result = colorizeAdjustment(productRgb, dh, ds, dv, luma);
     } else if (mode == HSV_MODE_YUV) {
         result = yuvAdjustment(rgb, dh, ds, dv, luma);
     } else if (legacy) {
