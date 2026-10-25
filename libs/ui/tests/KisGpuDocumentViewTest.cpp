@@ -2335,11 +2335,11 @@ void KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra()
     QVERIFY(reopened->selectionInverted());
     QCOMPARE(reopened->selectionRect(), hole);
 
-    const auto runFilter = [&](const QString &id, int x, int y) {
+    const auto runFilter = [&](const QString &id, int x, int y, bool edgeLock = false) {
         KisOperationConfigurationSP config = new KisOperationConfiguration(id);
         config->setProperty("x-radius", x);
         config->setProperty("y-radius", y);
-        config->setProperty("edgeLock", false);
+        config->setProperty("edgeLock", edgeLock);
         window->viewManager()->actionManager()->runOperationFromConfiguration(config);
         lifetime->image()->waitForDone();
     };
@@ -2448,11 +2448,11 @@ void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
     QCOMPARE(cutEllipse.code, Gpu::ExecutionCode::Success);
     QCOMPARE(quint8(pixel(cutEllipse.bytes, 32, 32).at(3)), 0);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
-    const auto runFilter = [&](const QString &id, int x, int y) {
+    const auto runFilter = [&](const QString &id, int x, int y, bool edgeLock = false) {
         KisOperationConfigurationSP config = new KisOperationConfiguration(id);
         config->setProperty("x-radius", x);
         config->setProperty("y-radius", y);
-        config->setProperty("edgeLock", false);
+        config->setProperty("edgeLock", edgeLock);
         window->viewManager()->actionManager()->runOperationFromConfiguration(config);
         lifetime->image()->waitForDone();
     };
@@ -2465,6 +2465,13 @@ void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
     runFilter(QStringLiteral("invertselection"), 0, 0);
     QTRY_VERIFY(owner->selectionInverted());
     QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Ellipse);
+    const QRect invertedHole = owner->selectionRect();
+    runFilter(QStringLiteral("growselection"), 2, 2, true);
+    QTRY_COMPARE(owner->selectionRect(), invertedHole.adjusted(2, 2, -2, -2));
+    QVERIFY(owner->selectionInverted());
+    runFilter(QStringLiteral("shrinkselection"), 2, 2, true);
+    QTRY_COMPARE(owner->selectionRect(), invertedHole);
+    QVERIFY(owner->selectionInverted());
     const auto invertedPath = directory.filePath(QStringLiteral("inverted-ellipse.kra"));
     QVERIFY2(lifetime->saveAs(invertedPath, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
     QFile invertedFile(invertedPath);

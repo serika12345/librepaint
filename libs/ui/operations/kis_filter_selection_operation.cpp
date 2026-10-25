@@ -54,10 +54,6 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
             const bool ellipse = view->image()->gpuSelectionEllipse();
             const QRect imageBounds(QPoint(), view->image()->size());
             if (view->image()->gpuSelectionInverted()) {
-                if (edgeLock) {
-                    view->showFloatingMessage(i18n("Edge-locked shrinking of an inverted GPU selection is not available."), QIcon());
-                    return;
-                }
                 const QRect hole = grow
                     ? current.adjusted(xRadius, yRadius, -xRadius, -yRadius)
                     : current.adjusted(-xRadius, -yRadius, xRadius, yRadius).intersected(imageBounds);

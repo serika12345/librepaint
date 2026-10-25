@@ -357,7 +357,7 @@ GPU選択を1画素・10画素・100画素・1000画素単位で移動し、形�
 `KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer`は、クリップボード画像を
 GPU文書の新しい描画レイヤーへ一回の履歴で貼り付け、キャンバスより大きい画像の左上トリミングと
 Undoによる除去を検査する。
-`KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra`は、楕円内の塗りつぶし、
+`KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra`は、反転楕円のedgeLock付き拡大・縮小を含む楕円内の塗りつぶし、
 楕円外の不変、Undo／Redo、KRA保存・再読込後の楕円形状と画素、楕円の拡大縮小、
 反転楕円のKRA往復、楕円の合成コピー・レイヤーコピー・切り取り、
 反転楕円のコピー・切り取り、反転楕円の穴に対する拡大・縮小を検査する。
