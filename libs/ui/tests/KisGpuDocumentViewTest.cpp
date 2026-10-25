@@ -2803,6 +2803,25 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
 
+    QVERIFY(lifetime->image()->setGpuSelectionRect(selected, true));
+    QTRY_VERIFY(owner->selectionInverted());
+    action->trigger();
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
+    LibrePaint::Image::Gpu::LayerId invertedLayer = 0;
+    for (const auto &layer : owner->operations().snapshot()->layers)
+        if (layer.name == QStringLiteral("Copied Selection")) invertedLayer = layer.id;
+    QVERIFY(invertedLayer);
+    QCOMPARE(owner->operations().activeLayer(), invertedLayer);
+    const auto invertedPixels = owner->readRgbaPixels(invertedLayer, region, 8 * 1024 * 1024);
+    QCOMPARE(invertedPixels.code, Gpu::ExecutionCode::Success);
+    int invertedMatches = 0;
+    for (qsizetype offset = 0; offset + 3 < invertedPixels.bytes.size(); offset += 4)
+        if (invertedPixels.bytes.mid(offset, 4) == QByteArray::fromHex("1181f1ff")) ++invertedMatches;
+    QCOMPARE(invertedMatches, 64 * 64 - 32 * 32);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
+    QVERIFY(lifetime->image()->setGpuSelectionRect(selected));
+
     auto *cutAction = window->viewManager()->actionManager()->actionByName(QStringLiteral("cut_selection_to_new_layer"));
     QVERIFY(cutAction);
     cutAction->trigger();
