@@ -428,6 +428,12 @@ bool KisImage::invertGpuSelectionMask()
 {
     const auto owner = gpuImage();
     if (!owner || !owner->selectionMask()) return false;
+    if (owner->selectionMask()->isAlpha()) {
+        // Soft coverage complements through the frozen flag without allocating
+        // an image-sized alpha mask.
+        return owner->setSelectionMask(owner->selectionMask(), !owner->selectionInverted()) ==
+            LibrePaint::Image::Gpu::Result::Success;
+    }
     const auto inverted = owner->selectionMask()->inverted(QRect(QPoint(), size()));
     return inverted ? owner->setSelectionMask(inverted, false) == LibrePaint::Image::Gpu::Result::Success
                     : owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
@@ -438,6 +444,7 @@ bool KisImage::growGpuSelectionMask(int xRadius, int yRadius)
     const auto owner = gpuImage();
     if (!owner || !owner->selectionMask()) return false;
     const auto grown = owner->selectionMask()->grown(xRadius, yRadius, QRect(QPoint(), size()));
+    if (!grown && owner->selectionMask()->isAlpha()) return false;
     return grown ? owner->setSelectionMask(grown, false) == LibrePaint::Image::Gpu::Result::Success
                  : owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
 }
@@ -447,6 +454,7 @@ bool KisImage::shrinkGpuSelectionMask(int xRadius, int yRadius)
     const auto owner = gpuImage();
     if (!owner || !owner->selectionMask()) return false;
     const auto shrunk = owner->selectionMask()->shrunk(xRadius, yRadius, QRect(QPoint(), size()));
+    if (!shrunk && owner->selectionMask()->isAlpha()) return false;
     return shrunk ? owner->setSelectionMask(shrunk, false) == LibrePaint::Image::Gpu::Result::Success
                   : owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
 }
@@ -456,8 +464,21 @@ bool KisImage::borderGpuSelectionMask(int xRadius, int yRadius)
     const auto owner = gpuImage();
     if (!owner || !owner->selectionMask()) return false;
     const auto border = owner->selectionMask()->border(xRadius, yRadius, QRect(QPoint(), size()));
+    if (!border && owner->selectionMask()->isAlpha()) return false;
     return border ? owner->setSelectionMask(border, false) == LibrePaint::Image::Gpu::Result::Success
                   : owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
+}
+
+bool KisImage::featherGpuSelectionMask(int radius)
+{
+    const auto owner = gpuImage();
+    if (!owner || radius <= 0) return false;
+    const auto mask = owner->selectionMask();
+    if (!mask) return false;
+    const auto feathered = mask->feathered(radius, QRect(QPoint(), size()));
+    if (!feathered) return false;
+    return owner->setSelectionMask(feathered, owner->selectionInverted()) ==
+        LibrePaint::Image::Gpu::Result::Success;
 }
 
 void KisImage::previewGpuSelectionMoveBy(QPoint delta)
@@ -550,7 +571,41 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
         m_gpuSelectionMirrorMask == coverage) return;
     pixels->clear();
     QPainterPath outline;
-    if (!rect.isEmpty() && kind == LibrePaint::Image::Gpu::SelectionKind::Freehand && coverage) {
+    if (!rect.isEmpty() && kind == LibrePaint::Image::Gpu::SelectionKind::Freehand && coverage &&
+        coverage->isAlpha()) {
+        // Alpha coverage is written into the CPU mirror so the display keeps the
+        // fractional selectedness. The outline follows its half-selected contour.
+        const QRect clip(QPoint(), bounds().size());
+        const QRect covered = coverage->bounds().intersected(clip);
+        QByteArray values(covered.width() * covered.height(), '\0');
+        QRegion region;
+        for (int y = covered.top(); y <= covered.bottom(); ++y) {
+            int runStart = -1;
+            for (int x = covered.left(); x <= covered.right() + 1; ++x) {
+                const quint8 stored = x <= covered.right() ? coverage->coverage(x, y) : 0;
+                const quint8 effective = inverted ? quint8(255u - stored) : stored;
+                if (x <= covered.right())
+                    values[(y - covered.top()) * covered.width() + x - covered.left()] = char(effective);
+                const bool outlined = x <= covered.right() && effective >= 128;
+                if (outlined && runStart < 0) runStart = x;
+                else if (!outlined && runStart >= 0) {
+                    region += QRect(runStart, y, x - runStart, 1);
+                    runStart = -1;
+                }
+            }
+        }
+        if (inverted) pixels->select(clip);
+        if (!covered.isEmpty())
+            pixels->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), covered);
+        if (inverted) {
+            QRegion visible(clip);
+            visible -= region;
+            outline.addRegion(visible);
+        } else {
+            outline.addRegion(region);
+        }
+        if (outline.isEmpty()) outline.addRect(QRect());
+    } else if (!rect.isEmpty() && kind == LibrePaint::Image::Gpu::SelectionKind::Freehand && coverage) {
         const QRect clip(QPoint(), bounds().size());
         const QRect covered = coverage->bounds().intersected(clip);
         QRegion region;

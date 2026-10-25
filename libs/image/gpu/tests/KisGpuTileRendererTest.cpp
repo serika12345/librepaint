@@ -75,6 +75,7 @@ private Q_SLOTS:
     void switchingDocumentsReleasesPreviewDerivedPixelsAtCapacity();
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void selectionLimitsPaintFillAndEraseAcrossHistoryAndRecovery();
+    void featheredSelectionClipsPaintFillEraseHistoryAndRecovery();
     void gaussianWashProducesCoverageAndRetainsPixelsThroughRecovery();
     void gaussianEraseKeepsColorsHistoryAndRecovery_data();
     void gaussianEraseKeepsColorsHistoryAndRecovery();
@@ -3150,6 +3151,85 @@ void KisGpuTileRendererTest::selectionLimitsPaintFillAndEraseAcrossHistoryAndRec
     QCOMPARE(pixel(erased, 64, 64), QByteArray::fromHex("1450a000"));
     QCOMPARE(eraseDocument.clearSelection(), Result::Success);
     QVERIFY(eraseDocument.selectionRect().isEmpty());
+}
+
+void KisGpuTileRendererTest::featheredSelectionClipsPaintFillEraseHistoryAndRecovery()
+{
+    const auto pixel = [](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * TileRenderer::TileSize + x) * 4, 4);
+    };
+    const QRect clip(QPoint(), QSize(256, 256));
+    QByteArray coverage(256 * 256, '\0');
+    for (int y = 64; y < 192; ++y)
+        for (int x = 64; x < 192; ++x) coverage[y * 256 + x] = char(255);
+    const auto hard = SelectionMask::fromCoverage(QRect(QPoint(), QSize(256, 256)), coverage, clip);
+    QVERIFY(hard);
+    const auto soft = hard->feathered(8, clip);
+    QVERIFY(soft);
+    QVERIFY(soft->isAlpha());
+    const quint8 edge = soft->coverage(64, 128);
+    QVERIFY(edge > 0 && edge < 255);
+    QCOMPARE(soft->coverage(128, 128), 255);
+
+    OperationDocument document({256, 256});
+    Brush brush;
+    brush.rgba = {210, 40, 90, 255};
+    brush.diameter = 32;
+    QCOMPARE(document.setSelectionMask(hard), Result::Success);
+    QCOMPARE(document.setSelectionMask(soft), Result::Success);
+    const auto stroke = document.beginStroke(document.activeLayer(), brush, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{48, 128}, 1}, {{208, 128}, 1}}), Result::Success);
+    const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QVERIFY(pending->selectionMask == soft);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto painted = render(renderer, document.snapshot());
+    QVERIFY(painted);
+    const auto bytes = readTile(painted, document.activeLayer(), {0, 0});
+    QCOMPARE(pixel(bytes, 128, 128), QByteArray::fromHex("d2285aff"));
+    QCOMPARE(quint8(pixel(bytes, 64, 128).at(3)), edge);
+    QCOMPARE(pixel(bytes, 40, 128), QByteArray(4, '\0'));
+
+    // Fill applies the fractional selection as its source alpha.
+    TileRenderer fillRenderer(m_device);
+    OperationDocument fillDocument({256, 256});
+    QCOMPARE(fillDocument.setSelectionMask(soft), Result::Success);
+    QCOMPARE(fillDocument.fillLayer(fillDocument.activeLayer(), {17, 34, 51}), Result::Success);
+    const auto filled = readTile(render(fillRenderer, fillDocument.snapshot()), fillDocument.activeLayer(), {0, 0});
+    QCOMPARE(pixel(filled, 128, 128), QByteArray::fromHex("112233ff"));
+    QCOMPARE(quint8(pixel(filled, 64, 128).at(3)), edge);
+    QCOMPARE(pixel(filled, 40, 128), QByteArray(4, '\0'));
+
+    // Erase removes exactly the fractional share of the existing alpha.
+    OperationDocument eraseDocument({256, 256});
+    QCOMPARE(eraseDocument.fillLayer(eraseDocument.activeLayer(), {20, 80, 160}), Result::Success);
+    QCOMPARE(eraseDocument.setSelectionMask(soft), Result::Success);
+    Brush eraser = brush;
+    eraser.erase = true;
+    const auto erase = eraseDocument.beginStroke(eraseDocument.activeLayer(), eraser, 0);
+    QCOMPARE(eraseDocument.appendSamples(erase, {{{48, 128}, 1}, {{208, 128}, 1}}), Result::Success);
+    QCOMPARE(eraseDocument.commitStroke(erase), Result::Success);
+    const auto erased = readTile(render(renderer, eraseDocument.snapshot()), eraseDocument.activeLayer(), {0, 0});
+    QCOMPARE(quint8(pixel(erased, 128, 128).at(3)), 0);
+    QCOMPARE(quint8(pixel(erased, 64, 128).at(3)), quint8(255 - edge));
+    QCOMPARE(quint8(pixel(erased, 40, 128).at(3)), 255);
+
+    // The feather is one history entry; undo restores the hard coverage and redo
+    // restores the same fractional pixels.
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.selectionMask() == soft);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.selectionMask() == hard);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.selectionMask()->isAlpha());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.undoCount(), 3);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0}), bytes);
+
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QVERIFY(restored.selectionMask()->isAlpha());
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), restored.activeLayer(), {0, 0}), bytes);
 }
 
 void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()

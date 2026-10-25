@@ -57,7 +57,10 @@ fn washAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {
     return projectionByte(floatAdd(floatMultiply(floatSubtract(fullFlow, zeroFlow), flow), zeroFlow));
 }
 
-fn gaussianPixel(pixel: vec2<i32>, base: vec4<u32>, color: vec4<u32>) -> u32 {
+fn gaussianPixel(pixel: vec2<i32>, base: vec4<u32>, color: vec4<u32>, selectionAlpha: u32) -> u32 {
+    // Binary selections keep the historical projection byte arithmetic exactly.
+    let selectionScale = projectionDivide(projectionFloat(vec2<u32>(selectionAlpha, 0u), 0),
+                                          projectionFloat(vec2<u32>(255u, 0u), 0));
     var alpha = 0u;
     for (var index = 0u; index < parameters.counts.x; index += 1u) {
         let dab = gaussianDab(index);
@@ -73,9 +76,15 @@ fn gaussianPixel(pixel: vec2<i32>, base: vec4<u32>, color: vec4<u32>) -> u32 {
     if (parameters.brush.z != 0u) {
         // Erase rounds canvas opacity to a byte before its two alpha products.
         let opacityByte = u32(bitcast<f32>(floatAdd(projectionScaleByte(opacity, 255u), 0x3f000000u)));
-        return packPixel(vec4<u32>(base.xyz, mul255(base.w, 255u - mul255(alpha, opacityByte))));
+        var eraseAlpha = mul255(alpha, opacityByte);
+        if (selectionAlpha != 255u) {
+            eraseAlpha = projectionByte(projectionMultiply(
+                projectionFloat(vec2<u32>(eraseAlpha, 0u), 0), selectionScale));
+        }
+        return packPixel(vec4<u32>(base.xyz, mul255(base.w, 255u - eraseAlpha)));
     }
-    let sourceAlpha = projectionScaleByte(opacity, alpha);
+    var sourceAlpha = projectionScaleByte(opacity, alpha);
+    if (selectionAlpha != 255u) { sourceAlpha = projectionMultiply(sourceAlpha, selectionScale); }
     var resultAlpha = base.w;
     var blend: u32;
     if (base.w == 255u) { blend = projectionMultiply(sourceAlpha, 0x3b808081u); }
@@ -189,10 +198,16 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if (parameters.counts.z != 0u) { outputPixels[index] = parameters.brush.x; return; }
     let pixel = parameters.tile.xy + vec2<i32>(local);
     let selection = parameters.selection;
-    let freehand = (parameters.counts.w & 4096u) != 0u;
-    if (freehand || (selection.z > 0 && selection.w > 0)) {
+    let maskSelection = (parameters.counts.w & 4096u) != 0u;
+    let softSelection = (parameters.counts.w & 8192u) != 0u;
+    var selectionAlpha = 255u;
+    if (maskSelection || (selection.z > 0 && selection.w > 0)) {
         var inside = false;
-        if (freehand) {
+        if (maskSelection && softSelection) {
+            // Four alpha bytes per word; the renderer binds the frozen coverage tile.
+            let coverageIndex = index;
+            selectionAlpha = (selectionCoverage[coverageIndex >> 2u] >> ((coverageIndex & 3u) * 8u)) & 255u;
+        } else if (maskSelection) {
             // One bit per tile pixel; the renderer binds the frozen coverage tile.
             let coverageIndex = index;
             inside = ((selectionCoverage[coverageIndex >> 5u] >> (coverageIndex & 31u)) & 1u) != 0u;
@@ -209,15 +224,23 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             }
         }
         let inverted = (parameters.counts.w & 1024u) != 0u;
-        var masked = !inside;
-        if (inverted) { masked = inside; }
-        if (masked) {
-            outputPixels[index] = basePixels[index];
-            return;
+        if (maskSelection && softSelection) {
+            selectionAlpha = select(selectionAlpha, 255u - selectionAlpha, inverted);
+            if (selectionAlpha == 0u) {
+                outputPixels[index] = basePixels[index];
+                return;
+            }
+        } else {
+            var masked = !inside;
+            if (inverted) { masked = inside; }
+            if (masked) {
+                outputPixels[index] = basePixels[index];
+                return;
+            }
         }
     }
     if ((parameters.counts.w & 512u) != 0u) {
-        outputPixels[index] = gaussianPixel(pixel, unpackPixel(basePixels[index]), unpackPixel(parameters.brush.x));
+        outputPixels[index] = gaussianPixel(pixel, unpackPixel(basePixels[index]), unpackPixel(parameters.brush.x), selectionAlpha);
         return;
     }
     var mask = 0u;
@@ -294,13 +317,13 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let strokeColor = unpackPixel(parameters.brush.x);
     if ((figureFlags & 1u) != 0u) {
         let fillColor = unpackPixel(bitcast<u32>(parameters.mirror.z));
-        let fillAlpha = (fillColor.w * countOneBits(fillMask) + 8u) / 16u;
-        let strokeAlpha = (strokeColor.w * countOneBits(mask) + 8u) / 16u;
+        let fillAlpha = mul255((fillColor.w * countOneBits(fillMask) + 8u) / 16u, selectionAlpha);
+        let strokeAlpha = mul255((strokeColor.w * countOneBits(mask) + 8u) / 16u, selectionAlpha);
         // The circular marker retains the first color at equal coverage.
         let source = select(fillColor, strokeColor, strokeAlpha > fillAlpha);
         destination = paintAlpha(destination, source, mul255(max(fillAlpha, strokeAlpha), parameters.brush.y));
     } else {
-        let alpha = (mul255(strokeColor.w, parameters.brush.y) * countOneBits(mask) + 8u) / 16u;
+        let alpha = mul255((mul255(strokeColor.w, parameters.brush.y) * countOneBits(mask) + 8u) / 16u, selectionAlpha);
         destination = paintAlpha(destination, strokeColor, alpha);
     }
     let writable = parameters.counts.w >> 1u;

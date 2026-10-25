@@ -71,6 +71,7 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
     qint64 selected = 0, unselectedInImage = 0;
     bool selectedOutsideImage = false;
     QBitArray imageBits;
+    QByteArray imageAlpha;
     if (imageBounds.isValid() && !imageBounds.isEmpty() &&
         qint64(imageBounds.width()) * imageBounds.height() <= 64 * 1024 * 1024) {
         imageBits.resize(imageBounds.width() * imageBounds.height());
@@ -101,8 +102,9 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
                 constexpr qint64 limit = RgbaTile::CoordinateLimit;
                 if (worldX < -limit || worldY < -limit || worldX >= limit || worldY >= limit) return invalid();
                 const auto value = quint8(pixels.at(py * FileTileSize + px));
+                const bool inImage = imageBounds.contains(QPoint(int(worldX), int(worldY)));
                 if (value == 0) {
-                    if (imageBounds.contains(QPoint(int(worldX), int(worldY)))) {
+                    if (inImage) {
                         holeMinimumX = qMin<qint32>(holeMinimumX, qint32(worldX));
                         holeMinimumY = qMin<qint32>(holeMinimumY, qint32(worldY));
                         holeMaximumX = qMax<qint32>(holeMaximumX, qint32(worldX));
@@ -111,14 +113,27 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
                     }
                     continue;
                 }
-                if (value != 255) return unsupported();
+                if (value != 255) {
+                    // Fractional selectedness requires the complete image mirror
+                    // to distinguish soft edges from shape boundaries.
+                    if (imageBits.isNull() || !inImage) return unsupported();
+                    if (imageAlpha.isNull()) {
+                        imageAlpha = QByteArray(imageBounds.width() * imageBounds.height(), '\0');
+                        for (int y = 0; y < imageBounds.height(); ++y)
+                            for (int x = 0; x < imageBounds.width(); ++x)
+                                if (imageBits.testBit(y * imageBounds.width() + x))
+                                    imageAlpha[y * imageBounds.width() + x] = char(255);
+                    }
+                }
                 minimumX = qMin<qint32>(minimumX, qint32(worldX));
                 minimumY = qMin<qint32>(minimumY, qint32(worldY));
                 maximumX = qMax<qint32>(maximumX, qint32(worldX));
                 maximumY = qMax<qint32>(maximumY, qint32(worldY));
-                if (imageBounds.contains(QPoint(int(worldX), int(worldY)))) {
-                    if (!imageBits.isNull()) imageBits.setBit((int(worldY) - imageBounds.top()) * imageBounds.width() +
-                                                              int(worldX) - imageBounds.left());
+                if (inImage) {
+                    const auto index = (int(worldY) - imageBounds.top()) * imageBounds.width() +
+                        int(worldX) - imageBounds.left();
+                    if (!imageBits.isNull()) imageBits.setBit(index);
+                    if (!imageAlpha.isNull()) imageAlpha[index] = char(value);
                 } else {
                     selectedOutsideImage = true;
                 }
@@ -128,6 +143,16 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
     }
     if (!input.atEnd()) return invalid();
     if (!selected) return {Status::Success, {}};
+    if (!imageAlpha.isNull()) {
+        if (selectedOutsideImage) return unsupported();
+        const auto arbitrary = LibrePaint::Image::Gpu::SelectionMask::fromAlphaCoverage(
+            imageBounds, imageAlpha, imageBounds);
+        if (!arbitrary) return unsupported();
+        selection = arbitrary->bounds();
+        kind = LibrePaint::Image::Gpu::SelectionKind::Freehand;
+        mask = arbitrary;
+        return {Status::Success, {}};
+    }
     const qint64 width = qint64(maximumX) - minimumX + 1;
     const qint64 height = qint64(maximumY) - minimumY + 1;
     if (width > 0 && height > 0 && width <= RgbaTile::CoordinateLimit && height <= RgbaTile::CoordinateLimit &&
@@ -239,12 +264,9 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
                 for (int py = tile.top(); py <= tile.bottom(); ++py) {
                     const int row = py - y * FileTileSize;
                     for (int px = tile.left(); px <= tile.right(); ++px) {
-                        const bool covered = imageBounds.contains(px, py) && mask->contains(px, py);
-                        if (inverted) {
-                            if (covered) pixels[row * FileTileSize + px - x * FileTileSize] = char(0);
-                        } else if (covered) {
-                            pixels[row * FileTileSize + px - x * FileTileSize] = char(255);
-                        }
+                        if (!imageBounds.contains(px, py)) continue;
+                        const quint8 value = mask->coverage(px, py);
+                        pixels[row * FileTileSize + px - x * FileTileSize] = char(inverted ? 255u - value : value);
                     }
                 }
             } else if (inverted) {

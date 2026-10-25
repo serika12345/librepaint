@@ -183,6 +183,7 @@ private Q_SLOTS:
     void invertedSelectionSurvivesRecovery();
     void ellipticalSelectionSurvivesRecovery();
     void freehandSelectionFreezesCoverageHistoryAndRecovery();
+    void featheredSelectionAddsAlphaHistoryAndRecovery();
     void basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent();
     void weightedSmoothingRetainsFrozenSettingsSpeedAndRecovery();
     void basicSmoothingRejectsConflictingModesAndShapeChanges();
@@ -4091,6 +4092,95 @@ void KisGpuOperationDocumentTest::freehandSelectionFreezesCoverageHistoryAndReco
     QVERIFY(inverted.selectionRect().isEmpty());
     QVERIFY(!inverted.selectionMask());
     QCOMPARE(inverted.selectionKind(), SelectionKind::Rectangle);
+}
+
+void KisGpuOperationDocumentTest::featheredSelectionAddsAlphaHistoryAndRecovery()
+{
+    const QRect clip(QPoint(), QSize(96, 96));
+    OperationDocument document(QSize(96, 96));
+    const QList<QPointF> polygon{{16, 16}, {80, 16}, {80, 80}, {16, 80}};
+    const auto hard = SelectionMask::fromPolygon(polygon, clip);
+    QVERIFY(hard);
+    QVERIFY(!hard->isAlpha());
+    QCOMPARE(document.setSelectionMask(hard), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+
+    const auto soft = hard->feathered(6, clip);
+    QVERIFY(soft);
+    QVERIFY(soft->isAlpha());
+    QCOMPARE(soft->format(), SelectionMask::CoverageFormat::Alpha);
+    QCOMPARE(soft->bounds(), QRect(10, 10, 76, 76));
+    QCOMPARE(soft->coverage(48, 48), 255);
+    const quint8 edge = soft->coverage(16, 48);
+    const quint8 outer = soft->coverage(10, 48);
+    QVERIFY(edge > 0 && edge < 255);
+    QVERIFY(outer > 0 && outer < edge);
+    QCOMPARE(hard->feathered(0, clip), SelectionMaskSP{});
+
+    // Feathering is exactly one undoable selection history entry.
+    QCOMPARE(document.setSelectionMask(soft), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.selectionKind(), SelectionKind::Freehand);
+    QCOMPARE(document.selectionRect(), soft->bounds());
+    QVERIFY(document.selectionMask() == soft);
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
+
+    // A stroke freezes the alpha coverage at its start.
+    const auto id = document.beginStroke(document.activeLayer(), Brush{}, 3);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.appendSamples(id, {{{24, 48}, 1}}), Result::Success);
+    const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QVERIFY(pending->selectionMask == soft);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    QCOMPARE(document.undoCount(), 3);
+
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.selectionMask() == soft);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.selectionMask() == hard);
+    QVERIFY(!document.selectionMask()->isAlpha());
+    QCOMPARE(document.selectionRect(), hard->bounds());
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.selectionMask()->isAlpha());
+    QCOMPARE(document.selectionMask()->coverage(16, 48), edge);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.undoCount(), 3);
+
+    // Recovery preserves both representations, their order and the frozen stroke.
+    const auto bytes = document.recoveryData();
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QVERIFY(restored.selectionMask());
+    QVERIFY(restored.selectionMask()->isAlpha());
+    QVERIFY(*restored.selectionMask() == *soft);
+    QCOMPARE(restored.selectionMask()->coverage(10, 48), outer);
+    QCOMPARE(restored.recoveryData(), bytes);
+    const auto restoredPaint = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QVERIFY(restoredPaint->selectionMask);
+    QVERIFY(restoredPaint->selectionMask->isAlpha());
+    QVERIFY(*restoredPaint->selectionMask == *soft);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(restored.selectionMask());
+    QVERIFY(restored.selectionMask()->isAlpha());
+    QVERIFY(*restored.selectionMask() == *soft);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(restored.selectionMask());
+    QVERIFY(!restored.selectionMask()->isAlpha());
+    QVERIFY(*restored.selectionMask() == *hard);
+    QCOMPARE(restored.redo(), Result::Success);
+    QVERIFY(restored.selectionMask()->isAlpha());
+    QVERIFY(*restored.selectionMask() == *soft);
+
+    // An inverted alpha selection keeps its fractional coverage and flag.
+    QCOMPARE(restored.setSelectionMask(soft, true), Result::Success);
+    QVERIFY(restored.selectionInverted());
+    const auto invertedBytes = restored.recoveryData();
+    OperationDocument inverted(QSize(1, 1));
+    QCOMPARE(inverted.restoreRecovery(invertedBytes), Result::Success);
+    QVERIFY(inverted.selectionInverted());
+    QVERIFY(inverted.selectionMask()->isAlpha());
+    QVERIFY(*inverted.selectionMask() == *soft);
+    QCOMPARE(inverted.historyAction(inverted.undoCount()), HistoryAction::ChangeSelection);
 }
 
 void KisGpuOperationDocumentTest::basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent()

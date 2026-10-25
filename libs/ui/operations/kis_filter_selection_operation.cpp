@@ -34,6 +34,13 @@ void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewM
                     view->showFloatingMessage(i18n("The selection could not be inverted."), QIcon());
                 return;
             }
+            if (config.id() == QLatin1String("featherselection")) {
+                const int radius = config.getInt("radius", 1);
+                if (radius <= 0) return;
+                if (!view->image()->featherGpuSelectionMask(radius))
+                    view->showFloatingMessage(i18n("The selection could not be feathered."), QIcon());
+                return;
+            }
             if (config.id() == QLatin1String("shrinkselection") ||
                 config.id() == QLatin1String("growselection")) {
                 const int xRadius = config.getInt("x-radius", 1);

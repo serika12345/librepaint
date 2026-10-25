@@ -489,8 +489,9 @@ public:
      */
     Result setSelectionRect(const QRect &rect, bool inverted = false);
     Result setSelectionEllipse(const QRect &rect, bool inverted = false);
-    /** Freezes arbitrary hard coverage as one selection history entry.
-     * A null mask clears the selection; the mask bounds become selectionRect().
+    /** Freezes arbitrary binary or alpha coverage as one selection history
+     * entry. A null mask clears the selection; the mask bounds become
+     * selectionRect().
      */
     Result setSelectionMask(const SelectionMaskSP &mask, bool inverted = false);
     Result clearSelection();

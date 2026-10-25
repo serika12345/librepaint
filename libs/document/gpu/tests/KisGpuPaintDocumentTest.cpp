@@ -106,6 +106,7 @@ private Q_SLOTS:
     void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
     void rectangularSelectionSavesReopensAndLimitsPainting();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
+    void featheredSelectionClipsPaintAndRoundTripsKra();
     void weightedSmoothingSaveReopenAndContinuePreservesPixels();
     void gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
@@ -444,6 +445,66 @@ void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTr
                                                                128 * 128 * 4);
     QCOMPARE(invertedPixels.code, ExecutionCode::Success);
     QCOMPARE(invertedPixels.bytes, inverted.bytes);
+}
+
+void KisGpuPaintDocumentTest::featheredSelectionClipsPaintAndRoundTripsKra()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {128, 128};
+    initial.layers.append({QStringLiteral("Feather"), true,
+                           QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000025}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    const QRect clip(QPoint(), initial.size);
+    QByteArray coverage(128 * 128, '\0');
+    for (int y = 32; y < 96; ++y)
+        for (int x = 32; x < 96; ++x) coverage[y * 128 + x] = char(255);
+    const auto hard = SelectionMask::fromCoverage(QRect(QPoint(), initial.size), coverage, clip);
+    QVERIFY(hard);
+    const auto soft = hard->feathered(6, clip);
+    QVERIFY(soft && soft->isAlpha());
+    const quint8 edge = soft->coverage(32, 64);
+    QVERIFY(edge > 0 && edge < 255);
+
+    QCOMPARE(image->setSelectionMask(hard), Result::Success);
+    QCOMPARE(image->setSelectionMask(soft), Result::Success);
+    QCOMPARE(image->fillLayer(layer, {19, 211, 97}, 255, false, false), Result::Success);
+    const QRect region(QPoint(), initial.size);
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 128 + x) * 4, 4); };
+    const auto filled = image->readRgbaPixels(layer, region, 128 * 128 * 4);
+    QCOMPARE(filled.code, ExecutionCode::Success);
+    QCOMPARE(pixel(filled.bytes, 64, 64), QByteArray::fromHex("13d361ff"));
+    QCOMPARE(quint8(pixel(filled.bytes, 32, 64).at(3)), edge);
+    QCOMPARE(pixel(filled.bytes, 8, 8), QByteArray(4, char(0)));
+
+    QCOMPARE(image->undo(), Result::Success);
+    QVERIFY(image->selectionMask()->isAlpha());
+    QCOMPARE(image->undo(), Result::Success);
+    QVERIFY(!image->selectionMask()->isAlpha());
+    QVERIFY(*image->selectionMask() == *hard);
+    QCOMPARE(image->redo(), Result::Success);
+    QVERIFY(image->selectionMask()->isAlpha());
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, 128 * 128 * 4).bytes, filled.bytes);
+
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("feathered-selection.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    QCOMPARE(loaded->selectionKind(), SelectionKind::Freehand);
+    QCOMPARE(loaded->selectionRect(), soft->bounds());
+    QVERIFY(loaded->selectionMask());
+    QVERIFY(loaded->selectionMask()->isAlpha());
+    QVERIFY(*loaded->selectionMask() == *soft);
+    const auto loadedPixels = loaded->readRgbaPixels(loaded->operations().activeLayer(), region, 128 * 128 * 4);
+    QCOMPARE(loadedPixels.code, ExecutionCode::Success);
+    QCOMPARE(loadedPixels.bytes, filled.bytes);
+    QCOMPARE(quint8(pixel(loadedPixels.bytes, 32, 64).at(3)), edge);
 }
 
 void KisGpuPaintDocumentTest::weightedSmoothingSaveReopenAndContinuePreservesPixels()

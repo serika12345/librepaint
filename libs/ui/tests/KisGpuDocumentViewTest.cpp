@@ -134,6 +134,7 @@ private Q_SLOTS:
     void ellipticalSelectionLimitsPaintingAndKra();
     void ellipticalToolCreatesDocumentSelection();
     void freehandToolCreatesArbitraryMaskSelection();
+    void featherActionSoftensFreehandSelection();
     void pasteClipboardImageCreatesGpuLayer();
     void reselectRestoresGpuSelection();
     void arrowKeysNudgeGpuSelection();
@@ -2796,6 +2797,130 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QVERIFY(owner->selectionMask()->contains(80, 80));
     QVERIFY(!owner->selectionMask()->contains(176, 176));
     QCOMPARE(owner->selectionRect(), mask->bounds());
+}
+
+void KisGpuDocumentViewTest::featherActionSoftensFreehandSelection()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Feather selection")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+
+    // A freehand polygon fixes hard arbitrary coverage as the feather source.
+    const QList<QPointF> polygon{{64, 64}, {192, 64}, {192, 128}, {128, 192}, {64, 192}};
+    QVERIFY(lifetime->image()->setGpuSelectionFreehand(polygon));
+    QTRY_COMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
+    QVERIFY(owner->selectionMask());
+    QVERIFY(!owner->selectionMask()->isAlpha());
+    const QRect hardBounds = owner->selectionRect();
+    QCOMPARE(hardBounds, owner->selectionMask()->bounds());
+    QCOMPARE(owner->operations().undoCount(), 1);
+
+    KisOperationConfigurationSP config = new KisOperationConfiguration(QStringLiteral("featherselection"));
+    config->setProperty("radius", 6);
+    window->viewManager()->actionManager()->runOperationFromConfiguration(config);
+    lifetime->image()->waitForDone();
+    QTRY_VERIFY(owner->selectionMask() && owner->selectionMask()->isAlpha());
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
+    QCOMPARE(owner->operations().undoCount(), 2);
+    const auto soft = owner->selectionMask();
+    QCOMPARE(soft->coverage(128, 128), 255);
+    const quint8 edge = soft->coverage(hardBounds.left(), 128);
+    QVERIFY(edge > 0 && edge < 255);
+    QVERIFY(soft->coverage(hardBounds.left() - 4, 128) < edge);
+
+    // The CPU display mirror carries the fractional coverage and an outline.
+    QTRY_VERIFY(lifetime->image()->globalSelection());
+    const auto mirror = [&] {
+        QByteArray bytes(256 * 256, '\0');
+        lifetime->image()->globalSelection()->pixelSelection()->readBytes(
+            reinterpret_cast<quint8 *>(bytes.data()), QRect(0, 0, 256, 256));
+        return bytes;
+    };
+    QTRY_VERIFY(!lifetime->image()->globalSelection()->pixelSelection()->outlineCache().isEmpty());
+    const auto softMirror = mirror();
+    QCOMPARE(quint8(softMirror[128 * 256 + 128]), 255);
+    QCOMPARE(quint8(softMirror[128 * 256 + hardBounds.left()]), edge);
+    QVERIFY(quint8(softMirror[128 * 256 + hardBounds.left() - 4]) > 0);
+
+    // Filling through the soft selection keeps the fractional alpha.
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
+    resources->setOpacity(1);
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    auto *fill = window->viewManager()->actionManager()->actionByName(
+        QStringLiteral("fill_selection_foreground_color"));
+    QVERIFY(fill);
+    fill->trigger();
+    QTRY_COMPARE(owner->operations().undoCount(), 3);
+    const QRect region(QPoint(), QSize(256, 256));
+    const auto pixel = [&](const QByteArray &bytes, int x, int y) {
+        return bytes.mid((y * 256 + x) * 4, 4);
+    };
+    const auto filled = owner->readRgbaPixels(owner->operations().activeLayer(), region, 256 * 256 * 4);
+    QCOMPARE(filled.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(pixel(filled.bytes, 128, 128), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(quint8(pixel(filled.bytes, hardBounds.left(), 128).at(3)), edge);
+    QCOMPARE(pixel(filled.bytes, 8, 8), QByteArray(4, char(0)));
+
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    const auto unfilled = owner->readRgbaPixels(owner->operations().activeLayer(), region, 256 * 256 * 4);
+    QCOMPARE(unfilled.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(pixel(unfilled.bytes, 128, 128), QByteArray(4, char(0)));
+    QVERIFY(owner->selectionMask()->isAlpha());
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(!owner->selectionMask()->isAlpha());
+    QTRY_COMPARE(quint8(mirror()[128 * 256 + hardBounds.left()]), 255);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QVERIFY(owner->selectionMask()->isAlpha());
+    QTRY_COMPARE(quint8(mirror()[128 * 256 + hardBounds.left()]), edge);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(owner->operations().undoCount(), 3);
+
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("feathered-selection.kra"));
+    lifetime->setFileBatchMode(true);
+    QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false),
+             qPrintable(lifetime->errorMessage()));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.selectionKind, Gpu::SelectionKind::Freehand);
+    QVERIFY(loaded.document.image.selectionMask);
+    QVERIFY(loaded.document.image.selectionMask->isAlpha());
+    QVERIFY(*loaded.document.image.selectionMask == *soft);
+    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    QVERIFY(reopened);
+    QVERIFY(reopened->selectionMask() && reopened->selectionMask()->isAlpha());
+    QVERIFY(*reopened->selectionMask() == *soft);
+    const auto reopenedPixels = reopened->readRgbaPixels(reopened->operations().activeLayer(), region,
+                                                         256 * 256 * 4);
+    QCOMPARE(reopenedPixels.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(reopenedPixels.bytes, filled.bytes);
 }
 
 void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer()

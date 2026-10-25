@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 44;
+constexpr quint16 FormatVersion = 45;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -123,12 +123,13 @@ QByteArray OperationDocument::recoveryData() const
         stream << quint32(masks.size());
         for (const auto &mask : masks) {
             if (!mask || mask->isEmpty() || quint64(mask->tiles().size()) > NoOperation) return {};
-            stream << quint32(mask->tiles().size());
+            // Format 45 records the coverage representation before its tiles.
+            stream << quint8(mask->format()) << quint32(mask->tiles().size());
             for (auto tile = mask->tiles().cbegin(); tile != mask->tiles().cend(); ++tile) {
-                if (tile.value().size() != SelectionMask::TileBytes) return {};
-                if (m_limits.recoveryBytes - DigestSize - bytes.size() < SelectionMask::TileBytes + 8) return {};
+                if (tile.value().size() != mask->tileBytes()) return {};
+                if (m_limits.recoveryBytes - DigestSize - bytes.size() < mask->tileBytes() + 8) return {};
                 stream << qint32(tile.key().first) << qint32(tile.key().second);
-                stream.writeRawData(tile.value().constData(), SelectionMask::TileBytes);
+                stream.writeRawData(tile.value().constData(), int(mask->tileBytes()));
             }
         }
     }
@@ -384,9 +385,18 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         stream >> maskCount;
         if (!readableCount(stream, maskCount, payload.size(), 8)) return Result::InvalidRecovery;
         for (quint32 i = 0; i < maskCount; ++i) {
+            SelectionMask::CoverageFormat maskFormat = SelectionMask::CoverageFormat::Binary;
+            if (format >= 45) {
+                quint8 storedFormat = 0;
+                stream >> storedFormat;
+                if (storedFormat > quint8(SelectionMask::CoverageFormat::Alpha)) return Result::InvalidRecovery;
+                maskFormat = SelectionMask::CoverageFormat(storedFormat);
+            }
+            const qsizetype maskTileBytes = maskFormat == SelectionMask::CoverageFormat::Alpha
+                ? SelectionMask::AlphaTileBytes : SelectionMask::TileBytes;
             quint32 maskTileCount = 0;
             stream >> maskTileCount;
-            if (!readableCount(stream, maskTileCount, payload.size() / (SelectionMask::TileBytes + 8), 12))
+            if (!readableCount(stream, maskTileCount, payload.size() / (maskTileBytes + 8), 12))
                 return Result::InvalidRecovery;
             SelectionTileMap maskTiles;
             for (quint32 j = 0; j < maskTileCount; ++j) {
@@ -394,12 +404,13 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 stream >> x >> y;
                 const SelectionTileKey maskKey(x, y);
                 if (maskTiles.contains(maskKey)) return Result::InvalidRecovery;
-                QByteArray bytes(SelectionMask::TileBytes, Qt::Uninitialized);
+                QByteArray bytes(maskTileBytes, Qt::Uninitialized);
                 if (stream.readRawData(bytes.data(), int(bytes.size())) != int(bytes.size()))
                     return Result::InvalidRecovery;
                 maskTiles.insert(maskKey, bytes);
             }
-            const auto mask = SelectionMask::fromTiles(maskTiles);
+            const auto mask = maskFormat == SelectionMask::CoverageFormat::Alpha
+                ? SelectionMask::fromAlphaTiles(maskTiles) : SelectionMask::fromTiles(maskTiles);
             if (!mask || mask->tiles().size() != qsizetype(maskTileCount)) return Result::InvalidRecovery;
             masks.append(mask);
         }
@@ -1044,7 +1055,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
     for (qsizetype index = 1; index < history.size(); ++index)
         changes[index].changedSelection = history[index]->selection != history[index - 1]->selection ||
             history[index]->selectionInverted != history[index - 1]->selectionInverted ||
-            history[index]->selectionKind != history[index - 1]->selectionKind;
+            history[index]->selectionKind != history[index - 1]->selectionKind ||
+            history[index]->selectionMask != history[index - 1]->selectionMask;
     m_identity = identity;
     m_history = history;
     m_layerHistoryChanges = changes;

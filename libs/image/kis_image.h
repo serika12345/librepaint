@@ -112,6 +112,9 @@ public:
     bool growGpuSelectionMask(int xRadius, int yRadius);
     bool shrinkGpuSelectionMask(int xRadius, int yRadius);
     bool borderGpuSelectionMask(int xRadius, int yRadius);
+    /** Softens the frozen arbitrary coverage with a pixel radius in one history
+     * entry. The alpha coverage drives painting and the CPU display mirror. */
+    bool featherGpuSelectionMask(int radius);
     bool reselectGpuSelection();
     /** Updates only the CPU display mirror for a pending selection move. */
     void previewGpuSelectionRect(const QRect &rect, bool ellipse = false, bool inverted = false);
