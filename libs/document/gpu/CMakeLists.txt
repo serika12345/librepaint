@@ -1,7 +1,6 @@
 add_library(kritadocumentgpupaint OBJECT
     KisGpuPaintDocument.cpp
     KisGpuPaintDocument.h
-    KisGpuDocumentRecovery.cpp
     ../files/gpu/KisGpuKraDocumentFile.cpp
 )
 target_compile_definitions(kritadocumentgpupaint PRIVATE kritadocumentpainting_EXPORTS)

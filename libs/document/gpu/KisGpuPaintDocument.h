@@ -27,8 +27,8 @@ struct FileOpenOutcome;
  * All calls and destruction use the GUI/device thread. The borrowed execution
  * owner outlives this document, retained images and display windows. Destruction
  * releases the image reference; close() closes the shared image. Image edits
- * forward notifications after request admission. Saving and recovery notify
- * with adopted file metadata.
+ * forward notifications after request admission. Saving notifies with adopted
+ * file metadata.
  * Construction throws std::invalid_argument for invalid values and
  * std::length_error when the execution owner cannot admit another document.
  */
@@ -71,10 +71,6 @@ public:
     FileOutcome adoptSavedFile(const QString &path, const Paint::Snapshot &version);
     /** Validates image metadata before replacing the retained KRA description and files. */
     FileOutcome setKraImageMetadata(const ImportExport::Kra::ImageMetadata &metadata);
-    /** Bounded logical recovery, including file metadata and pending input. */
-    QByteArray recoveryData() const;
-    /** Validates before adopting a fresh operation identity on the same handle. */
-    Paint::Result restoreRecovery(const QByteArray &data);
 
 Q_SIGNALS:
     void changed();
