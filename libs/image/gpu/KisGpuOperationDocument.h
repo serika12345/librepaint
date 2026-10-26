@@ -212,6 +212,10 @@ struct FigureStyle
     std::optional<std::array<quint8, 4>> fill;
     std::optional<PatternFill> pattern;
     LayerBlendMode fillBlendMode = LayerBlendMode::Normal;
+    /** Original canvas opacity for a solid, outline-free normal fill.
+     * Absent retains byte-opacity semantics, including earlier recovery records.
+     */
+    std::optional<qreal> canvasOpacity;
 };
 
 /** True when this figure contributes filled interior coverage. */

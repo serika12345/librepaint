@@ -97,7 +97,7 @@ QList<LayerInsertion> insertionForest(const Snapshot &source, const QUuid &paren
     return result;
 }
 
-/** Rebuilds a controlled format 54 record as an older record by dropping the
+/** Rebuilds a controlled format 54/55 record as an older record by dropping the
  * Colorize flag and binary64 luma words from one HSV Adjustment
  * operation. The caller keeps a single tileless HSV operation in the record.
  */
@@ -113,7 +113,7 @@ QByteArray olderHsvRecovery(const QByteArray &recovery, quint16 format)
     quint32 magic = 0;
     quint16 sourceFormat = 0;
     stream >> magic >> sourceFormat;
-    if (magic != 0x4c504f52 || sourceFormat != 54) return {};
+    if (magic != 0x4c504f52 || (sourceFormat != 54 && sourceFormat != 55)) return {};
     qint32 width = 0, height = 0, sx = 0, sy = 0, sw = 0, sh = 0;
     quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
     quint8 inverted = 0, selectionKind = 0;
@@ -237,6 +237,7 @@ private Q_SLOTS:
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
     void filledFiguresPreserveStylesHistoryAndRecovery();
+    void fractionalFillOpacityFreezesHistoryAndRecovery();
     void fillBlendModesFreezeHistoryAndRecovery_data();
     void fillBlendModesFreezeHistoryAndRecovery();
     void strokeBlendModesFreezeHistoryAndRecovery_data();
@@ -2184,7 +2185,7 @@ void KisGpuOperationDocumentTest::grayscaleRecoveryKeepsItsKindAcrossFormatBumps
     quint16 format = 0;
     headerStream >> magic >> format;
     QCOMPARE(magic, quint32(0x4c504f52));
-    QCOMPARE(format, quint16(54));
+    QCOMPARE(format, quint16(55));
 
     // The same record restores at the current format.
     OperationDocument restored({1, 1});
@@ -2607,7 +2608,7 @@ void KisGpuOperationDocumentTest::hsvAdjustmentRecoveryKeepsSettingsAndOlderForm
     quint16 format = 0;
     headerStream >> magic >> format;
     QCOMPARE(magic, quint32(0x4c504f52));
-    QCOMPARE(format, quint16(54));
+    QCOMPARE(format, quint16(55));
 
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
@@ -4564,6 +4565,123 @@ void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistoryAndRecovery(
     QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->figureStyle.fill, style.fill);
+}
+
+void KisGpuOperationDocumentTest::fractionalFillOpacityFreezesHistoryAndRecovery()
+{
+    OperationDocument document(QSize(64, 64));
+    Brush brush;
+    brush.opacity = 95;
+    FigureStyle style;
+    style.outline = false;
+    style.fill = std::array<quint8, 4>{7, 19, 31, 255};
+    style.canvasOpacity = .37123456789;
+    const auto originalStyle = style;
+    const Shape shape{ShapeKind::Rectangle, {12, 12}, {52, 52}, 0};
+    const auto id = document.beginStroke(document.activeLayer(), brush, 42);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.appendSamples(id, {sample(12, 12), sample(52, 52)}), Result::Success);
+    QCOMPARE(document.updateFigure(id, shape, style), Result::Success);
+    const auto preview = document.preview();
+    style.canvasOpacity = .5;
+    QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers.first().operations.last())->figureStyle.canvasOpacity, originalStyle.canvasOpacity);
+
+    OperationDocument pending(QSize(1, 1));
+    QCOMPARE(pending.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(pending.preview()->layers.first().operations.last())->figureStyle.canvasOpacity, originalStyle.canvasOpacity);
+    QCOMPARE(std::get<PaintSnapshot>(pending.preview()->layers.first().operations.last())->brush.opacity, brush.opacity);
+    QCOMPARE(pending.commitStroke(pending.activeOperation()), Result::Success);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), preview);
+    const auto good = document.recoveryData();
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(good), Result::Success);
+    QCOMPARE(restored.recoveryData(), good);
+    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->figureStyle.canvasOpacity,
+             originalStyle.canvasOpacity);
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.recoveryData(), good);
+
+    // Reject invalid inputs before changing either completed or pending history.
+    for (int damage = 0; damage < 10; ++damage) {
+        auto bad = originalStyle;
+        auto badBrush = brush;
+        switch (damage) {
+        case 0: bad.canvasOpacity = -0.1; break;
+        case 1: bad.canvasOpacity = 1.01; break;
+        case 2: bad.canvasOpacity = std::numeric_limits<qreal>::infinity(); break;
+        case 3: bad.canvasOpacity = std::numeric_limits<qreal>::quiet_NaN(); break;
+        case 4: bad.outline = true; break;
+        case 5: bad.fill.reset(); break;
+        case 6: bad.fillBlendMode = LayerBlendMode::Multiply; break;
+        case 7: badBrush.erase = true; break;
+        case 8: badBrush.gaussianWash.emplace(); badBrush.gaussianWash->resourceDigest = QByteArray(32, 'r'); break;
+        case 9: bad.pattern = PatternFill{{1, 1}, QByteArray::fromHex("112233ff")}; break;
+        }
+        QCOMPARE(document.paintFigure(document.activeLayer(), badBrush, {sample(12, 12), sample(52, 52)},
+                                      shape, bad, 42), Result::InvalidInput);
+        QCOMPARE(document.recoveryData(), good);
+    }
+    const auto active = document.beginStroke(document.activeLayer(), brush, 43);
+    QCOMPARE(document.appendSamples(active, {sample(12, 12), sample(52, 52)}), Result::Success);
+    const auto live = document.recoveryData();
+    auto bad = originalStyle;
+    bad.canvasOpacity = -1;
+    QCOMPARE(document.updateFigure(active, shape, bad), Result::InvalidInput);
+    QCOMPARE(document.recoveryData(), live);
+
+    QByteArray marker;
+    QDataStream markerStream(&marker, QIODevice::WriteOnly);
+    markerStream.setVersion(QDataStream::Qt_5_15);
+    markerStream.setByteOrder(QDataStream::BigEndian);
+    markerStream << quint8(10);
+    for (const auto value : *originalStyle.fill) markerStream << value;
+    markerStream << quint8(LayerBlendMode::Normal) << *originalStyle.canvasOpacity;
+    const auto offset = good.indexOf(marker);
+    QVERIFY(offset >= 0);
+    QCOMPARE(offset, good.lastIndexOf(marker));
+    for (int damage = 0; damage < 9; ++damage) {
+        auto payload = good.chopped(32);
+        QBuffer buffer(&payload);
+        QVERIFY(buffer.open(QIODevice::ReadWrite));
+        QDataStream out(&buffer);
+        out.setVersion(QDataStream::Qt_5_15);
+        out.setByteOrder(QDataStream::BigEndian);
+        QVERIFY(buffer.seek(offset + 6));
+        switch (damage) {
+        case 0: out << qreal(-.1); break;
+        case 1: out << qreal(1.01); break;
+        case 2: out << std::numeric_limits<qreal>::infinity(); break;
+        case 3: out << std::numeric_limits<qreal>::quiet_NaN(); break;
+        case 4: payload[offset] |= char(1); break;
+        case 5: payload[offset] |= char(16); break;
+        case 6: payload[offset + 5] = char(LayerBlendMode::Multiply); break;
+        case 7: payload.truncate(offset + 6 + 3); break;
+        case 8: payload[5] = char(54); break;
+        }
+        buffer.close();
+        payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
+        QCOMPARE(document.restoreRecovery(payload), Result::InvalidRecovery);
+        QCOMPARE(document.recoveryData(), live);
+        QCOMPARE(document.activeOperation(), active);
+    }
+    QCOMPARE(document.cancelStroke(active), Result::Success);
+
+    // A byte-opacity record has no new payload and keeps its earlier meaning.
+    FigureStyle byteStyle = originalStyle;
+    byteStyle.canvasOpacity.reset();
+    OperationDocument byteDocument(QSize(64, 64));
+    QCOMPARE(byteDocument.paintFigure(byteDocument.activeLayer(), brush, {sample(12, 12), sample(52, 52)},
+                                      shape, byteStyle, 42), Result::Success);
+    QCOMPARE(restored.restoreRecovery(legacyRecovery(byteDocument, 54)), Result::Success);
+    const auto previous = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QVERIFY(!previous->figureStyle.canvasOpacity);
+    QCOMPARE(previous->brush.opacity, brush.opacity);
+    QCOMPARE(previous->figureStyle.fill, originalStyle.fill);
 }
 
 void KisGpuOperationDocumentTest::fillBlendModesFreezeHistoryAndRecovery_data()

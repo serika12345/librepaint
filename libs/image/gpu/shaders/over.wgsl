@@ -54,26 +54,7 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha:
         }
     }
     let sourceAlpha = projectionScaleByte(values.opacityBits, source.w);
-    var alpha = destination.w;
-    var blend: u32;
-    if ((values.channelMask & 8u) == 0u || destination.w == 255u) {
-        blend = projectionMultiply(sourceAlpha, 0x3b808081u);
-    } else if (destination.w == 0u) {
-        alpha = projectionByte(sourceAlpha);
-        blend = 0x3f800000u;
-        if (values.channelMask != 15u) { destination = vec4<u32>(0u); }
-    } else {
-        let value = projectionAlpha(sourceAlpha, destination.w);
-        alpha = projectionByte(value);
-        blend = projectionDivide(sourceAlpha, value);
-    }
-    var color = destination.xyz;
-    for (var channel = 0u; channel < 3u; channel += 1u) {
-        if ((values.channelMask & (1u << channel)) == 0u) { continue; }
-        if (blend == 0x3f800000u) { color[channel] = source[channel]; }
-        else { color[channel] = projectionColor(destination[channel], source[channel], blend); }
-    }
-    return packPixel(vec4<u32>(color, alpha));
+    return normalRgba8(destination, source.xyz, sourceAlpha, values.channelMask);
 }
 
 @compute @workgroup_size(8, 8)

@@ -744,7 +744,7 @@ Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const Q
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if (!validBrush(brush) || !validShape(shape) || !validFigureStyle(shape, style) ||
+    if (!validBrush(brush) || !validShape(shape) || !validFigureStyle(shape, style, brush) ||
         (brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (samples.isEmpty() && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, samples.size())) return Result::InvalidInput;
@@ -781,7 +781,7 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
 {
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
-    if (!validShape(shape) || !validFigureStyle(shape, style) ||
+    if (!validShape(shape) || !validFigureStyle(shape, style, m_edit->brush) ||
         (m_edit->brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (m_edit->sampleCount == 0 && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;

@@ -456,6 +456,15 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if ((figureFlags & 1u) != 0u) {
         var fillColor = unpackPixel(bitcast<u32>(parameters.mirror.z));
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
+        if ((figureFlags & 16u) != 0u) {
+            var sourceAlpha = projectionScaleByte(bitcast<u32>(parameters.tile.z), mul255(fillColor.w, fillCoverage));
+            if (selectionAlpha != 255u) {
+                let selectionScale = projectionScaleByte(0x3b808081u, selectionAlpha);
+                sourceAlpha = projectionMultiply(sourceAlpha, selectionScale);
+            }
+            outputPixels[index] = normalRgba8(destination, fillColor.xyz, sourceAlpha, writable & 15u);
+            return;
+        }
         let fillAlpha = mul255(mul255(fillColor.w, fillCoverage), selectionAlpha);
         let strokeAlpha = mul255((strokeColor.w * countOneBits(mask) + 8u) / 16u, selectionAlpha);
         // The circular marker retains the first color at equal coverage.

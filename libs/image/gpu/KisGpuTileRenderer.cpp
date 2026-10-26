@@ -63,12 +63,15 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     if (painting || path.endsWith(QLatin1String("/over.wgsl"))) {
         QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
         QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
-        if (!arithmetic.open(QIODevice::ReadOnly) || !separable.open(QIODevice::ReadOnly)) {
+        QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
+        if (!arithmetic.open(QIODevice::ReadOnly) || !separable.open(QIODevice::ReadOnly) ||
+            !normal.open(QIODevice::ReadOnly)) {
             error = QStringLiteral("GPU RGBA8 arithmetic could not be loaded");
             return {};
         }
         source += arithmetic.readAll() + '\n';
         source += separable.readAll() + '\n';
+        source += normal.readAll() + '\n';
     }
     if (painting) {
         QFile gaussian(QStringLiteral(":/librepaint/gpu/shaders/gaussian.wgsl"));
@@ -656,7 +659,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                   operation.figureStyle.fill ? packedPixel(*operation.figureStyle.fill) : 0,
                                   quint32(fillEnabled) | (operation.figureStyle.outline ? 0u : 2u) |
                                       (operation.shape.windingFill ? 4u : 0u) |
-                                      (operation.figureStyle.pattern ? 8u : 0u)};
+                                      (operation.figureStyle.pattern ? 8u : 0u) |
+                                      (operation.figureStyle.canvasOpacity ? 16u : 0u)};
                     if (operation.figureStyle.pattern) {
                         job.values.patternWidth = quint32(operation.figureStyle.pattern->size.width());
                         job.values.patternHeight = quint32(operation.figureStyle.pattern->size.height());
@@ -694,6 +698,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                             }
                         }
                     }
+                    if (operation.figureStyle.canvasOpacity) {
+                        const float opacity = float(*operation.figureStyle.canvasOpacity);
+                        std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));
+                    }
                     if (operation.brush.gaussianWash) {
                         const float opacity = float(operation.brush.gaussianWash->canvasOpacity);
                         std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));
@@ -701,6 +709,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         job.values.paintFlags |= 512u;
                     }
                     job.output->mayContainHiddenRgb = operation.brush.alphaLocked || operation.brush.erase ||
+                        operation.figureStyle.canvasOpacity ||
                         operation.figureStyle.pattern || (job.input && job.input->mayContainHiddenRgb);
                     tiles[tile.key()] = job.output;
                     jobs.push_back(std::move(job));

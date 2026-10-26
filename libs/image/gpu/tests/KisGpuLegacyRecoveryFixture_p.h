@@ -678,6 +678,7 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 Q_ASSERT(position >= 0 && position == payload.lastIndexOf(prefix));
                 const auto patternBytes = operation.figureStyle.pattern ?
                     qsizetype(12 + operation.figureStyle.pattern->byteCount()) : 0;
+                Q_ASSERT(!operation.figureStyle.canvasOpacity);
                 // Format 48 appends the frozen fill blend mode after the fill data.
                 const auto styleSize = 1 + (operation.figureStyle.fill ? 4 : 0) + patternBytes + 1;
                 Q_ASSERT(payload.at(position + prefix.size() + styleSize) == char(operation.brush.pixelPerfect));

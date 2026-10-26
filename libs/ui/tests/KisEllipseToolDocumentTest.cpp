@@ -56,12 +56,19 @@
 #include <kis_tool.h>
 #include <kis_node.h>
 #include <kis_paint_device.h>
+#include <kis_painter.h>
+#include <kis_pixel_selection.h>
+#include <kis_selection.h>
+#include <QPainterPath>
+#include <limits>
 #include <kis_properties_configuration.h>
 #include <kundo2stack.h>
 #include <opengl/kis_opengl.h>
 #include <testui.h>
 #include <algorithm>
 #include <memory>
+#include <cmath>
+#include <cstring>
 #include <utility>
 
 enum class FigureKind { Ellipse, Rectangle, RoundedRectangle, Polyline, Polygon };
@@ -109,9 +116,13 @@ private Q_SLOTS:
     void ordinarySolidFillsPreserveShapeHistoryAndSaving();
     void fillOnlyUsesSelectedPreset_data();
     void fillOnlyUsesSelectedPreset();
+    void fractionalSolidFillsUseCapturedOpacity_data();
+    void fractionalSolidFillsUseCapturedOpacity();
+    void fractionalFillMatchesPainterWithProtectedChannels_data();
+    void fractionalFillMatchesPainterWithProtectedChannels();
 private:
     void addSolidFigureRows(bool gpu);
-    void exerciseFigure(KisPaintOpPresetSP preset = {}, bool gpuForPreset = false, QByteArray *firstPixels = nullptr);
+    void exerciseFigure(KisPaintOpPresetSP preset = {}, bool gpuForPreset = false, QByteArray *firstPixels = nullptr, qreal opacity = 1);
     KisPaintOpPresetSP m_preset;
     KisPaintOpPresetSP m_fillPreset;
 };
@@ -250,7 +261,151 @@ void KisEllipseToolDocumentTest::fillOnlyUsesSelectedPreset()
     QCOMPARE(gpu, cpu);
 }
 
-void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool gpuForPreset, QByteArray *firstPixels)
+void KisEllipseToolDocumentTest::fractionalSolidFillsUseCapturedOpacity_data()
+{
+    QTest::addColumn<FigureKind>("figure");
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("closeOnError");
+    QTest::addColumn<bool>("canonical");
+    QTest::addColumn<bool>("closeOnPublish");
+    QTest::addColumn<int>("fillStyle");
+    QTest::addColumn<int>("outlineStyle");
+    QTest::addColumn<qreal>("opacity");
+    const auto row = [](const char *name, FigureKind figure, qreal opacity) {
+        QTest::newRow(name) << figure << false << false << true << false
+            << int(KisFigurePaintingOptions::FillStyleForegroundColor)
+            << int(KisFigurePaintingOptions::StrokeStyleNone) << opacity;
+    };
+    row("ellipse-half", FigureKind::Ellipse, .5);
+    row("rectangle-half", FigureKind::Rectangle, .5);
+    row("rounded-rectangle-half", FigureKind::RoundedRectangle, .5);
+    row("polyline-half", FigureKind::Polyline, .5);
+    row("polygon-half", FigureKind::Polygon, .5);
+    row("ellipse-byte128", FigureKind::Ellipse, qreal(128) / 255);
+    row("ellipse-fraction", FigureKind::Ellipse, .37);
+    row("ellipse-zero", FigureKind::Ellipse, 0);
+    row("ellipse-tiny", FigureKind::Ellipse, 1e-15);
+}
+
+void KisEllipseToolDocumentTest::fractionalSolidFillsUseCapturedOpacity()
+{
+    QFETCH(qreal, opacity);
+    QByteArray cpu, gpu;
+    exerciseFigure(m_fillPreset, false, &cpu, opacity);
+    if (QTest::currentTestFailed()) return;
+    exerciseFigure(m_fillPreset, true, &gpu, opacity);
+    if (QTest::currentTestFailed()) return;
+    QCOMPARE(gpu, cpu);
+}
+
+void KisEllipseToolDocumentTest::fractionalFillMatchesPainterWithProtectedChannels_data()
+{
+    QTest::addColumn<qreal>("opacity");
+    QTest::addColumn<int>("writeMask");
+    QTest::newRow("zero") << qreal(0) << 15;
+    QTest::newRow("half") << qreal(.5) << 15;
+    QTest::newRow("byte128") << qreal(128) / 255 << 15;
+    QTest::newRow("fraction") << qreal(.37) << 15;
+    QTest::newRow("tiny") << qreal(1e-15) << 15;
+    QTest::newRow("subnormal") << qreal(std::numeric_limits<float>::denorm_min()) << 15;
+    QTest::newRow("rounded-to-zero") << qreal(1e-46) << 15;
+    QTest::newRow("alpha-protected") << qreal(.37) << 7;
+    QTest::newRow("red-blue-protected") << qreal(.37) << 10;
+    QTest::newRow("green-protected") << qreal(.5) << 13;
+}
+
+void KisEllipseToolDocumentTest::fractionalFillMatchesPainterWithProtectedChannels()
+{
+    QFETCH(qreal, opacity);
+    QFETCH(int, writeMask);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const QRect region(0, 0, 64, 64);
+    const auto rgba = [](QByteArray pixels) {
+        for (qsizetype i = 0; i < pixels.size(); i += 4) std::swap(pixels[i], pixels[i + 2]);
+        return pixels;
+    };
+    QByteArray initial(64 * 64 * 4, Qt::Uninitialized), alpha(64 * 64, Qt::Uninitialized);
+    const quint8 destinationAlpha[] = {0, 1, 128, 255};
+    const quint8 selectionAlpha[] = {0, 1, 3, 127, 128, 254, 255};
+    for (int y = 0; y < 64; ++y) {
+        for (int x = 0; x < 64; ++x) {
+            const auto offset = (y * 64 + x) * 4;
+            initial[offset] = char(37 + (x * 3) % 173);
+            initial[offset + 1] = char(17 + (y * 7) % 197);
+            initial[offset + 2] = char(219 - (x + y) % 181);
+            initial[offset + 3] = char(destinationAlpha[(x + y) % 4]);
+            alpha[y * 64 + x] = char(selectionAlpha[(x + 3 * y) % 7]);
+        }
+    }
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    KisPaintDeviceSP cpu(new KisPaintDevice(cs));
+    cpu->writeBytes(reinterpret_cast<const quint8 *>(initial.constData()), 0, 0, 64, 64);
+    KisSelectionSP selection(new KisSelection);
+    selection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(alpha.constData()), 0, 0, 64, 64);
+    KisPainter painter(cpu, selection);
+    painter.setPaintColor(KoColor(QColor(17, 129, 241), cs));
+    painter.setFillStyle(KisPainter::FillStyleForegroundColor);
+    painter.setOpacityF(opacity);
+    QBitArray channels(4);
+    for (int channel = 0; channel < 4; ++channel)
+        channels.setBit(channel, writeMask & (1 << (channel == 0 ? 2 : channel == 2 ? 0 : channel)));
+    painter.setChannelFlags(channels);
+    QPainterPath path;
+    path.addEllipse(QRectF(16, 16, 32, 32));
+    painter.fillPainterPath(path);
+    QByteArray expected(initial.size(), Qt::Uninitialized);
+    cpu->readBytes(reinterpret_cast<quint8 *>(expected.data()), 0, 0, 64, 64);
+    expected = rgba(expected);
+
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    Gpu::RasterImage raster;
+    raster.size = region.size();
+    QByteArray tile(Gpu::RgbaTile::ByteCount, '\0');
+    const auto initialRgba = rgba(initial);
+    for (int y = 0; y < 64; ++y)
+        std::memcpy(tile.data() + y * 256 * 4, initialRgba.constData() + y * 64 * 4, 64 * 4);
+    raster.layers.append({QStringLiteral("Mixed alpha"), true,
+        QUuid(QStringLiteral("{4ad3d278-ec82-4dd6-9a89-94e589c1f45b}")), {{{0, 0}, tile}}});
+    auto owner = Gpu::PaintImageSP::create(execution, raster);
+    const auto layer = owner->operations().activeLayer();
+    const auto mask = Gpu::SelectionMask::fromAlphaCoverage(region, alpha, region);
+    QVERIFY(mask);
+    QCOMPARE(owner->setSelectionMask(mask), Gpu::Result::Success);
+    Gpu::Brush brush;
+    brush.channelWriteMask = quint8(writeMask);
+    Gpu::FigureStyle style;
+    style.outline = false;
+    style.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    style.canvasOpacity = opacity;
+    QCOMPARE(owner->paintFigure(layer, brush, {{{16, 16}, 1}, {{48, 48}, 1}},
+        {Gpu::ShapeKind::Ellipse, {16, 16}, {48, 48}, 0}, style, 42), Gpu::Result::Success);
+    const auto actual = owner->readRgbaPixels(layer, region, expected.size());
+    QCOMPARE(actual.code, Gpu::ExecutionCode::Success);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        for (const auto &entry : {std::pair{QStringLiteral("expected"), expected},
+                                  std::pair{QStringLiteral("actual"), actual.bytes}}) {
+            QFile file(QDir(results).filePath(QStringLiteral("fractional-fill-%1-%2.rgba")
+                .arg(QString::fromLatin1(QTest::currentDataTag()), entry.first)));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(entry.second), qint64(entry.second.size()));
+        }
+    }
+    QCOMPARE(actual.bytes, expected);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(layer, region, expected.size()).bytes, initialRgba);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(layer, region, expected.size()).bytes, expected);
+    auto recovered = Gpu::PaintImageSP::create(execution, region.size());
+    QCOMPARE(recovered->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
+    QCOMPARE(recovered->readRgbaPixels(layer, region, expected.size()).bytes, expected);
+}
+
+void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool gpuForPreset, QByteArray *firstPixels, qreal opacity)
 {
     QFETCH(bool, gpu);
     const bool selectedPresetFill = bool(preset);
@@ -262,8 +417,10 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
     QFETCH(int, fillStyle);
     QFETCH(int, outlineStyle);
     const bool solid = fillStyle != KisFigurePaintingOptions::FillStyleNone;
-    const auto fillPixel = fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor ?
+    auto fillPixel = fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor ?
         QByteArray::fromHex("f18111ff") : QByteArray::fromHex("2c11ddff");
+    if (opacity == 0) fillPixel.fill('\0');
+    else fillPixel[3] = char(std::nearbyint(float(opacity) * 255.0f));
     const QPoint outlineProbe(32, solid ? 14 : 18);
     const bool hasOutline = outlineStyle != KisFigurePaintingOptions::StrokeStyleNone;
     const auto firstOutlinePixel = hasOutline ? QByteArray::fromHex("f18111ff") : QByteArray(4, char(0));
@@ -333,7 +490,7 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
     auto *resources = window->viewManager()->canvasResourceProvider();
     resources->setPaintOpPreset(preset ? preset : m_preset);
     resources->setSize(8);
-    resources->setOpacity(1);
+    resources->setOpacity(opacity);
     resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
     resources->setBGColor(KoColor(QColor(221, 17, 44), cs));
     resources->setEraserMode(false);
@@ -531,8 +688,10 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
         const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
         if (!results.isEmpty()) {
             QVERIFY(QDir().mkpath(results));
-            QFile file(QDir(results).filePath(QStringLiteral("selected-preset-fill-%1-%2.pixels")
-                .arg(gpu ? QStringLiteral("gpu") : QStringLiteral("ordinary"), QString::number(int(figure)))));
+            const auto name = QStringLiteral("selected-preset-fill-%1-%2")
+                .arg(gpu ? QStringLiteral("gpu") : QStringLiteral("ordinary"), QString::number(int(figure))) +
+                (opacity == 1 ? QString() : QLatin1Char('-') + QString::fromLatin1(QTest::currentDataTag()));
+            QFile file(QDir(results).filePath(name + QStringLiteral(".pixels")));
             QVERIFY(file.open(QIODevice::WriteOnly));
             QCOMPARE(file.write(*firstPixels), qint64(firstPixels->size()));
         }
@@ -559,6 +718,12 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
     lifetime->undoStack()->redo();
     image->waitForDone();
     QCOMPARE(pixel(outlineProbe), firstOutlinePixel);
+    if (firstPixels) {
+        QByteArray redone(64 * 64 * 4, Qt::Uninitialized);
+        image->root()->firstChild()->paintDevice()->readBytes(reinterpret_cast<quint8 *>(redone.data()), 0, 0, 64, 64);
+        QCOMPARE(redone, *firstPixels);
+    }
+    resources->setOpacity(1);
     start();
     tool->requestStrokeCancellation();
     if (!pathFigure) release();
@@ -589,6 +754,17 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
     QVERIFY2(saved.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(saved.diagnostic));
     QCOMPARE(saved.document.image.layers.size(), 1);
     QCOMPARE(saved.document.image.layers.first().tiles.first().rgba.mid((editProbe.y() * 256 + editProbe.x()) * 4, 4), QByteArray::fromHex("dd112cff"));
+    if (gpu && firstPixels) {
+        const auto opened = LibrePaint::Document::Gpu::PaintDocument::openKra(execution, path);
+        QVERIFY2(opened.code == LibrePaint::Document::Gpu::FileCode::Success, qPrintable(opened.diagnostic));
+        QByteArray pixels(64 * 64 * 4, Qt::Uninitialized);
+        image->root()->firstChild()->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), 0, 0, 64, 64);
+        for (qsizetype i = 0; i < pixels.size(); i += 4) std::swap(pixels[i], pixels[i + 2]);
+        const auto reopened = opened.document->image();
+        const auto read = reopened->readRgbaPixels(reopened->operations().activeLayer(), QRect(0, 0, 64, 64), pixels.size());
+        QCOMPARE(read.code, Gpu::ExecutionCode::Success);
+        QCOMPARE(read.bytes, pixels);
+    }
     resources->setEraserMode(true);
     start();
     release();
@@ -607,7 +783,7 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
         QVERIFY(QDir().mkpath(results));
         const auto figurePrefix = polygon ? QStringLiteral("polygon-tool") : pathFigure ? QStringLiteral("polyline-tool") : rounded ? QStringLiteral("rounded-rectangle-tool") :
                                   rectangle ? QStringLiteral("rectangle-tool") : QStringLiteral("ellipse-tool");
-        const auto prefix = (solid ? (hasOutline ? QStringLiteral("filled-") : QStringLiteral("fill-only-")) : QString()) + figurePrefix;
+        const auto prefix = (opacity == 1 ? QString() : QString::fromLatin1(QTest::currentDataTag()) + QLatin1Char('-')) + (solid ? (hasOutline ? QStringLiteral("filled-") : QStringLiteral("fill-only-")) : QString()) + figurePrefix;
         LibrePaint::Document::Gpu::PaintDocument fixed(owner);
         const auto saved = fixed.exportKra(QDir(results).filePath(prefix + QStringLiteral(".kra")));
         QVERIFY2(saved.code == LibrePaint::Document::Gpu::FileCode::Success, qPrintable(saved.diagnostic));

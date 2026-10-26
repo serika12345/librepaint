@@ -1321,11 +1321,19 @@ add_test(NAME ${ellipse_tool_ordinary_solid_test}
 set(ellipse_tool_preset_test libs-ui-preset-solid-fills-KisEllipseToolDocumentTest)
 add_test(NAME ${ellipse_tool_preset_test}
     COMMAND KisEllipseToolDocumentTest fillOnlyUsesSelectedPreset)
+set(ellipse_tool_fractional_test libs-ui-fractional-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_fractional_test}
+    COMMAND KisEllipseToolDocumentTest fractionalSolidFillsUseCapturedOpacity)
+set(ellipse_tool_protected_fill_test libs-ui-protected-fractional-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_protected_fill_test}
+    COMMAND KisEllipseToolDocumentTest fractionalFillMatchesPainterWithProtectedChannels)
 set(ellipse_tool_document_tests ${ellipse_tool_document_test} ${ellipse_tool_solid_test} ${ellipse_tool_ordinary_solid_test}
-    ${ellipse_tool_preset_test})
+    ${ellipse_tool_preset_test} ${ellipse_tool_fractional_test} ${ellipse_tool_protected_fill_test})
 set_tests_properties(${ellipse_tool_document_tests} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_tests_properties(${ellipse_tool_document_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+    set_tests_properties(${ellipse_tool_fractional_test} ${ellipse_tool_protected_fill_test}
+        PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_tests_properties(${ellipse_tool_document_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 300)
 elseif(WIN32)

@@ -20,7 +20,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 54;
+constexpr quint16 FormatVersion = 55;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -207,7 +207,7 @@ QByteArray OperationDocument::recoveryData() const
             }
             const auto &pattern = operation.figureStyle.pattern;
             stream << quint8(quint8(operation.figureStyle.outline) | (operation.figureStyle.fill ? 2 : 0) |
-                             (pattern ? 4 : 0));
+                             (pattern ? 4 : 0) | (operation.figureStyle.canvasOpacity ? 8 : 0));
             if (operation.figureStyle.fill)
                 for (const auto component : *operation.figureStyle.fill) stream << component;
             if (pattern) {
@@ -221,6 +221,7 @@ QByteArray OperationDocument::recoveryData() const
                 stream.writeRawData(pattern->rgba.constData(), int(pattern->byteCount()));
             }
             stream << quint8(operation.figureStyle.fillBlendMode);
+            if (operation.figureStyle.canvasOpacity) stream << *operation.figureStyle.canvasOpacity;
             stream << quint8(quint8(operation.brush.pixelPerfect) | (quint8(operation.brush.basicSmoothing) << 1) |
                               (quint8(operation.smoothingFinished) << 2) | (operation.brush.weightedSmoothing ? 8 : 0));
             if (operation.brush.weightedSmoothing) {
@@ -713,7 +714,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         if (format >= 17) {
             quint8 figureFlags = 0;
             stream >> figureFlags;
-            if (figureFlags > (format >= 47 ? 7 : 3)) return Result::InvalidRecovery;
+            if (figureFlags > (format >= 55 ? 15 : format >= 47 ? 7 : 3)) return Result::InvalidRecovery;
             operation->figureStyle.outline = figureFlags & 1;
             if (figureFlags & 2) {
                 std::array<quint8, 4> fill;
@@ -737,6 +738,11 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 stream >> blendMode;
                 if (blendMode > quint8(LayerBlendMode::LinearDodge)) return Result::InvalidRecovery;
                 operation->figureStyle.fillBlendMode = static_cast<LayerBlendMode>(blendMode);
+            }
+            if (format >= 55 && (figureFlags & 8)) {
+                qreal opacity = 0;
+                stream >> opacity;
+                operation->figureStyle.canvasOpacity = opacity;
             }
         }
         if (format >= 19) {
@@ -778,7 +784,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         operation->shape.first = {x1, y1};
         operation->shape.second = {x2, y2};
         if (brushFlags > (format < 12 ? 1 : format < 13 ? 3 : format < 14 ? 63 : 255) || !validBrush(operation->brush) || !validShape(operation->shape) ||
-            !validFigureStyle(operation->shape, operation->figureStyle) ||
+            !validFigureStyle(operation->shape, operation->figureStyle, operation->brush) ||
             (operation->brush.basicSmoothing && (operation->shape.kind != ShapeKind::Freehand ||
              (!operation->smoothingFlushes.isEmpty() && operation->smoothingFlushes.last() > sampleCount))) ||
             !validShapeSampleCount(operation->shape, sampleCount) ||

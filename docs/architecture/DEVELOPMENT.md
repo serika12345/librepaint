@@ -1452,6 +1452,16 @@ Undo／RedoとKRA保存をCPU画像とGPU画像で検査する。吸着を無効
 CPU画像とGPU画像の全画素で比較する。追加編集、Undo／Redo、KRA保存とPNG書出し、
 矩形・多角形の完成版通知中に終了した文書の履歴も検査する。
 専用の`libs-ui-preset-solid-fills-KisEllipseToolDocumentTest`は同じ試験対象から実行する。
+`fractionalSolidFillsUseCapturedOpacity`は、同じ五図形の50%塗りをCPUの全画素と照合する。
+楕円では128/255、0.37、ゼロと極小不透明度も固定し、Undo／Redo、KRA保存・GPU再読込みを検査する。
+`fractionalFillMatchesPainterWithProtectedChannels`は実CPUの単色塗りとGPU図形操作を、
+透明RGB、下地アルファ0・1・128・255、選択被覆0・1・3・127・128・254・255で照合する。
+非正規化不透明度、積のゼロへの丸め、アルファ保護とRGB保護を含め、履歴と復旧後も全画素を保持する。
+二つの契約はmacOSでは画面外、LinuxではXCBで実行する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test KisEllipseToolDocumentTest '^libs-ui-(fractional-solid-fills|protected-fractional-fills)-KisEllipseToolDocumentTest$'
+```
 固定した塗りは`LIBREPAINT_GPU_RESULT_DIR`へ`filled-<図形>-tool`と`fill-only-rectangle-tool`のKRA・PNGを出力する。
 折れ線・多角形はクリックした頂点をダブルクリックで確定する。描画通知中のタブ終了では進行中の操作を取り消す。
 `KisToolProxyContractTest`は、継続を辞退したダブルクリックの直後に、次の描画の開始入力が届くことを検査する。
