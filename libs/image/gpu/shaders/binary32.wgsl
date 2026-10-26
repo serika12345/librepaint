@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Positive finite binary32 values for normal RGBA8 projection. Integer
-// evaluation fixes normalization, single-rounded multiply-add and quotient
-// rounding before the final nearest-even byte conversion.
+// Nonnegative finite binary32 opacity and alpha for normal RGBA8 composition.
+// Integer evaluation fixes normalization, gradual underflow, single-rounded
+// multiply-add and quotient rounding before nearest-even byte conversion.
 fn projectionAdd(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
     let low = a.x + b.x;
     return vec2<u32>(low, a.y + b.y + select(0u, 1u, low < a.x));
@@ -13,21 +13,26 @@ fn projectionSubtract(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
 }
 fn projectionLeft(value: vec2<u32>, count: u32) -> vec2<u32> {
     if (count == 0u) { return value; }
+    if (count >= 64u) { return vec2<u32>(0u); }
     if (count >= 32u) { return vec2<u32>(0u, value.x << (count - 32u)); }
     return vec2<u32>(value.x << count, (value.y << count) | (value.x >> (32u - count)));
 }
 fn projectionRight(value: vec2<u32>, count: u32) -> vec2<u32> {
     if (count == 0u) { return value; }
+    if (count >= 64u) { return vec2<u32>(0u); }
     if (count >= 32u) { return vec2<u32>(value.y >> (count - 32u), 0u); }
     return vec2<u32>((value.x >> count) | (value.y << (32u - count)), value.y >> count);
 }
 fn projectionLowBits(value: vec2<u32>, count: u32) -> bool {
+    if (count >= 64u) { return any(value != vec2<u32>(0u)); }
     if (count >= 32u) {
         return value.x != 0u || (value.y & ((1u << (count - 32u)) - 1u)) != 0u;
     }
     return (value.x & ((1u << count) - 1u)) != 0u;
 }
 fn projectionRoundedShift(value: vec2<u32>, count: u32) -> u32 {
+    if (count == 0u) { return value.x; }
+    if (count > 64u) { return 0u; }
     let quotient = projectionRight(value, count).x;
     let guardBit = projectionRight(value, count - 1u).x & 1u;
     return quotient + select(0u, 1u, guardBit != 0u &&
@@ -37,6 +42,13 @@ fn projectionFloat(value: vec2<u32>, scale: i32) -> u32 {
     if (all(value == vec2<u32>(0u))) { return 0u; }
     var leading = 31u - countLeadingZeros(value.x);
     if (value.y != 0u) { leading = 63u - countLeadingZeros(value.y); }
+    if (scale + i32(leading) < -126) {
+        // Gradual underflow rounds the original integer directly to 2^-149.
+        // Rounding to a normal mantissa first would round some ties twice.
+        let shift = -149 - scale;
+        if (shift > 0) { return projectionRoundedShift(value, u32(shift)); }
+        return value.x << u32(-shift);
+    }
     let shift = i32(leading) - 23;
     var mantissa: u32;
     var power = scale + shift;
@@ -45,8 +57,19 @@ fn projectionFloat(value: vec2<u32>, scale: i32) -> u32 {
     if (mantissa == 0x1000000u) { mantissa >>= 1u; power += 1; }
     return (u32(power + 23 + 127) << 23u) | (mantissa & 0x7fffffu);
 }
-fn projectionMantissa(value: u32) -> u32 { return (value & 0x7fffffu) | 0x800000u; }
-fn projectionPower(value: u32) -> i32 { return i32((value >> 23u) & 255u) - 127 - 23; }
+fn projectionMantissa(value: u32) -> u32 {
+    let fraction = value & 0x7fffffu;
+    if ((value & 0x7f800000u) != 0u) { return fraction | 0x800000u; }
+    if (fraction == 0u) { return 0u; }
+    return fraction << (countLeadingZeros(fraction) - 8u);
+}
+fn projectionPower(value: u32) -> i32 {
+    let exponent = (value >> 23u) & 255u;
+    if (exponent != 0u) { return i32(exponent) - 127 - 23; }
+    let fraction = value & 0x7fffffu;
+    if (fraction == 0u) { return -149; }
+    return -149 - i32(countLeadingZeros(fraction) - 8u);
+}
 fn projectionScaleByte(value: u32, factor: u32) -> u32 {
     return projectionFloat(vec2<u32>(projectionMantissa(value) * factor, 0u), projectionPower(value));
 }
@@ -75,6 +98,7 @@ fn projectionAlpha(sourceAlpha: u32, destinationAlpha: u32) -> u32 {
     return projectionFloat(projectionAdd(retained, destination), commonPower);
 }
 fn projectionDivide(a: u32, b: u32) -> u32 {
+    if (a == 0u) { return 0u; }
     let denominator = projectionMantissa(b);
     var remainder = projectionMantissa(a);
     var exponent = projectionPower(a) - projectionPower(b);
@@ -86,11 +110,13 @@ fn projectionDivide(a: u32, b: u32) -> u32 {
         quotient <<= 1u;
         if (remainder >= denominator) { remainder -= denominator; quotient |= 1u; }
     }
-    if (remainder * 2u > denominator || (remainder * 2u == denominator && (quotient & 1u) != 0u)) {
-        quotient += 1u;
-    }
-    if (quotient == 0x1000000u) { quotient >>= 1u; exponent += 1; }
-    return (u32(exponent + 127) << 23u) | (quotient & 0x7fffffu);
+    // Retain a guard bit and a sticky remainder through normal/subnormal
+    // encoding, so a tiny quotient receives only one nearest-even rounding.
+    remainder <<= 1u;
+    let guardBit = select(0u, 1u, remainder >= denominator);
+    if (guardBit != 0u) { remainder -= denominator; }
+    let value = (quotient << 2u) | (guardBit << 1u) | select(0u, 1u, remainder != 0u);
+    return projectionFloat(vec2<u32>(value, 0u), exponent - 25);
 }
 fn projectionByte(value: u32) -> u32 {
     if (value == 0u) { return 0u; }
@@ -99,6 +125,9 @@ fn projectionByte(value: u32) -> u32 {
     return projectionRoundedShift(vec2<u32>(projectionMantissa(value), 0u), u32(shift));
 }
 fn projectionColor(destination: u32, source: u32, blend: u32) -> u32 {
+    // Byte colors differ by at most 255. Below 2^-9 the exact change is
+    // less than half a byte, including its intermediate binary32 rounding.
+    if (blend < 0x3b000000u) { return destination; }
     let difference = i32(source) - i32(destination);
     let product = vec2<u32>(u32(abs(difference)) * projectionMantissa(blend), 0u);
     let base = projectionLeft(vec2<u32>(destination, 0u), u32(-projectionPower(blend)));

@@ -10,6 +10,7 @@
 #include <gpu/KisGpuReadbackBatch_p.h>
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <set>
 #include <vector>
 
@@ -53,8 +54,10 @@ void KisGpuProjectionArithmeticTest::normalRgba8AlphaAndQuotientsPreserveNearest
 fn quotientContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;
     if (index < arrayLength(&basePixels)) {
-        outputPixels[index * 2u] = projectionDivide(basePixels[index], layerPixels[index]);
-        outputPixels[index * 2u + 1u] = projectionAlpha(basePixels[index], index % 254u + 1u);
+        outputPixels[index * 4u] = projectionDivide(basePixels[index], layerPixels[index]);
+        outputPixels[index * 4u + 1u] = projectionAlpha(basePixels[index], index % 254u + 1u);
+        outputPixels[index * 4u + 2u] = projectionScaleByte(basePixels[index], 1u);
+        outputPixels[index * 4u + 3u] = projectionMultiply(basePixels[index], 0x3f000000u);
     }
 }
 )";
@@ -74,7 +77,7 @@ fn quotientContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
 
     constexpr quint32 count = 255 * 254;
     constexpr quint64 bytes = count * sizeof(quint32);
-    constexpr quint64 outputBytes = bytes * 2;
+    constexpr quint64 outputBytes = bytes * 4;
     auto numerator = createBuffer(device->nativeDevice(), bytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     auto denominator = createBuffer(device->nativeDevice(), bytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     auto output = createBuffer(device->nativeDevice(), outputBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc);
@@ -94,11 +97,18 @@ fn quotientContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     QVERIFY2(bindings && device->diagnostic().isEmpty(), qPrintable(device->diagnostic()));
 
     std::vector<quint32> numerators(count), denominators(count), expected(count);
-    for (int opacity = 1; opacity <= 255; ++opacity) {
+    // Canvas opacity retains binary32 values before final RGBA8 quantization,
+    // including zero, very small values and gradual underflow with a mask.
+    std::vector<float> opacities{0.0f, 0.37f, 0.5f, 1e-15f,
+                                std::numeric_limits<float>::min(),
+                                std::nextafter(std::numeric_limits<float>::min(), 0.0f),
+                                std::numeric_limits<float>::denorm_min(),
+                                3 * std::numeric_limits<float>::denorm_min()};
+    for (int opacity = 1; opacity <= 255; ++opacity) opacities.push_back(float(opacity) / 255.0f);
+    for (const float factor : opacities) {
         // Volatile stores establish binary32 multiplication boundaries. The
         // binary64 product and addition supply a reference independent of the
         // host's binary32 fma implementation for this finite RGBA8 domain.
-        const float factor = float(opacity) / 255.0f;
         for (int sourceAlpha = 1; sourceAlpha <= 255; ++sourceAlpha) {
             const volatile float alpha = factor * float(sourceAlpha);
             for (int destinationAlpha = 1; destinationAlpha < 255; ++destinationAlpha) {
@@ -128,17 +138,24 @@ fn quotientContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
         QCOMPARE(actual.size(), qsizetype(outputBytes));
         for (quint32 index = 0; index < count; ++index) {
             quint32 bits;
-            std::memcpy(&bits, actual.constData() + index * 2 * sizeof(bits), sizeof(bits));
+            std::memcpy(&bits, actual.constData() + index * 4 * sizeof(bits), sizeof(bits));
             if (bits != expected[index]) QFAIL(qPrintable(QStringLiteral(
                 "opacity=%1 sourceAlpha=%2 destinationAlpha=%3 numerator=%4 denominator=%5 actual=%6 expected=%7")
-                .arg(opacity).arg(index / 254 + 1).arg(index % 254 + 1)
+                .arg(floatBits(factor), 8, 16, QLatin1Char('0')).arg(index / 254 + 1).arg(index % 254 + 1)
                 .arg(numerators[index], 8, 16, QLatin1Char('0')).arg(denominators[index], 8, 16, QLatin1Char('0'))
                 .arg(bits, 8, 16, QLatin1Char('0')).arg(expected[index], 8, 16, QLatin1Char('0'))));
-            std::memcpy(&bits, actual.constData() + (index * 2 + 1) * sizeof(bits), sizeof(bits));
+            std::memcpy(&bits, actual.constData() + (index * 4 + 1) * sizeof(bits), sizeof(bits));
             if (bits != denominators[index]) QFAIL(qPrintable(QStringLiteral(
                 "alpha opacity=%1 sourceAlpha=%2 destinationAlpha=%3 actual=%4 expected=%5")
-                .arg(opacity).arg(index / 254 + 1).arg(index % 254 + 1)
+                .arg(floatBits(factor), 8, 16, QLatin1Char('0')).arg(index / 254 + 1).arg(index % 254 + 1)
                 .arg(bits, 8, 16, QLatin1Char('0')).arg(denominators[index], 8, 16, QLatin1Char('0'))));
+            std::memcpy(&bits, actual.constData() + (index * 4 + 2) * sizeof(bits), sizeof(bits));
+            QCOMPARE(bits, numerators[index]);
+            float alpha;
+            std::memcpy(&alpha, &numerators[index], sizeof(alpha));
+            const volatile float masked = alpha * 0.5f;
+            std::memcpy(&bits, actual.constData() + (index * 4 + 3) * sizeof(bits), sizeof(bits));
+            QCOMPARE(bits, floatBits(masked));
         }
     }
 }
@@ -223,7 +240,8 @@ fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
             blends.insert(floatBits(std::nextafter(midpoint, 1.0f)));
         }
     }
-    blends.insert(floatBits(1.0f));
+    for (float blend : {0.0f, 1.0f, 1e-15f, std::numeric_limits<float>::min(),
+                        std::numeric_limits<float>::denorm_min()}) blends.insert(floatBits(blend));
     for (quint32 blendBits : blends) {
         const quint32 values[4] = {blendBits, 0, 0, 0};
         wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
@@ -245,10 +263,10 @@ fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
         std::memcpy(&blend, &blendBits, sizeof(blend));
         for (quint32 index = 0; index < count; ++index) {
             const int destination = int(index >> 8), source = int(index & 255);
-            // With byte colors and these blend exponents, the exact product
-            // and sum need at most 48 significant bits. Binary64 retains both;
-            // the float store supplies the required first rounding, independently
-            // of the platform's binary32 fma library implementation.
+            // At byte-changing blend values, binary64 retains the exact product
+            // and sum before the float store supplies the first rounding.
+            // Smaller blends preserve the destination byte even if binary64
+            // rounds away the change. This avoids a platform fma dependency.
             const volatile float color = float(double(source - destination) * double(blend) + double(destination));
             const auto expected = quint32(std::nearbyint(color));
             quint32 value;
