@@ -739,7 +739,7 @@ Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const Q
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if (!validBrush(brush) || !validShape(shape) || !validFigureStyle(shape, style, brush) ||
+    if (!validBrush(brush) || !validShape(shape) || !validFigureStyle(shape, style) ||
         (brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (samples.isEmpty() && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, samples.size())) return Result::InvalidInput;
@@ -776,7 +776,7 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
 {
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
-    if (!validShape(shape) || !validFigureStyle(shape, style, m_edit->brush) ||
+    if (!validShape(shape) || !validFigureStyle(shape, style) ||
         (m_edit->brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (m_edit->sampleCount == 0 && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;
@@ -1675,7 +1675,7 @@ Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
 }
 
 Result OperationDocument::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
-                                    quint8 opacity, bool erase, bool alphaLocked,
+                                    qreal opacity, bool erase, bool alphaLocked,
                                     LayerBlendMode blendMode)
 {
     const std::array<quint8, 4> color{rgb[0], rgb[1], rgb[2], 255};
@@ -1687,7 +1687,7 @@ Result OperationDocument::fillLayer(LayerId layer, const std::array<quint8, 3> &
 }
 
 Result OperationDocument::fillLayerPattern(LayerId layer, const PatternFill &pattern,
-                                           quint8 opacity, bool erase, bool alphaLocked,
+                                           qreal opacity, bool erase, bool alphaLocked,
                                            LayerBlendMode blendMode)
 {
     if (!pattern.isValid()) return Result::InvalidInput;
@@ -1699,7 +1699,7 @@ Result OperationDocument::fillLayerPattern(LayerId layer, const PatternFill &pat
 }
 
 Result OperationDocument::fillLayerStyle(LayerId layer, const std::array<quint8, 4> &color,
-                                         const FigureStyle &style, quint8 opacity,
+                                         const FigureStyle &style, qreal opacity,
                                          bool erase, bool alphaLocked)
 {
     if (style.pattern && (style.pattern->byteCount() > m_limits.rasterBytes ||

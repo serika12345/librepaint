@@ -49,7 +49,7 @@
 #include <utility>
 
 namespace {
-bool captureGaussianWash(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush, qreal opacity)
+bool captureGaussianWash(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush)
 {
     if (settings->getInt("PaintOpAction") != 2 || settings->getString("ColorSource/Type", "plain") != QLatin1String("plain") ||
         settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag) || settings->getBool("Texture/Pattern/Enabled") ||
@@ -85,7 +85,6 @@ bool captureGaussianWash(const KisPaintOpSettingsSP &settings, LibrePaint::Image
     bool angleOk = false, spacingOk = false;
     value.angle = root.attribute(QStringLiteral("angle")).toDouble(&angleOk);
     brush.spacing = root.attribute(QStringLiteral("spacing")).toDouble(&spacingOk);
-    value.canvasOpacity = opacity;
     value.flow = settings->getDouble("FlowValue", 1);
     value.creamy = useCreamyAlphaDarken();
     if (!angleOk || !spacingOk || !qIsFinite(value.angle) || !qIsFinite(brush.spacing) ||
@@ -197,11 +196,11 @@ KisGpuBrushResources captureGpuPaintingResources(
     const qreal opacity = resources->resource(KoCanvasResource::Opacity).toReal();
     if (!qIsFinite(opacity) || opacity < 0 || opacity > 1)
         return reject(i18n("The brush opacity is invalid."));
-    brush.opacity = quint8(qRound(255 * opacity));
+    brush.opacity = opacity;
     brush.erase = erase;
     brush.alphaLocked = !brush.erase && resources->resource(KoCanvasResource::GlobalAlphaLock).toBool();
     if (withBrushTip && preset->paintOp().id() == QLatin1String("paintbrush") &&
-        !captureGaussianWash(preset->settings(), brush, opacity))
+        !captureGaussianWash(preset->settings(), brush))
         return reject(i18n("These brush settings are not yet available for GPU painting."));
     return result;
 }

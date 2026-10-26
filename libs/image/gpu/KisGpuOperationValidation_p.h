@@ -148,12 +148,13 @@ inline bool validSample(const InputSample &sample)
 
 inline bool validBrush(const Brush &brush)
 {
+    if (!std::isfinite(brush.opacity) || brush.opacity < 0 || brush.opacity > 1) return false;
     if (brush.gaussianWash) {
         const auto &value = *brush.gaussianWash;
         const auto unit = [](qreal number) { return std::isfinite(number) && number >= 0 && number <= 1; };
         if (value.resourceDigest.size() != 32 || value.sizePressure.size() != 256 ||
             value.opacityPressure.size() != 256 || !std::isfinite(value.angle) ||
-            !unit(value.canvasOpacity) || !unit(value.flow)) return false;
+            !unit(value.flow)) return false;
         for (const auto number : value.sizePressure) if (!unit(number)) return false;
         for (const auto number : value.opacityPressure) if (!unit(number)) return false;
     }
@@ -236,12 +237,9 @@ inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
     return (shape.kind != ShapeKind::Polyline && shape.kind != ShapeKind::Polygon) || count >= 2;
 }
 
-inline bool validFigureStyle(const Shape &shape, const FigureStyle &style, const Brush &brush)
+inline bool validFigureStyle(const Shape &shape, const FigureStyle &style)
 {
     if (style.pattern && !style.pattern->isValid()) return false;
-    if (style.canvasOpacity && (!std::isfinite(*style.canvasOpacity) || *style.canvasOpacity < 0 ||
-        *style.canvasOpacity > 1 || style.outline || !style.fill || style.pattern ||
-        style.fillBlendMode != LayerBlendMode::Normal || brush.erase || brush.gaussianWash)) return false;
     if (style.fillBlendMode > LayerBlendMode::LinearDodge) return false;
     // A non-normal fill mode owns only the fill source. Outline brush
     // compositing stays source-over, so this combination is rejected rather

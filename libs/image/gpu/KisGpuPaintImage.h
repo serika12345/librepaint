@@ -139,9 +139,9 @@ public:
      * `erase` clears selected coverage instead of adding it.
      */
     Result fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
-                                quint8 opacity = 255, bool erase = false, bool alphaLocked = false);
+                                qreal opacity = 1, bool erase = false, bool alphaLocked = false);
     Result fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
-                                       quint8 opacity = 255, bool erase = false, bool alphaLocked = false);
+                                       qreal opacity = 1, bool erase = false, bool alphaLocked = false);
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
@@ -235,10 +235,10 @@ public:
     /** Publishes one canvas-bounded color fill before notifying attached consumers.
      * The fill blend mode is frozen with the fill intent.
      */
-    Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, quint8 opacity = 255,
+    Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, qreal opacity = 1,
                      bool erase = false, bool alphaLocked = false,
                      LayerBlendMode blendMode = LayerBlendMode::Normal);
-    Result fillLayerPattern(LayerId layer, const PatternFill &pattern, quint8 opacity = 255,
+    Result fillLayerPattern(LayerId layer, const PatternFill &pattern, qreal opacity = 1,
                             bool erase = false, bool alphaLocked = false,
                             LayerBlendMode blendMode = LayerBlendMode::Normal);
     /** Complements RGB within the current selection coverage as one history

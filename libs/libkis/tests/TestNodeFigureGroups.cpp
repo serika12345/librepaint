@@ -168,7 +168,7 @@ void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory()
     Gpu::Brush brush;
     brush.rgba = {17, 129, 241, 255};
     brush.diameter = 12;
-    brush.opacity = quint8(qRound(255 * opacity));
+    brush.opacity = opacity;
     QCOMPARE(reference.paintFigure(reference.operations().activeLayer(), brush, expectedSamples,
                                    expectedShape, {}, 0), Gpu::Result::Success);
     const auto expected = read(reference, reference.operations().activeLayer());

@@ -19,7 +19,6 @@ inline Brush defaultGaussianBrush()
     brush.rgba = {17, 34, 51, 255};
     brush.diameter = 40;
     brush.spacing = 0.2;
-    brush.opacity = 145;
     brush.erase = false;
     brush.alphaLocked = false;
     brush.channelWriteMask = 15;
@@ -30,7 +29,7 @@ inline Brush defaultGaussianBrush()
     brush.basicSmoothing = false;
     GaussianWash wash;
     wash.angle = 6.28319;
-    wash.canvasOpacity = 0.57;
+    brush.opacity = 0.57;
     wash.creamy = true;
     wash.flow = 0.5;
     wash.opacityPressure = {

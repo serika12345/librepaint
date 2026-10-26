@@ -348,7 +348,7 @@ void KisGpuPaintDocumentTest::invertColorsSavesAndReopensPixels()
     const auto layer = image->operations().activeLayer();
     Brush brush;
     brush.rgba = {31, 97, 163, 255};
-    brush.opacity = 128;
+    brush.opacity = 128.0 / 255;
     brush.diameter = 16;
     QCOMPARE(image->paintFigure(layer, brush, {{{16, 64}, 1}, {{112, 64}, 1}}, Shape{}, FigureStyle{}, 9), Result::Success);
     QCOMPARE(image->setSelectionRect(QRect(32, 32, 64, 64)), Result::Success);
@@ -734,14 +734,14 @@ void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTr
     QCOMPARE(image->clearSelection(), Result::Success);
     QCOMPARE(image->paintFigure(layer, brush, {{{100, 100}, 1}}, Shape{}, FigureStyle{}, 10), Result::Success);
     QCOMPARE(image->setSelectionMask(mask), Result::Success);
-    QCOMPARE(image->fillLayer(layer, {19, 211, 97}, 255, false, false), Result::Success);
+    QCOMPARE(image->fillLayer(layer, {19, 211, 97}, 255.0 / 255, false, false), Result::Success);
     const auto filled = image->readRgbaPixels(layer, region, 128 * 128 * 4);
     QCOMPARE(filled.code, ExecutionCode::Success);
     QCOMPARE(pixel(filled.bytes, 24, 24), QByteArray::fromHex("13d361ff"));
     QCOMPARE(pixel(filled.bytes, 100, 100), QByteArray::fromHex("1f61a3ff"));
     QCOMPARE(pixel(filled.bytes, 110, 110), QByteArray(4, char(0)));
 
-    QCOMPARE(image->fillLayer(layer, {0, 0, 0}, 255, true, false), Result::Success);
+    QCOMPARE(image->fillLayer(layer, {0, 0, 0}, 255.0 / 255, true, false), Result::Success);
     const auto erased = image->readRgbaPixels(layer, region, 128 * 128 * 4);
     QCOMPARE(erased.code, ExecutionCode::Success);
     QCOMPARE(quint8(pixel(erased.bytes, 24, 24).at(3)), 0);
@@ -764,7 +764,7 @@ void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTr
 
     QCOMPARE(loaded->setSelectionMask(loaded->selectionMask(), true), Result::Success);
     QVERIFY(loaded->selectionInverted());
-    QCOMPARE(loaded->fillLayer(loaded->operations().activeLayer(), {211, 19, 97}, 255, false, false), Result::Success);
+    QCOMPARE(loaded->fillLayer(loaded->operations().activeLayer(), {211, 19, 97}, 255.0 / 255, false, false), Result::Success);
     const auto inverted = loaded->readRgbaPixels(loaded->operations().activeLayer(), region, 128 * 128 * 4);
     QCOMPARE(inverted.code, ExecutionCode::Success);
     QCOMPARE(quint8(pixel(inverted.bytes, 24, 24).at(3)), 0);
@@ -918,7 +918,7 @@ void KisGpuPaintDocumentTest::featheredSelectionClipsPaintAndRoundTripsKra()
 
     QCOMPARE(image->setSelectionMask(hard), Result::Success);
     QCOMPARE(image->setSelectionMask(soft), Result::Success);
-    QCOMPARE(image->fillLayer(layer, {19, 211, 97}, 255, false, false), Result::Success);
+    QCOMPARE(image->fillLayer(layer, {19, 211, 97}, 255.0 / 255, false, false), Result::Success);
     const QRect region(QPoint(), initial.size);
     const auto pixel = [&](const QByteArray &bytes, int x, int y) { return bytes.mid((y * 128 + x) * 4, 4); };
     const auto filled = image->readRgbaPixels(layer, region, 128 * 128 * 4);
@@ -1260,7 +1260,7 @@ void KisGpuPaintDocumentTest::gaussianLineEditsSaveReopenAndContinueAtTheirNewPo
     auto &settings = brush.gaussianWash.emplace();
     settings.resourceDigest = QByteArray(32, 'r');
     settings.flow = .5;
-    settings.canvasOpacity = .57;
+    brush.opacity = .57;
     settings.sizeUsesPressureDirectly = settings.opacityUsesPressureDirectly = true;
     for (int i = 0; i < 256; ++i) settings.sizePressure[i] = settings.opacityPressure[i] = qreal(i) / 255;
     const QList<InputSample> samples{{{32, 40}, .2}, {{128, 76}, 1}, {{224, 40}, .8}};
@@ -1536,7 +1536,7 @@ void KisGpuPaintDocumentTest::colorFillSavesReopensAndContinuesIdentically()
         const auto image = document.image();
         const auto layer = image->operations().snapshot()->layers[0].id;
         const auto active = image->operations().activeLayer();
-        QCOMPARE(image->fillLayer(layer, {17, 129, 241}, opacity, erase, alphaLocked,
+        QCOMPARE(image->fillLayer(layer, {17, 129, 241}, qreal(opacity) / 255, erase, alphaLocked,
                                   LayerBlendMode(blendMode)), Result::Success);
         QCOMPARE(image->operations().undoCount(), 1);
         QCOMPARE(image->operations().historyAction(1), HistoryAction::FillLayer);
@@ -1574,7 +1574,7 @@ void KisGpuPaintDocumentTest::colorFillSavesReopensAndContinuesIdentically()
         QCOMPARE(opened.document->exportKra(reopened).code, FileCode::Success);
         QCOMPARE(fileBytes(reopened), fileBytes(saved));
         for (const auto &target : {image, loaded})
-            QCOMPARE(target->fillLayer(target->operations().snapshot()->layers[0].id, {221, 17, 44}, 85), Result::Success);
+            QCOMPARE(target->fillLayer(target->operations().snapshot()->layers[0].id, {221, 17, 44}, 85.0 / 255), Result::Success);
         QCOMPARE(loaded->undo(), Result::Success);
         checkPixels(loaded);
         QCOMPARE(loaded->redo(), Result::Success);

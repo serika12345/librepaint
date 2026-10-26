@@ -528,7 +528,7 @@ Result PaintImage::paintTransparencyMaskFigure(LayerId layer, const Brush &brush
 }
 
 Result PaintImage::fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
-                                        quint8 opacity, bool erase, bool alphaLocked)
+                                        qreal opacity, bool erase, bool alphaLocked)
 {
     Q_UNUSED(alphaLocked);
     Brush brush;
@@ -546,7 +546,7 @@ Result PaintImage::fillTransparencyMask(LayerId layer, const std::array<quint8, 
 }
 
 Result PaintImage::fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
-                                               quint8 opacity, bool erase, bool alphaLocked)
+                                               qreal opacity, bool erase, bool alphaLocked)
 {
     Q_UNUSED(alphaLocked);
     if (!pattern.isValid()) return Result::InvalidInput;
@@ -751,11 +751,11 @@ Result PaintImage::resizeCanvas(const QRect &rect, bool cropLayers)
     return document.snapshot() == before ? result : publish(result);
 }
 Result PaintImage::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
-                             quint8 opacity, bool erase, bool alphaLocked,
+                             qreal opacity, bool erase, bool alphaLocked,
                              LayerBlendMode blendMode)
 { return onThread() ? publish(m_d->document->fillLayer(layer, rgb, opacity, erase, alphaLocked, blendMode)) : Result::InvalidInput; }
 Result PaintImage::fillLayerPattern(LayerId layer, const PatternFill &pattern,
-                                    quint8 opacity, bool erase, bool alphaLocked,
+                                    qreal opacity, bool erase, bool alphaLocked,
                                     LayerBlendMode blendMode)
 { return onThread() ? publish(m_d->document->fillLayerPattern(layer, pattern, opacity, erase, alphaLocked, blendMode)) : Result::InvalidInput; }
 Result PaintImage::invertColors(LayerId layer)

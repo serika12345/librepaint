@@ -379,7 +379,7 @@ void KisEllipseToolDocumentTest::fractionalFillMatchesPainterWithProtectedChanne
     Gpu::FigureStyle style;
     style.outline = false;
     style.fill = std::array<quint8, 4>{17, 129, 241, 255};
-    style.canvasOpacity = opacity;
+    brush.opacity = opacity;
     QCOMPARE(owner->paintFigure(layer, brush, {{{16, 16}, 1}, {{48, 48}, 1}},
         {Gpu::ShapeKind::Ellipse, {16, 16}, {48, 48}, 0}, style, 42), Gpu::Result::Success);
     const auto actual = owner->readRgbaPixels(layer, region, expected.size());

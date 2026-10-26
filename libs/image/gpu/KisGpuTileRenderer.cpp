@@ -487,6 +487,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 if (!paint || paintRegion.isEmpty()) continue;
                 const auto &operation = **paint;
                 const bool fillEnabled = hasFigureFill(operation.figureStyle);
+                const bool solidNormalFill = fillEnabled && !operation.figureStyle.outline &&
+                    !operation.figureStyle.pattern && operation.figureStyle.fillBlendMode == LayerBlendMode::Normal &&
+                    !operation.brush.erase && !operation.brush.gaussianWash;
                 if (!operation.figureStyle.outline && !fillEnabled) continue;
                 const bool pending = document->pendingOperation() == operation.id;
                 const bool extending = appendedFrom && op == layer.operations.size() - 1;
@@ -653,14 +656,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     const auto point = coordinate(tile.key()) * TileSize;
                     job.values = {point.x(), point.y(), 0, 0,
                                   packedPixel(operation.brush.rgba),
-                                  operation.brush.opacity, quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter, 0, quint32(operation.brush.alphaLocked) | (quint32(operation.brush.channelWriteMask) << 1) |
+                                  quint32(qRound(float(operation.brush.opacity) * 255)), quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter, 0, quint32(operation.brush.alphaLocked) | (quint32(operation.brush.channelWriteMask) << 1) |
                                       (quint32(operation.brush.mirrorHorizontal) << 5) | (quint32(operation.brush.mirrorVertical) << 6),
                                   operation.brush.mirrorCenter.x() * 16, operation.brush.mirrorCenter.y() * 16,
                                   operation.figureStyle.fill ? packedPixel(*operation.figureStyle.fill) : 0,
                                   quint32(fillEnabled) | (operation.figureStyle.outline ? 0u : 2u) |
                                       (operation.shape.windingFill ? 4u : 0u) |
                                       (operation.figureStyle.pattern ? 8u : 0u) |
-                                      (operation.figureStyle.canvasOpacity ? 16u : 0u)};
+                                      (solidNormalFill ? 16u : 0u)};
                     if (operation.figureStyle.pattern) {
                         job.values.patternWidth = quint32(operation.figureStyle.pattern->size.width());
                         job.values.patternHeight = quint32(operation.figureStyle.pattern->size.height());
@@ -698,18 +701,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                             }
                         }
                     }
-                    if (operation.figureStyle.canvasOpacity) {
-                        const float opacity = float(*operation.figureStyle.canvasOpacity);
-                        std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));
-                    }
+                    const float opacity = float(operation.brush.opacity);
+                    std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));
                     if (operation.brush.gaussianWash) {
-                        const float opacity = float(operation.brush.gaussianWash->canvasOpacity);
-                        std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));
                         job.values.count = quint32(job.gaussianGeometry.size());
                         job.values.paintFlags |= 512u;
                     }
                     job.output->mayContainHiddenRgb = operation.brush.alphaLocked || operation.brush.erase ||
-                        operation.figureStyle.canvasOpacity ||
+                        solidNormalFill ||
                         operation.figureStyle.pattern || (job.input && job.input->mayContainHiddenRgb);
                     tiles[tile.key()] = job.output;
                     jobs.push_back(std::move(job));

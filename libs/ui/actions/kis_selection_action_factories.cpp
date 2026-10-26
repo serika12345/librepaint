@@ -348,10 +348,10 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         if (!layer || !view->blockUntilOperationsFinished(image)) return;
         if (!lifetime || lifetime->image().data() != image.data() || image->gpuImage() != owner) return;
         const auto result = maskTarget
-            ? (usePattern ? owner->fillTransparencyMaskPattern(layer, patternFill, quint8(qRound(255 * opacity)), erase, alphaLocked)
-                          : owner->fillTransparencyMask(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked))
-            : (usePattern ? owner->fillLayerPattern(layer, patternFill, quint8(qRound(255 * opacity)), erase, alphaLocked, fillBlendMode)
-                          : owner->fillLayer(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked, fillBlendMode));
+            ? (usePattern ? owner->fillTransparencyMaskPattern(layer, patternFill, opacity, erase, alphaLocked)
+                          : owner->fillTransparencyMask(layer, rgb, opacity, erase, alphaLocked))
+            : (usePattern ? owner->fillLayerPattern(layer, patternFill, opacity, erase, alphaLocked, fillBlendMode)
+                          : owner->fillLayer(layer, rgb, opacity, erase, alphaLocked, fillBlendMode));
         if (result != Gpu::Result::Success) {
             reject(maskTarget ? i18n("The GPU transparency mask could not be filled.")
                               : i18n("The GPU layer could not be filled."));
@@ -483,7 +483,7 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
                 return;
             }
             if (flags & CutClip) {
-                const auto result = owner->fillLayer(layer, {0, 0, 0}, 255, true, false);
+                const auto result = owner->fillLayer(layer, {0, 0, 0}, 1, true, false);
                 if (result != Gpu::Result::Success) {
                     view->showFloatingMessage(i18n("The selected area could not be cleared."), QIcon());
                     return;

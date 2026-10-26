@@ -2941,7 +2941,7 @@ void KisGpuDocumentViewTest::selectionMergedCopyUsesGpuSelection()
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
     const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
-    QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255, false, false) == Gpu::Result::Success);
+    QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255.0 / 255, false, false) == Gpu::Result::Success);
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -2984,7 +2984,7 @@ void KisGpuDocumentViewTest::selectionCopyAndCutUseGpuSelection()
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
     const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
-    QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255, false, false) == Gpu::Result::Success);
+    QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255.0 / 255, false, false) == Gpu::Result::Success);
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -4326,7 +4326,7 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
     const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
-    QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255, false, false) == Gpu::Result::Success);
+    QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255.0 / 255, false, false) == Gpu::Result::Success);
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     const auto baseLayer = saved->activeLayer;

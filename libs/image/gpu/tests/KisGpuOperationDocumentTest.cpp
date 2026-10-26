@@ -162,7 +162,8 @@ private Q_SLOTS:
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
     void filledFiguresPreserveStylesHistory();
-    void fractionalFillOpacityFreezesHistory();
+    void brushCanvasOpacitySurvivesPinnedHistory();
+    void invalidCanvasOpacityPreservesRedo();
     void fillBlendModesFreezeHistory_data();
     void fillBlendModesFreezeHistory();
     void strokeBlendModesFreezeHistory_data();
@@ -3139,61 +3140,48 @@ void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistory()
     QCOMPARE(document.snapshot(), preview);
 }
 
-void KisGpuOperationDocumentTest::fractionalFillOpacityFreezesHistory()
+void KisGpuOperationDocumentTest::brushCanvasOpacitySurvivesPinnedHistory()
 {
     OperationDocument document(QSize(64, 64));
+    const auto initial = document.snapshot();
+    const qreal opacity = .37123456789;
     Brush brush;
-    brush.opacity = 95;
-    FigureStyle style;
-    style.outline = false;
-    style.fill = std::array<quint8, 4>{7, 19, 31, 255};
-    style.canvasOpacity = .37123456789;
-    const auto originalStyle = style;
-    const Shape shape{ShapeKind::Rectangle, {12, 12}, {52, 52}, 0};
+    brush.opacity = opacity;
     const auto id = document.beginStroke(document.activeLayer(), brush, 42);
     QVERIFY(!id.isNull());
     QCOMPARE(document.appendSamples(id, {sample(12, 12), sample(52, 52)}), Result::Success);
-    QCOMPARE(document.updateFigure(id, shape, style), Result::Success);
-    const auto preview = document.preview();
-    style.canvasOpacity = .5;
-    QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers.first().operations.last())->figureStyle.canvasOpacity, originalStyle.canvasOpacity);
-
+    const auto pending = document.preview();
+    const auto input = std::get<PaintSnapshot>(pending->layers.first().operations.last());
+    QCOMPARE(input->brush.opacity, opacity);
+    brush.opacity = .75;
+    QCOMPARE(document.preview(), pending);
+    QCOMPARE(input->brush.opacity, opacity);
     QCOMPARE(document.commitStroke(id), Result::Success);
+    const auto committed = document.snapshot();
+    QCOMPARE(std::get<PaintSnapshot>(committed->layers.first().operations.last())->brush.opacity, opacity);
     QCOMPARE(document.undo(), Result::Success);
-    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(document.snapshot(), initial);
     QCOMPARE(document.redo(), Result::Success);
-    QCOMPARE(document.snapshot(), preview);
-    const auto good = document.preview();
+    QCOMPARE(document.snapshot(), committed);
+    QCOMPARE(input->brush.opacity, opacity);
+}
 
-    // Reject invalid inputs before changing either completed or pending history.
-    for (int damage = 0; damage < 10; ++damage) {
-        auto bad = originalStyle;
-        auto badBrush = brush;
-        switch (damage) {
-        case 0: bad.canvasOpacity = -0.1; break;
-        case 1: bad.canvasOpacity = 1.01; break;
-        case 2: bad.canvasOpacity = std::numeric_limits<qreal>::infinity(); break;
-        case 3: bad.canvasOpacity = std::numeric_limits<qreal>::quiet_NaN(); break;
-        case 4: bad.outline = true; break;
-        case 5: bad.fill.reset(); break;
-        case 6: bad.fillBlendMode = LayerBlendMode::Multiply; break;
-        case 7: badBrush.erase = true; break;
-        case 8: badBrush.gaussianWash.emplace(); badBrush.gaussianWash->resourceDigest = QByteArray(32, 'r'); break;
-        case 9: bad.pattern = PatternFill{{1, 1}, QByteArray::fromHex("112233ff")}; break;
-        }
-        QCOMPARE(document.paintFigure(document.activeLayer(), badBrush, {sample(12, 12), sample(52, 52)},
-                                      shape, bad, 42), Result::InvalidInput);
-        QCOMPARE(document.preview(), good);
+void KisGpuOperationDocumentTest::invalidCanvasOpacityPreservesRedo()
+{
+    OperationDocument document(QSize(64, 64));
+    QVERIFY(!paint(document, {sample(12, 12), sample(52, 52)}).isNull());
+    QCOMPARE(document.undo(), Result::Success);
+    const auto before = document.preview();
+    for (const qreal opacity : {qreal(-.1), qreal(1.01), std::numeric_limits<qreal>::infinity(),
+                                std::numeric_limits<qreal>::quiet_NaN()}) {
+        Brush brush;
+        brush.opacity = opacity;
+        QVERIFY(document.beginStroke(document.activeLayer(), brush, 43).isNull());
+        QCOMPARE(document.fillLayer(document.activeLayer(), {7, 19, 31}, opacity), Result::InvalidInput);
+        QCOMPARE(document.preview(), before);
+        QCOMPARE(document.undoCount(), 0);
+        QCOMPARE(document.redoCount(), 1);
     }
-    const auto active = document.beginStroke(document.activeLayer(), brush, 43);
-    QCOMPARE(document.appendSamples(active, {sample(12, 12), sample(52, 52)}), Result::Success);
-    const auto live = document.preview();
-    auto bad = originalStyle;
-    bad.canvasOpacity = -1;
-    QCOMPARE(document.updateFigure(active, shape, bad), Result::InvalidInput);
-    QCOMPARE(document.preview(), live);
-
-    QCOMPARE(document.cancelStroke(active), Result::Success);
 }
 
 void KisGpuOperationDocumentTest::fillBlendModesFreezeHistory_data()
@@ -3216,7 +3204,7 @@ void KisGpuOperationDocumentTest::fillBlendModesFreezeHistory()
     OperationDocument document(QSize(64, 64));
     const auto layer = document.activeLayer();
     const auto initial = document.snapshot();
-    QCOMPARE(document.fillLayer(layer, {221, 17, 44}, 255, false, false, LayerBlendMode(mode)),
+    QCOMPARE(document.fillLayer(layer, {221, 17, 44}, 255.0 / 255, false, false, LayerBlendMode(mode)),
              Result::Success);
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.historyAction(1), HistoryAction::FillLayer);
@@ -3244,7 +3232,7 @@ void KisGpuOperationDocumentTest::patternFillBlendModeFreezesHistory()
 
     OperationDocument document({64, 32});
     const auto layer = document.activeLayer();
-    QCOMPARE(document.fillLayerPattern(layer, pattern, 255, false, false, LayerBlendMode::Multiply),
+    QCOMPARE(document.fillLayerPattern(layer, pattern, 255.0 / 255, false, false, LayerBlendMode::Multiply),
              Result::Success);
     const auto committed = document.snapshot();
     const auto operation = std::get<PaintSnapshot>(committed->layers.first().operations.last());
@@ -3265,7 +3253,7 @@ void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput(
     const auto layer = document.activeLayer();
     const auto initial = document.snapshot();
 
-    QCOMPARE(document.fillLayer(layer, {17, 129, 241}, 255, false, false, LayerBlendMode(7)),
+    QCOMPARE(document.fillLayer(layer, {17, 129, 241}, 255.0 / 255, false, false, LayerBlendMode(7)),
              Result::InvalidInput);
     QCOMPARE(document.snapshot(), initial);
     QCOMPARE(document.undoCount(), 0);
@@ -3295,7 +3283,7 @@ void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput(
     QCOMPARE(document.snapshot(), initial);
 
     // Erase remains coverage removal: the frozen mode is Normal.
-    QCOMPARE(document.fillLayer(layer, {17, 129, 241}, 255, true, false, LayerBlendMode::Multiply),
+    QCOMPARE(document.fillLayer(layer, {17, 129, 241}, 255.0 / 255, true, false, LayerBlendMode::Multiply),
              Result::Success);
     const auto erased = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QCOMPARE(erased->figureStyle.fillBlendMode, LayerBlendMode::Normal);
@@ -3898,7 +3886,7 @@ void KisGpuOperationDocumentTest::gaussianWashSettingsSurviveHistory()
     GaussianWash settings;
     settings.resourceDigest = QByteArray(32, 'r');
     settings.angle = 6.28319;
-    settings.canvasOpacity = .57;
+    brush.opacity = .57;
     settings.flow = .5;
     settings.creamy = false;
     for (std::size_t i = 0; i < settings.sizePressure.size(); ++i) {
@@ -4233,7 +4221,6 @@ void KisGpuOperationDocumentTest::transparencyMaskCoverageReplacementPreservesHi
     QVERIFY(document.layerTransparencyMask(layer) == original);
 
     const auto retainedState = document.preview();
-    QCOMPARE(document.undoCount(), document.undoCount());
     const auto restoredLayer = document.snapshot()->layers.first().id;
     QVERIFY(document.layerTransparencyMask(restoredLayer));
     QVERIFY(*document.layerTransparencyMask(restoredLayer) == *original);
@@ -4256,17 +4243,16 @@ void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument
     brush.gaussianWash.emplace();
     brush.gaussianWash->resourceDigest = QByteArray(32, 'r');
     const auto before = document.preview();
-    for (int invalid = 0; invalid < 8; ++invalid) {
+    for (int invalid = 0; invalid < 7; ++invalid) {
         auto bad = brush;
         switch (invalid) {
         case 0: bad.gaussianWash->flow = -1; break;
-        case 1: bad.gaussianWash->canvasOpacity = 1.01; break;
-        case 2: bad.gaussianWash->angle = std::numeric_limits<qreal>::infinity(); break;
-        case 3: bad.gaussianWash->sizePressure[128] = std::numeric_limits<qreal>::quiet_NaN(); break;
-        case 4: bad.gaussianWash->opacityPressure[128] = 2; break;
-        case 5: bad.gaussianWash->resourceDigest.clear(); break;
-        case 6: bad.gaussianWash->sizePressure.removeLast(); break;
-        case 7: bad.gaussianWash->opacityPressure.append(1); break;
+        case 1: bad.gaussianWash->angle = std::numeric_limits<qreal>::infinity(); break;
+        case 2: bad.gaussianWash->sizePressure[128] = std::numeric_limits<qreal>::quiet_NaN(); break;
+        case 3: bad.gaussianWash->opacityPressure[128] = 2; break;
+        case 4: bad.gaussianWash->resourceDigest.clear(); break;
+        case 5: bad.gaussianWash->sizePressure.removeLast(); break;
+        case 6: bad.gaussianWash->opacityPressure.append(1); break;
         }
         QVERIFY(document.beginStroke(document.activeLayer(), bad, 1789).isNull());
         QCOMPARE(document.preview(), before);

@@ -138,9 +138,6 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
         }
         const auto owner = retainedImage->gpuImage();
         style.fillBlendMode = captured.brush.blendMode;
-        if (style.fill && !captured.transparencyMask && !captured.brush.erase &&
-            style.fillBlendMode == Gpu::LayerBlendMode::Normal)
-            style.canvasOpacity = resources.resource(KoCanvasResource::Opacity).toReal();
         QList<Gpu::InputSample> samples{{shape.first, 1}};
         for (qsizetype i = 1; i < points.size(); ++i) samples.append({points[i], 1});
         const QPointer<KisToolShape> tool(this);

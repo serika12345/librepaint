@@ -99,7 +99,6 @@ struct GaussianWash
 {
     QByteArray resourceDigest;
     qreal angle = 0;
-    qreal canvasOpacity = 1;
     qreal flow = 1;
     bool creamy = true;
     bool sizeUsesPressureDirectly = false;
@@ -110,7 +109,7 @@ struct GaussianWash
     bool operator==(const GaussianWash &other) const
     {
         return resourceDigest == other.resourceDigest && angle == other.angle &&
-            canvasOpacity == other.canvasOpacity && flow == other.flow && creamy == other.creamy &&
+            flow == other.flow && creamy == other.creamy &&
             sizeUsesPressureDirectly == other.sizeUsesPressureDirectly &&
             opacityUsesPressureDirectly == other.opacityUsesPressureDirectly &&
             sizePressure == other.sizePressure && opacityPressure == other.opacityPressure;
@@ -126,7 +125,8 @@ struct Brush
     std::array<quint8, 4> rgba{0, 0, 0, 255};
     qreal diameter = 10;
     qreal spacing = 0.1;
-    quint8 opacity = 255;
+    /** Canvas opacity in [0, 1], frozen before input is accepted. */
+    qreal opacity = 1;
     bool erase = false;
     bool alphaLocked = false;
     /** Stroke coverage blend mode, frozen at stroke start. Erase never blends. */
@@ -212,10 +212,6 @@ struct FigureStyle
     std::optional<std::array<quint8, 4>> fill;
     std::optional<PatternFill> pattern;
     LayerBlendMode fillBlendMode = LayerBlendMode::Normal;
-    /** Original canvas opacity for a solid, outline-free normal fill.
-     * Absent retains byte-opacity semantics.
-     */
-    std::optional<qreal> canvasOpacity;
 };
 
 /** True when this figure contributes filled interior coverage. */
@@ -859,10 +855,10 @@ public:
      */
     Result resizeCanvas(const QRect &rect, bool cropLayers);
     /** Fills canvas bounds on one layer as one history step, preserving pixels outside them.
-     * The fill blend mode is frozen with the fill intent; Normal preserves the
-     * historical source-over result and erase ignores the mode.
+     * The fill blend mode is frozen with the fill intent. Normal uses source-over
+     * composition and erase ignores the blend mode. Opacity is finite in [0, 1].
      */
-    Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, quint8 opacity = 255,
+    Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, qreal opacity = 1,
                      bool erase = false, bool alphaLocked = false,
                      LayerBlendMode blendMode = LayerBlendMode::Normal);
     /** Fills canvas bounds on one layer with a frozen pattern resource as one
@@ -870,7 +866,7 @@ public:
      * coverage clips and scales its alpha exactly as a solid fill. The fill
      * blend mode is frozen with the fill intent.
      */
-    Result fillLayerPattern(LayerId layer, const PatternFill &pattern, quint8 opacity = 255,
+    Result fillLayerPattern(LayerId layer, const PatternFill &pattern, qreal opacity = 1,
                             bool erase = false, bool alphaLocked = false,
                             LayerBlendMode blendMode = LayerBlendMode::Normal);
     /** Complements RGB on one paint layer inside the current selection coverage
@@ -955,7 +951,7 @@ private:
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
     Result fillLayerStyle(LayerId layer, const std::array<quint8, 4> &color, const FigureStyle &style,
-                          quint8 opacity, bool erase, bool alphaLocked);
+                          qreal opacity, bool erase, bool alphaLocked);
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);

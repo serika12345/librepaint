@@ -568,7 +568,7 @@ void KisGpuPaintImageTest::colorFillKeepsVersionsHistoryAndWholeRequestFailures(
         published = execution.requested(image.handle()) == image.operations().snapshot();
     });
     std::array<quint8, 3> rgb{17, 129, 241};
-    QCOMPARE(image.fillLayer(layer, rgb, 128), Result::Success);
+    QCOMPARE(image.fillLayer(layer, rgb, 128.0 / 255), Result::Success);
     rgb = {0, 255, 0};
     QCOMPARE(changed.size(), 1);
     QVERIFY(published);

@@ -307,7 +307,7 @@ void KisGpuTileRendererTest::gaussianPixelCorrectionKeepsCpuExtent()
             {"extent", QJsonArray{test.extent.x(), test.extent.y(), test.extent.width(), test.extent.height()}},
             {"tileCoordinates", tileCoordinates}, {"pendingTileCoordinates", pendingTileCoordinates},
             {"tileSize", RgbaTile::Size}, {"flow", brush.gaussianWash->flow},
-            {"canvasOpacity", brush.gaussianWash->canvasOpacity}, {"failed", QTest::currentTestFailed()}}).toJson();
+            {"opacity", brush.opacity}, {"failed", QTest::currentTestFailed()}}).toJson();
         for (auto it = artifacts.cbegin(); it != artifacts.cend(); ++it) {
             QFile file(QDir(directory).filePath(QStringLiteral("gaussian-pixel-perfect-") +
                 QString::fromLatin1(test.name) + it.key()));
@@ -454,7 +454,7 @@ void KisGpuTileRendererTest::gaussianWeightedKeepsCpuPixels()
             {"completedInputs", int(completedInputs)}, {"input", input}, {"flushes", flushes},
             {"distanceMin", test.smoothing.distanceMin}, {"distanceMax", test.smoothing.distanceMax},
             {"tail", test.smoothing.tailAggressiveness}, {"smoothPressure", test.smoothing.smoothPressure},
-            {"flow", brush.gaussianWash->flow}, {"canvasOpacity", brush.gaussianWash->canvasOpacity},
+            {"flow", brush.gaussianWash->flow}, {"opacity", brush.opacity},
             {"lastRenderValid", lastRenderValid}, {"failed", QTest::currentTestFailed()},
             {"actualFinalPixelsSaved", artifacts.contains(QStringLiteral(".rgba"))}}).toJson();
         for (auto it = artifacts.cbegin(); it != artifacts.cend(); ++it) {
@@ -568,7 +568,7 @@ void KisGpuTileRendererTest::gaussianWeightedOnImportedPixelKeepsCpuMergeByte()
     QVERIFY(brush.gaussianWash);
     brush.rgba = {83, 177, 41, 255};
     brush.gaussianWash->flow = .57;
-    brush.gaussianWash->canvasOpacity = .57;
+    brush.opacity = .57;
     brush.basicSmoothing = true;
     brush.weightedSmoothing = test.smoothing;
     QMap<QString, QByteArray> artifacts{{QStringLiteral(".expected.rgba"), test.rgba},
@@ -587,10 +587,10 @@ void KisGpuTileRendererTest::gaussianWeightedOnImportedPixelKeepsCpuMergeByte()
             {"platform", QGuiApplication::platformName()}, {"phase", phase}, {"input", input},
             {"flushes", QJsonArray{5, 6}}, {"x", -9}, {"y", 5},
             {"brushRgba", QJsonArray{83, 177, 41, 255}}, {"diameter", brush.diameter},
-            {"spacing", brush.spacing}, {"brushOpacity", brush.opacity},
+            {"spacing", brush.spacing},
             {"distanceMin", test.smoothing.distanceMin}, {"distanceMax", test.smoothing.distanceMax},
             {"tail", test.smoothing.tailAggressiveness}, {"smoothPressure", test.smoothing.smoothPressure},
-            {"flow", brush.gaussianWash->flow}, {"canvasOpacity", brush.gaussianWash->canvasOpacity},
+            {"flow", brush.gaussianWash->flow}, {"opacity", brush.opacity},
             {"creamy", brush.gaussianWash->creamy}, {"failed", QTest::currentTestFailed()}}).toJson();
         for (auto it = artifacts.cbegin(); it != artifacts.cend(); ++it) {
             QFile file(QDir(directory).filePath(QStringLiteral("gaussian-weighted-imported-pixel") + it.key()));
@@ -776,7 +776,7 @@ void KisGpuTileRendererTest::gaussianBasicKeepsCpuPixelsFlushes()
     }
     // Eraser mode consumes the same spatial mask and preserves hidden RGB.
     auto maskBrush = brush;
-    maskBrush.gaussianWash->canvasOpacity = 1;
+    maskBrush.opacity = 1;
     OperationDocument mask(canvas);
     const auto maskId = mask.beginStroke(mask.activeLayer(), maskBrush, 0);
     for (qsizetype i = 0; i < test.input.size(); ++i) {
@@ -789,7 +789,7 @@ void KisGpuTileRendererTest::gaussianBasicKeepsCpuPixelsFlushes()
     QCOMPARE(maskTile.size(), RgbaTile::ByteCount);
     // CPU RGBA8 erase rounds .57 * 255 to 145, then multiplies mask and
     // destination alpha separately with round-to-nearest 8-bit products.
-    const quint32 opacityByte = quint32(qRound(float(brush.gaussianWash->canvasOpacity) * 255));
+    const quint32 opacityByte = quint32(qRound(float(brush.opacity) * 255));
     QCOMPARE(opacityByte, 145u);
     const auto multiplyAlpha = [](quint32 a, quint32 b) { return (a * b + 127) / 255; };
     auto eraseBrush = brush;
@@ -1009,9 +1009,8 @@ void KisGpuTileRendererTest::gaussianEraseKeepsColorsHistory()
     QFETCH(QByteArray, expectedSha256);
     auto brush = Test::defaultGaussianBrush();
     brush.erase = true;
-    brush.opacity = quint8(qRound(255 * opacity));
+    brush.opacity = opacity;
     brush.gaussianWash->flow = flow;
-    brush.gaussianWash->canvasOpacity = opacity;
     Shape shape;
     shape.kind = ShapeKind::Path;
     QList<InputSample> input;
@@ -1116,7 +1115,7 @@ void KisGpuTileRendererTest::gaussianWashProducesCoverageAndRetainsPixels()
     auto &settings = brush.gaussianWash.emplace();
     settings.resourceDigest = QByteArray(32, 'r');
     settings.flow = .5;
-    settings.canvasOpacity = .57;
+    brush.opacity = .57;
     settings.sizePressure.fill(1);
     settings.opacityPressure.fill(1);
     const auto id = document.beginStroke(document.activeLayer(), brush, 1789);
@@ -1180,7 +1179,7 @@ void KisGpuTileRendererTest::gaussianLineShapeEditsPreserveInputHistory()
     auto &settings = brush.gaussianWash.emplace();
     settings.resourceDigest = QByteArray(32, 'r');
     settings.flow = .5;
-    settings.canvasOpacity = .57;
+    brush.opacity = .57;
     settings.sizeUsesPressureDirectly = settings.opacityUsesPressureDirectly = true;
     for (int i = 0; i < 256; ++i) settings.sizePressure[i] = settings.opacityPressure[i] = qreal(i) / 255;
     QList<InputSample> samples{{{32, 40}, .2, .1, -.2, .3, 16}, {{224, 40}, .8, -.1, .2, -.3, 48}};
@@ -1748,7 +1747,7 @@ void KisGpuTileRendererTest::channelProtectionPreservesPixelsHistory()
     Brush brush;
     brush.rgba = {200, 70, 30, 128};
     brush.diameter = 8;
-    brush.opacity = 173;
+    brush.opacity = 173.0 / 255;
     brush.erase = erase;
     const auto stroke = document.beginStroke(layer, brush, 7);
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
@@ -1800,7 +1799,7 @@ void KisGpuTileRendererTest::alphaLockPreservesCoverageHistory()
     Brush brush;
     brush.rgba = {200, 70, 30, 128};
     brush.diameter = 8;
-    brush.opacity = 173;
+    brush.opacity = 173.0 / 255;
     brush.erase = erase;
     brush.alphaLocked = true;
     const auto stroke = document.beginStroke(layer, brush, 7);
@@ -2700,7 +2699,7 @@ void KisGpuTileRendererTest::appendedInputPreservesCoverageBackgroundAndOldVersi
     brush.rgba = {31, 142, 207, 135};
     brush.diameter = mode == 6 ? 512 : 16.75;
     brush.spacing = 0.27;
-    brush.opacity = 149;
+    brush.opacity = 149.0 / 255;
     brush.erase = mode == 1;
     brush.alphaLocked = mode == 2;
     brush.channelWriteMask = mode == 3 ? 5 : 15;
@@ -2771,7 +2770,7 @@ void KisGpuTileRendererTest::regionalInputKeepsPixelsAcrossViewportAndCapacityCh
     Brush brush;
     brush.diameter = 512;
     brush.rgba = {211, 37, 83, 137};
-    brush.opacity = 173;
+    brush.opacity = 173.0 / 255;
     const auto stroke = document.beginStroke(layer, brush, 73);
     QVERIFY(!stroke.isNull());
     const QList<InputSample> samples = {{{360, 256}, 1}, {{260, 256}, 0.6}, {{150, 200}, 0.3},
@@ -3266,7 +3265,7 @@ void KisGpuTileRendererTest::patternFillClipsAlphaCompositesErasesAndRejectsInva
     OperationDocument document({64, 64});
     const auto layer = document.activeLayer();
     QCOMPARE(document.setSelectionMask(mask), Result::Success);
-    QCOMPARE(document.fillLayerPattern(layer, pattern, 128), Result::Success);
+    QCOMPARE(document.fillLayerPattern(layer, pattern, 128.0 / 255), Result::Success);
     TileRenderer renderer(m_device);
     const auto clipped = readTile(render(renderer, document.snapshot()), layer, {0, 0});
     QCOMPARE(pixel(clipped, 16, 16), QByteArray::fromHex("0a141e64"));
@@ -3283,7 +3282,7 @@ void KisGpuTileRendererTest::patternFillClipsAlphaCompositesErasesAndRejectsInva
     QCOMPARE(eraseDocument.fillLayer(eraseLayer, {200, 30, 70}), Result::Success);
     QCOMPARE(eraseDocument.setSelectionMask(mask), Result::Success);
     const auto undoBefore = eraseDocument.undoCount();
-    QCOMPARE(eraseDocument.fillLayerPattern(eraseLayer, pattern, 255, true), Result::Success);
+    QCOMPARE(eraseDocument.fillLayerPattern(eraseLayer, pattern, 255.0 / 255, true), Result::Success);
     QCOMPARE(eraseDocument.undoCount(), undoBefore + 1);
     const auto erased = readTile(render(renderer, eraseDocument.snapshot()), eraseLayer, {0, 0});
     QCOMPARE(pixel(erased, 16, 16), QByteArray::fromHex("c81e4637"));
@@ -3329,7 +3328,7 @@ void KisGpuTileRendererTest::fillBlendModesMatchLayerComposition()
     QCOMPARE(document.fillLayer(layer, {17, 34, 51}), Result::Success);
     QCOMPARE(document.setSelectionRect(QRect(16, 16, 32, 32)), Result::Success);
     const auto historyBefore = document.undoCount();
-    QCOMPARE(document.fillLayer(layer, {221, 17, 44}, 255, false, false, LayerBlendMode(mode)),
+    QCOMPARE(document.fillLayer(layer, {221, 17, 44}, 255.0 / 255, false, false, LayerBlendMode(mode)),
              Result::Success);
     QCOMPARE(document.undoCount(), historyBefore + 1);
     QCOMPARE(document.historyAction(historyBefore + 1), HistoryAction::FillLayer);
@@ -3424,7 +3423,7 @@ void KisGpuTileRendererTest::strokeBlendModePreservesOpacitySelectionAlphaLockAn
     OperationDocument opacityDocument(QSize(64, 64));
     const auto opacityLayer = opacityDocument.activeLayer();
     QCOMPARE(opacityDocument.fillLayer(opacityLayer, {17, 34, 51}), Result::Success);
-    brush.opacity = 128;
+    brush.opacity = 128.0 / 255;
     QCOMPARE(strokeAt(opacityDocument, brush), Result::Success);
     const auto opacityPixels = readTile(render(renderer, opacityDocument.snapshot()), opacityLayer, {0, 0});
     QCOMPARE(pixel(opacityPixels, 32, 32), QByteArray::fromHex("10121eff"));
@@ -3434,7 +3433,7 @@ void KisGpuTileRendererTest::strokeBlendModePreservesOpacitySelectionAlphaLockAn
     const auto selectionLayer = selectionDocument.activeLayer();
     QCOMPARE(selectionDocument.fillLayer(selectionLayer, {17, 34, 51}), Result::Success);
     QCOMPARE(selectionDocument.setSelectionRect(QRect(16, 16, 32, 32)), Result::Success);
-    brush.opacity = 255;
+    brush.opacity = 255.0 / 255;
     QCOMPARE(strokeAt(selectionDocument, brush), Result::Success);
     const auto selectionPixels = readTile(render(renderer, selectionDocument.snapshot()), selectionLayer, {0, 0});
     QCOMPARE(pixel(selectionPixels, 32, 32), QByteArray::fromHex("0f0209ff"));
@@ -3443,7 +3442,7 @@ void KisGpuTileRendererTest::strokeBlendModePreservesOpacitySelectionAlphaLockAn
     // Alpha lock keeps the destination alpha and hidden RGB contract.
     OperationDocument alphaDocument(QSize(64, 64));
     const auto alphaLayer = alphaDocument.activeLayer();
-    QCOMPARE(alphaDocument.fillLayer(alphaLayer, {17, 34, 51}, 128), Result::Success);
+    QCOMPARE(alphaDocument.fillLayer(alphaLayer, {17, 34, 51}, 128.0 / 255), Result::Success);
     brush.alphaLocked = true;
     QCOMPARE(strokeAt(alphaDocument, brush), Result::Success);
     const auto alphaPixels = readTile(render(renderer, alphaDocument.snapshot()), alphaLayer, {0, 0});
@@ -3471,11 +3470,10 @@ void KisGpuTileRendererTest::gaussianStrokeBlendModeMatchesSeparableComposition(
     Brush brush;
     brush.rgba = {221, 17, 44, 255};
     brush.diameter = 64;
-    brush.opacity = 255;
     brush.blendMode = LayerBlendMode::Multiply;
     GaussianWash wash;
     wash.resourceDigest = QByteArray(32, '\0');
-    wash.canvasOpacity = 1;
+    brush.opacity = 1;
     wash.flow = 1;
     wash.sizePressure = QList<qreal>(256, 1);
     wash.opacityPressure = QList<qreal>(256, 1);
@@ -3513,7 +3511,7 @@ void KisGpuTileRendererTest::patternFillBlendModeMatchesLayerComposition()
     const auto layer = document.activeLayer();
     QCOMPARE(document.fillLayer(layer, {17, 34, 51}), Result::Success);
     QCOMPARE(document.setSelectionRect(QRect(16, 16, 4, 4)), Result::Success);
-    QCOMPARE(document.fillLayerPattern(layer, pattern, 255, false, false, LayerBlendMode::Multiply),
+    QCOMPARE(document.fillLayerPattern(layer, pattern, 255.0 / 255, false, false, LayerBlendMode::Multiply),
              Result::Success);
     TileRenderer renderer(m_device);
     const auto filled = readTile(render(renderer, document.snapshot()), layer, {0, 0});
@@ -3545,7 +3543,7 @@ void KisGpuTileRendererTest::fillBlendModePreservesOpacityAlphaLockAndChannelMas
     OperationDocument opacityDocument(QSize(64, 64));
     const auto opacityLayer = opacityDocument.activeLayer();
     QCOMPARE(opacityDocument.fillLayer(opacityLayer, {17, 34, 51}), Result::Success);
-    QCOMPARE(opacityDocument.fillLayer(opacityLayer, {221, 17, 44}, 128, false, false,
+    QCOMPARE(opacityDocument.fillLayer(opacityLayer, {221, 17, 44}, 128.0 / 255, false, false,
                                        LayerBlendMode::Multiply), Result::Success);
     const auto opacityPixels = readTile(render(renderer, opacityDocument.snapshot()), opacityLayer, {0, 0});
     QCOMPARE(pixel(opacityPixels, 24, 24), QByteArray::fromHex("10121eff"));
@@ -3553,8 +3551,8 @@ void KisGpuTileRendererTest::fillBlendModePreservesOpacityAlphaLockAndChannelMas
     // Alpha lock keeps the destination alpha, including hidden RGB.
     OperationDocument alphaDocument(QSize(64, 64));
     const auto alphaLayer = alphaDocument.activeLayer();
-    QCOMPARE(alphaDocument.fillLayer(alphaLayer, {17, 34, 51}, 128), Result::Success);
-    QCOMPARE(alphaDocument.fillLayer(alphaLayer, {221, 17, 44}, 255, false, true,
+    QCOMPARE(alphaDocument.fillLayer(alphaLayer, {17, 34, 51}, 128.0 / 255), Result::Success);
+    QCOMPARE(alphaDocument.fillLayer(alphaLayer, {221, 17, 44}, 255.0 / 255, false, true,
                                      LayerBlendMode::Multiply), Result::Success);
     const auto alphaPixels = readTile(render(renderer, alphaDocument.snapshot()), alphaLayer, {0, 0});
     QCOMPARE(pixel(alphaPixels, 24, 24), QByteArray::fromHex("76091a80"));
@@ -3568,7 +3566,7 @@ void KisGpuTileRendererTest::fillBlendModePreservesOpacityAlphaLockAndChannelMas
     const auto channelLayer = channelDocument.activeLayer();
     QCOMPARE(channelDocument.fillLayer(channelLayer, {17, 34, 51}), Result::Success);
     QCOMPARE(channelDocument.setLayerChannelMask(channelLayer, 14), Result::Success);
-    QCOMPARE(channelDocument.fillLayer(channelLayer, {221, 17, 44}, 255, false, false,
+    QCOMPARE(channelDocument.fillLayer(channelLayer, {221, 17, 44}, 255.0 / 255, false, false,
                                        LayerBlendMode::Multiply), Result::Success);
     const auto channelPixels = readTile(render(renderer, channelDocument.snapshot()), channelLayer, {0, 0});
     QCOMPARE(pixel(channelPixels, 24, 24), QByteArray::fromHex("110209ff"));
@@ -4867,7 +4865,7 @@ void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()
     Brush brush;
     brush.rgba = {42, 88, 203, 139};
     brush.diameter = 29.25;
-    brush.opacity = 177;
+    brush.opacity = 177.0 / 255;
     const auto a = single.beginStroke(single.activeLayer(), brush, 123);
     const auto b = chunks.beginStroke(chunks.activeLayer(), brush, 123);
     QCOMPARE(single.appendSamples(a, samples), Result::Success);
@@ -4920,14 +4918,14 @@ void KisGpuTileRendererTest::erasingAndLayerVisibilityPreservePixelMeaning()
     const auto painted = render(renderer, document.snapshot());
     QVERIFY(painted);
     brush.erase = true;
-    brush.opacity = 128;
+    brush.opacity = 128.0 / 255;
     stroke = document.beginStroke(document.activeLayer(), brush, 0);
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     const auto erased = render(renderer, document.snapshot(), painted);
     QVERIFY(erased);
     QCOMPARE(readTile(erased, document.activeLayer(), {0, 0}).mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("ff00007f"));
-    brush.opacity = 255;
+    brush.opacity = 255.0 / 255;
     stroke = document.beginStroke(document.activeLayer(), brush, 0);
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
@@ -5910,7 +5908,7 @@ void KisGpuTileRendererTest::emptyFillKeepsPointOutline()
     Brush brush;
     brush.rgba = {17, 129, 241, 255};
     brush.diameter = 8;
-    brush.opacity = 128;
+    brush.opacity = 128.0 / 255;
     QByteArray reference;
     for (bool filled : {false, true}) {
         OperationDocument document(QSize(64, 64));
