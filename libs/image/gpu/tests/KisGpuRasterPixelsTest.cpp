@@ -17,7 +17,57 @@ private Q_SLOTS:
     void compressedPixelsRemainLosslessAndIndependent_data();
     void invalidTileExtentsAndByteCountsAreRejected();
     void corruptedOrOversizedCompressedPixelsAreRejected();
+    void rgba16CheckpointsPreserveLowBitsAndRejectWrongPrecision();
+    void componentEncodingUsesDeclaredPrecisionAndByteOrder();
 };
+
+void KisGpuRasterPixelsTest::componentEncodingUsesDeclaredPrecisionAndByteOrder()
+{
+    const RgbaPixel color{1, 255, 256, 257};
+    const auto bytes = QByteArray::fromHex("0100ff0000010101");
+    QCOMPARE(rgbaBytes(color, PixelFormat::Rgba16), bytes);
+    QCOMPARE(rgbaPixel(bytes, PixelFormat::Rgba16), std::optional<RgbaPixel>(color));
+    QVERIFY(rgbaBytes(color, PixelFormat::Rgba8).isEmpty());
+    const RgbaPixel byteColor{1, 255, 0, 128};
+    QCOMPARE(rgbaBytes(byteColor, PixelFormat::Rgba8), QByteArray::fromHex("01ff0080"));
+    QCOMPARE(rgbaPixel(QByteArray::fromHex("01ff0080"), PixelFormat::Rgba8), std::optional<RgbaPixel>(byteColor));
+    QVERIFY(!rgbaPixel(bytes.chopped(1), PixelFormat::Rgba16));
+    QVERIFY(!rgbaPixel(QByteArray(bytes + 'x'), PixelFormat::Rgba16));
+    QVERIFY(!rgbaPixel(bytes, PixelFormat::Rgba8));
+    QVERIFY(!rgbaPixel({}, static_cast<PixelFormat>(255)));
+}
+
+void KisGpuRasterPixelsTest::rgba16CheckpointsPreserveLowBitsAndRejectWrongPrecision()
+{
+    const auto pixelBytes = QByteArray::fromHex("0001ff0001000000feff0080ff7fffffffff00000101ff00");
+    const auto bytes = pixelBytes.repeated(RgbaTile::byteCount(PixelFormat::Rgba16) / pixelBytes.size());
+    // Include arbitrary low bits throughout the full tile, including its tail.
+    QByteArray pixels = bytes;
+    pixels.append(QByteArray(RgbaTile::byteCount(PixelFormat::Rgba16) - pixels.size(), '\x01'));
+    auto input = RgbaTile{{-1, 0}, pixels, PixelFormat::Rgba16};
+    const auto checkpoint = RasterTile::fromPixels(input);
+    QVERIFY(checkpoint);
+    QCOMPARE(checkpoint->format(), PixelFormat::Rgba16);
+    QCOMPARE(checkpoint->byteCount(), pixels.size());
+    QCOMPARE(checkpoint->rgba(), pixels);
+    const auto restored = RasterTile::fromCompressed(input.coordinate, checkpoint->compressedData(), PixelFormat::Rgba16);
+    QVERIFY(restored);
+    QCOMPARE(restored->rgba(), pixels);
+    input.rgba.fill('\0');
+    QCOMPARE(checkpoint->rgba(), pixels);
+    QVERIFY(!RasterTile::fromCompressed(input.coordinate, checkpoint->compressedData()));
+    QVERIFY(!RasterTile::fromPixels({input.coordinate, pixels}));
+    QVERIFY(!RasterTile::fromPixels({input.coordinate, pixels.chopped(1), PixelFormat::Rgba16}));
+    QVERIFY(!RasterTile::fromPixels({input.coordinate, pixels + 'x', PixelFormat::Rgba16}));
+    const auto invalid = static_cast<PixelFormat>(255);
+    QVERIFY(!RasterTile::fromPixels({input.coordinate, {}, invalid}));
+    QVERIFY(!RasterTile::fromCompressed(input.coordinate, checkpoint->compressedData(), invalid));
+    const auto encoded = checkpoint->compressedData();
+    for (const auto &data : QList<QByteArray>{encoded.chopped(1), encoded + 'x',
+                            qCompress(pixels + 'x').mid(4), qCompress(pixels.chopped(1)).mid(4)}) {
+        QVERIFY(!RasterTile::fromCompressed(input.coordinate, data, PixelFormat::Rgba16));
+    }
+}
 
 void KisGpuRasterPixelsTest::compressedPixelsRemainLosslessAndIndependent()
 {

@@ -6,8 +6,29 @@
 #include "KisGpuRasterPixels.h"
 #include <zlib.h>
 #include <utility>
+#include <QtEndian>
 
 namespace LibrePaint::Image::Gpu {
+QByteArray rgbaBytes(const RgbaPixel &pixel, PixelFormat format)
+{
+    if (!validPixel(pixel, format)) return {};
+    QByteArray bytes(pixelByteCount(format), Qt::Uninitialized);
+    for (int i = 0; i < 4; ++i) {
+        if (format == PixelFormat::Rgba16) qToLittleEndian(pixel[i], bytes.data() + i * 2);
+        else bytes[i] = char(pixel[i]);
+    }
+    return bytes;
+}
+
+std::optional<RgbaPixel> rgbaPixel(QByteArrayView bytes, PixelFormat format)
+{
+    if (!pixelByteCount(format) || bytes.size() != pixelByteCount(format)) return {};
+    RgbaPixel pixel;
+    for (int i = 0; i < 4; ++i)
+        pixel[i] = format == PixelFormat::Rgba16 ? qFromLittleEndian<quint16>(bytes.data() + i * 2) : quint8(bytes[i]);
+    return pixel;
+}
+
 namespace {
 bool validCoordinate(QPoint coordinate)
 {
@@ -18,41 +39,44 @@ bool validCoordinate(QPoint coordinate)
     return true;
 }
 
-QByteArray decode(const QByteArray &data)
+QByteArray decode(const QByteArray &data, PixelFormat format)
 {
-    if (data.isEmpty() || data.size() > RasterTile::maximumCompressedBytes()) return {};
-    QByteArray pixels(RgbaTile::ByteCount, Qt::Uninitialized);
+    const auto byteCount = RgbaTile::byteCount(format);
+    if (!byteCount || data.isEmpty() || data.size() > RasterTile::maximumCompressedBytes(format)) return {};
+    QByteArray pixels(byteCount, Qt::Uninitialized);
     uLongf size = pixels.size();
     uLong consumed = data.size();
     const auto result = uncompress2(reinterpret_cast<Bytef *>(pixels.data()), &size,
                                    reinterpret_cast<const Bytef *>(data.constData()), &consumed);
-    if (result != Z_OK || size != RgbaTile::ByteCount || consumed != quint64(data.size())) return {};
+    if (result != Z_OK || size != quint64(byteCount) || consumed != quint64(data.size())) return {};
     return pixels;
 }
 }
 
-RasterTile::RasterTile(QPoint coordinate, QByteArray data)
-    : m_coordinate(coordinate), m_compressed(std::move(data)) {}
+RasterTile::RasterTile(QPoint coordinate, QByteArray data, PixelFormat format)
+    : m_coordinate(coordinate), m_compressed(std::move(data)), m_format(format) {}
 
 QSharedPointer<const RasterTile> RasterTile::fromPixels(const RgbaTile &tile)
 {
-    if (!validCoordinate(tile.coordinate) || tile.rgba.size() != RgbaTile::ByteCount) return {};
-    uLongf size = compressBound(RgbaTile::ByteCount);
+    const auto byteCount = RgbaTile::byteCount(tile.format);
+    if (!byteCount || !validCoordinate(tile.coordinate) || tile.rgba.size() != byteCount) return {};
+    uLongf size = compressBound(byteCount);
     QByteArray compressed(qsizetype(size), Qt::Uninitialized);
     const auto result = compress2(reinterpret_cast<Bytef *>(compressed.data()), &size,
                                  reinterpret_cast<const Bytef *>(tile.rgba.constData()),
-                                 RgbaTile::ByteCount, Z_DEFAULT_COMPRESSION);
+                                 byteCount, Z_DEFAULT_COMPRESSION);
     if (result != Z_OK) return {};
     compressed.resize(size);
-    return QSharedPointer<const RasterTile>(new RasterTile(tile.coordinate, std::move(compressed)));
+    return QSharedPointer<const RasterTile>(new RasterTile(tile.coordinate, std::move(compressed), tile.format));
 }
 
-QSharedPointer<const RasterTile> RasterTile::fromCompressed(QPoint coordinate, const QByteArray &data)
+QSharedPointer<const RasterTile> RasterTile::fromCompressed(QPoint coordinate, const QByteArray &data, PixelFormat format)
 {
-    if (!validCoordinate(coordinate) || decode(data).size() != RgbaTile::ByteCount) return {};
-    return QSharedPointer<const RasterTile>(new RasterTile(coordinate, data));
+    if (!pixelByteCount(format) || !validCoordinate(coordinate) || decode(data, format).size() != RgbaTile::byteCount(format)) return {};
+    return QSharedPointer<const RasterTile>(new RasterTile(coordinate, data, format));
 }
 
-QByteArray RasterTile::rgba() const { return decode(m_compressed); }
-qsizetype RasterTile::maximumCompressedBytes() { return compressBound(RgbaTile::ByteCount); }
+QByteArray RasterTile::rgba() const { return decode(m_compressed, m_format); }
+qsizetype RasterTile::maximumCompressedBytes(PixelFormat format)
+{ return pixelByteCount(format) ? compressBound(RgbaTile::byteCount(format)) : 0; }
 }

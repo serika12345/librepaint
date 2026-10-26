@@ -297,7 +297,25 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data();
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
+    void rgba16TilesCannotEnterAnRgba8Document();
 };
+
+void KisGpuOperationDocumentTest::rgba16TilesCannotEnterAnRgba8Document()
+{
+    const RgbaTile tile{{-1, 0}, QByteArray(RgbaTile::byteCount(PixelFormat::Rgba16), '\0'), PixelFormat::Rgba16};
+    RasterImage image;
+    image.size = {64, 64};
+    image.layers = {{QStringLiteral("Paint"), true, {}, {tile}}};
+    QVERIFY_THROWS_EXCEPTION(std::invalid_argument, OperationDocument{image});
+
+    OperationDocument document({64, 64});
+    const auto before = document.snapshot();
+    const auto recovery = document.recoveryData();
+    QCOMPARE(document.replaceTiles(document.activeLayer(), {tile}), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.undoCount(), 0);
+}
 
 void KisGpuOperationDocumentTest::layerForestInsertionCanClearPixelSelectionAtomically_data()
 {

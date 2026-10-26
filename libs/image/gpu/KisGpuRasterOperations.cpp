@@ -70,6 +70,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         QSet<QPoint> coordinates;
         auto operation = QSharedPointer<TileWriteOperation>::create();
         for (const auto &pixels : source.tiles) {
+            if (pixels.format != PixelFormat::Rgba8) throw std::invalid_argument("raster tile precision does not match the document");
             if (coordinates.contains(pixels.coordinate)) throw std::invalid_argument("repeated raster tile coordinate");
             const auto tile = RasterTile::fromPixels(pixels);
             if (!tile) throw std::invalid_argument("invalid raster tile bytes or coordinates");
@@ -108,7 +109,7 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     QSet<QPoint> coordinates;
     auto operation = QSharedPointer<TileWriteOperation>::create();
     for (const auto &pixels : tiles) {
-        if (coordinates.contains(pixels.coordinate)) return Result::InvalidInput;
+        if (pixels.format != PixelFormat::Rgba8 || coordinates.contains(pixels.coordinate)) return Result::InvalidInput;
         const auto tile = RasterTile::fromPixels(pixels);
         if (!tile) return Result::InvalidInput;
         coordinates.insert(pixels.coordinate);
@@ -161,7 +162,7 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
         operation->writtenAreas = write.areas;
         QSet<QPoint> coordinates;
         for (const auto &tile : write.tiles) {
-            if (!tile || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
+            if (!tile || tile->format() != PixelFormat::Rgba8 || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
             coordinates.insert(tile->coordinate());
             operation->tiles.append(tile);
         }
