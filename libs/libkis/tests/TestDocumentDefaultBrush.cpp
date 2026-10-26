@@ -10,6 +10,9 @@
 #include <KisGlobalResourcesInterface.h>
 #include <KisImageBarrierLock.h>
 #include <KoCanvasResourceProvider.h>
+#include <KoChannelInfo.h>
+#include <KoColorProfile.h>
+#include <KoColorSpace.h>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoCompositeOpRegistry.h>
@@ -17,6 +20,7 @@
 #include <application/kis_config.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <kis_figure_painting_stroke.h>
@@ -271,7 +275,8 @@ bool save(KisDocument *document, const QDir &out, const QString &name)
 }
 
 bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int profile, int stroke, int calls,
-           bool basicSmoothing = false, int eraser = 0, bool weightedSmoothing = false, bool pixelPerfect = false)
+           bool basicSmoothing = false, int eraser = 0, bool weightedSmoothing = false, bool pixelPerfect = false,
+           const KoColor *nativeForeground = nullptr, QPointF additionalOffset = {})
 {
     KisImageSP image = document->image();
     const auto layer = paintLayer(document);
@@ -288,9 +293,9 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
     resources.setResource(KoCanvasResource::EffectiveZoom, qreal(1));
     if (weightedSmoothing || pixelPerfect) resources.setResource(KoCanvasResource::DisablePressure, true);
     const auto color = stroke == 0 ? QColor(17, 34, 51) : stroke == 1 ? QColor(201, 29, 117) : QColor(83, 177, 41);
-    resources.setForegroundColor(KoColor(color, image->colorSpace()));
+    resources.setForegroundColor(nativeForeground ? *nativeForeground : KoColor(color, image->colorSpace()));
     resources.setBackgroundColor(KoColor(Qt::white, image->colorSpace()));
-    const auto offset = stroke == 0 ? QPointF() : stroke == 1 ? QPointF(-3.25, 4.5) : QPointF(.375, -.25);
+    const auto offset = additionalOffset + (stroke == 0 ? QPointF() : stroke == 1 ? QPointF(-3.25, 4.5) : QPointF(.375, -.25));
     const std::array<std::array<qreal, 3>, 3> pressures{{{{.12, .75, 1}}, {{.92, .68, .17}}, {{.12, .91, .18}}}};
     const QList<QPointF> positions{QPointF(12.25, 13.75), QPointF(60.125, 31.5), QPointF(105.5, 91.25)};
     KisRandomSourceSP random(new KisRandomSource(1789));
@@ -458,6 +463,25 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
             KisFigurePaintingOptions::StrokeStyleForeground, KisFigurePaintingOptions::FillStyleNone);
         if (calls == 0) {
             for (int i = 1; i < points.size(); ++i) operation.paintLine(points[i - 1], points[i]);
+        } else if (calls == 15 || calls == 16) {
+            const QPointF point(16, 16);
+            if (calls == 15) operation.paintLine(KisPaintInformation(point), KisPaintInformation(point));
+            else {
+                QPainterPath path(point);
+                path.lineTo(point);
+                operation.paintPainterPath(path);
+            }
+        } else if (calls >= 10) {
+            const QRectF bounds(16.25, 18.5, 96.5, 74.25);
+            const vQPointF outline{{16.25, 18.5}, {105.5, 25.75}, {82.125, 104.5}, {24.25, 88.125}};
+            if (calls == 10) operation.paintRect(bounds);
+            else if (calls == 11) operation.paintEllipse(bounds);
+            else if (calls == 12) {
+                QPainterPath rounded;
+                rounded.addRoundedRect(bounds, 8.5, 12.25, Qt::AbsoluteSize);
+                operation.paintPainterPath(rounded);
+            } else if (calls == 13) operation.paintPolyline(outline);
+            else operation.paintPolygon(outline);
         } else if (calls >= 5) {
             const QPointF firstPoint = QPointF(12.25, 13.75) + offset;
             QPainterPath first(firstPoint);
@@ -1118,4 +1142,331 @@ void TestDocument::testDefaultBrushStationaryInputKeepsOneTap()
                      QStringLiteral("document")));
     }
     QVERIFY(compareFiles(output(QStringLiteral("after-tap")), output(QStringLiteral("after-repeated"))));
+}
+
+void TestDocument::testRoundMarkerStrokeMatchesCpuPixels_data()
+{
+    QTest::addColumn<qreal>("opacity");
+    QTest::addColumn<bool>("erase");
+    QTest::addColumn<bool>("moving");
+    QTest::addColumn<quint8>("writeMask");
+    QTest::addColumn<quint8>("foregroundAlpha");
+    for (const qreal opacity : {qreal(1), qreal(.5)})
+        for (const bool erase : {false, true}) for (const bool moving : {false, true}) {
+            const auto name = QStringLiteral("%1-%2-%3")
+                .arg(opacity == 1 ? QStringLiteral("opaque") : QStringLiteral("half"))
+                .arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"))
+                .arg(moving ? QStringLiteral("moving") : QStringLiteral("tap"));
+            QTest::newRow(qPrintable(name)) << opacity << erase << moving << quint8(15) << quint8(255);
+        }
+    for (const quint8 mask : {0, 1, 7, 8, 10, 15}) for (const bool erase : {false, true}) {
+        const auto name = QStringLiteral("protected-%1-%2").arg(mask).arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"));
+        QTest::newRow(qPrintable(name)) << qreal(173.0 / 255) << erase << false << mask << quint8(128);
+    }
+}
+
+void TestDocument::testRoundMarkerStrokeMatchesCpuPixels()
+{
+    QFETCH(qreal, opacity);
+    QFETCH(bool, erase);
+    QFETCH(bool, moving);
+    QFETCH(quint8, writeMask);
+    QFETCH(quint8, foregroundAlpha);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    KisImageConfig config(false);
+    const int previousThreads = config.maxNumberOfThreads();
+    const auto restore = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+        config.setMaxNumberOfThreads(previousThreads);
+    });
+    config.setMaxNumberOfThreads(4);
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const QDir destination(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path()) +
+        QStringLiteral("/roundmarker/") + QString::fromLatin1(QTest::currentDataTag()));
+    QVERIFY(QDir().mkpath(destination.path()));
+    const auto retainFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            temporary.setAutoRemove(false);
+            qInfo() << "Roundmarker comparison artifacts at" << destination.path();
+        }
+    });
+    const auto preset = KisPaintOpRegistry::instance()->defaultPreset(
+        KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    QVERIFY(preset);
+    preset->settings()->setPaintOpSize(10);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(cs);
+    QVERIFY(cs->profile());
+    const int pixelSize = cs->pixelSize();
+    QCOMPARE(pixelSize, 4);
+    QByteArray initial = partialAlphaBackground();
+    const KoColor foreground(QColor(17, 34, 51, foregroundAlpha), cs);
+    QFile initialFile(destination.filePath(QStringLiteral("input.bgra")));
+    QVERIFY(initialFile.open(QIODevice::WriteOnly));
+    QCOMPARE(initialFile.write(initial), qint64(initial.size()));
+    const QJsonObject conditions{{"width", side}, {"height", side}, {"pixelSize", pixelSize},
+        {"componentBits", 8},
+        {"colorSpace", cs->id()}, {"profile", cs->profile()->name()},
+        {"profileSha256", QString::fromLatin1(QCryptographicHash::hash(cs->profile()->rawData(), QCryptographicHash::Sha256).toHex())},
+        {"foregroundBgra", QString::fromLatin1(QByteArray(reinterpret_cast<const char *>(foreground.data()), pixelSize).toHex())},
+        {"opacity", opacity}, {"erase", erase}, {"moving", moving}, {"writeMask", writeMask}};
+    QFile conditionsFile(destination.filePath(QStringLiteral("input.json")));
+    QVERIFY(conditionsFile.open(QIODevice::WriteOnly));
+    const auto conditionsBytes = QJsonDocument(conditions).toJson();
+    QCOMPARE(conditionsFile.write(conditionsBytes), qint64(conditionsBytes.size()));
+    QByteArray reference;
+    for (int owner = 0; owner < 2; ++owner) {
+        qputenv("LIBREPAINT_GPU_ENGINE", owner ? "1" : "0");
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true);
+        document->setAutoSaveActive(false);
+        QVERIFY2(document->newImage(QStringLiteral("Roundmarker contract"), side, side, cs,
+            KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1),
+            qPrintable(document->errorMessage()));
+        QCOMPARE(bool(document->image()->gpuImage()), bool(owner));
+        QScopedPointer<Node> node(Node::createNode(document->image(), paintLayer(document.data())));
+        QVERIFY(node->setPixelData(initial, 0, 0, side, side));
+        document->image()->waitForDone();
+        QCOMPARE(layerPixels(document.data()), initial);
+        QBitArray flags(cs->channelCount(), false);
+        const auto channels = cs->channels();
+        for (int i = 0; i < flags.size(); ++i) flags.setBit(i, writeMask & (1u << channels[i]->displayPosition()));
+        paintLayer(document.data())->setChannelLockFlags(flags);
+        const int before = document->undoStack()->index();
+        const auto settings = preset->settings()->toXML().toUtf8();
+        QFile presetFile(destination.filePath(owner ? QStringLiteral("gpu-preset.xml") : QStringLiteral("cpu-preset.xml")));
+        QVERIFY(presetFile.open(QIODevice::WriteOnly));
+        QCOMPARE(presetFile.write(settings), qint64(settings.size()));
+        QVERIFY(paint(document.data(), preset, opacity, 0, 0, moving ? -1 : -2, false, erase ? 1 : 0, false, false, &foreground));
+        const auto pixels = layerPixels(document.data());
+        if (owner) {
+            namespace Gpu = LibrePaint::Image::Gpu;
+            const auto version = document->image()->gpuImage()->operations().snapshot();
+            QVERIFY(!version->layers.first().operations.isEmpty());
+            const auto operation = std::get_if<Gpu::PaintSnapshot>(&version->layers.first().operations.last());
+            QVERIFY(operation && *operation);
+            const auto &brush = (*operation)->brush;
+            QJsonArray samples;
+            for (const auto &sample : (*operation)->inputSamples())
+                samples.append(QJsonObject{{"x", sample.position.x()}, {"y", sample.position.y()},
+                    {"pressure", sample.pressure}, {"timestamp", qint64(sample.timestamp)}});
+            const QJsonObject input{{"diameter", brush.diameter}, {"spacing", brush.spacing},
+                {"retainedOpacity", brush.opacity}, {"canvasOpacity", opacity}, {"erase", brush.erase},
+                {"rgba", QJsonArray{brush.rgba[0], brush.rgba[1], brush.rgba[2], brush.rgba[3]}},
+                {"seed", QString::number((*operation)->randomSeed)}, {"samples", samples}};
+            QFile inputFile(destination.filePath(QStringLiteral("gpu-input.json")));
+            QVERIFY(inputFile.open(QIODevice::WriteOnly));
+            const auto inputBytes = QJsonDocument(input).toJson();
+            QCOMPARE(inputFile.write(inputBytes), qint64(inputBytes.size()));
+        }
+        QCOMPARE(document->undoStack()->index(), before + 1);
+        if (writeMask != 0 && !erase) QVERIFY(pixels != initial);
+        document->undoStack()->undo();
+        document->image()->waitForDone();
+        QCOMPARE(layerPixels(document.data()), initial);
+        document->undoStack()->redo();
+        document->image()->waitForDone();
+        QCOMPARE(layerPixels(document.data()), pixels);
+        QFile raw(destination.filePath(owner ? QStringLiteral("gpu.bgra") : QStringLiteral("cpu.bgra")));
+        QVERIFY(raw.open(QIODevice::WriteOnly));
+        QCOMPARE(raw.write(pixels), qint64(pixels.size()));
+        if (!owner) { reference = pixels; continue; }
+        QCOMPARE(pixels.size(), reference.size());
+        int changedPixels = 0, changedComponents = 0, maximumDifference = 0;
+        qsizetype first = -1;
+        const auto component = [&](const QByteArray &bytes, qsizetype offset) {
+            return quint8(bytes[offset]);
+        };
+        for (qsizetype pixel = 0; pixel < pixels.size(); pixel += pixelSize) {
+            bool changed = false;
+            for (int channel = 0; channel < 4; ++channel) {
+                const auto offset = pixel + channel;
+                const int difference = qAbs(int(component(pixels, offset)) - int(component(reference, offset)));
+                if (!difference) continue;
+                ++changedComponents;
+                changed = true;
+                maximumDifference = qMax(maximumDifference, difference);
+            }
+            if (changed) { ++changedPixels; if (first < 0) first = pixel; }
+        }
+        const QJsonObject difference{{"changedPixels", changedPixels}, {"changedComponents", changedComponents},
+            {"maximumDifference", maximumDifference}, {"opacity", opacity}, {"erase", erase}, {"moving", moving},
+            {"firstX", first < 0 ? -1 : int(first / pixelSize % side)}, {"firstY", first < 0 ? -1 : int(first / pixelSize / side)},
+            {"cpuBgra", first < 0 ? QString() : QString::fromLatin1(reference.mid(first, pixelSize).toHex())},
+            {"gpuBgra", first < 0 ? QString() : QString::fromLatin1(pixels.mid(first, pixelSize).toHex())},
+            {"initialBgra", first < 0 ? QString() : QString::fromLatin1(initial.mid(first, pixelSize).toHex())}};
+        QFile diagnostic(destination.filePath(QStringLiteral("difference.json")));
+        QVERIFY(diagnostic.open(QIODevice::WriteOnly));
+        const auto report = QJsonDocument(difference).toJson();
+        QCOMPARE(diagnostic.write(report), qint64(report.size()));
+        if (changedPixels) qWarning().noquote() << report;
+        QCOMPARE(pixels, reference);
+    }
+}
+
+void TestDocument::testRoundMarkerShapesMatchCpuPixels_data()
+{
+    QTest::addColumn<int>("calls");
+    QTest::addColumn<qreal>("opacity");
+    QTest::addColumn<bool>("erase");
+    QTest::addColumn<int>("sizeMode");
+    const QStringList names{QStringLiteral("lines"), QStringLiteral("compound-path"),
+        QStringLiteral("separate-paths"), QStringLiteral("line-path-line"), QStringLiteral("path-line-path"),
+        QStringLiteral("cubic"), QStringLiteral("closed-cubic"), QStringLiteral("compound-cubic"),
+        QStringLiteral("separate-cubics"), QStringLiteral("mixed-curves"), QStringLiteral("rectangle"),
+        QStringLiteral("ellipse"), QStringLiteral("rounded-rectangle"), QStringLiteral("polyline"), QStringLiteral("polygon"),
+        QStringLiteral("zero-line"), QStringLiteral("zero-path")};
+    for (int calls = 0; calls < names.size(); ++calls) for (int sizeMode = 0; sizeMode < 3; ++sizeMode) {
+        if (sizeMode && calls != 0 && calls != 3 && calls != 4 && calls != 9) continue;
+        for (const qreal opacity : {qreal(1), qreal(.5)}) for (const bool erase : {false, true})
+            QTest::newRow(qPrintable(names[calls] + (opacity == 1 ? QStringLiteral("-opaque") : QStringLiteral("-half")) +
+                (erase ? QStringLiteral("-erase") : QStringLiteral("-normal")) +
+                (sizeMode == 0 ? QString() : sizeMode == 1 ? QStringLiteral("-pressure-size") : QStringLiteral("-size-curve"))))
+                << calls << opacity << erase << sizeMode;
+    }
+}
+
+void TestDocument::testRoundMarkerShapesMatchCpuPixels()
+{
+    QFETCH(int, calls);
+    QFETCH(qreal, opacity);
+    QFETCH(bool, erase);
+    QFETCH(int, sizeMode);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    KisImageConfig config(false);
+    const int previousThreads = config.maxNumberOfThreads();
+    const auto restore = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+        config.setMaxNumberOfThreads(previousThreads);
+    });
+    config.setMaxNumberOfThreads(4);
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const QDir destination(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path()) +
+        QStringLiteral("/roundmarker-shapes/") + QString::fromLatin1(QTest::currentDataTag()));
+    QVERIFY(QDir().mkpath(destination.path()));
+    const auto preset = KisPaintOpRegistry::instance()->defaultPreset(KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    QVERIFY(preset);
+    preset->settings()->setPaintOpSize(10);
+    preset->settings()->setProperty("PressureSize", sizeMode != 0);
+    if (sizeMode == 2) {
+        preset->settings()->setProperty("SizeSensor", QStringLiteral("<params id=\"pressure\"/>"));
+        preset->settings()->setProperty("SizeUseSameCurve", true);
+        preset->settings()->setProperty("SizecommonCurve", QStringLiteral("0,0;0.5,0.2;1,1;"));
+    }
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto initial = partialAlphaBackground();
+    QByteArray expected;
+    for (int owner = 0; owner < 2; ++owner) {
+        qputenv("LIBREPAINT_GPU_ENGINE", owner ? "1" : "0");
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true);
+        document->setAutoSaveActive(false);
+        QVERIFY2(document->newImage(QStringLiteral("Roundmarker shape contract"), side, side, cs,
+            KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1), qPrintable(document->errorMessage()));
+        QScopedPointer<Node> node(Node::createNode(document->image(), paintLayer(document.data())));
+        QVERIFY(node->setPixelData(initial, 0, 0, side, side));
+        document->image()->waitForDone();
+        QCOMPARE(layerPixels(document.data()), initial);
+        const int before = document->undoStack()->index();
+        QVERIFY(paint(document.data(), preset, opacity, 2, 0, calls, false, erase ? 1 : 0));
+        const auto actual = layerPixels(document.data());
+        QCOMPARE(document->undoStack()->index(), before + 1);
+        document->undoStack()->undo();
+        document->image()->waitForDone();
+        QCOMPARE(layerPixels(document.data()), initial);
+        document->undoStack()->redo();
+        document->image()->waitForDone();
+        QCOMPARE(layerPixels(document.data()), actual);
+        QFile file(destination.filePath(owner ? QStringLiteral("gpu.bgra") : QStringLiteral("cpu.bgra")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(actual), qint64(actual.size()));
+        if (!owner) { expected = actual; continue; }
+        const auto version = document->image()->gpuImage()->operations().snapshot();
+        const auto &operation = *std::get<LibrePaint::Image::Gpu::PaintSnapshot>(version->layers.first().operations.last());
+        QJsonArray samples;
+        for (const auto &sample : operation.inputSamples()) samples.append(QJsonObject{
+            {"x", sample.position.x()}, {"y", sample.position.y()}, {"pressure", sample.pressure}});
+        const QJsonObject captured{{"calls", calls}, {"opacity", opacity}, {"erase", erase}, {"sizeMode", sizeMode},
+            {"shape", int(operation.shape.kind)}, {"diameter", operation.brush.diameter},
+            {"spacing", operation.brush.spacing}, {"samples", samples}};
+        QFile input(destination.filePath(QStringLiteral("input.json")));
+        QVERIFY(input.open(QIODevice::WriteOnly));
+        const auto bytes = QJsonDocument(captured).toJson();
+        QCOMPARE(input.write(bytes), qint64(bytes.size()));
+        int changed = 0;
+        for (qsizetype offset = 0; offset < actual.size(); offset += 4)
+            if (actual.mid(offset, 4) != expected.mid(offset, 4)) ++changed;
+        if (changed) qWarning() << "Marker shape pixels differ" << changed << "calls" << calls;
+        QCOMPARE(actual, expected);
+    }
+}
+
+void TestDocument::testRoundMarkerSaveMatchesCpuFiles_data()
+{
+    QTest::addColumn<int>("calls");
+    QTest::addColumn<QPointF>("offset");
+    QTest::newRow("tap-at-storage-corner") << -2 << QPointF(47.75, 46.25);
+    QTest::newRow("moving") << -1 << QPointF();
+    QTest::newRow("ellipse") << 11 << QPointF();
+}
+
+void TestDocument::testRoundMarkerSaveMatchesCpuFiles()
+{
+    QFETCH(int, calls);
+    QFETCH(QPointF, offset);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    KisImageConfig imageConfig(false);
+    const auto previousThreads = imageConfig.maxNumberOfThreads();
+    KisConfig config(false);
+    const auto previousCompression = config.readEntry<bool>("compressLayers", true);
+    const auto restore = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+        imageConfig.setMaxNumberOfThreads(previousThreads);
+        config.writeEntry("compressLayers", previousCompression);
+    });
+    imageConfig.setMaxNumberOfThreads(4);
+    config.writeEntry("compressLayers", true);
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const QDir destination(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path()) +
+        QStringLiteral("/roundmarker-files/") + QString::fromLatin1(QTest::currentDataTag()));
+    QVERIFY(QDir().mkpath(destination.path()));
+    const auto retainFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            temporary.setAutoRemove(false);
+            qInfo() << "Roundmarker file artifacts at" << destination.path();
+        }
+    });
+    const auto preset = KisPaintOpRegistry::instance()->defaultPreset(KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    QVERIFY(preset);
+    preset->settings()->setPaintOpSize(10);
+    preset->settings()->setProperty("PressureSize", false);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QMap<QString, QByteArray> reference;
+    for (int owner = 0; owner < 2; ++owner) {
+        qputenv("LIBREPAINT_GPU_ENGINE", owner ? "1" : "0");
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true);
+        document->setAutoSaveActive(false);
+        QVERIFY(document->newImage(QStringLiteral("Roundmarker file contract"), side, side, cs,
+            KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+        QVERIFY(setInitialLayerIdentity(document.data(), QUuid(QStringLiteral("{33b00004-1122-3344-5566-778899aabbcc}"))));
+        paintLayer(document.data())->setName(QStringLiteral("Paint"));
+        QVERIFY(paint(document.data(), preset, 1, 0, 0, calls, false, 0, false, false, nullptr, offset));
+        const QDir out(destination.filePath(owner ? QStringLiteral("gpu") : QStringLiteral("cpu")));
+        QVERIFY(QDir().mkpath(out.path()));
+        QVERIFY(save(document.data(), out, QStringLiteral("document")));
+        for (const auto &extension : {QStringLiteral("bgra"), QStringLiteral("kra"), QStringLiteral("png"), QStringLiteral("jpg")}) {
+            QFile file(out.filePath(QStringLiteral("document.") + extension));
+            QVERIFY(file.open(QIODevice::ReadOnly));
+            const auto bytes = file.readAll();
+            QVERIFY(!bytes.isEmpty());
+            if (!owner) reference.insert(extension, bytes);
+            else QVERIFY2(bytes == reference.value(extension), qPrintable(QStringLiteral("Roundmarker %1 bytes differ: %2").arg(extension, destination.path())));
+        }
+    }
 }

@@ -923,6 +923,8 @@ void dot(OperationDocument &document, QPointF point, std::array<quint8, 4> rgba)
 {
     Brush brush;
     brush.rgba = rgba;
+    brush.opacity = qreal(rgba[3]) / 255;
+    brush.rgba[3] = 255;
     brush.diameter = 6;
     const auto stroke = document.beginStroke(document.activeLayer(), brush, 0);
     QCOMPARE(document.appendSamples(stroke, {{point, 1}}), Result::Success);

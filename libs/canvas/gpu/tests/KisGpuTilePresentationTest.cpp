@@ -187,7 +187,8 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     auto stroke = document.beginStroke(document.activeLayer(), brush, 0);
     QCOMPARE(document.appendSamples(stroke, {{{8, 12}, 1}}), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
-    brush.rgba = {0, 0, 255, 128};
+    brush.rgba = {0, 0, 255, 255};
+    brush.opacity = 128.0 / 255;
     stroke = document.beginStroke(document.activeLayer(), brush, 0);
     QCOMPARE(document.appendSamples(stroke, {{{20, 16}, 1}}), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);

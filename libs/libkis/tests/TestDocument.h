@@ -29,6 +29,12 @@ private Q_SLOTS:
     void testBackgroundNotificationLifetimes();
     void testOrdinaryCreationPreservesInitialDocumentState_data();
     void testOrdinaryCreationPreservesInitialDocumentState();
+    void testRoundMarkerStrokeMatchesCpuPixels_data();
+    void testRoundMarkerStrokeMatchesCpuPixels();
+    void testRoundMarkerSaveMatchesCpuFiles_data();
+    void testRoundMarkerSaveMatchesCpuFiles();
+    void testRoundMarkerShapesMatchCpuPixels_data();
+    void testRoundMarkerShapesMatchCpuPixels();
     void testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data();
     void testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles();
     void testDefaultBrushStationaryInputKeepsOneTap_data();

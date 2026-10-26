@@ -72,6 +72,9 @@ void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory()
         KoID("roundmarker"), KisGlobalResourcesInterface::instance());
     QVERIFY(preset);
     preset->settings()->setPaintOpSize(12);
+    preset->settings()->setProperty("PressureSize", true);
+    preset->settings()->setProperty("spacing", qreal(.02));
+    preset->settings()->setProperty("useAutoSpacing", false);
     KoCanvasResourceProvider resources;
     KisViewManager::initializeResourceManager(&resources);
     resources.setResource(KoCanvasResource::CurrentKritaNode, QVariant::fromValue(layer));
@@ -123,6 +126,7 @@ void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory()
             expectedSamples.append({last, lastPressure, b.xTilt(), b.yTilt(), b.rotation(), quint64(time + 16)});
         };
         const auto path = [&](const QPainterPath &value) {
+            const auto first = expectedSamples.size();
             stroke.paintPainterPath(value);
             for (int i = 0; i < value.elementCount(); ++i) {
                 const auto element = value.elementAt(i);
@@ -139,6 +143,7 @@ void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory()
                     expectedSamples.append({{element.x, element.y}, 1});
                 }
             }
+            expectedShape.pathCalls.append({first, expectedSamples.size()});
         };
         if (kind == QLatin1String("separate-paths") || kind == QLatin1String("mixed")) {
             QPainterPath first({12, 24});
@@ -162,12 +167,14 @@ void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory()
     QVERIFY(painted.bytes != empty.bytes);
     QCOMPARE(document->undoStack()->index(), history + 1);
 
-    // The existing path renderer is the independent equivalent operation. It
-    // preserves subpath boundaries and the pressure carried by each endpoint.
+    // The direct operation uses the configured spacing and pressure response
+    // and preserves the grouped painter-path calls and endpoint sensors.
     Gpu::PaintImage reference(owner->execution(), QSize(128, 128));
     Gpu::Brush brush;
     brush.rgba = {17, 129, 241, 255};
     brush.diameter = 12;
+    brush.spacing = .02;
+    brush.sizeResponse = {Gpu::PressureResponse::Kind::Direct, 1, {}};
     brush.opacity = opacity;
     QCOMPARE(reference.paintFigure(reference.operations().activeLayer(), brush, expectedSamples,
                                    expectedShape, {}, 0), Gpu::Result::Success);
@@ -184,6 +191,7 @@ void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory()
     const auto operation = std::get<Gpu::PaintSnapshot>(found->operations.last());
     QVERIFY(operation);
     QCOMPARE(operation->inputSamples(), expectedSamples);
+    QCOMPARE(operation->shape.pathCalls, expectedShape.pathCalls);
     document->undoStack()->undo();
     image->waitForDone();
     QCOMPARE(read(*owner, layerId).bytes, empty.bytes);

@@ -32,7 +32,7 @@ inline Brush defaultGaussianBrush()
     brush.opacity = 0.57;
     wash.creamy = true;
     wash.flow = 0.5;
-    wash.opacityPressure = {
+    wash.opacityResponse = {PressureResponse::Kind::Curve, 1, {
         0, 0.0024373535489618427, 0.00487561109774725, 0.007315676646179789,
         0.00975845419408302, 0.012204847741280512, 0.01465576128759583, 0.017112098832852536,
         0.019574764376874196, 0.02204466191948438, 0.024522695460506647, 0.027009768999764563,
@@ -97,10 +97,8 @@ inline Brush defaultGaussianBrush()
         1, 1, 1, 1,
         1, 1, 1, 1,
         1, 1, 1, 1
-    };
-    wash.opacityUsesPressureDirectly = false;
-    wash.resourceDigest = QByteArray::fromHex("1167275f113c8d34d6915343428acc1831e2f19b96ff42614d64a9c30ce6116d");
-    wash.sizePressure = {
+    }};
+    brush.sizeResponse = {PressureResponse::Kind::Curve, 1, {
         0.0698697, 0.07058666720141814, 0.07130544793360825, 0.07202785572734229,
         0.07275570411339223, 0.07349080662253005, 0.0742349767855277, 0.07499002813315715,
         0.0757577741961904, 0.07654002850539936, 0.07733860459155605, 0.0781553159854324,
@@ -165,8 +163,7 @@ inline Brush defaultGaussianBrush()
         0.9840908916293356, 0.9855686004528825, 0.9870373303494586, 0.9884979792117627,
         0.9899514449324893, 0.9913986254043372, 0.9928404185200035, 0.9942777221721852,
         0.9957114342535778, 0.99714245265688, 0.9985716752747889, 0.9999999999999998
-    };
-    wash.sizeUsesPressureDirectly = false;
+    }};
     brush.gaussianWash = std::move(wash);
     return brush;
 }
@@ -177,7 +174,7 @@ inline PaintOperation gaussianCompoundPathInput()
 {
     PaintOperation operation;
     operation.brush = defaultGaussianBrush();
-    operation.brush.gaussianWash->sizePressure = {
+    operation.brush.sizeResponse = {PressureResponse::Kind::Curve, 1, {
         0.0698697, 0.07058666720141815, 0.07130544793360825, 0.0720278557273423,
         0.07275570411339224, 0.07349080662253006, 0.07423497678552772, 0.07499002813315718,
         0.07575777419619042, 0.0765400285053994, 0.07733860459155609, 0.07815531598543245,
@@ -242,8 +239,8 @@ inline PaintOperation gaussianCompoundPathInput()
         0.9840908916293352, 0.9855686004528816, 0.9870373303494582, 0.9884979792117627,
         0.9899514449324884, 0.9913986254043377, 0.9928404185200044, 0.9942777221721857,
         0.9957114342535787, 0.99714245265688, 0.9985716752747893, 0.9999999999999998
-    };
-    operation.brush.gaussianWash->opacityPressure = {
+    }};
+    operation.brush.gaussianWash->opacityResponse = {PressureResponse::Kind::Curve, 1, {
         0, 0.002437353548961832, 0.004875611097747229, 0.007315676646179756,
         0.009758454194082977, 0.012204847741280458, 0.014655761287595765, 0.01711209883285246,
         0.019574764376874113, 0.022044661919484284, 0.02452269546050654, 0.027009768999764445,
@@ -308,7 +305,7 @@ inline PaintOperation gaussianCompoundPathInput()
         1, 1, 1, 1,
         1, 1, 1, 1,
         1, 1, 1, 1
-    };
+    }};
     operation.shape.kind = ShapeKind::Path;
     operation.shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::MoveTo, PathCommand::LineTo};
     const QList<InputSample> samples{

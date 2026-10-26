@@ -1534,6 +1534,16 @@ GPU所有者の試験は保持した旧版、使用中・読取り容量・座�
 `ellipse-tool.{kra,png}`、`rectangle-tool.{kra,png}`、`rounded-rectangle-tool.{kra,png}`、
 `polyline-tool.{kra,png}`と`polygon-tool.{kra,png}`を出力する。
 これらのSHA-256を環境間で照合し、通常入力の表示座標による差と保存結果を区別する。
+円形マーカーの画素は`KisGpuTileRendererTest::markerMatchesNormalEngine`で検査する。
+`libs/image/gpu/tests/data/roundmarker/`は、通常CPU描画のタップ・移動、通常合成・消去、
+完全・半不透明度の固定画素と入力条件を保持する。再生成、保持済み版とUndo／Redoを全画素で照合する。
+通常文書の`TestDocument::testRoundMarkerStrokeMatchesCpuPixels`は、前景色のアルファ、
+チャンネル保護と消去も含めてCPUとGPUを直接比較する。
+`testRoundMarkerShapesMatchCpuPixels`は直線、曲線、図形輪郭、筆圧サイズ、応答曲線と
+移動のないパスを同じ背景で比較し、履歴を照合する。
+`LIBREPAINT_GPU_RESULT_DIR`へ条件とCPU・GPUの画素、最初の不一致の位置と成分を出力する。
+`testRoundMarkerSaveMatchesCpuFiles`は、新規の透明な文書で境界のタップ、移動、楕円を描き、
+通常CPUとGPUの画素、KRA、PNG、JPEGを全バイトで照合する。KRAには描画で確保した空の格納領域も保持する。
 円形マーカーの直線の途中の筆圧は、入力の始終点を結ぶ線への位置の投影を維持し、自由描画の同じ
 座標・筆圧列とタイル全体の画素を照合する。直線を移動した場合も同じ筆圧分布を照合する。
 Gaussian WASHの直線は、保持した入力位置を変更後の始終点へ投影し、元の筆圧・傾き・時刻を保持する。

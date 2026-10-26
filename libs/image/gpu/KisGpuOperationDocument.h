@@ -92,27 +92,30 @@ struct WeightedSmoothing
     }
 };
 
-/** Hard Gaussian circle with pressure-controlled size and opacity, WASH version 1.
- * Transfer values and the resource digest are frozen before input is accepted.
- */
+/** Frozen constant, direct or sampled native pressure response. */
+struct PressureResponse
+{
+    enum class Kind { Constant, Direct, Curve };
+    Kind kind = Kind::Constant;
+    qreal strength = 1;
+    QList<qreal> curve;
+
+    bool operator==(const PressureResponse &other) const
+    { return kind == other.kind && strength == other.strength && curve == other.curve; }
+};
+
+/** Gaussian WASH flow, angle and pressure-controlled opacity. */
 struct GaussianWash
 {
-    QByteArray resourceDigest;
     qreal angle = 0;
     qreal flow = 1;
     bool creamy = true;
-    bool sizeUsesPressureDirectly = false;
-    bool opacityUsesPressureDirectly = false;
-    QList<qreal> sizePressure = QList<qreal>(256, 0);
-    QList<qreal> opacityPressure = QList<qreal>(256, 0);
+    PressureResponse opacityResponse;
 
     bool operator==(const GaussianWash &other) const
     {
-        return resourceDigest == other.resourceDigest && angle == other.angle &&
-            flow == other.flow && creamy == other.creamy &&
-            sizeUsesPressureDirectly == other.sizeUsesPressureDirectly &&
-            opacityUsesPressureDirectly == other.opacityUsesPressureDirectly &&
-            sizePressure == other.sizePressure && opacityPressure == other.opacityPressure;
+        return angle == other.angle && flow == other.flow && creamy == other.creamy &&
+            opacityResponse == other.opacityResponse;
     }
 };
 
@@ -125,6 +128,9 @@ struct Brush
     std::array<quint8, 4> rgba{0, 0, 0, 255};
     qreal diameter = 10;
     qreal spacing = 0.1;
+    bool autoSpacing = false;
+    qreal autoSpacingCoefficient = 1;
+    PressureResponse sizeResponse{PressureResponse::Kind::Direct, 1, {}};
     /** Canvas opacity in [0, 1], frozen before input is accepted. */
     qreal opacity = 1;
     bool erase = false;
@@ -148,7 +154,9 @@ struct Brush
     bool operator==(const Brush &other) const
     {
         return rgba == other.rgba && diameter == other.diameter &&
-            spacing == other.spacing && opacity == other.opacity && erase == other.erase &&
+            spacing == other.spacing && autoSpacing == other.autoSpacing &&
+            autoSpacingCoefficient == other.autoSpacingCoefficient && sizeResponse == other.sizeResponse &&
+            opacity == other.opacity && erase == other.erase &&
             alphaLocked == other.alphaLocked && blendMode == other.blendMode &&
             channelWriteMask == other.channelWriteMask &&
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
@@ -632,8 +640,9 @@ struct Limits
  *
  * Call on one owning thread. Snapshots are immutable and can outlive the owner;
  * consumers retain a snapshot for background work. Each accepted append or shape
- * update produces a new preview. Commit adopts that exact preview as one history
- * entry; cancel preserves the committed version and redo branch. Undo/redo only
+ * update produces a new preview. Commit completes stationary or smoothed input
+ * and adopts its final preview as one history entry; cancel preserves the
+ * committed version and redo branch. Undo/redo only
  * select existing versions and execute no paint operation or external effect.
  *
  * Construction requires positive dimensions and limits; invalid values throw

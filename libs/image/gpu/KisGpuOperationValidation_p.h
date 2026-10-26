@@ -146,17 +146,26 @@ inline bool validSample(const InputSample &sample)
         std::isfinite(sample.rotation) && std::isfinite(sample.speed) && sample.speed >= 0 && sample.speed <= 1;
 }
 
+inline bool validPressureResponse(const PressureResponse &value)
+{
+    if (!std::isfinite(value.strength) || value.strength < 0 || value.strength > 1 ||
+        value.kind < PressureResponse::Kind::Constant || value.kind > PressureResponse::Kind::Curve) return false;
+    if (value.kind != PressureResponse::Kind::Curve) return value.curve.isEmpty();
+    if (value.curve.size() != 256) return false;
+    for (const auto number : value.curve)
+        if (!std::isfinite(number) || number < 0 || number > 1) return false;
+    return true;
+}
+
 inline bool validBrush(const Brush &brush)
 {
+    if (!validPressureResponse(brush.sizeResponse) || !std::isfinite(brush.autoSpacingCoefficient) ||
+        brush.autoSpacingCoefficient < 0) return false;
     if (!std::isfinite(brush.opacity) || brush.opacity < 0 || brush.opacity > 1) return false;
     if (brush.gaussianWash) {
         const auto &value = *brush.gaussianWash;
-        const auto unit = [](qreal number) { return std::isfinite(number) && number >= 0 && number <= 1; };
-        if (value.resourceDigest.size() != 32 || value.sizePressure.size() != 256 ||
-            value.opacityPressure.size() != 256 || !std::isfinite(value.angle) ||
-            !unit(value.flow)) return false;
-        for (const auto number : value.sizePressure) if (!unit(number)) return false;
-        for (const auto number : value.opacityPressure) if (!unit(number)) return false;
+        if (!std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||
+            !validPressureResponse(value.opacityResponse)) return false;
     }
     if (brush.weightedSmoothing) {
         const auto &value = *brush.weightedSmoothing;

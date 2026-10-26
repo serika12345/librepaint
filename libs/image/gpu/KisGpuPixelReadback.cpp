@@ -5,6 +5,7 @@
 
 #include "KisGpuExecution_p.h"
 #include "KisGpuGaussianBrush_p.h"
+#include "KisGpuMarkerBrush_p.h"
 #include "KisGpuReadbackBatch_p.h"
 #include "KisGpuPaintJob_p.h"
 #include <QColorSpace>
@@ -191,20 +192,26 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
                 }
                 continue;
             }
-            const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
-            const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
-            const auto geometry = Detail::paintGeometry(paint, step);
-            if (!geometry) return std::nullopt;
-            for (const auto &segment : paint.figureStyle.outline ? geometry->outline : QList<Detail::PaintSegment>{}) {
-                const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, needed, stageMaximum);
-                if (!tiles) return std::nullopt;
-                for (const auto tile : *tiles) {
-                    coordinates.insert(tile);
+            const auto dabs = Detail::markerDabs(paint, paint.id == pendingOperation, needed);
+            if (!dabs) return std::nullopt;
+            for (const auto &dab : *dabs) {
+                const auto bounds = dab.bounds().intersected(needed);
+                const int left = Detail::pixelTileIndex(bounds.left(), TileRenderer::TileSize);
+                const int right = Detail::pixelTileIndex(bounds.right(), TileRenderer::TileSize);
+                const int top = Detail::pixelTileIndex(bounds.top(), TileRenderer::TileSize);
+                const int bottom = Detail::pixelTileIndex(bounds.bottom(), TileRenderer::TileSize);
+                if (qint64(right - left + 1) * (bottom - top + 1) > stageMaximum) return std::nullopt;
+                for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                    const QRect tile(QPoint(x, y) * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+                    if (!Detail::markerDabIntersects(dab, tile.intersected(needed))) continue;
+                    coordinates.insert(Detail::key(x, y));
                     if (coordinates.size() > stageMaximum) return std::nullopt;
                 }
             }
             if (hasFigureFill(paint.figureStyle)) {
-                const auto tiles = Detail::figureFillTiles(geometry->fill, paint.brush, needed, stageMaximum);
+                const auto edges = Detail::figureFillEdges(paint);
+                if (!edges) return std::nullopt;
+                const auto tiles = Detail::figureFillTiles(*edges, paint.brush, needed, stageMaximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
@@ -282,12 +289,20 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
                 outcome.writtenAreas.append((*filter)->selectionRect.intersected(outcome.region));
         } else {
             const auto &paint = *std::get<PaintSnapshot>(operation);
-            if (paint.brush.gaussianWash && paint.figureStyle.outline) {
-                const auto dabs = Detail::gaussianDabs(paint, paint.id == pinned->pendingOperation());
-                if (!dabs) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Layer written-area geometry is unsupported"));
-                if (dabs->size() > maximumBytes / qsizetype(sizeof(QRect)) - outcome.writtenAreas.size())
-                    return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
-                for (const auto &dab : *dabs) outcome.writtenAreas.append(dab.bounds().intersected(outcome.region));
+            if (paint.figureStyle.outline) {
+                const auto appendWrittenAreas = [&](const auto &dabs) {
+                    if (!dabs) return paint.brush.gaussianWash ? ExecutionCode::InvalidRequest : ExecutionCode::CapacityExceeded;
+                    if (dabs->size() > maximumBytes / qsizetype(sizeof(QRect)) - outcome.writtenAreas.size())
+                        return ExecutionCode::CapacityExceeded;
+                    for (const auto &dab : *dabs) outcome.writtenAreas.append(dab.bounds().intersected(outcome.region));
+                    return ExecutionCode::Success;
+                };
+                const auto status = paint.brush.gaussianWash ?
+                    appendWrittenAreas(Detail::gaussianDabs(paint, paint.id == pinned->pendingOperation())) :
+                    appendWrittenAreas(Detail::markerDabs(paint, paint.id == pinned->pendingOperation(), outcome.region));
+                if (status != ExecutionCode::Success)
+                    return failure(status, status == ExecutionCode::InvalidRequest ?
+                        QStringLiteral("Layer written-area geometry is unsupported") : QStringLiteral("Layer written-area capacity exceeded"));
             }
         }
         if (outcome.writtenAreas.size() > maximumBytes / qsizetype(sizeof(QRect)))

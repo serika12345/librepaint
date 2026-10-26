@@ -102,79 +102,6 @@ std::optional<std::array<QPointF, 2>> basicCurveControls(QPointF first, QPointF 
 }
 
 namespace Detail {
-namespace {
-quint32 integerRoot(quint64 value)
-{
-    quint64 root = 0, bit = quint64(1) << 62;
-    while (bit > value) bit >>= 2;
-    while (bit != 0) {
-        if (value >= root + bit) {
-            value -= root + bit;
-            root = (root >> 1) + bit;
-        } else root >>= 1;
-        bit >>= 2;
-    }
-    return quint32(root);
-}
-qint32 fixed(qreal value) { return qint32(std::llround(value * 16)); }
-quint32 pressure(qreal value) { return quint32(std::llround(value * 65535)); }
-
-bool appendSegment(QList<PaintSegment> &result, const InputSample &a, const InputSample &b,
-                   quint32 step, quint32 &phase, qsizetype maximumSegments = PathGeometrySegmentLimit)
-{
-    if (result.size() >= maximumSegments) return false;
-    const qint32 ax = fixed(a.position.x()), ay = fixed(a.position.y());
-    const qint32 bx = fixed(b.position.x()), by = fixed(b.position.y());
-    const qint64 dx = qint64(bx) - ax, dy = qint64(by) - ay;
-    const quint32 length = integerRoot(quint64(dx * dx) + quint64(dy * dy));
-    result.append({ax, ay, bx, by, pressure(a.pressure), pressure(b.pressure), phase, length});
-    phase = (quint64(phase) + length) % step;
-    return true;
-}
-
-bool appendCubic(QList<PaintSegment> &result, InputSample first, QPointF control1, QPointF control2,
-                 InputSample last, quint32 step, quint32 &phase)
-{
-    const auto quantized = [](QPointF value) {
-        return QPointF(qreal(fixed(value.x())) / 16, qreal(fixed(value.y())) / 16);
-    };
-    first.position = quantized(first.position);
-    last.position = quantized(last.position);
-    struct Curve { InputSample first; QPointF control1, control2; InputSample last; };
-    QList<Curve> pending{{first, quantized(control1), quantized(control2), last}};
-    while (!pending.isEmpty()) {
-        const auto curve = pending.takeLast();
-        const auto firstDifference = curve.first.position - 2 * curve.control1 + curve.control2;
-        const auto lastDifference = curve.control1 - 2 * curve.control2 + curve.last.position;
-        // Dyadic subdivision preserves the same fixed-input decisions on each OS.
-        const qreal flatness = std::max({std::abs(firstDifference.x()), std::abs(firstDifference.y()),
-                                         std::abs(lastDifference.x()), std::abs(lastDifference.y())});
-        if (flatness <= qreal(1) / 32) {
-            if (!appendSegment(result, curve.first, curve.last, step, phase)) return false;
-            continue;
-        }
-        const auto firstControl = (curve.first.position + curve.control1) / 2;
-        const auto middleControl = (curve.control1 + curve.control2) / 2;
-        const auto lastControl = (curve.control2 + curve.last.position) / 2;
-        const auto leftControl = (firstControl + middleControl) / 2;
-        const auto rightControl = (middleControl + lastControl) / 2;
-        auto middle = curve.first;
-        middle.position = (leftControl + rightControl) / 2;
-        middle.pressure = (curve.first.pressure + curve.last.pressure) / 2;
-        pending.append({middle, rightControl, lastControl, curve.last});
-        pending.append({curve.first, firstControl, leftControl, middle});
-    }
-    return true;
-}
-
-bool appendBasicCurve(QList<PaintSegment> &result, const InputSample &first, const InputSample &last,
-                      QPointF tangent1, QPointF tangent2, quint32 step, quint32 &phase)
-{
-    const auto controls = basicCurveControls(first.position, last.position, tangent1, tangent2);
-    return !controls || appendCubic(result, first, (*controls)[0], (*controls)[1], last, step, phase);
-}
-
-}
 
 std::optional<QList<InputSample>> weightedInput(const QList<InputSample> &input, const WeightedSmoothing &settings)
 {
@@ -230,56 +157,6 @@ std::optional<QList<InputSample>> weightedInput(const QList<InputSample> &input,
     return points;
 }
 
-namespace {
-std::optional<PaintGeometry> basicGeometry(const PaintOperation &operation, const QList<InputSample> &input,
-                                          quint32 step)
-{
-    PaintGeometry result;
-    if (input.isEmpty()) return result;
-    InputSample previous = input.first(), older;
-    QPointF previousTangent;
-    bool haveTangent = false;
-    qsizetype flushIndex = 0;
-    quint32 phase = 0;
-    const auto tangent = [](const InputSample &a, const InputSample &b) {
-        return (b.position - a.position) / qreal(std::max<quint64>(1, b.timestamp - a.timestamp));
-    };
-    const auto finish = [&] {
-        if (!haveTangent) return true;
-        haveTangent = false;
-        return appendBasicCurve(result.outline, older, previous, previousTangent,
-                                tangent(older, previous), step, phase);
-    };
-    for (qsizetype index = 1; index < input.size(); ++index) {
-        const auto &point = input[index];
-        if (!haveTangent) {
-            haveTangent = true;
-            previousTangent = tangent(previous, point);
-        } else {
-            const auto nextTangent = tangent(older, point);
-            if (nextTangent.isNull() || previousTangent.isNull()) {
-                if (!appendSegment(result.outline, previous, point, step, phase)) return std::nullopt;
-            } else if (!appendBasicCurve(result.outline, older, previous, previousTangent, nextTangent, step, phase)) {
-                return std::nullopt;
-            }
-            previousTangent = nextTangent;
-        }
-        older = previous;
-        previous = point;
-        if (flushIndex < operation.smoothingFlushes.size() && operation.smoothingFlushes[flushIndex] == index + 1) {
-            if (!finish()) return std::nullopt;
-            ++flushIndex;
-        }
-    }
-    if (operation.smoothingFinished) {
-        if (result.outline.isEmpty()) {
-            if (!appendSegment(result.outline, previous, previous, step, phase)) return std::nullopt;
-        } else if (!finish()) return std::nullopt;
-    }
-    return result;
-}
-
-}
 
 QList<InputSample> pixelPerfectInput(const QList<InputSample> &input)
 {
@@ -314,143 +191,11 @@ QList<InputSample> pixelPerfectInput(const QList<InputSample> &input)
     return points;
 }
 
-namespace {
-std::optional<PaintGeometry> pathGeometry(const PaintOperation &operation, const QList<InputSample> &input,
-                                         quint32 step)
-{
-    PaintGeometry result;
-    qsizetype index = 0;
-    quint32 phase = 0;
-    std::optional<InputSample> previous;
-    for (const auto command : operation.shape.pathCommands) {
-        if (command == PathCommand::MoveTo) {
-            previous = input[index++];
-        } else if (command == PathCommand::LineTo) {
-            const auto &point = input[index++];
-            if (!appendSegment(result.outline, *previous, point, step, phase)) return std::nullopt;
-            previous = point;
-        } else {
-            if (!appendCubic(result.outline, *previous, input[index].position, input[index + 1].position,
-                              input[index + 2], step, phase)) return std::nullopt;
-            previous = input[index + 2];
-            index += 3;
-        }
-    }
-    return result;
-}
-}
 
-static std::optional<PaintGeometry> outlineGeometry(const PaintOperation &operation, quint32 step)
+std::optional<QList<FigureFillEdge>> figureFillEdges(const PaintOperation &operation)
 {
-    const auto input = operation.inputSamples();
-    if (operation.brush.weightedSmoothing) {
-        const auto corrected = weightedInput(input, *operation.brush.weightedSmoothing);
-        return corrected ? basicGeometry(operation, *corrected, step) : std::nullopt;
-    }
-    if (operation.brush.basicSmoothing) return basicGeometry(operation, input, step);
-    if (operation.shape.kind == ShapeKind::Path) return pathGeometry(operation, input, step);
-    QList<InputSample> points;
-    switch (operation.shape.kind) {
-    case ShapeKind::Freehand:
-        points = operation.brush.pixelPerfect ? pixelPerfectInput(input) : input;
-        break;
-    case ShapeKind::Polyline:
-        points = input;
-        break;
-    case ShapeKind::Polygon:
-        points = input;
-        points.append(points.front());
-        break;
-    case ShapeKind::Line: {
-        points = input.size() == 1 ? QList<InputSample>{input.front(), input.front()} : input;
-        const auto inputDelta = input.back().position - input.front().position;
-        const qreal lengthSquared = QPointF::dotProduct(inputDelta, inputDelta);
-        const auto lineDelta = operation.shape.second - operation.shape.first;
-        for (qsizetype i = 1; i + 1 < points.size(); ++i) {
-            const qreal fraction = lengthSquared > 0 ?
-                std::clamp(QPointF::dotProduct(points[i].position - input.front().position, inputDelta) / lengthSquared, qreal(0), qreal(1)) :
-                qreal(i) / (points.size() - 1);
-            points[i].position = operation.shape.first + lineDelta * fraction;
-        }
-        points.front().position = operation.shape.first;
-        points.back().position = operation.shape.second;
-        break;
-    }
-    case ShapeKind::Rectangle:
-    case ShapeKind::RoundedRectangle: {
-        const auto &shape = operation.shape;
-        const auto center = (shape.first + shape.second) / 2;
-        const qreal cosine = std::cos(shape.rotation), sine = std::sin(shape.rotation);
-        const QRectF rect = QRectF(shape.first, shape.second).normalized();
-        const qreal rx = std::min(shape.cornerRadii.width(), rect.width() / 2);
-        const qreal ry = std::min(shape.cornerRadii.height(), rect.height() / 2);
-        QList<QPointF> outline;
-        if (shape.kind == ShapeKind::RoundedRectangle && rx > 0 && ry > 0) {
-            constexpr qreal pi = 3.14159265358979323846;
-            const int count = std::clamp(int(std::ceil(pi * std::sqrt(std::max(rx, ry) / 0.125) / 4)), 4, 16384);
-            const QList<QPointF> centers{{rect.right() - rx, rect.top() + ry},
-                                         {rect.right() - rx, rect.bottom() - ry},
-                                         {rect.left() + rx, rect.bottom() - ry},
-                                         {rect.left() + rx, rect.top() + ry}};
-            outline.reserve(4 * (count + 1));
-            for (int corner = 0; corner < 4; ++corner) {
-                for (int i = 0; i <= count; ++i) {
-                    const qreal angle = (corner - 1 + qreal(i) / count) * pi / 2;
-                    outline.append(centers[corner] + QPointF(rx * std::cos(angle), ry * std::sin(angle)));
-                }
-            }
-        } else {
-            outline = {shape.first, QPointF(shape.second.x(), shape.first.y()),
-                       shape.second, QPointF(shape.first.x(), shape.second.y())};
-        }
-        for (const auto &corner : outline) {
-            auto point = input.front();
-            const auto delta = corner - center;
-            point.position = center + QPointF(delta.x() * cosine - delta.y() * sine,
-                                               delta.x() * sine + delta.y() * cosine);
-            points.append(point);
-        }
-        points.append(points.front());
-        break;
-    }
-    case ShapeKind::Ellipse: {
-        const auto &shape = operation.shape;
-        const auto center = (shape.first + shape.second) / 2;
-        const qreal rx = std::abs(shape.second.x() - shape.first.x()) / 2;
-        const qreal ry = std::abs(shape.second.y() - shape.first.y()) / 2;
-        constexpr qreal pi = 3.14159265358979323846;
-        const int count = std::clamp(int(std::ceil(pi * std::sqrt(std::max(rx, ry) / 0.125))), 16, 65536);
-        const qreal cosine = std::cos(shape.rotation), sine = std::sin(shape.rotation);
-        points.reserve(count + 1);
-        for (int i = 0; i < count; ++i) {
-            const qreal angle = qreal(i) * 2 * pi / count;
-            const qreal x = rx * std::cos(angle), y = ry * std::sin(angle);
-            auto point = input.front();
-            point.position = center + QPointF(x * cosine - y * sine, x * sine + y * cosine);
-            points.append(point);
-        }
-        points.append(points.front());
-        break;
-    }
-    case ShapeKind::Path:
-        break;
-    }
-    PaintGeometry result;
-    result.outline.reserve(points.size());
-    quint32 phase = 0;
-    for (qsizetype i = 0; i < points.size(); ++i) {
-        if (i == 0 && points.size() > 1) continue;
-        const auto &a = points[i == 0 ? 0 : i - 1];
-        const auto &b = points[i];
-        if (!appendSegment(result.outline, a, b, step, phase, points.size())) return std::nullopt;
-    }
-    return result;
-}
-
-std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quint32 step)
-{
-    auto result = operation.figureStyle.outline ? outlineGeometry(operation, step) : std::optional<PaintGeometry>(PaintGeometry{});
-    if (!result || !hasFigureFill(operation.figureStyle)) return result;
+    QList<FigureFillEdge> result;
+    if (!hasFigureFill(operation.figureStyle)) return result;
     const auto &shape = operation.shape;
     const auto input = operation.inputSamples();
     QPainterPath path;
@@ -483,7 +228,6 @@ std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quin
     // Qt's outline mapper flattens at a quarter pixel before 26.6 quantization.
     // Keep geometry here; integer cell coverage and compositing run on the GPU.
     // Rules: qtbase v6.11.1 qoutlinemapper.cpp and qbezier.cpp (GPL-2.0).
-    result->fill.clear();
     QPointF first, previous;
     bool subpath = false;
     const auto mirroredRounding = [](qreal raw, qint32 rounded, int axis) {
@@ -498,9 +242,9 @@ std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quin
                                             mirroredRounding(point.x(), bx, center.x()),
                                             mirroredRounding(point.y(), by, center.y())};
         if (ax != bx || ay != by || rounding[0] != rounding[2] || rounding[1] != rounding[3])
-            result->fill.append({ax, ay, bx, by, rounding});
+            result.append({ax, ay, bx, by, rounding});
         previous = point;
-        return result->fill.size() <= PathGeometrySegmentLimit;
+        return result.size() <= PaintGeometryElementLimit;
     };
     const auto flatten = [&](const auto &self, const std::array<QPointF, 4> &p, int depth) -> bool {
         const auto chord = p[3] - p[0], firstControl = p[0] - p[1], secondControl = p[0] - p[2];
@@ -579,60 +323,6 @@ std::optional<QList<quint64>> figureFillTiles(const QList<FigureFillEdge> &edges
     return coordinates.values();
 }
 
-std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &input, quint32 diameter, const Brush &brush,
-                                               QRect region, qsizetype maximumCoordinates, int tileSize)
-{
-    if (tileSize <= 0) return std::nullopt;
-    if (region.isEmpty()) return QList<quint64>{};
-    const int size = tileSize;
-    const qint64 radius = (diameter + 31) / 32;
-    QSet<quint64> result;
-    QList<quint64> direct;
-    const int mirrorMode = int(brush.mirrorHorizontal) | (int(brush.mirrorVertical) << 1);
-    for (int reflection = 0; reflection < 4; ++reflection) {
-        if ((reflection & mirrorMode) != reflection) continue;
-        auto segment = input;
-        if (reflection & 1) {
-            segment.ax = 32 * brush.mirrorCenter.x() - input.ax;
-            segment.bx = 32 * brush.mirrorCenter.x() - input.bx;
-        }
-        if (reflection & 2) {
-            segment.ay = 32 * brush.mirrorCenter.y() - input.ay;
-            segment.by = 32 * brush.mirrorCenter.y() - input.by;
-        }
-        const int left = int(std::max<qint64>(pixelTileIndex(region.left(), size) * size,
-                                             pixelTileIndex(std::min(segment.ax, segment.bx), 16) - radius));
-        const int top = int(std::max<qint64>(pixelTileIndex(region.top(), size) * size,
-                                            pixelTileIndex(std::min(segment.ay, segment.by), 16) - radius));
-        const int right = int(std::min<qint64>((pixelTileIndex(region.right(), size) + 1) * size - 1,
-                                              pixelTileIndex(std::max(segment.ax, segment.bx), 16) + radius));
-        const int bottom = int(std::min<qint64>((pixelTileIndex(region.bottom(), size) + 1) * size - 1,
-                                               pixelTileIndex(std::max(segment.ay, segment.by), 16) + radius));
-        if (right < left || bottom < top) continue;
-        for (int y = pixelTileIndex(top, size); y <= pixelTileIndex(bottom, size); ++y) {
-            qreal first = 0, last = 1;
-            if (segment.ay != segment.by) {
-                const qreal lower = qreal(y * size - radius - 1) * 16;
-                const qreal upper = qreal((y + 1) * size + radius + 1) * 16;
-                const qreal dy = qreal(segment.by) - segment.ay;
-                const qreal a = (lower - segment.ay) / dy, b = (upper - segment.ay) / dy;
-                first = std::max<qreal>(0, std::min(a, b));
-                last = std::min<qreal>(1, std::max(a, b));
-                if (first > last) continue;
-            }
-            const qreal a = (segment.ax + (qreal(segment.bx) - segment.ax) * first) / 16;
-            const qreal b = (segment.ax + (qreal(segment.bx) - segment.ax) * last) / 16;
-            const int rowLeft = std::max(left, int(std::floor(std::min(a, b) - radius - 1)));
-            const int rowRight = std::min(right, int(std::ceil(std::max(a, b) + radius + 1)));
-            for (int x = pixelTileIndex(rowLeft, size); x <= pixelTileIndex(rowRight, size); ++x) {
-                if (mirrorMode) result.insert(key(x, y));
-                else direct.append(key(x, y));
-                if ((mirrorMode ? result.size() : direct.size()) > maximumCoordinates) return std::nullopt;
-            }
-        }
-    }
-    return mirrorMode ? result.values() : direct;
-}
 
 }
 }

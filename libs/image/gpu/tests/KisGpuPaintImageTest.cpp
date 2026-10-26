@@ -1409,9 +1409,8 @@ void KisGpuPaintImageTest::gaussianWashKeepsIndependentPixelWritesAcrossUndo()
     Brush brush;
     brush.diameter = 40;
     auto &settings = brush.gaussianWash.emplace();
-    settings.resourceDigest = QByteArray(32, 'r');
-    settings.sizePressure.fill(.1);
-    settings.opacityPressure.fill(1);
+    brush.sizeResponse = {PressureResponse::Kind::Constant, .1, {}};
+    settings.opacityResponse = {PressureResponse::Kind::Constant, 1, {}};
     const auto id = image.beginStroke(1, brush, 1789);
     QVERIFY(!id.isNull());
     QCOMPARE(image.appendSamples(id, {{{50, 32}, 1}}), Result::Success);

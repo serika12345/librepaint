@@ -74,11 +74,13 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         source += normal.readAll() + '\n';
     }
     if (painting) {
+        QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
         QFile gaussian(QStringLiteral(":/librepaint/gpu/shaders/gaussian.wgsl"));
-        if (!gaussian.open(QIODevice::ReadOnly)) {
-            error = QStringLiteral("GPU Gaussian brush arithmetic could not be loaded");
+        if (!arithmetic.open(QIODevice::ReadOnly) || !gaussian.open(QIODevice::ReadOnly)) {
+            error = QStringLiteral("GPU native brush arithmetic could not be loaded");
             return {};
         }
+        source += arithmetic.readAll() + '\n';
         source += gaussian.readAll() + '\n';
     }
     source += shader.readAll();
@@ -267,7 +269,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         job.coverageInput = d.coverage.value(job.coverageCoordinate);
                     if (job.coverageInput) {
                         job.geometry = std::move(job.appendedGeometry);
-                        job.values.count = quint32(job.geometry.size());
+                        job.values.count = quint32(std::get<QList<MarkerDab>>(job.geometry).size());
                         job.values.paintFlags |= 128u;
                     }
                     job.values.paintFlags |= 256u;
@@ -320,7 +322,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         PaintJob fill;
         fill.output = d.allocateTile();
         fill.values.color = packedPixel(document->projectionBackground);
-        fill.values.uniformFill = 1;
+        fill.values.paintFlags |= UniformPixelFill;
         if (!fill.output)
             return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU canvas background allocation failed")};
         fill.output->mayContainHiddenRgb = (fill.values.color >> 24) == 0;
@@ -358,7 +360,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         qsizetype prefix = 0;
         qsizetype reusedPrefix = 0;
         QSet<quint64> reusedCoordinates;
-        std::optional<qsizetype> appendedFrom;
+        PaintSnapshot appendedOperation;
         Tiles strokeInputs;
         if (base) {
             for (const auto &old : base->document()->layers) {
@@ -370,15 +372,17 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 if ((old.operations.size() > layer.operations.size() && !droppingStroke) || !base->m_data->selected.contains(layer.id)) break;
                 qsizetype shared = droppingStroke ? layer.operations.size() : old.operations.size();
                 bool changingStroke = false;
-                qsizetype previousSamples = -1;
+                PaintSnapshot growingStroke;
                 if (shared > 0 && shared == layer.operations.size() && base->m_data->strokeInputs.contains(layer.id)) {
                     const auto previous = std::get_if<PaintSnapshot>(&old.operations.back());
                     const auto current = std::get_if<PaintSnapshot>(&layer.operations.back());
                     changingStroke = previous && current && *previous != *current && (*previous)->id == (*current)->id &&
                         (*previous)->brush == (*current)->brush;
                     if (changingStroke && !(*current)->brush.gaussianWash && !(*current)->brush.pixelPerfect && !(*current)->brush.basicSmoothing && (*previous)->shape.kind == ShapeKind::Freehand &&
-                        (*current)->shape.kind == ShapeKind::Freehand && (*current)->sampleCount >= (*previous)->sampleCount)
-                        previousSamples = (*previous)->sampleCount;
+                        (*current)->shape.kind == ShapeKind::Freehand && (*current)->sampleCount >= (*previous)->sampleCount &&
+                        (*previous)->figureStyle.outline && (*current)->figureStyle.outline &&
+                        !hasFigureFill((*previous)->figureStyle) && !hasFigureFill((*current)->figureStyle))
+                        growingStroke = *previous;
                     if (changingStroke) --shared;
                 }
                 bool matches = true;
@@ -398,15 +402,15 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         reusedCoordinates.insert(tile.key());
                     }
                     if (changingStroke || droppingStroke) {
-                        if (previousSamples >= 0) appendedFrom = std::max<qsizetype>(0, previousSamples - 1);
-                        if (appendedFrom && document->pendingOperation() == std::get<PaintSnapshot>(layer.operations.back())->id) {
+                        appendedOperation = growingStroke;
+                        if (appendedOperation && document->pendingOperation() == std::get<PaintSnapshot>(layer.operations.back())->id) {
                             pendingCoverageLayer = layer.id;
                             preserveCoverage = true;
                         }
                         const auto &inputs = base->m_data->strokeInputs[layer.id];
                         for (auto input = inputs.cbegin(); input != inputs.cend(); ++input) {
                             if (!reusedCoordinates.contains(input.key())) continue;
-                            if (appendedFrom) strokeInputs[input.key()] = input.value();
+                            if (appendedOperation) strokeInputs[input.key()] = input.value();
                             else if (input.value() && input.value() != data->defaults.value(layer.id))
                                 data->layers[layer.id][input.key()] = input.value();
                             else data->layers[layer.id].remove(input.key());
@@ -435,7 +439,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             PaintJob fill;
             fill.output = d.allocateTile();
             fill.values.color = packedPixel(uniform);
-            fill.values.uniformFill = 1;
+            fill.values.paintFlags |= UniformPixelFill;
             if (!fill.output) {
                 return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU default pixel allocation failed")};
             }
@@ -487,24 +491,29 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 if (!paint || paintRegion.isEmpty()) continue;
                 const auto &operation = **paint;
                 const bool fillEnabled = hasFigureFill(operation.figureStyle);
-                const bool solidNormalFill = fillEnabled && !operation.figureStyle.outline &&
-                    !operation.figureStyle.pattern && operation.figureStyle.fillBlendMode == LayerBlendMode::Normal &&
-                    !operation.brush.erase && !operation.brush.gaussianWash;
                 if (!operation.figureStyle.outline && !fillEnabled) continue;
                 const bool pending = document->pendingOperation() == operation.id;
-                const bool extending = appendedFrom && op == layer.operations.size() - 1;
+                const bool extending = appendedOperation && op == layer.operations.size() - 1;
                 const bool retainCoverage = pending && !operation.brush.gaussianWash && operation.shape.kind == ShapeKind::Freehand &&
                     !operation.brush.pixelPerfect && !operation.brush.basicSmoothing && !fillEnabled;
                 if (retainCoverage) pendingCoverageLayer = layer.id;
                 if (pending) data->strokeInputs[layer.id];
                 if (pending && extending) data->strokeInputs[layer.id] = strokeInputs;
-                const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
-                const auto step = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * operation.brush.spacing * 16)));
-                const auto gaussian = operation.brush.gaussianWash ? gaussianDabs(operation, pending) : std::optional<QList<GaussianDab>>(QList<GaussianDab>{});
+                const auto gaussian = operation.brush.gaussianWash ? gaussianDabs(operation, pending) :
+                    std::optional<QList<GaussianDab>>(QList<GaussianDab>{});
                 if (!gaussian) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("This Gaussian WASH geometry or brush setting is not yet supported")};
-                const auto geometry = operation.brush.gaussianWash ? std::optional<PaintGeometry>(PaintGeometry{}) : paintGeometry(operation, step);
-                if (!geometry) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU derived geometry limit exceeded")};
-                const auto &segments = geometry->outline;
+                const auto marker = operation.brush.gaussianWash ? std::optional<QList<MarkerDab>>(QList<MarkerDab>{}) :
+                    markerDabs(operation, pending, paintRegion);
+                if (!marker) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU native marker geometry limit exceeded")};
+                const auto fillEdges = figureFillEdges(operation);
+                if (!fillEdges) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU fill geometry limit exceeded")};
+                qsizetype appendedIndex = 0;
+                if (extending) {
+                    const auto previous = markerDabs(*appendedOperation, true, paintRegion);
+                    if (!previous || previous->size() > marker->size())
+                        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU appended marker geometry does not retain its prefix")};
+                    appendedIndex = previous->size();
+                }
                 bool appendedOnly = extending && retainCoverage && preserveCoverage &&
                     d.coverageVersion.toStrongRef() == base && d.coverageLayer == layer.id &&
                     base->m_data->selected == selected && base->m_data->defaultPixels == data->defaultPixels &&
@@ -526,11 +535,11 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                             old->operations == other.operations;
                     }
                 }
-                QMap<quint64, QList<PaintSegment>> affected;
+                QMap<quint64, QList<MarkerDab>> affected;
                 QMap<quint64, QList<GaussianDab>> gaussianAffected;
                 qsizetype gaussianReferences = 0;
                 QSet<quint64> changedCoordinates;
-                QMap<quint64, QList<PaintSegment>> appendedGeometry;
+                QMap<quint64, QList<MarkerDab>> appendedGeometry;
                 for (const auto &dab : *gaussian) {
                     if (!operation.figureStyle.outline) break;
                     const auto bounds = dab.bounds().intersected(paintRegion);
@@ -545,7 +554,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         const auto checkpoint = checkpoints.constFind(coordinate);
                         if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
                         affected[coordinate];
-                        if (gaussianReferences == PathGeometrySegmentLimit)
+                        if (gaussianReferences == PaintGeometryElementLimit)
                             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU Gaussian geometry reference limit exceeded")};
                         gaussianAffected[coordinate].append(dab);
                         ++gaussianReferences;
@@ -553,27 +562,36 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU Gaussian tile budget exhausted")};
                     }
                 }
-                for (qsizetype index = appendedOnly ? *appendedFrom : 0;
-                     operation.figureStyle.outline && index < segments.size(); ++index) {
-                    const auto &segment = segments[index];
-                    const auto coordinates = paintSegmentTiles(segment, diameter, operation.brush, paintRegion,
-                                                                 d.budget->limit / TileBytes);
-                    if (!coordinates) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
-                    for (const auto coordinate : *coordinates) {
+                qsizetype markerReferences = 0;
+                for (qsizetype index = appendedOnly ? appendedIndex : 0; index < marker->size(); ++index) {
+                    const auto &dab = (*marker)[index];
+                    const auto bounds = dab.bounds().intersected(paintRegion);
+                    if (bounds.isEmpty()) continue;
+                    const int left = pixelTileIndex(bounds.left(), TileSize), right = pixelTileIndex(bounds.right(), TileSize);
+                    const int top = pixelTileIndex(bounds.top(), TileSize), bottom = pixelTileIndex(bounds.bottom(), TileSize);
+                    if (qint64(right - left + 1) * (bottom - top + 1) > d.budget->limit / TileBytes)
+                        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU marker tile budget exhausted")};
+                    for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                        const auto coordinate = key(x, y);
+                        const QRect tileBounds(QPoint(x, y) * TileSize, QSize(TileSize, TileSize));
+                        if (!markerDabIntersects(dab, tileBounds.intersected(paintRegion))) continue;
                         if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
                         const auto checkpoint = checkpoints.constFind(coordinate);
                         if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
-                        affected[coordinate].append(segment);
-                        if (extending && index >= *appendedFrom) {
+                        if (markerReferences == PaintGeometryElementLimit)
+                            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU marker geometry reference limit exceeded")};
+                        affected[coordinate].append(dab);
+                        ++markerReferences;
+                        if (extending && index >= appendedIndex) {
                             changedCoordinates.insert(coordinate);
-                            if (retainCoverage) appendedGeometry[coordinate].append(segment);
+                            if (retainCoverage) appendedGeometry[coordinate].append(dab);
                         }
                         if (affected.size() > d.budget->limit / TileBytes)
-                            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
+                            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU marker tile budget exhausted")};
                     }
                 }
                 if (fillEnabled) {
-                    const auto filled = figureFillTiles(geometry->fill, operation.brush, paintRegion,
+                    const auto filled = figureFillTiles(*fillEdges, operation.brush, paintRegion,
                                                          d.budget->limit / TileBytes);
                     if (!filled) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU fill tile budget exhausted")};
                     for (const auto coordinate : *filled) {
@@ -602,7 +620,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 }
                 std::shared_ptr<NativeBuffer> fillBuffer;
                 if (fillEnabled && !affected.isEmpty()) {
-                    auto edges = geometry->fill;
+                    auto edges = *fillEdges;
                     // A point outline can survive an empty fill. Storage bindings
                     // still require one edge; a zero edge contributes no area.
                     if (edges.isEmpty()) edges.append(FigureFillEdge{});
@@ -632,7 +650,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                          pattern.rgba.constData(), size_t(pattern.rgba.size()));
                 }
                 for (auto tile = affected.cbegin(); tile != affected.cend(); ++tile) {
-                    const auto bytes = quint64(tile.value().size()) * sizeof(PaintSegment);
+                    const auto bytes = quint64(tile.value().size()) * sizeof(MarkerDab);
                     if (bytes > std::numeric_limits<quint32>::max()) {
                         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU operation buffer limit exceeded")};
                     }
@@ -645,8 +663,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     if (!output) output = d.allocateTile();
                     job.output = output;
                     if (!job.output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
-                    job.geometry = tile.value();
-                    job.gaussianGeometry = gaussianAffected.value(tile.key());
+                    if (operation.brush.gaussianWash) job.geometry = gaussianAffected.value(tile.key());
+                    else job.geometry = tile.value();
                     job.retainCoverage = retainCoverage;
                     job.coverageCoordinate = tile.key();
                     job.extendsCoverage = extending;
@@ -654,16 +672,17 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.fillEdges = fillBuffer;
                     job.pattern = patternBuffer;
                     const auto point = coordinate(tile.key()) * TileSize;
-                    job.values = {point.x(), point.y(), 0, 0,
-                                  packedPixel(operation.brush.rgba),
-                                  quint32(qRound(float(operation.brush.opacity) * 255)), quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter, 0, quint32(operation.brush.alphaLocked) | (quint32(operation.brush.channelWriteMask) << 1) |
+                    const float opacity = std::max(0.f, float(operation.brush.opacity));
+                    const quint32 count = quint32(std::visit([](const auto &dabs) { return dabs.size(); }, job.geometry));
+                    job.values = {point.x(), point.y(), packedPixel(operation.brush.rgba), 0,
+                                  quint32(qRound(opacity * 255)), quint32(operation.brush.erase), count,
+                                  quint32(operation.brush.alphaLocked) | (quint32(operation.brush.channelWriteMask) << 1) |
                                       (quint32(operation.brush.mirrorHorizontal) << 5) | (quint32(operation.brush.mirrorVertical) << 6),
                                   operation.brush.mirrorCenter.x() * 16, operation.brush.mirrorCenter.y() * 16,
                                   operation.figureStyle.fill ? packedPixel(*operation.figureStyle.fill) : 0,
                                   quint32(fillEnabled) | (operation.figureStyle.outline ? 0u : 2u) |
                                       (operation.shape.windingFill ? 4u : 0u) |
-                                      (operation.figureStyle.pattern ? 8u : 0u) |
-                                      (solidNormalFill ? 16u : 0u)};
+                                      (operation.figureStyle.pattern ? 8u : 0u)};
                     if (operation.figureStyle.pattern) {
                         job.values.patternWidth = quint32(operation.figureStyle.pattern->size.width());
                         job.values.patternHeight = quint32(operation.figureStyle.pattern->size.height());
@@ -701,14 +720,11 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                             }
                         }
                     }
-                    const float opacity = float(operation.brush.opacity);
-                    std::memcpy(&job.values.paddingX, &opacity, sizeof(opacity));
-                    if (operation.brush.gaussianWash) {
-                        job.values.count = quint32(job.gaussianGeometry.size());
-                        job.values.paintFlags |= 512u;
-                    }
+                    std::memcpy(&job.values.canvasOpacityBits, &opacity, sizeof(opacity));
+                    if (operation.brush.gaussianWash) job.values.paintFlags |= 512u;
                     job.output->mayContainHiddenRgb = operation.brush.alphaLocked || operation.brush.erase ||
-                        solidNormalFill ||
+                        !(operation.brush.channelWriteMask & 8) || (opacity > 0 && opacity < 1) ||
+                        (operation.selectionMask && operation.selectionMask->isAlpha()) ||
                         operation.figureStyle.pattern || (job.input && job.input->mayContainHiddenRgb);
                     tiles[tile.key()] = job.output;
                     jobs.push_back(std::move(job));

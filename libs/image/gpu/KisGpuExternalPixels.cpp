@@ -5,10 +5,10 @@
 #include "KisGpuPaintImage_p.h"
 #include "KisGpuPaintGeometry_p.h"
 #include "KisGpuGaussianBrush_p.h"
+#include "KisGpuMarkerBrush_p.h"
 #include <QHash>
 #include <QMap>
 #include <algorithm>
-#include <cmath>
 #include <cstring>
 #include <new>
 
@@ -17,7 +17,8 @@ namespace {
 using Lineage = QList<QPair<quint64, quint64>>;
 struct GeometryCache
 {
-    QHash<const PaintOperation *, std::optional<Detail::PaintGeometry>> markers;
+    QHash<const PaintOperation *, std::optional<QList<Detail::MarkerDab>>> markers;
+    QHash<const PaintOperation *, std::optional<QList<Detail::FigureFillEdge>>> fills;
     QHash<const PaintOperation *, std::optional<QList<Detail::GaussianDab>>> gaussian;
 };
 
@@ -44,19 +45,16 @@ std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &bl
     }
     auto found = geometry.markers.constFind(&paint);
     if (found == geometry.markers.cend()) {
-        const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
-        found = geometry.markers.insert(&paint, Detail::paintGeometry(paint, step));
+        constexpr int limit = RgbaTile::CoordinateLimit;
+        found = geometry.markers.insert(&paint, Detail::markerDabs(paint, false, QRect(-limit, -limit, 2 * limit, 2 * limit)));
     }
     if (!*found) return std::nullopt;
-    const auto &mesh = **found;
-    const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
-    for (const auto &segment : paint.figureStyle.outline ? mesh.outline : QList<Detail::PaintSegment>{}) {
-        // A one-pixel grid clips discovery to this region, including shifted and cropped blocks.
-        const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, block, 1, 1);
-        if (!tiles || !tiles->isEmpty()) return true;
-    }
+    for (const auto &dab : **found) if (Detail::markerDabIntersects(dab, block)) return true;
     if (hasFigureFill(paint.figureStyle)) {
-        const auto tiles = Detail::figureFillTiles(mesh.fill, paint.brush, block, 1, Detail::PixelHistoryBlockSize);
+        auto fill = geometry.fills.constFind(&paint);
+        if (fill == geometry.fills.cend()) fill = geometry.fills.insert(&paint, Detail::figureFillEdges(paint));
+        if (!*fill) return std::nullopt;
+        const auto tiles = Detail::figureFillTiles(**fill, paint.brush, block, 1, Detail::PixelHistoryBlockSize);
         if (!tiles || !tiles->isEmpty()) return true;
     }
     return false;

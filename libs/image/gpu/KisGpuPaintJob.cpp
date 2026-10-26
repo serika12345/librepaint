@@ -25,8 +25,9 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
     const auto aligned = [alignment](quint64 bytes) { return (bytes + alignment - 1) / alignment * alignment; };
     const quint64 parameterStride = aligned(sizeof(PaintParameters));
     const auto geometryBytes = [](const PaintJob &job) {
-        return job.gaussianGeometry.isEmpty() ? quint64(job.geometry.size()) * sizeof(PaintSegment) :
-            quint64(job.gaussianGeometry.size()) * sizeof(GaussianDab);
+        return std::visit([](const auto &dabs) {
+            return quint64(dabs.size()) * sizeof(dabs[0]);
+        }, job.geometry);
     };
     const auto stride = [&](const PaintJob &job) {
         return parameterStride + aligned(geometryBytes(job));
@@ -56,12 +57,10 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
         for (std::size_t index = first; index < end; ++index) {
             const auto &job = jobs[index];
             std::memcpy(mapped + offset, &job.values, sizeof(PaintParameters));
-            if (!job.geometry.isEmpty())
-                std::memcpy(mapped + offset + parameterStride, job.geometry.constData(),
-                            std::size_t(job.geometry.size()) * sizeof(PaintSegment));
-            if (!job.gaussianGeometry.isEmpty())
-                std::memcpy(mapped + offset + parameterStride, job.gaussianGeometry.constData(),
-                            std::size_t(geometryBytes(job)));
+            std::visit([&](const auto &dabs) {
+                if (!dabs.isEmpty())
+                    std::memcpy(mapped + offset + parameterStride, dabs.constData(), std::size_t(geometryBytes(job)));
+            }, job.geometry);
             offset += stride(job);
         }
         wgpuBufferUnmap(buffer.get());

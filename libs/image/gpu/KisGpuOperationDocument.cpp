@@ -867,9 +867,8 @@ Result OperationDocument::commitStroke(OperationId id)
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
     if (!m_preview) return Result::EmptyOperation;
-    const bool gaussianCompletion = [&] {
-        if (!m_edit->brush.gaussianWash || m_edit->shape.kind != ShapeKind::Freehand ||
-            !m_edit->sampleCount) return false;
+    const bool completionAddsDab = [&] {
+        if (m_edit->shape.kind != ShapeKind::Freehand || !m_edit->sampleCount) return false;
         if (m_edit->brush.pixelPerfect) return true;
         const auto position = m_edit->sampleBlocks.first()->first().position;
         for (const auto &block : m_edit->sampleBlocks)
@@ -877,9 +876,9 @@ Result OperationDocument::commitStroke(OperationId id)
                 if (point.position.x() != position.x() || point.position.y() != position.y()) return false;
         return true;
     }();
-    // Completing Gaussian input can add a tap after pixel correction.
-    // Its pending pixels belong to a different operation version.
-    if (m_edit->brush.basicSmoothing || gaussianCompletion) {
+    // Completing stationary input adds a tap; pixel correction can change final dabs.
+    // Pending pixel caches retain the preceding operation version.
+    if (m_edit->brush.basicSmoothing || completionAddsDab) {
         if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
         auto operation = QSharedPointer<PaintOperation>::create(*m_edit);
         if (operation->brush.basicSmoothing) operation->smoothingFinished = true;

@@ -1,0 +1,109 @@
+{
+  "purpose": "Exact ordinary CPU roundmarker pixels for GPU coverage, composition and retained history.",
+  "sourceCommit": "56e64c086a57b2e069e9e543ad05a9a47814f56b",
+  "sourceOperation": "TestDocument::testRoundMarkerStrokeMatchesCpuPixels, CPU branch, ordinary document and freehand helper",
+  "platform": "Linux x86_64, four paint workers",
+  "pixelEncoding": "Straight RGBA8, 128 by 128 rows; only BGRA/RGBA order was changed",
+  "colorSpace": "RGBA",
+  "profile": "sRGB-elle-V2-srgbtrc.icc",
+  "profileSha256": "5991c8d8fcb628dad5d052d9341df8a32bd3c7a794c913a8ede8eae4b34b4545",
+  "brush": {
+    "paintop": "roundmarker",
+    "diameter": 10,
+    "spacing": 0.02,
+    "useAutoSpacing": false,
+    "PressureSize": false,
+    "foregroundRgba": [
+      17,
+      34,
+      51,
+      255
+    ]
+  },
+  "input": [
+    {
+      "position": [
+        12.25,
+        13.75
+      ],
+      "pressure": 1,
+      "time": 0
+    },
+    {
+      "position": [
+        60.125,
+        31.5
+      ],
+      "pressure": 1,
+      "time": 16
+    },
+    {
+      "position": [
+        105.5,
+        91.25
+      ],
+      "pressure": 1,
+      "time": 32
+    }
+  ],
+  "inputRule": "Tap uses the first sample; moving uses all three. Smoothing and symmetry are disabled.",
+  "initialSha256": "dc1393988897084bb62a1142bc4d7fc6c4d3b03c10fafe253824863cb311901f",
+  "results": [
+    {
+      "name": "opaque-normal-tap",
+      "sha256": "e02e5cccba2ea6cb88f4265e456ca6ba706b82614e23a85c4be63ca96a89e9b1",
+      "opacity": 1,
+      "erase": false,
+      "moving": false
+    },
+    {
+      "name": "opaque-normal-moving",
+      "sha256": "82d78f8fdfbf1c601bccec1a25c8954cf7a6e90d9775f9c70f17f66e52fd99c2",
+      "opacity": 1,
+      "erase": false,
+      "moving": true
+    },
+    {
+      "name": "opaque-erase-tap",
+      "sha256": "bb6cff2e8ea8d6995ac10d276a72cb47baae339078455c6efb7404b9132e3371",
+      "opacity": 1,
+      "erase": true,
+      "moving": false
+    },
+    {
+      "name": "opaque-erase-moving",
+      "sha256": "79ddc9ac23a3a5b0d48b1d8867abb93b6a0929c6014cd027310cdaa9f8b55d67",
+      "opacity": 1,
+      "erase": true,
+      "moving": true
+    },
+    {
+      "name": "half-normal-tap",
+      "sha256": "ff57df58f64427fb48ad97dde4702283574ab65351a2bc4efd698d69e78a6cdf",
+      "opacity": 0.5,
+      "erase": false,
+      "moving": false
+    },
+    {
+      "name": "half-normal-moving",
+      "sha256": "1cf03013c83ed335ac007807fc68beab4610d7860c916de212bccf05cd74d004",
+      "opacity": 0.5,
+      "erase": false,
+      "moving": true
+    },
+    {
+      "name": "half-erase-tap",
+      "sha256": "b6d7b5f71c512b5452f51065154b668e01faa86eb6542e86aff80efdbc6c1cd9",
+      "opacity": 0.5,
+      "erase": true,
+      "moving": false
+    },
+    {
+      "name": "half-erase-moving",
+      "sha256": "603203ff74ccbaa66aafe192de5bbdc8286879f1e32877271b3ca48006e3ef8d",
+      "opacity": 0.5,
+      "erase": true,
+      "moving": true
+    }
+  ]
+}

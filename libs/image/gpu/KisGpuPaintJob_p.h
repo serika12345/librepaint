@@ -9,21 +9,24 @@
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuPaintGeometry_p.h"
 #include "KisGpuGaussianBrush_p.h"
+#include "KisGpuMarkerBrush_p.h"
+#include <variant>
 #include <array>
 #include <vector>
 
 namespace LibrePaint::Image::Gpu::Detail {
 struct PaintParameters
 {
-    qint32 x, y, paddingX, paddingY;
-    quint32 color, opacity, erase, step;
-    quint32 count, diameter, uniformFill = 0, paintFlags = 30;
+    qint32 x = 0, y = 0;
+    quint32 color = 0, canvasOpacityBits = 0;
+    quint32 opacityByte = 255, erase = 0, count = 0, paintFlags = 30;
     qint32 mirrorX = 0, mirrorY = 0;
     quint32 fillColor = 0, figureFlags = 0;
     qint32 selectionX = 0, selectionY = 0, selectionWidth = 0, selectionHeight = 0;
     quint32 patternWidth = 0, patternHeight = 0, fillBlendMode = 0, strokeBlendMode = 0;
 };
-static_assert(sizeof(PaintParameters) == 96);
+static_assert(sizeof(PaintParameters) == 80);
+constexpr quint32 UniformPixelFill = 16384u;
 
 struct PaintJob
 {
@@ -36,9 +39,8 @@ struct PaintJob
     /** Frozen pattern pixels for this operation; null binds the unused tile. */
     std::shared_ptr<NativeBuffer> pattern;
     NativeBindings bindings;
-    QList<PaintSegment> geometry;
-    QList<GaussianDab> gaussianGeometry;
-    QList<PaintSegment> appendedGeometry;
+    std::variant<QList<MarkerDab>, QList<GaussianDab>> geometry;
+    QList<MarkerDab> appendedGeometry;
     quint64 coverageCoordinate = 0;
     bool retainCoverage = false;
     bool extendsCoverage = false;

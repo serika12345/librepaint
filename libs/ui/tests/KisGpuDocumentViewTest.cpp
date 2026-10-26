@@ -4900,7 +4900,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     pressed = false;
     QCOMPARE(owner->operations().undoCount(), 2);
     QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(paintedProbe, QSize(1, 1)), 4).bytes,
-             layerAlphaLock ? QByteArray::fromHex("1181f180") : QByteArray::fromHex("1181f100"));
+             QByteArray::fromHex("1181f100"));
     documentLifetime->undoStack()->undo();
     QCOMPARE(owner->operations().snapshot(), painted);
 

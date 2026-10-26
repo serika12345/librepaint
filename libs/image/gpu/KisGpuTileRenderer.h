@@ -79,7 +79,8 @@ struct ProjectionOutcome
  * pixels and waits for no completion. Readers and presentation use that same
  * queue. The caller publishes a result after successful frame submission.
  * Fresh tiles preserve the input version, including on budget rejection.
- * Tile storage uses straight RGBA bytes, with 4x4 integer subpixel coverage.
+ * Tile storage uses straight RGBA bytes. Brush dabs preserve native coverage;
+ * figure fills use Qt cell coverage.
  */
 class KRITAGPUIMAGE_EXPORT TileRenderer
 {
