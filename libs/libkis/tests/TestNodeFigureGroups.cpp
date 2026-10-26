@@ -184,17 +184,12 @@ void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory()
     const auto operation = std::get<Gpu::PaintSnapshot>(found->operations.last());
     QVERIFY(operation);
     QCOMPARE(operation->inputSamples(), expectedSamples);
-    const auto recovery = owner->operations().recoveryData();
-    QVERIFY(!recovery.isEmpty());
     document->undoStack()->undo();
     image->waitForDone();
     QCOMPARE(read(*owner, layerId).bytes, empty.bytes);
     document->undoStack()->redo();
     image->waitForDone();
     QCOMPARE(read(*owner, layerId).bytes, painted.bytes);
-    QCOMPARE(owner->restoreRecovery(recovery), Gpu::Result::Success);
-    QCOMPARE(read(*owner, layerId).bytes, painted.bytes);
-    QVERIFY(savePixels(QStringLiteral("recovered.rgba"), read(*owner, layerId).bytes));
     const auto path = out.filePath(QStringLiteral("painted.kra"));
     QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
     document->waitForSavingToComplete();
@@ -268,7 +263,7 @@ void TestNode::testFigureGroupInputLimitsKeepPixelsAndRedo()
     QCOMPARE(document->undoStack()->index(), 0);
     QVERIFY(document->undoStack()->canRedo());
     const auto before = owner->operations().snapshot();
-    const auto recovery = owner->operations().recoveryData();
+    const auto retainedVersion = owner->operations().preview();
     const auto empty = owner->readRgbaPixels(layerId, {0, 0, 128, 128}, 128 * 128 * 4);
     QCOMPARE(empty.code, Gpu::ExecutionCode::Success);
     paint(lines);
@@ -282,7 +277,7 @@ void TestNode::testFigureGroupInputLimitsKeepPixelsAndRedo()
         QVERIFY(after.bytes != empty.bytes);
     } else {
         QCOMPARE(owner->operations().snapshot(), before);
-        QCOMPARE(owner->operations().recoveryData(), recovery);
+        QCOMPARE(owner->operations().preview(), retainedVersion);
         QCOMPARE(after.bytes, empty.bytes);
         QCOMPARE(document->undoStack()->index(), 0);
         QVERIFY(document->undoStack()->canRedo());

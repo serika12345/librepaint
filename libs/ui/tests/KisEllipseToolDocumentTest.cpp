@@ -400,9 +400,7 @@ void KisEllipseToolDocumentTest::fractionalFillMatchesPainterWithProtectedChanne
     QCOMPARE(owner->readRgbaPixels(layer, region, expected.size()).bytes, initialRgba);
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QCOMPARE(owner->readRgbaPixels(layer, region, expected.size()).bytes, expected);
-    auto recovered = Gpu::PaintImageSP::create(execution, region.size());
-    QCOMPARE(recovered->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
-    QCOMPARE(recovered->readRgbaPixels(layer, region, expected.size()).bytes, expected);
+
 }
 
 void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool gpuForPreset, QByteArray *firstPixels, qreal opacity)

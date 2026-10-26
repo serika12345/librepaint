@@ -48,8 +48,8 @@ struct RgbaTile
 };
 
 /**
- * Immutable lossless CPU checkpoint. Factories reject invalid tile extents,
- * byte counts and compressed streams. Every tile covers exactly 256 x 256
+ * Immutable lossless CPU checkpoint. Construction rejects invalid tile extents
+ * and byte counts. Every tile covers exactly 256 x 256
  * pixels inside [-CoordinateLimit, CoordinateLimit) on each axis.
  * Compression uses one zlib stream; decoding is bounded to the format's byte count
  * and consumes the complete stream. Returned byte values have independent
@@ -59,13 +59,10 @@ class KRITAIMAGEGPUOPERATIONS_EXPORT RasterTile
 {
 public:
     static QSharedPointer<const RasterTile> fromPixels(const RgbaTile &tile);
-    static QSharedPointer<const RasterTile> fromCompressed(QPoint coordinate, const QByteArray &data,
-                                                         PixelFormat format = PixelFormat::Rgba8);
-    static qsizetype maximumCompressedBytes(PixelFormat format = PixelFormat::Rgba8);
     QPoint coordinate() const { return m_coordinate; }
     PixelFormat format() const { return m_format; }
     qsizetype byteCount() const { return RgbaTile::byteCount(m_format); }
-    QByteArray compressedData() const { return m_compressed; }
+    qsizetype compressedByteCount() const { return m_compressed.size(); }
     QByteArray rgba() const;
 
 private:

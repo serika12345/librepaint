@@ -150,19 +150,14 @@ void KisImageTest::testGpuPaintChannelFlagsPreserveProtectedPixelsAndFrozenHisto
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QCOMPARE(owner->readRgbaPixels(id, QRect(32, 32, 1, 1), 4).bytes, QByteArray::fromHex("c828b480"));
-    const auto restored = Gpu::PaintImageSP::create(execution, QSize(1, 1));
-    QCOMPARE(restored->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
-    const auto reopened = KisImage::fromGpuImage(restored, QStringLiteral("Recovered channel protection"));
-    KisNodeSP restoredNode = reopened->root()->firstChild();
-    auto *restoredLayer = qobject_cast<KisPaintLayer*>(restoredNode.data());
     auto redAndAlpha = redOnly;
     redAndAlpha.setBit(3);
-    QCOMPARE(restoredLayer->channelLockFlags(), redAndAlpha);
+    QCOMPARE(layer->channelLockFlags(), redAndAlpha);
     brush.rgba = {1, 2, 3, 255};
-    const auto next = restored->beginStroke(restored->operations().activeLayer(), brush, 0);
-    QCOMPARE(restored->appendSamples(next, {{{32, 32}, 1}}), Gpu::Result::Success);
-    QCOMPARE(restored->commitStroke(next), Gpu::Result::Success);
-    QCOMPARE(restored->readRgbaPixels(restored->operations().activeLayer(), QRect(32, 32, 1, 1), 4).bytes,
+    const auto next = owner->beginStroke(owner->operations().activeLayer(), brush, 0);
+    QCOMPARE(owner->appendSamples(next, {{{32, 32}, 1}}), Gpu::Result::Success);
+    QCOMPARE(owner->commitStroke(next), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(32, 32, 1, 1), 4).bytes,
              QByteArray::fromHex("0128b4ff"));
 }
 
@@ -287,7 +282,7 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     if (property == 7) layer->setTemporaryTarget(new KisPaintDevice(layer->colorSpace()));
     const auto channels = layer->channelFlags();
     const auto before = owner->operations().snapshot();
-    const auto serialized = owner->operations().recoveryData();
+    const auto retainedVersion = owner->operations().preview();
     QByteArray retained(4, Qt::Uninitialized);
     pixels->readBytes(reinterpret_cast<quint8*>(retained.data()), 5 + layer->x(), 7 + layer->y(), 1, 1);
     if (property == 1 || property == 8 || property == 9 || property == 10 || property == 11 || property == 12 || property == 4 || property == 5) {
@@ -323,7 +318,7 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     }
     QVERIFY(!image->insertGpuLayer(layer, 0));
     QCOMPARE(owner->operations().snapshot(), before);
-    QCOMPARE(owner->operations().recoveryData(), serialized);
+    QCOMPARE(owner->operations().preview(), retainedVersion);
     QCOMPARE(image->root()->childCount(), 1U);
     QCOMPARE(layer->paintDevice(), pixels);
     QVERIFY(!layer->parent());

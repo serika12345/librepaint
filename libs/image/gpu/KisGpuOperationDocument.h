@@ -174,7 +174,7 @@ struct Shape
     bool windingFill = false;
     /** Half-open input ranges for separate painter-path calls. Each call owns
      * its distance state; line calls share the state outside these ranges.
-     * Empty preserves one compound path, including earlier recovery records.
+     * Empty preserves one compound path.
      */
     QList<QPair<qsizetype, qsizetype>> pathCalls{};
 };
@@ -213,7 +213,7 @@ struct FigureStyle
     std::optional<PatternFill> pattern;
     LayerBlendMode fillBlendMode = LayerBlendMode::Normal;
     /** Original canvas opacity for a solid, outline-free normal fill.
-     * Absent retains byte-opacity semantics, including earlier recovery records.
+     * Absent retains byte-opacity semantics.
      */
     std::optional<qreal> canvasOpacity;
 };
@@ -393,7 +393,7 @@ KRITAIMAGEGPUOPERATIONS_EXPORT bool freezeLumaCoefficients(
  * coefficients. Only RGB participates: alpha is preserved, and
  * transparent pixels keep alpha zero while their hidden RGB is filtered like
  * the corresponding channel-mask arithmetic. Coverage and settings are
- * retained for every document version, recovery record and Undo/Redo step.
+ * retained for every document version and Undo/Redo step.
  */
 struct FilterOperation
 {
@@ -604,7 +604,6 @@ enum class Result {
     NothingToUndo,
     NothingToRedo,
     Closed,
-    InvalidRecovery,
     Busy,
     DeviceFailure
 };
@@ -627,7 +626,8 @@ struct Limits
     qsizetype samplesPerStroke = 1024 * 1024;
     qsizetype samplesPerDocument = 4 * 1024 * 1024;
     qsizetype layerCount = 4096;
-    qsizetype recoveryBytes = 512 * 1024 * 1024;
+    /** Compressed checkpoints prepared for one atomic external pixel write. */
+    qsizetype compressedWriteBytes = 512 * 1024 * 1024;
     qsizetype rasterBytes = 256 * 1024 * 1024;
 };
 
@@ -774,7 +774,7 @@ public:
     Result writeLayerBlendMode(LayerId layer, LayerBlendMode mode);
     /** Adds one transparency mask to a paint layer from the current selection
      * coverage in one history entry. The layer keeps its pixels and the mask
-     * becomes part of every retained document version, recovery record and
+     * becomes part of every retained document version and
      * saved document; no per-stroke synchronization occurs. A layer that
      * already owns a mask or a document without a selection is rejected.
      */
@@ -907,13 +907,6 @@ public:
 
     /** Call after successful atomic saving of this snapshot, including an older pinned version. */
     Result markSaved(const Snapshot &saved);
-    /** Bounded recovery of logical versions, both history branches and pending input. */
-    QByteArray recoveryData() const;
-    /** Validates the whole record before replacing state; starts a new operation identity. */
-    /** Records predating color labels adopt retained format values by UUID.
-     * Labels present in the record take precedence over these values.
-     */
-    Result restoreRecovery(const QByteArray &data, const QHash<QUuid, int> &legacyColorLabels = {});
     /** Releases uncommitted input and history; the last committed snapshot remains available. */
     void close();
 
@@ -936,7 +929,7 @@ private:
         bool filledLayer = false;
         /** One paint layer gained an RGB filter operation in its retained version. */
         bool filteredLayer = false;
-        /** Filter applied by that operation; recovered from the operation. */
+        /** Filter applied by the retained operation. */
         FilterKind filterKind = FilterKind::InvertColors;
         CropSnapshot crop;
         std::optional<CanvasResize> canvasResize;
@@ -946,9 +939,6 @@ private:
         /** Adds or removes one layer's transparency mask in its retained version. */
         bool addedTransparencyMask = false;
         bool removedTransparencyMask = false;
-        QRect selectionBefore, selectionAfter;
-        bool selectionInvertedBefore = false, selectionInvertedAfter = false;
-        SelectionKind selectionKindBefore = SelectionKind::Rectangle, selectionKindAfter = SelectionKind::Rectangle;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,

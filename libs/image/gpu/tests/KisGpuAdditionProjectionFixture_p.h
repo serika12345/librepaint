@@ -25,17 +25,5 @@ inline QByteArray additionProjectionReferences()
         "255997ff255997ff255997ff255997ff255997ff255997ff255997ff255997ff6189b5ff615997ff2589b5ff255997ff"
         "95b2cfff955997ff25b2cfff255997ff95b2cfff955997ff25b2cfff255997fff5fffffff55997ff25ffffff255997ff");
 }
-// Format36, generated before adding the new modes by source12a4c1d4ee3f.
-// Lighten layers, a pending stroke and one reversible blend change.
-// SHA256 a47eaafa767559c4fb2dee363a8e7d9d3a71e55787b8dee87682ffb36cc04702.
-inline QByteArray lightenRecoveryV36()
-{
-    return qUncompress(QByteArray::fromBase64(
-        "AAAEjnic8wnwD2JQYWBgdGBgYNjCAAGsUJoJSjMzIAAjElO8Ys7bw468DAw8zAt/mdf+9mNR2TJ11UgGr6r7r8k+BgUdI2Z4"
-        "wfnoYnDAhKQIRv93UIFw7HfOBIFZ/2GqtXEZgwHA5jE6mEB4MNr+A9EGIDuQES21gAAzmjpGJDEwOyg1hZGRiZmFlY2dg5OL"
-        "m4eXj1+AR8nC7z+SJkEhYRFRMXEJSSlpGVk5eQWQGD8DCwNqgIGcwOqZl5daxIhNA5KBjIpKyiqqauoamlraOrp6+gYQA5EB"
-        "yI2s/qUlQMOwKUY2DFtwQFwHlkYPEbjEEAgRFiTDqBMif+BOQ3Ysa/43lfWbrq8T3bfBTze2e81q1mnbApTXNjZFChyOOWPL"
-        "mQQAXif1bg=="));
-}
 }
 #endif

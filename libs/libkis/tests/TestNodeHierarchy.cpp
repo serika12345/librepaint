@@ -39,7 +39,6 @@
 #include <QApplication>
 #include <QDateTime>
 #include <QDir>
-#include <QFile>
 #include <QImage>
 #include <QMap>
 #include <QPointer>
@@ -790,12 +789,6 @@ void TestNode::testRootGroupDuplicationKeepsSelectionAndHistory()
     const auto png = QImage(pngPath).convertToFormat(QImage::Format_ARGB32);
     QCOMPARE(png.size(), QSize(32, 16));
     QCOMPARE(QByteArray(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()), pixels);
-    if (gpu && !results.isEmpty()) {
-        QFile recovery(QDir(destination).filePath(stem + QStringLiteral(".recovery")));
-        QVERIFY(recovery.open(QIODevice::WriteOnly));
-        const auto bytes = image->gpuImage()->operations().recoveryData();
-        QCOMPARE(recovery.write(bytes), qint64(bytes.size()));
-    }
     lifetime->undoStack()->undo();
     image->waitForDone();
     QCOMPARE(image->root()->childCount(), unsigned(originalRoots.size()));
@@ -1095,12 +1088,6 @@ try {
     const auto png = QImage(pngPath).convertToFormat(QImage::Format_ARGB32);
     QCOMPARE(png.size(), QSize(32, 16));
     QCOMPARE(QByteArray(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()), pixels);
-    if (gpu && !results.isEmpty()) {
-        QFile recovery(QDir(destination).filePath(stem + QStringLiteral(".recovery")));
-        QVERIFY(recovery.open(QIODevice::WriteOnly));
-        const auto bytes = image->gpuImage()->operations().recoveryData();
-        QCOMPARE(recovery.write(bytes), qint64(bytes.size()));
-    }
     lifetime->undoStack()->undo();
     QTRY_COMPARE(lifetime->undoStack()->index(), history);
     image->waitForDone();
@@ -1393,18 +1380,6 @@ try {
     loaded.refreshProjection();
     QCOMPARE(loadedLeaf->pixelData(4, 4, 1, 1), blue);
     QCOMPARE(hierarchy(reopened->image()), after);
-    if (gpu) {
-        const auto bytes = image->gpuImage()->operations().recoveryData();
-        Gpu::OperationDocument recovered({1, 1});
-        QCOMPARE(recovered.restoreRecovery(bytes), Gpu::Result::Success);
-        QCOMPARE(recovered.recoveryData(), bytes);
-        QCOMPARE(recovered.snapshot()->activeLayer, image->gpuImage()->operations().activeLayer());
-        if (!results.isEmpty()) {
-            QFile recovery(QDir(destination).filePath(stem + QStringLiteral(".recovery")));
-            QVERIFY(recovery.open(QIODevice::WriteOnly));
-            QCOMPARE(recovery.write(bytes), qint64(bytes.size()));
-        }
-    }
     if (changes) {
         lifetime->undoStack()->undo();
         QTRY_COMPARE(lifetime->undoStack()->index(), history);

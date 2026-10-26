@@ -26,11 +26,6 @@ bool validTileCoordinate(const QPoint &coordinate)
         top + SelectionMask::TileSize <= CoordinateLimit;
 }
 
-qsizetype bytesPerTile(SelectionMask::CoverageFormat format)
-{
-    return format == SelectionMask::CoverageFormat::Alpha ? SelectionMask::AlphaTileBytes : SelectionMask::TileBytes;
-}
-
 struct CoverageBuilder
 {
     SelectionTileMap tiles;
@@ -161,7 +156,7 @@ SelectionMask::SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageForma
 QSharedPointer<const SelectionMask> SelectionMask::make(QRect bounds, SelectionTileMap tiles, CoverageFormat format)
 {
     if (tiles.isEmpty() || bounds.isEmpty() || bounds.width() <= 0 || bounds.height() <= 0) return {};
-    const qsizetype expected = bytesPerTile(format);
+    const qsizetype expected = format == CoverageFormat::Alpha ? AlphaTileBytes : TileBytes;
     if (qsizetype(tiles.size()) * expected > MaximumBytes) return {};
     for (auto tile = tiles.cbegin(); tile != tiles.cend(); ++tile) {
         if (!validTileCoordinate(QPoint(tile.key().first, tile.key().second)) ||
@@ -296,26 +291,6 @@ QSharedPointer<const SelectionMask> SelectionMask::fromAlphaCoverage(const QRect
             if (!builder.add(x, y, quint8(coverage.at(row + x)))) return {};
     }
     return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Alpha);
-}
-
-QSharedPointer<const SelectionMask> SelectionMask::fromTiles(const SelectionTileMap &tiles)
-{
-    if (tiles.isEmpty() || tiles.size() > MaximumBytes / TileBytes) return {};
-    QRect bounds;
-    for (auto tile = tiles.cbegin(); tile != tiles.cend(); ++tile) {
-        const QPoint coordinate(tile.key().first, tile.key().second);
-        if (!validTileCoordinate(coordinate) || tile.value().size() != TileBytes) return {};
-        const QPoint origin = coordinate * TileSize;
-        for (int y = 0; y < TileSize; ++y) {
-            for (int x = 0; x < TileSize; ++x) {
-                const qsizetype index = qsizetype(y) * TileSize + x;
-                if ((quint8(tile.value().at(index >> 3)) & (1u << (index & 7))) == 0) continue;
-                const QRect pixel(origin.x() + x, origin.y() + y, 1, 1);
-                bounds = bounds.isNull() ? pixel : bounds.united(pixel);
-            }
-        }
-    }
-    return make(bounds, tiles, CoverageFormat::Binary);
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::fromAlphaTiles(const SelectionTileMap &tiles)

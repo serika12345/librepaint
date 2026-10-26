@@ -290,7 +290,7 @@ void KisGpuTilePresentationTest::cropPreviewRetainsAntialiasedGeometryAndDocumen
     const QSize size = scenario == 12 ? QSize(1600, 960) : QSize(256 * ratio, 256 * ratio);
     OperationDocument document({128, 128});
     const auto before = document.snapshot();
-    const auto recovery = document.recoveryData();
+    const auto retainedVersion = document.preview();
     CropPreview preview;
     preview.image = QRectF(0, 0, 128, 128);
     preview.crop = (scenario == 4 || scenario == 8) ? QRectF(60, 60, 3, 5) : QRectF(32, 32, 64, 64);
@@ -414,7 +414,7 @@ void KisGpuTilePresentationTest::cropPreviewRetainsAntialiasedGeometryAndDocumen
     // Coverage rounding is confined to this display-only target (#91).
     QVERIFY2(maximumDifference <= 2, qPrintable(QStringLiteral("Crop AA maximum byte difference: %1").arg(maximumDifference)));
     QCOMPARE(document.snapshot(), before);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), retainedVersion);
 }
 
 void KisGpuTilePresentationTest::tileOverBackgroundMatchesEightBitSourceOver_data()
@@ -452,7 +452,7 @@ void KisGpuTilePresentationTest::tileOverBackgroundMatchesEightBitSourceOver()
                      QUuid(QStringLiteral("d4a7d91c-9a48-4c74-a269-7df471371520")), {{{0, 0}, raw}}}};
     OperationDocument document(input);
     const auto before = document.snapshot();
-    const auto recovery = document.recoveryData();
+    const auto retainedVersion = document.preview();
     TileRenderer renderer(m_device);
     TilePresentation presentation(m_device);
     Surface surface(m_device, {512, 512}, format);
@@ -499,7 +499,7 @@ void KisGpuTilePresentationTest::tileOverBackgroundMatchesEightBitSourceOver()
     QCOMPARE(actual, expected);
     QCOMPARE(readback->results.back()->data, raw);
     QCOMPARE(document.snapshot(), before);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), retainedVersion);
 }
 
 void KisGpuTilePresentationTest::checkerBackgroundPreservesDocumentPixels_data()
@@ -528,7 +528,7 @@ void KisGpuTilePresentationTest::checkerBackgroundPreservesDocumentPixels()
     if (painted) input.layers.first().tiles = {{{0, 0}, raw}};
     OperationDocument document(input);
     const auto before = document.snapshot();
-    const auto recovery = document.recoveryData();
+    const auto retainedVersion = document.preview();
     const QColor border(9, 33, 57, scenario >= 2 ? 128 : 255);
     CheckerPattern pattern;
     pattern.first = QColor(24, 68, 116, 128);
@@ -609,7 +609,7 @@ void KisGpuTilePresentationTest::checkerBackgroundPreservesDocumentPixels()
     QCOMPARE(actual, expected);
     if (painted) QCOMPARE(reads->results.back()->data, raw);
     QCOMPARE(document.snapshot(), before);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), retainedVersion);
 }
 
 void KisGpuTilePresentationTest::invalidCheckerPatternsPreserveTheTarget_data()
@@ -871,7 +871,7 @@ void KisGpuTilePresentationTest::displayChannelsPreserveDocumentPixels()
     input.layers = {{QStringLiteral("Display channels"), true, QUuid::createUuid(), {{{0, 0}, raw}}}};
     OperationDocument document(input);
     const auto before = document.snapshot();
-    const auto recovery = document.recoveryData();
+    const auto retainedVersion = document.preview();
     TileRenderer renderer(m_device);
     TilePresentation presentation(m_device);
     Surface surface(m_device, {64, 64});
@@ -896,7 +896,7 @@ void KisGpuTilePresentationTest::displayChannelsPreserveDocumentPixels()
     QCOMPARE(readback->results.front()->data, expected.repeated(64 * 64));
     QCOMPARE(readback->results[1]->data, raw);
     QCOMPARE(document.snapshot(), before);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), retainedVersion);
 }
 
 void KisGpuTilePresentationTest::rejectedPresentationPreservesTheTarget()

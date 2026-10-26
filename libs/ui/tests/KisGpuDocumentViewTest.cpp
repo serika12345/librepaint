@@ -798,7 +798,7 @@ void KisGpuDocumentViewTest::clearActionPreservesSelectedLayersAndHistory()
         const auto clearText = lifetime->undoStack()->undoText();
         const auto direct = QByteArray::fromHex("445566ff");
         layers[2]->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(direct.constData()), 9, 9, 1, 1);
-        QCOMPARE(owner->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
+
         QTRY_COMPARE(lifetime->undoStack()->undoText(), clearText);
         QCOMPARE(lifetime->undoStack()->count(), count + 1);
     }
@@ -3143,7 +3143,6 @@ void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
     QTRY_VERIFY(lifetime->image()->globalSelection() &&
                 lifetime->image()->globalSelection()->selectedExactRect() == moved);
     QCOMPARE(owner->operations().undoCount(), history);
-
 
 }
 
@@ -5565,7 +5564,7 @@ void KisGpuDocumentViewTest::canvasBackgroundFollowsPreferencesWithoutEditing()
     auto owner = Gpu::PaintImageSP::create(execution, QSize(imageLimitPan ? Gpu::RgbaTile::CoordinateLimit : 128, 128));
     const auto snapshot = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(snapshot), Gpu::Result::Success);
-    const auto recovery = owner->operations().recoveryData();
+    const auto retainedVersion = owner->operations().preview();
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU canvas background")));
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
@@ -5706,7 +5705,7 @@ void KisGpuDocumentViewTest::canvasBackgroundFollowsPreferencesWithoutEditing()
         QVERIFY(saveFrames());
     }
     QCOMPARE(owner->operations().snapshot(), snapshot);
-    QCOMPARE(owner->operations().recoveryData(), recovery);
+    QCOMPARE(owner->operations().preview(), retainedVersion);
     QCOMPARE(owner->operations().undoCount(), 0);
     const auto pixels = owner->readRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 128, 128), 65536);
     QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
@@ -6205,7 +6204,7 @@ void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
     QVERIFY(tool->setProperty("cropY", 32));
     QVERIFY(tool->setProperty("cropWidth", 64));
     QVERIFY(tool->setProperty("cropHeight", 64));
-    const auto recovery = owner->operations().recoveryData();
+    const auto retainedVersion = owner->operations().preview();
     const QString directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     if (!directory.isEmpty()) QVERIFY(QDir().mkpath(directory));
     const auto preserveCropFailure = qScopeGuard([&] {
@@ -6233,7 +6232,7 @@ void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
                     const auto a = actual.pixelColor(x, y);
                     const auto e = expectedPreview.pixelColor(x, y);
                     // Display-only coverage has a two-byte rounding bound.
-                    // Document, history and recovery retain exact comparisons.
+                    // Document, history and retainedVersion retain exact comparisons.
                     if (qAbs(a.red() - e.red()) > 2 || qAbs(a.green() - e.green()) > 2 ||
                         qAbs(a.blue() - e.blue()) > 2 || qAbs(a.alpha() - e.alpha()) > 2) return false;
                 }
@@ -6249,7 +6248,7 @@ void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
         QTRY_VERIFY_WITH_TIMEOUT(matches(), 20000);
         QCOMPARE(owner->operations().snapshot(), snapshot);
         QCOMPARE(owner->operations().undoCount(), 0);
-        QVERIFY(owner->operations().recoveryData() == recovery);
+        QVERIFY(owner->operations().preview() == retainedVersion);
     }
     const auto base = [&] {
         const auto screenshot = capture();
@@ -6321,7 +6320,7 @@ void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
         QTRY_VERIFY_WITH_TIMEOUT(previewMatches(), 20000);
         QCOMPARE(owner->operations().snapshot(), snapshot);
         QCOMPARE(owner->operations().undoCount(), 0);
-        QVERIFY(owner->operations().recoveryData() == recovery);
+        QVERIFY(owner->operations().preview() == retainedVersion);
         if (stage == 0) {
             snapGuide->enableSnapStrategies(KoSnapGuide::DocumentBoundsSnapping);
             snapGuide->setSnapDistance(10);
@@ -6350,7 +6349,7 @@ void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
             QTRY_VERIFY_WITH_TIMEOUT(previewMatches(), 20000);
             QCOMPARE(owner->operations().snapshot(), snapshot);
             QCOMPARE(owner->operations().undoCount(), 0);
-            QVERIFY(owner->operations().recoveryData() == recovery);
+            QVERIFY(owner->operations().preview() == retainedVersion);
             snapGuide->enableSnapping(false);
             QVERIFY(tool->setProperty("cropWidth", 64));
         }

@@ -31,34 +31,6 @@ using namespace LibrePaint::Document::Gpu;
 namespace Kra = LibrePaint::ImportExport::Kra;
 
 namespace {
-// Version 29 record from TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving,
-// scenario13, child-first layout, commit 9b7d2f1c83. A 32 x 16 image contains
-// Base, Leaf, Inner, Outer and Top; Leaf belongs to Inner, and Inner to Outer.
-// SHA-256: 3d8c2aa4e90cd84da557c52cc5484673b6e93e3bf7826ac70512d050a8a5e90b.
-inline QByteArray groupedLayerRecoveryV29()
-{
-    return QByteArray::fromHex(
-        "4c504f52001d000000200000001000000000000000000000000000000001000000000000000500000000000000000000"
-        "0001000000000000000000000118789cedc101010000080220ff9f2e0fb420200100005e9a0600000000000000000000"
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-        "382c727801ff000000010100000000000000010000000000000000000000000000000200000001000000000000000000"
-        "000000000000000000000100000000000000200000001000000000000000000000000000000000000000000000000000"
-        "00000100000005000000000000000100000004426173650100000001112233445566778899aabbccff0000ffff000000"
-        "000000000000000000000000000000000000000000000000000000000000000000000002000000044c65616601000000"
-        "02112233445566778899aabbcc00000000ff000000000000000000000000000003112233445566778899aabbcc000000"
-        "0100000000000000000000000300000005496e6e65720100000003112233445566778899aabbcc00000000ff00000000"
-        "0000000000000100000004112233445566778899aabbcc000000000000000000000004000000054f7574657201000000"
-        "04112233445566778899aabbcc00000000ff000000000000000000000100000000000000000000000000000000000000"
-        "00000000000000000500000003546f700100000005112233445566778899aabbcc00000000ff00000000000000000000"
-        "00000000000000000000000000000000000000000000ffffffff0000000000000000709dc9918a97f816a079f64e424d"
-        "6b95626d32d56603d34602c4be64097b0f12"
-    );
-}
-
 void dot(PaintImage &image, QPointF position, std::array<quint8, 4> color)
 {
     Brush brush;
@@ -104,11 +76,11 @@ private Q_SLOTS:
     void colorFillSavesReopensAndContinuesIdentically();
     void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
     void rectangularSelectionSavesReopensAndLimitsPainting();
-    void invertColorsSavesReopensAndRecoversPixels();
-    void grayscaleSavesReopensAndRecoversPixels();
-    void hsvAdjustmentSavesReopensAndRecoversPixels();
-    void hsvAdjustmentLumaModesSaveReopenAndRecoverPixels();
-    void yuvPrecisionSurvivesSavingRecoveryAndFurtherEditing();
+    void invertColorsSavesAndReopensPixels();
+    void grayscaleSavesAndReopensPixels();
+    void hsvAdjustmentSavesAndReopensPixels();
+    void hsvAdjustmentLumaModesSaveAndReopenPixels();
+    void yuvPrecisionSurvivesSavingAndFurtherEditing();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
     void patternFillSavesReopensAndPreservesSelectionPixels();
@@ -123,7 +95,6 @@ private Q_SLOTS:
     void rejectedSavesPreserveTheFileIdentityAndHistory();
     void rejectedOpenPreservesAttachedDocuments();
     void notificationsAllowSynchronousCloseAndDeletion();
-    void legacyOperationRecoveryPreservesColorLabelsOnKraSave();
     void layerStructureAndEmptyDocumentsRoundTripWithUnifiedHistory();
     void savingStreamsPixelsWithinTheGpuAndTransferBudgets();
     void sharedImageEditsAndSavesPublishCompleteFileMetadata();
@@ -365,7 +336,7 @@ void KisGpuPaintDocumentTest::rectangularSelectionSavesReopensAndLimitsPainting(
              continued.size()).bytes, continued);
 }
 
-void KisGpuPaintDocumentTest::invertColorsSavesReopensAndRecoversPixels()
+void KisGpuPaintDocumentTest::invertColorsSavesAndReopensPixels()
 {
     Execution execution(m_device);
     RasterImage initial;
@@ -404,15 +375,6 @@ void KisGpuPaintDocumentTest::invertColorsSavesReopensAndRecoversPixels()
     QCOMPARE(image->redo(), Result::Success);
     QCOMPARE(image->readRgbaPixels(layer, region, 128 * 128 * 4).bytes, inverted.bytes);
 
-    // Recovery retains the frozen filter selection and its pixels.
-    PaintDocument recovered(execution, QSize(1, 1));
-    QCOMPARE(recovered.image()->restoreRecovery(document.image()->operations().recoveryData()), Result::Success);
-    const auto recoveredImage = recovered.image();
-    QCOMPARE(recoveredImage->operations().undoCount(), count);
-    QCOMPARE(recoveredImage->operations().historyAction(count), HistoryAction::InvertColors);
-    QCOMPARE(recoveredImage->readRgbaPixels(recoveredImage->operations().activeLayer(), region,
-             inverted.bytes.size()).bytes, inverted.bytes);
-
     // KRA saving reads the filter result; reopening reproduces the same pixels.
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -440,7 +402,7 @@ void KisGpuPaintDocumentTest::invertColorsSavesReopensAndRecoversPixels()
     QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("ffffff00"));
 }
 
-void KisGpuPaintDocumentTest::grayscaleSavesReopensAndRecoversPixels()
+void KisGpuPaintDocumentTest::grayscaleSavesAndReopensPixels()
 {
     Execution execution(m_device);
     RasterImage initial;
@@ -486,15 +448,6 @@ void KisGpuPaintDocumentTest::grayscaleSavesReopensAndRecoversPixels()
     QCOMPARE(image->redo(), Result::Success);
     QCOMPARE(image->readRgbaPixels(layer, region, 256 * 256 * 4).bytes, filtered.bytes);
 
-    // Recovery retains the frozen Grayscale kind, its coverage and its pixels.
-    PaintDocument recovered(execution, QSize(1, 1));
-    QCOMPARE(recovered.image()->restoreRecovery(document.image()->operations().recoveryData()), Result::Success);
-    const auto recoveredImage = recovered.image();
-    QCOMPARE(recoveredImage->operations().undoCount(), count);
-    QCOMPARE(recoveredImage->operations().historyAction(count), HistoryAction::Grayscale);
-    QCOMPARE(recoveredImage->readRgbaPixels(recoveredImage->operations().activeLayer(), region,
-             filtered.bytes.size()).bytes, filtered.bytes);
-
     // KRA saving reads the filter result; reopening reproduces the same pixels.
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -521,7 +474,7 @@ void KisGpuPaintDocumentTest::grayscaleSavesReopensAndRecoversPixels()
     QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("13131328"));
 }
 
-void KisGpuPaintDocumentTest::hsvAdjustmentSavesReopensAndRecoversPixels()
+void KisGpuPaintDocumentTest::hsvAdjustmentSavesAndReopensPixels()
 {
     Execution execution(m_device);
     RasterImage initial;
@@ -566,22 +519,6 @@ void KisGpuPaintDocumentTest::hsvAdjustmentSavesReopensAndRecoversPixels()
     QCOMPARE(image->redo(), Result::Success);
     QCOMPARE(image->readRgbaPixels(layer, region, 256 * 256 * 4).bytes, filtered.bytes);
 
-    // Recovery retains the frozen values, mode and selection.
-    PaintDocument recovered(execution, QSize(1, 1));
-    QCOMPARE(recovered.image()->restoreRecovery(document.image()->operations().recoveryData()), Result::Success);
-    const auto recoveredImage = recovered.image();
-    QCOMPARE(recoveredImage->operations().undoCount(), count);
-    QCOMPARE(recoveredImage->operations().historyAction(count), HistoryAction::HsvAdjustment);
-    const auto recoveredOperation =
-        std::get<FilterSnapshot>(recoveredImage->operations().snapshot()->layers.first().operations.last());
-    QCOMPARE(recoveredOperation->hue, 0);
-    QCOMPARE(recoveredOperation->saturation, 0);
-    QCOMPARE(recoveredOperation->value, 20);
-    QCOMPARE(recoveredOperation->hsvType, HsvAdjustmentType::Hsv);
-    QVERIFY(!recoveredOperation->compatibilityMode);
-    QCOMPARE(recoveredImage->readRgbaPixels(recoveredImage->operations().activeLayer(), region,
-             filtered.bytes.size()).bytes, filtered.bytes);
-
     // KRA saving reads the filter result; reopening reproduces the same pixels.
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -613,7 +550,7 @@ void KisGpuPaintDocumentTest::hsvAdjustmentSavesReopensAndRecoversPixels()
     QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("3b434b28"));
 }
 
-void KisGpuPaintDocumentTest::hsvAdjustmentLumaModesSaveReopenAndRecoverPixels()
+void KisGpuPaintDocumentTest::hsvAdjustmentLumaModesSaveAndReopenPixels()
 {
     Execution execution(m_device);
     RasterImage initial;
@@ -664,19 +601,6 @@ void KisGpuPaintDocumentTest::hsvAdjustmentLumaModesSaveReopenAndRecoverPixels()
     QCOMPARE(image->redo(), Result::Success);
     QCOMPARE(image->readRgbaPixels(layer, region, 256 * 256 * 4).bytes, filtered.bytes);
 
-    // Recovery keeps the mode, the frozen coefficients and the result pixels.
-    PaintDocument recovered(execution, QSize(1, 1));
-    QCOMPARE(recovered.image()->restoreRecovery(document.image()->operations().recoveryData()), Result::Success);
-    const auto recoveredImage = recovered.image();
-    QCOMPARE(recoveredImage->operations().historyAction(count), HistoryAction::HsvAdjustment);
-    const auto recoveredOperation =
-        std::get<FilterSnapshot>(recoveredImage->operations().snapshot()->layers.first().operations.last());
-    QCOMPARE(recoveredOperation->hsvType, HsvAdjustmentType::Hsy);
-    QVERIFY(!recoveredOperation->colorize);
-    QVERIFY(recoveredOperation->luma == luma);
-    QCOMPARE(recoveredImage->readRgbaPixels(recoveredImage->operations().activeLayer(), region,
-             filtered.bytes.size()).bytes, filtered.bytes);
-
     // KRA saves the filter result, not the operation history.
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -712,7 +636,7 @@ void KisGpuPaintDocumentTest::hsvAdjustmentLumaModesSaveReopenAndRecoverPixels()
     QCOMPARE(pixel(continued.bytes, 10, 10), QByteArray::fromHex("00142828"));
 }
 
-void KisGpuPaintDocumentTest::yuvPrecisionSurvivesSavingRecoveryAndFurtherEditing()
+void KisGpuPaintDocumentTest::yuvPrecisionSurvivesSavingAndFurtherEditing()
 {
     Execution execution(m_device);
     RasterImage initial;
@@ -755,10 +679,6 @@ void KisGpuPaintDocumentTest::yuvPrecisionSurvivesSavingRecoveryAndFurtherEditin
     QCOMPARE(image->redo(), Result::Success);
     QCOMPARE(image->readRgbaPixels(layer, region, bytes.size()).bytes, expected);
 
-    PaintDocument recovered(execution, QSize(1, 1));
-    QCOMPARE(recovered.image()->restoreRecovery(document.image()->operations().recoveryData()), Result::Success);
-    QCOMPARE(recovered.image()->readRgbaPixels(recovered.image()->operations().activeLayer(),
-             region, bytes.size()).bytes, expected);
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
@@ -1999,8 +1919,6 @@ void KisGpuPaintDocumentTest::layerStructureAndEmptyDocumentsRoundTripWithUnifie
     QVERIFY(value.tiles.isEmpty());
     QCOMPARE(document.saveKra(path).code, FileCode::Success);
     const auto history = document.image()->operations().undoCount();
-    const auto recovered = document.image()->operations().recoveryData();
-    QVERIFY(!recovered.isEmpty());
     opened = PaintDocument::openKra(execution, path);
     QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
     QVERIFY(opened.document->image()->operations().snapshot()->layers.isEmpty());
@@ -2008,7 +1926,6 @@ void KisGpuPaintDocumentTest::layerStructureAndEmptyDocumentsRoundTripWithUnifie
     const auto merged = mergedImage(path);
     QCOMPARE(merged.size(), QSize(64, 64));
     QCOMPARE(merged.pixelColor(8, 12), QColor(Qt::transparent));
-    QCOMPARE(document.image()->restoreRecovery(recovered), Result::Success);
     QCOMPARE(document.image()->operations().undoCount(), history);
     QCOMPARE(document.image()->undo(), Result::Success);
     value = execution.readPixels(document.image()->handle(), document.image()->operations().snapshot(), {0, 0, 64, 64});
@@ -2235,81 +2152,6 @@ void KisGpuPaintDocumentTest::notificationsAllowSynchronousCloseAndDeletion()
     QVERIFY(!deleting);
     QVERIFY(!execution.requested(second));
 }
-
-void KisGpuPaintDocumentTest::legacyOperationRecoveryPreservesColorLabelsOnKraSave()
-{
-    const auto model = groupedLayerRecoveryV29();
-    OperationDocument previous({1, 1});
-    QCOMPARE(previous.restoreRecovery(model), Result::Success);
-    const auto layers = previous.snapshot()->layers;
-    QCOMPARE(layers.size(), 5);
-    QCOMPARE(layers[0].name, QStringLiteral("Base"));
-    QCOMPARE(layers[0].defaultPixel, (std::array<quint8, 4>{255, 0, 0, 255}));
-    QCOMPARE(layers[1].parentUuid, layers[2].uuid);
-    QCOMPARE(layers[2].parentUuid, layers[3].uuid);
-    for (const auto &layer : layers) QCOMPARE(layer.colorLabelIndex, 0);
-    QDomDocument xml;
-    QVERIFY(xml.setContent(QByteArrayLiteral("<DOC syntaxVersion=\"2\"><IMAGE name=\"image\" colorspacename=\"RGBA\" profile=\"sRGB built-in\"><layers/></IMAGE></DOC>")));
-    const auto root = xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).firstChildElement(QStringLiteral("layers"));
-    QMap<QUuid, QDomElement> elements;
-    for (const auto &layer : layers) {
-        auto element = xml.createElement(QStringLiteral("layer"));
-        element.setAttribute(QStringLiteral("name"), layer.name);
-        element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") : QStringLiteral("grouplayer"));
-        element.setAttribute(QStringLiteral("compositeop"), QStringLiteral("normal"));
-        element.setAttribute(QStringLiteral("visible"), QStringLiteral("1"));
-        element.setAttribute(QStringLiteral("filename"), QStringLiteral("layer%1").arg(layer.id));
-        element.setAttribute(QStringLiteral("uuid"), layer.uuid.toString());
-        element.setAttribute(QStringLiteral("colorlabel"), 5);
-        if (layer.kind == LayerKind::Group) element.appendChild(xml.createElement(QStringLiteral("layers")));
-        elements.insert(layer.uuid, element);
-    }
-    for (const auto &layer : layers) {
-        auto parent = layer.parentUuid.isNull() ? root : elements.value(layer.parentUuid).firstChildElement(QStringLiteral("layers"));
-        parent.appendChild(elements.value(layer.uuid));
-    }
-    const auto description = xml.toByteArray();
-    const auto metadata = Kra::RasterCodec::readImageMetadata(description, {});
-    QVERIFY2(metadata.code == Kra::Status::Success, qPrintable(metadata.diagnostic));
-    Execution execution(m_device, 128 * 1024 * 1024, 2);
-    PaintDocument restored(execution, QSize(1, 1));
-    QCOMPARE(restored.image()->restoreRecovery(model, metadata.layerColorLabels), Result::Success);
-    QCOMPARE(restored.image()->operations().snapshot()->size, QSize(32, 16));
-    const auto restoredLayers = restored.image()->operations().snapshot()->layers;
-    for (const auto &layer : restoredLayers) QCOMPARE(layer.colorLabelIndex, 5);
-    QCOMPARE(restoredLayers[1].parentUuid, restoredLayers[2].uuid);
-    QCOMPARE(restoredLayers[2].parentUuid, restoredLayers[3].uuid);
-    QCOMPARE(restored.image()->operations().undoCount(), 0);
-    QVERIFY(!restored.image()->operations().isModified());
-    QCOMPARE(restored.image()->writeLayerColorLabel(restoredLayers[0].id, 0), Result::Success);
-    const auto current = restored.image()->operations().recoveryData();
-    PaintDocument reopened(execution, QSize(1, 1));
-    QCOMPARE(reopened.image()->restoreRecovery(current), Result::Success);
-    QCOMPARE(reopened.image()->operations().snapshot()->layers[0].colorLabelIndex, 0);
-    QCOMPARE(reopened.image()->operations().snapshot()->layers[1].colorLabelIndex, 5);
-    QTemporaryDir directory;
-    QVERIFY(directory.isValid());
-    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
-    QVERIFY(QDir().mkpath(destination));
-    const auto preserveFailure = qScopeGuard([&] {
-        if (QTest::currentTestFailed()) {
-            directory.setAutoRemove(false);
-            qInfo() << "Recovered color-label save retained at" << destination;
-        }
-    });
-    const auto path = QDir(destination).filePath(QStringLiteral("legacy-color-labels.kra"));
-    const auto saved = reopened.saveKra(path);
-    QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
-    QFile file(path);
-    QVERIFY(file.open(QIODevice::ReadOnly));
-    const auto loaded = Kra::RasterCodec::read(file);
-    QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
-    QCOMPARE(loaded.document.image.layers.size(), restoredLayers.size());
-    for (const auto &layer : loaded.document.image.layers)
-        QCOMPARE(layer.colorLabelIndex, layer.uuid == restoredLayers[0].uuid ? 0 : 5);
-}
-
-
 
 int main(int argc, char **argv)
 {

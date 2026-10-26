@@ -4,23 +4,16 @@
  */
 
 #include <QTest>
-#include <QCryptographicHash>
-#include <QBuffer>
-#include <QDir>
-#include <QFile>
-#include <QDataStream>
 #include <limits>
 #include <stdexcept>
 
 #include <gpu/KisGpuOperationDocument.h>
-#include "KisGpuLegacyRecoveryFixture_p.h"
 #include "KisGpuMultiplyProjectionFixture_p.h"
 #include "KisGpuScreenProjectionFixture_p.h"
 #include "KisGpuMinMaxProjectionFixture_p.h"
 #include "KisGpuAdditionProjectionFixture_p.h"
 
 using namespace LibrePaint::Image::Gpu;
-using LibrePaint::Image::Gpu::Test::legacyRecovery;
 
 namespace {
 InputSample sample(qreal x, qreal y, qreal pressure = 1, quint64 time = 0)
@@ -96,63 +89,6 @@ QList<LayerInsertion> insertionForest(const Snapshot &source, const QUuid &paren
     result.append(secondRoot);
     return result;
 }
-
-/** Rebuilds a controlled format 54/55 record as an older record by dropping the
- * Colorize flag and binary64 luma words from one HSV Adjustment
- * operation. The caller keeps a single tileless HSV operation in the record.
- */
-QByteArray olderHsvRecovery(const QByteArray &recovery, quint16 format)
-{
-    if (recovery.size() <= 32) return {};
-    QByteArray payload = recovery.first(recovery.size() - 32);
-    QBuffer buffer(&payload);
-    if (!buffer.open(QIODevice::ReadWrite)) return {};
-    QDataStream stream(&buffer);
-    stream.setVersion(QDataStream::Qt_5_15);
-    stream.setByteOrder(QDataStream::BigEndian);
-    quint32 magic = 0;
-    quint16 sourceFormat = 0;
-    stream >> magic >> sourceFormat;
-    if (magic != 0x4c504f52 || (sourceFormat != 54 && sourceFormat != 55)) return {};
-    qint32 width = 0, height = 0, sx = 0, sy = 0, sw = 0, sh = 0;
-    quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
-    quint8 inverted = 0, selectionKind = 0;
-    quint32 tileCount = 0, maskCount = 0, operationCount = 0;
-    stream >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision
-           >> sx >> sy >> sw >> sh >> inverted >> selectionKind >> tileCount;
-    if (stream.status() != QDataStream::Ok || tileCount != 0) return {};
-    stream >> maskCount;
-    if (maskCount != 0) return {};
-    stream >> operationCount;
-    if (operationCount != 1) return {};
-    quint8 kind = 0;
-    quint64 sequence = 0, version = 0, layer = 0;
-    stream >> kind >> sequence >> version >> layer;
-    if (kind != 4) return {};
-    quint8 filterKind = 0, filterInverted = 0, filterSelectionKind = 0;
-    qint32 x = 0, y = 0, w = 0, h = 0;
-    stream >> filterKind >> x >> y >> w >> h >> filterInverted >> filterSelectionKind;
-    if (filterKind != quint8(FilterKind::HsvAdjustment)) return {};
-    qint32 hue = 0, saturation = 0, value = 0;
-    quint8 type = 0, compatibilityMode = 0;
-    stream >> hue >> saturation >> value >> type >> compatibilityMode;
-    const qint64 offset = buffer.pos();
-    buffer.close();
-    if (offset < 0 || offset + 25 > payload.size()) return {};
-    payload.remove(int(offset), 25);
-    QBuffer patcher(&payload);
-    if (!patcher.open(QIODevice::ReadWrite)) return {};
-    QDataStream patchStream(&patcher);
-    patchStream.setVersion(QDataStream::Qt_5_15);
-    patchStream.setByteOrder(QDataStream::BigEndian);
-    if (!patcher.seek(4)) return {};
-    patchStream << format;
-    patcher.close();
-    payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
-    return payload;
-}
-
-
 }
 
 class KisGpuOperationDocumentTest : public QObject
@@ -163,14 +99,14 @@ private Q_SLOTS:
     void layerForestInsertionCanClearPixelSelectionAtomically_data();
     void layerForestInsertionCanClearPixelSelectionAtomically();
     void rejectedLayerForestsPreservePendingInputAndHistory();
-    void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
-    void colorLabelsPreserveFixedVersionsPendingInputAndRecovery();
-    void projectionChannelsPreservePixelsPendingInputHistoryAndRecovery();
-    void groupPassThroughPreservesPinnedInputHistoryAndRecovery();
+    void nestedLayerIdentitySurvivesPropertiesHistory();
+    void colorLabelsPreserveFixedVersionsPendingInput();
+    void projectionChannelsPreservePixelsPendingInputHistory();
+    void groupPassThroughPreservesPinnedInputHistory();
     void groupPassThroughPreviewsAdoptAndCancelOneAttribute();
     void importedAndCopiedGroupsKeepPassThroughModes();
-    void layerBlendModesKeepPixelsHistoryPendingInputAndRecovery_data();
-    void layerBlendModesKeepPixelsHistoryPendingInputAndRecovery();
+    void layerBlendModesKeepPixelsHistoryPendingInput_data();
+    void layerBlendModesKeepPixelsHistoryPendingInput();
     void layerBlendModePreviewsAdoptAndCancelOneAttribute_data();
     void layerBlendModePreviewsAdoptAndCancelOneAttribute();
     void separableGroupDefaultsMatchNativeProjection();
@@ -179,37 +115,30 @@ private Q_SLOTS:
     void layerPropertyAcceptanceRetainsEditsCompletedDuringPreview();
     void layerPropertyCancellationKeepsExactValuesPendingInputAndRedo();
     void directHierarchyMovesAdoptTheirActiveRootAtomically();
-    void movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data();
-    void movedSubtreesPreservePixelsSelectionHistoryAndRecovery();
+    void movedSubtreesPreservePixelsSelectionHistory_data();
+    void movedSubtreesPreservePixelsSelectionHistory();
     void rejectedHierarchyMovesPreserveRedoInputAndClosedState();
     void nestedRemovalOwnsDescendantsAndOneHistoryStep();
     void nestedDuplicationCopiesSubtreePixelsAndIndependentParents();
-    void hierarchyDuplicationPreservesPlacementSelectionAndRecovery_data();
-    void hierarchyDuplicationPreservesPlacementSelectionAndRecovery();
-    void nestedCanvasChangesKeepGroupsDerivedAndRecoverable();
-    void previousShiftedWritesRecoverPixelsAndPendingInput();
+    void hierarchyDuplicationPreservesPlacementSelection_data();
+    void hierarchyDuplicationPreservesPlacementSelection();
+    void nestedCanvasChangesKeepGroupsDerivedAndUndoable();
     void groupProjectionDefaultsRespectIsolationAndQuantizedOpacity_data();
     void groupProjectionDefaultsRespectIsolationAndQuantizedOpacity();
-    void previousCanvasRecoveryPreservesSizesAndInput();
-    void canvasResizePreservesVersionSizesPropertiesAndRecovery();
-    void canvasResizeKeepsEmptyDocumentsRecoverable();
+    void canvasResizePreservesVersionSizesProperties();
+    void canvasResizeKeepsEmptyDocumentsUndoable();
     void directLayerPositionKeepsCanvasHistoryBoundaries();
     void rejectedCanvasResizesKeepRedoPendingInputAndClosedState();
-    void previousCroppedRecoveryPreservesInputAndCanvasHistory();
-    void layerCropPreservesValuesHistoryAndRecovery();
+    void layerCropPreservesValuesHistory();
     void rejectedLayerCropsKeepRedoPendingInputAndClosedState();
-    void invertColorsFreezesCoverageAndRecovers();
+    void invertColorsFreezesCoverageAndPreservesHistory();
     void rejectedInvertColorsPreserveHistoryAndInput();
-    void grayscaleFilterFreezesCoverageAndRecovers();
-    void grayscaleRecoveryKeepsItsKindAcrossFormatBumps();
-    void hsvAdjustmentFreezesSettingsAndRecovers();
-    void hsvAdjustmentFreezesLumaDependentModesAndRecovers();
+    void grayscaleFilterFreezesCoverageAndPreservesHistory();
+    void hsvAdjustmentFreezesSettingsAndPreservesHistory();
+    void hsvAdjustmentFreezesLumaDependentModesAndPreservesHistory();
     void hsvAdjustmentRejectsInvalidSettingsAndPreservesHistory();
     void hsvAdjustmentRejectsUnfrozenLumaAndInvalidRanges();
-    void hsvAdjustmentRecoveryKeepsSettingsAndOlderFormats();
-    void previousTranslatedRecoveryPreservesPendingInputAndCropHistory();
     void layerTranslationPreservesInputVersionsAndOneHistoryEntry();
-    void previousPlacedRecoveryPreservesPendingInputAndPosition();
     void groupedRemovalPreservesPixelsSelectionAndAtomicHistory();
     void insertedLayersPreserveOrderPinsAndOneHistoryStep();
     void nestedPaintInsertionRejectsMissingAndNonGroupParents();
@@ -218,60 +147,53 @@ private Q_SLOTS:
     void identicalLayerDuplicationsPreserveTheSamePersistentIdentities();
     void insertedForeignLayersSharePixelsAndInputsWithAtomicHistory();
     void selectionDuringInputPreservesPaintingAndHistory();
-    void activeLayerAndSelectionRemainIndependentThroughRecoveryAndInput();
+    void activeLayerAndSelectionRemainIndependentAndInput();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries_data();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries();
-    void historyActionsSurviveDirectWritesMergingAndRecovery();
-    void mergedPropertiesPreservePinsSaveBoundariesAndRecovery();
+    void historyActionsSurviveDirectWritesMerging();
+    void mergedPropertiesPreservePinsSaveBoundaries();
     void mergedNameResetRetainsItsRecordedBoundary();
     void mergedOpacityResetPreservesSelectionAndDirectWrites();
-    void previousPropertyRecoveryRemainsReadable_data();
-    void previousPropertyRecoveryRemainsReadable();
-    void previousPositionlessRecoveryPreservesLayerEdits();
     void directLayerPropertiesPreserveOtherPropertyHistoryAndFixedVersions();
-    void propertyRecoveryPreservesRecordedValuesAndRejectsDamagedChanges();
-    void failedHistoryMovesPreserveEveryVersionAndCounter();
-    void layerOpacityAndLockShareHistoryAndRecovery();
-    void channelProtectionPreservesFrozenSettingsHistoryAndRecovery();
-    void symmetryFreezesAxesAndRejectsInvalidRecoveryAtomically();
+    void directOpacityWritesPreserveRecordedUndoValues();
+    void layerOpacityAndLockShareHistory();
+    void channelProtectionPreservesFrozenSettingsHistory();
+    void symmetryFreezesAxesAndRejectsInvalidInput();
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
-    void filledFiguresPreserveStylesHistoryAndRecovery();
-    void fractionalFillOpacityFreezesHistoryAndRecovery();
-    void fillBlendModesFreezeHistoryAndRecovery_data();
-    void fillBlendModesFreezeHistoryAndRecovery();
-    void strokeBlendModesFreezeHistoryAndRecovery_data();
-    void strokeBlendModesFreezeHistoryAndRecovery();
+    void filledFiguresPreserveStylesHistory();
+    void fractionalFillOpacityFreezesHistory();
+    void fillBlendModesFreezeHistory_data();
+    void fillBlendModesFreezeHistory();
+    void strokeBlendModesFreezeHistory_data();
+    void strokeBlendModesFreezeHistory();
     void rejectedStrokeBlendModesPreserveHistoryAndInput();
-    void patternFillBlendModeFreezesHistoryAndRecovery();
+    void patternFillBlendModeFreezesHistory();
     void rejectedFillBlendModesPreserveHistoryAndInput();
-    void patternFillFreezesPixelsHistoryAndRecovery();
-    void emptyFigureIntentPreservesHistoryAndRecovery();
-    void pathsPreserveCommandsControlPointsAndRecovery();
-    void pathCallsRetainInputHistoryAndRecovery();
+    void patternFillFreezesPixelsHistory();
+    void emptyFigureIntentPreservesHistory();
+    void pathsPreserveCommandsControlPoints();
+    void pathCallsRetainInputHistory();
     void invalidPathCallsPreserveTheActiveDocument_data();
     void invalidPathCallsPreserveTheActiveDocument();
-    void legacyGaussianPathKeepsItsRecordedInput();
-    void damagedPathCallRecoveryPreservesTheActiveDocument();
-    void pixelCorrectionRetainsOriginalSensorsAndPendingRecovery();
-    void selectionRectIsFrozenInOperationsAndRecovery();
-    void invertedSelectionSurvivesRecovery();
-    void ellipticalSelectionSurvivesRecovery();
-    void freehandSelectionFreezesCoverageHistoryAndRecovery();
-    void featheredSelectionAddsAlphaHistoryAndRecovery();
+    void pixelCorrectionRetainsOriginalSensorsAndPendingInput();
+    void selectionRectIsFrozenInOperations();
+    void invertedSelectionPreservesHistory();
+    void ellipticalSelectionPreservesHistory();
+    void freehandSelectionFreezesCoverageHistory();
+    void featheredSelectionAddsAlphaHistory();
     void basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent();
-    void weightedSmoothingRetainsFrozenSettingsSpeedAndRecovery();
+    void weightedSmoothingRetainsFrozenSettingsSpeed();
     void basicSmoothingRejectsConflictingModesAndShapeChanges();
-    void damagedSmoothingRecoveryPreservesTheActiveDocument();
-    void emptyPathsPreserveHistoryAndPendingRecovery();
+    void emptyPathsPreserveHistoryAndPendingInput();
     void invalidPathsPreserveHistoryAndInputBudgets();
-    void gaussianWashSettingsSurviveHistoryAndRecovery();
+    void gaussianWashSettingsSurviveHistory();
     void stationaryGaussianCommitInvalidatesPendingPixelsAndRetainsInput_data();
     void stationaryGaussianCommitInvalidatesPendingPixelsAndRetainsInput();
     void invalidGaussianWashSettingsPreserveTheDocument();
-    void transparencyMaskHistoryCompositionAndRecovery();
+    void transparencyMaskHistoryComposition();
     void transparencyMaskFromSelectionShapesAndRejections();
-    void transparencyMaskCoverageReplacementSurvivesRecovery();
+    void transparencyMaskCoverageReplacementPreservesHistory();
     void transparencyMaskFollowsCanvasResize();
     void transparencyMaskFollowsLayerCrop();
     void cancelAndRejectedInputPreserveRedo();
@@ -284,18 +206,13 @@ private Q_SLOTS:
     void closedDocumentPreservesSnapshots();
     void cancelledPreviewsCannotBecomeSavedVersions();
     void emptyAndInvalidRequestsLeaveHistoryUnchanged();
-    void recoveryPreservesHistoryAndUncommittedIntent();
-    void invalidRecoveryLeavesTheLiveDocumentUntouched();
-    void checkedRecoveryRejectsInvalidCountsAndValues();
     void importedPixelsPreserveLayersAndStartWithoutUndo();
     void tileReplacementSharesHistoryAndRejectsWholeRequests();
-    void rasterRecoveryPreservesPixelsIdentityAndPendingInput();
-    void damagedRasterRecoveryPreservesTheLiveDocument();
     void layerStructureSharesPaintingHistoryAndPreservesPins();
     void rejectedLayerChangesKeepRedoAndPendingInput();
-    void removingTheLastLayerPreservesAnEmptyRecoverableDocument();
-    void layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data();
-    void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
+    void removingTheLastLayerPreservesAnEmptyUndoableDocument();
+    void layerRemovalReusesCapacityAcrossHistory_data();
+    void layerRemovalReusesCapacityAcrossHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
     void rgba16TilesCannotEnterAnRgba8Document();
 };
@@ -310,10 +227,10 @@ void KisGpuOperationDocumentTest::rgba16TilesCannotEnterAnRgba8Document()
 
     OperationDocument document({64, 64});
     const auto before = document.snapshot();
-    const auto recovery = document.recoveryData();
+    const auto stateBeforeRequest = document.preview();
     QCOMPARE(document.replaceTiles(document.activeLayer(), {tile}), Result::InvalidInput);
     QCOMPARE(document.snapshot(), before);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), stateBeforeRequest);
     QCOMPARE(document.undoCount(), 0);
 }
 
@@ -343,35 +260,6 @@ void KisGpuOperationDocumentTest::layerForestInsertionCanClearPixelSelectionAtom
     QCOMPARE(result, Result::Success);
     QCOMPARE(destination.undoCount(), count + 1);
     QCOMPARE(destination.snapshot()->layers.size(), before->layers.size() + inputs.size());
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(destination.recoveryData()), Result::Success);
-    for (auto *value : {&destination, &recovered}) {
-        QCOMPARE(value->historyAction(count + 1), HistoryAction::AddLayer);
-        const auto verifySelection = [&] {
-            if (clearPixelSelection) {
-                QVERIFY(value->selectionRect().isEmpty());
-                QCOMPARE(value->selectionKind(), SelectionKind::Rectangle);
-                QVERIFY(!value->selectionInverted());
-                QVERIFY(!value->selectionMask());
-            } else {
-                QCOMPARE(value->selectionRect(), before->selection);
-                QCOMPARE(value->selectionKind(), SelectionKind::Freehand);
-                QVERIFY(value->selectionInverted());
-                QVERIFY(value->selectionMask() && *value->selectionMask() == *mask);
-            }
-        };
-        verifySelection();
-        QCOMPARE(value->undo(), Result::Success);
-        QCOMPARE(value->snapshot()->layers.size(), before->layers.size());
-        QCOMPARE(value->selectionRect(), before->selection);
-        QCOMPARE(value->selectionKind(), SelectionKind::Freehand);
-        QVERIFY(value->selectionInverted());
-        QVERIFY(value->selectionMask() && *value->selectionMask() == *mask);
-        QCOMPARE(value->redo(), Result::Success);
-        verifySelection();
-    }
-    QCOMPARE(before->selectionKind, SelectionKind::Freehand);
-    QVERIFY(before->selectionMask == mask && before->selectionInverted);
 }
 
 void KisGpuOperationDocumentTest::preparedLayerForestsKeepPixelsSelectionAndAtomicHistory()
@@ -410,25 +298,6 @@ void KisGpuOperationDocumentTest::preparedLayerForestsKeepPixelsSelectionAndAtom
     }
     QCOMPARE(destination.undoCount(), 1);
     QCOMPARE(destination.historyAction(1), HistoryAction::AddLayer);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(destination.recoveryData()), Result::Success);
-    for (auto *value : {&destination, &recovered}) {
-        QCOMPARE(value->undo(), Result::Success);
-        QCOMPARE(value->snapshot()->activeLayer, before->activeLayer);
-        QCOMPARE(value->snapshot()->selectedLayers, before->selectedLayers);
-        QCOMPARE(value->snapshot()->layers.size(), before->layers.size());
-        QCOMPARE(value->redo(), Result::Success);
-        QCOMPARE(value->snapshot()->activeLayer, after->activeLayer);
-        QCOMPARE(value->snapshot()->selectedLayers, after->selectedLayers);
-        for (qsizetype i = 0; i < after->layers.size(); ++i)
-            QCOMPARE(value->snapshot()->layers[i].uuid, after->layers[i].uuid);
-    }
-    QCOMPARE(destination.undo(), Result::Success);
-    QCOMPARE(destination.snapshot(), before);
-    QCOMPARE(destination.redo(), Result::Success);
-    QCOMPARE(destination.snapshot(), after);
-    QCOMPARE(fixed->layers.size(), 3);
-    QCOMPARE(before->layers.size(), 3);
 }
 
 void KisGpuOperationDocumentTest::rejectedLayerForestsPreservePendingInputAndHistory()
@@ -441,7 +310,7 @@ void KisGpuOperationDocumentTest::rejectedLayerForestsPreservePendingInputAndHis
     const auto reserved = destination.snapshot()->layers.last().uuid;
     QCOMPARE(destination.undo(), Result::Success);
     const auto before = destination.snapshot();
-    const auto bytes = destination.recoveryData();
+    const auto retainedState = destination.preview();
     for (int failure = 0; failure < 6; ++failure) {
         auto invalid = inputs;
         if (failure == 0) invalid[3].sourceLayer = 999;
@@ -452,7 +321,7 @@ void KisGpuOperationDocumentTest::rejectedLayerForestsPreservePendingInputAndHis
         if (failure == 5) invalid[3].properties.parentUuid = QUuid::createUuid();
         QCOMPARE(destination.insertLayers(invalid, 0), failure == 0 ? Result::LayerUnavailable : Result::InvalidInput);
         QCOMPARE(destination.snapshot(), before);
-        QCOMPARE(destination.recoveryData(), bytes);
+        QCOMPARE(destination.preview(), retainedState);
         QCOMPARE(destination.redoCount(), 1);
     }
     QCOMPARE(destination.insertLayers({}, 0), Result::InvalidInput);
@@ -471,9 +340,9 @@ void KisGpuOperationDocumentTest::rejectedLayerForestsPreservePendingInputAndHis
         if (budget == 2) limits.samplesPerDocument = 3;
         if (budget == 3) limits.samplesPerStroke = 1;
         OperationDocument bounded({64, 32}, limits);
-        const auto retained = bounded.recoveryData();
+        const auto retained = bounded.preview();
         QCOMPARE(bounded.insertLayers(inputs, 0), Result::CapacityExceeded);
-        QCOMPARE(bounded.recoveryData(), retained);
+        QCOMPARE(bounded.preview(), retained);
     }
     destination.close();
     const auto closed = destination.snapshot();
@@ -481,7 +350,7 @@ void KisGpuOperationDocumentTest::rejectedLayerForestsPreservePendingInputAndHis
     QCOMPARE(destination.snapshot(), closed);
 }
 
-void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelectionAndRecovery_data()
+void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelection_data()
 {
     QTest::addColumn<QString>("scenario");
     QTest::addColumn<QString>("layout");
@@ -493,7 +362,7 @@ void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelectio
     }
 }
 
-void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelectionAndRecovery()
+void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelection()
 {
     QFETCH(QString, scenario);
     QFETCH(QString, layout);
@@ -577,18 +446,6 @@ void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelectio
     QCOMPARE(document.snapshot(), before);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), after);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.snapshot()->selectedLayers, copies);
-    QCOMPARE(recovered.snapshot()->activeLayer, copies.first());
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers.size(), before->layers.size());
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers.size(), after->layers.size());
-    for (int i = 0; i < after->layers.size(); ++i) {
-        QCOMPARE(recovered.snapshot()->layers[i].uuid, after->layers[i].uuid);
-        QCOMPARE(recovered.snapshot()->layers[i].parentUuid, after->layers[i].parentUuid);
-    }
 }
 
 void KisGpuOperationDocumentTest::directHierarchyMovesAdoptTheirActiveRootAtomically()
@@ -600,14 +457,14 @@ void KisGpuOperationDocumentTest::directHierarchyMovesAdoptTheirActiveRootAtomic
     QCOMPARE(document.selectLayers({3, 1}, 1), Result::Success);
     const auto before = document.snapshot();
     QCOMPARE(document.markSaved(before), Result::Success);
-    const auto recovery = document.recoveryData();
+    const auto stateBeforeRequest = document.preview();
     QCOMPARE(document.moveLayers({3, 1}, {}, top.uuid, 1), Result::InvalidInput);
     QCOMPARE(document.moveLayers({3, 1}, {}, top.uuid, 99), Result::LayerUnavailable);
     QCOMPARE(document.snapshot(), before);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), stateBeforeRequest);
     QCOMPARE(document.moveLayers({3, 1}, {}, {}, 3), Result::Success);
     QCOMPARE(document.snapshot(), before);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), stateBeforeRequest);
     const auto stroke = document.beginStroke(1, Brush{}, 42);
     QVERIFY(!stroke.isNull());
     const auto preview = document.preview();
@@ -621,24 +478,21 @@ void KisGpuOperationDocumentTest::directHierarchyMovesAdoptTheirActiveRootAtomic
     QCOMPARE(after->selectedLayers, QList<LayerId>{3});
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.historyAction(1), HistoryAction::MoveLayer);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    for (auto *value : {&document, &recovered}) {
-        QCOMPARE(value->undo(), Result::Success);
-        QCOMPARE(value->snapshot()->activeLayer, LayerId(1));
-        QCOMPARE(value->snapshot()->selectedLayers, QList<LayerId>{3});
-        QVERIFY(!value->isModified());
-        QCOMPARE(value->redo(), Result::Success);
-        QCOMPARE(value->snapshot()->activeLayer, LayerId(3));
-        QCOMPARE(value->snapshot()->selectedLayers, QList<LayerId>{3});
-        QVERIFY(value->isModified());
-    }
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->activeLayer, LayerId(1));
+    QCOMPARE(document.snapshot()->selectedLayers, QList<LayerId>{3});
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->activeLayer, LayerId(3));
+    QCOMPARE(document.snapshot()->selectedLayers, QList<LayerId>{3});
+    QVERIFY(document.isModified());
+
     QCOMPARE(document.snapshot(), after);
     QCOMPARE(before->activeLayer, LayerId(1));
     QCOMPARE(before->selectedLayers, (QList<LayerId>{1, 3}));
 }
 
-void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data()
+void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistory_data()
 {
     QTest::addColumn<QString>("scenario");
     QTest::addColumn<int>("layout");
@@ -649,7 +503,7 @@ void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistoryAnd
             QTest::newRow(qPrintable(scenario + QString::number(layout))) << scenario << layout;
 }
 
-void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistoryAndRecovery()
+void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistory()
 {
     QFETCH(QString, scenario);
     QFETCH(int, layout);
@@ -727,25 +581,6 @@ void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistoryAnd
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.historyAction(1), HistoryAction::MoveLayer);
     QVERIFY(document.isModified());
-    OperationDocument recovered({1, 1});
-    const auto bytes = document.recoveryData();
-    QCOMPARE(recovered.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(recovered.recoveryData(), bytes);
-    QCOMPARE(recovered.historyAction(1), HistoryAction::MoveLayer);
-    for (auto *value : {&document, &recovered}) {
-        QCOMPARE(value->undo(), Result::Success);
-        QCOMPARE(hierarchy(value->snapshot()), hierarchy(before));
-        QCOMPARE(value->snapshot()->activeLayer, active);
-        QCOMPARE(value->snapshot()->selectedLayers.size(), roots.size());
-        for (const auto root : roots) QVERIFY(value->snapshot()->selectedLayers.contains(root));
-        QVERIFY(!value->isModified());
-        QCOMPARE(value->redo(), Result::Success);
-        QCOMPARE(hierarchy(value->snapshot()), expected);
-        QCOMPARE(value->snapshot()->activeLayer, active);
-    }
-    QCOMPARE(document.snapshot(), after);
-    QCOMPARE(hierarchy(before), hierarchy(initial));
-    QCOMPARE(before->selectedLayers.size(), requested.size());
 }
 
 void KisGpuOperationDocumentTest::rejectedHierarchyMovesPreserveRedoInputAndClosedState()
@@ -758,7 +593,7 @@ void KisGpuOperationDocumentTest::rejectedHierarchyMovesPreserveRedoInputAndClos
     QCOMPARE(document.renameLayer(1, QStringLiteral("Renamed")), Result::Success);
     QCOMPARE(document.undo(), Result::Success);
     const auto before = document.snapshot();
-    const auto recovery = document.recoveryData();
+    const auto stateBeforeRequest = document.preview();
     const auto missing = QUuid(QStringLiteral("{51525354-5556-5758-595a-5b5c5d5e5f60}"));
     QCOMPARE(document.moveLayers({}, {}, {}), Result::InvalidInput);
     QCOMPARE(document.moveLayers({1, 1}, {}, {}), Result::InvalidInput);
@@ -773,19 +608,19 @@ void KisGpuOperationDocumentTest::rejectedHierarchyMovesPreserveRedoInputAndClos
     QCOMPARE(document.moveLayers({3}, inner, {}), Result::InvalidInput);
     QCOMPARE(document.moveLayers({2}, inner, {}), Result::InvalidInput);
     QCOMPARE(document.snapshot(), before);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), stateBeforeRequest);
     QCOMPARE(document.redoCount(), 1);
     QCOMPARE(document.moveLayers({1}, inner, {}), Result::Success);
     QCOMPARE(document.snapshot(), before);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), stateBeforeRequest);
     const auto stroke = document.beginStroke(1, Brush{}, 42);
     QVERIFY(!stroke.isNull());
     QCOMPARE(document.appendSamples(stroke, {sample(5, 6)}), Result::Success);
     const auto preview = document.preview();
-    const auto pendingRecovery = document.recoveryData();
+    const auto pendingVersion = document.preview();
     QCOMPARE(document.moveLayers({1}, outer, {}), Result::EditInProgress);
     QCOMPARE(document.preview(), preview);
-    QCOMPARE(document.recoveryData(), pendingRecovery);
+    QCOMPARE(document.preview(), pendingVersion);
     QCOMPARE(document.cancelStroke(stroke), Result::Success);
     for (const bool destination : {false, true}) {
         auto locked = input;
@@ -802,7 +637,7 @@ void KisGpuOperationDocumentTest::rejectedHierarchyMovesPreserveRedoInputAndClos
     QCOMPARE(document.snapshot(), closed);
 }
 
-void KisGpuOperationDocumentTest::canvasResizePreservesVersionSizesPropertiesAndRecovery()
+void KisGpuOperationDocumentTest::canvasResizePreservesVersionSizesProperties()
 {
     auto source = rasterImage();
     source.activeLayer = 0;
@@ -839,34 +674,9 @@ void KisGpuOperationDocumentTest::canvasResizePreservesVersionSizesPropertiesAnd
     QCOMPARE(document.resizeCanvas(QRect(QPoint(), canvas.size()), false), Result::Success);
     QCOMPARE(document.snapshot(), resized);
     QCOMPARE(document.redoCount(), 1);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.snapshot()->size, canvas.size());
-    QCOMPARE(recovered.savedHistoryIndex(), 1);
-    QCOMPARE(recovered.historyCanvasResize(2)->rect, crop);
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->size, crop.size());
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->size, source.size);
-    QCOMPARE(recovered.snapshot()->layers.first().position, source.layers.first().position);
-    auto damaged = document.recoveryData().chopped(32);
-    QByteArray prefix;
-    QDataStream writer(&prefix, QIODevice::WriteOnly);
-    writer.setVersion(QDataStream::Qt_5_15);
-    writer << qint32(before->size.width()) << qint32(before->size.height());
-    for (const auto component : before->projectionBackground) writer << component;
-    writer << before->revision() << before->historyRevision();
-    const auto offset = damaged.indexOf(prefix);
-    QVERIFY(offset > 0);
-    damaged.replace(offset, 4, QByteArray(4, '\0'));
-    damaged.append(QCryptographicHash::hash(damaged, QCryptographicHash::Sha256));
-    const auto unchanged = recovered.recoveryData();
-    QCOMPARE(recovered.restoreRecovery(damaged), Result::InvalidRecovery);
-    QCOMPARE(recovered.recoveryData(), unchanged);
 }
 
-void KisGpuOperationDocumentTest::canvasResizeKeepsEmptyDocumentsRecoverable()
+void KisGpuOperationDocumentTest::canvasResizeKeepsEmptyDocumentsUndoable()
 {
     RasterImage source;
     source.size = {64, 48};
@@ -874,12 +684,10 @@ void KisGpuOperationDocumentTest::canvasResizeKeepsEmptyDocumentsRecoverable()
     QCOMPARE(document.resizeCanvas({-8, -6, 128, 96}, true), Result::Success);
     QVERIFY(document.snapshot()->layers.isEmpty());
     QCOMPARE(document.snapshot()->size, QSize(128, 96));
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->size, source.size);
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->size, QSize(128, 96));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->size, source.size);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->size, QSize(128, 96));
 }
 
 void KisGpuOperationDocumentTest::directLayerPositionKeepsCanvasHistoryBoundaries()
@@ -891,10 +699,6 @@ void KisGpuOperationDocumentTest::directLayerPositionKeepsCanvasHistoryBoundarie
     QCOMPARE(document.snapshot()->layers.first().position, QPoint());
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot()->layers.first().position, QPoint(11, 13));
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers.first().position, QPoint());
 }
 
 void KisGpuOperationDocumentTest::rejectedCanvasResizesKeepRedoPendingInputAndClosedState()
@@ -903,12 +707,12 @@ void KisGpuOperationDocumentTest::rejectedCanvasResizesKeepRedoPendingInputAndCl
     QCOMPARE(document.resizeCanvas({8, 6, 32, 24}, true), Result::Success);
     QCOMPARE(document.undo(), Result::Success);
     const auto before = document.snapshot();
-    const auto recovery = document.recoveryData();
+    const auto stateBeforeRequest = document.preview();
     for (const QRect rect : {QRect(0, 0, 0, 4), QRect(0, 0, -1, 4),
                              QRect(RgbaTile::CoordinateLimit, 0, 1, 1),
                              QRect(-RgbaTile::CoordinateLimit - 1, 0, 1, 1)}) {
         QCOMPARE(document.resizeCanvas(rect, false), Result::InvalidInput);
-        QCOMPARE(document.recoveryData(), recovery);
+        QCOMPARE(document.preview(), stateBeforeRequest);
         QCOMPARE(document.snapshot(), before);
         QCOMPARE(document.redoCount(), 1);
     }
@@ -1000,35 +804,6 @@ void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuan
     QCOMPARE(QByteArray(reinterpret_cast<const char*>(outerValue.data()), 4), outerPixel);
 }
 
-void KisGpuOperationDocumentTest::previousShiftedWritesRecoverPixelsAndPendingInput()
-{
-    const auto record = LibrePaint::Image::Gpu::Test::shiftedPixelRecoveryV28();
-    QCOMPARE(QCryptographicHash::hash(record, QCryptographicHash::Sha256).toHex(),
-             QByteArrayLiteral("58b55eea74b81547c4710c318601eb4398ed25fd225bcfe0858b71e8cec0ab01"));
-    OperationDocument document({1, 1});
-    QCOMPARE(document.restoreRecovery(record), Result::Success);
-    const auto layer = document.snapshot()->layers.first();
-    QCOMPARE(layer.kind, LayerKind::Paint);
-    QVERIFY(layer.parentUuid.isNull());
-    QCOMPARE(layer.position, QPoint(7, -9));
-    TileWriteSnapshot write;
-    for (const auto &operation : layer.operations)
-        if (const auto pixels = std::get_if<TileWriteSnapshot>(&operation)) write = *pixels;
-    QVERIFY(write);
-    QRect written;
-    int pixels = 0;
-    for (const auto &area : write->writtenAreas) {
-        written = written.united(area);
-        pixels += area.width() * area.height();
-    }
-    QCOMPARE(written, QRect(0, 0, 256, 256));
-    QCOMPARE(pixels, 256 * 256);
-    QCOMPARE(write->tiles.first()->coordinate(), QPoint(0, 0));
-    QCOMPARE(write->tiles.first()->rgba(), QByteArray::fromHex("11223300").repeated(256 * 256));
-    QVERIFY(document.hasActiveStroke());
-    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
-}
-
 void KisGpuOperationDocumentTest::nestedRemovalOwnsDescendantsAndOneHistoryStep()
 {
     OperationDocument document(nestedImage());
@@ -1043,14 +818,6 @@ void KisGpuOperationDocumentTest::nestedRemovalOwnsDescendantsAndOneHistoryStep(
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), fixed);
     QCOMPARE(document.redo(), Result::Success);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[0].parentUuid, fixed->layers[1].uuid);
-    QCOMPARE(recovered.removeLayers({3}, QStringLiteral("Replacement")), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers.size(), 1);
-    QCOMPARE(recovered.snapshot()->layers.first().kind, LayerKind::Paint);
-    QVERIFY(recovered.snapshot()->layers.first().parentUuid.isNull());
 }
 
 void KisGpuOperationDocumentTest::nestedDuplicationCopiesSubtreePixelsAndIndependentParents()
@@ -1078,17 +845,15 @@ void KisGpuOperationDocumentTest::nestedDuplicationCopiesSubtreePixelsAndIndepen
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), fixed);
     QCOMPARE(document.redo(), Result::Success);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
     Limits limits;
     limits.layerCount = 4;
     OperationDocument bounded(nestedImage(), limits);
-    const auto unchanged = bounded.recoveryData();
+    const auto unchanged = bounded.preview();
     QCOMPARE(bounded.duplicateLayers({2}, {QStringLiteral("Copy")}, 2), Result::CapacityExceeded);
-    QCOMPARE(bounded.recoveryData(), unchanged);
+    QCOMPARE(bounded.preview(), unchanged);
 }
 
-void KisGpuOperationDocumentTest::nestedCanvasChangesKeepGroupsDerivedAndRecoverable()
+void KisGpuOperationDocumentTest::nestedCanvasChangesKeepGroupsDerivedAndUndoable()
 {
     OperationDocument document(nestedImage());
     const auto fixed = document.snapshot();
@@ -1099,14 +864,9 @@ void KisGpuOperationDocumentTest::nestedCanvasChangesKeepGroupsDerivedAndRecover
             QCOMPARE(layer.position, QPoint());
         } else QCOMPARE(layer.position, QPoint(-8, -6));
     }
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->size, fixed->size);
-    QCOMPARE(recovered.redo(), Result::Success);
 }
 
-void KisGpuOperationDocumentTest::groupPassThroughPreservesPinnedInputHistoryAndRecovery()
+void KisGpuOperationDocumentTest::groupPassThroughPreservesPinnedInputHistory()
 {
     OperationDocument document(nestedImage());
     const auto fixed = document.snapshot();
@@ -1128,63 +888,9 @@ void KisGpuOperationDocumentTest::groupPassThroughPreservesPinnedInputHistoryAnd
     QVERIFY(!preview->layers[2].passThrough);
     QVERIFY(document.preview()->layers[2].passThrough);
     QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers[0].operations.last()), operation);
-    const auto bytes = document.recoveryData();
-    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!results.isEmpty()) {
-        QVERIFY(QDir().mkpath(results));
-        QFile artifact(QDir(results).filePath(QStringLiteral("group-pass-through.recovery")));
-        QVERIFY(artifact.open(QIODevice::WriteOnly));
-        QCOMPARE(artifact.write(bytes), bytes.size());
-    }
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(recovered.recoveryData(), bytes);
-    QCOMPARE(recovered.activeOperation().sequence, stroke.sequence);
-    QVERIFY(recovered.preview()->layers[1].passThrough);
-    QVERIFY(recovered.preview()->layers[2].passThrough);
-    QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QVERIFY(!recovered.snapshot()->layers[1].passThrough);
-    QVERIFY(recovered.snapshot()->layers[2].passThrough);
-    QCOMPARE(recovered.redo(), Result::Success);
-    QVERIFY(recovered.snapshot()->layers[1].passThrough);
-    const auto current = recovered.recoveryData();
-    for (int index = 0; index < 2; ++index) {
-        const auto &layer = recovered.snapshot()->layers[index];
-        QByteArray prefix;
-        QDataStream stream(&prefix, QIODevice::WriteOnly);
-        stream.setVersion(QDataStream::Qt_5_15);
-        stream.setByteOrder(QDataStream::BigEndian);
-        stream << layer.uuid;
-        for (const auto component : layer.defaultPixel) stream << component;
-        stream << layer.opacity << quint8(layer.userLocked)
-               << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1))
-               << qint32(layer.position.x()) << qint32(layer.position.y()) << quint8(layer.kind)
-               << layer.parentUuid << qint32(layer.colorLabelIndex) << layer.projectionChannelMask;
-        auto invalid = current.chopped(32);
-        const auto offset = invalid.indexOf(prefix);
-        QVERIFY(offset >= 0);
-        invalid[offset + prefix.size()] = index == 0 ? 1 : 2;
-        invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
-        QCOMPARE(recovered.restoreRecovery(invalid), Result::InvalidRecovery);
-        QCOMPARE(recovered.recoveryData(), current);
-    }
-    QCOMPARE(recovered.writeLayerPassThrough(1, true), Result::LayerUnavailable);
-    QCOMPARE(recovered.setLayerPassThrough(999, true), Result::LayerUnavailable);
-    QCOMPARE(recovered.recoveryData(), current);
-    OperationDocument previous({1, 1});
-    QCOMPARE(previous.restoreRecovery(LibrePaint::Image::Gpu::Test::layerPropertiesRecoveryV32()), Result::Success);
-    for (const auto &state : previous.historyVersions())
-        for (const auto &layer : state->layers) QVERIFY(!layer.passThrough);
-    QCOMPARE(previous.undo(), Result::Success);
-    QCOMPARE(previous.snapshot()->layers[0].name, QStringLiteral("Red"));
-    QCOMPARE(previous.redo(), Result::Success);
-    QCOMPARE(previous.snapshot()->layers[0].name, QStringLiteral("Renamed"));
-    recovered.close();
-    QCOMPARE(recovered.writeLayerPassThrough(2, false), Result::Closed);
 }
 
-void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAndRecovery_data()
+void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInput_data()
 {
     QTest::addColumn<int>("blendMode");
     QTest::newRow("multiply") << int(LayerBlendMode::Multiply);
@@ -1195,7 +901,7 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAn
     QTest::newRow("linear_dodge") << int(LayerBlendMode::LinearDodge);
 }
 
-void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAndRecovery()
+void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInput()
 {
     QFETCH(int, blendMode);
     const auto mode = LayerBlendMode(blendMode);
@@ -1220,99 +926,6 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAn
     QCOMPARE(document.activeOperation(), stroke);
     QCOMPARE(pending->layers[2].blendMode, LayerBlendMode::Normal);
     QCOMPARE(document.preview()->layers[2].blendMode, mode);
-    const auto bytes = document.recoveryData();
-    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!results.isEmpty()) {
-        QVERIFY(QDir().mkpath(results));
-        QFile artifact(QDir(results).filePath((mode == LayerBlendMode::Screen ? QStringLiteral("layer-screen-mode.recovery") :
-            mode == LayerBlendMode::Darken ? QStringLiteral("layer-darken-mode.recovery") :
-            mode == LayerBlendMode::Lighten ? QStringLiteral("layer-lighten-mode.recovery") :
-            mode == LayerBlendMode::Addition ? QStringLiteral("layer-add-mode.recovery") :
-            mode == LayerBlendMode::LinearDodge ? QStringLiteral("layer-linear-dodge-mode.recovery") : QStringLiteral("layer-blend-modes.recovery"))));
-        QVERIFY(artifact.open(QIODevice::WriteOnly));
-        QCOMPARE(artifact.write(bytes), bytes.size());
-    }
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(recovered.recoveryData(), bytes);
-    QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
-    QCOMPARE(recovered.snapshot()->layers[2].blendMode, mode);
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].blendMode, mode);
-    const auto current = recovered.recoveryData();
-    if (mode != LayerBlendMode::Multiply) {
-        auto earlier = current.chopped(32);
-        earlier[5] = mode == LayerBlendMode::Screen ? 34 : mode <= LayerBlendMode::Lighten ? 35 : 36;
-        earlier.append(QCryptographicHash::hash(earlier, QCryptographicHash::Sha256));
-        QCOMPARE(recovered.restoreRecovery(earlier), Result::InvalidRecovery);
-        QCOMPARE(recovered.recoveryData(), current);
-    }
-    const auto &group = recovered.snapshot()->layers[1];
-    QByteArray prefix;
-    QDataStream stream(&prefix, QIODevice::WriteOnly);
-    stream.setVersion(QDataStream::Qt_5_15);
-    stream.setByteOrder(QDataStream::BigEndian);
-    stream << group.uuid;
-    for (auto value : group.defaultPixel) stream << value;
-    stream << group.opacity << quint8(group.userLocked)
-           << quint8(quint8(group.pinnedToTimeline) | ((15u ^ group.channelWriteMask) << 1))
-           << qint32(group.position.x()) << qint32(group.position.y()) << quint8(group.kind)
-           << group.parentUuid << qint32(group.colorLabelIndex) << group.projectionChannelMask << quint8(group.passThrough);
-    auto invalid = current.chopped(32);
-    const auto offset = invalid.indexOf(prefix);
-    QVERIFY(offset >= 0);
-    invalid[offset + prefix.size()] = 7;
-    invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
-    QCOMPARE(recovered.restoreRecovery(invalid), Result::InvalidRecovery);
-    QCOMPARE(recovered.recoveryData(), current);
-    QCOMPARE(recovered.writeLayerBlendMode(2, LayerBlendMode(7)), Result::InvalidInput);
-    QCOMPARE(recovered.setLayerBlendMode(2, LayerBlendMode(7)), Result::InvalidInput);
-    QCOMPARE(recovered.setLayerBlendMode(999, mode), Result::LayerUnavailable);
-    QCOMPARE(recovered.recoveryData(), current);
-    QCOMPARE(recovered.duplicateLayers({1}, {QStringLiteral("Copy")}, 3), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[3].blendMode, mode);
-    OperationDocument target(QSize(320, 180));
-    QCOMPARE(target.insertLayers(insertionForest(document.snapshot()), 1), Result::Success);
-    for (const auto &layer : target.snapshot()->layers)
-        if (layer.name == QLatin1String("Red") || layer.name == QLatin1String("Inner") || layer.name == QLatin1String("Outer"))
-            QCOMPARE(layer.blendMode, mode);
-    OperationDocument previous({1, 1});
-    QCOMPARE(previous.restoreRecovery(LibrePaint::Image::Gpu::Test::passThroughRecoveryV33()), Result::Success);
-    for (const auto &state : previous.historyVersions())
-        for (const auto &layer : state->layers) QCOMPARE(layer.blendMode, LayerBlendMode::Normal);
-    OperationDocument previous34({1, 1});
-    QCOMPARE(previous34.restoreRecovery(LibrePaint::Image::Gpu::Test::blendModesRecoveryV34()), Result::Success);
-    QCOMPARE(previous34.snapshot()->layers[1].blendMode, LayerBlendMode::Multiply);
-    QVERIFY(!previous34.activeOperation().isNull());
-    QCOMPARE(previous34.cancelStroke(previous34.activeOperation()), Result::Success);
-    QCOMPARE(previous34.undo(), Result::Success);
-    QCOMPARE(previous34.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
-    OperationDocument previous35({1, 1});
-    QCOMPARE(previous35.restoreRecovery(LibrePaint::Image::Gpu::Test::screenRecoveryV35()), Result::Success);
-    for (const auto &layer : previous35.snapshot()->layers) QCOMPARE(layer.blendMode, LayerBlendMode::Screen);
-    QVERIFY(!previous35.activeOperation().isNull());
-    QCOMPARE(previous35.cancelStroke(previous35.activeOperation()), Result::Success);
-    QCOMPARE(previous35.undo(), Result::Success);
-    QCOMPARE(previous35.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
-    QCOMPARE(previous35.snapshot()->layers[0].blendMode, LayerBlendMode::Screen);
-    QCOMPARE(previous35.snapshot()->layers[2].blendMode, LayerBlendMode::Screen);
-    QCOMPARE(previous35.redo(), Result::Success);
-    QCOMPARE(previous35.snapshot()->layers[1].blendMode, LayerBlendMode::Screen);
-    OperationDocument previous36({1, 1});
-    QCOMPARE(previous36.restoreRecovery(LibrePaint::Image::Gpu::Test::lightenRecoveryV36()), Result::Success);
-    for (const auto &layer : previous36.snapshot()->layers) QCOMPARE(layer.blendMode, LayerBlendMode::Lighten);
-    QVERIFY(!previous36.activeOperation().isNull());
-    QCOMPARE(previous36.cancelStroke(previous36.activeOperation()), Result::Success);
-    QCOMPARE(previous36.undo(), Result::Success);
-    QCOMPARE(previous36.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
-    QCOMPARE(previous36.redo(), Result::Success);
-    QCOMPARE(previous36.snapshot()->layers[1].blendMode, LayerBlendMode::Lighten);
-    recovered.close();
-    QCOMPARE(recovered.writeLayerBlendMode(2, LayerBlendMode::Normal), Result::Closed);
-    input.layers[0].blendMode = LayerBlendMode(7);
-    QVERIFY_EXCEPTION_THROWN(OperationDocument invalid(input), std::invalid_argument);
 }
 
 void KisGpuOperationDocumentTest::separableGroupDefaultsMatchNativeProjection()
@@ -1370,13 +983,11 @@ void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribu
     fields.blendMode = true;
     QCOMPARE(document.recordLayerProperties(before, document.snapshot(), {fields}), Result::Success);
     QCOMPARE(document.undoCount(), 1);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
-    QCOMPARE(recovered.snapshot()->layers[1].opacity, quint8(137));
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].blendMode, mode);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
+    QCOMPARE(document.snapshot()->layers[1].opacity, quint8(137));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers[1].blendMode, mode);
     QCOMPARE(document.undo(), Result::Success);
     const auto opening = document.snapshot();
     QCOMPARE(document.writeLayerBlendMode(2, mode), Result::Success);
@@ -1400,13 +1011,11 @@ void KisGpuOperationDocumentTest::groupPassThroughPreviewsAdoptAndCancelOneAttri
     fields.passThrough = true;
     QCOMPARE(document.recordLayerProperties(before, document.snapshot(), {fields}), Result::Success);
     QCOMPARE(document.undoCount(), 1);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QVERIFY(!recovered.snapshot()->layers[1].passThrough);
-    QCOMPARE(recovered.snapshot()->layers[1].opacity, quint8(137));
-    QCOMPARE(recovered.redo(), Result::Success);
-    QVERIFY(recovered.snapshot()->layers[1].passThrough);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!document.snapshot()->layers[1].passThrough);
+    QCOMPARE(document.snapshot()->layers[1].opacity, quint8(137));
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.snapshot()->layers[1].passThrough);
     QCOMPARE(document.undo(), Result::Success);
     const auto opening = document.snapshot();
     QCOMPARE(document.writeLayerPassThrough(2, true), Result::Success);
@@ -1418,10 +1027,10 @@ void KisGpuOperationDocumentTest::groupPassThroughPreviewsAdoptAndCancelOneAttri
     QCOMPARE(document.activeOperation(), stroke);
     QCOMPARE(document.undoCount(), 0);
     QCOMPARE(document.redoCount(), 1);
-    const auto bytes = document.recoveryData();
+    const auto retainedState = document.preview();
     fields.layer = 1;
     QCOMPARE(document.restoreLayerProperties(opening, {fields}), Result::InvalidInput);
-    QCOMPARE(document.recoveryData(), bytes);
+    QCOMPARE(document.preview(), retainedState);
 }
 
 void KisGpuOperationDocumentTest::importedAndCopiedGroupsKeepPassThroughModes()
@@ -1477,66 +1086,6 @@ void KisGpuOperationDocumentTest::layerPropertyPreviewsBecomeOneReversibleEdit()
     QCOMPARE(document.writeLayerColorLabel(2, 7), Result::Success);
     QCOMPARE(document.writeLayerPinnedToTimeline(1, true), Result::Success);
     QCOMPARE(document.writeLayerProjectionMask(1, 11), Result::Success);
-    OperationDocument recovered(QSize(1, 1));
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.historyAction(1), HistoryAction::ChangeLayerProperties);
-    const auto recovery = recovered.recoveryData();
-    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!resultDirectory.isEmpty()) {
-        QVERIFY(QDir().mkpath(resultDirectory));
-        QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("layer-properties.recovery")));
-        QVERIFY(artifact.open(QIODevice::WriteOnly));
-        QCOMPARE(artifact.write(recovery), recovery.size());
-    }
-    auto corrupt = recovery.first(recovery.size() - 32);
-    QByteArray descriptor;
-    QDataStream descriptorStream(&descriptor, QIODevice::WriteOnly);
-    descriptorStream.setByteOrder(QDataStream::BigEndian);
-    descriptorStream << quint8(254) << quint32(8) << quint8(1) << quint64(1);
-    const auto offset = corrupt.indexOf(descriptor);
-    QVERIFY(offset >= 0 && offset == corrupt.lastIndexOf(descriptor));
-    corrupt[offset + 5] = 7; // Placement belongs to the separate movement operation.
-    corrupt.append(QCryptographicHash::hash(corrupt, QCryptographicHash::Sha256));
-    QCOMPARE(recovered.restoreRecovery(corrupt), Result::InvalidRecovery);
-    QCOMPARE(recovered.recoveryData(), recovery);
-    QByteArray componentDescriptor;
-    QDataStream componentStream(&componentDescriptor, QIODevice::WriteOnly);
-    componentStream.setByteOrder(QDataStream::BigEndian);
-    componentStream << quint8(8) << quint8(13) << quint64(1) << quint8(15) << quint8(9);
-    corrupt = recovery.first(recovery.size() - 32);
-    const auto componentOffset = corrupt.indexOf(componentDescriptor);
-    QVERIFY(componentOffset >= 0 && componentOffset == corrupt.lastIndexOf(componentDescriptor));
-    corrupt[componentOffset + 1] = 0;
-    corrupt.append(QCryptographicHash::hash(corrupt, QCryptographicHash::Sha256));
-    QCOMPARE(recovered.restoreRecovery(corrupt), Result::InvalidRecovery);
-    QCOMPARE(recovered.recoveryData(), recovery);
-    for (auto *owner : {&document, &recovered}) {
-        QCOMPARE(owner->undo(), Result::Success);
-        const auto old = owner->snapshot();
-        QCOMPARE(old->layers[0].name, QStringLiteral("Red"));
-        QCOMPARE(old->layers[0].opacity, quint8(255));
-        QVERIFY(old->layers[0].visible);
-        QVERIFY(!old->layers[0].userLocked);
-        QVERIFY(old->layers[0].pinnedToTimeline);
-        QCOMPARE(old->layers[0].channelWriteMask, quint8(15));
-        QCOMPARE(old->layers[0].projectionChannelMask, quint8(15));
-        QCOMPARE(old->layers[0].colorLabelIndex, 0);
-        QCOMPARE(old->layers[1].opacity, quint8(255));
-        QCOMPARE(old->layers[1].colorLabelIndex, 7);
-        QVERIFY(!owner->isModified());
-        QCOMPARE(owner->redo(), Result::Success);
-        const auto current = owner->snapshot();
-        QCOMPARE(current->layers[0].name, QStringLiteral("Renamed"));
-        QCOMPARE(current->layers[0].opacity, quint8(89));
-        QVERIFY(!current->layers[0].visible);
-        QVERIFY(current->layers[0].userLocked);
-        QVERIFY(current->layers[0].pinnedToTimeline);
-        QCOMPARE(current->layers[0].channelWriteMask, quint8(5));
-        QCOMPARE(current->layers[0].projectionChannelMask, quint8(11));
-        QCOMPARE(current->layers[0].colorLabelIndex, 5);
-        QCOMPARE(current->layers[1].opacity, quint8(197));
-        QCOMPARE(current->layers[1].colorLabelIndex, 7);
-    }
 }
 
 void KisGpuOperationDocumentTest::layerPropertyCancellationKeepsExactValuesPendingInputAndRedo()
@@ -1568,13 +1117,13 @@ void KisGpuOperationDocumentTest::layerPropertyCancellationKeepsExactValuesPendi
     QCOMPARE(document.undoCount(), 0);
     QCOMPARE(document.redoCount(), 1);
     QCOMPARE(document.isModified(), modified);
-    const auto recovery = document.recoveryData();
+    const auto stateBeforeRequest = document.preview();
     OperationDocument foreign(input);
     QCOMPARE(document.restoreLayerProperties(foreign.snapshot(), selection), Result::StaleVersion);
     auto invalid = selection.first();
     invalid.projectionChannels = 16;
     QCOMPARE(document.restoreLayerProperties(before, {invalid}), Result::InvalidInput);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), stateBeforeRequest);
     document.close();
     QCOMPARE(document.restoreLayerProperties(before, selection), Result::Closed);
 }
@@ -1642,7 +1191,7 @@ void KisGpuOperationDocumentTest::rejectedLayerPropertyPreviewsRetainHistoryAndI
     QCOMPARE(document.recordLayerProperties(before, current, selection), Result::Closed);
 }
 
-void KisGpuOperationDocumentTest::colorLabelsPreserveFixedVersionsPendingInputAndRecovery()
+void KisGpuOperationDocumentTest::colorLabelsPreserveFixedVersionsPendingInput()
 {
     RasterImage input;
     input.size = {64, 48};
@@ -1673,35 +1222,12 @@ void KisGpuOperationDocumentTest::colorLabelsPreserveFixedVersionsPendingInputAn
     QCOMPARE(document.writeLayerColorLabel(1, 3), Result::Success);
     QCOMPARE(preview->layers[0].colorLabelIndex, 5);
     QCOMPARE(document.preview()->layers[0].colorLabelIndex, 3);
-    const auto bytes = document.recoveryData();
-    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!results.isEmpty()) {
-        QVERIFY(QDir().mkpath(results));
-        QFile artifact(QDir(results).filePath(QStringLiteral("color-labels.recovery")));
-        QVERIFY(artifact.open(QIODevice::WriteOnly));
-        QCOMPARE(artifact.write(bytes), qint64(bytes.size()));
-    }
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(recovered.recoveryData(), bytes);
-    QCOMPARE(recovered.snapshot()->layers[0].colorLabelIndex, 3);
-    QCOMPARE(recovered.snapshot()->layers[1].colorLabelIndex, 7);
-    QCOMPARE(recovered.preview()->layers[0].colorLabelIndex, 3);
-    QCOMPARE(recovered.writeLayerColorLabel(999, 4), Result::LayerUnavailable);
-    QCOMPARE(recovered.recoveryData(), bytes);
-    QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[0].colorLabelIndex, 3);
-    QCOMPARE(recovered.snapshot()->layers[1].colorLabelIndex, 7);
-    recovered.close();
-    QCOMPARE(recovered.writeLayerColorLabel(1, 4), Result::Closed);
 }
 
-void KisGpuOperationDocumentTest::projectionChannelsPreservePixelsPendingInputHistoryAndRecovery()
+void KisGpuOperationDocumentTest::projectionChannelsPreservePixelsPendingInputHistory()
 {
     OperationDocument document(nestedImage());
     const auto fixed = document.snapshot();
-    const auto oldRecovery = LibrePaint::Image::Gpu::Test::layerMetadataRecoveryV30();
     QCOMPARE(document.setLayerProjectionMask(2, 7, PropertyHistory::MergeConsecutive), Result::Success);
     QCOMPARE(document.setLayerProjectionMask(2, 1, PropertyHistory::MergeConsecutive), Result::Success);
     QCOMPARE(document.undoCount(), 1);
@@ -1720,69 +1246,9 @@ void KisGpuOperationDocumentTest::projectionChannelsPreservePixelsPendingInputHi
     QCOMPARE(preview->layers[1].projectionChannelMask, quint8(1));
     QCOMPARE(document.preview()->layers[1].projectionChannelMask, quint8(5));
     QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers[0].operations.last()), operation);
-    OperationDocument recovered({1, 1});
-    const auto bytes = document.recoveryData();
-    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!directory.isEmpty()) {
-        QVERIFY(QDir().mkpath(directory));
-        QFile artifact(QDir(directory).filePath(QStringLiteral("projection-channels.recovery")));
-        QVERIFY(artifact.open(QIODevice::WriteOnly));
-        QCOMPARE(artifact.write(bytes), bytes.size());
-    }
-    QCOMPARE(recovered.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(recovered.recoveryData(), bytes);
-    QCOMPARE(recovered.preview()->layers[1].projectionChannelMask, quint8(5));
-    QByteArray prefix;
-    QDataStream stream(&prefix, QIODevice::WriteOnly);
-    stream.setVersion(QDataStream::Qt_5_15);
-    stream.setByteOrder(QDataStream::BigEndian);
-    const auto &group = document.snapshot()->layers[1];
-    stream << group.uuid;
-    for (const auto component : group.defaultPixel) stream << component;
-    stream << group.opacity << quint8(group.userLocked)
-           << quint8(quint8(group.pinnedToTimeline) | ((15u ^ group.channelWriteMask) << 1))
-           << qint32(group.position.x()) << qint32(group.position.y()) << quint8(group.kind)
-           << group.parentUuid << qint32(group.colorLabelIndex);
-    auto invalidRecovery = bytes.first(bytes.size() - 32);
-    const auto flagOffset = invalidRecovery.indexOf(prefix) + prefix.size();
-    QVERIFY(flagOffset >= prefix.size() && flagOffset < invalidRecovery.size());
-    invalidRecovery[flagOffset] = 16;
-    invalidRecovery.append(QCryptographicHash::hash(invalidRecovery, QCryptographicHash::Sha256));
-    QCOMPARE(recovered.restoreRecovery(invalidRecovery), Result::InvalidRecovery);
-    QCOMPARE(recovered.recoveryData(), bytes);
-    QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(15));
-    QCOMPARE(recovered.snapshot()->layers[0].projectionChannelMask, quint8(9));
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(1));
-    const auto beforeRejected = recovered.recoveryData();
-    QCOMPARE(recovered.setLayerProjectionMask(2, 16), Result::InvalidInput);
-    QCOMPARE(recovered.writeLayerProjectionMask(2, 16), Result::InvalidInput);
-    QCOMPARE(recovered.writeLayerProjectionMask(999, 7), Result::LayerUnavailable);
-    QCOMPARE(recovered.recoveryData(), beforeRejected);
-    QCOMPARE(recovered.restoreRecovery(oldRecovery), Result::Success);
-    for (const auto &layer : recovered.snapshot()->layers) QCOMPARE(layer.projectionChannelMask, quint8(15));
-    QCOMPARE(recovered.snapshot()->layers[0].colorLabelIndex, 3);
-    QCOMPARE(recovered.snapshot()->layers[1].colorLabelIndex, 7);
-    QVERIFY(recovered.hasActiveStroke());
-    QCOMPARE(recovered.restoreRecovery(LibrePaint::Image::Gpu::Test::projectionChannelsRecoveryV31()), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[0].projectionChannelMask, quint8(9));
-    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(5));
-    QCOMPARE(recovered.preview()->layers[1].projectionChannelMask, quint8(5));
-    QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(15));
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(1));
-    auto invalid = nestedImage();
-    invalid.layers[1].projectionChannelMask = 16;
-    QVERIFY_EXCEPTION_THROWN(OperationDocument{invalid}, std::invalid_argument);
-    recovered.close();
-    QCOMPARE(recovered.writeLayerProjectionMask(1, 7), Result::Closed);
 }
 
-void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery()
+void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistory()
 {
     RasterImage source;
     source.size = {64, 48};
@@ -1797,7 +1263,7 @@ void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistoryAn
     OperationDocument document(source);
     const auto fixed = document.snapshot();
     QCOMPARE(document.activeLayer(), LayerId(1));
-    const auto beforeRejected = document.recoveryData();
+    const auto beforeRejected = document.preview();
     QVERIFY(document.beginStroke(2, Brush{}, 41).isNull());
     const QList<RgbaTile> pixels{{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')}};
     QCOMPARE(document.replaceTiles(2, pixels), Result::LayerUnavailable);
@@ -1806,7 +1272,7 @@ void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistoryAn
     QVERIFY(document.beginLayerTranslation(2).isNull());
     QCOMPARE(document.writeLayerChannelMask(2, 7), Result::LayerUnavailable);
     QCOMPARE(document.setLayerChannelMask(2, 7), Result::LayerUnavailable);
-    QCOMPARE(document.recoveryData(), beforeRejected);
+    QCOMPARE(document.preview(), beforeRejected);
     QCOMPARE(document.writeLayerPosition(2, {7, -9}), Result::Success);
     QCOMPARE(document.undoCount(), 0);
     QCOMPARE(document.snapshot()->layers[1].position, QPoint(7, -9));
@@ -1820,85 +1286,9 @@ void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistoryAn
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     QCOMPARE(document.undoCount(), 2);
     QCOMPARE(fixed->layers[2].opacity, quint8(255));
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    for (int index = 0; index < source.layers.size(); ++index) {
-        const auto &actual = recovered.snapshot()->layers[index];
-        QCOMPARE(actual.uuid, source.layers[index].uuid);
-        QCOMPARE(actual.parentUuid, source.layers[index].parentUuid);
-        QCOMPARE(actual.kind, source.layers[index].kind);
-    }
-    QCOMPARE(recovered.snapshot()->layers[2].opacity, quint8(128));
-    QCOMPARE(recovered.snapshot()->layers[1].position, QPoint(7, -9));
-    QCOMPARE(recovered.undo(), Result::Success);
-    QVERIFY(recovered.snapshot()->layers[0].operations.isEmpty());
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[2].opacity, quint8(255));
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[0].operations.size(), 1);
-    for (int damage = 0; damage < 6; ++damage) {
-        auto invalid = source;
-        if (damage == 0) invalid.layers[0].parentUuid = QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"));
-        if (damage == 1) invalid.layers[1].parentUuid = invalid.layers[0].uuid;
-        if (damage == 2) invalid.layers[2].parentUuid = invalid.layers[1].uuid;
-        if (damage == 3) invalid.layers[1].parentUuid = invalid.layers[1].uuid;
-        if (damage == 4) invalid.layers[1].kind = static_cast<LayerKind>(255);
-        if (damage == 5) invalid.layers[1].tiles = {{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')}};
-        bool rejected = false;
-        try { OperationDocument candidate(invalid); } catch (const std::invalid_argument &) { rejected = true; }
-        QVERIFY2(rejected, qPrintable(QStringLiteral("Invalid hierarchy case %1 was accepted").arg(damage)));
-    }
 }
 
-void KisGpuOperationDocumentTest::previousCanvasRecoveryPreservesSizesAndInput()
-{
-    const auto record = LibrePaint::Image::Gpu::Test::resizedCanvasRecoveryV27();
-    QCOMPARE(QCryptographicHash::hash(record, QCryptographicHash::Sha256).toHex(),
-             QByteArrayLiteral("9652ea3870203cd85a85de7dddfc7645c0eef31390794dd5f922deff5a92120c"));
-    OperationDocument document({1, 1});
-    QCOMPARE(document.restoreRecovery(record), Result::Success);
-    QCOMPARE(document.snapshot()->size, QSize(80, 64));
-    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-76, 20));
-    QCOMPARE(document.historyAction(3), HistoryAction::CropImage);
-    QCOMPARE(document.historyAction(4), HistoryAction::ResizeCanvas);
-    QVERIFY(document.hasActiveStroke());
-    QCOMPARE(document.preview()->size, QSize(80, 64));
-    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
-    QCOMPARE(document.undo(), Result::Success);
-    QCOMPARE(document.snapshot()->size, QSize(32, 24));
-    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-81, 13));
-    QCOMPARE(document.undo(), Result::Success);
-    QCOMPARE(document.snapshot()->size, QSize(64, 64));
-    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-73, 19));
-    QCOMPARE(document.redo(), Result::Success);
-    QCOMPARE(document.redo(), Result::Success);
-    QCOMPARE(document.snapshot()->size, QSize(80, 64));
-}
-
-void KisGpuOperationDocumentTest::previousCroppedRecoveryPreservesInputAndCanvasHistory()
-{
-    const auto bytes = LibrePaint::Image::Gpu::Test::croppedLayerRecoveryV26();
-    QCOMPARE(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex(),
-             QByteArrayLiteral("90aa7aeb29165403c9364ceff682f35b292daeeab1750cd72877c95f44b8bf94"));
-    OperationDocument document({1, 1});
-    QCOMPARE(document.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(document.snapshot()->size, QSize(64, 64));
-    QCOMPARE(document.undoCount(), 3);
-    QVERIFY(document.hasActiveStroke());
-    QCOMPARE(document.preview()->sampleCount, 3);
-    QCOMPARE(document.historyCrop(3)->rect, QRect(-80, 10, 40, 40));
-    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
-    QCOMPARE(document.resizeCanvas({-8, -6, 32, 24}, false), Result::Success);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.snapshot()->size, QSize(32, 24));
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->size, QSize(64, 64));
-    QCOMPARE(recovered.historyAction(3), HistoryAction::CropLayer);
-}
-
-void KisGpuOperationDocumentTest::layerCropPreservesValuesHistoryAndRecovery()
+void KisGpuOperationDocumentTest::layerCropPreservesValuesHistory()
 {
     RasterImage source;
     source.size = {512, 64};
@@ -1931,17 +1321,6 @@ void KisGpuOperationDocumentTest::layerCropPreservesValuesHistoryAndRecovery()
     QCOMPARE(document.historyAction(1), HistoryAction::CropLayer);
     QCOMPARE(document.historyCrop(1)->rect, requested);
     QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.historyAction(1), HistoryAction::CropLayer);
-    QCOMPARE(recovered.historyCrop(1)->rect, requested);
-    QCOMPARE(recovered.historyCrop(1)->layer, layer);
-    QCOMPARE(recovered.savedHistoryIndex(), 1);
-    QCOMPARE(recovered.snapshot()->layers.first().name, QStringLiteral("Renamed after crop"));
-    QCOMPARE(recovered.undo(), Result::Success);
-    QVERIFY(recovered.snapshot()->layers.first().operations.isEmpty());
-    QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(std::get<CropSnapshot>(recovered.snapshot()->layers.first().operations.last())->rect, requested);
 }
 
 void KisGpuOperationDocumentTest::rejectedLayerCropsKeepRedoPendingInputAndClosedState()
@@ -1973,7 +1352,7 @@ void KisGpuOperationDocumentTest::rejectedLayerCropsKeepRedoPendingInputAndClose
     QCOMPARE(document.snapshot(), closed);
 }
 
-void KisGpuOperationDocumentTest::invertColorsFreezesCoverageAndRecovers()
+void KisGpuOperationDocumentTest::invertColorsFreezesCoverageAndPreservesHistory()
 {
     RasterImage source;
     source.size = {256, 256};
@@ -2021,18 +1400,16 @@ void KisGpuOperationDocumentTest::invertColorsFreezesCoverageAndRecovers()
              QRect(32, 32, 64, 48));
 
     QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undoCount(), 2);
-    QCOMPARE(recovered.historyAction(2), HistoryAction::InvertColors);
-    const auto recoveredOperation = std::get<FilterSnapshot>(recovered.snapshot()->layers.first().operations.last());
-    QCOMPARE(recoveredOperation->selectionRect, QRect(32, 32, 64, 48));
-    QCOMPARE(recoveredOperation->selectionKind, SelectionKind::Ellipse);
-    QVERIFY(recoveredOperation->selectionInverted);
-    QCOMPARE(recovered.savedHistoryIndex(), 2);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::InvertColors);
+    const auto retainedOperation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(retainedOperation->selectionRect, QRect(32, 32, 64, 48));
+    QCOMPARE(retainedOperation->selectionKind, SelectionKind::Ellipse);
+    QVERIFY(retainedOperation->selectionInverted);
+    QCOMPARE(document.savedHistoryIndex(), 2);
 
     // Alpha (feathered) freehand coverage is retained by the operation and its
-    // recovery record, including the fractional bytes.
+    // retained versions, including the fractional bytes.
     const QRect clip(QPoint(), QSize(32, 32));
     QByteArray coverage(32 * 32, '\0');
     coverage[8 * 32 + 8] = char(96);
@@ -2049,9 +1426,7 @@ void KisGpuOperationDocumentTest::invertColorsFreezesCoverageAndRecovers()
     QCOMPARE(masked.setSelectionMask(soft), Result::Success);
     QCOMPARE(masked.invertColors(masked.activeLayer()), Result::Success);
     QVERIFY(std::get<FilterSnapshot>(masked.snapshot()->layers.first().operations.last())->selectionMask == soft);
-    OperationDocument maskRecovered({1, 1});
-    QCOMPARE(maskRecovered.restoreRecovery(masked.recoveryData()), Result::Success);
-    const auto maskOperation = std::get<FilterSnapshot>(maskRecovered.snapshot()->layers.first().operations.last());
+    const auto maskOperation = std::get<FilterSnapshot>(masked.snapshot()->layers.first().operations.last());
     QVERIFY(maskOperation->selectionMask);
     QVERIFY(*maskOperation->selectionMask == *soft);
     QVERIFY(maskOperation->selectionMask->isAlpha());
@@ -2095,7 +1470,7 @@ void KisGpuOperationDocumentTest::rejectedInvertColorsPreserveHistoryAndInput()
     QCOMPARE(document.snapshot(), before);
 }
 
-void KisGpuOperationDocumentTest::grayscaleFilterFreezesCoverageAndRecovers()
+void KisGpuOperationDocumentTest::grayscaleFilterFreezesCoverageAndPreservesHistory()
 {
     RasterImage source;
     source.size = {256, 256};
@@ -2139,16 +1514,14 @@ void KisGpuOperationDocumentTest::grayscaleFilterFreezesCoverageAndRecovers()
              FilterKind::Grayscale);
 
     QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undoCount(), 2);
-    QCOMPARE(recovered.historyAction(2), HistoryAction::Grayscale);
-    const auto recoveredOperation = std::get<FilterSnapshot>(recovered.snapshot()->layers.first().operations.last());
-    QCOMPARE(recoveredOperation->kind, FilterKind::Grayscale);
-    QCOMPARE(recoveredOperation->selectionRect, QRect(32, 32, 64, 48));
-    QCOMPARE(recoveredOperation->selectionKind, SelectionKind::Ellipse);
-    QVERIFY(recoveredOperation->selectionInverted);
-    QCOMPARE(recovered.savedHistoryIndex(), 2);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::Grayscale);
+    const auto retainedOperation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(retainedOperation->kind, FilterKind::Grayscale);
+    QCOMPARE(retainedOperation->selectionRect, QRect(32, 32, 64, 48));
+    QCOMPARE(retainedOperation->selectionKind, SelectionKind::Ellipse);
+    QVERIFY(retainedOperation->selectionInverted);
+    QCOMPARE(document.savedHistoryIndex(), 2);
 
     // Alpha (feathered) freehand coverage freezes with the Grayscale kind.
     const QRect clip(QPoint(), QSize(32, 32));
@@ -2168,9 +1541,7 @@ void KisGpuOperationDocumentTest::grayscaleFilterFreezesCoverageAndRecovers()
     QCOMPARE(masked.grayscale(masked.activeLayer()), Result::Success);
     QCOMPARE(masked.historyAction(2), HistoryAction::Grayscale);
     QVERIFY(std::get<FilterSnapshot>(masked.snapshot()->layers.first().operations.last())->selectionMask == soft);
-    OperationDocument maskRecovered({1, 1});
-    QCOMPARE(maskRecovered.restoreRecovery(masked.recoveryData()), Result::Success);
-    const auto maskOperation = std::get<FilterSnapshot>(maskRecovered.snapshot()->layers.first().operations.last());
+    const auto maskOperation = std::get<FilterSnapshot>(masked.snapshot()->layers.first().operations.last());
     QCOMPARE(maskOperation->kind, FilterKind::Grayscale);
     QVERIFY(maskOperation->selectionMask);
     QVERIFY(*maskOperation->selectionMask == *soft);
@@ -2178,77 +1549,7 @@ void KisGpuOperationDocumentTest::grayscaleFilterFreezesCoverageAndRecovers()
     QCOMPARE(maskOperation->selectionMask->coverage(8, 8), quint8(96));
 }
 
-void KisGpuOperationDocumentTest::grayscaleRecoveryKeepsItsKindAcrossFormatBumps()
-{
-    RasterImage source;
-    source.size = {64, 64};
-    RasterLayer target;
-    target.name = QStringLiteral("Target");
-    target.uuid = QUuid::createUuid();
-    source.layers.append(target);
-    OperationDocument document(source);
-    QCOMPARE(document.setSelectionRect(QRect(8, 8, 16, 16)), Result::Success);
-    QCOMPARE(document.grayscale(document.activeLayer()), Result::Success);
-    const auto bytes = document.recoveryData();
-    QVERIFY(!bytes.isEmpty());
-
-    // The record carries the bumped format number.
-    QBuffer header;
-    header.setData(bytes);
-    QVERIFY(header.open(QIODevice::ReadOnly));
-    QDataStream headerStream(&header);
-    headerStream.setVersion(QDataStream::Qt_5_15);
-    headerStream.setByteOrder(QDataStream::BigEndian);
-    quint32 magic = 0;
-    quint16 format = 0;
-    headerStream >> magic >> format;
-    QCOMPARE(magic, quint32(0x4c504f52));
-    QCOMPARE(format, quint16(55));
-
-    // The same record restores at the current format.
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::Grayscale);
-    QCOMPARE(std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last())->kind,
-             FilterKind::Grayscale);
-
-    const auto relabel = [&](quint16 value) {
-        auto payload = bytes.first(bytes.size() - 32);
-        QBuffer patcher(&payload);
-        if (!patcher.open(QIODevice::ReadWrite)) return QByteArray();
-        QDataStream patchStream(&patcher);
-        patchStream.setVersion(QDataStream::Qt_5_15);
-        patchStream.setByteOrder(QDataStream::BigEndian);
-        patcher.seek(4);
-        patchStream << value;
-        patcher.close();
-        payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
-        return payload;
-    };
-
-    // Formats 52 and 51 also know Grayscale, so the same payload relabelled
-    // as either version is still readable with the same kind.
-    OperationDocument at52({1, 1});
-    QCOMPARE(at52.restoreRecovery(relabel(52)), Result::Success);
-    QCOMPARE(at52.historyAction(at52.undoCount()), HistoryAction::Grayscale);
-    QCOMPARE(std::get<FilterSnapshot>(at52.snapshot()->layers.first().operations.last())->kind,
-             FilterKind::Grayscale);
-    OperationDocument at51({1, 1});
-    QCOMPARE(at51.restoreRecovery(relabel(51)), Result::Success);
-    QCOMPARE(at51.historyAction(at51.undoCount()), HistoryAction::Grayscale);
-    QCOMPARE(std::get<FilterSnapshot>(at51.snapshot()->layers.first().operations.last())->kind,
-             FilterKind::Grayscale);
-
-    // Re-labelling the payload as format 50 must reject the Grayscale kind,
-    // because format 50 knew only Invert Colors.
-    OperationDocument live({64, 64});
-    const auto liveBefore = live.snapshot();
-    QCOMPARE(live.restoreRecovery(relabel(50)), Result::InvalidRecovery);
-    QCOMPARE(live.snapshot(), liveBefore);
-    QCOMPARE(live.undoCount(), 0);
-}
-
-void KisGpuOperationDocumentTest::hsvAdjustmentFreezesSettingsAndRecovers()
+void KisGpuOperationDocumentTest::hsvAdjustmentFreezesSettingsAndPreservesHistory()
 {
     RasterImage source;
     source.size = {256, 256};
@@ -2311,19 +1612,17 @@ void KisGpuOperationDocumentTest::hsvAdjustmentFreezesSettingsAndRecovers()
     QCOMPARE(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->hue, 45);
 
     QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undoCount(), 2);
-    QCOMPARE(recovered.historyAction(2), HistoryAction::HsvAdjustment);
-    const auto recoveredOperation = std::get<FilterSnapshot>(recovered.snapshot()->layers.first().operations.last());
-    QCOMPARE(recoveredOperation->kind, FilterKind::HsvAdjustment);
-    QCOMPARE(recoveredOperation->hue, 45);
-    QCOMPARE(recoveredOperation->saturation, -20);
-    QCOMPARE(recoveredOperation->value, 30);
-    QCOMPARE(recoveredOperation->hsvType, HsvAdjustmentType::Hsl);
-    QVERIFY(recoveredOperation->compatibilityMode);
-    QCOMPARE(recoveredOperation->selectionRect, QRect(32, 32, 64, 48));
-    QCOMPARE(recovered.savedHistoryIndex(), 2);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::HsvAdjustment);
+    const auto retainedOperation = std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(retainedOperation->kind, FilterKind::HsvAdjustment);
+    QCOMPARE(retainedOperation->hue, 45);
+    QCOMPARE(retainedOperation->saturation, -20);
+    QCOMPARE(retainedOperation->value, 30);
+    QCOMPARE(retainedOperation->hsvType, HsvAdjustmentType::Hsl);
+    QVERIFY(retainedOperation->compatibilityMode);
+    QCOMPARE(retainedOperation->selectionRect, QRect(32, 32, 64, 48));
+    QCOMPARE(document.savedHistoryIndex(), 2);
 
     // Alpha (feathered) freehand coverage is retained with the settings.
     const QRect clip(QPoint(), QSize(32, 32));
@@ -2342,9 +1641,7 @@ void KisGpuOperationDocumentTest::hsvAdjustmentFreezesSettingsAndRecovers()
     QCOMPARE(masked.setSelectionMask(soft), Result::Success);
     QCOMPARE(masked.hsvAdjustment(masked.activeLayer(), {10, 20, -30, HsvAdjustmentType::Hsv, false}),
              Result::Success);
-    OperationDocument maskRecovered({1, 1});
-    QCOMPARE(maskRecovered.restoreRecovery(masked.recoveryData()), Result::Success);
-    const auto maskOperation = std::get<FilterSnapshot>(maskRecovered.snapshot()->layers.first().operations.last());
+    const auto maskOperation = std::get<FilterSnapshot>(masked.snapshot()->layers.first().operations.last());
     QVERIFY(maskOperation->selectionMask);
     QVERIFY(*maskOperation->selectionMask == *soft);
     QCOMPARE(maskOperation->hue, 10);
@@ -2354,7 +1651,7 @@ void KisGpuOperationDocumentTest::hsvAdjustmentFreezesSettingsAndRecovers()
     QVERIFY(!maskOperation->compatibilityMode);
 }
 
-void KisGpuOperationDocumentTest::hsvAdjustmentFreezesLumaDependentModesAndRecovers()
+void KisGpuOperationDocumentTest::hsvAdjustmentFreezesLumaDependentModesAndPreservesHistory()
 {
     RasterImage source;
     source.size = {256, 256};
@@ -2367,7 +1664,7 @@ void KisGpuOperationDocumentTest::hsvAdjustmentFreezesLumaDependentModesAndRecov
     const auto before = document.snapshot();
 
     // The operation preserves the document color space's original coefficients
-    // across admission, retained history and recovery.
+    // across admission and retained history.
     const std::array<qreal, 3> supplied{0.212612345678901, 0.715287654321099, 0.072199999999999};
     std::array<double, 3> luma{};
     QVERIFY(freezeLumaCoefficients(supplied, &luma));
@@ -2425,18 +1722,14 @@ void KisGpuOperationDocumentTest::hsvAdjustmentFreezesLumaDependentModesAndRecov
     for (int i = 0; i < 5; ++i) QCOMPARE(document.redo(), Result::Success);
     QVERIFY(std::get<FilterSnapshot>(document.snapshot()->layers.first().operations.last())->luma == luma);
 
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    const auto recoveredOperations = recovered.snapshot()->layers.first().operations;
-    QCOMPARE(recoveredOperations.size(), 3);
-    QCOMPARE(std::get<FilterSnapshot>(recoveredOperations[0])->hsvType, HsvAdjustmentType::Hsy);
-    QVERIFY(std::get<FilterSnapshot>(recoveredOperations[0])->luma == luma);
-    QCOMPARE(std::get<FilterSnapshot>(recoveredOperations[1])->hsvType, HsvAdjustmentType::Yuv);
-    QVERIFY(std::get<FilterSnapshot>(recoveredOperations[1])->luma == luma);
-    QVERIFY(std::get<FilterSnapshot>(recoveredOperations[2])->colorize);
-    QVERIFY(std::get<FilterSnapshot>(recoveredOperations[2])->luma == luma);
-    QCOMPARE(recovered.snapshot()->layers.first().operations.size(), 3);
-    QCOMPARE(document.snapshot()->layers.first().operations.size(), 3);
+    const auto retainedOperations = document.snapshot()->layers.first().operations;
+    QCOMPARE(retainedOperations.size(), 3);
+    QCOMPARE(std::get<FilterSnapshot>(retainedOperations[0])->hsvType, HsvAdjustmentType::Hsy);
+    QVERIFY(std::get<FilterSnapshot>(retainedOperations[0])->luma == luma);
+    QCOMPARE(std::get<FilterSnapshot>(retainedOperations[1])->hsvType, HsvAdjustmentType::Yuv);
+    QVERIFY(std::get<FilterSnapshot>(retainedOperations[1])->luma == luma);
+    QVERIFY(std::get<FilterSnapshot>(retainedOperations[2])->colorize);
+    QVERIFY(std::get<FilterSnapshot>(retainedOperations[2])->luma == luma);
 }
 
 void KisGpuOperationDocumentTest::hsvAdjustmentRejectsUnfrozenLumaAndInvalidRanges()
@@ -2601,131 +1894,6 @@ void KisGpuOperationDocumentTest::hsvAdjustmentRejectsInvalidSettingsAndPreserve
     QVERIFY(!std::get<FilterSnapshot>(operations[1])->compatibilityMode);
 }
 
-void KisGpuOperationDocumentTest::hsvAdjustmentRecoveryKeepsSettingsAndOlderFormats()
-{
-    RasterImage source;
-    source.size = {64, 64};
-    RasterLayer target;
-    target.name = QStringLiteral("Target");
-    target.uuid = QUuid::createUuid();
-    source.layers.append(target);
-    OperationDocument document(source);
-    QCOMPARE(document.setSelectionRect(QRect(8, 8, 16, 16)), Result::Success);
-    QCOMPARE(document.hsvAdjustment(document.activeLayer(), {-60, 25, 40, HsvAdjustmentType::Hsv, true}),
-             Result::Success);
-    const auto bytes = document.recoveryData();
-    QVERIFY(!bytes.isEmpty());
-
-    QBuffer header;
-    header.setData(bytes);
-    QVERIFY(header.open(QIODevice::ReadOnly));
-    QDataStream headerStream(&header);
-    headerStream.setVersion(QDataStream::Qt_5_15);
-    headerStream.setByteOrder(QDataStream::BigEndian);
-    quint32 magic = 0;
-    quint16 format = 0;
-    headerStream >> magic >> format;
-    QCOMPARE(magic, quint32(0x4c504f52));
-    QCOMPARE(format, quint16(55));
-
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::HsvAdjustment);
-    const auto restoredOperation = std::get<FilterSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QCOMPARE(restoredOperation->kind, FilterKind::HsvAdjustment);
-    QCOMPARE(restoredOperation->hue, -60);
-    QCOMPARE(restoredOperation->saturation, 25);
-    QCOMPARE(restoredOperation->value, 40);
-    QCOMPARE(restoredOperation->hsvType, HsvAdjustmentType::Hsv);
-    QVERIFY(restoredOperation->compatibilityMode);
-    QVERIFY(!restoredOperation->colorize);
-
-    // Format 52 records remain readable; the dropped Colorize flag and luma
-    // words decode as the product's non-Colorize modern defaults.
-    RasterImage olderSource;
-    olderSource.size = {64, 64};
-    RasterLayer olderTarget;
-    olderTarget.name = QStringLiteral("Older");
-    olderTarget.uuid = QUuid::createUuid();
-    olderSource.layers.append(olderTarget);
-    OperationDocument olderDocument(olderSource);
-    HsvAdjustment olderSettings{25, -15, 35, HsvAdjustmentType::Hsl, false};
-    olderSettings.lumaFrozen = true;
-    olderSettings.luma = {0.25f, 0.5f, 0.25f};
-    QVERIFY(olderSettings.isValid());
-    QCOMPARE(olderDocument.hsvAdjustment(olderDocument.activeLayer(), olderSettings), Result::Success);
-    const auto older52 = olderHsvRecovery(olderDocument.recoveryData(), 52);
-    QVERIFY(!older52.isEmpty());
-    OperationDocument restored52({1, 1});
-    QCOMPARE(restored52.restoreRecovery(older52), Result::Success);
-    const auto restored52Operation =
-        std::get<FilterSnapshot>(restored52.snapshot()->layers.first().operations.last());
-    QCOMPARE(restored52Operation->hue, 25);
-    QCOMPARE(restored52Operation->saturation, -15);
-    QCOMPARE(restored52Operation->value, 35);
-    QCOMPARE(restored52Operation->hsvType, HsvAdjustmentType::Hsl);
-    QVERIFY(!restored52Operation->colorize);
-    QVERIFY(!restored52Operation->compatibilityMode);
-
-    // Format 52 did not record luma, so a luma-dependent mode cannot be
-    // restored from an older record.
-    OperationDocument lumaDocument(olderSource);
-    HsvAdjustment lumaSettings{0, 50, 0, HsvAdjustmentType::Hsy, false};
-    lumaSettings.luma = {0.25f, 0.5f, 0.25f};
-    lumaSettings.lumaFrozen = true;
-    QVERIFY(lumaSettings.isValid());
-    QCOMPARE(lumaDocument.hsvAdjustment(lumaDocument.activeLayer(), lumaSettings), Result::Success);
-    const auto luma52 = olderHsvRecovery(lumaDocument.recoveryData(), 52);
-    QVERIFY(!luma52.isEmpty());
-    OperationDocument live52({64, 64});
-    const auto live52Before = live52.snapshot();
-    QCOMPARE(live52.restoreRecovery(luma52), Result::InvalidRecovery);
-    QCOMPARE(live52.snapshot(), live52Before);
-
-
-    // Re-labelling the payload as format 51 must reject the HSV kind, because
-    // format 51 knew only Invert Colors and Grayscale.
-    auto payload = bytes.first(bytes.size() - 32);
-    QBuffer patcher(&payload);
-    QVERIFY(patcher.open(QIODevice::ReadWrite));
-    QDataStream patchStream(&patcher);
-    patchStream.setVersion(QDataStream::Qt_5_15);
-    patchStream.setByteOrder(QDataStream::BigEndian);
-    QVERIFY(patcher.seek(4));
-    patchStream << quint16(51);
-    patcher.close();
-    payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
-    OperationDocument live({64, 64});
-    const auto liveBefore = live.snapshot();
-    QCOMPARE(live.restoreRecovery(payload), Result::InvalidRecovery);
-    QCOMPARE(live.snapshot(), liveBefore);
-    QCOMPARE(live.undoCount(), 0);
-}
-
-void KisGpuOperationDocumentTest::previousTranslatedRecoveryPreservesPendingInputAndCropHistory()
-{
-    const auto bytes = LibrePaint::Image::Gpu::Test::translatedLayerRecoveryV25();
-    QCOMPARE(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex(),
-             QByteArrayLiteral("c556bf45c01accefd2338475dcecafc5c023a15683084bd962732b4626d08bc3"));
-    OperationDocument document({1, 1});
-    QCOMPARE(document.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(document.snapshot()->size, QSize(64, 64));
-    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-73, 19));
-    QCOMPARE(document.undoCount(), 2);
-    QVERIFY(document.hasActiveStroke());
-    QCOMPARE(document.preview()->sampleCount, 3);
-    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
-    QCOMPARE(document.cropLayer(document.activeLayer(), QRect(-70, 20, 10, 12)), Result::Success);
-    QCOMPARE(document.undoCount(), 3);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.historyAction(3), HistoryAction::CropLayer);
-    QCOMPARE(recovered.historyCrop(3)->rect, QRect(-70, 20, 10, 12));
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers.first().position, QPoint());
-}
-
 void KisGpuOperationDocumentTest::layerTranslationPreservesInputVersionsAndOneHistoryEntry()
 {
     const QPoint initial(7, -3), offset(13, -7), direct(-12, 17);
@@ -2775,67 +1943,6 @@ void KisGpuOperationDocumentTest::layerTranslationPreservesInputVersionsAndOneHi
     QCOMPARE(before->layers.first().position, initial);
     QCOMPARE(moved->layers.first().position, initial + offset);
     QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.first())->inputSamples(), samples);
-    QByteArray recovery;
-    try {
-        recovery = document.recoveryData();
-    } catch (const std::exception &error) {
-        QFAIL(qPrintable(QStringLiteral("Recovery of a moved layer failed: ") + QString::fromUtf8(error.what())));
-    }
-    QVERIFY(!recovery.isEmpty());
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().position, initial + offset);
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().position, initial);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().position, initial + offset);
-    QCOMPARE(restored.undo(), Result::Success);
-    const auto pending = restored.beginLayerTranslation(layer);
-    QVERIFY(!pending.isNull());
-    QCOMPARE(restored.updateLayerTranslation(pending, {-5, 3}), Result::Success);
-    OperationDocument pendingCopy({1, 1});
-    QCOMPARE(pendingCopy.restoreRecovery(restored.recoveryData()), Result::Success);
-    QVERIFY(pendingCopy.hasActiveStroke());
-    QCOMPARE(pendingCopy.snapshot()->layers.first().position, initial);
-    QCOMPARE(pendingCopy.preview()->layers.first().position, initial + QPoint(-5, 3));
-    QCOMPARE(pendingCopy.redoCount(), 1);
-    QCOMPARE(pendingCopy.cancelLayerTranslation(pendingCopy.activeOperation()), Result::Success);
-    QCOMPARE(pendingCopy.redo(), Result::Success);
-    QCOMPARE(pendingCopy.snapshot()->layers.first().position, initial + offset);
-    const auto source = document.snapshot();
-    try {
-        QCOMPARE(document.duplicateLayers({layer}, {QStringLiteral("Moved copy")}, layer), Result::Success);
-    } catch (const std::exception &error) {
-        QFAIL(qPrintable(QStringLiteral("Copying a moved layer failed: ") + QString::fromUtf8(error.what())));
-    }
-    const auto &copy = document.snapshot()->layers.last();
-    QCOMPARE(copy.position, initial + offset);
-    QCOMPARE(std::get<PaintSnapshot>(copy.operations.first())->inputSamples(), samples);
-    const auto translated = std::get_if<TranslationSnapshot>(&copy.operations.last());
-    QVERIFY(translated);
-    QCOMPARE((*translated)->offset, offset);
-    QCOMPARE(document.undoCount(), 3);
-    QCOMPARE(document.undo(), Result::Success);
-    QCOMPARE(document.snapshot(), source);
-}
-
-void KisGpuOperationDocumentTest::previousPlacedRecoveryPreservesPendingInputAndPosition()
-{
-    OperationDocument document({1, 1});
-    QCOMPARE(document.restoreRecovery(Test::placedLayerRecoveryV24()), Result::Success);
-    QCOMPARE(document.snapshot()->size, QSize(64, 64));
-    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-73, 19));
-    QCOMPARE(document.preview()->layers.first().position, QPoint(-73, 19));
-    QCOMPARE(document.undoCount(), 1);
-    QCOMPARE(document.redoCount(), 1);
-    QVERIFY(document.hasActiveStroke());
-    QVERIFY(!document.isModified());
-    QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.first())->inputSamples(),
-             QList<InputSample>({sample(12, 9, 0.5, 1), sample(14, 10, 1, 2)}));
-    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
-    QCOMPARE(document.redo(), Result::Success);
-    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-73, 19));
-    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(129));
 }
 
 void KisGpuOperationDocumentTest::layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory()
@@ -2869,10 +1976,8 @@ void KisGpuOperationDocumentTest::layerReorderingIsAtomicAndPreservesSelectionPi
     QCOMPARE(pinned->layers[0].id, bottom);
     QCOMPARE(pinned->layers[1].id, middle);
     QCOMPARE(pinned->layers[2].id, top);
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.snapshot()->layers[0].id, top);
-    QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::MoveLayer);
+    QCOMPARE(document.snapshot()->layers[0].id, top);
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::MoveLayer);
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), pinned);
     QVERIFY(!document.isModified());
@@ -2886,7 +1991,7 @@ void KisGpuOperationDocumentTest::layerReorderingIsAtomicAndPreservesSelectionPi
     QCOMPARE(document.reorderLayers({bottom, middle, top}), Result::Closed);
 }
 
-void KisGpuOperationDocumentTest::mergedPropertiesPreservePinsSaveBoundariesAndRecovery()
+void KisGpuOperationDocumentTest::mergedPropertiesPreservePinsSaveBoundaries()
 {
     OperationDocument document({64, 64});
     const auto layer = document.activeLayer();
@@ -2898,18 +2003,6 @@ void KisGpuOperationDocumentTest::mergedPropertiesPreservePinsSaveBoundariesAndR
     QCOMPARE(document.markSaved(pinned), Result::Success);
     QVERIFY(document.isModified());
     QCOMPARE(document.savedHistoryIndex(), -1);
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(255));
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(64));
-    QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
-    QCOMPARE(document.setLayerOpacity(layer, 32, PropertyHistory::MergeConsecutive), Result::Success);
-    QCOMPARE(document.undoCount(), 2);
-    QCOMPARE(document.undo(), Result::Success);
-    QVERIFY(!document.isModified());
-    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(64));
 }
 
 void KisGpuOperationDocumentTest::mergedNameResetRetainsItsRecordedBoundary()
@@ -2921,15 +2014,11 @@ void KisGpuOperationDocumentTest::mergedNameResetRetainsItsRecordedBoundary()
     QCOMPARE(document.renameLayer(layer, initial, PropertyHistory::MergeConsecutive), Result::Success);
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.writeLayerName(layer, QStringLiteral("Direct")), Result::Success);
-    OperationDocument restored({1, 1});
-    const auto recovery = document.recoveryData();
-    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
-    QCOMPARE(restored.recoveryData(), recovery);
-    QCOMPARE(restored.snapshot()->layers.first().name, QStringLiteral("Direct"));
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().name, initial);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().name, initial);
+    QCOMPARE(document.snapshot()->layers.first().name, QStringLiteral("Direct"));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().name, initial);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().name, initial);
 }
 
 void KisGpuOperationDocumentTest::groupedRemovalPreservesPixelsSelectionAndAtomicHistory()
@@ -2972,12 +2061,6 @@ void KisGpuOperationDocumentTest::groupedRemovalPreservesPixelsSelectionAndAtomi
     QCOMPARE(document.snapshot(), removed);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), replacement);
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::RemoveLayer);
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().uuid, removed->layers.first().uuid);
-    QCOMPARE(restored.snapshot()->rasterBytes, removed->rasterBytes);
 }
 
 void KisGpuOperationDocumentTest::insertedLayersPreserveOrderPinsAndOneHistoryStep()
@@ -2996,20 +2079,11 @@ void KisGpuOperationDocumentTest::insertedLayersPreserveOrderPinsAndOneHistorySt
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), original);
-    const auto beforeInvalid = document.recoveryData();
+    const auto beforeInvalid = document.preview();
     QCOMPARE(document.addLayer(QStringLiteral("Invalid"), -1, false), LayerId(0));
     QCOMPARE(document.addLayer(QStringLiteral("Invalid"), 3, false), LayerId(0));
-    QCOMPARE(document.recoveryData(), beforeInvalid);
+    QCOMPARE(document.preview(), beforeInvalid);
     QCOMPARE(document.redo(), Result::Success);
-    QCOMPARE(document.snapshot(), inserted);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].uuid, inserted->layers[1].uuid);
-    QVERIFY(recovered.snapshot()->layers[1].pinnedToTimeline);
-    const auto pending = document.beginStroke(id, {}, 17);
-    QVERIFY(!pending.isNull());
-    QCOMPARE(document.addLayer(QStringLiteral("Busy"), 0, false), LayerId(0));
-    QCOMPARE(document.cancelStroke(pending), Result::Success);
     QCOMPARE(document.snapshot(), inserted);
 }
 
@@ -3021,16 +2095,13 @@ void KisGpuOperationDocumentTest::nestedPaintInsertionRejectsMissingAndNonGroupP
     QVERIFY(id);
     QCOMPARE(document.snapshot()->layers[1].parentUuid, original->layers[1].uuid);
     QCOMPARE(document.undo(), Result::Success);
-    const auto beforeInvalid = document.recoveryData();
+    const auto beforeInvalid = document.preview();
     QCOMPARE(document.addLayer(QStringLiteral("Missing parent"), 1, false,
                               QUuid(QStringLiteral("{deadbeef-735b-47cf-93c5-7893d04916f0}"))), LayerId(0));
     QCOMPARE(document.addLayer(QStringLiteral("Paint parent"), 1, false, original->layers[0].uuid), LayerId(0));
-    QCOMPARE(document.recoveryData(), beforeInvalid);
+    QCOMPARE(document.preview(), beforeInvalid);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.activeLayer(), id);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].parentUuid, original->layers[1].uuid);
 }
 
 void KisGpuOperationDocumentTest::emptyGroupInsertionPreservesHierarchyHistoryAndRejectsSubtrees()
@@ -3074,7 +2145,7 @@ void KisGpuOperationDocumentTest::emptyGroupInsertionPreservesHierarchyHistoryAn
     QCOMPARE(destination.undoCount(), 1);
     QCOMPARE(destination.undo(), Result::Success);
     QCOMPARE(destination.snapshot(), original);
-    const auto beforeRejected = destination.recoveryData();
+    const auto beforeRejected = destination.preview();
     RasterLayer child{QStringLiteral("Child"), true,
         QUuid(QStringLiteral("{61626364-6566-6768-6970-717273747576}")), {}};
     child.parentUuid = group.uuid;
@@ -3088,23 +2159,13 @@ void KisGpuOperationDocumentTest::emptyGroupInsertionPreservesHierarchyHistoryAn
     rejected.kind = LayerKind::Group;
     rejected.channelWriteMask = 7;
     QCOMPARE(destination.insertLayer(source, source.activeLayer(), rejected, 1), LayerId(0));
-    QCOMPARE(destination.recoveryData(), beforeRejected);
+    QCOMPARE(destination.preview(), beforeRejected);
     QCOMPARE(destination.redo(), Result::Success);
     QCOMPARE(destination.snapshot(), inserted);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(destination.recoveryData()), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].kind, LayerKind::Group);
-    QCOMPARE(recovered.snapshot()->layers[1].uuid, properties.uuid);
-    QCOMPARE(recovered.snapshot()->layers[1].parentUuid, properties.parentUuid);
+    QCOMPARE(destination.snapshot()->layers[1].kind, LayerKind::Group);
+    QCOMPARE(destination.snapshot()->layers[1].uuid, properties.uuid);
+    QCOMPARE(destination.snapshot()->layers[1].parentUuid, properties.parentUuid);
     QCOMPARE(source.snapshot(), sourceVersion);
-    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!directory.isEmpty()) {
-        QVERIFY(QDir().mkpath(directory));
-        QFile output(QDir(directory).filePath(QStringLiteral("empty-group-insertion.recovery")));
-        QVERIFY(output.open(QIODevice::WriteOnly));
-        const auto fixed = destination.recoveryData();
-        QCOMPARE(output.write(fixed), qint64(fixed.size()));
-    }
 }
 
 void KisGpuOperationDocumentTest::insertedForeignLayersSharePixelsAndInputsWithAtomicHistory()
@@ -3155,21 +2216,12 @@ void KisGpuOperationDocumentTest::insertedForeignLayersSharePixelsAndInputsWithA
     QCOMPARE(destination.snapshot(), before);
     QCOMPARE(destination.redo(), Result::Success);
     QCOMPARE(destination.snapshot(), inserted);
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(destination.recoveryData()), Result::Success);
-    QCOMPARE(restored.snapshot()->layers[0].uuid, properties.uuid);
+    QCOMPARE(destination.snapshot()->layers[0].uuid, properties.uuid);
     QCOMPARE(source.snapshot(), sourceVersion);
-    const auto fixed = destination.recoveryData();
-    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!directory.isEmpty()) {
-        QVERIFY(QDir().mkpath(directory));
-        QFile output(QDir(directory).filePath(QStringLiteral("layer-insertion.recovery")));
-        QVERIFY(output.open(QIODevice::WriteOnly));
-        QCOMPARE(output.write(fixed), qint64(fixed.size()));
-    }
+    const auto fixed = destination.preview();
     QCOMPARE(destination.insertLayer(source, 999, properties, 0), LayerId(0));
     QCOMPARE(destination.insertLayer(source, 1, properties, 0), LayerId(0));
-    QCOMPARE(destination.recoveryData(), fixed);
+    QCOMPARE(destination.preview(), fixed);
     Limits limits;
     limits.layerCount = 1;
     OperationDocument bounded({64, 32}, limits);
@@ -3182,13 +2234,13 @@ void KisGpuOperationDocumentTest::insertedForeignLayersSharePixelsAndInputsWithA
         if (budget == 1) capacity.samplesPerDocument = 1;
         if (budget == 2) capacity.samplesPerStroke = 1;
         OperationDocument limited({64, 32}, capacity);
-        const auto retained = limited.recoveryData();
+        const auto retained = limited.preview();
         QCOMPARE(limited.insertLayer(source, 1, properties, 0), LayerId(0));
-        QCOMPARE(limited.recoveryData(), retained);
+        QCOMPARE(limited.preview(), retained);
     }
 }
 
-void KisGpuOperationDocumentTest::activeLayerAndSelectionRemainIndependentThroughRecoveryAndInput()
+void KisGpuOperationDocumentTest::activeLayerAndSelectionRemainIndependentAndInput()
 {
     OperationDocument document(rasterImage());
     const LayerId first = 1;
@@ -3202,22 +2254,6 @@ void KisGpuOperationDocumentTest::activeLayerAndSelectionRemainIndependentThroug
     QCOMPARE(document.undoCount(), 0);
     QVERIFY(!document.isModified());
     const auto selected = document.snapshot();
-    const auto bytes = document.recoveryData();
-    const auto output = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!output.isEmpty()) {
-        QVERIFY(QDir().mkpath(output));
-        QFile file(QDir(output).filePath(QStringLiteral("layer-selection.recovery")));
-        QVERIFY(file.open(QIODevice::WriteOnly));
-        QCOMPARE(file.write(bytes), bytes.size());
-    }
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.activeLayer(), first);
-    QCOMPARE(restored.snapshot()->selectedLayers, QList<LayerId>{second});
-    const auto oldFormat = legacyRecovery(document, 15);
-    const auto before = restored.snapshot();
-    QCOMPARE(restored.restoreRecovery(oldFormat), Result::InvalidRecovery);
-    QCOMPARE(restored.snapshot(), before);
     const auto stroke = document.beginStroke(first, {}, 17);
     QCOMPARE(document.appendSamples(stroke, {sample(8, 9)}), Result::Success);
     const auto preview = document.preview();
@@ -3234,8 +2270,6 @@ void KisGpuOperationDocumentTest::activeLayerAndSelectionRemainIndependentThroug
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.activeLayer(), first);
     QCOMPARE(document.snapshot()->selectedLayers, QList<LayerId>{second});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.snapshot()->selectedLayers, QList<LayerId>{second});
 }
 
 void KisGpuOperationDocumentTest::selectionDuringInputPreservesPaintingAndHistory()
@@ -3278,9 +2312,9 @@ void KisGpuOperationDocumentTest::selectionDuringInputPreservesPaintingAndHistor
     QCOMPARE(document.activeLayer(), first);
     QCOMPARE(document.undoCount(), 2);
     QCOMPARE(committed->activeLayer, second);
-    const auto beforeInvalid = document.recoveryData();
+    const auto beforeInvalid = document.preview();
     QCOMPARE(document.selectLayer(0), Result::LayerUnavailable);
-    QCOMPARE(document.recoveryData(), beforeInvalid);
+    QCOMPARE(document.preview(), beforeInvalid);
     document.close();
     QCOMPARE(document.selectLayer(first), Result::Closed);
 }
@@ -3326,22 +2360,20 @@ void KisGpuOperationDocumentTest::mergedPanelTogglesPreservePinsAndSaveBoundarie
     QCOMPARE(document.undoCount(), 3);
     QCOMPARE(document.savedHistoryIndex(), 2);
     QVERIFY(document.isModified());
-    const auto beforeInvalid = document.recoveryData();
+    const auto beforeInvalid = document.preview();
     QCOMPARE(set(document, true, PropertyHistory(-1)), Result::InvalidInput);
-    QCOMPARE(document.recoveryData(), beforeInvalid);
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(state(restored.snapshot()));
-    QVERIFY(!restored.isModified());
-    QCOMPARE(restored.redo(), Result::Success);
-    QVERIFY(!state(restored.snapshot()));
+    QCOMPARE(document.preview(), beforeInvalid);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(state(document.snapshot()));
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(!state(document.snapshot()));
     const auto action = locked ? HistoryAction::ChangeLock : HistoryAction::ChangeVisibility;
-    QCOMPARE(restored.historyAction(2), action);
-    QCOMPARE(restored.historyAction(3), action);
+    QCOMPARE(document.historyAction(2), action);
+    QCOMPARE(document.historyAction(3), action);
 }
 
-void KisGpuOperationDocumentTest::historyActionsSurviveDirectWritesMergingAndRecovery()
+void KisGpuOperationDocumentTest::historyActionsSurviveDirectWritesMerging()
 {
     OperationDocument document({64, 64});
     const auto layer = document.activeLayer();
@@ -3358,19 +2390,6 @@ void KisGpuOperationDocumentTest::historyActionsSurviveDirectWritesMergingAndRec
     QCOMPARE(document.writeLayerLocked(layer, false), Result::Success);
     const QList<HistoryAction> expected{HistoryAction::None, HistoryAction::RenameLayer,
         HistoryAction::ChangeOpacity, HistoryAction::ChangeVisibility, HistoryAction::ChangeLock};
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    for (int index = 0; index < expected.size(); ++index) {
-        QCOMPARE(document.historyAction(index), expected[index]);
-        QCOMPARE(restored.historyAction(index), expected[index]);
-    }
-    QCOMPARE(document.historyAction(-1), HistoryAction::None);
-    QCOMPARE(document.historyAction(expected.size()), HistoryAction::None);
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.historyAction(4), HistoryAction::ChangeLock);
-    QCOMPARE(restored.renameLayer(layer, QStringLiteral("Branched")), Result::Success);
-    QCOMPARE(restored.historyAction(4), HistoryAction::RenameLayer);
-    QCOMPARE(restored.redoCount(), 0);
 }
 
 void KisGpuOperationDocumentTest::mergedOpacityResetPreservesSelectionAndDirectWrites()
@@ -3393,13 +2412,9 @@ void KisGpuOperationDocumentTest::mergedOpacityResetPreservesSelectionAndDirectW
     QVERIFY(!document.isModified());
     QCOMPARE(baseline->activeLayer, first);
     QCOMPARE(baseline->layers.first().name, QStringLiteral("Paint Layer 1"));
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.activeLayer(), second);
-    QVERIFY(!restored.isModified());
 }
 
-void KisGpuOperationDocumentTest::channelProtectionPreservesFrozenSettingsHistoryAndRecovery()
+void KisGpuOperationDocumentTest::channelProtectionPreservesFrozenSettingsHistory()
 {
     OperationDocument document({64, 64});
     const auto layer = document.activeLayer();
@@ -3420,10 +2435,6 @@ void KisGpuOperationDocumentTest::channelProtectionPreservesFrozenSettingsHistor
     QCOMPARE(preview->layers.first().channelWriteMask, quint8(1));
     QCOMPARE(document.preview()->layers.first().channelWriteMask, quint8(7));
     QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers.first().operations.last())->brush, paint->brush);
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.preview()->layers.first().channelWriteMask, quint8(7));
-    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last())->brush, paint->brush);
     QCOMPARE(document.cancelStroke(stroke), Result::Success);
     const auto before = document.snapshot();
     QCOMPARE(document.setLayerChannelMask(layer, 16), Result::InvalidInput);
@@ -3445,8 +2456,9 @@ void KisGpuOperationDocumentTest::identicalLayerDuplicationsPreserveTheSamePersi
     const QList<QString> names{QStringLiteral("Red copy"), QStringLiteral("Blue copy")};
     QCOMPARE(first.duplicateLayers({1, 2}, names, 1), Result::Success);
     QCOMPARE(second.duplicateLayers({1, 2}, names, 1), Result::Success);
-    const auto bytes = first.recoveryData();
-    QCOMPARE(bytes, second.recoveryData());
+    for (int i = 0; i < first.snapshot()->layers.size(); ++i) {
+        QCOMPARE(first.snapshot()->layers[i].uuid, second.snapshot()->layers[i].uuid);
+    }
     const auto firstCopy = first.snapshot()->layers[2].uuid;
     auto collisionImage = rasterImage();
     collisionImage.layers[1].uuid = firstCopy;
@@ -3456,16 +2468,6 @@ void KisGpuOperationDocumentTest::identicalLayerDuplicationsPreserveTheSamePersi
     QVERIFY(collision.snapshot()->layers[1].uuid != collisionImage.layers.first().uuid);
     QCOMPARE(first.duplicateLayers({1}, {QStringLiteral("Another copy")}, 1), Result::Success);
     QVERIFY(first.snapshot()->layers[1].uuid != firstCopy);
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.recoveryData(), bytes);
-    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!directory.isEmpty()) {
-        QVERIFY(QDir().mkpath(directory));
-        QFile output(QDir(directory).filePath(QStringLiteral("layer-duplication.recovery")));
-        QVERIFY(output.open(QIODevice::WriteOnly));
-        QCOMPARE(output.write(bytes), qint64(bytes.size()));
-    }
 }
 
 void KisGpuOperationDocumentTest::duplicatedLayersShareInputsAndPixelsWithIndependentHistory()
@@ -3516,28 +2518,13 @@ void KisGpuOperationDocumentTest::duplicatedLayersShareInputsAndPixelsWithIndepe
     QCOMPARE(document.snapshot()->selectedLayers, (QList<LayerId>{first, last}));
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), copied);
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.snapshot()->layers[3].id, copy.id);
-    QCOMPARE(restored.historyAction(count + 1), HistoryAction::DuplicateLayer);
-    QCOMPARE(restored.snapshot()->selectedLayers, copied->selectedLayers);
-    QCOMPARE(restored.snapshot()->layers[3].channelWriteMask, quint8(7));
-    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers[3].operations.last())->brush, brush);
-    const auto before = document.recoveryData();
-    const auto previousFormat = legacyRecovery(document, 15);
-    QCOMPARE(restored.restoreRecovery(previousFormat), Result::Success);
-    QCOMPARE(restored.snapshot()->selectedLayers, copied->selectedLayers);
-    QCOMPARE(restored.historyAction(count + 1), HistoryAction::DuplicateLayer);
-    const auto oldFormat = legacyRecovery(document, 14);
-    const auto restoredVersion = restored.snapshot();
-    QCOMPARE(restored.restoreRecovery(oldFormat), Result::InvalidRecovery);
-    QCOMPARE(restored.snapshot(), restoredVersion);
+    const auto before = document.preview();
     QCOMPARE(document.selectLayers({first, first}, first), Result::InvalidInput);
     QCOMPARE(document.selectLayers({}, first), Result::InvalidInput);
 
     QCOMPARE(document.duplicateLayers({first, first}, {QStringLiteral("A"), QStringLiteral("B")}, first), Result::InvalidInput);
     QCOMPARE(document.duplicateLayers({first}, {}, first), Result::InvalidInput);
-    QCOMPARE(document.recoveryData(), before);
+    QCOMPARE(document.preview(), before);
     Limits limits;
     limits.layerCount = 3;
     OperationDocument bounded(rasterImage(), limits);
@@ -3548,18 +2535,18 @@ void KisGpuOperationDocumentTest::duplicatedLayersShareInputsAndPixelsWithIndepe
     limits.layerCount = 4096;
     limits.rasterBytes = 2 * RgbaTile::ByteCount;
     OperationDocument pixelBounded(rasterImage(), limits);
-    const auto pixelLimit = pixelBounded.recoveryData();
+    const auto pixelLimit = pixelBounded.preview();
     QCOMPARE(pixelBounded.duplicateLayers({1}, {QStringLiteral("A")}, 1), Result::CapacityExceeded);
-    QCOMPARE(pixelBounded.recoveryData(), pixelLimit);
+    QCOMPARE(pixelBounded.preview(), pixelLimit);
     limits.samplesPerStroke = limits.samplesPerDocument = 1;
     OperationDocument inputBounded({64, 64}, limits);
     QVERIFY(!paint(inputBounded, {sample(16, 16)}).isNull());
-    const auto inputLimit = inputBounded.recoveryData();
+    const auto inputLimit = inputBounded.preview();
     QCOMPARE(inputBounded.duplicateLayers({inputBounded.activeLayer()}, {QStringLiteral("A")}, inputBounded.activeLayer()), Result::CapacityExceeded);
-    QCOMPARE(inputBounded.recoveryData(), inputLimit);
+    QCOMPARE(inputBounded.preview(), inputLimit);
 }
 
-void KisGpuOperationDocumentTest::symmetryFreezesAxesAndRejectsInvalidRecoveryAtomically()
+void KisGpuOperationDocumentTest::symmetryFreezesAxesAndRejectsInvalidInput()
 {
     OperationDocument document({64, 64});
     Brush brush;
@@ -3573,15 +2560,6 @@ void KisGpuOperationDocumentTest::symmetryFreezesAxesAndRejectsInvalidRecoveryAt
     brush.mirrorCenter = {8, 8};
     brush.mirrorHorizontal = brush.mirrorVertical = false;
     QCOMPARE(std::get<PaintSnapshot>(fixed->layers.first().operations.last())->brush, settings);
-    const auto recovery = document.recoveryData();
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
-    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last())->brush, settings);
-    const auto retained = restored.preview();
-    const auto invalid = legacyRecovery(document, 13);
-    QCOMPARE(restored.restoreRecovery(invalid), Result::InvalidRecovery);
-    QCOMPARE(restored.preview(), retained);
-    QCOMPARE(restored.recoveryData(), recovery);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     const auto second = document.beginStroke(document.activeLayer(), brush, 8);
     QVERIFY(!second.isNull());
@@ -3593,77 +2571,6 @@ void KisGpuOperationDocumentTest::symmetryFreezesAxesAndRejectsInvalidRecoveryAt
     brush.mirrorCenter = {std::numeric_limits<int>::min(), 0};
     QVERIFY(document.beginStroke(document.activeLayer(), brush, 9).isNull());
     QCOMPARE(document.snapshot(), unchanged);
-}
-
-void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
-{
-    QTest::addColumn<quint8>("format");
-    QTest::addColumn<bool>("resetName");
-    QTest::newRow("version-nine") << quint8(9) << false;
-    QTest::newRow("version-ten") << quint8(10) << false;
-    QTest::newRow("version-ten-reset-name") << quint8(10) << true;
-    QTest::newRow("version-eleven") << quint8(11) << false;
-    QTest::newRow("version-twelve") << quint8(12) << false;
-    QTest::newRow("version-thirteen") << quint8(13) << false;
-    QTest::newRow("version-fourteen") << quint8(14) << false;
-    QTest::newRow("version-fifteen") << quint8(15) << false;
-    QTest::newRow("version-sixteen") << quint8(16) << false;
-    QTest::newRow("version-seventeen") << quint8(17) << false;
-    QTest::newRow("version-eighteen") << quint8(18) << false;
-    QTest::newRow("version-nineteen") << quint8(19) << false;
-    QTest::newRow("version-twenty") << quint8(20) << false;
-    QTest::newRow("version-twenty-one") << quint8(21) << false;
-    QTest::newRow("version-twenty-two") << quint8(22) << false;
-    QTest::newRow("version-twenty-three") << quint8(23) << false;
-}
-
-void KisGpuOperationDocumentTest::previousPositionlessRecoveryPreservesLayerEdits()
-{
-    OperationDocument document({1, 1});
-    QCOMPARE(document.restoreRecovery(LibrePaint::Image::Gpu::Test::positionlessRecoveryV23()), Result::Success);
-    const auto saved = document.snapshot();
-    QCOMPARE(saved->size, QSize(64, 32));
-    QCOMPARE(saved->layers.size(), 2);
-    QCOMPARE(saved->layers.first().name, QStringLiteral("Inserted"));
-    QCOMPARE(saved->layers.first().opacity, quint8(173));
-    QCOMPARE(saved->layers.first().channelWriteMask, quint8(7));
-    QVERIFY(saved->layers.first().userLocked);
-    QVERIFY(!saved->layers.first().visible);
-    QCOMPARE(saved->layers.first().operations.size(), 2);
-    const auto pixels = std::get<TileWriteSnapshot>(saved->layers.first().operations.first());
-    QCOMPARE(pixels->tiles.first()->rgba(), QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4));
-    for (const auto &version : document.historyVersions())
-        for (const auto &layer : version->layers) QCOMPARE(layer.position, QPoint());
-    QCOMPARE(document.undo(), Result::Success);
-    QCOMPARE(document.snapshot()->layers.size(), 1);
-    QCOMPARE(document.snapshot()->layers.first().name, QStringLiteral("Destination"));
-    QCOMPARE(document.redo(), Result::Success);
-    QCOMPARE(document.snapshot(), saved);
-}
-
-void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()
-{
-    QFETCH(quint8, format);
-    QFETCH(bool, resetName);
-    OperationDocument document({64, 64});
-    const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 7);
-    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
-    QCOMPARE(document.updateShape(stroke, {ShapeKind::Ellipse, {16, 16}, {48, 48}, 0}), Result::Success);
-    QCOMPARE(document.commitStroke(stroke), Result::Success);
-    QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Retained"), PropertyHistory::MergeConsecutive), Result::Success);
-    if (resetName) QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Paint Layer 1"), PropertyHistory::MergeConsecutive), Result::Success);
-    const auto payload = legacyRecovery(document, format);
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(payload), Result::Success);
-    QCOMPARE(restored.undoCount(), 2);
-    QCOMPARE(restored.snapshot()->layers.first().name, resetName ? QStringLiteral("Paint Layer 1") : QStringLiteral("Retained"));
-    const auto paint = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.first());
-    QVERIFY(paint->figureStyle.outline);
-    QVERIFY(!paint->figureStyle.fill);
-    QCOMPARE(paint->shape.kind, ShapeKind::Ellipse);
-    QCOMPARE(paint->shape.cornerRadii, QSizeF(0, 0));
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().name, QStringLiteral("Paint Layer 1"));
 }
 
 void KisGpuOperationDocumentTest::directLayerPropertiesPreserveOtherPropertyHistoryAndFixedVersions()
@@ -3696,86 +2603,22 @@ void KisGpuOperationDocumentTest::directLayerPropertiesPreserveOtherPropertyHist
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot()->layers.last().opacity, quint8(64));
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().name, QString());
-    QVERIFY(!restored.snapshot()->layers.first().visible);
-    QVERIFY(restored.snapshot()->layers.first().userLocked);
-    QVERIFY(restored.snapshot()->layers.first().pinnedToTimeline);
-    QCOMPARE(restored.snapshot()->layers.last().opacity, quint8(64));
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(255));
 }
 
-void KisGpuOperationDocumentTest::propertyRecoveryPreservesRecordedValuesAndRejectsDamagedChanges()
+void KisGpuOperationDocumentTest::directOpacityWritesPreserveRecordedUndoValues()
 {
     OperationDocument document({64, 64});
     const auto layer = document.activeLayer();
     QCOMPARE(document.setLayerOpacity(layer, 128), Result::Success);
     QCOMPARE(document.writeLayerOpacity(layer, 64), Result::Success);
-    const auto bytes = document.recoveryData();
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.recoveryData(), bytes);
-    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(64));
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(255));
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(128));
-    QByteArray record;
-    QDataStream encoded(&record, QIODevice::WriteOnly);
-    encoded.setByteOrder(QDataStream::BigEndian);
-    encoded << quint8(2) << layer << quint8(255) << quint8(128);
-    const auto payload = bytes.first(bytes.size() - 32);
-    const auto offset = payload.lastIndexOf(record);
-    QVERIFY(offset >= 0);
-    const auto retained = restored.snapshot();
-    const auto retainedHistory = restored.recoveryData();
-    for (int damage = 0; damage < 3; ++damage) {
-        auto invalid = payload;
-        if (damage == 0) invalid[offset] = char(255);
-        if (damage == 1) invalid[offset + 8] = char(2);
-        if (damage == 2) invalid[offset + 10] = char(255);
-        invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
-        QCOMPARE(restored.restoreRecovery(invalid), Result::InvalidRecovery);
-        QCOMPARE(restored.snapshot(), retained);
-        QCOMPARE(restored.recoveryData(), retainedHistory);
-    }
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(64));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(255));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(128));
 }
 
-void KisGpuOperationDocumentTest::failedHistoryMovesPreserveEveryVersionAndCounter()
-{
-    OperationDocument document({64, 64});
-    const auto layer = document.activeLayer();
-    QCOMPARE(document.setLayerOpacity(layer, 128), Result::Success);
-    QCOMPARE(document.setLayerOpacity(layer, 32), Result::Success);
-    QCOMPARE(document.setHistoryIndex(0), Result::Success);
-    QCOMPARE(document.writeLayerOpacity(layer, 16), Result::Success);
-    QCOMPARE(document.redo(), Result::Success);
-    QCOMPARE(document.writeLayerOpacity(layer, 64), Result::Success);
-    QCOMPARE(document.redo(), Result::Success);
-    auto bytes = document.recoveryData();
-    bytes.chop(32);
-    QBuffer buffer(&bytes);
-    QVERIFY(buffer.open(QIODevice::ReadWrite));
-    QVERIFY(buffer.seek(14)); // LPOR dimensions precede the next content revision.
-    QDataStream encoded(&buffer);
-    encoded.setByteOrder(QDataStream::BigEndian);
-    encoded << quint64(std::numeric_limits<quint64>::max() - 1);
-    buffer.close();
-    bytes.append(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256));
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    const auto retained = restored.snapshot();
-    const auto history = restored.recoveryData();
-    QCOMPARE(restored.setHistoryIndex(0), Result::CapacityExceeded);
-    QCOMPARE(restored.undoCount(), 2);
-    QCOMPARE(restored.snapshot(), retained);
-    QCOMPARE(restored.recoveryData(), history);
-}
-
-void KisGpuOperationDocumentTest::layerOpacityAndLockShareHistoryAndRecovery()
+void KisGpuOperationDocumentTest::layerOpacityAndLockShareHistory()
 {
     auto source = rasterImage();
     source.activeLayer = 0;
@@ -3806,35 +2649,16 @@ void KisGpuOperationDocumentTest::layerOpacityAndLockShareHistoryAndRecovery()
     QVERIFY(!document.isModified());
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.redo(), Result::Success);
-    OperationDocument recovered({1, 1});
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(recovered.undoCount(), 2);
-    QCOMPARE(recovered.snapshot()->layers.first().opacity, quint8(64));
-    QVERIFY(!recovered.snapshot()->layers.first().userLocked);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QVERIFY(recovered.snapshot()->layers.first().userLocked);
-    auto invalid = document.recoveryData();
-    invalid.chop(32);
-    const auto identity = source.layers[0].uuid.toRfc4122();
-    const auto offset = invalid.indexOf(identity);
-    QVERIFY(offset >= 0);
-    const auto lockOffset = offset + identity.size() + 4 + 1;
-    QCOMPARE(invalid[lockOffset], char(1));
-    invalid[lockOffset] = char(2);
-    invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
-    const auto retained = recovered.snapshot();
-    QCOMPARE(recovered.restoreRecovery(invalid), Result::InvalidRecovery);
-    QCOMPARE(recovered.snapshot(), retained);
 }
 
-void KisGpuOperationDocumentTest::layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data()
+void KisGpuOperationDocumentTest::layerRemovalReusesCapacityAcrossHistory_data()
 {
     QTest::addColumn<bool>("raster");
     QTest::newRow("compressed pixels") << true;
     QTest::newRow("stroke input") << false;
 }
 
-void KisGpuOperationDocumentTest::layerRemovalReusesCapacityWithoutLosingRecoveryHistory()
+void KisGpuOperationDocumentTest::layerRemovalReusesCapacityAcrossHistory()
 {
     QFETCH(bool, raster);
     Limits limits;
@@ -3855,45 +2679,22 @@ void KisGpuOperationDocumentTest::layerRemovalReusesCapacityWithoutLosingRecover
             QVERIFY(!paint(document, {sample(8 + cycle, 12)}).isNull());
         }
     }
-    const auto bytes = document.recoveryData();
-    QVERIFY(!bytes.isEmpty());
-    OperationDocument restored(QSize(1, 1), limits);
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.recoveryData(), bytes);
-    QCOMPARE(restored.undoCount(), document.undoCount());
+    const auto versions = document.historyVersions();
     if (raster) {
-        QCOMPARE(restored.replaceTiles(restored.activeLayer(), {pixels}), Result::CapacityExceeded);
+        QCOMPARE(document.replaceTiles(document.activeLayer(), {pixels}), Result::CapacityExceeded);
     } else {
-        const auto stroke = restored.beginStroke(restored.activeLayer(), Brush{}, 0);
-        QCOMPARE(restored.appendSamples(stroke, {sample(20, 20)}), Result::CapacityExceeded);
-        QCOMPARE(restored.cancelStroke(stroke), Result::Success);
+        const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
+        QCOMPARE(document.appendSamples(stroke, {sample(20, 20)}), Result::CapacityExceeded);
+        QCOMPARE(document.cancelStroke(stroke), Result::Success);
     }
-    for (;;) {
-        const auto actual = restored.snapshot();
-        const auto expected = document.snapshot();
-        QCOMPARE(actual->revision(), expected->revision());
-        QCOMPARE(actual->activeLayer, expected->activeLayer);
-        QCOMPARE(actual->sampleCount, expected->sampleCount);
-        QCOMPARE(actual->rasterBytes, expected->rasterBytes);
-        QCOMPARE(actual->layers.size(), expected->layers.size());
-        if (!actual->layers.isEmpty()) {
-            QCOMPARE(actual->layers[0].uuid, expected->layers[0].uuid);
-            QCOMPARE(actual->layers[0].name, expected->layers[0].name);
-            if (!actual->layers[0].operations.isEmpty()) {
-                if (raster) {
-                    QCOMPARE(std::get<TileWriteSnapshot>(actual->layers[0].operations[0])->tiles[0]->rgba(),
-                             std::get<TileWriteSnapshot>(expected->layers[0].operations[0])->tiles[0]->rgba());
-                } else {
-                    QCOMPARE(std::get<PaintSnapshot>(actual->layers[0].operations[0])->inputSamples(),
-                             std::get<PaintSnapshot>(expected->layers[0].operations[0])->inputSamples());
-                }
-            }
-        }
-        if (!document.undoCount()) break;
-        QCOMPARE(restored.undo(), document.undo());
+    QCOMPARE(document.historyVersions(), versions);
+    for (int i = versions.size() - 1; i > 0; --i) {
+        QCOMPARE(document.snapshot(), versions[i]);
+        QCOMPARE(document.undo(), Result::Success);
     }
-    QCOMPARE(restored.undoCount(), 0);
-    QCOMPARE(restored.redoCount(), document.redoCount());
+    QCOMPARE(document.snapshot(), versions.first());
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.redoCount(), versions.size() - 1);
 }
 
 void KisGpuOperationDocumentTest::layerStructureSharesPaintingHistoryAndPreservesPins()
@@ -3961,7 +2762,7 @@ void KisGpuOperationDocumentTest::rejectedLayerChangesKeepRedoAndPendingInput()
     QCOMPARE(document.removeLayer(layer), Result::Closed);
 }
 
-void KisGpuOperationDocumentTest::removingTheLastLayerPreservesAnEmptyRecoverableDocument()
+void KisGpuOperationDocumentTest::removingTheLastLayerPreservesAnEmptyUndoableDocument()
 {
     OperationDocument document(QSize(64, 64));
     const auto layer = document.activeLayer();
@@ -3974,14 +2775,6 @@ void KisGpuOperationDocumentTest::removingTheLastLayerPreservesAnEmptyRecoverabl
     QCOMPARE(empty->sampleCount, 0);
     QCOMPARE(empty->rasterBytes, 0);
     QVERIFY(document.beginStroke(layer, Brush{}, 0).isNull());
-    OperationDocument recovered(QSize(1, 1));
-    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
-    QVERIFY(recovered.snapshot()->layers.isEmpty());
-    QCOMPARE(recovered.activeLayer(), LayerId(0));
-    QCOMPARE(recovered.undoCount(), 2);
-    QCOMPARE(recovered.undo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[0].uuid, painted->layers[0].uuid);
-    QCOMPARE(recovered.snapshot()->sampleCount, painted->sampleCount);
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), painted);
     QCOMPARE(document.redo(), Result::Success);
@@ -3993,9 +2786,7 @@ void KisGpuOperationDocumentTest::removingTheLastLayerPreservesAnEmptyRecoverabl
     QVERIFY(imported.snapshot()->layers.isEmpty());
     QCOMPARE(imported.activeLayer(), LayerId(0));
     QVERIFY(!imported.isModified());
-    QCOMPARE(recovered.restoreRecovery(imported.recoveryData()), Result::Success);
-    QVERIFY(recovered.snapshot()->layers.isEmpty());
-    QVERIFY(recovered.addLayer(QStringLiteral("First")));
+    QVERIFY(imported.addLayer(QStringLiteral("First")));
 }
 
 void KisGpuOperationDocumentTest::inputChunksRetainTheSameOperation()
@@ -4121,10 +2912,6 @@ void KisGpuOperationDocumentTest::historyRetains250Operations()
         QVERIFY(!paint(document, {sample(i, i)}).isNull());
     }
     QCOMPARE(document.undoCount(), 250);
-    const auto recovered = document.recoveryData();
-    QVERIFY(!recovered.isEmpty());
-    QCOMPARE(document.restoreRecovery(recovered), Result::Success);
-    QCOMPARE(document.undoCount(), 250);
     for (int i = 0; i < 250; ++i) {
         QCOMPARE(document.undo(), Result::Success);
     }
@@ -4247,108 +3034,6 @@ void KisGpuOperationDocumentTest::emptyAndInvalidRequestsLeaveHistoryUnchanged()
     QCOMPARE(document.undoCount(), 0);
 }
 
-void KisGpuOperationDocumentTest::recoveryPreservesHistoryAndUncommittedIntent()
-{
-    OperationDocument source({128, 256});
-    QVERIFY(!paint(source, {sample(3, 4, 0.5, 1), sample(5, 6, 0.8, 2)}).isNull());
-    QCOMPARE(source.markSaved(source.snapshot()), Result::Success);
-    const auto layer = source.addLayer(QStringLiteral("線画 🖌"));
-    QVERIFY(!paint(source, {sample(7, 8)}).isNull());
-    QCOMPARE(source.undo(), Result::Success);
-    const auto pending = source.beginStroke(layer, Brush{}, 903);
-    QCOMPARE(source.appendSamples(pending, {sample(9, 10), sample(15, 20)}), Result::Success);
-    QCOMPARE(source.updateShape(pending, {ShapeKind::Ellipse, {9, 10}, {15, 20}, 0.3}), Result::Success);
-    const QByteArray recovery = source.recoveryData();
-    QVERIFY(!recovery.isEmpty());
-
-    OperationDocument restored({1, 1});
-    const auto previous = restored.beginStroke(restored.activeLayer(), Brush{}, 0);
-    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
-    QCOMPARE(restored.recoveryData(), recovery);
-    qInfo() << "recovery SHA-256:" << QCryptographicHash::hash(recovery, QCryptographicHash::Sha256).toHex();
-    QCOMPARE(restored.snapshot()->size, QSize(128, 256));
-    QCOMPARE(restored.undoCount(), source.undoCount());
-    QCOMPARE(restored.redoCount(), source.redoCount());
-    QCOMPARE(restored.snapshot()->layers.back().name, QStringLiteral("線画 🖌"));
-    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.back().operations.back())->shape.kind, ShapeKind::Ellipse);
-    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.back().operations.back())->randomSeed, quint64(903));
-    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.back().operations.back())->inputSamples(),
-             std::get<PaintSnapshot>(source.preview()->layers.back().operations.back())->inputSamples());
-    QCOMPARE(restored.appendSamples(previous, {sample(0, 0)}), Result::StaleOperation);
-    QCOMPARE(restored.appendSamples(pending, {sample(0, 0)}), Result::StaleOperation);
-    const auto recoveredEdit = restored.activeOperation();
-    QVERIFY(!recoveredEdit.isNull());
-    QCOMPARE(restored.cancelStroke(recoveredEdit), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.back().operations.back())->inputSamples(), QList<InputSample>{sample(7, 8)});
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(!restored.isModified());
-}
-
-void KisGpuOperationDocumentTest::invalidRecoveryLeavesTheLiveDocumentUntouched()
-{
-    OperationDocument document({64, 64});
-    QVERIFY(!paint(document, {sample(1, 2)}).isNull());
-    const auto id = document.beginStroke(document.activeLayer(), Brush{}, 0);
-    QCOMPARE(document.appendSamples(id, {sample(3, 4)}), Result::Success);
-    const auto committed = document.snapshot();
-    const auto preview = document.preview();
-    const auto good = document.recoveryData();
-    QVERIFY(!good.isEmpty());
-    QList<QByteArray> damaged{{}, good.first(good.size() - 1), QByteArray(256, char(0xff))};
-    auto flipped = good;
-    flipped[flipped.size() / 2] ^= 1;
-    damaged.append(flipped);
-    for (const auto &bytes : damaged) {
-        QCOMPARE(document.restoreRecovery(bytes), Result::InvalidRecovery);
-        QCOMPARE(document.snapshot(), committed);
-        QCOMPARE(document.preview(), preview);
-        QCOMPARE(document.activeOperation(), id);
-    }
-    Limits tiny;
-    tiny.recoveryBytes = 64;
-    OperationDocument constrained({1, 1}, tiny);
-    QCOMPARE(constrained.restoreRecovery(good), Result::CapacityExceeded);
-    QVERIFY(constrained.recoveryData().isEmpty());
-}
-
-void KisGpuOperationDocumentTest::checkedRecoveryRejectsInvalidCountsAndValues()
-{
-    OperationDocument document({64, 64});
-    QVERIFY(!paint(document, {sample(1, 2)}).isNull());
-    const auto original = document.snapshot();
-    const auto good = document.recoveryData();
-    // The header operation count precedes the first paint record. Locate its
-    // sensor payload so optional painting settings do not shift the mutation.
-    QByteArray sensor;
-    QDataStream sensorStream(&sensor, QIODevice::WriteOnly);
-    sensorStream.setVersion(QDataStream::Qt_5_15);
-    sensorStream.setByteOrder(QDataStream::BigEndian);
-    sensorStream.setFloatingPointPrecision(QDataStream::DoublePrecision);
-    sensorStream << qreal(1) << qreal(2) << qreal(1) << qreal(0) << qreal(0) << qreal(0) << quint64(0);
-    const auto sensorPosition = good.indexOf(sensor);
-    QVERIFY(sensorPosition >= 0);
-    QCOMPARE(sensorPosition, good.lastIndexOf(sensor));
-    for (const int corruption : {0, 1, 2}) {
-        auto payload = good.first(good.size() - 32);
-        QBuffer buffer(&payload);
-        QVERIFY(buffer.open(QIODevice::ReadWrite));
-        QVERIFY(buffer.seek(corruption == 0 ? 50 : corruption == 1 ? sensorPosition + 16 : sensorPosition - 5));
-        QDataStream stream(&buffer);
-        stream.setVersion(QDataStream::Qt_5_15);
-        stream.setByteOrder(QDataStream::BigEndian);
-        stream.setFloatingPointPrecision(QDataStream::DoublePrecision);
-        if (corruption == 0) stream << std::numeric_limits<quint32>::max();
-        else if (corruption == 1) stream << std::numeric_limits<qreal>::quiet_NaN();
-        else stream << quint8(8);
-        buffer.close();
-        payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
-        QCOMPARE(document.restoreRecovery(payload), Result::InvalidRecovery);
-        QCOMPARE(document.snapshot(), original);
-    }
-}
-
 void KisGpuOperationDocumentTest::importedPixelsPreserveLayersAndStartWithoutUndo()
 {
     auto input = rasterImage();
@@ -4428,122 +3113,7 @@ void KisGpuOperationDocumentTest::tileReplacementSharesHistoryAndRejectsWholeReq
     QCOMPARE(document.replaceTiles(layer, {red}), Result::Closed);
 }
 
-void KisGpuOperationDocumentTest::rasterRecoveryPreservesPixelsIdentityAndPendingInput()
-{
-    auto image = rasterImage();
-    image.projectionBackground = {17, 34, 51, 128};
-    image.layers[0].pinnedToTimeline = true;
-    OperationDocument document(image);
-    QCOMPARE(document.selectLayer(1), Result::Success);
-    const RgbaTile green{{0, 0}, QByteArray::fromHex("00ff00ff").repeated(RgbaTile::ByteCount / 4)};
-    QCOMPARE(document.replaceTiles(1, {green}), Result::Success);
-    const auto replaced = document.snapshot();
-    QCOMPARE(document.markSaved(replaced), Result::Success);
-    QVERIFY(!paint(document, {sample(8, 12)}).isNull());
-    QCOMPARE(document.undo(), Result::Success);
-    const auto pending = document.beginStroke(1, Brush{}, 17);
-    QCOMPARE(document.appendSamples(pending, {sample(10, 20)}), Result::Success);
-    const auto bytes = document.recoveryData();
-    QVERIFY(!bytes.isEmpty());
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.recoveryData(), bytes);
-    QCOMPARE(restored.snapshot()->projectionBackground, image.projectionBackground);
-    QVERIFY(restored.snapshot()->layers[0].pinnedToTimeline);
-    QCOMPARE(restored.snapshot()->rasterBytes, replaced->rasterBytes);
-    QCOMPARE(restored.snapshot()->layers[0].uuid, image.layers[0].uuid);
-    QCOMPARE(restored.snapshot()->layers[0].defaultPixel, image.layers[0].defaultPixel);
-    QCOMPARE(restored.snapshot()->layers[1].uuid, image.layers[1].uuid);
-    const auto initial = std::get<TileWriteSnapshot>(restored.snapshot()->layers[1].operations.first());
-    QCOMPARE(initial->tiles.first()->rgba(), image.layers[1].tiles.first().rgba);
-    const auto current = std::get<TileWriteSnapshot>(restored.snapshot()->layers[0].operations.last());
-    QCOMPARE(current->tiles.first()->rgba(), green.rgba);
-    QVERIFY(!restored.isModified());
-    QCOMPARE(restored.undoCount(), 1);
-    QCOMPARE(restored.redoCount(), 1);
-    QCOMPARE(restored.cancelStroke(restored.activeOperation()), Result::Success);
-    QCOMPARE(restored.undo(), Result::Success);
-    const auto old = std::get<TileWriteSnapshot>(restored.snapshot()->layers[0].operations.first());
-    QCOMPARE(old->tiles.first()->rgba(), image.layers[0].tiles.first().rgba);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.snapshot()->sampleCount, qsizetype(1));
-    qInfo() << "raster recovery SHA-256:" << QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex();
-}
-
-void KisGpuOperationDocumentTest::damagedRasterRecoveryPreservesTheLiveDocument()
-{
-    OperationDocument source(rasterImage());
-    const auto good = source.recoveryData();
-    const auto originalPayload = good.first(good.size() - 32);
-    QBuffer reader;
-    reader.setData(originalPayload);
-    QVERIFY(reader.open(QIODevice::ReadOnly));
-    QVERIFY(reader.seek(46)); // magic, format, size, revisions, saved revision.
-    QDataStream input(&reader);
-    input.setVersion(QDataStream::Qt_5_15);
-    input.setByteOrder(QDataStream::BigEndian);
-    // Format 40 stores the current selection rectangle before the tile count.
-    qint32 selectionX = 0, selectionY = 0, selectionWidth = 0, selectionHeight = 0;
-    quint8 selectionInverted = 0, selectionKind = 0;
-    input >> selectionX >> selectionY >> selectionWidth >> selectionHeight >> selectionInverted >> selectionKind;
-    quint32 tileCount = 0;
-    input >> tileCount;
-    QCOMPARE(tileCount, quint32(2));
-    const auto firstTile = reader.pos();
-    for (quint32 i = 0; i < tileCount; ++i) {
-        qint32 x = 0, y = 0;
-        quint32 size = 0;
-        input >> x >> y >> size;
-        QVERIFY(reader.seek(reader.pos() + size));
-    }
-    const auto firstTileReference = reader.pos() + 4 + 25 + 4;
-    OperationDocument live({64, 64});
-    QVERIFY(!paint(live, {sample(3, 4)}).isNull());
-    const auto pending = live.beginStroke(live.activeLayer(), Brush{}, 23);
-    QCOMPARE(live.appendSamples(pending, {sample(10, 12)}), Result::Success);
-    const auto committed = live.snapshot();
-    const auto preview = live.preview();
-    const auto recovery = live.recoveryData();
-    for (int damage = 0; damage < 4; ++damage) {
-        auto payload = originalPayload;
-        QBuffer buffer(&payload);
-        QVERIFY(buffer.open(QIODevice::ReadWrite));
-        QDataStream output(&buffer);
-        output.setVersion(QDataStream::Qt_5_15);
-        output.setByteOrder(QDataStream::BigEndian);
-        if (damage == 0) {
-            QVERIFY(buffer.seek(firstTile + 8));
-            output << quint32(RasterTile::maximumCompressedBytes() + 1);
-        } else if (damage == 1) {
-            payload[firstTile + 12] ^= char(0xff); // Invalid zlib header with a valid outer digest.
-        } else if (damage == 2) {
-            QVERIFY(buffer.seek(firstTileReference));
-            output << quint32(2); // Out-of-range index in the first tile-write operation.
-        } else {
-            const auto uuid = rasterImage().layers[1].uuid.toRfc4122();
-            const auto offset = payload.indexOf(uuid);
-            QVERIFY(offset >= 0);
-            payload.replace(offset, uuid.size(), rasterImage().layers[0].uuid.toRfc4122());
-        }
-        buffer.close();
-        payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
-        QCOMPARE(live.restoreRecovery(payload), Result::InvalidRecovery);
-        QCOMPARE(live.snapshot(), committed);
-        QCOMPARE(live.preview(), preview);
-        QCOMPARE(live.activeOperation(), pending);
-        QCOMPARE(live.recoveryData(), recovery);
-    }
-    Limits limits;
-    limits.rasterBytes = RgbaTile::ByteCount;
-    OperationDocument small({64, 64}, limits);
-    const auto unchanged = small.snapshot();
-    QCOMPARE(small.restoreRecovery(good), Result::CapacityExceeded);
-    QCOMPARE(small.snapshot(), unchanged);
-}
-
-
-void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistoryAndRecovery()
+void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistory()
 {
     OperationDocument document(QSize(64, 64));
     const auto initial = document.snapshot();
@@ -4567,25 +3137,9 @@ void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistoryAndRecovery(
     QCOMPARE(document.snapshot(), initial);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), preview);
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QVERIFY(!recovered->figureStyle.outline);
-    QCOMPARE(recovered->figureStyle.fill, style.fill);
-    QCOMPARE(recovered->shape.kind, ShapeKind::Rectangle);
-    QCOMPARE(recovered->brush.rgba, brush.rgba);
-    OperationDocument previous(QSize(1, 1));
-    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 17)), Result::Success);
-    const auto previousFigure = std::get<PaintSnapshot>(previous.snapshot()->layers.first().operations.last());
-    QCOMPARE(previousFigure->figureStyle.fill, style.fill);
-    QVERIFY(!previousFigure->figureStyle.outline);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->figureStyle.fill, style.fill);
 }
 
-void KisGpuOperationDocumentTest::fractionalFillOpacityFreezesHistoryAndRecovery()
+void KisGpuOperationDocumentTest::fractionalFillOpacityFreezesHistory()
 {
     OperationDocument document(QSize(64, 64));
     Brush brush;
@@ -4604,25 +3158,12 @@ void KisGpuOperationDocumentTest::fractionalFillOpacityFreezesHistoryAndRecovery
     style.canvasOpacity = .5;
     QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers.first().operations.last())->figureStyle.canvasOpacity, originalStyle.canvasOpacity);
 
-    OperationDocument pending(QSize(1, 1));
-    QCOMPARE(pending.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(std::get<PaintSnapshot>(pending.preview()->layers.first().operations.last())->figureStyle.canvasOpacity, originalStyle.canvasOpacity);
-    QCOMPARE(std::get<PaintSnapshot>(pending.preview()->layers.first().operations.last())->brush.opacity, brush.opacity);
-    QCOMPARE(pending.commitStroke(pending.activeOperation()), Result::Success);
     QCOMPARE(document.commitStroke(id), Result::Success);
     QCOMPARE(document.undo(), Result::Success);
     QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), preview);
-    const auto good = document.recoveryData();
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(good), Result::Success);
-    QCOMPARE(restored.recoveryData(), good);
-    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->figureStyle.canvasOpacity,
-             originalStyle.canvasOpacity);
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.recoveryData(), good);
+    const auto good = document.preview();
 
     // Reject invalid inputs before changing either completed or pending history.
     for (int damage = 0; damage < 10; ++damage) {
@@ -4642,67 +3183,20 @@ void KisGpuOperationDocumentTest::fractionalFillOpacityFreezesHistoryAndRecovery
         }
         QCOMPARE(document.paintFigure(document.activeLayer(), badBrush, {sample(12, 12), sample(52, 52)},
                                       shape, bad, 42), Result::InvalidInput);
-        QCOMPARE(document.recoveryData(), good);
+        QCOMPARE(document.preview(), good);
     }
     const auto active = document.beginStroke(document.activeLayer(), brush, 43);
     QCOMPARE(document.appendSamples(active, {sample(12, 12), sample(52, 52)}), Result::Success);
-    const auto live = document.recoveryData();
+    const auto live = document.preview();
     auto bad = originalStyle;
     bad.canvasOpacity = -1;
     QCOMPARE(document.updateFigure(active, shape, bad), Result::InvalidInput);
-    QCOMPARE(document.recoveryData(), live);
+    QCOMPARE(document.preview(), live);
 
-    QByteArray marker;
-    QDataStream markerStream(&marker, QIODevice::WriteOnly);
-    markerStream.setVersion(QDataStream::Qt_5_15);
-    markerStream.setByteOrder(QDataStream::BigEndian);
-    markerStream << quint8(10);
-    for (const auto value : *originalStyle.fill) markerStream << value;
-    markerStream << quint8(LayerBlendMode::Normal) << *originalStyle.canvasOpacity;
-    const auto offset = good.indexOf(marker);
-    QVERIFY(offset >= 0);
-    QCOMPARE(offset, good.lastIndexOf(marker));
-    for (int damage = 0; damage < 9; ++damage) {
-        auto payload = good.chopped(32);
-        QBuffer buffer(&payload);
-        QVERIFY(buffer.open(QIODevice::ReadWrite));
-        QDataStream out(&buffer);
-        out.setVersion(QDataStream::Qt_5_15);
-        out.setByteOrder(QDataStream::BigEndian);
-        QVERIFY(buffer.seek(offset + 6));
-        switch (damage) {
-        case 0: out << qreal(-.1); break;
-        case 1: out << qreal(1.01); break;
-        case 2: out << std::numeric_limits<qreal>::infinity(); break;
-        case 3: out << std::numeric_limits<qreal>::quiet_NaN(); break;
-        case 4: payload[offset] |= char(1); break;
-        case 5: payload[offset] |= char(16); break;
-        case 6: payload[offset + 5] = char(LayerBlendMode::Multiply); break;
-        case 7: payload.truncate(offset + 6 + 3); break;
-        case 8: payload[5] = char(54); break;
-        }
-        buffer.close();
-        payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
-        QCOMPARE(document.restoreRecovery(payload), Result::InvalidRecovery);
-        QCOMPARE(document.recoveryData(), live);
-        QCOMPARE(document.activeOperation(), active);
-    }
     QCOMPARE(document.cancelStroke(active), Result::Success);
-
-    // A byte-opacity record has no new payload and keeps its earlier meaning.
-    FigureStyle byteStyle = originalStyle;
-    byteStyle.canvasOpacity.reset();
-    OperationDocument byteDocument(QSize(64, 64));
-    QCOMPARE(byteDocument.paintFigure(byteDocument.activeLayer(), brush, {sample(12, 12), sample(52, 52)},
-                                      shape, byteStyle, 42), Result::Success);
-    QCOMPARE(restored.restoreRecovery(legacyRecovery(byteDocument, 54)), Result::Success);
-    const auto previous = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QVERIFY(!previous->figureStyle.canvasOpacity);
-    QCOMPARE(previous->brush.opacity, brush.opacity);
-    QCOMPARE(previous->figureStyle.fill, originalStyle.fill);
 }
 
-void KisGpuOperationDocumentTest::fillBlendModesFreezeHistoryAndRecovery_data()
+void KisGpuOperationDocumentTest::fillBlendModesFreezeHistory_data()
 {
     QTest::addColumn<int>("mode");
     for (const auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken,
@@ -4716,7 +3210,7 @@ void KisGpuOperationDocumentTest::fillBlendModesFreezeHistoryAndRecovery_data()
     }
 }
 
-void KisGpuOperationDocumentTest::fillBlendModesFreezeHistoryAndRecovery()
+void KisGpuOperationDocumentTest::fillBlendModesFreezeHistory()
 {
     QFETCH(int, mode);
     OperationDocument document(QSize(64, 64));
@@ -4739,24 +3233,9 @@ void KisGpuOperationDocumentTest::fillBlendModesFreezeHistoryAndRecovery()
     QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), committed);
-
-    // Recovery persists the mode and reproduces the same record.
-    const auto recovery = document.recoveryData();
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
-    QCOMPARE(restored.recoveryData(), recovery);
-    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QCOMPARE(recovered->figureStyle.fillBlendMode, LayerBlendMode(mode));
-
-    // Records predating format 48 have no fill mode and read as Normal.
-    OperationDocument previous(QSize(1, 1));
-    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 47)), Result::Success);
-    const auto previousFill = std::get<PaintSnapshot>(previous.snapshot()->layers.first().operations.last());
-    QCOMPARE(previousFill->figureStyle.fillBlendMode, LayerBlendMode::Normal);
-    QCOMPARE(previousFill->figureStyle.fill, (std::array<quint8, 4>{221, 17, 44, 255}));
 }
 
-void KisGpuOperationDocumentTest::patternFillBlendModeFreezesHistoryAndRecovery()
+void KisGpuOperationDocumentTest::patternFillBlendModeFreezesHistory()
 {
     PatternFill pattern;
     pattern.size = QSize(2, 2);
@@ -4778,15 +3257,6 @@ void KisGpuOperationDocumentTest::patternFillBlendModeFreezesHistoryAndRecovery(
     QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), committed);
-
-    const auto recovery = document.recoveryData();
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
-    QCOMPARE(restored.recoveryData(), recovery);
-    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QVERIFY(recovered->figureStyle.pattern);
-    QCOMPARE(*recovered->figureStyle.pattern, pattern);
-    QCOMPARE(recovered->figureStyle.fillBlendMode, LayerBlendMode::Multiply);
 }
 
 void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput()
@@ -4831,7 +3301,7 @@ void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput(
     QCOMPARE(erased->figureStyle.fillBlendMode, LayerBlendMode::Normal);
 }
 
-void KisGpuOperationDocumentTest::strokeBlendModesFreezeHistoryAndRecovery_data()
+void KisGpuOperationDocumentTest::strokeBlendModesFreezeHistory_data()
 {
     QTest::addColumn<int>("mode");
     for (const auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken,
@@ -4845,7 +3315,7 @@ void KisGpuOperationDocumentTest::strokeBlendModesFreezeHistoryAndRecovery_data(
     }
 }
 
-void KisGpuOperationDocumentTest::strokeBlendModesFreezeHistoryAndRecovery()
+void KisGpuOperationDocumentTest::strokeBlendModesFreezeHistory()
 {
     QFETCH(int, mode);
     OperationDocument document(QSize(64, 64));
@@ -4879,21 +3349,6 @@ void KisGpuOperationDocumentTest::strokeBlendModesFreezeHistoryAndRecovery()
     QCOMPARE(document.snapshot(), committed);
     QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->brush.blendMode,
              LayerBlendMode(mode));
-
-    // Recovery persists the mode and reproduces the same record.
-    const auto recovery = document.recoveryData();
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
-    QCOMPARE(restored.recoveryData(), recovery);
-    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QCOMPARE(recovered->brush.blendMode, LayerBlendMode(mode));
-
-    // Records predating format 49 have no stroke mode and read as Normal.
-    OperationDocument previous(QSize(1, 1));
-    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 48)), Result::Success);
-    const auto previousStroke = std::get<PaintSnapshot>(previous.snapshot()->layers.first().operations.last());
-    QCOMPARE(previousStroke->brush.blendMode, LayerBlendMode::Normal);
-    QCOMPARE(previousStroke->brush.rgba, (std::array<quint8, 4>{221, 17, 44, 255}));
 }
 
 void KisGpuOperationDocumentTest::rejectedStrokeBlendModesPreserveHistoryAndInput()
@@ -4926,7 +3381,7 @@ void KisGpuOperationDocumentTest::rejectedStrokeBlendModesPreserveHistoryAndInpu
     QCOMPARE(document.snapshot(), initial);
 }
 
-void KisGpuOperationDocumentTest::patternFillFreezesPixelsHistoryAndRecovery()
+void KisGpuOperationDocumentTest::patternFillFreezesPixelsHistory()
 {
     PatternFill pattern;
     pattern.size = QSize(2, 2);
@@ -4958,36 +3413,9 @@ void KisGpuOperationDocumentTest::patternFillFreezesPixelsHistoryAndRecovery()
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(*std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->figureStyle.pattern,
              pattern);
-
-    // Recovery persists the frozen RGBA pixels with the same operation values.
-    const auto recovery = document.recoveryData();
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
-    QCOMPARE(restored.recoveryData(), recovery);
-    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QVERIFY(recovered->figureStyle.pattern);
-    QCOMPARE(*recovered->figureStyle.pattern, pattern);
-    QCOMPARE(restored.historyAction(1), HistoryAction::FillLayer);
-
-    // The frozen resource participates in the raster capacity limit.
-    Limits limits;
-    limits.rasterBytes = pattern.byteCount() - 1;
-    OperationDocument bounded({64, 32}, limits);
-    QCOMPARE(bounded.fillLayerPattern(bounded.activeLayer(), pattern), Result::CapacityExceeded);
-    QCOMPARE(bounded.undoCount(), 0);
-    QVERIFY(bounded.snapshot()->layers.first().operations.isEmpty());
-
-    // Pattern coverage is filled interior coverage, not an outline stroke.
-    FigureStyle style;
-    style.outline = false;
-    style.pattern = pattern;
-    Shape freehand;
-    freehand.kind = ShapeKind::Freehand;
-    QCOMPARE(document.paintFigure(layer, Brush{}, {{{1, 1}, 1}}, freehand, style, 0), Result::InvalidInput);
-    QCOMPARE(document.recoveryData(), recovery);
 }
 
-void KisGpuOperationDocumentTest::emptyFigureIntentPreservesHistoryAndRecovery()
+void KisGpuOperationDocumentTest::emptyFigureIntentPreservesHistory()
 {
     OperationDocument document(QSize(32, 32));
     const auto initial = document.snapshot();
@@ -4997,22 +3425,20 @@ void KisGpuOperationDocumentTest::emptyFigureIntentPreservesHistoryAndRecovery()
                                     {ShapeKind::Rectangle, {0, 0}, {16, 16}, 0}, style, 42), Result::Success);
     QCOMPARE(document.undoCount(), 1);
     QVERIFY(document.isModified());
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    const auto operation = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QVERIFY(!operation->figureStyle.outline);
     QVERIFY(!operation->figureStyle.fill);
-    QCOMPARE(restored.undoCount(), 1);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
-    QVERIFY(!restored.isModified());
-    QCOMPARE(restored.redo(), Result::Success);
-    QVERIFY(restored.isModified());
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.isModified());
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), initial);
 }
 
-void KisGpuOperationDocumentTest::pathsPreserveCommandsControlPointsAndRecovery()
+void KisGpuOperationDocumentTest::pathsPreserveCommandsControlPoints()
 {
     OperationDocument document(QSize(64, 64));
     const auto initial = document.snapshot();
@@ -5033,26 +3459,9 @@ void KisGpuOperationDocumentTest::pathsPreserveCommandsControlPointsAndRecovery(
     QCOMPARE(document.snapshot(), initial);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), pinned);
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    const auto operation = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QCOMPARE(operation->shape.pathCommands, shape.pathCommands);
-    QVERIFY(operation->shape.windingFill);
-    QCOMPARE(operation->inputSamples(), samples);
-    QCOMPARE(operation->figureStyle.fill, style.fill);
-    OperationDocument previous(QSize(1, 1));
-    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 18)), Result::Success);
-    const auto previousPath = std::get<PaintSnapshot>(previous.snapshot()->layers.first().operations.last());
-    QCOMPARE(previousPath->shape.pathCommands, shape.pathCommands);
-    QCOMPARE(previousPath->inputSamples(), samples);
-    QVERIFY(!previousPath->brush.pixelPerfect);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->inputSamples(), samples);
 }
 
-void KisGpuOperationDocumentTest::pathCallsRetainInputHistoryAndRecovery()
+void KisGpuOperationDocumentTest::pathCallsRetainInputHistory()
 {
     OperationDocument document(QSize(128, 128));
     const QList<InputSample> samples{{{12, 24}, .2}, {{42, 24}, .8}, {{76, 96}, 1},
@@ -5068,22 +3477,6 @@ void KisGpuOperationDocumentTest::pathCallsRetainInputHistoryAndRecovery()
     QCOMPARE(document.updateShape(stroke, shape), Result::Success);
     QVERIFY(pinned->shape.pathCalls.isEmpty());
     QCOMPARE(pinned->inputSamples(), samples);
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QVERIFY(restored.hasActiveStroke());
-    const auto recovered = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
-    QCOMPARE(recovered->shape.pathCalls, shape.pathCalls);
-    QCOMPARE(recovered->inputSamples(), samples);
-    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
-    QCOMPARE(restored.undoCount(), 1);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
-    QCOMPARE(restored.redo(), Result::Success);
-    const auto redone = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QCOMPARE(redone->shape.pathCalls, shape.pathCalls);
-    QCOMPARE(redone->inputSamples(), samples);
-    QCOMPARE(document.cancelStroke(stroke), Result::Success);
-    QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
 }
 
 void KisGpuOperationDocumentTest::invalidPathCallsPreserveTheActiveDocument_data()
@@ -5111,7 +3504,7 @@ void KisGpuOperationDocumentTest::invalidPathCallsPreserveTheActiveDocument()
     QCOMPARE(document.appendSamples(stroke, samples), Result::Success);
     QCOMPARE(document.updateShape(stroke, shape), Result::Success);
     const auto pinned = document.preview();
-    const auto recovery = document.recoveryData();
+    const auto stateBeforeRequest = document.preview();
     if (error == 0) shape.pathCalls = {{0, 6}, {2, 6}};
     else if (error == 1) shape.pathCalls = {{0, 7}};
     else if (error == 2) shape.pathCalls = {{1, 2}};
@@ -5120,7 +3513,7 @@ void KisGpuOperationDocumentTest::invalidPathCallsPreserveTheActiveDocument()
     else { shape.kind = ShapeKind::Line; shape.pathCommands.clear(); }
     QCOMPARE(document.updateShape(stroke, shape), Result::InvalidInput);
     QCOMPARE(document.preview(), pinned);
-    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.preview(), stateBeforeRequest);
     QCOMPARE(document.undoCount(), 0);
     OperationDocument empty(QSize(128, 128));
     const auto before = empty.snapshot();
@@ -5129,64 +3522,7 @@ void KisGpuOperationDocumentTest::invalidPathCallsPreserveTheActiveDocument()
     QCOMPARE(empty.undoCount(), 0);
 }
 
-void KisGpuOperationDocumentTest::legacyGaussianPathKeepsItsRecordedInput()
-{
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(LibrePaint::Image::Gpu::Test::gaussianCompoundPathRecoveryV38()), Result::Success);
-    QCOMPARE(restored.snapshot()->size, QSize(128, 128));
-    const auto operation = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QCOMPARE(operation->shape.kind, ShapeKind::Path);
-    QVERIFY(operation->shape.pathCalls.isEmpty());
-    const QList<InputSample> samples{{{12.25, 13.75}, 1}, {{105.5, 25.75}, 1},
-                                    {{18.125, 91.5}, 1}, {{112.5, 78.25}, 1}};
-    QCOMPARE(operation->inputSamples(), samples);
-    QVERIFY(operation->brush.gaussianWash);
-    // The record identifies the frozen settings XML, including its half flow.
-    QCOMPARE(operation->brush.gaussianWash->resourceDigest.toHex(), QByteArrayLiteral("1167275f113c8d34d6915343428acc1831e2f19b96ff42614d64a9c30ce6116d"));
-    OperationDocument again(QSize(1, 1));
-    QCOMPARE(again.restoreRecovery(restored.recoveryData()), Result::Success);
-    QCOMPARE(std::get<PaintSnapshot>(again.snapshot()->layers.first().operations.last())->inputSamples(), samples);
-    QCOMPARE(again.undo(), Result::Success);
-    QCOMPARE(again.redo(), Result::Success);
-}
-
-void KisGpuOperationDocumentTest::damagedPathCallRecoveryPreservesTheActiveDocument()
-{
-    OperationDocument source(QSize(128, 128)), target(QSize(128, 128));
-    Shape shape;
-    shape.kind = ShapeKind::Path;
-    shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::MoveTo, PathCommand::LineTo};
-    shape.pathCalls = {{0, 2}, {2, 4}};
-    const QList<InputSample> samples{{{12, 24}, 1}, {{42, 24}, 1}, {{76, 96}, 1}, {{112, 96}, 1}};
-    QCOMPARE(source.paintFigure(source.activeLayer(), Brush{}, samples, shape, {}, 42), Result::Success);
-    const auto stroke = target.beginStroke(target.activeLayer(), Brush{}, 7);
-    QCOMPARE(target.appendSamples(stroke, {{{16, 32}, .5}}), Result::Success);
-    const auto pinned = target.preview();
-    const auto recovery = target.recoveryData();
-    const auto payload = source.recoveryData().chopped(32);
-    QByteArray pathRecord;
-    QDataStream pathStream(&pathRecord, QIODevice::WriteOnly);
-    pathStream << quint8(0) << quint32(4) << quint8(0) << quint8(1) << quint8(0) << quint8(1)
-               << quint32(2) << quint32(0) << quint32(2) << quint32(2) << quint32(4);
-    const auto position = payload.indexOf(pathRecord);
-    QVERIFY(position >= 0 && position == payload.lastIndexOf(pathRecord));
-    const QList<QPair<qsizetype, quint32>> damage{{9, std::numeric_limits<quint32>::max()},
-                                                {13, 1}, {17, 3}, {25, 5}};
-    for (const auto &field : damage) {
-        auto corrupted = payload;
-        QByteArray word;
-        QDataStream stream(&word, QIODevice::WriteOnly);
-        stream << field.second;
-        corrupted.replace(position + field.first, 4, word);
-        corrupted.append(QCryptographicHash::hash(corrupted, QCryptographicHash::Sha256));
-        QCOMPARE(target.restoreRecovery(corrupted), Result::InvalidRecovery);
-        QCOMPARE(target.preview(), pinned);
-        QCOMPARE(target.recoveryData(), recovery);
-        QVERIFY(target.hasActiveStroke());
-    }
-}
-
-void KisGpuOperationDocumentTest::pixelCorrectionRetainsOriginalSensorsAndPendingRecovery()
+void KisGpuOperationDocumentTest::pixelCorrectionRetainsOriginalSensorsAndPendingInput()
 {
     OperationDocument document(QSize(64, 64));
     Brush brush;
@@ -5199,25 +3535,9 @@ void KisGpuOperationDocumentTest::pixelCorrectionRetainsOriginalSensorsAndPendin
     const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
     QVERIFY(pending->brush.pixelPerfect);
     QCOMPARE(pending->inputSamples(), samples);
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    const auto recovered = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
-    OperationDocument previous(QSize(1, 1));
-    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 19)), Result::Success);
-    QVERIFY(std::get<PaintSnapshot>(previous.preview()->layers.first().operations.last())->brush.pixelPerfect);
-    QVERIFY(recovered->brush.pixelPerfect);
-    QCOMPARE(recovered->inputSamples(), samples);
-    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
-    QCOMPARE(restored.undoCount(), 1);
-    const auto painted = restored.snapshot();
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.snapshot(), painted);
-    QCOMPARE(document.cancelStroke(id), Result::Success);
-    QCOMPARE(document.undoCount(), 0);
 }
 
-void KisGpuOperationDocumentTest::selectionRectIsFrozenInOperationsAndRecovery()
+void KisGpuOperationDocumentTest::selectionRectIsFrozenInOperations()
 {
     OperationDocument document(QSize(128, 128));
     QCOMPARE(document.setSelectionRect(QRect(10, 20, 30, 40)), Result::Success);
@@ -5240,38 +3560,9 @@ void KisGpuOperationDocumentTest::selectionRectIsFrozenInOperationsAndRecovery()
     QCOMPARE(operations.size(), 2);
     QCOMPARE(std::get<PaintSnapshot>(operations[0])->selectionRect, QRect(10, 20, 30, 40));
     QCOMPARE(std::get<PaintSnapshot>(operations[1])->selectionRect, QRect(50, 60, 20, 10));
-
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.selectionRect(), QRect(50, 60, 20, 10));
-    const auto &recovered = restored.snapshot()->layers.first().operations;
-    QCOMPARE(std::get<PaintSnapshot>(recovered[0])->selectionRect, QRect(10, 20, 30, 40));
-    QCOMPARE(std::get<PaintSnapshot>(recovered[1])->selectionRect, QRect(50, 60, 20, 10));
-
-    QCOMPARE(document.setSelectionRect(QRect(OperationDocument::CoordinateLimit, 0, 2, 2)), Result::InvalidInput);
-    QCOMPARE(document.selectionRect(), QRect(50, 60, 20, 10));
-    QCOMPARE(document.clearSelection(), Result::Success);
-    QVERIFY(document.selectionRect().isEmpty());
-    const auto later = document.beginStroke(document.activeLayer(), Brush{}, 3);
-    QVERIFY(!later.isNull());
-    QCOMPARE(document.appendSamples(later, {{{8, 8}, 1}}), Result::Success);
-    QCOMPARE(document.commitStroke(later), Result::Success);
-    QVERIFY(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->selectionRect.isEmpty());
-    QCOMPARE(std::get<PaintSnapshot>(recovered[0])->selectionRect, QRect(10, 20, 30, 40));
-    QCOMPARE(document.undo(), Result::Success);
-    QVERIFY(document.selectionRect().isEmpty());
-    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
-    QCOMPARE(document.undo(), Result::Success);
-    QCOMPARE(document.selectionRect(), QRect(50, 60, 20, 10));
-    QCOMPARE(document.undo(), Result::Success);
-    QCOMPARE(document.selectionRect(), QRect(50, 60, 20, 10));
-    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
-    QCOMPARE(document.redo(), Result::Success);
-    QCOMPARE(document.redo(), Result::Success);
-    QVERIFY(document.selectionRect().isEmpty());
 }
 
-void KisGpuOperationDocumentTest::invertedSelectionSurvivesRecovery()
+void KisGpuOperationDocumentTest::invertedSelectionPreservesHistory()
 {
     OperationDocument document(QSize(64, 64));
     QCOMPARE(document.setSelectionRect(QRect(8, 8, 32, 32), true), Result::Success);
@@ -5282,17 +3573,15 @@ void KisGpuOperationDocumentTest::invertedSelectionSurvivesRecovery()
     QCOMPARE(document.setSelectionRect(QRect(8, 8, 32, 32), true), Result::Success);
     QVERIFY(document.selectionInverted());
     QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.selectionRect(), QRect(8, 8, 32, 32));
-    QVERIFY(restored.selectionInverted());
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(!restored.selectionInverted());
-    QCOMPARE(restored.redo(), Result::Success);
-    QVERIFY(restored.selectionInverted());
+    QCOMPARE(document.selectionRect(), QRect(8, 8, 32, 32));
+    QVERIFY(document.selectionInverted());
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!document.selectionInverted());
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.selectionInverted());
 }
 
-void KisGpuOperationDocumentTest::ellipticalSelectionSurvivesRecovery()
+void KisGpuOperationDocumentTest::ellipticalSelectionPreservesHistory()
 {
     OperationDocument document(QSize(64, 64));
     QCOMPARE(document.setSelectionEllipse(QRect(8, 8, 32, 24)), Result::Success);
@@ -5303,26 +3592,15 @@ void KisGpuOperationDocumentTest::ellipticalSelectionSurvivesRecovery()
     QCOMPARE(document.setSelectionEllipse(QRect(8, 8, 32, 24)), Result::Success);
     QCOMPARE(document.selectionKind(), SelectionKind::Ellipse);
     QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.selectionRect(), QRect(8, 8, 32, 24));
-    QCOMPARE(restored.selectionKind(), SelectionKind::Ellipse);
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.selectionKind(), SelectionKind::Rectangle);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.selectionKind(), SelectionKind::Ellipse);
-
-    OperationDocument previous(QSize(1, 1));
-    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 43)), Result::Success);
-    QCOMPARE(previous.selectionRect(), QRect(8, 8, 32, 24));
-    QCOMPARE(previous.selectionKind(), SelectionKind::Ellipse);
-    QCOMPARE(previous.undo(), Result::Success);
-    QCOMPARE(previous.selectionKind(), SelectionKind::Rectangle);
-    QCOMPARE(previous.redo(), Result::Success);
-    QCOMPARE(previous.selectionKind(), SelectionKind::Ellipse);
+    QCOMPARE(document.selectionRect(), QRect(8, 8, 32, 24));
+    QCOMPARE(document.selectionKind(), SelectionKind::Ellipse);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.selectionKind(), SelectionKind::Rectangle);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.selectionKind(), SelectionKind::Ellipse);
 }
 
-void KisGpuOperationDocumentTest::freehandSelectionFreezesCoverageHistoryAndRecovery()
+void KisGpuOperationDocumentTest::freehandSelectionFreezesCoverageHistory()
 {
     OperationDocument document(QSize(64, 64));
     const QList<QPointF> polygon{{8, 8}, {56, 8}, {8, 56}};
@@ -5351,36 +3629,30 @@ void KisGpuOperationDocumentTest::freehandSelectionFreezesCoverageHistoryAndReco
     QCOMPARE(document.selectionKind(), SelectionKind::Freehand);
     QVERIFY(document.selectionMask() == mask);
 
-    const auto bytes = document.recoveryData();
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.selectionKind(), SelectionKind::Freehand);
-    QCOMPARE(restored.selectionRect(), mask->bounds());
-    QVERIFY(restored.selectionMask());
-    QVERIFY(*restored.selectionMask() == *mask);
-    QVERIFY(restored.selectionMask()->contains(12, 12));
-    QVERIFY(!restored.selectionMask()->contains(48, 48));
-    QCOMPARE(restored.recoveryData(), bytes);
-    const auto restoredPaint = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    const auto retainedState = document.preview();
+    QCOMPARE(document.selectionKind(), SelectionKind::Freehand);
+    QCOMPARE(document.selectionRect(), mask->bounds());
+    QVERIFY(document.selectionMask());
+    QVERIFY(*document.selectionMask() == *mask);
+    QVERIFY(document.selectionMask()->contains(12, 12));
+    QVERIFY(!document.selectionMask()->contains(48, 48));
+    QCOMPARE(document.preview(), retainedState);
+    const auto restoredPaint = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QCOMPARE(restoredPaint->selectionKind, SelectionKind::Freehand);
     QVERIFY(restoredPaint->selectionMask);
     QVERIFY(restoredPaint->selectionMask && *restoredPaint->selectionMask == *mask);
 
-    QCOMPARE(restored.setSelectionMask(mask, true), Result::Success);
-    QVERIFY(restored.selectionInverted());
-    const auto invertedBytes = restored.recoveryData();
-    OperationDocument inverted(QSize(1, 1));
-    QCOMPARE(inverted.restoreRecovery(invertedBytes), Result::Success);
-    QVERIFY(inverted.selectionInverted());
-    QVERIFY(*inverted.selectionMask() == *mask);
+    QCOMPARE(document.setSelectionMask(mask, true), Result::Success);
+    QVERIFY(document.selectionInverted());
+    QVERIFY(*document.selectionMask() == *mask);
 
-    QCOMPARE(inverted.setSelectionMask(SelectionMaskSP{}), Result::Success);
-    QVERIFY(inverted.selectionRect().isEmpty());
-    QVERIFY(!inverted.selectionMask());
-    QCOMPARE(inverted.selectionKind(), SelectionKind::Rectangle);
+    QCOMPARE(document.setSelectionMask(SelectionMaskSP{}), Result::Success);
+    QVERIFY(document.selectionRect().isEmpty());
+    QVERIFY(!document.selectionMask());
+    QCOMPARE(document.selectionKind(), SelectionKind::Rectangle);
 }
 
-void KisGpuOperationDocumentTest::featheredSelectionAddsAlphaHistoryAndRecovery()
+void KisGpuOperationDocumentTest::featheredSelectionAddsAlphaHistory()
 {
     const QRect clip(QPoint(), QSize(96, 96));
     OperationDocument document(QSize(96, 96));
@@ -5394,7 +3666,6 @@ void KisGpuOperationDocumentTest::featheredSelectionAddsAlphaHistoryAndRecovery(
     const auto soft = hard->feathered(6, clip);
     QVERIFY(soft);
     QVERIFY(soft->isAlpha());
-    QCOMPARE(soft->format(), SelectionMask::CoverageFormat::Alpha);
     QCOMPARE(soft->bounds(), QRect(10, 10, 76, 76));
     QCOMPARE(soft->coverage(48, 48), 255);
     const quint8 edge = soft->coverage(16, 48);
@@ -5432,41 +3703,35 @@ void KisGpuOperationDocumentTest::featheredSelectionAddsAlphaHistoryAndRecovery(
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.undoCount(), 3);
 
-    // Recovery preserves both representations, their order and the frozen stroke.
-    const auto bytes = document.recoveryData();
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QVERIFY(restored.selectionMask());
-    QVERIFY(restored.selectionMask()->isAlpha());
-    QVERIFY(*restored.selectionMask() == *soft);
-    QCOMPARE(restored.selectionMask()->coverage(10, 48), outer);
-    QCOMPARE(restored.recoveryData(), bytes);
-    const auto restoredPaint = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    // Retained versions preserve both representations and the frozen stroke.
+    const auto retainedState = document.preview();
+    QVERIFY(document.selectionMask());
+    QVERIFY(document.selectionMask()->isAlpha());
+    QVERIFY(*document.selectionMask() == *soft);
+    QCOMPARE(document.selectionMask()->coverage(10, 48), outer);
+    QCOMPARE(document.preview(), retainedState);
+    const auto restoredPaint = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QVERIFY(restoredPaint->selectionMask);
     QVERIFY(restoredPaint->selectionMask->isAlpha());
     QVERIFY(*restoredPaint->selectionMask == *soft);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(restored.selectionMask());
-    QVERIFY(restored.selectionMask()->isAlpha());
-    QVERIFY(*restored.selectionMask() == *soft);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(restored.selectionMask());
-    QVERIFY(!restored.selectionMask()->isAlpha());
-    QVERIFY(*restored.selectionMask() == *hard);
-    QCOMPARE(restored.redo(), Result::Success);
-    QVERIFY(restored.selectionMask()->isAlpha());
-    QVERIFY(*restored.selectionMask() == *soft);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.selectionMask());
+    QVERIFY(document.selectionMask()->isAlpha());
+    QVERIFY(*document.selectionMask() == *soft);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.selectionMask());
+    QVERIFY(!document.selectionMask()->isAlpha());
+    QVERIFY(*document.selectionMask() == *hard);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.selectionMask()->isAlpha());
+    QVERIFY(*document.selectionMask() == *soft);
 
     // An inverted alpha selection keeps its fractional coverage and flag.
-    QCOMPARE(restored.setSelectionMask(soft, true), Result::Success);
-    QVERIFY(restored.selectionInverted());
-    const auto invertedBytes = restored.recoveryData();
-    OperationDocument inverted(QSize(1, 1));
-    QCOMPARE(inverted.restoreRecovery(invertedBytes), Result::Success);
-    QVERIFY(inverted.selectionInverted());
-    QVERIFY(inverted.selectionMask()->isAlpha());
-    QVERIFY(*inverted.selectionMask() == *soft);
-    QCOMPARE(inverted.historyAction(inverted.undoCount()), HistoryAction::ChangeSelection);
+    QCOMPARE(document.setSelectionMask(soft, true), Result::Success);
+    QVERIFY(document.selectionInverted());
+    QVERIFY(document.selectionMask()->isAlpha());
+    QVERIFY(*document.selectionMask() == *soft);
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::ChangeSelection);
 }
 
 void KisGpuOperationDocumentTest::basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent()
@@ -5492,32 +3757,21 @@ void KisGpuOperationDocumentTest::basicSmoothingRetainsIdleBoundariesSensorsAndF
     QCOMPARE(pending->smoothingFlushes, QList<qsizetype>{2});
     QVERIFY(!pending->smoothingFinished);
     QCOMPARE(document.undoCount(), 0);
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    const auto recovered = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
-    QVERIFY(recovered->brush.basicSmoothing);
-    QCOMPARE(recovered->inputSamples(), samples);
-    QCOMPARE(recovered->smoothingFlushes, pending->smoothingFlushes);
-    QVERIFY(!recovered->smoothingFinished);
-    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
-    const auto final = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QVERIFY(pending->brush.basicSmoothing);
+    QCOMPARE(document.commitStroke(document.activeOperation()), Result::Success);
+    const auto final = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QVERIFY(final->smoothingFinished);
     QVERIFY(!pending->smoothingFinished);
     QCOMPARE(final->inputSamples(), samples);
     QCOMPARE(final->smoothingFlushes, pending->smoothingFlushes);
-    QCOMPARE(restored.undoCount(), 1);
-    const auto painted = restored.snapshot();
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.snapshot(), painted);
-    OperationDocument completed(QSize(1, 1));
-    QCOMPARE(completed.restoreRecovery(restored.recoveryData()), Result::Success);
-    QVERIFY(std::get<PaintSnapshot>(completed.snapshot()->layers.first().operations.last())->smoothingFinished);
-    QCOMPARE(document.cancelStroke(id), Result::Success);
-    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.undoCount(), 1);
+    const auto painted = document.snapshot();
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), painted);
 }
 
-void KisGpuOperationDocumentTest::weightedSmoothingRetainsFrozenSettingsSpeedAndRecovery()
+void KisGpuOperationDocumentTest::weightedSmoothingRetainsFrozenSettingsSpeed()
 {
     OperationDocument document(QSize(64, 64));
     Brush brush;
@@ -5533,32 +3787,26 @@ void KisGpuOperationDocumentTest::weightedSmoothingRetainsFrozenSettingsSpeedAnd
     brush.weightedSmoothing->distanceMax = 96;
     QCOMPARE(operation->brush.weightedSmoothing->distanceMax, 48.0);
     QCOMPARE(operation->inputSamples(), samples);
-    const auto beforeInvalid = document.recoveryData();
     for (const auto speed : {-0.1, 1.1, std::numeric_limits<qreal>::quiet_NaN()}) {
         auto invalid = samples.last();
         invalid.speed = speed;
         QCOMPARE(document.appendSamples(id, {invalid}), Result::InvalidInput);
         QCOMPARE(document.preview(), pinned);
-        QCOMPARE(document.recoveryData(), beforeInvalid);
     }
     QCOMPARE(document.flushSmoothing(id), Result::Success);
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    const auto recovered = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
-    QCOMPARE(recovered->inputSamples(), samples);
-    QVERIFY(recovered->brush == operation->brush);
-    QCOMPARE(recovered->smoothingFlushes, QList<qsizetype>{2});
-    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
-    QCOMPARE(restored.undoCount(), 1);
-    const auto painted = restored.snapshot();
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.snapshot(), painted);
+    const auto retained = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QCOMPARE(retained->inputSamples(), samples);
+    QVERIFY(retained->brush == operation->brush);
+    QCOMPARE(retained->smoothingFlushes, QList<qsizetype>{2});
+    QCOMPARE(document.commitStroke(document.activeOperation()), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    const auto painted = document.snapshot();
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), painted);
     QVERIFY(!operation->smoothingFinished);
     QCOMPARE(operation->inputSamples(), samples);
-    QCOMPARE(document.cancelStroke(id), Result::Success);
-    QCOMPARE(document.undoCount(), 0);
-    const auto original = document.recoveryData();
+    const auto original = document.preview();
     for (int invalid = 0; invalid < 5; ++invalid) {
         auto rejected = operation->brush;
         if (invalid == 0) rejected.basicSmoothing = false;
@@ -5567,25 +3815,18 @@ void KisGpuOperationDocumentTest::weightedSmoothingRetainsFrozenSettingsSpeedAnd
         if (invalid == 3) rejected.weightedSmoothing->distanceMax = std::numeric_limits<qreal>::infinity();
         if (invalid == 4) rejected.weightedSmoothing->tailAggressiveness = 1.1;
         QVERIFY(document.beginStroke(document.activeLayer(), rejected, 7).isNull());
-        QCOMPARE(document.recoveryData(), original);
+        QCOMPARE(document.preview(), original);
     }
-    // Version 20 has no drawing-speed field; its existing input defaults to zero.
-    OperationDocument previous(QSize(64, 64));
-    const auto plain = previous.beginStroke(previous.activeLayer(), Brush{}, 7);
-    QCOMPARE(previous.appendSamples(plain, {{{8, 16}, 1}, {{12, 20}, 0.8}}), Result::Success);
-    QCOMPARE(previous.commitStroke(plain), Result::Success);
-    QCOMPARE(document.restoreRecovery(legacyRecovery(previous, 20)), Result::Success);
-    QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->inputSamples().last().speed, 0.0);
 }
 
 void KisGpuOperationDocumentTest::basicSmoothingRejectsConflictingModesAndShapeChanges()
 {
     OperationDocument document(QSize(64, 64));
-    const auto original = document.recoveryData();
+    const auto original = document.preview();
     Brush brush;
     brush.basicSmoothing = brush.pixelPerfect = true;
     QVERIFY(document.beginStroke(document.activeLayer(), brush, 7).isNull());
-    QCOMPARE(document.recoveryData(), original);
+    QCOMPARE(document.preview(), original);
     brush.pixelPerfect = false;
     const auto id = document.beginStroke(document.activeLayer(), brush, 7);
     QCOMPARE(document.appendSamples(id, {{{8, 32}, 1}, {{32, 8}, 1}}), Result::Success);
@@ -5601,57 +3842,7 @@ void KisGpuOperationDocumentTest::basicSmoothingRejectsConflictingModesAndShapeC
     QCOMPARE(document.cancelStroke(plain), Result::Success);
 }
 
-void KisGpuOperationDocumentTest::damagedSmoothingRecoveryPreservesTheActiveDocument()
-{
-    OperationDocument document(QSize(64, 64));
-    Brush brush;
-    brush.basicSmoothing = true;
-    const auto id = document.beginStroke(document.activeLayer(), brush, 7);
-    QCOMPARE(document.appendSamples(id, {{{8, 32}, 1}, {{32, 8}, 1}}), Result::Success);
-    QCOMPARE(document.flushSmoothing(id), Result::Success);
-    QCOMPARE(document.appendSamples(id, {{{56, 32}, 1}}), Result::Success);
-    QCOMPARE(document.flushSmoothing(id), Result::Success);
-    const auto original = document.recoveryData();
-    const auto snapshot = document.snapshot();
-    const auto preview = document.preview();
-    QByteArray prefix;
-    QDataStream prefixStream(&prefix, QIODevice::WriteOnly);
-    prefixStream << quint8(2) << quint32(2) << quint32(2) << quint32(3) << quint32(3) << qreal(8) << qreal(32);
-    const auto position = original.indexOf(prefix);
-    QVERIFY(position >= 0);
-    QCOMPARE(position, original.lastIndexOf(prefix));
-    for (const int corruption : {0, 1, 2, 3, 4, 5}) {
-        auto payload = original.chopped(32);
-        QBuffer buffer(&payload);
-        QVERIFY(buffer.open(QIODevice::ReadWrite));
-        QVERIFY(buffer.seek(position + (corruption < 2 ? 0 : corruption == 2 ? 1 : corruption == 3 ? 5 : 9)));
-        QDataStream stream(&buffer);
-        if (corruption == 0) stream << quint8(3);
-        else if (corruption == 1) stream << quint8(6);
-        else if (corruption == 2) stream << std::numeric_limits<quint32>::max();
-        else stream << quint32(corruption == 3 ? 0 : corruption == 4 ? 2 : 4);
-        buffer.close();
-        payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
-        QCOMPARE(document.restoreRecovery(payload), Result::InvalidRecovery);
-        QCOMPARE(document.snapshot(), snapshot);
-        QCOMPARE(document.preview(), preview);
-        QCOMPARE(document.activeOperation(), id);
-    }
-    OperationDocument completed(QSize(1, 1));
-    QCOMPARE(completed.restoreRecovery(original), Result::Success);
-    QCOMPARE(completed.commitStroke(completed.activeOperation()), Result::Success);
-    auto payload = completed.recoveryData().chopped(32);
-    prefix[0] = char(6);
-    const auto finalPosition = payload.indexOf(prefix);
-    QVERIFY(finalPosition >= 0);
-    payload[finalPosition] = char(2);
-    payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
-    QCOMPARE(document.restoreRecovery(payload), Result::InvalidRecovery);
-    QCOMPARE(document.snapshot(), snapshot);
-    QCOMPARE(document.preview(), preview);
-}
-
-void KisGpuOperationDocumentTest::emptyPathsPreserveHistoryAndPendingRecovery()
+void KisGpuOperationDocumentTest::emptyPathsPreserveHistoryAndPendingInput()
 {
     OperationDocument document(QSize(64, 64));
     Shape shape;
@@ -5659,28 +3850,22 @@ void KisGpuOperationDocumentTest::emptyPathsPreserveHistoryAndPendingRecovery()
     QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, {}, shape, FigureStyle{}, 42), Result::Success);
     QCOMPARE(document.undoCount(), 1);
     QVERIFY(document.isModified());
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.undoCount(), 1);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(!restored.isModified());
-    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.redo(), Result::Success);
     const auto id = document.beginStroke(document.activeLayer(), Brush{}, 43);
     QVERIFY(!id.isNull());
     QCOMPARE(document.updateFigure(id, shape, FigureStyle{}), Result::Success);
-    OperationDocument pending(QSize(1, 1));
-    QCOMPARE(pending.restoreRecovery(document.recoveryData()), Result::Success);
-    QVERIFY(!pending.activeOperation().isNull());
-    QCOMPARE(std::get<PaintSnapshot>(pending.preview()->layers.first().operations.last())->shape.kind, ShapeKind::Path);
-    QCOMPARE(pending.cancelStroke(pending.activeOperation()), Result::Success);
-    QCOMPARE(pending.undoCount(), 1);
+    QVERIFY(!document.activeOperation().isNull());
+    QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers.first().operations.last())->shape.kind, ShapeKind::Path);
+    QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.cancelStroke(id), Result::Success);
 }
 
 void KisGpuOperationDocumentTest::invalidPathsPreserveHistoryAndInputBudgets()
 {
     OperationDocument document(QSize(64, 64));
-    const auto before = document.recoveryData();
+    const auto before = document.preview();
     Shape shape;
     shape.kind = ShapeKind::Path;
     shape.pathCommands = {PathCommand::LineTo};
@@ -5693,20 +3878,20 @@ void KisGpuOperationDocumentTest::invalidPathsPreserveHistoryAndInputBudgets()
     shape.kind = ShapeKind::Line;
     shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo};
     QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, samples.first(2), shape, FigureStyle{}, 42), Result::InvalidInput);
-    QCOMPARE(document.recoveryData(), before);
+    QCOMPARE(document.preview(), before);
     QVERIFY(document.activeOperation().isNull());
     Limits limits;
     limits.samplesPerStroke = limits.samplesPerDocument = 3;
     OperationDocument bounded(QSize(64, 64), limits);
-    const auto boundedBefore = bounded.recoveryData();
+    const auto boundedBefore = bounded.preview();
     shape.kind = ShapeKind::Path;
     shape.pathCommands = {PathCommand::MoveTo, PathCommand::CubicTo};
     QCOMPARE(bounded.paintFigure(bounded.activeLayer(), Brush{}, samples, shape, FigureStyle{}, 42), Result::CapacityExceeded);
-    QCOMPARE(bounded.recoveryData(), boundedBefore);
+    QCOMPARE(bounded.preview(), boundedBefore);
     QVERIFY(bounded.activeOperation().isNull());
 }
 
-void KisGpuOperationDocumentTest::gaussianWashSettingsSurviveHistoryAndRecovery()
+void KisGpuOperationDocumentTest::gaussianWashSettingsSurviveHistory()
 {
     OperationDocument document(QSize(128, 128));
     Brush brush;
@@ -5730,15 +3915,12 @@ void KisGpuOperationDocumentTest::gaussianWashSettingsSurviveHistoryAndRecovery(
     brush.gaussianWash->flow = 1;
     const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QVERIFY(operation->brush.gaussianWash == std::optional<GaussianWash>(settings));
-    const auto record = document.recoveryData();
-    QVERIFY(!record.isEmpty());
+    const auto retainedState = document.preview();
     QCOMPARE(document.undo(), Result::Success);
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
-    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
-    QVERIFY(recovered->brush == operation->brush);
-    QCOMPARE(restored.recoveryData(), record);
+    QCOMPARE(document.redo(), Result::Success);
+    const auto retained = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
+    QVERIFY(retained->brush == operation->brush);
+    QCOMPARE(document.preview(), retainedState);
 }
 
 void KisGpuOperationDocumentTest::stationaryGaussianCommitInvalidatesPendingPixelsAndRetainsInput_data()
@@ -5763,24 +3945,20 @@ void KisGpuOperationDocumentTest::stationaryGaussianCommitInvalidatesPendingPixe
     QCOMPARE(document.appendSamples(id, input), Result::Success);
     const auto pending = document.preview();
     const auto operation = std::get<PaintSnapshot>(pending->layers.first().operations.last());
-    const auto record = document.recoveryData();
-    OperationDocument recovered(QSize(1, 1));
-    QCOMPARE(recovered.restoreRecovery(record), Result::Success);
-    for (auto *value : {&document, &recovered}) {
-        const auto intent = value->preview();
-        const auto before = std::get<PaintSnapshot>(intent->layers.first().operations.last());
-        QCOMPARE(value->commitStroke(value->activeOperation()), Result::Success);
-        const auto after = std::get<PaintSnapshot>(value->snapshot()->layers.first().operations.last());
-        // Pixel caches distinguish the empty pending stroke from its final tap
-        // by the operation version, while retained input remains immutable.
-        QVERIFY(after->version > before->version);
-        QCOMPARE(after->id, before->id);
-        QCOMPARE(after->inputSamples(), input);
-        QCOMPARE(before->inputSamples(), input);
-        QCOMPARE(intent->pendingOperation(), before->id);
-        QVERIFY(value->snapshot()->pendingOperation().isNull());
-        QCOMPARE(value->undoCount(), 1);
-    }
+    const auto intent = document.preview();
+    const auto before = std::get<PaintSnapshot>(intent->layers.first().operations.last());
+    QCOMPARE(document.commitStroke(document.activeOperation()), Result::Success);
+    const auto after = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
+    // Pixel caches distinguish the empty pending stroke from its final tap
+    // by the operation version, while retained input remains immutable.
+    QVERIFY(after->version > before->version);
+    QCOMPARE(after->id, before->id);
+    QCOMPARE(after->inputSamples(), input);
+    QCOMPARE(before->inputSamples(), input);
+    QCOMPARE(intent->pendingOperation(), before->id);
+    QVERIFY(document.snapshot()->pendingOperation().isNull());
+    QCOMPARE(document.undoCount(), 1);
+
     QCOMPARE(operation->inputSamples(), input);
     QCOMPARE(pending->pendingOperation(), id);
     QCOMPARE(document.undo(), Result::Success);
@@ -5788,7 +3966,7 @@ void KisGpuOperationDocumentTest::stationaryGaussianCommitInvalidatesPendingPixe
     QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->inputSamples(), input);
 }
 
-void KisGpuOperationDocumentTest::transparencyMaskHistoryCompositionAndRecovery()
+void KisGpuOperationDocumentTest::transparencyMaskHistoryComposition()
 {
     const QSize size(64, 64);
     const QRect clip(QPoint(), size);
@@ -5841,37 +4019,35 @@ void KisGpuOperationDocumentTest::transparencyMaskHistoryCompositionAndRecovery(
     QVERIFY(!document.layerTransparencyMask(layer));
     QCOMPARE(document.undoCount(), 5);
 
-    // Recovery retains masks on every version, their visibility and the
+    // History retains masks on every version, their visibility and the
     // add/toggle/remove history actions.
-    const auto bytes = document.recoveryData();
-    OperationDocument restored(size);
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.undoCount(), 5);
-    QCOMPARE(restored.redoCount(), 0);
-    QVERIFY(!restored.layerTransparencyMask(restored.snapshot()->layers.first().id));
-    QCOMPARE(restored.historyAction(2), HistoryAction::AddTransparencyMask);
-    QCOMPARE(restored.historyAction(3), HistoryAction::PaintStroke);
-    QCOMPARE(restored.historyAction(4), HistoryAction::ChangeMaskVisibility);
-    QCOMPARE(restored.historyAction(5), HistoryAction::RemoveTransparencyMask);
-    QCOMPARE(restored.undo(), Result::Success);
-    const auto restoredLayer = restored.snapshot()->layers.first().id;
-    QVERIFY(restored.layerTransparencyMask(restoredLayer));
-    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *mask);
-    QVERIFY(!restored.layerTransparencyMaskVisible(restoredLayer));
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(restored.layerTransparencyMaskVisible(restoredLayer));
-    QCOMPARE(restored.undo(), Result::Success);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(!restored.layerTransparencyMask(restoredLayer));
-    QCOMPARE(restored.redo(), Result::Success);
-    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *mask);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
-    QVERIFY(!restored.layerTransparencyMaskVisible(restoredLayer));
-    QCOMPARE(restored.redo(), Result::Success);
-    QVERIFY(!restored.layerTransparencyMask(restoredLayer));
-    QCOMPARE(restored.undoCount(), 5);
-    QCOMPARE(restored.recoveryData(), bytes);
+    const auto retainedState = document.preview();
+    QCOMPARE(document.undoCount(), 5);
+    QCOMPARE(document.redoCount(), 0);
+    QVERIFY(!document.layerTransparencyMask(document.snapshot()->layers.first().id));
+    QCOMPARE(document.historyAction(2), HistoryAction::AddTransparencyMask);
+    QCOMPARE(document.historyAction(3), HistoryAction::PaintStroke);
+    QCOMPARE(document.historyAction(4), HistoryAction::ChangeMaskVisibility);
+    QCOMPARE(document.historyAction(5), HistoryAction::RemoveTransparencyMask);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto restoredLayer = document.snapshot()->layers.first().id;
+    QVERIFY(document.layerTransparencyMask(restoredLayer));
+    QVERIFY(*document.layerTransparencyMask(restoredLayer) == *mask);
+    QVERIFY(!document.layerTransparencyMaskVisible(restoredLayer));
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.layerTransparencyMaskVisible(restoredLayer));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!document.layerTransparencyMask(restoredLayer));
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(*document.layerTransparencyMask(restoredLayer) == *mask);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(!document.layerTransparencyMaskVisible(restoredLayer));
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(!document.layerTransparencyMask(restoredLayer));
+    QCOMPARE(document.undoCount(), 5);
+    QCOMPARE(document.preview(), retainedState);
 }
 
 void KisGpuOperationDocumentTest::transparencyMaskFollowsLayerCrop()
@@ -6009,7 +4185,7 @@ void KisGpuOperationDocumentTest::transparencyMaskFromSelectionShapesAndRejectio
     }
 }
 
-void KisGpuOperationDocumentTest::transparencyMaskCoverageReplacementSurvivesRecovery()
+void KisGpuOperationDocumentTest::transparencyMaskCoverageReplacementPreservesHistory()
 {
     const QSize size(96, 96);
     const QRect clip(QPoint(), size);
@@ -6056,23 +4232,21 @@ void KisGpuOperationDocumentTest::transparencyMaskCoverageReplacementSurvivesRec
     QCOMPARE(document.redo(), Result::Success);
     QVERIFY(document.layerTransparencyMask(layer) == original);
 
-    const auto bytes = document.recoveryData();
-    OperationDocument restored(size);
-    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
-    QCOMPARE(restored.undoCount(), document.undoCount());
-    const auto restoredLayer = restored.snapshot()->layers.first().id;
-    QVERIFY(restored.layerTransparencyMask(restoredLayer));
-    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *original);
-    QCOMPARE(restored.historyAction(undoBefore + 1), HistoryAction::PaintStroke);
-    QCOMPARE(restored.historyAction(undoBefore + 2), HistoryAction::FillLayer);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *edited);
-    QCOMPARE(restored.undo(), Result::Success);
-    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *original);
-    QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
-    QVERIFY(*restored.layerTransparencyMask(restoredLayer) == *original);
-    QCOMPARE(restored.recoveryData(), bytes);
+    const auto retainedState = document.preview();
+    QCOMPARE(document.undoCount(), document.undoCount());
+    const auto restoredLayer = document.snapshot()->layers.first().id;
+    QVERIFY(document.layerTransparencyMask(restoredLayer));
+    QVERIFY(*document.layerTransparencyMask(restoredLayer) == *original);
+    QCOMPARE(document.historyAction(undoBefore + 1), HistoryAction::PaintStroke);
+    QCOMPARE(document.historyAction(undoBefore + 2), HistoryAction::FillLayer);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(*document.layerTransparencyMask(restoredLayer) == *edited);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(*document.layerTransparencyMask(restoredLayer) == *original);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(*document.layerTransparencyMask(restoredLayer) == *original);
+    QCOMPARE(document.preview(), retainedState);
 }
 
 void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument()
@@ -6081,7 +4255,7 @@ void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument
     Brush brush;
     brush.gaussianWash.emplace();
     brush.gaussianWash->resourceDigest = QByteArray(32, 'r');
-    const auto before = document.recoveryData();
+    const auto before = document.preview();
     for (int invalid = 0; invalid < 8; ++invalid) {
         auto bad = brush;
         switch (invalid) {
@@ -6095,7 +4269,7 @@ void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument
         case 7: bad.gaussianWash->opacityPressure.append(1); break;
         }
         QVERIFY(document.beginStroke(document.activeLayer(), bad, 1789).isNull());
-        QCOMPARE(document.recoveryData(), before);
+        QCOMPARE(document.preview(), before);
     }
 }
 

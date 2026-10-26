@@ -642,12 +642,7 @@ void KisGpuPixelReadbackTest::integerTranslationPreservesRgbaAcrossTileBoundarie
     QVERIFY2(shiftedPaint.code == ExecutionCode::Success, qPrintable(shiftedPaint.diagnostic));
     QCOMPARE(shiftedPaint.bytes, original.bytes);
     QCOMPARE(execution.readRgbaPixels(handle, final, {158, 11, 1, 1}, layer, 4).bytes, QByteArray::fromHex("44556600"));
-    OperationDocument restored(QSize(1, 1));
-    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    QCOMPARE(execution.replaceDocument(handle, restored.snapshot()).code, ExecutionCode::Success);
-    const auto recovered = execution.readRgbaPixels(handle, restored.snapshot(), patch.translated(171, -7), restored.activeLayer(), 100);
-    QVERIFY2(recovered.code == ExecutionCode::Success, qPrintable(recovered.diagnostic));
-    QCOMPARE(recovered.bytes, original.bytes);
+
 }
 
 void KisGpuPixelReadbackTest::boundsReusePixelsRetainedByTheDisplayedFrame()

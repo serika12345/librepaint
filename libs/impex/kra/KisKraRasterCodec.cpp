@@ -933,18 +933,17 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
 MetadataOutcome RasterCodec::readImageMetadata(const QByteArray &bytes, const QMap<QString, QByteArray> &files, Limits limits)
 {
     const auto validated = validateMetadata(bytes, files, limits);
-    if (validated.code != Status::Success) return {validated.code, {}, validated.diagnostic, {}};
+    if (validated.code != Status::Success) return {validated.code, {}, validated.diagnostic};
     QDomDocument xml;
     QDomElement image;
     if (bytes.isEmpty()) image = createDescription(xml);
     else description(bytes, xml, image);
     ImageMetadata metadata;
     const auto extracted = extractMetadata(image, files, limits, metadata);
-    if (extracted.code != Status::Success) return {extracted.code, {}, extracted.diagnostic, {}};
+    if (extracted.code != Status::Success) return {extracted.code, {}, extracted.diagnostic};
     QList<QDomElement> elements;
     const auto collected = collectLayerElements(image.firstChildElement(QStringLiteral("layers")), limits.layers, elements);
-    if (collected.code != Status::Success) return {collected.code, {}, collected.diagnostic, {}};
-    QHash<QUuid, int> labels;
+    if (collected.code != Status::Success) return {collected.code, {}, collected.diagnostic};
     const QString rootXmp = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/.xmp.metadata");
     if (files.contains(rootXmp)) metadata.rootLayerXmp = files.value(rootXmp);
     metadata.layerXmp.emplace();
@@ -952,13 +951,12 @@ MetadataOutcome RasterCodec::readImageMetadata(const QByteArray &bytes, const QM
     for (const auto &element : elements) {
         const QUuid uuid(element.attribute(QStringLiteral("uuid")));
         if (!uuid.isNull()) {
-            labels.insert(uuid, element.attribute(QStringLiteral("colorlabel"), QStringLiteral("0")).toInt());
             metadata.layerCollapsed->insert(uuid, element.attribute(QStringLiteral("collapsed"), QStringLiteral("0")) != QLatin1String("0"));
             const QString path = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename")) + QStringLiteral(".xmp.metadata");
             if (files.contains(path)) metadata.layerXmp->insert(uuid, files.value(path));
         }
     }
-    return {Status::Success, std::move(metadata), {}, std::move(labels)};
+    return {Status::Success, std::move(metadata), {}};
 }
 
 LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)

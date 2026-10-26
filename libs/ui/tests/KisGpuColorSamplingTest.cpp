@@ -124,9 +124,7 @@ private Q_SLOTS:
         QTest::newRow("blend-current-color-rgb16") << true << true << QStringLiteral("rgb16") << 255 << true << 50 << 1;
         QTest::newRow("materialized-rgb") << true << true << QStringLiteral("colorful") << 255 << true << 100 << 1;
         QTest::newRow("blend-materialized-rgb") << true << true << QStringLiteral("colorful") << 255 << true << 50 << 1;
-        QTest::newRow("recover-on-raw-color") << true << true << QStringLiteral("recover-raw") << 255 << true << 100 << 1;
         QTest::newRow("close-on-raw-color") << true << true << QStringLiteral("close-raw") << 255 << true << 100 << 1;
-        QTest::newRow("recover-before-release") << true << true << QStringLiteral("recover-release") << 255 << true << 100 << 1;
         QTest::newRow("average-layer-foreground") << true << true << QStringLiteral("average") << 255 << true << 100 << 3;
         QTest::newRow("average-layer-background") << true << false << QStringLiteral("average") << 255 << true << 100 << 3;
         QTest::newRow("average-merged-foreground") << false << true << QStringLiteral("average") << 255 << true << 100 << 3;
@@ -293,18 +291,6 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         });
     } else if (transition == QStringLiteral("close-raw")) {
         connect(helper.get(), &KisAsyncColorSamplerHelper::sigRawColorSelected, helper.get(), [&] { owner->close(); });
-    } else if (transition == QStringLiteral("recover-raw")) {
-        connect(helper.get(), &KisAsyncColorSamplerHelper::sigRawColorSelected, helper.get(), [&] {
-            auto recovered = raster;
-            recovered.layers[1].defaultPixel = {42, 90, 200, 255};
-            recovered.layers[1].opacity = 255;
-            Gpu::OperationDocument replacement(recovered);
-            QCOMPARE(owner->restoreRecovery(replacement.recoveryData()), Gpu::Result::Success);
-            expectedVersion = owner->operations().snapshot();
-            expectedPixels = pixels();
-            history = lifetime->undoStack()->count();
-            modified = lifetime->isModified();
-        });
     } else if (transition == QStringLiteral("replace-raw")) {
         connect(helper.get(), &KisAsyncColorSamplerHelper::sigRawColorSelected, helper.get(), [&] {
             Gpu::RasterImage replacement;
@@ -327,19 +313,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
             modified = lifetime->isModified();
             expectedPixels = pixels();
         }
-        if (transition == QStringLiteral("recover-release")) {
-            QTRY_COMPARE(selected.size(), 1);
-            QCOMPARE(finished.size(), 0);
-            auto recovered = raster;
-            recovered.layers[1].defaultPixel = {42, 90, 200, 255};
-            recovered.layers[1].opacity = 255;
-            Gpu::OperationDocument replacement(recovered);
-            QCOMPARE(owner->restoreRecovery(replacement.recoveryData()), Gpu::Result::Success);
-            expectedVersion = owner->operations().snapshot();
-            expectedPixels = pixels();
-            history = lifetime->undoStack()->count();
-            modified = lifetime->isModified();
-        }
+
         helper->endAction();
     } catch (const std::exception &exception) {
         error = QString::fromUtf8(exception.what());
@@ -388,15 +362,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         QCOMPARE(owner->operations().snapshot(), before);
         return;
     }
-    if (transition == QStringLiteral("recover-release")) {
-        QCOMPARE(raw.size(), 1);
-        QCOMPARE(selected.size(), 1);
-        QCOMPARE(finished.size(), 0);
-        QCOMPARE(resources->fgColor(), KoColor(QColor(126, 126, 126), cs));
-        QCOMPARE(owner->operations().snapshot(), expectedVersion);
-        QCOMPARE(pixels(), expectedPixels);
-        return;
-    }
+
     if (transition == QStringLiteral("close-raw")) {
         QTRY_COMPARE(raw.size(), 1);
         QCOMPARE(selected.size(), 0);
@@ -404,7 +370,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         QCOMPARE(owner->handle(), 0);
         return;
     }
-    if (transition == QStringLiteral("destroy") || transition == QStringLiteral("replace-raw") || transition == QStringLiteral("recover-raw")) {
+    if (transition == QStringLiteral("destroy") || transition == QStringLiteral("replace-raw")) {
         QTRY_COMPARE(raw.size(), 1);
         if (transition == QStringLiteral("destroy")) QVERIFY(!helper);
         QCOMPARE(raw.size(), 1);

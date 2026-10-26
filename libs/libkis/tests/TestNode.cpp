@@ -398,26 +398,6 @@ try
     QVERIFY(copy);
     QCOMPARE(copy->position(), position);
     QCOMPARE(copy->pixelData(region.x(), region.y(), region.width(), region.height()), expected);
-    if (gpu) {
-        QString diagnostic;
-        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
-        QVERIFY2(execution, qPrintable(diagnostic));
-        auto recoveredOwner = Gpu::PaintImageSP::create(execution, QSize(1, 1));
-        QCOMPARE(recoveredOwner->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
-        QScopedPointer<KisDocument> recoveredDocument(KisPart::instance()->createDocument());
-        recoveredDocument->setCurrentImage(KisImage::fromGpuImage(recoveredOwner, QStringLiteral("Recovered crop")));
-        const auto recoveredLayer = KisLayerUtils::findNodeByUuid(recoveredDocument->image()->root(), uuid);
-        QScopedPointer<Node> recoveredNode(Node::createNode(recoveredDocument->image(), recoveredLayer));
-        QCOMPARE(recoveredNode->pixelData(region.x(), region.y(), region.width(), region.height()), expected);
-        const auto *recoveredExtra = dynamic_cast<const KisCropSavedExtraData*>(recoveredDocument->undoStack()->command(0)->extraData());
-        QVERIFY(recoveredExtra);
-        QCOMPARE(recoveredExtra->cropRect(), crop);
-        QCOMPARE(recoveredExtra->cropNode(), recoveredLayer);
-        QVERIFY(hierarchyPreserved(recoveredDocument->image()));
-        recoveredDocument->undoStack()->undo();
-        QCOMPARE(recoveredNode->pixelData(region.x(), region.y(), region.width(), region.height()), before);
-        QVERIFY(hierarchyPreserved(recoveredDocument->image()));
-    }
     document->undoStack()->undo();
     document->image()->waitForDone();
     QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), before);
@@ -521,14 +501,7 @@ void TestNode::testGpuLayerCropKeepsUnrelatedDirectWritesAcrossUndo()
     QCOMPARE(node->pixelData(8, 8, 1, 1), QByteArray(4, '\0'));
     QCOMPARE(node->pixelData(1100, 44, 1, 1), written);
     QCOMPARE(document->undoStack()->index(), 1);
-    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!results.isEmpty()) {
-        QVERIFY(QDir().mkpath(results));
-        QFile recovery(QDir(results).filePath(QStringLiteral("crop-independent-write.recovery")));
-        QVERIFY(recovery.open(QIODevice::WriteOnly));
-        const auto bytes = owner->operations().recoveryData();
-        QCOMPARE(recovery.write(bytes), bytes.size());
-    }
+
 }
 
 void TestNode::testLayerCropToolPreservesConfirmationResumptionAndCancellation_data()
@@ -571,7 +544,7 @@ void TestNode::testLayerCropCanReleaseItsPublicCallerDuringNotification()
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Closing crop")));
     QScopedPointer<Node> node(Node::createNode(document->image(), document->image()->root()->firstChild()));
     QVERIFY(node->setPixelData(QByteArray::fromHex("112233ff"), 3, 4, 1, 1));
-    const auto unchanged = owner->operations().recoveryData();
+    const auto unchanged = owner->operations().preview();
     const auto requested = execution->requested(owner->handle());
     KisImageSP foreign = new KisImage(nullptr, 64, 64, document->image()->colorSpace(), QStringLiteral("Other image"));
     KisPaintLayerSP foreignLayer = new KisPaintLayer(foreign, QStringLiteral("Same UUID, different image"), 255);
@@ -580,7 +553,7 @@ void TestNode::testLayerCropCanReleaseItsPublicCallerDuringNotification()
     QVERIFY_THROWS_EXCEPTION(std::invalid_argument, document->image()->cropNode(foreignLayer, QRect(10, 10, 20, 20)));
     QVERIFY_EXCEPTION_THROWN(node->cropNode(std::numeric_limits<int>::max(), 0, 1, 1), std::invalid_argument);
     QVERIFY_EXCEPTION_THROWN(node->cropNode(0, 0, std::numeric_limits<int>::min(), 1), std::invalid_argument);
-    QCOMPARE(owner->operations().recoveryData(), unchanged);
+    QCOMPARE(owner->operations().preview(), unchanged);
     QCOMPARE(execution->requested(owner->handle()), requested);
     const auto connection = connect(owner.data(), &Gpu::PaintImage::changed, this, [&] {
         node.reset();
@@ -728,7 +701,7 @@ try
         QString diagnostic;
         const auto execution = KisPart::instance()->gpuExecution(diagnostic);
         QVERIFY2(execution, qPrintable(diagnostic));
-        const auto before = owner->operations().recoveryData();
+        const auto before = owner->operations().preview();
         QSignalSpy errors(tool, &KoToolBase::statusTextChanged);
         if (mode == QLatin1String("close-reject")) {
             interruption = connect(tool, &KoToolBase::statusTextChanged, this, [&] {
@@ -742,7 +715,7 @@ try
         tool->requestStrokeEnd();
         QCOMPARE(errors.size(), 1);
         QVERIFY(!errors.first().first().toString().isEmpty());
-        QCOMPARE(owner->operations().recoveryData(), before);
+        QCOMPARE(owner->operations().preview(), before);
         QCOMPARE(image->size(), QSize(64, 64));
         QCOMPARE(execution->cancelFrame().code, Gpu::ExecutionCode::Success);
         cancelFrame.dismiss();
@@ -829,7 +802,7 @@ catch (const std::exception &error)
     QFAIL(qPrintable(QStringLiteral("Layer crop tool failed: ") + QString::fromUtf8(error.what())));
 }
 
-void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery_data()
+void TestNode::testImportedLayerPositionSurvivesPublicCopiesAndSaving_data()
 {
     QTest::addColumn<QPoint>("position");
     QTest::newRow("origin") << QPoint();
@@ -838,7 +811,7 @@ void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery_da
     QTest::newRow("tile-aligned") << QPoint(256, -256);
 }
 
-void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery()
+void TestNode::testImportedLayerPositionSurvivesPublicCopiesAndSaving()
 {
     // A scripting consumer must retain the device position independently of
     // the image-coordinate pixels when opening and resaving a moved layer.
@@ -915,13 +888,6 @@ void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery()
     QCOMPARE(node->position(), position);
     const auto edited = node->pixelData(region.x(), region.y(), region.width(), region.height());
     QVERIFY(edited != originalPixels);
-
-    auto restored = Gpu::PaintImageSP::create(execution, QSize(64, 64));
-    QCOMPARE(restored->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
-    const auto recoveredView = KisImage::fromGpuImage(restored, QStringLiteral("Recovered position"));
-    QScopedPointer<Node> recovered(Node::createNode(recoveredView, recoveredView->root()->firstChild()));
-    QCOMPARE(recovered->position(), position);
-    QCOMPARE(recovered->pixelData(region.x(), region.y(), region.width(), region.height()), edited);
 
     const auto saved = directory.filePath(QStringLiteral("resaved.kra"));
     QVERIFY(apiDocument.saveAs(saved));
@@ -1740,9 +1706,9 @@ void TestNode::testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInpu
     auto boundedImage = KisImage::fromGpuImage(bounded, QStringLiteral("Bounded insertion"));
     NodeSP boundedRoot(Node::createNode(boundedImage, boundedImage->root()));
     NodeSP copy(child->clone());
-    const auto before = bounded->operations().recoveryData();
+    const auto before = bounded->operations().preview();
     QVERIFY(!boundedRoot->addChildNode(copy.data(), nullptr));
-    QCOMPARE(bounded->operations().recoveryData(), before);
+    QCOMPARE(bounded->operations().preview(), before);
     QVERIFY(!copy->parentNode());
     QCOMPARE(copy->pixelData(0, 0, 1, 1), QByteArray::fromHex("112233ff"));
     KisNodeSP invalid = new KisPaintLayer(boundedImage, QString(70000, QLatin1Char('x')), 255);
@@ -1752,7 +1718,7 @@ void TestNode::testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInpu
     } catch (const std::exception &error) {
         QFAIL(error.what());
     }
-    QCOMPARE(bounded->operations().recoveryData(), before);
+    QCOMPARE(bounded->operations().preview(), before);
     QCOMPARE(invalid->paintDevice(), originalDevice);
     QVERIFY(!invalid->parent());
     KisNodeSP prepared = new KisPaintLayer(boundedImage, QStringLiteral("Prepared first"), 255);
@@ -1761,14 +1727,14 @@ void TestNode::testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInpu
     QSignalSpy changed(bounded.data(), &Gpu::PaintImage::changed);
     QVERIFY(!boundedImage->insertGpuLayers({prepared, invalid}, 0));
     QCOMPARE(changed.size(), 0);
-    QCOMPARE(bounded->operations().recoveryData(), before);
+    QCOMPARE(bounded->operations().preview(), before);
     QVERIFY(!prepared->parent());
     QCOMPARE(prepared->paintDevice(), preparedPixels);
     QByteArray retainedPixel(4, Qt::Uninitialized);
     preparedPixels->readBytes(reinterpret_cast<quint8*>(retainedPixel.data()), 0, 0, 1, 1);
     QCOMPARE(retainedPixel, bytes.left(4));
     QVERIFY(!boundedImage->insertGpuLayers({prepared, prepared}, 0));
-    QCOMPARE(bounded->operations().recoveryData(), before);
+    QCOMPARE(bounded->operations().preview(), before);
     QVERIFY(boundedImage->insertGpuLayers({prepared}, 0));
     QCOMPARE(changed.size(), 1);
     QCOMPARE(boundedImage->root()->firstChild(), prepared);
@@ -1781,7 +1747,7 @@ void TestNode::testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInpu
     QCOMPARE(bounded->redo(), Gpu::Result::Success);
     QCOMPARE(boundedImage->root()->firstChild(), prepared);
 
-    const auto admissionBefore = bounded->operations().recoveryData();
+    const auto admissionBefore = bounded->operations().preview();
     const auto admissionSignals = changed.size();
     QScopedPointer<QMimeData> mime(KisMimeData::mimeForLayers({prepared}, boundedImage, false));
     QVERIFY(mime);
@@ -1801,14 +1767,14 @@ void TestNode::testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInpu
     } catch (const std::exception &error) {
         QFAIL(error.what());
     }
-    QCOMPARE(bounded->operations().recoveryData(), admissionBefore);
+    QCOMPARE(bounded->operations().preview(), admissionBefore);
     QCOMPARE(changed.size(), admissionSignals);
     blockers.clear();
     const auto copied = KisMimeData::loadNodesFast(mime.data(), boundedImage, nullptr, copyInput);
     QCOMPARE(copied.size(), 1);
     QVERIFY(copied.first() != prepared);
     QVERIFY(!copied.first()->parent());
-    QCOMPARE(bounded->operations().recoveryData(), admissionBefore);
+    QCOMPARE(bounded->operations().preview(), admissionBefore);
     QCOMPARE(changed.size(), admissionSignals);
 
 }

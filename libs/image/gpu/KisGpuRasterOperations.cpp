@@ -19,7 +19,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     if (image.size.width() <= 0 || image.size.height() <= 0 ||
         image.size.width() > CoordinateLimit || image.size.height() > CoordinateLimit ||
         limits.samplesPerStroke <= 0 || limits.samplesPerDocument <= 0 || limits.layerCount <= 0 ||
-        limits.recoveryBytes <= 0 || limits.recoveryBytes > std::numeric_limits<int>::max() ||
+        limits.compressedWriteBytes <= 0 || limits.compressedWriteBytes > std::numeric_limits<int>::max() ||
         limits.rasterBytes <= 0 || limits.rasterBytes > std::numeric_limits<int>::max() ||
         image.layers.size() > limits.layerCount || image.activeLayer < 0 ||
         (image.layers.isEmpty() ? image.activeLayer != 0 : image.activeLayer >= image.layers.size())) {

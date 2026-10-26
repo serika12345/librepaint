@@ -199,12 +199,12 @@ void TestChannelDocker::displaySelectionPreservesEditingAndSaving()
 #endif
     const auto before = owner ? owner->operations().snapshot() : Gpu::Snapshot{};
     Gpu::OperationId stroke;
-    QByteArray recovery;
+    Gpu::Snapshot retainedInput;
     if (owner) {
         stroke = owner->beginStroke(owner->operations().activeLayer(), Gpu::Brush{}, 29);
         QVERIFY(!stroke.isNull());
         QCOMPARE(owner->appendSamples(stroke, {{{24, 12}, 1}}), Gpu::Result::Success);
-        recovery = owner->operations().recoveryData();
+        retainedInput = owner->operations().preview();
     }
     const auto withoutWaitingForInput = [&](auto change) {
         if (!owner) { change(); return true; }
@@ -241,7 +241,7 @@ void TestChannelDocker::displaySelectionPreservesEditingAndSaving()
     if (owner) {
         QCOMPARE(owner->operations().snapshot(), before);
         QCOMPARE(owner->operations().activeOperation(), stroke);
-        QCOMPARE(owner->operations().recoveryData(), recovery);
+        QCOMPARE(owner->operations().preview(), retainedInput);
         QByteArray after;
         QVERIFY(encode(after));
         QCOMPARE(after, encoded);

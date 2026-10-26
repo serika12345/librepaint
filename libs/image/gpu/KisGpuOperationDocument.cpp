@@ -5,7 +5,6 @@
 
 #include "KisGpuOperationDocument.h"
 #include "KisGpuOperationValidation_p.h"
-#include "KisGpuOperationValues_p.h"
 
 #include <limits>
 #include <algorithm>
@@ -18,6 +17,20 @@
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
+namespace {
+qsizetype operationSamples(const LayerOperation &value)
+{
+    const auto paint = std::get_if<PaintSnapshot>(&value);
+    return paint ? (*paint)->sampleCount : 0;
+}
+qsizetype operationRasterBytes(const LayerOperation &value)
+{
+    if (const auto paint = std::get_if<PaintSnapshot>(&value))
+        return (*paint)->figureStyle.pattern ? (*paint)->figureStyle.pattern->byteCount() : 0;
+    const auto write = std::get_if<TileWriteSnapshot>(&value);
+    return write ? (*write)->tiles.size() * RgbaTile::ByteCount : 0;
+}
+}
 
 bool freezeLumaCoefficients(const std::array<qreal, 3> &coefficients,
                             std::array<double, 3> *frozen)
@@ -270,7 +283,7 @@ HistoryAction OperationDocument::historyAction(int index) const
         }
     }
     // A retained mask-only edit leaves the layer inputs untouched and is
-    // identified by its coverage; recovery reconstructs the same comparison.
+    // identified by its coverage.
     for (int layer = 0; layer < after.size(); ++layer)
         if (before[layer].transparencyMask != after[layer].transparencyMask) return HistoryAction::PaintStroke;
     return HistoryAction::ReplacePixels;
@@ -330,12 +343,6 @@ Result OperationDocument::setSelectionRect(const QRect &rect, bool inverted)
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.changedSelection = true;
-    change.selectionBefore = snapshot()->selection;
-    change.selectionAfter = normalized;
-    change.selectionInvertedBefore = snapshot()->selectionInverted;
-    change.selectionInvertedAfter = effectiveInverted;
-    change.selectionKindBefore = snapshot()->selectionKind;
-    change.selectionKindAfter = SelectionKind::Rectangle;
     commitVersion(version, change);
     return Result::Success;
 }
@@ -358,12 +365,6 @@ Result OperationDocument::setSelectionEllipse(const QRect &rect, bool inverted)
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.changedSelection = true;
-    change.selectionBefore = snapshot()->selection;
-    change.selectionAfter = normalized;
-    change.selectionInvertedBefore = snapshot()->selectionInverted;
-    change.selectionInvertedAfter = effectiveInverted;
-    change.selectionKindBefore = snapshot()->selectionKind;
-    change.selectionKindAfter = SelectionKind::Ellipse;
     commitVersion(version, change);
     return Result::Success;
 }
@@ -386,12 +387,6 @@ Result OperationDocument::setSelectionMask(const SelectionMaskSP &mask, bool inv
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.changedSelection = true;
-    change.selectionBefore = snapshot()->selection;
-    change.selectionAfter = version->selection;
-    change.selectionInvertedBefore = snapshot()->selectionInverted;
-    change.selectionInvertedAfter = inverted;
-    change.selectionKindBefore = snapshot()->selectionKind;
-    change.selectionKindAfter = SelectionKind::Freehand;
     commitVersion(version, change);
     return Result::Success;
 }
@@ -1048,10 +1043,6 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
     if (clearPixelSelection) {
         change.changedSelection = !before->selection.isEmpty() || before->selectionInverted ||
             before->selectionKind != SelectionKind::Rectangle || bool(before->selectionMask);
-        change.selectionBefore = before->selection;
-        change.selectionInvertedBefore = before->selectionInverted;
-        change.selectionKindBefore = before->selectionKind;
-        change.selectionKindAfter = SelectionKind::Rectangle;
         version->selection = {};
         version->selectionInverted = false;
         version->selectionKind = SelectionKind::Rectangle;

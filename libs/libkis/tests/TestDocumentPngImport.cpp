@@ -321,7 +321,7 @@ void TestDocument::testGpuPngRejectedOpenKeepsDocument()
     QVERIFY(!stroke.isNull());
     QVERIFY(owner->appendSamples(stroke, {{{0.5, 0.5}, 1, 0, 0, 0, 10}}) == LibrePaint::Image::Gpu::Result::Success);
     QVERIFY(owner->commitStroke(stroke) == LibrePaint::Image::Gpu::Result::Success);
-    const auto state = owner->operations().recoveryData();
+    const auto state = owner->operations().preview();
     const auto path = document->localFilePath();
     const auto mime = document->mimeType();
     const auto undo = document->undoStack()->count();
@@ -330,7 +330,7 @@ void TestDocument::testGpuPngRejectedOpenKeepsDocument()
     QSignalSpy changed(document.data(), &KisDocument::sigCurrentImageChanged);
     QVERIFY(!document->openPath(directory.filePath(QStringLiteral("rejected.png")), KisDocument::DontAddToRecent));
     QCOMPARE(KisImageSP(document->image()), image);
-    QCOMPARE(owner->operations().recoveryData(), state);
+    QCOMPARE(owner->operations().preview(), state);
     QCOMPARE(document->documentInfo()->aboutInfo("title"), QStringLiteral("Previous document title"));
     QCOMPARE(document->localFilePath(), path);
     QCOMPARE(document->mimeType(), mime);

@@ -44,9 +44,6 @@ public:
     static constexpr int AlphaTileBytes = TileSize * TileSize;
     static constexpr qsizetype MaximumBytes = 64 * 1024 * 1024;
 
-    /** Binary tiles select a pixel; alpha tiles retain 0..255 selectedness. */
-    enum class CoverageFormat : quint8 { Binary, Alpha };
-
     /** Rasterizes one closed polygon at pixel centers with the even-odd rule.
      * The coverage is binary and clipped to `clip`. Invalid, non-finite or
      * oversized polygons and polygons selecting no clipped pixel return null.
@@ -73,11 +70,6 @@ public:
      * null.
      */
     static QSharedPointer<const SelectionMask> fromEllipse(const QRect &rect, const QRect &clip);
-    /** Adopts bit-packed tiles. Tile coordinates use TileSize units. The
-     * selected bounds are derived from the bits. Null reports invalid,
-     * repeated or empty tiles.
-     */
-    static QSharedPointer<const SelectionMask> fromTiles(const SelectionTileMap &tiles);
     /** Adopts byte-per-pixel alpha tiles with the same coordinate scheme.
      * Values are retained; nonzero bytes form the selected bounds.
      */
@@ -109,7 +101,6 @@ public:
      * binary selected, and the stored byte for alpha coverage. */
     quint8 coverage(int x, int y) const;
     bool contains(int x, int y) const { return coverage(x, y) != 0; }
-    CoverageFormat format() const { return m_format; }
     bool isAlpha() const { return m_format == CoverageFormat::Alpha; }
     /** Packed tiles in increasing coordinate order; bit zero is the top-left
      * pixel of each binary tile and byte zero the top-left pixel of each alpha
@@ -123,6 +114,7 @@ public:
     bool operator!=(const SelectionMask &other) const { return !(*this == other); }
 
 private:
+    enum class CoverageFormat : quint8 { Binary, Alpha };
     SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format);
     static QSharedPointer<const SelectionMask> make(QRect bounds, SelectionTileMap tiles, CoverageFormat format);
     QRect m_bounds;

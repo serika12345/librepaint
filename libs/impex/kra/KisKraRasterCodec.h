@@ -85,7 +85,6 @@ struct MetadataOutcome
     Status code = Status::InvalidData;
     ImageMetadata metadata;
     QString diagnostic;
-    QHash<QUuid, int> layerColorLabels;
 };
 struct LoadOutcome
 {
@@ -107,7 +106,7 @@ public:
     static LoadOutcome read(QIODevice &source, Limits limits = {});
     /** Validates retained XML and associated files without allocating raster pixels. */
     static Outcome validateMetadata(const QByteArray &description, const QMap<QString, QByteArray> &files, Limits limits = {});
-    /** Returns validated image metadata and layer labels by explicit UUID;
+    /** Returns validated image metadata;
      * failure returns no partial values.
      */
     static MetadataOutcome readImageMetadata(const QByteArray &description, const QMap<QString, QByteArray> &files, Limits limits = {});

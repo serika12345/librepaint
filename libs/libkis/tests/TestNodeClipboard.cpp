@@ -422,12 +422,6 @@ try {
     png.setProperty("storeMetaData", false);
     Document exported(created, false);
     QVERIFY(exported.exportImage(QDir(destination).filePath(stem + QStringLiteral(".png")), png));
-    if (gpu) {
-        QFile recovery(QDir(destination).filePath(stem + QStringLiteral(".recovery")));
-        QVERIFY(recovery.open(QIODevice::WriteOnly));
-        const auto data = result->gpuImage()->operations().recoveryData();
-        QCOMPARE(recovery.write(data), qint64(data.size()));
-    }
     QCOMPARE(lifetime->undoStack()->index(), sourceHistory);
     QCOMPARE(lifetime->isModified(), sourceModified);
     QCOMPARE(KisClipboard::instance()->layersMimeData(), mime);
@@ -910,12 +904,6 @@ try {
         png.setProperty("storeAuthor", false);
         png.setProperty("storeMetaData", false);
         QVERIFY(source.exportImage(QDir(destination).filePath(stem + QStringLiteral("-pasted.png")), png));
-        if (gpu) {
-            QFile recovery(QDir(destination).filePath(stem + QStringLiteral(".recovery")));
-            QVERIFY(recovery.open(QIODevice::WriteOnly));
-            const auto data = image->gpuImage()->operations().recoveryData();
-            QCOMPARE(recovery.write(data), qint64(data.size()));
-        }
     }
     lifetime->undoStack()->undo();
     image->waitForDone();

@@ -42,7 +42,7 @@ bool validCoordinate(QPoint coordinate)
 QByteArray decode(const QByteArray &data, PixelFormat format)
 {
     const auto byteCount = RgbaTile::byteCount(format);
-    if (!byteCount || data.isEmpty() || data.size() > RasterTile::maximumCompressedBytes(format)) return {};
+    if (!byteCount || data.isEmpty() || quint64(data.size()) > compressBound(byteCount)) return {};
     QByteArray pixels(byteCount, Qt::Uninitialized);
     uLongf size = pixels.size();
     uLong consumed = data.size();
@@ -70,13 +70,5 @@ QSharedPointer<const RasterTile> RasterTile::fromPixels(const RgbaTile &tile)
     return QSharedPointer<const RasterTile>(new RasterTile(tile.coordinate, std::move(compressed), tile.format));
 }
 
-QSharedPointer<const RasterTile> RasterTile::fromCompressed(QPoint coordinate, const QByteArray &data, PixelFormat format)
-{
-    if (!pixelByteCount(format) || !validCoordinate(coordinate) || decode(data, format).size() != RgbaTile::byteCount(format)) return {};
-    return QSharedPointer<const RasterTile>(new RasterTile(coordinate, data, format));
-}
-
 QByteArray RasterTile::rgba() const { return decode(m_compressed, m_format); }
-qsizetype RasterTile::maximumCompressedBytes(PixelFormat format)
-{ return pixelByteCount(format) ? compressBound(RgbaTile::byteCount(format)) : 0; }
 }

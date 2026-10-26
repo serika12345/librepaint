@@ -154,7 +154,7 @@ SelectionMaskSP readMaskCoverage(const PaintImage &source, LayerId layer, QSize 
     }
     auto mask = SelectionMask::fromAlphaTiles(alphaTiles);
     if (!mask) {
-        // Coverage must stay representable across history, recovery and KRA.
+        // Coverage must stay representable across history and KRA.
         // Fully erased input keeps the smallest visible sample so the retained
         // mask continues to hide the layer almost completely.
         const QByteArray visible(1, char(1));
@@ -840,24 +840,6 @@ Result PaintImage::markSaved(const Snapshot &version)
     const auto result = m_d->document->markSaved(version);
     if (result == Result::Success) Q_EMIT savedStateChanged();
     return result;
-}
-
-Result PaintImage::restoreRecovery(const QByteArray &data, const QHash<QUuid, int> &legacyColorLabels)
-{
-    auto &d = *m_d;
-    if (!onThread()) return Result::InvalidRecovery;
-    if (!d.handle) return Result::Closed;
-    if (d.maskStroke || d.document->hasActiveStroke()) return Result::EditInProgress;
-    auto document = std::make_unique<OperationDocument>(QSize(1, 1), d.limits);
-    if (document->restoreRecovery(data, legacyColorLabels) != Result::Success) return Result::InvalidRecovery;
-    const auto replaced = d.execution.replaceDocument(d.handle, document->preview());
-    if (replaced.code != ExecutionCode::Success)
-        return replaced.code == ExecutionCode::CapacityExceeded ? Result::CapacityExceeded : Result::InvalidRecovery;
-    d.document.swap(document);
-    d.lastRequest = replaced;
-    refreshLayerPixelReferences();
-    Q_EMIT changed();
-    return Result::Success;
 }
 
 }

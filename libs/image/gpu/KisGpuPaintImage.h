@@ -54,7 +54,7 @@ public:
     explicit PaintImage(std::shared_ptr<Execution> execution, QSize size, Limits limits = {});
     explicit PaintImage(std::shared_ptr<Execution> execution, const RasterImage &image, Limits limits = {});
     ~PaintImage() override;
-    /** Borrowed logical owner; successful recovery replaces this reference. */
+    /** Borrowed logical owner; valid for this image lifetime. */
     const OperationDocument &operations() const;
     Limits limits() const;
     quint64 handle() const;
@@ -242,20 +242,19 @@ public:
                             bool erase = false, bool alphaLocked = false,
                             LayerBlendMode blendMode = LayerBlendMode::Normal);
     /** Complements RGB within the current selection coverage as one history
-     * entry. The filter operation freezes the selection and survives recovery,
-     * Undo/Redo and KRA pixel saving; alpha and unselected pixels stay intact.
+     * entry. The filter operation freezes the selection and survives Undo/Redo and KRA pixel saving; alpha and unselected pixels stay intact.
      */
     Result invertColors(LayerId layer);
     /** Replaces RGB with the documented Rec.709 luminance of the stored
      * sRGB-encoded bytes inside the current selection coverage as one history
      * entry. Alpha and unselected pixels stay intact; the frozen operation
-     * survives recovery, Undo/Redo and KRA pixel saving.
+     * survives Undo/Redo and KRA pixel saving.
      */
     Result grayscale(LayerId layer);
     /** Applies the product HSV/HSL Adjustment values within the current
      * selection coverage as one history entry. The settings and mode are
      * frozen in the operation; alpha and unselected pixels stay intact, and
-     * the frozen operation survives recovery, Undo/Redo and KRA pixel saving.
+     * the frozen operation survives Undo/Redo and KRA pixel saving.
      */
     Result hsvAdjustment(LayerId layer, const HsvAdjustment &settings);
     Result undo();
@@ -263,8 +262,6 @@ public:
     Result setHistoryIndex(int index);
     /** Records completed file saving; file owners publish their metadata changes. */
     Result markSaved(const Snapshot &version);
-    /** Adopts validated logical recovery on the same attachment and notifies readers. */
-    Result restoreRecovery(const QByteArray &data, const QHash<QUuid, int> &legacyColorLabels = {});
     void close();
 
 Q_SIGNALS:

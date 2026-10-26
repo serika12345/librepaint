@@ -48,8 +48,8 @@ private Q_SLOTS:
     void testLayerCropCanReleaseItsPublicCallerDuringNotification();
     void testLayerCropToolPreservesConfirmationResumptionAndCancellation_data();
     void testLayerCropToolPreservesConfirmationResumptionAndCancellation();
-    void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery_data();
-    void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery();
+    void testImportedLayerPositionSurvivesPublicCopiesAndSaving_data();
+    void testImportedLayerPositionSurvivesPublicCopiesAndSaving();
     void testAbsoluteLayerMovementPreservesPixelsAndDirectHistory_data();
     void testAbsoluteLayerMovementPreservesPixelsAndDirectHistory();
     void testGpuBoundsUseOnlyScalarReadback_data();

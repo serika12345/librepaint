@@ -133,7 +133,7 @@ void KisGpuCanvasWindowTest::displayChannelsChangeOnlyPresentation()
         {{{0, 0}, QByteArray::fromHex("4995e780").repeated(RgbaTile::ByteCount / 4)}}}};
     OperationDocument document(input);
     const auto before = document.snapshot();
-    const auto recovery = document.recoveryData();
+    const auto retainedVersion = document.preview();
     Execution execution(m_device);
     const auto handle = execution.open(before).handle;
     QVERIFY(handle);
@@ -170,7 +170,7 @@ void KisGpuCanvasWindowTest::displayChannelsChangeOnlyPresentation()
 #endif
         QCOMPARE(execution.requested(handle), before);
         QCOMPARE(execution.published(handle), before);
-        QCOMPARE(document.recoveryData(), recovery);
+        QCOMPARE(document.preview(), retainedVersion);
     }
     const auto count = frames.size();
     QVERIFY(window.resetSurface());

@@ -102,7 +102,7 @@ FileOpenOutcome PaintDocument::adoptKraImpl(Execution &execution, std::shared_pt
 
 Kra::MetadataOutcome PaintDocument::kraImageMetadata() const
 {
-    if (!onThread()) return {Kra::Status::InvalidData, {}, QStringLiteral("Metadata reads require the document thread"), {}};
+    if (!onThread()) return {Kra::Status::InvalidData, {}, QStringLiteral("Metadata reads require the document thread")};
     return Kra::RasterCodec::readImageMetadata(m_d->description, m_d->files, Private::formatLimits(m_d->limits));
 }
 

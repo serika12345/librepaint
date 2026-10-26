@@ -27,7 +27,6 @@ private Q_SLOTS:
     void latestRequestsRetainInputAndPublishAfterSubmission();
     void cancellationAndClosureInvalidateRecordedFrames();
     void replacingTheDeviceRebuildsAcceptedDocuments();
-    void restoringAnAttachedDocumentKeepsCapacityAndInvalidatesOldFrames();
     void documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure();
     void viewportsGenerateOnlyVisibleTilesAndLayers();
 private:
@@ -247,40 +246,6 @@ void KisGpuExecutionTest::replacingTheDeviceRebuildsAcceptedDocuments()
     QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
     QCOMPARE(pixels->results.front()->data.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
     QCOMPARE(execution.pendingDocuments(), 0);
-}
-
-void KisGpuExecutionTest::restoringAnAttachedDocumentKeepsCapacityAndInvalidatesOldFrames()
-{
-    Execution execution(m_device, 16 * TileRenderer::TileBytes, 2);
-    OperationDocument original(QSize(64, 64)), other(QSize(64, 64)), restored(QSize(64, 64));
-    dot(original, {8, 12});
-    dot(restored, {32, 32});
-    const auto handle = execution.open(original.snapshot()).handle;
-    const auto second = execution.open(other.snapshot()).handle;
-    QCOMPARE(execution.open(restored.snapshot()).code, ExecutionCode::CapacityExceeded);
-    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
-    QCOMPARE(execution.project(handle, {0, 0, 64, 64}).code, RenderOutcome::Recorded);
-    QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
-    QCOMPARE(execution.replaceDocument(handle, original.snapshot()).code, ExecutionCode::InvalidRequest);
-    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
-    const auto oldFrame = execution.project(handle, {0, 0, 64, 64});
-    QCOMPARE(oldFrame.code, RenderOutcome::Recorded);
-    QCOMPARE(execution.replaceDocument(handle, restored.snapshot()).code, ExecutionCode::Success);
-    QCOMPARE(execution.requested(handle), restored.snapshot());
-    QVERIFY(!execution.published(handle));
-    QCOMPARE(execution.submitFrame().code, ExecutionCode::InvalidRequest);
-    QVERIFY(!execution.published(handle));
-    QCOMPARE(execution.readPixels(handle, original.snapshot(), {0, 0, 64, 64}).code, ExecutionCode::InvalidRequest);
-    const auto pixels = execution.readPixels(handle, restored.snapshot(), {0, 0, 64, 64});
-    QCOMPARE(pixels.code, ExecutionCode::Success);
-    QCOMPARE(pixels.tiles.first().rgba.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
-    QCOMPARE(pixels.tiles.first().rgba.mid((12 * 256 + 8) * 4, 4), QByteArray(4, '\0'));
-    QCOMPARE(execution.replaceDocument(second, restored.snapshot()).code, ExecutionCode::InvalidRequest);
-    QCOMPARE(execution.requested(second), other.snapshot());
-    QCOMPARE(execution.replaceDocument(handle, {}).code, ExecutionCode::InvalidRequest);
-    QCOMPARE(execution.requested(handle), restored.snapshot());
-    QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
-    QCOMPARE(execution.replaceDocument(handle, original.snapshot()).code, ExecutionCode::InvalidRequest);
 }
 
 void KisGpuExecutionTest::documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure()

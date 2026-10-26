@@ -283,9 +283,9 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
                 }
                 const auto checkpoint = RasterTile::fromPixels({coordinate, pixels.bytes});
                 if (!checkpoint) return Result::CapacityExceeded;
-                if (checkpoint->compressedData().size() > d.limits.recoveryBytes - compressedBytes)
+                if (checkpoint->compressedByteCount() > d.limits.compressedWriteBytes - compressedBytes)
                     return Result::CapacityExceeded;
-                compressedBytes += checkpoint->compressedData().size();
+                compressedBytes += checkpoint->compressedByteCount();
                 write.tiles.append(checkpoint);
             }
             writes.append(write);

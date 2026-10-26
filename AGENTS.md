@@ -352,6 +352,12 @@ use-case layer, port, adapter, repository, service locator, factory, registry,
 base class, or generic target solely for hypothetical replacement, future I/O
 isolation, or easier mocking.
 
+Before adding production code, identify the product operation, its actual
+consumer, and the observable requirement it serves. Tests and diagnostic output
+alone do not justify a production API, persisted format, or compatibility route.
+Remove obsolete implementations and their exclusive dependencies, fixtures, and
+checks within the same verified work unit.
+
 A new abstraction requires evidence in the active change: multiple current
 production implementations, a required deterministic test seam that values
 cannot provide, an external boundary that the requested behavior must replace,

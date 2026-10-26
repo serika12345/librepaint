@@ -119,7 +119,7 @@ bool setInitialLayerIdentity(KisDocument *document, const QUuid &uuid)
     KisImageSP image = document->image();
     KisPaintLayerSP layer = paintLayer(document);
     if (!layer || layer->uuid().isNull() || uuid.isNull()) return false;
-    const auto owner = image->gpuImage();
+    auto owner = image->gpuImage();
     if (!owner) {
         layer->setUuid(uuid);
         return layer->uuid() == uuid;
@@ -142,8 +142,12 @@ bool setInitialLayerIdentity(KisDocument *document, const QUuid &uuid)
     input.projectionChannelMask = initial.projectionChannelMask;
     input.passThrough = initial.passThrough;
     input.blendMode = initial.blendMode;
-    Gpu::OperationDocument fixed(Gpu::RasterImage{before->size, {input}, 0, before->projectionBackground}, owner->limits());
-    if (owner->restoreRecovery(fixed.recoveryData()) != Gpu::Result::Success) return false;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    if (!execution) return false;
+    owner = Gpu::PaintImageSP::create(execution,
+        Gpu::RasterImage{before->size, {input}, 0, before->projectionBackground}, owner->limits());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, image->objectName()));
     layer = paintLayer(document);
     const auto after = owner->operations().snapshot();
     if (!layer || after->layers.size() != 1) return false;
@@ -372,9 +376,9 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
         const auto gpu = image->gpuImage();
         const auto flush = [&] {
             if (!QMetaObject::invokeMethod(&helper, "finishStroke", Qt::DirectConnection)) return false;
-            const auto once = gpu ? gpu->operations().recoveryData() : QByteArray();
+            const auto once = gpu ? gpu->operations().preview() : Gpu::Snapshot();
             if (!QMetaObject::invokeMethod(&helper, "finishStroke", Qt::DirectConnection)) return false;
-            return !gpu || gpu->operations().recoveryData() == once;
+            return !gpu || gpu->operations().preview() == once;
         };
         for (qsizetype i = 0; i < path.size(); ++i) {
             const int inputIndex = pixelPointOracle ? 1 : int(i);
@@ -440,10 +444,8 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
         }
         if (calls == -13 && !flush()) return false;
         if ((weightedSmoothing || pixelPerfect) && gpu) {
-            Gpu::OperationDocument restored(QSize(1, 1));
-            const auto record = gpu->operations().recoveryData();
-            if (restored.restoreRecovery(record) != Gpu::Result::Success || restored.recoveryData() != record ||
-                !restored.hasActiveStroke() || std::get<Gpu::PaintSnapshot>(restored.preview()->layers.first().operations.last())->inputSamples() != expectedInput)
+            if (!gpu->operations().hasActiveStroke() ||
+                std::get<Gpu::PaintSnapshot>(gpu->operations().preview()->layers.first().operations.last())->inputSamples() != expectedInput)
                 return false;
         }
         helper.endPaint();
@@ -504,7 +506,7 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
 }
 }
 
-void TestDocument::testDefaultBrushMouseInputKeepsFixedTimeThroughRecovery_data()
+void TestDocument::testDefaultBrushMouseInputKeepsFixedTimeInRetainedInput_data()
 {
     QTest::addColumn<bool>("weighted");
     QTest::addColumn<bool>("idleFlush");
@@ -513,7 +515,7 @@ void TestDocument::testDefaultBrushMouseInputKeepsFixedTimeThroughRecovery_data(
     QTest::newRow("cpu-weighted-duplicate-idle") << true << true;
 }
 
-void TestDocument::testDefaultBrushMouseInputKeepsFixedTimeThroughRecovery()
+void TestDocument::testDefaultBrushMouseInputKeepsFixedTimeInRetainedInput()
 {
     QFETCH(bool, weighted);
     QFETCH(bool, idleFlush);
@@ -731,20 +733,12 @@ void TestDocument::testDefaultBrushMouseInputKeepsFixedTimeThroughRecovery()
         QCOMPARE(pending.last().speed, expected[i].speed);
         QCOMPARE(pending, expected.first(i + 1));
     }
-    Gpu::OperationDocument pendingRecovery(QSize(1, 1));
-    QCOMPARE(pendingRecovery.restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
-    QVERIFY(pendingRecovery.hasActiveStroke());
-    QCOMPARE(samples(pendingRecovery.preview()), expected);
     helper.endPaint();
     image->waitForDone();
     QVERIFY(errors.isEmpty());
     QVERIFY(!helper.isRunning());
     QVERIFY(!owner->operations().hasActiveStroke());
     QCOMPARE(samples(owner->operations().snapshot()), expected);
-    Gpu::OperationDocument committedRecovery(QSize(1, 1));
-    QCOMPARE(committedRecovery.restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
-    QVERIFY(!committedRecovery.hasActiveStroke());
-    QCOMPARE(samples(committedRecovery.snapshot()), expected);
 }
 
 void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()

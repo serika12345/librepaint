@@ -72,28 +72,6 @@ ExecutionOutcome Execution::request(DocumentHandle handle, const Snapshot &snaps
     return {ExecutionCode::Success, {}};
 }
 
-ExecutionOutcome Execution::replaceDocument(DocumentHandle handle, const Snapshot &snapshot)
-{
-    auto &d = *m_d;
-    if (!d.onThread() || !snapshot) return {ExecutionCode::InvalidRequest, QStringLiteral("Restoring requires a document on the GPU thread")};
-    auto document = d.documents.find(handle);
-    if (document == d.documents.end()) return {ExecutionCode::InvalidRequest, QStringLiteral("Document handle is no longer active")};
-    if (document->requested->documentId() == snapshot->documentId())
-        return {ExecutionCode::InvalidRequest, QStringLiteral("Restoring requires a new document identity")};
-    for (auto other = d.documents.cbegin(); other != d.documents.cend(); ++other) {
-        if (other.key() != handle && other->requested->documentId() == snapshot->documentId())
-            return {ExecutionCode::InvalidRequest, QStringLiteral("The restored document is already attached")};
-    }
-    if (document->serial == std::numeric_limits<quint64>::max())
-        return {ExecutionCode::CapacityExceeded, QStringLiteral("GPU document request sequence exhausted")};
-    document->requested = snapshot;
-    ++document->serial;
-    document->published.clear();
-    document->projected.clear();
-    document->rendered.clear();
-    return {ExecutionCode::Success, {}};
-}
-
 ExecutionOutcome Execution::close(DocumentHandle handle)
 {
     auto &d = *m_d;

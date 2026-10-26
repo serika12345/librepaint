@@ -524,7 +524,7 @@ void TestDocument::testGpuCanvasResizePreservesRejectedInputsAndNotificationLife
         const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Closing canvas resize"));
         document->setCurrentImage(image);
         QScopedPointer<Document> api(new Document(document.data(), false));
-        const auto unchanged = owner->operations().recoveryData();
+        const auto unchanged = owner->operations().preview();
         const auto requested = execution->requested(owner->handle());
         const auto resize = [&](Document *caller, int x, int y, int w, int h) {
             if (crop) caller->crop(x, y, w, h);
@@ -533,7 +533,7 @@ void TestDocument::testGpuCanvasResizePreservesRejectedInputsAndNotificationLife
         QVERIFY_EXCEPTION_THROWN(resize(api.data(), std::numeric_limits<int>::max(), 0, 1, 1), std::invalid_argument);
         QVERIFY_EXCEPTION_THROWN(resize(api.data(), 0, 0, std::numeric_limits<int>::min(), 1), std::invalid_argument);
         QVERIFY_EXCEPTION_THROWN(resize(api.data(), 0, 0, 0, 1), std::invalid_argument);
-        QCOMPARE(owner->operations().recoveryData(), unchanged);
+        QCOMPARE(owner->operations().preview(), unchanged);
         QCOMPARE(execution->requested(owner->handle()), requested);
         const auto close = [&] { api.reset(); document.reset(); };
         const auto connection = closeOnSize ? connect(image.data(), &KisImage::sigSizeChanged, this, close) :
@@ -928,14 +928,14 @@ void TestDocument::testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsuppor
     QVERIFY2(decoded.code == Kra::Status::Success, qPrintable(decoded.diagnostic));
     QCOMPARE(decoded.document.files.value(QStringLiteral("private/format-data")), value.files.value(QStringLiteral("private/format-data")));
     const auto image = document->image();
-    const auto unchanged = image->gpuImage()->operations().recoveryData();
+    const auto unchanged = image->gpuImage()->operations().preview();
     QBuffer malformed;
     malformed.setData(QByteArrayLiteral("invalid native archive"));
     QVERIFY(malformed.open(QIODevice::ReadOnly));
     auto invalidStatus = document->importGpuKra(malformed);
     QVERIFY(invalidStatus == KisImportExportErrorCode(ImportExportCodes::FileFormatIncorrect));
     QCOMPARE(document->image(), image);
-    QCOMPARE(image->gpuImage()->operations().recoveryData(), unchanged);
+    QCOMPARE(image->gpuImage()->operations().preview(), unchanged);
     for (const auto &feature : {QStringLiteral("layerstyle"), QStringLiteral("grid"),
                                QStringLiteral("Palettes"), QStringLiteral("resources"), QStringLiteral("animation")}) {
         auto unsupported = original.document;
@@ -961,7 +961,7 @@ void TestDocument::testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsuppor
         QVERIFY2(document->errorMessage().contains(feature), qPrintable(document->errorMessage()));
         QCOMPARE(document->image(), image);
         QCOMPARE(document->localFilePath(), saved);
-        QCOMPARE(image->gpuImage()->operations().recoveryData(), unchanged);
+        QCOMPARE(image->gpuImage()->operations().preview(), unchanged);
         QVERIFY(!document->isModified());
     }
     QSignalSpy timingImageChanges(document.data(), &KisDocument::sigCurrentImageChanged);
@@ -992,7 +992,7 @@ void TestDocument::testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsuppor
         QVERIFY2(document->errorMessage().contains(field), qPrintable(document->errorMessage()));
         QCOMPARE(document->image(), image);
         QCOMPARE(document->localFilePath(), saved);
-        QCOMPARE(image->gpuImage()->operations().recoveryData(), unchanged);
+        QCOMPARE(image->gpuImage()->operations().preview(), unchanged);
         QVERIFY(!document->isModified());
         QVERIFY(timingImageChanges.isEmpty());
     }
@@ -1228,8 +1228,6 @@ void TestDocument::testBackgroundApiKeepsHistoryAndPinnedPixels()
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QCOMPARE(publicDocument.pixelData(6, 6, 1, 1), QByteArray::fromHex("33221180"));
     QVERIFY(publicDocument.modified());
-    const auto recovery = owner->operations().recoveryData();
-    QCOMPARE(owner->restoreRecovery(recovery), Gpu::Result::Success);
     QCOMPARE(publicDocument.backgroundColor(), background);
     QCOMPARE(owner->operations().undoCount(), 1);
     QCOMPARE(owner->operations().redoCount(), 1);

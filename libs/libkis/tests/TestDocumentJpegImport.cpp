@@ -561,7 +561,7 @@ void TestDocument::testJpegRejectedOpenKeepsDocument()
     document->setModified(true);
     const auto pixels = api.pixelData(0, 0, 3, 2);
     const auto owner = image->gpuImage();
-    const auto recovery = owner ? owner->operations().recoveryData() : QByteArray();
+    const auto retainedVersion = owner ? owner->operations().preview() : LibrePaint::Image::Gpu::Snapshot();
     const auto path = document->localFilePath();
     const auto mime = document->mimeType();
     const auto undo = document->undoStack()->count();
@@ -571,7 +571,7 @@ void TestDocument::testJpegRejectedOpenKeepsDocument()
     QVERIFY(!document->openPath(rejected, KisDocument::DontAddToRecent));
     QCOMPARE(KisImageSP(document->image()), image);
     QCOMPARE(api.pixelData(0, 0, 3, 2), pixels);
-    if (owner) QCOMPARE(owner->operations().recoveryData(), recovery);
+    if (owner) QCOMPARE(owner->operations().preview(), retainedVersion);
     QCOMPARE(document->documentInfo()->aboutInfo("title"), QStringLiteral("Previous JPEG document"));
     QCOMPARE(document->localFilePath(), path);
     QCOMPARE(document->mimeType(), mime);

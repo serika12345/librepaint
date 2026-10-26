@@ -16,7 +16,6 @@ private Q_SLOTS:
     void compressedPixelsRemainLosslessAndIndependent();
     void compressedPixelsRemainLosslessAndIndependent_data();
     void invalidTileExtentsAndByteCountsAreRejected();
-    void corruptedOrOversizedCompressedPixelsAreRejected();
     void rgba16CheckpointsPreserveLowBitsAndRejectWrongPrecision();
     void componentEncodingUsesDeclaredPrecisionAndByteOrder();
 };
@@ -50,23 +49,13 @@ void KisGpuRasterPixelsTest::rgba16CheckpointsPreserveLowBitsAndRejectWrongPreci
     QCOMPARE(checkpoint->format(), PixelFormat::Rgba16);
     QCOMPARE(checkpoint->byteCount(), pixels.size());
     QCOMPARE(checkpoint->rgba(), pixels);
-    const auto restored = RasterTile::fromCompressed(input.coordinate, checkpoint->compressedData(), PixelFormat::Rgba16);
-    QVERIFY(restored);
-    QCOMPARE(restored->rgba(), pixels);
     input.rgba.fill('\0');
     QCOMPARE(checkpoint->rgba(), pixels);
-    QVERIFY(!RasterTile::fromCompressed(input.coordinate, checkpoint->compressedData()));
     QVERIFY(!RasterTile::fromPixels({input.coordinate, pixels}));
     QVERIFY(!RasterTile::fromPixels({input.coordinate, pixels.chopped(1), PixelFormat::Rgba16}));
     QVERIFY(!RasterTile::fromPixels({input.coordinate, pixels + 'x', PixelFormat::Rgba16}));
     const auto invalid = static_cast<PixelFormat>(255);
     QVERIFY(!RasterTile::fromPixels({input.coordinate, {}, invalid}));
-    QVERIFY(!RasterTile::fromCompressed(input.coordinate, checkpoint->compressedData(), invalid));
-    const auto encoded = checkpoint->compressedData();
-    for (const auto &data : QList<QByteArray>{encoded.chopped(1), encoded + 'x',
-                            qCompress(pixels + 'x').mid(4), qCompress(pixels.chopped(1)).mid(4)}) {
-        QVERIFY(!RasterTile::fromCompressed(input.coordinate, data, PixelFormat::Rgba16));
-    }
 }
 
 void KisGpuRasterPixelsTest::compressedPixelsRemainLosslessAndIndependent()
@@ -77,18 +66,11 @@ void KisGpuRasterPixelsTest::compressedPixelsRemainLosslessAndIndependent()
     QVERIFY(frozen);
     QCOMPARE(frozen->coordinate(), input.coordinate);
     QCOMPARE(frozen->rgba(), bytes);
-    QVERIFY(!frozen->compressedData().isEmpty());
-    auto encoded = frozen->compressedData();
-    const auto restored = RasterTile::fromCompressed(input.coordinate, encoded);
-    QVERIFY(restored);
-    QCOMPARE(restored->coordinate(), input.coordinate);
-    QCOMPARE(restored->rgba(), bytes);
-    encoded[0] = char(encoded[0] ^ 0xff);
+    QVERIFY(frozen->compressedByteCount() > 0);
     input.rgba.fill('\x7f');
     auto decoded = frozen->rgba();
     decoded.fill('\x3f');
     QCOMPARE(frozen->rgba(), bytes);
-    QCOMPARE(restored->rgba(), bytes);
 }
 
 void KisGpuRasterPixelsTest::compressedPixelsRemainLosslessAndIndependent_data()
@@ -114,25 +96,6 @@ void KisGpuRasterPixelsTest::invalidTileExtentsAndByteCountsAreRejected()
     QVERIFY(!RasterTile::fromPixels({{0, 0}, {}}));
     QVERIFY(!RasterTile::fromPixels({{0, 0}, bytes.chopped(1)}));
     QVERIFY(!RasterTile::fromPixels({{0, 0}, bytes + 'x'}));
-}
-
-void KisGpuRasterPixelsTest::corruptedOrOversizedCompressedPixelsAreRejected()
-{
-    const auto tile = RasterTile::fromPixels({{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')});
-    QVERIFY(tile);
-    const auto encoded = tile->compressedData();
-    auto corrupted = encoded;
-    corrupted[corrupted.size() - 1] = char(corrupted.back() ^ 1);
-    const auto oversized = qCompress(QByteArray(RgbaTile::ByteCount + 1, '\0'), 6).mid(4);
-    const auto undersized = qCompress(QByteArray(RgbaTile::ByteCount - 1, '\0'), 6).mid(4);
-    for (const auto &invalid : QList<QByteArray>{QByteArray{}, QByteArrayLiteral("invalid"), encoded.chopped(1),
-                               encoded + 'x', corrupted, oversized, undersized,
-                               QByteArray(RgbaTile::ByteCount + 1024, 'x')}) {
-        QVERIFY(!RasterTile::fromCompressed({0, 0}, invalid));
-    }
-    const int outside = RgbaTile::CoordinateLimit / RgbaTile::Size;
-    QVERIFY(!RasterTile::fromCompressed({outside, 0}, encoded));
-    QCOMPARE(tile->rgba(), QByteArray(RgbaTile::ByteCount, '\0'));
 }
 
 QTEST_GUILESS_MAIN(KisGpuRasterPixelsTest)
