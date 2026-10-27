@@ -18,6 +18,7 @@
 #include <KisResourceStorage.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
+#include <KoColorProfile.h>
 #include <KoColor.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoPointerEvent.h>
@@ -151,8 +152,9 @@ void KisGpuColorSamplingTest::samplesU16DocumentColorWithoutQuantizing()
     raster.size = {32, 16};
     raster.format = Gpu::PixelFormat::Rgba16;
     raster.layers.append({QStringLiteral("Sample"), true, {}, {}, {0xabcd, 0x2468, 0x1357, 65535}});
-    const auto owner = Gpu::PaintImageSP::create(execution, raster);
     const auto cs = KoColorSpaceRegistry::instance()->rgb16();
+    raster.colorProfile = cs->profile()->rawData();
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
     const quint16 bgra[] = {0x1357, 0x2468, 0xabcd, 65535};
     const KoColor expected(reinterpret_cast<const quint8 *>(bgra), cs);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -189,6 +191,7 @@ void KisGpuColorSamplingTest::samplesU16DocumentColorWithoutQuantizing()
         QCOMPARE(owner->operations().snapshot(), version);
         QCOMPARE(lifetime->undoStack()->count(), 0);
     }
+
 }
 
 void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()

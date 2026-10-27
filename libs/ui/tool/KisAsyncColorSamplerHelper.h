@@ -72,10 +72,7 @@ private Q_SLOTS:
     void slotUpdateBgColor();
 
 private:
-    void queueGpuSample(const QPoint &imagePoint);
-    void pollGpuSample();
-    void completeGpuSampling();
-    void resetGpuSampling();
+    void resetSampling();
     void activatePreview();
     void paintRectangle(QPainter &gc, const QRectF &viewRectF, const QColor &currentColor, const QColor &baseColor);
     void paintCircle(QPainter &gc, const QRectF &viewRectF, const QColor &currentColor, const QColor &baseColor);
