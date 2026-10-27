@@ -7,6 +7,7 @@ struct Parameters {
     implicitPixel: u32,
     nondefault: u32,
     clip: vec4<u32>,
+    native: vec4<u32>,
 };
 @group(0) @binding(0) var<storage, read> pixels: array<u32>;
 @group(0) @binding(1) var<storage, read_write> bounds: array<atomic<i32>, 4>;
@@ -18,8 +19,12 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>,
         @builtin(local_invocation_index) lane: u32) {
     var value = vec4<i32>(2147483647, 2147483647, -2147483647 - 1, -2147483647 - 1);
     if (all(id.xy >= parameters.clip.xy) && all(id.xy < parameters.clip.zw)) {
-        let pixel = pixels[id.y * 256u + id.x];
-        if (select((pixel >> 24u) != 0u, pixel != parameters.implicitPixel, parameters.nondefault != 0u)) {
+        let wide = parameters.native.y != 0u;
+        let stride = select(1u, 2u, wide);
+        let word = (id.y * 256u + id.x) * stride;
+        let pixel = nativePixel(pixels[word], pixels[word + stride - 1u], wide);
+        let implicit = nativePixel(parameters.implicitPixel, parameters.native.x, wide);
+        if (select(pixel.w != 0u, any(pixel != implicit), parameters.nondefault != 0u)) {
             let point = parameters.origin + vec2<i32>(id.xy);
             value = vec4<i32>(point, point);
         }

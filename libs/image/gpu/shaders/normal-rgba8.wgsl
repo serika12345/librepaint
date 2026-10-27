@@ -11,12 +11,12 @@ fn normalRgba8(base: vec4<u32>, source: vec3<u32>, sourceAlpha: u32, writeMask: 
     if ((writeMask & 8u) == 0u || destination.w == 255u) {
         blend = projectionMultiply(sourceAlpha, 0x3b808081u);
     } else if (destination.w == 0u) {
-        alpha = projectionByte(sourceAlpha);
+        alpha = projectionComponent(sourceAlpha);
         blend = 0x3f800000u;
         if (writeMask != 15u) { destination = vec4<u32>(0u); }
     } else {
         let value = projectionAlpha(sourceAlpha, destination.w);
-        alpha = projectionByte(value);
+        alpha = projectionComponent(value);
         blend = projectionDivide(sourceAlpha, value);
     }
     var color = destination.xyz;

@@ -66,5 +66,5 @@ fn circleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
     if (distance > radius) { return 0u; }
     if (distance <= start) { return 255u; }
     let inverse = floatDivide(floatMultiply(floatSubtract(distance, start), floatFromDouble(dab.coefficient.xy)), 0x437f0000u);
-    return projectionByte(floatMultiply(0x437f0000u, floatSubtract(0x3f800000u, inverse)));
+    return projectionComponent(floatMultiply(0x437f0000u, floatSubtract(0x3f800000u, inverse)));
 }

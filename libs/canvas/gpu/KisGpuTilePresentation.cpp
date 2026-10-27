@@ -296,6 +296,8 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     std::copy_n(background, 4, frame.background);
     frame.channels[0] = channels.rgbaMask;
     frame.channels[1] = channels.showSingleChannelAsColor;
+    // The image boundary admits RGBA16 only with the default linear-sRGB encoding.
+    frame.channels[2] = projection->document()->format == Image::Gpu::PixelFormat::Rgba16;
     if (checkers) {
         const auto color = [](QColor input, quint32 *output) {
             const auto value = qPremultiply(input.rgba());

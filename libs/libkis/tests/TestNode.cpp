@@ -1052,8 +1052,8 @@ void TestNode::testGpuBoundsUseOnlyScalarReadback()
     input.size = {64, 64};
     input.layers = {{QStringLiteral("Bounds"), true, {}, {}}};
     auto &layer = input.layers.first();
-    layer.defaultPixel = opaqueDefault ? std::array<quint8, 4>{7, 11, 19, 255} : std::array<quint8, 4>{};
-    QByteArray pixels(reinterpret_cast<const char*>(layer.defaultPixel.data()), 4);
+    layer.defaultPixel = opaqueDefault ? LibrePaint::Image::Gpu::RgbaPixel{7, 11, 19, 255} : LibrePaint::Image::Gpu::RgbaPixel{};
+    QByteArray pixels = LibrePaint::Image::Gpu::rgbaBytes(layer.defaultPixel, LibrePaint::Image::Gpu::PixelFormat::Rgba8);
     pixels = pixels.repeated(Gpu::RgbaTile::Size * Gpu::RgbaTile::Size);
     if (visiblePixel) pixels.replace((6 * 256 + 253) * 4, 4, QByteArray::fromHex("112233ff"));
     if (hiddenPixel) pixels.replace((7 * 256 + 254) * 4, 4, QByteArray::fromHex("44556600"));
@@ -1075,8 +1075,8 @@ void TestNode::testGpuBoundsUseOnlyScalarReadback()
     KisImageSP ordinary = new KisImage(nullptr, 64, 64, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Bounds reference"));
     KisPaintLayerSP reference = new KisPaintLayer(ordinary, QStringLiteral("Bounds"), 255);
     ordinary->addNode(reference);
-    const quint8 bgra[] = {layer.defaultPixel[2], layer.defaultPixel[1], layer.defaultPixel[0], layer.defaultPixel[3]};
-    reference->paintDevice()->setDefaultPixel(KoColor(bgra, ordinary->colorSpace()));
+    const auto bgra = Gpu::rgbaBytes({layer.defaultPixel[2], layer.defaultPixel[1], layer.defaultPixel[0], layer.defaultPixel[3]}, input.format);
+    reference->paintDevice()->setDefaultPixel(KoColor(reinterpret_cast<const quint8 *>(bgra.constData()), ordinary->colorSpace()));
     for (qsizetype i = 0; i < pixels.size(); i += 4) std::swap(pixels[i], pixels[i + 2]);
     reference->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(pixels.constData()), QRect(-256, 0, 256, 256));
     QScopedPointer<Node> ordinaryNode(Node::createNode(ordinary, reference));

@@ -26,7 +26,7 @@ struct ColorReadbackResources
 using namespace Detail;
 
 bool TileRenderer::Private::recordColorSample(WGPUCommandEncoder commands, WGPUBuffer source,
-    WGPUBuffer output, WGPUBuffer parameters, QSize size)
+    WGPUBuffer output, WGPUBuffer parameters, QSize size, PixelFormat format)
 {
     if (!colorSamplePipeline) {
         colorSamplePipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/sample-color.wgsl"));
@@ -34,7 +34,8 @@ bool TileRenderer::Private::recordColorSample(WGPUCommandEncoder commands, WGPUB
             colorSampleLayout.reset(wgpuComputePipelineGetBindGroupLayout(colorSamplePipeline.get(), 0));
     }
     if (!colorSamplePipeline || !colorSampleLayout) return false;
-    const WGPUBuffer buffers[] = {source ? source : zero.get(), output, parameters};
+    const WGPUBuffer buffers[] = {source ? source : zeroBuffer(commands, format), output, parameters};
+    if (!buffers[0]) return false;
     WGPUBindGroupEntry entries[3]{};
     for (quint32 i = 0; i < 3; ++i) {
         entries[i].binding = i;
@@ -81,14 +82,15 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
     if (qint64(point.x()) - extent < -limit || qint64(point.y()) - extent < -limit ||
         qint64(point.x()) + extent >= limit || qint64(point.y()) + extent >= limit)
         return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Color sample region is outside the supported range"));
-    if (d.maximumReadbackBytes < 32)
-        return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Color sample requires 32 readback bytes"));
+    const qsizetype summaryBytes = pinned->format == PixelFormat::Rgba16 ? 36 : 32;
+    if (d.maximumReadbackBytes < summaryBytes)
+        return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Color sample requires %1 readback bytes").arg(summaryBytes));
     const QRect region(point - QPoint(int(extent), int(extent)), QSize(int(extent * 2 + 1), int(extent * 2 + 1)));
     constexpr int side = TileRenderer::TileSize;
     const QPoint first(pixelTileIndex(region.left(), side), pixelTileIndex(region.top(), side));
     const QPoint last(pixelTileIndex(region.right(), side), pixelTileIndex(region.bottom(), side));
     const qsizetype count = (last.x() - first.x() + 1) * (last.y() - first.y() + 1);
-    const qsizetype workingBytes = 32 + count * 64;
+    const qsizetype workingBytes = summaryBytes + count * 64;
     const auto budget = d.renderer->m_d->budget;
     if (workingBytes > budget->limit - budget->used) {
         const auto retired = retireDisplayCaches();
@@ -99,7 +101,7 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
     bool begun = false;
     try {
         auto work = std::make_shared<ColorReadbackResources>(budget, workingBytes);
-        work->output = createBuffer(d.device->nativeDevice(), 32,
+        work->output = createBuffer(d.device->nativeDevice(), summaryBytes,
             WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
         if (!work->output) throw std::runtime_error("Color sample summary allocation failed");
         const auto frame = beginReadbackFrame();
@@ -130,8 +132,9 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
         QMap<quint64, WGPUBuffer> tiles;
         for (const auto &tile : projected ? projected->tiles() : rendered ? rendered->tiles(layer) : QList<TileView>{})
             tiles.insert(key(tile.coordinate.x(), tile.coordinate.y()), tile.pixels);
-        const auto implicit = layer ? pinned->projectionDefaultPixels().value(layer) : std::array<quint8, 4>{};
-        wgpuCommandEncoderClearBuffer(frame.commands, work->output.get(), 0, 32);
+        const auto implicit = layer ? pinned->projectionDefaultPixels().value(layer) : RgbaPixel{};
+        const auto implicitWords = packedPixelWords(implicit, pinned->format);
+        wgpuCommandEncoderClearBuffer(frame.commands, work->output.get(), 0, summaryBytes);
         for (int y = first.y(); y <= last.y(); ++y) {
             for (int x = first.x(); x <= last.x(); ++x) {
                 const QPoint origin(x * side, y * side);
@@ -141,11 +144,11 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
                     quint32(origin.x()), quint32(origin.y()), quint32(point.x()), quint32(point.y()),
                     quint32(clip.left()), quint32(clip.top()), quint32(clip.right() + 1), quint32(clip.bottom() + 1),
                     quint32(canvas.width()), quint32(canvas.height()), quint32(extent * extent), layer ? 0u : 1u,
-                    packedPixel(implicit), source ? 1u : 0u, radius == 1 ? 1u : 0u, 0u};
+                    implicitWords[0], implicitWords[1], (source ? 1u : 0u) | (pinned->format == PixelFormat::Rgba16 ? 2u : 0u), 0u};
                 auto parameters = createBuffer(d.device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
                 if (!parameters) throw std::runtime_error("Color sample parameters allocation failed");
                 wgpuQueueWriteBuffer(d.device->queue(), parameters.get(), 0, values.data(), sizeof(values));
-                if (!d.renderer->m_d->recordColorSample(frame.commands, source, work->output.get(), parameters.get(), clip.size()))
+                if (!d.renderer->m_d->recordColorSample(frame.commands, source, work->output.get(), parameters.get(), clip.size(), pinned->format))
                     throw std::runtime_error("Color sample could not be recorded");
                 work->parameters.push_back(std::move(parameters));
             }
@@ -157,18 +160,21 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
         auto *read = reads->results.front().get();
         const auto generation = d.generation;
         const auto maximumCount = quint32(region.width() * region.height());
-        read->completed = [read, completion, pinned, generation, maximumCount] {
+        read->completed = [read, completion, pinned, generation, maximumCount, summaryBytes] {
             ColorSampleOutcome result{ExecutionCode::Success, pinned, generation, {}, {}};
-            std::array<quint32, 8> values{};
-            if (read->data.size() == 32) std::memcpy(values.data(), read->data.constData(), 32);
-            const quint64 alpha = values[6], count = values[7];
-            bool valid = read->data.size() == 32 && count && count <= maximumCount && alpha <= count * 255;
+            std::array<quint32, 9> values{};
+            if (read->data.size() == summaryBytes) std::memcpy(values.data(), read->data.constData(), size_t(summaryBytes));
+            const bool wide = pinned->format == PixelFormat::Rgba16;
+            const quint64 maximum = maximumComponent(pinned->format);
+            const quint64 alpha = quint64(values[6]) | (wide ? quint64(values[7]) << 32 : 0);
+            const quint64 count = values[wide ? 8 : 7];
+            bool valid = read->data.size() == summaryBytes && count && count <= maximumCount && alpha <= count * maximum;
             for (int channel = 0; channel < 3; ++channel) {
                 const quint64 weighted = values[channel * 2] | (quint64(values[channel * 2 + 1]) << 32);
-                valid &= weighted <= alpha * 255;
-                if (alpha) result.rgba[channel] = quint8((weighted + alpha / 2) / alpha);
+                valid &= weighted <= alpha * maximum;
+                if (alpha) result.rgba[channel] = quint16((weighted + alpha / 2) / alpha);
             }
-            if (count) result.rgba[3] = quint8((alpha + count / 2) / count);
+            if (count) result.rgba[3] = quint16((alpha + count / 2) / count);
             if (!valid) {
                 result.code = ExecutionCode::DeviceFailure;
                 result.rgba = {};
@@ -179,7 +185,7 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
         d.readbackRendered = rendered;
         d.readbackProjected = projected;
         d.readbackColor = work;
-        if (!reads->recordBuffer(*d.device, frame.commands, 0, work->output.get(), 32))
+        if (!reads->recordBuffer(*d.device, frame.commands, 0, work->output.get(), summaryBytes))
             throw std::runtime_error("Color sample readback could not be recorded");
         const auto submitted = endFrame(true, false);
         begun = false;

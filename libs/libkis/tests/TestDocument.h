@@ -52,6 +52,7 @@ private Q_SLOTS:
     void testSetColorProfile();
     void testPixelData();
     void testGpuImagePixelDataModifiedStateAndRetainedNode();
+    void testGpuU16PublicPixelsPreserveDocumentEncoding();
     void testGpuSaveAndExportPreserveHistoryAndFileIdentity();
     void testSavedPngDensityUsesDocumentResolution_data();
     void testSavedPngDensityUsesDocumentResolution();
@@ -105,6 +106,7 @@ private Q_SLOTS:
     void testNativeLayerRemovalDoesNotReassignMetadata();
     void testNativeMalformedLayerMetadataKeepsWarningAndOtherValues_data();
     void testNativeMalformedLayerMetadataKeepsWarningAndOtherValues();
+    void testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest_data();
     void testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest();
     void testThumbnail();
     void testCreateFillLayer();

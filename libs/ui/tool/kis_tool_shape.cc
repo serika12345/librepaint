@@ -117,7 +117,7 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
     if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
         const auto color = (fillStyle() == KisFigurePaintingOptions::FillStyleForegroundColor ?
                             source->foregroundColor() : source->backgroundColor()).toQColor();
-        style.fill = std::array<quint8, 4>{quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
+        style.fill = LibrePaint::Image::Gpu::RgbaPixel{quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
     }
     KoCanvasResourceProvider resources;
     for (int key : {KoCanvasResource::CurrentPaintOpPreset, KoCanvasResource::CurrentEffectiveCompositeOp,

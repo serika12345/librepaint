@@ -125,7 +125,7 @@ enum class LayerBlendMode : quint8 { Normal, Multiply, Screen, Darken, Lighten, 
 /** Frozen circular marker or Gaussian WASH settings. */
 struct Brush
 {
-    std::array<quint8, 4> rgba{0, 0, 0, 255};
+    RgbaPixel rgba{0, 0, 0, 255};
     qreal diameter = 10;
     qreal spacing = 0.1;
     bool autoSpacing = false;
@@ -217,7 +217,7 @@ struct PatternFill
 struct FigureStyle
 {
     bool outline = true;
-    std::optional<std::array<quint8, 4>> fill;
+    std::optional<RgbaPixel> fill;
     std::optional<PatternFill> pattern;
     LayerBlendMode fillBlendMode = LayerBlendMode::Normal;
 };
@@ -431,7 +431,7 @@ struct RasterLayer
     bool visible = true;
     QUuid uuid;
     QList<RgbaTile> tiles;
-    std::array<quint8, 4> defaultPixel{};
+    RgbaPixel defaultPixel{};
     quint8 opacity = 255;
     bool userLocked = false;
     bool pinnedToTimeline = false;
@@ -466,7 +466,7 @@ struct RasterImage
     QList<RasterLayer> layers;
     /** Bottom-to-top list index; zero for an empty document. */
     qsizetype activeLayer = 0;
-    std::array<quint8, 4> projectionBackground{};
+    RgbaPixel projectionBackground{};
     /** Rectangular document selection; empty means no selection. */
     QRect selection{};
     /** When true, the rectangle is a hole and the rest of the image is selected. */
@@ -474,6 +474,7 @@ struct RasterImage
     SelectionKind selectionKind = SelectionKind::Rectangle;
     /** Arbitrary coverage for SelectionKind::Freehand. */
     SelectionMaskSP selectionMask;
+    PixelFormat format = PixelFormat::Rgba8;
 };
 
 struct Layer
@@ -483,7 +484,7 @@ struct Layer
     bool visible = true;
     QList<LayerOperation> operations;
     QUuid uuid;
-    std::array<quint8, 4> defaultPixel{};
+    RgbaPixel defaultPixel{};
     quint8 opacity = 255;
     bool userLocked = false;
     bool pinnedToTimeline = false;
@@ -520,7 +521,7 @@ struct LayerProjectionInput
     LayerBlendMode blendMode = LayerBlendMode::Normal;
 };
 
-/** Immutable RGBA8/sRGB document version with paint layers and group ownership. */
+/** Immutable integer RGBA document version with paint layers and group ownership. */
 class KRITAIMAGEGPUOPERATIONS_EXPORT DocumentVersion
 {
 public:
@@ -534,14 +535,15 @@ public:
     /** Uniform projection values before each node's own opacity. Group values
      * derive from child defaults, order, visibility, opacity and projection components.
      */
-    QHash<LayerId, std::array<quint8, 4>> projectionDefaultPixels() const;
+    QHash<LayerId, RgbaPixel> projectionDefaultPixels() const;
     /** Bottom-to-top inputs for the root, or one group's isolated subtree.
      * A group boundary excludes its own attributes and all outside state.
      * Unavailable group identities throw std::invalid_argument.
      */
     QList<LayerProjectionInput> projectionInputs(LayerId group = 0) const;
     QSize size;
-    std::array<quint8, 4> projectionBackground{};
+    PixelFormat format = PixelFormat::Rgba8;
+    RgbaPixel projectionBackground{};
     QList<Layer> layers;
     LayerId activeLayer = 0;
     QList<LayerId> selectedLayers;
@@ -798,7 +800,7 @@ public:
     SelectionMaskSP layerTransparencyMask(LayerId layer) const;
     bool layerTransparencyMaskVisible(LayerId layer) const;
     /** Direct background writes preserve history, pending input and fixed snapshots. */
-    Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
+    Result writeProjectionBackground(const RgbaPixel &rgba);
     /** Direct property writes preserve history transitions, pending input and fixed snapshots. */
     Result writeLayerName(LayerId layer, const QString &name);
     Result writeLayerVisible(LayerId layer, bool visible);
@@ -959,7 +961,7 @@ private:
     };
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
-    Result fillLayerStyle(LayerId layer, const std::array<quint8, 4> &color, const FigureStyle &style,
+    Result fillLayerStyle(LayerId layer, const RgbaPixel &color, const FigureStyle &style,
                           qreal opacity, bool erase, bool alphaLocked);
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;

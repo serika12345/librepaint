@@ -6,6 +6,7 @@
  */
 
 #include "KisImportExportUtils.h"
+#include <cstring>
 #include "KisDocumentUndoStack_p.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceModel.h"
@@ -302,6 +303,28 @@ KisImportExportErrorCode readStaticKraSettings(const QByteArray &bytes, StaticKr
     // The native loader uses the last provided export string as the base-name fallback.
     settings.sequenceName = exportName.value_or(exportPath.value_or(QString()));
     return ImportExportCodes::OK;
+}
+
+QImage fixedImagePreview(KisImageSP image, const LibrePaint::Image::Gpu::Snapshot &version,
+                        const KoColorSpace *encoding, const QSize &maximum)
+{
+    const auto originalSize = version ? version->size : image->size();
+    const auto newSize = originalSize.scaled(maximum, Qt::KeepAspectRatio).expandedTo({1, 1});
+    const bool pixelArt = originalSize.width() < maximum.width() && originalSize.height() < maximum.height() &&
+        newSize.height() % originalSize.height() == 0 && newSize.width() % originalSize.width() == 0;
+    QImage preview;
+    if (pixelArt) {
+        const auto original = image->convertToQImage(originalSize, nullptr, version, encoding);
+        if (!original.isNull()) preview = original.scaled(newSize, Qt::KeepAspectRatio, Qt::FastTransformation);
+    } else {
+        preview = image->convertToQImage(newSize, nullptr, version, encoding);
+    }
+    if (preview.isNull()) {
+        preview = QImage(newSize, QImage::Format_ARGB32);
+        QPainter painter(&preview);
+        painter.fillRect(preview.rect(), QBrush(KisCanvasWidgetBase::createCheckersImage(newSize.width() / 5)));
+    }
+    return preview;
 }
 
 LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document,
@@ -1190,10 +1213,21 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
         QPointer<KisDocument> guard(this);
         d->gpuSaving = true;
         if (!exporting) d->modificationState.markSavingStarted();
+        const KisImageSP saveImage = d->image;
+        const auto pinned = fileDocument->image()->operations().snapshot();
+        const auto encoding = saveImage->colorSpace();
         auto outcome = applyGpuKraMetadata(*this, *fileDocument, saveTime,
             exportConfiguration ? std::optional<bool>(exportConfiguration->getBool("compressRasterData", KisConfig(true).compressKra())) : std::nullopt);
-        if (outcome.code == GpuDocument::FileCode::Success)
-            outcome = exporting ? fileDocument->exportKra(job.filePath) : fileDocument->saveKra(job.filePath);
+        if (outcome.code == GpuDocument::FileCode::Success) {
+            try {
+                const auto preview = pinned->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ?
+                    fixedImagePreview(saveImage, pinned, encoding, {256, 256}) : QImage();
+                outcome = exporting ? fileDocument->exportKra(job.filePath, pinned, preview) :
+                                      fileDocument->saveKra(job.filePath, pinned, preview);
+            } catch (const std::exception &failure) {
+                outcome = {GpuDocument::FileCode::DeviceFailure, {}, QString::fromUtf8(failure.what())};
+            }
+        }
         const bool success = outcome.code == GpuDocument::FileCode::Success;
         diagnostic = outcome.diagnostic;
         status = gpuFileStatus(outcome.code);
@@ -1269,9 +1303,15 @@ QByteArray KisDocument::serializeToNativeByteArray()
     if (const auto fileDocument = d->gpuDocument) {
         if (!buffer.open(QIODevice::ReadWrite)) return {};
         try {
+            const KisImageSP saveImage = d->image;
+            const auto pinned = fileDocument->image()->operations().snapshot();
+            const auto encoding = saveImage->colorSpace();
             auto outcome = applyGpuKraMetadata(*this, *fileDocument);
-            if (outcome.code == LibrePaint::Document::Gpu::FileCode::Success)
-                outcome = fileDocument->exportKra(buffer);
+            if (outcome.code == LibrePaint::Document::Gpu::FileCode::Success) {
+                const auto preview = pinned->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ?
+                    fixedImagePreview(saveImage, pinned, encoding, {256, 256}) : QImage();
+                outcome = fileDocument->exportKra(buffer, pinned, preview);
+            }
             d->lastErrorMessage = outcome.diagnostic;
             return outcome.code == LibrePaint::Document::Gpu::FileCode::Success ? buffer.data() : QByteArray();
         } catch (const std::exception &error) {
@@ -1795,6 +1835,16 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::Private::startGpuAutoSave(
     const auto fileDocument = gpuDocument;
     if (!fileDocument->image()->operations().activeOperation().isNull()) return RecoveryAutoSaveStartResult::Failed;
     const auto pinned = fileDocument->image()->operations().snapshot();
+    const KisImageSP saveImage = image;
+    const auto encoding = saveImage->colorSpace();
+    QImage preview;
+    try {
+        if (pinned->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16)
+            preview = fixedImagePreview(saveImage, pinned, encoding, {256, 256});
+    } catch (const std::exception &failure) {
+        lastErrorMessage = QString::fromUtf8(failure.what());
+        return RecoveryAutoSaveStartResult::Failed;
+    }
     const KritaUtils::ExportFileJob job(path, nativeFormatMimeType(),
                                       KritaUtils::SaveIsExporting | KritaUtils::SaveInAutosaveMode);
     gpuSaving = true;
@@ -1802,7 +1852,7 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::Private::startGpuAutoSave(
     modificationState.markAutoSaveStarted();
     autoSaveState.markAutoSaveExportStarted();
     const auto prepared = applyGpuKraMetadata(*q, *fileDocument);
-    gpuAutoSaveJob = [this, fileDocument, pinned, prepared, job, mode] {
+    gpuAutoSaveJob = [this, fileDocument, pinned, prepared, preview, job, mode] {
         if (gpuDocument != fileDocument) {
             gpuSaving = false;
             autoSaveState.markAutoSaveExportFinished();
@@ -1811,7 +1861,7 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::Private::startGpuAutoSave(
         }
         const QPointer<KisDocument> guard(q);
         const auto outcome = prepared.code == LibrePaint::Document::Gpu::FileCode::Success ?
-            fileDocument->exportKra(job.filePath, pinned) : prepared;
+            fileDocument->exportKra(job.filePath, pinned, preview) : prepared;
         if (!guard) return;
         const auto status = gpuFileStatus(outcome.code);
         autoSaveState.markAutoSaveExportFinished();
@@ -2283,38 +2333,8 @@ QImage KisDocument::generatePreviewImage(const QSize& size)
     if (d->savingImage) image = d->savingImage;
 
     if (image) {
-        QRect bounds = image->bounds();
-        QSize originalSize = bounds.size();
-        // QSize may round down one dimension to zero on extreme aspect rations, so ensure 1px minimum
-        QSize newSize = originalSize.scaled(size, Qt::KeepAspectRatio).expandedTo({1, 1});
-
-        bool pixelArt = false;
-        // determine if the image is pixel art or not
-        if (originalSize.width() < size.width() && originalSize.height() < size.height()) {
-            // the image must be smaller than the requested preview
-            // the scale must be integer
-            if (newSize.height()%originalSize.height() == 0 && newSize.width()%originalSize.width() == 0) {
-                pixelArt = true;
-            }
-        }
-
-        QImage preview;
-        if (pixelArt) {
-            // do not scale while converting (because it uses Bicubic)
-            QImage original = image->convertToQImage(originalSize, 0);
-            // scale using FastTransformation, which is probably Nearest neighbour, suitable for pixel art
-            preview = original.scaled(newSize, Qt::KeepAspectRatio, Qt::FastTransformation);
-        } else {
-            preview = image->convertToQImage(newSize, 0);
-        }
-        if (preview.isNull()) {
-            preview = QImage(newSize, QImage::Format_ARGB32);
-            QPainter gc(&preview);
-            QBrush checkBrush = QBrush(KisCanvasWidgetBase::createCheckersImage(newSize.width() / 5));
-            gc.fillRect(preview.rect(), checkBrush);
-            gc.end();
-        }
-        return preview;
+        const auto version = image->gpuImage() ? image->gpuImage()->operations().snapshot() : LibrePaint::Image::Gpu::Snapshot{};
+        return fixedImagePreview(image, version, image->colorSpace(), size);
     }
     QImage preview(size, QImage::Format_ARGB32);
     preview.fill(Qt::transparent);
@@ -3203,9 +3223,10 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
         assistants = KisDomUtils::qStringToQColor(value.documentElement().attribute(QStringLiteral("SimpleColorData")));
     }
     auto *registry = KoColorSpaceRegistry::instance();
+    const auto depth = loaded.document.image.format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
     const auto profile = metadata.metadata.iccProfile.isEmpty() ? registry->rgb8()->profile() :
-        registry->createColorProfileFromData(QStringLiteral("RGBA"), QStringLiteral("U8"), metadata.metadata.iccProfile);
-    const auto cs = profile ? registry->colorSpace(QStringLiteral("RGBA"), QStringLiteral("U8"), profile) : nullptr;
+        registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, metadata.metadata.iccProfile);
+    const auto cs = profile ? registry->colorSpace(QStringLiteral("RGBA"), depth, profile) : nullptr;
     if (!cs) return reject(i18n("The KRA color profile cannot be loaded."), ImportExportCodes::FormatColorSpaceUnsupported);
     KisMetaData::Store rootMetadata;
     QMap<QUuid, KisMetaData::Store> layerMetadata;
@@ -3299,9 +3320,10 @@ bool KisDocument::newImage(const QString& name,
     const bool gpuSession = KisPart::instance()->gpuEngineEnabled();
     if (gpuSession) {
         namespace Gpu = LibrePaint::Image::Gpu;
-        if (cs != KoColorSpaceRegistry::instance()->rgb8() ||
+        if ((cs != KoColorSpaceRegistry::instance()->rgb8() &&
+             cs != KoColorSpaceRegistry::instance()->rgb16()) ||
             (bgStyle != KisConfig::RASTER_LAYER && bgStyle != KisConfig::CANVAS_COLOR)) {
-            setErrorMessage(i18n("The new painting engine currently requires the default 8-bit RGB color space and a raster or canvas background."));
+            setErrorMessage(i18n("The new painting engine currently requires a default 8-bit or 16-bit RGB color space and a raster or canvas background."));
             return false;
         }
         if (numberOfLayers < 1 || numberOfLayers > Gpu::Limits{}.layerCount) {
@@ -3317,10 +3339,18 @@ bool KisDocument::newImage(const QString& name,
         if (!execution) { setErrorMessage(diagnostic); return false; }
         Gpu::RasterImage raster;
         raster.size = {width, height};
+        raster.format = cs->pixelSize() == 8 ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
         KoColor initialColor(bgColor);
         initialColor.convertTo(cs);
         const auto pixel = initialColor.data();
-        const std::array<quint8, 4> rgba{pixel[2], pixel[1], pixel[0], pixel[3]};
+        Gpu::RgbaPixel rgba;
+        if (raster.format == Gpu::PixelFormat::Rgba16) {
+            quint16 components[4];
+            std::memcpy(components, pixel, sizeof(components));
+            rgba = {components[2], components[1], components[0], components[3]};
+        } else {
+            rgba = {pixel[2], pixel[1], pixel[0], pixel[3]};
+        }
         const bool backgroundLayer = bgStyle == KisConfig::RASTER_LAYER;
         if (!backgroundLayer) raster.projectionBackground = rgba;
         const bool autopin = KisConfig(true).autoPinLayersToTimeline();
@@ -3330,8 +3360,8 @@ bool KisDocument::newImage(const QString& name,
                                  QStringLiteral("%1 %2").arg(i18n("Paint Layer")).arg(i);
             layer.pinnedToTimeline = (i > 0 || backgroundLayer) && autopin;
             if (i == 0 && backgroundLayer) {
-                layer.defaultPixel = {rgba[0], rgba[1], rgba[2], 255};
-                layer.opacity = rgba[3];
+                layer.defaultPixel = {rgba[0], rgba[1], rgba[2], Gpu::maximumComponent(raster.format)};
+                layer.opacity = initialColor.opacityU8();
                 layer.userLocked = numberOfLayers > 1;
             }
             raster.layers.append(layer);

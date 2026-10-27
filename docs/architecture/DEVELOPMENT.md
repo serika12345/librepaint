@@ -306,6 +306,30 @@ RGBA U16の圧縮画素は`KisGpuRasterPixelsTest`で検査する。
 RGBA順・リトルエンディアンの全バイト、下位ビット、透明画素のRGB、負座標、
 共有元の変更からの独立性、形式と画素長の不一致の拒否を照合する。
 
+RGBA U16の操作とGPU実行は、同じ試験入口で検査する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test KisGpuOperationDocumentTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuProjectionArithmeticTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuTileRendererTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuPixelReadbackTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuPaintImageTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuExecutionTest
+```
+
+既定画素・投影背景・ブラシ色、精度ごとの容量、形式混在の拒否、固定版、Undo／Redoを照合する。
+円形マーカーは[取得条件](../../libs/image/gpu/tests/data/roundmarker/provenance-u16.json)の通常CPU描画から得たRGBA16参照と全成分を比較する。
+通常合成の積和は一度だけ単精度へ丸める規則で、丸め境界、色保護、選択と極小の不透明度を検査する。
+投影は既定画素と実タイル、単独と二層同時の合成を照合する。
+読取りは下位ビット、透明画素のRGB、負座標、タイル境界、半径900の採色、縮小画像とGPU再生成を検査する。
+公開画素の書込み・複製は固定版と作業容量を照合する。通常の文書作成・表示・保存の受入れは、
+それぞれの利用側と対象OSの契約を合わせて検証する。
+`TestDocument::testGpuU16PublicPixelsPreserveDocumentEncoding`は、通常作成したU16文書の公開画素と履歴を検査する。
+`testRoundMarkerStrokeMatchesCpuPixels`と`testRoundMarkerSaveMatchesCpuFiles`のU16条件は、通常ツールの描画、
+KRA・PNG16の実ファイル、再読込後の追加編集をCPU参照と比較する。
+`KisGpuColorSamplingTest::samplesU16DocumentColorWithoutQuantizing`は文書色の採色通知を照合し、
+`KisGpuTilePresentationTest`はRGBA8/BGRA8Unorm表示への変換と編集版の不変を検査する。
+
 ### 固定ラスター値とKRAの互換契約
 
 ```sh
@@ -721,7 +745,7 @@ Undo／Redo、KRA再読込後の追加描画とPNG書出し設定の確定を操
 TIFF Make・Artist・Model、UUID、RGBA8画素、文書情報・時刻と設定を固定し、書出しをCPU参照と全バイト比較する。
 `testNativeLayerRemovalDoesNotReassignMetadata`は削除のUndo／Redo、保存再読込後のレイヤー作成とメタデータ設定を照合する。
 `testNativeMalformedLayerMetadataKeepsWarningAndOtherValues`は不正なXMPの警告と、他のレイヤーの値の保持を検査する。
-`testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest`は通常の自動保存で開始時の値を固定し、
+`testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest`はRGBA8/RGBA16の通常の自動保存で開始時の値を固定し、
 復旧要求では追加変更を含む最新の値を保存してから完了することを検査する。
 `LIBREPAINT_GPU_RESULT_DIR`へ`native-layer-metadata-{cpu,gpu}-{source,updated,replacements}.kra`、
 `native-layer-metadata-{cpu,gpu}-export.{png,jpg}`と`native-layer-metadata-gpu-autosave-{autosave,recovery}.kra`を出力する。
@@ -825,9 +849,9 @@ Undo／Redoと、最後の参照による接続解放を検査する。
 
 移行中の製品起動環境へ`LIBREPAINT_GPU_ENGINE=1`を指定すると、通常の「新規作成」とKRAの
 「開く」がGPU文書を作る。同じ文書タブ、ツール、履歴と保存操作を使う。
-新規作成は既定の8ビットRGB色空間と、ラスターまたはキャンバスの背景を受け入れる。
+新規作成は既定の8ビットRGBまたは16ビット線形sRGB色空間と、ラスターまたはキャンバスの背景を受け入れる。
 ブラシはQuick Brushを選び、通常合成または消去を使う。
-KRA取込みは対応するRGBA8・sRGBの描画レイヤーとグループ、合成方式と属性を検査する。
+KRA取込みは対応するRGBA8・sRGBと既定線形sRGB・RGBA16の描画レイヤーとグループ、合成方式と属性を検査する。
 既存の静止画KRAに含まれる空のパレット・資源一覧を受け入れ、本文の時刻設定を読んだ後に
 別ファイルで指定した項目を適用する。フレームレート、範囲、現在時刻、連番書出しの設定を
 GPU文書の初期状態と保存へ保持し、書出し名の補完は従来の読込規則に従う。

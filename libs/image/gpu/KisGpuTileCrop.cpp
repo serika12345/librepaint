@@ -8,7 +8,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 
 TileRenderer::Private::CropResult TileRenderer::Private::cropTiles(
-    WGPUCommandEncoder commands, const Tiles &source, QRect keep, quint32 defaultPixel,
+    WGPUCommandEncoder commands, const Tiles &source, QRect keep, const RgbaPixel &defaultPixel, PixelFormat format,
     QRect region, QList<std::shared_ptr<Tile>> &pins)
 {
     Tiles result, boundaries;
@@ -19,7 +19,7 @@ TileRenderer::Private::CropResult TileRenderer::Private::cropTiles(
         else boundaries.insert(tile.key(), tile.value());
     }
     if (boundaries.isEmpty()) return {RenderOutcome::Recorded, std::move(result), {}};
-    if (!ensureTileCapacity(boundaries.size()))
+    if (!ensureTileCapacity(boundaries.size(), format))
         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU crop boundary tile budget exhausted")};
     if (!cropPipeline) {
         cropPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/crop.wgsl"));
@@ -30,13 +30,14 @@ TileRenderer::Private::CropResult TileRenderer::Private::cropTiles(
     for (auto tile = boundaries.cbegin(); tile != boundaries.cend(); ++tile) {
         const auto origin = coordinate(tile.key()) * TileSize;
         const quint32 values[]{quint32(origin.x()), quint32(origin.y()), quint32(keep.left()), quint32(keep.top()),
-                               quint32(keep.x() + keep.width()), quint32(keep.y() + keep.height()), defaultPixel, 0};
+                               quint32(keep.x() + keep.width()), quint32(keep.y() + keep.height()), quint32(format), 0,
+                               defaultPixel[0], defaultPixel[1], defaultPixel[2], defaultPixel[3]};
         auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
-        const auto output = allocateTile();
+        const auto output = allocateTile(format);
         if (!parameters || !output)
             return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU crop allocation failed")};
         output->mayContainHiddenRgb = tile.value()->mayContainHiddenRgb ||
-            ((defaultPixel >> 24) == 0 && (defaultPixel & 0x00ffffffu));
+            (!defaultPixel[3] && (defaultPixel[0] || defaultPixel[1] || defaultPixel[2]));
         WGPUBindGroupEntry entries[3]{};
         const WGPUBuffer buffers[]{tile.value()->pixels.get(), output->pixels.get(), parameters.get()};
         for (quint32 i = 0; i < 3; ++i) {

@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+// flags holds transparent-base normalization in bit0 and RGBA16 precision in bit1.
 // blendModeOpacity holds LayerBlendMode in the low byte and opacity in the next.
-struct CompositeParameters { opacityBits: u32, normalizeBase: u32, channelMask: u32, blendModeOpacity: u32, }
+struct CompositeParameters { opacityBits: u32, flags: u32, channelMask: u32, blendModeOpacity: u32, }
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(1) var<storage, read> layerPixels: array<u32>;
 @group(0) @binding(2) var<storage, read_write> outputPixels: array<u32>;
@@ -20,7 +21,7 @@ fn coverageAlpha(words: u32, index: u32) -> u32 {
 
 fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha: u32) -> u32 {
     var destination = unpackPixel(base);
-    if (values.normalizeBase != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
+    if ((values.flags & 1u) != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
     var source = unpackPixel(layer);
     if (maskAlpha != 255u) { source.w = multiplyByte(source.w, maskAlpha); }
     if ((values.blendModeOpacity & 255u) != 0u) {
@@ -57,13 +58,32 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha:
     return normalRgba8(destination, source.xyz, sourceAlpha, values.channelMask);
 }
 
+fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameters, maskAlpha: u32) -> vec2<u32> {
+    if ((values.flags & 2u) == 0u) {
+        return vec2<u32>(projectionOver(base.x, layer.x, values, maskAlpha), 0u);
+    }
+    var destination = nativePixel(base.x, base.y, true);
+    if ((values.flags & 1u) != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
+    var source = nativePixel(layer.x, layer.y, true);
+    if (maskAlpha != 255u) { source.w = mul65535(source.w, maskAlpha * 257u); }
+    let sourceAlpha = projectionMultiply(nativeNormalizedAlpha(source.w), values.opacityBits);
+    return nativePixelWords(normalRgba16(destination, source.xyz, sourceAlpha, values.channelMask), true);
+}
+
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let position = invocation.xy;
     if (any(position >= vec2<u32>(256u))) { return; }
     let index = position.y * 256u + position.x;
+    let wide = (parameters.flags & 2u) != 0u;
+    let stride = select(1u, 2u, wide);
+    let word = index * stride;
+    let last = word + stride - 1u;
     let maskAlpha = coverageAlpha(firstMaskCoverage[index >> 2u], index);
-    outputPixels[index] = projectionOver(basePixels[index], layerPixels[index], parameters, maskAlpha);
+    let pixel = projectionWords(vec2<u32>(basePixels[word], basePixels[last]),
+        vec2<u32>(layerPixels[word], layerPixels[last]), parameters, maskAlpha);
+    outputPixels[word] = pixel.x;
+    if (wide) { outputPixels[last] = pixel.y; }
 }
 
 @compute @workgroup_size(8, 8)
@@ -71,8 +91,16 @@ fn mainPair(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let position = invocation.xy;
     if (any(position >= vec2<u32>(256u))) { return; }
     let index = position.y * 256u + position.x;
+    let wide = (pairParameters.first.flags & 2u) != 0u;
+    let stride = select(1u, 2u, wide);
+    let word = index * stride;
+    let last = word + stride - 1u;
     let firstMask = coverageAlpha(firstMaskCoverage[index >> 2u], index);
     let secondMask = coverageAlpha(secondMaskCoverage[index >> 2u], index);
-    let first = projectionOver(basePixels[index], layerPixels[index], pairParameters.first, firstMask);
-    outputPixels[index] = projectionOver(first, secondLayerPixels[index], pairParameters.second, secondMask);
+    let first = projectionWords(vec2<u32>(basePixels[word], basePixels[last]),
+        vec2<u32>(layerPixels[word], layerPixels[last]), pairParameters.first, firstMask);
+    let pixel = projectionWords(first, vec2<u32>(secondLayerPixels[word], secondLayerPixels[last]),
+        pairParameters.second, secondMask);
+    outputPixels[word] = pixel.x;
+    if (wide) { outputPixels[last] = pixel.y; }
 }

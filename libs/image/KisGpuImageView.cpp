@@ -446,9 +446,12 @@ KisImageSP KisImage::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, co
 {
     if (!image || !image->handle() || QThread::currentThread() != image->thread())
         throw std::invalid_argument("GPU image construction requires an open image on its owning thread");
-    if (!colorSpace || colorSpace->colorModelId().id() != QLatin1String("RGBA") ||
-        colorSpace->colorDepthId().id() != QLatin1String("U8"))
-        throw std::invalid_argument("GPU image views require the validated RGBA8/sRGB encoding");
+    const auto format = image->operations().snapshot()->format;
+    const bool validEncoding = colorSpace && colorSpace->colorModelId().id() == QLatin1String("RGBA") &&
+        ((format == LibrePaint::Image::Gpu::PixelFormat::Rgba8 && colorSpace->colorDepthId().id() == QLatin1String("U8")) ||
+         (format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 && *colorSpace == *KoColorSpaceRegistry::instance()->rgb16()));
+    if (!validEncoding)
+        throw std::invalid_argument("GPU image precision and document color encoding must match");
     KisImageSP result = new KisImage(image, name, colorSpace);
     result->synchronizeGpuNodes();
     result->adoptGpuSelectionMask();

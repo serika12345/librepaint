@@ -16,7 +16,7 @@
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
-struct CompositeParameters { quint32 opacityBits = 0x3f800000; quint32 normalizeBase = 0; quint32 channelMask = 15; quint32 blendModeOpacity = 0; };
+struct CompositeParameters { quint32 opacityBits = 0x3f800000; quint32 flags = 0; quint32 channelMask = 15; quint32 blendModeOpacity = 0; };
 struct CompositeUniform
 {
     CompositeParameters values[2]{};
@@ -118,7 +118,8 @@ Detail::NativeBuffer TileRenderer::Private::recordTransparency(WGPUCommandEncode
         const auto local = region.intersected(QRect(tile.coordinate * TileSize, QSize(TileSize, TileSize)))
             .translated(-tile.coordinate * TileSize);
         const quint32 values[] = {quint32(local.left()), quint32(local.top()),
-                                  quint32(local.right() + 1), quint32(local.bottom() + 1)};
+                                  quint32(local.right() + 1), quint32(local.bottom() + 1),
+                                  quint32(projection->document()->format), 0, 0, 0};
         auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
         if (!parameters) return {};
         wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
@@ -146,7 +147,7 @@ Detail::NativeBuffer TileRenderer::Private::recordTransparency(WGPUCommandEncode
 }
 
 Detail::NativeBuffer TileRenderer::Private::recordBounds(WGPUCommandEncoder commands,
-    const QList<TileView> &tiles, QRect region, const std::array<quint8, 4> &defaultPixel, bool includeTransparentColors)
+    const QList<TileView> &tiles, QRect region, const RgbaPixel &defaultPixel, PixelFormat format, bool includeTransparentColors)
 {
     const qint32 initial[] = {std::numeric_limits<qint32>::max(), std::numeric_limits<qint32>::max(),
                               std::numeric_limits<qint32>::min(), std::numeric_limits<qint32>::min()};
@@ -165,9 +166,11 @@ Detail::NativeBuffer TileRenderer::Private::recordBounds(WGPUCommandEncoder comm
         const auto origin = tile.coordinate * TileSize;
         const auto local = region.intersected(QRect(origin, QSize(TileSize, TileSize))).translated(-origin);
         if (local.isEmpty()) continue;
-        const quint32 values[] = {quint32(origin.x()), quint32(origin.y()), packedPixel(defaultPixel),
+        const auto words = packedPixelWords(defaultPixel, format);
+        const quint32 values[] = {quint32(origin.x()), quint32(origin.y()), words[0],
                                   defaultPixel[3] || includeTransparentColors ? 1u : 0u, quint32(local.left()), quint32(local.top()),
-                                  quint32(local.right() + 1), quint32(local.bottom() + 1)};
+                                  quint32(local.right() + 1), quint32(local.bottom() + 1),
+                                  words[1], quint32(format), 0, 0};
         auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
         if (!parameters) return {};
         wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
@@ -250,7 +253,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const int left = data->region.left() / TileSize, right = data->region.right() / TileSize;
         const int top = data->region.top() / TileSize, bottom = data->region.bottom() / TileSize;
         // Bound derived coordinate bookkeeping before expanding a uniform region.
-        if (quint64(right - left + 1) * quint64(bottom - top + 1) > quint64(d.budget->limit / TileBytes)) {
+        if (quint64(right - left + 1) * quint64(bottom - top + 1) > quint64(d.budget->limit / RgbaTile::byteCount(document->document()->format))) {
             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU projection coordinate capacity exceeded")};
         }
         for (int y = top; y <= bottom; ++y) {
@@ -313,7 +316,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         if (!d.pairedProjectionLayout) d.error = QStringLiteral("GPU paired projection bindings could not be created");
     }
     if (needsPair && !d.pairedProjectionLayout) return {RenderOutcome::DeviceFailure, {}, d.error};
-    if (!d.ensureTileCapacity(required)) {
+    if (!d.ensureTileCapacity(required, document->document()->format)) {
         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU projection tile budget exhausted")};
     }
     std::vector<CompositeUniform> uniforms;
@@ -326,8 +329,8 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const auto start = backdrop ? tile.value().size() - 1 : firstJob;
         const auto remaining = tile.value().size() - start;
         const auto jobCount = keepBackdrop ? remaining / 2 + 1 : (remaining + 1) / 2;
-        const auto a = d.allocateTile();
-        const auto b = jobCount > 1 ? d.allocateTile() : std::shared_ptr<Tile>{};
+        const auto a = d.allocateTile(document->document()->format);
+        const auto b = jobCount > 1 ? d.allocateTile(document->document()->format) : std::shared_ptr<Tile>{};
         if (!a || (jobCount > 1 && !b)) {
             return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection allocation failed")};
         }
@@ -355,9 +358,10 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 std::memcpy(&values[layer].opacityBits, &opacity, sizeof(opacity));
                 values[layer].channelMask = source.channelMask;
                 values[layer].blendModeOpacity = quint32(source.blendMode) | (quint32(source.opacity) << 8);
-                values[layer].normalizeBase = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
+                const bool normalize = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
+                values[layer].flags = quint32(normalize) | (document->document()->format == PixelFormat::Rgba16 ? 2u : 0u);
                 hiddenRgb = !(source.channelMask & 8u) || source.opacity < 128 ||
-                    (hiddenRgb && !values[layer].normalizeBase);
+                    (hiddenRgb && !normalize);
             }
             job.output->mayContainHiddenRgb = hiddenRgb;
             const QByteArray parameterKey(reinterpret_cast<const char *>(values), sizeof(values));
@@ -380,7 +384,8 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 bindingIndices[bindingCount] = binding;
                 ++bindingCount;
             };
-            addBinding(0, job.base ? job.base->pixels.get() : d.zero.get());
+            addBinding(0, job.base ? job.base->pixels.get() : d.zeroBuffer(commands, document->document()->format));
+            if (!buffers[0]) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty projection tile allocation failed")};
             addBinding(1, job.layers[0]->pixels.get());
             addBinding(2, job.output->pixels.get());
             if (paired) {

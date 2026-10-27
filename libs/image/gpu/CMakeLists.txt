@@ -49,7 +49,7 @@ target_link_libraries(kritaimagegputiles PRIVATE WGPUNative::WGPUNative Boost::b
 set_target_properties(kritaimagegputiles PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 qt6_add_resources(kritaimagegputiles krita_gpu_tiles
     PREFIX "/librepaint/gpu"
-    FILES shaders/binary32.wgsl shaders/normal-rgba8.wgsl shaders/separable.wgsl shaders/binary64.wgsl shaders/gaussian.wgsl shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl shaders/transparency.wgsl shaders/bounds.wgsl shaders/translate.wgsl shaders/crop.wgsl shaders/filter.wgsl shaders/thumbnail.wgsl shaders/resize.wgsl shaders/sample-color.wgsl
+    FILES shaders/binary32.wgsl shaders/normal-rgba8.wgsl shaders/normal-rgba16.wgsl shaders/separable.wgsl shaders/binary64.wgsl shaders/gaussian.wgsl shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl shaders/transparency.wgsl shaders/bounds.wgsl shaders/translate.wgsl shaders/crop.wgsl shaders/filter.wgsl shaders/thumbnail.wgsl shaders/resize.wgsl shaders/sample-color.wgsl
 )
 krita_ios_add_static_resource(krita_gpu_tiles)
 

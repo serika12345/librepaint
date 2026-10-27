@@ -136,9 +136,60 @@ private Q_SLOTS:
         QTest::newRow("average-large-layer") << true << true << QStringLiteral("average") << 255 << true << 100 << 900;
     }
     void samplesLayerAndProjectionWithoutEditing();
+    void samplesU16DocumentColorWithoutQuantizing();
 private:
     KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuColorSamplingTest::samplesU16DocumentColorWithoutQuantizing()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    Gpu::RasterImage raster;
+    raster.size = {32, 16};
+    raster.format = Gpu::PixelFormat::Rgba16;
+    raster.layers.append({QStringLiteral("Sample"), true, {}, {}, {0xabcd, 0x2468, 0x1357, 65535}});
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb16();
+    const quint16 bgra[] = {0x1357, 0x2468, 0xabcd, 65535};
+    const KoColor expected(reinterpret_cast<const quint8 *>(bgra), cs);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("U16 sampling"), cs));
+    KisConfig(true).disableOpenGL();
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto cleanup = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->viewManager()->canvasResourceProvider()->setPaintOpPreset(m_preset);
+    QTRY_VERIFY(view->currentNode());
+    const auto version = owner->operations().snapshot();
+    KisAsyncColorSamplerHelper helper(view->canvasBase());
+    QSignalSpy raw(&helper, &KisAsyncColorSamplerHelper::sigRawColorSelected);
+    for (const bool layer : {true, false}) {
+        helper.activate(layer, true);
+        helper.startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), 1, 100);
+        helper.endAction();
+        helper.deactivate();
+        QTRY_COMPARE(raw.size(), 1);
+        QCOMPARE(qvariant_cast<KoColor>(raw.takeFirst().first()), expected);
+        QCOMPARE(owner->operations().snapshot(), version);
+        QCOMPARE(lifetime->undoStack()->count(), 0);
+    }
+}
 
 void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
 {

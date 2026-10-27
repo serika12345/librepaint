@@ -6,10 +6,13 @@
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
+#include <KoColorSpace.h>
 #include <QEventLoop>
 #include <QThread>
 #include <QTimer>
 #include <algorithm>
+#include <QtEndian>
+#include <cstring>
 #include <chrono>
 #include <deque>
 #include <future>
@@ -65,6 +68,7 @@ struct State {
 struct Reader {
     std::shared_ptr<State> state;
     QSize size;
+    int pixelSize = 4;
     Stripe cached;
 
     KisImportExportErrorCode read(int row, QByteArray &output)
@@ -114,7 +118,7 @@ struct Reader {
             std::lock_guard<std::mutex> lock(state->mutex);
             if (state->closed) return ImportExportCodes::Cancelled;
         }
-        output = cached.bytes.mid(qsizetype(row - cached.firstRow) * size.width() * 4, qsizetype(size.width()) * 4);
+        output = cached.bytes.mid(qsizetype(row - cached.firstRow) * size.width() * pixelSize, qsizetype(size.width()) * pixelSize);
         return ImportExportCodes::OK;
     }
 };
@@ -123,6 +127,7 @@ struct Reader {
 struct KisGpuExportRasterRows::Private {
     QSharedPointer<Gpu::PaintImage> owner;
     Gpu::Snapshot pinned;
+    int pixelSize = 4;
     QSize size;
     std::shared_ptr<State> state = std::make_shared<State>();
     KisExportRasterRowsSP rows;
@@ -158,7 +163,7 @@ struct KisGpuExportRasterRows::Private {
                 requests.pop_front();
                 stripe.firstRow = current->row / Side * Side;
                 stripe.rowCount = std::min(Side, size.height() - stripe.firstRow);
-                stripe.bytes.fill('\0', qsizetype(size.width()) * stripe.rowCount * 4);
+                stripe.bytes.fill('\0', qsizetype(size.width()) * stripe.rowCount * pixelSize);
                 x = 0;
                 y = stripe.firstRow;
             }
@@ -193,12 +198,19 @@ struct KisGpuExportRasterRows::Private {
                     const auto clipped = QRect(origin, QSize(Side, Side)).intersected(region);
                     for (int row = clipped.top(); row <= clipped.bottom(); ++row) {
                         for (int column = clipped.left(); column <= clipped.right(); ++column) {
-                            const auto from = ((row - origin.y()) * Side + column - origin.x()) * 4;
-                            const qsizetype to = (qsizetype(row - stripe.firstRow) * size.width() + column) * 4;
-                            destination[to] = quint8(tile.rgba[from + 2]);
-                            destination[to + 1] = quint8(tile.rgba[from + 1]);
-                            destination[to + 2] = quint8(tile.rgba[from]);
-                            destination[to + 3] = quint8(tile.rgba[from + 3]);
+                            const auto from = ((row - origin.y()) * Side + column - origin.x()) * pixelSize;
+                            const qsizetype to = (qsizetype(row - stripe.firstRow) * size.width() + column) * pixelSize;
+                            if (pixelSize == 8) {
+                                quint16 bgra[4];
+                                for (int c = 0; c < 4; ++c)
+                                    bgra[c] = qFromLittleEndian<quint16>(tile.rgba.constData() + from + (c == 0 ? 2 : c == 2 ? 0 : c) * 2);
+                                std::memcpy(destination + to, bgra, sizeof(bgra));
+                            } else {
+                                destination[to] = quint8(tile.rgba[from + 2]);
+                                destination[to + 1] = quint8(tile.rgba[from + 1]);
+                                destination[to + 2] = quint8(tile.rgba[from]);
+                                destination[to + 3] = quint8(tile.rgba[from + 3]);
+                            }
                         }
                     }
                 }
@@ -228,8 +240,12 @@ KisGpuExportRasterRows::KisGpuExportRasterRows(KisImageSP image, qsizetype memor
     d.owner = image->gpuImage();
     if (d.owner->thread() != QThread::currentThread()) throw std::invalid_argument("Export rows require the GPU thread");
     d.size = image->size();
+    d.pinned = d.owner->operations().snapshot();
+    d.pixelSize = Gpu::pixelByteCount(d.pinned->format);
+    if (image->colorSpace()->pixelSize() != d.pixelSize)
+        throw std::invalid_argument("Export precision and document color encoding must match");
     constexpr qint64 scratchBytes = 8 * 1024 * 1024;
-    const qint64 rowBytes = qint64(d.size.width()) * 4;
+    const qint64 rowBytes = qint64(d.size.width()) * d.pixelSize;
     const qint64 workingRows = 2 * std::min(Side, d.size.height()) + 16;
     if (memoryBudgetBytes < scratchBytes || rowBytes > (memoryBudgetBytes - scratchBytes) / workingRows)
         throw std::length_error("GPU export working memory budget exceeded");
@@ -254,6 +270,7 @@ KisGpuExportRasterRows::KisGpuExportRasterRows(KisImageSP image, qsizetype memor
     auto reader = std::make_shared<Reader>();
     reader->state = d.state;
     reader->size = d.size;
+    reader->pixelSize = d.pixelSize;
     auto rows = QSharedPointer<KisExportRasterRows>::create();
     rows->colorSpace = image->colorSpace();
     rows->size = d.size;

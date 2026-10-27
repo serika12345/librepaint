@@ -46,7 +46,8 @@ class KisProofingConfiguration;
 class KisPaintDevice;
 class KisImageGlobalSelectionManagementInterface;
 struct KisGpuImageViewState;
-namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; struct HsvAdjustment;
+namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; class DocumentVersion; struct HsvAdjustment;
+using Snapshot = QSharedPointer<const DocumentVersion>;
 enum class SelectionKind : quint8;
 using SelectionMaskSP = QSharedPointer<const SelectionMask>; }
 
@@ -91,7 +92,7 @@ public:
      * Invalid or closed images throw std::invalid_argument.
      */
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name);
-    /** Adopts the validated RGBA8/sRGB encoding of imported pixels. */
+    /** Adopts validated RGBA8 or default linear-sRGB RGBA16 pixels with matching encoding. */
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
@@ -273,6 +274,11 @@ public:
      * Render a thumbnail of the projection onto a QImage.
      */
     QImage convertToQImage(const QSize& scaledImageSize, const KoColorProfile *profile);
+    /** External preview of one retained GPU version, using its captured document
+     * encoding. The borrowed registry color space remains valid during the call.
+     */
+    QImage convertToQImage(const QSize &scaledImageSize, const KoColorProfile *profile,
+                          const LibrePaint::Image::Gpu::Snapshot &version, const KoColorSpace *documentColorSpace);
 
     /**
      * [low-level] Lock the image without waiting for all the internal job queues are processed

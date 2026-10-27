@@ -23,8 +23,8 @@ quint8 blendByte(quint8 destination, quint8 source, quint32 alpha)
     const auto weighted = (int(source) - destination) * int(alpha) + 128;
     return quint8((((weighted >> 8) + weighted) >> 8) + destination);
 }
-std::array<quint8, 4> separableProjectionPixel(std::array<quint8, 4> destination,
-    const std::array<quint8, 4> &source, quint8 opacity, quint8 mask, LayerBlendMode mode)
+RgbaPixel separableProjectionPixel(RgbaPixel destination,
+    const RgbaPixel &source, quint8 opacity, quint8 mask, LayerBlendMode mode)
 {
     // RGBA8 generic separable composition quantizes opacity, products and blend
     // terms independently before the final integer division.
@@ -53,6 +53,39 @@ std::array<quint8, 4> separableProjectionPixel(std::array<quint8, 4> destination
         }
     }
     destination[3] = quint8(nextAlpha);
+    return destination;
+}
+
+RgbaPixel normalProjectionPixel16(RgbaPixel destination, const RgbaPixel &source,
+                                 quint8 opacity, quint8 writeMask)
+{
+    const volatile float normalizedSource = float(source[3]) * (1.0f / 65535.0f);
+    const float alpha = normalizedSource * (float(opacity) / 255.0f);
+    if (alpha == 0.0f) return destination;
+    const volatile float normalizedDestination = float(destination[3]) * (1.0f / 65535.0f);
+    float nextAlpha = normalizedDestination;
+    float blend;
+    if (!(writeMask & 8u) || destination[3] == 65535) blend = alpha;
+    else if (destination[3] == 0) {
+        nextAlpha = alpha;
+        blend = 1.0f;
+        if (writeMask != 15) destination = {};
+    } else {
+        const volatile float complement = 1.0f - normalizedDestination;
+        nextAlpha = std::fma(float(complement), alpha, float(normalizedDestination));
+        blend = alpha / nextAlpha;
+    }
+    for (int channel = 0; channel < 3; ++channel) {
+        if (writeMask & (1u << channel)) {
+            const float color = std::fma(float(int(source[channel]) - destination[channel]),
+                                         blend, float(destination[channel]));
+            destination[channel] = quint16(std::nearbyint(color));
+        }
+    }
+    if (writeMask & 8u) {
+        const float scaled = nextAlpha * 65535.0f;
+        destination[3] = quint16(std::nearbyint(scaled));
+    }
     return destination;
 }
 
@@ -91,9 +124,9 @@ QList<LayerProjectionInput> DocumentVersion::projectionInputs(LayerId group) con
     return compositionInputs(children, parent);
 }
 
-QHash<LayerId, std::array<quint8, 4>> DocumentVersion::projectionDefaultPixels() const
+QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
 {
-    QHash<LayerId, std::array<quint8, 4>> result;
+    QHash<LayerId, RgbaPixel> result;
     QHash<QUuid, const Layer *> identities;
     QHash<QUuid, QList<const Layer *>> children;
     QHash<LayerId, int> remaining;
@@ -116,7 +149,7 @@ QHash<LayerId, std::array<quint8, 4>> DocumentVersion::projectionDefaultPixels()
         const auto group = ready[index];
         const auto ownChildren = children.value(group->uuid);
         const auto inputs = compositionInputs(children, group->uuid);
-        std::array<quint8, 4> pixel{};
+        RgbaPixel pixel{};
         if (ownChildren.size() == 1 && !ownChildren.first()->passThrough && inputs.size() == 1 &&
             inputs.first().opacity == 255 && inputs.first().channelMask == 15 && inputs.first().blendMode == LayerBlendMode::Normal) {
             pixel = result.value(inputs.first().layer);
@@ -125,6 +158,10 @@ QHash<LayerId, std::array<quint8, 4>> DocumentVersion::projectionDefaultPixels()
                 auto source = result.value(layer.layer);
                 if (layer.blendMode != LayerBlendMode::Normal) {
                     pixel = separableProjectionPixel(pixel, source, layer.opacity, layer.channelMask, layer.blendMode);
+                    continue;
+                }
+                if (format == PixelFormat::Rgba16) {
+                    pixel = normalProjectionPixel16(pixel, source, layer.opacity, layer.channelMask);
                     continue;
                 }
                 const float alpha = float(source[3]) * (float(layer.opacity) / 255.0f);

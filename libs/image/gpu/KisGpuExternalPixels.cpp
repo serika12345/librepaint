@@ -148,8 +148,10 @@ PaintImageSP PaintImage::cloneRasterLayer(const Snapshot &version, LayerId layer
         qint64(region.y()) + region.height() > limit) return {};
     const qint64 columns = (qint64(region.width()) + size - 1) / size;
     const qint64 rows = (qint64(region.height()) + size - 1) / size;
-    const qint64 pixelBytes = qint64(region.width()) * region.height() * 4;
-    const qint64 tileBytes = columns * rows * RgbaTile::ByteCount;
+    const int pixelSize = pixelByteCount(version->format);
+    const int bytesPerTile = RgbaTile::byteCount(version->format);
+    const qint64 pixelBytes = qint64(region.width()) * region.height() * pixelSize;
+    const qint64 tileBytes = columns * rows * bytesPerTile;
     if (pixelBytes + 2 * tileBytes > maximumWorkingBytes) return {};
     if (!layer) layer = version->directProjectionLayer();
     auto pixels = m_d->execution.readRgbaPixels(m_d->handle, version, region, layer, pixelBytes);
@@ -157,20 +159,21 @@ PaintImageSP PaintImage::cloneRasterLayer(const Snapshot &version, LayerId layer
     RasterLayer properties{QStringLiteral("Projection"), true, destinationUuid, {}};
     RasterImage input;
     input.size = region.size();
+    input.format = version->format;
     input.layers = {properties};
     qsizetype retainedBytes = 0;
     for (int y = 0; y < rows; ++y) for (int x = 0; x < columns; ++x) {
-        QByteArray tile(RgbaTile::ByteCount, '\0');
+        QByteArray tile(bytesPerTile, '\0');
         const int width = std::min(size, region.width() - x * size);
         const int height = std::min(size, region.height() - y * size);
         for (int row = 0; row < height; ++row) {
-            const auto source = pixels.bytes.constData() + (qint64(y * size + row) * region.width() + x * size) * 4;
-            std::memcpy(tile.data() + row * size * 4, source, width * 4);
+            const auto source = pixels.bytes.constData() + (qint64(y * size + row) * region.width() + x * size) * pixelSize;
+            std::memcpy(tile.data() + row * size * pixelSize, source, width * pixelSize);
         }
         if (std::none_of(tile.cbegin(), tile.cend(), [](char value) { return value != 0; })) continue;
-        if (RgbaTile::ByteCount > m_d->limits.rasterBytes - retainedBytes) return {};
-        retainedBytes += RgbaTile::ByteCount;
-        input.layers.first().tiles.append({{x, y}, std::move(tile)});
+        if (bytesPerTile > m_d->limits.rasterBytes - retainedBytes) return {};
+        retainedBytes += bytesPerTile;
+        input.layers.first().tiles.append({{x, y}, std::move(tile), version->format});
     }
     OperationDocument prepared(input, m_d->limits);
     pixels.bytes.clear();
@@ -208,7 +211,9 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
     if (region.width() < 0 || region.height() < 0 || region.x() < -limit || region.y() < -limit ||
         qint64(region.x()) + region.width() > limit || qint64(region.y()) + region.height() > limit)
         return Result::InvalidInput;
-    const qint64 byteCount = qint64(region.width()) * region.height() * 4;
+    const int pixelSize = pixelByteCount(current->format);
+    const int bytesPerTile = RgbaTile::byteCount(current->format);
+    const qint64 byteCount = qint64(region.width()) * region.height() * pixelSize;
     if (bytes.size() < byteCount) return Result::InvalidInput;
     if (byteCount > d.limits.rasterBytes) return Result::CapacityExceeded;
     if (region.isEmpty()) return Result::Success;
@@ -216,7 +221,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
     constexpr int size = RgbaTile::Size;
     const qint64 columns = Detail::pixelTileIndex(region.right(), size) - Detail::pixelTileIndex(region.left(), size) + 1;
     const qint64 rows = Detail::pixelTileIndex(region.bottom(), size) - Detail::pixelTileIndex(region.top(), size) + 1;
-    if (columns * rows > (d.limits.rasterBytes - current->rasterBytes) / RgbaTile::ByteCount)
+    if (columns * rows > (d.limits.rasterBytes - current->rasterBytes) / bytesPerTile)
         return Result::CapacityExceeded;
     Result adopted;
     try {
@@ -261,7 +266,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
                 }
             }
             if (areas.isEmpty()) continue;
-            if (areas.size() > (d.limits.rasterBytes - version->rasterBytes) / RgbaTile::ByteCount)
+            if (areas.size() > (d.limits.rasterBytes - version->rasterBytes) / bytesPerTile)
                 return Result::CapacityExceeded;
             OperationDocument::VersionPixelWrite write;
             write.before = version;
@@ -269,17 +274,17 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
             for (auto tile = areas.cbegin(); tile != areas.cend(); ++tile) {
                 const auto coordinate = Detail::coordinate(tile.key());
                 const QRect tileRegion(coordinate * size, QSize(size, size));
-                auto pixels = d.execution.readRgbaPixels(d.handle, version, tileRegion, layer, RgbaTile::ByteCount);
+                auto pixels = d.execution.readRgbaPixels(d.handle, version, tileRegion, layer, bytesPerTile);
                 if (pixels.code != ExecutionCode::Success) return readFailure(pixels.code);
                 for (const auto &area : tile.value()) {
                     for (int y = area.top(); y <= area.bottom(); ++y) {
-                        const qsizetype source = (qsizetype(y - placement.y() - region.y()) * region.width() + area.x() - placement.x() - region.x()) * 4;
-                        const qsizetype destination = ((y - tileRegion.y()) * size + area.x() - tileRegion.x()) * 4;
-                        std::memcpy(pixels.bytes.data() + destination, bytes.constData() + source, size_t(area.width()) * 4);
+                        const qsizetype source = (qsizetype(y - placement.y() - region.y()) * region.width() + area.x() - placement.x() - region.x()) * pixelSize;
+                        const qsizetype destination = ((y - tileRegion.y()) * size + area.x() - tileRegion.x()) * pixelSize;
+                        std::memcpy(pixels.bytes.data() + destination, bytes.constData() + source, size_t(area.width()) * pixelSize);
                     }
                     write.areas.append(area);
                 }
-                const auto checkpoint = RasterTile::fromPixels({coordinate, pixels.bytes});
+                const auto checkpoint = RasterTile::fromPixels({coordinate, pixels.bytes, version->format});
                 if (!checkpoint) return Result::CapacityExceeded;
                 if (checkpoint->compressedByteCount() > d.limits.compressedWriteBytes - compressedBytes)
                     return Result::CapacityExceeded;

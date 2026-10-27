@@ -36,9 +36,22 @@ fn backgroundAt(position: vec2<f32>) -> vec4<u32> {
 @fragment fn fragmentMain(@location(0) uv: vec2<f32>, @builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
     if (any(uv < p.clip.xy) || any(uv >= p.clip.zw)) { discard; }
     let pos = vec2<u32>(clamp(floor(uv * 256.), vec2(0.), vec2(255.)));
-    let pixel = pixels[pos.y * 256u + pos.x];
-    let straight = vec4<u32>(pixel & 255u, (pixel >> 8u) & 255u,
-        (pixel >> 16u) & 255u, pixel >> 24u);
+    let index = pos.y * 256u + pos.x;
+    var straight: vec4<u32>;
+    if (p.channels.z != 0u) {
+        let first = pixels[index * 2u];
+        let second = pixels[index * 2u + 1u];
+        let linear = vec4<f32>(f32(first & 65535u), f32(first >> 16u),
+                              f32(second & 65535u), f32(second >> 16u)) / 65535.;
+        let encoded = select(12.92 * linear.rgb,
+            1.055 * pow(linear.rgb, vec3(1. / 2.4)) - 0.055,
+            linear.rgb > vec3(0.0031308));
+        straight = vec4<u32>(floor(clamp(vec4(encoded, linear.a), vec4(0.), vec4(1.)) * 255. + 0.5));
+    } else {
+        let pixel = pixels[index];
+        straight = vec4<u32>(pixel & 255u, (pixel >> 8u) & 255u,
+                            (pixel >> 16u) & 255u, pixel >> 24u);
+    }
     let mask = p.channels.x;
     let colors = mask & 7u;
     var visual: vec4<u32>;

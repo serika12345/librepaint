@@ -2,6 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 fn mul255(a: u32, b: u32) -> u32 { return (a * b + 127u) / 255u; }
+fn mul65535(a: u32, b: u32) -> u32 {
+    let product = a * b + 32768u;
+    return ((product >> 16u) + product) >> 16u;
+}
 fn unpackPixel(pixel: u32) -> vec4<u32> {
     return (vec4<u32>(pixel) >> vec4<u32>(0u, 8u, 16u, 24u)) & vec4<u32>(255u);
 }
@@ -15,4 +19,13 @@ fn over(destination: vec4<u32>, source: vec4<u32>) -> vec4<u32> {
         color = (source.xyz * source.w * 255u + destination.xyz * destination.w * (255u - source.w) + vec3<u32>(denominator / 2u)) / denominator;
     }
     return vec4<u32>(color, (denominator + 127u) / 255u);
+}
+
+fn nativePixel(low: u32, high: u32, wide: bool) -> vec4<u32> {
+    if (wide) { return vec4<u32>(low & 65535u, low >> 16u, high & 65535u, high >> 16u); }
+    return unpackPixel(low);
+}
+fn nativePixelWords(pixel: vec4<u32>, wide: bool) -> vec2<u32> {
+    if (wide) { return vec2<u32>(pixel.x | (pixel.y << 16u), pixel.z | (pixel.w << 16u)); }
+    return vec2<u32>(packPixel(pixel), 0u);
 }

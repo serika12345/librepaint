@@ -31,7 +31,7 @@ using namespace LibrePaint::Document::Gpu;
 namespace Kra = LibrePaint::ImportExport::Kra;
 
 namespace {
-void dot(PaintImage &image, QPointF position, std::array<quint8, 4> color)
+void dot(PaintImage &image, QPointF position, LibrePaint::Image::Gpu::RgbaPixel color)
 {
     Brush brush;
     brush.rgba = color;
@@ -238,7 +238,7 @@ void KisGpuPaintDocumentTest::curvedPathFillsSaveAndReopenAcrossInteriorTiles()
                                     {{256, 512}, 1}, {{256, 256}, 1}};
     FigureStyle style;
     style.outline = false;
-    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    style.fill = LibrePaint::Image::Gpu::RgbaPixel{221, 17, 44, 255};
     QCOMPARE(image->paintFigure(layer, Brush{}, samples, shape, style, 42), Result::Success);
     const QRect region(QPoint(), initial.size);
     const auto painted = image->readRgbaPixels(layer, region, 768 * 768 * 4);

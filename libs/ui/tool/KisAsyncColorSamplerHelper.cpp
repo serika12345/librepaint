@@ -492,8 +492,14 @@ void KisAsyncColorSamplerHelper::pollGpuSample()
     const QPointer<KisAsyncColorSamplerHelper> guard(this);
     if (read.code == Gpu::ExecutionCode::Success) {
         const auto &rgba = read.rgba;
-        const quint8 bgra[]{rgba[2], rgba[1], rgba[0], rgba[3]};
-        KoColor color(bgra, m_d->gpuPublicImage->colorSpace());
+        KoColor color(m_d->gpuPublicImage->colorSpace());
+        if (sample.version->format == Gpu::PixelFormat::Rgba16) {
+            const quint16 bgra[]{rgba[2], rgba[1], rgba[0], rgba[3]};
+            color = KoColor(reinterpret_cast<const quint8 *>(bgra), color.colorSpace());
+        } else {
+            const quint8 bgra[]{quint8(rgba[2]), quint8(rgba[1]), quint8(rgba[0]), quint8(rgba[3])};
+            color = KoColor(bgra, color.colorSpace());
+        }
         if (m_d->gpuBlend < 100) {
             KoColor previous(sample.currentColor);
             previous.convertTo(color.colorSpace());

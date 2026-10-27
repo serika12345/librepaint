@@ -4,6 +4,7 @@
  */
 
 #include "KisKraRasterCodec.h"
+#include <QCryptographicHash>
 #include "KisKraRgbaTiles_p.h"
 #include "KisKraSelectionTiles_p.h"
 #include "KisKraPreview_p.h"
@@ -101,6 +102,10 @@ Outcome readArchive(QIODevice &source, Limits limits, QMap<QString, QByteArray> 
     if (archive.getZipError()) return invalid(QStringLiteral("Invalid KRA archive trailer"));
     return {Status::Success, {}};
 }
+PixelFormat imageFormat(const QDomElement &image)
+{ return image.attribute(QStringLiteral("colorspacename")) == QLatin1String("RGBA16") ? PixelFormat::Rgba16 : PixelFormat::Rgba8; }
+QString colorSpaceName(PixelFormat format)
+{ return format == PixelFormat::Rgba16 ? QStringLiteral("RGBA16") : QStringLiteral("RGBA"); }
 Outcome description(const QByteArray &bytes, QDomDocument &xml, QDomElement &image)
 {
     if (!xml.setContent(bytes)) return invalid(QStringLiteral("Invalid KRA document XML"));
@@ -112,13 +117,14 @@ Outcome description(const QByteArray &bytes, QDomDocument &xml, QDomElement &ima
         image.isNull() || !image.nextSiblingElement(QStringLiteral("IMAGE")).isNull() ||
         layers.isNull() || !layers.nextSiblingElement(QStringLiteral("layers")).isNull() ||
         !component(image.attribute(QStringLiteral("name")))) return invalid(QStringLiteral("Invalid KRA image description"));
-    if (image.attribute(QStringLiteral("colorspacename")) != QLatin1String("RGBA"))
-        return unsupported(QStringLiteral("KRA image requires RGBA8"));
+    if (image.attribute(QStringLiteral("colorspacename")) != QLatin1String("RGBA") &&
+        image.attribute(QStringLiteral("colorspacename")) != QLatin1String("RGBA16"))
+        return unsupported(QStringLiteral("KRA image requires RGBA8 or RGBA16"));
     const auto background = image.firstChildElement(QStringLiteral("ProjectionBackgroundColor"));
     if (!background.isNull()) {
         const auto decoded = QByteArray::fromBase64Encoding(background.attribute(QStringLiteral("ColorData")).toLatin1(),
                                                           QByteArray::AbortOnBase64DecodingErrors);
-        if (!background.nextSiblingElement(QStringLiteral("ProjectionBackgroundColor")).isNull() || !decoded || decoded.decoded.size() != 4)
+        if (!background.nextSiblingElement(QStringLiteral("ProjectionBackgroundColor")).isNull() || !decoded || decoded.decoded.size() != pixelByteCount(imageFormat(image)))
             return invalid(QStringLiteral("Invalid KRA canvas background color"));
     }
     return {Status::Success, {}};
@@ -192,7 +198,7 @@ Outcome transparencyMaskElement(const QDomElement &layer, QDomElement &mask)
     return {Status::Success, {}};
 }
 
-Outcome layerDescription(const QDomElement &element, QPoint &offset)
+Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat format)
 {
     const auto type = element.attribute(QStringLiteral("nodetype"));
     const bool group = type == QLatin1String("grouplayer");
@@ -205,11 +211,11 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("lighten") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("add") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("linear_dodge")) ||
-        element.attribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA")) != QLatin1String("RGBA") ||
+        element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
             (child.tagName() != QLatin1String("layers") || !child.nextSiblingElement().isNull())))
-        return unsupported(QStringLiteral("KRA requires RGBA8 paint layers and groups with normal, multiply, screen, darken, lighten, addition or linear dodge compositing"));
+        return unsupported(QStringLiteral("KRA requires matching RGB paint layers and groups with normal, multiply, screen, darken, lighten, addition or linear dodge compositing"));
     if (!group) {
         QDomElement mask;
         const auto outcome = transparencyMaskElement(element, mask);
@@ -282,15 +288,20 @@ bool srgbSpace(const QColorSpace &space)
     return true;
 }
 
-Outcome profile(const QMap<QString, QByteArray> &files, const QString &path, const QString &name)
+Outcome profile(const QMap<QString, QByteArray> &files, const QString &path, const QString &name, PixelFormat format)
 {
     if (!files.contains(path)) {
+        if (format == PixelFormat::Rgba16) return unsupported(QStringLiteral("RGBA16 KRA requires its linear sRGB ICC profile"));
         return name == QLatin1String("sRGB built-in") ? Outcome{Status::Success, {}} :
             unsupported(QStringLiteral("KRA requires an sRGB profile"));
     }
     const auto space = QColorSpace::fromIccProfile(files.value(path));
     if (!space.isValid()) return invalid(QStringLiteral("Invalid KRA color profile"));
-    if (!srgbSpace(space))
+    if (format == PixelFormat::Rgba16) {
+        if (QCryptographicHash::hash(files.value(path), QCryptographicHash::Sha256).toHex() !=
+            QByteArrayLiteral("51373873702823054c739d013cf68d37bdd5810544fb5cc6285da7380d454704"))
+            return unsupported(QStringLiteral("RGBA16 KRA requires the default linear sRGB profile"));
+    } else if (!srgbSpace(space))
         return unsupported(QStringLiteral("KRA requires an sRGB profile"));
     return {Status::Success, {}};
 }
@@ -477,7 +488,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
     if (result.code != Status::Success) return result;
     for (const auto &element : elements) {
         QPoint offset;
-        result = layerDescription(element, offset);
+        result = layerDescription(element, offset, imageFormat(image));
         if (result.code != Status::Success) return result;
         const QUuid uuid(element.attribute(QStringLiteral("uuid")));
         const auto filename = element.attribute(QStringLiteral("filename"));
@@ -510,7 +521,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
     for (qsizetype i = value.layers.size(); i-- > 0;) {
         const auto &layer = value.layers[i];
         if (layer.kind == LayerKind::Group && (!layer.tiles.isEmpty() ||
-            layer.defaultPixel != std::array<quint8, 4>{} || layer.channelWriteMask != 15))
+            layer.defaultPixel != Image::Gpu::RgbaPixel{} || layer.channelWriteMask != 15))
             return invalid(QStringLiteral("KRA groups derive their pixels from children"));
         if (layer.uuid.isNull() || uuids.contains(layer.uuid) || !validName(layer.name)) return invalid(QStringLiteral("Invalid KRA layer identity or name"));
         uuids.insert(layer.uuid);
@@ -537,7 +548,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             const QString imageProfile = folder + QStringLiteral("/annotations/icc");
             const QString layerProfile = path + QStringLiteral(".icc");
             if (!files.contains(layerProfile) && files.contains(imageProfile)) files.insert(layerProfile, files.value(imageProfile));
-            result = profile(files, layerProfile, image.attribute(QStringLiteral("profile")));
+            result = profile(files, layerProfile, image.attribute(QStringLiteral("profile")), imageFormat(image));
             if (result.code != Status::Success) return result;
             const auto children = element.firstChildElement(QStringLiteral("layers"));
             if (!children.isNull()) element.removeChild(children);
@@ -617,7 +628,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::Addition ? QStringLiteral("add") :
                              layer.blendMode == LayerBlendMode::LinearDodge ? QStringLiteral("linear_dodge") : QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
-        element.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
+        element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));
         element.setAttribute(QStringLiteral("intimeline"), layer.pinnedToTimeline ? QStringLiteral("1") : QStringLiteral("0"));
         element.setAttribute(QStringLiteral("colorlabel"), layer.colorLabelIndex);
@@ -753,6 +764,13 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     else {
         result = description(document.description, xml, image);
         if (result.code != Status::Success) return result;
+    }
+    if (document.description.isEmpty()) {
+        image.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(document.image.format));
+        image.firstChildElement(QStringLiteral("ProjectionBackgroundColor")).setAttribute(QStringLiteral("ColorData"),
+            QString::fromLatin1(Detail::bgra(document.image.projectionBackground, document.image.format).toBase64()));
+    } else if ((metadata.layerXmp || metadata.layerCollapsed) && document.image.format != imageFormat(image)) {
+        return invalid(QStringLiteral("KRA metadata image precision does not match its retained description"));
     }
     if (!metadata.producerVersion.isEmpty()) xml.documentElement().setAttribute(QStringLiteral("kritaVersion"), metadata.producerVersion);
     for (auto old = image.firstChildElement(QStringLiteral("MirrorAxis")); !old.isNull();) {
@@ -900,7 +918,7 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
     else result = description(bytes, xml, image);
     if (result.code != Status::Success) return result;
     const auto folder = image.attribute(QStringLiteral("name"));
-    result = profile(files, folder + QStringLiteral("/annotations/icc"), image.attribute(QStringLiteral("profile")));
+    result = profile(files, folder + QStringLiteral("/annotations/icc"), image.attribute(QStringLiteral("profile")), imageFormat(image));
     if (result.code != Status::Success) return result;
     const auto layers = image.firstChildElement(QStringLiteral("layers"));
     QList<QDomElement> elements;
@@ -910,7 +928,7 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
     QSet<QUuid> uuids;
     for (const auto &element : elements) {
         QPoint offset;
-        result = layerDescription(element, offset);
+        result = layerDescription(element, offset, imageFormat(image));
         if (result.code != Status::Success) return result;
         const QUuid uuid(element.attribute(QStringLiteral("uuid")));
         const auto filename = element.attribute(QStringLiteral("filename"));
@@ -920,7 +938,7 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
         filenames.insert(filename);
         const auto layerProfile = folder + QStringLiteral("/layers/") + filename + QStringLiteral(".icc");
         if (element.attribute(QStringLiteral("nodetype")) == QLatin1String("paintlayer") || files.contains(layerProfile)) {
-            result = profile(files, layerProfile, image.attribute(QStringLiteral("profile")));
+            result = profile(files, layerProfile, image.attribute(QStringLiteral("profile")), imageFormat(image));
             if (result.code != Status::Success) return result;
         } else if (element.attribute(QStringLiteral("profile"), image.attribute(QStringLiteral("profile"))) != image.attribute(QStringLiteral("profile"))) {
             return unsupported(QStringLiteral("KRA groups require the image's sRGB profile"));
@@ -981,13 +999,16 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         width <= 0 || height <= 0 || width > RgbaTile::CoordinateLimit || height > RgbaTile::CoordinateLimit)
         return fail(invalid(QStringLiteral("Invalid KRA image dimensions")));
     document.image.size = {width, height};
+    document.image.format = imageFormat(image);
     const auto background = image.firstChildElement(QStringLiteral("ProjectionBackgroundColor"));
     if (!background.isNull()) {
         const auto bgra = QByteArray::fromBase64(background.attribute(QStringLiteral("ColorData")).toLatin1());
-        document.image.projectionBackground = {quint8(bgra[2]), quint8(bgra[1]), quint8(bgra[0]), quint8(bgra[3])};
+        const auto pixel = rgbaPixel(bgra, document.image.format);
+        if (!pixel) return fail(invalid(QStringLiteral("Invalid KRA background pixel")));
+        document.image.projectionBackground = {(*pixel)[2], (*pixel)[1], (*pixel)[0], (*pixel)[3]};
     }
     const auto folder = image.attribute(QStringLiteral("name"));
-    result = profile(document.files, folder + QStringLiteral("/annotations/icc"), image.attribute(QStringLiteral("profile")));
+    result = profile(document.files, folder + QStringLiteral("/annotations/icc"), image.attribute(QStringLiteral("profile")), imageFormat(image));
     if (result.code != Status::Success) return fail(result);
     QSet<QUuid> uuids;
     QSet<QString> filenames;
@@ -1047,7 +1068,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
     if (result.code != Status::Success) return fail(result);
     for (auto element : elements) {
         QPoint offset;
-        result = layerDescription(element, offset);
+        result = layerDescription(element, offset, imageFormat(image));
         if (result.code != Status::Success) return fail(result);
         RasterLayer layer;
         layer.kind = element.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") ? LayerKind::Group : LayerKind::Paint;
@@ -1092,17 +1113,18 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         const auto path = folder + QStringLiteral("/layers/") + filename;
         if (layer.kind == LayerKind::Paint) {
             if (!document.files.contains(path)) return fail(invalid(QStringLiteral("Missing KRA layer pixels")));
-            result = profile(document.files, path + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")));
+            result = profile(document.files, path + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")), imageFormat(image));
             if (result.code != Status::Success) return fail(result);
             if (document.files.contains(path + QStringLiteral(".defaultpixel"))) {
                 const auto pixel = document.files.value(path + QStringLiteral(".defaultpixel"));
-                if (pixel.size() != 4) return fail(invalid(QStringLiteral("Invalid KRA default pixel")));
-                layer.defaultPixel = {quint8(pixel[2]), quint8(pixel[1]), quint8(pixel[0]), quint8(pixel[3])};
+                const auto value = rgbaPixel(pixel, document.image.format);
+                if (!value) return fail(invalid(QStringLiteral("Invalid KRA default pixel")));
+                layer.defaultPixel = {(*value)[2], (*value)[1], (*value)[0], (*value)[3]};
             }
-            result = Detail::readTiles(document.files.value(path), layer.defaultPixel, offset, limits.rasterBytes - rasterBytes,
+            result = Detail::readTiles(document.files.value(path), layer.defaultPixel, document.image.format, offset, limits.rasterBytes - rasterBytes,
                                        layer.tiles, &layer.writtenAreas);
             if (result.code != Status::Success) return fail(result);
-            rasterBytes += layer.tiles.size() * RgbaTile::ByteCount;
+            rasterBytes += layer.tiles.size() * RgbaTile::byteCount(document.image.format);
             QDomElement maskElement;
             result = transparencyMaskElement(element, maskElement);
             if (result.code != Status::Success) return fail(result);
@@ -1160,10 +1182,22 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
 }
 
 Outcome RasterCodec::write(QIODevice &destination, const Document &document, const QImage &projection, Limits limits)
+{ return write(destination, document, projection, limits, {}); }
+
+Outcome RasterCodec::write(QIODevice &destination, const Document &document, const QImage &projection, Limits limits, const QImage &preview)
 {
     if (!destination.isOpen() || !destination.isWritable() || destination.isSequential()) return ioFailure();
     if (!validLimits(limits)) return invalid(QStringLiteral("Invalid KRA limits"));
     const auto &value = document.image;
+    if (!pixelByteCount(value.format)) return unsupported(QStringLiteral("Unsupported KRA raster precision"));
+    if ((value.format == PixelFormat::Rgba16 && preview.isNull()) ||
+        (!preview.isNull() && (preview.width() > 256 || preview.height() > 256 || preview.depth() != 32)))
+        return invalid(QStringLiteral("KRA requires a bounded 8-bit native preview for RGBA16"));
+    if (!validPixel(value.projectionBackground, value.format))
+        return invalid(QStringLiteral("KRA projection background exceeds its component range"));
+    for (const auto &layer : value.layers)
+        if (!validPixel(layer.defaultPixel, value.format))
+            return invalid(QStringLiteral("KRA default pixel exceeds its component range"));
     if (value.size.width() <= 0 || value.size.height() <= 0 || value.size.width() > RgbaTile::CoordinateLimit ||
         value.size.height() > RgbaTile::CoordinateLimit || projection.isNull() || projection.size() != value.size ||
         value.activeLayer < 0 || (value.layers.isEmpty() ? value.activeLayer != 0 : value.activeLayer >= value.layers.size()))
@@ -1182,6 +1216,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         result = description(document.description, xml, image);
         if (result.code != Status::Success) return result;
     }
+    image.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
     const auto folder = image.attribute(QStringLiteral("name"));
     auto files = document.files;
     auto background = image.firstChildElement(QStringLiteral("ProjectionBackgroundColor"));
@@ -1189,10 +1224,10 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         background = xml.createElement(QStringLiteral("ProjectionBackgroundColor"));
         image.appendChild(background);
     }
-    background.setAttribute(QStringLiteral("ColorData"), QString::fromLatin1(Detail::bgra(value.projectionBackground).toBase64()));
+    background.setAttribute(QStringLiteral("ColorData"), QString::fromLatin1(Detail::bgra(value.projectionBackground, value.format).toBase64()));
     const auto imageProfile = folder + QStringLiteral("/annotations/icc");
     if (!files.contains(imageProfile)) files.insert(imageProfile, QColorSpace(QColorSpace::SRgb).iccProfile());
-    result = profile(files, imageProfile, image.attribute(QStringLiteral("profile")));
+    result = profile(files, imageProfile, image.attribute(QStringLiteral("profile")), imageFormat(image));
     if (result.code != Status::Success) return result;
     QMap<QUuid, QString> layerFiles;
     result = prepareLayerDescriptions(xml, image, value, files, limits, layerFiles);
@@ -1204,11 +1239,11 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         const auto path = folder + QStringLiteral("/layers/") + layerFiles.value(layer.uuid);
         const QPoint offset = layer.position;
         QByteArray pixels;
-        result = Detail::writeTiles(layer.tiles, layer.defaultPixel, offset, limits.rasterBytes - rasterBytes, pixels, layer.writtenAreas);
+        result = Detail::writeTiles(layer.tiles, layer.defaultPixel, value.format, offset, limits.rasterBytes - rasterBytes, pixels, layer.writtenAreas);
         if (result.code != Status::Success) return result;
-        rasterBytes += layer.tiles.size() * RgbaTile::ByteCount;
+        rasterBytes += layer.tiles.size() * RgbaTile::byteCount(value.format);
         files.insert(path, std::move(pixels));
-        files.insert(path + QStringLiteral(".defaultpixel"), Detail::bgra(layer.defaultPixel));
+        files.insert(path + QStringLiteral(".defaultpixel"), Detail::bgra(layer.defaultPixel, value.format));
     }
     files.insert(QStringLiteral("maindoc.xml"), serializeDescription(xml));
     if (files.value(QStringLiteral("maindoc.xml")).size() > limits.xmlBytes) return capacity();
@@ -1233,7 +1268,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         return true;
     };
     if (!png(projection, QStringLiteral("mergedimage.png")) ||
-        !png(Detail::makePreview(projection), QStringLiteral("preview.png"))) return ioFailure();
+        !png(preview.isNull() ? Detail::makePreview(projection) : preview, QStringLiteral("preview.png"))) return ioFailure();
     result = validateFiles(files, limits);
     return result.code == Status::Success ? writeArchive(destination, files, image, document.compressRaster, limits) : result;
 }

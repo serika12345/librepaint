@@ -166,7 +166,7 @@ public:
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
     /** Replaces nonempty packed pixel rectangles in one history entry. */
     Result replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
-    /** Direct packed RGBA8 writes preserve history, notifications and fixed versions.
+    /** Direct packed RGBA writes at document precision preserve history, notifications and fixed versions.
      * Ignores surplus input bytes and accepts empty rectangles. Transfers and
      * compression finish before logical adoption; rejected writes are atomic.
      */
@@ -176,7 +176,7 @@ public:
      */
     Result writeRgbaPixels(const LayerPixelReferenceSP &pixels, QRect region, const QByteArray &bytes);
     /** Direct background writes request pixels without adding history or edit notifications. */
-    Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
+    Result writeProjectionBackground(const RgbaPixel &rgba);
     Result writeLayerName(LayerId layer, const QString &name);
     Result writeLayerVisible(LayerId layer, bool visible);
     Result writeLayerOpacity(LayerId layer, quint8 opacity);

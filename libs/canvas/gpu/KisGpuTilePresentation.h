@@ -97,6 +97,8 @@ struct CropPreview
  * Retain the projection through frame submission. Invalid input and resource
  * failures leave the target untouched. Output colors are premultiplied RGBA.
  * Channel selection changes the presentation target while retaining projection pixels.
+ * Validated RGBA16 document views use linear sRGB; presentation encodes RGB for
+ * the existing sRGB display surface while retaining the canonical GPU pixels.
  */
 class KRITACANVAS_EXPORT TilePresentation
 {

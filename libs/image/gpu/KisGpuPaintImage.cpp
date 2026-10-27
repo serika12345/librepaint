@@ -249,7 +249,10 @@ PaintImageSP PaintImage::cloneLayerForest(const QList<LayerInsertion> &layers) c
 }
 PaintImageSP PaintImage::cloneLayerForest(const QList<LayerInsertion> &layers, QSize size) const
 {
-    OperationDocument prepared(RasterImage{size, {}, 0}, m_d->limits);
+    RasterImage input;
+    input.size = size;
+    input.format = m_d->document->snapshot()->format;
+    OperationDocument prepared(input, m_d->limits);
     if (prepared.insertLayers(layers, 0) != Result::Success) return {};
     return PaintImageSP(new PaintImage(m_d->execution, prepared.cloneCurrent(true),
                                        m_d->limits, m_d->retainedExecution));
@@ -265,7 +268,7 @@ PixelBytesOutcome PaintImage::readRgbaPixels(LayerId layer, QRect region, qsizet
     return m_d->execution.readRgbaPixels(m_d->handle, m_d->document->snapshot(), region, layer, maximumBytes);
 }
 bool PaintImage::onThread() const { return QThread::currentThread() == thread(); }
-Result PaintImage::writeProjectionBackground(const std::array<quint8, 4> &rgba)
+Result PaintImage::writeProjectionBackground(const RgbaPixel &rgba)
 {
     return onThread() ? requestAfterWrite(m_d->document->writeProjectionBackground(rgba)) : Result::InvalidInput;
 }

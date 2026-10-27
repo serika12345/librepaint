@@ -216,6 +216,8 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityAcrossHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
     void rgba16TilesCannotEnterAnRgba8Document();
+    void rgba16PixelsAndBrushValuesSurviveHistoryPins();
+    void native16UnsupportedOperationsPreservePixelsAndHistory();
 };
 
 void KisGpuOperationDocumentTest::rgba16TilesCannotEnterAnRgba8Document()
@@ -233,6 +235,116 @@ void KisGpuOperationDocumentTest::rgba16TilesCannotEnterAnRgba8Document()
     QCOMPARE(document.snapshot(), before);
     QCOMPARE(document.preview(), stateBeforeRequest);
     QCOMPARE(document.undoCount(), 0);
+}
+
+void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAndHistory()
+{
+    RasterImage input;
+    input.size = {64, 48};
+    input.format = PixelFormat::Rgba16;
+    input.layers = {{QStringLiteral("Native paint"), true, {}, {}, {1, 257, 65534, 32768}}};
+    for (const auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen,
+                           LayerBlendMode::Darken, LayerBlendMode::Lighten,
+                           LayerBlendMode::Addition, LayerBlendMode::LinearDodge}) {
+        auto unsupported = input;
+        unsupported.layers.first().blendMode = mode;
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, OperationDocument{unsupported});
+    }
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setLayerBlendMode(layer, LayerBlendMode::Multiply), Result::InvalidInput);
+    QCOMPARE(document.writeLayerBlendMode(layer, LayerBlendMode::Screen), Result::InvalidInput);
+    QCOMPARE(document.invertColors(layer), Result::InvalidInput);
+    QCOMPARE(document.grayscale(layer), Result::InvalidInput);
+    Brush brush;
+    brush.rgba = {65534, 1, 257, 65535};
+    brush.blendMode = LayerBlendMode::Multiply;
+    QVERIFY(document.beginStroke(layer, brush, 42).isNull());
+    brush.blendMode = LayerBlendMode::Normal;
+    brush.gaussianWash.emplace();
+    QVERIFY(document.beginStroke(layer, brush, 42).isNull());
+    QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(document.undoCount(), 0);
+    brush.gaussianWash.reset();
+    const auto operation = document.beginStroke(layer, brush, 42);
+    QVERIFY(!operation.isNull());
+    QCOMPARE(document.appendSamples(operation, {sample(1, 1), sample(4, 4)}), Result::Success);
+    const auto pending = document.preview();
+    Shape rectangle;
+    rectangle.kind = ShapeKind::Rectangle;
+    rectangle.first = {1, 1}; rectangle.second = {4, 4};
+    FigureStyle fill;
+    fill.fill = RgbaPixel{1, 257, 65534, 65535};
+    QCOMPARE(document.updateFigure(operation, rectangle, fill), Result::InvalidInput);
+    QCOMPARE(document.preview(), pending);
+    QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(document.cancelStroke(operation), Result::Success);
+    QCOMPARE(document.undoCount(), 0);
+}
+
+void KisGpuOperationDocumentTest::rgba16PixelsAndBrushValuesSurviveHistoryPins()
+{
+    RasterImage image;
+    image.size = {320, 180};
+    image.format = PixelFormat::Rgba16;
+    image.projectionBackground = {1, 255, 256, 0};
+    RasterLayer layer;
+    layer.name = QStringLiteral("16-bit paint");
+    layer.uuid = QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}"));
+    layer.defaultPixel = {257, 32767, 32768, 0};
+    const auto pixels = QByteArray::fromHex("0001ff0001000000feff0080ff7fffff").repeated(256 * 256 / 2);
+    layer.tiles = {{{-1, 0}, pixels, PixelFormat::Rgba16}};
+    image.layers = {layer};
+    Limits limits;
+    limits.rasterBytes = 2 * RgbaTile::byteCount(PixelFormat::Rgba16);
+    OperationDocument document(image, limits);
+    const auto initial = document.snapshot();
+    const auto retainedTile = std::get<TileWriteSnapshot>(initial->layers.first().operations.first())->tiles.first();
+    QCOMPARE(initial->format, image.format);
+    QCOMPARE(initial->projectionBackground, image.projectionBackground);
+    QCOMPARE(initial->layers.first().defaultPixel, layer.defaultPixel);
+    QCOMPARE(initial->projectionDefaultPixels().value(document.activeLayer()), layer.defaultPixel);
+    QCOMPARE(initial->rasterBytes, pixels.size());
+    QCOMPARE(retainedTile->rgba(), pixels);
+    QCOMPARE(document.undoCount(), 0);
+
+    auto replacement = layer.tiles.first();
+    replacement.rgba.replace(0, 8, QByteArray::fromHex("0101feffffff0100"));
+    QCOMPARE(document.replaceTiles(document.activeLayer(), {replacement}), Result::Success);
+    const auto replaced = document.snapshot();
+    QCOMPARE(replaced->rasterBytes, 2 * pixels.size());
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), replaced);
+    QCOMPARE(retainedTile->rgba(), pixels);
+    QCOMPARE(document.replaceTiles(document.activeLayer(), {replacement}), Result::CapacityExceeded);
+    QCOMPARE(document.snapshot(), replaced);
+
+    Brush brush;
+    brush.rgba = {1, 257, 65534, 65535};
+    const auto stroke = document.beginStroke(document.activeLayer(), brush, 42);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(-0.5, 255.5, 0.75, 123)}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.snapshot()->format, PixelFormat::Rgba16);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), replaced);
+
+    // A format mismatch is rejected before changing history, including a
+    // compressed tile that is otherwise valid in its own precision.
+    OperationDocument fresh(image);
+    const auto before = fresh.snapshot();
+    auto wrong = layer.tiles.first();
+    wrong.format = PixelFormat::Rgba8;
+    wrong.rgba = QByteArray(RgbaTile::ByteCount, '\0');
+    QCOMPARE(fresh.replaceTiles(fresh.activeLayer(), {wrong}), Result::InvalidInput);
+    QCOMPARE(fresh.snapshot(), before);
+    image.layers.first().tiles = {wrong};
+    QVERIFY_THROWS_EXCEPTION(std::invalid_argument, OperationDocument{image});
 }
 
 void KisGpuOperationDocumentTest::layerForestInsertionCanClearPixelSelectionAtomically_data()
@@ -801,8 +913,8 @@ void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuan
     const LayerId innerId = source.layers.size() - 1, outerId = source.layers.size();
     QVERIFY(defaults.contains(innerId) && defaults.contains(outerId));
     const auto innerValue = defaults.value(innerId), outerValue = defaults.value(outerId);
-    QCOMPARE(QByteArray(reinterpret_cast<const char*>(innerValue.data()), 4), innerPixel);
-    QCOMPARE(QByteArray(reinterpret_cast<const char*>(outerValue.data()), 4), outerPixel);
+    QCOMPARE(rgbaBytes(innerValue, PixelFormat::Rgba8), innerPixel);
+    QCOMPARE(rgbaBytes(outerValue, PixelFormat::Rgba8), outerPixel);
 }
 
 void KisGpuOperationDocumentTest::nestedRemovalOwnsDescendantsAndOneHistoryStep()
@@ -946,8 +1058,8 @@ void KisGpuOperationDocumentTest::separableGroupDefaultsMatchNativeProjection()
             input.layers = {{QStringLiteral("Destination"), true, {}, {}},
                             {QStringLiteral("Source"), true, {}, {}}, {QStringLiteral("Group"), true, group, {}}};
             input.layers[0].defaultPixel = {37, 89, 151, quint8(destinationAlpha)};
-            input.layers[1].defaultPixel = mode >= LayerBlendMode::Addition ? std::array<quint8, 4>{208, 224, 240, quint8(sourceAlpha)} :
-                std::array<quint8, 4>{201, 41, 93, quint8(sourceAlpha)};
+            input.layers[1].defaultPixel = mode >= LayerBlendMode::Addition ? RgbaPixel{208, 224, 240, quint8(sourceAlpha)} :
+                RgbaPixel{201, 41, 93, quint8(sourceAlpha)};
             input.layers[1].opacity = quint8(opacity);
             input.layers[1].blendMode = mode;
             input.layers[1].projectionChannelMask = quint8(mask);
@@ -955,7 +1067,7 @@ void KisGpuOperationDocumentTest::separableGroupDefaultsMatchNativeProjection()
             input.layers[2].kind = LayerKind::Group;
             OperationDocument document(input);
             const auto value = document.snapshot()->projectionDefaultPixels().value(3);
-            QCOMPARE(QByteArray(reinterpret_cast<const char *>(value.data()), 4), references.mid(row++ * 4, 4));
+            QCOMPARE(rgbaBytes(value, PixelFormat::Rgba8), references.mid(row++ * 4, 4));
         }
     }
 }
@@ -3127,7 +3239,7 @@ void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistory()
     QCOMPARE(document.appendSamples(id, {sample(12, 12), sample(52, 52)}), Result::Success);
     FigureStyle style;
     style.outline = false;
-    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    style.fill = RgbaPixel{221, 17, 44, 255};
     QCOMPARE(document.updateFigure(id, {ShapeKind::Rectangle, {12, 12}, {52, 52}, 0}, style), Result::Success);
     const auto preview = document.preview();
     const auto operation = std::get<PaintSnapshot>(preview->layers.first().operations.last());
@@ -3212,7 +3324,7 @@ void KisGpuOperationDocumentTest::fillBlendModesFreezeHistory()
     QCOMPARE(document.historyAction(1), HistoryAction::FillLayer);
     const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QVERIFY(!operation->figureStyle.outline);
-    QCOMPARE(operation->figureStyle.fill, (std::array<quint8, 4>{221, 17, 44, 255}));
+    QCOMPARE(operation->figureStyle.fill, (RgbaPixel{221, 17, 44, 255}));
     QCOMPARE(operation->figureStyle.fillBlendMode, LayerBlendMode(mode));
     const auto committed = document.snapshot();
 
@@ -3263,7 +3375,7 @@ void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput(
     const QList<InputSample> samples{{{4, 4}, 1}, {{28, 28}, 1}};
     FigureStyle outOfRange;
     outOfRange.outline = false;
-    outOfRange.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    outOfRange.fill = RgbaPixel{17, 129, 241, 255};
     outOfRange.fillBlendMode = LayerBlendMode(7);
     QCOMPARE(document.paintFigure(layer, Brush{}, samples, {ShapeKind::Rectangle, {4, 4}, {28, 28}, 0},
                                   outOfRange, 42), Result::InvalidInput);
@@ -3271,7 +3383,7 @@ void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput(
 
     FigureStyle blendedOutline;
     blendedOutline.outline = true;
-    blendedOutline.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    blendedOutline.fill = RgbaPixel{17, 129, 241, 255};
     blendedOutline.fillBlendMode = LayerBlendMode::Multiply;
     QCOMPARE(document.paintFigure(layer, Brush{}, samples, {ShapeKind::Rectangle, {4, 4}, {28, 28}, 0},
                                   blendedOutline, 42), Result::InvalidInput);
@@ -3323,7 +3435,7 @@ void KisGpuOperationDocumentTest::strokeBlendModesFreezeHistory()
     brush.blendMode = LayerBlendMode::Normal;
     const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
     QCOMPARE(pending->brush.blendMode, LayerBlendMode(mode));
-    QCOMPARE(pending->brush.rgba, (std::array<quint8, 4>{221, 17, 44, 255}));
+    QCOMPARE(pending->brush.rgba, (RgbaPixel{221, 17, 44, 255}));
 
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     QCOMPARE(document.undoCount(), 1);
@@ -3439,7 +3551,7 @@ void KisGpuOperationDocumentTest::pathsPreserveCommandsControlPoints()
     const QList<InputSample> samples{{{12, 32}, 1}, {{20, 12}, 1}, {{40, 52}, 1},
                                     {{52, 32}, 1}, {{12, 52}, 1}, {{52, 52}, 1}};
     FigureStyle style;
-    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    style.fill = RgbaPixel{221, 17, 44, 255};
     QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, samples, shape, style, 42), Result::Success);
     const auto pinned = document.snapshot();
     QCOMPARE(pinned->sampleCount, samples.size());

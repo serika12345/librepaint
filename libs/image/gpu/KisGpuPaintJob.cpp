@@ -8,9 +8,16 @@
 #include <cstring>
 
 namespace LibrePaint::Image::Gpu::Detail {
-quint32 packedPixel(const std::array<quint8, 4> &rgba)
+quint32 packedPixel(const RgbaPixel &rgba)
 {
     return quint32(rgba[0]) | quint32(rgba[1]) << 8 | quint32(rgba[2]) << 16 | quint32(rgba[3]) << 24;
+}
+
+std::array<quint32, 2> packedPixelWords(const RgbaPixel &rgba, PixelFormat format)
+{
+    if (format == PixelFormat::Rgba8) return {packedPixel(rgba), 0};
+    return {quint32(rgba[0]) | (quint32(rgba[1]) << 16),
+            quint32(rgba[2]) | (quint32(rgba[3]) << 16)};
 }
 
 bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<PaintJob> &jobs,

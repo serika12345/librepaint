@@ -378,7 +378,7 @@ void KisEllipseToolDocumentTest::fractionalFillMatchesPainterWithProtectedChanne
     brush.channelWriteMask = quint8(writeMask);
     Gpu::FigureStyle style;
     style.outline = false;
-    style.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    style.fill = LibrePaint::Image::Gpu::RgbaPixel{17, 129, 241, 255};
     brush.opacity = opacity;
     QCOMPARE(owner->paintFigure(layer, brush, {{{16, 16}, 1}, {{48, 48}, 1}},
         {Gpu::ShapeKind::Ellipse, {16, 16}, {48, 48}, 0}, style, 42), Gpu::Result::Success);

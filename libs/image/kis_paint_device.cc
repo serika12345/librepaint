@@ -7,6 +7,8 @@
  */
 
 #include "kis_paint_device.h"
+#include <cstring>
+#include <QtEndian>
 
 #include "KisProcessingInformationPaintDeviceOwnership_p.h"
 #include "KisQStringListFwd.h"
@@ -122,14 +124,47 @@ void kisRandomSubAccessorMixColors(const KisPaintDevice *device,
 }
 
 namespace {
-qsizetype gpuPixelByteCount(const QRect &rect)
+qsizetype gpuPixelByteCount(const QRect &rect, LibrePaint::Image::Gpu::PixelFormat format)
 {
     const qsizetype width = rect.width();
     const qsizetype height = rect.height();
-    if (height && width > std::numeric_limits<qsizetype>::max() / 4 / height)
+    const auto stride = LibrePaint::Image::Gpu::pixelByteCount(format);
+    if (height && width > std::numeric_limits<qsizetype>::max() / stride / height)
         throw std::length_error("GPU pixel capacity exceeded");
-    return width * height * 4;
+    return width * height * stride;
 }
+
+// Public pixels use native-endian BGRA; GPU pixels use little-endian RGBA.
+QByteArray gpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QByteArray output(source.size(), Qt::Uninitialized);
+    const int componentBytes = Gpu::pixelByteCount(format) / 4;
+    for (qsizetype i = 0; i < source.size(); i += componentBytes * 4) {
+        for (int c = 0; c < 4; ++c) {
+            const int other = c == 0 ? 2 : c == 2 ? 0 : c;
+            const auto input = source.data() + i + other * componentBytes;
+            auto destination = output.data() + i + c * componentBytes;
+            if (componentBytes == 1) *destination = *input;
+            else if (toGpu) {
+                quint16 value;
+                std::memcpy(&value, input, sizeof(value));
+                qToLittleEndian(value, destination);
+            } else {
+                const quint16 value = qFromLittleEndian<quint16>(input);
+                std::memcpy(destination, &value, sizeof(value));
+            }
+        }
+    }
+    return output;
+}
+KoColor gpuDefaultColor(const LibrePaint::Image::Gpu::RgbaPixel &rgba,
+                        LibrePaint::Image::Gpu::PixelFormat format, const KoColorSpace *space)
+{
+    const auto bytes = gpuPixelTransfer(LibrePaint::Image::Gpu::rgbaBytes(rgba, format), format, false);
+    return KoColor(reinterpret_cast<const quint8 *>(bytes.constData()), space);
+}
+
 }
 
 struct KisPaintDevice::Private
@@ -163,7 +198,7 @@ public:
     mutable quint64 gpuSequenceRevision = 0;
     mutable QUuid gpuSequenceDocument;
     mutable QList<LibrePaint::Image::Gpu::LayerOperation> gpuSequenceOperations;
-    mutable std::array<quint8, 4> gpuSequenceDefault{};
+    mutable LibrePaint::Image::Gpu::RgbaPixel gpuSequenceDefault{};
     mutable int gpuSequence = 0;
     mutable bool gpuSequenceKnown = false;
     KisNodeWSP parent;
@@ -1182,9 +1217,11 @@ KisPaintDeviceSP KisPaintDevice::fromGpuImage(LibrePaint::Image::Gpu::PaintImage
     bool found = layer == 0;
     for (const auto &value : image->operations().snapshot()->layers) found |= value.id == layer;
     if (!found) throw std::invalid_argument("GPU paint-device layer is unavailable");
+    const auto format = image->operations().snapshot()->format;
     if (!colorSpace || colorSpace->colorModelId().id() != QLatin1String("RGBA") ||
-        colorSpace->colorDepthId().id() != QLatin1String("U8"))
-        throw std::invalid_argument("GPU paint-device views require the validated RGBA8/sRGB encoding");
+        (format == LibrePaint::Image::Gpu::PixelFormat::Rgba8 ? colorSpace->colorDepthId().id() != QLatin1String("U8") :
+         *colorSpace != *KoColorSpaceRegistry::instance()->rgb16()))
+        throw std::invalid_argument("GPU pixel precision and document color encoding must match");
     return new KisPaintDevice(std::move(image), layer, name, colorSpace);
 }
 
@@ -1750,15 +1787,13 @@ KoColor KisPaintDevice::defaultPixel() const
         const auto projectedLayer = m_d->gpuLayerId() ? m_d->gpuLayerId() : version->directProjectionLayer();
         if (!projectedLayer) {
             const auto &rgba = version->projectionBackground;
-            const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
-            return KoColor(bgra, colorSpace());
+            return gpuDefaultColor(rgba, version->format, colorSpace());
         }
         for (const auto &layer : version->layers) {
             if (layer.id != projectedLayer) continue;
             const auto rgba = layer.kind == LibrePaint::Image::Gpu::LayerKind::Group ?
                 version->projectionDefaultPixels().value(layer.id) : layer.defaultPixel;
-            const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
-            return KoColor(bgra, colorSpace());
+            return gpuDefaultColor(rgba, version->format, colorSpace());
         }
         throw std::runtime_error("GPU paint-device layer is unavailable");
     }
@@ -2054,7 +2089,7 @@ QImage KisPaintDevice::createThumbnail(qint32 w, qint32 h, KisThumbnailBoundsMod
 {
     if (m_d->gpuImage) {
         if (oversample != 1.)
-            return kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayerId(), m_d->defaultBounds, m_d->gpuPixelVersion())->createThumbnail(w, h, boundsMode, oversample, renderingIntent, conversionFlags);
+            return kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayerId(), m_d->defaultBounds, m_d->gpuPixelVersion(), colorSpace())->createThumbnail(w, h, boundsMode, oversample, renderingIntent, conversionFlags);
         const auto version = m_d->gpuPixelVersion();
         auto layer = m_d->gpuLayerId();
         if (!layer) layer = version->directProjectionLayer();
@@ -2071,6 +2106,20 @@ QImage KisPaintDevice::createThumbnail(qint32 w, qint32 h, KisThumbnailBoundsMod
             256 * 1024 * 1024, boundsMode == KisThumbnailBoundsMode::Coarse);
         if (result.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
             throw std::runtime_error(result.diagnostic.toStdString());
+        if (version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16) {
+            // Only the GPU-reduced RGBA64 preview crosses this color boundary.
+            QByteArray bgra(result.image.width() * result.image.height() * 8, Qt::Uninitialized);
+            for (int y = 0; y < result.image.height(); ++y) {
+                const auto *row = reinterpret_cast<const QRgba64 *>(result.image.constScanLine(y));
+                for (int x = 0; x < result.image.width(); ++x) {
+                    const quint16 pixel[] = {row[x].blue(), row[x].green(), row[x].red(), row[x].alpha()};
+                    std::memcpy(bgra.data() + (qsizetype(y) * result.image.width() + x) * 8, pixel, sizeof(pixel));
+                }
+            }
+            return colorSpace()->convertToQImage(reinterpret_cast<const quint8 *>(bgra.constData()),
+                result.image.width(), result.image.height(), KoColorSpaceRegistry::instance()->rgb8()->profile(),
+                renderingIntent, conversionFlags);
+        }
         return result.image.convertToFormat(QImage::Format_ARGB32);
     }
     QSize size = fixThumbnailSize(QSize(w, h));
@@ -2269,27 +2318,24 @@ void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
 {
     if (m_d->gpuImage) {
         if (rect.isEmpty()) return;
-        const auto count = gpuPixelByteCount(rect);
+        const auto count = gpuPixelByteCount(rect, m_d->gpuPixelVersion()->format);
         const auto snapshot = m_d->gpuPixelVersion();
         auto layer = m_d->gpuLayerId();
         if (!layer) layer = snapshot->directProjectionLayer();
         const auto pixels = m_d->gpuImage->execution().readRgbaPixels(m_d->gpuImage->handle(), snapshot, rect, layer, count);
         if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
             throw std::runtime_error(pixels.diagnostic.toStdString());
-        for (qsizetype i = 0; i < pixels.bytes.size(); i += 4) {
-            data[i] = quint8(pixels.bytes[i + 2]);
-            data[i + 1] = quint8(pixels.bytes[i + 1]);
-            data[i + 2] = quint8(pixels.bytes[i]);
-            data[i + 3] = quint8(pixels.bytes[i + 3]);
-        }
+        const auto bgra = gpuPixelTransfer(pixels.bytes, snapshot->format, false);
+        std::memcpy(data, bgra.constData(), bgra.size());
         if (!layer) {
             const QRect canvas(QPoint(), snapshot->size);
-            const auto &rgba = snapshot->projectionBackground;
+            const auto background = gpuDefaultColor(snapshot->projectionBackground, snapshot->format, colorSpace());
+            const auto stride = LibrePaint::Image::Gpu::pixelByteCount(snapshot->format);
             for (int y = 0; y < rect.height(); ++y) {
                 for (int x = 0; x < rect.width(); ++x) {
                     if (canvas.contains(rect.topLeft() + QPoint(x, y))) continue;
-                    const auto i = (qsizetype(y) * rect.width() + x) * 4;
-                    data[i] = rgba[2]; data[i + 1] = rgba[1]; data[i + 2] = rgba[0]; data[i + 3] = rgba[3];
+                    const auto i = (qsizetype(y) * rect.width() + x) * stride;
+                    std::memcpy(data + i, background.data(), stride);
                 }
             }
         }
@@ -2308,9 +2354,9 @@ void KisPaintDevice::writeBytes(const quint8 *data, const QRect &rect)
     if (m_d->gpuImage) {
         if (rect.isEmpty()) return;
         if (!m_d->gpuLayerId()) throw std::logic_error("GPU image projection is read-only");
-        const auto count = gpuPixelByteCount(rect);
-        QByteArray rgba(reinterpret_cast<const char *>(data), qsizetype(count));
-        for (qsizetype i = 0; i < rgba.size(); i += 4) std::swap(rgba[i], rgba[i + 2]);
+        const auto count = gpuPixelByteCount(rect, m_d->gpuPixelVersion()->format);
+        const auto rgba = gpuPixelTransfer(QByteArrayView(reinterpret_cast<const char *>(data), count),
+                                          m_d->gpuPixelVersion()->format, true);
         const auto result = m_d->gpuImage->writeRgbaPixels(m_d->gpuPixels, rect, rgba);
         if (result != LibrePaint::Image::Gpu::Result::Success)
             throw std::runtime_error("GPU pixel write failed: " + std::to_string(int(result)));

@@ -58,6 +58,7 @@
 #include <QJsonObject>
 #include <cmath>
 #include <cstring>
+#include <QtEndian>
 
 namespace {
 constexpr int side = 128;
@@ -112,7 +113,7 @@ KisPaintLayerSP paintLayer(KisDocument *document)
 
 QByteArray layerPixels(KisDocument *document)
 {
-    QByteArray bytes(side * side * 4, '\0');
+    QByteArray bytes(side * side * document->image()->colorSpace()->pixelSize(), '\0');
     paintLayer(document)->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 0, 0, side, side);
     return bytes;
 }
@@ -149,9 +150,10 @@ bool setInitialLayerIdentity(KisDocument *document, const QUuid &uuid)
     QString diagnostic;
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
     if (!execution) return false;
-    owner = Gpu::PaintImageSP::create(execution,
-        Gpu::RasterImage{before->size, {input}, 0, before->projectionBackground}, owner->limits());
-    document->setCurrentImage(KisImage::fromGpuImage(owner, image->objectName()));
+    Gpu::RasterImage raster{before->size, {input}, 0, before->projectionBackground};
+    raster.format = before->format;
+    owner = Gpu::PaintImageSP::create(execution, raster, owner->limits());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, image->objectName(), image->colorSpace()));
     layer = paintLayer(document);
     const auto after = owner->operations().snapshot();
     if (!layer || after->layers.size() != 1) return false;
@@ -1146,6 +1148,7 @@ void TestDocument::testDefaultBrushStationaryInputKeepsOneTap()
 
 void TestDocument::testRoundMarkerStrokeMatchesCpuPixels_data()
 {
+    QTest::addColumn<bool>("sixteenBits");
     QTest::addColumn<qreal>("opacity");
     QTest::addColumn<bool>("erase");
     QTest::addColumn<bool>("moving");
@@ -1157,16 +1160,26 @@ void TestDocument::testRoundMarkerStrokeMatchesCpuPixels_data()
                 .arg(opacity == 1 ? QStringLiteral("opaque") : QStringLiteral("half"))
                 .arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"))
                 .arg(moving ? QStringLiteral("moving") : QStringLiteral("tap"));
-            QTest::newRow(qPrintable(name)) << opacity << erase << moving << quint8(15) << quint8(255);
+            QTest::newRow(qPrintable(name)) << false << opacity << erase << moving << quint8(15) << quint8(255);
         }
     for (const quint8 mask : {0, 1, 7, 8, 10, 15}) for (const bool erase : {false, true}) {
         const auto name = QStringLiteral("protected-%1-%2").arg(mask).arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"));
-        QTest::newRow(qPrintable(name)) << qreal(173.0 / 255) << erase << false << mask << quint8(128);
+        QTest::newRow(qPrintable(name)) << false << qreal(173.0 / 255) << erase << false << mask << quint8(128);
     }
+    for (const qreal opacity : {qreal(1), qreal(.5)})
+        for (const bool erase : {false, true}) for (const bool moving : {false, true}) {
+            const auto name = QStringLiteral("u16-%1-%2-%3")
+                .arg(opacity == 1 ? QStringLiteral("opaque") : QStringLiteral("half"))
+                .arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"))
+                .arg(moving ? QStringLiteral("moving") : QStringLiteral("tap"));
+            QTest::newRow(qPrintable(name)) << true << opacity << erase << moving << quint8(15) << quint8(255);
+        }
+
 }
 
 void TestDocument::testRoundMarkerStrokeMatchesCpuPixels()
 {
+    QFETCH(bool, sixteenBits);
     QFETCH(qreal, opacity);
     QFETCH(bool, erase);
     QFETCH(bool, moving);
@@ -1196,18 +1209,32 @@ void TestDocument::testRoundMarkerStrokeMatchesCpuPixels()
         KoID("roundmarker"), KisGlobalResourcesInterface::instance());
     QVERIFY(preset);
     preset->settings()->setPaintOpSize(10);
-    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto cs = sixteenBits ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     QVERIFY(cs);
     QVERIFY(cs->profile());
     const int pixelSize = cs->pixelSize();
-    QCOMPARE(pixelSize, 4);
+    QCOMPARE(pixelSize, sixteenBits ? 8 : 4);
     QByteArray initial = partialAlphaBackground();
-    const KoColor foreground(QColor(17, 34, 51, foregroundAlpha), cs);
+    KoColor foreground(QColor(17, 34, 51, foregroundAlpha), cs);
+    if (sixteenBits) {
+        // Input and native color are owned by the existing U16 roundmarker provenance.
+        QFile input(QFINDTESTDATA("../../image/gpu/tests/data/roundmarker/u16-initial.rgba"));
+        QVERIFY(input.open(QIODevice::ReadOnly));
+        initial = input.readAll();
+        QCOMPARE(initial.size(), side * side * pixelSize);
+        for (qsizetype i = 0; i < initial.size(); i += 8) {
+            quint16 bgra[4];
+            for (int c = 0; c < 4; ++c) bgra[c] = qFromLittleEndian<quint16>(initial.constData() + i + (c == 0 ? 2 : c == 2 ? 0 : c) * 2);
+            std::memcpy(initial.data() + i, bgra, sizeof(bgra));
+        }
+        const quint16 bgra[] = {1, 257, 65534, 65535};
+        foreground = KoColor(reinterpret_cast<const quint8 *>(bgra), cs);
+    }
     QFile initialFile(destination.filePath(QStringLiteral("input.bgra")));
     QVERIFY(initialFile.open(QIODevice::WriteOnly));
     QCOMPARE(initialFile.write(initial), qint64(initial.size()));
     const QJsonObject conditions{{"width", side}, {"height", side}, {"pixelSize", pixelSize},
-        {"componentBits", 8},
+        {"componentBits", sixteenBits ? 16 : 8},
         {"colorSpace", cs->id()}, {"profile", cs->profile()->name()},
         {"profileSha256", QString::fromLatin1(QCryptographicHash::hash(cs->profile()->rawData(), QCryptographicHash::Sha256).toHex())},
         {"foregroundBgra", QString::fromLatin1(QByteArray(reinterpret_cast<const char *>(foreground.data()), pixelSize).toHex())},
@@ -1277,12 +1304,12 @@ void TestDocument::testRoundMarkerStrokeMatchesCpuPixels()
         int changedPixels = 0, changedComponents = 0, maximumDifference = 0;
         qsizetype first = -1;
         const auto component = [&](const QByteArray &bytes, qsizetype offset) {
-            return quint8(bytes[offset]);
+            return sixteenBits ? int(qFromLittleEndian<quint16>(bytes.constData() + offset)) : int(quint8(bytes[offset]));
         };
         for (qsizetype pixel = 0; pixel < pixels.size(); pixel += pixelSize) {
             bool changed = false;
             for (int channel = 0; channel < 4; ++channel) {
-                const auto offset = pixel + channel;
+                const auto offset = pixel + channel * (sixteenBits ? 2 : 1);
                 const int difference = qAbs(int(component(pixels, offset)) - int(component(reference, offset)));
                 if (!difference) continue;
                 ++changedComponents;
@@ -1407,15 +1434,18 @@ void TestDocument::testRoundMarkerShapesMatchCpuPixels()
 
 void TestDocument::testRoundMarkerSaveMatchesCpuFiles_data()
 {
+    QTest::addColumn<bool>("sixteenBits");
     QTest::addColumn<int>("calls");
     QTest::addColumn<QPointF>("offset");
-    QTest::newRow("tap-at-storage-corner") << -2 << QPointF(47.75, 46.25);
-    QTest::newRow("moving") << -1 << QPointF();
-    QTest::newRow("ellipse") << 11 << QPointF();
+    QTest::newRow("tap-at-storage-corner") << false << -2 << QPointF(47.75, 46.25);
+    QTest::newRow("moving") << false << -1 << QPointF();
+    QTest::newRow("ellipse") << false << 11 << QPointF();
+    QTest::newRow("u16-moving") << true << -1 << QPointF();
 }
 
 void TestDocument::testRoundMarkerSaveMatchesCpuFiles()
 {
+    QFETCH(bool, sixteenBits);
     QFETCH(int, calls);
     QFETCH(QPointF, offset);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
@@ -1445,7 +1475,7 @@ void TestDocument::testRoundMarkerSaveMatchesCpuFiles()
     QVERIFY(preset);
     preset->settings()->setPaintOpSize(10);
     preset->settings()->setProperty("PressureSize", false);
-    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto cs = sixteenBits ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     QMap<QString, QByteArray> reference;
     for (int owner = 0; owner < 2; ++owner) {
         qputenv("LIBREPAINT_GPU_ENGINE", owner ? "1" : "0");
@@ -1460,6 +1490,25 @@ void TestDocument::testRoundMarkerSaveMatchesCpuFiles()
         const QDir out(destination.filePath(owner ? QStringLiteral("gpu") : QStringLiteral("cpu")));
         QVERIFY(QDir().mkpath(out.path()));
         QVERIFY(save(document.data(), out, QStringLiteral("document")));
+        if (sixteenBits) {
+            const auto savedPixels = layerPixels(document.data());
+            QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+            reopened->setFileBatchMode(true);
+            QVERIFY2(reopened->openPath(out.filePath(QStringLiteral("document.kra")), KisDocument::DontAddToRecent),
+                     qPrintable(reopened->errorMessage()));
+            QCOMPARE(reopened->image()->colorSpace(), cs);
+            QCOMPARE(layerPixels(reopened.data()), savedPixels);
+            QVERIFY(paint(document.data(), preset, .5, 0, 1, -1));
+            QVERIFY(paint(reopened.data(), preset, .5, 0, 1, -1));
+            QCOMPARE(layerPixels(reopened.data()), layerPixels(document.data()));
+            const auto continued = layerPixels(reopened.data());
+            reopened->undoStack()->undo();
+            reopened->image()->waitForDone();
+            QCOMPARE(layerPixels(reopened.data()), savedPixels);
+            reopened->undoStack()->redo();
+            reopened->image()->waitForDone();
+            QCOMPARE(layerPixels(reopened.data()), continued);
+        }
         for (const auto &extension : {QStringLiteral("bgra"), QStringLiteral("kra"), QStringLiteral("png"), QStringLiteral("jpg")}) {
             QFile file(out.filePath(QStringLiteral("document.") + extension));
             QVERIFY(file.open(QIODevice::ReadOnly));

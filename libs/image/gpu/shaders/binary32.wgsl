@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Nonnegative finite binary32 opacity and alpha for normal RGBA8 composition.
+// Nonnegative finite binary32 opacity, alpha and native color components.
 // Integer evaluation fixes normalization, gradual underflow, single-rounded
-// multiply-add and quotient rounding before nearest-even byte conversion.
+// multiply-add and quotient rounding before nearest-even component conversion.
 fn projectionAdd(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
     let low = a.x + b.x;
     return vec2<u32>(low, a.y + b.y + select(0u, 1u, low < a.x));
@@ -118,7 +118,7 @@ fn projectionDivide(a: u32, b: u32) -> u32 {
     let value = (quotient << 2u) | (guardBit << 1u) | select(0u, 1u, remainder != 0u);
     return projectionFloat(vec2<u32>(value, 0u), exponent - 25);
 }
-fn projectionByte(value: u32) -> u32 {
+fn projectionComponent(value: u32) -> u32 {
     if (value == 0u) { return 0u; }
     let shift = -projectionPower(value);
     if (shift > 24) { return 0u; }
@@ -134,5 +134,5 @@ fn projectionColor(destination: u32, source: u32, blend: u32) -> u32 {
     var value: vec2<u32>;
     if (difference < 0) { value = projectionSubtract(base, product); }
     else { value = projectionAdd(base, product); }
-    return projectionByte(projectionFloat(value, projectionPower(blend)));
+    return projectionComponent(projectionFloat(value, projectionPower(blend)));
 }

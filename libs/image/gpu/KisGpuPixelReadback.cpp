@@ -9,6 +9,7 @@
 #include "KisGpuReadbackBatch_p.h"
 #include "KisGpuPaintJob_p.h"
 #include <QColorSpace>
+#include <QSysInfo>
 #include <QSet>
 #include <algorithm>
 #include <cmath>
@@ -49,7 +50,7 @@ struct PixelReadCompletion
     {
         std::lock_guard<std::mutex> guard(mutex);
         const qsizetype expectedBytes = boundsOnly ? 4 * sizeof(qint32) :
-                                        transparencyOnly ? sizeof(quint32) : TileRenderer::TileBytes;
+                                        transparencyOnly ? sizeof(quint32) : RgbaTile::byteCount(outcome.document->format);
         if (read.data.size() != expectedBytes) {
             outcome.code = ExecutionCode::DeviceFailure;
             outcome.diagnostic = read.diagnostic.isEmpty() ?
@@ -155,7 +156,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
         } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
             // A filter over canvas-wide default content synthesizes tiles in the
             // renderer, so its coverage participates in the retained layer extent.
-            if (!Detail::packedPixel(layer.defaultPixel)) continue;
+            if (layer.defaultPixel == RgbaPixel{}) continue;
             QRect area = needed;
             if (!(*filter)->selectionRect.isEmpty() && !(*filter)->selectionInverted)
                 area = area.intersected((*filter)->selectionRect);
@@ -309,7 +310,7 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
             return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
     }
     outcome.writtenAreas.removeIf([](const QRect &area) { return area.isEmpty(); });
-    const auto coordinates = layerCoordinates(pinned, *selected, outcome.region, maximumBytes / TileRenderer::TileBytes);
+    const auto coordinates = layerCoordinates(pinned, *selected, outcome.region, maximumBytes / RgbaTile::byteCount(pinned->format));
     if (!coordinates) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Complete layer pixel capacity exceeded"));
     if (coordinates->isEmpty()) return outcome;
     const auto retired = retireDisplayCaches();
@@ -331,7 +332,8 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
     if (maximumBytes < 0) return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Projection pixel capacity is invalid"));
     const auto checked = readPixels(handle, pinned, {}, {}, true);
     if (checked.code != ExecutionCode::Success) return rejected(checked.code, checked.diagnostic);
-    if (qint64(pinned->size.width()) * pinned->size.height() * 4 > maximumBytes)
+    const int pixelSize = pixelByteCount(pinned->format);
+    if (qint64(pinned->size.width()) * pinned->size.height() * pixelSize > maximumBytes)
         return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Complete projection pixel capacity exceeded"));
     const QRect canvas(QPoint(0, 0), pinned->size);
     constexpr int size = TileRenderer::TileSize;
@@ -339,12 +341,12 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
     const qsizetype rows = (pinned->size.height() + size - 1) / size;
     QSet<quint64> coordinates;
     const auto defaults = pinned->projectionDefaultPixels();
-    bool uniform = Detail::packedPixel(pinned->projectionBackground) != 0;
+    bool uniform = pinned->projectionBackground != RgbaPixel{};
     QSet<LayerId> projectionLayers;
     for (const auto &input : pinned->projectionInputs()) projectionLayers.insert(input.layer);
     for (const auto &layer : pinned->layers) {
         if (!projectionLayers.contains(layer.id)) continue;
-        uniform |= Detail::packedPixel(defaults.value(layer.id)) != 0;
+        uniform |= defaults.value(layer.id) != RgbaPixel{};
         const auto tiles = layerCoordinates(pinned, layer, canvas, columns * rows);
         if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Projection tile coordinates exceed the canvas"));
         for (const auto tile : *tiles) coordinates.insert(tile);
@@ -356,10 +358,10 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
     ImageReadbackOutcome outcome;
     outcome.document = pinned;
     outcome.generation = checked.generation;
-    outcome.image = QImage(pinned->size, QImage::Format_RGBA8888);
+    outcome.image = QImage(pinned->size, pinned->format == PixelFormat::Rgba16 ? QImage::Format_RGBA64 : QImage::Format_RGBA8888);
     if (outcome.image.isNull()) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Projection image allocation failed"));
     outcome.image.fill(Qt::transparent);
-    outcome.image.setColorSpace(QColorSpace::SRgb);
+    outcome.image.setColorSpace(pinned->format == PixelFormat::Rgba16 ? QColorSpace::SRgbLinear : QColorSpace::SRgb);
     if (!coordinates.isEmpty()) {
         const auto retired = retireDisplayCaches();
         if (retired.code != ExecutionCode::Success) return rejected(retired.code, retired.diagnostic);
@@ -374,8 +376,11 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
             const auto origin = tile.coordinate * size;
             const auto clipped = QRect(origin, QSize(size, size)).intersected(canvas);
             for (int y = clipped.top(); y <= clipped.bottom(); ++y) {
-                const auto source = tile.rgba.constData() + ((y - origin.y()) * size + clipped.x() - origin.x()) * 4;
-                std::memcpy(outcome.image.scanLine(y) + clipped.x() * 4, source, size_t(clipped.width()) * 4);
+                const auto source = tile.rgba.constData() + ((y - origin.y()) * size + clipped.x() - origin.x()) * pixelSize;
+                auto destination = outcome.image.scanLine(y) + clipped.x() * pixelSize;
+                std::memcpy(destination, source, size_t(clipped.width()) * pixelSize);
+                if (pinned->format == PixelFormat::Rgba16 && QSysInfo::ByteOrder == QSysInfo::BigEndian)
+                    for (int i = 0; i < clipped.width() * pixelSize; i += 2) std::swap(destination[i], destination[i + 1]);
             }
         }
     }
@@ -397,21 +402,22 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
     const QList<LayerId> layers = layer ? QList<LayerId>{layer} : QList<LayerId>{};
     const auto checked = readPixels(handle, pinned, {}, layers, !layer, PixelReadArea::LayerCoordinates);
     if (checked.code != ExecutionCode::Success) return rejected(checked.code, checked.diagnostic);
-    const qint64 byteCount = qint64(region.width()) * region.height() * 4;
+    const int pixelSize = pixelByteCount(pinned->format);
+    const qint64 byteCount = qint64(region.width()) * region.height() * pixelSize;
     if (byteCount > maximumBytes)
         return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel output capacity exceeded"));
     const auto clipped = layer ? region : region.intersected(QRect(QPoint(), pinned->size));
     constexpr int size = TileRenderer::TileSize;
     QSet<quint64> coordinates;
-    std::array<quint8, 4> defaultPixel{};
+    RgbaPixel defaultPixel{};
     const auto defaults = pinned->projectionDefaultPixels();
-    bool uniformProjection = !layer && Detail::packedPixel(pinned->projectionBackground) != 0;
+    bool uniformProjection = !layer && pinned->projectionBackground != RgbaPixel{};
     QSet<LayerId> projectionLayers;
     if (!layer) for (const auto &input : pinned->projectionInputs()) projectionLayers.insert(input.layer);
     for (const auto &value : pinned->layers) {
         if (layer ? value.id != layer : !projectionLayers.contains(value.id)) continue;
         if (layer) defaultPixel = defaults.value(value.id);
-        else uniformProjection |= Detail::packedPixel(defaults.value(value.id)) != 0;
+        else uniformProjection |= defaults.value(value.id) != RgbaPixel{};
         const auto tiles = layerCoordinates(pinned, value, clipped, std::numeric_limits<qsizetype>::max());
         if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel coordinates exceed capacity"));
         for (const auto tile : *tiles) coordinates.insert(tile);
@@ -430,9 +436,12 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
     } catch (const std::bad_alloc &) {
         return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel allocation failed"));
     }
-    if (Detail::packedPixel(defaultPixel) == 0) outcome.bytes.fill('\0');
-    else for (qsizetype offset = 0; offset < outcome.bytes.size(); offset += 4)
-        std::memcpy(outcome.bytes.data() + offset, defaultPixel.data(), 4);
+    if (defaultPixel == RgbaPixel{}) outcome.bytes.fill('\0');
+    else {
+        const auto pixel = rgbaBytes(defaultPixel, pinned->format);
+        for (qsizetype offset = 0; offset < outcome.bytes.size(); offset += pixelSize)
+            std::memcpy(outcome.bytes.data() + offset, pixel.constData(), pixelSize);
+    }
     if (!coordinates.isEmpty()) {
         const auto retired = retireDisplayCaches();
         if (retired.code != ExecutionCode::Success) return rejected(retired.code, retired.diagnostic);
@@ -447,9 +456,9 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
             const auto origin = tile.coordinate * size;
             const auto portion = QRect(origin, QSize(size, size)).intersected(clipped);
             for (int y = portion.top(); y <= portion.bottom(); ++y) {
-                const auto source = tile.rgba.constData() + ((y - origin.y()) * size + portion.x() - origin.x()) * 4;
-                const qsizetype destination = (qsizetype(y - region.y()) * region.width() + portion.x() - region.x()) * 4;
-                std::memcpy(outcome.bytes.data() + destination, source, size_t(portion.width()) * 4);
+                const auto source = tile.rgba.constData() + ((y - origin.y()) * size + portion.x() - origin.x()) * pixelSize;
+                const qsizetype destination = (qsizetype(y - region.y()) * region.width() + portion.x() - region.x()) * pixelSize;
+                std::memcpy(outcome.bytes.data() + destination, source, size_t(portion.width()) * pixelSize);
             }
         }
     }
@@ -501,17 +510,17 @@ PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snap
     QSet<quint64> coordinates;
     const qsizetype columns = (pinned->size.width() + TileRenderer::TileSize - 1) / TileRenderer::TileSize;
     const qsizetype rows = (pinned->size.height() + TileRenderer::TileSize - 1) / TileRenderer::TileSize;
-    if (!layer && !sparseProjection && qint64(pinned->size.width()) * pinned->size.height() * 4 > capacity)
+    if (!layer && !sparseProjection && qint64(pinned->size.width()) * pinned->size.height() * pixelByteCount(pinned->format) > capacity)
         return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Projection bounds pixel capacity exceeded"));
-    const qsizetype maximumCoordinates = layer || sparseProjection ? capacity / TileRenderer::TileBytes : columns * rows;
+    const qsizetype maximumCoordinates = layer || sparseProjection ? capacity / RgbaTile::byteCount(pinned->format) : columns * rows;
     const auto defaults = pinned->projectionDefaultPixels();
-    bool uniform = !layer && (sparseProjection && !includeTransparentColors ? pinned->projectionBackground[3] != 0 : Detail::packedPixel(pinned->projectionBackground) != 0);
+    bool uniform = !layer && (sparseProjection && !includeTransparentColors ? pinned->projectionBackground[3] != 0 : pinned->projectionBackground != RgbaPixel{});
     QSet<LayerId> projectionLayers;
     if (!layer) for (const auto &input : pinned->projectionInputs()) projectionLayers.insert(input.layer);
     for (const auto &value : pinned->layers) {
         if (layer ? value.id != layer : !projectionLayers.contains(value.id)) continue;
         const auto pixel = defaults.value(value.id);
-        uniform |= !layer && (sparseProjection && !includeTransparentColors ? pixel[3] != 0 : Detail::packedPixel(pixel) != 0);
+        uniform |= !layer && (sparseProjection && !includeTransparentColors ? pixel[3] != 0 : pixel != RgbaPixel{});
         const auto tiles = layerCoordinates(pinned, value, outcome.region, maximumCoordinates);
         if (!tiles) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Bounds tile coordinate capacity exceeded"));
         for (const auto coordinate : *tiles) coordinates.insert(coordinate);
@@ -569,7 +578,7 @@ PixelReadbackOutcome Execution::readLayerTileExtent(DocumentHandle handle, const
     const auto selected = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),
         [layer](const auto &value) { return value.id == layer; });
     const auto coordinates = layerCoordinates(pinned, *selected, {-limit, -limit, 2 * limit, 2 * limit},
-                                              256 * 1024 * 1024 / TileRenderer::TileBytes);
+                                              256 * 1024 * 1024 / RgbaTile::byteCount(pinned->format));
     if (!coordinates) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Thumbnail source tile capacity exceeded"));
     for (const auto tile : *coordinates) {
         const QRect region(Detail::coordinate(tile) * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
@@ -669,7 +678,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                 if (!outcome.region.intersects(QRect(tile.coordinate * TileRenderer::TileSize,
                                                     QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) continue;
                 if (!indices.contains(tile.pixels)) {
-                    if (buffers.size() >= d.maximumReadbackBytes / TileRenderer::TileBytes) return false;
+                    if (buffers.size() >= d.maximumReadbackBytes / RgbaTile::byteCount(pinned->format)) return false;
                     indices.insert(tile.pixels, buffers.size());
                     buffers.append(tile.pixels);
                 }
@@ -681,7 +690,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         bool withinLimit = true;
         Detail::NativeBuffer summary;
         const quint64 transferBytes = boundsOnly ? 4 * sizeof(qint32) :
-                                      transparencyOnly ? sizeof(quint32) : TileRenderer::TileBytes;
+                                      transparencyOnly ? sizeof(quint32) : RgbaTile::byteCount(pinned->format);
         if (tileExtentOnly) {
             for (const auto layer : layers)
                 for (const auto &tile : rendered->tiles(layer)) {
@@ -697,7 +706,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                         implicit = pinned->projectionDefaultPixels().value(layers.first());
                     }
                     summary = d.renderer->m_d->recordBounds(frame.commands,
-                        projected ? projected->tiles() : rendered->tiles(layers.first()), outcome.region, implicit, includeTransparentColors);
+                        projected ? projected->tiles() : rendered->tiles(layers.first()), outcome.region, implicit, pinned->format, includeTransparentColors);
                 } else summary = d.renderer->m_d->recordTransparency(frame.commands, projected, outcome.region);
                 if (!summary) throw std::runtime_error("The GPU pixel summary could not be recorded");
                 buffers.append(summary.get());

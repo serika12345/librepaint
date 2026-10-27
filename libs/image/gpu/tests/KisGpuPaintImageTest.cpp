@@ -27,6 +27,8 @@ private Q_SLOTS:
     void sequentialConnectionsReleaseDevicesAndKeepGpuDescriptorsBounded();
     void rasterCopiesRetainFixedPixelsAndExecution_data();
     void rasterCopiesRetainFixedPixelsAndExecution();
+    void native16PixelWritesKeepLowBitsHiddenRgbAndPinnedHistory();
+    void native16RasterCopiesKeepPrecisionPixelsAndWorkingCapacity();
     void positionedPixelWritesPreservePixelsAndVersions_data();
     void positionedPixelWritesPreservePixelsAndVersions();
     void directPixelWritesFollowCanvasOriginsAcrossHistory();
@@ -60,6 +62,87 @@ private Q_SLOTS:
     void derivedGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+
+void KisGpuPaintImageTest::native16PixelWritesKeepLowBitsHiddenRgbAndPinnedHistory()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    constexpr auto format = PixelFormat::Rgba16;
+    constexpr int tileBytes = RgbaTile::byteCount(format);
+    Execution execution(device, 8 * tileBytes, 4, tileBytes);
+    RasterImage input;
+    input.size = {4, 3};
+    input.format = format;
+    input.layers = {{QStringLiteral("Native writes"), true, {}, {}}};
+    PaintImageSP image;
+    try {
+        image = PaintImageSP::create(execution, input);
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    const auto layer = image->operations().activeLayer();
+    const QRect region(-1, 0, 2, 1);
+    const QByteArray first = rgbaBytes({1, 257, 65534, 0}, format) + rgbaBytes({3, 256, 32768, 1}, format);
+    const auto initial = image->operations().snapshot();
+    QCOMPARE(image->writeRgbaPixels(layer, region, first.first(first.size() - 1)), Result::InvalidInput);
+    QCOMPARE(image->operations().snapshot(), initial);
+    QCOMPARE(image->writeRgbaPixels(layer, region, first), Result::Success);
+    const auto pinned = image->operations().snapshot();
+    QCOMPARE(image->operations().undoCount(), 0);
+    auto pixels = image->readRgbaPixels(layer, region, first.size());
+    QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+    QCOMPARE(pixels.bytes, first);
+    const QByteArray second = rgbaBytes({65534, 1, 257, 256}, format) + rgbaBytes({257, 65534, 1, 65535}, format);
+    QCOMPARE(image->replaceRgbaPixels(layer, region, second), Result::Success);
+    QCOMPARE(image->operations().undoCount(), 1);
+    const auto current = image->operations().snapshot();
+    QCOMPARE(image->readRgbaPixels(layer, region, second.size()).bytes, second);
+    QCOMPARE(execution.readRgbaPixels(image->handle(), pinned, region, layer, first.size()).bytes, first);
+    QCOMPARE(image->operations().snapshot(), current);
+    QCOMPARE(image->undo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, first.size()).bytes, first);
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, region, second.size()).bytes, second);
+}
+
+void KisGpuPaintImageTest::native16RasterCopiesKeepPrecisionPixelsAndWorkingCapacity()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    constexpr auto format = PixelFormat::Rgba16;
+    constexpr int tileBytes = RgbaTile::byteCount(format);
+    Execution execution(device, 12 * tileBytes, 4, tileBytes);
+    RasterImage input;
+    input.size = {4, 3};
+    input.format = format;
+    input.layers = {{QStringLiteral("Native copy"), true, {}, {}}};
+    PaintImageSP image;
+    try {
+        image = PaintImageSP::create(execution, input);
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    const auto layer = image->operations().activeLayer();
+    const QRect source(-1, 0, 2, 1);
+    const QByteArray bytes = rgbaBytes({65534, 1, 257, 0}, format) + rgbaBytes({257, 65534, 1, 65535}, format);
+    QCOMPARE(image->writeRgbaPixels(layer, source, bytes), Result::Success);
+    const auto pinned = image->operations().snapshot();
+    const QUuid id(QStringLiteral("{81828384-8586-8788-898a-8b8c8d8e8f90}"));
+    const qsizetype workingBytes = bytes.size() + 2 * tileBytes;
+    QVERIFY(!image->cloneRasterLayer(pinned, layer, source, id, workingBytes - 1));
+    QCOMPARE(image->operations().snapshot(), pinned);
+    const auto clone = image->cloneRasterLayer(pinned, layer, source, id, workingBytes);
+    QVERIFY(clone);
+    QCOMPARE(clone->operations().snapshot()->format, format);
+    QCOMPARE(clone->operations().snapshot()->size, source.size());
+    QCOMPARE(clone->readRgbaPixels(clone->operations().activeLayer(), {0, 0, 2, 1}, bytes.size()).bytes, bytes);
+    QCOMPARE(clone->clearLayers({clone->operations().activeLayer()}), Result::Success);
+    QCOMPARE(image->readRgbaPixels(layer, source, bytes.size()).bytes, bytes);
+    QCOMPARE(image->operations().snapshot(), pinned);
+}
 
 void KisGpuPaintImageTest::sequentialConnectionsReleaseDevicesAndKeepGpuDescriptorsBounded()
 {
@@ -406,7 +489,7 @@ void KisGpuPaintImageTest::directWritesKeepTheirCropHistoryBlocks()
     if (sourceKind == 4) {
         FigureStyle style;
         style.outline = false;
-        style.fill = std::array<quint8, 4>{17, 34, 51, 255};
+        style.fill = RgbaPixel{17, 34, 51, 255};
         QCOMPARE(image.paintFigure(layer, Brush{}, {{{0, 0}, 1}, {{16, 16}, 1}},
                                    {ShapeKind::Rectangle, {0, 0}, {16, 16}, 0}, style, 42), Result::Success);
     } else if (sourceKind == 1 || sourceKind >= 3) {
@@ -817,7 +900,7 @@ void KisGpuPaintImageTest::interiorPixelWritesRemainWithTheirFilledHistory()
     const auto layer = image.operations().activeLayer();
     FigureStyle style;
     style.outline = false;
-    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    style.fill = RgbaPixel{221, 17, 44, 255};
     QCOMPARE(image.paintFigure(layer, Brush{}, {{{0, 0}, 1}, {{1024, 1024}, 1}},
                                {ShapeKind::Rectangle, {0, 0}, {1024, 1024}, 0}, style, 42), Result::Success);
     const QRect region(512, 512, 1, 1);
@@ -843,7 +926,7 @@ void KisGpuPaintImageTest::filledFiguresPublishOneVersionAndRejectWholeRequests(
     brush.rgba = {17, 129, 241, 255};
     brush.diameter = 4;
     FigureStyle style;
-    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    style.fill = RgbaPixel{221, 17, 44, 255};
     const Shape shape{ShapeKind::Rectangle, {8, 8}, {56, 56}, 0};
     const QList<InputSample> samples{{{8, 8}, 1}, {{56, 56}, 1}};
     QSignalSpy changed(&image, &PaintImage::changed);

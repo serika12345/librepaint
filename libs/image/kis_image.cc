@@ -6,6 +6,7 @@
  */
 
 #include "kis_image.h"
+#include <cstring>
 
 #include <KoConfig.h> // WORDS_BIGENDIAN
 #include <algorithm>
@@ -1986,20 +1987,33 @@ QImage straightPreviewPixels(const QImage &image)
 
 QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProfile *profile)
 {
+    return convertToQImage(scaledImageSize, profile,
+        m_d->gpuImage ? m_d->gpuImage->operations().snapshot() : LibrePaint::Image::Gpu::Snapshot{}, colorSpace());
+}
+
+QImage KisImage::convertToQImage(const QSize &scaledImageSize, const KoColorProfile *profile,
+                                const LibrePaint::Image::Gpu::Snapshot &version, const KoColorSpace *documentColorSpace)
+{
+    if (!documentColorSpace || (m_d->gpuImage && (!version ||
+        version->documentId() != m_d->gpuImage->operations().snapshot()->documentId() ||
+        documentColorSpace->pixelSize() != LibrePaint::Image::Gpu::pixelByteCount(version->format))))
+        throw std::invalid_argument("GPU preview requires its retained image version and document encoding");
+    const QSize sourceSize = version ? version->size : size();
+    const QRect sourceBounds(QPoint(), sourceSize);
     if (scaledImageSize.isEmpty()) {
         return QImage();
     }
 
     if (m_d->gpuImage) {
         const auto previewColorSpace = KoColorSpaceRegistry::instance()->rgb8();
-        const qreal scaleX = qreal(scaledImageSize.width()) / width();
-        const qreal scaleY = qreal(scaledImageSize.height()) / height();
+        const qreal scaleX = qreal(scaledImageSize.width()) / sourceSize.width();
+        const qreal scaleY = qreal(scaledImageSize.height()) / sourceSize.height();
         const bool areaResize = scaleX < 1. / 256 || scaleY < 1. / 256;
         const auto destinationColorSpace = KoColorSpaceRegistry::instance()->rgb8(profile);
-        if (*colorSpace() == *previewColorSpace &&
+        if (*documentColorSpace == *previewColorSpace &&
             (!areaResize || (destinationColorSpace && *destinationColorSpace == *previewColorSpace))) {
             const auto result = m_d->gpuImage->execution().readResizedProjectionImage(m_d->gpuImage->handle(),
-                m_d->gpuImage->operations().snapshot(), scaledImageSize, 256 * 1024 * 1024);
+                version, scaledImageSize, 256 * 1024 * 1024);
             if (result.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
                 throw std::runtime_error(result.diagnostic.toStdString());
             if (result.image.isNull()) return {};
@@ -2011,15 +2025,14 @@ QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProf
         }
     }
 
-    KisPaintDeviceSP dev = new KisPaintDevice(colorSpace());
+    KisPaintDeviceSP dev = new KisPaintDevice(documentColorSpace);
     const auto source = m_d->gpuImage
-        ? kisGpuPaintDeviceTransfer(m_d->gpuImage, 0, projection()->defaultBounds(),
-                                    m_d->gpuImage->operations().snapshot()) : projection();
+        ? kisGpuPaintDeviceTransfer(m_d->gpuImage, 0, new KisDefaultBounds(), version, documentColorSpace) : projection();
     KisPainter gc;
-    gc.copyAreaOptimized(QPoint(0, 0), source, dev, bounds());
+    gc.copyAreaOptimized(QPoint(0, 0), source, dev, sourceBounds);
     gc.end();
-    double scaleX = qreal(scaledImageSize.width()) / width();
-    double scaleY = qreal(scaledImageSize.height()) / height();
+    double scaleX = qreal(scaledImageSize.width()) / sourceSize.width();
+    double scaleY = qreal(scaledImageSize.height()) / sourceSize.height();
 
 
     if (scaleX < 1.0/256 || scaleY < 1.0/256) {
@@ -2027,7 +2040,7 @@ QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProf
         // convertToQImage uses KisFixedPoint values, which means that the scale cannot be smaller than 1/2^8
         // BUG:432182
         // FIXME: would be best to extend KisFixedPoint instead
-        const auto pixels = convertToQImage(size(), profile);
+        const auto pixels = convertToQImage(sourceSize, profile, version, documentColorSpace);
         if (pixels.isNull()) return {};
         const auto outputSize = pixels.size().scaled(scaledImageSize, Qt::KeepAspectRatio).expandedTo({1, 1});
         QImage resized;
@@ -2121,7 +2134,13 @@ void KisImage::setDefaultProjectionColor(const KoColor &color)
         auto converted = color;
         converted.convertTo(colorSpace());
         const auto bytes = converted.data();
-        const auto result = m_d->gpuImage->writeProjectionBackground({bytes[2], bytes[1], bytes[0], bytes[3]});
+        LibrePaint::Image::Gpu::RgbaPixel rgba;
+        if (m_d->gpuImage->operations().snapshot()->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16) {
+            quint16 components[4];
+            std::memcpy(components, bytes, sizeof(components));
+            rgba = {components[2], components[1], components[0], components[3]};
+        } else rgba = {bytes[2], bytes[1], bytes[0], bytes[3]};
+        const auto result = m_d->gpuImage->writeProjectionBackground(rgba);
         if (result != LibrePaint::Image::Gpu::Result::Success)
             throw std::runtime_error("GPU canvas background write failed: " + std::to_string(int(result)));
         return;
@@ -2134,7 +2153,11 @@ KoColor KisImage::defaultProjectionColor() const
 {
     if (m_d->gpuImage) {
         const auto &rgba = m_d->gpuImage->operations().snapshot()->projectionBackground;
-        const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
+        if (m_d->gpuImage->operations().snapshot()->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16) {
+            const quint16 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
+            return KoColor(reinterpret_cast<const quint8 *>(bgra), colorSpace());
+        }
+        const quint8 bgra[] = {quint8(rgba[2]), quint8(rgba[1]), quint8(rgba[0]), quint8(rgba[3])};
         return KoColor(bgra, colorSpace());
     }
     KIS_ASSERT_RECOVER(m_d->rootLayer) {

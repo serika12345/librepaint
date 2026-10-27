@@ -75,9 +75,9 @@ KisPropertiesConfigurationSP nativeSettings()
     return result;
 }
 
-bool prepareNativeSource(KisDocument *document)
+bool prepareNativeSource(KisDocument *document, bool sixteenBits = false)
 {
-    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto cs = sixteenBits ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     if (!document->newImage(QStringLiteral("Native layer metadata"), 16, 8, cs,
                            KoColor(QColor(255, 255, 255, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1)) return false;
     document->setFileBatchMode(true);
@@ -89,7 +89,9 @@ bool prepareNativeSource(KisDocument *document)
     auto paint = image->root()->firstChild();
     paint->setUuid(QUuid(QStringLiteral("{6a080001-1122-3344-5566-778899aabbcc}")));
     paint->setPinnedToTimeline(false);
-    const auto pixels = QByteArray::fromHex("332211ff").repeated(128);
+    const quint16 nativePixel[] = {0x1357, 0x2468, 0xabcd, 65535};
+    const auto pixels = (sixteenBits ? QByteArray(reinterpret_cast<const char *>(nativePixel), sizeof(nativePixel)) :
+                                     QByteArray::fromHex("332211ff")).repeated(128);
     paint->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixels.constData()), 0, 0, 16, 8);
     KisGroupLayerSP group = new KisGroupLayer(image, QStringLiteral("Metadata group"), 255);
     group->setUuid(QUuid(QStringLiteral("{6a080002-1122-3344-5566-778899aabbcc}")));
@@ -366,8 +368,19 @@ void TestDocument::testNativeMalformedLayerMetadataKeepsWarningAndOtherValues()
     QCOMPARE(camera(nodes.value(QStringLiteral("Nested paint"))), QString());
 }
 
+void TestDocument::testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest_data()
+{
+    QTest::addColumn<bool>("sixteenBits");
+    QTest::newRow("rgba8") << false;
+    QTest::newRow("rgba16") << true;
+}
+
 void TestDocument::testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest()
 {
+    QFETCH(bool, sixteenBits);
+    const quint16 nativePixel[] = {0x1357, 0x2468, 0xabcd, 65535};
+    const auto expectedPixels = (sixteenBits ? QByteArray(reinterpret_cast<const char *>(nativePixel), sizeof(nativePixel)) :
+                                             QByteArray::fromHex("332211ff")).repeated(128);
     const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restore = qScopeGuard([&] { if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previous); });
     QTemporaryDir directory;
@@ -375,7 +388,7 @@ void TestDocument::testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest()
     const auto retain = qScopeGuard([&] { if (QTest::currentTestFailed()) { directory.setAutoRemove(false); qInfo() << "Pinned layer metadata artifacts" << directory.path(); } });
     qputenv("LIBREPAINT_GPU_ENGINE", "0");
     QScopedPointer<KisDocument> source(KisPart::instance()->createDocument());
-    QVERIFY(prepareNativeSource(source.data()));
+    QVERIFY(prepareNativeSource(source.data(), sixteenBits));
     const auto path = directory.filePath(QStringLiteral("source.kra"));
     QVERIFY(source->saveAs(path, KisDocument::nativeFormatMimeType(), false, nativeSettings()));
     source->waitForSavingToComplete();
@@ -422,7 +435,7 @@ void TestDocument::testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest()
         QCOMPARE(camera(saved.value(QStringLiteral("Metadata group"))), QString());
         QCOMPARE(camera(saved.value(QStringLiteral("Nested paint"))), QStringLiteral("Captured camera"));
         Document api(recovered.data(), false);
-        QCOMPARE(api.pixelData(0, 0, 16, 8), QByteArray::fromHex("332211ff").repeated(128));
+        QCOMPARE(api.pixelData(0, 0, 16, 8), expectedPixels);
     }
     QCOMPARE(camera(nodes.value(QStringLiteral("Nested paint"))), QStringLiteral("Later camera"));
     QSignalSpy finished(document.data(), &KisDocument::sigRecoveryAutoSaveFinished);
@@ -449,6 +462,6 @@ void TestDocument::testGpuNativeAutoSavePinsMetadataAndRecoveryKeepsLatest()
         QCOMPARE(camera(saved.value(QStringLiteral("Metadata group"))), QStringLiteral("Newest group"));
         QCOMPARE(camera(saved.value(QStringLiteral("Nested paint"))), QStringLiteral("Newest camera"));
         Document api(recovered.data(), false);
-        QCOMPARE(api.pixelData(0, 0, 16, 8), QByteArray::fromHex("332211ff").repeated(128));
+        QCOMPARE(api.pixelData(0, 0, 16, 8), expectedPixels);
     }
 }

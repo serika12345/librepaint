@@ -39,7 +39,9 @@ struct FrameOutcome
     QString diagnostic;
 };
 
-/** Full tile bytes in straight, byte-ordered RGBA8; layer zero denotes the projection. */
+/** Straight RGBA tile bytes at the pinned document precision; U16 components are little-endian.
+ * Layer zero denotes the projection.
+ */
 struct PixelTile
 {
     LayerId layer = 0;
@@ -81,7 +83,7 @@ struct ColorSampleOutcome
     ExecutionCode code = ExecutionCode::InvalidRequest;
     Snapshot document;
     quint64 generation = 0;
-    std::array<quint8, 4> rgba{};
+    RgbaPixel rgba{};
     QString diagnostic;
 };
 
@@ -152,8 +154,10 @@ public:
      * Radius 1 selects the center; radii 2..900 select integer points strictly
      * inside a disk of radius (radius - 1). Alpha averages all sample positions;
      * RGB is weighted by alpha. Integer ties round upward. Zero aggregate alpha
-     * returns zero RGBA. Layer zero samples transparent pixels beyond the canvas;
-     * other layers retain off-canvas and implicit pixels. Transfers use 32 bytes,
+     * returns zero RGBA. Components use the pinned document's precision.
+     * Layer zero samples transparent pixels beyond the canvas;
+     * other layers retain off-canvas and implicit pixels. Transfers use 32 bytes for RGBA8
+     * and 36 bytes for RGBA16,
      * independent of the sampled area. Thread, asynchronous completion, lifetime
      * and rejection follow readPixelsAsync(); requests/publication stay current.
      */
@@ -177,10 +181,10 @@ public:
     /** Nonblocking callback processing; Busy denotes unfinished native reads. */
     ExecutionOutcome pollReadbacks();
 
-    /** Packed straight RGBA8 rows for the exact requested rectangle.
+    /** Packed straight RGBA rows at the pinned document precision; U16 is little-endian.
      * Layer zero reads the visible projection, with transparent pixels outside
      * the canvas. Other layers preserve hidden, off-canvas and implicit pixels.
-     * The byte limit counts output pixels; transfers use one tile at a time.
+     * Byte limits apply to encoded output; transfers use one tile at a time.
      * Rejection returns no partial bytes. Requests and publication stay current.
      */
     PixelBytesOutcome readRgbaPixels(DocumentHandle handle, const Snapshot &document,
@@ -195,13 +199,15 @@ public:
      */
     PixelReadbackOutcome readLayerPixels(DocumentHandle handle, const Snapshot &document,
                                         LayerId layer, qsizetype maximumBytes);
-    /** Complete straight RGBA8/sRGB projection, streamed into a bounded CPU image.
+    /** Complete straight RGBA projection at the document precision, streamed into a bounded CPU image.
+     * RGBA8 uses sRGB; RGBA16 uses linear sRGB and QImage::Format_RGBA64.
      * Uses the same cache retirement and publication rules as readLayerPixels().
      */
     ImageReadbackOutcome readProjectionImage(DocumentHandle handle, const Snapshot &document,
                                             qsizetype maximumBytes);
 
     /** Nearest-sample thumbnail of a fixed layer or the canvas-clipped projection.
+     * Preserves document precision and hidden RGB; RGBA16 returns linear-sRGB RGBA64.
      * Source pixels stay on the GPU. Only bounded chunks of the requested image
      * are transferred. Upscaling retains the native thumbnail's transparent padding.
      * Output and native working storage are bounded; rejection returns no image
@@ -213,7 +219,7 @@ public:
                                       LayerId layer, QRect source, QSize size, qsizetype maximumBytes,
                                       bool includeLayerTileExtent = false);
 
-    /** Resizes a fixed projection with the native document-preview rules.
+    /** Resizes a fixed RGBA8 projection with the native document-preview rules.
      * Bicubic passes retain alpha-weighted integer rounding and content cropping.
      * Reductions below 1/256 use Qt area/bilinear rules. When the cropped source
      * fits inside the requested result, Qt enlarges the bounded returned pixels.

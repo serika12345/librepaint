@@ -5,6 +5,7 @@
  */
 
 #include "kis_resources_snapshot.h"
+#include <cstring>
 
 #include <KoColor.h>
 #include <KoCanvasResourceProvider.h>
@@ -201,9 +202,17 @@ KisGpuBrushResources captureGpuPaintingResources(
             return reject(i18n("The painting symmetry axis is invalid."));
         brush.mirrorCenter = center.toPoint();
     }
-    const QColor color = resources->foregroundColor().toQColor();
+    KoColor color = resources->foregroundColor();
+    color.convertTo(image->colorSpace());
     // Figure or brush coverage owns alpha; canvas opacity is applied separately.
-    brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
+    if (image->gpuImage()->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
+        quint16 bgra[4];
+        std::memcpy(bgra, color.data(), sizeof(bgra));
+        brush.rgba = {bgra[2], bgra[1], bgra[0], 65535};
+    } else {
+        const auto bgra = color.data();
+        brush.rgba = {bgra[2], bgra[1], bgra[0], 255};
+    }
     if (withBrushTip) brush.diameter = resources->resource(KoCanvasResource::Size).toReal();
     const qreal opacity = resources->resource(KoCanvasResource::Opacity).toReal();
     if (!qIsFinite(opacity) || opacity < 0 || opacity > 1)

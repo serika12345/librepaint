@@ -98,9 +98,9 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     for (const auto coordinate : planned) {
         const auto input = source.value(coordinate, fallback);
         if (!input) continue;
-        if (!ensureTileCapacity(1))
+        if (!ensureTileCapacity(1, PixelFormat::Rgba8))
             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU filter tile budget exhausted")};
-        const auto output = allocateTile();
+        const auto output = allocateTile(PixelFormat::Rgba8);
         if (!output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter allocation failed")};
         std::shared_ptr<CoverageTile> coverage;
         if (masked) {

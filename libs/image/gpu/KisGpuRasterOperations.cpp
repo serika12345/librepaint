@@ -11,12 +11,12 @@
 
 namespace LibrePaint::Image::Gpu {
 bool validRasterLayerHierarchy(const QList<RasterLayer> &layers)
-{ return Detail::validLayerHierarchy(layers); }
+{ return Detail::validLayerHierarchy(layers, PixelFormat::Rgba8); }
 
 OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     : m_limits(limits), m_identity(QUuid::createUuid())
 {
-    if (image.size.width() <= 0 || image.size.height() <= 0 ||
+    if (!validPixel(image.projectionBackground, image.format) || image.size.width() <= 0 || image.size.height() <= 0 ||
         image.size.width() > CoordinateLimit || image.size.height() > CoordinateLimit ||
         limits.samplesPerStroke <= 0 || limits.samplesPerDocument <= 0 || limits.layerCount <= 0 ||
         limits.compressedWriteBytes <= 0 || limits.compressedWriteBytes > std::numeric_limits<int>::max() ||
@@ -25,7 +25,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         (image.layers.isEmpty() ? image.activeLayer != 0 : image.activeLayer >= image.layers.size())) {
         throw std::invalid_argument("invalid raster document dimensions, layers or limits");
     }
-    if (!validRasterLayerHierarchy(image.layers)) throw std::invalid_argument("invalid raster layer hierarchy");
+    if (!Detail::validLayerHierarchy(image.layers, image.format)) throw std::invalid_argument("invalid raster layer hierarchy");
     if (!Detail::validSelectionRect(image.selection) ||
         !Detail::validSelectionState(image.selection, image.selectionKind, image.selectionMask))
         throw std::invalid_argument("invalid raster selection");
@@ -33,6 +33,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     initial->m_document = m_identity;
     initial->m_committed = true;
     initial->size = image.size;
+    initial->format = image.format;
     initial->selection = image.selection;
     initial->selectionInverted = image.selectionInverted;
     initial->selectionKind = image.selectionKind;
@@ -41,10 +42,10 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     QSet<QUuid> identities;
     for (const auto &source : image.layers) {
         const auto uuid = source.uuid.isNull() ? QUuid::createUuid() : source.uuid;
-        if (identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 || source.projectionChannelMask > 15 ||
+        if (!validPixel(source.defaultPixel, image.format) || identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 || source.projectionChannelMask > 15 ||
             (source.kind == LayerKind::Group && (!source.tiles.isEmpty() || !source.writtenAreas.isEmpty() ||
-                source.defaultPixel != std::array<quint8, 4>{} || source.channelWriteMask != 15)) ||
-            source.tiles.size() > (limits.rasterBytes - initial->rasterBytes) / RgbaTile::ByteCount) {
+                source.defaultPixel != RgbaPixel{} || source.channelWriteMask != 15)) ||
+            source.tiles.size() > (limits.rasterBytes - initial->rasterBytes) / RgbaTile::byteCount(image.format)) {
             throw std::invalid_argument("invalid raster layer identity, name or pixel capacity");
         }
         Layer layer;
@@ -70,7 +71,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         QSet<QPoint> coordinates;
         auto operation = QSharedPointer<TileWriteOperation>::create();
         for (const auto &pixels : source.tiles) {
-            if (pixels.format != PixelFormat::Rgba8) throw std::invalid_argument("raster tile precision does not match the document");
+            if (pixels.format != image.format) throw std::invalid_argument("raster tile precision does not match the document");
             if (coordinates.contains(pixels.coordinate)) throw std::invalid_argument("repeated raster tile coordinate");
             const auto tile = RasterTile::fromPixels(pixels);
             if (!tile) throw std::invalid_argument("invalid raster tile bytes or coordinates");
@@ -84,7 +85,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
             if (!source.writtenAreas.isEmpty()) operation->writeGroup = operation->id.sequence;
             if (!Detail::validWrittenAreas(*operation)) throw std::invalid_argument("invalid raster written areas");
             layer.operations.append(TileWriteSnapshot(operation));
-            initial->rasterBytes += operation->tiles.size() * RgbaTile::ByteCount;
+            initial->rasterBytes += operation->tiles.size() * RgbaTile::byteCount(image.format);
         }
         if (source.tiles.isEmpty() && !source.writtenAreas.isEmpty()) throw std::invalid_argument("written areas require raster tiles");
         initial->layers.append(layer);
@@ -103,13 +104,13 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     const auto index = layerIndex(layer);
     if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
     if (tiles.isEmpty()) return Result::EmptyOperation;
-    if (tiles.size() > (m_limits.rasterBytes - snapshot()->rasterBytes) / RgbaTile::ByteCount ||
+    if (tiles.size() > (m_limits.rasterBytes - snapshot()->rasterBytes) / RgbaTile::byteCount(snapshot()->format) ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSet<QPoint> coordinates;
     auto operation = QSharedPointer<TileWriteOperation>::create();
     for (const auto &pixels : tiles) {
-        if (pixels.format != PixelFormat::Rgba8 || coordinates.contains(pixels.coordinate)) return Result::InvalidInput;
+        if (pixels.format != snapshot()->format || coordinates.contains(pixels.coordinate)) return Result::InvalidInput;
         const auto tile = RasterTile::fromPixels(pixels);
         if (!tile) return Result::InvalidInput;
         coordinates.insert(pixels.coordinate);
@@ -120,7 +121,7 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     operation->layer = layer;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].operations.append(TileWriteSnapshot(operation));
-    version->rasterBytes += tiles.size() * RgbaTile::ByteCount;
+    version->rasterBytes += tiles.size() * RgbaTile::byteCount(snapshot()->format);
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;
@@ -152,7 +153,7 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
         for (qsizetype i = 0; i < write.before->layers.size(); ++i)
             if (write.before->layers[i].id == write.layer) layerIndex = i;
         if (layerIndex < 0 || write.before->layers[layerIndex].kind != LayerKind::Paint) return Result::LayerUnavailable;
-        if (write.tiles.size() > (m_limits.rasterBytes - write.before->rasterBytes) / RgbaTile::ByteCount)
+        if (write.tiles.size() > (m_limits.rasterBytes - write.before->rasterBytes) / RgbaTile::byteCount(write.before->format))
             return Result::CapacityExceeded;
         auto operation = QSharedPointer<TileWriteOperation>::create();
         operation->id = {m_identity, ++nextOperation};
@@ -162,14 +163,14 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
         operation->writtenAreas = write.areas;
         QSet<QPoint> coordinates;
         for (const auto &tile : write.tiles) {
-            if (!tile || tile->format() != PixelFormat::Rgba8 || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
+            if (!tile || tile->format() != write.before->format || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
             coordinates.insert(tile->coordinate());
             operation->tiles.append(tile);
         }
         if (!Detail::validWrittenAreas(*operation)) return Result::InvalidInput;
         QSharedPointer<DocumentVersion> version(new DocumentVersion(*write.before));
         version->layers[layerIndex].operations.append(TileWriteSnapshot(operation));
-        version->rasterBytes += write.tiles.size() * RgbaTile::ByteCount;
+        version->rasterBytes += write.tiles.size() * RgbaTile::byteCount(write.before->format);
         version->m_revision = ++nextRevision;
         if (recordHistory) version->m_modifiedRevision = version->m_revision;
         if (index >= 0) history[index] = version;

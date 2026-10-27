@@ -28,7 +28,9 @@ qsizetype operationRasterBytes(const LayerOperation &value)
     if (const auto paint = std::get_if<PaintSnapshot>(&value))
         return (*paint)->figureStyle.pattern ? (*paint)->figureStyle.pattern->byteCount() : 0;
     const auto write = std::get_if<TileWriteSnapshot>(&value);
-    return write ? (*write)->tiles.size() * RgbaTile::ByteCount : 0;
+    qsizetype bytes = 0;
+    if (write) for (const auto &tile : (*write)->tiles) bytes += tile->byteCount();
+    return bytes;
 }
 }
 
@@ -420,9 +422,10 @@ Result OperationDocument::checkMutation() const
     return Result::Success;
 }
 
-Result OperationDocument::writeProjectionBackground(const std::array<quint8, 4> &rgba)
+Result OperationDocument::writeProjectionBackground(const RgbaPixel &rgba)
 {
     if (m_closed) return Result::Closed;
+    if (!validPixel(rgba, snapshot()->format)) return Result::InvalidInput;
     if (snapshot()->projectionBackground == rgba) return Result::Success;
     const auto count = quint64(m_history.size()) + quint64(bool(m_preview));
     if (count > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
@@ -676,7 +679,7 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
     const qsizetype index = layerIndex(layer);
     if (checkMutation() != Result::Success || index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
         !snapshot()->layers[index].visible || snapshot()->layers[index].userLocked ||
-        !validBrush(brush) || m_nextOperation == std::numeric_limits<quint64>::max() ||
+        !validBrush(brush, snapshot()->format) || m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return {};
     }
@@ -739,7 +742,8 @@ Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const Q
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if (!validBrush(brush) || !validShape(shape) || !validFigureStyle(shape, style) ||
+    if (!validBrush(brush, snapshot()->format) || !validShape(shape) || !validFigureStyle(shape, style, snapshot()->format) ||
+        (style.fill && !validPixel(*style.fill, snapshot()->format)) ||
         (brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (samples.isEmpty() && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, samples.size())) return Result::InvalidInput;
@@ -776,7 +780,8 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
 {
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
-    if (!validShape(shape) || !validFigureStyle(shape, style) ||
+    if (!validShape(shape) || !validFigureStyle(shape, style, snapshot()->format) ||
+        (style.fill && !validPixel(*style.fill, snapshot()->format)) ||
         (m_edit->brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (m_edit->sampleCount == 0 && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;
@@ -986,7 +991,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
     auto nextOperation = m_nextOperation;
     for (const auto &input : layers) {
         const auto &properties = input.properties;
-        if (!input.source || !validLayerName(properties.name) || properties.uuid.isNull() ||
+        if (!input.source || input.source->format != before->format || !validPixel(properties.defaultPixel, before->format) || !validLayerName(properties.name) || properties.uuid.isNull() ||
             identities.contains(properties.uuid) || properties.channelWriteMask > 15 || properties.projectionChannelMask > 15 ||
             !properties.tiles.isEmpty()) return Result::InvalidInput;
         identities.insert(properties.uuid);
@@ -1025,7 +1030,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
     }
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
     for (qsizetype i = 0; i < added.size(); ++i) version->layers.insert(index + i, added[i]);
-    if (!Detail::validLayerHierarchy(version->layers)) return Result::InvalidInput;
+    if (!Detail::validLayerHierarchy(version->layers, before->format)) return Result::InvalidInput;
     nextOperation = m_nextOperation;
     version->selectedLayers.clear();
     for (qsizetype i = 0; i < added.size(); ++i) {
@@ -1270,7 +1275,7 @@ Result OperationDocument::setLayerPassThrough(LayerId layer, bool enabled, Prope
 
 Result OperationDocument::writeLayerBlendMode(LayerId layer, LayerBlendMode mode)
 {
-    if (mode > LayerBlendMode::LinearDodge) return Result::InvalidInput;
+    if (!validBlendMode(mode, snapshot()->format)) return Result::InvalidInput;
     return writeLayerProperty(layer, LayerProperty::BlendMode, &Layer::blendMode, mode);
 }
 
@@ -1278,7 +1283,7 @@ Result OperationDocument::setLayerBlendMode(LayerId layer, LayerBlendMode mode, 
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if (mode > LayerBlendMode::LinearDodge ||
+    if (!validBlendMode(mode, snapshot()->format) ||
         (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive)) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0) return Result::LayerUnavailable;
@@ -1677,7 +1682,7 @@ Result OperationDocument::fillLayer(LayerId layer, const std::array<quint8, 3> &
                                     qreal opacity, bool erase, bool alphaLocked,
                                     LayerBlendMode blendMode)
 {
-    const std::array<quint8, 4> color{rgb[0], rgb[1], rgb[2], 255};
+    const RgbaPixel color{rgb[0], rgb[1], rgb[2], 255};
     FigureStyle style;
     style.outline = false;
     style.fill = color;
@@ -1697,7 +1702,7 @@ Result OperationDocument::fillLayerPattern(LayerId layer, const PatternFill &pat
     return fillLayerStyle(layer, {0, 0, 0, 255}, style, opacity, erase, alphaLocked);
 }
 
-Result OperationDocument::fillLayerStyle(LayerId layer, const std::array<quint8, 4> &color,
+Result OperationDocument::fillLayerStyle(LayerId layer, const RgbaPixel &color,
                                          const FigureStyle &style, qreal opacity,
                                          bool erase, bool alphaLocked)
 {
@@ -1734,6 +1739,7 @@ Result OperationDocument::applyFilter(LayerId layer, FilterKind kind, const HsvA
     if (kind == FilterKind::HsvAdjustment && !settings) return Result::InvalidInput;
     const auto status = checkMutation();
     if (status != Result::Success) return status;
+    if (snapshot()->format == PixelFormat::Rgba16) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
         snapshot()->layers[index].userLocked) return Result::LayerUnavailable;

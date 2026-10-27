@@ -7,6 +7,7 @@
 
 #include <gpu/KisGpuPaintImage.h>
 #include <QObject>
+#include <QImage>
 #include <memory>
 #include <kritadocumentpainting_export.h>
 
@@ -56,15 +57,17 @@ public:
     static FileOpenOutcome openKra(std::shared_ptr<Paint::Execution> execution,
                                    const ImportExport::Kra::Document &document, Paint::Limits limits = {});
     ImportExport::Kra::MetadataOutcome kraImageMetadata() const;
-    /** Saves a committed fixed version atomically; later edits remain modified. */
-    FileOutcome saveKra(const QString &path, const Paint::Snapshot &version = {});
+    /** Saves a committed fixed version atomically; later edits remain modified.
+     * RGBA16 requires the native display preview of that explicit fixed version.
+     */
+    FileOutcome saveKra(const QString &path, const Paint::Snapshot &version = {}, const QImage &preview = {});
     /** Writes a fixed version while preserving file identity and saved state. */
-    FileOutcome exportKra(const QString &path, const Paint::Snapshot &version = {});
+    FileOutcome exportKra(const QString &path, const Paint::Snapshot &version = {}, const QImage &preview = {});
     /** Writes a committed fixed version to a borrowed open, empty, seekable
      * device, preserving file identity and saved state. Leaves the device open.
      * Uses the document thread; failures return a diagnostic.
      */
-    FileOutcome exportKra(QIODevice &destination, const Paint::Snapshot &version = {});
+    FileOutcome exportKra(QIODevice &destination, const Paint::Snapshot &version = {}, const QImage &preview = {});
     /** Adopts the identity and fixed saved version of a completed format write.
      * Later edits retain their modified state. Invalid versions preserve identity.
      */
@@ -82,7 +85,7 @@ private:
                                        const QString &path, Paint::Limits limits);
     static FileOpenOutcome adoptKraImpl(Paint::Execution &execution, std::shared_ptr<Paint::Execution> retainedExecution,
                                         const ImportExport::Kra::Document &document, const QString &path, Paint::Limits limits);
-    FileOutcome writeKra(const QString &path, const Paint::Snapshot &version, bool adoptFile);
+    FileOutcome writeKra(const QString &path, const Paint::Snapshot &version, bool adoptFile, const QImage &preview);
     struct Private;
     std::unique_ptr<Private> m_d;
 };

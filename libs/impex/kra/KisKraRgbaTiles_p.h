@@ -7,12 +7,12 @@
 #include "KisKraRasterCodec.h"
 
 namespace LibrePaint::ImportExport::Kra::Detail {
-QByteArray rgba(const std::array<quint8, 4> &pixel);
-QByteArray bgra(const std::array<quint8, 4> &pixel);
-Outcome readTiles(const QByteArray &data, const std::array<quint8, 4> &defaultPixel,
+QByteArray rgba(const Image::Gpu::RgbaPixel &pixel, Image::Gpu::PixelFormat format);
+QByteArray bgra(const Image::Gpu::RgbaPixel &pixel, Image::Gpu::PixelFormat format);
+Outcome readTiles(const QByteArray &data, const Image::Gpu::RgbaPixel &defaultPixel, Image::Gpu::PixelFormat format,
                   QPoint offset, qsizetype maximumBytes, QList<Image::Gpu::RgbaTile> &output,
                   QList<QRect> *writtenAreas = nullptr);
-Outcome writeTiles(const QList<Image::Gpu::RgbaTile> &tiles, const std::array<quint8, 4> &defaultPixel,
+Outcome writeTiles(const QList<Image::Gpu::RgbaTile> &tiles, const Image::Gpu::RgbaPixel &defaultPixel, Image::Gpu::PixelFormat format,
                    QPoint offset, qsizetype maximumBytes, QByteArray &output, const QList<QRect> &writtenAreas = {});
 }
 #endif

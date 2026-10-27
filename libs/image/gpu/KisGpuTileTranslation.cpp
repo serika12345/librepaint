@@ -10,8 +10,9 @@ using namespace Detail;
 
 TileRenderer::Private::TranslationResult TileRenderer::Private::translateTiles(
     WGPUCommandEncoder commands, const Tiles &source, const std::shared_ptr<Tile> &fallback,
-    QPoint offset, QRect region, QList<std::shared_ptr<Tile>> &pins)
+    QPoint offset, PixelFormat format, QRect region, QList<std::shared_ptr<Tile>> &pins)
 {
+    const auto tileBytes = RgbaTile::byteCount(format);
     Tiles result;
     QSet<quint64> coordinates;
     const bool aligned = offset.x() % TileSize == 0 && offset.y() % TileSize == 0;
@@ -27,12 +28,12 @@ TileRenderer::Private::TranslationResult TileRenderer::Private::translateTiles(
         for (int y = pixelTileIndex(needed.top(), TileSize); y <= pixelTileIndex(needed.bottom(), TileSize); ++y)
             for (int x = pixelTileIndex(needed.left(), TileSize); x <= pixelTileIndex(needed.right(), TileSize); ++x) {
                 coordinates.insert(key(x, y));
-                if (coordinates.size() > budget->limit / TileBytes)
+                if (coordinates.size() > budget->limit / tileBytes)
                     return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU translation coordinate capacity exceeded")};
             }
     }
     if (coordinates.isEmpty()) return {RenderOutcome::Recorded, std::move(result), {}};
-    if (!ensureTileCapacity(coordinates.size()))
+    if (!ensureTileCapacity(coordinates.size(), format))
         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU translation tile budget exhausted")};
     if (!translationPipeline) {
         translationPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/translate.wgsl"));
@@ -45,9 +46,9 @@ TileRenderer::Private::TranslationResult TileRenderer::Private::translateTiles(
         const auto origin = coordinate(destination) * TileSize - offset;
         const QPoint base(pixelTileIndex(origin.x(), TileSize), pixelTileIndex(origin.y(), TileSize));
         const auto residue = origin - base * TileSize;
-        const quint32 values[] = {quint32(residue.x()), quint32(residue.y()), 0, 0};
+        const quint32 values[] = {quint32(residue.x()), quint32(residue.y()), quint32(format), 0};
         auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
-        const auto output = allocateTile();
+        const auto output = allocateTile(format);
         if (!parameters || !output)
             return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU translation allocation failed")};
         output->mayContainHiddenRgb = false;
@@ -56,13 +57,15 @@ TileRenderer::Private::TranslationResult TileRenderer::Private::translateTiles(
             const auto point = base + QPoint(i % 2, i / 2);
             const auto tile = source.value(key(point.x(), point.y()), fallback);
             entries[i].binding = quint32(i);
-            entries[i].buffer = tile ? tile->pixels.get() : zero.get();
-            entries[i].size = TileBytes;
+            entries[i].buffer = tile ? tile->pixels.get() : zeroBuffer(commands, format);
+            if (!entries[i].buffer)
+                return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty translation tile allocation failed")};
+            entries[i].size = tileBytes;
             output->mayContainHiddenRgb = output->mayContainHiddenRgb || (tile && tile->mayContainHiddenRgb);
         }
         entries[4].binding = 4;
         entries[4].buffer = output->pixels.get();
-        entries[4].size = TileBytes;
+        entries[4].size = tileBytes;
         entries[5].binding = 5;
         entries[5].buffer = parameters.get();
         entries[5].size = sizeof(values);

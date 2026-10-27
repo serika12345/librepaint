@@ -20,7 +20,7 @@ struct TileView
     WGPUBuffer pixels = nullptr;
 };
 
-/** Immutable sparse RGBA8/sRGB layer pixels, ordered on the owner's GPU queue. */
+/** Immutable sparse straight RGBA layer pixels at document precision, ordered on the owner's GPU queue. */
 class KRITAGPUIMAGE_EXPORT RenderedVersion
 {
 public:
@@ -79,7 +79,8 @@ struct ProjectionOutcome
  * pixels and waits for no completion. Readers and presentation use that same
  * queue. The caller publishes a result after successful frame submission.
  * Fresh tiles preserve the input version, including on budget rejection.
- * Tile storage uses straight RGBA bytes. Brush dabs preserve native coverage;
+ * Tile storage uses straight RGBA at document precision; U16 components are little-endian.
+ * Brush dabs preserve native coverage;
  * figure fills use Qt cell coverage.
  */
 class KRITAGPUIMAGE_EXPORT TileRenderer
@@ -87,6 +88,7 @@ class KRITAGPUIMAGE_EXPORT TileRenderer
     friend class Execution;
 public:
     static constexpr int TileSize = RgbaTile::Size;
+    /** RGBA8 size; RgbaTile::byteCount(document.format) supplies precision-aware storage. */
     static constexpr int TileBytes = RgbaTile::ByteCount;
 
     explicit TileRenderer(DevicePtr device, qsizetype byteBudget = 128 * 1024 * 1024);

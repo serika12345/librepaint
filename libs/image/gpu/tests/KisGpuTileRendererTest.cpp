@@ -190,22 +190,28 @@ private:
 
 void KisGpuTileRendererTest::markerMatchesNormalEngine_data()
 {
+    QTest::addColumn<bool>("sixteenBits");
     QTest::addColumn<qreal>("opacity");
     QTest::addColumn<bool>("erase");
     QTest::addColumn<bool>("moving");
-    for (const qreal opacity : {qreal(1), qreal(.5)})
+    for (const bool sixteenBits : {false, true}) for (const qreal opacity : {qreal(1), qreal(.5)})
         for (const bool erase : {false, true}) for (const bool moving : {false, true}) {
-            const auto name = QStringLiteral("%1-%2-%3")
+            const auto name = QStringLiteral("%1%2-%3-%4")
+                .arg(sixteenBits ? QStringLiteral("u16-") : QString())
                 .arg(opacity == 1 ? QStringLiteral("opaque") : QStringLiteral("half"))
                 .arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"))
                 .arg(moving ? QStringLiteral("moving") : QStringLiteral("tap"));
-            QTest::newRow(qPrintable(name)) << opacity << erase << moving;
+            QTest::newRow(qPrintable(name)) << sixteenBits << opacity << erase << moving;
         }
 }
 
 void KisGpuTileRendererTest::markerMatchesNormalEngine()
 {
+    QFETCH(bool, sixteenBits);
     QFETCH(qreal, opacity);
+    const auto format = sixteenBits ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const int pixelSize = pixelByteCount(format);
+    const int tileBytes = RgbaTile::byteCount(format);
     QFETCH(bool, erase);
     QFETCH(bool, moving);
     const QDir fixtures(QStringLiteral(FILES_DATA_DIR) + QStringLiteral("/roundmarker"));
@@ -214,23 +220,24 @@ void KisGpuTileRendererTest::markerMatchesNormalEngine()
         return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
     };
     constexpr int side = 128;
-    const auto initial = load(QStringLiteral("initial.rgba"));
+    const auto initial = load(sixteenBits ? QStringLiteral("u16-initial.rgba") : QStringLiteral("initial.rgba"));
     const auto expected = load(QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".rgba"));
-    QCOMPARE(initial.size(), side * side * 4);
+    QCOMPARE(initial.size(), side * side * pixelSize);
     QCOMPARE(expected.size(), initial.size());
-    QByteArray tile(RgbaTile::ByteCount, '\0');
+    QByteArray tile(tileBytes, '\0');
     for (int y = 0; y < side; ++y)
-        std::memcpy(tile.data() + y * RgbaTile::Size * 4, initial.constData() + y * side * 4, side * 4);
+        std::memcpy(tile.data() + y * RgbaTile::Size * pixelSize, initial.constData() + y * side * pixelSize, side * pixelSize);
     RasterImage raster;
     raster.size = {side, side};
+    raster.format = format;
     raster.layers.append({QStringLiteral("Mixed alpha"), true,
-        QUuid(QStringLiteral("{1e75cc2a-b43b-4146-9216-ce12bc9ba3ae}")), {{{0, 0}, tile}}});
+        QUuid(QStringLiteral("{1e75cc2a-b43b-4146-9216-ce12bc9ba3ae}")), {{{0, 0}, tile, format}}});
     OperationDocument document(raster);
     const auto layer = document.activeLayer();
     const auto before = document.snapshot();
     TileRenderer renderer(m_device);
     Brush brush;
-    brush.rgba = {17, 34, 51, 255};
+    brush.rgba = sixteenBits ? RgbaPixel{65534, 257, 1, 65535} : RgbaPixel{17, 34, 51, 255};
     brush.diameter = 10;
     brush.spacing = .02;
     brush.opacity = opacity;
@@ -252,9 +259,9 @@ void KisGpuTileRendererTest::markerMatchesNormalEngine()
     const auto final = render(renderer, document.snapshot(), pending);
     QVERIFY(final);
     const auto actualTile = readTile(final, layer, {0, 0});
-    QCOMPARE(actualTile.size(), RgbaTile::ByteCount);
+    QCOMPARE(actualTile.size(), tileBytes);
     QByteArray actual;
-    for (int y = 0; y < side; ++y) actual.append(actualTile.mid(y * RgbaTile::Size * 4, side * 4));
+    for (int y = 0; y < side; ++y) actual.append(actualTile.mid(y * RgbaTile::Size * pixelSize, side * pixelSize));
     QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), actualTile);
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.undo(), Result::Success);
@@ -1623,20 +1630,32 @@ void KisGpuTileRendererTest::isolatedGroupsKeepProjectionAndRetainedSubtreePixel
 void KisGpuTileRendererTest::layerCropSharesInteriorPreservesBoundaryAndRetainedPixels_data()
 {
     QTest::addColumn<QByteArray>("implicit");
-    QTest::newRow("transparent") << QByteArray::fromHex("00000000");
-    QTest::newRow("hidden-rgb") << QByteArray::fromHex("19334d00");
-    QTest::newRow("partial-alpha") << QByteArray::fromHex("19334d49");
+    QTest::addColumn<bool>("sixteenBits");
+    QTest::newRow("transparent") << QByteArray::fromHex("00000000") << false;
+    QTest::newRow("hidden-rgb") << QByteArray::fromHex("19334d00") << false;
+    QTest::newRow("partial-alpha") << QByteArray::fromHex("19334d49") << false;
+    QTest::newRow("native-transparent") << rgbaBytes({}, PixelFormat::Rgba16) << true;
+    QTest::newRow("native-hidden-rgb") << rgbaBytes({1, 257, 65534, 0}, PixelFormat::Rgba16) << true;
+    QTest::newRow("native-partial-alpha") << rgbaBytes({1, 257, 65534, 32767}, PixelFormat::Rgba16) << true;
 }
 
 void KisGpuTileRendererTest::layerCropSharesInteriorPreservesBoundaryAndRetainedPixels()
 {
     QFETCH(QByteArray, implicit);
-    const auto raw = QByteArray::fromHex("11223300").repeated(RgbaTile::ByteCount / 4);
+    QFETCH(bool, sixteenBits);
+    const auto format = sixteenBits ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const int pixelSize = pixelByteCount(format);
+    const int tileBytes = RgbaTile::byteCount(format);
+    const QByteArray pixel = sixteenBits ? rgbaBytes({3, 256, 32768, 0}, format) : QByteArray::fromHex("11223300");
+    const auto raw = pixel.repeated(tileBytes / pixelSize);
     RasterImage input;
     input.size = {768, 256};
+    input.format = format;
     input.layers = {{QStringLiteral("Crop target"), true, {}, {}}};
-    for (int i = 0; i < 4; ++i) input.layers[0].defaultPixel[i] = quint8(implicit[i]);
-    for (int x = -2; x <= 2; ++x) input.layers[0].tiles.append({{x, 0}, raw});
+    const auto defaultPixel = rgbaPixel(implicit, format);
+    QVERIFY(defaultPixel);
+    input.layers[0].defaultPixel = *defaultPixel;
+    for (int x = -2; x <= 2; ++x) input.layers[0].tiles.append({{x, 0}, raw, format});
     OperationDocument document(input);
     const auto layer = document.activeLayer();
     TileRenderer renderer(m_device);
@@ -1647,7 +1666,7 @@ void KisGpuTileRendererTest::layerCropSharesInteriorPreservesBoundaryAndRetained
     const auto after = render(renderer, document.snapshot(), before);
     QVERIFY(after);
     QCOMPARE(after->tiles(layer).size(), 4);
-    QCOMPARE(renderer.residentBytes() - allocated, qsizetype(TileRenderer::TileBytes));
+    QCOMPARE(renderer.residentBytes() - allocated, qsizetype(tileBytes));
     for (const auto &tile : after->tiles(layer)) {
         if (tile.coordinate.x() == 2) continue;
         const auto old = before->tiles(layer);
@@ -1655,8 +1674,8 @@ void KisGpuTileRendererTest::layerCropSharesInteriorPreservesBoundaryAndRetained
         QVERIFY(found != old.cend());
         QCOMPARE(tile.pixels, found->pixels);
     }
-    auto expected = implicit.repeated(RgbaTile::ByteCount / 4);
-    for (int y = 0; y < 256; ++y) std::memcpy(expected.data() + y * 256 * 4, raw.constData(), 8 * 4);
+    auto expected = implicit.repeated(tileBytes / pixelSize);
+    for (int y = 0; y < 256; ++y) std::memcpy(expected.data() + y * 256 * pixelSize, raw.constData(), 8 * pixelSize);
     QCOMPARE(readTile(after, layer, {2, 0}), expected);
     QCOMPARE(readTile(before, layer, {2, 0}), raw);
     QCOMPARE(readTile(before, layer, {-2, 0}), raw);
@@ -2104,77 +2123,101 @@ void KisGpuTileRendererTest::normalProjectionKeepsDefaultAndTileColorsAtRounding
     QTest::addColumn<QByteArray>("destinationPixel");
     QTest::addColumn<int>("opacity");
     QTest::addColumn<QByteArray>("expectedPixel");
+    QTest::addColumn<bool>("nativeFormat");
     for (const bool implicit : {false, true}) {
         QTest::newRow(implicit ? "default-pixels" : "tiles") << implicit
             << QByteArray::fromHex("7e7e7eff") << QByteArray::fromHex("818181ff")
-            << 85 << QByteArray::fromHex("808080ff");
+            << 85 << QByteArray::fromHex("808080ff") << false;
         QTest::newRow(implicit ? "negative-half-default-pixels" : "negative-half-tiles") << implicit
             << QByteArray::fromHex("00000026") << QByteArray::fromHex("fdfdfd19")
-            << 1 << QByteArray::fromHex("fbfbfb19");
+            << 1 << QByteArray::fromHex("fbfbfb19") << false;
         // Full-opacity references retain binary32 fused color rounding followed
         // by nearest-even byte conversion, for implicit and stored layer pixels.
         QTest::newRow(implicit ? "full-opacity-even-up-default" : "full-opacity-even-up-tile") << implicit
             << QByteArray::fromHex("ffffff02") << QByteArray::fromHex("01010102")
-            << 255 << QByteArray::fromHex("80808004");
+            << 255 << QByteArray::fromHex("80808004") << false;
         QTest::newRow(implicit ? "full-opacity-even-down-default" : "full-opacity-even-down-tile") << implicit
             << QByteArray::fromHex("00000002") << QByteArray::fromHex("fefefe02")
-            << 255 << QByteArray::fromHex("7e7e7e04");
+            << 255 << QByteArray::fromHex("7e7e7e04") << false;
         QTest::newRow(implicit ? "full-opacity-quarter-default" : "full-opacity-quarter-tile") << implicit
             << QByteArray::fromHex("a9a9a902") << QByteArray::fromHex("00000006")
-            << 255 << QByteArray::fromHex("2a2a2a08");
+            << 255 << QByteArray::fromHex("2a2a2a08") << false;
         QTest::newRow(implicit ? "full-opacity-mixed-boundary-default" : "full-opacity-mixed-boundary-tile") << implicit
             << QByteArray::fromHex("ff005002") << QByteArray::fromHex("01fe1102")
-            << 255 << QByteArray::fromHex("807e3104");
+            << 255 << QByteArray::fromHex("807e3104") << false;
         QTest::newRow(implicit ? "full-opacity-mixed-colors-default" : "full-opacity-mixed-colors-tile") << implicit
             << QByteArray::fromHex("1464c880") << QByteArray::fromHex("c8641480")
-            << 255 << QByteArray::fromHex("50648cc0");
+            << 255 << QByteArray::fromHex("50648cc0") << false;
+        QTest::newRow(implicit ? "native-fma-default" : "native-fma-tile") << implicit
+            << rgbaBytes({7435, 7030, 44014, 53742}, PixelFormat::Rgba16)
+            << rgbaBytes({6428, 56750, 11086, 49993}, PixelFormat::Rgba16) << 255
+            << rgbaBytes({7291, 14159, 39292, 62738}, PixelFormat::Rgba16) << true;
+        QTest::newRow(implicit ? "native-zero-source-default" : "native-zero-source-tile") << implicit
+            << rgbaBytes({1, 257, 65534, 0}, PixelFormat::Rgba16)
+            << rgbaBytes({65534, 257, 1, 65535}, PixelFormat::Rgba16) << 128
+            << rgbaBytes({65534, 257, 1, 65535}, PixelFormat::Rgba16) << true;
+        QTest::newRow(implicit ? "native-copy-default" : "native-copy-tile") << implicit
+            << rgbaBytes({65534, 1, 257, 32768}, PixelFormat::Rgba16)
+            << rgbaBytes({1, 257, 65534, 0}, PixelFormat::Rgba16) << 255
+            << rgbaBytes({65534, 1, 257, 32768}, PixelFormat::Rgba16) << true;
     }
 }
 
 void KisGpuTileRendererTest::normalProjectionKeepsDefaultAndTileColorsAtRoundingBoundaries()
 {
     QFETCH(bool, implicit);
+    QFETCH(bool, nativeFormat);
     QFETCH(QByteArray, sourcePixel);
     QFETCH(QByteArray, destinationPixel);
     QFETCH(int, opacity);
     QFETCH(QByteArray, expectedPixel);
     const QUuid group(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
-    RasterImage input;
-    input.size = {64, 48};
-    input.layers = {{QStringLiteral("Destination"), true, {}, {}, {129, 129, 129, 255}},
-                    {QStringLiteral("Source"), true, {}, {}, {126, 126, 126, 255}},
-                    {QStringLiteral("Group"), true, group, {}}};
-    input.layers[0].parentUuid = input.layers[1].parentUuid = group;
-    input.layers[1].opacity = quint8(opacity);
-    input.layers[2].kind = LayerKind::Group;
-    std::array<quint8, 4> expected;
-    for (int channel = 0; channel < 4; ++channel) {
-        input.layers[0].defaultPixel[channel] = quint8(destinationPixel[channel]);
-        input.layers[1].defaultPixel[channel] = quint8(sourcePixel[channel]);
-        expected[channel] = quint8(expectedPixel[channel]);
-    }
-    if (!implicit) {
-        input.layers[0].tiles = {{{0, 0}, destinationPixel.repeated(RgbaTile::ByteCount / 4)}};
-        input.layers[1].tiles = {{{0, 0}, sourcePixel.repeated(RgbaTile::ByteCount / 4)}};
-    }
-    OperationDocument document(input);
-    // Uniform defaults and materialized pixels share both the binary32
-    // multiply-add rounding and the subsequent nearest-even byte conversion.
-    QCOMPARE(document.snapshot()->projectionDefaultPixels().value(3), expected);
-    TileRenderer renderer(m_device);
-    const auto raw = render(renderer, document.snapshot());
-    QVERIFY(raw);
-    const auto projected = project(renderer, raw, {0, 0, 64, 48});
-    QVERIFY(projected && projected->tiles().size() == 1);
-    const auto actual = readBuffer(projected->tiles().first().pixels);
-    QCOMPARE(actual, expectedPixel.repeated(RgbaTile::ByteCount / 4));
-    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
-    if (!directory.isEmpty()) {
-        QVERIFY(QDir().mkpath(directory));
-        QFile artifact(QDir(directory).filePath(QStringLiteral("normal-rounding-%1.rgba")
-            .arg(QString::fromLatin1(QTest::currentDataTag()))));
-        QVERIFY(artifact.open(QIODevice::WriteOnly));
-        QCOMPARE(artifact.write(actual), actual.size());
+    const auto format = nativeFormat ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    // The extra transparent layer exercises the paired native projection pass.
+    for (int extraLayer = 0; extraLayer <= int(nativeFormat); ++extraLayer) {
+        RasterImage input;
+        input.format = format;
+        input.size = {64, 48};
+        input.layers = {{QStringLiteral("Destination"), true, {}, {}, {129, 129, 129, 255}},
+                        {QStringLiteral("Source"), true, {}, {}, {126, 126, 126, 255}},
+                        {QStringLiteral("Group"), true, group, {}}};
+        input.layers[0].parentUuid = input.layers[1].parentUuid = group;
+        input.layers[1].opacity = quint8(opacity);
+        input.layers[2].kind = LayerKind::Group;
+        input.layers[0].defaultPixel = rgbaPixel(destinationPixel, format).value();
+        input.layers[1].defaultPixel = rgbaPixel(sourcePixel, format).value();
+        const auto expected = rgbaPixel(expectedPixel, format).value();
+        const int pixelBytes = pixelByteCount(format);
+        const int tileBytes = RgbaTile::byteCount(format);
+        if (!implicit) {
+            input.layers[0].tiles = {{{0, 0}, destinationPixel.repeated(tileBytes / pixelBytes), format}};
+            input.layers[1].tiles = {{{0, 0}, sourcePixel.repeated(tileBytes / pixelBytes), format}};
+        }
+        if (extraLayer) {
+            RasterLayer transparent{QStringLiteral("Transparent"), true, {}, {}, {1, 257, 65534, 0}};
+            transparent.parentUuid = group;
+            if (!implicit) transparent.tiles = {{{0, 0}, rgbaBytes(transparent.defaultPixel, format).repeated(tileBytes / pixelBytes), format}};
+            input.layers.insert(2, transparent);
+        }
+        OperationDocument document(input);
+        // Uniform defaults and materialized pixels share both the binary32
+        // multiply-add rounding and the subsequent nearest-even byte conversion.
+        QCOMPARE(document.snapshot()->projectionDefaultPixels().value(input.layers.size()), expected);
+        TileRenderer renderer(m_device);
+        const auto raw = render(renderer, document.snapshot());
+        QVERIFY(raw);
+        const auto projected = project(renderer, raw, {0, 0, 64, 48});
+        QVERIFY(projected && projected->tiles().size() == 1);
+        const auto actual = readBuffer(projected->tiles().first().pixels);
+        QCOMPARE(actual, expectedPixel.repeated(tileBytes / pixelBytes));
+        const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!directory.isEmpty()) {
+            QVERIFY(QDir().mkpath(directory));
+            QFile artifact(QDir(directory).filePath(QStringLiteral("normal-rounding-%1.rgba")
+                .arg(QString::fromLatin1(QTest::currentDataTag()))));
+            QVERIFY(artifact.open(QIODevice::WriteOnly));
+            QCOMPARE(artifact.write(actual), actual.size());
+        }
     }
 }
 
@@ -2365,16 +2408,16 @@ void KisGpuTileRendererTest::separableLayerProjectionMatchesNativePixels()
     QFETCH(QByteArray, expected);
     RasterImage input;
     input.size = {256, 256};
-    const std::array<quint8, 4> colors[] = {{37, 89, 151, quint8(destinationAlpha)},
-        blendMode >= int(LayerBlendMode::Addition) ? std::array<quint8, 4>{208, 224, 240, quint8(sourceAlpha)} :
-        std::array<quint8, 4>{201, 41, 93, quint8(sourceAlpha)}};
+    const RgbaPixel colors[] = {{37, 89, 151, quint8(destinationAlpha)},
+        blendMode >= int(LayerBlendMode::Addition) ? RgbaPixel{208, 224, 240, quint8(sourceAlpha)} :
+        RgbaPixel{201, 41, 93, quint8(sourceAlpha)}};
     for (int index = 0; index < 2; ++index) {
         RasterLayer layer;
         layer.opacity = index == 0 ? 255 : opacity;
         layer.blendMode = LayerBlendMode::Normal;
         layer.projectionChannelMask = index == 0 ? 15 : mask;
         if (implicit) layer.defaultPixel = colors[index];
-        else layer.tiles = {{{0, 0}, QByteArray(reinterpret_cast<const char *>(colors[index].data()), 4).repeated(RgbaTile::ByteCount / 4)}};
+        else layer.tiles = {{{0, 0}, rgbaBytes(colors[index], PixelFormat::Rgba8).repeated(RgbaTile::ByteCount / 4)}};
         input.layers.append(layer);
     }
     OperationDocument document(input);
@@ -2497,7 +2540,7 @@ void KisGpuTileRendererTest::multiPassGroupsKeepDistinctLayerParameters()
         if (changed) uniform.layers[1].opacity = 255;
         const OperationDocument reference(uniform);
         const auto pixel = reference.snapshot()->projectionDefaultPixels().value(group);
-        return QByteArray(reinterpret_cast<const char *>(pixel.data()), 4).repeated(RgbaTile::ByteCount / 4);
+        return rgbaBytes(pixel, PixelFormat::Rgba8).repeated(RgbaTile::ByteCount / 4);
     };
     OperationDocument document(image);
     TileRenderer renderer(m_device);
@@ -3150,7 +3193,7 @@ QByteArray KisGpuTileRendererTest::readBuffer(WGPUBuffer pixels)
     const auto commands = m_device->beginCommands();
     if (!commands) return {};
     const auto reads = Detail::ReadbackBatch::create(*m_device, 1);
-    if (!reads || !reads->recordBuffer(*m_device, commands, 0, pixels, TileRenderer::TileBytes)) {
+    if (!reads || !reads->recordBuffer(*m_device, commands, 0, pixels, wgpuBufferGetSize(pixels))) {
         m_device->submitCommands(true);
         return {};
     }
@@ -5310,7 +5353,7 @@ void KisGpuTileRendererTest::visibleLayersComposeOnTheGpuAndReuseUnchangedTiles(
 void KisGpuTileRendererTest::compositionPreservesOrderAlphaAndExistingVersionsAtCapacity()
 {
     OperationDocument document({64, 64});
-    const QList<std::array<quint8, 4>> colors{{255, 0, 0, 255}, {0, 0, 255, 128}, {0, 255, 0, 64}, {255, 255, 255, 128}};
+    const QList<RgbaPixel> colors{{255, 0, 0, 255}, {0, 0, 255, 128}, {0, 255, 0, 64}, {255, 255, 255, 128}};
     LayerId green = 0;
     for (qsizetype i = 0; i < colors.size(); ++i) {
         const auto layer = i == 0 ? document.activeLayer() : document.addLayer(QString::number(i));
@@ -5358,7 +5401,7 @@ void KisGpuTileRendererTest::compositionPreservesOrderAlphaAndExistingVersionsAt
 void KisGpuTileRendererTest::paintingAndCompositionShareOneSubmission()
 {
     OperationDocument document({64, 64});
-    for (const auto &color : QList<std::array<quint8, 4>>{{255, 0, 0, 128}, {0, 0, 255, 128}}) {
+    for (const auto &color : QList<RgbaPixel>{{255, 0, 0, 128}, {0, 0, 255, 128}}) {
         if (!document.snapshot()->layers.first().operations.isEmpty()) QVERIFY(document.addLayer(QStringLiteral("Top")));
         Brush brush;
         brush.rgba = color;
@@ -5770,7 +5813,7 @@ void KisGpuTileRendererTest::collinearFillPreservesPixelsWithinTileBudget()
     samples.append({{1024, 1024}, 1});
     FigureStyle style;
     style.outline = false;
-    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    style.fill = RgbaPixel{221, 17, 44, 255};
     QCOMPARE(document.paintFigure(layer, Brush{}, samples,
                                     {static_cast<ShapeKind>(kind), samples.first().position,
                                      samples.last().position, 0}, style, 42), Result::Success);
@@ -5791,7 +5834,7 @@ void KisGpuTileRendererTest::filledInteriorRespectsRegionAndTileBudget()
     const auto layer = document.activeLayer();
     FigureStyle style;
     style.outline = false;
-    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    style.fill = RgbaPixel{221, 17, 44, 255};
     QCOMPARE(document.paintFigure(layer, Brush{}, {{{0, 0}, 1}, {{1024, 1024}, 1}},
                                     {ShapeKind::Rectangle, {0, 0}, {1024, 1024}, 0}, style, 42), Result::Success);
     TileRenderer bounded(m_device, 9 * TileRenderer::TileBytes);
@@ -5841,7 +5884,7 @@ void KisGpuTileRendererTest::solidFiguresPreserveFillOutlineHistory()
     if (shapeKind == ShapeKind::RoundedRectangle) shape.cornerRadii = {8, 8};
     FigureStyle style;
     style.outline = outline;
-    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    style.fill = RgbaPixel{221, 17, 44, 255};
     QCOMPARE(document.updateFigure(id, shape, style), Result::Success);
     QCOMPARE(document.commitStroke(id), Result::Success);
     TileRenderer renderer(m_device);
@@ -5971,7 +6014,7 @@ void KisGpuTileRendererTest::figureFillMatchesPainterCoverage()
     OperationDocument document(QSize(origin.x() + 256, 256));
     FigureStyle style;
     style.outline = false;
-    style.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    style.fill = RgbaPixel{17, 129, 241, 255};
     QCOMPARE(document.paintFigure(document.activeLayer(), brush, samples, shape, style, 42), Result::Success);
     TileRenderer renderer(m_device);
     const auto commands = m_device->beginCommands();
@@ -6009,7 +6052,7 @@ void KisGpuTileRendererTest::emptyFillKeepsLineOutline()
         OperationDocument document(QSize(64, 64));
         const auto layer = document.activeLayer();
         FigureStyle style;
-        if (filled) style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+        if (filled) style.fill = RgbaPixel{221, 17, 44, 255};
         QCOMPARE(document.paintFigure(layer, brush, samples, shape, style, 42), Result::Success);
         TileRenderer renderer(m_device);
         const auto version = render(renderer, document.snapshot());
@@ -6045,7 +6088,7 @@ void KisGpuTileRendererTest::longFillEdgesKeepPixelsAcrossRegions()
                                      {{limit, 48}, 1}, {{-limit, 48}, 1}};
     FigureStyle style;
     style.outline = false;
-    style.fill = std::array<quint8, 4>{17, 129, 241, 255};
+    style.fill = RgbaPixel{17, 129, 241, 255};
     QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, samples, shape, style, 42), Result::Success);
     TileRenderer renderer(m_device);
     QByteArray reference;
@@ -6097,7 +6140,7 @@ void KisGpuTileRendererTest::pathCommandsPreserveCoverageHistory()
             }
         }
         style.outline = false;
-        style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+        style.fill = RgbaPixel{221, 17, 44, 255};
     } else if (kind == QLatin1String("curve")) {
         shape.pathCommands = {PathCommand::MoveTo, PathCommand::CubicTo};
         samples = {{{12, 32}, 1}, {{20, 12}, 1}, {{40, 52}, 1}, {{52, 32}, 1}};

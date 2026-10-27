@@ -121,7 +121,8 @@ bool TileRenderer::Private::recordResizePass(WGPUCommandEncoder commands, WGPUBu
         if (resizePipeline) resizeLayout.reset(wgpuComputePipelineGetBindGroupLayout(resizePipeline.get(), 0));
     }
     if (!resizePipeline || !resizeLayout) return false;
-    const WGPUBuffer buffers[] = {source ? source : zero.get(), accumulated, spans, weights, output, parameters};
+    const WGPUBuffer buffers[] = {source ? source : zeroBuffer(commands, PixelFormat::Rgba8), accumulated, spans, weights, output, parameters};
+    if (!buffers[0]) return false;
     WGPUBindGroupEntry entries[6]{};
     for (quint32 i = 0; i < 6; ++i) {
         entries[i].binding = i; entries[i].buffer = buffers[i]; entries[i].size = wgpuBufferGetSize(buffers[i]);
@@ -147,6 +148,8 @@ ImageReadbackOutcome Execution::readResizedProjectionImage(DocumentHandle handle
     };
     const auto checked = readPixels(handle, pinned, {}, {}, true);
     if (checked.code != ExecutionCode::Success) return rejected(checked.code, checked.diagnostic);
+    if (pinned->format != PixelFormat::Rgba8)
+        return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Bicubic projection preview requires RGBA8"));
     if (scaledCanvas.isEmpty() || maximumBytes < 0)
         return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Projection resize dimensions or capacity are invalid"));
     const qint64 pixels = qint64(scaledCanvas.width()) * scaledCanvas.height();

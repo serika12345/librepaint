@@ -15,14 +15,20 @@
 namespace LibrePaint::Image::Gpu::Detail {
 constexpr qsizetype LayerNameByteLimit = 65536;
 
+inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
+{
+    return mode <= LayerBlendMode::LinearDodge &&
+        (format != PixelFormat::Rgba16 || mode == LayerBlendMode::Normal);
+}
+
 template<class LayerValue>
-bool validLayerHierarchy(const QList<LayerValue> &layers)
+bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
 {
     QHash<QUuid, const LayerValue *> identities;
     for (const auto &layer : layers) {
         if (layer.kind != LayerKind::Paint && layer.kind != LayerKind::Group) return false;
         if (layer.kind != LayerKind::Group && layer.passThrough) return false;
-        if (layer.blendMode > LayerBlendMode::LinearDodge) return false;
+        if (!validBlendMode(layer.blendMode, format)) return false;
         if (layer.kind == LayerKind::Group && layer.transparencyMask) return false;
         if (layer.transparencyMask &&
             (layer.transparencyMask->isEmpty() ||
@@ -157,11 +163,13 @@ inline bool validPressureResponse(const PressureResponse &value)
     return true;
 }
 
-inline bool validBrush(const Brush &brush)
+inline bool validBrush(const Brush &brush, PixelFormat format)
 {
     if (!validPressureResponse(brush.sizeResponse) || !std::isfinite(brush.autoSpacingCoefficient) ||
         brush.autoSpacingCoefficient < 0) return false;
     if (!std::isfinite(brush.opacity) || brush.opacity < 0 || brush.opacity > 1) return false;
+    if (!validPixel(brush.rgba, format)) return false;
+    if (format == PixelFormat::Rgba16 && brush.gaussianWash) return false;
     if (brush.gaussianWash) {
         const auto &value = *brush.gaussianWash;
         if (!std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||
@@ -177,7 +185,7 @@ inline bool validBrush(const Brush &brush)
     return !(brush.basicSmoothing && brush.pixelPerfect) &&
         std::abs(qint64(brush.mirrorCenter.x())) <= OperationDocument::CoordinateLimit &&
         std::abs(qint64(brush.mirrorCenter.y())) <= OperationDocument::CoordinateLimit &&
-        brush.blendMode <= LayerBlendMode::LinearDodge &&
+        validBlendMode(brush.blendMode, format) &&
         (!brush.erase || brush.blendMode == LayerBlendMode::Normal) &&
         brush.channelWriteMask <= 15 && std::isfinite(brush.diameter) && brush.diameter > 0 &&
         brush.diameter <= OperationDocument::CoordinateLimit &&
@@ -246,10 +254,11 @@ inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
     return (shape.kind != ShapeKind::Polyline && shape.kind != ShapeKind::Polygon) || count >= 2;
 }
 
-inline bool validFigureStyle(const Shape &shape, const FigureStyle &style)
+inline bool validFigureStyle(const Shape &shape, const FigureStyle &style, PixelFormat format)
 {
+    if (format == PixelFormat::Rgba16 && hasFigureFill(style)) return false;
     if (style.pattern && !style.pattern->isValid()) return false;
-    if (style.fillBlendMode > LayerBlendMode::LinearDodge) return false;
+    if (!validBlendMode(style.fillBlendMode, format)) return false;
     // A non-normal fill mode owns only the fill source. Outline brush
     // compositing stays source-over, so this combination is rejected rather
     // than silently blending the outline.

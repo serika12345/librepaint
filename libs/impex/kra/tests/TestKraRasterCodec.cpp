@@ -148,6 +148,8 @@ private Q_SLOTS:
     void documentTitlesMoveAssociatedFilesAtomically();
     void unicodePathsIgnoreTheDefaultZipFilenameCodec();
     void imageProfileIdentitySurvivesMetadataUpdates_data();
+    void retainedU16MetadataPreservesPixelEncoding_data();
+    void retainedU16MetadataPreservesPixelEncoding();
     void imageProfileIdentitySurvivesMetadataUpdates();
     void existingPaintFilesPreservePixelsAndDefaults_data();
     void existingPaintFilesPreservePixelsAndDefaults();
@@ -159,6 +161,8 @@ private Q_SLOTS:
     void offsetsAndDescriptionMetadataSurviveEditing();
     void unsupportedAndInvalidContentsReturnNoDocument();
     void capacityAndFailedWritesPreserveCallerValues();
+    void pixelPrecisionMismatchesPreserveArchiveOutput_data();
+    void pixelPrecisionMismatchesPreserveArchiveOutput();
     void malformedPixelsAndProfilesAreAtomic_data();
     void malformedPixelsAndProfilesAreAtomic();
     void zipDirectoryCapacityPreservesTheOutput();
@@ -834,6 +838,51 @@ void TestKraRasterCodec::projectionChannelsSurviveEditingAndResaving()
     QBuffer rejectedOutput(&rejected);
     QVERIFY(rejectedOutput.open(QIODevice::WriteOnly));
     QCOMPARE(Kra::RasterCodec::write(rejectedOutput, invalid, merged(source.image.size)).code, Kra::Status::InvalidData);
+}
+
+void TestKraRasterCodec::retainedU16MetadataPreservesPixelEncoding_data()
+{
+    QTest::addColumn<bool>("mixedDepth");
+    QTest::newRow("metadata-only-preserves-encoding-and-background") << false;
+    QTest::newRow("mixed-layer-depth-is-rejected") << true;
+}
+void TestKraRasterCodec::retainedU16MetadataPreservesPixelEncoding()
+{
+    QFETCH(bool, mixedDepth);
+    QFile profile(QFINDTESTDATA("../../../../krita/data/profiles/elles-icc-profiles/sRGB-elle-V2-g10.icc"));
+    QVERIFY(profile.open(QIODevice::ReadOnly));
+    Kra::Document source;
+    source.files.insert(QStringLiteral("image/annotations/icc"), profile.readAll());
+    QDomDocument xml;
+    QVERIFY(xml.setContent(QByteArrayLiteral(R"xml(<DOC syntaxVersion="2"><IMAGE name="image" width="2" height="1" colorspacename="RGBA16" profile="sRGB-elle-V2-g10.icc"><layers/><ProjectionBackgroundColor/></IMAGE></DOC>)xml")));
+    auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto background = rgbaBytes({1, 257, 65534, 32768}, PixelFormat::Rgba16).toBase64();
+    image.firstChildElement(QStringLiteral("ProjectionBackgroundColor")).setAttribute(QStringLiteral("ColorData"), QString::fromLatin1(background));
+    if (mixedDepth) {
+        auto layer = xml.createElement(QStringLiteral("layer"));
+        layer.setAttribute(QStringLiteral("nodetype"), QStringLiteral("grouplayer"));
+        layer.setAttribute(QStringLiteral("visible"), QStringLiteral("1"));
+        layer.setAttribute(QStringLiteral("name"), QStringLiteral("Group"));
+        layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("normal"));
+        layer.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
+        layer.setAttribute(QStringLiteral("uuid"), QStringLiteral("{a00b0001-1122-3344-5566-778899aabbcc}"));
+        layer.setAttribute(QStringLiteral("filename"), QStringLiteral("layer2"));
+        image.firstChildElement(QStringLiteral("layers")).appendChild(layer);
+        QCOMPARE(Kra::RasterCodec::validateMetadata(xml.toByteArray(), source.files).code, Kra::Status::UnsupportedData);
+        source.files.insert(QStringLiteral("maindoc.xml"), xml.toByteArray());
+        source.files.insert(QStringLiteral("mimetype"), QByteArrayLiteral("application/x-krita"));
+        QCOMPARE(load(pack(source.files)).code, Kra::Status::UnsupportedData);
+        return;
+    }
+    source.description = xml.toByteArray();
+    Kra::ImageMetadata update;
+    update.producerVersion = QStringLiteral("metadata update");
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, update).code, Kra::Status::Success);
+    QDomDocument actual;
+    QVERIFY(actual.setContent(source.description));
+    const auto retained = actual.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    QCOMPARE(retained.attribute(QStringLiteral("colorspacename")), QStringLiteral("RGBA16"));
+    QCOMPARE(retained.firstChildElement(QStringLiteral("ProjectionBackgroundColor")).attribute(QStringLiteral("ColorData")), QString::fromLatin1(background));
 }
 
 void TestKraRasterCodec::imageProfileIdentitySurvivesMetadataUpdates_data()
@@ -1639,6 +1688,31 @@ void TestKraRasterCodec::unsupportedAndInvalidContentsReturnNoDocument()
         QVERIFY(!result.diagnostic.isEmpty());
         QVERIFY(result.document.image.layers.isEmpty());
     }
+}
+
+void TestKraRasterCodec::pixelPrecisionMismatchesPreserveArchiveOutput_data()
+{
+    QTest::addColumn<int>("change");
+    QTest::newRow("background-outside-component-range") << 0;
+    QTest::newRow("default-outside-component-range") << 1;
+    QTest::newRow("tile-precision-mismatch") << 2;
+}
+
+void TestKraRasterCodec::pixelPrecisionMismatchesPreserveArchiveOutput()
+{
+    QFETCH(int, change);
+    auto source = document();
+    if (change == 0) source.image.projectionBackground[0] = 256;
+    if (change == 1) source.image.layers[0].defaultPixel[0] = 256;
+    if (change == 2) source.image.layers[0].tiles[0].format = PixelFormat::Rgba16;
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::ReadWrite));
+    const auto result = Kra::RasterCodec::write(output, source, merged(source.image.size));
+    QCOMPARE(result.code, Kra::Status::InvalidData);
+    QVERIFY(!result.diagnostic.isEmpty());
+    QVERIFY(bytes.isEmpty());
+    QCOMPARE(output.pos(), qint64(0));
 }
 
 void TestKraRasterCodec::capacityAndFailedWritesPreserveCallerValues()

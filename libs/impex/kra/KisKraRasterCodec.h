@@ -93,7 +93,7 @@ struct LoadOutcome
     QString diagnostic;
 };
 
-/** Flat RGBA8/sRGB KRA values, including hidden and off-canvas layer pixels.
+/** RGBA8/sRGB and default RGBA16/linear-sRGB KRA values, including hidden and off-canvas layer pixels.
  * Devices are borrowed, open, seekable, and remain open after the operation.
  * Read publishes one complete value after validation. The write device is empty.
  * Write validates and encodes
@@ -121,6 +121,8 @@ public:
      */
     static QImage createPreview(QSize sourceSize, const std::function<QByteArray(int)> &readRgbaRow);
     static Outcome write(QIODevice &destination, const Document &document, const QImage &projection, Limits limits = {});
+    /** RGBA16 additionally supplies the native display preview of this fixed version. */
+    static Outcome write(QIODevice &destination, const Document &document, const QImage &projection, Limits limits, const QImage &preview);
 };
 }
 #endif

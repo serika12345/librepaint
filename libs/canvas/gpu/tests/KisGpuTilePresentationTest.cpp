@@ -35,6 +35,7 @@ private Q_SLOTS:
     void cropPreviewRetainsAntialiasedGeometryAndDocument_data();
     void cropPreviewRetainsAntialiasedGeometryAndDocument();
     void panZoomAndTransparencyUseThePaintingQueue();
+    void linearU16PresentationPreservesCanonicalPixels();
     void tileOverBackgroundMatchesEightBitSourceOver_data();
     void tileOverBackgroundMatchesEightBitSourceOver();
     void checkerBackgroundPreservesDocumentPixels_data();
@@ -159,7 +160,7 @@ std::shared_ptr<Readback> readTexture(Device &device, WGPUCommandEncoder command
     return reads;
 }
 
-void dot(OperationDocument &document, QPointF point, std::array<quint8, 4> color)
+void dot(OperationDocument &document, QPointF point, LibrePaint::Image::Gpu::RgbaPixel color)
 {
     Brush brush;
     brush.rgba = color;
@@ -228,6 +229,52 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     QVERIFY(readback->finish(*m_device));
     QCOMPARE(pixel(48, 48), QByteArray::fromHex("004080c0"));
     QCOMPARE(pixel(8, 12), QByteArray::fromHex("00800080"));
+}
+
+
+void KisGpuTilePresentationTest::linearU16PresentationPreservesCanonicalPixels()
+{
+    for (const auto format : {WGPUTextureFormat_RGBA8Unorm, WGPUTextureFormat_BGRA8Unorm})
+        for (const quint16 alpha : {quint16(65535), quint16(32768), quint16(0)})
+            for (const quint8 mask : {quint8(15), quint8(1)}) {
+        RasterImage raster;
+        raster.size = {64, 16};
+        raster.format = PixelFormat::Rgba16;
+        const RgbaPixel canonical{16384, 32768, 49152, alpha};
+        raster.layers.append({QStringLiteral("Linear color"), true, {}, {}, canonical});
+        OperationDocument document(raster);
+        const auto version = document.snapshot();
+        Surface surface(m_device, raster.size, format);
+        QVERIFY(surface.ready);
+        TileRenderer renderer(m_device);
+        TilePresentation presentation(m_device);
+        const auto commands = m_device->beginCommands();
+        QVERIFY(commands);
+        const auto layers = renderer.record(commands, version);
+        QCOMPARE(layers.code, RenderOutcome::Recorded);
+        const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 16});
+        QCOMPARE(projection.code, RenderOutcome::Recorded);
+        CheckerPattern checks;
+        checks.first = checks.second = Qt::white;
+        const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::white,
+                                                {mask, false}, {}, checks);
+        QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
+        const auto readback = readTexture(*m_device, commands, surface);
+        QVERIFY(readback);
+        QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+        QVERIFY(readback->finish(*m_device));
+        const int a = alpha == 65535 ? 255 : alpha ? 128 : 0;
+        const auto source = qPremultiply(qRgba(137, mask == 1 ? 137 : 188, mask == 1 ? 137 : 225, a));
+        QByteArray expected;
+        expected.append(char(qRed(source) + 255 - a));
+        expected.append(char(qGreen(source) + 255 - a));
+        expected.append(char(qBlue(source) + 255 - a));
+        expected.append(char(255));
+        if (format == WGPUTextureFormat_BGRA8Unorm) std::swap(expected[0], expected[2]);
+        QCOMPARE(readback->results.front()->data, expected.repeated(64 * 16));
+        QCOMPARE(document.snapshot(), version);
+        QCOMPARE(version->layers.first().defaultPixel, canonical);
+    }
 }
 
 

@@ -6,6 +6,8 @@
 #include "KisGpuReadbackBatch_p.h"
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuPaintJob_p.h"
+#include <QColorSpace>
+#include <QSysInfo>
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -27,7 +29,7 @@ struct ThumbnailReadbackResources
 using namespace Detail;
 
 bool TileRenderer::Private::recordThumbnailSamples(WGPUCommandEncoder commands, WGPUBuffer source,
-    WGPUBuffer output, WGPUBuffer samples, WGPUBuffer parameters, quint32 count)
+    WGPUBuffer output, WGPUBuffer samples, WGPUBuffer parameters, quint32 count, PixelFormat format)
 {
     if (!thumbnailPipeline) {
         thumbnailPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/thumbnail.wgsl"));
@@ -35,7 +37,8 @@ bool TileRenderer::Private::recordThumbnailSamples(WGPUCommandEncoder commands, 
             thumbnailLayout.reset(wgpuComputePipelineGetBindGroupLayout(thumbnailPipeline.get(), 0));
     }
     if (!thumbnailPipeline || !thumbnailLayout) return false;
-    const WGPUBuffer buffers[] = {source ? source : zero.get(), output, samples, parameters};
+    const WGPUBuffer buffers[] = {source ? source : zeroBuffer(commands, format), output, samples, parameters};
+    if (!buffers[0]) return false;
     WGPUBindGroupEntry entries[4]{};
     for (quint32 i = 0; i < 4; ++i) {
         entries[i].binding = i;
@@ -71,14 +74,16 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
         source.x() < -limit || source.y() < -limit || qint64(source.x()) + source.width() > limit ||
         qint64(source.y()) + source.height() > limit)
         return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Thumbnail dimensions or source region are invalid"));
+    const int pixelSize = pixelByteCount(pinned->format);
     const qint64 pixels = qint64(size.width()) * size.height();
-    if (pixels > maximumBytes / 4 || pixels > std::numeric_limits<int>::max() / 4)
+    if (pixels > maximumBytes / pixelSize || pixels > std::numeric_limits<int>::max() / pixelSize)
         return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Thumbnail output pixel capacity exceeded"));
     ImageReadbackOutcome outcome{ExecutionCode::Success, pinned, checked.generation, {}, {}};
     if (size.isEmpty()) return outcome;
-    outcome.image = QImage(size, QImage::Format_RGBA8888);
+    outcome.image = QImage(size, pinned->format == PixelFormat::Rgba16 ? QImage::Format_RGBA64 : QImage::Format_RGBA8888);
     if (outcome.image.isNull()) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Thumbnail allocation failed"));
     outcome.image.fill(Qt::transparent);
+    if (pinned->format == PixelFormat::Rgba16) outcome.image.setColorSpace(QColorSpace::SRgbLinear);
     if (includeLayerTileExtent) {
         const auto extent = readLayerTileExtent(handle, pinned, layer);
         if (extent.code != ExecutionCode::Success) return rejected(extent.code, extent.diagnostic);
@@ -91,10 +96,10 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
     if (!sampledSize.width()) sampledSize.setWidth(1);
     if (!sampledSize.height()) sampledSize.setHeight(1);
     auto &d = *m_d;
-    const qsizetype chunkPixels = std::min({qsizetype(pixels), d.maximumReadbackBytes / 4,
-        qsizetype(TileRenderer::TileBytes / 4), (d.byteBudget - qsizetype(16)) / 12});
+    const qsizetype chunkPixels = std::min({qsizetype(pixels), d.maximumReadbackBytes / pixelSize,
+        qsizetype(TileRenderer::TileSize * TileRenderer::TileSize), (d.byteBudget - qsizetype(16)) / (pixelSize + 8)});
     if (!chunkPixels) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Thumbnail transfer or working capacity exceeded"));
-    const qsizetype workingBytes = chunkPixels * 12 + 16;
+    const qsizetype workingBytes = chunkPixels * (pixelSize + 8) + 16;
     const auto budget = d.renderer->m_d->budget;
     if (workingBytes > budget->limit - budget->used) {
         const auto retired = retireDisplayCaches();
@@ -105,7 +110,7 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
     bool begun = false;
     try {
         auto work = std::make_shared<ThumbnailReadbackResources>(budget, workingBytes);
-        work->output = createBuffer(d.device->nativeDevice(), chunkPixels * 4,
+        work->output = createBuffer(d.device->nativeDevice(), chunkPixels * pixelSize,
             WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
         work->samples = createBuffer(d.device->nativeDevice(), chunkPixels * 8,
             WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
@@ -167,13 +172,15 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
                 WGPUBuffer sourceBuffer = nullptr;
                 for (const auto &tile : projected ? projected->tiles() : rendered ? rendered->tiles(layer) : QList<TileView>{})
                     if (tile.coordinate == coordinate) sourceBuffer = tile.pixels;
-                const quint32 parameters[] = {sourceBuffer ? 1u : 0u, packedPixel(implicit), quint32(group->size()), 0};
+                const auto words = packedPixelWords(implicit, pinned->format);
+                const quint32 flags = (sourceBuffer ? 1u : 0u) | (pinned->format == PixelFormat::Rgba16 ? 2u : 0u);
+                const quint32 parameters[] = {flags, words[0], quint32(group->size()), words[1]};
                 wgpuQueueWriteBuffer(d.device->queue(), work->samples.get(), 0, group->constData(), group->size() * 8);
                 wgpuQueueWriteBuffer(d.device->queue(), work->parameters.get(), 0, parameters, sizeof(parameters));
-                if (first) wgpuCommandEncoderClearBuffer(d.commands, work->output.get(), 0, chunkPixels * 4);
+                if (first) wgpuCommandEncoderClearBuffer(d.commands, work->output.get(), 0, chunkPixels * pixelSize);
                 first = false;
                 if (!d.renderer->m_d->recordThumbnailSamples(d.commands, sourceBuffer, work->output.get(),
-                    work->samples.get(), work->parameters.get(), quint32(group->size())))
+                    work->samples.get(), work->parameters.get(), quint32(group->size()), pinned->format))
                     throw std::runtime_error("Thumbnail sampling could not be recorded");
                 const bool last = std::next(group) == groups.cend();
                 struct Transfer { QByteArray bytes; QString diagnostic; };
@@ -192,7 +199,7 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
                     d.readbackRendered = rendered;
                     d.readbackProjected = projected;
                     d.readbackThumbnail = work;
-                    if (!reads->recordBuffer(*d.device, d.commands, 0, work->output.get(), count * 4))
+                    if (!reads->recordBuffer(*d.device, d.commands, 0, work->output.get(), count * pixelSize))
                         throw std::runtime_error("Thumbnail readback could not be recorded");
                 }
                 const auto submitted = endFrame(true);
@@ -200,9 +207,12 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
                 if (submitted.code != ExecutionCode::Success) return rejected(submitted.code, submitted.diagnostic);
                 if (last) {
                     const auto transfer = future.get();
-                    if (transfer.bytes.size() != count * 4)
+                    if (transfer.bytes.size() != count * pixelSize)
                         return rejected(ExecutionCode::DeviceFailure, transfer.diagnostic);
-                    std::memcpy(outcome.image.bits() + start * 4, transfer.bytes.constData(), size_t(count * 4));
+                    auto destination = outcome.image.bits() + start * pixelSize;
+                    std::memcpy(destination, transfer.bytes.constData(), size_t(count * pixelSize));
+                    if (pinned->format == PixelFormat::Rgba16 && QSysInfo::ByteOrder == QSysInfo::BigEndian)
+                        for (qsizetype i = 0; i < count * pixelSize; i += 2) std::swap(destination[i], destination[i + 1]);
                 }
             }
         }

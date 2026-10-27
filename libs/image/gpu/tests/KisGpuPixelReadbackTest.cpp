@@ -38,6 +38,8 @@ private Q_SLOTS:
     void selectedReadsFitWithoutGeneratingUnrequestedPixels();
     void sparseLayerReadsIncludeSolidFigureInteriors();
     void completeImagesStreamThinCanvasesAndOutliveTheirDevice();
+    void rgba16ReadsPreserveNativeComponentsAcrossMixedDocumentsAndHistory();
+    void rgba16ReadCapacityRejectsNativeTileBytesAtomically();
     void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping_data();
     void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping();
     void asynchronousPixelsKeepThePinnedVersionAndNewerRequests();
@@ -50,6 +52,7 @@ private Q_SLOTS:
     void boundsKeepFixedVersionsAndRejectWithoutChangingRequests();
     void boundsStreamMoreTilesThanTheGpuCanRetain();
     void boundsReusePixelsRetainedByTheDisplayedFrame();
+    void integerTranslationPreservesRgbaAcrossTileBoundariesAndFixedVersions_data();
     void integerTranslationPreservesRgbaAcrossTileBoundariesAndFixedVersions();
     void contentBoundsRetainTransparentRgbForMovementAdmission();
     void projectionReadsTranslatedCheckpointsWithinCanvasBudget();
@@ -64,6 +67,106 @@ private:
     DevicePtr m_device;
 };
 
+
+void KisGpuPixelReadbackTest::rgba16ReadsPreserveNativeComponentsAcrossMixedDocumentsAndHistory()
+{
+    constexpr auto format = PixelFormat::Rgba16;
+    constexpr int tileBytes = RgbaTile::byteCount(format);
+    const auto stored = rgbaBytes({65534, 256, 1, 0}, format);
+    const RgbaPixel implicit{1, 257, 65534, 0};
+    const auto implicitBytes = rgbaBytes(implicit, format);
+    RasterImage input;
+    input.size = {4, 3};
+    input.format = format;
+    input.layers = {{QStringLiteral("Native precision"), true, {},
+        {{{-1, 0}, stored.repeated(tileBytes / stored.size()), format}}, implicit}};
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    const auto layer = document.activeLayer();
+    OperationDocument byteDocument({4, 3});
+    Execution execution(m_device, 4 * tileBytes, 2, tileBytes);
+    const auto byteHandle = execution.open(byteDocument.snapshot()).handle;
+    QVERIFY(byteHandle);
+    const auto admitted = execution.open(fixed);
+    QVERIFY2(admitted.code == ExecutionCode::Success, qPrintable(admitted.diagnostic));
+    const auto handle = admitted.handle;
+    const auto pixels = execution.readRgbaPixels(handle, fixed, {-1, 0, 2, 1}, layer, 16);
+    QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+    QCOMPARE(pixels.bytes, stored + implicitBytes);
+    const auto complete = execution.readLayerPixels(handle, fixed, layer, tileBytes);
+    QVERIFY2(complete.code == ExecutionCode::Success, qPrintable(complete.diagnostic));
+    QCOMPARE(complete.tiles.size(), 1);
+    QCOMPARE(complete.tiles.first().rgba, input.layers.first().tiles.first().rgba);
+    const auto projection = execution.readProjectionImage(handle, fixed, 4 * 3 * 8);
+    QVERIFY2(projection.code == ExecutionCode::Success, qPrintable(projection.diagnostic));
+    QCOMPARE(projection.image.format(), QImage::Format_RGBA64);
+    const auto color = projection.image.pixelColor(3, 2).rgba64();
+    QCOMPARE(color.red(), implicit[0]);
+    QCOMPARE(color.green(), implicit[1]);
+    QCOMPARE(color.blue(), implicit[2]);
+    QCOMPARE(color.alpha(), implicit[3]);
+
+    const auto nextPixel = rgbaBytes({3, 256, 32768, 65535}, format);
+    RgbaTile replacement{{-1, 0}, nextPixel.repeated(tileBytes / nextPixel.size()), format};
+    QCOMPARE(document.replaceTiles(layer, {replacement}), Result::Success);
+    const auto current = document.snapshot();
+    QCOMPARE(execution.request(handle, current).code, ExecutionCode::Success);
+    const auto old = execution.readRgbaPixels(handle, fixed, {-1, 0, 1, 1}, layer, 8);
+    QVERIFY2(old.code == ExecutionCode::Success, qPrintable(old.diagnostic));
+    QCOMPARE(old.bytes, stored);
+    const auto changed = execution.readRgbaPixels(handle, current, {-1, 0, 1, 1}, layer, 8);
+    QVERIFY2(changed.code == ExecutionCode::Success, qPrintable(changed.diagnostic));
+    QCOMPARE(changed.bytes, nextPixel);
+    const auto bytes = execution.readRgbaPixels(byteHandle, byteDocument.snapshot(), {0, 0, 1, 1},
+                                                byteDocument.activeLayer(), 4);
+    QVERIFY2(bytes.code == ExecutionCode::Success, qPrintable(bytes.diagnostic));
+    QCOMPARE(bytes.bytes, QByteArray(4, '\0'));
+    QCOMPARE(execution.requested(handle), current);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), current);
+    QCOMPARE(complete.tiles.first().rgba, input.layers.first().tiles.first().rgba);
+    QString diagnostic;
+    const auto replacementDevice = Device::createNative(diagnostic);
+    QVERIFY2(replacementDevice, qPrintable(diagnostic));
+    QCOMPARE(execution.replaceDevice(replacementDevice).code, ExecutionCode::Success);
+    QCOMPARE(execution.generation(), quint64(2));
+    QCOMPARE(execution.requested(handle), current);
+    QCOMPARE(execution.readRgbaPixels(handle, fixed, {-1, 0, 1, 1}, layer, 8).bytes, stored);
+    QCOMPARE(execution.readRgbaPixels(handle, current, {-1, 0, 1, 1}, layer, 8).bytes, nextPixel);
+    QCOMPARE(execution.readRgbaPixels(byteHandle, byteDocument.snapshot(), {0, 0, 1, 1},
+                                     byteDocument.activeLayer(), 4).bytes, QByteArray(4, '\0'));
+    QCOMPARE(complete.tiles.first().rgba, input.layers.first().tiles.first().rgba);
+
+}
+
+void KisGpuPixelReadbackTest::rgba16ReadCapacityRejectsNativeTileBytesAtomically()
+{
+    constexpr auto format = PixelFormat::Rgba16;
+    constexpr int tileBytes = RgbaTile::byteCount(format);
+    const auto pixel = rgbaBytes({1, 257, 65534, 65535}, format);
+    RasterImage input;
+    input.size = {4, 3};
+    input.format = format;
+    input.layers = {{QStringLiteral("Native capacity"), true, {},
+        {{{-1, 0}, pixel.repeated(tileBytes / pixel.size()), format}}}};
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    Execution execution(m_device, 4 * tileBytes, 1, tileBytes - 4);
+    const auto admitted = execution.open(fixed);
+    QVERIFY2(admitted.code == ExecutionCode::Success, qPrintable(admitted.diagnostic));
+    const auto result = execution.readPixels(admitted.handle, fixed, {-1, 0, 1, 1},
+        {document.activeLayer()}, false, PixelReadArea::LayerCoordinates);
+    QCOMPARE(result.code, ExecutionCode::CapacityExceeded);
+    QVERIFY(result.tiles.isEmpty());
+    QCOMPARE(execution.requested(admitted.handle), fixed);
+    QCOMPARE(document.snapshot(), fixed);
+    const auto empty = execution.readPixels(admitted.handle, fixed, {}, {}, false);
+    QVERIFY2(empty.code == ExecutionCode::Success, qPrintable(empty.diagnostic));
+    QVERIFY(empty.tiles.isEmpty());
+}
+
 void KisGpuPixelReadbackTest::colorSamplesKeepCanonicalDiskAlphaAndTransferLimits_data()
 {
     QTest::addColumn<int>("radius");
@@ -73,25 +176,37 @@ void KisGpuPixelReadbackTest::colorSamplesKeepCanonicalDiskAlphaAndTransferLimit
     QTest::addColumn<QByteArray>("center");
     QTest::addColumn<bool>("halfTie");
     QTest::addColumn<QByteArray>("expected");
-    QTest::newRow("one-pixel") << 1 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("0000ffff");
-    QTest::newRow("radius-two-center") << 2 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("0000ffff");
-    QTest::newRow("nine-pixel-disk") << 3 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff");
-    QTest::newRow("twenty-five-pixel-disk") << 4 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("f5000aff");
-    QTest::newRow("circle-not-square") << 5 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("f90006ff");
-    QTest::newRow("projection-disk") << 3 << QPoint(12,9) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff");
-    QTest::newRow("layer-corner-defaults") << 3 << QPoint(0,0) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff");
-    QTest::newRow("projection-corner-padding") << 3 << QPoint(0,0) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("bf004071");
-    QTest::newRow("projection-last-corner-padding") << 3 << QPoint(63,47) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("bf004071");
-    QTest::newRow("negative-layer-tile") << 3 << QPoint(-1,-1) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff");
-    QTest::newRow("projection-outside-center") << 3 << QPoint(-1,-1) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff00001c");
-    QTest::newRow("projection-positive-outside-center") << 3 << QPoint(64,48) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff00001c");
-    QTest::newRow("fully-outside-projection") << 3 << QPoint(-500,-500) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray(4,'\0');
-    QTest::newRow("alpha-weighted-color") << 3 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ff80") << false << QByteArray::fromHex("f0000ff1");
-    QTest::newRow("transparent-neighbors") << 3 << QPoint(12,9) << false << 0 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("0000ff1c");
-    QTest::newRow("zero-alpha") << 3 << QPoint(12,9) << false << 0 << QByteArray::fromHex("12345600") << false << QByteArray(4,'\0');
-    QTest::newRow("nearest-half-up") << 3 << QPoint(12,9) << false << 0 << QByteArray::fromHex("01000005") << true << QByteArray::fromHex("01000001");
-    QTest::newRow("large-layer-sum") << 900 << QPoint(1024,1024) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff0000ff");
-    QTest::newRow("large-projection-sum") << 900 << QPoint(1024,1024) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff0000ff");
+    QTest::addColumn<bool>("sixteenBits");
+    QTest::newRow("one-pixel") << 1 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("0000ffff") << false;
+    QTest::newRow("radius-two-center") << 2 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("0000ffff") << false;
+    QTest::newRow("nine-pixel-disk") << 3 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff") << false;
+    QTest::newRow("twenty-five-pixel-disk") << 4 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("f5000aff") << false;
+    QTest::newRow("circle-not-square") << 5 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("f90006ff") << false;
+    QTest::newRow("projection-disk") << 3 << QPoint(12,9) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff") << false;
+    QTest::newRow("layer-corner-defaults") << 3 << QPoint(0,0) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff") << false;
+    QTest::newRow("projection-corner-padding") << 3 << QPoint(0,0) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("bf004071") << false;
+    QTest::newRow("projection-last-corner-padding") << 3 << QPoint(63,47) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("bf004071") << false;
+    QTest::newRow("negative-layer-tile") << 3 << QPoint(-1,-1) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff") << false;
+    QTest::newRow("projection-outside-center") << 3 << QPoint(-1,-1) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff00001c") << false;
+    QTest::newRow("projection-positive-outside-center") << 3 << QPoint(64,48) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff00001c") << false;
+    QTest::newRow("fully-outside-projection") << 3 << QPoint(-500,-500) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray(4,'\0') << false;
+    QTest::newRow("alpha-weighted-color") << 3 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ff80") << false << QByteArray::fromHex("f0000ff1") << false;
+    QTest::newRow("transparent-neighbors") << 3 << QPoint(12,9) << false << 0 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("0000ff1c") << false;
+    QTest::newRow("zero-alpha") << 3 << QPoint(12,9) << false << 0 << QByteArray::fromHex("12345600") << false << QByteArray(4,'\0') << false;
+    QTest::newRow("nearest-half-up") << 3 << QPoint(12,9) << false << 0 << QByteArray::fromHex("01000005") << true << QByteArray::fromHex("01000001") << false;
+    QTest::newRow("large-layer-sum") << 900 << QPoint(1024,1024) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff0000ff") << false;
+    QTest::newRow("large-projection-sum") << 900 << QPoint(1024,1024) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff0000ff") << false;
+    const auto native = [](const RgbaPixel &pixel) { return rgbaBytes(pixel, PixelFormat::Rgba16); };
+    QTest::newRow("native16-one-pixel") << 1 << QPoint(12,9) << false << 65535
+        << native({1,257,65534,65535}) << false << native({1,257,65534,65535}) << true;
+    QTest::newRow("native16-nine-pixel-disk") << 3 << QPoint(12,9) << false << 65535
+        << native({1,257,65534,65535}) << false << native({58253,29,7282,65535}) << true;
+    QTest::newRow("native16-partial-alpha") << 3 << QPoint(12,9) << false << 32768
+        << native({1,257,65534,1}) << false << native({65535,0,0,29127}) << true;
+    QTest::newRow("native16-zero-alpha") << 1 << QPoint(12,9) << false << 0
+        << native({1,257,65534,0}) << false << native({0,0,0,0}) << true;
+    QTest::newRow("native16-large-projection-sum") << 900 << QPoint(1024,1024) << true << 65535
+        << native({0,0,65535,65535}) << false << native({65535,0,0,65535}) << true;
 }
 
 void KisGpuPixelReadbackTest::colorSamplesKeepCanonicalDiskAlphaAndTransferLimits()
@@ -103,35 +218,41 @@ void KisGpuPixelReadbackTest::colorSamplesKeepCanonicalDiskAlphaAndTransferLimit
     QFETCH(QByteArray,center);
     QFETCH(bool,halfTie);
     QFETCH(QByteArray,expected);
+    QFETCH(bool,sixteenBits);
+    const auto format = sixteenBits ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const int pixelSize = pixelByteCount(format);
+    const auto maximum = maximumComponent(format);
     RasterImage input;
+    input.format = format;
     input.size = radius == 900 ? QSize(2048,2048) : QSize(64,48);
-    input.layers = {{QStringLiteral("Color sample"),true,{}, {}, {255,0,0,quint8(defaultAlpha)}}};
+    input.layers = {{QStringLiteral("Color sample"),true,{}, {}, {maximum,0,0,quint16(defaultAlpha)}}};
     constexpr int side = TileRenderer::TileSize;
     const auto floorTile = [](int value) { return value / side - (value % side < 0); };
     const QPoint coordinate(floorTile(point.x()),floorTile(point.y()));
     const QPoint local = point - coordinate * side;
-    QByteArray pixel = QByteArray::fromHex("ff0000ff");
-    pixel[3] = char(defaultAlpha);
-    auto bytes = pixel.repeated(RgbaTile::ByteCount / 4);
-    const int offset = (local.y() * side + local.x()) * 4;
-    bytes.replace(offset,4,center);
-    if (halfTie) bytes.replace(offset+4,4,QByteArray::fromHex("00000005"));
-    input.layers[0].tiles = {{coordinate,bytes}};
+    const auto pixel = rgbaBytes({maximum,0,0,quint16(defaultAlpha)}, format);
+    auto bytes = pixel.repeated(RgbaTile::byteCount(format) / pixelSize);
+    const int offset = (local.y() * side + local.x()) * pixelSize;
+    bytes.replace(offset,pixelSize,center);
+    if (halfTie) bytes.replace(offset+pixelSize,pixelSize,rgbaBytes({0,0,0,5},format));
+    input.layers[0].tiles = {{coordinate,bytes,format}};
     OperationDocument document(input);
     const auto fixed = document.snapshot();
-    Execution execution(m_device,128 * TileRenderer::TileBytes,1,32);
-    const auto handle = execution.open(fixed).handle;
+    Execution execution(m_device,128 * TileRenderer::TileBytes,1,sixteenBits ? 36 : 32);
+    const auto admitted = execution.open(fixed);
+    QVERIFY2(admitted.code == ExecutionCode::Success, qPrintable(admitted.diagnostic));
+    const auto handle = admitted.handle;
     auto future = execution.readColorSampleAsync(handle,fixed,projection ? 0 : fixed->layers[0].id,point,radius);
     QTRY_VERIFY((execution.pollReadbacks(), future.wait_for(std::chrono::seconds(0)) == std::future_status::ready));
     const auto result = future.get();
     QVERIFY2(result.code == ExecutionCode::Success,qPrintable(result.diagnostic));
-    QCOMPARE(QByteArray(reinterpret_cast<const char *>(result.rgba.data()),4),expected);
+    QCOMPARE(rgbaBytes(result.rgba, format),expected);
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     if (!results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
         QFile file(QDir(results).filePath(QStringLiteral("color-sample-%1.rgba").arg(QString::fromLatin1(QTest::currentDataTag()))));
         QVERIFY(file.open(QIODevice::WriteOnly));
-        QCOMPARE(file.write(reinterpret_cast<const char *>(result.rgba.data()), 4), qint64(4));
+        QCOMPARE(file.write(rgbaBytes(result.rgba, format)), qint64(pixelSize));
     }
     QCOMPARE(result.document,fixed);
     QCOMPARE(result.generation,execution.generation());
@@ -255,7 +376,7 @@ void KisGpuPixelReadbackTest::groupReadsKeepSubtreePixelsDefaultsAndPinnedVersio
         QVERIFY2(sampled.code == ExecutionCode::Success, qPrintable(sampled.diagnostic));
         const auto expectedRgba = sampledLayer ? (rgba[3] == 0 ? QByteArray(4, '\0') : rgba)
             : QByteArray::fromHex(hidden || rgba[3] == 0 ? "0000ffaa" : "80007faa");
-        QCOMPARE(QByteArray(reinterpret_cast<const char *>(sampled.rgba.data()), 4), expectedRgba);
+        QCOMPARE(rgbaBytes(sampled.rgba, PixelFormat::Rgba8), expectedRgba);
     }
     QCOMPARE(execution.requested(handle), newer);
     QVERIFY(!execution.published(handle));
@@ -456,17 +577,26 @@ void KisGpuPixelReadbackTest::coarseThumbnailsRetainProjectionBackgroundOutsideS
 void KisGpuPixelReadbackTest::thumbnailsStreamFixedHiddenPixelsAndPreserveRequests_data()
 {
     QTest::addColumn<bool>("projection");
-    QTest::newRow("hidden-layer") << false;
-    QTest::newRow("visible-projection") << true;
+    QTest::addColumn<bool>("nativeFormat");
+    QTest::newRow("hidden-layer") << false << false;
+    QTest::newRow("native-hidden-layer") << false << true;
+    QTest::newRow("visible-projection") << true << false;
+    QTest::newRow("native-visible-projection") << true << true;
 }
 
 void KisGpuPixelReadbackTest::thumbnailsStreamFixedHiddenPixelsAndPreserveRequests()
 {
     QFETCH(bool, projection);
+    QFETCH(bool, nativeFormat);
+    const auto format = nativeFormat ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const int pixelSize = pixelByteCount(format), tileBytes = RgbaTile::byteCount(format);
+    const RgbaPixel visible = nativeFormat ? RgbaPixel{1, 257, 65534, 65535} : RgbaPixel{49, 99, 149, 255};
     QImage retained;
-    QByteArray expected(16 * 8 * 4, '\0');
+    QByteArray expected(16 * 8 * pixelSize, '\0');
     const QRect region(-3, -1, 32, 16);
-    const auto color = [](int x, int y) {
+    const auto color = [nativeFormat, format](int x, int y) {
+        if (nativeFormat) return rgbaBytes({quint16(x + 300), quint16(y + 500),
+            quint16(x + y + 700), quint16((x + y) % 3 ? 32767 : 0)}, format);
         QByteArray bytes(4, '\0');
         bytes[0] = char((x + 300) % 256);
         bytes[1] = char((y + 500) % 256);
@@ -480,17 +610,18 @@ void KisGpuPixelReadbackTest::thumbnailsStreamFixedHiddenPixelsAndPreserveReques
         QVERIFY2(device, qPrintable(diagnostic));
         RasterImage input;
         input.size = {32, 16};
-        input.layers = {{QStringLiteral("Visible"), true, {}, {}, {49, 99, 149, 255}},
+        input.format = format;
+        input.layers = {{QStringLiteral("Visible"), true, {}, {}, visible},
                         {QStringLiteral("Hidden"), false, {}, {}}};
         for (int ty = -1; ty <= 0; ++ty) for (int tx = -1; tx <= 0; ++tx) {
-            QByteArray bytes(RgbaTile::ByteCount, '\0');
+            QByteArray bytes(tileBytes, '\0');
             for (int y = 0; y < 256; ++y) for (int x = 0; x < 256; ++x)
-                bytes.replace((y * 256 + x) * 4, 4, color(tx * 256 + x, ty * 256 + y));
-            input.layers.last().tiles.append({{tx, ty}, bytes});
+                bytes.replace((y * 256 + x) * pixelSize, pixelSize, color(tx * 256 + x, ty * 256 + y));
+            input.layers.last().tiles.append({{tx, ty}, bytes, format});
         }
         OperationDocument document(input);
         const auto fixed = document.snapshot();
-        Execution execution(device, 8 * TileRenderer::TileBytes, 1, 64);
+        Execution execution(device, 8 * tileBytes, 1, 64);
         const auto handle = execution.open(fixed).handle;
         QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
         const auto displayed = execution.project(handle, {0, 0, 32, 16});
@@ -500,8 +631,8 @@ void KisGpuPixelReadbackTest::thumbnailsStreamFixedHiddenPixelsAndPreserveReques
         if (projection) {
             QCOMPARE(document.setLayerOpacity(fixed->layers.first().id, 0), Result::Success);
         } else {
-            const auto replacement = QByteArray::fromHex("aabbccff").repeated(RgbaTile::ByteCount / 4);
-            QCOMPARE(document.replaceTiles(fixed->layers.last().id, {{{0, 0}, replacement}}), Result::Success);
+            const auto replacement = rgbaBytes(nativeFormat ? RgbaPixel{65534, 257, 1, 65535} : RgbaPixel{170, 187, 204, 255}, format).repeated(tileBytes / pixelSize);
+            QCOMPARE(document.replaceTiles(fixed->layers.last().id, {{{0, 0}, replacement, format}}), Result::Success);
         }
         const auto newer = document.snapshot();
         QCOMPARE(execution.request(handle, newer).code, ExecutionCode::Success);
@@ -509,10 +640,12 @@ void KisGpuPixelReadbackTest::thumbnailsStreamFixedHiddenPixelsAndPreserveReques
         const auto read = execution.readThumbnail(handle, fixed, layer, region, {16, 8}, expected.size());
         QVERIFY2(read.code == ExecutionCode::Success, qPrintable(read.diagnostic));
         QCOMPARE(read.document, fixed);
+        QCOMPARE(read.image.format(), nativeFormat ? QImage::Format_RGBA64 : QImage::Format_RGBA8888);
+        if (nativeFormat) QCOMPARE(read.image.colorSpace(), QColorSpace(QColorSpace::SRgbLinear));
         for (int y = 0; y < 8; ++y) for (int x = 0; x < 16; ++x) {
             const QPoint point(-3 + 2 * x, -1 + 2 * y);
-            const auto pixel = projection ? (QRect(0, 0, 32, 16).contains(point) ? QByteArray::fromHex("316395ff") : QByteArray(4, '\0')) : color(point.x(), point.y());
-            expected.replace((y * 16 + x) * 4, 4, pixel);
+            const auto pixel = projection ? (QRect(0, 0, 32, 16).contains(point) ? rgbaBytes(visible, format) : QByteArray(pixelSize, '\0')) : color(point.x(), point.y());
+            expected.replace((y * 16 + x) * pixelSize, pixelSize, pixel);
         }
         retained = read.image;
         QCOMPARE(QByteArray(reinterpret_cast<const char*>(retained.constBits()), retained.sizeInBytes()), expected);
@@ -531,6 +664,15 @@ void KisGpuPixelReadbackTest::thumbnailsStreamFixedHiddenPixelsAndPreserveReques
         QCOMPARE(execution.requested(handle), newer);
         QCOMPARE(execution.published(handle), fixed);
         QCOMPARE(document.snapshot(), newer);
+        // The bicubic preview entry serves the existing RGBA8 preview caller;
+        // native-depth previews use the color-space owner's conversion path.
+        if (nativeFormat) {
+            const auto resized = execution.readResizedProjectionImage(handle, fixed, {16, 8}, expected.size());
+            QCOMPARE(resized.code, ExecutionCode::InvalidRequest);
+            QVERIFY(resized.image.isNull());
+            QCOMPARE(execution.requested(handle), newer);
+            QCOMPARE(execution.published(handle), fixed);
+        }
         QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
         QCOMPARE(execution.readThumbnail(handle, fixed, layer, region, {16, 8}, expected.size()).code,
                  ExecutionCode::InvalidRequest);
@@ -591,57 +733,74 @@ void KisGpuPixelReadbackTest::contentBoundsRetainTransparentRgbForMovementAdmiss
     QCOMPARE(execution.requested(handle), fixed);
 }
 
+void KisGpuPixelReadbackTest::integerTranslationPreservesRgbaAcrossTileBoundariesAndFixedVersions_data()
+{
+    QTest::addColumn<bool>("sixteenBits");
+    QTest::newRow("rgba8") << false;
+    QTest::newRow("rgba16") << true;
+}
+
 void KisGpuPixelReadbackTest::integerTranslationPreservesRgbaAcrossTileBoundariesAndFixedVersions()
 {
-    QByteArray pixels(RgbaTile::ByteCount, '\0');
-    pixels.replace((1 * 256 + 255) * 4, 4, QByteArray::fromHex("112233ff"));
-    pixels.replace((1 * 256) * 4, 4, QByteArray::fromHex("44556600"));
+    QFETCH(bool, sixteenBits);
+    const auto format = sixteenBits ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const int pixelSize = pixelByteCount(format);
+    const int tileBytes = RgbaTile::byteCount(format);
+    const int patchBytes = 25 * pixelSize;
+    const QByteArray visiblePixel = sixteenBits ? rgbaBytes({1, 257, 65534, 65535}, format) : QByteArray::fromHex("112233ff");
+    const QByteArray hiddenPixel = sixteenBits ? rgbaBytes({65534, 1, 257, 0}, format) : QByteArray::fromHex("44556600");
+    QByteArray pixels(tileBytes, '\0');
+    pixels.replace((1 * 256 + 255) * pixelSize, pixelSize, visiblePixel);
+    pixels.replace((1 * 256) * pixelSize, pixelSize, hiddenPixel);
     RasterImage input;
     input.size = {320, 64};
-    input.layers = {{QStringLiteral("Moved pixels"), true, {}, {{{0, 0}, pixels}}}};
+    input.format = format;
+    input.layers = {{QStringLiteral("Moved pixels"), true, {}, {{{0, 0}, pixels, format}}}};
     input.layers.first().position = {7, -3};
     OperationDocument document(input);
     const auto before = document.snapshot();
     const auto layer = document.activeLayer();
-    Execution execution(m_device, 12 * TileRenderer::TileBytes, 1);
-    const auto handle = execution.open(before).handle;
-    QCOMPARE(execution.readRgbaPixels(handle, before, {255, 1, 1, 1}, layer, 4).bytes, QByteArray::fromHex("112233ff"));
+    Execution execution(m_device, 12 * tileBytes, 1);
+    const auto opened = execution.open(before);
+    QVERIFY2(opened.code == ExecutionCode::Success, qPrintable(opened.diagnostic));
+    const auto handle = opened.handle;
+    QCOMPARE(execution.readRgbaPixels(handle, before, {255, 1, 1, 1}, layer, pixelSize).bytes, visiblePixel);
     const auto move = document.beginLayerTranslation(layer);
     QVERIFY(!move.isNull());
     QCOMPARE(document.updateLayerTranslation(move, {-13, 17}), Result::Success);
     QCOMPARE(document.commitLayerTranslation(move), Result::Success);
     const auto moved = document.snapshot();
     QCOMPARE(execution.request(handle, moved).code, ExecutionCode::Success);
-    const auto visible = execution.readRgbaPixels(handle, moved, {242, 18, 1, 1}, layer, 4);
+    const auto visible = execution.readRgbaPixels(handle, moved, {242, 18, 1, 1}, layer, pixelSize);
     QVERIFY2(visible.code == ExecutionCode::Success, qPrintable(visible.diagnostic));
-    QCOMPARE(visible.bytes, QByteArray::fromHex("112233ff"));
-    const auto hidden = execution.readRgbaPixels(handle, moved, {-13, 18, 1, 1}, layer, 4);
+    QCOMPARE(visible.bytes, visiblePixel);
+    const auto hidden = execution.readRgbaPixels(handle, moved, {-13, 18, 1, 1}, layer, pixelSize);
     QVERIFY2(hidden.code == ExecutionCode::Success, qPrintable(hidden.diagnostic));
-    QCOMPARE(hidden.bytes, QByteArray::fromHex("44556600"));
-    QCOMPARE(execution.readRgbaPixels(handle, moved, {255, 1, 1, 1}, layer, 4).bytes, QByteArray(4, '\0'));
-    QCOMPARE(execution.readRgbaPixels(handle, before, {255, 1, 1, 1}, layer, 4).bytes, QByteArray::fromHex("112233ff"));
+    QCOMPARE(hidden.bytes, hiddenPixel);
+    QCOMPARE(execution.readRgbaPixels(handle, moved, {255, 1, 1, 1}, layer, pixelSize).bytes, QByteArray(pixelSize, '\0'));
+    QCOMPARE(execution.readRgbaPixels(handle, before, {255, 1, 1, 1}, layer, pixelSize).bytes, visiblePixel);
     QCOMPARE(execution.requested(handle), moved);
     QCOMPARE(moved->layers.first().position, QPoint(-6, 14));
     Brush brush;
     brush.diameter = 3;
-    brush.rgba = {117, 53, 201, 255};
+    brush.rgba = sixteenBits ? RgbaPixel{30001, 257, 65534, 65535} : RgbaPixel{117, 53, 201, 255};
     const auto stroke = document.beginStroke(layer, brush, 42);
     const QList<InputSample> samples{{QPointF(100.5, 33.5), 0.75, -0.2, 0.3, 17, 10}};
     QCOMPARE(document.appendSamples(stroke, samples), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     const auto painted = document.snapshot();
     const QRect patch(98, 31, 5, 5);
-    const auto original = execution.readRgbaPixels(handle, painted, patch, layer, 100);
+    const auto original = execution.readRgbaPixels(handle, painted, patch, layer, patchBytes);
     QVERIFY2(original.code == ExecutionCode::Success, qPrintable(original.diagnostic));
-    QVERIFY(original.bytes != QByteArray(100, '\0'));
+    QVERIFY(original.bytes != QByteArray(patchBytes, '\0'));
     const auto next = document.beginLayerTranslation(layer);
     QCOMPARE(document.updateLayerTranslation(next, {171, -7}), Result::Success);
     QCOMPARE(document.commitLayerTranslation(next), Result::Success);
     const auto final = document.snapshot();
-    const auto shiftedPaint = execution.readRgbaPixels(handle, final, patch.translated(171, -7), layer, 100);
+    const auto shiftedPaint = execution.readRgbaPixels(handle, final, patch.translated(171, -7), layer, patchBytes);
     QVERIFY2(shiftedPaint.code == ExecutionCode::Success, qPrintable(shiftedPaint.diagnostic));
     QCOMPARE(shiftedPaint.bytes, original.bytes);
-    QCOMPARE(execution.readRgbaPixels(handle, final, {158, 11, 1, 1}, layer, 4).bytes, QByteArray::fromHex("44556600"));
+    QCOMPARE(execution.readRgbaPixels(handle, final, {158, 11, 1, 1}, layer, pixelSize).bytes, hiddenPixel);
 
 }
 
@@ -919,7 +1078,7 @@ void KisGpuPixelReadbackTest::completeImagesStreamThinCanvasesAndOutliveTheirDev
 }
 
 namespace {
-void dot(OperationDocument &document, QPointF point, std::array<quint8, 4> rgba)
+void dot(OperationDocument &document, QPointF point, RgbaPixel rgba)
 {
     Brush brush;
     brush.rgba = rgba;
@@ -968,7 +1127,7 @@ void KisGpuPixelReadbackTest::colorSamplesKeepPaintedVersionsAndPublication()
     QTRY_VERIFY((execution.pollReadbacks(), pending.wait_for(std::chrono::seconds(0)) == std::future_status::ready));
     const auto sampled = pending.get();
     QVERIFY2(sampled.code == ExecutionCode::Success, qPrintable(sampled.diagnostic));
-    QCOMPARE(sampled.rgba, (std::array<quint8, 4>{17, 129, 241, 255}));
+    QCOMPARE(sampled.rgba, (RgbaPixel{17, 129, 241, 255}));
     QCOMPARE(sampled.document, pinned);
     QCOMPARE(execution.requested(handle), latest);
     QCOMPARE(execution.published(handle), pinned);
@@ -976,7 +1135,7 @@ void KisGpuPixelReadbackTest::colorSamplesKeepPaintedVersionsAndPublication()
     QTRY_VERIFY((execution.pollReadbacks(), newer.wait_for(std::chrono::seconds(0)) == std::future_status::ready));
     const auto next = newer.get();
     QVERIFY2(next.code == ExecutionCode::Success, qPrintable(next.diagnostic));
-    QCOMPARE(next.rgba, (std::array<quint8, 4>{219, 33, 81, 255}));
+    QCOMPARE(next.rgba, (RgbaPixel{219, 33, 81, 255}));
     QCOMPARE(execution.published(handle), pinned);
 }
 
@@ -1001,7 +1160,7 @@ void KisGpuPixelReadbackTest::colorSamplesOutliveCloseAndDeviceReplacement()
         const auto previous = old.get();
         QCOMPARE(previous.code, ExecutionCode::Success);
         QCOMPARE(previous.generation, quint64(1));
-        QCOMPARE(previous.rgba, (std::array<quint8, 4>{17, 129, 241, 255}));
+        QCOMPARE(previous.rgba, (RgbaPixel{17, 129, 241, 255}));
         retained = execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 3);
         QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
     }
@@ -1010,7 +1169,7 @@ void KisGpuPixelReadbackTest::colorSamplesOutliveCloseAndDeviceReplacement()
     const auto sampled = retained.get();
     QVERIFY2(sampled.code == ExecutionCode::Success, qPrintable(sampled.diagnostic));
     QCOMPARE(sampled.generation, quint64(2));
-    QCOMPARE(sampled.rgba, (std::array<quint8, 4>{17, 129, 241, 255}));
+    QCOMPARE(sampled.rgba, (RgbaPixel{17, 129, 241, 255}));
 }
 
 void KisGpuPixelReadbackTest::rejectedColorSamplesLeaveTheNextReadAvailable()
@@ -1038,7 +1197,7 @@ void KisGpuPixelReadbackTest::rejectedColorSamplesLeaveTheNextReadAvailable()
     QTRY_VERIFY((execution.pollReadbacks(), recovered.wait_for(std::chrono::seconds(0)) == std::future_status::ready));
     const auto result = recovered.get();
     QVERIFY2(result.code == ExecutionCode::Success, qPrintable(result.diagnostic));
-    QCOMPARE(result.rgba, (std::array<quint8, 4>{}));
+    QCOMPARE(result.rgba, (RgbaPixel{}));
     QCOMPARE(execution.requested(handle), pinned);
     QVERIFY(!execution.published(handle));
     QCOMPARE(document.snapshot(), pinned);
@@ -1238,7 +1397,7 @@ void KisGpuPixelReadbackTest::sparseLayerReadsIncludeSolidFigureInteriors()
     const auto layer = document.activeLayer();
     FigureStyle style;
     style.outline = false;
-    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    style.fill = RgbaPixel{221, 17, 44, 255};
     QCOMPARE(document.paintFigure(layer, Brush{}, {{{0, 0}, 1}, {{1024, 1024}, 1}},
                                     {ShapeKind::Rectangle, {0, 0}, {1024, 1024}, 0}, style, 42), Result::Success);
     Execution execution(m_device, 32 * TileRenderer::TileBytes, 1, 16 * TileRenderer::TileBytes);

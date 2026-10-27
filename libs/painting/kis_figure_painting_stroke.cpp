@@ -106,7 +106,7 @@ struct KisFigurePaintingStroke::GpuStroke
         if (fillStyle != KisFigurePaintingOptions::FillStyleNone) {
             const auto color = (fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor ?
                                 foregroundColor : backgroundColor).toQColor();
-            style.fill = std::array<quint8, 4>{quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
+            style.fill = LibrePaint::Image::Gpu::RgbaPixel{quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
         }
         const auto result = resources.transparencyMask
             ? owner->paintTransparencyMaskFigure(resources.layer, resources.brush, samples, *shape, style, 0)

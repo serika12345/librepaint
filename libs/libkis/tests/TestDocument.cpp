@@ -1286,7 +1286,7 @@ void TestDocument::testBackgroundNotificationLifetimes()
     } else {
         QVERIFY(document.isNull());
     }
-    const std::array<quint8, 4> expected{17, 34, 51, 128};
+    const LibrePaint::Image::Gpu::RgbaPixel expected{17, 34, 51, 128};
     QCOMPARE(owner->operations().snapshot()->projectionBackground, expected);
     QCOMPARE(owner->readRgbaPixels(0, QRect(0, 0, 1, 1), 4).bytes, QByteArray::fromHex("11223380"));
 }
@@ -2460,8 +2460,8 @@ void TestDocument::testGpuSaveNotificationLifetimes()
             }
         }
         if (reaction == 5) {
-            const std::array<quint8, 4> edited{17, 34, 51, 128};
-            const std::array<quint8, 4> original{};
+            const LibrePaint::Image::Gpu::RgbaPixel edited{17, 34, 51, 128};
+            const LibrePaint::Image::Gpu::RgbaPixel original{};
             QCOMPARE(owner->operations().snapshot()->projectionBackground, edited);
             if (!png) QCOMPARE(loaded.image.projectionBackground, original);
         }
@@ -3093,3 +3093,82 @@ class KisTransformMaskAdapter;
 
 KISTEST_MAIN(TestDocument)
 
+
+void TestDocument::testGpuU16PublicPixelsPreserveDocumentEncoding()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    const auto cs = KoColorSpaceRegistry::instance()->rgb16();
+    const quint16 background[] = {0x1234, 0x5678, 0x9abc, 0xffff};
+    const KoColor color(reinterpret_cast<const quint8 *>(background), cs);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    QVERIFY2(document->newImage(QStringLiteral("U16 public pixels"), 32, 16, cs, color,
+                                KisConfig::CANVAS_COLOR, 1, {}, 1), qPrintable(document->errorMessage()));
+    auto image = document->image();
+    QVERIFY(image->gpuImage());
+    QCOMPARE(image->colorSpace(), cs);
+    QCOMPARE(image->gpuImage()->operations().snapshot()->format, Gpu::PixelFormat::Rgba16);
+    QCOMPARE(image->projection()->defaultPixel(), color);
+    QCOMPARE(image->defaultProjectionColor(), color);
+    const auto preview = image->convertToQImage(image->size(), KoColorSpaceRegistry::instance()->rgb8()->profile());
+    QCOMPARE(preview.pixelColor(4, 4), color.toQColor());
+    Document publicDocument(document.data(), false);
+    QScopedPointer<Node> root(publicDocument.rootNode());
+    NodeSP node(root->childNodes().front());
+    auto layer = image->root()->firstChild()->paintDevice();
+    const quint16 input[] = {0x1357, 0x2468, 0xabcd, 0};
+    const QByteArray bgra(reinterpret_cast<const char *>(input), sizeof(input));
+    QVERIFY(node->setPixelData(bgra, -1, 2, 1, 1));
+    QByteArray actual(8, Qt::Uninitialized);
+    layer->readBytes(reinterpret_cast<quint8 *>(actual.data()), QRect(-1, 2, 1, 1));
+    QCOMPARE(actual, bgra);
+    QCOMPARE(node->pixelData(-1, 2, 1, 1), bgra);
+    const auto owner = image->gpuImage();
+    const auto id = owner->operations().activeLayer();
+    const auto canonical = Gpu::rgbaBytes({0x1111, 0x2222, 0x3333, 0xffff}, Gpu::PixelFormat::Rgba16);
+    QCOMPARE(owner->replaceRgbaPixels(id, QRect(-1, 2, 1, 1), canonical), Gpu::Result::Success);
+    document->undoStack()->undo();
+    layer->readBytes(reinterpret_cast<quint8 *>(actual.data()), QRect(-1, 2, 1, 1));
+    QCOMPARE(actual, bgra);
+    QCOMPARE(node->pixelData(-1, 2, 1, 1), bgra);
+    document->undoStack()->redo();
+    const quint16 redone[] = {0x3333, 0x2222, 0x1111, 0xffff};
+    layer->readBytes(reinterpret_cast<quint8 *>(actual.data()), QRect(-1, 2, 1, 1));
+    QCOMPARE(actual, QByteArray(reinterpret_cast<const char *>(redone), sizeof(redone)));
+    KisPaintDeviceSP reference = new KisPaintDevice(cs);
+    reference->writeBytes(reinterpret_cast<const quint8 *>(redone), QRect(-1, 2, 1, 1));
+    for (const qreal oversample : {qreal(1), qreal(2)})
+        QCOMPARE(layer->createThumbnail(16, 16, KisThumbnailBoundsMode::Precise, oversample),
+                 reference->createThumbnail(16, 16, KisThumbnailBoundsMode::Precise, oversample));
+    const auto fixed = owner->operations().snapshot();
+    const auto fixedPreview = image->convertToQImage({48, 24}, KoColorSpaceRegistry::instance()->rgb8()->profile(), fixed, cs);
+    const qsizetype minimumBudget = 8 * 1024 * 1024 + 32 * 8 * (2 * 16 + 16);
+    QVERIFY_EXCEPTION_THROWN(KisGpuExportRasterRows(image, minimumBudget - 1), std::length_error);
+    {
+        KisGpuExportRasterRows rows(image, minimumBudget);
+        QCOMPARE(owner->writeProjectionBackground({65535, 65535, 65535, 65535}), Gpu::Result::Success);
+        QByteArray row;
+        QVERIFY(rows.rows()->readRow(4, row).isOk());
+        QCOMPARE(row, QByteArray(reinterpret_cast<const char *>(background), sizeof(background)).repeated(32));
+        QCOMPARE(image->convertToQImage({48, 24}, KoColorSpaceRegistry::instance()->rgb8()->profile(), fixed, cs), fixedPreview);
+    }
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    QScopedPointer<KisDocument> empty(KisPart::instance()->createDocument());
+    empty->setFileBatchMode(true);
+    QVERIFY(empty->newImage(QStringLiteral("Empty U16"), 32, 16, cs, KoColor(Qt::transparent, cs),
+                            KisConfig::CANVAS_COLOR, 1, {}, 1));
+    const auto path = directory.filePath(QStringLiteral("empty.kra"));
+    QVERIFY2(empty->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(empty->errorMessage()));
+    empty->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QCOMPARE(reopened->image()->colorSpace(), cs);
+
+}

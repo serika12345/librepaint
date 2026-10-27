@@ -6,6 +6,9 @@
 #include "../../gpu/KisGpuPaintDocument_p.h"
 #include <kra/KisKraRasterCodec.h>
 #include <QFile>
+#include <KoColorSpaceRegistry.h>
+#include <KoColorSpace.h>
+#include <cstring>
 #include <QSaveFile>
 #include <stdexcept>
 
@@ -106,8 +109,8 @@ Kra::MetadataOutcome PaintDocument::kraImageMetadata() const
     return Kra::RasterCodec::readImageMetadata(m_d->description, m_d->files, Private::formatLimits(m_d->limits));
 }
 
-FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version)
-{ return writeKra(path, version, true); }
+FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version, const QImage &preview)
+{ return writeKra(path, version, true, preview); }
 
 FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadata)
 {
@@ -116,6 +119,7 @@ FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadat
     Kra::Document value;
     value.description = m_d->description;
     value.files = m_d->files;
+    value.image.format = m_d->image->operations().snapshot()->format;
     if (metadata.layerXmp || metadata.layerCollapsed) {
         const auto version = m_d->image->operations().snapshot();
         value.image.size = version->size;
@@ -137,39 +141,42 @@ FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadat
     return {FileCode::Success, m_d->image->operations().snapshot(), {}};
 }
 
-FileOutcome PaintDocument::exportKra(const QString &path, const Snapshot &version)
-{ return writeKra(path, version, false); }
+FileOutcome PaintDocument::exportKra(const QString &path, const Snapshot &version, const QImage &preview)
+{ return writeKra(path, version, false, preview); }
 
-FileOutcome PaintDocument::writeKra(const QString &path, const Snapshot &version, bool adoptFile)
+FileOutcome PaintDocument::writeKra(const QString &path, const Snapshot &version, bool adoptFile, const QImage &preview)
 {
     if (!onThread()) return {FileCode::InvalidData, {}, QStringLiteral("Saving requires the document thread")};
     if (!m_d->image->handle()) return {FileCode::Closed, {}, QStringLiteral("The painting document is closed")};
     if (path.isEmpty()) return {FileCode::InvalidData, {}, QStringLiteral("Saving requires a path")};
     QSaveFile file(path);
     if (!file.open(QIODevice::WriteOnly)) return {FileCode::IoFailure, {}, file.errorString()};
-    const auto written = exportKra(file, version);
+    const auto written = exportKra(file, version, preview);
     if (written.code != FileCode::Success) { file.cancelWriting(); return written; }
     if (!file.commit()) return {FileCode::IoFailure, {}, file.errorString()};
     if (adoptFile) return adoptSavedFile(path, written.version);
     return written;
 }
 
-FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &version)
+FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &version, const QImage &preview)
 {
     auto &d = *m_d;
     if (!onThread()) return {FileCode::InvalidData, {}, QStringLiteral("Saving requires the document thread")};
     if (!d.image->handle()) return {FileCode::Closed, {}, QStringLiteral("The painting document is closed")};
+    if (!preview.isNull() && !version)
+        return {FileCode::InvalidData, {}, QStringLiteral("A native preview requires its explicit image version")};
     const auto pinned = version ? version : d.image->operations().snapshot();
     if (!pinned || pinned->documentId() != d.image->operations().snapshot()->documentId() || !pinned->isCommitted())
         return {FileCode::InvalidData, {}, QStringLiteral("Saving requires a committed version of this document")};
     const auto limits = Private::formatLimits(d.limits);
-    if (qint64(pinned->size.width()) * pinned->size.height() * 4 > limits.archiveBytes)
+    if (qint64(pinned->size.width()) * pinned->size.height() * pixelByteCount(pinned->format) > limits.archiveBytes)
         return {FileCode::CapacityExceeded, {}, QStringLiteral("KRA projection pixel capacity exceeded")};
     Kra::Document output;
     output.description = d.description;
     output.files = d.files;
     output.compressRaster = d.compressRaster;
     output.image.size = pinned->size;
+    output.image.format = pinned->format;
     output.image.projectionBackground = pinned->projectionBackground;
     output.image.selection = pinned->selection;
     output.image.selectionInverted = pinned->selectionInverted;
@@ -184,7 +191,7 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
             if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};
             saved.writtenAreas = pixels.writtenAreas;
             for (const auto &tile : pixels.tiles) {
-                saved.tiles.append({tile.coordinate, tile.rgba});
+                saved.tiles.append({tile.coordinate, tile.rgba, pinned->format});
                 rasterBytes += tile.rgba.size();
             }
         }
@@ -192,7 +199,25 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
     }
     const auto projection = d.execution.readProjectionImage(d.image->handle(), pinned, limits.archiveBytes);
     if (projection.code != ExecutionCode::Success) return {fileCode(projection.code), {}, projection.diagnostic};
-    const auto written = Kra::RasterCodec::write(destination, output, projection.image, limits);
+    auto merged = projection.image;
+    if (pinned->format == PixelFormat::Rgba16) {
+        // KRA retains U16 layer pixels; the native merged PNG uses the default RGB8 conversion.
+        QByteArray bgra(qsizetype(merged.width()) * merged.height() * 8, Qt::Uninitialized);
+        for (int y = 0; y < merged.height(); ++y) {
+            const auto *source = reinterpret_cast<const QRgba64 *>(merged.constScanLine(y));
+            for (int x = 0; x < merged.width(); ++x) {
+                const quint16 pixel[] = {source[x].blue(), source[x].green(), source[x].red(), source[x].alpha()};
+                std::memcpy(bgra.data() + (qsizetype(y) * merged.width() + x) * 8, pixel, sizeof(pixel));
+            }
+        }
+        const auto registry = KoColorSpaceRegistry::instance();
+        if (!registry->rgb16() || !registry->rgb8())
+            return {FileCode::UnsupportedData, {}, QStringLiteral("The native RGB color conversion is unavailable")};
+        merged = registry->rgb16()->convertToQImage(reinterpret_cast<const quint8 *>(bgra.constData()),
+            merged.width(), merged.height(), registry->rgb8()->profile(),
+            KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
+    }
+    const auto written = Kra::RasterCodec::write(destination, output, merged, limits, preview);
     if (written.code != Kra::Status::Success) return {fileCode(written.code), {}, written.diagnostic};
     return {FileCode::Success, pinned, {}};
 }

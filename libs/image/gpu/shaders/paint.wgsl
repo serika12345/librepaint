@@ -5,13 +5,14 @@ struct Parameters {
     origin: vec2<i32>,
     color: u32,
     canvasOpacityBits: u32,
-    opacityByte: u32,
+    opacityValue: u32,
     erase: u32,
     count: u32,
     paintFlags: u32,
     mirror: vec4<i32>,
     selection: vec4<i32>,
     pattern: vec4<u32>,
+    native: vec4<u32>,
 }
 struct FigureFillEdge { endpoints: vec4<i32>, mirroredRounding: vec4<i32>, }
 @group(0) @binding(0) var<uniform> parameters: Parameters;
@@ -23,6 +24,21 @@ struct FigureFillEdge { endpoints: vec4<i32>, mirroredRounding: vec4<i32>, }
 @group(0) @binding(6) var<storage, read_write> retainedCoverage: array<u32>;
 @group(0) @binding(7) var<storage, read> selectionCoverage: array<u32>;
 @group(0) @binding(8) var<storage, read> patternPixels: array<u32>;
+
+
+fn paintBase(index: u32) -> vec4<u32> {
+    let wide = parameters.native.z != 0u;
+    let stride = select(1u, 2u, wide);
+    let word = index * stride;
+    return nativePixel(basePixels[word], basePixels[word + stride - 1u], wide);
+}
+fn writePaintPixel(index: u32, pixel: vec4<u32>) {
+    let wide = parameters.native.z != 0u;
+    let word = index * select(1u, 2u, wide);
+    let packed = nativePixelWords(pixel, wide);
+    outputPixels[word] = packed.x;
+    if (wide) { outputPixels[word + 1u] = packed.y; }
+}
 
 // Pattern pixels repeat from the document origin; negative document
 // coordinates wrap into the same tile.
@@ -79,10 +95,10 @@ fn washAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {
         opacity = floatMultiply(opacity, flow);
         average = floatMultiply(average, flow);
     }
-    let opacityByte = floatMultiply(0x437f0000u, opacity);
+    let opacityValue = floatMultiply(0x437f0000u, opacity);
     let averageByte = floatMultiply(0x437f0000u, average);
     let mask = floatMultiply(bitcast<u32>(f32(coverage)), 0x3b808081u);
-    let source = floatMultiply(mask, opacityByte);
+    let source = floatMultiply(mask, opacityValue);
     if (source == 0u) { return destination; }
     let current = bitcast<u32>(f32(destination));
     var fullFlow = current;
@@ -90,15 +106,15 @@ fn washAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {
         if (averageByte > current) {
             fullFlow = floatAdd(floatMultiply(floatSubtract(averageByte, source), floatDivide(current, averageByte)), source);
         }
-    } else if (opacityByte > current) {
-        fullFlow = floatAdd(floatMultiply(floatSubtract(opacityByte, current), mask), current);
+    } else if (opacityValue > current) {
+        fullFlow = floatAdd(floatMultiply(floatSubtract(opacityValue, current), mask), current);
     }
-    if (flow == 0x3f800000u) { return projectionByte(fullFlow); }
+    if (flow == 0x3f800000u) { return projectionComponent(fullFlow); }
     var zeroFlow = current;
     if (values.w == 0u) {
         zeroFlow = floatSubtract(floatAdd(source, current), floatMultiply(floatMultiply(source, current), 0x3b808081u));
     }
-    return projectionByte(floatAdd(floatMultiply(floatSubtract(fullFlow, zeroFlow), flow), zeroFlow));
+    return projectionComponent(floatAdd(floatMultiply(floatSubtract(fullFlow, zeroFlow), flow), zeroFlow));
 }
 
 fn gaussianCoverage(pixel: vec2<i32>) -> u32 {
@@ -268,7 +284,10 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let local = invocation.xy;
     if (any(local >= vec2<u32>(256u))) { return; }
     let index = local.y * 256u + local.x;
-    if ((parameters.paintFlags & 16384u) != 0u) { outputPixels[index] = parameters.color; return; }
+    if ((parameters.paintFlags & 16384u) != 0u) {
+        writePaintPixel(index, nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u));
+        return;
+    }
     let pixel = parameters.origin + vec2<i32>(local);
     let selection = parameters.selection;
     let maskSelection = (parameters.paintFlags & 4096u) != 0u;
@@ -300,14 +319,14 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         if (maskSelection && softSelection) {
             selectionAlpha = select(selectionAlpha, 255u - selectionAlpha, inverted);
             if (selectionAlpha == 0u) {
-                outputPixels[index] = basePixels[index];
+                writePaintPixel(index, paintBase(index));
                 return;
             }
         } else {
             var masked = !inside;
             if (inverted) { masked = inside; }
             if (masked) {
-                outputPixels[index] = basePixels[index];
+                writePaintPixel(index, paintBase(index));
                 return;
             }
         }
@@ -334,12 +353,12 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             fillCoverage = 255u - mul255(255u - fillCoverage, 255u - coverage);
         }
     }
-    let base = unpackPixel(basePixels[index]);
-    var source = unpackPixel(parameters.color).xyz;
+    let base = paintBase(index);
+    var source = nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u).xyz;
     var coverage = strokeCoverage;
     var blendMode = parameters.pattern.w;
     if ((figureFlags & 1u) != 0u) {
-        var fillColor = unpackPixel(bitcast<u32>(parameters.mirror.z));
+        var fillColor = nativePixel(bitcast<u32>(parameters.mirror.z), parameters.native.y, parameters.native.z != 0u);
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
         let fillAlpha = mul255(fillColor.w, fillCoverage);
         // Native marker writes retain the fill color at equal temporary alpha.
@@ -352,20 +371,36 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     var writable = (parameters.paintFlags >> 1u) & 15u;
     if ((parameters.paintFlags & 1u) != 0u && parameters.erase == 0u) { writable &= 7u; }
     if (parameters.erase != 0u) {
-        let alpha = mul255(mul255(coverage, selectionAlpha), parameters.opacityByte);
+        var resultAlpha: u32;
+        if (parameters.native.z != 0u) {
+            let masked = mul65535(coverage * 257u, selectionAlpha * 257u);
+            let alpha = mul65535(masked, parameters.opacityValue);
+            resultAlpha = mul65535(base.w, 65535u - alpha);
+        } else {
+            let alpha = mul255(mul255(coverage, selectionAlpha), parameters.opacityValue);
+            resultAlpha = mul255(base.w, 255u - alpha);
+        }
         // Native erase applies alpha independently of protected color channels.
-        let resultAlpha = mul255(base.w, 255u - alpha);
-        outputPixels[index] = packPixel(vec4<u32>(base.xyz, resultAlpha));
+        writePaintPixel(index, vec4<u32>(base.xyz, resultAlpha));
     } else if (blendMode == 0u) {
-        var sourceAlpha = projectionScaleByte(parameters.canvasOpacityBits, coverage);
+        var sourceAlpha: u32;
+        if (parameters.native.z != 0u) {
+            sourceAlpha = projectionMultiply(nativeNormalizedAlpha(coverage * 257u), parameters.canvasOpacityBits);
+        } else {
+            sourceAlpha = projectionScaleByte(parameters.canvasOpacityBits, coverage);
+        }
         if (selectionAlpha != 255u) {
             sourceAlpha = projectionMultiply(sourceAlpha, projectionScaleByte(0x3b808081u, selectionAlpha));
         }
-        outputPixels[index] = normalRgba8(base, source, sourceAlpha, writable);
+        if (parameters.native.z != 0u) {
+            writePaintPixel(index, normalRgba16(base, source, sourceAlpha, writable));
+        } else {
+            writePaintPixel(index, unpackPixel(normalRgba8(base, source, sourceAlpha, writable)));
+        }
     } else {
-        let alpha = mul255(mul255(coverage, selectionAlpha), parameters.opacityByte);
+        let alpha = mul255(mul255(coverage, selectionAlpha), parameters.opacityValue);
         let blended = unpackPixel(separableProjectionPixel(base, vec4<u32>(source, alpha), 255u, 15u, blendMode));
-        outputPixels[index] = packPixel(select(base, blended, vec4<bool>((writable & 1u) != 0u,
+        writePaintPixel(index, select(base, blended, vec4<bool>((writable & 1u) != 0u,
             (writable & 2u) != 0u, (writable & 4u) != 0u, (writable & 8u) != 0u)));
     }
 }

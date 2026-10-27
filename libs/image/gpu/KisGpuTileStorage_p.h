@@ -10,6 +10,7 @@
 #include "KisGpuPaintGeometry_p.h"
 #include <QMap>
 #include <QSet>
+#include <array>
 #include "KisGpuNativeResources_p.h"
 
 namespace LibrePaint::Image::Gpu::Detail {
@@ -22,8 +23,8 @@ struct Tile
     bool mayContainHiddenRgb = true;
     Tile(NativeBuffer pixels, std::shared_ptr<Budget> budget)
         : budget(std::move(budget)), pixels(std::move(pixels))
-    { this->budget->used += TileRenderer::TileBytes; }
-    ~Tile() { budget->used -= TileRenderer::TileBytes; }
+    { this->budget->used += wgpuBufferGetSize(this->pixels.get()); }
+    ~Tile() { budget->used -= wgpuBufferGetSize(pixels.get()); }
 };
 using Tiles = QMap<quint64, std::shared_ptr<Tile>>;
 /** Alpha coverage tile uploaded for layer composition; one byte per pixel. */
@@ -59,7 +60,7 @@ struct RenderedVersion::Data
     std::shared_ptr<Detail::Budget> owner;
     QMap<LayerId, Detail::Tiles> layers;
     QMap<LayerId, std::shared_ptr<Detail::Tile>> defaults;
-    QHash<LayerId, std::array<quint8, 4>> defaultPixels;
+    QHash<LayerId, RgbaPixel> defaultPixels;
     QMap<LayerId, Detail::ProjectionInputs> groupInputs;
     QSet<LayerId> directGroups;
     std::shared_ptr<Detail::Tile> background;
@@ -81,7 +82,7 @@ struct TileRenderer::Private
 {
     DevicePtr device;
     std::shared_ptr<Detail::Budget> budget;
-    Detail::NativeBuffer zero;
+    std::array<Detail::NativeBuffer, 2> zero;
     Detail::NativeBuffer unusedCoverage;
     Detail::NativeBuffer unusedSelection;
     Detail::NativeBuffer unusedPattern;
@@ -114,7 +115,6 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline resizePipeline;
     Detail::NativeBindingLayout colorSampleLayout;
     Detail::NativeComputePipeline colorSamplePipeline;
-    bool zeroUploaded = false;
     bool selectionZeroUploaded = false;
     QString error;
     QWeakPointer<const RenderedVersion> coverageVersion;
@@ -128,16 +128,17 @@ struct TileRenderer::Private
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);
     Detail::NativeBuffer recordBounds(WGPUCommandEncoder commands, const QList<TileView> &tiles,
-                                     QRect region, const std::array<quint8, 4> &defaultPixel, bool includeTransparentColors);
+                                     QRect region, const RgbaPixel &defaultPixel, PixelFormat format, bool includeTransparentColors);
     bool recordThumbnailSamples(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer output,
-                                WGPUBuffer samples, WGPUBuffer parameters, quint32 count);
+                                WGPUBuffer samples, WGPUBuffer parameters, quint32 count, PixelFormat format);
     bool recordColorSample(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer output,
-                           WGPUBuffer parameters, QSize size);
+                           WGPUBuffer parameters, QSize size, PixelFormat format);
     bool recordResizePass(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer accumulated,
                           WGPUBuffer spans, WGPUBuffer weights, WGPUBuffer output,
                           WGPUBuffer parameters, quint32 count);
-    std::shared_ptr<Detail::Tile> allocateTile();
-    bool ensureTileCapacity(qsizetype count);
+    WGPUBuffer zeroBuffer(WGPUCommandEncoder commands, PixelFormat format);
+    std::shared_ptr<Detail::Tile> allocateTile(PixelFormat format);
+    bool ensureTileCapacity(qsizetype count, PixelFormat format);
     /** Uploads the mask's alpha tile for one document tile coordinate. */
     std::shared_ptr<Detail::CoverageTile> coverageTile(const SelectionMaskSP &mask, quint64 coordinate);
     void clearMaskTiles();
@@ -147,7 +148,7 @@ struct TileRenderer::Private
         QString diagnostic;
     };
     TranslationResult translateTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
-                                     const std::shared_ptr<Detail::Tile> &fallback, QPoint offset,
+                                     const std::shared_ptr<Detail::Tile> &fallback, QPoint offset, PixelFormat format,
                                      QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
     struct CropResult {
         RenderOutcome::Code code;
@@ -155,7 +156,7 @@ struct TileRenderer::Private
         QString diagnostic;
     };
     CropResult cropTiles(WGPUCommandEncoder commands, const Detail::Tiles &source, QRect keep,
-                        quint32 defaultPixel, QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
+                        const RgbaPixel &defaultPixel, PixelFormat format, QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
     struct FilterResult {
         RenderOutcome::Code code;
         Detail::Tiles tiles;
