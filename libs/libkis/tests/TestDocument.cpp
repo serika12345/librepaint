@@ -3140,6 +3140,89 @@ class KisTransformMaskAdapter;
 KISTEST_MAIN(TestDocument)
 
 
+void TestDocument::testGpuSessionOpensCpuAuthoredU16NativeDocument()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    auto *registry = KoColorSpaceRegistry::instance();
+    const auto *cs = registry->rgb16();
+    QVERIFY(cs && cs->profile());
+    const QByteArray profile = cs->profile()->rawData();
+    const quint16 background[] = {0x1234, 0x5678, 0x9abc, 0xffff};
+    const quint16 authored[] = {0x0102, 0x0304, 0x7f80, 0xffff};
+    const quint16 changed[] = {0x1111, 0x2222, 0x3333, 0xffff};
+    const auto bytes = [](const quint16 *values, qsizetype count) {
+        return QByteArray(reinterpret_cast<const char *>(values), count * qsizetype(sizeof(quint16)));
+    };
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto authoredPath = directory.filePath(QStringLiteral("cpu-authored-u16.kra"));
+    {
+        // The CPU engine writes the reference file; the GPU session only reads it.
+        qputenv("LIBREPAINT_GPU_ENGINE", "0");
+        QScopedPointer<KisDocument> source(KisPart::instance()->createDocument());
+        source->setFileBatchMode(true);
+        QVERIFY2(source->newImage(QStringLiteral("CPU authored U16"), 16, 8, cs,
+                                  KoColor(reinterpret_cast<const quint8 *>(background), cs),
+                                  KisConfig::CANVAS_COLOR, 1, {}, 1), qPrintable(source->errorMessage()));
+        KisNodeSP layer = KisImageSP(source->image())->root()->firstChild();
+        QVERIFY(layer);
+        QScopedPointer<Node> node(Node::createNode(source->image(), layer));
+        QVERIFY(node->setPixelData(bytes(authored, 4), 3, 2, 1, 1));
+        QVERIFY2(source->saveAs(authoredPath, KisDocument::nativeFormatMimeType(), false),
+                 qPrintable(source->errorMessage()));
+        source->waitForSavingToComplete();
+    }
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    QVERIFY2(document->openPath(authoredPath, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+    KisImageSP image = document->image();
+    QVERIFY(image->gpuImage());
+    QCOMPARE(image->colorSpace()->colorModelId().id(), QStringLiteral("RGBA"));
+    QCOMPARE(image->colorSpace()->colorDepthId().id(), QStringLiteral("U16"));
+    QCOMPARE(image->profile()->rawData(), profile);
+    const auto opened = image->gpuImage()->operations().snapshot();
+    QCOMPARE(opened->format, Gpu::PixelFormat::Rgba16);
+    QCOMPARE(opened->colorProfile, profile);
+    Document api(document.data(), false);
+    QCOMPARE(api.pixelData(3, 2, 1, 1), bytes(authored, 4));
+    {
+        // The GPU document owner records one history entry, as the painting
+        // tools do. A public Node pixel write is a raw write without history.
+        const auto owner = image->gpuImage();
+        const auto layer = owner->operations().activeLayer();
+        const QByteArray changedRgba = Gpu::rgbaBytes({0x3333, 0x2222, 0x1111, 0xffff},
+                                                      Gpu::PixelFormat::Rgba16);
+        QCOMPARE(owner->replaceRgbaPixels(layer, QRect(3, 2, 1, 1), changedRgba), Gpu::Result::Success);
+        QCOMPARE(api.pixelData(3, 2, 1, 1), bytes(changed, 4));
+        document->undoStack()->undo();
+        QCOMPARE(api.pixelData(3, 2, 1, 1), bytes(authored, 4));
+        document->undoStack()->redo();
+        QCOMPARE(api.pixelData(3, 2, 1, 1), bytes(changed, 4));
+    }
+    const auto savedPath = directory.filePath(QStringLiteral("edited-u16.kra"));
+    QVERIFY2(document->saveAs(savedPath, KisDocument::nativeFormatMimeType(), false),
+             qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(savedPath, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QVERIFY(reopened->image()->gpuImage());
+    QCOMPARE(reopened->image()->colorSpace()->colorModelId().id(), QStringLiteral("RGBA"));
+    QCOMPARE(reopened->image()->colorSpace()->colorDepthId().id(), QStringLiteral("U16"));
+    QCOMPARE(reopened->image()->profile()->rawData(), profile);
+    Document reopenedApi(reopened.data(), false);
+    QCOMPARE(reopenedApi.pixelData(3, 2, 1, 1), bytes(changed, 4));
+    QScopedPointer<Node> edited(Node::createNode(reopened->image(), reopened->image()->root()->firstChild()));
+    QVERIFY(edited->setPixelData(bytes(authored, 4), 3, 2, 1, 1));
+    QCOMPARE(reopenedApi.pixelData(3, 2, 1, 1), bytes(authored, 4));
+}
+
 void TestDocument::testGpuU16PublicPixelsPreserveDocumentEncoding()
 {
     namespace Gpu = LibrePaint::Image::Gpu;

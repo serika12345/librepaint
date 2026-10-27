@@ -44,6 +44,7 @@ private Q_SLOTS:
     void testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsupportedEdits();
     void testGpuSessionOpensExistingStaticNativeDocuments_data();
     void testGpuSessionOpensExistingStaticNativeDocuments();
+    void testGpuSessionOpensCpuAuthoredU16NativeDocument();
     void testCanvasBackgroundReferencePixels_data();
     void testCanvasBackgroundReferencePixels();
     void testGpuDocumentPreviewsTransferOnlyRequestedPixels_data();
