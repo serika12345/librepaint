@@ -523,6 +523,7 @@ KisImportExportErrorCode KisPNGConverter::buildGpuImage(std::shared_ptr<LibrePai
 {
     if (!m_prepared || !execution) return ImportExportCodes::Failure;
     auto prepared = std::move(m_prepared);
+    prepared->raster.colorProfile = prepared->colorSpace->profile()->rawData();
     try {
         auto image = KisImage::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP::create(execution, prepared->raster),
                                            QStringLiteral("built image"), prepared->colorSpace);

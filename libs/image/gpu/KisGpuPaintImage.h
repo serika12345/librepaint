@@ -101,6 +101,11 @@ public:
     LayerPixelReferenceSP retainLayerPixels(LayerId layer);
 
     /** Selection state for subsequent painting; accepted operations freeze it. */
+    OperationId beginColorConversion();
+    Result cancelColorConversion(OperationId id);
+    Result commitColorConversion(OperationId id, const Snapshot &before, PixelFormat format,
+        const QByteArray &profile, const RgbaPixel &background, const QList<ConvertedLayerPixels> &layers);
+
     Result setSelectionRect(const QRect &rect, bool inverted = false);
     Result setSelectionEllipse(const QRect &rect, bool inverted = false);
     Result setSelectionMask(const SelectionMaskSP &mask, bool inverted = false);

@@ -475,6 +475,15 @@ struct RasterImage
     /** Arbitrary coverage for SelectionKind::Freehand. */
     SelectionMaskSP selectionMask;
     PixelFormat format = PixelFormat::Rgba8;
+    QByteArray colorProfile;
+};
+
+struct ConvertedLayerPixels
+{
+    LayerId layer = 0;
+    RgbaPixel defaultPixel{};
+    QList<QSharedPointer<const RasterTile>> tiles;
+    QList<QRect> writtenAreas;
 };
 
 struct Layer
@@ -543,6 +552,7 @@ public:
     QList<LayerProjectionInput> projectionInputs(LayerId group = 0) const;
     QSize size;
     PixelFormat format = PixelFormat::Rgba8;
+    QByteArray colorProfile;
     RgbaPixel projectionBackground{};
     QList<Layer> layers;
     LayerId activeLayer = 0;
@@ -624,7 +634,7 @@ enum class HistoryAction {
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
     ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
     ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors,
-    Grayscale, HsvAdjustment
+    Grayscale, HsvAdjustment, ConvertColorSpace
 };
 
 struct Limits
@@ -907,6 +917,10 @@ public:
      * operation.
      */
     Result hsvAdjustment(LayerId layer, const HsvAdjustment &settings);
+    OperationId beginColorConversion();
+    Result cancelColorConversion(OperationId id);
+    Result commitColorConversion(OperationId id, const Snapshot &before, PixelFormat format,
+        const QByteArray &profile, const RgbaPixel &background, const QList<ConvertedLayerPixels> &layers);
     Result undo();
     Result redo();
     /** Selects one retained history state without executing intermediate edits. */
@@ -935,6 +949,7 @@ private:
         bool clearedLayers = false;
         bool filledLayer = false;
         /** One paint layer gained an RGB filter operation in its retained version. */
+        bool convertedColorSpace = false;
         bool filteredLayer = false;
         /** Filter applied by the retained operation. */
         FilterKind filterKind = FilterKind::InvertColors;

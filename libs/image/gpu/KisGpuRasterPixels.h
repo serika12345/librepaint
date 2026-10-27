@@ -58,6 +58,8 @@ struct RgbaTile
 class KRITAIMAGEGPUOPERATIONS_EXPORT RasterTile
 {
 public:
+    /** Compression output allocation bound; zero for an unsupported format. */
+    static qsizetype compressionBufferBytes(PixelFormat format);
     static QSharedPointer<const RasterTile> fromPixels(const RgbaTile &tile);
     QPoint coordinate() const { return m_coordinate; }
     PixelFormat format() const { return m_format; }

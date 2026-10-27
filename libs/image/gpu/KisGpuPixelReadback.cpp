@@ -266,12 +266,18 @@ ExecutionOutcome Execution::retireDisplayCaches()
     return {ExecutionCode::Success, {}};
 }
 
-PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Snapshot &pinned,
-                                               LayerId layer, qsizetype maximumBytes)
+LayerTileCoordinatesOutcome Execution::layerTileCoordinates(DocumentHandle handle, const Snapshot &pinned,
+                                                              LayerId layer, qsizetype maximumTiles)
 {
-    if (!layer || maximumBytes < 0) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Layer pixel capacity and identity are invalid"));
+    const auto reject = [](ExecutionCode code, const QString &diagnostic) {
+        return LayerTileCoordinatesOutcome{code, {}, {}, diagnostic};
+    };
+    if (!pinned || maximumTiles < 0 || maximumTiles > std::numeric_limits<qsizetype>::max() / RgbaTile::byteCount(pinned->format))
+        return reject(ExecutionCode::InvalidRequest, QStringLiteral("Invalid sparse tile capacity"));
+    const qsizetype maximumBytes = maximumTiles * RgbaTile::byteCount(pinned ? pinned->format : PixelFormat::Rgba16);
+    if (!layer || maximumBytes < 0) return reject(ExecutionCode::InvalidRequest, QStringLiteral("Layer pixel capacity and identity are invalid"));
     auto outcome = readPixels(handle, pinned, {}, {layer}, false, PixelReadArea::LayerCoordinates);
-    if (outcome.code != ExecutionCode::Success) return outcome;
+    if (outcome.code != ExecutionCode::Success) return reject(outcome.code, outcome.diagnostic);
     constexpr int limit = RgbaTile::CoordinateLimit;
     outcome.region = {-limit, -limit, 2 * limit, 2 * limit};
     const Layer *selected = nullptr;
@@ -279,7 +285,7 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
     for (const auto &operation : selected->operations) {
         if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
             if ((*write)->writtenAreas.size() > maximumBytes / qsizetype(sizeof(QRect)) - outcome.writtenAreas.size())
-                return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
+                return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
             outcome.writtenAreas.append((*write)->writtenAreas);
         } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
             for (auto &area : outcome.writtenAreas) area = area.translated((*translation)->offset).intersected(outcome.region);
@@ -302,21 +308,37 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
                     appendWrittenAreas(Detail::gaussianDabs(paint, paint.id == pinned->pendingOperation())) :
                     appendWrittenAreas(Detail::markerDabs(paint, paint.id == pinned->pendingOperation(), outcome.region));
                 if (status != ExecutionCode::Success)
-                    return failure(status, status == ExecutionCode::InvalidRequest ?
+                    return reject(status, status == ExecutionCode::InvalidRequest ?
                         QStringLiteral("Layer written-area geometry is unsupported") : QStringLiteral("Layer written-area capacity exceeded"));
             }
         }
         if (outcome.writtenAreas.size() > maximumBytes / qsizetype(sizeof(QRect)))
-            return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
+            return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
     }
     outcome.writtenAreas.removeIf([](const QRect &area) { return area.isEmpty(); });
     const auto coordinates = layerCoordinates(pinned, *selected, outcome.region, maximumBytes / RgbaTile::byteCount(pinned->format));
-    if (!coordinates) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Complete layer pixel capacity exceeded"));
-    if (coordinates->isEmpty()) return outcome;
+    if (!coordinates) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Complete layer pixel capacity exceeded"));
+    LayerTileCoordinatesOutcome result{ExecutionCode::Success, {}, outcome.writtenAreas, {}};
+    for (const auto coordinate : *coordinates) result.coordinates.append(Detail::coordinate(coordinate));
+    return result;
+}
+
+PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Snapshot &pinned,
+                                               LayerId layer, qsizetype maximumBytes)
+{
+    if (!pinned || maximumBytes < 0) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Invalid layer pixel capacity"));
+    const auto plan = layerTileCoordinates(handle, pinned, layer, maximumBytes / RgbaTile::byteCount(pinned->format));
+    if (plan.code != ExecutionCode::Success) return failure(plan.code, plan.diagnostic);
+    auto outcome = readPixels(handle, pinned, {}, {layer}, false, PixelReadArea::LayerCoordinates);
+    if (outcome.code != ExecutionCode::Success) return outcome;
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    outcome.region = {-limit, -limit, 2 * limit, 2 * limit};
+    outcome.writtenAreas = plan.writtenAreas;
+    if (plan.coordinates.isEmpty()) return outcome;
     const auto retired = retireDisplayCaches();
     if (retired.code != ExecutionCode::Success) return failure(retired.code, retired.diagnostic);
-    for (const auto coordinate : *coordinates) {
-        const QRect region(Detail::coordinate(coordinate) * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+    for (const auto coordinate : plan.coordinates) {
+        const QRect region(coordinate * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
         const auto pixels = readPixels(handle, pinned, region, {layer}, false, PixelReadArea::LayerCoordinates);
         if (pixels.code != ExecutionCode::Success) return failure(pixels.code, pixels.diagnostic);
         outcome.tiles.append(pixels.tiles);

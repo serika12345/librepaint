@@ -32,6 +32,10 @@
 #include <math.h>
 
 #include <QImage>
+#include <QTimer>
+#include <QEventLoop>
+#include <QPointer>
+#include <QScopeGuard>
 #include <QColorSpace>
 #include <QPainter>
 #include <QSize>
@@ -348,6 +352,28 @@ public:
                                      const QRect &cropRect,
                                      KisProjectionUpdateFlags flags);
 
+    struct GpuColorConversion {
+        LibrePaint::Image::Gpu::PaintImageSP owner;
+        LibrePaint::Image::Gpu::Snapshot before;
+        LibrePaint::Image::Gpu::OperationId id;
+        const KoColorSpace *source = nullptr;
+        const KoColorSpace *destination = nullptr;
+        KoColorConversionTransformation::Intent intent;
+        KoColorConversionTransformation::ConversionFlags flags;
+        QList<LibrePaint::Image::Gpu::ConvertedLayerPixels> layers;
+        QList<QList<QPoint>> coordinates;
+        qsizetype layer = 0, tile = 0, compressed = 0;
+        LibrePaint::Image::Gpu::RgbaPixel background{};
+        QTimer timer;
+        QMetaObject::Connection cancellation;
+    };
+    std::unique_ptr<GpuColorConversion> gpuColorConversion;
+    void cancelGpuColorConversion(const QString &diagnostic = {}, bool notify = true);
+    void advanceGpuColorConversion();
+    bool startGpuColorConversion(const KoColorSpace *destination,
+        KoColorConversionTransformation::Intent intent,
+        KoColorConversionTransformation::ConversionFlags flags);
+
     bool tryCancelCurrentStrokeAsync();
 
     void notifyProjectionUpdatedInPatches(const QRect &rc, QVector<KisRunnableStrokeJobData *> &jobs);
@@ -395,6 +421,7 @@ KisImage::~KisImage()
     /**
      * Request the tools to end currently running strokes
      */
+    m_d->cancelGpuColorConversion({}, false);
     waitForDone();
 
     if (m_d->gpuImage) QObject::disconnect(m_d->gpuImage.data(), nullptr, this, nullptr);
@@ -925,6 +952,7 @@ bool KisImage::locked() const
 
 void KisImage::barrierLock(bool readOnly)
 {
+    if (m_d->gpuColorConversion) waitForDone();
     if (!locked()) {
         requestStrokeEnd();
         KisBusyWaitBroker::instance()->notifyWaitOnImageStarted(this);
@@ -940,6 +968,7 @@ void KisImage::barrierLock(bool readOnly)
 
 bool KisImage::tryBarrierLock(bool readOnly)
 {
+    if (m_d->gpuColorConversion) return false;
     bool result = true;
 
     if (!locked()) {
@@ -969,6 +998,7 @@ bool KisImage::hasOpenStrokes() const
 
 void KisImage::immediateLockForReadOnly()
 {
+    if (m_d->gpuColorConversion) waitForDone();
     if (!locked()) {
         requestStrokeEnd();
         KisBusyWaitBroker::instance()->notifyWaitOnImageStarted(this);
@@ -1596,11 +1626,195 @@ private:
     KisImageWSP m_image;
 };
 
+
+void KisImage::KisImagePrivate::cancelGpuColorConversion(const QString &diagnostic, bool notify)
+{
+    auto state = std::move(gpuColorConversion);
+    if (!state) return;
+    state->timer.stop();
+    QObject::disconnect(state->cancellation);
+    state->owner->cancelColorConversion(state->id);
+    state.reset();
+    if (!diagnostic.isEmpty()) qWarning() << diagnostic;
+    if (notify) Q_EMIT q->sigGpuColorConversionFinished(false, diagnostic);
+}
+
+bool KisImage::KisImagePrivate::startGpuColorConversion(const KoColorSpace *destination,
+    KoColorConversionTransformation::Intent intent, KoColorConversionTransformation::ConversionFlags flags)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!destination || q->locked() || gpuColorConversion || !gpuImage ||
+        *colorSpace != *KoColorSpaceRegistry::instance()->rgb16() ||
+        *destination != *KoColorSpaceRegistry::instance()->rgb8()) return false;
+    const auto before = gpuImage->operations().snapshot();
+    if (before->format != Gpu::PixelFormat::Rgba16 ||
+        (!before->colorProfile.isEmpty() && before->colorProfile != colorSpace->profile()->rawData())) return false;
+    // Simultaneously live per-tile buffers: canonical/native input, native/canonical output,
+    // and zlib's output bound. Prepared compressed tiles have their separate write budget.
+    constexpr qsizetype pixels = Gpu::RgbaTile::Size * Gpu::RgbaTile::Size;
+    const qsizetype working = pixels * (8 + 8 + 4 + 4) + Gpu::RasterTile::compressionBufferBytes(Gpu::PixelFormat::Rgba8);
+    if (working > gpuImage->limits().rasterBytes) return false;
+    auto state = std::make_unique<GpuColorConversion>();
+    const auto id = gpuImage->beginColorConversion();
+    if (id.isNull()) return false;
+    auto admissionCleanup = qScopeGuard([&] { gpuImage->cancelColorConversion(id); });
+    state->owner = gpuImage;
+    state->before = before;
+    state->id = id;
+    state->source = colorSpace;
+    state->destination = destination;
+    state->intent = intent;
+    state->flags = flags;
+    const auto convertPixel = [&](const Gpu::RgbaPixel &rgba) {
+        const quint16 input[] = {quint16(rgba[2]), quint16(rgba[1]), quint16(rgba[0]), quint16(rgba[3])};
+        quint8 output[4];
+        if (!colorSpace->convertPixelsTo(reinterpret_cast<const quint8 *>(input), output, destination, 1, intent, flags))
+            throw std::runtime_error("The default pixel color conversion failed");
+        return Gpu::RgbaPixel{output[2], output[1], output[0], output[3]};
+    };
+    try {
+        state->background = convertPixel(before->projectionBackground);
+        qsizetype remaining = gpuImage->limits().rasterBytes / (pixels * 4);
+        for (const auto &layer : before->layers) {
+            if (layer.kind != Gpu::LayerKind::Paint) continue;
+            const auto plan = gpuImage->execution().layerTileCoordinates(gpuImage->handle(), before, layer.id, remaining);
+            if (plan.code != Gpu::ExecutionCode::Success) {
+                return false;
+            }
+            remaining -= plan.coordinates.size();
+            state->layers.append({layer.id, convertPixel(layer.defaultPixel), {}, plan.writtenAreas});
+            state->coordinates.append(plan.coordinates);
+        }
+    } catch (...) {
+        return false;
+    }
+    try {
+    QObject::connect(&state->timer, &QTimer::timeout, q, [this] { advanceGpuColorConversion(); });
+    state->cancellation = QObject::connect(q, &KisImage::sigStrokeCancellationRequested, q,
+        [this] { cancelGpuColorConversion(); });
+    state->timer.setInterval(0);
+    gpuColorConversion = std::move(state);
+    gpuColorConversion->timer.start();
+    admissionCleanup.dismiss();
+    return true;
+    } catch (...) {
+        gpuColorConversion.reset();
+        qWarning() << "GPU image color conversion setup failed";
+        return false;
+    }
+}
+
+void KisImage::KisImagePrivate::advanceGpuColorConversion()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    auto *state = gpuColorConversion.get();
+    if (!state) return;
+    if (state->owner != gpuImage || state->owner->operations().snapshot() != state->before ||
+        state->owner->operations().activeOperation() != state->id) {
+        cancelGpuColorConversion();
+        return;
+    }
+    while (state->layer < state->layers.size() &&
+           state->tile == state->coordinates[state->layer].size()) {
+        ++state->layer;
+        state->tile = 0;
+    }
+    if (state->layer == state->layers.size()) {
+        auto completed = std::move(gpuColorConversion);
+        completed->timer.stop();
+        QObject::disconnect(completed->cancellation);
+        QPointer<KisImage> guard(q);
+        const auto owner = completed->owner;
+        const auto id = completed->id;
+        auto cleanup = qScopeGuard([owner, id] { owner->cancelColorConversion(id); });
+        Gpu::Result result = Gpu::Result::CapacityExceeded;
+        try {
+            result = owner->commitColorConversion(id, completed->before,
+                Gpu::PixelFormat::Rgba8, completed->destination->profile()->rawData(),
+                completed->background, completed->layers);
+        } catch (...) {
+            // Observer failures occur after adoption; the accepted version remains authoritative.
+            if (owner->operations().snapshot() != completed->before) result = Gpu::Result::Success;
+        }
+        if (result != Gpu::Result::Success) owner->cancelColorConversion(id);
+        cleanup.dismiss();
+        completed.reset();
+        if (guard) Q_EMIT guard->sigGpuColorConversionFinished(result == Gpu::Result::Success,
+            result == Gpu::Result::Success ? QString() : QStringLiteral("GPU image color conversion adoption failed"));
+        return;
+    }
+    try {
+        const auto coordinate = state->coordinates[state->layer][state->tile];
+        constexpr int side = Gpu::RgbaTile::Size;
+        constexpr qsizetype count = side * side;
+        const auto input = state->owner->execution().readRgbaPixels(state->owner->handle(), state->before,
+            QRect(coordinate * side, QSize(side, side)), state->layers[state->layer].layer, count * 8);
+        if (input.code != Gpu::ExecutionCode::Success) { cancelGpuColorConversion(input.diagnostic); return; }
+        QByteArray nativeInput(count * 8, Qt::Uninitialized), nativeOutput(count * 4, Qt::Uninitialized);
+        for (qsizetype i = 0; i < count; ++i) {
+            const auto *src = reinterpret_cast<const quint8 *>(input.bytes.constData()) + i * 8;
+            quint16 pixel[] = {quint16(src[4] | (src[5] << 8)), quint16(src[2] | (src[3] << 8)),
+                quint16(src[0] | (src[1] << 8)), quint16(src[6] | (src[7] << 8))};
+            std::memcpy(nativeInput.data() + i * 8, pixel, sizeof(pixel));
+        }
+        if (!state->source->convertPixelsTo(reinterpret_cast<const quint8 *>(nativeInput.constData()),
+            reinterpret_cast<quint8 *>(nativeOutput.data()), state->destination, count, state->intent, state->flags)) {
+            cancelGpuColorConversion(QStringLiteral("GPU image tile color conversion failed")); return;
+        }
+        QByteArray canonical(count * 4, Qt::Uninitialized);
+        for (qsizetype i = 0; i < count; ++i) {
+            canonical[i * 4] = nativeOutput[i * 4 + 2];
+            canonical[i * 4 + 1] = nativeOutput[i * 4 + 1];
+            canonical[i * 4 + 2] = nativeOutput[i * 4];
+            canonical[i * 4 + 3] = nativeOutput[i * 4 + 3];
+        }
+        const auto tile = Gpu::RasterTile::fromPixels({coordinate, canonical, Gpu::PixelFormat::Rgba8});
+        if (!tile || tile->compressedByteCount() > state->owner->limits().compressedWriteBytes - state->compressed) {
+            cancelGpuColorConversion(QStringLiteral("GPU image color conversion compressed capacity exceeded")); return;
+        }
+        state->compressed += tile->compressedByteCount();
+        state->layers[state->layer].tiles.append(tile);
+        ++state->tile;
+    } catch (...) { cancelGpuColorConversion(QStringLiteral("GPU image color conversion preparation failed")); }
+}
+
+void KisImage::synchronizeGpuColorSpace()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto version = gpuImage()->operations().snapshot();
+    auto *registry = KoColorSpaceRegistry::instance();
+    const auto depth = version->format == Gpu::PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
+    // Raw operation-only images use the format's established default encoding.
+    const auto profile = version->colorProfile.isEmpty() ?
+        (version->format == Gpu::PixelFormat::Rgba16 ? registry->rgb16()->profile() : registry->rgb8()->profile()) :
+        registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, version->colorProfile);
+    const auto cs = profile ? registry->colorSpace(QStringLiteral("RGBA"), depth, profile) : nullptr;
+    if (cs && *cs != *m_d->colorSpace) {
+        m_d->colorSpace = cs;
+        Q_EMIT sigColorSpaceChanged(cs);
+    }
+}
+
 void KisImage::KisImagePrivate::convertImageColorSpaceImpl(const KoColorSpace *dstColorSpace,
                                                            bool convertLayers,
                                                            KoColorConversionTransformation::Intent renderingIntent,
                                                            KoColorConversionTransformation::ConversionFlags conversionFlags)
 {
+    if (gpuImage) {
+        if (!dstColorSpace || *colorSpace == *dstColorSpace) return;
+        bool started = false;
+        try {
+            q->requestStrokeEnd();
+            started = convertLayers && startGpuColorConversion(dstColorSpace, renderingIntent, conversionFlags);
+        }
+        catch (const std::bad_alloc &) {}
+        if (!started) {
+            const auto diagnostic = QStringLiteral("GPU image color conversion was rejected: unsupported encoding, active operation, lock or preparation capacity");
+            qWarning() << diagnostic;
+            Q_EMIT q->sigGpuColorConversionFinished(false, diagnostic);
+        }
+        return;
+    }
     const KoColorSpace *srcColorSpace = this->colorSpace;
 
     if (!dstColorSpace || *srcColorSpace == *dstColorSpace) return;
@@ -1994,6 +2208,12 @@ QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProf
 QImage KisImage::convertToQImage(const QSize &scaledImageSize, const KoColorProfile *profile,
                                 const LibrePaint::Image::Gpu::Snapshot &version, const KoColorSpace *documentColorSpace)
 {
+    if (m_d->gpuImage && version && !version->colorProfile.isEmpty()) {
+        auto *registry = KoColorSpaceRegistry::instance();
+        const auto depth = version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
+        const auto encoding = registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, version->colorProfile);
+        documentColorSpace = encoding ? registry->colorSpace(QStringLiteral("RGBA"), depth, encoding) : nullptr;
+    }
     if (!documentColorSpace || (m_d->gpuImage && (!version ||
         version->documentId() != m_d->gpuImage->operations().snapshot()->documentId() ||
         documentColorSpace->pixelSize() != LibrePaint::Image::Gpu::pixelByteCount(version->format))))
@@ -2259,6 +2479,12 @@ void KisImage::waitForDone()
 {
     requestStrokeEnd();
     KisBusyWaitBroker::instance()->notifyWaitOnImageStarted(this);
+    while (m_d->gpuColorConversion) {
+        QEventLoop loop;
+        const auto connection = connect(this, &KisImage::sigGpuColorConversionFinished, &loop, &QEventLoop::quit);
+        if (m_d->gpuColorConversion) loop.exec(QEventLoop::ExcludeUserInputEvents);
+        disconnect(connection);
+    }
     if (m_d->scheduler) m_d->cpuScheduler().waitForDone();
     KisBusyWaitBroker::instance()->notifyWaitOnImageEnded(this);
 }

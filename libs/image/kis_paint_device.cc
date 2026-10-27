@@ -227,7 +227,17 @@ public:
 
     inline const KoColorSpace* colorSpace() const
     {
-        if (gpuImage) return gpuColorSpace;
+        if (gpuImage) {
+            const auto version = gpuPixels ? gpuPixels->version() : gpuImage->operations().snapshot();
+            if (version->colorProfile.isEmpty()) return version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ?
+                KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+            if (gpuColorSpace && gpuColorSpace->profile()->rawData() == version->colorProfile &&
+                gpuColorSpace->pixelSize() == LibrePaint::Image::Gpu::pixelByteCount(version->format)) return gpuColorSpace;
+            const auto depth = version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
+            const auto registry = KoColorSpaceRegistry::instance();
+            const auto profile = registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, version->colorProfile);
+            return registry->colorSpace(QStringLiteral("RGBA"), depth, profile);
+        }
         return currentData()->colorSpace();
     }
     inline KisDataManagerSP dataManager() const
@@ -296,7 +306,7 @@ public:
             if (!image) throw std::invalid_argument("GPU pixel copies require a retained version on the owning thread");
             const auto pixels = rhs->gpuPixels ? image->retainLayerPixels(rhs->gpuLayerId())
                                               : LibrePaint::Image::Gpu::LayerPixelReferenceSP{};
-            bindGpuLayer(std::move(image), pixels, rhs->gpuColorSpace);
+            bindGpuLayer(std::move(image), pixels, rhs->colorSpace());
             return;
         }
 

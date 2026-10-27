@@ -44,6 +44,7 @@
 #include <metadata/kis_meta_data_value.h>
 #include <metadata/kis_meta_data_schema_registry.h>
 #include <kra/KisKraRasterCodec.h>
+#include <gpu/KisGpuPaintDocument.h>
 
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
@@ -3171,4 +3172,142 @@ void TestDocument::testGpuU16PublicPixelsPreserveDocumentEncoding()
     QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
     QCOMPARE(reopened->image()->colorSpace(), cs);
 
+}
+
+void TestDocument::testGpuImageColorConversionKeepsHistoryEncoding()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    const auto source = KoColorSpaceRegistry::instance()->rgb16();
+    const auto destination = KoColorSpaceRegistry::instance()->rgb8();
+    const quint16 background[] = {0x1234, 0x5678, 0x9abc, 0xffff};
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    QVERIFY(document->newImage(QStringLiteral("Color conversion"), 32, 16, source,
+        KoColor(reinterpret_cast<const quint8 *>(background), source), KisConfig::RASTER_LAYER, 2, {}, 1));
+    KisImageSP image = document->image();
+    const auto owner = image->gpuImage();
+    QVERIFY(owner);
+    QCOMPARE(owner->writeProjectionBackground({0x2468, 0x1357, 0xabcd, 0x9876}), Gpu::Result::Success);
+    Document publicDocument(document.data(), false);
+    QScopedPointer<Node> root(publicDocument.rootNode());
+    NodeSP node(root->childNodes().back());
+    const quint16 components[] = {0x1357, 0x2468, 0xabcd, 0x9876};
+    const QByteArray input(reinterpret_cast<const char *>(components), sizeof(components));
+    QVERIFY(node->setPixelData(input, -1, 2, 1, 1));
+    QScopedPointer<Node> group(publicDocument.createNode(QStringLiteral("Group"), QStringLiteral("grouplayer")));
+    QVERIFY(group);
+    QVERIFY(root->addChildNode(group.data(), nullptr));
+    const auto leafUuid = node->uniqueId();
+    KisNodeSP nativeLeaf;
+    for (auto child = image->root()->firstChild(); child; child = child->nextSibling())
+        if (child->uuid() == leafUuid) nativeLeaf = child;
+    QVERIFY(nativeLeaf);
+    Gpu::LayerId leafId = 0;
+    for (const auto &layer : owner->operations().snapshot()->layers)
+        if (layer.uuid == leafUuid) leafId = layer.id;
+    QVERIFY(leafId);
+    QCOMPARE(owner->moveLayers({leafId}, group->uniqueId(), {}), Gpu::Result::Success);
+    QCOMPARE(owner->setSelectionRect(QRect(2, 3, 7, 5)), Gpu::Result::Success);
+    const auto fixed = owner->operations().snapshot();
+    const auto retainedDevice = nativeLeaf->paintDevice();
+    const auto oldBackground = image->defaultProjectionColor();
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto livePath = directory.filePath(QStringLiteral("live.kra"));
+    document->setFileBatchMode(true);
+    QVERIFY2(document->saveAs(livePath, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    const int history = document->undoStack()->count();
+    QByteArray expected(4, Qt::Uninitialized);
+    const auto intent = KoColorConversionTransformation::IntentPerceptual;
+    const auto flags = KoColorConversionTransformation::HighQuality | KoColorConversionTransformation::NoOptimization;
+    source->convertPixelsTo(reinterpret_cast<const quint8 *>(input.constData()),
+        reinterpret_cast<quint8 *>(expected.data()), destination, 1, intent, flags);
+    QVERIFY(publicDocument.setColorSpace(destination->colorModelId().id(), destination->colorDepthId().id(), destination->profile()->name()));
+    QCOMPARE(owner->operations().snapshot()->format, Gpu::PixelFormat::Rgba8);
+    QCOMPARE(image->colorSpace(), destination);
+    const auto converted = owner->operations().snapshot();
+    QCOMPARE(converted->layers.size(), fixed->layers.size());
+    QCOMPARE(converted->selection, fixed->selection);
+    QCOMPARE(converted->selectedLayers, fixed->selectedLayers);
+    QCOMPARE(converted->activeLayer, fixed->activeLayer);
+    for (qsizetype i = 0; i < fixed->layers.size(); ++i) {
+        QCOMPARE(converted->layers[i].id, fixed->layers[i].id);
+        QCOMPARE(converted->layers[i].uuid, fixed->layers[i].uuid);
+        QCOMPARE(converted->layers[i].parentUuid, fixed->layers[i].parentUuid);
+        QCOMPARE(converted->layers[i].position, fixed->layers[i].position);
+        if (fixed->layers[i].kind == Gpu::LayerKind::Paint) {
+            const auto &rgba = fixed->layers[i].defaultPixel;
+            const quint16 nativeDefault[] = {quint16(rgba[2]), quint16(rgba[1]), quint16(rgba[0]), quint16(rgba[3])};
+            quint8 expectedDefault[4];
+            QVERIFY(source->convertPixelsTo(reinterpret_cast<const quint8 *>(nativeDefault), expectedDefault, destination, 1, intent, flags));
+            const Gpu::RgbaPixel expectedRgba{expectedDefault[2], expectedDefault[1], expectedDefault[0], expectedDefault[3]};
+            QCOMPARE(converted->layers[i].defaultPixel, expectedRgba);
+        }
+    }
+    auto expectedBackground = oldBackground;
+    expectedBackground.convertTo(destination, intent, flags);
+    QCOMPARE(image->defaultProjectionColor(), expectedBackground);
+    QCOMPARE(converted->colorProfile, destination->profile()->rawData());
+    QCOMPARE(fixed->colorProfile, source->profile()->rawData());
+    QCOMPARE(retainedDevice->colorSpace(), destination);
+    QCOMPARE(node->pixelData(-1, 2, 1, 1), expected);
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    const QByteArray edited = QByteArray::fromHex("21436587");
+    QVERIFY(node->setPixelData(edited, -1, 2, 1, 1));
+    document->undoStack()->undo();
+    QCOMPARE(image->colorSpace(), source);
+    QCOMPARE(owner->operations().snapshot()->format, Gpu::PixelFormat::Rgba16);
+    QCOMPARE(node->pixelData(-1, 2, 1, 1), input);
+    QCOMPARE(fixed->format, Gpu::PixelFormat::Rgba16);
+    document->undoStack()->redo();
+    QCOMPARE(image->colorSpace(), destination);
+    QCOMPARE(node->pixelData(-1, 2, 1, 1), edited);
+    QVERIFY2(document->saveAs(livePath, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QScopedPointer<KisDocument> liveReopened(KisPart::instance()->createDocument());
+    liveReopened->setFileBatchMode(true);
+    QVERIFY2(liveReopened->openPath(livePath, KisDocument::DontAddToRecent), qPrintable(liveReopened->errorMessage()));
+    QCOMPARE(liveReopened->image()->colorSpace(), destination);
+    Document publicLive(liveReopened.data(), false);
+    QScopedPointer<Node> liveLeaf(publicLive.nodeByUniqueID(leafUuid));
+    QVERIFY(liveLeaf);
+    QCOMPARE(liveLeaf->uniqueId(), leafUuid);
+    QCOMPARE(liveLeaf->pixelData(-1, 2, 1, 1), edited);
+    const auto path = directory.filePath(QStringLiteral("old-version.kra"));
+    const auto preview = image->convertToQImage({256, 256}, destination->profile(), fixed, source);
+    LibrePaint::Document::Gpu::PaintDocument files(owner);
+    LibrePaint::ImportExport::Kra::ImageMetadata metadata;
+    metadata.iccProfile = destination->profile()->rawData();
+    metadata.profileName = destination->profile()->name();
+    QCOMPARE(files.setKraImageMetadata(metadata).code, LibrePaint::Document::Gpu::FileCode::Success);
+    const auto saved = files.exportKra(path, fixed, preview);
+    QCOMPARE(saved.code, LibrePaint::Document::Gpu::FileCode::Success);
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QCOMPARE(reopened->image()->colorSpace(), source);
+    QCOMPARE(reopened->image()->gpuImage()->operations().snapshot()->colorProfile, fixed->colorProfile);
+    Document publicReopened(reopened.data(), false);
+    QScopedPointer<Node> reopenedLeaf(publicReopened.nodeByUniqueID(leafUuid));
+    QVERIFY(reopenedLeaf);
+    QCOMPARE(reopenedLeaf->pixelData(-1, 2, 1, 1), input);
+
+    // Cancellation occurs before the first timer tick and preserves the redo branch.
+    document->undoStack()->undo();
+    const auto beforeCancel = owner->operations().snapshot();
+    const int redo = owner->operations().redoCount();
+    image->convertImageColorSpace(destination, intent, flags);
+    QVERIFY(!image->isIdle());
+    QVERIFY(!image->tryBarrierLock());
+    image->requestStrokeCancellation();
+    image->waitForDone();
+    QCOMPARE(owner->operations().snapshot(), beforeCancel);
+    QCOMPARE(owner->operations().redoCount(), redo);
+    QVERIFY(image->isIdle());
 }

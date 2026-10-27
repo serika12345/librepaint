@@ -108,7 +108,11 @@ QString colorSpaceName(PixelFormat format)
 { return format == PixelFormat::Rgba16 ? QStringLiteral("RGBA16") : QStringLiteral("RGBA"); }
 Outcome description(const QByteArray &bytes, QDomDocument &xml, QDomElement &image)
 {
-    if (!xml.setContent(bytes)) return invalid(QStringLiteral("Invalid KRA document XML"));
+    QString parseError;
+    int errorLine = 0, errorColumn = 0;
+    if (!xml.setContent(bytes, &parseError, &errorLine, &errorColumn)) {
+        return invalid(QStringLiteral("Invalid KRA document XML: %1 at %2:%3").arg(parseError).arg(errorLine).arg(errorColumn));
+    }
     const auto root = xml.documentElement();
     image = root.firstChildElement(QStringLiteral("IMAGE"));
     const auto layers = image.firstChildElement(QStringLiteral("layers"));
@@ -731,6 +735,39 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
 }
 }
 
+static Outcome applyRasterEncoding(QDomElement image, const RasterImage &value, QMap<QString, QByteArray> &files, Limits limits)
+{
+    if (value.colorProfile.isEmpty()) return {Status::Success, {}};
+    image.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
+    const auto folder = image.attribute(QStringLiteral("name"));
+    const auto imageProfile = folder + QStringLiteral("/annotations/icc");
+    auto background = image.firstChildElement(QStringLiteral("ProjectionBackgroundColor"));
+    if (background.isNull()) {
+        background = image.ownerDocument().createElement(QStringLiteral("ProjectionBackgroundColor"));
+        image.appendChild(background);
+    }
+    background.setAttribute(QStringLiteral("ColorData"), QString::fromLatin1(Detail::bgra(value.projectionBackground, value.format).toBase64()));
+    const bool changedProfile = files.value(imageProfile) != value.colorProfile;
+    files.insert(imageProfile, value.colorProfile);
+    if (changedProfile) {
+        auto name = QColorSpace::fromIccProfile(value.colorProfile).description();
+        // ICC description padding is not part of the native profile name.
+        while (name.endsWith(QChar::Null)) name.chop(1);
+        if (!validName(name)) return invalid(QStringLiteral("Invalid KRA profile name"));
+        image.setAttribute(QStringLiteral("profile"), name);
+    }
+    QList<QDomElement> elements;
+    auto result = collectLayerElements(image.firstChildElement(QStringLiteral("layers")), limits.layers, elements);
+    if (result.code != Status::Success) return result;
+    for (auto element : elements) {
+        element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
+        if (changedProfile) element.setAttribute(QStringLiteral("profile"), image.attribute(QStringLiteral("profile")));
+        if (element.attribute(QStringLiteral("nodetype")) == QLatin1String("paintlayer"))
+            files.insert(folder + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename")) + QStringLiteral(".icc"), value.colorProfile);
+    }
+    return {Status::Success, {}};
+}
+
 Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata &metadata, Limits limits)
 {
     auto result = validateMetadata(document.description, document.files, limits);
@@ -769,7 +806,8 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         image.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(document.image.format));
         image.firstChildElement(QStringLiteral("ProjectionBackgroundColor")).setAttribute(QStringLiteral("ColorData"),
             QString::fromLatin1(Detail::bgra(document.image.projectionBackground, document.image.format).toBase64()));
-    } else if ((metadata.layerXmp || metadata.layerCollapsed) && document.image.format != imageFormat(image)) {
+    } else if (document.image.colorProfile.isEmpty() &&
+               (metadata.layerXmp || metadata.layerCollapsed) && document.image.format != imageFormat(image)) {
         return invalid(QStringLiteral("KRA metadata image precision does not match its retained description"));
     }
     if (!metadata.producerVersion.isEmpty()) xml.documentElement().setAttribute(QStringLiteral("kritaVersion"), metadata.producerVersion);
@@ -847,6 +885,8 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         }
     }
     if (annotations.hasChildNodes()) image.appendChild(annotations);
+    result = applyRasterEncoding(image, document.image, files, limits);
+    if (result.code != Status::Success) return result;
     if (!metadata.iccProfile.isEmpty()) files.insert(prefix + QStringLiteral("icc"), metadata.iccProfile);
     if (!metadata.profileName.isEmpty()) image.setAttribute(QStringLiteral("profile"), metadata.profileName);
     if (metadata.documentInfo.isEmpty()) files.remove(QStringLiteral("documentinfo.xml"));
@@ -1010,6 +1050,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
     const auto folder = image.attribute(QStringLiteral("name"));
     result = profile(document.files, folder + QStringLiteral("/annotations/icc"), image.attribute(QStringLiteral("profile")), imageFormat(image));
     if (result.code != Status::Success) return fail(result);
+    document.image.colorProfile = document.files.value(folder + QStringLiteral("/annotations/icc"));
     QSet<QUuid> uuids;
     QSet<QString> filenames;
     qsizetype rasterBytes = 0;
@@ -1226,6 +1267,8 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     }
     background.setAttribute(QStringLiteral("ColorData"), QString::fromLatin1(Detail::bgra(value.projectionBackground, value.format).toBase64()));
     const auto imageProfile = folder + QStringLiteral("/annotations/icc");
+    result = applyRasterEncoding(image, value, files, limits);
+    if (result.code != Status::Success) return result;
     if (!files.contains(imageProfile)) files.insert(imageProfile, QColorSpace(QColorSpace::SRgb).iccProfile());
     result = profile(files, imageProfile, image.attribute(QStringLiteral("profile")), imageFormat(image));
     if (result.code != Status::Success) return result;

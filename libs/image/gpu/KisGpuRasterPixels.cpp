@@ -56,11 +56,17 @@ QByteArray decode(const QByteArray &data, PixelFormat format)
 RasterTile::RasterTile(QPoint coordinate, QByteArray data, PixelFormat format)
     : m_coordinate(coordinate), m_compressed(std::move(data)), m_format(format) {}
 
+qsizetype RasterTile::compressionBufferBytes(PixelFormat format)
+{
+    const auto bytes = RgbaTile::byteCount(format);
+    return bytes ? qsizetype(compressBound(bytes)) : 0;
+}
+
 QSharedPointer<const RasterTile> RasterTile::fromPixels(const RgbaTile &tile)
 {
     const auto byteCount = RgbaTile::byteCount(tile.format);
     if (!byteCount || !validCoordinate(tile.coordinate) || tile.rgba.size() != byteCount) return {};
-    uLongf size = compressBound(byteCount);
+    uLongf size = compressionBufferBytes(tile.format);
     QByteArray compressed(qsizetype(size), Qt::Uninitialized);
     const auto result = compress2(reinterpret_cast<Bytef *>(compressed.data()), &size,
                                  reinterpret_cast<const Bytef *>(tile.rgba.constData()),

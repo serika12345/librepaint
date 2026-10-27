@@ -3339,6 +3339,7 @@ bool KisDocument::newImage(const QString& name,
         if (!execution) { setErrorMessage(diagnostic); return false; }
         Gpu::RasterImage raster;
         raster.size = {width, height};
+        raster.colorProfile = cs->profile()->rawData();
         raster.format = cs->pixelSize() == 8 ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
         KoColor initialColor(bgColor);
         initialColor.convertTo(cs);

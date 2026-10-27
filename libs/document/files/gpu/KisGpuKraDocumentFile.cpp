@@ -8,6 +8,7 @@
 #include <QFile>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
+#include <KoColorProfile.h>
 #include <cstring>
 #include <QSaveFile>
 #include <stdexcept>
@@ -120,6 +121,8 @@ FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadat
     value.description = m_d->description;
     value.files = m_d->files;
     value.image.format = m_d->image->operations().snapshot()->format;
+    value.image.colorProfile = m_d->image->operations().snapshot()->colorProfile;
+    value.image.projectionBackground = m_d->image->operations().snapshot()->projectionBackground;
     if (metadata.layerXmp || metadata.layerCollapsed) {
         const auto version = m_d->image->operations().snapshot();
         value.image.size = version->size;
@@ -177,6 +180,7 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
     output.compressRaster = d.compressRaster;
     output.image.size = pinned->size;
     output.image.format = pinned->format;
+    output.image.colorProfile = pinned->colorProfile;
     output.image.projectionBackground = pinned->projectionBackground;
     output.image.selection = pinned->selection;
     output.image.selectionInverted = pinned->selectionInverted;
@@ -213,7 +217,11 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
         const auto registry = KoColorSpaceRegistry::instance();
         if (!registry->rgb16() || !registry->rgb8())
             return {FileCode::UnsupportedData, {}, QStringLiteral("The native RGB color conversion is unavailable")};
-        merged = registry->rgb16()->convertToQImage(reinterpret_cast<const quint8 *>(bgra.constData()),
+        const auto profile = pinned->colorProfile.isEmpty() ? registry->rgb16()->profile() :
+            registry->createColorProfileFromData(QStringLiteral("RGBA"), QStringLiteral("U16"), pinned->colorProfile);
+        const auto encoding = profile ? registry->colorSpace(QStringLiteral("RGBA"), QStringLiteral("U16"), profile) : nullptr;
+        if (!encoding) return {FileCode::UnsupportedData, {}, QStringLiteral("The fixed image profile is unavailable")};
+        merged = encoding->convertToQImage(reinterpret_cast<const quint8 *>(bgra.constData()),
             merged.width(), merged.height(), registry->rgb8()->profile(),
             KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
     }

@@ -160,6 +160,7 @@ PaintImageSP PaintImage::cloneRasterLayer(const Snapshot &version, LayerId layer
     RasterImage input;
     input.size = region.size();
     input.format = version->format;
+    input.colorProfile = version->colorProfile;
     input.layers = {properties};
     qsizetype retainedBytes = 0;
     for (int y = 0; y < rows; ++y) for (int x = 0; x < columns; ++x) {
@@ -234,6 +235,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
         for (const auto &version : versions) {
             const Layer *candidate = nullptr;
             for (const auto &value : version->layers) if (value.id == layer) candidate = &value;
+            if (version->format != current->format || version->colorProfile != current->colorProfile) continue;
             if (!candidate || candidate->uuid != selected.uuid || candidate->defaultPixel != selected.defaultPixel) continue;
             const qint64 dx = qint64(candidate->position.x()) - selected.position.x();
             const qint64 dy = qint64(candidate->position.y()) - selected.position.y();

@@ -61,6 +61,13 @@ struct PixelReadbackOutcome
     /** Explicitly written regions retained by complete-layer reads for lossless saving. */
     QList<QRect> writtenAreas{};
 };
+struct LayerTileCoordinatesOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    QList<QPoint> coordinates;
+    QList<QRect> writtenAreas;
+    QString diagnostic;
+};
 struct ImageReadbackOutcome
 {
     ExecutionCode code = ExecutionCode::InvalidRequest;
@@ -197,6 +204,11 @@ public:
      * preserving requests and publication. External GPU pins count against the
      * shared capacity. Rejection returns no partial result.
      */
+    /** Fixed-version sparse coordinates and explicit written regions; no pixel transfer.
+     * maximumTiles bounds both coordinate storage and the corresponding output tile allocation.
+     */
+    LayerTileCoordinatesOutcome layerTileCoordinates(DocumentHandle handle, const Snapshot &document,
+                                                      LayerId layer, qsizetype maximumTiles);
     PixelReadbackOutcome readLayerPixels(DocumentHandle handle, const Snapshot &document,
                                         LayerId layer, qsizetype maximumBytes);
     /** Complete straight RGBA projection at the document precision, streamed into a bounded CPU image.

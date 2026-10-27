@@ -76,6 +76,7 @@ void ColorSpaceConversion::slotImageColorSpaceConversion()
             image->convertImageColorSpace(cs,
                                           dlgColorSpaceConversion->conversionIntent(),
                                           dlgColorSpaceConversion->conversionFlags());
+            if (image->gpuImage()) image->waitForDone();
         }
     }
     delete dlgColorSpaceConversion;

@@ -34,6 +34,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     initial->m_committed = true;
     initial->size = image.size;
     initial->format = image.format;
+    initial->colorProfile = image.colorProfile;
     initial->selection = image.selection;
     initial->selectionInverted = image.selectionInverted;
     initial->selectionKind = image.selectionKind;
@@ -184,4 +185,69 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
     if (retainedVersion) *retainedVersion = retained;
     return Result::Success;
 }
+OperationId OperationDocument::beginColorConversion()
+{
+    if (checkMutation() != Result::Success || m_nextOperation == std::numeric_limits<quint64>::max()) return {};
+    const OperationId id{m_identity, ++m_nextOperation};
+    return beginExternalStroke(id) == Result::Success ? id : OperationId{};
+}
+
+Result OperationDocument::cancelColorConversion(OperationId id)
+{ return endExternalStroke(id); }
+
+Result OperationDocument::commitColorConversion(OperationId id, const Snapshot &before, PixelFormat format,
+    const QByteArray &profile, const RgbaPixel &background, const QList<ConvertedLayerPixels> &converted)
+{
+    if (m_closed) return Result::Closed;
+    if (id.isNull() || m_externalOperation != id) return Result::StaleOperation;
+    if (before != snapshot()) return Result::StaleVersion;
+    if (before->format != PixelFormat::Rgba16 || format != PixelFormat::Rgba8 ||
+        profile.isEmpty() || !validPixel(background, format)) return Result::InvalidInput;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    QSharedPointer<DocumentVersion> version(new DocumentVersion(*before));
+    qsizetype raster = 0, compressed = 0;
+    QSet<LayerId> seen;
+    for (const auto &pixels : converted) {
+        auto layer = std::find_if(version->layers.begin(), version->layers.end(),
+            [&](const Layer &value) { return value.id == pixels.layer; });
+        if (layer == version->layers.end() || layer->kind != LayerKind::Paint ||
+            seen.contains(pixels.layer) || !validPixel(pixels.defaultPixel, format)) return Result::InvalidInput;
+        seen.insert(pixels.layer);
+        auto write = QSharedPointer<TileWriteOperation>::create();
+        write->id = id;
+        write->version = 1;
+        write->layer = layer->id;
+        write->writtenAreas = pixels.writtenAreas;
+        if (!write->writtenAreas.isEmpty()) write->writeGroup = id.sequence;
+        QSet<QPoint> coordinates;
+        for (const auto &tile : pixels.tiles) {
+            if (!tile || tile->format() != format || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
+            if (tile->byteCount() > m_limits.rasterBytes - raster ||
+                tile->compressedByteCount() > m_limits.compressedWriteBytes - compressed) return Result::CapacityExceeded;
+            raster += tile->byteCount();
+            compressed += tile->compressedByteCount();
+            coordinates.insert(tile->coordinate());
+            write->tiles.append(tile);
+        }
+        if (!Detail::validWrittenAreas(*write)) return Result::InvalidInput;
+        layer->defaultPixel = pixels.defaultPixel;
+        layer->operations.clear();
+        if (!write->tiles.isEmpty()) layer->operations.append(TileWriteSnapshot(write));
+    }
+    for (const auto &layer : version->layers)
+        if (layer.kind == LayerKind::Paint && !seen.contains(layer.id)) return Result::InvalidInput;
+    version->format = format;
+    version->colorProfile = profile;
+    version->projectionBackground = background;
+    version->sampleCount = 0;
+    version->rasterBytes = raster;
+    version->m_modifiedRevision = version->m_revision = m_nextRevision + 1;
+    LayerHistoryChange change;
+    change.convertedColorSpace = true;
+    commitVersion(version, change);
+    ++m_nextRevision;
+    m_externalOperation = {};
+    return Result::Success;
+}
+
 }

@@ -19,6 +19,7 @@
 #include <klocalizedstring.h>
 #include "gpu/KisGpuPaintImage.h"
 #include <KoColorSpaceRegistry.h>
+#include <KoColorProfile.h>
 #include <KoChannelInfo.h>
 #include <KoColor.h>
 #include <KoCompositeOpRegistry.h>
@@ -31,6 +32,7 @@
 #include <utility>
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 
 struct KisGpuImageViewState
 {
@@ -233,7 +235,11 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         }
         const auto background = pixels->defaultPixel();
         const auto *bgra = background.data();
-        properties.defaultPixel = {bgra[2], bgra[1], bgra[0], bgra[3]};
+        if (background.colorSpace()->pixelSize() == 8) {
+            quint16 components[4];
+            std::memcpy(components, bgra, sizeof(components));
+            properties.defaultPixel = {components[2], components[1], components[0], components[3]};
+        } else properties.defaultPixel = {bgra[2], bgra[1], bgra[0], bgra[3]};
         if (group) properties.defaultPixel = {};
         const auto source = pixels->gpuPixelImage();
         const auto reference = pixels->gpuPixelReference();
@@ -243,6 +249,8 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
                 !pixels->regionForLodSyncing().isEmpty())) return false;
             Gpu::RasterImage input;
             input.size = owner->operations().snapshot()->size;
+            input.format = owner->operations().snapshot()->format;
+            input.colorProfile = colorSpace()->profile()->rawData();
             input.layers = {properties};
             input.layers.first().parentUuid = QUuid();
             try {
@@ -251,6 +259,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
                 return false;
             }
         } else if (!source) {
+            if (pixels->colorSpace()->pixelSize() != 4) return false;
             const auto budget = owner->limits().rasterBytes - owner->operations().snapshot()->rasterBytes - preparedBytes;
             QSet<QPoint> coordinates;
             const auto tileIndex = [](int value) { return int(value >= 0 ? qint64(value) / 256 : (qint64(value) - 255) / 256); };
@@ -281,6 +290,8 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             });
             Gpu::RasterImage input;
             input.size = owner->operations().snapshot()->size;
+            input.format = owner->operations().snapshot()->format;
+            input.colorProfile = colorSpace()->profile()->rawData();
             input.layers = {properties};
             input.layers.first().parentUuid = QUuid();
             try {
@@ -450,7 +461,8 @@ KisImageSP KisImage::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, co
     const bool validEncoding = colorSpace && colorSpace->colorModelId().id() == QLatin1String("RGBA") &&
         ((format == LibrePaint::Image::Gpu::PixelFormat::Rgba8 && colorSpace->colorDepthId().id() == QLatin1String("U8")) ||
          (format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 && *colorSpace == *KoColorSpaceRegistry::instance()->rgb16()));
-    if (!validEncoding)
+    if (!validEncoding || (!image->operations().snapshot()->colorProfile.isEmpty() &&
+        image->operations().snapshot()->colorProfile != colorSpace->profile()->rawData()))
         throw std::invalid_argument("GPU image precision and document color encoding must match");
     KisImageSP result = new KisImage(image, name, colorSpace);
     result->synchronizeGpuNodes();
@@ -899,6 +911,7 @@ void KisImage::connectGpuImageUpdates()
         if (version != synchronized) {
             const auto previous = synchronized;
             const auto previousSize = retainedView->size();
+            retainedView->synchronizeGpuColorSpace();
             const bool selectionChanged = version->activeLayer != synchronized->activeLayer ||
                 version->selectedLayers != synchronized->selectedLayers;
             const bool hierarchyChanged = version->layers.size() != previous->layers.size() ||

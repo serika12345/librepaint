@@ -225,6 +225,7 @@ QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
+    if (m_layerHistoryChanges[index].convertedColorSpace) return HistoryAction::ConvertColorSpace;
     if (m_layerHistoryChanges[index].addedTransparencyMask) return HistoryAction::AddTransparencyMask;
     if (m_layerHistoryChanges[index].removedTransparencyMask) return HistoryAction::RemoveTransparencyMask;
     if (m_layerHistoryChanges[index].changedLayerProperties) return HistoryAction::ChangeLayerProperties;
@@ -432,6 +433,7 @@ Result OperationDocument::writeProjectionBackground(const RgbaPixel &rgba)
     auto history = m_history;
     auto nextRevision = m_nextRevision;
     for (auto &state : history) {
+        if (state->format != snapshot()->format || state->colorProfile != snapshot()->colorProfile) continue;
         auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*state));
         version->projectionBackground = rgba;
         version->m_revision = ++nextRevision;

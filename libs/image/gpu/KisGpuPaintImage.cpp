@@ -252,6 +252,7 @@ PaintImageSP PaintImage::cloneLayerForest(const QList<LayerInsertion> &layers, Q
     RasterImage input;
     input.size = size;
     input.format = m_d->document->snapshot()->format;
+    input.colorProfile = m_d->document->snapshot()->colorProfile;
     OperationDocument prepared(input, m_d->limits);
     if (prepared.insertLayers(layers, 0) != Result::Success) return {};
     return PaintImageSP(new PaintImage(m_d->execution, prepared.cloneCurrent(true),
@@ -308,6 +309,20 @@ LayerPixelReferenceSP PaintImage::retainLayerPixels(LayerId layer)
     }
     return reference;
 }
+OperationId PaintImage::beginColorConversion()
+{ return onThread() ? m_d->document->beginColorConversion() : OperationId{}; }
+Result PaintImage::cancelColorConversion(OperationId id)
+{ return onThread() ? m_d->document->cancelColorConversion(id) : Result::InvalidInput; }
+Result PaintImage::commitColorConversion(OperationId id, const Snapshot &before, PixelFormat format,
+    const QByteArray &profile, const RgbaPixel &background, const QList<ConvertedLayerPixels> &layers)
+{
+    if (!onThread()) return Result::InvalidInput;
+    Result result;
+    try { result = m_d->document->commitColorConversion(id, before, format, profile, background, layers); }
+    catch (const std::bad_alloc &) { return Result::CapacityExceeded; }
+    return publish(result);
+}
+
 Result PaintImage::setSelectionRect(const QRect &rect, bool inverted)
 {
     if (!onThread()) return Result::InvalidInput;

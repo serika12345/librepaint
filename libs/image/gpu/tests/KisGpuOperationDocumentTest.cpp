@@ -95,6 +95,7 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void colorConversionAdmissionAndCapacityPreserveVersion();
     void preparedLayerForestsKeepPixelsSelectionAndAtomicHistory();
     void layerForestInsertionCanClearPixelSelectionAtomically_data();
     void layerForestInsertionCanClearPixelSelectionAtomically();
@@ -4379,5 +4380,32 @@ void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument
     }
 }
 
+
+void KisGpuOperationDocumentTest::colorConversionAdmissionAndCapacityPreserveVersion()
+{
+    RasterImage input;
+    input.size = {16, 16};
+    input.format = PixelFormat::Rgba16;
+    input.colorProfile = QByteArrayLiteral("source ICC value");
+    input.layers.append(RasterLayer{QStringLiteral("Paint")});
+    Limits limits;
+    limits.compressedWriteBytes = 1;
+    OperationDocument document(input, limits);
+    const auto before = document.snapshot();
+    const auto id = document.beginColorConversion();
+    QVERIFY(!id.isNull());
+    QVERIFY(document.hasActiveStroke());
+    QCOMPARE(document.undo(), Result::EditInProgress);
+    const auto tile = RasterTile::fromPixels({{0, 0}, QByteArray(RgbaTile::ByteCount, char(42)), PixelFormat::Rgba8});
+    QVERIFY(tile);
+    const QList<ConvertedLayerPixels> layers{{before->activeLayer, {}, {tile}, {}}};
+    QCOMPARE(document.commitColorConversion(id, before, PixelFormat::Rgba8, QByteArrayLiteral("destination ICC value"), {}, layers),
+             Result::CapacityExceeded);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.cancelColorConversion(id), Result::Success);
+    QVERIFY(!document.hasActiveStroke());
+    QCOMPARE(document.snapshot()->colorProfile, input.colorProfile);
+}
 QTEST_GUILESS_MAIN(KisGpuOperationDocumentTest)
 #include "KisGpuOperationDocumentTest.moc"

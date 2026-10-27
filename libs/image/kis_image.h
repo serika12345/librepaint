@@ -937,6 +937,7 @@ public:
     bool isIsolatingGroup() const;
 
 Q_SIGNALS:
+    void sigGpuColorConversionFinished(bool success, const QString &diagnostic);
 
     /**
      *  Emitted whenever an action has caused the image to be
@@ -1381,6 +1382,7 @@ private:
     void synchronizeGpuLayerViews(KisGpuImageViewState *state);
     QSharedPointer<KisGpuImageViewState> &gpuViewState();
     void connectGpuImageUpdates();
+    void synchronizeGpuColorSpace();
     void adoptGpuSelectionMask();
     void synchronizeGpuSelectionToMask();
     void updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePaint::Image::Gpu::SelectionKind kind,
