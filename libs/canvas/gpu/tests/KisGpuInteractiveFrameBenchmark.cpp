@@ -32,6 +32,18 @@ using namespace LibrePaint::Image::Gpu;
 using LibrePaint::Canvas::Gpu::TilePresentation;
 
 namespace {
+KoColorConversionStages identityDisplay(const Snapshot &source)
+{
+    KoColorConversionStages value;
+    value.input.depth = source->format == PixelFormat::Rgba16
+        ? KoColorConversionStages::Encoding::U16 : KoColorConversionStages::Encoding::U8;
+    value.input.iccProfile = source->colorProfile;
+    value.output = value.input;
+    return value;
+}
+}
+
+namespace {
 void require(bool accepted, const QString &diagnostic)
 {
     if (!accepted) throw std::runtime_error(diagnostic.toStdString());
@@ -302,7 +314,7 @@ int main(int argc, char **argv)
                         crop->guides.append(QLineF(rect.left() + fraction * rect.width(), rect.top(), rect.left() + fraction * rect.width(), rect.bottom()));
                     }
                 }
-                const auto drawn = presentation.record(frame.commands, projected.version, target, transform, Qt::white, {}, {}, {}, crop);
+                const auto drawn = presentation.record(frame.commands, projected.version, target, transform, Qt::white, identityDisplay(projected.version->document()), {}, {}, {}, crop);
                 require(drawn.recorded, drawn.diagnostic);
                 if (queries) stamp(frame.commands, timestampFrames * 2 + 1);
                 const auto recorded = timer.nsecsElapsed();

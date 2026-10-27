@@ -798,8 +798,8 @@ void KisCanvas2::createCanvas(bool useOpenGL)
         m_d->currentCanvasIsOpenGL = false;
         m_d->multiSurfaceState =
             m_d->multiSurfaceSetupManager.createInitializingConfig(false, m_d->currentScreenId(), m_d->proofingConfig);
-        setCanvasWidget(new KisGpuCanvasWidget(this, m_d->coordinatesConverter, image, m_d->view));
         m_d->displayColorConverter.setMultiSurfaceDisplayConfig(m_d->multiSurfaceState->multiConfig);
+        setCanvasWidget(new KisGpuCanvasWidget(this, m_d->coordinatesConverter, image, m_d->view));
         return;
     }
 

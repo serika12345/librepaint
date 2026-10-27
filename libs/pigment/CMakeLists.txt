@@ -1,5 +1,11 @@
 project(kritapigment)
 
+add_library(kritapigmentcolorconversionstages INTERFACE)
+target_include_directories(kritapigmentcolorconversionstages INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_link_libraries(kritapigmentcolorconversionstages INTERFACE Qt${QT_MAJOR_VERSION}::Core)
+
+
 ko_compile_for_all_implementations_no_scalar(__per_arch_factory_objs compositeops/KoOptimizedCompositeOpFactoryPerArch.cpp)
 ko_compile_for_all_implementations_no_scalar(__per_arch_alpha_darken32_factory_objs compositeops/KoOptimizedCompositeOpAlphaDarken32FactoryPerArch.cpp)
 # Each binary32 product and sum is rounded before the final alpha byte.
@@ -398,7 +404,7 @@ set_target_properties(kritapigmentalphadarkenparamswrapperobjects PROPERTIES
 add_library(kritapigmentcolorconversiontransformationobjects OBJECT KoColorConversionTransformation.cpp)
 target_compile_definitions(kritapigmentcolorconversiontransformationobjects PRIVATE kritapigment_EXPORTS)
 target_include_directories(kritapigmentcolorconversiontransformationobjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/libs/global ${CMAKE_BINARY_DIR}/libs/global)
-target_link_libraries(kritapigmentcolorconversiontransformationobjects PUBLIC Boost::boost KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
+target_link_libraries(kritapigmentcolorconversiontransformationobjects PUBLIC kritapigmentcolorconversionstages Boost::boost KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
 set_target_properties(kritapigmentcolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 
 add_library(kritapigmentmultiplecolorconversiontransformationobjects OBJECT KoMultipleColorConversionTransformation.cpp)

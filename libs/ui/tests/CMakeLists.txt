@@ -1181,6 +1181,7 @@ kis_add_test(
 add_dependencies(kis_view_signals_test kritalcmsengine kritadefaulttools kritaroundmarkerpaintop)
 
 set(gpu_document_input_cases
+    nonlinearU16CanvasTracksTheActualDisplayConfiguration
     presentsEditsAndReleasesTheClosedTab
     brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     freehandInputCommitsOneHistoryEntryAndCanBeCancelled

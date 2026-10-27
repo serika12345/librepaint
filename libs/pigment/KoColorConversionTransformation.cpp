@@ -85,3 +85,9 @@ void KoColorConversionTransformation::setDstColorSpace(const KoColorSpace* cs) c
     Q_ASSERT(*d->dstColorSpace == *cs);
     d->dstColorSpace = cs;
 }
+
+KoColorConversionStagesResult KoColorConversionTransformation::displayStages() const
+{
+    return {KoColorConversionStagesResult::Unsupported, {},
+            QStringLiteral("This color conversion has no GPU display stages")};
+}

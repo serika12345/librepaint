@@ -5,6 +5,10 @@
 
 #include <QGuiApplication>
 #include <QImage>
+#include <QColorSpace>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
 #include <QPainter>
 #include <QPainterPath>
 #include <QTest>
@@ -13,6 +17,7 @@
 #include <QFile>
 #include <QTemporaryDir>
 #include <QScopeGuard>
+#include <QtEndian>
 #include "../KisGpuPresentationResources_p.h"
 #include <gpu/KisGpuTilePresentation.h>
 #include <gpu/KisGpuTileRenderer.h>
@@ -21,9 +26,22 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <cstring>
 
 using namespace LibrePaint::Image::Gpu;
 using namespace LibrePaint::Canvas::Gpu;
+
+namespace {
+KoColorConversionStages identityDisplay(const Snapshot &source)
+{
+    KoColorConversionStages value;
+    value.input.depth = source->format == PixelFormat::Rgba16
+        ? KoColorConversionStages::Encoding::U16 : KoColorConversionStages::Encoding::U8;
+    value.input.iccProfile = source->colorProfile;
+    value.output = value.input;
+    return value;
+}
+}
 
 class KisGpuTilePresentationTest : public QObject
 {
@@ -36,6 +54,9 @@ private Q_SLOTS:
     void cropPreviewRetainsAntialiasedGeometryAndDocument();
     void panZoomAndTransparencyUseThePaintingQueue();
     void linearU16PresentationPreservesCanonicalPixels();
+    void nonlinearU16PresentationUsesItsColorDefinition();
+    void actualRgbStagesMatchRecordedDisplayValues_data();
+    void actualRgbStagesMatchRecordedDisplayValues();
     void tileOverBackgroundMatchesEightBitSourceOver_data();
     void tileOverBackgroundMatchesEightBitSourceOver();
     void checkerBackgroundPreservesDocumentPixels_data();
@@ -206,7 +227,7 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
     const auto drawn = presentation.record(commands, projection.version, surface.target,
-        QTransform::fromTranslate(8, 16).scale(2, 2), QColor(0, 0, 0, 0));
+        QTransform::fromTranslate(8, 16).scale(2, 2), QColor(0, 0, 0, 0), identityDisplay(projection.version->document()));
     QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
     auto readback = readTexture(*m_device, commands, surface);
     QVERIFY(readback);
@@ -221,7 +242,7 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     commands = m_device->beginCommands();
     QVERIFY(commands);
     const auto background = presentation.record(commands, projection.version, surface.target,
-        QTransform::fromTranslate(8, 16).scale(2, 2), QColor(0, 255, 0, 128));
+        QTransform::fromTranslate(8, 16).scale(2, 2), QColor(0, 255, 0, 128), identityDisplay(projection.version->document()));
     QVERIFY2(background.recorded, qPrintable(background.diagnostic));
     readback = readTexture(*m_device, commands, surface);
     QVERIFY(readback);
@@ -256,7 +277,13 @@ void KisGpuTilePresentationTest::linearU16PresentationPreservesCanonicalPixels()
         QCOMPARE(projection.code, RenderOutcome::Recorded);
         CheckerPattern checks;
         checks.first = checks.second = Qt::white;
-        const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::white,
+        auto display = identityDisplay(projection.version->document());
+        KoColorConversionStages::Curves curves;
+        for (auto &curve : curves.rgb)
+            curve = KoColorConversionStages::ParametricCurve{
+                -4, {2.4, 1.0 / 1.055, 0.055 / 1.055, 1.0 / 12.92, 0.04045}};
+        display.stages.append(curves);
+        const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::white, display,
                                                 {mask, false}, {}, checks);
         QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
         const auto readback = readTexture(*m_device, commands, surface);
@@ -277,6 +304,187 @@ void KisGpuTilePresentationTest::linearU16PresentationPreservesCanonicalPixels()
     }
 }
 
+
+void KisGpuTilePresentationTest::actualRgbStagesMatchRecordedDisplayValues_data()
+{
+    QTest::addColumn<QString>("fixtureName");
+    QTest::newRow("linear") << QStringLiteral("linear");
+    QTest::newRow("nonlinear") << QStringLiteral("nonlinear");
+    QTest::newRow("different-primaries") << QStringLiteral("different-primaries");
+}
+
+void KisGpuTilePresentationTest::actualRgbStagesMatchRecordedDisplayValues()
+{
+    QFETCH(QString, fixtureName);
+    const auto path = QStringLiteral("data/display-stages/") + fixtureName + QStringLiteral(".json");
+    QFile file(QFINDTESTDATA(qPrintable(path)));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto fixture = QJsonDocument::fromJson(file.readAll()).object();
+    QVERIFY(!fixture.isEmpty());
+    using Value = KoColorConversionStages;
+    Value conversion;
+    conversion.input = {Value::Encoding::U16,
+        QByteArray::fromBase64(fixture.value("inputIccBase64").toString().toLatin1())};
+    conversion.output = {Value::Encoding::U8,
+        QByteArray::fromBase64(fixture.value("outputIccBase64").toString().toLatin1())};
+    for (const auto &entry : fixture.value("stages").toArray()) {
+        const auto stage = entry.toObject();
+        if (stage.contains("matrix")) {
+            Value::Matrix value{};
+            const auto coefficients = stage.value("matrix").toArray(), offset = stage.value("offset").toArray();
+            QCOMPARE(coefficients.size(), 9); QCOMPARE(offset.size(), 3);
+            for (int i = 0; i < 9; ++i) value.coefficients[i] = coefficients[i].toDouble();
+            for (int i = 0; i < 3; ++i) value.offset[i] = offset[i].toDouble();
+            conversion.stages.append(value);
+        } else if (stage.contains("clut")) {
+            const auto clut = stage.value("clut").toObject();
+            Value::Clut value;
+            const auto grid = clut.value("grid").toArray();
+            QCOMPARE(grid.size(), 3);
+            for (int i = 0; i < 3; ++i) value.grid[i] = quint32(grid[i].toInt());
+            const auto table = QByteArray::fromBase64(
+                clut.value("table16Base64").toString().toLatin1());
+            QCOMPARE(table.size(), qsizetype(value.grid[0] * value.grid[1] * value.grid[2] * 3 * 2));
+            value.table.reserve(table.size() / 2);
+            for (qsizetype i = 0; i < table.size(); i += 2) {
+                quint16 word;
+                std::memcpy(&word, table.constData() + i, 2);
+                value.table.append(qFromLittleEndian(word));
+            }
+            conversion.stages.append(std::move(value));
+        } else {
+            Value::Curves value;
+            const auto channels = stage.value("curves").toArray();
+            QCOMPARE(channels.size(), 3);
+            for (int c = 0; c < 3; ++c) {
+                const auto curve = channels[c].toObject();
+                if (curve.contains("functionType")) {
+                    Value::ParametricCurve result;
+                    result.functionType = curve.value("functionType").toInt();
+                    for (auto number : curve.value("parameters").toArray()) result.parameters.append(number.toDouble());
+                    value.rgb[c] = std::move(result);
+                } else {
+                    Value::Table16Curve result;
+                    for (auto number : curve.value("table16").toArray()) result.values.append(quint16(number.toInt()));
+                    value.rgb[c] = std::move(result);
+                }
+            }
+            conversion.stages.append(std::move(value));
+        }
+    }
+    const auto samples = fixture.value("samples").toArray();
+    QCOMPARE(samples.size(), 1000);
+    RasterImage input;
+    input.size = {64, 16};
+    input.format = PixelFormat::Rgba16;
+    input.colorProfile = conversion.input.iccProfile;
+    QByteArray pixels(RgbaTile::byteCount(input.format), '\0');
+    for (qsizetype i = 0; i < samples.size(); ++i) {
+        const auto rgb = samples[i].toObject().value("rgb16").toArray();
+        const auto value = rgbaBytes({quint32(rgb[0].toInt()), quint32(rgb[1].toInt()),
+                                      quint32(rgb[2].toInt()), 65535}, input.format);
+        pixels.replace(((i / 64) * RgbaTile::Size + i % 64) * 8, 8, value);
+    }
+    RasterLayer layer;
+    layer.name = QStringLiteral("Actual ICC samples");
+    layer.tiles.append({{0, 0}, pixels, input.format});
+    input.layers.append(layer);
+    OperationDocument document(input);
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    Surface surface(m_device, input.size);
+    QVERIFY(surface.ready);
+    const auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, document.snapshot());
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, QRect(QPoint(), input.size));
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {},
+                                            Qt::transparent, conversion);
+    QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
+    const auto readback = readTexture(*m_device, commands, surface);
+    QVERIFY(readback);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
+    int maximumOriginalDifference = 0, maximumCpuDifference = 0;
+    int changedOriginal = 0, changedCpu = 0;
+    QJsonArray differences;
+    const auto bytes = readback->results.front()->data;
+    for (qsizetype i = 0; i < samples.size(); ++i) {
+        auto sample = samples[i].toObject();
+        const auto original = sample.value("originalStageRgb8").toArray();
+        const auto cpu = sample.value("cpuDisplayRgb8").toArray();
+        QJsonArray gpu;
+        bool differsOriginal = false, differsCpu = false;
+        for (int c = 0; c < 3; ++c) {
+            const int value = quint8(bytes[i*4+c]);
+            gpu.append(value);
+            const int originalDelta = std::abs(value-original[c].toInt());
+            const int cpuDelta = std::abs(value-cpu[c].toInt());
+            maximumOriginalDifference = qMax(maximumOriginalDifference, originalDelta);
+            maximumCpuDifference = qMax(maximumCpuDifference, cpuDelta);
+            differsOriginal |= originalDelta != 0; differsCpu |= cpuDelta != 0;
+        }
+        QCOMPARE(quint8(bytes[i*4+3]), quint8(255));
+        changedOriginal += differsOriginal; changedCpu += differsCpu;
+        if ((differsOriginal || differsCpu) && differences.size() < 16) {
+            sample.insert("gpuRgb8", gpu); differences.append(sample);
+        }
+    }
+    WGPUAdapterInfo adapter{};
+    QVERIFY(wgpuAdapterGetInfo(m_device->adapter(), &adapter) == WGPUStatus_Success);
+    const auto releaseAdapterInfo = qScopeGuard([&] { wgpuAdapterInfoFreeMembers(adapter); });
+    const auto adapterName = QString::fromUtf8(adapter.device.data, qsizetype(adapter.device.length));
+    const QJsonObject measured{{"adapter", adapterName}, {"backend", int(adapter.backendType)},
+        {"fixture", fixtureName},
+        {"maximumGpuOriginalDifference", maximumOriginalDifference},
+        {"maximumGpuCpuDifference", maximumCpuDifference},
+        {"changedGpuOriginalSamples", changedOriginal}, {"changedGpuCpuSamples", changedCpu},
+        {"representatives", differences}};
+    qInfo().noquote() << QJsonDocument(measured).toJson(QJsonDocument::Compact);
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile result(QDir(directory).filePath(fixtureName + QStringLiteral("-gpu.json")));
+        QVERIFY(result.open(QIODevice::WriteOnly));
+        QVERIFY(result.write(QJsonDocument(measured).toJson()) > 0);
+    }
+    // Nonzero differences are evidence requiring review, not a tolerance.
+    // The contract is the actual CPU display result; the pre-optimization
+    // reconstruction remains recorded as diagnostic evidence.
+    QCOMPARE(maximumCpuDifference, 0);
+}
+
+void KisGpuTilePresentationTest::nonlinearU16PresentationUsesItsColorDefinition()
+{
+    // IEC 61966-2-1 sRGB encoded components: identical input/output ICC needs
+    // no RGB stage. The exact U16 multiples of 257 quantize to these U8 bytes.
+    RasterImage raster;
+    raster.size = {64, 8};
+    raster.format = PixelFormat::Rgba16;
+    raster.colorProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    const RgbaPixel canonical{0x3333, 0x6666, 0x9999, 0xffff};
+    raster.layers.append({QStringLiteral("Nonlinear sRGB"), true, {}, {}, canonical});
+    OperationDocument document(raster);
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    Surface surface(m_device, raster.size);
+    QVERIFY(surface.ready);
+    const auto commands = m_device->beginCommands();
+    const auto layers = renderer.record(commands, document.snapshot());
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, QRect(QPoint(), raster.size));
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent, identityDisplay(projection.version->document()));
+    QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
+    const auto readback = readTexture(*m_device, commands, surface);
+    QVERIFY(readback);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
+    QCOMPARE(readback->results.front()->data, QByteArray::fromHex("336699ff").repeated(64 * 8));
+    QCOMPARE(document.snapshot()->layers.first().defaultPixel, canonical);
+}
 
 void KisGpuTilePresentationTest::invalidCropPreviewsPreserveTheTarget_data()
 {
@@ -309,7 +517,7 @@ void KisGpuTilePresentationTest::invalidCropPreviewsPreserveTheTarget()
     const auto projection = renderer.compose(commands, layers.version, {0, 0, 16, 16});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
     clear(commands, surface.target, QColor(7, 13, 29));
-    const auto outcome = presentation.record(commands, projection.version, surface.target, {}, Qt::white, {}, {}, {}, crop);
+    const auto outcome = presentation.record(commands, projection.version, surface.target, {}, Qt::white, identityDisplay(projection.version->document()), {}, {}, {}, crop);
     QVERIFY(!outcome.recorded);
     QVERIFY(!outcome.diagnostic.isEmpty());
     const auto readback = readTexture(*m_device, commands, surface);
@@ -430,7 +638,7 @@ void KisGpuTilePresentationTest::cropPreviewRetainsAntialiasedGeometryAndDocumen
     QCOMPARE(layers.code, RenderOutcome::Recorded);
     const auto projection = renderer.compose(commands, layers.version, {0, 0, 128, 128});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, background, {}, {}, {}, preview);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, background, identityDisplay(projection.version->document()), {}, {}, {}, preview);
     QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
     const auto readback = readTexture(*m_device, commands, surface);
     QVERIFY(readback);
@@ -511,7 +719,7 @@ void KisGpuTilePresentationTest::tileOverBackgroundMatchesEightBitSourceOver()
     QCOMPARE(layers.code, RenderOutcome::Recorded);
     const auto projection = renderer.compose(commands, layers.version, {0, 0, 256, 256});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, backgroundColor);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, backgroundColor, identityDisplay(projection.version->document()));
     QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
     auto readback = readTexture(*m_device, commands, surface, layers.version->tiles(document.activeLayer()).first().pixels);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
@@ -603,7 +811,7 @@ void KisGpuTilePresentationTest::checkerBackgroundPreservesDocumentPixels()
     QCOMPARE(layers.code, RenderOutcome::Recorded);
     const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    const auto drawn = presentation.record(commands, projection.version, surface.target, transform, border, {}, {}, pattern);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, transform, border, identityDisplay(projection.version->document()), {}, {}, pattern);
     QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
     const auto sourcePixels = painted ? layers.version->tiles(document.activeLayer()).first().pixels : nullptr;
     const auto reads = readTexture(*m_device, commands, surface, sourcePixels);
@@ -693,7 +901,7 @@ void KisGpuTilePresentationTest::invalidCheckerPatternsPreserveTheTarget()
     if (invalid == 3) pattern.targetToPattern.scale(0, 1);
     if (invalid == 4) pattern.targetToPattern.translate(std::numeric_limits<qreal>::quiet_NaN(), 0);
     if (invalid == 5) pattern.targetToPattern.translate(qreal(8388609) * pattern.cellSize, 0);
-    const auto outcome = presentation.record(commands, projection.version, surface.target, {}, Qt::white, {}, {}, pattern);
+    const auto outcome = presentation.record(commands, projection.version, surface.target, {}, Qt::white, identityDisplay(projection.version->document()), {}, {}, pattern);
     const auto reads = readTexture(*m_device, commands, surface);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
     QVERIFY(reads->finish(*m_device));
@@ -763,7 +971,7 @@ void KisGpuTilePresentationTest::toolOutlinesMoveAndClearWithoutChangingDocument
             }
         }
         const auto drawn = presentation.record(commands, projection.version, surface.target,
-            imageTransform, backgroundColor, {}, outline);
+            imageTransform, backgroundColor, identityDisplay(projection.version->document()), {}, outline);
         QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
         auto reads = readTexture(*m_device, commands, surface, sourcePixels);
         QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
@@ -832,7 +1040,7 @@ void KisGpuTilePresentationTest::invalidToolOutlinesPreserveTheTarget()
         auto &contour = outline.contours.first();
         for (int i = 0; i < 12000; ++i) contour.append(QPointF(i, i % 2));
     }
-    const auto outcome = presentation.record(commands, projection.version, surface.target, QTransform(), Qt::white, {}, outline);
+    const auto outcome = presentation.record(commands, projection.version, surface.target, QTransform(), Qt::white, identityDisplay(projection.version->document()), {}, outline);
     auto reads = readTexture(*m_device, commands, surface);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
     QVERIFY(reads->finish(*m_device));
@@ -858,7 +1066,7 @@ void KisGpuTilePresentationTest::clippedTilesKeepTheirIndependentTransforms()
     QCOMPARE(layers.code, RenderOutcome::Recorded);
     const auto projection = renderer.compose(commands, layers.version, {4, 4, 272, 16});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent, identityDisplay(projection.version->document()));
     QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
     QCOMPARE(drawn.tileCount, 2);
     auto readback = readTexture(*m_device, commands, surface, projection.version->tiles().first().pixels);
@@ -877,7 +1085,7 @@ void KisGpuTilePresentationTest::clippedTilesKeepTheirIndependentTransforms()
     commands = m_device->beginCommands();
     QVERIFY(commands);
     const auto rotatedDraw = oneVisibleTile.record(commands, projection.version, rotated.target,
-        QTransform(0, 1, -1, 0, 64, 0), Qt::transparent);
+        QTransform(0, 1, -1, 0, 64, 0), Qt::transparent, identityDisplay(projection.version->document()));
     QVERIFY2(rotatedDraw.recorded, qPrintable(rotatedDraw.diagnostic));
     QCOMPARE(rotatedDraw.tileCount, 1);
     readback = readTexture(*m_device, commands, rotated);
@@ -930,7 +1138,7 @@ void KisGpuTilePresentationTest::displayChannelsPreserveDocumentPixels()
     QCOMPARE(layers.code, RenderOutcome::Recorded);
     const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent,
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent, identityDisplay(projection.version->document()),
                                            DisplayChannels{quint8(mask), asColor});
     QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
     auto readback = readTexture(*m_device, commands, surface, layers.version->tiles(document.activeLayer()).first().pixels);
@@ -964,13 +1172,13 @@ void KisGpuTilePresentationTest::rejectedPresentationPreservesTheTarget()
     const auto projection = renderer.compose(commands, layers.version, {0, 0, 512, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
     clear(commands, surface.target, QColor(7, 13, 29));
-    QVERIFY(!presentation.record(commands, projection.version, surface.target, {}, Qt::transparent).recorded);
+    QVERIFY(!presentation.record(commands, projection.version, surface.target, {}, Qt::transparent, identityDisplay(projection.version->document())).recorded);
     QVERIFY(!presentation.record(commands, projection.version, surface.target,
-        QTransform::fromScale(0, 1), Qt::transparent).recorded);
+        QTransform::fromScale(0, 1), Qt::transparent, identityDisplay(projection.version->document())).recorded);
     QVERIFY(!presentation.record(commands, projection.version, surface.target,
-        QTransform::fromTranslate(std::numeric_limits<double>::quiet_NaN(), 0), Qt::transparent).recorded);
+        QTransform::fromTranslate(std::numeric_limits<double>::quiet_NaN(), 0), Qt::transparent, identityDisplay(projection.version->document())).recorded);
     TilePresentation unrestricted(m_device);
-    QVERIFY(!unrestricted.record(commands, projection.version, surface.target, {}, Qt::transparent, {16, false}).recorded);
+    QVERIFY(!unrestricted.record(commands, projection.version, surface.target, {}, Qt::transparent, identityDisplay(projection.version->document()), {16, false}).recorded);
     const auto readback = readTexture(*m_device, commands, surface);
     QVERIFY(readback);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
@@ -1000,7 +1208,7 @@ void KisGpuTilePresentationTest::projectionCannotCrossDevices()
     commands = other->beginCommands();
     QVERIFY(commands);
     clear(commands, surface.target, Qt::white);
-    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent, identityDisplay(projection.version->document()));
     QVERIFY(!drawn.recorded);
     QVERIFY(!drawn.diagnostic.isEmpty());
     const auto readback = readTexture(*other, commands, surface);

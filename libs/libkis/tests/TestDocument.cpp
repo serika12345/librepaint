@@ -96,7 +96,9 @@ void initializeGpuDocument(KisDocument *document, QSize size, const QString &nam
     QString diagnostic;
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
     if (!execution) throw std::runtime_error(diagnostic.toStdString());
-    auto owner = LibrePaint::Image::Gpu::PaintImageSP::create(execution, size);
+    LibrePaint::Image::Gpu::RasterImage raster{size, {{QStringLiteral("Paint Layer 1"), true, {}, {}}}, 0};
+    raster.colorProfile = KoColorSpaceRegistry::instance()->rgb8()->profile()->rawData();
+    auto owner = LibrePaint::Image::Gpu::PaintImageSP::create(execution, raster);
     document->setCurrentImage(KisImage::fromGpuImage(owner, name));
 }
 }
@@ -1680,6 +1682,7 @@ try {
         Gpu::RasterImage raster;
         raster.size = {4, 2};
         raster.layers = {{QStringLiteral("Density layer"), true, id, {}}};
+        raster.colorProfile = KoColorSpaceRegistry::instance()->rgb8()->profile()->rawData();
         image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, raster), QStringLiteral("Density image"));
     } else {
         image = new KisImage(document->createUndoStore(), 4, 2, KoColorSpaceRegistry::instance()->rgb8(), "Density image");
@@ -2204,6 +2207,46 @@ void TestDocument::testGpuExportRowsRespectMemoryBudgetAndRetainTheirVersion()
     owner->close();
     QCOMPARE(retainedBytes.mid(512 * 4, 4), QByteArray::fromHex("998877ff"));
     KisPart::instance()->removeDocument(document.data(), false);
+    // Metadata preparation dispatches events. A color conversion during that
+    // wait must not pair the retained U16 pixels with the live U8 encoding.
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    QScopedPointer<KisDocument> changing(KisPart::instance()->createDocument());
+    const auto *oldEncoding = KoColorSpaceRegistry::instance()->rgb16();
+    QVERIFY(changing->newImage(QStringLiteral("Retained export encoding"), 32, 16,
+        oldEncoding, KoColor(Qt::transparent, oldEncoding), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    KisImageSP changingImage = changing->image();
+    const auto changingOwner = changingImage->gpuImage();
+    const quint16 oldBgra[] = {0x1234, 0x5678, 0x9abc, 0xffff};
+    changingImage->root()->firstChild()->paintDevice()->writeBytes(
+        reinterpret_cast<const quint8 *>(oldBgra), QRect(5, 5, 1, 1));
+    const auto retained = changingOwner->operations().snapshot();
+    bool convertedDuringPreparation = false;
+    QTimer conversion;
+    conversion.setSingleShot(true);
+    connect(&conversion, &QTimer::timeout, this, [&] {
+        changingImage->convertImageColorSpace(KoColorSpaceRegistry::instance()->rgb8(),
+            KoColorConversionTransformation::IntentPerceptual,
+            KoColorConversionTransformation::HighQuality | KoColorConversionTransformation::NoOptimization);
+        changingImage->waitForDone();
+        convertedDuringPreparation = true;
+    });
+    conversion.start(0);
+    KisGpuExportRasterRows fixedEncoding(changingImage, 16 * 1024 * 1024);
+    conversion.stop();
+    QVERIFY(convertedDuringPreparation);
+    QCOMPARE(changingImage->colorSpace(), KoColorSpaceRegistry::instance()->rgb8());
+    QCOMPARE(fixedEncoding.rows()->colorSpace, oldEncoding);
+    QCOMPARE(retained->colorProfile, oldEncoding->profile()->rawData());
+    QByteArray oldRow;
+    QVERIFY(fixedEncoding.rows()->readRow(5, oldRow).isOk());
+    QCOMPARE(oldRow.size(), 32 * 8);
+    QCOMPARE(oldRow.mid(5 * 8, 8), QByteArray(reinterpret_cast<const char *>(oldBgra), 8));
+
 }
 
 void TestDocument::testGpuExportPreparationWaitsForAnOccupiedQueue()
@@ -2389,7 +2432,9 @@ void TestDocument::testGpuSaveNotificationLifetimes()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     Gpu::Execution execution(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    Gpu::RasterImage raster{QSize(64, 32), {{QStringLiteral("Paint Layer 1"), true, {}, {}}}, 0};
+    raster.colorProfile = KoColorSpaceRegistry::instance()->rgb8()->profile()->rawData();
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
     const auto layer = owner->operations().activeLayer();
     QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -3174,6 +3219,14 @@ void TestDocument::testGpuU16PublicPixelsPreserveDocumentEncoding()
 
 }
 
+void TestDocument::testGpuImageColorConversionKeepsHistoryEncoding_data()
+{
+    QTest::addColumn<QByteArray>("sourceIcc");
+    QTest::newRow("linear") << KoColorSpaceRegistry::instance()->rgb16()->profile()->rawData();
+    QTest::newRow("nonlinear") << QColorSpace(QColorSpace::SRgb).iccProfile();
+    QTest::newRow("different-primaries") << QColorSpace(QColorSpace::DisplayP3).iccProfile();
+}
+
 void TestDocument::testGpuImageColorConversionKeepsHistoryEncoding()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -3183,7 +3236,13 @@ void TestDocument::testGpuImageColorConversionKeepsHistoryEncoding()
         else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
     });
     qputenv("LIBREPAINT_GPU_ENGINE", "1");
-    const auto source = KoColorSpaceRegistry::instance()->rgb16();
+    QFETCH(QByteArray, sourceIcc);
+    auto *registry = KoColorSpaceRegistry::instance();
+    const auto *sourceProfile = registry->createColorProfileFromData(
+        QStringLiteral("RGBA"), QStringLiteral("U16"), sourceIcc);
+    QVERIFY(sourceProfile);
+    const auto *source = registry->colorSpace(QStringLiteral("RGBA"), QStringLiteral("U16"), sourceProfile);
+    QVERIFY(source);
     const auto destination = KoColorSpaceRegistry::instance()->rgb8();
     const quint16 background[] = {0x1234, 0x5678, 0x9abc, 0xffff};
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());

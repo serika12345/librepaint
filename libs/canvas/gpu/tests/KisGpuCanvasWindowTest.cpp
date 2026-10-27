@@ -19,6 +19,18 @@
 using namespace LibrePaint::Image::Gpu;
 using namespace LibrePaint::Canvas::Gpu;
 
+namespace {
+KoColorConversionStages identityDisplay(const Snapshot &source)
+{
+    KoColorConversionStages value;
+    value.input.depth = source->format == PixelFormat::Rgba16
+        ? KoColorConversionStages::Encoding::U16 : KoColorConversionStages::Encoding::U8;
+    value.input.iccProfile = source->colorProfile;
+    value.output = value.input;
+    return value;
+}
+}
+
 class KisGpuCanvasWindowTest : public QObject
 {
     Q_OBJECT
@@ -92,6 +104,7 @@ void KisGpuCanvasWindowTest::editsAndViewChangesUseSharedExecution()
     QCOMPARE(admission.code, ExecutionCode::Success);
     CanvasWindow window(execution);
     QVERIFY(window.setDocument(admission.handle));
+    QVERIFY(window.setDisplayConversion(admission.handle, identityDisplay(execution.requested(admission.handle))));
     QSignalSpy frames(&window, &CanvasWindow::frameSubmitted);
     QSignalSpy errors(&window, &CanvasWindow::renderingFailed);
     window.resize(128, 128);
@@ -139,6 +152,7 @@ void KisGpuCanvasWindowTest::displayChannelsChangeOnlyPresentation()
     QVERIFY(handle);
     CanvasWindow window(execution);
     QVERIFY(window.setDocument(handle));
+    QVERIFY(window.setDisplayConversion(handle, identityDisplay(execution.requested(handle))));
     QSignalSpy frames(&window, &CanvasWindow::frameSubmitted);
     QSignalSpy errors(&window, &CanvasWindow::renderingFailed);
     window.resize(64, 64);
@@ -188,6 +202,7 @@ void KisGpuCanvasWindowTest::queuedUpdatesIgnoreClosedDocuments()
     const auto handle = execution.open(document.snapshot()).handle;
     CanvasWindow window(execution);
     QVERIFY(window.setDocument(handle));
+    QVERIFY(window.setDisplayConversion(handle, identityDisplay(execution.requested(handle))));
     QSignalSpy frames(&window, &CanvasWindow::frameSubmitted);
     QSignalSpy errors(&window, &CanvasWindow::renderingFailed);
     window.resize(128, 128);
@@ -213,6 +228,7 @@ void KisGpuCanvasWindowTest::busyFramesRetryTheLatestRequestedImage()
     const auto handle = execution.open(document.snapshot()).handle;
     CanvasWindow window(execution);
     QVERIFY(window.setDocument(handle));
+    QVERIFY(window.setDisplayConversion(handle, identityDisplay(execution.requested(handle))));
     QSignalSpy frames(&window, &CanvasWindow::frameSubmitted);
     QSignalSpy errors(&window, &CanvasWindow::renderingFailed);
     window.resize(128, 128);
@@ -246,6 +262,7 @@ void KisGpuCanvasWindowTest::nativeSurfaceRecreationPreservesDocumentAndContinue
     const auto handle = execution.open(document.snapshot()).handle;
     CanvasWindow window(execution);
     QVERIFY(window.setDocument(handle));
+    QVERIFY(window.setDisplayConversion(handle, identityDisplay(execution.requested(handle))));
     window.resize(128, 128);
     QSignalSpy frames(&window, &CanvasWindow::frameSubmitted);
     QSignalSpy errors(&window, &CanvasWindow::renderingFailed);
@@ -283,7 +300,9 @@ void KisGpuCanvasWindowTest::deviceReplacementRecreatesVisibleAndHiddenSurfaces(
     const auto handle = execution.open(document.snapshot()).handle;
     CanvasWindow visible(execution), hidden(execution);
     QVERIFY(visible.setDocument(handle));
+    QVERIFY(visible.setDisplayConversion(handle, identityDisplay(execution.requested(handle))));
     QVERIFY(hidden.setDocument(handle));
+    QVERIFY(hidden.setDisplayConversion(handle, identityDisplay(execution.requested(handle))));
     visible.resize(128, 128);
     hidden.resize(128, 128);
     visible.setPosition(100, 100);
@@ -325,6 +344,7 @@ void KisGpuCanvasWindowTest::capacityFailurePreservesPublicationAndCanRetry()
     const auto handle = execution.open(original).handle;
     CanvasWindow window(execution);
     QVERIFY(window.setDocument(handle));
+    QVERIFY(window.setDisplayConversion(handle, identityDisplay(execution.requested(handle))));
     QSignalSpy frames(&window, &CanvasWindow::frameSubmitted);
     QSignalSpy errors(&window, &CanvasWindow::renderingFailed);
     window.resize(128, 128);
@@ -379,7 +399,7 @@ void KisGpuCanvasWindowTest::presentationFramesSubmitThroughTheOwningWindow()
     QVERIFY(!execution.published(handle));
     TilePresentation presentation(m_device);
     const auto drawn = presentation.record(frame.commands, projection.version,
-        {m_device, frame.target, surface->size(), surface->format()}, QTransform(), Qt::white);
+        {m_device, frame.target, surface->size(), surface->format()}, QTransform(), Qt::white, identityDisplay(projection.version->document()));
     QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
     QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
     QCOMPARE(execution.published(handle), document.snapshot());

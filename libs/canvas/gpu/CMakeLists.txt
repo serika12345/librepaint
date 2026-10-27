@@ -2,6 +2,7 @@ find_package(WGPUNative REQUIRED)
 add_library(kritacanvasgputilepresentation OBJECT
     KisGpuWindowSurface.cpp
     KisGpuTilePresentation.cpp
+    KisGpuColorConversion_p.cpp
     KisGpuCropPreview.cpp
     KisGpuCanvasWindow.cpp KisGpuCanvasWindow.h
 )
@@ -14,7 +15,7 @@ target_include_directories(kritacanvasgputilepresentation PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>
 )
-target_link_libraries(kritacanvasgputilepresentation PUBLIC kritagpuimage PRIVATE WGPUNative::WGPUNative)
+target_link_libraries(kritacanvasgputilepresentation PUBLIC kritagpuimage kritapigmentcolorconversionstages PRIVATE WGPUNative::WGPUNative)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
     find_package(Qt6 6.6 REQUIRED COMPONENTS GuiPrivate)
     target_link_libraries(kritacanvasgputilepresentation PRIVATE Qt6::GuiPrivate)

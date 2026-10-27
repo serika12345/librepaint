@@ -4,6 +4,8 @@
  */
 
 #include "KisGpuCanvasWindow.h"
+#include "KisGpuColorConversion_p.h"
+#include <webgpu/wgpu.h>
 #include "KisGpuTilePresentation.h"
 #include "KisGpuWindowSurface_p.h"
 #include "KisGpuViewTransform_p.h"
@@ -23,6 +25,7 @@ struct CanvasWindow::Private
     DocumentHandle handle = 0;
     QTransform transform;
     DisplayChannels channels;
+    std::optional<KoColorConversionStages> conversion;
     QColor background{Qt::white};
     std::optional<CheckerPattern> checkers;
     ToolOutline outline;
@@ -78,10 +81,30 @@ bool CanvasWindow::setDocument(DocumentHandle handle)
 {
     if (handle && !m_d->execution.requested(handle)) return false;
     if (m_d->handle != handle) {
+        m_d->conversion.reset();
         m_d->outline = {};
         m_d->crop.reset();
     }
     m_d->handle = handle;
+    refresh();
+    return true;
+}
+
+bool CanvasWindow::setDisplayConversion(DocumentHandle handle, KoColorConversionStages conversion)
+{
+    auto &d = *m_d;
+    const auto source = d.execution.requested(handle);
+    if (!handle || handle != d.handle || !Detail::displayEncodingMatches(conversion.input, source))
+        return false;
+    if (d.conversion && Detail::sameDisplayConversion(*d.conversion, conversion)) return true;
+    WGPULimits limits{};
+    QByteArray packed;
+    QString diagnostic;
+    if (wgpuDeviceGetLimits(d.execution.device()->nativeDevice(), &limits) != WGPUStatus_Success ||
+        !Detail::packDisplayConversion(conversion,
+            std::min(quint64(limits.maxBufferSize), quint64(limits.maxStorageBufferBindingSize)),
+            packed, diagnostic)) return false;
+    d.conversion = std::move(conversion);
     refresh();
     return true;
 }
@@ -175,7 +198,7 @@ void CanvasWindow::resizeEvent(QResizeEvent *event)
 void CanvasWindow::renderFrame()
 {
     auto &d = *m_d;
-    if (d.recording || !isExposed() || !d.execution.requested(d.handle)) return;
+    if (d.recording || !isExposed() || !d.execution.requested(d.handle) || !d.conversion) return;
     if (d.device != d.execution.device() || d.generation != d.execution.generation()) {
         resetSurface();
         return;
@@ -225,7 +248,7 @@ void CanvasWindow::renderFrame()
             if (crop) crop->toTarget *= logicalToPhysical;
             const auto drawn = d.presentation->record(frame.commands, projected.version,
                                                       {d.device, frame.target, pixels, d.surface->format()},
-                                                      d.physicalTransform(devicePixelRatio()), d.background, d.channels, outline, checkers, crop);
+                                                      d.physicalTransform(devicePixelRatio()), d.background, *d.conversion, d.channels, outline, checkers, crop);
             if (!drawn.recorded) {
                 d.execution.cancelFrame();
                 begun = false;

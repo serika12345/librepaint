@@ -53,6 +53,7 @@ private Q_SLOTS:
     void testPixelData();
     void testGpuImagePixelDataModifiedStateAndRetainedNode();
     void testGpuU16PublicPixelsPreserveDocumentEncoding();
+    void testGpuImageColorConversionKeepsHistoryEncoding_data();
     void testGpuImageColorConversionKeepsHistoryEncoding();
     void testGpuSaveAndExportPreserveHistoryAndFileIdentity();
     void testSavedPngDensityUsesDocumentResolution_data();

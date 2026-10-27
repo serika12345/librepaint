@@ -6,6 +6,7 @@
  */
 
 #include "IccColorSpaceEngine.h"
+#include "LcmsColorConversionStages_p.h"
 
 #include <klocalizedstring.h>
 
@@ -74,6 +75,11 @@ public:
     }
 
 public:
+
+    KoColorConversionStagesResult displayStages() const override
+    {
+        return lcmsDisplayStages(m_transform, srcColorSpace(), dstColorSpace());
+    }
 
     void transform(const quint8 *src, quint8 *dst, qint32 numPixels) const override
     {

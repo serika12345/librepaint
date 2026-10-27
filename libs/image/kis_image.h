@@ -87,12 +87,12 @@ public:
      */
     static KisImageSP fromPaintDevice(KisPaintDeviceSP device, QRect region, const QString &name,
                                       const QUuid &layerUuid, qsizetype maximumWorkingBytes);
-    /** GUI-thread image view of shared RGBA8/sRGB layers and GPU projection.
+    /** GUI-thread image view of shared RGBA8 or RGBA16 layers and GPU projection.
      * The execution owner outlives this image and retained pixel devices.
      * Invalid or closed images throw std::invalid_argument.
      */
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name);
-    /** Adopts validated RGBA8 or default linear-sRGB RGBA16 pixels with matching encoding. */
+    /** Adopts validated RGBA8 or matrix RGB RGBA16 pixels with matching precision and ICC encoding. */
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;

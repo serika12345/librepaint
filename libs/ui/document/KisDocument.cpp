@@ -53,6 +53,7 @@
 #include <KisResourceLocator.h>
 #include <KisResourceTypes.h>
 #include <KisGlobalResourcesInterface.h>
+#include <QColorSpace>
 #include <QtGlobal>
 #include <qdatetime.h>
 #include <qhashfunctions.h>
@@ -3320,10 +3321,14 @@ bool KisDocument::newImage(const QString& name,
     const bool gpuSession = KisPart::instance()->gpuEngineEnabled();
     if (gpuSession) {
         namespace Gpu = LibrePaint::Image::Gpu;
-        if ((cs != KoColorSpaceRegistry::instance()->rgb8() &&
-             cs != KoColorSpaceRegistry::instance()->rgb16()) ||
+        const QColorSpace gpuEncoding = cs->profile()
+            ? QColorSpace::fromIccProfile(cs->profile()->rawData()) : QColorSpace();
+        const bool gpuU16 = cs->colorModelId().id() == QLatin1String("RGBA") &&
+            cs->colorDepthId().id() == QLatin1String("U16") && gpuEncoding.isValid() &&
+            gpuEncoding.transformModel() == QColorSpace::TransformModel::ThreeComponentMatrix;
+        if ((cs != KoColorSpaceRegistry::instance()->rgb8() && !gpuU16) ||
             (bgStyle != KisConfig::RASTER_LAYER && bgStyle != KisConfig::CANVAS_COLOR)) {
-            setErrorMessage(i18n("The new painting engine currently requires a default 8-bit or 16-bit RGB color space and a raster or canvas background."));
+            setErrorMessage(i18n("The new painting engine requires default 8-bit sRGB or a 16-bit matrix RGB profile, and a raster or canvas background."));
             return false;
         }
         if (numberOfLayers < 1 || numberOfLayers > Gpu::Limits{}.layerCount) {

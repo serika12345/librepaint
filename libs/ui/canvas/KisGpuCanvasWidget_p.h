@@ -57,6 +57,9 @@ protected:
 private:
     void refresh();
     void updateBackground();
+    bool updateDisplayConversion();
+    bool m_displayConversionDirty = true;
+    std::optional<KoColorConversionStages::Encoding> m_displayEncoding;
     bool updateToolDecorations();
     LibrePaint::Canvas::Gpu::ToolOutline m_toolOutline;
     std::optional<LibrePaint::Canvas::Gpu::CropPreview> m_cropPreview;

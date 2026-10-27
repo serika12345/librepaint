@@ -36,6 +36,7 @@
 #include <kundo2stack.h>
 #include <kundo2magicstring.h>
 #include <QBuffer>
+#include <QColorSpace>
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
@@ -152,6 +153,7 @@ bool setInitialLayerIdentity(KisDocument *document, const QUuid &uuid)
     if (!execution) return false;
     Gpu::RasterImage raster{before->size, {input}, 0, before->projectionBackground};
     raster.format = before->format;
+    raster.colorProfile = before->colorProfile;
     owner = Gpu::PaintImageSP::create(execution, raster, owner->limits());
     document->setCurrentImage(KisImage::fromGpuImage(owner, image->objectName(), image->colorSpace()));
     layer = paintLayer(document);
@@ -1154,17 +1156,18 @@ void TestDocument::testRoundMarkerStrokeMatchesCpuPixels_data()
     QTest::addColumn<bool>("moving");
     QTest::addColumn<quint8>("writeMask");
     QTest::addColumn<quint8>("foregroundAlpha");
+    QTest::addColumn<QByteArray>("sourceIcc");
     for (const qreal opacity : {qreal(1), qreal(.5)})
         for (const bool erase : {false, true}) for (const bool moving : {false, true}) {
             const auto name = QStringLiteral("%1-%2-%3")
                 .arg(opacity == 1 ? QStringLiteral("opaque") : QStringLiteral("half"))
                 .arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"))
                 .arg(moving ? QStringLiteral("moving") : QStringLiteral("tap"));
-            QTest::newRow(qPrintable(name)) << false << opacity << erase << moving << quint8(15) << quint8(255);
+            QTest::newRow(qPrintable(name)) << false << opacity << erase << moving << quint8(15) << quint8(255) << QByteArray();
         }
     for (const quint8 mask : {0, 1, 7, 8, 10, 15}) for (const bool erase : {false, true}) {
         const auto name = QStringLiteral("protected-%1-%2").arg(mask).arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"));
-        QTest::newRow(qPrintable(name)) << false << qreal(173.0 / 255) << erase << false << mask << quint8(128);
+        QTest::newRow(qPrintable(name)) << false << qreal(173.0 / 255) << erase << false << mask << quint8(128) << QByteArray();
     }
     for (const qreal opacity : {qreal(1), qreal(.5)})
         for (const bool erase : {false, true}) for (const bool moving : {false, true}) {
@@ -1172,13 +1175,22 @@ void TestDocument::testRoundMarkerStrokeMatchesCpuPixels_data()
                 .arg(opacity == 1 ? QStringLiteral("opaque") : QStringLiteral("half"))
                 .arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"))
                 .arg(moving ? QStringLiteral("moving") : QStringLiteral("tap"));
-            QTest::newRow(qPrintable(name)) << true << opacity << erase << moving << quint8(15) << quint8(255);
+            QTest::newRow(qPrintable(name)) << true << opacity << erase << moving << quint8(15) << quint8(255) << QByteArray();
         }
 
+    for (const bool erase : {false, true}) {
+        QTest::newRow(erase ? "nonlinear-u16-erase" : "nonlinear-u16-normal")
+            << true << qreal(.5) << erase << true << quint8(15) << quint8(255)
+            << QColorSpace(QColorSpace::SRgb).iccProfile();
+        QTest::newRow(erase ? "p3-u16-erase" : "p3-u16-normal")
+            << true << qreal(.5) << erase << true << quint8(15) << quint8(255)
+            << QColorSpace(QColorSpace::DisplayP3).iccProfile();
+    }
 }
 
 void TestDocument::testRoundMarkerStrokeMatchesCpuPixels()
 {
+    QFETCH(QByteArray, sourceIcc);
     QFETCH(bool, sixteenBits);
     QFETCH(qreal, opacity);
     QFETCH(bool, erase);
@@ -1209,7 +1221,14 @@ void TestDocument::testRoundMarkerStrokeMatchesCpuPixels()
         KoID("roundmarker"), KisGlobalResourcesInterface::instance());
     QVERIFY(preset);
     preset->settings()->setPaintOpSize(10);
-    const auto cs = sixteenBits ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    auto *registry = KoColorSpaceRegistry::instance();
+    const KoColorSpace *cs = sixteenBits ? registry->rgb16() : registry->rgb8();
+    if (!sourceIcc.isEmpty()) {
+        const auto *profile = registry->createColorProfileFromData(
+            QStringLiteral("RGBA"), QStringLiteral("U16"), sourceIcc);
+        QVERIFY(profile);
+        cs = registry->colorSpace(QStringLiteral("RGBA"), QStringLiteral("U16"), profile);
+    }
     QVERIFY(cs);
     QVERIFY(cs->profile());
     const int pixelSize = cs->pixelSize();
@@ -1437,10 +1456,13 @@ void TestDocument::testRoundMarkerSaveMatchesCpuFiles_data()
     QTest::addColumn<bool>("sixteenBits");
     QTest::addColumn<int>("calls");
     QTest::addColumn<QPointF>("offset");
-    QTest::newRow("tap-at-storage-corner") << false << -2 << QPointF(47.75, 46.25);
-    QTest::newRow("moving") << false << -1 << QPointF();
-    QTest::newRow("ellipse") << false << 11 << QPointF();
-    QTest::newRow("u16-moving") << true << -1 << QPointF();
+    QTest::addColumn<QByteArray>("sourceIcc");
+    QTest::newRow("tap-at-storage-corner") << false << -2 << QPointF(47.75, 46.25) << QByteArray();
+    QTest::newRow("moving") << false << -1 << QPointF() << QByteArray();
+    QTest::newRow("ellipse") << false << 11 << QPointF() << QByteArray();
+    QTest::newRow("u16-moving") << true << -1 << QPointF() << QByteArray();
+    QTest::newRow("u16-nonlinear-moving") << true << -1 << QPointF() << QColorSpace(QColorSpace::SRgb).iccProfile();
+    QTest::newRow("u16-p3-moving") << true << -1 << QPointF() << QColorSpace(QColorSpace::DisplayP3).iccProfile();
 }
 
 void TestDocument::testRoundMarkerSaveMatchesCpuFiles()
@@ -1448,6 +1470,7 @@ void TestDocument::testRoundMarkerSaveMatchesCpuFiles()
     QFETCH(bool, sixteenBits);
     QFETCH(int, calls);
     QFETCH(QPointF, offset);
+    QFETCH(QByteArray, sourceIcc);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     KisImageConfig imageConfig(false);
     const auto previousThreads = imageConfig.maxNumberOfThreads();
@@ -1475,7 +1498,14 @@ void TestDocument::testRoundMarkerSaveMatchesCpuFiles()
     QVERIFY(preset);
     preset->settings()->setPaintOpSize(10);
     preset->settings()->setProperty("PressureSize", false);
-    const auto cs = sixteenBits ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    auto *registry = KoColorSpaceRegistry::instance();
+    const KoColorSpace *cs = sixteenBits ? registry->rgb16() : registry->rgb8();
+    if (!sourceIcc.isEmpty()) {
+        const auto *profile = registry->createColorProfileFromData(QStringLiteral("RGBA"), QStringLiteral("U16"), sourceIcc);
+        QVERIFY(profile);
+        cs = registry->colorSpace(QStringLiteral("RGBA"), QStringLiteral("U16"), profile);
+        QVERIFY(cs);
+    }
     QMap<QString, QByteArray> reference;
     for (int owner = 0; owner < 2; ++owner) {
         qputenv("LIBREPAINT_GPU_ENGINE", owner ? "1" : "0");

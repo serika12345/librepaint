@@ -33,6 +33,9 @@ public:
 
     /** Zero suspends drawing; a closed or unknown handle preserves selection. */
     bool setDocument(Image::Gpu::DocumentHandle handle);
+    /** Owned display stages for this handle's requested encoding. Invalid values
+     * preserve the previous valid configuration. */
+    bool setDisplayConversion(Image::Gpu::DocumentHandle handle, KoColorConversionStages conversion);
     void refresh();
     /** Changes view components without replacing or completing document input. */
     bool setDisplayChannels(DisplayChannels channels);

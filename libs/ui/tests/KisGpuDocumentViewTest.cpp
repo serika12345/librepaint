@@ -66,6 +66,11 @@
 #include <KoToolBase.h>
 #include <KoResourcePaths.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorSpace.h>
+#include <KoColorProfile.h>
+#include <canvas/kis_display_color_converter.h>
+#include <canvas/KisDisplayConfig.h>
+#include <utility>
 #include <document/KisDocument.h>
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
@@ -103,6 +108,30 @@
 #include <thread>
 
 namespace {
+template<class ExecutionOwner, class... Arguments>
+LibrePaint::Image::Gpu::PaintImageSP paintImageWithEncoding(ExecutionOwner &&execution,
+    LibrePaint::Image::Gpu::RasterImage raster, Arguments &&...arguments)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (raster.colorProfile.isEmpty()) {
+        const auto *cs = raster.format == Gpu::PixelFormat::Rgba16
+            ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+        raster.colorProfile = cs->profile()->rawData();
+    }
+    return Gpu::PaintImageSP::create(std::forward<ExecutionOwner>(execution), raster,
+                                    std::forward<Arguments>(arguments)...);
+}
+template<class ExecutionOwner, class... Arguments>
+LibrePaint::Image::Gpu::PaintImageSP paintImageWithEncoding(ExecutionOwner &&execution,
+    QSize size, Arguments &&...arguments)
+{
+    LibrePaint::Image::Gpu::RasterImage raster;
+    raster.size = size;
+    raster.layers = {{QStringLiteral("Paint Layer 1"), true, {}, {}}};
+    return paintImageWithEncoding(std::forward<ExecutionOwner>(execution), std::move(raster),
+                                   std::forward<Arguments>(arguments)...);
+}
+
 /** The example filter plugin owns this identity. The fixture supplies an
  * Invert transformation for its GPU routing contract.
  */
@@ -158,6 +187,7 @@ private Q_SLOTS:
         m_preset = preset;
     }
     void presentsEditsAndReleasesTheClosedTab();
+    void nonlinearU16CanvasTracksTheActualDisplayConfiguration();
     void brushOutlineFollowsTheOrdinaryPointerWithoutEditing();
     void cropPreviewPreservesPixelsHistoryAndCancellation();
     void canvasBackgroundFollowsPreferencesWithoutEditing_data();
@@ -235,7 +265,7 @@ void KisGpuDocumentViewTest::layerPanelThumbnailsReadOnlyReducedGpuPixels()
     Gpu::RasterImage raster;
     raster.size = {256, 256};
     raster.layers = {{QStringLiteral("Thumbnail"), true, {}, {{{0, 0}, pixels}}}};
-    const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    const auto owner = paintImageWithEncoding(execution, raster);
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -392,7 +422,7 @@ void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving()
         QString diagnostic;
         const auto execution = KisPart::instance()->gpuExecution(diagnostic);
         QVERIFY2(execution, qPrintable(diagnostic));
-        owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        owner = paintImageWithEncoding(execution, QSize(32, 16));
         QVERIFY(owner->addLayer(QStringLiteral("Other")));
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Color fill")));
     } else {
@@ -634,7 +664,7 @@ void KisGpuDocumentViewTest::clearActionPreservesSelectedLayersAndHistory()
         QString diagnostic;
         const auto execution = KisPart::instance()->gpuExecution(diagnostic);
         QVERIFY2(execution, qPrintable(diagnostic));
-        owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        owner = paintImageWithEncoding(execution, QSize(32, 16));
         QVERIFY(owner->addLayer(QStringLiteral("Middle")));
         QVERIFY(owner->addLayer(QStringLiteral("Top")));
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Clear layers")));
@@ -843,7 +873,7 @@ void KisGpuDocumentViewTest::lineToolPreservesPreviewCancellationAndHistory()
         const auto device = Gpu::Device::createNative(diagnostic);
         QVERIFY2(device, qPrintable(diagnostic));
         execution = std::make_shared<Gpu::Execution>(device);
-        owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+        owner = paintImageWithEncoding(execution, QSize(64, 64));
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Line input")));
     } else {
         QVERIFY(document->newImage(QStringLiteral("Line input"), 64, 64, cs,
@@ -1074,7 +1104,7 @@ void KisGpuDocumentViewTest::layerPanelReordersSelectionWithOneHistoryEntry()
         auto device = Gpu::Device::createNative(diagnostic);
         QVERIFY2(device, qPrintable(diagnostic));
         execution = std::make_shared<Gpu::Execution>(device);
-        auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        auto owner = paintImageWithEncoding(execution, QSize(32, 16));
         for (const auto &name : {QStringLiteral("Second"), QStringLiteral("Third"), QStringLiteral("Top")})
             QVERIFY(owner->addLayer(name));
         QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
@@ -1205,7 +1235,7 @@ void KisGpuDocumentViewTest::layerPanelDuplicationPreservesPixelsSelectionAndOne
         const auto device = Gpu::Device::createNative(diagnostic);
         QVERIFY2(device, qPrintable(diagnostic));
         execution = std::make_shared<Gpu::Execution>(device);
-        const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        const auto owner = paintImageWithEncoding(execution, QSize(32, 16));
         QVERIFY(owner->addLayer(QStringLiteral("Middle")));
         QVERIFY(owner->addLayer(QStringLiteral("Top")));
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer duplication")));
@@ -1339,7 +1369,7 @@ void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHist
         auto device = Gpu::Device::createNative(diagnostic);
         QVERIFY2(device, qPrintable(diagnostic));
         execution = std::make_shared<Gpu::Execution>(device);
-        const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        const auto owner = paintImageWithEncoding(execution, QSize(32, 16));
         QVERIFY(owner->addLayer(QStringLiteral("Middle")));
         QVERIFY(owner->addLayer(QStringLiteral("Top")));
         QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
@@ -1457,7 +1487,7 @@ void KisGpuDocumentViewTest::layerPanelAddsAtSelectionWithOneHistoryEntry()
         auto device = Gpu::Device::createNative(diagnostic);
         QVERIFY2(device, qPrintable(diagnostic));
         execution = std::make_shared<Gpu::Execution>(device);
-        const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        const auto owner = paintImageWithEncoding(execution, QSize(32, 16));
         QVERIFY(owner->addLayer(QStringLiteral("Middle")));
         QVERIFY(owner->addLayer(QStringLiteral("Top")));
         QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
@@ -1542,7 +1572,7 @@ void KisGpuDocumentViewTest::layerPanelSelectionPreservesAnUnselectedActiveLayer
         auto device = Gpu::Device::createNative(diagnostic);
         QVERIFY2(device, qPrintable(diagnostic));
         execution = std::make_shared<Gpu::Execution>(device);
-        const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        const auto owner = paintImageWithEncoding(execution, QSize(32, 16));
         QVERIFY(owner->addLayer(QStringLiteral("Middle")));
         QVERIFY(owner->addLayer(QStringLiteral("Top")));
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer selection")));
@@ -1620,7 +1650,7 @@ void KisGpuDocumentViewTest::layerSelectionCanCloseTheWindowDuringNotification()
         const auto device = Gpu::Device::createNative(diagnostic);
         QVERIFY2(device, qPrintable(diagnostic));
         execution = std::make_shared<Gpu::Execution>(device);
-        owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        owner = paintImageWithEncoding(execution, QSize(32, 16));
         QVERIFY(owner->addLayer(QStringLiteral("Top")));
         QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Closing during selection")));
@@ -1675,7 +1705,7 @@ void KisGpuDocumentViewTest::layerPanelSelectionSurvivesSaving()
     auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    const auto owner = paintImageWithEncoding(execution, QSize(32, 16));
     QVERIFY(owner->addLayer(QStringLiteral("Middle")));
     QVERIFY(owner->addLayer(QStringLiteral("Top")));
     const auto saved = owner->operations().snapshot();
@@ -1725,7 +1755,7 @@ void KisGpuDocumentViewTest::layerPanelSelectionSurvivesSaving()
     QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
     QCOMPARE(loaded.document.image.activeLayer, 1);
     QCOMPARE(loaded.document.image.layers[1].uuid, middle->uuid());
-    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    const auto reopened = paintImageWithEncoding(execution, loaded.document.image);
     lifetime->setCurrentImage(KisImage::fromGpuImage(reopened, QStringLiteral("Reopened selection")));
     QTRY_VERIFY(view->currentNode());
     QTRY_COMPARE(view->currentNode()->uuid(), loaded.document.image.layers[1].uuid);
@@ -1780,7 +1810,7 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
         auto device = LibrePaint::Image::Gpu::Device::createNative(diagnostic);
         QVERIFY2(device, qPrintable(diagnostic));
         execution = std::make_shared<LibrePaint::Image::Gpu::Execution>(device);
-        const auto owner = LibrePaint::Image::Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        const auto owner = paintImageWithEncoding(execution, QSize(32, 16));
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer panel editing")));
     } else {
         QVERIFY(document->newImage(QStringLiteral("Layer panel editing"), 32, 16, cs,
@@ -1897,7 +1927,7 @@ void KisGpuDocumentViewTest::transparencyMaskActionsUseTheActiveGpuPaintLayer()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto owner = paintImageWithEncoding(execution, QSize(256, 256));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     auto image = KisImage::fromGpuImage(owner, QStringLiteral("Transparency mask actions"));
@@ -1953,7 +1983,7 @@ void KisGpuDocumentViewTest::invertColorsActionUsesGpuDocumentAndDiagnosesUnsupp
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     const auto layer = owner->operations().activeLayer();
     QCOMPARE(owner->fillLayer(layer, {200, 30, 70}), Gpu::Result::Success);
     QCOMPARE(owner->setSelectionRect(QRect(16, 16, 32, 32)), Gpu::Result::Success);
@@ -2025,7 +2055,7 @@ void KisGpuDocumentViewTest::desaturateActionAppliesGrayscaleOnGpuDocument()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     const auto layer = owner->operations().activeLayer();
     QCOMPARE(owner->fillLayer(layer, {200, 30, 70}), Gpu::Result::Success);
     QCOMPARE(owner->setSelectionRect(QRect(16, 16, 32, 32)), Gpu::Result::Success);
@@ -2085,7 +2115,7 @@ void KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     const auto layer = owner->operations().activeLayer();
     QCOMPARE(owner->fillLayer(layer, {200, 30, 70}), Gpu::Result::Success);
     QCOMPARE(owner->setSelectionRect(QRect(16, 16, 32, 32)), Gpu::Result::Success);
@@ -2309,7 +2339,7 @@ void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Mask child")));
@@ -2445,7 +2475,7 @@ void KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
     const auto layerId = owner->operations().activeLayer();
     QCOMPARE(owner->setSelectionRect(QRect(8, 8, 24, 24)), Gpu::Result::Success);
@@ -2566,7 +2596,7 @@ void KisGpuDocumentViewTest::layerPanelTogglesAndRemovesGpuTransparencyMaskChild
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Mask child actions")));
@@ -2684,7 +2714,7 @@ void KisGpuDocumentViewTest::layerPanelGpuTransparencyMaskChildSurvivesSaving()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Mask child saving")));
@@ -2746,7 +2776,7 @@ void KisGpuDocumentViewTest::layerPanelGpuTransparencyMaskChildSurvivesSaving()
     QCOMPARE(loaded.document.image.layers.first().transparencyMask->coverage(4, 16), quint8(255));
     QCOMPARE(loaded.document.image.layers.first().transparencyMask->coverage(28, 16), quint8(0));
 
-    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    const auto reopened = paintImageWithEncoding(execution, loaded.document.image);
     QVERIFY(reopened);
     lifetime->setCurrentImage(KisImage::fromGpuImage(reopened, QStringLiteral("Reopened mask child")));
     QTRY_VERIFY(view->currentNode());
@@ -2779,7 +2809,7 @@ void KisGpuDocumentViewTest::rectangularSelectionLimitsPainting()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto owner = paintImageWithEncoding(execution, QSize(256, 256));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -2882,7 +2912,7 @@ void KisGpuDocumentViewTest::selectionFillUsesGpuSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -2940,7 +2970,7 @@ void KisGpuDocumentViewTest::selectionMergedCopyUsesGpuSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255.0 / 255, false, false) == Gpu::Result::Success);
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
@@ -2983,7 +3013,7 @@ void KisGpuDocumentViewTest::selectionCopyAndCutUseGpuSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255.0 / 255, false, false) == Gpu::Result::Success);
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
@@ -3044,7 +3074,7 @@ void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto owner = paintImageWithEncoding(execution, QSize(256, 256));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -3153,7 +3183,7 @@ void KisGpuDocumentViewTest::selectionGrowAndShrinkUseGpuSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto owner = paintImageWithEncoding(execution, QSize(256, 256));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -3217,7 +3247,7 @@ void KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -3324,7 +3354,7 @@ void KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra()
     QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
     QCOMPARE(loaded.document.image.selection, hole);
     QVERIFY(loaded.document.image.selectionInverted);
-    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    const auto reopened = paintImageWithEncoding(execution, loaded.document.image);
     QVERIFY(reopened->selectionInverted());
     QCOMPARE(reopened->selectionRect(), hole);
 
@@ -3351,7 +3381,7 @@ void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -3408,7 +3438,7 @@ void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
     QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
     QCOMPARE(loaded.document.image.selection, ellipseRect);
     QCOMPARE(loaded.document.image.selectionKind, Gpu::SelectionKind::Ellipse);
-    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    const auto reopened = paintImageWithEncoding(execution, loaded.document.image);
     QCOMPARE(reopened->selectionKind(), Gpu::SelectionKind::Ellipse);
     QCOMPARE(reopened->selectionRect(), ellipseRect);
     const auto reopenedPixels = reopened->readRgbaPixels(reopened->operations().activeLayer(), region, 8 * 1024 * 1024);
@@ -3512,7 +3542,7 @@ void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto owner = paintImageWithEncoding(execution, QSize(256, 256));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -3619,7 +3649,7 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto owner = paintImageWithEncoding(execution, QSize(256, 256));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -3786,7 +3816,7 @@ void KisGpuDocumentViewTest::polygonToolVerticesCreateFrozenCoverage()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    const auto owner = paintImageWithEncoding(execution, QSize(128, 128));
     QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
     auto image = KisImage::fromGpuImage(owner, QStringLiteral("Polygon tool coverage"));
     QVERIFY(image);
@@ -3839,7 +3869,7 @@ void KisGpuDocumentViewTest::pathToolClosedPathCreatesPolygonCoverage()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    const auto owner = paintImageWithEncoding(execution, QSize(128, 128));
     QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
     auto image = KisImage::fromGpuImage(owner, QStringLiteral("Path tool coverage"));
     QVERIFY(image);
@@ -3895,7 +3925,7 @@ void KisGpuDocumentViewTest::polygonalToolCreatesArbitraryMaskSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto owner = paintImageWithEncoding(execution, QSize(256, 256));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -3971,7 +4001,7 @@ void KisGpuDocumentViewTest::pathToolCreatesArbitraryMaskSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto owner = paintImageWithEncoding(execution, QSize(256, 256));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -4044,7 +4074,7 @@ void KisGpuDocumentViewTest::featherActionSoftensFreehandSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(256, 256));
+    const auto owner = paintImageWithEncoding(execution, QSize(256, 256));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -4151,7 +4181,7 @@ void KisGpuDocumentViewTest::featherActionSoftensFreehandSelection()
     QVERIFY(loaded.document.image.selectionMask);
     QVERIFY(loaded.document.image.selectionMask->isAlpha());
     QVERIFY(*loaded.document.image.selectionMask == *soft);
-    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    const auto reopened = paintImageWithEncoding(execution, loaded.document.image);
     QVERIFY(reopened);
     QVERIFY(reopened->selectionMask() && reopened->selectionMask()->isAlpha());
     QVERIFY(*reopened->selectionMask() == *soft);
@@ -4168,7 +4198,7 @@ void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -4226,7 +4256,7 @@ void KisGpuDocumentViewTest::reselectRestoresGpuSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    const auto owner = paintImageWithEncoding(execution, QSize(128, 128));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -4274,7 +4304,7 @@ void KisGpuDocumentViewTest::arrowKeysNudgeGpuSelection()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    const auto owner = paintImageWithEncoding(execution, QSize(128, 128));
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -4325,7 +4355,7 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     QVERIFY(owner->fillLayer(owner->operations().activeLayer(), {17, 129, 241}, 255.0 / 255, false, false) == Gpu::Result::Success);
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
@@ -4603,7 +4633,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     Gpu::Execution execution(device);
     Gpu::Limits limits;
     if (exhaustInput) limits.samplesPerStroke = 4;
-    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64), limits);
+    auto owner = paintImageWithEncoding(execution, QSize(64, 64), limits);
     if (selectDuringStroke) QVERIFY(owner->addLayer(QStringLiteral("Paint target")));
     const auto paintTarget = owner->operations().activeLayer();
     if (alphaLock) QCOMPARE(owner->writeRgbaPixels(paintTarget, QRect(40, 40, 1, 1),
@@ -4943,7 +4973,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         const auto reopened = LibrePaint::ImportExport::Kra::RasterCodec::read(savedFile);
         QVERIFY2(reopened.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(reopened.diagnostic));
         QCOMPARE(reopened.document.image.layers.first().channelWriteMask, quint8(7));
-        const auto imported = Gpu::PaintImageSP::create(execution, reopened.document.image);
+        const auto imported = paintImageWithEncoding(execution, reopened.document.image);
         const auto image = KisImage::fromGpuImage(imported, QStringLiteral("Protected layer reopened"));
         QVERIFY(qobject_cast<KisPaintLayer*>(image->root()->firstChild().data())->alphaLocked());
         Gpu::Brush additional;
@@ -4971,7 +5001,7 @@ void KisGpuDocumentViewTest::brushBlendModeUsesEffectiveCompositeOpAndRejectsUns
     paintLayer.uuid = QUuid(QStringLiteral("{7187a4a8-3f6c-4d0d-9b71-2f8a2bc3d4e5}"));
     paintLayer.defaultPixel = {17, 34, 51, 255};
     raster.layers = {paintLayer};
-    const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    const auto owner = paintImageWithEncoding(execution, raster);
     QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Brush blend mode")));
@@ -5156,7 +5186,7 @@ void KisGpuDocumentViewTest::paintingBackendChangesRebindTheCanvas()
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     if (initialGpu) {
-        document->setCurrentImage(KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, QSize(64, 64)), QStringLiteral("Initial image")));
+        document->setCurrentImage(KisImage::fromGpuImage(paintImageWithEncoding(execution, QSize(64, 64)), QStringLiteral("Initial image")));
     } else {
         QVERIFY(document->newImage(QStringLiteral("Initial image"), 64, 64, cs,
                                    KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
@@ -5204,7 +5234,7 @@ void KisGpuDocumentViewTest::paintingBackendChangesRebindTheCanvas()
     QTRY_COMPARE(lifetime->undoStack()->count(), 1);
     KisImageSP replacement;
     if (replacementGpu) {
-        replacement = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, QSize(96, 80)), QStringLiteral("Replacement image"));
+        replacement = KisImage::fromGpuImage(paintImageWithEncoding(execution, QSize(96, 80)), QStringLiteral("Replacement image"));
     } else {
         std::unique_ptr<KisDocument> fixture(KisPart::instance()->createDocument());
         QVERIFY(fixture->newImage(QStringLiteral("Replacement image"), 96, 80, cs,
@@ -5324,8 +5354,8 @@ void KisGpuDocumentViewTest::replacementUpdatesPresentationInputHistoryAndSaving
     QVERIFY2(device, qPrintable(diagnostic));
     Gpu::Execution execution(device);
     Gpu::Execution otherExecution(device);
-    const auto previous = Gpu::PaintImageSP::create(execution, QSize(64, 64));
-    const auto sourceOwner = Gpu::PaintImageSP::create(differentExecution ? otherExecution : execution, replaceIdentity ? QSize(96, 80) : QSize(64, 64));
+    const auto previous = paintImageWithEncoding(execution, QSize(64, 64));
+    const auto sourceOwner = paintImageWithEncoding(differentExecution ? otherExecution : execution, replaceIdentity ? QSize(96, 80) : QSize(64, 64));
     const auto layer = sourceOwner->operations().activeLayer();
     QCOMPARE(sourceOwner->replaceRgbaPixels(layer, QRect(8, 8, 1, 1), QByteArray::fromHex("4488ccff")), Gpu::Result::Success);
     QScopedPointer<KisDocument> source(KisPart::instance()->createDocument());
@@ -5561,7 +5591,7 @@ void KisGpuDocumentViewTest::canvasBackgroundFollowsPreferencesWithoutEditing()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     Gpu::Execution execution(device);
-    auto owner = Gpu::PaintImageSP::create(execution, QSize(imageLimitPan ? Gpu::RgbaTile::CoordinateLimit : 128, 128));
+    auto owner = paintImageWithEncoding(execution, QSize(imageLimitPan ? Gpu::RgbaTile::CoordinateLimit : 128, 128));
     const auto snapshot = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(snapshot), Gpu::Result::Success);
     const auto retainedVersion = owner->operations().preview();
@@ -5743,7 +5773,7 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     Gpu::Execution execution(device);
-    auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    auto owner = paintImageWithEncoding(execution, QSize(128, 128));
     QByteArray pixels;
     for (int i = 0; i < 128 * 128; ++i) pixels += QByteArray::fromHex("506478ff");
     QCOMPARE(owner->writeRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 128, 128), pixels), Gpu::Result::Success);
@@ -5930,6 +5960,91 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     QVERIFY(!lifetime->isModified());
 }
 
+void KisGpuDocumentViewTest::nonlinearU16CanvasTracksTheActualDisplayConfiguration()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto *registry = KoColorSpaceRegistry::instance();
+    const auto raw = QColorSpace(QColorSpace::SRgb).iccProfile();
+    const auto *profile = registry->createColorProfileFromData(QStringLiteral("RGBA"), QStringLiteral("U16"), raw);
+    QVERIFY(profile);
+    const auto *source = registry->colorSpace(QStringLiteral("RGBA"), QStringLiteral("U16"), profile);
+    QVERIFY(source);
+    Gpu::RasterImage raster;
+    raster.size = {64, 64};
+    raster.format = Gpu::PixelFormat::Rgba16;
+    raster.colorProfile = raw;
+    Gpu::RasterLayer layer;
+    layer.name = QStringLiteral("Nonlinear RGB");
+    layer.defaultPixel = {0x3333, 0x6666, 0x9999, 65535};
+    raster.layers.append(layer);
+    auto owner = paintImageWithEncoding(execution, raster);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("ICC canvas"), source));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto close = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            if (window) {
+                auto *action = window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"));
+                if (action) action->trigger();
+            }
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    LibrePaint::Canvas::Gpu::CanvasWindow *native = nullptr;
+    const auto findNative = [&] {
+        for (auto *candidate : QGuiApplication::allWindows())
+            if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(candidate))
+                if (canvas->isVisible()) native = canvas;
+        return bool(native);
+    };
+    QTRY_VERIFY(findNative());
+    native->setCursor(Qt::BlankCursor);
+    auto *converter = view->canvasBase()->displayColorConverter();
+    const auto pixel = [&] {
+        const auto frame = native->screen()->grabWindow(native->winId()).toImage();
+        const auto point = view->canvasBase()->coordinatesConverter()->imageToWidgetTransform().map(QPointF(32, 32));
+        return frame.pixelColor((point * native->devicePixelRatio()).toPoint());
+    };
+    const quint16 bgra[] = {0x9999, 0x6666, 0x3333, 65535};
+    const auto expected = [&] {
+        const auto config = converter->multiSurfaceDisplayConfig().canvasDisplayConfig();
+        const auto *target = registry->colorSpace(QStringLiteral("RGBA"), QStringLiteral("U8"), config.profile);
+        quint8 result[4]{};
+        if (!target || !source->convertPixelsTo(reinterpret_cast<const quint8 *>(bgra), result,
+                                                target, 1, config.intent, config.conversionFlags))
+            return QColor();
+        return QColor(result[2], result[1], result[0], result[3]);
+    };
+    const auto first = expected();
+    QVERIFY(first.isValid());
+    native->refresh();
+    QTRY_COMPARE(execution.published(owner->handle()), owner->operations().snapshot());
+    QTRY_COMPARE(pixel(), first);
+    auto configuration = converter->multiSurfaceDisplayConfig();
+    configuration.canvasProfile = registry->p709G10Profile();
+    QVERIFY(configuration.canvasProfile);
+    converter->setMultiSurfaceDisplayConfig(configuration);
+    const auto second = expected();
+    QVERIFY(second.isValid());
+    QVERIFY(second != first);
+    QTRY_COMPARE(pixel(), second);
+    QCOMPARE(owner->operations().snapshot()->colorProfile, raw);
+    QCOMPARE(owner->operations().snapshot()->layers.first().defaultPixel, layer.defaultPixel);
+}
+
 void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -5937,7 +6052,7 @@ void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     Gpu::Execution execution(device);
-    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    auto owner = paintImageWithEncoding(execution, QSize(64, 64));
     const auto handle = owner->handle();
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU document view")));
@@ -6094,7 +6209,7 @@ void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     Gpu::Execution execution(device);
-    auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    auto owner = paintImageWithEncoding(execution, QSize(128, 128));
     QByteArray pixels;
     for (int i = 0; i < 128 * 128; ++i) pixels += QByteArray::fromHex("506478ff");
     QCOMPARE(owner->writeRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 128, 128), pixels), Gpu::Result::Success);

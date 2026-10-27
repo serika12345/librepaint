@@ -4,7 +4,6 @@
  */
 
 #include "KisKraRasterCodec.h"
-#include <QCryptographicHash>
 #include "KisKraRgbaTiles_p.h"
 #include "KisKraSelectionTiles_p.h"
 #include "KisKraPreview_p.h"
@@ -295,16 +294,16 @@ bool srgbSpace(const QColorSpace &space)
 Outcome profile(const QMap<QString, QByteArray> &files, const QString &path, const QString &name, PixelFormat format)
 {
     if (!files.contains(path)) {
-        if (format == PixelFormat::Rgba16) return unsupported(QStringLiteral("RGBA16 KRA requires its linear sRGB ICC profile"));
+        if (format == PixelFormat::Rgba16) return unsupported(QStringLiteral("RGBA16 KRA requires its matrix RGB ICC profile"));
         return name == QLatin1String("sRGB built-in") ? Outcome{Status::Success, {}} :
             unsupported(QStringLiteral("KRA requires an sRGB profile"));
     }
     const auto space = QColorSpace::fromIccProfile(files.value(path));
     if (!space.isValid()) return invalid(QStringLiteral("Invalid KRA color profile"));
     if (format == PixelFormat::Rgba16) {
-        if (QCryptographicHash::hash(files.value(path), QCryptographicHash::Sha256).toHex() !=
-            QByteArrayLiteral("51373873702823054c739d013cf68d37bdd5810544fb5cc6285da7380d454704"))
-            return unsupported(QStringLiteral("RGBA16 KRA requires the default linear sRGB profile"));
+        if (space.colorModel() != QColorSpace::ColorModel::Rgb ||
+            space.transformModel() != QColorSpace::TransformModel::ThreeComponentMatrix)
+            return unsupported(QStringLiteral("RGBA16 KRA requires a matrix RGB profile"));
     } else if (!srgbSpace(space))
         return unsupported(QStringLiteral("KRA requires an sRGB profile"));
     return {Status::Success, {}};
@@ -554,6 +553,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             if (!files.contains(layerProfile) && files.contains(imageProfile)) files.insert(layerProfile, files.value(imageProfile));
             result = profile(files, layerProfile, image.attribute(QStringLiteral("profile")), imageFormat(image));
             if (result.code != Status::Success) return result;
+
             const auto children = element.firstChildElement(QStringLiteral("layers"));
             if (!children.isNull()) element.removeChild(children);
             element.removeAttribute(QStringLiteral("passthrough"));
@@ -980,8 +980,11 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
         if (element.attribute(QStringLiteral("nodetype")) == QLatin1String("paintlayer") || files.contains(layerProfile)) {
             result = profile(files, layerProfile, image.attribute(QStringLiteral("profile")), imageFormat(image));
             if (result.code != Status::Success) return result;
+            if (imageFormat(image) == PixelFormat::Rgba16 &&
+                files.value(layerProfile) != files.value(folder + QStringLiteral("/annotations/icc")))
+                return unsupported(QStringLiteral("RGBA16 layers and groups require the image's exact ICC encoding"));
         } else if (element.attribute(QStringLiteral("profile"), image.attribute(QStringLiteral("profile"))) != image.attribute(QStringLiteral("profile"))) {
-            return unsupported(QStringLiteral("KRA groups require the image's sRGB profile"));
+            return unsupported(QStringLiteral("KRA groups require the image's profile"));
         }
     }
     ImageMetadata metadata;

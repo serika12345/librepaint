@@ -5,6 +5,7 @@
 #include "KisGpuCanvasWidget_p.h"
 #include "kis_coordinates_converter.h"
 #include "kis_canvas2.h"
+#include "kis_display_color_converter.h"
 #include <kis_image.h>
 #include <kis_group_layer.h>
 #include <application/kis_config.h>
@@ -15,6 +16,9 @@
 #include <KoColor.h>
 #include <KoColorDisplayRendererInterface.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorSpace.h>
+#include <KoColorProfile.h>
+#include <KoColorModelStandardIds.h>
 #include <KoCompositeOpIds.h>
 #include <KoToolProxy.h>
 #include <KisOptimizedBrushOutline.h>
@@ -56,6 +60,9 @@ KisGpuCanvasWidget::KisGpuCanvasWidget(KisCanvas2 *canvas, KisCoordinatesConvert
     m_container->setFocusPolicy(Qt::NoFocus);
     m_window->installEventFilter(this);
     m_window->setDocument(m_image->handle());
+    updateDisplayConversion();
+    connect(canvas->displayColorConverter(), &KisDisplayColorConverter::displayConfigurationChanged,
+            this, [this] { m_displayConversionDirty = true; refresh(); });
     channelSelectionChanged(canvas->image()->rootLayer()->channelFlags());
     updateBackground();
     connect(KisConfigNotifier::instance(), &KisConfigNotifier::configChanged, this, [this] {
@@ -97,9 +104,11 @@ void KisGpuCanvasWidget::refresh()
         disconnect(m_image.data(), nullptr, this, nullptr);
         m_image = image;
         m_window->setDocument(m_image->handle());
+        m_displayConversionDirty = true;
         channelSelectionChanged(canvas()->image()->rootLayer()->channelFlags());
         connect(m_image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, [this] { refresh(); });
     }
+    if (!updateDisplayConversion()) return;
     m_window->setDocumentToWindow(coordinatesConverter()->imageToWidgetTransform());
     updateBackground();
     if (!updateToolDecorations()) return;
@@ -230,3 +239,44 @@ QRect KisGpuCanvasWidget::updateCanvasProjection(KisUpdateInfoSP info)
 }
 void KisGpuCanvasWidget::updateCanvasImage(const QRect &) { refresh(); }
 void KisGpuCanvasWidget::updateCanvasDecorations(const QRect &) { refresh(); }
+
+bool KisGpuCanvasWidget::updateDisplayConversion()
+{
+    using namespace LibrePaint::Image::Gpu;
+    const auto requested = m_image->execution().requested(m_image->handle());
+    // A retained version without an ICC leaves the encoding statement to the
+    // image color space; a version with one is authoritative.
+    QByteArray iccProfile = requested ? requested->colorProfile : QByteArray();
+    const KoColorSpace *imageColorSpace = canvas()->image() ? canvas()->image()->colorSpace() : nullptr;
+    if (requested && iccProfile.isEmpty() && imageColorSpace && imageColorSpace->profile())
+        iccProfile = imageColorSpace->profile()->rawData();
+    if (!requested || iccProfile.isEmpty()) {
+        canvas()->viewManager()->showFloatingMessage(
+            QStringLiteral("GPU canvas projection has no ICC encoding"), QIcon());
+        return false;
+    }
+    KoColorConversionStages::Encoding input;
+    input.depth = requested->format == PixelFormat::Rgba16
+        ? KoColorConversionStages::Encoding::U16 : KoColorConversionStages::Encoding::U8;
+    input.iccProfile = iccProfile;
+    if (!m_displayConversionDirty && m_displayEncoding &&
+        m_displayEncoding->depth == input.depth && m_displayEncoding->iccProfile == input.iccProfile)
+        return true;
+    const auto depth = input.depth == KoColorConversionStages::Encoding::U16
+        ? Integer16BitsColorDepthID : Integer8BitsColorDepthID;
+    auto *registry = KoColorSpaceRegistry::instance();
+    const KoColorProfile *profile = registry->createColorProfileFromData(
+        RGBAColorModelID.id(), depth.id(), input.iccProfile);
+    const KoColorSpace *source = profile
+        ? registry->colorSpace(RGBAColorModelID.id(), depth.id(), profile) : nullptr;
+    const auto result = canvas()->displayColorConverter()->canvasDisplayStages(source);
+    if (result.status != KoColorConversionStagesResult::Success ||
+        !m_window->setDisplayConversion(m_image->handle(), result.value)) {
+        canvas()->viewManager()->showFloatingMessage(result.diagnostic.isEmpty()
+            ? QStringLiteral("GPU canvas rejected display conversion") : result.diagnostic, QIcon());
+        return false;
+    }
+    m_displayEncoding = std::move(input);
+    m_displayConversionDirty = false;
+    return true;
+}

@@ -7,6 +7,7 @@
 #define KIS_GPU_TILE_PRESENTATION_H
 
 #include <kritacanvas_export.h>
+#include <KoColorConversionStages.h>
 #include <gpu/KisGpuTileRenderer.h>
 #include <QColor>
 #include <QLineF>
@@ -97,8 +98,8 @@ struct CropPreview
  * Retain the projection through frame submission. Invalid input and resource
  * failures leave the target untouched. Output colors are premultiplied RGBA.
  * Channel selection changes the presentation target while retaining projection pixels.
- * Validated RGBA16 document views use linear sRGB; presentation encodes RGB for
- * the existing sRGB display surface while retaining the canonical GPU pixels.
+ * Explicit conversion stages describe the projected encoding and display output.
+ * Conversion affects presentation while retaining the canonical GPU pixels.
  */
 class KRITACANVAS_EXPORT TilePresentation
 {
@@ -111,7 +112,8 @@ public:
     PresentationOutcome record(WGPUCommandEncoder commands,
                                const Image::Gpu::ProjectedSnapshot &projection,
                                const PresentationTarget &target, const QTransform &documentToPixels,
-                               QColor clearColor, DisplayChannels channels = {},
+                               QColor clearColor, const KoColorConversionStages &conversion,
+                               DisplayChannels channels = {},
                                const ToolOutline &outline = {},
                                const std::optional<CheckerPattern> &checkers = {},
                                const std::optional<CropPreview> &crop = {});

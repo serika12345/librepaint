@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuTilePresentation.h"
+#include "KisGpuColorConversion_p.h"
 #include "KisGpuCropPreview_p.h"
 #include "KisGpuPresentationResources_p.h"
 #include "KisGpuViewTransform_p.h"
@@ -89,6 +90,10 @@ struct TilePresentation::Private
 {
     Image::Gpu::DevicePtr device;
     qsizetype maximumTiles;
+    // This presenter retains the device generation owning the immutable program.
+    std::optional<KoColorConversionStages> conversion;
+    Detail::Buffer conversionBuffer;
+    quint64 conversionBytes = 0;
     Detail::Shader shader;
     Detail::Layout layout;
     Detail::Pipeline pipeline;
@@ -246,7 +251,8 @@ TilePresentation::TilePresentation(Image::Gpu::DevicePtr device, qsizetype maxim
 TilePresentation::~TilePresentation() = default;
 PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     const Image::Gpu::ProjectedSnapshot &projection, const PresentationTarget &target,
-    const QTransform &transform, QColor clearColor, DisplayChannels channels,
+    const QTransform &transform, QColor clearColor, const KoColorConversionStages &conversion,
+    DisplayChannels channels,
     const ToolOutline &outline, const std::optional<CheckerPattern> &checkers,
     const std::optional<CropPreview> &crop)
 {
@@ -256,6 +262,28 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         projection->device() != d.device || !Detail::validDocumentTransform(transform) || !clearColor.isValid() || channels.rgbaMask > 15)
         return {false, QStringLiteral("Presentation requires an owning GPU frame, an invertible affine transform and valid RGBA channel bits"), 0};
     if (!d.error.isEmpty() || d.device->isLost()) return {false, d.error.isEmpty() ? QStringLiteral("GPU device lost") : d.error, 0};
+    if (!Detail::displayEncodingMatches(conversion.input, projection->document()))
+        return {false, QStringLiteral("Display input encoding differs from the projected version"), 0};
+    if (!d.conversion || !Detail::sameDisplayConversion(*d.conversion, conversion)) {
+        WGPULimits limits{};
+        QByteArray program;
+        QString diagnostic;
+        if (wgpuDeviceGetLimits(d.device->nativeDevice(), &limits) != WGPUStatus_Success ||
+            !Detail::packDisplayConversion(conversion,
+                std::min(quint64(limits.maxBufferSize), quint64(limits.maxStorageBufferBindingSize)),
+                program, diagnostic))
+            return {false, diagnostic.isEmpty() ? QStringLiteral("Cannot query display GPU capacity") : diagnostic, 0};
+        WGPUBufferDescriptor descriptor{};
+        descriptor.size = program.size();
+        descriptor.usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst;
+        Detail::Buffer buffer(wgpuDeviceCreateBuffer(d.device->nativeDevice(), &descriptor));
+        if (!buffer || !d.device->diagnostic().isEmpty())
+            return {false, QStringLiteral("Cannot allocate GPU display conversion"), 0};
+        wgpuQueueWriteBuffer(d.device->queue(), buffer.get(), 0, program.constData(), program.size());
+        d.conversion = conversion;
+        d.conversionBuffer = std::move(buffer);
+        d.conversionBytes = program.size();
+    }
     std::vector<Detail::CropPreviewRenderer::Draw> cropDraws;
     QString cropDiagnostic;
     if (crop && !d.cropRenderer.prepare(*crop, target, cropDraws, cropDiagnostic))
@@ -296,7 +324,6 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     std::copy_n(background, 4, frame.background);
     frame.channels[0] = channels.rgbaMask;
     frame.channels[1] = channels.showSingleChannelAsColor;
-    // The image boundary admits RGBA16 only with the default linear-sRGB encoding.
     frame.channels[2] = projection->document()->format == Image::Gpu::PixelFormat::Rgba16;
     if (checkers) {
         const auto color = [](QColor input, quint32 *output) {
@@ -337,7 +364,7 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         draw.values.clip[2] = float(region.left() + region.width() - origin.x()) / size;
         draw.values.clip[3] = float(region.top() + region.height() - origin.y()) / size;
         if (!draw.uniform) return {false, QStringLiteral("GPU presentation uniform allocation failed"), 0};
-        WGPUBindGroupEntry entries[2]{};
+        WGPUBindGroupEntry entries[3]{};
         entries[0].binding = 0;
         entries[0].buffer = draw.uniform.get();
         entries[0].size = sizeof(Uniforms);
@@ -346,7 +373,10 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         entries[1].size = wgpuBufferGetSize(tile.pixels);
         WGPUBindGroupDescriptor bindings{};
         bindings.layout = d.layout.get();
-        bindings.entryCount = 2;
+        entries[2].binding = 2;
+        entries[2].buffer = d.conversionBuffer.get();
+        entries[2].size = d.conversionBytes;
+        bindings.entryCount = 3;
         bindings.entries = entries;
         draw.bindings.reset(wgpuDeviceCreateBindGroup(d.device->nativeDevice(), &bindings));
         if (!draw.bindings || !d.device->diagnostic().isEmpty()) return {false, QStringLiteral("GPU presentation tile binding failed"), 0};

@@ -9,6 +9,7 @@
 
 #include "kritapigment_export.h"
 #include "KoColorTransformation.h"
+#include "KoColorConversionStages.h"
 #include <QMetaType>
 
 class KoColorSpace;
@@ -82,6 +83,9 @@ public:
                                     Intent renderingIntent,
                                     ConversionFlags conversionFlags);
     ~KoColorConversionTransformation() override;
+
+    /** Returns owned display stages, or an explicit unsupported result. */
+    virtual KoColorConversionStagesResult displayStages() const;
 public:
 
     /**

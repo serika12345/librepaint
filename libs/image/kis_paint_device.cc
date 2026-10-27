@@ -38,6 +38,7 @@
 
 #include <KoChannelInfo.h>
 #include <KoColorProfile.h>
+#include <QColorSpace>
 #include <KoColor.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
@@ -1227,10 +1228,17 @@ KisPaintDeviceSP KisPaintDevice::fromGpuImage(LibrePaint::Image::Gpu::PaintImage
     bool found = layer == 0;
     for (const auto &value : image->operations().snapshot()->layers) found |= value.id == layer;
     if (!found) throw std::invalid_argument("GPU paint-device layer is unavailable");
-    const auto format = image->operations().snapshot()->format;
-    if (!colorSpace || colorSpace->colorModelId().id() != QLatin1String("RGBA") ||
-        (format == LibrePaint::Image::Gpu::PixelFormat::Rgba8 ? colorSpace->colorDepthId().id() != QLatin1String("U8") :
-         *colorSpace != *KoColorSpaceRegistry::instance()->rgb16()))
+    const auto version = image->operations().snapshot();
+    const auto profile = colorSpace && colorSpace->profile() ?
+        QColorSpace::fromIccProfile(colorSpace->profile()->rawData()) : QColorSpace();
+    const bool validEncoding = colorSpace && colorSpace->colorModelId().id() == QLatin1String("RGBA") &&
+        ((version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba8 &&
+          colorSpace->colorDepthId().id() == QLatin1String("U8")) ||
+         (version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 &&
+          colorSpace->colorDepthId().id() == QLatin1String("U16") && profile.isValid() &&
+          profile.transformModel() == QColorSpace::TransformModel::ThreeComponentMatrix));
+    if (!validEncoding || (!version->colorProfile.isEmpty() &&
+        (!colorSpace->profile() || version->colorProfile != colorSpace->profile()->rawData())))
         throw std::invalid_argument("GPU pixel precision and document color encoding must match");
     return new KisPaintDevice(std::move(image), layer, name, colorSpace);
 }

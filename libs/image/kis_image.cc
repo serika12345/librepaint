@@ -13,6 +13,7 @@
 #include <iterator>
 #include <krita_container_utils.h>
 
+#include <QColorSpace>
 #include <QtGlobal>
 #include <qatomic.h>
 #include <qcoreapplication.h>
@@ -1644,7 +1645,11 @@ bool KisImage::KisImagePrivate::startGpuColorConversion(const KoColorSpace *dest
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     if (!destination || q->locked() || gpuColorConversion || !gpuImage ||
-        *colorSpace != *KoColorSpaceRegistry::instance()->rgb16() ||
+        colorSpace->colorModelId().id() != QLatin1String("RGBA") ||
+        colorSpace->colorDepthId().id() != QLatin1String("U16") || !colorSpace->profile() ||
+        !QColorSpace::fromIccProfile(colorSpace->profile()->rawData()).isValid() ||
+        QColorSpace::fromIccProfile(colorSpace->profile()->rawData()).transformModel() !=
+            QColorSpace::TransformModel::ThreeComponentMatrix ||
         *destination != *KoColorSpaceRegistry::instance()->rgb8()) return false;
     const auto before = gpuImage->operations().snapshot();
     if (before->format != Gpu::PixelFormat::Rgba16 ||

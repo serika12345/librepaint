@@ -7,6 +7,7 @@
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
 #include <KoColorSpace.h>
+#include <KoColorProfile.h>
 #include <QEventLoop>
 #include <QThread>
 #include <QTimer>
@@ -239,17 +240,22 @@ KisGpuExportRasterRows::KisGpuExportRasterRows(KisImageSP image, qsizetype memor
     if (!image || !image->gpuImage()) throw std::invalid_argument("Export rows require a GPU image");
     d.owner = image->gpuImage();
     if (d.owner->thread() != QThread::currentThread()) throw std::invalid_argument("Export rows require the GPU thread");
-    d.size = image->size();
     d.pinned = d.owner->operations().snapshot();
+    d.size = d.pinned->size;
+    const KoColorSpace *encoding = image->colorSpace();
     d.pixelSize = Gpu::pixelByteCount(d.pinned->format);
-    if (image->colorSpace()->pixelSize() != d.pixelSize)
+    // The encoding is captured before preparation can process events, so the
+    // retained pixels keep the encoding they were pinned with. A version that
+    // states an ICC must match it; a version without one uses the image's
+    // encoding at pin time instead of inventing a profile.
+    if (!encoding || encoding->pixelSize() != d.pixelSize || !encoding->profile() ||
+        (!d.pinned->colorProfile.isEmpty() && encoding->profile()->rawData() != d.pinned->colorProfile))
         throw std::invalid_argument("Export precision and document color encoding must match");
     constexpr qint64 scratchBytes = 8 * 1024 * 1024;
     const qint64 rowBytes = qint64(d.size.width()) * d.pixelSize;
     const qint64 workingRows = 2 * std::min(Side, d.size.height()) + 16;
     if (memoryBudgetBytes < scratchBytes || rowBytes > (memoryBudgetBytes - scratchBytes) / workingRows)
         throw std::length_error("GPU export working memory budget exceeded");
-    d.pinned = d.owner->operations().snapshot();
     d.state->gui = this;
     d.state->dispatch = [&d](std::shared_ptr<Request> request) {
         d.requests.push_back(std::move(request));
@@ -272,7 +278,7 @@ KisGpuExportRasterRows::KisGpuExportRasterRows(KisImageSP image, qsizetype memor
     reader->size = d.size;
     reader->pixelSize = d.pixelSize;
     auto rows = QSharedPointer<KisExportRasterRows>::create();
-    rows->colorSpace = image->colorSpace();
+    rows->colorSpace = encoding;
     rows->size = d.size;
     rows->readRow = [reader](int row, QByteArray &bytes) { return reader->read(row, bytes); };
     d.rows = rows;

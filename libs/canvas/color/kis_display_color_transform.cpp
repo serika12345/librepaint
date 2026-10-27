@@ -6,6 +6,7 @@
 #include "kis_display_color_transform.h"
 
 #include <cmath>
+#include <memory>
 
 #include <QColor>
 #include <QHash>
@@ -664,4 +665,24 @@ void KisDisplayColorTransform::getHsyF(const KoColor &sourceColor,
              greenWeight,
              blueWeight);
     *y = std::pow(*y, 1.0 / gamma);
+}
+
+KoColorConversionStagesResult KisDisplayColorTransform::canvasDisplayStages(const KoColorSpace *source) const
+{
+    using Result = KoColorConversionStagesResult;
+    if (!source || !m_d->canvasProfile)
+        return {Result::InvalidData, {}, QStringLiteral("Canvas display requires source and monitor profiles")};
+    if (m_d->displayFilter)
+        return {Result::Unsupported, {}, QStringLiteral("GPU canvas does not support the active display filter")};
+    if (m_d->conversionFlags.testFlag(KoColorConversionTransformation::SoftProofing) ||
+        m_d->conversionFlags.testFlag(KoColorConversionTransformation::GamutCheck))
+        return {Result::Unsupported, {}, QStringLiteral("GPU canvas does not support active proofing")};
+    const KoColorSpace *destination = m_d->canvasColorSpace(Integer8BitsColorDepthID);
+    if (!destination)
+        return {Result::InvalidData, {}, QStringLiteral("Canvas monitor RGB encoding is unavailable")};
+    std::unique_ptr<KoColorConversionTransformation> conversion(
+        source->createColorConverter(destination, m_d->intent, m_d->conversionFlags));
+    if (!conversion)
+        return {Result::Unsupported, {}, QStringLiteral("Canvas color conversion is unavailable")};
+    return conversion->displayStages();
 }

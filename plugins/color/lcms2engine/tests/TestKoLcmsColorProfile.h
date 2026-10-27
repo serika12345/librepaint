@@ -11,6 +11,8 @@ class TestKoLcmsColorProfile : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void displayStagesRetainActualRgbValues_data();
+    void displayStagesRetainActualRgbValues();
     void testConversion();
     void testProofingConversion();
     void builtInDefinitionsKeepCanonicalBytesColorsAndImportedProfiles_data();
