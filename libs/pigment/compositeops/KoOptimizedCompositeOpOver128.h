@@ -77,7 +77,8 @@ struct OverCompositor128 {
         const float_v zeroValue(static_cast<float>(NATIVE_OPACITY_TRANSPARENT));
         // The source cannot change the colors in the destination,
         // since its fully transparent
-        if (xsimd::all(src_alpha == zeroValue)) {
+        const float_m transparent = src_alpha == zeroValue;
+        if (xsimd::all(transparent)) {
 #if INFO_DEBUG
             countFour++;
 #endif
@@ -116,17 +117,19 @@ struct OverCompositor128 {
             ++countOne;
 #endif
 
-            dst_c1 = src_blend * (src_c1 - dst_c1) + dst_c1;
-            dst_c2 = src_blend * (src_c2 - dst_c2) + dst_c2;
-            dst_c3 = src_blend * (src_c3 - dst_c3) + dst_c3;
+            src_c1 = src_blend * (src_c1 - dst_c1) + dst_c1;
+            src_c2 = src_blend * (src_c2 - dst_c2) + dst_c2;
+            src_c3 = src_blend * (src_c3 - dst_c3) + dst_c3;
 
-            dataWrapper.write(dst, dst_c1, dst_c2, dst_c3, new_alpha);
         } else {
 #if INFO_DEBUG
                 ++countTwo;
 #endif
-            dataWrapper.write(dst, src_c1, src_c2, src_c3, new_alpha);
         }
+        dataWrapper.write(dst, xsimd::select(transparent, dst_c1, src_c1),
+                          xsimd::select(transparent, dst_c2, src_c2),
+                          xsimd::select(transparent, dst_c3, src_c3),
+                          xsimd::select(transparent, dst_alpha, new_alpha));
     }
 
     template<bool haveMask, typename _impl>

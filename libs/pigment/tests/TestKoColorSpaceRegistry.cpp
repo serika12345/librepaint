@@ -12,6 +12,10 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
 #include <KoColorProfileQuery.h>
+#include <KoColorSpace.h>
+#include <KoCompositeOp.h>
+#include <KoCompositeOpIds.h>
+#include <array>
 #include <QColorSpace>
 
 TestBaseColorSpaceRegistry::TestBaseColorSpaceRegistry()
@@ -40,6 +44,108 @@ void TestBaseColorSpaceRegistry::testRgb16()
     QCOMPARE(cs->colorModelId().id(), RGBAColorModelID.id());
     QCOMPARE(cs->colorDepthId().id(), Integer16BitsColorDepthID.id());
     QVERIFY(*cs == *KoColorSpaceRegistry::instance()->colorSpace(RGBAColorModelID.id(), Integer16BitsColorDepthID.id(), 0));
+}
+
+namespace {
+template<typename Component>
+void compareTransparentNormalComposition(const KoColorSpace *colorSpace,
+                                         const std::array<Component, 4> &initial,
+                                         const std::array<Component, 4> &paint,
+                                         float opacity, bool masked, int destinationAlpha)
+{
+    using Pixel = std::array<Component, 4>;
+    alignas(64) std::array<Pixel, 64> source{};
+    alignas(64) std::array<Pixel, 64> destination{};
+    alignas(64) std::array<Pixel, 64> individual{};
+    std::array<quint8, 64> mask{};
+    destination.fill(initial);
+    for (std::size_t i = 0; i < destination.size(); ++i) {
+        if (destinationAlpha == 1 || (destinationAlpha == 2 && i % 3 != 0)) {
+            destination[i][3] = paint[3];
+        }
+    }
+    individual = destination;
+    const auto original = destination;
+    if (masked) {
+        source.fill(paint);
+        mask[17] = 255;
+    } else {
+        source[17] = paint;
+    }
+
+    const KoCompositeOp *operation = colorSpace->compositeOp(COMPOSITE_OVER);
+    QVERIFY(operation);
+    KoCompositeOp::ParameterInfo parameters;
+    parameters.srcRowStart = reinterpret_cast<const quint8 *>(source.data());
+    parameters.dstRowStart = reinterpret_cast<quint8 *>(destination.data());
+    parameters.srcRowStride = sizeof(source);
+    parameters.dstRowStride = sizeof(destination);
+    parameters.maskRowStart = masked ? mask.data() : nullptr;
+    parameters.maskRowStride = mask.size();
+    parameters.cols = source.size();
+    parameters.rows = 1;
+    parameters.opacity = opacity;
+    operation->composite(parameters);
+
+    parameters.cols = 1;
+    for (std::size_t i = 0; i < source.size(); ++i) {
+        parameters.srcRowStart = reinterpret_cast<const quint8 *>(&source[i]);
+        parameters.dstRowStart = reinterpret_cast<quint8 *>(&individual[i]);
+        parameters.maskRowStart = masked ? &mask[i] : nullptr;
+        operation->composite(parameters);
+    }
+
+    // Painting a span or separate pixels must preserve the same hidden colors,
+    // signed zero alpha and direct-copy HDR values in a transparent destination.
+    for (std::size_t i = 0; i < destination.size(); ++i) {
+        const QByteArray actual(reinterpret_cast<const char *>(&destination[i]), sizeof(Pixel));
+        const QByteArray expected(reinterpret_cast<const char *>(&individual[i]), sizeof(Pixel));
+        QVERIFY2(destinationAlpha != 0 || actual == expected, qPrintable(QStringLiteral("pixel %1: %2, expected %3")
+                     .arg(i).arg(QString::fromLatin1(actual.toHex()), QString::fromLatin1(expected.toHex()))));
+        if (i != 17 || opacity == 0.0f) {
+            QCOMPARE(actual, QByteArray(reinterpret_cast<const char *>(&original[i]), sizeof(Pixel)));
+        }
+    }
+}
+}
+
+void TestBaseColorSpaceRegistry::testNormalPreservesTransparentPixels_data()
+{
+    QTest::addColumn<bool>("floatingPoint");
+    QTest::addColumn<float>("opacity");
+    QTest::addColumn<bool>("masked");
+    QTest::addColumn<int>("destinationAlpha");
+    for (bool floatingPoint : {false, true}) {
+        for (float opacity : {1.0f, 0.5f, 0.0f}) {
+            for (bool masked : {false, true}) {
+                for (int destinationAlpha : {0, 1, 2}) {
+                    QTest::addRow("%s-opacity-%g-%s-destination-%d", floatingPoint ? "f32" : "u16", double(opacity),
+                                  masked ? "mask" : "source", destinationAlpha)
+                        << floatingPoint << opacity << masked << destinationAlpha;
+                }
+            }
+        }
+    }
+}
+
+void TestBaseColorSpaceRegistry::testNormalPreservesTransparentPixels()
+{
+    QFETCH(bool, floatingPoint);
+    QFETCH(float, opacity);
+    QFETCH(bool, masked);
+    QFETCH(int, destinationAlpha);
+    const KoColorSpace *colorSpace = KoColorSpaceRegistry::instance()->colorSpace(
+        RGBAColorModelID.id(), floatingPoint ? Float32BitsColorDepthID.id() : Integer16BitsColorDepthID.id(),
+        QStringLiteral("sRGB-elle-V2-g10.icc"));
+    QVERIFY(colorSpace);
+    QCOMPARE(colorSpace->pixelSize(), floatingPoint ? 16U : 8U);
+    if (floatingPoint) {
+        compareTransparentNormalComposition<float>(colorSpace, {1.0e20f, -0.0f, 0.125f, -0.0f},
+                                                    {0.125f, -0.25f, 2.0f, 1.0f}, opacity, masked, destinationAlpha);
+    } else {
+        compareTransparentNormalComposition<quint16>(colorSpace, {1, 257, 65534, 0},
+                                                      {1111, 2222, 3333, 65535}, opacity, masked, destinationAlpha);
+    }
 }
 
 void TestBaseColorSpaceRegistry::testComparisonOperators()
