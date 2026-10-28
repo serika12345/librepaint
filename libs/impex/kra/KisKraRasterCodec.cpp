@@ -249,7 +249,24 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("converse") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("not_converse") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("destination-in") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("destination-atop")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("destination-atop") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("reflect") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("glow") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("freeze") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("heat") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("glow_heat") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("heat_glow") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("reflect_freeze") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("freeze_reflect") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("heat_glow_freeze_reflect_hybrid") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("parallel") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hard overlay") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("soft_light_pegtop_delphi") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("negation") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("penumbra a") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("penumbra b") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("flat_light") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hard_mix_softer_photoshop")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -703,6 +720,23 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::NotConverse ? QStringLiteral("not_converse") :
                              layer.blendMode == LayerBlendMode::DestinationIn ? QStringLiteral("destination-in") :
                              layer.blendMode == LayerBlendMode::DestinationAtop ? QStringLiteral("destination-atop") :
+                             layer.blendMode == LayerBlendMode::Reflect ? QStringLiteral("reflect") :
+                             layer.blendMode == LayerBlendMode::Glow ? QStringLiteral("glow") :
+                             layer.blendMode == LayerBlendMode::Freeze ? QStringLiteral("freeze") :
+                             layer.blendMode == LayerBlendMode::Heat ? QStringLiteral("heat") :
+                             layer.blendMode == LayerBlendMode::GlowHeat ? QStringLiteral("glow_heat") :
+                             layer.blendMode == LayerBlendMode::HeatGlow ? QStringLiteral("heat_glow") :
+                             layer.blendMode == LayerBlendMode::ReflectFreeze ? QStringLiteral("reflect_freeze") :
+                             layer.blendMode == LayerBlendMode::FreezeReflect ? QStringLiteral("freeze_reflect") :
+                             layer.blendMode == LayerBlendMode::QuadraticHybrid ? QStringLiteral("heat_glow_freeze_reflect_hybrid") :
+                             layer.blendMode == LayerBlendMode::Parallel ? QStringLiteral("parallel") :
+                             layer.blendMode == LayerBlendMode::HardOverlay ? QStringLiteral("hard overlay") :
+                             layer.blendMode == LayerBlendMode::SoftLightPegtopDelphi ? QStringLiteral("soft_light_pegtop_delphi") :
+                             layer.blendMode == LayerBlendMode::Negation ? QStringLiteral("negation") :
+                             layer.blendMode == LayerBlendMode::PenumbraA ? QStringLiteral("penumbra a") :
+                             layer.blendMode == LayerBlendMode::PenumbraB ? QStringLiteral("penumbra b") :
+                             layer.blendMode == LayerBlendMode::FlatLight ? QStringLiteral("flat_light") :
+                             layer.blendMode == LayerBlendMode::HardMixSofterPhotoshop ? QStringLiteral("hard_mix_softer_photoshop") :
                              QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
@@ -1232,6 +1266,23 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("not_converse") ? LayerBlendMode::NotConverse :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("destination-in") ? LayerBlendMode::DestinationIn :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("destination-atop") ? LayerBlendMode::DestinationAtop :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("reflect") ? LayerBlendMode::Reflect :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("glow") ? LayerBlendMode::Glow :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("freeze") ? LayerBlendMode::Freeze :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("heat") ? LayerBlendMode::Heat :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("glow_heat") ? LayerBlendMode::GlowHeat :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("heat_glow") ? LayerBlendMode::HeatGlow :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("reflect_freeze") ? LayerBlendMode::ReflectFreeze :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("freeze_reflect") ? LayerBlendMode::FreezeReflect :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("heat_glow_freeze_reflect_hybrid") ? LayerBlendMode::QuadraticHybrid :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("parallel") ? LayerBlendMode::Parallel :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("hard overlay") ? LayerBlendMode::HardOverlay :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("soft_light_pegtop_delphi") ? LayerBlendMode::SoftLightPegtopDelphi :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("negation") ? LayerBlendMode::Negation :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("penumbra a") ? LayerBlendMode::PenumbraA :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("penumbra b") ? LayerBlendMode::PenumbraB :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("flat_light") ? LayerBlendMode::FlatLight :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("hard_mix_softer_photoshop") ? LayerBlendMode::HardMixSofterPhotoshop :
             LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));

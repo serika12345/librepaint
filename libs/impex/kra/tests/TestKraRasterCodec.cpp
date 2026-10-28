@@ -731,11 +731,28 @@ void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
         case LayerBlendMode::NotConverse: return QStringLiteral("not_converse");
         case LayerBlendMode::DestinationIn: return QStringLiteral("destination-in");
         case LayerBlendMode::DestinationAtop: return QStringLiteral("destination-atop");
+        case LayerBlendMode::Reflect: return QStringLiteral("reflect");
+        case LayerBlendMode::Glow: return QStringLiteral("glow");
+        case LayerBlendMode::Freeze: return QStringLiteral("freeze");
+        case LayerBlendMode::Heat: return QStringLiteral("heat");
+        case LayerBlendMode::GlowHeat: return QStringLiteral("glow_heat");
+        case LayerBlendMode::HeatGlow: return QStringLiteral("heat_glow");
+        case LayerBlendMode::ReflectFreeze: return QStringLiteral("reflect_freeze");
+        case LayerBlendMode::FreezeReflect: return QStringLiteral("freeze_reflect");
+        case LayerBlendMode::QuadraticHybrid: return QStringLiteral("heat_glow_freeze_reflect_hybrid");
+        case LayerBlendMode::Parallel: return QStringLiteral("parallel");
+        case LayerBlendMode::HardOverlay: return QStringLiteral("hard overlay");
+        case LayerBlendMode::SoftLightPegtopDelphi: return QStringLiteral("soft_light_pegtop_delphi");
+        case LayerBlendMode::Negation: return QStringLiteral("negation");
+        case LayerBlendMode::PenumbraA: return QStringLiteral("penumbra a");
+        case LayerBlendMode::PenumbraB: return QStringLiteral("penumbra b");
+        case LayerBlendMode::FlatLight: return QStringLiteral("flat_light");
+        case LayerBlendMode::HardMixSofterPhotoshop: return QStringLiteral("hard_mix_softer_photoshop");
         case LayerBlendMode::Normal: break;
         }
         return QStringLiteral("normal");
     };
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight, LayerBlendMode::Equivalence, LayerBlendMode::Allanon, LayerBlendMode::HardMixPhotoshop, LayerBlendMode::Erase, LayerBlendMode::Behind, LayerBlendMode::CopyRed, LayerBlendMode::CopyGreen, LayerBlendMode::CopyBlue, LayerBlendMode::BitwiseXor, LayerBlendMode::BitwiseOr, LayerBlendMode::BitwiseAnd, LayerBlendMode::BitwiseNand, LayerBlendMode::BitwiseNor, LayerBlendMode::BitwiseXnor, LayerBlendMode::Implication, LayerBlendMode::NotImplication, LayerBlendMode::Converse, LayerBlendMode::NotConverse, LayerBlendMode::DestinationIn, LayerBlendMode::DestinationAtop}) {
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight, LayerBlendMode::Equivalence, LayerBlendMode::Allanon, LayerBlendMode::HardMixPhotoshop, LayerBlendMode::Erase, LayerBlendMode::Behind, LayerBlendMode::CopyRed, LayerBlendMode::CopyGreen, LayerBlendMode::CopyBlue, LayerBlendMode::BitwiseXor, LayerBlendMode::BitwiseOr, LayerBlendMode::BitwiseAnd, LayerBlendMode::BitwiseNand, LayerBlendMode::BitwiseNor, LayerBlendMode::BitwiseXnor, LayerBlendMode::Implication, LayerBlendMode::NotImplication, LayerBlendMode::Converse, LayerBlendMode::NotConverse, LayerBlendMode::DestinationIn, LayerBlendMode::DestinationAtop, LayerBlendMode::Reflect, LayerBlendMode::Glow, LayerBlendMode::Freeze, LayerBlendMode::Heat, LayerBlendMode::GlowHeat, LayerBlendMode::HeatGlow, LayerBlendMode::ReflectFreeze, LayerBlendMode::FreezeReflect, LayerBlendMode::QuadraticHybrid, LayerBlendMode::Parallel, LayerBlendMode::HardOverlay, LayerBlendMode::SoftLightPegtopDelphi, LayerBlendMode::Negation, LayerBlendMode::PenumbraA, LayerBlendMode::PenumbraB, LayerBlendMode::FlatLight, LayerBlendMode::HardMixSofterPhotoshop}) {
         auto source = document();
         RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
         group.kind = LayerKind::Group;

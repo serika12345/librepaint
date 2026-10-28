@@ -61,6 +61,23 @@ inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString
     if (compositeOp == COMPOSITE_NOT_CONVERSE) return LayerBlendMode::NotConverse;
     if (compositeOp == COMPOSITE_DESTINATION_IN) return LayerBlendMode::DestinationIn;
     if (compositeOp == COMPOSITE_DESTINATION_ATOP) return LayerBlendMode::DestinationAtop;
+    if (compositeOp == COMPOSITE_REFLECT) return LayerBlendMode::Reflect;
+    if (compositeOp == COMPOSITE_GLOW) return LayerBlendMode::Glow;
+    if (compositeOp == COMPOSITE_FREEZE) return LayerBlendMode::Freeze;
+    if (compositeOp == COMPOSITE_HEAT) return LayerBlendMode::Heat;
+    if (compositeOp == COMPOSITE_GLEAT) return LayerBlendMode::GlowHeat;
+    if (compositeOp == COMPOSITE_HELOW) return LayerBlendMode::HeatGlow;
+    if (compositeOp == COMPOSITE_REEZE) return LayerBlendMode::ReflectFreeze;
+    if (compositeOp == COMPOSITE_FRECT) return LayerBlendMode::FreezeReflect;
+    if (compositeOp == COMPOSITE_FHYRD) return LayerBlendMode::QuadraticHybrid;
+    if (compositeOp == COMPOSITE_PARALLEL) return LayerBlendMode::Parallel;
+    if (compositeOp == COMPOSITE_HARD_OVERLAY) return LayerBlendMode::HardOverlay;
+    if (compositeOp == COMPOSITE_SOFT_LIGHT_PEGTOP_DELPHI) return LayerBlendMode::SoftLightPegtopDelphi;
+    if (compositeOp == COMPOSITE_NEGATION) return LayerBlendMode::Negation;
+    if (compositeOp == COMPOSITE_PENUMBRAA) return LayerBlendMode::PenumbraA;
+    if (compositeOp == COMPOSITE_PENUMBRAB) return LayerBlendMode::PenumbraB;
+    if (compositeOp == COMPOSITE_FLAT_LIGHT) return LayerBlendMode::FlatLight;
+    if (compositeOp == COMPOSITE_HARD_MIX_SOFTER_PHOTOSHOP) return LayerBlendMode::HardMixSofterPhotoshop;
     return std::nullopt;
 }
 
@@ -109,6 +126,23 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::NotConverse: return COMPOSITE_NOT_CONVERSE;
     case LayerBlendMode::DestinationIn: return COMPOSITE_DESTINATION_IN;
     case LayerBlendMode::DestinationAtop: return COMPOSITE_DESTINATION_ATOP;
+    case LayerBlendMode::Reflect: return COMPOSITE_REFLECT;
+    case LayerBlendMode::Glow: return COMPOSITE_GLOW;
+    case LayerBlendMode::Freeze: return COMPOSITE_FREEZE;
+    case LayerBlendMode::Heat: return COMPOSITE_HEAT;
+    case LayerBlendMode::GlowHeat: return COMPOSITE_GLEAT;
+    case LayerBlendMode::HeatGlow: return COMPOSITE_HELOW;
+    case LayerBlendMode::ReflectFreeze: return COMPOSITE_REEZE;
+    case LayerBlendMode::FreezeReflect: return COMPOSITE_FRECT;
+    case LayerBlendMode::QuadraticHybrid: return COMPOSITE_FHYRD;
+    case LayerBlendMode::Parallel: return COMPOSITE_PARALLEL;
+    case LayerBlendMode::HardOverlay: return COMPOSITE_HARD_OVERLAY;
+    case LayerBlendMode::SoftLightPegtopDelphi: return COMPOSITE_SOFT_LIGHT_PEGTOP_DELPHI;
+    case LayerBlendMode::Negation: return COMPOSITE_NEGATION;
+    case LayerBlendMode::PenumbraA: return COMPOSITE_PENUMBRAA;
+    case LayerBlendMode::PenumbraB: return COMPOSITE_PENUMBRAB;
+    case LayerBlendMode::FlatLight: return COMPOSITE_FLAT_LIGHT;
+    case LayerBlendMode::HardMixSofterPhotoshop: return COMPOSITE_HARD_MIX_SOFTER_PHOTOSHOP;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;

@@ -3235,7 +3235,7 @@ void TestDocument::testLayerBlendProjectionMatchesCpuPixels_data()
 {
     QTest::addColumn<QString>("mode");
     for (const auto *mode : {"multiply", "screen", "darken", "lighten", "add", "linear_dodge",
-                             "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract", "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light", "linear light", "equivalence", "allanon", "hard_mix_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "xor", "or", "and", "nand", "nor", "xnor", "implication", "not_implication", "converse", "not_converse", "destination-in", "destination-atop"})
+                             "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract", "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light", "linear light", "equivalence", "allanon", "hard_mix_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "xor", "or", "and", "nand", "nor", "xnor", "implication", "not_implication", "converse", "not_converse", "destination-in", "destination-atop", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect", "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -3528,6 +3528,88 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
     const auto editedPath = QDir(output).filePath(QStringLiteral("edited.kra"));
     QVERIFY2(reopened->saveAs(editedPath, KisDocument::nativeFormatMimeType(), false, saveSettings), qPrintable(reopened->errorMessage()));
     reopened->waitForSavingToComplete();
+}
+
+void TestDocument::testQuantizedBlendMatchesEveryRgb8Pair_data()
+{
+    QTest::addColumn<QString>("mode");
+    for (const auto *mode : {"reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect", "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop"})
+        QTest::newRow(mode) << QString::fromLatin1(mode);
+}
+
+void TestDocument::testQuantizedBlendMatchesEveryRgb8Pair()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(QString, mode);
+    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto blend = Gpu::layerBlendModeFromCompositeOp(mode);
+    QVERIFY(blend);
+    constexpr int side = 256;
+    const QRect region(0, 0, side, side);
+    QByteArray bottomBytes, topBytes;
+    bottomBytes.reserve(side * side * 4);
+    topBytes.reserve(side * side * 4);
+    for (int source = 0; source < side; ++source) for (int destination = 0; destination < side; ++destination) {
+        bottomBytes.append(char(destination));
+        bottomBytes.append(char(255 - destination));
+        bottomBytes.append(char((destination * 7) & 255));
+        bottomBytes.append(char(255));
+        topBytes.append(char(source));
+        topBytes.append(char(255 - source));
+        topBytes.append(char((source * 11) & 255));
+        topBytes.append(char(255));
+    }
+    auto expected = bottomBytes;
+    KoCompositeOp::ParameterInfo parameters;
+    parameters.dstRowStart = reinterpret_cast<quint8 *>(expected.data());
+    parameters.dstRowStride = side * 4;
+    parameters.srcRowStart = reinterpret_cast<const quint8 *>(topBytes.constData());
+    parameters.srcRowStride = side * 4;
+    parameters.rows = parameters.cols = side;
+    parameters.opacity = 1;
+    cs->compositeOp(mode)->composite(parameters);
+    const auto canonical = [](QByteArray pixels) {
+        for (int i = 0; i < pixels.size(); i += 4) std::swap(pixels[i], pixels[i + 2]);
+        return pixels;
+    };
+    Gpu::RasterImage input;
+    input.size = region.size();
+    input.colorProfile = cs->profile()->rawData();
+    Gpu::RasterLayer bottom, top;
+    bottom.tiles = {{{0, 0}, canonical(bottomBytes)}};
+    top.tiles = {{{0, 0}, canonical(topBytes)}};
+    top.blendMode = *blend;
+    input.layers = {bottom, top};
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    const auto owner = Gpu::PaintImageSP::create(execution, input);
+    const auto result = owner->readRgbaPixels(0, region, expected.size());
+    QCOMPARE(result.code, Gpu::ExecutionCode::Success);
+    const auto actual = canonical(result.bytes);
+    QCOMPARE(actual.size(), expected.size());
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    if (actual != expected || qEnvironmentVariableIsSet("LIBREPAINT_GPU_RESULT_DIR")) {
+        const auto output = QDir(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path()))
+            .filePath(QStringLiteral("blend-") + mode);
+        QVERIFY(QDir().mkpath(output));
+        const auto write = [&](const QString &name, const QByteArray &bytes) {
+            QFile file(QDir(output).filePath(name));
+            return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+        };
+        QVERIFY(write(QStringLiteral("all-rgb8-pairs.bgra"), actual));
+        QVERIFY(write(QStringLiteral("all-rgb8-pairs-cpu.bgra"), expected));
+        if (actual != expected) {
+            directory.setAutoRemove(false);
+            int first = 0;
+            while (actual[first] == expected[first]) ++first;
+            qInfo() << "RGB8 pair mismatch" << mode << "source" << first / (side * 4)
+                    << "destination" << (first / 4) % side << "channel" << first % 4
+                    << "actual" << quint8(actual[first]) << "expected" << quint8(expected[first]) << output;
+        }
+    }
+    QVERIFY(actual == expected);
 }
 
 void TestDocument::testReplacingAlphaPaintMatchesCpuSourceRegions_data()

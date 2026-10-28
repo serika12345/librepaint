@@ -336,6 +336,11 @@ KRA再読込み、PNG、再読込み後の描画・塗りとUndo／Redoも同じ
 レイヤーUUID、ICC、文書情報、保存日時とPNG設定を固定し、`LIBREPAINT_GPU_RESULT_DIR`の
 `blend-<方式>/`へ条件別のBGRA画素、KRA、PNG、追加編集後の画素とKRAを出力する。
 同じ入力で再実行した全ファイルと、各OSで生成した同名のファイルを全バイトで比較する。
+`TestDocument::testQuantizedBlendMatchesEveryRgb8Pair`は、二次式と関連する整数合成の各方式で、
+色成分の全65,536組合せを既存のCPU合成とGPU投影で照合する。各入力は不透明に固定し、
+部分アルファ・不透明度・成分保護は上の編集・保存試験で照合する。
+`LIBREPAINT_GPU_RESULT_DIR`の各方式の出力先へ、実測画素`all-rgb8-pairs.bgra`と
+CPU参照`all-rgb8-pairs-cpu.bgra`を保存する。不一致時も比較用の画素を保持する。
 `KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot`は、成分Copyで生じた
 透明RGBを保持するグループと、上位で通常合成した結果、保持した旧投影を照合する。
 `testReplacingAlphaPaintMatchesCpuSourceRegions`は、Destination方式のブラシを

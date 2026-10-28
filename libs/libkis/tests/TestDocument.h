@@ -49,6 +49,8 @@ private Q_SLOTS:
     void testLayerBlendProjectionMatchesCpuPixels();
     void testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles_data();
     void testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles();
+    void testQuantizedBlendMatchesEveryRgb8Pair_data();
+    void testQuantizedBlendMatchesEveryRgb8Pair();
     void testReplacingAlphaPaintMatchesCpuSourceRegions_data();
     void testReplacingAlphaPaintMatchesCpuSourceRegions();
     void testCanvasBackgroundReferencePixels_data();

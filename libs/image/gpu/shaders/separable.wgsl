@@ -12,7 +12,10 @@
 // CopyRed=28, CopyGreen=29, CopyBlue=30, BitwiseXor=31, BitwiseOr=32,
 // BitwiseAnd=33, BitwiseNand=34, BitwiseNor=35, BitwiseXnor=36,
 // Implication=37, NotImplication=38, Converse=39, NotConverse=40,
-// DestinationIn=41, DestinationAtop=42.
+// DestinationIn=41, DestinationAtop=42, Reflect=43, Glow=44, Freeze=45, Heat=46,
+// GlowHeat=47, HeatGlow=48, ReflectFreeze=49, FreezeReflect=50, QuadraticHybrid=51,
+// Parallel=52, HardOverlay=53, SoftLightPegtopDelphi=54, Negation=55,
+// PenumbraA=56, PenumbraB=57, FlatLight=58, HardMixSofterPhotoshop=59.
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -25,6 +28,74 @@ fn multiplyThreeBytes(a: u32, b: u32, c: u32) -> u32 {
 fn blendByte(destination: u32, source: u32, alpha: u32) -> u32 {
     let weighted = (i32(source) - i32(destination)) * i32(alpha) + 128;
     return u32((((weighted >> 8u) + weighted) >> 8u) + i32(destination)) & 255u;
+}
+fn divideByte(a: u32, b: u32) -> u32 { return (a * 255u + b / 2u) / b; }
+fn glowByte(source: u32, destination: u32) -> u32 {
+    if (destination == 255u) { return 255u; }
+    return min(255u, divideByte(multiplyByte(source, source), 255u - destination));
+}
+fn heatByte(source: u32, destination: u32) -> u32 {
+    if (source == 255u) { return 255u; }
+    if (destination == 0u) { return 0u; }
+    return 255u - min(255u, divideByte(multiplyByte(255u - source, 255u - source), destination));
+}
+fn heatGlowByte(source: u32, destination: u32) -> u32 {
+    if (source + destination > 255u) { return heatByte(source, destination); }
+    if (source == 0u) { return 0u; }
+    return glowByte(source, destination);
+}
+fn freezeReflectByte(source: u32, destination: u32) -> u32 {
+    if (source + destination > 255u) { return heatByte(destination, source); }
+    if (destination == 0u) { return 0u; }
+    return glowByte(destination, source);
+}
+fn glowHeatByte(source: u32, destination: u32) -> u32 {
+    if (destination == 255u) { return 255u; }
+    if (source + destination > 255u) { return glowByte(source, destination); }
+    return heatByte(source, destination);
+}
+fn penumbraByte(source: u32, destination: u32) -> u32 {
+    if (destination == 255u) { return 255u; }
+    if (source + destination < 255u) { return min(255u, divideByte(source, 255u - destination)) / 2u; }
+    if (source == 0u) { return 0u; }
+    return 255u - min(255u, divideByte(255u - destination, source) / 2u);
+}
+fn quantizedBlendChannel(mode: u32, source: u32, destination: u32) -> u32 {
+    switch mode {
+        case 43u: { return glowByte(destination, source); }
+        case 44u: { return glowByte(source, destination); }
+        case 45u: { return heatByte(destination, source); }
+        case 46u: { return heatByte(source, destination); }
+        case 47u: { return glowHeatByte(source, destination); }
+        case 48u: { return heatGlowByte(source, destination); }
+        case 49u: { return glowHeatByte(destination, source); }
+        case 50u: { return freezeReflectByte(source, destination); }
+        case 51u: { return (freezeReflectByte(source, destination) + heatGlowByte(source, destination)) * 127u / 255u; }
+        case 52u: {
+            if (source == 0u || destination == 0u) { return 0u; }
+            return min(255u, 130050u / (divideByte(255u, source) + divideByte(255u, destination)));
+        }
+        case 53u: {
+            if (destination == 0u) { return 0u; }
+            if (source == 255u) { return 255u; }
+            if (source >= 127u) { return min(255u, destination * 255u / (2u * (255u - source))); }
+            return destination * 2u * source / 255u;
+        }
+        case 54u: {
+            return min(255u, multiplyByte(destination, source + destination - multiplyByte(source, destination)) +
+                             multiplyByte(multiplyByte(source, destination), 255u - destination));
+        }
+        case 55u: { return 255u - u32(abs(255 - i32(source) - i32(destination))); }
+        case 56u: { return penumbraByte(destination, source); }
+        case 57u: { return penumbraByte(source, destination); }
+        case 58u: {
+            if (source == 0u) { return 0u; }
+            if (destination > source) { return penumbraByte(source, destination); }
+            return penumbraByte(destination, source);
+        }
+        case 59u: { return u32(clamp(3 * i32(destination) - 2 * (255 - i32(source)), 0, 255)); }
+        default: { return multiplyByte(source, destination); }
+    }
 }
 fn destinationRgba8(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> u32 {
     var destination = base;
@@ -239,7 +310,7 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
             case 38u: { product = (255u - source[channel]) & destination[channel]; }
             case 39u: { product = (255u - source[channel]) | destination[channel]; }
             case 40u: { product = source[channel] & (255u - destination[channel]); }
-            default: {}
+            default: { product = quantizedBlendChannel(mode, source[channel], destination[channel]); }
         }
         if (locked || oldAlpha == 255u) {
             if (oldAlpha != 0u) {

@@ -62,6 +62,23 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::NotConverse:
     case LayerBlendMode::DestinationIn:
     case LayerBlendMode::DestinationAtop:
+    case LayerBlendMode::Reflect:
+    case LayerBlendMode::Glow:
+    case LayerBlendMode::Freeze:
+    case LayerBlendMode::Heat:
+    case LayerBlendMode::GlowHeat:
+    case LayerBlendMode::HeatGlow:
+    case LayerBlendMode::ReflectFreeze:
+    case LayerBlendMode::FreezeReflect:
+    case LayerBlendMode::QuadraticHybrid:
+    case LayerBlendMode::Parallel:
+    case LayerBlendMode::HardOverlay:
+    case LayerBlendMode::SoftLightPegtopDelphi:
+    case LayerBlendMode::Negation:
+    case LayerBlendMode::PenumbraA:
+    case LayerBlendMode::PenumbraB:
+    case LayerBlendMode::FlatLight:
+    case LayerBlendMode::HardMixSofterPhotoshop:
         return true;
     }
     return false;

@@ -128,7 +128,9 @@ enum class LayerBlendMode : quint8 {
     Equivalence, Allanon, HardMixPhotoshop, Erase, Behind,
     CopyRed, CopyGreen, CopyBlue,
     BitwiseXor, BitwiseOr, BitwiseAnd, BitwiseNand, BitwiseNor, BitwiseXnor,
-    Implication, NotImplication, Converse, NotConverse, DestinationIn, DestinationAtop
+    Implication, NotImplication, Converse, NotConverse, DestinationIn, DestinationAtop,
+    Reflect, Glow, Freeze, Heat, GlowHeat, HeatGlow, ReflectFreeze, FreezeReflect, QuadraticHybrid,
+    Parallel, HardOverlay, SoftLightPegtopDelphi, Negation, PenumbraA, PenumbraB, FlatLight, HardMixSofterPhotoshop
 };
 
 /** Frozen circular marker or Gaussian WASH settings. */

@@ -23,6 +23,71 @@ quint8 blendByte(quint8 destination, quint8 source, quint32 alpha)
     const auto weighted = (int(source) - destination) * int(alpha) + 128;
     return quint8((((weighted >> 8) + weighted) >> 8) + destination);
 }
+quint32 divideByte(quint32 a, quint32 b)
+{ return (a * 255u + b / 2u) / b; }
+quint32 glowByte(quint32 source, quint32 destination)
+{
+    return destination == 255 ? 255 : qMin(255u, divideByte(multiplyByte(source, source), 255 - destination));
+}
+quint32 heatByte(quint32 source, quint32 destination)
+{
+    if (source == 255) return 255;
+    if (!destination) return 0;
+    return 255 - qMin(255u, divideByte(multiplyByte(255 - source, 255 - source), destination));
+}
+quint32 heatGlowByte(quint32 source, quint32 destination)
+{
+    if (source + destination > 255) return heatByte(source, destination);
+    return source ? glowByte(source, destination) : 0;
+}
+quint32 freezeReflectByte(quint32 source, quint32 destination)
+{
+    if (source + destination > 255) return heatByte(destination, source);
+    return destination ? glowByte(destination, source) : 0;
+}
+quint32 glowHeatByte(quint32 source, quint32 destination)
+{
+    if (destination == 255) return 255;
+    return source + destination > 255 ? glowByte(source, destination) : heatByte(source, destination);
+}
+quint32 penumbraByte(quint32 source, quint32 destination)
+{
+    if (destination == 255) return 255;
+    if (source + destination < 255) return qMin(255u, divideByte(source, 255 - destination)) / 2;
+    return source ? 255 - qMin(255u, divideByte(255 - destination, source) / 2) : 0;
+}
+quint32 quantizedBlendChannel(LayerBlendMode mode, quint32 source, quint32 destination)
+{
+    switch (mode) {
+    case LayerBlendMode::Reflect: return glowByte(destination, source);
+    case LayerBlendMode::Glow: return glowByte(source, destination);
+    case LayerBlendMode::Freeze: return heatByte(destination, source);
+    case LayerBlendMode::Heat: return heatByte(source, destination);
+    case LayerBlendMode::GlowHeat: return glowHeatByte(source, destination);
+    case LayerBlendMode::HeatGlow: return heatGlowByte(source, destination);
+    case LayerBlendMode::ReflectFreeze: return glowHeatByte(destination, source);
+    case LayerBlendMode::FreezeReflect: return freezeReflectByte(source, destination);
+    case LayerBlendMode::QuadraticHybrid:
+        return (freezeReflectByte(source, destination) + heatGlowByte(source, destination)) * 127 / 255;
+    case LayerBlendMode::Parallel:
+        return source && destination ? qMin(255u, 130050u / (divideByte(255, source) + divideByte(255, destination))) : 0;
+    case LayerBlendMode::HardOverlay:
+        if (!destination) return 0;
+        if (source == 255) return 255;
+        return source >= 127 ? qMin(255u, destination * 255 / (2 * (255 - source))) : destination * 2 * source / 255;
+    case LayerBlendMode::SoftLightPegtopDelphi:
+        return qMin(255u, multiplyByte(destination, source + destination - multiplyByte(source, destination)) +
+                          multiplyByte(multiplyByte(source, destination), 255 - destination));
+    case LayerBlendMode::Negation: return 255 - qAbs(255 - int(source) - int(destination));
+    case LayerBlendMode::PenumbraA: return penumbraByte(destination, source);
+    case LayerBlendMode::PenumbraB: return penumbraByte(source, destination);
+    case LayerBlendMode::FlatLight:
+        return !source ? 0 : destination > source ? penumbraByte(source, destination) : penumbraByte(destination, source);
+    case LayerBlendMode::HardMixSofterPhotoshop:
+        return quint32(qBound(0, 3 * int(destination) - 2 * (255 - int(source)), 255));
+    default: return multiplyByte(source, destination);
+    }
+}
 RgbaPixel separableProjectionPixel(RgbaPixel destination,
     const RgbaPixel &source, quint8 opacity, quint8 mask, LayerBlendMode mode)
 {
@@ -131,7 +196,7 @@ RgbaPixel separableProjectionPixel(RgbaPixel destination,
             mode == LayerBlendMode::NotImplication ? ((255u - source[channel]) & destination[channel]) :
             mode == LayerBlendMode::Converse ? ((255u - source[channel]) | destination[channel]) :
             mode == LayerBlendMode::NotConverse ? (source[channel] & (255u - destination[channel])) :
-            multiplied);
+            quantizedBlendChannel(mode, source[channel], destination[channel]));
         if (locked || oldAlpha == 255) {
             if (oldAlpha) destination[channel] = blendByte(destination[channel], product, alpha);
         } else if (!oldAlpha) destination[channel] = source[channel];
