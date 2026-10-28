@@ -398,7 +398,14 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             writePaintPixel(index, unpackPixel(normalRgba8(base, source, sourceAlpha, writable)));
         }
     } else {
-        let alpha = mul255(mul255(coverage, selectionAlpha), parameters.opacityValue);
+        // Generic CPU operations quantize the three-factor product once.
+        // Erase and channel-copy retain their distinct two-factor orders.
+        var alpha = multiplyThreeBytes(coverage, selectionAlpha, parameters.opacityValue);
+        if (blendMode == 26u) {
+            alpha = mul255(mul255(coverage, selectionAlpha), parameters.opacityValue);
+        } else if (blendMode >= 28u && blendMode <= 30u) {
+            alpha = mul255(coverage, mul255(selectionAlpha, parameters.opacityValue));
+        }
         let blended = unpackPixel(separableProjectionPixel(base, vec4<u32>(source, alpha), 255u, 15u, blendMode));
         writePaintPixel(index, select(base, blended, vec4<bool>((writable & 1u) != 0u,
             (writable & 2u) != 0u, (writable & 4u) != 0u, (writable & 8u) != 0u)));

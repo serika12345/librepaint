@@ -333,6 +333,9 @@ ARM64・x86_64のCPU投影から取得した固定RGBA8参照で照合する。
 CPUの色処理と全画素で比較する。透明なキャンバス背景上で2枚のレイヤーを有効にし、
 透明・部分透明・不透明な画素、不透明度と成分保護、グループの一様な既定色を固定する。
 KRA再読込み、PNG、再読込み後の描画・塗りとUndo／Redoも同じ画素で照合する。
+レイヤーUUID、ICC、文書情報、保存日時とPNG設定を固定し、`LIBREPAINT_GPU_RESULT_DIR`の
+`blend-<方式>/`へ条件別のBGRA画素、KRA、PNG、追加編集後の画素とKRAを出力する。
+同じ入力で再実行した全ファイルと、各OSで生成した同名のファイルを全バイトで比較する。
 `KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot`は、成分Copyで生じた
 透明RGBを保持するグループと、上位で通常合成した結果、保持した旧投影を照合する。
 画面側の属性試験は単一・複数選択のプレビュー、取消し、確定、Redo分岐と保存結果を照合する。

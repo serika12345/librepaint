@@ -126,7 +126,9 @@ enum class LayerBlendMode : quint8 {
     GrainMerge, GrainExtract, Overlay, HardLight, PinLight,
     Divide, ColorDodge, ColorBurn, HardMix, VividLight, LinearLight,
     Equivalence, Allanon, HardMixPhotoshop, Erase, Behind,
-    CopyRed, CopyGreen, CopyBlue
+    CopyRed, CopyGreen, CopyBlue,
+    BitwiseXor, BitwiseOr, BitwiseAnd, BitwiseNand, BitwiseNor, BitwiseXnor,
+    Implication, NotImplication, Converse, NotConverse
 };
 
 /** Frozen circular marker or Gaussian WASH settings. */

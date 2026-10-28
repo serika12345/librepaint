@@ -3229,7 +3229,7 @@ void TestDocument::testLayerBlendProjectionMatchesCpuPixels_data()
 {
     QTest::addColumn<QString>("mode");
     for (const auto *mode : {"multiply", "screen", "darken", "lighten", "add", "linear_dodge",
-                             "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract", "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light", "linear light", "equivalence", "allanon", "hard_mix_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue"})
+                             "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract", "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light", "linear light", "equivalence", "allanon", "hard_mix_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "xor", "or", "and", "nand", "nor", "xnor", "implication", "not_implication", "converse", "not_converse"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -3296,21 +3296,55 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
     QVERIFY(composite);
     constexpr int side = 8;
     const int alphas[side] = {0, 1, 63, 127, 128, 173, 254, 255};
+    const int colors[side] = {0, 1, 15, 63, 127, 128, 254, 255};
     QByteArray bottomBytes, topBytes;
     for (int y = 0; y < side; ++y) for (int x = 0; x < side; ++x) {
-        bottomBytes.append(char(37 + x * 29));
-        bottomBytes.append(char(89 + y * 23));
-        bottomBytes.append(char(151 + x * 13));
+        bottomBytes.append(char(colors[x]));
+        bottomBytes.append(char(colors[(x + y) % side]));
+        bottomBytes.append(char(colors[(x + 3 * y) % side]));
         bottomBytes.append(char(alphas[y]));
-        topBytes.append(char(201 - y * 27));
-        topBytes.append(char(41 + x * 31));
-        topBytes.append(char(93 + y * 19));
+        topBytes.append(char(colors[(x + 2 * y + 3) % side]));
+        topBytes.append(char(colors[(3 * x + y + 2) % side]));
+        topBytes.append(char(colors[(x + y + 5) % side]));
         topBytes.append(char(alphas[x]));
     }
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     document->setFileBatchMode(true);
-    QVERIFY(document->newImage(QStringLiteral("Alpha blend contract"), side, side, cs,
-                              KoColor(Qt::transparent, cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+    Gpu::RasterImage initial;
+    initial.size = {side, side};
+    initial.colorProfile = cs->profile()->rawData();
+    initial.projectionBackground = {};
+    Gpu::RasterLayer destinationLayer, sourceLayer;
+    destinationLayer.name = QStringLiteral("Destination");
+    destinationLayer.uuid = QUuid(QStringLiteral("{11223344-5566-7788-99aa-bbccddeeff00}"));
+    sourceLayer.name = QStringLiteral("Source");
+    sourceLayer.uuid = QUuid(QStringLiteral("{22334455-6677-8899-aabb-ccddeeff0011}"));
+    initial.layers = {destinationLayer, sourceLayer};
+    initial.activeLayer = 1;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    document->setCurrentImage(KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, initial),
+                                                   QStringLiteral("Alpha blend contract"), cs));
+    document->setColorHistoryColors({});
+    document->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint blend fixture"));
+    document->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto output = QDir(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path()))
+        .filePath(QStringLiteral("blend-") + mode);
+    QVERIFY(QDir().mkpath(output));
+    const auto keepFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Blend comparison artifacts at" << output;
+        }
+    });
+    const auto writePixels = [&](const QString &name, const QByteArray &pixels) {
+        QFile file(QDir(output).filePath(name));
+        return file.open(QIODevice::WriteOnly) && file.write(pixels) == pixels.size();
+    };
     const KisImageSP image = document->image();
     auto *topLayer = dynamic_cast<KisLayer *>(image->root()->lastChild().data());
     QVERIFY(topLayer);
@@ -3346,6 +3380,7 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
         const auto actual = api.pixelData(0, 0, side, side);
         QVERIFY2(actual == expected, qPrintable(QStringLiteral("%1 opacity=%2 mask=%3 actual=%4 expected=%5")
             .arg(mode).arg(opacity).arg(mask).arg(QString::fromLatin1(actual.toHex()), QString::fromLatin1(expected.toHex()))));
+        QVERIFY(writePixels(QStringLiteral("projection-o%1-c%2.bgra").arg(opacity).arg(mask), actual));
 
         // Uniform group defaults also drive sparse tiles and saved default pixels.
         for (int pixel = 0; pixel < side * side; ++pixel) {
@@ -3369,10 +3404,10 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
             QCOMPARE(values.snapshot()->projectionDefaultPixels().value(3), rgba(expected, pixel * 4));
         }
     }
-    QTemporaryDir directory;
-    QVERIFY(directory.isValid());
-    const auto saved = directory.filePath(QStringLiteral("alpha-blend.kra"));
-    QVERIFY2(document->saveAs(saved, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    KisPropertiesConfigurationSP saveSettings(new KisPropertiesConfiguration);
+    saveSettings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    const auto saved = QDir(output).filePath(QStringLiteral("alpha-blend.kra"));
+    QVERIFY2(document->saveAs(saved, KisDocument::nativeFormatMimeType(), false, saveSettings), qPrintable(document->errorMessage()));
     document->waitForSavingToComplete();
     QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
     reopened->setFileBatchMode(true);
@@ -3382,9 +3417,15 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
     QCOMPARE(reopenedApi.pixelData(0, 0, side, side), expected);
     QScopedPointer<Node> reopenedTop(Node::createNode(reopened->image(), reopened->image()->root()->lastChild()));
     QCOMPARE(reopenedTop->blendingMode(), mode);
-    const auto pngPath = directory.filePath(QStringLiteral("alpha-blend.png"));
+    const auto pngPath = QDir(output).filePath(QStringLiteral("alpha-blend.png"));
     InfoObject pngSettings;
     pngSettings.setProperty(QStringLiteral("alpha"), true);
+    pngSettings.setProperty(QStringLiteral("interlaced"), false);
+    pngSettings.setProperty(QStringLiteral("compression"), 3);
+    pngSettings.setProperty(QStringLiteral("saveSRGBProfile"), true);
+    pngSettings.setProperty(QStringLiteral("forceSRGB"), false);
+    pngSettings.setProperty(QStringLiteral("storeAuthor"), false);
+    pngSettings.setProperty(QStringLiteral("storeMetaData"), false);
     QVERIFY(reopenedApi.exportImage(pngPath, pngSettings));
     const auto png = QImage(pngPath).convertToFormat(QImage::Format_ARGB32);
     QCOMPARE(png.size(), QSize(side, side));
@@ -3413,18 +3454,74 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
     QVERIFY(!stroke.isNull());
     QCOMPARE(owner->appendSamples(stroke, {{{4, 4}, 1}}), Gpu::Result::Success);
     QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
-    QCOMPARE(editedLayer->pixelData(0, 0, side, side), expectedFill);
+    const auto painted = editedLayer->pixelData(0, 0, side, side);
+    QVERIFY(writePixels(QStringLiteral("painted-layer.bgra"), painted));
+    QCOMPARE(painted, expectedFill);
     reopened->undoStack()->undo();
     QCOMPARE(reopenedApi.pixelData(0, 0, side, side), before);
+    // Normal marker coverage has its own CPU contract. Reuse its source
+    // pixels to isolate composition from brush-mask generation.
+    Gpu::RasterImage coverageInput;
+    coverageInput.size = {side, side};
+    coverageInput.layers = {Gpu::RasterLayer{}};
+    coverageInput.colorProfile = initial.colorProfile;
+    const auto coverageOwner = Gpu::PaintImageSP::create(execution, coverageInput);
+    const auto coverageLayer = coverageOwner->operations().activeLayer();
+    brush.diameter = 8;
+    brush.opacity = 1;
+    brush.blendMode = Gpu::LayerBlendMode::Normal;
+    const auto coverageStroke = coverageOwner->beginStroke(coverageLayer, brush, 7);
+    QVERIFY(!coverageStroke.isNull());
+    QCOMPARE(coverageOwner->appendSamples(coverageStroke, {{{4, 4}, 1}}), Gpu::Result::Success);
+    QCOMPARE(coverageOwner->commitStroke(coverageStroke), Gpu::Result::Success);
+    const auto coverage = coverageOwner->readRgbaPixels(coverageLayer, QRect(0, 0, side, side), side * side * 4);
+    QCOMPARE(coverage.code, Gpu::ExecutionCode::Success);
+    auto sourceSelected = coverage.bytes;
+    for (int pixel = 0; pixel < sourceSelected.size(); pixel += 4)
+        std::swap(sourceSelected[pixel], sourceSelected[pixel + 2]);
+    QVERIFY(writePixels(QStringLiteral("coverage-marker.bgra"), sourceSelected));
+    const auto originalLayerPixels = editedLayer->pixelData(0, 0, side, side);
+    const QByteArray selectionCoverage(side * side, char(128));
+    const auto softSelection = Gpu::SelectionMask::fromAlphaCoverage(
+        QRect(0, 0, side, side), selectionCoverage, QRect(0, 0, side, side));
+    QVERIFY(softSelection);
+    QCOMPARE(owner->setSelectionMask(softSelection), Gpu::Result::Success);
+    brush.blendMode = *blend;
+    for (int opacity : {1, 63, 127, 128, 137, 254}) {
+        auto expectedSelected = originalLayerPixels;
+        auto selectedParameters = parameters;
+        selectedParameters.dstRowStart = reinterpret_cast<quint8 *>(expectedSelected.data());
+        selectedParameters.srcRowStart = reinterpret_cast<const quint8 *>(sourceSelected.constData());
+        selectedParameters.maskRowStart = reinterpret_cast<const quint8 *>(selectionCoverage.constData());
+        selectedParameters.maskRowStride = side;
+        selectedParameters.opacity = float(opacity) / 255;
+        composite->composite(selectedParameters);
+        brush.opacity = qreal(opacity) / 255;
+        const auto selectedStroke = owner->beginStroke(layerId, brush, 7);
+        QVERIFY(!selectedStroke.isNull());
+        QCOMPARE(owner->appendSamples(selectedStroke, {{{4, 4}, 1}}), Gpu::Result::Success);
+        QCOMPARE(owner->commitStroke(selectedStroke), Gpu::Result::Success);
+        const auto selectedPixels = editedLayer->pixelData(0, 0, side, side);
+        QVERIFY(writePixels(QStringLiteral("soft-selection-o%1.bgra").arg(opacity), selectedPixels));
+        QCOMPARE(selectedPixels, expectedSelected);
+        reopened->undoStack()->undo();
+        QCOMPARE(editedLayer->pixelData(0, 0, side, side), originalLayerPixels);
+        QCOMPARE(reopenedApi.pixelData(0, 0, side, side), before);
+    }
+    QCOMPARE(owner->clearSelection(), Gpu::Result::Success);
     QCOMPARE(owner->fillLayer(layerId, {17, 63, 129}, 137.0 / 255, false, false, *blend), Gpu::Result::Success);
     QCOMPARE(editedLayer->pixelData(0, 0, side, side), expectedFill);
     reopened->undoStack()->undo();
     QCOMPARE(reopenedApi.pixelData(0, 0, side, side), before);
     reopened->undoStack()->redo();
     const auto edited = reopenedApi.pixelData(0, 0, side, side);
+    QVERIFY(writePixels(QStringLiteral("edited-projection.bgra"), edited));
     reopened->undoStack()->undo();
     reopened->undoStack()->redo();
     QCOMPARE(reopenedApi.pixelData(0, 0, side, side), edited);
+    const auto editedPath = QDir(output).filePath(QStringLiteral("edited.kra"));
+    QVERIFY2(reopened->saveAs(editedPath, KisDocument::nativeFormatMimeType(), false, saveSettings), qPrintable(reopened->errorMessage()));
+    reopened->waitForSavingToComplete();
 }
 
 void TestDocument::testGpuU16PublicPixelsPreserveDocumentEncoding()

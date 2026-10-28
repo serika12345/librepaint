@@ -719,11 +719,21 @@ void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
         case LayerBlendMode::CopyRed: return QStringLiteral("copy_red");
         case LayerBlendMode::CopyGreen: return QStringLiteral("copy_green");
         case LayerBlendMode::CopyBlue: return QStringLiteral("copy_blue");
+        case LayerBlendMode::BitwiseXor: return QStringLiteral("xor");
+        case LayerBlendMode::BitwiseOr: return QStringLiteral("or");
+        case LayerBlendMode::BitwiseAnd: return QStringLiteral("and");
+        case LayerBlendMode::BitwiseNand: return QStringLiteral("nand");
+        case LayerBlendMode::BitwiseNor: return QStringLiteral("nor");
+        case LayerBlendMode::BitwiseXnor: return QStringLiteral("xnor");
+        case LayerBlendMode::Implication: return QStringLiteral("implication");
+        case LayerBlendMode::NotImplication: return QStringLiteral("not_implication");
+        case LayerBlendMode::Converse: return QStringLiteral("converse");
+        case LayerBlendMode::NotConverse: return QStringLiteral("not_converse");
         case LayerBlendMode::Normal: break;
         }
         return QStringLiteral("normal");
     };
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight, LayerBlendMode::Equivalence, LayerBlendMode::Allanon, LayerBlendMode::HardMixPhotoshop, LayerBlendMode::Erase, LayerBlendMode::Behind, LayerBlendMode::CopyRed, LayerBlendMode::CopyGreen, LayerBlendMode::CopyBlue}) {
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight, LayerBlendMode::Equivalence, LayerBlendMode::Allanon, LayerBlendMode::HardMixPhotoshop, LayerBlendMode::Erase, LayerBlendMode::Behind, LayerBlendMode::CopyRed, LayerBlendMode::CopyGreen, LayerBlendMode::CopyBlue, LayerBlendMode::BitwiseXor, LayerBlendMode::BitwiseOr, LayerBlendMode::BitwiseAnd, LayerBlendMode::BitwiseNand, LayerBlendMode::BitwiseNor, LayerBlendMode::BitwiseXnor, LayerBlendMode::Implication, LayerBlendMode::NotImplication, LayerBlendMode::Converse, LayerBlendMode::NotConverse}) {
         auto source = document();
         RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
         group.kind = LayerKind::Group;

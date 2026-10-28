@@ -9,7 +9,9 @@
 // HardLight=15, PinLight=16, Divide=17, ColorDodge=18, ColorBurn=19,
 // HardMix=20, VividLight=21, LinearLight=22, Equivalence=23,
 // Allanon=24, HardMixPhotoshop=25, Erase=26, Behind=27,
-// CopyRed=28, CopyGreen=29, CopyBlue=30.
+// CopyRed=28, CopyGreen=29, CopyBlue=30, BitwiseXor=31, BitwiseOr=32,
+// BitwiseAnd=33, BitwiseNand=34, BitwiseNor=35, BitwiseXnor=36,
+// Implication=37, NotImplication=38, Converse=39, NotConverse=40.
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -205,6 +207,16 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
                 let mixSum = source[channel] + destination[channel];
                 if (mixSum > 255u) { product = 255u; } else { product = 0u; }
             }
+            case 31u: { product = source[channel] ^ destination[channel]; }
+            case 32u: { product = source[channel] | destination[channel]; }
+            case 33u: { product = source[channel] & destination[channel]; }
+            case 34u: { product = 255u ^ (source[channel] & destination[channel]); }
+            case 35u: { product = 255u ^ (source[channel] | destination[channel]); }
+            case 36u: { product = 255u ^ (source[channel] ^ destination[channel]); }
+            case 37u: { product = source[channel] | (255u - destination[channel]); }
+            case 38u: { product = (255u - source[channel]) & destination[channel]; }
+            case 39u: { product = (255u - source[channel]) | destination[channel]; }
+            case 40u: { product = source[channel] & (255u - destination[channel]); }
             default: {}
         }
         if (locked || oldAlpha == 255u) {

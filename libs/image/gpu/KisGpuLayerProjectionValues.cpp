@@ -110,6 +110,16 @@ RgbaPixel separableProjectionPixel(RgbaPixel destination,
             mode == LayerBlendMode::Allanon ? ((int(source[channel]) + destination[channel]) * 127) / 255 :
             mode == LayerBlendMode::HardMixPhotoshop ?
                 (int(source[channel]) + destination[channel] > 255 ? 255 : 0) :
+            mode == LayerBlendMode::BitwiseXor ? (source[channel] ^ destination[channel]) :
+            mode == LayerBlendMode::BitwiseOr ? (source[channel] | destination[channel]) :
+            mode == LayerBlendMode::BitwiseAnd ? (source[channel] & destination[channel]) :
+            mode == LayerBlendMode::BitwiseNand ? (255u ^ (source[channel] & destination[channel])) :
+            mode == LayerBlendMode::BitwiseNor ? (255u ^ (source[channel] | destination[channel])) :
+            mode == LayerBlendMode::BitwiseXnor ? (255u ^ (source[channel] ^ destination[channel])) :
+            mode == LayerBlendMode::Implication ? (source[channel] | (255u - destination[channel])) :
+            mode == LayerBlendMode::NotImplication ? ((255u - source[channel]) & destination[channel]) :
+            mode == LayerBlendMode::Converse ? ((255u - source[channel]) | destination[channel]) :
+            mode == LayerBlendMode::NotConverse ? (source[channel] & (255u - destination[channel])) :
             multiplied);
         if (locked || oldAlpha == 255) {
             if (oldAlpha) destination[channel] = blendByte(destination[channel], product, alpha);

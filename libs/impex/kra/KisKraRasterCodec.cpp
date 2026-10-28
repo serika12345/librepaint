@@ -237,7 +237,17 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("behind") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("copy_red") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("copy_green") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("copy_blue")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("copy_blue") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("xor") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("or") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("and") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("nand") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("nor") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("xnor") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("implication") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("not_implication") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("converse") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("not_converse")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -679,6 +689,16 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::CopyRed ? QStringLiteral("copy_red") :
                              layer.blendMode == LayerBlendMode::CopyGreen ? QStringLiteral("copy_green") :
                              layer.blendMode == LayerBlendMode::CopyBlue ? QStringLiteral("copy_blue") :
+                             layer.blendMode == LayerBlendMode::BitwiseXor ? QStringLiteral("xor") :
+                             layer.blendMode == LayerBlendMode::BitwiseOr ? QStringLiteral("or") :
+                             layer.blendMode == LayerBlendMode::BitwiseAnd ? QStringLiteral("and") :
+                             layer.blendMode == LayerBlendMode::BitwiseNand ? QStringLiteral("nand") :
+                             layer.blendMode == LayerBlendMode::BitwiseNor ? QStringLiteral("nor") :
+                             layer.blendMode == LayerBlendMode::BitwiseXnor ? QStringLiteral("xnor") :
+                             layer.blendMode == LayerBlendMode::Implication ? QStringLiteral("implication") :
+                             layer.blendMode == LayerBlendMode::NotImplication ? QStringLiteral("not_implication") :
+                             layer.blendMode == LayerBlendMode::Converse ? QStringLiteral("converse") :
+                             layer.blendMode == LayerBlendMode::NotConverse ? QStringLiteral("not_converse") :
                              QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
@@ -1196,6 +1216,16 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("copy_red") ? LayerBlendMode::CopyRed :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("copy_green") ? LayerBlendMode::CopyGreen :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("copy_blue") ? LayerBlendMode::CopyBlue :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("xor") ? LayerBlendMode::BitwiseXor :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("or") ? LayerBlendMode::BitwiseOr :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("and") ? LayerBlendMode::BitwiseAnd :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("nand") ? LayerBlendMode::BitwiseNand :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("nor") ? LayerBlendMode::BitwiseNor :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("xnor") ? LayerBlendMode::BitwiseXnor :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("implication") ? LayerBlendMode::Implication :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("not_implication") ? LayerBlendMode::NotImplication :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("converse") ? LayerBlendMode::Converse :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("not_converse") ? LayerBlendMode::NotConverse :
             LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));

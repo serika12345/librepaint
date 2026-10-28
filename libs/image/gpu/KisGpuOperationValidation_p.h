@@ -50,6 +50,16 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::CopyRed:
     case LayerBlendMode::CopyGreen:
     case LayerBlendMode::CopyBlue:
+    case LayerBlendMode::BitwiseXor:
+    case LayerBlendMode::BitwiseOr:
+    case LayerBlendMode::BitwiseAnd:
+    case LayerBlendMode::BitwiseNand:
+    case LayerBlendMode::BitwiseNor:
+    case LayerBlendMode::BitwiseXnor:
+    case LayerBlendMode::Implication:
+    case LayerBlendMode::NotImplication:
+    case LayerBlendMode::Converse:
+    case LayerBlendMode::NotConverse:
         return true;
     }
     return false;

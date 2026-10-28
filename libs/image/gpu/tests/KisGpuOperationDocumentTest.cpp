@@ -1017,6 +1017,16 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInput_d
     QTest::newRow("copy_red") << int(LayerBlendMode::CopyRed);
     QTest::newRow("copy_green") << int(LayerBlendMode::CopyGreen);
     QTest::newRow("copy_blue") << int(LayerBlendMode::CopyBlue);
+    QTest::newRow("xor") << int(LayerBlendMode::BitwiseXor);
+    QTest::newRow("or") << int(LayerBlendMode::BitwiseOr);
+    QTest::newRow("and") << int(LayerBlendMode::BitwiseAnd);
+    QTest::newRow("nand") << int(LayerBlendMode::BitwiseNand);
+    QTest::newRow("nor") << int(LayerBlendMode::BitwiseNor);
+    QTest::newRow("xnor") << int(LayerBlendMode::BitwiseXnor);
+    QTest::newRow("implication") << int(LayerBlendMode::Implication);
+    QTest::newRow("not_implication") << int(LayerBlendMode::NotImplication);
+    QTest::newRow("converse") << int(LayerBlendMode::Converse);
+    QTest::newRow("not_converse") << int(LayerBlendMode::NotConverse);
 }
 
 void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInput()
@@ -1090,6 +1100,16 @@ void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribu
     QTest::newRow("copy_red") << int(LayerBlendMode::CopyRed);
     QTest::newRow("copy_green") << int(LayerBlendMode::CopyGreen);
     QTest::newRow("copy_blue") << int(LayerBlendMode::CopyBlue);
+    QTest::newRow("xor") << int(LayerBlendMode::BitwiseXor);
+    QTest::newRow("or") << int(LayerBlendMode::BitwiseOr);
+    QTest::newRow("and") << int(LayerBlendMode::BitwiseAnd);
+    QTest::newRow("nand") << int(LayerBlendMode::BitwiseNand);
+    QTest::newRow("nor") << int(LayerBlendMode::BitwiseNor);
+    QTest::newRow("xnor") << int(LayerBlendMode::BitwiseXnor);
+    QTest::newRow("implication") << int(LayerBlendMode::Implication);
+    QTest::newRow("not_implication") << int(LayerBlendMode::NotImplication);
+    QTest::newRow("converse") << int(LayerBlendMode::Converse);
+    QTest::newRow("not_converse") << int(LayerBlendMode::NotConverse);
 }
 
 void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribute()

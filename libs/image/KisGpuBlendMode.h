@@ -49,6 +49,16 @@ inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString
     if (compositeOp == COMPOSITE_COPY_RED) return LayerBlendMode::CopyRed;
     if (compositeOp == COMPOSITE_COPY_GREEN) return LayerBlendMode::CopyGreen;
     if (compositeOp == COMPOSITE_COPY_BLUE) return LayerBlendMode::CopyBlue;
+    if (compositeOp == COMPOSITE_XOR) return LayerBlendMode::BitwiseXor;
+    if (compositeOp == COMPOSITE_OR) return LayerBlendMode::BitwiseOr;
+    if (compositeOp == COMPOSITE_AND) return LayerBlendMode::BitwiseAnd;
+    if (compositeOp == COMPOSITE_NAND) return LayerBlendMode::BitwiseNand;
+    if (compositeOp == COMPOSITE_NOR) return LayerBlendMode::BitwiseNor;
+    if (compositeOp == COMPOSITE_XNOR) return LayerBlendMode::BitwiseXnor;
+    if (compositeOp == COMPOSITE_IMPLICATION) return LayerBlendMode::Implication;
+    if (compositeOp == COMPOSITE_NOT_IMPLICATION) return LayerBlendMode::NotImplication;
+    if (compositeOp == COMPOSITE_CONVERSE) return LayerBlendMode::Converse;
+    if (compositeOp == COMPOSITE_NOT_CONVERSE) return LayerBlendMode::NotConverse;
     return std::nullopt;
 }
 
@@ -85,6 +95,16 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::CopyRed: return COMPOSITE_COPY_RED;
     case LayerBlendMode::CopyGreen: return COMPOSITE_COPY_GREEN;
     case LayerBlendMode::CopyBlue: return COMPOSITE_COPY_BLUE;
+    case LayerBlendMode::BitwiseXor: return COMPOSITE_XOR;
+    case LayerBlendMode::BitwiseOr: return COMPOSITE_OR;
+    case LayerBlendMode::BitwiseAnd: return COMPOSITE_AND;
+    case LayerBlendMode::BitwiseNand: return COMPOSITE_NAND;
+    case LayerBlendMode::BitwiseNor: return COMPOSITE_NOR;
+    case LayerBlendMode::BitwiseXnor: return COMPOSITE_XNOR;
+    case LayerBlendMode::Implication: return COMPOSITE_IMPLICATION;
+    case LayerBlendMode::NotImplication: return COMPOSITE_NOT_IMPLICATION;
+    case LayerBlendMode::Converse: return COMPOSITE_CONVERSE;
+    case LayerBlendMode::NotConverse: return COMPOSITE_NOT_CONVERSE;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;
