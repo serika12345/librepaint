@@ -124,6 +124,13 @@ sequence:
    are complete.
 
 Report task state, verification, and the next operation in the conversation.
+Use the latest handoff with the current source to resume an active task; Issue
+status records accepted progress and may lag implementation while approval is
+pending. Read only changed evidence and relevant document sections after the
+initial review. A handoff identifies the source, implemented scope, pending
+checks and failures, and the next implementation batch. Keep it in the
+conversation or a user-designated private location. Goal instructions describe
+the objective and working policy; the handoff owns the changing resume point.
 Issue updates, including relationship changes and closure, follow the Issue
 approval procedure above. Projects tracks workflow status; paused work records
 its resumption condition in the owning Issue. Keep public reports limited to
@@ -190,25 +197,50 @@ worktree cycle succeeds.
 
 ## Implementation Workflow
 
-Every code, build, script, and policy change follows this sequence:
+Implementation batches, checkpoint commits, and product acceptance have
+different boundaries. For a large replacement, implement related capabilities
+across their existing owners as one batch: for example, a family of blend
+operations together with its painting, projection, and file consumers. Choose
+the batch by the shared responsibility and product outcome, rather than one
+formula, enum value, test case, or source file. Small isolated fixes can still
+use a narrow batch.
 
-1. Read the relevant implementation, tests, CMake target, and Issue criteria.
-2. Identify the smallest coherent change within the intended responsibility.
-3. Before editing implementation or contract code, inspect the target-scoped
-   incremental work plan and direct CMake dependencies. For a new or expanded
-   target, also measure its clean-tree command closure against the nearest
-   existing contract. Narrow an overbroad target or dependency before the
-   behavioral change; record why a remaining large concrete-owner closure is
-   necessary.
-4. Add or update the smallest meaningful observable contract.
-5. Run the contract and record the expected initial diagnostic.
-6. Implement the minimum production change that satisfies the contract.
-7. Refactor while the relevant contract remains green.
-8. Audit responsibility, dependency direction, ownership, lifetime, public
-   API, file growth, and platform impact.
-9. Synchronize public-safe repository documentation, fixed test data, and
-   baselines. Apply the Issue approval procedure to any requested Issue update.
-10. Run the verification tier required by the change scope.
+1. Read the relevant implementation, callers, tests, CMake definitions, and
+   Issue criteria. State the batch outcome, scope, and final acceptance checks
+   once, concisely in the conversation; reuse an existing plan when it fits.
+2. Inspect the target-scoped build plan and direct dependencies once before
+   implementation. Refresh this audit when targets, dependencies, configuration,
+   or unexpected build expansion change it. Measure clean command closure for
+   a new target or an expanded dependency closure. Reuse the result for further
+   cases within that closure.
+3. Establish the observable contracts from requirements and existing callers.
+   Implement the related production changes and contract tests together.
+   Reproduce a defect when its cause or expected result is uncertain; equivalent
+   cases can share that evidence instead of separate red-green ceremonies.
+4. Keep implementation moving with incremental builds and focused checks where
+   they resolve a concrete risk or unblock the next change. Record pending
+   checks and known failures; fix failures that invalidate the next work before
+   building on it. Independent implementation can continue while broader
+   validation is pending.
+5. Save coherent progress in checkpoint commits when authorized. A checkpoint
+   reports implemented behavior and pending validation; it is not product
+   acceptance. Full suites, all-platform acceptance, and final documentation
+   synchronization are not checkpoint prerequisites because they belong to the
+   integrated result. Keep user-owned changes separate.
+6. After the planned related implementation is connected, review responsibility,
+   dependency direction, ownership, lifetime, public API, and platform impact.
+   Synchronize architecture, procedures, fixtures, and generated artifacts at
+   this acceptance boundary. Run the applicable acceptance checks once against
+   that integrated source, repair failures, and rerun the affected checks.
+
+During a large replacement, breadth of implementation within the agreed scope
+is the default. Consolidate expensive component, full-native, and platform
+validation at the planned acceptance stage. An enum addition, a changed shared
+header, a commit, or a lane handoff alone does not create an acceptance stage.
+Run a broad suite earlier only when a concrete cross-component failure cannot
+be assessed with focused checks, and state the reason. Repeat a successful
+broad suite only when later changes or evidence affect its guarantees; report
+the tested source and the scope of any subsequent checks accurately.
 
 Required checks directly protect a documented responsibility, dependency,
 public boundary, observable behavior, or platform artifact boundary. Maintain
@@ -217,9 +249,9 @@ implementation spelling, completed relocations, formatting, or inventories
 without a current consumer contract. Review retained guarantees when changing
 the verification set.
 
-Each reviewable change groups one feature or one structural concern.
-Structural preparation receives its own gate when it has an independent
-verification boundary.
+Each reviewable change has one coherent responsibility and may include several
+related features. Structural preparation shares the batch acceptance unless it
+is itself the requested deliverable or needs separate evidence to proceed.
 
 ## Parallel Agent Work
 
@@ -255,19 +287,20 @@ production, test, fixture, and package-local CMake paths. It reports behavioral
 guarantees and documentation facts as structured handoff data instead of
 editing coordinator-owned files.
 
-Workers follow the complete implementation workflow within their lane,
-including the unchanged build plan, direct dependencies, clean command
-closure, expected first diagnostic, target test, repetition, and platform
-result. A lane task packet is the worker's scoped continuation of the global
+Workers follow the batch workflow within their lane. Their task packet selects
+focused checks and identifies the broader checks owned by the coordinator;
+build audits and successful evidence are reused within their valid scope.
+A lane task packet is the worker's scoped continuation of the global
 Issue; the worker does not select the coordinator's next action or
 delegate further work unless its packet explicitly authorizes that action. A
 worker stops and reports when required work crosses its allowed paths, overlaps
 another lane, changes an unassigned public API, needs an unassigned dependency,
 or exposes an ambiguous behavior classification.
 
-The coordinator inspects and integrates one ready lane at a time, synchronizes
-architecture documents in the integrated change and reruns the affected
-contract and governance checks. Lane commits are transport artifacts rather
+The coordinator inspects and integrates one ready lane at a time, then
+validates the combined implementation at the planned acceptance stage. Reuse
+lane results where their inputs and guarantees remain valid, and check
+integration effects once. Lane commits are transport artifacts rather
 than completed `develop` changes. Commits, branch creation,
 integration, worktree removal, and branch deletion still require the authority
 defined by the user and the Completion section below.
@@ -307,14 +340,22 @@ Behavioral tests assert observable results. Compatibility tests document the
 consumer and stable property that require a declaration or format to remain
 unchanged. Review these requirements with the corresponding production callers.
 
-Use these layers:
+Use these layers according to the implementation stage:
 
-- one Qt Test target during the red-green cycle;
-- the affected component CTest set before local completion;
-- `./scripts/verify-quick` for dependency, public-header, and registration boundaries;
-- `./scripts/verify` for the complete native test gate;
-- platform, sanitizer, performance, and device suites at their documented
-  integration gates.
+- during implementation, incremental builds and focused Qt Test cases that
+  answer a current behavioral question;
+- at batch acceptance, the affected component CTest set;
+- `./scripts/verify-quick` when package dependencies, public-header visibility,
+  plugin registration, or their governing policy change;
+- `./scripts/verify` at the planned acceptance of a broad replacement or before
+  production integration; it includes `verify-quick`, so avoid a consecutive
+  duplicate run on the same inputs;
+- platform, sanitizer, performance, and device suites at the applicable final
+  acceptance stage, with early checks for concrete platform feasibility risks.
+
+Adding another case to an established implementation does not require the
+whole ladder on each iteration: that would repeat the same integration work.
+For an isolated fix, its focused contract can also serve as batch acceptance.
 
 Tests assert stable behavior, contracts, and diagnostics. Internal refactors
 preserve the same observable contracts.
@@ -468,7 +509,7 @@ outputs through the documented render command.
 
 ## Verification Matrix
 
-Architecture policy and boundary-check changes run:
+Architecture policy and boundary-check changes run once for the batch:
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/verify-quick
@@ -483,7 +524,7 @@ One native test target runs:
 ./scripts/run-shared-test-env ./scripts/run-test <target> [ctest-regex]
 ```
 
-The complete native gate runs:
+The complete native acceptance check runs at the planned integration stage:
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/verify
@@ -502,7 +543,8 @@ metadata change.
 
 ## Completion
 
-A completed task has:
+A checkpoint records progress and pending checks. A task is accepted only when
+the integrated requested scope has:
 
 - the requested behavior or policy;
 - observable contracts for the changed behavior;

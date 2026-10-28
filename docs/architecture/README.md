@@ -7,6 +7,8 @@
 作業の目的、前提、完了条件と検証結果は[GitHub Issues](https://github.com/serika12345/librepaint/issues)、
 着手順と進行状態は[GitHub Projects](https://github.com/users/serika12345/projects/2)で管理します。
 開発・検証コマンドと作業管理の手順は[LibrePaint開発マニュアル](DEVELOPMENT.md)を参照します。
+関連機能をまとめる実装範囲、途中コミット、製品受入れの区切りは、同書の
+[実装・コミット・受入れの区切り](DEVELOPMENT.md#実装コミット受入れの区切り)で定義します。
 
 - 変更を共通コード、プラグイン、プラットフォーム統合、配布定義のどこへ置くか
 - 起動、描画、ファイル入出力がどの境界を通るか
