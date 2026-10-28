@@ -222,7 +222,8 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("grain_merge") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("grain_extract") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("overlay") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hard_light")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hard_light") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("pin_light")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -648,7 +649,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::GrainMerge ? QStringLiteral("grain_merge") :
                              layer.blendMode == LayerBlendMode::GrainExtract ? QStringLiteral("grain_extract") :
                              layer.blendMode == LayerBlendMode::Overlay ? QStringLiteral("overlay") :
-                             layer.blendMode == LayerBlendMode::HardLight ? QStringLiteral("hard_light") : QStringLiteral("normal"));
+                             layer.blendMode == LayerBlendMode::HardLight ? QStringLiteral("hard_light") :
+                             layer.blendMode == LayerBlendMode::PinLight ? QStringLiteral("pin_light") : QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));
@@ -1149,7 +1151,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("grain_merge") ? LayerBlendMode::GrainMerge :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("grain_extract") ? LayerBlendMode::GrainExtract :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("overlay") ? LayerBlendMode::Overlay :
-            element.attribute(QStringLiteral("compositeop")) == QLatin1String("hard_light") ? LayerBlendMode::HardLight : LayerBlendMode::Normal;
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("hard_light") ? LayerBlendMode::HardLight :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("pin_light") ? LayerBlendMode::PinLight : LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;

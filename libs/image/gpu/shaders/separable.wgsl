@@ -6,7 +6,7 @@
 // Darken=3, Lighten=4, Addition=5, LinearDodge=6,
 // Difference=7, Exclusion=8, Subtract=9, LinearBurn=10,
 // InverseSubtract=11, GrainMerge=12, GrainExtract=13, Overlay=14,
-// HardLight=15.
+// HardLight=15, PinLight=16.
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -100,6 +100,13 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
                 } else {
                     product = (2u * destination[channel] * source[channel]) / 255u;
                 }
+            }
+            case 16u: {
+                let twice = 2u * source[channel];
+                let lower = min(destination[channel], twice);
+                var upper = 0u;
+                if (twice > 255u) { upper = twice - 255u; }
+                product = max(upper, lower);
             }
             default: {}
         }
