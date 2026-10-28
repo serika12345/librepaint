@@ -124,7 +124,7 @@ enum class LayerBlendMode : quint8 {
     Normal, Multiply, Screen, Darken, Lighten, Addition, LinearDodge,
     Difference, Exclusion, Subtract, LinearBurn, InverseSubtract,
     GrainMerge, GrainExtract, Overlay, HardLight, PinLight,
-    Divide, ColorDodge, ColorBurn, HardMix
+    Divide, ColorDodge, ColorBurn, HardMix, VividLight, LinearLight
 };
 
 /** Frozen circular marker or Gaussian WASH settings. */

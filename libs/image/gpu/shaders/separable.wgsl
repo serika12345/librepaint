@@ -7,7 +7,7 @@
 // Difference=7, Exclusion=8, Subtract=9, LinearBurn=10,
 // InverseSubtract=11, GrainMerge=12, GrainExtract=13, Overlay=14,
 // HardLight=15, PinLight=16, Divide=17, ColorDodge=18, ColorBurn=19,
-// HardMix=20.
+// HardMix=20, VividLight=21, LinearLight=22.
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -144,6 +144,24 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
                         product = 255u - burned;
                     }
                 }
+            }
+            case 21u: {
+                if (source[channel] < 127u) {
+                    if (source[channel] == 0u) {
+                        if (destination[channel] == 255u) { product = 255u; } else { product = 0u; }
+                    } else {
+                        let inverted = ((255u - destination[channel]) * 255u) / (2u * source[channel]);
+                        if (inverted >= 255u) { product = 0u; } else { product = 255u - inverted; }
+                    }
+                } else if (source[channel] == 255u) {
+                    if (destination[channel] == 0u) { product = 0u; } else { product = 255u; }
+                } else {
+                    product = min(255u, (destination[channel] * 255u) / (2u * (255u - source[channel])));
+                }
+            }
+            case 22u: {
+                let linearSum = 2u * source[channel] + destination[channel];
+                if (linearSum > 255u) { product = min(255u, linearSum - 255u); } else { product = 0u; }
             }
             default: {}
         }

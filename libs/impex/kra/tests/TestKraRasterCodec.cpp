@@ -709,11 +709,13 @@ void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
         case LayerBlendMode::ColorDodge: return QStringLiteral("dodge");
         case LayerBlendMode::ColorBurn: return QStringLiteral("burn");
         case LayerBlendMode::HardMix: return QStringLiteral("hard mix");
+        case LayerBlendMode::VividLight: return QStringLiteral("vivid_light");
+        case LayerBlendMode::LinearLight: return QStringLiteral("linear light");
         case LayerBlendMode::Normal: break;
         }
         return QStringLiteral("normal");
     };
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix}) {
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight}) {
         auto source = document();
         RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
         group.kind = LayerKind::Group;
