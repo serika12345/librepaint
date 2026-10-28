@@ -53,15 +53,21 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
                 product = min(255u, source[channel] + destination[channel]);
             }
             case 7u: {
-                product = max(source[channel], destination[channel]) -
-                    min(source[channel], destination[channel]);
+                let high = max(source[channel], destination[channel]);
+                let low = min(source[channel], destination[channel]);
+                product = high - low;
             }
             case 8u: {
-                product = min(255u, source[channel] + destination[channel] - 2u * multiplied);
+                let sum = source[channel] + destination[channel];
+                let twice = 2u * multiplied;
+                if (sum > twice) { product = min(255u, sum - twice); } else { product = 0u; }
             }
             case 9u: {
-                product = destination[channel] > source[channel] ?
-                    destination[channel] - source[channel] : 0u;
+                if (destination[channel] > source[channel]) {
+                    product = destination[channel] - source[channel];
+                } else {
+                    product = 0u;
+                }
             }
             default: {}
         }

@@ -23,6 +23,7 @@
 
 #include "KoColorSpaceConstants.h"
 #include "KoCompositeOpIds.h"
+#include "KisGpuBlendMode.h"
 #include "kis_default_bounds.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"
@@ -156,25 +157,13 @@ void KisBaseNode::setCompositeOpId(const QString& compositeOp)
     // and persistence contracts are implemented in #89.
     const auto currentImage = image();
     if (currentImage && !currentImage->isSynchronizingGpuNodes() &&
-        (compositeOp == COMPOSITE_OVER || compositeOp == COMPOSITE_MULT || compositeOp == COMPOSITE_SCREEN ||
-         compositeOp == COMPOSITE_DARKEN || compositeOp == COMPOSITE_LIGHTEN ||
-         compositeOp == COMPOSITE_ADD || compositeOp == COMPOSITE_LINEAR_DODGE ||
-         compositeOp == COMPOSITE_DIFF || compositeOp == COMPOSITE_EXCLUSION ||
-         compositeOp == COMPOSITE_SUBTRACT)) {
+        LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(compositeOp)) {
         if (const auto owner = currentImage->gpuImage()) {
             namespace Gpu = LibrePaint::Image::Gpu;
             for (const auto &layer : owner->operations().snapshot()->layers) {
                 if (layer.uuid != uuid()) continue;
                 const auto result = owner->writeLayerBlendMode(layer.id,
-                    compositeOp == COMPOSITE_MULT ? Gpu::LayerBlendMode::Multiply :
-                    compositeOp == COMPOSITE_SCREEN ? Gpu::LayerBlendMode::Screen :
-                    compositeOp == COMPOSITE_DARKEN ? Gpu::LayerBlendMode::Darken :
-                    compositeOp == COMPOSITE_LIGHTEN ? Gpu::LayerBlendMode::Lighten :
-                    compositeOp == COMPOSITE_ADD ? Gpu::LayerBlendMode::Addition :
-                    compositeOp == COMPOSITE_LINEAR_DODGE ? Gpu::LayerBlendMode::LinearDodge :
-                    compositeOp == COMPOSITE_DIFF ? Gpu::LayerBlendMode::Difference :
-                    compositeOp == COMPOSITE_EXCLUSION ? Gpu::LayerBlendMode::Exclusion :
-                    compositeOp == COMPOSITE_SUBTRACT ? Gpu::LayerBlendMode::Subtract : Gpu::LayerBlendMode::Normal);
+                    *LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(compositeOp));
                 if (result != Gpu::Result::Success)
                     throw std::runtime_error("GPU layer blending mode write failed: " + std::to_string(int(result)));
                 if (m_d->compositeOp == compositeOp) return;

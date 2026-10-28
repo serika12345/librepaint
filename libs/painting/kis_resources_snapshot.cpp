@@ -30,6 +30,7 @@
 #include <KoResourceCacheInterface.h>
 #include "KoColorSpaceConstants.h"
 #include "KoCompositeOpIds.h"
+#include "KisGpuBlendMode.h"
 #include "KoResourceSignature.h"
 #include "filter/kis_filter_configuration.h"
 #include "kis_assert.h"
@@ -175,25 +176,9 @@ KisGpuBrushResources captureGpuPaintingResources(
         // Erase remains coverage removal and never carries a blend mode.
         if (composite != COMPOSITE_ERASE && composite != COMPOSITE_OVER)
             return reject(i18n("This blend mode is not yet available for this document."));
-    } else if (composite == COMPOSITE_MULT) {
-        blendMode = Gpu::LayerBlendMode::Multiply;
-    } else if (composite == COMPOSITE_SCREEN) {
-        blendMode = Gpu::LayerBlendMode::Screen;
-    } else if (composite == COMPOSITE_DARKEN) {
-        blendMode = Gpu::LayerBlendMode::Darken;
-    } else if (composite == COMPOSITE_LIGHTEN) {
-        blendMode = Gpu::LayerBlendMode::Lighten;
-    } else if (composite == COMPOSITE_ADD) {
-        blendMode = Gpu::LayerBlendMode::Addition;
-    } else if (composite == COMPOSITE_LINEAR_DODGE) {
-        blendMode = Gpu::LayerBlendMode::LinearDodge;
-    } else if (composite == COMPOSITE_DIFF) {
-        blendMode = Gpu::LayerBlendMode::Difference;
-    } else if (composite == COMPOSITE_EXCLUSION) {
-        blendMode = Gpu::LayerBlendMode::Exclusion;
-    } else if (composite == COMPOSITE_SUBTRACT) {
-        blendMode = Gpu::LayerBlendMode::Subtract;
-    } else if (composite != COMPOSITE_OVER) {
+    } else if (const auto mode = Gpu::layerBlendModeFromCompositeOp(composite)) {
+        blendMode = *mode;
+    } else {
         return reject(i18n("This blend mode is not yet available for this document."));
     }
     auto &brush = result.brush;

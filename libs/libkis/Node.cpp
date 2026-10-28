@@ -45,6 +45,7 @@
 
 #include <kis_raster_keyframe_channel.h>
 #include <kis_keyframe.h>
+#include "KisGpuBlendMode.h"
 #include "KoCanvasResourcesIds.h"
 #include "KoColorModelStandardIds.h"
 #include "kis_debug.h"
@@ -203,22 +204,11 @@ void Node::setBlendingMode(QString value)
 {
     if (!d->node) return;
     if (const auto owner = d->image->gpuImage()) {
-        if (value != COMPOSITE_OVER && value != COMPOSITE_MULT && value != COMPOSITE_SCREEN &&
-            value != COMPOSITE_DARKEN && value != COMPOSITE_LIGHTEN &&
-            value != COMPOSITE_ADD && value != COMPOSITE_LINEAR_DODGE &&
-            value != COMPOSITE_DIFF && value != COMPOSITE_EXCLUSION && value != COMPOSITE_SUBTRACT) return;
+        const auto mode = LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(value);
+        if (!mode) return;
         for (const auto &layer : owner->operations().snapshot()->layers)
             if (layer.uuid == d->node->uuid()) {
-                owner->setLayerBlendMode(layer.id,
-                    value == COMPOSITE_MULT ? LibrePaint::Image::Gpu::LayerBlendMode::Multiply :
-                    value == COMPOSITE_SCREEN ? LibrePaint::Image::Gpu::LayerBlendMode::Screen :
-                    value == COMPOSITE_DARKEN ? LibrePaint::Image::Gpu::LayerBlendMode::Darken :
-                    value == COMPOSITE_LIGHTEN ? LibrePaint::Image::Gpu::LayerBlendMode::Lighten :
-                    value == COMPOSITE_ADD ? LibrePaint::Image::Gpu::LayerBlendMode::Addition :
-                    value == COMPOSITE_LINEAR_DODGE ? LibrePaint::Image::Gpu::LayerBlendMode::LinearDodge :
-                    value == COMPOSITE_DIFF ? LibrePaint::Image::Gpu::LayerBlendMode::Difference :
-                    value == COMPOSITE_EXCLUSION ? LibrePaint::Image::Gpu::LayerBlendMode::Exclusion :
-                    value == COMPOSITE_SUBTRACT ? LibrePaint::Image::Gpu::LayerBlendMode::Subtract : LibrePaint::Image::Gpu::LayerBlendMode::Normal);
+                owner->setLayerBlendMode(layer.id, *mode);
                 return;
             }
         return;
