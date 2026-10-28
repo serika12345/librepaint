@@ -24,9 +24,11 @@ struct PaintParameters
     quint32 fillColor = 0, figureFlags = 0;
     qint32 selectionX = 0, selectionY = 0, selectionWidth = 0, selectionHeight = 0;
     quint32 patternWidth = 0, patternHeight = 0, fillBlendMode = 0, strokeBlendMode = 0;
-    quint32 colorHigh = 0, fillColorHigh = 0, pixelFormat = 0, padding = 0;
+    /** sourceBlocks identifies the sixteen native 64-pixel source blocks in this GPU tile. */
+    quint32 colorHigh = 0, fillColorHigh = 0, pixelFormat = 0, sourceBlocks = 0;
+    qint32 compositionX = 0, compositionY = 0, compositionWidth = 0, compositionHeight = 0;
 };
-static_assert(sizeof(PaintParameters) == 96);
+static_assert(sizeof(PaintParameters) == 112);
 constexpr quint32 UniformPixelFill = 16384u;
 
 struct PaintJob

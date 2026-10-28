@@ -512,7 +512,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 if (!paint || paintRegion.isEmpty()) continue;
                 const auto &operation = **paint;
                 const bool fillEnabled = hasFigureFill(operation.figureStyle);
+                const bool replacesAlpha = usesAllocatedSourceRegion(operation);
                 if (!operation.figureStyle.outline && !fillEnabled) continue;
+                QRect geometryRegion = paintRegion;
+                if (replacesAlpha) {
+                    const QPoint first(pixelTileIndex(paintRegion.left(), TileSize), pixelTileIndex(paintRegion.top(), TileSize));
+                    const QPoint last(pixelTileIndex(paintRegion.right(), TileSize), pixelTileIndex(paintRegion.bottom(), TileSize));
+                    geometryRegion = QRect(first * TileSize, (last + QPoint(1, 1)) * TileSize - QPoint(1, 1));
+                }
                 const bool pending = document->pendingOperation() == operation.id;
                 const bool extending = appendedOperation && op == layer.operations.size() - 1;
                 const bool retainCoverage = pending && !operation.brush.gaussianWash && operation.shape.kind == ShapeKind::Freehand &&
@@ -524,18 +531,55 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     std::optional<QList<GaussianDab>>(QList<GaussianDab>{});
                 if (!gaussian) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("This Gaussian WASH geometry or brush setting is not yet supported")};
                 const auto marker = operation.brush.gaussianWash ? std::optional<QList<MarkerDab>>(QList<MarkerDab>{}) :
-                    markerDabs(operation, pending, paintRegion);
+                    markerDabs(operation, pending, geometryRegion, replacesAlpha);
                 if (!marker) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU native marker geometry limit exceeded")};
                 const auto fillEdges = figureFillEdges(operation);
                 if (!fillEdges) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU fill geometry limit exceeded")};
+                QHash<quint64, quint32> sourceBlocks;
+                if (replacesAlpha) {
+                    qsizetype references = 0;
+                    const auto markBlock = [&](int x, int y) {
+                        const int tx = pixelTileIndex(x, 4), ty = pixelTileIndex(y, 4);
+                        sourceBlocks[key(tx, ty)] |= 1u << ((y - ty * 4) * 4 + x - tx * 4);
+                    };
+                    const auto markBounds = [&](QRect bounds) {
+                        bounds = bounds.intersected(geometryRegion);
+                        if (bounds.isEmpty()) return true;
+                        const int left = pixelTileIndex(bounds.left(), PixelHistoryBlockSize);
+                        const int right = pixelTileIndex(bounds.right(), PixelHistoryBlockSize);
+                        const int top = pixelTileIndex(bounds.top(), PixelHistoryBlockSize);
+                        const int bottom = pixelTileIndex(bounds.bottom(), PixelHistoryBlockSize);
+                        if (qint64(right - left + 1) * (bottom - top + 1) > d.budget->limit / tileBytes * 16) return false;
+                        for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                            if (++references > PaintGeometryElementLimit * 16) return false;
+                            markBlock(x, y);
+                        }
+                        return true;
+                    };
+                    if (operation.figureStyle.outline) for (const auto &dab : *gaussian)
+                        if (!markBounds(dab.bounds()))
+                            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU paint source region capacity exceeded")};
+                    for (const auto &dab : *marker)
+                        if (!markBounds(dab.bounds()))
+                            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU paint source region capacity exceeded")};
+                    if (fillEnabled) {
+                        const auto blocks = figureFillTiles(*fillEdges, operation.brush, geometryRegion,
+                                                            d.budget->limit / tileBytes * 16, PixelHistoryBlockSize);
+                        if (!blocks) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU fill source region capacity exceeded")};
+                        for (const auto block : *blocks) {
+                            const auto point = coordinate(block);
+                            markBlock(point.x(), point.y());
+                        }
+                    }
+                }
                 qsizetype appendedIndex = 0;
                 if (extending) {
-                    const auto previous = markerDabs(*appendedOperation, true, paintRegion);
+                    const auto previous = markerDabs(*appendedOperation, true, geometryRegion, replacesAlpha);
                     if (!previous || previous->size() > marker->size())
                         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU appended marker geometry does not retain its prefix")};
                     appendedIndex = previous->size();
                 }
-                bool appendedOnly = extending && retainCoverage && preserveCoverage &&
+                bool appendedOnly = !replacesAlpha && extending && retainCoverage && preserveCoverage &&
                     d.coverageVersion.toStrongRef() == base && d.coverageLayer == layer.id &&
                     base->m_data->selected == selected && base->m_data->defaultPixels == data->defaultPixels &&
                     (!base->m_data->region || base->m_data->region->contains(paintRegion));
@@ -563,7 +607,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 QMap<quint64, QList<MarkerDab>> appendedGeometry;
                 for (const auto &dab : *gaussian) {
                     if (!operation.figureStyle.outline) break;
-                    const auto bounds = dab.bounds().intersected(paintRegion);
+                    const auto bounds = dab.bounds().intersected(geometryRegion);
                     if (bounds.isEmpty()) continue;
                     const int left = pixelTileIndex(bounds.left(), TileSize), right = pixelTileIndex(bounds.right(), TileSize);
                     const int top = pixelTileIndex(bounds.top(), TileSize), bottom = pixelTileIndex(bounds.bottom(), TileSize);
@@ -586,7 +630,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 qsizetype markerReferences = 0;
                 for (qsizetype index = appendedOnly ? appendedIndex : 0; index < marker->size(); ++index) {
                     const auto &dab = (*marker)[index];
-                    const auto bounds = dab.bounds().intersected(paintRegion);
+                    const auto bounds = dab.bounds().intersected(geometryRegion);
                     if (bounds.isEmpty()) continue;
                     const int left = pixelTileIndex(bounds.left(), TileSize), right = pixelTileIndex(bounds.right(), TileSize);
                     const int top = pixelTileIndex(bounds.top(), TileSize), bottom = pixelTileIndex(bounds.bottom(), TileSize);
@@ -595,7 +639,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
                         const auto coordinate = key(x, y);
                         const QRect tileBounds(QPoint(x, y) * TileSize, QSize(TileSize, TileSize));
-                        if (!markerDabIntersects(dab, tileBounds.intersected(paintRegion))) continue;
+                        if (!replacesAlpha && !markerDabIntersects(dab, tileBounds.intersected(geometryRegion))) continue;
                         if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
                         const auto checkpoint = checkpoints.constFind(coordinate);
                         if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
@@ -612,7 +656,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     }
                 }
                 if (fillEnabled) {
-                    const auto filled = figureFillTiles(*fillEdges, operation.brush, paintRegion,
+                    const auto filled = figureFillTiles(*fillEdges, operation.brush, geometryRegion,
                                                          d.budget->limit / tileBytes);
                     if (!filled) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU fill tile budget exhausted")};
                     for (const auto coordinate : *filled) {
@@ -710,6 +754,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.values.colorHigh = color[1];
                     job.values.fillColorHigh = fill[1];
                     job.values.pixelFormat = quint32(document->format);
+                    job.values.sourceBlocks = sourceBlocks.value(tile.key());
+                    if (operation.compositionBounds) {
+                        const auto &bounds = *operation.compositionBounds;
+                        job.values.compositionX = bounds.x();
+                        job.values.compositionY = bounds.y();
+                        job.values.compositionWidth = bounds.width();
+                        job.values.compositionHeight = bounds.height();
+                    }
                     if (operation.figureStyle.pattern) {
                         job.values.patternWidth = quint32(operation.figureStyle.pattern->size.width());
                         job.values.patternHeight = quint32(operation.figureStyle.pattern->size.height());

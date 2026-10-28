@@ -16,7 +16,9 @@ struct MarkerDab
 };
 static_assert(sizeof(MarkerDab) == 48);
 
-std::optional<QList<MarkerDab>> markerDabs(const PaintOperation &operation, bool pending, const QRect &region);
+/** Empty source pixels in the allocation rectangle participate in alpha-replacing merges. */
+std::optional<QList<MarkerDab>> markerDabs(const PaintOperation &operation, bool pending, const QRect &region,
+                                         bool includeEmptySource = false);
 /** Conservative native circle/rectangle intersection for sparse tile dispatch. */
 bool markerDabIntersects(const MarkerDab &dab, const QRect &region);
 }

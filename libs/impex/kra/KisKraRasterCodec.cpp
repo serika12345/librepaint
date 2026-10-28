@@ -247,7 +247,9 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("implication") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("not_implication") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("converse") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("not_converse")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("not_converse") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("destination-in") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("destination-atop")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -699,6 +701,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::NotImplication ? QStringLiteral("not_implication") :
                              layer.blendMode == LayerBlendMode::Converse ? QStringLiteral("converse") :
                              layer.blendMode == LayerBlendMode::NotConverse ? QStringLiteral("not_converse") :
+                             layer.blendMode == LayerBlendMode::DestinationIn ? QStringLiteral("destination-in") :
+                             layer.blendMode == LayerBlendMode::DestinationAtop ? QStringLiteral("destination-atop") :
                              QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
@@ -1226,6 +1230,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("not_implication") ? LayerBlendMode::NotImplication :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("converse") ? LayerBlendMode::Converse :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("not_converse") ? LayerBlendMode::NotConverse :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("destination-in") ? LayerBlendMode::DestinationIn :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("destination-atop") ? LayerBlendMode::DestinationAtop :
             LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));

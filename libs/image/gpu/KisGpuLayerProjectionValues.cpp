@@ -37,6 +37,17 @@ RgbaPixel separableProjectionPixel(RgbaPixel destination,
         if (mask & (1u << channel)) destination[channel] = blendByte(destination[channel], source[channel], multiplyByte(source[3], opacity));
         return destination;
     }
+    if (mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop) {
+        if (mode == LayerBlendMode::DestinationIn) {
+            if (!locked) destination[3] = quint8(multiplyByte(oldAlpha, alpha));
+        } else {
+            if (source[3]) for (int channel = 0; channel < 3; ++channel)
+                if (mask & (1u << channel))
+                    destination[channel] = blendByte(source[channel], destination[channel], oldAlpha);
+            if (!locked) destination[3] = quint8(alpha);
+        }
+        return destination;
+    }
     if (!alpha) return destination;
     if (mode == LayerBlendMode::Erase) {
         destination[3] = quint8(multiplyByte(255 - multiplyByte(source[3], opacity), oldAlpha));

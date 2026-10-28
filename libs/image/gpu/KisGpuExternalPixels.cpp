@@ -35,6 +35,7 @@ bool writeIntersects(const TileWriteOperation &write, const QRect &block)
 
 std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &block, GeometryCache &geometry)
 {
+    if (paint.compositionBounds && !paint.compositionBounds->intersects(block)) return false;
     if (paint.brush.gaussianWash) {
         auto found = geometry.gaussian.constFind(&paint);
         if (found == geometry.gaussian.cend()) found = geometry.gaussian.insert(&paint, Detail::gaussianDabs(paint, false));
@@ -49,7 +50,8 @@ std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &bl
         found = geometry.markers.insert(&paint, Detail::markerDabs(paint, false, QRect(-limit, -limit, 2 * limit, 2 * limit)));
     }
     if (!*found) return std::nullopt;
-    for (const auto &dab : **found) if (Detail::markerDabIntersects(dab, block)) return true;
+    for (const auto &dab : **found)
+        if (Detail::usesAllocatedSourceRegion(paint) ? dab.bounds().intersects(block) : Detail::markerDabIntersects(dab, block)) return true;
     if (hasFigureFill(paint.figureStyle)) {
         auto fill = geometry.fills.constFind(&paint);
         if (fill == geometry.fills.cend()) fill = geometry.fills.insert(&paint, Detail::figureFillEdges(paint));

@@ -12,6 +12,14 @@
 
 namespace LibrePaint::Image::Gpu::Detail {
 constexpr int PixelHistoryBlockSize = 64;
+inline bool usesAllocatedSourceRegion(const PaintOperation &operation)
+{
+    const auto replacesAlpha = [](LayerBlendMode mode) {
+        return mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop;
+    };
+    return !operation.brush.erase && (replacesAlpha(operation.brush.blendMode) ||
+        (hasFigureFill(operation.figureStyle) && replacesAlpha(operation.figureStyle.fillBlendMode)));
+}
 inline int pixelTileIndex(int value, int size)
 { return value >= 0 ? value / size : (value - size + 1) / size; }
 

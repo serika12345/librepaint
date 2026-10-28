@@ -11,7 +11,8 @@
 // Allanon=24, HardMixPhotoshop=25, Erase=26, Behind=27,
 // CopyRed=28, CopyGreen=29, CopyBlue=30, BitwiseXor=31, BitwiseOr=32,
 // BitwiseAnd=33, BitwiseNand=34, BitwiseNor=35, BitwiseXnor=36,
-// Implication=37, NotImplication=38, Converse=39, NotConverse=40.
+// Implication=37, NotImplication=38, Converse=39, NotConverse=40,
+// DestinationIn=41, DestinationAtop=42.
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -25,7 +26,28 @@ fn blendByte(destination: u32, source: u32, alpha: u32) -> u32 {
     let weighted = (i32(source) - i32(destination)) * i32(alpha) + 128;
     return u32((((weighted >> 8u) + weighted) >> 8u) + i32(destination)) & 255u;
 }
+fn destinationRgba8(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> u32 {
+    var destination = base;
+    if (mask != 15u && destination.w == 0u) { destination = vec4<u32>(0u); }
+    let locked = (mask & 8u) == 0u;
+    if (mode == 41u) {
+        if (!locked) { destination.w = multiplyByte(destination.w, alpha); }
+    } else {
+        if (source.w != 0u) {
+            for (var channel = 0u; channel < 3u; channel += 1u) {
+                if ((mask & (1u << channel)) != 0u) {
+                    destination[channel] = blendByte(source[channel], destination[channel], destination.w);
+                }
+            }
+        }
+        if (!locked) { destination.w = alpha; }
+    }
+    return packPixel(destination);
+}
 fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32, mode: u32) -> u32 {
+    if (mode == 41u || mode == 42u) {
+        return destinationRgba8(base, source, multiplyThreeBytes(source.w, 255u, opacity), mask, mode);
+    }
     var destination = base;
     if (mask != 15u && destination.w == 0u) {
         destination = vec4<u32>(0u);

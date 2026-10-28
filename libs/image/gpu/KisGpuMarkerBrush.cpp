@@ -36,7 +36,8 @@ bool markerDabIntersects(const MarkerDab &dab, const QRect &region)
     return ((dx * dx + dy * dy) - doubleValue(dab, 4)) * doubleValue(dab, 6) < 1;
 }
 
-std::optional<QList<MarkerDab>> markerDabs(const PaintOperation &operation, bool pending, const QRect &region)
+std::optional<QList<MarkerDab>> markerDabs(const PaintOperation &operation, bool pending, const QRect &region,
+                                         bool includeEmptySource)
 {
     if (operation.brush.gaussianWash) return std::nullopt;
     QList<MarkerDab> result;
@@ -63,7 +64,7 @@ std::optional<QList<MarkerDab>> markerDabs(const PaintOperation &operation, bool
             dab.words[9] = quint32(bounds.y());
             dab.words[10] = quint32(bounds.width());
             dab.words[11] = quint32(bounds.height());
-            if (!markerDabIntersects(dab, region)) continue;
+            if (includeEmptySource ? !bounds.intersects(region) : !markerDabIntersects(dab, region)) continue;
             if (result.size() >= PaintGeometryElementLimit) return false;
             result.append(dab);
         }

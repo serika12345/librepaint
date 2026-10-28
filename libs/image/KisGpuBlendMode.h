@@ -59,6 +59,8 @@ inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString
     if (compositeOp == COMPOSITE_NOT_IMPLICATION) return LayerBlendMode::NotImplication;
     if (compositeOp == COMPOSITE_CONVERSE) return LayerBlendMode::Converse;
     if (compositeOp == COMPOSITE_NOT_CONVERSE) return LayerBlendMode::NotConverse;
+    if (compositeOp == COMPOSITE_DESTINATION_IN) return LayerBlendMode::DestinationIn;
+    if (compositeOp == COMPOSITE_DESTINATION_ATOP) return LayerBlendMode::DestinationAtop;
     return std::nullopt;
 }
 
@@ -105,6 +107,8 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::NotImplication: return COMPOSITE_NOT_IMPLICATION;
     case LayerBlendMode::Converse: return COMPOSITE_CONVERSE;
     case LayerBlendMode::NotConverse: return COMPOSITE_NOT_CONVERSE;
+    case LayerBlendMode::DestinationIn: return COMPOSITE_DESTINATION_IN;
+    case LayerBlendMode::DestinationAtop: return COMPOSITE_DESTINATION_ATOP;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;

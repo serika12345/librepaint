@@ -742,6 +742,13 @@ Result OperationDocument::appendSamples(OperationId id, const QList<InputSample>
 Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
                                       const Shape &shape, const FigureStyle &style, quint64 randomSeed)
 {
+    return paintFigureWithin(layer, brush, samples, shape, style, randomSeed, {});
+}
+
+Result OperationDocument::paintFigureWithin(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
+                                            const Shape &shape, const FigureStyle &style, quint64 randomSeed,
+                                            const std::optional<QRect> &compositionBounds)
+{
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     if (!validBrush(brush, snapshot()->format) || !validShape(shape) || !validFigureStyle(shape, style, snapshot()->format) ||
@@ -764,6 +771,11 @@ Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const Q
     }
     const auto id = beginStroke(layer, brush, randomSeed);
     if (id.isNull()) return Result::LayerUnavailable;
+    if (compositionBounds) {
+        auto operation = QSharedPointer<PaintOperation>::create(*m_edit);
+        operation->compositionBounds = compositionBounds;
+        m_edit = operation;
+    }
     const auto rollback = qScopeGuard([&] { if (m_edit && m_edit->id == id) cancelStroke(id); });
     auto result = appendSamples(id, samples);
     if (result == Result::Success) result = updateFigure(id, shape, style);
@@ -1718,8 +1730,9 @@ Result OperationDocument::fillLayerStyle(LayerId layer, const RgbaPixel &color,
     brush.alphaLocked = alphaLocked;
     brush.channelWriteMask = alphaLocked ? 7 : 15;
     const QPointF end(snapshot()->size.width(), snapshot()->size.height());
-    const auto result = paintFigure(layer, brush, {{{0, 0}, 1}, {end, 1}},
-                                    {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0);
+    const auto result = paintFigureWithin(layer, brush, {{{0, 0}, 1}, {end, 1}},
+                                         {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0,
+                                         QRect(QPoint(), snapshot()->size));
     if (result == Result::Success) m_layerHistoryChanges[m_index].filledLayer = true;
     return result;
 }

@@ -128,7 +128,7 @@ enum class LayerBlendMode : quint8 {
     Equivalence, Allanon, HardMixPhotoshop, Erase, Behind,
     CopyRed, CopyGreen, CopyBlue,
     BitwiseXor, BitwiseOr, BitwiseAnd, BitwiseNand, BitwiseNor, BitwiseXnor,
-    Implication, NotImplication, Converse, NotConverse
+    Implication, NotImplication, Converse, NotConverse, DestinationIn, DestinationAtop
 };
 
 /** Frozen circular marker or Gaussian WASH settings. */
@@ -251,6 +251,8 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
     QList<QSharedPointer<const QList<InputSample>>> sampleBlocks;
     qsizetype sampleCount = 0;
     FigureStyle figureStyle;
+    /** Exact merge rectangle for a canvas fill; brush/figure merges use their allocated source regions. */
+    std::optional<QRect> compositionBounds;
     /** Accepted input counts at which an idle timeout completed the current curve. */
     QList<qsizetype> smoothingFlushes{};
     bool smoothingFinished = false;
@@ -987,6 +989,9 @@ private:
                               Snapshot *retainedVersion = nullptr);
     Result fillLayerStyle(LayerId layer, const RgbaPixel &color, const FigureStyle &style,
                           qreal opacity, bool erase, bool alphaLocked);
+    Result paintFigureWithin(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
+                             const Shape &shape, const FigureStyle &style, quint64 randomSeed,
+                             const std::optional<QRect> &compositionBounds);
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);

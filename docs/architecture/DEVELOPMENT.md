@@ -338,6 +338,11 @@ KRA再読込み、PNG、再読込み後の描画・塗りとUndo／Redoも同じ
 同じ入力で再実行した全ファイルと、各OSで生成した同名のファイルを全バイトで比較する。
 `KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot`は、成分Copyで生じた
 透明RGBを保持するグループと、上位で通常合成した結果、保持した旧投影を照合する。
+`testReplacingAlphaPaintMatchesCpuSourceRegions`は、Destination方式のブラシを
+CPUの一時描画デバイスと実際の合成呼出しで照合する。64画素の境界、大きな円の外接矩形、
+負座標、穴のある部分選択と反転、キャンバス外の画素、塗り、キャンバス拡張とUndo／Redoを検査する。
+`transparentSourcesReplaceProjectionAlpha`は、空レイヤー・グループ、既定画素と格納済み画素、
+単独・連結した投影、アルファ保護、方式変更の履歴と固定版を照合する。
 画面側の属性試験は単一・複数選択のプレビュー、取消し、確定、Redo分岐と保存結果を照合する。
 確定通知の属性値、8ビット不透明度の復元、編集中に完了した描画と階層変更も検査する。
 文書の保存試験は、不正な付属情報を拒否した後もKRA出力が全バイトで不変であることと、

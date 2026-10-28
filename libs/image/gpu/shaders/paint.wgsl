@@ -13,6 +13,7 @@ struct Parameters {
     selection: vec4<i32>,
     pattern: vec4<u32>,
     native: vec4<u32>,
+    composition: vec4<i32>,
 }
 struct FigureFillEdge { endpoints: vec4<i32>, mirroredRounding: vec4<i32>, }
 @group(0) @binding(0) var<uniform> parameters: Parameters;
@@ -289,9 +290,21 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         return;
     }
     let pixel = parameters.origin + vec2<i32>(local);
+    let composition = parameters.composition;
+    if (composition.z > 0 && composition.w > 0 &&
+        (pixel.x < composition.x || pixel.y < composition.y ||
+         pixel.x >= composition.x + composition.z || pixel.y >= composition.y + composition.w)) {
+        writePaintPixel(index, paintBase(index));
+        return;
+    }
     let selection = parameters.selection;
     let maskSelection = (parameters.paintFlags & 4096u) != 0u;
     let softSelection = (parameters.paintFlags & 8192u) != 0u;
+    let destinationSelection = parameters.erase == 0u &&
+        (parameters.pattern.w == 41u || parameters.pattern.w == 42u ||
+         parameters.pattern.z == 41u || parameters.pattern.z == 42u);
+    let insideSelectionBounds = pixel.x >= selection.x && pixel.y >= selection.y &&
+        pixel.x < selection.x + selection.z && pixel.y < selection.y + selection.w;
     var selectionAlpha = 255u;
     if (maskSelection || (selection.z > 0 && selection.w > 0)) {
         var inside = false;
@@ -318,7 +331,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         let inverted = (parameters.paintFlags & 1024u) != 0u;
         if (maskSelection && softSelection) {
             selectionAlpha = select(selectionAlpha, 255u - selectionAlpha, inverted);
-            if (selectionAlpha == 0u) {
+            if (selectionAlpha == 0u && (!destinationSelection || !insideSelectionBounds)) {
                 writePaintPixel(index, paintBase(index));
                 return;
             }
@@ -326,8 +339,11 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             var masked = !inside;
             if (inverted) { masked = inside; }
             if (masked) {
-                writePaintPixel(index, paintBase(index));
-                return;
+                if (destinationSelection && insideSelectionBounds) { selectionAlpha = 0u; }
+                else {
+                    writePaintPixel(index, paintBase(index));
+                    return;
+                }
             }
         }
     }
@@ -370,6 +386,16 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     }
     var writable = (parameters.paintFlags >> 1u) & 15u;
     if ((parameters.paintFlags & 1u) != 0u && parameters.erase == 0u) { writable &= 7u; }
+    if (parameters.erase == 0u && (blendMode == 41u || blendMode == 42u)) {
+        let block = (local.y / 64u) * 4u + local.x / 64u;
+        if ((parameters.native.w & (1u << block)) == 0u) {
+            writePaintPixel(index, base);
+            return;
+        }
+        let alpha = multiplyThreeBytes(coverage, selectionAlpha, parameters.opacityValue);
+        writePaintPixel(index, unpackPixel(destinationRgba8(base, vec4<u32>(source, coverage), alpha, writable, blendMode)));
+        return;
+    }
     if (parameters.erase != 0u) {
         var resultAlpha: u32;
         if (parameters.native.z != 0u) {

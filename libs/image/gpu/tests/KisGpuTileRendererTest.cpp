@@ -70,6 +70,8 @@ private Q_SLOTS:
     void separableLayerProjectionMatchesNativePixels_data();
     void separableLayerProjectionMatchesNativePixels();
     void channelCopyGroupsKeepHiddenRgbAndNormalizeRoot();
+    void transparentSourcesReplaceProjectionAlpha_data();
+    void transparentSourcesReplaceProjectionAlpha();
     void threeLayerProjectionFitsOneOutputTile_data();
     void threeLayerProjectionFitsOneOutputTile();
     void multiPassGroupsKeepDistinctLayerParameters_data();
@@ -2476,6 +2478,66 @@ void KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot()
             QCOMPARE(readBuffer(projected->tiles().first().pixels), hiddenBytes);
         }
     }
+}
+
+void KisGpuTileRendererTest::transparentSourcesReplaceProjectionAlpha_data()
+{
+    QTest::addColumn<int>("mode");
+    QTest::addColumn<bool>("implicit");
+    QTest::addColumn<bool>("paired");
+    QTest::addColumn<bool>("group");
+    QTest::addColumn<bool>("locked");
+    for (const auto mode : {LayerBlendMode::DestinationIn, LayerBlendMode::DestinationAtop})
+    for (bool implicit : {false, true}) for (bool paired : {false, true})
+    for (bool group : {false, true}) for (bool locked : {false, true}) {
+        const QByteArray name = QByteArray::number(int(mode)) + '-' + QByteArray::number(implicit) + '-' +
+            QByteArray::number(paired) + '-' + QByteArray::number(group) + '-' + QByteArray::number(locked);
+        QTest::newRow(name.constData()) << int(mode) << implicit << paired << group << locked;
+    }
+}
+
+void KisGpuTileRendererTest::transparentSourcesReplaceProjectionAlpha()
+{
+    QFETCH(int, mode);
+    QFETCH(bool, implicit);
+    QFETCH(bool, paired);
+    QFETCH(bool, group);
+    QFETCH(bool, locked);
+    RasterImage input;
+    input.size = {256, 256};
+    if (paired) {
+        RasterLayer empty;
+        empty.tiles = {{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')}};
+        input.layers.append(empty);
+    }
+    const RgbaPixel color{37, 89, 151, 173};
+    RasterLayer lower;
+    if (implicit) lower.defaultPixel = color;
+    else lower.tiles = {{{0, 0}, rgbaBytes(color, PixelFormat::Rgba8).repeated(RgbaTile::ByteCount / 4)}};
+    input.layers.append(lower);
+    RasterLayer source;
+    source.kind = group ? LayerKind::Group : LayerKind::Paint;
+    source.blendMode = LayerBlendMode(mode);
+    source.projectionChannelMask = locked ? 7 : 15;
+    input.layers.append(source);
+    OperationDocument document(input);
+    const auto top = document.snapshot()->layers.last().id;
+    TileRenderer renderer(m_device);
+    const auto raw = render(renderer, document.snapshot());
+    QVERIFY(raw);
+    const auto projected = project(renderer, raw, {0, 0, 256, 256});
+    QVERIFY(projected);
+    const auto expected = rgbaBytes({37, 89, 151, quint16(locked ? 173 : 0)}, PixelFormat::Rgba8).repeated(RgbaTile::ByteCount / 4);
+    QCOMPARE(readBuffer(projected->tiles().first().pixels), expected);
+    QCOMPARE(document.setLayerBlendMode(top, LayerBlendMode::Normal), Result::Success);
+    const auto normal = project(renderer, render(renderer, document.snapshot(), raw), {0, 0, 256, 256}, projected);
+    QVERIFY(normal);
+    QCOMPARE(readBuffer(normal->tiles().first().pixels), rgbaBytes(color, PixelFormat::Rgba8).repeated(RgbaTile::ByteCount / 4));
+    QCOMPARE(document.undo(), Result::Success);
+    const auto restored = project(renderer, render(renderer, document.snapshot(), raw), {0, 0, 256, 256}, normal);
+    QVERIFY(restored);
+    QCOMPARE(readBuffer(restored->tiles().first().pixels), expected);
+    QCOMPARE(readBuffer(projected->tiles().first().pixels), expected);
 }
 
 void KisGpuTileRendererTest::threeLayerProjectionFitsOneOutputTile_data()

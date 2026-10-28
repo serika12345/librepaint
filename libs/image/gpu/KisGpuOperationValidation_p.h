@@ -60,6 +60,8 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::NotImplication:
     case LayerBlendMode::Converse:
     case LayerBlendMode::NotConverse:
+    case LayerBlendMode::DestinationIn:
+    case LayerBlendMode::DestinationAtop:
         return true;
     }
     return false;

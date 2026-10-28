@@ -193,7 +193,8 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
                 }
                 continue;
             }
-            const auto dabs = Detail::markerDabs(paint, paint.id == pendingOperation, needed);
+            const bool allocatedSource = Detail::usesAllocatedSourceRegion(paint);
+            const auto dabs = Detail::markerDabs(paint, paint.id == pendingOperation, needed, allocatedSource);
             if (!dabs) return std::nullopt;
             for (const auto &dab : *dabs) {
                 const auto bounds = dab.bounds().intersected(needed);
@@ -204,7 +205,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
                 if (qint64(right - left + 1) * (bottom - top + 1) > stageMaximum) return std::nullopt;
                 for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
                     const QRect tile(QPoint(x, y) * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
-                    if (!Detail::markerDabIntersects(dab, tile.intersected(needed))) continue;
+                    if (!allocatedSource && !Detail::markerDabIntersects(dab, tile.intersected(needed))) continue;
                     coordinates.insert(Detail::key(x, y));
                     if (coordinates.size() > stageMaximum) return std::nullopt;
                 }

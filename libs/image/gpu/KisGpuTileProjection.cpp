@@ -28,6 +28,7 @@ struct CompositeJob
     std::shared_ptr<Tile> layers[2];
     std::shared_ptr<CoverageTile> masks[2];
     NativeBindings bindings;
+    bool paired = false;
 };
 }
 
@@ -268,7 +269,8 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const auto &tiles = document->m_data->layers[layer.layer];
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
-            if (!pixels) continue;
+            if (!pixels && layer.blendMode != LayerBlendMode::DestinationIn &&
+                layer.blendMode != LayerBlendMode::DestinationAtop) continue;
             ProjectionInput input{pixels, layer.opacity, layer.channelMask, layer.blendMode};
             input.mask = layerMasks.value(layer.layer);
             data->inputs[coordinate].append(input);
@@ -342,6 +344,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             if (keepBackdrop && tile.value().size() > 1 && i == tile.value().size() - 1)
                 nextBackdrops[tile.key()] = input;
             CompositeJob job;
+            job.paired = paired;
             job.base = input;
             job.output = passIndex % 2 ? b : a;
             bool hiddenRgb = job.base && job.base->mayContainHiddenRgb;
@@ -387,10 +390,12 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             };
             addBinding(0, job.base ? job.base->pixels.get() : d.zeroBuffer(commands, document->document()->format));
             if (!buffers[0]) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty projection tile allocation failed")};
-            addBinding(1, job.layers[0]->pixels.get());
+            addBinding(1, job.layers[0] ? job.layers[0]->pixels.get() : d.zeroBuffer(commands, document->document()->format));
+            if (!buffers[bindingCount - 1]) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty source tile allocation failed")};
             addBinding(2, job.output->pixels.get());
             if (paired) {
-                addBinding(4, job.layers[1]->pixels.get());
+                addBinding(4, job.layers[1] ? job.layers[1]->pixels.get() : d.zeroBuffer(commands, document->document()->format));
+                if (!buffers[bindingCount - 1]) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty source tile allocation failed")};
                 addBinding(5, parameters);
                 addBinding(6, job.masks[0] ? job.masks[0]->pixels.get() : d.opaqueMask.get());
                 addBinding(7, job.masks[1] ? job.masks[1]->pixels.get() : d.opaqueMask.get());
@@ -423,7 +428,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
         if (!pass) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection commands failed")};
         for (const auto &job : jobs) {
-            wgpuComputePassEncoderSetPipeline(pass, job.layers[1] ? d.pairedProjectionPipeline.get() : d.projectionPipeline.get());
+            wgpuComputePassEncoderSetPipeline(pass, job.paired ? d.pairedProjectionPipeline.get() : d.projectionPipeline.get());
             wgpuComputePassEncoderSetBindGroup(pass, 0, job.bindings.get(), 0, nullptr);
             wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
         }
