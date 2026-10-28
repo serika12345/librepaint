@@ -226,12 +226,13 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("pin_light") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("divide") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("dodge") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("burn")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("burn") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hard mix")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
             (child.tagName() != QLatin1String("layers") || !child.nextSiblingElement().isNull())))
-        return unsupported(QStringLiteral("KRA requires matching RGB paint layers and groups with normal, multiply, screen, darken, lighten, addition or linear dodge compositing"));
+        return unsupported(QStringLiteral("KRA requires matching RGB paint layers and groups with a supported composite mode"));
     if (!group) {
         QDomElement mask;
         const auto outcome = transparencyMaskElement(element, mask);
@@ -656,7 +657,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::PinLight ? QStringLiteral("pin_light") :
                              layer.blendMode == LayerBlendMode::Divide ? QStringLiteral("divide") :
                              layer.blendMode == LayerBlendMode::ColorDodge ? QStringLiteral("dodge") :
-                             layer.blendMode == LayerBlendMode::ColorBurn ? QStringLiteral("burn") : QStringLiteral("normal"));
+                             layer.blendMode == LayerBlendMode::ColorBurn ? QStringLiteral("burn") :
+                             layer.blendMode == LayerBlendMode::HardMix ? QStringLiteral("hard mix") : QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));
@@ -1161,7 +1163,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("pin_light") ? LayerBlendMode::PinLight :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("divide") ? LayerBlendMode::Divide :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("dodge") ? LayerBlendMode::ColorDodge :
-            element.attribute(QStringLiteral("compositeop")) == QLatin1String("burn") ? LayerBlendMode::ColorBurn : LayerBlendMode::Normal;
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("burn") ? LayerBlendMode::ColorBurn :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("hard mix") ? LayerBlendMode::HardMix : LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;

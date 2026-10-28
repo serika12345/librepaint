@@ -39,6 +39,7 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::Divide:
     case LayerBlendMode::ColorDodge:
     case LayerBlendMode::ColorBurn:
+    case LayerBlendMode::HardMix:
         return true;
     }
     return false;

@@ -687,7 +687,33 @@ void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving()
 
 void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
 {
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract}) {
+    const auto expectedId = [](LayerBlendMode mode) {
+        switch (mode) {
+        case LayerBlendMode::Multiply: return QStringLiteral("multiply");
+        case LayerBlendMode::Screen: return QStringLiteral("screen");
+        case LayerBlendMode::Darken: return QStringLiteral("darken");
+        case LayerBlendMode::Lighten: return QStringLiteral("lighten");
+        case LayerBlendMode::Addition: return QStringLiteral("add");
+        case LayerBlendMode::LinearDodge: return QStringLiteral("linear_dodge");
+        case LayerBlendMode::Difference: return QStringLiteral("diff");
+        case LayerBlendMode::Exclusion: return QStringLiteral("exclusion");
+        case LayerBlendMode::Subtract: return QStringLiteral("subtract");
+        case LayerBlendMode::LinearBurn: return QStringLiteral("linear_burn");
+        case LayerBlendMode::InverseSubtract: return QStringLiteral("inverse_subtract");
+        case LayerBlendMode::GrainMerge: return QStringLiteral("grain_merge");
+        case LayerBlendMode::GrainExtract: return QStringLiteral("grain_extract");
+        case LayerBlendMode::Overlay: return QStringLiteral("overlay");
+        case LayerBlendMode::HardLight: return QStringLiteral("hard_light");
+        case LayerBlendMode::PinLight: return QStringLiteral("pin_light");
+        case LayerBlendMode::Divide: return QStringLiteral("divide");
+        case LayerBlendMode::ColorDodge: return QStringLiteral("dodge");
+        case LayerBlendMode::ColorBurn: return QStringLiteral("burn");
+        case LayerBlendMode::HardMix: return QStringLiteral("hard mix");
+        case LayerBlendMode::Normal: break;
+        }
+        return QStringLiteral("normal");
+    };
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix}) {
         auto source = document();
         RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
         group.kind = LayerKind::Group;
@@ -706,8 +732,7 @@ void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
             const auto element = elements.item(i).toElement();
             if (element.attribute(QStringLiteral("uuid")) != group.uuid.toString() &&
                 element.attribute(QStringLiteral("uuid")) != source.image.layers[0].uuid.toString()) continue;
-            if (mode == LayerBlendMode::Addition) QCOMPARE(element.attribute(QStringLiteral("compositeop")), QStringLiteral("add"));
-            if (mode == LayerBlendMode::LinearDodge) QCOMPARE(element.attribute(QStringLiteral("compositeop")), QStringLiteral("linear_dodge"));
+            QCOMPARE(element.attribute(QStringLiteral("compositeop")), expectedId(mode));
         }
         const auto imported = load(bytes);
         QCOMPARE(imported.code, Kra::Status::Success);

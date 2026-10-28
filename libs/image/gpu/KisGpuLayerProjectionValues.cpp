@@ -72,6 +72,12 @@ RgbaPixel separableProjectionPixel(RgbaPixel destination,
             mode == LayerBlendMode::ColorBurn ?
                 (destination[channel] == 255 ? 255 : source[channel] == 0 ? 0 :
                     255 - qMin(255, ((255 - int(destination[channel])) * 255) / int(source[channel]))) :
+            mode == LayerBlendMode::HardMix ?
+                (destination[channel] > 127 ?
+                    (source[channel] == 255 ? (destination[channel] == 0 ? 0 : 255) :
+                        qMin(255, (int(destination[channel]) * 255) / (255 - int(source[channel])))) :
+                    (destination[channel] == 255 ? 255 : source[channel] == 0 ? 0 :
+                        255 - qMin(255, ((255 - int(destination[channel])) * 255) / int(source[channel])))) :
             multiplied);
         if (locked || oldAlpha == 255) {
             if (oldAlpha) destination[channel] = blendByte(destination[channel], product, alpha);
