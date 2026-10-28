@@ -45,6 +45,10 @@ RgbaPixel separableProjectionPixel(RgbaPixel destination,
             mode == LayerBlendMode::Difference ? qAbs(int(source[channel]) - int(destination[channel])) :
             mode == LayerBlendMode::Exclusion ? qMin(255, int(source[channel]) + destination[channel] - 2 * int(multiplied)) :
             mode == LayerBlendMode::Subtract ? qMax(0, int(destination[channel]) - int(source[channel])) :
+            mode == LayerBlendMode::LinearBurn || mode == LayerBlendMode::InverseSubtract ?
+                qMax(0, int(source[channel]) + destination[channel] - 255) :
+            mode == LayerBlendMode::GrainMerge ? qMin(255, int(source[channel]) + destination[channel] - 128) :
+            mode == LayerBlendMode::GrainExtract ? qMax(0, int(destination[channel]) + 128 - int(source[channel])) :
             multiplied);
         if (locked || oldAlpha == 255) {
             if (oldAlpha) destination[channel] = blendByte(destination[channel], product, alpha);

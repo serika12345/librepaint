@@ -122,7 +122,8 @@ struct GaussianWash
 /** Separable RGB blend modes shared by layer composition, fill and stroke coverage. */
 enum class LayerBlendMode : quint8 {
     Normal, Multiply, Screen, Darken, Lighten, Addition, LinearDodge,
-    Difference, Exclusion, Subtract
+    Difference, Exclusion, Subtract, LinearBurn, InverseSubtract,
+    GrainMerge, GrainExtract
 };
 
 /** Frozen circular marker or Gaussian WASH settings. */

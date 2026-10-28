@@ -29,6 +29,10 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::Difference:
     case LayerBlendMode::Exclusion:
     case LayerBlendMode::Subtract:
+    case LayerBlendMode::LinearBurn:
+    case LayerBlendMode::InverseSubtract:
+    case LayerBlendMode::GrainMerge:
+    case LayerBlendMode::GrainExtract:
         return true;
     }
     return false;

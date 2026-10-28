@@ -3227,7 +3227,7 @@ void TestDocument::testLayerBlendProjectionMatchesCpuPixels_data()
 {
     QTest::addColumn<QString>("mode");
     for (const auto *mode : {"multiply", "screen", "darken", "lighten", "add", "linear_dodge",
-                             "diff", "exclusion", "subtract"})
+                             "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 

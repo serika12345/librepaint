@@ -28,6 +28,10 @@ inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString
     if (compositeOp == COMPOSITE_DIFF) return LayerBlendMode::Difference;
     if (compositeOp == COMPOSITE_EXCLUSION) return LayerBlendMode::Exclusion;
     if (compositeOp == COMPOSITE_SUBTRACT) return LayerBlendMode::Subtract;
+    if (compositeOp == COMPOSITE_LINEAR_BURN) return LayerBlendMode::LinearBurn;
+    if (compositeOp == COMPOSITE_INVERSE_SUBTRACT) return LayerBlendMode::InverseSubtract;
+    if (compositeOp == COMPOSITE_GRAIN_MERGE) return LayerBlendMode::GrainMerge;
+    if (compositeOp == COMPOSITE_GRAIN_EXTRACT) return LayerBlendMode::GrainExtract;
     return std::nullopt;
 }
 
@@ -43,6 +47,10 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::Difference: return COMPOSITE_DIFF;
     case LayerBlendMode::Exclusion: return COMPOSITE_EXCLUSION;
     case LayerBlendMode::Subtract: return COMPOSITE_SUBTRACT;
+    case LayerBlendMode::LinearBurn: return COMPOSITE_LINEAR_BURN;
+    case LayerBlendMode::InverseSubtract: return COMPOSITE_INVERSE_SUBTRACT;
+    case LayerBlendMode::GrainMerge: return COMPOSITE_GRAIN_MERGE;
+    case LayerBlendMode::GrainExtract: return COMPOSITE_GRAIN_EXTRACT;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;

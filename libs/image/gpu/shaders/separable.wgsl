@@ -4,7 +4,8 @@
 // Integer separable RGBA8 blending shared by layer composition and fill.
 // Mode values match LayerBlendMode: Normal=0, Multiply=1, Screen=2,
 // Darken=3, Lighten=4, Addition=5, LinearDodge=6,
-// Difference=7, Exclusion=8, Subtract=9.
+// Difference=7, Exclusion=8, Subtract=9, LinearBurn=10,
+// InverseSubtract=11, GrainMerge=12, GrainExtract=13.
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -68,6 +69,18 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
                 } else {
                     product = 0u;
                 }
+            }
+            case 10u, 11u: {
+                let sum = source[channel] + destination[channel];
+                if (sum > 255u) { product = sum - 255u; } else { product = 0u; }
+            }
+            case 12u: {
+                let sum = source[channel] + destination[channel];
+                if (sum > 128u) { product = min(255u, sum - 128u); } else { product = 0u; }
+            }
+            case 13u: {
+                let sum = destination[channel] + 128u;
+                if (sum > source[channel]) { product = min(255u, sum - source[channel]); } else { product = 0u; }
             }
             default: {}
         }
