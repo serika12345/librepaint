@@ -233,7 +233,11 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("equivalence") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("allanon") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("hard_mix_photoshop") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("erase")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("erase") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("behind") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("copy_red") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("copy_green") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("copy_blue")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -670,7 +674,12 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::Equivalence ? QStringLiteral("equivalence") :
                              layer.blendMode == LayerBlendMode::Allanon ? QStringLiteral("allanon") :
                              layer.blendMode == LayerBlendMode::HardMixPhotoshop ? QStringLiteral("hard_mix_photoshop") :
-                             layer.blendMode == LayerBlendMode::Erase ? QStringLiteral("erase") : QStringLiteral("normal"));
+                             layer.blendMode == LayerBlendMode::Erase ? QStringLiteral("erase") :
+                             layer.blendMode == LayerBlendMode::Behind ? QStringLiteral("behind") :
+                             layer.blendMode == LayerBlendMode::CopyRed ? QStringLiteral("copy_red") :
+                             layer.blendMode == LayerBlendMode::CopyGreen ? QStringLiteral("copy_green") :
+                             layer.blendMode == LayerBlendMode::CopyBlue ? QStringLiteral("copy_blue") :
+                             QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));
@@ -1182,7 +1191,12 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("equivalence") ? LayerBlendMode::Equivalence :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("allanon") ? LayerBlendMode::Allanon :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("hard_mix_photoshop") ? LayerBlendMode::HardMixPhotoshop :
-            element.attribute(QStringLiteral("compositeop")) == QLatin1String("erase") ? LayerBlendMode::Erase : LayerBlendMode::Normal;
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("erase") ? LayerBlendMode::Erase :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("behind") ? LayerBlendMode::Behind :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("copy_red") ? LayerBlendMode::CopyRed :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("copy_green") ? LayerBlendMode::CopyGreen :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("copy_blue") ? LayerBlendMode::CopyBlue :
+            LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;

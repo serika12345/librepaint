@@ -46,6 +46,10 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::Allanon:
     case LayerBlendMode::HardMixPhotoshop:
     case LayerBlendMode::Erase:
+    case LayerBlendMode::Behind:
+    case LayerBlendMode::CopyRed:
+    case LayerBlendMode::CopyGreen:
+    case LayerBlendMode::CopyBlue:
         return true;
     }
     return false;

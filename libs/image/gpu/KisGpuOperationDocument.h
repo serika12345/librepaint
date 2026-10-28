@@ -119,13 +119,14 @@ struct GaussianWash
     }
 };
 
-/** Separable RGB blend modes shared by layer composition, fill and stroke coverage. */
+/** RGBA blend modes shared by layer composition, fill and stroke coverage. */
 enum class LayerBlendMode : quint8 {
     Normal, Multiply, Screen, Darken, Lighten, Addition, LinearDodge,
     Difference, Exclusion, Subtract, LinearBurn, InverseSubtract,
     GrainMerge, GrainExtract, Overlay, HardLight, PinLight,
     Divide, ColorDodge, ColorBurn, HardMix, VividLight, LinearLight,
-    Equivalence, Allanon, HardMixPhotoshop, Erase
+    Equivalence, Allanon, HardMixPhotoshop, Erase, Behind,
+    CopyRed, CopyGreen, CopyBlue
 };
 
 /** Frozen circular marker or Gaussian WASH settings. */

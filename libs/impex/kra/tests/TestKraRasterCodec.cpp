@@ -715,11 +715,15 @@ void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
         case LayerBlendMode::Allanon: return QStringLiteral("allanon");
         case LayerBlendMode::HardMixPhotoshop: return QStringLiteral("hard_mix_photoshop");
         case LayerBlendMode::Erase: return QStringLiteral("erase");
+        case LayerBlendMode::Behind: return QStringLiteral("behind");
+        case LayerBlendMode::CopyRed: return QStringLiteral("copy_red");
+        case LayerBlendMode::CopyGreen: return QStringLiteral("copy_green");
+        case LayerBlendMode::CopyBlue: return QStringLiteral("copy_blue");
         case LayerBlendMode::Normal: break;
         }
         return QStringLiteral("normal");
     };
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight, LayerBlendMode::Equivalence, LayerBlendMode::Allanon, LayerBlendMode::HardMixPhotoshop, LayerBlendMode::Erase}) {
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight, LayerBlendMode::Equivalence, LayerBlendMode::Allanon, LayerBlendMode::HardMixPhotoshop, LayerBlendMode::Erase, LayerBlendMode::Behind, LayerBlendMode::CopyRed, LayerBlendMode::CopyGreen, LayerBlendMode::CopyBlue}) {
         auto source = document();
         RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
         group.kind = LayerKind::Group;

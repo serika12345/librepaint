@@ -749,7 +749,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     }
                     std::memcpy(&job.values.canvasOpacityBits, &opacity, sizeof(opacity));
                     if (operation.brush.gaussianWash) job.values.paintFlags |= 512u;
-                    job.output->mayContainHiddenRgb = operation.brush.alphaLocked || operation.brush.erase ||
+                    job.output->mayContainHiddenRgb = operation.brush.blendMode != LayerBlendMode::Normal ||
+                        operation.figureStyle.fillBlendMode != LayerBlendMode::Normal ||
+                        operation.brush.alphaLocked || operation.brush.erase ||
                         !(operation.brush.channelWriteMask & 8) || (opacity > 0 && opacity < 1) ||
                         (operation.selectionMask && operation.selectionMask->isAlpha()) ||
                         operation.figureStyle.pattern || (job.input && job.input->mayContainHiddenRgb);

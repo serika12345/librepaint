@@ -45,6 +45,10 @@ inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString
     if (compositeOp == COMPOSITE_ALLANON) return LayerBlendMode::Allanon;
     if (compositeOp == COMPOSITE_HARD_MIX_PHOTOSHOP) return LayerBlendMode::HardMixPhotoshop;
     if (compositeOp == COMPOSITE_ERASE) return LayerBlendMode::Erase;
+    if (compositeOp == COMPOSITE_BEHIND) return LayerBlendMode::Behind;
+    if (compositeOp == COMPOSITE_COPY_RED) return LayerBlendMode::CopyRed;
+    if (compositeOp == COMPOSITE_COPY_GREEN) return LayerBlendMode::CopyGreen;
+    if (compositeOp == COMPOSITE_COPY_BLUE) return LayerBlendMode::CopyBlue;
     return std::nullopt;
 }
 
@@ -77,6 +81,10 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::Allanon: return COMPOSITE_ALLANON;
     case LayerBlendMode::HardMixPhotoshop: return COMPOSITE_HARD_MIX_PHOTOSHOP;
     case LayerBlendMode::Erase: return COMPOSITE_ERASE;
+    case LayerBlendMode::Behind: return COMPOSITE_BEHIND;
+    case LayerBlendMode::CopyRed: return COMPOSITE_COPY_RED;
+    case LayerBlendMode::CopyGreen: return COMPOSITE_COPY_GREEN;
+    case LayerBlendMode::CopyBlue: return COMPOSITE_COPY_BLUE;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;

@@ -30,11 +30,27 @@ RgbaPixel separableProjectionPixel(RgbaPixel destination,
     // terms independently before the final integer division.
     if (mask != 15 && destination[3] == 0) destination = {};
     const auto alpha = multiplyThreeBytes(source[3], 255, opacity);
-    if (!alpha) return destination;
     const bool locked = !(mask & 8u);
     const auto oldAlpha = destination[3];
+    if (mode == LayerBlendMode::CopyRed || mode == LayerBlendMode::CopyGreen || mode == LayerBlendMode::CopyBlue) {
+        const int channel = int(mode) - int(LayerBlendMode::CopyRed);
+        if (mask & (1u << channel)) destination[channel] = blendByte(destination[channel], source[channel], multiplyByte(source[3], opacity));
+        return destination;
+    }
+    if (!alpha) return destination;
     if (mode == LayerBlendMode::Erase) {
         destination[3] = quint8(multiplyByte(255 - multiplyByte(source[3], opacity), oldAlpha));
+        return destination;
+    }
+    if (mode == LayerBlendMode::Behind) {
+        if (oldAlpha == 255) return destination;
+        const auto unionAlpha = oldAlpha + alpha - multiplyByte(oldAlpha, alpha);
+        for (int channel = 0; channel < 3; ++channel) {
+            if (!(mask & (1u << channel))) continue;
+            const auto blended = blendByte(quint8(multiplyByte(source[channel], alpha)), destination[channel], oldAlpha);
+            destination[channel] = oldAlpha ? quint8((quint32(blended) * 255u + unionAlpha / 2u) / unionAlpha) : source[channel];
+        }
+        if (!locked) destination[3] = quint8(unionAlpha);
         return destination;
     }
     const auto nextAlpha = locked ? oldAlpha : alpha + oldAlpha - multiplyByte(alpha, oldAlpha);
@@ -51,37 +67,37 @@ RgbaPixel separableProjectionPixel(RgbaPixel destination,
             mode == LayerBlendMode::Subtract ? qMax(0, int(destination[channel]) - int(source[channel])) :
             mode == LayerBlendMode::LinearBurn || mode == LayerBlendMode::InverseSubtract ?
                 qMax(0, int(source[channel]) + destination[channel] - 255) :
-            mode == LayerBlendMode::GrainMerge ? qMin(255, int(source[channel]) + destination[channel] - 128) :
-            mode == LayerBlendMode::GrainExtract ? qMax(0, int(destination[channel]) + 128 - int(source[channel])) :
+            mode == LayerBlendMode::GrainMerge ? qBound(0, int(source[channel]) + destination[channel] - 127, 255) :
+            mode == LayerBlendMode::GrainExtract ? qBound(0, int(destination[channel]) + 127 - int(source[channel]), 255) :
             mode == LayerBlendMode::HardLight ?
                 (source[channel] == 127 ? int(destination[channel]) :
                  source[channel] > 127 ?
                     qBound(0, int(2 * source[channel]) - 255 + destination[channel] -
-                        ((int(2 * source[channel]) - 255) * destination[channel]) / 255, 255) :
-                    (2 * int(source[channel]) * destination[channel]) / 255) :
+                        int(multiplyByte(2 * source[channel] - 255, destination[channel])), 255) :
+                    multiplyByte(2 * source[channel], destination[channel])) :
             mode == LayerBlendMode::Overlay ?
                 (destination[channel] == 127 ? int(source[channel]) :
                  destination[channel] > 127 ?
                     qBound(0, int(2 * destination[channel]) - 255 + source[channel] -
-                        ((int(2 * destination[channel]) - 255) * source[channel]) / 255, 255) :
-                    (2 * int(destination[channel]) * source[channel]) / 255) :
+                        int(multiplyByte(2 * destination[channel] - 255, source[channel])), 255) :
+                    multiplyByte(2 * destination[channel], source[channel])) :
             mode == LayerBlendMode::PinLight ?
                 qMax(qMax(0, 2 * int(source[channel]) - 255), qMin(int(destination[channel]), 2 * int(source[channel]))) :
             mode == LayerBlendMode::Divide ?
                 (destination[channel] == 0 ? 0 : source[channel] == 0 ? 255 :
-                    qMin(255, (int(destination[channel]) * 255) / int(source[channel]))) :
+                    qMin(255, (int(destination[channel]) * 255 + source[channel] / 2) / int(source[channel]))) :
             mode == LayerBlendMode::ColorDodge ?
                 (source[channel] == 255 ? (destination[channel] == 0 ? 0 : 255) :
-                    qMin(255, (int(destination[channel]) * 255) / (255 - int(source[channel])))) :
+                    qMin(255, (int(destination[channel]) * 255 + (255 - source[channel]) / 2) / (255 - int(source[channel])))) :
             mode == LayerBlendMode::ColorBurn ?
                 (destination[channel] == 255 ? 255 : source[channel] == 0 ? 0 :
-                    255 - qMin(255, ((255 - int(destination[channel])) * 255) / int(source[channel]))) :
+                    255 - qMin(255, ((255 - int(destination[channel])) * 255 + source[channel] / 2) / int(source[channel]))) :
             mode == LayerBlendMode::HardMix ?
                 (destination[channel] > 127 ?
                     (source[channel] == 255 ? (destination[channel] == 0 ? 0 : 255) :
-                        qMin(255, (int(destination[channel]) * 255) / (255 - int(source[channel])))) :
+                        qMin(255, (int(destination[channel]) * 255 + (255 - source[channel]) / 2) / (255 - int(source[channel])))) :
                     (destination[channel] == 255 ? 255 : source[channel] == 0 ? 0 :
-                        255 - qMin(255, ((255 - int(destination[channel])) * 255) / int(source[channel])))) :
+                        255 - qMin(255, ((255 - int(destination[channel])) * 255 + source[channel] / 2) / int(source[channel])))) :
             mode == LayerBlendMode::VividLight ?
                 (source[channel] < 127 ?
                     (source[channel] == 0 ? (destination[channel] == 255 ? 255 : 0) :

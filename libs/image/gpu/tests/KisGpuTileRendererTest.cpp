@@ -69,6 +69,7 @@ private Q_SLOTS:
     void passThroughHierarchyMatchesNativeRootPixels();
     void separableLayerProjectionMatchesNativePixels_data();
     void separableLayerProjectionMatchesNativePixels();
+    void channelCopyGroupsKeepHiddenRgbAndNormalizeRoot();
     void threeLayerProjectionFitsOneOutputTile_data();
     void threeLayerProjectionFitsOneOutputTile();
     void multiPassGroupsKeepDistinctLayerParameters_data();
@@ -2438,6 +2439,45 @@ void KisGpuTileRendererTest::separableLayerProjectionMatchesNativePixels()
     QCOMPARE(readBuffer(projected->tiles().first().pixels), expected.repeated(RgbaTile::ByteCount / 4));
 }
 
+void KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot()
+{
+    for (const bool implicit : {false, true}) {
+        for (const auto mode : {LayerBlendMode::CopyRed, LayerBlendMode::CopyGreen, LayerBlendMode::CopyBlue}) {
+            RasterImage input;
+            input.size = {256, 256};
+            RasterLayer destination, source, group;
+            group.uuid = QUuid(QStringLiteral("{01020304-1122-3344-5566-778899aabbcc}"));
+            group.kind = LayerKind::Group;
+            destination.parentUuid = source.parentUuid = group.uuid;
+            source.blendMode = mode;
+            const RgbaPixel color{17, 63, 129, 255};
+            if (implicit) source.defaultPixel = color;
+            else source.tiles = {{{0, 0}, rgbaBytes(color, PixelFormat::Rgba8).repeated(RgbaTile::ByteCount / 4)}};
+            input.layers = {destination, source, group};
+            OperationDocument document(input);
+            TileRenderer renderer(m_device);
+            const auto raw = render(renderer, document.snapshot());
+            QVERIFY(raw);
+            RgbaPixel hidden{};
+            const int channel = int(mode) - int(LayerBlendMode::CopyRed);
+            hidden[channel] = color[channel];
+            const auto projected = project(renderer, raw, {0, 0, 256, 256});
+            QVERIFY(projected);
+            const auto hiddenBytes = rgbaBytes(hidden, PixelFormat::Rgba8).repeated(RgbaTile::ByteCount / 4);
+            QCOMPARE(readBuffer(projected->tiles().first().pixels), hiddenBytes);
+            // An empty sibling changes the root to normal composition. It
+            // ignores the group's zero-alpha colors and keeps the pinned view.
+            QVERIFY(document.addLayer(QStringLiteral("Empty sibling")));
+            const auto changed = render(renderer, document.snapshot(), raw);
+            QVERIFY(changed);
+            const auto normalized = project(renderer, changed, {0, 0, 256, 256}, projected);
+            QVERIFY(normalized);
+            QCOMPARE(readBuffer(normalized->tiles().first().pixels), QByteArray(RgbaTile::ByteCount, '\0'));
+            QCOMPARE(readBuffer(projected->tiles().first().pixels), hiddenBytes);
+        }
+    }
+}
+
 void KisGpuTileRendererTest::threeLayerProjectionFitsOneOutputTile_data()
 {
     QTest::addColumn<int>("bottomAlpha");
@@ -3452,6 +3492,10 @@ void KisGpuTileRendererTest::fillBlendModesMatchLayerComposition_data()
     QTest::newRow("lighten") << int(LayerBlendMode::Lighten) << QByteArray::fromHex("dd2233ff");
     QTest::newRow("addition") << int(LayerBlendMode::Addition) << QByteArray::fromHex("ee335fff");
     QTest::newRow("linear-dodge") << int(LayerBlendMode::LinearDodge) << QByteArray::fromHex("ee335fff");
+    QTest::newRow("behind") << int(LayerBlendMode::Behind) << QByteArray::fromHex("112233ff");
+    QTest::newRow("copy-red") << int(LayerBlendMode::CopyRed) << QByteArray::fromHex("dd2233ff");
+    QTest::newRow("copy-green") << int(LayerBlendMode::CopyGreen) << QByteArray::fromHex("111133ff");
+    QTest::newRow("copy-blue") << int(LayerBlendMode::CopyBlue) << QByteArray::fromHex("11222cff");
 }
 
 void KisGpuTileRendererTest::fillBlendModesMatchLayerComposition()
@@ -3504,6 +3548,10 @@ void KisGpuTileRendererTest::strokeBlendModesMatchFillBlendComposition_data()
     QTest::newRow("lighten") << int(LayerBlendMode::Lighten) << QByteArray::fromHex("dd2233ff");
     QTest::newRow("addition") << int(LayerBlendMode::Addition) << QByteArray::fromHex("ee335fff");
     QTest::newRow("linear-dodge") << int(LayerBlendMode::LinearDodge) << QByteArray::fromHex("ee335fff");
+    QTest::newRow("behind") << int(LayerBlendMode::Behind) << QByteArray::fromHex("112233ff");
+    QTest::newRow("copy-red") << int(LayerBlendMode::CopyRed) << QByteArray::fromHex("dd2233ff");
+    QTest::newRow("copy-green") << int(LayerBlendMode::CopyGreen) << QByteArray::fromHex("111133ff");
+    QTest::newRow("copy-blue") << int(LayerBlendMode::CopyBlue) << QByteArray::fromHex("11222cff");
 }
 
 void KisGpuTileRendererTest::strokeBlendModesMatchFillBlendComposition()

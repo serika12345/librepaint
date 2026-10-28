@@ -360,7 +360,8 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 values[layer].blendModeOpacity = quint32(source.blendMode) | (quint32(source.opacity) << 8);
                 const bool normalize = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
                 values[layer].flags = quint32(normalize) | (document->document()->format == PixelFormat::Rgba16 ? 2u : 0u);
-                hiddenRgb = !(source.channelMask & 8u) || source.opacity < 128 ||
+                hiddenRgb = source.blendMode != LayerBlendMode::Normal ||
+                    !(source.channelMask & 8u) || source.opacity < 128 ||
                     (hiddenRgb && !normalize);
             }
             job.output->mayContainHiddenRgb = hiddenRgb;

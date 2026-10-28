@@ -1,14 +1,15 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Integer separable RGBA8 blending shared by layer composition and fill.
+// Integer RGBA8 blending shared by layer composition, fill and stroke coverage.
 // Mode values match LayerBlendMode: Normal=0, Multiply=1, Screen=2,
 // Darken=3, Lighten=4, Addition=5, LinearDodge=6,
 // Difference=7, Exclusion=8, Subtract=9, LinearBurn=10,
 // InverseSubtract=11, GrainMerge=12, GrainExtract=13, Overlay=14,
 // HardLight=15, PinLight=16, Divide=17, ColorDodge=18, ColorBurn=19,
 // HardMix=20, VividLight=21, LinearLight=22, Equivalence=23,
-// Allanon=24, HardMixPhotoshop=25, Erase=26.
+// Allanon=24, HardMixPhotoshop=25, Erase=26, Behind=27,
+// CopyRed=28, CopyGreen=29, CopyBlue=30.
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -28,16 +29,35 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
         destination = vec4<u32>(0u);
     }
     let alpha = multiplyThreeBytes(source.w, 255u, opacity);
-    if (alpha == 0u) {
-        return packPixel(destination);
-    }
     let locked = (mask & 8u) == 0u;
     let oldAlpha = destination.w;
+    if (mode >= 28u && mode <= 30u) {
+        let channel = mode - 28u;
+        if ((mask & (1u << channel)) != 0u) {
+            destination[channel] = blendByte(destination[channel], source[channel], multiplyByte(source.w, opacity));
+        }
+        return packPixel(destination);
+    }
+    if (alpha == 0u) { return packPixel(destination); }
     if (mode == 26u) {
         // Erase lowers the destination alpha and leaves the color channels alone,
         // exactly like the CPU operation, which ignores channel flags.
         let erased = multiplyByte(source.w, opacity);
         destination.w = multiplyByte(255u - erased, oldAlpha);
+        return packPixel(destination);
+    }
+    if (mode == 27u) {
+        if (oldAlpha == 255u) { return packPixel(destination); }
+        let unionAlpha = oldAlpha + alpha - multiplyByte(oldAlpha, alpha);
+        for (var channel = 0u; channel < 3u; channel += 1u) {
+            if ((mask & (1u << channel)) == 0u) { continue; }
+            if (oldAlpha == 0u) { destination[channel] = source[channel]; }
+            else {
+                let blended = blendByte(multiplyByte(source[channel], alpha), destination[channel], oldAlpha);
+                destination[channel] = ((blended * 255u + unionAlpha / 2u) / unionAlpha) & 255u;
+            }
+        }
+        if (!locked) { destination.w = unionAlpha; }
         return packPixel(destination);
     }
     var nextAlpha = oldAlpha;
@@ -86,28 +106,28 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
             }
             case 12u: {
                 let sum = source[channel] + destination[channel];
-                if (sum > 128u) { product = min(255u, sum - 128u); } else { product = 0u; }
+                if (sum > 127u) { product = min(255u, sum - 127u); } else { product = 0u; }
             }
             case 13u: {
-                let sum = destination[channel] + 128u;
+                let sum = destination[channel] + 127u;
                 if (sum > source[channel]) { product = min(255u, sum - source[channel]); } else { product = 0u; }
             }
             case 14u: {
-                if (source[channel] == 127u) { product = destination[channel]; }
-                else if (source[channel] > 127u) {
-                    let drive = 2u * source[channel] - 255u;
-                    product = drive + destination[channel] - (drive * destination[channel]) / 255u;
-                } else {
-                    product = (2u * source[channel] * destination[channel]) / 255u;
-                }
-            }
-            case 15u: {
                 if (destination[channel] == 127u) { product = source[channel]; }
                 else if (destination[channel] > 127u) {
                     let drive = 2u * destination[channel] - 255u;
-                    product = drive + source[channel] - (drive * source[channel]) / 255u;
+                    product = drive + source[channel] - multiplyByte(drive, source[channel]);
                 } else {
-                    product = (2u * destination[channel] * source[channel]) / 255u;
+                    product = multiplyByte(2u * destination[channel], source[channel]);
+                }
+            }
+            case 15u: {
+                if (source[channel] == 127u) { product = destination[channel]; }
+                else if (source[channel] > 127u) {
+                    let drive = 2u * source[channel] - 255u;
+                    product = drive + destination[channel] - multiplyByte(drive, destination[channel]);
+                } else {
+                    product = multiplyByte(2u * source[channel], destination[channel]);
                 }
             }
             case 16u: {
@@ -120,20 +140,20 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
             case 17u: {
                 if (destination[channel] == 0u) { product = 0u; }
                 else if (source[channel] == 0u) { product = 255u; }
-                else { product = min(255u, (destination[channel] * 255u) / source[channel]); }
+                else { product = min(255u, (destination[channel] * 255u + source[channel] / 2u) / source[channel]); }
             }
             case 18u: {
                 if (source[channel] == 255u) {
                     if (destination[channel] == 0u) { product = 0u; } else { product = 255u; }
                 } else {
-                    product = min(255u, (destination[channel] * 255u) / (255u - source[channel]));
+                    product = min(255u, (destination[channel] * 255u + (255u - source[channel]) / 2u) / (255u - source[channel]));
                 }
             }
             case 19u: {
                 if (destination[channel] == 255u) { product = 255u; }
                 else if (source[channel] == 0u) { product = 0u; }
                 else {
-                    let burned = min(255u, ((255u - destination[channel]) * 255u) / source[channel]);
+                    let burned = min(255u, ((255u - destination[channel]) * 255u + source[channel] / 2u) / source[channel]);
                     product = 255u - burned;
                 }
             }
@@ -142,13 +162,13 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
                     if (source[channel] == 255u) {
                         if (destination[channel] == 0u) { product = 0u; } else { product = 255u; }
                     } else {
-                        product = min(255u, (destination[channel] * 255u) / (255u - source[channel]));
+                        product = min(255u, (destination[channel] * 255u + (255u - source[channel]) / 2u) / (255u - source[channel]));
                     }
                 } else {
                     if (destination[channel] == 255u) { product = 255u; }
                     else if (source[channel] == 0u) { product = 0u; }
                     else {
-                        let burned = min(255u, ((255u - destination[channel]) * 255u) / source[channel]);
+                        let burned = min(255u, ((255u - destination[channel]) * 255u + source[channel] / 2u) / source[channel]);
                         product = 255u - burned;
                     }
                 }

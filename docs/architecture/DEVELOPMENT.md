@@ -329,6 +329,12 @@ Qt Core、Qt Test、zlibで構築し、GPUやウィンドウを必要とする�
 ARM64・x86_64のCPU投影から取得した固定RGBA8参照で照合する。
 加算・線形覆い焼きは色の飽和を含む固定入力を使い、CPUのBGRA成分指定をRGBAへ対応付けた参照と照合する。
 両公開識別子はレイヤー設定、公開API、挿入・複製、KRA往復、PNG・JPEGの出力で保持する。
+`TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles`は、対応するRGBA8合成方式を
+CPUの色処理と全画素で比較する。透明なキャンバス背景上で2枚のレイヤーを有効にし、
+透明・部分透明・不透明な画素、不透明度と成分保護、グループの一様な既定色を固定する。
+KRA再読込み、PNG、再読込み後の描画・塗りとUndo／Redoも同じ画素で照合する。
+`KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot`は、成分Copyで生じた
+透明RGBを保持するグループと、上位で通常合成した結果、保持した旧投影を照合する。
 画面側の属性試験は単一・複数選択のプレビュー、取消し、確定、Redo分岐と保存結果を照合する。
 確定通知の属性値、8ビット不透明度の復元、編集中に完了した描画と階層変更も検査する。
 文書の保存試験は、不正な付属情報を拒否した後もKRA出力が全バイトで不変であることと、

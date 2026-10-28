@@ -1013,6 +1013,10 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInput_d
     QTest::newRow("lighten") << int(LayerBlendMode::Lighten);
     QTest::newRow("add") << int(LayerBlendMode::Addition);
     QTest::newRow("linear_dodge") << int(LayerBlendMode::LinearDodge);
+    QTest::newRow("behind") << int(LayerBlendMode::Behind);
+    QTest::newRow("copy_red") << int(LayerBlendMode::CopyRed);
+    QTest::newRow("copy_green") << int(LayerBlendMode::CopyGreen);
+    QTest::newRow("copy_blue") << int(LayerBlendMode::CopyBlue);
 }
 
 void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInput()
@@ -1082,6 +1086,10 @@ void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribu
     QTest::newRow("lighten") << int(LayerBlendMode::Lighten);
     QTest::newRow("add") << int(LayerBlendMode::Addition);
     QTest::newRow("linear_dodge") << int(LayerBlendMode::LinearDodge);
+    QTest::newRow("behind") << int(LayerBlendMode::Behind);
+    QTest::newRow("copy_red") << int(LayerBlendMode::CopyRed);
+    QTest::newRow("copy_green") << int(LayerBlendMode::CopyGreen);
+    QTest::newRow("copy_blue") << int(LayerBlendMode::CopyBlue);
 }
 
 void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribute()
