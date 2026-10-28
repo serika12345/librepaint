@@ -266,7 +266,35 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("penumbra a") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("penumbra b") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("flat_light") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hard_mix_softer_photoshop")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hard_mix_softer_photoshop") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("geometric_mean") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("interpolation") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("interpolation 2x") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("penumbra c") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("penumbra d") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("soft_light_ifs_illusions") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("soft_light_svg") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("soft_light") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("gamma_light") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("gamma_illumination") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("pnorm_a") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("pnorm_b") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("super_light") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("tint_ifs_illusions") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("fog_lighten_ifs_illusions") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("easy dodge") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("gamma_dark") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("shade_ifs_illusions") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("fog_darken_ifs_illusions") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("easy burn") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("modulo") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("modulo_continuous") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("divisive_modulo") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("divisive_modulo_continuous") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("modulo_shift") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("modulo_shift_continuous") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("arc_tangent") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("additive_subtractive")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -737,6 +765,34 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::PenumbraB ? QStringLiteral("penumbra b") :
                              layer.blendMode == LayerBlendMode::FlatLight ? QStringLiteral("flat_light") :
                              layer.blendMode == LayerBlendMode::HardMixSofterPhotoshop ? QStringLiteral("hard_mix_softer_photoshop") :
+                             layer.blendMode == LayerBlendMode::GeometricMean ? QStringLiteral("geometric_mean") :
+                             layer.blendMode == LayerBlendMode::Interpolation ? QStringLiteral("interpolation") :
+                             layer.blendMode == LayerBlendMode::InterpolationB ? QStringLiteral("interpolation 2x") :
+                             layer.blendMode == LayerBlendMode::PenumbraC ? QStringLiteral("penumbra c") :
+                             layer.blendMode == LayerBlendMode::PenumbraD ? QStringLiteral("penumbra d") :
+                             layer.blendMode == LayerBlendMode::SoftLightIFSIllusions ? QStringLiteral("soft_light_ifs_illusions") :
+                             layer.blendMode == LayerBlendMode::SoftLightSvg ? QStringLiteral("soft_light_svg") :
+                             layer.blendMode == LayerBlendMode::SoftLightPhotoshop ? QStringLiteral("soft_light") :
+                             layer.blendMode == LayerBlendMode::GammaLight ? QStringLiteral("gamma_light") :
+                             layer.blendMode == LayerBlendMode::GammaIllumination ? QStringLiteral("gamma_illumination") :
+                             layer.blendMode == LayerBlendMode::PNormA ? QStringLiteral("pnorm_a") :
+                             layer.blendMode == LayerBlendMode::PNormB ? QStringLiteral("pnorm_b") :
+                             layer.blendMode == LayerBlendMode::SuperLight ? QStringLiteral("super_light") :
+                             layer.blendMode == LayerBlendMode::TintIFSIllusions ? QStringLiteral("tint_ifs_illusions") :
+                             layer.blendMode == LayerBlendMode::FogLightenIFSIllusions ? QStringLiteral("fog_lighten_ifs_illusions") :
+                             layer.blendMode == LayerBlendMode::EasyDodge ? QStringLiteral("easy dodge") :
+                             layer.blendMode == LayerBlendMode::GammaDark ? QStringLiteral("gamma_dark") :
+                             layer.blendMode == LayerBlendMode::ShadeIFSIllusions ? QStringLiteral("shade_ifs_illusions") :
+                             layer.blendMode == LayerBlendMode::FogDarkenIFSIllusions ? QStringLiteral("fog_darken_ifs_illusions") :
+                             layer.blendMode == LayerBlendMode::EasyBurn ? QStringLiteral("easy burn") :
+                             layer.blendMode == LayerBlendMode::Modulo ? QStringLiteral("modulo") :
+                             layer.blendMode == LayerBlendMode::ModuloContinuous ? QStringLiteral("modulo_continuous") :
+                             layer.blendMode == LayerBlendMode::DivisiveModulo ? QStringLiteral("divisive_modulo") :
+                             layer.blendMode == LayerBlendMode::DivisiveModuloContinuous ? QStringLiteral("divisive_modulo_continuous") :
+                             layer.blendMode == LayerBlendMode::ModuloShift ? QStringLiteral("modulo_shift") :
+                             layer.blendMode == LayerBlendMode::ModuloShiftContinuous ? QStringLiteral("modulo_shift_continuous") :
+                             layer.blendMode == LayerBlendMode::ArcTangent ? QStringLiteral("arc_tangent") :
+                             layer.blendMode == LayerBlendMode::AdditiveSubtractive ? QStringLiteral("additive_subtractive") :
                              QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
@@ -1283,6 +1339,34 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("penumbra b") ? LayerBlendMode::PenumbraB :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("flat_light") ? LayerBlendMode::FlatLight :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("hard_mix_softer_photoshop") ? LayerBlendMode::HardMixSofterPhotoshop :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("geometric_mean") ? LayerBlendMode::GeometricMean :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("interpolation") ? LayerBlendMode::Interpolation :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("interpolation 2x") ? LayerBlendMode::InterpolationB :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("penumbra c") ? LayerBlendMode::PenumbraC :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("penumbra d") ? LayerBlendMode::PenumbraD :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("soft_light_ifs_illusions") ? LayerBlendMode::SoftLightIFSIllusions :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("soft_light_svg") ? LayerBlendMode::SoftLightSvg :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("soft_light") ? LayerBlendMode::SoftLightPhotoshop :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("gamma_light") ? LayerBlendMode::GammaLight :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("gamma_illumination") ? LayerBlendMode::GammaIllumination :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("pnorm_a") ? LayerBlendMode::PNormA :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("pnorm_b") ? LayerBlendMode::PNormB :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("super_light") ? LayerBlendMode::SuperLight :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("tint_ifs_illusions") ? LayerBlendMode::TintIFSIllusions :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("fog_lighten_ifs_illusions") ? LayerBlendMode::FogLightenIFSIllusions :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("easy dodge") ? LayerBlendMode::EasyDodge :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("gamma_dark") ? LayerBlendMode::GammaDark :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("shade_ifs_illusions") ? LayerBlendMode::ShadeIFSIllusions :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("fog_darken_ifs_illusions") ? LayerBlendMode::FogDarkenIFSIllusions :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("easy burn") ? LayerBlendMode::EasyBurn :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("modulo") ? LayerBlendMode::Modulo :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("modulo_continuous") ? LayerBlendMode::ModuloContinuous :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("divisive_modulo") ? LayerBlendMode::DivisiveModulo :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("divisive_modulo_continuous") ? LayerBlendMode::DivisiveModuloContinuous :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("modulo_shift") ? LayerBlendMode::ModuloShift :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("modulo_shift_continuous") ? LayerBlendMode::ModuloShiftContinuous :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("arc_tangent") ? LayerBlendMode::ArcTangent :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("additive_subtractive") ? LayerBlendMode::AdditiveSubtractive :
             LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));

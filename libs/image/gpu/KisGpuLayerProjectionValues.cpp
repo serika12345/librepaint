@@ -3,10 +3,23 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuOperationDocument.h"
+#include "KisGpuNonlinearRgba8_p.h"
+#include <QFile>
 #include <cmath>
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
+const QByteArray &Detail::nonlinearRgba8Values()
+{
+    static const auto bytes = [] {
+        QFile resource(QStringLiteral(":/librepaint/gpu/blend/rgba8-nonlinear.bin"));
+        if (!resource.open(QIODevice::ReadOnly)) throw std::logic_error("GPU nonlinear RGBA8 values are unavailable");
+        auto result = resource.readAll();
+        if (result.size() != NonlinearRgba8Bytes) throw std::logic_error("GPU nonlinear RGBA8 values are incomplete");
+        return result;
+    }();
+    return bytes;
+}
 namespace {
 quint32 multiplyByte(quint32 a, quint32 b)
 {
@@ -85,7 +98,9 @@ quint32 quantizedBlendChannel(LayerBlendMode mode, quint32 source, quint32 desti
         return !source ? 0 : destination > source ? penumbraByte(source, destination) : penumbraByte(destination, source);
     case LayerBlendMode::HardMixSofterPhotoshop:
         return quint32(qBound(0, 3 * int(destination) - 2 * (255 - int(source)), 255));
-    default: return multiplyByte(source, destination);
+    default:
+        return Detail::usesNonlinearRgba8(mode) ? Detail::nonlinearRgba8Channel(mode, source, destination) :
+                                                 multiplyByte(source, destination);
     }
 }
 RgbaPixel separableProjectionPixel(RgbaPixel destination,

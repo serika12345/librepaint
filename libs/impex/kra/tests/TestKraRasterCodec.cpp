@@ -748,11 +748,39 @@ void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
         case LayerBlendMode::PenumbraB: return QStringLiteral("penumbra b");
         case LayerBlendMode::FlatLight: return QStringLiteral("flat_light");
         case LayerBlendMode::HardMixSofterPhotoshop: return QStringLiteral("hard_mix_softer_photoshop");
+        case LayerBlendMode::GeometricMean: return QStringLiteral("geometric_mean");
+        case LayerBlendMode::Interpolation: return QStringLiteral("interpolation");
+        case LayerBlendMode::InterpolationB: return QStringLiteral("interpolation 2x");
+        case LayerBlendMode::PenumbraC: return QStringLiteral("penumbra c");
+        case LayerBlendMode::PenumbraD: return QStringLiteral("penumbra d");
+        case LayerBlendMode::SoftLightIFSIllusions: return QStringLiteral("soft_light_ifs_illusions");
+        case LayerBlendMode::SoftLightSvg: return QStringLiteral("soft_light_svg");
+        case LayerBlendMode::SoftLightPhotoshop: return QStringLiteral("soft_light");
+        case LayerBlendMode::GammaLight: return QStringLiteral("gamma_light");
+        case LayerBlendMode::GammaIllumination: return QStringLiteral("gamma_illumination");
+        case LayerBlendMode::PNormA: return QStringLiteral("pnorm_a");
+        case LayerBlendMode::PNormB: return QStringLiteral("pnorm_b");
+        case LayerBlendMode::SuperLight: return QStringLiteral("super_light");
+        case LayerBlendMode::TintIFSIllusions: return QStringLiteral("tint_ifs_illusions");
+        case LayerBlendMode::FogLightenIFSIllusions: return QStringLiteral("fog_lighten_ifs_illusions");
+        case LayerBlendMode::EasyDodge: return QStringLiteral("easy dodge");
+        case LayerBlendMode::GammaDark: return QStringLiteral("gamma_dark");
+        case LayerBlendMode::ShadeIFSIllusions: return QStringLiteral("shade_ifs_illusions");
+        case LayerBlendMode::FogDarkenIFSIllusions: return QStringLiteral("fog_darken_ifs_illusions");
+        case LayerBlendMode::EasyBurn: return QStringLiteral("easy burn");
+        case LayerBlendMode::Modulo: return QStringLiteral("modulo");
+        case LayerBlendMode::ModuloContinuous: return QStringLiteral("modulo_continuous");
+        case LayerBlendMode::DivisiveModulo: return QStringLiteral("divisive_modulo");
+        case LayerBlendMode::DivisiveModuloContinuous: return QStringLiteral("divisive_modulo_continuous");
+        case LayerBlendMode::ModuloShift: return QStringLiteral("modulo_shift");
+        case LayerBlendMode::ModuloShiftContinuous: return QStringLiteral("modulo_shift_continuous");
+        case LayerBlendMode::ArcTangent: return QStringLiteral("arc_tangent");
+        case LayerBlendMode::AdditiveSubtractive: return QStringLiteral("additive_subtractive");
         case LayerBlendMode::Normal: break;
         }
         return QStringLiteral("normal");
     };
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight, LayerBlendMode::Equivalence, LayerBlendMode::Allanon, LayerBlendMode::HardMixPhotoshop, LayerBlendMode::Erase, LayerBlendMode::Behind, LayerBlendMode::CopyRed, LayerBlendMode::CopyGreen, LayerBlendMode::CopyBlue, LayerBlendMode::BitwiseXor, LayerBlendMode::BitwiseOr, LayerBlendMode::BitwiseAnd, LayerBlendMode::BitwiseNand, LayerBlendMode::BitwiseNor, LayerBlendMode::BitwiseXnor, LayerBlendMode::Implication, LayerBlendMode::NotImplication, LayerBlendMode::Converse, LayerBlendMode::NotConverse, LayerBlendMode::DestinationIn, LayerBlendMode::DestinationAtop, LayerBlendMode::Reflect, LayerBlendMode::Glow, LayerBlendMode::Freeze, LayerBlendMode::Heat, LayerBlendMode::GlowHeat, LayerBlendMode::HeatGlow, LayerBlendMode::ReflectFreeze, LayerBlendMode::FreezeReflect, LayerBlendMode::QuadraticHybrid, LayerBlendMode::Parallel, LayerBlendMode::HardOverlay, LayerBlendMode::SoftLightPegtopDelphi, LayerBlendMode::Negation, LayerBlendMode::PenumbraA, LayerBlendMode::PenumbraB, LayerBlendMode::FlatLight, LayerBlendMode::HardMixSofterPhotoshop}) {
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight, LayerBlendMode::Equivalence, LayerBlendMode::Allanon, LayerBlendMode::HardMixPhotoshop, LayerBlendMode::Erase, LayerBlendMode::Behind, LayerBlendMode::CopyRed, LayerBlendMode::CopyGreen, LayerBlendMode::CopyBlue, LayerBlendMode::BitwiseXor, LayerBlendMode::BitwiseOr, LayerBlendMode::BitwiseAnd, LayerBlendMode::BitwiseNand, LayerBlendMode::BitwiseNor, LayerBlendMode::BitwiseXnor, LayerBlendMode::Implication, LayerBlendMode::NotImplication, LayerBlendMode::Converse, LayerBlendMode::NotConverse, LayerBlendMode::DestinationIn, LayerBlendMode::DestinationAtop, LayerBlendMode::Reflect, LayerBlendMode::Glow, LayerBlendMode::Freeze, LayerBlendMode::Heat, LayerBlendMode::GlowHeat, LayerBlendMode::HeatGlow, LayerBlendMode::ReflectFreeze, LayerBlendMode::FreezeReflect, LayerBlendMode::QuadraticHybrid, LayerBlendMode::Parallel, LayerBlendMode::HardOverlay, LayerBlendMode::SoftLightPegtopDelphi, LayerBlendMode::Negation, LayerBlendMode::PenumbraA, LayerBlendMode::PenumbraB, LayerBlendMode::FlatLight, LayerBlendMode::HardMixSofterPhotoshop, LayerBlendMode::GeometricMean, LayerBlendMode::Interpolation, LayerBlendMode::InterpolationB, LayerBlendMode::PenumbraC, LayerBlendMode::PenumbraD, LayerBlendMode::SoftLightIFSIllusions, LayerBlendMode::SoftLightSvg, LayerBlendMode::SoftLightPhotoshop, LayerBlendMode::GammaLight, LayerBlendMode::GammaIllumination, LayerBlendMode::PNormA, LayerBlendMode::PNormB, LayerBlendMode::SuperLight, LayerBlendMode::TintIFSIllusions, LayerBlendMode::FogLightenIFSIllusions, LayerBlendMode::EasyDodge, LayerBlendMode::GammaDark, LayerBlendMode::ShadeIFSIllusions, LayerBlendMode::FogDarkenIFSIllusions, LayerBlendMode::EasyBurn, LayerBlendMode::Modulo, LayerBlendMode::ModuloContinuous, LayerBlendMode::DivisiveModulo, LayerBlendMode::DivisiveModuloContinuous, LayerBlendMode::ModuloShift, LayerBlendMode::ModuloShiftContinuous, LayerBlendMode::ArcTangent, LayerBlendMode::AdditiveSubtractive}) {
         auto source = document();
         RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
         group.kind = LayerKind::Group;
@@ -1742,7 +1770,7 @@ void TestKraRasterCodec::unsupportedAndInvalidContentsReturnNoDocument()
         QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
         auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
         auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
-        if (change == 0) layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("soft_light"));
+        if (change == 0) layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("unknown-composite-op"));
         if (change == 1) layer.setAttribute(QStringLiteral("nodetype"), QStringLiteral("unsupportedlayer"));
         if (change == 2) image.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("LABA"));
         if (change == 3) layer.setAttribute(QStringLiteral("filename"), QStringLiteral("../outside"));

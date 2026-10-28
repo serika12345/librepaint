@@ -16,6 +16,8 @@
 // GlowHeat=47, HeatGlow=48, ReflectFreeze=49, FreezeReflect=50, QuadraticHybrid=51,
 // Parallel=52, HardOverlay=53, SoftLightPegtopDelphi=54, Negation=55,
 // PenumbraA=56, PenumbraB=57, FlatLight=58, HardMixSofterPhotoshop=59.
+// Nonlinear RGBA8 modes GeometricMean through AdditiveSubtractive occupy 60..87.
+@group(0) @binding(9) var nonlinearRgba8: texture_2d_array<u32>;
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -94,7 +96,13 @@ fn quantizedBlendChannel(mode: u32, source: u32, destination: u32) -> u32 {
             return penumbraByte(destination, source);
         }
         case 59u: { return u32(clamp(3 * i32(destination) - 2 * (255 - i32(source)), 0, 255)); }
-        default: { return multiplyByte(source, destination); }
+        default: {
+            if (mode >= 60u && mode <= 87u) {
+                let index = mode - 60u;
+                return textureLoad(nonlinearRgba8, vec2<i32>(i32(destination), i32(source)), i32(index / 4u), 0)[index % 4u];
+            }
+            return multiplyByte(source, destination);
+        }
     }
 }
 fn destinationRgba8(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> u32 {

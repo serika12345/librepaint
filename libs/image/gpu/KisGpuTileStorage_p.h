@@ -88,6 +88,9 @@ struct TileRenderer::Private
     Detail::NativeBuffer unusedPattern;
     /** Opaque 256 x 256 coverage bound for layers without a transparency mask. */
     Detail::NativeBuffer opaqueMask;
+    Detail::NativeTexture nonlinearTexture;
+    Detail::NativeTextureView nonlinearView;
+    qsizetype nonlinearBytes = 0;
     struct MaskCacheEntry {
         SelectionMaskSP source;
         Detail::CoverageTiles tiles;
@@ -124,6 +127,9 @@ struct TileRenderer::Private
     Detail::Tiles projectionBackdrops;
 
     Private(DevicePtr device, qsizetype byteBudget);
+    ~Private();
+    /** Full channel values count against the renderer budget and remain immutable. */
+    bool prepareNonlinearRgba8(bool full);
     Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main");
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);

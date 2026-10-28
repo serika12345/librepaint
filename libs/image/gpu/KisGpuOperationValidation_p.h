@@ -79,6 +79,34 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::PenumbraB:
     case LayerBlendMode::FlatLight:
     case LayerBlendMode::HardMixSofterPhotoshop:
+    case LayerBlendMode::GeometricMean:
+    case LayerBlendMode::Interpolation:
+    case LayerBlendMode::InterpolationB:
+    case LayerBlendMode::PenumbraC:
+    case LayerBlendMode::PenumbraD:
+    case LayerBlendMode::SoftLightIFSIllusions:
+    case LayerBlendMode::SoftLightSvg:
+    case LayerBlendMode::SoftLightPhotoshop:
+    case LayerBlendMode::GammaLight:
+    case LayerBlendMode::GammaIllumination:
+    case LayerBlendMode::PNormA:
+    case LayerBlendMode::PNormB:
+    case LayerBlendMode::SuperLight:
+    case LayerBlendMode::TintIFSIllusions:
+    case LayerBlendMode::FogLightenIFSIllusions:
+    case LayerBlendMode::EasyDodge:
+    case LayerBlendMode::GammaDark:
+    case LayerBlendMode::ShadeIFSIllusions:
+    case LayerBlendMode::FogDarkenIFSIllusions:
+    case LayerBlendMode::EasyBurn:
+    case LayerBlendMode::Modulo:
+    case LayerBlendMode::ModuloContinuous:
+    case LayerBlendMode::DivisiveModulo:
+    case LayerBlendMode::DivisiveModuloContinuous:
+    case LayerBlendMode::ModuloShift:
+    case LayerBlendMode::ModuloShiftContinuous:
+    case LayerBlendMode::ArcTangent:
+    case LayerBlendMode::AdditiveSubtractive:
         return true;
     }
     return false;

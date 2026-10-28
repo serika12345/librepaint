@@ -5,6 +5,7 @@
 
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuPaintJob_p.h"
+#include "KisGpuNonlinearRgba8_p.h"
 #include <QFile>
 #include <QThread>
 #include <QSet>
@@ -276,6 +277,12 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             data->inputs[coordinate].append(input);
         }
     }
+    const bool nonlinear = std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
+        return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return usesNonlinearRgba8(input.blendMode); });
+    });
+    if (nonlinear && !d.prepareNonlinearRgba8(true))
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU nonlinear RGBA8 resource budget exhausted") : d.error};
     const auto firstComposition = [&](const auto &inputs) {
         return inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
                                                 !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
@@ -403,15 +410,17 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 addBinding(3, parameters);
                 addBinding(6, job.masks[0] ? job.masks[0]->pixels.get() : d.opaqueMask.get());
             }
-            WGPUBindGroupEntry entries[7]{};
+            WGPUBindGroupEntry entries[8]{};
             for (quint32 index = 0; index < bindingCount; ++index) {
                 entries[index].binding = bindingIndices[index];
                 entries[index].buffer = buffers[index];
                 entries[index].size = wgpuBufferGetSize(buffers[index]);
             }
+            entries[bindingCount].binding = 9;
+            entries[bindingCount].textureView = d.nonlinearView.get();
             WGPUBindGroupDescriptor descriptor{};
             descriptor.layout = paired ? d.pairedProjectionLayout.get() : d.projectionLayout.get();
-            descriptor.entryCount = bindingCount;
+            descriptor.entryCount = bindingCount + 1;
             descriptor.entries = entries;
             job.bindings.reset(wgpuDeviceCreateBindGroup(d.device->nativeDevice(), &descriptor));
             if (!job.bindings || !d.device->diagnostic().isEmpty())

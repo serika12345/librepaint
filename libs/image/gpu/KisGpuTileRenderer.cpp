@@ -5,6 +5,7 @@
 
 #include "KisGpuTileRenderer.h"
 #include "KisGpuPaintJob_p.h"
+#include "KisGpuNonlinearRgba8_p.h"
 
 #include <QFile>
 #include <QMap>
@@ -40,6 +41,7 @@ TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
       opaqueMask(createBuffer(this->device->nativeDevice(), SelectionMask::AlphaTileBytes,
                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst))
 {
+    if (!prepareNonlinearRgba8(false)) return;
     if (opaqueMask) {
         const QByteArray opaque(SelectionMask::AlphaTileBytes, char(255));
         wgpuQueueWriteBuffer(this->device->queue(), opaqueMask.get(), 0,
@@ -50,6 +52,52 @@ TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
     layout.reset(wgpuComputePipelineGetBindGroupLayout(pipeline.get(), 0));
     if (!layout) error = QStringLiteral("GPU paint bindings could not be created");
     if (error.isEmpty()) initializeProjection();
+}
+
+TileRenderer::Private::~Private()
+{ budget->used -= nonlinearBytes; }
+
+bool TileRenderer::Private::prepareNonlinearRgba8(bool full)
+{
+    if ((full && nonlinearBytes) || (!full && nonlinearView)) return true;
+    if (full && !ensureTileCapacity(NonlinearRgba8Bytes / TileRenderer::TileBytes, PixelFormat::Rgba8)) return false;
+    WGPUTextureDescriptor descriptor{};
+    descriptor.dimension = WGPUTextureDimension_2D;
+    descriptor.size = full ? WGPUExtent3D{256, 256, NonlinearRgba8Layers} : WGPUExtent3D{1, 1, 1};
+    descriptor.format = WGPUTextureFormat_RGBA8Uint;
+    descriptor.mipLevelCount = descriptor.sampleCount = 1;
+    descriptor.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+    NativeTexture texture(wgpuDeviceCreateTexture(device->nativeDevice(), &descriptor));
+    WGPUTextureViewDescriptor viewDescriptor{};
+    viewDescriptor.dimension = WGPUTextureViewDimension_2DArray;
+    viewDescriptor.format = WGPUTextureFormat_RGBA8Uint;
+    viewDescriptor.mipLevelCount = 1;
+    viewDescriptor.arrayLayerCount = descriptor.size.depthOrArrayLayers;
+    viewDescriptor.aspect = WGPUTextureAspect_All;
+    NativeTextureView view(texture ? wgpuTextureCreateView(texture.get(), &viewDescriptor) : nullptr);
+    if (!texture || !view || !device->diagnostic().isEmpty()) {
+        error = QStringLiteral("GPU nonlinear RGBA8 texture allocation failed");
+        return false;
+    }
+    if (full) {
+        const auto &bytes = nonlinearRgba8Values();
+        WGPUTexelCopyTextureInfo destination{};
+        destination.texture = texture.get();
+        destination.aspect = WGPUTextureAspect_All;
+        WGPUTexelCopyBufferLayout layout{};
+        layout.bytesPerRow = 256 * 4;
+        layout.rowsPerImage = 256;
+        wgpuQueueWriteTexture(device->queue(), &destination, bytes.constData(), size_t(bytes.size()), &layout, &descriptor.size);
+        if (!device->diagnostic().isEmpty()) {
+            error = QStringLiteral("GPU nonlinear RGBA8 resource upload failed");
+            return false;
+        }
+        nonlinearBytes = NonlinearRgba8Bytes;
+        budget->used += nonlinearBytes;
+    }
+    nonlinearTexture = std::move(texture);
+    nonlinearView = std::move(view);
+    return true;
 }
 
 NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path, const char *entryPoint)
@@ -240,6 +288,18 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         ((region && region->isEmpty()) || std::all_of(requestedGroups.cbegin(), requestedGroups.cend(),
             [&](LayerId group) { return base->m_data->groupInputs.contains(group); })))
         return {RenderOutcome::Recorded, base, {}};
+    const bool nonlinear = std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
+        if (!selected.contains(layer.id)) return false;
+        return std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &operation) {
+            const auto paint = std::get_if<PaintSnapshot>(&operation);
+            return paint && !(*paint)->brush.erase && qRound((*paint)->brush.opacity * 255) > 0 &&
+                (((*paint)->figureStyle.outline && usesNonlinearRgba8((*paint)->brush.blendMode)) ||
+                 (hasFigureFill((*paint)->figureStyle) && usesNonlinearRgba8((*paint)->figureStyle.fillBlendMode)));
+        });
+    });
+    if (nonlinear && !d.prepareNonlinearRgba8(true))
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU nonlinear RGBA8 resource budget exhausted") : d.error};
     auto data = std::make_shared<RenderedVersion::Data>();
     data->document = document;
     data->owner = d.budget;
@@ -297,7 +357,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         const auto empty = d.zeroBuffer(commands, document->format);
         if (!empty) return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty tile allocation failed")};
         if (!preparePaintJobs(*d.device, d.layout.get(), jobs, recordedJobs, empty,
-                              d.unusedCoverage.get(), d.unusedSelection.get(), d.unusedPattern.get()))
+                              d.unusedCoverage.get(), d.unusedSelection.get(), d.unusedPattern.get(), d.nonlinearView.get()))
             return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
         for (size_t i = recordedFills; i < fillUploads.size(); ++i) {
             const auto &upload = fillUploads[i];

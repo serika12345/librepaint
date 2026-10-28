@@ -54,6 +54,6 @@ quint32 packedPixel(const RgbaPixel &rgba);
 std::array<quint32, 2> packedPixelWords(const RgbaPixel &rgba, PixelFormat format);
 bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<PaintJob> &jobs,
                       std::size_t first, WGPUBuffer zero, WGPUBuffer unusedCoverage,
-                      WGPUBuffer unusedSelection, WGPUBuffer unusedPattern);
+                      WGPUBuffer unusedSelection, WGPUBuffer unusedPattern, WGPUTextureView nonlinearRgba8);
 }
 #endif

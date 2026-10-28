@@ -70,6 +70,8 @@ private Q_SLOTS:
     void separableLayerProjectionMatchesNativePixels_data();
     void separableLayerProjectionMatchesNativePixels();
     void channelCopyGroupsKeepHiddenRgbAndNormalizeRoot();
+    void nonlinearBlendValuesShareBoundedResources();
+    void nonlinearResourceBudgetPreservesPixelsAndRetry();
     void transparentSourcesReplaceProjectionAlpha_data();
     void transparentSourcesReplaceProjectionAlpha();
     void threeLayerProjectionFitsOneOutputTile_data();
@@ -2477,6 +2479,92 @@ void KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot()
             QCOMPARE(readBuffer(normalized->tiles().first().pixels), QByteArray(RgbaTile::ByteCount, '\0'));
             QCOMPARE(readBuffer(projected->tiles().first().pixels), hiddenBytes);
         }
+    }
+}
+
+void KisGpuTileRendererTest::nonlinearBlendValuesShareBoundedResources()
+{
+    RasterImage input;
+    input.size = {256, 256};
+    RasterLayer lower, upper;
+    const auto source = QByteArray::fromHex("808080ff").repeated(RgbaTile::ByteCount / 4);
+    lower.tiles = upper.tiles = {{{0, 0}, source}};
+    upper.blendMode = LayerBlendMode::GammaDark;
+    input.layers = {lower, upper};
+    OperationDocument document(input);
+    TileRenderer renderer(m_device, 11 * TileRenderer::TileBytes);
+    const auto raw = render(renderer, document.snapshot());
+    QVERIFY(raw);
+    const auto first = project(renderer, raw, {0, 0, 256, 256});
+    QVERIFY(first);
+    // Opaque CPU references at 89f28b2064: source=destination=128.
+    const auto dark = QByteArray::fromHex("414141ff").repeated(RgbaTile::ByteCount / 4);
+    QCOMPARE(readBuffer(first->tiles().first().pixels), dark);
+    QCOMPARE(renderer.residentBytes(), 10 * qsizetype(TileRenderer::TileBytes));
+    {
+        QCOMPARE(document.setLayerBlendMode(document.snapshot()->layers.last().id, LayerBlendMode::GammaLight), Result::Success);
+        const auto changed = render(renderer, document.snapshot(), raw);
+        QVERIFY(changed);
+        const auto second = project(renderer, changed, {0, 0, 256, 256}, first);
+        QVERIFY(second);
+        QCOMPARE(readBuffer(second->tiles().first().pixels),
+                 QByteArray::fromHex("b4b4b4ff").repeated(RgbaTile::ByteCount / 4));
+        QCOMPARE(readBuffer(first->tiles().first().pixels), dark);
+        QCOMPARE(renderer.residentBytes(), 11 * qsizetype(TileRenderer::TileBytes));
+    }
+    QCOMPARE(renderer.residentBytes(), 10 * qsizetype(TileRenderer::TileBytes));
+}
+
+void KisGpuTileRendererTest::nonlinearResourceBudgetPreservesPixelsAndRetry()
+{
+    for (const bool painting : {false, true}) {
+        RasterImage input;
+        input.size = {256, 256};
+        RasterLayer lower, upper;
+        const auto pixels = QByteArray::fromHex("808080ff").repeated(RgbaTile::ByteCount / 4);
+        lower.tiles = upper.tiles = {{{0, 0}, pixels}};
+        input.layers = {lower, upper};
+        OperationDocument document(input);
+        TileRenderer renderer(m_device, 4 * TileRenderer::TileBytes);
+        const auto original = document.snapshot();
+        const auto raw = render(renderer, original);
+        QVERIFY(raw);
+        const auto projected = project(renderer, raw, {0, 0, 256, 256});
+        QVERIFY(projected);
+        const auto layer = original->layers.last().id;
+        if (painting) {
+            Brush brush;
+            brush.rgba = {128, 128, 128, 255};
+            brush.blendMode = LayerBlendMode::GammaDark;
+            const auto stroke = document.beginStroke(layer, brush, 1);
+            QVERIFY(!stroke.isNull());
+            QCOMPARE(document.appendSamples(stroke, {{{8, 8}, 1}}), Result::Success);
+            QCOMPARE(document.commitStroke(stroke), Result::Success);
+            const auto commands = m_device->beginCommands();
+            QVERIFY(commands);
+            const auto rejected = renderer.record(commands, document.snapshot(), raw);
+            QCOMPARE(rejected.code, RenderOutcome::CapacityExceeded);
+            QVERIFY(!rejected.version);
+            QVERIFY(m_device->submitCommands(true));
+        } else {
+            QCOMPARE(document.setLayerBlendMode(layer, LayerBlendMode::GammaDark), Result::Success);
+            const auto changed = render(renderer, document.snapshot(), raw);
+            QVERIFY(changed);
+            const auto commands = m_device->beginCommands();
+            QVERIFY(commands);
+            const auto rejected = renderer.compose(commands, changed, {0, 0, 256, 256}, projected);
+            QCOMPARE(rejected.code, RenderOutcome::CapacityExceeded);
+            QVERIFY(!rejected.version);
+            QVERIFY(m_device->submitCommands(true));
+        }
+        QCOMPARE(readBuffer(projected->tiles().first().pixels), pixels);
+        QCOMPARE(renderer.residentBytes(), 3 * qsizetype(TileRenderer::TileBytes));
+        QCOMPARE(document.undo(), Result::Success);
+        const auto restored = render(renderer, document.snapshot(), raw);
+        QVERIFY(restored);
+        const auto retry = project(renderer, restored, {0, 0, 256, 256}, projected);
+        QVERIFY(retry);
+        QCOMPARE(readBuffer(retry->tiles().first().pixels), pixels);
     }
 }
 

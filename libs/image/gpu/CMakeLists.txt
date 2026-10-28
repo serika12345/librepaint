@@ -22,6 +22,11 @@ set_target_properties(kritaimagegpuoperations PROPERTIES
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
 )
 install(TARGETS kritaimagegpuoperations ${INSTALL_TARGETS_DEFAULT_ARGS})
+qt6_add_resources(kritaimagegpuoperations krita_gpu_blend_values
+    PREFIX "/librepaint/gpu"
+    FILES blend/rgba8-nonlinear.bin
+)
+krita_ios_add_static_resource(krita_gpu_blend_values)
 
 find_package(WGPUNative REQUIRED)
 add_library(kritaimagegputiles OBJECT
