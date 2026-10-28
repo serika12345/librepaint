@@ -35,6 +35,9 @@ inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString
     if (compositeOp == COMPOSITE_OVERLAY) return LayerBlendMode::Overlay;
     if (compositeOp == COMPOSITE_HARD_LIGHT) return LayerBlendMode::HardLight;
     if (compositeOp == COMPOSITE_PIN_LIGHT) return LayerBlendMode::PinLight;
+    if (compositeOp == COMPOSITE_DIVIDE) return LayerBlendMode::Divide;
+    if (compositeOp == COMPOSITE_DODGE) return LayerBlendMode::ColorDodge;
+    if (compositeOp == COMPOSITE_BURN) return LayerBlendMode::ColorBurn;
     return std::nullopt;
 }
 
@@ -57,6 +60,9 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::Overlay: return COMPOSITE_OVERLAY;
     case LayerBlendMode::HardLight: return COMPOSITE_HARD_LIGHT;
     case LayerBlendMode::PinLight: return COMPOSITE_PIN_LIGHT;
+    case LayerBlendMode::Divide: return COMPOSITE_DIVIDE;
+    case LayerBlendMode::ColorDodge: return COMPOSITE_DODGE;
+    case LayerBlendMode::ColorBurn: return COMPOSITE_BURN;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;
