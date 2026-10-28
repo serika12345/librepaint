@@ -8,7 +8,7 @@
 // InverseSubtract=11, GrainMerge=12, GrainExtract=13, Overlay=14,
 // HardLight=15, PinLight=16, Divide=17, ColorDodge=18, ColorBurn=19,
 // HardMix=20, VividLight=21, LinearLight=22, Equivalence=23,
-// Allanon=24, HardMixPhotoshop=25.
+// Allanon=24, HardMixPhotoshop=25, Erase=26.
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -33,6 +33,13 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
     }
     let locked = (mask & 8u) == 0u;
     let oldAlpha = destination.w;
+    if (mode == 26u) {
+        // Erase lowers the destination alpha and leaves the color channels alone,
+        // exactly like the CPU operation, which ignores channel flags.
+        let erased = multiplyByte(source.w, opacity);
+        destination.w = multiplyByte(255u - erased, oldAlpha);
+        return packPixel(destination);
+    }
     var nextAlpha = oldAlpha;
     if (!locked) {
         nextAlpha = alpha + oldAlpha - multiplyByte(alpha, oldAlpha);

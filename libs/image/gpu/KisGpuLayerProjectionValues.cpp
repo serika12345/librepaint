@@ -33,6 +33,10 @@ RgbaPixel separableProjectionPixel(RgbaPixel destination,
     if (!alpha) return destination;
     const bool locked = !(mask & 8u);
     const auto oldAlpha = destination[3];
+    if (mode == LayerBlendMode::Erase) {
+        destination[3] = quint8(multiplyByte(255 - multiplyByte(source[3], opacity), oldAlpha));
+        return destination;
+    }
     const auto nextAlpha = locked ? oldAlpha : alpha + oldAlpha - multiplyByte(alpha, oldAlpha);
     for (int channel = 0; channel < 3; ++channel) {
         if (!(mask & (1u << channel))) continue;

@@ -45,6 +45,7 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::Equivalence:
     case LayerBlendMode::Allanon:
     case LayerBlendMode::HardMixPhotoshop:
+    case LayerBlendMode::Erase:
         return true;
     }
     return false;
