@@ -1678,7 +1678,7 @@ void TestKraRasterCodec::unsupportedAndInvalidContentsReturnNoDocument()
         QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
         auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
         auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
-        if (change == 0) layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("overlay"));
+        if (change == 0) layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("soft_light"));
         if (change == 1) layer.setAttribute(QStringLiteral("nodetype"), QStringLiteral("unsupportedlayer"));
         if (change == 2) image.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("LABA"));
         if (change == 3) layer.setAttribute(QStringLiteral("filename"), QStringLiteral("../outside"));

@@ -5,7 +5,8 @@
 // Mode values match LayerBlendMode: Normal=0, Multiply=1, Screen=2,
 // Darken=3, Lighten=4, Addition=5, LinearDodge=6,
 // Difference=7, Exclusion=8, Subtract=9, LinearBurn=10,
-// InverseSubtract=11, GrainMerge=12, GrainExtract=13.
+// InverseSubtract=11, GrainMerge=12, GrainExtract=13, Overlay=14,
+// HardLight=15.
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -81,6 +82,24 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
             case 13u: {
                 let sum = destination[channel] + 128u;
                 if (sum > source[channel]) { product = min(255u, sum - source[channel]); } else { product = 0u; }
+            }
+            case 14u: {
+                if (source[channel] == 127u) { product = destination[channel]; }
+                else if (source[channel] > 127u) {
+                    let drive = 2u * source[channel] - 255u;
+                    product = drive + destination[channel] - (drive * destination[channel]) / 255u;
+                } else {
+                    product = (2u * source[channel] * destination[channel]) / 255u;
+                }
+            }
+            case 15u: {
+                if (destination[channel] == 127u) { product = source[channel]; }
+                else if (destination[channel] > 127u) {
+                    let drive = 2u * destination[channel] - 255u;
+                    product = drive + source[channel] - (drive * source[channel]) / 255u;
+                } else {
+                    product = (2u * destination[channel] * source[channel]) / 255u;
+                }
             }
             default: {}
         }

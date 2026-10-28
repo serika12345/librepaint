@@ -33,6 +33,8 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::InverseSubtract:
     case LayerBlendMode::GrainMerge:
     case LayerBlendMode::GrainExtract:
+    case LayerBlendMode::Overlay:
+    case LayerBlendMode::HardLight:
         return true;
     }
     return false;

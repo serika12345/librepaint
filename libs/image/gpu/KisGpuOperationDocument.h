@@ -123,7 +123,7 @@ struct GaussianWash
 enum class LayerBlendMode : quint8 {
     Normal, Multiply, Screen, Darken, Lighten, Addition, LinearDodge,
     Difference, Exclusion, Subtract, LinearBurn, InverseSubtract,
-    GrainMerge, GrainExtract
+    GrainMerge, GrainExtract, Overlay, HardLight
 };
 
 /** Frozen circular marker or Gaussian WASH settings. */

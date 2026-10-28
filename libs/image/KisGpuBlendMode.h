@@ -32,6 +32,8 @@ inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString
     if (compositeOp == COMPOSITE_INVERSE_SUBTRACT) return LayerBlendMode::InverseSubtract;
     if (compositeOp == COMPOSITE_GRAIN_MERGE) return LayerBlendMode::GrainMerge;
     if (compositeOp == COMPOSITE_GRAIN_EXTRACT) return LayerBlendMode::GrainExtract;
+    if (compositeOp == COMPOSITE_OVERLAY) return LayerBlendMode::Overlay;
+    if (compositeOp == COMPOSITE_HARD_LIGHT) return LayerBlendMode::HardLight;
     return std::nullopt;
 }
 
@@ -51,6 +53,8 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::InverseSubtract: return COMPOSITE_INVERSE_SUBTRACT;
     case LayerBlendMode::GrainMerge: return COMPOSITE_GRAIN_MERGE;
     case LayerBlendMode::GrainExtract: return COMPOSITE_GRAIN_EXTRACT;
+    case LayerBlendMode::Overlay: return COMPOSITE_OVERLAY;
+    case LayerBlendMode::HardLight: return COMPOSITE_HARD_LIGHT;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;
