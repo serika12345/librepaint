@@ -11,6 +11,7 @@
 #include <QMap>
 #include <QSet>
 #include <array>
+#include <map>
 #include "KisGpuNativeResources_p.h"
 
 namespace LibrePaint::Image::Gpu::Detail {
@@ -45,12 +46,16 @@ struct ProjectionInput {
     LayerBlendMode blendMode = LayerBlendMode::Normal;
     /** Null means the layer contributes without alpha coverage. */
     SelectionMaskSP mask;
+    /** Document-coordinate source extent; only coupled RGB composition clips to it. */
+    QRect sourceExtent;
     bool operator==(const ProjectionInput &other) const {
         return pixels == other.pixels && opacity == other.opacity && channelMask == other.channelMask &&
-            blendMode == other.blendMode && mask == other.mask;
+            blendMode == other.blendMode && mask == other.mask && sourceExtent == other.sourceExtent;
     }
 };
 using ProjectionInputs = QMap<quint64, QList<ProjectionInput>>;
+/** Native 64-pixel allocation extent reconstructed from retained geometry, without pixel access. */
+std::optional<QRect> paintLayerSourceExtent(const Snapshot &document, const Layer &layer, qsizetype maximumRectangles);
 }
 
 namespace LibrePaint::Image::Gpu {
@@ -59,6 +64,7 @@ struct RenderedVersion::Data
     Snapshot document;
     std::shared_ptr<Detail::Budget> owner;
     QMap<LayerId, Detail::Tiles> layers;
+    QHash<LayerId, QRect> sourceExtents;
     QMap<LayerId, std::shared_ptr<Detail::Tile>> defaults;
     QHash<LayerId, RgbaPixel> defaultPixels;
     QMap<LayerId, Detail::ProjectionInputs> groupInputs;
@@ -98,6 +104,8 @@ struct TileRenderer::Private
     QHash<const SelectionMask *, MaskCacheEntry> maskTiles;
     Detail::NativeBindingLayout layout;
     Detail::NativeComputePipeline pipeline;
+    /** Finite cache of operation-specific programs; command buffers retain recorded programs. */
+    std::map<quint32, Detail::NativeComputePipeline> blendPipelines;
     Detail::NativeBindingLayout projectionLayout;
     Detail::NativeComputePipeline projectionPipeline;
     Detail::NativeBindingLayout pairedProjectionLayout;
@@ -130,7 +138,9 @@ struct TileRenderer::Private
     ~Private();
     /** Full channel values count against the renderer budget and remain immutable. */
     bool prepareNonlinearRgba8(bool full);
-    Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main");
+    Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main",
+        quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr);
+    WGPUComputePipeline blendPipeline(bool paint, bool paired, quint32 firstBlend, quint32 secondBlend = 0);
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);
     Detail::NativeBuffer recordBounds(WGPUCommandEncoder commands, const QList<TileView> &tiles,

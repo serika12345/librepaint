@@ -3,7 +3,7 @@
 
 // flags holds transparent-base normalization in bit0 and RGBA16 precision in bit1.
 // blendModeOpacity holds LayerBlendMode in the low byte and opacity in the next.
-struct CompositeParameters { opacityBits: u32, flags: u32, channelMask: u32, blendModeOpacity: u32, }
+struct CompositeParameters { opacityBits: u32, flags: u32, channelMask: u32, blendModeOpacity: u32, sourceLeft: i32, sourceTop: i32, sourceRight: i32, sourceBottom: i32, }
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(1) var<storage, read> layerPixels: array<u32>;
 @group(0) @binding(2) var<storage, read_write> outputPixels: array<u32>;
@@ -58,7 +58,10 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha:
     return normalRgba8(destination, source.xyz, sourceAlpha, values.channelMask);
 }
 
-fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameters, maskAlpha: u32) -> vec2<u32> {
+fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameters, maskAlpha: u32, position: vec2<i32>) -> vec2<u32> {
+    if (colorIsCoupled(values.blendModeOpacity & 255u) &&
+        (any(position < vec2<i32>(values.sourceLeft, values.sourceTop)) ||
+         any(position >= vec2<i32>(values.sourceRight, values.sourceBottom)))) { return base; }
     if ((values.flags & 2u) == 0u) {
         return vec2<u32>(projectionOver(base.x, layer.x, values, maskAlpha), 0u);
     }
@@ -81,7 +84,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let last = word + stride - 1u;
     let maskAlpha = coverageAlpha(firstMaskCoverage[index >> 2u], index);
     let pixel = projectionWords(vec2<u32>(basePixels[word], basePixels[last]),
-        vec2<u32>(layerPixels[word], layerPixels[last]), parameters, maskAlpha);
+        vec2<u32>(layerPixels[word], layerPixels[last]), parameters, maskAlpha, vec2<i32>(position));
     outputPixels[word] = pixel.x;
     if (wide) { outputPixels[last] = pixel.y; }
 }
@@ -98,9 +101,9 @@ fn mainPair(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let firstMask = coverageAlpha(firstMaskCoverage[index >> 2u], index);
     let secondMask = coverageAlpha(secondMaskCoverage[index >> 2u], index);
     let first = projectionWords(vec2<u32>(basePixels[word], basePixels[last]),
-        vec2<u32>(layerPixels[word], layerPixels[last]), pairParameters.first, firstMask);
+        vec2<u32>(layerPixels[word], layerPixels[last]), pairParameters.first, firstMask, vec2<i32>(position));
     let pixel = projectionWords(first, vec2<u32>(secondLayerPixels[word], secondLayerPixels[last]),
-        pairParameters.second, secondMask);
+        pairParameters.second, secondMask, vec2<i32>(position));
     outputPixels[word] = pixel.x;
     if (wide) { outputPixels[last] = pixel.y; }
 }

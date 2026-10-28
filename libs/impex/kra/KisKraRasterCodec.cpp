@@ -294,7 +294,46 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("modulo_shift") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("modulo_shift_continuous") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("arc_tangent") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("additive_subtractive")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("additive_subtractive") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("color") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hue") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("tint") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("saturation") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("inc_saturation") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("dec_saturation") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("luminize") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("inc_luminosity") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("dec_luminosity") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("color_hsi") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hue_hsi") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("saturation_hsi") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("inc_saturation_hsi") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("dec_saturation_hsi") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("intensity") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("inc_intensity") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("dec_intensity") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("color_hsl") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hue_hsl") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("saturation_hsl") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("inc_saturation_hsl") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("dec_saturation_hsl") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("lightness") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("inc_lightness") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("dec_lightness") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("color_hsv") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("hue_hsv") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("saturation_hsv") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("inc_saturation_hsv") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("dec_saturation_hsv") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("value") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("inc_value") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("dec_value") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("darker color") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("lighter color") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("tangent_normalmap") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("combine_normal") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("lambert_lighting") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("lambert_lighting_gamma2.2")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -793,6 +832,45 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::ModuloShiftContinuous ? QStringLiteral("modulo_shift_continuous") :
                              layer.blendMode == LayerBlendMode::ArcTangent ? QStringLiteral("arc_tangent") :
                              layer.blendMode == LayerBlendMode::AdditiveSubtractive ? QStringLiteral("additive_subtractive") :
+                             layer.blendMode == LayerBlendMode::ColorHsy ? QStringLiteral("color") :
+                             layer.blendMode == LayerBlendMode::HueHsy ? QStringLiteral("hue") :
+                             layer.blendMode == LayerBlendMode::TintHsy ? QStringLiteral("tint") :
+                             layer.blendMode == LayerBlendMode::SaturationHsy ? QStringLiteral("saturation") :
+                             layer.blendMode == LayerBlendMode::IncreaseSaturationHsy ? QStringLiteral("inc_saturation") :
+                             layer.blendMode == LayerBlendMode::DecreaseSaturationHsy ? QStringLiteral("dec_saturation") :
+                             layer.blendMode == LayerBlendMode::LightnessHsy ? QStringLiteral("luminize") :
+                             layer.blendMode == LayerBlendMode::IncreaseLightnessHsy ? QStringLiteral("inc_luminosity") :
+                             layer.blendMode == LayerBlendMode::DecreaseLightnessHsy ? QStringLiteral("dec_luminosity") :
+                             layer.blendMode == LayerBlendMode::ColorHsi ? QStringLiteral("color_hsi") :
+                             layer.blendMode == LayerBlendMode::HueHsi ? QStringLiteral("hue_hsi") :
+                             layer.blendMode == LayerBlendMode::SaturationHsi ? QStringLiteral("saturation_hsi") :
+                             layer.blendMode == LayerBlendMode::IncreaseSaturationHsi ? QStringLiteral("inc_saturation_hsi") :
+                             layer.blendMode == LayerBlendMode::DecreaseSaturationHsi ? QStringLiteral("dec_saturation_hsi") :
+                             layer.blendMode == LayerBlendMode::LightnessHsi ? QStringLiteral("intensity") :
+                             layer.blendMode == LayerBlendMode::IncreaseLightnessHsi ? QStringLiteral("inc_intensity") :
+                             layer.blendMode == LayerBlendMode::DecreaseLightnessHsi ? QStringLiteral("dec_intensity") :
+                             layer.blendMode == LayerBlendMode::ColorHsl ? QStringLiteral("color_hsl") :
+                             layer.blendMode == LayerBlendMode::HueHsl ? QStringLiteral("hue_hsl") :
+                             layer.blendMode == LayerBlendMode::SaturationHsl ? QStringLiteral("saturation_hsl") :
+                             layer.blendMode == LayerBlendMode::IncreaseSaturationHsl ? QStringLiteral("inc_saturation_hsl") :
+                             layer.blendMode == LayerBlendMode::DecreaseSaturationHsl ? QStringLiteral("dec_saturation_hsl") :
+                             layer.blendMode == LayerBlendMode::LightnessHsl ? QStringLiteral("lightness") :
+                             layer.blendMode == LayerBlendMode::IncreaseLightnessHsl ? QStringLiteral("inc_lightness") :
+                             layer.blendMode == LayerBlendMode::DecreaseLightnessHsl ? QStringLiteral("dec_lightness") :
+                             layer.blendMode == LayerBlendMode::ColorHsv ? QStringLiteral("color_hsv") :
+                             layer.blendMode == LayerBlendMode::HueHsv ? QStringLiteral("hue_hsv") :
+                             layer.blendMode == LayerBlendMode::SaturationHsv ? QStringLiteral("saturation_hsv") :
+                             layer.blendMode == LayerBlendMode::IncreaseSaturationHsv ? QStringLiteral("inc_saturation_hsv") :
+                             layer.blendMode == LayerBlendMode::DecreaseSaturationHsv ? QStringLiteral("dec_saturation_hsv") :
+                             layer.blendMode == LayerBlendMode::LightnessHsv ? QStringLiteral("value") :
+                             layer.blendMode == LayerBlendMode::IncreaseLightnessHsv ? QStringLiteral("inc_value") :
+                             layer.blendMode == LayerBlendMode::DecreaseLightnessHsv ? QStringLiteral("dec_value") :
+                             layer.blendMode == LayerBlendMode::DarkerColor ? QStringLiteral("darker color") :
+                             layer.blendMode == LayerBlendMode::LighterColor ? QStringLiteral("lighter color") :
+                             layer.blendMode == LayerBlendMode::TangentNormalMap ? QStringLiteral("tangent_normalmap") :
+                             layer.blendMode == LayerBlendMode::ReorientedNormalMap ? QStringLiteral("combine_normal") :
+                             layer.blendMode == LayerBlendMode::LambertLighting ? QStringLiteral("lambert_lighting") :
+                             layer.blendMode == LayerBlendMode::LambertLightingGamma22 ? QStringLiteral("lambert_lighting_gamma2.2") :
                              QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
@@ -1367,6 +1445,45 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("modulo_shift_continuous") ? LayerBlendMode::ModuloShiftContinuous :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("arc_tangent") ? LayerBlendMode::ArcTangent :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("additive_subtractive") ? LayerBlendMode::AdditiveSubtractive :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("color") ? LayerBlendMode::ColorHsy :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("hue") ? LayerBlendMode::HueHsy :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("tint") ? LayerBlendMode::TintHsy :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("saturation") ? LayerBlendMode::SaturationHsy :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("inc_saturation") ? LayerBlendMode::IncreaseSaturationHsy :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("dec_saturation") ? LayerBlendMode::DecreaseSaturationHsy :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("luminize") ? LayerBlendMode::LightnessHsy :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("inc_luminosity") ? LayerBlendMode::IncreaseLightnessHsy :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("dec_luminosity") ? LayerBlendMode::DecreaseLightnessHsy :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("color_hsi") ? LayerBlendMode::ColorHsi :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("hue_hsi") ? LayerBlendMode::HueHsi :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("saturation_hsi") ? LayerBlendMode::SaturationHsi :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("inc_saturation_hsi") ? LayerBlendMode::IncreaseSaturationHsi :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("dec_saturation_hsi") ? LayerBlendMode::DecreaseSaturationHsi :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("intensity") ? LayerBlendMode::LightnessHsi :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("inc_intensity") ? LayerBlendMode::IncreaseLightnessHsi :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("dec_intensity") ? LayerBlendMode::DecreaseLightnessHsi :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("color_hsl") ? LayerBlendMode::ColorHsl :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("hue_hsl") ? LayerBlendMode::HueHsl :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("saturation_hsl") ? LayerBlendMode::SaturationHsl :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("inc_saturation_hsl") ? LayerBlendMode::IncreaseSaturationHsl :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("dec_saturation_hsl") ? LayerBlendMode::DecreaseSaturationHsl :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("lightness") ? LayerBlendMode::LightnessHsl :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("inc_lightness") ? LayerBlendMode::IncreaseLightnessHsl :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("dec_lightness") ? LayerBlendMode::DecreaseLightnessHsl :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("color_hsv") ? LayerBlendMode::ColorHsv :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("hue_hsv") ? LayerBlendMode::HueHsv :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("saturation_hsv") ? LayerBlendMode::SaturationHsv :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("inc_saturation_hsv") ? LayerBlendMode::IncreaseSaturationHsv :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("dec_saturation_hsv") ? LayerBlendMode::DecreaseSaturationHsv :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("value") ? LayerBlendMode::LightnessHsv :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("inc_value") ? LayerBlendMode::IncreaseLightnessHsv :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("dec_value") ? LayerBlendMode::DecreaseLightnessHsv :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("darker color") ? LayerBlendMode::DarkerColor :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("lighter color") ? LayerBlendMode::LighterColor :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("tangent_normalmap") ? LayerBlendMode::TangentNormalMap :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("combine_normal") ? LayerBlendMode::ReorientedNormalMap :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("lambert_lighting") ? LayerBlendMode::LambertLighting :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("lambert_lighting_gamma2.2") ? LayerBlendMode::LambertLightingGamma22 :
             LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));

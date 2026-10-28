@@ -300,9 +300,10 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let selection = parameters.selection;
     let maskSelection = (parameters.paintFlags & 4096u) != 0u;
     let softSelection = (parameters.paintFlags & 8192u) != 0u;
-    let destinationSelection = parameters.erase == 0u &&
+    let emptySourceComposition = parameters.erase == 0u &&
         (parameters.pattern.w == 41u || parameters.pattern.w == 42u ||
-         parameters.pattern.z == 41u || parameters.pattern.z == 42u);
+         parameters.pattern.z == 41u || parameters.pattern.z == 42u ||
+         colorIsCoupled(parameters.pattern.w) || colorIsCoupled(parameters.pattern.z));
     let insideSelectionBounds = pixel.x >= selection.x && pixel.y >= selection.y &&
         pixel.x < selection.x + selection.z && pixel.y < selection.y + selection.w;
     var selectionAlpha = 255u;
@@ -331,7 +332,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         let inverted = (parameters.paintFlags & 1024u) != 0u;
         if (maskSelection && softSelection) {
             selectionAlpha = select(selectionAlpha, 255u - selectionAlpha, inverted);
-            if (selectionAlpha == 0u && (!destinationSelection || !insideSelectionBounds)) {
+            if (selectionAlpha == 0u && (!emptySourceComposition || !insideSelectionBounds)) {
                 writePaintPixel(index, paintBase(index));
                 return;
             }
@@ -339,7 +340,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             var masked = !inside;
             if (inverted) { masked = inside; }
             if (masked) {
-                if (destinationSelection && insideSelectionBounds) { selectionAlpha = 0u; }
+                if (emptySourceComposition && insideSelectionBounds) { selectionAlpha = 0u; }
                 else {
                     writePaintPixel(index, paintBase(index));
                     return;
@@ -386,14 +387,18 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     }
     var writable = (parameters.paintFlags >> 1u) & 15u;
     if ((parameters.paintFlags & 1u) != 0u && parameters.erase == 0u) { writable &= 7u; }
-    if (parameters.erase == 0u && (blendMode == 41u || blendMode == 42u)) {
+    if (parameters.erase == 0u && (blendMode == 41u || blendMode == 42u || colorIsCoupled(blendMode))) {
         let block = (local.y / 64u) * 4u + local.x / 64u;
         if ((parameters.native.w & (1u << block)) == 0u) {
             writePaintPixel(index, base);
             return;
         }
         let alpha = multiplyThreeBytes(coverage, selectionAlpha, parameters.opacityValue);
+        if (colorIsCoupled(blendMode)) {
+            writePaintPixel(index, unpackPixel(coupledRgba8Pixel(base, vec4<u32>(source, coverage), alpha, writable, blendMode)));
+        } else {
         writePaintPixel(index, unpackPixel(destinationRgba8(base, vec4<u32>(source, coverage), alpha, writable, blendMode)));
+        }
         return;
     }
     if (parameters.erase != 0u) {

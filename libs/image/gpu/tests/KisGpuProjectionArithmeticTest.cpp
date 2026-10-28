@@ -44,18 +44,22 @@ void KisGpuProjectionArithmeticTest::normalRgba8AlphaAndQuotientsPreserveNearest
     QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl"));
     QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
     QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
+    QFile doubles(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
+    QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
     QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
     QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
     QFile over(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"));
     QVERIFY(shared.open(QIODevice::ReadOnly));
     QVERIFY(arithmetic.open(QIODevice::ReadOnly));
     QVERIFY(separable.open(QIODevice::ReadOnly));
+    QVERIFY(doubles.open(QIODevice::ReadOnly));
+    QVERIFY(color.open(QIODevice::ReadOnly));
     QVERIFY(normal.open(QIODevice::ReadOnly));
     QVERIFY(native.open(QIODevice::ReadOnly));
     QVERIFY(over.open(QIODevice::ReadOnly));
     // Exercise alpha normalization and division on every opacity/source/
     // destination alpha combination that reaches normal RGBA8 division.
-    const QByteArray source = shared.readAll() + '\n' + arithmetic.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + over.readAll() + R"(
+    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + over.readAll() + R"(
 @compute @workgroup_size(64)
 fn quotientContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;
@@ -174,19 +178,23 @@ void KisGpuProjectionArithmeticTest::normalRgba8ColorsPreserveBothRoundingSteps(
     QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl"));
     QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
     QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
+    QFile doubles(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
+    QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
     QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
     QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
     QFile over(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"));
     QVERIFY(shared.open(QIODevice::ReadOnly));
     QVERIFY(arithmetic.open(QIODevice::ReadOnly));
     QVERIFY(separable.open(QIODevice::ReadOnly));
+    QVERIFY(doubles.open(QIODevice::ReadOnly));
+    QVERIFY(color.open(QIODevice::ReadOnly));
     QVERIFY(normal.open(QIODevice::ReadOnly));
     QVERIFY(native.open(QIODevice::ReadOnly));
     QVERIFY(over.open(QIODevice::ReadOnly));
     // Normal layer projection supplies the same blend to every RGB channel.
     // Saving and exporting must retain the single-rounded binary32 color,
     // including its subsequent nearest-even quantization to an RGBA8 byte.
-    const QByteArray source = shared.readAll() + '\n' + arithmetic.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + over.readAll() + R"(
+    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + over.readAll() + R"(
 @compute @workgroup_size(64)
 fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;
@@ -211,7 +219,7 @@ fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     constexpr quint32 count = 256 * 256;
     constexpr quint64 bytes = count * sizeof(quint32);
     auto output = createBuffer(device->nativeDevice(), bytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc);
-    auto parameters = createBuffer(device->nativeDevice(), 16, WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+    auto parameters = createBuffer(device->nativeDevice(), 32, WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
     QVERIFY(output && parameters);
     WGPUBindGroupEntry entries[2]{};
     entries[0].binding = 2;
@@ -219,7 +227,7 @@ fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     entries[0].size = bytes;
     entries[1].binding = 3;
     entries[1].buffer = parameters.get();
-    entries[1].size = 16;
+    entries[1].size = 32;
     WGPUBindGroupDescriptor bindingsDescriptor{};
     bindingsDescriptor.layout = layout.get();
     bindingsDescriptor.entryCount = 2;
@@ -253,7 +261,7 @@ fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     for (float blend : {0.0f, 1.0f, 1e-15f, std::numeric_limits<float>::min(),
                         std::numeric_limits<float>::denorm_min()}) blends.insert(floatBits(blend));
     for (quint32 blendBits : blends) {
-        const quint32 values[4] = {blendBits, 0, 0, 0};
+        const quint32 values[8] = {blendBits, 0, 0, 0, 0, 0, 0, 0};
         wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
         const auto commands = device->beginCommands();
         QVERIFY(commands);

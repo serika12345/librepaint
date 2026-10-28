@@ -15,7 +15,8 @@ constexpr int PixelHistoryBlockSize = 64;
 inline bool usesAllocatedSourceRegion(const PaintOperation &operation)
 {
     const auto replacesAlpha = [](LayerBlendMode mode) {
-        return mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop;
+        return mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop ||
+            (mode >= LayerBlendMode::ColorHsy && mode <= LayerBlendMode::LambertLightingGamma22);
     };
     return !operation.brush.erase && (replacesAlpha(operation.brush.blendMode) ||
         (hasFigureFill(operation.figureStyle) && replacesAlpha(operation.figureStyle.fillBlendMode)));

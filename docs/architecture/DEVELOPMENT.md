@@ -341,6 +341,14 @@ KRA再読込み、PNG、再読込み後の描画・塗りとUndo／Redoも同じ
 部分アルファ・不透明度・成分保護は上の編集・保存試験で照合する。
 `LIBREPAINT_GPU_RESULT_DIR`の各方式の出力先へ、実測画素`all-rgb8-pairs.bgra`と
 CPU参照`all-rgb8-pairs-cpu.bgra`を保存する。不一致時も比較用の画素を保持する。
+`TestDocument::testCoupledBlendMatchesCpuColorPalette`は、RGBを組み合わせる各方式を
+0・1・15・63・127・128・254・255の各成分から作る512色の総当たりで照合する。
+CPUの実際の合成処理とGPUの投影を比較し、最初の不一致の元色・下地色・成分を診断する。
+出力先には`coupled-colors.bgra`と`coupled-colors-cpu.bgra`を保持する。
+`testCoupledBlendKeepsSparseSourceExtent`は、離れた書込み、間の空タイル、整数移動と切抜きを
+通常の文書APIから操作し、元レイヤーの確保領域の内側と外側をCPU投影で照合する。
+`testCoupledBlendKeepsImplicitGroupPixels`は透明・半透明の既定色と確保済みの透明画素を
+通常レイヤーとグループで比較する。
 非線形なRGBA8合成の値資源は、[生成・構成・出典](../../libs/image/gpu/blend/README.md)に従って
 設定済みのCPU参照から作る。`scripts/gpu/generate-rgba8-blend-tables`は参照版と入力のハッシュを記録する。
 上の全入力試験と編集・保存試験は、資源を使う方式も同じCPU処理で照合する。
@@ -348,7 +356,7 @@ CPU参照`all-rgb8-pairs-cpu.bgra`を保存する。不一致時も比較用の�
 `nonlinearResourceBudgetPreservesPixelsAndRetry`は描画・投影の容量拒否後の画素と再試行を検査する。
 `KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot`は、成分Copyで生じた
 透明RGBを保持するグループと、上位で通常合成した結果、保持した旧投影を照合する。
-`testReplacingAlphaPaintMatchesCpuSourceRegions`は、Destination方式のブラシを
+`testReplacingAlphaPaintMatchesCpuSourceRegions`は、Destination方式とRGBを組み合わせる方式のブラシを
 CPUの一時描画デバイスと実際の合成呼出しで照合する。64画素の境界、大きな円の外接矩形、
 負座標、穴のある部分選択と反転、キャンバス外の画素、塗り、キャンバス拡張とUndo／Redoを検査する。
 `transparentSourcesReplaceProjectionAlpha`は、空レイヤー・グループ、既定画素と格納済み画素、

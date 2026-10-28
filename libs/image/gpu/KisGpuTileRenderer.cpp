@@ -100,7 +100,8 @@ bool TileRenderer::Private::prepareNonlinearRgba8(bool full)
     return true;
 }
 
-NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path, const char *entryPoint)
+NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path, const char *entryPoint,
+    quint32 firstBlend, quint32 secondBlend, WGPUBindGroupLayout sharedLayout)
 {
     QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl")), shader(path);
     if (!shared.open(QIODevice::ReadOnly) || !shader.open(QIODevice::ReadOnly)) {
@@ -108,30 +109,35 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         return {};
     }
     QByteArray source = shared.readAll() + '\n';
+    source += "const COLOR_BLEND_MODE_A: u32 = " + QByteArray::number(firstBlend) + "u;\n";
+    source += "const COLOR_BLEND_MODE_B: u32 = " + QByteArray::number(secondBlend) + "u;\n";
     const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
     if (painting || path.endsWith(QLatin1String("/over.wgsl"))) {
         QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
         QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
+        QFile doubles(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
+        QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
         QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
         QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
         if (!arithmetic.open(QIODevice::ReadOnly) || !separable.open(QIODevice::ReadOnly) ||
-            !normal.open(QIODevice::ReadOnly) || !native.open(QIODevice::ReadOnly)) {
+            !normal.open(QIODevice::ReadOnly) || !native.open(QIODevice::ReadOnly) ||
+            !doubles.open(QIODevice::ReadOnly) || !color.open(QIODevice::ReadOnly)) {
             error = QStringLiteral("GPU normal-composition arithmetic could not be loaded");
             return {};
         }
         source += arithmetic.readAll() + '\n';
+        source += doubles.readAll() + '\n';
+        source += color.readAll() + '\n';
         source += separable.readAll() + '\n';
         source += normal.readAll() + '\n';
         source += native.readAll() + '\n';
     }
     if (painting) {
-        QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
         QFile gaussian(QStringLiteral(":/librepaint/gpu/shaders/gaussian.wgsl"));
-        if (!arithmetic.open(QIODevice::ReadOnly) || !gaussian.open(QIODevice::ReadOnly)) {
+        if (!gaussian.open(QIODevice::ReadOnly)) {
             error = QStringLiteral("GPU native brush arithmetic could not be loaded");
             return {};
         }
-        source += arithmetic.readAll() + '\n';
         source += gaussian.readAll() + '\n';
     }
     source += shader.readAll();
@@ -145,7 +151,16 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         error = device->diagnostic();
         return {};
     }
+    NativeResource<WGPUPipelineLayout, wgpuPipelineLayoutRelease> explicitLayout;
+    if (sharedLayout) {
+        WGPUPipelineLayoutDescriptor descriptor{};
+        descriptor.bindGroupLayoutCount = 1;
+        descriptor.bindGroupLayouts = &sharedLayout;
+        explicitLayout.reset(wgpuDeviceCreatePipelineLayout(device->nativeDevice(), &descriptor));
+        if (!explicitLayout) return {};
+    }
     WGPUComputePipelineDescriptor descriptor{};
+    descriptor.layout = explicitLayout.get();
     descriptor.compute.module = module.get();
     descriptor.compute.entryPoint = {entryPoint, WGPU_STRLEN};
     NativeComputePipeline result(wgpuDeviceCreateComputePipeline(device->nativeDevice(), &descriptor));
@@ -153,6 +168,28 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         error = device->diagnostic().isEmpty() ? QStringLiteral("GPU compute pipeline creation failed") : device->diagnostic();
         return {};
     }
+    return result;
+}
+
+WGPUComputePipeline TileRenderer::Private::blendPipeline(bool paint, bool paired, quint32 firstBlend, quint32 secondBlend)
+{
+    const auto coupled = [](quint32 mode) { return mode >= 88 && mode <= 126 ? mode : 0u; };
+    firstBlend = coupled(firstBlend);
+    secondBlend = coupled(secondBlend);
+    if (firstBlend == secondBlend) secondBlend = 0;
+    if (!firstBlend && !secondBlend)
+        return paint ? pipeline.get() : paired ? pairedProjectionPipeline.get() : projectionPipeline.get();
+    if (secondBlend < firstBlend) std::swap(firstBlend, secondBlend);
+    const auto key = firstBlend | (secondBlend << 8) | (quint32(paint) << 16) | (quint32(paired) << 17);
+    const auto found = blendPipelines.find(key);
+    if (found != blendPipelines.end()) return found->second.get();
+    auto compiled = createPipeline(paint ? QStringLiteral(":/librepaint/gpu/shaders/paint.wgsl") :
+        QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"), paired ? "mainPair" : "main", firstBlend, secondBlend,
+        paint ? layout.get() : paired ? pairedProjectionLayout.get() : projectionLayout.get());
+    if (!compiled) return nullptr;
+    if (blendPipelines.size() >= 8) blendPipelines.erase(blendPipelines.begin());
+    const auto result = compiled.get();
+    blendPipelines.emplace(key, std::move(compiled));
     return result;
 }
 
@@ -375,8 +412,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         if (recordedJobs < jobs.size()) {
             const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
             if (!pass) return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint commands failed")};
-            wgpuComputePassEncoderSetPipeline(pass, d.pipeline.get());
             for (size_t i = recordedJobs; i < jobs.size(); ++i) {
+                const auto program = d.blendPipeline(true, false, jobs[i].values.strokeBlendMode, jobs[i].values.fillBlendMode);
+                if (!program) {
+                    wgpuComputePassEncoderEnd(pass);
+                    wgpuComputePassEncoderRelease(pass);
+                    return RenderOutcome{RenderOutcome::DeviceFailure, {}, d.error};
+                }
+                wgpuComputePassEncoderSetPipeline(pass, program);
                 wgpuComputePassEncoderSetBindGroup(pass, 0, jobs[i].bindings.get(), 0, nullptr);
                 wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
             }
@@ -407,9 +450,25 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         data->background = fill.output;
         jobs.push_back(std::move(fill));
     }
+    const bool needsSourceExtents = std::any_of(document->layers.cbegin(), document->layers.cend(), [](const auto &layer) {
+        return layer.blendMode >= LayerBlendMode::ColorHsy && layer.blendMode <= LayerBlendMode::LambertLightingGamma22;
+    });
     for (const auto &layer : document->layers) {
         if (!selected.contains(layer.id) || (region && region->isEmpty())) continue;
         if (layer.passThrough && !requestedGroups.contains(layer.id)) continue;
+        if (needsSourceExtents && layer.kind == LayerKind::Paint) {
+            std::optional<QRect> extent;
+            if (base && base->document()->size == document->size && base->m_data->sourceExtents.contains(layer.id)) {
+                const auto &previous = base->document()->layers;
+                const auto old = std::find_if(previous.cbegin(), previous.cend(), [&](const auto &value) { return value.id == layer.id; });
+                if (old != previous.cend() && old->position == layer.position && old->defaultPixel == layer.defaultPixel &&
+                    old->operations == layer.operations && base->document()->pendingOperation() == document->pendingOperation())
+                    extent = base->m_data->sourceExtents.value(layer.id);
+            }
+            if (!extent) extent = paintLayerSourceExtent(document, layer, PaintGeometryElementLimit);
+            if (!extent) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU layer source geometry capacity exceeded")};
+            data->sourceExtents[layer.id] = *extent;
+        }
         const auto uniform = data->defaultPixels.value(layer.id, layer.defaultPixel);
         QList<QRect> operationRegions(layer.operations.size() + 1, paintRegion);
         for (qsizetype i = layer.operations.size(); i-- > 0;) {
@@ -922,6 +981,15 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 const auto projected = composeImpl(commands, version, paintRegion, previous, group);
                 if (projected.code != RenderOutcome::Recorded) return {projected.code, {}, projected.diagnostic};
                 data->layers[group] = projected.version->m_data->tiles;
+                QRect extent;
+                for (const auto &child : document->projectionInputs(group)) extent |= data->sourceExtents.value(child.layer);
+                if (!extent.isEmpty() && !projected.version->m_data->directLayerProjection) {
+                    const auto origin = nodes.value(group)->position;
+                    const auto first = QPoint(pixelTileIndex(extent.left() - origin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.top() - origin.y(), PixelHistoryBlockSize));
+                    const auto last = QPoint(pixelTileIndex(extent.right() - origin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.bottom() - origin.y(), PixelHistoryBlockSize));
+                    extent = QRect(first * PixelHistoryBlockSize + origin, (last + QPoint(1, 1)) * PixelHistoryBlockSize + origin - QPoint(1, 1));
+                }
+                data->sourceExtents[group] = extent;
                 data->groupInputs[group] = projected.version->m_data->inputs;
                 if (projected.version->m_data->directLayerProjection) data->directGroups.insert(group);
             }

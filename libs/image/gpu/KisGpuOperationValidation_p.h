@@ -107,6 +107,45 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::ModuloShiftContinuous:
     case LayerBlendMode::ArcTangent:
     case LayerBlendMode::AdditiveSubtractive:
+    case LayerBlendMode::ColorHsy:
+    case LayerBlendMode::HueHsy:
+    case LayerBlendMode::TintHsy:
+    case LayerBlendMode::SaturationHsy:
+    case LayerBlendMode::IncreaseSaturationHsy:
+    case LayerBlendMode::DecreaseSaturationHsy:
+    case LayerBlendMode::LightnessHsy:
+    case LayerBlendMode::IncreaseLightnessHsy:
+    case LayerBlendMode::DecreaseLightnessHsy:
+    case LayerBlendMode::ColorHsi:
+    case LayerBlendMode::HueHsi:
+    case LayerBlendMode::SaturationHsi:
+    case LayerBlendMode::IncreaseSaturationHsi:
+    case LayerBlendMode::DecreaseSaturationHsi:
+    case LayerBlendMode::LightnessHsi:
+    case LayerBlendMode::IncreaseLightnessHsi:
+    case LayerBlendMode::DecreaseLightnessHsi:
+    case LayerBlendMode::ColorHsl:
+    case LayerBlendMode::HueHsl:
+    case LayerBlendMode::SaturationHsl:
+    case LayerBlendMode::IncreaseSaturationHsl:
+    case LayerBlendMode::DecreaseSaturationHsl:
+    case LayerBlendMode::LightnessHsl:
+    case LayerBlendMode::IncreaseLightnessHsl:
+    case LayerBlendMode::DecreaseLightnessHsl:
+    case LayerBlendMode::ColorHsv:
+    case LayerBlendMode::HueHsv:
+    case LayerBlendMode::SaturationHsv:
+    case LayerBlendMode::IncreaseSaturationHsv:
+    case LayerBlendMode::DecreaseSaturationHsv:
+    case LayerBlendMode::LightnessHsv:
+    case LayerBlendMode::IncreaseLightnessHsv:
+    case LayerBlendMode::DecreaseLightnessHsv:
+    case LayerBlendMode::DarkerColor:
+    case LayerBlendMode::LighterColor:
+    case LayerBlendMode::TangentNormalMap:
+    case LayerBlendMode::ReorientedNormalMap:
+    case LayerBlendMode::LambertLighting:
+    case LayerBlendMode::LambertLightingGamma22:
         return true;
     }
     return false;

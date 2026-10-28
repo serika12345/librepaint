@@ -124,6 +124,7 @@ fn destinationRgba8(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, m
     return packPixel(destination);
 }
 fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32, mode: u32) -> u32 {
+    if (colorIsCoupled(mode)) { return coupledRgba8Pixel(base, source, multiplyThreeBytes(source.w, 255u, opacity), mask, mode); }
     if (mode == 41u || mode == 42u) {
         return destinationRgba8(base, source, multiplyThreeBytes(source.w, 255u, opacity), mask, mode);
     }

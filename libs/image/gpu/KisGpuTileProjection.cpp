@@ -9,6 +9,7 @@
 #include <QFile>
 #include <QThread>
 #include <QSet>
+#include <QRegion>
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -17,7 +18,10 @@
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
-struct CompositeParameters { quint32 opacityBits = 0x3f800000; quint32 flags = 0; quint32 channelMask = 15; quint32 blendModeOpacity = 0; };
+struct CompositeParameters {
+    quint32 opacityBits = 0x3f800000, flags = 0, channelMask = 15, blendModeOpacity = 0;
+    qint32 sourceLeft = 0, sourceTop = 0, sourceRight = 0, sourceBottom = 0;
+};
 struct CompositeUniform
 {
     CompositeParameters values[2]{};
@@ -30,7 +34,72 @@ struct CompositeJob
     std::shared_ptr<CoverageTile> masks[2];
     NativeBindings bindings;
     bool paired = false;
+    quint32 blendModes[2]{};
 };
+}
+
+std::optional<QRect> Detail::paintLayerSourceExtent(const Snapshot &document, const Layer &layer, qsizetype maximumRectangles)
+{
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
+    QPoint origin = layer.position;
+    for (const auto &operation : layer.operations)
+        if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) origin -= (*translation)->offset;
+    QRegion allocated;
+    const auto aligned = [&](QRect area) {
+        if (area.isEmpty()) return QRect{};
+        area.translate(-origin);
+        const auto first = QPoint(pixelTileIndex(area.left(), PixelHistoryBlockSize), pixelTileIndex(area.top(), PixelHistoryBlockSize));
+        const auto last = QPoint(pixelTileIndex(area.right(), PixelHistoryBlockSize), pixelTileIndex(area.bottom(), PixelHistoryBlockSize));
+        return QRect(first * PixelHistoryBlockSize + origin, (last + QPoint(1, 1)) * PixelHistoryBlockSize + origin - QPoint(1, 1)).intersected(domain);
+    };
+    const auto append = [&](QRect area) { allocated += aligned(area); return allocated.rectCount() <= maximumRectangles; };
+    for (const auto &operation : layer.operations) {
+        if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
+            if ((*write)->writtenAreas.isEmpty()) {
+                for (const auto &tile : (*write)->tiles)
+                    if (!append(QRect(tile->coordinate() * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) return std::nullopt;
+            } else for (const auto &area : (*write)->writtenAreas) if (!append(area)) return std::nullopt;
+        } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
+            allocated.translate((*translation)->offset);
+            allocated &= domain;
+            origin += (*translation)->offset;
+        } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
+            allocated &= aligned((*crop)->rect.normalized());
+        } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
+            if (layer.defaultPixel == RgbaPixel{}) continue;
+            auto area = QRect(QPoint(), document->size);
+            if (!(*filter)->selectionRect.isEmpty() && !(*filter)->selectionInverted) area &= (*filter)->selectionRect;
+            if (!append(area)) return std::nullopt;
+        } else {
+            const auto &paint = *std::get<PaintSnapshot>(operation);
+            auto clip = domain;
+            if (paint.compositionBounds) clip &= *paint.compositionBounds;
+            if (!paint.selectionRect.isEmpty() && !paint.selectionInverted) clip &= paint.selectionRect;
+            if (paint.figureStyle.outline) {
+                const auto addDabs = [&](const auto &dabs) {
+                    if (!dabs) return false;
+                    for (const auto &dab : *dabs) if (!append(dab.bounds().intersected(clip))) return false;
+                    return true;
+                };
+                if (paint.brush.gaussianWash) {
+                    if (!addDabs(gaussianDabs(paint, document->pendingOperation() == paint.id))) return std::nullopt;
+                } else if (!addDabs(markerDabs(paint, document->pendingOperation() == paint.id, clip, true))) return std::nullopt;
+            }
+            if (hasFigureFill(paint.figureStyle)) {
+                const auto edges = figureFillEdges(paint);
+                if (!edges) return std::nullopt;
+                const auto blocks = figureFillTiles(*edges, paint.brush, clip, maximumRectangles, PixelHistoryBlockSize);
+                if (!blocks) return std::nullopt;
+                for (const auto block : *blocks)
+                    if (!append(QRect(coordinate(block) * PixelHistoryBlockSize, QSize(PixelHistoryBlockSize, PixelHistoryBlockSize)).intersected(clip))) return std::nullopt;
+            }
+        }
+        if (allocated.rectCount() > maximumRectangles) return std::nullopt;
+    }
+    auto extent = allocated.boundingRect();
+    if (layer.defaultPixel[3]) extent |= QRect(QPoint(), document->size);
+    return extent;
 }
 
 std::shared_ptr<CoverageTile> TileRenderer::Private::coverageTile(const SelectionMaskSP &mask, quint64 key)
@@ -270,10 +339,15 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const auto &tiles = document->m_data->layers[layer.layer];
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
-            if (!pixels && layer.blendMode != LayerBlendMode::DestinationIn &&
+            const auto extent = document->m_data->sourceExtents.value(layer.layer);
+            const bool coupled = layer.blendMode >= LayerBlendMode::ColorHsy && layer.blendMode <= LayerBlendMode::LambertLightingGamma22;
+            const QRect tileBounds(Detail::coordinate(coordinate) * TileSize, QSize(TileSize, TileSize));
+            if (coupled && !extent.intersects(tileBounds)) continue;
+            if (!pixels && !coupled && layer.blendMode != LayerBlendMode::DestinationIn &&
                 layer.blendMode != LayerBlendMode::DestinationAtop) continue;
             ProjectionInput input{pixels, layer.opacity, layer.channelMask, layer.blendMode};
             input.mask = layerMasks.value(layer.layer);
+            if (coupled) input.sourceExtent = extent;
             data->inputs[coordinate].append(input);
         }
     }
@@ -359,6 +433,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             for (int layer = 0; layer < count; ++layer) {
                 const auto &source = tile.value()[i + layer];
                 job.layers[layer] = source.pixels;
+                job.blendModes[layer] = quint32(source.blendMode);
                 if (source.mask) {
                     job.masks[layer] = d.coverageTile(source.mask, tile.key());
                     if (!job.masks[layer])
@@ -367,6 +442,11 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 const float opacity = float(source.opacity) / 255.0f;
                 std::memcpy(&values[layer].opacityBits, &opacity, sizeof(opacity));
                 values[layer].channelMask = source.channelMask;
+                const auto localExtent = source.sourceExtent.translated(-coordinate(tile.key()) * TileSize);
+                values[layer].sourceLeft = localExtent.left();
+                values[layer].sourceTop = localExtent.top();
+                values[layer].sourceRight = localExtent.isEmpty() ? 0 : localExtent.right() + 1;
+                values[layer].sourceBottom = localExtent.isEmpty() ? 0 : localExtent.bottom() + 1;
                 values[layer].blendModeOpacity = quint32(source.blendMode) | (quint32(source.opacity) << 8);
                 const bool normalize = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
                 values[layer].flags = quint32(normalize) | (document->document()->format == PixelFormat::Rgba16 ? 2u : 0u);
@@ -437,7 +517,13 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
         if (!pass) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection commands failed")};
         for (const auto &job : jobs) {
-            wgpuComputePassEncoderSetPipeline(pass, job.paired ? d.pairedProjectionPipeline.get() : d.projectionPipeline.get());
+            const auto program = d.blendPipeline(false, job.paired, job.blendModes[0], job.blendModes[1]);
+            if (!program) {
+                wgpuComputePassEncoderEnd(pass);
+                wgpuComputePassEncoderRelease(pass);
+                return {RenderOutcome::DeviceFailure, {}, d.error};
+            }
+            wgpuComputePassEncoderSetPipeline(pass, program);
             wgpuComputePassEncoderSetBindGroup(pass, 0, job.bindings.get(), 0, nullptr);
             wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
         }

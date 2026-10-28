@@ -4,6 +4,7 @@
  */
 #include "KisGpuOperationDocument.h"
 #include "KisGpuNonlinearRgba8_p.h"
+#include "KisGpuRgba8Compositing_p.h"
 #include <QFile>
 #include <cmath>
 #include <stdexcept>
@@ -21,21 +22,9 @@ const QByteArray &Detail::nonlinearRgba8Values()
     return bytes;
 }
 namespace {
-quint32 multiplyByte(quint32 a, quint32 b)
-{
-    const auto product = a * b + 128u;
-    return ((product >> 8) + product) >> 8;
-}
-quint32 multiplyThreeBytes(quint32 a, quint32 b, quint32 c)
-{
-    const auto product = a * b * c + 0x7f5bu;
-    return ((product >> 7) + product) >> 16;
-}
-quint8 blendByte(quint8 destination, quint8 source, quint32 alpha)
-{
-    const auto weighted = (int(source) - destination) * int(alpha) + 128;
-    return quint8((((weighted >> 8) + weighted) >> 8) + destination);
-}
+using Detail::multiplyByte;
+using Detail::multiplyThreeBytes;
+using Detail::blendByte;
 quint32 divideByte(quint32 a, quint32 b)
 { return (a * 255u + b / 2u) / b; }
 quint32 glowByte(quint32 source, quint32 destination)
@@ -106,6 +95,7 @@ quint32 quantizedBlendChannel(LayerBlendMode mode, quint32 source, quint32 desti
 RgbaPixel separableProjectionPixel(RgbaPixel destination,
     const RgbaPixel &source, quint8 opacity, quint8 mask, LayerBlendMode mode)
 {
+    if (Detail::isCoupledBlend(mode)) return Detail::coupledRgba8Pixel(destination, source, opacity, mask, mode);
     // RGBA8 generic separable composition quantizes opacity, products and blend
     // terms independently before the final integer division.
     if (mask != 15 && destination[3] == 0) destination = {};
@@ -326,6 +316,9 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
         } else {
             for (const auto &layer : inputs) {
                 auto source = result.value(layer.layer);
+                // A transparent default has no implicit native source extent.
+                // Allocated transparent pixels are composed by the tile path.
+                if (Detail::isCoupledBlend(layer.blendMode) && !source[3]) continue;
                 if (layer.blendMode != LayerBlendMode::Normal) {
                     pixel = separableProjectionPixel(pixel, source, layer.opacity, layer.channelMask, layer.blendMode);
                     continue;

@@ -136,7 +136,17 @@ enum class LayerBlendMode : quint8 {
     PNormA, PNormB, SuperLight, TintIFSIllusions, FogLightenIFSIllusions,
     EasyDodge, GammaDark, ShadeIFSIllusions, FogDarkenIFSIllusions, EasyBurn,
     Modulo, ModuloContinuous, DivisiveModulo, DivisiveModuloContinuous, ModuloShift,
-    ModuloShiftContinuous, ArcTangent, AdditiveSubtractive
+    ModuloShiftContinuous, ArcTangent, AdditiveSubtractive,
+    ColorHsy, HueHsy, TintHsy, SaturationHsy,
+    IncreaseSaturationHsy, DecreaseSaturationHsy, LightnessHsy, IncreaseLightnessHsy,
+    DecreaseLightnessHsy, ColorHsi, HueHsi, SaturationHsi,
+    IncreaseSaturationHsi, DecreaseSaturationHsi, LightnessHsi, IncreaseLightnessHsi,
+    DecreaseLightnessHsi, ColorHsl, HueHsl, SaturationHsl,
+    IncreaseSaturationHsl, DecreaseSaturationHsl, LightnessHsl, IncreaseLightnessHsl,
+    DecreaseLightnessHsl, ColorHsv, HueHsv, SaturationHsv,
+    IncreaseSaturationHsv, DecreaseSaturationHsv, LightnessHsv, IncreaseLightnessHsv,
+    DecreaseLightnessHsv, DarkerColor, LighterColor, TangentNormalMap,
+    ReorientedNormalMap, LambertLighting, LambertLightingGamma22
 };
 
 /** Frozen circular marker or Gaussian WASH settings. */
