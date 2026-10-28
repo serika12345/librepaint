@@ -28,6 +28,7 @@ private Q_SLOTS:
     void rasterCopiesRetainFixedPixelsAndExecution_data();
     void rasterCopiesRetainFixedPixelsAndExecution();
     void native16PixelWritesKeepLowBitsHiddenRgbAndPinnedHistory();
+    void native16ProtectedStrokeKeepsZeroCoverageHistoryBlocks();
     void native16RasterCopiesKeepPrecisionPixelsAndWorkingCapacity();
     void positionedPixelWritesPreservePixelsAndVersions_data();
     void positionedPixelWritesPreservePixelsAndVersions();
@@ -105,6 +106,50 @@ void KisGpuPaintImageTest::native16PixelWritesKeepLowBitsHiddenRgbAndPinnedHisto
     QCOMPARE(image->readRgbaPixels(layer, region, first.size()).bytes, first);
     QCOMPARE(image->redo(), Result::Success);
     QCOMPARE(image->readRgbaPixels(layer, region, second.size()).bytes, second);
+}
+
+void KisGpuPaintImageTest::native16ProtectedStrokeKeepsZeroCoverageHistoryBlocks()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    constexpr auto format = PixelFormat::Rgba16;
+    constexpr int tileBytes = RgbaTile::byteCount(format);
+    Execution execution(device, 32 * tileBytes, 4, tileBytes);
+    RasterImage input;
+    input.size = {130, 129}; input.format = format;
+    RasterLayer layer; layer.defaultPixel = {1, 257, 65534, 0};
+    input.layers = {layer};
+    const auto image = PaintImageSP::create(execution, input);
+    const auto id = image->operations().activeLayer();
+    const QRect corner(-16, -16, 1, 1), outside(192, 192, 1, 1);
+    const auto original = rgbaBytes(layer.defaultPixel, format);
+    const auto before = image->operations().snapshot();
+    QCOMPARE(image->readRgbaPixels(id, corner, 8).bytes, original);
+    Brush brush;
+    brush.rgba = {0x1357, 0x4321, 0x9876, 65535};
+    brush.diameter = 140; brush.channelWriteMask = 9; brush.blendMode = LayerBlendMode::Multiply;
+    const auto stroke = image->beginStroke(id, brush, 7);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(image->appendSamples(stroke, {{{50, 50}, 1}}), Result::Success);
+    QCOMPARE(image->commitStroke(stroke), Result::Success);
+    // This corner block is inside the native source allocation and outside
+    // the circle. Partial channels still normalize its transparent pixels.
+    QCOMPARE(image->readRgbaPixels(id, corner, 8).bytes, QByteArray(8, '\0'));
+    const auto painted = image->operations().snapshot();
+    const auto written = rgbaBytes({17, 256, 60001, 0}, format);
+    QCOMPARE(image->writeRgbaPixels(id, corner, written), Result::Success);
+    QCOMPARE(image->writeRgbaPixels(id, outside, written), Result::Success);
+    QCOMPARE(image->operations().undoCount(), 1);
+    QCOMPARE(image->readRgbaPixels(id, corner, 8).bytes, written);
+    QCOMPARE(execution.readRgbaPixels(image->handle(), painted, corner, id, 8).bytes, QByteArray(8, '\0'));
+    QCOMPARE(image->undo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(id, corner, 8).bytes, original);
+    QCOMPARE(image->readRgbaPixels(id, outside, 8).bytes, written);
+    QCOMPARE(execution.readRgbaPixels(image->handle(), before, outside, id, 8).bytes, original);
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(image->readRgbaPixels(id, corner, 8).bytes, written);
+    QCOMPARE(image->readRgbaPixels(id, outside, 8).bytes, written);
 }
 
 void KisGpuPaintImageTest::native16RasterCopiesKeepPrecisionPixelsAndWorkingCapacity()

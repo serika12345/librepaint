@@ -163,8 +163,9 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
         QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
         QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
+        QFile separable16(QStringLiteral(":/librepaint/gpu/shaders/separable-rgba16.wgsl"));
         if (!arithmetic.open(QIODevice::ReadOnly) || !separable.open(QIODevice::ReadOnly) ||
-            !normal.open(QIODevice::ReadOnly) || !native.open(QIODevice::ReadOnly) ||
+            !normal.open(QIODevice::ReadOnly) || !native.open(QIODevice::ReadOnly) || !separable16.open(QIODevice::ReadOnly) ||
             !doubles.open(QIODevice::ReadOnly) || !color.open(QIODevice::ReadOnly)) {
             error = QStringLiteral("GPU normal-composition arithmetic could not be loaded");
             return {};
@@ -175,6 +176,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         source += separable.readAll() + '\n';
         source += normal.readAll() + '\n';
         source += native.readAll() + '\n';
+        source += separable16.readAll() + '\n';
     }
     if (painting) {
         QFile gaussian(QStringLiteral(":/librepaint/gpu/shaders/gaussian.wgsl"));
@@ -700,7 +702,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     compositionBounds = permitted;
                 }
                 const bool fillEnabled = hasFigureFill(operation.figureStyle);
-                const bool replacesAlpha = usesAllocatedSourceRegion(operation);
+                const bool replacesAlpha = usesAllocatedSourceRegion(operation, document->format);
                 if (!operation.figureStyle.outline && !fillEnabled) continue;
                 QRect geometryRegion = paintRegion;
                 if (replacesAlpha) {
@@ -949,6 +951,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.values.fillColorHigh = fill[1];
                     job.values.pixelFormat = quint32(document->format);
                     job.values.sourceBlocks = sourceBlocks.value(tile.key());
+                    if (document->format == PixelFormat::Rgba16 && replacesAlpha) job.values.paintFlags |= PartialRgba16Source;
                     if (compositionBounds) {
                         const auto &bounds = *compositionBounds;
                         job.values.compositionX = bounds.x();

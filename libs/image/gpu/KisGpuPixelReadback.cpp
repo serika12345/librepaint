@@ -93,7 +93,7 @@ bool validPixelRegion(QRect region)
 }
 
 std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect region, qsizetype maximum,
-                                                  OperationId pendingOperation, QSize documentSize)
+                                                  OperationId pendingOperation, QSize documentSize, PixelFormat format)
 {
     constexpr int limit = RgbaTile::CoordinateLimit;
     const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
@@ -193,7 +193,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
                 }
                 continue;
             }
-            const bool allocatedSource = Detail::usesAllocatedSourceRegion(paint);
+            const bool allocatedSource = Detail::usesAllocatedSourceRegion(paint, format);
             const auto dabs = Detail::markerDabs(paint, paint.id == pendingOperation, needed, allocatedSource);
             if (!dabs) return std::nullopt;
             for (const auto &dab : *dabs) {
@@ -229,7 +229,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
 
 std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const Layer &layer, QRect region, qsizetype maximum)
 {
-    if (layer.kind == LayerKind::Paint) return paintLayerCoordinates(layer, region, maximum, document->pendingOperation(), document->size);
+    if (layer.kind == LayerKind::Paint) return paintLayerCoordinates(layer, region, maximum, document->pendingOperation(), document->size, document->format);
     QHash<QUuid, QList<const Layer *>> children;
     for (const auto &value : document->layers) children[value.parentUuid].append(&value);
     QList<const Layer *> pending{&layer};
@@ -239,7 +239,7 @@ std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const L
             if (!child->visible || !child->opacity) continue;
             if (child->kind == LayerKind::Group) pending.append(child);
             else {
-                const auto tiles = paintLayerCoordinates(*child, region, maximum, document->pendingOperation(), document->size);
+                const auto tiles = paintLayerCoordinates(*child, region, maximum, document->pendingOperation(), document->size, document->format);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);

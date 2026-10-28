@@ -74,7 +74,8 @@ fn projectionScaleByte(value: u32, factor: u32) -> u32 {
     return projectionFloat(vec2<u32>(projectionMantissa(value) * factor, 0u), projectionPower(value));
 }
 fn projectionProduct(a: u32, b: u32) -> vec2<u32> {
-    // Each operand has 24 bits; the two cross products fit in 25 bits.
+    // Normalized mantissas have 24 bits. U16 triples also multiply a 32-bit
+    // product by a 16-bit component; its sole cross product fits 32 bits.
     let low = (a & 65535u) * (b & 65535u);
     let cross = (a >> 16u) * (b & 65535u) + (b >> 16u) * (a & 65535u);
     let sum = low + (cross << 16u);

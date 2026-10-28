@@ -30,6 +30,7 @@ struct PaintParameters
 };
 static_assert(sizeof(PaintParameters) == 112);
 constexpr quint32 UniformPixelFill = 16384u;
+constexpr quint32 PartialRgba16Source = 32768u;
 
 struct PaintJob
 {

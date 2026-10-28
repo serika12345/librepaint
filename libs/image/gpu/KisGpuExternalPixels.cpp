@@ -17,6 +17,7 @@ namespace {
 using Lineage = QList<QPair<quint64, quint64>>;
 struct GeometryCache
 {
+    PixelFormat format;
     QHash<const PaintOperation *, std::optional<QList<Detail::MarkerDab>>> markers;
     QHash<const PaintOperation *, std::optional<QList<Detail::FigureFillEdge>>> fills;
     QHash<const PaintOperation *, std::optional<QList<Detail::GaussianDab>>> gaussian;
@@ -51,7 +52,7 @@ std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &bl
     }
     if (!*found) return std::nullopt;
     for (const auto &dab : **found)
-        if (Detail::usesAllocatedSourceRegion(paint) ? dab.bounds().intersects(block) : Detail::markerDabIntersects(dab, block)) return true;
+        if (Detail::usesAllocatedSourceRegion(paint, geometry.format) ? dab.bounds().intersects(block) : Detail::markerDabIntersects(dab, block)) return true;
     if (hasFigureFill(paint.figureStyle)) {
         auto fill = geometry.fills.constFind(&paint);
         if (fill == geometry.fills.cend()) fill = geometry.fills.insert(&paint, Detail::figureFillEdges(paint));
@@ -228,7 +229,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
         return Result::CapacityExceeded;
     Result adopted;
     try {
-        GeometryCache geometry;
+        GeometryCache geometry{current->format, {}, {}, {}};
         QHash<quint64, Lineage> lineages;
         QList<OperationDocument::VersionPixelWrite> writes;
         qsizetype compressedBytes = 0;

@@ -7,6 +7,7 @@
 #define KIS_GPU_OPERATION_VALIDATION_P_H
 
 #include "KisGpuOperationDocument.h"
+#include "KisGpuRgba16Compositing_p.h"
 #include "KisGpuPaintGeometry_p.h"
 #include <QSet>
 #include <QHash>
@@ -17,7 +18,7 @@ constexpr qsizetype LayerNameByteLimit = 65536;
 
 inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
 {
-    if (format == PixelFormat::Rgba16) return mode == LayerBlendMode::Normal;
+    if (format == PixelFormat::Rgba16) return mode == LayerBlendMode::Normal || usesIntegerRgba16Blend(mode);
     switch (mode) {
     case LayerBlendMode::Normal:
     case LayerBlendMode::Multiply:

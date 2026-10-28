@@ -6,6 +6,7 @@
 #include "KisGpuNonlinearRgba8_p.h"
 #include "KisGpuRgba8Compositing_p.h"
 #include "KisGpuRgba8AlphaBlend_p.h"
+#include "KisGpuRgba16Compositing_p.h"
 #include <QFile>
 #include <cmath>
 #include <stdexcept>
@@ -327,6 +328,11 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
                 const bool wholeRectangle = layer.blendMode == LayerBlendMode::DestinationIn || layer.blendMode == LayerBlendMode::DestinationAtop;
                 if ((!allocated && !(layer.channelMask & 8u)) || (!implicitSources.value(layer.layer) && !wholeRectangle)) continue;
                 allocated = true;
+                if (format == PixelFormat::Rgba16 && layer.blendMode != LayerBlendMode::Normal) {
+                    const auto alpha = quint16(quint64(source[3]) * (quint32(layer.opacity) * 257u) / 65535u);
+                    pixel = Detail::separableRgba16Pixel(pixel, source, alpha, layer.channelMask, layer.blendMode);
+                    continue;
+                }
                 if (layer.blendMode != LayerBlendMode::Normal) {
                     pixel = separableProjectionPixel(pixel, source, layer.opacity, layer.channelMask, layer.blendMode);
                     continue;

@@ -8,18 +8,21 @@
 #include "KisGpuOperationDocument.h"
 #include "KisGpuBasicCurveControls.h"
 #include "KisGpuRgba8Compositing_p.h"
+#include "KisGpuRgba16Compositing_p.h"
 #include <QRect>
 #include <optional>
 
 namespace LibrePaint::Image::Gpu::Detail {
 constexpr int PixelHistoryBlockSize = 64;
-inline bool usesAllocatedSourceRegion(const PaintOperation &operation)
+inline bool usesAllocatedSourceRegion(const PaintOperation &operation, PixelFormat format)
 {
     const auto replacesAlpha = [](LayerBlendMode mode) {
         return mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop ||
             transparentSourceAffectsBlend(mode);
     };
-    return !operation.brush.erase && (replacesAlpha(operation.brush.blendMode) ||
+    const bool partialWordChannels = format == PixelFormat::Rgba16 && usesIntegerRgba16Blend(operation.brush.blendMode) &&
+        (operation.brush.alphaLocked || operation.brush.channelWriteMask != 15);
+    return !operation.brush.erase && (partialWordChannels || replacesAlpha(operation.brush.blendMode) ||
         (hasFigureFill(operation.figureStyle) && replacesAlpha(operation.figureStyle.fillBlendMode)));
 }
 inline int pixelTileIndex(int value, int size)

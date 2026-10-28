@@ -69,6 +69,10 @@ fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameter
     if ((values.flags & 1u) != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
     var source = nativePixel(layer.x, layer.y, true);
     if (maskAlpha != 255u) { source.w = mul65535(source.w, maskAlpha * 257u); }
+    if ((values.blendModeOpacity & 255u) != 0u) {
+        let alpha = multiplyThreeWords(source.w, 65535u, (values.blendModeOpacity >> 8u) * 257u);
+        return nativePixelWords(separableRgba16Pixel(destination, source, alpha, values.channelMask, values.blendModeOpacity & 255u), true);
+    }
     let sourceAlpha = projectionMultiply(nativeNormalizedAlpha(source.w), values.opacityBits);
     return nativePixelWords(normalRgba16(destination, source.xyz, sourceAlpha, values.channelMask), true);
 }

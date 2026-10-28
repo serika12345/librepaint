@@ -48,6 +48,7 @@ void KisGpuProjectionArithmeticTest::normalRgba8AlphaAndQuotientsPreserveNearest
     QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
     QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
     QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
+    QFile separable16(QStringLiteral(":/librepaint/gpu/shaders/separable-rgba16.wgsl"));
     QFile over(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"));
     QVERIFY(shared.open(QIODevice::ReadOnly));
     QVERIFY(arithmetic.open(QIODevice::ReadOnly));
@@ -56,10 +57,11 @@ void KisGpuProjectionArithmeticTest::normalRgba8AlphaAndQuotientsPreserveNearest
     QVERIFY(color.open(QIODevice::ReadOnly));
     QVERIFY(normal.open(QIODevice::ReadOnly));
     QVERIFY(native.open(QIODevice::ReadOnly));
+    QVERIFY(separable16.open(QIODevice::ReadOnly));
     QVERIFY(over.open(QIODevice::ReadOnly));
     // Exercise alpha normalization and division on every opacity/source/
     // destination alpha combination that reaches normal RGBA8 division.
-    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + over.readAll() + R"(
+    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + separable16.readAll() + '\n' + over.readAll() + R"(
 @compute @workgroup_size(64)
 fn quotientContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;
@@ -182,6 +184,7 @@ void KisGpuProjectionArithmeticTest::normalRgba8ColorsPreserveBothRoundingSteps(
     QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
     QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
     QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
+    QFile separable16(QStringLiteral(":/librepaint/gpu/shaders/separable-rgba16.wgsl"));
     QFile over(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"));
     QVERIFY(shared.open(QIODevice::ReadOnly));
     QVERIFY(arithmetic.open(QIODevice::ReadOnly));
@@ -190,11 +193,12 @@ void KisGpuProjectionArithmeticTest::normalRgba8ColorsPreserveBothRoundingSteps(
     QVERIFY(color.open(QIODevice::ReadOnly));
     QVERIFY(normal.open(QIODevice::ReadOnly));
     QVERIFY(native.open(QIODevice::ReadOnly));
+    QVERIFY(separable16.open(QIODevice::ReadOnly));
     QVERIFY(over.open(QIODevice::ReadOnly));
     // Normal layer projection supplies the same blend to every RGB channel.
     // Saving and exporting must retain the single-rounded binary32 color,
     // including its subsequent nearest-even quantization to an RGBA8 byte.
-    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + over.readAll() + R"(
+    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + separable16.readAll() + '\n' + over.readAll() + R"(
 @compute @workgroup_size(64)
 fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;

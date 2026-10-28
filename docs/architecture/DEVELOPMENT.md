@@ -400,6 +400,13 @@ RGBA U16の操作とGPU実行は、同じ試験入口で検査する。
 公開画素の書込み・複製は固定版と作業容量を照合する。通常の文書作成・表示・保存の受入れは、
 それぞれの利用側と対象OSの契約を合わせて検証する。
 `TestDocument::testGpuU16PublicPixelsPreserveDocumentEncoding`は、通常作成したU16文書の公開画素と履歴を検査する。
+`TestDocument::testIntegerRgba16EditingAndNativeFiles`は、
+`libs/libkis/tests/TestDocumentU16Blend.cpp`から整数合成の通常利用側を検査する。
+各方式で元の全65,536色成分またはアルファと12境界値を組み合わせ、既存CPU合成と全画素を比較する。
+部分アルファ、不透明度と成分保護、一様なグループ既定色、選択の穴を含む円形マーカー、
+Undo／Redo、KRA保存・再読込後の追加編集とPNG16も照合する。
+`LIBREPAINT_GPU_RESULT_DIR`を指定すると`u16-blend-<方式>/`へ比較画素、参照画素、
+KRAとPNGを保存する。固定した入力の同名ファイルを、反復と各OSで全バイト比較する。
 `testRoundMarkerStrokeMatchesCpuPixels`と`testRoundMarkerSaveMatchesCpuFiles`のU16条件は、通常ツールの描画、
 KRA・PNG16の実ファイル、再読込後の追加編集をCPU参照と比較する。
 `KisGpuColorSamplingTest::samplesU16DocumentColorWithoutQuantizing`は文書色の採色通知を照合し、

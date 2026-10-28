@@ -300,8 +300,9 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let selection = parameters.selection;
     let maskSelection = (parameters.paintFlags & 4096u) != 0u;
     let softSelection = (parameters.paintFlags & 8192u) != 0u;
+    let partialWordSource = (parameters.paintFlags & 32768u) != 0u;
     let emptySourceComposition = parameters.erase == 0u &&
-        (parameters.pattern.w == 41u || parameters.pattern.w == 42u ||
+        (partialWordSource || parameters.pattern.w == 41u || parameters.pattern.w == 42u ||
          parameters.pattern.z == 41u || parameters.pattern.z == 42u ||
          transparentSourceAffectsBlend(parameters.pattern.w) || transparentSourceAffectsBlend(parameters.pattern.z));
     let insideSelectionBounds = pixel.x >= selection.x && pixel.y >= selection.y &&
@@ -389,6 +390,13 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     }
     var writable = (parameters.paintFlags >> 1u) & 15u;
     if ((parameters.paintFlags & 1u) != 0u && parameters.erase == 0u) { writable &= 7u; }
+    if (partialWordSource) {
+        let block = (local.y / 64u) * 4u + local.x / 64u;
+        if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
+        let alpha = multiplyThreeWords(coverage * 257u, selectionAlpha * 257u, parameters.opacityValue);
+        writePaintPixel(index, separableRgba16Pixel(base, vec4<u32>(source, coverage * 257u), alpha, writable, blendMode));
+        return;
+    }
     if (parameters.erase == 0u && (blendMode == 41u || blendMode == 42u || transparentSourceAffectsBlend(blendMode))) {
         let block = (local.y / 64u) * 4u + local.x / 64u;
         if ((parameters.native.w & (1u << block)) == 0u) {
@@ -442,6 +450,11 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     } else {
         // Generic CPU operations quantize the three-factor product once.
         // Erase and channel-copy retain their distinct two-factor orders.
+        if (parameters.native.z != 0u) {
+            let alpha = multiplyThreeWords(coverage * 257u, selectionAlpha * 257u, parameters.opacityValue);
+            writePaintPixel(index, separableRgba16Pixel(base, vec4<u32>(source, coverage * 257u), alpha, writable, blendMode));
+            return;
+        }
         var alpha = multiplyThreeBytes(coverage, selectionAlpha, parameters.opacityValue);
         if (blendMode == 26u) {
             alpha = mul255(mul255(coverage, selectionAlpha), parameters.opacityValue);
