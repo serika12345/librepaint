@@ -303,7 +303,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let emptySourceComposition = parameters.erase == 0u &&
         (parameters.pattern.w == 41u || parameters.pattern.w == 42u ||
          parameters.pattern.z == 41u || parameters.pattern.z == 42u ||
-         colorIsCoupled(parameters.pattern.w) || colorIsCoupled(parameters.pattern.z));
+         transparentSourceAffectsBlend(parameters.pattern.w) || transparentSourceAffectsBlend(parameters.pattern.z));
     let insideSelectionBounds = pixel.x >= selection.x && pixel.y >= selection.y &&
         pixel.x < selection.x + selection.z && pixel.y < selection.y + selection.w;
     var selectionAlpha = 255u;
@@ -373,6 +373,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let base = paintBase(index);
     var source = nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u).xyz;
     var coverage = strokeCoverage;
+    var sourceHasColor = strokeCoverage != 0u;
     var blendMode = parameters.pattern.w;
     if ((figureFlags & 1u) != 0u) {
         var fillColor = nativePixel(bitcast<u32>(parameters.mirror.z), parameters.native.y, parameters.native.z != 0u);
@@ -381,19 +382,29 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         // Native marker writes retain the fill color at equal temporary alpha.
         if (fillAlpha >= coverage) {
             source = fillColor.xyz;
+            sourceHasColor = fillCoverage != 0u;
             coverage = fillAlpha;
             blendMode = parameters.pattern.z;
         }
     }
     var writable = (parameters.paintFlags >> 1u) & 15u;
     if ((parameters.paintFlags & 1u) != 0u && parameters.erase == 0u) { writable &= 7u; }
-    if (parameters.erase == 0u && (blendMode == 41u || blendMode == 42u || colorIsCoupled(blendMode))) {
+    if (parameters.erase == 0u && (blendMode == 41u || blendMode == 42u || transparentSourceAffectsBlend(blendMode))) {
         let block = (local.y / 64u) * 4u + local.x / 64u;
         if ((parameters.native.w & (1u << block)) == 0u) {
             writePaintPixel(index, base);
             return;
         }
+        if (blendMode == 127u) {
+            if (!sourceHasColor) { source = vec3<u32>(0u); }
+            writePaintPixel(index, unpackPixel(markerRgba8Pixel(base, vec4<u32>(source, coverage), parameters.opacityValue, writable, selectionAlpha)));
+            return;
+        }
         let alpha = multiplyThreeBytes(coverage, selectionAlpha, parameters.opacityValue);
+        if (blendMode == 128u || blendMode == 129u) {
+            writePaintPixel(index, unpackPixel(specialAlphaRgba8Pixel(base, vec4<u32>(source, alpha), 255u, writable, blendMode)));
+            return;
+        }
         if (colorIsCoupled(blendMode)) {
             writePaintPixel(index, unpackPixel(coupledRgba8Pixel(base, vec4<u32>(source, coverage), alpha, writable, blendMode)));
         } else {

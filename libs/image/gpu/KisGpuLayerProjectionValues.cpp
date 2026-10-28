@@ -5,6 +5,7 @@
 #include "KisGpuOperationDocument.h"
 #include "KisGpuNonlinearRgba8_p.h"
 #include "KisGpuRgba8Compositing_p.h"
+#include "KisGpuRgba8AlphaBlend_p.h"
 #include <QFile>
 #include <cmath>
 #include <stdexcept>
@@ -95,6 +96,7 @@ quint32 quantizedBlendChannel(LayerBlendMode mode, quint32 source, quint32 desti
 RgbaPixel separableProjectionPixel(RgbaPixel destination,
     const RgbaPixel &source, quint8 opacity, quint8 mask, LayerBlendMode mode)
 {
+    if (Detail::usesSpecialAlphaBlend(mode)) return Detail::specialAlphaRgba8Pixel(destination, source, opacity, mask, mode);
     if (Detail::isCoupledBlend(mode)) return Detail::coupledRgba8Pixel(destination, source, opacity, mask, mode);
     // RGBA8 generic separable composition quantizes opacity, products and blend
     // terms independently before the final integer division.
@@ -264,7 +266,7 @@ QList<LayerProjectionInput> compositionInputs(const QHash<QUuid, QList<const Lay
         const auto value = pending.takeLast();
         const auto &layer = *value.layer;
         const auto opacity = quint8(int(layer.opacity) * value.opacity / 255);
-        if (!layer.visible || !opacity) continue;
+        if (!layer.visible || (!opacity && !Detail::transparentSourceAffectsBlend(layer.blendMode))) continue;
         if (layer.passThrough) appendChildren(layer.uuid, opacity, layer.projectionChannelMask);
         else result.append({layer.id, opacity, quint8(layer.projectionChannelMask & value.parentMask), layer.blendMode});
     }
@@ -287,6 +289,7 @@ QList<LayerProjectionInput> DocumentVersion::projectionInputs(LayerId group) con
 QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
 {
     QHash<LayerId, RgbaPixel> result;
+    QHash<LayerId, bool> implicitSources;
     QHash<QUuid, const Layer *> identities;
     QHash<QUuid, QList<const Layer *>> children;
     QHash<LayerId, int> remaining;
@@ -294,7 +297,10 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
     for (const auto &layer : layers) {
         identities.insert(layer.uuid, &layer);
         children[layer.parentUuid].append(&layer);
-        if (layer.kind == LayerKind::Paint) result.insert(layer.id, layer.defaultPixel);
+        if (layer.kind == LayerKind::Paint) {
+            result.insert(layer.id, layer.defaultPixel);
+            implicitSources.insert(layer.id, layer.defaultPixel[3] != 0);
+        }
         else remaining.insert(layer.id, 0);
     }
     for (const auto &layer : layers) {
@@ -310,15 +316,17 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
         const auto ownChildren = children.value(group->uuid);
         const auto inputs = compositionInputs(children, group->uuid);
         RgbaPixel pixel{};
+        bool allocated = false;
         if (ownChildren.size() == 1 && !ownChildren.first()->passThrough && inputs.size() == 1 &&
             inputs.first().opacity == 255 && inputs.first().channelMask == 15 && inputs.first().blendMode == LayerBlendMode::Normal) {
             pixel = result.value(inputs.first().layer);
+            allocated = implicitSources.value(inputs.first().layer);
         } else {
             for (const auto &layer : inputs) {
                 auto source = result.value(layer.layer);
-                // A transparent default has no implicit native source extent.
-                // Allocated transparent pixels are composed by the tile path.
-                if (Detail::isCoupledBlend(layer.blendMode) && !source[3]) continue;
+                const bool wholeRectangle = layer.blendMode == LayerBlendMode::DestinationIn || layer.blendMode == LayerBlendMode::DestinationAtop;
+                if ((!allocated && !(layer.channelMask & 8u)) || (!implicitSources.value(layer.layer) && !wholeRectangle)) continue;
+                allocated = true;
                 if (layer.blendMode != LayerBlendMode::Normal) {
                     pixel = separableProjectionPixel(pixel, source, layer.opacity, layer.channelMask, layer.blendMode);
                     continue;
@@ -353,6 +361,7 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
             }
         }
         result.insert(group->id, pixel);
+        implicitSources.insert(group->id, allocated);
         if (!group->parentUuid.isNull()) {
             const auto parent = identities.value(group->parentUuid);
             if (--remaining[parent->id] == 0) ready.append(parent);

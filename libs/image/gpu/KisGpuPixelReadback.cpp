@@ -283,44 +283,34 @@ LayerTileCoordinatesOutcome Execution::layerTileCoordinates(DocumentHandle handl
     outcome.region = {-limit, -limit, 2 * limit, 2 * limit};
     const Layer *selected = nullptr;
     for (const auto &value : pinned->layers) if (value.id == layer) selected = &value;
-    for (const auto &operation : selected->operations) {
-        if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
-            if ((*write)->writtenAreas.size() > maximumBytes / qsizetype(sizeof(QRect)) - outcome.writtenAreas.size())
-                return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
-            outcome.writtenAreas.append((*write)->writtenAreas);
-        } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
-            for (auto &area : outcome.writtenAreas) area = area.translated((*translation)->offset).intersected(outcome.region);
-        } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
-            for (auto &area : outcome.writtenAreas) area &= (*crop)->rect.normalized();
-        } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
-            if (!(*filter)->selectionRect.isEmpty())
-                outcome.writtenAreas.append((*filter)->selectionRect.intersected(outcome.region));
-        } else {
-            const auto &paint = *std::get<PaintSnapshot>(operation);
-            if (paint.figureStyle.outline) {
-                const auto appendWrittenAreas = [&](const auto &dabs) {
-                    if (!dabs) return paint.brush.gaussianWash ? ExecutionCode::InvalidRequest : ExecutionCode::CapacityExceeded;
-                    if (dabs->size() > maximumBytes / qsizetype(sizeof(QRect)) - outcome.writtenAreas.size())
-                        return ExecutionCode::CapacityExceeded;
-                    for (const auto &dab : *dabs) outcome.writtenAreas.append(dab.bounds().intersected(outcome.region));
-                    return ExecutionCode::Success;
-                };
-                const auto status = paint.brush.gaussianWash ?
-                    appendWrittenAreas(Detail::gaussianDabs(paint, paint.id == pinned->pendingOperation())) :
-                    appendWrittenAreas(Detail::markerDabs(paint, paint.id == pinned->pendingOperation(), outcome.region));
-                if (status != ExecutionCode::Success)
-                    return reject(status, status == ExecutionCode::InvalidRequest ?
-                        QStringLiteral("Layer written-area geometry is unsupported") : QStringLiteral("Layer written-area capacity exceeded"));
+    LayerTileCoordinatesOutcome result{ExecutionCode::Success, {}, {}, {}};
+    if (selected->kind == LayerKind::Paint) {
+        const auto allocation = Detail::paintLayerAllocation(pinned, *selected,
+            qMin(Detail::PaintGeometryElementLimit, maximumBytes / qsizetype(sizeof(QRect))));
+        if (!allocation) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Layer allocation geometry capacity exceeded"));
+        QSet<quint64> coordinates;
+        for (const auto &area : allocation->blocks) {
+            result.writtenAreas.append(area);
+            const int left = Detail::pixelTileIndex(area.left(), TileRenderer::TileSize);
+            const int top = Detail::pixelTileIndex(area.top(), TileRenderer::TileSize);
+            const int right = Detail::pixelTileIndex(area.right(), TileRenderer::TileSize);
+            const int bottom = Detail::pixelTileIndex(area.bottom(), TileRenderer::TileSize);
+            if (qint64(right - left + 1) * (bottom - top + 1) > maximumTiles)
+                return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Complete layer pixel capacity exceeded"));
+            for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                coordinates.insert(Detail::key(x, y));
+                if (coordinates.size() > maximumTiles)
+                    return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Complete layer pixel capacity exceeded"));
             }
         }
-        if (outcome.writtenAreas.size() > maximumBytes / qsizetype(sizeof(QRect)))
-            return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Layer written-area capacity exceeded"));
+        auto ordered = coordinates.values();
+        std::sort(ordered.begin(), ordered.end());
+        for (const auto coordinate : ordered) result.coordinates.append(Detail::coordinate(coordinate));
+    } else {
+        const auto coordinates = layerCoordinates(pinned, *selected, outcome.region, maximumTiles);
+        if (!coordinates) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Complete group pixel capacity exceeded"));
+        for (const auto coordinate : *coordinates) result.coordinates.append(Detail::coordinate(coordinate));
     }
-    outcome.writtenAreas.removeIf([](const QRect &area) { return area.isEmpty(); });
-    const auto coordinates = layerCoordinates(pinned, *selected, outcome.region, maximumBytes / RgbaTile::byteCount(pinned->format));
-    if (!coordinates) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Complete layer pixel capacity exceeded"));
-    LayerTileCoordinatesOutcome result{ExecutionCode::Success, {}, outcome.writtenAreas, {}};
-    for (const auto coordinate : *coordinates) result.coordinates.append(Detail::coordinate(coordinate));
     return result;
 }
 

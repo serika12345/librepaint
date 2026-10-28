@@ -22,7 +22,7 @@ std::array<quint32, 2> packedPixelWords(const RgbaPixel &rgba, PixelFormat forma
 
 bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<PaintJob> &jobs,
                       std::size_t first, WGPUBuffer zero, WGPUBuffer unusedCoverage,
-                      WGPUBuffer unusedSelection, WGPUBuffer unusedPattern, WGPUTextureView nonlinearRgba8)
+                      WGPUBuffer unusedSelection, WGPUBuffer unusedPattern, WGPUTextureView nonlinearRgba8, WGPUTextureView greaterRgba8)
 {
     if (first == jobs.size()) return true;
     WGPULimits limits{};
@@ -76,7 +76,7 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
             auto &job = jobs[index];
             wgpuBufferAddRef(buffer.get());
             job.inputs.reset(buffer.get());
-            WGPUBindGroupEntry entries[10]{};
+            WGPUBindGroupEntry entries[11]{};
             WGPUBuffer buffers[] = {job.inputs.get(), geometryBytes(job) == 0 ? zero : job.inputs.get(),
                                     job.input ? job.input->pixels.get() : zero, job.output->pixels.get(),
                                     job.fillEdges ? job.fillEdges->get() : zero,
@@ -97,9 +97,11 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
             }
             entries[9].binding = 9;
             entries[9].textureView = nonlinearRgba8;
+            entries[10].binding = 10;
+            entries[10].textureView = greaterRgba8;
             WGPUBindGroupDescriptor descriptor{};
             descriptor.layout = layout;
-            descriptor.entryCount = 10;
+            descriptor.entryCount = 11;
             descriptor.entries = entries;
             job.bindings.reset(wgpuDeviceCreateBindGroup(device.nativeDevice(), &descriptor));
             if (!job.bindings || !device.diagnostic().isEmpty()) return false;

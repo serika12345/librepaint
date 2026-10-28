@@ -348,12 +348,21 @@ CPUの実際の合成処理とGPUの投影を比較し、最初の不一致の�
 `testCoupledBlendKeepsSparseSourceExtent`は、離れた書込み、間の空タイル、整数移動と切抜きを
 通常の文書APIから操作し、元レイヤーの確保領域の内側と外側をCPU投影で照合する。
 `testCoupledBlendKeepsImplicitGroupPixels`は透明・半透明の既定色と確保済みの透明画素を
-通常レイヤーとグループで比較する。
+通常レイヤーとグループで比較し、空の描画先に対するアルファ継承も照合する。
+`testAlphaBlendMatchesEveryRgba8AlphaPair`はMarker、GreaterとSAI Additionの
+元と下地の全65,536アルファ対を既存CPU合成で照合する。
+`testSpecialAlphaPatternFillMatchesNative`は透明RGBを持つパターン、部分不透明度、
+選択の穴と成分保護を実際のCPU塗りと比較する。
+`testKraReopenKeepsFillAllocationAfterCanvasGrowth`は塗りの確保領域をKRAへ保存し、
+再読込みとキャンバス拡張後の追加編集をCPUと同じ画素で照合する。
 非線形なRGBA8合成の値資源は、[生成・構成・出典](../../libs/image/gpu/blend/README.md)に従って
 設定済みのCPU参照から作る。`scripts/gpu/generate-rgba8-blend-tables`は参照版と入力のハッシュを記録する。
 上の全入力試験と編集・保存試験は、資源を使う方式も同じCPU処理で照合する。
 `nonlinearBlendValuesShareBoundedResources`は方式変更と固定版を跨ぐ資源共有を、
 `nonlinearResourceBudgetPreservesPixelsAndRetry`は描画・投影の容量拒否後の画素と再試行を検査する。
+Greaterのアルファ値資源は`scripts/gpu/generate-rgba8-alpha-tables`で生成する。
+`greaterBlendValuesShareBoundedResources`と`greaterResourceBudgetPreservesPixelsAndRetry`が
+独立した資源の共有、固定版、容量拒否と再試行を検査する。
 `KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot`は、成分Copyで生じた
 透明RGBを保持するグループと、上位で通常合成した結果、保持した旧投影を照合する。
 `testReplacingAlphaPaintMatchesCpuSourceRegions`は、Destination方式とRGBを組み合わせる方式のブラシを

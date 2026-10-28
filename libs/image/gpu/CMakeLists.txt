@@ -6,6 +6,7 @@ kis_add_library(kritaimagegpuoperations SHARED
     KisGpuCanvasResize.cpp
     KisGpuLayerProjectionValues.cpp
     KisGpuCoupledColorBlend.cpp
+    KisGpuRgba8AlphaBlend.cpp
     KisGpuRasterPixels.cpp
     KisGpuRasterOperations.cpp
 )
@@ -28,10 +29,16 @@ qt6_add_resources(kritaimagegpuoperations krita_gpu_blend_values
     FILES blend/rgba8-nonlinear.bin
 )
 krita_ios_add_static_resource(krita_gpu_blend_values)
+qt6_add_resources(kritaimagegpuoperations krita_gpu_alpha_values
+    PREFIX "/librepaint/gpu"
+    FILES blend/rgba8-greater-alpha.bin
+)
+krita_ios_add_static_resource(krita_gpu_alpha_values)
 
 find_package(WGPUNative REQUIRED)
 add_library(kritaimagegputiles OBJECT
     KisGpuPaintGeometry.cpp
+    KisGpuLayerAllocation.cpp
     KisGpuGaussianBrush.cpp
     KisGpuBrushDabs.cpp
     KisGpuMarkerBrush.cpp

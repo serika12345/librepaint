@@ -25,6 +25,9 @@ inline quint8 blendByte(quint8 destination, quint8 source, quint32 alpha)
 inline bool isCoupledBlend(LayerBlendMode mode)
 { return mode >= LayerBlendMode::ColorHsy && mode <= LayerBlendMode::LambertLightingGamma22; }
 
+inline bool transparentSourceAffectsBlend(LayerBlendMode mode)
+{ return isCoupledBlend(mode) || (mode >= LayerBlendMode::Marker && mode <= LayerBlendMode::LuminositySai); }
+
 /** Pure uniform-pixel counterpart of the GPU's coupled RGB compositor.
  * Intermediate binary32/binary64 operations retain native rounding stages.
  */

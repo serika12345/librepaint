@@ -333,7 +333,10 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("tangent_normalmap") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("combine_normal") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("lambert_lighting") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("lambert_lighting_gamma2.2")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("lambert_lighting_gamma2.2") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("marker") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("greater") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("luminosity_sai")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -871,6 +874,9 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::ReorientedNormalMap ? QStringLiteral("combine_normal") :
                              layer.blendMode == LayerBlendMode::LambertLighting ? QStringLiteral("lambert_lighting") :
                              layer.blendMode == LayerBlendMode::LambertLightingGamma22 ? QStringLiteral("lambert_lighting_gamma2.2") :
+                             layer.blendMode == LayerBlendMode::Marker ? QStringLiteral("marker") :
+                             layer.blendMode == LayerBlendMode::Greater ? QStringLiteral("greater") :
+                             layer.blendMode == LayerBlendMode::LuminositySai ? QStringLiteral("luminosity_sai") :
                              QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
@@ -1484,6 +1490,9 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("combine_normal") ? LayerBlendMode::ReorientedNormalMap :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("lambert_lighting") ? LayerBlendMode::LambertLighting :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("lambert_lighting_gamma2.2") ? LayerBlendMode::LambertLightingGamma22 :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("marker") ? LayerBlendMode::Marker :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("greater") ? LayerBlendMode::Greater :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("luminosity_sai") ? LayerBlendMode::LuminositySai :
             LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));

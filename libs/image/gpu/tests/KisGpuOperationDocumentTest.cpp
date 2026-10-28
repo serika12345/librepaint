@@ -873,8 +873,10 @@ void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuan
         << true << true << 255 << QByteArray::fromHex("866633ea") << QByteArray::fromHex("866633ea") << 9;
     QTest::newRow("selected-components-clear-transparent-default") << QByteArray::fromHex("99663300") << QByteArray::fromHex("56341286")
         << true << true << 255 << QByteArray::fromHex("56000043") << QByteArray::fromHex("56000043") << 9;
-    QTest::newRow("inherited-transparent-default-keeps-hidden-rgb") << QByteArray::fromHex("99663300") << QByteArray::fromHex("56341286")
-        << true << true << 255 << QByteArray::fromHex("170e0500") << QByteArray::fromHex("170e0500") << 7;
+    // KisPainter clips alpha inheritance to the existing destination extent;
+    // these transparent defaults leave the group without an apply region.
+    QTest::newRow("inherited-transparent-default-keeps-empty-group") << QByteArray::fromHex("99663300") << QByteArray::fromHex("56341286")
+        << true << true << 255 << QByteArray::fromHex("00000000") << QByteArray::fromHex("00000000") << 7;
 }
 
 void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuantizedOpacity()

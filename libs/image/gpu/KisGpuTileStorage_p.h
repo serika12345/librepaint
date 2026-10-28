@@ -10,6 +10,7 @@
 #include "KisGpuPaintGeometry_p.h"
 #include <QMap>
 #include <QSet>
+#include "KisGpuLayerAllocation_p.h"
 #include <array>
 #include <map>
 #include "KisGpuNativeResources_p.h"
@@ -46,7 +47,7 @@ struct ProjectionInput {
     LayerBlendMode blendMode = LayerBlendMode::Normal;
     /** Null means the layer contributes without alpha coverage. */
     SelectionMaskSP mask;
-    /** Document-coordinate source extent; only coupled RGB composition clips to it. */
+    /** Document-coordinate clipping for transparent-source or alpha-protected composition. */
     QRect sourceExtent;
     bool operator==(const ProjectionInput &other) const {
         return pixels == other.pixels && opacity == other.opacity && channelMask == other.channelMask &&
@@ -54,8 +55,6 @@ struct ProjectionInput {
     }
 };
 using ProjectionInputs = QMap<quint64, QList<ProjectionInput>>;
-/** Native 64-pixel allocation extent reconstructed from retained geometry, without pixel access. */
-std::optional<QRect> paintLayerSourceExtent(const Snapshot &document, const Layer &layer, qsizetype maximumRectangles);
 }
 
 namespace LibrePaint::Image::Gpu {
@@ -65,6 +64,7 @@ struct RenderedVersion::Data
     std::shared_ptr<Detail::Budget> owner;
     QMap<LayerId, Detail::Tiles> layers;
     QHash<LayerId, QRect> sourceExtents;
+    QHash<LayerId, std::shared_ptr<const Detail::LayerAllocation>> allocations;
     QMap<LayerId, std::shared_ptr<Detail::Tile>> defaults;
     QHash<LayerId, RgbaPixel> defaultPixels;
     QMap<LayerId, Detail::ProjectionInputs> groupInputs;
@@ -80,6 +80,7 @@ struct ProjectedVersion::Data
     RenderedSnapshot source;
     QRect region;
     bool directLayerProjection = false;
+    QRect sourceExtent;
     Detail::Tiles tiles;
     Detail::ProjectionInputs inputs;
 };
@@ -97,6 +98,9 @@ struct TileRenderer::Private
     Detail::NativeTexture nonlinearTexture;
     Detail::NativeTextureView nonlinearView;
     qsizetype nonlinearBytes = 0;
+    Detail::NativeTexture greaterTexture;
+    Detail::NativeTextureView greaterView;
+    qsizetype greaterBytes = 0;
     struct MaskCacheEntry {
         SelectionMaskSP source;
         Detail::CoverageTiles tiles;
@@ -138,6 +142,7 @@ struct TileRenderer::Private
     ~Private();
     /** Full channel values count against the renderer budget and remain immutable. */
     bool prepareNonlinearRgba8(bool full);
+    bool prepareGreaterRgba8(bool full);
     Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main",
         quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr);
     WGPUComputePipeline blendPipeline(bool paint, bool paired, quint32 firstBlend, quint32 secondBlend = 0);

@@ -59,7 +59,7 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha:
 }
 
 fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameters, maskAlpha: u32, position: vec2<i32>) -> vec2<u32> {
-    if (colorIsCoupled(values.blendModeOpacity & 255u) &&
+    if ((transparentSourceAffectsBlend(values.blendModeOpacity & 255u) || (values.channelMask & 8u) == 0u) &&
         (any(position < vec2<i32>(values.sourceLeft, values.sourceTop)) ||
          any(position >= vec2<i32>(values.sourceRight, values.sourceBottom)))) { return base; }
     if ((values.flags & 2u) == 0u) {

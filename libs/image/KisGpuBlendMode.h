@@ -18,6 +18,9 @@ namespace LibrePaint::Image::Gpu {
  */
 inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString &compositeOp)
 {
+    if (compositeOp == COMPOSITE_MARKER) return LayerBlendMode::Marker;
+    if (compositeOp == COMPOSITE_GREATER) return LayerBlendMode::Greater;
+    if (compositeOp == COMPOSITE_LUMINOSITY_SAI) return LayerBlendMode::LuminositySai;
     if (compositeOp == COMPOSITE_OVER) return LayerBlendMode::Normal;
     if (compositeOp == COMPOSITE_MULT) return LayerBlendMode::Multiply;
     if (compositeOp == COMPOSITE_SCREEN) return LayerBlendMode::Screen;
@@ -277,6 +280,9 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::ReorientedNormalMap: return COMPOSITE_COMBINE_NORMAL;
     case LayerBlendMode::LambertLighting: return COMPOSITE_LAMBERT_LIGHTING;
     case LayerBlendMode::LambertLightingGamma22: return COMPOSITE_LAMBERT_LIGHTING_GAMMA_2_2;
+    case LayerBlendMode::Marker: return COMPOSITE_MARKER;
+    case LayerBlendMode::Greater: return COMPOSITE_GREATER;
+    case LayerBlendMode::LuminositySai: return COMPOSITE_LUMINOSITY_SAI;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;

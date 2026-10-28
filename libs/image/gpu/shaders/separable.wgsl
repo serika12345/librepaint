@@ -18,6 +18,7 @@
 // PenumbraA=56, PenumbraB=57, FlatLight=58, HardMixSofterPhotoshop=59.
 // Nonlinear RGBA8 modes GeometricMean through AdditiveSubtractive occupy 60..87.
 @group(0) @binding(9) var nonlinearRgba8: texture_2d_array<u32>;
+@group(0) @binding(10) var greaterRgba8: texture_2d_array<u32>;
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -123,7 +124,61 @@ fn destinationRgba8(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, m
     }
     return packPixel(destination);
 }
+fn transparentSourceAffectsBlend(mode: u32) -> bool { return colorIsCoupled(mode) || (mode >= 127u && mode <= 129u); }
+fn markerRgba8Pixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32, selection: u32) -> u32 {
+    var destination = base;
+    let oldAlpha = base.w;
+    if (mask != 15u && oldAlpha == 0u) { destination = vec4<u32>(0u); }
+    let maskedAlpha = multiplyByte(source.w, selection);
+    let alpha = multiplyByte(maskedAlpha, opacity);
+    var weight = 255u;
+    if (oldAlpha != 0u) { weight = min(255u, (alpha * 255u + oldAlpha / 2u) / oldAlpha); }
+    for (var i = 0u; i < 3u; i += 1u) {
+        if ((mask & (1u << i)) != 0u) { destination[i] = blendByte(destination[i], source[i], weight); }
+    }
+    if ((mask & 8u) != 0u) {
+        destination.w = oldAlpha;
+        if (opacity > oldAlpha) { destination.w = blendByte(oldAlpha, opacity, maskedAlpha); }
+    }
+    return packPixel(destination);
+}
+fn specialAlphaRgba8Pixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32, mode: u32) -> u32 {
+    if (mode == 127u) { return markerRgba8Pixel(base, source, opacity, mask, 255u); }
+    var destination = base;
+    let oldAlpha = base.w;
+    let locked = (mask & 8u) == 0u;
+    if (mask != 15u && oldAlpha == 0u) { destination = vec4<u32>(0u); }
+    let alpha = multiplyThreeBytes(source.w, 255u, opacity);
+    if (mode == 128u) {
+        if (alpha == 0u || oldAlpha == 255u) { return packPixel(destination); }
+        let pair = textureLoad(greaterRgba8, vec2<i32>(i32(oldAlpha), i32(alpha)), 0, 0).xy;
+        for (var i = 0u; i < 3u; i += 1u) {
+            if ((mask & (1u << i)) == 0u) { continue; }
+            if (oldAlpha == 0u) { destination[i] = source[i]; }
+            else if (pair.x != 0u) {
+                let premultiplied = multiplyByte(destination[i], oldAlpha);
+                let mixed = blendByte(premultiplied, source[i], pair.y);
+                destination[i] = min(255u, (mixed * 255u + pair.x / 2u) / pair.x);
+            }
+        }
+        if (!locked) { destination.w = pair.x; }
+        return packPixel(destination);
+    }
+    let nextAlpha = alpha + oldAlpha - multiplyByte(alpha, oldAlpha);
+    if (select(nextAlpha != 0u, oldAlpha != 0u, locked)) {
+        let a = colorDivide(bitcast<u32>(f32(alpha)), 0x437f0000u);
+        for (var i = 0u; i < 3u; i += 1u) {
+            if ((mask & (1u << i)) == 0u) { continue; }
+            let s = colorDivide(bitcast<u32>(f32(source[i])), 0x437f0000u);
+            let d = colorDivide(bitcast<u32>(f32(destination[i])), 0x437f0000u);
+            destination[i] = colorComponentByte(floatAdd(floatMultiply(s, a), d));
+        }
+    }
+    if (!locked) { destination.w = nextAlpha; }
+    return packPixel(destination);
+}
 fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32, mode: u32) -> u32 {
+    if (mode >= 127u && mode <= 129u) { return specialAlphaRgba8Pixel(base, source, opacity, mask, mode); }
     if (colorIsCoupled(mode)) { return coupledRgba8Pixel(base, source, multiplyThreeBytes(source.w, 255u, opacity), mask, mode); }
     if (mode == 41u || mode == 42u) {
         return destinationRgba8(base, source, multiplyThreeBytes(source.w, 255u, opacity), mask, mode);

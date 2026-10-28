@@ -1,4 +1,4 @@
-# Finite RGBA8 channel values
+# Finite RGBA8 blend values
 
 `rgba8-nonlinear.bin` supplies exact channel results for the 28 separable blend
 operations listed in `rgba8-nonlinear.json`. GPU painting and projection read the
@@ -14,6 +14,15 @@ allocation counts against its resident-byte limit. The renderer retains the
 immutable texture for its lifetime. Ordinary rendering binds a single zero
 placeholder until the full resource is needed.
 
+`rgba8-greater-alpha.bin` supplies the Greater compositor's destination alpha and
+quantized color weight for every pair of applied source and destination alpha.
+It uses a separate one-layer `RGBA8Uint` texture: `x = destination alpha`,
+`y = applied source alpha`, `R = resulting alpha`, `G = color weight`, `BA = 0`.
+The 262,144-byte resource has the same lazy upload, resident-byte accounting and
+renderer lifetime as the channel resource. Keeping the resources separate gives
+each consumer its required allocation. Painting, projection and sparse defaults
+use the same pairs, including the native byte saturation after unpremultiplication.
+
 The manifest records the producing revision, algorithm inputs, adopted license,
 mode order and resource hash. The producer evaluates the existing native channel
 functions, including their binary32 input normalization and final byte rounding.
@@ -24,6 +33,7 @@ library and regenerate with:
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/gpu/generate-rgba8-blend-tables
+./scripts/run-shared-test-env ./scripts/gpu/generate-rgba8-alpha-tables
 ```
 
 `--reference-root` selects the checkout providing the reference algorithms;
@@ -39,3 +49,8 @@ alpha, selection and channel protection, group defaults, KRA/PNG, further editin
 and history. The renderer's resource tests cover allocation reuse, retained
 pixels and retry after a capacity rejection. Run these contracts and compare the
 fixed output artifacts on each supported environment before accepting new values.
+`TestDocument::testAlphaBlendMatchesEveryRgba8AlphaPair` compares all 65,536 alpha
+pairs with the native Marker, Greater and SAI Addition compositors. The
+transparent-pattern contract checks selection holes and channel protection;
+the Greater resource contracts check shared residency, retained versions and
+retry after paint or projection capacity rejection.

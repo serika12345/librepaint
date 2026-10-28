@@ -6,10 +6,10 @@
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuPaintJob_p.h"
 #include "KisGpuNonlinearRgba8_p.h"
+#include "KisGpuRgba8AlphaBlend_p.h"
 #include <QFile>
 #include <QThread>
 #include <QSet>
-#include <QRegion>
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -36,70 +36,6 @@ struct CompositeJob
     bool paired = false;
     quint32 blendModes[2]{};
 };
-}
-
-std::optional<QRect> Detail::paintLayerSourceExtent(const Snapshot &document, const Layer &layer, qsizetype maximumRectangles)
-{
-    constexpr int limit = RgbaTile::CoordinateLimit;
-    const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
-    QPoint origin = layer.position;
-    for (const auto &operation : layer.operations)
-        if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) origin -= (*translation)->offset;
-    QRegion allocated;
-    const auto aligned = [&](QRect area) {
-        if (area.isEmpty()) return QRect{};
-        area.translate(-origin);
-        const auto first = QPoint(pixelTileIndex(area.left(), PixelHistoryBlockSize), pixelTileIndex(area.top(), PixelHistoryBlockSize));
-        const auto last = QPoint(pixelTileIndex(area.right(), PixelHistoryBlockSize), pixelTileIndex(area.bottom(), PixelHistoryBlockSize));
-        return QRect(first * PixelHistoryBlockSize + origin, (last + QPoint(1, 1)) * PixelHistoryBlockSize + origin - QPoint(1, 1)).intersected(domain);
-    };
-    const auto append = [&](QRect area) { allocated += aligned(area); return allocated.rectCount() <= maximumRectangles; };
-    for (const auto &operation : layer.operations) {
-        if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
-            if ((*write)->writtenAreas.isEmpty()) {
-                for (const auto &tile : (*write)->tiles)
-                    if (!append(QRect(tile->coordinate() * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) return std::nullopt;
-            } else for (const auto &area : (*write)->writtenAreas) if (!append(area)) return std::nullopt;
-        } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
-            allocated.translate((*translation)->offset);
-            allocated &= domain;
-            origin += (*translation)->offset;
-        } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
-            allocated &= aligned((*crop)->rect.normalized());
-        } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
-            if (layer.defaultPixel == RgbaPixel{}) continue;
-            auto area = QRect(QPoint(), document->size);
-            if (!(*filter)->selectionRect.isEmpty() && !(*filter)->selectionInverted) area &= (*filter)->selectionRect;
-            if (!append(area)) return std::nullopt;
-        } else {
-            const auto &paint = *std::get<PaintSnapshot>(operation);
-            auto clip = domain;
-            if (paint.compositionBounds) clip &= *paint.compositionBounds;
-            if (!paint.selectionRect.isEmpty() && !paint.selectionInverted) clip &= paint.selectionRect;
-            if (paint.figureStyle.outline) {
-                const auto addDabs = [&](const auto &dabs) {
-                    if (!dabs) return false;
-                    for (const auto &dab : *dabs) if (!append(dab.bounds().intersected(clip))) return false;
-                    return true;
-                };
-                if (paint.brush.gaussianWash) {
-                    if (!addDabs(gaussianDabs(paint, document->pendingOperation() == paint.id))) return std::nullopt;
-                } else if (!addDabs(markerDabs(paint, document->pendingOperation() == paint.id, clip, true))) return std::nullopt;
-            }
-            if (hasFigureFill(paint.figureStyle)) {
-                const auto edges = figureFillEdges(paint);
-                if (!edges) return std::nullopt;
-                const auto blocks = figureFillTiles(*edges, paint.brush, clip, maximumRectangles, PixelHistoryBlockSize);
-                if (!blocks) return std::nullopt;
-                for (const auto block : *blocks)
-                    if (!append(QRect(coordinate(block) * PixelHistoryBlockSize, QSize(PixelHistoryBlockSize, PixelHistoryBlockSize)).intersected(clip))) return std::nullopt;
-            }
-        }
-        if (allocated.rectCount() > maximumRectangles) return std::nullopt;
-    }
-    auto extent = allocated.boundingRect();
-    if (layer.defaultPixel[3]) extent |= QRect(QPoint(), document->size);
-    return extent;
 }
 
 std::shared_ptr<CoverageTile> TileRenderer::Private::coverageTile(const SelectionMaskSP &mask, quint64 key)
@@ -307,6 +243,24 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     // A single fully opaque paint layer supplies the legacy transparent-root projection,
     // including the RGB components of pixels whose alpha is zero.
     const auto background = group || data->directLayerProjection ? std::shared_ptr<Tile>{} : document->m_data->background;
+    QHash<LayerId, QRect> sourceClips;
+    QRect destinationExtent = !group && document->document()->projectionBackground[3] ? QRect(QPoint(), document->document()->size) : QRect{};
+    QPoint targetOrigin;
+    if (group) for (const auto &layer : document->document()->layers) if (layer.id == group) targetOrigin = layer.position;
+    for (const auto &input : inputs) {
+        auto extent = document->m_data->sourceExtents.value(input.layer);
+        if (input.blendMode == LayerBlendMode::DestinationIn || input.blendMode == LayerBlendMode::DestinationAtop)
+            extent = QRect(QPoint(), document->document()->size);
+        if (!(input.channelMask & 8u)) extent &= destinationExtent;
+        sourceClips[input.layer] = extent;
+        if (!extent.isEmpty()) {
+            const auto first = QPoint(pixelTileIndex(extent.left() - targetOrigin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.top() - targetOrigin.y(), PixelHistoryBlockSize));
+            const auto last = QPoint(pixelTileIndex(extent.right() - targetOrigin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.bottom() - targetOrigin.y(), PixelHistoryBlockSize));
+            destinationExtent |= QRect(first * PixelHistoryBlockSize + targetOrigin,
+                (last + QPoint(1, 1)) * PixelHistoryBlockSize + targetOrigin - QPoint(1, 1));
+        }
+    }
+    data->sourceExtent = data->directLayerProjection && inputs.size() == 1 ? document->m_data->sourceExtents.value(inputs.first().layer) : destinationExtent;
     bool implicit = bool(background);
     for (const auto &layer : inputs) {
         if (!document->m_data->selected.contains(layer.layer)) {
@@ -339,15 +293,15 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const auto &tiles = document->m_data->layers[layer.layer];
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
-            const auto extent = document->m_data->sourceExtents.value(layer.layer);
-            const bool coupled = layer.blendMode >= LayerBlendMode::ColorHsy && layer.blendMode <= LayerBlendMode::LambertLightingGamma22;
+            const auto extent = sourceClips.value(layer.layer);
+            const bool clipsSource = transparentSourceAffectsBlend(layer.blendMode) || !(layer.channelMask & 8u);
             const QRect tileBounds(Detail::coordinate(coordinate) * TileSize, QSize(TileSize, TileSize));
-            if (coupled && !extent.intersects(tileBounds)) continue;
-            if (!pixels && !coupled && layer.blendMode != LayerBlendMode::DestinationIn &&
+            if (clipsSource && !extent.intersects(tileBounds)) continue;
+            if (!pixels && !clipsSource && layer.blendMode != LayerBlendMode::DestinationIn &&
                 layer.blendMode != LayerBlendMode::DestinationAtop) continue;
             ProjectionInput input{pixels, layer.opacity, layer.channelMask, layer.blendMode};
             input.mask = layerMasks.value(layer.layer);
-            if (coupled) input.sourceExtent = extent;
+            if (clipsSource) input.sourceExtent = extent;
             data->inputs[coordinate].append(input);
         }
     }
@@ -357,6 +311,12 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     if (nonlinear && !d.prepareNonlinearRgba8(true))
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 d.error.isEmpty() ? QStringLiteral("GPU nonlinear RGBA8 resource budget exhausted") : d.error};
+    const bool greater = std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
+        return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return input.blendMode == LayerBlendMode::Greater; });
+    });
+    if (greater && !d.prepareGreaterRgba8(true))
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU Greater alpha resource budget exhausted") : d.error};
     const auto firstComposition = [&](const auto &inputs) {
         return inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
                                                 !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
@@ -490,7 +450,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 addBinding(3, parameters);
                 addBinding(6, job.masks[0] ? job.masks[0]->pixels.get() : d.opaqueMask.get());
             }
-            WGPUBindGroupEntry entries[8]{};
+            WGPUBindGroupEntry entries[9]{};
             for (quint32 index = 0; index < bindingCount; ++index) {
                 entries[index].binding = bindingIndices[index];
                 entries[index].buffer = buffers[index];
@@ -498,9 +458,11 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             }
             entries[bindingCount].binding = 9;
             entries[bindingCount].textureView = d.nonlinearView.get();
+            entries[bindingCount + 1].binding = 10;
+            entries[bindingCount + 1].textureView = d.greaterView.get();
             WGPUBindGroupDescriptor descriptor{};
             descriptor.layout = paired ? d.pairedProjectionLayout.get() : d.projectionLayout.get();
-            descriptor.entryCount = bindingCount + 1;
+            descriptor.entryCount = bindingCount + 2;
             descriptor.entries = entries;
             job.bindings.reset(wgpuDeviceCreateBindGroup(d.device->nativeDevice(), &descriptor));
             if (!job.bindings || !d.device->diagnostic().isEmpty())

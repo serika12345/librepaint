@@ -7,6 +7,7 @@
 
 #include "KisGpuOperationDocument.h"
 #include "KisGpuBasicCurveControls.h"
+#include "KisGpuRgba8Compositing_p.h"
 #include <QRect>
 #include <optional>
 
@@ -16,7 +17,7 @@ inline bool usesAllocatedSourceRegion(const PaintOperation &operation)
 {
     const auto replacesAlpha = [](LayerBlendMode mode) {
         return mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop ||
-            (mode >= LayerBlendMode::ColorHsy && mode <= LayerBlendMode::LambertLightingGamma22);
+            transparentSourceAffectsBlend(mode);
     };
     return !operation.brush.erase && (replacesAlpha(operation.brush.blendMode) ||
         (hasFigureFill(operation.figureStyle) && replacesAlpha(operation.figureStyle.fillBlendMode)));

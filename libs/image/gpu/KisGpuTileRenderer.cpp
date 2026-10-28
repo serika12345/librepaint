@@ -6,6 +6,7 @@
 #include "KisGpuTileRenderer.h"
 #include "KisGpuPaintJob_p.h"
 #include "KisGpuNonlinearRgba8_p.h"
+#include "KisGpuRgba8AlphaBlend_p.h"
 
 #include <QFile>
 #include <QMap>
@@ -41,7 +42,7 @@ TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
       opaqueMask(createBuffer(this->device->nativeDevice(), SelectionMask::AlphaTileBytes,
                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst))
 {
-    if (!prepareNonlinearRgba8(false)) return;
+    if (!prepareNonlinearRgba8(false) || !prepareGreaterRgba8(false)) return;
     if (opaqueMask) {
         const QByteArray opaque(SelectionMask::AlphaTileBytes, char(255));
         wgpuQueueWriteBuffer(this->device->queue(), opaqueMask.get(), 0,
@@ -55,7 +56,7 @@ TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
 }
 
 TileRenderer::Private::~Private()
-{ budget->used -= nonlinearBytes; }
+{ budget->used -= nonlinearBytes + greaterBytes; }
 
 bool TileRenderer::Private::prepareNonlinearRgba8(bool full)
 {
@@ -97,6 +98,49 @@ bool TileRenderer::Private::prepareNonlinearRgba8(bool full)
     }
     nonlinearTexture = std::move(texture);
     nonlinearView = std::move(view);
+    return true;
+}
+
+bool TileRenderer::Private::prepareGreaterRgba8(bool full)
+{
+    if ((full && greaterBytes) || (!full && greaterView)) return true;
+    if (full && !ensureTileCapacity(GreaterRgba8Bytes / TileRenderer::TileBytes, PixelFormat::Rgba8)) return false;
+    WGPUTextureDescriptor descriptor{};
+    descriptor.dimension = WGPUTextureDimension_2D;
+    descriptor.size = full ? WGPUExtent3D{256, 256, 1} : WGPUExtent3D{1, 1, 1};
+    descriptor.format = WGPUTextureFormat_RGBA8Uint;
+    descriptor.mipLevelCount = descriptor.sampleCount = 1;
+    descriptor.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+    NativeTexture texture(wgpuDeviceCreateTexture(device->nativeDevice(), &descriptor));
+    WGPUTextureViewDescriptor viewDescriptor{};
+    viewDescriptor.dimension = WGPUTextureViewDimension_2DArray;
+    viewDescriptor.format = WGPUTextureFormat_RGBA8Uint;
+    viewDescriptor.mipLevelCount = 1;
+    viewDescriptor.arrayLayerCount = descriptor.size.depthOrArrayLayers;
+    viewDescriptor.aspect = WGPUTextureAspect_All;
+    NativeTextureView view(texture ? wgpuTextureCreateView(texture.get(), &viewDescriptor) : nullptr);
+    if (!texture || !view || !device->diagnostic().isEmpty()) {
+        error = QStringLiteral("GPU Greater RGBA8 texture allocation failed");
+        return false;
+    }
+    if (full) {
+        const auto &bytes = greaterRgba8Values();
+        WGPUTexelCopyTextureInfo destination{};
+        destination.texture = texture.get();
+        destination.aspect = WGPUTextureAspect_All;
+        WGPUTexelCopyBufferLayout layout{};
+        layout.bytesPerRow = 256 * 4;
+        layout.rowsPerImage = 256;
+        wgpuQueueWriteTexture(device->queue(), &destination, bytes.constData(), size_t(bytes.size()), &layout, &descriptor.size);
+        if (!device->diagnostic().isEmpty()) {
+            error = QStringLiteral("GPU Greater RGBA8 resource upload failed");
+            return false;
+        }
+        greaterBytes = GreaterRgba8Bytes;
+        budget->used += greaterBytes;
+    }
+    greaterTexture = std::move(texture);
+    greaterView = std::move(view);
     return true;
 }
 
@@ -337,6 +381,16 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     if (nonlinear && !d.prepareNonlinearRgba8(true))
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 d.error.isEmpty() ? QStringLiteral("GPU nonlinear RGBA8 resource budget exhausted") : d.error};
+    const bool greater = std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
+        return selected.contains(layer.id) && std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &operation) {
+            const auto paint = std::get_if<PaintSnapshot>(&operation);
+            return paint && !(*paint)->brush.erase && ((*paint)->brush.blendMode == LayerBlendMode::Greater ||
+                (hasFigureFill((*paint)->figureStyle) && (*paint)->figureStyle.fillBlendMode == LayerBlendMode::Greater));
+        });
+    });
+    if (greater && !d.prepareGreaterRgba8(true))
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU Greater alpha resource budget exhausted") : d.error};
     auto data = std::make_shared<RenderedVersion::Data>();
     data->document = document;
     data->owner = d.budget;
@@ -394,7 +448,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         const auto empty = d.zeroBuffer(commands, document->format);
         if (!empty) return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty tile allocation failed")};
         if (!preparePaintJobs(*d.device, d.layout.get(), jobs, recordedJobs, empty,
-                              d.unusedCoverage.get(), d.unusedSelection.get(), d.unusedPattern.get(), d.nonlinearView.get()))
+                              d.unusedCoverage.get(), d.unusedSelection.get(), d.unusedPattern.get(), d.nonlinearView.get(), d.greaterView.get()))
             return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
         for (size_t i = recordedFills; i < fillUploads.size(); ++i) {
             const auto &upload = fillUploads[i];
@@ -451,23 +505,31 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         jobs.push_back(std::move(fill));
     }
     const bool needsSourceExtents = std::any_of(document->layers.cbegin(), document->layers.cend(), [](const auto &layer) {
-        return layer.blendMode >= LayerBlendMode::ColorHsy && layer.blendMode <= LayerBlendMode::LambertLightingGamma22;
+        return transparentSourceAffectsBlend(layer.blendMode) || !(layer.projectionChannelMask & 8u);
     });
     for (const auto &layer : document->layers) {
         if (!selected.contains(layer.id) || (region && region->isEmpty())) continue;
         if (layer.passThrough && !requestedGroups.contains(layer.id)) continue;
-        if (needsSourceExtents && layer.kind == LayerKind::Paint) {
-            std::optional<QRect> extent;
-            if (base && base->document()->size == document->size && base->m_data->sourceExtents.contains(layer.id)) {
+        const bool clipsPainting = std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &value) {
+            const auto paint = std::get_if<PaintSnapshot>(&value);
+            return paint && ((*paint)->brush.alphaLocked || !((*paint)->brush.channelWriteMask & 8u));
+        });
+        std::shared_ptr<const LayerAllocation> allocation;
+        if ((needsSourceExtents || clipsPainting) && layer.kind == LayerKind::Paint) {
+            if (base && base->document()->size == document->size && base->m_data->allocations.contains(layer.id)) {
                 const auto &previous = base->document()->layers;
                 const auto old = std::find_if(previous.cbegin(), previous.cend(), [&](const auto &value) { return value.id == layer.id; });
                 if (old != previous.cend() && old->position == layer.position && old->defaultPixel == layer.defaultPixel &&
                     old->operations == layer.operations && base->document()->pendingOperation() == document->pendingOperation())
-                    extent = base->m_data->sourceExtents.value(layer.id);
+                    allocation = base->m_data->allocations.value(layer.id);
             }
-            if (!extent) extent = paintLayerSourceExtent(document, layer, PaintGeometryElementLimit);
-            if (!extent) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU layer source geometry capacity exceeded")};
-            data->sourceExtents[layer.id] = *extent;
+            if (!allocation) {
+                auto computed = paintLayerAllocation(document, layer, PaintGeometryElementLimit);
+                if (!computed) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU layer allocation geometry capacity exceeded")};
+                allocation = std::make_shared<LayerAllocation>(std::move(*computed));
+            }
+            data->allocations[layer.id] = allocation;
+            data->sourceExtents[layer.id] = allocation->extent;
         }
         const auto uniform = data->defaultPixels.value(layer.id, layer.defaultPixel);
         QList<QRect> operationRegions(layer.operations.size() + 1, paintRegion);
@@ -630,6 +692,13 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 const auto paint = std::get_if<PaintSnapshot>(&layer.operations[op]);
                 if (!paint || paintRegion.isEmpty()) continue;
                 const auto &operation = **paint;
+                auto compositionBounds = operation.compositionBounds;
+                if (operation.brush.alphaLocked || !(operation.brush.channelWriteMask & 8u)) {
+                    auto permitted = allocation->beforeOperations[op];
+                    if (compositionBounds) permitted &= *compositionBounds;
+                    if (permitted.isEmpty()) continue;
+                    compositionBounds = permitted;
+                }
                 const bool fillEnabled = hasFigureFill(operation.figureStyle);
                 const bool replacesAlpha = usesAllocatedSourceRegion(operation);
                 if (!operation.figureStyle.outline && !fillEnabled) continue;
@@ -787,6 +856,12 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     if (affected.size() > d.budget->limit / tileBytes)
                         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU fill tile budget exhausted")};
                 }
+                if (compositionBounds) {
+                    for (auto tile = affected.begin(); tile != affected.end();) {
+                        if (!compositionBounds->intersects(QRect(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize)))) tile = affected.erase(tile);
+                        else ++tile;
+                    }
+                }
                 if (extending) {
                     for (auto tile = affected.begin(); tile != affected.end();) {
                         if (strokeInputs.contains(tile.key()) && !changedCoordinates.contains(tile.key())) tile = affected.erase(tile);
@@ -874,8 +949,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.values.fillColorHigh = fill[1];
                     job.values.pixelFormat = quint32(document->format);
                     job.values.sourceBlocks = sourceBlocks.value(tile.key());
-                    if (operation.compositionBounds) {
-                        const auto &bounds = *operation.compositionBounds;
+                    if (compositionBounds) {
+                        const auto &bounds = *compositionBounds;
                         job.values.compositionX = bounds.x();
                         job.values.compositionY = bounds.y();
                         job.values.compositionWidth = bounds.width();
@@ -981,15 +1056,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 const auto projected = composeImpl(commands, version, paintRegion, previous, group);
                 if (projected.code != RenderOutcome::Recorded) return {projected.code, {}, projected.diagnostic};
                 data->layers[group] = projected.version->m_data->tiles;
-                QRect extent;
-                for (const auto &child : document->projectionInputs(group)) extent |= data->sourceExtents.value(child.layer);
-                if (!extent.isEmpty() && !projected.version->m_data->directLayerProjection) {
-                    const auto origin = nodes.value(group)->position;
-                    const auto first = QPoint(pixelTileIndex(extent.left() - origin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.top() - origin.y(), PixelHistoryBlockSize));
-                    const auto last = QPoint(pixelTileIndex(extent.right() - origin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.bottom() - origin.y(), PixelHistoryBlockSize));
-                    extent = QRect(first * PixelHistoryBlockSize + origin, (last + QPoint(1, 1)) * PixelHistoryBlockSize + origin - QPoint(1, 1));
-                }
-                data->sourceExtents[group] = extent;
+                data->sourceExtents[group] = projected.version->m_data->sourceExtent;
                 data->groupInputs[group] = projected.version->m_data->inputs;
                 if (projected.version->m_data->directLayerProjection) data->directGroups.insert(group);
             }

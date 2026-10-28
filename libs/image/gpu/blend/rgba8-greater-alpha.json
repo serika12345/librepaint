@@ -1,0 +1,18 @@
+{
+  "bytes": 262144,
+  "formatVersion": 1,
+  "packing": "RGBA8Uint 256x256; x=destination alpha, y=applied source alpha; R=resulting alpha, G=color weight, BA=0",
+  "purpose": "Exact Greater RGBA8 destination alpha and quantized color weight",
+  "sha256": "efe85d20bb4476d2dacfa01ba7a172598bbf35af89fb47d3d78bb19378e05fec",
+  "source": "libs/pigment/compositeops/KoCompositeOpGreater.h",
+  "sourceAuthor": "Nicholas Guttenberg, Jose Luis Vergara, and LibrePaint/Krita contributors",
+  "sourceLicense": "LGPL-2.0-or-later",
+  "sourceRevision": "6d09849b74235306ca58857ea8a8df99db53996e",
+  "sourceHashes": {
+    "scripts/gpu/GenerateRgba8AlphaTables.cpp": "d586f8e805ddea0629436550825d2b9876f267c3256f50ab578de5e776bc87b4",
+    "libs/pigment/compositeops/KoCompositeOpGreater.h": "9d9ed04e01acae9e911a89fc2c678b690f1b2e9907dde5ac1e27885e292c8fb0",
+    "libs/pigment/KoColorSpaceMaths.h": "7837d7cfa4b9432703e0b9fbad334fc6f6e241456074a6dc00910423abe57299",
+    "libs/pigment/KoColorSpaceMaths.cpp": "38f264209d049227fddf98385d114178a920c3f50c48afd657a3b4db636010b8",
+    "libs/pigment/KoIntegerMaths.h": "7e0e3dbae8102a5450bab4e7fc5a69c573df453f0d87a68dcf3582b515cbf58d"
+  }
+}

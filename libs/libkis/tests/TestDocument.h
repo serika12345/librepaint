@@ -53,6 +53,11 @@ private Q_SLOTS:
     void testCoupledBlendKeepsImplicitGroupPixels();
     void testCoupledBlendKeepsSparseSourceExtent_data();
     void testCoupledBlendKeepsSparseSourceExtent();
+    void testKraReopenKeepsFillAllocationAfterCanvasGrowth();
+    void testSpecialAlphaPatternFillMatchesNative_data();
+    void testSpecialAlphaPatternFillMatchesNative();
+    void testAlphaBlendMatchesEveryRgba8AlphaPair_data();
+    void testAlphaBlendMatchesEveryRgba8AlphaPair();
     void testCoupledBlendMatchesCpuColorPalette_data();
     void testCoupledBlendMatchesCpuColorPalette();
     void testQuantizedBlendMatchesEveryRgb8Pair_data();

@@ -146,6 +146,9 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::ReorientedNormalMap:
     case LayerBlendMode::LambertLighting:
     case LayerBlendMode::LambertLightingGamma22:
+    case LayerBlendMode::Marker:
+    case LayerBlendMode::Greater:
+    case LayerBlendMode::LuminositySai:
         return true;
     }
     return false;

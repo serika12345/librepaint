@@ -49,6 +49,7 @@
 #include <gpu/KisGpuPaintDocument.h>
 
 #include <KoColorSpaceRegistry.h>
+#include <KoPattern.h>
 #include <KoColorProfile.h>
 #include <KoColor.h>
 #include <KisRegion.h>
@@ -3235,7 +3236,7 @@ void TestDocument::testLayerBlendProjectionMatchesCpuPixels_data()
 {
     QTest::addColumn<QString>("mode");
     for (const auto *mode : {"multiply", "screen", "darken", "lighten", "add", "linear_dodge",
-                             "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract", "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light", "linear light", "equivalence", "allanon", "hard_mix_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "xor", "or", "and", "nand", "nor", "xnor", "implication", "not_implication", "converse", "not_converse", "destination-in", "destination-atop", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect", "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "geometric_mean", "interpolation", "interpolation 2x", "penumbra c", "penumbra d", "soft_light_ifs_illusions", "soft_light_svg", "soft_light", "gamma_light", "gamma_illumination", "pnorm_a", "pnorm_b", "super_light", "tint_ifs_illusions", "fog_lighten_ifs_illusions", "easy dodge", "gamma_dark", "shade_ifs_illusions", "fog_darken_ifs_illusions", "easy burn", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "arc_tangent", "additive_subtractive", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2"})
+                             "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract", "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light", "linear light", "equivalence", "allanon", "hard_mix_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "xor", "or", "and", "nand", "nor", "xnor", "implication", "not_implication", "converse", "not_converse", "destination-in", "destination-atop", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect", "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "geometric_mean", "interpolation", "interpolation 2x", "penumbra c", "penumbra d", "soft_light_ifs_illusions", "soft_light_svg", "soft_light", "gamma_light", "gamma_illumination", "pnorm_a", "pnorm_b", "super_light", "tint_ifs_illusions", "fog_lighten_ifs_illusions", "easy dodge", "gamma_dark", "shade_ifs_illusions", "fog_darken_ifs_illusions", "easy burn", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "arc_tangent", "additive_subtractive", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2", "marker", "greater", "luminosity_sai"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -3247,7 +3248,7 @@ void TestDocument::testLayerBlendProjectionMatchesCpuPixels()
         if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
         else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
     });
-    for (int sourceKind = 0; sourceKind < 3; ++sourceKind) {
+    for (int sourceKind = 0; sourceKind < 5; ++sourceKind) {
         const auto project = [&](bool gpu) -> std::optional<QByteArray> {
             qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
             QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
@@ -3263,12 +3264,13 @@ void TestDocument::testLayerBlendProjectionMatchesCpuPixels()
             QScopedPointer<Node> bottomNode(Node::createNode(image, bottom));
             QScopedPointer<Node> topNode(Node::createNode(image, top));
             // Native BGRA; sparse variants retain a partially transparent lower layer.
-            if (!bottomNode->setPixelData(QByteArray::fromHex(sourceKind ? "975925ad" : "2040c0ff").repeated(32 * 16), 0, 0, 32, 16))
+            if (!bottomNode->setPixelData(QByteArray::fromHex(sourceKind == 3 ? "97592500" : sourceKind ? "975925ad" : "2040c0ff").repeated(32 * 16), 0, 0, 32, 16))
                 return std::nullopt;
             if (sourceKind != 1 && !topNode->setPixelData(
-                    sourceKind ? QByteArray(32 * 16 * 4, '\0') : QByteArray::fromHex("c0402080").repeated(32 * 16), 0, 0, 32, 16))
+                    sourceKind == 2 ? QByteArray(32 * 16 * 4, '\0') : QByteArray::fromHex("c0402080").repeated(32 * 16), 0, 0, 32, 16))
                 return std::nullopt;
             topNode->setBlendingMode(mode);
+            if (sourceKind >= 3) topNode->setOpacity(0);
             if (topNode->blendingMode() != mode) return std::nullopt;
             Document api(document.data(), false);
             api.refreshProjection();
@@ -3366,7 +3368,7 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
     QCOMPARE(top->blendingMode(), mode);
     Document api(document.data(), false);
     QByteArray expected;
-    for (int opacity : {1, 137, 255}) for (int mask : {0, 6, 9, 15}) {
+    for (int opacity : {0, 1, 137, 255}) for (int mask : {0, 6, 9, 15}) {
         // Public layer flags use native BGRA order; the GPU uses RGBA bits.
         QBitArray flags(4);
         for (int channel = 0; channel < 4; ++channel)
@@ -3412,10 +3414,11 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
             source.blendMode = *blend;
             input.layers = {destination, source, group};
             Gpu::OperationDocument values(input);
-            // The implicit default lies outside allocated source tiles. A
-            // transparent source default therefore has no native apply region.
-            const bool coupled = *blend >= Gpu::LayerBlendMode::ColorHsy && *blend <= Gpu::LayerBlendMode::LambertLightingGamma22;
-            const auto &reference = coupled && !source.defaultPixel[3] ? defaultDestination : expected;
+            // Implicit defaults have no allocated native tiles. KisPainter
+            // clips both transparent sources and alpha-inherited destinations.
+            const bool noSource = !source.defaultPixel[3] && *blend != Gpu::LayerBlendMode::DestinationIn && *blend != Gpu::LayerBlendMode::DestinationAtop;
+            const bool noDestination = !(mask & 8) && !destination.defaultPixel[3];
+            const auto &reference = noSource || noDestination ? defaultDestination : expected;
             QCOMPARE(values.snapshot()->projectionDefaultPixels().value(3), rgba(reference, pixel * 4));
         }
     }
@@ -3542,6 +3545,7 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
 void TestDocument::testCoupledBlendKeepsImplicitGroupPixels_data()
 {
     testCoupledBlendKeepsSparseSourceExtent_data();
+    QTest::newRow("normal") << QStringLiteral("normal");
 }
 
 void TestDocument::testCoupledBlendKeepsImplicitGroupPixels()
@@ -3556,7 +3560,7 @@ void TestDocument::testCoupledBlendKeepsImplicitGroupPixels()
         if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
         else qputenv("LIBREPAINT_GPU_ENGINE", previous);
     });
-    for (int groupKind : {0, 1, 2, 3, 4}) for (int sourceKind = 0; sourceKind < 4; ++sourceKind) {
+    for (int groupKind : {0, 1, 2, 3, 4}) for (int sourceKind = 0; sourceKind < 5; ++sourceKind) {
         const auto project = [&](bool gpu) -> std::optional<QByteArray> {
             qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
             Gpu::RasterImage initial;
@@ -3565,7 +3569,7 @@ void TestDocument::testCoupledBlendKeepsImplicitGroupPixels()
             Gpu::RasterLayer bottom, top, group;
             bottom.defaultPixel = {37, 89, 151, 173};
             top.defaultPixel = sourceKind == 1 ? Gpu::RgbaPixel{129, 63, 17, 0} :
-                sourceKind == 2 ? Gpu::RgbaPixel{129, 63, 17, 128} : Gpu::RgbaPixel{};
+                (sourceKind == 2 || sourceKind == 4) ? Gpu::RgbaPixel{129, 63, 17, 128} : Gpu::RgbaPixel{};
             top.blendMode = groupKind > 1 ? Gpu::LayerBlendMode::Normal : *blend;
             group.kind = Gpu::LayerKind::Group;
             group.uuid = QUuid(QStringLiteral("{12345678-1111-2222-3333-444455556666}"));
@@ -3573,6 +3577,17 @@ void TestDocument::testCoupledBlendKeepsImplicitGroupPixels()
             if (groupKind) top.parentUuid = group.uuid;
             if (groupKind > 1) group.blendMode = *blend;
             if (groupKind == 4) group.position = {5, 7};
+            if (sourceKind == 4) {
+                bottom.defaultPixel = {153, 102, 51, 0};
+                top.defaultPixel = {86, 52, 18, 134};
+                if (groupKind > 1) {
+                    group.projectionChannelMask = 7;
+                    group.opacity = 128;
+                } else {
+                    top.projectionChannelMask = 7;
+                    top.opacity = 128;
+                }
+            }
             initial.layers = {bottom, top};
             if (groupKind >= 3) {
                 Gpu::RasterLayer empty;
@@ -3592,20 +3607,23 @@ void TestDocument::testCoupledBlendKeepsImplicitGroupPixels()
                 source = groupKind > 1 ? parent->firstChild() : parent->lastChild();
             } else {
                 KisImageSP image = new KisImage(document->createUndoStore(), initial.size.width(), initial.size.height(), cs, QStringLiteral("Implicit color group"));
-                KisNodeSP nativeGroup;
+                KisGroupLayerSP nativeGroup;
                 if (groupKind) {
-                    nativeGroup = new KisGroupLayer(image, QStringLiteral("Group"), 255);
+                    nativeGroup = new KisGroupLayer(image, QStringLiteral("Group"), group.opacity);
                     nativeGroup->setCompositeOpId(groupKind > 1 ? mode : QStringLiteral("normal"));
+                    if (group.projectionChannelMask == 7) nativeGroup->setChannelFlags(QBitArray::fromBits("\x07", 4));
                     nativeGroup->setX(group.position.x()); nativeGroup->setY(group.position.y());
                     image->addNode(nativeGroup, image->root());
                 }
                 for (int index = 0; index < (groupKind >= 3 ? 3 : 2); ++index) {
                     const auto &value = initial.layers[index];
-                    KisNodeSP layer = new KisPaintLayer(image, index ? QStringLiteral("Source") : QStringLiteral("Destination"), 255);
+                    KisPaintLayerSP layer = new KisPaintLayer(image, index ? QStringLiteral("Source") : QStringLiteral("Destination"), value.opacity);
                     const quint8 bgra[] = {quint8(value.defaultPixel[2]), quint8(value.defaultPixel[1]), quint8(value.defaultPixel[0]), quint8(value.defaultPixel[3])};
                     layer->paintDevice()->setDefaultPixel(KoColor(bgra, cs));
                     layer->setCompositeOpId(index == 1 && groupKind < 2 ? mode : QStringLiteral("normal"));
-                    const auto parent = value.parentUuid.isNull() ? image->root() : nativeGroup;
+                    if (value.projectionChannelMask == 7) layer->setChannelFlags(QBitArray::fromBits("\x07", 4));
+                    KisNodeSP parent = image->root();
+                    if (!value.parentUuid.isNull()) parent = nativeGroup;
                     image->addNode(layer, parent, index == 0 && parent == image->root() ? 0 : parent->childCount());
                     if (index == 1) source = layer;
                 }
@@ -3617,11 +3635,18 @@ void TestDocument::testCoupledBlendKeepsImplicitGroupPixels()
             }
             Document api(document.data(), false);
             api.refreshProjection();
-            return api.pixelData(0, 0, initial.size.width(), initial.size.height());
+            auto result = api.pixelData(0, 0, initial.size.width(), initial.size.height());
+            if (groupKind && sourceKind == 4) {
+                QScopedPointer<Node> groupNode(Node::createNode(document->image(), document->image()->root()->lastChild()));
+                result += groupNode->projectionPixelData(0, 0, initial.size.width(), initial.size.height());
+            }
+            return result;
         };
         const auto cpu = project(false), gpu = project(true);
         QVERIFY(cpu && gpu);
-        QCOMPARE(cpu->size(), 700 * 130 * 4);
+        QCOMPARE(cpu->size(), (groupKind && sourceKind == 4 ? 2 : 1) * 700 * 130 * 4);
+        if (mode == QLatin1String("normal") && groupKind == 1 && sourceKind == 4)
+            QCOMPARE(*cpu, QByteArray(cpu->size(), '\0'));
         if (*gpu != *cpu) qInfo() << "Implicit source mismatch" << mode << "group kind" << groupKind << "source" << sourceKind;
         QVERIFY(*gpu == *cpu);
     }
@@ -3630,7 +3655,7 @@ void TestDocument::testCoupledBlendKeepsImplicitGroupPixels()
 void TestDocument::testCoupledBlendKeepsSparseSourceExtent_data()
 {
     QTest::addColumn<QString>("mode");
-    for (const auto *mode : {"color", "hue_hsv", "combine_normal"})
+    for (const auto *mode : {"color", "hue_hsv", "combine_normal", "marker"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -3683,6 +3708,211 @@ void TestDocument::testCoupledBlendKeepsSparseSourceExtent()
         }
         QVERIFY(*gpu == *cpu);
     }
+}
+
+void TestDocument::testKraReopenKeepsFillAllocationAfterCanvasGrowth()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    const auto render = [&](bool gpu, bool reopen) -> std::optional<QByteArray> {
+        qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true);
+        const QSize size(130, 129);
+        if (gpu) {
+            Gpu::RasterImage initial; initial.size = size; initial.colorProfile = cs->profile()->rawData();
+            Gpu::RasterLayer bottom, top; bottom.defaultPixel = {37, 89, 151, 173}; initial.layers = {bottom, top};
+            QString diagnostic; const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+            if (!execution) return std::nullopt;
+            document->setCurrentImage(KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, initial), QStringLiteral("Allocation contract"), cs));
+        } else {
+            KisImageSP image = new KisImage(document->createUndoStore(), size.width(), size.height(), cs, QStringLiteral("Allocation contract"));
+            KisNodeSP bottom = new KisPaintLayer(image, QStringLiteral("Bottom"), 255);
+            const quint8 pixel[] = {151, 89, 37, 173}; bottom->paintDevice()->setDefaultPixel(KoColor(pixel, cs));
+            image->addNode(bottom, image->root());
+            image->addNode(new KisPaintLayer(image, QStringLiteral("Top"), 255), image->root());
+            document->setCurrentImage(image);
+        }
+        const auto image = document->image();
+        const auto top = image->root()->lastChild();
+        if (gpu) {
+            const auto owner = image->gpuImage();
+            if (owner->fillLayer(owner->operations().snapshot()->layers.last().id, {17, 63, 129}) != Gpu::Result::Success) return std::nullopt;
+        } else {
+            KisFillPainter fill(top->paintDevice());
+            fill.fillSelection(QRect(QPoint(), size), KoColor(QColor(17, 63, 129), cs));
+        }
+        QScopedPointer<Node> topNode(Node::createNode(image, top));
+        topNode->setBlendingMode(QStringLiteral("color"));
+        QTemporaryDir directory;
+        if (reopen) {
+            const auto path = directory.filePath(QStringLiteral("fill-allocation.kra"));
+            if (!document->saveAs(path, KisDocument::nativeFormatMimeType(), false)) return std::nullopt;
+            document->waitForSavingToComplete();
+            QScopedPointer<KisDocument> loaded(KisPart::instance()->createDocument()); loaded->setFileBatchMode(true);
+            if (!loaded->openPath(path, KisDocument::DontAddToRecent)) return std::nullopt;
+            document.swap(loaded);
+        }
+        Document api(document.data(), false);
+        api.resizeImage(0, 0, 300, 300);
+        api.refreshProjection();
+        return api.pixelData(0, 0, 300, 300);
+    };
+    const auto cpu = render(false, false), cpuReopened = render(false, true);
+    QVERIFY(cpu && cpuReopened); QCOMPARE(*cpuReopened, *cpu);
+    const auto gpu = render(true, false), gpuReopened = render(true, true);
+    QVERIFY(gpu && gpuReopened); QCOMPARE(*gpu, *cpu); QCOMPARE(*gpuReopened, *cpu);
+}
+
+void TestDocument::testSpecialAlphaPatternFillMatchesNative_data()
+{
+    testAlphaBlendMatchesEveryRgba8AlphaPair_data();
+}
+
+void TestDocument::testSpecialAlphaPatternFillMatchesNative()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(QString, mode);
+    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto blend = Gpu::layerBlendModeFromCompositeOp(mode);
+    QVERIFY(blend);
+    QImage image(2, 2, QImage::Format_ARGB32);
+    image.setPixel(0, 0, qRgba(17, 63, 129, 0));
+    image.setPixel(1, 0, qRgba(200, 127, 1, 1));
+    image.setPixel(0, 1, qRgba(255, 15, 128, 128));
+    image.setPixel(1, 1, qRgba(63, 254, 17, 255));
+    const KoPatternSP resource(new KoPattern(image, QStringLiteral("Alpha pattern"), QString()));
+    Gpu::PatternFill pattern;
+    pattern.size = image.size();
+    for (int y = 0; y < 2; ++y) for (int x = 0; x < 2; ++x) {
+        const auto p = image.pixel(x, y);
+        pattern.rgba.append(char(qRed(p))); pattern.rgba.append(char(qGreen(p)));
+        pattern.rgba.append(char(qBlue(p))); pattern.rgba.append(char(qAlpha(p)));
+    }
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    const QSize size(34, 18);
+    const QRect canvas(QPoint(), size), inspected(-1, -1, 36, 20);
+    QByteArray coverage(size.width() * size.height(), char(128));
+    for (int y = 3; y < 8; ++y) for (int x = 4; x < 9; ++x) coverage[y * size.width() + x] = 0;
+    for (int alpha : {0, 173}) for (int mask : {7, 9, 15}) for (int opacity : {0, 137, 255}) for (bool selected : {false, true}) {
+        const quint8 native[] = {151, 89, 37, quint8(alpha)};
+        KisPaintDeviceSP destination = new KisPaintDevice(cs);
+        destination->setDefaultPixel(KoColor(native, cs));
+        KisSelectionSP selection;
+        if (selected) {
+            selection = new KisSelection;
+            selection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(coverage.constData()), canvas);
+        }
+        KisFillPainter fill(destination, selection);
+        fill.setCompositeOpId(mode);
+        fill.setOpacityF(qreal(opacity) / 255);
+        QBitArray flags(4);
+        for (int channel = 0; channel < 4; ++channel) flags.setBit(channel, mask & (1 << (channel < 3 ? 2 - channel : 3)));
+        fill.setChannelFlags(flags);
+        fill.fillRect(canvas, resource);
+        QByteArray expected(inspected.width() * inspected.height() * 4, '\0');
+        destination->readBytes(reinterpret_cast<quint8 *>(expected.data()), inspected);
+        Gpu::RasterImage input;
+        input.size = size; input.colorProfile = cs->profile()->rawData();
+        Gpu::RasterLayer layer; layer.defaultPixel = {37, 89, 151, quint8(alpha)}; layer.channelWriteMask = mask;
+        input.layers = {layer};
+        const auto owner = Gpu::PaintImageSP::create(execution, input);
+        const auto id = owner->operations().activeLayer();
+        if (selected) QCOMPARE(owner->setSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(canvas, coverage, canvas)), Gpu::Result::Success);
+        QCOMPARE(owner->fillLayerPattern(id, pattern, qreal(opacity) / 255, false, false, *blend), Gpu::Result::Success);
+        const auto result = owner->readRgbaPixels(id, inspected, expected.size());
+        QCOMPARE(result.code, Gpu::ExecutionCode::Success);
+        auto actual = result.bytes;
+        for (int i = 0; i < actual.size(); i += 4) std::swap(actual[i], actual[i + 2]);
+        if (actual != expected) {
+            int first = 0; while (actual[first] == expected[first]) ++first;
+            qInfo() << "Pattern alpha mismatch" << mode << "base alpha" << alpha << "mask" << mask
+                    << "opacity" << opacity << "selection" << selected << "pixel" << first / 4
+                    << "actual" << actual.mid(first / 4 * 4, 4).toHex() << "CPU" << expected.mid(first / 4 * 4, 4).toHex();
+        }
+        QVERIFY(actual == expected);
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QCOMPARE(owner->readRgbaPixels(id, inspected, expected.size()).bytes,
+                 Gpu::rgbaBytes(layer.defaultPixel, Gpu::PixelFormat::Rgba8).repeated(inspected.width() * inspected.height()));
+        QCOMPARE(owner->redo(), Gpu::Result::Success);
+        QCOMPARE(owner->readRgbaPixels(id, inspected, expected.size()).bytes, result.bytes);
+    }
+}
+
+void TestDocument::testAlphaBlendMatchesEveryRgba8AlphaPair_data()
+{
+    QTest::addColumn<QString>("mode");
+    for (const auto *mode : {"marker", "greater", "luminosity_sai"}) QTest::newRow(mode) << QString::fromLatin1(mode);
+}
+
+void TestDocument::testAlphaBlendMatchesEveryRgba8AlphaPair()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(QString, mode);
+    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto blend = Gpu::layerBlendModeFromCompositeOp(mode);
+    QVERIFY(blend);
+    QByteArray bottom, top;
+    for (int source = 0; source < 256; ++source) for (int destination = 0; destination < 256; ++destination) {
+        bottom.append(char(destination * 53 + 17)); bottom.append(char(destination * 7 + source * 5 + 63));
+        bottom.append(char(source * 13 + destination * 17 + 128)); bottom.append(char(destination));
+        top.append(char(source * 29 + 15)); top.append(char(255 - destination));
+        top.append(char(destination * 3 + source * 7)); top.append(char(source));
+    }
+    QByteArray expected(bottom.size(), '\0');
+    KoCompositeOp::ParameterInfo parameters;
+    parameters.dstRowStart = reinterpret_cast<quint8 *>(expected.data());
+    parameters.dstRowStride = parameters.srcRowStride = 256 * 4;
+    parameters.srcRowStart = reinterpret_cast<const quint8 *>(bottom.constData());
+    parameters.rows = parameters.cols = 256;
+    cs->compositeOp(QStringLiteral("normal"))->composite(parameters);
+    parameters.srcRowStart = reinterpret_cast<const quint8 *>(top.constData());
+    cs->compositeOp(mode)->composite(parameters);
+    const auto layer = [](QByteArray bytes) {
+        for (int i = 0; i < bytes.size(); i += 4) std::swap(bytes[i], bytes[i + 2]);
+        Gpu::RasterLayer value;
+        value.tiles = {{{0, 0}, bytes}};
+        return value;
+    };
+    Gpu::RasterImage input;
+    input.size = {256, 256};
+    input.colorProfile = cs->profile()->rawData();
+    auto source = layer(top); source.blendMode = *blend;
+    input.layers = {layer(bottom), source};
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    const auto owner = Gpu::PaintImageSP::create(execution, input);
+    const auto result = owner->readRgbaPixels(0, {0, 0, 256, 256}, expected.size());
+    QCOMPARE(result.code, Gpu::ExecutionCode::Success);
+    auto actual = result.bytes;
+    for (int i = 0; i < actual.size(); i += 4) std::swap(actual[i], actual[i + 2]);
+    QCOMPARE(actual.size(), expected.size());
+    QTemporaryDir directory;
+    if (actual != expected || qEnvironmentVariableIsSet("LIBREPAINT_GPU_RESULT_DIR")) {
+        const auto output = QDir(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path())).filePath(QStringLiteral("blend-") + mode);
+        QVERIFY(QDir().mkpath(output));
+        const auto write = [&](const QString &name, const QByteArray &bytes) {
+            QFile file(QDir(output).filePath(name));
+            return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+        };
+        QVERIFY(write(QStringLiteral("alpha-pairs.bgra"), actual));
+        QVERIFY(write(QStringLiteral("alpha-pairs-cpu.bgra"), expected));
+        if (actual != expected) {
+            directory.setAutoRemove(false);
+            int first = 0; while (actual[first] == expected[first]) ++first;
+            qInfo() << "Alpha pair mismatch" << mode << "source alpha" << first / (256 * 4)
+                    << "destination alpha" << first / 4 % 256 << "channel" << first % 4
+                    << "actual" << quint8(actual[first]) << "expected" << quint8(expected[first]) << output;
+        }
+    }
+    QVERIFY(actual == expected);
 }
 
 void TestDocument::testCoupledBlendMatchesCpuColorPalette_data()
@@ -3864,7 +4094,7 @@ void TestDocument::testReplacingAlphaPaintMatchesCpuSourceRegions_data()
     QTest::addColumn<QPointF>("position");
     QTest::addColumn<qreal>("diameter");
     QTest::addColumn<bool>("fillCanvas");
-    for (const auto *mode : {"destination-in", "destination-atop", "color", "hue_hsv", "combine_normal"}) {
+    for (const auto *mode : {"destination-in", "destination-atop", "color", "hue_hsv", "combine_normal", "marker", "greater", "luminosity_sai"}) {
         QTest::newRow(qPrintable(QString::fromLatin1(mode) + QStringLiteral("-boundary")))
             << QString::fromLatin1(mode) << QPointF(64, 64) << qreal(8) << false;
         QTest::newRow(qPrintable(QString::fromLatin1(mode) + QStringLiteral("-corners")))
