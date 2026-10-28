@@ -41,6 +41,9 @@ inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString
     if (compositeOp == COMPOSITE_HARD_MIX) return LayerBlendMode::HardMix;
     if (compositeOp == COMPOSITE_VIVID_LIGHT) return LayerBlendMode::VividLight;
     if (compositeOp == COMPOSITE_LINEAR_LIGHT) return LayerBlendMode::LinearLight;
+    if (compositeOp == COMPOSITE_EQUIVALENCE) return LayerBlendMode::Equivalence;
+    if (compositeOp == COMPOSITE_ALLANON) return LayerBlendMode::Allanon;
+    if (compositeOp == COMPOSITE_HARD_MIX_PHOTOSHOP) return LayerBlendMode::HardMixPhotoshop;
     return std::nullopt;
 }
 
@@ -69,6 +72,9 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::HardMix: return COMPOSITE_HARD_MIX;
     case LayerBlendMode::VividLight: return COMPOSITE_VIVID_LIGHT;
     case LayerBlendMode::LinearLight: return COMPOSITE_LINEAR_LIGHT;
+    case LayerBlendMode::Equivalence: return COMPOSITE_EQUIVALENCE;
+    case LayerBlendMode::Allanon: return COMPOSITE_ALLANON;
+    case LayerBlendMode::HardMixPhotoshop: return COMPOSITE_HARD_MIX_PHOTOSHOP;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;

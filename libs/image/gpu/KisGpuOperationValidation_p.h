@@ -42,6 +42,9 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     case LayerBlendMode::HardMix:
     case LayerBlendMode::VividLight:
     case LayerBlendMode::LinearLight:
+    case LayerBlendMode::Equivalence:
+    case LayerBlendMode::Allanon:
+    case LayerBlendMode::HardMixPhotoshop:
         return true;
     }
     return false;
