@@ -187,6 +187,12 @@ KisGpuBrushResources captureGpuPaintingResources(
         blendMode = Gpu::LayerBlendMode::Addition;
     } else if (composite == COMPOSITE_LINEAR_DODGE) {
         blendMode = Gpu::LayerBlendMode::LinearDodge;
+    } else if (composite == COMPOSITE_DIFF) {
+        blendMode = Gpu::LayerBlendMode::Difference;
+    } else if (composite == COMPOSITE_EXCLUSION) {
+        blendMode = Gpu::LayerBlendMode::Exclusion;
+    } else if (composite == COMPOSITE_SUBTRACT) {
+        blendMode = Gpu::LayerBlendMode::Subtract;
     } else if (composite != COMPOSITE_OVER) {
         return reject(i18n("This blend mode is not yet available for this document."));
     }

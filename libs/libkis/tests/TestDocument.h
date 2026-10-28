@@ -45,6 +45,8 @@ private Q_SLOTS:
     void testGpuSessionOpensExistingStaticNativeDocuments_data();
     void testGpuSessionOpensExistingStaticNativeDocuments();
     void testGpuSessionOpensCpuAuthoredU16NativeDocument();
+    void testLayerBlendProjectionMatchesCpuPixels_data();
+    void testLayerBlendProjectionMatchesCpuPixels();
     void testCanvasBackgroundReferencePixels_data();
     void testCanvasBackgroundReferencePixels();
     void testGpuDocumentPreviewsTransferOnlyRequestedPixels_data();

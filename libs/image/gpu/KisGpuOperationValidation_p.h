@@ -17,8 +17,21 @@ constexpr qsizetype LayerNameByteLimit = 65536;
 
 inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
 {
-    return mode <= LayerBlendMode::LinearDodge &&
-        (format != PixelFormat::Rgba16 || mode == LayerBlendMode::Normal);
+    if (format == PixelFormat::Rgba16) return mode == LayerBlendMode::Normal;
+    switch (mode) {
+    case LayerBlendMode::Normal:
+    case LayerBlendMode::Multiply:
+    case LayerBlendMode::Screen:
+    case LayerBlendMode::Darken:
+    case LayerBlendMode::Lighten:
+    case LayerBlendMode::Addition:
+    case LayerBlendMode::LinearDodge:
+    case LayerBlendMode::Difference:
+    case LayerBlendMode::Exclusion:
+    case LayerBlendMode::Subtract:
+        return true;
+    }
+    return false;
 }
 
 template<class LayerValue>

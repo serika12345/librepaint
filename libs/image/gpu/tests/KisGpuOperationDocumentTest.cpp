@@ -3368,7 +3368,7 @@ void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput(
     const auto layer = document.activeLayer();
     const auto initial = document.snapshot();
 
-    QCOMPARE(document.fillLayer(layer, {17, 129, 241}, 255.0 / 255, false, false, LayerBlendMode(7)),
+    QCOMPARE(document.fillLayer(layer, {17, 129, 241}, 255.0 / 255, false, false, LayerBlendMode(255)),
              Result::InvalidInput);
     QCOMPARE(document.snapshot(), initial);
     QCOMPARE(document.undoCount(), 0);
@@ -3377,7 +3377,7 @@ void KisGpuOperationDocumentTest::rejectedFillBlendModesPreserveHistoryAndInput(
     FigureStyle outOfRange;
     outOfRange.outline = false;
     outOfRange.fill = RgbaPixel{17, 129, 241, 255};
-    outOfRange.fillBlendMode = LayerBlendMode(7);
+    outOfRange.fillBlendMode = LayerBlendMode(255);
     QCOMPARE(document.paintFigure(layer, Brush{}, samples, {ShapeKind::Rectangle, {4, 4}, {28, 28}, 0},
                                   outOfRange, 42), Result::InvalidInput);
     QCOMPARE(document.snapshot(), initial);
@@ -3461,7 +3461,7 @@ void KisGpuOperationDocumentTest::rejectedStrokeBlendModesPreserveHistoryAndInpu
     const auto initial = document.snapshot();
 
     Brush outOfRange;
-    outOfRange.blendMode = LayerBlendMode(7);
+    outOfRange.blendMode = LayerBlendMode(255);
     QVERIFY(document.beginStroke(layer, outOfRange, 0).isNull());
 
     // Erase remains coverage removal and rejects a blend mode before history.

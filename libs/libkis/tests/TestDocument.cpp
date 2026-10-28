@@ -3223,6 +3223,55 @@ void TestDocument::testGpuSessionOpensCpuAuthoredU16NativeDocument()
     QCOMPARE(reopenedApi.pixelData(3, 2, 1, 1), bytes(authored, 4));
 }
 
+void TestDocument::testLayerBlendProjectionMatchesCpuPixels_data()
+{
+    QTest::addColumn<QString>("mode");
+    for (const auto *mode : {"multiply", "screen", "darken", "lighten", "add", "linear_dodge",
+                             "diff", "exclusion", "subtract"})
+        QTest::newRow(mode) << QString::fromLatin1(mode);
+}
+
+void TestDocument::testLayerBlendProjectionMatchesCpuPixels()
+{
+    QFETCH(QString, mode);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    const auto project = [&](bool gpu) -> std::optional<QByteArray> {
+        qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true);
+        const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+        if (!document->newImage(QStringLiteral("Blend projection"), 32, 16, cs,
+                                KoColor(Qt::transparent, cs), KisConfig::RASTER_LAYER, 2, {}, 1))
+            return std::nullopt;
+        KisImageSP image = document->image();
+        KisNodeSP bottom = image->root()->firstChild();
+        KisNodeSP top = image->root()->lastChild();
+        if (!bottom || !top || bottom == top) return std::nullopt;
+        QScopedPointer<Node> bottomNode(Node::createNode(image, bottom));
+        QScopedPointer<Node> topNode(Node::createNode(image, top));
+        // Native BGRA bytes: opaque bottom, half-transparent top.
+        if (!bottomNode->setPixelData(QByteArray::fromHex("2040c0ff").repeated(32 * 16), 0, 0, 32, 16))
+            return std::nullopt;
+        if (!topNode->setPixelData(QByteArray::fromHex("c0402080").repeated(32 * 16), 0, 0, 32, 16))
+            return std::nullopt;
+        topNode->setBlendingMode(mode);
+        if (topNode->blendingMode() != mode) return std::nullopt;
+        Document api(document.data(), false);
+        api.refreshProjection();
+        return api.pixelData(0, 0, 32, 16);
+    };
+    const auto cpu = project(false);
+    QVERIFY2(cpu, "the CPU engine must project a two-layer blend document");
+    const auto gpu = project(true);
+    QVERIFY2(gpu, qPrintable(QStringLiteral("the GPU engine must accept the %1 blend mode").arg(mode)));
+    QCOMPARE(cpu->size(), 32 * 16 * 4);
+    QCOMPARE(*gpu, *cpu);
+}
+
 void TestDocument::testGpuU16PublicPixelsPreserveDocumentEncoding()
 {
     namespace Gpu = LibrePaint::Image::Gpu;

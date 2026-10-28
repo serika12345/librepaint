@@ -195,7 +195,9 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         if (!layer || (!paint && !group) || (paint && hasNonMaskChild(node)) ||
             (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT && layer->compositeOpId() != COMPOSITE_SCREEN &&
              layer->compositeOpId() != COMPOSITE_DARKEN && layer->compositeOpId() != COMPOSITE_LIGHTEN &&
-             layer->compositeOpId() != COMPOSITE_ADD && layer->compositeOpId() != COMPOSITE_LINEAR_DODGE) ||
+             layer->compositeOpId() != COMPOSITE_ADD && layer->compositeOpId() != COMPOSITE_LINEAR_DODGE &&
+             layer->compositeOpId() != COMPOSITE_DIFF && layer->compositeOpId() != COMPOSITE_EXCLUSION &&
+             layer->compositeOpId() != COMPOSITE_SUBTRACT) ||
             node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
             layer->temporary() || (paint && paint->hasTemporaryTarget()) ||
             *layer->colorSpace() != *colorSpace()) return false;
@@ -210,7 +212,10 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
                     layer->compositeOpId() == COMPOSITE_DARKEN ? Gpu::LayerBlendMode::Darken :
                     layer->compositeOpId() == COMPOSITE_LIGHTEN ? Gpu::LayerBlendMode::Lighten :
                     layer->compositeOpId() == COMPOSITE_ADD ? Gpu::LayerBlendMode::Addition :
-                    layer->compositeOpId() == COMPOSITE_LINEAR_DODGE ? Gpu::LayerBlendMode::LinearDodge : Gpu::LayerBlendMode::Normal;
+                    layer->compositeOpId() == COMPOSITE_LINEAR_DODGE ? Gpu::LayerBlendMode::LinearDodge :
+                    layer->compositeOpId() == COMPOSITE_DIFF ? Gpu::LayerBlendMode::Difference :
+                    layer->compositeOpId() == COMPOSITE_EXCLUSION ? Gpu::LayerBlendMode::Exclusion :
+                    layer->compositeOpId() == COMPOSITE_SUBTRACT ? Gpu::LayerBlendMode::Subtract : Gpu::LayerBlendMode::Normal;
         properties.name = node->name();
         properties.uuid = node->uuid();
         properties.parentUuid = roots.contains(node) ? (parent == root() ? QUuid() : parent->uuid()) : node->parent()->uuid();
@@ -382,7 +387,9 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         if (!source || !layer || (!paint && !group) || (paint && hasNonMaskChild(node)) ||
             (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT && layer->compositeOpId() != COMPOSITE_SCREEN &&
              layer->compositeOpId() != COMPOSITE_DARKEN && layer->compositeOpId() != COMPOSITE_LIGHTEN &&
-             layer->compositeOpId() != COMPOSITE_ADD && layer->compositeOpId() != COMPOSITE_LINEAR_DODGE) || node->isAnimated() ||
+             layer->compositeOpId() != COMPOSITE_ADD && layer->compositeOpId() != COMPOSITE_LINEAR_DODGE &&
+             layer->compositeOpId() != COMPOSITE_DIFF && layer->compositeOpId() != COMPOSITE_EXCLUSION &&
+             layer->compositeOpId() != COMPOSITE_SUBTRACT) || node->isAnimated() ||
             !node->keyframeChannels().isEmpty() || layer->layerStyle() || layer->temporary() ||
             (paint && paint->hasTemporaryTarget()) ||
             *layer->colorSpace() != *colorSpace() || pending.size() > owner->limits().layerCount) return {};
@@ -1030,7 +1037,10 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Darken ? COMPOSITE_DARKEN :
                 layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Lighten ? COMPOSITE_LIGHTEN :
                 layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Addition ? COMPOSITE_ADD :
-                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::LinearDodge ? COMPOSITE_LINEAR_DODGE : COMPOSITE_OVER);
+                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::LinearDodge ? COMPOSITE_LINEAR_DODGE :
+                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Difference ? COMPOSITE_DIFF :
+                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Exclusion ? COMPOSITE_EXCLUSION :
+                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Subtract ? COMPOSITE_SUBTRACT : COMPOSITE_OVER);
             if (changed()) break;
             node->setVisible(layer.visible);
             if (changed()) break;

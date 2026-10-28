@@ -205,7 +205,8 @@ void Node::setBlendingMode(QString value)
     if (const auto owner = d->image->gpuImage()) {
         if (value != COMPOSITE_OVER && value != COMPOSITE_MULT && value != COMPOSITE_SCREEN &&
             value != COMPOSITE_DARKEN && value != COMPOSITE_LIGHTEN &&
-            value != COMPOSITE_ADD && value != COMPOSITE_LINEAR_DODGE) return;
+            value != COMPOSITE_ADD && value != COMPOSITE_LINEAR_DODGE &&
+            value != COMPOSITE_DIFF && value != COMPOSITE_EXCLUSION && value != COMPOSITE_SUBTRACT) return;
         for (const auto &layer : owner->operations().snapshot()->layers)
             if (layer.uuid == d->node->uuid()) {
                 owner->setLayerBlendMode(layer.id,
@@ -214,7 +215,10 @@ void Node::setBlendingMode(QString value)
                     value == COMPOSITE_DARKEN ? LibrePaint::Image::Gpu::LayerBlendMode::Darken :
                     value == COMPOSITE_LIGHTEN ? LibrePaint::Image::Gpu::LayerBlendMode::Lighten :
                     value == COMPOSITE_ADD ? LibrePaint::Image::Gpu::LayerBlendMode::Addition :
-                    value == COMPOSITE_LINEAR_DODGE ? LibrePaint::Image::Gpu::LayerBlendMode::LinearDodge : LibrePaint::Image::Gpu::LayerBlendMode::Normal);
+                    value == COMPOSITE_LINEAR_DODGE ? LibrePaint::Image::Gpu::LayerBlendMode::LinearDodge :
+                    value == COMPOSITE_DIFF ? LibrePaint::Image::Gpu::LayerBlendMode::Difference :
+                    value == COMPOSITE_EXCLUSION ? LibrePaint::Image::Gpu::LayerBlendMode::Exclusion :
+                    value == COMPOSITE_SUBTRACT ? LibrePaint::Image::Gpu::LayerBlendMode::Subtract : LibrePaint::Image::Gpu::LayerBlendMode::Normal);
                 return;
             }
         return;

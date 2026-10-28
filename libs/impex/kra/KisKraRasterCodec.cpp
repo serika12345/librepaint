@@ -213,7 +213,10 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("darken") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("lighten") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("add") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("linear_dodge")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("linear_dodge") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("diff") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("exclusion") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("subtract")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -630,7 +633,10 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::Darken ? QStringLiteral("darken") :
                              layer.blendMode == LayerBlendMode::Lighten ? QStringLiteral("lighten") :
                              layer.blendMode == LayerBlendMode::Addition ? QStringLiteral("add") :
-                             layer.blendMode == LayerBlendMode::LinearDodge ? QStringLiteral("linear_dodge") : QStringLiteral("normal"));
+                             layer.blendMode == LayerBlendMode::LinearDodge ? QStringLiteral("linear_dodge") :
+                             layer.blendMode == LayerBlendMode::Difference ? QStringLiteral("diff") :
+                             layer.blendMode == LayerBlendMode::Exclusion ? QStringLiteral("exclusion") :
+                             layer.blendMode == LayerBlendMode::Subtract ? QStringLiteral("subtract") : QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));
@@ -1122,7 +1128,10 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("darken") ? LayerBlendMode::Darken :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("lighten") ? LayerBlendMode::Lighten :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("add") ? LayerBlendMode::Addition :
-            element.attribute(QStringLiteral("compositeop")) == QLatin1String("linear_dodge") ? LayerBlendMode::LinearDodge : LayerBlendMode::Normal;
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("linear_dodge") ? LayerBlendMode::LinearDodge :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("diff") ? LayerBlendMode::Difference :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("exclusion") ? LayerBlendMode::Exclusion :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("subtract") ? LayerBlendMode::Subtract : LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;
