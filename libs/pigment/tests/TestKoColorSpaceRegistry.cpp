@@ -148,6 +148,90 @@ void TestBaseColorSpaceRegistry::testNormalPreservesTransparentPixels()
     }
 }
 
+namespace {
+template<typename Component>
+void compareSourceCopy(const KoColorSpace *space, const std::array<Component, 4> &transparent,
+                       Component unit, int sourceAlpha, bool masked, float opacity, bool explicitFlags)
+{
+    using Pixel = std::array<Component, 4>;
+    alignas(64) std::array<Pixel, 64> source, destination, individual;
+    std::array<quint8, 64> mask;
+    for (std::size_t i = 0; i < source.size(); ++i) {
+        source[i] = transparent;
+        if (sourceAlpha == 1 || (sourceAlpha == 2 && i % 3)) source[i][3] = unit;
+        destination[i] = transparent;
+        destination[i][3] = i % 2 ? unit : Component(0);
+        mask[i] = i % 3 ? 255 : 0;
+    }
+    individual = destination;
+    const auto original = destination;
+    const auto *copy = space->compositeOp(COMPOSITE_COPY);
+    QVERIFY(copy);
+    KoCompositeOp::ParameterInfo parameters;
+    parameters.srcRowStart = reinterpret_cast<const quint8 *>(source.data());
+    parameters.dstRowStart = reinterpret_cast<quint8 *>(destination.data());
+    parameters.srcRowStride = sizeof(source);
+    parameters.dstRowStride = sizeof(destination);
+    parameters.maskRowStart = masked ? mask.data() : nullptr;
+    parameters.maskRowStride = mask.size();
+    parameters.cols = source.size();
+    parameters.rows = 1;
+    parameters.opacity = opacity;
+    if (explicitFlags) parameters.channelFlags = QBitArray(4, true);
+    copy->composite(parameters);
+    parameters.cols = 1;
+    for (std::size_t i = 0; i < source.size(); ++i) {
+        parameters.srcRowStart = reinterpret_cast<const quint8 *>(&source[i]);
+        parameters.dstRowStart = reinterpret_cast<quint8 *>(&individual[i]);
+        parameters.maskRowStart = masked ? &mask[i] : nullptr;
+        copy->composite(parameters);
+        const bool applied = opacity == 1.0f && (!masked || mask[i] == 255);
+        const auto &expected = applied ? source[i] : original[i];
+        const QByteArray reference(reinterpret_cast<const char *>(&expected), sizeof(Pixel));
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(&individual[i]), sizeof(Pixel)), reference);
+        // Zero-mask neighbors can still take the existing mixed SIMD path.
+        // The Copy contract here is exact source storage at full coverage.
+        if (applied || !masked || opacity == 0.0f)
+            QCOMPARE(QByteArray(reinterpret_cast<const char *>(&destination[i]), sizeof(Pixel)), reference);
+    }
+}
+}
+
+void TestBaseColorSpaceRegistry::testCopyPreservesSourcePixels_data()
+{
+    QTest::addColumn<QString>("depth");
+    QTest::addColumn<int>("sourceAlpha");
+    QTest::addColumn<bool>("masked");
+    QTest::addColumn<float>("opacity");
+    QTest::addColumn<bool>("explicitFlags");
+    for (const auto *depth : {"U8", "U16", "F32"})
+        for (int sourceAlpha : {0, 1, 2})
+            for (bool masked : {false, true})
+                for (float opacity : {0.0f, 1.0f})
+                    for (bool explicitFlags : {false, true})
+                        QTest::addRow("%s-alpha%d-mask%d-opacity%g-flags%d", depth, sourceAlpha, masked,
+                                      double(opacity), explicitFlags)
+                            << QString::fromLatin1(depth) << sourceAlpha << masked << opacity << explicitFlags;
+}
+
+void TestBaseColorSpaceRegistry::testCopyPreservesSourcePixels()
+{
+    QFETCH(QString, depth);
+    QFETCH(int, sourceAlpha);
+    QFETCH(bool, masked);
+    QFETCH(float, opacity);
+    QFETCH(bool, explicitFlags);
+    const auto *space = KoColorSpaceRegistry::instance()->colorSpace(
+        RGBAColorModelID.id(), depth, QStringLiteral("sRGB-elle-V2-g10.icc"));
+    QVERIFY(space);
+    if (depth == QLatin1String("U8"))
+        compareSourceCopy<quint8>(space, {0x11, 0x3f, 0x81, 0}, 255, sourceAlpha, masked, opacity, explicitFlags);
+    else if (depth == QLatin1String("U16"))
+        compareSourceCopy<quint16>(space, {1, 257, 65534, 0}, 65535, sourceAlpha, masked, opacity, explicitFlags);
+    else
+        compareSourceCopy<float>(space, {1.0e20f, -0.0f, -0.25f, -0.0f}, 1.0f, sourceAlpha, masked, opacity, explicitFlags);
+}
+
 void TestBaseColorSpaceRegistry::testComparisonOperators()
 {
     const KoColorSpace *rgb8 = KoColorSpaceRegistry::instance()->rgb8();

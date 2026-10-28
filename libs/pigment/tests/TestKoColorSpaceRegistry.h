@@ -20,6 +20,8 @@ private Q_SLOTS:
     void testRgb16();
     void testNormalPreservesTransparentPixels_data();
     void testNormalPreservesTransparentPixels();
+    void testCopyPreservesSourcePixels_data();
+    void testCopyPreservesSourcePixels();
     void testComparisonOperators();
     void testProfileByUniqueId();
 
