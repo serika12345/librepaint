@@ -312,7 +312,9 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     rectangle.first = {1, 1}; rectangle.second = {4, 4};
     FigureStyle fill;
     fill.fill = RgbaPixel{1, 257, 65534, 65535};
-    fill.pattern = PatternFill{QSize(1, 1), QByteArray::fromHex("112233ff")};
+    // A truncated resource must preserve the active figure, independently of
+    // the now-supported native sixteen-bit pattern painting path.
+    fill.pattern = PatternFill{QSize(1, 1), QByteArray::fromHex("112233")};
     QCOMPARE(document.updateFigure(operation, rectangle, fill), Result::InvalidInput);
     QCOMPARE(document.preview(), pending);
     QCOMPARE(document.snapshot(), fixed);
