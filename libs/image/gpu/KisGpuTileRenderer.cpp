@@ -57,7 +57,7 @@ TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
 }
 
 TileRenderer::Private::~Private()
-{ budget->used -= nonlinearBytes + greaterBytes + cosineBytes; }
+{ budget->used -= nonlinearBytes + greaterBytes + cosineBytes + superLightBytes; }
 
 bool TileRenderer::Private::prepareRgba16Cosine()
 {
@@ -97,6 +97,47 @@ bool TileRenderer::Private::prepareRgba16Cosine()
     budget->used += cosineBytes;
     cosineTexture = std::move(texture);
     cosineView = std::move(view);
+    return true;
+}
+
+bool TileRenderer::Private::prepareRgba16SuperLight()
+{
+    if (superLightView) return true;
+    if (!ensureTileCapacity(Rgba16SuperLightBytes / RgbaTile::byteCount(PixelFormat::Rgba16), PixelFormat::Rgba16)) return false;
+    WGPUTextureDescriptor descriptor{};
+    descriptor.dimension = WGPUTextureDimension_2D;
+    descriptor.size = {256, 256, 6};
+    descriptor.format = WGPUTextureFormat_RGBA8Uint;
+    descriptor.mipLevelCount = descriptor.sampleCount = 1;
+    descriptor.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+    NativeTexture texture(wgpuDeviceCreateTexture(device->nativeDevice(), &descriptor));
+    WGPUTextureViewDescriptor viewDescriptor{};
+    viewDescriptor.dimension = WGPUTextureViewDimension_2DArray;
+    viewDescriptor.format = WGPUTextureFormat_RGBA8Uint;
+    viewDescriptor.mipLevelCount = 1;
+    viewDescriptor.arrayLayerCount = 6;
+    viewDescriptor.aspect = WGPUTextureAspect_All;
+    NativeTextureView view(texture ? wgpuTextureCreateView(texture.get(), &viewDescriptor) : nullptr);
+    if (!texture || !view || !device->diagnostic().isEmpty()) {
+        error = QStringLiteral("GPU RGBA16 Super Light texture allocation failed");
+        return false;
+    }
+    const auto &bytes = rgba16SuperLightValues();
+    WGPUTexelCopyTextureInfo destination{};
+    destination.texture = texture.get();
+    destination.aspect = WGPUTextureAspect_All;
+    WGPUTexelCopyBufferLayout layout{};
+    layout.bytesPerRow = 256 * 4;
+    layout.rowsPerImage = 256;
+    wgpuQueueWriteTexture(device->queue(), &destination, bytes.constData(), size_t(bytes.size()), &layout, &descriptor.size);
+    if (!device->diagnostic().isEmpty()) {
+        error = QStringLiteral("GPU RGBA16 Super Light resource upload failed");
+        return false;
+    }
+    superLightBytes = Rgba16SuperLightBytes;
+    budget->used += superLightBytes;
+    superLightTexture = std::move(texture);
+    superLightView = std::move(view);
     return true;
 }
 
@@ -435,6 +476,17 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     if (cosine && !d.prepareRgba16Cosine())
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 d.error.isEmpty() ? QStringLiteral("GPU RGBA16 cosine resource budget exhausted") : d.error};
+    const bool superLight = document->format == PixelFormat::Rgba16 && std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
+        return selected.contains(layer.id) && std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &operation) {
+            const auto paint = std::get_if<PaintSnapshot>(&operation);
+            return paint && !(*paint)->brush.erase && qRound(float((*paint)->brush.opacity) * 65535) > 0 &&
+                (((*paint)->figureStyle.outline && (*paint)->brush.blendMode == LayerBlendMode::SuperLight) ||
+                 (hasFigureFill((*paint)->figureStyle) && (*paint)->figureStyle.fillBlendMode == LayerBlendMode::SuperLight));
+        });
+    });
+    if (superLight && !d.prepareRgba16SuperLight())
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU RGBA16 Super Light resource budget exhausted") : d.error};
     const bool nonlinear = document->format == PixelFormat::Rgba8 && std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
         if (!selected.contains(layer.id)) return false;
         return std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &operation) {
@@ -516,7 +568,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         if (!preparePaintJobs(*d.device, d.layout.get(), jobs, recordedJobs, empty,
                               d.unusedCoverage.get(), d.unusedSelection.get(), d.unusedPattern.get(),
                               document->format == PixelFormat::Rgba16 && d.cosineView ? d.cosineView.get() : d.nonlinearView.get(),
-                              d.greaterView.get()))
+                              document->format == PixelFormat::Rgba16 && d.superLightView ? d.superLightView.get() : d.greaterView.get()))
             return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
         for (size_t i = recordedFills; i < fillUploads.size(); ++i) {
             const auto &upload = fillUploads[i];

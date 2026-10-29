@@ -75,7 +75,7 @@ private Q_SLOTS:
     void minimumNonlinearPaintOpacityKeepsNativeQuantization();
     void nonlinearResourceBudgetPreservesPixelsAndRetry();
     void wordBlendOperationsFitWithoutByteLookupResources();
-    void wordCosineBudgetPreservesPixelsAndRetry();
+    void wordCurveBudgetPreservesPixelsAndRetry();
     void coupledProjectionRetainsOtherBlendOperations();
     void greaterBlendValuesShareBoundedResources();
     void greaterResourceBudgetPreservesPixelsAndRetry();
@@ -2612,12 +2612,12 @@ void KisGpuTileRendererTest::nonlinearResourceBudgetPreservesPixelsAndRetry()
     }
 }
 
-void KisGpuTileRendererTest::wordCosineBudgetPreservesPixelsAndRetry()
+void KisGpuTileRendererTest::wordCurveBudgetPreservesPixelsAndRetry()
 {
     const auto format = PixelFormat::Rgba16;
     const auto tileBytes = RgbaTile::byteCount(format);
     const auto pixels = rgbaBytes({16384, 16384, 16384, 65535}, format).repeated(tileBytes / 8);
-    for (const auto mode : {LayerBlendMode::Interpolation, LayerBlendMode::InterpolationB}) {
+    for (const auto mode : {LayerBlendMode::Interpolation, LayerBlendMode::InterpolationB, LayerBlendMode::SuperLight}) {
         for (const bool painting : {false, true}) {
             RasterImage input;
             input.size = {256, 256};
@@ -2666,14 +2666,15 @@ void KisGpuTileRendererTest::wordCosineBudgetPreservesPixelsAndRetry()
             QVERIFY(restored);
             QVERIFY(project(renderer, restored, {0, 0, 256, 256}, projected));
             QCOMPARE(document.redo(), Result::Success);
-            TileRenderer retry(m_device, 6 * tileBytes);
+            const auto retryTiles = mode == LayerBlendMode::SuperLight ? 8 : 6;
+            TileRenderer retry(m_device, retryTiles * tileBytes);
             const auto retried = render(retry, document.snapshot());
             QVERIFY(retried);
             const auto result = project(retry, retried, {0, 0, 256, 256});
             QVERIFY(result);
             QVERIFY(readBuffer(result->tiles().first().pixels) != pixels);
             QCOMPARE(readBuffer(projected->tiles().first().pixels), pixels);
-            QVERIFY(retry.residentBytes() <= 6 * tileBytes);
+            QVERIFY(retry.residentBytes() <= retryTiles * tileBytes);
         }
     }
 }

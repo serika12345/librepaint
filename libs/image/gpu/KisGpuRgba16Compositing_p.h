@@ -8,10 +8,13 @@
 
 namespace LibrePaint::Image::Gpu::Detail {
 constexpr qsizetype Rgba16CosineBytes = 2 * 65536 * 4;
+constexpr qsizetype Rgba16SuperLightBytes = 6 * 65536 * 4;
 constexpr bool usesRgba16Cosine(LayerBlendMode mode)
 { return mode == LayerBlendMode::Interpolation || mode == LayerBlendMode::InterpolationB; }
 /** Immutable binary64 cosine words shared by projection defaults and GPU colors. */
 KRITAIMAGEGPUOPERATIONS_EXPORT const QByteArray &rgba16CosineValues();
+/** Native fixed-exponent inner powers, in three pairs of binary64 word layers. */
+KRITAIMAGEGPUOPERATIONS_EXPORT const QByteArray &rgba16SuperLightValues();
 inline bool usesSeparableRgba16Blend(LayerBlendMode mode)
 { return mode >= LayerBlendMode::Multiply && mode <= LayerBlendMode::AdditiveSubtractive; }
 inline bool usesSpecialAlphaRgba16Blend(LayerBlendMode mode)

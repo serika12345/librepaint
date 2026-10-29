@@ -101,6 +101,9 @@ struct TileRenderer::Private
     Detail::NativeTexture cosineTexture;
     Detail::NativeTextureView cosineView;
     qsizetype cosineBytes = 0;
+    Detail::NativeTexture superLightTexture;
+    Detail::NativeTextureView superLightView;
+    qsizetype superLightBytes = 0;
     Detail::NativeTexture greaterTexture;
     Detail::NativeTextureView greaterView;
     qsizetype greaterBytes = 0;
@@ -147,6 +150,7 @@ struct TileRenderer::Private
     bool prepareNonlinearRgba8(bool full);
     bool prepareGreaterRgba8(bool full);
     bool prepareRgba16Cosine();
+    bool prepareRgba16SuperLight();
     Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main",
         quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr, bool separableBlendEnabled = false, quint32 coupledPixelFormat = 0);
     WGPUComputePipeline blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend, quint32 secondBlend = 0);

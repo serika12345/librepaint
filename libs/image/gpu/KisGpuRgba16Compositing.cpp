@@ -53,6 +53,14 @@ quint32 scaledWordColor(double value)
     const double scaled = std::clamp(colorMultiply(value, 65535.0), 0.0, 65535.0);
     return quint32(colorAdd(scaled, 0.5));
 }
+double wordCurveValue(const QByteArray &bytes, quint32 word, quint32 curve)
+{
+    const quint64 bits = qFromLittleEndian<quint32>(bytes.constData() + (curve * 2 * 65536 + word) * 4) |
+        (quint64(qFromLittleEndian<quint32>(bytes.constData() + ((curve * 2 + 1) * 65536 + word) * 4)) << 32);
+    double value;
+    std::memcpy(&value, &bits, sizeof(value));
+    return value;
+}
 double moduloUnit(double value)
 {
     const double divisor = colorAdd(1.0, std::numeric_limits<double>::epsilon());
@@ -196,12 +204,12 @@ quint32 powerWordColor(LayerBlendMode mode, quint32 source, quint32 destination)
     case LayerBlendMode::EasyDodge:
         return source == Unit ? Unit : scaledWordColor(wordColorPower(d,
             colorMultiply(colorSubtract(1.0, s), 1.039999999)));
-    case LayerBlendMode::SuperLight:
-        if (s < .5) return scaledWordColor(colorSubtract(1.0, wordColorPower(colorAdd(
-            wordColorPower(colorSubtract(1.0, d), 2.875),
-            wordColorPower(colorSubtract(1.0, colorMultiply(2.0, s)), 2.875)), 1.0 / 2.875)));
-        return scaledWordColor(wordColorPower(colorAdd(wordColorPower(d, 2.875),
-            wordColorPower(colorSubtract(colorMultiply(2.0, s), 1.0), 2.875)), 1.0 / 2.875));
+    case LayerBlendMode::SuperLight: {
+        const auto &values = rgba16SuperLightValues();
+        const auto combined = colorAdd(wordCurveValue(values, destination, s < .5 ? 1 : 0), wordCurveValue(values, source, 2));
+        const auto value = wordColorPower(combined, 1.0 / 2.875);
+        return scaledWordColor(s < .5 ? colorSubtract(1.0, value) : value);
+    }
     default:
         return scaledWordColor(colorSubtract(1.0, wordColorPower(colorSubtract(1.0,
             source == Unit ? .999999999999 : s), colorMultiply(d, 1.039999999))));
@@ -241,14 +249,7 @@ quint32 arcTangentWordColor(quint32 source, quint32 destination)
     return scaledWordColor(colorDivide(colorMultiply(2.0, angle), 0x1.921fb54442d18p1));
 }
 double cosineWordColor(quint32 word)
-{
-    const auto &bytes = rgba16CosineValues();
-    const quint64 bits = qFromLittleEndian<quint32>(bytes.constData() + word * 4) |
-        (quint64(qFromLittleEndian<quint32>(bytes.constData() + (65536 + word) * 4)) << 32);
-    double value;
-    std::memcpy(&value, &bits, sizeof(value));
-    return value;
-}
+{ return wordCurveValue(rgba16CosineValues(), word, 0); }
 quint32 interpolationWordColor(quint32 source, quint32 destination)
 {
     if (!source && !destination) return 0;

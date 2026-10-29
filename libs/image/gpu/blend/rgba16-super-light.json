@@ -1,0 +1,21 @@
+{
+  "bytes": 1572864,
+  "formatVersion": 1,
+  "modes": [
+    "super_light"
+  ],
+  "packing": "RGBA8Uint 256x256 array; x=word&255, y=word>>8; layers0/1=pow(normalized,2.875), layers2/3=pow(1-normalized,2.875), layers4/5=pow(abs(2*normalized-1),2.875); low/high binary64 words; little-endian bytes",
+  "purpose": "Native binary64 inner powers for 16-bit Super Light painting, projection and implicit defaults",
+  "sha256": "45cdbe094b48821e7434b43abb9631781ff1e67347eca70278f7bb6f46c38b83",
+  "source": "libs/pigment/compositeops/KoCompositeOpFunctions.h",
+  "sourceAuthor": "Silvio Heinrich and LibrePaint/Krita contributors",
+  "sourceLicense": "LGPL-2.1-or-later",
+  "sourceRevision": "aaec9e5aaf26bbd256559a950e1b088136bbc604",
+  "sourceHashes": {
+    "scripts/gpu/GenerateRgba16SuperLightValues.cpp": "0c59cf81a3393cefd7ea1f7216bf3b6f4d9f18677b8c77a06a1d90b48e535c40",
+    "libs/pigment/compositeops/KoCompositeOpFunctions.h": "f21b2a3399c18ea1a7dc197c1516b9c33781da4bbb0ab678128e66a213d0edb0",
+    "libs/pigment/KoColorSpaceMaths.h": "7837d7cfa4b9432703e0b9fbad334fc6f6e241456074a6dc00910423abe57299",
+    "libs/pigment/KoColorSpaceMaths.cpp": "38f264209d049227fddf98385d114178a920c3f50c48afd657a3b4db636010b8",
+    "libs/pigment/KoIntegerMaths.h": "7e0e3dbae8102a5450bab4e7fc5a69c573df453f0d87a68dcf3582b515cbf58d"
+  }
+}

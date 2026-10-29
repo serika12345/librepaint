@@ -18,7 +18,7 @@
 // PenumbraA=56, PenumbraB=57, FlatLight=58, HardMixSofterPhotoshop=59.
 // Nonlinear RGBA8 modes GeometricMean through AdditiveSubtractive occupy 60..87.
 @group(0) @binding(9) var separableColorValues: texture_2d_array<u32>;
-@group(0) @binding(10) var greaterRgba8: texture_2d_array<u32>;
+@group(0) @binding(10) var blendCurveValues: texture_2d_array<u32>;
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -151,7 +151,7 @@ fn specialAlphaRgba8Pixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask
     let alpha = multiplyThreeBytes(source.w, 255u, opacity);
     if (mode == 128u) {
         if (alpha == 0u || oldAlpha == 255u) { return packPixel(destination); }
-        let pair = textureLoad(greaterRgba8, vec2<i32>(i32(oldAlpha), i32(alpha)), 0, 0).xy;
+        let pair = textureLoad(blendCurveValues, vec2<i32>(i32(oldAlpha), i32(alpha)), 0, 0).xy;
         for (var i = 0u; i < 3u; i += 1u) {
             if ((mask & (1u << i)) == 0u) { continue; }
             if (oldAlpha == 0u) { destination[i] = source[i]; }

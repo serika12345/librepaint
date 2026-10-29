@@ -429,10 +429,12 @@ Interpolationの2方式は、全成分の補色も同じ試験入口で比較し
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/gpu/generate-rgba16-cosine-values --build-dir build/tdd-linux
+./scripts/run-shared-test-env ./scripts/gpu/generate-rgba16-super-light-values --build-dir build/tdd-linux
 ```
 
-`KisGpuTileRendererTest::wordCosineBudgetPreservesPixelsAndRetry`は、資源の容量不足で
+`KisGpuTileRendererTest::wordCurveBudgetPreservesPixelsAndRetry`は、資源の容量不足で
 記録済み画素と固定版が維持され、Undo／Redoと容量を確保した再試行で描画・投影が成立することを検査する。
+Super Lightの内側のべき乗値は`libs/image/gpu/blend/rgba16-super-light.json`が生成元と格納順を記録する。
 `KisGpuTileRendererTest::minimumNonlinearPaintOpacityKeepsNativeQuantization`は、
 最小の8ビット不透明度へ丸まる小数入力で、円形ブラシと塗りの画素を通常CPU参照と比較する。
 幾何平均と剰余系も同じ試験入口で、単精度から倍精度への正規化、平方根、除算、
