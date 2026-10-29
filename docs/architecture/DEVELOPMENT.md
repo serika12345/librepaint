@@ -424,6 +424,8 @@ Soft Light、Tint・Shade・Fogと平方根差は、平方根と二次式、半�
 二次式の丸めた積と除算、Penumbraの分岐と半分への切捨てを全成分の比較で確認する。
 消去とRGB成分コピーは選択と不透明度の丸め順を照合し、背面合成とDestination In/Atopは
 透明RGBとアルファの遷移を比較する。不透明度0のDestination In/AtopはRGBA8の通常CPU投影とも照合する。
+Marker合成とSAI Additionは、全アルファと境界値、不透明度、選択、成分保護を比較する。
+空の描画先にも同じ選択付きブラシを適用し、CPUの実際の描画範囲、透明RGBとUndo後の空画素を照合する。
 部分アルファ、不透明度と成分保護、一様なグループ既定色、選択の穴を含む円形マーカー、
 Undo／Redo、KRA保存・再読込後の追加編集とPNG16も照合する。
 `LIBREPAINT_GPU_RESULT_DIR`を指定すると`u16-blend-<方式>/`へ比較画素、参照画素、

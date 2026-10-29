@@ -103,6 +103,15 @@ quint32 ifsWordColor(LayerBlendMode mode, quint32 source, quint32 destination)
         return scaledWordColor(colorSubtract(colorAdd(colorMultiply(s, d), s), colorMultiply(s, s)));
     }
 }
+quint16 saiWordChannel(quint16 destination, quint16 source, quint16 alpha)
+{
+    const volatile float s = float(source) / 65535.f, d = float(destination) / 65535.f, a = float(alpha) / 65535.f;
+    const volatile float product = s * a;
+    const volatile float combined = product + d;
+    const volatile float scaled = std::min(1.f, float(combined)) * 65535.f;
+    const volatile float rounded = scaled + .5f;
+    return quint16(int(rounded));
+}
 quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
 {
     const auto dodge = [](quint32 s, quint32 d) { return s == Unit ? (d ? Unit : 0u) : std::min(Unit, divideWord(d, Unit - s)); };
@@ -255,6 +264,30 @@ RgbaPixel separableRgba16Pixel(RgbaPixel destination, const RgbaPixel &source,
         }
     }
     destination[3] = nextAlpha;
+    return destination;
+}
+
+RgbaPixel specialAlphaRgba16Pixel(RgbaPixel destination, const RgbaPixel &source,
+                                 quint16 opacity, quint8 mask, quint16 selection, LayerBlendMode mode)
+{
+    const auto oldAlpha = destination[3];
+    const bool locked = !(mask & 8u);
+    if (mask != 15 && !oldAlpha) destination = {};
+    if (mode == LayerBlendMode::Marker) {
+        const auto selected = multiplyWord(source[3], selection);
+        const auto alpha = multiplyWord(selected, opacity);
+        const auto weight = oldAlpha ? std::min(Unit, divideWord(alpha, oldAlpha)) : Unit;
+        for (int channel = 0; channel < 3; ++channel)
+            if (mask & (1u << channel)) destination[channel] = interpolateWord(destination[channel], source[channel], weight);
+        if (!locked) destination[3] = opacity > oldAlpha ? interpolateWord(oldAlpha, opacity, selected) : oldAlpha;
+        return destination;
+    }
+    const auto alpha = quint16(multiplyThreeWords(source[3], selection, opacity));
+    const auto nextAlpha = alpha + oldAlpha - multiplyWord(alpha, oldAlpha);
+    if (locked ? oldAlpha != 0 : nextAlpha != 0)
+        for (int channel = 0; channel < 3; ++channel)
+            if (mask & (1u << channel)) destination[channel] = saiWordChannel(destination[channel], source[channel], alpha);
+    if (!locked) destination[3] = quint16(nextAlpha);
     return destination;
 }
 }

@@ -57,7 +57,7 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles_data()
          "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light",
          "linear light", "equivalence", "allanon", "hard_mix_photoshop", "xor", "or", "and", "nand", "nor",
          "xnor", "implication", "not_implication", "converse", "not_converse", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect",
-         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "destination-in", "destination-atop", "geometric_mean", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "soft_light_svg", "soft_light", "tint_ifs_illusions", "shade_ifs_illusions", "fog_lighten_ifs_illusions", "fog_darken_ifs_illusions", "additive_subtractive", "copy", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2"})
+         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "destination-in", "destination-atop", "geometric_mean", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "soft_light_svg", "soft_light", "tint_ifs_illusions", "shade_ifs_illusions", "fog_lighten_ifs_illusions", "fog_darken_ifs_illusions", "additive_subtractive", "marker", "luminosity_sai", "copy", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -278,5 +278,39 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles()
             QCOMPARE(afterApi.pixelData(0, 0, side, side), reopenedApi.pixelData(0, 0, side, side));
         }
         reopened->undoStack()->undo();
+    }
+    if (*blend == Gpu::LayerBlendMode::Marker || *blend == Gpu::LayerBlendMode::LuminositySai) {
+        auto blank = input;
+        blank.layers = {upper};
+        const auto blankOwner = Gpu::PaintImageSP::create(execution, blank);
+        QScopedPointer<KisDocument> blankDocument(KisPart::instance()->createDocument());
+        blankDocument->setFileBatchMode(true);
+        blankDocument->setCurrentImage(KisImage::fromGpuImage(blankOwner, QStringLiteral("Empty U16 alpha composition"), cs));
+        const auto blankId = blankOwner->operations().snapshot()->layers.first().id;
+        QScopedPointer<Node> blankNode(Node::createNode(blankDocument->image(), blankDocument->image()->root()->firstChild()));
+        QCOMPARE(blankOwner->setSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(QRect(0, 0, side, side), selection, QRect(0, 0, side, side))), Gpu::Result::Success);
+        const QByteArray empty(side * side * 8, '\0');
+        for (int mask : {6, 9, 15}) for (int opacity : {0, 255}) {
+            KisPaintDeviceSP destination = new KisPaintDevice(cs);
+            KisPainter merge(destination, nativeSelection);
+            merge.setCompositeOpId(mode); merge.setOpacityF(qreal(opacity) / 255);
+            QBitArray flags(4);
+            for (int c = 0; c < 4; ++c) flags.setBit(c, mask & (1 << (c < 3 ? 2 - c : 3)));
+            merge.setChannelFlags(flags);
+            for (const auto &rect : source->region().rects()) merge.bitBlt(rect.topLeft(), source, rect);
+            QByteArray reference(empty.size(), Qt::Uninitialized);
+            destination->readBytes(reinterpret_cast<quint8 *>(reference.data()), QRect(0, 0, side, side));
+            Gpu::Brush brush; brush.rgba = {ink[2], ink[1], ink[0], ink[3]}; brush.diameter = 12;
+            brush.opacity = qreal(opacity) / 255; brush.channelWriteMask = mask; brush.blendMode = *blend;
+            const auto operation = blankOwner->beginStroke(blankId, brush, 7); QVERIFY(!operation.isNull());
+            QCOMPARE(blankOwner->appendSamples(operation, {{{6, 6}, 1}}), Gpu::Result::Success);
+            QCOMPARE(blankOwner->commitStroke(operation), Gpu::Result::Success);
+            const auto painted = blankNode->pixelData(0, 0, side, side);
+            QVERIFY(write(QStringLiteral("empty-painted-o%1-c%2.bgra16").arg(opacity).arg(mask), painted));
+            QVERIFY(write(QStringLiteral("empty-reference-o%1-c%2.bgra16").arg(opacity).arg(mask), reference));
+            QVERIFY2(painted == reference, qPrintable(QStringLiteral("Empty U16 stroke %1 opacity=%2 mask=%3").arg(mode).arg(opacity).arg(mask)));
+            blankDocument->undoStack()->undo();
+            QCOMPARE(blankNode->pixelData(0, 0, side, side), empty);
+        }
     }
 }

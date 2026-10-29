@@ -323,3 +323,42 @@ fn separableRgba16Pixel(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u3
     destination.w = nextAlpha;
     return destination;
 }
+fn specialAlphaRgba16PixelMode(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32, selection: u32, mode: u32) -> vec4<u32> {
+    var destination = base;
+    let oldAlpha = base.w;
+    let locked = (mask & 8u) == 0u;
+    if (mask != 15u && oldAlpha == 0u) { destination = vec4<u32>(0u); }
+    if (mode == 127u) {
+        let selected = mul65535(source.w, selection);
+        let alpha = mul65535(selected, opacity);
+        var weight = 65535u;
+        if (oldAlpha != 0u) { weight = min(65535u, divideWord(alpha, oldAlpha)); }
+        for (var i = 0u; i < 3u; i += 1u) {
+            if ((mask & (1u << i)) != 0u) { destination[i] = interpolateWord(destination[i], source[i], weight); }
+        }
+        if (!locked && opacity > oldAlpha) { destination.w = interpolateWord(oldAlpha, opacity, selected); }
+        return destination;
+    }
+    let alpha = multiplyThreeWords(source.w, selection, opacity);
+    let nextAlpha = alpha + oldAlpha - mul65535(alpha, oldAlpha);
+    if (select(nextAlpha != 0u, oldAlpha != 0u, locked)) {
+        let a = projectionDivide(bitcast<u32>(f32(alpha)), 0x477fff00u);
+        for (var i = 0u; i < 3u; i += 1u) {
+            if ((mask & (1u << i)) == 0u) { continue; }
+            let s = projectionDivide(bitcast<u32>(f32(source[i])), 0x477fff00u);
+            let d = projectionDivide(bitcast<u32>(f32(destination[i])), 0x477fff00u);
+            destination[i] = colorComponentWord(floatAdd(floatMultiply(s, a), d));
+        }
+    }
+    if (!locked) { destination.w = nextAlpha; }
+    return destination;
+}
+fn specialAlphaRgba16Pixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32, selection: u32, mode: u32) -> vec4<u32> {
+    if ((WORD_BLEND_MODE_A == 127u || WORD_BLEND_MODE_A == 129u) && mode == WORD_BLEND_MODE_A) {
+        return specialAlphaRgba16PixelMode(base, source, opacity, mask, selection, WORD_BLEND_MODE_A);
+    }
+    if ((WORD_BLEND_MODE_B == 127u || WORD_BLEND_MODE_B == 129u) && mode == WORD_BLEND_MODE_B) {
+        return specialAlphaRgba16PixelMode(base, source, opacity, mask, selection, WORD_BLEND_MODE_B);
+    }
+    return base;
+}

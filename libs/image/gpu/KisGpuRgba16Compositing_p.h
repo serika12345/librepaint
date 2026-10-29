@@ -16,6 +16,8 @@ inline bool usesSeparableRgba16Blend(LayerBlendMode mode)
         (mode >= LayerBlendMode::ShadeIFSIllusions && mode <= LayerBlendMode::FogDarkenIFSIllusions) ||
         mode == LayerBlendMode::AdditiveSubtractive;
 }
+inline bool usesSpecialAlphaRgba16Blend(LayerBlendMode mode)
+{ return mode == LayerBlendMode::Marker || mode == LayerBlendMode::LuminositySai; }
 inline quint32 multiplyWord(quint32 a, quint32 b)
 {
     const auto product = a * b + 32768u;
@@ -33,5 +35,7 @@ RgbaPixel separableRgba16Pixel(RgbaPixel destination, const RgbaPixel &source,
 /** Coupled RGB evaluation followed by native U16 quantization and alpha. */
 RgbaPixel coupledRgba16Pixel(RgbaPixel destination, const RgbaPixel &source,
                             quint16 appliedAlpha, quint8 mask, LayerBlendMode mode);
+RgbaPixel specialAlphaRgba16Pixel(RgbaPixel destination, const RgbaPixel &source,
+                                 quint16 opacity, quint8 mask, quint16 selection, LayerBlendMode mode);
 }
 #endif

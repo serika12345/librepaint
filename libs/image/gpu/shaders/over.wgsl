@@ -75,6 +75,10 @@ fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameter
     if ((values.blendModeOpacity & 255u) == 130u) {
         return nativePixelWords(copyPixel(destination, source, values.opacityBits, values.channelMask, true), true);
     }
+    if ((values.blendModeOpacity & 255u) == 127u || (values.blendModeOpacity & 255u) == 129u) {
+        return nativePixelWords(specialAlphaRgba16Pixel(destination, source, (values.blendModeOpacity >> 8u) * 257u,
+            values.channelMask, 65535u, values.blendModeOpacity & 255u), true);
+    }
     if ((values.blendModeOpacity & 255u) != 0u) {
         let alpha = appliedWordAlpha(source.w, 65535u, (values.blendModeOpacity >> 8u) * 257u, values.blendModeOpacity & 255u);
         if (colorIsCoupled(values.blendModeOpacity & 255u)) {

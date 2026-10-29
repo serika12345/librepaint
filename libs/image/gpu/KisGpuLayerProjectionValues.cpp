@@ -334,6 +334,11 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
                     continue;
                 }
                 if (format == PixelFormat::Rgba16 && layer.blendMode != LayerBlendMode::Normal) {
+                    if (Detail::usesSpecialAlphaRgba16Blend(layer.blendMode)) {
+                        pixel = Detail::specialAlphaRgba16Pixel(pixel, source, quint16(layer.opacity * 257u),
+                            layer.channelMask, 65535, layer.blendMode);
+                        continue;
+                    }
                     auto alpha = quint16(quint64(source[3]) * (quint32(layer.opacity) * 257u) / 65535u);
                     if (layer.blendMode == LayerBlendMode::Erase ||
                         (layer.blendMode >= LayerBlendMode::CopyRed && layer.blendMode <= LayerBlendMode::CopyBlue))
