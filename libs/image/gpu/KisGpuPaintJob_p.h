@@ -27,10 +27,13 @@ struct PaintParameters
     /** sourceBlocks identifies the sixteen native 64-pixel source blocks in this GPU tile. */
     quint32 colorHigh = 0, fillColorHigh = 0, pixelFormat = 0, sourceBlocks = 0;
     qint32 compositionX = 0, compositionY = 0, compositionWidth = 0, compositionHeight = 0;
+    /** Earlier allocated destination bounds for protected non-Copy pixels in mixed figures. */
+    qint32 destinationX = 0, destinationY = 0, destinationWidth = 0, destinationHeight = 0;
 };
-static_assert(sizeof(PaintParameters) == 112);
+static_assert(sizeof(PaintParameters) == 128);
 constexpr quint32 UniformPixelFill = 16384u;
 constexpr quint32 PartialRgba16Source = 32768u;
+constexpr quint32 RestrictNonCopyDestination = 65536u;
 
 struct PaintJob
 {

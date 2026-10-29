@@ -57,7 +57,7 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles_data()
          "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light",
          "linear light", "equivalence", "allanon", "hard_mix_photoshop", "xor", "or", "and", "nand", "nor",
          "xnor", "implication", "not_implication", "converse", "not_converse", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect",
-         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop"})
+         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "copy"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -196,8 +196,13 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles()
             source.opacity = opacity; source.projectionChannelMask = mask; source.blendMode = *blend;
             uniform.layers = {destination, source, group};
             Gpu::OperationDocument defaults(uniform);
-            const auto &reference = !source.defaultPixel[3] || (!(mask & 8) && !destination.defaultPixel[3]) ? base : expected;
-            QCOMPARE(defaults.snapshot()->projectionDefaultPixels().value(3), rgbaAt(reference, pixel));
+            const auto &reference = (!source.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy) || (!(mask & 8) && !destination.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy) ? base : expected;
+            const auto actualDefault = defaults.snapshot()->projectionDefaultPixels().value(3);
+            if (actualDefault != rgbaAt(reference, pixel))
+                qInfo() << "U16 default" << mode << "opacity" << opacity << "mask" << mask << "pixel" << pixel
+                        << "source" << Gpu::rgbaBytes(source.defaultPixel, input.format).toHex()
+                        << "destination" << Gpu::rgbaBytes(destination.defaultPixel, input.format).toHex();
+            QCOMPARE(actualDefault, rgbaAt(reference, pixel));
         }
     }
     KisPropertiesConfigurationSP saveSettings(new KisPropertiesConfiguration);

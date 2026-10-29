@@ -14,6 +14,7 @@ struct Parameters {
     pattern: vec4<u32>,
     native: vec4<u32>,
     composition: vec4<i32>,
+    destination: vec4<i32>,
 }
 struct FigureFillEdge { endpoints: vec4<i32>, mirroredRounding: vec4<i32>, }
 @group(0) @binding(0) var<uniform> parameters: Parameters;
@@ -302,7 +303,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let softSelection = (parameters.paintFlags & 8192u) != 0u;
     let partialWordSource = (parameters.paintFlags & 32768u) != 0u;
     let emptySourceComposition = parameters.erase == 0u &&
-        (partialWordSource || parameters.pattern.w == 41u || parameters.pattern.w == 42u ||
+        (partialWordSource || parameters.pattern.w == 130u || parameters.pattern.z == 130u || parameters.pattern.w == 41u || parameters.pattern.w == 42u ||
          parameters.pattern.z == 41u || parameters.pattern.z == 42u ||
          transparentSourceAffectsBlend(parameters.pattern.w) || transparentSourceAffectsBlend(parameters.pattern.z));
     let insideSelectionBounds = pixel.x >= selection.x && pixel.y >= selection.y &&
@@ -388,8 +389,25 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             blendMode = parameters.pattern.z;
         }
     }
+    if ((parameters.paintFlags & 65536u) != 0u && blendMode != 130u) {
+        let bounds = parameters.destination;
+        if (bounds.z <= 0 || bounds.w <= 0 || pixel.x < bounds.x || pixel.y < bounds.y ||
+            pixel.x >= bounds.x + bounds.z || pixel.y >= bounds.y + bounds.w) {
+            writePaintPixel(index, base);
+            return;
+        }
+    }
     var writable = (parameters.paintFlags >> 1u) & 15u;
     if ((parameters.paintFlags & 1u) != 0u && parameters.erase == 0u) { writable &= 7u; }
+    if (parameters.erase == 0u && blendMode == 130u) {
+        let block = (local.y / 64u) * 4u + local.x / 64u;
+        if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
+        if (!sourceHasColor) { source = vec3<u32>(0u); }
+        let opacity = projectionMultiply(parameters.canvasOpacityBits, projectionMultiply(bitcast<u32>(f32(selectionAlpha)), 0x3b808081u));
+        let alpha = coverage * select(1u, 257u, parameters.native.z != 0u);
+        writePaintPixel(index, copyPixel(base, vec4<u32>(source, alpha), opacity, writable, parameters.native.z != 0u));
+        return;
+    }
     if (partialWordSource) {
         let block = (local.y / 64u) * 4u + local.x / 64u;
         if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }

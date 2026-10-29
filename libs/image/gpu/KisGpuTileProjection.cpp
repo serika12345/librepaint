@@ -249,9 +249,9 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     if (group) for (const auto &layer : document->document()->layers) if (layer.id == group) targetOrigin = layer.position;
     for (const auto &input : inputs) {
         auto extent = document->m_data->sourceExtents.value(input.layer);
-        if (input.blendMode == LayerBlendMode::DestinationIn || input.blendMode == LayerBlendMode::DestinationAtop)
+        if (input.blendMode == LayerBlendMode::Copy || input.blendMode == LayerBlendMode::DestinationIn || input.blendMode == LayerBlendMode::DestinationAtop)
             extent = QRect(QPoint(), document->document()->size);
-        if (!(input.channelMask & 8u)) extent &= destinationExtent;
+        if (!(input.channelMask & 8u) && input.blendMode != LayerBlendMode::Copy) extent &= destinationExtent;
         sourceClips[input.layer] = extent;
         if (!extent.isEmpty()) {
             const auto first = QPoint(pixelTileIndex(extent.left() - targetOrigin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.top() - targetOrigin.y(), PixelHistoryBlockSize));
@@ -294,11 +294,11 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
             const auto extent = sourceClips.value(layer.layer);
-            const bool clipsSource = transparentSourceAffectsBlend(layer.blendMode) || !(layer.channelMask & 8u);
+            const bool clipsSource = transparentSourceAffectsBlend(layer.blendMode) || (!(layer.channelMask & 8u) && layer.blendMode != LayerBlendMode::Copy);
             const QRect tileBounds(Detail::coordinate(coordinate) * TileSize, QSize(TileSize, TileSize));
             if (clipsSource && !extent.intersects(tileBounds)) continue;
             if (!pixels && !clipsSource && layer.blendMode != LayerBlendMode::DestinationIn &&
-                layer.blendMode != LayerBlendMode::DestinationAtop) continue;
+                layer.blendMode != LayerBlendMode::DestinationAtop && layer.blendMode != LayerBlendMode::Copy) continue;
             ProjectionInput input{pixels, layer.opacity, layer.channelMask, layer.blendMode};
             input.mask = layerMasks.value(layer.layer);
             if (clipsSource) input.sourceExtent = extent;

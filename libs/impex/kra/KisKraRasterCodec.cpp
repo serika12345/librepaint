@@ -336,7 +336,8 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("lambert_lighting_gamma2.2") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("marker") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("greater") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("luminosity_sai")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("luminosity_sai") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("copy")) ||
         element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (group && !child.isNull() &&
@@ -877,6 +878,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                              layer.blendMode == LayerBlendMode::Marker ? QStringLiteral("marker") :
                              layer.blendMode == LayerBlendMode::Greater ? QStringLiteral("greater") :
                              layer.blendMode == LayerBlendMode::LuminositySai ? QStringLiteral("luminosity_sai") :
+                             layer.blendMode == LayerBlendMode::Copy ? QStringLiteral("copy") :
                              QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
@@ -1493,6 +1495,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("marker") ? LayerBlendMode::Marker :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("greater") ? LayerBlendMode::Greater :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("luminosity_sai") ? LayerBlendMode::LuminositySai :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("copy") ? LayerBlendMode::Copy :
             LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));

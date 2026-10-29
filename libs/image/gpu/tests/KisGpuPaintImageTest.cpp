@@ -50,6 +50,7 @@ private Q_SLOTS:
     void retainedLayerCopiesKeepIndependentPixelsAndExecutionLifetime();
     void insertedLayerPixelsPublishAtomicallyAndRemainIndependent();
     void filledFiguresPublishOneVersionAndRejectWholeRequests();
+    void protectedCopyOutlineKeepsNormalFillDestinationBounds();
     void sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment();
     void directPixelsReachGpuWithoutEditingNotificationsOrHistory();
     void rectangularWritesPreserveOtherRegionsAcrossHistory_data();
@@ -957,6 +958,46 @@ void KisGpuPaintImageTest::interiorPixelWritesRemainWithTheirFilledHistory()
     QCOMPARE(image.readRgbaPixels(layer, region, 4).bytes, QByteArray(4, char(0)));
     QCOMPARE(image.redo(), Result::Success);
     QCOMPARE(image.readRgbaPixels(layer, region, 4).bytes, written);
+}
+
+void KisGpuPaintImageTest::protectedCopyOutlineKeepsNormalFillDestinationBounds()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage input;
+    input.size = {128, 128};
+    RasterLayer layer;
+    layer.defaultPixel = {1, 2, 3, 0};
+    input.layers = {layer};
+    PaintImage image(execution, input);
+    const auto id = image.operations().activeLayer();
+    const auto before = image.operations().snapshot();
+    Brush brush;
+    brush.rgba = {17, 63, 129, 255};
+    brush.diameter = 8;
+    brush.alphaLocked = true;
+    brush.blendMode = LayerBlendMode::Copy;
+    FigureStyle style;
+    style.fill = RgbaPixel{200, 127, 1, 255};
+    const Shape shape{ShapeKind::Rectangle, {32, 32}, {96, 96}, 0};
+    QCOMPARE(image.paintFigure(id, brush, {{{32, 32}, 1}, {{96, 96}, 1}}, shape, style, 7), Result::Success);
+    const auto painted = image.operations().snapshot();
+    const auto read = [&](const Snapshot &version, QPoint point) {
+        return execution.readRgbaPixels(image.handle(), version, QRect(point, QSize(1, 1)), id, 4).bytes;
+    };
+    // Copy paints hidden RGB beyond the earlier allocation. The normal fill
+    // in the same figure retains its native protected-destination clipping.
+    QCOMPARE(read(painted, {64, 30}), QByteArray::fromHex("113f8100"));
+    QCOMPARE(read(painted, {64, 64}), QByteArray::fromHex("01020300"));
+    QCOMPARE(read(painted, {0, 0}), QByteArray::fromHex("01020300"));
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(read(image.operations().snapshot(), {64, 30}), QByteArray::fromHex("01020300"));
+    QCOMPARE(read(painted, {64, 30}), QByteArray::fromHex("113f8100"));
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(read(image.operations().snapshot(), {64, 30}), QByteArray::fromHex("113f8100"));
+    QCOMPARE(read(before, {64, 30}), QByteArray::fromHex("01020300"));
 }
 
 void KisGpuPaintImageTest::filledFiguresPublishOneVersionAndRejectWholeRequests()

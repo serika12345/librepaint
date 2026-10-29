@@ -147,7 +147,7 @@ enum class LayerBlendMode : quint8 {
     IncreaseSaturationHsv, DecreaseSaturationHsv, LightnessHsv, IncreaseLightnessHsv,
     DecreaseLightnessHsv, DarkerColor, LighterColor, TangentNormalMap,
     ReorientedNormalMap, LambertLighting, LambertLightingGamma22,
-    Marker = 127, Greater, LuminositySai
+    Marker = 127, Greater, LuminositySai, Copy
 };
 
 /** Frozen circular marker or Gaussian WASH settings. */

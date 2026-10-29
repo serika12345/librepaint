@@ -163,10 +163,11 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
         QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
         QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
+        QFile copy(QStringLiteral(":/librepaint/gpu/shaders/copy.wgsl"));
         QFile separable16(QStringLiteral(":/librepaint/gpu/shaders/separable-rgba16.wgsl"));
         if (!arithmetic.open(QIODevice::ReadOnly) || !separable.open(QIODevice::ReadOnly) ||
             !normal.open(QIODevice::ReadOnly) || !native.open(QIODevice::ReadOnly) || !separable16.open(QIODevice::ReadOnly) ||
-            !doubles.open(QIODevice::ReadOnly) || !color.open(QIODevice::ReadOnly)) {
+            !copy.open(QIODevice::ReadOnly) || !doubles.open(QIODevice::ReadOnly) || !color.open(QIODevice::ReadOnly)) {
             error = QStringLiteral("GPU normal-composition arithmetic could not be loaded");
             return {};
         }
@@ -177,6 +178,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         source += normal.readAll() + '\n';
         source += native.readAll() + '\n';
         source += separable16.readAll() + '\n';
+        source += copy.readAll() + '\n';
     }
     if (painting) {
         QFile gaussian(QStringLiteral(":/librepaint/gpu/shaders/gaussian.wgsl"));
@@ -695,11 +697,15 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 if (!paint || paintRegion.isEmpty()) continue;
                 const auto &operation = **paint;
                 auto compositionBounds = operation.compositionBounds;
+                std::optional<QRect> nonCopyDestination;
                 if (operation.brush.alphaLocked || !(operation.brush.channelWriteMask & 8u)) {
                     auto permitted = allocation->beforeOperations[op];
                     if (compositionBounds) permitted &= *compositionBounds;
-                    if (permitted.isEmpty()) continue;
-                    compositionBounds = permitted;
+                    if (hasCopyBlend(operation)) nonCopyDestination = permitted;
+                    else {
+                        if (permitted.isEmpty()) continue;
+                        compositionBounds = permitted;
+                    }
                 }
                 const bool fillEnabled = hasFigureFill(operation.figureStyle);
                 const bool replacesAlpha = usesAllocatedSourceRegion(operation, document->format);
@@ -958,6 +964,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         job.values.compositionY = bounds.y();
                         job.values.compositionWidth = bounds.width();
                         job.values.compositionHeight = bounds.height();
+                    }
+                    if (nonCopyDestination) {
+                        job.values.paintFlags |= RestrictNonCopyDestination;
+                        const auto &bounds = *nonCopyDestination;
+                        job.values.destinationX = bounds.x();
+                        job.values.destinationY = bounds.y();
+                        job.values.destinationWidth = bounds.width();
+                        job.values.destinationHeight = bounds.height();
                     }
                     if (operation.figureStyle.pattern) {
                         job.values.patternWidth = quint32(operation.figureStyle.pattern->size.width());

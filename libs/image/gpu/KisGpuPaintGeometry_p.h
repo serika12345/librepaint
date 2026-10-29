@@ -14,10 +14,15 @@
 
 namespace LibrePaint::Image::Gpu::Detail {
 constexpr int PixelHistoryBlockSize = 64;
+inline bool hasCopyBlend(const PaintOperation &operation)
+{
+    return operation.brush.blendMode == LayerBlendMode::Copy ||
+        (hasFigureFill(operation.figureStyle) && operation.figureStyle.fillBlendMode == LayerBlendMode::Copy);
+}
 inline bool usesAllocatedSourceRegion(const PaintOperation &operation, PixelFormat format)
 {
     const auto replacesAlpha = [](LayerBlendMode mode) {
-        return mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop ||
+        return mode == LayerBlendMode::Copy || mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop ||
             transparentSourceAffectsBlend(mode);
     };
     const bool partialWordChannels = format == PixelFormat::Rgba16 && usesIntegerRgba16Blend(operation.brush.blendMode) &&

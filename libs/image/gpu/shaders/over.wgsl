@@ -24,6 +24,9 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha:
     if ((values.flags & 1u) != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
     var source = unpackPixel(layer);
     if (maskAlpha != 255u) { source.w = multiplyByte(source.w, maskAlpha); }
+    if ((values.blendModeOpacity & 255u) == 130u) {
+        return packPixel(copyPixel(destination, source, values.opacityBits, values.channelMask, false));
+    }
     if ((values.blendModeOpacity & 255u) != 0u) {
         return separableProjectionPixel(destination, source, values.blendModeOpacity >> 8u, values.channelMask, values.blendModeOpacity & 255u);
     }
@@ -59,7 +62,7 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha:
 }
 
 fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameters, maskAlpha: u32, position: vec2<i32>) -> vec2<u32> {
-    if ((transparentSourceAffectsBlend(values.blendModeOpacity & 255u) || (values.channelMask & 8u) == 0u) &&
+    if ((transparentSourceAffectsBlend(values.blendModeOpacity & 255u) || ((values.channelMask & 8u) == 0u && (values.blendModeOpacity & 255u) != 130u)) &&
         (any(position < vec2<i32>(values.sourceLeft, values.sourceTop)) ||
          any(position >= vec2<i32>(values.sourceRight, values.sourceBottom)))) { return base; }
     if ((values.flags & 2u) == 0u) {
@@ -69,6 +72,9 @@ fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameter
     if ((values.flags & 1u) != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
     var source = nativePixel(layer.x, layer.y, true);
     if (maskAlpha != 255u) { source.w = mul65535(source.w, maskAlpha * 257u); }
+    if ((values.blendModeOpacity & 255u) == 130u) {
+        return nativePixelWords(copyPixel(destination, source, values.opacityBits, values.channelMask, true), true);
+    }
     if ((values.blendModeOpacity & 255u) != 0u) {
         let alpha = multiplyThreeWords(source.w, 65535u, (values.blendModeOpacity >> 8u) * 257u);
         return nativePixelWords(separableRgba16Pixel(destination, source, alpha, values.channelMask, values.blendModeOpacity & 255u), true);

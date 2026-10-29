@@ -21,6 +21,7 @@ inline std::optional<LayerBlendMode> layerBlendModeFromCompositeOp(const QString
     if (compositeOp == COMPOSITE_MARKER) return LayerBlendMode::Marker;
     if (compositeOp == COMPOSITE_GREATER) return LayerBlendMode::Greater;
     if (compositeOp == COMPOSITE_LUMINOSITY_SAI) return LayerBlendMode::LuminositySai;
+    if (compositeOp == COMPOSITE_COPY) return LayerBlendMode::Copy;
     if (compositeOp == COMPOSITE_OVER) return LayerBlendMode::Normal;
     if (compositeOp == COMPOSITE_MULT) return LayerBlendMode::Multiply;
     if (compositeOp == COMPOSITE_SCREEN) return LayerBlendMode::Screen;
@@ -283,6 +284,7 @@ inline QString compositeOpFromLayerBlendMode(LayerBlendMode mode)
     case LayerBlendMode::Marker: return COMPOSITE_MARKER;
     case LayerBlendMode::Greater: return COMPOSITE_GREATER;
     case LayerBlendMode::LuminositySai: return COMPOSITE_LUMINOSITY_SAI;
+    case LayerBlendMode::Copy: return COMPOSITE_COPY;
     case LayerBlendMode::Normal: break;
     }
     return COMPOSITE_OVER;

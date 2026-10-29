@@ -7,6 +7,7 @@
 #include "KisGpuRgba8Compositing_p.h"
 #include "KisGpuRgba8AlphaBlend_p.h"
 #include "KisGpuRgba16Compositing_p.h"
+#include "KisGpuCopyCompositing_p.h"
 #include <QFile>
 #include <cmath>
 #include <stdexcept>
@@ -325,9 +326,13 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
         } else {
             for (const auto &layer : inputs) {
                 auto source = result.value(layer.layer);
-                const bool wholeRectangle = layer.blendMode == LayerBlendMode::DestinationIn || layer.blendMode == LayerBlendMode::DestinationAtop;
-                if ((!allocated && !(layer.channelMask & 8u)) || (!implicitSources.value(layer.layer) && !wholeRectangle)) continue;
+                const bool wholeRectangle = layer.blendMode == LayerBlendMode::Copy || layer.blendMode == LayerBlendMode::DestinationIn || layer.blendMode == LayerBlendMode::DestinationAtop;
+                if ((!allocated && !(layer.channelMask & 8u) && layer.blendMode != LayerBlendMode::Copy) || (!implicitSources.value(layer.layer) && !wholeRectangle)) continue;
                 allocated = true;
+                if (layer.blendMode == LayerBlendMode::Copy) {
+                    pixel = Detail::copyPixel(pixel, source, float(layer.opacity) / 255.0f, layer.channelMask, format);
+                    continue;
+                }
                 if (format == PixelFormat::Rgba16 && layer.blendMode != LayerBlendMode::Normal) {
                     const auto alpha = quint16(quint64(source[3]) * (quint32(layer.opacity) * 257u) / 65535u);
                     pixel = Detail::separableRgba16Pixel(pixel, source, alpha, layer.channelMask, layer.blendMode);

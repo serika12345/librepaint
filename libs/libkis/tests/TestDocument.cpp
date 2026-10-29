@@ -3236,7 +3236,7 @@ void TestDocument::testLayerBlendProjectionMatchesCpuPixels_data()
 {
     QTest::addColumn<QString>("mode");
     for (const auto *mode : {"multiply", "screen", "darken", "lighten", "add", "linear_dodge",
-                             "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract", "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light", "linear light", "equivalence", "allanon", "hard_mix_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "xor", "or", "and", "nand", "nor", "xnor", "implication", "not_implication", "converse", "not_converse", "destination-in", "destination-atop", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect", "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "geometric_mean", "interpolation", "interpolation 2x", "penumbra c", "penumbra d", "soft_light_ifs_illusions", "soft_light_svg", "soft_light", "gamma_light", "gamma_illumination", "pnorm_a", "pnorm_b", "super_light", "tint_ifs_illusions", "fog_lighten_ifs_illusions", "easy dodge", "gamma_dark", "shade_ifs_illusions", "fog_darken_ifs_illusions", "easy burn", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "arc_tangent", "additive_subtractive", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2", "marker", "greater", "luminosity_sai"})
+                             "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract", "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light", "linear light", "equivalence", "allanon", "hard_mix_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "xor", "or", "and", "nand", "nor", "xnor", "implication", "not_implication", "converse", "not_converse", "destination-in", "destination-atop", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect", "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "geometric_mean", "interpolation", "interpolation 2x", "penumbra c", "penumbra d", "soft_light_ifs_illusions", "soft_light_svg", "soft_light", "gamma_light", "gamma_illumination", "pnorm_a", "pnorm_b", "super_light", "tint_ifs_illusions", "fog_lighten_ifs_illusions", "easy dodge", "gamma_dark", "shade_ifs_illusions", "fog_darken_ifs_illusions", "easy burn", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "arc_tangent", "additive_subtractive", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2", "marker", "greater", "luminosity_sai", "copy"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -3416,8 +3416,8 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
             Gpu::OperationDocument values(input);
             // Implicit defaults have no allocated native tiles. KisPainter
             // clips both transparent sources and alpha-inherited destinations.
-            const bool noSource = !source.defaultPixel[3] && *blend != Gpu::LayerBlendMode::DestinationIn && *blend != Gpu::LayerBlendMode::DestinationAtop;
-            const bool noDestination = !(mask & 8) && !destination.defaultPixel[3];
+            const bool noSource = !source.defaultPixel[3] && *blend != Gpu::LayerBlendMode::DestinationIn && *blend != Gpu::LayerBlendMode::DestinationAtop && *blend != Gpu::LayerBlendMode::Copy;
+            const bool noDestination = !(mask & 8) && !destination.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy;
             const auto &reference = noSource || noDestination ? defaultDestination : expected;
             QCOMPARE(values.snapshot()->projectionDefaultPixels().value(3), rgba(reference, pixel * 4));
         }
@@ -3655,7 +3655,7 @@ void TestDocument::testCoupledBlendKeepsImplicitGroupPixels()
 void TestDocument::testCoupledBlendKeepsSparseSourceExtent_data()
 {
     QTest::addColumn<QString>("mode");
-    for (const auto *mode : {"color", "hue_hsv", "combine_normal", "marker"})
+    for (const auto *mode : {"color", "hue_hsv", "combine_normal", "marker", "copy"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -3848,7 +3848,7 @@ void TestDocument::testSpecialAlphaPatternFillMatchesNative()
 void TestDocument::testAlphaBlendMatchesEveryRgba8AlphaPair_data()
 {
     QTest::addColumn<QString>("mode");
-    for (const auto *mode : {"marker", "greater", "luminosity_sai"}) QTest::newRow(mode) << QString::fromLatin1(mode);
+    for (const auto *mode : {"marker", "greater", "luminosity_sai", "copy"}) QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
 void TestDocument::testAlphaBlendMatchesEveryRgba8AlphaPair()
@@ -4094,7 +4094,7 @@ void TestDocument::testReplacingAlphaPaintMatchesCpuSourceRegions_data()
     QTest::addColumn<QPointF>("position");
     QTest::addColumn<qreal>("diameter");
     QTest::addColumn<bool>("fillCanvas");
-    for (const auto *mode : {"destination-in", "destination-atop", "color", "hue_hsv", "combine_normal", "marker", "greater", "luminosity_sai"}) {
+    for (const auto *mode : {"destination-in", "destination-atop", "color", "hue_hsv", "combine_normal", "marker", "greater", "luminosity_sai", "copy"}) {
         QTest::newRow(qPrintable(QString::fromLatin1(mode) + QStringLiteral("-boundary")))
             << QString::fromLatin1(mode) << QPointF(64, 64) << qreal(8) << false;
         QTest::newRow(qPrintable(QString::fromLatin1(mode) + QStringLiteral("-corners")))

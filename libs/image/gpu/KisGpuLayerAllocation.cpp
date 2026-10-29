@@ -50,7 +50,7 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
         } else {
             const auto &paint = *std::get<PaintSnapshot>(operation);
             auto clip = domain;
-            if (paint.brush.alphaLocked || !(paint.brush.channelWriteMask & 8u)) clip &= precedingExtent;
+            if ((paint.brush.alphaLocked || !(paint.brush.channelWriteMask & 8u)) && !hasCopyBlend(paint)) clip &= precedingExtent;
             if (paint.compositionBounds) clip &= *paint.compositionBounds;
             if (!paint.selectionRect.isEmpty() && !paint.selectionInverted) clip &= paint.selectionRect;
             if (paint.figureStyle.outline) {
