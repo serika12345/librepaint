@@ -16,6 +16,7 @@
 #include <QPainterPath>
 #include <QScopeGuard>
 #include <QThread>
+#include <cmath>
 #include <cstring>
 #include <gpu/KisGpuTileRenderer.h>
 #include <gpu/KisGpuDevice.h>
@@ -71,6 +72,7 @@ private Q_SLOTS:
     void separableLayerProjectionMatchesNativePixels();
     void channelCopyGroupsKeepHiddenRgbAndNormalizeRoot();
     void nonlinearBlendValuesShareBoundedResources();
+    void minimumNonlinearPaintOpacityKeepsNativeQuantization();
     void nonlinearResourceBudgetPreservesPixelsAndRetry();
     void wordBlendOperationsFitWithoutByteLookupResources();
     void coupledProjectionRetainsOtherBlendOperations();
@@ -2483,6 +2485,43 @@ void KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot()
             QCOMPARE(readBuffer(normalized->tiles().first().pixels), QByteArray(RgbaTile::ByteCount, '\0'));
             QCOMPARE(readBuffer(projected->tiles().first().pixels), hiddenBytes);
         }
+    }
+}
+
+void KisGpuTileRendererTest::minimumNonlinearPaintOpacityKeepsNativeQuantization()
+{
+    // KisPainter accepts the stored real opacity as a float. Immediately below
+    // the first byte boundary it still executes with an opacity of one byte.
+    const qreal opacity = std::nextafter(0.5 / 255.0, 0.0);
+    for (const bool fill : {false, true}) {
+        RasterImage input;
+        input.size = {64, 64};
+        RasterLayer paint;
+        paint.tiles = {{{0, 0}, QByteArray::fromHex("000000ff").repeated(RgbaTile::ByteCount / 4)}};
+        input.layers = {paint};
+        OperationDocument document(input);
+        const auto layer = document.activeLayer();
+        if (fill) {
+            QCOMPARE(document.fillLayer(layer, {255, 255, 255}, opacity, false, false,
+                                       LayerBlendMode::EasyDodge), Result::Success);
+        } else {
+            Brush brush;
+            brush.rgba = {255, 255, 255, 255};
+            brush.opacity = opacity;
+            brush.diameter = 4;
+            brush.blendMode = LayerBlendMode::EasyDodge;
+            const auto stroke = document.beginStroke(layer, brush, 1);
+            QVERIFY(!stroke.isNull());
+            QCOMPARE(document.appendSamples(stroke, {{{8, 8}, 1}}), Result::Success);
+            QCOMPARE(document.commitStroke(stroke), Result::Success);
+        }
+        TileRenderer renderer(m_device);
+        const auto result = render(renderer, document.snapshot());
+        QVERIFY(result);
+        // Native EasyDodge, byte opacity 1, source BGRA ffffffff and
+        // destination BGRA 000000ff: the full channel range exposes one byte.
+        QCOMPARE(readTile(result, layer, {0, 0}).mid((8 * TileRenderer::TileSize + 8) * 4, 4),
+                 QByteArray::fromHex("010101ff"));
     }
 }
 

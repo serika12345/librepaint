@@ -386,7 +386,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         if (!selected.contains(layer.id)) return false;
         return std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &operation) {
             const auto paint = std::get_if<PaintSnapshot>(&operation);
-            return paint && !(*paint)->brush.erase && qRound((*paint)->brush.opacity * 255) > 0 &&
+            return paint && !(*paint)->brush.erase && qRound(float((*paint)->brush.opacity) * 255) > 0 &&
                 (((*paint)->figureStyle.outline && usesNonlinearRgba8((*paint)->brush.blendMode)) ||
                  (hasFigureFill((*paint)->figureStyle) && usesNonlinearRgba8((*paint)->figureStyle.fillBlendMode)));
         });

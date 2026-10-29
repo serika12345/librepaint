@@ -2,11 +2,13 @@
  * SPDX-FileCopyrightText: 2011 Silvio Heinrich <plassy@web.de>
  * SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-FileCopyrightText: 2004 Sun Microsystems, Inc.
+ * SPDX-FileCopyrightText: 1993 Sun Microsystems, Inc.
  * SPDX-License-Identifier: GPL-2.0-or-later AND SunPro
  */
 #include "KisGpuRgba16Compositing_p.h"
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <limits>
 
 namespace LibrePaint::Image::Gpu::Detail {
@@ -104,10 +106,10 @@ quint32 ifsWordColor(LayerBlendMode mode, quint32 source, quint32 destination)
         return scaledWordColor(colorSubtract(colorAdd(colorMultiply(s, d), s), colorMultiply(s, s)));
     }
 }
-// Greater supplies finite exponents in [-40,40]. Reduction and coefficients
+// Color powers and Greater supply finite exponents in [-40,40]. Reduction and coefficients
 // derive from OpenLibm e_exp.c (SunPro); retained notice: LICENSES/SunPro.txt.
 // https://github.com/JuliaMath/openlibm/blob/5fe399749f9276eaa0b8403e507470da05cbbb3f/src/e_exp.c
-double greaterCurveExp(double value) {
+double finiteColorExp(double value) {
     const int magnitude = int(colorAdd(colorMultiply(std::abs(value), 0x1.71547652b82fep0), .5));
     const int exponent = std::signbit(value) ? -magnitude : magnitude;
     const auto high = colorSubtract(value, colorMultiply(double(exponent), 0x1.62e42fee00000p-1));
@@ -121,6 +123,88 @@ double greaterCurveExp(double value) {
     if (!exponent) return colorSubtract(1.0, colorSubtract(colorDivide(colorMultiply(reduced, correction), colorSubtract(correction, 2.0)), reduced));
     const auto result = colorSubtract(1.0, colorSubtract(colorSubtract(low, colorDivide(colorMultiply(reduced, correction), colorSubtract(2.0, correction))), high));
     return std::ldexp(result, exponent);
+}
+// Positive normal inputs supplied by word color powers. The reduction and
+// coefficients derive from OpenLibm e_log.c; notice: LICENSES/SunPro.txt.
+// https://github.com/JuliaMath/openlibm/blob/5fe399749f9276eaa0b8403e507470da05cbbb3f/src/e_log.c
+double positiveColorLog(double value)
+{
+    quint64 bits;
+    std::memcpy(&bits, &value, sizeof(bits));
+    const auto fraction = quint32(bits >> 32) & 0xfffffu;
+    const auto reduction = (fraction + 0x95f64u) & 0x100000u;
+    const int exponent = int(bits >> 52) - 1023 + int(reduction >> 20);
+    bits = (bits & 0xffffffffu) | (quint64(fraction | (reduction ^ 0x3ff00000u)) << 32);
+    std::memcpy(&value, &bits, sizeof(value));
+    const auto f = colorSubtract(value, 1.0);
+    const auto high = colorMultiply(double(exponent), 0x1.62e42fee00000p-1);
+    const auto low = colorMultiply(double(exponent), 0x1.a39ef35793c76p-33);
+    if (((2u + fraction) & 0xfffffu) < 3u) {
+        if (f == 0.0) return colorAdd(high, low);
+        const auto r = colorMultiply(colorMultiply(f, f), colorSubtract(.5, colorMultiply(0x1.5555555555555p-2, f)));
+        return colorSubtract(high, colorSubtract(colorSubtract(r, low), f));
+    }
+    const auto s = colorDivide(f, colorAdd(2.0, f));
+    const auto z = colorMultiply(s, s), w = colorMultiply(z, z);
+    const auto t1 = colorMultiply(w, colorAdd(0x1.999999997fa04p-2,
+        colorMultiply(w, colorAdd(0x1.c71c51d8e78afp-3, colorMultiply(w, 0x1.39a09d078c69fp-3)))));
+    const auto t2 = colorMultiply(z, colorAdd(0x1.5555555555593p-1,
+        colorMultiply(w, colorAdd(0x1.2492494229359p-2,
+            colorMultiply(w, colorAdd(0x1.7466496cb03dep-3, colorMultiply(w, 0x1.2f112df3e5244p-3)))))));
+    const auto r = colorAdd(t2, t1);
+    if (((int(fraction) - 0x6147a) | (0x6b851 - int(fraction))) > 0) {
+        const auto halfSquare = colorMultiply(colorMultiply(.5, f), f);
+        return colorSubtract(high, colorSubtract(colorSubtract(halfSquare,
+            colorAdd(colorMultiply(s, colorAdd(halfSquare, r)), low)), f));
+    }
+    return colorSubtract(high, colorSubtract(colorSubtract(colorMultiply(s, colorSubtract(f, r)), low), f));
+}
+double wordColorPower(double base, double exponent)
+{
+    if (exponent == 0.0 || base == 1.0) return 1.0;
+    if (base == 0.0) return 0.0;
+    if (exponent == 1.0) return base;
+    const auto power = colorMultiply(exponent, positiveColorLog(base));
+    // Fractional consumers quantize to a word, optionally after a complement.
+    // exp(-40) is below either rounding boundary; raw P-Norm inputs are >=1.
+    return power < -40.0 ? 0.0 : finiteColorExp(power);
+}
+quint32 powerWordColor(LayerBlendMode mode, quint32 source, quint32 destination)
+{
+    const auto s = normalizedWordColor(source), d = normalizedWordColor(destination);
+    switch (mode) {
+    case LayerBlendMode::PNormA:
+        return quint32(std::min(double(Unit), wordColorPower(colorAdd(
+            wordColorPower(double(destination), 2.3333333333333333),
+            wordColorPower(double(source), 2.3333333333333333)), .428571428571434)));
+    case LayerBlendMode::PNormB: {
+        const auto s2 = source * source, d2 = destination * destination;
+        return quint32(std::min(double(Unit), std::sqrt(std::sqrt(colorAdd(
+            colorMultiply(double(d2), double(d2)), colorMultiply(double(s2), double(s2)))))));
+    }
+    case LayerBlendMode::GammaIllumination:
+        return Unit - powerWordColor(LayerBlendMode::GammaDark, Unit - source, Unit - destination);
+    case LayerBlendMode::GammaDark:
+        if (!destination || destination == Unit) return destination;
+        return !source ? 0u : scaledWordColor(wordColorPower(d, colorDivide(1.0, s)));
+    case LayerBlendMode::GammaLight:
+        if (!destination || destination == Unit) return destination;
+        return scaledWordColor(wordColorPower(d, s));
+    case LayerBlendMode::SoftLightIFSIllusions:
+        return scaledWordColor(wordColorPower(d, wordColorPower(2.0, colorMultiply(2.0, colorSubtract(.5, s)))));
+    case LayerBlendMode::EasyDodge:
+        return source == Unit ? Unit : scaledWordColor(wordColorPower(d,
+            colorMultiply(colorSubtract(1.0, s), 1.039999999)));
+    case LayerBlendMode::SuperLight:
+        if (s < .5) return scaledWordColor(colorSubtract(1.0, wordColorPower(colorAdd(
+            wordColorPower(colorSubtract(1.0, d), 2.875),
+            wordColorPower(colorSubtract(1.0, colorMultiply(2.0, s)), 2.875)), 1.0 / 2.875)));
+        return scaledWordColor(wordColorPower(colorAdd(wordColorPower(d, 2.875),
+            wordColorPower(colorSubtract(colorMultiply(2.0, s), 1.0), 2.875)), 1.0 / 2.875));
+    default:
+        return scaledWordColor(colorSubtract(1.0, wordColorPower(colorSubtract(1.0,
+            source == Unit ? .999999999999 : s), colorMultiply(d, 1.039999999))));
+    }
 }
 quint16 scaledWordColor(float value)
 {
@@ -210,6 +294,15 @@ quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
         return scaledWordColor(std::sqrt(colorMultiply(normalizedWordColor(source), normalizedWordColor(destination))));
     case LayerBlendMode::SoftLightSvg: return softLightWordColor(source, destination, true);
     case LayerBlendMode::SoftLightPhotoshop: return softLightWordColor(source, destination, false);
+    case LayerBlendMode::SoftLightIFSIllusions:
+    case LayerBlendMode::GammaLight:
+    case LayerBlendMode::GammaIllumination:
+    case LayerBlendMode::GammaDark:
+    case LayerBlendMode::EasyDodge:
+    case LayerBlendMode::PNormA:
+    case LayerBlendMode::PNormB:
+    case LayerBlendMode::SuperLight:
+    case LayerBlendMode::EasyBurn: return powerWordColor(mode, source, destination);
     case LayerBlendMode::TintIFSIllusions:
     case LayerBlendMode::ShadeIFSIllusions:
     case LayerBlendMode::FogLightenIFSIllusions:
@@ -310,7 +403,7 @@ RgbaPixel specialAlphaRgba16Pixel(RgbaPixel destination, const RgbaPixel &source
         if (!alpha || oldAlpha == Unit) return destination;
         const volatile float d = float(oldAlpha) / 65535.f, a = float(alpha) / 65535.f;
         const volatile float difference = d - a;
-        const float weight = float(colorDivide(1.0, colorAdd(1.0, greaterCurveExp(colorMultiply(-40.0, difference)))));
+        const float weight = float(colorDivide(1.0, colorAdd(1.0, finiteColorExp(colorMultiply(-40.0, difference)))));
         const volatile float first = d * weight;
         const auto second = colorMultiply(a, colorSubtract(1.0, weight));
         const float combined = std::max(float(d), std::clamp(float(colorAdd(first, second)), 0.f, 1.f));

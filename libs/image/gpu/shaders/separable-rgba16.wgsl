@@ -151,6 +151,66 @@ fn ifsWordColor(mode: u32, source: u32, destination: u32) -> u32 {
         }
     }
 }
+fn gammaDarkWord(source: u32, destination: u32) -> u32 {
+    if (destination == 0u || destination == 65535u) { return destination; }
+    if (source == 0u) { return 0u; }
+    return scaledWordColor(wordColorPower(normalizedWordColor(destination),
+        doubleDivide(Word64(0u, 0x3ff00000u), normalizedWordColor(source))));
+}
+fn powerWordColor(mode: u32, source: u32, destination: u32) -> u32 {
+    let s = normalizedWordColor(source);
+    let d = normalizedWordColor(destination);
+    let one = Word64(0u, 0x3ff00000u);
+    let two = Word64(0u, 0x40000000u);
+    let easyFactor = Word64(0x09f8b874u, 0x3ff0a3d7u);
+    switch mode {
+        case 70u, 71u: {
+            var value: Word64;
+            if (mode == 70u) {
+                let factor = Word64(0xaaaaaaabu, 0x4002aaaau);
+                value = wordColorPower(doubleAdd(wordColorPower(doubleInteger(destination), factor),
+                    wordColorPower(doubleInteger(source), factor)), Word64(0xdb6db73du, 0x3fdb6db6u));
+            } else {
+                let s2 = doubleInteger(source * source);
+                let d2 = doubleInteger(destination * destination);
+                value = doubleSqrt(doubleSqrt(doubleAdd(doubleMultiply(d2, d2), doubleMultiply(s2, s2))));
+            }
+            // Native P-Norm takes raw integer colors and truncates after its
+            // power, rather than using normalized colors and half-up scaling.
+            if (!wordLessEqual(value, Word64(0u, 0x40efffe0u))) { return 65535u; }
+            return doubleTruncate(value);
+        }
+        case 69u: { return 65535u - gammaDarkWord(65535u - source, 65535u - destination); }
+        case 76u: { return gammaDarkWord(source, destination); }
+        case 68u: {
+            if (destination == 0u || destination == 65535u) { return destination; }
+            return scaledWordColor(wordColorPower(d, s));
+        }
+        case 65u: {
+            return scaledWordColor(wordColorPower(d, wordColorPower(two,
+                doubleMultiply(two, doubleSubtract(Word64(0u, 0x3fe00000u), s)))));
+        }
+        case 75u: {
+            if (source == 65535u) { return 65535u; }
+            return scaledWordColor(wordColorPower(d, doubleMultiply(doubleSubtract(one, s), easyFactor)));
+        }
+        case 72u: {
+            let factor = Word64(0u, 0x40070000u);
+            let inverseFactor = Word64(0x590b2164u, 0x3fd642c8u);
+            if (source <= 32767u) {
+                let combined = doubleAdd(wordColorPower(doubleSubtract(one, d), factor),
+                    wordColorPower(doubleSubtract(one, doubleMultiply(two, s)), factor));
+                return scaledWordColor(doubleSubtract(one, wordColorPower(combined, inverseFactor)));
+            }
+            return scaledWordColor(wordColorPower(doubleAdd(wordColorPower(d, factor),
+                wordColorPower(doubleSubtract(doubleMultiply(two, s), one), factor)), inverseFactor));
+        }
+        default: {
+            let sourceValue = select(s, Word64(0xffffdcd1u, 0x3fefffffu), source == 65535u);
+            return scaledWordColor(doubleSubtract(one, wordColorPower(doubleSubtract(one, sourceValue), doubleMultiply(d, easyFactor))));
+        }
+    }
+}
 fn separableWordChannelMode(mode: u32, source: u32, destination: u32) -> u32 {
     switch mode {
         case 1u: { return mul65535(source, destination); }
@@ -232,6 +292,7 @@ fn separableWordChannelMode(mode: u32, source: u32, destination: u32) -> u32 {
         }
         case 59u: { return u32(clamp(3 * i32(destination) - 2 * (65535 - i32(source)), 0, 65535)); }
         case 60u: { return scaledWordColor(doubleSqrt(doubleMultiply(normalizedWordColor(source), normalizedWordColor(destination)))); }
+        case 65u, 68u, 69u, 70u, 71u, 72u, 75u, 76u, 79u: { return powerWordColor(mode, source, destination); }
         case 66u: { return softLightWordColor(source, destination, true); }
         case 67u: { return softLightWordColor(source, destination, false); }
         case 73u, 74u, 77u, 78u: { return ifsWordColor(mode, source, destination); }
@@ -346,7 +407,7 @@ fn specialAlphaRgba16PixelMode(base: vec4<u32>, source: vec4<u32>, opacity: u32,
         let a = projectionDivide(bitcast<u32>(f32(alpha)), 0x477fff00u);
         let difference = floatSubtract(d, a);
         let one = Word64(0u, 0x3ff00000u);
-        let weight = floatFromDouble(doubleDivide(one, doubleAdd(one, greaterCurveExp(doubleMultiply(Word64(0u, 0xc0440000u), doubleFromFloat(difference))))));
+        let weight = floatFromDouble(doubleDivide(one, doubleAdd(one, finiteColorExp(doubleMultiply(Word64(0u, 0xc0440000u), doubleFromFloat(difference))))));
         let first = floatMultiply(d, weight);
         let second = doubleMultiply(doubleFromFloat(a), doubleSubtract(one, doubleFromFloat(weight)));
         var combined = floatFromDouble(doubleAdd(doubleFromFloat(first), second));

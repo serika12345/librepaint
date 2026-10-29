@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-FileCopyrightText: 2004 Sun Microsystems, Inc.
+// SPDX-FileCopyrightText: 1993 Sun Microsystems, Inc.
 // SPDX-License-Identifier: GPL-2.0-or-later AND SunPro
 
 alias Word64 = vec2<u32>;
@@ -255,10 +256,10 @@ fn floatSqrt(value: u32) -> u32 {
     return (u32(exponent + 127) << 23u) | (root & 0x7fffffu);
 }
 
-// Finite [-40,40] exponent for the native Greater curve. Reduction and
+// Finite [-40,40] exponent for color powers and the native Greater curve. Reduction and
 // coefficients derive from OpenLibm e_exp.c; notice: LICENSES/SunPro.txt.
 // https://github.com/JuliaMath/openlibm/blob/5fe399749f9276eaa0b8403e507470da05cbbb3f/src/e_exp.c
-fn greaterCurveExp(value: Word64) -> Word64 {
+fn finiteColorExp(value: Word64) -> Word64 {
     let one = Word64(0u, 0x3ff00000u);
     let two = Word64(0u, 0x40000000u);
     let magnitude = i32(doubleTruncate(doubleAdd(doubleMultiply(doubleMagnitude(value), Word64(0x652b82feu, 0x3ff71547u)), Word64(0u, 0x3fe00000u))));
@@ -280,4 +281,52 @@ fn greaterCurveExp(value: Word64) -> Word64 {
     var result = doubleSubtract(one, doubleSubtract(doubleSubtract(low, doubleDivide(doubleMultiply(reduced, correction), doubleSubtract(two, correction))), high));
     result.y = u32(i32(result.y) + exponent * 1048576);
     return result;
+}
+// Positive normal inputs from the current word color powers. Reduction and
+// coefficients derive from OpenLibm e_log.c; notice: LICENSES/SunPro.txt.
+// https://github.com/JuliaMath/openlibm/blob/5fe399749f9276eaa0b8403e507470da05cbbb3f/src/e_log.c
+fn positiveColorLog(value: Word64) -> Word64 {
+    let fraction = value.y & 0xfffffu;
+    let reduction = (fraction + 0x95f64u) & 0x100000u;
+    let exponent = i32(value.y >> 20u) - 1023 + i32(reduction >> 20u);
+    let normalized = Word64(value.x, fraction | (reduction ^ 0x3ff00000u));
+    let one = Word64(0u, 0x3ff00000u);
+    let half = Word64(0u, 0x3fe00000u);
+    let f = doubleSubtract(normalized, one);
+    var integral = doubleInteger(u32(abs(exponent)));
+    if (exponent < 0) { integral = doubleNegate(integral); }
+    let high = doubleMultiply(integral, Word64(0xfee00000u, 0x3fe62e42u));
+    let low = doubleMultiply(integral, Word64(0x35793c76u, 0x3dea39efu));
+    if (((2u + fraction) & 0xfffffu) < 3u) {
+        if (all(doubleMagnitude(f) == Word64(0u))) { return doubleAdd(high, low); }
+        let r = doubleMultiply(doubleMultiply(f, f), doubleSubtract(half, doubleMultiply(Word64(0x55555555u, 0x3fd55555u), f)));
+        return doubleSubtract(high, doubleSubtract(doubleSubtract(r, low), f));
+    }
+    let s = doubleDivide(f, doubleAdd(Word64(0u, 0x40000000u), f));
+    let z = doubleMultiply(s, s);
+    let w = doubleMultiply(z, z);
+    let t1 = doubleMultiply(w, doubleAdd(Word64(0x9997fa04u, 0x3fd99999u),
+        doubleMultiply(w, doubleAdd(Word64(0x1d8e78afu, 0x3fcc71c5u), doubleMultiply(w, Word64(0xd078c69fu, 0x3fc39a09u))))));
+    let t2 = doubleMultiply(z, doubleAdd(Word64(0x55555593u, 0x3fe55555u),
+        doubleMultiply(w, doubleAdd(Word64(0x94229359u, 0x3fd24924u),
+            doubleMultiply(w, doubleAdd(Word64(0x96cb03deu, 0x3fc74664u), doubleMultiply(w, Word64(0xdf3e5244u, 0x3fc2f112u))))))));
+    let r = doubleAdd(t2, t1);
+    if (((i32(fraction) - 0x6147a) | (0x6b851 - i32(fraction))) > 0) {
+        let halfSquare = doubleMultiply(doubleMultiply(half, f), f);
+        return doubleSubtract(high, doubleSubtract(doubleSubtract(halfSquare,
+            doubleAdd(doubleMultiply(s, doubleAdd(halfSquare, r)), low)), f));
+    }
+    return doubleSubtract(high, doubleSubtract(doubleSubtract(doubleMultiply(s, doubleSubtract(f, r)), low), f));
+}
+fn wordColorPower(base: Word64, exponent: Word64) -> Word64 {
+    let one = Word64(0u, 0x3ff00000u);
+    if (all(doubleMagnitude(exponent) == Word64(0u)) || all(base == one)) { return one; }
+    if (all(base == Word64(0u))) { return Word64(0u); }
+    if (all(exponent == one)) { return base; }
+    let power = doubleMultiply(exponent, positiveColorLog(base));
+    // exp(-40) is below the word rounding boundary, including complements.
+    if ((power.y & 0x80000000u) != 0u && !wordLessEqual(doubleMagnitude(power), Word64(0u, 0x40440000u))) {
+        return Word64(0u);
+    }
+    return finiteColorExp(power);
 }

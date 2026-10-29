@@ -516,7 +516,7 @@ fn greaterWeightContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if (index >= arrayLength(&numericInputs)) { return; }
     let one = Word64(0u, 0x3ff00000u);
     let exponent = doubleMultiply(Word64(0u, 0xc0440000u), doubleFromFloat(numericInputs[index]));
-    numericOutputs[index] = floatFromDouble(doubleDivide(one, doubleAdd(one, greaterCurveExp(exponent))));
+    numericOutputs[index] = floatFromDouble(doubleDivide(one, doubleAdd(one, finiteColorExp(exponent))));
 }
 )";
     WGPUShaderSourceWGSL code{};

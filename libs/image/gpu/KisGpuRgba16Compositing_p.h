@@ -14,7 +14,10 @@ inline bool usesSeparableRgba16Blend(LayerBlendMode mode)
         (mode >= LayerBlendMode::SoftLightSvg && mode <= LayerBlendMode::SoftLightPhotoshop) ||
         (mode >= LayerBlendMode::TintIFSIllusions && mode <= LayerBlendMode::FogLightenIFSIllusions) ||
         (mode >= LayerBlendMode::ShadeIFSIllusions && mode <= LayerBlendMode::FogDarkenIFSIllusions) ||
-        mode == LayerBlendMode::AdditiveSubtractive;
+        mode == LayerBlendMode::AdditiveSubtractive || mode == LayerBlendMode::SoftLightIFSIllusions ||
+        mode == LayerBlendMode::GammaLight || mode == LayerBlendMode::GammaIllumination ||
+        mode == LayerBlendMode::GammaDark || mode == LayerBlendMode::EasyDodge || mode == LayerBlendMode::EasyBurn ||
+        mode == LayerBlendMode::SuperLight || mode == LayerBlendMode::PNormA || mode == LayerBlendMode::PNormB;
 }
 inline bool usesSpecialAlphaRgba16Blend(LayerBlendMode mode)
 { return mode >= LayerBlendMode::Marker && mode <= LayerBlendMode::LuminositySai; }
