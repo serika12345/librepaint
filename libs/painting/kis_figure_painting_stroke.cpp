@@ -24,6 +24,7 @@
 #include <brushengine/kis_paintop_preset.h>
 #include <kis_debug.h>
 #include <optional>
+#include <cstring>
 
 namespace Gpu = LibrePaint::Image::Gpu;
 
@@ -83,11 +84,22 @@ struct KisFigurePaintingStroke::GpuStroke
         samples = input;
     }
 
+    Gpu::RgbaPixel nativeColor(KoColor value) const
+    {
+        value.convertTo(image->colorSpace());
+        if (owner->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
+            quint16 bgra[4];
+            std::memcpy(bgra, value.data(), sizeof(bgra));
+            return {bgra[2], bgra[1], bgra[0], 65535};
+        }
+        const auto bgra = value.data();
+        return {bgra[2], bgra[1], bgra[0], 255};
+    }
+
     void setColor(const KoColor &value)
     {
         foregroundColor = value;
-        const auto color = value.toQColor();
-        resources.brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
+        resources.brush.rgba = nativeColor(value);
     }
 
     void finish()
@@ -104,9 +116,8 @@ struct KisFigurePaintingStroke::GpuStroke
         Gpu::FigureStyle style;
         style.outline = strokeStyle != KisFigurePaintingOptions::StrokeStyleNone;
         if (fillStyle != KisFigurePaintingOptions::FillStyleNone) {
-            const auto color = (fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor ?
-                                foregroundColor : backgroundColor).toQColor();
-            style.fill = LibrePaint::Image::Gpu::RgbaPixel{quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
+            style.fill = nativeColor(fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor ?
+                                     foregroundColor : backgroundColor);
         }
         const auto result = resources.transparencyMask
             ? owner->paintTransparencyMaskFigure(resources.layer, resources.brush, samples, *shape, style, 0)

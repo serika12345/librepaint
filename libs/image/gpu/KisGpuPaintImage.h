@@ -235,6 +235,7 @@ public:
     Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
     /** Clears whole layers atomically while retained versions remain readable. */
     Result clearLayers(const QList<LayerId> &layers);
+    Result clearSelectedPixels(const QList<LayerId> &layers);
     Result cropLayer(LayerId layer, const QRect &rect);
     Result resizeCanvas(const QRect &rect, bool cropLayers);
     /** Publishes one canvas-bounded color fill before notifying attached consumers.
@@ -243,6 +244,9 @@ public:
     Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, qreal opacity = 1,
                      bool erase = false, bool alphaLocked = false,
                      LayerBlendMode blendMode = LayerBlendMode::Normal);
+    Result fillLayerColor(LayerId layer, const RgbaPixel &color, qreal opacity = 1,
+                          bool erase = false, bool alphaLocked = false,
+                          LayerBlendMode blendMode = LayerBlendMode::Normal);
     Result fillLayerPattern(LayerId layer, const PatternFill &pattern, qreal opacity = 1,
                             bool erase = false, bool alphaLocked = false,
                             LayerBlendMode blendMode = LayerBlendMode::Normal);

@@ -6565,7 +6565,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
 {
     QTest::addColumn<QString>("presetName");
     QTest::addColumn<bool>("words");
-    for (const auto *name : {"b)_Basic-5_Size_default.kpp", "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp"})
+    for (const auto *name : {"b)_Basic-5_Size_default.kpp", "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp",
+                             "b)_Basic-5_Size_Opacity.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(name) << words;
@@ -6680,7 +6681,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                                                           view->canvasBase()->resourceManager());
             QVERIFY2(capture.diagnostic.isEmpty(), qPrintable(capture.diagnostic));
             QVERIFY(capture.brush.autoBrush);
-            QCOMPARE(capture.brush.autoBrush->mask, Gpu::AutoBrush::Mask::Circle);
+            QCOMPARE(capture.brush.autoBrush->mask, presetName == QLatin1String("b)_Basic-5_Size_Opacity.kpp") ?
+                     Gpu::AutoBrush::Mask::GaussianCircle : Gpu::AutoBrush::Mask::Circle);
             const QList<QPair<qreal, qreal>> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
                                                           {200, .03}, {200, .05}, {200, .06}};
             for (const auto &input : pressureCases) {
@@ -6840,6 +6842,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         resources->setMirrorHorizontal(true);
         stroke({{92, 24}, {108, 40}});
         QVERIFY2(compareState(QStringLiteral("mirrored")), "Canvas symmetry must reflect the native preset mask");
+        stroke({{52, 24}, {76, 40}});
+        QVERIFY2(compareState(QStringLiteral("mirror-overlap")), "Overlapping mirrored dabs must preserve the native editing result");
         QVERIFY(window->screen()->grabWindow(window->winId()).save(QDir(output).filePath(gpu ? QStringLiteral("gpu-window.png") : QStringLiteral("cpu-window.png"))));
         for (const auto &error : errors) QVERIFY2(error.first().toString().isEmpty(), qPrintable(error.first().toString()));
     }

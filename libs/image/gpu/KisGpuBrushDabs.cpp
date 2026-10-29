@@ -199,7 +199,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         }
         return true;
     }
-    if (operation.shape.kind == ShapeKind::Path) {
+    if (operation.shape.kind == ShapeKind::Path || !operation.shape.pathCommands.isEmpty()) {
         qsizetype index = 0, call = 0;
         qreal lineSpacing = spacing, lineAccumulated = accumulated;
         InputSample previous;

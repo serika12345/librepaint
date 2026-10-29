@@ -211,7 +211,9 @@ struct Shape
     QPointF second;
     qreal rotation = 0;
     QSizeF cornerRadii{0, 0};
-    /** Commands consume one input point, or three for the cubic controls and endpoint. */
+    /** Commands consume one input point, or three for the cubic controls and endpoint.
+     * Shape tools retain their actual outline path alongside the editable bounds.
+     */
     QList<PathCommand> pathCommands{};
     bool windingFill = false;
     /** Half-open input ranges for separate painter-path calls. Each call owns
@@ -278,6 +280,8 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
     FigureStyle figureStyle;
     /** Exact merge rectangle for a canvas fill; brush/figure merges use their allocated source regions. */
     std::optional<QRect> compositionBounds;
+    /** Native selected-area clear restores transparent default pixels after masking. */
+    bool clearsSelectedPixels = false;
     /** Accepted input counts at which an idle timeout completed the current curve. */
     QList<qsizetype> smoothingFlushes{};
     bool smoothingFinished = false;
@@ -901,6 +905,10 @@ public:
      * request must name distinct, available, unlocked layers.
      */
     Result clearLayers(const QList<LayerId> &layers);
+    /** Clears the current selection on distinct unlocked paint layers in one
+     * history step, including native restoration of transparent default pixels.
+     */
+    Result clearSelectedPixels(const QList<LayerId> &layers);
     /** One undo step; normalizes the pixel rectangle while retaining its original
      * UI values. Defaults, position and properties stay unchanged. Programmatic
      * cropping accepts locked layers; interactive callers enforce editability.
@@ -918,6 +926,12 @@ public:
     Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, qreal opacity = 1,
                      bool erase = false, bool alphaLocked = false,
                      LayerBlendMode blendMode = LayerBlendMode::Normal);
+    /** Fills with a color expressed in the document's native channel precision.
+     * Selection, opacity and component protection share the figure-paint contract.
+     */
+    Result fillLayerColor(LayerId layer, const RgbaPixel &color, qreal opacity = 1,
+                          bool erase = false, bool alphaLocked = false,
+                          LayerBlendMode blendMode = LayerBlendMode::Normal);
     /** Fills canvas bounds on one layer with a frozen pattern resource as one
      * history step. The pattern repeats from the document origin; selection
      * coverage clips and scales its alpha exactly as a solid fill. The fill

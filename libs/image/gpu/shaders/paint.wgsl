@@ -340,10 +340,11 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let maskSelection = (parameters.paintFlags & 4096u) != 0u;
     let softSelection = (parameters.paintFlags & 8192u) != 0u;
     let partialWordSource = (parameters.paintFlags & 32768u) != 0u;
-    let emptySourceComposition = parameters.erase == 0u &&
+    let clearsSelectedPixels = (parameters.paintFlags & 131072u) != 0u;
+    let emptySourceComposition = clearsSelectedPixels || (parameters.erase == 0u &&
         (partialWordSource || parameters.pattern.w == 130u || parameters.pattern.z == 130u || parameters.pattern.w == 41u || parameters.pattern.w == 42u ||
          parameters.pattern.z == 41u || parameters.pattern.z == 42u ||
-         transparentSourceAffectsBlend(parameters.pattern.w) || transparentSourceAffectsBlend(parameters.pattern.z));
+         transparentSourceAffectsBlend(parameters.pattern.w) || transparentSourceAffectsBlend(parameters.pattern.z)));
     let insideSelectionBounds = pixel.x >= selection.x && pixel.y >= selection.y &&
         pixel.x < selection.x + selection.z && pixel.y < selection.y + selection.w;
     var selectionAlpha = 255u;
@@ -413,12 +414,14 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let base = paintBase(index);
     var source = nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u).xyz;
     var coverage = strokeCoverage;
+    if (parameters.native.z != 0u && (parameters.paintFlags & 512u) == 0u) { coverage *= 257u; }
     var sourceHasColor = strokeCoverage != 0u;
     var blendMode = parameters.pattern.w;
     if ((figureFlags & 1u) != 0u) {
         var fillColor = nativePixel(bitcast<u32>(parameters.mirror.z), parameters.native.y, parameters.native.z != 0u);
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
-        let fillAlpha = mul255(fillColor.w, fillCoverage);
+        var fillAlpha = mul255(fillColor.w, fillCoverage);
+        if (parameters.native.z != 0u) { fillAlpha = mul65535(fillColor.w, fillCoverage * 257u); }
         // Native marker writes retain the fill color at equal temporary alpha.
         if (fillAlpha >= coverage) {
             source = fillColor.xyz;
@@ -435,8 +438,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             return;
         }
     }
-    let nativeCoverageScale = select(257u, 1u, (parameters.paintFlags & 512u) != 0u);
-    let wordCoverage = coverage * nativeCoverageScale;
+    let wordCoverage = coverage;
     var writable = (parameters.paintFlags >> 1u) & 15u;
     if ((parameters.paintFlags & 1u) != 0u && parameters.erase == 0u) { writable &= 7u; }
     if (parameters.erase == 0u && blendMode == 130u) {
@@ -444,8 +446,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
         if (!sourceHasColor) { source = vec3<u32>(0u); }
         let opacity = projectionMultiply(parameters.canvasOpacityBits, projectionMultiply(bitcast<u32>(f32(selectionAlpha)), 0x3b808081u));
-        let alpha = coverage * select(1u, nativeCoverageScale, parameters.native.z != 0u);
-        writePaintPixel(index, copyPixel(base, vec4<u32>(source, alpha), opacity, writable, parameters.native.z != 0u));
+        writePaintPixel(index, copyPixel(base, vec4<u32>(source, coverage), opacity, writable, parameters.native.z != 0u));
         return;
     }
     if (parameters.erase == 0u && parameters.native.z != 0u && (blendMode >= 127u && blendMode <= 129u)) {
@@ -504,7 +505,18 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             resultAlpha = mul255(base.w, 255u - alpha);
         }
         // Native erase applies alpha independently of protected color channels.
-        writePaintPixel(index, vec4<u32>(base.xyz, resultAlpha));
+        var result = vec4<u32>(base.xyz, resultAlpha);
+        if (clearsSelectedPixels) {
+            let defaultPixel = nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u);
+            var defaultByteAlpha = defaultPixel.w;
+            var resultByteAlpha = resultAlpha;
+            if (parameters.native.z != 0u) {
+                defaultByteAlpha = (defaultPixel.w - (defaultPixel.w >> 8u) + 128u) >> 8u;
+                resultByteAlpha = (resultAlpha - (resultAlpha >> 8u) + 128u) >> 8u;
+            }
+            if (defaultByteAlpha == 0u && resultByteAlpha == 0u) { result = defaultPixel; }
+        }
+        writePaintPixel(index, result);
     } else if (blendMode == 0u) {
         var sourceAlpha: u32;
         if (parameters.native.z != 0u) {

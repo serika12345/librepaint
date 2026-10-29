@@ -1666,6 +1666,61 @@ Result OperationDocument::clearLayers(const QList<LayerId> &layers)
     return Result::Success;
 }
 
+Result OperationDocument::clearSelectedPixels(const QList<LayerId> &layers)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto current = snapshot();
+    if (layers.isEmpty() || current->selection.isEmpty()) return Result::InvalidInput;
+    QSet<LayerId> selected;
+    for (const auto id : layers) {
+        if (selected.contains(id)) return Result::InvalidInput;
+        const auto index = layerIndex(id);
+        if (index < 0 || current->layers[index].kind != LayerKind::Paint || current->layers[index].userLocked)
+            return Result::LayerUnavailable;
+        selected.insert(id);
+    }
+    if (m_limits.samplesPerStroke < 2 || layers.size() > (m_limits.samplesPerDocument - current->sampleCount) / 2 ||
+        quint64(layers.size()) > std::numeric_limits<quint64>::max() - m_nextOperation ||
+        m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    const QRect region = current->selectionInverted ? QRect(QPoint(), current->size) : current->selection;
+    const QPointF first(region.topLeft()), last(region.x() + region.width(), region.y() + region.height());
+    const auto samples = QSharedPointer<const QList<InputSample>>::create(QList<InputSample>{{first, 1}, {last, 1}});
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*current));
+    auto sequence = m_nextOperation;
+    for (auto &layer : version->layers) {
+        if (!selected.contains(layer.id)) continue;
+        auto operation = QSharedPointer<PaintOperation>::create();
+        operation->id = {m_identity, ++sequence};
+        operation->version = 1;
+        operation->layer = layer.id;
+        operation->brush.rgba = layer.defaultPixel;
+        operation->brush.erase = true;
+        operation->shape = {ShapeKind::Rectangle, first, last, 0};
+        operation->sampleBlocks = {samples};
+        operation->sampleCount = 2;
+        operation->figureStyle.outline = false;
+        auto color = layer.defaultPixel;
+        color[3] = maximumComponent(current->format);
+        operation->figureStyle.fill = color;
+        operation->compositionBounds = region;
+        operation->clearsSelectedPixels = true;
+        operation->selectionRect = current->selection;
+        operation->selectionInverted = current->selectionInverted;
+        operation->selectionKind = current->selectionKind;
+        operation->selectionMask = current->selectionMask;
+        layer.operations.append(PaintSnapshot(operation));
+        version->sampleCount += 2;
+    }
+    version->m_modifiedRevision = version->m_revision = m_nextRevision + 1;
+    LayerHistoryChange change;
+    change.clearedLayers = true;
+    commitVersion(version, change);
+    m_nextOperation = sequence;
+    ++m_nextRevision;
+    return Result::Success;
+}
+
 Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
 {
     const auto status = checkMutation();
@@ -1696,7 +1751,16 @@ Result OperationDocument::fillLayer(LayerId layer, const std::array<quint8, 3> &
                                     qreal opacity, bool erase, bool alphaLocked,
                                     LayerBlendMode blendMode)
 {
-    const RgbaPixel color{rgb[0], rgb[1], rgb[2], 255};
+    const quint16 scale = snapshot()->format == PixelFormat::Rgba16 ? 257 : 1;
+    return fillLayerColor(layer, {quint16(rgb[0] * scale), quint16(rgb[1] * scale),
+                                 quint16(rgb[2] * scale), quint16(255 * scale)},
+                          opacity, erase, alphaLocked, blendMode);
+}
+
+Result OperationDocument::fillLayerColor(LayerId layer, const RgbaPixel &color,
+                                         qreal opacity, bool erase, bool alphaLocked,
+                                         LayerBlendMode blendMode)
+{
     FigureStyle style;
     style.outline = false;
     style.fill = color;

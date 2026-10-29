@@ -35,10 +35,10 @@ int maskSide(qreal metric, qreal subpixel)
 std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation, bool pending)
 {
     const auto &brush = operation.brush;
-    if (!brush.autoBrush || operation.figureStyle.fill) return std::nullopt;
-    if (operation.shape.kind != ShapeKind::Freehand && operation.shape.kind != ShapeKind::Line &&
-        operation.shape.kind != ShapeKind::Polyline && operation.shape.kind != ShapeKind::Path) return std::nullopt;
+    if (!brush.autoBrush || hasFigureFill(operation.figureStyle)) return std::nullopt;
     const auto &settings = *brush.autoBrush;
+    const quint32 mirrors = quint32(brush.mirrorHorizontal) | (quint32(brush.mirrorVertical) << 1);
+    const qsizetype reflectionCount = (brush.mirrorHorizontal ? 2 : 1) * (brush.mirrorVertical ? 2 : 1);
     QList<AutoBrushDab> result;
     qreal averageOpacity = 0;
     const bool complete = forEachBrushDab(operation, pending, [&](const BrushDab &point) {
@@ -77,23 +77,26 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         dab.words[22] = floatBits(float(averageOpacity));
         dab.words[23] = quint32(settings.creamy);
         result.append(dab);
-        const quint32 mirrors = quint32(brush.mirrorHorizontal) | (quint32(brush.mirrorVertical) << 1);
-        for (quint32 reflection = 1; reflection < 4; ++reflection) {
-            if ((reflection & mirrors) != reflection) continue;
-            auto mirrored = dab;
+        return result.size() <= PaintGeometryElementLimit / reflectionCount;
+    });
+    if (!complete) return std::nullopt;
+    const auto originalCount = result.size();
+    // The native brush paints the prepared dabs before each reflected batch.
+    for (quint32 reflection : {1u, 3u, 2u}) {
+        if ((reflection & mirrors) != reflection) continue;
+        for (qsizetype i = 0; i < originalCount; ++i) {
+            auto mirrored = result[i];
             if (reflection & 1u) {
-                mirrored.words[18] = quint32(2 * brush.mirrorCenter.x() - origin.x() - int(dab.words[0]));
+                mirrored.words[18] = quint32(2 * brush.mirrorCenter.x() - qint32(mirrored.words[18]) - int(mirrored.words[0]));
                 mirrored.words[3] |= 4u;
             }
             if (reflection & 2u) {
-                mirrored.words[19] = quint32(2 * brush.mirrorCenter.y() - origin.y() - int(dab.words[1]));
+                mirrored.words[19] = quint32(2 * brush.mirrorCenter.y() - qint32(mirrored.words[19]) - int(mirrored.words[1]));
                 mirrored.words[3] |= 8u;
             }
             result.append(mirrored);
         }
-        return result.size() <= PaintGeometryElementLimit;
-    });
-    if (!complete) return std::nullopt;
+    }
     return result;
 }
 }

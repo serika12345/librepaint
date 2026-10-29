@@ -40,7 +40,8 @@ namespace KisToolUtils {
     bool clearImage(KisImageSP image, KisNodeList nodes, KisSelectionSP selection)
     {
         if (const auto owner = image->gpuImage()) {
-            if (selection || nodes.isEmpty()) return false;
+            if (nodes.isEmpty()) return false;
+            if (selection && (owner->selectionRect().isEmpty() || selection != image->globalSelection())) return false;
             const auto version = owner->operations().snapshot();
             QList<LibrePaint::Image::Gpu::LayerId> layers;
             for (auto node : nodes) {
@@ -51,7 +52,8 @@ namespace KisToolUtils {
                 if (found == version->layers.cend()) return false;
                 if (!layers.contains(found->id)) layers.append(found->id);
             }
-            return !layers.isEmpty() && owner->clearLayers(layers) == LibrePaint::Image::Gpu::Result::Success;
+            return !layers.isEmpty() && (selection ? owner->clearSelectedPixels(layers) : owner->clearLayers(layers)) ==
+                LibrePaint::Image::Gpu::Result::Success;
         }
         KisNodeList masks;
 

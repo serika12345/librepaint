@@ -95,6 +95,7 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void selectedClearKeepsOneAtomicHistoryAndFrozenCoverage();
     void colorConversionAdmissionAndCapacityPreserveVersion();
     void preparedLayerForestsKeepPixelsSelectionAndAtomicHistory();
     void layerForestInsertionCanClearPixelSelectionAtomically_data();
@@ -221,6 +222,43 @@ private Q_SLOTS:
     void native16UnsupportedOperationsPreservePixelsAndHistory();
 };
 
+void KisGpuOperationDocumentTest::selectedClearKeepsOneAtomicHistoryAndFrozenCoverage()
+{
+    auto input = rasterImage();
+    input.selection = QRect(-4, 7, 31, 29);
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    QCOMPARE(document.clearSelectedPixels({1, 1}), Result::InvalidInput);
+    QCOMPARE(document.clearSelectedPixels({1, 999}), Result::LayerUnavailable);
+    QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.clearSelectedPixels({1, 2}), Result::Success);
+    const auto cleared = document.snapshot();
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::ClearPixels);
+    QCOMPARE(cleared->selection, fixed->selection);
+    QCOMPARE(cleared->layers[0].uuid, fixed->layers[0].uuid);
+    QCOMPARE(cleared->layers[1].uuid, fixed->layers[1].uuid);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), cleared);
+    QCOMPARE(document.setSelectionRect(QRect(80, 90, 4, 5)), Result::Success);
+    QCOMPARE(cleared->selection, input.selection);
+    QCOMPARE(document.setLayerLocked(2, true), Result::Success);
+    const auto locked = document.snapshot();
+    QCOMPARE(document.clearSelectedPixels({1, 2}), Result::LayerUnavailable);
+    QCOMPARE(document.snapshot(), locked);
+    Limits limits;
+    limits.samplesPerStroke = 2;
+    limits.samplesPerDocument = 3;
+    OperationDocument bounded(input, limits);
+    const auto beforeCapacity = bounded.snapshot();
+    QCOMPARE(bounded.clearSelectedPixels({1, 2}), Result::CapacityExceeded);
+    QCOMPARE(bounded.snapshot(), beforeCapacity);
+    QCOMPARE(bounded.undoCount(), 0);
+}
+
 void KisGpuOperationDocumentTest::rgba16TilesCannotEnterAnRgba8Document()
 {
     const RgbaTile tile{{-1, 0}, QByteArray(RgbaTile::byteCount(PixelFormat::Rgba16), '\0'), PixelFormat::Rgba16};
@@ -274,6 +312,7 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     rectangle.first = {1, 1}; rectangle.second = {4, 4};
     FigureStyle fill;
     fill.fill = RgbaPixel{1, 257, 65534, 65535};
+    fill.pattern = PatternFill{QSize(1, 1), QByteArray::fromHex("112233ff")};
     QCOMPARE(document.updateFigure(operation, rectangle, fill), Result::InvalidInput);
     QCOMPARE(document.preview(), pending);
     QCOMPARE(document.snapshot(), fixed);

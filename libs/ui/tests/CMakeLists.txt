@@ -1332,8 +1332,18 @@ add_test(NAME ${ellipse_tool_fractional_test}
 set(ellipse_tool_protected_fill_test libs-ui-protected-fractional-fills-KisEllipseToolDocumentTest)
 add_test(NAME ${ellipse_tool_protected_fill_test}
     COMMAND KisEllipseToolDocumentTest fractionalFillMatchesPainterWithProtectedChannels)
+set(ellipse_tool_native_fill_test libs-ui-native-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_native_fill_test}
+    COMMAND KisEllipseToolDocumentTest nativeSolidFillsKeepOrdinaryEditing)
+set(ellipse_tool_selected_fill_test libs-ui-native-selected-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_selected_fill_test}
+    COMMAND KisEllipseToolDocumentTest selectedSolidFillsKeepOrdinaryEditing)
+set(ellipse_tool_brush_shape_test libs-ui-native-brush-shapes-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_brush_shape_test}
+    COMMAND KisEllipseToolDocumentTest standardBrushShapesKeepOrdinaryEditing)
 set(ellipse_tool_document_tests ${ellipse_tool_document_test} ${ellipse_tool_solid_test} ${ellipse_tool_ordinary_solid_test}
-    ${ellipse_tool_preset_test} ${ellipse_tool_fractional_test} ${ellipse_tool_protected_fill_test})
+    ${ellipse_tool_preset_test} ${ellipse_tool_fractional_test} ${ellipse_tool_protected_fill_test} ${ellipse_tool_native_fill_test}
+    ${ellipse_tool_selected_fill_test} ${ellipse_tool_brush_shape_test})
 set_tests_properties(${ellipse_tool_document_tests} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_tests_properties(${ellipse_tool_document_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")

@@ -336,16 +336,12 @@ inline bool validShape(const Shape &shape)
         shape.cornerRadii.width() > OperationDocument::CoordinateLimit ||
         shape.cornerRadii.height() > OperationDocument::CoordinateLimit ||
         (shape.kind != ShapeKind::RoundedRectangle && shape.cornerRadii != QSizeF(0, 0)) ||
-        (shape.kind != ShapeKind::Path && (!shape.pathCommands.isEmpty() || shape.windingFill || !shape.pathCalls.isEmpty()))) {
+        (shape.kind != ShapeKind::Path &&
+         (((shape.kind != ShapeKind::Ellipse && shape.kind != ShapeKind::Rectangle && shape.kind != ShapeKind::RoundedRectangle) &&
+           !shape.pathCommands.isEmpty()) || shape.windingFill || !shape.pathCalls.isEmpty()))) {
         return false;
     }
-    switch (shape.kind) {
-    case ShapeKind::Freehand:
-    case ShapeKind::Line:
-    case ShapeKind::Polyline:
-    case ShapeKind::Polygon:
-        return true;
-    case ShapeKind::Path: {
+    if (shape.kind == ShapeKind::Path || !shape.pathCommands.isEmpty()) {
         if (!shape.pathCommands.isEmpty() && shape.pathCommands.first() != PathCommand::MoveTo) return false;
         for (const auto command : shape.pathCommands) {
             if (command != PathCommand::MoveTo && command != PathCommand::LineTo && command != PathCommand::CubicTo) return false;
@@ -355,8 +351,14 @@ inline bool validShape(const Shape &shape)
             if (call.first < previousEnd || call.second <= call.first) return false;
             previousEnd = call.second;
         }
-        return true;
     }
+    switch (shape.kind) {
+    case ShapeKind::Freehand:
+    case ShapeKind::Line:
+    case ShapeKind::Polyline:
+    case ShapeKind::Polygon:
+    case ShapeKind::Path:
+        return true;
     case ShapeKind::Ellipse:
     case ShapeKind::Rectangle:
     case ShapeKind::RoundedRectangle:
@@ -367,7 +369,7 @@ inline bool validShape(const Shape &shape)
 
 inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 {
-    if (shape.kind == ShapeKind::Path) {
+    if (shape.kind == ShapeKind::Path || !shape.pathCommands.isEmpty()) {
         qsizetype position = 0, call = 0;
         bool insideCall = false;
         for (const auto command : shape.pathCommands) {
@@ -392,7 +394,7 @@ inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 
 inline bool validFigureStyle(const Shape &shape, const FigureStyle &style, PixelFormat format)
 {
-    if (format == PixelFormat::Rgba16 && hasFigureFill(style)) return false;
+    if (format == PixelFormat::Rgba16 && style.pattern) return false;
     if (style.pattern && !style.pattern->isValid()) return false;
     if (!validBlendMode(style.fillBlendMode, format)) return false;
     // A non-normal fill mode owns only the fill source. Outline brush

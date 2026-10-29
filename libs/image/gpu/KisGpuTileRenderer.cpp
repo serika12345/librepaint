@@ -1072,6 +1072,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.values.colorHigh = color[1];
                     job.values.fillColorHigh = fill[1];
                     job.values.pixelFormat = quint32(document->format);
+                    if (operation.clearsSelectedPixels) job.values.paintFlags |= ClearSelectedPixels;
                     job.values.sourceBlocks = sourceBlocks.value(tile.key());
                     if (document->format == PixelFormat::Rgba16 && replacesAlpha) job.values.paintFlags |= PartialRgba16Source;
                     if (compositionBounds) {

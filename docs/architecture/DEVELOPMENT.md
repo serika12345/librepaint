@@ -1560,6 +1560,12 @@ Undo／RedoとKRA保存をCPU画像とGPU画像で検査する。吸着を無効
 CPU画像とGPU画像の全画素で比較する。追加編集、Undo／Redo、KRA保存とPNG書出し、
 矩形・多角形の完成版通知中に終了した文書の履歴も検査する。
 専用の`libs-ui-preset-solid-fills-KisEllipseToolDocumentTest`は同じ試験対象から実行する。
+`libs-ui-native-solid-fills-KisEllipseToolDocumentTest`は、通常画面でRGB8・RGB16の
+楕円・矩形・角丸矩形・多角形を操作し、単色塗りと輪郭付きの塗りを既存CPUの全画素と比較する。
+`libs-ui-native-brush-shapes-KisEllipseToolDocumentTest`は、同じ図形の標準ブラシによる輪郭を比較する。
+16ビット色は下位ビットを持つ成分を固定する。
+`libs-ui-native-selected-fills-KisEllipseToolDocumentTest`は、選択範囲の前景色・背景色塗りと消去で部分被覆を保持し、
+Undo／Redo、KRA保存・再読込後の追加編集まで照合する。
 `fractionalSolidFillsUseCapturedOpacity`は、同じ五図形の50%塗りをCPUの全画素と照合する。
 楕円では128/255、0.37、ゼロと極小不透明度も固定し、Undo／Redo、KRA保存・GPU再読込みを検査する。
 `fractionalFillMatchesPainterWithProtectedChannels`は実CPUの単色塗りとGPU図形操作を、
