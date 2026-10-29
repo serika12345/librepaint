@@ -305,13 +305,13 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             data->inputs[coordinate].append(input);
         }
     }
-    const bool nonlinear = std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
+    const bool nonlinear = document->document()->format == PixelFormat::Rgba8 && std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
         return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return usesNonlinearRgba8(input.blendMode); });
     });
     if (nonlinear && !d.prepareNonlinearRgba8(true))
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 d.error.isEmpty() ? QStringLiteral("GPU nonlinear RGBA8 resource budget exhausted") : d.error};
-    const bool greater = std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
+    const bool greater = document->document()->format == PixelFormat::Rgba8 && std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
         return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return input.blendMode == LayerBlendMode::Greater; });
     });
     if (greater && !d.prepareGreaterRgba8(true))

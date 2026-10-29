@@ -360,6 +360,8 @@ CPUの実際の合成処理とGPUの投影を比較し、最初の不一致の�
 上の全入力試験と編集・保存試験は、資源を使う方式も同じCPU処理で照合する。
 `nonlinearBlendValuesShareBoundedResources`は方式変更と固定版を跨ぐ資源共有を、
 `nonlinearResourceBudgetPreservesPixelsAndRetry`は描画・投影の容量拒否後の画素と再試行を検査する。
+`wordBlendOperationsFitWithoutByteLookupResources`は、16ビットの幾何平均・剰余の描画と投影が
+画素6タイル分の容量内で成立し、保持した投影も同じ値を保つことを検査する。
 Greaterのアルファ値資源は`scripts/gpu/generate-rgba8-alpha-tables`で生成する。
 `greaterBlendValuesShareBoundedResources`と`greaterResourceBudgetPreservesPixelsAndRetry`が
 独立した資源の共有、固定版、容量拒否と再試行を検査する。

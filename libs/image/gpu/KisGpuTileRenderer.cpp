@@ -373,7 +373,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         ((region && region->isEmpty()) || std::all_of(requestedGroups.cbegin(), requestedGroups.cend(),
             [&](LayerId group) { return base->m_data->groupInputs.contains(group); })))
         return {RenderOutcome::Recorded, base, {}};
-    const bool nonlinear = std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
+    const bool nonlinear = document->format == PixelFormat::Rgba8 && std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
         if (!selected.contains(layer.id)) return false;
         return std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &operation) {
             const auto paint = std::get_if<PaintSnapshot>(&operation);
@@ -385,7 +385,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     if (nonlinear && !d.prepareNonlinearRgba8(true))
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 d.error.isEmpty() ? QStringLiteral("GPU nonlinear RGBA8 resource budget exhausted") : d.error};
-    const bool greater = std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
+    const bool greater = document->format == PixelFormat::Rgba8 && std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
         return selected.contains(layer.id) && std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &operation) {
             const auto paint = std::get_if<PaintSnapshot>(&operation);
             return paint && !(*paint)->brush.erase && ((*paint)->brush.blendMode == LayerBlendMode::Greater ||

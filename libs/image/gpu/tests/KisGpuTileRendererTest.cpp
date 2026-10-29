@@ -72,6 +72,7 @@ private Q_SLOTS:
     void channelCopyGroupsKeepHiddenRgbAndNormalizeRoot();
     void nonlinearBlendValuesShareBoundedResources();
     void nonlinearResourceBudgetPreservesPixelsAndRetry();
+    void wordBlendOperationsFitWithoutByteLookupResources();
     void greaterBlendValuesShareBoundedResources();
     void greaterResourceBudgetPreservesPixelsAndRetry();
     void transparentSourcesReplaceProjectionAlpha_data();
@@ -2567,6 +2568,52 @@ void KisGpuTileRendererTest::nonlinearResourceBudgetPreservesPixelsAndRetry()
         const auto retry = project(renderer, restored, {0, 0, 256, 256}, projected);
         QVERIFY(retry);
         QCOMPARE(readBuffer(retry->tiles().first().pixels), pixels);
+    }
+}
+
+void KisGpuTileRendererTest::wordBlendOperationsFitWithoutByteLookupResources()
+{
+    // Word geometric/modulo operations compute their colors analytically. A
+    // bounded document must leave capacity for retained pixels and new edits.
+    const auto format = PixelFormat::Rgba16;
+    const auto tileBytes = RgbaTile::byteCount(format);
+    const auto pixels = rgbaBytes({16384, 16384, 16384, 65535}, format).repeated(tileBytes / 8);
+    for (const auto mode : {LayerBlendMode::GeometricMean, LayerBlendMode::Modulo}) {
+        for (const bool painting : {false, true}) {
+            RasterImage input;
+            input.size = {256, 256};
+            input.format = format;
+            RasterLayer lower, upper;
+            lower.tiles = upper.tiles = {{{0, 0}, pixels, format}};
+            input.layers = {lower, upper};
+            OperationDocument document(input);
+            TileRenderer renderer(m_device, 6 * tileBytes);
+            const auto original = document.snapshot();
+            const auto raw = render(renderer, original);
+            QVERIFY(raw);
+            const auto projected = project(renderer, raw, {0, 0, 256, 256});
+            QVERIFY(projected);
+            const auto layer = original->layers.last().id;
+            if (painting) {
+                Brush brush;
+                brush.rgba = {16384, 16384, 16384, 65535};
+                brush.diameter = 8;
+                brush.blendMode = mode;
+                const auto stroke = document.beginStroke(layer, brush, 1);
+                QVERIFY(!stroke.isNull());
+                QCOMPARE(document.appendSamples(stroke, {{{8, 8}, 1}}), Result::Success);
+                QCOMPARE(document.commitStroke(stroke), Result::Success);
+            } else {
+                QCOMPARE(document.setLayerBlendMode(layer, mode), Result::Success);
+            }
+            const auto changed = render(renderer, document.snapshot(), raw);
+            QVERIFY(changed);
+            const auto result = project(renderer, changed, {0, 0, 256, 256}, projected);
+            QVERIFY(result);
+            QCOMPARE(readBuffer(result->tiles().first().pixels), pixels);
+            QCOMPARE(readBuffer(projected->tiles().first().pixels), pixels);
+            QVERIFY(renderer.residentBytes() <= 6 * tileBytes);
+        }
     }
 }
 
