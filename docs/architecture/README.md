@@ -228,14 +228,16 @@ GPU実装の製品採用は、対応する通常操作、公開API、ファイ�
 通常PNG読込のエンジン選択と文書への採用は`plugins/impex/png/kis_png_import.cc`が所有する。
 `libs/impex/ui/kis_png_converter.{h,cpp}`は入力の検証、復号、プロファイル、解像度と画像メタデータを所有する。
 GPU読込はヘッダーの寸法とタイル容量を検査してからlibpngの行バッファーを準備する。
-`prepareGpuImage()`は既定sRGBプロファイルのRGBA8入力を一時的な行・タイルへ復号し、
+`prepareGpuImage()`は各精度の既定RGBプロファイルのRGB8・RGB16入力を一時的な行・タイルへ復号し、
 `buildGpuImage()`は共有GPU実行から`libs/image/gpu/`の画像を構築する。
 libpngの読込エラーはC++の所有値を持たない呼出しフレームで捕捉する。
 PNGのレイヤーUUIDは、復号時に消費したPNGストリームのSHA-256と名前空間
 `{73bbce81-5f3c-47a5-a95d-2b24048b4995}`からUUID v5で決め、同じ入力の保存を再現できる。
+通常形式とAdam7は同じ行解析を使い、透明画素のRGBと16ビットの下位値を保持する。
+復号した範囲は64画素の既存保存ブロックで保持し、通常のKRA保存でも同じ画素領域を記録する。
 レイヤー複製は画像所有者の新しいUUIDを使う。CPU画像を必要とする既定セッションとOpenRaster内部の
-PNG利用側は`buildImage()`を利用する。GPU画素の契約が既定RGBA8であるため、他の精度・プロファイルの
-通常読込は、その色と精度の契約を新しい画像所有者へ接続する単位で移行する。
+PNG利用側は`buildImage()`を利用する。他の色モデル・精度・プロファイルの通常読込は、
+その色と精度の契約を新しい画像所有者へ接続する単位で移行する。
 
 通常JPEG読込のエンジン選択と文書への採用は`plugins/impex/jpeg/kis_jpeg_import.cc`が所有する。
 `plugins/impex/jpeg/kis_jpeg_converter.{h,cc}`は、ヘッダーでタイル容量を検査してから

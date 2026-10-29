@@ -769,6 +769,12 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu)
         for (int y = 0; y < rows; ++y)
             for (int x = 0; x < columns; ++x)
                 layer.tiles.append({QPoint(x, y), QByteArray(tileBytes, '\0'), prepared->raster.format});
+        // Retain the native paint device's allocation for exact KRA saves.
+        constexpr int nativeTileSize = 64;
+        for (png_uint_32 y = 0; y < height; y += nativeTileSize)
+            for (png_uint_32 x = 0; x < width; x += nativeTileSize)
+                layer.writtenAreas.append(QRect(x, y, std::min<png_uint_32>(nativeTileSize, width - x),
+                                                std::min<png_uint_32>(nativeTileSize, height - y)));
         prepared->raster.layers.append(std::move(layer));
     } else if (m_image == 0) {
         KisUndoStore *store = m_doc ? m_doc->createUndoStore() : new KisSurrogateUndoStore();
