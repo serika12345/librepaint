@@ -22,7 +22,7 @@ std::array<quint32, 2> packedPixelWords(const RgbaPixel &rgba, PixelFormat forma
 
 bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<PaintJob> &jobs,
                       std::size_t first, WGPUBuffer zero, WGPUBuffer unusedCoverage,
-                      WGPUBuffer unusedSelection, WGPUBuffer unusedPattern, WGPUTextureView nonlinearRgba8, WGPUTextureView greaterRgba8)
+                      WGPUBuffer unusedSelection, WGPUBuffer unusedPattern, WGPUTextureView separableColorValues, WGPUTextureView greaterRgba8)
 {
     if (first == jobs.size()) return true;
     WGPULimits limits{};
@@ -96,7 +96,7 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
                 entries[1].size = geometryBytes(job);
             }
             entries[9].binding = 9;
-            entries[9].textureView = nonlinearRgba8;
+            entries[9].textureView = separableColorValues;
             entries[10].binding = 10;
             entries[10].textureView = greaterRgba8;
             WGPUBindGroupDescriptor descriptor{};

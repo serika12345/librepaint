@@ -7,18 +7,13 @@
 #include "KisGpuOperationDocument.h"
 
 namespace LibrePaint::Image::Gpu::Detail {
+constexpr qsizetype Rgba16CosineBytes = 2 * 65536 * 4;
+constexpr bool usesRgba16Cosine(LayerBlendMode mode)
+{ return mode == LayerBlendMode::Interpolation || mode == LayerBlendMode::InterpolationB; }
+/** Immutable binary64 cosine words shared by projection defaults and GPU colors. */
+KRITAIMAGEGPUOPERATIONS_EXPORT const QByteArray &rgba16CosineValues();
 inline bool usesSeparableRgba16Blend(LayerBlendMode mode)
-{
-    return (mode >= LayerBlendMode::Multiply && mode <= LayerBlendMode::GeometricMean) ||
-        (mode >= LayerBlendMode::Modulo && mode <= LayerBlendMode::ModuloShiftContinuous) ||
-        (mode >= LayerBlendMode::SoftLightSvg && mode <= LayerBlendMode::SoftLightPhotoshop) ||
-        (mode >= LayerBlendMode::TintIFSIllusions && mode <= LayerBlendMode::FogLightenIFSIllusions) ||
-        (mode >= LayerBlendMode::ShadeIFSIllusions && mode <= LayerBlendMode::FogDarkenIFSIllusions) ||
-        mode == LayerBlendMode::AdditiveSubtractive || mode == LayerBlendMode::SoftLightIFSIllusions ||
-        mode == LayerBlendMode::GammaLight || mode == LayerBlendMode::GammaIllumination ||
-        mode == LayerBlendMode::GammaDark || mode == LayerBlendMode::EasyDodge || mode == LayerBlendMode::EasyBurn ||
-        mode == LayerBlendMode::SuperLight || mode == LayerBlendMode::PNormA || mode == LayerBlendMode::PNormB;
-}
+{ return mode >= LayerBlendMode::Multiply && mode <= LayerBlendMode::AdditiveSubtractive; }
 inline bool usesSpecialAlphaRgba16Blend(LayerBlendMode mode)
 { return mode >= LayerBlendMode::Marker && mode <= LayerBlendMode::LuminositySai; }
 inline quint32 multiplyWord(quint32 a, quint32 b)

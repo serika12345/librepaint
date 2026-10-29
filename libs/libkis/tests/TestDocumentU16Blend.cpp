@@ -57,7 +57,7 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles_data()
          "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light",
          "linear light", "equivalence", "allanon", "hard_mix_photoshop", "xor", "or", "and", "nand", "nor",
          "xnor", "implication", "not_implication", "converse", "not_converse", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect",
-         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "destination-in", "destination-atop", "geometric_mean", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "soft_light_ifs_illusions", "gamma_light", "gamma_illumination", "gamma_dark", "easy dodge", "easy burn", "super_light", "pnorm_a", "pnorm_b", "soft_light_svg", "soft_light", "tint_ifs_illusions", "shade_ifs_illusions", "fog_lighten_ifs_illusions", "fog_darken_ifs_illusions", "additive_subtractive", "marker", "greater", "luminosity_sai", "copy", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2"})
+         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "destination-in", "destination-atop", "geometric_mean", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "soft_light_ifs_illusions", "gamma_light", "gamma_illumination", "gamma_dark", "easy dodge", "easy burn", "super_light", "pnorm_a", "pnorm_b", "interpolation", "interpolation 2x", "penumbra c", "penumbra d", "arc_tangent", "soft_light_svg", "soft_light", "tint_ifs_illusions", "shade_ifs_illusions", "fog_lighten_ifs_illusions", "fog_darken_ifs_illusions", "additive_subtractive", "marker", "greater", "luminosity_sai", "copy", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -119,32 +119,38 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles()
         return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
     };
     const bool coupled = *blend >= Gpu::LayerBlendMode::ColorHsy && *blend <= Gpu::LayerBlendMode::LambertLightingGamma22;
-    const bool power = *blend == Gpu::LayerBlendMode::SoftLightIFSIllusions || *blend == Gpu::LayerBlendMode::GammaLight ||
+    const bool bidirectional = *blend == Gpu::LayerBlendMode::SoftLightIFSIllusions || *blend == Gpu::LayerBlendMode::GammaLight ||
         *blend == Gpu::LayerBlendMode::GammaIllumination || *blend == Gpu::LayerBlendMode::GammaDark ||
         *blend == Gpu::LayerBlendMode::EasyDodge || *blend == Gpu::LayerBlendMode::EasyBurn || *blend == Gpu::LayerBlendMode::SuperLight ||
-        *blend == Gpu::LayerBlendMode::PNormA || *blend == Gpu::LayerBlendMode::PNormB;
-    for (int paletteKind = 0; paletteKind < (coupled || power ? 3 : 2); ++paletteKind) {
+        *blend == Gpu::LayerBlendMode::PNormA || *blend == Gpu::LayerBlendMode::PNormB ||
+        *blend == Gpu::LayerBlendMode::PenumbraC || *blend == Gpu::LayerBlendMode::PenumbraD || *blend == Gpu::LayerBlendMode::ArcTangent ||
+        *blend == Gpu::LayerBlendMode::Interpolation || *blend == Gpu::LayerBlendMode::InterpolationB;
+    const bool cosine = *blend == Gpu::LayerBlendMode::Interpolation || *blend == Gpu::LayerBlendMode::InterpolationB;
+    for (int paletteKind = 0; paletteKind < (coupled || bidirectional ? 3 : 2) + int(cosine); ++paletteKind) {
+        const int paletteRows = paletteKind == 3 ? 1 : side;
         const bool alphaPalette = paletteKind == 1;
-        const auto kind = alphaPalette ? QStringLiteral("alpha-palette") : paletteKind == 2 ?
+        const auto kind = paletteKind == 3 ? QStringLiteral("complement-palette") : alphaPalette ? QStringLiteral("alpha-palette") : paletteKind == 2 ?
             (coupled ? QStringLiteral("chromatic-palette") : QStringLiteral("destination-palette")) : QStringLiteral("channel-palette");
         // Every source color or alpha against the native branch boundaries,
         // including the SVG soft-light curve at one quarter.
         // Opaque inputs isolate channels; alpha inputs exercise U16 products,
         // signed interpolation, union opacity and the final rounded division.
         QByteArray source, destination;
-        source.reserve(65536 * side * 8); destination.reserve(65536 * side * 8);
-        for (const auto value : values) for (quint32 word = 0; word < 65536; ++word) {
+        source.reserve(65536 * paletteRows * 8); destination.reserve(65536 * paletteRows * 8);
+        for (int row = 0; row < paletteRows; ++row) for (quint32 word = 0; word < 65536; ++word) {
+            const auto value = values[row];
             if (alphaPalette) {
                 appendPixel(source, 0xabcd, 0x0101, 0xfefd, word);
                 appendPixel(destination, 0x0305, 0x1020, 0x8001, value);
             } else {
                 appendPixel(source, word, word * 251u, 65535u - word, 65535);
-                if (coupled && paletteKind == 2) appendPixel(destination, value, value * 251u + 257u, 65535u - value, 65535);
+                if (paletteKind == 3) appendPixel(destination, 65535u - word, 65535u - quint16(word * 251u), word, 65535);
+                else if (coupled && paletteKind == 2) appendPixel(destination, value, value * 251u + 257u, 65535u - value, 65535);
                 else appendPixel(destination, value, value, value, 65535);
             }
         }
-        if (power && paletteKind == 2) source.swap(destination);
-        auto palette = input; palette.size = {256, 256 * side};
+        if (bidirectional && paletteKind == 2) source.swap(destination);
+        auto palette = input; palette.size = {256, 256 * paletteRows};
         palette.layers.last().blendMode = *blend;
         QScopedPointer<KisDocument> paletteDocument(KisPart::instance()->createDocument());
         paletteDocument->setFileBatchMode(true);

@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 LibrePaint contributors
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+"""Generate finite Word cosine values with the configured native CPU reference."""
+import argparse
+import json
+import hashlib
+from pathlib import Path
+import shlex
+import subprocess
+
+root = Path(__file__).resolve().parents[2]
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--reference-root", type=Path, default=root)
+parser.add_argument("--build-dir", type=Path)
+parser.add_argument("--output", type=Path, default=root / "libs/image/gpu/blend")
+parser.add_argument("--source-revision", help="source revision for a synchronized verification checkout")
+arguments = parser.parse_args()
+reference_root = arguments.reference_root.resolve()
+build = (arguments.build_dir or reference_root / "build/tdd-linux").resolve()
+entries = json.loads((build / "compile_commands.json").read_text())
+reference = next(entry for entry in entries if entry["file"].endswith("/KoColorSpaceMaths.cpp"))
+command = shlex.split(reference["command"])
+filtered = []
+i = 0
+while i < len(command):
+    if command[i] == "-o":
+        i += 2
+    elif command[i] == "-c":
+        i += 1
+    elif command[i] == reference["file"]:
+        i += 1
+    else:
+        filtered.append(command[i])
+        i += 1
+output = build / "gpu-word-cosine-generator"
+library = next(path for path in (build / "bin").glob("libkritapigment.*")
+               if path.suffix in (".so", ".dylib"))
+qt = shlex.split(subprocess.check_output(["pkg-config", "--libs", "Qt6Core", "Qt6Gui"], text=True))
+command = filtered + ["-I" + str(reference_root / "libs/pigment/compositeops"),
+                      str(root / "scripts/gpu/GenerateRgba16CosineValues.cpp"),
+                      str(library), "-Wl,-rpath," + str(build / "bin"), *qt, "-o", str(output)]
+subprocess.run(command, cwd=reference["directory"], check=True)
+revision = arguments.source_revision or subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=reference_root, text=True).strip()
+subprocess.run([str(output), str(arguments.output.resolve()), revision], check=True)
+manifest_path = arguments.output.resolve() / "rgba16-cosine.json"
+manifest = json.loads(manifest_path.read_text())
+inputs = ["scripts/gpu/GenerateRgba16CosineValues.cpp",
+          "libs/pigment/compositeops/KoCompositeOpFunctions.h",
+          "libs/pigment/KoColorSpaceMaths.h", "libs/pigment/KoColorSpaceMaths.cpp",
+          "libs/pigment/KoIntegerMaths.h"]
+manifest["sourceHashes"] = {name: hashlib.sha256(((root if name.startswith("scripts/") else reference_root) / name).read_bytes()).hexdigest()
+                          for name in inputs}
+manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")

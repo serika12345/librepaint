@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <QtEndian>
 
 namespace LibrePaint::Image::Gpu::Detail {
 namespace {
@@ -206,6 +207,54 @@ quint32 powerWordColor(LayerBlendMode mode, quint32 source, quint32 destination)
             source == Unit ? .999999999999 : s), colorMultiply(d, 1.039999999))));
     }
 }
+// Positive ratios of normalized word colors lie in (0,65536). Reduction and
+// coefficients derive from OpenLibm s_atan.c; notice: LICENSES/SunPro.txt.
+// https://github.com/JuliaMath/openlibm/blob/5fe399749f9276eaa0b8403e507470da05cbbb3f/src/s_atan.c
+double positiveColorAtan(double value)
+{
+    constexpr double high[] = {0x1.dac670561bb4fp-2, 0x1.921fb54442d18p-1, 0x1.f730bd281f69bp-1, 0x1.921fb54442d18p0};
+    constexpr double low[] = {0x1.a2b7f222f65e2p-56, 0x1.1a62633145c07p-55, 0x1.007887af0cbbdp-56, 0x1.1a62633145c07p-54};
+    constexpr double coefficients[] = {
+        0x1.555555555550dp-2, -0x1.999999998ebc4p-3, 0x1.24924920083ffp-3, -0x1.c71c6fe231671p-4,
+        0x1.745cdc54c206ep-4, -0x1.3b0f2af749a6dp-4, 0x1.10d66a0d03d51p-4, -0x1.dde2d52defd9ap-5,
+        0x1.97b4b24760debp-5, -0x1.2b4442c6a6c2fp-5, 0x1.0ad3ae322da11p-6};
+    int region = -1;
+    if (value >= .4375) {
+        if (value < .6875) { region = 0; value = colorDivide(colorSubtract(colorMultiply(2.0, value), 1.0), colorAdd(2.0, value)); }
+        else if (value < 1.1875) { region = 1; value = colorDivide(colorSubtract(value, 1.0), colorAdd(value, 1.0)); }
+        else if (value < 2.4375) { region = 2; value = colorDivide(colorSubtract(value, 1.5), colorAdd(1.0, colorMultiply(1.5, value))); }
+        else { region = 3; value = colorDivide(-1.0, value); }
+    }
+    const auto square = colorMultiply(value, value), fourth = colorMultiply(square, square);
+    auto first = coefficients[10], second = coefficients[9];
+    for (int i = 8; i >= 0; i -= 2) first = colorAdd(coefficients[i], colorMultiply(fourth, first));
+    for (int i = 7; i >= 1; i -= 2) second = colorAdd(coefficients[i], colorMultiply(fourth, second));
+    const auto correction = colorMultiply(value, colorAdd(colorMultiply(square, first), colorMultiply(fourth, second)));
+    return region < 0 ? colorSubtract(value, correction) :
+        colorSubtract(high[region], colorSubtract(colorSubtract(correction, low[region]), value));
+}
+quint32 arcTangentWordColor(quint32 source, quint32 destination)
+{
+    if (!source) return 0;
+    if (!destination) return Unit;
+    const auto angle = positiveColorAtan(colorDivide(normalizedWordColor(source), normalizedWordColor(destination)));
+    return scaledWordColor(colorDivide(colorMultiply(2.0, angle), 0x1.921fb54442d18p1));
+}
+double cosineWordColor(quint32 word)
+{
+    const auto &bytes = rgba16CosineValues();
+    const quint64 bits = qFromLittleEndian<quint32>(bytes.constData() + word * 4) |
+        (quint64(qFromLittleEndian<quint32>(bytes.constData() + (65536 + word) * 4)) << 32);
+    double value;
+    std::memcpy(&value, &bits, sizeof(value));
+    return value;
+}
+quint32 interpolationWordColor(quint32 source, quint32 destination)
+{
+    if (!source && !destination) return 0;
+    return scaledWordColor(colorSubtract(colorSubtract(.5, colorMultiply(.25, cosineWordColor(source))),
+        colorMultiply(.25, cosineWordColor(destination))));
+}
 quint16 scaledWordColor(float value)
 {
     const volatile float scaled = value * 65535.f;
@@ -303,6 +352,14 @@ quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
     case LayerBlendMode::PNormB:
     case LayerBlendMode::SuperLight:
     case LayerBlendMode::EasyBurn: return powerWordColor(mode, source, destination);
+    case LayerBlendMode::ArcTangent: return arcTangentWordColor(source, destination);
+    case LayerBlendMode::PenumbraC: return source == Unit ? Unit : arcTangentWordColor(destination, Unit - source);
+    case LayerBlendMode::PenumbraD: return destination == Unit ? Unit : arcTangentWordColor(source, Unit - destination);
+    case LayerBlendMode::Interpolation: return interpolationWordColor(source, destination);
+    case LayerBlendMode::InterpolationB: {
+        const auto first = interpolationWordColor(source, destination);
+        return interpolationWordColor(first, first);
+    }
     case LayerBlendMode::TintIFSIllusions:
     case LayerBlendMode::ShadeIFSIllusions:
     case LayerBlendMode::FogLightenIFSIllusions:

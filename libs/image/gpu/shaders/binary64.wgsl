@@ -330,3 +330,60 @@ fn wordColorPower(base: Word64, exponent: Word64) -> Word64 {
     }
     return finiteColorExp(power);
 }
+
+// Positive ratios of normalized word colors lie in (0,65536). Reduction and
+// coefficients derive from OpenLibm s_atan.c; notice: LICENSES/SunPro.txt.
+// https://github.com/JuliaMath/openlibm/blob/5fe399749f9276eaa0b8403e507470da05cbbb3f/src/s_atan.c
+fn positiveColorAtan(value: Word64) -> Word64 {
+    let high = array<Word64, 4>(
+        Word64(0x0561bb4fu, 0x3fddac67u),
+        Word64(0x54442d18u, 0x3fe921fbu),
+        Word64(0xd281f69bu, 0x3fef730bu),
+        Word64(0x54442d18u, 0x3ff921fbu));
+    let low = array<Word64, 4>(
+        Word64(0x222f65e2u, 0x3c7a2b7fu),
+        Word64(0x33145c07u, 0x3c81a626u),
+        Word64(0x7af0cbbdu, 0x3c700788u),
+        Word64(0x33145c07u, 0x3c91a626u));
+    let coefficients = array<Word64, 11>(
+        Word64(0x5555550du, 0x3fd55555u),
+        Word64(0x9998ebc4u, 0xbfc99999u),
+        Word64(0x920083ffu, 0x3fc24924u),
+        Word64(0xfe231671u, 0xbfbc71c6u),
+        Word64(0xc54c206eu, 0x3fb745cdu),
+        Word64(0xaf749a6du, 0xbfb3b0f2u),
+        Word64(0xa0d03d51u, 0x3fb10d66u),
+        Word64(0x52defd9au, 0xbfadde2du),
+        Word64(0x24760debu, 0x3fa97b4bu),
+        Word64(0x2c6a6c2fu, 0xbfa2b444u),
+        Word64(0xe322da11u, 0x3f90ad3au));
+    let one = Word64(0u, 0x3ff00000u);
+    let two = Word64(0u, 0x40000000u);
+    var reduced = value;
+    var region = -1;
+    if (wordLessEqual(Word64(0u, 0x3fdc0000u), value)) {
+        if (!wordLessEqual(Word64(0u, 0x3fe60000u), value)) {
+            region = 0;
+            reduced = doubleDivide(doubleSubtract(doubleMultiply(two, value), one), doubleAdd(two, value));
+        } else if (!wordLessEqual(Word64(0u, 0x3ff30000u), value)) {
+            region = 1;
+            reduced = doubleDivide(doubleSubtract(value, one), doubleAdd(value, one));
+        } else if (!wordLessEqual(Word64(0u, 0x40038000u), value)) {
+            region = 2;
+            reduced = doubleDivide(doubleSubtract(value, Word64(0u, 0x3ff80000u)),
+                doubleAdd(one, doubleMultiply(Word64(0u, 0x3ff80000u), value)));
+        } else {
+            region = 3;
+            reduced = doubleDivide(Word64(0u, 0xbff00000u), value);
+        }
+    }
+    let square = doubleMultiply(reduced, reduced);
+    let fourth = doubleMultiply(square, square);
+    var first = coefficients[10];
+    var second = coefficients[9];
+    for (var i = 8; i >= 0; i -= 2) { first = doubleAdd(coefficients[u32(i)], doubleMultiply(fourth, first)); }
+    for (var i = 7; i >= 1; i -= 2) { second = doubleAdd(coefficients[u32(i)], doubleMultiply(fourth, second)); }
+    let correction = doubleMultiply(reduced, doubleAdd(doubleMultiply(square, first), doubleMultiply(fourth, second)));
+    if (region < 0) { return doubleSubtract(reduced, correction); }
+    return doubleSubtract(high[u32(region)], doubleSubtract(doubleSubtract(correction, low[u32(region)]), reduced));
+}

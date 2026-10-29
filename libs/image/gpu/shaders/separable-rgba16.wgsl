@@ -165,6 +165,7 @@ fn powerWordColor(mode: u32, source: u32, destination: u32) -> u32 {
     let easyFactor = Word64(0x09f8b874u, 0x3ff0a3d7u);
     switch mode {
         case 70u, 71u: {
+            if (WORD_BLEND_MODE_A != 70u && WORD_BLEND_MODE_B != 70u && WORD_BLEND_MODE_A != 71u && WORD_BLEND_MODE_B != 71u) { return source; }
             var value: Word64;
             if (mode == 70u) {
                 let factor = Word64(0xaaaaaaabu, 0x4002aaaau);
@@ -180,21 +181,27 @@ fn powerWordColor(mode: u32, source: u32, destination: u32) -> u32 {
             if (!wordLessEqual(value, Word64(0u, 0x40efffe0u))) { return 65535u; }
             return doubleTruncate(value);
         }
-        case 69u: { return 65535u - gammaDarkWord(65535u - source, 65535u - destination); }
-        case 76u: { return gammaDarkWord(source, destination); }
+        case 69u: {
+            if (WORD_BLEND_MODE_A != 69u && WORD_BLEND_MODE_B != 69u) { return source; } return 65535u - gammaDarkWord(65535u - source, 65535u - destination); }
+        case 76u: {
+            if (WORD_BLEND_MODE_A != 76u && WORD_BLEND_MODE_B != 76u) { return source; } return gammaDarkWord(source, destination); }
         case 68u: {
+            if (WORD_BLEND_MODE_A != 68u && WORD_BLEND_MODE_B != 68u) { return source; }
             if (destination == 0u || destination == 65535u) { return destination; }
             return scaledWordColor(wordColorPower(d, s));
         }
         case 65u: {
+            if (WORD_BLEND_MODE_A != 65u && WORD_BLEND_MODE_B != 65u) { return source; }
             return scaledWordColor(wordColorPower(d, wordColorPower(two,
                 doubleMultiply(two, doubleSubtract(Word64(0u, 0x3fe00000u), s)))));
         }
         case 75u: {
+            if (WORD_BLEND_MODE_A != 75u && WORD_BLEND_MODE_B != 75u) { return source; }
             if (source == 65535u) { return 65535u; }
             return scaledWordColor(wordColorPower(d, doubleMultiply(doubleSubtract(one, s), easyFactor)));
         }
         case 72u: {
+            if (WORD_BLEND_MODE_A != 72u && WORD_BLEND_MODE_B != 72u) { return source; }
             let factor = Word64(0u, 0x40070000u);
             let inverseFactor = Word64(0x590b2164u, 0x3fd642c8u);
             if (source <= 32767u) {
@@ -206,10 +213,28 @@ fn powerWordColor(mode: u32, source: u32, destination: u32) -> u32 {
                 wordColorPower(doubleSubtract(doubleMultiply(two, s), one), factor)), inverseFactor));
         }
         default: {
+            if (WORD_BLEND_MODE_A != 79u && WORD_BLEND_MODE_B != 79u) { return source; }
             let sourceValue = select(s, Word64(0xffffdcd1u, 0x3fefffffu), source == 65535u);
             return scaledWordColor(doubleSubtract(one, wordColorPower(doubleSubtract(one, sourceValue), doubleMultiply(d, easyFactor))));
         }
     }
+}
+fn arcTangentWordColor(source: u32, destination: u32) -> u32 {
+    if (source == 0u) { return 0u; }
+    if (destination == 0u) { return 65535u; }
+    let angle = positiveColorAtan(doubleDivide(normalizedWordColor(source), normalizedWordColor(destination)));
+    return scaledWordColor(doubleDivide(doubleMultiply(Word64(0u, 0x40000000u), angle), Word64(0x54442d18u, 0x400921fbu)));
+}
+fn cosineWordColor(word: u32) -> Word64 {
+    let point = vec2<i32>(i32(word & 255u), i32(word >> 8u));
+    return Word64(packPixel(textureLoad(separableColorValues, point, 0, 0)),
+        packPixel(textureLoad(separableColorValues, point, 1, 0)));
+}
+fn interpolationWordColor(source: u32, destination: u32) -> u32 {
+    if (source == 0u && destination == 0u) { return 0u; }
+    let quarter = Word64(0u, 0x3fd00000u);
+    return scaledWordColor(doubleSubtract(doubleSubtract(Word64(0u, 0x3fe00000u),
+        doubleMultiply(quarter, cosineWordColor(source))), doubleMultiply(quarter, cosineWordColor(destination))));
 }
 fn separableWordChannelMode(mode: u32, source: u32, destination: u32) -> u32 {
     switch mode {
@@ -292,7 +317,31 @@ fn separableWordChannelMode(mode: u32, source: u32, destination: u32) -> u32 {
         }
         case 59u: { return u32(clamp(3 * i32(destination) - 2 * (65535 - i32(source)), 0, 65535)); }
         case 60u: { return scaledWordColor(doubleSqrt(doubleMultiply(normalizedWordColor(source), normalizedWordColor(destination)))); }
-        case 65u, 68u, 69u, 70u, 71u, 72u, 75u, 76u, 79u: { return powerWordColor(mode, source, destination); }
+        case 65u, 68u, 69u, 70u, 71u, 72u, 75u, 76u, 79u: {
+            if ((WORD_BLEND_MODE_A >= 65u && WORD_BLEND_MODE_A <= 79u) || (WORD_BLEND_MODE_B >= 65u && WORD_BLEND_MODE_B <= 79u)) {
+                return powerWordColor(mode, source, destination);
+            }
+            return source;
+        }
+        case 61u: {
+            if (WORD_BLEND_MODE_A != 61u && WORD_BLEND_MODE_B != 61u) { return source; } return interpolationWordColor(source, destination); }
+        case 62u: {
+            if (WORD_BLEND_MODE_A != 62u && WORD_BLEND_MODE_B != 62u) { return source; }
+            let first = interpolationWordColor(source, destination);
+            return interpolationWordColor(first, first);
+        }
+        case 63u: {
+            if (WORD_BLEND_MODE_A != 63u && WORD_BLEND_MODE_B != 63u) { return source; }
+            if (source == 65535u) { return 65535u; }
+            return arcTangentWordColor(destination, 65535u - source);
+        }
+        case 64u: {
+            if (WORD_BLEND_MODE_A != 64u && WORD_BLEND_MODE_B != 64u) { return source; }
+            if (destination == 65535u) { return 65535u; }
+            return arcTangentWordColor(source, 65535u - destination);
+        }
+        case 86u: {
+            if (WORD_BLEND_MODE_A != 86u && WORD_BLEND_MODE_B != 86u) { return source; } return arcTangentWordColor(source, destination); }
         case 66u: { return softLightWordColor(source, destination, true); }
         case 67u: { return softLightWordColor(source, destination, false); }
         case 73u, 74u, 77u, 78u: { return ifsWordColor(mode, source, destination); }

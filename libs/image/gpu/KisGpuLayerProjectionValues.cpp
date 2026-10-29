@@ -13,6 +13,17 @@
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
+const QByteArray &Detail::rgba16CosineValues()
+{
+    static const auto bytes = [] {
+        QFile resource(QStringLiteral(":/librepaint/gpu/blend/rgba16-cosine.bin"));
+        if (!resource.open(QIODevice::ReadOnly)) throw std::logic_error("GPU RGBA16 cosine values are unavailable");
+        auto result = resource.readAll();
+        if (result.size() != Rgba16CosineBytes) throw std::logic_error("GPU RGBA16 cosine values are incomplete");
+        return result;
+    }();
+    return bytes;
+}
 const QByteArray &Detail::nonlinearRgba8Values()
 {
     static const auto bytes = [] {

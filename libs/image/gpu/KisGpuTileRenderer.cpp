@@ -7,6 +7,7 @@
 #include "KisGpuPaintJob_p.h"
 #include "KisGpuNonlinearRgba8_p.h"
 #include "KisGpuRgba8AlphaBlend_p.h"
+#include "KisGpuRgba16Compositing_p.h"
 
 #include <QFile>
 #include <QMap>
@@ -56,7 +57,48 @@ TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
 }
 
 TileRenderer::Private::~Private()
-{ budget->used -= nonlinearBytes + greaterBytes; }
+{ budget->used -= nonlinearBytes + greaterBytes + cosineBytes; }
+
+bool TileRenderer::Private::prepareRgba16Cosine()
+{
+    if (cosineView) return true;
+    if (!ensureTileCapacity(Rgba16CosineBytes / RgbaTile::byteCount(PixelFormat::Rgba16), PixelFormat::Rgba16)) return false;
+    WGPUTextureDescriptor descriptor{};
+    descriptor.dimension = WGPUTextureDimension_2D;
+    descriptor.size = {256, 256, 2};
+    descriptor.format = WGPUTextureFormat_RGBA8Uint;
+    descriptor.mipLevelCount = descriptor.sampleCount = 1;
+    descriptor.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+    NativeTexture texture(wgpuDeviceCreateTexture(device->nativeDevice(), &descriptor));
+    WGPUTextureViewDescriptor viewDescriptor{};
+    viewDescriptor.dimension = WGPUTextureViewDimension_2DArray;
+    viewDescriptor.format = WGPUTextureFormat_RGBA8Uint;
+    viewDescriptor.mipLevelCount = 1;
+    viewDescriptor.arrayLayerCount = 2;
+    viewDescriptor.aspect = WGPUTextureAspect_All;
+    NativeTextureView view(texture ? wgpuTextureCreateView(texture.get(), &viewDescriptor) : nullptr);
+    if (!texture || !view || !device->diagnostic().isEmpty()) {
+        error = QStringLiteral("GPU RGBA16 cosine texture allocation failed");
+        return false;
+    }
+    const auto &bytes = rgba16CosineValues();
+    WGPUTexelCopyTextureInfo destination{};
+    destination.texture = texture.get();
+    destination.aspect = WGPUTextureAspect_All;
+    WGPUTexelCopyBufferLayout layout{};
+    layout.bytesPerRow = 256 * 4;
+    layout.rowsPerImage = 256;
+    wgpuQueueWriteTexture(device->queue(), &destination, bytes.constData(), size_t(bytes.size()), &layout, &descriptor.size);
+    if (!device->diagnostic().isEmpty()) {
+        error = QStringLiteral("GPU RGBA16 cosine resource upload failed");
+        return false;
+    }
+    cosineBytes = Rgba16CosineBytes;
+    budget->used += cosineBytes;
+    cosineTexture = std::move(texture);
+    cosineView = std::move(view);
+    return true;
+}
 
 bool TileRenderer::Private::prepareNonlinearRgba8(bool full)
 {
@@ -382,6 +424,17 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         ((region && region->isEmpty()) || std::all_of(requestedGroups.cbegin(), requestedGroups.cend(),
             [&](LayerId group) { return base->m_data->groupInputs.contains(group); })))
         return {RenderOutcome::Recorded, base, {}};
+    const bool cosine = document->format == PixelFormat::Rgba16 && std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
+        return selected.contains(layer.id) && std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &operation) {
+            const auto paint = std::get_if<PaintSnapshot>(&operation);
+            return paint && !(*paint)->brush.erase && qRound(float((*paint)->brush.opacity) * 65535) > 0 &&
+                (((*paint)->figureStyle.outline && usesRgba16Cosine((*paint)->brush.blendMode)) ||
+                 (hasFigureFill((*paint)->figureStyle) && usesRgba16Cosine((*paint)->figureStyle.fillBlendMode)));
+        });
+    });
+    if (cosine && !d.prepareRgba16Cosine())
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU RGBA16 cosine resource budget exhausted") : d.error};
     const bool nonlinear = document->format == PixelFormat::Rgba8 && std::any_of(document->layers.cbegin(), document->layers.cend(), [&](const auto &layer) {
         if (!selected.contains(layer.id)) return false;
         return std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &operation) {
@@ -461,7 +514,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         const auto empty = d.zeroBuffer(commands, document->format);
         if (!empty) return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty tile allocation failed")};
         if (!preparePaintJobs(*d.device, d.layout.get(), jobs, recordedJobs, empty,
-                              d.unusedCoverage.get(), d.unusedSelection.get(), d.unusedPattern.get(), d.nonlinearView.get(), d.greaterView.get()))
+                              d.unusedCoverage.get(), d.unusedSelection.get(), d.unusedPattern.get(),
+                              document->format == PixelFormat::Rgba16 && d.cosineView ? d.cosineView.get() : d.nonlinearView.get(),
+                              d.greaterView.get()))
             return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
         for (size_t i = recordedFills; i < fillUploads.size(); ++i) {
             const auto &upload = fillUploads[i];

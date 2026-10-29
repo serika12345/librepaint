@@ -98,6 +98,9 @@ struct TileRenderer::Private
     Detail::NativeTexture nonlinearTexture;
     Detail::NativeTextureView nonlinearView;
     qsizetype nonlinearBytes = 0;
+    Detail::NativeTexture cosineTexture;
+    Detail::NativeTextureView cosineView;
+    qsizetype cosineBytes = 0;
     Detail::NativeTexture greaterTexture;
     Detail::NativeTextureView greaterView;
     qsizetype greaterBytes = 0;
@@ -143,6 +146,7 @@ struct TileRenderer::Private
     /** Full channel values count against the renderer budget and remain immutable. */
     bool prepareNonlinearRgba8(bool full);
     bool prepareGreaterRgba8(bool full);
+    bool prepareRgba16Cosine();
     Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main",
         quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr, bool separableBlendEnabled = false, quint32 coupledPixelFormat = 0);
     WGPUComputePipeline blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend, quint32 secondBlend = 0);
