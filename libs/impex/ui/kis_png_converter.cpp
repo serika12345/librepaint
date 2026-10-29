@@ -25,6 +25,7 @@
 #include <png.h>
 #include <pngconf.h>
 #include <QtGlobal>
+#include <QtEndian>
 #include <QScopeGuard>
 #include <QCryptographicHash>
 #include <gpu/KisGpuPaintImage.h>
@@ -606,12 +607,13 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu)
             return ImportExportCodes::FormatFeaturesUnsupported;
         const quint64 columns = (quint64(width) + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
         const quint64 rows = (quint64(height) + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
-        if (columns * rows > quint64(Gpu::Limits{}.rasterBytes / Gpu::RgbaTile::ByteCount))
+        const auto format = color_nb_bits == 16 ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+        if (columns * rows > quint64(Gpu::Limits{}.rasterBytes / Gpu::RgbaTile::byteCount(format)))
             return ImportExportCodes::InsufficientMemory;
     }
     if (!preparePngRows(png_ptr, info_ptr)) return ImportExportCodes::FileFormatIncorrect;
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &color_nb_bits, &color_type, &interlace_type, nullptr, nullptr);
-    if (gpu && (color_nb_bits != 8 || (color_type != PNG_COLOR_TYPE_RGB && color_type != PNG_COLOR_TYPE_RGB_ALPHA &&
+    if (gpu && ((color_nb_bits != 8 && color_nb_bits != 16) || (color_type != PNG_COLOR_TYPE_RGB && color_type != PNG_COLOR_TYPE_RGB_ALPHA &&
                                       color_type != PNG_COLOR_TYPE_PALETTE)))
         return ImportExportCodes::FormatColorSpaceUnsupported;
 
@@ -751,18 +753,22 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu)
 
     // Creating the KisImageSP
     if (gpu) {
-        const auto srgb = KoColorSpaceRegistry::instance()->rgb8()->profile();
-        if (cs->id() != QStringLiteral("RGBA") || cs->profile()->rawData() != srgb->rawData())
+        const auto canonical = color_nb_bits == 16 ? KoColorSpaceRegistry::instance()->rgb16() :
+                                                   KoColorSpaceRegistry::instance()->rgb8();
+        if (!canonical || !canonical->profile() || cs->id() != canonical->id() ||
+            cs->profile()->rawData() != canonical->profile()->rawData())
             return ImportExportCodes::FormatColorSpaceUnsupported;
         prepared->colorSpace = cs;
         prepared->raster.size = QSize(width, height);
+        prepared->raster.format = color_nb_bits == 16 ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+        const auto tileBytes = Gpu::RgbaTile::byteCount(prepared->raster.format);
         Gpu::RasterLayer layer;
         layer.name = i18nc("Name for the bottom-most layer in the layerstack", "Background");
         const int columns = (width + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
         const int rows = (height + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
         for (int y = 0; y < rows; ++y)
             for (int x = 0; x < columns; ++x)
-                layer.tiles.append({QPoint(x, y), QByteArray(Gpu::RgbaTile::ByteCount, '\0')});
+                layer.tiles.append({QPoint(x, y), QByteArray(tileBytes, '\0'), prepared->raster.format});
         prepared->raster.layers.append(std::move(layer));
     } else if (m_image == 0) {
         KisUndoStore *store = m_doc ? m_doc->createUndoStore() : new KisSurrogateUndoStore();
@@ -861,9 +867,8 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu)
         png_bytep row_pointer = reader->readLine();
         if (!row_pointer) return ImportExportCodes::FileFormatIncorrect;
         QByteArray nativeRow;
-        if (color_type == PNG_COLOR_TYPE_PALETTE ||
-            (color_nb_bits == 8 && (color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_RGB_ALPHA))) {
-            nativeRow.resize(qsizetype(width) * 4);
+        if (color_type == PNG_COLOR_TYPE_PALETTE || color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_RGB_ALPHA) {
+            nativeRow.resize(qsizetype(width) * cs->pixelSize());
         }
         KisHLineIteratorSP it;
         if (!gpu && nativeRow.isEmpty()) it = layer->paintDevice()->createHLineIteratorNG(0, y, width);
@@ -902,15 +907,15 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu)
         case PNG_COLOR_TYPE_RGB_ALPHA:
             if (color_nb_bits == 16) {
                 quint16 *src = reinterpret_cast<quint16 *>(row_pointer);
-                do {
-                    quint16 *d = reinterpret_cast<quint16 *>(it->rawData());
+                for (png_uint_32 x = 0; x < width; ++x) {
+                    auto *d = reinterpret_cast<quint16 *>(nativeRow.data()) + x * 4;
                     d[2] = *(src++);
                     d[1] = *(src++);
                     d[0] = *(src++);
                     if (hasalpha) d[3] = *(src++);
                     else d[3] = quint16_MAX;
                     if (transform) transform->transformInPlace(reinterpret_cast<quint8 *>(d), reinterpret_cast<quint8*>(d), 1);
-                } while (it->nextPixel());
+                }
             } else {
                 KisPNGReadStream stream(row_pointer, color_nb_bits);
                 for (png_uint_32 x = 0; x < width; ++x) {
@@ -949,16 +954,25 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu)
         if (!nativeRow.isEmpty()) {
             if (gpu) {
                 const int columns = (width + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+                const int pixelBytes = Gpu::pixelByteCount(prepared->raster.format);
                 auto &tiles = prepared->raster.layers[0].tiles;
                 const auto *source = reinterpret_cast<const quint8 *>(nativeRow.constData());
                 for (png_uint_32 x = 0; x < width; ++x) {
                     auto &tile = tiles[(y / Gpu::RgbaTile::Size) * columns + x / Gpu::RgbaTile::Size];
                     auto *destination = reinterpret_cast<quint8 *>(tile.rgba.data()) +
-                        ((y % Gpu::RgbaTile::Size) * Gpu::RgbaTile::Size + x % Gpu::RgbaTile::Size) * 4;
-                    destination[0] = source[x * 4 + 2];
-                    destination[1] = source[x * 4 + 1];
-                    destination[2] = source[x * 4];
-                    destination[3] = source[x * 4 + 3];
+                        ((y % Gpu::RgbaTile::Size) * Gpu::RgbaTile::Size + x % Gpu::RgbaTile::Size) * pixelBytes;
+                    if (prepared->raster.format == Gpu::PixelFormat::Rgba16) {
+                        const auto *pixel = reinterpret_cast<const quint16 *>(source) + x * 4;
+                        qToLittleEndian<quint16>(pixel[2], destination);
+                        qToLittleEndian<quint16>(pixel[1], destination + 2);
+                        qToLittleEndian<quint16>(pixel[0], destination + 4);
+                        qToLittleEndian<quint16>(pixel[3], destination + 6);
+                    } else {
+                        destination[0] = source[x * 4 + 2];
+                        destination[1] = source[x * 4 + 1];
+                        destination[2] = source[x * 4];
+                        destination[3] = source[x * 4 + 3];
+                    }
                 }
             } else layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(nativeRow.constData()), 0, y, width, 1);
         }

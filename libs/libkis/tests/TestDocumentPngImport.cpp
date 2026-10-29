@@ -9,6 +9,9 @@
 #include <InfoObject.h>
 #include <application/kis_config.h>
 #include <KoColorSpace.h>
+#include <KoColorSpaceRegistry.h>
+#include <kis_paint_device.h>
+#include <kis_png_converter.h>
 #include <KoColorProfile.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
@@ -123,29 +126,66 @@ void TestDocument::testGpuSessionOpensPngWithGpuPixelOwnership_data()
 {
     QTest::addColumn<QByteArray>("inputPng");
     QTest::addColumn<bool>("compressRaster");
-    QTest::newRow("without-physical-metadata") << resolutionPngs[0] << false;
-    QTest::newRow("with-physical-metadata") << resolutionPngs[2] << false;
-    QTest::newRow("hidden-rgb-and-partial-alpha") << hiddenColorPng << false;
-    QTest::newRow("palette-transparency") << palettePng << false;
-    QTest::newRow("layer-metadata") << metadataPng << false;
-    QTest::newRow("compressed-native-checkpoints") << resolutionPngs[0] << true;
+    QTest::addColumn<QByteArray>("sourcePixels");
+    QTest::newRow("without-physical-metadata") << resolutionPngs[0] << false << QByteArray();
+    QTest::newRow("with-physical-metadata") << resolutionPngs[2] << false << QByteArray();
+    QTest::newRow("hidden-rgb-and-partial-alpha") << hiddenColorPng << false << QByteArray();
+    QTest::newRow("palette-transparency") << palettePng << false << QByteArray();
+    QTest::newRow("layer-metadata") << metadataPng << false << QByteArray();
+    QTest::newRow("compressed-native-checkpoints") << resolutionPngs[0] << true << QByteArray();
     // Frozen PNG Suite inputs from plugins/impex/png/tests/data/sources/.
     // Keeping these small encoded inputs here also serves installed test executables.
     QTest::newRow("basn6a08") << QByteArray::fromHex(
         "89504e470d0a1a0a0000000d4948445200000020000000200806000000737a7af40000000467414d41000186a031e8965f00"
         "00006f49444154789cedd6310a80300c46e12764684fa1f73f55048f21c4ddc545781d52e85028fc1f4d28d98a01305e7b7e"
         "9cffba33831d75054703ca06a8f90d58a0074e351e227d805c8254e31bb0420f5cdc2e0079208892ffe2a00136a07b400794"
-        "3c1004d900195036407f011bf00052201a9c160fb84c0000000049454e44ae426082") << false;
+        "3c1004d900195036407f011bf00052201a9c160fb84c0000000049454e44ae426082") << false << QByteArray();
     QTest::newRow("basi3p01") << QByteArray::fromHex(
         "89504e470d0a1a0a0000000d49484452000000200000002001030000013eb3d8210000000467414d41000186a031e8965f00"
         "000006504c5445eeff222266ff6c1ad2260000002949444154789c636080820f50b80a0a43d1b0b131c39933d84908834836"
-        "3f1040880f4000212810030009ba422d76a9c39e0000000049454e44ae426082") << false;
+        "3f1040880f4000212810030009ba422d76a9c39e0000000049454e44ae426082") << false << QByteArray();
+
+    // Native RGB16 encoding fixes lower bits, transparent RGB and boundaries
+    // across both the CPU's 64-pixel and GPU's 256-pixel tiles.
+    const auto cs = KoColorSpaceRegistry::instance()->rgb16();
+    QVERIFY(cs);
+    const QSize size(257, 259);
+    for (bool alpha : {false, true}) for (bool interlaced : {false, true}) {
+        QByteArray pixels(size.width() * size.height() * cs->pixelSize(), Qt::Uninitialized);
+        auto *words = reinterpret_cast<quint16 *>(pixels.data());
+        const quint16 alphas[] = {0, 1, 32768, 65535};
+        for (int i = 0; i < size.width() * size.height(); ++i) {
+            words[i * 4] = quint16(0x1357 + i * 317);
+            words[i * 4 + 1] = quint16(0x4321 + i * 719);
+            words[i * 4 + 2] = quint16(0x9876 + i * 1237);
+            words[i * 4 + 3] = alpha ? alphas[i % 4] : 65535;
+        }
+        KisPaintDeviceSP device = new KisPaintDevice(cs);
+        device->writeBytes(reinterpret_cast<const quint8 *>(pixels.constData()), QRect(QPoint(), size));
+        KisPNGOptions options;
+        options.alpha = alpha;
+        options.tryToSaveAsIndexed = false;
+        options.saveSRGBProfile = true;
+        options.interlace = interlaced;
+        options.compression = 3;
+        vKisAnnotationSP annotations;
+        QBuffer encoded;
+        QVERIFY(encoded.open(QIODevice::ReadWrite));
+        KisPNGConverter writer(nullptr, true);
+        const auto result = writer.buildFile(&encoded, QRect(QPoint(), size), 1, 1, device,
+                                             annotations.begin(), annotations.end(), options, nullptr);
+        QVERIFY2(result.isOk(), qPrintable(result.errorMessage()));
+        const QByteArray name = QByteArray(alpha ? "rgba16" : "rgb16") +
+            (interlaced ? "-adam7" : "-ordinary");
+        QTest::newRow(name.constData()) << encoded.data() << interlaced << pixels;
+    }
 }
 
 void TestDocument::testGpuSessionOpensPngWithGpuPixelOwnership()
 {
     QFETCH(QByteArray, inputPng);
     QFETCH(bool, compressRaster);
+    QFETCH(QByteArray, sourcePixels);
     const bool previousCompression = KisConfig(true).compressKra();
     const auto restoreCompression = qScopeGuard([&] { KisConfig(false).setCompressKra(previousCompression); });
     KisConfig(false).setCompressKra(compressRaster);
@@ -180,7 +220,8 @@ void TestDocument::testGpuSessionOpensPngWithGpuPixelOwnership()
     const auto size = referenceImage->size();
     const auto expectedPixels = referenceNode->pixelData(0, 0, size.width(), size.height());
     const auto expectedProjection = Document(reference.data(), false).pixelData(0, 0, size.width(), size.height());
-    if (inputPng == hiddenColorPng) QCOMPARE(expectedPixels, QByteArray::fromHex("56341200eebbaa7f"));
+    if (!sourcePixels.isEmpty()) QCOMPARE(expectedPixels, sourcePixels);
+    else if (inputPng == hiddenColorPng) QCOMPARE(expectedPixels, QByteArray::fromHex("56341200eebbaa7f"));
     else if (inputPng == palettePng) QCOMPARE(expectedPixels, QByteArray::fromHex("00000000eebbaa7f"));
     else if (size == QSize(2, 1)) QCOMPARE(expectedPixels, QByteArray::fromHex("332211ff605040ff"));
 
@@ -278,6 +319,36 @@ void TestDocument::testGpuSessionOpensPngWithGpuPixelOwnership()
     }
     QVERIFY(!read(native).isEmpty());
     QCOMPARE(read(native), read(cpuNative));
+
+    // A file imported and saved by the ordinary document path remains editable.
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = reopened->image()->gpuImage();
+    const bool sixteen = !sourcePixels.isEmpty();
+    Gpu::Brush brush;
+    brush.diameter = 4;
+    brush.rgba = sixteen ? Gpu::RgbaPixel{0x113f, 0x2559, 0x8183, 65535} : Gpu::RgbaPixel{17, 37, 129, 255};
+    const auto stroke = owner->beginStroke(owner->operations().activeLayer(), brush, 17);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(owner->appendSamples(stroke, {{{0.5, 0.5}, 1}}), Gpu::Result::Success);
+    QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
+    const auto painted = savedNode->pixelData(0, 0, size.width(), size.height());
+    QCOMPARE(savedNode->pixelData(0, 0, 1, 1), QByteArray::fromHex(sixteen ? "838159253f11ffff" : "812511ff"));
+    QVERIFY(painted != expectedPixels);
+    reopened->undoStack()->undo();
+    QCOMPARE(savedNode->pixelData(0, 0, size.width(), size.height()), expectedPixels);
+    reopened->undoStack()->redo();
+    QCOMPARE(savedNode->pixelData(0, 0, size.width(), size.height()), painted);
+    const auto editedPath = QDir(destination).filePath(QStringLiteral("edited.kra"));
+    QVERIFY(reopened->saveAs(editedPath, KisDocument::nativeFormatMimeType(), false, settings));
+    reopened->waitForSavingToComplete();
+    QScopedPointer<KisDocument> after(KisPart::instance()->createDocument());
+    after->setFileBatchMode(true);
+    after->setAutoSaveActive(false);
+    QVERIFY2(after->openPath(editedPath, KisDocument::DontAddToRecent), qPrintable(after->errorMessage()));
+    QVERIFY(after->image()->gpuImage());
+    QScopedPointer<Node> afterNode(Node::createNode(after->image(), after->image()->root()->firstChild()));
+    QCOMPARE(afterNode->pixelData(0, 0, size.width(), size.height()), painted);
+    QCOMPARE(afterNode->uniqueId(), savedNode->uniqueId());
 }
 
 void TestDocument::testGpuPngRejectedOpenKeepsDocument_data()
@@ -288,6 +359,7 @@ void TestDocument::testGpuPngRejectedOpenKeepsDocument_data()
     QTest::newRow("truncated-end-after-metadata") << metadataPng.left(metadataPng.size() - 8);
     QTest::newRow("unsupported-gray16") << QByteArray::fromHex("89504e470d0a1a0a0000000d494844520000000200000001100000000081d9fc15000000004944415435af061e0000000049454e44ae426082");
     QTest::newRow("raster-capacity") << QByteArray::fromHex("89504e470d0a1a0a0000000d4948445200008000000080000806000000c47ca37f000000004944415435af061e0000000049454e44ae426082");
+    QTest::newRow("word-raster-capacity-before-rows") << QByteArray::fromHex("89504e470d0a1a0a0000000d4948445200002000000020001006000000223a161a000000004944415435af061e0000000049454e44ae426082");
     QTest::newRow("dimension-limit-before-rows") << QByteArray::fromHex("89504e470d0a1a0a0000000d494844521000000000000001080600000044d0096d000000004944415435af061e0000000049454e44ae426082");
 }
 

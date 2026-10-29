@@ -96,7 +96,7 @@ public:
      * @param iod device to access the data
      */
     KisImportExportErrorCode buildImage(QIODevice* iod);
-    /** Validates and decodes supported RGBA8 PNG input before acquiring a GPU.
+    /** Validates and decodes default-profile RGB8/U16 PNG input before acquiring a GPU.
      * Prepared pixels belong to this converter until buildGpuImage() consumes them.
      * Failure leaves the document and its current image unchanged.
      */
