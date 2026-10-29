@@ -362,6 +362,9 @@ CPUの実際の合成処理とGPUの投影を比較し、最初の不一致の�
 `nonlinearResourceBudgetPreservesPixelsAndRetry`は描画・投影の容量拒否後の画素と再試行を検査する。
 `wordBlendOperationsFitWithoutByteLookupResources`は、16ビットの幾何平均・剰余の描画と投影が
 画素6タイル分の容量内で成立し、保持した投影も同じ値を保つことを検査する。
+`coupledProjectionRetainsOtherBlendOperations`は、RGB合成と通常合成を組み合わせた投影から
+乗算との組へ変更し、8ビット・16ビット双方の画素、旧投影とUndo後の画素を照合する。
+続けて通常合成と乗算・スクリーンの組へ変更し、方式の異なる16ビット命令の再利用を検査する。
 Greaterのアルファ値資源は`scripts/gpu/generate-rgba8-alpha-tables`で生成する。
 `greaterBlendValuesShareBoundedResources`と`greaterResourceBudgetPreservesPixelsAndRetry`が
 独立した資源の共有、固定版、容量拒否と再試行を検査する。
@@ -411,7 +414,10 @@ RGBA U16の操作とGPU実行は、同じ試験入口で検査する。
 `TestDocument::testGpuU16PublicPixelsPreserveDocumentEncoding`は、通常作成したU16文書の公開画素と履歴を検査する。
 `TestDocument::testIntegerRgba16EditingAndNativeFiles`は、
 `libs/libkis/tests/TestDocumentU16Blend.cpp`から整数合成の通常利用側を検査する。
-各方式で元の全65,536色成分またはアルファと12境界値を組み合わせ、既存CPU合成と全画素を比較する。
+各方式で元の全65,536色成分またはアルファと14境界値を組み合わせ、既存CPU合成と全画素を比較する。
+色相・彩度・明度、法線マップとLambertの合成は、色付きの下地にも全色成分を組み合わせ、
+RGBを一組にする演算、単精度から16ビットへの量子化と整数アルファを照合する。
+Soft Light、Tint・Shade・Fogと平方根差は、平方根と二次式、半値・4分の1の分岐を比較する。
 幾何平均と剰余系も同じ試験入口で、単精度から倍精度への正規化、平方根、除算、
 切捨てと16ビット化の順序を照合する。整数型と実数型の剰余は、元成分0の特別処理も比較する。
 二次式と関連する整数合成も同じ試験入口で検査し、Parallelの33ビットの分子・分母、

@@ -117,7 +117,41 @@ fn divisiveModuloContinuousWord(sourceWord: u32, destinationWord: u32) -> u32 {
     }
     return scaledWordColor(value);
 }
-fn separableWordChannel(mode: u32, source: u32, destination: u32) -> u32 {
+fn softLightWordColor(source: u32, destination: u32, svg: bool) -> u32 {
+    let s = normalizedWordColor(source);
+    let d = normalizedWordColor(destination);
+    let one = Word64(0u, 0x3ff00000u);
+    let two = Word64(0u, 0x40000000u);
+    if (source > 32767u) {
+        var curve: Word64;
+        if (!svg || destination > 16383u) { curve = doubleSqrt(d); }
+        else {
+            curve = doubleMultiply(doubleAdd(doubleMultiply(doubleSubtract(doubleMultiply(Word64(0u, 0x40300000u), d), Word64(0u, 0x40280000u)), d), Word64(0u, 0x40100000u)), d);
+        }
+        return scaledWordColor(doubleAdd(d, doubleMultiply(doubleSubtract(doubleMultiply(two, s), one), doubleSubtract(curve, d))));
+    }
+    return scaledWordColor(doubleSubtract(d, doubleMultiply(doubleMultiply(doubleSubtract(one, doubleMultiply(two, s)), d), doubleSubtract(one, d))));
+}
+fn ifsWordColor(mode: u32, source: u32, destination: u32) -> u32 {
+    let s = normalizedWordColor(source);
+    let d = normalizedWordColor(destination);
+    let one = Word64(0u, 0x3ff00000u);
+    let inverseSource = doubleSubtract(one, s);
+    let inverseDestination = doubleSubtract(one, d);
+    switch mode {
+        case 73u: { return scaledWordColor(doubleAdd(doubleMultiply(s, inverseDestination), doubleSqrt(d))); }
+        case 77u: { return scaledWordColor(doubleSubtract(one, doubleAdd(doubleMultiply(inverseDestination, s), doubleSqrt(inverseSource)))); }
+        case 74u: {
+            if (source <= 32767u) { return scaledWordColor(doubleSubtract(doubleSubtract(one, doubleMultiply(inverseSource, s)), doubleMultiply(inverseDestination, inverseSource))); }
+            return scaledWordColor(doubleAdd(doubleSubtract(s, doubleMultiply(inverseDestination, inverseSource)), doubleMultiply(inverseSource, inverseSource)));
+        }
+        default: {
+            if (source <= 32767u) { return scaledWordColor(doubleAdd(doubleMultiply(inverseSource, s), doubleMultiply(s, d))); }
+            return scaledWordColor(doubleSubtract(doubleAdd(doubleMultiply(s, d), s), doubleMultiply(s, s)));
+        }
+    }
+}
+fn separableWordChannelMode(mode: u32, source: u32, destination: u32) -> u32 {
     switch mode {
         case 1u: { return mul65535(source, destination); }
         case 2u: { return source + destination - mul65535(source, destination); }
@@ -198,6 +232,10 @@ fn separableWordChannel(mode: u32, source: u32, destination: u32) -> u32 {
         }
         case 59u: { return u32(clamp(3 * i32(destination) - 2 * (65535 - i32(source)), 0, 65535)); }
         case 60u: { return scaledWordColor(doubleSqrt(doubleMultiply(normalizedWordColor(source), normalizedWordColor(destination)))); }
+        case 66u: { return softLightWordColor(source, destination, true); }
+        case 67u: { return softLightWordColor(source, destination, false); }
+        case 73u, 74u, 77u, 78u: { return ifsWordColor(mode, source, destination); }
+        case 87u: { return scaledWordColor(doubleMagnitude(doubleSubtract(doubleSqrt(normalizedWordColor(destination)), doubleSqrt(normalizedWordColor(source))))); }
         case 80u: { return destination % (source + 1u); }
         case 81u: { return mul65535(divisiveModuloContinuousWord(source, destination), source); }
         case 82u: { return scaledWordColor(divisiveModuloValue(normalizedWordColor(source), normalizedWordColor(destination), false)); }
@@ -221,7 +259,17 @@ fn appliedWordAlpha(source: u32, selection: u32, opacity: u32, mode: u32) -> u32
     if (mode >= 28u && mode <= 30u) { return mul65535(source, mul65535(selection, opacity)); }
     return multiplyThreeWords(source, selection, opacity);
 }
+fn separableWordChannel(mode: u32, source: u32, destination: u32) -> u32 {
+    if (WORD_BLEND_MODE_A != 0u && mode == WORD_BLEND_MODE_A) {
+        return separableWordChannelMode(WORD_BLEND_MODE_A, source, destination);
+    }
+    if (WORD_BLEND_MODE_B != 0u && mode == WORD_BLEND_MODE_B) {
+        return separableWordChannelMode(WORD_BLEND_MODE_B, source, destination);
+    }
+    return source;
+}
 fn separableRgba16Pixel(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> vec4<u32> {
+    if (!SEPARABLE_BLEND_ENABLED) { return base; }
     var destination = base;
     let oldAlpha = base.w;
     if (mode == 26u) { return vec4<u32>(base.xyz, mul65535(65535u - alpha, oldAlpha)); }

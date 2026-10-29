@@ -479,7 +479,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
         if (!pass) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection commands failed")};
         for (const auto &job : jobs) {
-            const auto program = d.blendPipeline(false, job.paired, job.blendModes[0], job.blendModes[1]);
+            const auto program = d.blendPipeline(false, job.paired, document->document()->format, job.blendModes[0], job.blendModes[1]);
             if (!program) {
                 wgpuComputePassEncoderEnd(pass);
                 wgpuComputePassEncoderRelease(pass);

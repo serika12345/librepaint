@@ -57,7 +57,7 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles_data()
          "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light",
          "linear light", "equivalence", "allanon", "hard_mix_photoshop", "xor", "or", "and", "nand", "nor",
          "xnor", "implication", "not_implication", "converse", "not_converse", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect",
-         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "destination-in", "destination-atop", "geometric_mean", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "copy", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2"})
+         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "destination-in", "destination-atop", "geometric_mean", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "soft_light_svg", "soft_light", "tint_ifs_illusions", "shade_ifs_illusions", "fog_lighten_ifs_illusions", "fog_darken_ifs_illusions", "additive_subtractive", "copy", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -74,8 +74,8 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles()
     const auto *composite = cs->compositeOp(mode);
     const auto blend = Gpu::layerBlendModeFromCompositeOp(mode);
     QVERIFY(composite && blend);
-    constexpr int side = 12;
-    const quint16 values[] = {0, 1, 2, 254, 255, 256, 257, 32767, 32768, 49151, 65534, 65535};
+    constexpr int side = 14;
+    const quint16 values[] = {0, 1, 2, 254, 255, 256, 257, 16383, 16384, 32767, 32768, 49151, 65534, 65535};
     QByteArray bottomBytes, topBytes;
     for (int y = 0; y < side; ++y) for (int x = 0; x < side; ++x) {
         appendPixel(bottomBytes, values[x], values[(x + y) % side], values[(x + 3 * y) % side], values[y]);
@@ -123,7 +123,8 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles()
         const bool alphaPalette = paletteKind == 1;
         const auto kind = alphaPalette ? QStringLiteral("alpha-palette") : paletteKind == 2 ?
             QStringLiteral("chromatic-palette") : QStringLiteral("channel-palette");
-        // Every source color or alpha against the native branch boundaries.
+        // Every source color or alpha against the native branch boundaries,
+        // including the SVG soft-light curve at one quarter.
         // Opaque inputs isolate channels; alpha inputs exercise U16 products,
         // signed interpolation, union opacity and the final rounded division.
         QByteArray source, destination;

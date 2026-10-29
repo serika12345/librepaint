@@ -10,7 +10,11 @@ namespace LibrePaint::Image::Gpu::Detail {
 inline bool usesSeparableRgba16Blend(LayerBlendMode mode)
 {
     return (mode >= LayerBlendMode::Multiply && mode <= LayerBlendMode::GeometricMean) ||
-        (mode >= LayerBlendMode::Modulo && mode <= LayerBlendMode::ModuloShiftContinuous);
+        (mode >= LayerBlendMode::Modulo && mode <= LayerBlendMode::ModuloShiftContinuous) ||
+        (mode >= LayerBlendMode::SoftLightSvg && mode <= LayerBlendMode::SoftLightPhotoshop) ||
+        (mode >= LayerBlendMode::TintIFSIllusions && mode <= LayerBlendMode::FogLightenIFSIllusions) ||
+        (mode >= LayerBlendMode::ShadeIFSIllusions && mode <= LayerBlendMode::FogDarkenIFSIllusions) ||
+        mode == LayerBlendMode::AdditiveSubtractive;
 }
 inline quint32 multiplyWord(quint32 a, quint32 b)
 {

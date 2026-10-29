@@ -212,6 +212,7 @@ fn colorComponentByte(value: u32) -> u32 {
     return projectionMantissa(rounded) >> u32(-projectionPower(rounded));
 }
 fn coupledRgba8Pixel(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> u32 {
+    if (COUPLED_PIXEL_FORMAT == 2u || (COLOR_BLEND_MODE_A == 0u && COLOR_BLEND_MODE_B == 0u)) { return packPixel(base); }
     var destination = base;
     if (mask != 15u && destination.w == 0u) { destination = vec4<u32>(0u); }
     let oldAlpha = destination.w;
@@ -249,6 +250,7 @@ fn colorComponentWord(value: u32) -> u32 {
     return projectionMantissa(rounded) >> u32(-projectionPower(rounded));
 }
 fn coupledRgba16Pixel(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> vec4<u32> {
+    if (COUPLED_PIXEL_FORMAT == 1u || (COLOR_BLEND_MODE_A == 0u && COLOR_BLEND_MODE_B == 0u)) { return base; }
     var destination = base;
     if (mask != 15u && destination.w == 0u) { destination = vec4<u32>(0u); }
     let oldAlpha = destination.w;

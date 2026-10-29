@@ -73,6 +73,7 @@ private Q_SLOTS:
     void nonlinearBlendValuesShareBoundedResources();
     void nonlinearResourceBudgetPreservesPixelsAndRetry();
     void wordBlendOperationsFitWithoutByteLookupResources();
+    void coupledProjectionRetainsOtherBlendOperations();
     void greaterBlendValuesShareBoundedResources();
     void greaterResourceBudgetPreservesPixelsAndRetry();
     void transparentSourcesReplaceProjectionAlpha_data();
@@ -2614,6 +2615,63 @@ void KisGpuTileRendererTest::wordBlendOperationsFitWithoutByteLookupResources()
             QCOMPARE(readBuffer(projected->tiles().first().pixels), pixels);
             QVERIFY(renderer.residentBytes() <= 6 * tileBytes);
         }
+    }
+}
+
+void KisGpuTileRendererTest::coupledProjectionRetainsOtherBlendOperations()
+{
+    for (const auto format : {PixelFormat::Rgba8, PixelFormat::Rgba16}) {
+        const int unit = format == PixelFormat::Rgba16 ? 65535 : 255;
+        const int tileBytes = RgbaTile::byteCount(format);
+        const int pixelBytes = pixelByteCount(format);
+        const auto tile = [&](RgbaPixel pixel) { return rgbaBytes(pixel, format).repeated(tileBytes / pixelBytes); };
+        RasterImage input;
+        input.size = {256, 256};
+        input.format = format;
+        RasterLayer base, color, top;
+        base.tiles = {{{0, 0}, tile({quint16(unit / 4), quint16(unit / 4), quint16(unit / 4), quint16(unit)}), format}};
+        color.tiles = {{{0, 0}, tile({quint16(unit), 0, 0, quint16(unit)}), format}};
+        color.blendMode = LayerBlendMode::ColorHsy;
+        const auto green = tile({0, quint16(unit), 0, quint16(unit)});
+        top.tiles = {{{0, 0}, green, format}};
+        input.layers = {base, color, top};
+        OperationDocument document(input);
+        TileRenderer renderer(m_device);
+        const auto original = render(renderer, document.snapshot());
+        QVERIFY(original);
+        const auto first = project(renderer, original, {0, 0, 256, 256});
+        QVERIFY(first);
+        QCOMPARE(readBuffer(first->tiles().first().pixels), green);
+        // The same coupled color in a pair with Multiply needs the full word
+        // compositor. Reusing a color/Normal program would return green here.
+        QCOMPARE(document.setLayerBlendMode(document.snapshot()->layers.last().id, LayerBlendMode::Multiply), Result::Success);
+        const auto changed = render(renderer, document.snapshot(), original);
+        QVERIFY(changed);
+        const auto second = project(renderer, changed, {0, 0, 256, 256}, first);
+        QVERIFY(second);
+        QCOMPARE(readBuffer(second->tiles().first().pixels), tile({0, 0, 0, quint16(unit)}));
+        QCOMPARE(readBuffer(first->tiles().first().pixels), green);
+        QCOMPARE(document.undo(), Result::Success);
+        const auto restored = render(renderer, document.snapshot(), changed);
+        QVERIFY(restored);
+        const auto third = project(renderer, restored, {0, 0, 256, 256}, second);
+        QVERIFY(third);
+        QCOMPARE(readBuffer(third->tiles().first().pixels), green);
+        QCOMPARE(document.setLayerBlendMode(document.snapshot()->layers[1].id, LayerBlendMode::Normal), Result::Success);
+        QCOMPARE(document.setLayerBlendMode(document.snapshot()->layers.last().id, LayerBlendMode::Multiply), Result::Success);
+        const auto multiplied = render(renderer, document.snapshot(), restored);
+        QVERIFY(multiplied);
+        const auto fourth = project(renderer, multiplied, {0, 0, 256, 256}, third);
+        QVERIFY(fourth);
+        const auto black = tile({0, 0, 0, quint16(unit)});
+        QCOMPARE(readBuffer(fourth->tiles().first().pixels), black);
+        QCOMPARE(document.setLayerBlendMode(document.snapshot()->layers.last().id, LayerBlendMode::Screen), Result::Success);
+        const auto screened = render(renderer, document.snapshot(), multiplied);
+        QVERIFY(screened);
+        const auto fifth = project(renderer, screened, {0, 0, 256, 256}, fourth);
+        QVERIFY(fifth);
+        QCOMPARE(readBuffer(fifth->tiles().first().pixels), tile({quint16(unit), quint16(unit), 0, quint16(unit)}));
+        QCOMPARE(readBuffer(fourth->tiles().first().pixels), black);
     }
 }
 

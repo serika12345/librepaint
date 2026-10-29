@@ -63,7 +63,7 @@ void KisGpuProjectionArithmeticTest::normalRgba8AlphaAndQuotientsPreserveNearest
     QVERIFY(over.open(QIODevice::ReadOnly));
     // Exercise alpha normalization and division on every opacity/source/
     // destination alpha combination that reaches normal RGBA8 division.
-    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + separable16.readAll() + '\n' + copy.readAll() + '\n' + over.readAll() + R"(
+    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\nconst SEPARABLE_BLEND_ENABLED: bool = true;\nconst COUPLED_PIXEL_FORMAT: u32 = 0u;\nconst WORD_BLEND_MODE_A: u32 = 0u;\nconst WORD_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + separable16.readAll() + '\n' + copy.readAll() + '\n' + over.readAll() + R"(
 @compute @workgroup_size(64)
 fn quotientContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;
@@ -202,7 +202,7 @@ void KisGpuProjectionArithmeticTest::normalRgba8ColorsPreserveBothRoundingSteps(
     // Normal layer projection supplies the same blend to every RGB channel.
     // Saving and exporting must retain the single-rounded binary32 color,
     // including its subsequent nearest-even quantization to an RGBA8 byte.
-    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + separable16.readAll() + '\n' + copy.readAll() + '\n' + over.readAll() + R"(
+    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\nconst SEPARABLE_BLEND_ENABLED: bool = true;\nconst COUPLED_PIXEL_FORMAT: u32 = 0u;\nconst WORD_BLEND_MODE_A: u32 = 0u;\nconst WORD_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + doubles.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + separable16.readAll() + '\n' + copy.readAll() + '\n' + over.readAll() + R"(
 @compute @workgroup_size(64)
 fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;

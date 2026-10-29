@@ -244,7 +244,7 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     input.size = {64, 48};
     input.format = PixelFormat::Rgba16;
     input.layers = {{QStringLiteral("Native paint"), true, {}, {}, {1, 257, 65534, 32768}}};
-    for (const auto mode : {LayerBlendMode::GammaDark, LayerBlendMode::SoftLightSvg,
+    for (const auto mode : {LayerBlendMode::GammaDark, LayerBlendMode::SoftLightIFSIllusions,
                            LayerBlendMode::Greater, LayerBlendMode::LuminositySai}) {
         auto unsupported = input;
         unsupported.layers.first().blendMode = mode;
@@ -254,7 +254,7 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     const auto fixed = document.snapshot();
     const auto layer = document.activeLayer();
     QCOMPARE(document.setLayerBlendMode(layer, LayerBlendMode::GammaDark), Result::InvalidInput);
-    QCOMPARE(document.writeLayerBlendMode(layer, LayerBlendMode::SoftLightSvg), Result::InvalidInput);
+    QCOMPARE(document.writeLayerBlendMode(layer, LayerBlendMode::SoftLightIFSIllusions), Result::InvalidInput);
     QCOMPARE(document.invertColors(layer), Result::InvalidInput);
     QCOMPARE(document.grayscale(layer), Result::InvalidInput);
     Brush brush;

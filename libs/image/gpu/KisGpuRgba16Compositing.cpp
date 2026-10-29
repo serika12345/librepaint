@@ -76,6 +76,33 @@ quint32 divisiveModuloContinuousWord(quint32 sourceWord, quint32 destinationWord
     if (!(quint32(std::ceil(colorDivide(destination, source))) & 1u)) value = colorSubtract(1.0, value);
     return scaledWordColor(value);
 }
+quint32 softLightWordColor(quint32 source, quint32 destination, bool svg)
+{
+    const auto s = normalizedWordColor(source), d = normalizedWordColor(destination);
+    if (s > 0.5) {
+        const auto curve = !svg || d > 0.25 ? std::sqrt(d) :
+            colorMultiply(colorAdd(colorMultiply(colorSubtract(colorMultiply(16.0, d), 12.0), d), 4.0), d);
+        return scaledWordColor(colorAdd(d, colorMultiply(colorSubtract(colorMultiply(2.0, s), 1.0), colorSubtract(curve, d))));
+    }
+    return scaledWordColor(colorSubtract(d, colorMultiply(colorMultiply(colorSubtract(1.0, colorMultiply(2.0, s)), d), colorSubtract(1.0, d))));
+}
+quint32 ifsWordColor(LayerBlendMode mode, quint32 source, quint32 destination)
+{
+    const auto s = normalizedWordColor(source), d = normalizedWordColor(destination);
+    const auto inverseSource = colorSubtract(1.0, s), inverseDestination = colorSubtract(1.0, d);
+    switch (mode) {
+    case LayerBlendMode::TintIFSIllusions:
+        return scaledWordColor(colorAdd(colorMultiply(s, inverseDestination), std::sqrt(d)));
+    case LayerBlendMode::ShadeIFSIllusions:
+        return scaledWordColor(colorSubtract(1.0, colorAdd(colorMultiply(inverseDestination, s), std::sqrt(inverseSource))));
+    case LayerBlendMode::FogLightenIFSIllusions:
+        if (s < 0.5) return scaledWordColor(colorSubtract(colorSubtract(1.0, colorMultiply(inverseSource, s)), colorMultiply(inverseDestination, inverseSource)));
+        return scaledWordColor(colorAdd(colorSubtract(s, colorMultiply(inverseDestination, inverseSource)), colorMultiply(inverseSource, inverseSource)));
+    default:
+        if (s < 0.5) return scaledWordColor(colorAdd(colorMultiply(inverseSource, s), colorMultiply(s, d)));
+        return scaledWordColor(colorSubtract(colorAdd(colorMultiply(s, d), s), colorMultiply(s, s)));
+    }
+}
 quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
 {
     const auto dodge = [](quint32 s, quint32 d) { return s == Unit ? (d ? Unit : 0u) : std::min(Unit, divideWord(d, Unit - s)); };
@@ -149,6 +176,14 @@ quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
         return quint32(qBound(0, 3 * int(destination) - 2 * (int(Unit) - int(source)), int(Unit)));
     case LayerBlendMode::GeometricMean:
         return scaledWordColor(std::sqrt(colorMultiply(normalizedWordColor(source), normalizedWordColor(destination))));
+    case LayerBlendMode::SoftLightSvg: return softLightWordColor(source, destination, true);
+    case LayerBlendMode::SoftLightPhotoshop: return softLightWordColor(source, destination, false);
+    case LayerBlendMode::TintIFSIllusions:
+    case LayerBlendMode::ShadeIFSIllusions:
+    case LayerBlendMode::FogLightenIFSIllusions:
+    case LayerBlendMode::FogDarkenIFSIllusions: return ifsWordColor(mode, source, destination);
+    case LayerBlendMode::AdditiveSubtractive:
+        return scaledWordColor(std::abs(colorSubtract(std::sqrt(normalizedWordColor(destination)), std::sqrt(normalizedWordColor(source)))));
     case LayerBlendMode::Modulo: return destination % (source + 1u);
     case LayerBlendMode::ModuloContinuous:
         return multiplyWord(divisiveModuloContinuousWord(source, destination), source);
