@@ -14,7 +14,8 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
     const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
     QPoint origin = layer.position;
     for (const auto &operation : layer.operations)
-        if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) origin -= (*translation)->offset;
+        if (const auto translation = std::get_if<TranslationSnapshot>(&operation); translation && !(*translation)->selectedPixels)
+            origin -= (*translation)->offset;
     if (layer.operations.size() > PaintGeometryElementLimit) return std::nullopt;
     LayerAllocation result;
     auto &allocated = result.blocks;
@@ -37,9 +38,17 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
                     if (!append(QRect(tile->coordinate() * RgbaTile::Size, QSize(RgbaTile::Size, RgbaTile::Size)))) return std::nullopt;
             } else for (const auto &area : (*write)->writtenAreas) if (!append(area)) return std::nullopt;
         } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
-            allocated.translate((*translation)->offset);
-            allocated &= domain;
-            origin += (*translation)->offset;
+            if ((*translation)->selectedPixels) {
+                const auto copied = allocated.intersected((*translation)->copyRect).translated((*translation)->offset);
+                allocated |= copied;
+                if (layer.defaultPixel[3] && !append((*translation)->copyRect.translated((*translation)->offset))) return std::nullopt;
+                allocated &= domain;
+                if (allocated.rectCount() > maximumRectangles) return std::nullopt;
+            } else {
+                allocated.translate((*translation)->offset);
+                allocated &= domain;
+                origin += (*translation)->offset;
+            }
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             allocated &= aligned((*crop)->rect.normalized());
         } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {

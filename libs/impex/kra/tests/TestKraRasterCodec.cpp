@@ -158,6 +158,7 @@ private Q_SLOTS:
     void binaryFreehandSelectionSurvivesSavingAndReopening();
     void featheredSelectionAlphaSurvivesSavingAndReopening();
     void transparencyMasksSurviveSavingAndReopening();
+    void emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage();
     void offsetsAndDescriptionMetadataSurviveEditing();
     void unsupportedAndInvalidContentsReturnNoDocument();
     void capacityAndFailedWritesPreserveCallerValues();
@@ -1748,6 +1749,36 @@ void TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening()
     QVERIFY(clearedResult.document.image.layers[1].transparencyMask);
     QCOMPARE(clearedResult.document.image.layers[1].transparencyMask->bounds(), hard->bounds());
     QCOMPARE(clearedResult.document.image.layers[1].transparencyMask->coverage(120, 100), quint8(255));
+}
+
+void TestKraRasterCodec::emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage()
+{
+    const QRect bounds(-8, -5, 4, 3);
+    const auto outside = SelectionMask::fromAlphaCoverage(bounds, QByteArray::fromHex("01807fffff01807fffff01807f"), bounds);
+    QVERIFY(outside);
+    for (const auto &mask : {SelectionMask::empty(), outside}) {
+        auto source = document();
+        auto &layer = source.image.layers[0];
+        layer.transparencyMask = mask;
+        layer.transparencyMaskLocked = true;
+        layer.transparencyMaskVisible = false;
+        QByteArray bytes;
+        QBuffer output(&bytes); QVERIFY(output.open(QIODevice::WriteOnly));
+        const auto write = Kra::RasterCodec::write(output, source, merged(source.image.size));
+        QVERIFY2(write.code == Kra::Status::Success, qPrintable(write.diagnostic));
+        const auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+        const auto &actual = loaded.document.image.layers[0];
+        QVERIFY(actual.transparencyMask); QVERIFY(*actual.transparencyMask == *mask);
+        QVERIFY(actual.transparencyMaskLocked); QVERIFY(!actual.transparencyMaskVisible);
+        for (const auto &tile : layer.tiles)
+            QCOMPARE(rgbaAt(actual, tile.coordinate * 256), tile.rgba.first(4));
+        QByteArray again;
+        QBuffer destination(&again); QVERIFY(destination.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(destination, loaded.document, merged(source.image.size)).code, Kra::Status::Success);
+        const auto reopened = load(again); QCOMPARE(reopened.code, Kra::Status::Success);
+        QVERIFY(*reopened.document.image.layers[0].transparencyMask == *mask);
+        QVERIFY(reopened.document.image.layers[0].transparencyMaskLocked);
+    }
 }
 
 void TestKraRasterCodec::offsetsAndDescriptionMetadataSurviveEditing()

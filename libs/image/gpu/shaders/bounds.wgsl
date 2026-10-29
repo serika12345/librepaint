@@ -24,7 +24,9 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>,
         let word = (id.y * 256u + id.x) * stride;
         let pixel = nativePixel(pixels[word], pixels[word + stride - 1u], wide);
         let implicit = nativePixel(parameters.implicitPixel, parameters.native.x, wide);
-        if (select(pixel.w != 0u, any(pixel != implicit), parameters.nondefault != 0u)) {
+        var alpha = pixel.w;
+        if (wide && parameters.native.z != 0u) { alpha = (alpha - (alpha >> 8u) + 128u) >> 8u; }
+        if (select(alpha != 0u, any(pixel != implicit), parameters.nondefault != 0u)) {
             let point = parameters.origin + vec2<i32>(id.xy);
             value = vec4<i32>(point, point);
         }

@@ -244,7 +244,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     source += QByteArray("const SEPARABLE_BLEND_ENABLED: bool = ") + (separableBlendEnabled ? "true;\n" : "false;\n");
     source += "const COUPLED_PIXEL_FORMAT: u32 = " + QByteArray::number(coupledPixelFormat) + "u;\n";
     const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
-    if (painting || path.endsWith(QLatin1String("/over.wgsl"))) {
+    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl"))) {
         QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
         QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
         QFile doubles(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
@@ -664,7 +664,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                (bottom - top + 1) * TileSize).intersected((*crop)->rect.normalized());
             }
             if (const auto translation = std::get_if<TranslationSnapshot>(&layer.operations[i]); translation && !needed.isEmpty()) {
-                needed = needed.translated(-(*translation)->offset).intersected(layerDomain);
+                const auto sourceRegion = needed.translated(-(*translation)->offset).intersected(layerDomain);
+                needed = (*translation)->selectedPixels ?
+                    needed.united(sourceRegion.intersected((*translation)->copyRect)) : sourceRegion;
                 if (!needed.isEmpty()) {
                     const int left = pixelTileIndex(needed.left(), TileSize);
                     const int top = pixelTileIndex(needed.top(), TileSize);
@@ -1156,8 +1158,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 tiles = std::move(filtered.tiles);
             } else {
                 const auto &translation = std::get<TranslationSnapshot>(layer.operations[end]);
-                auto moved = d.translateTiles(commands, tiles, data->defaults.value(layer.id), translation->offset, document->format,
-                                               operationRegions[end + 1], spatialPins);
+                const auto firstPin = spatialPins.size();
+                auto moved = translation->selectedPixels ?
+                    d.translateSelection(commands, tiles, uniform, layer.defaultPixel, document->format, *translation,
+                                         operationRegions[end + 1], spatialPins, data->selectionCoverage) :
+                    d.translateTiles(commands, tiles, data->defaults.value(layer.id), translation->offset, document->format,
+                                     operationRegions[end + 1], spatialPins);
+                if (translation->selectedPixels)
+                    for (qsizetype pin = firstPin; pin < spatialPins.size(); ++pin) data->selectionWork.append(spatialPins[pin]);
                 if (moved.code != RenderOutcome::Recorded) return {moved.code, {}, moved.diagnostic};
                 tiles = std::move(moved.tiles);
             }

@@ -35,6 +35,9 @@
 #include "kis_tool.h"
 #include "kis_tool_utils.h"
 #include "kis_paint_layer.h"
+#include "kis_group_layer.h"
+#include "kis_transparency_mask.h"
+#include <gpu/KisGpuExecution.h>
 #include "strokes/move_stroke_strategy.h"
 #include "kis_tool_movetooloptionswidget.h"
 #include "strokes/move_selection_stroke_strategy.h"
@@ -75,6 +78,82 @@ struct KisToolMoveState : KisToolChangesTrackerData, boost::equality_comparable<
 };
 
 
+namespace {
+QList<LibrePaint::Image::Gpu::LayerTranslationTarget> gpuMoveTargets(
+    const LibrePaint::Image::Gpu::Snapshot &version, const KisNodeList &roots)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QHash<QUuid, Gpu::LayerId> layers;
+    for (const auto &layer : version->layers) layers.insert(layer.uuid, layer.id);
+    QList<Gpu::LayerTranslationTarget> targets;
+    QHash<Gpu::LayerId, qsizetype> indices;
+    for (const auto &root : roots) {
+        KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
+            if (!node->isEditable(false)) return;
+            const bool mask = bool(qobject_cast<KisTransparencyMask *>(node.data()));
+            const auto ownerNode = mask ? node->parent() : node;
+            if (!ownerNode || (!mask && !qobject_cast<KisPaintLayer *>(node.data()) &&
+                                           !qobject_cast<KisGroupLayer *>(node.data()))) return;
+            const auto layer = layers.value(ownerNode->uuid());
+            if (!layer) return;
+            if (!indices.contains(layer)) {
+                indices.insert(layer, targets.size());
+                targets.append({layer, false, false});
+            }
+            auto &target = targets[indices.value(layer)];
+            if (mask) target.mask = true;
+            else target.pixels = true;
+        });
+    }
+    return targets;
+}
+KisNodeList gpuMoveNodes(const KisNodeList &selected, KisNodeSelectionRecipe::SelectionMode mode,
+                         QPoint point, const LibrePaint::Image::Gpu::PaintImageSP &owner)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (selected.isEmpty() || mode == KisNodeSelectionRecipe::SelectedLayer) return selected;
+    auto root = KisLayerUtils::findIsolationRoot(selected.first());
+    if (!root) root = KisLayerUtils::findRoot(selected.first());
+    const auto version = owner->operations().snapshot();
+    QHash<QUuid, Gpu::LayerId> identities;
+    for (const auto &layer : version->layers) identities.insert(layer.uuid, layer.id);
+    bool failed = false;
+    const auto find = [&](KisNodeSP node, const auto &self) -> KisNodeSP {
+        for (; node && !failed; node = node->prevSibling()) {
+            auto *layer = qobject_cast<KisLayer *>(node.data());
+            if (!layer || !layer->isEditable()) continue;
+            auto *group = qobject_cast<KisGroupLayer *>(node.data());
+            bool hit = group && group->passThroughMode();
+            if (!hit) {
+                const auto id = identities.value(node->uuid());
+                if (!id) continue;
+                const auto result = owner->execution().readLayerHitTest(owner->handle(), version, id, point);
+                if (result.code != Gpu::ExecutionCode::Success || !result.bounds) { failed = true; return {}; }
+                hit = !result.bounds->isEmpty();
+            }
+            if (!hit) continue;
+            if (group) {
+                if (auto found = self(node->lastChild(), self)) return found;
+            } else return mode == KisNodeSelectionRecipe::Group ? node->parent() : node;
+        }
+        return {};
+    };
+    const auto picked = find(identities.contains(root->uuid()) ? root : root->lastChild(), find);
+    return failed || !picked ? KisNodeList{} : KisNodeList{picked};
+}
+
+void previewMovedSelection(KisImageSP image, const LibrePaint::Image::Gpu::Snapshot &version)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!image || !image->gpuImage() || !image->gpuImage()->handle()) return;
+    if (version->selectionKind == Gpu::SelectionKind::Freehand)
+        image->previewGpuSelectionMask(version->selectionMask, version->selectionInverted);
+    else image->previewGpuSelectionRect(version->selection, version->selectionKind == Gpu::SelectionKind::Ellipse,
+                                         version->selectionInverted);
+}
+
+}
+
 KisToolMove::KisToolMove(KoCanvasBase *canvas)
     : KisTool(canvas, KisCursor::moveCursor())
     , m_updateCursorCompressor(100, KisSignalCompressor::FIRST_ACTIVE)
@@ -114,8 +193,18 @@ void KisToolMove::resetCursorStyle()
 
     bool canMove = true;
     if (image()->gpuImage()) {
-        if (moveToolMode() == MoveSelectedLayer && selectedNodes().size() == 1 && currentNode() && currentNode()->isEditable())
-            KisTool::resetCursorStyle();
+        bool available = currentNode() && currentNode()->isEditable() && !selectedNodes().isEmpty();
+        const auto selection = image()->globalSelection();
+        const bool selectedPixels = qobject_cast<KisPaintLayer *>(currentNode().data()) && selection &&
+            selection->hasNonEmptyPixelSelection();
+        if (available && !selectedPixels && moveToolMode() != MoveSelectedLayer &&
+            !(hasStroke() && m_handlesRect.translated(currentOffset()).contains(m_lastCursorPos))) {
+            try {
+                available = !gpuMoveNodes(selectedNodes(), KisNodeSelectionRecipe::SelectionMode(moveToolMode()),
+                                          m_lastCursorPos, image()->gpuImage()).isEmpty();
+            } catch (const std::exception &) { available = false; }
+        }
+        if (available) KisTool::resetCursorStyle();
         else useCursor(Qt::ForbiddenCursor);
         return;
     }
@@ -190,30 +279,53 @@ bool KisToolMove::startStrokeImpl(MoveToolMode mode, const QPoint *pos)
             !selection->selectedExactRect().isEmpty();
 
     if (const auto owner = image->gpuImage()) {
-        if (mode != MoveSelectedLayer || selection || selectedNodes().size() != 1 ||
-            !paintLayer || selectedNodes().first().data() != paintLayer.data() || !paintLayer->isEditable()) {
-            Q_EMIT statusTextChanged(i18n("This document supports moving one selected paint layer."));
-            return false;
-        }
         if (!m_gpuTranslation.isNull()) {
             if (pos && !image->bounds().contains(*pos)) {
                 endStroke();
                 return false;
             }
-            return true;
+            if (m_currentMode != mode || m_currentlyUsingSelection != canUseSelectionMode ||
+                (!canUseSelectionMode && mode != MoveSelectedLayer && pos &&
+                 !m_handlesRect.translated(currentOffset()).contains(*pos))) endStroke();
+            if (!m_gpuTranslation.isNull()) return true;
         }
-        LibrePaint::Image::Gpu::LayerId layerId = 0;
-        for (const auto &layer : owner->operations().snapshot()->layers)
-            if (layer.uuid == paintLayer->uuid()) layerId = layer.id;
-        const auto token = owner->beginLayerTranslation(layerId);
-        if (token.isNull()) return false;
+        namespace Gpu = LibrePaint::Image::Gpu;
+        KisNodeList nodes;
+        Gpu::OperationId token;
+        if (canUseSelectionMode) {
+            if (!paintLayer->isEditable()) return false;
+            Gpu::LayerId layerId = 0;
+            for (const auto &layer : owner->operations().snapshot()->layers)
+                if (layer.uuid == paintLayer->uuid()) layerId = layer.id;
+            token = owner->beginSelectionTranslation(layerId, selection->selectedRect(), selection->selectedExactRect());
+            nodes = {paintLayer};
+        } else {
+            nodes = gpuMoveNodes(selectedNodes(), pos ? KisNodeSelectionRecipe::SelectionMode(mode) :
+                                 KisNodeSelectionRecipe::SelectedLayer, pos ? *pos : QPoint(), owner);
+            if (!nodes.isEmpty()) nodes = KisLayerUtils::sortAndFilterMergeableInternalNodes(nodes, true);
+            KritaUtils::filterContainer<KisNodeList>(nodes, [](KisNodeSP node) { return node->isEditable(true); });
+            token = owner->beginLayerTranslation(gpuMoveTargets(owner->operations().snapshot(), nodes));
+        }
+        if (token.isNull()) {
+            Q_EMIT statusTextChanged(i18n("The selected content could not be moved."));
+            return false;
+        }
         m_gpuImage = owner;
         m_gpuTranslation = token;
-        m_currentlyProcessingNodes = {paintLayer};
-        m_currentlyUsingSelection = false;
+        m_currentlyProcessingNodes = nodes;
+        m_currentlyUsingSelection = canUseSelectionMode;
         m_currentMode = mode;
         m_accumulatedOffset = QPoint();
         m_changesTracker.reset();
+        slotStrokePickedLayers(nodes);
+        if (canUseSelectionMode) {
+            m_handlesRect = owner->selectionTranslationBounds(token);
+            QPointer<KisToolMove> guard(this);
+            if (!updateOffset({})) {
+                if (guard) cancelStroke();
+                return false;
+            }
+        }
         commitChanges();
         return true;
     }
@@ -626,7 +738,7 @@ void KisToolMove::startAction(KoPointerEvent *event, MoveToolMode mode)
     if (started) {
         setMode(KisTool::PAINT_MODE);
 
-        if (m_currentlyUsingSelection) {
+        if (m_currentlyUsingSelection && m_strokeId) {
             KisImageSP image = currentImage();
             image->addJob(m_strokeId,
                           new MoveSelectionStrokeStrategy::ShowSelectionData(false));
@@ -670,7 +782,7 @@ void KisToolMove::endAction(KoPointerEvent *event)
     m_dragPos = QPoint();
     commitChanges();
 
-    if (m_currentlyUsingSelection) {
+    if (m_currentlyUsingSelection && m_strokeId) {
         KisImageSP image = currentImage();
         image->addJob(m_strokeId,
                       new MoveSelectionStrokeStrategy::ShowSelectionData(true));
@@ -698,6 +810,11 @@ bool KisToolMove::updateOffset(QPoint offset)
             Q_EMIT statusTextChanged(i18n("The layer could not be moved. Its previous position is preserved."));
             return false;
         }
+        if (m_currentlyUsingSelection) {
+            const auto currentImage = image();
+            if (currentImage && currentImage->gpuImage() == owner) previewMovedSelection(currentImage, owner->operations().preview());
+            if (!guard || m_gpuImage != owner || m_gpuTranslation != token) return false;
+        }
         return true;
     }
     if (!m_strokeId) return false;
@@ -716,6 +833,8 @@ void KisToolMove::endStroke()
     if (!m_gpuTranslation.isNull()) {
         const auto owner = m_gpuImage;
         const auto token = m_gpuTranslation;
+        const bool movedSelection = m_currentlyUsingSelection;
+        const KisImageSP retainedImage = image();
         m_gpuTranslation = {};
         m_gpuImage.clear();
         m_changesTracker.reset();
@@ -727,6 +846,8 @@ void KisToolMove::endStroke()
         m_dragPos = QPoint();
         QPointer<KisToolMove> guard(this);
         owner->commitLayerTranslation(token);
+        if (!guard) return;
+        if (movedSelection && retainedImage->gpuImage() == owner) previewMovedSelection(retainedImage, owner->operations().snapshot());
         if (!guard) return;
         requestHandlesRectUpdate();
         qobject_cast<KisCanvas2*>(canvas())->updateCanvas();
@@ -809,6 +930,8 @@ void KisToolMove::cancelStroke()
     if (!m_gpuTranslation.isNull()) {
         const auto owner = m_gpuImage;
         const auto token = m_gpuTranslation;
+        const bool movedSelection = m_currentlyUsingSelection;
+        const KisImageSP retainedImage = image();
         m_gpuTranslation = {};
         m_gpuImage.clear();
         m_changesTracker.reset();
@@ -820,6 +943,8 @@ void KisToolMove::cancelStroke()
         m_dragPos = QPoint();
         QPointer<KisToolMove> guard(this);
         owner->cancelLayerTranslation(token);
+        if (!guard) return;
+        if (movedSelection && retainedImage->gpuImage() == owner) previewMovedSelection(retainedImage, owner->operations().snapshot());
         if (!guard) return;
         requestHandlesRectUpdate();
         qobject_cast<KisCanvas2*>(canvas())->updateCanvas();
@@ -935,9 +1060,23 @@ void KisToolMove::requestHandlesRectUpdate()
         new KisResourcesSnapshot(image(), currentNode(), canvas()->resourceManager()->canvasResourcesInterface());
     KisSelectionSP selection = resources->activeSelection();
 
-    if (image()->gpuImage()) {
-        if (selection) {
-            Q_EMIT statusTextChanged(i18n("Moving a pixel selection is not yet supported for this document."));
+    if (const auto owner = image()->gpuImage()) {
+        if (selection && qobject_cast<KisPaintLayer *>(currentNode().data()) &&
+            !selection->selectedExactRect().isEmpty()) {
+            namespace Gpu = LibrePaint::Image::Gpu;
+            const auto version = owner->operations().snapshot();
+            Gpu::TranslationOperation source;
+            for (const auto &layer : version->layers) if (layer.uuid == currentNode()->uuid()) source.layer = layer.id;
+            source.selectedPixels = true;
+            source.copyRect = selection->selectedRect();
+            source.clearRect = selection->selectedExactRect();
+            source.selectionRect = version->selection;
+            source.selectionKind = version->selectionKind;
+            source.selectionMask = version->selectionMask;
+            source.selectionInverted = version->selectionInverted;
+            const auto bounds = owner->execution().readSelectedBounds(owner->handle(), version, source);
+            if (bounds.code == Gpu::ExecutionCode::Success && bounds.bounds) slotHandlesRectCalculated(*bounds.bounds);
+            else Q_EMIT statusTextChanged(i18n("The selected content bounds could not be calculated."));
             return;
         }
         QRect handlesRect;

@@ -728,7 +728,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                 maskElement.setAttribute(QStringLiteral("name"), QStringLiteral("Transparency Mask"));
                 maskElement.setAttribute(QStringLiteral("nodetype"), QStringLiteral("transparencymask"));
                 maskElement.setAttribute(QStringLiteral("visible"), layer.transparencyMaskVisible ? QStringLiteral("1") : QStringLiteral("0"));
-                maskElement.setAttribute(QStringLiteral("locked"), QStringLiteral("0"));
+                maskElement.setAttribute(QStringLiteral("locked"), layer.transparencyMaskLocked ? QStringLiteral("1") : QStringLiteral("0"));
                 maskElement.setAttribute(QStringLiteral("colorlabel"), QStringLiteral("0"));
                 maskElement.setAttribute(QStringLiteral("intimeline"), QStringLiteral("0"));
                 maskElement.setAttribute(QStringLiteral("x"), QStringLiteral("0"));
@@ -1553,9 +1553,11 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                 filenames.insert(maskFilename);
                 int maskX = 0, maskY = 0;
                 const auto maskVisible = maskElement.attribute(QStringLiteral("visible"), QStringLiteral("1"));
+                const auto maskLocked = maskElement.attribute(QStringLiteral("locked"), QStringLiteral("0"));
                 if (!integer(maskElement, QStringLiteral("x"), maskX, QStringLiteral("0")) ||
                     !integer(maskElement, QStringLiteral("y"), maskY, QStringLiteral("0")) ||
-                    (maskVisible != QLatin1String("0") && maskVisible != QLatin1String("1")))
+                    (maskVisible != QLatin1String("0") && maskVisible != QLatin1String("1")) ||
+                    (maskLocked != QLatin1String("0") && maskLocked != QLatin1String("1")))
                     return fail(invalid(QStringLiteral("Invalid KRA transparency mask values")));
                 const auto maskPath = folder + QStringLiteral("/layers/") + maskFilename;
                 quint8 maskDefaultPixel = 0;
@@ -1579,6 +1581,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                     return fail(unsupported(QStringLiteral("KRA transparency mask requires nonempty coverage")));
                 layer.transparencyMask = transparencyMask;
                 layer.transparencyMaskVisible = maskVisible == QLatin1String("1");
+                layer.transparencyMaskLocked = maskLocked == QLatin1String("1");
                 document.files.remove(maskPath + QStringLiteral(".pixelselection"));
                 document.files.remove(maskPath + QStringLiteral(".defaultpixel"));
             }

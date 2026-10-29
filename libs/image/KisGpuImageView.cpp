@@ -1139,6 +1139,8 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             if (state) state->transparencyMasks.insert(layer.uuid, layer.transparencyMask);
             if (maskView->visible() != layer.transparencyMaskVisible)
                 maskView->setVisible(layer.transparencyMaskVisible);
+            if (maskView->userLocked() != layer.transparencyMaskLocked)
+                maskView->setUserLocked(layer.transparencyMaskLocked);
             if (view->gpuImage() != owner) return;
             if (changed()) break;
         }

@@ -68,6 +68,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.parentUuid = source.parentUuid;
         layer.transparencyMask = source.transparencyMask;
         layer.transparencyMaskVisible = source.transparencyMaskVisible;
+        layer.transparencyMaskLocked = source.transparencyMaskLocked;
         identities.insert(uuid);
         QSet<QPoint> coordinates;
         auto operation = QSharedPointer<TileWriteOperation>::create();

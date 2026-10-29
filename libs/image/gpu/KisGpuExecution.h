@@ -185,6 +185,20 @@ public:
      */
     PixelReadbackOutcome readBounds(DocumentHandle handle, const Snapshot &document, LayerId layer,
                                    bool includeTransparentColors = false);
+    /** Native opacity classification for layer picking at one image coordinate.
+     * Includes the paint layer's visible mask or the group's child projection,
+     * and uses opacityU8 semantics in both precisions. Returns a nonempty bounds
+     * value for a hit; only a sixteen-byte summary crosses the GPU boundary.
+     */
+    PixelReadbackOutcome readLayerHitTest(DocumentHandle handle, const Snapshot &document, LayerId layer, QPoint point);
+    /** Bounds of the ordinary move tool's captured selection, before clearing
+     * or placement. Streams GPU tiles and sixteen-byte summaries; no pixel rows.
+     * Native handles use opacityU8; includeLowAlpha additionally measures native
+     * nonzero alpha for content-preserving coordinate admission. The source and
+     * frozen selection remain unchanged on rejection.
+     */
+    PixelReadbackOutcome readSelectedBounds(DocumentHandle handle, const Snapshot &document,
+                                            const TranslationOperation &selection, bool includeLowAlpha = false);
     /** Nonblocking callback processing; Busy denotes unfinished native reads. */
     ExecutionOutcome pollReadbacks();
 
@@ -264,7 +278,8 @@ private:
                                    QRect region, const QList<LayerId> &layers, bool includeProjection,
                                    PixelReadArea area, bool transparencyOnly, bool boundsOnly = false,
                                    bool includeTransparentColors = false, bool tileExtentOnly = false,
-                                   const SelectionMaskSP &copyMask = {}, bool invertMask = false);
+                                   const SelectionMaskSP &copyMask = {}, bool invertMask = false,
+                                   const TranslationOperation *selectionSource = nullptr, bool layerHitTest = false, bool includeLowAlpha = false);
 };
 }
 #endif

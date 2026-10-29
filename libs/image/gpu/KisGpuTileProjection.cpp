@@ -155,7 +155,7 @@ Detail::NativeBuffer TileRenderer::Private::recordTransparency(WGPUCommandEncode
 }
 
 Detail::NativeBuffer TileRenderer::Private::recordBounds(WGPUCommandEncoder commands,
-    const QList<TileView> &tiles, QRect region, const RgbaPixel &defaultPixel, PixelFormat format, bool includeTransparentColors)
+    const QList<TileView> &tiles, QRect region, const RgbaPixel &defaultPixel, PixelFormat format, bool includeTransparentColors, bool opacityU8)
 {
     const qint32 initial[] = {std::numeric_limits<qint32>::max(), std::numeric_limits<qint32>::max(),
                               std::numeric_limits<qint32>::min(), std::numeric_limits<qint32>::min()};
@@ -178,7 +178,7 @@ Detail::NativeBuffer TileRenderer::Private::recordBounds(WGPUCommandEncoder comm
         const quint32 values[] = {quint32(origin.x()), quint32(origin.y()), words[0],
                                   defaultPixel[3] || includeTransparentColors ? 1u : 0u, quint32(local.left()), quint32(local.top()),
                                   quint32(local.right() + 1), quint32(local.bottom() + 1),
-                                  words[1], quint32(format), 0, 0};
+                                  words[1], quint32(format), quint32(opacityU8), 0};
         auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
         if (!parameters) return {};
         wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));

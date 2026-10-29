@@ -31,6 +31,8 @@ struct PaintImage::Private
     ExecutionOutcome lastRequest{ExecutionCode::Success, {}};
     QHash<QUuid, QWeakPointer<LayerPixelReference>> layerPixels{};
     std::unique_ptr<MaskStroke> maskStroke;
+    QRect selectionTranslationBounds;
+    QRect selectionTranslationHandles;
 };
 }
 #endif

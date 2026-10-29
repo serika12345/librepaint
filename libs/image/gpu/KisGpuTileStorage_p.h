@@ -69,6 +69,9 @@ struct RenderedVersion::Data
     QHash<LayerId, RgbaPixel> defaultPixels;
     QMap<LayerId, Detail::ProjectionInputs> groupInputs;
     QSet<LayerId> directGroups;
+    /** Selected-move work stays in the shared capacity while its result is retained. */
+    QList<std::shared_ptr<Detail::Tile>> selectionWork;
+    QList<std::shared_ptr<Detail::CoverageTile>> selectionCoverage;
     std::shared_ptr<Detail::Tile> background;
     QMap<LayerId, Detail::Tiles> strokeInputs;
     std::optional<QRect> region;
@@ -130,6 +133,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline cropPipeline;
     Detail::NativeBindingLayout selectionCopyLayout;
     Detail::NativeComputePipeline selectionCopyPipeline;
+    Detail::NativeBindingLayout selectionSplitLayout, selectionMergeLayout;
+    Detail::NativeComputePipeline selectionSplitPipeline, selectionMergePipeline;
     Detail::NativeBindingLayout filterLayout;
     Detail::NativeComputePipeline filterPipeline;
     Detail::NativeBindingLayout thumbnailLayout;
@@ -159,7 +164,7 @@ struct TileRenderer::Private
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);
     Detail::NativeBuffer recordBounds(WGPUCommandEncoder commands, const QList<TileView> &tiles,
-                                     QRect region, const RgbaPixel &defaultPixel, PixelFormat format, bool includeTransparentColors);
+                                     QRect region, const RgbaPixel &defaultPixel, PixelFormat format, bool includeTransparentColors, bool opacityU8 = false);
     bool recordThumbnailSamples(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer output,
                                 WGPUBuffer samples, WGPUBuffer parameters, quint32 count, PixelFormat format);
     bool recordColorSample(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer output,
@@ -181,6 +186,22 @@ struct TileRenderer::Private
     TranslationResult translateTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
                                      const std::shared_ptr<Detail::Tile> &fallback, QPoint offset, PixelFormat format,
                                      QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
+    struct SelectionCopyResult;
+    struct SelectionSplitResult {
+        RenderOutcome::Code code;
+        std::shared_ptr<Detail::Tile> copied, cleared;
+        std::shared_ptr<Detail::CoverageTile> coverage;
+        QString diagnostic;
+    };
+    SelectionSplitResult splitSelectionTile(WGPUCommandEncoder commands, const TileView &source,
+        const RgbaPixel &implicit, const RgbaPixel &defaultPixel, PixelFormat format,
+        const TranslationOperation &operation);
+    SelectionCopyResult mergeSelectionTile(WGPUCommandEncoder commands, const TileView &source, const TileView &base,
+        const RgbaPixel &implicit, PixelFormat format);
+    TranslationResult translateSelection(WGPUCommandEncoder commands, const Detail::Tiles &source,
+        const RgbaPixel &implicit, const RgbaPixel &defaultPixel, PixelFormat format,
+        const TranslationOperation &operation, QRect region, QList<std::shared_ptr<Detail::Tile>> &pins,
+        QList<std::shared_ptr<Detail::CoverageTile>> &coveragePins);
     struct CropResult {
         RenderOutcome::Code code;
         Detail::Tiles tiles;

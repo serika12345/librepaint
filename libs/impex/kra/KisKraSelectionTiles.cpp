@@ -365,7 +365,6 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
                 const qint64 worldX = qint64(x) + column + offset.x();
                 const qint64 worldY = qint64(y) + row + offset.y();
                 if (worldX < -limit || worldY < -limit || worldX >= limit || worldY >= limit) return invalid();
-                if (!imageBounds.contains(int(worldX), int(worldY))) continue;
                 const int tileX = floorDivide(worldX, SelectionMask::TileSize);
                 const int tileY = floorDivide(worldY, SelectionMask::TileSize);
                 const SelectionTileKey key(tileX, tileY);
@@ -383,9 +382,7 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
         }
     }
     if (!input.atEnd()) return invalid();
-    if (tiles.isEmpty())
-        return {Status::UnsupportedData, QStringLiteral("KRA transparency mask requires nonempty coverage")};
-    mask = SelectionMask::fromAlphaTiles(tiles);
+    mask = tiles.isEmpty() ? SelectionMask::empty() : SelectionMask::fromAlphaTiles(tiles);
     if (!mask)
         return {Status::UnsupportedData, QStringLiteral("KRA transparency mask coverage could not be adopted")};
     return {Status::Success, {}};
@@ -395,27 +392,13 @@ Outcome writeTransparencyMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mas
                               const QRect &imageBounds, qsizetype maximumBytes,
                               QByteArray &output)
 {
-    if (!mask || mask->isEmpty() || mask->bounds().isEmpty() || imageBounds.isEmpty())
-        return {Status::InvalidData, QStringLiteral("KRA transparency mask coverage is empty")};
-    const QRect area = mask->bounds().intersected(imageBounds);
-    if (area.isEmpty())
-        return {Status::InvalidData, QStringLiteral("KRA transparency mask coverage is outside the image")};
-    // Canvas changes can leave a retained mask partially outside the saved
-    // image; the stream stores the visible intersection.
-    if (area != mask->bounds()) {
-        if (qint64(area.width()) * qint64(area.height()) > maximumBytes) return capacity();
-        QByteArray coverage(area.width() * area.height(), '\0');
-        for (int y = area.top(); y <= area.bottom(); ++y)
-            for (int x = area.left(); x <= area.right(); ++x)
-                coverage[(y - area.top()) * area.width() + x - area.left()] = char(mask->coverage(x, y));
-        const auto clipped = LibrePaint::Image::Gpu::SelectionMask::fromAlphaCoverage(area, coverage, area);
-        if (!clipped || clipped->isEmpty())
-            return {Status::UnsupportedData, QStringLiteral("KRA transparency mask coverage is fully clipped")};
-        return writeSelectionTiles(clipped->bounds(), false, imageBounds,
-                                   LibrePaint::Image::Gpu::SelectionKind::Freehand, clipped,
-                                   maximumBytes, output);
-    }
-    return writeSelectionTiles(mask->bounds(), false, imageBounds,
+    if (!mask || imageBounds.isEmpty())
+        return {Status::InvalidData, QStringLiteral("KRA transparency mask requires coverage and image bounds")};
+    if (mask->isEmpty())
+        return writeSelectionTiles({}, false, imageBounds, LibrePaint::Image::Gpu::SelectionKind::Rectangle,
+                                   {}, maximumBytes, output);
+    constexpr int limit = LibrePaint::Image::Gpu::RgbaTile::CoordinateLimit;
+    return writeSelectionTiles(mask->bounds(), false, QRect(-limit, -limit, 2 * limit, 2 * limit),
                                LibrePaint::Image::Gpu::SelectionKind::Freehand, mask,
                                maximumBytes, output);
 }

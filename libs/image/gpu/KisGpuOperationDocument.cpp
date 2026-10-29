@@ -225,6 +225,8 @@ QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
+    if (m_layerHistoryChanges[index].movedSelectionPixels) return HistoryAction::MoveSelectionPixels;
+    if (m_layerHistoryChanges[index].translatedLayers) return HistoryAction::TranslateLayer;
     if (m_layerHistoryChanges[index].convertedColorSpace) return HistoryAction::ConvertColorSpace;
     if (m_layerHistoryChanges[index].addedTransparencyMask) return HistoryAction::AddTransparencyMask;
     if (m_layerHistoryChanges[index].removedTransparencyMask) return HistoryAction::RemoveTransparencyMask;
@@ -250,7 +252,8 @@ HistoryAction OperationDocument::historyAction(int index) const
     case LayerProperty::Name: return HistoryAction::RenameLayer;
     case LayerProperty::Opacity: return HistoryAction::ChangeOpacity;
     case LayerProperty::Visible: return HistoryAction::ChangeVisibility;
-    case LayerProperty::Locked: return HistoryAction::ChangeLock;
+    case LayerProperty::Locked:
+    case LayerProperty::MaskLocked: return HistoryAction::ChangeLock;
     case LayerProperty::PinnedToTimeline: return HistoryAction::ChangeTimelinePin;
     case LayerProperty::ChannelMask: return HistoryAction::ChangeChannelLock;
     case LayerProperty::ProjectionMask: return HistoryAction::ChangeProjectionChannels;
@@ -573,10 +576,8 @@ Result OperationDocument::restoreLayerPropertyEdit(const LayerPropertyEdit &chan
     case LayerProperty::ColorLabel: return writeLayerColorLabel(change.layer, value.toInt());
     case LayerProperty::PassThrough: return writeLayerPassThrough(change.layer, value.toBool());
     case LayerProperty::BlendMode: return writeLayerBlendMode(change.layer, LayerBlendMode(value.toUInt()));
-    case LayerProperty::MaskVisible:
-        // The retained versions carry their own mask state, so history
-        // navigation restores it without rewriting neighbouring versions.
-        return Result::Success;
+    case LayerProperty::MaskLocked: return writeTransparencyMaskLocked(change.layer, value.toBool());
+    case LayerProperty::MaskVisible: return writeTransparencyMaskVisible(change.layer, value.toBool());
     }
     return Result::InvalidInput;
 }
@@ -1325,6 +1326,7 @@ Result OperationDocument::addTransparencyMaskFromSelection(LayerId layer)
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].transparencyMask = mask;
     version->layers[index].transparencyMaskVisible = true;
+    version->layers[index].transparencyMaskLocked = false;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.layer = layer;
@@ -1333,10 +1335,11 @@ Result OperationDocument::addTransparencyMaskFromSelection(LayerId layer)
     return Result::Success;
 }
 
-Result OperationDocument::setTransparencyMaskVisible(LayerId layer, bool visible)
+Result OperationDocument::setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
+    if (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
     if (snapshot()->layers[index].transparencyMaskVisible == visible) return Result::Success;
@@ -1344,8 +1347,39 @@ Result OperationDocument::setTransparencyMaskVisible(LayerId layer, bool visible
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].transparencyMaskVisible = visible;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    commitVersion(version, {LayerProperty::MaskVisible, layer,
-        QVariant::fromValue(snapshot()->layers[index].transparencyMaskVisible), QVariant::fromValue(visible)});
+    commitPropertyVersion(version, {LayerProperty::MaskVisible, layer,
+        QVariant::fromValue(snapshot()->layers[index].transparencyMaskVisible), QVariant::fromValue(visible)}, history);
+    return Result::Success;
+}
+
+Result OperationDocument::writeTransparencyMaskVisible(LayerId layer, bool visible)
+{
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    return writeLayerProperty(layer, LayerProperty::MaskVisible, &Layer::transparencyMaskVisible, visible);
+}
+
+Result OperationDocument::writeTransparencyMaskLocked(LayerId layer, bool locked)
+{
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    return writeLayerProperty(layer, LayerProperty::MaskLocked, &Layer::transparencyMaskLocked, locked);
+}
+
+Result OperationDocument::setTransparencyMaskLocked(LayerId layer, bool locked, PropertyHistory history)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive) return Result::InvalidInput;
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].transparencyMaskLocked == locked) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].transparencyMaskLocked = locked;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitPropertyVersion(version, {LayerProperty::MaskLocked, layer,
+        QVariant::fromValue(snapshot()->layers[index].transparencyMaskLocked), QVariant::fromValue(locked)}, history);
     return Result::Success;
 }
 
@@ -1359,6 +1393,7 @@ Result OperationDocument::removeTransparencyMask(LayerId layer)
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].transparencyMask.clear();
     version->layers[index].transparencyMaskVisible = true;
+    version->layers[index].transparencyMaskLocked = false;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.layer = layer;
@@ -1374,7 +1409,7 @@ Result OperationDocument::replaceTransparencyMask(LayerId layer, const Selection
     const auto index = layerIndex(layer);
     if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
         !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
-    if (!mask || mask->isEmpty() || mask->bounds().isEmpty() ||
+    if (!mask || (!mask->isEmpty() && mask->bounds().isEmpty()) ||
         mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (snapshot()->layers[index].transparencyMask == mask) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
@@ -1982,6 +2017,8 @@ void OperationDocument::close()
     m_preview.clear();
     m_history.swap(remaining);
     m_translation.clear();
+    m_translationTargets.clear();
+    m_translationIds.clear();
     m_externalOperation = {};
     m_layerHistoryChanges = {LayerHistoryChange{}};
     m_index = 0;

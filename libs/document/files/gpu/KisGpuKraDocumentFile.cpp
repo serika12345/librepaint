@@ -54,6 +54,7 @@ RasterLayer rasterLayerDescription(const Layer &layer)
     value.blendMode = layer.blendMode;
     value.transparencyMask = layer.transparencyMask;
     value.transparencyMaskVisible = layer.transparencyMaskVisible;
+    value.transparencyMaskLocked = layer.transparencyMaskLocked;
     return value;
 }
 }

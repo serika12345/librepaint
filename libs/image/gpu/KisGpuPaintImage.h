@@ -123,7 +123,10 @@ public:
      * already owns a mask or a document without a selection.
      */
     Result addTransparencyMaskFromSelection(LayerId layer);
-    Result setTransparencyMaskVisible(LayerId layer, bool visible);
+    Result setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history = PropertyHistory::Separate);
+    Result setTransparencyMaskLocked(LayerId layer, bool locked, PropertyHistory history = PropertyHistory::Separate);
+    Result writeTransparencyMaskVisible(LayerId layer, bool visible);
+    Result writeTransparencyMaskLocked(LayerId layer, bool locked);
     Result removeTransparencyMask(LayerId layer);
     /** Replaces retained mask coverage as one history entry; null is rejected. */
     Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
@@ -164,6 +167,10 @@ public:
      * One committed gesture adds one history entry; cancellation keeps Redo.
      */
     OperationId beginLayerTranslation(LayerId layer);
+    OperationId beginLayerTranslation(const QList<LayerTranslationTarget> &targets);
+    OperationId beginSelectionTranslation(LayerId layer, QRect copyRect, QRect clearRect);
+    /** Native opacityU8 handle bounds for the current selected-pixel move. */
+    QRect selectionTranslationBounds(OperationId id) const;
     Result updateLayerTranslation(OperationId id, QPoint offsetSinceStart);
     Result commitLayerTranslation(OperationId id);
     Result cancelLayerTranslation(OperationId id);

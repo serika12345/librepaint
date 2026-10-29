@@ -45,6 +45,7 @@ struct PixelReadCompletion
     bool transparencyOnly = false;
     bool boundsOnly = false;
     QList<std::shared_ptr<Detail::Tile>> selectionPins;
+    QList<std::shared_ptr<Detail::CoverageTile>> selectionCoveragePins;
     std::mutex mutex;
 
     void complete(const Detail::ReadbackBatch::Result &read, const QList<qsizetype> &outputs)
@@ -101,11 +102,14 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
     QRect needed = region.intersected(domain);
     QHash<quint64, QRect> afterSpatialOperations;
     qsizetype remainingTranslations = 0;
+    bool selectedTranslation = false;
     for (auto operation = layer.operations.crbegin(); operation != layer.operations.crend(); ++operation) {
         if (const auto translation = std::get_if<TranslationSnapshot>(&*operation)) {
             afterSpatialOperations.insert((*translation)->id.sequence, needed);
             ++remainingTranslations;
-            needed = needed.translated(-(*translation)->offset).intersected(domain);
+            const auto sourceRegion = needed.translated(-(*translation)->offset).intersected(domain);
+            selectedTranslation |= (*translation)->selectedPixels;
+            needed = (*translation)->selectedPixels ? needed.united(sourceRegion.intersected((*translation)->copyRect)) : sourceRegion;
         } else if (const auto crop = std::get_if<CropSnapshot>(&*operation)) {
             afterSpatialOperations.insert((*crop)->id.sequence, needed);
             needed = needed.intersected((*crop)->rect.normalized());
@@ -114,8 +118,9 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
     QSet<quint64> coordinates;
     // An unaligned translation can read four source tiles for one output tile.
     // Bound coordinate discovery separately from the caller's final tile budget.
+    const qsizetype expansion = selectedTranslation ? 5 : 4;
     qsizetype stageMaximum = remainingTranslations
-        ? (maximum <= std::numeric_limits<qsizetype>::max() / 4 ? maximum * 4 : std::numeric_limits<qsizetype>::max())
+        ? (maximum <= std::numeric_limits<qsizetype>::max() / expansion ? maximum * expansion : std::numeric_limits<qsizetype>::max())
         : maximum;
     for (const auto &operation : layer.operations) {
         if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
@@ -129,18 +134,28 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
             if (--remainingTranslations == 0) stageMaximum = maximum;
             const auto target = afterSpatialOperations.value((*translation)->id.sequence);
             QSet<quint64> moved;
-            for (const auto tile : coordinates) {
-                const auto pixels = QRect(Detail::coordinate(tile) * TileRenderer::TileSize + (*translation)->offset,
-                    QSize(TileRenderer::TileSize, TileRenderer::TileSize)).intersected(target);
-                if (pixels.isEmpty()) continue;
+            const auto append = [&](QRect pixels) {
+                if (pixels.isEmpty()) return true;
                 for (int y = Detail::pixelTileIndex(pixels.top(), TileRenderer::TileSize);
-                     y <= Detail::pixelTileIndex(pixels.bottom(), TileRenderer::TileSize); ++y) {
+                     y <= Detail::pixelTileIndex(pixels.bottom(), TileRenderer::TileSize); ++y)
                     for (int x = Detail::pixelTileIndex(pixels.left(), TileRenderer::TileSize);
                          x <= Detail::pixelTileIndex(pixels.right(), TileRenderer::TileSize); ++x) {
                         moved.insert(Detail::key(x, y));
-                        if (moved.size() > stageMaximum) return std::nullopt;
+                        if (moved.size() > stageMaximum) return false;
                     }
-                }
+                return true;
+            };
+            for (const auto tile : coordinates) {
+                const QRect original(Detail::coordinate(tile) * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+                if ((*translation)->selectedPixels) {
+                    if (!append(original.intersected(target)) ||
+                        !append(original.intersected((*translation)->copyRect).translated((*translation)->offset).intersected(target)))
+                        return std::nullopt;
+                } else if (!append(original.translated((*translation)->offset).intersected(target))) return std::nullopt;
+            }
+            if ((*translation)->selectedPixels && layer.defaultPixel[3]) {
+                if (!append((*translation)->clearRect.intersected(target)) ||
+                    !append((*translation)->copyRect.translated((*translation)->offset).intersected(target))) return std::nullopt;
             }
             coordinates.swap(moved);
             needed = target;
@@ -512,6 +527,75 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsync(DocumentHandle hand
 std::future<PixelReadbackOutcome> Execution::readTransparencyAsync(DocumentHandle handle, const Snapshot &pinned, QRect region)
 { return readPixelsAsyncImpl(handle, pinned, region, {}, true, PixelReadArea::Canvas, true); }
 
+PixelReadbackOutcome Execution::readLayerHitTest(DocumentHandle handle, const Snapshot &pinned, LayerId layer, QPoint point)
+{
+    if (!layer) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Layer picking requires a layer"));
+    auto checked = readPixels(handle, pinned, {}, {layer}, false, PixelReadArea::LayerCoordinates);
+    if (checked.code != ExecutionCode::Success) return checked;
+    auto pending = readPixelsAsyncImpl(handle, pinned, QRect(point, QSize(1, 1)), {layer}, false,
+        PixelReadArea::LayerCoordinates, false, true, false, false, {}, false, nullptr, true);
+    if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
+        return failure(ExecutionCode::DeviceFailure, QStringLiteral("Layer picking completion failed"));
+    retireCompletedReadback();
+    return pending.get();
+}
+
+PixelReadbackOutcome Execution::readSelectedBounds(DocumentHandle handle, const Snapshot &pinned,
+                                                    const TranslationOperation &selection, bool includeLowAlpha)
+{
+    auto outcome = readPixels(handle, pinned, {}, {selection.layer}, false, PixelReadArea::LayerCoordinates);
+    if (outcome.code != ExecutionCode::Success) return outcome;
+    if (!selection.selectedPixels || !validPixelRegion(selection.copyRect) || selection.copyRect.isEmpty() ||
+        !validPixelRegion(selection.selectionRect) || selection.selectionRect.isEmpty() ||
+        (selection.selectionKind != SelectionKind::Rectangle && selection.selectionKind != SelectionKind::Ellipse &&
+         selection.selectionKind != SelectionKind::Freehand) ||
+        (selection.selectionKind == SelectionKind::Freehand && !selection.selectionMask))
+        return failure(ExecutionCode::InvalidRequest, QStringLiteral("Selected bounds require frozen paint-layer coverage"));
+    const auto layer = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),
+        [&](const auto &value) { return value.id == selection.layer; });
+    if (layer == pinned->layers.cend() || layer->kind != LayerKind::Paint)
+        return failure(ExecutionCode::InvalidRequest, QStringLiteral("Selected bounds require a paint layer"));
+    constexpr qsizetype capacity = 256 * 1024 * 1024;
+    const auto maximum = capacity / RgbaTile::byteCount(pinned->format);
+    const auto sparse = layerCoordinates(pinned, *layer, selection.copyRect, maximum);
+    if (!sparse) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Selected bounds coordinates exceed capacity"));
+    QSet<quint64> coordinates(sparse->cbegin(), sparse->cend());
+    const auto implicit = pinned->projectionDefaultPixels().value(selection.layer);
+    constexpr int size = TileRenderer::TileSize;
+    if (implicit[3]) {
+        const auto area = selection.copyRect;
+        const int left = Detail::pixelTileIndex(area.left(), size), right = Detail::pixelTileIndex(area.right(), size);
+        const int top = Detail::pixelTileIndex(area.top(), size), bottom = Detail::pixelTileIndex(area.bottom(), size);
+        if (qint64(right - left + 1) * (bottom - top + 1) > maximum)
+            return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Selected implicit bounds coordinates exceed capacity"));
+        for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) coordinates.insert(Detail::key(x, y));
+    }
+    outcome.bounds = QRect();
+    outcome.region = selection.copyRect;
+    auto ordered = coordinates.values();
+    std::sort(ordered.begin(), ordered.end());
+    for (const auto coordinate : ordered) {
+        const auto region = QRect(Detail::coordinate(coordinate) * size, QSize(size, size)).intersected(selection.copyRect);
+        const auto readPart = [&] {
+            auto pending = readPixelsAsyncImpl(handle, pinned, region, {selection.layer}, false,
+                PixelReadArea::LayerCoordinates, false, true, false, false, {}, false, &selection, false, includeLowAlpha);
+            if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
+                return failure(ExecutionCode::DeviceFailure, QStringLiteral("Selected bounds completion failed"));
+            retireCompletedReadback();
+            return pending.get();
+        };
+        auto part = readPart();
+        if (part.code == ExecutionCode::CapacityExceeded) {
+            const auto retired = retireDisplayCaches();
+            if (retired.code != ExecutionCode::Success) return failure(retired.code, retired.diagnostic);
+            part = readPart();
+        }
+        if (part.code != ExecutionCode::Success) return part;
+        *outcome.bounds |= *part.bounds;
+    }
+    return outcome;
+}
+
 PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot &pinned, LayerId layer,
                                          bool includeTransparentColors)
 {
@@ -623,7 +707,8 @@ PixelReadbackOutcome Execution::readLayerTileExtent(DocumentHandle handle, const
 std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &pinned,
                                          QRect region, const QList<LayerId> &layers, bool includeProjection,
                                          PixelReadArea area, bool transparencyOnly, bool boundsOnly, bool includeTransparentColors,
-                                         bool tileExtentOnly, const SelectionMaskSP &copyMask, bool invertMask)
+                                         bool tileExtentOnly, const SelectionMaskSP &copyMask, bool invertMask,
+                                         const TranslationOperation *selectionSource, bool layerHitTest, bool includeLowAlpha)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         return readyReadback(failure(code, diagnostic));
@@ -697,6 +782,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         QHash<WGPUBuffer, qsizetype> indices;
         QList<qsizetype> outputIndices;
         QList<std::shared_ptr<Detail::Tile>> selectionPins;
+        QList<std::shared_ptr<Detail::CoverageTile>> selectionCoveragePins;
         RenderOutcome::Code copyCode = RenderOutcome::Recorded;
         QString copyDiagnostic;
         const auto append = [&](LayerId layer, QList<TileView> tiles) {
@@ -752,7 +838,45 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         } else if (boundsOnly || transparencyOnly) {
             withinLimit = d.maximumReadbackBytes >= qsizetype(transferBytes);
             if (withinLimit) {
-                if (boundsOnly) {
+                if (boundsOnly && layerHitTest) {
+                    const auto layer = layers.first();
+                    const auto definition = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),
+                        [&](const auto &value) { return value.id == layer; });
+                    const QPoint point(Detail::pixelTileIndex(outcome.region.x(), TileRenderer::TileSize),
+                                       Detail::pixelTileIndex(outcome.region.y(), TileRenderer::TileSize));
+                    TileView input{point, nullptr};
+                    for (const auto &tile : rendered->tiles(layer)) if (tile.coordinate == point) input = tile;
+                    const bool masked = definition->transparencyMask && definition->transparencyMaskVisible;
+                    const auto copied = d.renderer->m_d->copySelection(frame.commands, input,
+                        pinned->projectionDefaultPixels().value(layer), pinned->format,
+                        masked ? definition->transparencyMask : SelectionMask::empty(), !masked);
+                    if (copied.code != RenderOutcome::Recorded) {
+                        cancelFrame(); begun = false;
+                        return rejected(executionCode(copied.code), copied.diagnostic);
+                    }
+                    selectionPins.append(copied.tile);
+                    summary = d.renderer->m_d->recordBounds(frame.commands, {{point, copied.tile->pixels.get()}},
+                        outcome.region, {}, pinned->format, false, true);
+                } else if (boundsOnly && selectionSource) {
+                    const auto layer = layers.first();
+                    const auto implicit = pinned->projectionDefaultPixels().value(layer);
+                    const auto definition = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),
+                        [&](const auto &value) { return value.id == layer; });
+                    const QPoint point(Detail::pixelTileIndex(outcome.region.x(), TileRenderer::TileSize),
+                                       Detail::pixelTileIndex(outcome.region.y(), TileRenderer::TileSize));
+                    TileView input{point, nullptr};
+                    for (const auto &tile : rendered->tiles(layer)) if (tile.coordinate == point) input = tile;
+                    const auto split = d.renderer->m_d->splitSelectionTile(frame.commands, input, implicit,
+                        definition->defaultPixel, pinned->format, *selectionSource);
+                    if (split.code != RenderOutcome::Recorded) {
+                        cancelFrame(); begun = false;
+                        return rejected(executionCode(split.code), split.diagnostic);
+                    }
+                    selectionPins.append(split.copied); selectionPins.append(split.cleared);
+                    selectionCoveragePins.append(split.coverage);
+                    summary = d.renderer->m_d->recordBounds(frame.commands, {{point, split.copied->pixels.get()}},
+                        outcome.region, {}, pinned->format, false, !includeLowAlpha);
+                } else if (boundsOnly) {
                     auto implicit = pinned->projectionBackground;
                     if (!layers.isEmpty()) {
                         implicit = pinned->projectionDefaultPixels().value(layers.first());
@@ -799,6 +923,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
             completion->transparencyOnly = transparencyOnly;
             completion->boundsOnly = boundsOnly;
             completion->selectionPins = std::move(selectionPins);
+            completion->selectionCoveragePins = std::move(selectionCoveragePins);
             future = completion->result.get_future();
             for (qsizetype index = 0; size_t(index) < reads->results.size(); ++index) {
                 QList<qsizetype> outputs;

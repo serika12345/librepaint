@@ -31,6 +31,16 @@ namespace LibrePaint::Image::Gpu {
 using LayerId = quint64;
 enum class SelectionKind : quint8 { Rectangle, Ellipse, Freehand };
 
+/** One participant in an ordinary move. Pixel and transparency-mask locks
+ * are resolved by the tool's current node selection before admission.
+ */
+struct LayerTranslationTarget
+{
+    LayerId layer = 0;
+    bool pixels = true;
+    bool mask = false;
+};
+
 /** Attributes enabled for one layer by the properties dialog. Component masks
  * select the RGBA bits whose values participate in Undo and Redo.
  */
@@ -317,6 +327,14 @@ struct TranslationOperation
     quint64 version = 0;
     LayerId layer = 0;
     QPoint offset;
+    /** Selected-pixel moves capture, clear, translate and merge the frozen
+     * source, while retaining the layer's own position and transparency mask.
+     */
+    bool selectedPixels = false;
+    QRect copyRect, clearRect, selectionRect;
+    SelectionKind selectionKind = SelectionKind::Rectangle;
+    SelectionMaskSP selectionMask;
+    bool selectionInverted = false;
 };
 using TranslationSnapshot = QSharedPointer<const TranslationOperation>;
 /** Resets preceding pixels outside the requested rectangle to the layer default. */
@@ -495,6 +513,7 @@ struct RasterLayer
     SelectionMaskSP transparencyMask;
     /** False retains the coverage but ignores it during composition. */
     bool transparencyMaskVisible = true;
+    bool transparencyMaskLocked = false;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -553,6 +572,7 @@ struct Layer
     SelectionMaskSP transparencyMask;
     /** False retains the coverage but ignores it during composition. */
     bool transparencyMaskVisible = true;
+    bool transparencyMaskLocked = false;
 };
 
 /** True when this layer's retained transparency mask contributes to composition. */
@@ -674,7 +694,7 @@ enum class HistoryAction {
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
     ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
     ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors,
-    Grayscale, HsvAdjustment, ConvertColorSpace
+    Grayscale, HsvAdjustment, ConvertColorSpace, MoveSelectionPixels
 };
 
 struct Limits
@@ -773,6 +793,11 @@ public:
      * cancellation retains the committed version and redo branch.
      */
     OperationId beginLayerTranslation(LayerId layer);
+    OperationId beginLayerTranslation(const QList<LayerTranslationTarget> &targets);
+    /** The view supplies its ordinary selection's coarse copy extent and exact
+     * clear extent; coverage and shape are frozen from this document version.
+     */
+    OperationId beginSelectionTranslation(LayerId layer, QRect copyRect, QRect clearRect);
     Result updateLayerTranslation(OperationId id, QPoint offset);
     Result commitLayerTranslation(OperationId id);
     Result cancelLayerTranslation(OperationId id);
@@ -837,7 +862,10 @@ public:
      */
     Result addTransparencyMaskFromSelection(LayerId layer);
     /** Toggles the retained mask's composition effect in one history entry. */
-    Result setTransparencyMaskVisible(LayerId layer, bool visible);
+    Result setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history = PropertyHistory::Separate);
+    Result setTransparencyMaskLocked(LayerId layer, bool locked, PropertyHistory history = PropertyHistory::Separate);
+    Result writeTransparencyMaskVisible(LayerId layer, bool visible);
+    Result writeTransparencyMaskLocked(LayerId layer, bool locked);
     /** Removes the retained mask in one history entry, preserving layer pixels. */
     Result removeTransparencyMask(LayerId layer);
     /** Replaces the retained mask coverage in one history entry, preserving
@@ -983,7 +1011,7 @@ public:
 
 private:
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible, MaskLocked };
     struct LayerPropertyEdit {
         LayerProperty property;
         LayerId layer;
@@ -1008,6 +1036,8 @@ private:
         QList<LayerPropertyEdit> propertyEdits;
         bool changedLayerProperties = false;
         bool changedSelection = false;
+        bool movedSelectionPixels = false;
+        bool translatedLayers = false;
         /** Adds or removes one layer's transparency mask in its retained version. */
         bool addedTransparencyMask = false;
         bool removedTransparencyMask = false;
@@ -1045,6 +1075,7 @@ private:
     Result restoreLayerPropertyEdits(const QList<LayerPropertyEdit> &edits);
     Result checkOperation(OperationId id) const;
     Result checkMutation() const;
+    Result updateSelectionTranslation(OperationId id, QPoint offset);
     /** An external edit (a mask stroke on a derived GPU image) borrows this
      * document's active-input state so saving and mutation stay blocked without
      * recording the derived operation as document history.
@@ -1068,6 +1099,8 @@ private:
     quint64 m_savedRevision = 0;
     QSharedPointer<const PaintOperation> m_edit;
     TranslationSnapshot m_translation;
+    QList<LayerTranslationTarget> m_translationTargets;
+    QHash<LayerId, OperationId> m_translationIds;
     /** Operation identity of a derived mask edit; carries no document history. */
     OperationId m_externalOperation;
     Snapshot m_preview;

@@ -38,7 +38,8 @@ Result resultFor(ExecutionCode code)
 bool maskInputTiles(const SelectionMaskSP &mask, const QRect &canvas, qsizetype maximumBytes,
                     QList<RgbaTile> &tiles)
 {
-    if (!mask || mask->isEmpty() || canvas.isEmpty()) return false;
+    if (!mask || canvas.isEmpty()) return false;
+    if (mask->isEmpty()) return true;
     if (mask->tiles().size() > maximumBytes / RgbaTile::ByteCount) return false;
     for (auto tile = mask->tiles().cbegin(); tile != mask->tiles().cend(); ++tile) {
         const QPoint origin(tile.key().first * SelectionMask::TileSize,
@@ -152,14 +153,7 @@ SelectionMaskSP readMaskCoverage(const PaintImage &source, LayerId layer, QSize 
         }
         alphaTiles.insert(key, coverage);
     }
-    auto mask = SelectionMask::fromAlphaTiles(alphaTiles);
-    if (!mask) {
-        // Coverage must stay representable across history and KRA.
-        // Fully erased input keeps the smallest visible sample so the retained
-        // mask continues to hide the layer almost completely.
-        const QByteArray visible(1, char(1));
-        mask = SelectionMask::fromAlphaCoverage(QRect(0, 0, 1, 1), visible, canvas);
-    }
+    auto mask = alphaTiles.isEmpty() ? SelectionMask::empty() : SelectionMask::fromAlphaTiles(alphaTiles);
     if (!mask) status = Result::CapacityExceeded;
     return mask;
 }
@@ -168,7 +162,7 @@ const Layer *maskPaintLayer(const Snapshot &version, LayerId layer)
 {
     if (!version) return nullptr;
     for (const auto &value : version->layers)
-        if (value.id == layer && value.kind == LayerKind::Paint && value.transparencyMask &&
+        if (value.id == layer && value.kind == LayerKind::Paint && value.transparencyMask && !value.transparencyMaskLocked &&
             !value.userLocked && value.visible) return &value;
     return nullptr;
 }
@@ -369,11 +363,20 @@ Result PaintImage::addTransparencyMaskFromSelection(LayerId layer)
     if (!onThread()) return Result::InvalidInput;
     return publish(m_d->document->addTransparencyMaskFromSelection(layer));
 }
-Result PaintImage::setTransparencyMaskVisible(LayerId layer, bool visible)
+Result PaintImage::setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history)
 {
     if (!onThread()) return Result::InvalidInput;
-    return publish(m_d->document->setTransparencyMaskVisible(layer, visible));
+    return publish(m_d->document->setTransparencyMaskVisible(layer, visible, history));
 }
+Result PaintImage::setTransparencyMaskLocked(LayerId layer, bool locked, PropertyHistory history)
+{
+    if (!onThread()) return Result::InvalidInput;
+    return publish(m_d->document->setTransparencyMaskLocked(layer, locked, history));
+}
+Result PaintImage::writeTransparencyMaskVisible(LayerId layer, bool visible)
+{ return onThread() ? requestAfterWrite(m_d->document->writeTransparencyMaskVisible(layer, visible)) : Result::InvalidInput; }
+Result PaintImage::writeTransparencyMaskLocked(LayerId layer, bool locked)
+{ return onThread() ? requestAfterWrite(m_d->document->writeTransparencyMaskLocked(layer, locked)) : Result::InvalidInput; }
 Result PaintImage::removeTransparencyMask(LayerId layer)
 {
     if (!onThread()) return Result::InvalidInput;
@@ -408,13 +411,7 @@ void PaintImage::refreshLayerPixelReferences()
 Snapshot PaintImage::layerPixelVersion() const
 {
     const auto preview = m_d->document->preview();
-    if (!preview->pendingOperation().isNull()) {
-        for (const auto &layer : preview->layers) {
-            if (layer.operations.isEmpty()) continue;
-            const auto translation = std::get_if<TranslationSnapshot>(&layer.operations.last());
-            if (translation && (*translation)->id == preview->pendingOperation()) return preview;
-        }
-    }
+    if (m_d->document->m_translation && preview->pendingOperation() == m_d->document->m_translation->id) return preview;
     return m_d->document->snapshot();
 }
 void PaintImage::requestCurrentVersion()
@@ -642,14 +639,59 @@ Result PaintImage::cancelStroke(OperationId id)
 }
 OperationId PaintImage::beginLayerTranslation(LayerId layer)
 { return onThread() ? m_d->document->beginLayerTranslation(layer) : OperationId{}; }
+OperationId PaintImage::beginLayerTranslation(const QList<LayerTranslationTarget> &targets)
+{ return onThread() ? m_d->document->beginLayerTranslation(targets) : OperationId{}; }
+OperationId PaintImage::beginSelectionTranslation(LayerId layer, QRect copyRect, QRect clearRect)
+{
+    if (!onThread()) return {};
+    const auto token = m_d->document->beginSelectionTranslation(layer, copyRect, clearRect);
+    if (token.isNull()) return {};
+    const auto bounds = m_d->execution.readSelectedBounds(m_d->handle, m_d->document->snapshot(),
+                                                         *m_d->document->m_translation);
+    if (bounds.code != ExecutionCode::Success || !bounds.bounds || bounds.bounds->isEmpty() ||
+        !m_d->handle || m_d->document->activeOperation() != token) {
+        m_d->document->cancelLayerTranslation(token);
+        return {};
+    }
+    m_d->selectionTranslationHandles = *bounds.bounds;
+    const auto sourceBounds = m_d->document->snapshot()->format == PixelFormat::Rgba16 ?
+        m_d->execution.readSelectedBounds(m_d->handle, m_d->document->snapshot(), *m_d->document->m_translation, true) : bounds;
+    if (sourceBounds.code != ExecutionCode::Success || !sourceBounds.bounds ||
+        !m_d->handle || m_d->document->activeOperation() != token) {
+        m_d->document->cancelLayerTranslation(token);
+        return {};
+    }
+    m_d->selectionTranslationBounds = *sourceBounds.bounds;
+    return token;
+}
+QRect PaintImage::selectionTranslationBounds(OperationId id) const
+{
+    return onThread() && m_d->document->m_translation && m_d->document->m_translation->id == id &&
+        m_d->document->m_translation->selectedPixels ? m_d->selectionTranslationHandles : QRect();
+}
 Result PaintImage::updateLayerTranslation(OperationId id, QPoint offset)
 {
     if (!onThread()) return Result::InvalidInput;
     const auto &document = *m_d->document;
     if (document.m_closed) return Result::Closed;
     if (!document.m_translation || document.m_translation->id != id) return Result::StaleOperation;
-    const auto admitted = checkLayerTranslation(document.snapshot(), document.m_translation->layer, offset);
-    return admitted == Result::Success ? publish(m_d->document->updateLayerTranslation(id, offset)) : admitted;
+    if (document.m_translation->selectedPixels) {
+        constexpr qint64 limit = RgbaTile::CoordinateLimit;
+        const auto bounds = m_d->selectionTranslationBounds;
+        if (qint64(bounds.left()) + offset.x() < -limit || qint64(bounds.right()) + offset.x() >= limit ||
+            qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit)
+            return Result::InvalidInput;
+        return publish(m_d->document->updateLayerTranslation(id, offset));
+    }
+    const auto version = document.snapshot();
+    for (const auto &target : document.m_translationTargets) {
+        const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &value) { return value.id == target.layer; });
+        if (!target.pixels || layer->kind != LayerKind::Paint) continue;
+        const auto admitted = checkLayerTranslation(version, target.layer, offset);
+        if (admitted != Result::Success) return admitted;
+    }
+    return publish(m_d->document->updateLayerTranslation(id, offset));
 }
 Result PaintImage::commitLayerTranslation(OperationId id)
 { return onThread() ? publish(m_d->document->commitLayerTranslation(id)) : Result::InvalidInput; }

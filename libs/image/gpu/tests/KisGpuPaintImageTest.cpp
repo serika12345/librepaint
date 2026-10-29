@@ -12,6 +12,7 @@
 #include <QTest>
 #include <limits>
 #include <cmath>
+#include <cstring>
 #include <stdexcept>
 #ifdef Q_OS_LINUX
 #include <QFileInfo>
@@ -38,6 +39,13 @@ private Q_SLOTS:
     void directWritesKeepTheirCropHistoryBlocks_data();
     void directWritesKeepTheirCropHistoryBlocks();
     void translationPreviewsPublishPixelsAndCancelWithoutReplacingRedo();
+    void selectedMoveUsesNativeEmptyDetectionAndKeepsLowAlphaPixels();
+    void erasedMasksRemainTransparentAndAcceptFurtherPainting_data();
+    void erasedMasksRemainTransparentAndAcceptFurtherPainting();
+    void layerPickingKeepsNativeAlphaMasksAndPinnedRequests_data();
+    void layerPickingKeepsNativeAlphaMasksAndPinnedRequests();
+    void layerForestTranslationKeepsPixelsMasksAndOneHistory_data();
+    void layerForestTranslationKeepsPixelsMasksAndOneHistory();
     void rejectedTranslationKeepsHiddenPixelsHistoryPreviewAndRequests();
     void colorFillKeepsVersionsHistoryAndWholeRequestFailures();
     void clearedLayersKeepFixedVersionsAndRejectWholeRequests();
@@ -631,6 +639,236 @@ void KisGpuPaintImageTest::rejectedTranslationKeepsHiddenPixelsHistoryPreviewAnd
     QCOMPARE(image.operations().preview(), fixed);
     QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
     QCOMPARE(image.cancelLayerTranslation(busyMove), Result::Success);
+}
+
+void KisGpuPaintImageTest::selectedMoveUsesNativeEmptyDetectionAndKeepsLowAlphaPixels()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage raster; raster.size = {32, 32}; raster.format = PixelFormat::Rgba16;
+    raster.layers = {{QStringLiteral("Selected"), true, QUuid::createUuid(), {}}};
+    PaintImage image(execution, raster);
+    const auto layer = image.operations().activeLayer();
+    const auto low = rgbaBytes({4353, 33282, 61955, 1}, raster.format);
+    QCOMPARE(image.writeRgbaPixels(layer, {12, 9, 1, 1}, low), Result::Success);
+    QCOMPARE(image.setSelectionRect({0, 0, 32, 32}), Result::Success);
+    const auto initial = image.operations().snapshot();
+    QVERIFY(image.beginSelectionTranslation(layer, {0, 0, 32, 32}, {0, 0, 32, 32}).isNull());
+    QCOMPARE(image.operations().snapshot(), initial); QVERIFY(!image.operations().hasActiveStroke());
+    const auto visible = rgbaBytes({65432, 271, 17, 128}, raster.format);
+    QCOMPARE(image.writeRgbaPixels(layer, {5, 7, 1, 1}, visible), Result::Success);
+    const auto token = image.beginSelectionTranslation(layer, {0, 0, 32, 32}, {0, 0, 32, 32}); QVERIFY(!token.isNull());
+    QCOMPARE(image.selectionTranslationBounds(token), QRect(5, 7, 1, 1));
+    QCOMPARE(image.updateLayerTranslation(token, {1, 1}), Result::Success);
+    const auto preview = execution.readRgbaPixels(image.handle(), image.operations().preview(), {13, 10, 1, 1}, layer, 8);
+    QCOMPARE(preview.code, ExecutionCode::Success); QCOMPARE(preview.bytes, low);
+    QCOMPARE(image.cancelLayerTranslation(token), Result::Success);
+    QCOMPARE(image.readRgbaPixels(layer, {12, 9, 1, 1}, 8).bytes, low);
+}
+
+void KisGpuPaintImageTest::erasedMasksRemainTransparentAndAcceptFurtherPainting_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::newRow("u8") << false;
+    QTest::newRow("u16") << true;
+}
+
+void KisGpuPaintImageTest::erasedMasksRemainTransparentAndAcceptFurtherPainting()
+{
+    QFETCH(bool, words);
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage raster; raster.size = {64, 64}; raster.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    RasterLayer layer{QStringLiteral("Masked"), true, QUuid::createUuid(), {}};
+    layer.defaultPixel = {17, 129, 241, quint16(maximumComponent(raster.format))};
+    layer.transparencyMask = SelectionMask::fromRectangle({0, 0, 64, 64}, {0, 0, 64, 64});
+    raster.layers = {layer};
+    PaintImage image(execution, raster);
+    const auto layerId = image.operations().activeLayer();
+    const auto initial = image.operations().snapshot();
+    Brush erase; erase.rgba = {0, 0, 0, 255}; erase.diameter = 256; erase.blendMode = LayerBlendMode::Erase;
+    const auto stroke = image.beginTransparencyMaskStroke(layerId, erase, 7); QVERIFY(!stroke.isNull());
+    QCOMPARE(image.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(image.commitStroke(stroke), Result::Success);
+    const auto erased = image.operations().snapshot();
+    QVERIFY(erased->layers.first().transparencyMask); QVERIFY(erased->layers.first().transparencyMask->isEmpty());
+    QCOMPARE(erased->layers.first().defaultPixel, layer.defaultPixel);
+    const auto projection = execution.readRgbaPixels(image.handle(), erased, {0, 0, 64, 64}, 0, 64 * 64 * pixelByteCount(raster.format));
+    QCOMPARE(projection.code, ExecutionCode::Success); QCOMPARE(projection.bytes, QByteArray(projection.bytes.size(), '\0'));
+    QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.layerTransparencyMask(layerId), initial->layers.first().transparencyMask);
+    QCOMPARE(image.redo(), Result::Success); QVERIFY(image.layerTransparencyMask(layerId)->isEmpty());
+    Brush paint; paint.rgba = {255, 255, 255, 255}; paint.diameter = 8;
+    const auto next = image.beginTransparencyMaskStroke(layerId, paint, 11); QVERIFY(!next.isNull());
+    QCOMPARE(image.appendSamples(next, {{{24, 24}, 1}}), Result::Success);
+    QCOMPARE(image.commitStroke(next), Result::Success);
+    QVERIFY(image.layerTransparencyMask(layerId)->coverage(24, 24) > 0);
+    QCOMPARE(image.layerTransparencyMask(layerId)->coverage(0, 0), quint8(0));
+    QCOMPARE(image.undo(), Result::Success); QVERIFY(image.layerTransparencyMask(layerId)->isEmpty());
+    const auto pinned = execution.readRgbaPixels(image.handle(), erased, {0, 0, 1, 1}, 0, pixelByteCount(raster.format));
+    QCOMPARE(pinned.code, ExecutionCode::Success); QCOMPARE(pinned.bytes, QByteArray(pixelByteCount(raster.format), '\0'));
+}
+
+void KisGpuPaintImageTest::layerPickingKeepsNativeAlphaMasksAndPinnedRequests_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::newRow("u8") << false;
+    QTest::newRow("u16") << true;
+}
+
+void KisGpuPaintImageTest::layerPickingKeepsNativeAlphaMasksAndPinnedRequests()
+{
+    QFETCH(bool, words);
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage raster;
+    raster.size = {64, 64}; raster.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    QByteArray tile(RgbaTile::byteCount(raster.format), '\0');
+    const quint16 alpha[]{0, 1, 127, 128, quint16(maximumComponent(raster.format)), quint16(maximumComponent(raster.format))};
+    for (int x = 0; x < 6; ++x) {
+        const auto pixel = rgbaBytes({17, 129, 241, alpha[x]}, raster.format);
+        std::memcpy(tile.data() + (256 + x) * pixelByteCount(raster.format), pixel.constData(), pixel.size());
+    }
+    RasterLayer group{QStringLiteral("Group"), true, QUuid::createUuid(), {}};
+    group.kind = LayerKind::Group;
+    RasterLayer layer{QStringLiteral("Masked layer"), true, QUuid::createUuid(), {{{0, 0}, tile, raster.format}}};
+    layer.parentUuid = group.uuid;
+    layer.transparencyMask = SelectionMask::fromAlphaCoverage({0, 1, 6, 1}, QByteArray::fromHex("ffffffff0080"), {0, 0, 64, 64});
+    RasterLayer implicit{QStringLiteral("Implicit"), true, QUuid::createUuid(), {}};
+    implicit.defaultPixel = {17, 129, 241, quint16(maximumComponent(raster.format))};
+    raster.layers = {group, layer, implicit};
+    PaintImage image(execution, raster);
+    const auto version = image.operations().snapshot();
+    const auto current = execution.requested(image.handle());
+    for (int index : {0, 1}) for (int x = 0; x < 6; ++x) {
+        const auto read = execution.readLayerHitTest(image.handle(), version, version->layers[index].id, {x, 1});
+        QCOMPARE(read.code, ExecutionCode::Success); QVERIFY(read.bounds); QVERIFY(read.tiles.isEmpty());
+        const bool hit = x != 0 && x != 4 && (!words || x >= 3);
+        QCOMPARE(!read.bounds->isEmpty(), hit);
+        QCOMPARE(execution.requested(image.handle()), current);
+        QCOMPARE(image.operations().snapshot(), version);
+    }
+    const auto layerId = version->layers[1].id;
+    QCOMPARE(image.setTransparencyMaskVisible(layerId, false), Result::Success);
+    const auto unmasked = image.operations().snapshot();
+    for (const auto &pinned : {version, unmasked}) {
+        const auto read = execution.readLayerHitTest(image.handle(), pinned, layerId, {4, 1});
+        QCOMPARE(read.code, ExecutionCode::Success); QVERIFY(read.bounds);
+        QCOMPARE(!read.bounds->isEmpty(), pinned == unmasked);
+    }
+    const auto uniform = execution.readLayerHitTest(image.handle(), unmasked, version->layers[2].id, {-17, 77});
+    QCOMPARE(uniform.code, ExecutionCode::Success); QCOMPARE(*uniform.bounds, QRect(-17, 77, 1, 1));
+    const auto empty = execution.readLayerHitTest(image.handle(), unmasked, layerId, {17, 17});
+    QCOMPARE(empty.code, ExecutionCode::Success); QVERIFY(empty.bounds->isEmpty());
+    QCOMPARE(execution.readLayerHitTest(image.handle(), unmasked, 0, {}).code, ExecutionCode::InvalidRequest);
+    QCOMPARE(execution.readLayerHitTest(image.handle(), unmasked, layerId, {RgbaTile::CoordinateLimit, 0}).code,
+             ExecutionCode::InvalidRequest);
+}
+
+void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::newRow("u8") << false;
+    QTest::newRow("u16") << true;
+}
+
+void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory()
+{
+    QFETCH(bool, words);
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage input;
+    input.size = {64, 64};
+    input.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const RgbaPixel color = words ? RgbaPixel{4353, 33282, 61955, 65535} : RgbaPixel{17, 129, 241, 255};
+    auto hidden = color;
+    hidden[3] = 0;
+    const QByteArray pixels = rgbaBytes(color, input.format) + rgbaBytes(hidden, input.format);
+    const QRect sourceRect(12, 9, 2, 1);
+    QByteArray tile(RgbaTile::byteCount(input.format), '\0');
+    std::memcpy(tile.data() + (9 * 256 + 12) * pixelByteCount(input.format), pixels.constData(), pixels.size());
+    const auto mask = SelectionMask::fromAlphaCoverage({12, 9, 2, 1}, QByteArray::fromHex("ff80"), {0, 0, 64, 64});
+    QVERIFY(mask);
+    RasterLayer group{QStringLiteral("Group"), true, QUuid::createUuid(), {}};
+    group.kind = LayerKind::Group;
+    group.position = {3, 5};
+    RasterLayer child{QStringLiteral("Child"), true, QUuid::createUuid(), {{{0, 0}, tile, input.format}}};
+    child.parentUuid = group.uuid;
+    child.position = {7, -3};
+    child.transparencyMask = mask;
+    RasterLayer top{QStringLiteral("Top"), true, QUuid::createUuid(), {{{0, 0}, tile, input.format}}};
+    top.position = {-5, 2};
+    input.layers = {group, child, top};
+    PaintImage image(execution, input);
+    const auto before = image.operations().snapshot();
+    const auto groupId = before->layers[0].id, childId = before->layers[1].id, topId = before->layers[2].id;
+    const auto childPixels = image.retainLayerPixels(childId), topPixels = image.retainLayerPixels(topId);
+    QCOMPARE(image.markSaved(before), Result::Success);
+    const QList<LayerTranslationTarget> targets{{groupId, true, false}, {childId, true, true}, {topId, true, false}};
+    const QPoint delta(13, -7);
+    auto token = image.beginLayerTranslation(targets);
+    QVERIFY(!token.isNull());
+    QCOMPARE(image.updateLayerTranslation(token, {1, 2}), Result::Success);
+    QCOMPARE(image.updateLayerTranslation(token, delta), Result::Success);
+    const auto preview = image.operations().preview();
+    QCOMPARE(image.operations().snapshot(), before);
+    QCOMPARE(childPixels->version(), preview);
+    QCOMPARE(topPixels->version(), preview);
+    for (int i = 0; i < 3; ++i) QCOMPARE(preview->layers[i].position, before->layers[i].position + delta);
+    for (const auto layer : {childId, topId}) {
+        const auto read = execution.readRgbaPixels(image.handle(), preview, sourceRect.translated(delta), layer, pixels.size());
+        QCOMPARE(read.code, ExecutionCode::Success);
+        QCOMPARE(read.bytes, pixels);
+        QCOMPARE(image.readRgbaPixels(layer, sourceRect, pixels.size()).bytes, pixels);
+    }
+    QCOMPARE(preview->layers[1].transparencyMask->coverage(26, 2), quint8(128));
+    QCOMPARE(preview->layers[1].transparencyMask->coverage(12, 9), quint8(0));
+    QCOMPARE(image.cancelLayerTranslation(token), Result::Success);
+    QCOMPARE(image.operations().snapshot(), before);
+    QCOMPARE(childPixels->version(), before);
+    QVERIFY(!image.operations().isModified());
+    QCOMPARE(image.operations().undoCount(), 0);
+    token = image.beginLayerTranslation(targets);
+    QCOMPARE(image.updateLayerTranslation(token, delta), Result::Success);
+    const auto retainedPreview = image.operations().preview();
+    QCOMPARE(image.updateLayerTranslation(token, {RgbaTile::CoordinateLimit, 0}), Result::InvalidInput);
+    QCOMPARE(image.operations().preview(), retainedPreview);
+    QCOMPARE(execution.requested(image.handle()), retainedPreview);
+    QCOMPARE(image.commitLayerTranslation(token), Result::Success);
+    QCOMPARE(image.operations().undoCount(), 1);
+    QCOMPARE(image.operations().historyAction(1), HistoryAction::TranslateLayer);
+    QCOMPARE(image.writeLayerPosition(topId, {31, 21}), Result::Success);
+    QCOMPARE(image.operations().snapshot()->layers[2].position, QPoint(31, 21));
+    QCOMPARE(image.operations().undoCount(), 1);
+    QCOMPARE(image.undo(), Result::Success);
+    for (int i = 0; i < 3; ++i) QCOMPARE(image.operations().snapshot()->layers[i].position, before->layers[i].position);
+    QCOMPARE(image.operations().snapshot()->layers[1].transparencyMask, mask);
+    QCOMPARE(image.readRgbaPixels(topId, sourceRect, pixels.size()).bytes, pixels);
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.operations().snapshot()->layers[1].position, child.position + delta);
+    QCOMPARE(image.operations().snapshot()->layers[2].position, top.position + delta);
+    QCOMPARE(image.operations().snapshot()->layers[1].transparencyMask->coverage(26, 2), quint8(128));
+    QCOMPARE(before->layers[1].position, child.position);
+    QCOMPARE(before->layers[1].transparencyMask, mask);
+    const auto maskBefore = image.operations().snapshot()->layers[1].transparencyMask;
+    token = image.beginLayerTranslation(QList<LayerTranslationTarget>{{childId, false, true}});
+    QVERIFY(!token.isNull());
+    QCOMPARE(image.updateLayerTranslation(token, {2, 3}), Result::Success);
+    QCOMPARE(image.commitLayerTranslation(token), Result::Success);
+    const QPoint absolute(31, 21);
+    QCOMPARE(image.writeLayerPosition(childId, absolute), Result::Success);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.operations().snapshot()->layers[1].position, absolute);
+    QCOMPARE(image.operations().snapshot()->layers[1].transparencyMask, maskBefore);
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.operations().snapshot()->layers[1].position, absolute);
+    QCOMPARE(image.operations().snapshot()->layers[1].transparencyMask->bounds(), maskBefore->bounds().translated(2, 3));
 }
 
 void KisGpuPaintImageTest::translationPreviewsPublishPixelsAndCancelWithoutReplacingRedo()

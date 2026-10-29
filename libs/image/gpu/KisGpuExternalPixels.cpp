@@ -77,7 +77,10 @@ std::optional<bool> blockExistsBefore(const Layer &layer, qsizetype before, QRec
         if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
             if (writeIntersects(**write, block)) return true;
         } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
-            block.translate(-(*translation)->offset);
+            if ((*translation)->selectedPixels) {
+                if ((*translation)->clearRect.intersects(block) ||
+                    (*translation)->copyRect.translated((*translation)->offset).intersects(block)) return true;
+            } else block.translate(-(*translation)->offset);
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             if (!(*crop)->rect.normalized().intersects(block)) return false;
             // A partially cropped history block stays allocated even when its remaining pixels are defaults.
@@ -105,8 +108,16 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCac
                 break;
             }
         } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
-            block.translate(-(*translation)->offset);
-            historyBlock.translate(-(*translation)->offset);
+            if ((*translation)->selectedPixels) {
+                if ((*translation)->clearRect.intersects(block) ||
+                    (*translation)->copyRect.translated((*translation)->offset).intersects(block)) {
+                    result.append({(*translation)->id.sequence, (*translation)->version});
+                    break;
+                }
+            } else {
+                block.translate(-(*translation)->offset);
+                historyBlock.translate(-(*translation)->offset);
+            }
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             const auto keep = (*crop)->rect.normalized();
             if (!keep.contains(block)) {

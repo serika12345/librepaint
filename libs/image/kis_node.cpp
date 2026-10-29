@@ -6,6 +6,7 @@
 
 #include "kis_node.h"
 #include "gpu/KisGpuPaintImage.h"
+#include "kis_transparency_mask.h"
 #include <stdexcept>
 
 #include <optional>
@@ -361,9 +362,19 @@ void KisNode::preparePropertyChange(NodePropertyChange property, const QVariant 
     const auto owner = currentImage->gpuImage();
     if (!owner) return;
     LibrePaint::Image::Gpu::LayerId id = 0;
+    const bool mask = bool(qobject_cast<KisTransparencyMask *>(this));
+    if (mask && currentImage->isSynchronizingGpuNodes()) return;
+    const auto identity = mask && parent() ? parent()->uuid() : uuid();
     for (const auto &layer : owner->operations().snapshot()->layers)
-        if (layer.uuid == uuid()) { id = layer.id; break; }
+        if (layer.uuid == identity) { id = layer.id; break; }
     if (!id) return;
+    if (mask) {
+        using LibrePaint::Image::Gpu::Result;
+        const auto result = property == NodePropertyChange::Visible ? owner->writeTransparencyMaskVisible(id, value.toBool()) :
+            property == NodePropertyChange::UserLocked ? owner->writeTransparencyMaskLocked(id, value.toBool()) : Result::Success;
+        if (result != Result::Success) throw std::runtime_error("GPU transparency mask property write failed");
+        return;
+    }
     using LibrePaint::Image::Gpu::Result;
     auto result = Result::Success;
     switch (property) {
