@@ -77,6 +77,9 @@ fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameter
     }
     if ((values.blendModeOpacity & 255u) != 0u) {
         let alpha = appliedWordAlpha(source.w, 65535u, (values.blendModeOpacity >> 8u) * 257u, values.blendModeOpacity & 255u);
+        if (colorIsCoupled(values.blendModeOpacity & 255u)) {
+            return nativePixelWords(coupledRgba16Pixel(destination, source, alpha, values.channelMask, values.blendModeOpacity & 255u), true);
+        }
         return nativePixelWords(separableRgba16Pixel(destination, source, alpha, values.channelMask, values.blendModeOpacity & 255u), true);
     }
     let sourceAlpha = projectionMultiply(nativeNormalizedAlpha(source.w), values.opacityBits);

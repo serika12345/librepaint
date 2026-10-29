@@ -18,7 +18,7 @@ constexpr qsizetype LayerNameByteLimit = 65536;
 
 inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
 {
-    if (format == PixelFormat::Rgba16) return mode == LayerBlendMode::Normal || mode == LayerBlendMode::Copy || usesSeparableRgba16Blend(mode);
+    if (format == PixelFormat::Rgba16) return mode == LayerBlendMode::Normal || mode == LayerBlendMode::Copy || usesSeparableRgba16Blend(mode) || isCoupledBlend(mode);
     switch (mode) {
     case LayerBlendMode::Normal:
     case LayerBlendMode::Copy:

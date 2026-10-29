@@ -241,3 +241,40 @@ fn coupledRgba8Pixel(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, 
     destination.w = nextAlpha;
     return packPixel(destination);
 }
+fn colorComponentWord(value: u32) -> u32 {
+    if (colorLess(value, 0u)) { return 0u; }
+    if (!colorLess(value, COLOR_ONE)) { return 65535u; }
+    let scaled = floatMultiply(value, 0x477fff00u);
+    let rounded = floatAdd(scaled, 0x3f000000u);
+    return projectionMantissa(rounded) >> u32(-projectionPower(rounded));
+}
+fn coupledRgba16Pixel(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> vec4<u32> {
+    var destination = base;
+    if (mask != 15u && destination.w == 0u) { destination = vec4<u32>(0u); }
+    let oldAlpha = destination.w;
+    let locked = (mask & 8u) == 0u;
+    let nextAlpha = select(alpha + oldAlpha - mul65535(alpha, oldAlpha), oldAlpha, locked);
+    var mixed = vec3<u32>(0u);
+    if (alpha != 0u && oldAlpha != 0u && (mask & 7u) != 0u) {
+        var s: vec3<u32>;
+        var d: vec3<u32>;
+        for (var i = 0u; i < 3u; i += 1u) {
+            s[i] = colorDivide(bitcast<u32>(f32(source[i])), 0x477fff00u);
+            d[i] = colorDivide(bitcast<u32>(f32(destination[i])), 0x477fff00u);
+        }
+        mixed = colorRecombine(mode, s, d);
+    }
+    for (var i = 0u; i < 3u; i += 1u) {
+        if ((mask & (1u << i)) == 0u) { continue; }
+        let product = colorComponentWord(mixed[i]);
+        if (locked) {
+            if (oldAlpha != 0u) { destination[i] = interpolateWord(destination[i], product, alpha); }
+        } else if (nextAlpha != 0u) {
+            let weighted = (multiplyThreeWords(65535u - alpha, oldAlpha, destination[i]) +
+                multiplyThreeWords(65535u - oldAlpha, alpha, source[i]) + multiplyThreeWords(oldAlpha, alpha, product)) & 65535u;
+            destination[i] = divideWord(weighted, nextAlpha) & 65535u;
+        }
+    }
+    destination.w = nextAlpha;
+    return destination;
+}

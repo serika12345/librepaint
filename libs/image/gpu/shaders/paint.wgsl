@@ -408,6 +408,13 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         writePaintPixel(index, copyPixel(base, vec4<u32>(source, alpha), opacity, writable, parameters.native.z != 0u));
         return;
     }
+    if (parameters.erase == 0u && parameters.native.z != 0u && colorIsCoupled(blendMode)) {
+        let block = (local.y / 64u) * 4u + local.x / 64u;
+        if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
+        let alpha = appliedWordAlpha(coverage * 257u, selectionAlpha * 257u, parameters.opacityValue, blendMode);
+        writePaintPixel(index, coupledRgba16Pixel(base, vec4<u32>(source, coverage * 257u), alpha, writable, blendMode));
+        return;
+    }
     if (partialWordSource) {
         let block = (local.y / 64u) * 4u + local.x / 64u;
         if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuRgba8Compositing_p.h"
+#include "KisGpuRgba16Compositing_p.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -190,6 +191,36 @@ RgbaPixel coupledRgba8Pixel(RgbaPixel destination, const RgbaPixel &source,
             const auto weighted = quint8(multiplyThreeBytes(255 - alpha, oldAlpha, destination[i]) +
                 multiplyThreeBytes(255 - oldAlpha, alpha, source[i]) + multiplyThreeBytes(oldAlpha, alpha, product));
             destination[i] = quint8((quint32(weighted) * 255u + nextAlpha / 2u) / nextAlpha);
+        }
+    }
+    destination[3] = quint16(nextAlpha);
+    return destination;
+}
+
+RgbaPixel coupledRgba16Pixel(RgbaPixel destination, const RgbaPixel &source,
+                            quint16 alpha, quint8 mask, LayerBlendMode mode)
+{
+    constexpr quint32 unit = 65535;
+    if (mask != 15 && !destination[3]) destination = {};
+    const auto oldAlpha = destination[3];
+    const bool locked = !(mask & 8);
+    const auto nextAlpha = locked ? oldAlpha : alpha + oldAlpha - multiplyWord(alpha, oldAlpha);
+    Rgb mixed{};
+    if (alpha && oldAlpha && (mask & 7)) {
+        Rgb s, d;
+        for (int i = 0; i < 3; ++i) { s[i] = divide(source[i], 65535.f); d[i] = divide(destination[i], 65535.f); }
+        mixed = recombine(mode, s, d);
+    }
+    for (int i = 0; i < 3; ++i) {
+        if (!(mask & (1 << i))) continue;
+        const auto scaled = multiply(mixed[i], 65535.f);
+        const auto product = quint16(int(add(std::clamp(scaled, 0.f, 65535.f), .5f)));
+        if (locked) {
+            if (oldAlpha) destination[i] = interpolateWord(destination[i], product, alpha);
+        } else if (nextAlpha) {
+            const auto weighted = quint16(multiplyThreeWords(unit - alpha, oldAlpha, destination[i]) +
+                multiplyThreeWords(unit - oldAlpha, alpha, source[i]) + multiplyThreeWords(oldAlpha, alpha, product));
+            destination[i] = divideWord(weighted, nextAlpha);
         }
     }
     destination[3] = quint16(nextAlpha);

@@ -244,7 +244,7 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     input.size = {64, 48};
     input.format = PixelFormat::Rgba16;
     input.layers = {{QStringLiteral("Native paint"), true, {}, {}, {1, 257, 65534, 32768}}};
-    for (const auto mode : {LayerBlendMode::ColorHsy, LayerBlendMode::HueHsv,
+    for (const auto mode : {LayerBlendMode::GammaDark, LayerBlendMode::SoftLightSvg,
                            LayerBlendMode::Greater, LayerBlendMode::LuminositySai}) {
         auto unsupported = input;
         unsupported.layers.first().blendMode = mode;
@@ -253,13 +253,13 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     OperationDocument document(input);
     const auto fixed = document.snapshot();
     const auto layer = document.activeLayer();
-    QCOMPARE(document.setLayerBlendMode(layer, LayerBlendMode::ColorHsy), Result::InvalidInput);
-    QCOMPARE(document.writeLayerBlendMode(layer, LayerBlendMode::HueHsv), Result::InvalidInput);
+    QCOMPARE(document.setLayerBlendMode(layer, LayerBlendMode::GammaDark), Result::InvalidInput);
+    QCOMPARE(document.writeLayerBlendMode(layer, LayerBlendMode::SoftLightSvg), Result::InvalidInput);
     QCOMPARE(document.invertColors(layer), Result::InvalidInput);
     QCOMPARE(document.grayscale(layer), Result::InvalidInput);
     Brush brush;
     brush.rgba = {65534, 1, 257, 65535};
-    brush.blendMode = LayerBlendMode::ColorHsy;
+    brush.blendMode = LayerBlendMode::Greater;
     QVERIFY(document.beginStroke(layer, brush, 42).isNull());
     brush.blendMode = LayerBlendMode::Normal;
     brush.gaussianWash.emplace();

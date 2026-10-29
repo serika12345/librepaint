@@ -338,7 +338,9 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
                     if (layer.blendMode == LayerBlendMode::Erase ||
                         (layer.blendMode >= LayerBlendMode::CopyRed && layer.blendMode <= LayerBlendMode::CopyBlue))
                         alpha = Detail::multiplyWord(source[3], quint32(layer.opacity) * 257u);
-                    pixel = Detail::separableRgba16Pixel(pixel, source, alpha, layer.channelMask, layer.blendMode);
+                    pixel = Detail::isCoupledBlend(layer.blendMode) ?
+                        Detail::coupledRgba16Pixel(pixel, source, alpha, layer.channelMask, layer.blendMode) :
+                        Detail::separableRgba16Pixel(pixel, source, alpha, layer.channelMask, layer.blendMode);
                     continue;
                 }
                 if (layer.blendMode != LayerBlendMode::Normal) {

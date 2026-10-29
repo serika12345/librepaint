@@ -11,12 +11,6 @@
 namespace LibrePaint::Image::Gpu::Detail {
 namespace {
 constexpr quint32 Unit = 65535;
-quint32 tripleWord(quint32 a, quint32 b, quint32 c)
-{ return quint64(a) * b * c / (quint64(Unit) * Unit); }
-quint32 divideWord(quint32 a, quint32 b)
-{ return (a * Unit + b / 2) / b; }
-quint16 interpolateWord(quint16 destination, quint16 source, quint32 alpha)
-{ return qint64(destination) + (qint64(source) - destination) * alpha / Unit; }
 quint32 glowWord(quint32 source, quint32 destination)
 { return destination == Unit ? Unit : std::min(Unit, divideWord(multiplyWord(source, source), Unit - destination)); }
 quint32 heatWord(quint32 source, quint32 destination)
@@ -220,8 +214,8 @@ RgbaPixel separableRgba16Pixel(RgbaPixel destination, const RgbaPixel &source,
         } else if (!oldAlpha) destination[index] = source[index];
         else if (alpha == Unit) destination[index] = interpolateWord(source[index], product, oldAlpha);
         else {
-            const auto value = quint16(tripleWord(Unit - alpha, oldAlpha, destination[index]) +
-                tripleWord(Unit - oldAlpha, alpha, source[index]) + tripleWord(oldAlpha, alpha, product));
+            const auto value = quint16(multiplyThreeWords(Unit - alpha, oldAlpha, destination[index]) +
+                multiplyThreeWords(Unit - oldAlpha, alpha, source[index]) + multiplyThreeWords(oldAlpha, alpha, product));
             destination[index] = divideWord(value, nextAlpha);
         }
     }
