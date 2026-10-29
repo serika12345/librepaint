@@ -15,6 +15,10 @@ struct Parameters {
     native: vec4<u32>,
     composition: vec4<i32>,
     destination: vec4<i32>,
+    patternMap0: vec4<u32>,
+    patternMap1: vec4<u32>,
+    patternMap2: vec4<u32>,
+    patternSampling: vec4<u32>,
 }
 struct FigureFillEdge { endpoints: vec4<i32>, mirroredRounding: vec4<i32>, }
 @group(0) @binding(0) var<uniform> parameters: Parameters;
@@ -44,14 +48,92 @@ fn writePaintPixel(index: u32, pixel: vec4<u32>) {
 
 // Pattern pixels repeat from the document origin; negative document
 // coordinates wrap into the same tile.
-fn patternPixel(pixel: vec2<i32>) -> vec4<u32> {
+fn patternTexel(pixel: vec2<i32>) -> vec4<u32> {
     let width = max(parameters.pattern.x, 1u);
     let height = max(parameters.pattern.y, 1u);
     var x = pixel.x % i32(width);
     if (x < 0) { x += i32(width); }
     var y = pixel.y % i32(height);
     if (y < 0) { y += i32(height); }
-    return unpackPixel(patternPixels[u32(y) * width + u32(x)]);
+    let wide = parameters.patternSampling.x != 0u;
+    let stride = select(1u, 2u, wide);
+    let index = (u32(y) * width + u32(x)) * stride;
+    var color = nativePixel(patternPixels[index], patternPixels[index + stride - 1u], wide);
+    if (!wide && parameters.native.z != 0u) { color *= 257u; }
+    return color;
+}
+struct PatternCoordinate { pixel: i32, fraction: Word64, }
+fn patternCoordinate(value: Word64, period: u32) -> PatternCoordinate {
+    let magnitude = doubleMagnitude(value);
+    let integral = doubleFloor(magnitude);
+    var fraction = doubleSubtract(magnitude, integral);
+    var wrapped = 0u;
+    if (integral.y < 0x41e00000u) {
+        wrapped = doubleTruncate(integral) % period;
+    } else {
+        let power = doublePower(integral);
+        let bits = wordRight(doubleMantissa(integral), u32(-power));
+        // Resource dimensions are bounded by the owned pixel byte capacity,
+        // so twice a remainder fits in an unsigned word.
+        for (var bit = 52; bit >= 0; bit--) {
+            wrapped = (wrapped * 2u + (wordRight(bits, u32(bit)).x & 1u)) % period;
+        }
+    }
+    if ((value.y & 0x80000000u) != 0u) {
+        if (any(fraction != Word64(0u))) {
+            wrapped = (wrapped + 1u) % period;
+            fraction = doubleSubtract(Word64(0u, 0x3ff00000u), fraction);
+        }
+        if (wrapped != 0u) { wrapped = period - wrapped; }
+    }
+    return PatternCoordinate(i32(wrapped), fraction);
+}
+fn patternQuotient(total: Word64, denominator: u32, maximum: u32) -> u32 {
+    let rounded = wordAdd(total, Word64(denominator / 2u, 0u));
+    var result = 0u;
+    var bit = select(128u, 32768u, maximum == 65535u);
+    loop {
+        if (bit == 0u) { break; }
+        let candidate = result | bit;
+        if (wordLessEqual(wordProduct(candidate, denominator), rounded)) { result = candidate; }
+        bit >>= 1u;
+    }
+    return result;
+}
+fn patternPixel(pixel: vec2<i32>) -> vec4<u32> {
+    let x = markerInteger(pixel.x); let y = markerInteger(pixel.y);
+    let sx = doubleAdd(doubleAdd(doubleMultiply(parameters.patternMap0.xy, x),
+                                doubleMultiply(parameters.patternMap1.xy, y)), parameters.patternMap2.xy);
+    let sy = doubleAdd(doubleAdd(doubleMultiply(parameters.patternMap0.zw, x),
+                                doubleMultiply(parameters.patternMap1.zw, y)), parameters.patternMap2.zw);
+    let mappedX = patternCoordinate(sx, parameters.pattern.x);
+    let mappedY = patternCoordinate(sy, parameters.pattern.y);
+    let left = mappedX.pixel; let top = mappedY.pixel;
+    if (parameters.patternSampling.y == 0u) { return patternTexel(vec2<i32>(left, top)); }
+    let hx = mappedX.fraction; let vy = mappedY.fraction;
+    let one = Word64(0u, 0x3ff00000u); let half = Word64(0u, 0x3fe00000u);
+    let complements = array<Word64, 2>(doubleSubtract(one, hx), doubleSubtract(one, vy));
+    let horizontal = array<Word64, 2>(complements[0], hx);
+    let vertical = array<Word64, 2>(complements[1], vy);
+    var totals = array<Word64, 3>(Word64(0u), Word64(0u), Word64(0u));
+    var alpha = 0u; var weightSum = 0u;
+    for (var row = 0u; row < 2u; row++) {
+        for (var column = 0u; column < 2u; column++) {
+            // Native subpixel access rounds each independent weight, then
+            // normalizes by their actual sum (which can differ from 255).
+            let weight = doubleTruncate(doubleAdd(doubleMultiply(doubleMultiply(horizontal[column], vertical[row]), doubleInteger(255u)), half));
+            let color = patternTexel(vec2<i32>(left + i32(column), top + i32(row)));
+            let amount = color.w * weight;
+            weightSum += weight; alpha += amount;
+            for (var channel = 0u; channel < 3u; channel++) {
+                totals[channel] = wordAdd(totals[channel], wordProduct(color[channel], amount));
+            }
+        }
+    }
+    if (alpha == 0u) { return vec4<u32>(0u); }
+    let maximum = select(255u, 65535u, parameters.native.z != 0u);
+    return vec4<u32>(patternQuotient(totals[0], alpha, maximum), patternQuotient(totals[1], alpha, maximum),
+                     patternQuotient(totals[2], alpha, maximum), min(maximum, (alpha + weightSum / 2u) / weightSum));
 }
 
 fn geometryFour(index: u32) -> vec4<u32> {

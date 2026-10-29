@@ -7,6 +7,9 @@
 #include <kis_figure_painting_stroke.h>
 
 #include <KoCanvasResourceProvider.h>
+#include <KoColorSpaceRegistry.h>
+#include <KoPattern.h>
+#include <KoCanvasResourcesIds.h>
 
 #include "KisFigurePaintingOptions.h"
 #include "kis_resources_snapshot.h"
@@ -40,6 +43,7 @@ struct KisFigurePaintingStroke::GpuStroke
     KisFigurePaintingOptions::StrokeStyle strokeStyle;
     KisFigurePaintingOptions::FillStyle fillStyle;
     std::optional<Gpu::Shape> shape;
+    std::optional<Gpu::PatternFill> pattern;
     QList<Gpu::InputSample> samples;
 
     void setFigure(const Gpu::Shape &value, const QList<Gpu::InputSample> &input)
@@ -104,8 +108,6 @@ struct KisFigurePaintingStroke::GpuStroke
 
     void finish()
     {
-        if (fillStyle == KisFigurePaintingOptions::FillStylePattern)
-            resources.diagnostic = QStringLiteral("GPU pattern fills require a pattern resource operation.");
         if (selection)
             resources.diagnostic = QStringLiteral("GPU figure painting requires selection coverage.");
         if (!resources.diagnostic.isEmpty()) {
@@ -115,7 +117,10 @@ struct KisFigurePaintingStroke::GpuStroke
         if (!shape) return;
         Gpu::FigureStyle style;
         style.outline = strokeStyle != KisFigurePaintingOptions::StrokeStyleNone;
-        if (fillStyle != KisFigurePaintingOptions::FillStyleNone) {
+        if (!style.outline) style.fillBlendMode = resources.brush.blendMode;
+        if (fillStyle == KisFigurePaintingOptions::FillStylePattern) {
+            style.pattern = pattern;
+        } else if (fillStyle != KisFigurePaintingOptions::FillStyleNone) {
             style.fill = nativeColor(fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor ?
                                      foregroundColor : backgroundColor);
         }
@@ -143,12 +148,18 @@ KisFigurePaintingStroke::KisFigurePaintingStroke(
         m_gpuStroke->image = image;
         m_gpuStroke->node = currentNode;
         m_gpuStroke->owner = image->gpuImage();
-        m_gpuStroke->resources = captureGpuBrushResources(image, currentNode, resourceManager);
+        m_gpuStroke->resources = strokeStyle == KisFigurePaintingOptions::StrokeStyleNone ?
+            captureGpuFillResources(image, currentNode, resourceManager) : captureGpuBrushResources(image, currentNode, resourceManager);
         m_gpuStroke->selection = image->globalSelection();
         m_gpuStroke->strokeStyle = strokeStyle;
         m_gpuStroke->fillStyle = fillStyle;
         m_gpuStroke->foregroundColor = resourceManager->foregroundColor();
         m_gpuStroke->backgroundColor = resourceManager->backgroundColor();
+        if (fillStyle == KisFigurePaintingOptions::FillStylePattern && m_gpuStroke->resources.diagnostic.isEmpty()) {
+            m_gpuStroke->pattern = captureGpuPatternResource(resourceManager->resource(KoCanvasResource::CurrentPattern).value<KoPatternSP>(),
+                m_gpuStroke->resources.transparencyMask ? KoColorSpaceRegistry::instance()->rgb8() : image->colorSpace(),
+                fillTransform, m_gpuStroke->resources.diagnostic);
+        }
         if (strokeStyle == KisFigurePaintingOptions::StrokeStyleBackground) {
             const auto foreground = m_gpuStroke->foregroundColor;
             m_gpuStroke->setColor(m_gpuStroke->backgroundColor);

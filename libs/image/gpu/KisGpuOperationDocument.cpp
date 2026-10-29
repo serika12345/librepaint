@@ -1846,10 +1846,13 @@ Result OperationDocument::fillLayerStyle(LayerId layer, const RgbaPixel &color,
     brush.erase = erase;
     brush.alphaLocked = alphaLocked;
     brush.channelWriteMask = alphaLocked ? 7 : 15;
-    const QPointF end(snapshot()->size.width(), snapshot()->size.height());
-    const auto result = paintFigureWithin(layer, brush, {{{0, 0}, 1}, {end, 1}},
-                                         {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0,
-                                         QRect(QPoint(), snapshot()->size));
+    const auto version = snapshot();
+    const QRect bounds = !version->selection.isEmpty() && !version->selectionInverted ? version->selection :
+        QRect(QPoint(), version->size);
+    const QPointF start = bounds.topLeft();
+    const QPointF end = start + QPointF(bounds.width(), bounds.height());
+    const auto result = paintFigureWithin(layer, brush, {{start, 1}, {end, 1}},
+                                         {ShapeKind::Rectangle, start, end, 0}, style, 0, bounds);
     if (result == Result::Success) m_layerHistoryChanges[m_index].filledLayer = true;
     return result;
 }

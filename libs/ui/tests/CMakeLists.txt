@@ -1226,7 +1226,7 @@ add_test(NAME ${gpu_document_layer_test}
     COMMAND KisGpuDocumentViewTest ${gpu_document_layer_cases})
 set(gpu_document_pixel_test libs-ui-pixels-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_pixel_test}
-    COMMAND KisGpuDocumentViewTest clearActionPreservesSelectedLayersAndHistory colorFillActionsPreservePixelsHistoryAndSaving)
+    COMMAND KisGpuDocumentViewTest clearActionPreservesSelectedLayersAndHistory colorFillActionsPreservePixelsHistoryAndSaving selectionFillToolKeepsNativeEditing)
 set(gpu_document_background_tests)
 foreach(background_row IN ITEMS
         fixed-opaque scrolling-opaque fixed-translucent scrolling-translucent scrolling-image-limit)
@@ -1417,6 +1417,7 @@ elseif(WIN32)
 endif()
 # Five background rows each cover capture retries under a fully loaded GUI.
 set_tests_properties(${gpu_document_background_tests} PROPERTIES TIMEOUT 180)
+set_tests_properties(${gpu_document_pixel_test} PROPERTIES TIMEOUT 600)
 
 
 ##### Tests that currently fail and should be fixed #####

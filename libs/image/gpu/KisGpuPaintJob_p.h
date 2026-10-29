@@ -29,8 +29,10 @@ struct PaintParameters
     qint32 compositionX = 0, compositionY = 0, compositionWidth = 0, compositionHeight = 0;
     /** Earlier allocated destination bounds for protected non-Copy pixels in mixed figures. */
     qint32 destinationX = 0, destinationY = 0, destinationWidth = 0, destinationHeight = 0;
+    std::array<quint32, 12> patternInverse{};
+    quint32 patternFormat = 0, patternSampled = 0, patternReserved0 = 0, patternReserved1 = 0;
 };
-static_assert(sizeof(PaintParameters) == 128);
+static_assert(sizeof(PaintParameters) == 192);
 constexpr quint32 UniformPixelFill = 16384u;
 constexpr quint32 PartialRgba16Source = 32768u;
 constexpr quint32 RestrictNonCopyDestination = 65536u;

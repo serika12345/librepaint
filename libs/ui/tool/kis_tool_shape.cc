@@ -17,6 +17,8 @@
 #include <KoShape.h>
 #include <KoCanvasBase.h>
 #include <KoCanvasResourceProvider.h>
+#include <KoPattern.h>
+#include <KoColorSpaceRegistry.h>
 #include <KoShapeController.h>
 #include <KoColorBackground.h>
 #include <KoPatternBackground.h>
@@ -139,14 +141,19 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
             }
         }
     }
-    if (fillStyle() == KisFigurePaintingOptions::FillStylePattern) {
-        Q_EMIT statusTextChanged(i18n("Pattern fills are not yet supported for this GPU document."));
-        return;
-    }
     auto *source = canvas()->resourceManager();
     LibrePaint::Image::Gpu::FigureStyle style;
     style.outline = strokeStyle() != KisFigurePaintingOptions::StrokeStyleNone;
-    if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
+    if (fillStyle() == KisFigurePaintingOptions::FillStylePattern) {
+        QString diagnostic;
+        style.pattern = captureGpuPatternResource(source->resource(KoCanvasResource::CurrentPattern).value<KoPatternSP>(),
+            image()->isGpuTransparencyMaskView(currentNode()) ? KoColorSpaceRegistry::instance()->rgb8() : image()->colorSpace(),
+            fillTransform(), diagnostic);
+        if (!style.pattern) {
+            Q_EMIT statusTextChanged(diagnostic);
+            return;
+        }
+    } else if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
         KoColor color = fillStyle() == KisFigurePaintingOptions::FillStyleForegroundColor ?
             source->foregroundColor() : source->backgroundColor();
         color.convertTo(image()->colorSpace());

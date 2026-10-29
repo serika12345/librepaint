@@ -6,8 +6,11 @@
 
 #include "kis_resources_snapshot.h"
 #include <cstring>
+#include <new>
 
 #include <KoColor.h>
+#include <KoColorSpaceRegistry.h>
+#include <KoColorModelStandardIds.h>
 #include <KoCanvasResourceProvider.h>
 #include <klocalizedstring.h>
 #include <gpu/KisGpuPaintImage.h>
@@ -266,6 +269,62 @@ KisGpuBrushResources captureGpuFillResources(
     KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources)
 {
     return captureGpuPaintingResources(image, node, resources, false);
+}
+
+std::optional<LibrePaint::Image::Gpu::PatternFill> captureGpuPatternResource(
+    KoPatternSP pattern, const KoColorSpace *colorSpace, const QTransform &transform, QString &diagnostic)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    diagnostic.clear();
+    const auto reject = [&](const QString &message) -> std::optional<Gpu::PatternFill> {
+        diagnostic = message;
+        return std::nullopt;
+    };
+    if (!pattern || !pattern->valid() || !colorSpace || colorSpace->colorModelId() != RGBAColorModelID)
+        return reject(i18n("No usable pattern is selected for this document."));
+    try {
+        Gpu::PatternFill result;
+        if (colorSpace->colorDepthId() == Integer16BitsColorDepthID) result.format = Gpu::PixelFormat::Rgba16;
+        else if (colorSpace->colorDepthId() != Integer8BitsColorDepthID)
+            return reject(i18n("The pattern color space is not available for this document."));
+        const QImage original = pattern->pattern();
+        const qint64 count = qint64(original.width()) * original.height();
+        const auto stride = Gpu::pixelByteCount(result.format);
+        if (original.isNull() || count <= 0 || count > Gpu::PatternFill::MaximumBytes / stride)
+            return reject(i18n("The selected pattern exceeds the document's resource capacity."));
+        const QImage source = original.convertToFormat(QImage::Format_ARGB32);
+        if (source.isNull()) return reject(i18n("The pattern resource could not be allocated."));
+        result.size = source.size();
+        const auto inverse = transform.inverted();
+        result.inverse = {inverse.m11(), inverse.m12(), inverse.m21(), inverse.m22(), inverse.dx(), inverse.dy()};
+        result.sampled = transform.type() > QTransform::TxTranslate;
+        result.rgba = QByteArray(count * stride, '\0');
+        if (!result.isValid()) return reject(i18n("The pattern transform is outside the document's coordinate capacity."));
+        // Match the product pattern import: an untagged BGRA8 source uses the
+        // registry default profile, while an RGBA8 destination retains raw bytes.
+        const auto *sourceSpace = KoColorSpaceRegistry::instance()->rgb8();
+        QByteArray row(source.width() * stride, '\0');
+        for (int y = 0; y < source.height(); ++y) {
+            const auto *pixels = source.constScanLine(y);
+            if (colorSpace->id() != QLatin1String("RGBA")) {
+                sourceSpace->convertPixelsTo(pixels, reinterpret_cast<quint8 *>(row.data()), colorSpace, source.width(),
+                    KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
+                pixels = reinterpret_cast<const quint8 *>(row.constData());
+            }
+            auto *destination = result.rgba.data() + qint64(y) * source.width() * stride;
+            for (int x = 0; x < source.width(); ++x) {
+                const auto *pixel = pixels + x * stride;
+                const int component = stride / 4;
+                std::memcpy(destination + x * stride, pixel + component * 2, component);
+                std::memcpy(destination + x * stride + component, pixel + component, component);
+                std::memcpy(destination + x * stride + component * 2, pixel, component);
+                std::memcpy(destination + x * stride + component * 3, pixel + component * 3, component);
+            }
+        }
+        return result;
+    } catch (const std::bad_alloc &) {
+        return reject(i18n("The pattern resource could not be allocated."));
+    }
 }
 
 struct KisResourcesSnapshot::Private {

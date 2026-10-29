@@ -397,8 +397,8 @@ inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 
 inline bool validFigureStyle(const Shape &shape, const FigureStyle &style, PixelFormat format)
 {
-    if (format == PixelFormat::Rgba16 && style.pattern) return false;
     if (style.pattern && !style.pattern->isValid()) return false;
+    if (style.pattern && style.pattern->format == PixelFormat::Rgba16 && format != PixelFormat::Rgba16) return false;
     if (!validBlendMode(style.fillBlendMode, format)) return false;
     // A non-normal fill mode owns only the fill source. Outline brush
     // compositing stays source-over, so this combination is rejected rather

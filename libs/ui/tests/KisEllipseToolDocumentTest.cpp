@@ -163,19 +163,19 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving_data()
     row("rectangle-gpu-close-on-rejection", FigureKind::Rectangle, true, true);
     row("rectangle-gpu-rounded", FigureKind::RoundedRectangle, true);
     row("rectangle-ordinary-rounded", FigureKind::RoundedRectangle, false);
-    row("rectangle-gpu-rounded-close-on-pattern-fill-rejection", FigureKind::RoundedRectangle, true, true);
+    row("rectangle-gpu-rounded-close-on-invalid-pattern-resource", FigureKind::RoundedRectangle, true, true);
     row("rectangle-gpu-rounded-canonical", FigureKind::RoundedRectangle, true, false, true);
     row("rectangle-gpu-canonical", FigureKind::Rectangle, true, false, true);
     row("rectangle-gpu-close-on-publish", FigureKind::Rectangle, true, false, false, true);
     row("polyline-ordinary", FigureKind::Polyline, false);
     row("polyline-gpu", FigureKind::Polyline, true);
     row("polyline-gpu-canonical", FigureKind::Polyline, true, false, true);
-    row("polyline-gpu-close-on-pattern-fill-rejection", FigureKind::Polyline, true, true);
+    row("polyline-gpu-close-on-invalid-pattern-resource", FigureKind::Polyline, true, true);
     row("polyline-gpu-close-on-publish", FigureKind::Polyline, true, false, false, true);
     row("polygon-ordinary", FigureKind::Polygon, false);
     row("polygon-gpu", FigureKind::Polygon, true);
     row("polygon-gpu-canonical", FigureKind::Polygon, true, false, true);
-    row("polygon-gpu-close-on-pattern-fill-rejection", FigureKind::Polygon, true, true);
+    row("polygon-gpu-close-on-invalid-pattern-resource", FigureKind::Polygon, true, true);
 }
 
 void KisEllipseToolDocumentTest::solidFillsPreserveShapeHistoryAndSaving_data()
@@ -886,8 +886,9 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
     }
     if (closeOnError) {
         fill->setCurrentIndex(KisFigurePaintingOptions::FillStylePattern);
+        resources->slotPatternActivated(KoPatternSP());
         start();
-        const QString expected = i18n("Pattern fills are not yet supported for this GPU document.");
+        const QString expected = i18n("No usable pattern is selected for this document.");
         QSignalSpy status(tool, &KoToolBase::statusTextChanged);
         connect(tool, &KoToolBase::statusTextChanged, window.get(), [&](const QString &message) {
             if (message != expected) return;

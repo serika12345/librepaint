@@ -3565,6 +3565,20 @@ void KisGpuOperationDocumentTest::patternFillFreezesPixelsHistory()
     QCOMPARE(document.snapshot(), before);
     QCOMPARE(document.undoCount(), 0);
 
+    // Resource admission preserves the caller's current edit and history on
+    // nonfinite maps, unsafe coordinates and native precision mismatches.
+    malformed = pattern;
+    malformed.inverse[0] = std::numeric_limits<double>::infinity();
+    QCOMPARE(document.fillLayerPattern(layer, malformed), Result::InvalidInput);
+    malformed.inverse[0] = 1e20;
+    QCOMPARE(document.fillLayerPattern(layer, malformed), Result::InvalidInput);
+    malformed = pattern;
+    malformed.format = PixelFormat::Rgba16;
+    malformed.rgba = malformed.rgba.repeated(2);
+    QCOMPARE(document.fillLayerPattern(layer, malformed), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.undoCount(), 0);
+
     QCOMPARE(document.fillLayerPattern(layer, pattern), Result::Success);
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.historyAction(1), HistoryAction::FillLayer);

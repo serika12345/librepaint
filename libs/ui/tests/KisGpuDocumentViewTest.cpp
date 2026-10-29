@@ -14,6 +14,10 @@
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QSpinBox>
+#include <QComboBox>
+#include <KisFigurePaintingOptions.h>
+#include <KisAngleSelector.h>
+#include <kis_slider_spin_box.h>
 #include <QColorSpace>
 #include <QMouseEvent>
 #include <QDockWidget>
@@ -66,6 +70,10 @@
 #include <KoCanvasResourcesIds.h>
 #include <KoPattern.h>
 #include <KoToolBase.h>
+#include <KoPointerEvent.h>
+#include <kis_tool.h>
+#include <kis_fill_painter.h>
+#include <kis_figure_painting_stroke.h>
 #include <KoResourcePaths.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoCompositeOpRegistry.h>
@@ -80,6 +88,7 @@
 #include <kis_image.h>
 #include <kis_image_config.h>
 #include <kis_node.h>
+#include <kis_layer_utils.h>
 #include <kis_paint_device.h>
 #include <KisRegion.h>
 #include <kis_painter.h>
@@ -115,6 +124,7 @@
 #include <testui.h>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <exception>
 #include <memory>
 #include <thread>
@@ -296,6 +306,8 @@ private Q_SLOTS:
     void layerPanelAddsAtSelectionWithOneHistoryEntry();
     void clearActionPreservesSelectedLayersAndHistory_data();
     void clearActionPreservesSelectedLayersAndHistory();
+    void selectionFillToolKeepsNativeEditing_data();
+    void selectionFillToolKeepsNativeEditing();
     void colorFillActionsPreservePixelsHistoryAndSaving_data();
     void colorFillActionsPreservePixelsHistoryAndSaving();
 private:
@@ -7256,6 +7268,301 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         QVERIFY(window->screen()->grabWindow(window->winId()).save(QDir(output).filePath(gpu ? QStringLiteral("gpu-window.png") : QStringLiteral("cpu-window.png"))));
         for (const auto &error : errors) QVERIFY2(error.first().toString().isEmpty(), qPrintable(error.first().toString()));
     }
+}
+
+
+void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<QString>("scenario");
+    for (const bool words : {false, true}) {
+        for (const auto *name : {"foreground", "background-custom-copy", "pattern", "pattern-rotated",
+                                 "pattern-small-scale", "pattern-zero-scale", "pattern-alpha-lock", "pattern-protected", "pattern-softlight", "erase",
+                                 "offcanvas-foreground", "offcanvas-pattern", "unselected-foreground", "unselected-pattern", "alt-selection", "action-softlight", "action-pattern", "rectangle-pattern", "ellipse-pattern", "api-pattern", "api-pattern-softlight"}) {
+            QTest::newRow(QByteArray(QByteArray(words ? "word-" : "byte-") + name).constData()) << words << QString::fromLatin1(name);
+        }
+    }
+}
+
+void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
+{
+    QFETCH(bool, words);
+    QFETCH(QString, scenario);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const bool offcanvas = scenario.startsWith(QLatin1String("offcanvas"));
+    const QRect region(offcanvas ? QPoint(-12, -9) : QPoint(), QSize(64, 64));
+    const int stride = cs->pixelSize();
+    const bool api = scenario.startsWith(QLatin1String("api"));
+    const bool figure = api || scenario.startsWith(QLatin1String("rectangle")) || scenario.startsWith(QLatin1String("ellipse"));
+    const bool unselected = api || scenario.startsWith(QLatin1String("unselected"));
+    const bool pattern = scenario.contains(QLatin1String("pattern"));
+    const bool background = scenario.startsWith(QLatin1String("background"));
+    const bool custom = background;
+    const bool action = scenario.startsWith(QLatin1String("action"));
+    const bool alphaLock = scenario.contains(QLatin1String("alpha-lock"));
+    const bool protect = scenario.contains(QLatin1String("protected"));
+    const bool erase = scenario == QLatin1String("erase");
+    const bool softlight = scenario.contains(QLatin1String("softlight"));
+    const bool alternate = scenario == QLatin1String("alt-selection");
+    const auto composite = custom ? QStringLiteral("copy") : softlight ? QStringLiteral("soft_light") :
+        erase ? QStringLiteral("erase") : QStringLiteral("normal");
+    const qreal opacity = custom ? .63 : .37;
+    const qreal scale = scenario == QLatin1String("pattern-small-scale") ? .01 : scenario == QLatin1String("pattern-zero-scale") ? 0 : scenario.contains(QLatin1String("rotated")) || protect || figure ? 137.5 : 100;
+    const qreal rotation = scenario.contains(QLatin1String("rotated")) || protect || figure ? 27 : 0;
+    KConfigGroup configuration = KSharedConfig::openConfig()->group(QStringLiteral("KritaFill/KisToolFill"));
+    const auto oldEntries = configuration.entryMap();
+    const auto restoreConfig = qScopeGuard([&] {
+        configuration.deleteGroup();
+        for (auto i = oldEntries.cbegin(); i != oldEntries.cend(); ++i) configuration.writeEntry(i.key(), i.value());
+    });
+    configuration.writeEntry("whatToFill", alternate ? "fillContiguousRegion" : "fillSelection");
+    configuration.writeEntry("fillWith", pattern ? "pattern" : background ? "backgroundColor" : "foregroundColor");
+    configuration.writeEntry("patternScale", scale);
+    configuration.writeEntry("patternRotate", rotation);
+    configuration.writeEntry("useCustomBlendingOptions", custom);
+    configuration.writeEntry("customOpacity", 63);
+    configuration.writeEntry("customCompositeOp", "copy");
+    QSettings displaySettings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) +
+                              QStringLiteral("/kritadisplayrc"), QSettings::IniFormat);
+    const auto oldDisplay = displaySettings.value(QStringLiteral("OpenGLRenderer"));
+    const bool hadDisplay = displaySettings.contains(QStringLiteral("OpenGLRenderer"));
+    const auto restoreDisplay = qScopeGuard([&] {
+        if (hadDisplay) displaySettings.setValue(QStringLiteral("OpenGLRenderer"), oldDisplay);
+        else displaySettings.remove(QStringLiteral("OpenGLRenderer"));
+        displaySettings.sync();
+    });
+    KisConfig(true).disableOpenGL();
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    Gpu::RasterImage raster;
+    raster.size = region.size(); raster.format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    raster.layers = {{QStringLiteral("Fill layer"), true, {}, {}}};
+    auto owner = paintImageWithEncoding(execution, raster);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Ordinary selection fill"), cs));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget *>()) dock->hide();
+    window->resize(800, 600);
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window->windowHandle()));
+    QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= 64);
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    view->canvasBase()->snapGuide()->enableSnapping(false);
+    view->zoomManager()->zoomTo100();
+    view->canvasController()->setPreferredCenter({32, 32});
+    QTRY_VERIFY(view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().width() >= 64);
+    auto image = KisImageSP(lifetime->image());
+    KisNodeSP node = image->root()->firstChild();
+    window->viewManager()->nodeManager()->slotUiActivatedNode(node);
+    QByteArray initial(region.width() * region.height() * stride, '\0');
+    for (int y = 0; y < region.height(); ++y) for (int x = 0; x < region.width(); ++x) {
+        const Gpu::RgbaPixel pixel = words ? Gpu::RgbaPixel{quint16(119 + x * 813), quint16(931 + y * 577), 39113,
+            quint16((x + y) % 7 == 0 ? 0 : (x + y) % 5 == 0 ? 1 : 41513)} :
+            Gpu::RgbaPixel{quint16(1 + x * 3), quint16(5 + y * 2), 183, quint16((x + y) % 7 == 0 ? 0 : 161)};
+        const auto bytes = Gpu::rgbaBytes(pixel, raster.format);
+        std::memcpy(initial.data() + (y * region.width() + x) * stride, bytes.constData(), stride);
+    }
+    auto bgra = initial;
+    exchangeRgbaBgra(bgra, stride);
+    node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(bgra.constData()), region);
+    KisPaintDeviceSP expectedDevice = new KisPaintDevice(cs);
+    expectedDevice->writeBytes(reinterpret_cast<const quint8 *>(bgra.constData()), region);
+    QByteArray alpha(region.width() * region.height(), '\0');
+    for (int y = 4; y < 60; ++y) for (int x = 3; x < 61; ++x)
+        alpha[y * 64 + x] = char((x * 47 + y * 13) % 256);
+    const auto mask = Gpu::SelectionMask::fromAlphaCoverage(region, alpha, region);
+    QVERIFY(mask);
+    KisSelectionSP selection;
+    if (!unselected) {
+        QVERIFY(image->setGpuSelectionMask(mask));
+        selection = new KisSelection;
+        selection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(alpha.constData()), region);
+    }
+    QBitArray flags(4, true);
+    if (protect) { flags.setBit(0, false); flags.setBit(2, false); }
+    qobject_cast<KisPaintLayer *>(node.data())->setChannelLockFlags(flags);
+    if (alphaLock) flags.setBit(3, false);
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(m_preset);
+    resources->setFGColor(KoColor(QColor(17, 129, 241, 19), cs));
+    resources->setBGColor(KoColor(QColor(221, 17, 44, 80), cs));
+    resources->setOpacity(custom ? .11 : opacity);
+    resources->setMirrorHorizontal(false);
+    resources->setMirrorVertical(false);
+    resources->setGlobalAlphaLock(alphaLock);
+    resources->setEraserMode(erase || custom);
+    resources->setCurrentCompositeOp(custom ? QStringLiteral("normal") : composite);
+    QImage patternImage(5, 3, QImage::Format_ARGB32);
+    for (int y = 0; y < patternImage.height(); ++y) for (int x = 0; x < patternImage.width(); ++x)
+        patternImage.setPixelColor(x, y, QColor(11 + x * 59, 27 + y * 83, 197 - x * 31, x == 0 ? 0 : 21 + y * 83));
+    const KoPatternSP patternResource(new KoPattern(patternImage, QStringLiteral("Native pattern"), QString()));
+    resources->slotPatternActivated(patternResource);
+    QTransform transform;
+    transform.rotate(rotation); transform.scale(scale * .01, scale * .01);
+    const auto applyExpected = [&] {
+        if (figure) {
+            KisPainter painter(expectedDevice, selection);
+            painter.setPattern(patternResource); painter.setPatternTransform(transform);
+            painter.setFillStyle(KisPainter::FillStylePattern);
+            painter.setOpacityF(opacity); painter.setCompositeOpId(composite); painter.setChannelFlags(flags);
+            QPainterPath path;
+            if (scenario.startsWith(QLatin1String("ellipse"))) path.addEllipse(QRectF(24, 24, 24, 24));
+            else path.addRect(QRectF(24, 24, 24, 24));
+            painter.fillPainterPath(path);
+            return;
+        }
+        KisPaintDeviceSP source = new KisPaintDevice(cs);
+        KisFillPainter fill(source);
+        if (pattern) fill.fillRectNoCompose(region, patternResource, transform);
+        else fill.fillRect(region, background ? resources->bgColor() : resources->fgColor(), OPACITY_OPAQUE_U8);
+        KisPainter painter(expectedDevice, selection);
+        painter.setOpacityF(opacity); painter.setCompositeOpId(composite); painter.setChannelFlags(flags);
+        painter.bitBlt(region.topLeft(), source, region);
+    };
+    const auto expectedPixels = [&] {
+        QByteArray result(initial.size(), '\0');
+        expectedDevice->readBytes(reinterpret_cast<quint8 *>(result.data()), region);
+        exchangeRgbaBgra(result, stride);
+        return result;
+    };
+    const auto click = [&] {
+        if (action) {
+            resources->setOpacity(opacity);
+            auto *fill = window->viewManager()->actionManager()->actionByName(pattern ?
+                QStringLiteral("fill_selection_pattern_opacity") : QStringLiteral("fill_selection_foreground_color_opacity"));
+            if (!fill || !QTest::qWaitFor([&] { return fill->isEnabled(); })) return false;
+            resources->setFGColor(KoColor(QColor(17, 129, 241, 19), cs));
+            resources->setBGColor(KoColor(QColor(221, 17, 44, 80), cs));
+            resources->slotPatternActivated(patternResource);
+            resources->setOpacity(opacity);
+            fill->trigger();
+        } else if (api) {
+            resources->setOpacity(opacity);
+            KisFigurePaintingStroke stroke(kundo2_i18n("Pattern figure"), image,
+                window->viewManager()->nodeManager()->activeNode(), resources->resourceManager(),
+                KisFigurePaintingOptions::StrokeStyleNone, KisFigurePaintingOptions::FillStylePattern, transform);
+            stroke.paintRect(QRectF(24, 24, 24, 24));
+        } else {
+            const auto toolId = !figure ? QStringLiteral("KritaFill/KisToolFill") :
+                scenario.startsWith(QLatin1String("ellipse")) ? QStringLiteral("KritaShape/KisToolEllipse") : QStringLiteral("KritaShape/KisToolRectangle");
+            KoToolManager::instance()->switchToolRequested(toolId);
+            auto *tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), toolId));
+            if (!tool) return false;
+            resources->setEraserMode(erase || custom);
+            resources->setCurrentCompositeOp(custom ? QStringLiteral("normal") : composite);
+            resources->setMirrorHorizontal(false);
+            resources->setMirrorVertical(false);
+            resources->setGlobalAlphaLock(alphaLock);
+            resources->setOpacity(custom ? .11 : opacity);
+            if (figure) {
+                for (QWidget *widget : tool->optionWidgets()) {
+                    if (auto *outline = widget->findChild<QComboBox *>(QStringLiteral("cmbOutline"))) outline->setCurrentIndex(KisFigurePaintingOptions::StrokeStyleNone);
+                    if (auto *fill = widget->findChild<QComboBox *>(QStringLiteral("cmbFill"))) fill->setCurrentIndex(KisFigurePaintingOptions::FillStylePattern);
+                }
+                if (!QMetaObject::invokeMethod(tool, "patternRotationSettingChanged", Qt::DirectConnection, Q_ARG(qreal, rotation)) ||
+                    !QMetaObject::invokeMethod(tool, "patternScaleSettingChanged", Qt::DirectConnection, Q_ARG(qreal, scale))) return false;
+                // The controls own the transform used by the ordinary tool.
+                for (QWidget *widget : tool->optionWidgets()) {
+                    if (auto *angle = widget->findChild<KisAngleSelector *>(QStringLiteral("angleSelectorRotation"))) angle->setAngle(rotation);
+                    if (auto *size = widget->findChild<KisDoubleSliderSpinBox *>(QStringLiteral("sldScale"))) size->setValue(scale);
+                }
+            }
+            const auto point = view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(24, 24));
+            QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton,
+                              alternate ? Qt::AltModifier : Qt::NoModifier);
+            KoPointerEvent first(&press, point); tool->beginPrimaryAction(&first);
+            if (figure) {
+                QMouseEvent move(QEvent::MouseMove, QPointF(), QPointF(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+                KoPointerEvent update(&move, view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(48, 48)));
+                tool->continuePrimaryAction(&update);
+            }
+            QMouseEvent release(QEvent::MouseButtonRelease, QPointF(), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+            KoPointerEvent last(&release, point);
+            // Synthetic releases intentionally cancel ordinary rectangle tools.
+            // Commit through the same explicit end request used by the native
+            // figure fixtures; standalone acceptance uses physical releases.
+            if (figure) tool->requestStrokeEnd();
+            else tool->endPrimaryAction(&last);
+        }
+        return true;
+    };
+    const auto layer = owner->operations().activeLayer();
+    const auto count = owner->operations().undoCount();
+    applyExpected();
+    QVERIFY(click());
+    QTRY_COMPARE(owner->operations().undoCount(), count + 1);
+    const auto expected = expectedPixels();
+    auto actual = owner->readRgbaPixels(layer, region, initial.size());
+    QCOMPARE(actual.code, Gpu::ExecutionCode::Success);
+    if (actual.bytes != expected) {
+        for (int i = 0; i < actual.bytes.size(); ++i) if (actual.bytes[i] != expected[i]) {
+            qWarning() << "fill mismatch at" << (i / stride) % 64 << (i / stride) / 64 << "byte" << i % stride
+                       << "actual" << actual.bytes.mid((i / stride) * stride, stride).toHex()
+                       << "native" << expected.mid((i / stride) * stride, stride).toHex(); break;
+        }
+    }
+    QCOMPARE(actual.bytes, expected);
+    resources->setFGColor(KoColor(Qt::green, cs));
+    QImage changedPattern(2, 2, QImage::Format_ARGB32);
+    changedPattern.fill(Qt::yellow);
+    resources->slotPatternActivated(KoPatternSP(new KoPattern(changedPattern, QStringLiteral("Changed resource"), QString())));
+    auto *undo = window->viewManager()->actionManager()->actionByName(QStringLiteral("edit_undo"));
+    auto *redo = window->viewManager()->actionManager()->actionByName(QStringLiteral("edit_redo"));
+    QVERIFY(undo && redo);
+    undo->trigger();
+    QCOMPARE(owner->readRgbaPixels(layer, region, initial.size()).bytes, initial);
+    redo->trigger();
+    QCOMPARE(owner->readRgbaPixels(layer, region, initial.size()).bytes, expected);
+    QTemporaryDir directory;
+    lifetime->setFileBatchMode(true);
+    const auto path = directory.filePath(QStringLiteral("fill.kra"));
+    QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    lifetime->waitForSavingToComplete();
+    QFile file(path); QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto decoded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+    QVERIFY2(decoded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(decoded.diagnostic));
+    auto reopened = Gpu::PaintImageSP::create(execution, decoded.document.image);
+    const auto reopenedLayer = reopened->operations().activeLayer();
+    QCOMPARE(reopened->readRgbaPixels(reopenedLayer, region, initial.size()).bytes, expected);
+    lifetime->setCurrentImage(KisImage::fromGpuImage(reopened, QStringLiteral("Reopened fill"), cs));
+    owner = reopened;
+    image = lifetime->image();
+    QTRY_COMPARE(view->image().data(), image.data());
+    QTRY_COMPARE(view->canvasBase()->image().data(), image.data());
+    KisNodeSP reopenedNode = KisLayerUtils::findNodeByUuid(image->root(), reopened->operations().snapshot()->layers.first().uuid);
+    QVERIFY(reopenedNode);
+    window->viewManager()->nodeManager()->slotUiActivatedNode(reopenedNode);
+    resources->setFGColor(KoColor(QColor(17, 129, 241, 19), cs));
+    resources->slotPatternActivated(patternResource);
+    resources->setEraserMode(erase || custom);
+    resources->setCurrentCompositeOp(custom ? QStringLiteral("normal") : composite);
+    resources->setMirrorHorizontal(false);
+    resources->setMirrorVertical(false);
+    resources->setGlobalAlphaLock(alphaLock);
+    qobject_cast<KisPaintLayer *>(reopenedNode.data())->setChannelLockFlags(protect ? QBitArray{flags} : QBitArray());
+    applyExpected();
+    QVERIFY(click());
+    QCOMPARE(reopened->readRgbaPixels(reopenedLayer, region, initial.size()).bytes, expectedPixels());
+    undo->trigger();
+    QCOMPARE(reopened->readRgbaPixels(reopenedLayer, region, initial.size()).bytes, expected);
+    redo->trigger();
+    QCOMPARE(reopened->readRgbaPixels(reopenedLayer, region, initial.size()).bytes, expectedPixels());
 }
 
 KISTEST_MAIN(KisGpuDocumentViewTest)

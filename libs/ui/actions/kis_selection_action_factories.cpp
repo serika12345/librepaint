@@ -17,7 +17,9 @@
 #include <QPointer>
 #include <cstring>
 #include <KoPattern.h>
+#include <KoColorSpaceRegistry.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <KisGpuBlendMode.h>
 
 #include <klocalizedstring.h>
 #include <kundo2command.h>
@@ -280,27 +282,15 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         auto *resources = view->canvasResourceProvider();
         Gpu::PatternFill patternFill;
         if (usePattern) {
-            const KoPatternSP pattern = resources->currentPattern();
-            const QImage source = pattern ? pattern->pattern() : QImage();
-            if (source.isNull()) {
-                reject(i18n("No pattern is selected for this document."));
+            QString diagnostic;
+            const auto pattern = captureGpuPatternResource(resources->currentPattern(),
+                image->isGpuTransparencyMaskView(node) ? KoColorSpaceRegistry::instance()->rgb8() : image->colorSpace(),
+                QTransform(), diagnostic);
+            if (!pattern) {
+                reject(diagnostic);
                 return;
             }
-            if (qint64(source.width()) * source.height() * 4 > Gpu::PatternFill::MaximumBytes) {
-                reject(i18n("The selected pattern is too large for this document."));
-                return;
-            }
-            const QImage pixels = source.convertToFormat(QImage::Format_RGBA8888);
-            if (pixels.isNull()) {
-                reject(i18n("The selected pattern could not be read."));
-                return;
-            }
-            patternFill.size = pixels.size();
-            patternFill.rgba = QByteArray(reinterpret_cast<const char *>(pixels.constBits()), pixels.sizeInBytes());
-            if (!patternFill.isValid()) {
-                reject(i18n("The selected pattern could not be read."));
-                return;
-            }
+            patternFill = *pattern;
         }
         const auto composite = resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
         const bool erase = composite == COMPOSITE_ERASE || resources->eraserMode();
@@ -311,19 +301,9 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
                 reject(i18n("This blend mode is not yet available for this document."));
                 return;
             }
-        } else if (composite == COMPOSITE_MULT) {
-            fillBlendMode = Gpu::LayerBlendMode::Multiply;
-        } else if (composite == COMPOSITE_SCREEN) {
-            fillBlendMode = Gpu::LayerBlendMode::Screen;
-        } else if (composite == COMPOSITE_DARKEN) {
-            fillBlendMode = Gpu::LayerBlendMode::Darken;
-        } else if (composite == COMPOSITE_LIGHTEN) {
-            fillBlendMode = Gpu::LayerBlendMode::Lighten;
-        } else if (composite == COMPOSITE_ADD) {
-            fillBlendMode = Gpu::LayerBlendMode::Addition;
-        } else if (composite == COMPOSITE_LINEAR_DODGE) {
-            fillBlendMode = Gpu::LayerBlendMode::LinearDodge;
-        } else if (composite != COMPOSITE_OVER) {
+        } else if (const auto mode = Gpu::layerBlendModeFromCompositeOp(composite)) {
+            fillBlendMode = *mode;
+        } else {
             reject(i18n("This blend mode is not yet available for this document."));
             return;
         }

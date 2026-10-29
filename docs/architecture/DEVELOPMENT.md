@@ -977,6 +977,12 @@ Windowsは対応する実行ファイルへ同じ環境変数を渡す。Android
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuPaintImageTest
 ```
 
+通常ウィンドウの塗りは、`KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing`で、
+8／16ビットの前景色・背景色・パターン、拡大・回転、不透明度、合成、成分保護、
+選択被覆と既存描画の画素を照合する。バケツ、塗りアクションと図形ツールから入力し、
+Undo／Redo、KRA保存・再読込みと追加編集まで確認する。
+この条件は`libs-ui-pixels-KisGpuDocumentViewTest`へ含まれる。
+
 画像所有者の試験は、共有参照からの編集、通知前のGPU要求更新、保存済み版、
 Undo／Redoと、最後の参照による接続解放を検査する。
 外部の矩形書込みは、同じGPUタイル内の別領域、Undo後の直接書込み、再書込み、

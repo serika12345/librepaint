@@ -1105,8 +1105,12 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         job.values.destinationHeight = bounds.height();
                     }
                     if (operation.figureStyle.pattern) {
-                        job.values.patternWidth = quint32(operation.figureStyle.pattern->size.width());
-                        job.values.patternHeight = quint32(operation.figureStyle.pattern->size.height());
+                        const auto &pattern = *operation.figureStyle.pattern;
+                        job.values.patternWidth = quint32(pattern.size.width());
+                        job.values.patternHeight = quint32(pattern.size.height());
+                        std::memcpy(job.values.patternInverse.data(), pattern.inverse.data(), sizeof(pattern.inverse));
+                        job.values.patternFormat = quint32(pattern.format);
+                        job.values.patternSampled = pattern.sampled;
                     }
                     job.values.fillBlendMode = quint32(operation.figureStyle.fillBlendMode);
                     job.values.strokeBlendMode = quint32(operation.brush.blendMode);

@@ -244,8 +244,9 @@ struct Shape
     QList<QPair<qsizetype, qsizetype>> pathCalls{};
 };
 
-/** Frozen straight RGBA8 pattern resource. The pixels repeat from the document
- * origin; the resource itself is not retained by document versions.
+/** Frozen straight native RGBA pattern resource. The inverse map transforms
+ * document pixel coordinates to the repeating pattern; sampled maps use the
+ * native four-pixel, alpha-weighted interpolation. Versions retain the value.
  */
 struct PatternFill
 {
@@ -253,16 +254,29 @@ struct PatternFill
 
     QSize size;
     QByteArray rgba;
+    PixelFormat format = PixelFormat::Rgba8;
+    std::array<double, 6> inverse{1, 0, 0, 1, 0, 0};
+    bool sampled = false;
 
     bool isValid() const
     {
         if (size.width() <= 0 || size.height() <= 0 ||
             size.width() > RgbaTile::CoordinateLimit || size.height() > RgbaTile::CoordinateLimit) return false;
-        const qint64 bytes = qint64(size.width()) * size.height() * 4;
+        if (!pixelByteCount(format)) return false;
+        for (const auto value : inverse) if (!std::isfinite(value)) return false;
+        // The shader wraps integral coordinates before indexing the resource.
+        // Keep the map within exact binary64 integer representation.
+        for (int row = 0; row < 2; ++row)
+            if ((std::abs(inverse[row]) + std::abs(inverse[row + 2])) * RgbaTile::CoordinateLimit +
+                    std::abs(inverse[row + 4]) > 4503599627370494.0) return false;
+        const qint64 bytes = qint64(size.width()) * size.height() * pixelByteCount(format);
         return bytes > 0 && bytes <= MaximumBytes && rgba.size() == bytes;
     }
     qsizetype byteCount() const { return rgba.size(); }
-    bool operator==(const PatternFill &other) const { return size == other.size && rgba == other.rgba; }
+    bool operator==(const PatternFill &other) const {
+        return size == other.size && rgba == other.rgba && format == other.format &&
+            inverse == other.inverse && sampled == other.sampled;
+    }
     bool operator!=(const PatternFill &other) const { return !(*this == other); }
 };
 

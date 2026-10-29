@@ -44,6 +44,13 @@ KRITAPAINTING_EXPORT KisGpuBrushResources captureGpuBrushResources(
 KRITAPAINTING_EXPORT KisGpuBrushResources captureGpuFillResources(
     KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources);
 
+/** Imports the selected pattern resource in the document's native encoding.
+ * Only resource pixels cross the CPU boundary; mapping and interpolation run
+ * on the GPU. The returned value owns pixels and the frozen inverse transform.
+ */
+KRITAPAINTING_EXPORT std::optional<LibrePaint::Image::Gpu::PatternFill> captureGpuPatternResource(
+    KoPatternSP pattern, const KoColorSpace *colorSpace, const QTransform &transform, QString &diagnostic);
+
 /**
  * @brief The KisResourcesSnapshot class takes a snapshot of the various resources
  * like colors and settings used at the begin of a stroke so subsequent
