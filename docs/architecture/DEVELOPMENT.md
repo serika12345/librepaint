@@ -365,6 +365,13 @@ Greaterのアルファ値資源は`scripts/gpu/generate-rgba8-alpha-tables`で�
 独立した資源の共有、固定版、容量拒否と再試行を検査する。
 `KisGpuTileRendererTest::channelCopyGroupsKeepHiddenRgbAndNormalizeRoot`は、成分Copyで生じた
 透明RGBを保持するグループと、上位で通常合成した結果、保持した旧投影を照合する。
+`TestKoColorSpaceRegistry`の`testCopyPreservesSourcePixels`は、8ビット・16ビット・浮動小数点の
+単画素と一括処理で、全量Copyの元RGBA、適用率0の描画先RGBA、部分適用後の透明RGBの0を照合する。
+透明・不透明画素、選択被覆0・128・255と全成分指定を組み合わせ、浮動小数点の符号付き0も保持する。
+`TestDocument`のCopy行は、成分保護、選択付きパターン塗り、投影と一様な既定色、
+KRA・PNG保存、再読込み後の編集を実際のCPU呼出しと比較する。
+`KisGpuPaintImageTest::protectedCopyOutlineKeepsNormalFillDestinationBounds`は、
+Copy輪郭と通常の塗りの領域、固定版とUndo／Redoを照合する。
 `testReplacingAlphaPaintMatchesCpuSourceRegions`は、Destination方式とRGBを組み合わせる方式のブラシを
 CPUの一時描画デバイスと実際の合成呼出しで照合する。64画素の境界、大きな円の外接矩形、
 負座標、穴のある部分選択と反転、キャンバス外の画素、塗り、キャンバス拡張とUndo／Redoを検査する。

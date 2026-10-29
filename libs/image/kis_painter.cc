@@ -686,7 +686,7 @@ void KisPainter::bitBltImpl(qint32 dstX, qint32 dstY,
     QRect srcRect = QRect(srcX, srcY, srcWidth, srcHeight);
 
     if (d->compositeOpId == COMPOSITE_COPY) {
-        if(!d->selection && d->isOpacityUnit &&
+        if(!d->selection && d->isOpacityUnit && d->paramInfo.channelFlags.isEmpty() &&
            srcX == dstX && srcY == dstY &&
            d->device->fastBitBltPossible(srcDev) &&
            (!srcDev->defaultBounds()->wrapAroundMode() ||

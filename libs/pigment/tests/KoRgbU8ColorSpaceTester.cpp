@@ -801,14 +801,9 @@ void KoRgbU8ColorSpaceTester::testCompositeCopyDivisionByZero()
         }
     };
 
-    /**
-     * This test is supposed to catch irregularities between vector and scalar versions
-     * of the composite op. In vector version we handle division be zero in a relaxed
-     * way, so it some cases the content of the color channels may be different from
-     * the one of the scalar versions of the algorithm. It is only allowed when the
-     * pixel's alpha is null. In such case Krita considers pixel state as "undefined",
-     * so any value is considered okay.
-     */
+    // Scalar and vector Copy preserve identical storage: full application copies
+    // source RGBA, zero application retains destination RGBA, and partial
+    // application with zero result alpha clears RGB for subsequent edits/saves.
 
     {
         quint8 goodSrc[] = {128,128,128,129};
@@ -852,7 +847,7 @@ void KoRgbU8ColorSpaceTester::testCompositeCopyDivisionByZero()
         quint8 goodDst[] = {10,10,10,11};
         quint8 badSrc[] = {128,128,128,0};
         quint8 badDst[] = {12,12,12,0};
-        quint8 expectedDst[] = {0,0,0,0}; // NOTE: the pixel has been changed, even though visually it hasn't (due to zero alpha)
+        quint8 expectedDst[] = {0,0,0,0};
         testBadPixel(1, goodSrc, goodDst, badSrc, badDst, 128, expectedDst);
     }
 
@@ -861,7 +856,7 @@ void KoRgbU8ColorSpaceTester::testCompositeCopyDivisionByZero()
         quint8 goodDst[] = {10,10,10,11};
         quint8 badSrc[] = {128,128,128,0};
         quint8 badDst[] = {12,12,12,0};
-        quint8 expectedDst[] = {255,255,255,0}; // NOTE: the result is different from the scalar version, but we don't care, since alpha is still zero
+        quint8 expectedDst[] = {0,0,0,0};
         testBadPixel(10, goodSrc, goodDst, badSrc, badDst, 128, expectedDst);
     }
 

@@ -151,7 +151,7 @@ void TestBaseColorSpaceRegistry::testNormalPreservesTransparentPixels()
 namespace {
 template<typename Component>
 void compareSourceCopy(const KoColorSpace *space, const std::array<Component, 4> &transparent,
-                       Component unit, int sourceAlpha, bool masked, float opacity, bool explicitFlags)
+                       Component unit, int sourceAlpha, int destinationAlpha, bool masked, float opacity, bool explicitFlags)
 {
     using Pixel = std::array<Component, 4>;
     alignas(64) std::array<Pixel, 64> source, destination, individual;
@@ -160,8 +160,8 @@ void compareSourceCopy(const KoColorSpace *space, const std::array<Component, 4>
         source[i] = transparent;
         if (sourceAlpha == 1 || (sourceAlpha == 2 && i % 3)) source[i][3] = unit;
         destination[i] = transparent;
-        destination[i][3] = i % 2 ? unit : Component(0);
-        mask[i] = i % 3 ? 255 : 0;
+        if (destinationAlpha == 1 || (destinationAlpha == 2 && i % 2)) destination[i][3] = unit;
+        mask[i] = i % 3 == 0 ? 0 : i % 3 == 1 ? 128 : 255;
     }
     individual = destination;
     const auto original = destination;
@@ -186,13 +186,15 @@ void compareSourceCopy(const KoColorSpace *space, const std::array<Component, 4>
         parameters.maskRowStart = masked ? &mask[i] : nullptr;
         copy->composite(parameters);
         const bool applied = opacity == 1.0f && (!masked || mask[i] == 255);
-        const auto &expected = applied ? source[i] : original[i];
+        const bool unchanged = opacity == 0.0f || (masked && mask[i] == 0);
+        // Copy storage is observable in later edits and file output, including
+        // hidden colors and floating-point signed zero at the two endpoints.
+        // A partially applied Copy with zero result alpha has canonical RGBA0.
+        if (!applied && !unchanged && (source[i][3] != 0 || original[i][3] != 0)) continue;
+        const Pixel expected = applied ? source[i] : unchanged ? original[i] : Pixel{};
         const QByteArray reference(reinterpret_cast<const char *>(&expected), sizeof(Pixel));
         QCOMPARE(QByteArray(reinterpret_cast<const char *>(&individual[i]), sizeof(Pixel)), reference);
-        // Zero-mask neighbors can still take the existing mixed SIMD path.
-        // The Copy contract here is exact source storage at full coverage.
-        if (applied || !masked || opacity == 0.0f)
-            QCOMPARE(QByteArray(reinterpret_cast<const char *>(&destination[i]), sizeof(Pixel)), reference);
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(&destination[i]), sizeof(Pixel)), reference);
     }
 }
 }
@@ -201,23 +203,26 @@ void TestBaseColorSpaceRegistry::testCopyPreservesSourcePixels_data()
 {
     QTest::addColumn<QString>("depth");
     QTest::addColumn<int>("sourceAlpha");
+    QTest::addColumn<int>("destinationAlpha");
     QTest::addColumn<bool>("masked");
     QTest::addColumn<float>("opacity");
     QTest::addColumn<bool>("explicitFlags");
     for (const auto *depth : {"U8", "U16", "F32"})
         for (int sourceAlpha : {0, 1, 2})
-            for (bool masked : {false, true})
-                for (float opacity : {0.0f, 1.0f})
-                    for (bool explicitFlags : {false, true})
-                        QTest::addRow("%s-alpha%d-mask%d-opacity%g-flags%d", depth, sourceAlpha, masked,
-                                      double(opacity), explicitFlags)
-                            << QString::fromLatin1(depth) << sourceAlpha << masked << opacity << explicitFlags;
+            for (int destinationAlpha : {0, 1, 2})
+                for (bool masked : {false, true})
+                    for (float opacity : {0.0f, 0.5f, 1.0f})
+                        for (bool explicitFlags : {false, true})
+                            QTest::addRow("%s-alpha%d-destination%d-mask%d-opacity%g-flags%d", depth, sourceAlpha, destinationAlpha, masked,
+                                          double(opacity), explicitFlags)
+                                << QString::fromLatin1(depth) << sourceAlpha << destinationAlpha << masked << opacity << explicitFlags;
 }
 
 void TestBaseColorSpaceRegistry::testCopyPreservesSourcePixels()
 {
     QFETCH(QString, depth);
     QFETCH(int, sourceAlpha);
+    QFETCH(int, destinationAlpha);
     QFETCH(bool, masked);
     QFETCH(float, opacity);
     QFETCH(bool, explicitFlags);
@@ -225,11 +230,11 @@ void TestBaseColorSpaceRegistry::testCopyPreservesSourcePixels()
         RGBAColorModelID.id(), depth, QStringLiteral("sRGB-elle-V2-g10.icc"));
     QVERIFY(space);
     if (depth == QLatin1String("U8"))
-        compareSourceCopy<quint8>(space, {0x11, 0x3f, 0x81, 0}, 255, sourceAlpha, masked, opacity, explicitFlags);
+        compareSourceCopy<quint8>(space, {0x11, 0x3f, 0x81, 0}, 255, sourceAlpha, destinationAlpha, masked, opacity, explicitFlags);
     else if (depth == QLatin1String("U16"))
-        compareSourceCopy<quint16>(space, {1, 257, 65534, 0}, 65535, sourceAlpha, masked, opacity, explicitFlags);
+        compareSourceCopy<quint16>(space, {1, 257, 65534, 0}, 65535, sourceAlpha, destinationAlpha, masked, opacity, explicitFlags);
     else
-        compareSourceCopy<float>(space, {1.0e20f, -0.0f, -0.25f, -0.0f}, 1.0f, sourceAlpha, masked, opacity, explicitFlags);
+        compareSourceCopy<float>(space, {1.0e20f, -0.0f, -0.25f, -0.0f}, 1.0f, sourceAlpha, destinationAlpha, masked, opacity, explicitFlags);
 }
 
 void TestBaseColorSpaceRegistry::testComparisonOperators()
