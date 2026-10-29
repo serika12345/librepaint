@@ -56,7 +56,8 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles_data()
          "diff", "exclusion", "subtract", "linear_burn", "inverse_subtract", "grain_merge", "grain_extract",
          "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light",
          "linear light", "equivalence", "allanon", "hard_mix_photoshop", "xor", "or", "and", "nand", "nor",
-         "xnor", "implication", "not_implication", "converse", "not_converse"})
+         "xnor", "implication", "not_implication", "converse", "not_converse", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect",
+         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 

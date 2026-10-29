@@ -25,6 +25,56 @@ fn burnWord(source: u32, destination: u32) -> u32 {
     if (source == 0u) { return 0u; }
     return 65535u - min(65535u, divideWord(65535u - destination, source));
 }
+fn glowWord(source: u32, destination: u32) -> u32 {
+    if (destination == 65535u) { return 65535u; }
+    return min(65535u, divideWord(mul65535(source, source), 65535u - destination));
+}
+fn heatWord(source: u32, destination: u32) -> u32 {
+    if (source == 65535u) { return 65535u; }
+    if (destination == 0u) { return 0u; }
+    return 65535u - min(65535u, divideWord(mul65535(65535u - source, 65535u - source), destination));
+}
+fn heatGlowWord(source: u32, destination: u32) -> u32 {
+    if (source + destination > 65535u) { return heatWord(source, destination); }
+    if (source == 0u) { return 0u; }
+    return glowWord(source, destination);
+}
+fn freezeReflectWord(source: u32, destination: u32) -> u32 {
+    if (source + destination > 65535u) { return heatWord(destination, source); }
+    if (destination == 0u) { return 0u; }
+    return glowWord(destination, source);
+}
+fn glowHeatWord(source: u32, destination: u32) -> u32 {
+    if (destination == 65535u) { return 65535u; }
+    if (source + destination > 65535u) { return glowWord(source, destination); }
+    return heatWord(source, destination);
+}
+fn penumbraWord(source: u32, destination: u32) -> u32 {
+    if (destination == 65535u) { return 65535u; }
+    if (source + destination < 65535u) { return min(65535u, divideWord(source, 65535u - destination)) / 2u; }
+    if (source == 0u) { return 0u; }
+    return 65535u - min(65535u, divideWord(65535u - destination, source) / 2u);
+}
+fn parallelWord(source: u32, destination: u32) -> u32 {
+    if (source == 0u || destination == 0u) { return 0u; }
+    let denominator = projectionAdd(vec2<u32>(divideWord(65535u, source), 0u), vec2<u32>(divideWord(65535u, destination), 0u));
+    // 2*65535^2 and the sum of the two rounded reciprocals need 33 bits.
+    // A 33-bit denominator gives a quotient of at most one. Otherwise the
+    // carry before each remainder shift makes exact 33/32 division possible.
+    let low = 0xfffc0002u;
+    if (denominator.y != 0u) { return select(0u, 1u, low >= denominator.x); }
+    var remainder = 1u;
+    var quotient = 0u;
+    for (var bit = 31; bit >= 0; bit -= 1) {
+        let carry = remainder >> 31u;
+        remainder = (remainder << 1u) | ((low >> u32(bit)) & 1u);
+        if (carry != 0u || remainder >= denominator.x) {
+            remainder -= denominator.x;
+            quotient |= 1u << u32(bit);
+        }
+    }
+    return min(65535u, quotient);
+}
 fn separableWordChannel(mode: u32, source: u32, destination: u32) -> u32 {
     switch mode {
         case 1u: { return mul65535(source, destination); }
@@ -78,6 +128,33 @@ fn separableWordChannel(mode: u32, source: u32, destination: u32) -> u32 {
         case 38u: { return (65535u - source) & destination; }
         case 39u: { return (65535u - source) | destination; }
         case 40u: { return source & (65535u - destination); }
+        case 43u: { return glowWord(destination, source); }
+        case 44u: { return glowWord(source, destination); }
+        case 45u: { return heatWord(destination, source); }
+        case 46u: { return heatWord(source, destination); }
+        case 47u: { return glowHeatWord(source, destination); }
+        case 48u: { return heatGlowWord(source, destination); }
+        case 49u: { return glowHeatWord(destination, source); }
+        case 50u: { return freezeReflectWord(source, destination); }
+        case 51u: { return (freezeReflectWord(source, destination) + heatGlowWord(source, destination)) * 32767u / 65535u; }
+        case 52u: { return parallelWord(source, destination); }
+        case 53u: {
+            if (destination == 0u) { return 0u; }
+            if (source == 65535u) { return 65535u; }
+            if (source >= 32767u) { return min(65535u, destination * 65535u / (2u * (65535u - source))); }
+            return destination * 2u * source / 65535u;
+        }
+        case 54u: { return min(65535u, mul65535(destination, source + destination - mul65535(source, destination)) +
+            mul65535(mul65535(source, destination), 65535u - destination)); }
+        case 55u: { return 65535u - u32(abs(65535 - i32(source) - i32(destination))); }
+        case 56u: { return penumbraWord(destination, source); }
+        case 57u: { return penumbraWord(source, destination); }
+        case 58u: {
+            if (source == 0u) { return 0u; }
+            if (destination > source) { return penumbraWord(source, destination); }
+            return penumbraWord(destination, source);
+        }
+        case 59u: { return u32(clamp(3 * i32(destination) - 2 * (65535 - i32(source)), 0, 65535)); }
         default: { return source; }
     }
 }

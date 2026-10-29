@@ -403,6 +403,8 @@ RGBA U16の操作とGPU実行は、同じ試験入口で検査する。
 `TestDocument::testIntegerRgba16EditingAndNativeFiles`は、
 `libs/libkis/tests/TestDocumentU16Blend.cpp`から整数合成の通常利用側を検査する。
 各方式で元の全65,536色成分またはアルファと12境界値を組み合わせ、既存CPU合成と全画素を比較する。
+二次式と関連する整数合成も同じ試験入口で検査し、Parallelの33ビットの分子・分母、
+二次式の丸めた積と除算、Penumbraの分岐と半分への切捨てを全成分の比較で確認する。
 部分アルファ、不透明度と成分保護、一様なグループ既定色、選択の穴を含む円形マーカー、
 Undo／Redo、KRA保存・再読込後の追加編集とPNG16も照合する。
 `LIBREPAINT_GPU_RESULT_DIR`を指定すると`u16-blend-<方式>/`へ比較画素、参照画素、

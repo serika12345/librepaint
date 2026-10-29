@@ -20,6 +20,29 @@ quint32 divideWord(quint32 a, quint32 b)
 { return (a * Unit + b / 2) / b; }
 quint16 interpolateWord(quint16 destination, quint16 source, quint32 alpha)
 { return qint64(destination) + (qint64(source) - destination) * alpha / Unit; }
+quint32 glowWord(quint32 source, quint32 destination)
+{ return destination == Unit ? Unit : std::min(Unit, divideWord(multiplyWord(source, source), Unit - destination)); }
+quint32 heatWord(quint32 source, quint32 destination)
+{
+    if (source == Unit) return Unit;
+    if (!destination) return 0;
+    return Unit - std::min(Unit, divideWord(multiplyWord(Unit - source, Unit - source), destination));
+}
+quint32 heatGlowWord(quint32 source, quint32 destination)
+{ return source + destination > Unit ? heatWord(source, destination) : source ? glowWord(source, destination) : 0; }
+quint32 freezeReflectWord(quint32 source, quint32 destination)
+{ return source + destination > Unit ? heatWord(destination, source) : destination ? glowWord(destination, source) : 0; }
+quint32 glowHeatWord(quint32 source, quint32 destination)
+{
+    if (destination == Unit) return Unit;
+    return source + destination > Unit ? glowWord(source, destination) : heatWord(source, destination);
+}
+quint32 penumbraWord(quint32 source, quint32 destination)
+{
+    if (destination == Unit) return Unit;
+    if (source + destination < Unit) return std::min(Unit, divideWord(source, Unit - destination)) / 2;
+    return source ? Unit - std::min(Unit, divideWord(Unit - destination, source) / 2) : 0;
+}
 quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
 {
     const auto dodge = [](quint32 s, quint32 d) { return s == Unit ? (d ? Unit : 0u) : std::min(Unit, divideWord(d, Unit - s)); };
@@ -64,6 +87,33 @@ quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
     case LayerBlendMode::NotImplication: return (Unit - source) & destination;
     case LayerBlendMode::Converse: return (Unit - source) | destination;
     case LayerBlendMode::NotConverse: return source & (Unit - destination);
+    case LayerBlendMode::Reflect: return glowWord(destination, source);
+    case LayerBlendMode::Glow: return glowWord(source, destination);
+    case LayerBlendMode::Freeze: return heatWord(destination, source);
+    case LayerBlendMode::Heat: return heatWord(source, destination);
+    case LayerBlendMode::GlowHeat: return glowHeatWord(source, destination);
+    case LayerBlendMode::HeatGlow: return heatGlowWord(source, destination);
+    case LayerBlendMode::ReflectFreeze: return glowHeatWord(destination, source);
+    case LayerBlendMode::FreezeReflect: return freezeReflectWord(source, destination);
+    case LayerBlendMode::QuadraticHybrid:
+        return (freezeReflectWord(source, destination) + heatGlowWord(source, destination)) * 32767u / Unit;
+    case LayerBlendMode::Parallel:
+        return source && destination ? quint32(std::min(quint64(Unit), 2 * quint64(Unit) * Unit /
+            (quint64(divideWord(Unit, source)) + divideWord(Unit, destination)))) : 0;
+    case LayerBlendMode::HardOverlay:
+        if (!destination) return 0;
+        if (source == Unit) return Unit;
+        return source >= 32767 ? std::min(Unit, destination * Unit / (2 * (Unit - source))) : destination * 2 * source / Unit;
+    case LayerBlendMode::SoftLightPegtopDelphi:
+        return std::min(Unit, multiplyWord(destination, source + destination - multiplyWord(source, destination)) +
+            multiplyWord(multiplyWord(source, destination), Unit - destination));
+    case LayerBlendMode::Negation: return Unit - qAbs(int(Unit) - int(source) - int(destination));
+    case LayerBlendMode::PenumbraA: return penumbraWord(destination, source);
+    case LayerBlendMode::PenumbraB: return penumbraWord(source, destination);
+    case LayerBlendMode::FlatLight:
+        return !source ? 0 : destination > source ? penumbraWord(source, destination) : penumbraWord(destination, source);
+    case LayerBlendMode::HardMixSofterPhotoshop:
+        return quint32(qBound(0, 3 * int(destination) - 2 * (int(Unit) - int(source)), int(Unit)));
     default: return source;
     }
 }
