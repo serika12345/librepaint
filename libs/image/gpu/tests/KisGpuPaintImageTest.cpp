@@ -51,6 +51,7 @@ private Q_SLOTS:
     void layerForestTranslationKeepsPixelsMasksAndOneHistory();
     void rejectedTranslationKeepsHiddenPixelsHistoryPreviewAndRequests();
     void colorFillKeepsVersionsHistoryAndWholeRequestFailures();
+    void contiguousFillKeepsFrozenPixelsHistoryAndClones();
     void clearedLayersKeepFixedVersionsAndRejectWholeRequests();
     void clearHistoryKeepsItsMeaningAfterDirectWrites();
     void retainedLayerPixelsRemainEditableThroughRemovalAndDiscardedHistory();
@@ -1904,6 +1905,135 @@ void KisGpuPaintImageTest::autoBrushKeepsIndependentPixelWritesAcrossUndo()
     QCOMPARE(image.readRgbaPixels(1, {70, 32, 1, 1}, 4).bytes, independent);
     QCOMPARE(image.redo(), Result::Success);
     QCOMPARE(image.readRgbaPixels(1, {70, 32, 1, 1}, 4).bytes, independent);
+}
+
+void KisGpuPaintImageTest::contiguousFillKeepsFrozenPixelsHistoryAndClones()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device, 64 * 1024 * 1024);
+    for (const auto format : {PixelFormat::Rgba8, PixelFormat::Rgba16}) {
+        for (const int threshold : {1, 8}) {
+            const quint16 maximum = maximumComponent(format);
+            const int stride = pixelByteCount(format);
+            const QRect area(0, 0, 270, 20);
+            const RgbaPixel hidden{quint16(maximum / 3), 17, 39, quint16(format == PixelFormat::Rgba16 ? 127 : 0)};
+            const RgbaPixel wall{3, 5, 7, maximum};
+            QByteArray initial;
+            for (int y = 0; y < area.height(); ++y) for (int x = 0; x < area.width(); ++x)
+                initial += rgbaBytes(x == 0 || x == 130 || x == 269 || y == 0 || y == 19 ? wall : hidden, format);
+            RasterImage raster; raster.size = area.size(); raster.format = format;
+            raster.layers = {{QStringLiteral("Closed regions"), true, {}, {}}};
+            PaintImage image(execution, raster);
+            QCOMPARE(image.writeRgbaPixels(1, area, initial), Result::Success);
+            const auto before = image.operations().snapshot();
+            auto earlier = execution.readPixelsAsync(image.handle(), before, {0, 0, 1, 1}, {1}, false);
+            RegionFillSettings settings;
+            settings.seed = {3, 3}; settings.threshold = threshold; settings.antiAlias = false;
+            const RgbaPixel color{quint16(maximum - 13), 173, 61, maximum};
+            const auto filled = image.fillRegion(1, settings, color, {});
+            QVERIFY2(filled == Result::Success, qPrintable(image.lastRequestOutcome().diagnostic + QStringLiteral("; ") + device->diagnostic()));
+            QCOMPARE(earlier.get().code, ExecutionCode::Success);
+            QCOMPARE(image.operations().undoCount(), 1);
+            auto expected = initial;
+            const auto bytes = rgbaBytes(color, format);
+            for (int y = 1; y < 19; ++y) for (int x = 1; x < 130; ++x)
+                std::memcpy(expected.data() + (y * area.width() + x) * stride, bytes.constData(), stride);
+            auto pixels = image.readRgbaPixels(1, area, expected.size());
+            QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+            QCOMPARE(pixels.bytes, expected);
+            QCOMPARE(image.undo(), Result::Success);
+            QCOMPARE(image.readRgbaPixels(1, area, initial.size()).bytes, initial);
+            QCOMPARE(image.redo(), Result::Success);
+            QCOMPARE(image.readRgbaPixels(1, area, initial.size()).bytes, expected);
+            QCOMPARE(execution.readRgbaPixels(image.handle(), before, area, 1, initial.size()).bytes, initial);
+            // A direct write changes old checkpoints too. The accepted region
+            // must still refer to its original closed wall when replayed.
+            QCOMPARE(image.writeRgbaPixels(1, {130, 3, 1, 1}, rgbaBytes(hidden, format)), Result::Success);
+            std::memcpy(expected.data() + (3 * area.width() + 130) * stride, rgbaBytes(hidden, format).constData(), stride);
+            QCOMPARE(image.readRgbaPixels(1, area, expected.size()).bytes, expected);
+            Execution other(device, 64 * 1024 * 1024);
+            auto clone = image.cloneTo(other);
+            QVERIFY(clone);
+            QCOMPARE(clone->readRgbaPixels(clone->operations().activeLayer(), area, expected.size()).bytes, expected);
+            const auto pinned = image.operations().snapshot();
+            const int count = image.operations().undoCount();
+            settings.seed = {0, 0}; settings.threshold = 8;
+            QCOMPARE(image.fillRegion(1, settings, color, {}), Result::InvalidInput);
+            QCOMPARE(image.operations().snapshot(), pinned);
+            QCOMPARE(image.operations().undoCount(), count);
+            QCOMPARE(image.readRgbaPixels(1, area, expected.size()).bytes, expected);
+            Brush brush;
+            const auto input = image.beginStroke(1, brush, 17);
+            QVERIFY(!input.isNull());
+            QCOMPARE(image.appendSamples(input, {{{17, 9}, 1}}), Result::Success);
+            const auto preview = image.operations().preview();
+            QCOMPARE(image.fillRegion(1, settings, color, {}), Result::EditInProgress);
+            QCOMPARE(image.operations().preview(), preview);
+            QCOMPARE(image.cancelStroke(input), Result::Success);
+            QCOMPARE(image.operations().undoCount(), count);
+            QCOMPARE(image.readRgbaPixels(1, area, expected.size()).bytes, expected);
+            Execution small(device, 1024 * 1024);
+            PaintImage limited(small, raster);
+            QCOMPARE(limited.writeRgbaPixels(1, area, initial), Result::Success);
+            const auto retained = limited.operations().snapshot();
+            settings.seed = {3, 3};
+            QCOMPARE(limited.fillRegion(1, settings, color, {}), Result::CapacityExceeded);
+            QCOMPARE(limited.operations().snapshot(), retained);
+            QCOMPARE(limited.operations().undoCount(), 0);
+            QCOMPARE(image.setSelectionRect({1, 1, 2, 2}), Result::Success);
+            const auto excluded = image.operations().snapshot();
+            const int history = image.operations().undoCount();
+            settings.seed = {0, 0}; settings.threshold = 8;
+            QCOMPARE(image.fillRegion(1, settings, color, {}), Result::EmptyOperation);
+            QCOMPARE(image.operations().snapshot(), excluded);
+            QCOMPARE(image.operations().undoCount(), history);
+            QCOMPARE(image.readRgbaPixels(1, area, expected.size()).bytes, expected);
+            if (format == PixelFormat::Rgba16 && threshold == 8) {
+                // Native UINT16_TO_UINT8 maps 127 to zero and 128 to one.
+                RasterImage visible; visible.size = {1, 1}; visible.format = format;
+                visible.layers = {{QStringLiteral("First visible alpha"), true, {}, {}, {11, 39, 51, 128}}};
+                PaintImage firstVisible(execution, visible);
+                settings.seed = {0, 0};
+                const auto fixed = firstVisible.operations().snapshot();
+                QCOMPARE(firstVisible.fillRegion(1, settings, color, {}), Result::InvalidInput);
+                QCOMPARE(firstVisible.operations().snapshot(), fixed);
+                QCOMPARE(firstVisible.operations().undoCount(), 0);
+            }
+        }
+    }
+    // Ordinary frames keep the preceding canvas resident. Old fill recipes
+    // whose tiles were reused must not allocate another full-region workspace.
+    Execution warm(device, 8 * 1024 * 1024);
+    RasterImage raster; raster.size = {16, 16}; raster.format = PixelFormat::Rgba16;
+    raster.layers = {{QStringLiteral("Repeated ordinary fills"), true, {}, {}}};
+    PaintImage repeated(warm, raster);
+    const QRect area(QPoint(), raster.size);
+    const auto frame = [&] {
+        const auto begun = warm.beginReadbackFrame();
+        if (begun.code != ExecutionCode::Success) return false;
+        const auto projected = warm.project(repeated.handle(), area);
+        if (projected.code != RenderOutcome::Recorded) { warm.cancelFrame(); return false; }
+        return warm.submitFrame().code == ExecutionCode::Success;
+    };
+    QVERIFY(frame());
+    RegionFillSettings settings; settings.seed = {5, 5}; settings.threshold = 1;
+    RgbaPixel last;
+    for (int i = 0; i < 32; ++i) {
+        last = {quint16(i & 1 ? 61347 : 119), 37193, 913, 65535};
+        QCOMPARE(repeated.fillRegion(1, settings, last, {}), Result::Success);
+        QVERIFY2(frame(), qPrintable(device->diagnostic()));
+    }
+    QCOMPARE(repeated.operations().undoCount(), 32);
+    const auto pixels = repeated.readRgbaPixels(1, area, 2048);
+    QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+    QCOMPARE(pixels.bytes, rgbaBytes(last, raster.format).repeated(256));
+    const auto layerPixels = warm.readLayerPixels(repeated.handle(), repeated.operations().snapshot(), 1, RgbaTile::byteCount(raster.format));
+    QVERIFY2(layerPixels.code == ExecutionCode::Success, qPrintable(layerPixels.diagnostic));
+    const auto projection = warm.readProjectionImage(repeated.handle(), repeated.operations().snapshot(), 2048);
+    QVERIFY2(projection.code == ExecutionCode::Success, qPrintable(projection.diagnostic));
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(projection.image.constBits()), 2048), pixels.bytes);
 }
 
 int main(int argc, char **argv)

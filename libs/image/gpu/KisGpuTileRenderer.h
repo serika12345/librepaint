@@ -117,6 +117,8 @@ private:
                              const QList<LayerId> &layers);
     ProjectionOutcome composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                   QRect region, const ProjectedSnapshot &base, LayerId group);
+    RenderOutcome prepareRegion(WGPUCommandEncoder commands, const RegionFillSP &region,
+                                const RenderedSnapshot &base = {});
 };
 }
 #endif

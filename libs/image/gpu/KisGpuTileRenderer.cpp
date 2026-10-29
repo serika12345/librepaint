@@ -12,6 +12,7 @@
 #include <QFile>
 #include <QMap>
 #include <QThread>
+#include <QScopeGuard>
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -429,6 +430,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         (base && (base->m_data->owner != d.budget || base->document()->documentId() != document->documentId()))) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU versions require their owning device and document")};
     }
+    if (d.regionDepth++ == 0) d.regionCache.clear();
+    const auto regionScope = qScopeGuard([&] { if (--d.regionDepth == 0) d.regionCache.clear(); });
     if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
     if (!d.selectionZeroUploaded) {
         wgpuCommandEncoderClearBuffer(commands, d.unusedSelection.get(), 0, SelectionMask::AlphaTileBytes);
@@ -1012,6 +1015,19 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     const int next = pool[0] && tiles.value(tile.key()) == pool[0] ? 1 : 0;
                     if (!pool[next]) ++required;
                 }
+                std::shared_ptr<BufferStorage> regionCoverage;
+                if (operation.region && !affected.isEmpty()) {
+                    if (const auto failure = flushPaint()) return *failure;
+                    auto cached = d.regionCache.constFind(operation.region.data());
+                    if (cached == d.regionCache.cend() || cached->source.toStrongRef() != operation.region) {
+                        const auto prepared = prepareRegion(commands, operation.region, base);
+                        if (prepared.code != RenderOutcome::Recorded) return prepared;
+                        cached = d.regionCache.constFind(operation.region.data());
+                    }
+                    if (cached == d.regionCache.cend())
+                        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU contiguous coverage was not generated")};
+                    regionCoverage = cached->coverage.pixels;
+                }
                 if (!d.ensureTileCapacity(required, document->format)) {
                     return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
                 }
@@ -1120,7 +1136,13 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.values.selectionHeight = operation.selectionRect.height();
                     if (operation.selectionInverted) job.values.paintFlags |= 1024u;
                     if (operation.selectionKind == SelectionKind::Ellipse) job.values.paintFlags |= 2048u;
-                    if (operation.selectionKind == SelectionKind::Freehand) {
+                    if (regionCoverage) {
+                        job.values.paintFlags |= ContiguousRegion;
+                        job.values.patternReserved0 = operation.region->source->size.width();
+                        job.values.patternReserved1 = operation.region->source->size.height();
+                        job.selectionCoverage = std::shared_ptr<NativeBuffer>(regionCoverage, &regionCoverage->pixels);
+                        d.device->retainForFrame(regionCoverage);
+                    } else if (operation.selectionKind == SelectionKind::Freehand) {
                         if (!operation.selectionMask || operation.selectionMask->isEmpty())
                             return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU freehand selection has no coverage")};
                         job.values.paintFlags |= 4096u;

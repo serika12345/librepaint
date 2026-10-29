@@ -918,6 +918,30 @@ Result PaintImage::fillLayerPattern(LayerId layer, const PatternFill &pattern,
                                     qreal opacity, bool erase, bool alphaLocked,
                                     LayerBlendMode blendMode)
 { return onThread() ? publish(m_d->document->fillLayerPattern(layer, pattern, opacity, erase, alphaLocked, blendMode)) : Result::InvalidInput; }
+
+Result PaintImage::fillRegion(LayerId layer, const RegionFillSettings &settings, const RgbaPixel &color,
+                            const std::optional<PatternFill> &pattern, qreal opacity, bool erase,
+                            bool alphaLocked, LayerBlendMode blendMode)
+{
+    if (!onThread()) return Result::InvalidInput;
+    try {
+        RegionFillSP region;
+        const auto prepared = m_d->document->prepareRegionFill(layer, settings, &region);
+        if (prepared != Result::Success) return prepared;
+        QRect bounds;
+        const auto checked = m_d->execution.checkRegionFill(m_d->handle, region, &bounds);
+        if (checked.code != ExecutionCode::Success) {
+            m_d->lastRequest = checked;
+            return resultFor(checked.code);
+        }
+        if (bounds.isEmpty()) return Result::EmptyOperation;
+        auto bounded = QSharedPointer<RegionFill>::create(*region);
+        bounded->bounds = bounds;
+        return publish(m_d->document->fillRegion(layer, bounded, color, pattern, opacity, erase, alphaLocked, blendMode));
+    } catch (const std::bad_alloc &) {
+        return Result::CapacityExceeded;
+    }
+}
 Result PaintImage::invertColors(LayerId layer)
 { return onThread() ? publish(m_d->document->invertColors(layer)) : Result::InvalidInput; }
 Result PaintImage::grayscale(LayerId layer)

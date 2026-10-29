@@ -7278,7 +7278,9 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing_data()
     for (const bool words : {false, true}) {
         for (const auto *name : {"foreground", "background-custom-copy", "pattern", "pattern-rotated",
                                  "pattern-small-scale", "pattern-zero-scale", "pattern-alpha-lock", "pattern-protected", "pattern-softlight", "erase",
-                                 "offcanvas-foreground", "offcanvas-pattern", "unselected-foreground", "unselected-pattern", "alt-selection", "action-softlight", "action-pattern", "rectangle-pattern", "ellipse-pattern", "api-pattern", "api-pattern-softlight"}) {
+                                 "offcanvas-foreground", "offcanvas-pattern", "unselected-foreground", "unselected-pattern", "alt-selection", "action-softlight", "action-pattern", "rectangle-pattern", "ellipse-pattern", "api-pattern", "api-pattern-softlight",
+                                 "contiguous-foreground", "contiguous-default", "contiguous-opaque", "contiguous-background",
+                                 "contiguous-pattern-rotated", "contiguous-pattern-masked", "contiguous-pattern-protected", "contiguous-erase"}) {
             QTest::newRow(QByteArray(QByteArray(words ? "word-" : "byte-") + name).constData()) << words << QString::fromLatin1(name);
         }
     }
@@ -7290,19 +7292,22 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     QFETCH(QString, scenario);
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const bool contiguous = scenario.startsWith(QLatin1String("contiguous"));
+    const bool defaultThreshold = scenario == QLatin1String("contiguous-default");
+    const bool opaqueRegion = scenario == QLatin1String("contiguous-opaque");
     const bool offcanvas = scenario.startsWith(QLatin1String("offcanvas"));
     const QRect region(offcanvas ? QPoint(-12, -9) : QPoint(), QSize(64, 64));
     const int stride = cs->pixelSize();
     const bool api = scenario.startsWith(QLatin1String("api"));
     const bool figure = api || scenario.startsWith(QLatin1String("rectangle")) || scenario.startsWith(QLatin1String("ellipse"));
-    const bool unselected = api || scenario.startsWith(QLatin1String("unselected"));
+    const bool unselected = api || scenario.startsWith(QLatin1String("unselected")) || (contiguous && !scenario.contains(QLatin1String("masked")));
     const bool pattern = scenario.contains(QLatin1String("pattern"));
-    const bool background = scenario.startsWith(QLatin1String("background"));
+    const bool background = scenario.contains(QLatin1String("background"));
     const bool custom = background;
     const bool action = scenario.startsWith(QLatin1String("action"));
     const bool alphaLock = scenario.contains(QLatin1String("alpha-lock"));
     const bool protect = scenario.contains(QLatin1String("protected"));
-    const bool erase = scenario == QLatin1String("erase");
+    const bool erase = scenario.endsWith(QLatin1String("erase"));
     const bool softlight = scenario.contains(QLatin1String("softlight"));
     const bool alternate = scenario == QLatin1String("alt-selection");
     const auto composite = custom ? QStringLiteral("copy") : softlight ? QStringLiteral("soft_light") :
@@ -7316,7 +7321,18 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
         configuration.deleteGroup();
         for (auto i = oldEntries.cbegin(); i != oldEntries.cend(); ++i) configuration.writeEntry(i.key(), i.value());
     });
-    configuration.writeEntry("whatToFill", alternate ? "fillContiguousRegion" : "fillSelection");
+    configuration.writeEntry("whatToFill", alternate || contiguous ? "fillContiguousRegion" : "fillSelection");
+    if (contiguous) {
+        configuration.writeEntry("thresholdAmount", defaultThreshold ? 8 : 1);
+        configuration.writeEntry("opacitySpread", 100);
+        configuration.writeEntry("antiAlias", false);
+        configuration.writeEntry("closeGapAmount", 0);
+        configuration.writeEntry("growSelection", 0);
+        configuration.writeEntry("featherAmount", 0);
+        configuration.writeEntry("sampleLayersMode", "currentLayer");
+        configuration.writeEntry("contiguousFillMode", "floodFill");
+        configuration.writeEntry("useSelectionAsBoundary", true);
+    }
     configuration.writeEntry("fillWith", pattern ? "pattern" : background ? "backgroundColor" : "foregroundColor");
     configuration.writeEntry("patternScale", scale);
     configuration.writeEntry("patternRotate", rotation);
@@ -7372,9 +7388,15 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     window->viewManager()->nodeManager()->slotUiActivatedNode(node);
     QByteArray initial(region.width() * region.height() * stride, '\0');
     for (int y = 0; y < region.height(); ++y) for (int x = 0; x < region.width(); ++x) {
-        const Gpu::RgbaPixel pixel = words ? Gpu::RgbaPixel{quint16(119 + x * 813), quint16(931 + y * 577), 39113,
+        Gpu::RgbaPixel pixel = words ? Gpu::RgbaPixel{quint16(119 + x * 813), quint16(931 + y * 577), 39113,
             quint16((x + y) % 7 == 0 ? 0 : (x + y) % 5 == 0 ? 1 : 41513)} :
             Gpu::RgbaPixel{quint16(1 + x * 3), quint16(5 + y * 2), 183, quint16((x + y) % 7 == 0 ? 0 : 161)};
+        if (contiguous) {
+            const bool interior = y >= 4 && y < 60 && ((x >= 4 && x < 30) || (x >= 34 && x < 60));
+            const quint16 maximum = Gpu::maximumComponent(raster.format);
+            pixel = {quint16(maximum / 7), 177, quint16(maximum / 3), quint16(interior && !opaqueRegion ? 0 : maximum)};
+            if (!interior) pixel[0] = maximum;
+        }
         const auto bytes = Gpu::rgbaBytes(pixel, raster.format);
         std::memcpy(initial.data() + (y * region.width() + x) * stride, bytes.constData(), stride);
     }
@@ -7415,7 +7437,23 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     resources->slotPatternActivated(patternResource);
     QTransform transform;
     transform.rotate(rotation); transform.scale(scale * .01, scale * .01);
+    int regionEdits = 0;
+    const auto regionSeed = [&] { return defaultThreshold && regionEdits > 0 ? QPoint(40, 24) : QPoint(24, 24); };
     const auto applyExpected = [&] {
+        if (contiguous) {
+            KisFillPainter fill(expectedDevice, selection);
+            fill.setWidth(region.width()); fill.setHeight(region.height());
+            fill.setFillThreshold(defaultThreshold ? 8 : 1); fill.setOpacitySpread(100);
+            fill.setUseCompositing(true); fill.setCareForSelection(bool(selection));
+            fill.setUseSelectionAsBoundary(bool(selection)); fill.setAntiAlias(false);
+            fill.setOpacityF(opacity); fill.setCompositeOpId(composite); fill.setChannelFlags(flags);
+            fill.setPaintColor(background ? resources->bgColor() : resources->fgColor());
+            fill.setPattern(patternResource);
+            const auto seed = regionSeed();
+            if (pattern) fill.fillPattern(seed.x(), seed.y(), expectedDevice, transform);
+            else fill.fillColor(seed.x(), seed.y(), expectedDevice);
+            return;
+        }
         if (figure) {
             KisPainter painter(expectedDevice, selection);
             painter.setPattern(patternResource); painter.setPatternTransform(transform);
@@ -7483,7 +7521,7 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
                     if (auto *size = widget->findChild<KisDoubleSliderSpinBox *>(QStringLiteral("sldScale"))) size->setValue(scale);
                 }
             }
-            const auto point = view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(24, 24));
+            const auto point = view->canvasBase()->coordinatesConverter()->imageToDocument(contiguous ? QPointF(regionSeed()) : QPointF(24, 24));
             QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton,
                               alternate ? Qt::AltModifier : Qt::NoModifier);
             KoPointerEvent first(&press, point); tool->beginPrimaryAction(&first);
@@ -7507,6 +7545,7 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     applyExpected();
     QVERIFY(click());
     QTRY_COMPARE(owner->operations().undoCount(), count + 1);
+    ++regionEdits;
     const auto expected = expectedPixels();
     auto actual = owner->readRgbaPixels(layer, region, initial.size());
     QCOMPARE(actual.code, Gpu::ExecutionCode::Success);

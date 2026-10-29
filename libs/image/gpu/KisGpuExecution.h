@@ -132,6 +132,7 @@ public:
     ExecutionOutcome submitFrame();
     ExecutionOutcome cancelFrame();
 
+
     /**
      * Synchronous external read of a retained version belonging to an attached
      * document. Completes earlier admitted native reads before starting this read;
@@ -275,6 +276,10 @@ private:
     struct Private;
     std::unique_ptr<Private> m_d;
     FrameOutcome beginFrame(PresentationSurface *surface);
+    friend class PaintImage;
+    /** Checks contiguous coverage before history adoption. Only admission
+     * status and bounds cross to the CPU; editing pixels stay on the GPU. */
+    ExecutionOutcome checkRegionFill(DocumentHandle handle, const RegionFillSP &region, QRect *bounds);
     ExecutionOutcome endFrame(bool publish, bool waitForReadback = true);
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();

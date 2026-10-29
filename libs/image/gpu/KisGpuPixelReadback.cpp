@@ -374,11 +374,14 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
     outcome.region = {-limit, -limit, 2 * limit, 2 * limit};
     outcome.writtenAreas = plan.writtenAreas;
     if (plan.coordinates.isEmpty()) return outcome;
-    const auto retired = retireDisplayCaches();
-    if (retired.code != ExecutionCode::Success) return failure(retired.code, retired.diagnostic);
     for (const auto coordinate : plan.coordinates) {
         const QRect region(coordinate * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
-        const auto pixels = readPixels(handle, pinned, region, {layer}, false, PixelReadArea::LayerCoordinates);
+        auto pixels = readPixels(handle, pinned, region, {layer}, false, PixelReadArea::LayerCoordinates);
+        if (pixels.code == ExecutionCode::CapacityExceeded) {
+            const auto retired = retireDisplayCaches();
+            if (retired.code != ExecutionCode::Success) return failure(retired.code, retired.diagnostic);
+            pixels = readPixels(handle, pinned, region, {layer}, false, PixelReadArea::LayerCoordinates);
+        }
         if (pixels.code != ExecutionCode::Success) return failure(pixels.code, pixels.diagnostic);
         outcome.tiles.append(pixels.tiles);
     }
@@ -423,15 +426,16 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
     if (outcome.image.isNull()) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Projection image allocation failed"));
     outcome.image.fill(Qt::transparent);
     outcome.image.setColorSpace(pinned->format == PixelFormat::Rgba16 ? QColorSpace::SRgbLinear : QColorSpace::SRgb);
-    if (!coordinates.isEmpty()) {
-        const auto retired = retireDisplayCaches();
-        if (retired.code != ExecutionCode::Success) return rejected(retired.code, retired.diagnostic);
-    }
     auto ordered = coordinates.values();
     std::sort(ordered.begin(), ordered.end());
     for (const auto coordinate : ordered) {
         const QRect region(Detail::coordinate(coordinate) * size, QSize(size, size));
-        const auto pixels = readPixels(handle, pinned, region);
+        auto pixels = readPixels(handle, pinned, region);
+        if (pixels.code == ExecutionCode::CapacityExceeded) {
+            const auto retired = retireDisplayCaches();
+            if (retired.code != ExecutionCode::Success) return rejected(retired.code, retired.diagnostic);
+            pixels = readPixels(handle, pinned, region);
+        }
         if (pixels.code != ExecutionCode::Success) return rejected(pixels.code, pixels.diagnostic);
         for (const auto &tile : pixels.tiles) {
             const auto origin = tile.coordinate * size;
@@ -504,23 +508,25 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
         for (qsizetype offset = 0; offset < outcome.bytes.size(); offset += pixelSize)
             std::memcpy(outcome.bytes.data() + offset, pixel.constData(), pixelSize);
     }
-    if (!coordinates.isEmpty()) {
-        const auto retired = retireDisplayCaches();
-        if (retired.code != ExecutionCode::Success) return rejected(retired.code, retired.diagnostic);
-    }
     auto ordered = coordinates.values();
     std::sort(ordered.begin(), ordered.end());
     for (const auto coordinate : ordered) {
         const QRect tileRegion(Detail::coordinate(coordinate) * size, QSize(size, size));
-        PixelReadbackOutcome pixels;
-        if (copyMask) {
+        const auto readPart = [&]() -> PixelReadbackOutcome {
+            if (!copyMask) return readPixels(handle, pinned, tileRegion, layers, !layer, PixelReadArea::LayerCoordinates);
             auto pending = readPixelsAsyncImpl(handle, pinned, tileRegion, layers, !layer,
                 PixelReadArea::LayerCoordinates, false, false, false, false, copyMask, invertMask);
             if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
-                return rejected(ExecutionCode::DeviceFailure, QStringLiteral("GPU selection copy completion failed"));
+                return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU selection copy completion failed"));
             retireCompletedReadback();
-            pixels = pending.get();
-        } else pixels = readPixels(handle, pinned, tileRegion, layers, !layer, PixelReadArea::LayerCoordinates);
+            return pending.get();
+        };
+        auto pixels = readPart();
+        if (pixels.code == ExecutionCode::CapacityExceeded) {
+            const auto retired = retireDisplayCaches();
+            if (retired.code != ExecutionCode::Success) return rejected(retired.code, retired.diagnostic);
+            pixels = readPart();
+        }
         if (pixels.code != ExecutionCode::Success) return rejected(pixels.code, pixels.diagnostic);
         for (const auto &tile : pixels.tiles) {
             const auto origin = tile.coordinate * size;

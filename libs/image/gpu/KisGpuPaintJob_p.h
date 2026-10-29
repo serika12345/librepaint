@@ -37,6 +37,7 @@ constexpr quint32 UniformPixelFill = 16384u;
 constexpr quint32 PartialRgba16Source = 32768u;
 constexpr quint32 RestrictNonCopyDestination = 65536u;
 constexpr quint32 ClearSelectedPixels = 131072u;
+constexpr quint32 ContiguousRegion = 262144u;
 
 struct PaintJob
 {

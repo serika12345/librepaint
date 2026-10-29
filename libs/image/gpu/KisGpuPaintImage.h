@@ -268,6 +268,9 @@ public:
     Result fillLayerPattern(LayerId layer, const PatternFill &pattern, qreal opacity = 1,
                             bool erase = false, bool alphaLocked = false,
                             LayerBlendMode blendMode = LayerBlendMode::Normal);
+    Result fillRegion(LayerId layer, const RegionFillSettings &settings, const RgbaPixel &color,
+                      const std::optional<PatternFill> &pattern, qreal opacity = 1, bool erase = false,
+                      bool alphaLocked = false, LayerBlendMode blendMode = LayerBlendMode::Normal);
     /** Complements RGB within the current selection coverage as one history
      * entry. The filter operation freezes the selection and survives Undo/Redo and KRA pixel saving; alpha and unselected pixels stay intact.
      */

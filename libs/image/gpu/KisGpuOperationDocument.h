@@ -30,7 +30,32 @@
 namespace LibrePaint::Image::Gpu {
 
 using LayerId = quint64;
+class DocumentVersion;
+using Snapshot = QSharedPointer<const DocumentVersion>;
 enum class SelectionKind : quint8 { Rectangle, Ellipse, Freehand };
+
+/** Contiguous fill inputs in document coordinates. Difference and coverage
+ * use the native fill tool's threshold and opacity-spread rules. */
+struct RegionFillSettings
+{
+    QPoint seed;
+    int threshold = 8;
+    int opacitySpread = 100;
+    bool selectionAsBoundary = false;
+    bool antiAlias = false;
+};
+
+/** Frozen reference pixels for a contiguous fill. Replaying history, cloning
+ * and recovery evaluate the same predecessor, independently of later writes. */
+struct RegionFill
+{
+    Snapshot source;
+    QWeakPointer<const DocumentVersion> preparedFor;
+    LayerId layer = 0;
+    RegionFillSettings settings;
+    QRect bounds;
+};
+using RegionFillSP = QSharedPointer<const RegionFill>;
 
 /** One participant in an ordinary move. Pixel and transparency-mask locks
  * are resolved by the tool's current node selection before admission.
@@ -315,6 +340,8 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
     FigureStyle figureStyle;
     /** Exact merge rectangle for a canvas fill; brush/figure merges use their allocated source regions. */
     std::optional<QRect> compositionBounds;
+    /** GPU-generated contiguous coverage, intersected with the frozen selection. */
+    RegionFillSP region;
     /** Native selected-area clear restores transparent default pixels after masking. */
     bool clearsSelectedPixels = false;
     /** Accepted input counts at which an idle timeout completed the current curve. */
@@ -709,8 +736,6 @@ private:
     mutable bool m_committed = false;
     OperationId m_pendingOperation;
 };
-
-using Snapshot = QSharedPointer<const DocumentVersion>;
 
 /** Frozen layer pixels and fresh destination properties for one prepared node. */
 struct LayerInsertion
@@ -1120,11 +1145,17 @@ private:
     };
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
+    /** Preparation retains bounded immutable reference inputs without changing
+     * history. GPU admission checks precede adopting the prepared fill. */
+    Result prepareRegionFill(LayerId layer, const RegionFillSettings &settings, RegionFillSP *region) const;
+    Result fillRegion(LayerId layer, const RegionFillSP &region, const RgbaPixel &color,
+                      const std::optional<PatternFill> &pattern, qreal opacity, bool erase,
+                      bool alphaLocked, LayerBlendMode blendMode);
     Result fillLayerStyle(LayerId layer, const RgbaPixel &color, const FigureStyle &style,
                           qreal opacity, bool erase, bool alphaLocked);
     Result paintFigureWithin(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
                              const Shape &shape, const FigureStyle &style, quint64 randomSeed,
-                             const std::optional<QRect> &compositionBounds);
+                             const std::optional<QRect> &compositionBounds, const RegionFillSP &region = {});
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);

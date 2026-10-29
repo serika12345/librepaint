@@ -195,7 +195,7 @@ private:
     void addFillingOperation(const QVector<QPoint> &seedPoints);
     void addUpdateOperation();
     void endFilling();
-    void fillGpuSelection();
+    void fillGpuSelection(QPoint seed = QPoint(-1, -1));
 
     void loadConfiguration();
     KoColor loadContiguousFillBoundaryColorFromConfig();

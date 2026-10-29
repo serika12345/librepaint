@@ -431,7 +431,18 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let insideSelectionBounds = pixel.x >= selection.x && pixel.y >= selection.y &&
         pixel.x < selection.x + selection.z && pixel.y < selection.y + selection.w;
     var selectionAlpha = 255u;
-    if (maskSelection || (selection.z > 0 && selection.w > 0)) {
+    if ((parameters.paintFlags & 262144u) != 0u) {
+        let extent = parameters.patternSampling.zw;
+        if (pixel.x < 0 || pixel.y < 0 || u32(pixel.x) >= extent.x || u32(pixel.y) >= extent.y) {
+            writePaintPixel(index, paintBase(index));
+            return;
+        }
+        selectionAlpha = selectionCoverage[u32(pixel.y) * extent.x + u32(pixel.x)];
+        if (selectionAlpha == 0u) {
+            writePaintPixel(index, paintBase(index));
+            return;
+        }
+    } else if (maskSelection || (selection.z > 0 && selection.w > 0)) {
         var inside = false;
         if (maskSelection && softSelection) {
             // Four alpha bytes per word; the renderer binds the frozen coverage tile.

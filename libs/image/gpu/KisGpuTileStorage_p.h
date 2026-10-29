@@ -160,6 +160,17 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline resizePipeline;
     Detail::NativeBindingLayout colorSampleLayout;
     Detail::NativeComputePipeline colorSamplePipeline;
+    Detail::NativeBindingLayout regionLayout;
+    std::array<Detail::NativeComputePipeline, 3> regionPipelines;
+    struct RegionCoverage {
+        std::shared_ptr<Detail::BufferStorage> pixels, status;
+    };
+    struct RegionCacheEntry {
+        QWeakPointer<const RegionFill> source;
+        RegionCoverage coverage;
+    };
+    QHash<const RegionFill *, RegionCacheEntry> regionCache;
+    int regionDepth = 0;
     bool selectionZeroUploaded = false;
     QString error;
     QWeakPointer<const RenderedVersion> coverageVersion;
@@ -201,6 +212,13 @@ struct TileRenderer::Private
     /** Uploads the mask's alpha tile for one document tile coordinate. */
     std::shared_ptr<Detail::CoverageTile> coverageTile(const SelectionMaskSP &mask, quint64 coordinate);
     void clearMaskTiles();
+    struct RegionResult {
+        RenderOutcome::Code code;
+        RegionCoverage coverage;
+        QString diagnostic;
+    };
+    RegionResult regionCoverage(WGPUCommandEncoder commands, const RegionFillSP &region,
+                                const RenderedSnapshot &source);
     struct TranslationResult {
         RenderOutcome::Code code;
         Detail::Tiles tiles;

@@ -29,6 +29,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <KisGpuBlendMode.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
 #include <QPointer>
 #include <cstring>
 
@@ -202,6 +203,8 @@ void KisToolFill::beginPrimaryAction(KoPointerEvent *event)
     if (image()->gpuImage()) {
         if (m_effectiveFillMode == FillMode_FillSelection) {
             fillGpuSelection();
+        } else if (m_effectiveFillMode == FillMode_FillContiguousRegion) {
+            fillGpuSelection(lastImagePosition);
         } else {
             static_cast<KisCanvas2 *>(canvas())->viewManager()->showFloatingMessage(
                 i18n("Color-region filling is not yet available for this document."), QIcon());
@@ -375,13 +378,14 @@ void KisToolFill::beginFilling(const QPoint &seedPoint)
     m_resourcesSnapshot->setFillTransform(m_transform);
 }
 
-void KisToolFill::fillGpuSelection()
+void KisToolFill::fillGpuSelection(QPoint seed)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     const QPointer<KisToolFill> lifetime(this);
     const QPointer<KisViewManager> view(static_cast<KisCanvas2 *>(canvas())->viewManager());
     const auto targetImage = image();
     const auto owner = targetImage->gpuImage();
+    const auto encoding = owner->operations().snapshot();
     const auto node = currentNode();
     const auto reject = [view](const QString &message) {
         if (view) view->showFloatingMessage(message, QIcon(), 2000, KisFloatingMessage::Low);
@@ -402,6 +406,20 @@ void KisToolFill::fillGpuSelection()
         return;
     }
     const bool mask = targetImage->isGpuTransparencyMaskView(node);
+    const bool region = seed.x() >= 0 && seed.y() >= 0;
+    Gpu::RegionFillSettings regionSettings;
+    if (region) {
+        if (mask || m_reference != Reference_CurrentLayer ||
+            m_contiguousFillMode != ContiguousFillMode_FloodFill || m_closeGap || m_sizemod || m_feather || m_antiAlias) {
+            reject(i18n("Contiguous GPU filling currently requires the current paint layer, flood fill, no anti-aliasing, no gap closing, no growth and no feathering."));
+            return;
+        }
+        regionSettings.seed = seed;
+        regionSettings.threshold = m_threshold;
+        regionSettings.opacitySpread = m_opacitySpread;
+        regionSettings.selectionAsBoundary = m_useSelectionAsBoundary;
+        regionSettings.antiAlias = m_antiAlias;
+    }
     const auto target = mask ? node->parent() : node;
     Gpu::LayerId layer = 0;
     for (const auto &candidate : owner->operations().snapshot()->layers)
@@ -438,12 +456,23 @@ void KisToolFill::fillGpuSelection()
     // before re-entry, and admission verifies the original document and node.
     if (!view->blockUntilOperationsFinished(targetImage) || !lifetime || !view ||
         view->image() != targetImage || targetImage->gpuImage() != owner || lifetime->currentNode() != node) return;
-    const auto result = mask
+    const auto ready = owner->operations().snapshot();
+    if (ready->format != encoding->format || ready->colorProfile != encoding->colorProfile) {
+        reject(i18n("The document color space changed before filling. Please try again."));
+        return;
+    }
+    const auto result = region ? owner->fillRegion(layer, regionSettings, pixel, pattern, opacity, erase, alphaLocked, *blend) : mask
         ? (pattern ? owner->fillTransparencyMaskPattern(layer, *pattern, opacity, erase, alphaLocked)
                    : owner->fillTransparencyMask(layer, maskColor, opacity, erase, alphaLocked))
         : (pattern ? owner->fillLayerPattern(layer, *pattern, opacity, erase, alphaLocked, *blend)
                    : owner->fillLayerColor(layer, pixel, opacity, erase, alphaLocked, *blend));
-    if (result != Gpu::Result::Success) reject(i18n("The selected layer could not be filled."));
+    if (result == Gpu::Result::EmptyOperation) return;
+    if (result != Gpu::Result::Success) {
+        const auto diagnostic = owner->lastRequestOutcome().diagnostic;
+        reject(region && result == Gpu::Result::InvalidInput && !diagnostic.isEmpty()
+            ? i18n("Filling from an opaque color currently requires a threshold of 1.")
+            : i18n("The selected layer could not be filled."));
+    }
     else if (view && lifetime) view->canvasResourceProvider()->slotPainting();
 }
 

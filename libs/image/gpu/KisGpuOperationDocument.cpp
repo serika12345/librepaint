@@ -766,7 +766,7 @@ Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const Q
 
 Result OperationDocument::paintFigureWithin(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
                                             const Shape &shape, const FigureStyle &style, quint64 randomSeed,
-                                            const std::optional<QRect> &compositionBounds)
+                                            const std::optional<QRect> &compositionBounds, const RegionFillSP &region)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -793,6 +793,7 @@ Result OperationDocument::paintFigureWithin(LayerId layer, const Brush &brush, c
     if (compositionBounds) {
         auto operation = QSharedPointer<PaintOperation>::create(*m_edit);
         operation->compositionBounds = compositionBounds;
+        operation->region = region;
         m_edit = operation;
     }
     const auto rollback = qScopeGuard([&] { if (m_edit && m_edit->id == id) cancelStroke(id); });
