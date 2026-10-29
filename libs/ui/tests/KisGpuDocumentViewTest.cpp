@@ -536,7 +536,7 @@ void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving()
              scenario == QLatin1String("add") || scenario == QLatin1String("linear_dodge"))
         compositeOp = scenario;
     else if (scenario.startsWith(QLatin1String("reject-")))
-        compositeOp = QStringLiteral("soft_light");
+        compositeOp = QStringLiteral("librepaint-test-invalid-composite");
     resources->setCurrentCompositeOp(compositeOp);
     resources->resourceManager()->setResource(KoCanvasResource::GlobalAlphaLock,
         scenario == QLatin1String("alpha-lock") || eraseScenario);
@@ -1039,7 +1039,7 @@ void KisGpuDocumentViewTest::lineToolPreservesPreviewCancellationAndHistory()
     try {
         if (reject) {
             const auto before = owner->operations().snapshot();
-            resources->setCurrentCompositeOp(QStringLiteral("soft_light"));
+            resources->setCurrentCompositeOp(QStringLiteral("librepaint-test-invalid-composite"));
             press({16, 16});
             move({40, 16});
             if (rejectOnRelease) release({40, 16});
@@ -5408,6 +5408,7 @@ void KisGpuDocumentViewTest::brushBlendModeUsesEffectiveCompositeOpAndRejectsUns
     const QList<QPair<QString, Gpu::LayerBlendMode>> mappings = {
         {QStringLiteral("normal"), Gpu::LayerBlendMode::Normal},
         {QStringLiteral("multiply"), Gpu::LayerBlendMode::Multiply},
+        {QStringLiteral("soft_light"), Gpu::LayerBlendMode::SoftLightPhotoshop},
         {QStringLiteral("screen"), Gpu::LayerBlendMode::Screen},
         {QStringLiteral("darken"), Gpu::LayerBlendMode::Darken},
         {QStringLiteral("lighten"), Gpu::LayerBlendMode::Lighten},
@@ -5425,9 +5426,9 @@ void KisGpuDocumentViewTest::brushBlendModeUsesEffectiveCompositeOpAndRejectsUns
     // Leave eraser mode before exercising the unsupported painting blend.
     resources->setEraserMode(false);
     QVERIFY(!resources->eraserMode());
-    const auto unsupported = capture(QStringLiteral("soft_light"));
+    const auto unsupported = capture(QStringLiteral("librepaint-test-invalid-composite"));
     QCOMPARE(resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString(),
-             QStringLiteral("soft_light"));
+             QStringLiteral("librepaint-test-invalid-composite"));
     QVERIFY(!unsupported.diagnostic.isEmpty());
     QCOMPARE(unsupported.brush.blendMode, Gpu::LayerBlendMode::Normal);
 
@@ -5480,8 +5481,8 @@ void KisGpuDocumentViewTest::brushBlendModeUsesEffectiveCompositeOpAndRejectsUns
     QCOMPARE(painted.code, Gpu::ExecutionCode::Success);
     QVERIFY(quint8(painted.bytes.at(3)) > 0);
 
-    // The rejected overlay mode must not add a history entry or draw pixels.
-    resources->setCurrentCompositeOp(QStringLiteral("soft_light"));
+    // Invalid resource settings must not add a history entry or draw pixels.
+    resources->setCurrentCompositeOp(QStringLiteral("librepaint-test-invalid-composite"));
     const auto beforeRejected = owner->operations().snapshot();
     QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, first);
     QTest::qWait(20);
