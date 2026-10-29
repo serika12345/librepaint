@@ -408,7 +408,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         writePaintPixel(index, copyPixel(base, vec4<u32>(source, alpha), opacity, writable, parameters.native.z != 0u));
         return;
     }
-    if (parameters.erase == 0u && parameters.native.z != 0u && (blendMode == 127u || blendMode == 129u)) {
+    if (parameters.erase == 0u && parameters.native.z != 0u && (blendMode >= 127u && blendMode <= 129u)) {
         let block = (local.y / 64u) * 4u + local.x / 64u;
         if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
         if (!sourceHasColor) { source = vec3<u32>(0u); }

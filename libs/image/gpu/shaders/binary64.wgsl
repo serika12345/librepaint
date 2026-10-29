@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: 2004 Sun Microsystems, Inc.
+// SPDX-License-Identifier: GPL-2.0-or-later AND SunPro
 
 alias Word64 = vec2<u32>;
 alias Word128 = vec4<u32>;
@@ -252,4 +253,31 @@ fn floatSqrt(value: u32) -> u32 {
     var exponent = (power - i32(odd)) / 2;
     if (root == 0x1000000u) { root >>= 1u; exponent += 1; }
     return (u32(exponent + 127) << 23u) | (root & 0x7fffffu);
+}
+
+// Finite [-40,40] exponent for the native Greater curve. Reduction and
+// coefficients derive from OpenLibm e_exp.c; notice: LICENSES/SunPro.txt.
+// https://github.com/JuliaMath/openlibm/blob/5fe399749f9276eaa0b8403e507470da05cbbb3f/src/e_exp.c
+fn greaterCurveExp(value: Word64) -> Word64 {
+    let one = Word64(0u, 0x3ff00000u);
+    let two = Word64(0u, 0x40000000u);
+    let magnitude = i32(doubleTruncate(doubleAdd(doubleMultiply(doubleMagnitude(value), Word64(0x652b82feu, 0x3ff71547u)), Word64(0u, 0x3fe00000u))));
+    let exponent = select(magnitude, -magnitude, (value.y & 0x80000000u) != 0u);
+    var integral = doubleInteger(u32(magnitude));
+    if (exponent < 0) { integral = doubleNegate(integral); }
+    let high = doubleSubtract(value, doubleMultiply(integral, Word64(0xfee00000u, 0x3fe62e42u)));
+    let low = doubleMultiply(integral, Word64(0x35793c76u, 0x3dea39efu));
+    let reduced = doubleSubtract(high, low);
+    let square = doubleMultiply(reduced, reduced);
+    var polynomial = doubleAdd(Word64(0xc5d26bf1u, 0xbebbbd41u), doubleMultiply(square, Word64(0x72bea4d0u, 0x3e663769u)));
+    polynomial = doubleAdd(Word64(0xaf25de2cu, 0x3f11566au), doubleMultiply(square, polynomial));
+    polynomial = doubleAdd(Word64(0x16bebd93u, 0xbf66c16cu), doubleMultiply(square, polynomial));
+    polynomial = doubleAdd(Word64(0x5555553eu, 0x3fc55555u), doubleMultiply(square, polynomial));
+    let correction = doubleSubtract(reduced, doubleMultiply(square, polynomial));
+    if (exponent == 0) {
+        return doubleSubtract(one, doubleSubtract(doubleDivide(doubleMultiply(reduced, correction), doubleSubtract(correction, two)), reduced));
+    }
+    var result = doubleSubtract(one, doubleSubtract(doubleSubtract(low, doubleDivide(doubleMultiply(reduced, correction), doubleSubtract(two, correction))), high));
+    result.y = u32(i32(result.y) + exponent * 1048576);
+    return result;
 }

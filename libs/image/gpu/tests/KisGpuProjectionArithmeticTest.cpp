@@ -4,10 +4,12 @@
  */
 
 #include <QFile>
+#include <QDir>
 #include <QGuiApplication>
 #include <QTest>
 #include <gpu/KisGpuDevice.h>
 #include <gpu/KisGpuReadbackBatch_p.h>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstring>
@@ -34,6 +36,7 @@ private Q_SLOTS:
     void normalRgba8AlphaAndQuotientsPreserveNearestEvenRounding();
     void normalRgba8ColorsPreserveBothRoundingSteps();
     void normalRgba16PreservesNativeComponentsAndFusedRounding();
+    void greaterRgba16WeightsMatchNativeFloatStages();
 };
 
 void KisGpuProjectionArithmeticTest::normalRgba8AlphaAndQuotientsPreserveNearestEvenRounding()
@@ -472,6 +475,122 @@ fn nativeContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
                 .arg(inputs[index].mask).arg(inputs[index].writable)
                 .arg(pixel[0]).arg(pixel[1]).arg(pixel[2]).arg(pixel[3])
                 .arg(expected[index][0]).arg(expected[index][1]).arg(expected[index][2]).arg(expected[index][3])));
+        }
+    }
+}
+
+void KisGpuProjectionArithmeticTest::greaterRgba16WeightsMatchNativeFloatStages()
+{
+    // Greater's stored alpha and RGB weight consume this binary32 sigmoid.
+    // The intervals cover all differences of normalized U16 alpha: two input
+    // roundings plus subtraction have error <=3*2^-25 <2^-22.
+    std::vector<quint32> differences{0};
+    differences.reserve(10000000);
+    for (quint32 delta = 1; delta < 65536; ++delta) {
+        const double center = double(delta) / 65535.0;
+        const float low = std::max(0.f, std::nextafter(float(center - 0x1p-22), -std::numeric_limits<float>::infinity()));
+        const float high = std::min(1.f, std::nextafter(float(center + 0x1p-22), std::numeric_limits<float>::infinity()));
+        for (quint32 bits = floatBits(low); bits <= floatBits(high); ++bits) {
+            differences.push_back(bits);
+            differences.push_back(bits | 0x80000000u);
+        }
+    }
+    QFile notice(QStringLiteral(":/librepaint/gpu/licenses/SunPro.txt"));
+    QVERIFY(notice.open(QIODevice::ReadOnly));
+    QVERIFY(!notice.readAll().isEmpty());
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    QByteArray source;
+    for (const auto *path : {":/librepaint/gpu/shaders/rgba.wgsl", ":/librepaint/gpu/shaders/binary32.wgsl", ":/librepaint/gpu/shaders/binary64.wgsl"}) {
+        QFile file(QString::fromLatin1(path));
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        source += file.readAll() + '\n';
+    }
+    source += R"(
+@group(0) @binding(0) var<storage, read> numericInputs: array<u32>;
+@group(0) @binding(1) var<storage, read_write> numericOutputs: array<u32>;
+@compute @workgroup_size(256)
+fn greaterWeightContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let index = invocation.x;
+    if (index >= arrayLength(&numericInputs)) { return; }
+    let one = Word64(0u, 0x3ff00000u);
+    let exponent = doubleMultiply(Word64(0u, 0xc0440000u), doubleFromFloat(numericInputs[index]));
+    numericOutputs[index] = floatFromDouble(doubleDivide(one, doubleAdd(one, greaterCurveExp(exponent))));
+}
+)";
+    WGPUShaderSourceWGSL code{};
+    code.chain.sType = WGPUSType_ShaderSourceWGSL;
+    code.code = {source.constData(), size_t(source.size())};
+    WGPUShaderModuleDescriptor shaderDescriptor{};
+    shaderDescriptor.nextInChain = &code.chain;
+    NativeShader shader(wgpuDeviceCreateShaderModule(device->nativeDevice(), &shaderDescriptor));
+    QVERIFY2(shader && device->diagnostic().isEmpty(), qPrintable(device->diagnostic()));
+    WGPUComputePipelineDescriptor pipelineDescriptor{};
+    pipelineDescriptor.compute.module = shader.get();
+    pipelineDescriptor.compute.entryPoint = {"greaterWeightContract", WGPU_STRLEN};
+    NativeComputePipeline pipeline(wgpuDeviceCreateComputePipeline(device->nativeDevice(), &pipelineDescriptor));
+    QVERIFY2(pipeline && device->diagnostic().isEmpty(), qPrintable(device->diagnostic()));
+    NativeBindingLayout layout(wgpuComputePipelineGetBindGroupLayout(pipeline.get(), 0));
+    // Keep each dispatch/readback within one production tile's finite size.
+    constexpr size_t batch = 65536;
+    constexpr quint64 bytes = batch * sizeof(quint32);
+    auto input = createBuffer(device->nativeDevice(), bytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
+    auto output = createBuffer(device->nativeDevice(), bytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc);
+    QVERIFY(input && output);
+    WGPUBindGroupEntry entries[2]{};
+    entries[0].binding = 0; entries[0].buffer = input.get(); entries[0].size = bytes;
+    entries[1].binding = 1; entries[1].buffer = output.get(); entries[1].size = bytes;
+    WGPUBindGroupDescriptor bindingsDescriptor{};
+    bindingsDescriptor.layout = layout.get();
+    bindingsDescriptor.entryCount = 2;
+    bindingsDescriptor.entries = entries;
+    NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &bindingsDescriptor));
+    QVERIFY2(bindings && device->diagnostic().isEmpty(), qPrintable(device->diagnostic()));
+    for (size_t offset = 0; offset < differences.size(); offset += batch) {
+        const auto count = std::min(batch, differences.size() - offset);
+        const quint64 length = count * sizeof(quint32);
+        wgpuQueueWriteBuffer(device->queue(), input.get(), 0, differences.data() + offset, length);
+        const auto commands = device->beginCommands();
+        QVERIFY(commands);
+        const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+        QVERIFY(pass);
+        wgpuComputePassEncoderSetPipeline(pass, pipeline.get());
+        wgpuComputePassEncoderSetBindGroup(pass, 0, bindings.get(), 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, quint32((count + 255) / 256), 1, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
+        const auto readback = ReadbackBatch::create(*device, 1);
+        QVERIFY(readback && readback->recordBuffer(*device, commands, 0, output.get(), length));
+        QVERIFY2(device->submitCommands(true), qPrintable(device->diagnostic()));
+        const auto &actual = readback->results.front()->data;
+        QCOMPARE(actual.size(), qsizetype(length));
+        std::vector<quint32> expected(count);
+        for (size_t index = 0; index < count; ++index) {
+            float difference;
+            std::memcpy(&difference, differences.data() + offset + index, sizeof(difference));
+            const float weight = 1.0 / (1.0 + std::exp(-40.0 * difference));
+            expected[index] = floatBits(weight);
+        }
+        const QByteArray reference(reinterpret_cast<const char *>(expected.data()), qsizetype(length));
+        if (actual != reference) {
+            const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+            if (!directory.isEmpty() && QDir().mkpath(directory)) {
+                const auto write = [&](const QString &name, const QByteArray &data) {
+                    QFile file(QDir(directory).filePath(name));
+                    if (file.open(QIODevice::WriteOnly)) file.write(data);
+                };
+                write(QStringLiteral("greater-word-weight-actual.u32"), actual);
+                write(QStringLiteral("greater-word-weight-reference.u32"), reference);
+                write(QStringLiteral("greater-word-weight-input.f32"), QByteArray(reinterpret_cast<const char *>(differences.data() + offset), qsizetype(length)));
+            }
+            size_t first = 0;
+            while (actual.mid(qsizetype(first * 4), 4) == reference.mid(qsizetype(first * 4), 4)) ++first;
+            quint32 value;
+            std::memcpy(&value, actual.constData() + first * 4, sizeof(value));
+            QFAIL(qPrintable(QStringLiteral("Greater word weight: case=%1 difference=%2 actual=%3 native=%4")
+                .arg(qulonglong(offset + first)).arg(differences[offset + first], 8, 16, QLatin1Char('0'))
+                .arg(value, 8, 16, QLatin1Char('0')).arg(expected[first], 8, 16, QLatin1Char('0'))));
         }
     }
 }

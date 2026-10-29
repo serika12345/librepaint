@@ -31,9 +31,11 @@ qt6_add_resources(kritaimagegpuoperations krita_gpu_blend_values
     FILES blend/rgba8-nonlinear.bin
 )
 krita_ios_add_static_resource(krita_gpu_blend_values)
+set_source_files_properties("${CMAKE_SOURCE_DIR}/LICENSES/SunPro.txt"
+    PROPERTIES QT_RESOURCE_ALIAS "licenses/SunPro.txt")
 qt6_add_resources(kritaimagegpuoperations krita_gpu_alpha_values
     PREFIX "/librepaint/gpu"
-    FILES blend/rgba8-greater-alpha.bin
+    FILES blend/rgba8-greater-alpha.bin "${CMAKE_SOURCE_DIR}/LICENSES/SunPro.txt"
 )
 krita_ios_add_static_resource(krita_gpu_alpha_values)
 

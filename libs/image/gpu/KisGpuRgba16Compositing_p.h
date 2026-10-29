@@ -17,7 +17,7 @@ inline bool usesSeparableRgba16Blend(LayerBlendMode mode)
         mode == LayerBlendMode::AdditiveSubtractive;
 }
 inline bool usesSpecialAlphaRgba16Blend(LayerBlendMode mode)
-{ return mode == LayerBlendMode::Marker || mode == LayerBlendMode::LuminositySai; }
+{ return mode >= LayerBlendMode::Marker && mode <= LayerBlendMode::LuminositySai; }
 inline quint32 multiplyWord(quint32 a, quint32 b)
 {
     const auto product = a * b + 32768u;

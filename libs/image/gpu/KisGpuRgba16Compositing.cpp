@@ -1,7 +1,8 @@
 /*
  * SPDX-FileCopyrightText: 2011 Silvio Heinrich <plassy@web.de>
  * SPDX-FileCopyrightText: 2026 LibrePaint contributors
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-FileCopyrightText: 2004 Sun Microsystems, Inc.
+ * SPDX-License-Identifier: GPL-2.0-or-later AND SunPro
  */
 #include "KisGpuRgba16Compositing_p.h"
 #include <algorithm>
@@ -103,14 +104,36 @@ quint32 ifsWordColor(LayerBlendMode mode, quint32 source, quint32 destination)
         return scaledWordColor(colorSubtract(colorAdd(colorMultiply(s, d), s), colorMultiply(s, s)));
     }
 }
+// Greater supplies finite exponents in [-40,40]. Reduction and coefficients
+// derive from OpenLibm e_exp.c (SunPro); retained notice: LICENSES/SunPro.txt.
+// https://github.com/JuliaMath/openlibm/blob/5fe399749f9276eaa0b8403e507470da05cbbb3f/src/e_exp.c
+double greaterCurveExp(double value) {
+    const int magnitude = int(colorAdd(colorMultiply(std::abs(value), 0x1.71547652b82fep0), .5));
+    const int exponent = std::signbit(value) ? -magnitude : magnitude;
+    const auto high = colorSubtract(value, colorMultiply(double(exponent), 0x1.62e42fee00000p-1));
+    const auto low = colorMultiply(double(exponent), 0x1.a39ef35793c76p-33);
+    const auto reduced = colorSubtract(high, low), square = colorMultiply(reduced, reduced);
+    auto polynomial = colorAdd(-0x1.bbd41c5d26bf1p-20, colorMultiply(square, 0x1.6376972bea4d0p-25));
+    polynomial = colorAdd(0x1.1566aaf25de2cp-14, colorMultiply(square, polynomial));
+    polynomial = colorAdd(-0x1.6c16c16bebd93p-9, colorMultiply(square, polynomial));
+    polynomial = colorAdd(0x1.555555555553ep-3, colorMultiply(square, polynomial));
+    const auto correction = colorSubtract(reduced, colorMultiply(square, polynomial));
+    if (!exponent) return colorSubtract(1.0, colorSubtract(colorDivide(colorMultiply(reduced, correction), colorSubtract(correction, 2.0)), reduced));
+    const auto result = colorSubtract(1.0, colorSubtract(colorSubtract(low, colorDivide(colorMultiply(reduced, correction), colorSubtract(2.0, correction))), high));
+    return std::ldexp(result, exponent);
+}
+quint16 scaledWordColor(float value)
+{
+    const volatile float scaled = value * 65535.f;
+    const volatile float rounded = std::clamp(float(scaled), 0.f, 65535.f) + .5f;
+    return quint16(int(rounded));
+}
 quint16 saiWordChannel(quint16 destination, quint16 source, quint16 alpha)
 {
     const volatile float s = float(source) / 65535.f, d = float(destination) / 65535.f, a = float(alpha) / 65535.f;
     const volatile float product = s * a;
     const volatile float combined = product + d;
-    const volatile float scaled = std::min(1.f, float(combined)) * 65535.f;
-    const volatile float rounded = scaled + .5f;
-    return quint16(int(rounded));
+    return scaledWordColor(float(combined));
 }
 quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
 {
@@ -283,6 +306,30 @@ RgbaPixel specialAlphaRgba16Pixel(RgbaPixel destination, const RgbaPixel &source
         return destination;
     }
     const auto alpha = quint16(multiplyThreeWords(source[3], selection, opacity));
+    if (mode == LayerBlendMode::Greater) {
+        if (!alpha || oldAlpha == Unit) return destination;
+        const volatile float d = float(oldAlpha) / 65535.f, a = float(alpha) / 65535.f;
+        const volatile float difference = d - a;
+        const float weight = float(colorDivide(1.0, colorAdd(1.0, greaterCurveExp(colorMultiply(-40.0, difference)))));
+        const volatile float first = d * weight;
+        const auto second = colorMultiply(a, colorSubtract(1.0, weight));
+        const float combined = std::max(float(d), std::clamp(float(colorAdd(first, second)), 0.f, 1.f));
+        const volatile float inverseAlpha = 1.f - combined, inverseDestination = 1.f - d;
+        const volatile float denominator = inverseDestination + 1e-16f;
+        const volatile float quotient = inverseAlpha / denominator;
+        const volatile float fakeOpacity = 1.f - quotient;
+        const auto nextAlpha = scaledWordColor(combined), colorWeight = scaledWordColor(float(fakeOpacity));
+        for (int channel = 0; channel < 3; ++channel) {
+            if (!(mask & (1u << channel))) continue;
+            if (!oldAlpha) destination[channel] = source[channel];
+            else if (nextAlpha) {
+                const auto mixed = interpolateWord(multiplyWord(destination[channel], oldAlpha), source[channel], colorWeight);
+                destination[channel] = std::min(Unit, divideWord(mixed, nextAlpha));
+            }
+        }
+        if (!locked) destination[3] = nextAlpha;
+        return destination;
+    }
     const auto nextAlpha = alpha + oldAlpha - multiplyWord(alpha, oldAlpha);
     if (locked ? oldAlpha != 0 : nextAlpha != 0)
         for (int channel = 0; channel < 3; ++channel)

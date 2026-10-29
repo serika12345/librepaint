@@ -245,7 +245,7 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     input.format = PixelFormat::Rgba16;
     input.layers = {{QStringLiteral("Native paint"), true, {}, {}, {1, 257, 65534, 32768}}};
     for (const auto mode : {LayerBlendMode::GammaDark, LayerBlendMode::SoftLightIFSIllusions,
-                           LayerBlendMode::Greater, LayerBlendMode::SuperLight}) {
+                           LayerBlendMode::ArcTangent, LayerBlendMode::SuperLight}) {
         auto unsupported = input;
         unsupported.layers.first().blendMode = mode;
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, OperationDocument{unsupported});
@@ -259,7 +259,7 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     QCOMPARE(document.grayscale(layer), Result::InvalidInput);
     Brush brush;
     brush.rgba = {65534, 1, 257, 65535};
-    brush.blendMode = LayerBlendMode::Greater;
+    brush.blendMode = LayerBlendMode::ArcTangent;
     QVERIFY(document.beginStroke(layer, brush, 42).isNull());
     brush.blendMode = LayerBlendMode::Normal;
     brush.gaussianWash.emplace();

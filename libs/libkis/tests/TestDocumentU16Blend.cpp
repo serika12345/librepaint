@@ -57,7 +57,7 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles_data()
          "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light",
          "linear light", "equivalence", "allanon", "hard_mix_photoshop", "xor", "or", "and", "nand", "nor",
          "xnor", "implication", "not_implication", "converse", "not_converse", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect",
-         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "destination-in", "destination-atop", "geometric_mean", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "soft_light_svg", "soft_light", "tint_ifs_illusions", "shade_ifs_illusions", "fog_lighten_ifs_illusions", "fog_darken_ifs_illusions", "additive_subtractive", "marker", "luminosity_sai", "copy", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2"})
+         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "destination-in", "destination-atop", "geometric_mean", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "soft_light_svg", "soft_light", "tint_ifs_illusions", "shade_ifs_illusions", "fog_lighten_ifs_illusions", "fog_darken_ifs_illusions", "additive_subtractive", "marker", "greater", "luminosity_sai", "copy", "color", "hue", "tint", "saturation", "inc_saturation", "dec_saturation", "luminize", "inc_luminosity", "dec_luminosity", "color_hsi", "hue_hsi", "saturation_hsi", "inc_saturation_hsi", "dec_saturation_hsi", "intensity", "inc_intensity", "dec_intensity", "color_hsl", "hue_hsl", "saturation_hsl", "inc_saturation_hsl", "dec_saturation_hsl", "lightness", "inc_lightness", "dec_lightness", "color_hsv", "hue_hsv", "saturation_hsv", "inc_saturation_hsv", "dec_saturation_hsv", "value", "inc_value", "dec_value", "darker color", "lighter color", "tangent_normalmap", "combine_normal", "lambert_lighting", "lambert_lighting_gamma2.2"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -279,7 +279,7 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles()
         }
         reopened->undoStack()->undo();
     }
-    if (*blend == Gpu::LayerBlendMode::Marker || *blend == Gpu::LayerBlendMode::LuminositySai) {
+    if (*blend >= Gpu::LayerBlendMode::Marker && *blend <= Gpu::LayerBlendMode::LuminositySai) {
         auto blank = input;
         blank.layers = {upper};
         const auto blankOwner = Gpu::PaintImageSP::create(execution, blank);

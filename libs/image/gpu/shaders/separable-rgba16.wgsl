@@ -340,6 +340,36 @@ fn specialAlphaRgba16PixelMode(base: vec4<u32>, source: vec4<u32>, opacity: u32,
         return destination;
     }
     let alpha = multiplyThreeWords(source.w, selection, opacity);
+    if (mode == 128u) {
+        if (alpha == 0u || oldAlpha == 65535u) { return destination; }
+        let d = projectionDivide(bitcast<u32>(f32(oldAlpha)), 0x477fff00u);
+        let a = projectionDivide(bitcast<u32>(f32(alpha)), 0x477fff00u);
+        let difference = floatSubtract(d, a);
+        let one = Word64(0u, 0x3ff00000u);
+        let weight = floatFromDouble(doubleDivide(one, doubleAdd(one, greaterCurveExp(doubleMultiply(Word64(0u, 0xc0440000u), doubleFromFloat(difference))))));
+        let first = floatMultiply(d, weight);
+        let second = doubleMultiply(doubleFromFloat(a), doubleSubtract(one, doubleFromFloat(weight)));
+        var combined = floatFromDouble(doubleAdd(doubleFromFloat(first), second));
+        if (colorLess(combined, 0u)) { combined = 0u; }
+        if (colorLess(COLOR_ONE, combined)) { combined = COLOR_ONE; }
+        if (colorLess(combined, d)) { combined = d; }
+        let inverseAlpha = floatSubtract(COLOR_ONE, combined);
+        let inverseDestination = floatSubtract(COLOR_ONE, d);
+        let denominator = floatAdd(inverseDestination, bitcast<u32>(1e-16f));
+        let fakeOpacity = floatSubtract(COLOR_ONE, projectionDivide(inverseAlpha, denominator));
+        let nextAlpha = colorComponentWord(combined);
+        let colorWeight = colorComponentWord(fakeOpacity);
+        for (var i = 0u; i < 3u; i += 1u) {
+            if ((mask & (1u << i)) == 0u) { continue; }
+            if (oldAlpha == 0u) { destination[i] = source[i]; }
+            else if (nextAlpha != 0u) {
+                let mixed = interpolateWord(mul65535(destination[i], oldAlpha), source[i], colorWeight);
+                destination[i] = min(65535u, divideWord(mixed, nextAlpha));
+            }
+        }
+        if (!locked) { destination.w = nextAlpha; }
+        return destination;
+    }
     let nextAlpha = alpha + oldAlpha - mul65535(alpha, oldAlpha);
     if (select(nextAlpha != 0u, oldAlpha != 0u, locked)) {
         let a = projectionDivide(bitcast<u32>(f32(alpha)), 0x477fff00u);
@@ -354,10 +384,10 @@ fn specialAlphaRgba16PixelMode(base: vec4<u32>, source: vec4<u32>, opacity: u32,
     return destination;
 }
 fn specialAlphaRgba16Pixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32, selection: u32, mode: u32) -> vec4<u32> {
-    if ((WORD_BLEND_MODE_A == 127u || WORD_BLEND_MODE_A == 129u) && mode == WORD_BLEND_MODE_A) {
+    if ((WORD_BLEND_MODE_A >= 127u && WORD_BLEND_MODE_A <= 129u) && mode == WORD_BLEND_MODE_A) {
         return specialAlphaRgba16PixelMode(base, source, opacity, mask, selection, WORD_BLEND_MODE_A);
     }
-    if ((WORD_BLEND_MODE_B == 127u || WORD_BLEND_MODE_B == 129u) && mode == WORD_BLEND_MODE_B) {
+    if ((WORD_BLEND_MODE_B >= 127u && WORD_BLEND_MODE_B <= 129u) && mode == WORD_BLEND_MODE_B) {
         return specialAlphaRgba16PixelMode(base, source, opacity, mask, selection, WORD_BLEND_MODE_B);
     }
     return base;
