@@ -5,6 +5,8 @@
  */
 #include "KisGpuRgba16Compositing_p.h"
 #include <algorithm>
+#include <cmath>
+#include <limits>
 
 namespace LibrePaint::Image::Gpu::Detail {
 namespace {
@@ -37,6 +39,48 @@ quint32 penumbraWord(quint32 source, quint32 destination)
     if (destination == Unit) return Unit;
     if (source + destination < Unit) return std::min(Unit, divideWord(source, Unit - destination)) / 2;
     return source ? Unit - std::min(Unit, divideWord(Unit - destination, source) / 2) : 0;
+}
+double colorAdd(double a, double b) { const volatile double result = a + b; return result; }
+double colorSubtract(double a, double b) { const volatile double result = a - b; return result; }
+double colorMultiply(double a, double b) { const volatile double result = a * b; return result; }
+double colorDivide(double a, double b) { const volatile double result = a / b; return result; }
+double normalizedWordColor(quint32 word)
+{
+    // Native integer-to-real colors use the single-precision lookup value.
+    const volatile float normalized = float(word) / 65535.0f;
+    return normalized;
+}
+quint32 scaledWordColor(double value)
+{
+    const double scaled = std::clamp(colorMultiply(value, 65535.0), 0.0, 65535.0);
+    return quint32(colorAdd(scaled, 0.5));
+}
+double moduloUnit(double value)
+{
+    const double divisor = colorAdd(1.0, std::numeric_limits<double>::epsilon());
+    const double quotient = std::floor(colorDivide(value, divisor));
+    return colorSubtract(value, colorMultiply(quotient, divisor));
+}
+double moduloShiftValue(double source, double destination)
+{
+    if (source == 1.0 && destination == 0.0) return 0.0;
+    return moduloUnit(colorAdd(destination, source));
+}
+double divisiveModuloValue(double source, double destination, bool realEpsilon)
+{
+    const double divisor = source == 0.0 ? (realEpsilon ? std::numeric_limits<double>::epsilon() : 1.0) : source;
+    return moduloUnit(colorMultiply(colorDivide(1.0, divisor), destination));
+}
+quint32 divisiveModuloContinuousWord(quint32 sourceWord, quint32 destinationWord)
+{
+    if (!destinationWord) return 0;
+    const auto source = normalizedWordColor(sourceWord), destination = normalizedWordColor(destinationWord);
+    // The native zero-source branch returns the nested real result directly
+    // as an integer, before the outer word-scale conversion.
+    if (!sourceWord) return quint32(divisiveModuloValue(source, destination, true));
+    auto value = divisiveModuloValue(source, destination, true);
+    if (!(quint32(std::ceil(colorDivide(destination, source))) & 1u)) value = colorSubtract(1.0, value);
+    return scaledWordColor(value);
 }
 quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
 {
@@ -109,6 +153,23 @@ quint32 channel(LayerBlendMode mode, quint32 source, quint32 destination)
         return !source ? 0 : destination > source ? penumbraWord(source, destination) : penumbraWord(destination, source);
     case LayerBlendMode::HardMixSofterPhotoshop:
         return quint32(qBound(0, 3 * int(destination) - 2 * (int(Unit) - int(source)), int(Unit)));
+    case LayerBlendMode::GeometricMean:
+        return scaledWordColor(std::sqrt(colorMultiply(normalizedWordColor(source), normalizedWordColor(destination))));
+    case LayerBlendMode::Modulo: return destination % (source + 1u);
+    case LayerBlendMode::ModuloContinuous:
+        return multiplyWord(divisiveModuloContinuousWord(source, destination), source);
+    case LayerBlendMode::DivisiveModulo:
+        return scaledWordColor(divisiveModuloValue(normalizedWordColor(source), normalizedWordColor(destination), false));
+    case LayerBlendMode::DivisiveModuloContinuous: return divisiveModuloContinuousWord(source, destination);
+    case LayerBlendMode::ModuloShift:
+        return scaledWordColor(moduloShiftValue(normalizedWordColor(source), normalizedWordColor(destination)));
+    case LayerBlendMode::ModuloShiftContinuous: {
+        if (source == Unit && !destination) return Unit;
+        const auto s = normalizedWordColor(source), d = normalizedWordColor(destination);
+        auto value = moduloShiftValue(s, d);
+        if (destination && !(quint32(std::ceil(colorAdd(s, d))) & 1u)) value = colorSubtract(1.0, value);
+        return scaledWordColor(value);
+    }
     default: return source;
     }
 }

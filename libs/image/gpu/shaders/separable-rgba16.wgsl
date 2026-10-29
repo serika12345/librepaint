@@ -75,6 +75,48 @@ fn parallelWord(source: u32, destination: u32) -> u32 {
     }
     return min(65535u, quotient);
 }
+fn normalizedWordColor(word: u32) -> Word64 {
+    // The native lookup divides in binary32 before promoting the color.
+    return doubleFromFloat(projectionDivide(bitcast<u32>(f32(word)), 0x477fff00u));
+}
+fn scaledWordColor(value: Word64) -> u32 {
+    if ((value.y & 0x80000000u) != 0u) { return 0u; }
+    let maximum = Word64(0u, 0x40efffe0u);
+    let scaled = doubleMultiply(value, maximum);
+    if (!wordLessEqual(scaled, maximum)) { return 65535u; }
+    return doubleTruncate(doubleAdd(scaled, Word64(0u, 0x3fe00000u)));
+}
+fn moduloUnit(value: Word64) -> Word64 {
+    let divisor = Word64(1u, 0x3ff00000u);
+    let quotient = doubleFloor(doubleDivide(value, divisor));
+    return doubleSubtract(value, doubleMultiply(quotient, divisor));
+}
+fn moduloShiftValue(source: Word64, destination: Word64) -> Word64 {
+    if (all(source == Word64(0u, 0x3ff00000u)) && all(destination == Word64(0u))) { return Word64(0u); }
+    return moduloUnit(doubleAdd(source, destination));
+}
+fn divisiveModuloValue(source: Word64, destination: Word64, realEpsilon: bool) -> Word64 {
+    let one = Word64(0u, 0x3ff00000u);
+    var inverse: Word64;
+    if (all(source == Word64(0u))) { inverse = select(one, Word64(0u, 0x43300000u), realEpsilon); }
+    else { inverse = doubleDivide(one, source); }
+    return moduloUnit(doubleMultiply(inverse, destination));
+}
+fn doubleCeilingIsOdd(value: Word64) -> bool {
+    let integral = doubleFloor(value);
+    return ((doubleTruncate(integral) + select(0u, 1u, any(integral != value))) & 1u) != 0u;
+}
+fn divisiveModuloContinuousWord(sourceWord: u32, destinationWord: u32) -> u32 {
+    if (destinationWord == 0u) { return 0u; }
+    let source = normalizedWordColor(sourceWord);
+    let destination = normalizedWordColor(destinationWord);
+    var value = divisiveModuloValue(source, destination, true);
+    if (sourceWord == 0u) { return doubleTruncate(value); }
+    if (!doubleCeilingIsOdd(doubleDivide(destination, source))) {
+        value = doubleSubtract(Word64(0u, 0x3ff00000u), value);
+    }
+    return scaledWordColor(value);
+}
 fn separableWordChannel(mode: u32, source: u32, destination: u32) -> u32 {
     switch mode {
         case 1u: { return mul65535(source, destination); }
@@ -155,6 +197,22 @@ fn separableWordChannel(mode: u32, source: u32, destination: u32) -> u32 {
             return penumbraWord(destination, source);
         }
         case 59u: { return u32(clamp(3 * i32(destination) - 2 * (65535 - i32(source)), 0, 65535)); }
+        case 60u: { return scaledWordColor(doubleSqrt(doubleMultiply(normalizedWordColor(source), normalizedWordColor(destination)))); }
+        case 80u: { return destination % (source + 1u); }
+        case 81u: { return mul65535(divisiveModuloContinuousWord(source, destination), source); }
+        case 82u: { return scaledWordColor(divisiveModuloValue(normalizedWordColor(source), normalizedWordColor(destination), false)); }
+        case 83u: { return divisiveModuloContinuousWord(source, destination); }
+        case 84u: { return scaledWordColor(moduloShiftValue(normalizedWordColor(source), normalizedWordColor(destination))); }
+        case 85u: {
+            if (source == 65535u && destination == 0u) { return 65535u; }
+            let s = normalizedWordColor(source);
+            let d = normalizedWordColor(destination);
+            var value = moduloShiftValue(s, d);
+            if (destination != 0u && !doubleCeilingIsOdd(doubleAdd(s, d))) {
+                value = doubleSubtract(Word64(0u, 0x3ff00000u), value);
+            }
+            return scaledWordColor(value);
+        }
         default: { return source; }
     }
 }

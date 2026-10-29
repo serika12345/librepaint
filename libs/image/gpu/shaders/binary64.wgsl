@@ -139,6 +139,42 @@ fn doubleMultiply(a: Word64, b: Word64) -> Word64 {
     }
     return doubleEncode(mantissa, doublePower(a) + doublePower(b) + i32(shift), (a.y ^ b.y) & 0x80000000u);
 }
+// The color consumers divide finite normal values with a nonzero divisor.
+// A guard and sticky remainder preserve the final binary64 nearest-even step.
+fn doubleDivide(a: Word64, b: Word64) -> Word64 {
+    if (all(doubleMagnitude(a) == Word64(0u))) { return Word64(0u); }
+    let denominator = doubleMantissa(b);
+    var remainder = doubleMantissa(a);
+    var power = doublePower(a) - doublePower(b);
+    if (!wordLessEqual(denominator, remainder)) { remainder = wordLeft(remainder, 1u); power -= 1; }
+    remainder = wordSubtract(remainder, denominator);
+    var quotient = Word64(1u, 0u);
+    for (var bit = 0u; bit < 52u; bit += 1u) {
+        remainder = wordLeft(remainder, 1u);
+        quotient = wordLeft(quotient, 1u);
+        if (wordLessEqual(denominator, remainder)) {
+            remainder = wordSubtract(remainder, denominator);
+            quotient.x |= 1u;
+        }
+    }
+    remainder = wordLeft(remainder, 1u);
+    let guard = wordLessEqual(denominator, remainder);
+    if (guard) { remainder = wordSubtract(remainder, denominator); }
+    var value = wordLeft(quotient, 2u);
+    value.x |= select(0u, 2u, guard) | select(0u, 1u, any(remainder != Word64(0u)));
+    return doubleFloat(value, power - 54, (a.y ^ b.y) & 0x80000000u);
+}
+// Nonnegative finite color ratios retain their integer part as binary64,
+// including the 2^52 fallback used by the real modulo functor.
+fn doubleFloor(value: Word64) -> Word64 {
+    if (all(doubleMagnitude(value) == Word64(0u))) { return Word64(0u); }
+    let exponent = doublePower(value) + 52;
+    if (exponent < 0) { return Word64(0u); }
+    if (exponent >= 52) { return value; }
+    let shift = u32(52 - exponent);
+    let integral = wordLeft(wordRight(doubleMantissa(value), shift), shift);
+    return doubleEncode(integral, doublePower(value), 0u);
+}
 fn doubleSqrt(value: Word64) -> Word64 {
     if (all(doubleMagnitude(value) == Word64(0u))) { return Word64(0u); }
     let power = doublePower(value) + 52;

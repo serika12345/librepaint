@@ -25,7 +25,7 @@ inline bool usesAllocatedSourceRegion(const PaintOperation &operation, PixelForm
         return mode == LayerBlendMode::Copy || mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop ||
             transparentSourceAffectsBlend(mode);
     };
-    const bool partialWordChannels = format == PixelFormat::Rgba16 && usesIntegerRgba16Blend(operation.brush.blendMode) &&
+    const bool partialWordChannels = format == PixelFormat::Rgba16 && usesSeparableRgba16Blend(operation.brush.blendMode) &&
         (operation.brush.alphaLocked || operation.brush.channelWriteMask != 15);
     return !operation.brush.erase && (partialWordChannels || replacesAlpha(operation.brush.blendMode) ||
         (hasFigureFill(operation.figureStyle) && replacesAlpha(operation.figureStyle.fillBlendMode)));
