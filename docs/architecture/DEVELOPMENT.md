@@ -1715,6 +1715,13 @@ Gaussianの複合パスは移動命令の前後で間隔を共有し、個別の
 `TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles`は、新規・読込文書の複合パス、
 個別パスと二種類の交互呼出しについて、追記・履歴・KRA保存再読込み・PNG/JPEGを書込みバイトまで照合する。
 Gaussianの三次曲線は、開いた曲線、始点へ戻る曲線、複合・個別のパスと直線との混在を固定入力とする。
+標準円形プリセットの通常編集は、`KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing`で検査する。
+同梱のBasic-5 Size、Basic-2 Opacity、Eraser Circleから設定を取得し、RGB8・RGB16の通常ウィンドウで
+描画、アルファ保護、消去、レイヤー複製、Undo/Redo、KRA再読込後の追加編集と対称描画を行う。
+筆圧に対するサイズ・不透明度・流量は、同じ有効プリセットを使う既存CPUのWASH処理と全画素を比較する。
+`LIBREPAINT_GPU_RESULT_DIR`には、精度別の`ordinary-brush-<条件>/`へ画素、KRAと画面画像を保存する。
+画素比較、通常画面への自動入力、配布アプリケーションの手動確認は、それぞれの実施範囲を報告する。
+
 `libs/image/gpu/tests/KisGpuGaussianBrushFixture_p.h`は、通常の資源取得で固定した
 ブラシ設定とパス入力を型付きの値として保持する。資源の版、倍精度の筆圧応答、流量と不透明度を同じ値で再生する。
 `KisGpuTileRendererTest::gaussianCubicPathsKeepPixelsInputHistory`は、通常CPU描画の全画素、

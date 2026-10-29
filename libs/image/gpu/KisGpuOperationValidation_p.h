@@ -304,7 +304,6 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
         brush.autoSpacingCoefficient < 0) return false;
     if (!std::isfinite(brush.opacity) || brush.opacity < 0 || brush.opacity > 1) return false;
     if (!validPixel(brush.rgba, format)) return false;
-    if (format == PixelFormat::Rgba16 && brush.autoBrush) return false;
     if (brush.autoBrush) {
         const auto &value = *brush.autoBrush;
         if (!std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||

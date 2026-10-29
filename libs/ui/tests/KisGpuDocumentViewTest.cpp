@@ -81,9 +81,13 @@
 #include <kis_paint_device.h>
 #include <KisRegion.h>
 #include <kis_painter.h>
+#include <brushengine/kis_paintop.h>
+#include <KisRunnableStrokeJobData.h>
+#include <KisRunnableStrokeJobsInterface.h>
 #include <kis_paint_information.h>
 #include <kis_distance_information.h>
 #include <kis_paint_layer.h>
+#include <kis_indirect_painting_support.h>
 #include <kis_properties_configuration.h>
 #include <kis_selection.h>
 #include <kis_selection_tool_helper.h>
@@ -6560,13 +6564,20 @@ void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
 void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
 {
     QTest::addColumn<QString>("presetName");
+    QTest::addColumn<bool>("words");
     for (const auto *name : {"b)_Basic-5_Size_default.kpp", "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp"})
-        QTest::newRow(name) << QString::fromLatin1(name);
+        for (bool words : {false, true}) {
+            const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words;
+        }
 }
 
 void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
 {
     QFETCH(QString, presetName);
+    QFETCH(bool, words);
+    const int channelBytes = words ? 2 : 1;
+    const int pixelBytes = 4 * channelBytes;
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restoreEngine = qScopeGuard([&] {
@@ -6576,23 +6587,28 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
     const QString bundlePath = QStringLiteral(KRITA_SOURCE_DIR "/krita/data/bundles/Krita_4_Default_Resources.bundle");
     const auto bundle = KisResourceStorageSP::create(bundlePath);
     QVERIFY(bundle->valid());
-    if (!KisResourceLocator::instance()->hasStorage(bundlePath))
-        QVERIFY(KisResourceLocator::instance()->addStorage(bundlePath, bundle));
+    KisResourceModel brushes(ResourceType::Brushes);
+    if (brushes.rowCount() == 0)
+        QVERIFY(brushes.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/libs/brush/tests/data/brush.gbr"), false));
+    KisResourceModel patterns(ResourceType::Patterns);
+    if (patterns.rowCount() == 0)
+        QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
     const auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
-    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     const QSize size(128, 128);
     QList<QByteArray> expectedStates;
     QTemporaryDir temporary;
     QVERIFY(temporary.isValid());
     const auto output = QDir(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path())).filePath(
-        QStringLiteral("ordinary-brush-%1").arg(presetName));
+        QStringLiteral("ordinary-brush-%1").arg(QString::fromLatin1(QTest::currentDataTag())));
     QVERIFY(QDir().mkpath(output));
     for (bool gpu : {false, true}) {
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
         auto preset = sourcePreset->clone().dynamicCast<KisPaintOpPreset>();
         QVERIFY(preset);
-        preset->setFilename((gpu ? QStringLiteral("gpu-") : QStringLiteral("cpu-")) + presetName);
+        preset->setFilename((gpu ? QStringLiteral("gpu-") : QStringLiteral("cpu-")) +
+                            (words ? QStringLiteral("u16-") : QStringLiteral("u8-")) + presetName);
         KisResourceModel presets(ResourceType::PaintOpPresets);
         QVERIFY(presets.addResource(preset));
         std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -6665,44 +6681,64 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             QVERIFY2(capture.diagnostic.isEmpty(), qPrintable(capture.diagnostic));
             QVERIFY(capture.brush.autoBrush);
             QCOMPARE(capture.brush.autoBrush->mask, Gpu::AutoBrush::Mask::Circle);
-            for (qreal pressure : {.01, .05, .1, .33, .75, 1.}) {
+            const QList<QPair<qreal, qreal>> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
+                                                          {200, .03}, {200, .05}, {200, .06}};
+            for (const auto &input : pressureCases) {
+                const auto diameter = input.first;
+                const auto pressure = input.second;
+                resources->setSize(diameter);
+                const auto pressureCapture = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
+                                                                      view->canvasBase()->resourceManager());
+                QVERIFY2(pressureCapture.diagnostic.isEmpty(), qPrintable(pressureCapture.diagnostic));
                 KisImageSP nativeImage = new KisImage(nullptr, size.width(), size.height(), cs, QStringLiteral("Native preset reference"));
                 KisPaintLayerSP nativeLayer = new KisPaintLayer(nativeImage, QStringLiteral("Reference"), 255);
                 nativeImage->addNode(nativeLayer, nativeImage->root());
+                nativeLayer->setTemporaryTarget(nativeLayer->paintDevice());
                 {
                     KisPainter painter(nativeLayer->paintDevice());
                     painter.setPaintColor(KoColor(QColor(17, 129, 241), cs));
                     painter.setCompositeOpId(COMPOSITE_ALPHA_DARKEN);
-                    painter.setPaintOpPreset(preset, nativeLayer, nativeImage);
+                    painter.setPaintOpPreset(resources->currentPreset(), nativeLayer, nativeImage);
                     KisDistanceInformation distance;
                     painter.paintAt(KisPaintInformation(QPointF(64.25, 64.75), pressure), &distance);
+                    bool pending;
+                    do {
+                        QVector<KisRunnableStrokeJobData *> jobs;
+                        pending = painter.paintOp()->doAsynchronousUpdate(jobs).second;
+                        painter.runnableStrokeJobsInterface()->addRunnableJobs(jobs);
+                    } while (pending);
                 }
+                nativeLayer->setTemporaryTarget({});
                 nativeImage->waitForDone();
                 KisPaintDeviceSP destination = new KisPaintDevice(cs);
                 KisPainter merge(destination);
                 merge.setOpacityF(.7);
                 for (const auto &rect : nativeLayer->paintDevice()->region().rects())
                     merge.bitBlt(rect.topLeft(), nativeLayer->paintDevice(), rect);
-                QByteArray expected(size.width() * size.height() * 4, Qt::Uninitialized);
+                QByteArray expected(size.width() * size.height() * pixelBytes, Qt::Uninitialized);
                 destination->readBytes(reinterpret_cast<quint8 *>(expected.data()), QRect(QPoint(), size));
                 QString diagnostic;
                 Gpu::RasterImage raster;
                 raster.size = size;
+                raster.format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+                raster.colorProfile = cs->profile()->rawData();
                 raster.layers.append(Gpu::RasterLayer{QStringLiteral("Pressure")});
                 const auto pressureOwner = Gpu::PaintImageSP::create(KisPart::instance()->gpuExecution(diagnostic), raster);
-                const auto operation = pressureOwner->beginStroke(pressureOwner->operations().activeLayer(), capture.brush, 17);
+                const auto operation = pressureOwner->beginStroke(pressureOwner->operations().activeLayer(), pressureCapture.brush, 17);
                 QVERIFY(!operation.isNull());
                 QCOMPARE(pressureOwner->appendSamples(operation, {{{64.25, 64.75}, pressure}}), Gpu::Result::Success);
                 QCOMPARE(pressureOwner->commitStroke(operation), Gpu::Result::Success);
                 auto actual = pressureOwner->readRgbaPixels(pressureOwner->operations().activeLayer(), QRect(QPoint(), size), expected.size()).bytes;
-                for (qsizetype i = 0; i < actual.size(); i += 4) std::swap(actual[i], actual[i + 2]);
+                for (qsizetype i = 0; i < actual.size(); i += pixelBytes)
+                    for (int byte = 0; byte < channelBytes; ++byte) std::swap(actual[i + byte], actual[i + 2 * channelBytes + byte]);
                 for (const auto &entry : {qMakePair(QStringLiteral("native"), expected), qMakePair(QStringLiteral("gpu"), actual)}) {
-                    QFile artifact(QDir(output).filePath(QStringLiteral("pressure-%1-%2.bgra").arg(pressure).arg(entry.first)));
+                    QFile artifact(QDir(output).filePath(QStringLiteral("pressure-d%1-p%2-%3.bgra").arg(diameter).arg(pressure).arg(entry.first)));
                     QVERIFY(artifact.open(QIODevice::WriteOnly));
                     QCOMPARE(artifact.write(entry.second), entry.second.size());
                 }
-                QVERIFY2(actual == expected, qPrintable(QStringLiteral("Preset %1 pressure %2 must keep native pixels").arg(presetName).arg(pressure)));
+                QVERIFY2(actual == expected, qPrintable(QStringLiteral("Preset %1 diameter %2 pressure %3 must keep native pixels").arg(presetName).arg(diameter).arg(pressure)));
             }
+            resources->setSize(40);
         }
         const auto stroke = [&](const QList<QPointF> &points) {
             const auto *converter = view->canvasBase()->coordinatesConverter();
@@ -6728,12 +6764,13 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             auto image = KisImageSP(lifetime->image());
             image->waitForDone();
             if (const auto owner = image->gpuImage()) {
-                const auto value = owner->readRgbaPixels(owner->operations().activeLayer(), QRect(QPoint(), size), size.width() * size.height() * 4);
+                const auto value = owner->readRgbaPixels(owner->operations().activeLayer(), QRect(QPoint(), size), size.width() * size.height() * pixelBytes);
                 QByteArray bgra = value.bytes;
-                for (qsizetype i = 0; i < bgra.size(); i += 4) std::swap(bgra[i], bgra[i + 2]);
+                for (qsizetype i = 0; i < bgra.size(); i += pixelBytes)
+                    for (int byte = 0; byte < channelBytes; ++byte) std::swap(bgra[i + byte], bgra[i + 2 * channelBytes + byte]);
                 return bgra;
             }
-            QByteArray result(size.width() * size.height() * 4, Qt::Uninitialized);
+            QByteArray result(size.width() * size.height() * pixelBytes, Qt::Uninitialized);
             window->viewManager()->nodeManager()->activeNode()->paintDevice()->readBytes(
                 reinterpret_cast<quint8 *>(result.data()), QRect(QPoint(), size));
             return result;
@@ -6756,7 +6793,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         stroke({{48, 40}, {64, 48}});
         const auto protectedPixels = pixels();
         QVERIFY(protectedPixels != painted);
-        for (qsizetype i = 3; i < painted.size(); i += 4) QCOMPARE(protectedPixels[i], painted[i]);
+        for (qsizetype i = 3 * channelBytes; i < painted.size(); i += pixelBytes)
+            QCOMPARE(protectedPixels.mid(i, channelBytes), painted.mid(i, channelBytes));
         QVERIFY2(compareState(QStringLiteral("alpha-locked")), "Alpha protection must preserve the native preset's color result");
         lifetime->undoStack()->undo();
         QCOMPARE(pixels(), painted);

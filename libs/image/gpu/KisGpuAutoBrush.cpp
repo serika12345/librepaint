@@ -56,7 +56,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         dab.words[0] = maskSide(metric.width(), subpixel.x());
         dab.words[1] = maskSide(metric.height(), subpixel.y());
         const qreal effectiveDiameter = brush.diameter * point.scale;
-        dab.words[2] = effectiveDiameter < 1 ? 6 : effectiveDiameter < 10 ? 3 : 1;
+        dab.words[2] = settings.antialiasEdges ? (effectiveDiameter < 1 ? 6 : effectiveDiameter < 10 ? 3 : 1) : 1;
         doubleWords(dab, 4, hotSpot.x() - .5 + subpixel.x());
         doubleWords(dab, 6, hotSpot.y() - .5 + subpixel.y());
         doubleWords(dab, 8, std::cos(settings.angle));

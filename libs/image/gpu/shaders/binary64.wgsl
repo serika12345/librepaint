@@ -233,6 +233,34 @@ fn floatMultiply(a: u32, b: u32) -> u32 {
     if ((a & 0x7fffffffu) == 0u || (b & 0x7fffffffu) == 0u) { return 0u; }
     return projectionMultiply(a, b) | ((a ^ b) & 0x80000000u);
 }
+// One binary32 rounding for the native U16 WASH multiply-add. A 61-bit
+// accumulator retains exact nearby terms and sticky bits for distant terms.
+fn floatMultiplyAdd(a: u32, b: u32, c: u32) -> u32 {
+    if ((a & 0x7fffffffu) == 0u || (b & 0x7fffffffu) == 0u) { return c; }
+    if ((c & 0x7fffffffu) == 0u) { return floatMultiply(a, b); }
+    let product = projectionProduct(projectionMantissa(a), projectionMantissa(b));
+    let productPower = projectionPower(a) + projectionPower(b);
+    let addendPower = projectionPower(c);
+    let productTop = select(31u - countLeadingZeros(product.x), 63u - countLeadingZeros(product.y), product.y != 0u);
+    let addendTop = 31u - countLeadingZeros(projectionMantissa(c));
+    let power = max(productPower + i32(productTop), addendPower + i32(addendTop)) - 60;
+    var first = product;
+    if (productPower < power) { first = wordJam(first, u32(power - productPower)); }
+    else { first = wordLeft(first, u32(productPower - power)); }
+    var second = Word64(projectionMantissa(c), 0u);
+    if (addendPower < power) { second = wordJam(second, u32(power - addendPower)); }
+    else { second = wordLeft(second, u32(addendPower - power)); }
+    var sign = (a ^ b) & 0x80000000u;
+    var magnitude: Word64;
+    if (sign == (c & 0x80000000u)) { magnitude = wordAdd(first, second); }
+    else if (wordLessEqual(second, first)) { magnitude = projectionSubtract(first, second); }
+    else {
+        magnitude = projectionSubtract(second, first);
+        sign = c & 0x80000000u;
+    }
+    if (all(magnitude == Word64(0u))) { return 0u; }
+    return projectionFloat(magnitude, power) | sign;
+}
 fn floatDivide(a: u32, b: u32) -> u32 {
     if ((a & 0x7fffffffu) == 0u) { return 0u; }
     return projectionDivide(a, b);

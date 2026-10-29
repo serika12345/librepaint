@@ -260,7 +260,7 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     brush.blendMode = invalidBlend;
     QVERIFY(document.beginStroke(layer, brush, 42).isNull());
     brush.blendMode = LayerBlendMode::Normal;
-    brush.autoBrush.emplace();
+    brush.autoBrush.emplace().flow = -1;
     QVERIFY(document.beginStroke(layer, brush, 42).isNull());
     QCOMPARE(document.snapshot(), fixed);
     QCOMPARE(document.undoCount(), 0);

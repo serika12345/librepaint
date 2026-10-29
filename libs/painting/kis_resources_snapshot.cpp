@@ -153,6 +153,8 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     if (!capturePressureResponse(settings, QStringLiteral("Size"), true, brush.sizeResponse) ||
         !capturePressureResponse(settings, QStringLiteral("Opacity"), false, value.opacityResponse) ||
         !capturePressureResponse(settings, QStringLiteral("Flow"), false, value.flowResponse)) return false;
+    // WASH applies constant opacity once when merging the temporary stroke.
+    value.opacityResponse.strength = 1;
     value.flowResponse.strength = 1;
     brush.autoBrush = std::move(value);
     return true;

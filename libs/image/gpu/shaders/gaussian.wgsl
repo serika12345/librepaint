@@ -66,11 +66,13 @@ fn smallStandardCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
     }
     return 255u - total / (side * side);
 }
-fn standardCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
+fn standardCircleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32) -> u32 {
     let dx = floatSubtract(bitcast<u32>(f32(point.x)), floatFromDouble(dab.center.xy));
     let dy = floatSubtract(bitcast<u32>(f32(point.y)), floatFromDouble(dab.center.zw));
     let coefficient = floatFromDouble(dab.radius.xy);
-    let n = gaussianSquaredDistance(floatMultiply(dx, coefficient), floatMultiply(dy, coefficient));
+    let nx = floatMultiply(dx, coefficient);
+    let ny = floatMultiply(dy, coefficient);
+    let n = floatAdd(floatMultiply(nx, nx), floatMultiply(ny, ny));
     if (n > 0x3f800000u) { return 0u; }
     var x = dx & 0x7fffffffu;
     var y = dy & 0x7fffffffu;
@@ -79,11 +81,15 @@ fn standardCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
         y = floatAdd(y, 0x3f800000u);
     }
     let fade = floatFromDouble(dab.radius.zw);
-    let nf = gaussianSquaredDistance(floatMultiply(x, fade), floatMultiply(y, fade));
-    if (nf < 0x3f800000u) { return 255u; }
+    let fx = floatMultiply(x, fade);
+    let fy = floatMultiply(y, fade);
+    let nf = floatAdd(floatMultiply(fx, fx), floatMultiply(fy, fy));
+    if (nf < 0x3f800000u) { return maximum; }
     if (nf == n) { return 0u; }
     let inverse = floatDivide(floatMultiply(n, floatSubtract(nf, 0x3f800000u)), floatSubtract(nf, n));
-    return projectionComponent(floatMultiply(0x437f0000u, floatSubtract(0x3f800000u, inverse)));
+    let alpha = floatMultiply(bitcast<u32>(f32(maximum)), floatSubtract(0x3f800000u, inverse));
+    if (maximum == 65535u) { return u32(bitcast<f32>(alpha)); }
+    return projectionComponent(alpha);
 }
 
 fn smallCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
@@ -107,7 +113,7 @@ fn smallCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
     }
     return 255u - total / (side * side);
 }
-fn circleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
+fn circleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32) -> u32 {
     let dx = floatSubtract(bitcast<u32>(f32(point.x)), floatFromDouble(dab.center.xy));
     let dy = floatSubtract(bitcast<u32>(f32(point.y)), floatFromDouble(dab.center.zw));
     let cosine = floatFromDouble(dab.rotation.xy);
@@ -118,7 +124,9 @@ fn circleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
     let radius = floatFromDouble(dab.radius.xy);
     let start = floatFromDouble(dab.radius.zw);
     if (distance > radius) { return 0u; }
-    if (distance <= start) { return 255u; }
+    if (distance <= start) { return maximum; }
     let inverse = floatDivide(floatMultiply(floatSubtract(distance, start), floatFromDouble(dab.coefficient.xy)), 0x437f0000u);
-    return projectionComponent(floatMultiply(0x437f0000u, floatSubtract(0x3f800000u, inverse)));
+    let alpha = floatMultiply(bitcast<u32>(f32(maximum)), floatSubtract(0x3f800000u, inverse));
+    if (maximum == 65535u) { return u32(bitcast<f32>(alpha)); }
+    return projectionComponent(alpha);
 }
