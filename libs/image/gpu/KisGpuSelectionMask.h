@@ -44,6 +44,9 @@ public:
     static constexpr int AlphaTileBytes = TileSize * TileSize;
     static constexpr qsizetype MaximumBytes = 64 * 1024 * 1024;
 
+    /** Explicit zero coverage for masked external copies; null denotes no mask. */
+    static QSharedPointer<const SelectionMask> empty();
+
     /** Rasterizes one closed polygon at pixel centers with the even-odd rule.
      * The coverage is binary and clipped to `clip`. Invalid, non-finite or
      * oversized polygons and polygons selecting no clipped pixel return null.

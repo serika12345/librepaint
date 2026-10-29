@@ -128,6 +128,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline translationPipeline;
     Detail::NativeBindingLayout cropLayout;
     Detail::NativeComputePipeline cropPipeline;
+    Detail::NativeBindingLayout selectionCopyLayout;
+    Detail::NativeComputePipeline selectionCopyPipeline;
     Detail::NativeBindingLayout filterLayout;
     Detail::NativeComputePipeline filterPipeline;
     Detail::NativeBindingLayout thumbnailLayout;
@@ -186,6 +188,14 @@ struct TileRenderer::Private
     };
     CropResult cropTiles(WGPUCommandEncoder commands, const Detail::Tiles &source, QRect keep,
                         const RgbaPixel &defaultPixel, PixelFormat format, QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
+    struct SelectionCopyResult {
+        RenderOutcome::Code code;
+        std::shared_ptr<Detail::Tile> tile;
+        QString diagnostic;
+    };
+    SelectionCopyResult copySelection(WGPUCommandEncoder commands, const TileView &source,
+                                      const RgbaPixel &implicit, PixelFormat format,
+                                      const SelectionMaskSP &mask, bool inverted);
     struct FilterResult {
         RenderOutcome::Code code;
         Detail::Tiles tiles;

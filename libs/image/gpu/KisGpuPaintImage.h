@@ -87,10 +87,12 @@ public:
      * includes packed pixels, padded tiles and checkpoint encoding. Returns null
      * for invalid, busy, closed, off-thread or rejected pixel reads; attachment
      * capacity throws std::length_error. The caller supplies the destination
-     * layer identity. Copies retain shared execution.
+     * layer identity. Optional document-coordinate coverage applies the clipboard alpha mask
+     * on the GPU before external readback, retaining unassociated RGB. Copies retain shared execution.
      */
     QSharedPointer<PaintImage> cloneRasterLayer(const Snapshot &version, LayerId layer, QRect region,
-                                               const QUuid &destinationUuid, qsizetype maximumWorkingBytes) const;
+                                               const QUuid &destinationUuid, qsizetype maximumWorkingBytes,
+                                               const SelectionMaskSP &mask = {}, bool invertMask = false) const;
     ExecutionOutcome lastRequestOutcome() const;
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;

@@ -66,15 +66,34 @@ qsizetype gpuInsertionIndex(KisImage *image, const LibrePaint::Image::Gpu::Snaps
                 layer.kind == LibrePaint::Image::Gpu::LayerKind::Group; });
         if (!parent->parent() || group == version->layers.cend()) return -1;
     }
-    KisNodeSP anchor = index < parent->childCount() ? parent->at(index) : parent->lastChild();
-    const bool after = anchor && index == parent->childCount();
-    if (!anchor) {
-        if (parent == image->root()) return version->layers.size();
-        anchor = parent;
+    const QUuid parentUuid = parent == image->root() ? QUuid() : parent->uuid();
+    const auto layerForChild = [&](qsizetype child) {
+        const auto node = parent->at(child);
+        return std::find_if(version->layers.cbegin(), version->layers.cend(), [&](const auto &layer) {
+            return node && layer.uuid == node->uuid() && layer.parentUuid == parentUuid;
+        });
+    };
+    // Selection and transparency mask views share the Qt tree with paint and
+    // group layers. Only document layers determine the insertion position.
+    for (qsizetype child = index; child < parent->childCount(); ++child) {
+        const auto next = layerForChild(child);
+        if (next != version->layers.cend()) return std::distance(version->layers.cbegin(), next);
     }
-    const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
-        [&](const auto &layer) { return layer.uuid == anchor->uuid(); });
-    return found == version->layers.cend() ? -1 : std::distance(version->layers.cbegin(), found) + after;
+    for (qsizetype child = index; child > 0;) {
+        const auto previous = layerForChild(--child);
+        if (previous == version->layers.cend()) continue;
+        auto after = previous + 1;
+        QSet<QUuid> subtree{previous->uuid};
+        while (after != version->layers.cend() && subtree.contains(after->parentUuid)) {
+            subtree.insert(after->uuid);
+            ++after;
+        }
+        return std::distance(version->layers.cbegin(), after);
+    }
+    if (parent == image->root()) return version->layers.size();
+    const auto group = std::find_if(version->layers.cbegin(), version->layers.cend(),
+        [&](const auto &layer) { return layer.uuid == parentUuid; });
+    return std::distance(version->layers.cbegin(), group) + 1;
 }
 
 /** True when this node is the layer-panel view of a GPU paint layer's

@@ -140,7 +140,8 @@ Result readFailure(ExecutionCode code)
 }
 
 PaintImageSP PaintImage::cloneRasterLayer(const Snapshot &version, LayerId layer, QRect region,
-                                        const QUuid &destinationUuid, qsizetype maximumWorkingBytes) const
+                                        const QUuid &destinationUuid, qsizetype maximumWorkingBytes,
+                                        const SelectionMaskSP &mask, bool invertMask) const
 {
     if (!onThread() || !m_d->handle || !version || m_d->document->hasActiveStroke() ||
         version->documentId() != m_d->document->snapshot()->documentId() || destinationUuid.isNull() ||
@@ -157,7 +158,7 @@ PaintImageSP PaintImage::cloneRasterLayer(const Snapshot &version, LayerId layer
     const qint64 tileBytes = columns * rows * bytesPerTile;
     if (pixelBytes + 2 * tileBytes > maximumWorkingBytes) return {};
     if (!layer) layer = version->directProjectionLayer();
-    auto pixels = m_d->execution.readRgbaPixels(m_d->handle, version, region, layer, pixelBytes);
+    auto pixels = m_d->execution.readRgbaPixels(m_d->handle, version, region, layer, pixelBytes, mask, invertMask);
     if (pixels.code != ExecutionCode::Success) return {};
     RasterLayer properties{QStringLiteral("Projection"), true, destinationUuid, {}};
     RasterImage input;

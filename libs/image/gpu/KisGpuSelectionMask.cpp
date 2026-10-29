@@ -153,6 +153,12 @@ SelectionMask::SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageForma
 {
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::empty()
+{
+    static const auto mask = QSharedPointer<const SelectionMask>(new SelectionMask({}, {}, CoverageFormat::Binary));
+    return mask;
+}
+
 QSharedPointer<const SelectionMask> SelectionMask::make(QRect bounds, SelectionTileMap tiles, CoverageFormat format)
 {
     if (tiles.isEmpty() || bounds.isEmpty() || bounds.width() <= 0 || bounds.height() <= 0) return {};

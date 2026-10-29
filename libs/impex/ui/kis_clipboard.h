@@ -25,6 +25,7 @@ class QRect;
 class QMimeData;
 class KisTimeSpan;
 class KoColorSpace;
+namespace LibrePaint::Image::Gpu { class PaintImage; }
 
 struct GpuClipboardMask
 {
@@ -142,6 +143,12 @@ public:
     /** Captures one GPU layer's pixels in region; false keeps the previous clipboard. */
     bool setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes = 256 * 1024 * 1024,
                      QRect region = {}, std::optional<GpuClipboardMask> mask = {});
+    /** Imports external image data into the destination encoding at the supplied
+     * canvas position. Retains source precision through ICC conversion and
+     * returns an independent GPU layer; refusal leaves the document untouched.
+     */
+    QSharedPointer<LibrePaint::Image::Gpu::PaintImage> importGpuImage(KisImageSP destination, const QImage &source,
+                                                                  QPoint position, qsizetype memoryBudgetBytes);
     bool hasLayers() const;
     bool hasLayerStyles() const;
 

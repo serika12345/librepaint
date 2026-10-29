@@ -44,6 +44,7 @@ struct PixelReadCompletion
     qsizetype remaining = 0;
     bool transparencyOnly = false;
     bool boundsOnly = false;
+    QList<std::shared_ptr<Detail::Tile>> selectionPins;
     std::mutex mutex;
 
     void complete(const Detail::ReadbackBatch::Result &read, const QList<qsizetype> &outputs)
@@ -402,7 +403,8 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
 }
 
 PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapshot &pinned,
-                                           QRect region, LayerId layer, qsizetype maximumBytes)
+                                           QRect region, LayerId layer, qsizetype maximumBytes,
+                                           const SelectionMaskSP &copyMask, bool invertMask)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         PixelBytesOutcome outcome;
@@ -435,9 +437,9 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
         if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel coordinates exceed capacity"));
         for (const auto tile : *tiles) coordinates.insert(tile);
     }
-    if (uniformProjection && !clipped.isEmpty()) {
-        for (int y = clipped.top() / size; y <= clipped.bottom() / size; ++y)
-            for (int x = clipped.left() / size; x <= clipped.right() / size; ++x)
+    if ((uniformProjection || (copyMask && defaultPixel != RgbaPixel{})) && !clipped.isEmpty()) {
+        for (int y = Detail::pixelTileIndex(clipped.top(), size); y <= Detail::pixelTileIndex(clipped.bottom(), size); ++y)
+            for (int x = Detail::pixelTileIndex(clipped.left(), size); x <= Detail::pixelTileIndex(clipped.right(), size); ++x)
                 coordinates.insert(Detail::key(x, y));
     }
     PixelBytesOutcome outcome;
@@ -449,7 +451,7 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
     } catch (const std::bad_alloc &) {
         return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel allocation failed"));
     }
-    if (defaultPixel == RgbaPixel{}) outcome.bytes.fill('\0');
+    if (copyMask || defaultPixel == RgbaPixel{}) outcome.bytes.fill('\0');
     else {
         const auto pixel = rgbaBytes(defaultPixel, pinned->format);
         for (qsizetype offset = 0; offset < outcome.bytes.size(); offset += pixelSize)
@@ -463,7 +465,15 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
     std::sort(ordered.begin(), ordered.end());
     for (const auto coordinate : ordered) {
         const QRect tileRegion(Detail::coordinate(coordinate) * size, QSize(size, size));
-        const auto pixels = readPixels(handle, pinned, tileRegion, layers, !layer, PixelReadArea::LayerCoordinates);
+        PixelReadbackOutcome pixels;
+        if (copyMask) {
+            auto pending = readPixelsAsyncImpl(handle, pinned, tileRegion, layers, !layer,
+                PixelReadArea::LayerCoordinates, false, false, false, false, copyMask, invertMask);
+            if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
+                return rejected(ExecutionCode::DeviceFailure, QStringLiteral("GPU selection copy completion failed"));
+            retireCompletedReadback();
+            pixels = pending.get();
+        } else pixels = readPixels(handle, pinned, tileRegion, layers, !layer, PixelReadArea::LayerCoordinates);
         if (pixels.code != ExecutionCode::Success) return rejected(pixels.code, pixels.diagnostic);
         for (const auto &tile : pixels.tiles) {
             const auto origin = tile.coordinate * size;
@@ -613,7 +623,7 @@ PixelReadbackOutcome Execution::readLayerTileExtent(DocumentHandle handle, const
 std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &pinned,
                                          QRect region, const QList<LayerId> &layers, bool includeProjection,
                                          PixelReadArea area, bool transparencyOnly, bool boundsOnly, bool includeTransparentColors,
-                                         bool tileExtentOnly)
+                                         bool tileExtentOnly, const SelectionMaskSP &copyMask, bool invertMask)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         return readyReadback(failure(code, diagnostic));
@@ -686,7 +696,36 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         QList<WGPUBuffer> buffers;
         QHash<WGPUBuffer, qsizetype> indices;
         QList<qsizetype> outputIndices;
-        const auto append = [&](LayerId layer, const QList<TileView> &tiles) {
+        QList<std::shared_ptr<Detail::Tile>> selectionPins;
+        RenderOutcome::Code copyCode = RenderOutcome::Recorded;
+        QString copyDiagnostic;
+        const auto append = [&](LayerId layer, QList<TileView> tiles) {
+            if (copyMask) {
+                const auto implicit = layer ? pinned->projectionDefaultPixels().value(layer) : RgbaPixel{};
+                if (implicit != RgbaPixel{}) {
+                    QSet<QPoint> present;
+                    for (const auto &tile : tiles) present.insert(tile.coordinate);
+                    const auto &area = outcome.region;
+                    for (int y = Detail::pixelTileIndex(area.top(), TileRenderer::TileSize);
+                         y <= Detail::pixelTileIndex(area.bottom(), TileRenderer::TileSize); ++y)
+                        for (int x = Detail::pixelTileIndex(area.left(), TileRenderer::TileSize);
+                             x <= Detail::pixelTileIndex(area.right(), TileRenderer::TileSize); ++x)
+                            if (!present.contains(QPoint(x, y))) tiles.append({{x, y}, nullptr});
+                }
+                for (auto &tile : tiles) {
+                    if (!outcome.region.intersects(QRect(tile.coordinate * TileRenderer::TileSize,
+                                                        QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) continue;
+                    const auto copied = d.renderer->m_d->copySelection(frame.commands, tile, implicit,
+                                                                       pinned->format, copyMask, invertMask);
+                    if (copied.code != RenderOutcome::Recorded) {
+                        copyCode = copied.code;
+                        copyDiagnostic = copied.diagnostic;
+                        return false;
+                    }
+                    selectionPins.append(copied.tile);
+                    tile.pixels = copied.tile->pixels.get();
+                }
+            }
             for (const auto &tile : tiles) {
                 if (!outcome.region.intersects(QRect(tile.coordinate * TileRenderer::TileSize,
                                                     QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) continue;
@@ -733,7 +772,8 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         if (!withinLimit) {
             cancelFrame();
             begun = false;
-            return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("GPU pixel readback byte capacity exceeded"));
+            return rejected(copyCode == RenderOutcome::Recorded ? ExecutionCode::CapacityExceeded : executionCode(copyCode),
+                            copyDiagnostic.isEmpty() ? QStringLiteral("GPU pixel readback byte capacity exceeded") : copyDiagnostic);
         }
         if (!buffers.isEmpty()) {
             reads = Detail::ReadbackBatch::create(*d.device, buffers.size());
@@ -758,6 +798,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
             completion->remaining = qsizetype(reads->results.size());
             completion->transparencyOnly = transparencyOnly;
             completion->boundsOnly = boundsOnly;
+            completion->selectionPins = std::move(selectionPins);
             future = completion->result.get_future();
             for (qsizetype index = 0; size_t(index) < reads->results.size(); ++index) {
                 QList<qsizetype> outputs;

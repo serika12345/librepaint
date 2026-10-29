@@ -192,10 +192,13 @@ public:
      * Layer zero reads the visible projection, with transparent pixels outside
      * the canvas. Other layers preserve hidden, off-canvas and implicit pixels.
      * Byte limits apply to encoded output; transfers use one tile at a time.
-     * Rejection returns no partial bytes. Requests and publication stay current.
+     * Optional frozen clipboard coverage multiplies alpha on the GPU,
+     * preserving RGB and native precision before transfer. Rejection returns no partial bytes.
+     * Requests and publication stay current.
      */
     PixelBytesOutcome readRgbaPixels(DocumentHandle handle, const Snapshot &document,
-                                     QRect region, LayerId layer, qsizetype maximumBytes);
+                                     QRect region, LayerId layer, qsizetype maximumBytes,
+                                     const SelectionMaskSP &copyMask = {}, bool invertMask = false);
 
     /** Complete sparse layer pixels, including hidden and off-canvas tiles.
      * Implicit pixels use the returned document's projectionDefaultPixels().
@@ -260,7 +263,8 @@ private:
     std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers, bool includeProjection,
                                    PixelReadArea area, bool transparencyOnly, bool boundsOnly = false,
-                                   bool includeTransparentColors = false, bool tileExtentOnly = false);
+                                   bool includeTransparentColors = false, bool tileExtentOnly = false,
+                                   const SelectionMaskSP &copyMask = {}, bool invertMask = false);
 };
 }
 #endif

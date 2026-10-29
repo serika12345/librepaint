@@ -684,7 +684,7 @@ void KisSelectionManager::cutToNewLayer()
         if (const auto node = KisLayerUtils::findNodeByUuid(image->root(), uuid))
             view->nodeManager()->slotUiActivatedNode(node);
         if (!view || view->image().data() != image.data()) return;
-        if (owner->fillLayer(sourceLayer, {0, 0, 0}, 1, true, false) !=
+        if (owner->clearSelectedPixels({sourceLayer}) !=
             LibrePaint::Image::Gpu::Result::Success)
             if (view) view->showFloatingMessage(i18n("The source selection could not be cleared."), QIcon());
         return;

@@ -449,7 +449,7 @@ QImage freehandClipboardCoverage(const QRect &bounds,
     for (int y = 0; y < bounds.height(); ++y) {
         uchar *line = coverage.scanLine(y);
         for (int x = 0; x < bounds.width(); ++x)
-            if (mask->contains(bounds.x() + x, bounds.y() + y)) line[x] = 255;
+            line[x] = mask->coverage(bounds.x() + x, bounds.y() + y);
     }
     return coverage;
 }
@@ -465,6 +465,10 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
 
     if (const auto owner = image->gpuImage()) {
         namespace Gpu = LibrePaint::Image::Gpu;
+        const QPointer<KisViewManager> guard(view);
+        const auto sourceVersion = owner->operations().snapshot();
+        const auto sourceMask = owner->selectionMask();
+        const auto sourceKind = owner->selectionKind();
         const QRect selected = owner->selectionRect();
         if (!selected.isEmpty()) {
             KisNodeSP node = view->activeNode();
@@ -479,13 +483,13 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
             const bool freehand = owner->selectionKind() == Gpu::SelectionKind::Freehand;
             const bool ellipse = owner->selectionKind() == Gpu::SelectionKind::Ellipse;
             std::optional<GpuClipboardMask> mask;
-            if (freehand && !inverted) {
+            if (freehand) {
                 const QImage coverage = freehandClipboardCoverage(selected, owner->selectionMask());
                 if (coverage.isNull()) {
                     view->showFloatingMessage(i18n("The freehand selection could not be copied."), QIcon());
                     return;
                 }
-                mask = GpuClipboardMask{selected, false, true, coverage};
+                mask = GpuClipboardMask{selected, false, !inverted, coverage};
             }
             else if (inverted) mask = GpuClipboardMask{selected, ellipse, false};
             else if (ellipse) mask = GpuClipboardMask{selected, true, true};
@@ -494,8 +498,11 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
                 view->showFloatingMessage(i18n("The selected area could not be copied."), QIcon());
                 return;
             }
+            if (!guard || view->image().data() != image.data() || owner->operations().snapshot() != sourceVersion ||
+                owner->selectionRect() != selected || owner->selectionMask() != sourceMask ||
+                owner->selectionKind() != sourceKind || owner->selectionInverted() != inverted) return;
             if (flags & CutClip) {
-                const auto result = owner->fillLayer(layer, {0, 0, 0}, 1, true, false);
+                const auto result = owner->clearSelectedPixels({layer});
                 if (result != Gpu::Result::Success) {
                     view->showFloatingMessage(i18n("The selected area could not be cleared."), QIcon());
                     return;
@@ -667,13 +674,13 @@ void KisCopyMergedActionFactory::run(KisViewManager *view)
         const bool freehand = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Freehand;
         const bool ellipse = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse;
         std::optional<GpuClipboardMask> mask;
-        if (freehand && !inverted) {
+        if (freehand) {
             const QImage coverage = freehandClipboardCoverage(owner->selectionRect(), owner->selectionMask());
             if (coverage.isNull()) {
                 view->showFloatingMessage(i18n("The freehand selection could not be copied."), QIcon());
                 return;
             }
-            mask = GpuClipboardMask{owner->selectionRect(), false, true, coverage};
+            mask = GpuClipboardMask{owner->selectionRect(), false, !inverted, coverage};
         }
         else if (inverted) mask = GpuClipboardMask{owner->selectionRect(), ellipse, false};
         else if (ellipse) mask = GpuClipboardMask{owner->selectionRect(), true, true};

@@ -17,6 +17,9 @@
 #include <QScopedPointer>
 #include <QTemporaryFile>
 #include <QThread>
+#include <QColorSpace>
+#include <KoColorSpace.h>
+#include <KoColorSpaceRegistry.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
 #include <cstring>
@@ -726,6 +729,28 @@ bool KisClipboard::setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy
     return true;
 }
 
+namespace {
+LibrePaint::Image::Gpu::SelectionMaskSP clipboardCoverage(const GpuClipboardMask &mask, qsizetype budget)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const QRect bounds = mask.rect.normalized();
+    if (qint64(bounds.width()) * bounds.height() > std::min<qsizetype>(budget, Gpu::SelectionMask::MaximumBytes)) return {};
+    Gpu::SelectionMaskSP coverage;
+    if (!mask.coverage.isNull()) {
+        if (mask.coverage.size() != bounds.size() ||
+            (mask.coverage.format() != QImage::Format_Alpha8 && mask.coverage.format() != QImage::Format_Grayscale8)) return {};
+        QByteArray bytes(bounds.width() * bounds.height(), '\0');
+        for (int y = 0; y < bounds.height(); ++y)
+            std::memcpy(bytes.data() + qsizetype(y) * bounds.width(), mask.coverage.constScanLine(y), bounds.width());
+        coverage = Gpu::SelectionMask::fromAlphaCoverage(bounds, bytes, bounds);
+        if (!coverage && std::all_of(bytes.cbegin(), bytes.cend(), [](char value) { return value == 0; }))
+            coverage = Gpu::SelectionMask::empty();
+    } else coverage = mask.ellipse ? Gpu::SelectionMask::fromEllipse(bounds, bounds) :
+                                     Gpu::SelectionMask::fromRectangle(bounds, bounds);
+    return coverage && coverage->byteCount() <= budget ? coverage : Gpu::SelectionMaskSP{};
+}
+}
+
 bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes, QRect region, std::optional<GpuClipboardMask> mask)
 {
     const auto owner = image ? image->gpuImage() : nullptr;
@@ -736,40 +761,12 @@ bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetByte
         region.normalized().intersected(QRect(QPoint(), version->size));
     if (captured.isEmpty()) return false;
     try {
-        const auto copied = owner->cloneRasterLayer(version, 0, captured,
-                                                    QUuid::createUuid(), memoryBudgetBytes);
+        const auto coverage = mask && !mask->rect.isEmpty() ? clipboardCoverage(*mask, memoryBudgetBytes) :
+            LibrePaint::Image::Gpu::SelectionMaskSP{};
+        if (mask && !mask->rect.isEmpty() && !coverage) return false;
+        const auto copied = owner->cloneRasterLayer(version, 0, captured, QUuid::createUuid(),
+                                                    memoryBudgetBytes - (coverage ? coverage->byteCount() : 0), coverage, mask && !mask->keepInside);
         if (!copied) return false;
-        if (mask && !mask->rect.isEmpty()) {
-            const QRect area = mask->rect.translated(-captured.topLeft()).normalized().intersected(QRect(QPoint(), copied->operations().snapshot()->size));
-            if (!area.isEmpty()) {
-                const auto pixels = copied->readRgbaPixels(copied->operations().activeLayer(), area, memoryBudgetBytes);
-                if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success) return false;
-                QByteArray bytes = pixels.bytes;
-                const int pixelBytes = LibrePaint::Image::Gpu::pixelByteCount(copied->operations().snapshot()->format);
-                const qreal cx = area.x() + area.width() / 2.0, cy = area.y() + area.height() / 2.0;
-                const qreal rx = area.width() / 2.0, ry = area.height() / 2.0;
-                for (int y = 0; y < area.height(); ++y) {
-                    for (int x = 0; x < area.width(); ++x) {
-                        bool inside = true;
-                        if (!mask->coverage.isNull()) {
-                            const QPoint local = QPoint(area.x() + x, area.y() + y) +
-                                captured.topLeft() - mask->rect.topLeft();
-                            inside = local.x() >= 0 && local.y() >= 0 &&
-                                local.x() < mask->coverage.width() && local.y() < mask->coverage.height() &&
-                                mask->coverage.constScanLine(local.y())[local.x()] != 0;
-                        } else if (mask->ellipse) {
-                            const qreal dx = (area.x() + x + 0.5 - cx) / rx;
-                            const qreal dy = (area.y() + y + 0.5 - cy) / ry;
-                            inside = dx * dx + dy * dy <= 1.0;
-                        }
-                        const bool clear = mask->keepInside ? !inside : inside;
-                        if (clear) std::memset(bytes.data() + (y * area.width() + x) * pixelBytes, 0, pixelBytes);
-                    }
-                }
-                if (copied->writeRgbaPixels(copied->operations().activeLayer(), area, bytes) != LibrePaint::Image::Gpu::Result::Success)
-                    return false;
-            }
-        }
         if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;
         auto captured = KisImage::fromGpuImage(copied, QStringLiteral("Projection"), image->colorSpace());
         captured->setResolution(image->xRes(), image->yRes());
@@ -798,39 +795,12 @@ bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype m
         region.normalized().intersected(QRect(QPoint(), version->size));
     if (captured.isEmpty()) return false;
     try {
-        const auto copied = owner->cloneRasterLayer(version, layerId, captured, QUuid::createUuid(), memoryBudgetBytes);
+        const auto coverage = mask && !mask->rect.isEmpty() ? clipboardCoverage(*mask, memoryBudgetBytes) :
+            LibrePaint::Image::Gpu::SelectionMaskSP{};
+        if (mask && !mask->rect.isEmpty() && !coverage) return false;
+        const auto copied = owner->cloneRasterLayer(version, layerId, captured, QUuid::createUuid(),
+                                                    memoryBudgetBytes - (coverage ? coverage->byteCount() : 0), coverage, mask && !mask->keepInside);
         if (!copied) return false;
-        if (mask && !mask->rect.isEmpty()) {
-            const QRect area = mask->rect.translated(-captured.topLeft()).normalized().intersected(QRect(QPoint(), copied->operations().snapshot()->size));
-            if (!area.isEmpty()) {
-                const auto pixels = copied->readRgbaPixels(copied->operations().activeLayer(), area, memoryBudgetBytes);
-                if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success) return false;
-                QByteArray bytes = pixels.bytes;
-                const int pixelBytes = LibrePaint::Image::Gpu::pixelByteCount(copied->operations().snapshot()->format);
-                const qreal cx = area.x() + area.width() / 2.0, cy = area.y() + area.height() / 2.0;
-                const qreal rx = area.width() / 2.0, ry = area.height() / 2.0;
-                for (int y = 0; y < area.height(); ++y) {
-                    for (int x = 0; x < area.width(); ++x) {
-                        bool inside = true;
-                        if (!mask->coverage.isNull()) {
-                            const QPoint local = QPoint(area.x() + x, area.y() + y) +
-                                captured.topLeft() - mask->rect.topLeft();
-                            inside = local.x() >= 0 && local.y() >= 0 &&
-                                local.x() < mask->coverage.width() && local.y() < mask->coverage.height() &&
-                                mask->coverage.constScanLine(local.y())[local.x()] != 0;
-                        } else if (mask->ellipse) {
-                            const qreal dx = (area.x() + x + 0.5 - cx) / rx;
-                            const qreal dy = (area.y() + y + 0.5 - cy) / ry;
-                            inside = dx * dx + dy * dy <= 1.0;
-                        }
-                        const bool clear = mask->keepInside ? !inside : inside;
-                        if (clear) std::memset(bytes.data() + (y * area.width() + x) * pixelBytes, 0, pixelBytes);
-                    }
-                }
-                if (copied->writeRgbaPixels(copied->operations().activeLayer(), area, bytes) != LibrePaint::Image::Gpu::Result::Success)
-                    return false;
-            }
-        }
         if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;
         auto capturedImage = KisImage::fromGpuImage(copied, QStringLiteral("Layer"), image->colorSpace());
         capturedImage->setResolution(image->xRes(), image->yRes());
@@ -841,6 +811,87 @@ bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype m
     } catch (const std::exception &error) {
         qWarning() << "Could not capture a GPU layer region:" << error.what();
         return false;
+    }
+}
+
+QSharedPointer<LibrePaint::Image::Gpu::PaintImage> KisClipboard::importGpuImage(
+    KisImageSP destination, const QImage &source, QPoint position, qsizetype memoryBudgetBytes)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = destination ? destination->gpuImage() : nullptr;
+    if (!owner || !owner->handle() || QThread::currentThread() != thread() ||
+        QThread::currentThread() != owner->thread() || owner->operations().hasActiveStroke() ||
+        source.isNull() || memoryBudgetBytes < 0) return {};
+    const auto version = owner->operations().snapshot();
+    const auto *targetSpace = destination->colorSpace();
+    if (!targetSpace || targetSpace->colorModelId() != RGBAColorModelID ||
+        targetSpace->pixelSize() != Gpu::pixelByteCount(version->format) ||
+        targetSpace->profile()->rawData() != version->colorProfile ||
+        !QRect(QPoint(), version->size).contains(QRect(position, source.size()))) return {};
+    const bool sourceWords = source.depth() > 32;
+    const int sourcePixelBytes = sourceWords ? 8 : 4;
+    const int targetPixelBytes = Gpu::pixelByteCount(version->format);
+    const qint64 packedBytes = qint64(source.width()) * source.height() * targetPixelBytes;
+    const qint64 columns = (position.x() % Gpu::RgbaTile::Size + qint64(source.width()) + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+    const qint64 rows = (position.y() % Gpu::RgbaTile::Size + qint64(source.height()) + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+    const qint64 workingBytes = packedBytes + qint64(source.width()) * (source.height() + 1) * sourcePixelBytes +
+        qint64(source.width()) * targetPixelBytes + 2 * columns * rows * Gpu::RgbaTile::byteCount(version->format);
+    if (workingBytes > memoryBudgetBytes) return {};
+    try {
+        auto *registry = KoColorSpaceRegistry::instance();
+        const auto *profile = source.colorSpace().isValid() ? registry->profileForQColorSpace(source.colorSpace()) : registry->rgb8()->profile();
+        if (source.colorSpace().isValid() && !profile) return {};
+        const auto *sourceSpace = sourceWords ? registry->rgb16(profile) : registry->rgb8(profile);
+        if (!sourceSpace) return {};
+        const QImage input = source.convertToFormat(sourceWords ? QImage::Format_RGBA64 : QImage::Format_ARGB32);
+        if (input.isNull()) return {};
+        QByteArray packed(packedBytes, Qt::Uninitialized);
+        QByteArray inputRow(source.width() * sourcePixelBytes, Qt::Uninitialized);
+        QByteArray convertedRow(source.width() * targetPixelBytes, Qt::Uninitialized);
+        for (int y = 0; y < source.height(); ++y) {
+            for (int x = 0; x < source.width(); ++x) {
+                if (sourceWords) {
+                    const auto pixel = reinterpret_cast<const QRgba64 *>(input.constScanLine(y))[x];
+                    const quint16 bgra[]{pixel.blue(), pixel.green(), pixel.red(), pixel.alpha()};
+                    std::memcpy(inputRow.data() + x * 8, bgra, sizeof(bgra));
+                } else {
+                    const auto pixel = reinterpret_cast<const QRgb *>(input.constScanLine(y))[x];
+                    const quint8 bgra[]{quint8(qBlue(pixel)), quint8(qGreen(pixel)), quint8(qRed(pixel)), quint8(qAlpha(pixel))};
+                    std::memcpy(inputRow.data() + x * 4, bgra, sizeof(bgra));
+                }
+            }
+            if (!sourceSpace->convertPixelsTo(reinterpret_cast<const quint8 *>(inputRow.constData()),
+                    reinterpret_cast<quint8 *>(convertedRow.data()), targetSpace, source.width(),
+                    KoColorConversionTransformation::internalRenderingIntent(),
+                    KoColorConversionTransformation::internalConversionFlags())) return {};
+            for (int x = 0; x < source.width(); ++x) {
+                Gpu::RgbaPixel pixel;
+                if (targetPixelBytes == 8) {
+                    quint16 bgra[4];
+                    std::memcpy(bgra, convertedRow.constData() + x * 8, sizeof(bgra));
+                    pixel = {bgra[2], bgra[1], bgra[0], bgra[3]};
+                } else {
+                    const auto *bgra = reinterpret_cast<const quint8 *>(convertedRow.constData()) + x * 4;
+                    pixel = {bgra[2], bgra[1], bgra[0], bgra[3]};
+                }
+                const auto bytes = Gpu::rgbaBytes(pixel, version->format);
+                std::memcpy(packed.data() + (qsizetype(y) * source.width() + x) * targetPixelBytes,
+                            bytes.constData(), targetPixelBytes);
+            }
+        }
+        Gpu::RasterImage raster;
+        raster.size = version->size;
+        raster.format = version->format;
+        raster.colorProfile = version->colorProfile;
+        raster.layers.append({QStringLiteral("Pasted"), true, QUuid::createUuid(), {}});
+        const auto imported = Gpu::PaintImageSP::create(owner->execution(), raster);
+        if (imported->writeRgbaPixels(imported->operations().activeLayer(), QRect(position, source.size()), packed) != Gpu::Result::Success)
+            return {};
+        if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return {};
+        return imported;
+    } catch (const std::exception &error) {
+        qWarning() << "Could not import clipboard image:" << error.what();
+        return {};
     }
 }
 

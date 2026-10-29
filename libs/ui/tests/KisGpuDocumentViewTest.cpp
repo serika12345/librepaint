@@ -119,6 +119,37 @@
 #include <thread>
 
 namespace {
+void exchangeRgbaBgra(QByteArray &bytes, int pixelBytes)
+{
+    const int channelBytes = pixelBytes / 4;
+    for (qsizetype pixel = 0; pixel < bytes.size(); pixel += pixelBytes)
+        for (int byte = 0; byte < channelBytes; ++byte)
+            std::swap(bytes[pixel + byte], bytes[pixel + 2 * channelBytes + byte]);
+}
+
+QByteArray nativeClipboardMask(const KoColorSpace *cs, QByteArray source, const QByteArray &coverage, QSize size)
+{
+    exchangeRgbaBgra(source, cs->pixelSize());
+    cs->applyAlphaU8Mask(reinterpret_cast<quint8 *>(source.data()),
+                         reinterpret_cast<const quint8 *>(coverage.constData()), size.width() * size.height());
+    exchangeRgbaBgra(source, cs->pixelSize());
+    return source;
+}
+
+QByteArray nativeClearSelection(const KoColorSpace *cs, QByteArray source, const QByteArray &coverage, QSize size)
+{
+    exchangeRgbaBgra(source, cs->pixelSize());
+    KisPaintDeviceSP device = new KisPaintDevice(cs);
+    const QRect region(QPoint(), size);
+    device->writeBytes(reinterpret_cast<const quint8 *>(source.constData()), region);
+    KisSelectionSP selection = new KisSelection();
+    selection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(coverage.constData()), region);
+    device->clearSelection(selection);
+    device->readBytes(reinterpret_cast<quint8 *>(source.data()), region);
+    exchangeRgbaBgra(source, cs->pixelSize());
+    return source;
+}
+
 template<class ExecutionOwner, class... Arguments>
 LibrePaint::Image::Gpu::PaintImageSP paintImageWithEncoding(ExecutionOwner &&execution,
     LibrePaint::Image::Gpu::RasterImage raster, Arguments &&...arguments)
@@ -239,6 +270,7 @@ private Q_SLOTS:
     void polygonalToolCreatesArbitraryMaskSelection();
     void pathToolCreatesArbitraryMaskSelection();
     void featherActionSoftensFreehandSelection();
+    void pasteClipboardImageCreatesGpuLayer_data();
     void pasteClipboardImageCreatesGpuLayer();
     void reselectRestoresGpuSelection();
     void arrowKeysNudgeGpuSelection();
@@ -2984,12 +3016,13 @@ void KisGpuDocumentViewTest::nativeClipboardCoverageKeepsPrecisionAndSavedPixels
     QTest::addColumn<bool>("words");
     QTest::addColumn<bool>("merged");
     QTest::addColumn<bool>("keepInside");
+    QTest::addColumn<bool>("implicit");
     for (const bool words : {false, true}) for (const bool merged : {false, true})
-        for (const bool keepInside : {false, true}) {
-            const auto name = QStringLiteral("%1-%2-%3").arg(words ? QStringLiteral("u16") : QStringLiteral("u8"),
+        for (const bool keepInside : {false, true}) for (const bool implicit : {false, true}) {
+            const auto name = QStringLiteral("%1-%2-%3-%4").arg(words ? QStringLiteral("u16") : QStringLiteral("u8"),
                 merged ? QStringLiteral("merged") : QStringLiteral("layer"),
-                keepInside ? QStringLiteral("inside") : QStringLiteral("outside"));
-            QTest::newRow(qPrintable(name)) << words << merged << keepInside;
+                keepInside ? QStringLiteral("inside") : QStringLiteral("outside")).arg(implicit ? QStringLiteral("implicit") : QStringLiteral("tiles"));
+            QTest::newRow(qPrintable(name)) << words << merged << keepInside << implicit;
         }
 }
 
@@ -2999,6 +3032,7 @@ void KisGpuDocumentViewTest::nativeClipboardCoverageKeepsPrecisionAndSavedPixels
     QFETCH(bool, words);
     QFETCH(bool, merged);
     QFETCH(bool, keepInside);
+    QFETCH(bool, implicit);
     QString diagnostic;
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
     QVERIFY2(execution, qPrintable(diagnostic));
@@ -3011,6 +3045,19 @@ void KisGpuDocumentViewTest::nativeClipboardCoverageKeepsPrecisionAndSavedPixels
     raster.format = format;
     raster.layers.append({QStringLiteral("Clipboard source"), true, QUuid::createUuid(),
                           {{{0, 0}, pixel.repeated(Gpu::RgbaTile::byteCount(format) / pixel.size()), format}}});
+    if (implicit) {
+        raster.layers.first().tiles.clear();
+        raster.layers.first().defaultPixel = color;
+    } else {
+        auto &tile = raster.layers.first().tiles.first().rgba;
+        const quint16 alphas[]{0, 1, quint16(words ? 32768 : 128), quint16(words ? 65535 : 255)};
+        for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x) {
+            auto value = color;
+            value[3] = alphas[(x + y) % 4];
+            const auto bytes = Gpu::rgbaBytes(value, format);
+            std::memcpy(tile.data() + (y * Gpu::RgbaTile::Size + x) * pixel.size(), bytes.constData(), pixel.size());
+        }
+    }
     const auto owner = paintImageWithEncoding(execution, raster);
     auto image = KisImage::fromGpuImage(owner, QStringLiteral("Native clipboard"), cs);
     const auto original = owner->operations().snapshot();
@@ -3020,7 +3067,7 @@ void KisGpuDocumentViewTest::nativeClipboardCoverageKeepsPrecisionAndSavedPixels
     mask.keepInside = keepInside;
     mask.coverage = QImage(mask.rect.size(), QImage::Format_Alpha8);
     for (int y = 0; y < mask.coverage.height(); ++y) for (int x = 0; x < mask.coverage.width(); ++x)
-        mask.coverage.scanLine(y)[x] = (x + 2 * y) % 3 ? 255 : 0;
+        mask.coverage.scanLine(y)[x] = std::array<quint8, 6>{0, 1, 127, 128, 254, 255}[(x + 2 * y) % 6];
     const QRect captured = keepInside ? mask.rect : QRect(QPoint(), raster.size);
     const auto releaseClipboard = qScopeGuard([] { QGuiApplication::clipboard()->clear(); });
     QVERIFY(merged ? KisClipboard::instance()->setGpuProjection(image, 8 * 1024 * 1024, captured, mask) :
@@ -3037,14 +3084,17 @@ void KisGpuDocumentViewTest::nativeClipboardCoverageKeepsPrecisionAndSavedPixels
     const auto copied = capturedImage->gpuImage();
     QVERIFY(copied);
     QCOMPARE(copied->operations().snapshot()->format, format);
-    QByteArray expected(captured.width() * captured.height() * pixel.size(), '\0');
+    const auto source = execution->readRgbaPixels(owner->handle(), original, captured,
+                                                  merged ? 0 : original->activeLayer, 8 * 1024 * 1024);
+    QCOMPARE(source.code, Gpu::ExecutionCode::Success);
+    QByteArray selectedness(captured.width() * captured.height(), '\0');
     for (int y = 0; y < captured.height(); ++y) for (int x = 0; x < captured.width(); ++x) {
-        const QPoint source = captured.topLeft() + QPoint(x, y);
-        const QPoint local = source - mask.rect.topLeft();
-        const bool inside = mask.rect.contains(source) && mask.coverage.constScanLine(local.y())[local.x()] != 0;
-        if (inside == keepInside)
-            std::memcpy(expected.data() + (y * captured.width() + x) * pixel.size(), pixel.constData(), pixel.size());
+        const QPoint point = captured.topLeft() + QPoint(x, y);
+        const QPoint local = point - mask.rect.topLeft();
+        const quint8 amount = mask.rect.contains(point) ? mask.coverage.constScanLine(local.y())[local.x()] : 0;
+        selectedness[y * captured.width() + x] = char(keepInside ? amount : 255 - amount);
     }
+    const QByteArray expected = nativeClipboardMask(cs, source.bytes, selectedness, captured.size());
     const auto actual = copied->readRgbaPixels(copied->operations().activeLayer(), QRect(QPoint(), captured.size()), expected.size());
     QCOMPARE(actual.code, Gpu::ExecutionCode::Success);
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
@@ -4312,18 +4362,34 @@ void KisGpuDocumentViewTest::featherActionSoftensFreehandSelection()
     QCOMPARE(reopenedPixels.bytes, filled.bytes);
 }
 
+void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("sourceWords");
+    for (const bool words : {false, true}) for (const bool sourceWords : {false, true})
+        QTest::newRow(qPrintable(QStringLiteral("u%1-from-u%2").arg(words ? 16 : 8).arg(sourceWords ? 16 : 8))) << words << sourceWords;
+}
+
 void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(bool, words);
+    QFETCH(bool, sourceWords);
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const auto format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    Gpu::RasterImage raster;
+    raster.size = {64, 64};
+    raster.format = format;
+    raster.layers.append({QStringLiteral("Paint"), true, QUuid::createUuid(), {}});
+    const auto owner = paintImageWithEncoding(execution, raster);
     const auto saved = owner->operations().snapshot();
     QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
-    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Paste image")));
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Paste image"), cs));
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
     auto *view = window->newView(document.get());
     QVERIFY(view);
@@ -4339,8 +4405,33 @@ void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer()
     });
     window->viewManager()->setCurrentView(view);
     window->show();
-    QImage pasted(16, 16, QImage::Format_RGBA8888);
-    pasted.fill(QColor(17, 129, 241));
+    const auto profile = QColorSpace::fromIccProfile(cs->profile()->rawData());
+    QVERIFY(profile.isValid());
+    QImage pasted(16, 16, sourceWords ? QImage::Format_RGBA64 : QImage::Format_RGBA8888);
+    if (sourceWords) pasted.fill(QColor::fromRgba64(4353, 33282, 61955, 32769));
+    else pasted.fill(QColor(17, 129, 241, 191));
+    pasted.setColorSpace(profile);
+    const auto sourceColorSpace = sourceWords ? KoColorSpaceRegistry::instance()->rgb16(cs->profile()) :
+                                                KoColorSpaceRegistry::instance()->rgb8(cs->profile());
+    QByteArray nativeColor(sourceWords ? 8 : 4, Qt::Uninitialized);
+    if (sourceWords) {
+        const quint16 bgra[]{61955, 33282, 4353, 32769};
+        std::memcpy(nativeColor.data(), bgra, sizeof(bgra));
+    } else nativeColor = QByteArray::fromHex("f18111bf");
+    KoColor expectedColor(reinterpret_cast<const quint8 *>(nativeColor.constData()), sourceColorSpace);
+    expectedColor.convertTo(cs);
+    Gpu::RgbaPixel rgba;
+    if (words) {
+        quint16 bgra[4];
+        std::memcpy(bgra, expectedColor.data(), sizeof(bgra));
+        rgba = {bgra[2], bgra[1], bgra[0], bgra[3]};
+    } else {
+        const auto *bgra = expectedColor.data();
+        rgba = {bgra[2], bgra[1], bgra[0], bgra[3]};
+    }
+    if (words && sourceWords) QCOMPARE(rgba, (Gpu::RgbaPixel{4353, 33282, 61955, 32769}));
+    const auto expectedPixel = Gpu::rgbaBytes(rgba, format);
+    const auto clearClipboard = qScopeGuard([] { QGuiApplication::clipboard()->clear(); });
     QGuiApplication::clipboard()->setImage(pasted);
     auto *manager = window->viewManager()->selectionManager();
     QVERIFY(manager);
@@ -4351,22 +4442,43 @@ void KisGpuDocumentViewTest::pasteClipboardImageCreatesGpuLayer()
     const auto pixels = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
     QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
     int matches = 0;
-    for (qsizetype offset = 0; offset + 3 < pixels.bytes.size(); offset += 4)
-        if (pixels.bytes.mid(offset, 4) == QByteArray::fromHex("1181f1ff")) ++matches;
+    for (qsizetype offset = 0; offset < pixels.bytes.size(); offset += expectedPixel.size())
+        if (pixels.bytes.mid(offset, expectedPixel.size()) == expectedPixel) ++matches;
     QCOMPARE(matches, 16 * 16);
+    QCOMPARE(owner->operations().snapshot()->colorProfile, cs->profile()->rawData());
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024).bytes, pixels.bytes);
+    QTemporaryDir files;
+    QVERIFY(files.isValid());
+    const auto path = files.filePath(QStringLiteral("pasted.kra"));
+    lifetime->setFileBatchMode(true);
+    QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    lifetime->waitForSavingToComplete();
+    QFile archive(path);
+    QVERIFY(archive.open(QIODevice::ReadOnly));
+    const auto loaded = LibrePaint::ImportExport::Kra::RasterCodec::read(archive);
+    QVERIFY(loaded.code == LibrePaint::ImportExport::Kra::Status::Success);
+    const auto reopened = paintImageWithEncoding(execution, loaded.document.image);
+    QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), region, 8 * 1024 * 1024).bytes, pixels.bytes);
+    QCOMPARE(reopened->fillLayerColor(reopened->operations().activeLayer(), rgba), Gpu::Result::Success);
+    QCOMPARE(reopened->undo(), Gpu::Result::Success);
+    QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), region, 8 * 1024 * 1024).bytes, pixels.bytes);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
 
     QImage large(128, 128, QImage::Format_RGBA8888);
     large.fill(QColor(241, 129, 17));
+    large.setColorSpace(profile);
     QGuiApplication::clipboard()->setImage(large);
     manager->paste();
     QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
     const auto cropped = owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024);
     QCOMPARE(cropped.code, Gpu::ExecutionCode::Success);
     int croppedMatches = 0;
-    for (qsizetype offset = 0; offset + 3 < cropped.bytes.size(); offset += 4)
-        if (cropped.bytes.mid(offset, 4) == QByteArray::fromHex("f18111ff")) ++croppedMatches;
+    const auto largePixel = Gpu::rgbaBytes(words ? Gpu::RgbaPixel{61937, 33153, 4369, 65535} : Gpu::RgbaPixel{241, 129, 17, 255}, format);
+    for (qsizetype offset = 0; offset < cropped.bytes.size(); offset += largePixel.size())
+        if (cropped.bytes.mid(offset, largePixel.size()) == largePixel) ++croppedMatches;
     QCOMPARE(croppedMatches, 64 * 64);
 }
 
@@ -4537,14 +4649,16 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     const auto copiedPixels = owner->readRgbaPixels(copiedLayer, region, 8 * 1024 * 1024);
     QCOMPARE(copiedPixels.code, Gpu::ExecutionCode::Success);
     const auto expectedSelection = [&](bool ellipse, bool inverted) {
-        QByteArray expected(64 * 64 * colorBytes.size(), '\0');
+        QByteArray source(64 * 64 * colorBytes.size(), '\0');
+        QByteArray coverage(64 * 64, '\0');
         for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x) {
             const int dx = 2 * x + 1 - 64, dy = 2 * y + 1 - 64;
             const bool inside = ellipse ? dx * dx + dy * dy <= 32 * 32 : selected.contains(x, y);
-            if (inside != inverted)
-                std::memcpy(expected.data() + (y * 64 + x) * colorBytes.size(), colorBytes.constData(), colorBytes.size());
+            if (inverted || selected.contains(x, y))
+                std::memcpy(source.data() + (y * 64 + x) * colorBytes.size(), colorBytes.constData(), colorBytes.size());
+            coverage[y * 64 + x] = inside != inverted ? char(255) : char(0);
         }
-        return expected;
+        return nativeClipboardMask(cs, source, coverage, region.size());
     };
     QCOMPARE(copiedPixels.bytes, expectedSelection(false, false));
     int copiedMatches = 0;
@@ -4587,7 +4701,9 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     QCOMPARE(ellipsePixels.bytes, expectedSelection(true, false));
     const auto ellipsePixel = [&](int x, int y) { return ellipsePixels.bytes.mid((y * 64 + x) * colorBytes.size(), colorBytes.size()); };
     QCOMPARE(ellipsePixel(32, 32), colorBytes);
-    QCOMPARE(ellipsePixel(16, 16), QByteArray(colorBytes.size(), char(0)));
+    auto transparentColor = color;
+    transparentColor[3] = 0;
+    QCOMPARE(ellipsePixel(16, 16), Gpu::rgbaBytes(transparentColor, raster.format));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
 
@@ -4606,7 +4722,7 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     const auto invertedEllipsePixel = [&](int x, int y) {
         return invertedEllipsePixels.bytes.mid((y * 64 + x) * colorBytes.size(), colorBytes.size());
     };
-    QCOMPARE(invertedEllipsePixel(32, 32), QByteArray(colorBytes.size(), char(0)));
+    QCOMPARE(invertedEllipsePixel(32, 32), Gpu::rgbaBytes(transparentColor, raster.format));
     QCOMPARE(invertedEllipsePixel(16, 16), colorBytes);
     QTemporaryDir savedFiles;
     QVERIFY(savedFiles.isValid());
@@ -4641,6 +4757,66 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
     }
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
+    QByteArray alpha(selected.width() * selected.height(), '\0');
+    for (int y = 0; y < selected.height(); ++y) for (int x = 0; x < selected.width(); ++x)
+        alpha[y * selected.width() + x] = char(std::array<quint8, 6>{0, 1, 127, 128, 254, 255}[(x + 2 * y) % 6]);
+    const auto mask = Gpu::SelectionMask::fromAlphaCoverage(selected, alpha, region);
+    QVERIFY(mask);
+    for (const bool inverted : {false, true}) {
+        QVERIFY(lifetime->image()->setGpuSelectionMask(mask, inverted));
+        QByteArray coverage(64 * 64, '\0');
+        for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x) {
+            const quint8 value = mask->coverage(x, y);
+            coverage[y * 64 + x] = char(inverted ? 255 - value : value);
+        }
+        QByteArray source(64 * 64 * colorBytes.size(), '\0');
+        for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x)
+            if (inverted || selected.contains(x, y))
+                std::memcpy(source.data() + (y * 64 + x) * colorBytes.size(), colorBytes.constData(), colorBytes.size());
+        const auto expected = nativeClipboardMask(cs, source, coverage, region.size());
+        action->trigger();
+        QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
+        QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024).bytes, expected);
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QCOMPARE(owner->redo(), Gpu::Result::Success);
+        QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), region, 8 * 1024 * 1024).bytes, expected);
+        QVERIFY(lifetime->saveAs(savedPath, KisDocument::nativeFormatMimeType(), false));
+        lifetime->waitForSavingToComplete();
+        QFile partialFile(savedPath);
+        QVERIFY(partialFile.open(QIODevice::ReadOnly));
+        const auto partial = LibrePaint::ImportExport::Kra::RasterCodec::read(partialFile);
+        QVERIFY(partial.code == LibrePaint::ImportExport::Kra::Status::Success);
+        const auto reopened = paintImageWithEncoding(execution, partial.document.image);
+        QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), region, 8 * 1024 * 1024).bytes, expected);
+        QCOMPARE(reopened->fillLayerColor(reopened->operations().activeLayer(), color), Gpu::Result::Success);
+        QCOMPARE(reopened->undo(), Gpu::Result::Success);
+        QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), region, 8 * 1024 * 1024).bytes, expected);
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
+        QTRY_VERIFY(window->viewManager()->activeNode() && window->viewManager()->activeNode()->parent());
+        QTRY_COMPARE(window->viewManager()->activeNode()->uuid(), saved->layers.first().uuid);
+        window->viewManager()->selectionManager()->paste();
+        QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
+        const auto *clipboard = qobject_cast<const KisMimeData *>(KisClipboard::instance()->layersMimeData());
+        QVERIFY(clipboard);
+        const auto clipOwner = clipboard->nodes().first()->image()->gpuImage();
+        QVERIFY(clipOwner);
+        const auto clipRegion = QRect(QPoint(), clipOwner->operations().snapshot()->size);
+        const auto pasted = owner->readRgbaPixels(owner->operations().activeLayer(), clipRegion, 8 * 1024 * 1024);
+        QCOMPARE(pasted.bytes, clipOwner->readRgbaPixels(clipOwner->operations().activeLayer(), clipRegion, 8 * 1024 * 1024).bytes);
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
+        auto *partialCut = window->viewManager()->actionManager()->actionByName(QStringLiteral("cut_selection_to_new_layer"));
+        QVERIFY(partialCut);
+        partialCut->trigger();
+        QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 2);
+        QCOMPARE(owner->readRgbaPixels(baseLayer, region, 8 * 1024 * 1024).bytes,
+                 nativeClearSelection(cs, colorBytes.repeated(64 * 64), coverage, region.size()));
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QTRY_COMPARE(owner->operations().snapshot()->layers.size(), 1);
+        QCOMPARE(owner->readRgbaPixels(baseLayer, region, 8 * 1024 * 1024).bytes, colorBytes.repeated(64 * 64));
+    }
     QVERIFY(lifetime->image()->setGpuSelectionRect(selected));
 
     auto *cutAction = window->viewManager()->actionManager()->actionByName(QStringLiteral("cut_selection_to_new_layer"));
