@@ -244,7 +244,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     source += QByteArray("const SEPARABLE_BLEND_ENABLED: bool = ") + (separableBlendEnabled ? "true;\n" : "false;\n");
     source += "const COUPLED_PIXEL_FORMAT: u32 = " + QByteArray::number(coupledPixelFormat) + "u;\n";
     const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
-    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl"))) {
+    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl"))) {
         QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
         QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
         QFile doubles(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
@@ -545,6 +545,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         if (pendingCoverageLayer) coverageInitialized = true;
         for (size_t i = recordedJobs; i < jobs.size(); ++i) {
             auto &job = jobs[i];
+            d.retainTile(job.input); d.retainTile(job.coverageInput);
             if (job.retainCoverage) {
                 nextCoverage.remove(job.coverageCoordinate);
                 if (d.budget->limit - d.budget->used >= TileBytes) {
@@ -563,6 +564,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 }
             }
         }
+        for (size_t i = recordedJobs; i < jobs.size(); ++i) d.retainTile(jobs[i].coverageInput);
         const auto empty = d.zeroBuffer(commands, document->format);
         if (!empty) return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty tile allocation failed")};
         if (!preparePaintJobs(*d.device, d.layout.get(), jobs, recordedJobs, empty,
@@ -676,6 +678,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                    (right - left + 1) * TileSize, (bottom - top + 1) * TileSize).intersected(layerDomain);
                 }
             }
+            if (const auto affine = std::get_if<AffineSnapshot>(&layer.operations[i]); affine && !needed.isEmpty()) {
+                auto transformed = needed;
+                for (qsizetype stage = (*affine)->plan->passes.size(); stage-- > 0;)
+                    transformed = affineNeededRegion((*affine)->plan->passes[stage], transformed);
+                if ((*affine)->selection) needed |= transformed.intersected((*affine)->selection->copyRect);
+                else needed = transformed;
+                needed &= layerDomain;
+            }
             operationRegions[i] = needed;
         }
         qsizetype prefix = 0;
@@ -714,6 +724,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 bool sharedSpatialOperation = false;
                 for (qsizetype i = 0; i < shared; ++i)
                     sharedSpatialOperation = sharedSpatialOperation || std::holds_alternative<TranslationSnapshot>(layer.operations[i]) ||
+                        std::holds_alternative<AffineSnapshot>(layer.operations[i]) ||
                         std::holds_alternative<CropSnapshot>(layer.operations[i]);
                 if (matches && (!sharedSpatialOperation || !base->m_data->region || base->m_data->region->contains(sourceRegion))) {
                     const auto &oldTiles = base->m_data->layers[layer.id];
@@ -777,7 +788,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             qsizetype end = epoch;
             while (end < layer.operations.size() && !std::holds_alternative<TranslationSnapshot>(layer.operations[end]) &&
                    !std::holds_alternative<CropSnapshot>(layer.operations[end]) &&
-                   !std::holds_alternative<FilterSnapshot>(layer.operations[end])) ++end;
+                   !std::holds_alternative<FilterSnapshot>(layer.operations[end]) &&
+                   !std::holds_alternative<AffineSnapshot>(layer.operations[end])) ++end;
             const auto paintRegion = operationRegions[epoch];
             QMap<quint64, std::array<std::shared_ptr<Tile>, 2>> writable;
             QMap<quint64, Checkpoint> checkpoints;
@@ -1156,6 +1168,12 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                               document->size, operationRegions[end + 1], spatialPins);
                 if (filtered.code != RenderOutcome::Recorded) return {filtered.code, {}, filtered.diagnostic};
                 tiles = std::move(filtered.tiles);
+            } else if (const auto affine = std::get_if<AffineSnapshot>(&layer.operations[end])) {
+                const auto result = (*affine)->selection ?
+                    d.affineSelection(commands, tiles, uniform, layer.defaultPixel, document->format, **affine, operationRegions[end + 1]) :
+                    d.affineTiles(commands, tiles, uniform, document->format, *(*affine)->plan, operationRegions[end + 1]);
+                if (result.code != RenderOutcome::Recorded) return {result.code, {}, result.diagnostic};
+                tiles = result.tiles;
             } else {
                 const auto &translation = std::get<TranslationSnapshot>(layer.operations[end]);
                 const auto firstPin = spatialPins.size();

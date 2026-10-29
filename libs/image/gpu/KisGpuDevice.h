@@ -63,6 +63,11 @@ public:
     bool ownsCommands(WGPUCommandEncoder commands) const;
     bool isRecordingFrame() const;
     bool submitCommands(bool wait = false);
+    /** Pins native allocation storage through this encoder's GPU completion.
+     * Storage must own its byte counter and native handles independently of a
+     * DevicePtr. Completion retires it on the owning thread, including closure.
+     */
+    bool retainForFrame(const std::shared_ptr<void> &storage);
     /** Waits at explicit external read and retirement boundaries. */
     bool finish();
 

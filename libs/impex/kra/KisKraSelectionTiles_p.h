@@ -11,6 +11,8 @@ namespace LibrePaint::ImportExport::Kra::Detail {
  * pixels are adopted as one rectangle, one ellipse, or a binary frozen
  * coverage mask when neither shape describes them. Fractional alpha values are
  * adopted as a frozen alpha coverage mask so feathered selections survive.
+ * Finite arbitrary coverage retains coordinates outside the canvas; inversion
+ * is classified relative to the supplied image bounds.
  */
 Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint offset,
                            QRect imageBounds, qsizetype maximumBytes, QRect &selection, bool &inverted,
@@ -18,7 +20,7 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
                            LibrePaint::Image::Gpu::SelectionMaskSP &mask);
 /** Writes a rectangular, elliptical, binary or alpha arbitrary-coverage
  * selection or its complement as an alpha8 KRA selection stream. Alpha masks
- * retain their fractional selectedness.
+ * retain their fractional selectedness and finite off-canvas pixels.
  */
 Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &imageBounds,
                             LibrePaint::Image::Gpu::SelectionKind kind,

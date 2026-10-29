@@ -7,6 +7,7 @@
 #define KIS_GPU_TILE_STORAGE_P_H
 
 #include "KisGpuTileRenderer.h"
+#include "KisGpuAffineTransform.h"
 #include "KisGpuPaintGeometry_p.h"
 #include <QMap>
 #include <QSet>
@@ -16,28 +17,42 @@
 #include "KisGpuNativeResources_p.h"
 
 namespace LibrePaint::Image::Gpu::Detail {
-struct Budget { DevicePtr device; qsizetype limit = 0; qsizetype used = 0; };
-
+struct BudgetUsage { qsizetype bytes = 0; };
+struct Budget {
+    DevicePtr device;
+    qsizetype limit = 0;
+    std::shared_ptr<BudgetUsage> usage = std::make_shared<BudgetUsage>();
+    qsizetype &used = usage->bytes;
+};
+/** Native storage has no DevicePtr cycle when retained by a submitted frame. */
+struct BufferStorage
+{
+    std::shared_ptr<BudgetUsage> usage;
+    NativeBuffer pixels;
+    BufferStorage(NativeBuffer pixels, const std::shared_ptr<Budget> &budget)
+        : usage(budget->usage), pixels(std::move(pixels)) { usage->bytes += wgpuBufferGetSize(this->pixels.get()); }
+    ~BufferStorage() { usage->bytes -= wgpuBufferGetSize(pixels.get()); }
+};
 struct Tile
 {
     std::shared_ptr<Budget> budget;
-    NativeBuffer pixels;
+    std::shared_ptr<BufferStorage> storage;
+    NativeBuffer &pixels;
     bool mayContainHiddenRgb = true;
     Tile(NativeBuffer pixels, std::shared_ptr<Budget> budget)
-        : budget(std::move(budget)), pixels(std::move(pixels))
-    { this->budget->used += wgpuBufferGetSize(this->pixels.get()); }
-    ~Tile() { budget->used -= wgpuBufferGetSize(pixels.get()); }
+        : budget(std::move(budget)), storage(std::make_shared<BufferStorage>(std::move(pixels), this->budget)), pixels(storage->pixels)
+    { if (this->budget->device->isRecordingFrame()) this->budget->device->retainForFrame(storage); }
 };
 using Tiles = QMap<quint64, std::shared_ptr<Tile>>;
 /** Alpha coverage tile uploaded for layer composition; one byte per pixel. */
 struct CoverageTile
 {
     std::shared_ptr<Budget> budget;
-    NativeBuffer pixels;
+    std::shared_ptr<BufferStorage> storage;
+    NativeBuffer &pixels;
     CoverageTile(NativeBuffer pixels, std::shared_ptr<Budget> budget)
-        : budget(std::move(budget)), pixels(std::move(pixels))
-    { this->budget->used += SelectionMask::AlphaTileBytes; }
-    ~CoverageTile() { budget->used -= SelectionMask::AlphaTileBytes; }
+        : budget(std::move(budget)), storage(std::make_shared<BufferStorage>(std::move(pixels), this->budget)), pixels(storage->pixels)
+    { if (this->budget->device->isRecordingFrame()) this->budget->device->retainForFrame(storage); }
 };
 using CoverageTiles = QMap<quint64, std::shared_ptr<CoverageTile>>;
 struct ProjectionInput {
@@ -135,6 +150,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline selectionCopyPipeline;
     Detail::NativeBindingLayout selectionSplitLayout, selectionMergeLayout;
     Detail::NativeComputePipeline selectionSplitPipeline, selectionMergePipeline;
+    Detail::NativeBindingLayout affineLayout;
+    Detail::NativeComputePipeline affinePipeline;
     Detail::NativeBindingLayout filterLayout;
     Detail::NativeComputePipeline filterPipeline;
     Detail::NativeBindingLayout thumbnailLayout;
@@ -157,6 +174,12 @@ struct TileRenderer::Private
     bool prepareNonlinearRgba8(bool full);
     bool prepareGreaterRgba8(bool full);
     bool prepareRgba16Cosine();
+    void retainTile(const std::shared_ptr<Detail::Tile> &tile) {
+        if (tile) device->retainForFrame(tile->storage);
+    }
+    void retainTiles(const Detail::Tiles &tiles) {
+        for (const auto &tile : tiles) retainTile(tile);
+    }
     bool prepareRgba16Power();
     Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main",
         quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr, bool separableBlendEnabled = false, quint32 coupledPixelFormat = 0);
@@ -186,6 +209,11 @@ struct TileRenderer::Private
     TranslationResult translateTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
                                      const std::shared_ptr<Detail::Tile> &fallback, QPoint offset, PixelFormat format,
                                      QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
+    struct AffineResult { RenderOutcome::Code code; Detail::Tiles tiles; QString diagnostic; };
+    AffineResult affineTiles(WGPUCommandEncoder commands, const Detail::Tiles &source, const RgbaPixel &implicit,
+                             PixelFormat format, const AffinePlan &plan, QRect region);
+    AffineResult affineSelection(WGPUCommandEncoder commands, const Detail::Tiles &source, const RgbaPixel &implicit,
+        const RgbaPixel &defaultPixel, PixelFormat format, const AffineTransformOperation &operation, QRect region, bool capturedOnly = false);
     struct SelectionCopyResult;
     struct SelectionSplitResult {
         RenderOutcome::Code code;

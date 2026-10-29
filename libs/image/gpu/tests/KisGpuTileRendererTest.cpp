@@ -88,6 +88,7 @@ private Q_SLOTS:
     void multiPassGroupsKeepDistinctLayerParameters();
     void previewProjectionTracksBackgroundPropertiesAndRetainedPixels();
     void switchingDocumentsReleasesPreviewDerivedPixelsAtCapacity();
+    void discardedAffinePreviewKeepsWorkingBytesUntilSubmissionCompletes();
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void selectionLimitsPaintFillAndEraseAcrossHistory();
     void featheredSelectionClipsPaintFillEraseHistory();
@@ -1638,6 +1639,35 @@ void KisGpuTileRendererTest::isolatedGroupsKeepProjectionAndRetainedSubtreePixel
         QCOMPARE(projectedPixel(before), rootPixel);
         if (!implicit) QCOMPARE(changed->tiles(group).first().pixels, raw->tiles(group).first().pixels);
     }
+}
+
+void KisGpuTileRendererTest::discardedAffinePreviewKeepsWorkingBytesUntilSubmissionCompletes()
+{
+    // A cancelled transform can drop every view reference before the GPU
+    // finishes. Capacity must still protect the recorded buffers and scratch.
+    const auto pixel = QByteArray::fromHex("112233ff");
+    RasterImage input; input.size = {256, 256};
+    input.layers = {{QStringLiteral("Transform lifetime"), true, {}, {{{0, 0}, pixel.repeated(RgbaTile::ByteCount / 4)}}}};
+    OperationDocument document(input);
+    const auto layer = document.activeLayer();
+    const auto token = document.beginAffineTransform({{layer, true, false}});
+    QVERIFY(!token.isNull());
+    auto plan = QSharedPointer<AffinePlan>::create(); plan->filterId = QStringLiteral("NearestNeighbor");
+    AffinePass pass; pass.kind = AffinePass::Remap; pass.mapWholeLayer = true; pass.map = {1, 0, 0, 1, 3, -7}; plan->passes.append(pass);
+    QCOMPARE(document.updateAffineTransform(token, {{layer, plan, {}}}), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto commands = m_device->beginCommands(); QVERIFY(commands);
+    {
+        auto recorded = renderer.recordRegion(commands, document.preview(), {0, 0, 256, 256}, {layer});
+        QVERIFY2(recorded.code == RenderOutcome::Recorded, qPrintable(recorded.diagnostic));
+        QVERIFY(recorded.version);
+    }
+    const auto inFlight = renderer.residentBytes();
+    QVERIFY(inFlight > 2 * TileRenderer::TileBytes);
+    QCOMPARE(document.cancelAffineTransform(token), Result::Success);
+    QCOMPARE(renderer.residentBytes(), inFlight);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QCOMPARE(renderer.residentBytes(), qsizetype(0));
 }
 
 void KisGpuTileRendererTest::layerCropSharesInteriorPreservesBoundaryAndRetainedPixels_data()

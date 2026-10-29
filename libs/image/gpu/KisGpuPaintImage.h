@@ -166,6 +166,15 @@ public:
     /** Integer placement keeps original painting inputs and publishes live previews.
      * One committed gesture adds one history entry; cancellation keeps Redo.
      */
+    /** Canonical free-transform transaction. Inputs and masks are frozen at
+     * begin; previews always start from the committed pixels. Failed rendering
+     * retains the last valid preview, and commit creates one history entry.
+     */
+    OperationId beginAffineTransform(const QList<AffineTransformTarget> &layers, QRect copyRect = {}, QRect clearRect = {});
+    Result updateAffineTransform(OperationId id, const QList<AffineLayerPlan> &plans,
+                                 const SelectionMaskSP &selection = {}, bool inverted = false);
+    Result commitAffineTransform(OperationId id);
+    Result cancelAffineTransform(OperationId id);
     OperationId beginLayerTranslation(LayerId layer);
     OperationId beginLayerTranslation(const QList<LayerTranslationTarget> &targets);
     OperationId beginSelectionTranslation(LayerId layer, QRect copyRect, QRect clearRect);

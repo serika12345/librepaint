@@ -7,6 +7,7 @@
 #define KIS_GPU_SELECTION_MASK_H
 
 #include "KisGpuRasterPixels.h"
+#include "KisGpuAffineTransform.h"
 #include <kritaimagegpuoperations_export.h>
 #include <QByteArray>
 #include <QList>
@@ -96,6 +97,18 @@ public:
      * clipped to `clip`. A zero radius or empty coverage returns null.
      */
     QSharedPointer<const SelectionMask> feathered(int radius, const QRect &clip) const;
+
+    /** Applies frozen native Alpha8 filter coefficients to retained selection
+     * coverage. Inverted resources transform their finite holes with the same
+     * plan. Null reports invalid input or capacity; empty() is valid zero.
+     */
+    QSharedPointer<const SelectionMask> transformed(const AffinePlan &plan) const;
+    /** Alpha8 normal capture and clear/merge used by selected mask transforms.
+     * Null reports capacity; empty() retains a valid fully transparent result.
+     */
+    QSharedPointer<const SelectionMask> selectedCopy(const SelectionMask &selection, bool inverted, QRect copyRect) const;
+    QSharedPointer<const SelectionMask> replaceSelectedPixels(const SelectionMask &selection, bool inverted,
+                                                             QRect clearRect, const SelectionMask &replacement) const;
 
     bool isEmpty() const { return m_bounds.isEmpty(); }
     /** Tight bounds of the pixels with nonzero coverage. */

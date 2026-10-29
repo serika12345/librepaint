@@ -7,6 +7,7 @@
 #include <QVector3D>
 #include <klocalizedstring.h>
 #include "kis_tool_transform_config_widget.h"
+#include <QPointer>
 
 #include <cmath>
 #include <kconfiggroup.h>
@@ -446,7 +447,7 @@ void KisToolTransformConfigWidget::slotLiquifyModeChanged(int value)
 
     updateLiquifyControls();
 
-    notifyConfigChanged(false);
+    if (!notifyConfigChanged(false)) return;
 }
 
 void KisToolTransformConfigWidget::liquifySizeChanged(qreal value)
@@ -458,7 +459,7 @@ void KisToolTransformConfigWidget::liquifySizeChanged(qreal value)
         config->liquifyProperties();
 
     props->setSize(value);
-    notifyConfigChanged(false);
+    if (!notifyConfigChanged(false)) return;
 }
 
 void KisToolTransformConfigWidget::liquifyAmountChanged(qreal value)
@@ -470,7 +471,7 @@ void KisToolTransformConfigWidget::liquifyAmountChanged(qreal value)
         config->liquifyProperties();
 
     props->setAmount(value);
-    notifyConfigChanged(false);
+    if (!notifyConfigChanged(false)) return;
 }
 
 void KisToolTransformConfigWidget::liquifyFlowChanged(qreal value)
@@ -482,7 +483,7 @@ void KisToolTransformConfigWidget::liquifyFlowChanged(qreal value)
         config->liquifyProperties();
 
     props->setFlow(value);
-    notifyConfigChanged(false);
+    if (!notifyConfigChanged(false)) return;
 }
 
 void KisToolTransformConfigWidget::liquifyBuildUpChanged(int value)
@@ -495,7 +496,7 @@ void KisToolTransformConfigWidget::liquifyBuildUpChanged(int value)
 
     props->setUseWashMode(value); // 0 == build up mode / 1 == wash mode
 
-    notifyConfigChanged(false);
+    if (!notifyConfigChanged(false)) return;
 
     // we need to enable/disable flow slider
     updateLiquifyControls();
@@ -510,7 +511,7 @@ void KisToolTransformConfigWidget::liquifySpacingChanged(qreal value)
         config->liquifyProperties();
 
     props->setSpacing(value);
-    notifyConfigChanged(false);
+    if (!notifyConfigChanged(false)) return;
 }
 
 void KisToolTransformConfigWidget::liquifySizePressureChanged(bool value)
@@ -522,7 +523,7 @@ void KisToolTransformConfigWidget::liquifySizePressureChanged(bool value)
         config->liquifyProperties();
 
     props->setSizeHasPressure(value);
-    notifyConfigChanged(false);
+    if (!notifyConfigChanged(false)) return;
 }
 
 void KisToolTransformConfigWidget::liquifyAmountPressureChanged(bool value)
@@ -534,7 +535,7 @@ void KisToolTransformConfigWidget::liquifyAmountPressureChanged(bool value)
         config->liquifyProperties();
 
     props->setAmountHasPressure(value);
-    notifyConfigChanged(false);
+    if (!notifyConfigChanged(false)) return;
 }
 
 void KisToolTransformConfigWidget::liquifyReverseDirectionChanged(bool value)
@@ -546,7 +547,7 @@ void KisToolTransformConfigWidget::liquifyReverseDirectionChanged(bool value)
         config->liquifyProperties();
 
     props->setReverseDirection(value);
-    notifyConfigChanged(false);
+    if (!notifyConfigChanged(false)) return;
 }
 
 void KisToolTransformConfigWidget::updateConfig(const ToolTransformArgs &config)
@@ -740,12 +741,12 @@ void KisToolTransformConfigWidget::unblockNotifications()
     m_notificationsBlocked--;
 }
 
-void KisToolTransformConfigWidget::notifyConfigChanged(bool needsPreviewRecalculation)
+bool KisToolTransformConfigWidget::notifyConfigChanged(bool needsPreviewRecalculation)
 {
-    if (!m_notificationsBlocked) {
-        Q_EMIT sigConfigChanged(needsPreviewRecalculation);
-    }
-    m_configChanged = true;
+    QPointer<KisToolTransformConfigWidget> guard(this);
+    if (!m_notificationsBlocked) Q_EMIT sigConfigChanged(needsPreviewRecalculation);
+    if (guard) m_configChanged = true;
+    return bool(guard);
 }
 
 void KisToolTransformConfigWidget::blockUiSlots()
@@ -762,8 +763,9 @@ void KisToolTransformConfigWidget::notifyEditingFinished()
 {
     if (m_uiSlotsBlocked || m_notificationsBlocked || !m_configChanged) return;
 
+    QPointer<KisToolTransformConfigWidget> guard(this);
     Q_EMIT sigEditingFinished();
-    m_configChanged = false;
+    if (guard) m_configChanged = false;
 }
 
 
@@ -860,7 +862,7 @@ void KisToolTransformConfigWidget::slotFilterChanged(const KoID &filterId)
 {
     ToolTransformArgs *config = m_transaction->currentConfig();
     config->setFilterId(filterId.id());
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotRotationCenterChanged(int index)
@@ -876,7 +878,7 @@ void KisToolTransformConfigWidget::slotRotationCenterChanged(int index)
         config->setRotationCenterOffset(QPointF(i * m_transaction->originalHalfWidth(),
                                                 j * m_transaction->originalHalfHeight()));
 
-        notifyConfigChanged();
+        if (!notifyConfigChanged()) return;
         updateConfig(*config);
     }
 }
@@ -887,7 +889,7 @@ void KisToolTransformConfigWidget::slotTransformAroundRotationCenter(bool value)
 
     ToolTransformArgs *config = m_transaction->currentConfig();
     config->setTransformAroundRotationCenter(value);
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -918,7 +920,7 @@ void KisToolTransformConfigWidget::slotSetScaleX(int value)
         unblockNotifications();
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -946,7 +948,7 @@ void KisToolTransformConfigWidget::slotSetScaleY(int value)
         unblockNotifications();
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -961,7 +963,7 @@ void KisToolTransformConfigWidget::slotSetShearX(qreal value)
         config->setShearX((double)value / 100.);
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -977,7 +979,7 @@ void KisToolTransformConfigWidget::slotSetShearY(qreal value)
     }
 
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -994,7 +996,7 @@ void KisToolTransformConfigWidget::slotSetTranslateX(int value)
     const QPointF newAnchorPointView(value, anchorPointView.y());
     config->setTransformedCenter(config->transformedCenter() + newAnchorPointView - anchorPointView);
     translateXBox->setValue(value);
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotSetTranslateY(int value)
@@ -1010,7 +1012,7 @@ void KisToolTransformConfigWidget::slotSetTranslateY(int value)
     const QPointF newAnchorPointView(anchorPointView.x(), value);
     config->setTransformedCenter(config->transformedCenter() + newAnchorPointView - anchorPointView);
     translateYBox->setValue(value);
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotSetAX(qreal value)
@@ -1022,7 +1024,7 @@ void KisToolTransformConfigWidget::slotSetAX(qreal value)
         KisTransformUtils::AnchorHolder keeper(config->transformAroundRotationCenter(), config);
         config->setAX(kisDegreesToRadians(value));
     }
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1037,7 +1039,7 @@ void KisToolTransformConfigWidget::slotSetAY(qreal value)
         config->setAY(kisDegreesToRadians(value));
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1052,7 +1054,7 @@ void KisToolTransformConfigWidget::slotSetAZ(qreal value)
         config->setAZ(kisDegreesToRadians(value));
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1063,7 +1065,7 @@ void KisToolTransformConfigWidget::slotSetCameraHeight(qreal value)
     ToolTransformArgs *config = m_transaction->currentConfig();
     config->setCameraPos(QVector3D(0,0,value));
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1076,7 +1078,7 @@ void KisToolTransformConfigWidget::slotFlipX()
         config->setScaleX(config->scaleX() * -1);
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1089,7 +1091,7 @@ void KisToolTransformConfigWidget::slotFlipY()
         config->setScaleY(config->scaleY() * -1);
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1102,7 +1104,7 @@ void KisToolTransformConfigWidget::slotRotateCW()
         config->setAZ(normalizeAngle(config->aZ() + M_PI_2));
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1115,7 +1117,7 @@ void KisToolTransformConfigWidget::slotRotateCCW()
         config->setAZ(normalizeAngle(config->aZ() - M_PI_2));
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1174,7 +1176,7 @@ void KisToolTransformConfigWidget::slotSetKeepAspectRatio(bool value)
     aspectButton->setKeepAspectRatio(value);
     unblockUiSlots();
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotSetWarpAlpha(qreal value)
@@ -1184,7 +1186,7 @@ void KisToolTransformConfigWidget::slotSetWarpAlpha(qreal value)
     ToolTransformArgs *config = m_transaction->currentConfig();
 
     config->setAlpha((double)value);
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1199,7 +1201,7 @@ void KisToolTransformConfigWidget::setDefaultWarpPoints(int pointsPerLine)
     ToolTransformArgs *config = m_transaction->currentConfig();
 
     KisTransformUtils::setDefaultWarpPoints(pointsPerLine, m_transaction, config);
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::activateCustomWarpPoints(bool enabled)
@@ -1263,7 +1265,7 @@ void KisToolTransformConfigWidget::slotWarpLockPointsButtonClicked()
     }
 
     updateLockPointsButtonCaption();
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotWarpTypeChanged(int index)
@@ -1283,7 +1285,7 @@ void KisToolTransformConfigWidget::slotWarpTypeChanged(int index)
         break;
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotCageOptionsChanged(int value)
@@ -1308,7 +1310,7 @@ void KisToolTransformConfigWidget::slotEditCagePoints(bool value)
     config->refTransformedPoints() = config->origPoints();
 
     config->setEditingTransformPoints(value);
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotGranularityChanged(QString value)
@@ -1317,7 +1319,7 @@ void KisToolTransformConfigWidget::slotGranularityChanged(QString value)
     KIS_SAFE_ASSERT_RECOVER_RETURN(value.toInt() > 1);
     ToolTransformArgs *config = m_transaction->currentConfig();
     config->setPixelPrecision(value.toInt());
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotPreviewGranularityChanged(QString value)
@@ -1326,7 +1328,7 @@ void KisToolTransformConfigWidget::slotPreviewGranularityChanged(QString value)
     KIS_SAFE_ASSERT_RECOVER_RETURN(value.toInt() > 1);
     ToolTransformArgs *config = m_transaction->currentConfig();
     config->setPreviewPixelPrecision(value.toInt());
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotMeshSizeChanged()
@@ -1344,7 +1346,7 @@ void KisToolTransformConfigWidget::slotMeshSizeChanged()
         mesh.reshapeMeshVertically(intNumRows->value() + 1);
     }
 
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
 }
 
 void KisToolTransformConfigWidget::slotMeshShowHandlesChanged()
@@ -1352,7 +1354,7 @@ void KisToolTransformConfigWidget::slotMeshShowHandlesChanged()
     if (m_uiSlotsBlocked) return;
     ToolTransformArgs *config = m_transaction->currentConfig();
     config->setMeshShowHandles(this->chkShowControlPoints->isChecked());
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1361,7 +1363,7 @@ void KisToolTransformConfigWidget::slotMeshSymmetricalHandlesChanged()
     if (m_uiSlotsBlocked) return;
     ToolTransformArgs *config = m_transaction->currentConfig();
     config->setMeshSymmetricalHandles(this->chkSymmetricalHandles->isChecked());
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 
@@ -1370,7 +1372,7 @@ void KisToolTransformConfigWidget::slotMeshScaleHandlesChanged()
     if (m_uiSlotsBlocked) return;
     ToolTransformArgs *config = m_transaction->currentConfig();
     config->setMeshScaleHandles(this->chkScaleHandles->isChecked());
-    notifyConfigChanged();
+    if (!notifyConfigChanged()) return;
     notifyEditingFinished();
 }
 

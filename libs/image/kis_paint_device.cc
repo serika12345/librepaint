@@ -14,6 +14,7 @@
 #include "KisQStringListFwd.h"
 #include "KisRandomSubAccessorPaintDeviceAccess_p.h"
 #include "gpu/KisGpuPaintImage.h"
+#include "KisRegion.h"
 #include "gpu/KisGpuExecution.h"
 #include "KisGpuPaintDeviceTransfer_p.h"
 
@@ -191,6 +192,19 @@ public:
     LibrePaint::Image::Gpu::PaintImageSP gpuImage;
     LibrePaint::Image::Gpu::LayerPixelReferenceSP gpuPixels;
     quint64 gpuLayerId() const { return gpuPixels ? gpuPixels->layer() : 0; }
+    KisRegion gpuAllocatedRegion() const
+    {
+        const auto version = gpuPixelVersion();
+        const auto layer = gpuLayerId();
+        const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(), [&](const auto &value) { return value.id == layer; });
+        if (found == version->layers.cend() || found->kind != LibrePaint::Image::Gpu::LayerKind::Paint)
+            throw std::logic_error("This GPU pixel view has no native paint-layer allocation");
+        const auto maximum = gpuImage->limits().rasterBytes / LibrePaint::Image::Gpu::RgbaTile::byteCount(version->format);
+        const auto allocation = gpuImage->execution().layerTileCoordinates(gpuImage->handle(), version, layer, maximum);
+        if (allocation.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
+            throw std::runtime_error(allocation.diagnostic.toStdString());
+        return KisRegion(allocation.writtenAreas);
+    }
     LibrePaint::Image::Gpu::Snapshot gpuPixelVersion() const
     { return gpuPixels ? gpuPixels->version() : gpuImage->operations().snapshot(); }
     const KoColorSpace *gpuColorSpace = nullptr;
@@ -1521,11 +1535,17 @@ void KisPaintDevice::extent(qint32 &x, qint32 &y, qint32 &w, qint32 &h) const
 
 QRect KisPaintDevice::extent() const
 {
+    if (m_d->gpuImage) {
+        auto result = m_d->gpuAllocatedRegion().boundingRect();
+        if (defaultPixel().opacityU8()) result |= m_d->defaultBounds->bounds();
+        return result;
+    }
     return m_d->currentStrategy()->extent();
 }
 
 KisRegion KisPaintDevice::region() const
 {
+    if (m_d->gpuImage) return m_d->gpuAllocatedRegion();
     return m_d->currentStrategy()->region();
 }
 
@@ -1542,13 +1562,15 @@ QRect KisPaintDevice::exactBounds() const
             const auto version = m_d->gpuPixelVersion();
             auto layer = m_d->gpuLayerId();
             if (!layer) layer = version->directProjectionLayer();
-            const auto result = m_d->gpuImage->execution().readBounds(m_d->gpuImage->handle(), version, layer);
+            const auto result = m_d->gpuImage->execution().readBounds(m_d->gpuImage->handle(), version, layer, false, true);
             if (result.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
                 throw std::runtime_error(result.diagnostic.toStdString());
             auto bounds = result.bounds.value();
             auto implicit = version->projectionBackground;
             if (layer) implicit = version->projectionDefaultPixels().value(layer);
-            if (implicit[3]) bounds |= m_d->defaultBounds->bounds();
+            const auto alpha = version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ?
+                (implicit[3] - (implicit[3] >> 8) + 128) >> 8 : implicit[3];
+            if (alpha) bounds |= m_d->defaultBounds->bounds();
             m_d->gpuBounds = bounds;
             m_d->gpuBoundsSequence = sequence;
         }
@@ -2521,6 +2543,7 @@ KisPaintDevice::LodDataStruct::~LodDataStruct()
 
 KisRegion KisPaintDevice::regionForLodSyncing() const
 {
+    if (m_d->gpuImage) return m_d->gpuAllocatedRegion();
     return m_d->regionForLodSyncing();
 }
 

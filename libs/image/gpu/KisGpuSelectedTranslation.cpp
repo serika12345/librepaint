@@ -112,6 +112,7 @@ TileRenderer::Private::TranslationResult TileRenderer::Private::translateSelecti
     PixelFormat format, const TranslationOperation &operation, QRect region, QList<std::shared_ptr<Tile>> &pins,
     QList<std::shared_ptr<CoverageTile>> &coveragePins)
 {
+    retainTiles(source);
     const QRect needed = region.united(region.translated(-operation.offset).intersected(operation.copyRect));
     QSet<quint64> coordinates;
     for (auto tile = source.cbegin(); tile != source.cend(); ++tile)

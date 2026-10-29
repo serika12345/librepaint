@@ -39,7 +39,10 @@ private Q_SLOTS:
     void directWritesKeepTheirCropHistoryBlocks_data();
     void directWritesKeepTheirCropHistoryBlocks();
     void translationPreviewsPublishPixelsAndCancelWithoutReplacingRedo();
+    void affinePreviewPreservesCanonicalPixelsOnCancelIdentityAndRejection();
     void selectedMoveUsesNativeEmptyDetectionAndKeepsLowAlphaPixels();
+    void nativeBoundsIgnoreSubByteImplicitAlpha();
+    void affineResamplingReadsMovedSourceTilesAcrossCanonicalBoundaries();
     void erasedMasksRemainTransparentAndAcceptFurtherPainting_data();
     void erasedMasksRemainTransparentAndAcceptFurtherPainting();
     void layerPickingKeepsNativeAlphaMasksAndPinnedRequests_data();
@@ -639,6 +642,79 @@ void KisGpuPaintImageTest::rejectedTranslationKeepsHiddenPixelsHistoryPreviewAnd
     QCOMPARE(image.operations().preview(), fixed);
     QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
     QCOMPARE(image.cancelLayerTranslation(busyMove), Result::Success);
+}
+
+void KisGpuPaintImageTest::affinePreviewPreservesCanonicalPixelsOnCancelIdentityAndRejection()
+{
+    QString diagnostic; const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device, 32 * RgbaTile::ByteCount);
+    PaintImage image(execution, QSize(32, 32));
+    const auto layer = image.operations().activeLayer();
+    const QByteArray pixel = QByteArray::fromHex("112233ff");
+    QCOMPARE(image.writeRgbaPixels(layer, {1, 2, 1, 1}, pixel), Result::Success);
+    const auto before = image.operations().snapshot();
+    const auto token = image.beginAffineTransform({{layer, true, false}}); QVERIFY(!token.isNull());
+    auto plan = QSharedPointer<AffinePlan>::create(); plan->filterId = QStringLiteral("NearestNeighbor");
+    AffinePass pass; pass.kind = AffinePass::Remap; pass.mapWholeLayer = true; pass.map = {1, 0, 0, 1, 7, -5}; plan->passes.append(pass); plan->positionDelta = {7, -5};
+    QCOMPARE(image.updateAffineTransform(token, {{layer, plan, {}}}), Result::Success);
+    const auto preview = image.operations().preview();
+    QCOMPARE(execution.readRgbaPixels(image.handle(), preview, {8, -3, 1, 1}, layer, 4).bytes, pixel);
+    auto invalid = QSharedPointer<AffinePlan>::create(*plan); invalid->passes[0].map[0] = 2;
+    QCOMPARE(image.updateAffineTransform(token, {{layer, invalid, {}}}), Result::InvalidInput);
+    QCOMPARE(image.operations().preview(), preview); QCOMPARE(execution.requested(image.handle()), preview);
+    QCOMPARE(image.cancelAffineTransform(token), Result::Success);
+    QCOMPARE(image.operations().snapshot(), before); QCOMPARE(image.operations().undoCount(), 0);
+    QCOMPARE(image.readRgbaPixels(layer, {1, 2, 1, 1}, 4).bytes, pixel);
+    const auto again = image.beginAffineTransform({{layer, true, false}}); QVERIFY(!again.isNull());
+    QCOMPARE(image.updateAffineTransform(again, {{layer, plan, {}}}), Result::Success);
+    auto identity = QSharedPointer<AffinePlan>::create(); identity->filterId = plan->filterId;
+    QCOMPARE(image.updateAffineTransform(again, {{layer, identity, {}}}), Result::Success);
+    QCOMPARE(image.operations().preview(), before);
+    QCOMPARE(image.commitAffineTransform(again), Result::Success);
+    QCOMPARE(image.operations().snapshot(), before); QCOMPARE(image.operations().undoCount(), 0);
+}
+
+void KisGpuPaintImageTest::affineResamplingReadsMovedSourceTilesAcrossCanonicalBoundaries()
+{
+    QString diagnostic; const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device, 64 * RgbaTile::ByteCount, 4, RgbaTile::ByteCount);
+    const auto pixel = QByteArray::fromHex("112233ff");
+    RasterImage input; input.size = {512, 512};
+    input.layers = {{QStringLiteral("Moved transform"), true, {}, {{{0, 0}, pixel.repeated(RgbaTile::ByteCount / 4)}}}};
+    PaintImage image(execution, input); const auto layer = image.operations().activeLayer();
+    const auto move = image.beginLayerTranslation(layer); QVERIFY(!move.isNull());
+    QCOMPARE(image.updateLayerTranslation(move, {1, 1}), Result::Success); QCOMPARE(image.commitLayerTranslation(move), Result::Success);
+    auto kernel = QSharedPointer<AffineKernel>::create(); kernel->positionScale = 128; kernel->support = .5;
+    for (int i = 0; i < 256; ++i) { kernel->phases[i] = {i, 1, 0}; kernel->weights.append(255); }
+    auto plan = QSharedPointer<AffinePlan>::create(); plan->filterId = QStringLiteral("NearestNeighbor");
+    const auto horizontal = affineResamplePass(AffinePass::Horizontal, {1, 1, 256, 256}, .5, 0, 0, kernel); QVERIFY(horizontal);
+    const auto vertical = affineResamplePass(AffinePass::Vertical, horizontal->destination, .5, 0, 0, kernel); QVERIFY(vertical);
+    plan->passes = {*horizontal, *vertical};
+    const auto token = image.beginAffineTransform({{layer, true, false}}); QVERIFY(!token.isNull());
+    QCOMPARE(image.updateAffineTransform(token, {{layer, plan, {}}}), Result::Success);
+    const auto actual = execution.readRgbaPixels(image.handle(), image.operations().preview(), {10, 10, 1, 1}, layer, 4);
+    QVERIFY2(actual.code == ExecutionCode::Success, qPrintable(actual.diagnostic)); QCOMPARE(actual.bytes, pixel);
+    QCOMPARE(image.commitAffineTransform(token), Result::Success); QCOMPARE(image.operations().undoCount(), 2);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(layer, {256, 256, 1, 1}, 4).bytes, pixel);
+}
+
+void KisGpuPaintImageTest::nativeBoundsIgnoreSubByteImplicitAlpha()
+{
+    QString diagnostic; const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage input; input.size = {32, 32}; input.format = PixelFormat::Rgba16;
+    input.layers = {{QStringLiteral("Native alpha bounds"), true, {}, {}}}; input.layers.first().defaultPixel = {1, 257, 65534, 1};
+    PaintImage image(execution, input); const auto layer = image.operations().activeLayer();
+    const QRect area(4, 5, 1, 1);
+    QCOMPARE(image.writeRgbaPixels(layer, area, rgbaBytes({3, 256, 32768, 127}, input.format)), Result::Success);
+    const auto native = execution.readBounds(image.handle(), image.operations().snapshot(), layer, false, true);
+    QCOMPARE(native.code, ExecutionCode::Success); QCOMPARE(*native.bounds, QRect{});
+    const auto raw = execution.readBounds(image.handle(), image.operations().snapshot(), layer, true);
+    QCOMPARE(raw.code, ExecutionCode::Success); QCOMPARE(*raw.bounds, area);
+    QCOMPARE(image.writeRgbaPixels(layer, area, rgbaBytes({3, 256, 32768, 128}, input.format)), Result::Success);
+    const auto visible = execution.readBounds(image.handle(), image.operations().snapshot(), layer, false, true);
+    QCOMPARE(visible.code, ExecutionCode::Success); QCOMPARE(*visible.bounds, area);
 }
 
 void KisGpuPaintImageTest::selectedMoveUsesNativeEmptyDetectionAndKeepsLowAlphaPixels()

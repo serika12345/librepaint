@@ -107,6 +107,14 @@ void copyLayerOperations(const Layer &source, Layer &copy, const QUuid &identity
             operation->id = id;
             operation->layer = copy.id;
             copy.operations.append(TranslationSnapshot(operation));
+        } else if (const auto affine = std::get_if<AffineSnapshot>(&sourceOperation)) {
+            auto operation = QSharedPointer<AffineTransformOperation>::create(**affine);
+            operation->id = id; operation->layer = copy.id;
+            if (operation->selection) {
+                auto selection = QSharedPointer<TranslationOperation>::create(*operation->selection);
+                selection->id = id; selection->layer = copy.id; operation->selection = selection;
+            }
+            copy.operations.append(AffineSnapshot(operation));
         } else if (const auto crop = std::get_if<CropSnapshot>(&sourceOperation)) {
             auto operation = QSharedPointer<CropOperation>::create(**crop);
             operation->id = id;
@@ -193,6 +201,14 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
                 auto copied = QSharedPointer<TranslationOperation>::create(**translation);
                 copied->id.document = result->m_identity;
                 operation = TranslationSnapshot(copied);
+            } else if (const auto affine = std::get_if<AffineSnapshot>(&operation)) {
+                auto copied = QSharedPointer<AffineTransformOperation>::create(**affine);
+                copied->id.document = result->m_identity;
+                if (copied->selection) {
+                    auto selection = QSharedPointer<TranslationOperation>::create(*copied->selection);
+                    selection->id.document = result->m_identity; copied->selection = selection;
+                }
+                operation = AffineSnapshot(copied);
             } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
                 auto copied = QSharedPointer<CropOperation>::create(**crop);
                 copied->id.document = result->m_identity;
@@ -225,6 +241,7 @@ QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
+    if (m_layerHistoryChanges[index].transformedLayers) return HistoryAction::TransformLayer;
     if (m_layerHistoryChanges[index].movedSelectionPixels) return HistoryAction::MoveSelectionPixels;
     if (m_layerHistoryChanges[index].translatedLayers) return HistoryAction::TranslateLayer;
     if (m_layerHistoryChanges[index].convertedColorSpace) return HistoryAction::ConvertColorSpace;
@@ -306,11 +323,12 @@ int OperationDocument::savedHistoryIndex() const
     return -1;
 }
 bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevision != m_savedRevision; }
-bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_externalOperation.isNull(); }
+bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_affine.isEmpty() || !m_externalOperation.isNull(); }
 OperationId OperationDocument::activeOperation() const
 {
     if (m_edit) return m_edit->id;
     if (m_translation) return m_translation->id;
+    if (!m_affine.isEmpty()) return m_affine.first()->id;
     return m_externalOperation;
 }
 
@@ -2016,6 +2034,7 @@ void OperationDocument::close()
     m_edit.clear();
     m_preview.clear();
     m_history.swap(remaining);
+    m_affine.clear();
     m_translation.clear();
     m_translationTargets.clear();
     m_translationIds.clear();

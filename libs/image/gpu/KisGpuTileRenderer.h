@@ -31,6 +31,7 @@ public:
 
 private:
     friend class TileRenderer;
+    friend class Execution;
     struct Data;
     explicit RenderedVersion(std::shared_ptr<Data> data);
     std::shared_ptr<const Data> m_data;

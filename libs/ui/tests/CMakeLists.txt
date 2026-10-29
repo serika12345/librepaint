@@ -1368,6 +1368,25 @@ add_dependencies(KisGpuColorSamplingTest kritalcmsengine kritadefaulttools krita
 set_tests_properties(${gpu_color_sampling_test} PROPERTIES
     TIMEOUT 120 RUN_SERIAL TRUE ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+kis_add_test(KisTransformToolDocumentTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisTransformToolDocumentTest
+    TEST_NAME_VAR transform_tool_document_test
+    LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk kritatooltransform_static ${QUAZIP_LIBRARIES})
+add_dependencies(KisTransformToolDocumentTest
+    kritatooltransform kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritakraexport kritapngexport)
+if(NOT IOS)
+    add_dependencies(KisTransformToolDocumentTest kritatextproperties)
+endif()
+set_tests_properties(${transform_tool_document_test} PROPERTIES TIMEOUT 900 RUN_SERIAL TRUE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_tests_properties(${transform_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${transform_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+endif()
+
 kis_add_test(KisMoveToolDocumentTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc

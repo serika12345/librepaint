@@ -119,7 +119,7 @@ private:
 
     void blockNotifications();
     void unblockNotifications();
-    void notifyConfigChanged(bool needsPreviewRecalculation = true);
+    bool notifyConfigChanged(bool needsPreviewRecalculation = true);
 
     void blockUiSlots();
     void unblockUiSlots();

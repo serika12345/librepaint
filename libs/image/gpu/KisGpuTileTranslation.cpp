@@ -12,6 +12,7 @@ TileRenderer::Private::TranslationResult TileRenderer::Private::translateTiles(
     WGPUCommandEncoder commands, const Tiles &source, const std::shared_ptr<Tile> &fallback,
     QPoint offset, PixelFormat format, QRect region, QList<std::shared_ptr<Tile>> &pins)
 {
+    retainTiles(source);
     const auto tileBytes = RgbaTile::byteCount(format);
     Tiles result;
     QSet<quint64> coordinates;

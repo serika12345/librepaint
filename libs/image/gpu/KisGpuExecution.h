@@ -182,9 +182,11 @@ public:
      * the version, and preserves requests and publication.
      * Rejection and thread ownership follow readPixels().
      * includeTransparentColors measures every nondefault RGBA value for content-preserving moves.
+     * opacityU8 preserves native handle/paint-device classification, including
+     * RGBA16 implicit pixels below the first nonzero eight-bit alpha value.
      */
     PixelReadbackOutcome readBounds(DocumentHandle handle, const Snapshot &document, LayerId layer,
-                                   bool includeTransparentColors = false);
+                                   bool includeTransparentColors = false, bool opacityU8 = false);
     /** Native opacity classification for layer picking at one image coordinate.
      * Includes the paint layer's visible mask or the group's child projection,
      * and uses opacityU8 semantics in both precisions. Returns a nonempty bounds
@@ -265,6 +267,11 @@ public:
     qsizetype residentBytes() const;
 
 private:
+    friend class PaintImage;
+    PixelReadbackOutcome readAffineSelectionBounds(DocumentHandle handle, const Snapshot &document,
+                                                   const AffineTransformOperation &operation);
+    /** Native whole-device transform tile purge; transfers summary metadata. */
+    ExecutionOutcome readNonDefaultBlocks(DocumentHandle handle, const Snapshot &document, LayerId layer, QList<QRect> &blocks);
     struct Private;
     std::unique_ptr<Private> m_d;
     FrameOutcome beginFrame(PresentationSurface *surface);
@@ -273,13 +280,14 @@ private:
     ExecutionOutcome retireDisplayCaches();
     PixelReadbackOutcome readLayerTileExtent(DocumentHandle handle, const Snapshot &document, LayerId layer);
     PixelReadbackOutcome readBoundsImpl(DocumentHandle handle, const Snapshot &document, LayerId layer,
-                                        bool includeTransparentColors, bool sparseProjection);
+                                        bool includeTransparentColors, bool sparseProjection, bool opacityU8 = false);
     std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers, bool includeProjection,
                                    PixelReadArea area, bool transparencyOnly, bool boundsOnly = false,
                                    bool includeTransparentColors = false, bool tileExtentOnly = false,
                                    const SelectionMaskSP &copyMask = {}, bool invertMask = false,
-                                   const TranslationOperation *selectionSource = nullptr, bool layerHitTest = false, bool includeLowAlpha = false);
+                                   const TranslationOperation *selectionSource = nullptr, bool layerHitTest = false, bool includeLowAlpha = false, bool nativeBounds = false,
+                                   const AffineTransformOperation *affineSource = nullptr);
 };
 }
 #endif

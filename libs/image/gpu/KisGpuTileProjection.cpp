@@ -175,8 +175,10 @@ Detail::NativeBuffer TileRenderer::Private::recordBounds(WGPUCommandEncoder comm
         const auto local = region.intersected(QRect(origin, QSize(TileSize, TileSize))).translated(-origin);
         if (local.isEmpty()) continue;
         const auto words = packedPixelWords(defaultPixel, format);
+        const auto implicitAlpha = opacityU8 && format == PixelFormat::Rgba16 ?
+            (defaultPixel[3] - (defaultPixel[3] >> 8) + 128) >> 8 : defaultPixel[3];
         const quint32 values[] = {quint32(origin.x()), quint32(origin.y()), words[0],
-                                  defaultPixel[3] || includeTransparentColors ? 1u : 0u, quint32(local.left()), quint32(local.top()),
+                                  implicitAlpha || includeTransparentColors ? 1u : 0u, quint32(local.left()), quint32(local.top()),
                                   quint32(local.right() + 1), quint32(local.bottom() + 1),
                                   words[1], quint32(format), quint32(opacityU8), 0};
         auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
@@ -400,15 +402,18 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             CompositeJob job;
             job.paired = paired;
             job.base = input;
+            d.retainTile(input);
             job.output = passIndex % 2 ? b : a;
             bool hiddenRgb = job.base && job.base->mayContainHiddenRgb;
             CompositeParameters values[2]{};
             for (int layer = 0; layer < count; ++layer) {
                 const auto &source = tile.value()[i + layer];
                 job.layers[layer] = source.pixels;
+                d.retainTile(source.pixels);
                 job.blendModes[layer] = quint32(source.blendMode);
                 if (source.mask) {
                     job.masks[layer] = d.coverageTile(source.mask, tile.key());
+                    if (job.masks[layer]) d.device->retainForFrame(job.masks[layer]->storage);
                     if (!job.masks[layer])
                         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU layer mask coverage capacity exceeded")};
                 }

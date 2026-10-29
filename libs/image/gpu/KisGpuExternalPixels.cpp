@@ -81,6 +81,14 @@ std::optional<bool> blockExistsBefore(const Layer &layer, qsizetype before, QRec
                 if ((*translation)->clearRect.intersects(block) ||
                     (*translation)->copyRect.translated((*translation)->offset).intersects(block)) return true;
             } else block.translate(-(*translation)->offset);
+        } else if (const auto affine = std::get_if<AffineSnapshot>(&operation)) {
+            if ((*affine)->allocatedBlocks) {
+                return std::any_of((*affine)->allocatedBlocks->cbegin(), (*affine)->allocatedBlocks->cend(), [&](const auto &area) { return area.intersects(block); });
+            }
+            if (!(*affine)->selection) return true;
+            auto transformed = (*affine)->selection->copyRect;
+            for (const auto &pass : (*affine)->plan->passes) transformed = affineOutputRegion(pass, transformed);
+            if (transformed.intersects(block) || (*affine)->selection->clearRect.intersects(block)) return true;
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             if (!(*crop)->rect.normalized().intersects(block)) return false;
             // A partially cropped history block stays allocated even when its remaining pixels are defaults.
@@ -118,6 +126,14 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCac
                 block.translate(-(*translation)->offset);
                 historyBlock.translate(-(*translation)->offset);
             }
+        } else if (const auto affine = std::get_if<AffineSnapshot>(&operation)) {
+            bool changed = !(*affine)->selection;
+            if ((*affine)->selection) {
+                auto transformed = (*affine)->selection->copyRect;
+                for (const auto &pass : (*affine)->plan->passes) transformed = affineOutputRegion(pass, transformed);
+                changed = transformed.intersects(block) || (*affine)->selection->clearRect.intersects(block);
+            }
+            if (changed) { result.append({(*affine)->id.sequence, (*affine)->version}); break; }
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             const auto keep = (*crop)->rect.normalized();
             if (!keep.contains(block)) {

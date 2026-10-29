@@ -6,6 +6,7 @@
 #include "KisGpuPaintImage_p.h"
 #include "KisGpuOperationValidation_p.h"
 #include <QThread>
+#include <QRegion>
 #include <algorithm>
 #include <new>
 #include <stdexcept>
@@ -411,7 +412,8 @@ void PaintImage::refreshLayerPixelReferences()
 Snapshot PaintImage::layerPixelVersion() const
 {
     const auto preview = m_d->document->preview();
-    if (m_d->document->m_translation && preview->pendingOperation() == m_d->document->m_translation->id) return preview;
+    if ((m_d->document->m_translation && preview->pendingOperation() == m_d->document->m_translation->id) ||
+        (!m_d->document->m_affine.isEmpty() && preview->pendingOperation() == m_d->document->m_affine.first()->id)) return preview;
     return m_d->document->snapshot();
 }
 void PaintImage::requestCurrentVersion()
@@ -637,6 +639,98 @@ Result PaintImage::cancelStroke(OperationId id)
     }
     return publish(m_d->document->cancelStroke(id));
 }
+OperationId PaintImage::beginAffineTransform(const QList<AffineTransformTarget> &layers, QRect copyRect, QRect clearRect)
+{ return onThread() ? m_d->document->beginAffineTransform(layers, copyRect, clearRect) : OperationId{}; }
+Result PaintImage::updateAffineTransform(OperationId id, const QList<AffineLayerPlan> &plans,
+                                       const SelectionMaskSP &selection, bool inverted)
+{
+    if (!onThread()) return Result::InvalidInput;
+    auto &document = *m_d->document;
+    const auto previousPreview = document.m_preview;
+    const auto previousOperations = document.m_affine;
+    const auto previousRevision = document.m_nextRevision;
+    auto result = document.updateAffineTransform(id, plans, selection, inverted);
+    if (result != Result::Success) return result;
+    const auto draft = document.preview();
+    if (!document.m_preview) return publish(Result::Success);
+    // Admission evaluates canonical pixels with summary-only reads before any
+    // view or external pixel reference can observe the new version.
+    QSharedPointer<DocumentVersion> admitted;
+    auto operations = document.m_affine;
+    try {
+        admitted.reset(new DocumentVersion(*draft));
+        for (qsizetype i = 0; i < operations.size(); ++i) {
+            const auto &operation = operations[i];
+            if (!operation->transformPixels) continue;
+            const auto layerIndex = document.layerIndex(operation->layer);
+            const auto &edits = draft->layers[layerIndex].operations;
+            const auto appended = edits.isEmpty() ? nullptr : std::get_if<AffineSnapshot>(&edits.last());
+            if (!appended || *appended != operation) continue;
+            const auto source = operation->selection ?
+                m_d->execution.readSelectedBounds(m_d->handle, document.snapshot(), *operation->selection, true) :
+                m_d->execution.readBounds(m_d->handle, document.snapshot(), operation->layer, true);
+            result = resultFor(source.code);
+            if (result != Result::Success || !source.bounds) break;
+            auto content = *source.bounds;
+            constexpr int limit = RgbaTile::CoordinateLimit;
+            const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
+            for (const auto &pass : operation->plan->passes) {
+                content = affineOutputRegion(pass, content);
+                if (!content.isEmpty() && !domain.contains(content)) { result = Result::InvalidInput; break; }
+            }
+            if (result != Result::Success) break;
+            QList<QRect> blocks;
+            const auto evaluated = m_d->execution.readNonDefaultBlocks(m_d->handle, draft, operation->layer, blocks);
+            result = resultFor(evaluated.code);
+            if (result == Result::Success && operation->selection) {
+                const auto captured = m_d->execution.readAffineSelectionBounds(m_d->handle, document.snapshot(), *operation);
+                result = resultFor(captured.code);
+                if (result == Result::Success) {
+                    const auto old = m_d->execution.layerTileCoordinates(m_d->handle, document.snapshot(), operation->layer,
+                        m_d->limits.rasterBytes / RgbaTile::byteCount(draft->format));
+                    result = resultFor(old.code);
+                    if (result == Result::Success) {
+                        const auto index = document.layerIndex(operation->layer);
+                        const auto origin = draft->layers[index].position;
+                        const auto aligned = [](QRect area, QPoint origin) {
+                            if (area.isEmpty()) return QRect{};
+                            area.translate(-origin);
+                            const auto floor = [](int value) { return value / 64 - (value % 64 < 0); };
+                            return QRect(QPoint(floor(area.left()) * 64, floor(area.top()) * 64) + origin,
+                                QPoint((floor(area.right()) + 1) * 64 - 1, (floor(area.bottom()) + 1) * 64 - 1) + origin);
+                        };
+                        QRegion allocated, previous;
+                        for (const auto &area : blocks) allocated += area;
+                        for (const auto &area : old.writtenAreas) previous += area;
+                        allocated += previous.subtracted(aligned(operation->selection->clearRect, origin));
+                        const auto sourceExtent = aligned(*captured.bounds, operation->plan->positionDelta);
+                        allocated += aligned(sourceExtent, origin);
+                        blocks.clear(); for (const auto &area : allocated) blocks.append(area);
+                    }
+                }
+            }
+            if (result == Result::Success) {
+                auto frozen = QSharedPointer<AffineTransformOperation>::create(*operation);
+                frozen->allocatedBlocks = std::move(blocks);
+                const auto index = document.layerIndex(operation->layer);
+                admitted->layers[index].operations.last() = AffineSnapshot(frozen);
+                operations[i] = frozen;
+            }
+            if (result != Result::Success) break;
+        }
+    } catch (const std::bad_alloc &) { result = Result::CapacityExceeded; }
+    if (result != Result::Success) {
+        document.m_preview = previousPreview; document.m_affine = previousOperations;
+        document.m_nextRevision = previousRevision;
+        return result;
+    }
+    document.m_preview = admitted; document.m_affine = operations;
+    return publish(Result::Success);
+}
+Result PaintImage::commitAffineTransform(OperationId id)
+{ return onThread() ? publish(m_d->document->commitAffineTransform(id)) : Result::InvalidInput; }
+Result PaintImage::cancelAffineTransform(OperationId id)
+{ return onThread() ? publish(m_d->document->cancelAffineTransform(id)) : Result::InvalidInput; }
 OperationId PaintImage::beginLayerTranslation(LayerId layer)
 { return onThread() ? m_d->document->beginLayerTranslation(layer) : OperationId{}; }
 OperationId PaintImage::beginLayerTranslation(const QList<LayerTranslationTarget> &targets)

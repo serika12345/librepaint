@@ -141,24 +141,24 @@ void writeGpuTransparencyMaskPixels(KisTransparencyMask *mask,
     KisSelectionSP selection = mask->selection();
     if (!selection || !selection->pixelSelection()) return;
     KisPixelSelectionSP pixels = selection->pixelSelection();
-    // The retained document version owns the coverage; this node is only a
-    // view. Extent-based dirty propagation would ask the GPU parent layer for
-    // native pixel bounds, so the previous and new coverage rectangles are
-    // propagated directly.
+    // The retained document owns coverage; this node mirrors finite alpha for
+    // existing readers and thumbnails. Tile writes retain off-canvas pixels,
+    // while dirty propagation covers the visible canvas.
     QRect touched = previousBounds.intersected(clip);
     pixels->setDefaultPixel(KoColor(Qt::transparent, pixels->colorSpace()));
     pixels->clear();
     if (coverage) {
-        const QRect covered = coverage->bounds().intersected(clip);
-        if (!covered.isEmpty()) {
+        const int size = LibrePaint::Image::Gpu::SelectionMask::TileSize;
+        for (auto tile = coverage->tiles().cbegin(); tile != coverage->tiles().cend(); ++tile) {
+            const auto covered = QRect(QPoint(tile.key().first, tile.key().second) * size, QSize(size, size)).intersected(coverage->bounds());
+            if (covered.isEmpty()) continue;
             QByteArray values(covered.width() * covered.height(), '\0');
             for (int y = covered.top(); y <= covered.bottom(); ++y)
                 for (int x = covered.left(); x <= covered.right(); ++x)
-                    values[(y - covered.top()) * covered.width() + x - covered.left()] =
-                        char(coverage->coverage(x, y));
+                    values[(y - covered.top()) * covered.width() + x - covered.left()] = char(coverage->coverage(x, y));
             pixels->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), covered);
-            touched = touched.united(covered);
         }
+        touched |= coverage->bounds().intersected(clip);
     }
     if (!touched.isEmpty()) pixels->setDirty(touched);
 }
@@ -774,7 +774,6 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
         retained->notifySelectionChanged();
         return;
     }
-    if (!mask && rect.isEmpty()) return;
     if (!mask) {
         mask = new KisSelectionMask(this);
         mask->initSelection(rootLayer());
@@ -797,28 +796,27 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
         coverage->isAlpha()) {
         // Alpha coverage is written into the CPU mirror so the display keeps the
         // fractional selectedness. The outline follows its half-selected contour.
-        const QRect clip(QPoint(), bounds().size());
-        const QRect covered = coverage->bounds().intersected(clip);
-        QByteArray values(covered.width() * covered.height(), '\0');
+        const QRect clip = inverted ? bounds() : coverage->bounds();
         QRegion region;
-        for (int y = covered.top(); y <= covered.bottom(); ++y) {
-            int runStart = -1;
-            for (int x = covered.left(); x <= covered.right() + 1; ++x) {
-                const quint8 stored = x <= covered.right() ? coverage->coverage(x, y) : 0;
-                const quint8 effective = inverted ? quint8(255u - stored) : stored;
-                if (x <= covered.right())
-                    values[(y - covered.top()) * covered.width() + x - covered.left()] = char(effective);
-                const bool outlined = x <= covered.right() && effective >= 128;
-                if (outlined && runStart < 0) runStart = x;
-                else if (!outlined && runStart >= 0) {
-                    region += QRect(runStart, y, x - runStart, 1);
-                    runStart = -1;
+        if (inverted) pixels->select(clip);
+        for (auto tile = coverage->tiles().cbegin(); tile != coverage->tiles().cend(); ++tile) {
+            const int size = LibrePaint::Image::Gpu::SelectionMask::TileSize;
+            const auto covered = QRect(QPoint(tile.key().first, tile.key().second) * size, QSize(size, size)).intersected(clip);
+            if (covered.isEmpty()) continue;
+            QByteArray values(covered.width() * covered.height(), '\0');
+            for (int y = covered.top(); y <= covered.bottom(); ++y) {
+                int runStart = -1;
+                for (int x = covered.left(); x <= covered.right() + 1; ++x) {
+                    const quint8 stored = x <= covered.right() ? coverage->coverage(x, y) : 0;
+                    const quint8 effective = inverted ? quint8(255u - stored) : stored;
+                    if (x <= covered.right()) values[(y - covered.top()) * covered.width() + x - covered.left()] = char(effective);
+                    const bool outlined = x <= covered.right() && effective >= 128;
+                    if (outlined && runStart < 0) runStart = x;
+                    else if (!outlined && runStart >= 0) { region += QRect(runStart, y, x - runStart, 1); runStart = -1; }
                 }
             }
-        }
-        if (inverted) pixels->select(clip);
-        if (!covered.isEmpty())
             pixels->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), covered);
+        }
         if (inverted) {
             QRegion visible(clip);
             visible -= region;
@@ -828,17 +826,17 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
         }
         if (outline.isEmpty()) outline.addRect(QRect());
     } else if (!rect.isEmpty() && kind == LibrePaint::Image::Gpu::SelectionKind::Freehand && coverage) {
-        const QRect clip(QPoint(), bounds().size());
-        const QRect covered = coverage->bounds().intersected(clip);
+        const QRect clip = inverted ? bounds() : coverage->bounds();
         QRegion region;
-        for (int y = covered.top(); y <= covered.bottom(); ++y) {
-            int runStart = -1;
-            for (int x = covered.left(); x <= covered.right() + 1; ++x) {
-                const bool selected = x <= covered.right() && coverage->contains(x, y);
-                if (selected && runStart < 0) runStart = x;
-                else if (!selected && runStart >= 0) {
-                    region += QRect(runStart, y, x - runStart, 1);
-                    runStart = -1;
+        for (auto tile = coverage->tiles().cbegin(); tile != coverage->tiles().cend(); ++tile) {
+            const int size = LibrePaint::Image::Gpu::SelectionMask::TileSize;
+            const auto covered = QRect(QPoint(tile.key().first, tile.key().second) * size, QSize(size, size)).intersected(clip);
+            for (int y = covered.top(); y <= covered.bottom(); ++y) {
+                int runStart = -1;
+                for (int x = covered.left(); x <= covered.right() + 1; ++x) {
+                    const bool selected = x <= covered.right() && coverage->contains(x, y);
+                    if (selected && runStart < 0) runStart = x;
+                    else if (!selected && runStart >= 0) { region += QRect(runStart, y, x - runStart, 1); runStart = -1; }
                 }
             }
         }
@@ -890,6 +888,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
             outline.addRect(rect);
         }
     }
+    if (rect.isEmpty() && inverted) { pixels->select(bounds()); outline.addRect(bounds()); }
     pixels->setOutlineCache(outline);
     selection->updateProjection(inverted ? bounds() : (rect.isEmpty() ? bounds() : rect));
     mask->setDirty(inverted ? bounds() : previousRect.united(rect));
@@ -907,6 +906,8 @@ void KisImage::connectGpuImageUpdates()
     auto state = QSharedPointer<KisGpuImageViewState>::create();
     state->synchronized = image->operations().snapshot();
     state->previewRevision = image->operations().preview()->revision();
+    for (const auto &layer : state->synchronized->layers)
+        if (layer.transparencyMask) state->transparencyMasks.insert(layer.uuid, layer.transparencyMask);
     QList<KisNodeSP> parents{root()};
     for (qsizetype i = 0; i < parents.size(); ++i)
         for (auto node = parents[i]->firstChild(); node; node = node->nextSibling()) {
@@ -985,6 +986,25 @@ void KisImage::connectGpuImageUpdates()
                 if (active) Q_EMIT retainedView->sigRequestNodeReselection(active, selected);
             }
             Q_EMIT retainedView->sigImageModified();
+        }
+        if (projectionChanged && !state->transparencyMasks.isEmpty()) {
+            const auto preview = owner->operations().preview();
+            QScopedValueRollback<bool> syncing(retainedView->m_synchronizingGpuNodes, true);
+            for (const auto &layer : preview->layers) {
+                const auto previous = state->transparencyMasks.value(layer.uuid);
+                if (!layer.transparencyMask || previous == layer.transparencyMask) continue;
+                const auto parent = nodes.value(layer.uuid);
+                if (!parent) continue;
+                for (auto child = parent->firstChild(); child; child = child->nextSibling()) {
+                    auto *mask = qobject_cast<KisTransparencyMask *>(child.data());
+                    if (!mask) continue;
+                    state->transparencyMasks.insert(layer.uuid, layer.transparencyMask);
+                    writeGpuTransparencyMaskPixels(mask, layer.transparencyMask,
+                        previous ? previous->bounds() : QRect{}, retainedView->bounds());
+                    break;
+                }
+                if (retainedView->gpuImage() != owner || owner->operations().preview() != preview) break;
+            }
         }
         if (projectionChanged) retainedView->notifyProjectionUpdated(retainedView->bounds());
     });

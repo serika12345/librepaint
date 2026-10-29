@@ -1,6 +1,7 @@
 add_subdirectory(tests)
 
 set(kritatooltransform_static_SRCS
+    kis_tool_transform_gpu.cpp
     tool_transform_args.cc
     kis_transform_mask_adapter.cpp
     KisAnimatedTransformMaskParamsHolder.cpp
@@ -72,6 +73,8 @@ target_link_libraries(kritatooltransform_static
     kritaapplicationui
     kritapainting
     kritatools
+  PRIVATE
+    kritagpuimage
 )
 
 if (NOT GSL_FOUND)

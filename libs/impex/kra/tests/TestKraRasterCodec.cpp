@@ -157,6 +157,7 @@ private Q_SLOTS:
     void rectangularSelectionSurvivesSavingAndReopening();
     void binaryFreehandSelectionSurvivesSavingAndReopening();
     void featheredSelectionAlphaSurvivesSavingAndReopening();
+    void offCanvasSelectionKeepsNativeCoverageAcrossReopenedEditing();
     void transparencyMasksSurviveSavingAndReopening();
     void emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage();
     void offsetsAndDescriptionMetadataSurviveEditing();
@@ -1749,6 +1750,32 @@ void TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening()
     QVERIFY(clearedResult.document.image.layers[1].transparencyMask);
     QCOMPARE(clearedResult.document.image.layers[1].transparencyMask->bounds(), hard->bounds());
     QCOMPARE(clearedResult.document.image.layers[1].transparencyMask->coverage(120, 100), quint8(255));
+}
+
+void TestKraRasterCodec::offCanvasSelectionKeepsNativeCoverageAcrossReopenedEditing()
+{
+    // A rotated selection can extend beyond every canvas edge. Saving and a
+    // subsequent edit must keep those alpha values for the next tool gesture.
+    auto source = document();
+    const QRect bounds(-8, -5, source.image.size.width() + 17, source.image.size.height() + 11);
+    QByteArray values(bounds.width() * bounds.height(), '\0');
+    for (int i = 0; i < values.size(); ++i) values[i] = char((i * 71 + 1) % 256);
+    const auto mask = SelectionMask::fromAlphaCoverage(bounds, values, bounds); QVERIFY(mask);
+    source.image.selection = mask->bounds(); source.image.selectionKind = SelectionKind::Freehand;
+    source.image.selectionMask = mask; source.image.selectionInverted = false;
+    for (int edit = 0; edit < 2; ++edit) {
+        QByteArray bytes; QBuffer output(&bytes); QVERIFY(output.open(QIODevice::WriteOnly));
+        const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+        QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+        auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+        QCOMPARE(loaded.document.image.selection, mask->bounds());
+        QCOMPARE(loaded.document.image.selectionKind, SelectionKind::Freehand);
+        QVERIFY(!loaded.document.image.selectionInverted);
+        QVERIFY(loaded.document.image.selectionMask);
+        QVERIFY(*loaded.document.image.selectionMask == *mask);
+        source = loaded.document;
+        source.image.layers[0].name = QStringLiteral("Edited after reopening");
+    }
 }
 
 void TestKraRasterCodec::emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage()

@@ -49,6 +49,14 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
     kind = LibrePaint::Image::Gpu::SelectionKind::Rectangle;
     mask.clear();
     if (defaultPixel != 0) return unsupported();
+    const auto adoptFiniteCoverage = [&]() {
+        LibrePaint::Image::Gpu::SelectionMaskSP coverage;
+        const auto result = readTransparencyMask(data, offset, imageBounds, maximumBytes, coverage);
+        if (result.code != Status::Success) return result;
+        selection = coverage->bounds(); inverted = false;
+        kind = LibrePaint::Image::Gpu::SelectionKind::Freehand; mask = coverage;
+        return result;
+    };
     QBuffer input;
     input.setData(data);
     input.open(QIODevice::ReadOnly);
@@ -116,7 +124,7 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
                 if (value != 255) {
                     // Fractional selectedness requires the complete image mirror
                     // to distinguish soft edges from shape boundaries.
-                    if (imageBits.isNull() || !inImage) return unsupported();
+                    if (imageBits.isNull() || !inImage) return adoptFiniteCoverage();
                     if (imageAlpha.isNull()) {
                         imageAlpha = QByteArray(imageBounds.width() * imageBounds.height(), '\0');
                         for (int y = 0; y < imageBounds.height(); ++y)
@@ -144,7 +152,7 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
     if (!input.atEnd()) return invalid();
     if (!selected) return {Status::Success, {}};
     if (!imageAlpha.isNull()) {
-        if (selectedOutsideImage) return unsupported();
+        if (selectedOutsideImage) return adoptFiniteCoverage();
         const auto arbitrary = LibrePaint::Image::Gpu::SelectionMask::fromAlphaCoverage(
             imageBounds, imageAlpha, imageBounds);
         if (!arbitrary) return unsupported();
@@ -226,7 +234,7 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
             return {Status::Success, {}};
         }
     }
-    return unsupported();
+    return adoptFiniteCoverage();
 }
 
 Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &imageBounds,
@@ -264,7 +272,7 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
                 for (int py = tile.top(); py <= tile.bottom(); ++py) {
                     const int row = py - y * FileTileSize;
                     for (int px = tile.left(); px <= tile.right(); ++px) {
-                        if (!imageBounds.contains(px, py)) continue;
+                        if (inverted && !imageBounds.contains(px, py)) continue;
                         const quint8 value = mask->coverage(px, py);
                         pixels[row * FileTileSize + px - x * FileTileSize] = char(inverted ? 255u - value : value);
                     }

@@ -11,6 +11,9 @@
 #include <QPointer>
 #include <QThread>
 #include <cstring>
+#include <QList>
+#include <QHash>
+#include <algorithm>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
@@ -74,6 +77,15 @@ struct Device::Private
     NativeDevice device;
     NativeQueue queue;
     NativeCommands commands;
+    struct SubmittedStorage {
+        std::atomic<bool> completed{false};
+        QList<std::shared_ptr<void>> allocations;
+    };
+    QHash<const void *, std::shared_ptr<void>> frameStorage;
+    QList<std::shared_ptr<SubmittedStorage>> submittedStorage;
+    void retireStorage() {
+        submittedStorage.removeIf([](const auto &frame) { return frame->completed.load(std::memory_order_acquire); });
+    }
 
     void fail(WGPUStringView message) noexcept
     {
@@ -93,6 +105,8 @@ Device::~Device()
     if (readbackPending()) finish();
     wgpuDeviceDestroy(m_d->device.get());
     wgpuDevicePoll(m_d->device.get(), true, nullptr);
+    m_d->retireStorage();
+    Q_ASSERT(m_d->submittedStorage.isEmpty());
 }
 WGPUInstance Device::instance() const { return m_d->instance->get(); }
 WGPUAdapter Device::adapter() const { return m_d->adapter.get(); }
@@ -117,6 +131,7 @@ WGPUCommandEncoder Device::beginCommands()
 {
     if (thread() != QThread::currentThread() || isRecordingFrame() || isLost() || !diagnostic().isEmpty()) return nullptr;
     wgpuDevicePoll(nativeDevice(), false, nullptr);
+    m_d->retireStorage();
     if (isLost() || m_d->failed.load(std::memory_order_acquire) || readbackPending()) return nullptr;
     releaseCompletedReadback();
     m_d->commands.reset(wgpuDeviceCreateCommandEncoder(nativeDevice(), nullptr));
@@ -126,20 +141,41 @@ bool Device::submitCommands(bool wait)
 {
     if (thread() != QThread::currentThread() || !isRecordingFrame()) return false;
     auto commands = std::move(m_d->commands);
+    auto storage = std::make_shared<Private::SubmittedStorage>();
+    storage->allocations = m_d->frameStorage.values();
+    m_d->frameStorage.clear();
     NativeSubmission submission(wgpuCommandEncoderFinish(commands.get(), nullptr));
     if (!submission || isLost() || m_d->failed.load(std::memory_order_acquire)) return false;
     const auto buffer = submission.get();
     wgpuQueueSubmit(queue(), 1, &buffer);
+    if (!storage->allocations.isEmpty()) {
+        m_d->submittedStorage.append(storage);
+        WGPUQueueWorkDoneCallbackInfo callback{};
+        callback.mode = WGPUCallbackMode_AllowSpontaneous;
+        callback.userdata1 = storage.get();
+        callback.callback = [](WGPUQueueWorkDoneStatus, void *context, void *) noexcept {
+            static_cast<Private::SubmittedStorage *>(context)->completed.store(true, std::memory_order_release);
+        };
+        wgpuQueueOnSubmittedWorkDone(queue(), callback);
+    }
     if (isLost() || m_d->failed.load(std::memory_order_acquire)) return false;
     if (readbackPending()) m_d->readback->start(*this);
     if (wait) return finish();
     wgpuDevicePoll(nativeDevice(), false, nullptr);
+    m_d->retireStorage();
     return !isLost() && diagnostic().isEmpty();
+}
+bool Device::retainForFrame(const std::shared_ptr<void> &storage)
+{
+    if (thread() != QThread::currentThread() || !isRecordingFrame() || !storage) return false;
+    m_d->frameStorage.insert(storage.get(), storage);
+    return true;
 }
 bool Device::finish()
 {
     if (thread() != QThread::currentThread() || isRecordingFrame()) return false;
     wgpuDevicePoll(nativeDevice(), true, nullptr);
+    m_d->retireStorage();
     return !isLost() && diagnostic().isEmpty() && !readbackPending();
 }
 

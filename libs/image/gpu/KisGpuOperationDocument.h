@@ -21,6 +21,7 @@
 #include <QUuid>
 #include <kritaimagegpuoperations_export.h>
 #include "KisGpuRasterPixels.h"
+#include "KisGpuAffineTransform.h"
 #include "KisGpuSelectionMask.h"
 #include <variant>
 #include <memory>
@@ -337,6 +338,38 @@ struct TranslationOperation
     bool selectionInverted = false;
 };
 using TranslationSnapshot = QSharedPointer<const TranslationOperation>;
+/** Frozen, staged native resampling of preceding layer pixels. */
+struct AffineTransformOperation
+{
+    OperationId id;
+    quint64 version = 0;
+    LayerId layer = 0;
+    AffinePlanSP plan;
+    /** Native 64-pixel allocation after transform, selection clearing and
+     * merging. GPU summaries freeze nondefault blocks before publication;
+     * selected merges also preserve the native destination extent and retained
+     * allocation outside the cleared area.
+     */
+    std::optional<QList<QRect>> allocatedBlocks;
+    bool transformPixels = true;
+    bool transformMask = false;
+    /** Null transforms the complete layer; otherwise captures and clears the
+     * frozen selection, transforms its pixels and merges them normally.
+     */
+    TranslationSnapshot selection;
+};
+using AffineSnapshot = QSharedPointer<const AffineTransformOperation>;
+struct AffineTransformTarget { LayerId layer = 0; bool pixels = true; bool mask = false; };
+struct AffineLayerPlan {
+    LayerId layer = 0;
+    AffinePlanSP plan;
+    SelectionMaskSP mask;
+    /** A nonidentity tool gesture can round to an identity pixel map while
+     * native selected-pixel capture/clear/merge still has an observable result.
+     */
+    bool recomposeSelection = false;
+};
+
 /** Resets preceding pixels outside the requested rectangle to the layer default. */
 struct CropOperation
 {
@@ -479,7 +512,7 @@ struct FilterOperation
     SelectionMaskSP selectionMask;
 };
 using FilterSnapshot = QSharedPointer<const FilterOperation>;
-using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot, FilterSnapshot>;
+using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot, FilterSnapshot, AffineSnapshot>;
 
 enum class LayerKind : quint8 { Paint, Group };
 
@@ -642,6 +675,7 @@ public:
 
 private:
     friend class OperationDocument;
+    friend class PaintImage;
     DocumentVersion() = default;
     DocumentVersion(const DocumentVersion &) = default;
     QUuid m_document;
@@ -694,7 +728,7 @@ enum class HistoryAction {
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
     ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
     ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors,
-    Grayscale, HsvAdjustment, ConvertColorSpace, MoveSelectionPixels
+    Grayscale, HsvAdjustment, ConvertColorSpace, MoveSelectionPixels, TransformLayer
 };
 
 struct Limits
@@ -792,6 +826,11 @@ public:
      * an integer offset from the start; commit records one history entry and
      * cancellation retains the committed version and redo branch.
      */
+    OperationId beginAffineTransform(const QList<AffineTransformTarget> &layers, QRect copyRect = {}, QRect clearRect = {});
+    Result updateAffineTransform(OperationId id, const QList<AffineLayerPlan> &plans,
+                                 const SelectionMaskSP &selection = {}, bool inverted = false);
+    Result commitAffineTransform(OperationId id);
+    Result cancelAffineTransform(OperationId id);
     OperationId beginLayerTranslation(LayerId layer);
     OperationId beginLayerTranslation(const QList<LayerTranslationTarget> &targets);
     /** The view supplies its ordinary selection's coarse copy extent and exact
@@ -1038,6 +1077,7 @@ private:
         bool changedSelection = false;
         bool movedSelectionPixels = false;
         bool translatedLayers = false;
+        bool transformedLayers = false;
         /** Adds or removes one layer's transparency mask in its retained version. */
         bool addedTransparencyMask = false;
         bool removedTransparencyMask = false;
@@ -1098,6 +1138,7 @@ private:
     LayerId m_nextLayer = 1;
     quint64 m_savedRevision = 0;
     QSharedPointer<const PaintOperation> m_edit;
+    QList<AffineSnapshot> m_affine;
     TranslationSnapshot m_translation;
     QList<LayerTranslationTarget> m_translationTargets;
     QHash<LayerId, OperationId> m_translationIds;

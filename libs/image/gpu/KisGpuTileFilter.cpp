@@ -31,6 +31,8 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     const std::shared_ptr<Tile> &fallback, QSize documentSize, QRect region,
     QList<std::shared_ptr<Tile>> &pins)
 {
+    retainTiles(source);
+    retainTile(fallback);
     Tiles result = source;
     QRect bounds = region;
     if (!filter.selectionRect.isEmpty() && !filter.selectionInverted)

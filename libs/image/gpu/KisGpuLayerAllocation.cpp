@@ -16,6 +16,9 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
     for (const auto &operation : layer.operations)
         if (const auto translation = std::get_if<TranslationSnapshot>(&operation); translation && !(*translation)->selectedPixels)
             origin -= (*translation)->offset;
+    for (const auto &operation : layer.operations)
+        if (const auto affine = std::get_if<AffineSnapshot>(&operation); affine && !(*affine)->selection)
+            origin -= (*affine)->plan->positionDelta;
     if (layer.operations.size() > PaintGeometryElementLimit) return std::nullopt;
     LayerAllocation result;
     auto &allocated = result.blocks;
@@ -48,6 +51,23 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
                 allocated.translate((*translation)->offset);
                 allocated &= domain;
                 origin += (*translation)->offset;
+            }
+        } else if (const auto affine = std::get_if<AffineSnapshot>(&operation)) {
+            if (!(*affine)->selection) origin += (*affine)->plan->positionDelta;
+            if ((*affine)->allocatedBlocks) {
+                allocated = QRegion();
+                for (const auto &block : *(*affine)->allocatedBlocks) allocated += block;
+            } else {
+                QRegion transformed = (*affine)->selection ? allocated.intersected((*affine)->selection->copyRect) : allocated;
+                for (const auto &pass : (*affine)->plan->passes) {
+                    QRegion next;
+                    for (const auto &area : transformed) next += affineOutputRegion(pass, area);
+                    if (pass.kind != AffinePass::Remap || layer.defaultPixel[3]) next += pass.destination;
+                    transformed = next;
+                }
+                if ((*affine)->selection) allocated |= transformed;
+                else allocated = transformed;
+                allocated &= domain;
             }
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             allocated &= aligned((*crop)->rect.normalized());

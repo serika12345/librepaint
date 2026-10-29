@@ -53,6 +53,7 @@ TileRenderer::Private::CropResult TileRenderer::Private::cropTiles(
     WGPUCommandEncoder commands, const Tiles &source, QRect keep, const RgbaPixel &defaultPixel, PixelFormat format,
     QRect region, QList<std::shared_ptr<Tile>> &pins)
 {
+    retainTiles(source);
     Tiles result, boundaries;
     for (auto tile = source.cbegin(); tile != source.cend(); ++tile) {
         const QRect bounds(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize));
