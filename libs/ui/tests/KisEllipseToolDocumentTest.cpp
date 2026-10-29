@@ -603,6 +603,20 @@ void KisEllipseToolDocumentTest::selectedSolidFillsKeepOrdinaryEditing()
             window->viewManager()->nodeManager()->slotUiActivatedNode(paintNode());
             QCOMPARE(pixels(), after);
         }
+        if (gpu) {
+            const auto current = lifetime->image()->gpuImage();
+            LibrePaint::Canvas::Gpu::CanvasWindow *canvas = nullptr;
+            for (auto *candidate : QGuiApplication::allWindows())
+                if (auto *value = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(candidate); value && value->isVisible()) canvas = value;
+            QVERIFY(canvas);
+            QSignalSpy frames(canvas, &LibrePaint::Canvas::Gpu::CanvasWindow::frameSubmitted);
+            const auto visible = current->operations().snapshot();
+            canvas->refresh();
+            QTRY_VERIFY(std::any_of(frames.cbegin(), frames.cend(), [&](const auto &frame) {
+                return frame[0].toULongLong() == current->handle() && frame[1].toULongLong() == visible->revision();
+            }));
+            QVERIFY(current->execution().device()->finish());
+        }
         QVERIFY(window->screen()->grabWindow(window->winId()).save(QDir(output).filePath(
                     gpu ? QStringLiteral("gpu-window.png") : QStringLiteral("cpu-window.png"))));
     }
@@ -1033,6 +1047,17 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
                  .arg(lifetime->undoStack()->cleanIndex()).arg(lifetime->isSaving())));
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     if (!results.isEmpty() && (nativeStates || qstrcmp(QTest::currentTestFunction(), "nativeSolidFillsKeepOrdinaryEditing") == 0)) {
+        if (gpu) {
+            auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(native.data());
+            QVERIFY(canvas);
+            QSignalSpy frames(canvas, &LibrePaint::Canvas::Gpu::CanvasWindow::frameSubmitted);
+            const auto visible = owner->operations().snapshot();
+            canvas->refresh();
+            QTRY_VERIFY(std::any_of(frames.cbegin(), frames.cend(), [&](const auto &frame) {
+                return frame[0].toULongLong() == owner->handle() && frame[1].toULongLong() == visible->revision();
+            }));
+            QVERIFY(execution->device()->finish());
+        }
         const auto output = QDir(results).filePath(QString::fromLatin1(QTest::currentTestFunction()) + QLatin1Char('-') +
                                                  QString::fromLatin1(QTest::currentDataTag()));
         QVERIFY(QDir().mkpath(output));

@@ -1247,6 +1247,9 @@ add_test(NAME ${gpu_document_freehand_tool_test}
 set(gpu_document_brush_presets_test libs-ui-brush-presets-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_brush_presets_test}
     COMMAND KisGpuDocumentViewTest standardAutoBrushPresetsKeepOrdinaryEditing)
+set(gpu_document_native_clipboard_test libs-ui-native-clipboard-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_native_clipboard_test}
+    COMMAND KisGpuDocumentViewTest nativeClipboardCoverageKeepsPrecisionAndSavedPixels)
 set(gpu_document_brush_blend_test libs-ui-brush-blend-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_brush_blend_test}
     COMMAND KisGpuDocumentViewTest brushBlendModeUsesEffectiveCompositeOpAndRejectsUnsupported)
@@ -1289,7 +1292,7 @@ set_tests_properties(${gpu_document_hsv_filter_test} PROPERTIES
 set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
     ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_brush_blend_test}
-    ${gpu_document_brush_presets_test}
+    ${gpu_document_brush_presets_test} ${gpu_document_native_clipboard_test}
     ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_path_tool_test}
     ${gpu_document_path_input_test} ${gpu_document_feather_test} ${gpu_document_filter_test}
     ${gpu_document_grayscale_filter_test} ${gpu_document_hsv_filter_test}

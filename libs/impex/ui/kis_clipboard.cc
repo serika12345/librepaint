@@ -745,6 +745,7 @@ bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetByte
                 const auto pixels = copied->readRgbaPixels(copied->operations().activeLayer(), area, memoryBudgetBytes);
                 if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success) return false;
                 QByteArray bytes = pixels.bytes;
+                const int pixelBytes = LibrePaint::Image::Gpu::pixelByteCount(copied->operations().snapshot()->format);
                 const qreal cx = area.x() + area.width() / 2.0, cy = area.y() + area.height() / 2.0;
                 const qreal rx = area.width() / 2.0, ry = area.height() / 2.0;
                 for (int y = 0; y < area.height(); ++y) {
@@ -762,7 +763,7 @@ bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetByte
                             inside = dx * dx + dy * dy <= 1.0;
                         }
                         const bool clear = mask->keepInside ? !inside : inside;
-                        if (clear) std::memset(bytes.data() + (y * area.width() + x) * 4, 0, 4);
+                        if (clear) std::memset(bytes.data() + (y * area.width() + x) * pixelBytes, 0, pixelBytes);
                     }
                 }
                 if (copied->writeRgbaPixels(copied->operations().activeLayer(), area, bytes) != LibrePaint::Image::Gpu::Result::Success)
@@ -805,6 +806,7 @@ bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype m
                 const auto pixels = copied->readRgbaPixels(copied->operations().activeLayer(), area, memoryBudgetBytes);
                 if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success) return false;
                 QByteArray bytes = pixels.bytes;
+                const int pixelBytes = LibrePaint::Image::Gpu::pixelByteCount(copied->operations().snapshot()->format);
                 const qreal cx = area.x() + area.width() / 2.0, cy = area.y() + area.height() / 2.0;
                 const qreal rx = area.width() / 2.0, ry = area.height() / 2.0;
                 for (int y = 0; y < area.height(); ++y) {
@@ -822,7 +824,7 @@ bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype m
                             inside = dx * dx + dy * dy <= 1.0;
                         }
                         const bool clear = mask->keepInside ? !inside : inside;
-                        if (clear) std::memset(bytes.data() + (y * area.width() + x) * 4, 0, 4);
+                        if (clear) std::memset(bytes.data() + (y * area.width() + x) * pixelBytes, 0, pixelBytes);
                     }
                 }
                 if (copied->writeRgbaPixels(copied->operations().activeLayer(), area, bytes) != LibrePaint::Image::Gpu::Result::Success)

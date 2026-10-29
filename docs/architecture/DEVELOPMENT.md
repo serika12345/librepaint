@@ -547,6 +547,12 @@ KRA保存・再読込後のアルファ被覆と画素の一致を検査する�
 `KisGpuDocumentViewTest::selectionCopyAndCutUseGpuSelection`は、通常のコピーが
 アクティブレイヤーの選択範囲だけを切り出し、切り取りが選択内を透明化して
 選択外を保持し、Undo／Redoできることを検査する。
+`nativeClipboardCoverageKeepsPrecisionAndSavedPixels`は、レイヤー・合成コピーの
+内側・外側の二値被覆をRGB8・RGB16で固定し、全成分、元画像の追加編集からの独立、
+クリップボードのKRA転送、再読込後の編集とUndo／Redoを検査する。
+専用の`libs-ui-native-clipboard-KisGpuDocumentViewTest`は同じ試験対象から実行する。
+`copySelectionToNewLayerUsesGpuPixels`は同じ精度で矩形・楕円・反転選択の位置と画素、
+通常画面での新規レイヤー化、切取り後のUndoとKRA保存・再読込を検査する。
 `KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory`は、ドラッグ中の
 表示写像だけの追従、確定時の一回のGPU履歴、Undo／Redo、Escapeによる取消し、
 反転選択の穴の移動を検査する。
