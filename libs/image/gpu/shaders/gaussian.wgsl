@@ -30,24 +30,50 @@ struct MaskDab {
     radius: vec4<u32>,
     coefficient: vec4<u32>,
     application: vec4<u32>,
+    vertical: vec4<u32>,
 }
 
-// The standard generated circle shares dab placement and WASH accumulation
-// with Gaussian tips; its native fade is a rational squared-distance function.
+// Standard ellipse and rectangle tips share dab placement and WASH accumulation
+// with Gaussian tips. Their independent fades follow the native mask formulas.
 fn standardCircleSample(dab: MaskDab, dx: Word64, dy: Word64) -> u32 {
     let one = Word64(0u, 0x3ff00000u);
-    let nx = doubleMultiply(dx, dab.radius.xy);
-    let ny = doubleMultiply(dy, dab.radius.xy);
+    let xr = doubleSubtract(doubleMultiply(dab.rotation.xy, dx), doubleMultiply(dab.rotation.zw, dy));
+    let yr = doubleAdd(doubleMultiply(dab.rotation.zw, dx), doubleMultiply(dab.rotation.xy, dy));
+    var x = doubleMagnitude(xr);
+    var y = doubleMagnitude(yr);
+    let nx = doubleMultiply(x, dab.radius.xy);
+    let ny = doubleMultiply(y, dab.vertical.xy);
     let n = doubleAdd(doubleMultiply(nx, nx), doubleMultiply(ny, ny));
-    if (!wordLessEqual(n, one)) { return 255u; }
-    var x = Word64(dx.x, dx.y & 0x7fffffffu);
-    var y = Word64(dy.x, dy.y & 0x7fffffffu);
+    let rectangle = (dab.size.w & 16u) != 0u;
+    if (rectangle) {
+        if (!wordLessEqual(nx, one) || !wordLessEqual(ny, one)) { return 255u; }
+    } else if (!wordLessEqual(n, one)) { return 255u; }
     if ((dab.size.w & 2u) != 0u) {
         x = doubleAdd(x, one);
         y = doubleAdd(y, one);
     }
     let fx = doubleMultiply(x, dab.radius.zw);
-    let fy = doubleMultiply(y, dab.radius.zw);
+    let fy = doubleMultiply(y, dab.vertical.zw);
+    if (rectangle) {
+        let xDenominator = doubleSubtract(fx, nx);
+        let xNumerator = doubleMultiply(nx, doubleSubtract(fx, one));
+        var fade = Word64(0u);
+        if (!wordLessEqual(fx, one)) {
+            fade = doubleDivide(doubleMultiply(nx, doubleSubtract(fx, one)), xDenominator);
+        }
+        if (!wordLessEqual(fy, one)) {
+            let vertical = doubleDivide(doubleMultiply(ny, doubleSubtract(fy, one)), doubleSubtract(fy, ny));
+            // Native zero denominators distinguish a negative infinity from
+            // 0/0 when comparing the horizontal and vertical fades.
+            var beforeVertical = (xNumerator.y & 0x80000000u) != 0u && any(doubleMagnitude(xNumerator) != Word64(0u));
+            if (any(doubleMagnitude(xDenominator) != Word64(0u))) {
+                let horizontal = doubleDivide(xNumerator, xDenominator);
+                beforeVertical = (horizontal.y & 0x80000000u) != 0u || !wordLessEqual(vertical, horizontal);
+            }
+            if (beforeVertical) { fade = vertical; }
+        }
+        return min(255u, doubleTruncate(doubleMultiply(doubleInteger(255u), fade)));
+    }
     let nf = doubleAdd(doubleMultiply(fx, fx), doubleMultiply(fy, fy));
     if (!wordLessEqual(one, nf)) { return 0u; }
     let numerator = doubleMultiply(doubleMultiply(doubleInteger(255u), n), doubleSubtract(nf, one));
@@ -69,24 +95,53 @@ fn smallStandardCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
 fn standardCircleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32) -> u32 {
     let dx = floatSubtract(bitcast<u32>(f32(point.x)), floatFromDouble(dab.center.xy));
     let dy = floatSubtract(bitcast<u32>(f32(point.y)), floatFromDouble(dab.center.zw));
+    let cosine = floatFromDouble(dab.rotation.xy);
+    let sine = floatFromDouble(dab.rotation.zw);
+    let rectangle = (dab.size.w & 16u) != 0u;
+    var x = floatSubtract(floatMultiply(dx, cosine), floatMultiply(sine, dy)) & 0x7fffffffu;
+    var y = floatAdd(floatMultiply(dx, sine), floatMultiply(cosine, dy)) & 0x7fffffffu;
+    if (rectangle) {
+        // Native rectangle rows use a single-rounded coordinate multiply-add;
+        // standard circle rows round their products separately.
+        x = floatMultiplyAdd(dx, cosine, floatMultiply(sine, dy) ^ 0x80000000u) & 0x7fffffffu;
+        y = floatMultiplyAdd(dx, sine, floatMultiply(cosine, dy)) & 0x7fffffffu;
+    }
     let coefficient = floatFromDouble(dab.radius.xy);
-    let nx = floatMultiply(dx, coefficient);
-    let ny = floatMultiply(dy, coefficient);
+    let nx = floatMultiply(x, coefficient);
+    let ny = floatMultiply(y, floatFromDouble(dab.vertical.xy));
     let n = floatAdd(floatMultiply(nx, nx), floatMultiply(ny, ny));
-    if (n > 0x3f800000u) { return 0u; }
-    var x = dx & 0x7fffffffu;
-    var y = dy & 0x7fffffffu;
+    if (rectangle) {
+        if (nx > 0x3f800000u || ny > 0x3f800000u) { return 0u; }
+    } else if (n > 0x3f800000u) { return 0u; }
     if ((dab.size.w & 2u) != 0u) {
         x = floatAdd(x, 0x3f800000u);
         y = floatAdd(y, 0x3f800000u);
     }
     let fade = floatFromDouble(dab.radius.zw);
     let fx = floatMultiply(x, fade);
-    let fy = floatMultiply(y, fade);
-    let nf = floatAdd(floatMultiply(fx, fx), floatMultiply(fy, fy));
-    if (nf < 0x3f800000u) { return maximum; }
-    if (nf == n) { return 0u; }
-    let inverse = floatDivide(floatMultiply(n, floatSubtract(nf, 0x3f800000u)), floatSubtract(nf, n));
+    let fy = floatMultiply(y, floatFromDouble(dab.vertical.zw));
+    var inverse = 0u;
+    if (rectangle) {
+        let xDenominator = floatSubtract(fx, nx);
+        let xNumerator = floatMultiply(nx, floatSubtract(fx, 0x3f800000u));
+        if (fx > 0x3f800000u) {
+            inverse = floatDivide(floatMultiply(nx, floatSubtract(fx, 0x3f800000u)), xDenominator);
+        }
+        if (fy > 0x3f800000u) {
+            let vertical = floatDivide(floatMultiply(ny, floatSubtract(fy, 0x3f800000u)), floatSubtract(fy, ny));
+            var beforeVertical = (xNumerator & 0x80000000u) != 0u && (xNumerator & 0x7fffffffu) != 0u;
+            if ((xDenominator & 0x7fffffffu) != 0u) {
+                let horizontal = floatDivide(xNumerator & 0x7fffffffu, xDenominator & 0x7fffffffu);
+                beforeVertical = ((xNumerator ^ xDenominator) & 0x80000000u) != 0u || horizontal < vertical;
+            }
+            if (beforeVertical) { inverse = vertical; }
+        }
+    } else {
+        let nf = floatAdd(floatMultiply(fx, fx), floatMultiply(fy, fy));
+        if (nf < 0x3f800000u) { return maximum; }
+        if (nf == n) { return 0u; }
+        inverse = floatDivide(floatMultiply(n, floatSubtract(nf, 0x3f800000u)), floatSubtract(nf, n));
+    }
     let alpha = floatMultiply(bitcast<u32>(f32(maximum)), floatSubtract(0x3f800000u, inverse));
     if (maximum == 65535u) { return u32(bitcast<f32>(alpha)); }
     return projectionComponent(alpha);

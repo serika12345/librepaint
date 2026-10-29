@@ -12,7 +12,7 @@
 
 namespace LibrePaint::Image::Gpu::Detail {
 namespace {
-QSizeF characteristicSize(qreal diameter, qreal scale, qreal angle)
+QSizeF characteristicSize(qreal diameter, qreal ratio, qreal scale, qreal angle)
 {
     constexpr qreal circle = 6.283185307179586476925286766559;
     angle = std::fmod(angle, circle);
@@ -20,8 +20,7 @@ QSizeF characteristicSize(qreal diameter, qreal scale, qreal angle)
     QTransform transform;
     transform.scale(scale, scale);
     if (!qFuzzyCompare(angle, qreal(0))) transform = transform * QTransform().rotateRadians(angle);
-    const int side = std::max(1, int(diameter));
-    return transform.mapRect(QRectF(0, 0, side, side)).size();
+    return transform.mapRect(QRectF(0, 0, std::max(1, int(diameter)), std::max(1, int(diameter * ratio)))).size();
 }
 }
 
@@ -67,35 +66,66 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         input.last().position = operation.shape.second;
     }
     qsizetype count = 0;
-    qreal spacing = .5, accumulated = 0;
+    QPointF spacing(.5, .5), accumulated;
+    qreal spacingRotation = 0;
     const auto append = [&](const InputSample &point) {
         const qreal scale = pressureValue(brush.sizeResponse, point.pressure);
         const qreal diameter = brush.diameter * scale;
-        const bool tooSmall = brush.autoBrush ? scale * std::max(1, int(brush.diameter)) < .01 :
+        const bool tooSmall = brush.autoBrush ?
+            scale * std::max(1, int(brush.diameter)) < .01 ||
+            scale * std::max(1, int(brush.diameter * brush.autoBrush->ratio)) < .01 :
                                                   scale * diameter < .01;
-        if (tooSmall) { spacing = .5; return true; }
+        if (tooSmall) { spacing = {.5, .5}; return true; }
         if (count >= PaintGeometryElementLimit) return false;
-        const auto metric = brush.autoBrush ? characteristicSize(brush.diameter, scale, brush.autoBrush->angle) :
+        const qreal sensorRotation = point.canvasRotation * M_PI / 180.;
+        const qreal angle = brush.autoBrush ? brush.autoBrush->angle + sensorRotation : 0;
+        const auto metric = brush.autoBrush ? characteristicSize(brush.diameter, brush.autoBrush->ratio, scale, angle) :
                                                 QSizeF(diameter, diameter);
-        if (!visit({point.position, point.pressure, scale, metric})) return false;
+        if (!visit({point.position, point.pressure, scale, metric, angle, point.canvasMirroredH, point.canvasMirroredV})) return false;
         ++count;
-        const qreal spacingDiameter = brush.autoBrush ? std::max(1, int(brush.diameter)) * scale : diameter;
-        const qreal distance = brush.autoSpacing ?
-            brush.autoSpacingCoefficient * (spacingDiameter < 1 ? spacingDiameter : std::sqrt(spacingDiameter)) :
-            metric.width() * brush.spacing;
-        spacing = std::max(qreal(.5), distance);
+        const auto distance = [&](qreal side) {
+            return brush.autoSpacing ? brush.autoSpacingCoefficient * (side < 1 ? side : std::sqrt(side)) : side * brush.spacing;
+        };
+        const bool isotropic = brush.autoBrush && brush.autoBrush->isotropicSpacing;
+        const auto spacingMetric = brush.autoBrush ?
+            characteristicSize(brush.diameter, brush.autoBrush->ratio, scale, brush.autoBrush->angle) : metric;
+        const qreal width = isotropic ? std::max(spacingMetric.width(), spacingMetric.height()) : spacingMetric.width();
+        const qreal height = isotropic ? width : spacingMetric.height();
+        spacing = {distance(width), distance(height)};
+        spacingRotation = isotropic || !brush.autoBrush ? 0 :
+            point.canvasMirroredH != point.canvasMirroredV ? 2 * M_PI - sensorRotation : sensorRotation;
         return true;
     };
     const auto line = [&](InputSample first, const InputSample &last) {
         while (first.position != last.position) {
-            const qreal length = QVector2D(last.position - first.position).length();
-            const qreal next = spacing - accumulated;
-            if (next > length) { accumulated += length; return true; }
-            const qreal fraction = next <= 0 ? 0 : next / length;
+            qreal fraction;
+            auto delta = last.position - first.position;
+            if (spacing.x() == spacing.y()) {
+                const qreal length = QVector2D(delta).length();
+                const qreal next = std::max(qreal(.5), spacing.x()) - accumulated.x();
+                if (next > length) { accumulated.rx() += length; return true; }
+                fraction = next <= 0 ? 0 : next / length;
+            } else {
+                const qreal a = 1. / std::max(qreal(.5), spacing.x());
+                const qreal b = 1. / std::max(qreal(.5), spacing.y());
+                const qreal x = accumulated.x(), y = accumulated.y();
+                const qreal gamma = (x * a) * (x * a) + (y * b) * (y * b) - 1;
+                if (gamma >= 0) fraction = 0;
+                else {
+                    if (spacingRotation > 2e-3) delta = QTransform().rotateRadians(spacingRotation).map(delta);
+                    const qreal dx = std::abs(delta.x()), dy = std::abs(delta.y());
+                    const qreal alpha = (dx * a) * (dx * a) + (dy * b) * (dy * b);
+                    const qreal beta = x * dx * a * a + y * dy * b * b;
+                    const qreal discriminant = beta * beta - alpha * gamma;
+                    if (discriminant < 0) return false;
+                    fraction = (-beta + std::sqrt(discriminant)) / alpha;
+                    if (fraction < 0 || fraction > 1) { accumulated += QPointF(dx, dy); return true; }
+                }
+            }
             const auto previous = first.position;
             first.position = (1 - fraction) * first.position + fraction * last.position;
             first.pressure = (1 - fraction) * first.pressure + fraction * last.pressure;
-            accumulated = 0;
+            accumulated = {};
             if (!append(first)) return false;
             if (first.position == previous && fraction != 0) return false;
         }
@@ -201,7 +231,8 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
     }
     if (operation.shape.kind == ShapeKind::Path || !operation.shape.pathCommands.isEmpty()) {
         qsizetype index = 0, call = 0;
-        qreal lineSpacing = spacing, lineAccumulated = accumulated;
+        QPointF lineSpacing = spacing, lineAccumulated = accumulated;
+        qreal lineRotation = spacingRotation;
         InputSample previous;
         for (const auto command : operation.shape.pathCommands) {
             // A painter-path call owns its distance, while opacity averaging
@@ -209,8 +240,10 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             if (call < operation.shape.pathCalls.size() && index == operation.shape.pathCalls[call].first) {
                 lineSpacing = spacing;
                 lineAccumulated = accumulated;
-                spacing = .5;
-                accumulated = 0;
+                lineRotation = spacingRotation;
+                spacing = {.5, .5};
+                accumulated = {};
+                spacingRotation = 0;
             }
             if (command == PathCommand::CubicTo) {
                 if (!cubic(previous, input[index].position, input[index + 1].position, input[index + 2])) return false;
@@ -224,6 +257,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             if (call < operation.shape.pathCalls.size() && index == operation.shape.pathCalls[call].second) {
                 spacing = lineSpacing;
                 accumulated = lineAccumulated;
+                spacingRotation = lineRotation;
                 ++call;
             }
         }

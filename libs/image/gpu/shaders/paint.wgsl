@@ -84,9 +84,10 @@ fn markerCoverage(dab: MarkerMaskDab, pixel: vec2<i32>) -> u32 {
 }
 
 fn gaussianDab(index: u32) -> MaskDab {
-    let offset = index * 24u;
+    let offset = index * 28u;
     return MaskDab(geometryFour(offset), geometryFour(offset + 4u), geometryFour(offset + 8u),
-                   geometryFour(offset + 12u), geometryFour(offset + 16u), geometryFour(offset + 20u));
+                   geometryFour(offset + 12u), geometryFour(offset + 16u), geometryFour(offset + 20u),
+                   geometryFour(offset + 24u));
 }
 
 fn washAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {

@@ -248,7 +248,8 @@ void KisFigurePaintingStroke::paintLine(const KisPaintInformation &pi0,
             m_gpuStroke->strokeStyle = KisFigurePaintingOptions::StrokeStyleForeground;
         const auto sample = [](const KisPaintInformation &info) {
             return Gpu::InputSample{info.pos(), info.pressure(), info.xTilt(), info.yTilt(),
-                                    info.rotation(), quint64(info.currentTime())};
+                                    info.rotation(), quint64(info.currentTime()), info.drawingSpeed(),
+                                    info.canvasRotation(), info.canvasMirroredH(), info.canvasMirroredV()};
         };
         m_gpuStroke->setFigure({Gpu::ShapeKind::Line, pi0.pos(), pi1.pos(), 0}, {sample(pi0), sample(pi1)});
         return;

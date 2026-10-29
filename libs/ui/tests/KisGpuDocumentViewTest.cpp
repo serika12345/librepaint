@@ -84,6 +84,7 @@
 #include <KisRegion.h>
 #include <kis_painter.h>
 #include <brushengine/kis_paintop.h>
+#include <brushengine/kis_paintop_settings.h>
 #include <KisRunnableStrokeJobData.h>
 #include <KisRunnableStrokeJobsInterface.h>
 #include <kis_paint_information.h>
@@ -6914,18 +6915,37 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
 {
     QTest::addColumn<QString>("presetName");
     QTest::addColumn<bool>("words");
+    QTest::addColumn<int>("tipCase");
+    QTest::addColumn<qreal>("normalDiameter");
+    QTest::addColumn<bool>("rotatedCanvas");
     for (const auto *name : {"b)_Basic-5_Size_default.kpp", "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp",
-                             "b)_Basic-5_Size_Opacity.kpp"})
+                             "b)_Basic-5_Size_Opacity.kpp", "a)_Eraser_Small.kpp", "d)_Ink-3_Gpen.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
-            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words;
+            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << 0 << qreal(40) << false;
         }
+    for (bool words : {false, true}) {
+        const auto suffix = words ? "-u16" : "-u8";
+        QTest::newRow(qPrintable(QStringLiteral("ellipse-fractional") + suffix))
+            << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 1 << qreal(13.75) << false;
+        QTest::newRow(qPrintable(QStringLiteral("rectangle-rotated") + suffix))
+            << QStringLiteral("b)_Basic-2_Opacity.kpp") << words << 2 << qreal(40) << false;
+        QTest::newRow(qPrintable(QStringLiteral("rectangle-rotated-mirrored-canvas") + suffix))
+            << QStringLiteral("b)_Basic-2_Opacity.kpp") << words << 2 << qreal(40) << true;
+        QTest::newRow(qPrintable(QStringLiteral("rectangle-hard-horizontal-edge") + suffix))
+            << QStringLiteral("b)_Basic-2_Opacity.kpp") << words << 3 << qreal(13.75) << false;
+        QTest::newRow(qPrintable(QStringLiteral("rectangle-isotropic-spacing") + suffix))
+            << QStringLiteral("b)_Basic-2_Opacity.kpp") << words << 4 << qreal(40) << false;
+    }
 }
 
 void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
 {
     QFETCH(QString, presetName);
     QFETCH(bool, words);
+    QFETCH(int, tipCase);
+    QFETCH(qreal, normalDiameter);
+    QFETCH(bool, rotatedCanvas);
     const int channelBytes = words ? 2 : 1;
     const int pixelBytes = 4 * channelBytes;
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -6957,8 +6977,22 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
         auto preset = sourcePreset->clone().dynamicCast<KisPaintOpPreset>();
         QVERIFY(preset);
+        if (tipCase) {
+            QDomDocument definition;
+            QVERIFY(definition.setContent(preset->settings()->getString("brush_definition")));
+            auto brush = definition.documentElement();
+            auto mask = brush.firstChildElement(QStringLiteral("MaskGenerator"));
+            brush.setAttribute(QStringLiteral("angle"), tipCase == 1 ? .37 : .51);
+            mask.setAttribute(QStringLiteral("type"), tipCase == 1 ? QStringLiteral("circle") : QStringLiteral("rect"));
+            mask.setAttribute(QStringLiteral("ratio"), tipCase == 1 ? .4 : .37);
+            mask.setAttribute(QStringLiteral("hfade"), tipCase == 1 ? .6 : tipCase == 3 ? 1. : .8);
+            mask.setAttribute(QStringLiteral("vfade"), tipCase == 1 ? .2 : .3);
+            if (tipCase == 3) mask.setAttribute(QStringLiteral("antialiasEdges"), 0);
+            preset->settings()->setProperty("brush_definition", definition.toString());
+            if (tipCase == 4) preset->settings()->setProperty("Spacing/Isotropic", true);
+        }
         preset->setFilename((gpu ? QStringLiteral("gpu-") : QStringLiteral("cpu-")) +
-                            (words ? QStringLiteral("u16-") : QStringLiteral("u8-")) + presetName);
+                            QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kpp"));
         KisResourceModel presets(ResourceType::PaintOpPresets);
         QVERIFY(presets.addResource(preset));
         std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -6997,7 +7031,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         profiles->loadProfiles();
         auto *resources = window->viewManager()->canvasResourceProvider();
         resources->setPaintOpPreset(preset);
-        resources->setSize(40);
+        resources->setSize(normalDiameter);
         resources->setOpacity(.7);
         resources->setGlobalAlphaLock(false);
         resources->setMirrorHorizontal(false);
@@ -7017,6 +7051,10 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             view->zoomManager()->zoomTo100();
             const auto extent = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
             view->canvasController()->setPreferredCenter({extent.width() / 2, extent.height() / 2});
+            if (rotatedCanvas) {
+                view->canvasController()->rotateCanvas(23);
+                view->canvasController()->mirrorCanvas(true);
+            }
             input = view->canvasBase()->canvasWidget()->window()->windowHandle();
             if (gpu) for (auto *candidate : QGuiApplication::allWindows())
                 if (qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(candidate)) input = candidate;
@@ -7031,7 +7069,9 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             QVERIFY2(capture.diagnostic.isEmpty(), qPrintable(capture.diagnostic));
             QVERIFY(capture.brush.autoBrush);
             QCOMPARE(capture.brush.autoBrush->mask, presetName == QLatin1String("b)_Basic-5_Size_Opacity.kpp") ?
-                     Gpu::AutoBrush::Mask::GaussianCircle : Gpu::AutoBrush::Mask::Circle);
+                     Gpu::AutoBrush::Mask::GaussianCircle :
+                     (tipCase >= 2 || presetName == QLatin1String("a)_Eraser_Small.kpp")) ?
+                     Gpu::AutoBrush::Mask::Rectangle : Gpu::AutoBrush::Mask::Circle);
             const QList<QPair<qreal, qreal>> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
                                                           {200, .03}, {200, .05}, {200, .06}};
             for (const auto &input : pressureCases) {
@@ -7087,9 +7127,29 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                     QVERIFY(artifact.open(QIODevice::WriteOnly));
                     QCOMPARE(artifact.write(entry.second), entry.second.size());
                 }
+                if (actual != expected) {
+                    QByteArray nativeTemporary(expected.size(), Qt::Uninitialized);
+                    nativeLayer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(nativeTemporary.data()), QRect(QPoint(), size));
+                    auto fullOpacityBrush = pressureCapture.brush;
+                    fullOpacityBrush.opacity = 1;
+                    const auto temporaryOwner = Gpu::PaintImageSP::create(KisPart::instance()->gpuExecution(diagnostic), raster);
+                    const auto temporaryOperation = temporaryOwner->beginStroke(temporaryOwner->operations().activeLayer(), fullOpacityBrush, 17);
+                    QVERIFY(!temporaryOperation.isNull());
+                    QCOMPARE(temporaryOwner->appendSamples(temporaryOperation, {{{64.25, 64.75}, pressure}}), Gpu::Result::Success);
+                    QCOMPARE(temporaryOwner->commitStroke(temporaryOperation), Gpu::Result::Success);
+                    auto gpuTemporary = temporaryOwner->readRgbaPixels(temporaryOwner->operations().activeLayer(), QRect(QPoint(), size), expected.size()).bytes;
+                    for (qsizetype i = 0; i < gpuTemporary.size(); i += pixelBytes)
+                        for (int byte = 0; byte < channelBytes; ++byte) std::swap(gpuTemporary[i + byte], gpuTemporary[i + 2 * channelBytes + byte]);
+                    for (const auto &entry : {qMakePair(QStringLiteral("native-temporary"), nativeTemporary),
+                                              qMakePair(QStringLiteral("gpu-temporary"), gpuTemporary)}) {
+                        QFile artifact(QDir(output).filePath(QStringLiteral("pressure-d%1-p%2-%3.bgra").arg(diameter).arg(pressure).arg(entry.first)));
+                        QVERIFY(artifact.open(QIODevice::WriteOnly));
+                        QCOMPARE(artifact.write(entry.second), entry.second.size());
+                    }
+                }
                 QVERIFY2(actual == expected, qPrintable(QStringLiteral("Preset %1 diameter %2 pressure %3 must keep native pixels").arg(presetName).arg(diameter).arg(pressure)));
             }
-            resources->setSize(40);
+            resources->setSize(normalDiameter);
         }
         const auto stroke = [&](const QList<QPointF> &points) {
             const auto *converter = view->canvasBase()->coordinatesConverter();
@@ -7178,7 +7238,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         QCOMPARE(pixels(), erased);
         prepareInput();
         resources->setPaintOpPreset(preset);
-        resources->setSize(40);
+        resources->setSize(normalDiameter);
         resources->setOpacity(.7);
         resources->setGlobalAlphaLock(false);
         resources->setMirrorHorizontal(false);

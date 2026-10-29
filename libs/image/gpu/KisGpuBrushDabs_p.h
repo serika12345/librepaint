@@ -18,6 +18,8 @@ struct BrushDab
     qreal pressure;
     qreal scale;
     QSizeF size;
+    qreal angle;
+    bool mirroredH, mirroredV;
 };
 /** Calls visit in native dab order; false stops unsupported or over-budget geometry. */
 bool forEachBrushDab(const PaintOperation &operation, bool pending,

@@ -45,8 +45,18 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         const auto &metric = point.size;
         const QPointF hotSpot(std::max(qreal(1), metric.width()) / 2, std::max(qreal(1), metric.height()) / 2);
         const auto offset = point.position - hotSpot;
-        const QPoint origin(int(std::floor(offset.x())), int(std::floor(offset.y())));
-        const auto subpixel = offset - origin;
+        QPoint origin(int(std::floor(offset.x())), int(std::floor(offset.y())));
+        auto subpixel = offset - origin;
+        if (point.mirroredH) {
+            const auto value = -(point.position.x() + hotSpot.x());
+            subpixel.setX(value - std::floor(value));
+            origin.setX(qRound(point.position.x() + subpixel.x() + hotSpot.x()) - maskSide(metric.width(), subpixel.x()));
+        }
+        if (point.mirroredV) {
+            const auto value = -(point.position.y() + hotSpot.y());
+            subpixel.setY(value - std::floor(value));
+            origin.setY(qRound(point.position.y() + subpixel.y() + hotSpot.y()) - maskSide(metric.height(), subpixel.y()));
+        }
         const double radius = brush.diameter * point.scale / 2;
         const double fadeStart = std::max(0., radius - 1.);
         const qreal opacity = pressureValue(settings.opacityResponse, point.pressure);
@@ -55,16 +65,21 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         AutoBrushDab dab;
         dab.words[0] = maskSide(metric.width(), subpixel.x());
         dab.words[1] = maskSide(metric.height(), subpixel.y());
-        const qreal effectiveDiameter = brush.diameter * point.scale;
-        dab.words[2] = settings.antialiasEdges ? (effectiveDiameter < 1 ? 6 : effectiveDiameter < 10 ? 3 : 1) : 1;
+        dab.words[3] = (point.mirroredH ? 4u : 0u) | (point.mirroredV ? 8u : 0u);
+        const qreal narrowSide = brush.diameter * settings.ratio * point.scale;
+        dab.words[2] = settings.antialiasEdges ? (narrowSide < 1 ? 6 : narrowSide < 10 ? 3 : 1) : 1;
         doubleWords(dab, 4, hotSpot.x() - .5 + subpixel.x());
         doubleWords(dab, 6, hotSpot.y() - .5 + subpixel.y());
-        doubleWords(dab, 8, std::cos(settings.angle));
-        doubleWords(dab, 10, std::sin(settings.angle));
-        if (settings.mask == AutoBrush::Mask::Circle) {
-            dab.words[3] = 1u | (quint32(settings.antialiasEdges) << 1);
+        doubleWords(dab, 8, std::cos(point.angle));
+        doubleWords(dab, 10, std::sin(point.angle));
+        if (settings.mask != AutoBrush::Mask::GaussianCircle) {
+            dab.words[3] |= 1u | (quint32(settings.antialiasEdges) << 1) |
+                (settings.mask == AutoBrush::Mask::Rectangle ? 16u : 0u);
             doubleWords(dab, 12, 1. / radius);
             doubleWords(dab, 14, settings.fade == 0 ? 1. : 1. / (settings.fade * radius));
+            const qreal verticalFade = settings.verticalFade.value_or(settings.fade);
+            doubleWords(dab, 24, 2. / narrowSide);
+            doubleWords(dab, 26, verticalFade == 0 ? 1. : 2. / (verticalFade * narrowSide));
         } else {
             doubleWords(dab, 12, radius);
             doubleWords(dab, 14, fadeStart);
@@ -88,11 +103,11 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             auto mirrored = result[i];
             if (reflection & 1u) {
                 mirrored.words[18] = quint32(2 * brush.mirrorCenter.x() - qint32(mirrored.words[18]) - int(mirrored.words[0]));
-                mirrored.words[3] |= 4u;
+                mirrored.words[3] ^= 4u;
             }
             if (reflection & 2u) {
                 mirrored.words[19] = quint32(2 * brush.mirrorCenter.y() - qint32(mirrored.words[19]) - int(mirrored.words[1]));
-                mirrored.words[3] |= 8u;
+                mirrored.words[3] ^= 8u;
             }
             result.append(mirrored);
         }

@@ -80,12 +80,17 @@ struct InputSample
     quint64 timestamp = 0;
     /** Normalized drawing speed supplied by the input interpreter. */
     qreal speed = 0;
+    qreal canvasRotation = 0;
+    bool canvasMirroredH = false;
+    bool canvasMirroredV = false;
 
     bool operator==(const InputSample &other) const
     {
         return position == other.position && pressure == other.pressure &&
             xTilt == other.xTilt && yTilt == other.yTilt &&
-            rotation == other.rotation && timestamp == other.timestamp && speed == other.speed;
+            rotation == other.rotation && timestamp == other.timestamp && speed == other.speed &&
+            canvasRotation == other.canvasRotation && canvasMirroredH == other.canvasMirroredH &&
+            canvasMirroredV == other.canvasMirroredV;
     }
 };
 
@@ -118,9 +123,13 @@ struct PressureResponse
 /** Frozen generated circular mask, WASH flow and pressure-controlled opacity. */
 struct AutoBrush
 {
-    enum class Mask { GaussianCircle, Circle };
+    enum class Mask { GaussianCircle, Circle, Rectangle };
     Mask mask = Mask::GaussianCircle;
     qreal fade = 1;
+    /** Unset uses the horizontal fade for an isotropic tip. */
+    std::optional<qreal> verticalFade{};
+    qreal ratio = 1;
+    bool isotropicSpacing = false;
     bool antialiasEdges = true;
     qreal angle = 0;
     qreal flow = 1;
@@ -130,7 +139,8 @@ struct AutoBrush
 
     bool operator==(const AutoBrush &other) const
     {
-        return mask == other.mask && fade == other.fade && antialiasEdges == other.antialiasEdges &&
+        return mask == other.mask && fade == other.fade && verticalFade == other.verticalFade &&
+            ratio == other.ratio && isotropicSpacing == other.isotropicSpacing && antialiasEdges == other.antialiasEdges &&
             angle == other.angle && flow == other.flow && creamy == other.creamy &&
             opacityResponse == other.opacityResponse && flowResponse == other.flowResponse;
     }

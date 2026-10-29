@@ -282,7 +282,8 @@ inline bool validSample(const InputSample &sample)
         sample.pressure >= 0 && sample.pressure <= 1 &&
         std::isfinite(sample.xTilt) && std::abs(sample.xTilt) <= 90 &&
         std::isfinite(sample.yTilt) && std::abs(sample.yTilt) <= 90 &&
-        std::isfinite(sample.rotation) && std::isfinite(sample.speed) && sample.speed >= 0 && sample.speed <= 1;
+        std::isfinite(sample.rotation) && std::isfinite(sample.speed) && sample.speed >= 0 && sample.speed <= 1 &&
+        std::isfinite(sample.canvasRotation) && std::abs(sample.canvasRotation) <= 360;
 }
 
 inline bool validPressureResponse(const PressureResponse &value)
@@ -306,8 +307,12 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
         const auto &value = *brush.autoBrush;
         if (!std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||
             !validPressureResponse(value.opacityResponse) || !validPressureResponse(value.flowResponse) ||
-            (value.mask != AutoBrush::Mask::GaussianCircle && value.mask != AutoBrush::Mask::Circle) ||
-            !std::isfinite(value.fade) || value.fade < 0 || value.fade > 1) return false;
+            (value.mask != AutoBrush::Mask::GaussianCircle && value.mask != AutoBrush::Mask::Circle &&
+             value.mask != AutoBrush::Mask::Rectangle) ||
+            !std::isfinite(value.fade) || value.fade < 0 || value.fade > 1 ||
+            (value.verticalFade && (!std::isfinite(*value.verticalFade) || *value.verticalFade < 0 || *value.verticalFade > 1)) ||
+            !std::isfinite(value.ratio) || value.ratio <= 0 || value.ratio > 1 ||
+            (value.mask == AutoBrush::Mask::GaussianCircle && value.ratio != 1)) return false;
     }
     if (brush.weightedSmoothing) {
         const auto &value = *brush.weightedSmoothing;

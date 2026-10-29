@@ -80,7 +80,8 @@ namespace {
 LibrePaint::Image::Gpu::InputSample gpuInputSample(const KisPaintInformation &information)
 {
     return {information.pos(), information.pressure(), information.xTilt(), information.yTilt(),
-            information.rotation(), quint64(information.currentTime()), information.drawingSpeed()};
+            information.rotation(), quint64(information.currentTime()), information.drawingSpeed(),
+            information.canvasRotation(), information.canvasMirroredH(), information.canvasMirroredV()};
 }
 
 QString gpuInputError(LibrePaint::Image::Gpu::Result result)

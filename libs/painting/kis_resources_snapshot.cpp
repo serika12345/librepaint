@@ -114,28 +114,36 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     if (root.attribute(QStringLiteral("type")) != QLatin1String("auto_brush") ||
         (mask.attribute(QStringLiteral("id")) != QLatin1String("gauss") &&
          mask.attribute(QStringLiteral("id")) != QLatin1String("default")) ||
-        mask.attribute(QStringLiteral("type")) != QLatin1String("circle")) return false;
+        (mask.attribute(QStringLiteral("type")) != QLatin1String("circle") &&
+         mask.attribute(QStringLiteral("type")) != QLatin1String("rect"))) return false;
     const auto equalNumber = [](const QDomElement &element, const QString &name, double expected) {
         bool ok = false;
         const double value = element.attribute(name).toDouble(&ok);
         return ok && value == expected;
     };
-    for (const auto &entry : {std::pair{QStringLiteral("ratio"), 1.}, {QStringLiteral("spikes"), 2.}})
-        if (!equalNumber(mask, entry.first, entry.second)) return false;
+    if (!equalNumber(mask, QStringLiteral("spikes"), 2)) return false;
     if (!equalNumber(root, QStringLiteral("randomness"), 0) || !equalNumber(root, QStringLiteral("density"), 1) ||
-        !qIsFinite(brush.diameter) || brush.diameter < 1 || brush.diameter != std::floor(brush.diameter)) return false;
+        !qIsFinite(brush.diameter) || brush.diameter <= 0) return false;
     LibrePaint::Image::Gpu::AutoBrush value;
+    value.isotropicSpacing = settings->getBool("Spacing/Isotropic", false);
     if (mask.attribute(QStringLiteral("id")) == QLatin1String("default")) {
-        value.mask = LibrePaint::Image::Gpu::AutoBrush::Mask::Circle;
-        bool fadeOk = false;
+        value.mask = mask.attribute(QStringLiteral("type")) == QLatin1String("rect") ?
+            LibrePaint::Image::Gpu::AutoBrush::Mask::Rectangle : LibrePaint::Image::Gpu::AutoBrush::Mask::Circle;
+        bool fadeOk = false, verticalOk = false, ratioOk = false;
         value.fade = mask.attribute(QStringLiteral("hfade")).toDouble(&fadeOk);
+        const auto verticalFade = mask.attribute(QStringLiteral("vfade")).toDouble(&verticalOk);
+        value.verticalFade = verticalFade;
+        value.ratio = mask.attribute(QStringLiteral("ratio")).toDouble(&ratioOk);
         if (!fadeOk || !qIsFinite(value.fade) || value.fade < 0 || value.fade > 1 ||
-            !equalNumber(mask, QStringLiteral("vfade"), value.fade) ||
-            !equalNumber(root, QStringLiteral("angle"), 0)) return false;
+            !verticalOk || !qIsFinite(verticalFade) || verticalFade < 0 || verticalFade > 1 ||
+            !ratioOk || !qIsFinite(value.ratio) || value.ratio <= 0 || value.ratio > 1) return false;
         if (equalNumber(mask, QStringLiteral("antialiasEdges"), 1)) value.antialiasEdges = true;
         else if (equalNumber(mask, QStringLiteral("antialiasEdges"), 0)) value.antialiasEdges = false;
         else return false;
     } else {
+        if (mask.attribute(QStringLiteral("type")) != QLatin1String("circle") ||
+            !equalNumber(mask, QStringLiteral("ratio"), 1) || brush.diameter < 1 ||
+            brush.diameter != std::floor(brush.diameter)) return false;
         for (const auto *name : {"hfade", "vfade", "antialiasEdges"})
             if (!equalNumber(mask, QLatin1String(name), 1)) return false;
     }
