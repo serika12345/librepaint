@@ -411,7 +411,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if (partialWordSource) {
         let block = (local.y / 64u) * 4u + local.x / 64u;
         if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
-        let alpha = multiplyThreeWords(coverage * 257u, selectionAlpha * 257u, parameters.opacityValue);
+        let alpha = appliedWordAlpha(coverage * 257u, selectionAlpha * 257u, parameters.opacityValue, blendMode);
         writePaintPixel(index, separableRgba16Pixel(base, vec4<u32>(source, coverage * 257u), alpha, writable, blendMode));
         return;
     }
@@ -469,7 +469,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         // Generic CPU operations quantize the three-factor product once.
         // Erase and channel-copy retain their distinct two-factor orders.
         if (parameters.native.z != 0u) {
-            let alpha = multiplyThreeWords(coverage * 257u, selectionAlpha * 257u, parameters.opacityValue);
+            let alpha = appliedWordAlpha(coverage * 257u, selectionAlpha * 257u, parameters.opacityValue, blendMode);
             writePaintPixel(index, separableRgba16Pixel(base, vec4<u32>(source, coverage * 257u), alpha, writable, blendMode));
             return;
         }

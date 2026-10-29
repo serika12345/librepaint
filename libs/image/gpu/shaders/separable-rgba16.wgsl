@@ -158,12 +158,48 @@ fn separableWordChannel(mode: u32, source: u32, destination: u32) -> u32 {
         default: { return source; }
     }
 }
+fn appliedWordAlpha(source: u32, selection: u32, opacity: u32, mode: u32) -> u32 {
+    if (mode == 26u) { return mul65535(mul65535(source, selection), opacity); }
+    if (mode >= 28u && mode <= 30u) { return mul65535(source, mul65535(selection, opacity)); }
+    return multiplyThreeWords(source, selection, opacity);
+}
 fn separableRgba16Pixel(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> vec4<u32> {
     var destination = base;
     let oldAlpha = base.w;
+    if (mode == 26u) { return vec4<u32>(base.xyz, mul65535(65535u - alpha, oldAlpha)); }
     if (mask != 15u && oldAlpha == 0u) { destination = vec4<u32>(0u); }
-    if (alpha == 0u) { return destination; }
     let locked = (mask & 8u) == 0u;
+    if (mode >= 28u && mode <= 30u) {
+        let channel = mode - 28u;
+        if ((mask & (1u << channel)) != 0u) { destination[channel] = interpolateWord(destination[channel], source[channel], alpha); }
+        return destination;
+    }
+    if (mode == 41u || mode == 42u) {
+        if (mode == 41u) {
+            if (!locked) { destination.w = mul65535(oldAlpha, alpha); }
+        } else {
+            if (source.w != 0u) { for (var channel = 0u; channel < 3u; channel += 1u) {
+                if ((mask & (1u << channel)) != 0u) { destination[channel] = interpolateWord(source[channel], destination[channel], oldAlpha); }
+            } }
+            if (!locked) { destination.w = alpha; }
+        }
+        return destination;
+    }
+    if (alpha == 0u) { return destination; }
+    if (mode == 27u) {
+        if (oldAlpha == 65535u) { return destination; }
+        let unionAlpha = oldAlpha + alpha - mul65535(oldAlpha, alpha);
+        for (var channel = 0u; channel < 3u; channel += 1u) {
+            if ((mask & (1u << channel)) == 0u) { continue; }
+            if (oldAlpha == 0u) { destination[channel] = source[channel]; }
+            else {
+                let blended = interpolateWord(mul65535(source[channel], alpha), destination[channel], oldAlpha);
+                destination[channel] = divideWord(blended, unionAlpha) & 65535u;
+            }
+        }
+        if (!locked) { destination.w = unionAlpha; }
+        return destination;
+    }
     let nextAlpha = select(alpha + oldAlpha - mul65535(alpha, oldAlpha), oldAlpha, locked);
     for (var i = 0u; i < 3u; i += 1u) {
         if ((mask & (1u << i)) == 0u) { continue; }

@@ -57,7 +57,7 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles_data()
          "overlay", "hard_light", "pin_light", "divide", "dodge", "burn", "hard mix", "vivid_light",
          "linear light", "equivalence", "allanon", "hard_mix_photoshop", "xor", "or", "and", "nand", "nor",
          "xnor", "implication", "not_implication", "converse", "not_converse", "reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect",
-         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "copy"})
+         "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "erase", "behind", "copy_red", "copy_green", "copy_blue", "destination-in", "destination-atop", "copy"})
         QTest::newRow(mode) << QString::fromLatin1(mode);
 }
 
@@ -178,7 +178,7 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles()
         parameters.srcRowStride = parameters.dstRowStride = side * 8;
         parameters.rows = parameters.cols = side;
         cs->compositeOp(QStringLiteral("normal"))->composite(parameters);
-        const auto base = expected;
+        const QByteArray base(expected.constData(), expected.size());
         parameters.srcRowStart = reinterpret_cast<const quint8 *>(topBytes.constData());
         parameters.opacity = float(opacity) / 255; parameters.channelFlags = flags;
         composite->composite(parameters);
@@ -196,7 +196,8 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles()
             source.opacity = opacity; source.projectionChannelMask = mask; source.blendMode = *blend;
             uniform.layers = {destination, source, group};
             Gpu::OperationDocument defaults(uniform);
-            const auto &reference = (!source.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy) || (!(mask & 8) && !destination.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy) ? base : expected;
+            const auto &reference = (!source.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy &&
+                *blend != Gpu::LayerBlendMode::DestinationIn && *blend != Gpu::LayerBlendMode::DestinationAtop) || (!(mask & 8) && !destination.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy) ? base : expected;
             const auto actualDefault = defaults.snapshot()->projectionDefaultPixels().value(3);
             if (actualDefault != rgbaAt(reference, pixel))
                 qInfo() << "U16 default" << mode << "opacity" << opacity << "mask" << mask << "pixel" << pixel

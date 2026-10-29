@@ -268,7 +268,7 @@ QList<LayerProjectionInput> compositionInputs(const QHash<QUuid, QList<const Lay
         const auto value = pending.takeLast();
         const auto &layer = *value.layer;
         const auto opacity = quint8(int(layer.opacity) * value.opacity / 255);
-        if (!layer.visible || (!opacity && !Detail::transparentSourceAffectsBlend(layer.blendMode))) continue;
+        if (!layer.visible || (!opacity && layer.blendMode != LayerBlendMode::DestinationIn && layer.blendMode != LayerBlendMode::DestinationAtop && !Detail::transparentSourceAffectsBlend(layer.blendMode))) continue;
         if (layer.passThrough) appendChildren(layer.uuid, opacity, layer.projectionChannelMask);
         else result.append({layer.id, opacity, quint8(layer.projectionChannelMask & value.parentMask), layer.blendMode});
     }
@@ -334,7 +334,10 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
                     continue;
                 }
                 if (format == PixelFormat::Rgba16 && layer.blendMode != LayerBlendMode::Normal) {
-                    const auto alpha = quint16(quint64(source[3]) * (quint32(layer.opacity) * 257u) / 65535u);
+                    auto alpha = quint16(quint64(source[3]) * (quint32(layer.opacity) * 257u) / 65535u);
+                    if (layer.blendMode == LayerBlendMode::Erase ||
+                        (layer.blendMode >= LayerBlendMode::CopyRed && layer.blendMode <= LayerBlendMode::CopyBlue))
+                        alpha = Detail::multiplyWord(source[3], quint32(layer.opacity) * 257u);
                     pixel = Detail::separableRgba16Pixel(pixel, source, alpha, layer.channelMask, layer.blendMode);
                     continue;
                 }

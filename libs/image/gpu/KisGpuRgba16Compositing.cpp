@@ -9,11 +9,6 @@
 namespace LibrePaint::Image::Gpu::Detail {
 namespace {
 constexpr quint32 Unit = 65535;
-quint32 multiplyWord(quint32 a, quint32 b)
-{
-    const auto product = a * b + 32768u;
-    return ((product >> 16) + product) >> 16;
-}
 quint32 tripleWord(quint32 a, quint32 b, quint32 c)
 { return quint64(a) * b * c / (quint64(Unit) * Unit); }
 quint32 divideWord(quint32 a, quint32 b)
@@ -122,9 +117,39 @@ RgbaPixel separableRgba16Pixel(RgbaPixel destination, const RgbaPixel &source,
                              quint16 alpha, quint8 mask, LayerBlendMode mode)
 {
     const quint32 oldAlpha = destination[3];
+    if (mode == LayerBlendMode::Erase) {
+        destination[3] = multiplyWord(Unit - alpha, oldAlpha);
+        return destination;
+    }
     if (mask != 15 && !oldAlpha) destination = {};
-    if (!alpha) return destination;
     const bool locked = !(mask & 8u);
+    if (mode >= LayerBlendMode::CopyRed && mode <= LayerBlendMode::CopyBlue) {
+        const int index = int(mode) - int(LayerBlendMode::CopyRed);
+        if (mask & (1u << index)) destination[index] = interpolateWord(destination[index], source[index], alpha);
+        return destination;
+    }
+    if (mode == LayerBlendMode::DestinationIn || mode == LayerBlendMode::DestinationAtop) {
+        if (mode == LayerBlendMode::DestinationIn) {
+            if (!locked) destination[3] = multiplyWord(oldAlpha, alpha);
+        } else {
+            if (source[3]) for (int index = 0; index < 3; ++index)
+                if (mask & (1u << index)) destination[index] = interpolateWord(source[index], destination[index], oldAlpha);
+            if (!locked) destination[3] = alpha;
+        }
+        return destination;
+    }
+    if (!alpha) return destination;
+    if (mode == LayerBlendMode::Behind) {
+        if (oldAlpha == Unit) return destination;
+        const auto unionAlpha = oldAlpha + alpha - multiplyWord(oldAlpha, alpha);
+        for (int index = 0; index < 3; ++index) {
+            if (!(mask & (1u << index))) continue;
+            const auto blended = interpolateWord(multiplyWord(source[index], alpha), destination[index], oldAlpha);
+            destination[index] = oldAlpha ? divideWord(blended, unionAlpha) : source[index];
+        }
+        if (!locked) destination[3] = unionAlpha;
+        return destination;
+    }
     const quint32 nextAlpha = locked ? oldAlpha : alpha + oldAlpha - multiplyWord(alpha, oldAlpha);
     for (int index = 0; index < 3; ++index) {
         if (!(mask & (1u << index))) continue;

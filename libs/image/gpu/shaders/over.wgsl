@@ -76,7 +76,7 @@ fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameter
         return nativePixelWords(copyPixel(destination, source, values.opacityBits, values.channelMask, true), true);
     }
     if ((values.blendModeOpacity & 255u) != 0u) {
-        let alpha = multiplyThreeWords(source.w, 65535u, (values.blendModeOpacity >> 8u) * 257u);
+        let alpha = appliedWordAlpha(source.w, 65535u, (values.blendModeOpacity >> 8u) * 257u, values.blendModeOpacity & 255u);
         return nativePixelWords(separableRgba16Pixel(destination, source, alpha, values.channelMask, values.blendModeOpacity & 255u), true);
     }
     let sourceAlpha = projectionMultiply(nativeNormalizedAlpha(source.w), values.opacityBits);

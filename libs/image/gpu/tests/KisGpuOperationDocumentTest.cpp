@@ -245,7 +245,7 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     input.format = PixelFormat::Rgba16;
     input.layers = {{QStringLiteral("Native paint"), true, {}, {}, {1, 257, 65534, 32768}}};
     for (const auto mode : {LayerBlendMode::ColorHsy, LayerBlendMode::HueHsv,
-                           LayerBlendMode::Greater, LayerBlendMode::DestinationAtop}) {
+                           LayerBlendMode::Greater, LayerBlendMode::LuminositySai}) {
         auto unsupported = input;
         unsupported.layers.first().blendMode = mode;
         QVERIFY_THROWS_EXCEPTION(std::invalid_argument, OperationDocument{unsupported});

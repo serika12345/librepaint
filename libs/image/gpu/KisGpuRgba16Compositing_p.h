@@ -9,9 +9,12 @@
 namespace LibrePaint::Image::Gpu::Detail {
 inline bool usesIntegerRgba16Blend(LayerBlendMode mode)
 {
-    return (mode >= LayerBlendMode::Multiply && mode <= LayerBlendMode::HardMixPhotoshop) ||
-           (mode >= LayerBlendMode::BitwiseXor && mode <= LayerBlendMode::NotConverse) ||
-           (mode >= LayerBlendMode::Reflect && mode <= LayerBlendMode::HardMixSofterPhotoshop);
+    return mode >= LayerBlendMode::Multiply && mode <= LayerBlendMode::HardMixSofterPhotoshop;
+}
+inline quint32 multiplyWord(quint32 a, quint32 b)
+{
+    const auto product = a * b + 32768u;
+    return ((product >> 16) + product) >> 16;
 }
 /** Native U16 separable composition, including integer truncation boundaries. */
 RgbaPixel separableRgba16Pixel(RgbaPixel destination, const RgbaPixel &source,
