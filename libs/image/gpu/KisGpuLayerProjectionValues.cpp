@@ -13,13 +13,13 @@
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
-const QByteArray &Detail::rgba16SuperLightValues()
+const QByteArray &Detail::rgba16PowerValues()
 {
     static const auto bytes = [] {
-        QFile resource(QStringLiteral(":/librepaint/gpu/blend/rgba16-super-light.bin"));
-        if (!resource.open(QIODevice::ReadOnly)) throw std::logic_error("GPU RGBA16 Super Light values are unavailable");
+        QFile resource(QStringLiteral(":/librepaint/gpu/blend/rgba16-power.bin"));
+        if (!resource.open(QIODevice::ReadOnly)) throw std::logic_error("GPU RGBA16 power values are unavailable");
         auto result = resource.readAll();
-        if (result.size() != Rgba16SuperLightBytes) throw std::logic_error("GPU RGBA16 Super Light values are incomplete");
+        if (result.size() != Rgba16PowerBytes) throw std::logic_error("GPU RGBA16 power values are incomplete");
         return result;
     }();
     return bytes;

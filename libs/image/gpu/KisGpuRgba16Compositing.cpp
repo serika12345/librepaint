@@ -182,10 +182,11 @@ quint32 powerWordColor(LayerBlendMode mode, quint32 source, quint32 destination)
 {
     const auto s = normalizedWordColor(source), d = normalizedWordColor(destination);
     switch (mode) {
-    case LayerBlendMode::PNormA:
+    case LayerBlendMode::PNormA: {
+        const auto &values = rgba16PowerValues();
         return quint32(std::min(double(Unit), wordColorPower(colorAdd(
-            wordColorPower(double(destination), 2.3333333333333333),
-            wordColorPower(double(source), 2.3333333333333333)), .428571428571434)));
+            wordCurveValue(values, destination, 3), wordCurveValue(values, source, 3)), .428571428571434)));
+    }
     case LayerBlendMode::PNormB: {
         const auto s2 = source * source, d2 = destination * destination;
         return quint32(std::min(double(Unit), std::sqrt(std::sqrt(colorAdd(
@@ -205,7 +206,7 @@ quint32 powerWordColor(LayerBlendMode mode, quint32 source, quint32 destination)
         return source == Unit ? Unit : scaledWordColor(wordColorPower(d,
             colorMultiply(colorSubtract(1.0, s), 1.039999999)));
     case LayerBlendMode::SuperLight: {
-        const auto &values = rgba16SuperLightValues();
+        const auto &values = rgba16PowerValues();
         const auto combined = colorAdd(wordCurveValue(values, destination, s < .5 ? 1 : 0), wordCurveValue(values, source, 2));
         const auto value = wordColorPower(combined, 1.0 / 2.875);
         return scaledWordColor(s < .5 ? colorSubtract(1.0, value) : value);

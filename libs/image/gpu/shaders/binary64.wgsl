@@ -203,7 +203,7 @@ fn doubleFromFloat(value: u32) -> Word64 {
     return Word64(mantissa.x, (value & 0x80000000u) |
         (u32(projectionPower(value) + 23 + 1023) << 20u) | (mantissa.y & 0xfffffu));
 }
-fn doubleInteger(value: u32) -> Word64 { return doubleFromFloat(bitcast<u32>(f32(value))); }
+fn doubleInteger(value: u32) -> Word64 { return doubleFloat(Word64(value, 0u), 0, 0u); }
 fn doubleTruncate(value: Word64) -> u32 {
     let exponent = doublePower(value) + 52;
     if (exponent < 0) { return 0u; }

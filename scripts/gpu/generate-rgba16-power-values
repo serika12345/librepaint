@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 LibrePaint contributors
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-"""Generate finite Word Super Light inner powers with the configured native CPU reference."""
+"""Generate finite Word Super Light and P-Norm A inner powers with the configured native CPU reference."""
 import argparse
 import json
 import hashlib
@@ -34,19 +34,19 @@ while i < len(command):
     else:
         filtered.append(command[i])
         i += 1
-output = build / "gpu-word-super-light-generator"
+output = build / "gpu-word-power-generator"
 library = next(path for path in (build / "bin").glob("libkritapigment.*")
                if path.suffix in (".so", ".dylib"))
 qt = shlex.split(subprocess.check_output(["pkg-config", "--libs", "Qt6Core", "Qt6Gui"], text=True))
 command = filtered + ["-I" + str(reference_root / "libs/pigment/compositeops"),
-                      str(root / "scripts/gpu/GenerateRgba16SuperLightValues.cpp"),
+                      str(root / "scripts/gpu/GenerateRgba16PowerValues.cpp"),
                       str(library), "-Wl,-rpath," + str(build / "bin"), *qt, "-o", str(output)]
 subprocess.run(command, cwd=reference["directory"], check=True)
 revision = arguments.source_revision or subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=reference_root, text=True).strip()
 subprocess.run([str(output), str(arguments.output.resolve()), revision], check=True)
-manifest_path = arguments.output.resolve() / "rgba16-super-light.json"
+manifest_path = arguments.output.resolve() / "rgba16-power.json"
 manifest = json.loads(manifest_path.read_text())
-inputs = ["scripts/gpu/GenerateRgba16SuperLightValues.cpp",
+inputs = ["scripts/gpu/GenerateRgba16PowerValues.cpp",
           "libs/pigment/compositeops/KoCompositeOpFunctions.h",
           "libs/pigment/KoColorSpaceMaths.h", "libs/pigment/KoColorSpaceMaths.cpp",
           "libs/pigment/KoIntegerMaths.h"]

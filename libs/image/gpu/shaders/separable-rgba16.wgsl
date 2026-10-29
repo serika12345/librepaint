@@ -157,7 +157,7 @@ fn gammaDarkWord(source: u32, destination: u32) -> u32 {
     return scaledWordColor(wordColorPower(normalizedWordColor(destination),
         doubleDivide(Word64(0u, 0x3ff00000u), normalizedWordColor(source))));
 }
-fn superLightWordPower(word: u32, curve: u32) -> Word64 {
+fn wordPowerCurve(word: u32, curve: u32) -> Word64 {
     let point = vec2<i32>(i32(word & 255u), i32(word >> 8u));
     return Word64(packPixel(textureLoad(blendCurveValues, point, i32(curve * 2u), 0)),
         packPixel(textureLoad(blendCurveValues, point, i32(curve * 2u + 1u), 0)));
@@ -173,9 +173,8 @@ fn powerWordColor(mode: u32, source: u32, destination: u32) -> u32 {
             if (WORD_BLEND_MODE_A != 70u && WORD_BLEND_MODE_B != 70u && WORD_BLEND_MODE_A != 71u && WORD_BLEND_MODE_B != 71u) { return source; }
             var value: Word64;
             if (mode == 70u) {
-                let factor = Word64(0xaaaaaaabu, 0x4002aaaau);
-                value = wordColorPower(doubleAdd(wordColorPower(doubleInteger(destination), factor),
-                    wordColorPower(doubleInteger(source), factor)), Word64(0xdb6db73du, 0x3fdb6db6u));
+                value = wordColorPower(doubleAdd(wordPowerCurve(destination, 3u), wordPowerCurve(source, 3u)),
+                    Word64(0xdb6db73du, 0x3fdb6db6u));
             } else {
                 let s2 = doubleInteger(source * source);
                 let d2 = doubleInteger(destination * destination);
@@ -208,8 +207,8 @@ fn powerWordColor(mode: u32, source: u32, destination: u32) -> u32 {
         case 72u: {
             if (WORD_BLEND_MODE_A != 72u && WORD_BLEND_MODE_B != 72u) { return source; }
             let inverseFactor = Word64(0x590b2164u, 0x3fd642c8u);
-            let combined = doubleAdd(superLightWordPower(destination, select(0u, 1u, source <= 32767u)),
-                superLightWordPower(source, 2u));
+            let combined = doubleAdd(wordPowerCurve(destination, select(0u, 1u, source <= 32767u)),
+                wordPowerCurve(source, 2u));
             let value = wordColorPower(combined, inverseFactor);
             if (source <= 32767u) { return scaledWordColor(doubleSubtract(one, value)); }
             return scaledWordColor(value);

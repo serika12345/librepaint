@@ -312,12 +312,12 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     if (cosine && !d.prepareRgba16Cosine())
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 d.error.isEmpty() ? QStringLiteral("GPU RGBA16 cosine resource budget exhausted") : d.error};
-    const bool superLight = document->document()->format == PixelFormat::Rgba16 && std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
-        return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return input.blendMode == LayerBlendMode::SuperLight; });
+    const bool powerValues = document->document()->format == PixelFormat::Rgba16 && std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
+        return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return usesRgba16PowerValues(input.blendMode); });
     });
-    if (superLight && !d.prepareRgba16SuperLight())
+    if (powerValues && !d.prepareRgba16Power())
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
-                d.error.isEmpty() ? QStringLiteral("GPU RGBA16 Super Light resource budget exhausted") : d.error};
+                d.error.isEmpty() ? QStringLiteral("GPU RGBA16 power resource budget exhausted") : d.error};
     const bool nonlinear = document->document()->format == PixelFormat::Rgba8 && std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
         return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return usesNonlinearRgba8(input.blendMode); });
     });
@@ -473,8 +473,8 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             entries[bindingCount].textureView = document->document()->format == PixelFormat::Rgba16 && d.cosineView ?
                 d.cosineView.get() : d.nonlinearView.get();
             entries[bindingCount + 1].binding = 10;
-            entries[bindingCount + 1].textureView = document->document()->format == PixelFormat::Rgba16 && d.superLightView ?
-                d.superLightView.get() : d.greaterView.get();
+            entries[bindingCount + 1].textureView = document->document()->format == PixelFormat::Rgba16 && d.powerView ?
+                d.powerView.get() : d.greaterView.get();
             WGPUBindGroupDescriptor descriptor{};
             descriptor.layout = paired ? d.pairedProjectionLayout.get() : d.projectionLayout.get();
             descriptor.entryCount = bindingCount + 2;

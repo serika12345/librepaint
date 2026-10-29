@@ -32,7 +32,9 @@
 #include <QScopeGuard>
 #include <QTemporaryDir>
 #include <QTest>
+#include <array>
 #include <cstring>
+#include <memory>
 
 namespace {
 namespace Gpu = LibrePaint::Image::Gpu;
@@ -41,6 +43,7 @@ void appendPixel(QByteArray &bytes, quint16 blue, quint16 green, quint16 red, qu
     const quint16 values[] = {blue, green, red, alpha};
     bytes.append(reinterpret_cast<const char *>(values), sizeof(values));
 }
+
 Gpu::RgbaPixel rgbaAt(const QByteArray &bytes, int pixel)
 {
     quint16 values[4];
@@ -49,6 +52,88 @@ Gpu::RgbaPixel rgbaAt(const QByteArray &bytes, int pixel)
 }
 }
 
+void TestDocument::testWordCurvesKeepMixedLayerPixelsAndHistory()
+{
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    const auto *cs = KoColorSpaceRegistry::instance()->rgb16();
+    constexpr int side = 16;
+    const QStringList modes{QStringLiteral("normal"), QStringLiteral("super_light"),
+                            QStringLiteral("pnorm_a"), QStringLiteral("interpolation")};
+    const std::array<quint8, 4> opacities{255, 173, 211, 137};
+    const quint16 alphas[]{0, 1, 32768, 65535};
+    std::array<QByteArray, 4> pixels;
+    Gpu::RasterImage input;
+    input.size = {side, side}; input.format = Gpu::PixelFormat::Rgba16;
+    input.colorProfile = cs->profile()->rawData();
+    for (int i = 0; i < 4; ++i) {
+        const auto blend = Gpu::layerBlendModeFromCompositeOp(modes[i]);
+        QVERIFY(blend && cs->compositeOp(modes[i]));
+        Gpu::RasterLayer layer;
+        layer.name = modes[i]; layer.blendMode = *blend; layer.opacity = opacities[i];
+        layer.uuid = QUuid::createUuidV5(QUuid(QStringLiteral("{99112233-4455-6677-8899-aabbccddeeff}")), QByteArray::number(i));
+        input.layers.append(layer);
+        for (int y = 0; y < side; ++y) for (int x = 0; x < side; ++x)
+            appendPixel(pixels[i], x * 257 + y * 31 + i * 7711, x * 919 + y * 103 + i * 1237,
+                        x * 57 + y * 2011 + i * 3019, i ? alphas[(x + y + i) % 4] : quint16(65535));
+    }
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    const auto owner = Gpu::PaintImageSP::create(execution, input);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Mixed Word curves"), cs));
+    std::array<std::unique_ptr<Node>, 4> nodes;
+    auto child = document->image()->root()->firstChild();
+    for (int i = 0; i < 4; ++i, child = child->nextSibling()) {
+        QVERIFY(child);
+        nodes[i].reset(Node::createNode(document->image(), child));
+        QVERIFY(nodes[i]->setPixelData(pixels[i], 0, 0, side, side));
+    }
+    const auto reference = [&](quint8 normOpacity) {
+        QByteArray result(side * side * 8, '\0');
+        KoCompositeOp::ParameterInfo p;
+        p.dstRowStart = reinterpret_cast<quint8 *>(result.data());
+        p.dstRowStride = p.srcRowStride = side * 8; p.rows = p.cols = side;
+        for (int i = 0; i < 4; ++i) {
+            p.srcRowStart = reinterpret_cast<const quint8 *>(pixels[i].constData());
+            p.opacity = float(i == 2 ? normOpacity : opacities[i]) / 255.f;
+            cs->compositeOp(modes[i])->composite(p);
+        }
+        return result;
+    };
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto output = QDir(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path())).filePath(QStringLiteral("u16-mixed-curves"));
+    QVERIFY(QDir().mkpath(output));
+    const auto preserveFailure = qScopeGuard([&] { if (QTest::currentTestFailed()) { temporary.setAutoRemove(false); qInfo() << "Mixed curve artifacts" << output; } });
+    const auto write = [&](const QString &name, const QByteArray &bytes) {
+        QFile file(QDir(output).filePath(name));
+        return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+    };
+    Document api(document.data(), false);
+    const auto before = api.pixelData(0, 0, side, side);
+    const auto beforeReference = reference(opacities[2]);
+    QVERIFY(write(QStringLiteral("before.bgra16"), before));
+    QVERIFY(write(QStringLiteral("before-reference.bgra16"), beforeReference));
+    QCOMPARE(before, beforeReference);
+    const auto normId = owner->operations().snapshot()->layers[2].id;
+    QCOMPARE(owner->setLayerOpacity(normId, 61), Gpu::Result::Success);
+    const auto after = api.pixelData(0, 0, side, side);
+    const auto afterReference = reference(61);
+    QVERIFY(write(QStringLiteral("after.bgra16"), after));
+    QVERIFY(write(QStringLiteral("after-reference.bgra16"), afterReference));
+    QCOMPARE(after, afterReference);
+    QVERIFY(after != before);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(api.pixelData(0, 0, side, side), before);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(api.pixelData(0, 0, side, side), after);
+}
 void TestDocument::testIntegerRgba16EditingAndNativeFiles_data()
 {
     QTest::addColumn<QString>("mode");

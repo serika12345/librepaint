@@ -422,6 +422,8 @@ IFSのSoft Light、Gammaの明暗・照明、Easy Dodge/BurnとSuper Lightは、
 元成分と描画先成分の両方向で全65,536値を境界値と組み合わせ、
 対数・指数を使うべき乗、補数と16ビット化の順序を既存CPUと照合する。
 P-Normの2方式も両方向の全成分で比較し、元の整数色、第4べきの和と最後の切捨てを照合する。
+`testWordCurvesKeepMixedLayerPixelsAndHistory`は、Super Light、P-Norm AとInterpolationを重ねた
+投影を既存CPUと比較し、不透明度変更とUndo／Redoでも同じ整数画素を保持することを検査する。
 Arc TangentとPenumbra C/Dは、元の全成分と描画先の全成分、逆正接の範囲縮小と補数の順序を比較する。
 Interpolationの2方式は、全成分の補色も同じ試験入口で比較し、半値へ丸まる画素を全バイトで照合する。
 余弦の固定値は`libs/image/gpu/blend/rgba16-cosine.json`が生成元、格納順とハッシュを記録する。
@@ -429,12 +431,12 @@ Interpolationの2方式は、全成分の補色も同じ試験入口で比較し
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/gpu/generate-rgba16-cosine-values --build-dir build/tdd-linux
-./scripts/run-shared-test-env ./scripts/gpu/generate-rgba16-super-light-values --build-dir build/tdd-linux
+./scripts/run-shared-test-env ./scripts/gpu/generate-rgba16-power-values --build-dir build/tdd-linux
 ```
 
 `KisGpuTileRendererTest::wordCurveBudgetPreservesPixelsAndRetry`は、資源の容量不足で
 記録済み画素と固定版が維持され、Undo／Redoと容量を確保した再試行で描画・投影が成立することを検査する。
-Super Lightの内側のべき乗値は`libs/image/gpu/blend/rgba16-super-light.json`が生成元と格納順を記録する。
+Super LightとP-Norm Aの内側のべき乗値は`libs/image/gpu/blend/rgba16-power.json`が生成元と格納順を記録する。
 `KisGpuTileRendererTest::minimumNonlinearPaintOpacityKeepsNativeQuantization`は、
 最小の8ビット不透明度へ丸まる小数入力で、円形ブラシと塗りの画素を通常CPU参照と比較する。
 幾何平均と剰余系も同じ試験入口で、単精度から倍精度への正規化、平方根、除算、

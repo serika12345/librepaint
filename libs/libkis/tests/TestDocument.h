@@ -58,6 +58,7 @@ private Q_SLOTS:
     void testSpecialAlphaPatternFillMatchesNative();
     void testIntegerRgba16EditingAndNativeFiles_data();
     void testIntegerRgba16EditingAndNativeFiles();
+    void testWordCurvesKeepMixedLayerPixelsAndHistory();
     void testAlphaBlendMatchesEveryRgba8AlphaPair_data();
     void testAlphaBlendMatchesEveryRgba8AlphaPair();
     void testCoupledBlendMatchesCpuColorPalette_data();
