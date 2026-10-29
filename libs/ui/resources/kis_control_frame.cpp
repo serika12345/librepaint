@@ -226,7 +226,10 @@ void KisControlFrame::slotUpdateDisplayRenderer(KoDualColorButton* colourSelecto
 
 void KisControlFrame::slotSetPattern(KoPatternSP pattern)
 {
-    KIS_SAFE_ASSERT_RECOVER_RETURN(pattern);
+    if (!pattern) {
+        m_patternWidget->setThumbnail(QImage());
+        return;
+    }
     m_patternWidget->setThumbnail(pattern->image());
     m_patternChooser->setCurrentPattern(pattern);
 }
