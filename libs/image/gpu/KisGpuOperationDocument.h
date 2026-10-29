@@ -104,18 +104,24 @@ struct PressureResponse
     { return kind == other.kind && strength == other.strength && curve == other.curve; }
 };
 
-/** Gaussian WASH flow, angle and pressure-controlled opacity. */
-struct GaussianWash
+/** Frozen generated circular mask, WASH flow and pressure-controlled opacity. */
+struct AutoBrush
 {
+    enum class Mask { GaussianCircle, Circle };
+    Mask mask = Mask::GaussianCircle;
+    qreal fade = 1;
+    bool antialiasEdges = true;
     qreal angle = 0;
     qreal flow = 1;
     bool creamy = true;
     PressureResponse opacityResponse;
+    PressureResponse flowResponse;
 
-    bool operator==(const GaussianWash &other) const
+    bool operator==(const AutoBrush &other) const
     {
-        return angle == other.angle && flow == other.flow && creamy == other.creamy &&
-            opacityResponse == other.opacityResponse;
+        return mask == other.mask && fade == other.fade && antialiasEdges == other.antialiasEdges &&
+            angle == other.angle && flow == other.flow && creamy == other.creamy &&
+            opacityResponse == other.opacityResponse && flowResponse == other.flowResponse;
     }
 };
 
@@ -150,7 +156,7 @@ enum class LayerBlendMode : quint8 {
     Marker = 127, Greater, LuminositySai, Copy
 };
 
-/** Frozen circular marker or Gaussian WASH settings. */
+/** Frozen marker or generated circular WASH brush settings. */
 struct Brush
 {
     RgbaPixel rgba{0, 0, 0, 255};
@@ -177,7 +183,7 @@ struct Brush
     bool basicSmoothing = false;
     /** Weighted positions feed basic interpolation; distances are frozen in document pixels. */
     std::optional<WeightedSmoothing> weightedSmoothing{};
-    std::optional<GaussianWash> gaussianWash{};
+    std::optional<AutoBrush> autoBrush{};
 
     bool operator==(const Brush &other) const
     {
@@ -190,7 +196,7 @@ struct Brush
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
             mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect &&
             basicSmoothing == other.basicSmoothing && weightedSmoothing == other.weightedSmoothing &&
-            gaussianWash == other.gaussianWash;
+            autoBrush == other.autoBrush;
     }
 };
 

@@ -27,7 +27,7 @@ inline Brush defaultGaussianBrush()
     brush.mirrorCenter = {0, 0};
     brush.pixelPerfect = false;
     brush.basicSmoothing = false;
-    GaussianWash wash;
+    AutoBrush wash;
     wash.angle = 6.28319;
     brush.opacity = 0.57;
     wash.creamy = true;
@@ -164,7 +164,7 @@ inline Brush defaultGaussianBrush()
         0.9899514449324893, 0.9913986254043372, 0.9928404185200035, 0.9942777221721852,
         0.9957114342535778, 0.99714245265688, 0.9985716752747889, 0.9999999999999998
     }};
-    brush.gaussianWash = std::move(wash);
+    brush.autoBrush = std::move(wash);
     return brush;
 }
 
@@ -240,7 +240,7 @@ inline PaintOperation gaussianCompoundPathInput()
         0.9899514449324884, 0.9913986254043377, 0.9928404185200044, 0.9942777221721857,
         0.9957114342535787, 0.99714245265688, 0.9985716752747893, 0.9999999999999998
     }};
-    operation.brush.gaussianWash->opacityResponse = {PressureResponse::Kind::Curve, 1, {
+    operation.brush.autoBrush->opacityResponse = {PressureResponse::Kind::Curve, 1, {
         0, 0.002437353548961832, 0.004875611097747229, 0.007315676646179756,
         0.009758454194082977, 0.012204847741280458, 0.014655761287595765, 0.01711209883285246,
         0.019574764376874113, 0.022044661919484284, 0.02452269546050654, 0.027009768999764445,

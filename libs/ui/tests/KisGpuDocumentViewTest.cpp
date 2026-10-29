@@ -66,6 +66,7 @@
 #include <KoToolBase.h>
 #include <KoResourcePaths.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoCompositeOpRegistry.h>
 #include <KoColorSpace.h>
 #include <KoColorProfile.h>
 #include <canvas/kis_display_color_converter.h>
@@ -78,6 +79,10 @@
 #include <kis_image_config.h>
 #include <kis_node.h>
 #include <kis_paint_device.h>
+#include <KisRegion.h>
+#include <kis_painter.h>
+#include <kis_paint_information.h>
+#include <kis_distance_information.h>
 #include <kis_paint_layer.h>
 #include <kis_properties_configuration.h>
 #include <kis_selection.h>
@@ -192,6 +197,8 @@ private Q_SLOTS:
     void cropPreviewPreservesPixelsHistoryAndCancellation();
     void canvasBackgroundFollowsPreferencesWithoutEditing_data();
     void canvasBackgroundFollowsPreferencesWithoutEditing();
+    void standardAutoBrushPresetsKeepOrdinaryEditing_data();
+    void standardAutoBrushPresetsKeepOrdinaryEditing();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled();
     void brushBlendModeUsesEffectiveCompositeOpAndRejectsUnsupported();
@@ -6547,6 +6554,256 @@ void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
         };
         QVERIFY(copyArtifact(path, QStringLiteral("crop-edited.kra")));
         QVERIFY(copyArtifact(pngPath, QStringLiteral("crop-edited.png")));
+    }
+}
+
+void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
+{
+    QTest::addColumn<QString>("presetName");
+    for (const auto *name : {"b)_Basic-5_Size_default.kpp", "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp"})
+        QTest::newRow(name) << QString::fromLatin1(name);
+}
+
+void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
+{
+    QFETCH(QString, presetName);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    const QString bundlePath = QStringLiteral(KRITA_SOURCE_DIR "/krita/data/bundles/Krita_4_Default_Resources.bundle");
+    const auto bundle = KisResourceStorageSP::create(bundlePath);
+    QVERIFY(bundle->valid());
+    if (!KisResourceLocator::instance()->hasStorage(bundlePath))
+        QVERIFY(KisResourceLocator::instance()->addStorage(bundlePath, bundle));
+    const auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
+    QVERIFY(sourcePreset);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const QSize size(128, 128);
+    QList<QByteArray> expectedStates;
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto output = QDir(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path())).filePath(
+        QStringLiteral("ordinary-brush-%1").arg(presetName));
+    QVERIFY(QDir().mkpath(output));
+    for (bool gpu : {false, true}) {
+        qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        auto preset = sourcePreset->clone().dynamicCast<KisPaintOpPreset>();
+        QVERIFY(preset);
+        preset->setFilename((gpu ? QStringLiteral("gpu-") : QStringLiteral("cpu-")) + presetName);
+        KisResourceModel presets(ResourceType::PaintOpPresets);
+        QVERIFY(presets.addResource(preset));
+        std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+        document->setAutoSaveActive(false);
+        document->setFileBatchMode(true);
+        QVERIFY(document->newImage(QStringLiteral("Ordinary brush editing"), size.width(), size.height(), cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+        QCOMPARE(bool(document->image()->gpuImage()), gpu);
+        std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+        window->resize(800, 600);
+        auto *view = window->newView(document.get());
+        QVERIFY(view);
+        QPointer<KisDocument> lifetime(document.release());
+        QPointer<QWindow> input;
+        bool pressed = false;
+        const auto closeWindow = qScopeGuard([&] {
+            if (pressed && input) {
+                if (lifetime) lifetime->image()->requestStrokeCancellation();
+                QTest::mouseRelease(input, Qt::LeftButton);
+            }
+            if (lifetime) {
+                lifetime->setModified(false);
+                window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+            }
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            window.reset();
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        });
+        window->viewManager()->setCurrentView(view);
+        for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+        window->show();
+        window->activateWindow();
+        auto *profiles = KisInputProfileManager::instance();
+        profiles->setProfileLocations({QStringLiteral(KRITA_SOURCE_DIR "/krita/data/input/kritadefault.profile")},
+                                     QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/input"));
+        profiles->loadProfiles();
+        auto *resources = window->viewManager()->canvasResourceProvider();
+        resources->setPaintOpPreset(preset);
+        resources->setSize(40);
+        resources->setOpacity(.7);
+        resources->setGlobalAlphaLock(false);
+        resources->setMirrorHorizontal(false);
+        resources->setMirrorVertical(false);
+        resources->setEraserMode(false);
+        resources->setCurrentCompositeOp(QStringLiteral("normal"));
+        resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+        KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+        auto *tool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
+        QVERIFY(tool);
+        QVERIFY(tool->setProperty("smoothingType", 0));
+        QSignalSpy errors(tool, &KoToolBase::statusTextChanged);
+        const auto prepareInput = [&] {
+            view->canvasBase()->canvasWidget()->setFocus();
+            view->canvasController()->resetCanvasRotation();
+            view->canvasController()->mirrorCanvas(false);
+            view->zoomManager()->zoomTo100();
+            const auto extent = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
+            view->canvasController()->setPreferredCenter({extent.width() / 2, extent.height() / 2});
+            input = view->canvasBase()->canvasWidget()->window()->windowHandle();
+            if (gpu) for (auto *candidate : QGuiApplication::allWindows())
+                if (qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(candidate)) input = candidate;
+        };
+        QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= size.width() &&
+                    view->canvasBase()->canvasWidget()->height() >= size.height());
+        prepareInput();
+        QTRY_VERIFY(input && input->isExposed());
+        if (gpu) {
+            const auto capture = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
+                                                          view->canvasBase()->resourceManager());
+            QVERIFY2(capture.diagnostic.isEmpty(), qPrintable(capture.diagnostic));
+            QVERIFY(capture.brush.autoBrush);
+            QCOMPARE(capture.brush.autoBrush->mask, Gpu::AutoBrush::Mask::Circle);
+            for (qreal pressure : {.01, .05, .1, .33, .75, 1.}) {
+                KisImageSP nativeImage = new KisImage(nullptr, size.width(), size.height(), cs, QStringLiteral("Native preset reference"));
+                KisPaintLayerSP nativeLayer = new KisPaintLayer(nativeImage, QStringLiteral("Reference"), 255);
+                nativeImage->addNode(nativeLayer, nativeImage->root());
+                {
+                    KisPainter painter(nativeLayer->paintDevice());
+                    painter.setPaintColor(KoColor(QColor(17, 129, 241), cs));
+                    painter.setCompositeOpId(COMPOSITE_ALPHA_DARKEN);
+                    painter.setPaintOpPreset(preset, nativeLayer, nativeImage);
+                    KisDistanceInformation distance;
+                    painter.paintAt(KisPaintInformation(QPointF(64.25, 64.75), pressure), &distance);
+                }
+                nativeImage->waitForDone();
+                KisPaintDeviceSP destination = new KisPaintDevice(cs);
+                KisPainter merge(destination);
+                merge.setOpacityF(.7);
+                for (const auto &rect : nativeLayer->paintDevice()->region().rects())
+                    merge.bitBlt(rect.topLeft(), nativeLayer->paintDevice(), rect);
+                QByteArray expected(size.width() * size.height() * 4, Qt::Uninitialized);
+                destination->readBytes(reinterpret_cast<quint8 *>(expected.data()), QRect(QPoint(), size));
+                QString diagnostic;
+                Gpu::RasterImage raster;
+                raster.size = size;
+                raster.layers.append(Gpu::RasterLayer{QStringLiteral("Pressure")});
+                const auto pressureOwner = Gpu::PaintImageSP::create(KisPart::instance()->gpuExecution(diagnostic), raster);
+                const auto operation = pressureOwner->beginStroke(pressureOwner->operations().activeLayer(), capture.brush, 17);
+                QVERIFY(!operation.isNull());
+                QCOMPARE(pressureOwner->appendSamples(operation, {{{64.25, 64.75}, pressure}}), Gpu::Result::Success);
+                QCOMPARE(pressureOwner->commitStroke(operation), Gpu::Result::Success);
+                auto actual = pressureOwner->readRgbaPixels(pressureOwner->operations().activeLayer(), QRect(QPoint(), size), expected.size()).bytes;
+                for (qsizetype i = 0; i < actual.size(); i += 4) std::swap(actual[i], actual[i + 2]);
+                for (const auto &entry : {qMakePair(QStringLiteral("native"), expected), qMakePair(QStringLiteral("gpu"), actual)}) {
+                    QFile artifact(QDir(output).filePath(QStringLiteral("pressure-%1-%2.bgra").arg(pressure).arg(entry.first)));
+                    QVERIFY(artifact.open(QIODevice::WriteOnly));
+                    QCOMPARE(artifact.write(entry.second), entry.second.size());
+                }
+                QVERIFY2(actual == expected, qPrintable(QStringLiteral("Preset %1 pressure %2 must keep native pixels").arg(presetName).arg(pressure)));
+            }
+        }
+        const auto stroke = [&](const QList<QPointF> &points) {
+            const auto *converter = view->canvasBase()->coordinatesConverter();
+            const auto first = converter->imageToWidget(points.first()).toPoint();
+            const auto target = gpu ? first : view->canvasBase()->canvasWidget()->mapTo(window.get(), first);
+            QTest::mouseMove(input, target);
+            QEnterEvent entered(first, first, view->canvasBase()->canvasWidget()->mapToGlobal(first));
+            QApplication::sendEvent(gpu ? static_cast<QObject *>(input.data()) : view->canvasBase()->canvasWidget(), &entered);
+            pressed = true;
+            QTest::mousePress(input, Qt::LeftButton, Qt::NoModifier, target);
+            for (const auto &point : points.mid(1)) {
+                const auto next = converter->imageToWidget(point).toPoint();
+                QTest::mouseMove(input, gpu ? next : view->canvasBase()->canvasWidget()->mapTo(window.get(), next), 5);
+            }
+            const auto last = converter->imageToWidget(points.last()).toPoint();
+            QTest::mouseRelease(input, Qt::LeftButton, Qt::NoModifier,
+                                gpu ? last : view->canvasBase()->canvasWidget()->mapTo(window.get(), last));
+            pressed = false;
+            lifetime->image()->waitForDone();
+            QApplication::processEvents();
+        };
+        const auto pixels = [&] {
+            auto image = KisImageSP(lifetime->image());
+            image->waitForDone();
+            if (const auto owner = image->gpuImage()) {
+                const auto value = owner->readRgbaPixels(owner->operations().activeLayer(), QRect(QPoint(), size), size.width() * size.height() * 4);
+                QByteArray bgra = value.bytes;
+                for (qsizetype i = 0; i < bgra.size(); i += 4) std::swap(bgra[i], bgra[i + 2]);
+                return bgra;
+            }
+            QByteArray result(size.width() * size.height() * 4, Qt::Uninitialized);
+            window->viewManager()->nodeManager()->activeNode()->paintDevice()->readBytes(
+                reinterpret_cast<quint8 *>(result.data()), QRect(QPoint(), size));
+            return result;
+        };
+        int state = 0;
+        const auto compareState = [&](const QString &name) {
+            const auto actual = pixels();
+            QFile artifact(QDir(output).filePath((gpu ? QStringLiteral("gpu-") : QStringLiteral("cpu-")) + name + QStringLiteral(".bgra")));
+            if (!artifact.open(QIODevice::WriteOnly) || artifact.write(actual) != actual.size()) return false;
+            if (!gpu) expectedStates.append(actual);
+            return !gpu || actual == expectedStates.value(state++);
+        };
+        stroke({{32, 32}, {80, 48}, {80, 80}});
+        QTRY_COMPARE(lifetime->undoStack()->count(), 1);
+        const auto painted = pixels();
+        QVERIFY(painted != QByteArray(painted.size(), '\0'));
+        QVERIFY2(compareState(QStringLiteral("painted")), "Ordinary preset painting must match the native engine");
+        resources->setGlobalAlphaLock(true);
+        resources->setFGColor(KoColor(QColor(241, 17, 129), cs));
+        stroke({{48, 40}, {64, 48}});
+        const auto protectedPixels = pixels();
+        QVERIFY(protectedPixels != painted);
+        for (qsizetype i = 3; i < painted.size(); i += 4) QCOMPARE(protectedPixels[i], painted[i]);
+        QVERIFY2(compareState(QStringLiteral("alpha-locked")), "Alpha protection must preserve the native preset's color result");
+        lifetime->undoStack()->undo();
+        QCOMPARE(pixels(), painted);
+        resources->setGlobalAlphaLock(false);
+        resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+        resources->setEraserMode(true);
+        stroke({{48, 40}, {64, 56}});
+        QTRY_COMPARE(lifetime->undoStack()->count(), 2);
+        const auto erased = pixels();
+        QVERIFY(erased != painted);
+        QVERIFY2(compareState(QStringLiteral("erased")), "Ordinary preset erasing must match the native engine");
+        lifetime->undoStack()->undo();
+        QCOMPARE(pixels(), painted);
+        lifetime->undoStack()->redo();
+        QCOMPARE(pixels(), erased);
+        window->viewManager()->nodeManager()->duplicateActiveNode();
+        lifetime->image()->waitForDone();
+        QTRY_COMPARE(lifetime->image()->root()->childCount(), 2U);
+        QCOMPARE(pixels(), erased);
+        lifetime->undoStack()->undo();
+        QTRY_COMPARE(lifetime->image()->root()->childCount(), 1U);
+        lifetime->undoStack()->redo();
+        QTRY_COMPARE(lifetime->image()->root()->childCount(), 2U);
+        const auto path = QDir(output).filePath(gpu ? QStringLiteral("gpu.kra") : QStringLiteral("cpu.kra"));
+        QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+        lifetime->waitForSavingToComplete();
+        QVERIFY2(lifetime->openPath(path, KisDocument::DontAddToRecent), qPrintable(lifetime->errorMessage()));
+        QCOMPARE(bool(lifetime->image()->gpuImage()), gpu);
+        window->viewManager()->nodeManager()->slotUiActivatedNode(lifetime->image()->root()->firstChild());
+        QCOMPARE(pixels(), erased);
+        prepareInput();
+        resources->setPaintOpPreset(preset);
+        resources->setSize(40);
+        resources->setOpacity(.7);
+        resources->setGlobalAlphaLock(false);
+        resources->setMirrorHorizontal(false);
+        resources->setMirrorVertical(false);
+        resources->setEraserMode(false);
+        resources->setCurrentCompositeOp(QStringLiteral("normal"));
+        stroke({{108, 108}});
+        QVERIFY(pixels() != erased);
+        QVERIFY2(compareState(QStringLiteral("reopened-edited")), "A reopened document must retain the preset's editing result");
+        resources->setMirrorHorizontal(true);
+        stroke({{92, 24}, {108, 40}});
+        QVERIFY2(compareState(QStringLiteral("mirrored")), "Canvas symmetry must reflect the native preset mask");
+        QVERIFY(window->screen()->grabWindow(window->winId()).save(QDir(output).filePath(gpu ? QStringLiteral("gpu-window.png") : QStringLiteral("cpu-window.png"))));
+        for (const auto &error : errors) QVERIFY2(error.first().toString().isEmpty(), qPrintable(error.first().toString()));
     }
 }
 

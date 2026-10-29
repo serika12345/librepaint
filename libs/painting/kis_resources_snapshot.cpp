@@ -94,15 +94,15 @@ bool capturePressureResponse(const KisPaintOpSettingsSP &settings, const QString
     return true;
 }
 
-bool captureGaussianWash(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush)
+bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush)
 {
     if (settings->getInt("PaintOpAction") != 2 || settings->getString("ColorSource/Type", "plain") != QLatin1String("plain") ||
         settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag) || settings->getBool("Texture/Pattern/Enabled") ||
         settings->getBool("PaintOpSettings/isAirbrushing") || settings->getBool("PaintOpSettings/ignoreSpacing") ||
-        settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") || settings->getBool("FlowUseCurve", true) ||
+        settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") ||
         settings->getBool("HorizontalMirrorEnabled") || settings->getBool("VerticalMirrorEnabled") ||
-        settings->getBool("KisPrecisionOption/AutoPrecisionEnabled", true) || settings->getInt("KisPrecisionOption/precisionLevel", 5) != 5 ||
-        brush.alphaLocked || brush.mirrorHorizontal || brush.mirrorVertical) return false;
+        (!settings->getBool("KisPrecisionOption/AutoPrecisionEnabled", false) &&
+         settings->getInt("KisPrecisionOption/precisionLevel", 5) != 5)) return false;
     for (const auto *name : {"PressureDarken", "PressureMirror", "PressureMix", "PressureRate", "PressureRatio",
                             "PressureRotation", "PressureScatter", "PressureSharpness", "PressureSoftness",
                             "PressureSpacing", "Pressureh", "Pressures", "Pressurev"})
@@ -112,21 +112,37 @@ bool captureGaussianWash(const KisPaintOpSettingsSP &settings, LibrePaint::Image
     const auto root = definition.documentElement();
     const auto mask = root.firstChildElement(QStringLiteral("MaskGenerator"));
     if (root.attribute(QStringLiteral("type")) != QLatin1String("auto_brush") ||
-        mask.attribute(QStringLiteral("id")) != QLatin1String("gauss") ||
+        (mask.attribute(QStringLiteral("id")) != QLatin1String("gauss") &&
+         mask.attribute(QStringLiteral("id")) != QLatin1String("default")) ||
         mask.attribute(QStringLiteral("type")) != QLatin1String("circle")) return false;
     const auto equalNumber = [](const QDomElement &element, const QString &name, double expected) {
         bool ok = false;
         const double value = element.attribute(name).toDouble(&ok);
         return ok && value == expected;
     };
-    for (const auto &entry : {std::pair{QStringLiteral("ratio"), 1.}, {QStringLiteral("hfade"), 1.},
-                              {QStringLiteral("vfade"), 1.}, {QStringLiteral("spikes"), 2.},
-                              {QStringLiteral("antialiasEdges"), 1.}})
+    for (const auto &entry : {std::pair{QStringLiteral("ratio"), 1.}, {QStringLiteral("spikes"), 2.}})
         if (!equalNumber(mask, entry.first, entry.second)) return false;
     if (!equalNumber(root, QStringLiteral("randomness"), 0) || !equalNumber(root, QStringLiteral("density"), 1) ||
-        !equalNumber(root, QStringLiteral("useAutoSpacing"), 0) || settings->getDouble("SizeValue", 1) != 1 ||
         !qIsFinite(brush.diameter) || brush.diameter < 1 || brush.diameter != std::floor(brush.diameter)) return false;
-    LibrePaint::Image::Gpu::GaussianWash value;
+    LibrePaint::Image::Gpu::AutoBrush value;
+    if (mask.attribute(QStringLiteral("id")) == QLatin1String("default")) {
+        value.mask = LibrePaint::Image::Gpu::AutoBrush::Mask::Circle;
+        bool fadeOk = false;
+        value.fade = mask.attribute(QStringLiteral("hfade")).toDouble(&fadeOk);
+        if (!fadeOk || !qIsFinite(value.fade) || value.fade < 0 || value.fade > 1 ||
+            !equalNumber(mask, QStringLiteral("vfade"), value.fade) ||
+            !equalNumber(root, QStringLiteral("angle"), 0)) return false;
+        if (equalNumber(mask, QStringLiteral("antialiasEdges"), 1)) value.antialiasEdges = true;
+        else if (equalNumber(mask, QStringLiteral("antialiasEdges"), 0)) value.antialiasEdges = false;
+        else return false;
+    } else {
+        for (const auto *name : {"hfade", "vfade", "antialiasEdges"})
+            if (!equalNumber(mask, QLatin1String(name), 1)) return false;
+    }
+    brush.autoSpacing = root.attribute(QStringLiteral("useAutoSpacing"), QStringLiteral("0")).toInt() != 0;
+    bool coefficientOk = false;
+    brush.autoSpacingCoefficient = root.attribute(QStringLiteral("autoSpacingCoeff"), QStringLiteral("1")).toDouble(&coefficientOk);
+    if (!coefficientOk || !qIsFinite(brush.autoSpacingCoefficient) || brush.autoSpacingCoefficient < 0) return false;
     bool angleOk = false, spacingOk = false;
     value.angle = root.attribute(QStringLiteral("angle")).toDouble(&angleOk);
     brush.spacing = root.attribute(QStringLiteral("spacing")).toDouble(&spacingOk);
@@ -135,8 +151,10 @@ bool captureGaussianWash(const KisPaintOpSettingsSP &settings, LibrePaint::Image
     if (!angleOk || !spacingOk || !qIsFinite(value.angle) || !qIsFinite(brush.spacing) ||
         brush.spacing <= 0 || brush.spacing > 1 || !qIsFinite(value.flow) || value.flow < 0 || value.flow > 1) return false;
     if (!capturePressureResponse(settings, QStringLiteral("Size"), true, brush.sizeResponse) ||
-        !capturePressureResponse(settings, QStringLiteral("Opacity"), false, value.opacityResponse)) return false;
-    brush.gaussianWash = std::move(value);
+        !capturePressureResponse(settings, QStringLiteral("Opacity"), false, value.opacityResponse) ||
+        !capturePressureResponse(settings, QStringLiteral("Flow"), false, value.flowResponse)) return false;
+    value.flowResponse.strength = 1;
+    brush.autoBrush = std::move(value);
     return true;
 }
 
@@ -221,7 +239,7 @@ KisGpuBrushResources captureGpuPaintingResources(
             !capturePressureResponse(settings, QStringLiteral("Size"), true, brush.sizeResponse))
             return reject(i18n("These brush settings are not yet available for GPU painting."));
     } else if (withBrushTip && preset->paintOp().id() == QLatin1String("paintbrush") &&
-               !captureGaussianWash(preset->settings(), brush)) {
+               !captureAutoBrush(preset->settings(), brush)) {
         return reject(i18n("These brush settings are not yet available for GPU painting."));
     }
     return result;

@@ -4,7 +4,7 @@
  */
 
 #include "KisGpuExecution_p.h"
-#include "KisGpuGaussianBrush_p.h"
+#include "KisGpuAutoBrush_p.h"
 #include "KisGpuMarkerBrush_p.h"
 #include "KisGpuReadbackBatch_p.h"
 #include "KisGpuPaintJob_p.h"
@@ -174,8 +174,8 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
         } else {
             if (needed.isEmpty()) continue;
             const auto &paint = **std::get_if<PaintSnapshot>(&operation);
-            if (paint.brush.gaussianWash) {
-                const auto dabs = Detail::gaussianDabs(paint, paint.id == pendingOperation);
+            if (paint.brush.autoBrush) {
+                const auto dabs = Detail::autoBrushDabs(paint, paint.id == pendingOperation);
                 if (!dabs) return std::nullopt;
                 if (!paint.figureStyle.outline) continue;
                 for (const auto &dab : *dabs) {

@@ -71,16 +71,17 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
     const auto append = [&](const InputSample &point) {
         const qreal scale = pressureValue(brush.sizeResponse, point.pressure);
         const qreal diameter = brush.diameter * scale;
-        const bool tooSmall = brush.gaussianWash ? scale * std::max(1, int(brush.diameter)) < .01 :
+        const bool tooSmall = brush.autoBrush ? scale * std::max(1, int(brush.diameter)) < .01 :
                                                   scale * diameter < .01;
         if (tooSmall) { spacing = .5; return true; }
         if (count >= PaintGeometryElementLimit) return false;
-        const auto metric = brush.gaussianWash ? characteristicSize(brush.diameter, scale, brush.gaussianWash->angle) :
+        const auto metric = brush.autoBrush ? characteristicSize(brush.diameter, scale, brush.autoBrush->angle) :
                                                 QSizeF(diameter, diameter);
         if (!visit({point.position, point.pressure, scale, metric})) return false;
         ++count;
-        const qreal distance = !brush.gaussianWash && brush.autoSpacing ?
-            brush.autoSpacingCoefficient * (diameter < 1 ? diameter : std::sqrt(diameter)) :
+        const qreal spacingDiameter = brush.autoBrush ? std::max(1, int(brush.diameter)) * scale : diameter;
+        const qreal distance = brush.autoSpacing ?
+            brush.autoSpacingCoefficient * (spacingDiameter < 1 ? spacingDiameter : std::sqrt(spacingDiameter)) :
             metric.width() * brush.spacing;
         spacing = std::max(qreal(.5), distance);
         return true;

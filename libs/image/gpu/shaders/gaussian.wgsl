@@ -32,6 +32,60 @@ struct MaskDab {
     application: vec4<u32>,
 }
 
+// The standard generated circle shares dab placement and WASH accumulation
+// with Gaussian tips; its native fade is a rational squared-distance function.
+fn standardCircleSample(dab: MaskDab, dx: Word64, dy: Word64) -> u32 {
+    let one = Word64(0u, 0x3ff00000u);
+    let nx = doubleMultiply(dx, dab.radius.xy);
+    let ny = doubleMultiply(dy, dab.radius.xy);
+    let n = doubleAdd(doubleMultiply(nx, nx), doubleMultiply(ny, ny));
+    if (!wordLessEqual(n, one)) { return 255u; }
+    var x = Word64(dx.x, dx.y & 0x7fffffffu);
+    var y = Word64(dy.x, dy.y & 0x7fffffffu);
+    if ((dab.size.w & 2u) != 0u) {
+        x = doubleAdd(x, one);
+        y = doubleAdd(y, one);
+    }
+    let fx = doubleMultiply(x, dab.radius.zw);
+    let fy = doubleMultiply(y, dab.radius.zw);
+    let nf = doubleAdd(doubleMultiply(fx, fx), doubleMultiply(fy, fy));
+    if (!wordLessEqual(one, nf)) { return 0u; }
+    let numerator = doubleMultiply(doubleMultiply(doubleInteger(255u), n), doubleSubtract(nf, one));
+    return min(255u, doubleTruncate(doubleDivide(numerator, doubleSubtract(nf, n))));
+}
+fn smallStandardCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
+    let side = dab.size.z;
+    let step = select(Word64(0x55555555u, 0x3fd55555u), Word64(0x55555555u, 0x3fc55555u), side == 6u);
+    var total = 0u;
+    for (var y = 0u; y < side; y += 1u) {
+        for (var x = 0u; x < side; x += 1u) {
+            let dx = doubleSubtract(doubleAdd(doubleInteger(point.x), doubleMultiply(doubleInteger(x), step)), dab.center.xy);
+            let dy = doubleSubtract(doubleAdd(doubleInteger(point.y), doubleMultiply(doubleInteger(y), step)), dab.center.zw);
+            total += standardCircleSample(dab, dx, dy);
+        }
+    }
+    return 255u - total / (side * side);
+}
+fn standardCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
+    let dx = floatSubtract(bitcast<u32>(f32(point.x)), floatFromDouble(dab.center.xy));
+    let dy = floatSubtract(bitcast<u32>(f32(point.y)), floatFromDouble(dab.center.zw));
+    let coefficient = floatFromDouble(dab.radius.xy);
+    let n = gaussianSquaredDistance(floatMultiply(dx, coefficient), floatMultiply(dy, coefficient));
+    if (n > 0x3f800000u) { return 0u; }
+    var x = dx & 0x7fffffffu;
+    var y = dy & 0x7fffffffu;
+    if ((dab.size.w & 2u) != 0u) {
+        x = floatAdd(x, 0x3f800000u);
+        y = floatAdd(y, 0x3f800000u);
+    }
+    let fade = floatFromDouble(dab.radius.zw);
+    let nf = gaussianSquaredDistance(floatMultiply(x, fade), floatMultiply(y, fade));
+    if (nf < 0x3f800000u) { return 255u; }
+    if (nf == n) { return 0u; }
+    let inverse = floatDivide(floatMultiply(n, floatSubtract(nf, 0x3f800000u)), floatSubtract(nf, n));
+    return projectionComponent(floatMultiply(0x437f0000u, floatSubtract(0x3f800000u, inverse)));
+}
+
 fn smallCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
     let side = dab.size.z;
     var inverseStep = Word64(0u, 0x3ff00000u);

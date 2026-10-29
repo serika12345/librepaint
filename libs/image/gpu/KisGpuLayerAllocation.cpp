@@ -4,7 +4,7 @@
  */
 #include "KisGpuLayerAllocation_p.h"
 #include "KisGpuPaintGeometry_p.h"
-#include "KisGpuGaussianBrush_p.h"
+#include "KisGpuAutoBrush_p.h"
 #include "KisGpuMarkerBrush_p.h"
 
 namespace LibrePaint::Image::Gpu::Detail {
@@ -59,8 +59,8 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
                     for (const auto &dab : *dabs) if (!append(dab.bounds().intersected(clip))) return false;
                     return true;
                 };
-                if (paint.brush.gaussianWash) {
-                    if (!addDabs(gaussianDabs(paint, document->pendingOperation() == paint.id))) return std::nullopt;
+                if (paint.brush.autoBrush) {
+                    if (!addDabs(autoBrushDabs(paint, document->pendingOperation() == paint.id))) return std::nullopt;
                 } else if (!addDabs(markerDabs(paint, document->pendingOperation() == paint.id, clip, true))) return std::nullopt;
             }
             if (hasFigureFill(paint.figureStyle)) {

@@ -413,7 +413,7 @@ bool paint(KisDocument *document, KisPaintOpPresetSP preset, qreal opacity, int 
                     const auto actualInput = operation->inputSamples();
                     if (actualInput != expectedInput) return false;
                     if (pixelPerfect) {
-                        if (!operation->brush.gaussianWash || !operation->brush.pixelPerfect ||
+                        if (!operation->brush.autoBrush || !operation->brush.pixelPerfect ||
                             operation->brush.basicSmoothing || operation->brush.weightedSmoothing) return false;
                     } else if (!operation->brush.basicSmoothing || !operation->brush.weightedSmoothing ||
                         !(*operation->brush.weightedSmoothing == Gpu::WeightedSmoothing{24, calls == -14 ? 48. : 24., .01, calls == -14}))

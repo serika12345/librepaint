@@ -697,7 +697,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     const auto current = std::get_if<PaintSnapshot>(&layer.operations.back());
                     changingStroke = previous && current && *previous != *current && (*previous)->id == (*current)->id &&
                         (*previous)->brush == (*current)->brush;
-                    if (changingStroke && !(*current)->brush.gaussianWash && !(*current)->brush.pixelPerfect && !(*current)->brush.basicSmoothing && (*previous)->shape.kind == ShapeKind::Freehand &&
+                    if (changingStroke && !(*current)->brush.autoBrush && !(*current)->brush.pixelPerfect && !(*current)->brush.basicSmoothing && (*previous)->shape.kind == ShapeKind::Freehand &&
                         (*current)->shape.kind == ShapeKind::Freehand && (*current)->sampleCount >= (*previous)->sampleCount &&
                         (*previous)->figureStyle.outline && (*current)->figureStyle.outline &&
                         !hasFigureFill((*previous)->figureStyle) && !hasFigureFill((*current)->figureStyle))
@@ -834,15 +834,15 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 }
                 const bool pending = document->pendingOperation() == operation.id;
                 const bool extending = appendedOperation && op == layer.operations.size() - 1;
-                const bool retainCoverage = pending && !operation.brush.gaussianWash && operation.shape.kind == ShapeKind::Freehand &&
+                const bool retainCoverage = pending && !operation.brush.autoBrush && operation.shape.kind == ShapeKind::Freehand &&
                     !operation.brush.pixelPerfect && !operation.brush.basicSmoothing && !fillEnabled;
                 if (retainCoverage) pendingCoverageLayer = layer.id;
                 if (pending) data->strokeInputs[layer.id];
                 if (pending && extending) data->strokeInputs[layer.id] = strokeInputs;
-                const auto gaussian = operation.brush.gaussianWash ? gaussianDabs(operation, pending) :
-                    std::optional<QList<GaussianDab>>(QList<GaussianDab>{});
-                if (!gaussian) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("This Gaussian WASH geometry or brush setting is not yet supported")};
-                const auto marker = operation.brush.gaussianWash ? std::optional<QList<MarkerDab>>(QList<MarkerDab>{}) :
+                const auto gaussian = operation.brush.autoBrush ? autoBrushDabs(operation, pending) :
+                    std::optional<QList<AutoBrushDab>>(QList<AutoBrushDab>{});
+                if (!gaussian) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("This generated brush geometry or setting is not yet supported")};
+                const auto marker = operation.brush.autoBrush ? std::optional<QList<MarkerDab>>(QList<MarkerDab>{}) :
                     markerDabs(operation, pending, geometryRegion, replacesAlpha);
                 if (!marker) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU native marker geometry limit exceeded")};
                 const auto fillEdges = figureFillEdges(operation);
@@ -913,7 +913,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     }
                 }
                 QMap<quint64, QList<MarkerDab>> affected;
-                QMap<quint64, QList<GaussianDab>> gaussianAffected;
+                QMap<quint64, QList<AutoBrushDab>> gaussianAffected;
                 qsizetype gaussianReferences = 0;
                 QSet<quint64> changedCoordinates;
                 QMap<quint64, QList<MarkerDab>> appendedGeometry;
@@ -1046,7 +1046,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     if (!output) output = d.allocateTile(document->format);
                     job.output = output;
                     if (!job.output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
-                    if (operation.brush.gaussianWash) job.geometry = gaussianAffected.value(tile.key());
+                    if (operation.brush.autoBrush) job.geometry = gaussianAffected.value(tile.key());
                     else job.geometry = tile.value();
                     job.retainCoverage = retainCoverage;
                     job.coverageCoordinate = tile.key();
@@ -1127,7 +1127,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         }
                     }
                     std::memcpy(&job.values.canvasOpacityBits, &opacity, sizeof(opacity));
-                    if (operation.brush.gaussianWash) job.values.paintFlags |= 512u;
+                    if (operation.brush.autoBrush) job.values.paintFlags |= 512u;
                     job.output->mayContainHiddenRgb = operation.brush.blendMode != LayerBlendMode::Normal ||
                         operation.figureStyle.fillBlendMode != LayerBlendMode::Normal ||
                         operation.brush.alphaLocked || operation.brush.erase ||

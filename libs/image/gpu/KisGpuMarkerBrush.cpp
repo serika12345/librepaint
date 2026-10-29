@@ -39,7 +39,7 @@ bool markerDabIntersects(const MarkerDab &dab, const QRect &region)
 std::optional<QList<MarkerDab>> markerDabs(const PaintOperation &operation, bool pending, const QRect &region,
                                          bool includeEmptySource)
 {
-    if (operation.brush.gaussianWash) return std::nullopt;
+    if (operation.brush.autoBrush) return std::nullopt;
     QList<MarkerDab> result;
     if (!operation.figureStyle.outline || region.isEmpty()) return result;
     const auto &brush = operation.brush;

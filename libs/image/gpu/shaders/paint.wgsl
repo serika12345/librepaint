@@ -123,10 +123,15 @@ fn gaussianCoverage(pixel: vec2<i32>) -> u32 {
     var alpha = 0u;
     for (var index = 0u; index < parameters.count; index += 1u) {
         let dab = gaussianDab(index);
-        let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
+        var point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
         if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
+        if ((dab.size.w & 4u) != 0u) { point.x = i32(dab.size.x) - 1 - point.x; }
+        if ((dab.size.w & 8u) != 0u) { point.y = i32(dab.size.y) - 1 - point.y; }
         var coverage: u32;
-        if (dab.size.z > 1u) { coverage = smallCircleAlpha(dab, vec2<u32>(point)); }
+        if ((dab.size.w & 1u) != 0u) {
+            if (dab.size.z > 1u) { coverage = smallStandardCircleAlpha(dab, vec2<u32>(point)); }
+            else { coverage = standardCircleAlpha(dab, vec2<u32>(point)); }
+        } else if (dab.size.z > 1u) { coverage = smallCircleAlpha(dab, vec2<u32>(point)); }
         else { coverage = circleAlpha(dab, vec2<u32>(point)); }
         alpha = washAlpha(alpha, coverage, dab.application);
     }

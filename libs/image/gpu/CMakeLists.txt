@@ -43,7 +43,7 @@ find_package(WGPUNative REQUIRED)
 add_library(kritaimagegputiles OBJECT
     KisGpuPaintGeometry.cpp
     KisGpuLayerAllocation.cpp
-    KisGpuGaussianBrush.cpp
+    KisGpuAutoBrush.cpp
     KisGpuBrushDabs.cpp
     KisGpuMarkerBrush.cpp
     KisGpuDevice.cpp

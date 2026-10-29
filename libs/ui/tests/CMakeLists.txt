@@ -1244,6 +1244,9 @@ add_test(NAME ${gpu_document_ellipse_tool_test}
 set(gpu_document_freehand_tool_test libs-ui-freehand-tool-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_freehand_tool_test}
     COMMAND KisGpuDocumentViewTest freehandToolCreatesArbitraryMaskSelection)
+set(gpu_document_brush_presets_test libs-ui-brush-presets-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_brush_presets_test}
+    COMMAND KisGpuDocumentViewTest standardAutoBrushPresetsKeepOrdinaryEditing)
 set(gpu_document_brush_blend_test libs-ui-brush-blend-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_brush_blend_test}
     COMMAND KisGpuDocumentViewTest brushBlendModeUsesEffectiveCompositeOpAndRejectsUnsupported)
@@ -1286,12 +1289,13 @@ set_tests_properties(${gpu_document_hsv_filter_test} PROPERTIES
 set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
     ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_brush_blend_test}
+    ${gpu_document_brush_presets_test}
     ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_path_tool_test}
     ${gpu_document_path_input_test} ${gpu_document_feather_test} ${gpu_document_filter_test}
     ${gpu_document_grayscale_filter_test} ${gpu_document_hsv_filter_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})
 add_dependencies(KisGpuDocumentViewTest
-    kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
+    kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop kritadefaultpaintops
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop
     kritamodifyselection kritaselectiontools kritacolorsfilters)
 if(NOT IOS)

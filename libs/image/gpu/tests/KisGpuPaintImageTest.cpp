@@ -57,7 +57,7 @@ private Q_SLOTS:
     void rectangularWritesPreserveOtherRegionsAcrossHistory();
     void rectangularWritesValidateBeforeMutationAndCrossTileBoundaries();
     void rectangularHistoryEditsPreserveIndependentUntrackedPixels();
-    void gaussianWashKeepsIndependentPixelWritesAcrossUndo();
+    void autoBrushKeepsIndependentPixelWritesAcrossUndo();
     void interiorPixelWritesRemainWithTheirFilledHistory();
     void idleSmoothingPublishesAcceptedVersionsWithoutDuplicateNotifications();
     void derivedGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites_data();
@@ -1568,7 +1568,7 @@ void KisGpuPaintImageTest::rectangularHistoryEditsPreserveIndependentUntrackedPi
     QVERIFY(!image.operations().isModified());
 }
 
-void KisGpuPaintImageTest::gaussianWashKeepsIndependentPixelWritesAcrossUndo()
+void KisGpuPaintImageTest::autoBrushKeepsIndependentPixelWritesAcrossUndo()
 {
     QString diagnostic;
     const auto device = Device::createNative(diagnostic);
@@ -1577,7 +1577,7 @@ void KisGpuPaintImageTest::gaussianWashKeepsIndependentPixelWritesAcrossUndo()
     PaintImage image(execution, QSize(128, 128));
     Brush brush;
     brush.diameter = 40;
-    auto &settings = brush.gaussianWash.emplace();
+    auto &settings = brush.autoBrush.emplace();
     brush.sizeResponse = {PressureResponse::Kind::Constant, .1, {}};
     settings.opacityResponse = {PressureResponse::Kind::Constant, 1, {}};
     const auto id = image.beginStroke(1, brush, 1789);

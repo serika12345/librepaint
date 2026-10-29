@@ -117,12 +117,12 @@ private Q_SLOTS:
     void patternFillBlendModeMatchesLayerComposition();
     void fillBlendModePreservesOpacityAlphaLockAndChannelMask();
     void layerTransparencyMaskMultipliesCompositionAlpha();
-    void gaussianWashProducesCoverageAndRetainsPixels();
+    void autoBrushProducesCoverageAndRetainsPixels();
     void gaussianEraseKeepsColorsHistory_data();
     void gaussianEraseKeepsColorsHistory();
     void gaussianFreehandKeepsInitialDistanceAndFinalTap_data();
     void gaussianFreehandKeepsInitialDistanceAndFinalTap();
-    void gaussianWashSkipsDabsBelowTheBrushMinimum();
+    void autoBrushSkipsDabsBelowTheBrushMinimum();
     void gaussianLineShapeEditsPreserveInputHistory_data();
     void gaussianLineShapeEditsPreserveInputHistory();
     void gaussianPathCallsKeepDistanceHistory_data();
@@ -353,8 +353,8 @@ void KisGpuTileRendererTest::gaussianPixelCorrectionKeepsCpuExtent()
     const auto test = Test::gaussianPixelPerfectCases()[index];
     QCOMPARE(test.rgba.size(), test.extent.width() * test.extent.height() * 4);
     auto brush = Test::defaultGaussianBrush();
-    QVERIFY(brush.gaussianWash);
-    brush.gaussianWash->flow = .57;
+    QVERIFY(brush.autoBrush);
+    brush.autoBrush->flow = .57;
     brush.pixelPerfect = true;
     RasterImage canvas; canvas.size = {128, 128};
     RasterLayer paintLayer; paintLayer.name = QStringLiteral("Paint Layer 1");
@@ -416,7 +416,7 @@ void KisGpuTileRendererTest::gaussianPixelCorrectionKeepsCpuExtent()
             {"completedInputs", int(completedInputs)}, {"input", inputs},
             {"extent", QJsonArray{test.extent.x(), test.extent.y(), test.extent.width(), test.extent.height()}},
             {"tileCoordinates", tileCoordinates}, {"pendingTileCoordinates", pendingTileCoordinates},
-            {"tileSize", RgbaTile::Size}, {"flow", brush.gaussianWash->flow},
+            {"tileSize", RgbaTile::Size}, {"flow", brush.autoBrush->flow},
             {"opacity", brush.opacity}, {"failed", QTest::currentTestFailed()}}).toJson();
         for (auto it = artifacts.cbegin(); it != artifacts.cend(); ++it) {
             QFile file(QDir(directory).filePath(QStringLiteral("gaussian-pixel-perfect-") +
@@ -530,9 +530,9 @@ void KisGpuTileRendererTest::gaussianWeightedKeepsCpuPixels()
     const auto test = Test::gaussianWeightedCases()[index];
     QCOMPARE(test.rgba.size(), 128 * 128 * 4);
     auto brush = Test::defaultGaussianBrush();
-    QVERIFY(brush.gaussianWash);
+    QVERIFY(brush.autoBrush);
     // Same captured Basic-5 resource; the observed CPU recipe changes FlowValue.
-    brush.gaussianWash->flow = .57;
+    brush.autoBrush->flow = .57;
     brush.basicSmoothing = true;
     brush.weightedSmoothing = test.smoothing;
     RasterImage canvas; canvas.size = {128, 128};
@@ -564,7 +564,7 @@ void KisGpuTileRendererTest::gaussianWeightedKeepsCpuPixels()
             {"completedInputs", int(completedInputs)}, {"input", input}, {"flushes", flushes},
             {"distanceMin", test.smoothing.distanceMin}, {"distanceMax", test.smoothing.distanceMax},
             {"tail", test.smoothing.tailAggressiveness}, {"smoothPressure", test.smoothing.smoothPressure},
-            {"flow", brush.gaussianWash->flow}, {"opacity", brush.opacity},
+            {"flow", brush.autoBrush->flow}, {"opacity", brush.opacity},
             {"lastRenderValid", lastRenderValid}, {"failed", QTest::currentTestFailed()},
             {"actualFinalPixelsSaved", artifacts.contains(QStringLiteral(".rgba"))}}).toJson();
         for (auto it = artifacts.cbegin(); it != artifacts.cend(); ++it) {
@@ -675,9 +675,9 @@ void KisGpuTileRendererTest::gaussianWeightedOnImportedPixelKeepsCpuMergeByte()
     const qsizetype offset = (5 * RgbaTile::Size + 247) * 4;
     const auto beforePixel = QByteArray::fromHex("9d1e656d");
     auto brush = Test::defaultGaussianBrush();
-    QVERIFY(brush.gaussianWash);
+    QVERIFY(brush.autoBrush);
     brush.rgba = {83, 177, 41, 255};
-    brush.gaussianWash->flow = .57;
+    brush.autoBrush->flow = .57;
     brush.opacity = .57;
     brush.basicSmoothing = true;
     brush.weightedSmoothing = test.smoothing;
@@ -700,8 +700,8 @@ void KisGpuTileRendererTest::gaussianWeightedOnImportedPixelKeepsCpuMergeByte()
             {"spacing", brush.spacing},
             {"distanceMin", test.smoothing.distanceMin}, {"distanceMax", test.smoothing.distanceMax},
             {"tail", test.smoothing.tailAggressiveness}, {"smoothPressure", test.smoothing.smoothPressure},
-            {"flow", brush.gaussianWash->flow}, {"opacity", brush.opacity},
-            {"creamy", brush.gaussianWash->creamy}, {"failed", QTest::currentTestFailed()}}).toJson();
+            {"flow", brush.autoBrush->flow}, {"opacity", brush.opacity},
+            {"creamy", brush.autoBrush->creamy}, {"failed", QTest::currentTestFailed()}}).toJson();
         for (auto it = artifacts.cbegin(); it != artifacts.cend(); ++it) {
             QFile file(QDir(directory).filePath(QStringLiteral("gaussian-weighted-imported-pixel") + it.key()));
             QVERIFY(file.open(QIODevice::WriteOnly));
@@ -1120,7 +1120,7 @@ void KisGpuTileRendererTest::gaussianEraseKeepsColorsHistory()
     auto brush = Test::defaultGaussianBrush();
     brush.erase = true;
     brush.opacity = opacity;
-    brush.gaussianWash->flow = flow;
+    brush.autoBrush->flow = flow;
     Shape shape;
     shape.kind = ShapeKind::Path;
     QList<InputSample> input;
@@ -1216,13 +1216,13 @@ void KisGpuTileRendererTest::gaussianEraseKeepsColorsHistory()
     QCOMPARE(readTile(render(renderer, document.snapshot(), preview), target, {0, 0}), tile.rgba);
 }
 
-void KisGpuTileRendererTest::gaussianWashProducesCoverageAndRetainsPixels()
+void KisGpuTileRendererTest::autoBrushProducesCoverageAndRetainsPixels()
 {
     OperationDocument document(QSize(64, 64));
     Brush brush;
     brush.rgba = {17, 34, 51, 255};
     brush.diameter = 40;
-    auto &settings = brush.gaussianWash.emplace();
+    auto &settings = brush.autoBrush.emplace();
     settings.flow = .5;
     brush.opacity = .57;
     brush.sizeResponse = {PressureResponse::Kind::Constant, 1, {}};
@@ -1251,12 +1251,12 @@ void KisGpuTileRendererTest::gaussianWashProducesCoverageAndRetainsPixels()
     QCOMPARE(readTile(painted, document.activeLayer(), {0, 0}), pixels);
 }
 
-void KisGpuTileRendererTest::gaussianWashSkipsDabsBelowTheBrushMinimum()
+void KisGpuTileRendererTest::autoBrushSkipsDabsBelowTheBrushMinimum()
 {
     OperationDocument document(QSize(64, 64));
     Brush brush;
     brush.diameter = 40;
-    auto &settings = brush.gaussianWash.emplace();
+    auto &settings = brush.autoBrush.emplace();
     brush.sizeResponse = {PressureResponse::Kind::Direct, 1, {}};
     settings.opacityResponse = {PressureResponse::Kind::Constant, 1, {}};
     const auto id = document.beginStroke(document.activeLayer(), brush, 1789);
@@ -1284,7 +1284,7 @@ void KisGpuTileRendererTest::gaussianLineShapeEditsPreserveInputHistory()
     Brush brush;
     brush.rgba = {17, 129, 241, 255};
     brush.diameter = 20;
-    auto &settings = brush.gaussianWash.emplace();
+    auto &settings = brush.autoBrush.emplace();
     settings.flow = .5;
     brush.opacity = .57;
     brush.sizeResponse = {PressureResponse::Kind::Direct, 1, {}};
@@ -4121,12 +4121,12 @@ void KisGpuTileRendererTest::gaussianStrokeBlendModeMatchesSeparableComposition(
     brush.rgba = {221, 17, 44, 255};
     brush.diameter = 64;
     brush.blendMode = LayerBlendMode::Multiply;
-    GaussianWash wash;
+    AutoBrush wash;
     brush.opacity = 1;
     wash.flow = 1;
     brush.sizeResponse = {PressureResponse::Kind::Constant, 1, {}};
     wash.opacityResponse = {PressureResponse::Kind::Constant, 1, {}};
-    brush.gaussianWash = wash;
+    brush.autoBrush = wash;
     const auto stroke = document.beginStroke(layer, brush, 11);
     QVERIFY(!stroke.isNull());
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);

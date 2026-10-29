@@ -8,7 +8,7 @@
 
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuPaintGeometry_p.h"
-#include "KisGpuGaussianBrush_p.h"
+#include "KisGpuAutoBrush_p.h"
 #include "KisGpuMarkerBrush_p.h"
 #include <variant>
 #include <array>
@@ -46,7 +46,7 @@ struct PaintJob
     /** Frozen pattern pixels for this operation; null binds the unused tile. */
     std::shared_ptr<NativeBuffer> pattern;
     NativeBindings bindings;
-    std::variant<QList<MarkerDab>, QList<GaussianDab>> geometry;
+    std::variant<QList<MarkerDab>, QList<AutoBrushDab>> geometry;
     QList<MarkerDab> appendedGeometry;
     quint64 coverageCoordinate = 0;
     bool retainCoverage = false;

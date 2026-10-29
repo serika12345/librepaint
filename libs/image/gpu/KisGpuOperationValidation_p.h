@@ -304,11 +304,13 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
         brush.autoSpacingCoefficient < 0) return false;
     if (!std::isfinite(brush.opacity) || brush.opacity < 0 || brush.opacity > 1) return false;
     if (!validPixel(brush.rgba, format)) return false;
-    if (format == PixelFormat::Rgba16 && brush.gaussianWash) return false;
-    if (brush.gaussianWash) {
-        const auto &value = *brush.gaussianWash;
+    if (format == PixelFormat::Rgba16 && brush.autoBrush) return false;
+    if (brush.autoBrush) {
+        const auto &value = *brush.autoBrush;
         if (!std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||
-            !validPressureResponse(value.opacityResponse)) return false;
+            !validPressureResponse(value.opacityResponse) || !validPressureResponse(value.flowResponse) ||
+            (value.mask != AutoBrush::Mask::GaussianCircle && value.mask != AutoBrush::Mask::Circle) ||
+            !std::isfinite(value.fade) || value.fade < 0 || value.fade > 1) return false;
     }
     if (brush.weightedSmoothing) {
         const auto &value = *brush.weightedSmoothing;

@@ -1257,7 +1257,7 @@ void KisGpuPaintDocumentTest::gaussianLineEditsSaveReopenAndContinueAtTheirNewPo
     Brush brush;
     brush.rgba = {17, 129, 241, 255};
     brush.diameter = 20;
-    auto &settings = brush.gaussianWash.emplace();
+    auto &settings = brush.autoBrush.emplace();
     settings.flow = .5;
     brush.opacity = .57;
     brush.sizeResponse = {PressureResponse::Kind::Direct, 1, {}};

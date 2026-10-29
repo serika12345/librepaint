@@ -4,7 +4,7 @@
  */
 #include "KisGpuPaintImage_p.h"
 #include "KisGpuPaintGeometry_p.h"
-#include "KisGpuGaussianBrush_p.h"
+#include "KisGpuAutoBrush_p.h"
 #include "KisGpuMarkerBrush_p.h"
 #include <QHash>
 #include <QMap>
@@ -20,7 +20,7 @@ struct GeometryCache
     PixelFormat format;
     QHash<const PaintOperation *, std::optional<QList<Detail::MarkerDab>>> markers;
     QHash<const PaintOperation *, std::optional<QList<Detail::FigureFillEdge>>> fills;
-    QHash<const PaintOperation *, std::optional<QList<Detail::GaussianDab>>> gaussian;
+    QHash<const PaintOperation *, std::optional<QList<Detail::AutoBrushDab>>> gaussian;
 };
 
 bool writeIntersects(const TileWriteOperation &write, const QRect &block)
@@ -37,9 +37,9 @@ bool writeIntersects(const TileWriteOperation &write, const QRect &block)
 std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &block, GeometryCache &geometry)
 {
     if (paint.compositionBounds && !paint.compositionBounds->intersects(block)) return false;
-    if (paint.brush.gaussianWash) {
+    if (paint.brush.autoBrush) {
         auto found = geometry.gaussian.constFind(&paint);
-        if (found == geometry.gaussian.cend()) found = geometry.gaussian.insert(&paint, Detail::gaussianDabs(paint, false));
+        if (found == geometry.gaussian.cend()) found = geometry.gaussian.insert(&paint, Detail::autoBrushDabs(paint, false));
         if (!*found) return std::nullopt;
         if (!paint.figureStyle.outline) return false;
         for (const auto &dab : **found) if (dab.bounds().intersects(block)) return true;

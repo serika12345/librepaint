@@ -189,10 +189,10 @@ private Q_SLOTS:
     void basicSmoothingRejectsConflictingModesAndShapeChanges();
     void emptyPathsPreserveHistoryAndPendingInput();
     void invalidPathsPreserveHistoryAndInputBudgets();
-    void gaussianWashSettingsSurviveHistory();
+    void autoBrushSettingsSurviveHistory();
     void stationaryBrushCommitInvalidatesPendingPixelsAndRetainsInput_data();
     void stationaryBrushCommitInvalidatesPendingPixelsAndRetainsInput();
-    void invalidGaussianWashSettingsPreserveTheDocument();
+    void invalidAutoBrushSettingsPreserveTheDocument();
     void transparencyMaskHistoryComposition();
     void transparencyMaskFromSelectionShapesAndRejections();
     void transparencyMaskCoverageReplacementPreservesHistory();
@@ -260,11 +260,11 @@ void KisGpuOperationDocumentTest::native16UnsupportedOperationsPreservePixelsAnd
     brush.blendMode = invalidBlend;
     QVERIFY(document.beginStroke(layer, brush, 42).isNull());
     brush.blendMode = LayerBlendMode::Normal;
-    brush.gaussianWash.emplace();
+    brush.autoBrush.emplace();
     QVERIFY(document.beginStroke(layer, brush, 42).isNull());
     QCOMPARE(document.snapshot(), fixed);
     QCOMPARE(document.undoCount(), 0);
-    brush.gaussianWash.reset();
+    brush.autoBrush.reset();
     const auto operation = document.beginStroke(layer, brush, 42);
     QVERIFY(!operation.isNull());
     QCOMPARE(document.appendSamples(operation, {sample(1, 1), sample(4, 4)}), Result::Success);
@@ -4021,12 +4021,12 @@ void KisGpuOperationDocumentTest::invalidPathsPreserveHistoryAndInputBudgets()
     QVERIFY(bounded.activeOperation().isNull());
 }
 
-void KisGpuOperationDocumentTest::gaussianWashSettingsSurviveHistory()
+void KisGpuOperationDocumentTest::autoBrushSettingsSurviveHistory()
 {
     OperationDocument document(QSize(128, 128));
     Brush brush;
     brush.sizeResponse = {PressureResponse::Kind::Curve, 1, QList<qreal>(256, 0)};
-    GaussianWash settings;
+    AutoBrush settings;
     settings.opacityResponse = {PressureResponse::Kind::Curve, 1, QList<qreal>(256, 0)};
     settings.angle = 6.28319;
     brush.opacity = .57;
@@ -4037,17 +4037,17 @@ void KisGpuOperationDocumentTest::gaussianWashSettingsSurviveHistory()
         settings.opacityResponse.curve[i] = qreal(i) / 255;
     }
     const auto size = brush.sizeResponse;
-    brush.gaussianWash = settings;
+    brush.autoBrush = settings;
     Shape shape;
     shape.kind = ShapeKind::Line;
     shape.first = {12.25, 13.75};
     shape.second = {60.125, 31.5};
     QCOMPARE(document.paintFigure(document.activeLayer(), brush,
         {sample(12.25, 13.75, .12), sample(60.125, 31.5, .75)}, shape, FigureStyle{}, 1789), Result::Success);
-    brush.gaussianWash->flow = 1;
+    brush.autoBrush->flow = 1;
     brush.sizeResponse.curve[128] = 1;
     const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
-    QVERIFY(operation->brush.gaussianWash == std::optional<GaussianWash>(settings));
+    QVERIFY(operation->brush.autoBrush == std::optional<AutoBrush>(settings));
     QVERIFY(operation->brush.sizeResponse == size);
     const auto retainedState = document.preview();
     QCOMPARE(document.undo(), Result::Success);
@@ -4072,7 +4072,7 @@ void KisGpuOperationDocumentTest::stationaryBrushCommitInvalidatesPendingPixelsA
     QFETCH(bool, gaussian);
     OperationDocument document(QSize(128, 128));
     Brush brush;
-    if (gaussian) brush.gaussianWash.emplace();
+    if (gaussian) brush.autoBrush.emplace();
     const auto id = document.beginStroke(document.activeLayer(), brush, 1789);
     QList<InputSample> input;
     for (int i = 0; i < count; ++i)
@@ -4384,23 +4384,23 @@ void KisGpuOperationDocumentTest::transparencyMaskCoverageReplacementPreservesHi
     QCOMPARE(document.preview(), retainedState);
 }
 
-void KisGpuOperationDocumentTest::invalidGaussianWashSettingsPreserveTheDocument()
+void KisGpuOperationDocumentTest::invalidAutoBrushSettingsPreserveTheDocument()
 {
     OperationDocument document(QSize(64, 64));
     Brush brush;
     brush.sizeResponse = {PressureResponse::Kind::Curve, 1, QList<qreal>(256, 1)};
-    auto &wash = brush.gaussianWash.emplace();
+    auto &wash = brush.autoBrush.emplace();
     wash.opacityResponse = {PressureResponse::Kind::Curve, 1, QList<qreal>(256, 1)};
     const auto before = document.preview();
     for (int invalid = 0; invalid < 6; ++invalid) {
         auto bad = brush;
         switch (invalid) {
-        case 0: bad.gaussianWash->flow = -1; break;
-        case 1: bad.gaussianWash->angle = std::numeric_limits<qreal>::infinity(); break;
+        case 0: bad.autoBrush->flow = -1; break;
+        case 1: bad.autoBrush->angle = std::numeric_limits<qreal>::infinity(); break;
         case 2: bad.sizeResponse.curve[128] = std::numeric_limits<qreal>::quiet_NaN(); break;
-        case 3: bad.gaussianWash->opacityResponse.curve[128] = 2; break;
+        case 3: bad.autoBrush->opacityResponse.curve[128] = 2; break;
         case 4: bad.sizeResponse.curve.removeLast(); break;
-        case 5: bad.gaussianWash->opacityResponse.curve.append(1); break;
+        case 5: bad.autoBrush->opacityResponse.curve.append(1); break;
         }
         QVERIFY(document.beginStroke(document.activeLayer(), bad, 1789).isNull());
         QCOMPARE(document.preview(), before);
