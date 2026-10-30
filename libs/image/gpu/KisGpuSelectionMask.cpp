@@ -112,16 +112,17 @@ QSharedPointer<const SelectionMask> morph(const SelectionMask &source, int xRadi
     const int radiusX = std::min(std::max(xRadius, 0), MaximumFeatherRadius);
     const int radiusY = std::min(std::max(yRadius, 0), MaximumFeatherRadius);
     const QRect area = source.bounds().adjusted(-radiusX, -radiusY, radiusX, radiusY).intersected(clip);
+    if (area.isEmpty()) return SelectionMask::empty();
     if (!fitsPixelBudget(area)) return {};
     const qsizetype width = area.width(), height = area.height();
     QVector<quint8> horizontal(width * height);
     for (qint64 y = 0; y < height; ++y) {
         for (qint64 x = 0; x < width; ++x) {
-            quint8 value = 0;
+            quint8 value = maximum ? 0 : 255;
             for (int offset = -radiusX; offset <= radiusX; ++offset) {
                 const qint64 sourceX = x + offset;
-                if (sourceX < 0 || sourceX >= width) continue;
-                const quint8 candidate = source.coverage(area.left() + int(sourceX), area.top() + int(y));
+                const quint8 candidate = sourceX < 0 || sourceX >= width ? 0 :
+                    source.coverage(area.left() + int(sourceX), area.top() + int(y));
                 value = maximum ? std::max(value, candidate) : std::min(value, candidate);
             }
             horizontal[y * width + x] = value;
@@ -130,11 +131,10 @@ QSharedPointer<const SelectionMask> morph(const SelectionMask &source, int xRadi
     QVector<quint8> vertical(width * height);
     for (qint64 x = 0; x < width; ++x) {
         for (qint64 y = 0; y < height; ++y) {
-            quint8 value = 0;
+            quint8 value = maximum ? 0 : 255;
             for (int offset = -radiusY; offset <= radiusY; ++offset) {
                 const qint64 sourceY = y + offset;
-                if (sourceY < 0 || sourceY >= height) continue;
-                const quint8 candidate = horizontal[sourceY * width + x];
+                const quint8 candidate = sourceY < 0 || sourceY >= height ? 0 : horizontal[sourceY * width + x];
                 value = maximum ? std::max(value, candidate) : std::min(value, candidate);
             }
             vertical[y * width + x] = value;
@@ -144,7 +144,7 @@ QSharedPointer<const SelectionMask> morph(const SelectionMask &source, int xRadi
     for (qint64 y = 0; y < height; ++y)
         for (qint64 x = 0; x < width; ++x)
             if (!builder.add(area.left() + int(x), area.top() + int(y), vertical[y * width + x])) return {};
-    return SelectionMask::fromAlphaTiles(std::move(builder.tiles));
+    return builder.bounds.isEmpty() ? SelectionMask::empty() : SelectionMask::fromAlphaTiles(std::move(builder.tiles));
 }
 
 } // namespace
@@ -520,7 +520,7 @@ QSharedPointer<const SelectionMask> SelectionMask::subtracted(const SelectionMas
                 const quint8 value = coverage(x, y), removed = other.coverage(x, y);
                 if (!builder.add(x, y, value > removed ? quint8(value - removed) : quint8(0))) return {};
             }
-        return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Alpha);
+        return builder.bounds.isEmpty() ? empty() : make(builder.bounds, std::move(builder.tiles), CoverageFormat::Alpha);
     }
     CoverageBuilder builder;
     const QRect area = m_bounds.intersected(clip);

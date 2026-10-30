@@ -3932,6 +3932,20 @@ void KisGpuOperationDocumentTest::featheredSelectionAddsAlphaHistory()
     QCOMPARE(soft->coverage(48, 48), 255);
     const quint8 edge = soft->coverage(16, 48);
     const quint8 outer = soft->coverage(10, 48);
+    // Ordinary shrink/border actions must retain the interior of a soft mask,
+    // while a filter that removes all coverage is a valid empty result.
+    const auto eroded = soft->shrunk(2, 2, clip);
+    QVERIFY(eroded);
+    QCOMPARE(eroded->coverage(48, 48), 255);
+    QVERIFY(eroded->coverage(16, 48) < edge);
+    const auto band = soft->border(2, 2, clip);
+    QVERIFY(band);
+    QCOMPARE(band->coverage(48, 48), 0);
+    QVERIFY(band->coverage(16, 48) > 0);
+    const auto removed = soft->shrunk(100, 100, clip);
+    QVERIFY(removed && removed->isEmpty());
+    const auto zeroBand = soft->border(0, 0, clip);
+    QVERIFY(zeroBand && zeroBand->isEmpty());
     QVERIFY(edge > 0 && edge < 255);
     QVERIFY(outer > 0 && outer < edge);
     QCOMPARE(hard->feathered(0, clip), SelectionMaskSP{});

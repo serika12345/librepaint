@@ -3993,8 +3993,25 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), beforeMove);
     runFilter(QStringLiteral("invertselection"), 0, 0);
-    QTRY_VERIFY(owner->selectionMask() && !owner->selectionMask()->contains(80, 80));
-    QVERIFY(owner->selectionMask()->contains(176, 176));
+    const auto selectedness = [&](QPoint point) {
+        const auto selection = lifetime->image()->globalSelection();
+        return selection ? int(selection->pixelSelection()->pixel(point).opacityU8()) : -1;
+    };
+    QTRY_COMPARE(selectedness({80, 80}), 0);
+    QCOMPARE(selectedness({176, 176}), 255);
+    runFilter(QStringLiteral("growselection"), 2, 2);
+    QTRY_COMPARE(selectedness({64, 80}), 255);
+    QCOMPARE(selectedness({80, 80}), 0);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    runFilter(QStringLiteral("shrinkselection"), 2, 2);
+    QTRY_COMPARE(selectedness({62, 80}), 0);
+    QCOMPARE(selectedness({176, 176}), 255);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    runFilter(QStringLiteral("borderselection"), 2, 2);
+    QTRY_COMPARE(selectedness({62, 80}), 255);
+    QCOMPARE(selectedness({80, 80}), 0);
+    QCOMPARE(selectedness({200, 80}), 0);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_VERIFY(owner->selectionMask()->contains(80, 80));
     runFilter(QStringLiteral("borderselection"), 2, 2);
@@ -4002,6 +4019,11 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QVERIFY(owner->selectionMask()->contains(64, 80));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_VERIFY(owner->selectionMask()->contains(80, 80));
+
+    runFilter(QStringLiteral("shrinkselection"), 200, 200);
+    QTRY_VERIFY(owner->selectionRect().isEmpty());
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QTRY_COMPARE(owner->selectionMask(), mask);
 
     QVERIFY(lifetime->image()->clearGpuSelection());
     QTRY_VERIFY(owner->selectionRect().isEmpty());
