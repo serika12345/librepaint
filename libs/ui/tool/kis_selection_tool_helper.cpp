@@ -75,6 +75,23 @@ QList<QPointF> KisSelectionToolHelper::gpuSelectionPolygonVertices(const QPainte
     return QList<QPointF>(contours.first().cbegin(), contours.first().cend());
 }
 
+bool KisSelectionToolHelper::selectGpuSelection(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
+                                               SelectionAction action)
+{
+    using LibrePaint::Image::Gpu::SelectionCombination;
+    SelectionCombination combination;
+    switch (action) {
+    case SELECTION_DEFAULT:
+    case SELECTION_REPLACE: combination = SelectionCombination::Replace; break;
+    case SELECTION_ADD: combination = SelectionCombination::Add; break;
+    case SELECTION_SUBTRACT: combination = SelectionCombination::Subtract; break;
+    case SELECTION_INTERSECT: combination = SelectionCombination::Intersect; break;
+    case SELECTION_SYMMETRICDIFFERENCE: combination = SelectionCombination::SymmetricDifference; break;
+    default: return false;
+    }
+    return m_image && m_image->combineGpuSelectionMask(mask, combination);
+}
+
 struct LazyInitGlobalSelection : public KisTransactionBasedCommand {
     LazyInitGlobalSelection(KisView *view) : m_view(view) {}
     KisView *m_view;

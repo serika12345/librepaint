@@ -111,6 +111,7 @@ public:
     Result setSelectionRect(const QRect &rect, bool inverted = false);
     Result setSelectionEllipse(const QRect &rect, bool inverted = false);
     Result setSelectionMask(const SelectionMaskSP &mask, bool inverted = false);
+    Result combineSelectionMask(const SelectionMaskSP &mask, SelectionCombination action);
     Result clearSelection();
     bool selectionInverted() const;
     LibrePaint::Image::Gpu::SelectionKind selectionKind() const;

@@ -49,6 +49,7 @@ struct KisGpuImageViewState;
 namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; class DocumentVersion; struct HsvAdjustment;
 using Snapshot = QSharedPointer<const DocumentVersion>;
 enum class SelectionKind : quint8;
+enum class SelectionCombination : quint8;
 using SelectionMaskSP = QSharedPointer<const SelectionMask>; }
 
 namespace KisMetaData
@@ -101,6 +102,8 @@ public:
     bool setGpuSelectionEllipse(const QRect &rect, bool inverted = false);
     /** Freezes already-rasterized arbitrary coverage in the GPU document. */
     bool setGpuSelectionMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask, bool inverted = false);
+    bool combineGpuSelectionMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
+                                 LibrePaint::Image::Gpu::SelectionCombination action);
     /** Freezes a closed polygon as hard-edged arbitrary coverage. */
     bool setGpuSelectionFreehand(const QList<QPointF> &points, bool inverted = false);
     QRect gpuSelectionRect() const;

@@ -115,6 +115,8 @@ public:
         const QPointF &pos,
         Qt::KeyboardModifiers modifiers) const
     {
+        if (this->image() && this->image()->gpuImage() && selectionAction() != SELECTION_REPLACE)
+            return KisNodeSP();
         if (modifiers != Qt::NoModifier) {
             return KisNodeSP();
         }
@@ -284,12 +286,6 @@ public:
             return;
         }
         if (gpu && locateSelectionMaskUnderCursor(this->convertToPixelCoord(event->point), event->modifiers())) {
-            if (selectionAction() != SELECTION_REPLACE) {
-                toolCanvas()->showToolMessage(
-                    i18n("The GPU painting engine supports replacement selection actions only."),
-                    QStringLiteral("object-locked"));
-                return;
-            }
             const QRect start = this->image()->gpuSelectionRect();
             if (start.isEmpty() || !beginMoveSelectionInteraction()) return;
             m_gpuMovingSelection = true;

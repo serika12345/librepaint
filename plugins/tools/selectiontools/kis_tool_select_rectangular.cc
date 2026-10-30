@@ -57,16 +57,23 @@ void KisToolSelectRectangular::finishRect(const QRectF& rect, qreal roundCorners
         return;
 
     const bool gpu = currentImage() && currentImage()->gpuImage();
-    if (gpu && (roundCornersX > 0 || roundCornersY > 0 || getRotationAngle() != 0 ||
-                selectionAction() != SELECTION_REPLACE)) {
-        kisCanvas->showToolMessage(i18n("The GPU painting engine supports replacement with an unrotated rectangular selection only."),
+    if (gpu && (roundCornersX > 0 || roundCornersY > 0 || getRotationAngle() != 0)) {
+        kisCanvas->showToolMessage(i18n("Rounded or rotated rectangular selections are not available for this document."),
                                    QStringLiteral("object-locked"));
         return;
     }
     QRect rc(rect.normalized().toRect());
     if (gpu) {
         if (!rc.isValid()) return;
-        if (currentImage()->setGpuSelectionRect(rc)) return;
+        KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Rectangle"));
+        if (selectionAction() == SELECTION_REPLACE || selectionAction() == SELECTION_DEFAULT) {
+            if (currentImage()->setGpuSelectionRect(rc)) return;
+        } else {
+            using LibrePaint::Image::Gpu::SelectionMask;
+            const auto clip = currentImage()->bounds();
+            const auto mask = rc.intersects(clip) ? SelectionMask::fromRectangle(rc, clip) : SelectionMask::empty();
+            if (mask && helper.selectGpuSelection(mask, selectionAction())) return;
+        }
         kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
                                    QStringLiteral("object-locked"));
         return;

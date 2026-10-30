@@ -62,16 +62,16 @@ void KisToolSelectPolygonal::finishPolyline(const QVector<QPointF> &points)
 
     if (currentImage() && currentImage()->gpuImage()) {
         if (points.count() < 3) return;
-        if (growSelection() != 0 || featherSelection() != 0 ||
-            selectionAction() != SELECTION_REPLACE) {
+        if (growSelection() != 0 || featherSelection() != 0) {
             kisCanvas->showToolMessage(
-                i18n("The GPU painting engine supports a hard-edged replacement polygon selection only."),
+                i18n("Selection growth and feathering are not available for this document."),
                 QStringLiteral("object-locked"));
             return;
         }
         const auto mask = KisSelectionToolHelper::gpuSelectionMaskFromPolygon(
             QList<QPointF>(points.cbegin(), points.cend()), currentImage()->size());
-        if (mask && currentImage()->setGpuSelectionMask(mask)) return;
+        KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Polygon"));
+        if (mask && helper.selectGpuSelection(mask, selectionAction())) return;
         kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
                                    QStringLiteral("object-locked"));
         return;

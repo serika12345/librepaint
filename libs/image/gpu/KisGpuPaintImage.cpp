@@ -351,6 +351,11 @@ Result PaintImage::clearSelection()
         m_d->document->selectionKind() == SelectionKind::Rectangle) return Result::Success;
     return publish(m_d->document->clearSelection());
 }
+Result PaintImage::combineSelectionMask(const SelectionMaskSP &mask, SelectionCombination action)
+{
+    if (!onThread()) return Result::InvalidInput;
+    return publish(m_d->document->combineSelectionMask(mask, action));
+}
 QRect PaintImage::selectionRect() const
 { return onThread() ? m_d->document->selectionRect() : QRect{}; }
 bool PaintImage::selectionInverted() const

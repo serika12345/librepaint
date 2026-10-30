@@ -418,6 +418,36 @@ Result OperationDocument::setSelectionMask(const SelectionMaskSP &mask, bool inv
 Result OperationDocument::clearSelection()
 { return setSelectionRect({}, false); }
 
+Result OperationDocument::combineSelectionMask(const SelectionMaskSP &mask, SelectionCombination action) try
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (!mask || action < SelectionCombination::Replace || action > SelectionCombination::SymmetricDifference)
+        return Result::InvalidInput;
+    const auto before = snapshot();
+    // A retained ordinary selection can include off-canvas KRA coverage.
+    // Inverted selections complement only the finite document canvas.
+    const bool inverted = before->selectionInverted ||
+        (before->selection.isEmpty() && action == SelectionCombination::Subtract);
+    const QRect canvas(QPoint(), before->size);
+    const QRect clip = inverted ? canvas : canvas.united(before->selection).united(mask->bounds());
+    SelectionMaskSP previous = SelectionMask::empty();
+    if (!before->selection.isEmpty()) {
+        if (before->selectionKind == SelectionKind::Freehand) previous = before->selectionMask;
+        else if (before->selectionKind == SelectionKind::Ellipse)
+            previous = SelectionMask::fromEllipse(before->selection, clip);
+        else previous = SelectionMask::fromRectangle(before->selection, clip);
+        if (!previous && before->selection.intersects(clip)) return Result::CapacityExceeded;
+        if (!previous) previous = SelectionMask::empty();
+    }
+    const auto result = previous->combined(*mask, action, clip, inverted);
+    if (!result) return Result::CapacityExceeded;
+    if (result->isEmpty()) return clearSelection();
+    if (!inverted && *result == *previous) return Result::Success;
+    return setSelectionMask(result);
+}
+catch (const std::bad_alloc &) { return Result::CapacityExceeded; }
+
 QRect OperationDocument::selectionRect() const { return snapshot()->selection; }
 
 bool OperationDocument::selectionInverted() const { return snapshot()->selectionInverted; }

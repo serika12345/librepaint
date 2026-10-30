@@ -524,6 +524,13 @@ bool KisImage::setGpuSelectionFreehand(const QList<QPointF> &points, bool invert
     return owner->setSelectionMask(mask, inverted) == LibrePaint::Image::Gpu::Result::Success;
 }
 
+bool KisImage::combineGpuSelectionMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
+                                      LibrePaint::Image::Gpu::SelectionCombination action)
+{
+    const auto owner = gpuImage();
+    return owner && owner->combineSelectionMask(mask, action) == LibrePaint::Image::Gpu::Result::Success;
+}
+
 QRect KisImage::gpuSelectionRect() const
 {
     const auto owner = gpuImage();

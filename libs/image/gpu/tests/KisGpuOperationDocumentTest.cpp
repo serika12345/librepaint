@@ -149,6 +149,7 @@ private Q_SLOTS:
     void identicalLayerDuplicationsPreserveTheSamePersistentIdentities();
     void insertedForeignLayersSharePixelsAndInputsWithAtomicHistory();
     void selectionDuringInputPreservesPaintingAndHistory();
+    void selectionCombinationsPreserveVersionsAndPendingInput();
     void activeLayerAndSelectionRemainIndependentAndInput();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries_data();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries();
@@ -2452,6 +2453,74 @@ void KisGpuOperationDocumentTest::activeLayerAndSelectionRemainIndependentAndInp
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.activeLayer(), first);
     QCOMPARE(document.snapshot()->selectedLayers, QList<LayerId>{second});
+}
+
+void KisGpuOperationDocumentTest::selectionCombinationsPreserveVersionsAndPendingInput()
+{
+    OperationDocument document({320, 180});
+    const QRect clip(QPoint(), document.snapshot()->size);
+    const auto shape = SelectionMask::fromRectangle({32, 48, 96, 64}, clip);
+    QVERIFY(shape);
+    const auto initial = document.snapshot();
+    QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Intersect), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
+    QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Subtract), Result::Success);
+    QVERIFY(document.selectionMask());
+    QCOMPARE(document.selectionMask()->coverage(0, 0), quint8(255));
+    QCOMPARE(document.selectionMask()->coverage(64, 64), quint8(0));
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
+
+    QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Add), Result::Success);
+    const auto selected = document.snapshot();
+    QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Add), Result::Success);
+    QCOMPARE(document.snapshot(), selected);
+    const auto stroke = paint(document, {sample(64, 64)});
+    QVERIFY(!stroke.isNull());
+    const auto frozen = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
+    QVERIFY(frozen->selectionMask && *frozen->selectionMask == *shape);
+    QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::SymmetricDifference), Result::Success);
+    QVERIFY(document.selectionRect().isEmpty());
+    QVERIFY(frozen->selectionMask->contains(64, 64));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.selectionMask(), frozen->selectionMask);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.selectionRect().isEmpty());
+
+    const auto pending = document.beginStroke(document.activeLayer(), Brush{}, 42);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(document.appendSamples(pending, {sample(90, 70)}), Result::Success);
+    const auto active = document.snapshot();
+    const int history = document.undoCount();
+    QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Add), Result::EditInProgress);
+    QCOMPARE(document.snapshot(), active);
+    QCOMPARE(document.undoCount(), history);
+    QCOMPARE(document.appendSamples(pending, {sample(92, 72)}), Result::Success);
+    QCOMPARE(document.cancelStroke(pending), Result::Success);
+    QCOMPARE(document.combineSelectionMask({}, SelectionCombination::Add), Result::InvalidInput);
+    QCOMPARE(document.combineSelectionMask(shape, SelectionCombination(255)), Result::InvalidInput);
+    document.close();
+    QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Add), Result::Closed);
+
+    OperationDocument large({65536, 65536});
+    QCOMPARE(large.setSelectionMask(shape, true), Result::Success);
+    const auto beforeCapacity = large.snapshot();
+    QCOMPARE(large.combineSelectionMask(shape, SelectionCombination::Add), Result::CapacityExceeded);
+    QCOMPARE(large.snapshot(), beforeCapacity);
+    QCOMPARE(large.undoCount(), 1);
+
+    OperationDocument outside({32, 32});
+    const QRect extended(-256, -256, 512, 512);
+    const auto retained = SelectionMask::fromRectangle({-8, -4, 16, 16}, extended);
+    const auto extra = SelectionMask::fromRectangle({64, 64, 8, 8}, extended);
+    QCOMPARE(outside.setSelectionMask(retained), Result::Success);
+    QCOMPARE(outside.combineSelectionMask(extra, SelectionCombination::Add), Result::Success);
+    QVERIFY(outside.selectionMask()->contains(-8, -4));
+    QVERIFY(outside.selectionMask()->contains(71, 71));
+    QVERIFY(!outside.selectionMask()->contains(32, 32));
+    QCOMPARE(outside.undo(), Result::Success);
+    QCOMPARE(outside.selectionMask(), retained);
 }
 
 void KisGpuOperationDocumentTest::selectionDuringInputPreservesPaintingAndHistory()

@@ -61,6 +61,9 @@ public:
      */
     static QList<QPointF> gpuSelectionPolygonVertices(const QPainterPath &path);
 
+    /** Applies a frozen shape to the GPU document with the ordinary tool action. */
+    bool selectGpuSelection(const LibrePaint::Image::Gpu::SelectionMaskSP &mask, SelectionAction action);
+
 
 private:
     QPointer<KisCanvas2> m_canvas;

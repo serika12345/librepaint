@@ -58,18 +58,25 @@ void KisToolSelectElliptical::finishRect(const QRectF &rect, qreal roundCornersX
     Q_ASSERT(kisCanvas);
 
     const bool gpu = currentImage() && currentImage()->gpuImage();
-    if (gpu && (getRotationAngle() != 0 || growSelection() != 0 || featherSelection() != 0 ||
-                selectionAction() != SELECTION_REPLACE)) {
-        kisCanvas->showToolMessage(i18n("The GPU painting engine supports an unrotated, hard-edged replacement ellipse only."),
+    if (gpu && (getRotationAngle() != 0 || growSelection() != 0 || featherSelection() != 0)) {
+        kisCanvas->showToolMessage(i18n("Rotated ellipses, selection growth and feathering are not available for this document."),
                                    QStringLiteral("object-locked"));
         return;
     }
     if (gpu) {
         const QRect rc = rect.normalized().toRect();
         if (rc.isEmpty()) return;
-        if (!currentImage()->setGpuSelectionEllipse(rc))
-            kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
-                                       QStringLiteral("object-locked"));
+        KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Ellipse"));
+        if (selectionAction() == SELECTION_REPLACE || selectionAction() == SELECTION_DEFAULT) {
+            if (currentImage()->setGpuSelectionEllipse(rc)) return;
+        } else {
+            using LibrePaint::Image::Gpu::SelectionMask;
+            const auto clip = currentImage()->bounds();
+            const auto mask = rc.intersects(clip) ? SelectionMask::fromEllipse(rc, clip) : SelectionMask::empty();
+            if (mask && helper.selectGpuSelection(mask, selectionAction())) return;
+        }
+        kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
+                                   QStringLiteral("object-locked"));
         return;
     }
 

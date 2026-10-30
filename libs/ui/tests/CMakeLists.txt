@@ -1259,6 +1259,9 @@ add_test(NAME ${gpu_document_polygon_tool_test}
 set(gpu_document_polygon_input_test libs-ui-polygon-input-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_polygon_input_test}
     COMMAND KisGpuDocumentViewTest polygonalToolCreatesArbitraryMaskSelection)
+set(gpu_document_selection_combination_test libs-ui-selection-combinations-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_selection_combination_test}
+    COMMAND KisGpuDocumentViewTest shapeSelectionCombinationsKeepEditingHistoryAndKra)
 set(gpu_document_path_tool_test libs-ui-path-tool-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_path_tool_test}
     COMMAND KisGpuDocumentViewTest pathToolClosedPathCreatesPolygonCoverage)
@@ -1293,7 +1296,7 @@ set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
     ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_brush_blend_test}
     ${gpu_document_brush_presets_test} ${gpu_document_native_clipboard_test}
-    ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_path_tool_test}
+    ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_selection_combination_test} ${gpu_document_path_tool_test}
     ${gpu_document_path_input_test} ${gpu_document_feather_test} ${gpu_document_filter_test}
     ${gpu_document_grayscale_filter_test} ${gpu_document_hsv_filter_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})
@@ -1418,6 +1421,7 @@ endif()
 # Five background rows each cover capture retries under a fully loaded GUI.
 set_tests_properties(${gpu_document_background_tests} PROPERTIES TIMEOUT 180)
 set_tests_properties(${gpu_document_pixel_test} PROPERTIES TIMEOUT 600)
+set_tests_properties(${gpu_document_selection_combination_test} PROPERTIES TIMEOUT 600)
 
 
 ##### Tests that currently fail and should be fixed #####

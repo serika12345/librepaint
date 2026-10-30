@@ -160,6 +160,73 @@ QSharedPointer<const SelectionMask> SelectionMask::empty()
     return mask;
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::combined(const SelectionMask &other,
+    SelectionCombination action, const QRect &clip, bool inverted) const
+{
+    if (action < SelectionCombination::Replace || action > SelectionCombination::SymmetricDifference ||
+        clip.isEmpty() || qint64(clip.left()) < -CoordinateLimit || qint64(clip.top()) < -CoordinateLimit ||
+        qint64(clip.right()) >= CoordinateLimit || qint64(clip.bottom()) >= CoordinateLimit) return {};
+    const QRect first = inverted ? clip : bounds().intersected(clip);
+    const QRect second = other.bounds().intersected(clip);
+    QRect area;
+    switch (action) {
+    case SelectionCombination::Replace: area = second; break;
+    case SelectionCombination::Add:
+    case SelectionCombination::SymmetricDifference: area = first.united(second); break;
+    case SelectionCombination::Subtract: area = first; break;
+    case SelectionCombination::Intersect: area = first.intersected(second); break;
+    }
+    if (area.isEmpty()) return empty();
+    const bool alpha = (action != SelectionCombination::Replace && isAlpha()) || other.isAlpha();
+    QSet<SelectionTileKey> coordinates;
+    const bool dense = inverted && action != SelectionCombination::Replace;
+    if (dense) {
+        const int left = floorDivide(area.left(), TileSize), right = floorDivide(area.right(), TileSize);
+        const int top = floorDivide(area.top(), TileSize), bottom = floorDivide(area.bottom(), TileSize);
+        const qsizetype count = qint64(right - left + 1) * qint64(bottom - top + 1);
+        if (count > MaximumBytes / (alpha ? AlphaTileBytes : TileBytes)) return {};
+        for (int y = top; y <= bottom; ++y)
+            for (int x = left; x <= right; ++x) coordinates.insert({x, y});
+    } else {
+        if (action != SelectionCombination::Replace)
+            for (auto tile = tiles().cbegin(); tile != tiles().cend(); ++tile) coordinates.insert(tile.key());
+        if (action != SelectionCombination::Subtract)
+            for (auto tile = other.tiles().cbegin(); tile != other.tiles().cend(); ++tile) coordinates.insert(tile.key());
+    }
+    CoverageBuilder binary;
+    AlphaBuilder fractional;
+    for (const auto &key : coordinates) {
+        const QRect covered = QRect(QPoint(key.first, key.second) * TileSize, QSize(TileSize, TileSize)).intersected(area);
+        for (int y = covered.top(); !covered.isEmpty() && y <= covered.bottom(); ++y) {
+            int run = -1;
+            for (int x = covered.left(); x <= covered.right(); ++x) {
+                const int a = inverted ? 255 - coverage(x, y) : coverage(x, y);
+                const int b = other.coverage(x, y);
+                int value = b;
+                switch (action) {
+                case SelectionCombination::Replace: break;
+                case SelectionCombination::Add: value = std::min(a + b, 255); break;
+                case SelectionCombination::Subtract: value = std::max(a - b, 0); break;
+                case SelectionCombination::Intersect: value = std::min(a, b); break;
+                case SelectionCombination::SymmetricDifference: value = std::abs(a - b); break;
+                }
+                if (alpha) {
+                    if (!fractional.add(x, y, quint8(value))) return {};
+                } else {
+                    if (value && run < 0) run = x;
+                    if (run >= 0 && (!value || x == covered.right())) {
+                        binary.addSpan(y, run, value ? x : x - 1);
+                        if (binary.bytes < 0) return {};
+                        run = -1;
+                    }
+                }
+            }
+        }
+    }
+    if (alpha) return fractional.tiles.isEmpty() ? empty() : make(fractional.bounds, std::move(fractional.tiles), CoverageFormat::Alpha);
+    return binary.tiles.isEmpty() ? empty() : make(binary.bounds, std::move(binary.tiles), CoverageFormat::Binary);
+}
+
 QSharedPointer<const SelectionMask> SelectionMask::make(QRect bounds, SelectionTileMap tiles, CoverageFormat format)
 {
     if (tiles.isEmpty() || bounds.isEmpty() || bounds.width() <= 0 || bounds.height() <= 0) return {};

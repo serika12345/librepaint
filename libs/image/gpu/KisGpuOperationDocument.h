@@ -866,6 +866,8 @@ public:
      * selectionRect().
      */
     Result setSelectionMask(const SelectionMaskSP &mask, bool inverted = false);
+    /** Applies a tool selection in one history entry; failure preserves the version. */
+    Result combineSelectionMask(const SelectionMaskSP &mask, SelectionCombination action);
     Result clearSelection();
     QRect selectionRect() const;
     bool selectionInverted() const;

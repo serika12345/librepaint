@@ -25,6 +25,9 @@ namespace LibrePaint::Image::Gpu {
 using SelectionTileKey = QPair<int, int>;
 using SelectionTileMap = QMap<SelectionTileKey, QByteArray>;
 
+/** Native pixel-selection arithmetic, including fractional coverage. */
+enum class SelectionCombination : quint8 { Replace, Add, Subtract, Intersect, SymmetricDifference };
+
 /**
  * Frozen document coverage for an arbitrary selection.
  *
@@ -78,6 +81,14 @@ public:
      * Values are retained; nonzero bytes form the selected bounds.
      */
     static QSharedPointer<const SelectionMask> fromAlphaTiles(const SelectionTileMap &tiles);
+    /** Combines frozen input coverage inside `clip`. Addition saturates,
+     * subtraction clamps at zero, intersection takes the minimum and symmetric
+     * difference takes the absolute difference, matching native Alpha8 selection.
+     * Empty coverage is a valid value; null reports invalid input or capacity.
+     * Inversion complements the existing coverage inside the document bounds.
+     */
+    QSharedPointer<const SelectionMask> combined(const SelectionMask &other, SelectionCombination action,
+                                                const QRect &clip, bool inverted = false) const;
     /** Translates the coverage by `delta`, clipping it to `clip`. Alpha masks
      * retain their fractional values. */
     QSharedPointer<const SelectionMask> translated(QPoint delta, const QRect &clip) const;
