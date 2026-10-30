@@ -28,6 +28,7 @@
 #include <QPointer>
 #include <QPushButton>
 #include <QPainter>
+#include <QPainterPathStroker>
 #include <QSignalSpy>
 #include <QStatusBar>
 #include <QScopeGuard>
@@ -287,6 +288,7 @@ private Q_SLOTS:
     void polygonalToolCreatesArbitraryMaskSelection();
     void shapeSelectionCombinationsKeepEditingHistoryAndKra_data();
     void shapeSelectionCombinationsKeepEditingHistoryAndKra();
+    void selectionOutlineKeepsOnlyEffectiveCoverageBoundaries();
     void pathToolCreatesArbitraryMaskSelection();
     void featherActionSoftensFreehandSelection();
     void pasteClipboardImageCreatesGpuLayer_data();
@@ -4184,6 +4186,52 @@ void KisGpuDocumentViewTest::polygonalToolCreatesArbitraryMaskSelection()
     QCOMPARE(owner->operations().undoCount(), 1);
     QTRY_VERIFY(lifetime->image()->globalSelection());
     QTRY_COMPARE(lifetime->image()->globalSelection()->selectedExactRect(), mask->bounds());
+}
+
+void KisGpuDocumentViewTest::selectionOutlineKeepsOnlyEffectiveCoverageBoundaries()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    const QRect canvas(0, 0, 64, 64);
+    const auto owner = paintImageWithEncoding(execution, canvas.size());
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Selection boundary"));
+    const auto ellipse = Gpu::SelectionMask::fromEllipse({8, 8, 48, 48}, canvas);
+    const auto hole = Gpu::SelectionMask::fromRectangle({24, 24, 12, 16}, canvas);
+    const auto hard = ellipse->combined(*hole, Gpu::SelectionCombination::Subtract, canvas);
+    QVERIFY(hard);
+    for (const bool alpha : {false, true}) for (const bool inverted : {false, true}) {
+        QByteArray raw(64 * 64, '\0');
+        for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x)
+            raw[y * 64 + x] = char(hard->contains(x, y) ? (alpha ? (x < 20 ? 96 : 200) : 255) : 0);
+        const auto coverage = alpha ? Gpu::SelectionMask::fromAlphaCoverage(canvas, raw, canvas) : hard;
+        QByteArray effective = raw;
+        if (inverted) for (char &value : effective) value = char(255 - quint8(value));
+        QVERIFY(image->setGpuSelectionMask(coverage, inverted));
+        const auto synchronized = [&] {
+            if (!image->globalSelection()) return false;
+            QByteArray actual(raw.size(), '\0');
+            image->globalSelection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(actual.data()), canvas);
+            return actual == effective;
+        };
+        QTRY_VERIFY(synchronized());
+        const auto outline = image->globalSelection()->outlineCache();
+        for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x)
+            QCOMPARE(outline.contains(QPointF(x + 0.5, y + 0.5)), quint8(effective[y * 64 + x]) >= 128);
+        QPainterPathStroker stroker;
+        stroker.setWidth(1.5);
+        const auto border = stroker.createStroke(outline);
+        QVERIFY(border.contains(QPointF(24, 32)));
+        for (int y = 2; y < 62; ++y) for (int x = 2; x < 62; ++x) {
+            bool interior = true;
+            for (int dy = -2; dy <= 2; ++dy) for (int dx = -2; dx <= 2; ++dx)
+                interior &= quint8(effective[(y + dy) * 64 + x + dx]) >= 128;
+            const QByteArray context = QStringLiteral("alpha=%1 inverted=%2 interior=(%3,%4)")
+                .arg(alpha).arg(inverted).arg(x).arg(y).toLatin1();
+            if (interior) QVERIFY2(!border.contains(QPointF(x + 0.5, y)), context.constData());
+        }
+    }
 }
 
 void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra_data()

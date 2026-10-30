@@ -817,7 +817,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
                     const quint8 stored = x <= covered.right() ? coverage->coverage(x, y) : 0;
                     const quint8 effective = inverted ? quint8(255u - stored) : stored;
                     if (x <= covered.right()) values[(y - covered.top()) * covered.width() + x - covered.left()] = char(effective);
-                    const bool outlined = x <= covered.right() && effective >= 128;
+                    const bool outlined = x <= covered.right() && stored >= 128;
                     if (outlined && runStart < 0) runStart = x;
                     else if (!outlined && runStart >= 0) { region += QRect(runStart, y, x - runStart, 1); runStart = -1; }
                 }
@@ -896,6 +896,8 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
         }
     }
     if (rect.isEmpty() && inverted) { pixels->select(bounds()); outline.addRect(bounds()); }
+    if (kind == LibrePaint::Image::Gpu::SelectionKind::Freehand)
+        outline = outline.simplified();
     pixels->setOutlineCache(outline);
     selection->updateProjection(inverted ? bounds() : (rect.isEmpty() ? bounds() : rect));
     mask->setDirty(inverted ? bounds() : previousRect.united(rect));

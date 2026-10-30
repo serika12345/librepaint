@@ -1261,7 +1261,8 @@ add_test(NAME ${gpu_document_polygon_input_test}
     COMMAND KisGpuDocumentViewTest polygonalToolCreatesArbitraryMaskSelection)
 set(gpu_document_selection_combination_test libs-ui-selection-combinations-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_selection_combination_test}
-    COMMAND KisGpuDocumentViewTest shapeSelectionCombinationsKeepEditingHistoryAndKra)
+    COMMAND KisGpuDocumentViewTest shapeSelectionCombinationsKeepEditingHistoryAndKra
+        selectionOutlineKeepsOnlyEffectiveCoverageBoundaries)
 set(gpu_document_path_tool_test libs-ui-path-tool-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_path_tool_test}
     COMMAND KisGpuDocumentViewTest pathToolClosedPathCreatesPolygonCoverage)
