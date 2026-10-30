@@ -165,6 +165,7 @@ struct TileRenderer::Private
     std::array<Detail::NativeComputePipeline, 2> regionConversions;
     Detail::NativeComputePipeline regionEncoding;
     std::array<Detail::NativeComputePipeline, 3> regionConnect, regionResolve, regionAntiAlias, regionFiltered;
+    std::array<Detail::NativeComputePipeline, 3> regionVertical, regionMorph, regionMorphed;
     struct RegionCoverage {
         std::shared_ptr<Detail::BufferStorage> pixels, status;
     };
@@ -177,6 +178,7 @@ struct TileRenderer::Private
     QWeakPointer<const LibrePaint::Pigment::Color::NativeLabConversion> nativeLabDefinition;
     std::shared_ptr<Detail::BufferStorage> nativeLabValues;
     bool nativeLabHasDefinition = false;
+    int nativeLabRadius = 0;
     bool selectionZeroUploaded = false;
     QString error;
     QWeakPointer<const RenderedVersion> coverageVersion;

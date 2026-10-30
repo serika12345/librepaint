@@ -141,7 +141,7 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
         (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers &&
          settings.reference != RegionFillReference::ColorLabeledLayers) || settings.colorLabels.size() > 9 ||
         std::any_of(settings.colorLabels.cbegin(), settings.colorLabels.cend(), [](int label) { return label < 0 || label > 8; }) ||
-        settings.threshold < 0 || settings.threshold > 255 ||
+        settings.threshold < 0 || settings.threshold > 255 || settings.sizeMod < -400 || settings.sizeMod > 400 ||
         settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
         !QRect(QPoint(), snapshot()->size).contains(settings.seed) ||
         (settings.boundaryColor && (settings.mode != RegionFillMode::Contiguous || !validPixel(*settings.boundaryColor, snapshot()->format))))
@@ -166,8 +166,11 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
     region->preparedFor = snapshot();
     region->layer = layer;
     region->settings = settings;
-    region->coverageSize = settings.antiAlias
-        ? QSize((source->size.width() + 63) / 64 * 64, (source->size.height() + 63) / 64 * 64) : source->size;
+    const int border = (qMax(0, settings.sizeMod) + 63) / 64 * 64;
+    region->coverageOrigin = {-border, -border};
+    region->coverageSize = settings.antiAlias || settings.sizeMod
+        ? QSize((source->size.width() + 63) / 64 * 64 + 2 * border,
+                (source->size.height() + 63) / 64 * 64 + 2 * border) : source->size;
     *output = region;
     return Result::Success;
 }
@@ -190,7 +193,7 @@ Result OperationDocument::fillRegion(LayerId layer, const RegionFillSP &region, 
     style.fillBlendMode = blendMode;
     const QRect bounds = region->bounds;
     if (bounds.isEmpty()) return Result::EmptyOperation;
-    if (!QRect(QPoint(), region->coverageSize).contains(bounds)) return Result::InvalidInput;
+    if (!QRect(region->coverageOrigin, region->coverageSize).contains(bounds)) return Result::InvalidInput;
     const QPointF start = bounds.topLeft(), end = start + QPointF(bounds.width(), bounds.height());
     const auto result = paintFigureWithin(layer, brush, {{start, 1}, {end, 1}},
         {ShapeKind::Rectangle, start, end, 0}, style, 0, bounds, region);

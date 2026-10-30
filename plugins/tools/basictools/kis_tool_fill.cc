@@ -407,8 +407,8 @@ void KisToolFill::fillGpuSelection(QPoint seed)
     Gpu::RegionFillSettings regionSettings;
     if (region) {
         const bool contiguous = m_effectiveFillMode == FillMode_FillContiguousRegion;
-        if (mask || (contiguous && m_closeGap) || m_sizemod || m_feather) {
-            reject(i18n("Region filling currently requires a paint layer and no growth or feathering; contiguous filling also requires gap closing to be disabled."));
+        if (mask || (contiguous && m_closeGap) || (m_sizemod > 0 && m_stopGrowingAtDarkestPixel) || m_feather) {
+            reject(i18n("Region filling currently requires a paint layer, no feathering, and growth without darkest-pixel stopping; contiguous filling also requires gap closing to be disabled."));
             return;
         }
         regionSettings.seed = seed;
@@ -435,6 +435,7 @@ void KisToolFill::fillGpuSelection(QPoint seed)
         regionSettings.opacitySpread = m_opacitySpread;
         regionSettings.selectionAsBoundary = m_useSelectionAsBoundary;
         regionSettings.antiAlias = m_antiAlias;
+        regionSettings.sizeMod = m_sizemod;
         if (m_threshold != 1) {
             const auto colour = targetImage->colorSpace()->nativeLabConversion();
             if (colour.code == LibrePaint::Pigment::Color::NativeLabConversionResult::Success)

@@ -433,11 +433,12 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     var selectionAlpha = 255u;
     if ((parameters.paintFlags & 262144u) != 0u) {
         let extent = parameters.patternSampling.zw;
-        if (pixel.x < 0 || pixel.y < 0 || u32(pixel.x) >= extent.x || u32(pixel.y) >= extent.y) {
+        let local = pixel - selection.xy;
+        if (any(local < vec2<i32>()) || any(vec2<u32>(local) >= extent)) {
             writePaintPixel(index, paintBase(index));
             return;
         }
-        selectionAlpha = selectionCoverage[u32(pixel.y) * extent.x + u32(pixel.x)];
+        selectionAlpha = selectionCoverage[u32(local.y) * extent.x + u32(local.x)];
         if (selectionAlpha == 0u) {
             writePaintPixel(index, paintBase(index));
             return;
@@ -516,7 +517,8 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
         // Region post-filters can select outside the finite fill source. The
         // native source device supplies transparent black there, including Copy.
-        if ((parameters.paintFlags & 262144u) != 0u && !insideSelectionBounds) { fillColor = vec4<u32>(); }
+        if ((parameters.paintFlags & 262144u) != 0u &&
+            (any(pixel < vec2<i32>()) || any(pixel >= selection.zw))) { fillColor = vec4<u32>(); }
         var fillAlpha = mul255(fillColor.w, fillCoverage);
         if (parameters.native.z != 0u) { fillAlpha = mul65535(fillColor.w, fillCoverage * 257u); }
         // Native marker writes retain the fill color at equal temporary alpha.

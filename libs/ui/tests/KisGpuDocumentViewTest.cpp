@@ -7295,7 +7295,11 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing_data()
                                  "contiguous-colour-labeled", "similar-colour-labeled-pattern", "similar-colour-labeled-soft-masked", "contiguous-boundary-colour-labeled",
                                  "similar-colour-labeled-active", "similar-colour-labeled-nomatch", "similar-colour-labeled-empty", "similar-colour-labeled-hidden",
                                  "similar-colour-labeled-group-child", "similar-colour-labeled-group-selected", "similar-colour-labeled-group-pass",
-                                 "similar-colour-labeled-group-hidden", "similar-colour-labeled-group-unlabeled", "similar-colour-labeled-group-order"}) {
+                                 "similar-colour-labeled-group-hidden", "similar-colour-labeled-group-unlabeled", "similar-colour-labeled-group-order",
+                                 "contiguous-colour-grow", "similar-colour-grow-soft", "contiguous-boundary-colour-grow-pattern", "contiguous-colour-grow-masked",
+                                 "similar-colour-grow-labeled-active", "similar-colour-grow-wide", "contiguous-colour-grow-aa",
+                                 "similar-colour-shrink", "contiguous-colour-shrink-soft", "similar-colour-shrink-pattern", "similar-colour-shrink-masked",
+                                 "contiguous-boundary-colour-shrink-aa", "contiguous-colour-edge-grow-copy", "similar-colour-grow-limit", "similar-colour-shrink-limit"}) {
             QTest::newRow(QByteArray(QByteArray(words ? "word-" : "byte-") + name).constData()) << words << QString::fromLatin1(name);
         }
     }
@@ -7319,7 +7323,12 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     const bool merged = scenario.contains(QLatin1String("merged"));
     const bool boundary = scenario.contains(QLatin1String("boundary"));
     const bool antiAlias = scenario.contains(QLatin1String("-aa"));
-    const bool edgeCanvas = scenario.contains(QLatin1String("edge-aa"));
+    const bool edgeCanvas = scenario.contains(QLatin1String("-edge-"));
+    const bool grow = scenario.contains(QLatin1String("-grow"));
+    const bool shrink = scenario.contains(QLatin1String("-shrink"));
+    const int radius = grow || shrink ? (scenario.endsWith(QLatin1String("limit")) ? 400 : scenario.endsWith(QLatin1String("wide")) ? 40 : scenario.contains(QLatin1String("soft")) ? 7 : 3) : 0;
+    const int sizeMod = shrink ? -radius : radius;
+    const int margin = (qMax(0, sizeMod) + 63) / 64 * 64;
     const bool softRegion = colourRegion && scenario.contains(QLatin1String("soft"));
     const bool excludedSeed = scenario.contains(QLatin1String("excluded-seed"));
     const bool contiguous = scenario.startsWith(QLatin1String("contiguous"));
@@ -7329,7 +7338,7 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     const int spread = softRegion ? 35 : 100;
     const bool offcanvas = scenario.startsWith(QLatin1String("offcanvas"));
     const QRect region(offcanvas ? QPoint(-12, -9) : QPoint(), edgeCanvas ? QSize(103, 79) : QSize(64, 64));
-    const QRect inspected = edgeCanvas ? QRect(-2, -2, 136, 136) : region;
+    const QRect inspected = radius ? region.adjusted(-margin, -margin, margin, margin) : edgeCanvas ? QRect(-2, -2, 136, 136) : region;
     const int stride = cs->pixelSize();
     const bool api = scenario.startsWith(QLatin1String("api"));
     const bool figure = api || scenario.startsWith(QLatin1String("rectangle")) || scenario.startsWith(QLatin1String("ellipse"));
@@ -7360,7 +7369,8 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
         configuration.writeEntry("opacitySpread", spread);
         configuration.writeEntry("antiAlias", antiAlias);
         configuration.writeEntry("closeGapAmount", 0);
-        configuration.writeEntry("growSelection", 0);
+        configuration.writeEntry("growSelection", sizeMod);
+        configuration.writeEntry("stopGrowingAtDarkestPixel", false);
         configuration.writeEntry("featherAmount", 0);
         configuration.writeEntry("sampleLayersMode", labeled ? "colorLabeledLayers" : merged ? "allLayers" : "currentLayer");
         if (labeled) {
@@ -7570,7 +7580,9 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     transform.rotate(rotation); transform.scale(scale * .01, scale * .01);
     int regionEdits = 0;
     const auto regionSeed = [&] { return defaultThreshold && regionEdits > 0 ? QPoint(40, 24) : QPoint(24, 24); };
+    bool emptyNativeRegion = false;
     const auto applyExpected = [&](bool smooth) {
+        emptyNativeRegion = false;
         KisPaintDeviceSP reference = expectedDevice;
         if (labeled) {
             // The real native labelled-layer command owns root selection,
@@ -7619,11 +7631,19 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
             classifier.setFillThreshold(threshold); classifier.setOpacitySpread(spread);
             classifier.createSimilarColorsSelection(selected->pixelSelection(), reference->pixel(regionSeed()), reference,
                 region, selection ? selection->pixelSelection() : KisPixelSelectionSP());
+            if (sizeMod > 0) {
+                KisGrowSelectionFilter filter(sizeMod, sizeMod);
+                filter.process(selected->pixelSelection(), selected->pixelSelection()->selectedRect().adjusted(-sizeMod, -sizeMod, sizeMod, sizeMod));
+            } else if (sizeMod < 0) {
+                KisShrinkSelectionFilter filter(-sizeMod, -sizeMod, false);
+                filter.process(selected->pixelSelection(), selected->pixelSelection()->selectedRect());
+            }
             if (smooth) {
                 KisAntiAliasSelectionFilter filter;
                 filter.process(selected->pixelSelection(), selected->pixelSelection()->selectedRect());
             }
             if (selection) selected->pixelSelection()->applySelection(selection->pixelSelection(), SELECTION_INTERSECT);
+            if (radius) emptyNativeRegion = selected->pixelSelection()->selectedExactRect().isEmpty();
             KisPaintDeviceSP source = new KisPaintDevice(cs);
             KisFillPainter fill(source);
             if (pattern) fill.fillRectNoCompose(region, patternResource, transform);
@@ -7644,11 +7664,16 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
                 fill.setRegionFillingBoundaryColor(KoColor(reinterpret_cast<const quint8 *>(bytes.constData()), cs));
             }
             fill.setUseCompositing(true); fill.setCareForSelection(bool(selection));
-            fill.setUseSelectionAsBoundary(bool(selection)); fill.setAntiAlias(smooth);
+            fill.setUseSelectionAsBoundary(bool(selection)); fill.setAntiAlias(smooth); fill.setSizemod(sizeMod);
             fill.setOpacityF(opacity); fill.setCompositeOpId(composite); fill.setChannelFlags(flags);
             fill.setPaintColor(background ? resources->bgColor() : resources->fgColor());
             fill.setPattern(patternResource);
             const auto seed = regionSeed();
+            if (radius) {
+                auto nativeMask = fill.createFloodSelection(seed.x(), seed.y(), reference, selection ? selection->pixelSelection() : KisPixelSelectionSP());
+                if (selection) nativeMask->applySelection(selection->pixelSelection(), SELECTION_INTERSECT);
+                emptyNativeRegion = nativeMask->selectedExactRect().isEmpty();
+            }
             if (pattern) fill.fillPattern(seed.x(), seed.y(), reference, transform);
             else fill.fillColor(seed.x(), seed.y(), reference);
             return;
@@ -7739,11 +7764,11 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
         }
         return true;
     };
-    if (edgeCanvas) initial = expectedPixels();
+    if (edgeCanvas || radius) initial = expectedPixels();
     const auto layer = owner->operations().activeLayer();
     const auto count = owner->operations().undoCount();
     QByteArray unfiltered;
-    if (edgeCanvas) {
+    if (edgeCanvas && antiAlias) {
         const auto original = expectedDevice;
         expectedDevice = new KisPaintDevice(*original);
         applyExpected(false);
@@ -7751,8 +7776,14 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
         expectedDevice = original;
     }
     applyExpected(antiAlias);
-    if (edgeCanvas) QVERIFY2(expectedPixels() != unfiltered, "The diagonal boundary must exercise native anti-aliasing");
+    if (edgeCanvas && antiAlias) QVERIFY2(expectedPixels() != unfiltered, "The diagonal boundary must exercise native anti-aliasing");
     QVERIFY(click());
+    if (radius && emptyNativeRegion) {
+        QCOMPARE(expectedPixels(), initial);
+        QCOMPARE(owner->readRgbaPixels(layer, inspected, initial.size()).bytes, initial);
+        QCOMPARE(owner->operations().undoCount(), count);
+        return;
+    }
     QTRY_COMPARE(owner->operations().undoCount(), count + 1);
     ++regionEdits;
     const auto expected = expectedPixels();

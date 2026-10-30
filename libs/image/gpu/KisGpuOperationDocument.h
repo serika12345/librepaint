@@ -53,6 +53,8 @@ struct RegionFillSettings
     int opacitySpread = 100;
     bool selectionAsBoundary = false;
     bool antiAlias = false;
+    /** Native circular dilation (positive) or erosion (negative), in pixels. */
+    int sizeMod = 0;
     /** A colour boundary selects the contiguous component outside its similarity range. */
     std::optional<RgbaPixel> boundaryColor;
     /** Exact native colour definition captured from the document's colour space. */
@@ -69,6 +71,7 @@ struct RegionFill
     RegionFillSettings settings;
     /** Finite coverage includes native selection blocks for edge filtering. */
     QSize coverageSize;
+    QPoint coverageOrigin;
     QRect bounds;
 };
 using RegionFillSP = QSharedPointer<const RegionFill>;

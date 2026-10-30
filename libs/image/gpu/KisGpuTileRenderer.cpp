@@ -1150,7 +1150,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         job.values.paintFlags |= ContiguousRegion;
                         job.values.patternReserved0 = operation.region->coverageSize.width();
                         job.values.patternReserved1 = operation.region->coverageSize.height();
-                        job.values.selectionX = job.values.selectionY = 0;
+                        job.values.selectionX = operation.region->coverageOrigin.x();
+                        job.values.selectionY = operation.region->coverageOrigin.y();
                         job.values.selectionWidth = operation.region->source->size.width();
                         job.values.selectionHeight = operation.region->source->size.height();
                         job.selectionCoverage = std::shared_ptr<NativeBuffer>(regionCoverage, &regionCoverage->pixels);

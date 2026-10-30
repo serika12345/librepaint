@@ -4,7 +4,7 @@ struct RegionParameters {
     size: vec2<u32>, seed: vec2<u32>,
     format: u32, threshold: u32, spread: u32, flags: u32,
     implicit: vec4<u32>, selection: vec4<i32>, boundary: vec4<u32>,
-    documentSize: vec2<u32>, reserved: vec2<u32>
+    documentSize: vec2<u32>, origin: vec2<i32>, level: vec4<u32>
 }
 @group(0) @binding(0) var<uniform> parameters: RegionParameters;
 @group(0) @binding(1) var<storage, read> atlas: array<u32>;
@@ -16,10 +16,13 @@ struct RegionParameters {
 @group(0) @binding(7) var<storage, read> conversion: array<u32>;
 // The same workspace holds conversion intermediates, then Lab16 and parent
 // labels in disjoint words. Dispatch boundaries freeze each completed stage.
+fn morphRadius() -> u32 { return parameters.flags >> 16u; }
+fn morphLevels() -> u32 { return 31u - countLeadingZeros(2u * morphRadius() + 1u); }
 fn labelStride() -> u32 {
-    if (NATIVE_LAB_KIND == 2u) { return 6u; }
-    if (NATIVE_LAB_KIND == 1u) { return 3u; }
-    return 1u;
+    var native = 1u;
+    if (NATIVE_LAB_KIND == 2u) { native = 6u; }
+    if (NATIVE_LAB_KIND == 1u) { native = 3u; }
+    return max(native, morphLevels() + 1u);
 }
 fn parentIndex(index: u32) -> u32 {
     return index * labelStride() + select(0u, 2u, NATIVE_LAB_KIND != 0u);
@@ -33,14 +36,20 @@ fn storeLab(index: u32, value: vec3<u32>) {
     atomicStore(&labels[index * labelStride()], value.x | (value.y << 16u));
     atomicStore(&labels[index * labelStride() + 1u], value.z);
 }
+fn tileIndex(value: i32) -> i32 { return value >> 8u; }
 fn entry(point: vec2<u32>) -> vec2<i32> {
-    return directory[(point.y / 256u) * ((parameters.size.x + 255u) / 256u) + point.x / 256u];
+    let world = vec2<i32>(point) + parameters.origin;
+    let first = vec2<i32>(tileIndex(parameters.origin.x), tileIndex(parameters.origin.y));
+    let columns = (parameters.origin.x + i32(parameters.size.x) + 255) / 256 - first.x;
+    let tile = vec2<i32>(tileIndex(world.x), tileIndex(world.y)) - first;
+    return directory[u32(tile.y * columns + tile.x)];
 }
 fn pixel(point: vec2<u32>) -> vec4<u32> {
     let offset = entry(point).x;
     if (offset < 0) { return parameters.implicit; }
+    let world = vec2<u32>(vec2<i32>(point) + parameters.origin);
     let stride = select(1u, 2u, parameters.format != 0u);
-    let word = u32(offset) + ((point.y % 256u) * 256u + point.x % 256u) * stride;
+    let word = u32(offset) + ((world.y % 256u) * 256u + world.x % 256u) * stride;
     return nativePixel(atlas[word], atlas[word + stride - 1u], parameters.format != 0u);
 }
 fn alphaByte(value: u32) -> u32 {
@@ -50,12 +59,13 @@ fn alphaByte(value: u32) -> u32 {
 fn selected(point: vec2<u32>) -> u32 {
     if ((parameters.flags & 1u) == 0u) { return 255u; }
     var value = 0u;
-    let p = vec2<i32>(point);
+    let p = vec2<i32>(point) + parameters.origin;
     let rect = parameters.selection;
     if ((parameters.flags & 4u) != 0u) {
         let offset = entry(point).y;
         if (offset >= 0) {
-            let index = (point.y % 256u) * 256u + point.x % 256u;
+            let local = p - vec2<i32>(tileIndex(p.x), tileIndex(p.y)) * 256;
+            let index = u32(local.y * 256 + local.x);
             if ((parameters.flags & 8u) != 0u) {
                 value = (selection[u32(offset) + (index >> 2u)] >> ((index & 3u) * 8u)) & 255u;
             } else {
@@ -66,7 +76,7 @@ fn selected(point: vec2<u32>) -> u32 {
         value = 255u;
         if ((parameters.flags & 2u) != 0u) {
             let radius = vec2<f32>(rect.zw) * 0.5;
-            let relative = (vec2<f32>(point) + vec2<f32>(0.5) - vec2<f32>(rect.xy) - radius) / radius;
+            let relative = (vec2<f32>(p) + vec2<f32>(0.5) - vec2<f32>(rect.xy) - radius) / radius;
             value = select(0u, 255u, dot(relative, relative) <= 1.0);
         }
     }
@@ -79,7 +89,9 @@ fn opacity(difference: u32) -> u32 {
 }
 @compute @workgroup_size(8, 8) fn convert(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let p = invocation.xy;
-    if (any(p >= parameters.documentSize)) { return; }
+    if (any(p >= parameters.size)) { return; }
+    let world = vec2<i32>(p) + parameters.origin;
+    if (any(world < vec2<i32>()) || any(world >= vec2<i32>(parameters.documentSize))) { return; }
     var index = p.y * parameters.size.x + p.x;
     let channels = select(1u, 3u, NATIVE_LAB_KIND == 2u);
     var rgba = pixel(p);
@@ -93,20 +105,22 @@ fn opacity(difference: u32) -> u32 {
         storeLab(index, nativeLabClut(input));
     } else if (NATIVE_LAB_KIND == 2u) {
         let value = nativeLabLinearComponent(input, invocation.z % channels);
-        let offset = index * 6u + (invocation.z % channels) * 2u;
+        let offset = index * labelStride() + (invocation.z % channels) * 2u;
         atomicStore(&labels[offset], value.x);
         atomicStore(&labels[offset + 1u], value.y);
     }
 }
 @compute @workgroup_size(8, 8) fn encode(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let p = invocation.xy;
-    if (any(p >= parameters.documentSize)) { return; }
+    if (any(p >= parameters.size)) { return; }
+    let world = vec2<i32>(p) + parameters.origin;
+    if (any(world < vec2<i32>()) || any(world >= vec2<i32>(parameters.documentSize))) { return; }
     var index = p.y * parameters.size.x + p.x;
     if (invocation.z != 0u) {
         if (any(p != parameters.seed)) { return; }
         index = parameters.size.x * parameters.size.y;
     }
-    let offset = index * 6u;
+    let offset = index * labelStride();
     let fx = Word64(atomicLoad(&labels[offset]), atomicLoad(&labels[offset + 1u]));
     let fy = Word64(atomicLoad(&labels[offset + 2u]), atomicLoad(&labels[offset + 3u]));
     let fz = Word64(atomicLoad(&labels[offset + 4u]), atomicLoad(&labels[offset + 5u]));
@@ -116,7 +130,8 @@ fn opacity(difference: u32) -> u32 {
     let p = invocation.xy;
     if (any(p >= parameters.size)) { return; }
     let index = p.y * parameters.size.x + p.x;
-    if (any(p >= parameters.documentSize)) {
+    let world = vec2<i32>(p) + parameters.origin;
+    if (any(world < vec2<i32>()) || any(world >= vec2<i32>(parameters.documentSize))) {
         coverage[index] = 0u;
         atomicStore(&labels[parentIndex(index)], 0xffffffffu);
         return;
@@ -207,9 +222,7 @@ fn join(a: u32, b: u32) {
 fn scratchIndex() -> u32 {
     return (parameters.size.x * parameters.size.y + select(0u, 1u, (parameters.flags & 128u) != 0u)) * labelStride();
 }
-fn filterRectangle() -> vec4<i32> {
-    if ((parameters.flags & 64u) != 0u) { return vec4<i32>(0, 0, i32(parameters.size.x), i32(parameters.size.y)); }
-    let index = scratchIndex();
+fn roundedBounds(index: u32) -> vec4<i32> {
     let first = vec2<u32>(atomicLoad(&labels[index]), atomicLoad(&labels[index + 1u]));
     let last = vec2<u32>(atomicLoad(&labels[index + 2u]), atomicLoad(&labels[index + 3u]));
     if (any(first > last)) { return vec4<i32>(); }
@@ -217,9 +230,90 @@ fn filterRectangle() -> vec4<i32> {
     let end = (last / vec2<u32>(64u) + vec2<u32>(1u)) * vec2<u32>(64u);
     return vec4<i32>(vec2<i32>(origin), vec2<i32>(end));
 }
+fn rawRectangle() -> vec4<i32> {
+    if ((parameters.flags & 64u) != 0u) {
+        let end = (parameters.documentSize + vec2<u32>(63u)) / vec2<u32>(64u) * vec2<u32>(64u);
+        return vec4<i32>(-parameters.origin, vec2<i32>(end) - parameters.origin);
+    }
+    return roundedBounds(scratchIndex());
+}
+fn filterRectangle() -> vec4<i32> {
+    if (morphRadius() != 0u) { return roundedBounds(scratchIndex() + 4u); }
+    return rawRectangle();
+}
 fn rawCoverage(point: vec2<i32>, rect: vec4<i32>) -> i32 {
     if (any(point < rect.xy) || any(point >= rect.zw) || any(point < vec2<i32>()) || any(vec2<u32>(point) >= parameters.size)) { return 0; }
     return i32(coverage[u32(point.y) * parameters.size.x + u32(point.x)]);
+}
+fn extremum(a: u32, b: u32) -> u32 {
+    return select(min(a, b), max(a, b), (parameters.flags & 512u) != 0u);
+}
+fn verticalValue(point: vec2<i32>, level: u32) -> u32 {
+    if (any(point < vec2<i32>()) || any(point >= vec2<i32>(parameters.size))) { return 0u; }
+    let index = u32(point.y) * parameters.size.x + u32(point.x);
+    if (level == 0u) { return coverage[index]; }
+    return atomicLoad(&labels[index * labelStride() + level - 1u]);
+}
+// Forward power-of-two column intervals permit constant-time vertical queries
+// for every circular-mask column, without radius-squared pixel work.
+@compute @workgroup_size(8, 8) fn vertical(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let p = invocation.xy;
+    if (any(p >= parameters.size)) { return; }
+    let level = parameters.level.x;
+    let value = extremum(verticalValue(vec2<i32>(p), level - 1u),
+        verticalValue(vec2<i32>(p) + vec2<i32>(0, i32(1u << (level - 1u))), level - 1u));
+    atomicStore(&labels[(p.y * parameters.size.x + p.x) * labelStride() + level - 1u], value);
+}
+fn verticalSpan(point: vec2<i32>, radius: i32) -> u32 {
+    if (point.x < 0 || point.x >= i32(parameters.size.x)) { return 0u; }
+    let first = max(0, point.y - radius);
+    let end = min(i32(parameters.size.y), point.y + radius + 1);
+    if (end <= first) { return 0u; }
+    if ((parameters.flags & 1024u) != 0u &&
+        (first != point.y - radius || end != point.y + radius + 1)) { return 0u; }
+    let level = 31u - countLeadingZeros(u32(end - first));
+    return extremum(verticalValue(vec2<i32>(point.x, first), level),
+        verticalValue(vec2<i32>(point.x, end - i32(1u << level)), level));
+}
+@compute @workgroup_size(8, 8) fn morph(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let p = invocation.xy;
+    if (any(p >= parameters.size)) { return; }
+    let point = vec2<i32>(p);
+    let radius = i32(morphRadius());
+    var rect = rawRectangle();
+    let empty = any(rect.xy >= rect.zw);
+    if ((parameters.flags & 512u) != 0u) { rect += vec4<i32>(-radius, -radius, radius, radius); }
+    var value = select(255u, 0u, (parameters.flags & 512u) != 0u);
+    if (empty || any(point < rect.xy) || any(point >= rect.zw)) { value = 0u; }
+    else {
+        for (var x = -radius; x <= radius; x += 1) {
+            let extent = i32(conversion[conversion[5] + u32(x + radius)]);
+            value = extremum(value, verticalSpan(point + vec2<i32>(x, 0), extent));
+            if (((parameters.flags & 512u) != 0u && value == 255u) ||
+                ((parameters.flags & 1024u) != 0u && value == 0u)) { break; }
+        }
+    }
+    atomicStore(&labels[(p.y * parameters.size.x + p.x) * labelStride() + morphLevels()], value);
+}
+@compute @workgroup_size(8, 8) fn morphed(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let p = invocation.xy;
+    if (any(p >= parameters.size)) { return; }
+    let index = p.y * parameters.size.x + p.x;
+    let value = atomicLoad(&labels[index * labelStride() + morphLevels()]);
+    if ((parameters.flags & 2048u) != 0u) {
+        coverage[index] = value;
+        if (value != 0u) {
+            let bounds = scratchIndex() + 4u;
+            atomicMin(&labels[bounds], p.x); atomicMin(&labels[bounds + 1u], p.y);
+            atomicMax(&labels[bounds + 2u], p.x); atomicMax(&labels[bounds + 3u], p.y);
+        }
+    } else {
+        coverage[index] = min(value, selected(p));
+        if (coverage[index] != 0u) {
+            atomicMin(&status[1], p.x); atomicMin(&status[2], p.y);
+            atomicMax(&status[3], p.x); atomicMax(&status[4], p.y);
+        }
+    }
 }
 struct SpanExtreme { distance: i32, difference: i32, valid: bool }
 fn spanExtreme(point: vec2<i32>, rect: vec4<i32>, along: vec2<i32>, across: vec2<i32>, direction: i32,
