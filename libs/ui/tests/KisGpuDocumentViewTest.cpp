@@ -4198,14 +4198,14 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra_
     for (const bool words : {false, true}) {
         for (const auto &tool : tools) {
             for (const auto action : {SELECTION_ADD, SELECTION_SUBTRACT, SELECTION_INTERSECT, SELECTION_SYMMETRICDIFFERENCE}) {
-                const auto name = (words ? "word-" : "byte-") + tool.toLatin1() + '-' + QByteArray::number(action);
+                const QByteArray name = (words ? "word-" : "byte-") + tool.toLatin1() + '-' + QByteArray::number(action);
                 QTest::newRow(name.constData()) << tool << int(action) << words << QStringLiteral("soft");
             }
         }
     }
     for (const auto &state : {QStringLiteral("inverted"), QStringLiteral("none"), QStringLiteral("disjoint")}) {
         for (const auto action : {SELECTION_ADD, SELECTION_SUBTRACT, SELECTION_INTERSECT, SELECTION_SYMMETRICDIFFERENCE}) {
-            const auto name = state.toLatin1() + '-' + QByteArray::number(action);
+            const QByteArray name = state.toLatin1() + '-' + QByteArray::number(action);
             QTest::newRow(name.constData()) << tools.first() << int(action) << false << state;
         }
     }
@@ -4334,7 +4334,7 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
             QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({192, 192}));
         }
     }
-    const int selectionHistory = history + (empty && initialState == QLatin1String("none") ? 0 : 1);
+    const int selectionHistory = history + 1;
     QTRY_COMPARE(owner->operations().undoCount(), selectionHistory);
     auto image = KisImageSP(lifetime->image());
     const auto checkSelection = [&](const KisImageSP &candidate) {
@@ -4391,10 +4391,19 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
     QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
     const auto reopened = paintImageWithEncoding(execution, loaded.document.image);
     auto reopenedImage = KisImage::fromGpuImage(reopened, QStringLiteral("Reopened combined selection"), cs);
+    const bool automaticDelivery = KisSynchronizedConnectionBase::isAutoModeForUnittestsEnabled();
+    const auto restoreDelivery = qScopeGuard([automaticDelivery] {
+        KisSynchronizedConnectionBase::setAutoModeForUnittestsEnabled(automaticDelivery);
+    });
+    KisSynchronizedConnectionBase::setAutoModeForUnittestsEnabled(false);
     lifetime->setCurrentImage(reopenedImage);
+    QTRY_COMPARE(view->image().data(), reopenedImage.data());
+    QTRY_COMPARE(window->viewManager()->image().data(), reopenedImage.data());
+    QTRY_VERIFY(view->currentNode() && view->currentNode()->image().data() == reopenedImage.data());
     QTRY_VERIFY(checkSelection(reopenedImage));
     QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), region, actual.bytes.size()).bytes, actual.bytes);
     resources->setFGColor(KoColor(QColor(221, 53, 19), cs));
+    QTRY_VERIFY(fill->isEnabled());
     fill->trigger();
     QTRY_COMPARE(reopened->operations().undoCount(), 1);
     nativeFill(resources->fgColor());

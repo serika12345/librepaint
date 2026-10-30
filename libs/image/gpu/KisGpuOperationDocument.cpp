@@ -442,9 +442,20 @@ Result OperationDocument::combineSelectionMask(const SelectionMaskSP &mask, Sele
     }
     const auto result = previous->combined(*mask, action, clip, inverted);
     if (!result) return Result::CapacityExceeded;
-    if (result->isEmpty()) return clearSelection();
-    if (!inverted && *result == *previous) return Result::Success;
-    return setSelectionMask(result);
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    const auto coverage = !inverted && *result == *previous ? previous : result;
+    // Native selection tools retain their accepted transaction even when the
+    // resulting coverage is unchanged or an intersection leaves no selection.
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
+    version->selection = coverage->bounds();
+    version->selectionInverted = false;
+    version->selectionKind = coverage->isEmpty() ? SelectionKind::Rectangle : SelectionKind::Freehand;
+    version->selectionMask = coverage->isEmpty() ? SelectionMaskSP() : coverage;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    change.changedSelection = true;
+    commitVersion(version, change);
+    return Result::Success;
 }
 catch (const std::bad_alloc &) { return Result::CapacityExceeded; }
 

@@ -2463,6 +2463,9 @@ void KisGpuOperationDocumentTest::selectionCombinationsPreserveVersionsAndPendin
     QVERIFY(shape);
     const auto initial = document.snapshot();
     QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Intersect), Result::Success);
+    QVERIFY(document.selectionRect().isEmpty());
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), initial);
     QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Subtract), Result::Success);
     QVERIFY(document.selectionMask());
@@ -2474,8 +2477,13 @@ void KisGpuOperationDocumentTest::selectionCombinationsPreserveVersionsAndPendin
 
     QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Add), Result::Success);
     const auto selected = document.snapshot();
+    const int selectedHistory = document.undoCount();
     QCOMPARE(document.combineSelectionMask(shape, SelectionCombination::Add), Result::Success);
+    QCOMPARE(document.undoCount(), selectedHistory + 1);
+    QVERIFY(document.selectionMask() && *document.selectionMask() == *shape);
+    QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), selected);
+    QCOMPARE(document.redo(), Result::Success);
     const auto stroke = paint(document, {sample(64, 64)});
     QVERIFY(!stroke.isNull());
     const auto frozen = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());

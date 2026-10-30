@@ -26,6 +26,7 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <QApplication>
+#include <QMetaObject>
 #include <QPainter>
 #include <QPicture>
 #include <QPointer>
@@ -96,6 +97,18 @@ void KisGpuCanvasWidget::disconnectImage()
 }
 
 void KisGpuCanvasWidget::refresh()
+{
+    if (!m_window || m_collectingToolDecorations || m_refreshQueued) return;
+    m_refreshQueued = true;
+    // Tool cancellation can request a redraw while its path points are being
+    // released. Collect decorations after that input/lifetime transition ends.
+    QMetaObject::invokeMethod(this, [this] {
+        m_refreshQueued = false;
+        refreshNow();
+    }, Qt::QueuedConnection);
+}
+
+void KisGpuCanvasWidget::refreshNow()
 {
     if (!m_window || m_collectingToolDecorations) return;
     const auto image = canvas()->image()->gpuImage();

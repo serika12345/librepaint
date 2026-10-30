@@ -56,6 +56,8 @@ protected:
 
 private:
     void refresh();
+    void refreshNow();
+    bool m_refreshQueued = false;
     void updateBackground();
     bool updateDisplayConversion();
     bool m_displayConversionDirty = true;

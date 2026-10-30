@@ -198,7 +198,8 @@ QSharedPointer<const SelectionMask> SelectionMask::combined(const SelectionMask 
     for (const auto &key : coordinates) {
         const QRect covered = QRect(QPoint(key.first, key.second) * TileSize, QSize(TileSize, TileSize)).intersected(area);
         for (int y = covered.top(); !covered.isEmpty() && y <= covered.bottom(); ++y) {
-            int run = -1;
+            int run = 0;
+            bool inRun = false;
             for (int x = covered.left(); x <= covered.right(); ++x) {
                 const int a = inverted ? 255 - coverage(x, y) : coverage(x, y);
                 const int b = other.coverage(x, y);
@@ -213,11 +214,11 @@ QSharedPointer<const SelectionMask> SelectionMask::combined(const SelectionMask 
                 if (alpha) {
                     if (!fractional.add(x, y, quint8(value))) return {};
                 } else {
-                    if (value && run < 0) run = x;
-                    if (run >= 0 && (!value || x == covered.right())) {
+                    if (value && !inRun) { run = x; inRun = true; }
+                    if (inRun && (!value || x == covered.right())) {
                         binary.addSpan(y, run, value ? x : x - 1);
                         if (binary.bytes < 0) return {};
-                        run = -1;
+                        inRun = false;
                     }
                 }
             }
