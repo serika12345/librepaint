@@ -59,7 +59,8 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     const auto &document = *region->source;
     const auto &settings = region->settings;
     if ((settings.mode != RegionFillMode::Contiguous && settings.mode != RegionFillMode::Similar) ||
-        (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers) || settings.threshold < 0 || settings.threshold > 255 || settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
+        (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers &&
+         settings.reference != RegionFillReference::ColorLabeledLayers) || settings.threshold < 0 || settings.threshold > 255 || settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
         !QRect(QPoint(), document.size).contains(settings.seed) ||
         (settings.boundaryColor && (settings.mode != RegionFillMode::Contiguous || !validPixel(*settings.boundaryColor, document.format))))
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU contiguous fill settings are invalid")};
@@ -255,7 +256,7 @@ RenderOutcome TileRenderer::prepareRegion(WGPUCommandEncoder commands, const Reg
     const auto compatible = base && base->document()->documentId() == region->source->documentId() ? base : RenderedSnapshot{};
     const QRect area(QPoint(), region->source->size);
     QList<LayerId> layers{region->layer};
-    const bool merged = region->settings.reference == RegionFillReference::AllLayers;
+    const bool merged = region->settings.reference != RegionFillReference::CurrentLayer;
     if (merged) {
         layers.clear();
         for (const auto &layer : region->source->layers) layers.append(layer.id);

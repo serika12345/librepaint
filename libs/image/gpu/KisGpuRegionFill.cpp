@@ -4,10 +4,49 @@
  */
 #include "KisGpuOperationDocument.h"
 #include <QSet>
+#include <algorithm>
 #include <type_traits>
 
 namespace LibrePaint::Image::Gpu {
 namespace {
+void retainLabeledReference(DocumentVersion &source, LayerId active, const RegionFillSettings &settings)
+{
+    QHash<QUuid, QList<int>> children;
+    for (int index = 0; index < source.layers.size(); ++index)
+        children[source.layers[index].parentUuid].append(index);
+    struct Visit { int index; bool descendant; };
+    QList<Visit> pending;
+    QList<Layer> layers;
+    const auto appendChildren = [&](const QUuid &parent, bool descendant) {
+        const auto siblings = children.value(parent);
+        for (auto index = siblings.crbegin(); index != siblings.crend(); ++index)
+            pending.append({*index, descendant});
+    };
+    appendChildren({}, false);
+    while (!pending.isEmpty()) {
+        const auto visit = pending.takeLast();
+        auto layer = source.layers[visit.index];
+        bool selected = visit.descendant;
+        if (!selected) {
+            if (!layer.visible) continue;
+            selected = (settings.colorLabels.contains(layer.colorLabelIndex) ||
+                (settings.includeActiveLayer && layer.id == active)) &&
+                (layer.kind != LayerKind::Group || layer.colorLabelIndex != 0);
+            if (selected) {
+                // The ordinary labelled-layer reference merges detached copies
+                // in tree order, retaining each root's own opacity and masks.
+                layer.parentUuid = {};
+                layer.blendMode = LayerBlendMode::Normal;
+                layer.projectionChannelMask = 15;
+            }
+        }
+        if (selected) layers.append(layer);
+        if (layer.kind == LayerKind::Group) appendChildren(layer.uuid, selected);
+    }
+    source.layers = std::move(layers);
+    source.projectionBackground = {};
+}
+
 // Count shared retained inputs once, including predecessor recipes. The bound
 // covers old pixels kept alive by a fill after an untracked write or history
 // trimming, as well as the copied operation-pointer arrays themselves.
@@ -32,7 +71,10 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
         const auto *clut = std::get_if<LibrePaint::Pigment::Color::NativeLabConversion::IntegerClut>(&value->definition);
         return !clut || add(clut->table.constData(), value->tableByteCount());
     };
-    if (!lab(settings.labConversion)) return false;
+    const auto inputs = [&](const RegionFillSettings &value) {
+        return lab(value.labConversion) && add(value.colorLabels.constData(), value.colorLabels.size() * qsizetype(sizeof(int)));
+    };
+    if (!inputs(settings)) return false;
     while (!pending.isEmpty()) {
         const auto version = pending.takeLast();
         if (!version || seen.contains(version.data())) continue;
@@ -63,7 +105,7 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
                             if (!add(block.data(), sizeof(*block)) ||
                                 !add(block->constData(), block->size() * qsizetype(sizeof(InputSample)))) return false;
                         if (value->figureStyle.pattern && !add(value->figureStyle.pattern->rgba.constData(), value->figureStyle.pattern->byteCount())) return false;
-                        if (value->region && add(value->region.data(), sizeof(RegionFill)) && lab(value->region->settings.labConversion)) pending.append(value->region->source);
+                        if (value->region && add(value->region.data(), sizeof(RegionFill)) && inputs(value->region->settings)) pending.append(value->region->source);
                         else if (value->region) return false;
                     } else if constexpr (std::is_same_v<T, TileWriteSnapshot>) {
                         if (!add(value->tiles.constData(), value->tiles.size() * qsizetype(sizeof(value->tiles[0])))) return false;
@@ -96,7 +138,10 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     if (!output || (settings.mode != RegionFillMode::Contiguous && settings.mode != RegionFillMode::Similar) ||
-        (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers) || settings.threshold < 0 || settings.threshold > 255 ||
+        (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers &&
+         settings.reference != RegionFillReference::ColorLabeledLayers) || settings.colorLabels.size() > 9 ||
+        std::any_of(settings.colorLabels.cbegin(), settings.colorLabels.cend(), [](int label) { return label < 0 || label > 8; }) ||
+        settings.threshold < 0 || settings.threshold > 255 ||
         settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
         !QRect(QPoint(), snapshot()->size).contains(settings.seed) ||
         (settings.boundaryColor && (settings.mode != RegionFillMode::Contiguous || !validPixel(*settings.boundaryColor, snapshot()->format))))
@@ -108,6 +153,8 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
         source->layers = {snapshot()->layers[index]};
         source->layers[0].parentUuid = {};
         source->layers[0].transparencyMask.clear();
+    } else if (settings.reference == RegionFillReference::ColorLabeledLayers) {
+        retainLabeledReference(*source, layer, settings);
     }
     if (settings.labConversion && (!settings.labConversion->isValid() ||
         settings.labConversion->input.iccProfile != source->colorProfile ||

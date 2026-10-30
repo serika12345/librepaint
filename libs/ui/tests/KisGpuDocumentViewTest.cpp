@@ -74,6 +74,7 @@
 #include <kis_tool.h>
 #include <kis_fill_painter.h>
 #include <kis_selection_filters.h>
+#include <commands_new/KisMergeLabeledLayersCommand.h>
 #include <kis_figure_painting_stroke.h>
 #include <KoResourcePaths.h>
 #include <KoColorSpaceRegistry.h>
@@ -100,6 +101,9 @@
 #include <kis_paint_information.h>
 #include <kis_distance_information.h>
 #include <kis_paint_layer.h>
+#include <kis_group_layer.h>
+#include <kis_undo_stores.h>
+#include <KisGpuBlendMode.h>
 #include <kis_indirect_painting_support.h>
 #include <kis_properties_configuration.h>
 #include <kis_selection.h>
@@ -7287,7 +7291,11 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing_data()
                                  "contiguous-boundary", "contiguous-boundary-colour", "contiguous-boundary-colour-soft",
                                  "contiguous-boundary-colour-pattern", "contiguous-boundary-colour-merged", "contiguous-boundary-colour-soft-masked",
                                  "contiguous-colour-aa", "contiguous-colour-aa-soft", "contiguous-colour-aa-pattern", "contiguous-colour-aa-masked",
-                                 "similar-colour-aa", "similar-colour-aa-soft", "similar-colour-aa-masked", "similar-colour-aa-excluded-seed", "contiguous-boundary-colour-aa", "contiguous-colour-merged-aa", "contiguous-colour-edge-aa-copy"}) {
+                                 "similar-colour-aa", "similar-colour-aa-soft", "similar-colour-aa-masked", "similar-colour-aa-excluded-seed", "contiguous-boundary-colour-aa", "contiguous-colour-merged-aa", "contiguous-colour-edge-aa-copy",
+                                 "contiguous-colour-labeled", "similar-colour-labeled-pattern", "similar-colour-labeled-soft-masked", "contiguous-boundary-colour-labeled",
+                                 "similar-colour-labeled-active", "similar-colour-labeled-nomatch", "similar-colour-labeled-empty", "similar-colour-labeled-hidden",
+                                 "similar-colour-labeled-group-child", "similar-colour-labeled-group-selected", "similar-colour-labeled-group-pass",
+                                 "similar-colour-labeled-group-hidden", "similar-colour-labeled-group-unlabeled", "similar-colour-labeled-group-order"}) {
             QTest::newRow(QByteArray(QByteArray(words ? "word-" : "byte-") + name).constData()) << words << QString::fromLatin1(name);
         }
     }
@@ -7301,6 +7309,13 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     const bool similar = scenario.startsWith(QLatin1String("similar"));
     const bool colourRegion = scenario.contains(QLatin1String("colour"));
+    const bool labeled = scenario.contains(QLatin1String("labeled"));
+    const bool referenceGroup = labeled && scenario.contains(QLatin1String("group"));
+    const bool selectedGroup = scenario.contains(QLatin1String("group-selected")) || scenario.contains(QLatin1String("group-pass"));
+    const QList<int> colorLabels = scenario.endsWith(QLatin1String("empty")) ? QList<int>{} :
+        scenario.endsWith(QLatin1String("nomatch")) ? QList<int>{8} :
+        scenario.endsWith(QLatin1String("unlabeled")) ? QList<int>{0} : selectedGroup ? QList<int>{1} : QList<int>{2};
+    const bool includeActive = scenario.endsWith(QLatin1String("active"));
     const bool merged = scenario.contains(QLatin1String("merged"));
     const bool boundary = scenario.contains(QLatin1String("boundary"));
     const bool antiAlias = scenario.contains(QLatin1String("-aa"));
@@ -7347,7 +7362,13 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
         configuration.writeEntry("closeGapAmount", 0);
         configuration.writeEntry("growSelection", 0);
         configuration.writeEntry("featherAmount", 0);
-        configuration.writeEntry("sampleLayersMode", merged ? "allLayers" : "currentLayer");
+        configuration.writeEntry("sampleLayersMode", labeled ? "colorLabeledLayers" : merged ? "allLayers" : "currentLayer");
+        if (labeled) {
+            QStringList labels;
+            for (int label : colorLabels) labels.append(QString::number(label));
+            configuration.writeEntry("colorLabels", labels.join(','));
+            configuration.writeEntry("useActiveLayer", includeActive);
+        }
         configuration.writeEntry("contiguousFillMode", boundary ? "boundaryFill" : "floodFill");
         if (boundary) {
             const auto format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
@@ -7380,6 +7401,39 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     raster.size = region.size(); raster.format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
     raster.layers = {{QStringLiteral("Fill layer"), true, {}, {}}};
     if (merged) raster.layers.prepend({QStringLiteral("Reference layer"), true, {}, {}});
+    if (labeled) {
+        Gpu::RasterLayer reference{QStringLiteral("Labelled reference"), true, QUuid::createUuid(), {}};
+        reference.colorLabelIndex = 2;
+        reference.visible = !scenario.endsWith(QLatin1String("hidden")) || referenceGroup;
+        reference.opacity = 197;
+        reference.blendMode = Gpu::LayerBlendMode::Multiply;
+        reference.projectionChannelMask = 9;
+        Gpu::RasterLayer decoy{QStringLiteral("Other label"), true, QUuid::createUuid(), {}};
+        decoy.colorLabelIndex = 3;
+        raster.layers.prepend(decoy);
+        raster.layers.prepend(reference);
+        if (referenceGroup) {
+            Gpu::RasterLayer group{QStringLiteral("Reference group"), true, QUuid::createUuid(), {}};
+            group.kind = Gpu::LayerKind::Group;
+            group.colorLabelIndex = selectedGroup ? 1 : 0;
+            group.opacity = 113;
+            group.blendMode = Gpu::LayerBlendMode::Multiply;
+            group.projectionChannelMask = 10;
+            group.passThrough = scenario.endsWith(QLatin1String("pass"));
+            group.visible = !scenario.endsWith(QLatin1String("hidden"));
+            raster.layers[0].parentUuid = group.uuid;
+            raster.layers.prepend(group);
+            if (scenario.endsWith(QLatin1String("group-order"))) {
+                Gpu::RasterLayer second = group;
+                second.uuid = QUuid::createUuid();
+                second.name = QStringLiteral("Second reference group");
+                raster.layers[2].colorLabelIndex = 2;
+                raster.layers[2].parentUuid = second.uuid;
+                raster.layers.insert(1, second);
+                std::swap(raster.layers[2], raster.layers[3]);
+            }
+        }
+    }
     auto owner = paintImageWithEncoding(execution, raster);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Ordinary selection fill"), cs));
@@ -7440,12 +7494,32 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     auto bgra = initial;
     exchangeRgbaBgra(bgra, stride);
     KisPaintDeviceSP referenceLayer;
+    QHash<QUuid, KisPaintDeviceSP> labeledPixels;
     if (merged) {
         const auto referenceNode = KisLayerUtils::findNodeByUuid(image->root(), owner->operations().snapshot()->layers.first().uuid);
         QVERIFY(referenceNode && referenceNode != node);
         referenceNode->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(bgra.constData()), region);
         referenceLayer = new KisPaintDevice(cs);
         referenceLayer->writeBytes(reinterpret_cast<const quint8 *>(bgra.constData()), region);
+        initial.fill('\0'); bgra.fill('\0');
+    }
+    if (labeled) {
+        for (const auto &candidate : owner->operations().snapshot()->layers) {
+            if (candidate.kind != Gpu::LayerKind::Paint || candidate.uuid == fillUuid) continue;
+            auto pixels = bgra;
+            if (candidate.name == QLatin1String("Other label")) {
+                pixels.clear();
+                const auto blue = Gpu::rgbaBytes({0, 0, Gpu::maximumComponent(raster.format), Gpu::maximumComponent(raster.format)}, raster.format);
+                for (int i = 0; i < region.width() * region.height(); ++i) pixels += blue;
+                exchangeRgbaBgra(pixels, stride);
+            }
+            const auto referenceNode = KisLayerUtils::findNodeByUuid(image->root(), candidate.uuid);
+            QVERIFY(referenceNode && referenceNode->paintDevice());
+            referenceNode->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixels.constData()), region);
+            auto source = KisPaintDeviceSP(new KisPaintDevice(cs));
+            source->writeBytes(reinterpret_cast<const quint8 *>(pixels.constData()), region);
+            labeledPixels.insert(candidate.uuid, source);
+        }
         initial.fill('\0'); bgra.fill('\0');
     }
     node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(bgra.constData()), region);
@@ -7498,6 +7572,42 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     const auto regionSeed = [&] { return defaultThreshold && regionEdits > 0 ? QPoint(40, 24) : QPoint(24, 24); };
     const auto applyExpected = [&](bool smooth) {
         KisPaintDeviceSP reference = expectedDevice;
+        if (labeled) {
+            // The real native labelled-layer command owns root selection,
+            // visibility, detached opacity and selected-group composition.
+            KisImageSP source = new KisImage(new KisSurrogateUndoStore(), region.width(), region.height(), cs, QStringLiteral("Native labelled reference"));
+            QHash<QUuid, KisNodeSP> nodes;
+            KisNodeSP active;
+            const auto version = owner->operations().snapshot();
+            for (const auto &layer : version->layers) {
+                KisLayerSP copy;
+                if (layer.kind == Gpu::LayerKind::Group) {
+                    auto group = KisGroupLayerSP(new KisGroupLayer(source, layer.name, layer.opacity));
+                    group->setPassThroughMode(layer.passThrough);
+                    copy = group;
+                } else {
+                    const auto pixels = layer.uuid == fillUuid ? expectedDevice : labeledPixels.value(layer.uuid);
+                    copy = new KisPaintLayer(source, layer.name, layer.opacity, new KisPaintDevice(*pixels));
+                }
+                copy->setVisible(layer.visible);
+                copy->setColorLabelIndex(layer.colorLabelIndex);
+                copy->setCompositeOpId(Gpu::compositeOpFromLayerBlendMode(layer.blendMode));
+                QBitArray channels(4, false);
+                for (int c = 0; c < 4; ++c) channels.setBit(c == 0 ? 2 : c == 2 ? 0 : c, layer.projectionChannelMask & (1 << c));
+                copy->setChannelFlags(channels);
+                nodes.insert(layer.uuid, copy);
+                if (layer.uuid == fillUuid) active = copy;
+            }
+            for (const auto &layer : version->layers)
+                source->addNode(nodes.value(layer.uuid), layer.parentUuid.isNull() ? source->root() : nodes.value(layer.parentUuid));
+            reference = KisMergeLabeledLayersCommand::createRefPaintDevice(source, QStringLiteral("Native labelled pixels"));
+            auto previous = KisMergeLabeledLayersCommand::createRefPaintDevice(source, QStringLiteral("Previous labelled pixels"));
+            KisMergeLabeledLayersCommand command(source,
+                KisMergeLabeledLayersCommand::ReferenceNodeInfoListSP::create(),
+                KisMergeLabeledLayersCommand::ReferenceNodeInfoListSP::create(), previous, reference, colorLabels,
+                KisMergeLabeledLayersCommand::GroupSelectionPolicy_SelectIfColorLabeled, true, includeActive ? active : KisNodeSP());
+            command.redo();
+        }
         if (merged) {
             reference = new KisPaintDevice(*referenceLayer);
             KisPainter composite(reference);
@@ -7670,11 +7780,24 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     QTemporaryDir directory;
     lifetime->setFileBatchMode(true);
     const auto path = directory.filePath(QStringLiteral("fill.kra"));
+    const auto savedLayers = owner->operations().snapshot()->layers;
     QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
     lifetime->waitForSavingToComplete();
     QFile file(path); QVERIFY(file.open(QIODevice::ReadOnly));
     const auto decoded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
     QVERIFY2(decoded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(decoded.diagnostic));
+    if (labeled) for (const auto &before : savedLayers) {
+        const auto after = std::find_if(decoded.document.image.layers.cbegin(), decoded.document.image.layers.cend(),
+            [&](const auto &layer) { return layer.uuid == before.uuid; });
+        QVERIFY(after != decoded.document.image.layers.cend());
+        QCOMPARE(after->colorLabelIndex, before.colorLabelIndex);
+        QCOMPARE(after->parentUuid, before.parentUuid);
+        QCOMPARE(after->visible, before.visible);
+        QCOMPARE(after->opacity, before.opacity);
+        QCOMPARE(after->projectionChannelMask, before.projectionChannelMask);
+        QCOMPARE(after->blendMode, before.blendMode);
+        QCOMPARE(after->passThrough, before.passThrough);
+    }
     auto reopened = Gpu::PaintImageSP::create(execution, decoded.document.image);
     Gpu::LayerId reopenedLayer = 0;
     for (const auto &candidate : reopened->operations().snapshot()->layers)

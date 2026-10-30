@@ -407,14 +407,18 @@ void KisToolFill::fillGpuSelection(QPoint seed)
     Gpu::RegionFillSettings regionSettings;
     if (region) {
         const bool contiguous = m_effectiveFillMode == FillMode_FillContiguousRegion;
-        if (mask || (m_reference != Reference_CurrentLayer && m_reference != Reference_AllLayers) ||
-            (contiguous && m_closeGap) || m_sizemod || m_feather) {
-            reject(i18n("Region filling currently requires a paint layer, current-layer or all-layer reference, no growth or feathering; contiguous filling also requires gap closing to be disabled."));
+        if (mask || (contiguous && m_closeGap) || m_sizemod || m_feather) {
+            reject(i18n("Region filling currently requires a paint layer and no growth or feathering; contiguous filling also requires gap closing to be disabled."));
             return;
         }
         regionSettings.seed = seed;
         regionSettings.mode = contiguous ? Gpu::RegionFillMode::Contiguous : Gpu::RegionFillMode::Similar;
-        regionSettings.reference = m_reference == Reference_AllLayers ? Gpu::RegionFillReference::AllLayers : Gpu::RegionFillReference::CurrentLayer;
+        regionSettings.reference = m_reference == Reference_ColorLabeledLayers ? Gpu::RegionFillReference::ColorLabeledLayers :
+            m_reference == Reference_AllLayers ? Gpu::RegionFillReference::AllLayers : Gpu::RegionFillReference::CurrentLayer;
+        if (m_reference == Reference_ColorLabeledLayers) {
+            regionSettings.colorLabels = m_selectedColorLabels;
+            regionSettings.includeActiveLayer = m_useActiveLayer;
+        }
         if (contiguous && m_contiguousFillMode == ContiguousFillMode_BoundaryFill) {
             KoColor boundary = m_contiguousFillBoundaryColor;
             boundary.convertTo(targetImage->colorSpace());
