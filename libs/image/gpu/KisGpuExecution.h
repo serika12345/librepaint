@@ -276,7 +276,6 @@ private:
     struct Private;
     std::unique_ptr<Private> m_d;
     FrameOutcome beginFrame(PresentationSurface *surface);
-    friend class PaintImage;
     /** Checks contiguous coverage before history adoption. Only admission
      * status and bounds cross to the CPU; editing pixels stay on the GPU. */
     ExecutionOutcome checkRegionFill(DocumentHandle handle, const RegionFillSP &region, QRect *bounds);

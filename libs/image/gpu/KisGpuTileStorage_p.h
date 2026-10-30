@@ -161,7 +161,10 @@ struct TileRenderer::Private
     Detail::NativeBindingLayout colorSampleLayout;
     Detail::NativeComputePipeline colorSamplePipeline;
     Detail::NativeBindingLayout regionLayout;
-    std::array<Detail::NativeComputePipeline, 3> regionPipelines;
+    std::array<Detail::NativeComputePipeline, 3> regionClassifiers;
+    std::array<Detail::NativeComputePipeline, 2> regionConversions;
+    Detail::NativeComputePipeline regionEncoding;
+    std::array<Detail::NativeComputePipeline, 3> regionConnect, regionResolve;
     struct RegionCoverage {
         std::shared_ptr<Detail::BufferStorage> pixels, status;
     };
@@ -171,6 +174,9 @@ struct TileRenderer::Private
     };
     QHash<const RegionFill *, RegionCacheEntry> regionCache;
     int regionDepth = 0;
+    QWeakPointer<const LibrePaint::Pigment::Color::NativeLabConversion> nativeLabDefinition;
+    std::shared_ptr<Detail::BufferStorage> nativeLabValues;
+    bool nativeLabHasDefinition = false;
     bool selectionZeroUploaded = false;
     QString error;
     QWeakPointer<const RenderedVersion> coverageVersion;
@@ -193,7 +199,7 @@ struct TileRenderer::Private
     }
     bool prepareRgba16Power();
     Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main",
-        quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr, bool separableBlendEnabled = false, quint32 coupledPixelFormat = 0);
+        quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr, bool separableBlendEnabled = false, quint32 coupledPixelFormat = 0, quint32 nativeLabKind = 0);
     WGPUComputePipeline blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend, quint32 secondBlend = 0);
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);
@@ -218,7 +224,7 @@ struct TileRenderer::Private
         QString diagnostic;
     };
     RegionResult regionCoverage(WGPUCommandEncoder commands, const RegionFillSP &region,
-                                const RenderedSnapshot &source);
+                                const RenderedSnapshot &source, const ProjectedSnapshot &projection = {});
     struct TranslationResult {
         RenderOutcome::Code code;
         Detail::Tiles tiles;

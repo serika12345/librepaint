@@ -43,3 +43,14 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
     set_tests_properties(${gpu_pixel_readback_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
+
+kis_add_test(KisGpuRegionColourTest.cpp
+    TEST_NAME_VAR gpu_region_colour_test
+    LINK_LIBRARIES kritaimagegpupaint kritaimagegputiles kritaimagegpuoperations kritapigment Qt6::Gui Qt6::Test WGPUNative::WGPUNative)
+target_compile_definitions(KisGpuRegionColourTest PRIVATE kritagpuimage_EXPORTS)
+add_dependencies(KisGpuRegionColourTest kritalcmsengine)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${gpu_region_colour_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 300)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_tests_properties(${gpu_region_colour_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa" TIMEOUT 300)
+endif()

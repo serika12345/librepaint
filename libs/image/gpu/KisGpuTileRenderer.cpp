@@ -229,7 +229,7 @@ bool TileRenderer::Private::prepareGreaterRgba8(bool full)
 }
 
 NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path, const char *entryPoint,
-    quint32 firstBlend, quint32 secondBlend, WGPUBindGroupLayout sharedLayout, bool separableBlendEnabled, quint32 coupledPixelFormat)
+    quint32 firstBlend, quint32 secondBlend, WGPUBindGroupLayout sharedLayout, bool separableBlendEnabled, quint32 coupledPixelFormat, quint32 nativeLabKind)
 {
     QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl")), shader(path);
     if (!shared.open(QIODevice::ReadOnly) || !shader.open(QIODevice::ReadOnly)) {
@@ -244,8 +244,9 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     source += "const WORD_BLEND_MODE_B: u32 = " + QByteArray::number(coupledPixelFormat == 2u ? secondBlend : 0u) + "u;\n";
     source += QByteArray("const SEPARABLE_BLEND_ENABLED: bool = ") + (separableBlendEnabled ? "true;\n" : "false;\n");
     source += "const COUPLED_PIXEL_FORMAT: u32 = " + QByteArray::number(coupledPixelFormat) + "u;\n";
+    source += "const NATIVE_LAB_KIND: u32 = " + QByteArray::number(nativeLabKind) + "u;\n";
     const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
-    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl"))) {
+    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl")) || path.endsWith(QLatin1String("/region.wgsl"))) {
         QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
         QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
         QFile doubles(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
@@ -276,6 +277,11 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
             return {};
         }
         source += gaussian.readAll() + '\n';
+    }
+    if (path.endsWith(QLatin1String("/region.wgsl"))) {
+        QFile lab(QStringLiteral(":/librepaint/gpu/shaders/native-lab.wgsl"));
+        if (!lab.open(QIODevice::ReadOnly)) { error = QStringLiteral("Native Lab arithmetic could not be loaded"); return {}; }
+        source += lab.readAll() + '\n';
     }
     source += shader.readAll();
     WGPUShaderSourceWGSL code{};
@@ -358,6 +364,10 @@ std::shared_ptr<Tile> TileRenderer::Private::allocateTile(PixelFormat format)
 
 bool TileRenderer::Private::ensureTileCapacity(qsizetype count, PixelFormat format)
 {
+    if (count > (budget->limit - budget->used) / RgbaTile::byteCount(format)) {
+        nativeLabValues.reset();
+        nativeLabDefinition.clear();
+    }
     if (coverageVersion.isNull() || count > (budget->limit - budget->used) / RgbaTile::byteCount(format)) {
         coverage.clear();
         coverageVersion.clear();

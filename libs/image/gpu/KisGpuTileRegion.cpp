@@ -18,24 +18,52 @@ struct RegionParameters {
     qint32 selection[4];
 };
 static_assert(sizeof(RegionParameters) == 64);
+quint64 labBufferBytes(const LibrePaint::Pigment::Color::NativeLabConversionSP &value)
+{
+    if (!value) return sizeof(quint32);
+    using Value = LibrePaint::Pigment::Color::NativeLabConversion;
+    return std::holds_alternative<Value::IntegerClut>(value->definition)
+        ? 24 + quint64((value->tableByteCount() + 3) / 4) * 4 : 24 + 12 * sizeof(double);
+}
+QByteArray packNativeLab(const LibrePaint::Pigment::Color::NativeLabConversionSP &value)
+{
+    QByteArray bytes(qsizetype(labBufferBytes(value)), '\0');
+    if (!value) return bytes;
+    using Value = LibrePaint::Pigment::Color::NativeLabConversion;
+    quint32 header[6]{};
+    if (const auto *clut = std::get_if<Value::IntegerClut>(&value->definition)) {
+        header[0] = 1;
+        for (int c = 0; c < 3; ++c) header[2 + c] = clut->grid[c];
+        std::memcpy(bytes.data() + 24, clut->table.constData(), size_t(value->tableByteCount()));
+    } else {
+        header[0] = 2;
+        const auto &matrix = std::get<Value::LinearRgb>(value->definition).matrix;
+        std::memcpy(bytes.data() + 24, matrix.coefficients.data(), 9 * sizeof(double));
+        std::memcpy(bytes.data() + 24 + 9 * sizeof(double), matrix.offset.data(), 3 * sizeof(double));
+    }
+    std::memcpy(bytes.data(), header, sizeof(header));
+    return bytes;
+}
 }
 
 TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
-    WGPUCommandEncoder commands, const RegionFillSP &region, const RenderedSnapshot &source)
+    WGPUCommandEncoder commands, const RegionFillSP &region, const RenderedSnapshot &source, const ProjectedSnapshot &projection)
 {
     const auto cached = regionCache.constFind(region.data());
     if (cached != regionCache.cend() && cached->source.toStrongRef() == region)
         return {RenderOutcome::Recorded, cached->coverage, {}};
-    if (!region || !region->source || !source || source->document() != region->source || region->source->layers.size() != 1)
+    if (!region || !region->source || !source || source->document() != region->source ||
+        (region->settings.reference == RegionFillReference::CurrentLayer ? region->source->layers.size() != 1 : !projection || projection->document() != region->source))
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU contiguous fill has no frozen reference layer")};
     const auto &document = *region->source;
     const auto &settings = region->settings;
-    if (settings.threshold < 0 || settings.threshold > 255 || settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
+    if ((settings.mode != RegionFillMode::Contiguous && settings.mode != RegionFillMode::Similar) ||
+        (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers) || settings.threshold < 0 || settings.threshold > 255 || settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
         settings.antiAlias || !QRect(QPoint(), document.size).contains(settings.seed))
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU contiguous fill settings are invalid")};
     const quint64 width = document.size.width(), height = document.size.height();
     const quint64 count = width * height, columns = (width + 255) / 256, rows = (height + 255) / 256;
-    const auto sourceTiles = source->tiles(region->layer);
+    const auto sourceTiles = projection ? projection->tiles() : source->tiles(region->layer);
     QList<TileView> present;
     for (const auto &tile : sourceTiles)
         if (tile.coordinate.x() >= 0 && tile.coordinate.y() >= 0 && quint64(tile.coordinate.x()) < columns && quint64(tile.coordinate.y()) < rows)
@@ -51,12 +79,22 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     const quint64 directoryBytes = columns * rows * 8;
     const quint64 selectionBytes = qMax<quint64>(4, maskBytes);
     const quint64 coverageBytes = count * 4;
-    const quint64 required = coverageBytes * 2 + atlasBytes + directoryBytes + selectionBytes + 20 + sizeof(RegionParameters);
+    const auto definition = settings.threshold == 1 ? LibrePaint::Pigment::Color::NativeLabConversionSP{} : settings.labConversion;
+    if (definition && !definition->isValid())
+        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Invalid native Lab colour definition")};
+    if (nativeLabHasDefinition != bool(definition) || nativeLabDefinition.toStrongRef() != definition) {
+        nativeLabValues.reset(); nativeLabDefinition.clear();
+    }
+    const quint32 kind = !definition ? 0 : std::holds_alternative<LibrePaint::Pigment::Color::NativeLabConversion::IntegerClut>(definition->definition) ? 1 : 2;
+    const quint64 labelBytes = count * (kind == 2 ? 6 : kind == 1 ? 3 : 1) * sizeof(quint32);
+    const quint64 labBytes = labBufferBytes(definition);
+    const quint64 required = coverageBytes + labelBytes + atlasBytes + directoryBytes + selectionBytes + 20 + sizeof(RegionParameters) +
+        (nativeLabValues ? 0 : labBytes);
     WGPULimits limits{};
     if (wgpuDeviceGetLimits(device->nativeDevice(), &limits) != WGPUStatus_Success ||
-        !count || count >= 0xffffffffu || !directoryBytes ||
+        !count || labelBytes / sizeof(quint32) >= 0xffffffffu || !directoryBytes ||
         (width + 7) / 8 > limits.maxComputeWorkgroupsPerDimension || (height + 7) / 8 > limits.maxComputeWorkgroupsPerDimension ||
-        qMax(qMax(atlasBytes, directoryBytes), qMax(selectionBytes, coverageBytes)) > qMin(limits.maxStorageBufferBindingSize, limits.maxBufferSize) ||
+        qMax(qMax(qMax(atlasBytes, directoryBytes), qMax(selectionBytes, qMax(coverageBytes, labelBytes))), labBytes) > qMin(limits.maxStorageBufferBindingSize, limits.maxBufferSize) ||
         required > quint64(budget->limit) || !ensureTileCapacity(0, document.format) ||
         required > quint64(qMax<qsizetype>(0, budget->limit - budget->used)))
         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU contiguous fill exceeds the available working capacity")};
@@ -67,10 +105,20 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         device->retainForFrame(result);
         return result;
     };
+    if (!nativeLabValues) {
+        const auto bytes = packNativeLab(definition);
+        nativeLabValues = allocate(labBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
+        if (!nativeLabValues) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("Native Lab resource allocation failed")};
+        wgpuQueueWriteBuffer(device->queue(), nativeLabValues->pixels.get(), 0, bytes.constData(), size_t(bytes.size()));
+        nativeLabDefinition = definition;
+        nativeLabHasDefinition = bool(definition);
+    }
+    const auto lab = nativeLabValues;
+    device->retainForFrame(lab);
     const auto atlas = allocate(atlasBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     const auto directory = allocate(directoryBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     const auto selection = allocate(selectionBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
-    const auto labels = allocate(coverageBytes, WGPUBufferUsage_Storage);
+    const auto labels = allocate(labelBytes, WGPUBufferUsage_Storage);
     const auto coverage = allocate(coverageBytes, WGPUBufferUsage_Storage);
     const auto status = allocate(20, WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
     const auto uniform = allocate(sizeof(RegionParameters), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
@@ -84,7 +132,11 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         offset += RgbaTile::byteCount(document.format);
     }
     // The source version pins every copied buffer through this submission.
-    for (const auto &tile : source->m_data->layers.value(region->layer)) retainTile(tile);
+    if (projection) {
+        for (const auto &tile : projection->m_data->tiles) retainTile(tile);
+    } else {
+        for (const auto &tile : source->m_data->layers.value(region->layer)) retainTile(tile);
+    }
     if (masked && document.selectionMask) {
         offset = 0;
         for (auto tile = document.selectionMask->tiles().cbegin(); tile != document.selectionMask->tiles().cend(); ++tile) {
@@ -106,7 +158,8 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     if (masked && document.selectionMask && document.selectionMask->isAlpha()) parameters.flags |= 8;
     if (document.selectionInverted) parameters.flags |= 16;
     if (settings.selectionAsBoundary) parameters.flags |= 32;
-    const auto implicit = document.layers[0].defaultPixel;
+    if (settings.mode == RegionFillMode::Similar) parameters.flags |= 64;
+    const auto implicit = projection ? RgbaPixel{} : document.layers[0].defaultPixel;
     for (int i = 0; i < 4; ++i) parameters.implicit[i] = implicit[i];
     parameters.selection[0] = document.selection.x(); parameters.selection[1] = document.selection.y();
     parameters.selection[2] = document.selection.width(); parameters.selection[3] = document.selection.height();
@@ -114,18 +167,35 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     wgpuQueueWriteBuffer(device->queue(), status->pixels.get(), 0, initialStatus, sizeof(initialStatus));
     wgpuQueueWriteBuffer(device->queue(), directory->pixels.get(), 0, entries.constData(), directoryBytes);
     wgpuQueueWriteBuffer(device->queue(), uniform->pixels.get(), 0, &parameters, sizeof(parameters));
-    if (!regionPipelines[0]) {
-        regionPipelines[0] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "classify");
-        if (regionPipelines[0]) regionLayout.reset(wgpuComputePipelineGetBindGroupLayout(regionPipelines[0].get(), 0));
-        if (regionLayout) {
-            regionPipelines[1] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "connect", 0, 0, regionLayout.get());
-            regionPipelines[2] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "resolve", 0, 0, regionLayout.get());
+    if (!regionLayout) {
+        // One explicit layout serves alpha/exact, integer-table and linear
+        // classifiers, whose unused arithmetic is removed during compilation.
+        std::array<WGPUBindGroupLayoutEntry, 8> entries{};
+        for (quint32 i = 0; i < entries.size(); ++i) {
+            entries[i].binding = i;
+            entries[i].visibility = WGPUShaderStage_Compute;
+            entries[i].buffer.type = i == 0 ? WGPUBufferBindingType_Uniform :
+                (i >= 4 && i <= 6) ? WGPUBufferBindingType_Storage : WGPUBufferBindingType_ReadOnlyStorage;
         }
+        WGPUBindGroupLayoutDescriptor layout{};
+        layout.entryCount = entries.size(); layout.entries = entries.data();
+        regionLayout.reset(wgpuDeviceCreateBindGroupLayout(device->nativeDevice(), &layout));
     }
-    if (!regionPipelines[0] || !regionPipelines[1] || !regionPipelines[2] || !regionLayout)
+    if (regionLayout) {
+        if (kind && !regionConversions[kind - 1]) regionConversions[kind - 1] = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "convert", 0, 0, regionLayout.get(), false, 0, kind);
+        if (kind == 2 && !regionEncoding) regionEncoding = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "encode", 0, 0, regionLayout.get(), false, 0, kind);
+        if (!regionClassifiers[kind]) regionClassifiers[kind] = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "classify", 0, 0, regionLayout.get(), false, 0, kind);
+        if (!regionConnect[kind]) regionConnect[kind] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "connect", 0, 0, regionLayout.get(), false, 0, kind);
+        if (!regionResolve[kind]) regionResolve[kind] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "resolve", 0, 0, regionLayout.get(), false, 0, kind);
+    }
+    if ((kind && !regionConversions[kind - 1]) || (kind == 2 && !regionEncoding) ||
+        !regionClassifiers[kind] || !regionConnect[kind] || !regionResolve[kind] || !regionLayout)
         return {RenderOutcome::DeviceFailure, {}, error};
-    const std::array<std::shared_ptr<BufferStorage>, 7> buffers{uniform, atlas, directory, selection, labels, coverage, status};
-    std::array<WGPUBindGroupEntry, 7> bindings{};
+    const std::array<std::shared_ptr<BufferStorage>, 8> buffers{uniform, atlas, directory, selection, labels, coverage, status, lab};
+    std::array<WGPUBindGroupEntry, 8> bindings{};
     for (quint32 i = 0; i < bindings.size(); ++i) {
         bindings[i].binding = i; bindings[i].buffer = buffers[i]->pixels.get();
         bindings[i].size = wgpuBufferGetSize(bindings[i].buffer);
@@ -136,12 +206,19 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     if (!group) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU contiguous fill bindings failed")};
     // Dispatch boundaries make classification, atomic union and resolution
     // separate globally ordered stages. No host iteration or pixel read is used.
-    for (const auto &pipeline : regionPipelines) {
+    QList<QPair<WGPUComputePipeline, quint32>> stages;
+    if (kind) stages.append({regionConversions[kind - 1].get(), kind == 2 ? 3u : 1u});
+    if (kind == 2) stages.append({regionEncoding.get(), 1u});
+    stages.append({regionClassifiers[kind].get(), 1u});
+    if (settings.mode == RegionFillMode::Contiguous) stages.append({regionConnect[kind].get(), 1u});
+    stages.append({regionResolve[kind].get(), 1u});
+    for (const auto &stage : stages) {
+        const auto pipeline = stage.first;
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
         if (!pass) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU contiguous fill commands failed")};
-        wgpuComputePassEncoderSetPipeline(pass, pipeline.get());
+        wgpuComputePassEncoderSetPipeline(pass, pipeline);
         wgpuComputePassEncoderSetBindGroup(pass, 0, group.get(), 0, nullptr);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, quint32((width + 7) / 8), quint32((height + 7) / 8), 1);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, quint32((width + 7) / 8), quint32((height + 7) / 8), stage.second);
         wgpuComputePassEncoderEnd(pass); wgpuComputePassEncoderRelease(pass);
     }
     RegionCoverage result{coverage, status};
@@ -153,9 +230,22 @@ RenderOutcome TileRenderer::prepareRegion(WGPUCommandEncoder commands, const Reg
 {
     if (!region || !region->source) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Missing contiguous fill reference")};
     const auto compatible = base && base->document()->documentId() == region->source->documentId() ? base : RenderedSnapshot{};
-    const auto source = recordRegion(commands, region->source, QRect(QPoint(), region->source->size), {region->layer}, compatible);
+    const QRect area(QPoint(), region->source->size);
+    QList<LayerId> layers{region->layer};
+    const bool merged = region->settings.reference == RegionFillReference::AllLayers;
+    if (merged) {
+        layers.clear();
+        for (const auto &layer : region->source->layers) layers.append(layer.id);
+    }
+    const auto source = recordRegion(commands, region->source, area, layers, compatible);
     if (source.code != RenderOutcome::Recorded) return source;
-    const auto coverage = m_d->regionCoverage(commands, region, source.version);
+    ProjectedSnapshot projection;
+    if (merged) {
+        const auto result = compose(commands, source.version, area);
+        if (result.code != RenderOutcome::Recorded) return {result.code, {}, result.diagnostic};
+        projection = result.version;
+    }
+    const auto coverage = m_d->regionCoverage(commands, region, source.version, projection);
     return {coverage.code, source.version, coverage.diagnostic};
 }
 

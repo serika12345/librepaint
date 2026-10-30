@@ -15,6 +15,8 @@
 #include <kis_assert.h>
 #include <lcms2.h>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <QtGlobal>
 #include <qhashfunctions.h>
 #include <QDebug>
@@ -81,6 +83,16 @@ public:
         return lcmsDisplayStages(m_transform, srcColorSpace(), dstColorSpace());
     }
 
+    LibrePaint::Pigment::Color::NativeLabConversionResult nativeLabConversion() const override
+    {
+        using Result = LibrePaint::Pigment::Color::NativeLabConversionResult;
+        std::lock_guard<std::mutex> guard(m_nativeLabMutex);
+        if (m_nativeLab) return *m_nativeLab;
+        auto result = lcmsNativeLabConversion(m_transform, srcColorSpace(), dstColorSpace());
+        if (result.code != Result::CapacityExceeded) m_nativeLab = result;
+        return result;
+    }
+
     void transform(const quint8 *src, quint8 *dst, qint32 numPixels) const override
     {
         Q_ASSERT(m_transform);
@@ -90,6 +102,8 @@ public:
     }
 private:
     mutable cmsHTRANSFORM m_transform;
+    mutable std::mutex m_nativeLabMutex;
+    mutable std::optional<LibrePaint::Pigment::Color::NativeLabConversionResult> m_nativeLab;
 };
 
 class KoLcmsColorProofingConversionTransformation : public KoColorProofingConversionTransformation

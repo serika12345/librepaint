@@ -91,3 +91,9 @@ KoColorConversionStagesResult KoColorConversionTransformation::displayStages() c
     return {KoColorConversionStagesResult::Unsupported, {},
             QStringLiteral("This color conversion has no GPU display stages")};
 }
+
+LibrePaint::Pigment::Color::NativeLabConversionResult KoColorConversionTransformation::nativeLabConversion() const
+{
+    using Result = LibrePaint::Pigment::Color::NativeLabConversionResult;
+    return {Result::Unsupported, {}, QStringLiteral("This conversion has no native Lab16 definition")};
+}

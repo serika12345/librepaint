@@ -10,6 +10,7 @@
 #include "kritapigment_export.h"
 #include "KoColorTransformation.h"
 #include "KoColorConversionStages.h"
+#include "NativeLabConversion.h"
 #include <QMetaType>
 
 class KoColorSpace;
@@ -127,6 +128,10 @@ public:
      * @return false if the  transformation is not valid
      */
     bool isValid() const override { return true; }
+
+    /** Owned native Lab16 conversion for editing colour differences. Unsupported
+     * representations return no partial definition. Concurrent const export is safe. */
+    virtual LibrePaint::Pigment::Color::NativeLabConversionResult nativeLabConversion() const;
 
 private:
 

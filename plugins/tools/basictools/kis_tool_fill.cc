@@ -203,11 +203,8 @@ void KisToolFill::beginPrimaryAction(KoPointerEvent *event)
     if (image()->gpuImage()) {
         if (m_effectiveFillMode == FillMode_FillSelection) {
             fillGpuSelection();
-        } else if (m_effectiveFillMode == FillMode_FillContiguousRegion) {
-            fillGpuSelection(lastImagePosition);
         } else {
-            static_cast<KisCanvas2 *>(canvas())->viewManager()->showFloatingMessage(
-                i18n("Color-region filling is not yet available for this document."), QIcon());
+            fillGpuSelection(lastImagePosition);
         }
         return;
     }
@@ -409,16 +406,24 @@ void KisToolFill::fillGpuSelection(QPoint seed)
     const bool region = seed.x() >= 0 && seed.y() >= 0;
     Gpu::RegionFillSettings regionSettings;
     if (region) {
-        if (mask || m_reference != Reference_CurrentLayer ||
-            m_contiguousFillMode != ContiguousFillMode_FloodFill || m_closeGap || m_sizemod || m_feather || m_antiAlias) {
-            reject(i18n("Contiguous GPU filling currently requires the current paint layer, flood fill, no anti-aliasing, no gap closing, no growth and no feathering."));
+        const bool contiguous = m_effectiveFillMode == FillMode_FillContiguousRegion;
+        if (mask || (m_reference != Reference_CurrentLayer && m_reference != Reference_AllLayers) ||
+            (contiguous && (m_contiguousFillMode != ContiguousFillMode_FloodFill || m_closeGap)) || m_sizemod || m_feather || m_antiAlias) {
+            reject(i18n("Region filling currently requires a paint layer, current-layer or all-layer reference, no anti-aliasing, no growth or feathering; contiguous filling also requires flood fill without gap closing."));
             return;
         }
         regionSettings.seed = seed;
+        regionSettings.mode = contiguous ? Gpu::RegionFillMode::Contiguous : Gpu::RegionFillMode::Similar;
+        regionSettings.reference = m_reference == Reference_AllLayers ? Gpu::RegionFillReference::AllLayers : Gpu::RegionFillReference::CurrentLayer;
         regionSettings.threshold = m_threshold;
         regionSettings.opacitySpread = m_opacitySpread;
         regionSettings.selectionAsBoundary = m_useSelectionAsBoundary;
         regionSettings.antiAlias = m_antiAlias;
+        if (m_threshold != 1) {
+            const auto colour = targetImage->colorSpace()->nativeLabConversion();
+            if (colour.code == LibrePaint::Pigment::Color::NativeLabConversionResult::Success)
+                regionSettings.labConversion = colour.value;
+        }
     }
     const auto target = mask ? node->parent() : node;
     Gpu::LayerId layer = 0;
@@ -470,7 +475,7 @@ void KisToolFill::fillGpuSelection(QPoint seed)
     if (result != Gpu::Result::Success) {
         const auto diagnostic = owner->lastRequestOutcome().diagnostic;
         reject(region && result == Gpu::Result::InvalidInput && !diagnostic.isEmpty()
-            ? i18n("Filling from an opaque color currently requires a threshold of 1.")
+            ? i18n("This reference color conversion is not yet supported for region filling.")
             : i18n("The selected layer could not be filled."));
     }
     else if (view && lifetime) view->canvasResourceProvider()->slotPainting();

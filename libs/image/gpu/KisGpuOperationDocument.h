@@ -23,6 +23,7 @@
 #include "KisGpuRasterPixels.h"
 #include "KisGpuAffineTransform.h"
 #include "KisGpuSelectionMask.h"
+#include <NativeLabConversion.h>
 #include <variant>
 #include <memory>
 #include <optional>
@@ -34,18 +35,25 @@ class DocumentVersion;
 using Snapshot = QSharedPointer<const DocumentVersion>;
 enum class SelectionKind : quint8 { Rectangle, Ellipse, Freehand };
 
-/** Contiguous fill inputs in document coordinates. Difference and coverage
+enum class RegionFillMode : quint8 { Contiguous, Similar };
+enum class RegionFillReference : quint8 { CurrentLayer, AllLayers };
+
+/** Colour-region fill inputs in document coordinates. Difference and coverage
  * use the native fill tool's threshold and opacity-spread rules. */
 struct RegionFillSettings
 {
     QPoint seed;
+    RegionFillMode mode = RegionFillMode::Contiguous;
+    RegionFillReference reference = RegionFillReference::CurrentLayer;
     int threshold = 8;
     int opacitySpread = 100;
     bool selectionAsBoundary = false;
     bool antiAlias = false;
+    /** Exact native colour definition captured from the document's colour space. */
+    LibrePaint::Pigment::Color::NativeLabConversionSP labConversion;
 };
 
-/** Frozen reference pixels for a contiguous fill. Replaying history, cloning
+/** Frozen reference pixels for a colour-region fill. Replaying history, cloning
  * and recovery evaluate the same predecessor, independently of later writes. */
 struct RegionFill
 {

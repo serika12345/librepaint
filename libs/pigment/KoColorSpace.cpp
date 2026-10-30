@@ -924,3 +924,11 @@ void KoColorSpace::modulateLightnessByGrayBrush(quint8 *dst, const QRgb *brush, 
     modulateLightnessByGrayBrushRGB<KoBgrU16Traits>(dstBuffer.data(), brush, strength, nPixels);
     this->fromRgbA16(dstBuffer.data(), dst, nPixels);
 }
+
+LibrePaint::Pigment::Color::NativeLabConversionResult KoColorSpace::nativeLabConversion() const
+{
+    const auto *converter = toLabA16Converter();
+    if (!converter) return {LibrePaint::Pigment::Color::NativeLabConversionResult::Unsupported, {},
+        QStringLiteral("Native Lab converter is unavailable")};
+    return converter->nativeLabConversion();
+}

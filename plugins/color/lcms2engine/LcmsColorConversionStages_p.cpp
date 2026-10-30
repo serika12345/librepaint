@@ -146,3 +146,92 @@ KoColorConversionStagesResult lcmsDisplayStages(cmsHTRANSFORM transform,
         return {Result::CapacityExceeded, {}, QStringLiteral("Cannot allocate display conversion values")};
     }
 }
+
+LibrePaint::Pigment::Color::NativeLabConversionResult lcmsNativeLabConversion(cmsHTRANSFORM transform,
+    const KoColorSpace *source, const KoColorSpace *destination)
+{
+    using Value = LibrePaint::Pigment::Color::NativeLabConversion;
+    using Result = LibrePaint::Pigment::Color::NativeLabConversionResult;
+    try {
+        auto value = QSharedPointer<Value>::create();
+        if (!encoding(source, value->input) || !destination || destination->colorModelId() != LABAColorModelID ||
+            destination->colorDepthId() != Integer16BitsColorDepthID)
+            return {Result::Unsupported, {}, QStringLiteral("Native Lab definition requires RGB U8/U16 to Lab16")};
+        const cmsPipeline *pipeline = transform ? cmsGetTransformPipeline(transform) : nullptr;
+        if (!pipeline) return {Result::Unsupported, {}, QStringLiteral("Native Lab converter has no pipeline")};
+        const auto *first = cmsPipelineGetPtrToFirstStage(pipeline);
+        if (!first) return {Result::Unsupported, {}, QStringLiteral("Native Lab converter is empty")};
+        for (const auto *stage = first; stage; stage = cmsStageNext(stage))
+            if (cmsStageInputChannels(stage) != 3 || cmsStageOutputChannels(stage) != 3)
+                return {Result::Unsupported, {}, QStringLiteral("Native Lab definition requires three colour channels")};
+        if (cmsStageType(first) == cmsSigCLutElemType && !cmsStageNext(first)) {
+            const auto *data = static_cast<const _cmsStageCLutData *>(cmsStageData(first));
+            if (!data || !data->Params || !data->Tab.T || data->HasFloatValues ||
+                data->Params->nInputs != 3 || data->Params->nOutputs != 3 ||
+                (data->Params->dwFlags & (CMS_LERP_FLAGS_TRILINEAR | CMS_LERP_FLAGS_FLOAT)))
+                return {Result::Unsupported, {}, QStringLiteral("Native Lab integer interpolation is unsupported")};
+            Value::IntegerClut clut;
+            quint64 words = 3;
+            for (int i = 0; i < 3; ++i) {
+                const auto count = data->Params->nSamples[i];
+                if (count < 2 || count > 255) return {Result::InvalidData, {}, QStringLiteral("Invalid native Lab grid")};
+                clut.grid[i] = count;
+                words *= count;
+                if (words > Value::MaximumClutWords)
+                    return {Result::CapacityExceeded, {}, QStringLiteral("Native Lab table exceeds owned resource capacity")};
+            }
+            if (data->nEntries != words)
+                return {Result::InvalidData, {}, QStringLiteral("Native Lab table has an inconsistent extent")};
+            clut.table = QVector<quint16>(data->Tab.T, data->Tab.T + words);
+            value->definition = std::move(clut);
+        } else {
+            // The native linear RGB pipeline has identity gamma-one curves,
+            // one original binary64 matrix and its XYZ-to-Lab float stage.
+            if (cmsStageType(first) != cmsSigCurveSetElemType)
+                return {Result::Unsupported, {}, QStringLiteral("Native Lab pipeline has unsupported input stages")};
+            const auto *curves = static_cast<const _cmsStageToneCurvesData *>(cmsStageData(first));
+            if (!curves || curves->nCurves != 3)
+                return {Result::InvalidData, {}, QStringLiteral("Native Lab identity curves are invalid")};
+            for (unsigned i = 0; i < 3; ++i) {
+                const auto *curve = curves->TheCurves[i];
+                const auto *segment = curve ? cmsGetToneCurveSegment(0, curve) : nullptr;
+                if (!segment || segment->Type != 1 || segment->Params[0] != 1.0 || cmsGetToneCurveSegment(1, curve))
+                    return {Result::Unsupported, {}, QStringLiteral("Native Lab input is not an original identity curve")};
+            }
+            const auto identity = [](const cmsStage *stage) {
+                if (!stage || cmsStageType(stage) != cmsSigCurveSetElemType) return false;
+                const auto *data = static_cast<const _cmsStageToneCurvesData *>(cmsStageData(stage));
+                if (!data || data->nCurves != 3) return false;
+                for (unsigned i = 0; i < 3; ++i) {
+                    const auto *curve = data->TheCurves[i];
+                    const auto *segment = curve ? cmsGetToneCurveSegment(0, curve) : nullptr;
+                    if (!segment || (segment->Type != 1 && segment->Type != -1) || segment->Params[0] != 1.0 ||
+                        cmsGetToneCurveSegment(1, curve)) return false;
+                }
+                return true;
+            };
+            const auto *matrixStage = cmsStageNext(first);
+            const auto *labStage = matrixStage ? cmsStageNext(matrixStage) : nullptr;
+            const auto *output = labStage ? cmsStageNext(labStage) : nullptr;
+            if (!matrixStage || cmsStageType(matrixStage) != cmsSigMatrixElemType ||
+                !labStage || cmsStageType(labStage) != cmsSigXYZ2LabElemType ||
+                (output && (!identity(output) || cmsStageNext(output)))) {
+                QStringList types;
+                for (const auto *stage = first; stage && types.size() < 16; stage = cmsStageNext(stage))
+                    types.append(QString::number(quint32(cmsStageType(stage)), 16));
+                return {Result::Unsupported, {}, QStringLiteral("Native Lab linear stages are unsupported: %1").arg(types.join(QLatin1Char('/')))};
+            }
+            const auto *matrix = static_cast<const _cmsStageMatrixData *>(cmsStageData(matrixStage));
+            if (!matrix || !matrix->Double)
+                return {Result::InvalidData, {}, QStringLiteral("Native Lab matrix is invalid")};
+            Value::LinearRgb linear;
+            for (int i = 0; i < 9; ++i) linear.matrix.coefficients[i] = matrix->Double[i];
+            for (int i = 0; i < 3; ++i) linear.matrix.offset[i] = matrix->Offset ? matrix->Offset[i] : 0.0;
+            value->definition = linear;
+        }
+        if (!value->isValid()) return {Result::InvalidData, {}, QStringLiteral("Native Lab definition contains invalid values")};
+        return {Result::Success, value, {}};
+    } catch (const std::bad_alloc &) {
+        return {Result::CapacityExceeded, {}, QStringLiteral("Cannot retain native Lab definition")};
+    }
+}

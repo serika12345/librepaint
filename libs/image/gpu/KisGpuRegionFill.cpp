@@ -11,7 +11,7 @@ namespace {
 // Count shared retained inputs once, including predecessor recipes. The bound
 // covers old pixels kept alive by a fill after an untracked write or history
 // trimming, as well as the copied operation-pointer arrays themselves.
-bool boundedReference(const Snapshot &source, qsizetype maximum)
+bool boundedReference(const Snapshot &source, const RegionFillSettings &settings, qsizetype maximum)
 {
     QSet<const void *> seen;
     QList<Snapshot> pending{source};
@@ -26,6 +26,13 @@ bool boundedReference(const Snapshot &source, qsizetype maximum)
     const auto mask = [&](const SelectionMaskSP &value) {
         return !value || add(value.data(), sizeof(SelectionMask) + value->byteCount());
     };
+    const auto lab = [&](const LibrePaint::Pigment::Color::NativeLabConversionSP &value) {
+        if (!value) return true;
+        if (!add(value.data(), sizeof(*value)) || !add(value->input.iccProfile.constData(), value->input.iccProfile.size())) return false;
+        const auto *clut = std::get_if<LibrePaint::Pigment::Color::NativeLabConversion::IntegerClut>(&value->definition);
+        return !clut || add(clut->table.constData(), value->tableByteCount());
+    };
+    if (!lab(settings.labConversion)) return false;
     while (!pending.isEmpty()) {
         const auto version = pending.takeLast();
         if (!version || seen.contains(version.data())) continue;
@@ -34,6 +41,7 @@ bool boundedReference(const Snapshot &source, qsizetype maximum)
             !mask(version->selectionMask) ||
             !add(version->colorProfile.constData(), version->colorProfile.size())) return false;
         for (const auto &layer : version->layers) {
+            if (!mask(layer.transparencyMask)) return false;
             if (!add(layer.operations.constData(), layer.operations.size() * qsizetype(sizeof(LayerOperation)))) return false;
             for (const auto &operation : layer.operations) {
                 const bool valid = std::visit([&](const auto &value) {
@@ -55,7 +63,7 @@ bool boundedReference(const Snapshot &source, qsizetype maximum)
                             if (!add(block.data(), sizeof(*block)) ||
                                 !add(block->constData(), block->size() * qsizetype(sizeof(InputSample)))) return false;
                         if (value->figureStyle.pattern && !add(value->figureStyle.pattern->rgba.constData(), value->figureStyle.pattern->byteCount())) return false;
-                        if (value->region && add(value->region.data(), sizeof(RegionFill))) pending.append(value->region->source);
+                        if (value->region && add(value->region.data(), sizeof(RegionFill)) && lab(value->region->settings.labConversion)) pending.append(value->region->source);
                         else if (value->region) return false;
                     } else if constexpr (std::is_same_v<T, TileWriteSnapshot>) {
                         if (!add(value->tiles.constData(), value->tiles.size() * qsizetype(sizeof(value->tiles[0])))) return false;
@@ -87,16 +95,23 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if (!output || settings.threshold < 0 || settings.threshold > 255 ||
+    if (!output || (settings.mode != RegionFillMode::Contiguous && settings.mode != RegionFillMode::Similar) ||
+        (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers) || settings.threshold < 0 || settings.threshold > 255 ||
         settings.opacitySpread < 0 || settings.opacitySpread > 100 || settings.antiAlias ||
         !QRect(QPoint(), snapshot()->size).contains(settings.seed)) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0 || (snapshot()->layers[index].kind != LayerKind::Paint || snapshot()->layers[index].userLocked)) return Result::LayerUnavailable;
     auto source = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
-    source->layers = {snapshot()->layers[index]};
-    source->layers[0].parentUuid = {};
-    source->layers[0].transparencyMask.clear();
-    if (!boundedReference(source, m_limits.rasterBytes)) return Result::CapacityExceeded;
+    if (settings.reference == RegionFillReference::CurrentLayer) {
+        source->layers = {snapshot()->layers[index]};
+        source->layers[0].parentUuid = {};
+        source->layers[0].transparencyMask.clear();
+    }
+    if (settings.labConversion && (!settings.labConversion->isValid() ||
+        settings.labConversion->input.iccProfile != source->colorProfile ||
+        (settings.labConversion->input.depth == KoColorConversionStages::Encoding::U16) != (source->format == PixelFormat::Rgba16)))
+        return Result::InvalidInput;
+    if (!boundedReference(source, settings, m_limits.rasterBytes)) return Result::CapacityExceeded;
     auto region = QSharedPointer<RegionFill>::create();
     region->source = source;
     region->preparedFor = snapshot();
