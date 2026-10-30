@@ -64,6 +64,13 @@ public:
     /** Applies a frozen shape to the GPU document with the ordinary tool action. */
     bool selectGpuSelection(const LibrePaint::Image::Gpu::SelectionMaskSP &mask, SelectionAction action);
 
+    /** Freezes geometric tool input using native path coverage, growth and
+     * feathering, then applies one selection/history change. The temporary
+     * input mask contains no document pixels. Failure preserves the document.
+     */
+    bool selectGpuSelectionPath(const QPainterPath &path, bool antiAlias, int grow, int feather,
+                                SelectionAction action);
+
 
 private:
     QPointer<KisCanvas2> m_canvas;

@@ -89,6 +89,7 @@
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
+#include <kis_default_bounds.h>
 #include <kis_image_config.h>
 #include <kis_node.h>
 #include <kis_layer_utils.h>
@@ -3732,6 +3733,15 @@ void KisGpuDocumentViewTest::ellipticalSelectionLimitsPaintingAndKra()
 void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
+    KConfigGroup configuration = KSharedConfig::openConfig()->group(QStringLiteral("KisToolSelectElliptical"));
+    const auto oldEntries = configuration.entryMap();
+    const auto restoreConfiguration = qScopeGuard([&] {
+        configuration.deleteGroup();
+        for (auto i = oldEntries.cbegin(); i != oldEntries.cend(); ++i) configuration.writeEntry(i.key(), i.value());
+    });
+    configuration.writeEntry("antiAliasSelection", false);
+    configuration.writeEntry("growSelection", 0);
+    configuration.writeEntry("featherSelection", 0);
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
@@ -4240,6 +4250,7 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra_
     QTest::addColumn<int>("action");
     QTest::addColumn<bool>("words");
     QTest::addColumn<QString>("initialState");
+    QTest::addColumn<QString>("shapeOptions");
     const QStringList tools{QStringLiteral("KisToolSelectRectangular"), QStringLiteral("KisToolSelectElliptical"),
                            QStringLiteral("KisToolSelectPolygonal"), QStringLiteral("KisToolSelectOutline"),
                            QStringLiteral("KisToolSelectPath")};
@@ -4247,14 +4258,38 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra_
         for (const auto &tool : tools) {
             for (const auto action : {SELECTION_ADD, SELECTION_SUBTRACT, SELECTION_INTERSECT, SELECTION_SYMMETRICDIFFERENCE}) {
                 const QByteArray name = (words ? "word-" : "byte-") + tool.toLatin1() + '-' + QByteArray::number(action);
-                QTest::newRow(name.constData()) << tool << int(action) << words << QStringLiteral("soft");
+                QTest::newRow(name.constData()) << tool << int(action) << words << QStringLiteral("soft") << QString();
             }
         }
     }
     for (const auto &state : {QStringLiteral("inverted"), QStringLiteral("none"), QStringLiteral("disjoint")}) {
         for (const auto action : {SELECTION_ADD, SELECTION_SUBTRACT, SELECTION_INTERSECT, SELECTION_SYMMETRICDIFFERENCE}) {
             const QByteArray name = state.toLatin1() + '-' + QByteArray::number(action);
-            QTest::newRow(name.constData()) << tools.first() << int(action) << false << state;
+            QTest::newRow(name.constData()) << tools.first() << int(action) << false << state << QString();
+        }
+    }
+    // Ordinary option widgets produce frozen input coverage. The native
+    // rasterizer/filter oracle protects its use by fills, history and KRA.
+    const QStringList settings{QStringLiteral("aa"), QStringLiteral("grow"), QStringLiteral("shrink"),
+        QStringLiteral("feather"), QStringLiteral("grow-feather"), QStringLiteral("shrink-feather"),
+        QStringLiteral("feather-no-aa"), QStringLiteral("shrink-empty")};
+    const QList<int> actions{SELECTION_REPLACE, SELECTION_ADD, SELECTION_SUBTRACT, SELECTION_INTERSECT,
+        SELECTION_SYMMETRICDIFFERENCE, SELECTION_REPLACE, SELECTION_ADD, SELECTION_REPLACE};
+    for (const bool words : {false, true}) for (const auto &tool : tools) {
+        for (int i = 0; i < settings.size(); ++i) {
+            const QByteArray name = (words ? "word-" : "byte-") + tool.toLatin1() + '-' + settings[i].toLatin1();
+            QTest::newRow(name.constData()) << tool << actions[i] << words
+                << (actions[i] == SELECTION_REPLACE ? QStringLiteral("disjoint") : QStringLiteral("soft")) << settings[i];
+        }
+    }
+    for (const bool words : {false, true}) {
+        for (const auto &tool : {tools[0], tools[1]}) {
+            for (const auto &setting : {QStringLiteral("rotate"), QStringLiteral("rotate-feather"),
+                                        QStringLiteral("rounded"), QStringLiteral("rounded-feather")}) {
+                if (tool == tools[1] && setting.startsWith(QLatin1String("rounded"))) continue;
+                const QByteArray name = (words ? "word-" : "byte-") + tool.toLatin1() + '-' + setting.toLatin1();
+                QTest::newRow(name.constData()) << tool << int(SELECTION_REPLACE) << words << QStringLiteral("disjoint") << setting;
+            }
         }
     }
 }
@@ -4266,10 +4301,26 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
     QFETCH(int, action);
     QFETCH(bool, words);
     QFETCH(QString, initialState);
+    QFETCH(QString, shapeOptions);
+    KConfigGroup configuration = KSharedConfig::openConfig()->group(toolId);
+    const auto oldEntries = configuration.entryMap();
+    const auto restoreConfiguration = qScopeGuard([&] {
+        configuration.deleteGroup();
+        for (auto i = oldEntries.cbegin(); i != oldEntries.cend(); ++i) configuration.writeEntry(i.key(), i.value());
+    });
+    configuration.writeEntry("roundCornersX", 0);
+    configuration.writeEntry("roundCornersY", 0);
     const auto selectionAction = SelectionAction(action);
     const QRect region(0, 0, 256, 256);
     const QRect shape(64, 64, 128, 128);
-    const QList<QPointF> vertices{{64, 64}, {192, 64}, {192, 192}, {64, 192}};
+    const QList<QPointF> vertices = shapeOptions.isEmpty() ? QList<QPointF>{{64, 64}, {192, 64}, {192, 192}, {64, 192}}
+        : QList<QPointF>{{64, 64}, {192, 71}, {175, 192}, {69, 178}};
+    const bool aa = !shapeOptions.isEmpty() && shapeOptions != QLatin1String("feather-no-aa");
+    const int grow = shapeOptions.startsWith(QLatin1String("grow")) ? 7 :
+        shapeOptions == QLatin1String("shrink-empty") ? -100 : shapeOptions.startsWith(QLatin1String("shrink")) ? -5 : 0;
+    const int feather = shapeOptions.contains(QLatin1String("feather")) ? 5 : 0;
+    const bool rounded = shapeOptions.startsWith(QLatin1String("rounded"));
+    const bool rotated = shapeOptions.startsWith(QLatin1String("rotate"));
     const auto incoming = toolId == QLatin1String("KisToolSelectElliptical")
         ? Gpu::SelectionMask::fromEllipse(shape, region) : Gpu::SelectionMask::fromRectangle(shape, region);
     QVERIFY(incoming);
@@ -4304,14 +4355,56 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
     expectedSelection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(initial.constData()), region);
     if (initialState == QLatin1String("none") && selectionAction == SELECTION_SUBTRACT)
         expectedSelection->pixelSelection()->select(region);
-    KisPixelSelectionSP added = new KisPixelSelection();
-    QByteArray addedBytes(initial.size(), '\0');
-    for (int y = 0; y < region.height(); ++y) for (int x = 0; x < region.width(); ++x)
-        addedBytes[y * region.width() + x] = char(incoming->coverage(x, y));
-    added->writeBytes(reinterpret_cast<const quint8 *>(addedBytes.constData()), region);
+    KisImageSP nativeImage = new KisImage(new KisSurrogateUndoStore(), region.width(), region.height(), cs,
+                                        QStringLiteral("Native geometric selection"));
+    KisPixelSelectionSP added = new KisPixelSelection(new KisDefaultBounds(nativeImage));
+    if (shapeOptions.isEmpty()) {
+        QByteArray addedBytes(initial.size(), '\0');
+        for (int y = 0; y < region.height(); ++y) for (int x = 0; x < region.width(); ++x)
+            addedBytes[y * region.width() + x] = char(incoming->coverage(x, y));
+        added->writeBytes(reinterpret_cast<const quint8 *>(addedBytes.constData()), region);
+    } else {
+        QRectF inputRect(shape);
+        if (rotated) {
+            // Ctrl+Alt rotates the fixed-size rectangle about its drag start.
+            inputRect.moveCenter(QPointF(64 + std::sqrt(2.) * 64, 64));
+        }
+        QPainterPath path;
+        if (rounded) path.addRoundedRect(inputRect.toRect(), 18, 18);
+        else if (toolId == QLatin1String("KisToolSelectRectangular")) path.addRect(inputRect.toRect());
+        else if (toolId == QLatin1String("KisToolSelectElliptical")) path.addEllipse(inputRect);
+        else { path.addPolygon(QPolygonF(vertices)); path.closeSubpath(); }
+        if (rotated) {
+            const QPointF center = toolId == QLatin1String("KisToolSelectRectangular") ? QPointF(inputRect.toRect().center()) : inputRect.center();
+            QTransform transform;
+            transform.translate(center.x(), center.y());
+            transform.rotateRadians(-std::atan2(128., 128.));
+            transform.translate(-center.x(), -center.y());
+            path = transform.map(path);
+        }
+        KisPainter painter(added);
+        painter.setPaintColor(KoColor(Qt::black, added->colorSpace()));
+        painter.setAntiAliasPolygonFill(aa && feather == 0);
+        painter.setFillStyle(KisPainter::FillStyleForegroundColor);
+        painter.setStrokeStyle(KisPainter::StrokeStyleNone);
+        painter.fillPainterPath(path);
+        painter.end();
+        if (grow > 0) {
+            KisGrowSelectionFilter filter(grow, grow);
+            filter.process(added, added->selectedRect().adjusted(-grow, -grow, grow, grow));
+        } else if (grow < 0) {
+            KisShrinkSelectionFilter filter(-grow, -grow, false);
+            filter.process(added, added->selectedRect());
+        }
+        if (feather) {
+            KisFeatherSelectionFilter filter(feather);
+            filter.process(added, added->selectedRect().adjusted(-feather, -feather, feather, feather));
+        }
+    }
     expectedSelection->pixelSelection()->applySelection(added, selectionAction);
-    QByteArray expectedMask(initial.size(), '\0');
-    expectedSelection->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(expectedMask.data()), region);
+    const QRect checkedCoverage = region.united(expectedSelection->pixelSelection()->selectedExactRect());
+    QByteArray expectedMask(checkedCoverage.width() * checkedCoverage.height(), '\0');
+    expectedSelection->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(expectedMask.data()), checkedCoverage);
     const bool empty = expectedSelection->pixelSelection()->selectedExactRect().isEmpty();
 
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -4362,7 +4455,48 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
         options->setGrowSelection(oldGrow); options->setFeatherSelection(oldFeather);
     });
     options->setMode(PIXEL_SELECTION); options->setAction(selectionAction);
-    options->setAntiAliasSelection(false); options->setGrowSelection(0); options->setFeatherSelection(0);
+    options->setAntiAliasSelection(aa); options->setGrowSelection(grow); options->setFeatherSelection(feather);
+    QList<QPair<QPointer<QSpinBox>, int>> oldDimensions;
+    QList<QPair<QPointer<QPushButton>, bool>> oldLocks;
+    const auto restoreDimensions = qScopeGuard([&] {
+        for (const auto &entry : oldDimensions) if (entry.first) entry.first->setValue(entry.second);
+        for (const auto &entry : oldLocks) if (entry.first) entry.first->setChecked(entry.second);
+    });
+    if (rounded || rotated) {
+        for (const auto &name : {QStringLiteral("lockWidthButton"), QStringLiteral("lockHeightButton"), QStringLiteral("lockRatioButton")}) {
+            auto *button = options->findChild<QPushButton *>(name);
+            QVERIFY(button);
+            oldLocks.append({button, button->isChecked()});
+            button->setChecked(false);
+        }
+        const QStringList names = rounded ? QStringList{QStringLiteral("intRoundCornersX"), QStringLiteral("intRoundCornersY")}
+                                         : QStringList{QStringLiteral("intWidth"), QStringLiteral("intHeight")};
+        for (const auto &name : names) {
+            auto *spin = options->findChild<QSpinBox *>(name);
+            QVERIFY(spin);
+            oldDimensions.append({spin, spin->value()});
+        }
+        for (const auto &entry : oldDimensions) entry.first->setValue(rounded ? 18 : 128);
+        if (rotated) {
+            options->findChild<QPushButton *>(QStringLiteral("lockWidthButton"))->setChecked(true);
+            options->findChild<QPushButton *>(QStringLiteral("lockHeightButton"))->setChecked(true);
+        }
+    }
+    if (!words && toolId == QLatin1String("KisToolSelectRectangular") && shapeOptions == QLatin1String("aa")) {
+        KisSelectionToolHelper helper(view->canvasBase(), kundo2_i18n("Select Rectangle"));
+        QPainterPath oversized;
+        oversized.addRect(QRectF(0, 0, 100000, 100000));
+        QVERIFY(!helper.selectGpuSelectionPath(oversized, true, 0, 0, SELECTION_REPLACE));
+        QPainterPath wide;
+        wide.addRect(QRectF(0, 0, 200000, 1));
+        QVERIFY(!helper.selectGpuSelectionPath(wide, true, -400, 0, SELECTION_REPLACE));
+        QPainterPath valid;
+        valid.addRect(shape);
+        QVERIFY(!helper.selectGpuSelectionPath(valid, true, 401, 0, SELECTION_REPLACE));
+        QVERIFY(!helper.selectGpuSelectionPath(valid, true, 0, 401, SELECTION_REPLACE));
+        QCOMPARE(owner->operations().snapshot(), before);
+        QCOMPARE(owner->operations().undoCount(), history);
+    }
     native->requestActivate(); view->canvasBase()->canvasWidget()->setFocus();
     const auto point = [&](QPointF image) { return converter->imageToWidget(image).toPoint(); };
     const auto start = point(vertices.first());
@@ -4377,6 +4511,13 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
         if (toolId == QLatin1String("KisToolSelectOutline")) {
             for (qsizetype i = 1; i < vertices.size(); ++i) QTest::mouseMove(native.data(), point(vertices[i]), 20);
             QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point(vertices.last()));
+        } else if (rotated) {
+            QTest::keyPress(native.data(), Qt::Key_Control);
+            QTest::keyPress(native.data(), Qt::Key_Alt);
+            QTest::mouseMove(native.data(), point({192, 64}), 30);
+            QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::ControlModifier | Qt::AltModifier, point({192, 64}));
+            QTest::keyRelease(native.data(), Qt::Key_Alt);
+            QTest::keyRelease(native.data(), Qt::Key_Control);
         } else {
             QTest::mouseMove(native.data(), point({192, 192}), 30);
             QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({192, 192}));
@@ -4385,14 +4526,23 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
     const int selectionHistory = history + 1;
     QTRY_COMPARE(owner->operations().undoCount(), selectionHistory);
     auto image = KisImageSP(lifetime->image());
+    QString selectionMismatch;
     const auto checkSelection = [&](const KisImageSP &candidate) {
         if (empty) return !candidate->globalSelection();
         if (!candidate->globalSelection()) return false;
         QByteArray actual(expectedMask.size(), '\0');
-        candidate->globalSelection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(actual.data()), region);
+        candidate->globalSelection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(actual.data()), checkedCoverage);
+        if (actual != expectedMask) {
+            qsizetype index = 0;
+            while (index < actual.size() && actual[index] == expectedMask[index]) ++index;
+            selectionMismatch = QStringLiteral("coverage at %1,%2: actual%3 expected%4; bounds%5,%6 %7x%8")
+                .arg(checkedCoverage.x() + index % checkedCoverage.width()).arg(checkedCoverage.y() + index / checkedCoverage.width())
+                .arg(quint8(actual[index])).arg(quint8(expectedMask[index]))
+                .arg(owner->selectionRect().x()).arg(owner->selectionRect().y()).arg(owner->selectionRect().width()).arg(owner->selectionRect().height());
+        }
         return actual == expectedMask;
     };
-    QTRY_VERIFY(checkSelection(image));
+    QTRY_VERIFY2(checkSelection(image), qPrintable(selectionMismatch));
     const auto combined = owner->operations().snapshot();
     if (selectionHistory > history) {
         QCOMPARE(owner->undo(), Gpu::Result::Success);

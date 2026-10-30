@@ -58,16 +58,16 @@ void KisToolSelectElliptical::finishRect(const QRectF &rect, qreal roundCornersX
     Q_ASSERT(kisCanvas);
 
     const bool gpu = currentImage() && currentImage()->gpuImage();
-    if (gpu && (getRotationAngle() != 0 || growSelection() != 0 || featherSelection() != 0)) {
-        kisCanvas->showToolMessage(i18n("Rotated ellipses, selection growth and feathering are not available for this document."),
-                                   QStringLiteral("object-locked"));
-        return;
-    }
     if (gpu) {
         const QRect rc = rect.normalized().toRect();
         if (rc.isEmpty()) return;
         KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Ellipse"));
-        if (selectionAction() == SELECTION_REPLACE || selectionAction() == SELECTION_DEFAULT) {
+        if (getRotationAngle() != 0 || antiAliasSelection() || growSelection() != 0 || featherSelection() != 0) {
+            QPainterPath path;
+            path.addEllipse(rect);
+            getRotatedPath(path, rect.center(), getRotationAngle());
+            if (helper.selectGpuSelectionPath(path, antiAliasSelection(), growSelection(), featherSelection(), selectionAction())) return;
+        } else if (selectionAction() == SELECTION_REPLACE || selectionAction() == SELECTION_DEFAULT) {
             if (currentImage()->setGpuSelectionEllipse(rc)) return;
         } else {
             using LibrePaint::Image::Gpu::SelectionMask;

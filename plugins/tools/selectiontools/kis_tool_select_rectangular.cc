@@ -57,16 +57,18 @@ void KisToolSelectRectangular::finishRect(const QRectF& rect, qreal roundCorners
         return;
 
     const bool gpu = currentImage() && currentImage()->gpuImage();
-    if (gpu && (roundCornersX > 0 || roundCornersY > 0 || getRotationAngle() != 0)) {
-        kisCanvas->showToolMessage(i18n("Rounded or rotated rectangular selections are not available for this document."),
-                                   QStringLiteral("object-locked"));
-        return;
-    }
     QRect rc(rect.normalized().toRect());
     if (gpu) {
         if (!rc.isValid()) return;
         KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Rectangle"));
-        if (selectionAction() == SELECTION_REPLACE || selectionAction() == SELECTION_DEFAULT) {
+        if (roundCornersX > 0 || roundCornersY > 0 || getRotationAngle() != 0 ||
+            antiAliasSelection() || growSelection() != 0 || featherSelection() != 0) {
+            QPainterPath path;
+            if (roundCornersX > 0 || roundCornersY > 0) path.addRoundedRect(rc, roundCornersX, roundCornersY);
+            else path.addRect(rc);
+            getRotatedPath(path, rc.center(), getRotationAngle());
+            if (helper.selectGpuSelectionPath(path, antiAliasSelection(), growSelection(), featherSelection(), selectionAction())) return;
+        } else if (selectionAction() == SELECTION_REPLACE || selectionAction() == SELECTION_DEFAULT) {
             if (currentImage()->setGpuSelectionRect(rc)) return;
         } else {
             using LibrePaint::Image::Gpu::SelectionMask;

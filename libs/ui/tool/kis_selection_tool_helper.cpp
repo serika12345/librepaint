@@ -20,6 +20,7 @@
 #include "kis_icon_utils.h"
 #include "kis_layer.h"
 #include "kis_pixel_selection.h"
+#include <gpu/KisGpuSelectionInput.h>
 #include "kis_shape_selection.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas2.h"
@@ -90,6 +91,14 @@ bool KisSelectionToolHelper::selectGpuSelection(const LibrePaint::Image::Gpu::Se
     default: return false;
     }
     return m_image && m_image->combineGpuSelectionMask(mask, combination);
+}
+
+bool KisSelectionToolHelper::selectGpuSelectionPath(const QPainterPath &path, bool antiAlias, int grow,
+                                                   int feather, SelectionAction action)
+{
+    if (!m_image || !m_image->gpuImage()) return false;
+    const auto mask = LibrePaint::Image::Gpu::selectionMaskFromPath(path, m_image, antiAlias, grow, feather);
+    return mask && selectGpuSelection(mask, action);
 }
 
 struct LazyInitGlobalSelection : public KisTransactionBasedCommand {
