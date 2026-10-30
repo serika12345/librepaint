@@ -97,8 +97,10 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
     if (status != Result::Success) return status;
     if (!output || (settings.mode != RegionFillMode::Contiguous && settings.mode != RegionFillMode::Similar) ||
         (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers) || settings.threshold < 0 || settings.threshold > 255 ||
-        settings.opacitySpread < 0 || settings.opacitySpread > 100 || settings.antiAlias ||
-        !QRect(QPoint(), snapshot()->size).contains(settings.seed)) return Result::InvalidInput;
+        settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
+        !QRect(QPoint(), snapshot()->size).contains(settings.seed) ||
+        (settings.boundaryColor && (settings.mode != RegionFillMode::Contiguous || !validPixel(*settings.boundaryColor, snapshot()->format))))
+        return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0 || (snapshot()->layers[index].kind != LayerKind::Paint || snapshot()->layers[index].userLocked)) return Result::LayerUnavailable;
     auto source = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
@@ -117,6 +119,8 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
     region->preparedFor = snapshot();
     region->layer = layer;
     region->settings = settings;
+    region->coverageSize = settings.antiAlias
+        ? QSize((source->size.width() + 63) / 64 * 64, (source->size.height() + 63) / 64 * 64) : source->size;
     *output = region;
     return Result::Success;
 }
@@ -139,7 +143,7 @@ Result OperationDocument::fillRegion(LayerId layer, const RegionFillSP &region, 
     style.fillBlendMode = blendMode;
     const QRect bounds = region->bounds;
     if (bounds.isEmpty()) return Result::EmptyOperation;
-    if (!QRect(QPoint(), snapshot()->size).contains(bounds)) return Result::InvalidInput;
+    if (!QRect(QPoint(), region->coverageSize).contains(bounds)) return Result::InvalidInput;
     const QPointF start = bounds.topLeft(), end = start + QPointF(bounds.width(), bounds.height());
     const auto result = paintFigureWithin(layer, brush, {{start, 1}, {end, 1}},
         {ShapeKind::Rectangle, start, end, 0}, style, 0, bounds, region);

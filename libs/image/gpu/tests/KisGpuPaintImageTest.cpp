@@ -1914,7 +1914,9 @@ void KisGpuPaintImageTest::contiguousFillKeepsFrozenPixelsHistoryAndClones()
     QVERIFY2(device, qPrintable(diagnostic));
     Execution execution(device, 64 * 1024 * 1024);
     for (const auto format : {PixelFormat::Rgba8, PixelFormat::Rgba16}) {
-        for (const int threshold : {1, 8}) {
+        // Native edge smoothing retains a hard rectangle's right angles.
+        // Both settings must keep frozen references through clone and history.
+        for (const int threshold : {1, 8}) for (const bool antiAlias : {false, true}) {
             const quint16 maximum = maximumComponent(format);
             const int stride = pixelByteCount(format);
             const QRect area(0, 0, 270, 20);
@@ -1930,7 +1932,7 @@ void KisGpuPaintImageTest::contiguousFillKeepsFrozenPixelsHistoryAndClones()
             const auto before = image.operations().snapshot();
             auto earlier = execution.readPixelsAsync(image.handle(), before, {0, 0, 1, 1}, {1}, false);
             RegionFillSettings settings;
-            settings.seed = {3, 3}; settings.threshold = threshold; settings.antiAlias = false;
+            settings.seed = {3, 3}; settings.threshold = threshold; settings.antiAlias = antiAlias;
             const RgbaPixel color{quint16(maximum - 13), 173, 61, maximum};
             const auto filled = image.fillRegion(1, settings, color, {});
             QVERIFY2(filled == Result::Success, qPrintable(image.lastRequestOutcome().diagnostic + QStringLiteral("; ") + device->diagnostic()));

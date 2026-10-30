@@ -164,7 +164,7 @@ struct TileRenderer::Private
     std::array<Detail::NativeComputePipeline, 3> regionClassifiers;
     std::array<Detail::NativeComputePipeline, 2> regionConversions;
     Detail::NativeComputePipeline regionEncoding;
-    std::array<Detail::NativeComputePipeline, 3> regionConnect, regionResolve;
+    std::array<Detail::NativeComputePipeline, 3> regionConnect, regionResolve, regionAntiAlias, regionFiltered;
     struct RegionCoverage {
         std::shared_ptr<Detail::BufferStorage> pixels, status;
     };

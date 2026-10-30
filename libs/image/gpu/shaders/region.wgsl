@@ -3,7 +3,8 @@
 struct RegionParameters {
     size: vec2<u32>, seed: vec2<u32>,
     format: u32, threshold: u32, spread: u32, flags: u32,
-    implicit: vec4<u32>, selection: vec4<i32>
+    implicit: vec4<u32>, selection: vec4<i32>, boundary: vec4<u32>,
+    documentSize: vec2<u32>, reserved: vec2<u32>
 }
 @group(0) @binding(0) var<uniform> parameters: RegionParameters;
 @group(0) @binding(1) var<storage, read> atlas: array<u32>;
@@ -78,22 +79,33 @@ fn opacity(difference: u32) -> u32 {
 }
 @compute @workgroup_size(8, 8) fn convert(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let p = invocation.xy;
-    if (any(p >= parameters.size)) { return; }
-    let index = p.y * parameters.size.x + p.x;
-    let input = pixel(p).rgb * select(257u, 1u, parameters.format != 0u);
+    if (any(p >= parameters.documentSize)) { return; }
+    var index = p.y * parameters.size.x + p.x;
+    let channels = select(1u, 3u, NATIVE_LAB_KIND == 2u);
+    var rgba = pixel(p);
+    if (invocation.z >= channels) {
+        if (any(p != parameters.seed)) { return; }
+        index = parameters.size.x * parameters.size.y;
+        rgba = parameters.boundary;
+    }
+    let input = rgba.rgb * select(257u, 1u, parameters.format != 0u);
     if (NATIVE_LAB_KIND == 1u) {
         storeLab(index, nativeLabClut(input));
     } else if (NATIVE_LAB_KIND == 2u) {
-        let value = nativeLabLinearComponent(input, invocation.z);
-        let offset = index * 6u + invocation.z * 2u;
+        let value = nativeLabLinearComponent(input, invocation.z % channels);
+        let offset = index * 6u + (invocation.z % channels) * 2u;
         atomicStore(&labels[offset], value.x);
         atomicStore(&labels[offset + 1u], value.y);
     }
 }
 @compute @workgroup_size(8, 8) fn encode(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let p = invocation.xy;
-    if (any(p >= parameters.size)) { return; }
-    let index = p.y * parameters.size.x + p.x;
+    if (any(p >= parameters.documentSize)) { return; }
+    var index = p.y * parameters.size.x + p.x;
+    if (invocation.z != 0u) {
+        if (any(p != parameters.seed)) { return; }
+        index = parameters.size.x * parameters.size.y;
+    }
     let offset = index * 6u;
     let fx = Word64(atomicLoad(&labels[offset]), atomicLoad(&labels[offset + 1u]));
     let fy = Word64(atomicLoad(&labels[offset + 2u]), atomicLoad(&labels[offset + 3u]));
@@ -104,12 +116,18 @@ fn opacity(difference: u32) -> u32 {
     let p = invocation.xy;
     if (any(p >= parameters.size)) { return; }
     let index = p.y * parameters.size.x + p.x;
+    if (any(p >= parameters.documentSize)) {
+        coverage[index] = 0u;
+        atomicStore(&labels[parentIndex(index)], 0xffffffffu);
+        return;
+    }
     if ((parameters.flags & 64u) == 0u && selected(parameters.seed) == 0u) {
         coverage[index] = 0u;
         atomicStore(&labels[parentIndex(index)], 0xffffffffu);
         return;
     }
-    let reference = pixel(parameters.seed);
+    let boundary = (parameters.flags & 128u) != 0u;
+    let reference = select(pixel(parameters.seed), parameters.boundary, boundary);
     let seedAlpha = alphaByte(reference.a);
     var difference = 255u;
     let value = pixel(p);
@@ -119,12 +137,14 @@ fn opacity(difference: u32) -> u32 {
     } else if (seedAlpha == 0u || alpha == 0u) {
         difference = (100u * u32(abs(i32(seedAlpha) - i32(alpha))) + 127u) / 255u;
     } else if (NATIVE_LAB_KIND != 0u && conversion[0] != 0u) {
-        difference = nativeLabDifference(convertedLab(parameters.seed.y * parameters.size.x + parameters.seed.x),
+        difference = nativeLabDifference(convertedLab(select(parameters.seed.y * parameters.size.x + parameters.seed.x,
+            parameters.size.x * parameters.size.y, boundary)),
             convertedLab(index), reference.a, value.a, parameters.format != 0u);
     } else {
         atomicStore(&status[0], 1u);
     }
-    var weight = opacity(difference);
+    let similar = opacity(difference);
+    var weight = select(similar, 255u - similar, boundary);
     if ((parameters.flags & 32u) != 0u && selected(p) == 0u) { weight = 0u; }
     coverage[index] = weight;
     atomicStore(&labels[parentIndex(index)], select(0xffffffffu, index, weight != 0u));
@@ -168,8 +188,120 @@ fn join(a: u32, b: u32) {
         let component = root(seed);
         included = component != 0xffffffffu && root(index) == component;
     }
-    coverage[index] = select(0u, min(coverage[index], selected(p)), included);
-    if (coverage[index] != 0u) {
+    if ((parameters.flags & 256u) != 0u) {
+        coverage[index] = select(0u, coverage[index], included);
+        if (coverage[index] != 0u) {
+            let bounds = scratchIndex();
+            atomicMin(&labels[bounds], p.x); atomicMin(&labels[bounds + 1u], p.y);
+            atomicMax(&labels[bounds + 2u], p.x); atomicMax(&labels[bounds + 3u], p.y);
+        }
+    } else {
+        coverage[index] = select(0u, min(coverage[index], selected(p)), included);
+        if (coverage[index] != 0u) {
+            atomicMin(&status[1], p.x); atomicMin(&status[2], p.y);
+            atomicMax(&status[3], p.x); atomicMax(&status[4], p.y);
+        }
+    }
+}
+
+fn scratchIndex() -> u32 {
+    return (parameters.size.x * parameters.size.y + select(0u, 1u, (parameters.flags & 128u) != 0u)) * labelStride();
+}
+fn filterRectangle() -> vec4<i32> {
+    if ((parameters.flags & 64u) != 0u) { return vec4<i32>(0, 0, i32(parameters.size.x), i32(parameters.size.y)); }
+    let index = scratchIndex();
+    let first = vec2<u32>(atomicLoad(&labels[index]), atomicLoad(&labels[index + 1u]));
+    let last = vec2<u32>(atomicLoad(&labels[index + 2u]), atomicLoad(&labels[index + 3u]));
+    if (any(first > last)) { return vec4<i32>(); }
+    let origin = first / vec2<u32>(64u) * vec2<u32>(64u);
+    let end = (last / vec2<u32>(64u) + vec2<u32>(1u)) * vec2<u32>(64u);
+    return vec4<i32>(vec2<i32>(origin), vec2<i32>(end));
+}
+fn rawCoverage(point: vec2<i32>, rect: vec4<i32>) -> i32 {
+    if (any(point < rect.xy) || any(point >= rect.zw) || any(point < vec2<i32>()) || any(vec2<u32>(point) >= parameters.size)) { return 0; }
+    return i32(coverage[u32(point.y) * parameters.size.x + u32(point.x)]);
+}
+struct SpanExtreme { distance: i32, difference: i32, valid: bool }
+fn spanExtreme(point: vec2<i32>, rect: vec4<i32>, along: vec2<i32>, across: vec2<i32>, direction: i32,
+               average: i32, gradient: i32, currentDifference: i32) -> SpanExtreme {
+    var result = SpanExtreme(0, 0, true);
+    for (var step = 0; step < 30; step += 1) {
+        result.distance += select(1, 2, step >= 20);
+        let first = point + direction * result.distance * along;
+        let second = first + across;
+        let a = rawCoverage(first, rect);
+        let b = rawCoverage(second, rect);
+        result.difference = ((a + b) >> 1u) - average;
+        if (abs(result.difference) > gradient) {
+            var nextDifference: i32;
+            if ((currentDifference < 0 && result.difference < 0) || (currentDifference > 0 && result.difference > 0)) {
+                nextDifference = ((b + rawCoverage(second + across, rect)) >> 1u) - average;
+            } else {
+                nextDifference = ((a + rawCoverage(first - across, rect)) >> 1u) - average;
+            }
+            result.valid = abs(nextDifference) <= gradient;
+            break;
+        }
+    }
+    return result;
+}
+fn antialiasedCoverage(point: vec2<i32>, rect: vec4<i32>) -> u32 {
+    if (any(point < rect.xy) || any(point >= rect.zw)) { return 0u; }
+    let nw = rawCoverage(point + vec2<i32>(-1, -1), rect);
+    let n = rawCoverage(point + vec2<i32>(0, -1), rect);
+    let ne = rawCoverage(point + vec2<i32>(1, -1), rect);
+    let w = rawCoverage(point + vec2<i32>(-1, 0), rect);
+    let m = rawCoverage(point, rect);
+    let e = rawCoverage(point + vec2<i32>(1, 0), rect);
+    let sw = rawCoverage(point + vec2<i32>(-1, 1), rect);
+    let s = rawCoverage(point + vec2<i32>(0, 1), rect);
+    let se = rawCoverage(point + vec2<i32>(1, 1), rect);
+    let rowN = (nw >> 2u) + (n >> 1u) + (ne >> 2u);
+    let rowM = (w >> 2u) + (m >> 1u) + (e >> 2u);
+    let rowS = (sw >> 2u) + (s >> 1u) + (se >> 2u);
+    let colW = (nw >> 2u) + (w >> 1u) + (sw >> 2u);
+    let colM = (n >> 2u) + (m >> 1u) + (s >> 2u);
+    let colE = (ne >> 2u) + (e >> 1u) + (se >> 2u);
+    let gn = abs(rowM - rowN); let gs = abs(rowS - rowM);
+    let gw = abs(colM - colW); let ge = abs(colE - colM);
+    let vertical = max(gn, gs); let horizontal = max(gw, ge);
+    if (max(vertical, horizontal) < 4) { return u32(m); }
+    var neighbor: i32;
+    var gradient: i32;
+    var along: vec2<i32>;
+    var across: vec2<i32>;
+    if (vertical > horizontal) {
+        neighbor = select(s, n, gn > gs);
+        gradient = max(gn, gs);
+        along = vec2<i32>(1, 0); across = vec2<i32>(0, select(1, -1, gn > gs));
+    } else {
+        neighbor = select(e, w, gw > ge);
+        gradient = max(gw, ge);
+        along = vec2<i32>(0, 1); across = vec2<i32>(select(1, -1, gw > ge), 0);
+    }
+    let average = (neighbor + m) >> 1u;
+    let difference = m - average;
+    let negative = spanExtreme(point, rect, along, across, -1, average, gradient >> 2u, difference);
+    let positive = spanExtreme(point, rect, along, across, 1, average, gradient >> 2u, difference);
+    var nearest = positive;
+    if (negative.distance < positive.distance) { nearest = negative; }
+    if (!nearest.valid || ((difference < 0) == (nearest.difference < 0))) { return u32(m); }
+    let interpolation = ((nearest.distance << 8u) / (negative.distance + positive.distance)) + 128;
+    return u32(neighbor + (((m - neighbor) * interpolation) >> 8u)) & 255u;
+}
+@compute @workgroup_size(8, 8) fn antiAlias(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let p = invocation.xy;
+    if (any(p >= parameters.size)) { return; }
+    let index = p.y * parameters.size.x + p.x;
+    atomicStore(&labels[parentIndex(index)], antialiasedCoverage(vec2<i32>(p), filterRectangle()));
+}
+@compute @workgroup_size(8, 8) fn filtered(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let p = invocation.xy;
+    if (any(p >= parameters.size)) { return; }
+    let index = p.y * parameters.size.x + p.x;
+    let value = min(atomicLoad(&labels[parentIndex(index)]), selected(p));
+    coverage[index] = value;
+    if (value != 0u) {
         atomicMin(&status[1], p.x); atomicMin(&status[2], p.y);
         atomicMax(&status[3], p.x); atomicMax(&status[4], p.y);
     }

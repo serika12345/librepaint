@@ -16,8 +16,9 @@ struct RegionParameters {
     quint32 format, threshold, spread, flags;
     quint32 implicit[4];
     qint32 selection[4];
+    quint32 boundary[4], documentSize[2], reserved[2];
 };
-static_assert(sizeof(RegionParameters) == 64);
+static_assert(sizeof(RegionParameters) == 96);
 quint64 labBufferBytes(const LibrePaint::Pigment::Color::NativeLabConversionSP &value)
 {
     if (!value) return sizeof(quint32);
@@ -59,9 +60,14 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     const auto &settings = region->settings;
     if ((settings.mode != RegionFillMode::Contiguous && settings.mode != RegionFillMode::Similar) ||
         (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers) || settings.threshold < 0 || settings.threshold > 255 || settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
-        settings.antiAlias || !QRect(QPoint(), document.size).contains(settings.seed))
+        !QRect(QPoint(), document.size).contains(settings.seed) ||
+        (settings.boundaryColor && (settings.mode != RegionFillMode::Contiguous || !validPixel(*settings.boundaryColor, document.format))))
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU contiguous fill settings are invalid")};
-    const quint64 width = document.size.width(), height = document.size.height();
+    const QSize expectedSize = settings.antiAlias
+        ? QSize((document.size.width() + 63) / 64 * 64, (document.size.height() + 63) / 64 * 64) : document.size;
+    if (region->coverageSize != expectedSize)
+        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Region coverage has an invalid filtering extent")};
+    const quint64 width = region->coverageSize.width(), height = region->coverageSize.height();
     const quint64 count = width * height, columns = (width + 255) / 256, rows = (height + 255) / 256;
     const auto sourceTiles = projection ? projection->tiles() : source->tiles(region->layer);
     QList<TileView> present;
@@ -86,7 +92,8 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         nativeLabValues.reset(); nativeLabDefinition.clear();
     }
     const quint32 kind = !definition ? 0 : std::holds_alternative<LibrePaint::Pigment::Color::NativeLabConversion::IntegerClut>(definition->definition) ? 1 : 2;
-    const quint64 labelBytes = count * (kind == 2 ? 6 : kind == 1 ? 3 : 1) * sizeof(quint32);
+    const quint64 labelBytes = ((count + bool(settings.boundaryColor)) * (kind == 2 ? 6 : kind == 1 ? 3 : 1) +
+        (settings.antiAlias ? 4 : 0)) * sizeof(quint32);
     const quint64 labBytes = labBufferBytes(definition);
     const quint64 required = coverageBytes + labelBytes + atlasBytes + directoryBytes + selectionBytes + 20 + sizeof(RegionParameters) +
         (nativeLabValues ? 0 : labBytes);
@@ -118,7 +125,7 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     const auto atlas = allocate(atlasBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     const auto directory = allocate(directoryBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     const auto selection = allocate(selectionBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
-    const auto labels = allocate(labelBytes, WGPUBufferUsage_Storage);
+    const auto labels = allocate(labelBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     const auto coverage = allocate(coverageBytes, WGPUBufferUsage_Storage);
     const auto status = allocate(20, WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
     const auto uniform = allocate(sizeof(RegionParameters), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
@@ -150,6 +157,7 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     }
     RegionParameters parameters{};
     parameters.size[0] = quint32(width); parameters.size[1] = quint32(height);
+    parameters.documentSize[0] = document.size.width(); parameters.documentSize[1] = document.size.height();
     parameters.seed[0] = quint32(settings.seed.x()); parameters.seed[1] = quint32(settings.seed.y());
     parameters.format = quint32(document.format); parameters.threshold = settings.threshold; parameters.spread = settings.opacitySpread;
     if (masked || !document.selection.isEmpty()) parameters.flags |= 1;
@@ -157,14 +165,20 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     if (masked) parameters.flags |= 4;
     if (masked && document.selectionMask && document.selectionMask->isAlpha()) parameters.flags |= 8;
     if (document.selectionInverted) parameters.flags |= 16;
-    if (settings.selectionAsBoundary) parameters.flags |= 32;
+    if (settings.selectionAsBoundary || settings.mode == RegionFillMode::Similar) parameters.flags |= 32;
     if (settings.mode == RegionFillMode::Similar) parameters.flags |= 64;
+    if (settings.antiAlias) parameters.flags |= 256;
+    if (settings.boundaryColor) {
+        parameters.flags |= 128;
+        for (int i = 0; i < 4; ++i) parameters.boundary[i] = (*settings.boundaryColor)[i];
+    }
     const auto implicit = projection ? RgbaPixel{} : document.layers[0].defaultPixel;
     for (int i = 0; i < 4; ++i) parameters.implicit[i] = implicit[i];
     parameters.selection[0] = document.selection.x(); parameters.selection[1] = document.selection.y();
     parameters.selection[2] = document.selection.width(); parameters.selection[3] = document.selection.height();
     const quint32 initialStatus[5]{0, quint32(width), quint32(height), 0, 0};
     wgpuQueueWriteBuffer(device->queue(), status->pixels.get(), 0, initialStatus, sizeof(initialStatus));
+    if (settings.antiAlias) wgpuQueueWriteBuffer(device->queue(), labels->pixels.get(), labelBytes - 16, initialStatus + 1, 16);
     wgpuQueueWriteBuffer(device->queue(), directory->pixels.get(), 0, entries.constData(), directoryBytes);
     wgpuQueueWriteBuffer(device->queue(), uniform->pixels.get(), 0, &parameters, sizeof(parameters));
     if (!regionLayout) {
@@ -189,9 +203,14 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         if (!regionClassifiers[kind]) regionClassifiers[kind] = createPipeline(
             QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "classify", 0, 0, regionLayout.get(), false, 0, kind);
         if (!regionConnect[kind]) regionConnect[kind] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "connect", 0, 0, regionLayout.get(), false, 0, kind);
+        if (settings.antiAlias && !regionAntiAlias[kind]) regionAntiAlias[kind] = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "antiAlias", 0, 0, regionLayout.get(), false, 0, kind);
+        if (settings.antiAlias && !regionFiltered[kind]) regionFiltered[kind] = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "filtered", 0, 0, regionLayout.get(), false, 0, kind);
         if (!regionResolve[kind]) regionResolve[kind] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "resolve", 0, 0, regionLayout.get(), false, 0, kind);
     }
-    if ((kind && !regionConversions[kind - 1]) || (kind == 2 && !regionEncoding) ||
+    if ((settings.antiAlias && (!regionAntiAlias[kind] || !regionFiltered[kind])) ||
+        (kind && !regionConversions[kind - 1]) || (kind == 2 && !regionEncoding) ||
         !regionClassifiers[kind] || !regionConnect[kind] || !regionResolve[kind] || !regionLayout)
         return {RenderOutcome::DeviceFailure, {}, error};
     const std::array<std::shared_ptr<BufferStorage>, 8> buffers{uniform, atlas, directory, selection, labels, coverage, status, lab};
@@ -207,11 +226,15 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     // Dispatch boundaries make classification, atomic union and resolution
     // separate globally ordered stages. No host iteration or pixel read is used.
     QList<QPair<WGPUComputePipeline, quint32>> stages;
-    if (kind) stages.append({regionConversions[kind - 1].get(), kind == 2 ? 3u : 1u});
-    if (kind == 2) stages.append({regionEncoding.get(), 1u});
+    if (kind) stages.append({regionConversions[kind - 1].get(), (kind == 2 ? 3u : 1u) * (settings.boundaryColor ? 2u : 1u)});
+    if (kind == 2) stages.append({regionEncoding.get(), settings.boundaryColor ? 2u : 1u});
     stages.append({regionClassifiers[kind].get(), 1u});
     if (settings.mode == RegionFillMode::Contiguous) stages.append({regionConnect[kind].get(), 1u});
     stages.append({regionResolve[kind].get(), 1u});
+    if (settings.antiAlias) {
+        stages.append({regionAntiAlias[kind].get(), 1u});
+        stages.append({regionFiltered[kind].get(), 1u});
+    }
     for (const auto &stage : stages) {
         const auto pipeline = stage.first;
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);

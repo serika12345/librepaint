@@ -1148,8 +1148,11 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     if (operation.selectionKind == SelectionKind::Ellipse) job.values.paintFlags |= 2048u;
                     if (regionCoverage) {
                         job.values.paintFlags |= ContiguousRegion;
-                        job.values.patternReserved0 = operation.region->source->size.width();
-                        job.values.patternReserved1 = operation.region->source->size.height();
+                        job.values.patternReserved0 = operation.region->coverageSize.width();
+                        job.values.patternReserved1 = operation.region->coverageSize.height();
+                        job.values.selectionX = job.values.selectionY = 0;
+                        job.values.selectionWidth = operation.region->source->size.width();
+                        job.values.selectionHeight = operation.region->source->size.height();
                         job.selectionCoverage = std::shared_ptr<NativeBuffer>(regionCoverage, &regionCoverage->pixels);
                         d.device->retainForFrame(regionCoverage);
                     } else if (operation.selectionKind == SelectionKind::Freehand) {

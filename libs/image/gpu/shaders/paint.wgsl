@@ -514,6 +514,9 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if ((figureFlags & 1u) != 0u) {
         var fillColor = nativePixel(bitcast<u32>(parameters.mirror.z), parameters.native.y, parameters.native.z != 0u);
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
+        // Region post-filters can select outside the finite fill source. The
+        // native source device supplies transparent black there, including Copy.
+        if ((parameters.paintFlags & 262144u) != 0u && !insideSelectionBounds) { fillColor = vec4<u32>(); }
         var fillAlpha = mul255(fillColor.w, fillCoverage);
         if (parameters.native.z != 0u) { fillAlpha = mul65535(fillColor.w, fillCoverage * 257u); }
         // Native marker writes retain the fill color at equal temporary alpha.

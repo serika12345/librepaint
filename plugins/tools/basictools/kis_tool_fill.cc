@@ -408,13 +408,25 @@ void KisToolFill::fillGpuSelection(QPoint seed)
     if (region) {
         const bool contiguous = m_effectiveFillMode == FillMode_FillContiguousRegion;
         if (mask || (m_reference != Reference_CurrentLayer && m_reference != Reference_AllLayers) ||
-            (contiguous && (m_contiguousFillMode != ContiguousFillMode_FloodFill || m_closeGap)) || m_sizemod || m_feather || m_antiAlias) {
-            reject(i18n("Region filling currently requires a paint layer, current-layer or all-layer reference, no anti-aliasing, no growth or feathering; contiguous filling also requires flood fill without gap closing."));
+            (contiguous && m_closeGap) || m_sizemod || m_feather) {
+            reject(i18n("Region filling currently requires a paint layer, current-layer or all-layer reference, no growth or feathering; contiguous filling also requires gap closing to be disabled."));
             return;
         }
         regionSettings.seed = seed;
         regionSettings.mode = contiguous ? Gpu::RegionFillMode::Contiguous : Gpu::RegionFillMode::Similar;
         regionSettings.reference = m_reference == Reference_AllLayers ? Gpu::RegionFillReference::AllLayers : Gpu::RegionFillReference::CurrentLayer;
+        if (contiguous && m_contiguousFillMode == ContiguousFillMode_BoundaryFill) {
+            KoColor boundary = m_contiguousFillBoundaryColor;
+            boundary.convertTo(targetImage->colorSpace());
+            if (encoding->format == Gpu::PixelFormat::Rgba16) {
+                quint16 bgra[4];
+                std::memcpy(bgra, boundary.data(), sizeof(bgra));
+                regionSettings.boundaryColor = Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], bgra[3]};
+            } else {
+                const auto *bgra = boundary.data();
+                regionSettings.boundaryColor = Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], bgra[3]};
+            }
+        }
         regionSettings.threshold = m_threshold;
         regionSettings.opacitySpread = m_opacitySpread;
         regionSettings.selectionAsBoundary = m_useSelectionAsBoundary;

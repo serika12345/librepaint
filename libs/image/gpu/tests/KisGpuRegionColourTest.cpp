@@ -15,6 +15,7 @@
 #include <QColorSpace>
 #include <QGuiApplication>
 #include <QTest>
+#include <QBitArray>
 #include <cstring>
 
 using namespace LibrePaint::Image::Gpu;
@@ -38,18 +39,24 @@ void KisGpuRegionColourTest::similarColourCoverageKeepsNativeDifference_data()
     QTest::addColumn<bool>("words");
     QTest::addColumn<int>("profileKind");
     QTest::addColumn<bool>("merged");
+    QTest::addColumn<bool>("boundary");
     for (const bool words : {false, true}) for (int kind = 0; kind < 3; ++kind) {
         const QByteArray name = QByteArray(words ? "word-" : "byte-") + QByteArray::number(kind);
-        QTest::newRow(name.constData()) << words << kind << false;
+        QTest::newRow(name.constData()) << words << kind << false << false;
     }
-    QTest::newRow("byte-merged") << false << 0 << true;
-    QTest::newRow("word-merged") << true << 1 << true;
+    QTest::newRow("byte-merged") << false << 0 << true << false;
+    QTest::newRow("word-merged") << true << 1 << true << false;
+    QTest::newRow("byte-boundary") << false << 0 << false << true;
+    QTest::newRow("word-boundary") << true << 0 << false << true;
+    QTest::newRow("byte-linear-boundary") << false << 1 << true << true;
+    QTest::newRow("word-linear-boundary") << true << 1 << true << true;
 }
 void KisGpuRegionColourTest::similarColourCoverageKeepsNativeDifference()
 {
     QFETCH(bool, words);
     QFETCH(int, profileKind);
     QFETCH(bool, merged);
+    QFETCH(bool, boundary);
     auto *registry = KoColorSpaceRegistry::instance();
     const auto depth = words ? Integer16BitsColorDepthID.id() : Integer8BitsColorDepthID.id();
     const auto *profile = registry->createColorProfileFromData(RGBAColorModelID.id(), depth,
@@ -99,12 +106,32 @@ void KisGpuRegionColourTest::similarColourCoverageKeepsNativeDifference()
             reinterpret_cast<const quint8 *>(overlay.constData()), overlay.size(), nullptr, 0, 1, area.width() * area.height(), 1);
     }
     QByteArray mask(area.width() * area.height(), '\0');
-    const auto *reference = reinterpret_cast<const quint8 *>(nativeSource.constData()) + seedIndex * stride;
+    const RgbaPixel boundaryPixel{quint16(maximum / 3), quint16(maximum / 5), quint16(maximum / 7), quint16(maximum / 2)};
+    auto nativeBoundary = rgbaBytes(boundaryPixel, raster.format);
+    exchangeChannels(nativeBoundary, stride);
+    const auto *reference = reinterpret_cast<const quint8 *>(boundary ? nativeBoundary.constData() : nativeSource.constData() + seedIndex * stride);
     for (int i = 0; i < mask.size(); ++i) {
         // At threshold255/softness100 the native soft-selection coverage is
-        // exactly255-differenceA. Erasing exposes that coverage in saved alpha.
-        mask[i] = char(255 - cs->differenceA(reference,
-            reinterpret_cast<const quint8 *>(nativeSource.constData()) + i * stride));
+        // exactly255-differenceA; boundary filling uses its complement.
+        // Erasing exposes the resulting coverage in saved alpha.
+        const auto difference = cs->differenceA(reference,
+            reinterpret_cast<const quint8 *>(nativeSource.constData()) + i * stride);
+        mask[i] = char(boundary ? difference : 255 - difference);
+    }
+    if (boundary) {
+        QVERIFY(quint8(mask.at(seedIndex)) > 0);
+        QBitArray connected(mask.size());
+        QList<int> pending{seedIndex}; connected.setBit(seedIndex);
+        for (qsizetype cursor = 0; cursor < pending.size(); ++cursor) {
+            const int index = pending[cursor], x = index % area.width(), y = index / area.width();
+            for (const auto neighbor : {QPoint(x - 1, y), QPoint(x + 1, y), QPoint(x, y - 1), QPoint(x, y + 1)}) {
+                if (!area.contains(neighbor)) continue;
+                const int next = neighbor.y() * area.width() + neighbor.x();
+                if (connected.testBit(next) || !quint8(mask.at(next))) continue;
+                connected.setBit(next); pending.append(next);
+            }
+        }
+        for (int i = 0; i < mask.size(); ++i) if (!connected.testBit(i)) mask[i] = 0;
     }
     const auto opaque = rgbaBytes({0, 0, 0, maximum}, raster.format);
     cs->compositeOp(COMPOSITE_ERASE)->composite(reinterpret_cast<quint8 *>(expected.data()), expected.size(),
@@ -112,7 +139,8 @@ void KisGpuRegionColourTest::similarColourCoverageKeepsNativeDifference()
         reinterpret_cast<const quint8 *>(mask.constData()), mask.size(), 1, mask.size(), 1);
     exchangeChannels(expected, stride);
     RegionFillSettings settings;
-    settings.seed = seed; settings.mode = RegionFillMode::Similar;
+    settings.seed = seed; settings.mode = boundary ? RegionFillMode::Contiguous : RegionFillMode::Similar;
+    if (boundary) settings.boundaryColor = boundaryPixel;
     settings.reference = merged ? RegionFillReference::AllLayers : RegionFillReference::CurrentLayer;
     settings.threshold = 255; settings.opacitySpread = 0; settings.labConversion = definition.value;
     const auto filled = image.fillRegion(1, settings, {0, 0, 0, maximum}, {}, 1, true);

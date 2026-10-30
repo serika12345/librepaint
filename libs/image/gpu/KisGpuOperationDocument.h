@@ -49,6 +49,8 @@ struct RegionFillSettings
     int opacitySpread = 100;
     bool selectionAsBoundary = false;
     bool antiAlias = false;
+    /** A colour boundary selects the contiguous component outside its similarity range. */
+    std::optional<RgbaPixel> boundaryColor;
     /** Exact native colour definition captured from the document's colour space. */
     LibrePaint::Pigment::Color::NativeLabConversionSP labConversion;
 };
@@ -61,6 +63,8 @@ struct RegionFill
     QWeakPointer<const DocumentVersion> preparedFor;
     LayerId layer = 0;
     RegionFillSettings settings;
+    /** Finite coverage includes native selection blocks for edge filtering. */
+    QSize coverageSize;
     QRect bounds;
 };
 using RegionFillSP = QSharedPointer<const RegionFill>;
