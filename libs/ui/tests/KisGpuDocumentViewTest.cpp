@@ -8900,7 +8900,9 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                                                           view->canvasBase()->resourceManager());
             QVERIFY2(capture.diagnostic.isEmpty(), qPrintable(capture.diagnostic));
             QVERIFY(capture.brush.autoBrush);
-            QCOMPARE(capture.brush.autoBrush->mask, (presetName == QLatin1String("b)_Basic-5_Size_Opacity.kpp") || presetName.startsWith(QLatin1String("h)_Charcoal_")) ||
+            QCOMPARE(capture.brush.autoBrush->mask, (presetName == QLatin1String("b)_Basic-5_Size_Opacity.kpp") ||
+                      presetName == QLatin1String("b)_Basic-3_Flow.kpp") || presetName == QLatin1String("b)_Basic-4_Flow_Opacity.kpp") ||
+                      presetName.startsWith(QLatin1String("h)_Charcoal_")) ||
                       presetName == QLatin1String("u)_Pixel_Art.kpp") || presetName == QLatin1String("u)_Pixel_Art_Fill.kpp")) ?
                      Gpu::AutoBrush::Mask::GaussianCircle :
                      (tipCase >= 2 || presetName == QLatin1String("a)_Eraser_Small.kpp")) ?
