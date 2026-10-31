@@ -13,36 +13,6 @@ fn imageTipTexel(dab: MaskDab, point: vec2<i32>) -> vec2<u32> {
     let value = word >> ((index & 1u) * 16u);
     return vec2<u32>(value & 255u, (value >> 8u) & 255u);
 }
-fn imageDoubleLessEqual(a: Word64, b: Word64) -> bool {
-    let am = doubleMagnitude(a); let bm = doubleMagnitude(b);
-    let an = (a.y & 0x80000000u) != 0u && any(am != Word64(0u));
-    let bn = (b.y & 0x80000000u) != 0u && any(bm != Word64(0u));
-    if (an != bn) { return an; }
-    return select(wordLessEqual(am, bm), wordLessEqual(bm, am), an);
-}
-fn imageLeftEdge(coefficient: Word64, offsetValue: Word64, size: u32) -> Word64 {
-    if (all(doubleMagnitude(coefficient) == Word64(0u))) { return Word64(0u); }
-    var edge = Word64(0u);
-    if ((coefficient.y & 0x80000000u) != 0u) { edge = doubleInteger(size); }
-    return doubleDivide(doubleSubtract(edge, offsetValue), coefficient);
-}
-fn imageSpanFirst(dab: MaskDab, y: u32) -> u32 {
-    let cy = doubleAdd(doubleInteger(y), Word64(0u, 0x3fe00000u));
-    let xConstant = doubleAdd(doubleMultiply(dab.rotation.xy, cy), dab.radius.xy);
-    let yConstant = doubleAdd(doubleMultiply(dab.rotation.zw, cy), dab.radius.zw);
-    let a = imageLeftEdge(dab.center.xy, xConstant, dab.vertical.x);
-    let b = imageLeftEdge(dab.center.zw, yConstant, dab.vertical.y);
-    var left = Word64(0u);
-    if (imageDoubleLessEqual(left, a)) { left = a; }
-    if (imageDoubleLessEqual(left, b)) { left = b; }
-    if (!imageDoubleLessEqual(left, doubleInteger(dab.size.x))) { return dab.size.x; }
-    return doubleTruncate(doubleAdd(left, Word64(0u, 0x3fe00000u)));
-}
-fn imageSignedFixed(value: Word64) -> i32 {
-    let scaled = doubleMultiply(value, doubleInteger(65536u));
-    let magnitude = i32(doubleTruncate(doubleMagnitude(scaled)));
-    return select(magnitude, -magnitude, (scaled.y & 0x80000000u) != 0u);
-}
 fn imageInterpolate(tl: u32, tr: u32, bl: u32, br: u32, x: u32, y: u32) -> u32 {
     let left = (tl * (256u - y) + bl * y) >> 8u;
     let right = (tr * (256u - y) + br * y) >> 8u;
@@ -53,15 +23,15 @@ fn imageBrushAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
         let texel = imageTipTexel(dab, vec2<i32>(point) + vec2<i32>(1));
         return imageByteMultiply(255u - texel.x, texel.y);
     }
-    let first = imageSpanFirst(dab, point.y);
-    if (point.x < first) { return 0u; }
-    let chunk = first + ((point.x - first) / 2048u) * 2048u;
-    let cx = doubleAdd(doubleInteger(chunk), Word64(0u, 0x3fe00000u));
-    let cy = doubleAdd(doubleInteger(point.y), Word64(0u, 0x3fe00000u));
-    let sx = doubleAdd(doubleAdd(doubleMultiply(dab.rotation.xy, cy), doubleMultiply(dab.center.xy, cx)), dab.radius.xy);
-    let sy = doubleAdd(doubleAdd(doubleMultiply(dab.rotation.zw, cy), doubleMultiply(dab.center.zw, cx)), dab.radius.zw);
-    let fx = imageSignedFixed(sx) - 32768 + bitcast<i32>(dab.coefficient.x) * i32(point.x - chunk);
-    let fy = imageSignedFixed(sy) - 32768 + bitcast<i32>(dab.coefficient.y) * i32(point.x - chunk);
+    let row = dab.vertical.w + point.y * 4u;
+    let first = geometryWords[row];
+    let count = geometryWords[row + 1u];
+    if (point.x < first || point.x - first >= count) { return 0u; }
+    let chunkIndex = (point.x - first) / 2048u;
+    let chunk = first + chunkIndex * 2048u;
+    let origin = dab.vertical.w + geometryWords[row + 2u] + chunkIndex * 2u;
+    let fx = bitcast<i32>(geometryWords[origin]) + bitcast<i32>(dab.coefficient.x) * i32(point.x - chunk);
+    let fy = bitcast<i32>(geometryWords[origin + 1u]) + bitcast<i32>(dab.coefficient.y) * i32(point.x - chunk);
     let p = vec2<i32>(fx >> 16, fy >> 16);
     let tl = imageTipTexel(dab, p); let tr = imageTipTexel(dab, p + vec2<i32>(1, 0));
     let bl = imageTipTexel(dab, p + vec2<i32>(0, 1)); let br = imageTipTexel(dab, p + vec2<i32>(1, 1));

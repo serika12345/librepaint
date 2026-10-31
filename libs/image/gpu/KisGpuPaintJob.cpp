@@ -6,6 +6,7 @@
 #include "KisGpuPaintJob_p.h"
 #include <algorithm>
 #include <cstring>
+#include <type_traits>
 
 namespace LibrePaint::Image::Gpu::Detail {
 quint32 packedPixel(const RgbaPixel &rgba)
@@ -33,7 +34,11 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
     const quint64 parameterStride = aligned(sizeof(PaintParameters));
     const auto geometryBytes = [](const PaintJob &job) {
         return std::visit([](const auto &dabs) {
-            return quint64(dabs.size()) * sizeof(dabs[0]);
+            if constexpr (std::is_same_v<typename std::decay_t<decltype(dabs)>::value_type, AutoBrushDab>) {
+                quint64 bytes = quint64(dabs.size()) * sizeof(AutoBrushDab::words);
+                for (const auto &dab : dabs) if (dab.imageCoordinates) bytes += quint64(dab.imageCoordinates->size()) * 4;
+                return bytes;
+            } else return quint64(dabs.size()) * sizeof(dabs[0]);
         }, job.geometry);
     };
     const auto stride = [&](const PaintJob &job) {
@@ -65,7 +70,20 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
             const auto &job = jobs[index];
             std::memcpy(mapped + offset, &job.values, sizeof(PaintParameters));
             std::visit([&](const auto &dabs) {
-                if (!dabs.isEmpty())
+                if constexpr (std::is_same_v<typename std::decay_t<decltype(dabs)>::value_type, AutoBrushDab>) {
+                    auto *destination = mapped + offset + parameterStride;
+                    quint32 coordinateOffset = quint32(dabs.size() * 36);
+                    for (qsizetype i = 0; i < dabs.size(); ++i) {
+                        auto words = dabs[i].words;
+                        if (dabs[i].imageCoordinates) {
+                            const auto &coordinates = *dabs[i].imageCoordinates;
+                            words[27] = coordinateOffset;
+                            std::memcpy(destination + quint64(coordinateOffset) * 4, coordinates.constData(), std::size_t(coordinates.size()) * 4);
+                            coordinateOffset += quint32(coordinates.size());
+                        }
+                        std::memcpy(destination + i * sizeof(AutoBrushDab::words), words.data(), sizeof(words));
+                    }
+                } else if (!dabs.isEmpty())
                     std::memcpy(mapped + offset + parameterStride, dabs.constData(), std::size_t(geometryBytes(job)));
             }, job.geometry);
             offset += stride(job);

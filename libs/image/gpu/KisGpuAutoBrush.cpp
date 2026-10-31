@@ -62,16 +62,43 @@ bool imageDab(const Brush &brush, const BrushDab &point, QPointF subpixel, AutoB
     bool invertible = false;
     const auto inverse = (QTransform::fromTranslate(-1, -1) * transform).inverted(&invertible);
     if (!invertible) return false;
-    doubleWords(dab, 4, inverse.m11()); doubleWords(dab, 6, inverse.m12());
-    doubleWords(dab, 8, inverse.m21()); doubleWords(dab, 10, inverse.m22());
-    doubleWords(dab, 12, inverse.dx()); doubleWords(dab, 14, inverse.dy());
+    if (level.size.width() + 2 > 16384 || level.size.height() + 2 > 16384 ||
+        dab.words[1] > quint32(PaintGeometryElementLimit / 6)) return false;
     for (const auto value : {inverse.m11() * 65536., inverse.m12() * 65536.})
         if (!std::isfinite(value) || std::abs(value) > std::numeric_limits<qint32>::max()) return false;
     dab.words[16] = quint32(qint32(inverse.m11() * 65536.));
     dab.words[17] = quint32(qint32(inverse.m12() * 65536.));
     dab.words[24] = quint32(level.size.width() + 2); dab.words[25] = quint32(level.size.height() + 2);
     dab.words[26] = level.wordOffset + point.imageTipIndex * level.tipWordStride;
-    dab.words[27] = 0;
+    auto coordinates = QSharedPointer<QList<quint32>>::create(qsizetype(dab.words[1]) * 4, 0);
+    for (quint32 y = 0; y < dab.words[1]; ++y) {
+        const qreal cy = y + .5;
+        qreal left = 0, right = dab.words[0];
+        const auto intersect = [&](qreal coefficient, qreal offset, qreal side) {
+            if (coefficient == 0) { if (offset < 0 || offset > side) right = left; return; }
+            qreal low = -offset / coefficient, high = (side - offset) / coefficient;
+            if (low > high) std::swap(low, high);
+            left = std::max(left, low); right = std::min(right, high);
+        };
+        intersect(inverse.m11(), inverse.m21() * cy + inverse.dx(), dab.words[24]);
+        intersect(inverse.m12(), inverse.m22() * cy + inverse.dy(), dab.words[25]);
+        if (right <= left) continue;
+        const auto first = quint32(std::clamp(qRound(left), 0, int(dab.words[0])));
+        const auto last = quint32(std::clamp(qRound(right), 0, int(dab.words[0])));
+        if (last <= first) continue;
+        (*coordinates)[y * 4] = first; (*coordinates)[y * 4 + 1] = last - first;
+        (*coordinates)[y * 4 + 2] = quint32(coordinates->size());
+        for (quint32 x = first; x < last; x += 2048) {
+            const qreal cx = x + .5;
+            const qreal fx = (inverse.m21() * cy + inverse.m11() * cx + inverse.dx()) * 65536.;
+            const qreal fy = (inverse.m22() * cy + inverse.m12() * cx + inverse.dy()) * 65536.;
+            if (std::abs(fx) >= std::numeric_limits<qint32>::max() || std::abs(fy) >= std::numeric_limits<qint32>::max() ||
+                coordinates->size() > PaintGeometryElementLimit - 2) return false;
+            coordinates->append(quint32(qint32(fx) - 32768));
+            coordinates->append(quint32(qint32(fy) - 32768));
+        }
+    }
+    dab.imageCoordinates = coordinates;
     return true;
 }
 qreal textureStrength(const BrushTexture &texture, const BrushDab &dab)
@@ -109,6 +136,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
     QPointF savedSubpixel;
     qreal savedAngle = 0;
     quint32 savedImageTip = 0;
+    qsizetype imageCoordinateWords = 0;
     const bool unaliasedGaussian = settings.mask == AutoBrush::Mask::GaussianCircle && !settings.antialiasEdges;
     constexpr double sqrtTwo = 1.41421356237309504880;
     std::array<quint32, 3> gaussianParameters{};
@@ -239,6 +267,10 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             const quint32 tolerance = quint32(255 - *sharpness * 255);
             const quint32 transparent = (100 - settings.sharpnessSoftness) * tolerance / 100;
             dab.words[30] |= 512u | (tolerance << 16) | (transparent << 24);
+        }
+        if (dab.imageCoordinates) {
+            if (dab.imageCoordinates->size() > PaintGeometryElementLimit - imageCoordinateWords) return false;
+            imageCoordinateWords += dab.imageCoordinates->size();
         }
         result.append(dab);
         return result.size() <= PaintGeometryElementLimit / reflectionCount;

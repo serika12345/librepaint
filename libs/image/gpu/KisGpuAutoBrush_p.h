@@ -12,9 +12,11 @@ namespace LibrePaint::Image::Gpu::Detail {
 struct AutoBrushDab
 {
     std::array<quint32, 36> words{};
+    /** Image-tip row ranges and fixed-point chunk origins; coordinate metadata only. */
+    QSharedPointer<const QList<quint32>> imageCoordinates;
     QRect bounds() const { return {qint32(words[18]), qint32(words[19]), int(words[0]), int(words[1])}; }
 };
-static_assert(sizeof(AutoBrushDab) == 144);
+static_assert(sizeof(AutoBrushDab::words) == 144);
 
 /** Pending intent belongs to the pinned version; stationary input stamps its last point after commit. */
 std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation, bool pending);
