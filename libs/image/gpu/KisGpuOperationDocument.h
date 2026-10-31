@@ -168,6 +168,31 @@ struct PressureResponse
     { return kind == other.kind && strength == other.strength && curve == other.curve; }
 };
 
+/** Frozen repeating Alpha8 paper resource and native per-dab strength inputs. */
+struct BrushTexture
+{
+    enum class Mode { Multiply, Subtract, Darken };
+    QSize size;
+    /** Row-major Alpha8, padded to a four-byte storage word. */
+    QByteArray alpha;
+    QPoint offset;
+    Mode mode = Mode::Multiply;
+    bool soft = false;
+    qreal strength = 1;
+    std::optional<PressureResponse> pressure;
+    std::optional<PressureResponse> fade;
+    int fadeLength = 1000;
+    bool fadePeriodic = false;
+    int curveMode = 0;
+
+    bool operator==(const BrushTexture &other) const
+    {
+        return size == other.size && alpha == other.alpha && offset == other.offset && mode == other.mode &&
+            soft == other.soft && strength == other.strength && pressure == other.pressure && fade == other.fade &&
+            fadeLength == other.fadeLength && fadePeriodic == other.fadePeriodic && curveMode == other.curveMode;
+    }
+};
+
 /** Frozen generated circular mask, WASH flow and pressure-controlled opacity. */
 struct AutoBrush
 {
@@ -184,13 +209,16 @@ struct AutoBrush
     bool creamy = true;
     PressureResponse opacityResponse;
     PressureResponse flowResponse;
+    int precisionLevel = 5;
+    bool autoPrecision = false;
 
     bool operator==(const AutoBrush &other) const
     {
         return mask == other.mask && fade == other.fade && verticalFade == other.verticalFade &&
             ratio == other.ratio && isotropicSpacing == other.isotropicSpacing && antialiasEdges == other.antialiasEdges &&
             angle == other.angle && flow == other.flow && creamy == other.creamy &&
-            opacityResponse == other.opacityResponse && flowResponse == other.flowResponse;
+            opacityResponse == other.opacityResponse && flowResponse == other.flowResponse &&
+            precisionLevel == other.precisionLevel && autoPrecision == other.autoPrecision;
     }
 };
 
@@ -255,6 +283,7 @@ struct Brush
     /** Weighted positions feed basic interpolation; distances are frozen in document pixels. */
     std::optional<WeightedSmoothing> weightedSmoothing{};
     std::optional<AutoBrush> autoBrush{};
+    std::optional<BrushTexture> texture{};
 
     bool operator==(const Brush &other) const
     {
@@ -267,7 +296,7 @@ struct Brush
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
             mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect &&
             basicSmoothing == other.basicSmoothing && weightedSmoothing == other.weightedSmoothing &&
-            autoBrush == other.autoBrush;
+            autoBrush == other.autoBrush && texture == other.texture;
     }
 };
 

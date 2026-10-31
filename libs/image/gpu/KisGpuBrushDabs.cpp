@@ -66,9 +66,11 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         input.last().position = operation.shape.second;
     }
     qsizetype count = 0;
+    qsizetype sequence = 0;
     QPointF spacing(.5, .5), accumulated;
     qreal spacingRotation = 0;
     const auto append = [&](const InputSample &point) {
+        const auto dabSequence = sequence++;
         const qreal scale = pressureValue(brush.sizeResponse, point.pressure);
         const qreal diameter = brush.diameter * scale;
         const bool tooSmall = brush.autoBrush ?
@@ -81,7 +83,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         const qreal angle = brush.autoBrush ? brush.autoBrush->angle + sensorRotation : 0;
         const auto metric = brush.autoBrush ? characteristicSize(brush.diameter, brush.autoBrush->ratio, scale, angle) :
                                                 QSizeF(diameter, diameter);
-        if (!visit({point.position, point.pressure, scale, metric, angle, point.canvasMirroredH, point.canvasMirroredV})) return false;
+        if (!visit({point.position, point.pressure, scale, metric, angle, point.canvasMirroredH, point.canvasMirroredV, dabSequence})) return false;
         ++count;
         const auto distance = [&](qreal side) {
             return brush.autoSpacing ? brush.autoSpacingCoefficient * (side < 1 ? side : std::sqrt(side)) : side * brush.spacing;
@@ -233,6 +235,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         qsizetype index = 0, call = 0;
         QPointF lineSpacing = spacing, lineAccumulated = accumulated;
         qreal lineRotation = spacingRotation;
+        qsizetype lineSequence = sequence;
         InputSample previous;
         for (const auto command : operation.shape.pathCommands) {
             // A painter-path call owns its distance, while opacity averaging
@@ -241,9 +244,11 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 lineSpacing = spacing;
                 lineAccumulated = accumulated;
                 lineRotation = spacingRotation;
+                lineSequence = sequence;
                 spacing = {.5, .5};
                 accumulated = {};
                 spacingRotation = 0;
+                sequence = 0;
             }
             if (command == PathCommand::CubicTo) {
                 if (!cubic(previous, input[index].position, input[index + 1].position, input[index + 2])) return false;
@@ -258,6 +263,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 spacing = lineSpacing;
                 accumulated = lineAccumulated;
                 spacingRotation = lineRotation;
+                sequence = lineSequence;
                 ++call;
             }
         }

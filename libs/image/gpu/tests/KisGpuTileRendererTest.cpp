@@ -119,6 +119,7 @@ private Q_SLOTS:
     void fillBlendModePreservesOpacityAlphaLockAndChannelMask();
     void layerTransparencyMaskMultipliesCompositionAlpha();
     void autoBrushProducesCoverageAndRetainsPixels();
+    void paperResourceKeepsFrozenPixelsHistoryAndCapacity();
     void gaussianEraseKeepsColorsHistory_data();
     void gaussianEraseKeepsColorsHistory();
     void gaussianFreehandKeepsInitialDistanceAndFinalTap_data();
@@ -1250,6 +1251,60 @@ void KisGpuTileRendererTest::autoBrushProducesCoverageAndRetainsPixels()
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0}), pixels);
     QCOMPARE(readTile(painted, document.activeLayer(), {0, 0}), pixels);
+}
+
+// Consumer: retained brush editing and replay. Resource mutation, cache eviction
+// and an exhausted input budget must preserve the accepted pixels and history.
+void KisGpuTileRendererTest::paperResourceKeepsFrozenPixelsHistoryAndCapacity()
+{
+    Limits limits;
+    limits.rasterBytes = 4;
+    OperationDocument document(QSize(64, 64), limits);
+    Brush brush;
+    brush.rgba = {17, 34, 51, 255};
+    brush.diameter = 40;
+    brush.sizeResponse = {PressureResponse::Kind::Constant, 1, {}};
+    brush.autoBrush.emplace().mask = AutoBrush::Mask::Circle;
+    auto &paper = brush.texture.emplace();
+    paper.size = {2, 2};
+    paper.alpha = QByteArray::fromHex("004080ff");
+    paper.mode = BrushTexture::Mode::Subtract;
+    const auto id = document.beginStroke(document.activeLayer(), brush, 17);
+    QVERIFY(!id.isNull());
+    paper.alpha.fill(char(255));
+    QCOMPARE(document.appendSamples(id, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    const auto accepted = document.snapshot();
+    QCOMPARE(accepted->rasterBytes, 4);
+    QVERIFY(document.beginStroke(document.activeLayer(), brush, 18).isNull());
+    QCOMPARE(document.snapshot(), accepted);
+    QCOMPARE(document.undoCount(), 1);
+    TileRenderer renderer(m_device, 8 * TileRenderer::TileBytes);
+    const auto version = render(renderer, accepted);
+    QVERIFY(version);
+    const auto pixels = readTile(version, document.activeLayer(), {0, 0});
+    const auto pixel = [&](int x, int y) { return pixels.mid((y * TileRenderer::TileSize + x) * 4, 4); };
+    QCOMPARE(pixel(32, 32), QByteArray::fromHex("112233ff"));
+    QCOMPARE(pixel(33, 32), QByteArray::fromHex("112233bf"));
+    QCOMPARE(pixel(32, 33), QByteArray::fromHex("1122337f"));
+    QCOMPARE(pixel(33, 33), QByteArray(4, char(0)));
+    // Other documents replace the finite imported-resource cache.
+    for (int index = 0; index < 5; ++index) {
+        OperationDocument other(QSize(64, 64));
+        paper.alpha.fill(char(index + 1));
+        const auto stroke = other.beginStroke(other.activeLayer(), brush, index);
+        QVERIFY(!stroke.isNull());
+        QCOMPARE(other.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+        QCOMPARE(other.commitStroke(stroke), Result::Success);
+        QVERIFY(render(renderer, other.snapshot()));
+    }
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(render(renderer, document.snapshot())->tiles(document.activeLayer()).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0}), pixels);
+    QCOMPARE(readTile(version, document.activeLayer(), {0, 0}), pixels);
+    TileRenderer recovered(m_device, 8 * TileRenderer::TileBytes);
+    QCOMPARE(readTile(render(recovered, accepted), document.activeLayer(), {0, 0}), pixels);
 }
 
 void KisGpuTileRendererTest::autoBrushSkipsDabsBelowTheBrushMinimum()

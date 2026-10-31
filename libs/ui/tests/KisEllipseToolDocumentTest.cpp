@@ -23,6 +23,7 @@
 #include <KisResourceLocator.h>
 #include <KisResourceModel.h>
 #include <KisResourceStorage.h>
+#include <KoPattern.h>
 #include <KoToolBase.h>
 #include <KoSnapGuide.h>
 #include <KoResourceCacheInterface.h>
@@ -460,12 +461,16 @@ void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing_data()
     QTest::addColumn<int>("fillStyle");
     QTest::addColumn<int>("outlineStyle");
     QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("paper");
     for (const auto figure : {FigureKind::Ellipse, FigureKind::Rectangle, FigureKind::RoundedRectangle, FigureKind::Polygon}) {
         for (const bool words : {false, true}) {
             const auto name = QString::number(int(figure)) + (words ? QStringLiteral("-u16") : QStringLiteral("-u8"));
             QTest::newRow(qPrintable(name)) << figure << true << false << false << false
                 << int(KisFigurePaintingOptions::FillStyleNone)
-                << int(KisFigurePaintingOptions::StrokeStyleForeground) << words;
+                << int(KisFigurePaintingOptions::StrokeStyleForeground) << words << false;
+            QTest::newRow(qPrintable(QStringLiteral("paper-") + name)) << figure << true << false << false << false
+                << int(KisFigurePaintingOptions::FillStyleNone)
+                << int(KisFigurePaintingOptions::StrokeStyleForeground) << words << true;
         }
     }
 }
@@ -473,11 +478,29 @@ void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing_data()
 void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing()
 {
     QFETCH(bool, words);
+    QFETCH(bool, paper);
+    auto preset = m_fillPreset;
+    if (paper) {
+        const auto bundle = KisResourceStorageSP::create(QStringLiteral(KRITA_SOURCE_DIR "/krita/data/bundles/Krita_4_Default_Resources.bundle"));
+        QVERIFY(bundle->valid());
+        preset = bundle->resource(QStringLiteral("paintoppresets/d)_Ink-7_Brush_Rough.kpp")).dynamicCast<KisPaintOpPreset>();
+        const auto pattern = bundle->resource(QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
+        QVERIFY(preset); QVERIFY(pattern);
+        if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(pattern->md5Sum(), pattern->filename(), pattern->name())) {
+            KisResourceModel patterns(ResourceType::Patterns); QVERIFY(patterns.addResource(pattern));
+        }
+        preset->settings()->setProperty("Texture/Pattern/isRandomOffsetX", false);
+        preset->settings()->setProperty("Texture/Pattern/isRandomOffsetY", false);
+        preset->settings()->setProperty("Texture/Pattern/OffsetX", 7);
+        preset->settings()->setProperty("Texture/Pattern/OffsetY", 11);
+        preset->setFilename(QStringLiteral("paper-figure-") + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kpp"));
+        KisResourceModel presets(ResourceType::PaintOpPresets); QVERIFY(presets.addResource(preset));
+    }
     QByteArray cpu, gpu;
     QHash<QString, QByteArray> nativeStates;
-    exerciseFigure(m_fillPreset, false, &cpu, 1, words, &nativeStates);
+    exerciseFigure(preset, false, &cpu, 1, words, &nativeStates);
     if (QTest::currentTestFailed()) return;
-    exerciseFigure(m_fillPreset, true, &gpu, 1, words, &nativeStates);
+    exerciseFigure(preset, true, &gpu, 1, words, &nativeStates);
     if (QTest::currentTestFailed()) return;
     QCOMPARE(gpu, cpu);
 }

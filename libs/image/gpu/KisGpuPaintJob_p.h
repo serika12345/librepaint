@@ -31,8 +31,12 @@ struct PaintParameters
     qint32 destinationX = 0, destinationY = 0, destinationWidth = 0, destinationHeight = 0;
     std::array<quint32, 12> patternInverse{};
     quint32 patternFormat = 0, patternSampled = 0, patternReserved0 = 0, patternReserved1 = 0;
+    quint32 textureWidth = 0, textureHeight = 0;
+    qint32 textureX = 0, textureY = 0;
+    quint32 textureWordOffset = 0;
+    std::array<quint32, 3> textureReserved{};
 };
-static_assert(sizeof(PaintParameters) == 192);
+static_assert(sizeof(PaintParameters) == 224);
 constexpr quint32 UniformPixelFill = 16384u;
 constexpr quint32 PartialRgba16Source = 32768u;
 constexpr quint32 RestrictNonCopyDestination = 65536u;

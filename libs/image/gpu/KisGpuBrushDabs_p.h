@@ -20,6 +20,7 @@ struct BrushDab
     QSizeF size;
     qreal angle;
     bool mirroredH, mirroredV;
+    qsizetype sequence;
 };
 /** Calls visit in native dab order; false stops unsupported or over-budget geometry. */
 bool forEachBrushDab(const PaintOperation &operation, bool pending,

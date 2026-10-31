@@ -28,6 +28,12 @@
 #include <compositeops/KoAlphaDarkenParamsWrapper.h>
 #include <QDomDocument>
 #include <resources/KoPattern.h>
+#include <KisResourceTypes.h>
+#include <KisResourcesInterface.h>
+#include <brushengine/KisPerStrokeRandomSource.h>
+#include "KisBrushTextureMask.h"
+#include <QBuffer>
+#include <QFileInfo>
 #include <KoCanvasResourcesIds.h>
 #include <KoCanvasResourcesInterface.h>
 #include <KoResourceCacheInterface.h>
@@ -53,27 +59,9 @@
 #include <utility>
 
 namespace {
-bool capturePressureResponse(const KisPaintOpSettingsSP &settings, const QString &name,
-                             bool checkable, LibrePaint::Image::Gpu::PressureResponse &response)
+bool captureCurveResponse(QString curve, LibrePaint::Image::Gpu::PressureResponse &response)
 {
     using Response = LibrePaint::Image::Gpu::PressureResponse;
-    response = {};
-    if (checkable && !settings->getBool(QStringLiteral("Pressure") + name)) return true;
-    response.strength = settings->getDouble(name + QStringLiteral("Value"), 1);
-    if (!qIsFinite(response.strength) || response.strength < 0 || response.strength > 1) return false;
-    if (!settings->getBool(name + QStringLiteral("UseCurve"), true)) return true;
-    if (settings->getInt(name + QStringLiteral("curveMode"), 0) != 0) return false;
-    const auto definition = settings->getString(name + QStringLiteral("Sensor"));
-    QString curve;
-    if (!definition.isEmpty()) {
-        QDomDocument sensor;
-        if (!sensor.setContent(definition)) return false;
-        const auto element = sensor.documentElement();
-        if (element.attribute(QStringLiteral("id")) != QLatin1String("pressure")) return false;
-        curve = element.firstChildElement(QStringLiteral("curve")).text();
-    }
-    if (settings->getBool(name + QStringLiteral("UseSameCurve"), true))
-        curve = settings->getString(name + QStringLiteral("commonCurve"), curve);
     if (curve.isEmpty()) curve = QStringLiteral("0,0;1,1;");
     QList<QPointF> points;
     for (const auto &text : curve.split(QLatin1Char(';'), Qt::SkipEmptyParts)) {
@@ -97,15 +85,137 @@ bool capturePressureResponse(const KisPaintOpSettingsSP &settings, const QString
     return true;
 }
 
+bool capturePressureResponse(const KisPaintOpSettingsSP &settings, const QString &name,
+                             bool checkable, LibrePaint::Image::Gpu::PressureResponse &response)
+{
+    using Response = LibrePaint::Image::Gpu::PressureResponse;
+    response = {};
+    if (checkable && !settings->getBool(QStringLiteral("Pressure") + name)) return true;
+    response.strength = settings->getDouble(name + QStringLiteral("Value"), 1);
+    if (!qIsFinite(response.strength) || response.strength < 0 || response.strength > 1) return false;
+    if (!settings->getBool(name + QStringLiteral("UseCurve"), true)) return true;
+    if (settings->getInt(name + QStringLiteral("curveMode"), 0) != 0) return false;
+    const auto definition = settings->getString(name + QStringLiteral("Sensor"));
+    QString curve;
+    if (!definition.isEmpty()) {
+        QDomDocument sensor;
+        if (!sensor.setContent(definition)) return false;
+        const auto element = sensor.documentElement();
+        if (element.attribute(QStringLiteral("id")) != QLatin1String("pressure")) return false;
+        curve = element.firstChildElement(QStringLiteral("curve")).text();
+    }
+    if (settings->getBool(name + QStringLiteral("UseSameCurve"), true))
+        curve = settings->getString(name + QStringLiteral("commonCurve"), curve);
+    return captureCurveResponse(curve, response);
+}
+
+bool captureBrushTexture(const KisPaintOpSettingsSP &settings, bool erase, LibrePaint::Image::Gpu::Brush &brush)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!settings->getBool("Texture/Pattern/Enabled")) return true;
+    Gpu::BrushTexture texture;
+    switch (settings->getInt("Texture/Pattern/TexturingMode", 0)) {
+    case 0: texture.mode = Gpu::BrushTexture::Mode::Multiply; break;
+    case 1: texture.mode = Gpu::BrushTexture::Mode::Subtract; break;
+    case 4: texture.mode = Gpu::BrushTexture::Mode::Darken; break;
+    default: return false;
+    }
+    texture.soft = settings->getBool("Texture/Pattern/UseSoftTexturing");
+    const QString strengthKey = QStringLiteral("Texture/Strength/");
+    if (settings->getBool("Pressure" + strengthKey)) {
+        texture.strength = settings->getDouble(strengthKey + "Value", 1);
+        if (!qIsFinite(texture.strength) || texture.strength < 0 || texture.strength > 1) return false;
+        if (settings->getBool(strengthKey + "UseCurve", true)) {
+            texture.curveMode = settings->getInt(strengthKey + "curveMode", 0);
+            if (texture.curveMode < 0 || texture.curveMode > 4) return false;
+            QDomDocument sensors;
+            auto definition = settings->getString(strengthKey + "Sensor");
+            if (definition.isEmpty()) definition = QStringLiteral("<params id='pressure'/>");
+            if (!sensors.setContent(definition)) return false;
+            const auto root = sensors.documentElement();
+            QList<QDomElement> elements;
+            if (root.attribute("id") == QLatin1String("sensorslist")) {
+                for (auto child = root.firstChildElement("ChildSensor"); !child.isNull(); child = child.nextSiblingElement("ChildSensor")) elements.append(child);
+            } else elements.append(root);
+            if (elements.isEmpty()) {
+                QDomElement pressure = sensors.createElement("ChildSensor");
+                pressure.setAttribute("id", "pressure");
+                elements.append(pressure);
+            }
+            QString common = elements.last().firstChildElement("curve").text();
+            const bool legacyCurve = !definition.contains(QLatin1String("curve"));
+            if (legacyCurve) common = settings->getBool("Custom" + strengthKey) ? settings->getString("Curve" + strengthKey) : QString();
+            common = settings->getString(strengthKey + "commonCurve", common);
+            for (const auto &element : elements) {
+                Gpu::PressureResponse response;
+                auto curve = element.firstChildElement("curve").text();
+                if (legacyCurve || settings->getBool(strengthKey + "UseSameCurve", true)) curve = common;
+                if (!captureCurveResponse(curve, response)) return false;
+                if (element.attribute("id") == QLatin1String("pressure")) {
+                    if (texture.pressure) return false;
+                    texture.pressure = response;
+                } else if (element.attribute("id") == QLatin1String("fade")) {
+                    if (texture.fade) return false;
+                    bool lengthOk = false;
+                    texture.fadeLength = element.attribute("length", "1000").toInt(&lengthOk);
+                    texture.fadePeriodic = element.attribute("periodic", "0").toInt() != 0;
+                    if (!lengthOk || texture.fadeLength <= 0) return false;
+                    texture.fade = response;
+                } else return false;
+            }
+        }
+    }
+    auto resources = settings->resourcesInterface();
+    if (!resources) resources = KisGlobalResourcesInterface::instance();
+    auto md5 = settings->getString("Texture/Pattern/PatternMD5Sum");
+    if (md5.isEmpty()) md5 = QByteArray::fromBase64(settings->getString("Texture/Pattern/PatternMD5").toLatin1()).toHex();
+    const auto file = QFileInfo(settings->getString("Texture/Pattern/PatternFileName")).fileName();
+    auto pattern = resources->source<KoPattern>(ResourceType::Patterns).bestMatch(md5, file, settings->getString("Texture/Pattern/Name"));
+    if (!pattern && !settings->getString("Texture/Pattern/Pattern").isEmpty()) {
+        QBuffer embedded;
+        embedded.setData(QByteArray::fromBase64(settings->getString("Texture/Pattern/Pattern").toLatin1()));
+        embedded.open(QIODevice::ReadOnly);
+        pattern.reset(new KoPattern(file));
+        if (!pattern->loadFromDevice(&embedded, resources)) return false;
+    }
+    if (!pattern || !pattern->valid()) return false;
+    KisBrushTextureMaskSettings import;
+    import.scale = settings->getDouble("Texture/Pattern/Scale", 1);
+    import.brightness = settings->getDouble("Texture/Pattern/Brightness", 0);
+    import.contrast = settings->getDouble("Texture/Pattern/Contrast", 1);
+    import.neutralPoint = settings->getDouble("Texture/Pattern/NeutralPoint", .5);
+    import.cutoffLeft = settings->getInt("Texture/Pattern/CutoffLeft", 0);
+    import.cutoffRight = settings->getInt("Texture/Pattern/CutoffRight", 255);
+    import.cutoffPolicy = settings->getInt("Texture/Pattern/CutoffPolicy", 0);
+    import.invert = settings->getBool("Texture/Pattern/Invert") != (erase && settings->getBool("Texture/Pattern/AutoInvertOnErase"));
+    const qreal scale = qFuzzyCompare(import.scale, 0.) ? 1 : import.scale;
+    if (!qIsFinite(scale) || scale <= 0 || !qIsFinite(import.brightness) || !qIsFinite(import.contrast) ||
+        !qIsFinite(import.neutralPoint) || import.neutralPoint < 0 || import.neutralPoint > 1 ||
+        import.cutoffLeft < 0 || import.cutoffRight > 255 || import.cutoffLeft > import.cutoffRight ||
+        import.cutoffPolicy < 0 || import.cutoffPolicy > 2 ||
+        std::max(qreal(2), pattern->width() * scale) * std::max(qreal(2), pattern->height() * scale) > 16 * 1024 * 1024) return false;
+    const auto mask = prepareBrushTextureMask(pattern->pattern(), import);
+    const qint64 pixels = qint64(mask.width()) * mask.height();
+    if (mask.isNull() || pixels > 16 * 1024 * 1024) return false;
+    texture.size = mask.size();
+    texture.alpha = QByteArray((pixels + 3) & ~qint64(3), char(0));
+    for (int row = 0; row < mask.height(); ++row)
+        std::memcpy(texture.alpha.data() + row * mask.width(), mask.constScanLine(row), mask.width());
+    KisPerStrokeRandomSource random;
+    texture.offset = {
+        settings->getBool("Texture/Pattern/isRandomOffsetX") ? random.generate("texture_offset_x", 0, mask.width()) : settings->getInt("Texture/Pattern/OffsetX"),
+        settings->getBool("Texture/Pattern/isRandomOffsetY") ? random.generate("texture_offset_y", 0, mask.height()) : settings->getInt("Texture/Pattern/OffsetY")};
+    brush.texture = std::move(texture);
+    return true;
+}
+
 bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush)
 {
     if (settings->getInt("PaintOpAction") != 2 || settings->getString("ColorSource/Type", "plain") != QLatin1String("plain") ||
-        settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag) || settings->getBool("Texture/Pattern/Enabled") ||
+        settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag) ||
         settings->getBool("PaintOpSettings/isAirbrushing") || settings->getBool("PaintOpSettings/ignoreSpacing") ||
         settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") ||
-        settings->getBool("HorizontalMirrorEnabled") || settings->getBool("VerticalMirrorEnabled") ||
-        (!settings->getBool("KisPrecisionOption/AutoPrecisionEnabled", false) &&
-         settings->getInt("KisPrecisionOption/precisionLevel", 5) != 5)) return false;
+        settings->getBool("HorizontalMirrorEnabled") || settings->getBool("VerticalMirrorEnabled")) return false;
     for (const auto *name : {"PressureDarken", "PressureMirror", "PressureMix", "PressureRate", "PressureRatio",
                             "PressureRotation", "PressureScatter", "PressureSharpness", "PressureSoftness",
                             "PressureSpacing", "Pressureh", "Pressures", "Pressurev"})
@@ -128,6 +238,9 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     if (!equalNumber(root, QStringLiteral("randomness"), 0) || !equalNumber(root, QStringLiteral("density"), 1) ||
         !qIsFinite(brush.diameter) || brush.diameter <= 0) return false;
     LibrePaint::Image::Gpu::AutoBrush value;
+    value.precisionLevel = settings->getInt("KisPrecisionOption/precisionLevel", 5);
+    value.autoPrecision = settings->getBool("KisPrecisionOption/AutoPrecisionEnabled", false);
+    if (value.precisionLevel < 1 || value.precisionLevel > 5) return false;
     value.isotropicSpacing = settings->getBool("Spacing/Isotropic", false);
     if (mask.attribute(QStringLiteral("id")) == QLatin1String("default")) {
         value.mask = mask.attribute(QStringLiteral("type")) == QLatin1String("rect") ?
@@ -167,7 +280,7 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     value.opacityResponse.strength = 1;
     value.flowResponse.strength = 1;
     brush.autoBrush = std::move(value);
-    return true;
+    return captureBrushTexture(settings, brush.erase, brush);
 }
 
 KisGpuBrushResources captureGpuPaintingResources(
@@ -264,7 +377,13 @@ KisGpuBrushResources captureGpuPaintingResources(
 KisGpuBrushResources captureGpuBrushResources(
     KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources)
 {
-    return captureGpuPaintingResources(image, node, resources, true);
+    try {
+        return captureGpuPaintingResources(image, node, resources, true);
+    } catch (const std::bad_alloc &) {
+        KisGpuBrushResources result;
+        result.diagnostic = i18n("The brush resources could not be prepared within the available memory.");
+        return result;
+    }
 }
 
 KisGpuBrushResources captureGpuFillResources(

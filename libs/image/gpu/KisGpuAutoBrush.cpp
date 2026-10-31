@@ -30,6 +30,25 @@ int maskSide(qreal metric, qreal subpixel)
     if (subpixel < 1e-6) subpixel = 0;
     return std::max(1, int(std::ceil(metric + subpixel)));
 }
+qreal textureStrength(const BrushTexture &texture, const BrushDab &dab)
+{
+    qreal scaling = 1;
+    if (texture.pressure) scaling = pressureValue(*texture.pressure, dab.pressure);
+    if (texture.fade) {
+        const auto index = texture.fadePeriodic ? dab.sequence % texture.fadeLength :
+            std::min(dab.sequence, qsizetype(texture.fadeLength));
+        const qreal fade = pressureValue(*texture.fade, qreal(index) / texture.fadeLength);
+        if (!texture.pressure) scaling = fade;
+        else switch (texture.curveMode) {
+        case 1: scaling += fade; break;
+        case 2: scaling = std::max(scaling, fade); break;
+        case 3: scaling = std::min(scaling, fade); break;
+        case 4: scaling = std::abs(scaling - fade); break;
+        default: scaling *= fade; break;
+        }
+    }
+    return std::clamp(texture.strength * scaling, qreal(0), qreal(1));
+}
 }
 
 std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation, bool pending)
@@ -41,6 +60,10 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
     const qsizetype reflectionCount = (brush.mirrorHorizontal ? 2 : 1) * (brush.mirrorVertical ? 2 : 1);
     QList<AutoBrushDab> result;
     qreal averageOpacity = 0;
+    std::optional<AutoBrushDab> original;
+    QPointF savedSubpixel;
+    qreal savedAngle = 0;
+
     const bool complete = forEachBrushDab(operation, pending, [&](const BrushDab &point) {
         const auto &metric = point.size;
         const QPointF hotSpot(std::max(qreal(1), metric.width()) / 2, std::max(qreal(1), metric.height()) / 2);
@@ -85,12 +108,42 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             doubleWords(dab, 14, fadeStart);
             doubleWords(dab, 16, 255. / (radius - fadeStart));
         }
+        // Native dab caching reuses the original tip before applying paper at
+        // the new document position. Only geometry is shared; flow, opacity
+        // and paper strength still belong to this input sample.
+        const int precision = settings.autoPrecision ?
+            (brush.texture && std::min(dab.words[0], dab.words[1]) >= 30 ? 3 : 5) : settings.precisionLevel;
+        constexpr qreal sizeTolerance[] = {.05, .01, 0, 0, 0};
+        constexpr qreal positionTolerance[] = {1, 1, 1, .5, 1e-6};
+        const qreal angleTolerance = precision == 5 ? 1e-6 : M_PI / 180;
+        const bool reuse = original &&
+            std::abs(point.angle - savedAngle) <= angleTolerance &&
+            std::abs(int(dab.words[0]) - int(original->words[0])) <= int(sizeTolerance[precision - 1] * dab.words[0]) &&
+            std::abs(int(dab.words[1]) - int(original->words[1])) <= int(sizeTolerance[precision - 1] * dab.words[1]) &&
+            std::abs(subpixel.x() - savedSubpixel.x()) <= positionTolerance[precision - 1] &&
+            std::abs(subpixel.y() - savedSubpixel.y()) <= positionTolerance[precision - 1] &&
+            (dab.words[3] & 12u) == (original->words[3] & 12u);
+        if (reuse) {
+            origin -= QPoint((int(original->words[0]) - int(dab.words[0])) / 2,
+                             (int(original->words[1]) - int(dab.words[1])) / 2);
+            dab = *original;
+        } else {
+            original = dab;
+            savedSubpixel = subpixel;
+            savedAngle = point.angle;
+        }
         dab.words[18] = quint32(origin.x());
         dab.words[19] = quint32(origin.y());
         dab.words[20] = floatBits(float(opacity));
         dab.words[21] = floatBits(float(settings.flow * pressureValue(settings.flowResponse, point.pressure)));
         dab.words[22] = floatBits(float(averageOpacity));
         dab.words[23] = quint32(settings.creamy);
+        if (brush.texture) {
+            const auto strength = textureStrength(*brush.texture, point);
+            dab.words[28] = qRound(strength * 255);
+            dab.words[29] = qRound(strength * 65535);
+            dab.words[30] = quint32(brush.texture->mode) | (quint32(brush.texture->soft) << 8);
+        }
         result.append(dab);
         return result.size() <= PaintGeometryElementLimit / reflectionCount;
     });
@@ -101,6 +154,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         if ((reflection & mirrors) != reflection) continue;
         for (qsizetype i = 0; i < originalCount; ++i) {
             auto mirrored = result[i];
+            mirrored.words[31] = reflection;
             if (reflection & 1u) {
                 mirrored.words[18] = quint32(2 * brush.mirrorCenter.x() - qint32(mirrored.words[18]) - int(mirrored.words[0]));
                 mirrored.words[3] ^= 4u;

@@ -10,6 +10,7 @@
 #include "KisGpuRgba16Compositing_p.h"
 
 #include <QFile>
+#include <QCryptographicHash>
 #include <QMap>
 #include <QThread>
 #include <QScopeGuard>
@@ -364,6 +365,7 @@ std::shared_ptr<Tile> TileRenderer::Private::allocateTile(PixelFormat format)
 
 bool TileRenderer::Private::ensureTileCapacity(qsizetype count, PixelFormat format)
 {
+    if (count > (budget->limit - budget->used) / RgbaTile::byteCount(format)) patternCache.clear();
     if (count > (budget->limit - budget->used) / RgbaTile::byteCount(format)) {
         nativeLabValues.reset();
         nativeLabDefinition.clear();
@@ -1056,21 +1058,45 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     fillUploads.push_back({fillBuffer, edges});
                 }
                 std::shared_ptr<NativeBuffer> patternBuffer;
-                if (operation.figureStyle.pattern && !affected.isEmpty()) {
-                    const auto &pattern = *operation.figureStyle.pattern;
-                    if (!pattern.isValid())
-                        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU pattern fill has invalid pixels")};
+                quint32 textureWordOffset = 0;
+                if ((operation.figureStyle.pattern || operation.brush.texture) && !affected.isEmpty()) {
+                    QByteArray resource;
+                    if (operation.figureStyle.pattern) {
+                        const auto &pattern = *operation.figureStyle.pattern;
+                        if (!pattern.isValid())
+                            return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU pattern fill has invalid pixels")};
+                        resource = pattern.rgba;
+                    }
+                    textureWordOffset = quint32(resource.size() / 4);
+                    if (operation.brush.texture) resource.append(operation.brush.texture->alpha);
                     WGPULimits limits{};
                     if (wgpuDeviceGetLimits(d.device->nativeDevice(), &limits) != WGPUStatus_Success ||
-                        quint64(pattern.byteCount()) > limits.maxStorageBufferBindingSize ||
-                        quint64(pattern.byteCount()) > limits.maxBufferSize)
-                        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU pattern fill exceeds the storage binding limit")};
-                    patternBuffer = std::make_shared<NativeBuffer>(createBuffer(d.device->nativeDevice(),
-                        quint64(pattern.byteCount()), WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst));
-                    if (!*patternBuffer)
-                        return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU pattern fill allocation failed")};
-                    wgpuQueueWriteBuffer(d.device->queue(), patternBuffer->get(), 0,
-                                         pattern.rgba.constData(), size_t(pattern.rgba.size()));
+                        quint64(resource.size()) > limits.maxStorageBufferBindingSize ||
+                        quint64(resource.size()) > limits.maxBufferSize)
+                        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU painting resource exceeds the storage binding limit")};
+                    const auto key = QCryptographicHash::hash(resource, QCryptographicHash::Sha256);
+                    auto cached = d.patternCache.constFind(key);
+                    if (cached == d.patternCache.cend() || cached->bytes != resource) {
+                        if (d.patternCache.size() >= 4) d.patternCache.erase(d.patternCache.begin());
+                        const auto fits = [&] { return resource.size() <= d.budget->limit - d.budget->used; };
+                        if (!fits()) {
+                            d.ensureTileCapacity((resource.size() + TileBytes - 1) / TileBytes, PixelFormat::Rgba8);
+                        }
+                        if (!fits()) {
+                            d.patternCache.clear();
+                            if (!fits())
+                                return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU painting resource exceeds the resident budget")};
+                        }
+                        auto buffer = createBuffer(d.device->nativeDevice(), quint64(resource.size()),
+                                                   WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
+                        if (!buffer)
+                            return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU painting resource allocation failed")};
+                        wgpuQueueWriteBuffer(d.device->queue(), buffer.get(), 0, resource.constData(), size_t(resource.size()));
+                        d.patternCache.insert(key, {resource, std::make_shared<BufferStorage>(std::move(buffer), d.budget)});
+                        cached = d.patternCache.constFind(key);
+                    }
+                    d.device->retainForFrame(cached->storage);
+                    patternBuffer = std::shared_ptr<NativeBuffer>(cached->storage, &cached->storage->pixels);
                 }
                 for (auto tile = affected.cbegin(); tile != affected.cend(); ++tile) {
                     const auto bytes = quint64(tile.value().size()) * sizeof(MarkerDab);
@@ -1138,6 +1164,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         std::memcpy(job.values.patternInverse.data(), pattern.inverse.data(), sizeof(pattern.inverse));
                         job.values.patternFormat = quint32(pattern.format);
                         job.values.patternSampled = pattern.sampled;
+                    }
+                    if (operation.brush.texture) {
+                        const auto &texture = *operation.brush.texture;
+                        job.values.textureWidth = texture.size.width();
+                        job.values.textureHeight = texture.size.height();
+                        job.values.textureX = texture.offset.x();
+                        job.values.textureY = texture.offset.y();
+                        job.values.textureWordOffset = textureWordOffset;
                     }
                     job.values.fillBlendMode = quint32(operation.figureStyle.fillBlendMode);
                     job.values.strokeBlendMode = quint32(operation.brush.blendMode);

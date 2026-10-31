@@ -26,7 +26,8 @@ qsizetype operationSamples(const LayerOperation &value)
 qsizetype operationRasterBytes(const LayerOperation &value)
 {
     if (const auto paint = std::get_if<PaintSnapshot>(&value))
-        return (*paint)->figureStyle.pattern ? (*paint)->figureStyle.pattern->byteCount() : 0;
+        return ((*paint)->figureStyle.pattern ? (*paint)->figureStyle.pattern->byteCount() : 0) +
+            ((*paint)->brush.texture ? (*paint)->brush.texture->alpha.size() : 0);
     const auto write = std::get_if<TileWriteSnapshot>(&value);
     qsizetype bytes = 0;
     if (write) for (const auto &tile : (*write)->tiles) bytes += tile->byteCount();
@@ -775,7 +776,10 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
     const qsizetype index = layerIndex(layer);
     if (checkMutation() != Result::Success || index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
         !snapshot()->layers[index].visible || snapshot()->layers[index].userLocked ||
-        !validBrush(brush, snapshot()->format) || m_nextOperation == std::numeric_limits<quint64>::max() ||
+        !validBrush(brush, snapshot()->format) ||
+        (brush.texture && (brush.texture->alpha.size() > m_limits.rasterBytes ||
+                          snapshot()->rasterBytes > m_limits.rasterBytes - brush.texture->alpha.size())) ||
+        m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return {};
     }
@@ -855,12 +859,13 @@ Result OperationDocument::paintFigureWithin(LayerId layer, const Brush &brush, c
         if (!validSample(sample) || sample.timestamp < time) return Result::InvalidInput;
         time = sample.timestamp;
     }
+    const qsizetype resourceBytes = (style.pattern ? style.pattern->byteCount() : 0) +
+        (brush.texture ? brush.texture->alpha.size() : 0);
     if (samples.size() > m_limits.samplesPerStroke ||
         samples.size() > m_limits.samplesPerDocument - snapshot()->sampleCount ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision > std::numeric_limits<quint64>::max() - (samples.isEmpty() ? 1 : 2) ||
-        (style.pattern && (style.pattern->byteCount() > m_limits.rasterBytes ||
-                           snapshot()->rasterBytes > m_limits.rasterBytes - style.pattern->byteCount()))) {
+        resourceBytes > m_limits.rasterBytes || snapshot()->rasterBytes > m_limits.rasterBytes - resourceBytes) {
         return Result::CapacityExceeded;
     }
     const auto id = beginStroke(layer, brush, randomSeed);
@@ -894,8 +899,9 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
         (m_edit->brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (m_edit->sampleCount == 0 && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;
-    if (style.pattern && (style.pattern->byteCount() > m_limits.rasterBytes ||
-                          snapshot()->rasterBytes > m_limits.rasterBytes - style.pattern->byteCount()))
+    const qsizetype resourceBytes = (style.pattern ? style.pattern->byteCount() : 0) +
+        (m_edit->brush.texture ? m_edit->brush.texture->alpha.size() : 0);
+    if (resourceBytes > m_limits.rasterBytes || snapshot()->rasterBytes > m_limits.rasterBytes - resourceBytes)
         return Result::CapacityExceeded;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<PaintOperation> operation(new PaintOperation(*m_edit));

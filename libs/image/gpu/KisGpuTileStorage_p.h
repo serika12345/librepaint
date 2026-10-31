@@ -129,6 +129,12 @@ struct TileRenderer::Private
     Detail::NativeBuffer unusedCoverage;
     Detail::NativeBuffer unusedSelection;
     Detail::NativeBuffer unusedPattern;
+    struct PatternCacheEntry {
+        QByteArray bytes;
+        std::shared_ptr<Detail::BufferStorage> storage;
+    };
+    /** Four immutable fill/paper resource combinations; frames pin evicted storage. */
+    QHash<QByteArray, PatternCacheEntry> patternCache;
     /** Opaque 256 x 256 coverage bound for layers without a transparency mask. */
     Detail::NativeBuffer opaqueMask;
     Detail::NativeTexture nonlinearTexture;

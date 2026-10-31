@@ -5,6 +5,7 @@
  */
 
 #include "KisTextureMaskInfo.h"
+#include <KisBrushTextureMask.h>
 
 #include <kis_paintop_settings.h>
 #include <qimage.h>
@@ -163,95 +164,18 @@ void KisTextureMaskInfo::recalculateMask()
         m_mask = new KisPaintDevice(cs);
     }
 
-    QImage mask = m_pattern->pattern();
-
-    if ((mask.format() != QImage::Format_RGB32)
-        || (mask.format() != QImage::Format_ARGB32)) {
-        mask.convertTo(QImage::Format_ARGB32);
-    }
-
-    qreal scale = m_scale * KisLodTransform::lodToScale(m_levelOfDetail);
-
-    if (!qFuzzyCompare(scale, 0.0) && !qFuzzyCompare(scale, 1.0)) {
-        QTransform tf;
-        tf.scale(scale, scale);
-        QRect rc = KisAlgebra2D::ensureRectNotSmaller(tf.mapRect(mask.rect()), QSize(2,2));
-        mask = mask.scaled(rc.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    } else {
-        // detach the mask from the file loaded from the storage
-        mask = QImage(mask);
-    }
-
-    QRgb* pixel = reinterpret_cast<QRgb*>(mask.bits());
-    const int width = mask.width();
-    const int height = mask.height();
-
-    KisHLineIteratorSP iter = m_mask->createHLineIteratorNG(0, 0, width);
-
-    for (int row = 0; row < height; ++row) {
-        for (int col = 0; col < width; ++col) {
-            const QRgb currentPixel = pixel[row * width + col];
-
-            const int red = qRed(currentPixel);
-            const int green = qGreen(currentPixel);
-            const int blue = qBlue(currentPixel);
-            float alpha = qAlpha(currentPixel) / 255.0;
-
-            const int grayValue = (red * 11 + green * 16 + blue * 5) / 32;
-            float maskValue = (grayValue / 255.0) * alpha + (1 - alpha);
-
-            maskValue = maskValue - m_brightness;
-
-            maskValue = ((maskValue - 0.5)*m_contrast)+0.5;
-
-            if (maskValue > 1.0) {maskValue = 1;}
-            else if (maskValue < 0) {maskValue = 0;}
-
-            if (m_invert) {
-                maskValue = 1 - maskValue;
-            }
-
-            maskValue = qBound(0.0f, maskValue, 1.0f);
-
-            float neutralAdjustedValue;
-
-            //Adjust neutral point in linear fashion.  Uses separate linear equations from 0 to neutralPoint, and neutralPoint to 1,
-            //to prevent loss of detail (clipping).
-            if (m_neutralPoint == 1 || (m_neutralPoint != 0 && maskValue <= m_neutralPoint)) {
-                neutralAdjustedValue = maskValue / (2 * m_neutralPoint);
-            } else {
-                neutralAdjustedValue = 0.5 +  (maskValue - m_neutralPoint) / (2 - 2 * m_neutralPoint);
-            }
-
-            if (m_cutoffPolicy == 1 && (neutralAdjustedValue < (m_cutoffLeft / 255.0) || neutralAdjustedValue >(m_cutoffRight / 255.0))) {
-                // mask out the dab if it's outside the pattern's cutoff points
-                alpha = OPACITY_TRANSPARENT_F;
-                if (!useAlpha) {
-                    neutralAdjustedValue = alpha;
-                }
-            } else if (m_cutoffPolicy == 2 && (neutralAdjustedValue < (m_cutoffLeft / 255.0) || neutralAdjustedValue >(m_cutoffRight / 255.0))) {
-                alpha = OPACITY_OPAQUE_F;
-                if (!useAlpha) {
-                    neutralAdjustedValue = alpha;
-                }
-            }
-
-            if (useAlpha) {
-                int finalValue = qRound(neutralAdjustedValue * 255.0);
-                pixel[row * width + col] = QColor(finalValue, finalValue, finalValue, qRound(alpha * 255.0)).rgba();
-            } else {
-                cs->setOpacity(iter->rawData(), neutralAdjustedValue, 1);
-                iter->nextPixel();
-            }
-        }
-        if (!useAlpha) {
-            iter->nextRow();
-        }
-    }
-    if (useAlpha) {
-        m_mask->convertFromQImage(mask, 0);
-    }
-    m_maskBounds = QRect(0, 0, width, height);
+    KisBrushTextureMaskSettings settings;
+    settings.scale = m_scale * KisLodTransform::lodToScale(m_levelOfDetail);
+    settings.brightness = m_brightness; settings.contrast = m_contrast;
+    settings.neutralPoint = m_neutralPoint; settings.invert = m_invert;
+    settings.cutoffLeft = m_cutoffLeft; settings.cutoffRight = m_cutoffRight;
+    settings.cutoffPolicy = m_cutoffPolicy; settings.preserveAlpha = useAlpha;
+    const auto mask = prepareBrushTextureMask(m_pattern->pattern(), settings);
+    if (mask.isNull()) { m_mask.clear(); m_maskBounds = {}; return; }
+    if (useAlpha) m_mask->convertFromQImage(mask, 0);
+    else for (int row = 0; row < mask.height(); ++row)
+        m_mask->writeBytes(mask.constScanLine(row), 0, row, mask.width(), 1);
+    m_maskBounds = mask.rect();
 }
 
 bool KisTextureMaskInfo::hasAlpha() {

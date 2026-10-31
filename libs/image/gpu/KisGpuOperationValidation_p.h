@@ -299,6 +299,18 @@ inline bool validPressureResponse(const PressureResponse &value)
 
 inline bool validBrush(const Brush &brush, PixelFormat format)
 {
+    if (brush.texture) {
+        const auto &t = *brush.texture;
+        const qint64 pixels = qint64(t.size.width()) * t.size.height();
+        if (!brush.autoBrush || t.size.width() <= 0 || t.size.height() <= 0 || pixels > 16 * 1024 * 1024 ||
+            t.alpha.size() != ((pixels + 3) & ~qint64(3)) ||
+            t.mode < BrushTexture::Mode::Multiply || t.mode > BrushTexture::Mode::Darken ||
+            !std::isfinite(t.strength) || t.strength < 0 || t.strength > 1 ||
+            (t.pressure && !validPressureResponse(*t.pressure)) ||
+            (t.fade && !validPressureResponse(*t.fade)) || t.fadeLength <= 0 || t.curveMode < 0 || t.curveMode > 4 ||
+            std::abs(qint64(t.offset.x())) > OperationDocument::CoordinateLimit ||
+            std::abs(qint64(t.offset.y())) > OperationDocument::CoordinateLimit) return false;
+    }
     if (brush.maskPainting && format != PixelFormat::Rgba8) return false;
     if (!validPressureResponse(brush.sizeResponse) || !std::isfinite(brush.autoSpacingCoefficient) ||
         brush.autoSpacingCoefficient < 0) return false;
@@ -306,7 +318,8 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
     if (!validPixel(brush.rgba, format)) return false;
     if (brush.autoBrush) {
         const auto &value = *brush.autoBrush;
-        if (!std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||
+        if (value.precisionLevel < 1 || value.precisionLevel > 5 ||
+            !std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||
             !validPressureResponse(value.opacityResponse) || !validPressureResponse(value.flowResponse) ||
             (value.mask != AutoBrush::Mask::GaussianCircle && value.mask != AutoBrush::Mask::Circle &&
              value.mask != AutoBrush::Mask::Rectangle) ||

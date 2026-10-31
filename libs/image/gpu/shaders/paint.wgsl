@@ -19,6 +19,8 @@ struct Parameters {
     patternMap1: vec4<u32>,
     patternMap2: vec4<u32>,
     patternSampling: vec4<u32>,
+    texture: vec4<i32>,
+    textureStorage: vec4<u32>,
 }
 struct FigureFillEdge { endpoints: vec4<i32>, mirroredRounding: vec4<i32>, }
 @group(0) @binding(0) var<uniform> parameters: Parameters;
@@ -173,10 +175,43 @@ fn markerCoverage(dab: MarkerMaskDab, pixel: vec2<i32>) -> u32 {
 }
 
 fn gaussianDab(index: u32) -> MaskDab {
-    let offset = index * 28u;
+    let offset = index * 32u;
     return MaskDab(geometryFour(offset), geometryFour(offset + 4u), geometryFour(offset + 8u),
                    geometryFour(offset + 12u), geometryFour(offset + 16u), geometryFour(offset + 20u),
-                   geometryFour(offset + 24u));
+                   geometryFour(offset + 24u), geometryFour(offset + 28u));
+}
+
+fn paperMultiply(a: u32, b: u32, maximum: u32) -> u32 {
+    if (maximum == 65535u) { return mul65535(a, b); }
+    return multiplyByte(a, b);
+}
+fn paperCoverage(dab: MaskDab, pixel: vec2<i32>, coverage: u32, maximum: u32) -> u32 {
+    if (parameters.texture.x == 0) { return coverage; }
+    let period = parameters.texture.xy;
+    var sourcePixel = pixel;
+    if ((dab.texture.w & 1u) != 0u) { sourcePixel.x = parameters.mirror.x / 8 - 1 - sourcePixel.x; }
+    if ((dab.texture.w & 2u) != 0u) { sourcePixel.y = parameters.mirror.y / 8 - 1 - sourcePixel.y; }
+    var point = (sourcePixel - parameters.texture.zw) % period;
+    if (point.x < 0) { point.x += period.x; }
+    if (point.y < 0) { point.y += period.y; }
+    let index = u32(point.y * period.x + point.x);
+    let byte = (patternPixels[parameters.textureStorage.x + (index >> 2u)] >> ((index & 3u) * 8u)) & 255u;
+    let source = byte * select(1u, 257u, maximum == 65535u);
+    let strength = select(dab.texture.x, dab.texture.y, maximum == 65535u);
+    let soft = (dab.texture.z & 256u) != 0u;
+    let mode = dab.texture.z & 255u;
+    if (mode == 1u) {
+        let removed = select(source + maximum - strength, paperMultiply(source, strength, maximum), soft);
+        return coverage - min(coverage, removed);
+    }
+    if (soft) {
+        let effective = maximum - paperMultiply(maximum - source, strength, maximum);
+        if (mode == 2u) { return min(effective, coverage); }
+        return paperMultiply(effective, coverage, maximum);
+    }
+    if (mode == 2u) { return min(source, paperMultiply(coverage, strength, maximum)); }
+    if (maximum == 65535u) { return multiplyThreeWords(source, coverage, strength); }
+    return multiplyThreeBytes(source, coverage, strength);
 }
 
 fn washAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {
@@ -279,6 +314,7 @@ fn gaussianCoverage(pixel: vec2<i32>) -> u32 {
             else { coverage = standardCircleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
         } else if (dab.size.z > 1u) { coverage = smallCircleAlpha(dab, vec2<u32>(point)) * scale; }
         else { coverage = circleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
+        coverage = paperCoverage(dab, pixel, coverage, maximum);
         if (parameters.native.z != 0u) { alpha = washWordAlpha(alpha, coverage, dab.application); }
         else if ((parameters.paintFlags & 524288u) != 0u) { alpha = maskWashAlpha(alpha, coverage, dab.application); }
         else { alpha = washAlpha(alpha, coverage, dab.application); }

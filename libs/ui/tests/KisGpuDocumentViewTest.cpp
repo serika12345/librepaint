@@ -2556,7 +2556,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
     QTest::addColumn<bool>("words");
     QTest::addColumn<qreal>("flow");
     for (const auto *name : {"d)_Ink-3_Gpen.kpp", "a)_Eraser_Small.kpp", "b)_Basic-5_Size_default.kpp",
-                             "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp"})
+                             "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp", "d)_Ink-7_Brush_Rough.kpp"})
         for (const bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1);
@@ -2578,12 +2578,22 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     });
     const auto bundle = KisResourceStorageSP::create(QStringLiteral(KRITA_SOURCE_DIR "/krita/data/bundles/Krita_4_Default_Resources.bundle"));
     QVERIFY(bundle->valid());
-    const auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
+    auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
     KisResourceModel brushes(ResourceType::Brushes);
     if (brushes.rowCount() == 0) QVERIFY(brushes.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/libs/brush/tests/data/brush.gbr"), false));
     KisResourceModel patterns(ResourceType::Patterns);
     if (patterns.rowCount() == 0) QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
+    if (presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp")) {
+        const auto paper = bundle->resource(QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
+        QVERIFY(paper);
+        if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(paper->md5Sum(), paper->filename(), paper->name()))
+            QVERIFY(patterns.addResource(paper));
+        sourcePreset->settings()->setProperty("Texture/Pattern/isRandomOffsetX", false);
+        sourcePreset->settings()->setProperty("Texture/Pattern/isRandomOffsetY", false);
+        sourcePreset->settings()->setProperty("Texture/Pattern/OffsetX", 7);
+        sourcePreset->settings()->setProperty("Texture/Pattern/OffsetY", 11);
+    }
     const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     const QRect area(0, 0, 64, 64);
     const QByteArray initial(area.width() * area.height(), char(128));
@@ -8168,6 +8178,24 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
         QTest::newRow(qPrintable(QStringLiteral("rectangle-isotropic-spacing") + suffix))
             << QStringLiteral("b)_Basic-2_Opacity.kpp") << words << 4 << qreal(40) << false;
     }
+    for (bool words : {false, true})
+        for (const auto *mode : {"subtract", "multiply", "darken"})
+            for (bool soft : {false, true}) {
+                const QByteArray row = QByteArray("texture-") + mode + (soft ? "-soft" : "-hard") + (words ? "-u16" : "-u8");
+                QTest::newRow(row.constData()) << QStringLiteral("d)_Ink-7_Brush_Rough.kpp") << words << 0 << qreal(40) << false;
+            }
+
+    for (bool words : {false, true}) {
+        for (const auto *mode : {"preset", "taper"}) {
+            const QByteArray row = QByteArray("texture-") + mode + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << QStringLiteral("d)_Ink-7_Brush_Rough.kpp") << words << 0 << qreal(40) << false;
+        }
+        for (int precision = 1; precision <= 5; ++precision) {
+            const QByteArray row = QByteArray("texture-precision-") + QByteArray::number(precision) + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << QStringLiteral("d)_Ink-7_Brush_Rough.kpp") << words << 0 << qreal(40) << false;
+        }
+    }
+
 }
 
 void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
@@ -8194,8 +8222,34 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
     KisResourceModel patterns(ResourceType::Patterns);
     if (patterns.rowCount() == 0)
         QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
-    const auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
+    auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
+    const bool textured = presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp");
+    if (textured) {
+        const auto paper = bundle->resource(QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
+        QVERIFY(paper);
+        if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(paper->md5Sum(), paper->filename(), paper->name()))
+            QVERIFY(patterns.addResource(paper));
+        auto settings = sourcePreset->settings();
+        // Freeze native random outputs as part of the comparison's input.
+        settings->setProperty("Texture/Pattern/isRandomOffsetX", false);
+        settings->setProperty("Texture/Pattern/isRandomOffsetY", false);
+        settings->setProperty("Texture/Pattern/OffsetX", 7);
+        settings->setProperty("Texture/Pattern/OffsetY", 11);
+        const QByteArray row(QTest::currentDataTag());
+        settings->setProperty("Texture/Pattern/TexturingMode", row.contains("multiply") ? 0 : row.contains("darken") ? 4 : 1);
+        settings->setProperty("Texture/Pattern/UseSoftTexturing", row.contains("-soft"));
+        // A short fade exercises per-dab sequence and the pressure sum during
+        // the ordinary strokes, including reflected and overlapping dabs.
+        auto sensors = settings->getString("Texture/Strength/Sensor");
+        if (!row.contains("preset")) sensors.replace(QStringLiteral("length=\"1000\""), QStringLiteral("length=\"7\""));
+        if (row.contains("precision")) {
+            settings->setProperty("KisPrecisionOption/AutoPrecisionEnabled", false);
+            settings->setProperty("KisPrecisionOption/precisionLevel", row.split('-').value(2).toInt());
+        }
+        settings->setProperty("Texture/Strength/Sensor", sensors);
+    }
+
     const auto cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     const QSize size(128, 128);
     QList<QByteArray> expectedStates;
@@ -8303,6 +8357,32 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                      Gpu::AutoBrush::Mask::GaussianCircle :
                      (tipCase >= 2 || presetName == QLatin1String("a)_Eraser_Small.kpp")) ?
                      Gpu::AutoBrush::Mask::Rectangle : Gpu::AutoBrush::Mask::Circle);
+            if (textured) {
+                QVERIFY(capture.brush.texture);
+                QCOMPARE(capture.brush.texture->offset, QPoint(7, 11));
+                const auto frozen = *capture.brush.texture;
+                auto currentPreset = resources->currentPreset();
+                auto settings = currentPreset->settings();
+                settings->setProperty("Texture/Pattern/isRandomOffsetX", true);
+                settings->setProperty("Texture/Pattern/isRandomOffsetY", true);
+                const auto randomized = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
+                                                                 view->canvasBase()->resourceManager());
+                QVERIFY2(randomized.diagnostic.isEmpty(), qPrintable(randomized.diagnostic));
+                QVERIFY(randomized.brush.texture);
+                const auto &paper = *randomized.brush.texture;
+                QVERIFY(paper.offset.x() >= 0 && paper.offset.x() < paper.size.width());
+                QVERIFY(paper.offset.y() >= 0 && paper.offset.y() < paper.size.height());
+                QCOMPARE(paper.alpha, frozen.alpha);
+                settings->setProperty("Texture/Pattern/isRandomOffsetX", false);
+                settings->setProperty("Texture/Pattern/isRandomOffsetY", false);
+                settings->setProperty("Texture/Pattern/Brightness", .2);
+                const auto changed = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
+                                                              view->canvasBase()->resourceManager());
+                QVERIFY2(changed.diagnostic.isEmpty(), qPrintable(changed.diagnostic));
+                QVERIFY(changed.brush.texture && changed.brush.texture->alpha != frozen.alpha);
+                QCOMPARE(*capture.brush.texture, frozen);
+                settings->setProperty("Texture/Pattern/Brightness", .35);
+            }
             const QList<QPair<qreal, qreal>> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
                                                           {200, .03}, {200, .05}, {200, .06}};
             for (const auto &input : pressureCases) {
@@ -8312,6 +8392,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 const auto pressureCapture = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
                                                                       view->canvasBase()->resourceManager());
                 QVERIFY2(pressureCapture.diagnostic.isEmpty(), qPrintable(pressureCapture.diagnostic));
+                const qreal endPressure = textured && (QByteArray(QTest::currentDataTag()).contains("precision") || QByteArray(QTest::currentDataTag()).contains("taper")) ? std::min(pressure, qreal(.33)) : pressure;
                 KisImageSP nativeImage = new KisImage(nullptr, size.width(), size.height(), cs, QStringLiteral("Native preset reference"));
                 KisPaintLayerSP nativeLayer = new KisPaintLayer(nativeImage, QStringLiteral("Reference"), 255);
                 nativeImage->addNode(nativeLayer, nativeImage->root());
@@ -8322,7 +8403,9 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                     painter.setCompositeOpId(COMPOSITE_ALPHA_DARKEN);
                     painter.setPaintOpPreset(resources->currentPreset(), nativeLayer, nativeImage);
                     KisDistanceInformation distance;
-                    painter.paintAt(KisPaintInformation(QPointF(64.25, 64.75), pressure), &distance);
+                    if (textured) painter.paintLine(KisPaintInformation(QPointF(64.25, 64.75), pressure),
+                                                   KisPaintInformation(QPointF(104.25, 64.75), endPressure), &distance);
+                    else painter.paintAt(KisPaintInformation(QPointF(64.25, 64.75), pressure), &distance);
                     bool pending;
                     do {
                         QVector<KisRunnableStrokeJobData *> jobs;
@@ -8348,7 +8431,9 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 const auto pressureOwner = Gpu::PaintImageSP::create(KisPart::instance()->gpuExecution(diagnostic), raster);
                 const auto operation = pressureOwner->beginStroke(pressureOwner->operations().activeLayer(), pressureCapture.brush, 17);
                 QVERIFY(!operation.isNull());
-                QCOMPARE(pressureOwner->appendSamples(operation, {{{64.25, 64.75}, pressure}}), Gpu::Result::Success);
+                QList<Gpu::InputSample> pressureSamples{{{64.25, 64.75}, pressure}};
+                if (textured) pressureSamples.append({{104.25, 64.75}, endPressure});
+                QCOMPARE(pressureOwner->appendSamples(operation, pressureSamples), Gpu::Result::Success);
                 QCOMPARE(pressureOwner->commitStroke(operation), Gpu::Result::Success);
                 auto actual = pressureOwner->readRgbaPixels(pressureOwner->operations().activeLayer(), QRect(QPoint(), size), expected.size()).bytes;
                 for (qsizetype i = 0; i < actual.size(); i += pixelBytes)
@@ -8359,6 +8444,21 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                     QCOMPARE(artifact.write(entry.second), entry.second.size());
                 }
                 if (actual != expected) {
+                    if (textured) {
+                        auto originalBrush = pressureCapture.brush;
+                        originalBrush.texture.reset(); originalBrush.opacity = 1;
+                        const auto originalOwner = Gpu::PaintImageSP::create(KisPart::instance()->gpuExecution(diagnostic), raster);
+                        const auto originalOperation = originalOwner->beginStroke(originalOwner->operations().activeLayer(), originalBrush, 17);
+                        QVERIFY(!originalOperation.isNull());
+                        QCOMPARE(originalOwner->appendSamples(originalOperation, {{{64.75, 64.75}, pressure}}), Gpu::Result::Success);
+                        QCOMPARE(originalOwner->commitStroke(originalOperation), Gpu::Result::Success);
+                        auto original = originalOwner->readRgbaPixels(originalOwner->operations().activeLayer(), QRect(QPoint(), size), expected.size()).bytes;
+                        for (qsizetype i = 0; i < original.size(); i += pixelBytes)
+                            for (int byte = 0; byte < channelBytes; ++byte) std::swap(original[i + byte], original[i + 2 * channelBytes + byte]);
+                        QFile artifact(QDir(output).filePath(QStringLiteral("pressure-d%1-p%2-original.bgra").arg(diameter).arg(pressure)));
+                        QVERIFY(artifact.open(QIODevice::WriteOnly)); QCOMPARE(artifact.write(original), original.size());
+                    }
+
                     QByteArray nativeTemporary(expected.size(), Qt::Uninitialized);
                     nativeLayer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(nativeTemporary.data()), QRect(QPoint(), size));
                     auto fullOpacityBrush = pressureCapture.brush;
@@ -8366,7 +8466,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                     const auto temporaryOwner = Gpu::PaintImageSP::create(KisPart::instance()->gpuExecution(diagnostic), raster);
                     const auto temporaryOperation = temporaryOwner->beginStroke(temporaryOwner->operations().activeLayer(), fullOpacityBrush, 17);
                     QVERIFY(!temporaryOperation.isNull());
-                    QCOMPARE(temporaryOwner->appendSamples(temporaryOperation, {{{64.25, 64.75}, pressure}}), Gpu::Result::Success);
+                    QCOMPARE(temporaryOwner->appendSamples(temporaryOperation, pressureSamples), Gpu::Result::Success);
                     QCOMPARE(temporaryOwner->commitStroke(temporaryOperation), Gpu::Result::Success);
                     auto gpuTemporary = temporaryOwner->readRgbaPixels(temporaryOwner->operations().activeLayer(), QRect(QPoint(), size), expected.size()).bytes;
                     for (qsizetype i = 0; i < gpuTemporary.size(); i += pixelBytes)
