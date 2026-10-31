@@ -389,6 +389,11 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         mask->maskPainting = true; mask->channelWriteMask = 15;
         mask->blendMode = LibrePaint::Image::Gpu::LayerBlendMode::Normal;
         if (!captureAutoBrush(maskSettings, *mask, true) || mask->texture) return false;
+        // Both native painters consume one shared random stream in input-call
+        // order. Independently generated tips require at most one random painter.
+        if (brush.autoBrush->scatter && mask->autoBrush->scatter &&
+            (brush.autoBrush->scatterAxisX || brush.autoBrush->scatterAxisY) &&
+            (mask->autoBrush->scatterAxisX || mask->autoBrush->scatterAxisY)) return false;
         brush.additiveMaskingBrush = std::move(mask);
     }
     return true;
