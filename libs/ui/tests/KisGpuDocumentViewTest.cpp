@@ -3220,7 +3220,7 @@ void KisGpuDocumentViewTest::layerPanelGpuTransparencyMaskChildSurvivesSaving()
     QVERIFY(image->setGpuSelectionMask(selectionMask));
     QVERIFY(image->addGpuTransparencyMaskFromSelection(layer));
     QVERIFY(image->setGpuTransparencyMaskVisible(layer, false));
-    const auto child = layer->firstChild();
+    auto child = layer->firstChild();
     QVERIFY(child);
     QVERIFY(child->inherits("KisTransparencyMask"));
     QVERIFY(!child->visible());
