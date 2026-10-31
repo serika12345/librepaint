@@ -2811,6 +2811,45 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             QCOMPARE(probe.commitStroke(operation), Gpu::Result::Success);
             const auto actual = probe.execution().readSelectionPixels(probe.layerTransparencyMask(1), area, nativeAlpha.size());
             QCOMPARE(actual.code, Gpu::ExecutionCode::Success);
+            if (actual.bytes != nativeAlpha && imagePencil && !qEnvironmentVariableIsEmpty("LIBREPAINT_GPU_RESULT_DIR")) {
+                const auto root = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR") + QStringLiteral("/image-mask-") +
+                    presetName + (words ? QStringLiteral("-u16") : QStringLiteral("-u8"));
+                QVERIFY(QDir().mkpath(root));
+                const auto save = [&](const QString &name, const QByteArray &bytes) {
+                    QFile file(root + '/' + name);
+                    return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+                };
+                QVERIFY(save(QStringLiteral("native.alpha"), nativeAlpha));
+                QVERIFY(save(QStringLiteral("gpu.alpha"), actual.bytes));
+                const auto &captured = *white.autoBrush->imageTips;
+                qDebug() << "frozen image mask" << white.diameter << white.autoBrush->angle << captured.originalSize
+                    << captured.tipCount << "drawing angle offset" << white.autoBrush->drawingAngleOffset;
+                // Retain each frozen cell's result to distinguish source/selection
+                // failures from sampling failures without altering the reference.
+                for (int tip = 0; tip < captured.tipCount; ++tip) {
+                    auto single = QSharedPointer<Gpu::ImageBrushTips>::create();
+                    single->originalSize = captured.originalSize; single->tipCount = 1;
+                    for (auto level : captured.levels) {
+                        const auto bytes = captured.pixels.mid((level.wordOffset + tip * level.tipWordStride) * 4,
+                                                               level.tipWordStride * 4);
+                        level.wordOffset = single->pixels.size() / 4;
+                        single->levels.append(level); single->pixels.append(bytes);
+                    }
+                    auto brush = white;
+                    brush.autoBrush->imageTips = single;
+                    Gpu::PaintImage candidate(image->gpuImage()->execution(), input);
+                    const auto stroke = candidate.beginTransparencyMaskStroke(1, brush, 17);
+                    QVERIFY(!stroke.isNull());
+                    QCOMPARE(candidate.appendSamples(stroke, {{{32, 32}, 1}}), Gpu::Result::Success);
+                    QCOMPARE(candidate.commitStroke(stroke), Gpu::Result::Success);
+                    const auto pixels = candidate.execution().readSelectionPixels(candidate.layerTransparencyMask(1), area, nativeAlpha.size());
+                    QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
+                    int differences = 0;
+                    for (int p = 0; p < nativeAlpha.size(); ++p) differences += pixels.bytes[p] != nativeAlpha[p];
+                    qDebug() << "frozen tip" << tip << "native differing pixels" << differences;
+                    QVERIFY(save(QStringLiteral("tip-%1.alpha").arg(tip), pixels.bytes));
+                }
+            }
             for (int i = 0; i < nativeAlpha.size(); ++i)
                 QVERIFY2(actual.bytes[i] == nativeAlpha[i], qPrintable(QStringLiteral("Native GrayA8 dab at %1,%2: GPU %3 native %4")
                     .arg(i % area.width()).arg(i / area.width()).arg(quint8(actual.bytes[i])).arg(quint8(nativeAlpha[i]))));
