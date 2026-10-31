@@ -41,18 +41,17 @@ std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &bl
         auto found = geometry.gaussian.constFind(&paint);
         if (found == geometry.gaussian.cend()) found = geometry.gaussian.insert(&paint, Detail::autoBrushDabs(paint, false));
         if (!*found) return std::nullopt;
-        if (!paint.figureStyle.outline) return false;
         for (const auto &dab : **found) if (dab.bounds().intersects(block)) return true;
-        return false;
+    } else {
+        auto found = geometry.markers.constFind(&paint);
+        if (found == geometry.markers.cend()) {
+            constexpr int limit = RgbaTile::CoordinateLimit;
+            found = geometry.markers.insert(&paint, Detail::markerDabs(paint, false, QRect(-limit, -limit, 2 * limit, 2 * limit)));
+        }
+        if (!*found) return std::nullopt;
+        for (const auto &dab : **found)
+            if (Detail::usesAllocatedSourceRegion(paint, geometry.format) ? dab.bounds().intersects(block) : Detail::markerDabIntersects(dab, block)) return true;
     }
-    auto found = geometry.markers.constFind(&paint);
-    if (found == geometry.markers.cend()) {
-        constexpr int limit = RgbaTile::CoordinateLimit;
-        found = geometry.markers.insert(&paint, Detail::markerDabs(paint, false, QRect(-limit, -limit, 2 * limit, 2 * limit)));
-    }
-    if (!*found) return std::nullopt;
-    for (const auto &dab : **found)
-        if (Detail::usesAllocatedSourceRegion(paint, geometry.format) ? dab.bounds().intersects(block) : Detail::markerDabIntersects(dab, block)) return true;
     if (hasFigureFill(paint.figureStyle)) {
         auto fill = geometry.fills.constFind(&paint);
         if (fill == geometry.fills.cend()) fill = geometry.fills.insert(&paint, Detail::figureFillEdges(paint));

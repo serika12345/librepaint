@@ -1046,6 +1046,27 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
     const auto editedPixel = pixel(editProbe);
     if (!nativeStates) QCOMPARE(editedPixel, backgroundPixel);
     QCOMPARE(resources->fgColor(), foreground);
+    const auto rgbaPixel = [&](QByteArray bgra) {
+        for (int i = 0; i < (words ? 2 : 1); ++i) std::swap(bgra[i], bgra[(words ? 4 : 2) + i]);
+        return bgra;
+    };
+    if (gpu && nativeStates && solid) {
+        const auto layer = owner->operations().activeLayer();
+        const QRect region(0, 0, 64, 64);
+        const auto original = owner->readRgbaPixels(layer, region, 64 * 64 * pixelSize);
+        QCOMPARE(original.code, Gpu::ExecutionCode::Success);
+        auto expected = original.bytes;
+        const auto replacement = rgbaPixel(foregroundPixel);
+        expected.replace((editProbe.y() * 64 + editProbe.x()) * pixelSize, pixelSize, replacement);
+        QCOMPARE(owner->replaceRgbaPixels(layer, QRect(editProbe, QSize(1, 1)), replacement), Gpu::Result::Success);
+        QCOMPARE(owner->readRgbaPixels(layer, region, expected.size()).bytes, expected);
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QCOMPARE(owner->readRgbaPixels(layer, region, original.bytes.size()).bytes, original.bytes);
+        QCOMPARE(owner->redo(), Gpu::Result::Success);
+        QCOMPARE(owner->readRgbaPixels(layer, region, expected.size()).bytes, expected);
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QTRY_COMPARE(lifetime->undoStack()->index(), 2);
+    }
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     lifetime->setFileBatchMode(true);
@@ -1062,10 +1083,6 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
     const auto saved = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
     QVERIFY2(saved.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(saved.diagnostic));
     QCOMPARE(saved.document.image.layers.size(), 1);
-    const auto rgbaPixel = [&](QByteArray bgra) {
-        for (int i = 0; i < (words ? 2 : 1); ++i) std::swap(bgra[i], bgra[(words ? 4 : 2) + i]);
-        return bgra;
-    };
     QCOMPARE(saved.document.image.layers.first().tiles.first().rgba.mid(
                  (editProbe.y() * 256 + editProbe.x()) * pixelSize, pixelSize), rgbaPixel(editedPixel));
     if (gpu && firstPixels) {

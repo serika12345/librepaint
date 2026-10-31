@@ -323,25 +323,26 @@ fn generatedDabCoverage(dab: MaskDab, pixel: vec2<i32>, local: vec2<i32>, maximu
     return paperCoverage(dab, pixel, coverage, maximum);
 }
 
-fn gaussianCoverage(pixel: vec2<i32>) -> u32 {
-    var alpha = 0u;
-    let maximum = select(255u, 65535u, parameters.native.z != 0u);
-    for (var index = 0u; index < parameters.count; index += 1u) {
-        let dab = gaussianDab(index);
-        let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
-        if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
-        let coverage = generatedDabCoverage(dab, pixel, point, maximum);
-        if (parameters.native.z != 0u) { alpha = washWordAlpha(alpha, coverage, dab.application); }
-        else if ((parameters.paintFlags & 524288u) != 0u) { alpha = maskWashAlpha(alpha, coverage, dab.application); }
-        else { alpha = washAlpha(alpha, coverage, dab.application); }
-    }
-    return alpha;
+fn washByteColor(destination: u32, source: u32, blend: u32) -> u32 {
+    if (destination == source || blend < 0x3b000000u) { return destination; }
+    if (blend == 0x3f800000u) { return source; }
+    let difference = i32(source) - i32(destination);
+    // Native byte WASH rounds the product before adding the destination.
+    // The bounded byte difference and blend >= 2^-9 fit the sum in 64 bits.
+    let roundedProduct = projectionFloat(projectionProduct(u32(abs(difference)), projectionMantissa(blend)),
+                                         projectionPower(blend));
+    let power = projectionPower(roundedProduct);
+    let product = vec2<u32>(projectionMantissa(roundedProduct), 0u);
+    let base = projectionLeft(vec2<u32>(destination, 0u), u32(-power));
+    var value: vec2<u32>;
+    if (difference < 0) { value = projectionSubtract(base, product); }
+    else { value = projectionAdd(base, product); }
+    return projectionComponent(projectionFloat(value, power));
 }
-
 
 // WASH fills a transparent source before painting its generated outline.
 // Preserve native per-dab color interpolation as well as the accumulated alpha.
-fn generatedFigureSource(pixel: vec2<i32>, initial: vec4<u32>) -> vec4<u32> {
+fn generatedBrushSource(pixel: vec2<i32>, initial: vec4<u32>, withColor: bool) -> vec4<u32> {
     var result = initial;
     let word = parameters.native.z != 0u;
     let maximum = select(255u, 65535u, word);
@@ -352,40 +353,38 @@ fn generatedFigureSource(pixel: vec2<i32>, initial: vec4<u32>) -> vec4<u32> {
         let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
         if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
         let coverage = generatedDabCoverage(dab, pixel, point, maximum);
-        var opacity = dab.application.x;
-        if (dab.application.w == 0u) { opacity = floatMultiply(opacity, dab.application.y); }
-        if (gray) {
-            let opacityByte = u32(bitcast<f32>(floatAdd(floatMultiply(opacity, 0x437f0000u), 0x3f000000u)));
-            let alpha = multiplyByte(coverage, opacityByte);
-            if (result.w == 0u) { result = vec4<u32>(foreground, result.w); }
-            else { result = vec4<u32>(vec3<u32>(blendByte(result.x, foreground.x, alpha)), result.w); }
-            result.w = maskWashAlpha(result.w, coverage, dab.application);
-        } else if (word) {
-            let alpha = floatMultiply(nativeNormalizedAlpha(coverage), opacity);
-            if (result.w == 0u) { result = vec4<u32>(foreground, result.w); }
-            else {
-                for (var c = 0u; c < 3u; c += 1u) {
-                    let destination = bitcast<u32>(f32(result[c]));
-                    let difference = floatSubtract(bitcast<u32>(f32(foreground[c])), destination);
-                    result[c] = projectionComponent(floatMultiplyAdd(difference, alpha, destination));
+        if (withColor) {
+            var opacity = dab.application.x;
+            if (dab.application.w == 0u) { opacity = floatMultiply(opacity, dab.application.y); }
+            if (gray) {
+                let opacityByte = u32(bitcast<f32>(floatAdd(floatMultiply(opacity, 0x437f0000u), 0x3f000000u)));
+                let alpha = multiplyByte(coverage, opacityByte);
+                if (result.w == 0u) { result = vec4<u32>(foreground, result.w); }
+                else { result = vec4<u32>(vec3<u32>(blendByte(result.x, foreground.x, alpha)), result.w); }
+            } else if (word) {
+                let alpha = floatMultiply(nativeNormalizedAlpha(coverage), opacity);
+                if (result.w == 0u) { result = vec4<u32>(foreground, result.w); }
+                else {
+                    for (var c = 0u; c < 3u; c += 1u) {
+                        result[c] = nativeColor(result[c], foreground[c], alpha);
+                    }
+                }
+            } else {
+                let mask = floatMultiply(bitcast<u32>(f32(coverage)), 0x3b808081u);
+                let source = floatMultiply(mask, floatMultiply(0x437f0000u, opacity));
+                if (source == 0u) { continue; }
+                let alpha = floatMultiply(source, 0x3b808081u);
+                if (result.w == 0u) { result = vec4<u32>(foreground, result.w); }
+                else {
+                    for (var c = 0u; c < 3u; c += 1u) {
+                        result[c] = washByteColor(result[c], foreground[c], alpha);
+                    }
                 }
             }
-            result.w = washWordAlpha(result.w, coverage, dab.application);
-        } else {
-            let mask = floatMultiply(bitcast<u32>(f32(coverage)), 0x3b808081u);
-            let source = floatMultiply(mask, floatMultiply(0x437f0000u, opacity));
-            if (source == 0u) { continue; }
-            let alpha = floatMultiply(source, 0x3b808081u);
-            if (result.w == 0u) { result = vec4<u32>(foreground, result.w); }
-            else {
-                for (var c = 0u; c < 3u; c += 1u) {
-                    let destination = bitcast<u32>(f32(result[c]));
-                    let difference = floatSubtract(bitcast<u32>(f32(foreground[c])), destination);
-                    result[c] = projectionComponent(floatAdd(floatMultiply(difference, alpha), destination));
-                }
-            }
-            result.w = washAlpha(result.w, coverage, dab.application);
         }
+        if (word) { result.w = washWordAlpha(result.w, coverage, dab.application); }
+        else if (gray) { result.w = maskWashAlpha(result.w, coverage, dab.application); }
+        else { result.w = washAlpha(result.w, coverage, dab.application); }
     }
     return result;
 }
@@ -622,9 +621,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let figureFlags = bitcast<u32>(parameters.mirror.w);
     let generatedFilled = (parameters.paintFlags & 512u) != 0u && (figureFlags & 1u) != 0u;
     var strokeCoverage = 0u;
-    if ((parameters.paintFlags & 512u) != 0u) {
-        if (!generatedFilled) { strokeCoverage = gaussianCoverage(pixel); }
-    } else {
+    if ((parameters.paintFlags & 512u) == 0u) {
         if ((parameters.paintFlags & 128u) != 0u) { strokeCoverage = previousCoverage[index]; }
         if ((bitcast<u32>(parameters.mirror.w) & 2u) == 0u) {
             for (var i = 0u; i < parameters.count && strokeCoverage != 255u; i += 1u) {
@@ -648,6 +645,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if (parameters.native.z != 0u && (parameters.paintFlags & 512u) == 0u) { coverage *= 257u; }
     var sourceHasColor = strokeCoverage != 0u;
     var blendMode = parameters.pattern.w;
+    var generatedInitial = vec4<u32>();
     if ((figureFlags & 1u) != 0u) {
         var fillColor = nativePixel(bitcast<u32>(parameters.mirror.z), parameters.native.y, parameters.native.z != 0u);
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
@@ -658,12 +656,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         var fillAlpha = mul255(fillColor.w, fillCoverage);
         if (parameters.native.z != 0u) { fillAlpha = mul65535(fillColor.w, fillCoverage * 257u); }
         if (generatedFilled) {
-            var initial = vec4<u32>();
-            if (fillAlpha != 0u) { initial = vec4<u32>(fillColor.xyz, fillAlpha); }
-            let temporary = generatedFigureSource(pixel, initial);
-            source = temporary.xyz;
-            coverage = temporary.w;
-            sourceHasColor = any(temporary != vec4<u32>());
+            if (fillAlpha != 0u) { generatedInitial = vec4<u32>(fillColor.xyz, fillAlpha); }
             if ((figureFlags & 2u) != 0u) { blendMode = parameters.pattern.z; }
         // Native marker writes retain the fill color at equal temporary alpha.
         } else if (fillAlpha >= coverage) {
@@ -671,6 +664,15 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             sourceHasColor = fillCoverage != 0u;
             coverage = fillAlpha;
             blendMode = parameters.pattern.z;
+        }
+    }
+    if ((parameters.paintFlags & 512u) != 0u) {
+        let temporary = generatedBrushSource(pixel, generatedInitial, generatedFilled);
+        coverage = temporary.w;
+        sourceHasColor = coverage != 0u;
+        if (generatedFilled) {
+            source = temporary.xyz;
+            sourceHasColor = any(temporary != vec4<u32>());
         }
     }
     if ((parameters.paintFlags & 65536u) != 0u && blendMode != 130u) {

@@ -2731,6 +2731,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         };
         configureFigure();
         const auto prepareInput = [&] {
+            if (filledFigure) view->canvasBase()->snapGuide()->enableSnapping(false);
             view->canvasBase()->canvasWidget()->setFocus(); view->canvasController()->resetCanvasRotation();
             view->canvasController()->mirrorCanvas(false); view->zoomManager()->zoomTo100();
             const auto extent = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
@@ -2795,7 +2796,9 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             image->waitForDone(); QApplication::processEvents();
         };
         QCOMPARE(pixels(), initial);
+        const int initialUndoIndex = lifetime->undoStack()->index();
         stroke({{24, 24}, {40, 36}});
+        if (filledFigure) QTRY_COMPARE(lifetime->undoStack()->index(), initialUndoIndex + 1);
         const auto painted = pixels(); QVERIFY(painted != initial);
         QVERIFY2(compare(), "Ordinary mask preset painting must match native Alpha8 pixels");
         lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(), initial);

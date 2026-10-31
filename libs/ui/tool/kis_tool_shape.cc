@@ -19,6 +19,7 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoPattern.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorModelStandardIds.h>
 #include <KoShapeController.h>
 #include <KoColorBackground.h>
 #include <KoPatternBackground.h>
@@ -142,13 +143,15 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
         }
     }
     auto *source = canvas()->resourceManager();
+    const bool maskTarget = image()->isGpuTransparencyMaskView(currentNode());
+    const auto *colorSpace = maskTarget ? KoColorSpaceRegistry::instance()->colorSpace(
+        GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image()->colorSpace();
     LibrePaint::Image::Gpu::FigureStyle style;
     style.outline = strokeStyle() != KisFigurePaintingOptions::StrokeStyleNone;
     if (fillStyle() == KisFigurePaintingOptions::FillStylePattern) {
         QString diagnostic;
         style.pattern = captureGpuPatternResource(source->resource(KoCanvasResource::CurrentPattern).value<KoPatternSP>(),
-            image()->isGpuTransparencyMaskView(currentNode()) ? KoColorSpaceRegistry::instance()->rgb8() : image()->colorSpace(),
-            fillTransform(), diagnostic);
+            colorSpace, fillTransform(), diagnostic);
         if (!style.pattern) {
             Q_EMIT statusTextChanged(diagnostic);
             return;
@@ -156,8 +159,11 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
     } else if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
         KoColor color = fillStyle() == KisFigurePaintingOptions::FillStyleForegroundColor ?
             source->foregroundColor() : source->backgroundColor();
-        color.convertTo(image()->colorSpace());
-        if (image()->gpuImage()->operations().snapshot()->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16) {
+        color.convertTo(colorSpace);
+        if (maskTarget) {
+            const auto gray = color.data()[0];
+            style.fill = LibrePaint::Image::Gpu::RgbaPixel{gray, gray, gray, 255};
+        } else if (image()->gpuImage()->operations().snapshot()->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16) {
             quint16 bgra[4];
             std::memcpy(bgra, color.data(), sizeof(bgra));
             style.fill = LibrePaint::Image::Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], 65535};

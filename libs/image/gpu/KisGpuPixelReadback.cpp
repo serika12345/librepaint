@@ -225,7 +225,6 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
             if (paint.brush.autoBrush) {
                 const auto dabs = Detail::autoBrushDabs(paint, paint.id == pendingOperation);
                 if (!dabs) return std::nullopt;
-                if (!paint.figureStyle.outline) continue;
                 for (const auto &dab : *dabs) {
                     const auto bounds = dab.bounds().intersected(needed);
                     if (bounds.isEmpty()) continue;
@@ -239,23 +238,23 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
                         if (coordinates.size() > stageMaximum) return std::nullopt;
                     }
                 }
-                continue;
-            }
-            const bool allocatedSource = Detail::usesAllocatedSourceRegion(paint, format);
-            const auto dabs = Detail::markerDabs(paint, paint.id == pendingOperation, needed, allocatedSource);
-            if (!dabs) return std::nullopt;
-            for (const auto &dab : *dabs) {
-                const auto bounds = dab.bounds().intersected(needed);
-                const int left = Detail::pixelTileIndex(bounds.left(), TileRenderer::TileSize);
-                const int right = Detail::pixelTileIndex(bounds.right(), TileRenderer::TileSize);
-                const int top = Detail::pixelTileIndex(bounds.top(), TileRenderer::TileSize);
-                const int bottom = Detail::pixelTileIndex(bounds.bottom(), TileRenderer::TileSize);
-                if (qint64(right - left + 1) * (bottom - top + 1) > stageMaximum) return std::nullopt;
-                for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
-                    const QRect tile(QPoint(x, y) * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
-                    if (!allocatedSource && !Detail::markerDabIntersects(dab, tile.intersected(needed))) continue;
-                    coordinates.insert(Detail::key(x, y));
-                    if (coordinates.size() > stageMaximum) return std::nullopt;
+            } else {
+                const bool allocatedSource = Detail::usesAllocatedSourceRegion(paint, format);
+                const auto dabs = Detail::markerDabs(paint, paint.id == pendingOperation, needed, allocatedSource);
+                if (!dabs) return std::nullopt;
+                for (const auto &dab : *dabs) {
+                    const auto bounds = dab.bounds().intersected(needed);
+                    const int left = Detail::pixelTileIndex(bounds.left(), TileRenderer::TileSize);
+                    const int right = Detail::pixelTileIndex(bounds.right(), TileRenderer::TileSize);
+                    const int top = Detail::pixelTileIndex(bounds.top(), TileRenderer::TileSize);
+                    const int bottom = Detail::pixelTileIndex(bounds.bottom(), TileRenderer::TileSize);
+                    if (qint64(right - left + 1) * (bottom - top + 1) > stageMaximum) return std::nullopt;
+                    for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                        const QRect tile(QPoint(x, y) * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+                        if (!allocatedSource && !Detail::markerDabIntersects(dab, tile.intersected(needed))) continue;
+                        coordinates.insert(Detail::key(x, y));
+                        if (coordinates.size() > stageMaximum) return std::nullopt;
+                    }
                 }
             }
             if (hasFigureFill(paint.figureStyle)) {
