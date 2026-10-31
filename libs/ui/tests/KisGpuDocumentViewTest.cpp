@@ -2556,24 +2556,31 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
     QTest::addColumn<QString>("presetName");
     QTest::addColumn<bool>("words");
     QTest::addColumn<qreal>("flow");
-    QTest::addColumn<bool>("filledFigure");
+    QTest::addColumn<int>("figureFillStyle");
     for (const auto *name : {"d)_Ink-3_Gpen.kpp", "a)_Eraser_Small.kpp", "b)_Basic-5_Size_default.kpp",
                              "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp", "d)_Ink-7_Brush_Rough.kpp", "y)_Screentones_Regular.kpp", "u)_Pixel_Art_Dithering.kpp", "u)_Pixel_Art.kpp", "u)_Pixel_Art_Fill.kpp",
                              "h)_Charcoal_pencil_large.kpp", "h)_Charcoal_Pencil_Medium.kpp", "h)_Charcoal_Pencil_Thin.kpp"})
         for (const bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
-            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1) << false;
+            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1) << int(KisFigurePaintingOptions::FillStyleNone);
         }
     for (const bool words : {false, true})
-        QTest::newRow(words ? "Gpen-low-flow-u16" : "Gpen-low-flow-u8") << QStringLiteral("d)_Ink-3_Gpen.kpp") << words << qreal(.37) << false;
+        QTest::newRow(words ? "Gpen-low-flow-u16" : "Gpen-low-flow-u8") << QStringLiteral("d)_Ink-3_Gpen.kpp") << words << qreal(.37) << int(KisFigurePaintingOptions::FillStyleNone);
     for (const bool words : {false, true})
         QTest::newRow(words ? "Dithering-soft-low-flow-u16" : "Dithering-soft-low-flow-u8")
-            << QStringLiteral("u)_Pixel_Art_Dithering.kpp") << words << qreal(.37) << false;
+            << QStringLiteral("u)_Pixel_Art_Dithering.kpp") << words << qreal(.37) << int(KisFigurePaintingOptions::FillStyleNone);
     for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-7_Brush_Rough.kpp", "u)_Pixel_Art_Dithering.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray("filled-") + preset + (words ? "-u16" : "-u8");
-            QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1) << true;
+            QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1) << int(KisFigurePaintingOptions::FillStyleBackgroundColor);
         }
+    for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-7_Brush_Rough.kpp", "u)_Pixel_Art_Dithering.kpp"})
+        for (bool words : {false, true}) {
+            const QByteArray row = QByteArray("pattern-filled-") + preset + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1)
+                << int(KisFigurePaintingOptions::FillStylePattern);
+        }
+
 
 }
 
@@ -2583,7 +2590,8 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     QFETCH(QString, presetName);
     QFETCH(bool, words);
     QFETCH(qreal, flow);
-    QFETCH(bool, filledFigure);
+    QFETCH(int, figureFillStyle);
+    const bool filledFigure = figureFillStyle != KisFigurePaintingOptions::FillStyleNone;
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restoreEngine = qScopeGuard([&] {
         if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
@@ -2666,12 +2674,19 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         profiles->loadProfiles();
         window->viewManager()->nodeManager()->slotUiActivatedNode(child);
         auto *resources = window->viewManager()->canvasResourceProvider();
+        QImage patternImage(2, 2, QImage::Format_ARGB32);
+        patternImage.setPixelColor(0, 0, QColor(34, 68, 102, 200));
+        patternImage.setPixelColor(1, 0, QColor(211, 17, 93, 127));
+        patternImage.setPixelColor(0, 1, QColor(71, 181, 241, 255));
+        patternImage.setPixelColor(1, 1, QColor(255, 255, 255, 0));
+        const KoPatternSP figurePattern(new KoPattern(patternImage, QStringLiteral("Mask pattern"), QString()));
         const auto configure = [&] {
             resources->setPaintOpPreset(preset); resources->setSize(13.75); resources->setOpacity(.7);
             resources->setGlobalAlphaLock(false); resources->setMirrorHorizontal(false); resources->setMirrorVertical(false);
             resources->setEraserMode(false); resources->setCurrentCompositeOp(QStringLiteral("normal"));
             resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
             resources->setBGColor(KoColor(QColor(71, 241, 129), cs));
+            if (figureFillStyle == KisFigurePaintingOptions::FillStylePattern) resources->slotPatternActivated(figurePattern);
         };
         configure();
         if (gpu) {
@@ -2727,7 +2742,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             }
             QVERIFY(outline && fill);
             outline->setCurrentIndex(KisFigurePaintingOptions::StrokeStyleForeground);
-            fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleBackgroundColor);
+            fill->setCurrentIndex(figureFillStyle);
         };
         configureFigure();
         const auto prepareInput = [&] {
@@ -2821,12 +2836,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         QVERIFY(fill && fill->isEnabled()); fill->trigger(); image->waitForDone(); QApplication::processEvents();
         const auto foregroundFilled = pixels(); QVERIFY(foregroundFilled != erased);
         QVERIFY2(compare(), "Selected foreground mask fill must preserve native gray conversion");
-        QImage patternImage(2, 2, QImage::Format_ARGB32);
-        patternImage.setPixelColor(0, 0, QColor(34, 68, 102, 200));
-        patternImage.setPixelColor(1, 0, QColor(211, 17, 93, 127));
-        patternImage.setPixelColor(0, 1, QColor(71, 181, 241, 255));
-        patternImage.setPixelColor(1, 1, QColor(255, 255, 255, 0));
-        resources->slotPatternActivated(KoPatternSP(new KoPattern(patternImage, QStringLiteral("Mask pattern"), QString())));
+        resources->slotPatternActivated(figurePattern);
         resources->setCurrentCompositeOp(QStringLiteral("multiply"));
         auto *patternFill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_pattern_opacity"));
         QVERIFY(patternFill && patternFill->isEnabled()); patternFill->trigger(); image->waitForDone(); QApplication::processEvents();
@@ -8501,8 +8511,22 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 KisImageSP nativeImage = new KisImage(nullptr, size.width(), size.height(), cs, QStringLiteral("Native preset reference"));
                 KisPaintLayerSP nativeLayer = new KisPaintLayer(nativeImage, QStringLiteral("Reference"), 255);
                 nativeImage->addNode(nativeLayer, nativeImage->root());
-                nativeLayer->setTemporaryTarget(nativeLayer->paintDevice());
-                {
+                if (resources->currentPreset()->hasMaskingPreset()) {
+                    // The production stroke combines independently spaced primary
+                    // and GrayA8 painters; a single paint-op omits its secondary tip.
+                    const auto opacity = resources->opacity();
+                    resources->setOpacity(1);
+                    const auto restoreOpacity = qScopeGuard([&] { resources->setOpacity(opacity); });
+                    {
+                        KisFigurePaintingStroke stroke(kundo2_i18n("Native brush reference"), nativeImage, nativeLayer,
+                            view->canvasBase()->resourceManager(), KisFigurePaintingOptions::StrokeStyleForeground,
+                            KisFigurePaintingOptions::FillStyleNone);
+                        stroke.paintLine(KisPaintInformation(QPointF(64.25, 64.75), pressure),
+                                         KisPaintInformation(QPointF(104.25, 64.75), endPressure));
+                    }
+                    nativeImage->waitForDone();
+                } else {
+                    nativeLayer->setTemporaryTarget(nativeLayer->paintDevice());
                     KisPainter painter(nativeLayer->paintDevice());
                     painter.setPaintColor(KoColor(QColor(17, 129, 241), cs));
                     painter.setCompositeOpId(COMPOSITE_ALPHA_DARKEN);
