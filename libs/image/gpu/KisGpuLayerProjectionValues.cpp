@@ -313,6 +313,7 @@ QList<LayerProjectionInput> DocumentVersion::projectionInputs(LayerId group) con
 QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
 {
     QHash<LayerId, RgbaPixel> result;
+    QHash<LayerId, quint8> maskDefaults;
     QHash<LayerId, bool> implicitSources;
     QHash<QUuid, const Layer *> identities;
     QHash<QUuid, QList<const Layer *>> children;
@@ -323,6 +324,8 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
         children[layer.parentUuid].append(&layer);
         if (layer.kind == LayerKind::Paint) {
             result.insert(layer.id, layer.defaultPixel);
+            if (layer.transparencyMask && layer.transparencyMaskVisible)
+                maskDefaults.insert(layer.id, layer.transparencyMask->defaultCoverage());
             implicitSources.insert(layer.id, layer.defaultPixel[3] != 0);
         }
         else remaining.insert(layer.id, 0);
@@ -335,6 +338,14 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
     }
     for (const auto &layer : layers)
         if (layer.kind == LayerKind::Group && remaining.value(layer.id) == 0) ready.append(&layer);
+    const auto maskedDefault = [&](LayerId id) {
+        auto pixel = result.value(id);
+        const auto coverage = maskDefaults.value(id, 255);
+        if (coverage != 255) pixel[3] = format == PixelFormat::Rgba16 ?
+            quint16(Detail::multiplyWord(pixel[3], quint32(coverage) * 257u)) :
+            quint16(Detail::multiplyByte(pixel[3], coverage));
+        return pixel;
+    };
     for (qsizetype index = 0; index < ready.size(); ++index) {
         const auto group = ready[index];
         const auto ownChildren = children.value(group->uuid);
@@ -342,12 +353,13 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
         RgbaPixel pixel{};
         bool allocated = false;
         if (ownChildren.size() == 1 && !ownChildren.first()->passThrough && inputs.size() == 1 &&
-            inputs.first().opacity == 255 && inputs.first().channelMask == 15 && inputs.first().blendMode == LayerBlendMode::Normal) {
+            inputs.first().opacity == 255 && inputs.first().channelMask == 15 && inputs.first().blendMode == LayerBlendMode::Normal &&
+            maskDefaults.value(inputs.first().layer, 255) == 255) {
             pixel = result.value(inputs.first().layer);
             allocated = implicitSources.value(inputs.first().layer);
         } else {
             for (const auto &layer : inputs) {
-                auto source = result.value(layer.layer);
+                auto source = maskedDefault(layer.layer);
                 const bool wholeRectangle = layer.blendMode == LayerBlendMode::Copy || layer.blendMode == LayerBlendMode::DestinationIn || layer.blendMode == LayerBlendMode::DestinationAtop;
                 if ((!allocated && !(layer.channelMask & 8u) && layer.blendMode != LayerBlendMode::Copy) || (!implicitSources.value(layer.layer) && !wholeRectangle)) continue;
                 allocated = true;

@@ -91,7 +91,10 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
         }
         if (target.mask) {
             const auto captured = coverage ? owner->copiedSelectionMask(layer->transparencyMask, coverage, source->selectionInverted, copy) : layer->transparencyMask;
-            if (!captured) return;
+            if (!captured) {
+                Q_EMIT statusTextChanged(i18n("The selected part of this transparency mask cannot be transformed yet."));
+                return;
+            }
             maskSources[target.layer] = captured; handles |= captured->bounds();
         }
     }

@@ -455,15 +455,15 @@ QSharedPointer<const SelectionMask> SelectionMask::fromCombination(const QShared
 {
     if (!source || !source->first || !source->second || !pixels ||
         source->pixels < SelectionCombinationSource::Pixels::Selection ||
-        source->pixels > SelectionCombinationSource::Pixels::ReplaceSelected ||
+        source->pixels > SelectionCombinationSource::Pixels::InvertTransparency ||
         (source->pixels == SelectionCombinationSource::Pixels::ReplaceSelected && !source->replacement) ||
         source->action < SelectionCombination::Replace || source->action > SelectionCombination::SymmetricDifference ||
         source->tiles.size() > MaximumBytes / AlphaTileBytes ||
         !validOutline(source->extent, {}) || !validOutline(bounds, outlineRuns) ||
         (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
     for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
-    if (bounds.isEmpty()) return empty();
-    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
+    if (bounds.isEmpty()) return uniform(source->defaultCoverage());
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha, source->defaultCoverage()));
     result->m_combination = source;
     result->m_outlineRuns = outlineRuns;
     result->m_nativePixels = pixels;
@@ -527,12 +527,13 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTranslation(
     const QSharedPointer<const SelectionTranslationSource> &source, const QRect &bounds,
     const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
 {
-    if (!source || !source->source || !source->source->isGpuGenerated() || !pixels ||
+    if (!source || !source->source || (!source->source->isGpuGenerated() && !source->source->defaultCoverage()) || !pixels ||
         source->tiles.size() > MaximumBytes / AlphaTileBytes || !validOutline(source->extent, {}) ||
         !validOutline(bounds, outlineRuns) || (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
     for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
-    if (bounds.isEmpty()) return empty();
-    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
+    if (bounds.isEmpty()) return uniform(source->source->defaultCoverage());
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha,
+        source->source->defaultCoverage()));
     result->m_translation = source;
     result->m_outlineRuns = outlineRuns;
     result->m_nativePixels = pixels;

@@ -152,8 +152,8 @@ Result OperationDocument::updateLayerTranslationWithMasks(OperationId id, QPoint
         }
         if (participant.mask && source.transparencyMask && !source.transparencyMask->isEmpty() && !offset.isNull()) {
             if (source.transparencyMask->defaultCoverage()) {
-                if (!source.transparencyMask->bounds().isEmpty()) return Result::InvalidInput;
-                target.transparencyMask = source.transparencyMask;
+                target.transparencyMask = source.transparencyMask->bounds().isEmpty() ? source.transparencyMask : masks.value(participant.layer);
+                if (!target.transparencyMask || !selectionFitsRetainedInputs(target.transparencyMask)) return Result::InvalidInput;
                 continue;
             }
             const auto bounds = source.transparencyMask->bounds();

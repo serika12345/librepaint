@@ -124,7 +124,7 @@ std::shared_ptr<CoverageTile> TileRenderer::Private::translatedCoverageTile(WGPU
     const qint32 values[16]{origin.x(), origin.y(), base.x() * TileSize, base.y() * TileSize,
         source.extent.left(), source.extent.top(), source.extent.right() + 1, source.extent.bottom() + 1,
         bounds.left(), bounds.top(), bounds.right() + 1, bounds.bottom() + 1,
-        point.x() * TileSize, point.y() * TileSize, 0, 0};
+        point.x() * TileSize, point.y() * TileSize, source.source->defaultCoverage(), 0};
     wgpuQueueWriteBuffer(device->queue(), uniform->pixels.get(), 0, values, sizeof(values));
     if (!selectionTranslatePipeline) {
         selectionTranslatePipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/selection-translate.wgsl"));
@@ -169,9 +169,10 @@ std::shared_ptr<CoverageTile> TileRenderer::Private::combinedCoverageTile(WGPUCo
     const auto uniform = std::make_shared<BufferStorage>(std::move(parameters), budget);
     device->retainForFrame(output->storage); device->retainForFrame(uniform);
     const auto action = source.pixels == SelectionCombinationSource::Pixels::Selection ? qint32(source.action) :
-        source.pixels == SelectionCombinationSource::Pixels::CopySelected ? 5 : 6;
+        source.pixels == SelectionCombinationSource::Pixels::CopySelected ? 5 :
+        source.pixels == SelectionCombinationSource::Pixels::InvertTransparency ? 7 : 6;
     const qint32 values[12]{source.extent.x(), source.extent.y(), source.extent.width(), source.extent.height(),
-        point.x() * TileSize, point.y() * TileSize, action, qint32(source.inverted),
+        point.x() * TileSize, point.y() * TileSize, action, qint32(source.inverted) | (qint32(source.defaultCoverage()) << 8),
         source.pixelRegion.left(), source.pixelRegion.top(), source.pixelRegion.x() + source.pixelRegion.width(),
         source.pixelRegion.y() + source.pixelRegion.height()};
     wgpuQueueWriteBuffer(device->queue(), uniform->pixels.get(), 0, values, sizeof(values));
@@ -286,7 +287,8 @@ ExecutionOutcome Execution::readSelectionTileOutlines(const SelectionMaskSP &mas
         QRect occupied;
         QList<QRect> rows;
         const auto geometry = readSelectionOutline(tile.value(),
-            QRect(point * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize)), {}, &occupied, &rows, 2);
+            QRect(point * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize)),
+            {}, &occupied, &rows, 2, mask->defaultCoverage());
         if (geometry.code != ExecutionCode::Success) return geometry;
         if (occupied.isEmpty()) continue;
         if (rows.size() > SelectionMask::MaximumBytes / qsizetype(sizeof(QRect)) - runs->size())
@@ -433,16 +435,19 @@ ExecutionOutcome Execution::maskSelectionCoverage(const SelectionMaskSP &mask, c
         return {ExecutionCode::InvalidRequest, QStringLiteral("Mask capture requires finite frozen coverage")};
     if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("Mask capture requires submitted work")};
     if (d.device->readbackPending() && !d.device->finish()) return {ExecutionCode::DeviceFailure, d.device->diagnostic()};
-    const auto extent = replacement ? mask->bounds().united(replacement->bounds()) : mask->bounds().intersected(region);
+    const auto extent = replacement ? mask->bounds().united(replacement->bounds()).united(mask->defaultCoverage() ? region : QRect()) :
+        mask->defaultCoverage() ? region : mask->bounds().intersected(region);
     if (extent.isEmpty()) { *result = SelectionMask::empty(); return {ExecutionCode::Success, {}}; }
     QSet<QPoint> candidates;
-    const auto append = [&](const SelectionMaskSP &input) {
+    const auto append = [&](const SelectionMaskSP &input, const QRect &clip) {
         for (const auto point : input->tileCoordinates())
             if (!appendTiles(candidates, QRect(point * TileRenderer::TileSize,
-                    QSize(TileRenderer::TileSize, TileRenderer::TileSize)).intersected(extent))) return false;
+                    QSize(TileRenderer::TileSize, TileRenderer::TileSize)).intersected(clip))) return false;
         return true;
     };
-    if (!append(mask) || (replacement && !append(replacement)))
+    if (!append(mask, extent) || (replacement && !append(replacement, extent)) ||
+        (mask->defaultCoverage() && (inverted || selection->defaultCoverage() ?
+            !appendTiles(candidates, region.intersected(extent)) : !append(selection, region.intersected(extent)))))
         return {ExecutionCode::CapacityExceeded, QStringLiteral("Mask capture exceeds its tile capacity")};
     auto operation = QSharedPointer<SelectionCombinationSource>::create();
     operation->first = mask; operation->second = selection; operation->replacement = replacement;
@@ -457,7 +462,7 @@ ExecutionOutcome Execution::translateSelectionCoverage(const SelectionMaskSP &so
 {
     auto &d = *m_d;
     constexpr qint64 limit = OperationDocument::CoordinateLimit;
-    if (!d.onThread() || !source || !source->isGpuGenerated() || !result || clip.isEmpty() ||
+    if (!d.onThread() || !source || (!source->isGpuGenerated() && !source->defaultCoverage()) || !result || clip.isEmpty() ||
         qAbs(qint64(offset.x())) > 2 * limit || qAbs(qint64(offset.y())) > 2 * limit ||
         clip.x() < -limit || clip.y() < -limit || qint64(clip.x()) + clip.width() > limit ||
         qint64(clip.y()) + clip.height() > limit)
@@ -465,7 +470,7 @@ ExecutionOutcome Execution::translateSelectionCoverage(const SelectionMaskSP &so
     if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("Selection movement requires submitted work")};
     if (d.device->readbackPending() && !d.device->finish()) return {ExecutionCode::DeviceFailure, d.device->diagnostic()};
     const auto extent = source->bounds().translated(offset).intersected(clip);
-    if (extent.isEmpty()) { *result = SelectionMask::empty(); return {ExecutionCode::Success, {}}; }
+    if (extent.isEmpty()) { *result = SelectionMask::uniform(source->defaultCoverage()); return {ExecutionCode::Success, {}}; }
     QSet<QPoint> candidates;
     for (const auto point : source->tileCoordinates()) {
         const auto area = QRect(point * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize))

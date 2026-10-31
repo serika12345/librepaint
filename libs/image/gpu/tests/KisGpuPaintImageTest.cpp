@@ -45,6 +45,7 @@ private Q_SLOTS:
     void affineResamplingReadsMovedSourceTilesAcrossCanonicalBoundaries();
     void erasedMasksRemainTransparentAndAcceptFurtherPainting_data();
     void erasedMasksRemainTransparentAndAcceptFurtherPainting();
+    void defaultMasksKeepGroupProjectionAndCoordinateEdits();
     void paintedMasksKeepSparseGpuCoverageAfterClosure();
     void sparsePaintedMasksMoveCombineCropAndRecover();
     void layerPickingKeepsNativeAlphaMasksAndPinnedRequests_data();
@@ -860,6 +861,103 @@ void KisGpuPaintImageTest::erasedMasksRemainTransparentAndAcceptFurtherPainting(
     QCOMPARE(batched->layers.first().operations, erased->layers.first().operations);
     QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.operations().snapshot(), erased);
     QCOMPARE(image.redo(), Result::Success); QCOMPARE(image.operations().snapshot(), batched);
+}
+
+void KisGpuPaintImageTest::defaultMasksKeepGroupProjectionAndCoordinateEdits()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    for (const auto format : {PixelFormat::Rgba8, PixelFormat::Rgba16}) {
+        const quint16 scale = format == PixelFormat::Rgba16 ? 257 : 1;
+        const RgbaPixel color{quint16(19 * scale), quint16(211 * scale), quint16(97 * scale), quint16(255 * scale)};
+        for (quint8 coverage : {quint8(0), quint8(17), quint8(255)}) {
+            RasterImage input; input.size = {64, 64}; input.format = format;
+            RasterLayer group{QStringLiteral("Group"), true, QUuid::createUuid(), {}}; group.kind = LayerKind::Group;
+            RasterLayer child{QStringLiteral("Masked"), true, QUuid::createUuid(), {}};
+            child.parentUuid = group.uuid; child.defaultPixel = color;
+            child.transparencyMask = SelectionMask::uniform(coverage);
+            input.layers = {group, child};
+            PaintImage image(execution, input);
+            auto expected = color;
+            expected[3] = quint16(coverage * scale);
+            if (!coverage) expected = {};
+            QCOMPARE(image.operations().snapshot()->projectionDefaultPixels().value(1), expected);
+            const auto pixels = execution.readRgbaPixels(image.handle(), image.operations().snapshot(), {7, 9, 1, 1}, 0, pixelByteCount(format));
+            QCOMPARE(pixels.code, ExecutionCode::Success); QCOMPARE(pixels.bytes, rgbaBytes(expected, format));
+        }
+        for (quint8 coverage : {quint8(17), quint8(255)}) {
+            SelectionTileMap tiles;
+            QByteArray values(SelectionMask::AlphaTileBytes, char(coverage));
+            values[12 * 256 + 14] = 0;
+            values[20 * 256 + 22] = char(128);
+            tiles.insert({0, 0}, values);
+            const auto mask = SelectionMask::fromAlphaTiles(tiles, coverage); QVERIFY(mask);
+            RasterImage input; input.size = {64, 64}; input.format = format;
+            input.layers = {{QStringLiteral("Coordinate edits")}};
+            input.layers.first().defaultPixel = color; input.layers.first().transparencyMask = mask;
+            PaintImage image(execution, input);
+            const auto read = [&](const SelectionMaskSP &value, QPoint point) {
+                return execution.readSelectionPixels(value, QRect(point, QSize(1, 1)), 1).bytes;
+            };
+            const auto original = image.operations().snapshot();
+            const auto move = image.beginLayerTranslation(QList<LayerTranslationTarget>{{1, false, true}});
+            QVERIFY(!move.isNull());
+            QCOMPARE(image.updateLayerTranslation(move, {3, -2}), Result::Success);
+            QCOMPARE(read(image.operations().preview()->layers.first().transparencyMask, {17, 10}), QByteArray(1, '\0'));
+            QCOMPARE(image.cancelLayerTranslation(move), Result::Success);
+            QCOMPARE(image.operations().snapshot(), original);
+            const auto committed = image.beginLayerTranslation(QList<LayerTranslationTarget>{{1, false, true}});
+            QCOMPARE(image.updateLayerTranslation(committed, {3, -2}), Result::Success);
+            QCOMPARE(image.commitLayerTranslation(committed), Result::Success);
+            QCOMPARE(image.layerTransparencyMask(1)->defaultCoverage(), coverage);
+            QCOMPARE(read(image.layerTransparencyMask(1), {17, 10}), QByteArray(1, '\0'));
+            QCOMPARE(read(image.layerTransparencyMask(1), {25, 18}), QByteArray(1, char(128)));
+            QCOMPARE(read(image.layerTransparencyMask(1), {100000, -100000}), QByteArray(1, char(coverage)));
+            QCOMPARE(image.operations().snapshot()->layers.first().defaultPixel, color);
+            QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.operations().snapshot(), original);
+            QCOMPARE(image.redo(), Result::Success);
+            AffinePlan plan;
+            AffinePass pass; pass.kind = AffinePass::Remap;
+            pass.source = image.layerTransparencyMask(1)->bounds();
+            pass.destination = pass.source.translated(-5, 4);
+            pass.map = {1, 0, 0, 1, -5, 4}; pass.mapWholeLayer = true;
+            plan.passes = {pass};
+            const auto affine = image.transformedSelectionMask(image.layerTransparencyMask(1), plan);
+            QVERIFY2(affine, qPrintable(image.lastRequestOutcome().diagnostic));
+            QCOMPARE(affine->defaultCoverage(), coverage);
+            QCOMPARE(read(affine, {12, 14}), QByteArray(1, '\0'));
+            QCOMPARE(read(affine, {20, 22}), QByteArray(1, char(128)));
+            QCOMPARE(read(affine, {100000, -100000}), QByteArray(1, char(coverage)));
+            const auto beforeCapture = image.operations().snapshot();
+            QVERIFY(!image.copiedSelectionMask(image.layerTransparencyMask(1),
+                SelectionMask::fromRectangle({0, 0, 32, 32}, {0, 0, 64, 64}), false, {0, 0, 32, 32}));
+            QCOMPARE(image.operations().snapshot(), beforeCapture);
+            QCOMPARE(image.cropLayer(1, {0, 0, 20, 20}), Result::Success);
+            QCOMPARE(read(image.layerTransparencyMask(1), {17, 10}), QByteArray(1, '\0'));
+            QCOMPARE(read(image.layerTransparencyMask(1), {25, 18}), QByteArray(1, char(coverage)));
+            QCOMPARE(image.layerTransparencyMask(1)->defaultCoverage(), coverage);
+            QCOMPARE(image.resizeCanvas({2, 1, 80, 80}, false), Result::Success);
+            QCOMPARE(read(image.layerTransparencyMask(1), {15, 9}), QByteArray(1, '\0'));
+            QCOMPARE(read(image.layerTransparencyMask(1), {100000, -100000}), QByteArray(1, char(coverage)));
+        }
+        for (bool inverted : {false, true}) {
+            RasterImage input; input.size = {64, 64}; input.format = format;
+            input.layers = {{QStringLiteral("Selection to mask")}};
+            PaintImage image(execution, input);
+            QCOMPARE(image.setSelectionRect({-7, 9, 20, 22}, inverted), Result::Success);
+            const auto before = image.operations().snapshot();
+            QCOMPARE(image.addTransparencyMask(1), Result::Success);
+            const auto mask = image.layerTransparencyMask(1); QVERIFY(mask);
+            QCOMPARE(mask->defaultCoverage(), quint8(inverted ? 255 : 0));
+            QCOMPARE(execution.readSelectionPixels(mask, {-5, 12, 1, 1}, 1).bytes, QByteArray(1, char(inverted ? 0 : 255)));
+            QCOMPARE(execution.readSelectionPixels(mask, {100000, -100000, 1, 1}, 1).bytes, QByteArray(1, char(inverted ? 255 : 0)));
+            QVERIFY(image.operations().snapshot()->selection.isEmpty());
+            const auto added = image.operations().snapshot();
+            QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.operations().snapshot(), before);
+            QCOMPARE(image.redo(), Result::Success); QCOMPARE(image.operations().snapshot(), added);
+        }
+    }
 }
 
 void KisGpuPaintImageTest::paintedMasksKeepSparseGpuCoverageAfterClosure()

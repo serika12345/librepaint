@@ -36,7 +36,7 @@ class DocumentVersion;
 /** Frozen Alpha8 selection arithmetic and selected mask-pixel edits. */
 struct SelectionCombinationSource
 {
-    enum class Pixels : quint8 { Selection, CopySelected, ReplaceSelected };
+    enum class Pixels : quint8 { Selection, CopySelected, ReplaceSelected, InvertTransparency };
     QSharedPointer<const SelectionMask> first, second;
     QSharedPointer<const SelectionMask> replacement;
     Pixels pixels = Pixels::Selection;
@@ -45,6 +45,7 @@ struct SelectionCombinationSource
     QRect extent;
     bool inverted = false;
     QList<QPoint> tiles;
+    quint8 defaultCoverage() const;
 };
 
 /** Frozen input for moving a generated selection without reading its pixels. */
@@ -221,6 +222,15 @@ private:
 };
 
 using SelectionMaskSP = QSharedPointer<const SelectionMask>;
+
+inline quint8 SelectionCombinationSource::defaultCoverage() const
+{
+    const int a = first ? first->defaultCoverage() : 0;
+    if (pixels == Pixels::InvertTransparency) return quint8(255 - a);
+    if (pixels != Pixels::ReplaceSelected) return 0;
+    const int b = replacement ? replacement->defaultCoverage() : 0;
+    return quint8(b + (a * (255 - b) + 127) / 255);
+}
 
 }
 #endif

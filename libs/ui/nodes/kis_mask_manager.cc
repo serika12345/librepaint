@@ -227,7 +227,7 @@ KisNodeSP KisMaskManager::createTransparencyMask(KisNodeSP activeNode, KisPaintD
         if (!layer) return 0;
         const QPointer<KisMaskManager> guard(this);
         if (owner->addTransparencyMask(layer) != LibrePaint::Image::Gpu::Result::Success) return 0;
-        if (!guard || m_view->image() != image) return 0;
+        if (!guard || m_view->image().toStrongRef() != image) return 0;
         for (auto child = activeNode->firstChild(); child; child = child->nextSibling()) {
             if (!image->isGpuTransparencyMaskView(child)) continue;
             m_view->nodeManager()->slotUiActivatedNode(child);

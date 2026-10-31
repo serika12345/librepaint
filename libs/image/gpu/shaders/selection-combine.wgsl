@@ -20,13 +20,20 @@ fn multiplyAlpha(a: u32, b: u32) -> u32 {
         let index = word * 4u + component;
         let point = parameters.tile + vec2<i32>(i32(index % 256u), i32(index / 256u));
         let local = point - parameters.extent.xy;
-        if (any(local < vec2<i32>()) || any(local >= parameters.extent.zw)) { continue; }
         let shift = component * 8u;
+        if (any(local < vec2<i32>()) || any(local >= parameters.extent.zw)) {
+            packed |= (parameters.inverted >> 8u) << shift;
+            continue;
+        }
         var a = (first[word] >> shift) & 255u;
         let b = (second[word] >> shift) & 255u;
+        if (parameters.action == 7u) {
+            packed |= (255u - a) << shift;
+            continue;
+        }
         if (parameters.action >= 5u) {
             var amount = b;
-            if (parameters.inverted != 0u) { amount = 255u - amount; }
+            if ((parameters.inverted & 1u) != 0u) { amount = 255u - amount; }
             let inside = all(point >= parameters.region.xy) && all(point < parameters.region.zw);
             var value = a;
             if (parameters.action == 5u) { value = select(0u, multiplyAlpha(a, amount), inside); }
@@ -38,7 +45,7 @@ fn multiplyAlpha(a: u32, b: u32) -> u32 {
             packed |= value << shift;
             continue;
         }
-        if (parameters.inverted != 0u) { a = 255u - a; }
+        if ((parameters.inverted & 1u) != 0u) { a = 255u - a; }
         var value = b;
         switch parameters.action {
             case 1u: { value = min(a + b, 255u); }

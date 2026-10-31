@@ -251,12 +251,10 @@ SelectionMaskSP PaintImage::translatedSelectionMask(const SelectionMaskSP &mask,
     if (!onThread() || !mask) return {};
     if (mask->defaultCoverage()) {
         if (mask->bounds().isEmpty()) return mask;
-        m_d->lastRequest = {ExecutionCode::InvalidRequest, QStringLiteral("Mask movement requires retained default coverage")};
-        return {};
     }
     try {
         if (offset.isNull() && clip.contains(mask->bounds())) return mask;
-        if (!mask->isGpuGenerated()) return mask->translated(offset, clip);
+        if (!mask->isGpuGenerated() && !mask->defaultCoverage()) return mask->translated(offset, clip);
         SelectionMaskSP result;
         const auto checked = m_d->execution.translateSelectionCoverage(mask, offset, clip, &result);
         if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
@@ -270,11 +268,7 @@ SelectionMaskSP PaintImage::translatedSelectionMask(const SelectionMaskSP &mask,
 SelectionMaskSP PaintImage::transformedSelectionMask(const SelectionMaskSP &mask, const AffinePlan &plan)
 {
     if (!onThread() || !mask || !validAffinePlan(plan)) return {};
-    if (mask->defaultCoverage()) {
-        if (mask->bounds().isEmpty()) return mask;
-        m_d->lastRequest = {ExecutionCode::InvalidRequest, QStringLiteral("Mask transform requires retained default coverage")};
-        return {};
-    }
+    if (mask->defaultCoverage() && mask->bounds().isEmpty()) return mask;
     if (mask->isEmpty() || plan.passes.isEmpty()) return mask;
     try {
         const auto image = createMaskImage(m_d->document->snapshot(), mask);
@@ -305,6 +299,11 @@ SelectionMaskSP PaintImage::copiedSelectionMask(const SelectionMaskSP &mask, con
                                                bool inverted, QRect copyRect)
 {
     if (!onThread()) return {};
+    if (mask && mask->defaultCoverage()) {
+        m_d->lastRequest = {ExecutionCode::InvalidRequest,
+            QStringLiteral("Selected default-mask transformation requires separate gray and selection coverage")};
+        return {};
+    }
     try {
         SelectionMaskSP result;
         const auto checked = m_d->execution.maskSelectionCoverage(mask, selection, inverted, copyRect, {}, &result);
@@ -350,18 +349,24 @@ Result PaintImage::addTransparencyMask(LayerId layer)
     const auto status = m_d->document->checkMutation();
     if (status != Result::Success) return status;
     const auto version = m_d->document->snapshot();
-    if (!version->selection.isEmpty() && version->selectionInverted) {
-        const QRect clip(QPoint(), version->size);
+    if (!version->selection.isEmpty()) {
+        constexpr int limit = RgbaTile::CoordinateLimit;
+        const QRect clip(-limit, -limit, 2 * limit, 2 * limit);
         const auto source = version->selectionKind == SelectionKind::Freehand ? version->selectionMask :
             version->selectionKind == SelectionKind::Ellipse ? SelectionMask::fromEllipse(version->selection, clip) :
                                                              SelectionMask::fromRectangle(version->selection, clip);
-        if (!source) return Result::InvalidInput;
-        SelectionMaskSP inverted;
-        const auto prepared = m_d->execution.combineSelectionCoverage(source, SelectionMask::empty(),
-            SelectionCombination::Subtract, clip, true, &inverted);
-        if (prepared.code != ExecutionCode::Success) { m_d->lastRequest = prepared; return resultFor(prepared.code); }
+        if (!source) return Result::CapacityExceeded;
+        auto mask = source;
+        if (version->selectionInverted) {
+            auto operation = QSharedPointer<SelectionCombinationSource>::create();
+            operation->first = source; operation->second = SelectionMask::empty();
+            operation->pixels = SelectionCombinationSource::Pixels::InvertTransparency;
+            operation->extent = source->bounds(); operation->tiles = source->tileCoordinates();
+            const auto prepared = m_d->execution.evaluateSelectionCombination(operation, &mask);
+            if (prepared.code != ExecutionCode::Success) { m_d->lastRequest = prepared; return resultFor(prepared.code); }
+        }
         if (m_d->document->snapshot() != version) return Result::StaleVersion;
-        return publish(m_d->document->addTransparencyMaskWithin(layer, false, inverted));
+        return publish(m_d->document->addTransparencyMaskWithin(layer, false, mask));
     }
     return publish(m_d->document->addTransparencyMask(layer));
 }
@@ -909,7 +914,7 @@ Result PaintImage::updateLayerTranslation(OperationId id, QPoint offset)
     QHash<LayerId, SelectionMaskSP> masks;
     for (const auto &target : document.m_translationTargets) {
         const auto mask = document.layerTransparencyMask(target.layer);
-        if (!target.mask || !mask || !mask->isGpuGenerated() || mask->isEmpty() || offset.isNull()) continue;
+        if (!target.mask || !mask || (!mask->isGpuGenerated() && !mask->defaultCoverage()) || mask->isEmpty() || offset.isNull()) continue;
         const auto bounds = mask->bounds();
         if (qint64(bounds.left()) + offset.x() < -limit || qint64(bounds.right()) + offset.x() >= limit ||
             qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit)
@@ -1051,7 +1056,7 @@ Result PaintImage::resizeCanvas(const QRect &rect, bool cropLayers)
     }
     QHash<LayerId, SelectionMaskSP> masks;
     for (const auto &layer : before->layers) {
-        if (!layer.transparencyMask || !layer.transparencyMask->isGpuGenerated()) continue;
+        if (!layer.transparencyMask || (!layer.transparencyMask->isGpuGenerated() && !layer.transparencyMask->defaultCoverage())) continue;
         const auto mask = translatedSelectionMask(layer.transparencyMask, -rect.topLeft(), QRect(QPoint(), rect.size()));
         if (!mask) return resultFor(m_d->lastRequest.code);
         masks.insert(layer.id, mask);

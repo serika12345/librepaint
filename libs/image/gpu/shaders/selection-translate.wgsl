@@ -19,7 +19,10 @@ struct TranslationParameters {
         let destination = parameters.destination.xy + local;
         let point = parameters.source.xy + local;
         if (any(destination < parameters.extent.xy) || any(destination >= parameters.extent.zw) ||
-            any(point < parameters.bounds.xy) || any(point >= parameters.bounds.zw)) { continue; }
+            any(point < parameters.bounds.xy) || any(point >= parameters.bounds.zw)) {
+            packed |= u32(parameters.destination.z) << (component * 8u);
+            continue;
+        }
         let relative = point - parameters.source.zw;
         let tile = relative / 256;
         let offset = relative % 256;
