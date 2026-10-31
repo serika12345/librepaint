@@ -126,15 +126,21 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra_d
     QTest::addColumn<QString>("filter");
     QTest::addColumn<int>("operation");
     QTest::addColumn<bool>("generated");
+    QTest::addColumn<int>("maskDefault");
     for (const bool words : {false, true})
         for (const auto filter : {"NearestNeighbor", "Bilinear", "Bicubic", "Hermite", "Bell", "BSpline", "Lanczos3", "Mitchell"})
             for (int operation = 0; operation < 5; ++operation)
-                QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3").arg(words ? "word" : "byte").arg(filter).arg(operation))) << words << QString::fromLatin1(filter) << operation << false;
+                QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3").arg(words ? "word" : "byte").arg(filter).arg(operation))) << words << QString::fromLatin1(filter) << operation << false << 0;
     for (const bool words : {false, true}) for (int operation : {6, 7, 8, 9})
-        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2").arg(words ? "word" : "byte").arg(operation))) << words << QStringLiteral("Bicubic") << operation << false;
+        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2").arg(words ? "word" : "byte").arg(operation))) << words << QStringLiteral("Bicubic") << operation << false << 0;
     for (const bool words : {false, true}) for (int operation : {0, 1, 2, 3, 4, 6, 7, 8, 9})
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-generated").arg(words ? "word" : "byte").arg(operation)))
-            << words << QStringLiteral("Bicubic") << operation << true;
+            << words << QStringLiteral("Bicubic") << operation << true << 0;
+
+    for (const bool words : {false, true}) for (int maskDefault : {17, 255}) for (int operation : {0, 1, 9})
+        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3")
+            .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
+            << words << QStringLiteral("Bicubic") << operation << false << maskDefault;
 
 }
 
@@ -143,6 +149,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(bool, words); QFETCH(QString, filter); QFETCH(int, operation);
     QFETCH(bool, generated);
+    QFETCH(int, maskDefault);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     qputenv("LIBREPAINT_GPU_ENGINE", "1");
     const auto restoreEngine = qScopeGuard([&] { if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine); });
@@ -167,6 +174,17 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     QByteArray maskPixels(sourceRect.width() * sourceRect.height(), '\0');
     for (int i = 0; i < maskPixels.size(); ++i) maskPixels[i] = char((i * 43 + 1) % 256);
     raster.layers.first().transparencyMask = Gpu::SelectionMask::fromAlphaCoverage(sourceRect, maskPixels, sourceRect);
+    if (maskDefault) {
+        Gpu::SelectionTileMap tiles;
+        for (int y = sourceRect.top(); y <= sourceRect.bottom(); ++y) for (int x = sourceRect.left(); x <= sourceRect.right(); ++x) {
+            const int tx = x < 0 ? (x - 255) / 256 : x / 256;
+            const int ty = y < 0 ? (y - 255) / 256 : y / 256;
+            auto &tile = tiles[{tx, ty}];
+            if (tile.isEmpty()) tile.fill(char(maskDefault), Gpu::SelectionMask::AlphaTileBytes);
+            tile[(y - ty * 256) * 256 + x - tx * 256] = maskPixels[(y - sourceRect.y()) * sourceRect.width() + x - sourceRect.x()];
+        }
+        raster.layers.first().transparencyMask = Gpu::SelectionMask::fromAlphaTiles(tiles, quint8(maskDefault));
+    }
     QString diagnostic;
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
     QVERIFY2(execution, qPrintable(diagnostic));
@@ -204,8 +222,16 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     reference->setDefaultBounds(new KisDefaultBounds(image)); reference->moveTo({7, -3});
     const auto bgra = exchangeRgbaBgra(source, pixelBytes);
     reference->writeBytes(reinterpret_cast<const quint8*>(bgra.constData()), sourceRect);
-    KisPaintDeviceSP maskReference = new KisPaintDevice(KoColorSpaceRegistry::instance()->alpha8());
+    // Ordinary transparency masks use KisPixelSelection's GrayA8 composition
+    // source, which keeps mask gray separate from selection opacity.
+    KisPaintDeviceSP maskReference = maskDefault ? KisPaintDeviceSP(new KisPixelSelection()) :
+        KisPaintDeviceSP(new KisPaintDevice(KoColorSpaceRegistry::instance()->alpha8()));
     maskReference->setDefaultBounds(new KisDefaultBounds(image));
+    if (maskDefault) {
+        maskReference->setDefaultBounds(new KisSelectionDefaultBounds(reference));
+        KoColor value(maskReference->colorSpace()); value.data()[0] = quint8(maskDefault);
+        maskReference->setDefaultPixel(value);
+    }
     maskReference->writeBytes(reinterpret_cast<const quint8 *>(maskPixels.constData()), sourceRect);
     KisSelectionSP nativeSelection;
     if (operation == 4 || (operation >= 6 && operation <= 8)) {
@@ -284,6 +310,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         painter.bitBlt(nativeSelection->selectedExactRect().topLeft(), reference, nativeSelection->selectedExactRect());
     }
     KisPaintDeviceSP transformedMask = maskReference;
+    if (maskDefault) transformedMask = maskReference->createCompositionSourceDevice(maskReference);
     if (nativeSelection) {
         transformedMask = maskReference->createCompositionSourceDevice();
         KisPainter painter(transformedMask); painter.setSelection(nativeSelection);
@@ -291,6 +318,10 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     }
     auto worker = KisTransformUtils::createTransformWorker(args, transformed, {}); QVERIFY(worker.run());
     auto maskWorker = KisTransformUtils::createTransformWorker(args, transformedMask, {}); QVERIFY(maskWorker.run());
+    if (maskDefault && !nativeSelection) {
+        maskReference->clear();
+        KisPainter painter(maskReference); const auto area = transformedMask->extent(); painter.bitBlt(area.topLeft(), transformedMask, area);
+    }
     if (nativeSelection) {
         maskReference->clearSelection(nativeSelection);
         KisPainter painter(maskReference); const auto area = transformedMask->extent(); painter.bitBlt(area.topLeft(), transformedMask, area);
@@ -327,7 +358,20 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         return execution->readSelectionPixels(mask, frame, expectedMask.size()).bytes;
     };
     QVERIFY(preview->layers.first().transparencyMask);
-    QCOMPARE(verifyMask(preview->layers.first().transparencyMask), expectedMask);
+    const auto actualMask = verifyMask(preview->layers.first().transparencyMask);
+    if (actualMask != expectedMask && !output.isEmpty()) {
+        const auto path = QDir(output).filePath(QString::fromLatin1(QTest::currentDataTag()));
+        for (const auto &entry : {qMakePair(QStringLiteral("actual.mask"), actualMask), qMakePair(QStringLiteral("expected.mask"), expectedMask)}) {
+            QFile file(QDir(path).filePath(entry.first)); QVERIFY(file.open(QIODevice::WriteOnly)); QCOMPARE(file.write(entry.second), entry.second.size());
+        }
+        for (qsizetype i = 0; i < qMin(actualMask.size(), expectedMask.size()); ++i) if (actualMask[i] != expectedMask[i]) {
+            qWarning() << "Mask mismatch" << QPoint(frame.x() + i % frame.width(), frame.y() + i / frame.width())
+                       << "actual" << quint8(actualMask[i]) << "expected" << quint8(expectedMask[i]);
+            break;
+        }
+    }
+    QCOMPARE(actualMask, expectedMask);
+    QCOMPARE(preview->layers.first().transparencyMask->defaultCoverage(), *maskReference->defaultPixel().data());
     const auto maskNode = image->root()->firstChild()->firstChild(); QVERIFY(maskNode);
     QByteArray previewMask(expectedMask.size(), '\0');
     maskNode->paintDevice()->readBytes(reinterpret_cast<quint8 *>(previewMask.data()), frame);

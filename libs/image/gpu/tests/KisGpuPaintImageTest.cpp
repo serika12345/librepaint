@@ -901,6 +901,12 @@ void KisGpuPaintImageTest::defaultMasksKeepGroupProjectionAndCoordinateEdits()
                 return execution.readSelectionPixels(value, QRect(point, QSize(1, 1)), 1).bytes;
             };
             const auto original = image.operations().snapshot();
+            Brush unchanged; unchanged.diameter = 2; unchanged.opacity = 0;
+            const auto stroke = image.beginTransparencyMaskStroke(1, unchanged, 37); QVERIFY(!stroke.isNull());
+            QCOMPARE(image.appendSamples(stroke, {{{50, 50}, 1}}), Result::Success);
+            QCOMPARE(read(image.operations().preview()->layers.first().transparencyMask, {14, 12}), QByteArray(1, '\0'));
+            QCOMPARE(image.cancelStroke(stroke), Result::Success);
+            QCOMPARE(image.operations().snapshot(), original);
             const auto move = image.beginLayerTranslation(QList<LayerTranslationTarget>{{1, false, true}});
             QVERIFY(!move.isNull());
             QCOMPARE(image.updateLayerTranslation(move, {3, -2}), Result::Success);
@@ -922,6 +928,7 @@ void KisGpuPaintImageTest::defaultMasksKeepGroupProjectionAndCoordinateEdits()
             pass.source = image.layerTransparencyMask(1)->bounds();
             pass.destination = pass.source.translated(-5, 4);
             pass.map = {1, 0, 0, 1, -5, 4}; pass.mapWholeLayer = true;
+            plan.positionDelta = {-5, 4};
             plan.passes = {pass};
             const auto affine = image.transformedSelectionMask(image.layerTransparencyMask(1), plan);
             QVERIFY2(affine, qPrintable(image.lastRequestOutcome().diagnostic));

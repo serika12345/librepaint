@@ -319,6 +319,11 @@ SelectionMaskSP PaintImage::replacedSelectionMask(const SelectionMaskSP &mask, c
                                                  bool inverted, QRect clearRect, const SelectionMaskSP &replacement)
 {
     if (!onThread() || !replacement) return {};
+    if (mask && mask->defaultCoverage()) {
+        m_d->lastRequest = {ExecutionCode::InvalidRequest,
+            QStringLiteral("Selected default-mask transformation requires separate gray and selection coverage")};
+        return {};
+    }
     try {
         SelectionMaskSP result;
         const auto checked = m_d->execution.maskSelectionCoverage(mask, selection, inverted, clearRect, replacement, &result);
@@ -464,7 +469,8 @@ QSharedPointer<PaintImage> PaintImage::createMaskImage(const Snapshot &version, 
         };
         if (mask->defaultCoverage()) {
             Brush copy; copy.blendMode = LayerBlendMode::Copy;
-            FigureStyle clear; clear.outline = false; clear.fill = RgbaPixel{}; clear.ignoreSelection = true;
+            FigureStyle clear; clear.outline = false; clear.fill = RgbaPixel{};
+            clear.fillBlendMode = LayerBlendMode::Copy; clear.ignoreSelection = true;
             Brush white; white.rgba = {255, 255, 255, 255};
             FigureStyle fill; fill.outline = false; fill.fill = white.rgba;
             for (const auto point : coordinates) {

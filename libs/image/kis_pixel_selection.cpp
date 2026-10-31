@@ -362,8 +362,9 @@ void KisPixelSelection::clear(const QRect & r)
 
 void KisPixelSelection::clear()
 {
-    setDefaultPixel(KoColor::createTransparent(colorSpace()));
+    // Release a retained GPU view before resetting this view's local default.
     KisPaintDevice::clear();
+    setDefaultPixel(KoColor::createTransparent(colorSpace()));
 
     m_d->outlineCacheValid = true;
     m_d->outlineCache = QPainterPath();

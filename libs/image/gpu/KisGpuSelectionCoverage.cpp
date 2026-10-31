@@ -435,19 +435,16 @@ ExecutionOutcome Execution::maskSelectionCoverage(const SelectionMaskSP &mask, c
         return {ExecutionCode::InvalidRequest, QStringLiteral("Mask capture requires finite frozen coverage")};
     if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("Mask capture requires submitted work")};
     if (d.device->readbackPending() && !d.device->finish()) return {ExecutionCode::DeviceFailure, d.device->diagnostic()};
-    const auto extent = replacement ? mask->bounds().united(replacement->bounds()).united(mask->defaultCoverage() ? region : QRect()) :
-        mask->defaultCoverage() ? region : mask->bounds().intersected(region);
+    const auto extent = replacement ? mask->bounds().united(replacement->bounds()) : mask->bounds().intersected(region);
     if (extent.isEmpty()) { *result = SelectionMask::empty(); return {ExecutionCode::Success, {}}; }
     QSet<QPoint> candidates;
-    const auto append = [&](const SelectionMaskSP &input, const QRect &clip) {
+    const auto append = [&](const SelectionMaskSP &input) {
         for (const auto point : input->tileCoordinates())
             if (!appendTiles(candidates, QRect(point * TileRenderer::TileSize,
-                    QSize(TileRenderer::TileSize, TileRenderer::TileSize)).intersected(clip))) return false;
+                    QSize(TileRenderer::TileSize, TileRenderer::TileSize)).intersected(extent))) return false;
         return true;
     };
-    if (!append(mask, extent) || (replacement && !append(replacement, extent)) ||
-        (mask->defaultCoverage() && (inverted || selection->defaultCoverage() ?
-            !appendTiles(candidates, region.intersected(extent)) : !append(selection, region.intersected(extent)))))
+    if (!append(mask) || (replacement && !append(replacement)))
         return {ExecutionCode::CapacityExceeded, QStringLiteral("Mask capture exceeds its tile capacity")};
     auto operation = QSharedPointer<SelectionCombinationSource>::create();
     operation->first = mask; operation->second = selection; operation->replacement = replacement;
