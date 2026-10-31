@@ -1662,7 +1662,8 @@ Stabilizer入力から、設定の固定、描画・消去、履歴、KRA再読�
 `stabilizerPrimitivesRetainIndependentLineStarts`は、確定時の一点から離れた始点を持つ待機線分を照合し、
 `stabilizer-independent-line-{native,gpu}.rgba`を保存する。操作モデルはこれらの時刻・順序と原子的な拒否を、
 画像所有者は同じ命令によるマスク編集・親画素の保持・履歴を検査する。
-入力の遅延処理は、通知先からの取消し・文書破棄と待機列の順序を`kis_stabilized_events_sampler_test`で検査する。
+入力の遅延処理は、通知先からの取消し・文書破棄、千本の線分の一括受理、
+容量不足の通知前の待機列取消しを`kis_stabilized_events_sampler_test`で検査する。
 `KisGpuPaintDocumentTest`はKRA保存・再読込み・同じ追加描画後の画素を照合し、
 `weighted-smoothing.kra`と`weighted-smoothing-merged.png`を出力する。
 `TestDocument`は同じ加重補正の画素を公開APIと通常の書出し操作からPNGへ渡し、全画素・ICC・解像度、履歴と保存先の保持を検査する。

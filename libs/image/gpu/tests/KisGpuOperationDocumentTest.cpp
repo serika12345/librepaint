@@ -261,7 +261,7 @@ void KisGpuOperationDocumentTest::painterPrimitivesKeepStartsTimesAndAtomicRejec
     const auto combined = std::get<PaintSnapshot>(accepted->layers.first().operations.last());
     QCOMPARE(combined->inputSamples(), operation->inputSamples());
     QCOMPARE(combined->shape.pathCommands, operation->shape.pathCommands);
-    QVERIFY(std::get<PaintSnapshot>(empty->layers.first().operations.last())->inputSamples().isEmpty());
+    QVERIFY(empty->layers.first().operations.isEmpty());
     QCOMPARE(batched.appendPainterPrimitives(batch, {tap}, {PathCommand::MoveTo}), Result::InvalidInput);
     QCOMPARE(batched.appendPainterPrimitives(batch, {last}, {PathCommand::LineTo}), Result::InvalidInput);
     QCOMPARE(batched.appendPainterPrimitives(batch, {first, last}, {PathCommand::Point}), Result::InvalidInput);
