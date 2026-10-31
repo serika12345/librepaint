@@ -81,7 +81,7 @@ OperationId OperationDocument::beginSelectionTranslation(LayerId layer, QRect co
     return id;
 }
 
-Result OperationDocument::updateSelectionTranslation(OperationId id, QPoint offset)
+Result OperationDocument::updateSelectionTranslation(OperationId id, QPoint offset, const SelectionMaskSP &preparedSelection)
 {
     constexpr qint64 limit = RgbaTile::CoordinateLimit;
     const auto before = snapshot();
@@ -98,8 +98,9 @@ Result OperationDocument::updateSelectionTranslation(OperationId id, QPoint offs
     version->layers[index].operations.append(TranslationSnapshot(operation));
     version->selection = movedRect;
     if (before->selectionMask && !offset.isNull()) {
-        version->selectionMask = before->selectionMask->translated(offset, QRect(-limit, -limit, 2 * limit, 2 * limit));
-        if (!version->selectionMask) return Result::CapacityExceeded;
+        version->selectionMask = before->selectionMask->isGpuGenerated() ? preparedSelection :
+            before->selectionMask->translated(offset, QRect(-limit, -limit, 2 * limit, 2 * limit));
+        if (!version->selectionMask || !selectionFitsRetainedInputs(version->selectionMask)) return Result::CapacityExceeded;
     }
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     version->m_committed = false;
@@ -110,13 +111,17 @@ Result OperationDocument::updateSelectionTranslation(OperationId id, QPoint offs
 }
 
 Result OperationDocument::updateLayerTranslation(OperationId id, QPoint offset)
+{ return updateLayerTranslationWithMasks(id, offset, {}); }
+
+Result OperationDocument::updateLayerTranslationWithMasks(OperationId id, QPoint offset,
+    const QHash<LayerId, SelectionMaskSP> &masks, const SelectionMaskSP &selection)
 {
     if (m_closed) return Result::Closed;
     if (!m_translation || m_translation->id != id) return Result::StaleOperation;
     if (!checkedOffset(offset.x(), offset.y())) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max() ||
         m_translation->version == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-    if (m_translation->selectedPixels) return updateSelectionTranslation(id, offset);
+    if (m_translation->selectedPixels) return updateSelectionTranslation(id, offset, selection);
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     constexpr int limit = RgbaTile::CoordinateLimit;
     const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
@@ -150,8 +155,9 @@ Result OperationDocument::updateLayerTranslation(OperationId id, QPoint offset)
             if (qint64(bounds.left()) + offset.x() < -limit || qint64(bounds.right()) + offset.x() >= limit ||
                 qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit)
                 return Result::InvalidInput;
-            target.transparencyMask = source.transparencyMask->translated(offset, domain);
-            if (!target.transparencyMask) return Result::CapacityExceeded;
+            target.transparencyMask = source.transparencyMask->isGpuGenerated() ? masks.value(participant.layer) :
+                source.transparencyMask->translated(offset, domain);
+            if (!target.transparencyMask || !selectionFitsRetainedInputs(target.transparencyMask)) return Result::CapacityExceeded;
         }
     }
     auto operation = QSharedPointer<TranslationOperation>::create(*m_translation);

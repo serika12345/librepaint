@@ -1007,9 +1007,9 @@ void KisGpuPaintDocumentTest::patternFillSavesReopensAndPreservesSelectionPixels
     opaque.size = QSize(2, 2);
     opaque.rgba = QByteArray(2 * 2 * 4, '\0');
     for (qsizetype i = 0; i < opaque.rgba.size(); i += 4) {
-        opaque.rgba[i + 0] = char(10);
-        opaque.rgba[i + 1] = char(20);
-        opaque.rgba[i + 2] = char(30);
+        opaque.rgba[i + 0] = char(255);
+        opaque.rgba[i + 1] = char(255);
+        opaque.rgba[i + 2] = char(255);
         opaque.rgba[i + 3] = char(255);
     }
     const auto undoBefore = maskImage->operations().undoCount();
@@ -1018,13 +1018,16 @@ void KisGpuPaintDocumentTest::patternFillSavesReopensAndPreservesSelectionPixels
     QCOMPARE(maskImage->operations().historyAction(maskImage->operations().undoCount()), HistoryAction::FillLayer);
     const auto mask = maskImage->layerTransparencyMask(maskLayer);
     QVERIFY(mask);
-    QCOMPARE(mask->coverage(68, 68), quint8(255));
-    QCOMPARE(mask->coverage(24, 24), quint8(255));
-    QCOMPARE(mask->coverage(0, 0), quint8(0));
+    const auto coverage = [&](const SelectionMaskSP &value, QPoint point) {
+        return execution.readSelectionPixels(value, QRect(point, QSize(1, 1)), 1).bytes;
+    };
+    QCOMPARE(coverage(mask, {68, 68}), QByteArray(1, char(255)));
+    QCOMPARE(coverage(mask, {24, 24}), QByteArray(1, char(255)));
+    QCOMPARE(coverage(mask, {0, 0}), QByteArray(1, char(0)));
     QCOMPARE(maskImage->undo(), Result::Success);
-    QCOMPARE(maskImage->layerTransparencyMask(maskLayer)->coverage(68, 68), quint8(0));
+    QCOMPARE(coverage(maskImage->layerTransparencyMask(maskLayer), {68, 68}), QByteArray(1, char(0)));
     QCOMPARE(maskImage->redo(), Result::Success);
-    QCOMPARE(maskImage->layerTransparencyMask(maskLayer)->coverage(68, 68), quint8(255));
+    QCOMPARE(coverage(maskImage->layerTransparencyMask(maskLayer), {68, 68}), QByteArray(1, char(255)));
 }
 
 void KisGpuPaintDocumentTest::featheredSelectionClipsPaintAndRoundTripsKra()
@@ -1340,11 +1343,31 @@ void KisGpuPaintDocumentTest::sparsePaintedMaskSavesItsPinnedOffCanvasCoverage()
     const auto expected = execution.readSelectionPixels(mask, near, alpha.size());
     QCOMPARE(expected.code, ExecutionCode::Success); QVERIFY(expected.bytes != alpha);
     QCOMPARE(execution.readSelectionPixels(mask, far, alpha.size()).bytes, alpha);
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const QPoint delta(13, -7);
+    const auto move = image->beginLayerTranslation(QList<LayerTranslationTarget>{{1, false, true}});
+    QVERIFY(!move.isNull());
+    QCOMPARE(image->updateLayerTranslation(move, delta), Result::Success);
+    QCOMPARE(image->commitLayerTranslation(move), Result::Success);
+    const auto movedPath = directory.filePath(QStringLiteral("sparse-mask-moved.kra"));
+    const auto movedSave = document.saveKra(movedPath);
+    QVERIFY2(movedSave.code == FileCode::Success, qPrintable(movedSave.diagnostic));
+    const auto movedOpen = PaintDocument::openKra(execution, movedPath);
+    QVERIFY2(movedOpen.code == FileCode::Success, qPrintable(movedOpen.diagnostic));
+    const auto movedImage = movedOpen.document->image();
+    const auto movedMask = movedImage->layerTransparencyMask(1); QVERIFY(movedMask);
+    QCOMPARE(execution.readSelectionPixels(movedMask, near.translated(delta), alpha.size()).bytes, expected.bytes);
+    QCOMPARE(execution.readSelectionPixels(movedMask, far.translated(delta), alpha.size()).bytes, alpha);
+    QCOMPARE(movedImage->readRgbaPixels(1, canvas, 64 * 64 * 4).bytes,
+             rgbaBytes({19, 211, 97, 255}, PixelFormat::Rgba8).repeated(64 * 64));
+    QCOMPARE(image->undo(), Result::Success); QCOMPARE(image->operations().snapshot(), pinned);
+    QCOMPARE(image->redo(), Result::Success);
+    QCOMPARE(execution.readSelectionPixels(image->layerTransparencyMask(1), far.translated(delta), alpha.size()).bytes, alpha);
+    QCOMPARE(image->undo(), Result::Success);
     // Later edits retain the fixed mask and save only the requested version.
     QCOMPARE(image->setSelectionRect({48, 48, 8, 8}), Result::Success);
     QCOMPARE(image->fillTransparencyMask(1, {255, 255, 255}), Result::Success);
     QVERIFY(image->layerTransparencyMask(1) != mask);
-    QTemporaryDir directory; QVERIFY(directory.isValid());
     const auto path = directory.filePath(QStringLiteral("sparse-mask.kra"));
     const auto saved = document.saveKra(path, pinned);
     QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));

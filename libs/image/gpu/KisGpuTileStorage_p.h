@@ -146,7 +146,6 @@ struct TileRenderer::Private
     struct MaskCacheEntry {
         SelectionMaskSP source;
         Detail::CoverageTiles tiles;
-        std::shared_ptr<Detail::BufferStorage> generated;
     };
     QHash<const SelectionMask *, MaskCacheEntry> maskTiles;
     Detail::NativeBindingLayout coveragePackLayout;
@@ -249,14 +248,13 @@ struct TileRenderer::Private
                                                     const SelectionMaskSP &mask, quint64 coordinate);
     std::shared_ptr<Detail::CoverageTile> generatedCoverageTile(WGPUCommandEncoder commands,
                                                              const SelectionMaskSP &mask, quint64 coordinate);
-    std::shared_ptr<Detail::BufferStorage> linearSelectionCoverage(WGPUCommandEncoder commands,
-                                                                 const SelectionMaskSP &mask);
     std::shared_ptr<Detail::CoverageTile> packSelectionTile(WGPUCommandEncoder commands, WGPUBuffer source,
         QRect sourceExtent, QPoint coordinate, QRect bounds, quint32 format);
-    bool ensurePaintedSelection(WGPUCommandEncoder commands, const SelectionMaskSP &mask);
-    bool recordSelectionTranslation(WGPUCommandEncoder commands, const std::shared_ptr<Detail::BufferStorage> &input,
-        const std::shared_ptr<Detail::BufferStorage> &output, QRect sourceExtent, QRect extent, QRect bounds,
-        QPoint offset, bool packedTile);
+    bool ensureSelectionTiles(WGPUCommandEncoder commands, const SelectionMaskSP &mask);
+    std::shared_ptr<Detail::CoverageTile> translatedCoverageTile(WGPUCommandEncoder commands,
+        const SelectionTranslationSource &source, QPoint point);
+    std::shared_ptr<Detail::CoverageTile> combinedCoverageTile(WGPUCommandEncoder commands,
+        const SelectionCombinationSource &source, QPoint point);
     void clearMaskTiles();
     struct RegionResult {
         RenderOutcome::Code code;

@@ -1200,7 +1200,9 @@ private:
     Result restoreLayerPropertyEdits(const QList<LayerPropertyEdit> &edits);
     Result checkOperation(OperationId id) const;
     Result checkMutation() const;
-    Result updateSelectionTranslation(OperationId id, QPoint offset);
+    Result updateSelectionTranslation(OperationId id, QPoint offset, const SelectionMaskSP &preparedSelection);
+    Result updateLayerTranslationWithMasks(OperationId id, QPoint offset,
+        const QHash<LayerId, SelectionMaskSP> &masks, const SelectionMaskSP &selection = {});
     Result cropLayerWithMask(LayerId layer, const QRect &rect, const SelectionMaskSP &mask);
     Result resizeCanvasWithMasks(const QRect &rect, bool cropLayers, const QHash<LayerId, SelectionMaskSP> &masks);
     /** An external edit (a mask stroke on a derived GPU image) borrows this

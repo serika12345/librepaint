@@ -731,15 +731,21 @@ Result PaintImage::updateLayerTranslation(OperationId id, QPoint offset)
     const auto &document = *m_d->document;
     if (document.m_closed) return Result::Closed;
     if (!document.m_translation || document.m_translation->id != id) return Result::StaleOperation;
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
+    const auto version = document.snapshot();
     if (document.m_translation->selectedPixels) {
-        constexpr qint64 limit = RgbaTile::CoordinateLimit;
         const auto bounds = m_d->selectionTranslationBounds;
         if (qint64(bounds.left()) + offset.x() < -limit || qint64(bounds.right()) + offset.x() >= limit ||
             qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit)
             return Result::InvalidInput;
-        return publish(m_d->document->updateLayerTranslation(id, offset));
+        SelectionMaskSP selection;
+        if (version->selectionMask && version->selectionMask->isGpuGenerated() && !offset.isNull()) {
+            selection = translatedSelectionMask(version->selectionMask, offset, domain);
+            if (!selection) return resultFor(m_d->lastRequest.code);
+        }
+        return publish(m_d->document->updateLayerTranslationWithMasks(id, offset, {}, selection));
     }
-    const auto version = document.snapshot();
     for (const auto &target : document.m_translationTargets) {
         const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(),
             [&](const auto &value) { return value.id == target.layer; });
@@ -747,7 +753,19 @@ Result PaintImage::updateLayerTranslation(OperationId id, QPoint offset)
         const auto admitted = checkLayerTranslation(version, target.layer, offset);
         if (admitted != Result::Success) return admitted;
     }
-    return publish(m_d->document->updateLayerTranslation(id, offset));
+    QHash<LayerId, SelectionMaskSP> masks;
+    for (const auto &target : document.m_translationTargets) {
+        const auto mask = document.layerTransparencyMask(target.layer);
+        if (!target.mask || !mask || !mask->isGpuGenerated() || mask->isEmpty() || offset.isNull()) continue;
+        const auto bounds = mask->bounds();
+        if (qint64(bounds.left()) + offset.x() < -limit || qint64(bounds.right()) + offset.x() >= limit ||
+            qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit)
+            return Result::InvalidInput;
+        const auto moved = translatedSelectionMask(mask, offset, domain);
+        if (!moved) return resultFor(m_d->lastRequest.code);
+        masks.insert(target.layer, moved);
+    }
+    return publish(m_d->document->updateLayerTranslationWithMasks(id, offset, masks));
 }
 Result PaintImage::commitLayerTranslation(OperationId id)
 { return onThread() ? publish(m_d->document->commitLayerTranslation(id)) : Result::InvalidInput; }

@@ -556,17 +556,20 @@ void KisMoveToolDocumentTest::movementPreservesPreviewCancellationHistoryAndSavi
 void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra_data()
 {
     QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("painted");
     QTest::addColumn<QString>("mode");
-    for (bool words : {false, true})
+    for (bool words : {false, true}) for (bool painted : {false, true})
         for (const auto &mode : {"forest", "pick-layer", "pick-group", "mask", "protected-mask"})
-            QTest::newRow(qPrintable(QStringLiteral("u%1-%2").arg(words ? 16 : 8).arg(QString::fromLatin1(mode))))
-                << words << QString::fromLatin1(mode);
+            QTest::newRow(qPrintable(QStringLiteral("u%1-%2%3").arg(words ? 16 : 8).arg(QString::fromLatin1(mode))
+                .arg(painted ? QStringLiteral("-painted") : QString())))
+                << words << painted << QString::fromLatin1(mode);
 }
 
 void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(bool, words);
+    QFETCH(bool, painted);
     QFETCH(QString, mode);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     qputenv("LIBREPAINT_GPU_ENGINE", "1");
@@ -602,6 +605,15 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
     QVERIFY2(execution, qPrintable(diagnostic));
     const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    if (painted) {
+        Gpu::Brush white; white.diameter = 2; white.rgba = {255, 255, 255, 255};
+        const auto stroke = owner->beginTransparencyMaskStroke(2, white, 17); QVERIFY(!stroke.isNull());
+        QCOMPARE(owner->appendSamples(stroke, {{{25, 25}, 1}}), Gpu::Result::Success);
+        QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
+        QVERIFY(owner->layerTransparencyMask(2)->isGpuGenerated());
+    }
+    const auto originalMask = execution->readSelectionPixels(owner->layerTransparencyMask(2), patch, 16);
+    QCOMPARE(originalMask.code, Gpu::ExecutionCode::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Move layer forest"), cs));
     const auto find = [&](KisNodeSP root, const QUuid &uuid, const auto &self) -> KisNodeSP {
@@ -693,6 +705,9 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     };
     tool->beginPrimaryAction(&begin); QVERIFY(owner->operations().hasActiveStroke()); tool->continuePrimaryAction(&move);
     QVERIFY(check(owner->operations().preview(), true));
+    const auto maskPreview = byUuid(owner->operations().preview(), child.uuid)->transparencyMask;
+    const auto maskRegion = patch.translated(mode != QStringLiteral("protected-mask") ? delta : QPoint());
+    QCOMPARE(execution->readSelectionPixels(maskPreview, maskRegion, 16).bytes, originalMask.bytes);
     QCOMPARE(owner->operations().snapshot(), before);
     tool->requestStrokeCancellation(); QVERIFY(check(owner->operations().snapshot(), false));
     QCOMPARE(lifetime->undoStack()->count(), initialHistory); QVERIFY(!lifetime->isModified());
@@ -711,6 +726,8 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
     const auto next = reopened->image()->gpuImage(); QVERIFY(next);
     QVERIFY(check(next->operations().snapshot(), true));
+    QCOMPARE(execution->readSelectionPixels(byUuid(next->operations().snapshot(), child.uuid)->transparencyMask,
+                                            maskRegion, 16).bytes, originalMask.bytes);
     QCOMPARE(next->readRgbaPixels(byUuid(next->operations().snapshot(), child.uuid)->id, patch.translated(pixels ? delta : QPoint()),
                                   16 * pixelBytes).bytes, pixel.repeated(16));
     const auto saved = next->operations().snapshot();
@@ -759,7 +776,7 @@ void KisMoveToolDocumentTest::selectedPixelsKeepNativePreviewHistoryAndKra_data(
     QTest::addColumn<int>("kind");
     QTest::addColumn<bool>("inverted");
     QTest::addColumn<bool>("cancel");
-    for (bool words : {false, true}) for (int kind = 0; kind < 3; ++kind)
+    for (bool words : {false, true}) for (int kind = 0; kind < 4; ++kind)
         for (bool inverted : {false, true}) for (bool cancel : {false, true})
             QTest::newRow(qPrintable(QStringLiteral("u%1-%2-%3-%4").arg(words ? 16 : 8).arg(kind)
                 .arg(inverted ? QStringLiteral("outside") : QStringLiteral("inside"))
@@ -820,7 +837,19 @@ void KisMoveToolDocumentTest::selectedPixelsKeepNativePreviewHistoryAndKra()
         for (int y = 0; y < selected.height(); ++y) for (int x = 0; x < selected.width(); ++x)
             alpha[y * selected.width() + x] = char(values[(x + 2 * y) % 6]);
         const auto mask = Gpu::SelectionMask::fromAlphaCoverage(selected, alpha, QRect(0, 0, size, size));
-        QVERIFY(mask); QVERIFY(image->setGpuSelectionMask(mask, inverted));
+        QVERIFY(mask);
+        Gpu::SelectionMaskSP selection = mask;
+        if (kind == 3) {
+            Gpu::RasterImage reference; reference.size = {size, size};
+            reference.layers = {{QStringLiteral("Colour selection reference"), true, {}, {}}};
+            reference.layers.first().defaultPixel = {255, 255, 255, 255};
+            Gpu::PaintImage producer(*execution, reference);
+            Gpu::RegionFillSettings settings; settings.seed = {0, 0}; settings.threshold = 1;
+            QCOMPARE(producer.selectRegion(1, settings, Gpu::SelectionCombination::Replace), Gpu::Result::Success);
+            QCOMPARE(producer.combineSelectionMask(mask, Gpu::SelectionCombination::Intersect), Gpu::Result::Success);
+            selection = producer.selectionMask(); QVERIFY(selection && selection->isGpuGenerated());
+        }
+        QVERIFY(image->setGpuSelectionMask(selection, inverted));
     }
     KisSelectionSP frozenSelection = new KisSelection(*image->globalSelection());
     const auto expected = nativeSelectedMove(image, source, QRect(0, 0, size, size), initialPosition,

@@ -41,6 +41,7 @@ struct SelectionCombinationSource
     SelectionCombination action = SelectionCombination::Replace;
     QRect extent;
     bool inverted = false;
+    QList<QPoint> tiles;
 };
 
 /** Frozen input for moving a generated selection without reading its pixels. */
@@ -49,6 +50,7 @@ struct SelectionTranslationSource
     QSharedPointer<const SelectionMask> source;
     QPoint offset;
     QRect extent;
+    QList<QPoint> tiles;
 };
 
 /** Frozen raw layer alpha produced by ordinary transparency-mask painting. */
@@ -122,8 +124,8 @@ public:
     const QSharedPointer<const SelectionTranslationSource> &translationSource() const { return m_translation; }
     const QSharedPointer<const SelectionPaintSource> &paintSource() const { return m_paint; }
     /** Finite tile coordinates for input initialization and external reads.
-     * Painted masks retain their sparse occupied tiles, including off-canvas
-     * coverage. Dense generated sources supply their bounded tile extent. */
+     * Painting, translation and arithmetic retain occupied tiles, including
+     * off-canvas coverage. Region sources supply their bounded tile extent. */
     QList<QPoint> tileCoordinates() const;
     /** Threshold-128 row spans for display and selection-tool hit testing.
      * These vectors do not supply editing coverage or saved pixels.
@@ -203,7 +205,6 @@ private:
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
     static QSharedPointer<const SelectionMask> fromPaint(const QSharedPointer<const SelectionPaintSource> &source,
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
-    QRect nativeExtent() const;
     const std::shared_ptr<Detail::SelectionPixels> &nativePixels() const { return m_nativePixels; }
     enum class CoverageFormat : quint8 { Binary, Alpha };
     SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format);

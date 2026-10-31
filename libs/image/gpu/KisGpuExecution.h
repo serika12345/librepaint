@@ -277,6 +277,8 @@ public:
     qsizetype residentBytes() const;
 
 private:
+    ExecutionOutcome readSelectionTileOutlines(const SelectionMaskSP &mask, QRect *bounds,
+                                              QList<QRect> *runs, QList<QPoint> *tiles);
     friend class PaintImage;
     PixelReadbackOutcome readAffineSelectionBounds(DocumentHandle handle, const Snapshot &document,
                                                    const AffineTransformOperation &operation);

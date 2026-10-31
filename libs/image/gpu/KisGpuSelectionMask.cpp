@@ -427,8 +427,10 @@ QSharedPointer<const SelectionMask> SelectionMask::fromCombination(const QShared
 {
     if (!source || !source->first || !source->second || !pixels ||
         source->action < SelectionCombination::Replace || source->action > SelectionCombination::SymmetricDifference ||
+        source->tiles.size() > MaximumBytes / AlphaTileBytes ||
         !validOutline(source->extent, {}) || !validOutline(bounds, outlineRuns) ||
         (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
+    for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
     if (bounds.isEmpty()) return empty();
     auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
     result->m_combination = source;
@@ -494,21 +496,15 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTranslation(
     const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
 {
     if (!source || !source->source || !source->source->isGpuGenerated() || !pixels ||
-        !fitsPixelBudget(source->extent) || !validOutline(source->extent, {}) ||
+        source->tiles.size() > MaximumBytes / AlphaTileBytes || !validOutline(source->extent, {}) ||
         !validOutline(bounds, outlineRuns) || (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
+    for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
     if (bounds.isEmpty()) return empty();
     auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
     result->m_translation = source;
     result->m_outlineRuns = outlineRuns;
     result->m_nativePixels = pixels;
     return result;
-}
-
-QRect SelectionMask::nativeExtent() const
-{
-    if (m_region) return QRect(m_region->coverageOrigin, m_region->coverageSize);
-    if (m_combination) return m_combination->extent;
-    return m_translation ? m_translation->extent : m_paint ? m_bounds : QRect();
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::fromPaint(const QSharedPointer<const SelectionPaintSource> &source,
@@ -528,6 +524,8 @@ QSharedPointer<const SelectionMask> SelectionMask::fromPaint(const QSharedPointe
 QList<QPoint> SelectionMask::tileCoordinates() const
 {
     if (m_paint) return m_paint->tiles;
+    if (m_combination) return m_combination->tiles;
+    if (m_translation) return m_translation->tiles;
     QList<QPoint> result;
     if (!isGpuGenerated()) {
         result.reserve(m_tiles.size());

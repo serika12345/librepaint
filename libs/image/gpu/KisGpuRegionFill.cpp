@@ -81,12 +81,14 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
             pending.append(region->source);
         }
         if (const auto &combination = value->combinationSource()) {
-            if (!add(combination.data(), sizeof(SelectionCombinationSource))) return false;
+            if (!add(combination.data(), sizeof(SelectionCombinationSource)) ||
+                !add(combination->tiles.constData(), combination->tiles.size() * qsizetype(sizeof(QPoint)))) return false;
             pendingMasks.append(combination->first);
             pendingMasks.append(combination->second);
         }
         if (const auto &translation = value->translationSource()) {
-            if (!add(translation.data(), sizeof(SelectionTranslationSource))) return false;
+            if (!add(translation.data(), sizeof(SelectionTranslationSource)) ||
+                !add(translation->tiles.constData(), translation->tiles.size() * qsizetype(sizeof(QPoint)))) return false;
             pendingMasks.append(translation->source);
         }
         if (const auto &paint = value->paintSource()) {
