@@ -81,7 +81,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
     qreal lastDrawingAngle = input.isEmpty() ? 0 : input.first().initialDrawingAngle;
     InputSample lastPaintInformation;
     bool haveLastPaintInformation = false;
-    const auto direction = [](QPointF first, QPointF last, qreal fallback) {
+    const auto direction = [](QPointF first, QPointF last, qreal fallback) -> qreal {
         if (qFuzzyCompare(first.x(), last.x()) && qFuzzyCompare(first.y(), last.y())) return fallback;
         const QVector2D delta(last - first);
         return std::atan2(delta.y(), delta.x());
