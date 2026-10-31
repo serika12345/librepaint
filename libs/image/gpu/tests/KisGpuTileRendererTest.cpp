@@ -152,6 +152,7 @@ private Q_SLOTS:
     void alphaLockPreservesCoverageHistory_data();
     void alphaLockPreservesCoverageHistory();
     void inputPartitionsAndPreviewProduceTheSamePixels();
+    void scatteredInputKeepsFrozenSeedAndPartitions();
     void basicSmoothingPreservesCurvesIdleCompletion_data();
     void basicSmoothingPreservesCurvesIdleCompletion();
     void weightedSmoothingPreservesPixels_data();
@@ -5668,6 +5669,64 @@ void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()
     for (const auto &tile : left->tiles(single.activeLayer())) {
         QCOMPARE(readTile(left, single.activeLayer(), tile.coordinate), readTile(right, chunks.activeLayer(), tile.coordinate));
     }
+}
+
+void KisGpuTileRendererTest::scatteredInputKeepsFrozenSeedAndPartitions()
+{
+    // The generated Pencil-1/2 family consumes two Taus88 values per painted
+    // dab, including corner fans. Rebuilding a preview must replay that order.
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255}; brush.diameter = 10; brush.spacing = .2;
+    brush.autoBrush = AutoBrush{};
+    brush.autoBrush->antialiasEdges = false;
+    brush.autoBrush->fade = .15; brush.autoBrush->verticalFade = .15;
+    brush.autoBrush->flow = .4;
+    brush.autoBrush->scatter = PressureResponse{PressureResponse::Kind::Direct, .09, {}};
+    brush.autoBrush->drawingAngleRotation = PressureResponse{PressureResponse::Kind::Direct, 1, {}};
+    brush.autoBrush->fanCornersStep = M_PI / 2;
+    const QList<InputSample> input{{{20.25, 60.75}, .7}, {{110.25, 60.75}, .8},
+                                  {{35.25, 59.75}, .5}, {{35.25, 100.75}, .9}, {{90.25, 30.75}, .1}};
+    OperationDocument whole({128, 128}), chunks({128, 128});
+    const auto a = whole.beginStroke(whole.activeLayer(), brush, 77);
+    const auto b = chunks.beginStroke(chunks.activeLayer(), brush, 77);
+    QVERIFY(!a.isNull() && !b.isNull());
+    QCOMPARE(whole.appendSamples(a, input), Result::Success);
+    TileRenderer renderer(m_device);
+    for (const auto &sample : input) {
+        QCOMPARE(chunks.appendSamples(b, {sample}), Result::Success);
+        QVERIFY(render(renderer, chunks.preview()));
+    }
+    QCOMPARE(whole.commitStroke(a), Result::Success);
+    QCOMPARE(chunks.commitStroke(b), Result::Success);
+    const auto frozen = whole.snapshot();
+    const auto expected = render(renderer, frozen), actual = render(renderer, chunks.snapshot());
+    QVERIFY(expected && actual);
+    const auto pixels = [&](const RenderedSnapshot &version) {
+        QMap<QPoint, QByteArray> result;
+        for (const auto &tile : version->tiles(whole.activeLayer()))
+            result.insert(tile.coordinate, readTile(version, whole.activeLayer(), tile.coordinate));
+        return result;
+    };
+    const auto original = pixels(expected);
+    QVERIFY(!original.isEmpty());
+    QCOMPARE(pixels(actual), original);
+    QCOMPARE(chunks.undo(), Result::Success);
+    QCOMPARE(chunks.redo(), Result::Success);
+    QCOMPARE(pixels(render(renderer, chunks.snapshot())), original);
+    const auto canceled = chunks.beginStroke(chunks.activeLayer(), brush, 78);
+    QVERIFY(!canceled.isNull());
+    QCOMPARE(chunks.appendSamples(canceled, input), Result::Success);
+    QVERIFY(render(renderer, chunks.preview()));
+    QCOMPARE(chunks.cancelStroke(canceled), Result::Success);
+    QCOMPARE(pixels(render(renderer, chunks.snapshot())), original);
+    QCOMPARE(whole.undo(), Result::Success);
+    const auto changedSeed = whole.beginStroke(whole.activeLayer(), brush, 78);
+    QVERIFY(!changedSeed.isNull());
+    QCOMPARE(whole.appendSamples(changedSeed, input), Result::Success);
+    QCOMPARE(whole.commitStroke(changedSeed), Result::Success);
+    QVERIFY(pixels(render(renderer, whole.snapshot())) != original);
+    TileRenderer replay(m_device);
+    QCOMPARE(pixels(render(replay, frozen)), original);
 }
 
 void KisGpuTileRendererTest::unchangedTilesAreSharedAndBudgetsRejectAtomically()
