@@ -165,7 +165,7 @@ void KisStabilizedEventsSamplerTest::delayedPaintBatchesDueLinesAndRetainsTheNex
     KisStabilizerDelayedPaintHelper helper;
     QVector<KisPaintInformation> input;
     for (int i = 0; i <= 1000; ++i)
-        input.append(KisPaintInformation(QPointF(i, i % 17), qreal(i % 11) / 10, 0, 0, 0, 0, 1, i));
+        input.append(KisPaintInformation(QPointF(i, i % 17), qreal(i % 11) / 10, 0, 0, 0, 0, 1, i, 0));
     int calls = 0;
     helper.setPaintLinesCallback([&](const Lines &lines) {
         ++calls;
