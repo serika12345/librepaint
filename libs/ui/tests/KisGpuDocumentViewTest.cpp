@@ -256,6 +256,8 @@ private Q_SLOTS:
     void canvasBackgroundFollowsPreferencesWithoutEditing();
     void standardAutoBrushPresetsKeepOrdinaryEditing_data();
     void standardAutoBrushPresetsKeepOrdinaryEditing();
+    void stabilizedPresetsKeepOrdinaryEditing_data();
+    void stabilizedPresetsKeepOrdinaryEditing();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled();
     void brushBlendModeUsesEffectiveCompositeOpAndRejectsUnsupported();
@@ -6232,6 +6234,275 @@ void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
     QCOMPARE(lifetime->undoStack()->index(), 0);
     layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), image->bounds());
     QCOMPARE(pixels, QByteArray(stroke.size(), '\0'));
+}
+
+void KisGpuDocumentViewTest::stabilizedPresetsKeepOrdinaryEditing_data()
+{
+    QTest::addColumn<QString>("presetName");
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<int>("mode");
+    QTest::addColumn<int>("failure");
+    const QStringList presets{QStringLiteral("b)_Basic-5_Size_default.kpp"),
+                              QStringLiteral("d)_Ink-3_Gpen.kpp"), QStringLiteral("u)_Pixel_Art_Dithering.kpp")};
+    for (int mode = 0; mode < presets.size(); ++mode) for (bool words : {false, true}) {
+        const auto tag = presets[mode].toLatin1() + (words ? "-u16" : "-u8");
+        QTest::newRow(tag.constData()) << presets[mode] << words << mode << 0;
+    }
+    for (const auto &entry : QList<QPair<const char *, int>>{{"cancel-pending", 1}, {"input-capacity", 2},
+                                                           {"close-on-capacity", 3}})
+        QTest::newRow(entry.first) << presets[1] << false << 2 << entry.second;
+}
+
+void KisGpuDocumentViewTest::stabilizedPresetsKeepOrdinaryEditing()
+{
+    QFETCH(QString, presetName);
+    QFETCH(bool, words);
+    QFETCH(int, mode);
+    QFETCH(int, failure);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    KisConfig cfg(false);
+    const bool previousDelayed = cfg.stabilizerDelayedPaint();
+    cfg.setStabilizerDelayedPaint(mode == 2);
+    const auto restoreDelayed = qScopeGuard([&] { KisConfig(false).setStabilizerDelayedPaint(previousDelayed); });
+    const auto bundle = KisResourceStorageSP::create(QStringLiteral(KRITA_SOURCE_DIR "/krita/data/bundles/Krita_4_Default_Resources.bundle"));
+    auto preset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
+    QVERIFY(preset);
+    KisResourceModel brushes(ResourceType::Brushes);
+    if (brushes.rowCount() == 0)
+        QVERIFY(brushes.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/libs/brush/tests/data/brush.gbr"), false));
+    KisResourceModel patterns(ResourceType::Patterns);
+    if (patterns.rowCount() == 0)
+        QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
+    if (preset->settings()->getBool("Texture/Pattern/Enabled")) {
+        const auto file = QFileInfo(preset->settings()->getString("Texture/Pattern/PatternFileName")).fileName();
+        auto pattern = bundle->resource(QStringLiteral("patterns/") + file).dynamicCast<KoPattern>();
+        QVERIFY(pattern);
+        if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(pattern->md5Sum(), pattern->filename(), pattern->name()))
+            QVERIFY(patterns.addResource(pattern));
+        preset->settings()->setProperty("Texture/Pattern/isRandomOffsetX", false);
+        preset->settings()->setProperty("Texture/Pattern/isRandomOffsetY", false);
+    }
+    preset->setFilename(QStringLiteral("stabilized-") + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kpp"));
+    KisResourceModel presets(ResourceType::PaintOpPresets);
+    QVERIFY(presets.addResource(preset));
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const QSize size(96, 96);
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    Gpu::RasterImage raster;
+    raster.size = size;
+    raster.format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    raster.layers = {{QStringLiteral("Paint Layer 1")}};
+    Gpu::Limits limits;
+    if (failure >= 2) limits.samplesPerStroke = 32;
+    auto owner = paintImageWithEncoding(execution, raster, limits);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Stabilized editing")));
+    document->setAutoSaveActive(false);
+    document->setFileBatchMode(true);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> input;
+    bool pressed = false;
+    const auto closeWindow = qScopeGuard([&] {
+        if (pressed && input) {
+            if (lifetime) lifetime->image()->requestStrokeCancellation();
+            QTest::mouseRelease(input, Qt::LeftButton);
+        }
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->activateWindow();
+    auto *profiles = KisInputProfileManager::instance();
+    profiles->setProfileLocations({QStringLiteral(KRITA_SOURCE_DIR "/krita/data/input/kritadefault.profile")},
+                                 QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/input"));
+    profiles->loadProfiles();
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(preset);
+    resources->setSize(mode == 2 ? 12 : 8);
+    resources->setOpacity(.7);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    resources->setEraserMode(false);
+    resources->setGlobalAlphaLock(false);
+    resources->setMirrorHorizontal(false);
+    resources->setMirrorVertical(false);
+    resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    auto *tool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
+    QVERIFY(tool);
+    const auto configure = [&] {
+        return tool->setProperty("smoothingType", 3) && tool->setProperty("smoothnessQualityMin", 6) &&
+            tool->setProperty("smoothnessQualityMax", 6) && tool->setProperty("useScalableDistance", true) &&
+            tool->setProperty("useDelayDistance", mode == 1) && tool->setProperty("delayDistance", 2) &&
+            tool->setProperty("finishStabilizedCurve", true) && tool->setProperty("stabilizeSensors", true);
+    };
+    QVERIFY(configure());
+    QSignalSpy errors(tool, &KoToolBase::statusTextChanged);
+    if (failure == 3) connect(tool, &KoToolBase::statusTextChanged, window.get(), [&](const QString &message) {
+        if (message.isEmpty() || !lifetime) return;
+        lifetime->setModified(false);
+        window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= size.width() &&
+                view->canvasBase()->canvasWidget()->height() >= size.height());
+    view->zoomManager()->zoomTo100();
+    const auto imageSize = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    view->canvasBase()->canvasWidget()->setFocus();
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(candidate)) input = canvas;
+    QVERIFY(input);
+    QTRY_COMPARE(owner->execution().published(owner->handle()), owner->operations().snapshot());
+    const auto point = [&](QPointF imagePoint) { return view->canvasBase()->coordinatesConverter()->imageToWidget(imagePoint).toPoint(); };
+    const auto start = point({16, 24});
+    QTest::mouseMove(input, start);
+    QEnterEvent entered(start, start, input->mapToGlobal(start));
+    QApplication::sendEvent(input, &entered);
+    KisImageSP nativeImage = new KisImage(nullptr, size.width(), size.height(), cs, QStringLiteral("Stabilized reference"));
+    KisPaintLayerSP nativeLayer = new KisPaintLayer(nativeImage, QStringLiteral("Reference"), 255);
+    nativeImage->addNode(nativeLayer, nativeImage->root());
+    const auto pixels = [&] {
+        const auto value = owner->readRgbaPixels(owner->operations().activeLayer(), QRect(QPoint(), size), size.width() * size.height() * cs->pixelSize());
+        return value.bytes;
+    };
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto output = QDir(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path())).filePath(
+        QStringLiteral("stabilized-%1").arg(QString::fromLatin1(QTest::currentDataTag())));
+    QVERIFY(QDir().mkpath(output));
+    const auto empty = pixels();
+    QCOMPARE(empty.size(), size.width() * size.height() * cs->pixelSize());
+    for (int step = 0; step < 3; ++step) {
+        QVERIFY(configure());
+        resources->setSize(mode == 2 ? 12 : 8);
+        resources->setOpacity(.7);
+        resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+        resources->setEraserMode(step == 1);
+        auto nativeStroke = std::make_unique<KisFigurePaintingStroke>(kundo2_i18n("Stabilized reference"), nativeImage, nativeLayer,
+            view->canvasBase()->resourceManager(), KisFigurePaintingOptions::StrokeStyleForeground, KisFigurePaintingOptions::FillStyleNone);
+        const auto before = pixels();
+        const int history = lifetime->undoStack()->index();
+        pressed = true;
+        QTest::mousePress(input, Qt::LeftButton, Qt::NoModifier, point({16, 24}));
+        QVERIFY(owner->operations().hasActiveStroke());
+        // A settings edit during the stroke applies to the next stroke.
+        QVERIFY(tool->setProperty("smoothingType", 0));
+        QVERIFY(tool->setProperty("useDelayDistance", true));
+        QVERIFY(tool->setProperty("delayDistance", 80));
+        QVERIFY(tool->setProperty("finishStabilizedCurve", false));
+        resources->setSize(24);
+        resources->setOpacity(.2);
+        resources->setFGColor(KoColor(QColor(241, 17, 129), cs));
+        QTest::mouseMove(input, point({40, 24}), 5);
+        if (failure == 1) {
+            lifetime->image()->requestStrokeCancellation();
+        } else if (failure >= 2) {
+            QTRY_VERIFY(!owner->operations().hasActiveStroke());
+        } else {
+            QTest::mouseMove(input, point({56, 40}), 5);
+            QTest::mouseMove(input, point({72, 40}), 5);
+        }
+        if (input) QTest::mouseRelease(input, Qt::LeftButton, Qt::NoModifier, point({72, 40}));
+        else QTest::mouseRelease(window->windowHandle(), Qt::LeftButton);
+        pressed = false;
+        QVERIFY(!owner->operations().hasActiveStroke());
+        if (failure) {
+            nativeStroke.reset();
+            QCOMPARE(owner->operations().undoCount(), 0);
+            QCOMPARE(pixels(), empty);
+            if (failure >= 2) {
+                QStringList reasons;
+                for (const auto &notification : errors)
+                    if (!notification.first().toString().isEmpty()) reasons.append(notification.first().toString());
+                QCOMPARE(reasons.size(), 1);
+            }
+            if (failure == 3) QVERIFY(!lifetime);
+            QTest::qWait(50);
+            QVERIFY(!owner->operations().hasActiveStroke());
+            return;
+        }
+        QTRY_COMPARE(lifetime->undoStack()->index(), history + 1);
+        const auto operation = std::get<Gpu::PaintSnapshot>(owner->operations().snapshot()->layers.first().operations.last());
+        const auto samples = operation->inputSamples();
+        QVERIFY(samples.size() > 2);
+        QVERIFY(!operation->brush.basicSmoothing && !operation->brush.weightedSmoothing);
+        QCOMPARE(operation->brush.opacity, qreal(.7));
+        bool interpolated = false;
+        const auto information = [](const Gpu::InputSample &sample) {
+            KisPaintInformation result(sample.position, sample.pressure, sample.xTilt, sample.yTilt, sample.rotation,
+                                       0, 1, sample.timestamp, sample.speed);
+            result.setCanvasRotation(sample.canvasRotation);
+            result.setCanvasMirroredH(sample.canvasMirroredH);
+            result.setCanvasMirroredV(sample.canvasMirroredV);
+            return result;
+        };
+        for (qsizetype i = 1; i < samples.size(); ++i) {
+            nativeStroke->paintLine(information(samples[i - 1]), information(samples[i]));
+            interpolated |= samples[i].position.x() > 16 && samples[i].position.x() < 40;
+        }
+        QVERIFY(interpolated);
+        nativeStroke.reset();
+        nativeImage->waitForDone();
+        QByteArray expected(size.width() * size.height() * cs->pixelSize(), Qt::Uninitialized);
+        nativeLayer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(expected.data()), QRect(QPoint(), size));
+        exchangeRgbaBgra(expected, cs->pixelSize());
+        const auto after = pixels();
+        for (const auto &entry : {qMakePair(QStringLiteral("native"), expected), qMakePair(QStringLiteral("gpu"), after)}) {
+            QFile artifact(QDir(output).filePath(QStringLiteral("step-%1-%2.rgba").arg(step).arg(entry.first)));
+            QVERIFY(artifact.open(QIODevice::WriteOnly));
+            QCOMPARE(artifact.write(entry.second), entry.second.size());
+        }
+        QFile inputArtifact(QDir(output).filePath(QStringLiteral("step-%1-input.txt").arg(step)));
+        QVERIFY(inputArtifact.open(QIODevice::WriteOnly));
+        for (const auto &sample : samples) {
+            const auto line = QStringLiteral("%1 %2 %3 %4\n").arg(sample.position.x(), 0, 'g', 17).arg(sample.position.y(), 0, 'g', 17)
+                .arg(sample.pressure, 0, 'g', 17).arg(sample.timestamp).toUtf8();
+            QCOMPARE(inputArtifact.write(line), line.size());
+        }
+        QCOMPARE(after, expected);
+        QVERIFY(after != before);
+        lifetime->undoStack()->undo();
+        QCOMPARE(pixels(), before);
+        lifetime->undoStack()->redo();
+        QCOMPARE(pixels(), after);
+        const auto path = QDir(output).filePath(QStringLiteral("step-%1.kra").arg(step));
+        QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        const auto decoded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+        QVERIFY2(decoded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(decoded.diagnostic));
+        auto imported = paintImageWithEncoding(execution, decoded.document.image);
+        QCOMPARE(imported->readRgbaPixels(imported->operations().activeLayer(), QRect(QPoint(), size), after.size()).bytes, after);
+        if (step == 1) {
+            // The next ordinary pointer stroke targets the reloaded document pixels.
+            lifetime->setCurrentImage(KisImage::fromGpuImage(imported, QStringLiteral("Stabilized reloaded")));
+            owner = imported;
+            tool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
+            QVERIFY(tool);
+            for (auto *candidate : QGuiApplication::allWindows())
+                if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(candidate)) input = canvas;
+            QVERIFY(input);
+        }
+    }
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data()

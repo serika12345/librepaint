@@ -10,6 +10,7 @@
 #include <kis_stabilized_events_sampler.h>
 
 #include <kis_paint_information.h>
+#include <QPointer>
 
 void KisStabilizedEventsSamplerTest::test()
 {
@@ -88,6 +89,32 @@ void KisStabilizedEventsSamplerTest::delayedPaintPreservesInputOrder()
     QVERIFY(!helper.running());
     QVERIFY(!helper.hasLastPaintInformation());
     QCOMPARE(paintedSegments.size(), 2);
+}
+
+void KisStabilizedEventsSamplerTest::delayedPaintAllowsCancellationAndDestruction()
+{
+    // A rejected GPU append can cancel or close the document synchronously.
+    for (bool finish : {false, true}) for (bool destroy : {false, true}) {
+        QPointer<KisStabilizerDelayedPaintHelper> helper = new KisStabilizerDelayedPaintHelper;
+        int painted = 0;
+        helper->setPaintLineCallback([&](const KisPaintInformation &, const KisPaintInformation &) {
+            ++painted;
+            if (destroy) delete helper.data();
+            else helper->cancel();
+        });
+        helper->setUpdateOutlineCallback([] {});
+        helper->start(KisPaintInformation(QPointF(10, 10)));
+        helper->update({KisPaintInformation(QPointF(20, 20)), KisPaintInformation(QPointF(30, 30))});
+        if (finish) helper->end();
+        else helper->paintSome();
+        QCOMPARE(painted, 1);
+        if (destroy) QVERIFY(!helper);
+        else {
+            QVERIFY(!helper->running());
+            QVERIFY(!helper->hasLastPaintInformation());
+            delete helper.data();
+        }
+    }
 }
 
 SIMPLE_TEST_MAIN(KisStabilizedEventsSamplerTest)

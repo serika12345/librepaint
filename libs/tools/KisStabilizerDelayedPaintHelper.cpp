@@ -8,6 +8,7 @@
 #include "kis_paint_information.h"
 #include <qcontainerfwd.h>
 #include <qobjectdefs.h>
+#include <QPointer>
 
 constexpr int fixedPaintTimerInterval = 20;
 
@@ -52,10 +53,14 @@ void KisStabilizerDelayedPaintHelper::paintSome() {
         return;
     }
     int now = m_lastPaintTime;
+    const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
+    const auto paintLine = m_paintLine;
     // Always keep one in the queue since painting requires two points
     while (m_paintQueue.size() > 1 && m_paintQueue.head().elapsedTime <= now) {
         const TimedPaintInfo dequeued = m_paintQueue.dequeue();
-        m_paintLine(dequeued.paintInfo, m_paintQueue.head().paintInfo);
+        const auto next = m_paintQueue.head().paintInfo;
+        paintLine(dequeued.paintInfo, next);
+        if (!guard) return;
     }
 }
 
@@ -66,9 +71,12 @@ void KisStabilizerDelayedPaintHelper::end() {
         return;
     }
     TimedPaintInfo dequeued = m_paintQueue.dequeue();
+    const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
+    const auto paintLine = m_paintLine;
     while (!m_paintQueue.isEmpty()) {
         const TimedPaintInfo dequeued2 = m_paintQueue.dequeue();
-        m_paintLine(dequeued.paintInfo, dequeued2.paintInfo);
+        paintLine(dequeued.paintInfo, dequeued2.paintInfo);
+        if (!guard) return;
         dequeued = dequeued2;
     }
 }
@@ -82,7 +90,10 @@ void KisStabilizerDelayedPaintHelper::stabilizerDelayedPaintTimer() {
     if (m_elapsedTimer.elapsed() - m_lastPaintTime < fixedPaintTimerInterval) {
         return;
     }
+    const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
     paintSome();
+    if (!guard) return;
     // Explicitly update the outline because this is outside the pointer event
-    m_requestUpdateOutline();
+    const auto updateOutline = m_requestUpdateOutline;
+    updateOutline();
 }

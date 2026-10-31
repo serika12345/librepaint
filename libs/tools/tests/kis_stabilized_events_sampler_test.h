@@ -15,6 +15,7 @@ class KisStabilizedEventsSamplerTest : public QObject
 private Q_SLOTS:
     void test();
     void delayedPaintPreservesInputOrder();
+    void delayedPaintAllowsCancellationAndDestruction();
 };
 
 #endif /* __KIS_STABILIZED_EVENTS_SAMPLER_TEST_H */
