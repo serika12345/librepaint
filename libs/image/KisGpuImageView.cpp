@@ -239,7 +239,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         if (!layerId || !parent->parent() || parent->image() != this || index < 0 || index > parent->childCount() ||
             node->parent() || node->uuid().isNull() || state->nodes.contains(node->uuid()) || node->childCount() ||
             node->isAnimated() || !node->keyframeChannels().isEmpty()) return false;
-        auto *mask = qobject_cast<KisTransparencyMask *>(node.data());
+        const auto *mask = qobject_cast<const KisTransparencyMask *>(node.data());
         const auto selection = mask->selection();
         Gpu::RasterLayer properties;
         properties.transparencyMaskUuid = node->uuid();
