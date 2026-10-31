@@ -2635,7 +2635,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
 
 
     for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-3_Gpen.kpp", "u)_Pixel_Art_Dithering.kpp",
-                              "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp", "d)_Ink-2_Fineliner.kpp", "c)_Pencil-1_Hard.kpp", "c)_Pencil-2.kpp"})
+                              "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp", "d)_Ink-2_Fineliner.kpp", "c)_Pencil-1_Hard.kpp", "c)_Pencil-2.kpp", "c)_Pencil-4_Soft.kpp", "c)_Pencil-6_Quick_Shade.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray("white-default-") + preset + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1)
@@ -2649,6 +2649,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(QString, presetName);
     const bool pencil = presetName.startsWith(QLatin1String("c)_Pencil-"));
+    const bool imagePencil = presetName == QLatin1String("c)_Pencil-4_Soft.kpp") || presetName == QLatin1String("c)_Pencil-6_Quick_Shade.kpp");
     const bool fineliner = presetName == QLatin1String("d)_Ink-2_Fineliner.kpp");
     const auto restoreTiming = fixedBrushPointerTiming(fineliner);
     QFETCH(bool, words);
@@ -2665,6 +2666,16 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     QVERIFY(bundle->valid());
     auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
+    if (imagePencil) {
+        const auto tip = bundle->resource(QStringLiteral("brushes/graphite_grain.gih"));
+        QVERIFY(tip);
+        auto source = KisGlobalResourcesInterface::instance()->source<KoResource>(ResourceType::Brushes);
+        if (!source.bestMatch(tip->md5Sum(), tip->filename(), tip->name())) {
+            KisResourceModel brushResources(ResourceType::Brushes);
+            QVERIFY(brushResources.addResource(tip));
+        }
+    }
+
     KisResourceModel brushes(ResourceType::Brushes);
     if (brushes.rowCount() == 0) QVERIFY(brushes.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/libs/brush/tests/data/brush.gbr"), false));
     KisResourceModel patterns(ResourceType::Patterns);
@@ -8805,6 +8816,13 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
         QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << 0 << qreal(10) << false;
     }
 
+    for (const auto &preset : QList<QPair<QString, qreal>>{{QStringLiteral("c)_Pencil-4_Soft.kpp"), 16},
+                                                         {QStringLiteral("c)_Pencil-6_Quick_Shade.kpp"), 60}})
+        for (bool words : {false, true}) {
+            const QByteArray row = preset.first.toLatin1() + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << preset.first << words << 0 << preset.second << false;
+        }
+
     for (bool words : {false, true}) for (const auto *mode : {"soft", "ellipse"}) {
         const QByteArray row = QByteArray("gaussian-unaliased-") + mode + (words ? "-u16" : "-u8");
         QTest::newRow(row.constData()) << QStringLiteral("u)_Pixel_Art_Fill.kpp") << words << 0 << qreal(32) << false;
@@ -8815,6 +8833,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
 void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
 {
     QFETCH(QString, presetName);
+    const bool imagePencil = presetName == QLatin1String("c)_Pencil-4_Soft.kpp") || presetName == QLatin1String("c)_Pencil-6_Quick_Shade.kpp");
     QFETCH(bool, words);
     QFETCH(int, tipCase);
     QFETCH(qreal, normalDiameter);
@@ -8838,6 +8857,16 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
     auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
+    if (imagePencil) {
+        const auto tip = bundle->resource(QStringLiteral("brushes/graphite_grain.gih"));
+        QVERIFY(tip);
+        auto source = KisGlobalResourcesInterface::instance()->source<KoResource>(ResourceType::Brushes);
+        if (!source.bestMatch(tip->md5Sum(), tip->filename(), tip->name())) {
+            KisResourceModel brushResources(ResourceType::Brushes);
+            QVERIFY(brushResources.addResource(tip));
+        }
+    }
+
     const bool pencil = presetName.startsWith(QLatin1String("c)_Pencil-"));
     const bool fineliner = presetName == QLatin1String("d)_Ink-2_Fineliner.kpp");
     const auto restoreTiming = fixedBrushPointerTiming(fineliner);
@@ -9008,7 +9037,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                                                           view->canvasBase()->resourceManager());
             QVERIFY2(capture.diagnostic.isEmpty(), qPrintable(capture.diagnostic));
             QVERIFY(capture.brush.autoBrush);
-            QCOMPARE(capture.brush.autoBrush->mask, (presetName == QLatin1String("b)_Basic-5_Size_Opacity.kpp") ||
+            QCOMPARE(capture.brush.autoBrush->mask, imagePencil ? Gpu::AutoBrush::Mask::Image : (presetName == QLatin1String("b)_Basic-5_Size_Opacity.kpp") ||
                       presetName == QLatin1String("b)_Basic-3_Flow.kpp") || presetName == QLatin1String("b)_Basic-4_Flow_Opacity.kpp") ||
                       presetName.startsWith(QLatin1String("h)_Charcoal_")) || pencil ||
                       presetName == QLatin1String("u)_Pixel_Art.kpp") || presetName == QLatin1String("u)_Pixel_Art_Fill.kpp")) ?
@@ -9045,6 +9074,11 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             struct PressureProbe { qreal first, second, speed = 0; };
             QList<PressureProbe> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
                                               {200, .03}, {200, .05}, {200, .06}};
+            if (imagePencil) {
+                pressureCases.prepend({normalDiameter, 1});
+                pressureCases.prepend({normalDiameter, .2});
+                QVERIFY(capture.brush.autoBrush->imageTips);
+            }
             if (fineliner) for (const auto speed : {qreal(0), qreal(.2), qreal(.9), qreal(1)}) pressureCases.append({5, .6, speed});
             // This bundled size curve starts at x=.00813008. Both low-pressure
             // inputs must retain the native constant endpoint extension.

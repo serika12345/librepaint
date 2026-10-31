@@ -8,6 +8,7 @@
 #include <QTransform>
 #include <QVector2D>
 #include <boost/random/taus88.hpp>
+#include <boost/random/uniform_smallint.hpp>
 #include <algorithm>
 #include <cmath>
 
@@ -50,7 +51,8 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         return false;
     const auto originalInput = operation.inputSamples();
     const bool directLines = brush.autoBrush && brush.autoBrush->sharpnessResponse &&
-        std::max(1, int(brush.diameter)) == 1 && std::max(1, int(brush.diameter * brush.autoBrush->ratio)) == 1;
+        (brush.autoBrush->imageTips ? brush.autoBrush->imageTips->originalSize == QSize(1, 1) :
+         std::max(1, int(brush.diameter)) == 1 && std::max(1, int(brush.diameter * brush.autoBrush->ratio)) == 1);
     auto input = originalInput;
     if (brush.weightedSmoothing) {
         const auto corrected = weightedInput(input, *brush.weightedSmoothing);
@@ -72,6 +74,20 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         input.first().position = operation.shape.first;
         input.last().position = operation.shape.second;
     }
+    const auto tipMetric = [&](qreal scale, qreal angle) {
+        if (brush.autoBrush && brush.autoBrush->imageTips) {
+            const auto &size = brush.autoBrush->imageTips->originalSize;
+            QTransform transform;
+            const qreal ratio = brush.diameter / size.width();
+            transform.scale(scale * ratio, scale * ratio);
+            angle = std::fmod(angle, 2 * M_PI);
+            if (angle < 0) angle += 2 * M_PI;
+            if (!qFuzzyCompare(angle, qreal(0))) transform = transform * QTransform().rotateRadians(angle);
+            return transform.mapRect(QRectF(QPointF(), size)).size();
+        }
+        return brush.autoBrush ? characteristicSize(brush.diameter, brush.autoBrush->ratio, scale, angle) :
+                                 QSizeF(brush.diameter * scale, brush.diameter * scale);
+    };
     qsizetype count = 0;
     qsizetype sequence = 0;
     QPointF spacing(.5, .5), accumulated;
@@ -104,7 +120,9 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 responseCurveValue(*brush.sizeSpeedResponse, point.speed)), qreal(0), qreal(1)) :
             pressureValue(brush.sizeResponse, point.pressure);
         const qreal diameter = brush.diameter * scale;
-        const bool tooSmall = brush.autoBrush ?
+        const bool tooSmall = brush.autoBrush && brush.autoBrush->imageTips ?
+            diameter < .01 || diameter * brush.autoBrush->imageTips->originalSize.height() / brush.autoBrush->imageTips->originalSize.width() < .01 :
+            brush.autoBrush ?
             scale * std::max(1, int(brush.diameter)) < .01 ||
             scale * std::max(1, int(brush.diameter * brush.autoBrush->ratio)) < .01 :
                                                   scale * diameter < .01;
@@ -130,8 +148,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             if (sensorRotation >= 2 * M_PI) sensorRotation = std::fmod(sensorRotation, 2 * M_PI);
         }
         const qreal angle = brush.autoBrush ? brush.autoBrush->angle + sensorRotation : 0;
-        const auto metric = brush.autoBrush ? characteristicSize(brush.diameter, brush.autoBrush->ratio, scale, angle) :
-                                                QSizeF(diameter, diameter);
+        const auto metric = tipMetric(scale, angle);
         QPointF position = point.position;
         if (brush.autoBrush && brush.autoBrush->scatter && (brush.autoBrush->scatterAxisX || brush.autoBrush->scatterAxisY)) {
             const auto &settings = *brush.autoBrush;
@@ -151,14 +168,19 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 position += movement.toPointF();
             }
         }
-        if (!visit({position, point.pressure, scale, metric, angle, point.canvasMirroredH, point.canvasMirroredV, dabSequence})) return false;
+        quint32 imageIndex = 0;
+        if (brush.autoBrush && brush.autoBrush->imageTips && brush.autoBrush->imageTips->randomSelection) {
+            boost::uniform_smallint<int> select(0, brush.autoBrush->imageTips->tipCount - 1);
+            imageIndex = select(random);
+        }
+        if (!visit({position, point.pressure, scale, metric, angle, point.canvasMirroredH, point.canvasMirroredV, dabSequence, false, imageIndex})) return false;
         ++count;
         const auto distance = [&](qreal side) {
             return brush.autoSpacing ? brush.autoSpacingCoefficient * (side < 1 ? side : std::sqrt(side)) : side * brush.spacing;
         };
         const bool isotropic = brush.autoBrush && brush.autoBrush->isotropicSpacing;
         const auto spacingMetric = brush.autoBrush ?
-            characteristicSize(brush.diameter, brush.autoBrush->ratio, scale, brush.autoBrush->angle) : metric;
+            tipMetric(scale, brush.autoBrush->angle) : metric;
         const qreal width = isotropic ? std::max(spacingMetric.width(), spacingMetric.height()) : spacingMetric.width();
         const qreal height = isotropic ? width : spacingMetric.height();
         spacing = {distance(width), distance(height)};

@@ -278,6 +278,12 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
             return {};
         }
         source += gaussian.readAll() + '\n';
+        QFile imageBrush(QStringLiteral(":/librepaint/gpu/shaders/image-brush.wgsl"));
+        if (!imageBrush.open(QIODevice::ReadOnly)) {
+            error = QStringLiteral("GPU image brush arithmetic could not be loaded");
+            return {};
+        }
+        source += imageBrush.readAll() + '\n';
     }
     if (path.endsWith(QLatin1String("/region.wgsl"))) {
         QFile lab(QStringLiteral(":/librepaint/gpu/shaders/native-lab.wgsl"));
@@ -1058,8 +1064,11 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     fillUploads.push_back({fillBuffer, edges});
                 }
                 std::shared_ptr<NativeBuffer> patternBuffer;
-                quint32 textureWordOffset = 0;
-                if ((operation.figureStyle.pattern || operation.brush.texture) && !affected.isEmpty()) {
+                quint32 textureWordOffset = 0, imageWordOffset = 0;
+                const auto imageTips = operation.brush.autoBrush ? operation.brush.autoBrush->imageTips : QSharedPointer<const ImageBrushTips>();
+                const auto maskTips = operation.brush.additiveMaskingBrush && operation.brush.additiveMaskingBrush->autoBrush ?
+                    operation.brush.additiveMaskingBrush->autoBrush->imageTips : QSharedPointer<const ImageBrushTips>();
+                if ((operation.figureStyle.pattern || operation.brush.texture || imageTips || maskTips) && !affected.isEmpty()) {
                     QByteArray resource;
                     if (operation.figureStyle.pattern) {
                         const auto &pattern = *operation.figureStyle.pattern;
@@ -1069,6 +1078,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     }
                     textureWordOffset = quint32(resource.size() / 4);
                     if (operation.brush.texture) resource.append(operation.brush.texture->alpha);
+                    imageWordOffset = quint32(resource.size() / 4);
+                    if (imageTips) resource.append(imageTips->pixels);
+                    if (maskTips && maskTips != imageTips) resource.append(maskTips->pixels);
                     WGPULimits limits{};
                     if (wgpuDeviceGetLimits(d.device->nativeDevice(), &limits) != WGPUStatus_Success ||
                         quint64(resource.size()) > limits.maxStorageBufferBindingSize ||
@@ -1120,6 +1132,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.appendedGeometry = appendedGeometry.value(tile.key());
                     job.fillEdges = fillBuffer;
                     job.pattern = patternBuffer;
+                    job.values.textureReserved[0] = imageWordOffset;
                     const auto point = coordinate(tile.key()) * TileSize;
                     const float opacity = std::max(0.f, float(operation.brush.opacity));
                     const quint32 count = quint32(std::visit([](const auto &dabs) { return dabs.size(); }, job.geometry));

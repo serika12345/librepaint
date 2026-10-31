@@ -339,6 +339,27 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
     if (!validPixel(brush.rgba, format)) return false;
     if (brush.autoBrush) {
         const auto &value = *brush.autoBrush;
+        if (value.mask == AutoBrush::Mask::Image) {
+            if (!value.imageTips) return false;
+            const auto &tips = *value.imageTips;
+            if (tips.originalSize.isEmpty() || tips.originalSize.width() > RgbaTile::CoordinateLimit ||
+                tips.originalSize.height() > RgbaTile::CoordinateLimit || tips.tipCount <= 0 || tips.levels.isEmpty() ||
+                tips.levels.size() > 32 || tips.pixels.isEmpty() || tips.pixels.size() % 4 ||
+                tips.pixels.size() > 64 * 1024 * 1024) return false;
+            qint64 cursor = 0;
+            qreal previousScale = 16;
+            for (const auto &level : tips.levels) {
+                if (level.size.isEmpty() || !std::isfinite(level.scale) || level.scale <= 0 ||
+                    level.scale > 8 || (level.scale != previousScale / 2 && cursor != 0) ||
+                    level.size != tips.originalSize * level.scale || level.wordOffset != cursor) return false;
+                const qint64 texels = qint64(level.size.width() + 2) * (level.size.height() + 2);
+                if (texels > tips.pixels.size() / 2 || level.tipWordStride != (texels * 2 + 3) / 4) return false;
+                cursor += qint64(level.tipWordStride) * tips.tipCount;
+                if (cursor > tips.pixels.size() / 4) return false;
+                previousScale = level.scale;
+            }
+            if (cursor != tips.pixels.size() / 4) return false;
+        } else if (value.imageTips) return false;
         if (value.precisionLevel < 1 || value.precisionLevel > 5 ||
             !std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||
             !validPressureResponse(value.opacityResponse) || !validPressureResponse(value.flowResponse) ||
@@ -351,7 +372,7 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
             (value.sharpnessResponse && !validPressureResponse(*value.sharpnessResponse)) ||
             value.sharpnessSoftness < 0 || value.sharpnessSoftness > 100 ||
             (value.mask != AutoBrush::Mask::GaussianCircle && value.mask != AutoBrush::Mask::Circle &&
-             value.mask != AutoBrush::Mask::Rectangle) ||
+             value.mask != AutoBrush::Mask::Rectangle && value.mask != AutoBrush::Mask::Image) ||
             !std::isfinite(value.fade) || value.fade < 0 || value.fade > 1 ||
             (value.verticalFade && (!std::isfinite(*value.verticalFade) || *value.verticalFade < 0 || *value.verticalFade > 1)) ||
             !std::isfinite(value.ratio) || value.ratio <= 0 || value.ratio > 1 ||

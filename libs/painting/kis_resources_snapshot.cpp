@@ -37,6 +37,11 @@
 #include <KoCanvasResourcesIds.h>
 #include <KoCanvasResourcesInterface.h>
 #include <KoResourceCacheInterface.h>
+#include <kis_brush.h>
+#include <kis_gbr_brush.h>
+#include <kis_imagepipe_brush.h>
+#include <kis_pipebrush_parasite.h>
+#include <kis_qimage_pyramid.h>
 #include "KoColorSpaceConstants.h"
 #include "KoCompositeOpIds.h"
 #include "KisGpuBlendMode.h"
@@ -57,6 +62,9 @@
 #include <algorithm>
 #include <cmath>
 #include <utility>
+
+using FrozenGpuImageTips = QSharedPointer<const LibrePaint::Image::Gpu::ImageBrushTips>;
+Q_DECLARE_METATYPE(FrozenGpuImageTips)
 
 namespace {
 bool captureCurveResponse(QString curve, LibrePaint::Image::Gpu::PressureResponse &response)
@@ -252,6 +260,86 @@ bool captureBrushTexture(const KisPaintOpSettingsSP &settings, bool erase, Libre
     return true;
 }
 
+FrozenGpuImageTips captureImageBrushTips(const KisPaintOpSettingsSP &settings, const QDomElement &definition)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    auto resources = settings->resourcesInterface();
+    if (!resources) resources = KisGlobalResourcesInterface::instance();
+    const auto native = KisBrush::fromXML(definition, resources);
+    if (!native || native->brushApplication() != ALPHAMASK) return {};
+    QList<QImage> images;
+    bool random = false;
+    if (const auto pipe = native.dynamicCast<KisImagePipeBrush>()) {
+        const auto &parasite = pipe->parasite();
+        const auto tips = pipe->brushes();
+        if (parasite.dim != 1 || parasite.rank[0] != tips.size() ||
+            parasite.selection[0] != KisParasite::Random) return {};
+        for (const auto &tip : tips) images.append(tip->brushTipImage());
+        random = true;
+    } else images.append(native->brushTipImage());
+    if (images.isEmpty() || images.first().isNull()) return {};
+    const auto size = images.first().size();
+    if (size.width() > 8192 || size.height() > 8192) return {};
+    QString cacheKey = QStringLiteral("librepaint/gpu/image-tips/") + QString::number(random) + QLatin1Char('/');
+    for (const auto &image : images) {
+        if (image.size() != size) return {};
+        cacheKey += QString::number(image.cacheKey()) + QLatin1Char('/');
+    }
+    const auto cache = settings->resourceCacheInterface();
+    if (cache) {
+        const auto cached = cache->fetch(cacheKey).value<FrozenGpuImageTips>();
+        if (cached) return cached;
+    }
+    qint64 requiredBytes = 0;
+    for (qreal scale = 8; ; scale *= .5) {
+        const QSize scaled = size * scale;
+        if (scaled.isEmpty()) break;
+        if (scale > 1 && scaled.width() > 512 && scaled.height() > 512) continue;
+        requiredBytes += ((qint64(scaled.width() + 2) * (scaled.height() + 2) * 2 + 3) & ~qint64(3)) * images.size();
+        if (requiredBytes > 64 * 1024 * 1024) return {};
+    }
+    auto result = QSharedPointer<Gpu::ImageBrushTips>::create();
+    result->originalSize = size; result->tipCount = images.size(); result->randomSelection = random;
+    QList<QSharedPointer<KisQImagePyramid>> pyramids;
+    for (const auto &image : images) pyramids.append(QSharedPointer<KisQImagePyramid>::create(image));
+    qreal previousScale = 0;
+    for (qreal scale = 8; ; scale *= .5) {
+        qreal actual = 0;
+        const auto first = pyramids.first()->getClosest(QTransform::fromScale(scale, scale), &actual);
+        if (first.isNull()) return {};
+        if (actual == previousScale) {
+            if (scale < actual) break;
+            continue;
+        }
+        previousScale = actual;
+        const QSize levelSize(first.width() - 2, first.height() - 2);
+        const qint64 tipBytes = (qint64(first.width()) * first.height() * 2 + 3) & ~qint64(3);
+        if (tipBytes * images.size() > 64 * 1024 * 1024 - result->pixels.size()) return {};
+        Gpu::ImageBrushLevel level{levelSize, actual, quint32(result->pixels.size() / 4), quint32(tipBytes / 4)};
+        result->levels.append(level);
+        for (const auto &pyramid : pyramids) {
+            qreal tipScale = 0;
+            const auto image = pyramid->getClosest(QTransform::fromScale(scale, scale), &tipScale).convertToFormat(QImage::Format_ARGB32);
+            if (tipScale != actual || image.size() != first.size()) return {};
+            const auto start = result->pixels.size();
+            result->pixels.resize(start + tipBytes);
+            std::fill(result->pixels.begin() + start, result->pixels.end(), char(0));
+            for (int y = 0; y < image.height(); ++y) {
+                const auto *row = reinterpret_cast<const QRgb *>(image.constScanLine(y));
+                for (int x = 0; x < image.width(); ++x) {
+                    const auto offset = start + (y * image.width() + x) * 2;
+                    result->pixels[offset] = char(qRed(row[x]));
+                    result->pixels[offset + 1] = char(qAlpha(row[x]));
+                }
+            }
+        }
+        if (levelSize.width() == 1 || levelSize.height() == 1) break;
+    }
+    const FrozenGpuImageTips frozen = result;
+    if (cache) cache->put(cacheKey, QVariant::fromValue(frozen));
+    return frozen;
+}
+
 bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush, bool secondary = false)
 {
     if ((!secondary && settings->getInt("PaintOpAction") != 2) || settings->getString("ColorSource/Type", "plain") != QLatin1String("plain") ||
@@ -279,19 +367,20 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     if (!definition.setContent(settings->getString("brush_definition"))) return false;
     const auto root = definition.documentElement();
     const auto mask = root.firstChildElement(QStringLiteral("MaskGenerator"));
-    if (root.attribute(QStringLiteral("type")) != QLatin1String("auto_brush") ||
+    const bool imageTip = root.attribute("type") == QLatin1String("gbr_brush") || root.attribute("type") == QLatin1String("png_brush");
+    if (!imageTip && (root.attribute(QStringLiteral("type")) != QLatin1String("auto_brush") ||
         (mask.attribute(QStringLiteral("id")) != QLatin1String("gauss") &&
          mask.attribute(QStringLiteral("id")) != QLatin1String("default")) ||
         (mask.attribute(QStringLiteral("type")) != QLatin1String("circle") &&
-         mask.attribute(QStringLiteral("type")) != QLatin1String("rect"))) return false;
+         mask.attribute(QStringLiteral("type")) != QLatin1String("rect")))) return false;
     const auto equalNumber = [](const QDomElement &element, const QString &name, double expected) {
         bool ok = false;
         const double value = element.attribute(name).toDouble(&ok);
         return ok && value == expected;
     };
-    if (!equalNumber(mask, QStringLiteral("spikes"), 2)) return false;
-    if (!equalNumber(root, QStringLiteral("randomness"), 0) || !equalNumber(root, QStringLiteral("density"), 1) ||
-        !qIsFinite(brush.diameter) || brush.diameter <= 0) return false;
+    if (!imageTip && (!equalNumber(mask, QStringLiteral("spikes"), 2) ||
+        !equalNumber(root, QStringLiteral("randomness"), 0) || !equalNumber(root, QStringLiteral("density"), 1))) return false;
+    if (!qIsFinite(brush.diameter) || brush.diameter <= 0) return false;
     LibrePaint::Image::Gpu::AutoBrush value;
     value.constantRotation = constantRotation;
     if (checkedRotation && !constantRotation) {
@@ -342,6 +431,12 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         value.sharpnessResponse = std::move(sharpness);
     }
     value.isotropicSpacing = settings->getBool("Spacing/Isotropic", false);
+    if (imageTip) {
+        value.mask = LibrePaint::Image::Gpu::AutoBrush::Mask::Image;
+        value.imageTips = captureImageBrushTips(settings, root);
+        if (!value.imageTips) return false;
+        value.ratio = 1; value.fade = 1; value.verticalFade = 1;
+    } else {
     if (mask.attribute(QStringLiteral("id")) == QLatin1String("default")) {
         value.mask = mask.attribute(QStringLiteral("type")) == QLatin1String("rect") ?
             LibrePaint::Image::Gpu::AutoBrush::Mask::Rectangle : LibrePaint::Image::Gpu::AutoBrush::Mask::Circle;
@@ -358,6 +453,7 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     else return false;
     if (value.mask == LibrePaint::Image::Gpu::AutoBrush::Mask::GaussianCircle && value.antialiasEdges &&
         (value.fade != 1 || *value.verticalFade != 1 || value.ratio != 1)) return false;
+    }
     brush.autoSpacing = root.attribute(QStringLiteral("useAutoSpacing"), QStringLiteral("0")).toInt() != 0;
     bool coefficientOk = false;
     brush.autoSpacingCoefficient = root.attribute(QStringLiteral("autoSpacingCoeff"), QStringLiteral("1")).toDouble(&coefficientOk);
@@ -389,11 +485,12 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         mask->maskPainting = true; mask->channelWriteMask = 15;
         mask->blendMode = LibrePaint::Image::Gpu::LayerBlendMode::Normal;
         if (!captureAutoBrush(maskSettings, *mask, true) || mask->texture) return false;
-        // Both native painters consume one shared random stream in input-call
-        // order. Independently generated tips require at most one random painter.
-        if (brush.autoBrush->scatter && mask->autoBrush->scatter &&
-            (brush.autoBrush->scatterAxisX || brush.autoBrush->scatterAxisY) &&
-            (mask->autoBrush->scatterAxisX || mask->autoBrush->scatterAxisY)) return false;
+        // Native painters share their random stream in input-call order.
+        const auto usesRandom = [](const LibrePaint::Image::Gpu::AutoBrush &tip) {
+            return (tip.scatter && (tip.scatterAxisX || tip.scatterAxisY)) ||
+                   (tip.imageTips && tip.imageTips->randomSelection);
+        };
+        if (usesRandom(*brush.autoBrush) && usesRandom(*mask->autoBrush)) return false;
         brush.additiveMaskingBrush = std::move(mask);
     }
     return true;

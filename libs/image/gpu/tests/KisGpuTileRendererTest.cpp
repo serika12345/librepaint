@@ -152,6 +152,7 @@ private Q_SLOTS:
     void alphaLockPreservesCoverageHistory_data();
     void alphaLockPreservesCoverageHistory();
     void inputPartitionsAndPreviewProduceTheSamePixels();
+    void scatteredInputKeepsFrozenSeedAndPartitions_data();
     void scatteredInputKeepsFrozenSeedAndPartitions();
     void basicSmoothingPreservesCurvesIdleCompletion_data();
     void basicSmoothingPreservesCurvesIdleCompletion();
@@ -5671,8 +5672,16 @@ void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()
     }
 }
 
+void KisGpuTileRendererTest::scatteredInputKeepsFrozenSeedAndPartitions_data()
+{
+    QTest::addColumn<bool>("imageTip");
+    QTest::newRow("generated") << false;
+    QTest::newRow("imported-image") << true;
+}
+
 void KisGpuTileRendererTest::scatteredInputKeepsFrozenSeedAndPartitions()
 {
+    QFETCH(bool, imageTip);
     // The generated Pencil-1/2 family consumes two Taus88 values per painted
     // dab, including corner fans. Rebuilding a preview must replay that order.
     Brush brush;
@@ -5684,6 +5693,19 @@ void KisGpuTileRendererTest::scatteredInputKeepsFrozenSeedAndPartitions()
     brush.autoBrush->scatter = PressureResponse{PressureResponse::Kind::Direct, .09, {}};
     brush.autoBrush->drawingAngleRotation = PressureResponse{PressureResponse::Kind::Direct, 1, {}};
     brush.autoBrush->fanCornersStep = M_PI / 2;
+    if (imageTip) {
+        auto tips = QSharedPointer<ImageBrushTips>::create();
+        tips->originalSize = {4, 4}; tips->tipCount = 2; tips->randomSelection = true;
+        tips->levels = {ImageBrushLevel{{4, 4}, 1, 0, 18}};
+        tips->pixels = QByteArray(144, char(0));
+        for (int tip = 0; tip < 2; ++tip) for (int y = 1; y <= 4; ++y) for (int x = 1; x <= 4; ++x) {
+            const int offset = tip * 72 + (y * 6 + x) * 2;
+            tips->pixels[offset] = char(tip * 192); tips->pixels[offset + 1] = char(255);
+        }
+        brush.autoBrush->mask = AutoBrush::Mask::Image;
+        brush.autoBrush->imageTips = tips;
+    }
+
     const QList<InputSample> input{{{20.25, 60.75}, .7}, {{110.25, 60.75}, .8},
                                   {{35.25, 59.75}, .5}, {{35.25, 100.75}, .9}, {{90.25, 30.75}, .1}};
     OperationDocument whole({128, 128}), chunks({128, 128});

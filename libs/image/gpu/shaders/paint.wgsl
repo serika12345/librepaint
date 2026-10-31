@@ -306,7 +306,8 @@ fn generatedDabCoverage(dab: MaskDab, pixel: vec2<i32>, local: vec2<i32>, maximu
     if ((dab.size.w & 4u) != 0u) { point.x = i32(dab.size.x) - 1 - point.x; }
     if ((dab.size.w & 8u) != 0u) { point.y = i32(dab.size.y) - 1 - point.y; }
     var coverage: u32;
-    if ((dab.size.w & 1u) != 0u) {
+    if ((dab.size.w & 256u) != 0u) { coverage = imageBrushAlpha(dab, vec2<u32>(point)) * scale; }
+    else if ((dab.size.w & 1u) != 0u) {
         if (dab.size.z > 1u) { coverage = smallStandardCircleAlpha(dab, vec2<u32>(point)) * scale; }
         else { coverage = standardCircleAlpha(dab, vec2<u32>(point), maximum, gray); }
     } else if ((dab.size.w & 32u) != 0u) {

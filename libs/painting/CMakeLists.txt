@@ -104,6 +104,8 @@ kis_add_library(kritapainting SHARED
 generate_export_header(kritapainting BASE_NAME kritapainting)
 
 target_link_libraries(kritapainting
+    PRIVATE
+        kritalibbrush
     PUBLIC
         kritaimage
         kritapaintingundo

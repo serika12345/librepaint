@@ -5,6 +5,8 @@
 #include "KisGpuAutoBrush_p.h"
 #include "KisGpuBrushDabs_p.h"
 #include "KisGpuPaintGeometry_p.h"
+#include <QTransform>
+#include <limits>
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -29,6 +31,48 @@ int maskSide(qreal metric, qreal subpixel)
     if (std::abs(metric - qRound(metric)) < 1e-6) metric = qRound(metric);
     if (subpixel < 1e-6) subpixel = 0;
     return std::max(1, int(std::ceil(metric + subpixel)));
+}
+bool imageDab(const Brush &brush, const BrushDab &point, QPointF subpixel, AutoBrushDab &dab)
+{
+    const auto &tips = *brush.autoBrush->imageTips;
+    const qreal scale = point.scale * (brush.diameter / tips.originalSize.width());
+    qsizetype index = 0;
+    while (index + 1 < tips.levels.size() &&
+           (tips.levels[index].scale * .5 > scale || std::abs(tips.levels[index].scale * .5 - scale) < 1e-6)) ++index;
+    const auto &level = tips.levels[index];
+    if (point.imageTipIndex >= quint32(tips.tipCount)) return false;
+    qreal angle = std::fmod(point.angle, 2 * M_PI);
+    if (angle < 0) angle += 2 * M_PI;
+    angle = -angle;
+    QTransform transform;
+    transform.scale(scale / (qreal(level.size.width()) / tips.originalSize.width()),
+                    scale / (qreal(level.size.height()) / tips.originalSize.height()));
+    if (!qFuzzyCompare(angle, qreal(0))) {
+        transform = transform * QTransform().rotateRadians(angle);
+        const auto bounds = transform.mapRect(QRectF(QPointF(), level.size));
+        transform = transform * QTransform::fromTranslate(-bounds.x(), -bounds.y());
+    }
+    transform = transform * QTransform::fromTranslate(subpixel.x(), subpixel.y());
+    dab.words[3] |= 256u;
+    if (transform.isIdentity()) dab.words[3] |= 512u;
+    while (transform.type() == QTransform::TxTranslate) {
+        const qreal fakeScale = transform.m11() - 10 * std::numeric_limits<qreal>::epsilon();
+        transform *= QTransform::fromScale(fakeScale, fakeScale);
+    }
+    bool invertible = false;
+    const auto inverse = (QTransform::fromTranslate(-1, -1) * transform).inverted(&invertible);
+    if (!invertible) return false;
+    doubleWords(dab, 4, inverse.m11()); doubleWords(dab, 6, inverse.m12());
+    doubleWords(dab, 8, inverse.m21()); doubleWords(dab, 10, inverse.m22());
+    doubleWords(dab, 12, inverse.dx()); doubleWords(dab, 14, inverse.dy());
+    for (const auto value : {inverse.m11() * 65536., inverse.m12() * 65536.})
+        if (!std::isfinite(value) || std::abs(value) > std::numeric_limits<qint32>::max()) return false;
+    dab.words[16] = quint32(qint32(inverse.m11() * 65536.));
+    dab.words[17] = quint32(qint32(inverse.m12() * 65536.));
+    dab.words[24] = quint32(level.size.width() + 2); dab.words[25] = quint32(level.size.height() + 2);
+    dab.words[26] = level.wordOffset + point.imageTipIndex * level.tipWordStride;
+    dab.words[27] = 0;
+    return true;
 }
 qreal textureStrength(const BrushTexture &texture, const BrushDab &dab)
 {
@@ -64,6 +108,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
     std::optional<AutoBrushDab> original;
     QPointF savedSubpixel;
     qreal savedAngle = 0;
+    quint32 savedImageTip = 0;
     const bool unaliasedGaussian = settings.mask == AutoBrush::Mask::GaussianCircle && !settings.antialiasEdges;
     constexpr double sqrtTwo = 1.41421356237309504880;
     std::array<quint32, 3> gaussianParameters{};
@@ -126,7 +171,9 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         doubleWords(dab, 6, hotSpot.y() - .5 + subpixel.y());
         doubleWords(dab, 8, std::cos(point.angle));
         doubleWords(dab, 10, std::sin(point.angle));
-        if (settings.mask != AutoBrush::Mask::GaussianCircle) {
+        if (settings.imageTips) {
+            if (!imageDab(brush, point, subpixel, dab)) return false;
+        } else if (settings.mask != AutoBrush::Mask::GaussianCircle) {
             dab.words[3] |= 1u | (quint32(settings.antialiasEdges) << 1) |
                 (settings.mask == AutoBrush::Mask::Rectangle ? 16u : 0u);
             doubleWords(dab, 12, 1. / radius);
@@ -155,7 +202,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         constexpr qreal positionTolerance[] = {1, 1, 1, .5, 1e-6};
         const qreal angleTolerance = precision == 5 ? 1e-6 : M_PI / 180;
         const QPoint paperOrigin = origin;
-        const bool reuse = original &&
+        const bool reuse = original && point.imageTipIndex == savedImageTip &&
             std::abs(point.angle - savedAngle) <= angleTolerance &&
             std::abs(int(dab.words[0]) - int(original->words[0])) <= int(sizeTolerance[precision - 1] * dab.words[0]) &&
             std::abs(int(dab.words[1]) - int(original->words[1])) <= int(sizeTolerance[precision - 1] * dab.words[1]) &&
@@ -170,6 +217,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             original = dab;
             savedSubpixel = subpixel;
             savedAngle = point.angle;
+            savedImageTip = point.imageTipIndex;
         }
         dab.words[18] = quint32(origin.x());
         dab.words[19] = quint32(origin.y());
@@ -225,6 +273,9 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         const auto mask = autoBrushDabs(maskOperation, pending);
         if (!mask || mask->size() > PaintGeometryElementLimit - result.size()) return std::nullopt;
         for (auto dab : *mask) {
+            const auto &secondaryTips = brush.additiveMaskingBrush->autoBrush->imageTips;
+            if (secondaryTips && settings.imageTips && secondaryTips != settings.imageTips)
+                dab.words[26] += quint32(settings.imageTips->pixels.size() / 4);
             dab.words[3] |= 128u;
             result.append(dab);
         }

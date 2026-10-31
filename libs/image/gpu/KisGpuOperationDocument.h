@@ -195,11 +195,37 @@ struct BrushTexture
     }
 };
 
-/** Frozen generated brush tip, WASH flow and pressure-controlled application. */
+/** One imported image-pyramid level, with a transparent one-pixel border. */
+struct ImageBrushLevel
+{
+    QSize size;
+    qreal scale = 1;
+    quint32 wordOffset = 0;
+    quint32 tipWordStride = 0;
+
+    bool operator==(const ImageBrushLevel &other) const
+    { return size == other.size && scale == other.scale && wordOffset == other.wordOffset && tipWordStride == other.tipWordStride; }
+};
+
+/** Immutable grayscale image tips. Each packed texel retains straight red and alpha. */
+struct ImageBrushTips
+{
+    QSize originalSize;
+    int tipCount = 0;
+    bool randomSelection = false;
+    QList<ImageBrushLevel> levels;
+    QByteArray pixels;
+
+    bool operator==(const ImageBrushTips &other) const
+    { return originalSize == other.originalSize && tipCount == other.tipCount && randomSelection == other.randomSelection && levels == other.levels && pixels == other.pixels; }
+};
+
+/** Frozen pixel-brush tip, WASH flow and pressure-controlled application. */
 struct AutoBrush
 {
-    enum class Mask { GaussianCircle, Circle, Rectangle };
+    enum class Mask { GaussianCircle, Circle, Rectangle, Image };
     Mask mask = Mask::GaussianCircle;
+    QSharedPointer<const ImageBrushTips> imageTips;
     qreal fade = 1;
     /** Unset uses the horizontal fade for an isotropic tip. */
     std::optional<qreal> verticalFade{};
@@ -230,7 +256,8 @@ struct AutoBrush
 
     bool operator==(const AutoBrush &other) const
     {
-        return mask == other.mask && fade == other.fade && verticalFade == other.verticalFade &&
+        return mask == other.mask && (imageTips == other.imageTips ||
+            (imageTips && other.imageTips && *imageTips == *other.imageTips)) && fade == other.fade && verticalFade == other.verticalFade &&
             ratio == other.ratio && isotropicSpacing == other.isotropicSpacing && antialiasEdges == other.antialiasEdges &&
             angle == other.angle && flow == other.flow && creamy == other.creamy &&
             opacityResponse == other.opacityResponse && flowResponse == other.flowResponse &&
