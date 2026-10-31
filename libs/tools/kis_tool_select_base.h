@@ -189,6 +189,7 @@ public:
                 this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
                                                        m_gpuSelectionStartInverted);
             m_gpuMovingSelection = false;
+            m_gpuSelectionReleaseCancelled = true;
             endMoveSelectionInteraction();
             event->accept();
             return;
@@ -278,6 +279,7 @@ public:
 
     void beginPrimaryAction(KoPointerEvent *event) override
     {
+        m_gpuSelectionReleaseCancelled = false;
         const bool gpu = this->image() && this->image()->gpuImage();
         if (gpu && !supportsGpuSelection()) {
             toolCanvas()->showToolMessage(
@@ -350,6 +352,10 @@ public:
 
     void endPrimaryAction(KoPointerEvent *event) override
     {
+        if (m_gpuSelectionReleaseCancelled) {
+            m_gpuSelectionReleaseCancelled = false;
+            return;
+        }
         if (m_gpuMovingSelection) {
             m_gpuMovingSelection = false;
             endMoveSelectionInteraction();
@@ -394,9 +400,13 @@ public:
     void deactivatePrimaryAction() override
     {
         if (m_gpuMovingSelection) {
-            this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
-                                                   m_gpuSelectionStartInverted);
+            if (this->image()->gpuSelectionFreehand())
+                this->image()->previewGpuSelectionMoveBy(QPoint());
+            else
+                this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
+                                                       m_gpuSelectionStartInverted);
             m_gpuMovingSelection = false;
+            m_gpuSelectionReleaseCancelled = true;
             endMoveSelectionInteraction();
         }
         BaseClass::deactivatePrimaryAction();
@@ -476,6 +486,7 @@ private:
     };
 
     bool m_gpuMovingSelection = false;
+    bool m_gpuSelectionReleaseCancelled = false;
     QRect m_gpuSelectionStartRect;
     QRect m_gpuSelectionPreviewRect;
     bool m_gpuSelectionStartEllipse = false;

@@ -4599,6 +4599,21 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra()
         QTest::mouseMove(native.data(), sourcePoint);
         QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, sourcePoint);
         QTest::mouseMove(native.data(), targetPoint, 30);
+        adoptExpected(movedExpected);
+        QTRY_VERIFY(checkSelection(image));
+        auto *selectionTool = dynamic_cast<KisTool *>(KoToolManager::instance()->toolById(
+            view->canvasBase(), QStringLiteral("KisToolSelectRectangular")));
+        QVERIFY(selectionTool);
+        selectionTool->deactivatePrimaryAction();
+        QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, targetPoint);
+        adoptExpected(originalExpected);
+        QTRY_VERIFY(checkSelection(image));
+        QCOMPARE(owner->operations().snapshot(), moveStart);
+        QCOMPARE(owner->operations().undoCount(), selectionHistory);
+        selectionTool->activatePrimaryAction();
+        QTest::mouseMove(native.data(), sourcePoint);
+        QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, sourcePoint);
+        QTest::mouseMove(native.data(), targetPoint, 30);
         QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, targetPoint);
         ++selectionHistory;
         QTRY_COMPARE(owner->operations().undoCount(), selectionHistory);
