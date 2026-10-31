@@ -131,6 +131,8 @@ struct InputSample
     qreal canvasRotation = 0;
     bool canvasMirroredH = false;
     bool canvasMirroredV = false;
+    /** Native initial direction when the stroke has no earlier painted dab. */
+    qreal initialDrawingAngle = 0;
 
     bool operator==(const InputSample &other) const
     {
@@ -138,7 +140,7 @@ struct InputSample
             xTilt == other.xTilt && yTilt == other.yTilt &&
             rotation == other.rotation && timestamp == other.timestamp && speed == other.speed &&
             canvasRotation == other.canvasRotation && canvasMirroredH == other.canvasMirroredH &&
-            canvasMirroredV == other.canvasMirroredV;
+            canvasMirroredV == other.canvasMirroredV && initialDrawingAngle == other.initialDrawingAngle;
     }
 };
 
@@ -217,6 +219,14 @@ struct AutoBrush
     bool autoPrecision = false;
     /** Checked native rotation with its sensor curve disabled. */
     bool constantRotation = false;
+    /** Drawing-direction sensor, with the native absolute-rotation curve. */
+    std::optional<PressureResponse> drawingAngleRotation;
+    qreal drawingAngleOffset = 0;
+    /** Zero disables the native corner fan; otherwise radians per extra dab. */
+    qreal fanCornersStep = 0;
+    std::optional<PressureResponse> scatter;
+    bool scatterAxisX = true;
+    bool scatterAxisY = true;
 
     bool operator==(const AutoBrush &other) const
     {
@@ -227,7 +237,9 @@ struct AutoBrush
             sharpnessResponse == other.sharpnessResponse && alignOutlinePixels == other.alignOutlinePixels &&
             sharpnessSoftness == other.sharpnessSoftness &&
             precisionLevel == other.precisionLevel && autoPrecision == other.autoPrecision &&
-            constantRotation == other.constantRotation;
+            constantRotation == other.constantRotation && drawingAngleRotation == other.drawingAngleRotation &&
+            drawingAngleOffset == other.drawingAngleOffset && fanCornersStep == other.fanCornersStep &&
+            scatter == other.scatter && scatterAxisX == other.scatterAxisX && scatterAxisY == other.scatterAxisY;
     }
 };
 

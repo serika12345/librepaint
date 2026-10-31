@@ -87,13 +87,14 @@ bool captureCurveResponse(QString curve, LibrePaint::Image::Gpu::PressureRespons
 }
 
 bool capturePressureResponse(const KisPaintOpSettingsSP &settings, const QString &name,
-                             bool checkable, LibrePaint::Image::Gpu::PressureResponse &response)
+                             bool checkable, LibrePaint::Image::Gpu::PressureResponse &response,
+                             qreal maximumStrength = 1)
 {
     using Response = LibrePaint::Image::Gpu::PressureResponse;
     response = {};
     if (checkable && !settings->getBool(QStringLiteral("Pressure") + name)) return true;
     response.strength = settings->getDouble(name + QStringLiteral("Value"), 1);
-    if (!qIsFinite(response.strength) || response.strength < 0 || response.strength > 1) return false;
+    if (!qIsFinite(response.strength) || response.strength < 0 || response.strength > maximumStrength) return false;
     if (!settings->getBool(name + QStringLiteral("UseCurve"), true)) return true;
     if (settings->getInt(name + QStringLiteral("curveMode"), 0) != 0) return false;
     const auto definition = settings->getString(name + QStringLiteral("Sensor"));
@@ -259,11 +260,11 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") ||
         settings->getBool("HorizontalMirrorEnabled") || settings->getBool("VerticalMirrorEnabled")) return false;
     for (const auto *name : {"PressureDarken", "PressureMirror", "PressureMix", "PressureRate", "PressureRatio",
-                            "PressureScatter", "PressureSoftness",
+                            "PressureSoftness",
                             "PressureSpacing", "Pressureh", "Pressures", "Pressurev"})
         if (settings->getBool(QLatin1String(name))) return false;
-    const bool constantRotation = settings->getBool("PressureRotation");
-    if (constantRotation && settings->getBool("RotationUseCurve", true)) return false;
+    const bool checkedRotation = settings->getBool("PressureRotation");
+    const bool constantRotation = checkedRotation && !settings->getBool("RotationUseCurve", true);
     if (constantRotation && !settings->getString("RotationSensor").isEmpty()) {
         QDomDocument rotation;
         if (!rotation.setContent(settings->getString("RotationSensor"))) return false;
@@ -293,6 +294,37 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         !qIsFinite(brush.diameter) || brush.diameter <= 0) return false;
     LibrePaint::Image::Gpu::AutoBrush value;
     value.constantRotation = constantRotation;
+    if (checkedRotation && !constantRotation) {
+        QDomDocument sensors;
+        if (!sensors.setContent(settings->getString("RotationSensor"))) return false;
+        const auto sensor = sensors.documentElement();
+        if (sensor.attribute("id") != QLatin1String("drawingangle") || sensor.attribute("lockedAngleMode").toInt()) return false;
+        LibrePaint::Image::Gpu::PressureResponse rotation;
+        auto curve = sensor.firstChildElement("curve").text();
+        if (settings->getBool("RotationUseSameCurve", true)) curve = settings->getString("RotationcommonCurve", curve);
+        if (!captureCurveResponse(curve, rotation)) return false;
+        bool offsetOk = false;
+        value.drawingAngleOffset = sensor.attribute("angleOffset", "0").toDouble(&offsetOk);
+        if (!offsetOk || !qIsFinite(value.drawingAngleOffset) || std::abs(value.drawingAngleOffset) > 360) return false;
+        if (sensor.attribute("fanCornersEnabled").toInt()) {
+            bool stepOk = false;
+            const int step = sensor.attribute("fanCornersStep", "30").toInt(&stepOk);
+            if (!stepOk || step < 1 || step > 360) return false;
+            value.fanCornersStep = qreal(step) * M_PI / 180.;
+        }
+        value.drawingAngleRotation = std::move(rotation);
+    }
+    if (settings->getBool("PressureScatter")) {
+        LibrePaint::Image::Gpu::PressureResponse scatter;
+        if (!capturePressureResponse(settings, QStringLiteral("Scatter"), true, scatter, 5)) return false;
+        if (settings->hasProperty("Scattering/Amount") && !settings->hasProperty("ScatterValue")) {
+            scatter.strength = settings->getDouble("Scattering/Amount");
+            if (!qIsFinite(scatter.strength) || scatter.strength < 0 || scatter.strength > 5) return false;
+        }
+        value.scatter = std::move(scatter);
+        value.scatterAxisX = settings->getBool("Scattering/AxisX", true);
+        value.scatterAxisY = settings->getBool("Scattering/AxisY", true);
+    }
     value.precisionLevel = settings->getInt("KisPrecisionOption/precisionLevel", 5);
     value.autoPrecision = settings->getBool("KisPrecisionOption/AutoPrecisionEnabled", false);
     if (value.precisionLevel < 1 || value.precisionLevel > 5) return false;

@@ -293,12 +293,13 @@ inline bool validSample(const InputSample &sample)
         std::isfinite(sample.xTilt) && std::abs(sample.xTilt) <= 90 &&
         std::isfinite(sample.yTilt) && std::abs(sample.yTilt) <= 90 &&
         std::isfinite(sample.rotation) && std::isfinite(sample.speed) && sample.speed >= 0 && sample.speed <= 1 &&
-        std::isfinite(sample.canvasRotation) && std::abs(sample.canvasRotation) <= 360;
+        std::isfinite(sample.canvasRotation) && std::abs(sample.canvasRotation) <= 360 &&
+        std::isfinite(sample.initialDrawingAngle);
 }
 
-inline bool validPressureResponse(const PressureResponse &value)
+inline bool validPressureResponse(const PressureResponse &value, qreal maximumStrength = 1)
 {
-    if (!std::isfinite(value.strength) || value.strength < 0 || value.strength > 1 ||
+    if (!std::isfinite(value.strength) || value.strength < 0 || value.strength > maximumStrength ||
         value.kind < PressureResponse::Kind::Constant || value.kind > PressureResponse::Kind::Curve) return false;
     if (value.kind != PressureResponse::Kind::Curve) return value.curve.isEmpty();
     if (value.curve.size() != 256) return false;
@@ -341,6 +342,12 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
         if (value.precisionLevel < 1 || value.precisionLevel > 5 ||
             !std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||
             !validPressureResponse(value.opacityResponse) || !validPressureResponse(value.flowResponse) ||
+            (value.scatter && !validPressureResponse(*value.scatter, 5)) ||
+            (value.drawingAngleRotation && !validPressureResponse(*value.drawingAngleRotation)) ||
+            (value.drawingAngleRotation && value.constantRotation) ||
+            !std::isfinite(value.drawingAngleOffset) || std::abs(value.drawingAngleOffset) > 360 ||
+            !std::isfinite(value.fanCornersStep) || value.fanCornersStep < 0 ||
+            (value.fanCornersStep > 0 && (!value.drawingAngleRotation || value.fanCornersStep < M_PI / 180. || value.fanCornersStep > 2 * M_PI)) ||
             (value.sharpnessResponse && !validPressureResponse(*value.sharpnessResponse)) ||
             value.sharpnessSoftness < 0 || value.sharpnessSoftness > 100 ||
             (value.mask != AutoBrush::Mask::GaussianCircle && value.mask != AutoBrush::Mask::Circle &&

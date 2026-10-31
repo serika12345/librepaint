@@ -5,6 +5,7 @@
  */
 
 #include <kis_figure_painting_stroke.h>
+#include <QRandomGenerator>
 
 #include <KoCanvasResourceProvider.h>
 #include <KoColorSpaceRegistry.h>
@@ -131,9 +132,10 @@ struct KisFigurePaintingStroke::GpuStroke
             style.fill = nativeColor(fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor ?
                                      foregroundColor : backgroundColor);
         }
+        const quint32 randomSeed = QRandomGenerator::global()->generate();
         const auto result = resources.transparencyMask
-            ? owner->paintTransparencyMaskFigure(resources.layer, resources.brush, samples, *shape, style, 0)
-            : owner->paintFigure(resources.layer, resources.brush, samples, *shape, style, 0);
+            ? owner->paintTransparencyMaskFigure(resources.layer, resources.brush, samples, *shape, style, randomSeed)
+            : owner->paintFigure(resources.layer, resources.brush, samples, *shape, style, randomSeed);
         if (result != Gpu::Result::Success) {
             warnKrita << "A GPU figure stroke was rejected:" << int(result);
         }

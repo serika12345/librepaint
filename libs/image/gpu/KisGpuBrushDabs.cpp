@@ -7,6 +7,7 @@
 #include <QPainterPath>
 #include <QTransform>
 #include <QVector2D>
+#include <boost/random/taus88.hpp>
 #include <algorithm>
 #include <cmath>
 
@@ -75,9 +76,29 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
     qsizetype sequence = 0;
     QPointF spacing(.5, .5), accumulated;
     qreal spacingRotation = 0;
-    const auto append = [&](const InputSample &point, bool explicitPoint = false) {
+    boost::taus88 random(quint32(operation.randomSeed));
+    QPointF lastDabPosition = operation.shape.kind == ShapeKind::Freehand && !input.isEmpty() ? input.first().position : QPointF();
+    qreal lastDrawingAngle = input.isEmpty() ? 0 : input.first().initialDrawingAngle;
+    InputSample lastPaintInformation;
+    bool haveLastPaintInformation = false;
+    const auto direction = [](QPointF first, QPointF last, qreal fallback) {
+        if (qFuzzyCompare(first.x(), last.x()) && qFuzzyCompare(first.y(), last.y())) return fallback;
+        const QVector2D delta(last - first);
+        return std::atan2(delta.y(), delta.x());
+    };
+    const auto wrap = [](qreal value, qreal low, qreal high) {
+        value = std::fmod(value - low, high - low);
+        return (value < 0 ? value + high - low : value) + low;
+    };
+    const auto append = [&](const InputSample &point, bool explicitPoint = false,
+                            std::optional<qreal> overrideAngle = {}) {
         if (directLines && operation.shape.kind != ShapeKind::Freehand && !explicitPoint) return true;
         const auto dabSequence = sequence++;
+        const qreal drawingAngle = overrideAngle.value_or(direction(lastDabPosition, point.position, lastDrawingAngle));
+        lastDabPosition = point.position;
+        lastDrawingAngle = drawingAngle;
+        lastPaintInformation = point;
+        haveLastPaintInformation = true;
         const qreal scale = brush.sizeSpeedResponse ?
             std::clamp(brush.sizeResponse.strength * (responseCurveValue(brush.sizeResponse, point.pressure) *
                 responseCurveValue(*brush.sizeSpeedResponse, point.speed)), qreal(0), qreal(1)) :
@@ -98,11 +119,39 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             value -= 1.;
             sensorRotation = (1 - value) * M_PI;
             if (sensorRotation >= 2 * M_PI) sensorRotation = std::fmod(sensorRotation, 2 * M_PI);
+        } else if (brush.autoBrush && brush.autoBrush->drawingAngleRotation) {
+            const auto &settings = *brush.autoBrush;
+            qreal offset = .5 + drawingAngle / (2 * M_PI) + settings.drawingAngleOffset / 360.;
+            if (offset > 1) offset -= 1;
+            if (settings.drawingAngleRotation->kind == PressureResponse::Kind::Curve)
+                offset = wrap(responseCurveValue(*settings.drawingAngleRotation, wrap(offset + .5, 0, 1)) + .5, 0, 1);
+            if (point.canvasMirroredH != point.canvasMirroredV) offset = .5 - offset;
+            sensorRotation = (1 - wrap(2 * offset, -1, 1)) * M_PI;
+            if (sensorRotation >= 2 * M_PI) sensorRotation = std::fmod(sensorRotation, 2 * M_PI);
         }
         const qreal angle = brush.autoBrush ? brush.autoBrush->angle + sensorRotation : 0;
         const auto metric = brush.autoBrush ? characteristicSize(brush.diameter, brush.autoBrush->ratio, scale, angle) :
                                                 QSizeF(diameter, diameter);
-        if (!visit({point.position, point.pressure, scale, metric, angle, point.canvasMirroredH, point.canvasMirroredV, dabSequence})) return false;
+        QPointF position = point.position;
+        if (brush.autoBrush && brush.autoBrush->scatter && (brush.autoBrush->scatterAxisX || brush.autoBrush->scatterAxisY)) {
+            const auto &settings = *brush.autoBrush;
+            const auto side = [](qreal value) {
+                if (std::abs(value - qRound(value)) < 1e-6) value = qRound(value);
+                return std::max(1, int(std::ceil(value)));
+            };
+            const qreal extent = std::max(side(metric.width()), side(metric.height()));
+            const qreal amount = std::clamp(settings.scatter->strength * responseCurveValue(*settings.scatter, point.pressure), qreal(0), qreal(5));
+            const auto jitter = [&] { return (2. * (qreal(random()) / random.max()) - 1.) * extent * amount; };
+            const qreal x = jitter();
+            if (settings.scatterAxisX && settings.scatterAxisY) position += QPointF(x, jitter());
+            else {
+                QVector2D movement(std::cos(drawingAngle), std::sin(drawingAngle));
+                if (settings.scatterAxisY) movement = QVector2D(-movement.y(), movement.x());
+                movement *= x;
+                position += movement.toPointF();
+            }
+        }
+        if (!visit({position, point.pressure, scale, metric, angle, point.canvasMirroredH, point.canvasMirroredV, dabSequence})) return false;
         ++count;
         const auto distance = [&](qreal side) {
             return brush.autoSpacing ? brush.autoSpacingCoefficient * (side < 1 ? side : std::sqrt(side)) : side * brush.spacing;
@@ -116,6 +165,29 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         spacingRotation = isotropic || !brush.autoBrush ? 0 :
             point.canvasMirroredH != point.canvasMirroredV ? 2 * M_PI - sensorRotation : sensorRotation;
         return true;
+    };
+    const auto paintLineDab = [&](const InputSample &point) {
+        if (brush.autoBrush && brush.autoBrush->fanCornersStep > 0 && haveLastPaintInformation) {
+            const qreal step = brush.autoBrush->fanCornersStep;
+            const auto distance = [](qreal first, qreal last) {
+                qreal value = std::fmod(std::abs(first - last), 2 * M_PI);
+                return value > M_PI ? 2 * M_PI - value : value;
+            };
+            const qreal finalAngle = direction(lastDabPosition, point.position, lastDrawingAngle);
+            const qreal fullDistance = distance(lastDrawingAngle, finalAngle);
+            qreal angle = lastDrawingAngle;
+            int index = 0;
+            while (distance(angle, finalAngle) > step) {
+                angle = distance(angle + step, finalAngle) < distance(angle - step, finalAngle) ? angle + step : angle - step;
+                const qreal fraction = step * index++ / fullDistance;
+                auto fan = lastPaintInformation;
+                fan.position = fan.position + fraction * (point.position - fan.position);
+                fan.pressure = (1 - fraction) * fan.pressure + fraction * point.pressure;
+                fan.speed = (1 - fraction) * fan.speed + fraction * point.speed;
+                if (!append(fan, false, angle)) return false;
+            }
+        }
+        return append(point);
     };
     const auto line = [&](InputSample first, const InputSample &last) {
         if (directLines) {
@@ -184,7 +256,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             first.pressure = (1 - fraction) * first.pressure + fraction * last.pressure;
             first.speed = (1 - fraction) * first.speed + fraction * last.speed;
             accumulated = {};
-            if (!append(first)) return false;
+            if (!paintLineDab(first)) return false;
             if (first.position == previous && fraction != 0) return false;
         }
         return true;
@@ -293,6 +365,10 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         QPointF lineSpacing = spacing, lineAccumulated = accumulated;
         qreal lineRotation = spacingRotation;
         qsizetype lineSequence = sequence;
+        QPointF lineLastPosition;
+        qreal lineLastAngle = 0;
+        InputSample lineLastInformation;
+        bool lineHaveLastInformation = false;
         InputSample previous;
         for (const auto command : operation.shape.pathCommands) {
             // A painter-path call owns its distance, while opacity averaging
@@ -302,10 +378,17 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 lineAccumulated = accumulated;
                 lineRotation = spacingRotation;
                 lineSequence = sequence;
+                lineLastPosition = lastDabPosition;
+                lineLastAngle = lastDrawingAngle;
+                lineLastInformation = lastPaintInformation;
+                lineHaveLastInformation = haveLastPaintInformation;
                 spacing = {.5, .5};
                 accumulated = {};
                 spacingRotation = 0;
                 sequence = 0;
+                lastDabPosition = {};
+                lastDrawingAngle = 0;
+                haveLastPaintInformation = false;
             }
             if (command == PathCommand::CubicTo) {
                 if (!cubic(previous, input[index].position, input[index + 1].position, input[index + 2])) return false;
@@ -325,6 +408,10 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 accumulated = lineAccumulated;
                 spacingRotation = lineRotation;
                 sequence = lineSequence;
+                lastDabPosition = lineLastPosition;
+                lastDrawingAngle = lineLastAngle;
+                lastPaintInformation = lineLastInformation;
+                haveLastPaintInformation = lineHaveLastInformation;
                 ++call;
             }
         }

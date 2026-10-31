@@ -45,6 +45,7 @@
 
 #include "kis_random_source.h"
 #include "KisPerStrokeRandomSource.h"
+#include <QRandomGenerator>
 #include "kis_smoothing_options.h"
 
 #include "strokes/freehand_stroke.h"
@@ -80,11 +81,11 @@ const qreal SPACING_UPDATE_INTERVAL = 50.0;
 const qreal TIMING_UPDATE_INTERVAL = 50.0;
 
 namespace {
-LibrePaint::Image::Gpu::InputSample gpuInputSample(const KisPaintInformation &information)
+LibrePaint::Image::Gpu::InputSample gpuInputSample(const KisPaintInformation &information, qreal initialDrawingAngle)
 {
     return {information.pos(), information.pressure(), information.xTilt(), information.yTilt(),
             information.rotation(), quint64(information.currentTime()), information.drawingSpeed(),
-            information.canvasRotation(), information.canvasMirroredH(), information.canvasMirroredV()};
+            information.canvasRotation(), information.canvasMirroredH(), information.canvasMirroredV(), initialDrawingAngle};
 }
 
 QString gpuInputError(LibrePaint::Image::Gpu::Result result)
@@ -101,6 +102,9 @@ struct KisToolFreehandHelper::Private
     LibrePaint::Image::Gpu::OperationId gpuOperation;
     QMetaObject::Connection gpuCancellation;
     bool gpuBasicInput = false;
+    qreal gpuInitialDrawingAngle = 0;
+    LibrePaint::Image::Gpu::InputSample gpuSample(const KisPaintInformation &information) const
+    { return gpuInputSample(information, gpuInitialDrawingAngle); }
     struct GpuStabilizer {
         qreal distanceMin;
         qreal distanceMax;
@@ -407,6 +411,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         disconnect(m_d->gpuCancellation);
         m_d->gpuImage = owner;
         m_d->gpuOperation = {};
+        m_d->gpuInitialDrawingAngle = startAngle;
         m_d->hasPaintAtLeastOnce = false;
         if (overrideNode || bounds) {
             m_d->infoBuilder->reset();
@@ -449,9 +454,10 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
                 options.delayDistance(), options.useDelayDistance(),
                 options.finishStabilizedCurve(), options.stabilizeSensors(), limit};
         }
+        const quint32 randomSeed = QRandomGenerator::global()->generate();
         m_d->gpuOperation = resources.transparencyMask
-            ? owner->beginTransparencyMaskStroke(resources.layer, resources.brush, 0)
-            : owner->beginStroke(resources.layer, resources.brush, 0);
+            ? owner->beginTransparencyMaskStroke(resources.layer, resources.brush, randomSeed)
+            : owner->beginStroke(resources.layer, resources.brush, randomSeed);
         if (m_d->gpuOperation.isNull()) {
             m_d->gpuStabilizer.reset();
             m_d->infoBuilder->reset();
@@ -480,7 +486,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
             return;
         }
         QPointer<KisToolFreehandHelper> guard(this);
-        const auto result = owner->appendSamples(m_d->gpuOperation, {gpuInputSample(pi)});
+        const auto result = owner->appendSamples(m_d->gpuOperation, {m_d->gpuSample(pi)});
         if (!guard) return;
         if (result != Gpu::Result::Success) {
             cancelPaint();
@@ -618,7 +624,7 @@ void KisToolFreehandHelper::paintEvent(KoPointerEvent *event)
         if (m_d->gpuBasicInput) m_d->strokeTimeoutTimer.stop();
         QPointer<KisToolFreehandHelper> guard(this);
         const auto owner = m_d->gpuImage;
-        const auto result = owner->appendSamples(m_d->gpuOperation, {gpuInputSample(info)});
+        const auto result = owner->appendSamples(m_d->gpuOperation, {m_d->gpuSample(info)});
         if (!guard) return;
         if (result != Gpu::Result::Success) {
             cancelPaint();
@@ -1303,8 +1309,8 @@ void KisToolFreehandHelper::paintAt(int strokeInfoId,
         if (!isRunning()) return;
         const auto owner = m_d->gpuImage;
         const QPointer<KisToolFreehandHelper> guard(this);
-        const auto result = m_d->gpuStabilizer ? owner->appendPoint(m_d->gpuOperation, gpuInputSample(pi)) :
-            owner->appendSamples(m_d->gpuOperation, {gpuInputSample(pi)});
+        const auto result = m_d->gpuStabilizer ? owner->appendPoint(m_d->gpuOperation, m_d->gpuSample(pi)) :
+            owner->appendSamples(m_d->gpuOperation, {m_d->gpuSample(pi)});
         if (!guard) return;
         if (result != LibrePaint::Image::Gpu::Result::Success) {
             cancelPaint();
@@ -1337,17 +1343,17 @@ void KisToolFreehandHelper::paintLine(int strokeInfoId,
                 if (guard) Q_EMIT requestErrorMessage(gpuInputError(LibrePaint::Image::Gpu::Result::CapacityExceeded));
                 return;
             }
-            batch.samples.append(gpuInputSample(pi1));
-            batch.samples.append(gpuInputSample(pi2));
+            batch.samples.append(m_d->gpuSample(pi1));
+            batch.samples.append(m_d->gpuSample(pi2));
             batch.commands.append(LibrePaint::Image::Gpu::PathCommand::MoveTo);
             batch.commands.append(LibrePaint::Image::Gpu::PathCommand::LineTo);
             return;
         }
         const auto result = m_d->gpuStabilizer ?
-            owner->appendLine(m_d->gpuOperation, gpuInputSample(pi1), gpuInputSample(pi2)) :
+            owner->appendLine(m_d->gpuOperation, m_d->gpuSample(pi1), m_d->gpuSample(pi2)) :
             owner->appendSamples(m_d->gpuOperation, m_d->hasPaintAtLeastOnce ?
-            QList<LibrePaint::Image::Gpu::InputSample>{gpuInputSample(pi2)} :
-            QList<LibrePaint::Image::Gpu::InputSample>{gpuInputSample(pi1), gpuInputSample(pi2)});
+            QList<LibrePaint::Image::Gpu::InputSample>{m_d->gpuSample(pi2)} :
+            QList<LibrePaint::Image::Gpu::InputSample>{m_d->gpuSample(pi1), m_d->gpuSample(pi2)});
         if (!guard) return;
         if (result != LibrePaint::Image::Gpu::Result::Success) {
             cancelPaint();
