@@ -1,14 +1,19 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 struct OutlineParameters {
-    size: vec2<u32>, origin: vec2<i32>
+    size: vec2<u32>, origin: vec2<i32>, format: vec4<u32>
 }
 @group(0) @binding(0) var<uniform> parameters: OutlineParameters;
 @group(0) @binding(1) var<storage, read> pixels: array<u32>;
 @group(0) @binding(2) var<storage, read_write> rowData: array<u32>;
 @group(0) @binding(3) var<storage, read_write> runs: array<vec4<i32>>;
 @group(0) @binding(4) var<storage, read_write> bounds: array<atomic<u32>>;
-fn alphaAt(x: u32, y: u32) -> u32 { return pixels[y * parameters.size.x + x]; }
+fn alphaAt(x: u32, y: u32) -> u32 {
+    let index = y * parameters.size.x + x;
+    if (parameters.format.x == 1u) { return pixels[index] >> 24u; }
+    if (parameters.format.x == 2u) { return (pixels[index >> 2u] >> ((index & 3u) * 8u)) & 255u; }
+    return pixels[index];
+}
 @compute @workgroup_size(64) fn countRows(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let y = invocation.x;
     if (y >= parameters.size.y) { return; }

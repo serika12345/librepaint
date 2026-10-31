@@ -284,7 +284,7 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         if (usePattern) {
             QString diagnostic;
             const auto pattern = captureGpuPatternResource(resources->currentPattern(),
-                image->isGpuTransparencyMaskView(node) ? KoColorSpaceRegistry::instance()->rgb8() : image->colorSpace(),
+                image->isGpuTransparencyMaskView(node) ? KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace(),
                 QTransform(), diagnostic);
             if (!pattern) {
                 reject(diagnostic);
@@ -313,11 +313,14 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
             return;
         }
         KoColor nativeColor = useBgColor ? resources->bgColor() : resources->fgColor();
-        const auto color = nativeColor.toQColor();
-        const std::array<quint8, 3> rgb{quint8(color.red()), quint8(color.green()), quint8(color.blue())};
-        nativeColor.convertTo(image->colorSpace());
+        const bool maskTarget = image->isGpuTransparencyMaskView(node);
+        nativeColor.convertTo(maskTarget ? KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace());
+        const auto gray = nativeColor.data()[0];
+        const std::array<quint8, 3> rgb{gray, gray, gray};
         Gpu::RgbaPixel fillColor;
-        if (owner->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
+        if (maskTarget) {
+            fillColor = {gray, gray, gray, 255};
+        } else if (owner->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
             quint16 bgra[4];
             std::memcpy(bgra, nativeColor.data(), sizeof(bgra));
             fillColor = {bgra[2], bgra[1], bgra[0], 65535};
@@ -329,19 +332,14 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
             resources->resourceManager()->resource(KoCanvasResource::GlobalAlphaLock).toBool();
         Gpu::LayerId layer = 0;
         // A selected mask child fills the parent layer's retained coverage.
-        const bool maskTarget = image->isGpuTransparencyMaskView(node);
-        if (maskTarget && fillBlendMode != Gpu::LayerBlendMode::Normal) {
-            reject(i18n("Blend modes are not available for transparency mask fills."));
-            return;
-        }
         const KisNodeSP fillNode = maskTarget ? node->parent() : node;
         for (const auto &candidate : owner->operations().snapshot()->layers)
             if (fillNode && candidate.uuid == fillNode->uuid()) layer = candidate.id;
         if (!layer || !view->blockUntilOperationsFinished(image)) return;
         if (!lifetime || lifetime->image().data() != image.data() || image->gpuImage() != owner) return;
         const auto result = maskTarget
-            ? (usePattern ? owner->fillTransparencyMaskPattern(layer, patternFill, opacity, erase, alphaLocked)
-                          : owner->fillTransparencyMask(layer, rgb, opacity, erase, alphaLocked))
+            ? (usePattern ? owner->fillTransparencyMaskPattern(layer, patternFill, opacity, erase, alphaLocked, fillBlendMode)
+                          : owner->fillTransparencyMask(layer, rgb, opacity, erase, alphaLocked, fillBlendMode))
             : (usePattern ? owner->fillLayerPattern(layer, patternFill, opacity, erase, alphaLocked, fillBlendMode)
                           : owner->fillLayerColor(layer, fillColor, opacity, erase, alphaLocked, fillBlendMode));
         if (result != Gpu::Result::Success) {

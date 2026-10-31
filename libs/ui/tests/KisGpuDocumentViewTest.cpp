@@ -274,6 +274,8 @@ private Q_SLOTS:
     void layerPanelTogglesAndRemovesGpuTransparencyMaskChild();
     void layerPanelGpuTransparencyMaskChildSurvivesSaving();
     void maskChildFreehandStrokeEditsOnlyCoverage();
+    void maskPresetsKeepOrdinaryEditing_data();
+    void maskPresetsKeepOrdinaryEditing();
     void selectionFillUsesGpuSelection();
     void nativeClipboardCoverageKeepsPrecisionAndSavedPixels_data();
     void nativeClipboardCoverageKeepsPrecisionAndSavedPixels();
@@ -2494,6 +2496,7 @@ void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()
     const auto maskBefore = owner->layerTransparencyMask(layerId);
     QVERIFY(maskBefore);
     QCOMPARE(maskBefore->coverage(20, 20), quint8(0));
+    window->viewManager()->canvasResourceProvider()->setFGColor(KoColor(Qt::white, image->colorSpace()));
     const auto brush = captureGpuBrushResources(image, child, view->canvasBase()->resourceManager());
     QCOMPARE(brush.layer, layerId);
     QVERIFY(brush.diagnostic.isEmpty());
@@ -2507,7 +2510,9 @@ void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()
     QCOMPARE(lifetime->undoStack()->count(), maskHistory + 1);
     QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
              Gpu::HistoryAction::PaintStroke);
-    QVERIFY(owner->layerTransparencyMask(layerId)->coverage(20, 20) > 0);
+    const auto paintedCoverage = owner->execution().readSelectionPixels(owner->layerTransparencyMask(layerId), {20, 20, 1, 1}, 1);
+    QCOMPARE(paintedCoverage.code, Gpu::ExecutionCode::Success);
+    QVERIFY(quint8(paintedCoverage.bytes[0]) > 0);
     quint8 painted = 0;
     child->paintDevice()->readBytes(&painted, 20, 20, 1, 1);
     QVERIFY(painted > 0);
@@ -2529,7 +2534,9 @@ void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()
     QTRY_COMPARE(lifetime->undoStack()->count(), maskHistory + 3);
     QCOMPARE(owner->operations().historyAction(owner->operations().undoCount()),
              Gpu::HistoryAction::FillLayer);
-    QVERIFY(owner->layerTransparencyMask(layerId)->coverage(44, 44) > 0);
+    const auto filledCoverage = owner->execution().readSelectionPixels(owner->layerTransparencyMask(layerId), {44, 44, 1, 1}, 1);
+    QCOMPARE(filledCoverage.code, Gpu::ExecutionCode::Success);
+    QVERIFY(quint8(filledCoverage.bytes[0]) > 0);
     quint8 filled = 0;
     child->paintDevice()->readBytes(&filled, 44, 44, 1, 1);
     QVERIFY(filled > 0);
@@ -2541,6 +2548,213 @@ void KisGpuDocumentViewTest::layerPanelShowsAndSelectsGpuTransparencyMaskChild()
     QCOMPARE(view->currentNode(), layer);
     QVERIFY(!view->currentMask());
     QCOMPARE(lifetime->undoStack()->count(), maskHistory + 3);
+}
+
+void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
+{
+    QTest::addColumn<QString>("presetName");
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<qreal>("flow");
+    for (const auto *name : {"d)_Ink-3_Gpen.kpp", "a)_Eraser_Small.kpp", "b)_Basic-5_Size_default.kpp",
+                             "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp"})
+        for (const bool words : {false, true}) {
+            const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1);
+        }
+    for (const bool words : {false, true})
+        QTest::newRow(words ? "Gpen-low-flow-u16" : "Gpen-low-flow-u8") << QStringLiteral("d)_Ink-3_Gpen.kpp") << words << qreal(.37);
+}
+
+void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(QString, presetName);
+    QFETCH(bool, words);
+    QFETCH(qreal, flow);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    const auto bundle = KisResourceStorageSP::create(QStringLiteral(KRITA_SOURCE_DIR "/krita/data/bundles/Krita_4_Default_Resources.bundle"));
+    QVERIFY(bundle->valid());
+    const auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
+    QVERIFY(sourcePreset);
+    KisResourceModel brushes(ResourceType::Brushes);
+    if (brushes.rowCount() == 0) QVERIFY(brushes.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/libs/brush/tests/data/brush.gbr"), false));
+    KisResourceModel patterns(ResourceType::Patterns);
+    if (patterns.rowCount() == 0) QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const QRect area(0, 0, 64, 64);
+    const QByteArray initial(area.width() * area.height(), char(128));
+    QList<QByteArray> expected;
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    for (const bool gpu : {false, true}) {
+        qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        auto preset = sourcePreset->clone().dynamicCast<KisPaintOpPreset>();
+        if (flow >= 0) preset->settings()->setProperty("FlowValue", flow);
+        preset->setFilename((gpu ? QStringLiteral("gpu-mask-") : QStringLiteral("cpu-mask-")) + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kpp"));
+        KisResourceModel presets(ResourceType::PaintOpPresets); QVERIFY(presets.addResource(preset));
+        std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+        document->setAutoSaveActive(false); document->setFileBatchMode(true);
+        QVERIFY(document->newImage(QStringLiteral("Ordinary mask editing"), area.width(), area.height(), cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+        auto image = KisImageSP(document->image());
+        auto layer = image->root()->firstChild(); QVERIFY(layer);
+        if (gpu) {
+            const auto owner = image->gpuImage(); QVERIFY(owner);
+            Gpu::RegionFillSettings settings; settings.seed = {16, 16}; settings.threshold = 1;
+            QCOMPARE(owner->selectRegion(owner->operations().activeLayer(), settings, Gpu::SelectionCombination::Replace), Gpu::Result::Success);
+            QCOMPARE(owner->combineSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(area, initial, area), Gpu::SelectionCombination::Intersect), Gpu::Result::Success);
+            QVERIFY(owner->selectionMask()->isGpuGenerated());
+            QVERIFY(image->addGpuTransparencyMaskFromSelection(layer));
+            QVERIFY(image->clearGpuSelection());
+        } else {
+            KisSelectionSP selection = new KisSelection;
+            selection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(initial.constData()), area);
+            KisTransparencyMaskSP mask = new KisTransparencyMask(image, QStringLiteral("Transparency Mask"));
+            mask->setSelection(selection); image->addNode(mask, layer); image->waitForDone();
+        }
+        auto child = layer->firstChild(); QVERIFY(child);
+        std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow()); window->resize(800, 600);
+        auto *view = window->newView(document.get()); QVERIFY(view);
+        QPointer<KisDocument> lifetime(document.release());
+        QPointer<QWindow> input; bool pressed = false;
+        const auto closeWindow = qScopeGuard([&] {
+            if (pressed && input) { if (lifetime) lifetime->image()->requestStrokeCancellation(); QTest::mouseRelease(input, Qt::LeftButton); }
+            if (lifetime) { lifetime->setModified(false); window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger(); }
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); window.reset();
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        });
+        window->viewManager()->setCurrentView(view);
+        for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+        window->show(); window->activateWindow();
+        auto *profiles = KisInputProfileManager::instance();
+        profiles->setProfileLocations({QStringLiteral(KRITA_SOURCE_DIR "/krita/data/input/kritadefault.profile")},
+                                     QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/input"));
+        profiles->loadProfiles();
+        window->viewManager()->nodeManager()->slotUiActivatedNode(child);
+        auto *resources = window->viewManager()->canvasResourceProvider();
+        const auto configure = [&] {
+            resources->setPaintOpPreset(preset); resources->setSize(13.75); resources->setOpacity(.7);
+            resources->setGlobalAlphaLock(false); resources->setMirrorHorizontal(false); resources->setMirrorVertical(false);
+            resources->setEraserMode(false); resources->setCurrentCompositeOp(QStringLiteral("normal"));
+            resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+        };
+        configure();
+        KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+        auto *tool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
+        QVERIFY(tool); QVERIFY(tool->setProperty("smoothingType", 0));
+        const auto prepareInput = [&] {
+            view->canvasBase()->canvasWidget()->setFocus(); view->canvasController()->resetCanvasRotation();
+            view->canvasController()->mirrorCanvas(false); view->zoomManager()->zoomTo100();
+            const auto extent = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
+            view->canvasController()->setPreferredCenter({extent.width() / 2, extent.height() / 2});
+            input = window->windowHandle();
+            if (gpu) for (auto *candidate : QGuiApplication::allWindows())
+                if (qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(candidate)) input = candidate;
+        };
+        QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= 64); prepareInput(); QTRY_VERIFY(input && input->isExposed());
+        const auto pixels = [&] {
+            QByteArray bytes(initial.size(), '\0');
+            child->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
+            return bytes;
+        };
+        const auto parentPixels = [&] {
+            QByteArray bytes(initial.size() * cs->pixelSize(), '\0');
+            layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
+            return bytes;
+        };
+        const auto originalParent = parentPixels();
+        int state = 0;
+        const auto compare = [&] {
+            const auto actual = pixels();
+            if (parentPixels() != originalParent) return false;
+            if (!gpu) expected.append(actual);
+            else if (actual != expected.value(state++)) return false;
+            return true;
+        };
+        const auto stroke = [&](const QList<QPointF> &points) {
+            const auto *converter = view->canvasBase()->coordinatesConverter();
+            const auto point = [&](QPointF value) {
+                const auto widget = converter->imageToWidget(value).toPoint();
+                return gpu ? widget : view->canvasBase()->canvasWidget()->mapTo(window.get(), widget);
+            };
+            const auto first = point(points.first()); QTest::mouseMove(input, first);
+            const auto local = converter->imageToWidget(points.first()).toPoint();
+            QEnterEvent entered(local, local, view->canvasBase()->canvasWidget()->mapToGlobal(local));
+            QApplication::sendEvent(gpu ? static_cast<QObject *>(input.data()) : view->canvasBase()->canvasWidget(), &entered);
+            pressed = true; QTest::mousePress(input, Qt::LeftButton, Qt::NoModifier, first);
+            for (const auto &value : points.mid(1)) QTest::mouseMove(input, point(value), 5);
+            QTest::mouseRelease(input, Qt::LeftButton, Qt::NoModifier, point(points.last())); pressed = false;
+            image->waitForDone(); QApplication::processEvents();
+        };
+        QCOMPARE(pixels(), initial);
+        stroke({{24, 24}, {40, 36}});
+        const auto painted = pixels(); QVERIFY(painted != initial);
+        QVERIFY2(compare(), "Ordinary mask preset painting must match native Alpha8 pixels");
+        lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(), initial);
+        lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(pixels(), painted);
+        resources->setEraserMode(true); stroke({{32, 32}});
+        const auto erased = pixels(); QVERIFY(erased != painted);
+        QVERIFY2(compare(), "Ordinary mask preset erasing must match native Alpha8 pixels");
+        lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(), painted);
+        lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(pixels(), erased);
+        resources->setEraserMode(false); resources->setCurrentCompositeOp(QStringLiteral("normal"));
+        resources->setFGColor(KoColor(QColor(241, 17, 129), cs));
+        const QRect selected(4, 4, 12, 12);
+        if (gpu) QVERIFY(image->setGpuSelectionRect(selected));
+        else { KisPixelSelectionSP selection = new KisPixelSelection; selection->select(selected, 255);
+            KisSelectionToolHelper helper(view->canvasBase(), kundo2_i18n("Select Rectangle"));
+            helper.selectPixelSelection(selection, SELECTION_REPLACE); image->waitForDone(); }
+        auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color_opacity"));
+        QVERIFY(fill && fill->isEnabled()); fill->trigger(); image->waitForDone(); QApplication::processEvents();
+        QVERIFY2(compare(), "Selected foreground mask fill must preserve native gray conversion");
+        QImage patternImage(2, 2, QImage::Format_ARGB32);
+        patternImage.setPixelColor(0, 0, QColor(34, 68, 102, 200));
+        patternImage.setPixelColor(1, 0, QColor(211, 17, 93, 127));
+        patternImage.setPixelColor(0, 1, QColor(71, 181, 241, 255));
+        patternImage.setPixelColor(1, 1, QColor(255, 255, 255, 0));
+        resources->slotPatternActivated(KoPatternSP(new KoPattern(patternImage, QStringLiteral("Mask pattern"), QString())));
+        resources->setCurrentCompositeOp(QStringLiteral("multiply"));
+        auto *patternFill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_pattern_opacity"));
+        QVERIFY(patternFill && patternFill->isEnabled()); patternFill->trigger(); image->waitForDone(); QApplication::processEvents();
+        QVERIFY2(compare(), "Selected pattern mask fill must preserve native gray, alpha and blend mode");
+        resources->setCurrentCompositeOp(QStringLiteral("normal"));
+        // Figure painting reuses the same frozen resources and global selection.
+        {
+            KisFigurePaintingStroke figure(kundo2_i18n("Mask figure"), image, child, view->canvasBase()->resourceManager(),
+                KisFigurePaintingOptions::StrokeStyleNone, KisFigurePaintingOptions::FillStyleBackgroundColor);
+            figure.paintRect(QRectF(6, 6, 8, 8));
+        }
+        image->waitForDone(); QApplication::processEvents();
+        QVERIFY2(compare(), "Selected mask figure must preserve native gray composition");
+        {
+            KisFigurePaintingStroke figure(kundo2_i18n("Mask outline selection override"), image, child, view->canvasBase()->resourceManager(),
+                KisFigurePaintingOptions::StrokeStyleNone, KisFigurePaintingOptions::FillStyleForegroundColor);
+            figure.setSelectionOverride({}); figure.paintRect(QRectF(50, 6, 8, 8));
+        }
+        image->waitForDone(); QApplication::processEvents();
+        QVERIFY2(compare(), "Selection-outline callers must paint across the frozen selection boundary");
+        auto *deselect = window->viewManager()->actionManager()->actionByName(QStringLiteral("deselect"));
+        QVERIFY(deselect && deselect->isEnabled()); deselect->trigger(); image->waitForDone();
+        const auto saved = pixels();
+        const auto path = directory.filePath(gpu ? QStringLiteral("gpu.kra") : QStringLiteral("cpu.kra"));
+        QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+        lifetime->waitForSavingToComplete();
+        QVERIFY2(lifetime->openPath(path, KisDocument::DontAddToRecent), qPrintable(lifetime->errorMessage()));
+        image = lifetime->image(); layer = image->root()->firstChild(); child = layer->firstChild(); QVERIFY(child);
+        window->viewManager()->nodeManager()->slotUiActivatedNode(child);
+        QCOMPARE(pixels(), saved); QVERIFY2(compare(), "KRA reload must preserve the entire edited mask");
+        configure(); prepareInput();
+        stroke({{50, 50}}); QVERIFY(pixels() != saved);
+        QVERIFY2(compare(), "Mask preset editing after KRA reload must preserve native pixels");
+        const auto edited = pixels(); lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(), saved);
+        lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(pixels(), edited);
+        QVERIFY2(lifetime->saveAs(directory.filePath(gpu ? QStringLiteral("gpu-edited.kra") : QStringLiteral("cpu-edited.kra")),
+            KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+        lifetime->waitForSavingToComplete();
+    }
 }
 
 void KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage()
@@ -2653,8 +2867,10 @@ void KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage()
              Gpu::HistoryAction::PaintStroke);
     const auto edited = owner->layerTransparencyMask(layerId);
     QVERIFY(edited);
-    QVERIFY(edited->coverage(44, 44) > 0);
-    QCOMPARE(edited->coverage(12, 12), quint8(255));
+    const auto editedCoverage = owner->execution().readSelectionPixels(edited, {0, 0, 64, 64}, 64 * 64);
+    QCOMPARE(editedCoverage.code, Gpu::ExecutionCode::Success);
+    QVERIFY(quint8(editedCoverage.bytes[44 * 64 + 44]) > 0);
+    QCOMPARE(quint8(editedCoverage.bytes[12 * 64 + 12]), quint8(255));
     QVERIFY(owner->operations().snapshot()->layers.first().operations.isEmpty());
     const auto layerPixels = owner->readRgbaPixels(layerId, QRect(44, 44, 1, 1), 4);
     QCOMPARE(layerPixels.code, Gpu::ExecutionCode::Success);

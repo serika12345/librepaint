@@ -45,6 +45,7 @@ private Q_SLOTS:
     void affineResamplingReadsMovedSourceTilesAcrossCanonicalBoundaries();
     void erasedMasksRemainTransparentAndAcceptFurtherPainting_data();
     void erasedMasksRemainTransparentAndAcceptFurtherPainting();
+    void paintedMasksKeepSparseGpuCoverageAfterClosure();
     void layerPickingKeepsNativeAlphaMasksAndPinnedRequests_data();
     void layerPickingKeepsNativeAlphaMasksAndPinnedRequests();
     void layerForestTranslationKeepsPixelsMasksAndOneHistory_data();
@@ -781,11 +782,81 @@ void KisGpuPaintImageTest::erasedMasksRemainTransparentAndAcceptFurtherPainting(
     const auto next = image.beginTransparencyMaskStroke(layerId, paint, 11); QVERIFY(!next.isNull());
     QCOMPARE(image.appendSamples(next, {{{24, 24}, 1}}), Result::Success);
     QCOMPARE(image.commitStroke(next), Result::Success);
-    QVERIFY(image.layerTransparencyMask(layerId)->coverage(24, 24) > 0);
-    QCOMPARE(image.layerTransparencyMask(layerId)->coverage(0, 0), quint8(0));
+    QVERIFY(image.layerTransparencyMask(layerId)->isGpuGenerated());
+    const auto coverage = execution.readSelectionPixels(image.layerTransparencyMask(layerId), QRect(0, 0, 64, 64), 64 * 64);
+    QCOMPARE(coverage.code, ExecutionCode::Success);
+    QVERIFY(quint8(coverage.bytes[24 * 64 + 24]) > 0);
+    QCOMPARE(quint8(coverage.bytes[0]), quint8(0));
     QCOMPARE(image.undo(), Result::Success); QVERIFY(image.layerTransparencyMask(layerId)->isEmpty());
     const auto pinned = execution.readRgbaPixels(image.handle(), erased, {0, 0, 1, 1}, 0, pixelByteCount(raster.format));
     QCOMPARE(pinned.code, ExecutionCode::Success); QCOMPARE(pinned.bytes, QByteArray(pixelByteCount(raster.format), '\0'));
+}
+
+void KisGpuPaintImageTest::paintedMasksKeepSparseGpuCoverageAfterClosure()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    SelectionTileMap tiles;
+    QByteArray alpha(SelectionMask::AlphaTileBytes, '\0');
+    for (int y = 0; y < 256; ++y) for (int x = 0; x < 256; ++x)
+        if (QRect(3, 5, 29, 31).contains(x, y)) alpha[y * 256 + x] = char(1 + (x + y * 3) % 255);
+    tiles.insert({0, 0}, alpha); tiles.insert({4000, 5000}, alpha);
+    const auto original = SelectionMask::fromAlphaTiles(tiles);
+    QVERIFY(original);
+    const QRect far(QPoint(4000, 5000) * 256, QSize(256, 256));
+    SelectionMaskSP painted;
+    QByteArray nearPixels;
+    {
+        RasterImage raster; raster.size = {64, 64};
+        raster.layers = {{QStringLiteral("Sparse masked layer"), true, {}, {}}};
+        raster.layers.first().defaultPixel = {17, 129, 241, 255};
+        raster.layers.first().transparencyMask = original;
+        PaintImage image(execution, raster);
+        Brush erase; erase.diameter = 8; erase.erase = true;
+        const auto before = image.operations().snapshot();
+        const auto cancelled = image.beginTransparencyMaskStroke(1, erase, 51); QVERIFY(!cancelled.isNull());
+        QCOMPARE(image.appendSamples(cancelled, {{{17, 19}, 1}, {{18, 19}, 1}}), Result::Success);
+        QCOMPARE(image.operations().snapshot(), before); QCOMPARE(image.operations().undoCount(), 0);
+        const auto preview = image.operations().preview(); QVERIFY(preview != before);
+        QCOMPARE(execution.requested(image.handle()), preview);
+        const auto previewPixels = execution.readSelectionPixels(preview->layers.first().transparencyMask, {17, 19, 1, 1}, 1);
+        QCOMPARE(previewPixels.code, ExecutionCode::Success); QCOMPARE(previewPixels.bytes, QByteArray(1, '\0'));
+        QCOMPARE(image.cancelStroke(cancelled), Result::Success);
+        QCOMPARE(image.operations().preview(), before); QCOMPARE(execution.requested(image.handle()), before);
+        QVERIFY(!image.operations().hasActiveStroke());
+        const auto stroke = image.beginTransparencyMaskStroke(1, erase, 53);
+        QVERIFY(!stroke.isNull());
+        QCOMPARE(image.appendSamples(stroke, {{{17, 19}, 1}}), Result::Success);
+        const auto active = execution.beginReadbackFrame(); QCOMPARE(active.code, ExecutionCode::Success);
+        QCOMPARE(image.commitStroke(stroke), Result::EditInProgress);
+        QVERIFY(image.operations().hasActiveStroke()); QCOMPARE(image.operations().snapshot(), before);
+        QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+        QCOMPARE(image.commitStroke(stroke), Result::Success);
+        painted = image.layerTransparencyMask(1);
+        QVERIFY(painted && painted->isGpuGenerated());
+        QCOMPARE(painted->tileCoordinates().size(), 2);
+        QVERIFY(painted->tiles().isEmpty());
+        QCOMPARE(execution.readSelectionPixels(painted, far, alpha.size()).bytes, alpha);
+        const auto near = execution.readSelectionPixels(painted, QRect(0, 0, 256, 256), alpha.size());
+        QCOMPARE(near.code, ExecutionCode::Success);
+        nearPixels = near.bytes;
+        QVERIFY(nearPixels != alpha);
+        QCOMPARE(quint8(nearPixels[19 * 256 + 17]), quint8(0));
+        QCOMPARE(image.undo(), Result::Success);
+        QCOMPARE(image.layerTransparencyMask(1), original);
+        QCOMPARE(image.redo(), Result::Success);
+        QCOMPARE(image.layerTransparencyMask(1), painted);
+        image.close();
+    }
+    QCOMPARE(execution.pendingDocuments(), qsizetype(0));
+    QCOMPARE(execution.readSelectionPixels(painted, far, alpha.size()).bytes, alpha);
+    const auto replacement = Device::createNative(diagnostic);
+    QVERIFY2(replacement, qPrintable(diagnostic));
+    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
+    QCOMPARE(execution.readSelectionPixels(painted, far, alpha.size()).bytes, alpha);
+    QCOMPARE(execution.readSelectionPixels(painted, QRect(0, 0, 256, 256), alpha.size()).bytes, nearPixels);
 }
 
 void KisGpuPaintImageTest::layerPickingKeepsNativeAlphaMasksAndPinnedRequests_data()

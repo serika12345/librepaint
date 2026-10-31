@@ -158,8 +158,13 @@ public:
      */
     Result fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
                                 qreal opacity = 1, bool erase = false, bool alphaLocked = false);
+    Result fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &gray,
+                                qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode);
     Result fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
                                        qreal opacity = 1, bool erase = false, bool alphaLocked = false);
+
+    Result fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
+                                       qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode);
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
@@ -323,6 +328,8 @@ private:
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory,
                            Snapshot *retainedVersion = nullptr);
+    QSharedPointer<PaintImage> createMaskImage(const Snapshot &version, const SelectionMaskSP &mask);
+    Result refreshMaskStrokePreview(Result result);
     Result commitMaskStroke();
     Result paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
                                        const QList<InputSample> &samples, const Shape &shape,

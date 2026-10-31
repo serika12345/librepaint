@@ -346,7 +346,38 @@ Result OperationDocument::endExternalStroke(const OperationId &id)
     if (m_closed) return Result::Closed;
     if (m_externalOperation.isNull() || m_externalOperation != id) return Result::StaleOperation;
     m_externalOperation = {};
+    m_preview.clear();
     return Result::Success;
+}
+
+Result OperationDocument::updateExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask)
+{
+    if (m_closed) return Result::Closed;
+    if (m_externalOperation.isNull() || m_externalOperation != id) return Result::StaleOperation;
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (!mask) return Result::InvalidInput;
+    if (m_nextRevision == std::numeric_limits<quint64>::max() || !selectionFitsRetainedInputs(mask))
+        return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].transparencyMask = mask;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    version->m_committed = false;
+    version->m_pendingOperation = id;
+    m_preview = version;
+    return Result::Success;
+}
+
+Result OperationDocument::commitExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask)
+{
+    if (m_closed) return Result::Closed;
+    if (m_externalOperation.isNull() || m_externalOperation != id) return Result::StaleOperation;
+    const auto preview = m_preview;
+    m_externalOperation = {};
+    m_preview.clear();
+    const auto result = replaceTransparencyMask(layer, mask);
+    if (result != Result::Success) { m_externalOperation = id; m_preview = preview; }
+    return result;
 }
 
 Result OperationDocument::setSelectionRect(const QRect &rect, bool inverted)
@@ -870,6 +901,10 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
     QSharedPointer<PaintOperation> operation(new PaintOperation(*m_edit));
     operation->shape = shape;
     operation->figureStyle = style;
+    operation->selectionRect = style.ignoreSelection ? QRect() : snapshot()->selection;
+    operation->selectionKind = style.ignoreSelection ? SelectionKind::Rectangle : snapshot()->selectionKind;
+    operation->selectionInverted = !style.ignoreSelection && snapshot()->selectionInverted;
+    operation->selectionMask = style.ignoreSelection ? SelectionMaskSP() : snapshot()->selectionMask;
     ++operation->version;
     replacePreview(operation);
     return Result::Success;

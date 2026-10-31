@@ -13,11 +13,11 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 
 ExecutionOutcome Execution::readSelectionOutline(const std::shared_ptr<BufferStorage> &pixels,
-    QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *outputRuns)
+    QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *outputRuns, quint32 format)
 {
     auto &d = *m_d;
     auto &r = *d.renderer->m_d;
-    if (!bounds || !outputRuns || !pixels || d.active || extent.isEmpty()) return {ExecutionCode::InvalidRequest, {}};
+    if (!bounds || !outputRuns || !pixels || d.active || extent.isEmpty() || format > 2) return {ExecutionCode::InvalidRequest, {}};
     const auto size = extent.size();
     const quint64 countBytes = quint64(size.height()) * sizeof(quint32);
     if (size.isEmpty() || countBytes + 20 > quint64(d.maximumReadbackBytes))
@@ -35,7 +35,7 @@ ExecutionOutcome Execution::readSelectionOutline(const std::shared_ptr<BufferSto
     const auto rows = allocate(countBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
     const auto status = allocate(20, WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
     const auto dummy = allocate(16, WGPUBufferUsage_Storage);
-    const auto uniform = allocate(16, WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+    const auto uniform = allocate(32, WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
     if (!rows || !status || !dummy || !uniform)
         return {ExecutionCode::CapacityExceeded, QStringLiteral("Selection outline working capacity is unavailable")};
     if (!r.coverageGeometryLayout) {
@@ -58,7 +58,7 @@ ExecutionOutcome Execution::readSelectionOutline(const std::shared_ptr<BufferSto
     }
     if (!r.coverageCountPipeline || !r.coverageOutlinePipeline)
         return {ExecutionCode::DeviceFailure, r.error};
-    const qint32 parameters[4]{size.width(), size.height(), extent.x(), extent.y()};
+    const qint32 parameters[8]{size.width(), size.height(), extent.x(), extent.y(), qint32(format), 0, 0, 0};
     const quint32 initial[5]{0, quint32(size.width()), quint32(size.height()), 0, 0};
     wgpuQueueWriteBuffer(d.device->queue(), uniform->pixels.get(), 0, parameters, sizeof(parameters));
     wgpuQueueWriteBuffer(d.device->queue(), status->pixels.get(), 0, initial, sizeof(initial));

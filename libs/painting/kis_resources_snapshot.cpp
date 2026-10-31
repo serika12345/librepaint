@@ -225,9 +225,12 @@ KisGpuBrushResources captureGpuPaintingResources(
         brush.mirrorCenter = center.toPoint();
     }
     KoColor color = resources->foregroundColor();
-    color.convertTo(image->colorSpace());
+    color.convertTo(maskView ? KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace());
     // Figure or brush coverage owns alpha; canvas opacity is applied separately.
-    if (image->gpuImage()->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
+    if (maskView) {
+        const auto gray = color.data()[0];
+        brush.rgba = {gray, gray, gray, 255};
+    } else if (image->gpuImage()->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
         quint16 bgra[4];
         std::memcpy(bgra, color.data(), sizeof(bgra));
         brush.rgba = {bgra[2], bgra[1], bgra[0], 65535};
@@ -280,7 +283,9 @@ std::optional<LibrePaint::Image::Gpu::PatternFill> captureGpuPatternResource(
         diagnostic = message;
         return std::nullopt;
     };
-    if (!pattern || !pattern->valid() || !colorSpace || colorSpace->colorModelId() != RGBAColorModelID)
+    const bool gray = colorSpace && colorSpace->colorModelId() == GrayAColorModelID &&
+        colorSpace->colorDepthId() == Integer8BitsColorDepthID;
+    if (!pattern || !pattern->valid() || !colorSpace || (!gray && colorSpace->colorModelId() != RGBAColorModelID))
         return reject(i18n("No usable pattern is selected for this document."));
     try {
         Gpu::PatternFill result;
@@ -303,7 +308,8 @@ std::optional<LibrePaint::Image::Gpu::PatternFill> captureGpuPatternResource(
         // Match the product pattern import: an untagged BGRA8 source uses the
         // registry default profile, while an RGBA8 destination retains raw bytes.
         const auto *sourceSpace = KoColorSpaceRegistry::instance()->rgb8();
-        QByteArray row(source.width() * stride, '\0');
+        const auto convertedStride = colorSpace->pixelSize();
+        QByteArray row(source.width() * convertedStride, '\0');
         for (int y = 0; y < source.height(); ++y) {
             const auto *pixels = source.constScanLine(y);
             if (colorSpace->id() != QLatin1String("RGBA")) {
@@ -313,7 +319,13 @@ std::optional<LibrePaint::Image::Gpu::PatternFill> captureGpuPatternResource(
             }
             auto *destination = result.rgba.data() + qint64(y) * source.width() * stride;
             for (int x = 0; x < source.width(); ++x) {
-                const auto *pixel = pixels + x * stride;
+                const auto *pixel = pixels + x * convertedStride;
+                if (gray) {
+                    auto *encoded = destination + x * stride;
+                    encoded[0] = encoded[1] = encoded[2] = char(pixel[0]);
+                    encoded[3] = char(pixel[1]);
+                    continue;
+                }
                 const int component = stride / 4;
                 std::memcpy(destination + x * stride, pixel + component * 2, component);
                 std::memcpy(destination + x * stride + component, pixel + component, component);

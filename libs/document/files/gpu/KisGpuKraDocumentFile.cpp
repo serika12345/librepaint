@@ -71,21 +71,19 @@ ExecutionOutcome readKraMaskPixels(Execution &execution, RasterImage &image, qsi
             if (cached != externalMasks.cend()) return cached.value();
             SelectionTileMap tiles;
             const auto bounds = mask->bounds();
-            const auto index = [](int value) { return value / SelectionMask::TileSize - int(value % SelectionMask::TileSize < 0); };
+            const auto coordinates = mask->tileCoordinates();
             if (!bounds.isEmpty()) {
-                const int left = index(bounds.left()), right = index(bounds.right());
-                const int top = index(bounds.top()), bottom = index(bounds.bottom());
-                const quint64 bytes = quint64(right - left + 1) * quint64(bottom - top + 1) * SelectionMask::AlphaTileBytes;
+                const quint64 bytes = quint64(coordinates.size()) * SelectionMask::AlphaTileBytes;
                 if (bytes > quint64(qMax<qsizetype>(0, maximumBytes - rasterBytes)) || bytes > quint64(SelectionMask::MaximumBytes)) {
                     maskRead = {ExecutionCode::CapacityExceeded, QStringLiteral("KRA selection pixels exceed the raster capacity")};
                     return {};
                 }
-                for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                for (const auto point : coordinates) {
                     const auto read = execution.readSelectionPixels(mask,
-                        QRect(QPoint(x, y) * SelectionMask::TileSize, QSize(SelectionMask::TileSize, SelectionMask::TileSize)),
+                        QRect(point * SelectionMask::TileSize, QSize(SelectionMask::TileSize, SelectionMask::TileSize)),
                         SelectionMask::AlphaTileBytes);
                     if (read.code != ExecutionCode::Success) { maskRead = {read.code, read.diagnostic}; return {}; }
-                    tiles.insert({x, y}, read.bytes);
+                    tiles.insert({point.x(), point.y()}, read.bytes);
                 }
                 rasterBytes += qsizetype(bytes);
             }

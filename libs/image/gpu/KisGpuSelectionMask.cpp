@@ -508,7 +508,37 @@ QRect SelectionMask::nativeExtent() const
 {
     if (m_region) return QRect(m_region->coverageOrigin, m_region->coverageSize);
     if (m_combination) return m_combination->extent;
-    return m_translation ? m_translation->extent : QRect();
+    return m_translation ? m_translation->extent : m_paint ? m_bounds : QRect();
+}
+
+QSharedPointer<const SelectionMask> SelectionMask::fromPaint(const QSharedPointer<const SelectionPaintSource> &source,
+    const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
+{
+    if (!source || !source->source || source->source->format != PixelFormat::Rgba8 || !pixels ||
+        source->tiles.size() > MaximumBytes / AlphaTileBytes || !validOutline(bounds, outlineRuns)) return {};
+    const auto layer = std::find_if(source->source->layers.cbegin(), source->source->layers.cend(),
+        [&](const auto &value) { return value.id == source->layer; });
+    if (layer == source->source->layers.cend() || layer->kind != LayerKind::Paint || layer->defaultPixel[3]) return {};
+    for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
+    result->m_paint = source; result->m_outlineRuns = outlineRuns; result->m_nativePixels = pixels;
+    return result;
+}
+
+QList<QPoint> SelectionMask::tileCoordinates() const
+{
+    if (m_paint) return m_paint->tiles;
+    QList<QPoint> result;
+    if (!isGpuGenerated()) {
+        result.reserve(m_tiles.size());
+        for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile)
+            result.append(QPoint(tile.key().first, tile.key().second));
+    } else if (!m_bounds.isEmpty()) {
+        const int left = floorDivide(m_bounds.left(), TileSize), right = floorDivide(m_bounds.right(), TileSize);
+        const int top = floorDivide(m_bounds.top(), TileSize), bottom = floorDivide(m_bounds.bottom(), TileSize);
+        for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) result.append(QPoint(x, y));
+    }
+    return result;
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::inverted(const QRect &clip) const
@@ -806,7 +836,7 @@ QSharedPointer<const SelectionMask> SelectionMask::transformed(const AffinePlan 
 bool SelectionMask::operator==(const SelectionMask &other) const
 {
     return m_format == other.m_format && m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
-        m_region == other.m_region && m_combination == other.m_combination && m_translation == other.m_translation &&
+        m_region == other.m_region && m_combination == other.m_combination && m_translation == other.m_translation && m_paint == other.m_paint &&
         m_outlineRuns == other.m_outlineRuns;
 }
 }

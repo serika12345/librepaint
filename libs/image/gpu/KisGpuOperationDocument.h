@@ -238,6 +238,8 @@ struct Brush
     qreal opacity = 1;
     bool erase = false;
     bool alphaLocked = false;
+    /** Alpha8 mask editing composites in native GrayA8 before flattening coverage. */
+    bool maskPainting = false;
     /** Stroke coverage blend mode, frozen at stroke start. Erase never blends. */
     LayerBlendMode blendMode = LayerBlendMode::Normal;
     /** Writable R, G, B, A channels in bits 0 through 3, frozen at stroke start. */
@@ -260,7 +262,7 @@ struct Brush
             spacing == other.spacing && autoSpacing == other.autoSpacing &&
             autoSpacingCoefficient == other.autoSpacingCoefficient && sizeResponse == other.sizeResponse &&
             opacity == other.opacity && erase == other.erase &&
-            alphaLocked == other.alphaLocked && blendMode == other.blendMode &&
+            alphaLocked == other.alphaLocked && maskPainting == other.maskPainting && blendMode == other.blendMode &&
             channelWriteMask == other.channelWriteMask &&
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
             mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect &&
@@ -339,6 +341,8 @@ struct FigureStyle
     std::optional<RgbaPixel> fill;
     std::optional<PatternFill> pattern;
     LayerBlendMode fillBlendMode = LayerBlendMode::Normal;
+    /** Selection-outline actions paint the whole outline across the selected boundary. */
+    bool ignoreSelection = false;
 };
 
 /** True when this figure contributes filled interior coverage. */
@@ -1205,6 +1209,8 @@ private:
      */
     Result beginExternalStroke(const OperationId &id);
     Result endExternalStroke(const OperationId &id);
+    Result updateExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask);
+    Result commitExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask);
     qsizetype layerIndex(LayerId layer) const;
     void replacePreview(const QSharedPointer<const PaintOperation> &operation);
     void commitVersion(const Snapshot &version);

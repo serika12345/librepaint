@@ -33,6 +33,7 @@ using SelectionTileMap = QMap<SelectionTileKey, QByteArray>;
 enum class SelectionCombination : quint8 { Replace, Add, Subtract, Intersect, SymmetricDifference };
 
 class SelectionMask;
+class DocumentVersion;
 /** Frozen inputs for the ordinary selection tools' Alpha8 arithmetic. */
 struct SelectionCombinationSource
 {
@@ -48,6 +49,14 @@ struct SelectionTranslationSource
     QSharedPointer<const SelectionMask> source;
     QPoint offset;
     QRect extent;
+};
+
+/** Frozen raw layer alpha produced by ordinary transparency-mask painting. */
+struct SelectionPaintSource
+{
+    QSharedPointer<const DocumentVersion> source;
+    quint64 layer = 0;
+    QList<QPoint> tiles;
 };
 
 /**
@@ -107,10 +116,15 @@ public:
      * geometry are CPU values; editing and external pixel readers use the
      * retained GPU source. Invalid geometry or capacity returns null.
      */
-    bool isGpuGenerated() const { return !m_region.isNull() || !m_combination.isNull() || !m_translation.isNull(); }
+    bool isGpuGenerated() const { return m_region || m_combination || m_translation || m_paint; }
     const QSharedPointer<const RegionFill> &regionSource() const { return m_region; }
     const QSharedPointer<const SelectionCombinationSource> &combinationSource() const { return m_combination; }
     const QSharedPointer<const SelectionTranslationSource> &translationSource() const { return m_translation; }
+    const QSharedPointer<const SelectionPaintSource> &paintSource() const { return m_paint; }
+    /** Finite tile coordinates for input initialization and external reads.
+     * Painted masks retain their sparse occupied tiles, including off-canvas
+     * coverage. Dense generated sources supply their bounded tile extent. */
+    QList<QPoint> tileCoordinates() const;
     /** Threshold-128 row spans for display and selection-tool hit testing.
      * These vectors do not supply editing coverage or saved pixels.
      */
@@ -187,6 +201,8 @@ private:
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
     static QSharedPointer<const SelectionMask> fromTranslation(const QSharedPointer<const SelectionTranslationSource> &source,
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
+    static QSharedPointer<const SelectionMask> fromPaint(const QSharedPointer<const SelectionPaintSource> &source,
+        const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
     QRect nativeExtent() const;
     const std::shared_ptr<Detail::SelectionPixels> &nativePixels() const { return m_nativePixels; }
     enum class CoverageFormat : quint8 { Binary, Alpha };
@@ -198,6 +214,7 @@ private:
     QSharedPointer<const RegionFill> m_region;
     QSharedPointer<const SelectionCombinationSource> m_combination;
     QSharedPointer<const SelectionTranslationSource> m_translation;
+    QSharedPointer<const SelectionPaintSource> m_paint;
     QList<QRect> m_outlineRuns;
     std::shared_ptr<Detail::SelectionPixels> m_nativePixels;
 };

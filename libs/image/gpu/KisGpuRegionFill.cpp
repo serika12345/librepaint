@@ -89,6 +89,11 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
             if (!add(translation.data(), sizeof(SelectionTranslationSource))) return false;
             pendingMasks.append(translation->source);
         }
+        if (const auto &paint = value->paintSource()) {
+            if (!add(paint.data(), sizeof(SelectionPaintSource)) ||
+                !add(paint->tiles.constData(), paint->tiles.size() * qsizetype(sizeof(QPoint)))) return false;
+            pending.append(paint->source);
+        }
         return true;
     };
     if (!inputs(settings) || !mask(extraMask)) return false;

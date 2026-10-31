@@ -31,6 +31,8 @@ class KisGpuRegionColourTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void paintedMasksMatchNativeGrayComposition_data();
+    void paintedMasksMatchNativeGrayComposition();
     void similarColourCoverageKeepsNativeDifference_data();
     void similarColourCoverageKeepsNativeDifference();
     void colourSelectionUsesUnclippedMaskedProjection();
@@ -39,6 +41,74 @@ private Q_SLOTS:
     void generatedSelectionActionsRetainAlphaAndHistory();
     void generatedSelectionMovesKeepClippedAlphaAndHistory();
 };
+void KisGpuRegionColourTest::paintedMasksMatchNativeGrayComposition_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<QString>("composite");
+    for (const bool words : {false, true})
+        for (const auto &mode : {COMPOSITE_OVER, COMPOSITE_ERASE, COMPOSITE_COPY, COMPOSITE_MULT}) {
+            const QByteArray name = QByteArray(words ? "word-" : "byte-") + mode.toLatin1();
+            QTest::newRow(name.constData()) << words << mode;
+        }
+}
+
+void KisGpuRegionColourTest::paintedMasksMatchNativeGrayComposition()
+{
+    QFETCH(bool, words);
+    QFETCH(QString, composite);
+    auto *registry = KoColorSpaceRegistry::instance();
+    const auto *gray = registry->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString());
+    const auto *alpha = registry->alpha8();
+    QVERIFY(gray && alpha && gray->hasCompositeOp(composite));
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    const QSize size(64, 16);
+    const QRect area(QPoint(), size);
+    QByteArray initial, selected, nativeSource;
+    PatternFill pattern; pattern.size = size;
+    for (int i = 0; i < size.width() * size.height(); ++i) {
+        const auto value = quint8((i * 53 + 19) & 255);
+        const auto coverage = quint8((i * 71) & 255);
+        const auto sourceAlpha = quint8((i * 31 + 127) & 255);
+        initial.append(char((i * 17) & 255)); selected.append(char(coverage));
+        nativeSource.append(char(value)); nativeSource.append(char(sourceAlpha));
+        pattern.rgba += rgbaBytes({value, value, value, sourceAlpha}, PixelFormat::Rgba8);
+    }
+    const auto original = SelectionMask::fromAlphaCoverage(area, initial, area);
+    QVERIFY(original);
+    for (const qreal opacity : {qreal(1), qreal(.31)}) {
+        auto expected = initial;
+        KoCompositeOp::ParameterInfo parameters;
+        parameters.dstRowStart = reinterpret_cast<quint8 *>(expected.data()); parameters.dstRowStride = size.width();
+        parameters.srcRowStart = reinterpret_cast<const quint8 *>(nativeSource.constData()); parameters.srcRowStride = size.width() * 2;
+        parameters.maskRowStart = reinterpret_cast<const quint8 *>(selected.constData()); parameters.maskRowStride = size.width();
+        parameters.rows = size.height(); parameters.cols = size.width(); parameters.flow = 1;
+        parameters.setOpacityAndAverage(float(opacity), float(opacity));
+        alpha->bitBlt(gray, parameters, gray->compositeOp(composite),
+            KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
+        RasterImage raster; raster.size = size; raster.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+        raster.layers = {{QStringLiteral("Native gray mask"), true, {}, {}}};
+        raster.layers.first().defaultPixel = {0, 0, 0, maximumComponent(raster.format)};
+        raster.layers.first().transparencyMask = original;
+        PaintImage image(execution, raster);
+        QCOMPARE(image.setSelectionMask(SelectionMask::fromAlphaCoverage(area, selected, area)), Result::Success);
+        const auto before = image.operations().snapshot();
+        const bool erase = composite == COMPOSITE_ERASE;
+        const auto mode = composite == COMPOSITE_COPY ? LayerBlendMode::Copy : composite == COMPOSITE_MULT ? LayerBlendMode::Multiply : LayerBlendMode::Normal;
+        QCOMPARE(image.fillTransparencyMaskPattern(1, pattern, opacity, erase, false, mode), Result::Success);
+        const auto mask = image.layerTransparencyMask(1); QVERIFY(mask && mask->isGpuGenerated());
+        const auto actual = execution.readSelectionPixels(mask, area, expected.size());
+        QVERIFY2(actual.code == ExecutionCode::Success, qPrintable(actual.diagnostic));
+        for (int i = 0; i < expected.size(); ++i)
+            QVERIFY2(actual.bytes[i] == expected[i], qPrintable(QStringLiteral("opacity %1 at %2,%3: got %4 expected %5")
+                .arg(opacity).arg(i % size.width()).arg(i / size.width()).arg(quint8(actual.bytes[i])).arg(quint8(expected[i]))));
+        QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.operations().snapshot(), before);
+        QCOMPARE(image.redo(), Result::Success); QCOMPARE(image.layerTransparencyMask(1), mask);
+    }
+}
+
 void KisGpuRegionColourTest::similarColourCoverageKeepsNativeDifference_data()
 {
     QTest::addColumn<bool>("words");

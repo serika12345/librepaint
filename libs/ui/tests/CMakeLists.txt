@@ -1211,6 +1211,8 @@ set(gpu_document_layer_cases
     layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry
     layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry
     layerPanelAddsAtSelectionWithOneHistoryEntry
+    maskChildFreehandStrokeEditsOnlyCoverage
+    maskPresetsKeepOrdinaryEditing
     layerPanelShowsAndSelectsGpuTransparencyMaskChild
     layerPanelTogglesAndRemovesGpuTransparencyMaskChild
     layerPanelGpuTransparencyMaskChildSurvivesSaving)

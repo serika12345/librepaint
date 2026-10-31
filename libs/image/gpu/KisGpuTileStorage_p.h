@@ -44,6 +44,8 @@ struct SelectionPixels
     std::mutex mutex;
     std::weak_ptr<Device> device;
     std::shared_ptr<BufferStorage> region;
+    QMap<quint64, std::shared_ptr<BufferStorage>> tiles;
+    bool tilesReady = false;
 };
 struct Tile
 {
@@ -65,6 +67,8 @@ struct CoverageTile
     CoverageTile(NativeBuffer pixels, std::shared_ptr<Budget> budget)
         : budget(std::move(budget)), storage(std::make_shared<BufferStorage>(std::move(pixels), this->budget)), pixels(storage->pixels)
     { if (this->budget->device->isRecordingFrame()) this->budget->device->retainForFrame(storage); }
+    CoverageTile(std::shared_ptr<BufferStorage> pixels, std::shared_ptr<Budget> budget)
+        : budget(std::move(budget)), storage(std::move(pixels)), pixels(storage->pixels) {}
 };
 using CoverageTiles = QMap<quint64, std::shared_ptr<CoverageTile>>;
 struct ProjectionInput {
@@ -247,6 +251,12 @@ struct TileRenderer::Private
                                                              const SelectionMaskSP &mask, quint64 coordinate);
     std::shared_ptr<Detail::BufferStorage> linearSelectionCoverage(WGPUCommandEncoder commands,
                                                                  const SelectionMaskSP &mask);
+    std::shared_ptr<Detail::CoverageTile> packSelectionTile(WGPUCommandEncoder commands, WGPUBuffer source,
+        QRect sourceExtent, QPoint coordinate, QRect bounds, quint32 format);
+    bool ensurePaintedSelection(WGPUCommandEncoder commands, const SelectionMaskSP &mask);
+    bool recordSelectionTranslation(WGPUCommandEncoder commands, const std::shared_ptr<Detail::BufferStorage> &input,
+        const std::shared_ptr<Detail::BufferStorage> &output, QRect sourceExtent, QRect extent, QRect bounds,
+        QPoint offset, bool packedTile);
     void clearMaskTiles();
     struct RegionResult {
         RenderOutcome::Code code;

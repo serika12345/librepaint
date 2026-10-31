@@ -8,6 +8,7 @@
 
 #include <KoCanvasResourceProvider.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorModelStandardIds.h>
 #include <KoPattern.h>
 #include <KoCanvasResourcesIds.h>
 
@@ -39,7 +40,8 @@ struct KisFigurePaintingStroke::GpuStroke
     KisGpuBrushResources resources;
     KoColor foregroundColor;
     KoColor backgroundColor;
-    KisSelectionSP selection;
+    KisSelectionSP selectionOverride;
+    bool ignoreSelection = false;
     KisFigurePaintingOptions::StrokeStyle strokeStyle;
     KisFigurePaintingOptions::FillStyle fillStyle;
     std::optional<Gpu::Shape> shape;
@@ -90,6 +92,11 @@ struct KisFigurePaintingStroke::GpuStroke
 
     Gpu::RgbaPixel nativeColor(KoColor value) const
     {
+        if (resources.transparencyMask) {
+            value.convertTo(KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()));
+            const auto gray = value.data()[0];
+            return {gray, gray, gray, 255};
+        }
         value.convertTo(image->colorSpace());
         if (owner->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
             quint16 bgra[4];
@@ -108,14 +115,14 @@ struct KisFigurePaintingStroke::GpuStroke
 
     void finish()
     {
-        if (selection)
-            resources.diagnostic = QStringLiteral("GPU figure painting requires selection coverage.");
+        if (selectionOverride) resources.diagnostic = QStringLiteral("GPU figure painting requires retained selection coverage for an override.");
         if (!resources.diagnostic.isEmpty()) {
             warnKrita << resources.diagnostic;
             return;
         }
         if (!shape) return;
         Gpu::FigureStyle style;
+        style.ignoreSelection = ignoreSelection;
         style.outline = strokeStyle != KisFigurePaintingOptions::StrokeStyleNone;
         if (!style.outline) style.fillBlendMode = resources.brush.blendMode;
         if (fillStyle == KisFigurePaintingOptions::FillStylePattern) {
@@ -150,14 +157,13 @@ KisFigurePaintingStroke::KisFigurePaintingStroke(
         m_gpuStroke->owner = image->gpuImage();
         m_gpuStroke->resources = strokeStyle == KisFigurePaintingOptions::StrokeStyleNone ?
             captureGpuFillResources(image, currentNode, resourceManager) : captureGpuBrushResources(image, currentNode, resourceManager);
-        m_gpuStroke->selection = image->globalSelection();
         m_gpuStroke->strokeStyle = strokeStyle;
         m_gpuStroke->fillStyle = fillStyle;
         m_gpuStroke->foregroundColor = resourceManager->foregroundColor();
         m_gpuStroke->backgroundColor = resourceManager->backgroundColor();
         if (fillStyle == KisFigurePaintingOptions::FillStylePattern && m_gpuStroke->resources.diagnostic.isEmpty()) {
             m_gpuStroke->pattern = captureGpuPatternResource(resourceManager->resource(KoCanvasResource::CurrentPattern).value<KoPatternSP>(),
-                m_gpuStroke->resources.transparencyMask ? KoColorSpaceRegistry::instance()->rgb8() : image->colorSpace(),
+                m_gpuStroke->resources.transparencyMask ? KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace(),
                 fillTransform, m_gpuStroke->resources.diagnostic);
         }
         if (strokeStyle == KisFigurePaintingOptions::StrokeStyleBackground) {
@@ -394,7 +400,8 @@ void KisFigurePaintingStroke::setBGColorOverride(const KoColor &color)
 void KisFigurePaintingStroke::setSelectionOverride(KisSelectionSP m_selection)
 {
     if (m_gpuStroke) {
-        m_gpuStroke->selection = m_selection;
+        m_gpuStroke->selectionOverride = m_selection;
+        m_gpuStroke->ignoreSelection = !m_selection;
         return;
     }
     m_resources->setSelectionOverride(m_selection);

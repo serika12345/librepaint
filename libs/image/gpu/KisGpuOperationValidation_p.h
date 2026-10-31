@@ -299,6 +299,7 @@ inline bool validPressureResponse(const PressureResponse &value)
 
 inline bool validBrush(const Brush &brush, PixelFormat format)
 {
+    if (brush.maskPainting && format != PixelFormat::Rgba8) return false;
     if (!validPressureResponse(brush.sizeResponse) || !std::isfinite(brush.autoSpacingCoefficient) ||
         brush.autoSpacingCoefficient < 0) return false;
     if (!std::isfinite(brush.opacity) || brush.opacity < 0 || brush.opacity > 1) return false;

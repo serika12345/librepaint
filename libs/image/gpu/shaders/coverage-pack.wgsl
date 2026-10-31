@@ -15,10 +15,11 @@ struct CoverageParameters {
         let point = parameters.tile.xy + vec2<i32>(i32(index % 256u), i32(index / 256u));
         var alpha = 0u;
         if (all(point >= parameters.bounds.xy) && all(point < parameters.bounds.zw)) {
-            if (parameters.tile.z == 0) {
+            if (parameters.tile.z <= 1) {
                 let relative = point - parameters.source.xy;
                 if (all(relative >= vec2<i32>()) && all(relative < parameters.source.zw)) {
                     alpha = inputPixels[u32(relative.y * parameters.source.z + relative.x)];
+                    if (parameters.tile.z == 1) { alpha >>= 24u; }
                 }
             } else {
                 alpha = u32(parameters.tile.w);
