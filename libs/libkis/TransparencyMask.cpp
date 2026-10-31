@@ -47,7 +47,7 @@ Selection *TransparencyMask::selection() const
 void TransparencyMask::setSelection(Selection *selection)
 {
     KisTransparencyMask *mask = qobject_cast<KisTransparencyMask*>(this->node().data());
-    const KisImageSP image = mask->image();
+    KisImageSP image = mask->image();
     if (image && image->isGpuTransparencyMaskView(mask)) {
         if (!selection || !image->writeGpuTransparencyMaskSelection(mask, selection->selection()))
             throw std::invalid_argument("GPU transparency mask selection replacement failed");
