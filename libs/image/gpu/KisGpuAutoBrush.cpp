@@ -62,12 +62,16 @@ bool imageDab(const Brush &brush, const BrushDab &point, QPointF subpixel, AutoB
     bool invertible = false;
     const auto inverse = (QTransform::fromTranslate(-1, -1) * transform).inverted(&invertible);
     if (!invertible) return false;
+    // QPainter offsets the texture by one fixed-point unit before inversion.
+    // Raster coverage still uses the unadjusted transformed source rectangle.
+    const auto samplingInverse = (QTransform::fromTranslate(1. / 65536, 1. / 65536) *
+        QTransform::fromTranslate(-1, -1) * transform).inverted();
     if (level.size.width() + 2 > 16384 || level.size.height() + 2 > 16384 ||
         dab.words[1] > quint32(PaintGeometryElementLimit / 6)) return false;
-    for (const auto value : {inverse.m11() * 65536., inverse.m12() * 65536.})
+    for (const auto value : {samplingInverse.m11() * 65536., samplingInverse.m12() * 65536.})
         if (!std::isfinite(value) || std::abs(value) > std::numeric_limits<qint32>::max()) return false;
-    dab.words[16] = quint32(qint32(inverse.m11() * 65536.));
-    dab.words[17] = quint32(qint32(inverse.m12() * 65536.));
+    dab.words[16] = quint32(qint32(samplingInverse.m11() * 65536.));
+    dab.words[17] = quint32(qint32(samplingInverse.m12() * 65536.));
     dab.words[24] = quint32(level.size.width() + 2); dab.words[25] = quint32(level.size.height() + 2);
     dab.words[26] = level.wordOffset + point.imageTipIndex * level.tipWordStride;
     auto coordinates = QSharedPointer<QList<quint32>>::create(qsizetype(dab.words[1]) * 4, 0);
@@ -90,8 +94,8 @@ bool imageDab(const Brush &brush, const BrushDab &point, QPointF subpixel, AutoB
         (*coordinates)[y * 4 + 2] = quint32(coordinates->size());
         for (quint32 x = first; x < last; x += 2048) {
             const qreal cx = x + .5;
-            const qreal fx = (inverse.m21() * cy + inverse.m11() * cx + inverse.dx()) * 65536.;
-            const qreal fy = (inverse.m22() * cy + inverse.m12() * cx + inverse.dy()) * 65536.;
+            const qreal fx = (samplingInverse.m21() * cy + samplingInverse.m11() * cx + samplingInverse.dx()) * 65536.;
+            const qreal fy = (samplingInverse.m22() * cy + samplingInverse.m12() * cx + samplingInverse.dy()) * 65536.;
             if (std::abs(fx) >= std::numeric_limits<qint32>::max() || std::abs(fy) >= std::numeric_limits<qint32>::max() ||
                 coordinates->size() > PaintGeometryElementLimit - 2) return false;
             coordinates->append(quint32(qint32(fx) - 32768));
