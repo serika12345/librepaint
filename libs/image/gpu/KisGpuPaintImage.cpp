@@ -402,7 +402,10 @@ SelectionMaskSP PaintImage::translatedSelectionMask(const SelectionMaskSP &mask,
         const auto checked = m_d->execution.translateSelectionCoverage(mask, offset, clip, &result);
         if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
         return result;
-    } catch (const std::bad_alloc &) { return {}; }
+    } catch (const std::bad_alloc &) {
+        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("Selection movement exceeded allocation capacity")};
+        return {};
+    }
 }
 
 QRect PaintImage::selectionRect() const
@@ -941,7 +944,20 @@ Result PaintImage::clearLayers(const QList<LayerId> &layers)
 Result PaintImage::clearSelectedPixels(const QList<LayerId> &layers)
 { return onThread() ? publish(m_d->document->clearSelectedPixels(layers)) : Result::InvalidInput; }
 Result PaintImage::cropLayer(LayerId layer, const QRect &rect)
-{ return onThread() ? publish(m_d->document->cropLayer(layer, rect)) : Result::InvalidInput; }
+{
+    if (!onThread()) return Result::InvalidInput;
+    const auto status = m_d->document->checkMutation();
+    if (status != Result::Success) return status;
+    const auto before = m_d->document->snapshot();
+    SelectionMaskSP mask;
+    const auto source = m_d->document->layerTransparencyMask(layer);
+    if (source && source->isGpuGenerated()) {
+        mask = translatedSelectionMask(source, {}, rect);
+        if (!mask) return resultFor(m_d->lastRequest.code);
+    }
+    if (m_d->document->snapshot() != before) return Result::StaleVersion;
+    return publish(m_d->document->cropLayerWithMask(layer, rect, mask));
+}
 Result PaintImage::resizeCanvas(const QRect &rect, bool cropLayers)
 {
     if (!onThread()) return Result::InvalidInput;
@@ -957,7 +973,15 @@ Result PaintImage::resizeCanvas(const QRect &rect, bool cropLayers)
             if (admitted != Result::Success) return admitted;
         }
     }
-    const auto result = m_d->document->resizeCanvas(rect, cropLayers);
+    QHash<LayerId, SelectionMaskSP> masks;
+    for (const auto &layer : before->layers) {
+        if (!layer.transparencyMask || !layer.transparencyMask->isGpuGenerated()) continue;
+        const auto mask = translatedSelectionMask(layer.transparencyMask, -rect.topLeft(), QRect(QPoint(), rect.size()));
+        if (!mask) return resultFor(m_d->lastRequest.code);
+        masks.insert(layer.id, mask);
+    }
+    if (document.snapshot() != before) return Result::StaleVersion;
+    const auto result = m_d->document->resizeCanvasWithMasks(rect, cropLayers, masks);
     return document.snapshot() == before ? result : publish(result);
 }
 Result PaintImage::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,

@@ -37,7 +37,7 @@ struct CoverageBuilder
 
     void addSpan(int y, int first, int last)
     {
-        if (first > last) return;
+        if (first > last || bytes < 0) return;
         const int ty = floorDivide(y, SelectionMask::TileSize);
         const int row = y - ty * SelectionMask::TileSize;
         for (int firstX = first; firstX <= last;) {
@@ -440,8 +440,9 @@ QSharedPointer<const SelectionMask> SelectionMask::fromCombination(const QShared
 QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, const QRect &clip) const
 {
     if (isGpuGenerated()) return {};
-    if (isEmpty() || clip.isEmpty() ||
+    if (clip.isEmpty() ||
         std::abs(delta.x()) > CoordinateLimit || std::abs(delta.y()) > CoordinateLimit) return {};
+    if (isEmpty()) return empty();
     if (m_format == CoverageFormat::Alpha) {
         AlphaBuilder builder;
         for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) {
@@ -459,6 +460,7 @@ QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, cons
                 }
             }
         }
+        if (builder.bounds.isEmpty() && builder.bytes >= 0) return empty();
         return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Alpha);
     }
     CoverageBuilder builder;
@@ -483,6 +485,7 @@ QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, cons
             }
         }
     }
+    if (builder.bounds.isEmpty() && builder.bytes >= 0) return empty();
     return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Binary);
 }
 

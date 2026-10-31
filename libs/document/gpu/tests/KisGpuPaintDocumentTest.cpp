@@ -139,6 +139,46 @@ void KisGpuPaintDocumentTest::colourSelectionSavesFrozenCoverageAndContinues()
         QVERIFY2(alpha.code == ExecutionCode::Success, qPrintable(alpha.diagnostic));
         QCOMPARE(image->fillLayerColor(2, {0, 0, maximum, maximum}), Result::Success);
         QCOMPARE(image->addTransparencyMaskFromSelection(2), Result::Success);
+        // Cropping or moving the canvas keeps the generated mask attached,
+        // including a fully transparent result. The KRA reader must see the
+        // same alpha that projection and subsequent painting consume.
+        for (int operation = 0; operation < 5; ++operation) {
+            const auto before = image->operations().snapshot();
+            const auto history = image->operations().undoCount();
+            const bool resize = operation >= 2;
+            const QRect rect = operation == 0 ? QRect(5, 5, 17, 29) :
+                operation == 1 || operation == 4 ? QRect(60, 60, 4, 4) : QRect(-4, -3, 60, 58);
+            const auto changed = resize ? image->resizeCanvas(rect, operation != 2) : image->cropLayer(2, rect);
+            QVERIFY2(changed == Result::Success, qPrintable(image->lastRequestOutcome().diagnostic));
+            QCOMPARE(image->operations().undoCount(), history + 1);
+            const QRect output(QPoint(), resize ? rect.size() : canvas.size());
+            QByteArray expected(output.width() * output.height(), '\0');
+            for (int y = 0; y < output.height(); ++y) for (int x = 0; x < output.width(); ++x) {
+                const QPoint source = resize ? QPoint(x, y) + rect.topLeft() : QPoint(x, y);
+                if (canvas.contains(source) && (resize || rect.contains(source)))
+                    expected[y * output.width() + x] = alpha.bytes[source.y() * canvas.width() + source.x()];
+            }
+            const auto transformed = image->layerTransparencyMask(2);
+            QVERIFY(transformed);
+            const auto read = execution.readSelectionPixels(transformed, output, expected.size());
+            QCOMPARE(read.code, ExecutionCode::Success);
+            QCOMPARE(read.bytes, expected);
+            const auto path = directory.filePath(QStringLiteral("mask-placement-%1-%2.kra").arg(int(format)).arg(operation));
+            const auto version = image->operations().snapshot();
+            const auto projection = execution.readProjectionImage(image->handle(), version,
+                output.width() * output.height() * pixelByteCount(format));
+            QVERIFY2(projection.code == ExecutionCode::Success, qPrintable(projection.diagnostic));
+            const auto saved = document.saveKra(path, version, projection.image.convertToFormat(QImage::Format_RGBA8888));
+            QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
+            const auto opened = PaintDocument::openKra(execution, path);
+            QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
+            const auto loadedMask = opened.document->image()->layerTransparencyMask(2);
+            QVERIFY(loadedMask);
+            QCOMPARE(execution.readSelectionPixels(loadedMask, output, expected.size()).bytes, expected);
+            QCOMPARE(image->undo(), Result::Success);
+            QCOMPARE(image->operations().snapshot(), before);
+            QCOMPARE(image->layerTransparencyMask(2), mask);
+        }
         const auto pinned = image->operations().snapshot();
         auto metadata = document.kraImageMetadata();
         QCOMPARE(metadata.code, Kra::Status::Success);

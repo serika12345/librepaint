@@ -1822,6 +1822,9 @@ Result OperationDocument::clearSelectedPixels(const QList<LayerId> &layers)
 }
 
 Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
+{ return cropLayerWithMask(layer, rect, {}); }
+
+Result OperationDocument::cropLayerWithMask(LayerId layer, const QRect &rect, const SelectionMaskSP &preparedMask)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -1835,9 +1838,14 @@ Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
     operation->layer = layer;
     operation->rect = rect;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
-    if (version->layers[index].transparencyMask)
-        version->layers[index].transparencyMask =
-            version->layers[index].transparencyMask->translated(QPoint(), rect);
+    if (const auto &source = snapshot()->layers[index].transparencyMask) {
+        SelectionMaskSP mask = preparedMask;
+        if (!source->isGpuGenerated()) {
+            mask = source->isEmpty() || !source->bounds().intersects(rect) ? SelectionMask::empty() : source->translated(QPoint(), rect);
+        }
+        if (!mask || !selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
+        version->layers[index].transparencyMask = mask;
+    }
     version->layers[index].operations.append(CropSnapshot(operation));
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     ++m_nextOperation;

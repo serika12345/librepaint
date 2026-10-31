@@ -1197,6 +1197,8 @@ private:
     Result checkOperation(OperationId id) const;
     Result checkMutation() const;
     Result updateSelectionTranslation(OperationId id, QPoint offset);
+    Result cropLayerWithMask(LayerId layer, const QRect &rect, const SelectionMaskSP &mask);
+    Result resizeCanvasWithMasks(const QRect &rect, bool cropLayers, const QHash<LayerId, SelectionMaskSP> &masks);
     /** An external edit (a mask stroke on a derived GPU image) borrows this
      * document's active-input state so saving and mutation stay blocked without
      * recording the derived operation as document history.

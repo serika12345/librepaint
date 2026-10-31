@@ -124,7 +124,8 @@ public:
     QSharedPointer<const SelectionMask> combined(const SelectionMask &other, SelectionCombination action,
                                                 const QRect &clip, bool inverted = false) const;
     /** Translates the coverage by `delta`, clipping it to `clip`. Alpha masks
-     * retain their fractional values. */
+     * retain their fractional values. Valid fully clipped literal input returns
+     * an empty mask; null reports invalid input, GPU input or capacity. */
     QSharedPointer<const SelectionMask> translated(QPoint delta, const QRect &clip) const;
     /** Returns the complement inside `clip`; null means nothing is left. */
     QSharedPointer<const SelectionMask> inverted(const QRect &clip) const;

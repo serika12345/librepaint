@@ -8,6 +8,10 @@
 
 namespace LibrePaint::Image::Gpu {
 Result OperationDocument::resizeCanvas(const QRect &rect, bool cropLayers)
+{ return resizeCanvasWithMasks(rect, cropLayers, {}); }
+
+Result OperationDocument::resizeCanvasWithMasks(const QRect &rect, bool cropLayers,
+    const QHash<LayerId, SelectionMaskSP> &masks)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -34,7 +38,15 @@ Result OperationDocument::resizeCanvas(const QRect &rect, bool cropLayers)
             layer.operations.append(CropSnapshot(crop));
         }
         if (layer.transparencyMask) {
-            layer.transparencyMask = layer.transparencyMask->translated(offset, QRect(QPoint(), rect.size()));
+            const auto source = layer.transparencyMask;
+            const QRect canvas(QPoint(), rect.size());
+            auto mask = masks.value(layer.id);
+            if (!source->isGpuGenerated()) {
+                mask = source->isEmpty() || !source->bounds().translated(offset).intersects(canvas) ? SelectionMask::empty() :
+                    source->translated(offset, canvas);
+            }
+            if (!mask || !selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
+            layer.transparencyMask = mask;
         }
         if (!offset.isNull()) {
             auto combined = offset;
