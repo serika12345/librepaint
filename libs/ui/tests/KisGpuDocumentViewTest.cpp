@@ -145,6 +145,46 @@
 #include <thread>
 
 namespace {
+// Speed-sensitive fixtures keep the delivered event clock and the existing
+// input-builder settings identical on the native and GPU window paths.
+class BrushPointerClock : public QObject
+{
+public:
+    void advance() { m_time += 20; }
+protected:
+    bool eventFilter(QObject *, QEvent *event) override
+    {
+        if (event->type() == QEvent::MouseMove || event->type() == QEvent::MouseButtonPress ||
+            event->type() == QEvent::MouseButtonRelease || event->type() == QEvent::MouseButtonDblClick)
+            static_cast<QMouseEvent *>(event)->setTimestamp(m_time);
+        return false;
+    }
+private:
+    ulong m_time = 1000;
+};
+
+auto fixedBrushPointerTiming(bool enabled)
+{
+    const bool timestamps = KisConfig(true).readEntry("useTimestampsForBrushSpeed", false);
+    const int smoothing = KisConfig(true).readEntry("speedValueSmoothing", 3);
+    const int maximum = KisConfig(true).readEntry("maxAllowedSpeedValue", 30);
+    if (enabled) {
+        KisConfig config(false);
+        config.writeEntry("useTimestampsForBrushSpeed", true);
+        config.writeEntry("speedValueSmoothing", 3);
+        config.writeEntry("maxAllowedSpeedValue", 30);
+        KisConfigNotifier::instance()->notifyConfigChanged();
+    }
+    return qScopeGuard([=] {
+        if (!enabled) return;
+        KisConfig config(false);
+        config.writeEntry("useTimestampsForBrushSpeed", timestamps);
+        config.writeEntry("speedValueSmoothing", smoothing);
+        config.writeEntry("maxAllowedSpeedValue", maximum);
+        KisConfigNotifier::instance()->notifyConfigChanged();
+    });
+}
+
 void exchangeRgbaBgra(QByteArray &bytes, int pixelBytes)
 {
     const int channelBytes = pixelBytes / 4;
@@ -2607,6 +2647,8 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(QString, presetName);
+    const bool fineliner = presetName == QLatin1String("d)_Ink-2_Fineliner.kpp");
+    const auto restoreTiming = fixedBrushPointerTiming(fineliner);
     QFETCH(bool, words);
     QFETCH(qreal, flow);
     QFETCH(int, figureFillStyle);
@@ -2685,6 +2727,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow()); window->resize(800, 600);
         auto *view = window->newView(document.get()); QVERIFY(view);
         QPointer<KisDocument> lifetime(document.release());
+        BrushPointerClock pointerClock;
         QPointer<QWindow> input; bool pressed = false;
         const auto closeWindow = qScopeGuard([&] {
             if (pressed && input) { if (lifetime) lifetime->image()->requestStrokeCancellation(); QTest::mouseRelease(input, Qt::LeftButton); }
@@ -2781,6 +2824,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             input = window->windowHandle();
             if (gpu) for (auto *candidate : QGuiApplication::allWindows())
                 if (qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(candidate)) input = candidate;
+            if (fineliner && input) input->installEventFilter(&pointerClock);
         };
         QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= 64); prepareInput(); QTRY_VERIFY(input && input->isExposed());
         const auto pixels = [&] {
@@ -2828,12 +2872,20 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
                 const auto widget = converter->imageToWidget(value).toPoint();
                 return gpu ? widget : view->canvasBase()->canvasWidget()->mapTo(window.get(), widget);
             };
-            const auto first = point(points.first()); QTest::mouseMove(input, first);
+            const auto first = point(points.first());
+            if (fineliner) pointerClock.advance();
+            QTest::mouseMove(input, first);
             const auto local = converter->imageToWidget(points.first()).toPoint();
             QEnterEvent entered(local, local, view->canvasBase()->canvasWidget()->mapToGlobal(local));
             QApplication::sendEvent(gpu ? static_cast<QObject *>(input.data()) : view->canvasBase()->canvasWidget(), &entered);
-            pressed = true; QTest::mousePress(input, Qt::LeftButton, Qt::NoModifier, first);
-            for (const auto &value : points.mid(1)) QTest::mouseMove(input, point(value), 5);
+            pressed = true;
+            if (fineliner) pointerClock.advance();
+            QTest::mousePress(input, Qt::LeftButton, Qt::NoModifier, first);
+            for (const auto &value : points.mid(1)) {
+                if (fineliner) pointerClock.advance();
+                QTest::mouseMove(input, point(value), 5);
+            }
+            if (fineliner) pointerClock.advance();
             QTest::mouseRelease(input, Qt::LeftButton, Qt::NoModifier, point(points.last())); pressed = false;
             image->waitForDone(); QApplication::processEvents();
         };
@@ -8774,6 +8826,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
     auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
     const bool fineliner = presetName == QLatin1String("d)_Ink-2_Fineliner.kpp");
+    const auto restoreTiming = fixedBrushPointerTiming(fineliner);
     const bool screentone = presetName == QLatin1String("y)_Screentones_Regular.kpp");
     const bool dither = presetName == QLatin1String("u)_Pixel_Art_Dithering.kpp");
     const bool textured = sourcePreset->settings()->getBool("Texture/Pattern/Enabled");
@@ -8875,6 +8928,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         auto *view = window->newView(document.get());
         QVERIFY(view);
         QPointer<KisDocument> lifetime(document.release());
+        BrushPointerClock pointerClock;
         QPointer<QWindow> input;
         bool pressed = false;
         const auto closeWindow = qScopeGuard([&] {
@@ -8927,6 +8981,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             input = view->canvasBase()->canvasWidget()->window()->windowHandle();
             if (gpu) for (auto *candidate : QGuiApplication::allWindows())
                 if (qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(candidate)) input = candidate;
+            if (fineliner && input) input->installEventFilter(&pointerClock);
         };
         QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= size.width() &&
                     view->canvasBase()->canvasWidget()->height() >= size.height());
@@ -9102,16 +9157,20 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             const auto *converter = view->canvasBase()->coordinatesConverter();
             const auto first = converter->imageToWidget(points.first()).toPoint();
             const auto target = gpu ? first : view->canvasBase()->canvasWidget()->mapTo(window.get(), first);
+            if (fineliner) pointerClock.advance();
             QTest::mouseMove(input, target);
             QEnterEvent entered(first, first, view->canvasBase()->canvasWidget()->mapToGlobal(first));
             QApplication::sendEvent(gpu ? static_cast<QObject *>(input.data()) : view->canvasBase()->canvasWidget(), &entered);
             pressed = true;
+            if (fineliner) pointerClock.advance();
             QTest::mousePress(input, Qt::LeftButton, Qt::NoModifier, target);
             for (const auto &point : points.mid(1)) {
                 const auto next = converter->imageToWidget(point).toPoint();
+                if (fineliner) pointerClock.advance();
                 QTest::mouseMove(input, gpu ? next : view->canvasBase()->canvasWidget()->mapTo(window.get(), next), 5);
             }
             const auto last = converter->imageToWidget(points.last()).toPoint();
+            if (fineliner) pointerClock.advance();
             QTest::mouseRelease(input, Qt::LeftButton, Qt::NoModifier,
                                 gpu ? last : view->canvasBase()->canvasWidget()->mapTo(window.get(), last));
             pressed = false;
