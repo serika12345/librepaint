@@ -924,7 +924,19 @@ void KisGpuPaintImageTest::sparsePaintedMasksMoveCombineCropAndRecover()
     // Transform-tool mask capture/clear/merge retain their inputs across
     // document closure and device replacement; native window tests fix math.
     const auto captured = image.copiedSelectionMask(painted, literal, false, domain); QVERIFY(captured);
-    const auto shifted = image.translatedSelectionMask(captured, {13, -7}, domain); QVERIFY(shifted);
+    AffinePlan plan;
+    AffinePass pass; pass.kind = AffinePass::Remap;
+    pass.source = captured->bounds(); pass.destination = pass.source.translated(13, -7);
+    pass.map = {1, 0, 0, 1, 13, -7}; pass.mapWholeLayer = true;
+    plan.passes = {pass};
+    const auto shifted = image.transformedSelectionMask(captured, plan); QVERIFY(shifted);
+    const auto movedCapture = image.translatedSelectionMask(captured, {13, -7}, domain); QVERIFY(movedCapture);
+    QCOMPARE(shifted->bounds(), movedCapture->bounds());
+    for (const auto point : shifted->tileCoordinates()) {
+        const QRect tile(point * 256, QSize(256, 256));
+        QCOMPARE(execution.readSelectionPixels(shifted, tile, alpha.size()).bytes,
+                 execution.readSelectionPixels(movedCapture, tile, alpha.size()).bytes);
+    }
     replayed = image.replacedSelectionMask(painted, literal, true, {-280, -540, 24, 28}, shifted);
     QVERIFY2(replayed, qPrintable(image.lastRequestOutcome().diagnostic));
     SelectionTileMap retained;

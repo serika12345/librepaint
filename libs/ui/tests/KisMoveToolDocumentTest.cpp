@@ -612,7 +612,9 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
         QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
         QVERIFY(owner->layerTransparencyMask(2)->isGpuGenerated());
     }
-    const auto originalMask = execution->readSelectionPixels(owner->layerTransparencyMask(2), patch, 16);
+    const auto sourceMaskRegion = owner->layerTransparencyMask(2)->bounds();
+    const auto originalMask = execution->readSelectionPixels(owner->layerTransparencyMask(2), sourceMaskRegion,
+        sourceMaskRegion.width() * sourceMaskRegion.height());
     QCOMPARE(originalMask.code, Gpu::ExecutionCode::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Move layer forest"), cs));
@@ -701,13 +703,20 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
         const auto childLayer = byUuid(version, child.uuid);
         return childLayer && childLayer->transparencyMask &&
             childLayer->transparencyMaskLocked == (mode == QStringLiteral("protected-mask")) && childLayer->transparencyMask->bounds() ==
-            patch.translated(moved && mode != QStringLiteral("protected-mask") ? delta : QPoint());
+            sourceMaskRegion.translated(moved && mode != QStringLiteral("protected-mask") ? delta : QPoint());
     };
     tool->beginPrimaryAction(&begin); QVERIFY(owner->operations().hasActiveStroke()); tool->continuePrimaryAction(&move);
+    if (!check(owner->operations().preview(), true)) {
+        for (const auto &candidate : owner->operations().preview()->layers)
+            qDebug() << candidate.name << candidate.position << candidate.parentUuid << candidate.visible << candidate.userLocked
+                     << (candidate.transparencyMask ? candidate.transparencyMask->bounds() : QRect());
+        qDebug() << "original mask bounds" << before->layers[1].transparencyMask->bounds()
+                 << "preview is canonical" << (owner->operations().preview() == before);
+    }
     QVERIFY(check(owner->operations().preview(), true));
     const auto maskPreview = byUuid(owner->operations().preview(), child.uuid)->transparencyMask;
-    const auto maskRegion = patch.translated(mode != QStringLiteral("protected-mask") ? delta : QPoint());
-    QCOMPARE(execution->readSelectionPixels(maskPreview, maskRegion, 16).bytes, originalMask.bytes);
+    const auto maskRegion = sourceMaskRegion.translated(mode != QStringLiteral("protected-mask") ? delta : QPoint());
+    QCOMPARE(execution->readSelectionPixels(maskPreview, maskRegion, originalMask.bytes.size()).bytes, originalMask.bytes);
     QCOMPARE(owner->operations().snapshot(), before);
     tool->requestStrokeCancellation(); QVERIFY(check(owner->operations().snapshot(), false));
     QCOMPARE(lifetime->undoStack()->count(), initialHistory); QVERIFY(!lifetime->isModified());
@@ -727,7 +736,7 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     const auto next = reopened->image()->gpuImage(); QVERIFY(next);
     QVERIFY(check(next->operations().snapshot(), true));
     QCOMPARE(execution->readSelectionPixels(byUuid(next->operations().snapshot(), child.uuid)->transparencyMask,
-                                            maskRegion, 16).bytes, originalMask.bytes);
+                                            maskRegion, originalMask.bytes.size()).bytes, originalMask.bytes);
     QCOMPARE(next->readRgbaPixels(byUuid(next->operations().snapshot(), child.uuid)->id, patch.translated(pixels ? delta : QPoint()),
                                   16 * pixelBytes).bytes, pixel.repeated(16));
     const auto saved = next->operations().snapshot();
@@ -852,6 +861,22 @@ void KisMoveToolDocumentTest::selectedPixelsKeepNativePreviewHistoryAndKra()
         QVERIFY(image->setGpuSelectionMask(selection, inverted));
     }
     KisSelectionSP frozenSelection = new KisSelection(*image->globalSelection());
+    if (kind == 3) {
+        // The CPU reference consumes explicit fixture pixels, while the
+        // application keeps the generated selection's read-only GPU view.
+        QByteArray coverage(size * size, '\0');
+        image->globalSelection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(coverage.data()), 0, 0, size, size);
+        QByteArray expectedInput(size * size, inverted ? char(255) : char(0));
+        const quint8 levels[]{0, 1, 127, 128, 254, 255};
+        for (int y = selected.top(); y <= selected.bottom(); ++y) for (int x = selected.left(); x <= selected.right(); ++x) {
+            const auto value = levels[(x - selected.x() + 2 * (y - selected.y())) % 6];
+            expectedInput[y * size + x] = char(inverted ? 255 - value : value);
+        }
+        QCOMPARE(coverage, expectedInput);
+        frozenSelection = new KisSelection();
+        frozenSelection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(expectedInput.constData()), 0, 0, size, size);
+        frozenSelection->updateProjection();
+    }
     const auto expected = nativeSelectedMove(image, source, QRect(0, 0, size, size), initialPosition,
                                              frozenSelection, delta, frame);
     const auto original = owner->readRgbaPixels(layerId, frame, frame.width() * frame.height() * pixelBytes).bytes;
