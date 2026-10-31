@@ -90,6 +90,7 @@ private Q_SLOTS:
     void patternFillSavesReopensAndPreservesSelectionPixels();
     void transparencyMaskComposesSavesReopensAndContinues();
     void transparencyMaskAcceptsDirectBrushEraseFillAndRoundTrips();
+    void sparsePaintedMaskSavesItsPinnedOffCanvasCoverage();
     void weightedSmoothingSaveReopenAndContinuePreservesPixels();
     void gaussianLineEditsSaveReopenAndContinueAtTheirNewPosition();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
@@ -1207,6 +1208,10 @@ void KisGpuPaintDocumentTest::transparencyMaskAcceptsDirectBrushEraseFillAndRoun
     QCOMPARE(image->setSelectionRect(QRect(32, 32, 64, 64)), Result::Success);
     QCOMPARE(image->addTransparencyMaskFromSelection(layer), Result::Success);
     QCOMPARE(image->clearSelection(), Result::Success);
+    const auto readMask = [&](const SelectionMaskSP &mask, int x, int y) {
+        const auto read = execution.readSelectionPixels(mask, {x, y, 1, 1}, 1);
+        return read.code == ExecutionCode::Success && read.bytes.size() == 1 ? int(quint8(read.bytes[0])) : -1;
+    };
     const auto originalMask = image->layerTransparencyMask(layer);
     QVERIFY(originalMask);
     const auto layerPixels = image->readRgbaPixels(layer, region, 128 * 128 * 4);
@@ -1218,7 +1223,7 @@ void KisGpuPaintDocumentTest::transparencyMaskAcceptsDirectBrushEraseFillAndRoun
     // A brush stroke outside the original coverage expands the retained mask
     // and leaves the layer's own pixels untouched.
     Brush brush;
-    brush.rgba = {211, 97, 19, 255};
+    brush.rgba = {255, 255, 255, 255};
     brush.diameter = 16;
     int undo = image->operations().undoCount();
     auto stroke = image->beginTransparencyMaskStroke(layer, brush, 7);
@@ -1233,9 +1238,9 @@ void KisGpuPaintDocumentTest::transparencyMaskAcceptsDirectBrushEraseFillAndRoun
              HistoryAction::PaintStroke);
     const auto brushedMask = image->layerTransparencyMask(layer);
     QVERIFY(brushedMask);
-    QCOMPARE(brushedMask->coverage(16, 16), quint8(255));
-    QCOMPARE(brushedMask->coverage(64, 64), quint8(255));
-    QCOMPARE(brushedMask->coverage(4, 4), quint8(0));
+    QCOMPARE(readMask(brushedMask, 16, 16), quint8(255));
+    QCOMPARE(readMask(brushedMask, 64, 64), quint8(255));
+    QCOMPARE(readMask(brushedMask, 4, 4), quint8(0));
     QCOMPARE(image->readRgbaPixels(layer, region, 128 * 128 * 4).bytes, layerPixels.bytes);
     const auto brushedProjection = projectionBytes(*image);
     QCOMPARE(pixel(brushedProjection, 16, 16), QByteArray::fromHex("13d361ff"));
@@ -1260,7 +1265,7 @@ void KisGpuPaintDocumentTest::transparencyMaskAcceptsDirectBrushEraseFillAndRoun
              HistoryAction::PaintStroke);
     const auto erasedMask = image->layerTransparencyMask(layer);
     QVERIFY(erasedMask);
-    QCOMPARE(erasedMask->coverage(64, 64), quint8(0));
+    QCOMPARE(readMask(erasedMask, 64, 64), quint8(0));
     QCOMPARE(image->readRgbaPixels(layer, region, 128 * 128 * 4).bytes, layerPixels.bytes);
     const auto erasedProjection = projectionBytes(*image);
     QCOMPARE(pixel(erasedProjection, 64, 64), QByteArray(4, '\0'));
@@ -1273,15 +1278,15 @@ void KisGpuPaintDocumentTest::transparencyMaskAcceptsDirectBrushEraseFillAndRoun
     // Selection fill reveals only the selected coverage inside the mask.
     QCOMPARE(image->setSelectionRect(QRect(104, 16, 16, 16)), Result::Success);
     undo = image->operations().undoCount();
-    QCOMPARE(image->fillTransparencyMask(layer, {17, 129, 241}), Result::Success);
+    QCOMPARE(image->fillTransparencyMask(layer, {255, 255, 255}), Result::Success);
     QVERIFY(image->layerTransparencyMask(layer));
     QCOMPARE(image->operations().undoCount(), undo + 1);
     QCOMPARE(image->operations().historyAction(image->operations().undoCount()),
              HistoryAction::FillLayer);
     const auto filledMask = image->layerTransparencyMask(layer);
-    QVERIFY(filledMask->coverage(112, 24) > 0);
-    QCOMPARE(filledMask->coverage(112, 40), quint8(0));
-    QCOMPARE(filledMask->coverage(4, 4), quint8(0));
+    QVERIFY(readMask(filledMask, 112, 24) > 0);
+    QCOMPARE(readMask(filledMask, 112, 40), quint8(0));
+    QCOMPARE(readMask(filledMask, 4, 4), quint8(0));
     QCOMPARE(image->readRgbaPixels(layer, region, 128 * 128 * 4).bytes, layerPixels.bytes);
     const auto filledProjection = projectionBytes(*image);
     QCOMPARE(pixel(filledProjection, 112, 24), QByteArray::fromHex("13d361ff"));
@@ -1307,6 +1312,66 @@ void KisGpuPaintDocumentTest::transparencyMaskAcceptsDirectBrushEraseFillAndRoun
     QVERIFY(loaded->layerTransparencyMaskVisible(loadedLayer));
     QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, 128 * 128 * 4).bytes, layerPixels.bytes);
     QCOMPARE(projectionBytes(*loaded), filledProjection);
+}
+
+void KisGpuPaintDocumentTest::sparsePaintedMaskSavesItsPinnedOffCanvasCoverage()
+{
+    Execution execution(m_device);
+    const QRect canvas(0, 0, 64, 64);
+    const QRect near(0, 0, 256, 256), far(QPoint(4000, 5000) * 256, QSize(256, 256));
+    QByteArray alpha(SelectionMask::AlphaTileBytes, '\0');
+    for (int y = 5; y < 36; ++y) for (int x = 3; x < 32; ++x)
+        alpha[y * 256 + x] = char(1 + (x + 3 * y) % 255);
+    SelectionTileMap tiles; tiles.insert({0, 0}, alpha); tiles.insert({4000, 5000}, alpha);
+    RasterImage raster; raster.size = canvas.size();
+    raster.layers = {{QStringLiteral("Sparse mask document"), true, {}, {}}};
+    raster.layers.first().defaultPixel = {19, 211, 97, 255};
+    raster.layers.first().transparencyMask = SelectionMask::fromAlphaTiles(tiles);
+    QVERIFY(raster.layers.first().transparencyMask);
+    PaintDocument document(execution, raster);
+    const auto image = document.image();
+    Brush erase; erase.diameter = 8; erase.erase = true;
+    const auto stroke = image->beginTransparencyMaskStroke(1, erase, 53); QVERIFY(!stroke.isNull());
+    QCOMPARE(image->appendSamples(stroke, {{{17, 19}, 1}}), Result::Success);
+    QCOMPARE(image->commitStroke(stroke), Result::Success);
+    const auto pinned = image->operations().snapshot();
+    const auto mask = image->layerTransparencyMask(1); QVERIFY(mask && mask->isGpuGenerated());
+    QCOMPARE(mask->tileCoordinates().size(), 2);
+    const auto expected = execution.readSelectionPixels(mask, near, alpha.size());
+    QCOMPARE(expected.code, ExecutionCode::Success); QVERIFY(expected.bytes != alpha);
+    QCOMPARE(execution.readSelectionPixels(mask, far, alpha.size()).bytes, alpha);
+    // Later edits retain the fixed mask and save only the requested version.
+    QCOMPARE(image->setSelectionRect({48, 48, 8, 8}), Result::Success);
+    QCOMPARE(image->fillTransparencyMask(1, {255, 255, 255}), Result::Success);
+    QVERIFY(image->layerTransparencyMask(1) != mask);
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("sparse-mask.kra"));
+    const auto saved = document.saveKra(path, pinned);
+    QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
+    QVERIFY(image->operations().isModified());
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    auto loadedMask = loaded->layerTransparencyMask(1); QVERIFY(loadedMask);
+    QCOMPARE(execution.readSelectionPixels(loadedMask, near, alpha.size()).bytes, expected.bytes);
+    QCOMPARE(execution.readSelectionPixels(loadedMask, far, alpha.size()).bytes, alpha);
+    QCOMPARE(loaded->readRgbaPixels(1, canvas, 64 * 64 * 4).bytes, rgbaBytes({19, 211, 97, 255}, PixelFormat::Rgba8).repeated(64 * 64));
+    QCOMPARE(loaded->setSelectionRect({4, 5, 8, 8}), Result::Success);
+    QCOMPARE(loaded->fillTransparencyMask(1, {91, 91, 91}), Result::Success);
+    loadedMask = loaded->layerTransparencyMask(1); QVERIFY(loadedMask->isGpuGenerated());
+    const auto edited = execution.readSelectionPixels(loadedMask, near, alpha.size());
+    QCOMPARE(edited.code, ExecutionCode::Success); QVERIFY(edited.bytes != expected.bytes);
+    QCOMPARE(execution.readSelectionPixels(loadedMask, far, alpha.size()).bytes, alpha);
+    QCOMPARE(loaded->undo(), Result::Success);
+    QCOMPARE(execution.readSelectionPixels(loaded->layerTransparencyMask(1), near, alpha.size()).bytes, expected.bytes);
+    QCOMPARE(loaded->redo(), Result::Success);
+    const auto editedPath = directory.filePath(QStringLiteral("sparse-mask-edited.kra"));
+    QCOMPARE(reopened.document->saveKra(editedPath).code, FileCode::Success);
+    const auto again = PaintDocument::openKra(execution, editedPath);
+    QVERIFY2(again.code == FileCode::Success, qPrintable(again.diagnostic));
+    const auto againMask = again.document->image()->layerTransparencyMask(1);
+    QCOMPARE(execution.readSelectionPixels(againMask, near, alpha.size()).bytes, edited.bytes);
+    QCOMPARE(execution.readSelectionPixels(againMask, far, alpha.size()).bytes, alpha);
 }
 
 void KisGpuPaintDocumentTest::weightedSmoothingSaveReopenAndContinuePreservesPixels()

@@ -258,68 +258,90 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
     const int right = floorDivide(area.right(), FileTileSize);
     const int top = floorDivide(area.top(), FileTileSize);
     const int bottom = floorDivide(area.bottom(), FileTileSize);
-    const qint64 count = qint64(right - left + 1) * (bottom - top + 1);
-    if (count <= 0 || count > maximumBytes / FileTileBytes || count > std::numeric_limits<quint32>::max()) return capacity();
+    const qint64 denseCount = qint64(right - left + 1) * (bottom - top + 1);
+    QList<Coordinates> coordinates;
+    if (denseCount > maximumBytes / FileTileBytes && kind == SelectionKind::Freehand && !inverted) {
+        // Finite masks can contain distant islands. Native KRA defaults to zero
+        // between stored tiles, so capacity follows the occupied tile set.
+        QSet<Coordinates> occupied;
+        for (auto source = mask->tiles().cbegin(); source != mask->tiles().cend(); ++source) {
+            const auto origin = QPoint(source.key().first, source.key().second) * SelectionMask::TileSize;
+            for (int y = 0; y < SelectionMask::TileSize / FileTileSize; ++y)
+                for (int x = 0; x < SelectionMask::TileSize / FileTileSize; ++x) {
+                    const QPoint point = origin + QPoint(x, y) * FileTileSize;
+                    if (!QRect(point, QSize(FileTileSize, FileTileSize)).intersects(area)) continue;
+                    occupied.insert({floorDivide(point.y(), FileTileSize), floorDivide(point.x(), FileTileSize)});
+                    if (occupied.size() > maximumBytes / FileTileBytes) return capacity();
+                }
+        }
+        coordinates = occupied.values();
+        std::sort(coordinates.begin(), coordinates.end());
+    } else {
+        if (denseCount <= 0 || denseCount > maximumBytes / FileTileBytes || denseCount > std::numeric_limits<quint32>::max()) return capacity();
+        coordinates.reserve(qsizetype(denseCount));
+        for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) coordinates.append({y, x});
+    }
+    const auto count = coordinates.size();
+    if (count <= 0 || quint64(count) > std::numeric_limits<quint32>::max()) return capacity();
     QByteArray bytes = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 1\nDATA ") +
         QByteArray::number(count) + '\n';
     KisLzfCompression compression;
     const auto encodedCapacity = compression.outputBufferSize(FileTileBytes);
     QByteArray encoded(encodedCapacity, Qt::Uninitialized);
     QByteArray pixels(FileTileBytes, '\0');
-    for (int y = top; y <= bottom; ++y) {
-        for (int x = left; x <= right; ++x) {
-            std::fill(pixels.begin(), pixels.end(), inverted ? char(255) : char(0));
-            const QRect tile(x * FileTileSize, y * FileTileSize, FileTileSize, FileTileSize);
-            if (kind == LibrePaint::Image::Gpu::SelectionKind::Freehand) {
-                for (int py = tile.top(); py <= tile.bottom(); ++py) {
-                    const int row = py - y * FileTileSize;
-                    for (int px = tile.left(); px <= tile.right(); ++px) {
-                        if (inverted && !imageBounds.contains(px, py)) continue;
-                        const quint8 value = mask->coverage(px, py);
-                        pixels[row * FileTileSize + px - x * FileTileSize] = char(inverted ? 255u - value : value);
-                    }
+    for (const auto &coordinate : coordinates) {
+        const int y = coordinate.first, x = coordinate.second;
+        std::fill(pixels.begin(), pixels.end(), inverted ? char(255) : char(0));
+        const QRect tile(x * FileTileSize, y * FileTileSize, FileTileSize, FileTileSize);
+        if (kind == LibrePaint::Image::Gpu::SelectionKind::Freehand) {
+            for (int py = tile.top(); py <= tile.bottom(); ++py) {
+                const int row = py - y * FileTileSize;
+                for (int px = tile.left(); px <= tile.right(); ++px) {
+                    if (inverted && !imageBounds.contains(px, py)) continue;
+                    const quint8 value = mask->coverage(px, py);
+                    pixels[row * FileTileSize + px - x * FileTileSize] = char(inverted ? 255u - value : value);
                 }
-            } else if (inverted) {
-                if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
-                    for (int py = tile.top(); py <= tile.bottom(); ++py) {
-                        const int row = py - y * FileTileSize;
-                        for (int px = tile.left(); px <= tile.right(); ++px)
-                            if (ellipseContains(px, py, selection))
-                                pixels[row * FileTileSize + px - x * FileTileSize] = char(0);
-                    }
-                } else {
-                    const QRect hole = tile.intersected(QRect(selection).intersected(area));
-                    for (int py = hole.top(); py <= hole.bottom(); ++py) {
-                        const int row = py - y * FileTileSize;
-                        std::fill(pixels.begin() + row * FileTileSize + hole.left() - x * FileTileSize,
-                                  pixels.begin() + row * FileTileSize + hole.right() - x * FileTileSize + 1, char(0));
-                    }
-                }
-            } else if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
+            }
+        } else if (inverted) {
+            if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
                 for (int py = tile.top(); py <= tile.bottom(); ++py) {
                     const int row = py - y * FileTileSize;
                     for (int px = tile.left(); px <= tile.right(); ++px)
-                        if (area.contains(px, py) && ellipseContains(px, py, area))
-                            pixels[row * FileTileSize + px - x * FileTileSize] = char(255);
+                        if (ellipseContains(px, py, selection))
+                            pixels[row * FileTileSize + px - x * FileTileSize] = char(0);
                 }
             } else {
-                const QRect selected = tile.intersected(area);
-                for (int py = selected.top(); py <= selected.bottom(); ++py) {
+                const QRect hole = tile.intersected(QRect(selection).intersected(area));
+                for (int py = hole.top(); py <= hole.bottom(); ++py) {
                     const int row = py - y * FileTileSize;
-                    std::fill(pixels.begin() + row * FileTileSize + selected.left() - x * FileTileSize,
-                              pixels.begin() + row * FileTileSize + selected.right() - x * FileTileSize + 1, char(255));
+                    std::fill(pixels.begin() + row * FileTileSize + hole.left() - x * FileTileSize,
+                              pixels.begin() + row * FileTileSize + hole.right() - x * FileTileSize + 1, char(0));
                 }
             }
-            const auto compressedBytes = compression.compress(reinterpret_cast<const quint8 *>(pixels.constData()), FileTileBytes,
-                                                              reinterpret_cast<quint8 *>(encoded.data()), encodedCapacity);
-            if (compressedBytes <= 0) return {Status::IoFailure, QStringLiteral("KRA selection compression failed")};
-            const bool useCompressed = compressedBytes < FileTileBytes;
-            const auto payloadSize = useCompressed ? compressedBytes : FileTileBytes;
-            bytes += QByteArray::number(x * FileTileSize) + ',' + QByteArray::number(y * FileTileSize) +
-                     QByteArrayLiteral(",LZF,") + QByteArray::number(payloadSize + 1) + '\n';
-            bytes += char(useCompressed ? 1 : 0);
-            bytes.append(useCompressed ? encoded.constData() : pixels.constData(), payloadSize);
+        } else if (kind == LibrePaint::Image::Gpu::SelectionKind::Ellipse) {
+            for (int py = tile.top(); py <= tile.bottom(); ++py) {
+                const int row = py - y * FileTileSize;
+                for (int px = tile.left(); px <= tile.right(); ++px)
+                    if (area.contains(px, py) && ellipseContains(px, py, area))
+                        pixels[row * FileTileSize + px - x * FileTileSize] = char(255);
+            }
+        } else {
+            const QRect selected = tile.intersected(area);
+            for (int py = selected.top(); py <= selected.bottom(); ++py) {
+                const int row = py - y * FileTileSize;
+                std::fill(pixels.begin() + row * FileTileSize + selected.left() - x * FileTileSize,
+                          pixels.begin() + row * FileTileSize + selected.right() - x * FileTileSize + 1, char(255));
+            }
         }
+        const auto compressedBytes = compression.compress(reinterpret_cast<const quint8 *>(pixels.constData()), FileTileBytes,
+                                                          reinterpret_cast<quint8 *>(encoded.data()), encodedCapacity);
+        if (compressedBytes <= 0) return {Status::IoFailure, QStringLiteral("KRA selection compression failed")};
+        const bool useCompressed = compressedBytes < FileTileBytes;
+        const auto payloadSize = useCompressed ? compressedBytes : FileTileBytes;
+        bytes += QByteArray::number(x * FileTileSize) + ',' + QByteArray::number(y * FileTileSize) +
+                 QByteArrayLiteral(",LZF,") + QByteArray::number(payloadSize + 1) + '\n';
+        bytes += char(useCompressed ? 1 : 0);
+        bytes.append(useCompressed ? encoded.constData() : pixels.constData(), payloadSize);
     }
     output = std::move(bytes);
     return {Status::Success, {}};

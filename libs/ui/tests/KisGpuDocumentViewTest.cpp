@@ -2640,6 +2640,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             resources->setGlobalAlphaLock(false); resources->setMirrorHorizontal(false); resources->setMirrorVertical(false);
             resources->setEraserMode(false); resources->setCurrentCompositeOp(QStringLiteral("normal"));
             resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+            resources->setBGColor(KoColor(QColor(71, 241, 129), cs));
         };
         configure();
         KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
@@ -2671,7 +2672,26 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             const auto actual = pixels();
             if (parentPixels() != originalParent) return false;
             if (!gpu) expected.append(actual);
-            else if (actual != expected.value(state++)) return false;
+            else {
+                const auto reference = expected.value(state++);
+                if (actual != reference) {
+                    const auto root = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+                    if (root.isEmpty()) directory.setAutoRemove(false);
+                    const QDir output(QDir(root.isEmpty() ? directory.path() : root).filePath(QString::fromLatin1(QTest::currentDataTag())));
+                    if (QDir().mkpath(output.path())) {
+                        for (const auto &entry : {qMakePair(QStringLiteral("native"), reference), qMakePair(QStringLiteral("gpu"), actual)}) {
+                            QFile file(output.filePath(QStringLiteral("mask-state-%1-%2.alpha").arg(state - 1).arg(entry.first)));
+                            if (file.open(QIODevice::WriteOnly)) file.write(entry.second);
+                        }
+                    }
+                    for (int i = 0; i < qMin(actual.size(), reference.size()); ++i) if (actual[i] != reference[i]) {
+                        qWarning() << "Mask state" << state - 1 << "at" << QPoint(i % area.width(), i / area.width())
+                                   << "GPU" << quint8(actual[i]) << "native" << quint8(reference[i]);
+                        break;
+                    }
+                    return false;
+                }
+            }
             return true;
         };
         const auto stroke = [&](const QList<QPointF> &points) {
@@ -2707,8 +2727,11 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         else { KisPixelSelectionSP selection = new KisPixelSelection; selection->select(selected, 255);
             KisSelectionToolHelper helper(view->canvasBase(), kundo2_i18n("Select Rectangle"));
             helper.selectPixelSelection(selection, SELECTION_REPLACE); image->waitForDone(); }
+        QTRY_VERIFY(view->selection());
+        QTRY_COMPARE(view->selection()->selectedExactRect(), selected);
         auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color_opacity"));
         QVERIFY(fill && fill->isEnabled()); fill->trigger(); image->waitForDone(); QApplication::processEvents();
+        const auto foregroundFilled = pixels(); QVERIFY(foregroundFilled != erased);
         QVERIFY2(compare(), "Selected foreground mask fill must preserve native gray conversion");
         QImage patternImage(2, 2, QImage::Format_ARGB32);
         patternImage.setPixelColor(0, 0, QColor(34, 68, 102, 200));
@@ -2719,6 +2742,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         resources->setCurrentCompositeOp(QStringLiteral("multiply"));
         auto *patternFill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_pattern_opacity"));
         QVERIFY(patternFill && patternFill->isEnabled()); patternFill->trigger(); image->waitForDone(); QApplication::processEvents();
+        const auto patternFilled = pixels(); QVERIFY(patternFilled != foregroundFilled);
         QVERIFY2(compare(), "Selected pattern mask fill must preserve native gray, alpha and blend mode");
         resources->setCurrentCompositeOp(QStringLiteral("normal"));
         // Figure painting reuses the same frozen resources and global selection.
@@ -2728,6 +2752,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             figure.paintRect(QRectF(6, 6, 8, 8));
         }
         image->waitForDone(); QApplication::processEvents();
+        const auto figureFilled = pixels(); QVERIFY(figureFilled != patternFilled);
         QVERIFY2(compare(), "Selected mask figure must preserve native gray composition");
         {
             KisFigurePaintingStroke figure(kundo2_i18n("Mask outline selection override"), image, child, view->canvasBase()->resourceManager(),
@@ -2735,9 +2760,11 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             figure.setSelectionOverride({}); figure.paintRect(QRectF(50, 6, 8, 8));
         }
         image->waitForDone(); QApplication::processEvents();
+        QVERIFY(pixels() != figureFilled);
         QVERIFY2(compare(), "Selection-outline callers must paint across the frozen selection boundary");
         auto *deselect = window->viewManager()->actionManager()->actionByName(QStringLiteral("deselect"));
-        QVERIFY(deselect && deselect->isEnabled()); deselect->trigger(); image->waitForDone();
+        QTRY_VERIFY(deselect && deselect->isEnabled()); deselect->trigger(); image->waitForDone();
+        QTRY_VERIFY(!view->selection() || view->selection()->selectedExactRect().isEmpty());
         const auto saved = pixels();
         const auto path = directory.filePath(gpu ? QStringLiteral("gpu.kra") : QStringLiteral("cpu.kra"));
         QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
@@ -2745,9 +2772,17 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         QVERIFY2(lifetime->openPath(path, KisDocument::DontAddToRecent), qPrintable(lifetime->errorMessage()));
         image = lifetime->image(); layer = image->root()->firstChild(); child = layer->firstChild(); QVERIFY(child);
         window->viewManager()->nodeManager()->slotUiActivatedNode(child);
+        QTRY_COMPARE(view->currentNode(), child);
+        QTRY_VERIFY(image->isIdle());
         QCOMPARE(pixels(), saved); QVERIFY2(compare(), "KRA reload must preserve the entire edited mask");
+        QTRY_VERIFY(!view->selection() || view->selection()->selectedExactRect().isEmpty());
         configure(); prepareInput();
-        stroke({{50, 50}}); QVERIFY(pixels() != saved);
+        window->activateWindow(); input->requestActivate();
+        KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+        QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KritaShape/KisToolBrush"));
+        resources->setFGColor(KoColor(Qt::white, cs));
+        stroke({{50, 50}});
+        QVERIFY2(pixels() != saved, gpu ? "GPU mask input after normal KRA Open must change coverage" : "Native mask input after normal KRA Open must change coverage");
         QVERIFY2(compare(), "Mask preset editing after KRA reload must preserve native pixels");
         const auto edited = pixels(); lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(), saved);
         lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(pixels(), edited);
