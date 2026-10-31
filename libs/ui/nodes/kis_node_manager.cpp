@@ -1128,22 +1128,6 @@ bool KisNodeManager::PropertyAccess::applyProperties(KisNodeSP node,
                                                      KisImageSP image,
                                                      KisBaseNode::PropertyList properties)
 {
-    if (image && image->isGpuTransparencyMaskView(node)) {
-        const QString visibleId = KisLayerPropertiesIcons::visible.id();
-        bool hasVisible = false;
-        bool visible = false;
-        for (const auto &property : properties) {
-            if (property.id == visibleId) {
-                hasVisible = true;
-                visible = property.state.toBool();
-            }
-        }
-        if (hasVisible &&
-            !image->setGpuTransparencyMaskVisible(node->parent(), visible)) return false;
-        // The mirror node owns no document properties beyond mask visibility.
-        return true;
-    }
-
     KisNodePropertyListCommand::setNodePropertiesAutoUndo(node, image, properties);
     return true;
 }

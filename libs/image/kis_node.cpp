@@ -370,8 +370,15 @@ void KisNode::preparePropertyChange(NodePropertyChange property, const QVariant 
     if (!id) return;
     if (mask) {
         using LibrePaint::Image::Gpu::Result;
-        const auto result = property == NodePropertyChange::Visible ? owner->writeTransparencyMaskVisible(id, value.toBool()) :
-            property == NodePropertyChange::UserLocked ? owner->writeTransparencyMaskLocked(id, value.toBool()) : Result::Success;
+        auto result = Result::Success;
+        switch (property) {
+        case NodePropertyChange::Name: result = owner->writeTransparencyMaskName(id, value.toString()); break;
+        case NodePropertyChange::Visible: result = owner->writeTransparencyMaskVisible(id, value.toBool()); break;
+        case NodePropertyChange::UserLocked: result = owner->writeTransparencyMaskLocked(id, value.toBool()); break;
+        case NodePropertyChange::ColorLabel: result = owner->writeTransparencyMaskColorLabel(id, value.toInt()); break;
+        case NodePropertyChange::PinnedToTimeline: result = owner->writeTransparencyMaskPinnedToTimeline(id, value.toBool()); break;
+        case NodePropertyChange::Opacity: break;
+        }
         if (result != Result::Success) throw std::runtime_error("GPU transparency mask property write failed");
         return;
     }

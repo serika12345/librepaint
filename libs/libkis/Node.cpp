@@ -677,6 +677,13 @@ bool Node::remove()
     KisImageSP image = d->node->image();
     if (!image) return false;
     if (const auto owner = image->gpuImage()) {
+        if (image->isGpuTransparencyMaskView(d->node)) {
+            const auto parent = d->node->parent();
+            for (const auto &layer : owner->operations().snapshot()->layers)
+                if (layer.uuid == parent->uuid())
+                    return owner->removeTransparencyMask(layer.id) == LibrePaint::Image::Gpu::Result::Success;
+            return false;
+        }
         const auto version = owner->operations().snapshot();
         for (const auto &layer : version->layers) {
             if (layer.uuid == d->node->uuid())

@@ -57,6 +57,10 @@ RasterLayer rasterLayerDescription(const Layer &layer)
     value.transparencyMask = layer.transparencyMask;
     value.transparencyMaskVisible = layer.transparencyMaskVisible;
     value.transparencyMaskLocked = layer.transparencyMaskLocked;
+    value.transparencyMaskUuid = layer.transparencyMaskUuid;
+    value.transparencyMaskName = layer.transparencyMaskName;
+    value.transparencyMaskColorLabelIndex = layer.transparencyMaskColorLabelIndex;
+    value.transparencyMaskPinnedToTimeline = layer.transparencyMaskPinnedToTimeline;
     return value;
 }
 ExecutionOutcome readKraMaskPixels(Execution &execution, RasterImage &image, qsizetype maximumBytes, qsizetype *bytes)

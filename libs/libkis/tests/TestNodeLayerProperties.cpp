@@ -8,6 +8,8 @@
 #include <simpletest.h>
 #include <Document.h>
 #include <Node.h>
+#include <TransparencyMask.h>
+#include <Selection.h>
 #include <InfoObject.h>
 #include <KoStore.h>
 #include <KoColorSpaceRegistry.h>
@@ -32,6 +34,9 @@
 #include <kis_group_layer.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
+#include <kis_transparency_mask.h>
+#include <kis_selection.h>
+#include <kis_pixel_selection.h>
 #include <kis_slider_spin_box.h>
 #include <kis_transaction.h>
 #include <kis_undo_adapter.h>
@@ -677,4 +682,176 @@ void TestNode::testPassThroughGroupsKeepPublicReadsAndPropertyHistory()
     const auto *copiedGroup = dynamic_cast<GroupLayer *>(copied.data());
     QVERIFY(copiedGroup && copiedGroup->passThroughMode());
     QCOMPARE(copied->projectionPixelData(0, 0, 1, 1), own);
+}
+
+void TestNode::testGpuMaskInsertionPropertiesHistoryAndReopen()
+{
+    // Scripts attach a prepared mask, keep its wrapper across history, and find
+    // the same identity after KRA/Open before making further property edits.
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    const auto restoreEngine = qScopeGuard([&] { if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine); });
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    Gpu::RasterImage input;
+    input.size = {32, 32};
+    input.layers = {{QStringLiteral("Paint")}, {QStringLiteral("Other")}};
+    input.layers.first().defaultPixel = {211, 67, 23, 255};
+    const auto owner = Gpu::PaintImageSP::create(execution, input);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Public mask properties"));
+    document->setCurrentImage(image);
+    Document publicDocument(document.data(), false);
+    QScopedPointer<Node> parent(Node::createNode(image, image->root()->firstChild()));
+    QScopedPointer<Node> other(Node::createNode(image, image->root()->lastChild()));
+    QScopedPointer<TransparencyMask> mask(publicDocument.createTransparencyMask(QStringLiteral("Prepared cutouts")));
+    QVERIFY(mask);
+    const auto identity = mask->uniqueId();
+    Selection selection;
+    selection.setPixelData(QByteArray::fromHex("11e9"), 4, 7, 2, 1);
+    mask->setSelection(&selection);
+    mask->setColorLabel(4);
+    mask->setPinnedToTimeline(true);
+    mask->setVisible(false);
+    mask->setLocked(true);
+    QCOMPARE(owner->setSelectionRect(QRect(1, 2, 8, 9)), Gpu::Result::Success);
+    QVERIFY(parent->addChildNode(mask.data(), nullptr));
+    QCOMPARE(owner->selectionRect(), QRect(1, 2, 8, 9));
+    QScopedPointer<Node> attached(publicDocument.nodeByUniqueID(identity));
+    QVERIFY(attached && *attached == *mask);
+    const auto fixed = owner->operations().snapshot();
+    QCOMPARE(fixed->layers.first().transparencyMask->coverage(4, 7), quint8(17));
+    QCOMPARE(fixed->layers.first().transparencyMask->coverage(5, 7), quint8(233));
+    QCOMPARE(fixed->layers.first().transparencyMask->defaultCoverage(), quint8(0));
+    const int count = document->undoStack()->count();
+    Selection replacement;
+    replacement.setPixelData(QByteArray::fromHex("25b7"), 4, 7, 2, 1);
+    mask->setSelection(&replacement);
+    QCOMPARE(document->undoStack()->count(), count);
+    QCOMPARE(owner->operations().snapshot()->layers.first().transparencyMask->coverage(4, 7), quint8(37));
+    QCOMPARE(fixed->layers.first().transparencyMask->coverage(4, 7), quint8(17));
+    mask->setName(QStringLiteral("Renamed cutouts"));
+    mask->setColorLabel(6);
+    mask->setPinnedToTimeline(false);
+    QCOMPARE(document->undoStack()->count(), count);
+    QCOMPARE(fixed->layers.first().transparencyMaskName, QStringLiteral("Prepared cutouts"));
+    QCOMPARE(fixed->layers.first().transparencyMaskColorLabelIndex, 4);
+    QVERIFY(fixed->layers.first().transparencyMaskPinnedToTimeline);
+    QCOMPARE(owner->operations().snapshot()->layers.first().transparencyMaskName, mask->name());
+    QCOMPARE(owner->operations().snapshot()->layers.first().transparencyMaskColorLabelIndex, 6);
+    QVERIFY(!owner->operations().snapshot()->layers.first().transparencyMaskPinnedToTimeline);
+    QVERIFY(mask->remove());
+    QVERIFY(!image->root()->firstChild()->firstChild());
+    document->undoStack()->undo();
+    QScopedPointer<Node> restored(publicDocument.nodeByUniqueID(identity));
+    QVERIFY(restored && *restored == *mask);
+    QCOMPARE(mask->name(), QStringLiteral("Renamed cutouts"));
+    document->undoStack()->redo();
+    document->undoStack()->undo();
+    QScopedPointer<Node> restoredParent(mask->parentNode());
+    QVERIFY(restoredParent);
+    QScopedPointer<Node> copy(mask->duplicate());
+    QVERIFY(copy && copy->uniqueId() != identity);
+    QVERIFY(other->addChildNode(copy.data(), nullptr));
+    QCOMPARE(owner->operations().snapshot()->layers.last().transparencyMaskName, mask->name());
+    QCOMPARE(owner->operations().snapshot()->layers.last().transparencyMask->coverage(4, 7), quint8(37));
+    QCOMPARE(owner->operations().snapshot()->layers.last().transparencyMaskColorLabelIndex, 6);
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto path = output.filePath(QStringLiteral("mask-properties.kra"));
+    document->setFileBatchMode(true);
+    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QVERIFY(reopened->image()->gpuImage());
+    Document loaded(reopened.data(), false);
+    QScopedPointer<Node> loadedMask(loaded.nodeByUniqueID(identity));
+    QVERIFY(loadedMask);
+    QCOMPARE(loadedMask->name(), mask->name());
+    QCOMPARE(loadedMask->colorLabel(), 6);
+    QVERIFY(!loadedMask->isPinnedToTimeline());
+    QVERIFY(!loadedMask->visible());
+    QVERIFY(loadedMask->locked());
+    auto *loadedTransparencyMask = qobject_cast<TransparencyMask *>(loadedMask.data());
+    QVERIFY(loadedTransparencyMask);
+    QScopedPointer<Selection> loadedSelection(loadedTransparencyMask->selection());
+    QCOMPARE(loadedSelection->pixelData(4, 7, 2, 1), QByteArray::fromHex("25b7"));
+    loadedMask->setName(QStringLiteral("Edited after Open"));
+    loadedMask->setColorLabel(2);
+    QVERIFY(loadedMask->remove());
+    reopened->undoStack()->undo();
+    QCOMPARE(loadedMask->name(), QStringLiteral("Edited after Open"));
+    QCOMPARE(loadedMask->colorLabel(), 2);
+    QCOMPARE(reopened->image()->gpuImage()->operations().snapshot()->layers.first().transparencyMaskName, loadedMask->name());
+    QVERIFY2(reopened->saveAs(output.filePath(QStringLiteral("re-edited.kra")), KisDocument::nativeFormatMimeType(), false), qPrintable(reopened->errorMessage()));
+    reopened->waitForSavingToComplete();
+}
+
+void TestNode::testMaskSelectionWritesPreserveNativeHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("native") << false;
+    QTest::newRow("gpu") << true;
+}
+
+void TestNode::testMaskSelectionWritesPreserveNativeHistory()
+{
+    // setSelection replaces the selection object directly. Undoing a previous
+    // pixel transaction keeps that replacement on the same mask node.
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage input;
+        input.size = {32, 32}; input.layers = {{QStringLiteral("Paint")}};
+        owner = Gpu::PaintImageSP::create(execution, input);
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Mask selection"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 32, 32, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Mask selection"));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Paint"), 255));
+    }
+    document->setCurrentImage(image);
+    Document publicDocument(document.data(), false);
+    QScopedPointer<Node> parent(Node::createNode(image, image->root()->firstChild()));
+    QScopedPointer<TransparencyMask> mask(publicDocument.createTransparencyMask(QStringLiteral("Mask")));
+    Selection initial; initial.select(4, 7, 2, 1, 17);
+    mask->setSelection(&initial);
+    QVERIFY(parent->addChildNode(mask.data(), nullptr));
+    const auto maskNode = qobject_cast<KisTransparencyMask *>(image->root()->firstChild()->firstChild().data());
+    QVERIFY(maskNode);
+    if (gpu) {
+        const auto pixels = Gpu::SelectionMask::fromAlphaCoverage(QRect(4, 7, 2, 1), QByteArray(2, char(100)), QRect(0, 0, 32, 32));
+        QCOMPARE(owner->replaceTransparencyMask(1, pixels), Gpu::Result::Success);
+    } else {
+        KisTransaction transaction(maskNode->selection()->pixelSelection());
+        maskNode->selection()->pixelSelection()->select(QRect(4, 7, 2, 1), 100);
+        transaction.commit(image->undoAdapter());
+    }
+    image->waitForDone();
+    const int count = document->undoStack()->count();
+    Selection replacement; replacement.select(4, 7, 2, 1, 37);
+    mask->setSelection(&replacement);
+    QCOMPARE(document->undoStack()->count(), count);
+    const auto check = [&] {
+        QScopedPointer<Selection> pixels(mask->selection());
+        return pixels->pixelData(4, 7, 2, 1) == QByteArray(2, char(37));
+    };
+    QVERIFY(check());
+    document->undoStack()->undo(); image->waitForDone(); QVERIFY(check());
+    document->undoStack()->redo(); image->waitForDone(); QVERIFY(check());
+    document->undoStack()->undo(); image->waitForDone();
+    document->undoStack()->undo(); image->waitForDone();
+    QVERIFY(!maskNode->parent());
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(image->root()->firstChild()->firstChild().data(), maskNode);
+    QVERIFY(check());
 }

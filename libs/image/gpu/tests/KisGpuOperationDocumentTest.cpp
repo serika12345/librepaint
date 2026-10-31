@@ -198,6 +198,7 @@ private Q_SLOTS:
     void invalidAutoBrushSettingsPreserveTheDocument();
     void transparencyMaskHistoryComposition();
     void ordinaryMaskCreationKeepsDefaultsSelectionAndHistory();
+    void maskPropertiesKeepIdentityHistoryAndCopies();
     void transparencyMaskFromSelectionShapesAndRejections();
     void transparencyMaskCoverageReplacementPreservesHistory();
     void transparencyMaskFollowsCanvasResize();
@@ -4355,6 +4356,59 @@ void KisGpuOperationDocumentTest::ordinaryMaskCreationKeepsDefaultsSelectionAndH
         QCOMPARE(mask->byteCount(), qsizetype(SelectionMask::AlphaTileBytes));
         QVERIFY(*mask != *flat);
     }
+}
+
+void KisGpuOperationDocumentTest::maskPropertiesKeepIdentityHistoryAndCopies()
+{
+    RasterImage input; input.size = {64, 64}; input.layers = {{QStringLiteral("Paint")}};
+    input.layers.first().uuid = QUuid(QStringLiteral("{d89b2d52-9021-4873-a0b0-ea053a2b0357}"));
+    OperationDocument document(input), repeated(input);
+    QCOMPARE(document.addTransparencyMask(1, QStringLiteral("Cutouts")), Result::Success);
+    QCOMPARE(repeated.addTransparencyMask(1, QStringLiteral("Cutouts")), Result::Success);
+    const auto fixed = document.snapshot();
+    const auto identity = fixed->layers.first().transparencyMaskUuid;
+    QVERIFY(!identity.isNull());
+    QCOMPARE(identity, repeated.snapshot()->layers.first().transparencyMaskUuid);
+    QCOMPARE(document.renameTransparencyMask(1, QStringLiteral("Edge"), PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.renameTransparencyMask(1, QStringLiteral("Soft edge"), PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::RenameLayer);
+    QCOMPARE(document.writeTransparencyMaskColorLabel(1, 3), Result::Success);
+    QCOMPARE(document.writeTransparencyMaskPinnedToTimeline(1, true), Result::Success);
+    QCOMPARE(fixed->layers.first().transparencyMaskName, QStringLiteral("Cutouts"));
+    QCOMPARE(fixed->layers.first().transparencyMaskColorLabelIndex, 0);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskName, QStringLiteral("Cutouts"));
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskColorLabelIndex, 3);
+    QVERIFY(document.snapshot()->layers.first().transparencyMaskPinnedToTimeline);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskName, QStringLiteral("Soft edge"));
+    QCOMPARE(document.snapshot()->layers.first().name, QStringLiteral("Paint"));
+    QCOMPARE(document.duplicateLayers({1}, {QStringLiteral("Copy")}, 1), Result::Success);
+    const auto copied = document.snapshot()->layers.last();
+    QVERIFY(copied.transparencyMaskUuid != identity);
+    QVERIFY(copied.transparencyMaskUuid != copied.uuid);
+    QCOMPARE(copied.transparencyMaskName, QStringLiteral("Soft edge"));
+    QCOMPARE(copied.transparencyMaskColorLabelIndex, 3);
+    QVERIFY(copied.transparencyMaskPinnedToTimeline);
+    QCOMPARE(copied.transparencyMask, document.snapshot()->layers.first().transparencyMask);
+    QCOMPARE(document.removeTransparencyMask(1), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskUuid, identity);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskName, QStringLiteral("Soft edge"));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.addTransparencyMask(1, QStringLiteral("New mask")), Result::Success);
+    QVERIFY(document.snapshot()->layers.first().transparencyMaskUuid != identity);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskColorLabelIndex, 0);
+    QVERIFY(!document.snapshot()->layers.first().transparencyMaskPinnedToTimeline);
+    QCOMPARE(document.writeTransparencyMaskName(1, QStringLiteral("New direct name")), Result::Success);
+    QCOMPARE(document.writeTransparencyMaskColorLabel(1, 9), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!document.snapshot()->layers.first().transparencyMask);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskName, QStringLiteral("Soft edge"));
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskColorLabelIndex, 3);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskUuid, identity);
 }
 
 void KisGpuOperationDocumentTest::transparencyMaskHistoryComposition()

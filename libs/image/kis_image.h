@@ -176,6 +176,9 @@ public:
      */
     bool insertGpuLayers(const KisNodeList &nodes, qsizetype index, KisNodeSP parent = {},
                          bool clearPixelSelection = false);
+    /** Imports a public mask selection as a direct write. History count and
+     * fixed snapshots stay unchanged; invalid or over-budget input returns false. */
+    bool writeGpuTransparencyMaskSelection(KisNodeSP node, const KisSelectionSP &selection);
     /** Detached copies of supported GPU subtrees, preserving supplied root order
      * and independent overlapping roots. Their pixel devices share one copied
      * image and retain its execution. Invalid input returns an empty list;

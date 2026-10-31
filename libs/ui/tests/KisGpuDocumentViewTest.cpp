@@ -3235,6 +3235,30 @@ void KisGpuDocumentViewTest::layerPanelGpuTransparencyMaskChildSurvivesSaving()
     window->viewManager()->nodeManager()->slotUiActivatedNode(child);
     QCOMPARE(view->currentNode(), child);
 
+    const auto identity = child->uuid();
+    QCOMPARE(identity, owner->operations().snapshot()->layers.first().transparencyMaskUuid);
+    const auto fixed = owner->operations().snapshot();
+    auto *manager = window->viewManager()->nodeManager();
+    manager->setNodeName(child, QStringLiteral("Retained cutouts"));
+    QCOMPARE(child->name(), QStringLiteral("Retained cutouts"));
+    QCOMPARE(owner->operations().snapshot()->layers.first().transparencyMaskName, child->name());
+    QCOMPARE(layer->name(), fixed->layers.first().name);
+    lifetime->undoStack()->undo();
+    QCOMPARE(child->name(), fixed->layers.first().transparencyMaskName);
+    lifetime->undoStack()->redo();
+    QCOMPARE(child->name(), QStringLiteral("Retained cutouts"));
+    child->setColorLabelIndex(4);
+    QCOMPARE(child->colorLabelIndex(), 4);
+    QCOMPARE(owner->operations().snapshot()->layers.first().transparencyMaskColorLabelIndex, 4);
+    lifetime->undoStack()->undo();
+    QCOMPARE(child->name(), fixed->layers.first().transparencyMaskName);
+    QCOMPARE(child->colorLabelIndex(), 4);
+    lifetime->undoStack()->redo();
+    child->setPinnedToTimeline(true);
+    QVERIFY(owner->operations().snapshot()->layers.first().transparencyMaskPinnedToTimeline);
+    QCOMPARE(fixed->layers.first().transparencyMaskColorLabelIndex, 0);
+    QCOMPARE(fixed->layers.first().transparencyMaskUuid, identity);
+
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto path = directory.filePath(QStringLiteral("mask-child.kra"));
@@ -3246,13 +3270,17 @@ void KisGpuDocumentViewTest::layerPanelGpuTransparencyMaskChildSurvivesSaving()
     QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
     QVERIFY(loaded.document.image.layers.first().transparencyMask);
     QVERIFY(!loaded.document.image.layers.first().transparencyMaskVisible);
+    QCOMPARE(loaded.document.image.layers.first().transparencyMaskUuid, identity);
+    QCOMPARE(loaded.document.image.layers.first().transparencyMaskName, QStringLiteral("Retained cutouts"));
+    QCOMPARE(loaded.document.image.layers.first().transparencyMaskColorLabelIndex, 4);
+    QVERIFY(loaded.document.image.layers.first().transparencyMaskPinnedToTimeline);
     QCOMPARE(loaded.document.image.layers.first().transparencyMask->coverage(4, 16), quint8(255));
     QCOMPARE(loaded.document.image.layers.first().transparencyMask->coverage(28, 16), quint8(0));
 
     const auto reopened = paintImageWithEncoding(execution, loaded.document.image);
     QVERIFY(reopened);
     lifetime->setCurrentImage(KisImage::fromGpuImage(reopened, QStringLiteral("Reopened mask child")));
-    QTRY_VERIFY(view->currentNode());
+    QTRY_VERIFY(view->currentNode() && view->currentNode()->image().data() == lifetime->image().data());
     QApplication::sendPostedEvents();
     QApplication::processEvents();
     auto reopenedImage = KisImageSP(lifetime->image());
@@ -3264,6 +3292,14 @@ void KisGpuDocumentViewTest::layerPanelGpuTransparencyMaskChildSurvivesSaving()
     QVERIFY(reopenedChild->inherits("KisTransparencyMask"));
     QVERIFY(reopenedImage->isGpuTransparencyMaskView(reopenedChild));
     QVERIFY(!reopenedChild->visible());
+    QCOMPARE(reopenedChild->uuid(), identity);
+    QCOMPARE(reopenedChild->name(), QStringLiteral("Retained cutouts"));
+    QCOMPARE(reopenedChild->colorLabelIndex(), 4);
+    QVERIFY(reopenedChild->isPinnedToTimeline());
+    window->viewManager()->nodeManager()->setNodeName(reopenedChild, QStringLiteral("Edited after reload"));
+    QCOMPARE(reopened->operations().snapshot()->layers.first().transparencyMaskName, QStringLiteral("Edited after reload"));
+    lifetime->undoStack()->undo(); QCOMPARE(reopenedChild->name(), QStringLiteral("Retained cutouts"));
+    lifetime->undoStack()->redo(); QCOMPARE(reopenedChild->name(), QStringLiteral("Edited after reload"));
     QVERIFY(!reopened->operations().snapshot()->layers.first().transparencyMaskVisible);
     quint8 selected = 0;
     quint8 unselected = 255;

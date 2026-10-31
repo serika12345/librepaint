@@ -1667,6 +1667,13 @@ void TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening()
     source.image.layers[0].transparencyMaskVisible = false;
     source.image.layers[1].transparencyMask = hard;
     source.image.layers[1].transparencyMaskVisible = true;
+    for (int i = 0; i < 2; ++i) {
+        auto &layer = source.image.layers[i];
+        layer.transparencyMaskUuid = QUuid::createUuidV5(layer.uuid, QByteArrayLiteral("retained mask"));
+        layer.transparencyMaskName = i ? QStringLiteral("Hard edge") : QStringLiteral("Soft edge");
+        layer.transparencyMaskColorLabelIndex = i + 3;
+        layer.transparencyMaskPinnedToTimeline = i == 0;
+    }
 
     QByteArray bytes;
     QBuffer output(&bytes);
@@ -1696,6 +1703,13 @@ void TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening()
     const auto result = load(bytes);
     QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
     QCOMPARE(result.document.image.layers.size(), 2);
+    for (int i = 0; i < 2; ++i) {
+        const auto &actual = result.document.image.layers[i]; const auto &expected = source.image.layers[i];
+        QCOMPARE(actual.transparencyMaskUuid, expected.transparencyMaskUuid);
+        QCOMPARE(actual.transparencyMaskName, expected.transparencyMaskName);
+        QCOMPARE(actual.transparencyMaskColorLabelIndex, expected.transparencyMaskColorLabelIndex);
+        QCOMPARE(actual.transparencyMaskPinnedToTimeline, expected.transparencyMaskPinnedToTimeline);
+    }
     QVERIFY(result.document.image.layers[0].transparencyMask);
     QVERIFY(result.document.image.layers[0].transparencyMask->isAlpha());
     QVERIFY(*result.document.image.layers[0].transparencyMask == *soft);
@@ -1723,6 +1737,13 @@ void TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening()
     QCOMPARE(again.document.image.layers[1].transparencyMask->coverage(120, 100), quint8(255));
     QCOMPARE(again.document.image.layers[1].transparencyMask->coverage(80, 60), quint8(0));
     QVERIFY(again.document.image.layers[1].transparencyMaskVisible);
+    for (int i = 0; i < 2; ++i) {
+        const auto &actual = again.document.image.layers[i]; const auto &expected = source.image.layers[i];
+        QCOMPARE(actual.transparencyMaskUuid, expected.transparencyMaskUuid);
+        QCOMPARE(actual.transparencyMaskName, expected.transparencyMaskName);
+        QCOMPARE(actual.transparencyMaskColorLabelIndex, expected.transparencyMaskColorLabelIndex);
+        QCOMPARE(actual.transparencyMaskPinnedToTimeline, expected.transparencyMaskPinnedToTimeline);
+    }
     for (int i = 0; i < 2; ++i)
         for (const auto &tile : source.image.layers[i].tiles)
             QCOMPARE(rgbaAt(again.document.image.layers[i], tile.coordinate * 256), tile.rgba.first(4));

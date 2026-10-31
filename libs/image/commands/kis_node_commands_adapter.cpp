@@ -219,8 +219,11 @@ void KisNodeCommandsAdapter::setNodeName(KisNodeSP node, const QString &name)
 {
     const auto currentImage = image();
     if (const auto owner = currentImage->gpuImage()) {
-        const auto result = owner->renameLayer(gpuLayerId(currentImage, node), name,
-            LibrePaint::Image::Gpu::PropertyHistory::MergeConsecutive);
+        const bool mask = currentImage->isGpuTransparencyMaskView(node);
+        const auto layer = gpuLayerId(currentImage, mask ? node->parent() : node);
+        const auto result = mask ? owner->renameTransparencyMask(layer, name,
+            LibrePaint::Image::Gpu::PropertyHistory::MergeConsecutive) :
+            owner->renameLayer(layer, name, LibrePaint::Image::Gpu::PropertyHistory::MergeConsecutive);
         if (result != LibrePaint::Image::Gpu::Result::Success)
             throw std::runtime_error("GPU layer rename failed: " + std::to_string(int(result)));
         return;

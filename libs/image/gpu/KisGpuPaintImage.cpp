@@ -348,7 +348,11 @@ Result PaintImage::addTransparencyMaskFromSelection(LayerId layer)
     if (!onThread()) return Result::InvalidInput;
     return publish(m_d->document->addTransparencyMaskFromSelection(layer));
 }
+Result PaintImage::insertTransparencyMask(LayerId layer, const RasterLayer &source)
+{ return onThread() ? publish(m_d->document->insertTransparencyMask(layer, source)) : Result::InvalidInput; }
 Result PaintImage::addTransparencyMask(LayerId layer)
+{ return addTransparencyMask(layer, QStringLiteral("Transparency Mask")); }
+Result PaintImage::addTransparencyMask(LayerId layer, const QString &name)
 {
     if (!onThread()) return Result::InvalidInput;
     const auto status = m_d->document->checkMutation();
@@ -371,9 +375,9 @@ Result PaintImage::addTransparencyMask(LayerId layer)
             if (prepared.code != ExecutionCode::Success) { m_d->lastRequest = prepared; return resultFor(prepared.code); }
         }
         if (m_d->document->snapshot() != version) return Result::StaleVersion;
-        return publish(m_d->document->addTransparencyMaskWithin(layer, false, mask));
+        return publish(m_d->document->addTransparencyMaskWithin(layer, false, mask, name));
     }
-    return publish(m_d->document->addTransparencyMask(layer));
+    return publish(m_d->document->addTransparencyMask(layer, name));
 }
 Result PaintImage::setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history)
 {
@@ -389,6 +393,14 @@ Result PaintImage::writeTransparencyMaskVisible(LayerId layer, bool visible)
 { return onThread() ? requestAfterWrite(m_d->document->writeTransparencyMaskVisible(layer, visible)) : Result::InvalidInput; }
 Result PaintImage::writeTransparencyMaskLocked(LayerId layer, bool locked)
 { return onThread() ? requestAfterWrite(m_d->document->writeTransparencyMaskLocked(layer, locked)) : Result::InvalidInput; }
+Result PaintImage::renameTransparencyMask(LayerId layer, const QString &name, PropertyHistory history)
+{ return onThread() ? publish(m_d->document->renameTransparencyMask(layer, name, history)) : Result::InvalidInput; }
+Result PaintImage::writeTransparencyMaskName(LayerId layer, const QString &name)
+{ return onThread() ? requestAfterWrite(m_d->document->writeTransparencyMaskName(layer, name)) : Result::InvalidInput; }
+Result PaintImage::writeTransparencyMaskColorLabel(LayerId layer, int index)
+{ return onThread() ? requestAfterWrite(m_d->document->writeTransparencyMaskColorLabel(layer, index)) : Result::InvalidInput; }
+Result PaintImage::writeTransparencyMaskPinnedToTimeline(LayerId layer, bool pinned)
+{ return onThread() ? requestAfterWrite(m_d->document->writeTransparencyMaskPinnedToTimeline(layer, pinned)) : Result::InvalidInput; }
 Result PaintImage::removeTransparencyMask(LayerId layer)
 {
     if (!onThread()) return Result::InvalidInput;
@@ -706,6 +718,8 @@ Result PaintImage::replaceTransparencyMask(LayerId layer, const SelectionMaskSP 
     if (!onThread()) return Result::InvalidInput;
     return publish(m_d->document->replaceTransparencyMask(layer, mask));
 }
+Result PaintImage::writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask)
+{ return onThread() ? requestAfterWrite(m_d->document->writeTransparencyMask(layer, mask)) : Result::InvalidInput; }
 
 Result PaintImage::replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled)
 {

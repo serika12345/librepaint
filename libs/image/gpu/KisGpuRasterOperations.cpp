@@ -69,6 +69,11 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.transparencyMask = source.transparencyMask;
         layer.transparencyMaskVisible = source.transparencyMaskVisible;
         layer.transparencyMaskLocked = source.transparencyMaskLocked;
+        layer.transparencyMaskUuid = source.transparencyMask && source.transparencyMaskUuid.isNull() ?
+            QUuid::createUuidV5(uuid, QByteArrayLiteral("transparency-mask")) : source.transparencyMaskUuid;
+        layer.transparencyMaskName = source.transparencyMaskName;
+        layer.transparencyMaskColorLabelIndex = source.transparencyMaskColorLabelIndex;
+        layer.transparencyMaskPinnedToTimeline = source.transparencyMaskPinnedToTimeline;
         identities.insert(uuid);
         QSet<QPoint> coordinates;
         auto operation = QSharedPointer<TileWriteOperation>::create();
@@ -95,6 +100,8 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     m_nextLayer = initial->layers.size();
     initial->activeLayer = image.layers.isEmpty() ? 0 : image.activeLayer + 1;
     if (initial->activeLayer) initial->selectedLayers = {initial->activeLayer};
+    if (!Detail::validLayerHierarchy(initial->layers, image.format))
+        throw std::invalid_argument("invalid raster mask identity or properties");
     m_history.append(initial);
     m_layerHistoryChanges.append(LayerHistoryChange{});
 }

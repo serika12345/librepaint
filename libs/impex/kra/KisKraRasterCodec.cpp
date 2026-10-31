@@ -708,6 +708,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                     files.remove(maskPath + QStringLiteral(".xmp.metadata"));
                 }
             } else {
+                if (!validName(layer.transparencyMaskName)) return invalid(QStringLiteral("Invalid KRA transparency mask name"));
                 if (maskFilename.isEmpty()) {
                     const auto base = element.attribute(QStringLiteral("filename")) + QStringLiteral("-mask");
                     maskFilename = base;
@@ -718,19 +719,22 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                     element.appendChild(maskElement);
                 }
                 if (!component(maskFilename)) return invalid(QStringLiteral("Invalid KRA transparency mask identity"));
-                QUuid maskUuid(maskElement.attribute(QStringLiteral("uuid")));
+                QUuid maskUuid = layer.transparencyMaskUuid.isNull() ?
+                    QUuid(maskElement.attribute(QStringLiteral("uuid"))) : layer.transparencyMaskUuid;
                 if (maskUuid.isNull()) {
                     maskUuid = QUuid::createUuidV5(layer.uuid, QByteArrayLiteral("transparency-mask"));
                     maskElement.setAttribute(QStringLiteral("uuid"), maskUuid.toString());
                 }
                 if (uuids.contains(maskUuid)) return invalid(QStringLiteral("Duplicate KRA transparency mask identity"));
+                uuids.insert(maskUuid);
+                maskElement.setAttribute(QStringLiteral("uuid"), maskUuid.toString());
                 maskElement.setAttribute(QStringLiteral("filename"), maskFilename);
-                maskElement.setAttribute(QStringLiteral("name"), QStringLiteral("Transparency Mask"));
+                maskElement.setAttribute(QStringLiteral("name"), layer.transparencyMaskName);
                 maskElement.setAttribute(QStringLiteral("nodetype"), QStringLiteral("transparencymask"));
                 maskElement.setAttribute(QStringLiteral("visible"), layer.transparencyMaskVisible ? QStringLiteral("1") : QStringLiteral("0"));
                 maskElement.setAttribute(QStringLiteral("locked"), layer.transparencyMaskLocked ? QStringLiteral("1") : QStringLiteral("0"));
-                maskElement.setAttribute(QStringLiteral("colorlabel"), QStringLiteral("0"));
-                maskElement.setAttribute(QStringLiteral("intimeline"), QStringLiteral("0"));
+                maskElement.setAttribute(QStringLiteral("colorlabel"), layer.transparencyMaskColorLabelIndex);
+                maskElement.setAttribute(QStringLiteral("intimeline"), layer.transparencyMaskPinnedToTimeline ? QStringLiteral("1") : QStringLiteral("0"));
                 maskElement.setAttribute(QStringLiteral("x"), QStringLiteral("0"));
                 maskElement.setAttribute(QStringLiteral("y"), QStringLiteral("0"));
                 const auto maskPath = folder + QStringLiteral("/layers/") + maskFilename;
@@ -1584,6 +1588,15 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                 if (!transparencyMask && maskDefaultPixel) transparencyMask = SelectionMask::uniform(maskDefaultPixel);
                 if (!transparencyMask)
                     return fail(unsupported(QStringLiteral("KRA transparency mask requires nonempty coverage")));
+                layer.transparencyMaskUuid = QUuid(maskElement.attribute(QStringLiteral("uuid")));
+                layer.transparencyMaskName = maskElement.attribute(QStringLiteral("name"), QStringLiteral("Transparency Mask"));
+                if (!validName(layer.transparencyMaskName) ||
+                    !integer(maskElement, QStringLiteral("colorlabel"), layer.transparencyMaskColorLabelIndex, QStringLiteral("0")))
+                    return fail(invalid(QStringLiteral("Invalid KRA transparency mask properties")));
+                const auto maskTimeline = maskElement.attribute(QStringLiteral("intimeline"), QStringLiteral("0"));
+                if (maskTimeline != QLatin1String("0") && maskTimeline != QLatin1String("1"))
+                    return fail(invalid(QStringLiteral("Invalid KRA transparency mask timeline state")));
+                layer.transparencyMaskPinnedToTimeline = maskTimeline == QLatin1String("1");
                 layer.transparencyMask = transparencyMask;
                 layer.transparencyMaskVisible = maskVisible == QLatin1String("1");
                 layer.transparencyMaskLocked = maskLocked == QLatin1String("1");

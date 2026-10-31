@@ -671,6 +671,11 @@ struct RasterLayer
     /** False retains the coverage but ignores it during composition. */
     bool transparencyMaskVisible = true;
     bool transparencyMaskLocked = false;
+    /** Stable public child identity and document-owned scalar properties. */
+    QUuid transparencyMaskUuid{};
+    QString transparencyMaskName = QStringLiteral("Transparency Mask");
+    int transparencyMaskColorLabelIndex = 0;
+    bool transparencyMaskPinnedToTimeline = false;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -730,6 +735,11 @@ struct Layer
     /** False retains the coverage but ignores it during composition. */
     bool transparencyMaskVisible = true;
     bool transparencyMaskLocked = false;
+    /** Stable public child identity and document-owned scalar properties. */
+    QUuid transparencyMaskUuid{};
+    QString transparencyMaskName = QStringLiteral("Transparency Mask");
+    int transparencyMaskColorLabelIndex = 0;
+    bool transparencyMaskPinnedToTimeline = false;
 };
 
 /** True when this layer's retained transparency mask contributes to composition. */
@@ -1040,13 +1050,24 @@ public:
     /** Ordinary Add Mask copies and consumes the active selection, or creates
      * white default coverage when no selection is active, in one history item. */
     Result addTransparencyMask(LayerId layer);
+    Result addTransparencyMask(LayerId layer, const QString &name);
+    /** Imports the supplied mask identity, coverage and attributes atomically,
+     * preserving the document's active selection. Other raster fields are unused. */
+    Result insertTransparencyMask(LayerId layer, const RasterLayer &source);
     /** Toggles the retained mask's composition effect in one history entry. */
     Result setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history = PropertyHistory::Separate);
     Result setTransparencyMaskLocked(LayerId layer, bool locked, PropertyHistory history = PropertyHistory::Separate);
     Result writeTransparencyMaskVisible(LayerId layer, bool visible);
     Result writeTransparencyMaskLocked(LayerId layer, bool locked);
+    Result renameTransparencyMask(LayerId layer, const QString &name, PropertyHistory history = PropertyHistory::Separate);
+    Result writeTransparencyMaskName(LayerId layer, const QString &name);
+    Result writeTransparencyMaskColorLabel(LayerId layer, int index);
+    Result writeTransparencyMaskPinnedToTimeline(LayerId layer, bool pinned);
     /** Removes the retained mask in one history entry, preserving layer pixels. */
     Result removeTransparencyMask(LayerId layer);
+    /** Public mask selection replacement preserves history count and retained
+     * node identity; existing snapshots keep their original coverage. */
+    Result writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
     /** Replaces the retained mask coverage in one history entry, preserving
      * layer pixels and the mask's composition visibility. Null coverage removes
      * nothing; removeTransparencyMask() owns mask removal. Equal coverage
@@ -1190,7 +1211,7 @@ public:
 
 private:
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible, MaskLocked };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible, MaskLocked, MaskName, MaskColorLabel, MaskPinnedToTimeline };
     struct LayerPropertyEdit {
         LayerProperty property;
         LayerId layer;
@@ -1249,7 +1270,9 @@ private:
                              const Shape &shape, const FigureStyle &style, quint64 randomSeed,
                              const std::optional<QRect> &compositionBounds, const RegionFillSP &region = {});
     Result appendSamplesWithin(OperationId id, const QList<InputSample> &samples, const Shape *painterShape);
-    Result addTransparencyMaskWithin(LayerId layer, bool requireSelection, const SelectionMaskSP &prepared = {});
+    Result addTransparencyMaskWithin(LayerId layer, bool requireSelection, const SelectionMaskSP &prepared = {},
+                                     const QString &name = QStringLiteral("Transparency Mask"),
+                                     const RasterLayer *imported = nullptr);
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);

@@ -191,6 +191,7 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
     for (auto &layer : version->layers) {
         if (!preserveLayerUuids) {
             layer.uuid = identities.value(layer.uuid);
+            if (layer.transparencyMask) layer.transparencyMaskUuid = QUuid::createUuidV5(layer.uuid, QByteArrayLiteral("transparency-mask"));
             layer.parentUuid = identities.value(layer.parentUuid);
         }
         for (auto &operation : layer.operations) {
@@ -267,17 +268,20 @@ HistoryAction OperationDocument::historyAction(int index) const
     if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
         return resize->cropLayers ? HistoryAction::CropImage : HistoryAction::ResizeCanvas;
     switch (m_layerHistoryChanges[index].property) {
-    case LayerProperty::Name: return HistoryAction::RenameLayer;
+    case LayerProperty::Name:
+    case LayerProperty::MaskName: return HistoryAction::RenameLayer;
     case LayerProperty::Opacity: return HistoryAction::ChangeOpacity;
     case LayerProperty::Visible: return HistoryAction::ChangeVisibility;
     case LayerProperty::Locked:
     case LayerProperty::MaskLocked: return HistoryAction::ChangeLock;
-    case LayerProperty::PinnedToTimeline: return HistoryAction::ChangeTimelinePin;
+    case LayerProperty::PinnedToTimeline:
+    case LayerProperty::MaskPinnedToTimeline: return HistoryAction::ChangeTimelinePin;
     case LayerProperty::ChannelMask: return HistoryAction::ChangeChannelLock;
     case LayerProperty::ProjectionMask: return HistoryAction::ChangeProjectionChannels;
     case LayerProperty::Position: return HistoryAction::TranslateLayer;
     case LayerProperty::None: break;
-    case LayerProperty::ColorLabel: break;
+    case LayerProperty::ColorLabel:
+    case LayerProperty::MaskColorLabel: break;
     case LayerProperty::MaskVisible: return HistoryAction::ChangeMaskVisibility;
     case LayerProperty::PassThrough: return HistoryAction::ChangePassThrough;
     case LayerProperty::BlendMode: return HistoryAction::ChangeBlendMode;
@@ -557,13 +561,18 @@ Result OperationDocument::writeLayerProperty(LayerId layer, LayerProperty proper
     const auto index = layerIndex(layer);
     if (index < 0) return Result::LayerUnavailable;
     const T previous = snapshot()->layers[index].*member;
+    const bool maskProperty = property == LayerProperty::MaskVisible || property == LayerProperty::MaskLocked ||
+        property == LayerProperty::MaskName || property == LayerProperty::MaskColorLabel ||
+        property == LayerProperty::MaskPinnedToTimeline;
+    const auto maskIdentity = snapshot()->layers[index].transparencyMaskUuid;
     const bool components = property == LayerProperty::ChannelMask || property == LayerProperty::ProjectionMask;
     if constexpr (std::is_same_v<T, quint8>) {
         if (components ? (previous & componentMask) == (value & componentMask) : previous == value) return Result::Success;
     } else if (previous == value) return Result::Success;
     const auto containsLayer = [&](const Snapshot &state) {
         for (const auto &candidate : state->layers)
-            if (candidate.id == layer) return true;
+            if (candidate.id == layer && (!maskProperty ||
+                (candidate.transparencyMask && candidate.transparencyMaskUuid == maskIdentity))) return true;
         return false;
     };
     const auto changesProperty = [&](int index) {
@@ -672,6 +681,9 @@ Result OperationDocument::restoreLayerPropertyEdit(const LayerPropertyEdit &chan
     case LayerProperty::BlendMode: return writeLayerBlendMode(change.layer, LayerBlendMode(value.toUInt()));
     case LayerProperty::MaskLocked: return writeTransparencyMaskLocked(change.layer, value.toBool());
     case LayerProperty::MaskVisible: return writeTransparencyMaskVisible(change.layer, value.toBool());
+    case LayerProperty::MaskName: return writeTransparencyMaskName(change.layer, value.toString());
+    case LayerProperty::MaskColorLabel: return writeTransparencyMaskColorLabel(change.layer, value.toInt());
+    case LayerProperty::MaskPinnedToTimeline: return writeTransparencyMaskPinnedToTimeline(change.layer, value.toBool());
     }
     return Result::InvalidInput;
 }
@@ -1173,6 +1185,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         copy.id = ++nextLayer;
         copy.name = properties.name;
         copy.uuid = properties.uuid;
+        if (copy.transparencyMask) copy.transparencyMaskUuid = QUuid::createUuidV5(copy.uuid, QByteArrayLiteral("transparency-mask"));
         copy.visible = properties.visible;
         copy.opacity = properties.opacity;
         copy.userLocked = properties.userLocked;
@@ -1312,6 +1325,7 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
         }
         if (!unique) return Result::CapacityExceeded;
         identities.insert(copy.uuid);
+        if (copy.transparencyMask) copy.transparencyMaskUuid = QUuid::createUuidV5(copy.uuid, QByteArrayLiteral("transparency-mask"));
         copiedIdentities.insert(source.uuid, copy.uuid);
         if (copyNames.contains(source.id)) copy.name = copyNames.value(source.id);
         copyLayerOperations(source, copy, m_identity, nextOperation);
@@ -1461,10 +1475,25 @@ Result OperationDocument::addTransparencyMaskFromSelection(LayerId layer)
 Result OperationDocument::addTransparencyMask(LayerId layer)
 { return addTransparencyMaskWithin(layer, false); }
 
-Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireSelection, const SelectionMaskSP &prepared)
+Result OperationDocument::addTransparencyMask(LayerId layer, const QString &name)
+{ return addTransparencyMaskWithin(layer, false, {}, name); }
+
+Result OperationDocument::insertTransparencyMask(LayerId layer, const RasterLayer &source)
+{
+    if (!source.transparencyMask || source.transparencyMaskUuid.isNull()) return Result::InvalidInput;
+    for (const auto &version : m_history)
+        for (const auto &value : version->layers)
+            if (value.uuid == source.transparencyMaskUuid ||
+                (value.transparencyMask && value.transparencyMaskUuid == source.transparencyMaskUuid)) return Result::InvalidInput;
+    return addTransparencyMaskWithin(layer, true, source.transparencyMask, source.transparencyMaskName, &source);
+}
+
+Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireSelection, const SelectionMaskSP &prepared,
+                                                   const QString &name, const RasterLayer *imported)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
+    if (!validLayerName(name)) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
     if (snapshot()->layers[index].userLocked) return Result::LayerUnavailable;
@@ -1474,10 +1503,27 @@ Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireS
     if (!mask || mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
+    auto sequence = m_nextOperation;
+    QUuid identity;
+    const auto occupied = [&](const QUuid &candidate) {
+        for (const auto &value : snapshot()->layers)
+            if (value.uuid == candidate || (value.transparencyMask && value.transparencyMaskUuid == candidate)) return true;
+        return false;
+    };
+    if (imported) identity = imported->transparencyMaskUuid;
+    while (identity.isNull() || occupied(identity)) {
+        if (sequence == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+        const QByteArray name = QByteArrayLiteral("LibrePaint transparency mask:") + QByteArray::number(++sequence);
+        identity = QUuid::createUuidV5(snapshot()->layers[index].uuid, name);
+    }
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].transparencyMask = mask;
-    version->layers[index].transparencyMaskVisible = true;
-    version->layers[index].transparencyMaskLocked = false;
+    version->layers[index].transparencyMaskVisible = imported ? imported->transparencyMaskVisible : true;
+    version->layers[index].transparencyMaskLocked = imported ? imported->transparencyMaskLocked : false;
+    version->layers[index].transparencyMaskUuid = identity;
+    version->layers[index].transparencyMaskName = name;
+    version->layers[index].transparencyMaskColorLabelIndex = imported ? imported->transparencyMaskColorLabelIndex : 0;
+    version->layers[index].transparencyMaskPinnedToTimeline = imported && imported->transparencyMaskPinnedToTimeline;
     if (!requireSelection) {
         version->selection = {};
         version->selectionKind = SelectionKind::Rectangle;
@@ -1489,6 +1535,7 @@ Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireS
     change.layer = layer;
     change.addedTransparencyMask = true;
     commitVersion(version, change);
+    m_nextOperation = sequence;
     return Result::Success;
 }
 
@@ -1540,6 +1587,49 @@ Result OperationDocument::setTransparencyMaskLocked(LayerId layer, bool locked, 
     return Result::Success;
 }
 
+Result OperationDocument::renameTransparencyMask(LayerId layer, const QString &name, PropertyHistory history)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive) return Result::InvalidInput;
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (!validLayerName(name)) return Result::InvalidInput;
+    const auto previous = snapshot()->layers[index].transparencyMaskName;
+    if (previous == name) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].transparencyMaskName = name;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitPropertyVersion(version, {LayerProperty::MaskName, layer, QVariant::fromValue(previous), QVariant::fromValue(name)}, history);
+    return Result::Success;
+}
+
+Result OperationDocument::writeTransparencyMaskName(LayerId layer, const QString &name)
+{
+    if (m_closed) return Result::Closed;
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (!validLayerName(name)) return Result::InvalidInput;
+    return writeLayerProperty(layer, LayerProperty::MaskName, &Layer::transparencyMaskName, name);
+}
+
+Result OperationDocument::writeTransparencyMaskColorLabel(LayerId layer, int index)
+{
+    if (m_closed) return Result::Closed;
+    const auto position = layerIndex(layer);
+    if (position < 0 || !snapshot()->layers[position].transparencyMask) return Result::LayerUnavailable;
+    return writeLayerProperty(layer, LayerProperty::MaskColorLabel, &Layer::transparencyMaskColorLabelIndex, index);
+}
+
+Result OperationDocument::writeTransparencyMaskPinnedToTimeline(LayerId layer, bool pinned)
+{
+    if (m_closed) return Result::Closed;
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    return writeLayerProperty(layer, LayerProperty::MaskPinnedToTimeline, &Layer::transparencyMaskPinnedToTimeline, pinned);
+}
+
 Result OperationDocument::removeTransparencyMask(LayerId layer)
 {
     const auto status = checkMutation();
@@ -1556,6 +1646,34 @@ Result OperationDocument::removeTransparencyMask(LayerId layer)
     change.layer = layer;
     change.removedTransparencyMask = true;
     commitVersion(version, change);
+    return Result::Success;
+}
+
+Result OperationDocument::writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (!mask || mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
+    if (snapshot()->layers[index].transparencyMask == mask) return Result::Success;
+    if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
+    const auto identity = snapshot()->layers[index].transparencyMaskUuid;
+    QList<int> affected;
+    for (int i = 0; i < m_history.size(); ++i)
+        for (const auto &value : m_history[i]->layers)
+            if (value.id == layer && value.transparencyMask && value.transparencyMaskUuid == identity) { affected.append(i); break; }
+    if (quint64(affected.size()) > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
+    auto history = m_history;
+    auto revision = m_nextRevision;
+    for (const auto i : affected) {
+        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*history[i]));
+        for (auto &value : version->layers) if (value.id == layer) { value.transparencyMask = mask; break; }
+        version->m_revision = ++revision;
+        history[i] = version;
+    }
+    m_history.swap(history);
+    m_nextRevision = revision;
     return Result::Success;
 }
 

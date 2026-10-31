@@ -141,11 +141,18 @@ public:
      */
     Result addTransparencyMaskFromSelection(LayerId layer);
     Result addTransparencyMask(LayerId layer);
+    Result addTransparencyMask(LayerId layer, const QString &name);
+    Result insertTransparencyMask(LayerId layer, const RasterLayer &source);
     Result setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history = PropertyHistory::Separate);
     Result setTransparencyMaskLocked(LayerId layer, bool locked, PropertyHistory history = PropertyHistory::Separate);
     Result writeTransparencyMaskVisible(LayerId layer, bool visible);
     Result writeTransparencyMaskLocked(LayerId layer, bool locked);
+    Result renameTransparencyMask(LayerId layer, const QString &name, PropertyHistory history = PropertyHistory::Separate);
+    Result writeTransparencyMaskName(LayerId layer, const QString &name);
+    Result writeTransparencyMaskColorLabel(LayerId layer, int index);
+    Result writeTransparencyMaskPinnedToTimeline(LayerId layer, bool pinned);
     Result removeTransparencyMask(LayerId layer);
+    Result writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
     /** Replaces retained mask coverage as one history entry; null is rejected. */
     Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
     SelectionMaskSP layerTransparencyMask(LayerId layer) const;

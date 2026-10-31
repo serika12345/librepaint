@@ -156,6 +156,8 @@ inline bool validBlendMode(LayerBlendMode mode, PixelFormat format)
     return false;
 }
 
+inline bool validLayerName(const QString &name);
+
 template<class LayerValue>
 bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
 {
@@ -170,6 +172,14 @@ bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
             if (identities.contains(layer.uuid)) return false;
             identities.insert(layer.uuid, &layer);
         }
+    }
+    QSet<QUuid> maskIdentities;
+    for (const auto &layer : layers) {
+        if (!layer.transparencyMask) continue;
+        if (!validLayerName(layer.transparencyMaskName)) return false;
+        if (layer.transparencyMaskUuid.isNull()) continue;
+        if (identities.contains(layer.transparencyMaskUuid) || maskIdentities.contains(layer.transparencyMaskUuid)) return false;
+        maskIdentities.insert(layer.transparencyMaskUuid);
     }
     for (const auto &layer : layers) {
         if (layer.parentUuid.isNull()) continue;

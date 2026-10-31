@@ -56,6 +56,9 @@ private Q_SLOTS:
     void testGpuBoundsUseOnlyScalarReadback();
     void testLayerPropertiesPreservePublicHistorySemantics_data();
     void testLayerPropertiesPreservePublicHistorySemantics();
+    void testGpuMaskInsertionPropertiesHistoryAndReopen();
+    void testMaskSelectionWritesPreserveNativeHistory_data();
+    void testMaskSelectionWritesPreserveNativeHistory();
     void testPassThroughGroupsKeepPublicReadsAndPropertyHistory();
     void testBlendModeChangesPreservePublicHistory_data();
     void testBlendModeChangesPreservePublicHistory();
