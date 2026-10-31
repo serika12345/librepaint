@@ -123,20 +123,24 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
                         if (!mask(value->selectionMask) ||
                             !add(value->shape.pathCommands.constData(), value->shape.pathCommands.size() * qsizetype(sizeof(PathCommand))) ||
                             !add(value->shape.pathCalls.constData(), value->shape.pathCalls.size() * qsizetype(sizeof(QPair<qsizetype, qsizetype>))) ||
-                            !add(value->brush.sizeResponse.curve.constData(), value->brush.sizeResponse.curve.size() * qsizetype(sizeof(qreal))) ||
                             !add(value->sampleBlocks.constData(), value->sampleBlocks.size() * qsizetype(sizeof(value->sampleBlocks[0]))) ||
                             !add(value->smoothingFlushes.constData(), value->smoothingFlushes.size() * qsizetype(sizeof(qsizetype)))) return false;
-                        if (value->brush.autoBrush) {
-                            const auto &sharpness = value->brush.autoBrush->sharpnessResponse;
-                            if (sharpness && !add(sharpness->curve.constData(), sharpness->curve.size() * qsizetype(sizeof(qreal)))) return false;
-                            for (const auto *response : {&value->brush.autoBrush->opacityResponse, &value->brush.autoBrush->flowResponse})
-                                if (!add(response->curve.constData(), response->curve.size() * qsizetype(sizeof(qreal)))) return false;
-                        }
-                        if (value->brush.texture) {
-                            const auto &paper = *value->brush.texture;
-                            if (!add(paper.alpha.constData(), paper.alpha.size())) return false;
-                            for (const auto *response : {&paper.pressure, &paper.fade})
-                                if (*response && !add((*response)->curve.constData(), (*response)->curve.size() * qsizetype(sizeof(qreal)))) return false;
+                        for (const auto *brush : {&value->brush, value->brush.additiveMaskingBrush.data()}) {
+                            if (!brush) continue;
+                            if (brush != &value->brush && !add(brush, sizeof(Brush))) return false;
+                            if (!add(brush->sizeResponse.curve.constData(), brush->sizeResponse.curve.size() * qsizetype(sizeof(qreal)))) return false;
+                            if (brush->autoBrush) {
+                                const auto &sharpness = brush->autoBrush->sharpnessResponse;
+                                if (sharpness && !add(sharpness->curve.constData(), sharpness->curve.size() * qsizetype(sizeof(qreal)))) return false;
+                                for (const auto *response : {&brush->autoBrush->opacityResponse, &brush->autoBrush->flowResponse})
+                                    if (!add(response->curve.constData(), response->curve.size() * qsizetype(sizeof(qreal)))) return false;
+                            }
+                            if (brush->texture) {
+                                const auto &paper = *brush->texture;
+                                if (!add(paper.alpha.constData(), paper.alpha.size())) return false;
+                                for (const auto *response : {&paper.pressure, &paper.fade})
+                                    if (*response && !add((*response)->curve.constData(), (*response)->curve.size() * qsizetype(sizeof(qreal)))) return false;
+                            }
                         }
                         for (const auto &block : value->sampleBlocks)
                             if (!add(block.data(), sizeof(*block)) ||

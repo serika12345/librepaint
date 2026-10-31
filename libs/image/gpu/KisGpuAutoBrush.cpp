@@ -214,6 +214,21 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             result.append(mirrored);
         }
     }
+    if (brush.additiveMaskingBrush) {
+        auto maskOperation = operation;
+        maskOperation.brush = *brush.additiveMaskingBrush;
+        maskOperation.brush.basicSmoothing = brush.basicSmoothing;
+        maskOperation.brush.weightedSmoothing = brush.weightedSmoothing;
+        maskOperation.brush.pixelPerfect = brush.pixelPerfect;
+        maskOperation.figureStyle.fill.reset();
+        maskOperation.figureStyle.pattern.reset();
+        const auto mask = autoBrushDabs(maskOperation, pending);
+        if (!mask || mask->size() > PaintGeometryElementLimit - result.size()) return std::nullopt;
+        for (auto dab : *mask) {
+            dab.words[3] |= 128u;
+            result.append(dab);
+        }
+    }
     return result;
 }
 }

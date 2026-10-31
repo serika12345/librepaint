@@ -210,10 +210,10 @@ bool captureBrushTexture(const KisPaintOpSettingsSP &settings, bool erase, Libre
     return true;
 }
 
-bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush)
+bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush, bool secondary = false)
 {
-    if (settings->getInt("PaintOpAction") != 2 || settings->getString("ColorSource/Type", "plain") != QLatin1String("plain") ||
-        settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag) ||
+    if ((!secondary && settings->getInt("PaintOpAction") != 2) || settings->getString("ColorSource/Type", "plain") != QLatin1String("plain") ||
+        (secondary && settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag)) ||
         settings->getBool("PaintOpSettings/isAirbrushing") || settings->getBool("PaintOpSettings/ignoreSpacing") ||
         settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") ||
         settings->getBool("HorizontalMirrorEnabled") || settings->getBool("VerticalMirrorEnabled")) return false;
@@ -287,10 +287,25 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         !capturePressureResponse(settings, QStringLiteral("Opacity"), false, value.opacityResponse) ||
         !capturePressureResponse(settings, QStringLiteral("Flow"), false, value.flowResponse)) return false;
     // WASH applies constant opacity once when merging the temporary stroke.
-    value.opacityResponse.strength = 1;
+    if (!secondary) value.opacityResponse.strength = 1;
     value.flowResponse.strength = 1;
     brush.autoBrush = std::move(value);
-    return captureBrushTexture(settings, brush.erase, brush);
+    if (!captureBrushTexture(settings, brush.erase, brush)) return false;
+    if (settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag)) {
+        if (settings->maskingBrushCompositeOp() != QLatin1String("linear_dodge")) return false;
+        const auto maskSettings = settings->createMaskingSettings();
+        if (!maskSettings) return false;
+        auto mask = QSharedPointer<LibrePaint::Image::Gpu::Brush>::create(brush);
+        mask->autoBrush.reset(); mask->texture.reset();
+        mask->rgba = {255, 255, 255, 255};
+        mask->diameter = maskSettings->paintOpSize();
+        mask->opacity = 1; mask->erase = false; mask->alphaLocked = false;
+        mask->maskPainting = true; mask->channelWriteMask = 15;
+        mask->blendMode = LibrePaint::Image::Gpu::LayerBlendMode::Normal;
+        if (!captureAutoBrush(maskSettings, *mask, true) || mask->texture) return false;
+        brush.additiveMaskingBrush = std::move(mask);
+    }
+    return true;
 }
 
 KisGpuBrushResources captureGpuPaintingResources(

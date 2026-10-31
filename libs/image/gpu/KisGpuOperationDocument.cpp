@@ -787,6 +787,8 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
     operation->id = {m_identity, ++m_nextOperation};
     operation->layer = layer;
     operation->brush = brush;
+    if (brush.additiveMaskingBrush)
+        operation->brush.additiveMaskingBrush = QSharedPointer<const Brush>::create(*brush.additiveMaskingBrush);
     if (!brush.mirrorHorizontal && !brush.mirrorVertical) operation->brush.mirrorCenter = {};
     operation->brush.channelWriteMask &= snapshot()->layers[index].channelWriteMask;
     operation->brush.alphaLocked |= !(operation->brush.channelWriteMask & 8);

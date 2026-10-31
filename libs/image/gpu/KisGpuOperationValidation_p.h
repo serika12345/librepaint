@@ -299,6 +299,14 @@ inline bool validPressureResponse(const PressureResponse &value)
 
 inline bool validBrush(const Brush &brush, PixelFormat format)
 {
+    if (brush.additiveMaskingBrush) {
+        const auto &mask = *brush.additiveMaskingBrush;
+        if (!brush.autoBrush || !mask.autoBrush || mask.additiveMaskingBrush || mask.texture ||
+            !mask.maskPainting || mask.rgba != RgbaPixel{255, 255, 255, 255} ||
+            mask.opacity != 1 || mask.erase || mask.alphaLocked ||
+            mask.blendMode != LayerBlendMode::Normal || mask.channelWriteMask != 15 ||
+            !validBrush(mask, PixelFormat::Rgba8)) return false;
+    }
     if (brush.texture) {
         const auto &t = *brush.texture;
         const qint64 pixels = qint64(t.size.width()) * t.size.height();

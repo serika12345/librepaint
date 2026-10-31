@@ -4544,7 +4544,7 @@ void KisGpuOperationDocumentTest::invalidAutoBrushSettingsPreserveTheDocument()
     auto &wash = brush.autoBrush.emplace();
     wash.opacityResponse = {PressureResponse::Kind::Curve, 1, QList<qreal>(256, 1)};
     const auto before = document.preview();
-    for (int invalid = 0; invalid < 11; ++invalid) {
+    for (int invalid = 0; invalid < 14; ++invalid) {
         auto bad = brush;
         switch (invalid) {
         case 0: bad.autoBrush->flow = -1; break;
@@ -4558,6 +4558,16 @@ void KisGpuOperationDocumentTest::invalidAutoBrushSettingsPreserveTheDocument()
         case 8: bad.autoBrush->sharpnessSoftness = 101; break;
         case 9: bad.autoBrush->sharpnessResponse = PressureResponse{PressureResponse::Kind::Direct, -1, {}}; break;
         case 10: bad.autoBrush->sharpnessResponse = PressureResponse{PressureResponse::Kind::Curve, 1, {}}; break;
+        default: {
+            auto mask = QSharedPointer<Brush>::create(brush);
+            mask->maskPainting = true;
+            mask->rgba = {255, 255, 255, 255};
+            if (invalid == 11) mask->autoBrush->flowResponse.strength = std::numeric_limits<qreal>::quiet_NaN();
+            else if (invalid == 12) mask->additiveMaskingBrush = QSharedPointer<const Brush>::create(*mask);
+            else mask->rgba[0] = 254;
+            bad.additiveMaskingBrush = mask;
+            break;
+        }
         }
         QVERIFY(document.beginStroke(document.activeLayer(), bad, 1789).isNull());
         QCOMPARE(document.preview(), before);

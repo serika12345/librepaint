@@ -120,6 +120,7 @@ private Q_SLOTS:
     void layerTransparencyMaskMultipliesCompositionAlpha();
     void autoBrushProducesCoverageAndRetainsPixels();
     void paperResourceKeepsFrozenPixelsHistoryAndCapacity();
+    void additiveMaskingBrushKeepsFrozenInputAndHistory();
     void gaussianEraseKeepsColorsHistory_data();
     void gaussianEraseKeepsColorsHistory();
     void gaussianFreehandKeepsInitialDistanceAndFinalTap_data();
@@ -1251,6 +1252,54 @@ void KisGpuTileRendererTest::autoBrushProducesCoverageAndRetainsPixels()
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0}), pixels);
     QCOMPARE(readTile(painted, document.activeLayer(), {0, 0}), pixels);
+}
+
+// Consumer: ordinary additive Charcoal input and its retained history.
+// Mutating the caller's secondary tip must preserve accepted editing pixels.
+void KisGpuTileRendererTest::additiveMaskingBrushKeepsFrozenInputAndHistory()
+{
+    OperationDocument document(QSize(64, 64));
+    Brush brush;
+    brush.rgba = {17, 34, 51, 255};
+    brush.diameter = 20;
+    brush.sizeResponse = {PressureResponse::Kind::Constant, 1, {}};
+    brush.autoBrush.emplace().opacityResponse = {PressureResponse::Kind::Constant, 1, {}};
+    brush.autoBrush->flow = .23;
+    auto mask = QSharedPointer<Brush>::create(brush);
+    mask->rgba = {255, 255, 255, 255};
+    mask->maskPainting = true;
+    mask->diameter = 8;
+    mask->autoBrush->flow = .37;
+    brush.additiveMaskingBrush = mask;
+    const QList<InputSample> input{{{24, 24}, 1}, {{40, 32}, .7}};
+    const auto id = document.beginStroke(document.activeLayer(), brush, 1789);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.appendSamples(id, input), Result::Success);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    TileRenderer renderer(m_device, 8 * TileRenderer::TileBytes);
+    const auto retained = render(renderer, document.snapshot());
+    QVERIFY(retained);
+    const auto pixels = readTile(retained, document.activeLayer(), {0, 0});
+    QVERIFY(pixels != QByteArray(pixels.size(), '\0'));
+    OperationDocument primaryOnly(QSize(64, 64));
+    auto primary = brush;
+    primary.additiveMaskingBrush.clear();
+    const auto primaryId = primaryOnly.beginStroke(primaryOnly.activeLayer(), primary, 1789);
+    QVERIFY(!primaryId.isNull());
+    QCOMPARE(primaryOnly.appendSamples(primaryId, input), Result::Success);
+    QCOMPARE(primaryOnly.commitStroke(primaryId), Result::Success);
+    QVERIFY(readTile(render(renderer, primaryOnly.snapshot()), primaryOnly.activeLayer(), {0, 0}) != pixels);
+    mask->diameter = 40;
+    mask->autoBrush->opacityResponse.strength = 0;
+    TileRenderer replay(m_device, 8 * TileRenderer::TileBytes);
+    QCOMPARE(readTile(render(replay, document.snapshot()), document.activeLayer(), {0, 0}), pixels);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(replay, document.snapshot());
+    QVERIFY(undone);
+    QVERIFY(undone->tiles(document.activeLayer()).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(replay, document.snapshot()), document.activeLayer(), {0, 0}), pixels);
+    QCOMPARE(readTile(retained, document.activeLayer(), {0, 0}), pixels);
 }
 
 // Consumer: retained brush editing and replay. Resource mutation, cache eviction

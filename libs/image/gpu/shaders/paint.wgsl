@@ -299,7 +299,7 @@ fn washWordAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {
     return projectionComponent(floatMultiply(alpha, 0x477fff00u));
 }
 
-fn generatedDabCoverage(dab: MaskDab, pixel: vec2<i32>, local: vec2<i32>, maximum: u32) -> u32 {
+fn generatedDabCoverage(dab: MaskDab, pixel: vec2<i32>, local: vec2<i32>, maximum: u32, gray: bool) -> u32 {
     if ((dab.size.w & 64u) != 0u) { return maximum; }
     var point = local;
     let scale = select(1u, 257u, maximum == 65535u);
@@ -308,11 +308,11 @@ fn generatedDabCoverage(dab: MaskDab, pixel: vec2<i32>, local: vec2<i32>, maximu
     var coverage: u32;
     if ((dab.size.w & 1u) != 0u) {
         if (dab.size.z > 1u) { coverage = smallStandardCircleAlpha(dab, vec2<u32>(point)) * scale; }
-        else { coverage = standardCircleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
+        else { coverage = standardCircleAlpha(dab, vec2<u32>(point), maximum, gray); }
     } else if ((dab.size.w & 32u) != 0u) {
-        coverage = unaliasedGaussianAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u);
+        coverage = unaliasedGaussianAlpha(dab, vec2<u32>(point), maximum, gray);
     } else if (dab.size.z > 1u) { coverage = smallCircleAlpha(dab, vec2<u32>(point)) * scale; }
-    else { coverage = circleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
+    else { coverage = circleAlpha(dab, vec2<u32>(point), maximum, gray); }
     if ((dab.texture.z & 512u) != 0u) {
         let opacity = select(coverage, (coverage - (coverage >> 8u) + 128u) >> 8u, maximum == 65535u);
         let tolerance = (dab.texture.z >> 16u) & 255u;
@@ -320,6 +320,7 @@ fn generatedDabCoverage(dab: MaskDab, pixel: vec2<i32>, local: vec2<i32>, maximu
         if (opacity > tolerance) { coverage = maximum; }
         else if (opacity <= transparent) { coverage = 0u; }
     }
+    if ((dab.size.w & 128u) != 0u) { return coverage; }
     return paperCoverage(dab, pixel, coverage, maximum);
 }
 
@@ -344,15 +345,22 @@ fn washByteColor(destination: u32, source: u32, blend: u32) -> u32 {
 // Preserve native per-dab color interpolation as well as the accumulated alpha.
 fn generatedBrushSource(pixel: vec2<i32>, initial: vec4<u32>, withColor: bool) -> vec4<u32> {
     var result = initial;
+    var maskAlpha = 0u;
     let word = parameters.native.z != 0u;
-    let maximum = select(255u, 65535u, word);
+    let primaryMaximum = select(255u, 65535u, word);
     let gray = (parameters.paintFlags & 524288u) != 0u;
     let foreground = nativePixel(parameters.color, parameters.native.x, word).xyz;
     for (var index = 0u; index < parameters.count; index += 1u) {
         let dab = gaussianDab(index);
         let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
         if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
-        let coverage = generatedDabCoverage(dab, pixel, point, maximum);
+        let masking = (dab.size.w & 128u) != 0u;
+        let maximum = select(primaryMaximum, 255u, masking);
+        let coverage = generatedDabCoverage(dab, pixel, point, maximum, gray || masking);
+        if (masking) {
+            maskAlpha = maskWashAlpha(maskAlpha, coverage, dab.application);
+            continue;
+        }
         if (withColor) {
             var opacity = dab.application.x;
             if (dab.application.w == 0u) { opacity = floatMultiply(opacity, dab.application.y); }
@@ -385,6 +393,9 @@ fn generatedBrushSource(pixel: vec2<i32>, initial: vec4<u32>, withColor: bool) -
         if (word) { result.w = washWordAlpha(result.w, coverage, dab.application); }
         else if (gray) { result.w = maskWashAlpha(result.w, coverage, dab.application); }
         else { result.w = washAlpha(result.w, coverage, dab.application); }
+    }
+    if ((parameters.paintFlags & 2097152u) != 0u && result.w != 0u) {
+        result.w = min(primaryMaximum, result.w + maskAlpha * select(1u, 257u, word));
     }
     return result;
 }

@@ -290,6 +290,11 @@ struct Brush
     std::optional<WeightedSmoothing> weightedSmoothing{};
     std::optional<AutoBrush> autoBrush{};
     std::optional<BrushTexture> texture{};
+    /** Frozen single GrayA8 secondary WASH tip used by additive Charcoal.
+     * Its coverage adds to nonzero primary alpha (native linear_dodge).
+     * Validation keeps paper resources on the primary brush.
+     */
+    QSharedPointer<const Brush> additiveMaskingBrush;
 
     bool operator==(const Brush &other) const
     {
@@ -302,7 +307,9 @@ struct Brush
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
             mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect &&
             basicSmoothing == other.basicSmoothing && weightedSmoothing == other.weightedSmoothing &&
-            autoBrush == other.autoBrush && texture == other.texture;
+            autoBrush == other.autoBrush && texture == other.texture &&
+            ((!additiveMaskingBrush && !other.additiveMaskingBrush) ||
+             (additiveMaskingBrush && other.additiveMaskingBrush && *additiveMaskingBrush == *other.additiveMaskingBrush));
     }
 };
 
