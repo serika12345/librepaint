@@ -116,6 +116,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         constexpr qreal sizeTolerance[] = {.05, .01, 0, 0, 0};
         constexpr qreal positionTolerance[] = {1, 1, 1, .5, 1e-6};
         const qreal angleTolerance = precision == 5 ? 1e-6 : M_PI / 180;
+        const QPoint paperOrigin = origin;
         const bool reuse = original &&
             std::abs(point.angle - savedAngle) <= angleTolerance &&
             std::abs(int(dab.words[0]) - int(original->words[0])) <= int(sizeTolerance[precision - 1] * dab.words[0]) &&
@@ -124,8 +125,8 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             std::abs(subpixel.y() - savedSubpixel.y()) <= positionTolerance[precision - 1] &&
             (dab.words[3] & 12u) == (original->words[3] & 12u);
         if (reuse) {
-            origin -= QPoint((int(original->words[0]) - int(dab.words[0])) / 2,
-                             (int(original->words[1]) - int(dab.words[1])) / 2);
+            origin += (QPoint(int(dab.words[0]), int(dab.words[1])) -
+                       QPoint(int(original->words[0]), int(original->words[1]))) / 2;
             dab = *original;
         } else {
             original = dab;
@@ -134,6 +135,10 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         }
         dab.words[18] = quint32(origin.x());
         dab.words[19] = quint32(origin.y());
+        // The queued native paintbrush applies paper at the requested rect,
+        // then centers the cached bitmap for painting.
+        dab.words[32] = quint32(paperOrigin.x() - origin.x());
+        dab.words[33] = quint32(paperOrigin.y() - origin.y());
         dab.words[20] = floatBits(float(opacity));
         dab.words[21] = floatBits(float(settings.flow * pressureValue(settings.flowResponse, point.pressure)));
         dab.words[22] = floatBits(float(averageOpacity));

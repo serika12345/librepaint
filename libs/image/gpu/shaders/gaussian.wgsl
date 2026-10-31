@@ -32,6 +32,7 @@ struct MaskDab {
     application: vec4<u32>,
     vertical: vec4<u32>,
     texture: vec4<u32>,
+    paperOffset: vec4<i32>,
 }
 
 // Standard ellipse and rectangle tips share dab placement and WASH accumulation

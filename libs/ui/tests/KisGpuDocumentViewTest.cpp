@@ -2556,7 +2556,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
     QTest::addColumn<bool>("words");
     QTest::addColumn<qreal>("flow");
     for (const auto *name : {"d)_Ink-3_Gpen.kpp", "a)_Eraser_Small.kpp", "b)_Basic-5_Size_default.kpp",
-                             "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp", "d)_Ink-7_Brush_Rough.kpp"})
+                             "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp", "d)_Ink-7_Brush_Rough.kpp", "y)_Screentones_Regular.kpp"})
         for (const bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1);
@@ -2584,15 +2584,16 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     if (brushes.rowCount() == 0) QVERIFY(brushes.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/libs/brush/tests/data/brush.gbr"), false));
     KisResourceModel patterns(ResourceType::Patterns);
     if (patterns.rowCount() == 0) QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
-    if (presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp")) {
-        const auto paper = bundle->resource(QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
+    if (presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp") || presetName == QLatin1String("y)_Screentones_Regular.kpp")) {
+        const auto paper = bundle->resource(presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp") ?
+            QStringLiteral("patterns/03_default-paper.png") : QStringLiteral("patterns/24-dynamic-screentone-B.png")).dynamicCast<KoPattern>();
         QVERIFY(paper);
         if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(paper->md5Sum(), paper->filename(), paper->name()))
             QVERIFY(patterns.addResource(paper));
         sourcePreset->settings()->setProperty("Texture/Pattern/isRandomOffsetX", false);
         sourcePreset->settings()->setProperty("Texture/Pattern/isRandomOffsetY", false);
-        sourcePreset->settings()->setProperty("Texture/Pattern/OffsetX", 7);
-        sourcePreset->settings()->setProperty("Texture/Pattern/OffsetY", 11);
+        sourcePreset->settings()->setProperty("Texture/Pattern/OffsetX", presetName.startsWith(QLatin1String("d)")) ? 7 : 0);
+        sourcePreset->settings()->setProperty("Texture/Pattern/OffsetY", presetName.startsWith(QLatin1String("d)")) ? 11 : 0);
     }
     const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     const QRect area(0, 0, 64, 64);
@@ -8196,6 +8197,10 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
         }
     }
 
+    for (bool words : {false, true})
+        QTest::newRow(words ? "texture-screentone-u16" : "texture-screentone-u8")
+            << QStringLiteral("y)_Screentones_Regular.kpp") << words << 0 << qreal(40) << false;
+
 }
 
 void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
@@ -8224,9 +8229,10 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
     auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
-    const bool textured = presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp");
+    const bool screentone = presetName == QLatin1String("y)_Screentones_Regular.kpp");
+    const bool textured = presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp") || screentone;
     if (textured) {
-        const auto paper = bundle->resource(QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
+        const auto paper = bundle->resource(screentone ? QStringLiteral("patterns/24-dynamic-screentone-B.png") : QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
         QVERIFY(paper);
         if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(paper->md5Sum(), paper->filename(), paper->name()))
             QVERIFY(patterns.addResource(paper));
@@ -8234,8 +8240,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         // Freeze native random outputs as part of the comparison's input.
         settings->setProperty("Texture/Pattern/isRandomOffsetX", false);
         settings->setProperty("Texture/Pattern/isRandomOffsetY", false);
-        settings->setProperty("Texture/Pattern/OffsetX", 7);
-        settings->setProperty("Texture/Pattern/OffsetY", 11);
+        settings->setProperty("Texture/Pattern/OffsetX", screentone ? 0 : 7);
+        settings->setProperty("Texture/Pattern/OffsetY", screentone ? 0 : 11);
         const QByteArray row(QTest::currentDataTag());
         settings->setProperty("Texture/Pattern/TexturingMode", row.contains("multiply") ? 0 : row.contains("darken") ? 4 : 1);
         settings->setProperty("Texture/Pattern/UseSoftTexturing", row.contains("-soft"));
@@ -8359,7 +8365,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                      Gpu::AutoBrush::Mask::Rectangle : Gpu::AutoBrush::Mask::Circle);
             if (textured) {
                 QVERIFY(capture.brush.texture);
-                QCOMPARE(capture.brush.texture->offset, QPoint(7, 11));
+                QCOMPARE(capture.brush.texture->offset, screentone ? QPoint() : QPoint(7, 11));
                 const auto frozen = *capture.brush.texture;
                 auto currentPreset = resources->currentPreset();
                 auto settings = currentPreset->settings();
@@ -8375,13 +8381,14 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 QCOMPARE(paper.alpha, frozen.alpha);
                 settings->setProperty("Texture/Pattern/isRandomOffsetX", false);
                 settings->setProperty("Texture/Pattern/isRandomOffsetY", false);
+                const auto brightness = settings->getDouble("Texture/Pattern/Brightness");
                 settings->setProperty("Texture/Pattern/Brightness", .2);
                 const auto changed = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
                                                               view->canvasBase()->resourceManager());
                 QVERIFY2(changed.diagnostic.isEmpty(), qPrintable(changed.diagnostic));
                 QVERIFY(changed.brush.texture && changed.brush.texture->alpha != frozen.alpha);
                 QCOMPARE(*capture.brush.texture, frozen);
-                settings->setProperty("Texture/Pattern/Brightness", .35);
+                settings->setProperty("Texture/Pattern/Brightness", brightness);
             }
             const QList<QPair<qreal, qreal>> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
                                                           {200, .03}, {200, .05}, {200, .06}};

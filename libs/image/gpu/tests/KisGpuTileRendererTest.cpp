@@ -1269,6 +1269,14 @@ void KisGpuTileRendererTest::paperResourceKeepsFrozenPixelsHistoryAndCapacity()
     paper.size = {2, 2};
     paper.alpha = QByteArray::fromHex("004080ff");
     paper.mode = BrushTexture::Mode::Subtract;
+    FigureStyle style;
+    style.pattern.emplace(); style.pattern->size = {1, 1};
+    style.pattern->rgba = QByteArray::fromHex("112233ff");
+    const auto initial = document.snapshot();
+    QCOMPARE(document.paintFigure(document.activeLayer(), brush, {{{8, 8}, 1}, {{40, 40}, 1}},
+                                  {ShapeKind::Rectangle, {8, 8}, {40, 40}}, style, 17), Result::CapacityExceeded);
+    QCOMPARE(document.snapshot(), initial);
+    QCOMPARE(document.undoCount(), 0);
     const auto id = document.beginStroke(document.activeLayer(), brush, 17);
     QVERIFY(!id.isNull());
     paper.alpha.fill(char(255));

@@ -11,10 +11,10 @@ namespace LibrePaint::Image::Gpu::Detail {
 /** Geometry and frozen arithmetic inputs; mask pixels are generated on the GPU. */
 struct AutoBrushDab
 {
-    std::array<quint32, 32> words{};
+    std::array<quint32, 36> words{};
     QRect bounds() const { return {qint32(words[18]), qint32(words[19]), int(words[0]), int(words[1])}; }
 };
-static_assert(sizeof(AutoBrushDab) == 128);
+static_assert(sizeof(AutoBrushDab) == 144);
 
 /** Pending intent belongs to the pinned version; stationary input stamps its last point after commit. */
 std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation, bool pending);

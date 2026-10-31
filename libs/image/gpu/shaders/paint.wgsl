@@ -175,10 +175,10 @@ fn markerCoverage(dab: MarkerMaskDab, pixel: vec2<i32>) -> u32 {
 }
 
 fn gaussianDab(index: u32) -> MaskDab {
-    let offset = index * 32u;
+    let offset = index * 36u;
     return MaskDab(geometryFour(offset), geometryFour(offset + 4u), geometryFour(offset + 8u),
                    geometryFour(offset + 12u), geometryFour(offset + 16u), geometryFour(offset + 20u),
-                   geometryFour(offset + 24u), geometryFour(offset + 28u));
+                   geometryFour(offset + 24u), geometryFour(offset + 28u), bitcast<vec4<i32>>(geometryFour(offset + 32u)));
 }
 
 fn paperMultiply(a: u32, b: u32, maximum: u32) -> u32 {
@@ -191,6 +191,7 @@ fn paperCoverage(dab: MaskDab, pixel: vec2<i32>, coverage: u32, maximum: u32) ->
     var sourcePixel = pixel;
     if ((dab.texture.w & 1u) != 0u) { sourcePixel.x = parameters.mirror.x / 8 - 1 - sourcePixel.x; }
     if ((dab.texture.w & 2u) != 0u) { sourcePixel.y = parameters.mirror.y / 8 - 1 - sourcePixel.y; }
+    sourcePixel += dab.paperOffset.xy;
     var point = (sourcePixel - parameters.texture.zw) % period;
     if (point.x < 0) { point.x += period.x; }
     if (point.y < 0) { point.y += period.y; }

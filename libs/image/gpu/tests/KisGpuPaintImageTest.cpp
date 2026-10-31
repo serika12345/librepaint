@@ -54,6 +54,7 @@ private Q_SLOTS:
     void rejectedTranslationKeepsHiddenPixelsHistoryPreviewAndRequests();
     void colorFillKeepsVersionsHistoryAndWholeRequestFailures();
     void contiguousFillKeepsFrozenPixelsHistoryAndClones();
+    void paperReferencesRejectRetainedResourceOverflow();
     void clearedLayersKeepFixedVersionsAndRejectWholeRequests();
     void clearHistoryKeepsItsMeaningAfterDirectWrites();
     void retainedLayerPixelsRemainEditableThroughRemovalAndDiscardedHistory();
@@ -79,6 +80,34 @@ private Q_SLOTS:
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
 
+
+// A colour selection retains the painted source. Reject its complete input
+// before accepting a history entry when the retained paper exceeds capacity.
+void KisGpuPaintImageTest::paperReferencesRejectRetainedResourceOverflow()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device, 8 * RgbaTile::ByteCount, 4, RgbaTile::ByteCount);
+    RasterImage input; input.size = {64, 64}; input.layers = {{QStringLiteral("Paper")}};
+    Limits limits; limits.rasterBytes = 128 * 128;
+    PaintImage image(execution, input, limits);
+    Brush brush; brush.rgba = {17, 34, 51, 255}; brush.diameter = 10;
+    brush.autoBrush.emplace().mask = AutoBrush::Mask::Circle;
+    auto &paper = brush.texture.emplace(); paper.size = {128, 128};
+    paper.alpha = QByteArray(128 * 128, char(0)); paper.mode = BrushTexture::Mode::Subtract;
+    paper.pressure = PressureResponse{PressureResponse::Kind::Curve, 1, QList<qreal>(256, 1)};
+    const auto id = image.beginStroke(image.operations().activeLayer(), brush, 17); QVERIFY(!id.isNull());
+    QCOMPARE(image.appendSamples(id, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(image.commitStroke(id), Result::Success);
+    const auto before = image.operations().snapshot();
+    const auto pixels = image.readRgbaPixels(image.operations().activeLayer(), QRect(0, 0, 64, 64), 64 * 64 * 4);
+    QCOMPARE(pixels.code, ExecutionCode::Success);
+    RegionFillSettings settings; settings.seed = {32, 32}; settings.threshold = 1;
+    QCOMPARE(image.selectRegion(image.operations().activeLayer(), settings, SelectionCombination::Replace), Result::CapacityExceeded);
+    QCOMPARE(image.operations().snapshot(), before);
+    QCOMPARE(image.operations().undoCount(), 1);
+    QCOMPARE(image.readRgbaPixels(image.operations().activeLayer(), QRect(0, 0, 64, 64), pixels.bytes.size()).bytes, pixels.bytes);
+}
 
 void KisGpuPaintImageTest::native16PixelWritesKeepLowBitsHiddenRgbAndPinnedHistory()
 {
