@@ -24,7 +24,7 @@ ExecutionOutcome Execution::readSelectionOutline(const std::shared_ptr<BufferSto
 {
     auto &d = *m_d;
     auto &r = *d.renderer->m_d;
-    if (!bounds || !outputRuns || !pixels || d.active || extent.isEmpty() || format > 2) return {ExecutionCode::InvalidRequest, {}};
+    if (!bounds || !outputRuns || !pixels || d.active || extent.isEmpty() || format > 3) return {ExecutionCode::InvalidRequest, {}};
     const auto size = extent.size();
     const quint64 countBytes = quint64(size.height()) * sizeof(quint32);
     if (size.isEmpty() || countBytes + 20 > quint64(d.maximumReadbackBytes))

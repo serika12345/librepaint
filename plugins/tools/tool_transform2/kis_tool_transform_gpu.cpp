@@ -145,7 +145,7 @@ void KisToolTransform::updateGpuTransform()
             const auto maskPlan = worker.gpuPlan(maskBounds, m_gpuSelection ? QRect{} : defaults, captured->bounds());
             if (!maskPlan) { valid = false; break; }
             mask = owner->transformedTransparencyMask(captured, m_gpuSelection,
-                bool(m_gpuSelection) && source->selectionInverted, m_gpuSelectionBounds, *maskPlan);
+                bool(m_gpuSelection) && source->selectionInverted, m_gpuSelectionBounds, *maskPlan, defaults);
             if (!mask) { valid = false; break; }
         }
         plans.append({target.layer, QSharedPointer<Gpu::AffinePlan>::create(*plan), mask, bool(m_gpuSelection) && !requested.isIdentity()});

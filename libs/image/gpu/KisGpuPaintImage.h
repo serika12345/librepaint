@@ -119,17 +119,18 @@ public:
      * Returns an empty mask when clipped away, null on failure. Leaves history
      * unchanged; generated coverage stays on the GPU. */
     SelectionMaskSP translatedSelectionMask(const SelectionMaskSP &mask, QPoint offset, QRect clip);
-    /** Native Alpha8 transform/capture/clear/merge for the ordinary transform
-     * tool. Pixels stay on the GPU; immutable results leave history unchanged.
+    /** Native Alpha8 filtering for the ordinary selection transform.
+     * Pixels stay on the GPU; immutable results leave history unchanged.
      * Empty coverage is valid, null reports invalid input, busy or capacity.
      */
     SelectionMaskSP transformedSelectionMask(const SelectionMaskSP &mask, const AffinePlan &plan);
     /** Transparency-mask gray is filtered independently from selectedness.
      * Null selection transforms the whole mask; selected pixels are cut and
-     * composited over the unchanged remainder, with the native mask default.
+     * composited over the unchanged remainder. Whole-mask transforms replace
+     * the native pixel selection, including its parent's default bounds.
      */
     SelectionMaskSP transformedTransparencyMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-                                               bool inverted, QRect copyRect, const AffinePlan &plan);
+                                               bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds = {});
     Result clearSelection();
     bool selectionInverted() const;
     LibrePaint::Image::Gpu::SelectionKind selectionKind() const;

@@ -560,7 +560,8 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTransform(const QSharedPo
     if (!source || !source->source || !source->plan || !pixels ||
         source->tiles.size() > MaximumBytes / AlphaTileBytes || !validOutline(bounds, outlineRuns)) return {};
     for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
-    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha, source->source->defaultCoverage()));
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha,
+        source->selection ? source->source->defaultCoverage() : 0));
     result->m_transform = source; result->m_outlineRuns = outlineRuns; result->m_nativePixels = pixels;
     return result;
 }

@@ -296,12 +296,12 @@ SelectionMaskSP PaintImage::transformedSelectionMask(const SelectionMaskSP &mask
 }
 
 SelectionMaskSP PaintImage::transformedTransparencyMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-    bool inverted, QRect copyRect, const AffinePlan &plan)
+    bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds)
 {
     if (!onThread()) return {};
     try {
         SelectionMaskSP result;
-        const auto checked = m_d->execution.transformedMaskCoverage(mask, selection, inverted, copyRect, plan, &result);
+        const auto checked = m_d->execution.transformedMaskCoverage(mask, selection, inverted, copyRect, plan, defaultBounds, &result);
         if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
         return result;
     } catch (const std::bad_alloc &) {

@@ -157,19 +157,18 @@ std::shared_ptr<CoverageTile> TileRenderer::Private::combinedCoverageTile(WGPUCo
 {
     const auto first = coverageTile(commands, source.first, key(point.x(), point.y()));
     const auto second = coverageTile(commands, source.second, key(point.x(), point.y()));
-    if (!first || !second || SelectionMask::AlphaTileBytes + 48 > budget->limit - budget->used) return {};
+    if (!first || !second || SelectionMask::AlphaTileBytes + 32 > budget->limit - budget->used) return {};
     device->retainForFrame(first->storage); device->retainForFrame(second->storage);
     auto pixels = createBuffer(device->nativeDevice(), SelectionMask::AlphaTileBytes,
         WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc);
-    auto parameters = createBuffer(device->nativeDevice(), 48, WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+    auto parameters = createBuffer(device->nativeDevice(), 32, WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
     if (!pixels || !parameters) return {};
     const auto output = std::make_shared<CoverageTile>(std::move(pixels), budget);
     const auto uniform = std::make_shared<BufferStorage>(std::move(parameters), budget);
     device->retainForFrame(output->storage); device->retainForFrame(uniform);
     const auto action = source.pixels == SelectionCombinationSource::Pixels::Selection ? qint32(source.action) : 7;
-    const qint32 values[12]{source.extent.x(), source.extent.y(), source.extent.width(), source.extent.height(),
-        point.x() * TileSize, point.y() * TileSize, action, qint32(source.inverted) | (qint32(source.defaultCoverage()) << 8),
-        0, 0, 0, 0};
+    const qint32 values[8]{source.extent.x(), source.extent.y(), source.extent.width(), source.extent.height(),
+        point.x() * TileSize, point.y() * TileSize, action, qint32(source.inverted) | (qint32(source.defaultCoverage()) << 8)};
     wgpuQueueWriteBuffer(device->queue(), uniform->pixels.get(), 0, values, sizeof(values));
     if (!selectionCombinePipeline) {
         selectionCombinePipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/selection-combine.wgsl"));
@@ -233,7 +232,7 @@ bool TileRenderer::Private::ensureSelectionTiles(WGPUCommandEncoder commands, co
 }
 
 bool TileRenderer::Private::transformMaskTiles(WGPUCommandEncoder commands, const SelectionMaskTransformSource &source,
-    QMap<quint64, std::shared_ptr<BufferStorage>> *tiles)
+    QMap<quint64, std::shared_ptr<BufferStorage>> *tiles, Tiles *rgba)
 {
     if (!maskCapturePipeline) {
         maskCapturePipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/mask-affine.wgsl"), "capture");
@@ -295,6 +294,7 @@ bool TileRenderer::Private::transformMaskTiles(WGPUCommandEncoder commands, cons
     const auto transformed = affineTiles(commands, captured, implicit, PixelFormat::Rgba8, *source.plan, source.output);
     if (transformed.code != RenderOutcome::Recorded) { error = transformed.diagnostic; return false; }
     retainTiles(transformed.tiles);
+    if (rgba) { *rgba = transformed.tiles; return true; }
     for (const auto point : source.tiles) {
         if (SelectionMask::AlphaTileBytes > budget->limit - budget->used) return false;
         auto pixels = createBuffer(device->nativeDevice(), SelectionMask::AlphaTileBytes,
@@ -500,7 +500,7 @@ ExecutionOutcome Execution::evaluateSelectionCombination(const QSharedPointer<co
 }
 
 ExecutionOutcome Execution::transformedMaskCoverage(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-    bool inverted, QRect copyRect, const AffinePlan &plan, SelectionMaskSP *result)
+    bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds, SelectionMaskSP *result)
 {
     auto &d = *m_d;
     constexpr int limit = RgbaTile::CoordinateLimit;
@@ -515,7 +515,44 @@ ExecutionOutcome Execution::transformedMaskCoverage(const SelectionMaskSP &mask,
     const auto valid = [&](QRect area) {
         return area.isEmpty() || (area.left() >= -limit && area.top() >= -limit && area.right() < limit && area.bottom() < limit);
     };
-    if (!valid(copyRect) || !valid(output)) return {ExecutionCode::InvalidRequest, QStringLiteral("Mask transform exceeds coordinate bounds")};
+    if (!valid(copyRect) || !valid(output) || !valid(defaultBounds)) return {ExecutionCode::InvalidRequest, QStringLiteral("Mask transform exceeds coordinate bounds")};
+    auto operation = QSharedPointer<SelectionMaskTransformSource>::create();
+    operation->source = mask; operation->selection = selection; operation->inverted = inverted;
+    operation->copyRect = copyRect; operation->output = output;
+    operation->plan = QSharedPointer<AffinePlan>::create(plan);
+    const auto rollback = qScopeGuard([&] { if (d.active) cancelFrame(); });
+    if (!selection) {
+        // The native pixel selection clears its default before GrayA is merged
+        // back. Its opaque composition source retains the parent's bounds and
+        // occupied 64-pixel blocks, even when the mask default was nonzero.
+        auto frame = beginReadbackFrame();
+        if (frame.code != ExecutionCode::Success) return {frame.code, frame.diagnostic};
+        Tiles rgba;
+        if (!d.renderer->m_d->transformMaskTiles(frame.commands, *operation, nullptr, &rgba))
+            return {d.device->isLost() || !d.device->diagnostic().isEmpty() ? ExecutionCode::DeviceFailure : ExecutionCode::CapacityExceeded,
+                d.renderer->m_d->error};
+        auto submitted = endFrame(false);
+        if (submitted.code != ExecutionCode::Success) return submitted;
+        QRect occupied;
+        for (auto tile = rgba.cbegin(); tile != rgba.cend(); ++tile) {
+            const auto point = coordinate(tile.key());
+            QRect part; QList<QRect> runs;
+            const auto geometry = readSelectionOutline(tile.value()->storage, QRect(point * 256, QSize(256, 256)),
+                {}, &part, &runs, 3, mask->defaultCoverage());
+            if (geometry.code != ExecutionCode::Success) return geometry;
+            occupied |= part;
+        }
+        if (!occupied.isEmpty()) {
+            occupied.translate(-plan.positionDelta);
+            const auto floor = [](int v) { return v / 64 - (v % 64 < 0); };
+            occupied = QRect(QPoint(floor(occupied.left()) * 64, floor(occupied.top()) * 64),
+                QPoint((floor(occupied.right()) + 1) * 64 - 1, (floor(occupied.bottom()) + 1) * 64 - 1));
+            occupied.translate(plan.positionDelta);
+        }
+        output = occupied.united(defaultBounds);
+        if (!valid(output)) return {ExecutionCode::InvalidRequest, QStringLiteral("Transformed mask extent exceeds coordinate bounds")};
+        operation->output = output;
+    }
     QSet<QPoint> candidates;
     if (!appendTiles(candidates, output) || (selection && !appendTiles(candidates, copyRect)))
         return {ExecutionCode::CapacityExceeded, QStringLiteral("Mask transform exceeds output tile capacity")};
@@ -524,14 +561,10 @@ ExecutionOutcome Execution::transformedMaskCoverage(const SelectionMaskSP &mask,
         if (candidates.size() > SelectionMask::MaximumBytes / SelectionMask::AlphaTileBytes)
             return {ExecutionCode::CapacityExceeded, QStringLiteral("Mask remainder exceeds tile capacity")};
     }
-    auto operation = QSharedPointer<SelectionMaskTransformSource>::create();
-    operation->source = mask; operation->selection = selection; operation->inverted = inverted;
-    operation->copyRect = copyRect; operation->output = output;
-    operation->plan = QSharedPointer<AffinePlan>::create(plan); operation->tiles = sortedTiles(candidates);
+    operation->tiles = sortedTiles(candidates);
     const auto native = std::make_shared<SelectionPixels>();
     const auto pending = SelectionMask::fromTransform(operation, {}, {}, native);
     if (!pending) return {ExecutionCode::InvalidRequest, QStringLiteral("Mask transform inputs are invalid")};
-    const auto rollback = qScopeGuard([&] { if (d.active) cancelFrame(); });
     auto frame = beginReadbackFrame();
     if (frame.code != ExecutionCode::Success) return {frame.code, frame.diagnostic};
     if (!d.renderer->m_d->ensureSelectionTiles(frame.commands, pending))

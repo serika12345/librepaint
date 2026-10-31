@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 struct SelectionParameters {
-    extent: vec4<i32>, tile: vec2<i32>, action: u32, inverted: u32, region: vec4<i32>
+    extent: vec4<i32>, tile: vec2<i32>, action: u32, inverted: u32
 }
 @group(0) @binding(0) var<uniform> parameters: SelectionParameters;
 @group(0) @binding(1) var<storage, read> first: array<u32>;

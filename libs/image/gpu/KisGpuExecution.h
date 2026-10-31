@@ -307,7 +307,7 @@ private:
     ExecutionOutcome paintedSelectionCoverage(DocumentHandle handle, const Snapshot &source, LayerId layer,
         SelectionMaskSP *result);
     ExecutionOutcome transformedMaskCoverage(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-        bool inverted, QRect copyRect, const AffinePlan &plan, SelectionMaskSP *result);
+        bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds, SelectionMaskSP *result);
     ExecutionOutcome endFrame(bool publish, bool waitForReadback = true);
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();

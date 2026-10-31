@@ -36,13 +36,15 @@ fn selectedness(index: u32, point: vec2<i32>) -> u32 {
     for (var component = 0u; component < 4u; component++) {
         let index = word * 4u + component;
         let point = parameters.tile + vec2<i32>(i32(index % 256u), i32(index / 256u));
-        var base = parameters.defaultGray;
+        var base = 0u;
         if (parameters.selected != 0u) {
             base = (mask[word] >> (component * 8u)) & 255u;
             base = multiply(base, 255u - selectedness(index, point));
         }
-        if (parameters.hasTransformed != 0u && all(point >= parameters.outputRect.xy) && all(point < parameters.outputRect.zw)) {
-            let pixel = transformed[index];
+        if (all(point >= parameters.outputRect.xy) && all(point < parameters.outputRect.zw)) {
+            var pixel = 0u;
+            if (parameters.selected == 0u) { pixel = parameters.defaultGray * 65793u + 4278190080u; }
+            if (parameters.hasTransformed != 0u) { pixel = transformed[index]; }
             let alpha = pixel >> 24u;
             // Native GrayA Over onto the opaque gray representation of Alpha8.
             var blend = (i32(pixel & 255u) - i32(base)) * i32(alpha) + 128;

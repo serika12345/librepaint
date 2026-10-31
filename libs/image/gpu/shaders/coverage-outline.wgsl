@@ -10,6 +10,10 @@ struct OutlineParameters {
 @group(0) @binding(4) var<storage, read_write> bounds: array<atomic<u32>>;
 fn alphaAt(x: u32, y: u32) -> u32 {
     let index = y * parameters.size.x + x;
+    if (parameters.format.x == 3u) {
+        let gray = parameters.format.y;
+        return select(gray, (gray + 128u) & 255u, pixels[index] != gray * 65793u + 4278190080u);
+    }
     if (parameters.format.x == 1u) { return pixels[index] >> 24u; }
     if (parameters.format.x == 2u) { return (pixels[index >> 2u] >> ((index & 3u) * 8u)) & 255u; }
     return pixels[index];
