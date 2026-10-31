@@ -4,8 +4,6 @@
  */
 #include "KisGpuBrushDabs_p.h"
 #include "KisGpuPaintGeometry_p.h"
-#include <kis_algebra_2d.h>
-#include <kis_global.h>
 #include <QPainterPath>
 #include <QTransform>
 #include <QVector2D>
@@ -86,9 +84,13 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         if (count >= PaintGeometryElementLimit) return false;
         qreal sensorRotation = point.canvasRotation * M_PI / 180.;
         if (brush.autoBrush && brush.autoBrush->constantRotation) {
+            // Preserve the native wrap before converting checked rotation to radians.
             const qreal normalizedBaseAngle = -point.canvasRotation / 360.;
-            const qreal value = KisAlgebra2D::wrapValue(2 * normalizedBaseAngle, -1., 1.);
-            sensorRotation = normalizeAngle((1 - value) * M_PI);
+            qreal value = std::fmod(2 * normalizedBaseAngle + 1., 2.);
+            if (value < 0) value += 2.;
+            value -= 1.;
+            sensorRotation = (1 - value) * M_PI;
+            if (sensorRotation >= 2 * M_PI) sensorRotation = std::fmod(sensorRotation, 2 * M_PI);
         }
         const qreal angle = brush.autoBrush ? brush.autoBrush->angle + sensorRotation : 0;
         const auto metric = brush.autoBrush ? characteristicSize(brush.diameter, brush.autoBrush->ratio, scale, angle) :
