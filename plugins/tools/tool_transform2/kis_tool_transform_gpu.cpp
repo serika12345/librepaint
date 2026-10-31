@@ -90,7 +90,7 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
             }
         }
         if (target.mask) {
-            const auto captured = coverage ? layer->transparencyMask->selectedCopy(*coverage, source->selectionInverted, copy) : layer->transparencyMask;
+            const auto captured = coverage ? owner->copiedSelectionMask(layer->transparencyMask, coverage, source->selectionInverted, copy) : layer->transparencyMask;
             if (!captured) return;
             maskSources[target.layer] = captured; handles |= captured->bounds();
         }
@@ -136,21 +136,21 @@ void KisToolTransform::updateGpuTransform()
             const auto captured = m_gpuMaskSources.value(target.layer);
             const auto maskPlan = worker.gpuPlan(captured->bounds());
             if (!maskPlan) { valid = false; break; }
-            mask = maskPlan->passes.isEmpty() ? captured : captured->transformed(*maskPlan);
-            if (mask && m_gpuSelection) mask = layer->transparencyMask->replaceSelectedPixels(*m_gpuSelection,
-                source->selectionInverted, m_gpuSelectionBounds, *mask);
+            mask = maskPlan->passes.isEmpty() ? captured : owner->transformedSelectionMask(captured, *maskPlan);
+            if (mask && m_gpuSelection) mask = owner->replacedSelectionMask(layer->transparencyMask, m_gpuSelection,
+                source->selectionInverted, m_gpuSelectionBounds, mask);
             if (!mask) { valid = false; break; }
         }
         plans.append({target.layer, QSharedPointer<Gpu::AffinePlan>::create(*plan), mask, bool(m_gpuSelection) && !requested.isIdentity()});
     }
     if (valid && m_gpuSelection) {
-        const auto effective = source->selectionInverted ? m_gpuSelection->inverted(image()->bounds()) :
-            m_gpuSelection->translated({}, m_gpuSelectionBounds);
+        const auto effective = source->selectionInverted ? owner->complementSelectionMask(m_gpuSelection, image()->bounds()) :
+            owner->translatedSelectionMask(m_gpuSelection, {}, m_gpuSelectionBounds);
         const auto selectionPlan = worker.gpuPlan(m_gpuSelectionBounds);
         if (!selectionPlan) valid = false;
         else {
             const auto finite = effective ? effective : Gpu::SelectionMask::empty();
-            selected = finite->transformed(*selectionPlan); valid = bool(selected);
+            selected = owner->transformedSelectionMask(finite, *selectionPlan); valid = bool(selected);
         }
     }
     QPointer<KisToolTransform> guard(this);

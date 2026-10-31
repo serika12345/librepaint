@@ -262,6 +262,65 @@ SelectionMaskSP PaintImage::translatedSelectionMask(const SelectionMaskSP &mask,
     }
 }
 
+SelectionMaskSP PaintImage::transformedSelectionMask(const SelectionMaskSP &mask, const AffinePlan &plan)
+{
+    if (!onThread() || !mask || !validAffinePlan(plan)) return {};
+    if (mask->isEmpty() || plan.passes.isEmpty()) return mask;
+    try {
+        const auto image = createMaskImage(m_d->document->snapshot(), mask);
+        if (!image) return {};
+        auto status = image->clearSelection();
+        const auto layer = image->operations().activeLayer();
+        const auto id = status == Result::Success ? image->beginAffineTransform({{layer, true, false}}) : OperationId{};
+        if (id.isNull()) status = Result::InvalidInput;
+        else status = image->updateAffineTransform(id, {{layer, QSharedPointer<AffinePlan>::create(plan), {}, false}});
+        if (status == Result::Success) status = image->commitAffineTransform(id);
+        if (status != Result::Success) {
+            m_d->lastRequest = {status == Result::CapacityExceeded ? ExecutionCode::CapacityExceeded :
+                status == Result::Busy ? ExecutionCode::Busy : status == Result::DeviceFailure ? ExecutionCode::DeviceFailure : ExecutionCode::InvalidRequest,
+                QStringLiteral("GPU mask transform failed (%1)").arg(int(status))};
+            return {};
+        }
+        SelectionMaskSP result;
+        const auto checked = m_d->execution.paintedSelectionCoverage(image->handle(), image->operations().snapshot(), layer, &result);
+        if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
+        return result;
+    } catch (const std::bad_alloc &) {
+        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("Mask transform allocation exceeded capacity")};
+        return {};
+    }
+}
+
+SelectionMaskSP PaintImage::copiedSelectionMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
+                                               bool inverted, QRect copyRect)
+{
+    if (!onThread()) return {};
+    try {
+        SelectionMaskSP result;
+        const auto checked = m_d->execution.maskSelectionCoverage(mask, selection, inverted, copyRect, {}, &result);
+        if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
+        return result;
+    } catch (const std::bad_alloc &) {
+        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("Mask capture allocation exceeded capacity")};
+        return {};
+    }
+}
+
+SelectionMaskSP PaintImage::replacedSelectionMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
+                                                 bool inverted, QRect clearRect, const SelectionMaskSP &replacement)
+{
+    if (!onThread() || !replacement) return {};
+    try {
+        SelectionMaskSP result;
+        const auto checked = m_d->execution.maskSelectionCoverage(mask, selection, inverted, clearRect, replacement, &result);
+        if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
+        return result;
+    } catch (const std::bad_alloc &) {
+        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("Mask merge allocation exceeded capacity")};
+        return {};
+    }
+}
+
 QRect PaintImage::selectionRect() const
 { return onThread() ? m_d->document->selectionRect() : QRect{}; }
 bool PaintImage::selectionInverted() const
@@ -742,7 +801,7 @@ Result PaintImage::updateLayerTranslation(OperationId id, QPoint offset)
         SelectionMaskSP selection;
         if (version->selectionMask && version->selectionMask->isGpuGenerated() && !offset.isNull()) {
             selection = translatedSelectionMask(version->selectionMask, offset, domain);
-            if (!selection) return resultFor(m_d->lastRequest.code);
+            if (!selection) return m_d->lastRequest.code == ExecutionCode::Busy ? Result::Busy : resultFor(m_d->lastRequest.code);
         }
         return publish(m_d->document->updateLayerTranslationWithMasks(id, offset, {}, selection));
     }
@@ -762,7 +821,7 @@ Result PaintImage::updateLayerTranslation(OperationId id, QPoint offset)
             qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit)
             return Result::InvalidInput;
         const auto moved = translatedSelectionMask(mask, offset, domain);
-        if (!moved) return resultFor(m_d->lastRequest.code);
+        if (!moved) return m_d->lastRequest.code == ExecutionCode::Busy ? Result::Busy : resultFor(m_d->lastRequest.code);
         masks.insert(target.layer, moved);
     }
     return publish(m_d->document->updateLayerTranslationWithMasks(id, offset, masks));

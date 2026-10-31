@@ -52,7 +52,8 @@ Result OperationDocument::updateAffineTransform(OperationId id, const QList<Affi
         return Result::CapacityExceeded;
     const bool selected = std::any_of(m_affine.cbegin(), m_affine.cend(), [](const auto &operation) { return bool(operation->selection); });
     if (!selected && (selection || inverted)) return Result::InvalidInput;
-    if (selection && selection->byteCount() > SelectionMask::MaximumBytes) return Result::CapacityExceeded;
+    if (selection && (selection->byteCount() > SelectionMask::MaximumBytes || !selectionFitsRetainedInputs(selection)))
+        return Result::CapacityExceeded;
     QSet<LayerId> seen;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     QList<AffineSnapshot> operations;
@@ -76,7 +77,8 @@ Result OperationDocument::updateAffineTransform(OperationId id, const QList<Affi
         }
         if (original->transformMask) {
             if (!found->mask) return Result::InvalidInput;
-            if (found->mask->byteCount() > SelectionMask::MaximumBytes) return Result::CapacityExceeded;
+            if (found->mask->byteCount() > SelectionMask::MaximumBytes || !selectionFitsRetainedInputs(found->mask))
+                return Result::CapacityExceeded;
             const auto &before = version->layers[index].transparencyMask;
             changed |= *before != *found->mask;
             version->layers[index].transparencyMask = found->mask;

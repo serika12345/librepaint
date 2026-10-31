@@ -85,6 +85,7 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
                 !add(combination->tiles.constData(), combination->tiles.size() * qsizetype(sizeof(QPoint)))) return false;
             pendingMasks.append(combination->first);
             pendingMasks.append(combination->second);
+            pendingMasks.append(combination->replacement);
         }
         if (const auto &translation = value->translationSource()) {
             if (!add(translation.data(), sizeof(SelectionTranslationSource)) ||

@@ -125,12 +125,16 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra_d
     QTest::addColumn<bool>("words");
     QTest::addColumn<QString>("filter");
     QTest::addColumn<int>("operation");
+    QTest::addColumn<bool>("generated");
     for (const bool words : {false, true})
         for (const auto filter : {"NearestNeighbor", "Bilinear", "Bicubic", "Hermite", "Bell", "BSpline", "Lanczos3", "Mitchell"})
             for (int operation = 0; operation < 5; ++operation)
-                QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3").arg(words ? "word" : "byte").arg(filter).arg(operation))) << words << QString::fromLatin1(filter) << operation;
+                QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3").arg(words ? "word" : "byte").arg(filter).arg(operation))) << words << QString::fromLatin1(filter) << operation << false;
     for (const bool words : {false, true}) for (int operation : {6, 7, 8, 9})
-        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2").arg(words ? "word" : "byte").arg(operation))) << words << QStringLiteral("Bicubic") << operation;
+        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2").arg(words ? "word" : "byte").arg(operation))) << words << QStringLiteral("Bicubic") << operation << false;
+    for (const bool words : {false, true}) for (int operation : {0, 1, 2, 3, 4, 6, 7, 8, 9})
+        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-generated").arg(words ? "word" : "byte").arg(operation)))
+            << words << QStringLiteral("Bicubic") << operation << true;
 
 }
 
@@ -138,6 +142,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(bool, words); QFETCH(QString, filter); QFETCH(int, operation);
+    QFETCH(bool, generated);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     qputenv("LIBREPAINT_GPU_ENGINE", "1");
     const auto restoreEngine = qScopeGuard([&] { if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine); });
@@ -168,6 +173,12 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     const auto owner = Gpu::PaintImageSP::create(execution, raster);
     const auto layerId = owner->operations().activeLayer();
     QCOMPARE(owner->writeRgbaPixels(layerId, sourceRect, source), Gpu::Result::Success);
+    if (generated) {
+        const auto selected = Gpu::SelectionMask::fromRectangle(sourceRect, sourceRect); QVERIFY(selected);
+        const auto mask = owner->copiedSelectionMask(raster.layers.first().transparencyMask, selected, false, sourceRect);
+        QVERIFY2(mask && mask->isGpuGenerated(), qPrintable(owner->lastRequestOutcome().diagnostic));
+        QCOMPARE(owner->replaceTransparencyMask(layerId, mask), Gpu::Result::Success);
+    }
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Transform editing"), cs));
     auto image = KisImageSP(document->image());
@@ -178,6 +189,16 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         QByteArray alpha(selected.width() * selected.height(), '\0');
         for (int i = 0; i < alpha.size(); ++i) alpha[i] = char((i * 71) % 256);
         QVERIFY(image->setGpuSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(selected, alpha, selected), operation == 8));
+    }
+    if (generated && image->globalSelection()) {
+        const auto bounds = owner->selectionRect();
+        const auto source = owner->selectionKind() == Gpu::SelectionKind::Freehand ? owner->selectionMask() :
+            owner->selectionKind() == Gpu::SelectionKind::Ellipse ? Gpu::SelectionMask::fromEllipse(bounds, bounds) :
+            Gpu::SelectionMask::fromRectangle(bounds, bounds);
+        const auto full = Gpu::SelectionMask::fromRectangle(bounds, bounds); QVERIFY(source && full);
+        const auto mask = owner->copiedSelectionMask(source, full, false, bounds);
+        QVERIFY2(mask && mask->isGpuGenerated(), qPrintable(owner->lastRequestOutcome().diagnostic));
+        QVERIFY(image->setGpuSelectionMask(mask, owner->selectionInverted()));
     }
     KisPaintDeviceSP reference = new KisPaintDevice(cs);
     reference->setDefaultBounds(new KisDefaultBounds(image)); reference->moveTo({7, -3});
@@ -303,10 +324,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     }
     QCOMPARE(actual.bytes, expected);
     const auto verifyMask = [&](const Gpu::SelectionMaskSP &mask) {
-        QByteArray actualMask(expectedMask.size(), '\0');
-        for (int y = frame.top(); y <= frame.bottom(); ++y) for (int x = frame.left(); x <= frame.right(); ++x)
-            actualMask[(y - frame.top()) * frame.width() + x - frame.left()] = char(mask->coverage(x, y));
-        return actualMask;
+        return execution->readSelectionPixels(mask, frame, expectedMask.size()).bytes;
     };
     QVERIFY(preview->layers.first().transparencyMask);
     QCOMPARE(verifyMask(preview->layers.first().transparencyMask), expectedMask);

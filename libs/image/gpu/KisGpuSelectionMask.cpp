@@ -184,7 +184,7 @@ QSharedPointer<const SelectionMask> SelectionMask::combined(const SelectionMask 
         clip.isEmpty() || qint64(clip.left()) < -CoordinateLimit || qint64(clip.top()) < -CoordinateLimit ||
         qint64(clip.right()) >= CoordinateLimit || qint64(clip.bottom()) >= CoordinateLimit) return {};
     if (isGpuGenerated() || other.isGpuGenerated()) {
-        if (action == SelectionCombination::Replace && clip.contains(other.bounds()))
+        if (action == SelectionCombination::Replace && (other.isEmpty() || clip.contains(other.bounds())))
             return QSharedPointer<const SelectionMask>(new SelectionMask(other));
         return {};
     }
@@ -426,6 +426,9 @@ QSharedPointer<const SelectionMask> SelectionMask::fromCombination(const QShared
     const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
 {
     if (!source || !source->first || !source->second || !pixels ||
+        source->pixels < SelectionCombinationSource::Pixels::Selection ||
+        source->pixels > SelectionCombinationSource::Pixels::ReplaceSelected ||
+        (source->pixels == SelectionCombinationSource::Pixels::ReplaceSelected && !source->replacement) ||
         source->action < SelectionCombination::Replace || source->action > SelectionCombination::SymmetricDifference ||
         source->tiles.size() > MaximumBytes / AlphaTileBytes ||
         !validOutline(source->extent, {}) || !validOutline(bounds, outlineRuns) ||
@@ -718,117 +721,6 @@ quint8 SelectionMask::coverage(int x, int y) const
         return quint8(tile.value().at(qsizetype(localY) * TileSize + localX));
     const qsizetype index = qsizetype(localY) * TileSize + localX;
     return (quint8(tile.value().at(index >> 3)) & (1u << (index & 7))) ? 255 : 0;
-}
-
-QSharedPointer<const SelectionMask> SelectionMask::selectedCopy(const SelectionMask &selection, bool inverted, QRect copyRect) const
-{
-    if (isGpuGenerated() || selection.isGpuGenerated()) return {};
-    AlphaBuilder builder;
-    for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) {
-        const auto area = QRect(QPoint(tile.key().first, tile.key().second) * TileSize, QSize(TileSize, TileSize)).intersected(copyRect);
-        for (int y = area.top(); y <= area.bottom(); ++y) for (int x = area.left(); x <= area.right(); ++x) {
-            const auto amount = inverted ? 255 - selection.coverage(x, y) : selection.coverage(x, y);
-            const auto product = coverage(x, y) * amount + 128;
-            const auto value = quint8((product + (product >> 8)) >> 8);
-            if (!builder.add(x, y, value)) return {};
-        }
-    }
-    return builder.tiles.isEmpty() ? empty() : fromAlphaTiles(builder.tiles);
-}
-
-QSharedPointer<const SelectionMask> SelectionMask::replaceSelectedPixels(const SelectionMask &selection, bool inverted,
-                                                                        QRect clearRect, const SelectionMask &replacement) const
-{
-    if (isGpuGenerated() || selection.isGpuGenerated() || replacement.isGpuGenerated()) return {};
-    QSet<SelectionTileKey> coordinates;
-    for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) coordinates.insert(tile.key());
-    for (auto tile = replacement.tiles().cbegin(); tile != replacement.tiles().cend(); ++tile) coordinates.insert(tile.key());
-    if (coordinates.size() > MaximumBytes / AlphaTileBytes) return {};
-    AlphaBuilder builder;
-    const auto multiply = [](int a, int b) { const int product = a * b + 128; return (product + (product >> 8)) >> 8; };
-    for (const auto &tile : coordinates) {
-        const QPoint origin(tile.first * TileSize, tile.second * TileSize);
-        for (int y = origin.y(); y < origin.y() + TileSize; ++y) for (int x = origin.x(); x < origin.x() + TileSize; ++x) {
-            auto value = coverage(x, y);
-            if (clearRect.contains(x, y)) {
-                const auto amount = inverted ? 255 - selection.coverage(x, y) : selection.coverage(x, y);
-                value = quint8(multiply(value, 255 - amount));
-            }
-            const auto foreground = replacement.coverage(x, y);
-            value = quint8(foreground + multiply(value, 255 - foreground));
-            if (!builder.add(x, y, value)) return {};
-        }
-    }
-    return builder.tiles.isEmpty() ? empty() : fromAlphaTiles(builder.tiles);
-}
-
-QSharedPointer<const SelectionMask> SelectionMask::transformed(const AffinePlan &plan) const
-{
-    if (isGpuGenerated()) return {};
-    if (!validAffinePlan(plan)) return {};
-    SelectionMaskSP current(new SelectionMask(*this));
-    for (const auto &pass : plan.passes) {
-        QSet<SelectionTileKey> output;
-        const auto append = [&](QRect area) {
-            if (area.isEmpty()) return true;
-            const int left = floorDivide(area.left(), TileSize), right = floorDivide(area.right(), TileSize);
-            const int top = floorDivide(area.top(), TileSize), bottom = floorDivide(area.bottom(), TileSize);
-            if (qint64(right - left + 1) * (bottom - top + 1) > MaximumBytes / AlphaTileBytes) return false;
-            for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
-                output.insert({x, y}); if (output.size() > MaximumBytes / AlphaTileBytes) return false;
-            }
-            return true;
-        };
-        if (!pass.replaceLayer) for (auto tile = current->tiles().cbegin(); tile != current->tiles().cend(); ++tile) {
-            const QRect area(QPoint(tile.key().first, tile.key().second) * TileSize, QSize(TileSize, TileSize));
-            if (!append(pass.mapWholeLayer ? affineOutputRegion(pass, area) : area)) return {};
-        }
-        if (!pass.mapWholeLayer && !append(pass.destination)) return {};
-        AlphaBuilder builder;
-        for (const auto &tile : output) {
-            const QRect area(QPoint(tile.first, tile.second) * TileSize, QSize(TileSize, TileSize));
-            for (int y = area.top(); y <= area.bottom(); ++y) for (int x = area.left(); x <= area.right(); ++x) {
-                quint8 value = 0;
-                const QPoint point(x, y);
-                if (pass.kind == AffinePass::Remap) {
-                    if (pass.mapWholeLayer || pass.destination.contains(point)) {
-                        const auto p = point - QPoint(pass.map[4], pass.map[5]);
-                        value = current->coverage(pass.map[0] * p.x() + pass.map[2] * p.y(), pass.map[1] * p.x() + pass.map[3] * p.y());
-                    } else if (!pass.replaceLayer) value = current->coverage(x, y);
-                } else {
-                    const bool horizontal = pass.kind == AffinePass::Horizontal;
-                    const int line = horizontal ? y : x, coordinate = horizontal ? x : y;
-                    const int first = horizontal ? pass.source.left() : pass.source.top();
-                    const int end = horizontal ? pass.source.x() + pass.source.width() : pass.source.y() + pass.source.height();
-                    const auto mapped = [&](int v) { return v * pass.scale + pass.offset + line * pass.shear; };
-                    const auto support = pass.shear == 0 ? 0 : pass.kernel->support;
-                    const int start = qRound(mapped(pass.scale >= 0 ? first : end) - support);
-                    const int finish = qMax(start + 1, qRound(mapped(pass.scale >= 0 ? end : first) + support));
-                    if (coordinate < start || coordinate >= finish || !pass.destination.contains(point)) {
-                        if (!pass.source.contains(point)) value = current->coverage(x, y);
-                    } else {
-                        const auto source = (coordinate + .5 - pass.offset - line * pass.shear) / pass.scale;
-                        const int fixed = int(source * 256);
-                        const int center = int(std::ceil((fixed - 128) / 256.)) * 256 + 128;
-                        const auto &phase = pass.kernel->phases[((center - fixed) * pass.kernel->positionScale) >> 8];
-                        const int sourceStart = floorDivide(center, 256) - phase.center;
-                        qint64 sum = 0;
-                        for (int i = 0; i < phase.count; ++i) {
-                            int position = sourceStart + i;
-                            if (pass.shear == 0) position = std::clamp(position, first, end - 1);
-                            if (position >= first && position < end)
-                                sum += pass.kernel->weights[phase.offset + i] * current->coverage(horizontal ? position : line, horizontal ? line : position);
-                        }
-                        value = quint8(std::clamp<qint64>((sum + 127) / 255, 0, 255));
-                    }
-                }
-                if (!builder.add(x, y, value)) return {};
-            }
-        }
-        current = fromAlphaTiles(builder.tiles);
-        if (!current) current = empty();
-    }
-    return current;
 }
 
 bool SelectionMask::operator==(const SelectionMask &other) const

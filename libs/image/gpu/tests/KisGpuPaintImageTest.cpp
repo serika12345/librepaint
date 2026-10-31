@@ -910,7 +910,9 @@ void KisGpuPaintImageTest::sparsePaintedMasksMoveCombineCropAndRecover()
                                  SelectionCombination::Intersect, SelectionCombination::SymmetricDifference}) {
             QCOMPARE(image.setSelectionMask(painted), Result::Success);
             const auto before = image.operations().snapshot();
-            QCOMPARE(image.combineSelectionMask(moved, action), Result::Success);
+            const auto combinedResult = image.combineSelectionMask(moved, action);
+            QVERIFY2(combinedResult == Result::Success, qPrintable(QStringLiteral("action %1, result %2: %3")
+                .arg(int(action)).arg(int(combinedResult)).arg(image.lastRequestOutcome().diagnostic)));
             const auto combined = image.selectionMask() ? image.selectionMask() : SelectionMask::empty();
             const auto expectedCombined = literal->combined(*expected, action, domain);
             QVERIFY(matches(combined, expectedCombined));
@@ -919,6 +921,18 @@ void KisGpuPaintImageTest::sparsePaintedMasksMoveCombineCropAndRecover()
             replayed = combined; replayedLiteral = expectedCombined;
         }
     }
+    // Transform-tool mask capture/clear/merge retain their inputs across
+    // document closure and device replacement; native window tests fix math.
+    const auto captured = image.copiedSelectionMask(painted, literal, false, domain); QVERIFY(captured);
+    const auto shifted = image.translatedSelectionMask(captured, {13, -7}, domain); QVERIFY(shifted);
+    replayed = image.replacedSelectionMask(painted, literal, true, {-280, -540, 24, 28}, shifted);
+    QVERIFY2(replayed, qPrintable(image.lastRequestOutcome().diagnostic));
+    SelectionTileMap retained;
+    for (const auto point : replayed->tileCoordinates()) {
+        const auto read = execution.readSelectionPixels(replayed, QRect(point * 256, QSize(256, 256)), alpha.size());
+        QCOMPARE(read.code, ExecutionCode::Success); retained.insert({point.x(), point.y()}, read.bytes);
+    }
+    replayedLiteral = SelectionMask::fromAlphaTiles(retained); QVERIFY(replayedLiteral);
     QCOMPARE(image.clearSelection(), Result::Success);
     const auto before = image.operations().snapshot();
     QVERIFY(!image.complementSelectionMask(painted, domain));

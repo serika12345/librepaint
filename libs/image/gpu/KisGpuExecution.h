@@ -297,6 +297,10 @@ private:
         QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *runs, quint32 format = 0);
     ExecutionOutcome combineSelectionCoverage(const SelectionMaskSP &first, const SelectionMaskSP &second,
         SelectionCombination action, QRect clip, bool inverted, SelectionMaskSP *result);
+    ExecutionOutcome evaluateSelectionCombination(const QSharedPointer<const SelectionCombinationSource> &source,
+                                                  SelectionMaskSP *result);
+    ExecutionOutcome maskSelectionCoverage(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
+        bool inverted, QRect region, const SelectionMaskSP &replacement, SelectionMaskSP *result);
     ExecutionOutcome translateSelectionCoverage(const SelectionMaskSP &source, QPoint offset, QRect clip,
         SelectionMaskSP *result);
     ExecutionOutcome paintedSelectionCoverage(DocumentHandle handle, const Snapshot &source, LayerId layer,
