@@ -4369,6 +4369,17 @@ void KisGpuOperationDocumentTest::maskPropertiesKeepIdentityHistoryAndCopies()
     const auto identity = fixed->layers.first().transparencyMaskUuid;
     QVERIFY(!identity.isNull());
     QCOMPARE(identity, repeated.snapshot()->layers.first().transparencyMaskUuid);
+    auto reopenedInput = input;
+    auto &reopenedLayer = reopenedInput.layers.first();
+    reopenedLayer.transparencyMask = fixed->layers.first().transparencyMask;
+    reopenedLayer.transparencyMaskUuid = identity;
+    OperationDocument reopened(reopenedInput);
+    QCOMPARE(reopened.removeTransparencyMask(1), Result::Success);
+    QCOMPARE(reopened.addTransparencyMask(1), Result::Success);
+    QVERIFY(reopened.snapshot()->layers.first().transparencyMaskUuid != identity);
+    QCOMPARE(reopened.undo(), Result::Success);
+    QCOMPARE(reopened.undo(), Result::Success);
+    QCOMPARE(reopened.snapshot()->layers.first().transparencyMaskUuid, identity);
     QCOMPARE(document.renameTransparencyMask(1, QStringLiteral("Edge"), PropertyHistory::MergeConsecutive), Result::Success);
     QCOMPARE(document.renameTransparencyMask(1, QStringLiteral("Soft edge"), PropertyHistory::MergeConsecutive), Result::Success);
     QCOMPARE(document.undoCount(), 2);

@@ -1185,7 +1185,16 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         copy.id = ++nextLayer;
         copy.name = properties.name;
         copy.uuid = properties.uuid;
-        if (copy.transparencyMask) copy.transparencyMaskUuid = QUuid::createUuidV5(copy.uuid, QByteArrayLiteral("transparency-mask"));
+        if (!properties.transparencyMaskUuid.isNull()) {
+            if (!properties.transparencyMask || !selectionFitsRetainedInputs(properties.transparencyMask)) return Result::InvalidInput;
+            copy.transparencyMask = properties.transparencyMask;
+            copy.transparencyMaskUuid = properties.transparencyMaskUuid;
+            copy.transparencyMaskName = properties.transparencyMaskName;
+            copy.transparencyMaskVisible = properties.transparencyMaskVisible;
+            copy.transparencyMaskLocked = properties.transparencyMaskLocked;
+            copy.transparencyMaskColorLabelIndex = properties.transparencyMaskColorLabelIndex;
+            copy.transparencyMaskPinnedToTimeline = properties.transparencyMaskPinnedToTimeline;
+        } else if (copy.transparencyMask) copy.transparencyMaskUuid = QUuid::createUuidV5(copy.uuid, QByteArrayLiteral("transparency-mask"));
         copy.visible = properties.visible;
         copy.opacity = properties.opacity;
         copy.userLocked = properties.userLocked;
@@ -1506,8 +1515,9 @@ Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireS
     auto sequence = m_nextOperation;
     QUuid identity;
     const auto occupied = [&](const QUuid &candidate) {
-        for (const auto &value : snapshot()->layers)
-            if (value.uuid == candidate || (value.transparencyMask && value.transparencyMaskUuid == candidate)) return true;
+        for (const auto &retained : m_history)
+            for (const auto &value : retained->layers)
+                if (value.uuid == candidate || (value.transparencyMask && value.transparencyMaskUuid == candidate)) return true;
         return false;
     };
     if (imported) identity = imported->transparencyMaskUuid;
