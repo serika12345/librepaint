@@ -5702,7 +5702,8 @@ void KisGpuTileRendererTest::scatteredInputKeepsFrozenSeedAndPartitions()
     const auto expected = render(renderer, frozen), actual = render(renderer, chunks.snapshot());
     QVERIFY(expected && actual);
     const auto pixels = [&](const RenderedSnapshot &version) {
-        QMap<QPoint, QByteArray> result;
+        QHash<QPoint, QByteArray> result;
+        if (!version) return result;
         for (const auto &tile : version->tiles(whole.activeLayer()))
             result.insert(tile.coordinate, readTile(version, whole.activeLayer(), tile.coordinate));
         return result;
