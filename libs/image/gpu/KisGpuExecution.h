@@ -15,6 +15,8 @@
 
 namespace LibrePaint::Image::Gpu {
 
+namespace Detail { struct BufferStorage; }
+
 class PresentationSurface;
 using DocumentHandle = quint64;
 enum class ExecutionCode { Success, InvalidRequest, CapacityExceeded, Busy, DeviceFailure, SurfaceOutOfDate };
@@ -148,6 +150,13 @@ public:
     PixelReadbackOutcome readPixels(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers = {},
                                    bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
+    /** Exact Alpha8 bytes for explicit external selection reads and saving.
+     * The retained mask owns its frozen source independently of document handles.
+     * Coordinates are preserved, including off-canvas coverage. Reads stream one
+     * native tile at a time within the transfer limit and never change the mask,
+     * requests or publication. Owning-thread and Busy rules follow readPixels().
+     */
+    PixelBytesOutcome readSelectionPixels(const SelectionMaskSP &mask, QRect region, qsizetype maximumBytes);
     /** Submits a fixed-version read without waiting for GPU completion.
      * pollReadbacks() drives native callbacks on the GPU thread. An admitted
      * read completes independently of later edits or document closure; its CPU
@@ -278,7 +287,10 @@ private:
     FrameOutcome beginFrame(PresentationSurface *surface);
     /** Checks contiguous coverage before history adoption. Only admission
      * status and bounds cross to the CPU; editing pixels stay on the GPU. */
-    ExecutionOutcome checkRegionFill(DocumentHandle handle, const RegionFillSP &region, QRect *bounds);
+    ExecutionOutcome checkRegionFill(DocumentHandle handle, const RegionFillSP &region, QRect *bounds,
+                                     SelectionMaskSP *selection = nullptr);
+    ExecutionOutcome regionSelectionOutline(const RegionFillSP &region,
+        const std::shared_ptr<Detail::BufferStorage> &pixels, const QRect &bounds, SelectionMaskSP *selection);
     ExecutionOutcome endFrame(bool publish, bool waitForReadback = true);
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();

@@ -83,7 +83,10 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     const auto &settings = region->settings;
     if ((settings.mode != RegionFillMode::Contiguous && settings.mode != RegionFillMode::Similar) ||
         (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers &&
-         settings.reference != RegionFillReference::ColorLabeledLayers) || settings.threshold < 0 || settings.threshold > 255 || settings.sizeMod < -400 || settings.sizeMod > 400 || settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
+         settings.reference != RegionFillReference::ColorLabeledLayers && settings.reference != RegionFillReference::CurrentProjection) ||
+        (settings.purpose != RegionCoveragePurpose::Paint && settings.purpose != RegionCoveragePurpose::Selection) ||
+        (settings.purpose == RegionCoveragePurpose::Paint && settings.reference == RegionFillReference::CurrentProjection) ||
+        settings.threshold < 0 || settings.threshold > 255 || settings.sizeMod < -400 || settings.sizeMod > 400 || settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
         !QRect(QPoint(), document.size).contains(settings.seed) ||
         (settings.boundaryColor && (settings.mode != RegionFillMode::Contiguous || !validPixel(*settings.boundaryColor, document.format))))
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU contiguous fill settings are invalid")};
@@ -111,7 +114,24 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     for (const auto &tile : sourceTiles) if (inDirectory(tile.coordinate)) present.append(tile);
     const bool masked = document.selectionKind == SelectionKind::Freehand;
     quint64 maskBytes = 0;
-    if (masked && document.selectionMask)
+    QList<QPair<QPoint, std::shared_ptr<CoverageTile>>> generatedMask;
+    if (masked && document.selectionMask && document.selectionMask->isGpuGenerated()) {
+        const auto area = document.selectionMask->bounds().intersected(QRect(expectedOrigin, region->coverageSize));
+        if (!area.isEmpty()) {
+            const int left = pixelTileIndex(area.left(), TileSize), right = pixelTileIndex(area.right(), TileSize);
+            const int top = pixelTileIndex(area.top(), TileSize), bottom = pixelTileIndex(area.bottom(), TileSize);
+            if (quint64(right - left + 1) * quint64(bottom - top + 1) >
+                quint64(SelectionMask::MaximumBytes / SelectionMask::AlphaTileBytes))
+                return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Region selection atlas exceeds its capacity")};
+            for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                const auto tile = coverageTile(commands, document.selectionMask, key(x, y));
+                if (!tile) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Region selection tile is unavailable")};
+                generatedMask.append({QPoint(x, y), tile});
+                device->retainForFrame(tile);
+                maskBytes += SelectionMask::AlphaTileBytes;
+            }
+        }
+    } else if (masked && document.selectionMask)
         for (auto tile = document.selectionMask->tiles().cbegin(); tile != document.selectionMask->tiles().cend(); ++tile)
             if (inDirectory({tile.key().first, tile.key().second}))
                 maskBytes += document.selectionMask->tileBytes();
@@ -182,7 +202,13 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     }
     if (masked && document.selectionMask) {
         offset = 0;
-        for (auto tile = document.selectionMask->tiles().cbegin(); tile != document.selectionMask->tiles().cend(); ++tile) {
+        for (const auto &tile : generatedMask) {
+            entries[directoryIndex(tile.first)][1] = qint32(offset / 4);
+            wgpuCommandEncoderCopyBufferToBuffer(commands, tile.second->pixels.get(), 0,
+                                                selection->pixels.get(), offset, SelectionMask::AlphaTileBytes);
+            offset += SelectionMask::AlphaTileBytes;
+        }
+        for (auto tile = document.selectionMask->tiles().cbegin(); !document.selectionMask->isGpuGenerated() && tile != document.selectionMask->tiles().cend(); ++tile) {
             const int x = tile.key().first, y = tile.key().second;
             if (inDirectory({x, y})) {
                 entries[directoryIndex({x, y})][1] = qint32(offset / 4);
@@ -202,7 +228,10 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     if (masked) parameters.flags |= 4;
     if (masked && document.selectionMask && document.selectionMask->isAlpha()) parameters.flags |= 8;
     if (document.selectionInverted) parameters.flags |= 16;
-    if (settings.selectionAsBoundary || settings.mode == RegionFillMode::Similar) parameters.flags |= 32;
+    if (settings.purpose == RegionCoveragePurpose::Paint
+            ? settings.selectionAsBoundary || settings.mode == RegionFillMode::Similar
+            : settings.selectionAsBoundary && settings.mode == RegionFillMode::Contiguous) parameters.flags |= 32;
+    if (settings.purpose == RegionCoveragePurpose::Selection) parameters.flags |= 4096;
     if (settings.mode == RegionFillMode::Similar) parameters.flags |= 64;
     if (settings.antiAlias || radius) parameters.flags |= 256;
     if (settings.antiAlias) parameters.flags |= 2048;
@@ -336,7 +365,8 @@ RenderOutcome TileRenderer::prepareRegion(WGPUCommandEncoder commands, const Reg
     return {coverage.code, source.version, coverage.diagnostic};
 }
 
-ExecutionOutcome Execution::checkRegionFill(DocumentHandle handle, const RegionFillSP &region, QRect *bounds)
+ExecutionOutcome Execution::checkRegionFill(DocumentHandle handle, const RegionFillSP &region, QRect *bounds,
+                                           SelectionMaskSP *selection)
 {
     auto &d = *m_d;
     if (!d.onThread() || !bounds || !region || !region->source || !d.documents.contains(handle) ||
@@ -368,6 +398,7 @@ ExecutionOutcome Execution::checkRegionFill(DocumentHandle handle, const RegionF
     if (values[0]) return {ExecutionCode::InvalidRequest, QStringLiteral("This color reference requires native Lab difference support")};
     *bounds = values[1] <= values[3] && values[2] <= values[4]
         ? QRect(QPoint(values[1], values[2]), QPoint(values[3], values[4])).translated(region->coverageOrigin) : QRect();
+    if (selection) return regionSelectionOutline(region, coverage.pixels, *bounds, selection);
     return {ExecutionCode::Success, {}};
 }
 }

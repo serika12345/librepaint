@@ -34,8 +34,8 @@ bool containsHiddenRgb(const QByteArray &pixels, PixelFormat format)
 }
 }
 
-TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
-    : device(std::move(device)), budget(std::make_shared<Budget>(Budget{this->device, byteBudget})),
+TileRenderer::Private::Private(TileRenderer &renderer, DevicePtr device, qsizetype byteBudget)
+    : renderer(renderer), device(std::move(device)), budget(std::make_shared<Budget>(Budget{this->device, byteBudget})),
       unusedCoverage(createBuffer(this->device->nativeDevice(), sizeof(quint32), WGPUBufferUsage_Storage)),
       unusedSelection(createBuffer(this->device->nativeDevice(), SelectionMask::AlphaTileBytes,
                                    WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst)),
@@ -398,7 +398,7 @@ TileRenderer::TileRenderer(DevicePtr device, qsizetype byteBudget)
     if (!device || device->thread() != QThread::currentThread() || byteBudget < TileBytes) {
         throw std::invalid_argument("invalid GPU owner thread or tile budget");
     }
-    m_d = std::make_unique<Private>(std::move(device), byteBudget);
+    m_d = std::make_unique<Private>(*this, std::move(device), byteBudget);
 }
 TileRenderer::~TileRenderer() = default;
 qsizetype TileRenderer::residentBytes() const
@@ -539,8 +539,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     std::vector<Upload> uploads;
     struct MaskUpload { std::shared_ptr<NativeBuffer> buffer; QByteArray bytes; };
     std::vector<MaskUpload> maskUploads;
-    // Binary and alpha coverage tiles share a coordinate but not a tile size.
-    QHash<QPair<QPoint, bool>, std::shared_ptr<NativeBuffer>> selectionMaskBuffers;
+    // A cold replay can contain different frozen masks at one coordinate.
+    QHash<QPair<const SelectionMask *, QPoint>, std::shared_ptr<NativeBuffer>> selectionMaskBuffers;
     LayerId pendingCoverageLayer = 0;
     bool preserveCoverage = false;
     Tiles nextCoverage;
@@ -1163,9 +1163,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         const bool alpha = operation.selectionMask->isAlpha();
                         if (alpha) job.values.paintFlags |= 8192u;
                         const QPoint maskTile = coordinate(tile.key());
-                        const auto cacheKey = qMakePair(maskTile, alpha);
+                        const auto cacheKey = qMakePair(operation.selectionMask.data(), maskTile);
                         auto cached = selectionMaskBuffers.constFind(cacheKey);
-                        if (cached != selectionMaskBuffers.cend()) {
+                        if (operation.selectionMask->isGpuGenerated()) {
+                            const auto mask = d.coverageTile(commands, operation.selectionMask, tile.key());
+                            if (!mask) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU-generated selection coverage could not be retained")};
+                            job.selectionCoverage = std::shared_ptr<NativeBuffer>(mask->storage, &mask->storage->pixels);
+                            d.device->retainForFrame(mask->storage);
+                        } else if (cached != selectionMaskBuffers.cend()) {
                             job.selectionCoverage = *cached;
                         } else {
                             const auto coverage = operation.selectionMask->tiles().constFind(

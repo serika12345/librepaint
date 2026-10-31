@@ -36,7 +36,8 @@ using Snapshot = QSharedPointer<const DocumentVersion>;
 enum class SelectionKind : quint8 { Rectangle, Ellipse, Freehand };
 
 enum class RegionFillMode : quint8 { Contiguous, Similar };
-enum class RegionFillReference : quint8 { CurrentLayer, AllLayers, ColorLabeledLayers };
+enum class RegionFillReference : quint8 { CurrentLayer, AllLayers, ColorLabeledLayers, CurrentProjection };
+enum class RegionCoveragePurpose : quint8 { Paint, Selection };
 
 /** Colour-region fill inputs in document coordinates. Difference and coverage
  * use the native fill tool's threshold and opacity-spread rules. */
@@ -45,6 +46,9 @@ struct RegionFillSettings
     QPoint seed;
     RegionFillMode mode = RegionFillMode::Contiguous;
     RegionFillReference reference = RegionFillReference::CurrentLayer;
+    /** Selection tools generate coverage independently of the previous
+     * selection; paint consumers intersect their final result with it. */
+    RegionCoveragePurpose purpose = RegionCoveragePurpose::Paint;
     /** Visible labelled roots use native normal composition; selected groups
      * retain their descendants. The active paint layer can also be included. */
     QList<int> colorLabels;

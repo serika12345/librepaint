@@ -49,7 +49,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         const QRect tileRect(coordinate * TileSize, QSize(TileSize, TileSize));
         if (!tileRect.intersects(bounds)) continue;
         if (masked && !filter.selectionInverted &&
-            !filter.selectionMask->tiles().contains(SelectionTileKey(coordinate.x(), coordinate.y())))
+            !filter.selectionMask->isGpuGenerated() && !filter.selectionMask->tiles().contains(SelectionTileKey(coordinate.x(), coordinate.y())))
             continue;
         planned.append(tile.key());
     }
@@ -65,7 +65,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
                 const auto coordinate = Detail::key(x, y);
                 if (source.contains(coordinate)) continue;
                 if (masked && !filter.selectionInverted &&
-                    !filter.selectionMask->tiles().contains(SelectionTileKey(x, y)))
+                    !filter.selectionMask->isGpuGenerated() && !filter.selectionMask->tiles().contains(SelectionTileKey(x, y)))
                     continue;
                 planned.append(coordinate);
             }
@@ -106,7 +106,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         if (!output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter allocation failed")};
         std::shared_ptr<CoverageTile> coverage;
         if (masked) {
-            coverage = coverageTile(filter.selectionMask, coordinate);
+            coverage = coverageTile(commands, filter.selectionMask, coordinate);
             if (!coverage)
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU filter coverage budget exhausted")};
         }

@@ -62,9 +62,6 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
         bytes += size;
         return true;
     };
-    const auto mask = [&](const SelectionMaskSP &value) {
-        return !value || add(value.data(), sizeof(SelectionMask) + value->byteCount());
-    };
     const auto lab = [&](const LibrePaint::Pigment::Color::NativeLabConversionSP &value) {
         if (!value) return true;
         if (!add(value.data(), sizeof(*value)) || !add(value->input.iccProfile.constData(), value->input.iccProfile.size())) return false;
@@ -73,6 +70,15 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
     };
     const auto inputs = [&](const RegionFillSettings &value) {
         return lab(value.labConversion) && add(value.colorLabels.constData(), value.colorLabels.size() * qsizetype(sizeof(int)));
+    };
+    const auto mask = [&](const SelectionMaskSP &value) {
+        if (!value || seen.contains(value.data())) return true;
+        if (!add(value.data(), sizeof(SelectionMask) + value->byteCount())) return false;
+        if (const auto &region = value->regionSource()) {
+            if (!add(region.data(), sizeof(RegionFill)) || !inputs(region->settings)) return false;
+            pending.append(region->source);
+        }
+        return true;
     };
     if (!inputs(settings)) return false;
     while (!pending.isEmpty()) {
@@ -139,7 +145,9 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
     if (status != Result::Success) return status;
     if (!output || (settings.mode != RegionFillMode::Contiguous && settings.mode != RegionFillMode::Similar) ||
         (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers &&
-         settings.reference != RegionFillReference::ColorLabeledLayers) || settings.colorLabels.size() > 9 ||
+         settings.reference != RegionFillReference::ColorLabeledLayers && settings.reference != RegionFillReference::CurrentProjection) ||
+        (settings.purpose != RegionCoveragePurpose::Paint && settings.purpose != RegionCoveragePurpose::Selection) ||
+        (settings.purpose == RegionCoveragePurpose::Paint && settings.reference == RegionFillReference::CurrentProjection) || settings.colorLabels.size() > 9 ||
         std::any_of(settings.colorLabels.cbegin(), settings.colorLabels.cend(), [](int label) { return label < 0 || label > 8; }) ||
         settings.threshold < 0 || settings.threshold > 255 || settings.sizeMod < -400 || settings.sizeMod > 400 ||
         settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
@@ -147,12 +155,41 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
         (settings.boundaryColor && (settings.mode != RegionFillMode::Contiguous || !validPixel(*settings.boundaryColor, snapshot()->format))))
         return Result::InvalidInput;
     const auto index = layerIndex(layer);
-    if (index < 0 || (snapshot()->layers[index].kind != LayerKind::Paint || snapshot()->layers[index].userLocked)) return Result::LayerUnavailable;
+    if (index < 0 || (settings.purpose == RegionCoveragePurpose::Paint &&
+        (snapshot()->layers[index].kind != LayerKind::Paint || snapshot()->layers[index].userLocked))) return Result::LayerUnavailable;
     auto source = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     if (settings.reference == RegionFillReference::CurrentLayer) {
         source->layers = {snapshot()->layers[index]};
         source->layers[0].parentUuid = {};
         source->layers[0].transparencyMask.clear();
+    } else if (settings.reference == RegionFillReference::CurrentProjection) {
+        // A selection can sample a locked or hidden node and its masked
+        // projection. A group's descendants remain in their existing order.
+        const auto root = snapshot()->layers[index];
+        QSet<QUuid> included{root.uuid};
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            for (const auto &candidate : snapshot()->layers) {
+                if (included.contains(candidate.parentUuid) && !included.contains(candidate.uuid)) {
+                    included.insert(candidate.uuid);
+                    changed = true;
+                }
+            }
+        }
+        source->layers.clear();
+        for (auto candidate : snapshot()->layers) {
+            if (!included.contains(candidate.uuid)) continue;
+            if (candidate.id == layer) {
+                candidate.parentUuid = {};
+                candidate.visible = true;
+                candidate.opacity = 255;
+                candidate.blendMode = LayerBlendMode::Normal;
+                candidate.projectionChannelMask = 15;
+            }
+            source->layers.append(std::move(candidate));
+        }
+        source->projectionBackground = {};
     } else if (settings.reference == RegionFillReference::ColorLabeledLayers) {
         retainLabeledReference(*source, layer, settings);
     }
@@ -180,6 +217,7 @@ Result OperationDocument::fillRegion(LayerId layer, const RegionFillSP &region, 
                                     bool alphaLocked, LayerBlendMode blendMode)
 {
     if (!region || region->layer != layer || region->preparedFor.toStrongRef() != snapshot()) return Result::StaleVersion;
+    if (region->settings.purpose != RegionCoveragePurpose::Paint) return Result::InvalidInput;
     Brush brush;
     brush.rgba = color;
     brush.opacity = opacity;

@@ -4,11 +4,13 @@
  */
 
 #include "KisGpuSelectionMask.h"
+#include "KisGpuOperationDocument.h"
 #include <QVector>
 #include <QSet>
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
 namespace {
@@ -105,6 +107,21 @@ bool fitsPixelBudget(const QRect &area)
     return !area.isEmpty() && qint64(area.width()) * qint64(area.height()) <= SelectionMask::MaximumBytes;
 }
 
+bool validOutline(const QRect &bounds, const QList<QRect> &runs)
+{
+    if (runs.size() > SelectionMask::MaximumBytes / qsizetype(sizeof(QRect))) return false;
+    if (bounds.isEmpty()) return runs.isEmpty();
+    if (qint64(bounds.left()) < -CoordinateLimit || qint64(bounds.top()) < -CoordinateLimit ||
+        qint64(bounds.right()) >= CoordinateLimit || qint64(bounds.bottom()) >= CoordinateLimit) return false;
+    QRect previous;
+    for (const auto &run : runs) {
+        if (run.height() != 1 || run.width() < 1 || !bounds.contains(run) ||
+            (!previous.isEmpty() && (run.y() < previous.y() || (run.y() == previous.y() && run.x() <= previous.right())))) return false;
+        previous = run;
+    }
+    return true;
+}
+
 /** Separable maximum or minimum filter over byte coverage; the result is alpha. */
 QSharedPointer<const SelectionMask> morph(const SelectionMask &source, int xRadius, int yRadius,
                                           const QRect &clip, bool maximum)
@@ -166,6 +183,11 @@ QSharedPointer<const SelectionMask> SelectionMask::combined(const SelectionMask 
     if (action < SelectionCombination::Replace || action > SelectionCombination::SymmetricDifference ||
         clip.isEmpty() || qint64(clip.left()) < -CoordinateLimit || qint64(clip.top()) < -CoordinateLimit ||
         qint64(clip.right()) >= CoordinateLimit || qint64(clip.bottom()) >= CoordinateLimit) return {};
+    if (isGpuGenerated() || other.isGpuGenerated()) {
+        if (action == SelectionCombination::Replace && clip.contains(other.bounds()))
+            return QSharedPointer<const SelectionMask>(new SelectionMask(other));
+        return {};
+    }
     const QRect first = inverted ? clip : bounds().intersected(clip);
     const QRect second = other.bounds().intersected(clip);
     QRect area;
@@ -387,8 +409,22 @@ QSharedPointer<const SelectionMask> SelectionMask::fromAlphaTiles(const Selectio
     return make(bounds, tiles, CoverageFormat::Alpha);
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::fromRegion(const QSharedPointer<const RegionFill> &source,
+    const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
+{
+    if (!source || !source->source || !pixels || source->settings.purpose != RegionCoveragePurpose::Selection ||
+        !validOutline(bounds, outlineRuns) || (!bounds.isEmpty() && !QRect(source->coverageOrigin, source->coverageSize).contains(bounds))) return {};
+    if (bounds.isEmpty()) return empty();
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
+    result->m_region = source;
+    result->m_outlineRuns = outlineRuns;
+    result->m_nativePixels = pixels;
+    return result;
+}
+
 QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, const QRect &clip) const
 {
+    if (isGpuGenerated()) return {};
     if (isEmpty() || clip.isEmpty() ||
         std::abs(delta.x()) > CoordinateLimit || std::abs(delta.y()) > CoordinateLimit) return {};
     if (m_format == CoverageFormat::Alpha) {
@@ -437,6 +473,7 @@ QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, cons
 
 QSharedPointer<const SelectionMask> SelectionMask::inverted(const QRect &clip) const
 {
+    if (isGpuGenerated()) return {};
     if (clip.isEmpty()) return {};
     if (m_format == CoverageFormat::Alpha) {
         if (!fitsPixelBudget(clip)) return {};
@@ -463,6 +500,7 @@ QSharedPointer<const SelectionMask> SelectionMask::inverted(const QRect &clip) c
 
 QSharedPointer<const SelectionMask> SelectionMask::grown(int xRadius, int yRadius, const QRect &clip) const
 {
+    if (isGpuGenerated()) return {};
     if (isEmpty() || clip.isEmpty() || xRadius < 0 || yRadius < 0) return {};
     if (m_format == CoverageFormat::Alpha) return morph(*this, xRadius, yRadius, clip, true);
     CoverageBuilder builder;
@@ -487,6 +525,7 @@ QSharedPointer<const SelectionMask> SelectionMask::grown(int xRadius, int yRadiu
 
 QSharedPointer<const SelectionMask> SelectionMask::shrunk(int xRadius, int yRadius, const QRect &clip) const
 {
+    if (isGpuGenerated()) return {};
     if (isEmpty() || clip.isEmpty() || xRadius < 0 || yRadius < 0) return {};
     if (m_format == CoverageFormat::Alpha) {
         if (xRadius == 0 && yRadius == 0) {
@@ -511,6 +550,7 @@ QSharedPointer<const SelectionMask> SelectionMask::shrunk(int xRadius, int yRadi
 
 QSharedPointer<const SelectionMask> SelectionMask::subtracted(const SelectionMask &other, const QRect &clip) const
 {
+    if (isGpuGenerated() || other.isGpuGenerated()) return {};
     if (isEmpty() || clip.isEmpty()) return {};
     if (m_format == CoverageFormat::Alpha) {
         AlphaBuilder builder;
@@ -540,6 +580,7 @@ QSharedPointer<const SelectionMask> SelectionMask::subtracted(const SelectionMas
 
 QSharedPointer<const SelectionMask> SelectionMask::border(int xRadius, int yRadius, const QRect &clip) const
 {
+    if (isGpuGenerated()) return {};
     const auto inner = shrunk(xRadius, yRadius, clip);
     if (m_format == CoverageFormat::Alpha) {
         if (inner) return subtracted(*inner, clip);
@@ -555,6 +596,7 @@ QSharedPointer<const SelectionMask> SelectionMask::border(int xRadius, int yRadi
 
 QSharedPointer<const SelectionMask> SelectionMask::feathered(int radius, const QRect &clip) const
 {
+    if (isGpuGenerated()) return {};
     if (isEmpty() || clip.isEmpty() || radius <= 0) return {};
     const int reach = std::min(radius, MaximumFeatherRadius);
     const QRect area = m_bounds.adjusted(-reach, -reach, reach, reach).intersected(clip);
@@ -598,6 +640,7 @@ QSharedPointer<const SelectionMask> SelectionMask::feathered(int radius, const Q
 
 quint8 SelectionMask::coverage(int x, int y) const
 {
+    if (isGpuGenerated()) throw std::logic_error("GPU selection pixels require an explicit external Alpha8 read");
     if (!m_bounds.contains(x, y)) return 0;
     const int tx = floorDivide(x, TileSize), ty = floorDivide(y, TileSize);
     const auto tile = m_tiles.constFind(SelectionTileKey(tx, ty));
@@ -611,6 +654,7 @@ quint8 SelectionMask::coverage(int x, int y) const
 
 QSharedPointer<const SelectionMask> SelectionMask::selectedCopy(const SelectionMask &selection, bool inverted, QRect copyRect) const
 {
+    if (isGpuGenerated() || selection.isGpuGenerated()) return {};
     AlphaBuilder builder;
     for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) {
         const auto area = QRect(QPoint(tile.key().first, tile.key().second) * TileSize, QSize(TileSize, TileSize)).intersected(copyRect);
@@ -627,6 +671,7 @@ QSharedPointer<const SelectionMask> SelectionMask::selectedCopy(const SelectionM
 QSharedPointer<const SelectionMask> SelectionMask::replaceSelectedPixels(const SelectionMask &selection, bool inverted,
                                                                         QRect clearRect, const SelectionMask &replacement) const
 {
+    if (isGpuGenerated() || selection.isGpuGenerated() || replacement.isGpuGenerated()) return {};
     QSet<SelectionTileKey> coordinates;
     for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) coordinates.insert(tile.key());
     for (auto tile = replacement.tiles().cbegin(); tile != replacement.tiles().cend(); ++tile) coordinates.insert(tile.key());
@@ -651,6 +696,7 @@ QSharedPointer<const SelectionMask> SelectionMask::replaceSelectedPixels(const S
 
 QSharedPointer<const SelectionMask> SelectionMask::transformed(const AffinePlan &plan) const
 {
+    if (isGpuGenerated()) return {};
     if (!validAffinePlan(plan)) return {};
     SelectionMaskSP current(new SelectionMask(*this));
     for (const auto &pass : plan.passes) {
@@ -718,5 +764,9 @@ QSharedPointer<const SelectionMask> SelectionMask::transformed(const AffinePlan 
 }
 
 bool SelectionMask::operator==(const SelectionMask &other) const
-{ return m_format == other.m_format && m_bounds == other.m_bounds && m_tiles == other.m_tiles; }
+{
+    return m_format == other.m_format && m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
+        m_region == other.m_region &&
+        m_outlineRuns == other.m_outlineRuns;
+}
 }

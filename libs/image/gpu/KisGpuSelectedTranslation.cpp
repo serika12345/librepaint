@@ -31,7 +31,7 @@ TileRenderer::Private::SelectionSplitResult TileRenderer::Private::splitSelectio
         if (!selection) selection = SelectionMask::empty();
     }
     if (!selection) return {RenderOutcome::InvalidVersion, {}, {}, {}, QStringLiteral("The selected move has no frozen coverage")};
-    auto coverage = coverageTile(selection, key(source.coordinate.x(), source.coordinate.y()));
+    auto coverage = coverageTile(commands, selection, key(source.coordinate.x(), source.coordinate.y()));
     if (!coverage || !ensureTileCapacity(2, format))
         return {RenderOutcome::CapacityExceeded, {}, {}, {}, QStringLiteral("GPU selection split budget exhausted")};
     if (!selectionSplitPipeline) {

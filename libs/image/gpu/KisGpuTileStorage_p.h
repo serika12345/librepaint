@@ -14,15 +14,17 @@
 #include "KisGpuLayerAllocation_p.h"
 #include <array>
 #include <map>
+#include <atomic>
+#include <mutex>
 #include "KisGpuNativeResources_p.h"
 
 namespace LibrePaint::Image::Gpu::Detail {
-struct BudgetUsage { qsizetype bytes = 0; };
+struct BudgetUsage { std::atomic<qsizetype> bytes{0}; };
 struct Budget {
     DevicePtr device;
     qsizetype limit = 0;
     std::shared_ptr<BudgetUsage> usage = std::make_shared<BudgetUsage>();
-    qsizetype &used = usage->bytes;
+    std::atomic<qsizetype> &used = usage->bytes;
 };
 /** Native storage has no DevicePtr cycle when retained by a submitted frame. */
 struct BufferStorage
@@ -32,6 +34,16 @@ struct BufferStorage
     BufferStorage(NativeBuffer pixels, const std::shared_ptr<Budget> &budget)
         : usage(budget->usage), pixels(std::move(pixels)) { usage->bytes += wgpuBufferGetSize(this->pixels.get()); }
     ~BufferStorage() { usage->bytes -= wgpuBufferGetSize(pixels.get()); }
+};
+/** Canonical selection pixels outlive display-cache eviction. The frozen
+ * source replays after device replacement; GPU residency holds no device cycle.
+ * Its mutex permits immutable masks to be retained/released by file workers.
+ */
+struct SelectionPixels
+{
+    std::mutex mutex;
+    std::weak_ptr<Device> device;
+    std::shared_ptr<BufferStorage> region;
 };
 struct Tile
 {
@@ -105,6 +117,8 @@ struct ProjectedVersion::Data
 
 struct TileRenderer::Private
 {
+    /** Borrowed enclosing renderer; it owns this state and all frame calls. */
+    TileRenderer &renderer;
     DevicePtr device;
     std::shared_ptr<Detail::Budget> budget;
     std::array<Detail::NativeBuffer, 2> zero;
@@ -128,8 +142,13 @@ struct TileRenderer::Private
     struct MaskCacheEntry {
         SelectionMaskSP source;
         Detail::CoverageTiles tiles;
+        std::shared_ptr<Detail::BufferStorage> generated;
     };
     QHash<const SelectionMask *, MaskCacheEntry> maskTiles;
+    Detail::NativeBindingLayout coveragePackLayout;
+    Detail::NativeComputePipeline coveragePackPipeline;
+    Detail::NativeBindingLayout coverageGeometryLayout;
+    Detail::NativeComputePipeline coverageCountPipeline, coverageOutlinePipeline;
     Detail::NativeBindingLayout layout;
     Detail::NativeComputePipeline pipeline;
     /** Finite cache of operation-specific programs; command buffers retain recorded programs. */
@@ -187,7 +206,7 @@ struct TileRenderer::Private
     QWeakPointer<const ProjectedVersion> backdropVersion;
     Detail::Tiles projectionBackdrops;
 
-    Private(DevicePtr device, qsizetype byteBudget);
+    Private(TileRenderer &renderer, DevicePtr device, qsizetype byteBudget);
     ~Private();
     /** Full channel values count against the renderer budget and remain immutable. */
     bool prepareNonlinearRgba8(bool full);
@@ -218,7 +237,10 @@ struct TileRenderer::Private
     std::shared_ptr<Detail::Tile> allocateTile(PixelFormat format);
     bool ensureTileCapacity(qsizetype count, PixelFormat format);
     /** Uploads the mask's alpha tile for one document tile coordinate. */
-    std::shared_ptr<Detail::CoverageTile> coverageTile(const SelectionMaskSP &mask, quint64 coordinate);
+    std::shared_ptr<Detail::CoverageTile> coverageTile(WGPUCommandEncoder commands,
+                                                    const SelectionMaskSP &mask, quint64 coordinate);
+    std::shared_ptr<Detail::CoverageTile> generatedCoverageTile(WGPUCommandEncoder commands,
+                                                             const SelectionMaskSP &mask, quint64 coordinate);
     void clearMaskTiles();
     struct RegionResult {
         RenderOutcome::Code code;

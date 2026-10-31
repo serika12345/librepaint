@@ -11,6 +11,7 @@
 #include <KoColorProfile.h>
 #include <cstring>
 #include <QSaveFile>
+#include <QHash>
 #include <stdexcept>
 
 namespace LibrePaint::Document::Gpu {
@@ -186,11 +187,48 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
     output.image.selection = pinned->selection;
     output.image.selectionInverted = pinned->selectionInverted;
     output.image.selectionKind = pinned->selectionKind;
-    output.image.selectionMask = pinned->selectionMask;
     qsizetype rasterBytes = 0;
+    QHash<const SelectionMask *, SelectionMaskSP> externalMasks;
+    ExecutionOutcome maskRead{ExecutionCode::Success, {}};
+    const auto externalMask = [&](const SelectionMaskSP &mask) -> SelectionMaskSP {
+        if (!mask || !mask->isGpuGenerated()) return mask;
+        const auto cached = externalMasks.constFind(mask.data());
+        if (cached != externalMasks.cend()) return cached.value();
+        SelectionTileMap tiles;
+        const auto bounds = mask->bounds();
+        const auto index = [](int value) { return value / SelectionMask::TileSize - int(value % SelectionMask::TileSize < 0); };
+        if (!bounds.isEmpty()) {
+            const int left = index(bounds.left()), right = index(bounds.right());
+            const int top = index(bounds.top()), bottom = index(bounds.bottom());
+            const quint64 bytes = quint64(right - left + 1) * quint64(bottom - top + 1) * SelectionMask::AlphaTileBytes;
+            if (bytes > quint64(qMax<qsizetype>(0, limits.rasterBytes - rasterBytes)) || bytes > quint64(SelectionMask::MaximumBytes)) {
+                maskRead = {ExecutionCode::CapacityExceeded, QStringLiteral("KRA selection pixels exceed the raster capacity")};
+                return {};
+            }
+            for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+                const auto read = d.execution.readSelectionPixels(mask,
+                    QRect(QPoint(x, y) * SelectionMask::TileSize, QSize(SelectionMask::TileSize, SelectionMask::TileSize)),
+                    SelectionMask::AlphaTileBytes);
+                if (read.code != ExecutionCode::Success) { maskRead = {read.code, read.diagnostic}; return {}; }
+                tiles.insert({x, y}, read.bytes);
+            }
+            rasterBytes += qsizetype(bytes);
+        }
+        const auto result = tiles.isEmpty() ? SelectionMask::empty() : SelectionMask::fromAlphaTiles(tiles);
+        if (!result || result->bounds() != bounds) {
+            maskRead = {ExecutionCode::DeviceFailure, QStringLiteral("KRA selection pixels disagree with the frozen bounds")};
+            return {};
+        }
+        externalMasks.insert(mask.data(), result);
+        return result;
+    };
+    output.image.selectionMask = externalMask(pinned->selectionMask);
+    if (maskRead.code != ExecutionCode::Success) return {fileCode(maskRead.code), {}, maskRead.diagnostic};
     for (const auto &layer : pinned->layers) {
         if (pinned->activeLayer == layer.id) output.image.activeLayer = output.image.layers.size();
         RasterLayer saved = rasterLayerDescription(layer);
+        saved.transparencyMask = externalMask(layer.transparencyMask);
+        if (maskRead.code != ExecutionCode::Success) return {fileCode(maskRead.code), {}, maskRead.diagnostic};
         if (layer.kind == LayerKind::Paint) {
             const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
             if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};

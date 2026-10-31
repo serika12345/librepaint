@@ -13,7 +13,7 @@ TileRenderer::Private::SelectionCopyResult TileRenderer::Private::copySelection(
 {
     if (!ensureTileCapacity(1, format))
         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU selection copy tile budget exhausted")};
-    const auto coverage = coverageTile(mask, key(source.coordinate.x(), source.coordinate.y()));
+    const auto coverage = coverageTile(commands, mask, key(source.coordinate.x(), source.coordinate.y()));
     if (!coverage)
         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU selection copy coverage budget exhausted")};
     if (!selectionCopyPipeline) {

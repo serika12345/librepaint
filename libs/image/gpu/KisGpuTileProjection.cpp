@@ -39,19 +39,22 @@ struct CompositeJob
 };
 }
 
-std::shared_ptr<CoverageTile> TileRenderer::Private::coverageTile(const SelectionMaskSP &mask, quint64 key)
+std::shared_ptr<CoverageTile> TileRenderer::Private::coverageTile(WGPUCommandEncoder commands,
+                                                               const SelectionMaskSP &mask, quint64 key)
 {
     if (!mask) return {};
-    auto &entry = maskTiles[mask.data()];
-    if (!entry.source) entry.source = mask;
-    const auto cached = entry.tiles.constFind(key);
-    if (cached != entry.tiles.cend()) return *cached;
+    const auto found = maskTiles.constFind(mask.data());
+    if (found != maskTiles.cend()) {
+        const auto cached = found->tiles.constFind(key);
+        if (cached != found->tiles.cend()) return *cached;
+    }
+    if (mask->isGpuGenerated()) return generatedCoverageTile(commands, mask, key);
     if (qsizetype(SelectionMask::AlphaTileBytes) > budget->limit - budget->used) {
         clearMaskTiles();
         if (qsizetype(SelectionMask::AlphaTileBytes) > budget->limit - budget->used) return {};
     }
     auto pixels = createBuffer(device->nativeDevice(), SelectionMask::AlphaTileBytes,
-                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
+                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
     if (!pixels || !device->diagnostic().isEmpty()) return {};
     QByteArray alpha(SelectionMask::AlphaTileBytes, '\0');
     const int tileX = int(quint32(key)), tileY = int(quint32(key >> 32));
@@ -67,6 +70,8 @@ std::shared_ptr<CoverageTile> TileRenderer::Private::coverageTile(const Selectio
     }
     wgpuQueueWriteBuffer(device->queue(), pixels.get(), 0, alpha.constData(), alpha.size());
     auto tile = std::make_shared<CoverageTile>(std::move(pixels), budget);
+    auto &entry = maskTiles[mask.data()];
+    entry.source = mask;
     entry.tiles.insert(key, tile);
     // Coverage for at most a few masks stays resident; documents that replace
     // masks release the older uploads instead of retaining unbounded memory.
@@ -412,7 +417,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 d.retainTile(source.pixels);
                 job.blendModes[layer] = quint32(source.blendMode);
                 if (source.mask) {
-                    job.masks[layer] = d.coverageTile(source.mask, tile.key());
+                    job.masks[layer] = d.coverageTile(commands, source.mask, tile.key());
                     if (job.masks[layer]) d.device->retainForFrame(job.masks[layer]->storage);
                     if (!job.masks[layer])
                         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU layer mask coverage capacity exceeded")};

@@ -242,6 +242,8 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
                             const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
                             qsizetype maximumBytes, QByteArray &output)
 {
+    if (mask && mask->isGpuGenerated())
+        return {Status::UnsupportedData, QStringLiteral("KRA selection writing requires explicit external Alpha8 pixels")};
     if (kind == LibrePaint::Image::Gpu::SelectionKind::Freehand &&
         (!mask || mask->isEmpty() || mask->bounds() != selection)) return invalid();
     const QRect area = inverted ? imageBounds : selection;

@@ -947,6 +947,31 @@ Result PaintImage::fillRegion(LayerId layer, const RegionFillSettings &settings,
         return Result::CapacityExceeded;
     }
 }
+Result PaintImage::selectRegion(LayerId reference, const RegionFillSettings &settings, SelectionCombination action)
+{
+    if (!onThread() || action < SelectionCombination::Replace || action > SelectionCombination::SymmetricDifference)
+        return Result::InvalidInput;
+    try {
+        auto input = settings;
+        input.purpose = RegionCoveragePurpose::Selection;
+        if (input.reference == RegionFillReference::CurrentLayer) input.reference = RegionFillReference::CurrentProjection;
+        RegionFillSP region;
+        const auto prepared = m_d->document->prepareRegionFill(reference, input, &region);
+        if (prepared != Result::Success) return prepared;
+        QRect bounds;
+        SelectionMaskSP selection;
+        const auto checked = m_d->execution.checkRegionFill(m_d->handle, region, &bounds, &selection);
+        if (checked.code != ExecutionCode::Success) {
+            m_d->lastRequest = checked;
+            return resultFor(checked.code);
+        }
+        if (region->preparedFor.toStrongRef() != m_d->document->snapshot()) return Result::StaleVersion;
+        return publish(m_d->document->combineSelectionMask(selection, action));
+    } catch (const std::bad_alloc &) {
+        return Result::CapacityExceeded;
+    }
+}
+
 Result PaintImage::invertColors(LayerId layer)
 { return onThread() ? publish(m_d->document->invertColors(layer)) : Result::InvalidInput; }
 Result PaintImage::grayscale(LayerId layer)

@@ -83,6 +83,7 @@ private Q_SLOTS:
     void yuvPrecisionSurvivesSavingAndFurtherEditing();
     void freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra();
     void featheredSelectionClipsPaintAndRoundTripsKra();
+    void colourSelectionSavesFrozenCoverageAndContinues();
     void patternFillSavesReopensAndPreservesSelectionPixels();
     void transparencyMaskComposesSavesReopensAndContinues();
     void transparencyMaskAcceptsDirectBrushEraseFillAndRoundTrips();
@@ -104,6 +105,85 @@ private Q_SLOTS:
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPaintDocumentTest::colourSelectionSavesFrozenCoverageAndContinues()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    for (const auto format : {PixelFormat::Rgba8, PixelFormat::Rgba16}) {
+        Execution execution(m_device);
+        RasterImage raster;
+        raster.size = {64, 64}; raster.format = format;
+        raster.layers = {{QStringLiteral("Colour reference"), true, {}, {}},
+                         {QStringLiteral("Selected drawing"), true, {}, {}}};
+        PaintDocument document(execution, raster);
+        const auto image = document.image();
+        const QRect canvas(QPoint(), raster.size);
+        const auto maximum = maximumComponent(format);
+        const auto triangle = SelectionMask::fromPolygon({{8, 8}, {55, 13}, {21, 56}}, canvas);
+        QVERIFY(triangle);
+        QCOMPARE(image->fillLayerColor(1, {maximum, 0, 0, maximum}), Result::Success);
+        QCOMPARE(image->setSelectionMask(triangle), Result::Success);
+        QCOMPARE(image->addTransparencyMaskFromSelection(1), Result::Success);
+        RegionFillSettings input;
+        input.seed = {22, 22}; input.mode = RegionFillMode::Similar;
+        input.threshold = 1; input.antiAlias = true;
+        QCOMPARE(image->selectRegion(1, input, SelectionCombination::Replace), Result::Success);
+        const auto mask = image->selectionMask();
+        QVERIFY(mask && mask->isGpuGenerated());
+        QVERIFY(mask->tiles().isEmpty());
+        const auto alpha = execution.readSelectionPixels(mask, canvas, canvas.width() * canvas.height());
+        QVERIFY2(alpha.code == ExecutionCode::Success, qPrintable(alpha.diagnostic));
+        QCOMPARE(image->fillLayerColor(2, {0, 0, maximum, maximum}), Result::Success);
+        QCOMPARE(image->addTransparencyMaskFromSelection(2), Result::Success);
+        const auto pinned = image->operations().snapshot();
+        const auto original = image->readRgbaPixels(2, canvas, canvas.width() * canvas.height() * pixelByteCount(format));
+        QCOMPARE(original.code, ExecutionCode::Success);
+        QCOMPARE(image->setSelectionRect({1, 1, 3, 3}), Result::Success);
+        QCOMPARE(image->fillLayerColor(2, {0, maximum, 0, maximum}), Result::Success);
+        const auto current = image->operations().snapshot();
+        const auto path = directory.filePath(QStringLiteral("colour-%1.kra").arg(int(format)));
+        const auto projected = execution.readProjectionImage(image->handle(), pinned, original.bytes.size());
+        QVERIFY2(projected.code == ExecutionCode::Success, qPrintable(projected.diagnostic));
+        const auto saved = document.saveKra(path, pinned, projected.image.convertToFormat(QImage::Format_RGBA8888));
+        QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
+        QCOMPARE(image->operations().snapshot(), current);
+        QVERIFY(mask->isGpuGenerated() && mask->tiles().isEmpty());
+        const auto opened = PaintDocument::openKra(execution, path);
+        QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
+        const auto loaded = opened.document->image();
+        const auto reloadedMask = loaded->selectionMask();
+        QVERIFY(reloadedMask && !reloadedMask->isGpuGenerated());
+        QCOMPARE(reloadedMask->bounds(), mask->bounds());
+        const auto reloadedAlpha = execution.readSelectionPixels(reloadedMask, canvas, alpha.bytes.size());
+        QCOMPARE(reloadedAlpha.code, ExecutionCode::Success);
+        QCOMPARE(reloadedAlpha.bytes, alpha.bytes);
+        QVERIFY(loaded->layerTransparencyMask(2));
+        QCOMPARE(execution.readSelectionPixels(loaded->layerTransparencyMask(2), canvas, alpha.bytes.size()).bytes, alpha.bytes);
+        QCOMPARE(loaded->readRgbaPixels(2, canvas, original.bytes.size()).bytes, original.bytes);
+        QCOMPARE(image->undo(), Result::Success);
+        QCOMPARE(image->undo(), Result::Success);
+        QCOMPARE(image->operations().snapshot(), pinned);
+        for (const auto &owner : {image, loaded}) {
+            QCOMPARE(owner->fillLayerColor(2, {0, maximum, 0, maximum}, 0.5, true), Result::Success);
+            const auto erased = owner->readRgbaPixels(2, canvas, original.bytes.size());
+            QCOMPARE(erased.code, ExecutionCode::Success);
+            QVERIFY(erased.bytes != original.bytes);
+            QCOMPARE(owner->undo(), Result::Success);
+            QCOMPARE(owner->readRgbaPixels(2, canvas, original.bytes.size()).bytes, original.bytes);
+            QCOMPARE(owner->redo(), Result::Success);
+            QCOMPARE(owner->readRgbaPixels(2, canvas, original.bytes.size()).bytes, erased.bytes);
+        }
+        QCOMPARE(loaded->readRgbaPixels(2, canvas, original.bytes.size()).bytes,
+                 image->readRgbaPixels(2, canvas, original.bytes.size()).bytes);
+        const auto second = directory.filePath(QStringLiteral("colour-continued-%1.kra").arg(int(format)));
+        const auto continued = loaded->operations().snapshot();
+        const auto continuedProjection = execution.readProjectionImage(loaded->handle(), continued, original.bytes.size());
+        QCOMPARE(continuedProjection.code, ExecutionCode::Success);
+        const auto savedAgain = opened.document->saveKra(second, continued, continuedProjection.image.convertToFormat(QImage::Format_RGBA8888));
+        QVERIFY2(savedAgain.code == FileCode::Success, qPrintable(savedAgain.diagnostic));
+    }
+}
 
 void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProjection_data()
 {

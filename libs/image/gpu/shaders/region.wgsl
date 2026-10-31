@@ -82,6 +82,10 @@ fn selected(point: vec2<u32>) -> u32 {
     }
     return select(value, 255u - value, (parameters.flags & 16u) != 0u);
 }
+fn selectionLimited(point: vec2<u32>, value: u32) -> u32 {
+    if ((parameters.flags & 4096u) != 0u) { return value; }
+    return min(value, selected(point));
+}
 fn opacity(difference: u32) -> u32 {
     if (parameters.spread == 100u) { return select(0u, 255u, difference <= parameters.threshold); }
     if (parameters.threshold == 0u || difference >= parameters.threshold) { return 0u; }
@@ -136,7 +140,7 @@ fn opacity(difference: u32) -> u32 {
         atomicStore(&labels[parentIndex(index)], 0xffffffffu);
         return;
     }
-    if ((parameters.flags & 64u) == 0u && selected(parameters.seed) == 0u) {
+    if ((parameters.flags & (64u | 4096u)) == 0u && selected(parameters.seed) == 0u) {
         coverage[index] = 0u;
         atomicStore(&labels[parentIndex(index)], 0xffffffffu);
         return;
@@ -160,7 +164,9 @@ fn opacity(difference: u32) -> u32 {
     }
     let similar = opacity(difference);
     var weight = select(similar, 255u - similar, boundary);
-    if ((parameters.flags & 32u) != 0u && selected(p) == 0u) { weight = 0u; }
+    let selectionBoundary = (parameters.flags & 32u) != 0u &&
+        ((parameters.flags & 4096u) == 0u || selected(parameters.seed) != 0u);
+    if (selectionBoundary && selected(p) == 0u) { weight = 0u; }
     coverage[index] = weight;
     atomicStore(&labels[parentIndex(index)], select(0xffffffffu, index, weight != 0u));
 }
@@ -211,7 +217,7 @@ fn join(a: u32, b: u32) {
             atomicMax(&labels[bounds + 2u], p.x); atomicMax(&labels[bounds + 3u], p.y);
         }
     } else {
-        coverage[index] = select(0u, min(coverage[index], selected(p)), included);
+        coverage[index] = select(0u, selectionLimited(p, coverage[index]), included);
         if (coverage[index] != 0u) {
             atomicMin(&status[1], p.x); atomicMin(&status[2], p.y);
             atomicMax(&status[3], p.x); atomicMax(&status[4], p.y);
@@ -308,7 +314,7 @@ fn verticalSpan(point: vec2<i32>, radius: i32) -> u32 {
             atomicMax(&labels[bounds + 2u], p.x); atomicMax(&labels[bounds + 3u], p.y);
         }
     } else {
-        coverage[index] = min(value, selected(p));
+        coverage[index] = selectionLimited(p, value);
         if (coverage[index] != 0u) {
             atomicMin(&status[1], p.x); atomicMin(&status[2], p.y);
             atomicMax(&status[3], p.x); atomicMax(&status[4], p.y);
@@ -393,7 +399,7 @@ fn antialiasedCoverage(point: vec2<i32>, rect: vec4<i32>) -> u32 {
     let p = invocation.xy;
     if (any(p >= parameters.size)) { return; }
     let index = p.y * parameters.size.x + p.x;
-    let value = min(atomicLoad(&labels[parentIndex(index)]), selected(p));
+    let value = selectionLimited(p, atomicLoad(&labels[parentIndex(index)]));
     coverage[index] = value;
     if (value != 0u) {
         atomicMin(&status[1], p.x); atomicMin(&status[2], p.y);

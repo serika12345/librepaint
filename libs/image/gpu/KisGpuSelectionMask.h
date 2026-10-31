@@ -18,8 +18,12 @@
 #include <QRect>
 #include <QSharedPointer>
 #include <QSize>
+#include <memory>
 
 namespace LibrePaint::Image::Gpu {
+
+struct RegionFill;
+namespace Detail { struct SelectionPixels; }
 
 /** Tile coordinate key (x, y) for packed coverage tiles. */
 using SelectionTileKey = QPair<int, int>;
@@ -81,6 +85,16 @@ public:
      * Values are retained; nonzero bytes form the selected bounds.
      */
     static QSharedPointer<const SelectionMask> fromAlphaTiles(const SelectionTileMap &tiles);
+    /** Frozen GPU-generated coverage. Only its exact bounds and display/hit
+     * geometry are CPU values; editing and external pixel readers use the
+     * retained GPU source. Invalid geometry or capacity returns null.
+     */
+    bool isGpuGenerated() const { return !m_region.isNull(); }
+    const QSharedPointer<const RegionFill> &regionSource() const { return m_region; }
+    /** Threshold-128 row spans for display and selection-tool hit testing.
+     * These vectors do not supply editing coverage or saved pixels.
+     */
+    const QList<QRect> &outlineRuns() const { return m_outlineRuns; }
     /** Combines frozen input coverage inside `clip`. Addition saturates,
      * subtraction clamps at zero, intersection takes the minimum and symmetric
      * difference takes the absolute difference, matching native Alpha8 selection.
@@ -124,29 +138,40 @@ public:
     bool isEmpty() const { return m_bounds.isEmpty(); }
     /** Tight bounds of the pixels with nonzero coverage. */
     QRect bounds() const { return m_bounds; }
-    /** Selectedness at a document pixel; 0 for binary unselected, 255 for
-     * binary selected, and the stored byte for alpha coverage. */
+    /** Literal input selectedness; 0 for binary unselected, 255 for binary
+     * selected, and the stored byte for alpha coverage. GPU-generated masks
+     * require Execution::readSelectionPixels(); direct CPU access throws.
+     */
     quint8 coverage(int x, int y) const;
     bool contains(int x, int y) const { return coverage(x, y) != 0; }
     bool isAlpha() const { return m_format == CoverageFormat::Alpha; }
-    /** Packed tiles in increasing coordinate order; bit zero is the top-left
+    /** Literal input tiles in increasing coordinate order; GPU sources retain
+     * their native pixels separately. Bit zero is the top-left
      * pixel of each binary tile and byte zero the top-left pixel of each alpha
      * tile. Missing tiles are unselected.
      */
     const SelectionTileMap &tiles() const { return m_tiles; }
     /** Bytes per stored tile for this coverage format. */
     qsizetype tileBytes() const { return m_format == CoverageFormat::Alpha ? AlphaTileBytes : TileBytes; }
-    qsizetype byteCount() const { return m_tiles.size() * tileBytes(); }
+    qsizetype byteCount() const { return m_tiles.size() * tileBytes() + m_outlineRuns.size() * qsizetype(sizeof(QRect)); }
     bool operator==(const SelectionMask &other) const;
     bool operator!=(const SelectionMask &other) const { return !(*this == other); }
 
 private:
+    friend class Execution;
+    friend class TileRenderer;
+    static QSharedPointer<const SelectionMask> fromRegion(const QSharedPointer<const RegionFill> &source,
+        const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
+    const std::shared_ptr<Detail::SelectionPixels> &nativePixels() const { return m_nativePixels; }
     enum class CoverageFormat : quint8 { Binary, Alpha };
     SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format);
     static QSharedPointer<const SelectionMask> make(QRect bounds, SelectionTileMap tiles, CoverageFormat format);
     QRect m_bounds;
     SelectionTileMap m_tiles;
     CoverageFormat m_format = CoverageFormat::Binary;
+    QSharedPointer<const RegionFill> m_region;
+    QList<QRect> m_outlineRuns;
+    std::shared_ptr<Detail::SelectionPixels> m_nativePixels;
 };
 
 using SelectionMaskSP = QSharedPointer<const SelectionMask>;

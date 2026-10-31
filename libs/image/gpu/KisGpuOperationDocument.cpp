@@ -440,7 +440,7 @@ Result OperationDocument::combineSelectionMask(const SelectionMaskSP &mask, Sele
         if (!previous && before->selection.intersects(clip)) return Result::CapacityExceeded;
         if (!previous) previous = SelectionMask::empty();
     }
-    const auto result = previous->combined(*mask, action, clip, inverted);
+    const auto result = action == SelectionCombination::Replace ? mask : previous->combined(*mask, action, clip, inverted);
     if (!result) return Result::CapacityExceeded;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     const auto coverage = !inverted && *result == *previous ? previous : result;
