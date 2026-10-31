@@ -6,6 +6,8 @@
 #include <gpu/KisGpuPaintDocument.h>
 #include <gpu/KisGpuExecution.h>
 #include <kra/KisKraRasterCodec.h>
+#include <KoTestConfig.h>
+#include <KoResourcePaths.h>
 #include <QBuffer>
 #include <QColorSpace>
 #include <QCryptographicHash>
@@ -20,6 +22,7 @@
 #include <QSignalSpy>
 #include <QScopeGuard>
 #include <QTemporaryDir>
+#include <QStandardPaths>
 #include <QTest>
 #include <quazip.h>
 #include <quazipfile.h>
@@ -2236,7 +2239,13 @@ void KisGpuPaintDocumentTest::notificationsAllowSynchronousCloseAndDeletion()
 
 int main(int argc, char **argv)
 {
+    QStandardPaths::setTestModeEnabled(true);
+    qputenv("KRITA_PLUGIN_PATH", QByteArray(KRITA_PLUGINS_DIR_FOR_TESTS));
+    qputenv("EXTRA_RESOURCE_DIRS", QByteArray(KRITA_RESOURCE_DIRS_FOR_TESTS));
     QGuiApplication application(argc, argv);
+    KoResourcePaths::addAssetType("icc_profiles", "data", "/color/icc");
+    KoResourcePaths::addAssetType("icc_profiles", "data", "/profiles/");
+    QCoreApplication::setApplicationName(QStringLiteral("krita"));
     KisGpuPaintDocumentTest test;
     return QTest::qExec(&test, argc, argv);
 }
