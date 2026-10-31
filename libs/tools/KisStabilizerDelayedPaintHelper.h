@@ -44,6 +44,7 @@ private:
     std::function<void(const KisPaintInformation &, const KisPaintInformation &)> m_paintLine;
     std::function<void()> m_requestUpdateOutline;
     std::function<void(const PaintLines &)> m_paintLines;
+    std::function<void()> m_batchAllocationFailed;
 
 public:
     KisStabilizerDelayedPaintHelper();
@@ -67,9 +68,12 @@ public:
     }
 
     /** A GPU consumer adopts all currently due lines in one document preview.
+     * Allocation failure cancels the queue before notifying the consumer.
      * An empty callback restores the native per-line consumer. */
-    void setPaintLinesCallback(std::function<void(const PaintLines &)> paintLines) {
+    void setPaintLinesCallback(std::function<void(const PaintLines &)> paintLines,
+                              std::function<void()> allocationFailed = {}) {
         m_paintLines = std::move(paintLines);
+        m_batchAllocationFailed = std::move(allocationFailed);
     }
 
     void setUpdateOutlineCallback(std::function<void()> requestUpdateOutline) {

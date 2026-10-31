@@ -9,6 +9,7 @@
 #include <qcontainerfwd.h>
 #include <qobjectdefs.h>
 #include <QPointer>
+#include <new>
 
 constexpr int fixedPaintTimerInterval = 20;
 
@@ -54,13 +55,21 @@ void KisStabilizerDelayedPaintHelper::paintSome() {
     }
     int now = m_lastPaintTime;
     if (m_paintLines) {
-        PaintLines lines;
-        while (m_paintQueue.size() > 1 && m_paintQueue.head().elapsedTime <= now) {
-            const auto first = m_paintQueue.dequeue().paintInfo;
-            lines.append({first, m_paintQueue.head().paintInfo});
+        const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
+        try {
+            PaintLines lines;
+            while (m_paintQueue.size() > 1 && m_paintQueue.head().elapsedTime <= now) {
+                const auto first = m_paintQueue.dequeue().paintInfo;
+                lines.append({first, m_paintQueue.head().paintInfo});
+            }
+            const auto paintLines = m_paintLines;
+            if (!lines.isEmpty()) paintLines(lines);
+        } catch (const std::bad_alloc &) {
+            if (!guard) return;
+            const auto allocationFailed = m_batchAllocationFailed;
+            cancel();
+            if (allocationFailed) allocationFailed();
         }
-        const auto paintLines = m_paintLines;
-        if (!lines.isEmpty()) paintLines(lines);
         return;
     }
     const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
@@ -81,15 +90,23 @@ void KisStabilizerDelayedPaintHelper::end() {
         return;
     }
     if (m_paintLines) {
-        PaintLines lines;
-        auto first = m_paintQueue.dequeue().paintInfo;
-        while (!m_paintQueue.isEmpty()) {
-            const auto last = m_paintQueue.dequeue().paintInfo;
-            lines.append({first, last});
-            first = last;
+        const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
+        try {
+            PaintLines lines;
+            auto first = m_paintQueue.dequeue().paintInfo;
+            while (!m_paintQueue.isEmpty()) {
+                const auto last = m_paintQueue.dequeue().paintInfo;
+                lines.append({first, last});
+                first = last;
+            }
+            const auto paintLines = m_paintLines;
+            if (!lines.isEmpty()) paintLines(lines);
+        } catch (const std::bad_alloc &) {
+            if (!guard) return;
+            const auto allocationFailed = m_batchAllocationFailed;
+            cancel();
+            if (allocationFailed) allocationFailed();
         }
-        const auto paintLines = m_paintLines;
-        if (!lines.isEmpty()) paintLines(lines);
         return;
     }
     TimedPaintInfo dequeued = m_paintQueue.dequeue();

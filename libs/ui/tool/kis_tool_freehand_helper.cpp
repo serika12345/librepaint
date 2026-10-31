@@ -462,7 +462,12 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
                                       this, &KisToolFreehandHelper::cancelPaint);
         if (m_d->gpuStabilizer) {
             m_d->stabilizerDelayedPaintHelper.setPaintLinesCallback(
-                [this](const KisStabilizerDelayedPaintHelper::PaintLines &lines) { paintGpuStabilizerLines(lines); });
+                [this](const KisStabilizerDelayedPaintHelper::PaintLines &lines) { paintGpuStabilizerLines(lines); },
+                [this] {
+                    const QPointer<KisToolFreehandHelper> guard(this);
+                    cancelPaint();
+                    if (guard) Q_EMIT requestErrorMessage(gpuInputError(Gpu::Result::CapacityExceeded));
+                });
             m_d->previousPaintInformation = pi;
             m_d->hasPaintAtLeastOnce = false;
             const QPointer<KisToolFreehandHelper> guard(this);

@@ -11,6 +11,7 @@
 
 #include <kis_paint_information.h>
 #include <QPointer>
+#include <new>
 
 void KisStabilizedEventsSamplerTest::test()
 {
@@ -157,6 +158,54 @@ void KisStabilizedEventsSamplerTest::delayedPaintBatchesDueLinesAndRetainsTheNex
         QVERIFY(!helper->running());
         QVERIFY(!helper->hasLastPaintInformation());
         delete helper.data();
+    }
+
+    // A cold GPU preview can leave many resampled lines due at once. Deliver
+    // their complete sensor input in one call, retaining every line endpoint.
+    KisStabilizerDelayedPaintHelper helper;
+    QVector<KisPaintInformation> input;
+    for (int i = 0; i <= 1000; ++i)
+        input.append(KisPaintInformation(QPointF(i, i % 17), qreal(i % 11) / 10, 0, 0, 0, 0, 1, i));
+    int calls = 0;
+    helper.setPaintLinesCallback([&](const Lines &lines) {
+        ++calls;
+        QCOMPARE(lines.size(), input.size() - 1);
+        for (qsizetype i = 0; i < lines.size(); ++i) {
+            QCOMPARE(lines[i].first.pos(), input[i].pos());
+            QCOMPARE(lines[i].second.pos(), input[i + 1].pos());
+            QCOMPARE(lines[i].first.pressure(), input[i].pressure());
+            QCOMPARE(lines[i].second.currentTime(), input[i + 1].currentTime());
+        }
+    });
+    helper.setUpdateOutlineCallback([] {});
+    helper.start(input.first());
+    helper.update(input.sliced(1));
+    helper.end();
+    QCOMPARE(calls, 1);
+    QVERIFY(!helper.hasLastPaintInformation());
+}
+
+void KisStabilizedEventsSamplerTest::delayedBatchFailureCancelsBeforeNotifying()
+{
+    for (bool finish : {false, true}) for (bool destroy : {false, true}) {
+        QPointer<KisStabilizerDelayedPaintHelper> helper = new KisStabilizerDelayedPaintHelper;
+        int notified = 0;
+        helper->setPaintLinesCallback([](const KisStabilizerDelayedPaintHelper::PaintLines &) {
+            throw std::bad_alloc();
+        }, [&] {
+            ++notified;
+            QVERIFY(!helper->running());
+            QVERIFY(!helper->hasLastPaintInformation());
+            if (destroy) delete helper.data();
+        });
+        helper->setUpdateOutlineCallback([] {});
+        helper->start(KisPaintInformation(QPointF(10, 10)));
+        helper->update({KisPaintInformation(QPointF(20, 20)), KisPaintInformation(QPointF(30, 30))});
+        if (finish) helper->end();
+        else helper->paintSome();
+        QCOMPARE(notified, 1);
+        if (destroy) QVERIFY(!helper);
+        else delete helper.data();
     }
 }
 
