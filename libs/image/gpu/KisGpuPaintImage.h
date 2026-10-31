@@ -11,6 +11,7 @@
 #include <QObject>
 #include <QRect>
 #include <memory>
+#include <optional>
 #include <utility>
 
 namespace LibrePaint::Image::Gpu {
@@ -131,6 +132,12 @@ public:
      */
     SelectionMaskSP transformedTransparencyMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
                                                bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds = {});
+    /** Native parent bounds for a mask transformed in the same transaction.
+     * Evaluates retained committed pixels on an independent GPU attachment,
+     * reads allocation summaries, and leaves this image and history unchanged.
+     * Empty optional reports invalid input, busy, device or capacity failure.
+     */
+    std::optional<QRect> transformedLayerDefaultBounds(LayerId layer, const AffinePlan &plan);
     Result clearSelection();
     bool selectionInverted() const;
     LibrePaint::Image::Gpu::SelectionKind selectionKind() const;

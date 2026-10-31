@@ -139,7 +139,12 @@ void KisToolTransform::updateGpuTransform()
         if (target.mask && requested.isIdentity()) mask = layer->transparencyMask;
         else if (target.mask) {
             const auto captured = layer->transparencyMask;
-            const auto defaults = m_gpuMaskDefaultBounds.value(target.layer);
+            auto defaults = m_gpuMaskDefaultBounds.value(target.layer);
+            if (!m_gpuSelection && target.pixels && captured->defaultCoverage()) {
+                const auto parent = owner->transformedLayerDefaultBounds(target.layer, *plan);
+                if (!parent) { valid = false; break; }
+                defaults = *parent;
+            }
             const auto maskBounds = m_gpuSelection ? m_gpuSelectionBounds : captured->bounds().united(defaults);
             const auto maskPlan = worker.gpuPlan(maskBounds, m_gpuSelection ? QRect{} : defaults, captured->bounds());
             if (!maskPlan) { valid = false; break; }

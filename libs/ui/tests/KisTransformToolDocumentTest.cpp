@@ -148,12 +148,12 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra_d
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-generated").arg(words ? "word" : "byte").arg(operation)))
             << words << QStringLiteral("Bicubic") << operation << true << 0 << false;
 
-    for (const bool words : {false, true}) for (int maskDefault : {17, 255}) for (int operation : {0, 1, 4, 6, 7, 8, 9})
+    for (const bool words : {false, true}) for (int maskDefault : {17, 255}) for (int operation : {0, 1, 2, 3, 4, 6, 7, 8, 9})
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3")
             .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
             << words << QStringLiteral("Bicubic") << operation << false << maskDefault << false;
 
-    for (const bool words : {false, true}) for (int maskDefault : {0, 255}) for (int operation : {0, 4, 6, 7, 8, 9, 10, 11})
+    for (const bool words : {false, true}) for (int maskDefault : {0, 255}) for (int operation : {0, 2, 3, 4, 6, 7, 8, 9, 10, 11})
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3-mask-only")
             .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
             << words << QStringLiteral("Bicubic") << operation << false << maskDefault << true;

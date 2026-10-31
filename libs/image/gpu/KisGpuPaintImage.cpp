@@ -310,6 +310,44 @@ SelectionMaskSP PaintImage::transformedTransparencyMask(const SelectionMaskSP &m
     }
 }
 
+std::optional<QRect> PaintImage::transformedLayerDefaultBounds(LayerId layer, const AffinePlan &plan)
+{
+    if (!onThread() || !validAffinePlan(plan)) return {};
+    const auto source = m_d->document->snapshot();
+    const auto found = std::find_if(source->layers.cbegin(), source->layers.cend(),
+        [layer](const auto &value) { return value.id == layer && value.kind == LayerKind::Paint; });
+    if (found == source->layers.cend()) return {};
+    try {
+        const auto pixels = LayerPixelReferenceSP(new LayerPixelReference(layer, found->uuid, source));
+        const auto image = cloneLayerPixels(pixels);
+        if (!image) return {};
+        const auto target = image->operations().activeLayer();
+        const auto token = image->beginAffineTransform({{target, true, false}});
+        const auto status = token.isNull() ? Result::InvalidInput :
+            image->updateAffineTransform(token, {{target, QSharedPointer<AffinePlan>::create(plan), {}, false}});
+        if (status != Result::Success) {
+            m_d->lastRequest = image->lastRequestOutcome();
+            return {};
+        }
+        const auto allocation = m_d->execution.layerTileCoordinates(image->handle(), image->operations().preview(), target,
+            m_d->limits.rasterBytes / RgbaTile::byteCount(source->format));
+        if (allocation.code != ExecutionCode::Success) {
+            m_d->lastRequest = {allocation.code, allocation.diagnostic};
+            return {};
+        }
+        QRect bounds(QPoint(), source->size);
+        for (const auto &area : allocation.writtenAreas) bounds |= area;
+        return bounds;
+    } catch (const std::bad_alloc &) {
+        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("Parent transform bounds exceeded allocation capacity")};
+    } catch (const std::length_error &error) {
+        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QString::fromUtf8(error.what())};
+    } catch (const std::invalid_argument &error) {
+        m_d->lastRequest = {ExecutionCode::InvalidRequest, QString::fromUtf8(error.what())};
+    }
+    return {};
+}
+
 QRect PaintImage::selectionRect() const
 { return onThread() ? m_d->document->selectionRect() : QRect{}; }
 bool PaintImage::selectionInverted() const
