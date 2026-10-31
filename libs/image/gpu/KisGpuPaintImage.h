@@ -115,6 +115,10 @@ public:
     /** Exact finite complement for native selection views; null reports failure.
      * Retains GPU coverage and leaves the document and history unchanged. */
     SelectionMaskSP complementSelectionMask(const SelectionMaskSP &mask, QRect clip);
+    /** Moves immutable selection coverage inside clip for preview or adoption.
+     * Returns an empty mask when clipped away, null on failure. Leaves history
+     * unchanged; generated coverage stays on the GPU. */
+    SelectionMaskSP translatedSelectionMask(const SelectionMaskSP &mask, QPoint offset, QRect clip);
     Result clearSelection();
     bool selectionInverted() const;
     LibrePaint::Image::Gpu::SelectionKind selectionKind() const;

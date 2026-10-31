@@ -42,6 +42,14 @@ struct SelectionCombinationSource
     bool inverted = false;
 };
 
+/** Frozen input for moving a generated selection without reading its pixels. */
+struct SelectionTranslationSource
+{
+    QSharedPointer<const SelectionMask> source;
+    QPoint offset;
+    QRect extent;
+};
+
 /**
  * Frozen document coverage for an arbitrary selection.
  *
@@ -99,9 +107,10 @@ public:
      * geometry are CPU values; editing and external pixel readers use the
      * retained GPU source. Invalid geometry or capacity returns null.
      */
-    bool isGpuGenerated() const { return !m_region.isNull() || !m_combination.isNull(); }
+    bool isGpuGenerated() const { return !m_region.isNull() || !m_combination.isNull() || !m_translation.isNull(); }
     const QSharedPointer<const RegionFill> &regionSource() const { return m_region; }
     const QSharedPointer<const SelectionCombinationSource> &combinationSource() const { return m_combination; }
+    const QSharedPointer<const SelectionTranslationSource> &translationSource() const { return m_translation; }
     /** Threshold-128 row spans for display and selection-tool hit testing.
      * These vectors do not supply editing coverage or saved pixels.
      */
@@ -175,6 +184,9 @@ private:
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
     static QSharedPointer<const SelectionMask> fromCombination(const QSharedPointer<const SelectionCombinationSource> &source,
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
+    static QSharedPointer<const SelectionMask> fromTranslation(const QSharedPointer<const SelectionTranslationSource> &source,
+        const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
+    QRect nativeExtent() const;
     const std::shared_ptr<Detail::SelectionPixels> &nativePixels() const { return m_nativePixels; }
     enum class CoverageFormat : quint8 { Binary, Alpha };
     SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format);
@@ -184,6 +196,7 @@ private:
     CoverageFormat m_format = CoverageFormat::Binary;
     QSharedPointer<const RegionFill> m_region;
     QSharedPointer<const SelectionCombinationSource> m_combination;
+    QSharedPointer<const SelectionTranslationSource> m_translation;
     QList<QRect> m_outlineRuns;
     std::shared_ptr<Detail::SelectionPixels> m_nativePixels;
 };

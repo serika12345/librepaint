@@ -392,6 +392,18 @@ SelectionMaskSP PaintImage::complementSelectionMask(const SelectionMaskSP &mask,
         return result;
     } catch (const std::bad_alloc &) { return {}; }
 }
+SelectionMaskSP PaintImage::translatedSelectionMask(const SelectionMaskSP &mask, QPoint offset, QRect clip)
+{
+    if (!onThread() || !mask) return {};
+    try {
+        if (offset.isNull() && clip.contains(mask->bounds())) return mask;
+        if (!mask->isGpuGenerated()) return mask->translated(offset, clip);
+        SelectionMaskSP result;
+        const auto checked = m_d->execution.translateSelectionCoverage(mask, offset, clip, &result);
+        if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
+        return result;
+    } catch (const std::bad_alloc &) { return {}; }
+}
 
 QRect PaintImage::selectionRect() const
 { return onThread() ? m_d->document->selectionRect() : QRect{}; }

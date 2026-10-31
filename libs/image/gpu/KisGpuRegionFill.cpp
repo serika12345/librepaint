@@ -85,6 +85,10 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
             pendingMasks.append(combination->first);
             pendingMasks.append(combination->second);
         }
+        if (const auto &translation = value->translationSource()) {
+            if (!add(translation.data(), sizeof(SelectionTranslationSource))) return false;
+            pendingMasks.append(translation->source);
+        }
         return true;
     };
     if (!inputs(settings) || !mask(extraMask)) return false;

@@ -573,7 +573,10 @@ bool KisImage::moveGpuSelectionBy(QPoint delta)
     const auto owner = gpuImage();
     if (!owner) return false;
     const auto mask = owner->selectionMask();
-    const auto moved = mask ? mask->translated(delta, QRect(QPoint(), size())) : nullptr;
+    const auto moved = mask ? owner->translatedSelectionMask(mask, delta, QRect(QPoint(), size())) : nullptr;
+    if (moved && moved->isEmpty())
+        return (owner->selectionInverted() ? owner->setSelectionRect(QRect(QPoint(), size())) : owner->clearSelection()) ==
+            LibrePaint::Image::Gpu::Result::Success;
     return moved && owner->setSelectionMask(moved, owner->selectionInverted()) ==
         LibrePaint::Image::Gpu::Result::Success;
 }
@@ -657,7 +660,13 @@ void KisImage::previewGpuSelectionMoveBy(QPoint delta)
 {
     const auto owner = gpuImage();
     if (!owner || !owner->selectionMask()) return;
-    const auto moved = owner->selectionMask()->translated(delta, QRect(QPoint(), size()));
+    const auto moved = owner->translatedSelectionMask(owner->selectionMask(), delta, QRect(QPoint(), size()));
+    if (!moved) return;
+    if (moved->isEmpty()) {
+        updateGpuSelectionMask(owner->selectionInverted() ? QRect(QPoint(), size()) : QRect(), false,
+                               LibrePaint::Image::Gpu::SelectionKind::Rectangle);
+        return;
+    }
     updateGpuSelectionMask(moved ? moved->bounds() : QRect(), owner->selectionInverted(),
                            LibrePaint::Image::Gpu::SelectionKind::Freehand, moved);
 }

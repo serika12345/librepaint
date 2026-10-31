@@ -486,6 +486,28 @@ QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, cons
     return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Binary);
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::fromTranslation(
+    const QSharedPointer<const SelectionTranslationSource> &source, const QRect &bounds,
+    const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
+{
+    if (!source || !source->source || !source->source->isGpuGenerated() || !pixels ||
+        !fitsPixelBudget(source->extent) || !validOutline(source->extent, {}) ||
+        !validOutline(bounds, outlineRuns) || (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
+    if (bounds.isEmpty()) return empty();
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
+    result->m_translation = source;
+    result->m_outlineRuns = outlineRuns;
+    result->m_nativePixels = pixels;
+    return result;
+}
+
+QRect SelectionMask::nativeExtent() const
+{
+    if (m_region) return QRect(m_region->coverageOrigin, m_region->coverageSize);
+    if (m_combination) return m_combination->extent;
+    return m_translation ? m_translation->extent : QRect();
+}
+
 QSharedPointer<const SelectionMask> SelectionMask::inverted(const QRect &clip) const
 {
     if (isGpuGenerated()) return {};
@@ -781,7 +803,7 @@ QSharedPointer<const SelectionMask> SelectionMask::transformed(const AffinePlan 
 bool SelectionMask::operator==(const SelectionMask &other) const
 {
     return m_format == other.m_format && m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
-        m_region == other.m_region && m_combination == other.m_combination &&
+        m_region == other.m_region && m_combination == other.m_combination && m_translation == other.m_translation &&
         m_outlineRuns == other.m_outlineRuns;
 }
 }

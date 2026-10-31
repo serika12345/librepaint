@@ -295,6 +295,8 @@ private:
         QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *runs);
     ExecutionOutcome combineSelectionCoverage(const SelectionMaskSP &first, const SelectionMaskSP &second,
         SelectionCombination action, QRect clip, bool inverted, SelectionMaskSP *result);
+    ExecutionOutcome translateSelectionCoverage(const SelectionMaskSP &source, QPoint offset, QRect clip,
+        SelectionMaskSP *result);
     ExecutionOutcome endFrame(bool publish, bool waitForReadback = true);
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();

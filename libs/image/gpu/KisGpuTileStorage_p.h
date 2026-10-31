@@ -149,6 +149,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline coveragePackPipeline;
     Detail::NativeBindingLayout selectionCombineLayout;
     Detail::NativeComputePipeline selectionCombinePipeline;
+    Detail::NativeBindingLayout selectionTranslateLayout;
+    Detail::NativeComputePipeline selectionTranslatePipeline;
     Detail::NativeBindingLayout coverageGeometryLayout;
     Detail::NativeComputePipeline coverageCountPipeline, coverageOutlinePipeline;
     Detail::NativeBindingLayout layout;

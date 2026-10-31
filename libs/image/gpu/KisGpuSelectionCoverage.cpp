@@ -29,6 +29,49 @@ std::shared_ptr<BufferStorage> TileRenderer::Private::linearSelectionCoverage(WG
         const auto prepared = renderer.prepareRegion(commands, region);
         if (prepared.code != RenderOutcome::Recorded) { error = prepared.diagnostic; return {}; }
         pixels = regionCache.value(region.data()).coverage.pixels;
+    } else if (const auto &translation = mask->translationSource()) {
+        const auto input = linearSelectionCoverage(commands, translation->source);
+        const auto extent = translation->extent;
+        const quint64 bytes = quint64(extent.width()) * extent.height() * 4;
+        WGPULimits limits{};
+        if (!input || extent.isEmpty() || wgpuDeviceGetLimits(device->nativeDevice(), &limits) != WGPUStatus_Success ||
+            bytes > qMin(limits.maxStorageBufferBindingSize, limits.maxBufferSize) ||
+            bytes + 64 > quint64(qMax<qsizetype>(0, budget->limit - budget->used)) ||
+            quint64((extent.width() + 7) / 8) > limits.maxComputeWorkgroupsPerDimension ||
+            quint64((extent.height() + 7) / 8) > limits.maxComputeWorkgroupsPerDimension) return {};
+        auto output = createBuffer(device->nativeDevice(), bytes, WGPUBufferUsage_Storage);
+        auto parameters = createBuffer(device->nativeDevice(), 64, WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+        if (!output || !parameters) return {};
+        pixels = std::make_shared<BufferStorage>(std::move(output), budget);
+        const auto uniform = std::make_shared<BufferStorage>(std::move(parameters), budget);
+        device->retainForFrame(input); device->retainForFrame(pixels); device->retainForFrame(uniform);
+        const auto sourceExtent = translation->source->nativeExtent();
+        const auto bounds = translation->source->bounds();
+        const qint32 values[16]{sourceExtent.x(), sourceExtent.y(), sourceExtent.width(), sourceExtent.height(),
+            extent.x(), extent.y(), extent.width(), extent.height(), bounds.left(), bounds.top(), bounds.right() + 1,
+            bounds.bottom() + 1, translation->offset.x(), translation->offset.y(), 0, 0};
+        wgpuQueueWriteBuffer(device->queue(), uniform->pixels.get(), 0, values, sizeof(values));
+        if (!selectionTranslatePipeline) {
+            selectionTranslatePipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/selection-translate.wgsl"));
+            if (selectionTranslatePipeline)
+                selectionTranslateLayout.reset(wgpuComputePipelineGetBindGroupLayout(selectionTranslatePipeline.get(), 0));
+        }
+        if (!selectionTranslatePipeline || !selectionTranslateLayout) return {};
+        const WGPUBuffer buffers[]{uniform->pixels.get(), input->pixels.get(), pixels->pixels.get()};
+        std::array<WGPUBindGroupEntry, 3> entries{};
+        for (quint32 i = 0; i < entries.size(); ++i) {
+            entries[i].binding = i; entries[i].buffer = buffers[i]; entries[i].size = wgpuBufferGetSize(buffers[i]);
+        }
+        WGPUBindGroupDescriptor descriptor{};
+        descriptor.layout = selectionTranslateLayout.get(); descriptor.entryCount = entries.size(); descriptor.entries = entries.data();
+        NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &descriptor));
+        if (!bindings) return {};
+        const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+        if (!pass) return {};
+        wgpuComputePassEncoderSetPipeline(pass, selectionTranslatePipeline.get());
+        wgpuComputePassEncoderSetBindGroup(pass, 0, bindings.get(), 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, (extent.width() + 7) / 8, (extent.height() + 7) / 8, 1);
+        wgpuComputePassEncoderEnd(pass); wgpuComputePassEncoderRelease(pass);
     } else if (const auto &operation = mask->combinationSource()) {
         const auto extent = operation->extent;
         const quint64 bytes = quint64(extent.width()) * extent.height() * 4;
@@ -97,8 +140,7 @@ std::shared_ptr<CoverageTile> TileRenderer::Private::generatedCoverageTile(WGPUC
     if (area.intersects(mask->bounds())) {
         generated = linearSelectionCoverage(commands, mask);
         if (!generated) return {};
-        const auto extent = mask->regionSource() ? QRect(mask->regionSource()->coverageOrigin, mask->regionSource()->coverageSize)
-                                                : mask->combinationSource()->extent;
+        const auto extent = mask->nativeExtent();
         source = generated->pixels.get();
         values[0] = extent.x(); values[1] = extent.y(); values[2] = extent.width(); values[3] = extent.height(); values[6] = 0;
         device->retainForFrame(generated);
@@ -182,6 +224,45 @@ ExecutionOutcome Execution::combineSelectionCoverage(const SelectionMaskSP &firs
     if (read.code != ExecutionCode::Success) return read;
     const auto mask = SelectionMask::fromCombination(operation, bounds, runs, native);
     if (!mask) return {ExecutionCode::InvalidRequest, QStringLiteral("Selection arithmetic geometry is invalid")};
+    *result = mask;
+    return {ExecutionCode::Success, {}};
+}
+
+ExecutionOutcome Execution::translateSelectionCoverage(const SelectionMaskSP &source, QPoint offset, QRect clip,
+    SelectionMaskSP *result)
+{
+    auto &d = *m_d;
+    constexpr qint64 limit = OperationDocument::CoordinateLimit;
+    if (!d.onThread() || !source || !source->isGpuGenerated() || !result || clip.isEmpty() ||
+        qAbs(qint64(offset.x())) > 2 * limit || qAbs(qint64(offset.y())) > 2 * limit ||
+        clip.x() < -limit || clip.y() < -limit || qint64(clip.x()) + clip.width() > limit ||
+        qint64(clip.y()) + clip.height() > limit)
+        return {ExecutionCode::InvalidRequest, QStringLiteral("Selection movement requires valid frozen coverage and coordinates")};
+    if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("Selection movement requires submitted work")};
+    if (d.device->readbackPending() && !d.device->finish()) return {ExecutionCode::DeviceFailure, d.device->diagnostic()};
+    const auto extent = source->bounds().translated(offset).intersected(clip);
+    if (extent.isEmpty()) { *result = SelectionMask::empty(); return {ExecutionCode::Success, {}}; }
+    if (quint64(extent.width()) * extent.height() > quint64(SelectionMask::MaximumBytes))
+        return {ExecutionCode::CapacityExceeded, QStringLiteral("Selection movement exceeds its pixel capacity")};
+    auto operation = QSharedPointer<SelectionTranslationSource>::create();
+    operation->source = source; operation->offset = offset; operation->extent = extent;
+    const auto native = std::make_shared<SelectionPixels>();
+    const auto pending = SelectionMask::fromTranslation(operation, extent, {}, native);
+    if (!pending) return {ExecutionCode::InvalidRequest, QStringLiteral("Selection movement inputs are invalid")};
+    const auto rollback = qScopeGuard([&] { if (d.active) cancelFrame(); });
+    const auto frame = beginReadbackFrame();
+    if (frame.code != ExecutionCode::Success) return {frame.code, frame.diagnostic};
+    const auto pixels = d.renderer->m_d->linearSelectionCoverage(frame.commands, pending);
+    if (!pixels) return {d.device->isLost() || !d.device->diagnostic().isEmpty() ? ExecutionCode::DeviceFailure : ExecutionCode::CapacityExceeded,
+        QStringLiteral("GPU selection movement could not retain its coverage")};
+    const auto submitted = endFrame(false);
+    if (submitted.code != ExecutionCode::Success) return submitted;
+    QRect bounds;
+    QList<QRect> runs;
+    const auto read = readSelectionOutline(pixels, extent, {}, &bounds, &runs);
+    if (read.code != ExecutionCode::Success) return read;
+    const auto mask = SelectionMask::fromTranslation(operation, bounds, runs, native);
+    if (!mask) return {ExecutionCode::InvalidRequest, QStringLiteral("Selection movement geometry is invalid")};
     *result = mask;
     return {ExecutionCode::Success, {}};
 }

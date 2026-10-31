@@ -4358,6 +4358,10 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra_data()
             }
             const QByteArray gradient = tool.toLatin1() + (words ? "-word-spread-gradient" : "-byte-spread-gradient");
             QTest::newRow(gradient.constData()) << tool << words << int(SELECTION_ADD) << QStringLiteral("spread-gradient");
+            for (const auto &scenario : {QStringLiteral("move"), QStringLiteral("move-clipped"), QStringLiteral("move-inverted")}) {
+                const QByteArray name = tool.toLatin1() + (words ? "-word-" : "-byte-") + scenario.toLatin1();
+                QTest::newRow(name.constData()) << tool << words << int(SELECTION_REPLACE) << scenario;
+            }
         }
 }
 
@@ -4454,7 +4458,7 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra()
         if (aa) { KisAntiAliasSelectionFilter filter; filter.process(added, added->selectedRect()); }
     }
     expectedSelection->pixelSelection()->applySelection(added, selectionAction);
-    const auto checkedCoverage = region.united(expectedSelection->pixelSelection()->selectedExactRect());
+    auto checkedCoverage = region.united(expectedSelection->pixelSelection()->selectedExactRect());
     QByteArray expectedMask(checkedCoverage.width() * checkedCoverage.height(), '\0');
     expectedSelection->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(expectedMask.data()), checkedCoverage);
     const bool empty = expectedSelection->pixelSelection()->selectedExactRect().isEmpty();
@@ -4511,7 +4515,7 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra()
     QTest::mouseMove(native.data(), point);
     QEnterEvent entered(point, point, native->mapToGlobal(point)); QApplication::sendEvent(native.data(), &entered);
     QTest::mouseClick(native.data(), Qt::LeftButton, Qt::NoModifier, point);
-    const int selectionHistory = history + 1;
+    int selectionHistory = history + 1;
     QTRY_COMPARE(owner->operations().undoCount(), selectionHistory);
     auto image = KisImageSP(lifetime->image());
     QString mismatch;
@@ -4545,6 +4549,76 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra()
     }
     QCOMPARE(owner->undo(), Gpu::Result::Success); QCOMPARE(owner->operations().snapshot(), before);
     QCOMPARE(owner->redo(), Gpu::Result::Success); QTRY_VERIFY(checkSelection(image));
+    if (scenario.startsWith(QLatin1String("move"))) {
+        const bool inverseMove = scenario == QLatin1String("move-inverted");
+        const auto adoptExpected = [&](const QByteArray &values) {
+            expectedSelection = new KisSelection();
+            expectedSelection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), region);
+            checkedCoverage = region;
+            expectedMask = values;
+        };
+        if (inverseMove) {
+            QVERIFY(image->invertGpuSelectionMask());
+            ++selectionHistory;
+            auto values = expectedMask;
+            for (char &value : values) value = char(255 - quint8(value));
+            adoptExpected(values);
+            QTRY_VERIFY(checkSelection(image));
+        }
+        const auto expectedMoved = [&](QPoint offset) {
+            QByteArray values(region.width() * region.height(), inverseMove ? char(255) : char(0));
+            for (int y = 0; y < region.height(); ++y) for (int x = 0; x < region.width(); ++x) {
+                const QPoint source(x - offset.x(), y - offset.y());
+                if (checkedCoverage.contains(source))
+                    values[y * region.width() + x] = expectedMask[(source.y() - checkedCoverage.y()) * checkedCoverage.width() + source.x() - checkedCoverage.x()];
+            }
+            return values;
+        };
+        KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectRectangular"));
+        QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectRectangular"));
+        native->requestActivate(); view->canvasBase()->canvasWidget()->setFocus();
+        const QPoint start = inverseMove ? QPoint(20, 20) : seed;
+        const QPoint offset = scenario == QLatin1String("move-clipped") ? QPoint(-50, -39) : QPoint(13, 9);
+        const auto sourcePoint = converter->imageToWidget(start).toPoint();
+        const auto targetPoint = converter->imageToWidget(start + offset).toPoint();
+        const auto moveStart = owner->operations().snapshot();
+        const auto originalExpected = expectedMask;
+        const auto movedExpected = expectedMoved(offset);
+        QTest::mouseMove(native.data(), sourcePoint);
+        QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, sourcePoint);
+        QTest::mouseMove(native.data(), targetPoint, 30);
+        adoptExpected(movedExpected);
+        QTRY_VERIFY2(checkSelection(image), qPrintable(mismatch));
+        QCOMPARE(owner->operations().snapshot(), moveStart);
+        QCOMPARE(owner->operations().undoCount(), selectionHistory);
+        QTest::keyClick(view->canvasBase()->canvasWidget(), Qt::Key_Escape);
+        QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, targetPoint);
+        adoptExpected(originalExpected);
+        QTRY_VERIFY(checkSelection(image));
+        QCOMPARE(owner->operations().snapshot(), moveStart);
+        QTest::mouseMove(native.data(), sourcePoint);
+        QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, sourcePoint);
+        QTest::mouseMove(native.data(), targetPoint, 30);
+        QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, targetPoint);
+        ++selectionHistory;
+        QTRY_COMPARE(owner->operations().undoCount(), selectionHistory);
+        adoptExpected(movedExpected);
+        QTRY_VERIFY2(checkSelection(image), qPrintable(mismatch));
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QCOMPARE(owner->operations().snapshot(), moveStart);
+        QCOMPARE(owner->redo(), Gpu::Result::Success);
+        QTRY_VERIFY(checkSelection(image));
+        for (const auto &step : {QPair<QPoint, Qt::KeyboardModifiers>{{1, 0}, Qt::NoModifier},
+                                QPair<QPoint, Qt::KeyboardModifiers>{{0, 10}, Qt::ShiftModifier}}) {
+            const auto nudgedExpected = expectedMoved(step.first);
+            QTest::keyClick(view->canvasBase()->canvasWidget(), step.first.x() ? Qt::Key_Right : Qt::Key_Down, step.second);
+            ++selectionHistory;
+            QTRY_COMPARE(owner->operations().undoCount(), selectionHistory);
+            adoptExpected(nudgedExpected);
+            QTRY_VERIFY2(checkSelection(image), qPrintable(mismatch));
+        }
+        QCOMPARE(owner->selectionInverted(), inverseMove);
+    }
     QCOMPARE(owner->selectLayer(2), Gpu::Result::Success);
     QTRY_VERIFY(view->currentNode() && view->currentNode()->uuid() == raster.layers[1].uuid);
     const auto combined = owner->operations().snapshot();
