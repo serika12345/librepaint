@@ -20,11 +20,11 @@ fn imageDoubleLessEqual(a: Word64, b: Word64) -> bool {
     if (an != bn) { return an; }
     return select(wordLessEqual(am, bm), wordLessEqual(bm, am), an);
 }
-fn imageLeftEdge(coefficient: Word64, constant: Word64, size: u32) -> Word64 {
+fn imageLeftEdge(coefficient: Word64, offsetValue: Word64, size: u32) -> Word64 {
     if (all(doubleMagnitude(coefficient) == Word64(0u))) { return Word64(0u); }
     var edge = Word64(0u);
     if ((coefficient.y & 0x80000000u) != 0u) { edge = doubleInteger(size); }
-    return doubleDivide(doubleSubtract(edge, constant), coefficient);
+    return doubleDivide(doubleSubtract(edge, offsetValue), coefficient);
 }
 fn imageSpanFirst(dab: MaskDab, y: u32) -> u32 {
     let cy = doubleAdd(doubleInteger(y), Word64(0u, 0x3fe00000u));
