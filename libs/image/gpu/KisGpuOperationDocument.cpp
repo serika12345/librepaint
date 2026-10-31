@@ -805,21 +805,27 @@ Result OperationDocument::appendSamples(OperationId id, const QList<InputSample>
 { return appendSamplesWithin(id, samples, nullptr); }
 
 Result OperationDocument::appendPoint(OperationId id, const InputSample &point)
-{ return appendPainterSamples(id, {point}, {PathCommand::Point}); }
+{ return appendPainterPrimitives(id, {point}, {PathCommand::Point}); }
 
 Result OperationDocument::appendLine(OperationId id, const InputSample &first, const InputSample &last)
 {
-    const auto status = checkOperation(id);
-    if (status != Result::Success) return status;
-    if (last.timestamp < first.timestamp) return Result::InvalidInput;
-    return appendPainterSamples(id, {first, last}, {PathCommand::MoveTo, PathCommand::LineTo});
+    return appendPainterPrimitives(id, {first, last}, {PathCommand::MoveTo, PathCommand::LineTo});
 }
 
-Result OperationDocument::appendPainterSamples(OperationId id, const QList<InputSample> &samples,
+Result OperationDocument::appendPainterPrimitives(OperationId id, const QList<InputSample> &samples,
                                                const QList<PathCommand> &commands)
 {
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
+    if (samples.size() != commands.size()) return Result::InvalidInput;
+    for (qsizetype i = 0; i < commands.size(); ++i) {
+        if (commands[i] == PathCommand::Point) continue;
+        if (commands[i] != PathCommand::MoveTo || i + 1 == commands.size() ||
+            commands[i + 1] != PathCommand::LineTo || samples[i + 1].timestamp < samples[i].timestamp)
+            return Result::InvalidInput;
+        ++i;
+    }
+    if (samples.size() > m_limits.samplesPerStroke - m_edit->sampleCount) return Result::CapacityExceeded;
     if (m_edit->brush.basicSmoothing || m_edit->brush.pixelPerfect || hasFigureFill(m_edit->figureStyle) ||
         (m_edit->sampleCount && (m_edit->shape.kind != ShapeKind::Path || !m_edit->shape.pathCalls.isEmpty())))
         return Result::InvalidInput;

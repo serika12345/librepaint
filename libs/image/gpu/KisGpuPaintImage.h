@@ -182,6 +182,8 @@ public:
      */
     Result appendPoint(OperationId id, const InputSample &point);
     Result appendLine(OperationId id, const InputSample &first, const InputSample &last);
+    Result appendPainterPrimitives(OperationId id, const QList<InputSample> &samples,
+                                   const QList<PathCommand> &commands);
     Result flushSmoothing(OperationId id);
     Result updateShape(OperationId id, const Shape &shape);
     Result updateFigure(OperationId id, const Shape &shape, const FigureStyle &style);

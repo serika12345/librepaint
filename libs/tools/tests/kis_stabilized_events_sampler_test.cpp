@@ -117,4 +117,47 @@ void KisStabilizedEventsSamplerTest::delayedPaintAllowsCancellationAndDestructio
     }
 }
 
+void KisStabilizedEventsSamplerTest::delayedPaintBatchesDueLinesAndRetainsTheNextStart()
+{
+    using Lines = KisStabilizerDelayedPaintHelper::PaintLines;
+    const KisPaintInformation first(QPointF(10, 20)), second(QPointF(30, 40)), third(QPointF(50, 60));
+    for (bool finish : {false, true}) for (bool destroy : {false, true}) {
+        QPointer<KisStabilizerDelayedPaintHelper> helper = new KisStabilizerDelayedPaintHelper;
+        Lines received;
+        int calls = 0;
+        helper->setPaintLineCallback([](const KisPaintInformation &, const KisPaintInformation &) { QFAIL("Batch consumer was bypassed"); });
+        helper->setUpdateOutlineCallback([] {});
+        helper->setPaintLinesCallback([&](const Lines &lines) {
+            ++calls;
+            received = lines;
+            if (destroy) delete helper.data();
+        });
+        helper->start(first);
+        helper->update({second, third});
+        if (finish) helper->end();
+        else helper->paintSome();
+        QCOMPARE(calls, 1);
+        QCOMPARE(received.size(), 2);
+        QCOMPARE(received[0].first.pos(), first.pos());
+        QCOMPARE(received[0].second.pos(), second.pos());
+        QCOMPARE(received[1].first.pos(), second.pos());
+        QCOMPARE(received[1].second.pos(), third.pos());
+        if (destroy) { QVERIFY(!helper); continue; }
+        if (finish) QVERIFY(!helper->hasLastPaintInformation());
+        else {
+            QCOMPARE(helper->lastPaintInformation().pos(), third.pos());
+            helper->update({first});
+            helper->end();
+            QCOMPARE(calls, 2);
+            QCOMPARE(received.size(), 1);
+            QCOMPARE(received[0].first.pos(), third.pos());
+            QCOMPARE(received[0].second.pos(), first.pos());
+        }
+        helper->cancel();
+        QVERIFY(!helper->running());
+        QVERIFY(!helper->hasLastPaintInformation());
+        delete helper.data();
+    }
+}
+
 SIMPLE_TEST_MAIN(KisStabilizedEventsSamplerTest)

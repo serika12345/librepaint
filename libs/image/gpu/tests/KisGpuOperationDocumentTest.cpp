@@ -251,6 +251,33 @@ void KisGpuOperationDocumentTest::painterPrimitivesKeepStartsTimesAndAtomicRejec
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), committed);
+
+    OperationDocument batched({64, 64}, limits);
+    const auto batch = batched.beginStroke(batched.activeLayer(), Brush{}, 0);
+    const auto empty = batched.preview();
+    QCOMPARE(batched.appendPainterPrimitives(batch, {tap, first, last},
+        {PathCommand::Point, PathCommand::MoveTo, PathCommand::LineTo}), Result::Success);
+    const auto accepted = batched.preview();
+    const auto combined = std::get<PaintSnapshot>(accepted->layers.first().operations.last());
+    QCOMPARE(combined->inputSamples(), operation->inputSamples());
+    QCOMPARE(combined->shape.pathCommands, operation->shape.pathCommands);
+    QVERIFY(std::get<PaintSnapshot>(empty->layers.first().operations.last())->inputSamples().isEmpty());
+    QCOMPARE(batched.appendPainterPrimitives(batch, {tap}, {PathCommand::MoveTo}), Result::InvalidInput);
+    QCOMPARE(batched.appendPainterPrimitives(batch, {last}, {PathCommand::LineTo}), Result::InvalidInput);
+    QCOMPARE(batched.appendPainterPrimitives(batch, {first, last}, {PathCommand::Point}), Result::InvalidInput);
+    QCOMPARE(batched.appendPainterPrimitives(batch, {last, first},
+        {PathCommand::MoveTo, PathCommand::LineTo}), Result::InvalidInput);
+    QCOMPARE(batched.appendPainterPrimitives(batch, {first, last},
+        {PathCommand::MoveTo, PathCommand::LineTo}), Result::CapacityExceeded);
+    QCOMPARE(batched.preview(), accepted);
+    QCOMPARE(batched.appendPainterPrimitives(batch, {}, {}), Result::Success);
+    QCOMPARE(batched.preview(), accepted);
+    QCOMPARE(batched.commitStroke(batch), Result::Success);
+    QCOMPARE(batched.undoCount(), 1);
+    QCOMPARE(batched.undo(), Result::Success);
+    QCOMPARE(batched.redo(), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(batched.snapshot()->layers.first().operations.last())->inputSamples(),
+             operation->inputSamples());
 }
 
 void KisGpuOperationDocumentTest::selectedClearKeepsOneAtomicHistoryAndFrozenCoverage()

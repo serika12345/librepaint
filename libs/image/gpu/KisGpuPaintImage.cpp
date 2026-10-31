@@ -507,6 +507,20 @@ Result PaintImage::appendLine(OperationId id, const InputSample &first, const In
         return Result::CapacityExceeded;
     }
 }
+Result PaintImage::appendPainterPrimitives(OperationId id, const QList<InputSample> &samples,
+                                          const QList<PathCommand> &commands)
+{
+    if (!onThread()) return Result::InvalidInput;
+    try {
+        if (m_d->maskStroke) {
+            if (m_d->maskStroke->id != id) return Result::StaleOperation;
+            return refreshMaskStrokePreview(m_d->maskStroke->image->appendPainterPrimitives(id, samples, commands));
+        }
+        return publish(m_d->document->appendPainterPrimitives(id, samples, commands));
+    } catch (const std::bad_alloc &) {
+        return Result::CapacityExceeded;
+    }
+}
 Result PaintImage::flushSmoothing(OperationId id)
 {
     if (!onThread()) return Result::InvalidInput;

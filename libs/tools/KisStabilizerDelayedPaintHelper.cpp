@@ -53,6 +53,16 @@ void KisStabilizerDelayedPaintHelper::paintSome() {
         return;
     }
     int now = m_lastPaintTime;
+    if (m_paintLines) {
+        PaintLines lines;
+        while (m_paintQueue.size() > 1 && m_paintQueue.head().elapsedTime <= now) {
+            const auto first = m_paintQueue.dequeue().paintInfo;
+            lines.append({first, m_paintQueue.head().paintInfo});
+        }
+        const auto paintLines = m_paintLines;
+        if (!lines.isEmpty()) paintLines(lines);
+        return;
+    }
     const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
     const auto paintLine = m_paintLine;
     // Always keep one in the queue since painting requires two points
@@ -68,6 +78,18 @@ void KisStabilizerDelayedPaintHelper::end() {
     m_paintTimer.stop();
     m_elapsedTimer.invalidate();
     if (m_paintQueue.isEmpty()) {
+        return;
+    }
+    if (m_paintLines) {
+        PaintLines lines;
+        auto first = m_paintQueue.dequeue().paintInfo;
+        while (!m_paintQueue.isEmpty()) {
+            const auto last = m_paintQueue.dequeue().paintInfo;
+            lines.append({first, last});
+            first = last;
+        }
+        const auto paintLines = m_paintLines;
+        if (!lines.isEmpty()) paintLines(lines);
         return;
     }
     TimedPaintInfo dequeued = m_paintQueue.dequeue();

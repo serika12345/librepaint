@@ -9,10 +9,12 @@
 
 #include <QElapsedTimer>
 #include <QQueue>
+#include <QPair>
 #include <QTimer>
 #include <QVector>
 
 #include <functional>
+#include <utility>
 
 #include "kis_paint_information.h"
 #include "kritatools_export.h"
@@ -21,6 +23,10 @@ class KRITATOOLS_EXPORT KisStabilizerDelayedPaintHelper : public QObject
 {
     Q_OBJECT
 
+public:
+    using PaintLines = QVector<QPair<KisPaintInformation, KisPaintInformation>>;
+
+private:
     struct TimedPaintInfo
     {
         int elapsedTime;
@@ -37,6 +43,7 @@ class KRITATOOLS_EXPORT KisStabilizerDelayedPaintHelper : public QObject
     // Callbacks
     std::function<void(const KisPaintInformation &, const KisPaintInformation &)> m_paintLine;
     std::function<void()> m_requestUpdateOutline;
+    std::function<void(const PaintLines &)> m_paintLines;
 
 public:
     KisStabilizerDelayedPaintHelper();
@@ -57,6 +64,12 @@ public:
 
     void setPaintLineCallback(std::function<void(const KisPaintInformation &, const KisPaintInformation &)> paintLine) {
         m_paintLine = paintLine;
+    }
+
+    /** A GPU consumer adopts all currently due lines in one document preview.
+     * An empty callback restores the native per-line consumer. */
+    void setPaintLinesCallback(std::function<void(const PaintLines &)> paintLines) {
+        m_paintLines = std::move(paintLines);
     }
 
     void setUpdateOutlineCallback(std::function<void()> requestUpdateOutline) {

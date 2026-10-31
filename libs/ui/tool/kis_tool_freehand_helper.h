@@ -143,6 +143,7 @@ private:
 
     void stabilizerStart(KisPaintInformation firstPaintInfo);
     void stabilizerEnd();
+    void paintGpuStabilizerLines(const QVector<QPair<KisPaintInformation, KisPaintInformation>> &lines);
     KisPaintInformation getStabilizedPaintInfo(const QQueue<KisPaintInformation> &queue,
                                                const KisPaintInformation &lastPaintInfo);
     int computeAirbrushTimerInterval() const;

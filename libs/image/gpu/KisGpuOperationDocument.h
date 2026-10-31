@@ -935,6 +935,12 @@ public:
      */
     Result appendPoint(OperationId id, const InputSample &point);
     Result appendLine(OperationId id, const InputSample &first, const InputSample &last);
+    /** Adopts an ordered batch of Point and MoveTo/LineTo primitives in one
+     * preview. Each command consumes one sample; line times are nondecreasing
+     * within each pair. Invalid or oversized batches leave all input unchanged.
+     */
+    Result appendPainterPrimitives(OperationId id, const QList<InputSample> &samples,
+                                   const QList<PathCommand> &commands);
     /** Completes basic interpolation at the current input count. Repeated calls
      * preserve the version; other modes return InvalidInput and fewer than two
      * samples return EmptyOperation. Original sensor input remains unchanged.
@@ -1237,7 +1243,6 @@ private:
                              const Shape &shape, const FigureStyle &style, quint64 randomSeed,
                              const std::optional<QRect> &compositionBounds, const RegionFillSP &region = {});
     Result appendSamplesWithin(OperationId id, const QList<InputSample> &samples, const Shape *painterShape);
-    Result appendPainterSamples(OperationId id, const QList<InputSample> &samples, const QList<PathCommand> &commands);
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);

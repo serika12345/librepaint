@@ -170,6 +170,11 @@ struct KisToolFreehandHelper::Private
     QTimer stabilizerPollTimer;
     KisStabilizedEventsSampler stabilizedSampler;
     KisStabilizerDelayedPaintHelper stabilizerDelayedPaintHelper;
+    struct GpuLineBatch {
+        QList<LibrePaint::Image::Gpu::InputSample> samples;
+        QList<LibrePaint::Image::Gpu::PathCommand> commands;
+    };
+    std::optional<GpuLineBatch> gpuLineBatch;
 
     qreal effectiveSmoothnessDistance(qreal speed) const;
 
@@ -388,6 +393,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
                                           KisNodeSP overrideNode,
                                           KisDefaultBoundsBaseSP bounds)
 {
+    m_d->stabilizerDelayedPaintHelper.setPaintLinesCallback({});
     if (m_d->gpuImage && !image->gpuImage()) {
         m_d->strokeTimeoutTimer.stop();
         m_d->gpuBasicInput = false;
@@ -455,6 +461,8 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         m_d->gpuCancellation = connect(image.data(), &KisImage::sigStrokeCancellationRequested,
                                       this, &KisToolFreehandHelper::cancelPaint);
         if (m_d->gpuStabilizer) {
+            m_d->stabilizerDelayedPaintHelper.setPaintLinesCallback(
+                [this](const KisStabilizerDelayedPaintHelper::PaintLines &lines) { paintGpuStabilizerLines(lines); });
             m_d->previousPaintInformation = pi;
             m_d->hasPaintAtLeastOnce = false;
             const QPointer<KisToolFreehandHelper> guard(this);
@@ -1059,6 +1067,7 @@ void KisToolFreehandHelper::stabilizerPollAndPaint()
         KisStabilizedEventsSampler::iterator end;
         std::tie(it, end) = m_d->stabilizedSampler.range();
         QVector<KisPaintInformation> delayedPaintTodoItems;
+        KisStabilizerDelayedPaintHelper::PaintLines gpuLines;
 
         for (; it != end; ++it) {
             if (m_d->gpuStabilizer &&
@@ -1094,6 +1103,8 @@ void KisToolFreehandHelper::stabilizerPollAndPaint()
 
                 if (m_d->stabilizerDelayedPaintHelper.running()) {
                     delayedPaintTodoItems.append(newInfo);
+                } else if (gpu) {
+                    gpuLines.append({m_d->previousPaintInformation, newInfo});
                 } else {
                     paintLine(m_d->previousPaintInformation, newInfo);
                     if (!guard || (gpu && !isRunning())) return;
@@ -1116,6 +1127,11 @@ void KisToolFreehandHelper::stabilizerPollAndPaint()
 
         m_d->stabilizedSampler.clear();
 
+        if (!gpuLines.isEmpty()) {
+            paintGpuStabilizerLines(gpuLines);
+            if (!guard || !isRunning()) return;
+        }
+
         if (m_d->stabilizerDelayedPaintHelper.running()) {
             m_d->stabilizerDelayedPaintHelper.update(delayedPaintTodoItems);
         } else {
@@ -1126,6 +1142,43 @@ void KisToolFreehandHelper::stabilizerPollAndPaint()
         if (!guard) return;
         cancelPaint();
         if (guard) Q_EMIT requestErrorMessage(i18n("The stabilizer could not retain its input and the stroke was cancelled."));
+    }
+}
+
+void KisToolFreehandHelper::paintGpuStabilizerLines(
+    const QVector<QPair<KisPaintInformation, KisPaintInformation>> &lines)
+{
+    if (!m_d->gpuStabilizer || !isRunning() || lines.isEmpty()) return;
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = m_d->gpuImage;
+    const QPointer<KisToolFreehandHelper> guard(this);
+    auto result = Gpu::Result::CapacityExceeded;
+    try {
+        if (lines.size() <= owner->limits().samplesPerStroke / 2) {
+            m_d->gpuLineBatch.emplace();
+            m_d->gpuLineBatch->samples.reserve(lines.size() * 2);
+            m_d->gpuLineBatch->commands.reserve(lines.size() * 2);
+            for (const auto &line : lines) {
+                // Preserve virtual tool transforms before adopting the input.
+                paintLine(line.first, line.second);
+                if (!guard) return;
+                if (!isRunning()) { m_d->gpuLineBatch.reset(); return; }
+            }
+            auto batch = std::move(*m_d->gpuLineBatch);
+            m_d->gpuLineBatch.reset();
+            result = owner->appendPainterPrimitives(m_d->gpuOperation, batch.samples, batch.commands);
+        }
+    } catch (const std::bad_alloc &) {
+        if (!guard) return;
+        m_d->gpuLineBatch.reset();
+        result = Gpu::Result::CapacityExceeded;
+    }
+    if (!guard) return;
+    if (result != Gpu::Result::Success) {
+        cancelPaint();
+        if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+    } else {
+        m_d->hasPaintAtLeastOnce = true;
     }
 }
 
@@ -1272,6 +1325,19 @@ void KisToolFreehandHelper::paintLine(int strokeInfoId,
         if (!isRunning()) return;
         const auto owner = m_d->gpuImage;
         const QPointer<KisToolFreehandHelper> guard(this);
+        if (m_d->gpuLineBatch) {
+            auto &batch = *m_d->gpuLineBatch;
+            if (batch.samples.size() > owner->limits().samplesPerStroke - 2) {
+                cancelPaint();
+                if (guard) Q_EMIT requestErrorMessage(gpuInputError(LibrePaint::Image::Gpu::Result::CapacityExceeded));
+                return;
+            }
+            batch.samples.append(gpuInputSample(pi1));
+            batch.samples.append(gpuInputSample(pi2));
+            batch.commands.append(LibrePaint::Image::Gpu::PathCommand::MoveTo);
+            batch.commands.append(LibrePaint::Image::Gpu::PathCommand::LineTo);
+            return;
+        }
         const auto result = m_d->gpuStabilizer ?
             owner->appendLine(m_d->gpuOperation, gpuInputSample(pi1), gpuInputSample(pi2)) :
             owner->appendSamples(m_d->gpuOperation, m_d->hasPaintAtLeastOnce ?

@@ -837,6 +837,29 @@ void KisGpuPaintImageTest::erasedMasksRemainTransparentAndAcceptFurtherPainting(
     QCOMPARE(quint8(primitiveCoverage.bytes[40 * 64 + 40]), quint8(0));
     QCOMPARE(image.undo(), Result::Success); QVERIFY(image.layerTransparencyMask(layerId)->isEmpty());
     QCOMPARE(image.redo(), Result::Success); QCOMPARE(image.operations().snapshot(), painted);
+    QCOMPARE(image.undo(), Result::Success);
+    const auto batch = image.beginTransparencyMaskStroke(layerId, paint, 13);
+    QVERIFY(!batch.isNull());
+    const auto beforeBatch = image.operations().preview();
+    QSignalSpy batchChanges(&image, &PaintImage::changed);
+    QCOMPARE(image.appendPainterPrimitives(batch, {tap, first, last},
+        {PathCommand::Point, PathCommand::MoveTo, PathCommand::LineTo}), Result::Success);
+    QCOMPARE(batchChanges.size(), 1);
+    QCOMPARE(image.operations().snapshot(), erased);
+    QVERIFY(image.operations().preview() != beforeBatch);
+    const auto batchPreview = image.operations().preview();
+    const auto batchCoverage = execution.readSelectionPixels(batchPreview->layers.first().transparencyMask, {0, 0, 64, 64}, 64 * 64);
+    QCOMPARE(batchCoverage.code, ExecutionCode::Success);
+    QCOMPARE(batchCoverage.bytes, primitiveCoverage.bytes);
+    QCOMPARE(image.appendPainterPrimitives(batch, {last, first},
+        {PathCommand::MoveTo, PathCommand::LineTo}), Result::InvalidInput);
+    QCOMPARE(image.operations().preview(), batchPreview);
+    QCOMPARE(execution.requested(image.handle()), batchPreview);
+    QCOMPARE(image.commitStroke(batch), Result::Success);
+    const auto batched = image.operations().snapshot();
+    QCOMPARE(batched->layers.first().operations, erased->layers.first().operations);
+    QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.operations().snapshot(), erased);
+    QCOMPARE(image.redo(), Result::Success); QCOMPARE(image.operations().snapshot(), batched);
 }
 
 void KisGpuPaintImageTest::paintedMasksKeepSparseGpuCoverageAfterClosure()

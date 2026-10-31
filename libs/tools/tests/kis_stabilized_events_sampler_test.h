@@ -16,6 +16,7 @@ private Q_SLOTS:
     void test();
     void delayedPaintPreservesInputOrder();
     void delayedPaintAllowsCancellationAndDestruction();
+    void delayedPaintBatchesDueLinesAndRetainsTheNextStart();
 };
 
 #endif /* __KIS_STABILIZED_EVENTS_SAMPLER_TEST_H */
