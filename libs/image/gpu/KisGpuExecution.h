@@ -291,6 +291,10 @@ private:
                                      SelectionMaskSP *selection = nullptr);
     ExecutionOutcome regionSelectionOutline(const RegionFillSP &region,
         const std::shared_ptr<Detail::BufferStorage> &pixels, const QRect &bounds, SelectionMaskSP *selection);
+    ExecutionOutcome readSelectionOutline(const std::shared_ptr<Detail::BufferStorage> &pixels,
+        QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *runs);
+    ExecutionOutcome combineSelectionCoverage(const SelectionMaskSP &first, const SelectionMaskSP &second,
+        SelectionCombination action, QRect clip, bool inverted, SelectionMaskSP *result);
     ExecutionOutcome endFrame(bool publish, bool waitForReadback = true);
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();

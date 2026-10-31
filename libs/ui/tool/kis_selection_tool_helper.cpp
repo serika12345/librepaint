@@ -21,6 +21,8 @@
 #include "kis_layer.h"
 #include "kis_pixel_selection.h"
 #include <gpu/KisGpuSelectionInput.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <KoColorSpace.h>
 #include "kis_shape_selection.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas2.h"
@@ -99,6 +101,35 @@ bool KisSelectionToolHelper::selectGpuSelectionPath(const QPainterPath &path, bo
     if (!m_image || !m_image->gpuImage()) return false;
     const auto mask = LibrePaint::Image::Gpu::selectionMaskFromPath(path, m_image, antiAlias, grow, feather);
     return mask && selectGpuSelection(mask, action);
+}
+
+bool KisSelectionToolHelper::selectGpuColourRegion(KisNodeSP reference,
+    const LibrePaint::Image::Gpu::RegionFillSettings &settings, SelectionAction action)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = m_image ? m_image->gpuImage() : Gpu::PaintImageSP{};
+    if (!owner || !reference || m_image->isGpuTransparencyMaskView(reference)) return false;
+    Gpu::SelectionCombination combination;
+    switch (action) {
+    case SELECTION_DEFAULT:
+    case SELECTION_REPLACE: combination = Gpu::SelectionCombination::Replace; break;
+    case SELECTION_ADD: combination = Gpu::SelectionCombination::Add; break;
+    case SELECTION_SUBTRACT: combination = Gpu::SelectionCombination::Subtract; break;
+    case SELECTION_INTERSECT: combination = Gpu::SelectionCombination::Intersect; break;
+    case SELECTION_SYMMETRICDIFFERENCE: combination = Gpu::SelectionCombination::SymmetricDifference; break;
+    default: return false;
+    }
+    Gpu::LayerId layer = 0;
+    for (const auto &value : owner->operations().snapshot()->layers)
+        if (value.uuid == reference->uuid()) layer = value.id;
+    if (!layer) return false;
+    auto input = settings;
+    if (input.threshold != 1) {
+        const auto definition = m_image->colorSpace()->nativeLabConversion();
+        if (definition.code != LibrePaint::Pigment::Color::NativeLabConversionResult::Success) return false;
+        input.labConversion = definition.value;
+    }
+    return owner->selectRegion(layer, input, combination) == Gpu::Result::Success;
 }
 
 struct LazyInitGlobalSelection : public KisTransactionBasedCommand {

@@ -39,6 +39,9 @@
 #include "kis_lod_transform.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"
+#include "gpu/KisGpuSelectionMask.h"
+#include <QRegion>
+#include <stdexcept>
 #include "kis_painter.h"
 #include "kis_selection.h"
 #include "kis_selection_component.h"
@@ -121,6 +124,21 @@ const KoColorSpace *KisPixelSelection::compositionSourceColorSpace() const
         colorSpace(GrayAColorModelID.id(),
                    Integer8BitsColorDepthID.id(),
                    QString());
+}
+
+void KisPixelSelection::bindGpuCoverage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
+                                       LibrePaint::Image::Gpu::SelectionMaskSP mask)
+{
+    if (!mask) throw std::invalid_argument("Selection views require retained coverage");
+    QRegion region;
+    const QVector<QRect> runs(mask->outlineRuns().cbegin(), mask->outlineRuns().cend());
+    if (!runs.isEmpty()) region.setRects(runs.constData(), runs.size());
+    QPainterPath outline;
+    outline.addRegion(region);
+    bindGpuSelection(std::move(image), std::move(mask));
+    setOutlineCache(outline.simplified());
+    m_d->invalidateThumbnailImage();
+    m_d->lod0CachesOffset = QPoint();
 }
 
 bool KisPixelSelection::read(QIODevice *stream)
@@ -539,15 +557,12 @@ QImage deviceToQImage(KisPaintDeviceSP device,
     QColor color = maskColor;
     const qreal alphaScale = maskColor.alphaF();
 
-    KisSequentialConstIterator it(device, rc);
-    while(it.nextPixel()) {
-        quint8 value = (MAX_SELECTED - *(it.rawDataConst())) * alphaScale;
+    QByteArray values(qsizetype(rc.width()) * rc.height(), Qt::Uninitialized);
+    device->readBytes(reinterpret_cast<quint8 *>(values.data()), rc);
+    for (int y = 0; y < rc.height(); ++y) for (int x = 0; x < rc.width(); ++x) {
+        const quint8 value = (MAX_SELECTED - quint8(values[y * rc.width() + x])) * alphaScale;
         color.setAlpha(value);
-
-        QPoint pt(it.x(), it.y());
-        pt -= rc.topLeft();
-
-        image.setPixel(pt.x(), pt.y(), color.rgba());
+        image.setPixel(x, y, color.rgba());
     }
 
     return image;

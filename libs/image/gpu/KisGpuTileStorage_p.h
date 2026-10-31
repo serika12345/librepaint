@@ -147,6 +147,8 @@ struct TileRenderer::Private
     QHash<const SelectionMask *, MaskCacheEntry> maskTiles;
     Detail::NativeBindingLayout coveragePackLayout;
     Detail::NativeComputePipeline coveragePackPipeline;
+    Detail::NativeBindingLayout selectionCombineLayout;
+    Detail::NativeComputePipeline selectionCombinePipeline;
     Detail::NativeBindingLayout coverageGeometryLayout;
     Detail::NativeComputePipeline coverageCountPipeline, coverageOutlinePipeline;
     Detail::NativeBindingLayout layout;
@@ -241,6 +243,8 @@ struct TileRenderer::Private
                                                     const SelectionMaskSP &mask, quint64 coordinate);
     std::shared_ptr<Detail::CoverageTile> generatedCoverageTile(WGPUCommandEncoder commands,
                                                              const SelectionMaskSP &mask, quint64 coordinate);
+    std::shared_ptr<Detail::BufferStorage> linearSelectionCoverage(WGPUCommandEncoder commands,
+                                                                 const SelectionMaskSP &mask);
     void clearMaskTiles();
     struct RegionResult {
         RenderOutcome::Code code;

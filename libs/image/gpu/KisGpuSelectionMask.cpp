@@ -422,6 +422,21 @@ QSharedPointer<const SelectionMask> SelectionMask::fromRegion(const QSharedPoint
     return result;
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::fromCombination(const QSharedPointer<const SelectionCombinationSource> &source,
+    const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
+{
+    if (!source || !source->first || !source->second || !pixels ||
+        source->action < SelectionCombination::Replace || source->action > SelectionCombination::SymmetricDifference ||
+        !validOutline(source->extent, {}) || !validOutline(bounds, outlineRuns) ||
+        (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
+    if (bounds.isEmpty()) return empty();
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
+    result->m_combination = source;
+    result->m_outlineRuns = outlineRuns;
+    result->m_nativePixels = pixels;
+    return result;
+}
+
 QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, const QRect &clip) const
 {
     if (isGpuGenerated()) return {};
@@ -766,7 +781,7 @@ QSharedPointer<const SelectionMask> SelectionMask::transformed(const AffinePlan 
 bool SelectionMask::operator==(const SelectionMask &other) const
 {
     return m_format == other.m_format && m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
-        m_region == other.m_region &&
+        m_region == other.m_region && m_combination == other.m_combination &&
         m_outlineRuns == other.m_outlineRuns;
 }
 }

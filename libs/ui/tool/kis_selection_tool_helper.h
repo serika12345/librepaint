@@ -22,6 +22,7 @@ class KoShape;
 class KisCanvas2;
 class KisProcessingApplicator;
 class QMenu;
+namespace LibrePaint::Image::Gpu { struct RegionFillSettings; }
 
 /**
  * XXX: Doc!
@@ -69,6 +70,10 @@ public:
      * input mask contains no document pixels. Failure preserves the document.
      */
     bool selectGpuSelectionPath(const QPainterPath &path, bool antiAlias, int grow, int feather,
+                                SelectionAction action);
+    /** Captures the document colour definition and applies a colour selection
+     * to the GPU owner as one ordinary selection/history operation. */
+    bool selectGpuColourRegion(KisNodeSP reference, const LibrePaint::Image::Gpu::RegionFillSettings &settings,
                                 SelectionAction action);
 
 

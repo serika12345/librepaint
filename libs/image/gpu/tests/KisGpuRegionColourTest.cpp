@@ -36,6 +36,7 @@ private Q_SLOTS:
     void colourSelectionUsesUnclippedMaskedProjection();
     void maskVersionsKeepColdRenderCoverage();
     void colourSelectionRetainsPixelsAfterClosureAndDeviceReplacement();
+    void generatedSelectionActionsRetainAlphaAndHistory();
 };
 void KisGpuRegionColourTest::similarColourCoverageKeepsNativeDifference_data()
 {
@@ -253,6 +254,82 @@ void KisGpuRegionColourTest::colourSelectionUsesUnclippedMaskedProjection()
                 }
             }
         }
+    }
+}
+
+void KisGpuRegionColourTest::generatedSelectionActionsRetainAlphaAndHistory()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    const QRect canvas(0, 0, 64, 32), first(5, 4, 18, 9), softArea(-3, 1, 32, 22);
+    const auto clip = canvas.united(softArea);
+    QByteArray alpha(softArea.width() * softArea.height(), '\0');
+    const quint8 levels[]{0, 31, 64, 127, 128, 201, 255};
+    for (int y = 0; y < softArea.height(); ++y) for (int x = 0; x < softArea.width(); ++x)
+        alpha[y * softArea.width() + x] = char(levels[(x + 2 * y) % 7]);
+    const auto soft = SelectionMask::fromAlphaCoverage(softArea, alpha, clip);
+    const auto hard = SelectionMask::fromRectangle(first, canvas);
+    QVERIFY(soft && hard);
+    for (const auto format : {PixelFormat::Rgba8, PixelFormat::Rgba16}) {
+        RasterImage raster;
+        raster.size = canvas.size(); raster.format = format;
+        raster.layers = {{QStringLiteral("Frozen colour source"), true, {}, {}},
+                         {QStringLiteral("Selected painting"), true, {}, {}}};
+        PaintImage image(execution, raster);
+        const auto maximum = maximumComponent(format);
+        QCOMPARE(image.setSelectionRect(first), Result::Success);
+        QCOMPARE(image.fillLayerColor(1, {maximum, 0, 0, maximum}), Result::Success);
+        RegionFillSettings input;
+        input.seed = {8, 8}; input.threshold = 1;
+        QCOMPARE(image.selectRegion(1, input, SelectionCombination::Replace), Result::Success);
+        const auto generated = image.selectionMask();
+        QVERIFY(generated && generated->isGpuGenerated());
+        for (const bool incomingGpu : {false, true}) for (const bool inverted : {false, true})
+            for (const auto action : {SelectionCombination::Replace, SelectionCombination::Add, SelectionCombination::Subtract,
+                                     SelectionCombination::Intersect, SelectionCombination::SymmetricDifference}) {
+                const auto previous = incomingGpu ? soft : generated;
+                const auto incoming = incomingGpu ? generated : soft;
+                const auto previousLiteral = incomingGpu ? soft : hard;
+                const auto incomingLiteral = incomingGpu ? hard : soft;
+                QCOMPARE(image.setSelectionMask(previous, inverted), Result::Success);
+                const auto before = image.operations().snapshot();
+                const auto combinationClip = inverted ? canvas : clip;
+                const auto expected = previousLiteral->combined(*incomingLiteral, action, combinationClip, inverted);
+                QVERIFY(expected);
+                const auto combined = image.combineSelectionMask(incoming, action);
+                QVERIFY2(combined == Result::Success, qPrintable(image.lastRequestOutcome().diagnostic));
+                QCOMPARE(image.selectionRect(), expected->bounds());
+                const auto selected = image.operations().snapshot();
+                const auto actual = image.selectionMask() ? image.selectionMask() : SelectionMask::empty();
+                const auto read = execution.readSelectionPixels(actual, clip, clip.width() * clip.height());
+                QVERIFY2(read.code == ExecutionCode::Success, qPrintable(read.diagnostic));
+                QByteArray expectedAlpha(read.bytes.size(), '\0');
+                for (int y = clip.top(); y <= clip.bottom(); ++y) for (int x = clip.left(); x <= clip.right(); ++x)
+                    expectedAlpha[(y - clip.y()) * clip.width() + x - clip.x()] = char(expected->coverage(x, y));
+                QCOMPARE(read.bytes, expectedAlpha);
+                QCOMPARE(image.fillLayerColor(2, {0, maximum, 0, maximum}), Result::Success);
+                const auto pixels = image.readRgbaPixels(2, canvas, canvas.width() * canvas.height() * pixelByteCount(format));
+                QCOMPARE(pixels.code, ExecutionCode::Success);
+                QByteArray expectedPixels(pixels.bytes.size(), '\0');
+                for (int y = 0; y < canvas.height(); ++y) for (int x = 0; x < canvas.width(); ++x) {
+                    const auto weight = expected->isEmpty() ? 255 : expected->coverage(x, y);
+                    const auto value = rgbaBytes(weight ? RgbaPixel{0, maximum, 0, quint16(quint32(maximum) * weight / 255)} : RgbaPixel{}, format);
+                    expectedPixels.replace((y * canvas.width() + x) * value.size(), value.size(), value);
+                }
+                QCOMPARE(pixels.bytes, expectedPixels);
+                QCOMPARE(image.undo(), Result::Success);
+                QCOMPARE(image.operations().snapshot(), selected);
+                QCOMPARE(image.undo(), Result::Success);
+                QCOMPARE(image.operations().snapshot(), before);
+                QCOMPARE(image.redo(), Result::Success);
+                QCOMPARE(image.operations().snapshot(), selected);
+                QCOMPARE(image.redo(), Result::Success);
+                QCOMPARE(image.readRgbaPixels(2, canvas, pixels.bytes.size()).bytes, pixels.bytes);
+                QCOMPARE(image.undo(), Result::Success);
+                QCOMPARE(image.undo(), Result::Success);
+            }
     }
 }
 

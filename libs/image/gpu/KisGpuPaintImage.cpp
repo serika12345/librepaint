@@ -354,8 +354,45 @@ Result PaintImage::clearSelection()
 Result PaintImage::combineSelectionMask(const SelectionMaskSP &mask, SelectionCombination action)
 {
     if (!onThread()) return Result::InvalidInput;
-    return publish(m_d->document->combineSelectionMask(mask, action));
+    const auto before = m_d->document->snapshot();
+    if (!mask || (action == SelectionCombination::Replace &&
+        (!before->selectionInverted || QRect(QPoint(), before->size).contains(mask->bounds()))) ||
+        (!mask->isGpuGenerated() && (!before->selectionMask || !before->selectionMask->isGpuGenerated())))
+        return publish(m_d->document->combineSelectionMask(mask, action));
+    const auto status = m_d->document->checkMutation();
+    if (status != Result::Success) return status;
+    if (action < SelectionCombination::Replace || action > SelectionCombination::SymmetricDifference) return Result::InvalidInput;
+    try {
+        const bool inverted = before->selectionInverted || (before->selection.isEmpty() && action == SelectionCombination::Subtract);
+        const QRect canvas(QPoint(), before->size);
+        const QRect clip = inverted ? canvas : canvas.united(before->selection).united(mask->bounds());
+        SelectionMaskSP previous = SelectionMask::empty();
+        if (!before->selection.isEmpty()) {
+            previous = before->selectionKind == SelectionKind::Freehand ? before->selectionMask :
+                before->selectionKind == SelectionKind::Ellipse ? SelectionMask::fromEllipse(before->selection, clip) :
+                                                                SelectionMask::fromRectangle(before->selection, clip);
+            if (!previous) return Result::CapacityExceeded;
+        }
+        SelectionMaskSP result;
+        const auto checked = m_d->execution.combineSelectionCoverage(previous, mask, action, clip, inverted, &result);
+        if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return resultFor(checked.code); }
+        if (m_d->document->snapshot() != before) return Result::StaleVersion;
+        return publish(m_d->document->combineSelectionMask(result, SelectionCombination::Replace));
+    } catch (const std::bad_alloc &) { return Result::CapacityExceeded; }
 }
+SelectionMaskSP PaintImage::complementSelectionMask(const SelectionMaskSP &mask, QRect clip)
+{
+    if (!onThread() || !mask) return {};
+    if (!mask->isGpuGenerated()) return mask->inverted(clip);
+    try {
+        SelectionMaskSP result;
+        const auto checked = m_d->execution.combineSelectionCoverage(mask, SelectionMask::empty(),
+            SelectionCombination::Subtract, clip, true, &result);
+        if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
+        return result;
+    } catch (const std::bad_alloc &) { return {}; }
+}
+
 QRect PaintImage::selectionRect() const
 { return onThread() ? m_d->document->selectionRect() : QRect{}; }
 bool PaintImage::selectionInverted() const
@@ -966,7 +1003,7 @@ Result PaintImage::selectRegion(LayerId reference, const RegionFillSettings &set
             return resultFor(checked.code);
         }
         if (region->preparedFor.toStrongRef() != m_d->document->snapshot()) return Result::StaleVersion;
-        return publish(m_d->document->combineSelectionMask(selection, action));
+        return combineSelectionMask(selection, action);
     } catch (const std::bad_alloc &) {
         return Result::CapacityExceeded;
     }

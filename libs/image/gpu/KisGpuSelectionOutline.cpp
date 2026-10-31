@@ -12,17 +12,13 @@
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 
-ExecutionOutcome Execution::regionSelectionOutline(const RegionFillSP &region,
-    const std::shared_ptr<BufferStorage> &pixels, const QRect &bounds, SelectionMaskSP *selection)
+ExecutionOutcome Execution::readSelectionOutline(const std::shared_ptr<BufferStorage> &pixels,
+    QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *outputRuns)
 {
     auto &d = *m_d;
     auto &r = *d.renderer->m_d;
-    if (!selection || !region || !pixels || d.active) return {ExecutionCode::InvalidRequest, {}};
-    if (bounds.isEmpty()) {
-        *selection = SelectionMask::empty();
-        return {ExecutionCode::Success, {}};
-    }
-    const auto size = region->coverageSize;
+    if (!bounds || !outputRuns || !pixels || d.active || extent.isEmpty()) return {ExecutionCode::InvalidRequest, {}};
+    const auto size = extent.size();
     const quint64 countBytes = quint64(size.height()) * sizeof(quint32);
     if (size.isEmpty() || countBytes + 20 > quint64(d.maximumReadbackBytes))
         return {ExecutionCode::CapacityExceeded, QStringLiteral("Selection outline counts exceed the metadata capacity")};
@@ -62,7 +58,7 @@ ExecutionOutcome Execution::regionSelectionOutline(const RegionFillSP &region,
     }
     if (!r.coverageCountPipeline || !r.coverageOutlinePipeline)
         return {ExecutionCode::DeviceFailure, r.error};
-    const qint32 parameters[4]{size.width(), size.height(), region->coverageOrigin.x(), region->coverageOrigin.y()};
+    const qint32 parameters[4]{size.width(), size.height(), extent.x(), extent.y()};
     const quint32 initial[5]{0, quint32(size.width()), quint32(size.height()), 0, 0};
     wgpuQueueWriteBuffer(d.device->queue(), uniform->pixels.get(), 0, parameters, sizeof(parameters));
     wgpuQueueWriteBuffer(d.device->queue(), status->pixels.get(), 0, initial, sizeof(initial));
@@ -101,8 +97,8 @@ ExecutionOutcome Execution::regionSelectionOutline(const RegionFillSP &region,
         return {ExecutionCode::DeviceFailure, QStringLiteral("Selection outline metadata is incomplete")};
     quint32 actual[5]; std::memcpy(actual, reads->results[1]->data.constData(), sizeof(actual));
     const QRect actualBounds = actual[1] <= actual[3] && actual[2] <= actual[4]
-        ? QRect(QPoint(actual[1], actual[2]), QPoint(actual[3], actual[4])).translated(region->coverageOrigin) : QRect();
-    if (actual[0] || actualBounds != bounds)
+        ? QRect(QPoint(actual[1], actual[2]), QPoint(actual[3], actual[4])).translated(extent.topLeft()) : QRect();
+    if (actual[0] || (expectedBounds && actualBounds != *expectedBounds))
         return {ExecutionCode::DeviceFailure, QStringLiteral("Selection geometry and coverage bounds disagree")};
     QList<quint32> offsets(size.height());
     quint64 total = 0;
@@ -141,18 +137,25 @@ ExecutionOutcome Execution::regionSelectionOutline(const RegionFillSP &region,
             runs.append(QRect(values[0], values[1], values[2], values[3]));
         }
     }
+    *bounds = actualBounds;
+    *outputRuns = std::move(runs);
+    return {ExecutionCode::Success, {}};
+}
+
+ExecutionOutcome Execution::regionSelectionOutline(const RegionFillSP &region,
+    const std::shared_ptr<BufferStorage> &pixels, const QRect &bounds, SelectionMaskSP *selection)
+{
+    if (!selection || !region || !pixels) return {ExecutionCode::InvalidRequest, {}};
+    if (bounds.isEmpty()) { *selection = SelectionMask::empty(); return {ExecutionCode::Success, {}}; }
+    QRect actual;
+    QList<QRect> runs;
+    const auto read = readSelectionOutline(pixels, QRect(region->coverageOrigin, region->coverageSize), bounds, &actual, &runs);
+    if (read.code != ExecutionCode::Success) return read;
     const auto native = std::make_shared<SelectionPixels>();
-    native->device = d.device;
+    native->device = m_d->device;
     native->region = pixels;
     const auto result = SelectionMask::fromRegion(region, bounds, runs, native);
     if (!result) return {ExecutionCode::InvalidRequest, QStringLiteral("Selection outline geometry is invalid")};
-    auto &cached = r.maskTiles[result.data()];
-    cached.source = result;
-    cached.generated = pixels;
-    for (auto old = r.maskTiles.begin(); r.maskTiles.size() > 4 && old != r.maskTiles.end();) {
-        if (old.key() != result.data()) old = r.maskTiles.erase(old);
-        else ++old;
-    }
     *selection = result;
     return {ExecutionCode::Success, {}};
 }

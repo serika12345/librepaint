@@ -112,6 +112,9 @@ public:
     Result setSelectionEllipse(const QRect &rect, bool inverted = false);
     Result setSelectionMask(const SelectionMaskSP &mask, bool inverted = false);
     Result combineSelectionMask(const SelectionMaskSP &mask, SelectionCombination action);
+    /** Exact finite complement for native selection views; null reports failure.
+     * Retains GPU coverage and leaves the document and history unchanged. */
+    SelectionMaskSP complementSelectionMask(const SelectionMaskSP &mask, QRect clip);
     Result clearSelection();
     bool selectionInverted() const;
     LibrePaint::Image::Gpu::SelectionKind selectionKind() const;

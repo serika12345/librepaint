@@ -403,6 +403,7 @@ Result OperationDocument::setSelectionMask(const SelectionMaskSP &mask, bool inv
     if (snapshot()->selectionKind == SelectionKind::Freehand && snapshot()->selectionMask == mask &&
         snapshot()->selectionInverted == inverted) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->selection = mask->bounds();
     version->selectionInverted = inverted;
@@ -440,9 +441,11 @@ Result OperationDocument::combineSelectionMask(const SelectionMaskSP &mask, Sele
         if (!previous && before->selection.intersects(clip)) return Result::CapacityExceeded;
         if (!previous) previous = SelectionMask::empty();
     }
-    const auto result = action == SelectionCombination::Replace ? mask : previous->combined(*mask, action, clip, inverted);
+    const auto result = action == SelectionCombination::Replace && clip.contains(mask->bounds())
+        ? mask : previous->combined(*mask, action, clip, inverted);
     if (!result) return Result::CapacityExceeded;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    if (!selectionFitsRetainedInputs(result)) return Result::CapacityExceeded;
     const auto coverage = !inverted && *result == *previous ? previous : result;
     // Native selection tools retain their accepted transaction even when the
     // resulting coverage is unchanged or an intersection leaves no selection.
@@ -1383,6 +1386,7 @@ Result OperationDocument::addTransparencyMaskFromSelection(LayerId layer)
     const auto mask = selectionCoverage(*snapshot());
     if (!mask || mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].transparencyMask = mask;
     version->layers[index].transparencyMaskVisible = true;
@@ -1473,6 +1477,7 @@ Result OperationDocument::replaceTransparencyMask(LayerId layer, const Selection
         mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (snapshot()->layers[index].transparencyMask == mask) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].transparencyMask = mask;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;

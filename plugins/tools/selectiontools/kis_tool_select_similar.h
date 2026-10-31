@@ -37,6 +37,7 @@ public Q_SLOTS:
     void slotSetOpacitySpread(int);
 
 protected:
+    bool supportsGpuSelection() const override { return true; }
     using KisToolSelect::m_widgetHelper;
     bool isPixelOnly() const override { return true; }
     bool usesColorLabels() const override { return true; }

@@ -1173,6 +1173,7 @@ private:
     /** Preparation retains bounded immutable reference inputs without changing
      * history. GPU admission checks precede adopting the prepared fill. */
     Result prepareRegionFill(LayerId layer, const RegionFillSettings &settings, RegionFillSP *region) const;
+    bool selectionFitsRetainedInputs(const SelectionMaskSP &mask) const;
     Result fillRegion(LayerId layer, const RegionFillSP &region, const RgbaPixel &color,
                       const std::optional<PatternFill> &pattern, qreal opacity, bool erase,
                       bool alphaLocked, LayerBlendMode blendMode);

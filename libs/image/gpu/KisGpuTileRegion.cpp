@@ -127,7 +127,7 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
                 const auto tile = coverageTile(commands, document.selectionMask, key(x, y));
                 if (!tile) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Region selection tile is unavailable")};
                 generatedMask.append({QPoint(x, y), tile});
-                device->retainForFrame(tile);
+                device->retainForFrame(tile->storage);
                 maskBytes += SelectionMask::AlphaTileBytes;
             }
         }

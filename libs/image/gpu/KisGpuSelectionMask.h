@@ -32,6 +32,16 @@ using SelectionTileMap = QMap<SelectionTileKey, QByteArray>;
 /** Native pixel-selection arithmetic, including fractional coverage. */
 enum class SelectionCombination : quint8 { Replace, Add, Subtract, Intersect, SymmetricDifference };
 
+class SelectionMask;
+/** Frozen inputs for the ordinary selection tools' Alpha8 arithmetic. */
+struct SelectionCombinationSource
+{
+    QSharedPointer<const SelectionMask> first, second;
+    SelectionCombination action = SelectionCombination::Replace;
+    QRect extent;
+    bool inverted = false;
+};
+
 /**
  * Frozen document coverage for an arbitrary selection.
  *
@@ -89,8 +99,9 @@ public:
      * geometry are CPU values; editing and external pixel readers use the
      * retained GPU source. Invalid geometry or capacity returns null.
      */
-    bool isGpuGenerated() const { return !m_region.isNull(); }
+    bool isGpuGenerated() const { return !m_region.isNull() || !m_combination.isNull(); }
     const QSharedPointer<const RegionFill> &regionSource() const { return m_region; }
+    const QSharedPointer<const SelectionCombinationSource> &combinationSource() const { return m_combination; }
     /** Threshold-128 row spans for display and selection-tool hit testing.
      * These vectors do not supply editing coverage or saved pixels.
      */
@@ -162,6 +173,8 @@ private:
     friend class TileRenderer;
     static QSharedPointer<const SelectionMask> fromRegion(const QSharedPointer<const RegionFill> &source,
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
+    static QSharedPointer<const SelectionMask> fromCombination(const QSharedPointer<const SelectionCombinationSource> &source,
+        const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
     const std::shared_ptr<Detail::SelectionPixels> &nativePixels() const { return m_nativePixels; }
     enum class CoverageFormat : quint8 { Binary, Alpha };
     SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format);
@@ -170,6 +183,7 @@ private:
     SelectionTileMap m_tiles;
     CoverageFormat m_format = CoverageFormat::Binary;
     QSharedPointer<const RegionFill> m_region;
+    QSharedPointer<const SelectionCombinationSource> m_combination;
     QList<QRect> m_outlineRuns;
     std::shared_ptr<Detail::SelectionPixels> m_nativePixels;
 };

@@ -50,10 +50,12 @@ void retainLabeledReference(DocumentVersion &source, LayerId active, const Regio
 // Count shared retained inputs once, including predecessor recipes. The bound
 // covers old pixels kept alive by a fill after an untracked write or history
 // trimming, as well as the copied operation-pointer arrays themselves.
-bool boundedReference(const Snapshot &source, const RegionFillSettings &settings, qsizetype maximum)
+bool boundedReference(const Snapshot &source, const RegionFillSettings &settings, qsizetype maximum,
+                      const SelectionMaskSP &extraMask = {})
 {
     QSet<const void *> seen;
     QList<Snapshot> pending{source};
+    QList<SelectionMaskSP> pendingMasks;
     qsizetype bytes = 0;
     const auto add = [&](const void *identity, qsizetype size) {
         if (!identity || seen.contains(identity)) return true;
@@ -78,10 +80,19 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
             if (!add(region.data(), sizeof(RegionFill)) || !inputs(region->settings)) return false;
             pending.append(region->source);
         }
+        if (const auto &combination = value->combinationSource()) {
+            if (!add(combination.data(), sizeof(SelectionCombinationSource))) return false;
+            pendingMasks.append(combination->first);
+            pendingMasks.append(combination->second);
+        }
         return true;
     };
-    if (!inputs(settings)) return false;
-    while (!pending.isEmpty()) {
+    if (!inputs(settings) || !mask(extraMask)) return false;
+    while (!pending.isEmpty() || !pendingMasks.isEmpty()) {
+        if (!pendingMasks.isEmpty()) {
+            if (!mask(pendingMasks.takeLast())) return false;
+            continue;
+        }
         const auto version = pending.takeLast();
         if (!version || seen.contains(version.data())) continue;
         if (!add(version.data(), sizeof(DocumentVersion)) ||
@@ -139,6 +150,11 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
 }
 }
 
+bool OperationDocument::selectionFitsRetainedInputs(const SelectionMaskSP &mask) const
+{
+    return !mask || !mask->isGpuGenerated() || boundedReference({}, {}, m_limits.rasterBytes, mask);
+}
+
 Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSettings &settings, RegionFillSP *output) const
 {
     const auto status = checkMutation();
@@ -192,6 +208,13 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
         source->projectionBackground = {};
     } else if (settings.reference == RegionFillReference::ColorLabeledLayers) {
         retainLabeledReference(*source, layer, settings);
+    }
+    if (settings.purpose == RegionCoveragePurpose::Selection &&
+        (settings.mode == RegionFillMode::Similar || !settings.selectionAsBoundary)) {
+        source->selection = {};
+        source->selectionKind = SelectionKind::Rectangle;
+        source->selectionInverted = false;
+        source->selectionMask.clear();
     }
     if (settings.labConversion && (!settings.labConversion->isValid() ||
         settings.labConversion->input.iccProfile != source->colorProfile ||

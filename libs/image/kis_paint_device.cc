@@ -191,6 +191,9 @@ public:
     KisPaintDevice *q;
     LibrePaint::Image::Gpu::PaintImageSP gpuImage;
     LibrePaint::Image::Gpu::LayerPixelReferenceSP gpuPixels;
+    LibrePaint::Image::Gpu::PaintImageSP gpuSelectionOwner;
+    LibrePaint::Image::Gpu::SelectionMaskSP gpuSelection;
+
     quint64 gpuLayerId() const { return gpuPixels ? gpuPixels->layer() : 0; }
     KisRegion gpuAllocatedRegion() const
     {
@@ -207,6 +210,25 @@ public:
     }
     LibrePaint::Image::Gpu::Snapshot gpuPixelVersion() const
     { return gpuPixels ? gpuPixels->version() : gpuImage->operations().snapshot(); }
+    KisPaintDeviceSP selectionThumbnailSource() const
+    {
+        const auto bounds = gpuSelection->bounds();
+        constexpr int tile = LibrePaint::Image::Gpu::SelectionMask::TileSize;
+        const qint64 columns = (qint64(bounds.width()) + tile - 1) / tile;
+        const qint64 rows = (qint64(bounds.height()) + tile - 1) / tile;
+        if (columns * rows > LibrePaint::Image::Gpu::SelectionMask::MaximumBytes / (tile * tile))
+            throw std::length_error("Selection thumbnail source exceeds its external pixel capacity");
+        KisPaintDeviceSP result = new KisPaintDevice(KoColorSpaceRegistry::instance()->alpha8());
+        result->setDefaultBounds(defaultBounds);
+        for (int y = bounds.y(); !bounds.isEmpty() && y <= bounds.bottom(); y += tile)
+            for (int x = bounds.x(); x <= bounds.right(); x += tile) {
+                const QRect area(x, y, qMin(tile, bounds.right() - x + 1), qMin(tile, bounds.bottom() - y + 1));
+                QByteArray bytes(area.width() * area.height(), Qt::Uninitialized);
+                q->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
+                result->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), area);
+            }
+        return result;
+    }
     const KoColorSpace *gpuColorSpace = nullptr;
     mutable int gpuBoundsSequence = -1;
     mutable QRect gpuBounds;
@@ -242,6 +264,7 @@ public:
 
     inline const KoColorSpace* colorSpace() const
     {
+        if (gpuSelection) return KoColorSpaceRegistry::instance()->alpha8();
         if (gpuImage) {
             const auto version = gpuPixels ? gpuPixels->version() : gpuImage->operations().snapshot();
             if (version->colorProfile.isEmpty()) return version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ?
@@ -316,6 +339,13 @@ public:
 
     void cloneAllDataObjects(Private *rhs, bool copyFrames)
     {
+        if (rhs->gpuSelection) {
+            init(KoColorSpaceRegistry::instance()->alpha8(), nullptr);
+            gpuSelectionOwner = rhs->gpuSelectionOwner;
+            gpuSelection = rhs->gpuSelection;
+            gpuSequence = rhs->gpuSequence;
+            return;
+        }
         if (rhs->gpuImage) {
             auto image = rhs->gpuPixels ? rhs->gpuImage->cloneLayerPixels(rhs->gpuPixels) : rhs->gpuImage->clone();
             if (!image) throw std::invalid_argument("GPU pixel copies require a retained version on the owning thread");
@@ -661,7 +691,7 @@ private:
 
     inline Data* currentNonLodData() const
     {
-        if (gpuImage) throw std::logic_error("This GPU pixel view supports native byte access");
+        if (gpuImage || gpuSelection) throw std::logic_error("This GPU pixel view supports native byte access");
         Data *data = m_data.data();
 
         if (contentChannel) {
@@ -798,7 +828,7 @@ KisPaintDevice::Private::~Private()
 
 KisPaintDevice::Private::KisPaintDeviceStrategy* KisPaintDevice::Private::currentStrategy()
 {
-    if (gpuImage) throw std::logic_error("This GPU pixel view supports native byte access");
+    if (gpuImage || gpuSelection) throw std::logic_error("This GPU pixel view supports native byte access");
     if (!supportsWrapAroundMode || !defaultBounds->wrapAroundMode()) {
         return basicStrategy.data();
     }
@@ -1231,6 +1261,18 @@ void KisPaintDevice::bindGpuLayer(LibrePaint::Image::Gpu::PaintImageSP image, qu
     m_d->bindGpuLayer(std::move(image), pixels, encoding);
 }
 
+void KisPaintDevice::bindGpuSelection(LibrePaint::Image::Gpu::PaintImageSP image,
+                                     LibrePaint::Image::Gpu::SelectionMaskSP mask)
+{
+    if (!image || !mask || !mask->isGpuGenerated() || QThread::currentThread() != image->thread() ||
+        colorSpace() != KoColorSpaceRegistry::instance()->alpha8())
+        throw std::invalid_argument("Selection views require retained GPU coverage and its owning thread");
+    clear();
+    m_d->gpuSelectionOwner = std::move(image);
+    m_d->gpuSelection = std::move(mask);
+    m_d->gpuSequence = m_d->gpuSequence == std::numeric_limits<int>::max() ? 0 : m_d->gpuSequence + 1;
+}
+
 KisPaintDeviceSP KisPaintDevice::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer, const QString &name)
 { return fromGpuImage(std::move(image), layer, name, KoColorSpaceRegistry::instance()->rgb8()); }
 
@@ -1378,28 +1420,28 @@ void KisPaintDevice::makeCloneFromRough(KisPaintDeviceSP src, const QRect &minim
 
 void KisPaintDevice::setDirty()
 {
-    m_d->cache()->invalidate();
+    if (!m_d->gpuSelection) m_d->cache()->invalidate();
     if (m_d->parent.isValid())
         m_d->parent->setDirty();
 }
 
 void KisPaintDevice::setDirty(const QRect & rc)
 {
-    m_d->cache()->invalidate();
+    if (!m_d->gpuSelection) m_d->cache()->invalidate();
     if (m_d->parent.isValid())
         m_d->parent->setDirty(rc);
 }
 
 void KisPaintDevice::setDirty(const KisRegion &region)
 {
-    m_d->cache()->invalidate();
+    if (!m_d->gpuSelection) m_d->cache()->invalidate();
     if (m_d->parent.isValid())
         m_d->parent->setDirty(region);
 }
 
 void KisPaintDevice::setDirty(const QVector<QRect> &rects)
 {
-    m_d->cache()->invalidate();
+    if (!m_d->gpuSelection) m_d->cache()->invalidate();
     if (m_d->parent.isValid())
         m_d->parent->setDirty(rects);
 }
@@ -1413,6 +1455,7 @@ void KisPaintDevice::requestTimeSwitch(int time)
 
 int KisPaintDevice::sequenceNumber() const
 {
+    if (m_d->gpuSelection) return m_d->gpuSequence;
     if (m_d->gpuImage) {
         const auto version = m_d->gpuPixelVersion();
         if (m_d->gpuSequenceKnown && m_d->gpuSequenceRevision == version->revision() &&
@@ -1458,7 +1501,7 @@ KisNodeWSP KisPaintDevice::parentNode() const
 void KisPaintDevice::setDefaultBounds(KisDefaultBoundsBaseSP defaultBounds)
 {
     m_d->defaultBounds = defaultBounds;
-    if (m_d->gpuImage) {
+    if (m_d->gpuImage || m_d->gpuSelection) {
         m_d->gpuBoundsSequence = -1;
         m_d->gpuSequenceKnown = false;
     } else m_d->cache()->invalidate();
@@ -1471,6 +1514,7 @@ KisDefaultBoundsBaseSP KisPaintDevice::defaultBounds() const
 
 void KisPaintDevice::moveTo(const QPoint &pt)
 {
+    if (m_d->gpuSelection) throw std::logic_error("GPU selection views are immutable");
     if (m_d->gpuImage) {
         if (!m_d->gpuLayerId()) throw std::logic_error("GPU image projection is read-only");
         const auto result = m_d->gpuImage->writeLayerPosition(m_d->gpuPixels, pt);
@@ -1504,6 +1548,7 @@ void KisPaintDevice::setY(qint32 y)
 
 qint32 KisPaintDevice::x() const
 {
+    if (m_d->gpuSelection) return 0;
     if (m_d->gpuImage) {
         const auto version = m_d->gpuPixelVersion();
         for (const auto &layer : version->layers)
@@ -1515,6 +1560,7 @@ qint32 KisPaintDevice::x() const
 
 qint32 KisPaintDevice::y() const
 {
+    if (m_d->gpuSelection) return 0;
     if (m_d->gpuImage) {
         const auto version = m_d->gpuPixelVersion();
         for (const auto &layer : version->layers)
@@ -1535,6 +1581,7 @@ void KisPaintDevice::extent(qint32 &x, qint32 &y, qint32 &w, qint32 &h) const
 
 QRect KisPaintDevice::extent() const
 {
+    if (m_d->gpuSelection) return m_d->gpuSelection->bounds();
     if (m_d->gpuImage) {
         auto result = m_d->gpuAllocatedRegion().boundingRect();
         if (defaultPixel().opacityU8()) result |= m_d->defaultBounds->bounds();
@@ -1545,17 +1592,20 @@ QRect KisPaintDevice::extent() const
 
 KisRegion KisPaintDevice::region() const
 {
+    if (m_d->gpuSelection) return KisRegion(QVector<QRect>{m_d->gpuSelection->bounds()});
     if (m_d->gpuImage) return m_d->gpuAllocatedRegion();
     return m_d->currentStrategy()->region();
 }
 
 QRect KisPaintDevice::nonDefaultPixelArea() const
 {
+    if (m_d->gpuSelection) return m_d->gpuSelection->bounds();
     return m_d->cache()->nonDefaultPixelArea();
 }
 
 QRect KisPaintDevice::exactBounds() const
 {
+    if (m_d->gpuSelection) return m_d->gpuSelection->bounds();
     if (m_d->gpuImage) {
         const auto sequence = sequenceNumber();
         if (sequence != m_d->gpuBoundsSequence) {
@@ -1581,6 +1631,7 @@ QRect KisPaintDevice::exactBounds() const
 
 QRect KisPaintDevice::exactBoundsAmortized() const
 {
+    if (m_d->gpuSelection) return m_d->gpuSelection->bounds();
     if (m_d->gpuImage) return exactBounds();
     return m_d->cache()->exactBoundsAmortized();
 }
@@ -1735,6 +1786,7 @@ QRect calculateExactBoundsImpl(const KisPaintDevice *device, const QRect &startR
 
 QRect KisPaintDevice::calculateExactBounds(bool nonDefaultOnly) const
 {
+    if (m_d->gpuSelection) return m_d->gpuSelection->bounds();
     QRect startRect = extent();
     QRect endRect;
 
@@ -1768,6 +1820,7 @@ QRect KisPaintDevice::calculateExactBounds(bool nonDefaultOnly) const
 
 KisRegion KisPaintDevice::regionExact() const
 {
+    if (m_d->gpuSelection) return region();
     QVector<QRect> sourceRects = region().rects();
     QVector<QRect> resultRects;
 
@@ -1809,6 +1862,10 @@ void KisPaintDevice::purgeDefaultPixels()
 
 void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
 {
+    if (m_d->gpuSelection) {
+        if (defPixel == defaultPixel()) return;
+        throw std::logic_error("GPU selection views are immutable");
+    }
     KoColor color(defPixel);
     color.convertTo(colorSpace());
     if (m_d->gpuImage) {
@@ -1822,6 +1879,7 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
 
 KoColor KisPaintDevice::defaultPixel() const
 {
+    if (m_d->gpuSelection) { const quint8 zero = 0; return KoColor(&zero, colorSpace()); }
     if (m_d->gpuImage) {
         const auto version = m_d->gpuPixelVersion();
         const auto projectedLayer = m_d->gpuLayerId() ? m_d->gpuLayerId() : version->directProjectionLayer();
@@ -1842,6 +1900,8 @@ KoColor KisPaintDevice::defaultPixel() const
 
 void KisPaintDevice::clear()
 {
+    m_d->gpuSelection.clear();
+    m_d->gpuSelectionOwner.clear();
     m_d->dataManager()->clear();
     m_d->cache()->invalidate();
 }
@@ -2043,6 +2103,7 @@ QSize fixThumbnailSize(QSize size)
 
 KisPaintDeviceSP KisPaintDevice::createThumbnailDevice(qint32 w, qint32 h, QRect rect, QRect outputRect) const
 {
+    if (m_d->gpuSelection) return m_d->selectionThumbnailSource()->createThumbnailDevice(w, h, rect, outputRect);
     QSize thumbnailSize(w, h);
 
     QRect imageRect = rect.isValid() ? rect : extent();
@@ -2074,6 +2135,7 @@ KisPaintDeviceSP KisPaintDevice::createThumbnailDevice(qint32 w, qint32 h, QRect
 
 KisPaintDeviceSP KisPaintDevice::createThumbnailDeviceOversampled(qint32 w, qint32 h, qreal oversample, QRect rect,  QRect outputTileRect) const
 {
+    if (m_d->gpuSelection) return m_d->selectionThumbnailSource()->createThumbnailDeviceOversampled(w, h, oversample, rect, outputTileRect);
     QSize thumbnailSize(w, h);
     qreal oversampleAdjusted = qMax(oversample, 1.);
     QSize thumbnailOversampledSize = oversampleAdjusted * thumbnailSize;
@@ -2127,6 +2189,7 @@ QImage KisPaintDevice::createThumbnailUncached(qint32 w, qint32 h, QRect rect, q
 
 QImage KisPaintDevice::createThumbnail(qint32 w, qint32 h, KisThumbnailBoundsMode boundsMode, qreal oversample, KoColorConversionTransformation::Intent renderingIntent, KoColorConversionTransformation::ConversionFlags conversionFlags)
 {
+    if (m_d->gpuSelection) return m_d->selectionThumbnailSource()->createThumbnail(w, h, boundsMode, oversample, renderingIntent, conversionFlags);
     if (m_d->gpuImage) {
         if (oversample != 1.)
             return kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayerId(), m_d->defaultBounds, m_d->gpuPixelVersion(), colorSpace())->createThumbnail(w, h, boundsMode, oversample, renderingIntent, conversionFlags);
@@ -2268,6 +2331,7 @@ void KisPaintDevice::clearSelection(KisSelectionSP selection)
 
 bool KisPaintDevice::pixel(qint32 x, qint32 y, QColor *c) const
 {
+    if (m_d->gpuSelection) { quint8 value; readBytes(&value, {x, y, 1, 1}); colorSpace()->toQColor(&value, c); return true; }
     KisHLineConstIteratorSP iter = createHLineConstIteratorNG(x, y, 1);
 
     const quint8 *pix = iter->rawDataConst();
@@ -2282,6 +2346,7 @@ bool KisPaintDevice::pixel(qint32 x, qint32 y, QColor *c) const
 
 bool KisPaintDevice::pixel(qint32 x, qint32 y, KoColor * kc) const
 {
+    if (m_d->gpuSelection) { quint8 value; readBytes(&value, {x, y, 1, 1}); kc->setColor(&value, colorSpace()); return true; }
     KisHLineConstIteratorSP iter = createHLineConstIteratorNG(x, y, 1);
 
     const quint8 *pix = iter->rawDataConst();
@@ -2295,6 +2360,7 @@ bool KisPaintDevice::pixel(qint32 x, qint32 y, KoColor * kc) const
 
 KoColor KisPaintDevice::pixel(const QPoint &pos) const
 {
+    if (m_d->gpuSelection) { quint8 value; readBytes(&value, QRect(pos, QSize(1, 1))); return KoColor(&value, colorSpace()); }
     KisHLineConstIteratorSP iter = createHLineConstIteratorNG(pos.x(), pos.y(), 1);
     return KoColor(iter->rawDataConst(), m_d->colorSpace());
 }
@@ -2356,6 +2422,15 @@ void KisPaintDevice::readBytes(quint8 * data, qint32 x, qint32 y, qint32 w, qint
 
 void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
 {
+    if (m_d->gpuSelection) {
+        if (rect.isEmpty()) return;
+        const auto pixels = m_d->gpuSelectionOwner->execution().readSelectionPixels(m_d->gpuSelection, rect,
+            LibrePaint::Image::Gpu::SelectionMask::MaximumBytes);
+        if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
+            throw std::runtime_error(pixels.diagnostic.toStdString());
+        std::memcpy(data, pixels.bytes.constData(), size_t(pixels.bytes.size()));
+        return;
+    }
     if (m_d->gpuImage) {
         if (rect.isEmpty()) return;
         const auto count = gpuPixelByteCount(rect, m_d->gpuPixelVersion()->format);
@@ -2543,6 +2618,7 @@ KisPaintDevice::LodDataStruct::~LodDataStruct()
 
 KisRegion KisPaintDevice::regionForLodSyncing() const
 {
+    if (m_d->gpuSelection) return region();
     if (m_d->gpuImage) return m_d->gpuAllocatedRegion();
     return m_d->regionForLodSyncing();
 }

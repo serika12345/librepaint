@@ -42,7 +42,7 @@ class KisKeyframe;
 class KisRasterKeyframeChannel;
 
 class KisPaintDeviceFramesInterface;
-namespace LibrePaint::Image::Gpu { class PaintImage; class LayerPixelReference; }
+namespace LibrePaint::Image::Gpu { class PaintImage; class LayerPixelReference; class SelectionMask; }
 
 class KisInterstrokeData;
 using KisInterstrokeDataSP = QSharedPointer<KisInterstrokeData>;
@@ -974,9 +974,13 @@ protected:
 private:
     friend class KisImage;
     friend class KisGroupLayer;
+    friend class KisPixelSelection;
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuPixelImage() const;
     QSharedPointer<LibrePaint::Image::Gpu::LayerPixelReference> gpuPixelReference() const;
     void bindGpuLayer(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer);
+    /** Immutable Alpha8 view; clear() detaches it before literal input writes. */
+    void bindGpuSelection(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
+                          QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> mask);
     struct Private;
     KisPaintDevice(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer, const QString &name,
                    const KoColorSpace *colorSpace);

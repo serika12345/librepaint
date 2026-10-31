@@ -11,6 +11,9 @@
  */
 
 #include "kis_tool_select_contiguous.h"
+#include <gpu/KisGpuPaintImage.h>
+#include <KoColorSpace.h>
+#include <cstring>
 #include <QDomDocument>
 #include <QPainter>
 #include <QLayout>
@@ -97,6 +100,50 @@ void KisToolSelectContiguous::beginPrimaryAction(KoPointerEvent *event)
 {
     KisToolSelect::beginPrimaryAction(event);
     if (isMovingSelection()) {
+        return;
+    }
+
+    if (image() && image()->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        if (!currentNode() || !selectionEditable()) { event->ignore(); return; }
+        if (featherSelection() || (growSelection() > 0 && stopGrowingAtDarkestPixel()) || m_closeGap) {
+            toolCanvas()->showToolMessage(i18n("Colour selection with these feathering or growth settings is not yet available."),
+                                         QStringLiteral("object-locked"));
+            event->ignore();
+            return;
+        }
+        const auto pos = convertToImagePixelCoordFloored(event);
+        if (!image()->bounds().contains(pos)) { event->ignore(); return; }
+        auto *kisCanvas = dynamic_cast<KisCanvas2 *>(canvas());
+        if (!kisCanvas) { event->ignore(); return; }
+        beginSelectInteraction();
+        Gpu::RegionFillSettings settings;
+        settings.seed = pos;
+        settings.mode = Gpu::RegionFillMode::Contiguous;
+        settings.reference = sampleLayersMode() == SampleColorLabeledLayers ? Gpu::RegionFillReference::ColorLabeledLayers :
+            sampleLayersMode() == SampleAllLayers ? Gpu::RegionFillReference::AllLayers : Gpu::RegionFillReference::CurrentLayer;
+        if (sampleLayersMode() == SampleColorLabeledLayers) settings.colorLabels = colorLabelsSelected();
+        settings.threshold = m_threshold;
+        settings.opacitySpread = m_opacitySpread;
+        settings.antiAlias = antiAliasSelection();
+        settings.sizeMod = growSelection();
+        settings.selectionAsBoundary = m_useSelectionAsBoundary;
+        if (m_contiguousSelectionMode == BoundaryFill) {
+            KoColor boundary = m_contiguousSelectionBoundaryColor;
+            boundary.convertTo(image()->colorSpace());
+            if (image()->gpuImage()->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
+                quint16 bgra[4]; std::memcpy(bgra, boundary.data(), sizeof(bgra));
+                settings.boundaryColor = Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], bgra[3]};
+            } else {
+                const auto *bgra = boundary.data();
+                settings.boundaryColor = Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], bgra[3]};
+            }
+        }
+        KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Colour Region"));
+        if (!helper.selectGpuColourRegion(currentNode(), settings, selectionAction())) {
+            toolCanvas()->showToolMessage(i18n("The colour selection could not be applied."), QStringLiteral("object-locked"));
+            event->ignore();
+        }
         return;
     }
 
