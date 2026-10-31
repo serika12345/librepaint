@@ -71,8 +71,8 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
     qsizetype sequence = 0;
     QPointF spacing(.5, .5), accumulated;
     qreal spacingRotation = 0;
-    const auto append = [&](const InputSample &point) {
-        if (directLines && operation.shape.kind != ShapeKind::Freehand) return true;
+    const auto append = [&](const InputSample &point, bool explicitPoint = false) {
+        if (directLines && operation.shape.kind != ShapeKind::Freehand && !explicitPoint) return true;
         const auto dabSequence = sequence++;
         const qreal scale = pressureValue(brush.sizeResponse, point.pressure);
         const qreal diameter = brush.diameter * scale;
@@ -295,6 +295,10 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 index += 3;
             } else {
                 const auto point = input[index++];
+                if (command == PathCommand::Point) {
+                    if (!append(point, true)) return false;
+                    accumulated = {};
+                }
                 if (command == PathCommand::LineTo && !line(previous, point)) return false;
                 previous = point;
             }

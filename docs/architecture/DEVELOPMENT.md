@@ -1655,6 +1655,14 @@ GPU所有者の試験は保持した旧版、使用中・読取り容量・座�
 逐次更新・一括描画・固定版・停止・Undo／Redoを検査し、
 `weighted-smoothing-{weighted,no-pressure,no-tail,slow,fast,zero-distance}.rgba`を出力する。
 通常画面は加重補正で複数点を描き、設定変更からの独立、停止、消去、取消し、入力上限と拒否通知中のタブ終了を検査する。
+`KisGpuDocumentViewTest::stabilizedPresetsKeepOrdinaryEditing`は、Basic-5 Size・Ink-3 Gpen・Ditheringの
+Stabilizer入力から、設定の固定、描画・消去、履歴、KRA再読込後の追加編集と容量不足時のタブ終了を検査する。
+保持した一点・線分を既存CPUのストローク実行へ渡し、RGB8・RGB16の全画素を照合する。
+`LIBREPAINT_GPU_RESULT_DIR/stabilized-<条件>/`へ`step-<番号>-{native,gpu}.rgba`、入力値とKRAを保存する。
+`stabilizerPrimitivesRetainIndependentLineStarts`は、確定時の一点から離れた始点を持つ待機線分を照合し、
+`stabilizer-independent-line-{native,gpu}.rgba`を保存する。操作モデルはこれらの時刻・順序と原子的な拒否を、
+画像所有者は同じ命令によるマスク編集・親画素の保持・履歴を検査する。
+入力の遅延処理は、通知先からの取消し・文書破棄と待機列の順序を`kis_stabilized_events_sampler_test`で検査する。
 `KisGpuPaintDocumentTest`はKRA保存・再読込み・同じ追加描画後の画素を照合し、
 `weighted-smoothing.kra`と`weighted-smoothing-merged.png`を出力する。
 `TestDocument`は同じ加重補正の画素を公開APIと通常の書出し操作からPNGへ渡し、全画素・ICC・解像度、履歴と保存先の保持を検査する。
@@ -1740,10 +1748,16 @@ Gaussianの三次曲線は、開いた曲線、始点へ戻る曲線、複合・
 標準の自動生成筆先の通常編集は、`KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing`で検査する。
 同梱のBasic-5 Size、Basic-2 Opacity、Eraser Circle、Eraser Small、Ink-3 Gpenから設定を取得し、RGB8・RGB16の通常ウィンドウで
 描画、アルファ保護、消去、レイヤー複製、Undo/Redo、KRA再読込後の追加編集と対称描画を行う。
+紙目を持つInk-7・Screentones・Dithering、1pxのPixel Artと、独立した副筆先を持つCharcoalも同じ利用経路で照合する。
 楕円・矩形の固定角度、縦横比、独立したぼかし、小数の径、画面の回転・左右反転も同じ経路で比較する。
 筆圧に対するサイズ・不透明度・流量は、同じ有効プリセットを使う既存CPUのWASH処理と全画素を比較する。
 `LIBREPAINT_GPU_RESULT_DIR`には、精度別の`ordinary-brush-<条件>/`へ画素、KRAと画面画像を保存する。
 画素比較、通常画面への自動入力、配布アプリケーションの手動確認は、それぞれの実施範囲を報告する。
+
+`KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing`は、生成筆先の輪郭と単色・パターンの塗りを
+組み合わせ、通常ツールからの描画、1画素の外部変更と周囲の保持、履歴、KRA再読込を全画素で照合する。
+`KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing`は、透明度マスクへの描画・消去と
+単色・パターンを塗った図形を既存のGrayA8結果と比較し、親レイヤーの画素と再読込後の編集を検査する。
 
 `libs/image/gpu/tests/KisGpuGaussianBrushFixture_p.h`は、通常の資源取得で固定した
 ブラシ設定とパス入力を型付きの値として保持する。資源の版、倍精度の筆圧応答、流量と不透明度を同じ値で再生する。

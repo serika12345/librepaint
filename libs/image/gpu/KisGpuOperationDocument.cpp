@@ -802,12 +802,40 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
 }
 
 Result OperationDocument::appendSamples(OperationId id, const QList<InputSample> &samples)
+{ return appendSamplesWithin(id, samples, nullptr); }
+
+Result OperationDocument::appendPoint(OperationId id, const InputSample &point)
+{ return appendPainterSamples(id, {point}, {PathCommand::Point}); }
+
+Result OperationDocument::appendLine(OperationId id, const InputSample &first, const InputSample &last)
+{
+    const auto status = checkOperation(id);
+    if (status != Result::Success) return status;
+    if (last.timestamp < first.timestamp) return Result::InvalidInput;
+    return appendPainterSamples(id, {first, last}, {PathCommand::MoveTo, PathCommand::LineTo});
+}
+
+Result OperationDocument::appendPainterSamples(OperationId id, const QList<InputSample> &samples,
+                                               const QList<PathCommand> &commands)
+{
+    const auto status = checkOperation(id);
+    if (status != Result::Success) return status;
+    if (m_edit->brush.basicSmoothing || m_edit->brush.pixelPerfect || hasFigureFill(m_edit->figureStyle) ||
+        (m_edit->sampleCount && (m_edit->shape.kind != ShapeKind::Path || !m_edit->shape.pathCalls.isEmpty())))
+        return Result::InvalidInput;
+    Shape shape = m_edit->sampleCount ? m_edit->shape : Shape{};
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands.append(commands);
+    return appendSamplesWithin(id, samples, &shape);
+}
+
+Result OperationDocument::appendSamplesWithin(OperationId id, const QList<InputSample> &samples, const Shape *painterShape)
 {
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
     quint64 time = m_edit->sampleBlocks.empty() ? 0 : m_edit->sampleBlocks.back()->back().timestamp;
     for (const auto &sample : samples) {
-        if (!validSample(sample) || sample.timestamp < time) return Result::InvalidInput;
+        if (!validSample(sample) || (!painterShape && sample.timestamp < time)) return Result::InvalidInput;
         time = sample.timestamp;
     }
     const qsizetype count = m_edit->sampleCount;
@@ -817,6 +845,8 @@ Result OperationDocument::appendSamples(OperationId id, const QList<InputSample>
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return Result::CapacityExceeded;
     }
+    if (painterShape && (!validShape(*painterShape) || !validShapeSampleCount(*painterShape, count + samples.size())))
+        return Result::InvalidInput;
     if (samples.empty()) return Result::Success;
     QSharedPointer<PaintOperation> operation(new PaintOperation(*m_edit));
     constexpr qsizetype blockSize = 256;
@@ -834,6 +864,7 @@ Result OperationDocument::appendSamples(OperationId id, const QList<InputSample>
         offset += count;
     }
     operation->sampleCount += samples.size();
+    if (painterShape) operation->shape = *painterShape;
     ++operation->version;
     replacePreview(operation);
     return Result::Success;

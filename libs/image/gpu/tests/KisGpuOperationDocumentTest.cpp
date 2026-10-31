@@ -95,6 +95,7 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void painterPrimitivesKeepStartsTimesAndAtomicRejection();
     void selectedClearKeepsOneAtomicHistoryAndFrozenCoverage();
     void colorConversionAdmissionAndCapacityPreserveVersion();
     void preparedLayerForestsKeepPixelsSelectionAndAtomicHistory();
@@ -222,6 +223,35 @@ private Q_SLOTS:
     void rgba16PixelsAndBrushValuesSurviveHistoryPins();
     void native16UnsupportedOperationsPreservePixelsAndHistory();
 };
+
+void KisGpuOperationDocumentTest::painterPrimitivesKeepStartsTimesAndAtomicRejection()
+{
+    Limits limits;
+    limits.samplesPerStroke = 4;
+    OperationDocument document({64, 64}, limits);
+    const auto id = document.beginStroke(document.activeLayer(), Brush{}, 0);
+    QVERIFY(!id.isNull());
+    const auto tap = sample(48, 48, 1, 20);
+    const auto first = sample(16, 16, 1, 0);
+    const auto last = sample(24, 24, 1, 10);
+    QCOMPARE(document.appendPoint(id, tap), Result::Success);
+    const auto pinnedTap = document.preview();
+    QCOMPARE(document.appendLine(id, first, last), Result::Success);
+    const auto pending = document.preview();
+    const auto operation = std::get<PaintSnapshot>(pending->layers.first().operations.last());
+    QCOMPARE(operation->inputSamples(), QList<InputSample>({tap, first, last}));
+    QCOMPARE(operation->shape.pathCommands, QList<PathCommand>({PathCommand::Point, PathCommand::MoveTo, PathCommand::LineTo}));
+    QCOMPARE(std::get<PaintSnapshot>(pinnedTap->layers.first().operations.last())->inputSamples(), QList<InputSample>({tap}));
+    QCOMPARE(document.appendLine(id, last, first), Result::InvalidInput);
+    QCOMPARE(document.preview(), pending);
+    QCOMPARE(document.appendLine(id, first, last), Result::CapacityExceeded);
+    QCOMPARE(document.preview(), pending);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    const auto committed = document.snapshot();
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), committed);
+}
 
 void KisGpuOperationDocumentTest::selectedClearKeepsOneAtomicHistoryAndFrozenCoverage()
 {

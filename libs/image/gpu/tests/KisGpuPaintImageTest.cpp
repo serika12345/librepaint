@@ -820,6 +820,23 @@ void KisGpuPaintImageTest::erasedMasksRemainTransparentAndAcceptFurtherPainting(
     QCOMPARE(image.undo(), Result::Success); QVERIFY(image.layerTransparencyMask(layerId)->isEmpty());
     const auto pinned = execution.readRgbaPixels(image.handle(), erased, {0, 0, 1, 1}, 0, pixelByteCount(raster.format));
     QCOMPARE(pinned.code, ExecutionCode::Success); QCOMPARE(pinned.bytes, QByteArray(pixelByteCount(raster.format), '\0'));
+    const auto primitives = image.beginTransparencyMaskStroke(layerId, paint, 13);
+    QVERIFY(!primitives.isNull());
+    InputSample tap{{48, 48}, 1}; tap.timestamp = 20;
+    InputSample first{{16, 16}, 1}, last{{24, 24}, 1}; last.timestamp = 10;
+    QCOMPARE(image.appendPoint(primitives, tap), Result::Success);
+    QCOMPARE(image.appendLine(primitives, first, last), Result::Success);
+    QCOMPARE(image.commitStroke(primitives), Result::Success);
+    const auto painted = image.operations().snapshot();
+    QCOMPARE(painted->layers.first().operations, erased->layers.first().operations);
+    QCOMPARE(painted->layers.first().defaultPixel, erased->layers.first().defaultPixel);
+    const auto primitiveCoverage = execution.readSelectionPixels(image.layerTransparencyMask(layerId), {0, 0, 64, 64}, 64 * 64);
+    QCOMPARE(primitiveCoverage.code, ExecutionCode::Success);
+    QVERIFY(quint8(primitiveCoverage.bytes[48 * 64 + 48]) > 0);
+    QVERIFY(quint8(primitiveCoverage.bytes[20 * 64 + 20]) > 0);
+    QCOMPARE(quint8(primitiveCoverage.bytes[40 * 64 + 40]), quint8(0));
+    QCOMPARE(image.undo(), Result::Success); QVERIFY(image.layerTransparencyMask(layerId)->isEmpty());
+    QCOMPARE(image.redo(), Result::Success); QCOMPARE(image.operations().snapshot(), painted);
 }
 
 void KisGpuPaintImageTest::paintedMasksKeepSparseGpuCoverageAfterClosure()

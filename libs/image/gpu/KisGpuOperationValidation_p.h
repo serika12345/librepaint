@@ -369,9 +369,12 @@ inline bool validShape(const Shape &shape)
         return false;
     }
     if (shape.kind == ShapeKind::Path || !shape.pathCommands.isEmpty()) {
-        if (!shape.pathCommands.isEmpty() && shape.pathCommands.first() != PathCommand::MoveTo) return false;
+        if (!shape.pathCommands.isEmpty() && shape.pathCommands.first() != PathCommand::MoveTo &&
+            shape.pathCommands.first() != PathCommand::Point) return false;
         for (const auto command : shape.pathCommands) {
-            if (command != PathCommand::MoveTo && command != PathCommand::LineTo && command != PathCommand::CubicTo) return false;
+            if (command == PathCommand::Point) {
+                if (shape.kind != ShapeKind::Path || !shape.pathCalls.isEmpty()) return false;
+            } else if (command != PathCommand::MoveTo && command != PathCommand::LineTo && command != PathCommand::CubicTo) return false;
         }
         qsizetype previousEnd = 0;
         for (const auto &call : shape.pathCalls) {
@@ -421,6 +424,7 @@ inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 
 inline bool validFigureStyle(const Shape &shape, const FigureStyle &style, PixelFormat format)
 {
+    if (hasFigureFill(style) && shape.pathCommands.contains(PathCommand::Point)) return false;
     if (style.pattern && !style.pattern->isValid()) return false;
     if (style.pattern && style.pattern->format == PixelFormat::Rgba16 && format != PixelFormat::Rgba16) return false;
     if (!validBlendMode(style.fillBlendMode, format)) return false;

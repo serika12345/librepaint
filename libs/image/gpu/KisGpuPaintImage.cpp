@@ -481,6 +481,32 @@ Result PaintImage::appendSamples(OperationId id, const QList<InputSample> &sampl
     }
     return publish(m_d->document->appendSamples(id, samples));
 }
+Result PaintImage::appendPoint(OperationId id, const InputSample &point)
+{
+    if (!onThread()) return Result::InvalidInput;
+    try {
+        if (m_d->maskStroke) {
+            if (m_d->maskStroke->id != id) return Result::StaleOperation;
+            return refreshMaskStrokePreview(m_d->maskStroke->image->appendPoint(id, point));
+        }
+        return publish(m_d->document->appendPoint(id, point));
+    } catch (const std::bad_alloc &) {
+        return Result::CapacityExceeded;
+    }
+}
+Result PaintImage::appendLine(OperationId id, const InputSample &first, const InputSample &last)
+{
+    if (!onThread()) return Result::InvalidInput;
+    try {
+        if (m_d->maskStroke) {
+            if (m_d->maskStroke->id != id) return Result::StaleOperation;
+            return refreshMaskStrokePreview(m_d->maskStroke->image->appendLine(id, first, last));
+        }
+        return publish(m_d->document->appendLine(id, first, last));
+    } catch (const std::bad_alloc &) {
+        return Result::CapacityExceeded;
+    }
+}
 Result PaintImage::flushSmoothing(OperationId id)
 {
     if (!onThread()) return Result::InvalidInput;

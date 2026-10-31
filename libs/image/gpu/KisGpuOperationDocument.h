@@ -314,7 +314,7 @@ struct Brush
 };
 
 enum class ShapeKind { Freehand, Line, Ellipse, Rectangle, RoundedRectangle, Polyline, Polygon, Path };
-enum class PathCommand : quint8 { MoveTo, LineTo, CubicTo };
+enum class PathCommand : quint8 { MoveTo, LineTo, CubicTo, Point };
 
 struct Shape
 {
@@ -325,6 +325,7 @@ struct Shape
     qreal rotation = 0;
     QSizeF cornerRadii{0, 0};
     /** Commands consume one input point, or three for the cubic controls and endpoint.
+     * Point stamps its input without joining it to the next MoveTo/LineTo pair.
      * Shape tools retain their actual outline path alongside the editable bounds.
      */
     QList<PathCommand> pathCommands{};
@@ -927,6 +928,13 @@ public:
     /** Returns an empty identifier for a closed/busy document or invalid brush/layer. */
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 randomSeed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
+    /** Unsmoothed native painter primitives retain independent line starts and
+     * sensor times in call order; each line has nondecreasing endpoint times.
+     * Each append adopts samples and commands atomically. Mixing a sampled
+     * freehand stroke or filled figure into these primitives returns InvalidInput.
+     */
+    Result appendPoint(OperationId id, const InputSample &point);
+    Result appendLine(OperationId id, const InputSample &first, const InputSample &last);
     /** Completes basic interpolation at the current input count. Repeated calls
      * preserve the version; other modes return InvalidInput and fewer than two
      * samples return EmptyOperation. Original sensor input remains unchanged.
@@ -1228,6 +1236,8 @@ private:
     Result paintFigureWithin(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
                              const Shape &shape, const FigureStyle &style, quint64 randomSeed,
                              const std::optional<QRect> &compositionBounds, const RegionFillSP &region = {});
+    Result appendSamplesWithin(OperationId id, const QList<InputSample> &samples, const Shape *painterShape);
+    Result appendPainterSamples(OperationId id, const QList<InputSample> &samples, const QList<PathCommand> &commands);
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);

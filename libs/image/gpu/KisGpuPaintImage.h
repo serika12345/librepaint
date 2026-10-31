@@ -177,6 +177,11 @@ public:
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
+    /** Ordered painter primitives target the active paint or mask stroke with
+     * the same atomic input and lifetime contract as OperationDocument.
+     */
+    Result appendPoint(OperationId id, const InputSample &point);
+    Result appendLine(OperationId id, const InputSample &first, const InputSample &last);
     Result flushSmoothing(OperationId id);
     Result updateShape(OperationId id, const Shape &shape);
     Result updateFigure(OperationId id, const Shape &shape, const FigureStyle &style);

@@ -207,7 +207,7 @@ std::optional<QList<FigureFillEdge>> figureFillEdges(const PaintOperation &opera
     else if (shape.kind == ShapeKind::Path) {
         qsizetype i = 0;
         for (const auto command : shape.pathCommands) {
-            if (command == PathCommand::MoveTo) path.moveTo(input[i++].position);
+            if (command == PathCommand::MoveTo || command == PathCommand::Point) path.moveTo(input[i++].position);
             else if (command == PathCommand::LineTo) path.lineTo(input[i++].position);
             else {
                 path.cubicTo(input[i].position, input[i + 1].position, input[i + 2].position);
