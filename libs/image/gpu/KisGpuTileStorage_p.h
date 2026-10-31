@@ -156,6 +156,8 @@ struct TileRenderer::Private
     QHash<const SelectionMask *, MaskCacheEntry> maskTiles;
     Detail::NativeBindingLayout coveragePackLayout;
     Detail::NativeComputePipeline coveragePackPipeline;
+    Detail::NativeComputePipeline maskCapturePipeline, maskMergePipeline;
+    Detail::NativeBindingLayout maskCaptureLayout, maskMergeLayout;
     Detail::NativeBindingLayout selectionCombineLayout;
     Detail::NativeComputePipeline selectionCombinePipeline;
     Detail::NativeBindingLayout selectionTranslateLayout;
@@ -257,6 +259,8 @@ struct TileRenderer::Private
     std::shared_ptr<Detail::CoverageTile> packSelectionTile(WGPUCommandEncoder commands, WGPUBuffer source,
         QRect sourceExtent, QPoint coordinate, QRect bounds, quint32 format, quint8 constant = 0);
     bool ensureSelectionTiles(WGPUCommandEncoder commands, const SelectionMaskSP &mask);
+    bool transformMaskTiles(WGPUCommandEncoder commands, const SelectionMaskTransformSource &source,
+                            QMap<quint64, std::shared_ptr<Detail::BufferStorage>> *tiles);
     std::shared_ptr<Detail::CoverageTile> translatedCoverageTile(WGPUCommandEncoder commands,
         const SelectionTranslationSource &source, QPoint point);
     std::shared_ptr<Detail::CoverageTile> combinedCoverageTile(WGPUCommandEncoder commands,

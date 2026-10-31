@@ -937,8 +937,10 @@ void KisGpuPaintImageTest::defaultMasksKeepGroupProjectionAndCoordinateEdits()
             QCOMPARE(read(affine, {20, 22}), QByteArray(1, char(128)));
             QCOMPARE(read(affine, {100000, -100000}), QByteArray(1, char(coverage)));
             const auto beforeCapture = image.operations().snapshot();
-            QVERIFY(!image.copiedSelectionMask(image.layerTransparencyMask(1),
-                SelectionMask::fromRectangle({0, 0, 32, 32}, {0, 0, 64, 64}), false, {0, 0, 32, 32}));
+            const auto transformedPart = image.transformedTransparencyMask(image.layerTransparencyMask(1),
+                SelectionMask::fromRectangle({0, 0, 32, 32}, {0, 0, 64, 64}), false, {0, 0, 32, 32}, plan);
+            QVERIFY2(transformedPart, qPrintable(image.lastRequestOutcome().diagnostic));
+            QCOMPARE(transformedPart->defaultCoverage(), coverage);
             QCOMPARE(image.operations().snapshot(), beforeCapture);
             QCOMPARE(image.cropLayer(1, {0, 0, 20, 20}), Result::Success);
             QCOMPARE(read(image.layerTransparencyMask(1), {17, 10}), QByteArray(1, '\0'));
@@ -1097,7 +1099,7 @@ void KisGpuPaintImageTest::sparsePaintedMasksMoveCombineCropAndRecover()
     }
     // Transform-tool mask capture/clear/merge retain their inputs across
     // document closure and device replacement; native window tests fix math.
-    const auto captured = image.copiedSelectionMask(painted, literal, false, domain); QVERIFY(captured);
+    const auto captured = painted;
     AffinePlan plan;
     AffinePass pass; pass.kind = AffinePass::Remap;
     pass.source = captured->bounds(); pass.destination = pass.source.translated(13, -7);
@@ -1111,7 +1113,7 @@ void KisGpuPaintImageTest::sparsePaintedMasksMoveCombineCropAndRecover()
         QCOMPARE(execution.readSelectionPixels(shifted, tile, alpha.size()).bytes,
                  execution.readSelectionPixels(movedCapture, tile, alpha.size()).bytes);
     }
-    replayed = image.replacedSelectionMask(painted, literal, true, {-280, -540, 24, 28}, shifted);
+    replayed = image.transformedTransparencyMask(painted, literal, true, {-280, -540, 24, 28}, plan);
     QVERIFY2(replayed, qPrintable(image.lastRequestOutcome().diagnostic));
     SelectionTileMap retained;
     for (const auto point : replayed->tileCoordinates()) {

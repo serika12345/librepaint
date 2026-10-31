@@ -12,6 +12,8 @@
 #include <kis_group_layer.h>
 #include <kis_transparency_mask.h>
 #include <kis_transform_worker.h>
+#include <kis_paint_device.h>
+#include <kis_default_bounds_base.h>
 #include <algorithm>
 
 namespace Gpu = LibrePaint::Image::Gpu;
@@ -47,6 +49,7 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
     for (const auto &layer : source->layers) identities.insert(layer.uuid, layer.id);
     QList<Gpu::AffineTransformTarget> targets;
     QHash<Gpu::LayerId, qsizetype> indices;
+    QHash<Gpu::LayerId, QRect> maskDefaults;
     for (const auto &node : nodes) {
         const bool mask = bool(qobject_cast<const KisTransparencyMask *>(node.data()));
         if (qobject_cast<const KisGroupLayer *>(node.data())) continue;
@@ -57,7 +60,10 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
         if (!layer) return;
         if (!indices.contains(layer)) { indices.insert(layer, targets.size()); targets.append({layer, false, false}); }
         auto &target = targets[indices.value(layer)];
-        if (mask) target.mask = true; else target.pixels = true;
+        if (mask) {
+            target.mask = true;
+            maskDefaults[layer] = node->paintDevice()->defaultBounds()->bounds();
+        } else target.pixels = true;
     }
     if (targets.isEmpty()) return;
     auto coverage = selection ? source->selectionKind == Gpu::SelectionKind::Freehand ? source->selectionMask :
@@ -90,12 +96,8 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
             }
         }
         if (target.mask) {
-            const auto captured = coverage ? owner->copiedSelectionMask(layer->transparencyMask, coverage, source->selectionInverted, copy) : layer->transparencyMask;
-            if (!captured) {
-                Q_EMIT statusTextChanged(i18n("The selected part of this transparency mask cannot be transformed yet."));
-                return;
-            }
-            maskSources[target.layer] = captured; handles |= captured->bounds();
+            maskSources[target.layer] = layer->transparencyMask;
+            handles |= selection ? copy : layer->transparencyMask->bounds().united(maskDefaults.value(target.layer));
         }
     }
     if (selection) handles = copy;
@@ -105,6 +107,7 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
     m_gpuImage = owner; m_gpuTransform = token; m_gpuTransformSource = source;
     m_gpuTransformTargets = targets; m_gpuTransformBounds = bounds; m_gpuNonDefaultBounds = nondefault;
     m_gpuSelection = coverage; m_gpuSelectionBounds = copy; m_gpuMaskSources = maskSources;
+    m_gpuMaskDefaultBounds = maskDefaults;
     m_currentlyUsingOverlayPreviewStyle = false;
     m_transaction = TransformTransactionProperties(QRectF(handles), &m_currentArgs, roots, nodes);
     m_currentArgs = KisTransformUtils::resetArgsForMode(mode, m_currentArgs.filterId(), m_transaction, {});
@@ -137,11 +140,12 @@ void KisToolTransform::updateGpuTransform()
         if (target.mask && requested.isIdentity()) mask = layer->transparencyMask;
         else if (target.mask) {
             const auto captured = m_gpuMaskSources.value(target.layer);
-            const auto maskPlan = worker.gpuPlan(captured->bounds());
+            const auto defaults = m_gpuMaskDefaultBounds.value(target.layer);
+            const auto maskBounds = m_gpuSelection ? m_gpuSelectionBounds : captured->bounds().united(defaults);
+            const auto maskPlan = worker.gpuPlan(maskBounds, m_gpuSelection ? QRect{} : defaults, captured->bounds());
             if (!maskPlan) { valid = false; break; }
-            mask = maskPlan->passes.isEmpty() ? captured : owner->transformedSelectionMask(captured, *maskPlan);
-            if (mask && m_gpuSelection) mask = owner->replacedSelectionMask(layer->transparencyMask, m_gpuSelection,
-                source->selectionInverted, m_gpuSelectionBounds, mask);
+            mask = owner->transformedTransparencyMask(captured, m_gpuSelection,
+                bool(m_gpuSelection) && source->selectionInverted, m_gpuSelectionBounds, *maskPlan);
             if (!mask) { valid = false; break; }
         }
         plans.append({target.layer, QSharedPointer<Gpu::AffinePlan>::create(*plan), mask, bool(m_gpuSelection) && !requested.isIdentity()});
@@ -196,7 +200,7 @@ void KisToolTransform::finishGpuTransform(bool commit)
     const bool selected = bool(m_gpuSelection);
     m_gpuTransform = {}; m_gpuImage.clear(); m_gpuTransformSource.clear();
     m_gpuTransformTargets.clear(); m_gpuTransformBounds.clear(); m_gpuNonDefaultBounds.clear();
-    m_gpuMaskSources.clear(); m_gpuSelection.clear(); m_gpuUpdating = m_gpuUpdatePending = m_gpuCommitPending = false;
+    m_gpuMaskSources.clear(); m_gpuMaskDefaultBounds.clear(); m_gpuSelection.clear(); m_gpuUpdating = m_gpuUpdatePending = m_gpuCommitPending = false;
     m_changesTracker.reset();
     m_transaction = TransformTransactionProperties(QRectF(), &m_currentArgs, {}, {});
     QPointer<KisToolTransform> guard(this);

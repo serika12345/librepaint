@@ -124,10 +124,12 @@ public:
      * Empty coverage is valid, null reports invalid input, busy or capacity.
      */
     SelectionMaskSP transformedSelectionMask(const SelectionMaskSP &mask, const AffinePlan &plan);
-    SelectionMaskSP copiedSelectionMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-                                       bool inverted, QRect copyRect);
-    SelectionMaskSP replacedSelectionMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-                                         bool inverted, QRect clearRect, const SelectionMaskSP &replacement);
+    /** Transparency-mask gray is filtered independently from selectedness.
+     * Null selection transforms the whole mask; selected pixels are cut and
+     * composited over the unchanged remainder, with the native mask default.
+     */
+    SelectionMaskSP transformedTransparencyMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
+                                               bool inverted, QRect copyRect, const AffinePlan &plan);
     Result clearSelection();
     bool selectionInverted() const;
     LibrePaint::Image::Gpu::SelectionKind selectionKind() const;

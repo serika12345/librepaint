@@ -456,7 +456,6 @@ QSharedPointer<const SelectionMask> SelectionMask::fromCombination(const QShared
     if (!source || !source->first || !source->second || !pixels ||
         source->pixels < SelectionCombinationSource::Pixels::Selection ||
         source->pixels > SelectionCombinationSource::Pixels::InvertTransparency ||
-        (source->pixels == SelectionCombinationSource::Pixels::ReplaceSelected && !source->replacement) ||
         source->action < SelectionCombination::Replace || source->action > SelectionCombination::SymmetricDifference ||
         source->tiles.size() > MaximumBytes / AlphaTileBytes ||
         !validOutline(source->extent, {}) || !validOutline(bounds, outlineRuns) ||
@@ -555,8 +554,20 @@ QSharedPointer<const SelectionMask> SelectionMask::fromPaint(const QSharedPointe
     return result;
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::fromTransform(const QSharedPointer<const SelectionMaskTransformSource> &source,
+    const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
+{
+    if (!source || !source->source || !source->plan || !pixels ||
+        source->tiles.size() > MaximumBytes / AlphaTileBytes || !validOutline(bounds, outlineRuns)) return {};
+    for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha, source->source->defaultCoverage()));
+    result->m_transform = source; result->m_outlineRuns = outlineRuns; result->m_nativePixels = pixels;
+    return result;
+}
+
 QList<QPoint> SelectionMask::tileCoordinates() const
 {
+    if (m_transform) return m_transform->tiles;
     if (m_paint) return m_paint->tiles;
     if (m_combination) return m_combination->tiles;
     if (m_translation) return m_translation->tiles;
@@ -758,7 +769,7 @@ bool SelectionMask::operator==(const SelectionMask &other) const
 {
     return m_format == other.m_format && m_defaultCoverage == other.m_defaultCoverage &&
         m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
-        m_region == other.m_region && m_combination == other.m_combination && m_translation == other.m_translation && m_paint == other.m_paint &&
+        m_region == other.m_region && m_combination == other.m_combination && m_translation == other.m_translation && m_paint == other.m_paint && m_transform == other.m_transform &&
         m_outlineRuns == other.m_outlineRuns;
 }
 }

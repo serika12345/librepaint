@@ -137,7 +137,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra_d
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-generated").arg(words ? "word" : "byte").arg(operation)))
             << words << QStringLiteral("Bicubic") << operation << true << 0;
 
-    for (const bool words : {false, true}) for (int maskDefault : {17, 255}) for (int operation : {0, 1, 9})
+    for (const bool words : {false, true}) for (int maskDefault : {17, 255}) for (int operation : {0, 1, 4, 6, 7, 8, 9})
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3")
             .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
             << words << QStringLiteral("Bicubic") << operation << false << maskDefault;
@@ -192,8 +192,10 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     const auto layerId = owner->operations().activeLayer();
     QCOMPARE(owner->writeRgbaPixels(layerId, sourceRect, source), Gpu::Result::Success);
     if (generated) {
-        const auto selected = Gpu::SelectionMask::fromRectangle(sourceRect, sourceRect); QVERIFY(selected);
-        const auto mask = owner->copiedSelectionMask(raster.layers.first().transparencyMask, selected, false, sourceRect);
+        Gpu::SelectionMaskSP mask;
+        const auto captured = execution->combineSelectionCoverage(Gpu::SelectionMask::empty(), raster.layers.first().transparencyMask,
+            Gpu::SelectionCombination::Replace, sourceRect, false, &mask);
+        QVERIFY2(captured.code == Gpu::ExecutionCode::Success, qPrintable(captured.diagnostic));
         QVERIFY2(mask && mask->isGpuGenerated(), qPrintable(owner->lastRequestOutcome().diagnostic));
         QCOMPARE(owner->replaceTransparencyMask(layerId, mask), Gpu::Result::Success);
     }
@@ -213,8 +215,11 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         const auto source = owner->selectionKind() == Gpu::SelectionKind::Freehand ? owner->selectionMask() :
             owner->selectionKind() == Gpu::SelectionKind::Ellipse ? Gpu::SelectionMask::fromEllipse(bounds, bounds) :
             Gpu::SelectionMask::fromRectangle(bounds, bounds);
-        const auto full = Gpu::SelectionMask::fromRectangle(bounds, bounds); QVERIFY(source && full);
-        const auto mask = owner->copiedSelectionMask(source, full, false, bounds);
+        QVERIFY(source);
+        Gpu::SelectionMaskSP mask;
+        const auto captured = execution->combineSelectionCoverage(Gpu::SelectionMask::empty(), source,
+            Gpu::SelectionCombination::Replace, bounds, false, &mask);
+        QVERIFY2(captured.code == Gpu::ExecutionCode::Success, qPrintable(captured.diagnostic));
         QVERIFY2(mask && mask->isGpuGenerated(), qPrintable(owner->lastRequestOutcome().diagnostic));
         QVERIFY(image->setGpuSelectionMask(mask, owner->selectionInverted()));
     }
@@ -224,14 +229,10 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     reference->writeBytes(reinterpret_cast<const quint8*>(bgra.constData()), sourceRect);
     // Ordinary transparency masks use KisPixelSelection's GrayA8 composition
     // source, which keeps mask gray separate from selection opacity.
-    KisPaintDeviceSP maskReference = maskDefault ? KisPaintDeviceSP(new KisPixelSelection()) :
-        KisPaintDeviceSP(new KisPaintDevice(KoColorSpaceRegistry::instance()->alpha8()));
-    maskReference->setDefaultBounds(new KisDefaultBounds(image));
-    if (maskDefault) {
-        maskReference->setDefaultBounds(new KisSelectionDefaultBounds(reference));
-        KoColor value(maskReference->colorSpace()); value.data()[0] = quint8(maskDefault);
-        maskReference->setDefaultPixel(value);
-    }
+    KisPaintDeviceSP maskReference = new KisPixelSelection();
+    maskReference->setDefaultBounds(new KisSelectionDefaultBounds(reference));
+    KoColor maskDefaultPixel(maskReference->colorSpace()); maskDefaultPixel.data()[0] = quint8(maskDefault);
+    maskReference->setDefaultPixel(maskDefaultPixel);
     maskReference->writeBytes(reinterpret_cast<const quint8 *>(maskPixels.constData()), sourceRect);
     KisSelectionSP nativeSelection;
     if (operation == 4 || (operation >= 6 && operation <= 8)) {
@@ -299,7 +300,8 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     QVERIFY(tool->setProperty("translateY", tool->property("translateY").toDouble() - 2.75));
     QVERIFY(QMetaObject::invokeMethod(tool, "requestImageRecalculation"));
     ToolTransformArgs args;
-    args.setFilterId(filter); args.setOriginalCenter(QRectF(nativeSelection ? nativeSelection->selectedExactRect() : reference->exactBounds()).center());
+    const auto nativeMaskBounds = maskReference->createCompositionSourceDevice(maskReference)->exactBounds();
+    args.setFilterId(filter); args.setOriginalCenter(QRectF(nativeSelection ? nativeSelection->selectedExactRect() : reference->exactBounds().united(nativeMaskBounds)).center());
     args.setTransformedCenter({tool->property("translateX").toDouble(), tool->property("translateY").toDouble()});
     args.setScaleX(tool->property("scaleX").toDouble()); args.setScaleY(tool->property("scaleY").toDouble());
     args.setShearX(tool->property("shearX").toDouble()); args.setShearY(tool->property("shearY").toDouble()); args.setAZ(tool->property("rotateZ").toDouble());
@@ -309,8 +311,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         KisPainter painter(transformed); painter.setSelection(nativeSelection);
         painter.bitBlt(nativeSelection->selectedExactRect().topLeft(), reference, nativeSelection->selectedExactRect());
     }
-    KisPaintDeviceSP transformedMask = maskReference;
-    if (maskDefault) transformedMask = maskReference->createCompositionSourceDevice(maskReference);
+    KisPaintDeviceSP transformedMask = maskReference->createCompositionSourceDevice(maskReference);
     if (nativeSelection) {
         transformedMask = maskReference->createCompositionSourceDevice();
         KisPainter painter(transformedMask); painter.setSelection(nativeSelection);
@@ -318,7 +319,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     }
     auto worker = KisTransformUtils::createTransformWorker(args, transformed, {}); QVERIFY(worker.run());
     auto maskWorker = KisTransformUtils::createTransformWorker(args, transformedMask, {}); QVERIFY(maskWorker.run());
-    if (maskDefault && !nativeSelection) {
+    if (!nativeSelection) {
         maskReference->clear();
         KisPainter painter(maskReference); const auto area = transformedMask->extent(); painter.bitBlt(area.topLeft(), transformedMask, area);
     }

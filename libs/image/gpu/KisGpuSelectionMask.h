@@ -22,6 +22,7 @@
 namespace LibrePaint::Image::Gpu {
 
 struct RegionFill;
+struct AffinePlan;
 namespace Detail { struct SelectionPixels; }
 
 /** Tile coordinate key (x, y) for packed coverage tiles. */
@@ -33,14 +34,12 @@ enum class SelectionCombination : quint8 { Replace, Add, Subtract, Intersect, Sy
 
 class SelectionMask;
 class DocumentVersion;
-/** Frozen Alpha8 selection arithmetic and selected mask-pixel edits. */
+/** Frozen Alpha8 selection arithmetic and mask inversion. */
 struct SelectionCombinationSource
 {
-    enum class Pixels : quint8 { Selection, CopySelected, ReplaceSelected, InvertTransparency };
+    enum class Pixels : quint8 { Selection, InvertTransparency };
     QSharedPointer<const SelectionMask> first, second;
-    QSharedPointer<const SelectionMask> replacement;
     Pixels pixels = Pixels::Selection;
-    QRect pixelRegion;
     SelectionCombination action = SelectionCombination::Replace;
     QRect extent;
     bool inverted = false;
@@ -62,6 +61,17 @@ struct SelectionPaintSource
 {
     QSharedPointer<const DocumentVersion> source;
     quint64 layer = 0;
+    QList<QPoint> tiles;
+};
+
+/** Transparency-mask gray and independent selection opacity through a frozen
+ * native affine filter. Retained inputs also reconstruct coverage after loss. */
+struct SelectionMaskTransformSource
+{
+    QSharedPointer<const SelectionMask> source, selection;
+    QSharedPointer<const AffinePlan> plan;
+    QRect copyRect, output;
+    bool inverted = false;
     QList<QPoint> tiles;
 };
 
@@ -128,11 +138,12 @@ public:
      * geometry are CPU values; editing and external pixel readers use the
      * retained GPU source. Invalid geometry or capacity returns null.
      */
-    bool isGpuGenerated() const { return m_region || m_combination || m_translation || m_paint; }
+    bool isGpuGenerated() const { return m_region || m_combination || m_translation || m_paint || m_transform; }
     const QSharedPointer<const RegionFill> &regionSource() const { return m_region; }
     const QSharedPointer<const SelectionCombinationSource> &combinationSource() const { return m_combination; }
     const QSharedPointer<const SelectionTranslationSource> &translationSource() const { return m_translation; }
     const QSharedPointer<const SelectionPaintSource> &paintSource() const { return m_paint; }
+    const QSharedPointer<const SelectionMaskTransformSource> &transformSource() const { return m_transform; }
     /** Finite tile coordinates for input initialization and external reads.
      * Painting, translation and arithmetic retain occupied tiles, including
      * off-canvas coverage. Region sources supply their bounded tile extent. */
@@ -205,6 +216,8 @@ private:
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
     static QSharedPointer<const SelectionMask> fromPaint(const QSharedPointer<const SelectionPaintSource> &source,
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
+    static QSharedPointer<const SelectionMask> fromTransform(const QSharedPointer<const SelectionMaskTransformSource> &source,
+        const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
     const std::shared_ptr<Detail::SelectionPixels> &nativePixels() const { return m_nativePixels; }
     enum class CoverageFormat : quint8 { Binary, Alpha };
     SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format, quint8 defaultCoverage = 0);
@@ -217,6 +230,7 @@ private:
     QSharedPointer<const SelectionCombinationSource> m_combination;
     QSharedPointer<const SelectionTranslationSource> m_translation;
     QSharedPointer<const SelectionPaintSource> m_paint;
+    QSharedPointer<const SelectionMaskTransformSource> m_transform;
     QList<QRect> m_outlineRuns;
     std::shared_ptr<Detail::SelectionPixels> m_nativePixels;
 };
@@ -227,9 +241,7 @@ inline quint8 SelectionCombinationSource::defaultCoverage() const
 {
     const int a = first ? first->defaultCoverage() : 0;
     if (pixels == Pixels::InvertTransparency) return quint8(255 - a);
-    if (pixels != Pixels::ReplaceSelected) return 0;
-    const int b = replacement ? replacement->defaultCoverage() : 0;
-    return quint8(b + (a * (255 - b) + 127) / 255);
+    return 0;
 }
 
 }

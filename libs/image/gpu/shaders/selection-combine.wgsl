@@ -6,12 +6,7 @@ struct SelectionParameters {
 @group(0) @binding(0) var<uniform> parameters: SelectionParameters;
 @group(0) @binding(1) var<storage, read> first: array<u32>;
 @group(0) @binding(2) var<storage, read> second: array<u32>;
-@group(0) @binding(3) var<storage, read> replacement: array<u32>;
-@group(0) @binding(4) var<storage, read_write> outputPixels: array<u32>;
-fn multiplyAlpha(a: u32, b: u32) -> u32 {
-    let product = a * b + 128u;
-    return (product + (product >> 8u)) >> 8u;
-}
+@group(0) @binding(3) var<storage, read_write> outputPixels: array<u32>;
 @compute @workgroup_size(64) fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let word = invocation.x;
     if (word >= 16384u) { return; }
@@ -31,9 +26,7 @@ fn multiplyAlpha(a: u32, b: u32) -> u32 {
             packed |= (255u - a) << shift;
             continue;
         }
-        if (parameters.action >= 5u) {
-            var amount = b;
-            if ((parameters.inverted & 1u) != 0u) { amount = 255u - amount; }
+        if ((parameters.inverted & 1u) != 0u) { amount = 255u - amount; }
             let inside = all(point >= parameters.region.xy) && all(point < parameters.region.zw);
             var value = a;
             if (parameters.action == 5u) { value = select(0u, multiplyAlpha(a, amount), inside); }

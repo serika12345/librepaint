@@ -85,7 +85,6 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
                 !add(combination->tiles.constData(), combination->tiles.size() * qsizetype(sizeof(QPoint)))) return false;
             pendingMasks.append(combination->first);
             pendingMasks.append(combination->second);
-            pendingMasks.append(combination->replacement);
         }
         if (const auto &translation = value->translationSource()) {
             if (!add(translation.data(), sizeof(SelectionTranslationSource)) ||
@@ -96,6 +95,19 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
             if (!add(paint.data(), sizeof(SelectionPaintSource)) ||
                 !add(paint->tiles.constData(), paint->tiles.size() * qsizetype(sizeof(QPoint)))) return false;
             pending.append(paint->source);
+        }
+        if (const auto &transform = value->transformSource()) {
+            if (!add(transform.data(), sizeof(SelectionMaskTransformSource)) ||
+                !add(transform->tiles.constData(), transform->tiles.size() * qsizetype(sizeof(QPoint)))) return false;
+            pendingMasks.append(transform->source); pendingMasks.append(transform->selection);
+            const auto &plan = transform->plan;
+            if (plan && !seen.contains(plan.data())) {
+                if (!add(plan.data(), sizeof(AffinePlan)) ||
+                    !add(plan->passes.constData(), plan->passes.size() * qsizetype(sizeof(AffinePass)))) return false;
+                for (const auto &pass : plan->passes) if (pass.kernel &&
+                    (!add(pass.kernel.data(), sizeof(AffineKernel)) ||
+                     !add(pass.kernel->weights.constData(), pass.kernel->weights.size() * qsizetype(sizeof(qint32))))) return false;
+            }
         }
         return true;
     };

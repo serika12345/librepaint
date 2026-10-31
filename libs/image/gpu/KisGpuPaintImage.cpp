@@ -295,42 +295,17 @@ SelectionMaskSP PaintImage::transformedSelectionMask(const SelectionMaskSP &mask
     }
 }
 
-SelectionMaskSP PaintImage::copiedSelectionMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-                                               bool inverted, QRect copyRect)
+SelectionMaskSP PaintImage::transformedTransparencyMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
+    bool inverted, QRect copyRect, const AffinePlan &plan)
 {
     if (!onThread()) return {};
-    if (mask && mask->defaultCoverage()) {
-        m_d->lastRequest = {ExecutionCode::InvalidRequest,
-            QStringLiteral("Selected default-mask transformation requires separate gray and selection coverage")};
-        return {};
-    }
     try {
         SelectionMaskSP result;
-        const auto checked = m_d->execution.maskSelectionCoverage(mask, selection, inverted, copyRect, {}, &result);
+        const auto checked = m_d->execution.transformedMaskCoverage(mask, selection, inverted, copyRect, plan, &result);
         if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
         return result;
     } catch (const std::bad_alloc &) {
-        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("Mask capture allocation exceeded capacity")};
-        return {};
-    }
-}
-
-SelectionMaskSP PaintImage::replacedSelectionMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-                                                 bool inverted, QRect clearRect, const SelectionMaskSP &replacement)
-{
-    if (!onThread() || !replacement) return {};
-    if (mask && mask->defaultCoverage()) {
-        m_d->lastRequest = {ExecutionCode::InvalidRequest,
-            QStringLiteral("Selected default-mask transformation requires separate gray and selection coverage")};
-        return {};
-    }
-    try {
-        SelectionMaskSP result;
-        const auto checked = m_d->execution.maskSelectionCoverage(mask, selection, inverted, clearRect, replacement, &result);
-        if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
-        return result;
-    } catch (const std::bad_alloc &) {
-        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("Mask merge allocation exceeded capacity")};
+        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("Mask transform allocation exceeded capacity")};
         return {};
     }
 }
