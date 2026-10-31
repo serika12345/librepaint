@@ -26,18 +26,6 @@ struct SelectionParameters {
             packed |= (255u - a) << shift;
             continue;
         }
-        if ((parameters.inverted & 1u) != 0u) { amount = 255u - amount; }
-            let inside = all(point >= parameters.region.xy) && all(point < parameters.region.zw);
-            var value = a;
-            if (parameters.action == 5u) { value = select(0u, multiplyAlpha(a, amount), inside); }
-            else {
-                if (inside) { value = multiplyAlpha(a, 255u - amount); }
-                let foreground = (replacement[word] >> shift) & 255u;
-                value = foreground + multiplyAlpha(value, 255u - foreground);
-            }
-            packed |= value << shift;
-            continue;
-        }
         if ((parameters.inverted & 1u) != 0u) { a = 255u - a; }
         var value = b;
         switch parameters.action {

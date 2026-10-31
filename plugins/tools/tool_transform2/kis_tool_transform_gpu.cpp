@@ -73,7 +73,6 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
     const auto copy = selection ? selection->selectedExactRect() : QRect{};
     QHash<Gpu::LayerId, QRect> bounds, nondefault;
     QRect handles;
-    QHash<Gpu::LayerId, Gpu::SelectionMaskSP> maskSources;
     for (const auto &target : targets) {
         const auto layer = std::find_if(source->layers.cbegin(), source->layers.cend(), [&](const auto &v) { return v.id == target.layer; });
         if (target.pixels) {
@@ -96,8 +95,8 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
             }
         }
         if (target.mask) {
-            maskSources[target.layer] = layer->transparencyMask;
-            handles |= selection ? copy : layer->transparencyMask->bounds().united(maskDefaults.value(target.layer));
+            handles |= selection ? copy : layer->transparencyMask->bounds();
+            if (!selection && layer->transparencyMask->defaultCoverage()) handles |= maskDefaults.value(target.layer);
         }
     }
     if (selection) handles = copy;
@@ -106,7 +105,7 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
     if (token.isNull()) return;
     m_gpuImage = owner; m_gpuTransform = token; m_gpuTransformSource = source;
     m_gpuTransformTargets = targets; m_gpuTransformBounds = bounds; m_gpuNonDefaultBounds = nondefault;
-    m_gpuSelection = coverage; m_gpuSelectionBounds = copy; m_gpuMaskSources = maskSources;
+    m_gpuSelection = coverage; m_gpuSelectionBounds = copy;
     m_gpuMaskDefaultBounds = maskDefaults;
     m_currentlyUsingOverlayPreviewStyle = false;
     m_transaction = TransformTransactionProperties(QRectF(handles), &m_currentArgs, roots, nodes);
@@ -139,7 +138,7 @@ void KisToolTransform::updateGpuTransform()
         Gpu::SelectionMaskSP mask;
         if (target.mask && requested.isIdentity()) mask = layer->transparencyMask;
         else if (target.mask) {
-            const auto captured = m_gpuMaskSources.value(target.layer);
+            const auto captured = layer->transparencyMask;
             const auto defaults = m_gpuMaskDefaultBounds.value(target.layer);
             const auto maskBounds = m_gpuSelection ? m_gpuSelectionBounds : captured->bounds().united(defaults);
             const auto maskPlan = worker.gpuPlan(maskBounds, m_gpuSelection ? QRect{} : defaults, captured->bounds());
@@ -200,7 +199,7 @@ void KisToolTransform::finishGpuTransform(bool commit)
     const bool selected = bool(m_gpuSelection);
     m_gpuTransform = {}; m_gpuImage.clear(); m_gpuTransformSource.clear();
     m_gpuTransformTargets.clear(); m_gpuTransformBounds.clear(); m_gpuNonDefaultBounds.clear();
-    m_gpuMaskSources.clear(); m_gpuMaskDefaultBounds.clear(); m_gpuSelection.clear(); m_gpuUpdating = m_gpuUpdatePending = m_gpuCommitPending = false;
+    m_gpuMaskDefaultBounds.clear(); m_gpuSelection.clear(); m_gpuUpdating = m_gpuUpdatePending = m_gpuCommitPending = false;
     m_changesTracker.reset();
     m_transaction = TransformTransactionProperties(QRectF(), &m_currentArgs, {}, {});
     QPointer<KisToolTransform> guard(this);

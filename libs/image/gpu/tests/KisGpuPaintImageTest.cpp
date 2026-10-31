@@ -902,7 +902,8 @@ void KisGpuPaintImageTest::defaultMasksKeepGroupProjectionAndCoordinateEdits()
             };
             const auto original = image.operations().snapshot();
             Brush unchanged; unchanged.diameter = 2; unchanged.opacity = 0;
-            const auto stroke = image.beginTransparencyMaskStroke(1, unchanged, 37); QVERIFY(!stroke.isNull());
+            const auto stroke = image.beginTransparencyMaskStroke(1, unchanged, 37);
+            QVERIFY2(!stroke.isNull(), qPrintable(image.lastRequestOutcome().diagnostic));
             QCOMPARE(image.appendSamples(stroke, {{{50, 50}, 1}}), Result::Success);
             QCOMPARE(read(image.operations().preview()->layers.first().transparencyMask, {14, 12}), QByteArray(1, '\0'));
             QCOMPARE(image.cancelStroke(stroke), Result::Success);

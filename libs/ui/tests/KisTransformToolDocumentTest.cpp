@@ -153,7 +153,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra_d
             .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
             << words << QStringLiteral("Bicubic") << operation << false << maskDefault << false;
 
-    for (const bool words : {false, true}) for (int maskDefault : {0, 255}) for (int operation : {0, 4, 6, 7, 8, 9})
+    for (const bool words : {false, true}) for (int maskDefault : {0, 255}) for (int operation : {0, 4, 6, 7, 8, 9, 10, 11})
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3-mask-only")
             .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
             << words << QStringLiteral("Bicubic") << operation << false << maskDefault << true;
@@ -166,6 +166,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     QFETCH(bool, words); QFETCH(QString, filter); QFETCH(int, operation);
     QFETCH(bool, generated);
     QFETCH(int, maskDefault); QFETCH(bool, maskOnly);
+    const int selectionOperation = operation == 10 ? 6 : operation == 11 ? 4 : operation;
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     qputenv("LIBREPAINT_GPU_ENGINE", "1");
     const auto restoreEngine = qScopeGuard([&] { if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine); });
@@ -219,13 +220,13 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Transform editing"), cs));
     auto image = KisImageSP(document->image());
-    if (operation == 6) QVERIFY(image->setGpuSelectionRect({-1, 6, 9, 8}, false));
-    else if (operation == 7) QVERIFY(image->setGpuSelectionEllipse({-1, 6, 9, 8}, false));
-    else if (operation == 4 || operation == 8) {
+    if (selectionOperation == 6) QVERIFY(image->setGpuSelectionRect({-1, 6, 9, 8}, false));
+    else if (selectionOperation == 7) QVERIFY(image->setGpuSelectionEllipse({-1, 6, 9, 8}, false));
+    else if (selectionOperation == 4 || selectionOperation == 8) {
         const QRect selected(-1, 6, 9, 8);
         QByteArray alpha(selected.width() * selected.height(), '\0');
         for (int i = 0; i < alpha.size(); ++i) alpha[i] = char((i * 71) % 256);
-        QVERIFY(image->setGpuSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(selected, alpha, selected), operation == 8));
+        QVERIFY(image->setGpuSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(selected, alpha, selected), selectionOperation == 8));
     }
     if (generated && image->globalSelection()) {
         const auto bounds = owner->selectionRect();
@@ -249,20 +250,21 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     maskReference->setDefaultPixel(maskDefaultPixel);
     maskReference->writeBytes(reinterpret_cast<const quint8 *>(maskPixels.constData()), sourceRect);
     KisSelectionSP nativeSelection;
-    if (operation == 4 || (operation >= 6 && operation <= 8)) {
+    QByteArray originalSelectionPixels;
+    if (selectionOperation == 4 || (selectionOperation >= 6 && selectionOperation <= 8)) {
         nativeSelection = new KisSelection();
         const QRect selected(-1, 6, 9, 8);
-        if (operation == 6) nativeSelection->pixelSelection()->select(selected);
+        if (selectionOperation == 6) nativeSelection->pixelSelection()->select(selected);
         else {
-            if (operation == 8) nativeSelection->pixelSelection()->select(image->bounds());
-            const auto area = operation == 8 ? selected.intersected(image->bounds()) : selected;
+            if (selectionOperation == 8) nativeSelection->pixelSelection()->select(image->bounds());
+            const auto area = selectionOperation == 8 ? selected.intersected(image->bounds()) : selected;
             QByteArray values(area.width() * area.height(), '\0');
             for (int y = area.top(); y <= area.bottom(); ++y) for (int x = area.left(); x <= area.right(); ++x) {
                 const auto dx = (x + .5 - (selected.x() + selected.width() / 2.)) / (selected.width() / 2.);
                 const auto dy = (y + .5 - (selected.y() + selected.height() / 2.)) / (selected.height() / 2.);
-                const auto value = operation == 7 ? (dx * dx + dy * dy <= 1 ? 255 : 0) :
+                const auto value = selectionOperation == 7 ? (dx * dx + dy * dy <= 1 ? 255 : 0) :
                     (((y - selected.y()) * selected.width() + x - selected.x()) * 71) % 256;
-                values[(y - area.y()) * area.width() + x - area.x()] = char(operation == 8 ? 255 - value : value);
+                values[(y - area.y()) * area.width() + x - area.x()] = char(selectionOperation == 8 ? 255 - value : value);
             }
             nativeSelection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), area);
         }
@@ -272,6 +274,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         nativeSelection->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(expectedInput.data()), frame);
         image->globalSelection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(actualInput.data()), frame);
         QCOMPARE(actualInput, expectedInput);
+        originalSelectionPixels = expectedInput;
     }
     const auto originalPixels = owner->readRgbaPixels(layerId, frame, frame.width() * frame.height() * pixelBytes).bytes;
     QSignalSpy windowReady(KisPart::instance(), &KisPart::sigMainWindowCreated);
@@ -293,7 +296,13 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
     window->show(); window->viewManager()->canvasResourceProvider()->setPaintOpPreset(m_preset);
     QTRY_VERIFY(!windowReady.isEmpty());
-    if (maskOnly) window->viewManager()->nodeManager()->slotUiActivatedNode(image->root()->firstChild()->firstChild());
+    if (maskOnly) {
+        const auto child = image->root()->firstChild()->firstChild(); QVERIFY(child);
+        auto *manager = window->viewManager()->nodeManager();
+        manager->slotUiActivatedNode(child); manager->slotSetSelectedNodes({child});
+        QCOMPARE(manager->activeNode(), child);
+        QCOMPARE(manager->selectedNodes(), KisNodeList{child});
+    }
     const auto toolId = QStringLiteral("KisToolTransform");
     KoToolManager::instance()->switchToolRequested(toolId);
     tool = qobject_cast<KisTool*>(KoToolManager::instance()->toolById(view->canvasBase(), toolId)); QVERIFY(tool);
@@ -306,16 +315,16 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     for (auto widget : tool->optionWidgets()) if (widget->metaObject()->indexOfSlot("slotFilterChanged(KoID)") >= 0) panel = widget.data();
     QVERIFY(panel);
     QVERIFY(QMetaObject::invokeMethod(panel, "slotFilterChanged", Q_ARG(KoID, KoID(filter))));
-    if (operation == 0 || operation == 4 || operation >= 6) { QVERIFY(tool->setProperty("scaleX", 137.)); QVERIFY(tool->setProperty("scaleY", 63.)); }
+    if (operation == 0 || operation == 4 || (operation >= 6 && operation <= 9) || operation == 11) { QVERIFY(tool->setProperty("scaleX", 137.)); QVERIFY(tool->setProperty("scaleY", 63.)); }
     if (operation == 1) { QVERIFY(tool->setProperty("shearX", 19.)); QVERIFY(tool->setProperty("shearY", -11.)); QVERIFY(tool->setProperty("rotateZ", 1.97)); }
-    if (operation >= 6) QVERIFY(tool->setProperty("rotateZ", .47));
+    if ((operation >= 6 && operation <= 9) || operation == 11) QVERIFY(tool->setProperty("rotateZ", .47));
     if (operation == 2) QVERIFY(tool->setProperty("rotateZ", M_PI / 2));
     if (operation == 3) { QVERIFY(tool->setProperty("scaleX", -100.)); QVERIFY(tool->setProperty("scaleY", -100.)); }
     QVERIFY(tool->setProperty("translateX", tool->property("translateX").toDouble() + 3.25));
     QVERIFY(tool->setProperty("translateY", tool->property("translateY").toDouble() - 2.75));
     QVERIFY(QMetaObject::invokeMethod(tool, "requestImageRecalculation"));
     ToolTransformArgs args;
-    const auto nativeMaskBounds = maskReference->createCompositionSourceDevice(maskReference)->exactBounds();
+    const auto nativeMaskBounds = maskReference->exactBounds();
     args.setFilterId(filter); args.setOriginalCenter(QRectF(nativeSelection ? nativeSelection->selectedExactRect() : maskOnly ? nativeMaskBounds : reference->exactBounds().united(nativeMaskBounds)).center());
     args.setTransformedCenter({tool->property("translateX").toDouble(), tool->property("translateY").toDouble()});
     args.setScaleX(tool->property("scaleX").toDouble()); args.setScaleY(tool->property("scaleY").toDouble());
@@ -403,7 +412,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     QCOMPARE(image->root()->firstChild()->paintDevice()->exactBounds(), reference->exactBounds());
     QCOMPARE(image->root()->firstChild()->paintDevice()->extent(), reference->extent());
     QCOMPARE(owner->operations().snapshot(), before);
-    if (operation == 9) {
+    if (operation == 9 || operation == 11) {
         tool->requestStrokeCancellation();
         QCOMPARE(owner->operations().preview(), before);
         QByteArray cancelledMask(expectedMask.size(), '\0');
@@ -412,6 +421,12 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         QCOMPARE(owner->readRgbaPixels(layerId, frame, originalPixels.size()).bytes, originalPixels);
         QCOMPARE(owner->operations().undoCount(), initialHistory);
         QCOMPARE(lifetime->undoStack()->count(), initialHistory);
+        if (nativeSelection) {
+            QByteArray restored(originalSelectionPixels.size(), '\0');
+            QVERIFY(image->globalSelection());
+            image->globalSelection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(restored.data()), frame);
+            QCOMPARE(restored, originalSelectionPixels);
+        }
         tool->requestStrokeCancellation();
         QVERIFY(!owner->operations().hasActiveStroke());
         return;

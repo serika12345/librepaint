@@ -281,7 +281,6 @@ private:
     QList<LibrePaint::Image::Gpu::AffineTransformTarget> m_gpuTransformTargets;
     QHash<LibrePaint::Image::Gpu::LayerId, QRect> m_gpuTransformBounds;
     QHash<LibrePaint::Image::Gpu::LayerId, QRect> m_gpuNonDefaultBounds;
-    QHash<LibrePaint::Image::Gpu::LayerId, LibrePaint::Image::Gpu::SelectionMaskSP> m_gpuMaskSources;
     QHash<LibrePaint::Image::Gpu::LayerId, QRect> m_gpuMaskDefaultBounds;
     LibrePaint::Image::Gpu::SelectionMaskSP m_gpuSelection;
     QRect m_gpuSelectionBounds;
