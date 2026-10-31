@@ -6311,7 +6311,7 @@ void KisGpuDocumentViewTest::stabilizedPresetsKeepOrdinaryEditing()
     if (failure >= 2) limits.samplesPerStroke = 32;
     auto owner = paintImageWithEncoding(execution, raster, limits);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
-    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Stabilized editing")));
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Stabilized editing"), cs));
     document->setAutoSaveActive(false);
     document->setFileBatchMode(true);
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
