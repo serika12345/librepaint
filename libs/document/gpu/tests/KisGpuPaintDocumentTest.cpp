@@ -140,6 +140,14 @@ void KisGpuPaintDocumentTest::colourSelectionSavesFrozenCoverageAndContinues()
         QCOMPARE(image->fillLayerColor(2, {0, 0, maximum, maximum}), Result::Success);
         QCOMPARE(image->addTransparencyMaskFromSelection(2), Result::Success);
         const auto pinned = image->operations().snapshot();
+        auto metadata = document.kraImageMetadata();
+        QCOMPARE(metadata.code, Kra::Status::Success);
+        metadata.metadata.layerXmp.emplace();
+        metadata.metadata.layerCollapsed.emplace();
+        const auto prepared = document.setKraImageMetadata(metadata.metadata);
+        QVERIFY2(prepared.code == FileCode::Success, qPrintable(prepared.diagnostic));
+        QCOMPARE(image->operations().snapshot(), pinned);
+        QCOMPARE(image->selectionMask(), mask);
         const auto original = image->readRgbaPixels(2, canvas, canvas.width() * canvas.height() * pixelByteCount(format));
         QCOMPARE(original.code, ExecutionCode::Success);
         QCOMPARE(image->setSelectionRect({1, 1, 3, 3}), Result::Success);

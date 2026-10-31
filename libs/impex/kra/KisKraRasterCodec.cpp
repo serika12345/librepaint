@@ -986,7 +986,13 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
 
 static Outcome applyRasterEncoding(QDomElement image, const RasterImage &value, QMap<QString, QByteArray> &files, Limits limits)
 {
-    if (value.colorProfile.isEmpty()) return {Status::Success, {}};
+    if (value.colorProfile.isEmpty()) {
+        if (value.format == PixelFormat::Rgba16) {
+            const auto path = image.attribute(QStringLiteral("name")) + QStringLiteral("/annotations/icc");
+            if (!files.contains(path)) files.insert(path, QColorSpace(QColorSpace::SRgb).iccProfile());
+        }
+        return {Status::Success, {}};
+    }
     image.setAttribute(QStringLiteral("colorspacename"), colorSpaceName(value.format));
     const auto folder = image.attribute(QStringLiteral("name"));
     const auto imageProfile = folder + QStringLiteral("/annotations/icc");

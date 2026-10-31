@@ -4301,7 +4301,7 @@ void KisGpuDocumentViewTest::generatedSelectionViewRetainsAlphaAfterClose()
     native->writeBytes(reinterpret_cast<const quint8 *>(expected.constData()), canvas);
     const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Exact Alpha8 selection view"));
     QTRY_VERIFY(image->globalSelection());
-    const auto pixels = image->globalSelection()->pixelSelection();
+    KisPixelSelectionSP pixels = image->globalSelection()->pixelSelection();
     const auto verify = [&](const KisPixelSelectionSP &value, const QByteArray &reference) {
         QByteArray bytes(reference.size(), '\0'); value->readBytes(reinterpret_cast<quint8 *>(bytes.data()), canvas);
         return bytes == reference;
@@ -4310,6 +4310,8 @@ void KisGpuDocumentViewTest::generatedSelectionViewRetainsAlphaAfterClose()
     QCOMPARE(pixels->selectedExactRect(), native->selectedExactRect());
     QCOMPARE(pixels->pixel({18, 17}).opacityU8(), quint8(1));
     QCOMPARE(pixels->pixel({17, 17}).opacityU8(), quint8(0));
+    QVERIFY(!pixels->outlineCache().contains(QPointF(18.5, 17.5)));
+    QVERIFY(pixels->outlineCache().contains(QPointF(16.5, 16.5)));
     KisPixelSelectionSP copied = new KisPixelSelection(*pixels);
     QVERIFY(verify(copied, expected));
     pixels->recalculateThumbnailImage(Qt::red); native->recalculateThumbnailImage(Qt::red);
@@ -4321,6 +4323,7 @@ void KisGpuDocumentViewTest::generatedSelectionViewRetainsAlphaAfterClose()
     // keeps the earlier immutable mask while current selectedness is inverted.
     QByteArray inverse = expected;
     for (char &value : inverse) value = char(255 - quint8(value));
+    QTRY_VERIFY(verify(image->globalSelection()->pixelSelection(), inverse));
     const auto invertedPixels = image->globalSelection()->pixelSelection();
     QVERIFY(verify(invertedPixels, inverse));
     QCOMPARE(invertedPixels->selectedExactRect(), canvas);
@@ -4345,14 +4348,16 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra_data()
     for (const auto &tool : {QStringLiteral("KisToolSelectContiguous"), QStringLiteral("KisToolSelectSimilar")})
         for (const bool words : {false, true}) {
             for (const auto action : {SELECTION_REPLACE, SELECTION_ADD, SELECTION_SUBTRACT, SELECTION_INTERSECT, SELECTION_SYMMETRICDIFFERENCE}) {
-                const auto name = tool.toLatin1() + (words ? "-word-" : "-byte-") + QByteArray::number(int(action));
+                const QByteArray name = tool.toLatin1() + (words ? "-word-" : "-byte-") + QByteArray::number(int(action));
                 QTest::newRow(name.constData()) << tool << words << int(action) << QStringLiteral("lab");
             }
             for (const auto &scenario : {QStringLiteral("hard"), QStringLiteral("all"), QStringLiteral("label"),
                                          QStringLiteral("masked"), QStringLiteral("shrink")}) {
-                const auto name = tool.toLatin1() + (words ? "-word-" : "-byte-") + scenario.toLatin1();
+                const QByteArray name = tool.toLatin1() + (words ? "-word-" : "-byte-") + scenario.toLatin1();
                 QTest::newRow(name.constData()) << tool << words << int(SELECTION_REPLACE) << scenario;
             }
+            const QByteArray gradient = tool.toLatin1() + (words ? "-word-spread-gradient" : "-byte-spread-gradient");
+            QTest::newRow(gradient.constData()) << tool << words << int(SELECTION_ADD) << QStringLiteral("spread-gradient");
         }
 }
 
@@ -4390,8 +4395,8 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra()
     for (int y = 0; y < region.height(); ++y) for (int x = 0; x < region.width(); ++x) {
         const bool inside = ((x - 72) * (x - 72) + (y - 76) * (y - 76) < 38 * 38) ||
                             QRect(160, 40, 58, 49).contains(x, y);
-        const auto pixel = Gpu::rgbaBytes(inside ? Gpu::RgbaPixel{quint16(maximum * (140 + x % 21) / 255u),
-            quint16(maximum * (43 + y % 17) / 255u), quint16(maximum * 29u / 255u), maximum} : Gpu::RgbaPixel{0, 0, 0, maximum}, format);
+        const auto pixel = Gpu::rgbaBytes(inside ? Gpu::RgbaPixel{quint16(maximum * (scenario == QLatin1String("spread-gradient") ? 96 + x % 129 : 140 + x % 21) / 255u),
+            quint16(maximum * (scenario == QLatin1String("spread-gradient") ? 30 + y % 97 : 43 + y % 17) / 255u), quint16(maximum * 29u / 255u), maximum} : Gpu::RgbaPixel{0, 0, 0, maximum}, format);
         sourceBytes.replace((y * region.width() + x) * stride, stride, pixel);
     }
     auto bgra = sourceBytes; exchangeRgbaBgra(bgra, stride);
@@ -4574,7 +4579,7 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra()
     QTemporaryDir directory;
     QVERIFY(directory.isValid()); lifetime->setFileBatchMode(true);
     const auto path = directory.filePath(QStringLiteral("combined-selection.kra"));
-    QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
     lifetime->waitForSavingToComplete();
     QFile file(path); QVERIFY(file.open(QIODevice::ReadOnly));
     const auto loaded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
@@ -4603,7 +4608,7 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra()
     QCOMPARE(reopened->redo(), Gpu::Result::Success);
     QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), region, actual.bytes.size()).bytes, nativeBytes());
     const auto editedPath = directory.filePath(QStringLiteral("reedited-selection.kra"));
-    QVERIFY(lifetime->saveAs(editedPath, KisDocument::nativeFormatMimeType(), false));
+    QVERIFY2(lifetime->saveAs(editedPath, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
     lifetime->waitForSavingToComplete();
     QFile editedFile(editedPath); QVERIFY(editedFile.open(QIODevice::ReadOnly));
     const auto edited = LibrePaint::ImportExport::Kra::RasterCodec::read(editedFile);

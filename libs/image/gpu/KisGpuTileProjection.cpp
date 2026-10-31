@@ -42,7 +42,7 @@ struct CompositeJob
 std::shared_ptr<CoverageTile> TileRenderer::Private::coverageTile(WGPUCommandEncoder commands,
                                                                const SelectionMaskSP &mask, quint64 key)
 {
-    if (!mask) return {};
+    if (!mask || !device->ownsCommands(commands)) return {};
     const auto found = maskTiles.constFind(mask.data());
     if (found != maskTiles.cend()) {
         const auto cached = found->tiles.constFind(key);
@@ -56,19 +56,23 @@ std::shared_ptr<CoverageTile> TileRenderer::Private::coverageTile(WGPUCommandEnc
     auto pixels = createBuffer(device->nativeDevice(), SelectionMask::AlphaTileBytes,
                                WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
     if (!pixels || !device->diagnostic().isEmpty()) return {};
-    QByteArray alpha(SelectionMask::AlphaTileBytes, '\0');
-    const int tileX = int(quint32(key)), tileY = int(quint32(key >> 32));
-    const auto stored = mask->tiles().constFind(SelectionTileKey(tileX, tileY));
-    if (stored != mask->tiles().cend()) {
-        const auto &bytes = stored.value();
-        if (mask->isAlpha()) {
-            if (bytes.size() == SelectionMask::AlphaTileBytes) alpha = bytes;
-        } else if (bytes.size() == SelectionMask::TileBytes) {
-            for (qsizetype index = 0; index < SelectionMask::AlphaTileBytes; ++index)
-                if (quint8(bytes.at(index >> 3)) & (1u << (index & 7))) alpha[index] = char(255);
+    if (mask->isEmpty()) {
+        wgpuCommandEncoderClearBuffer(commands, pixels.get(), 0, SelectionMask::AlphaTileBytes);
+    } else {
+        QByteArray alpha(SelectionMask::AlphaTileBytes, '\0');
+        const int tileX = int(quint32(key)), tileY = int(quint32(key >> 32));
+        const auto stored = mask->tiles().constFind(SelectionTileKey(tileX, tileY));
+        if (stored != mask->tiles().cend()) {
+            const auto &bytes = stored.value();
+            if (mask->isAlpha()) {
+                if (bytes.size() == SelectionMask::AlphaTileBytes) alpha = bytes;
+            } else if (bytes.size() == SelectionMask::TileBytes) {
+                for (qsizetype index = 0; index < SelectionMask::AlphaTileBytes; ++index)
+                    if (quint8(bytes.at(index >> 3)) & (1u << (index & 7))) alpha[index] = char(255);
+            }
         }
+        wgpuQueueWriteBuffer(device->queue(), pixels.get(), 0, alpha.constData(), alpha.size());
     }
-    wgpuQueueWriteBuffer(device->queue(), pixels.get(), 0, alpha.constData(), alpha.size());
     auto tile = std::make_shared<CoverageTile>(std::move(pixels), budget);
     auto &entry = maskTiles[mask.data()];
     entry.source = mask;

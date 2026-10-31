@@ -340,7 +340,8 @@ public:
     void cloneAllDataObjects(Private *rhs, bool copyFrames)
     {
         if (rhs->gpuSelection) {
-            init(KoColorSpaceRegistry::instance()->alpha8(), nullptr);
+            const quint8 transparent = 0;
+            init(KoColorSpaceRegistry::instance()->alpha8(), &transparent);
             gpuSelectionOwner = rhs->gpuSelectionOwner;
             gpuSelection = rhs->gpuSelection;
             gpuSequence = rhs->gpuSequence;
