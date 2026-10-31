@@ -3268,6 +3268,14 @@ void KisGpuDocumentViewTest::selectionCopyAndCutUseGpuSelection()
 void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
+    KConfigGroup configuration = KSharedConfig::openConfig()->group(QStringLiteral("KisToolSelectRectangular"));
+    const auto oldEntries = configuration.entryMap();
+    const auto restoreConfiguration = qScopeGuard([&] {
+        configuration.deleteGroup();
+        for (auto i = oldEntries.cbegin(); i != oldEntries.cend(); ++i) configuration.writeEntry(i.key(), i.value());
+    });
+    configuration.writeEntry("roundCornersX", 0);
+    configuration.writeEntry("roundCornersY", 0);
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
@@ -3310,6 +3318,22 @@ void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
     QVERIFY(native);
     KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectRectangular"));
     QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectRectangular"));
+    QPointer<KisSelectionOptions> options;
+    for (auto *widget : QApplication::allWidgets())
+        if (widget->objectName() == QLatin1String("KisToolSelectRectangularoption widget"))
+            if (auto *candidate = qobject_cast<KisSelectionOptions *>(widget)) options = candidate;
+    QVERIFY(options);
+    const auto oldAction = options->action();
+    const auto oldMode = options->mode();
+    const bool oldAA = options->antiAliasSelection();
+    const int oldGrow = options->growSelection(), oldFeather = options->featherSelection();
+    const auto restoreOptions = qScopeGuard([&] {
+        if (!options) return;
+        options->setAction(oldAction); options->setMode(oldMode); options->setAntiAliasSelection(oldAA);
+        options->setGrowSelection(oldGrow); options->setFeatherSelection(oldFeather);
+    });
+    options->setMode(PIXEL_SELECTION); options->setAction(SELECTION_REPLACE);
+    options->setAntiAliasSelection(false); options->setGrowSelection(0); options->setFeatherSelection(0);
     window->activateWindow();
     native->requestActivate();
     view->canvasBase()->canvasWidget()->setFocus();
@@ -3326,6 +3350,7 @@ void KisGpuDocumentViewTest::selectionMovePreviewsAndCommitsOneHistory()
     QTRY_COMPARE(owner->selectionRect(), selected);
     QTRY_VERIFY(lifetime->image()->globalSelection() &&
                 lifetime->image()->globalSelection()->selectedExactRect() == selected);
+    QCOMPARE(owner->selectionKind(), Gpu::SelectionKind::Rectangle);
 
     QVERIFY(lifetime->image()->setGpuSelectionRect(selected, true));
     QTRY_VERIFY(owner->selectionInverted());
