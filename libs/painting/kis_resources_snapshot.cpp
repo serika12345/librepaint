@@ -37,6 +37,7 @@
 #include <KoCanvasResourcesIds.h>
 #include <KoCanvasResourcesInterface.h>
 #include <KoResourceCacheInterface.h>
+#include <KoResourceLoadResult.h>
 #include <kis_brush.h>
 #include <kis_gbr_brush.h>
 #include <kis_imagepipe_brush.h>
@@ -265,7 +266,7 @@ FrozenGpuImageTips captureImageBrushTips(const KisPaintOpSettingsSP &settings, c
     namespace Gpu = LibrePaint::Image::Gpu;
     auto resources = settings->resourcesInterface();
     if (!resources) resources = KisGlobalResourcesInterface::instance();
-    const auto native = KisBrush::fromXML(definition, resources);
+    const auto native = KisBrush::fromXMLLoadResult(definition, resources).resource<KisBrush>();
     if (!native || native->brushApplication() != ALPHAMASK) return {};
     QList<QImage> images;
     bool random = false;
