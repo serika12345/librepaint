@@ -73,7 +73,8 @@ bool captureCurveResponse(QString curve, LibrePaint::Image::Gpu::PressureRespons
             (!points.isEmpty() && x <= points.last().x())) return false;
         points.append({x, y});
     }
-    if (points.size() < 2 || points.first().x() != 0 || points.last().x() != 1) return false;
+    // Native curves extend their endpoint values to the full sensor domain.
+    if (points.size() < 2) return false;
     const KisCubicCurve parsed(points);
     if (parsed.isIdentity()) response.kind = Response::Kind::Direct;
     else {
@@ -217,7 +218,7 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") ||
         settings->getBool("HorizontalMirrorEnabled") || settings->getBool("VerticalMirrorEnabled")) return false;
     for (const auto *name : {"PressureDarken", "PressureMirror", "PressureMix", "PressureRate", "PressureRatio",
-                            "PressureRotation", "PressureScatter", "PressureSharpness", "PressureSoftness",
+                            "PressureRotation", "PressureScatter", "PressureSoftness",
                             "PressureSpacing", "Pressureh", "Pressures", "Pressurev"})
         if (settings->getBool(QLatin1String(name))) return false;
     QDomDocument definition;
@@ -241,6 +242,19 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     value.precisionLevel = settings->getInt("KisPrecisionOption/precisionLevel", 5);
     value.autoPrecision = settings->getBool("KisPrecisionOption/AutoPrecisionEnabled", false);
     if (value.precisionLevel < 1 || value.precisionLevel > 5) return false;
+    if (settings->getBool("PressureSharpness")) {
+        LibrePaint::Image::Gpu::PressureResponse sharpness;
+        if (!capturePressureResponse(settings, QStringLiteral("Sharpness"), true, sharpness)) return false;
+        value.alignOutlinePixels = settings->getBool("Sharpness/alignoutline");
+        value.sharpnessSoftness = settings->getInt("Sharpness/softness");
+        if (settings->hasProperty("Sharpness/factor") && !settings->hasProperty("SharpnessValue")) {
+            sharpness.strength = settings->getDouble("Sharpness/factor");
+            if (!qIsFinite(sharpness.strength) || sharpness.strength < 0 || sharpness.strength > 1) return false;
+            value.sharpnessSoftness = int(sharpness.strength * 100);
+        }
+        if (value.sharpnessSoftness < 0 || value.sharpnessSoftness > 100) return false;
+        value.sharpnessResponse = std::move(sharpness);
+    }
     value.isotropicSpacing = settings->getBool("Spacing/Isotropic", false);
     if (mask.attribute(QStringLiteral("id")) == QLatin1String("default")) {
         value.mask = mask.attribute(QStringLiteral("type")) == QLatin1String("rect") ?

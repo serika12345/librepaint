@@ -315,6 +315,13 @@ fn gaussianCoverage(pixel: vec2<i32>) -> u32 {
             else { coverage = standardCircleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
         } else if (dab.size.z > 1u) { coverage = smallCircleAlpha(dab, vec2<u32>(point)) * scale; }
         else { coverage = circleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
+        if ((dab.texture.z & 512u) != 0u) {
+            let opacity = select(coverage, (coverage - (coverage >> 8u) + 128u) >> 8u, maximum == 65535u);
+            let tolerance = (dab.texture.z >> 16u) & 255u;
+            let transparent = dab.texture.z >> 24u;
+            if (opacity > tolerance) { coverage = maximum; }
+            else if (opacity <= transparent) { coverage = 0u; }
+        }
         coverage = paperCoverage(dab, pixel, coverage, maximum);
         if (parameters.native.z != 0u) { alpha = washWordAlpha(alpha, coverage, dab.application); }
         else if ((parameters.paintFlags & 524288u) != 0u) { alpha = maskWashAlpha(alpha, coverage, dab.application); }

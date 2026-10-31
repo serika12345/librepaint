@@ -127,6 +127,8 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
                             !add(value->sampleBlocks.constData(), value->sampleBlocks.size() * qsizetype(sizeof(value->sampleBlocks[0]))) ||
                             !add(value->smoothingFlushes.constData(), value->smoothingFlushes.size() * qsizetype(sizeof(qsizetype)))) return false;
                         if (value->brush.autoBrush) {
+                            const auto &sharpness = value->brush.autoBrush->sharpnessResponse;
+                            if (sharpness && !add(sharpness->curve.constData(), sharpness->curve.size() * qsizetype(sizeof(qreal)))) return false;
                             for (const auto *response : {&value->brush.autoBrush->opacityResponse, &value->brush.autoBrush->flowResponse})
                                 if (!add(response->curve.constData(), response->curve.size() * qsizetype(sizeof(qreal)))) return false;
                         }

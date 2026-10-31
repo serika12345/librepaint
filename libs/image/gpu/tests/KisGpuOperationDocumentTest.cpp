@@ -4544,7 +4544,7 @@ void KisGpuOperationDocumentTest::invalidAutoBrushSettingsPreserveTheDocument()
     auto &wash = brush.autoBrush.emplace();
     wash.opacityResponse = {PressureResponse::Kind::Curve, 1, QList<qreal>(256, 1)};
     const auto before = document.preview();
-    for (int invalid = 0; invalid < 8; ++invalid) {
+    for (int invalid = 0; invalid < 11; ++invalid) {
         auto bad = brush;
         switch (invalid) {
         case 0: bad.autoBrush->flow = -1; break;
@@ -4555,6 +4555,9 @@ void KisGpuOperationDocumentTest::invalidAutoBrushSettingsPreserveTheDocument()
         case 5: bad.autoBrush->opacityResponse.curve.append(1); break;
         case 6: bad.autoBrush->ratio = 0; break;
         case 7: bad.autoBrush->verticalFade = std::numeric_limits<qreal>::quiet_NaN(); break;
+        case 8: bad.autoBrush->sharpnessSoftness = 101; break;
+        case 9: bad.autoBrush->sharpnessResponse = PressureResponse{PressureResponse::Kind::Direct, -1, {}}; break;
+        case 10: bad.autoBrush->sharpnessResponse = PressureResponse{PressureResponse::Kind::Curve, 1, {}}; break;
         }
         QVERIFY(document.beginStroke(document.activeLayer(), bad, 1789).isNull());
         QCOMPARE(document.preview(), before);

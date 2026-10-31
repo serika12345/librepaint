@@ -193,7 +193,7 @@ struct BrushTexture
     }
 };
 
-/** Frozen generated circular mask, WASH flow and pressure-controlled opacity. */
+/** Frozen generated brush tip, WASH flow and pressure-controlled application. */
 struct AutoBrush
 {
     enum class Mask { GaussianCircle, Circle, Rectangle };
@@ -209,6 +209,10 @@ struct AutoBrush
     bool creamy = true;
     PressureResponse opacityResponse;
     PressureResponse flowResponse;
+    /** Native alpha threshold, applied before the repeating paper mask. */
+    std::optional<PressureResponse> sharpnessResponse;
+    bool alignOutlinePixels = false;
+    int sharpnessSoftness = 0;
     int precisionLevel = 5;
     bool autoPrecision = false;
 
@@ -218,6 +222,8 @@ struct AutoBrush
             ratio == other.ratio && isotropicSpacing == other.isotropicSpacing && antialiasEdges == other.antialiasEdges &&
             angle == other.angle && flow == other.flow && creamy == other.creamy &&
             opacityResponse == other.opacityResponse && flowResponse == other.flowResponse &&
+            sharpnessResponse == other.sharpnessResponse && alignOutlinePixels == other.alignOutlinePixels &&
+            sharpnessSoftness == other.sharpnessSoftness &&
             precisionLevel == other.precisionLevel && autoPrecision == other.autoPrecision;
     }
 };

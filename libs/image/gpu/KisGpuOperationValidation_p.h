@@ -321,6 +321,8 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
         if (value.precisionLevel < 1 || value.precisionLevel > 5 ||
             !std::isfinite(value.angle) || !std::isfinite(value.flow) || value.flow < 0 || value.flow > 1 ||
             !validPressureResponse(value.opacityResponse) || !validPressureResponse(value.flowResponse) ||
+            (value.sharpnessResponse && !validPressureResponse(*value.sharpnessResponse)) ||
+            value.sharpnessSoftness < 0 || value.sharpnessSoftness > 100 ||
             (value.mask != AutoBrush::Mask::GaussianCircle && value.mask != AutoBrush::Mask::Circle &&
              value.mask != AutoBrush::Mask::Rectangle) ||
             !std::isfinite(value.fade) || value.fade < 0 || value.fade > 1 ||

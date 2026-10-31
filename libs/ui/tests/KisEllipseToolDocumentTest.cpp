@@ -474,6 +474,9 @@ void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing_data()
             QTest::newRow(qPrintable(QStringLiteral("screen-") + name)) << figure << true << false << false << false
                 << int(KisFigurePaintingOptions::FillStyleNone)
                 << int(KisFigurePaintingOptions::StrokeStyleForeground) << words << QStringLiteral("y)_Screentones_Regular.kpp");
+            QTest::newRow(qPrintable(QStringLiteral("dither-") + name)) << figure << true << false << false << false
+                << int(KisFigurePaintingOptions::FillStyleNone)
+                << int(KisFigurePaintingOptions::StrokeStyleForeground) << words << QStringLiteral("u)_Pixel_Art_Dithering.kpp");
         }
     }
 }
@@ -484,20 +487,21 @@ void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing()
     QFETCH(QString, paperPreset);
     const bool paper = !paperPreset.isEmpty();
     const bool screentone = paperPreset == QLatin1String("y)_Screentones_Regular.kpp");
+    const bool dither = paperPreset == QLatin1String("u)_Pixel_Art_Dithering.kpp");
     auto preset = m_fillPreset;
     if (paper) {
         const auto bundle = KisResourceStorageSP::create(QStringLiteral(KRITA_SOURCE_DIR "/krita/data/bundles/Krita_4_Default_Resources.bundle"));
         QVERIFY(bundle->valid());
         preset = bundle->resource(QStringLiteral("paintoppresets/") + paperPreset).dynamicCast<KisPaintOpPreset>();
-        const auto pattern = bundle->resource(screentone ? QStringLiteral("patterns/24-dynamic-screentone-B.png") : QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
+        const auto pattern = bundle->resource(screentone ? QStringLiteral("patterns/24-dynamic-screentone-B.png") : dither ? QStringLiteral("patterns/Squares08.pat") : QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
         QVERIFY(preset); QVERIFY(pattern);
         if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(pattern->md5Sum(), pattern->filename(), pattern->name())) {
             KisResourceModel patterns(ResourceType::Patterns); QVERIFY(patterns.addResource(pattern));
         }
         preset->settings()->setProperty("Texture/Pattern/isRandomOffsetX", false);
         preset->settings()->setProperty("Texture/Pattern/isRandomOffsetY", false);
-        preset->settings()->setProperty("Texture/Pattern/OffsetX", screentone ? 0 : 7);
-        preset->settings()->setProperty("Texture/Pattern/OffsetY", screentone ? 0 : 11);
+        preset->settings()->setProperty("Texture/Pattern/OffsetX", screentone || dither ? 0 : 7);
+        preset->settings()->setProperty("Texture/Pattern/OffsetY", screentone || dither ? 0 : 11);
         preset->setFilename(QStringLiteral("paper-figure-") + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kpp"));
         KisResourceModel presets(ResourceType::PaintOpPresets); QVERIFY(presets.addResource(preset));
     }

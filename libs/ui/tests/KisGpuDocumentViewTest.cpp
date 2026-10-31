@@ -2556,7 +2556,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
     QTest::addColumn<bool>("words");
     QTest::addColumn<qreal>("flow");
     for (const auto *name : {"d)_Ink-3_Gpen.kpp", "a)_Eraser_Small.kpp", "b)_Basic-5_Size_default.kpp",
-                             "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp", "d)_Ink-7_Brush_Rough.kpp", "y)_Screentones_Regular.kpp"})
+                             "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp", "d)_Ink-7_Brush_Rough.kpp", "y)_Screentones_Regular.kpp", "u)_Pixel_Art_Dithering.kpp"})
         for (const bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1);
@@ -2584,9 +2584,11 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     if (brushes.rowCount() == 0) QVERIFY(brushes.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/libs/brush/tests/data/brush.gbr"), false));
     KisResourceModel patterns(ResourceType::Patterns);
     if (patterns.rowCount() == 0) QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
-    if (presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp") || presetName == QLatin1String("y)_Screentones_Regular.kpp")) {
+    if (presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp") || presetName == QLatin1String("y)_Screentones_Regular.kpp") ||
+        presetName == QLatin1String("u)_Pixel_Art_Dithering.kpp")) {
         const auto paper = bundle->resource(presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp") ?
-            QStringLiteral("patterns/03_default-paper.png") : QStringLiteral("patterns/24-dynamic-screentone-B.png")).dynamicCast<KoPattern>();
+            QStringLiteral("patterns/03_default-paper.png") : presetName.startsWith(QLatin1String("y)")) ?
+            QStringLiteral("patterns/24-dynamic-screentone-B.png") : QStringLiteral("patterns/Squares08.pat")).dynamicCast<KoPattern>();
         QVERIFY(paper);
         if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(paper->md5Sum(), paper->filename(), paper->name()))
             QVERIFY(patterns.addResource(paper));
@@ -8200,6 +8202,11 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
     for (bool words : {false, true})
         QTest::newRow(words ? "texture-screentone-u16" : "texture-screentone-u8")
             << QStringLiteral("y)_Screentones_Regular.kpp") << words << 0 << qreal(40) << false;
+    for (bool words : {false, true})
+        for (const auto *mode : {"preset", "taper", "sharpness-soft-aligned", "sharpness-legacy"}) {
+            const QByteArray row = QByteArray("dither-") + mode + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << QStringLiteral("u)_Pixel_Art_Dithering.kpp") << words << 0 << qreal(12) << false;
+        }
 
 }
 
@@ -8230,9 +8237,10 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
     auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
     const bool screentone = presetName == QLatin1String("y)_Screentones_Regular.kpp");
-    const bool textured = presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp") || screentone;
+    const bool dither = presetName == QLatin1String("u)_Pixel_Art_Dithering.kpp");
+    const bool textured = presetName == QLatin1String("d)_Ink-7_Brush_Rough.kpp") || screentone || dither;
     if (textured) {
-        const auto paper = bundle->resource(screentone ? QStringLiteral("patterns/24-dynamic-screentone-B.png") : QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
+        const auto paper = bundle->resource(screentone ? QStringLiteral("patterns/24-dynamic-screentone-B.png") : dither ? QStringLiteral("patterns/Squares08.pat") : QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
         QVERIFY(paper);
         if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(paper->md5Sum(), paper->filename(), paper->name()))
             QVERIFY(patterns.addResource(paper));
@@ -8240,8 +8248,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         // Freeze native random outputs as part of the comparison's input.
         settings->setProperty("Texture/Pattern/isRandomOffsetX", false);
         settings->setProperty("Texture/Pattern/isRandomOffsetY", false);
-        settings->setProperty("Texture/Pattern/OffsetX", screentone ? 0 : 7);
-        settings->setProperty("Texture/Pattern/OffsetY", screentone ? 0 : 11);
+        settings->setProperty("Texture/Pattern/OffsetX", screentone || dither ? 0 : 7);
+        settings->setProperty("Texture/Pattern/OffsetY", screentone || dither ? 0 : 11);
         const QByteArray row(QTest::currentDataTag());
         settings->setProperty("Texture/Pattern/TexturingMode", row.contains("multiply") ? 0 : row.contains("darken") ? 4 : 1);
         settings->setProperty("Texture/Pattern/UseSoftTexturing", row.contains("-soft"));
@@ -8254,6 +8262,18 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             settings->setProperty("KisPrecisionOption/precisionLevel", row.split('-').value(2).toInt());
         }
         settings->setProperty("Texture/Strength/Sensor", sensors);
+        if (row.contains("sharpness-soft-aligned")) {
+            settings->setProperty("SharpnessValue", .65);
+            settings->setProperty("SharpnessUseCurve", true);
+            settings->setProperty("SharpnessSensor", QStringLiteral("<params id='pressure'><curve>0,0;1,1;</curve></params>"));
+            settings->setProperty("SharpnessUseSameCurve", false);
+            settings->setProperty("SharpnesscurveMode", 0);
+            settings->setProperty("Sharpness/alignoutline", true);
+            settings->setProperty("Sharpness/softness", 45);
+        } else if (row.contains("sharpness-legacy")) {
+            settings->removeProperty("SharpnessValue");
+            settings->setProperty("Sharpness/factor", .65);
+        }
     }
 
     const auto cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
@@ -8365,7 +8385,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                      Gpu::AutoBrush::Mask::Rectangle : Gpu::AutoBrush::Mask::Circle);
             if (textured) {
                 QVERIFY(capture.brush.texture);
-                QCOMPARE(capture.brush.texture->offset, screentone ? QPoint() : QPoint(7, 11));
+                QCOMPARE(capture.brush.texture->offset, screentone || dither ? QPoint() : QPoint(7, 11));
                 const auto frozen = *capture.brush.texture;
                 auto currentPreset = resources->currentPreset();
                 auto settings = currentPreset->settings();
@@ -8390,8 +8410,12 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 QCOMPARE(*capture.brush.texture, frozen);
                 settings->setProperty("Texture/Pattern/Brightness", brightness);
             }
-            const QList<QPair<qreal, qreal>> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
-                                                          {200, .03}, {200, .05}, {200, .06}};
+            QList<QPair<qreal, qreal>> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
+                                                    {200, .03}, {200, .05}, {200, .06}};
+            // This bundled size curve starts at x=.00813008. Both low-pressure
+            // inputs must retain the native constant endpoint extension.
+            if (dither) pressureCases.prepend({40, .004});
+            if (dither) pressureCases.prepend({40, 0});
             for (const auto &input : pressureCases) {
                 const auto diameter = input.first;
                 const auto pressure = input.second;
@@ -8399,7 +8423,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 const auto pressureCapture = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
                                                                       view->canvasBase()->resourceManager());
                 QVERIFY2(pressureCapture.diagnostic.isEmpty(), qPrintable(pressureCapture.diagnostic));
-                const qreal endPressure = textured && (QByteArray(QTest::currentDataTag()).contains("precision") || QByteArray(QTest::currentDataTag()).contains("taper")) ? std::min(pressure, qreal(.33)) : pressure;
+                const qreal endPressure = textured && (QByteArray(QTest::currentDataTag()).contains("precision") || QByteArray(QTest::currentDataTag()).contains("taper") || QByteArray(QTest::currentDataTag()).contains("sharpness")) ? std::min(pressure, qreal(.33)) : pressure;
                 KisImageSP nativeImage = new KisImage(nullptr, size.width(), size.height(), cs, QStringLiteral("Native preset reference"));
                 KisPaintLayerSP nativeLayer = new KisPaintLayer(nativeImage, QStringLiteral("Reference"), 255);
                 nativeImage->addNode(nativeLayer, nativeImage->root());

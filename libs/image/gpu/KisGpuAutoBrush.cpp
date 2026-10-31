@@ -67,7 +67,13 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
     const bool complete = forEachBrushDab(operation, pending, [&](const BrushDab &point) {
         const auto &metric = point.size;
         const QPointF hotSpot(std::max(qreal(1), metric.width()) / 2, std::max(qreal(1), metric.height()) / 2);
-        const auto offset = point.position - hotSpot;
+        auto offset = point.position - hotSpot;
+        const auto sharpness = settings.sharpnessResponse ?
+            std::optional<qreal>(pressureValue(*settings.sharpnessResponse, point.pressure)) : std::nullopt;
+        if (sharpness && settings.alignOutlinePixels && settings.sharpnessResponse->strength > 0) {
+            if (qFuzzyCompare(*sharpness, qreal(1))) offset = QPointF(qRound(offset.x()), qRound(offset.y()));
+            else offset = *sharpness * QPointF(qRound(offset.x()), qRound(offset.y())) + (1 - *sharpness) * offset;
+        }
         QPoint origin(int(std::floor(offset.x())), int(std::floor(offset.y())));
         auto subpixel = offset - origin;
         if (point.mirroredH) {
@@ -148,6 +154,11 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             dab.words[28] = qRound(strength * 255);
             dab.words[29] = qRound(strength * 65535);
             dab.words[30] = quint32(brush.texture->mode) | (quint32(brush.texture->soft) << 8);
+        }
+        if (sharpness) {
+            const quint32 tolerance = quint32(255 - *sharpness * 255);
+            const quint32 transparent = (100 - settings.sharpnessSoftness) * tolerance / 100;
+            dab.words[30] |= 512u | (tolerance << 16) | (transparent << 24);
         }
         result.append(dab);
         return result.size() <= PaintGeometryElementLimit / reflectionCount;
