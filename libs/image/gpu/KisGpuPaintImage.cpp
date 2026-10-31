@@ -719,7 +719,7 @@ Result PaintImage::replaceTransparencyMask(LayerId layer, const SelectionMaskSP 
     return publish(m_d->document->replaceTransparencyMask(layer, mask));
 }
 Result PaintImage::writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask)
-{ return onThread() ? requestAfterWrite(m_d->document->writeTransparencyMask(layer, mask)) : Result::InvalidInput; }
+{ return onThread() ? publish(m_d->document->writeTransparencyMask(layer, mask)) : Result::InvalidInput; }
 
 Result PaintImage::replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled)
 {
