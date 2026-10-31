@@ -21,11 +21,11 @@ fn alphaAt(x: u32, y: u32) -> u32 {
     var count = 0u;
     for (var x = 0u; x < parameters.size.x; x += 1u) {
         let alpha = alphaAt(x, y);
-        if (alpha != 0u) {
+        if (alpha != parameters.format.y) {
             atomicMin(&bounds[1], x); atomicMin(&bounds[2], y);
             atomicMax(&bounds[3], x); atomicMax(&bounds[4], y);
         }
-        let selected = alpha >= 128u;
+        let selected = (alpha >= 128u) != (parameters.format.y >= 128u);
         if (selected && !previous) { count += 1u; }
         previous = selected;
     }
@@ -39,7 +39,7 @@ fn alphaAt(x: u32, y: u32) -> u32 {
     var first = 0u;
     for (var x = 0u; x <= parameters.size.x; x += 1u) {
         var selected = false;
-        if (x < parameters.size.x) { selected = alphaAt(x, y) >= 128u; }
+        if (x < parameters.size.x) { selected = (alphaAt(x, y) >= 128u) != (parameters.format.y >= 128u); }
         if (selected && !inside) { first = x; inside = true; }
         if (!selected && inside) {
             runs[runIndex] = vec4<i32>(parameters.origin + vec2<i32>(i32(first), i32(y)), i32(x - first), 1);

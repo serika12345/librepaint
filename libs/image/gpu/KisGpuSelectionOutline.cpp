@@ -15,6 +15,13 @@ using namespace Detail;
 ExecutionOutcome Execution::readSelectionOutline(const std::shared_ptr<BufferStorage> &pixels,
     QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *outputRuns, quint32 format)
 {
+    return readSelectionOutline(pixels, extent, expectedBounds, bounds, outputRuns, format, 0);
+}
+
+ExecutionOutcome Execution::readSelectionOutline(const std::shared_ptr<BufferStorage> &pixels,
+    QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *outputRuns,
+    quint32 format, quint8 defaultCoverage)
+{
     auto &d = *m_d;
     auto &r = *d.renderer->m_d;
     if (!bounds || !outputRuns || !pixels || d.active || extent.isEmpty() || format > 2) return {ExecutionCode::InvalidRequest, {}};
@@ -58,7 +65,7 @@ ExecutionOutcome Execution::readSelectionOutline(const std::shared_ptr<BufferSto
     }
     if (!r.coverageCountPipeline || !r.coverageOutlinePipeline)
         return {ExecutionCode::DeviceFailure, r.error};
-    const qint32 parameters[8]{size.width(), size.height(), extent.x(), extent.y(), qint32(format), 0, 0, 0};
+    const qint32 parameters[8]{size.width(), size.height(), extent.x(), extent.y(), qint32(format), defaultCoverage, 0, 0};
     const quint32 initial[5]{0, quint32(size.width()), quint32(size.height()), 0, 0};
     wgpuQueueWriteBuffer(d.device->queue(), uniform->pixels.get(), 0, parameters, sizeof(parameters));
     wgpuQueueWriteBuffer(d.device->queue(), status->pixels.get(), 0, initial, sizeof(initial));

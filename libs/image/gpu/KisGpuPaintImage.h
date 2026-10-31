@@ -140,6 +140,7 @@ public:
      * already owns a mask or a document without a selection.
      */
     Result addTransparencyMaskFromSelection(LayerId layer);
+    Result addTransparencyMask(LayerId layer);
     Result setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history = PropertyHistory::Separate);
     Result setTransparencyMaskLocked(LayerId layer, bool locked, PropertyHistory history = PropertyHistory::Separate);
     Result writeTransparencyMaskVisible(LayerId layer, bool visible);

@@ -166,8 +166,8 @@ QSharedPointer<const SelectionMask> morph(const SelectionMask &source, int xRadi
 
 } // namespace
 
-SelectionMask::SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format)
-    : m_bounds(bounds), m_tiles(std::move(tiles)), m_format(format)
+SelectionMask::SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format, quint8 defaultCoverage)
+    : m_bounds(bounds), m_tiles(std::move(tiles)), m_format(format), m_defaultCoverage(defaultCoverage)
 {
 }
 
@@ -175,6 +175,12 @@ QSharedPointer<const SelectionMask> SelectionMask::empty()
 {
     static const auto mask = QSharedPointer<const SelectionMask>(new SelectionMask({}, {}, CoverageFormat::Binary));
     return mask;
+}
+
+QSharedPointer<const SelectionMask> SelectionMask::uniform(quint8 coverage)
+{
+    if (!coverage) return empty();
+    return SelectionMaskSP(new SelectionMask({}, {}, CoverageFormat::Alpha, coverage));
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::combined(const SelectionMask &other,
@@ -409,6 +415,28 @@ QSharedPointer<const SelectionMask> SelectionMask::fromAlphaTiles(const Selectio
     return make(bounds, tiles, CoverageFormat::Alpha);
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::fromAlphaTiles(const SelectionTileMap &tiles, quint8 defaultCoverage)
+{
+    if (!defaultCoverage) return tiles.isEmpty() ? empty() : fromAlphaTiles(tiles);
+    if (tiles.size() > MaximumBytes / AlphaTileBytes) return {};
+    SelectionTileMap retained;
+    QRect bounds;
+    for (auto tile = tiles.cbegin(); tile != tiles.cend(); ++tile) {
+        const QPoint coordinate(tile.key().first, tile.key().second);
+        if (!validTileCoordinate(coordinate) || tile.value().size() != AlphaTileBytes) return {};
+        const QPoint origin = coordinate * TileSize;
+        bool differs = false;
+        for (int y = 0; y < TileSize; ++y) for (int x = 0; x < TileSize; ++x) {
+            if (quint8(tile.value().at(qsizetype(y) * TileSize + x)) == defaultCoverage) continue;
+            const QRect pixel(origin.x() + x, origin.y() + y, 1, 1);
+            bounds = bounds.isNull() ? pixel : bounds.united(pixel);
+            differs = true;
+        }
+        if (differs) retained.insert(tile.key(), tile.value());
+    }
+    return SelectionMaskSP(new SelectionMask(bounds, std::move(retained), CoverageFormat::Alpha, defaultCoverage));
+}
+
 QSharedPointer<const SelectionMask> SelectionMask::fromRegion(const QSharedPointer<const RegionFill> &source,
     const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
 {
@@ -444,6 +472,7 @@ QSharedPointer<const SelectionMask> SelectionMask::fromCombination(const QShared
 
 QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, const QRect &clip) const
 {
+    if (m_defaultCoverage) return m_bounds.isEmpty() ? uniform(m_defaultCoverage) : SelectionMaskSP{};
     if (isGpuGenerated()) return {};
     if (clip.isEmpty() ||
         std::abs(delta.x()) > CoordinateLimit || std::abs(delta.y()) > CoordinateLimit) return {};
@@ -517,9 +546,10 @@ QSharedPointer<const SelectionMask> SelectionMask::fromPaint(const QSharedPointe
         source->tiles.size() > MaximumBytes / AlphaTileBytes || !validOutline(bounds, outlineRuns)) return {};
     const auto layer = std::find_if(source->source->layers.cbegin(), source->source->layers.cend(),
         [&](const auto &value) { return value.id == source->layer; });
-    if (layer == source->source->layers.cend() || layer->kind != LayerKind::Paint || layer->defaultPixel[3]) return {};
+    if (layer == source->source->layers.cend() || layer->kind != LayerKind::Paint || layer->defaultPixel[3] > 255) return {};
     for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
-    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha,
+        quint8(layer->defaultPixel[3])));
     result->m_paint = source; result->m_outlineRuns = outlineRuns; result->m_nativePixels = pixels;
     return result;
 }
@@ -712,10 +742,10 @@ QSharedPointer<const SelectionMask> SelectionMask::feathered(int radius, const Q
 quint8 SelectionMask::coverage(int x, int y) const
 {
     if (isGpuGenerated()) throw std::logic_error("GPU selection pixels require an explicit external Alpha8 read");
-    if (!m_bounds.contains(x, y)) return 0;
+    if (!m_bounds.contains(x, y)) return m_defaultCoverage;
     const int tx = floorDivide(x, TileSize), ty = floorDivide(y, TileSize);
     const auto tile = m_tiles.constFind(SelectionTileKey(tx, ty));
-    if (tile == m_tiles.cend()) return 0;
+    if (tile == m_tiles.cend()) return m_defaultCoverage;
     const int localX = x - tx * TileSize, localY = y - ty * TileSize;
     if (m_format == CoverageFormat::Alpha)
         return quint8(tile.value().at(qsizetype(localY) * TileSize + localX));
@@ -725,7 +755,8 @@ quint8 SelectionMask::coverage(int x, int y) const
 
 bool SelectionMask::operator==(const SelectionMask &other) const
 {
-    return m_format == other.m_format && m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
+    return m_format == other.m_format && m_defaultCoverage == other.m_defaultCoverage &&
+        m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
         m_region == other.m_region && m_combination == other.m_combination && m_translation == other.m_translation && m_paint == other.m_paint &&
         m_outlineRuns == other.m_outlineRuns;
 }

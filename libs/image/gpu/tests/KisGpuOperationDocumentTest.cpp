@@ -197,6 +197,7 @@ private Q_SLOTS:
     void stationaryBrushCommitInvalidatesPendingPixelsAndRetainsInput();
     void invalidAutoBrushSettingsPreserveTheDocument();
     void transparencyMaskHistoryComposition();
+    void ordinaryMaskCreationKeepsDefaultsSelectionAndHistory();
     void transparencyMaskFromSelectionShapesAndRejections();
     void transparencyMaskCoverageReplacementPreservesHistory();
     void transparencyMaskFollowsCanvasResize();
@@ -4309,6 +4310,51 @@ void KisGpuOperationDocumentTest::stationaryBrushCommitInvalidatesPendingPixelsA
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->inputSamples(), input);
+}
+
+void KisGpuOperationDocumentTest::ordinaryMaskCreationKeepsDefaultsSelectionAndHistory()
+{
+    for (bool selected : {false, true}) {
+        OperationDocument document({64, 64});
+        const auto layer = document.activeLayer();
+        if (selected) QCOMPARE(document.setSelectionRect({7, 9, 20, 22}), Result::Success);
+        const auto before = document.snapshot();
+        const int history = document.undoCount();
+        QCOMPARE(document.addTransparencyMask(layer), Result::Success);
+        const auto added = document.snapshot();
+        const auto mask = document.layerTransparencyMask(layer);
+        QVERIFY(mask);
+        QCOMPARE(mask->defaultCoverage(), quint8(selected ? 0 : 255));
+        QCOMPARE(mask->coverage(10, 12), quint8(255));
+        QCOMPARE(mask->coverage(-123, 456), quint8(selected ? 0 : 255));
+        QVERIFY(added->selection.isEmpty());
+        QVERIFY(!added->selectionMask && !added->selectionInverted);
+        QCOMPARE(document.undoCount(), history + 1);
+        QCOMPARE(document.historyAction(history + 1), HistoryAction::AddTransparencyMask);
+        QCOMPARE(document.addTransparencyMask(layer), Result::InvalidInput);
+        QCOMPARE(document.snapshot(), added);
+        QCOMPARE(document.undo(), Result::Success); QCOMPARE(document.snapshot(), before);
+        QCOMPARE(document.redo(), Result::Success); QCOMPARE(document.snapshot(), added);
+    }
+    for (quint8 value : {quint8(17), quint8(255)}) {
+        const auto flat = SelectionMask::uniform(value);
+        QVERIFY(flat && !flat->isEmpty());
+        QVERIFY(flat->bounds().isEmpty());
+        QCOMPARE(flat->coverage(-100000, 100000), value);
+        QByteArray alpha(SelectionMask::AlphaTileBytes, char(value));
+        alpha[5 * 256 + 7] = 0;
+        alpha[9 * 256 + 11] = char(200);
+        const auto mask = SelectionMask::fromAlphaTiles({{{-2, 3}, alpha}}, value);
+        QVERIFY(mask && !mask->isEmpty());
+        QCOMPARE(mask->defaultCoverage(), value);
+        QCOMPARE(mask->coverage(-505, 773), quint8(0));
+        QCOMPARE(mask->coverage(-501, 777), quint8(200));
+        QCOMPARE(mask->coverage(-504, 773), value);
+        QCOMPARE(mask->coverage(100000, -100000), value);
+        QCOMPARE(mask->bounds(), QRect(-505, 773, 5, 5));
+        QCOMPARE(mask->byteCount(), qsizetype(SelectionMask::AlphaTileBytes));
+        QVERIFY(*mask != *flat);
+    }
 }
 
 void KisGpuOperationDocumentTest::transparencyMaskHistoryComposition()

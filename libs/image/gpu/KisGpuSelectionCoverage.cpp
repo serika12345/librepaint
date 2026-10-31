@@ -56,11 +56,11 @@ void mergeRuns(QList<QRect> &runs)
 }
 
 std::shared_ptr<CoverageTile> TileRenderer::Private::packSelectionTile(WGPUCommandEncoder commands,
-    WGPUBuffer source, QRect sourceExtent, QPoint point, QRect bounds, quint32 format)
+    WGPUBuffer source, QRect sourceExtent, QPoint point, QRect bounds, quint32 format, quint8 constant)
 {
     if (!device->ownsCommands(commands)) return {};
     const qint32 values[12]{sourceExtent.x(), sourceExtent.y(), sourceExtent.width(), sourceExtent.height(),
-        point.x() * TileSize, point.y() * TileSize, qint32(format), 0,
+        point.x() * TileSize, point.y() * TileSize, qint32(format), constant,
         bounds.left(), bounds.top(), bounds.right() + 1, bounds.bottom() + 1};
     constexpr qsizetype required = SelectionMask::AlphaTileBytes + sizeof(values);
     if (required > budget->limit - budget->used) {
@@ -217,7 +217,7 @@ bool TileRenderer::Private::ensureSelectionTiles(WGPUCommandEncoder commands, co
             if (!raw) { error = QStringLiteral("Painted mask replay lost an occupied source tile"); return false; }
             retainTile(raw);
             const auto packed = packSelectionTile(commands, raw->pixels.get(), QRect(point * TileSize, QSize(TileSize, TileSize)),
-                                                   point, mask->bounds(), 1);
+                                                   point, mask->bounds(), 1, mask->defaultCoverage());
             if (!packed) return false;
             tiles.insert(key(point.x(), point.y()), packed->storage);
         }
@@ -261,7 +261,9 @@ std::shared_ptr<CoverageTile> TileRenderer::Private::generatedCoverageTile(WGPUC
         if (!ensureSelectionTiles(commands, mask)) return {};
         std::shared_ptr<BufferStorage> pixels;
         { const auto native = mask->nativePixels(); const std::lock_guard<std::mutex> lock(native->mutex); pixels = native->tiles.value(tileKey); }
-        output = pixels ? std::make_shared<CoverageTile>(pixels, budget) : packSelectionTile(commands, nullptr, {}, point, {}, 2);
+        const QRect defaultExtent = mask->defaultCoverage() ? QRect(point * TileSize, QSize(TileSize, TileSize)) : QRect();
+        output = pixels ? std::make_shared<CoverageTile>(pixels, budget) :
+            packSelectionTile(commands, nullptr, {}, point, defaultExtent, 2, mask->defaultCoverage());
     }
     if (!output) return {};
     auto &entry = maskTiles[mask.data()]; entry.source = mask; entry.tiles.insert(tileKey, output);
@@ -316,6 +318,10 @@ ExecutionOutcome Execution::paintedSelectionCoverage(DocumentHandle handle, cons
     auto submitted = endFrame(false);
     if (submitted.code != ExecutionCode::Success) return submitted;
     const auto raw = rendered.version->m_data->layers.value(layer);
+    const auto sourceLayer = std::find_if(source->layers.cbegin(), source->layers.cend(),
+        [&](const auto &value) { return value.id == layer; });
+    if (sourceLayer == source->layers.cend()) return {ExecutionCode::InvalidRequest, {}};
+    const quint8 defaultCoverage = quint8(sourceLayer->defaultPixel[3]);
     auto paint = QSharedPointer<SelectionPaintSource>::create();
     paint->source = source; paint->layer = layer;
     QRect bounds;
@@ -325,7 +331,8 @@ ExecutionOutcome Execution::paintedSelectionCoverage(DocumentHandle handle, cons
         QRect occupied;
         QList<QRect> rows;
         const auto geometry = readSelectionOutline(tile.value()->storage,
-            QRect(point * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize)), {}, &occupied, &rows, 1);
+            QRect(point * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize)),
+            {}, &occupied, &rows, 1, defaultCoverage);
         if (geometry.code != ExecutionCode::Success) return geometry;
         if (occupied.isEmpty()) continue;
         if (paint->tiles.size() == SelectionMask::MaximumBytes / SelectionMask::AlphaTileBytes ||
@@ -343,7 +350,8 @@ ExecutionOutcome Execution::paintedSelectionCoverage(DocumentHandle handle, cons
         const auto tile = raw.value(key(point.x(), point.y()));
         d.device->retainForFrame(tile->storage);
         const auto packed = d.renderer->m_d->packSelectionTile(frame.commands, tile->pixels.get(),
-            QRect(point * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize)), point, bounds, 1);
+            QRect(point * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize)),
+            point, bounds, 1, defaultCoverage);
         if (!packed) return {ExecutionCode::CapacityExceeded, QStringLiteral("Painted coverage packing capacity is unavailable")};
         native->tiles.insert(key(point.x(), point.y()), packed->storage);
     }
@@ -364,13 +372,14 @@ ExecutionOutcome Execution::combineSelectionCoverage(const SelectionMaskSP &firs
         action > SelectionCombination::SymmetricDifference || clip.isEmpty()) return {ExecutionCode::InvalidRequest, {}};
     if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("Selection arithmetic requires submitted work")};
     if (d.device->readbackPending() && !d.device->finish()) return {ExecutionCode::DeviceFailure, d.device->diagnostic()};
-    const auto a = inverted ? clip : first->bounds().intersected(clip);
-    const auto b = second->bounds().intersected(clip);
+    const auto a = inverted || first->defaultCoverage() ? clip : first->bounds().intersected(clip);
+    const auto b = second->defaultCoverage() ? clip : second->bounds().intersected(clip);
     const auto extent = action == SelectionCombination::Replace ? b : action == SelectionCombination::Intersect ? a.intersected(b) :
         action == SelectionCombination::Subtract ? a : a.united(b);
     if (extent.isEmpty()) { *result = SelectionMask::empty(); return {ExecutionCode::Success, {}}; }
     QSet<QPoint> candidates;
     const auto append = [&](const SelectionMaskSP &mask) {
+        if (mask->defaultCoverage()) return appendTiles(candidates, extent);
         for (const auto point : mask->tileCoordinates())
             if (!appendTiles(candidates, QRect(point * TileRenderer::TileSize,
                     QSize(TileRenderer::TileSize, TileRenderer::TileSize)).intersected(extent))) return false;
@@ -511,7 +520,7 @@ PixelBytesOutcome Execution::readSelectionPixels(const SelectionMaskSP &mask, QR
         PixelBytesOutcome outcome;
         outcome.region = region; outcome.generation = d.generation;
         outcome.document = mask->regionSource() ? mask->regionSource()->source : Snapshot{};
-        outcome.bytes = QByteArray(qsizetype(region.width()) * region.height(), '\0');
+        outcome.bytes = QByteArray(qsizetype(region.width()) * region.height(), char(mask->defaultCoverage()));
         const auto area = region.intersected(mask->bounds());
         if (!mask->isGpuGenerated()) {
             for (int y = area.top(); !area.isEmpty() && y <= area.bottom(); ++y)

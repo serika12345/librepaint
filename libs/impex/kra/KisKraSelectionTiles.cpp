@@ -349,7 +349,7 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
 
 Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageBounds,
                              qsizetype maximumBytes,
-                             LibrePaint::Image::Gpu::SelectionMaskSP &mask)
+                             LibrePaint::Image::Gpu::SelectionMaskSP &mask, quint8 defaultCoverage)
 {
     mask.clear();
     if (imageBounds.isEmpty() || maximumBytes <= 0) return invalid();
@@ -393,7 +393,7 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
         for (int row = 0; row < FileTileSize; ++row) {
             for (int column = 0; column < FileTileSize; ++column) {
                 const quint8 value = quint8(pixels.at(row * FileTileSize + column));
-                if (!value) continue;
+                if (value == defaultCoverage) continue;
                 const qint64 worldX = qint64(x) + column + offset.x();
                 const qint64 worldY = qint64(y) + row + offset.y();
                 if (worldX < -limit || worldY < -limit || worldX >= limit || worldY >= limit) return invalid();
@@ -404,7 +404,7 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
                 if (tile == tiles.end()) {
                     if (bytes + SelectionMask::AlphaTileBytes >
                         std::min<qsizetype>(SelectionMask::MaximumBytes, maximumBytes)) return capacity();
-                    tile = tiles.insert(key, QByteArray(SelectionMask::AlphaTileBytes, '\0'));
+                    tile = tiles.insert(key, QByteArray(SelectionMask::AlphaTileBytes, char(defaultCoverage)));
                     bytes += SelectionMask::AlphaTileBytes;
                 }
                 const int localX = int(worldX) - tileX * SelectionMask::TileSize;
@@ -414,7 +414,7 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
         }
     }
     if (!input.atEnd()) return invalid();
-    mask = tiles.isEmpty() ? SelectionMask::empty() : SelectionMask::fromAlphaTiles(tiles);
+    mask = SelectionMask::fromAlphaTiles(tiles, defaultCoverage);
     if (!mask)
         return {Status::UnsupportedData, QStringLiteral("KRA transparency mask coverage could not be adopted")};
     return {Status::Success, {}};

@@ -5,6 +5,7 @@
  */
 
 #include "nodes/kis_mask_manager.h"
+#include <gpu/KisGpuPaintImage.h>
 #include <klocalizedstring.h>
 
 #include <kactioncollection.h>
@@ -215,11 +216,24 @@ KisNodeSP KisMaskManager::createSelectionMask(KisNodeSP activeNode, KisPaintDevi
 KisNodeSP KisMaskManager::createTransparencyMask(KisNodeSP activeNode, KisPaintDeviceSP copyFrom, bool convertActiveNode)
 {
     if (KisImageSP image = m_view->image(); image && image->gpuImage()) {
-        // GPU transparency masks are owned by document versions, not by a CPU
-        // mask node. The action derives coverage from the current selection;
-        // conversion to a mask removes the source layer and is not supported.
+        // Document versions own coverage; the selected child is its panel view.
+        // Conversion also removes the source layer and needs that transaction.
         if (convertActiveNode || copyFrom || !activeNode) return 0;
-        return image->addGpuTransparencyMaskFromSelection(activeNode) ? activeNode : 0;
+        const auto owner = image->gpuImage();
+        const auto version = owner->operations().snapshot();
+        LibrePaint::Image::Gpu::LayerId layer = 0;
+        for (const auto &value : version->layers)
+            if (value.uuid == activeNode->uuid()) { layer = value.id; break; }
+        if (!layer) return 0;
+        const QPointer<KisMaskManager> guard(this);
+        if (owner->addTransparencyMask(layer) != LibrePaint::Image::Gpu::Result::Success) return 0;
+        if (!guard || m_view->image() != image) return 0;
+        for (auto child = activeNode->firstChild(); child; child = child->nextSibling()) {
+            if (!image->isGpuTransparencyMaskView(child)) continue;
+            m_view->nodeManager()->slotUiActivatedNode(child);
+            return child;
+        }
+        return 0;
     }
     if (!m_view->nodeManager()->canModifyLayer(activeNode)) return 0;
 

@@ -1034,6 +1034,9 @@ public:
      * already owns a mask or a document without a selection is rejected.
      */
     Result addTransparencyMaskFromSelection(LayerId layer);
+    /** Ordinary Add Mask copies and consumes the active selection, or creates
+     * white default coverage when no selection is active, in one history item. */
+    Result addTransparencyMask(LayerId layer);
     /** Toggles the retained mask's composition effect in one history entry. */
     Result setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history = PropertyHistory::Separate);
     Result setTransparencyMaskLocked(LayerId layer, bool locked, PropertyHistory history = PropertyHistory::Separate);
@@ -1243,6 +1246,7 @@ private:
                              const Shape &shape, const FigureStyle &style, quint64 randomSeed,
                              const std::optional<QRect> &compositionBounds, const RegionFillSP &region = {});
     Result appendSamplesWithin(OperationId id, const QList<InputSample> &samples, const Shape *painterShape);
+    Result addTransparencyMaskWithin(LayerId layer, bool requireSelection, const SelectionMaskSP &prepared = {});
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);

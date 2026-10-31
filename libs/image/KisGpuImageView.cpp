@@ -146,6 +146,7 @@ void writeGpuTransparencyMaskPixels(KisTransparencyMask *mask,
     // existing readers and thumbnails. Tile writes retain off-canvas pixels,
     // while dirty propagation covers the visible canvas.
     QRect touched = previousBounds.intersected(clip);
+    if (coverage && coverage->defaultCoverage()) touched |= clip;
     pixels->clear();
     if (coverage && coverage->isGpuGenerated()) {
         pixels->bindGpuCoverage(owner, coverage);
@@ -153,7 +154,8 @@ void writeGpuTransparencyMaskPixels(KisTransparencyMask *mask,
         if (!touched.isEmpty()) pixels->setDirty(touched);
         return;
     }
-    pixels->setDefaultPixel(KoColor(Qt::transparent, pixels->colorSpace()));
+    const quint8 defaultCoverage = coverage ? coverage->defaultCoverage() : 0;
+    pixels->setDefaultPixel(KoColor(&defaultCoverage, pixels->colorSpace()));
     if (coverage) {
         const int size = LibrePaint::Image::Gpu::SelectionMask::TileSize;
         for (auto tile = coverage->tiles().cbegin(); tile != coverage->tiles().cend(); ++tile) {

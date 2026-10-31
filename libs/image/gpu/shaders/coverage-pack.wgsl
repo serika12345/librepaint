@@ -13,7 +13,7 @@ struct CoverageParameters {
     for (var component = 0u; component < 4u; component += 1u) {
         let index = first + component;
         let point = parameters.tile.xy + vec2<i32>(i32(index % 256u), i32(index / 256u));
-        var alpha = 0u;
+        var alpha = u32(parameters.tile.w);
         if (all(point >= parameters.bounds.xy) && all(point < parameters.bounds.zw)) {
             if (parameters.tile.z <= 1) {
                 let relative = point - parameters.source.xy;

@@ -218,7 +218,7 @@ inline bool validSelectionState(const QRect &rect, SelectionKind kind, const Sel
     if (kind != SelectionKind::Rectangle && kind != SelectionKind::Ellipse && kind != SelectionKind::Freehand)
         return false;
     if (kind == SelectionKind::Freehand)
-        return mask && !mask->isEmpty() && !rect.isEmpty() && rect == mask->bounds() &&
+        return mask && !mask->defaultCoverage() && !mask->isEmpty() && !rect.isEmpty() && rect == mask->bounds() &&
             mask->byteCount() <= SelectionMask::MaximumBytes;
     return !mask;
 }

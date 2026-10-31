@@ -210,6 +210,12 @@ public:
     }
     LibrePaint::Image::Gpu::Snapshot gpuPixelVersion() const
     { return gpuPixels ? gpuPixels->version() : gpuImage->operations().snapshot(); }
+    QRect gpuSelectionBounds() const
+    {
+        auto bounds = gpuSelection->bounds();
+        if (gpuSelection->defaultCoverage()) bounds |= defaultBounds->bounds();
+        return bounds;
+    }
     KisPaintDeviceSP selectionThumbnailSource() const
     {
         const auto bounds = gpuSelection->bounds();
@@ -220,6 +226,8 @@ public:
             throw std::length_error("Selection thumbnail source exceeds its external pixel capacity");
         KisPaintDeviceSP result = new KisPaintDevice(KoColorSpaceRegistry::instance()->alpha8());
         result->setDefaultBounds(defaultBounds);
+        const quint8 defaultCoverage = gpuSelection->defaultCoverage();
+        result->setDefaultPixel(KoColor(&defaultCoverage, result->colorSpace()));
         for (int y = bounds.y(); !bounds.isEmpty() && y <= bounds.bottom(); y += tile)
             for (int x = bounds.x(); x <= bounds.right(); x += tile) {
                 const QRect area(x, y, qMin(tile, bounds.right() - x + 1), qMin(tile, bounds.bottom() - y + 1));
@@ -1582,7 +1590,7 @@ void KisPaintDevice::extent(qint32 &x, qint32 &y, qint32 &w, qint32 &h) const
 
 QRect KisPaintDevice::extent() const
 {
-    if (m_d->gpuSelection) return m_d->gpuSelection->bounds();
+    if (m_d->gpuSelection) return m_d->gpuSelectionBounds();
     if (m_d->gpuImage) {
         auto result = m_d->gpuAllocatedRegion().boundingRect();
         if (defaultPixel().opacityU8()) result |= m_d->defaultBounds->bounds();
@@ -1606,7 +1614,7 @@ QRect KisPaintDevice::nonDefaultPixelArea() const
 
 QRect KisPaintDevice::exactBounds() const
 {
-    if (m_d->gpuSelection) return m_d->gpuSelection->bounds();
+    if (m_d->gpuSelection) return m_d->gpuSelectionBounds();
     if (m_d->gpuImage) {
         const auto sequence = sequenceNumber();
         if (sequence != m_d->gpuBoundsSequence) {
@@ -1632,7 +1640,7 @@ QRect KisPaintDevice::exactBounds() const
 
 QRect KisPaintDevice::exactBoundsAmortized() const
 {
-    if (m_d->gpuSelection) return m_d->gpuSelection->bounds();
+    if (m_d->gpuSelection) return m_d->gpuSelectionBounds();
     if (m_d->gpuImage) return exactBounds();
     return m_d->cache()->exactBoundsAmortized();
 }
@@ -1787,7 +1795,7 @@ QRect calculateExactBoundsImpl(const KisPaintDevice *device, const QRect &startR
 
 QRect KisPaintDevice::calculateExactBounds(bool nonDefaultOnly) const
 {
-    if (m_d->gpuSelection) return m_d->gpuSelection->bounds();
+    if (m_d->gpuSelection) return nonDefaultOnly ? m_d->gpuSelection->bounds() : m_d->gpuSelectionBounds();
     QRect startRect = extent();
     QRect endRect;
 
@@ -1880,7 +1888,10 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
 
 KoColor KisPaintDevice::defaultPixel() const
 {
-    if (m_d->gpuSelection) { const quint8 zero = 0; return KoColor(&zero, colorSpace()); }
+    if (m_d->gpuSelection) {
+        const quint8 value = m_d->gpuSelection->defaultCoverage();
+        return KoColor(&value, colorSpace());
+    }
     if (m_d->gpuImage) {
         const auto version = m_d->gpuPixelVersion();
         const auto projectedLayer = m_d->gpuLayerId() ? m_d->gpuLayerId() : version->directProjectionLayer();

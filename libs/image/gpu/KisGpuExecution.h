@@ -295,6 +295,9 @@ private:
         const std::shared_ptr<Detail::BufferStorage> &pixels, const QRect &bounds, SelectionMaskSP *selection);
     ExecutionOutcome readSelectionOutline(const std::shared_ptr<Detail::BufferStorage> &pixels,
         QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *runs, quint32 format = 0);
+    ExecutionOutcome readSelectionOutline(const std::shared_ptr<Detail::BufferStorage> &pixels,
+        QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *runs,
+        quint32 format, quint8 defaultCoverage);
     ExecutionOutcome combineSelectionCoverage(const SelectionMaskSP &first, const SelectionMaskSP &second,
         SelectionCombination action, QRect clip, bool inverted, SelectionMaskSP *result);
     ExecutionOutcome evaluateSelectionCombination(const QSharedPointer<const SelectionCombinationSource> &source,

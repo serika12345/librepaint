@@ -33,7 +33,7 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
  */
 Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageBounds,
                              qsizetype maximumBytes,
-                             LibrePaint::Image::Gpu::SelectionMaskSP &mask);
+                             LibrePaint::Image::Gpu::SelectionMaskSP &mask, quint8 defaultCoverage = 0);
 /** Writes layer transparency coverage as one KRA alpha8 pixel-selection stream. */
 Outcome writeTransparencyMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
                               const QRect &imageBounds, qsizetype maximumBytes,

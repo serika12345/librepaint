@@ -71,8 +71,9 @@ struct SelectionPaintSource
  * whose coordinates match GPU paint tiles. Soft coverage uses one byte per
  * pixel inside tiles of the same size, so feathered selections retain
  * fractional selectedness. Set bits and nonzero bytes select the pixel. The
- * rectangle bounds the pixels with nonzero coverage, so sparse masks retain
- * only touched tiles. The value is immutable and shared by document versions,
+ * rectangle bounds nonzero coverage for a finite selection. A transparency
+ * mask can instead retain a nonzero default and finite exceptions to it.
+ * Sparse masks retain only touched tiles. The value is immutable and shared by document versions,
  * drawing operations and history states; consumers never synchronize it per
  * stroke.
  */
@@ -86,6 +87,8 @@ public:
 
     /** Explicit zero coverage for masked external copies; null denotes no mask. */
     static QSharedPointer<const SelectionMask> empty();
+    /** Uniform transparency coverage, including coordinates outside the canvas. */
+    static QSharedPointer<const SelectionMask> uniform(quint8 coverage);
 
     /** Rasterizes one closed polygon at pixel centers with the even-odd rule.
      * The coverage is binary and clipped to `clip`. Invalid, non-finite or
@@ -117,6 +120,9 @@ public:
      * Values are retained; nonzero bytes form the selected bounds.
      */
     static QSharedPointer<const SelectionMask> fromAlphaTiles(const SelectionTileMap &tiles);
+    /** Native transparency-mask tiles replace their default coverage. Fully
+     * transparent tiles remain significant when the default is nonzero. */
+    static QSharedPointer<const SelectionMask> fromAlphaTiles(const SelectionTileMap &tiles, quint8 defaultCoverage);
     /** Frozen GPU-generated coverage. Only its exact bounds and display/hit
      * geometry are CPU values; editing and external pixel readers use the
      * retained GPU source. Invalid geometry or capacity returns null.
@@ -163,11 +169,13 @@ public:
      */
     QSharedPointer<const SelectionMask> feathered(int radius, const QRect &clip) const;
 
-    bool isEmpty() const { return m_bounds.isEmpty(); }
-    /** Tight bounds of the pixels with nonzero coverage. */
+    bool isEmpty() const { return m_defaultCoverage == 0 && m_bounds.isEmpty(); }
+    quint8 defaultCoverage() const { return m_defaultCoverage; }
+    /** Tight nonzero bounds for finite masks. With a nonzero default, bounds
+     * enclose the retained exceptions to that default. */
     QRect bounds() const { return m_bounds; }
     /** Literal input selectedness; 0 for binary unselected, 255 for binary
-     * selected, and the stored byte for alpha coverage. GPU-generated masks
+     * selected, and the stored byte or default for alpha coverage. GPU-generated masks
      * require Execution::readSelectionPixels(); direct CPU access throws.
      */
     quint8 coverage(int x, int y) const;
@@ -176,7 +184,7 @@ public:
     /** Literal input tiles in increasing coordinate order; GPU sources retain
      * their native pixels separately. Bit zero is the top-left
      * pixel of each binary tile and byte zero the top-left pixel of each alpha
-     * tile. Missing tiles are unselected.
+     * tile. Missing tiles use defaultCoverage().
      */
     const SelectionTileMap &tiles() const { return m_tiles; }
     /** Bytes per stored tile for this coverage format. */
@@ -198,11 +206,12 @@ private:
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
     const std::shared_ptr<Detail::SelectionPixels> &nativePixels() const { return m_nativePixels; }
     enum class CoverageFormat : quint8 { Binary, Alpha };
-    SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format);
+    SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format, quint8 defaultCoverage = 0);
     static QSharedPointer<const SelectionMask> make(QRect bounds, SelectionTileMap tiles, CoverageFormat format);
     QRect m_bounds;
     SelectionTileMap m_tiles;
     CoverageFormat m_format = CoverageFormat::Binary;
+    quint8 m_defaultCoverage = 0;
     QSharedPointer<const RegionFill> m_region;
     QSharedPointer<const SelectionCombinationSource> m_combination;
     QSharedPointer<const SelectionTranslationSource> m_translation;

@@ -1783,7 +1783,18 @@ void TestKraRasterCodec::emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage()
     const QRect bounds(-8, -5, 4, 3);
     const auto outside = SelectionMask::fromAlphaCoverage(bounds, QByteArray::fromHex("01807fffff01807fffff01807f"), bounds);
     QVERIFY(outside);
-    for (const auto &mask : {SelectionMask::empty(), outside}) {
+    QList<SelectionMaskSP> masks{SelectionMask::empty(), outside, SelectionMask::uniform(17), SelectionMask::uniform(255)};
+    for (quint8 value : {quint8(17), quint8(255)}) {
+        SelectionTileMap tiles;
+        QByteArray alpha(SelectionMask::AlphaTileBytes, char(value));
+        alpha[5 * 256 + 7] = 0;
+        alpha[9 * 256 + 11] = char(200);
+        tiles.insert({-2, 3}, alpha);
+        const auto mask = SelectionMask::fromAlphaTiles(tiles, value);
+        QVERIFY(mask);
+        masks.append(mask);
+    }
+    for (const auto &mask : masks) {
         auto source = document();
         auto &layer = source.image.layers[0];
         layer.transparencyMask = mask;
@@ -1796,6 +1807,9 @@ void TestKraRasterCodec::emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage()
         const auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
         const auto &actual = loaded.document.image.layers[0];
         QVERIFY(actual.transparencyMask); QVERIFY(*actual.transparencyMask == *mask);
+        QCOMPARE(actual.transparencyMask->defaultCoverage(), mask->defaultCoverage());
+        QCOMPARE(actual.transparencyMask->coverage(-505, 773), mask->coverage(-505, 773));
+        QCOMPARE(actual.transparencyMask->coverage(100000, -100000), mask->coverage(100000, -100000));
         QVERIFY(actual.transparencyMaskLocked); QVERIFY(!actual.transparencyMaskVisible);
         for (const auto &tile : layer.tiles)
             QCOMPARE(rgbaAt(actual, tile.coordinate * 256), tile.rgba.first(4));

@@ -41,7 +41,10 @@ Result OperationDocument::resizeCanvasWithMasks(const QRect &rect, bool cropLaye
             const auto source = layer.transparencyMask;
             const QRect canvas(QPoint(), rect.size());
             auto mask = masks.value(layer.id);
-            if (!source->isGpuGenerated()) {
+            if (source->defaultCoverage()) {
+                if (source->bounds().isEmpty()) mask = source;
+                else if (!mask) return Result::InvalidInput;
+            } else if (!source->isGpuGenerated()) {
                 mask = source->isEmpty() || !source->bounds().translated(offset).intersects(canvas) ? SelectionMask::empty() :
                     source->translated(offset, canvas);
             }

@@ -1456,6 +1456,12 @@ Result OperationDocument::setLayerBlendMode(LayerId layer, LayerBlendMode mode, 
 }
 
 Result OperationDocument::addTransparencyMaskFromSelection(LayerId layer)
+{ return addTransparencyMaskWithin(layer, true); }
+
+Result OperationDocument::addTransparencyMask(LayerId layer)
+{ return addTransparencyMaskWithin(layer, false); }
+
+Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireSelection, const SelectionMaskSP &prepared)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -1463,7 +1469,8 @@ Result OperationDocument::addTransparencyMaskFromSelection(LayerId layer)
     if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
     if (snapshot()->layers[index].userLocked) return Result::LayerUnavailable;
     if (snapshot()->layers[index].transparencyMask) return Result::InvalidInput;
-    const auto mask = selectionCoverage(*snapshot());
+    auto mask = prepared ? prepared : selectionCoverage(*snapshot());
+    if (!mask && !requireSelection && snapshot()->selection.isEmpty()) mask = SelectionMask::uniform(255);
     if (!mask || mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
@@ -1471,6 +1478,12 @@ Result OperationDocument::addTransparencyMaskFromSelection(LayerId layer)
     version->layers[index].transparencyMask = mask;
     version->layers[index].transparencyMaskVisible = true;
     version->layers[index].transparencyMaskLocked = false;
+    if (!requireSelection) {
+        version->selection = {};
+        version->selectionKind = SelectionKind::Rectangle;
+        version->selectionInverted = false;
+        version->selectionMask.clear();
+    }
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.layer = layer;
@@ -1553,7 +1566,7 @@ Result OperationDocument::replaceTransparencyMask(LayerId layer, const Selection
     const auto index = layerIndex(layer);
     if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
         !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
-    if (!mask || (!mask->isEmpty() && mask->bounds().isEmpty()) ||
+    if (!mask || (!mask->defaultCoverage() && !mask->isEmpty() && mask->bounds().isEmpty()) ||
         mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (snapshot()->layers[index].transparencyMask == mask) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
@@ -1920,7 +1933,10 @@ Result OperationDocument::cropLayerWithMask(LayerId layer, const QRect &rect, co
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     if (const auto &source = snapshot()->layers[index].transparencyMask) {
         SelectionMaskSP mask = preparedMask;
-        if (!source->isGpuGenerated()) {
+        if (source->defaultCoverage()) {
+            if (source->bounds().isEmpty()) mask = source;
+            else if (!mask) return Result::InvalidInput;
+        } else if (!source->isGpuGenerated()) {
             mask = source->isEmpty() || !source->bounds().intersects(rect) ? SelectionMask::empty() : source->translated(QPoint(), rect);
         }
         if (!mask || !selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;

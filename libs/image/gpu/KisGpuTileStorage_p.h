@@ -255,7 +255,7 @@ struct TileRenderer::Private
     std::shared_ptr<Detail::CoverageTile> generatedCoverageTile(WGPUCommandEncoder commands,
                                                              const SelectionMaskSP &mask, quint64 coordinate);
     std::shared_ptr<Detail::CoverageTile> packSelectionTile(WGPUCommandEncoder commands, WGPUBuffer source,
-        QRect sourceExtent, QPoint coordinate, QRect bounds, quint32 format);
+        QRect sourceExtent, QPoint coordinate, QRect bounds, quint32 format, quint8 constant = 0);
     bool ensureSelectionTiles(WGPUCommandEncoder commands, const SelectionMaskSP &mask);
     std::shared_ptr<Detail::CoverageTile> translatedCoverageTile(WGPUCommandEncoder commands,
         const SelectionTranslationSource &source, QPoint point);

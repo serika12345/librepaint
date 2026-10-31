@@ -739,7 +739,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                                                         limits.rasterBytes, maskPixels);
                 if (result.code != Status::Success) return result;
                 files.insert(maskPath + QStringLiteral(".pixelselection"), std::move(maskPixels));
-                files.insert(maskPath + QStringLiteral(".defaultpixel"), QByteArray(1, '\0'));
+                files.insert(maskPath + QStringLiteral(".defaultpixel"), QByteArray(1, char(layer.transparencyMask->defaultCoverage())));
                 files.remove(maskPath + QStringLiteral(".xmp.metadata"));
             }
         }
@@ -1573,16 +1573,15 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                         return fail(invalid(QStringLiteral("Invalid KRA transparency mask default pixel")));
                     maskDefaultPixel = quint8(pixel.front());
                 }
-                if (maskDefaultPixel != 0)
-                    return fail(unsupported(QStringLiteral("KRA transparency masks require a transparent default pixel")));
                 SelectionMaskSP transparencyMask;
                 if (document.files.contains(maskPath + QStringLiteral(".pixelselection"))) {
                     result = Detail::readTransparencyMask(
                         document.files.value(maskPath + QStringLiteral(".pixelselection")),
                         {maskX, maskY}, QRect(QPoint(), document.image.size),
-                        limits.rasterBytes - rasterBytes, transparencyMask);
+                        limits.rasterBytes - rasterBytes, transparencyMask, maskDefaultPixel);
                     if (result.code != Status::Success) return fail(result);
                 }
+                if (!transparencyMask && maskDefaultPixel) transparencyMask = SelectionMask::uniform(maskDefaultPixel);
                 if (!transparencyMask)
                     return fail(unsupported(QStringLiteral("KRA transparency mask requires nonempty coverage")));
                 layer.transparencyMask = transparencyMask;
