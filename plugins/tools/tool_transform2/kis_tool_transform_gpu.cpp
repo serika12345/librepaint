@@ -140,7 +140,9 @@ void KisToolTransform::updateGpuTransform()
         else if (target.mask) {
             const auto captured = layer->transparencyMask;
             auto defaults = m_gpuMaskDefaultBounds.value(target.layer);
-            if (!m_gpuSelection && target.pixels && captured->defaultCoverage()) {
+            // Native GrayA has opaque default alpha for every mask gray.
+            // Its parent bounds determine both filtering and replacement.
+            if (!m_gpuSelection && target.pixels) {
                 const auto parent = owner->transformedLayerDefaultBounds(target.layer, *plan);
                 if (!parent) { valid = false; break; }
                 defaults = *parent;
