@@ -44,6 +44,8 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
     if ((brush.basicSmoothing || brush.pixelPerfect) && operation.shape.kind != ShapeKind::Freehand)
         return false;
     const auto originalInput = operation.inputSamples();
+    const bool directLines = brush.autoBrush && brush.autoBrush->sharpnessResponse &&
+        std::max(1, int(brush.diameter)) == 1 && std::max(1, int(brush.diameter * brush.autoBrush->ratio)) == 1;
     auto input = originalInput;
     if (brush.weightedSmoothing) {
         const auto corrected = weightedInput(input, *brush.weightedSmoothing);
@@ -70,6 +72,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
     QPointF spacing(.5, .5), accumulated;
     qreal spacingRotation = 0;
     const auto append = [&](const InputSample &point) {
+        if (directLines && operation.shape.kind != ShapeKind::Freehand) return true;
         const auto dabSequence = sequence++;
         const qreal scale = pressureValue(brush.sizeResponse, point.pressure);
         const qreal diameter = brush.diameter * scale;
@@ -99,6 +102,42 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         return true;
     };
     const auto line = [&](InputSample first, const InputSample &last) {
+        if (directLines) {
+            if (first.position == last.position && operation.shape.kind == ShapeKind::Freehand) return true;
+            int x = int(std::floor(first.position.x())), y = int(std::floor(first.position.y()));
+            const int endX = int(std::floor(last.position.x())), endY = int(std::floor(last.position.y()));
+            const int dx = endX - x, dy = endY - y;
+            float slope = 0;
+            bool locked = true;
+            if (dx == 0) slope = 2;
+            else if (dy != 0) { slope = float(dy) / float(dx); locked = false; }
+            float fx = x, fy = y;
+            const auto pixel = [&] {
+                if (count == PaintGeometryElementLimit) return false;
+                // Native sharp one-pixel lines use DDA and bypass the tip,
+                // pressure, paper and distance state of ordinary dabs.
+                if (!visit({QPointF(x, y), 1, 1, QSizeF(1, 1), 0, false, false, sequence, true})) return false;
+                ++count;
+                return true;
+            };
+            if (!pixel()) return false;
+            if (std::abs(slope) > 1) {
+                const int step = dy > 0 ? 1 : -1;
+                slope = (locked ? 0.f : 1.f / slope) * step;
+                while (y != endY) {
+                    y += step; fx += slope; x = qRound(fx);
+                    if (!pixel()) return false;
+                }
+            } else {
+                const int step = dx > 0 ? 1 : -1;
+                slope *= step;
+                while (x != endX) {
+                    x += step; fy += slope; y = qRound(fy);
+                    if (!pixel()) return false;
+                }
+            }
+            return true;
+        }
         while (first.position != last.position) {
             qreal fraction;
             auto delta = last.position - first.position;

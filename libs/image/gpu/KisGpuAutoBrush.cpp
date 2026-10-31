@@ -54,7 +54,8 @@ qreal textureStrength(const BrushTexture &texture, const BrushDab &dab)
 std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation, bool pending)
 {
     const auto &brush = operation.brush;
-    if (!brush.autoBrush || hasFigureFill(operation.figureStyle)) return std::nullopt;
+    if (!brush.autoBrush) return std::nullopt;
+    if (!operation.figureStyle.outline) return QList<AutoBrushDab>{};
     const auto &settings = *brush.autoBrush;
     const quint32 mirrors = quint32(brush.mirrorHorizontal) | (quint32(brush.mirrorVertical) << 1);
     const qsizetype reflectionCount = (brush.mirrorHorizontal ? 2 : 1) * (brush.mirrorVertical ? 2 : 1);
@@ -78,6 +79,17 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
     }
 
     const bool complete = forEachBrushDab(operation, pending, [&](const BrushDab &point) {
+        if (point.directPixel) {
+            AutoBrushDab dab;
+            dab.words[0] = dab.words[1] = dab.words[2] = 1;
+            dab.words[3] = 64u;
+            dab.words[18] = quint32(qint32(point.position.x()));
+            dab.words[19] = quint32(qint32(point.position.y()));
+            dab.words[20] = dab.words[21] = dab.words[22] = floatBits(1.f);
+            dab.words[23] = quint32(settings.creamy);
+            result.append(dab);
+            return result.size() <= PaintGeometryElementLimit / reflectionCount;
+        }
         const auto &metric = point.size;
         const QPointF hotSpot(std::max(qreal(1), metric.width()) / 2, std::max(qreal(1), metric.height()) / 2);
         auto offset = point.position - hotSpot;

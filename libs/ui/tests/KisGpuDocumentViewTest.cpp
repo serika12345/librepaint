@@ -2556,15 +2556,25 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
     QTest::addColumn<QString>("presetName");
     QTest::addColumn<bool>("words");
     QTest::addColumn<qreal>("flow");
+    QTest::addColumn<bool>("filledFigure");
     for (const auto *name : {"d)_Ink-3_Gpen.kpp", "a)_Eraser_Small.kpp", "b)_Basic-5_Size_default.kpp",
                              "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp", "d)_Ink-7_Brush_Rough.kpp", "y)_Screentones_Regular.kpp", "u)_Pixel_Art_Dithering.kpp", "u)_Pixel_Art.kpp", "u)_Pixel_Art_Fill.kpp",
                              "h)_Charcoal_pencil_large.kpp", "h)_Charcoal_Pencil_Medium.kpp", "h)_Charcoal_Pencil_Thin.kpp"})
         for (const bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
-            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1);
+            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1) << false;
         }
     for (const bool words : {false, true})
-        QTest::newRow(words ? "Gpen-low-flow-u16" : "Gpen-low-flow-u8") << QStringLiteral("d)_Ink-3_Gpen.kpp") << words << qreal(.37);
+        QTest::newRow(words ? "Gpen-low-flow-u16" : "Gpen-low-flow-u8") << QStringLiteral("d)_Ink-3_Gpen.kpp") << words << qreal(.37) << false;
+    for (const bool words : {false, true})
+        QTest::newRow(words ? "Dithering-soft-low-flow-u16" : "Dithering-soft-low-flow-u8")
+            << QStringLiteral("u)_Pixel_Art_Dithering.kpp") << words << qreal(.37) << false;
+    for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-7_Brush_Rough.kpp", "u)_Pixel_Art_Dithering.kpp"})
+        for (bool words : {false, true}) {
+            const QByteArray row = QByteArray("filled-") + preset + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1) << true;
+        }
+
 }
 
 void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
@@ -2573,6 +2583,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     QFETCH(QString, presetName);
     QFETCH(bool, words);
     QFETCH(qreal, flow);
+    QFETCH(bool, filledFigure);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restoreEngine = qScopeGuard([&] {
         if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
@@ -2605,7 +2616,14 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     for (const bool gpu : {false, true}) {
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
         auto preset = sourcePreset->clone().dynamicCast<KisPaintOpPreset>();
-        if (flow >= 0) preset->settings()->setProperty("FlowValue", flow);
+        if (flow >= 0) {
+            preset->settings()->setProperty("FlowValue", flow);
+            if (presetName == QLatin1String("u)_Pixel_Art_Dithering.kpp")) {
+                preset->settings()->setProperty("SharpnessValue", .65);
+                preset->settings()->setProperty("Sharpness/alignoutline", true);
+                preset->settings()->setProperty("Sharpness/softness", 45);
+            }
+        }
         preset->setFilename((gpu ? QStringLiteral("gpu-mask-") : QStringLiteral("cpu-mask-")) + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kpp"));
         KisResourceModel presets(ResourceType::PaintOpPresets); QVERIFY(presets.addResource(preset));
         std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -2694,9 +2712,24 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
                 QVERIFY2(actual.bytes[i] == nativeAlpha[i], qPrintable(QStringLiteral("Native GrayA8 dab at %1,%2: GPU %3 native %4")
                     .arg(i % area.width()).arg(i / area.width()).arg(quint8(actual.bytes[i])).arg(quint8(nativeAlpha[i]))));
         }
-        KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
-        auto *tool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
-        QVERIFY(tool); QVERIFY(tool->setProperty("smoothingType", 0));
+        const auto toolId = filledFigure ? QStringLiteral("KritaShape/KisToolEllipse") : QStringLiteral("KritaShape/KisToolBrush");
+        KoToolManager::instance()->switchToolRequested(toolId);
+        auto *tool = KoToolManager::instance()->toolById(view->canvasBase(), toolId);
+        QVERIFY(tool);
+        if (!filledFigure) QVERIFY(tool->setProperty("smoothingType", 0));
+        const auto configureFigure = [&] {
+            if (!filledFigure) return;
+            QComboBox *outline = nullptr, *fill = nullptr;
+            for (const auto &panel : tool->optionWidgets()) {
+                if (!panel) continue;
+                if (auto *value = panel->findChild<QComboBox*>(QStringLiteral("cmbOutline"))) outline = value;
+                if (auto *value = panel->findChild<QComboBox*>(QStringLiteral("cmbFill"))) fill = value;
+            }
+            QVERIFY(outline && fill);
+            outline->setCurrentIndex(KisFigurePaintingOptions::StrokeStyleForeground);
+            fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleBackgroundColor);
+        };
+        configureFigure();
         const auto prepareInput = [&] {
             view->canvasBase()->canvasWidget()->setFocus(); view->canvasController()->resetCanvasRotation();
             view->canvasController()->mirrorCanvas(false); view->zoomManager()->zoomTo100();
@@ -2745,7 +2778,8 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             }
             return true;
         };
-        const auto stroke = [&](const QList<QPointF> &points) {
+        const auto stroke = [&](QList<QPointF> points) {
+            if (filledFigure && points.size() == 1) points = {points.first() - QPointF(4, 4), points.first() + QPointF(4, 4)};
             const auto *converter = view->canvasBase()->coordinatesConverter();
             const auto point = [&](QPointF value) {
                 const auto widget = converter->imageToWidget(value).toPoint();
@@ -2829,8 +2863,10 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         QTRY_VERIFY(!view->selection() || view->selection()->selectedExactRect().isEmpty());
         configure(); prepareInput();
         window->activateWindow(); input->requestActivate();
-        KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
-        QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KritaShape/KisToolBrush"));
+        KoToolManager::instance()->switchToolRequested(toolId);
+        QTRY_COMPARE(KoToolManager::instance()->activeToolId(), toolId);
+        tool = KoToolManager::instance()->toolById(view->canvasBase(), toolId);
+        QVERIFY(tool); configureFigure();
         resources->setFGColor(KoColor(Qt::white, cs));
         stroke({{50, 50}});
         QVERIFY2(pixels() != saved, gpu ? "GPU mask input after normal KRA Open must change coverage" : "Native mask input after normal KRA Open must change coverage");
@@ -8217,6 +8253,11 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
         QTest::newRow(row.constData()) << preset.first << words << 0 << preset.second << false;
     }
 
+    for (bool words : {false, true}) for (const auto *mode : {"soft", "ellipse"}) {
+        const QByteArray row = QByteArray("gaussian-unaliased-") + mode + (words ? "-u16" : "-u8");
+        QTest::newRow(row.constData()) << QStringLiteral("u)_Pixel_Art_Fill.kpp") << words << 0 << qreal(32) << false;
+    }
+
 }
 
 void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
@@ -8248,6 +8289,23 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
     const bool screentone = presetName == QLatin1String("y)_Screentones_Regular.kpp");
     const bool dither = presetName == QLatin1String("u)_Pixel_Art_Dithering.kpp");
     const bool textured = sourcePreset->settings()->getBool("Texture/Pattern/Enabled");
+    const QByteArray dataTag(QTest::currentDataTag());
+    if (dataTag.startsWith("gaussian-unaliased-")) {
+        // Existing brush-editor controls: keep the native Gaussian gradient
+        // when sharpness is unchecked, including an elliptical rotated tip.
+        sourcePreset->settings()->setProperty("PressureSharpness", false);
+        if (dataTag.contains("ellipse")) {
+            QDomDocument definition;
+            QVERIFY(definition.setContent(sourcePreset->settings()->getString("brush_definition")));
+            auto root = definition.documentElement();
+            root.setAttribute(QStringLiteral("angle"), .37);
+            auto mask = root.firstChildElement(QStringLiteral("MaskGenerator"));
+            mask.setAttribute(QStringLiteral("ratio"), .8);
+            mask.setAttribute(QStringLiteral("hfade"), .5);
+            mask.setAttribute(QStringLiteral("vfade"), .5);
+            sourcePreset->settings()->setProperty("brush_definition", definition.toString());
+        }
+    }
     if (textured) {
         const auto file = QFileInfo(sourcePreset->settings()->getString("Texture/Pattern/PatternFileName")).fileName();
         const auto paper = bundle->resource(QStringLiteral("patterns/") + file).dynamicCast<KoPattern>();
@@ -8576,7 +8634,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         QVERIFY2(compareState(QStringLiteral("painted")), "Ordinary preset painting must match the native engine");
         resources->setGlobalAlphaLock(true);
         resources->setFGColor(KoColor(QColor(241, 17, 129), cs));
-        stroke({{48, 40}, {64, 48}});
+        if (normalDiameter <= 1) stroke({{80, 56}, {80, 72}});
+        else stroke({{48, 40}, {64, 48}});
         const auto protectedPixels = pixels();
         QVERIFY(protectedPixels != painted);
         for (qsizetype i = 3 * channelBytes; i < painted.size(); i += pixelBytes)
@@ -8587,7 +8646,9 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         resources->setGlobalAlphaLock(false);
         resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
         resources->setEraserMode(true);
-        stroke({{48, 40}, {64, 56}});
+        // One-pixel tips erase the existing vertical part of the stroke.
+        if (normalDiameter <= 1) stroke({{80, 56}, {80, 72}});
+        else stroke({{48, 40}, {64, 56}});
         QTRY_COMPARE(lifetime->undoStack()->count(), 2);
         const auto erased = pixels();
         QVERIFY(erased != painted);
@@ -8620,7 +8681,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         resources->setMirrorVertical(false);
         resources->setEraserMode(false);
         resources->setCurrentCompositeOp(QStringLiteral("normal"));
-        stroke({{108, 108}});
+        if (normalDiameter <= 1) stroke({{104, 108}, {112, 108}});
+        else stroke({{108, 108}});
         QVERIFY(pixels() != erased);
         QVERIFY2(compareState(QStringLiteral("reopened-edited")), "A reopened document must retain the preset's editing result");
         resources->setMirrorHorizontal(true);

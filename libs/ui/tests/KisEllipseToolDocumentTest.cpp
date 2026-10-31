@@ -477,6 +477,17 @@ void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing_data()
             QTest::newRow(qPrintable(QStringLiteral("dither-") + name)) << figure << true << false << false << false
                 << int(KisFigurePaintingOptions::FillStyleNone)
                 << int(KisFigurePaintingOptions::StrokeStyleForeground) << words << QStringLiteral("u)_Pixel_Art_Dithering.kpp");
+            const bool patternFill = figure == FigureKind::Rectangle || figure == FigureKind::Polygon;
+            const QList<QPair<QString, QString>> fillPresets = patternFill ?
+                QList<QPair<QString, QString>>{{QStringLiteral("screen"), QStringLiteral("y)_Screentones_Regular.kpp")},
+                                               {QStringLiteral("dither"), QStringLiteral("u)_Pixel_Art_Dithering.kpp")}} :
+                QList<QPair<QString, QString>>{{QStringLiteral("basic"), QString()},
+                                               {QStringLiteral("paper"), QStringLiteral("d)_Ink-7_Brush_Rough.kpp")}};
+            for (const auto &preset : fillPresets)
+                QTest::newRow(qPrintable(QStringLiteral("generated-fill-") + preset.first + QLatin1Char('-') + name))
+                    << figure << true << false << false << false
+                    << int(patternFill ? KisFigurePaintingOptions::FillStylePattern : KisFigurePaintingOptions::FillStyleBackgroundColor)
+                    << int(KisFigurePaintingOptions::StrokeStyleForeground) << words << preset.second;
             for (const auto *preset : {"u)_Pixel_Art.kpp", "u)_Pixel_Art_Fill.kpp", "h)_Charcoal_pencil_large.kpp",
                                        "h)_Charcoal_Pencil_Medium.kpp", "h)_Charcoal_Pencil_Thin.kpp"}) {
                 if (figure != FigureKind::Ellipse && (QLatin1String(preset).contains(QLatin1String("Medium")) ||
@@ -764,6 +775,12 @@ void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool 
     const KoColor background(reinterpret_cast<const quint8 *>(backgroundPixel.constData()), cs);
     resources->setFGColor(foreground);
     resources->setBGColor(background);
+    if (fillStyle == KisFigurePaintingOptions::FillStylePattern) {
+        const auto pattern = KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns)
+            .bestMatch({}, QStringLiteral("pattern.pat"), {});
+        QVERIFY(pattern);
+        resources->slotPatternActivated(pattern);
+    }
     resources->setEraserMode(false);
     resources->setCurrentCompositeOp(QStringLiteral("normal"));
     const auto toolId = polygon ? QStringLiteral("KisToolPolygon") :
