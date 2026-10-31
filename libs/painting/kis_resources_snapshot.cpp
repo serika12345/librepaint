@@ -145,8 +145,7 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         else return false;
     } else {
         if (mask.attribute(QStringLiteral("type")) != QLatin1String("circle") ||
-            !equalNumber(mask, QStringLiteral("ratio"), 1) || brush.diameter < 1 ||
-            brush.diameter != std::floor(brush.diameter)) return false;
+            !equalNumber(mask, QStringLiteral("ratio"), 1) || brush.diameter < 1) return false;
         for (const auto *name : {"hfade", "vfade", "antialiasEdges"})
             if (!equalNumber(mask, QLatin1String(name), 1)) return false;
     }

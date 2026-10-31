@@ -276,9 +276,9 @@ fn gaussianCoverage(pixel: vec2<i32>) -> u32 {
         var coverage: u32;
         if ((dab.size.w & 1u) != 0u) {
             if (dab.size.z > 1u) { coverage = smallStandardCircleAlpha(dab, vec2<u32>(point)) * scale; }
-            else { coverage = standardCircleAlpha(dab, vec2<u32>(point), maximum); }
+            else { coverage = standardCircleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
         } else if (dab.size.z > 1u) { coverage = smallCircleAlpha(dab, vec2<u32>(point)) * scale; }
-        else { coverage = circleAlpha(dab, vec2<u32>(point), maximum); }
+        else { coverage = circleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
         if (parameters.native.z != 0u) { alpha = washWordAlpha(alpha, coverage, dab.application); }
         else if ((parameters.paintFlags & 524288u) != 0u) { alpha = maskWashAlpha(alpha, coverage, dab.application); }
         else { alpha = washAlpha(alpha, coverage, dab.application); }

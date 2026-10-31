@@ -2643,6 +2643,44 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             resources->setBGColor(KoColor(QColor(71, 241, 129), cs));
         };
         configure();
+        if (gpu) {
+            const auto capture = captureGpuBrushResources(image, child, view->canvasBase()->resourceManager());
+            QVERIFY2(capture.diagnostic.isEmpty(), qPrintable(capture.diagnostic));
+            const auto *gray = KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString());
+            KisImageSP nativeImage = new KisImage(nullptr, 64, 64, cs, QStringLiteral("Native mask dab reference"));
+            KisPaintDeviceSP temporary = new KisPaintDevice(gray);
+            KisPaintLayerSP nativeLayer = new KisPaintLayer(nativeImage, QStringLiteral("Gray dab"), 255, temporary);
+            nativeImage->addNode(nativeLayer, nativeImage->root()); nativeLayer->setTemporaryTarget(temporary);
+            {
+                KisPainter painter(temporary);
+                painter.setPaintColor(KoColor(Qt::white, gray)); painter.setCompositeOpId(COMPOSITE_ALPHA_DARKEN);
+                painter.setPaintOpPreset(resources->currentPreset(), nativeLayer, nativeImage);
+                KisDistanceInformation distance;
+                painter.paintAt(KisPaintInformation(QPointF(32, 32), 1), &distance);
+                bool pending;
+                do {
+                    QVector<KisRunnableStrokeJobData *> jobs;
+                    pending = painter.paintOp()->doAsynchronousUpdate(jobs).second;
+                    painter.runnableStrokeJobsInterface()->addRunnableJobs(jobs);
+                } while (pending);
+            }
+            nativeLayer->setTemporaryTarget({}); nativeImage->waitForDone();
+            QByteArray nativeGray(initial.size() * 2, '\0'), nativeAlpha(initial.size(), '\0');
+            temporary->readBytes(reinterpret_cast<quint8 *>(nativeGray.data()), area);
+            for (int i = 0; i < nativeAlpha.size(); ++i) nativeAlpha[i] = nativeGray[2 * i + 1];
+            Gpu::RasterImage input; input.size = area.size(); input.layers = {{QStringLiteral("Mask dab")}};
+            input.layers.first().transparencyMask = Gpu::SelectionMask::empty();
+            Gpu::PaintImage probe(image->gpuImage()->execution(), input);
+            auto white = capture.brush; white.rgba = {255, 255, 255, 255}; white.opacity = 1;
+            const auto operation = probe.beginTransparencyMaskStroke(1, white, 17); QVERIFY(!operation.isNull());
+            QCOMPARE(probe.appendSamples(operation, {{{32, 32}, 1}}), Gpu::Result::Success);
+            QCOMPARE(probe.commitStroke(operation), Gpu::Result::Success);
+            const auto actual = probe.execution().readSelectionPixels(probe.layerTransparencyMask(1), area, nativeAlpha.size());
+            QCOMPARE(actual.code, Gpu::ExecutionCode::Success);
+            for (int i = 0; i < nativeAlpha.size(); ++i)
+                QVERIFY2(actual.bytes[i] == nativeAlpha[i], qPrintable(QStringLiteral("Native GrayA8 dab at %1,%2: GPU %3 native %4")
+                    .arg(i % area.width()).arg(i / area.width()).arg(quint8(actual.bytes[i])).arg(quint8(nativeAlpha[i]))));
+        }
         KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
         auto *tool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
         QVERIFY(tool); QVERIFY(tool->setProperty("smoothingType", 0));

@@ -92,7 +92,7 @@ fn smallStandardCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
     }
     return 255u - total / (side * side);
 }
-fn standardCircleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32) -> u32 {
+fn standardCircleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32, maskPainting: bool) -> u32 {
     let dx = floatSubtract(bitcast<u32>(f32(point.x)), floatFromDouble(dab.center.xy));
     let dy = floatSubtract(bitcast<u32>(f32(point.y)), floatFromDouble(dab.center.zw));
     let cosine = floatFromDouble(dab.rotation.xy);
@@ -143,7 +143,8 @@ fn standardCircleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32) -> u32 {
         inverse = floatDivide(floatMultiply(n, floatSubtract(nf, 0x3f800000u)), floatSubtract(nf, n));
     }
     let alpha = floatMultiply(bitcast<u32>(f32(maximum)), floatSubtract(0x3f800000u, inverse));
-    if (maximum == 65535u) { return u32(bitcast<f32>(alpha)); }
+    // Native GrayA8 and U16 mask application truncate; RGB8 rounds to nearest-even.
+    if (maximum == 65535u || maskPainting) { return u32(bitcast<f32>(alpha)); }
     return projectionComponent(alpha);
 }
 
@@ -168,7 +169,7 @@ fn smallCircleAlpha(dab: MaskDab, point: vec2<u32>) -> u32 {
     }
     return 255u - total / (side * side);
 }
-fn circleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32) -> u32 {
+fn circleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32, maskPainting: bool) -> u32 {
     let dx = floatSubtract(bitcast<u32>(f32(point.x)), floatFromDouble(dab.center.xy));
     let dy = floatSubtract(bitcast<u32>(f32(point.y)), floatFromDouble(dab.center.zw));
     let cosine = floatFromDouble(dab.rotation.xy);
@@ -182,6 +183,7 @@ fn circleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32) -> u32 {
     if (distance <= start) { return maximum; }
     let inverse = floatDivide(floatMultiply(floatSubtract(distance, start), floatFromDouble(dab.coefficient.xy)), 0x437f0000u);
     let alpha = floatMultiply(bitcast<u32>(f32(maximum)), floatSubtract(0x3f800000u, inverse));
-    if (maximum == 65535u) { return u32(bitcast<f32>(alpha)); }
+    // Native GrayA8 and U16 mask application truncate; RGB8 rounds to nearest-even.
+    if (maximum == 65535u || maskPainting) { return u32(bitcast<f32>(alpha)); }
     return projectionComponent(alpha);
 }
