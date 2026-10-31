@@ -129,6 +129,8 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
                             if (!brush) continue;
                             if (brush != &value->brush && !add(brush, sizeof(Brush))) return false;
                             if (!add(brush->sizeResponse.curve.constData(), brush->sizeResponse.curve.size() * qsizetype(sizeof(qreal)))) return false;
+                            if (brush->sizeSpeedResponse && !add(brush->sizeSpeedResponse->curve.constData(),
+                                brush->sizeSpeedResponse->curve.size() * qsizetype(sizeof(qreal)))) return false;
                             if (brush->autoBrush) {
                                 const auto &sharpness = brush->autoBrush->sharpnessResponse;
                                 if (sharpness && !add(sharpness->curve.constData(), sharpness->curve.size() * qsizetype(sizeof(qreal)))) return false;

@@ -2594,7 +2594,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
 
 
     for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-3_Gpen.kpp", "u)_Pixel_Art_Dithering.kpp",
-                              "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp"})
+                              "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp", "d)_Ink-2_Fineliner.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray("white-default-") + preset + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1)
@@ -8681,7 +8681,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
     QTest::addColumn<bool>("rotatedCanvas");
     for (const auto *name : {"b)_Basic-5_Size_default.kpp", "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp",
                              "b)_Basic-5_Size_Opacity.kpp", "a)_Eraser_Small.kpp", "d)_Ink-3_Gpen.kpp",
-                             "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp"})
+                             "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp", "d)_Ink-2_Fineliner.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << 0 << qreal(40) << false;
@@ -8773,6 +8773,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
         QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
     auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
+    const bool fineliner = presetName == QLatin1String("d)_Ink-2_Fineliner.kpp");
     const bool screentone = presetName == QLatin1String("y)_Screentones_Regular.kpp");
     const bool dither = presetName == QLatin1String("u)_Pixel_Art_Dithering.kpp");
     const bool textured = sourcePreset->settings()->getBool("Texture/Pattern/Enabled");
@@ -8970,8 +8971,10 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 QCOMPARE(*capture.brush.texture, frozen);
                 settings->setProperty("Texture/Pattern/Brightness", brightness);
             }
-            QList<QPair<qreal, qreal>> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
-                                                    {200, .03}, {200, .05}, {200, .06}};
+            struct PressureProbe { qreal first, second, speed = 0; };
+            QList<PressureProbe> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
+                                              {200, .03}, {200, .05}, {200, .06}};
+            if (fineliner) for (const auto speed : {qreal(0), qreal(.2), qreal(.9), qreal(1)}) pressureCases.append({5, .6, speed});
             // This bundled size curve starts at x=.00813008. Both low-pressure
             // inputs must retain the native constant endpoint extension.
             if (dither) pressureCases.prepend({40, .004});
@@ -8979,6 +8982,9 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             for (const auto &input : pressureCases) {
                 const auto diameter = input.first;
                 const auto pressure = input.second;
+                const qreal speed = input.speed;
+                const QString probeName = QStringLiteral("pressure-d%1-p%2").arg(diameter).arg(pressure) +
+                    (fineliner ? QStringLiteral("-s%1").arg(speed) : QString());
                 resources->setSize(diameter);
                 const auto pressureCapture = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
                                                                       view->canvasBase()->resourceManager());
@@ -9008,9 +9014,12 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                     painter.setCompositeOpId(COMPOSITE_ALPHA_DARKEN);
                     painter.setPaintOpPreset(resources->currentPreset(), nativeLayer, nativeImage);
                     KisDistanceInformation distance;
-                    if (textured) painter.paintLine(KisPaintInformation(QPointF(64.25, 64.75), pressure),
+                    if (fineliner) painter.paintLine(KisPaintInformation(QPointF(64.25, 64.75), pressure, 0, 0, 0, 0, 1, 0, speed),
+                                                    KisPaintInformation(QPointF(104.25, 64.75), endPressure, 0, 0, 0, 0, 1, 1, 1 - speed), &distance);
+                    else if (textured) painter.paintLine(KisPaintInformation(QPointF(64.25, 64.75), pressure),
                                                    KisPaintInformation(QPointF(104.25, 64.75), endPressure), &distance);
-                    else painter.paintAt(KisPaintInformation(QPointF(64.25, 64.75), pressure), &distance);
+                    else painter.paintAt(fineliner ? KisPaintInformation(QPointF(64.25, 64.75), pressure, 0, 0, 0, 0, 1, 0, speed) :
+                                         KisPaintInformation(QPointF(64.25, 64.75), pressure), &distance);
                     bool pending;
                     do {
                         QVector<KisRunnableStrokeJobData *> jobs;
@@ -9037,14 +9046,16 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 const auto operation = pressureOwner->beginStroke(pressureOwner->operations().activeLayer(), pressureCapture.brush, 17);
                 QVERIFY(!operation.isNull());
                 QList<Gpu::InputSample> pressureSamples{{{64.25, 64.75}, pressure}};
-                if (textured) pressureSamples.append({{104.25, 64.75}, endPressure});
+                if (textured || fineliner) pressureSamples.append({{104.25, 64.75}, endPressure});
+                for (auto &sample : pressureSamples) sample.speed = speed;
+                if (fineliner) { pressureSamples.last().speed = 1 - speed; pressureSamples.last().timestamp = 1; }
                 QCOMPARE(pressureOwner->appendSamples(operation, pressureSamples), Gpu::Result::Success);
                 QCOMPARE(pressureOwner->commitStroke(operation), Gpu::Result::Success);
                 auto actual = pressureOwner->readRgbaPixels(pressureOwner->operations().activeLayer(), QRect(QPoint(), size), expected.size()).bytes;
                 for (qsizetype i = 0; i < actual.size(); i += pixelBytes)
                     for (int byte = 0; byte < channelBytes; ++byte) std::swap(actual[i + byte], actual[i + 2 * channelBytes + byte]);
                 for (const auto &entry : {qMakePair(QStringLiteral("native"), expected), qMakePair(QStringLiteral("gpu"), actual)}) {
-                    QFile artifact(QDir(output).filePath(QStringLiteral("pressure-d%1-p%2-%3.bgra").arg(diameter).arg(pressure).arg(entry.first)));
+                    QFile artifact(QDir(output).filePath(probeName + QLatin1Char('-') + entry.first + QStringLiteral(".bgra")));
                     QVERIFY(artifact.open(QIODevice::WriteOnly));
                     QCOMPARE(artifact.write(entry.second), entry.second.size());
                 }
@@ -9060,7 +9071,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                         auto original = originalOwner->readRgbaPixels(originalOwner->operations().activeLayer(), QRect(QPoint(), size), expected.size()).bytes;
                         for (qsizetype i = 0; i < original.size(); i += pixelBytes)
                             for (int byte = 0; byte < channelBytes; ++byte) std::swap(original[i + byte], original[i + 2 * channelBytes + byte]);
-                        QFile artifact(QDir(output).filePath(QStringLiteral("pressure-d%1-p%2-original.bgra").arg(diameter).arg(pressure)));
+                        QFile artifact(QDir(output).filePath(probeName + QStringLiteral("-original.bgra")));
                         QVERIFY(artifact.open(QIODevice::WriteOnly)); QCOMPARE(artifact.write(original), original.size());
                     }
 
@@ -9078,12 +9089,12 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                         for (int byte = 0; byte < channelBytes; ++byte) std::swap(gpuTemporary[i + byte], gpuTemporary[i + 2 * channelBytes + byte]);
                     for (const auto &entry : {qMakePair(QStringLiteral("native-temporary"), nativeTemporary),
                                               qMakePair(QStringLiteral("gpu-temporary"), gpuTemporary)}) {
-                        QFile artifact(QDir(output).filePath(QStringLiteral("pressure-d%1-p%2-%3.bgra").arg(diameter).arg(pressure).arg(entry.first)));
+                        QFile artifact(QDir(output).filePath(probeName + QLatin1Char('-') + entry.first + QStringLiteral(".bgra")));
                         QVERIFY(artifact.open(QIODevice::WriteOnly));
                         QCOMPARE(artifact.write(entry.second), entry.second.size());
                     }
                 }
-                QVERIFY2(actual == expected, qPrintable(QStringLiteral("Preset %1 diameter %2 pressure %3 must keep native pixels").arg(presetName).arg(diameter).arg(pressure)));
+                QVERIFY2(actual == expected, qPrintable(QStringLiteral("Preset %1 diameter %2 pressure %3 speed %4 must keep native pixels").arg(presetName).arg(diameter).arg(pressure).arg(speed)));
             }
             resources->setSize(normalDiameter);
         }

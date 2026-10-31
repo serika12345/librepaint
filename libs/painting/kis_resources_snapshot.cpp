@@ -110,6 +110,47 @@ bool capturePressureResponse(const KisPaintOpSettingsSP &settings, const QString
     return captureCurveResponse(curve, response);
 }
 
+bool captureSizeResponse(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    brush.sizeSpeedResponse.reset();
+    if (capturePressureResponse(settings, QStringLiteral("Size"), true, brush.sizeResponse)) return true;
+    if (!settings->getBool("PressureSize") || !settings->getBool("SizeUseCurve", true) ||
+        settings->getInt("SizecurveMode", 0) != 0) return false;
+    const qreal strength = settings->getDouble("SizeValue", 1);
+    if (!qIsFinite(strength) || strength < 0 || strength > 1) return false;
+    QDomDocument sensors;
+    const auto definition = settings->getString("SizeSensor");
+    if (!sensors.setContent(definition)) return false;
+    const auto root = sensors.documentElement();
+    QList<QDomElement> elements;
+    if (root.attribute("id") == QLatin1String("sensorslist")) {
+        for (auto child = root.firstChildElement("ChildSensor"); !child.isNull(); child = child.nextSiblingElement("ChildSensor")) elements.append(child);
+    } else elements.append(root);
+    if (elements.isEmpty()) return false;
+    QString common = elements.last().firstChildElement("curve").text();
+    const bool legacy = !definition.contains(QLatin1String("curve"));
+    if (legacy) common = settings->getBool("CustomSize") ? settings->getString("CurveSize") : QString();
+    common = settings->getString("SizecommonCurve", common);
+    brush.sizeResponse = {Gpu::PressureResponse::Kind::Constant, strength, {}};
+    bool pressure = false;
+    for (const auto &element : elements) {
+        Gpu::PressureResponse response;
+        const auto curve = legacy || settings->getBool("SizeUseSameCurve", true) ? common : element.firstChildElement("curve").text();
+        if (!captureCurveResponse(curve, response)) return false;
+        if (element.attribute("id") == QLatin1String("pressure")) {
+            if (pressure) return false;
+            pressure = true;
+            response.strength = strength;
+            brush.sizeResponse = response;
+        } else if (element.attribute("id") == QLatin1String("speed")) {
+            if (brush.sizeSpeedResponse) return false;
+            brush.sizeSpeedResponse = response;
+        } else return false;
+    }
+    return bool(brush.sizeSpeedResponse);
+}
+
 bool captureBrushTexture(const KisPaintOpSettingsSP &settings, bool erase, LibrePaint::Image::Gpu::Brush &brush)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -296,7 +337,7 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     value.creamy = useCreamyAlphaDarken();
     if (!angleOk || !spacingOk || !qIsFinite(value.angle) || !qIsFinite(brush.spacing) ||
         brush.spacing <= 0 || brush.spacing > 1 || !qIsFinite(value.flow) || value.flow < 0 || value.flow > 1) return false;
-    if (!capturePressureResponse(settings, QStringLiteral("Size"), true, brush.sizeResponse) ||
+    if (!captureSizeResponse(settings, brush) ||
         !capturePressureResponse(settings, QStringLiteral("Opacity"), false, value.opacityResponse) ||
         !capturePressureResponse(settings, QStringLiteral("Flow"), false, value.flowResponse)) return false;
     // WASH applies constant opacity once when merging the temporary stroke.
@@ -402,7 +443,7 @@ KisGpuBrushResources captureGpuPaintingResources(
         brush.autoSpacingCoefficient = settings->getDouble("autoSpacingCoeff", 1);
         if (!qIsFinite(brush.spacing) || brush.spacing <= 0 || brush.spacing > 1 ||
             !qIsFinite(brush.autoSpacingCoefficient) || brush.autoSpacingCoefficient < 0 ||
-            !capturePressureResponse(settings, QStringLiteral("Size"), true, brush.sizeResponse))
+            !captureSizeResponse(settings, brush))
             return reject(i18n("These brush settings are not yet available for GPU painting."));
     } else if (withBrushTip && preset->paintOp().id() == QLatin1String("paintbrush") &&
                !captureAutoBrush(preset->settings(), brush)) {

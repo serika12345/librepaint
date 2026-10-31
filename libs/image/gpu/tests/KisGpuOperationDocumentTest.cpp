@@ -4231,6 +4231,7 @@ void KisGpuOperationDocumentTest::autoBrushSettingsSurviveHistory()
     OperationDocument document(QSize(128, 128));
     Brush brush;
     brush.sizeResponse = {PressureResponse::Kind::Curve, 1, QList<qreal>(256, 0)};
+    brush.sizeSpeedResponse = PressureResponse{PressureResponse::Kind::Curve, 1, QList<qreal>(256, 0)};
     AutoBrush settings;
     settings.mask = AutoBrush::Mask::Rectangle;
     settings.ratio = .52;
@@ -4243,9 +4244,11 @@ void KisGpuOperationDocumentTest::autoBrushSettingsSurviveHistory()
     settings.creamy = false;
     for (qsizetype i = 0; i < brush.sizeResponse.curve.size(); ++i) {
         brush.sizeResponse.curve[i] = qreal(i * i) / (255 * 255);
+        brush.sizeSpeedResponse->curve[i] = 1 - qreal(i) / 255;
         settings.opacityResponse.curve[i] = qreal(i) / 255;
     }
     const auto size = brush.sizeResponse;
+    const auto speedSize = brush.sizeSpeedResponse;
     brush.autoBrush = settings;
     Shape shape;
     shape.kind = ShapeKind::Line;
@@ -4257,9 +4260,11 @@ void KisGpuOperationDocumentTest::autoBrushSettingsSurviveHistory()
     brush.autoBrush->ratio = 1;
     brush.autoBrush->verticalFade = 1;
     brush.sizeResponse.curve[128] = 1;
+    brush.sizeSpeedResponse->curve[128] = 1;
     const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QVERIFY(operation->brush.autoBrush == std::optional<AutoBrush>(settings));
     QVERIFY(operation->brush.sizeResponse == size);
+    QVERIFY(operation->brush.sizeSpeedResponse == speedSize);
     const auto retainedState = document.preview();
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.redo(), Result::Success);

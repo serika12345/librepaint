@@ -24,9 +24,10 @@ QSizeF characteristicSize(qreal diameter, qreal ratio, qreal scale, qreal angle)
 }
 }
 
-qreal pressureValue(const PressureResponse &response, qreal pressure)
+namespace {
+qreal responseCurveValue(const PressureResponse &response, qreal pressure)
 {
-    if (response.kind == PressureResponse::Kind::Constant) return response.strength;
+    if (response.kind == PressureResponse::Kind::Constant) return 1;
     qreal value = pressure;
     if (response.kind == PressureResponse::Kind::Curve) {
         const qreal x = std::clamp(255 * pressure, qreal(0), qreal(255));
@@ -35,8 +36,11 @@ qreal pressureValue(const PressureResponse &response, qreal pressure)
         value = fraction < 1e-6 ? response.curve[low] : fraction > 1 - 1e-6 ? response.curve[high] :
             response.curve[low] + fraction * (response.curve[high] - response.curve[low]);
     }
-    return std::clamp(response.strength * value, qreal(0), qreal(1));
+    return value;
 }
+}
+qreal pressureValue(const PressureResponse &response, qreal pressure)
+{ return std::clamp(response.strength * responseCurveValue(response, pressure), qreal(0), qreal(1)); }
 bool forEachBrushDab(const PaintOperation &operation, bool pending,
                      const std::function<bool(const BrushDab &)> &visit)
 {
@@ -74,7 +78,10 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
     const auto append = [&](const InputSample &point, bool explicitPoint = false) {
         if (directLines && operation.shape.kind != ShapeKind::Freehand && !explicitPoint) return true;
         const auto dabSequence = sequence++;
-        const qreal scale = pressureValue(brush.sizeResponse, point.pressure);
+        const qreal scale = brush.sizeSpeedResponse ?
+            std::clamp(brush.sizeResponse.strength * (responseCurveValue(brush.sizeResponse, point.pressure) *
+                responseCurveValue(*brush.sizeSpeedResponse, point.speed)), qreal(0), qreal(1)) :
+            pressureValue(brush.sizeResponse, point.pressure);
         const qreal diameter = brush.diameter * scale;
         const bool tooSmall = brush.autoBrush ?
             scale * std::max(1, int(brush.diameter)) < .01 ||
@@ -175,6 +182,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             const auto previous = first.position;
             first.position = (1 - fraction) * first.position + fraction * last.position;
             first.pressure = (1 - fraction) * first.pressure + fraction * last.pressure;
+            first.speed = (1 - fraction) * first.speed + fraction * last.speed;
             accumulated = {};
             if (!append(first)) return false;
             if (first.position == previous && fraction != 0) return false;
@@ -214,6 +222,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             auto middle = curve.first;
             middle.position = (leftInner + rightInner) / 2;
             middle.pressure = .5 * curve.first.pressure + .5 * curve.last.pressure;
+            middle.speed = .5 * curve.first.speed + .5 * curve.last.speed;
             pending.append({middle, rightInner, right, curve.last});
             pending.append({curve.first, left, leftInner, middle});
         }

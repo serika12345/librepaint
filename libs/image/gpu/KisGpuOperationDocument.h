@@ -298,12 +298,15 @@ struct Brush
      * Validation keeps paper resources on the primary brush.
      */
     QSharedPointer<const Brush> additiveMaskingBrush;
+    /** Fineliner size multiplies pressure by a unit-strength speed curve. */
+    std::optional<PressureResponse> sizeSpeedResponse{};
 
     bool operator==(const Brush &other) const
     {
         return rgba == other.rgba && diameter == other.diameter &&
             spacing == other.spacing && autoSpacing == other.autoSpacing &&
             autoSpacingCoefficient == other.autoSpacingCoefficient && sizeResponse == other.sizeResponse &&
+            sizeSpeedResponse == other.sizeSpeedResponse &&
             opacity == other.opacity && erase == other.erase &&
             alphaLocked == other.alphaLocked && maskPainting == other.maskPainting && blendMode == other.blendMode &&
             channelWriteMask == other.channelWriteMask &&

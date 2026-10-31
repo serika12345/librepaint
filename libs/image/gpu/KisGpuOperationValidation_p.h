@@ -330,7 +330,9 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
             std::abs(qint64(t.offset.y())) > OperationDocument::CoordinateLimit) return false;
     }
     if (brush.maskPainting && format != PixelFormat::Rgba8) return false;
-    if (!validPressureResponse(brush.sizeResponse) || !std::isfinite(brush.autoSpacingCoefficient) ||
+    if (!validPressureResponse(brush.sizeResponse) ||
+        (brush.sizeSpeedResponse && (!validPressureResponse(*brush.sizeSpeedResponse) || brush.sizeSpeedResponse->strength != 1)) ||
+        !std::isfinite(brush.autoSpacingCoefficient) ||
         brush.autoSpacingCoefficient < 0) return false;
     if (!std::isfinite(brush.opacity) || brush.opacity < 0 || brush.opacity > 1) return false;
     if (!validPixel(brush.rgba, format)) return false;
