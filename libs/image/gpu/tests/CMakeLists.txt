@@ -11,6 +11,13 @@ kis_add_test(KisGpuPaintImageTest.cpp
     LINK_LIBRARIES kritaimagegpupaint kritaimagegputiles kritaimagegpuoperations Qt6::Gui Qt6::Test WGPUNative::WGPUNative)
 target_compile_definitions(KisGpuPaintImageTest PRIVATE kritagpuimage_EXPORTS)
 
+kis_add_test(KisGpuImageBrushTest.cpp
+    TEST_NAME_VAR gpu_image_brush_test
+    LINK_LIBRARIES kritaimagegpupaint kritaimagegputiles kritaimagegpuoperations
+        kritabrushqimagepyramidobjects kritaglobal kritapigment Qt6::Gui Qt6::Test WGPUNative::WGPUNative)
+target_compile_definitions(KisGpuImageBrushTest PRIVATE kritagpuimage_EXPORTS kritalibbrush_EXPORTS)
+set_tests_properties(${gpu_image_brush_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 kis_add_test(KisGpuTileRendererTest.cpp
     TEST_NAME_VAR gpu_tile_renderer_test
     LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::Gui Qt6::Test WGPUNative::WGPUNative
