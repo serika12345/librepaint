@@ -2593,7 +2593,8 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
         }
 
 
-    for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-3_Gpen.kpp", "u)_Pixel_Art_Dithering.kpp"})
+    for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-3_Gpen.kpp", "u)_Pixel_Art_Dithering.kpp",
+                              "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray("white-default-") + preset + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1)
@@ -8643,10 +8644,16 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
     QTest::addColumn<qreal>("normalDiameter");
     QTest::addColumn<bool>("rotatedCanvas");
     for (const auto *name : {"b)_Basic-5_Size_default.kpp", "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp",
-                             "b)_Basic-5_Size_Opacity.kpp", "a)_Eraser_Small.kpp", "d)_Ink-3_Gpen.kpp"})
+                             "b)_Basic-5_Size_Opacity.kpp", "a)_Eraser_Small.kpp", "d)_Ink-3_Gpen.kpp",
+                             "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << 0 << qreal(40) << false;
+        }
+    for (const auto *name : {"b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp"})
+        for (bool words : {false, true}) {
+            const QByteArray row = QByteArray("constant-rotation-mirrored-canvas-") + name + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << 0 << qreal(40) << true;
         }
     for (bool words : {false, true}) {
         const auto suffix = words ? "-u16" : "-u8";

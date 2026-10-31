@@ -218,9 +218,21 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") ||
         settings->getBool("HorizontalMirrorEnabled") || settings->getBool("VerticalMirrorEnabled")) return false;
     for (const auto *name : {"PressureDarken", "PressureMirror", "PressureMix", "PressureRate", "PressureRatio",
-                            "PressureRotation", "PressureScatter", "PressureSoftness",
+                            "PressureScatter", "PressureSoftness",
                             "PressureSpacing", "Pressureh", "Pressures", "Pressurev"})
         if (settings->getBool(QLatin1String(name))) return false;
+    const bool constantRotation = settings->getBool("PressureRotation");
+    if (constantRotation && settings->getBool("RotationUseCurve", true)) return false;
+    if (constantRotation && !settings->getString("RotationSensor").isEmpty()) {
+        QDomDocument rotation;
+        if (!rotation.setContent(settings->getString("RotationSensor"))) return false;
+        QList<QDomElement> sensors{rotation.documentElement()};
+        const auto children = rotation.documentElement().elementsByTagName(QStringLiteral("ChildSensor"));
+        for (int i = 0; i < children.size(); ++i) sensors.append(children.at(i).toElement());
+        for (const auto &sensor : sensors)
+            if (sensor.attribute(QStringLiteral("fanCornersEnabled")).toInt() &&
+                !sensor.attribute(QStringLiteral("lockedAngleMode")).toInt()) return false;
+    }
     QDomDocument definition;
     if (!definition.setContent(settings->getString("brush_definition"))) return false;
     const auto root = definition.documentElement();
@@ -239,6 +251,7 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     if (!equalNumber(root, QStringLiteral("randomness"), 0) || !equalNumber(root, QStringLiteral("density"), 1) ||
         !qIsFinite(brush.diameter) || brush.diameter <= 0) return false;
     LibrePaint::Image::Gpu::AutoBrush value;
+    value.constantRotation = constantRotation;
     value.precisionLevel = settings->getInt("KisPrecisionOption/precisionLevel", 5);
     value.autoPrecision = settings->getBool("KisPrecisionOption/AutoPrecisionEnabled", false);
     if (value.precisionLevel < 1 || value.precisionLevel > 5) return false;

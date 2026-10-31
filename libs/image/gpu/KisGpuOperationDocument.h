@@ -215,6 +215,8 @@ struct AutoBrush
     int sharpnessSoftness = 0;
     int precisionLevel = 5;
     bool autoPrecision = false;
+    /** Checked native rotation with its sensor curve disabled. */
+    bool constantRotation = false;
 
     bool operator==(const AutoBrush &other) const
     {
@@ -224,7 +226,8 @@ struct AutoBrush
             opacityResponse == other.opacityResponse && flowResponse == other.flowResponse &&
             sharpnessResponse == other.sharpnessResponse && alignOutlinePixels == other.alignOutlinePixels &&
             sharpnessSoftness == other.sharpnessSoftness &&
-            precisionLevel == other.precisionLevel && autoPrecision == other.autoPrecision;
+            precisionLevel == other.precisionLevel && autoPrecision == other.autoPrecision &&
+            constantRotation == other.constantRotation;
     }
 };
 
