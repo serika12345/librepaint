@@ -461,7 +461,7 @@ void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing_data()
     QTest::addColumn<int>("fillStyle");
     QTest::addColumn<int>("outlineStyle");
     QTest::addColumn<bool>("words");
-    QTest::addColumn<QString>("paperPreset");
+    QTest::addColumn<QString>("presetName");
     for (const auto figure : {FigureKind::Ellipse, FigureKind::Rectangle, FigureKind::RoundedRectangle, FigureKind::Polygon}) {
         for (const bool words : {false, true}) {
             const auto name = QString::number(int(figure)) + (words ? QStringLiteral("-u16") : QStringLiteral("-u8"));
@@ -477,6 +477,14 @@ void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing_data()
             QTest::newRow(qPrintable(QStringLiteral("dither-") + name)) << figure << true << false << false << false
                 << int(KisFigurePaintingOptions::FillStyleNone)
                 << int(KisFigurePaintingOptions::StrokeStyleForeground) << words << QStringLiteral("u)_Pixel_Art_Dithering.kpp");
+            for (const auto *preset : {"u)_Pixel_Art.kpp", "u)_Pixel_Art_Fill.kpp", "h)_Charcoal_pencil_large.kpp",
+                                       "h)_Charcoal_Pencil_Medium.kpp", "h)_Charcoal_Pencil_Thin.kpp"}) {
+                if (figure != FigureKind::Ellipse && (QLatin1String(preset).contains(QLatin1String("Medium")) ||
+                                                      QLatin1String(preset).contains(QLatin1String("Thin")))) continue;
+                QTest::newRow(qPrintable(QString::fromLatin1(preset) + QLatin1Char('-') + name)) << figure << true << false << false << false
+                    << int(KisFigurePaintingOptions::FillStyleNone)
+                    << int(KisFigurePaintingOptions::StrokeStyleForeground) << words << QString::fromLatin1(preset);
+            }
         }
     }
 }
@@ -484,19 +492,22 @@ void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing_data()
 void KisEllipseToolDocumentTest::standardBrushShapesKeepOrdinaryEditing()
 {
     QFETCH(bool, words);
-    QFETCH(QString, paperPreset);
-    const bool paper = !paperPreset.isEmpty();
-    const bool screentone = paperPreset == QLatin1String("y)_Screentones_Regular.kpp");
-    const bool dither = paperPreset == QLatin1String("u)_Pixel_Art_Dithering.kpp");
+    QFETCH(QString, presetName);
+    const bool screentone = presetName == QLatin1String("y)_Screentones_Regular.kpp");
+    const bool dither = presetName == QLatin1String("u)_Pixel_Art_Dithering.kpp");
     auto preset = m_fillPreset;
-    if (paper) {
+    if (!presetName.isEmpty()) {
         const auto bundle = KisResourceStorageSP::create(QStringLiteral(KRITA_SOURCE_DIR "/krita/data/bundles/Krita_4_Default_Resources.bundle"));
         QVERIFY(bundle->valid());
-        preset = bundle->resource(QStringLiteral("paintoppresets/") + paperPreset).dynamicCast<KisPaintOpPreset>();
-        const auto pattern = bundle->resource(screentone ? QStringLiteral("patterns/24-dynamic-screentone-B.png") : dither ? QStringLiteral("patterns/Squares08.pat") : QStringLiteral("patterns/03_default-paper.png")).dynamicCast<KoPattern>();
-        QVERIFY(preset); QVERIFY(pattern);
-        if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(pattern->md5Sum(), pattern->filename(), pattern->name())) {
-            KisResourceModel patterns(ResourceType::Patterns); QVERIFY(patterns.addResource(pattern));
+        preset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
+        QVERIFY(preset);
+        if (preset->settings()->getBool("Texture/Pattern/Enabled")) {
+            const auto file = QFileInfo(preset->settings()->getString("Texture/Pattern/PatternFileName")).fileName();
+            const auto pattern = bundle->resource(QStringLiteral("patterns/") + file).dynamicCast<KoPattern>();
+            QVERIFY(pattern);
+            if (!KisGlobalResourcesInterface::instance()->source<KoPattern>(ResourceType::Patterns).bestMatch(pattern->md5Sum(), pattern->filename(), pattern->name())) {
+                KisResourceModel patterns(ResourceType::Patterns); QVERIFY(patterns.addResource(pattern));
+            }
         }
         preset->settings()->setProperty("Texture/Pattern/isRandomOffsetX", false);
         preset->settings()->setProperty("Texture/Pattern/isRandomOffsetY", false);

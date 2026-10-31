@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Johan Mabille, Sylvain Corlay, Wolf Vollprecht, Martin Renou, QuantStack, Serge Guelton
+// SPDX-FileCopyrightText: 2016 NumScale SAS
+// SPDX-License-Identifier: GPL-2.0-or-later AND BSD-3-Clause AND BSL-1.0
 
 // Gaussian coverage rounds y*y before the single-rounded x*x + y*y sum.
 fn gaussianSquaredDistance(x: u32, y: u32) -> u32 {
@@ -186,6 +188,56 @@ fn circleAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32, maskPainting: bool)
     let inverse = floatDivide(floatMultiply(floatSubtract(distance, start), floatFromDouble(dab.coefficient.xy)), 0x437f0000u);
     let alpha = floatMultiply(bitcast<u32>(f32(maximum)), floatSubtract(0x3f800000u, inverse));
     // Native GrayA8 and U16 mask application truncate; RGB8 rounds to nearest-even.
+    if (maximum == 65535u || maskPainting) { return u32(bitcast<f32>(alpha)); }
+    return projectionComponent(alpha);
+}
+
+// The native vector Gaussian uses VcExtraMath::erf. Its exp reduction and
+// coefficients follow xsimd 14.3's common float kernel (original Boost.SIMD).
+// Integer binary32 operations fix the rounding independently of GPU hardware.
+fn gaussianNegativeExp(value: u32) -> u32 {
+    let magnitude = projectionComponent(floatMultiply(value & 0x7fffffffu, 0x3fb8aa3bu));
+    let integral = bitcast<u32>(-f32(magnitude));
+    var reduced = floatMultiplyAdd(integral ^ 0x80000000u, 0x3f318000u, value);
+    reduced = floatMultiplyAdd(integral ^ 0x80000000u, 0xb95e8083u, reduced);
+    var polynomial = floatMultiplyAdd(reduced, 0x3ab778cfu, 0x3c098d8bu);
+    polynomial = floatMultiplyAdd(reduced, polynomial, 0x3d2aa957u);
+    polynomial = floatMultiplyAdd(reduced, polynomial, 0x3e2aa9a5u);
+    polynomial = floatMultiplyAdd(reduced, polynomial, 0x3f000000u);
+    let approximate = floatAdd(0x3f800000u, floatMultiplyAdd(polynomial, floatMultiply(reduced, reduced), reduced));
+    return u32(i32(approximate) - i32(magnitude) * 8388608);
+}
+fn gaussianVectorErf(value: u32) -> u32 {
+    let magnitude = value & 0x7fffffffu;
+    const one = 0x3f800000u;
+    let sign = select(value & 0x80000000u, 0u, magnitude == 0u);
+    if (magnitude >= 0x4114cccdu) { return one | sign; }
+    let t = floatDivide(0x3f800000u, floatAdd(0x3f800000u, floatMultiply(0x3ea7ba05u, magnitude)));
+    var polynomial = floatAdd(floatMultiply(0x3f87dc22u, t), 0xbfba00e3u);
+    polynomial = floatAdd(floatMultiply(polynomial, t), 0x3fb5f0e3u);
+    polynomial = floatAdd(floatMultiply(polynomial, t), 0xbe91a98eu);
+    polynomial = floatAdd(floatMultiply(polynomial, t), 0x3e827906u);
+    polynomial = floatMultiply(polynomial, t);
+    let exponential = gaussianNegativeExp(floatMultiply(magnitude, magnitude) | 0x80000000u);
+    return floatSubtract(0x3f800000u, floatMultiply(polynomial, exponential)) ^ sign;
+}
+fn unaliasedGaussianAlpha(dab: MaskDab, point: vec2<u32>, maximum: u32, maskPainting: bool) -> u32 {
+    let dx = floatSubtract(bitcast<u32>(f32(point.x)), floatFromDouble(dab.center.xy));
+    let dy = floatSubtract(bitcast<u32>(f32(point.y)), floatFromDouble(dab.center.zw));
+    let cosine = floatFromDouble(dab.rotation.xy);
+    let sine = floatFromDouble(dab.rotation.zw);
+    let xr = floatSubtract(floatMultiply(dx, cosine), floatMultiply(sine, dy));
+    let yr = floatMultiply(floatAdd(floatMultiply(dx, sine), floatMultiply(cosine, dy)), dab.vertical.w);
+    let distance = floatSqrt(gaussianSquaredDistance(xr, yr));
+    if (distance > floatFromDouble(dab.radius.xy)) { return 0u; }
+    let argument = floatMultiply(distance, dab.vertical.y);
+    var fullFade = floatMultiply(dab.vertical.z, floatSubtract(
+        gaussianVectorErf(floatAdd(argument, dab.vertical.x)),
+        gaussianVectorErf(floatSubtract(argument, dab.vertical.x))));
+    if ((fullFade & 0x80000000u) != 0u) { fullFade = 0u; }
+    else if (fullFade > 0x437ef958u) { fullFade = 0x437f0000u; }
+    let inverse = floatDivide(floatSubtract(0x437f0000u, fullFade), 0x437f0000u);
+    let alpha = floatMultiply(bitcast<u32>(f32(maximum)), floatSubtract(0x3f800000u, inverse));
     if (maximum == 65535u || maskPainting) { return u32(bitcast<f32>(alpha)); }
     return projectionComponent(alpha);
 }

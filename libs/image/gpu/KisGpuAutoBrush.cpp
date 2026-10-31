@@ -63,6 +63,19 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
     std::optional<AutoBrushDab> original;
     QPointF savedSubpixel;
     qreal savedAngle = 0;
+    const bool unaliasedGaussian = settings.mask == AutoBrush::Mask::GaussianCircle && !settings.antialiasEdges;
+    constexpr double sqrtTwo = 1.41421356237309504880;
+    std::array<quint32, 3> gaussianParameters{};
+    double gaussianFadeDenominator = 0;
+    if (unaliasedGaussian) {
+        double fade = 1 - (settings.fade + settings.verticalFade.value_or(settings.fade)) / 2;
+        if (fade == 0) fade = 1e-6;
+        else if (fade == 1) fade = 1 - 1e-6;
+        const double center = (2.5 * (6761 * fade - 10000)) / (sqrtTwo * 6761 * fade);
+        gaussianFadeDenominator = 6761 * fade;
+        gaussianParameters = {floatBits(float(center)), floatBits(float(255 / (2 * std::erf(center)))),
+                              floatBits(float(1 / settings.ratio))};
+    }
 
     const bool complete = forEachBrushDab(operation, pending, [&](const BrushDab &point) {
         const auto &metric = point.size;
@@ -113,6 +126,13 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             doubleWords(dab, 12, radius);
             doubleWords(dab, 14, fadeStart);
             doubleWords(dab, 16, 255. / (radius - fadeStart));
+        }
+        if (unaliasedGaussian) {
+            dab.words[3] |= 32u;
+            dab.words[24] = gaussianParameters[0];
+            dab.words[25] = floatBits(float(sqrtTwo * 12500 / (gaussianFadeDenominator * radius)));
+            dab.words[26] = gaussianParameters[1];
+            dab.words[27] = gaussianParameters[2];
         }
         // Native dab caching reuses the original tip before applying paper at
         // the new document position. Only geometry is shared; flow, opacity

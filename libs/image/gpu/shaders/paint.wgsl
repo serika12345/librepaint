@@ -313,6 +313,8 @@ fn gaussianCoverage(pixel: vec2<i32>) -> u32 {
         if ((dab.size.w & 1u) != 0u) {
             if (dab.size.z > 1u) { coverage = smallStandardCircleAlpha(dab, vec2<u32>(point)) * scale; }
             else { coverage = standardCircleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
+        } else if ((dab.size.w & 32u) != 0u) {
+            coverage = unaliasedGaussianAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u);
         } else if (dab.size.z > 1u) { coverage = smallCircleAlpha(dab, vec2<u32>(point)) * scale; }
         else { coverage = circleAlpha(dab, vec2<u32>(point), maximum, (parameters.paintFlags & 524288u) != 0u); }
         if ((dab.texture.z & 512u) != 0u) {

@@ -328,7 +328,7 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
             !std::isfinite(value.fade) || value.fade < 0 || value.fade > 1 ||
             (value.verticalFade && (!std::isfinite(*value.verticalFade) || *value.verticalFade < 0 || *value.verticalFade > 1)) ||
             !std::isfinite(value.ratio) || value.ratio <= 0 || value.ratio > 1 ||
-            (value.mask == AutoBrush::Mask::GaussianCircle && value.ratio != 1)) return false;
+            (value.mask == AutoBrush::Mask::GaussianCircle && value.antialiasEdges && value.ratio != 1)) return false;
     }
     if (brush.weightedSmoothing) {
         const auto &value = *brush.weightedSmoothing;

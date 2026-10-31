@@ -259,23 +259,19 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     if (mask.attribute(QStringLiteral("id")) == QLatin1String("default")) {
         value.mask = mask.attribute(QStringLiteral("type")) == QLatin1String("rect") ?
             LibrePaint::Image::Gpu::AutoBrush::Mask::Rectangle : LibrePaint::Image::Gpu::AutoBrush::Mask::Circle;
-        bool fadeOk = false, verticalOk = false, ratioOk = false;
-        value.fade = mask.attribute(QStringLiteral("hfade")).toDouble(&fadeOk);
-        const auto verticalFade = mask.attribute(QStringLiteral("vfade")).toDouble(&verticalOk);
-        value.verticalFade = verticalFade;
-        value.ratio = mask.attribute(QStringLiteral("ratio")).toDouble(&ratioOk);
-        if (!fadeOk || !qIsFinite(value.fade) || value.fade < 0 || value.fade > 1 ||
-            !verticalOk || !qIsFinite(verticalFade) || verticalFade < 0 || verticalFade > 1 ||
-            !ratioOk || !qIsFinite(value.ratio) || value.ratio <= 0 || value.ratio > 1) return false;
-        if (equalNumber(mask, QStringLiteral("antialiasEdges"), 1)) value.antialiasEdges = true;
-        else if (equalNumber(mask, QStringLiteral("antialiasEdges"), 0)) value.antialiasEdges = false;
-        else return false;
-    } else {
-        if (mask.attribute(QStringLiteral("type")) != QLatin1String("circle") ||
-            !equalNumber(mask, QStringLiteral("ratio"), 1) || brush.diameter < 1) return false;
-        for (const auto *name : {"hfade", "vfade", "antialiasEdges"})
-            if (!equalNumber(mask, QLatin1String(name), 1)) return false;
-    }
+    } else if (mask.attribute(QStringLiteral("type")) != QLatin1String("circle") || brush.diameter < 1) return false;
+    bool fadeOk = false, verticalOk = false, ratioOk = false;
+    value.fade = mask.attribute(QStringLiteral("hfade")).toDouble(&fadeOk);
+    value.verticalFade = mask.attribute(QStringLiteral("vfade")).toDouble(&verticalOk);
+    value.ratio = mask.attribute(QStringLiteral("ratio")).toDouble(&ratioOk);
+    if (!fadeOk || !verticalOk || !ratioOk || !qIsFinite(value.fade) || value.fade < 0 || value.fade > 1 ||
+        !qIsFinite(*value.verticalFade) || *value.verticalFade < 0 || *value.verticalFade > 1 ||
+        !qIsFinite(value.ratio) || value.ratio <= 0 || value.ratio > 1) return false;
+    if (equalNumber(mask, QStringLiteral("antialiasEdges"), 1)) value.antialiasEdges = true;
+    else if (equalNumber(mask, QStringLiteral("antialiasEdges"), 0)) value.antialiasEdges = false;
+    else return false;
+    if (value.mask == LibrePaint::Image::Gpu::AutoBrush::Mask::GaussianCircle && value.antialiasEdges &&
+        (value.fade != 1 || *value.verticalFade != 1 || value.ratio != 1)) return false;
     brush.autoSpacing = root.attribute(QStringLiteral("useAutoSpacing"), QStringLiteral("0")).toInt() != 0;
     bool coefficientOk = false;
     brush.autoSpacingCoefficient = root.attribute(QStringLiteral("autoSpacingCoeff"), QStringLiteral("1")).toDouble(&coefficientOk);
