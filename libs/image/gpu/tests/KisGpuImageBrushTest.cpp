@@ -98,7 +98,10 @@ void KisGpuImageBrushTest::importedTipKeepsNativeMask()
     RasterImage raster;
     raster.size = {64, 64};
     raster.format = format;
-    raster.layers.append({QStringLiteral("Imported tip"), true, QUuid::createUuid(), {}});
+    RasterLayer layer;
+    layer.name = QStringLiteral("Imported tip");
+    layer.uuid = QUuid::createUuid();
+    raster.layers.append(layer);
     PaintImage image(m_execution, raster);
     Brush brush;
     const quint16 maximum = sixteenBits ? 65535 : 255;

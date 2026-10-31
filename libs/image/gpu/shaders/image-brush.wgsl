@@ -14,8 +14,9 @@ fn imageTipTexel(dab: MaskDab, point: vec2<i32>) -> vec2<u32> {
     return vec2<u32>(value & 255u, (value >> 8u) & 255u);
 }
 fn imageWordMultiply(a: u32, b: u32) -> u32 {
-    let value = a * b;
-    return (value + (value >> 16u) + 32768u) >> 16u;
+    if (b == 65535u) { return a; }
+    let value = (a * b) >> 16u;
+    return value + (value >> 15u);
 }
 fn imageInterpolatePair(a: u32, b: u32, fraction: u32) -> u32 {
     if (fraction == 0u) { return a; }
