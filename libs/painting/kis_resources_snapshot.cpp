@@ -354,7 +354,7 @@ FrozenGpuImageTips captureImageBrushTips(const KisPaintOpSettingsSP &settings, c
 
 bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush, bool secondary = false)
 {
-    const int action = settings->getInt("PaintOpAction");
+    const int action = settings->getInt("PaintOpAction", 1);
     const bool incremental = !secondary && action == 1;
     if ((!secondary && action != 1 && action != 2) ||
         (incremental && (brush.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Marker ||

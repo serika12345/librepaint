@@ -8875,6 +8875,10 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
         QTest::newRow(row.constData()) << QStringLiteral("u)_Pixel_Art_Fill.kpp") << words << 0 << qreal(32) << false;
     }
 
+    for (bool words : {false, true})
+        QTest::newRow(words ? "default-buildup-u16" : "default-buildup-u8")
+            << QStringLiteral("c)_Pencil-3_Large_4B.kpp") << words << 0 << qreal(10) << false;
+
 }
 
 void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
@@ -8922,6 +8926,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
     const bool dither = presetName == QLatin1String("u)_Pixel_Art_Dithering.kpp");
     const bool textured = sourcePreset->settings()->getBool("Texture/Pattern/Enabled");
     const QByteArray dataTag(QTest::currentDataTag());
+    if (dataTag.startsWith("default-buildup-"))
+        sourcePreset->settings()->removeProperty("PaintOpAction");
     if (dataTag.startsWith("gaussian-unaliased-")) {
         // Existing brush-editor controls: keep the native Gaussian gradient
         // when sharpness is unchecked, including an elliptical rotated tip.
