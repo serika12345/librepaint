@@ -1833,6 +1833,9 @@ KRA・PNG・JPEGの全バイトを照合する。同じ保存済み結果の再�
 `kis_paintop_test::testCubicTraversalKeepsGeometryAndInput`は、閉曲線と等価な中点分割のブラシ呼出しを照合する。
 通常の曲線、同一直線上の閉曲線と静止点について、始終点、連続した筆圧・時刻と曲線点列を検査する。
 `LIBREPAINT_GPU_RESULT_DIR`へ`cubic-traversal-<条件>.json`を出力し、ブラシへ渡した線分・入力値と点列を環境間で全バイト比較する。
+`KisDabRenderingQueueTest::testRandomPipeKeepsQueuedPixels`は、既存の複数筆先資源と固定した乱数種から
+描点を登録し、即時実行と全描点の登録後の遅延実行を検査する。各描点の画素を登録順の参照結果と
+完全比較し、実行順が資源の選択や後続の共有乱数を変えないことを確認する。
 既存KRA読取側との照合は登録済みKRAプラグインを直接利用し、新しい読込と独立した画素・構造の
 検査を維持する。JPEG XLとRGBEの形式試験も、この読取側で比較用KRAの色・画素を取得する。
 KRAの付属情報は解像度、ICC、文書情報、注釈と対称軸を照合し、不正な解像度・文書情報と欠落・重複した
