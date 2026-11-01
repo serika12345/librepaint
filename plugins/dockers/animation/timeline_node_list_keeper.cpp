@@ -51,6 +51,7 @@ struct TimelineNodeListKeeper::Private
 
     QVector<KisNodeDummy*> dummiesList;
     QSet<KisNodeDummy*> connectionsSet;
+    QSet<KisNodeDummy*> removingDummies;
     KisSignalAutoConnectionsStore channelConnectionsStore;
 
     void populateDummiesList() {
@@ -112,6 +113,11 @@ int TimelineNodeListKeeper::rowForDummy(KisNodeDummy *dummy)
 int TimelineNodeListKeeper::rowCount()
 {
     return m_d->dummiesList.size();
+}
+
+bool TimelineNodeListKeeper::isRemovingDummy(KisNodeDummy *dummy) const
+{
+    return m_d->removingDummies.contains(dummy);
 }
 
 bool TimelineNodeListKeeper::updateActiveDummy(KisNodeDummy *dummy)
@@ -202,7 +208,15 @@ void TimelineNodeListKeeper::slotEndInsertDummy(KisNodeDummy *dummy)
     KIS_ASSERT_RECOVER_RETURN(!m_d->dummiesList.contains(dummy));
 
     if (m_d->converter.isDummyVisible(dummy)) {
-        int pos = m_d->converter.rowForDummy(dummy);
+        const int treeRow = m_d->converter.rowForDummy(dummy);
+        int pos = treeRow;
+        // Removal notifications precede the facade's tree change. These rows
+        // have already left our model and must not offset a new active row.
+        for (auto removed : m_d->removingDummies) {
+            const int removedRow = m_d->converter.rowForDummy(removed);
+            if (removedRow >= 0 && removedRow < treeRow) --pos;
+        }
+        KIS_SAFE_ASSERT_RECOVER_RETURN(pos >= 0 && pos <= m_d->dummiesList.size());
 
         QScopedValueRollback<bool> changingRows(m_d->changingRows, true);
         m_d->model->callBeginInsertRows(QModelIndex(), pos, pos);
@@ -214,6 +228,11 @@ void TimelineNodeListKeeper::slotEndInsertDummy(KisNodeDummy *dummy)
 
 void TimelineNodeListKeeper::slotBeginRemoveDummy(KisNodeDummy *dummy)
 {
+    // Other facade listeners can select this node before its destruction.
+    m_d->removingDummies.insert(dummy);
+    connect(dummy, &QObject::destroyed, this, [this, dummy] {
+        m_d->removingDummies.remove(dummy);
+    });
     // The facade removes the complete subtree after this notification.
     for (auto child = dummy->firstChild(); child; child = child->nextSibling()) {
         slotBeginRemoveDummy(child);
@@ -238,6 +257,7 @@ void TimelineNodeListKeeper::removeDummyRow(KisNodeDummy *dummy)
 
 void TimelineNodeListKeeper::slotDummyChanged(KisNodeDummy *dummy)
 {
+    if (isRemovingDummy(dummy)) return;
     const bool present = m_d->dummiesList.contains(dummy);
     const bool shouldBe = m_d->converter.isDummyVisible(dummy);
 

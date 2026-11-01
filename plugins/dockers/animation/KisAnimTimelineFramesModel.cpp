@@ -370,8 +370,8 @@ void KisAnimTimelineFramesModel::processUpdateQueue()
 
 void KisAnimTimelineFramesModel::slotCurrentNodeChanged(KisNodeSP node)
 {    
-    const auto serial = ++m_d->activationSerial;
     if (!node) {
+        ++m_d->activationSerial;
         m_d->activeLayerIndex = -1;
         return;
     }
@@ -382,6 +382,8 @@ void KisAnimTimelineFramesModel::slotCurrentNodeChanged(KisNodeSP node)
         // when views get activated while Krita is closing down.
         return;
     }
+    if (m_d->converter->isRemovingDummy(dummy)) return;
+    const auto serial = ++m_d->activationSerial;
     
     int lastActiveLayerIndex = m_d->activeLayerIndex;
     const bool prevActiveWasPinned = headerData(m_d->activeLayerIndex, Qt::Vertical, PinnedToTimelineRole).toBool();

@@ -141,10 +141,16 @@ void TimelineModelTest::testRemovingGroupDropsDescendantRowsAndRestoresThem()
     const auto reselect = connect(&model, &QAbstractItemModel::rowsAboutToBeRemoved, &model, [&] {
         model.slotCurrentNodeChanged(m_layer4);
     });
+    const auto retiringSelection = connect(m_shapeController, &KisShapeController::sigBeginRemoveDummy, &model,
+        [&](KisNodeDummy *dummy) {
+            model.slotCurrentNodeChanged(dummy->node());
+            model.slotCurrentNodeChanged(m_layer4);
+        });
     QVERIFY(m_image->removeNode(m_layer2));
     QTRY_VERIFY(!m_shapeController->hasDummyForNode(m_layer2));
     QTRY_COMPARE(model.nodeAt(model.index(model.activeLayerRow(), 0)).data(), m_layer4.data());
     disconnect(reselect);
+    disconnect(retiringSelection);
     QCOMPARE(model.rowCount(), groupedRows - 1);
     checkRows();
     model.slotCurrentNodeChanged(m_layer1);
