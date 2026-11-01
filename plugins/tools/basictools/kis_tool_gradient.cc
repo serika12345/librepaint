@@ -50,6 +50,10 @@
 #include "kis_processing_visitor.h"
 #include "kis_tool.h"
 #include "kis_tool_paint.h"
+#include <gpu/KisGpuPaintImage.h>
+#include <KoColorSpaceRegistry.h>
+#include <KoCanvasResourceProvider.h>
+#include <QPointer>
 
 
 KisToolGradient::KisToolGradient(KoCanvasBase * canvas)
@@ -155,6 +159,47 @@ void KisToolGradient::endPrimaryAction(KoPointerEvent *event)
     KisResourcesSnapshotSP resources =
         new KisResourcesSnapshot(image, currentNode(), this->canvas()->resourceManager()->canvasResourcesInterface());
 
+    if (image && image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        // The ordinary tool freezes the same baked color resource as the
+        // native painter. The image owner retains only values and GPU pixels.
+        const KisNodeSP node = currentNode();
+        const auto captured = captureGpuFillResources(image, node, canvas()->resourceManager());
+        const auto reject = [&](const QString &diagnostic) { Q_EMIT statusTextChanged(diagnostic); };
+        if (!captured.diagnostic.isEmpty()) { reject(captured.diagnostic); updateGuideline(); return; }
+        if (m_shape > KisGradientPainter::GradientShapeReverseSpiral) {
+            reject(i18n("This gradient shape is not yet available for GPU editing."));
+            updateGuideline(); return;
+        }
+        const auto owner = image->gpuImage();
+        const auto version = owner->operations().snapshot();
+        QRect bounds(QPoint(), version->size);
+        if (!version->selection.isEmpty() && !version->selectionInverted) bounds &= version->selection;
+        if (bounds.isEmpty()) { updateGuideline(); return; }
+        const auto *colorSpace = captured.transparencyMask ? KoColorSpaceRegistry::instance()->colorSpace(
+            GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace();
+        QString diagnostic;
+        auto gradient = captureGpuGradientResource(resources->currentGradient(), colorSpace,
+            qMax(bounds.width(), bounds.height()), m_dither, diagnostic);
+        if (!gradient) { reject(diagnostic); updateGuideline(); return; }
+        gradient->start = m_startPos; gradient->end = m_endPos;
+        gradient->shape = Gpu::GradientFill::Shape(m_shape);
+        gradient->repeat = Gpu::GradientFill::Repeat(m_repeat);
+        gradient->reverse = m_reverse;
+        gradient->antiAliasThreshold = m_antiAliasThreshold;
+        auto brush = captured.brush;
+        // Native gradient painting does not mirror its canvas-wide source.
+        brush.mirrorHorizontal = brush.mirrorVertical = false;
+        const QPointer<KisToolGradient> tool(this);
+        const auto result = owner->paintGradient(captured.layer, brush, *gradient, captured.transparencyMask);
+        if (tool) {
+            if (result != Gpu::Result::Success && result != Gpu::Result::EmptyOperation)
+                Q_EMIT tool->statusTextChanged(i18n("The gradient could not be drawn on this GPU layer."));
+            tool->updateGuideline();
+        }
+        return;
+    }
+
     if (image && resources->currentNode()->paintDevice()) {
         KUndo2MagicString actionName = kundo2_i18n("Gradient");
         KisProcessingApplicator applicator(image, resources->currentNode(),
@@ -192,6 +237,24 @@ void KisToolGradient::endPrimaryAction(KoPointerEvent *event)
     }
 
     updateGuideline();
+}
+
+void KisToolGradient::requestStrokeEnd()
+{
+    if (mode() == KisTool::PAINT_MODE) endPrimaryAction(nullptr);
+}
+
+void KisToolGradient::requestStrokeCancellation()
+{
+    if (mode() != KisTool::PAINT_MODE) return;
+    setMode(KisTool::HOVER_MODE);
+    updateGuideline();
+}
+
+void KisToolGradient::deactivate()
+{
+    requestStrokeCancellation();
+    KisToolPaint::deactivate();
 }
 
 QPointF KisToolGradient::straightLine(QPointF point)

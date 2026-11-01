@@ -707,6 +707,27 @@ Result PaintImage::fillTransparencyMaskPattern(LayerId layer, const PatternFill 
     return fillTransparencyMaskPattern(layer, pattern, opacity, erase, alphaLocked, LayerBlendMode::Normal);
 }
 
+Result PaintImage::paintGradient(LayerId layer, const Brush &brush, const GradientFill &gradient, bool transparencyMask)
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (!transparencyMask) return publish(m_d->document->paintGradient(layer, brush, gradient));
+    if (!m_d->handle) return Result::Closed;
+    if (m_d->maskStroke || m_d->document->hasActiveStroke()) return Result::EditInProgress;
+    const auto version = m_d->document->snapshot();
+    const Layer *target = editableMaskLayer(version, layer);
+    if (!target) return Result::LayerUnavailable;
+    const auto maskImage = createMaskImage(version, target->transparencyMask);
+    if (!maskImage) return resultFor(m_d->lastRequest.code);
+    Brush maskBrush = brush;
+    maskBrush.maskPainting = true;
+    maskBrush.alphaLocked = false;
+    maskBrush.channelWriteMask = 15;
+    const auto maskLayer = maskImage->operations().activeLayer();
+    const auto result = maskImage->paintGradient(maskLayer, maskBrush, gradient);
+    if (result != Result::Success) return result;
+    return replaceMaskFromImage(layer, *maskImage, maskLayer, true);
+}
+
 Result PaintImage::fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
                                                qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode)
 {

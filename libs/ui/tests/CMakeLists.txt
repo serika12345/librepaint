@@ -1233,6 +1233,9 @@ add_test(NAME ${gpu_document_group_mask_test}
         maskChildFreehandStrokeEditsOnlyCoverage:group-ordinary-white-default
         maskChildFreehandStrokeEditsOnlyCoverage:group-ordinary-selection-consumed)
 set(gpu_document_group_test libs-ui-groups-KisGpuDocumentViewTest)
+set(gpu_document_gradient_test libs-ui-gradients-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_gradient_test}
+    COMMAND KisGpuDocumentViewTest gradientsKeepNativeEditingHistoryAndKra)
 add_test(NAME ${gpu_document_group_test}
     COMMAND KisGpuDocumentViewTest quickGroupsKeepPixelsHistoryAndSaving)
 set(gpu_document_merge_test libs-ui-layer-merges-KisGpuDocumentViewTest)
@@ -1315,7 +1318,7 @@ add_test(NAME ${gpu_document_hsv_filter_test}
     COMMAND KisGpuDocumentViewTest hsvAdjustmentActionUsesProductSettingsOnGpuDocument)
 set_tests_properties(${gpu_document_hsv_filter_test} PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=cocoa" RUN_SERIAL TRUE TIMEOUT 60)
-set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test} ${gpu_document_group_test} ${gpu_document_group_mask_test} ${gpu_document_merge_test}
+set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test} ${gpu_document_group_test} ${gpu_document_group_mask_test} ${gpu_document_merge_test} ${gpu_document_gradient_test}
     ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
     ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_brush_blend_test}
     ${gpu_document_brush_presets_test} ${gpu_document_native_clipboard_test}
@@ -1447,6 +1450,7 @@ set_tests_properties(${gpu_document_background_tests} PROPERTIES TIMEOUT 180)
 # Mask preset cases compare native and GPU editing through KRA reload for both precisions.
 set_tests_properties(${gpu_document_layer_test} ${gpu_document_group_mask_test} PROPERTIES TIMEOUT 900)
 set_tests_properties(${gpu_document_group_test} ${gpu_document_merge_test} PROPERTIES TIMEOUT 1800)
+set_tests_properties(${gpu_document_gradient_test} PROPERTIES TIMEOUT 1800)
 set_tests_properties(${gpu_document_pixel_test} PROPERTIES TIMEOUT 600)
 set_tests_properties(${gpu_document_selection_combination_test} PROPERTIES TIMEOUT 600)
 

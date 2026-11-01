@@ -181,6 +181,7 @@ private Q_SLOTS:
     void patternFillBlendModeFreezesHistory();
     void rejectedFillBlendModesPreserveHistoryAndInput();
     void patternFillFreezesPixelsHistory();
+    void gradientFillRetainsResourcesHistoryAndRejectsCapacity();
     void emptyFigureIntentPreservesHistory();
     void pathsPreserveCommandsControlPoints();
     void pathCallsRetainInputHistory();
@@ -3982,6 +3983,49 @@ void KisGpuOperationDocumentTest::patternFillFreezesPixelsHistory()
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(*std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->figureStyle.pattern,
              pattern);
+}
+
+void KisGpuOperationDocumentTest::gradientFillRetainsResourcesHistoryAndRejectsCapacity()
+{
+    // The gradient tool needs one retained color resource and one history
+    // entry; malformed/excessive resources must preserve its current document.
+    GradientFill gradient;
+    gradient.start = {3.25, 5.5}; gradient.end = {19.75, 13.25};
+    gradient.rgba16 = QByteArray::fromHex("030005000700ffff3f0005001b00ff7f");
+    Limits limits; limits.rasterBytes = gradient.byteCount();
+    OperationDocument document({32, 24}, limits);
+    const auto layer = document.activeLayer();
+    const auto original = document.snapshot();
+    auto malformed = gradient; malformed.rgba16.chop(1);
+    QCOMPARE(document.paintGradient(layer, Brush{}, malformed), Result::InvalidInput);
+    malformed = gradient; malformed.dither = true;
+    QCOMPARE(document.paintGradient(layer, Brush{}, malformed), Result::InvalidInput);
+    malformed = gradient; malformed.start.setX(std::numeric_limits<double>::infinity());
+    QCOMPARE(document.paintGradient(layer, Brush{}, malformed), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), original); QCOMPARE(document.undoCount(), 0);
+    Brush brush; brush.channelWriteMask = 13; brush.opacity = .63;
+    QCOMPARE(document.paintGradient(layer, brush, gradient), Result::Success);
+    const auto painted = document.snapshot();
+    const auto operation = std::get<PaintSnapshot>(painted->layers.first().operations.last());
+    QCOMPARE(document.undoCount(), 1); QCOMPARE(document.historyAction(1), HistoryAction::FillLayer);
+    QCOMPARE(painted->rasterBytes, gradient.byteCount());
+    QCOMPARE(operation->compositionBounds, std::optional<QRect>(QRect(0, 0, 32, 24)));
+    QCOMPARE(operation->brush.channelWriteMask, quint8(13));
+    QCOMPARE(operation->brush.opacity, .63);
+    QVERIFY(operation->figureStyle.gradient);
+    const auto palette = gradient.rgba16;
+    gradient.rgba16.fill('\0'); gradient.reverse = true;
+    QCOMPARE(operation->figureStyle.gradient->rgba16, palette);
+    QCOMPARE(operation->figureStyle.gradient->reverse, false);
+    QCOMPARE(document.paintGradient(layer, brush, gradient), Result::CapacityExceeded);
+    QCOMPARE(document.snapshot(), painted); QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success); QCOMPARE(document.snapshot()->rasterBytes, qsizetype(0));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last()), operation);
+    const auto stroke = document.beginStroke(layer, brush, 0); QVERIFY(!stroke.isNull());
+    QCOMPARE(document.paintGradient(layer, brush, gradient), Result::EditInProgress);
+    QCOMPARE(document.activeOperation(), stroke);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
 }
 
 void KisGpuOperationDocumentTest::emptyFigureIntentPreservesHistory()

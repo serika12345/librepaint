@@ -1175,13 +1175,20 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 const auto imageTips = operation.brush.autoBrush ? operation.brush.autoBrush->imageTips : QSharedPointer<const ImageBrushTips>();
                 const auto maskTips = operation.brush.additiveMaskingBrush && operation.brush.additiveMaskingBrush->autoBrush ?
                     operation.brush.additiveMaskingBrush->autoBrush->imageTips : QSharedPointer<const ImageBrushTips>();
-                if ((operation.figureStyle.pattern || operation.brush.texture || imageTips || maskTips) && !affected.isEmpty()) {
+                if ((operation.figureStyle.pattern || operation.figureStyle.gradient || operation.brush.texture || imageTips || maskTips) && !affected.isEmpty()) {
                     QByteArray resource;
                     if (operation.figureStyle.pattern) {
                         const auto &pattern = *operation.figureStyle.pattern;
                         if (!pattern.isValid())
                             return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU pattern fill has invalid pixels")};
                         resource = pattern.rgba;
+                    }
+                    if (operation.figureStyle.gradient) {
+                        const auto &gradient = *operation.figureStyle.gradient;
+                        if (!gradient.isValid())
+                            return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU gradient fill has invalid resources")};
+                        resource = gradient.rgba16;
+                        resource.append(gradient.noise);
                     }
                     textureWordOffset = quint32(resource.size() / 4);
                     if (operation.brush.texture) resource.append(operation.brush.texture->alpha);
@@ -1253,7 +1260,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                   fill[0],
                                   quint32(fillEnabled) | (operation.figureStyle.outline ? 0u : 2u) |
                                       (operation.shape.windingFill ? 4u : 0u) |
-                                      (operation.figureStyle.pattern ? 8u : 0u)};
+                                      (operation.figureStyle.pattern ? 8u : 0u) |
+                                      (operation.figureStyle.gradient ? 16u : 0u)};
                     job.values.colorHigh = color[1];
                     job.values.textureReserved[0] = imageWordOffset;
                     job.values.fillColorHigh = fill[1];
@@ -1284,6 +1292,16 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         std::memcpy(job.values.patternInverse.data(), pattern.inverse.data(), sizeof(pattern.inverse));
                         job.values.patternFormat = quint32(pattern.format);
                         job.values.patternSampled = pattern.sampled;
+                    }
+                    if (operation.figureStyle.gradient) {
+                        const auto &gradient = *operation.figureStyle.gradient;
+                        job.values.patternWidth = quint32(gradient.rgba16.size() / 8);
+                        job.values.patternHeight = quint32(gradient.shape);
+                        const std::array<double, 6> geometry{gradient.start.x(), gradient.start.y(),
+                            gradient.end.x(), gradient.end.y(), gradient.antiAliasThreshold, 0};
+                        std::memcpy(job.values.patternInverse.data(), geometry.data(), sizeof(geometry));
+                        job.values.patternFormat = quint32(gradient.reverse) | (quint32(gradient.dither) << 1);
+                        job.values.patternSampled = quint32(gradient.repeat);
                     }
                     if (operation.brush.texture) {
                         const auto &texture = *operation.brush.texture;
@@ -1350,7 +1368,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         operation.brush.alphaLocked || operation.brush.erase ||
                         !(operation.brush.channelWriteMask & 8) || (opacity > 0 && opacity < 1) ||
                         (operation.selectionMask && operation.selectionMask->isAlpha()) ||
-                        operation.figureStyle.pattern || (job.input && job.input->mayContainHiddenRgb);
+                        operation.figureStyle.pattern || operation.figureStyle.gradient || (job.input && job.input->mayContainHiddenRgb);
                     tiles[tile.key()] = job.output;
                     jobs.push_back(std::move(job));
                 }

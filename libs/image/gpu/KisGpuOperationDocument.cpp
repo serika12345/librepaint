@@ -27,6 +27,7 @@ qsizetype operationRasterBytes(const LayerOperation &value)
 {
     if (const auto paint = std::get_if<PaintSnapshot>(&value))
         return ((*paint)->figureStyle.pattern ? (*paint)->figureStyle.pattern->byteCount() : 0) +
+            ((*paint)->figureStyle.gradient ? (*paint)->figureStyle.gradient->byteCount() : 0) +
             ((*paint)->brush.texture ? (*paint)->brush.texture->alpha.size() : 0);
     const auto write = std::get_if<TileWriteSnapshot>(&value);
     qsizetype bytes = 0;
@@ -968,6 +969,7 @@ Result OperationDocument::paintFigureWithin(LayerId layer, const Brush &brush, c
         time = sample.timestamp;
     }
     const qsizetype resourceBytes = (style.pattern ? style.pattern->byteCount() : 0) +
+        (style.gradient ? style.gradient->byteCount() : 0) +
         (brush.texture ? brush.texture->alpha.size() : 0);
     if (samples.size() > m_limits.samplesPerStroke ||
         samples.size() > m_limits.samplesPerDocument - snapshot()->sampleCount ||
@@ -1008,6 +1010,7 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
     if (m_edit->sampleCount == 0 && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;
     const qsizetype resourceBytes = (style.pattern ? style.pattern->byteCount() : 0) +
+        (style.gradient ? style.gradient->byteCount() : 0) +
         (m_edit->brush.texture ? m_edit->brush.texture->alpha.size() : 0);
     if (resourceBytes > m_limits.rasterBytes || snapshot()->rasterBytes > m_limits.rasterBytes - resourceBytes)
         return Result::CapacityExceeded;
@@ -2504,6 +2507,24 @@ Result OperationDocument::fillLayerColor(LayerId layer, const RgbaPixel &color,
     style.fill = color;
     style.fillBlendMode = erase ? LayerBlendMode::Normal : blendMode;
     return fillLayerStyle(layer, color, style, opacity, erase, alphaLocked);
+}
+
+Result OperationDocument::paintGradient(LayerId layer, const Brush &brush, const GradientFill &gradient)
+{
+    if (!gradient.isValid()) return Result::InvalidInput;
+    const auto version = snapshot();
+    QRect bounds(QPoint(), version->size);
+    if (!version->selection.isEmpty() && !version->selectionInverted) bounds &= version->selection;
+    if (bounds.isEmpty()) return Result::EmptyOperation;
+    FigureStyle style;
+    style.outline = false;
+    style.gradient = gradient;
+    style.fillBlendMode = brush.erase ? LayerBlendMode::Normal : brush.blendMode;
+    const QPointF start = bounds.topLeft(), end = start + QPointF(bounds.width(), bounds.height());
+    const auto result = paintFigureWithin(layer, brush, {{start, 1}, {end, 1}},
+        {ShapeKind::Rectangle, start, end, 0}, style, 0, bounds);
+    if (result == Result::Success) m_layerHistoryChanges[m_index].filledLayer = true;
+    return result;
 }
 
 Result OperationDocument::fillLayerPattern(LayerId layer, const PatternFill &pattern,

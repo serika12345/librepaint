@@ -306,6 +306,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         maskOperation.brush.pixelPerfect = brush.pixelPerfect;
         maskOperation.figureStyle.fill.reset();
         maskOperation.figureStyle.pattern.reset();
+        maskOperation.figureStyle.gradient.reset();
         const auto mask = autoBrushDabs(maskOperation, pending);
         if (!mask || mask->size() > PaintGeometryElementLimit - result.size()) return std::nullopt;
         for (auto dab : *mask) {

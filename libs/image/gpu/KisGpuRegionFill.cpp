@@ -166,6 +166,9 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
                             if (!add(block.data(), sizeof(*block)) ||
                                 !add(block->constData(), block->size() * qsizetype(sizeof(InputSample)))) return false;
                         if (value->figureStyle.pattern && !add(value->figureStyle.pattern->rgba.constData(), value->figureStyle.pattern->byteCount())) return false;
+                        if (value->figureStyle.gradient &&
+                            (!add(value->figureStyle.gradient->rgba16.constData(), value->figureStyle.gradient->rgba16.size()) ||
+                             !add(value->figureStyle.gradient->noise.constData(), value->figureStyle.gradient->noise.size()))) return false;
                         if (value->region && add(value->region.data(), sizeof(RegionFill)) && inputs(value->region->settings)) pending.append(value->region->source);
                         else if (value->region) return false;
                     } else if constexpr (std::is_same_v<T, TileWriteSnapshot>) {

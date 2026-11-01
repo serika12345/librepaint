@@ -464,6 +464,38 @@ struct PatternFill
     bool operator!=(const PatternFill &other) const { return !(*this == other); }
 };
 
+/** Frozen gradient resource in native RGBA16 mixing precision. The palette is
+ * sampled from the selected color resource, rather than rasterized document
+ * pixels. Geometry, repetition, smoothing and quantization run on the GPU.
+ */
+struct GradientFill
+{
+    enum class Shape : quint32 { Linear, BiLinear, Radial, Square, Conical, ConicalSymmetric, Spiral, ReverseSpiral };
+    enum class Repeat : quint32 { None, Forwards, Alternate };
+    static constexpr qsizetype MaximumBytes = 64 * 1024 * 1024;
+    QByteArray rgba16;
+    /** Native 64 by 64 blue-noise resource, encoded as little-endian u32. */
+    QByteArray noise;
+    QPointF start, end;
+    Shape shape = Shape::Linear;
+    Repeat repeat = Repeat::None;
+    double antiAliasThreshold = 0.2;
+    bool reverse = false;
+    bool dither = false;
+
+    qsizetype byteCount() const { return rgba16.size() + noise.size(); }
+    bool isValid() const
+    {
+        if (rgba16.size() < 8 || rgba16.size() % 8 || byteCount() > MaximumBytes ||
+            noise.size() != (dither ? 64 * 64 * 4 : 0) ||
+            quint32(shape) > quint32(Shape::ReverseSpiral) || quint32(repeat) > quint32(Repeat::Alternate) ||
+            !std::isfinite(antiAliasThreshold) || antiAliasThreshold < 0 || antiAliasThreshold > 100) return false;
+        for (const double value : {start.x(), start.y(), end.x(), end.y()})
+            if (!std::isfinite(value) || std::abs(value) > RgbaTile::CoordinateLimit) return false;
+        return start != end;
+    }
+};
+
 /** Solid figure coverage, separate from the outline brush and its color. A
  * pattern replaces the solid fill color while retaining the same coverage,
  * selection, compositing and channel behavior. The fill blend mode applies to
@@ -477,11 +509,12 @@ struct FigureStyle
     LayerBlendMode fillBlendMode = LayerBlendMode::Normal;
     /** Selection-outline actions paint the whole outline across the selected boundary. */
     bool ignoreSelection = false;
+    std::optional<GradientFill> gradient;
 };
 
 /** True when this figure contributes filled interior coverage. */
 inline bool hasFigureFill(const FigureStyle &style)
-{ return style.fill.has_value() || style.pattern.has_value(); }
+{ return style.fill.has_value() || style.pattern.has_value() || style.gradient.has_value(); }
 
 /**
  * The input and intent of one stroke. GPU dabs and pixels are derived values.
@@ -1283,6 +1316,8 @@ public:
     Result fillLayerPattern(LayerId layer, const PatternFill &pattern, qreal opacity = 1,
                             bool erase = false, bool alphaLocked = false,
                             LayerBlendMode blendMode = LayerBlendMode::Normal);
+    /** Fills the canvas/selection intersection from a frozen gradient resource. */
+    Result paintGradient(LayerId layer, const Brush &brush, const GradientFill &gradient);
     /** Complements RGB on one paint layer inside the current selection coverage
      * as one history entry. The selection rectangle, inversion, kind and mask
      * are frozen in the operation. Alpha is preserved and pixels outside the

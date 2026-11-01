@@ -324,6 +324,8 @@ public:
     Result fillRegion(LayerId layer, const RegionFillSettings &settings, const RgbaPixel &color,
                       const std::optional<PatternFill> &pattern, qreal opacity = 1, bool erase = false,
                       bool alphaLocked = false, LayerBlendMode blendMode = LayerBlendMode::Normal);
+    /** One undoable gradient on paint pixels or their retained transparency mask. */
+    Result paintGradient(LayerId layer, const Brush &brush, const GradientFill &gradient, bool transparencyMask = false);
     /** Frozen node-projection selection; only geometry metadata is read back. */
     Result selectRegion(LayerId reference, const RegionFillSettings &settings, SelectionCombination action);
     /** Complements RGB within the current selection coverage as one history

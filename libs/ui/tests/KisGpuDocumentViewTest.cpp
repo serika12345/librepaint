@@ -74,6 +74,7 @@
 #include <KoSnapGuide.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoPattern.h>
+#include <resources/KoStopGradient.h>
 #include <KoToolBase.h>
 #include <KoPointerEvent.h>
 #include <kis_tool.h>
@@ -349,6 +350,8 @@ private Q_SLOTS:
     void invertedSelectionLimitsPaintingAndKra();
     void nativeInvertedSelectionsKeepEditingAndSaving_data();
     void nativeInvertedSelectionsKeepEditingAndSaving();
+    void gradientsKeepNativeEditingHistoryAndKra_data();
+    void gradientsKeepNativeEditingHistoryAndKra();
     void ellipticalSelectionLimitsPaintingAndKra();
     void ellipticalToolCreatesDocumentSelection();
     void freehandToolCreatesArbitraryMaskSelection();
@@ -10841,6 +10844,189 @@ void KisGpuDocumentViewTest::selectionFillToolKeepsNativeEditing()
     QCOMPARE(reopened->readRgbaPixels(reopenedLayer, inspected, initial.size()).bytes, expected);
     redo->trigger();
     QCOMPARE(reopened->readRgbaPixels(reopenedLayer, inspected, initial.size()).bytes, expectedPixels());
+}
+
+void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<int>("shape");
+    QTest::addColumn<int>("repeat");
+    for (const bool words : {false, true}) for (int shape = 0; shape < 8; ++shape) for (int repeat = 0; repeat < 3; ++repeat) {
+        const auto name = QStringLiteral("%1-shape-%2-repeat-%3").arg(words ? "u16" : "u8").arg(shape).arg(repeat).toLatin1();
+        QTest::newRow(name.constData()) << words << shape << repeat;
+    }
+}
+
+void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
+{
+    // Consumer: the ordinary gradient tool. Native and GPU documents must keep
+    // identical selected paint/mask pixels, projection and history through
+    // resource changes, KRA reopening and another gradient operation.
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(bool, words); QFETCH(int, shape); QFETCH(int, repeat);
+    const bool maskTarget = (shape + repeat) % 2;
+    const bool groupOwner = maskTarget && shape == 3;
+    const auto oldEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (oldEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", oldEngine);
+    });
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const QRect area(0, 0, 32, 24);
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto baseline = directory.filePath(QStringLiteral("native-gradient.kra"));
+    QUuid paintUuid, targetUuid, maskUuid;
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    {
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true); document->setAutoSaveActive(false);
+        KisImageSP image = new KisImage(document->createUndoStore(), area.width(), area.height(), cs, "Gradient editing");
+        KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Paint"), 255);
+        layer->paintDevice()->fill(area, KoColor(QColor(77, 113, 157, 176), cs));
+        KisNodeSP target = layer;
+        if (groupOwner) {
+            KisGroupLayerSP group = new KisGroupLayer(image, QStringLiteral("Masked group"), 255);
+            QVERIFY(image->addNode(group)); QVERIFY(image->addNode(layer, group)); target = group;
+        } else QVERIFY(image->addNode(layer));
+        paintUuid = layer->uuid(); targetUuid = target->uuid();
+        if (maskTarget) {
+            KisSelectionSP coverage = new KisSelection;
+            coverage->pixelSelection()->select(area, 177);
+            KisTransparencyMaskSP mask = new KisTransparencyMask(image, QStringLiteral("Transparency Mask"));
+            mask->setSelection(coverage); QVERIFY(image->addNode(mask, target)); maskUuid = mask->uuid();
+        }
+        KisSelectionSP selected = new KisSelection;
+        selected->pixelSelection()->select({3, 4, 26, 17}, 211);
+        selected->pixelSelection()->select({12, 10, 5, 5}, 0);
+        KisSelectionMaskSP selection = new KisSelectionMask(image);
+        selection->setSelection(selected); selection->setActive(true); QVERIFY(image->addNode(selection, image->root()));
+        document->setCurrentImage(image); image->refreshGraphAsync(); image->waitForDone();
+        QVERIFY(document->saveAs(baseline, KisDocument::nativeFormatMimeType(), false)); document->waitForSavingToComplete();
+        const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!results.isEmpty()) {
+            QVERIFY(QDir().mkpath(results));
+            QVERIFY(QFile::copy(baseline, QDir(results).filePath(QStringLiteral("gradient-%1-source.kra").arg(QString::fromLatin1(QTest::currentDataTag())))));
+        }
+    }
+    QList<QByteArray> reference;
+    for (const bool gpu : {false, true}) {
+        qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        const auto saved = directory.filePath(gpu ? QStringLiteral("gpu.kra") : QStringLiteral("native.kra"));
+        int stage = 0;
+        for (const bool reopened : {false, true}) {
+            std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+            document->setFileBatchMode(true); document->setAutoSaveActive(false);
+            QVERIFY2(document->openPath(reopened ? saved : baseline, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+            auto image = KisImageSP(document->image()); image->waitForDone();
+            QCOMPARE(bool(image->gpuImage()), gpu);
+            auto layer = KisLayerUtils::findNodeByUuid(image->root(), paintUuid); QVERIFY(layer);
+            auto target = KisLayerUtils::findNodeByUuid(image->root(), targetUuid); QVERIFY(target);
+            auto mask = KisLayerUtils::findNodeByUuid(image->root(), maskUuid);
+            if (maskTarget) { QVERIFY(mask); QCOMPARE(mask->parent(), target); }
+            std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+            auto *view = window->newView(document.get()); QVERIFY(view);
+            QPointer<KisDocument> lifetime(document.release());
+            const auto cleanup = qScopeGuard([&] {
+                if (lifetime) {
+                    lifetime->setModified(false);
+                    window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+                }
+                QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); window.reset();
+                QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            });
+            window->viewManager()->setCurrentView(view); window->resize(800, 600); window->show();
+            QVERIFY(QTest::qWaitForWindowExposed(window->windowHandle()));
+            view->canvasBase()->snapGuide()->enableSnapping(false);
+            window->viewManager()->nodeManager()->slotNonUiActivatedNode(maskTarget ? mask : layer);
+            QTRY_COMPARE(view->currentNode(), maskTarget ? mask : layer);
+            const auto capture = [&] {
+                image->waitForDone();
+                QByteArray pixels(area.width() * area.height() * cs->pixelSize(), '\0'), projection(pixels.size(), '\0');
+                layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), area);
+                image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), area);
+                QByteArray coverage;
+                if (maskTarget) {
+                    coverage.resize(area.width() * area.height());
+                    qobject_cast<KisTransparencyMask *>(mask.data())->selection()->pixelSelection()->readBytes(
+                        reinterpret_cast<quint8 *>(coverage.data()), area);
+                }
+                return pixels + projection + coverage;
+            };
+            const auto check = [&] {
+                const auto state = capture();
+                const int currentStage = stage++;
+                const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+                if (!results.isEmpty()) {
+                    QFile output(QDir(results).filePath(QStringLiteral("gradient-%1-%2-%3.bin")
+                        .arg(QString::fromLatin1(QTest::currentDataTag()), gpu ? "gpu" : "native").arg(currentStage)));
+                    QVERIFY(output.open(QIODevice::WriteOnly)); QCOMPARE(output.write(state), state.size());
+                }
+                if (!gpu) reference.append(state); else QCOMPARE(state, reference.value(currentStage));
+            };
+            check();
+            auto *resources = window->viewManager()->canvasResourceProvider();
+            resources->setPaintOpPreset(m_preset);
+            resources->setFGColor(KoColor(reopened ? QColor(213, 49, 107) : QColor(17, 129, 241), cs));
+            resources->setBGColor(KoColor(QColor(221, 17, 44), cs));
+            const auto gradient = QSharedPointer<KoStopGradient>::create();
+            gradient->setName(QStringLiteral("Frozen ordinary gradient"));
+            gradient->setStops({{0, KoColor(Qt::black, cs), FOREGROUNDSTOP},
+                {.43, KoColor(QColor(39, 213, 71, 97), cs)}, {1, KoColor(QColor(221, 17, 44, 0), cs)}});
+            gradient->setValid(true); resources->slotGradientActivated(gradient);
+            resources->setOpacity(.63); resources->setEraserMode(reopened && repeat == 2);
+            resources->setCurrentCompositeOp(repeat == 2 ? QStringLiteral("copy") : QStringLiteral("normal"));
+            if (reopened && repeat == 2) resources->setCurrentCompositeOp(QStringLiteral("erase"));
+            resources->setMirrorHorizontal(false); resources->setMirrorVertical(false); resources->setGlobalAlphaLock(false);
+            if (!maskTarget && shape == 2 && repeat == 2)
+                qobject_cast<KisPaintLayer *>(layer.data())->setChannelLockFlags(QBitArray{true, false, true, false});
+            const auto toolId = QStringLiteral("KritaFill/KisToolGradient");
+            KoToolManager::instance()->switchToolRequested(toolId);
+            auto *tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), toolId)); QVERIFY(tool);
+            // Initialize controls before assigning the retained option values.
+            tool->optionWidgets();
+            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetShape", Qt::DirectConnection, Q_ARG(int, shape)));
+            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetRepeat", Qt::DirectConnection, Q_ARG(int, repeat)));
+            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetReverse", Qt::DirectConnection, Q_ARG(bool, repeat == 2)));
+            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetDither", Qt::DirectConnection, Q_ARG(bool, repeat == 1)));
+            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetAntiAliasThreshold", Qt::DirectConnection, Q_ARG(qreal, .2)));
+            const auto before = capture(); const int history = lifetime->undoStack()->index();
+            const QPointF start = reopened ? QPointF(20.75, 15.25) : QPointF(9.25, 9.75);
+            const QPointF end = reopened ? QPointF(15.5, 8.125) : QPointF(16.875, 13.25);
+            QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+            KoPointerEvent first(&press, view->canvasBase()->coordinatesConverter()->imageToDocument(start)); tool->beginPrimaryAction(&first);
+            QMouseEvent move(QEvent::MouseMove, QPointF(), QPointF(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
+            KoPointerEvent update(&move, view->canvasBase()->coordinatesConverter()->imageToDocument(end)); tool->continuePrimaryAction(&update);
+            tool->requestStrokeCancellation(); image->waitForDone();
+            QCOMPARE(lifetime->undoStack()->index(), history); QCOMPARE(capture(), before);
+            tool->beginPrimaryAction(&first); tool->continuePrimaryAction(&update);
+            QMouseEvent release(QEvent::MouseButtonRelease, QPointF(), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+            KoPointerEvent last(&release, view->canvasBase()->coordinatesConverter()->imageToDocument(end)); tool->endPrimaryAction(&last);
+            image->waitForDone(); QTRY_COMPARE(lifetime->undoStack()->index(), history + 1);
+            const auto edited = capture(); QVERIFY(edited != before); check();
+            resources->setFGColor(KoColor(Qt::yellow, cs));
+            gradient->setStops({{0, KoColor(Qt::red, cs)}, {1, KoColor(Qt::blue, cs)}});
+            lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(capture(), before); check();
+            lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(capture(), edited); check();
+            QVERIFY(lifetime->saveAs(saved, KisDocument::nativeFormatMimeType(), false)); lifetime->waitForSavingToComplete();
+        }
+        if (gpu) {
+            qputenv("LIBREPAINT_GPU_ENGINE", "0");
+            QScopedPointer<KisDocument> native(KisPart::instance()->createDocument());
+            native->setFileBatchMode(true); native->setAutoSaveActive(false);
+            QVERIFY2(native->openPath(saved, KisDocument::DontAddToRecent), qPrintable(native->errorMessage()));
+            const auto image = KisImageSP(native->image()); image->waitForDone();
+            const auto layer = KisLayerUtils::findNodeByUuid(image->root(), paintUuid); QVERIFY(layer);
+            QByteArray pixels(area.width() * area.height() * cs->pixelSize(), '\0'), projection(pixels.size(), '\0'), coverage;
+            layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), area);
+            image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), area);
+            if (maskTarget) {
+                const auto mask = KisLayerUtils::findNodeByUuid(image->root(), maskUuid); QVERIFY(mask);
+                coverage.resize(area.width() * area.height());
+                qobject_cast<KisTransparencyMask *>(mask.data())->selection()->pixelSelection()->readBytes(
+                    reinterpret_cast<quint8 *>(coverage.data()), area);
+            }
+            QCOMPARE(pixels + projection + coverage, reference.last());
+        }
+    }
 }
 
 KISTEST_MAIN(KisGpuDocumentViewTest)

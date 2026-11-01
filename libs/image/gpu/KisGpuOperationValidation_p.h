@@ -470,6 +470,8 @@ inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 inline bool validFigureStyle(const Shape &shape, const FigureStyle &style, PixelFormat format)
 {
     if (hasFigureFill(style) && shape.pathCommands.contains(PathCommand::Point)) return false;
+    if (style.gradient && (style.fill || style.pattern)) return false;
+    if (style.gradient && !style.gradient->isValid()) return false;
     if (style.pattern && !style.pattern->isValid()) return false;
     if (style.pattern && style.pattern->format == PixelFormat::Rgba16 && format != PixelFormat::Rgba16) return false;
     if (!validBlendMode(style.fillBlendMode, format)) return false;

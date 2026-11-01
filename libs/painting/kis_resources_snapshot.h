@@ -51,6 +51,12 @@ KRITAPAINTING_EXPORT KisGpuBrushResources captureGpuFillResources(
 KRITAPAINTING_EXPORT std::optional<LibrePaint::Image::Gpu::PatternFill> captureGpuPatternResource(
     KoPatternSP pattern, const KoColorSpace *colorSpace, const QTransform &transform, QString &diagnostic);
 
+/** Samples a baked gradient resource at the product mixing precision and cache
+ * resolution. The caller freezes geometry and options in the returned value.
+ */
+KRITAPAINTING_EXPORT std::optional<LibrePaint::Image::Gpu::GradientFill> captureGpuGradientResource(
+    KoAbstractGradientSP gradient, const KoColorSpace *colorSpace, int steps, bool dither, QString &diagnostic);
+
 /**
  * @brief The KisResourcesSnapshot class takes a snapshot of the various resources
  * like colors and settings used at the begin of a stroke so subsequent
