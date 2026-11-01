@@ -116,7 +116,9 @@ std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId gro
     QHash<LayerId, const Layer *> nodes;
     QHash<QUuid, QList<const Layer *>> children;
     for (const auto &layer : document->layers) { nodes.insert(layer.id, &layer); children[layer.parentUuid].append(&layer); }
-    const auto root = nodes.value(group);
+    Layer imageRoot;
+    imageRoot.kind = LayerKind::Group;
+    const auto root = group ? nodes.value(group) : &imageRoot;
     if (!root || root->kind != LayerKind::Group) return std::nullopt;
     QList<const Layer *> ordered{root};
     for (qsizetype i = 0; i < ordered.size(); ++i)
@@ -133,7 +135,8 @@ std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId gro
         }
         const auto inputs = document->projectionInputs(node->id);
         const auto direct = inputs.size() == 1 ? nodes.value(inputs.first().layer) : nullptr;
-        if (direct && children.value(node->uuid).size() == 1 && children.value(node->uuid).first()->id == direct->id && direct->opacity == 255 &&
+        if (direct && (group || node != root || document->directProjectionLayer() == direct->id) &&
+            children.value(node->uuid).size() == 1 && children.value(node->uuid).first()->id == direct->id && direct->opacity == 255 &&
             direct->projectionChannelMask == 15 && !direct->passThrough && direct->blendMode == LayerBlendMode::Normal &&
             !hasEnabledTransparencyMask(*direct)) {
             extents.insert(node->id, extents.value(direct->id));
@@ -153,7 +156,11 @@ std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId gro
             destination |= QRect(first * PixelHistoryBlockSize + node->position,
                 (last + QPoint(1, 1)) * PixelHistoryBlockSize + node->position - QPoint(1, 1));
         }
-        if (defaults.value(node->id)[3]) destination |= QRect(QPoint(), document->size);
+        if (!group && node == root) {
+            const auto alpha = document->projectionBackground[3];
+            const auto opacity = document->format == PixelFormat::Rgba16 ? (alpha - (alpha >> 8) + 128) >> 8 : alpha;
+            if (opacity) destination |= QRect(QPoint(), document->size);
+        } else if (defaults.value(node->id)[3]) destination |= QRect(QPoint(), document->size);
         extents.insert(node->id, destination);
     }
     return extents.value(group);

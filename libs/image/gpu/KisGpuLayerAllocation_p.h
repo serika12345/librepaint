@@ -18,7 +18,7 @@ struct LayerAllocation
 };
 /** Native 64-pixel allocation and preceding extents derived without pixel access. */
 std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, const Layer &layer, qsizetype maximumRectangles);
-/** Native projection storage extent for the current group merge consumer. */
+/** Native group projection storage extent; group zero denotes the image root. */
 std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId group, qsizetype maximumRectangles);
 }
 #endif

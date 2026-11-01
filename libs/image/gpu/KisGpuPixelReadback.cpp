@@ -333,7 +333,40 @@ LayerTileCoordinatesOutcome Execution::layerTileCoordinates(DocumentHandle handl
     if (!pinned || maximumTiles < 0 || maximumTiles > std::numeric_limits<qsizetype>::max() / RgbaTile::byteCount(pinned->format))
         return reject(ExecutionCode::InvalidRequest, QStringLiteral("Invalid sparse tile capacity"));
     const qsizetype maximumBytes = maximumTiles * RgbaTile::byteCount(pinned ? pinned->format : PixelFormat::Rgba16);
-    if (!layer || maximumBytes < 0) return reject(ExecutionCode::InvalidRequest, QStringLiteral("Layer pixel capacity and identity are invalid"));
+    if (!layer) {
+        const auto checked = readPixels(handle, pinned, {}, {}, true, PixelReadArea::LayerCoordinates);
+        if (checked.code != ExecutionCode::Success) return reject(checked.code, checked.diagnostic);
+        const auto extent = Detail::groupProjectionExtent(pinned, 0,
+            qMin(Detail::PaintGeometryElementLimit, maximumBytes / qsizetype(sizeof(QRect))));
+        if (!extent) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Root allocation geometry exceeds capacity"));
+        constexpr int limit = RgbaTile::CoordinateLimit;
+        const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
+        QSet<quint64> coordinates;
+        for (const auto &input : pinned->projectionInputs()) {
+            const auto found = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),
+                [&](const auto &value) { return value.id == input.layer; });
+            if (found == pinned->layers.cend()) return reject(ExecutionCode::InvalidRequest, QStringLiteral("Root projection layer is unavailable"));
+            const auto source = layerCoordinates(pinned, *found, domain, maximumTiles);
+            if (!source) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Root pixel coordinates exceed capacity"));
+            for (const auto value : *source) {
+                coordinates.insert(value);
+                if (coordinates.size() > maximumTiles) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Root pixel coordinates exceed capacity"));
+            }
+        }
+        if (pinned->projectionBackground != RgbaPixel{}) {
+            const int right = Detail::pixelTileIndex(pinned->size.width() - 1, RgbaTile::Size);
+            const int bottom = Detail::pixelTileIndex(pinned->size.height() - 1, RgbaTile::Size);
+            if (qint64(right + 1) * (bottom + 1) > maximumTiles)
+                return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Root background coordinates exceed capacity"));
+            for (int y = 0; y <= bottom; ++y) for (int x = 0; x <= right; ++x) coordinates.insert(Detail::key(x, y));
+        }
+        if (coordinates.size() > maximumTiles) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Root pixel coordinates exceed capacity"));
+        auto ordered = coordinates.values(); std::sort(ordered.begin(), ordered.end());
+        LayerTileCoordinatesOutcome result{ExecutionCode::Success, {}, {}, {}};
+        for (const auto value : ordered) result.coordinates.append(Detail::coordinate(value));
+        if (!extent->isEmpty()) result.writtenAreas.append(*extent);
+        return result;
+    }
     auto outcome = readPixels(handle, pinned, {}, {layer}, false, PixelReadArea::LayerCoordinates);
     if (outcome.code != ExecutionCode::Success) return reject(outcome.code, outcome.diagnostic);
     constexpr int limit = RgbaTile::CoordinateLimit;

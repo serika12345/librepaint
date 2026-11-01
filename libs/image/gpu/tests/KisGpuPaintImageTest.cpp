@@ -1603,6 +1603,12 @@ void KisGpuPaintImageTest::nativeRootReadsKeepOffCanvasPixelsAndPinnedVersions()
     QCOMPARE(image.writeRgbaPixels(1, QRect(100, 5, 1, 1), rgbaBytes(hidden, format)), Result::Success);
     const auto before = image.operations().snapshot();
     const auto oldRoot = image.retainLayerPixels(0); QVERIFY(oldRoot);
+    // Default-255 selection bounds query the root device's allocated extent,
+    // independently of its tighter nontransparent bounds and pinned pixels.
+    const auto allocation = execution.layerTileCoordinates(image.handle(), before, 0, 16);
+    QCOMPARE(allocation.code, ExecutionCode::Success);
+    QCOMPARE(allocation.writtenAreas, QList<QRect>{QRect(-64, 0, 192, 64)});
+    QCOMPARE(execution.layerTileCoordinates(image.handle(), before, 0, 0).code, ExecutionCode::CapacityExceeded);
     const bool opaqueDefault = words ? (alpha - (alpha >> 8) + 128) >> 8 : alpha;
     const auto expectedBounds = opaqueDefault ? (first | second | canvas) : (first | second);
     const auto bounds = execution.readNativeProjectionBounds(image.handle(), before);
