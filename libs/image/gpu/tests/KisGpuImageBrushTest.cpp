@@ -5,6 +5,7 @@
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
 #include <kis_qimage_pyramid.h>
+#include <kis_random_source.h>
 #include <KoColorSpaceTrait.h>
 #include <QDir>
 #include <QFile>
@@ -22,6 +23,7 @@ private Q_SLOTS:
     void initTestCase();
     void importedTipKeepsNativeMask_data();
     void importedTipKeepsNativeMask();
+    void seededPipeKeepsNativeTip();
 private:
     std::shared_ptr<Execution> m_execution;
 };
@@ -32,6 +34,32 @@ void KisGpuImageBrushTest::initTestCase()
     auto device = Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     m_execution = std::make_shared<Execution>(device);
+}
+
+void KisGpuImageBrushTest::seededPipeKeepsNativeTip()
+{
+    auto tips = QSharedPointer<ImageBrushTips>::create();
+    tips->originalSize = {4, 4}; tips->tipCount = 7; tips->randomSelection = true;
+    tips->levels.append({{4, 4}, 1, 0, 18});
+    tips->pixels = QByteArray(7 * 72, '\0');
+    for (int tip = 0; tip < 7; ++tip) for (int y = 1; y <= 4; ++y) for (int x = 1; x <= 4; ++x) {
+        const int index = tip * 72 + (y * 6 + x) * 2;
+        tips->pixels[index] = char(tip * 32); tips->pixels[index + 1] = char(255);
+    }
+    Brush brush;
+    brush.rgba = {255, 255, 255, 255}; brush.diameter = 4;
+    brush.autoBrush = AutoBrush{};
+    brush.autoBrush->mask = AutoBrush::Mask::Image; brush.autoBrush->imageTips = tips;
+    PaintImage image(m_execution, QSize(64, 64));
+    const auto layer = image.operations().activeLayer();
+    const auto stroke = image.beginStroke(layer, brush, 17);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(image.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(image.commitStroke(stroke), Result::Success);
+    const auto actual = image.readRgbaPixels(layer, QRect(32, 32, 1, 1), 4);
+    QCOMPARE(actual.code, ExecutionCode::Success);
+    KisRandomSource native(17);
+    QCOMPARE(quint8(actual.bytes[3]), quint8(255 - native.generate(0, 6) * 32));
 }
 
 void KisGpuImageBrushTest::importedTipKeepsNativeMask_data()

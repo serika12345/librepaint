@@ -18,6 +18,8 @@ private Q_SLOTS:
     void testRunningJobs();
 
     void testExecutor();
+    void testRandomPipeKeepsQueuedPixels_data();
+    void testRandomPipeKeepsQueuedPixels();
 };
 
 #endif // KISDABRENDERINGQUEUETEST_H
