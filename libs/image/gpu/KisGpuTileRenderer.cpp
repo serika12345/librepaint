@@ -336,6 +336,13 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
                 return {};
             }
             source += gradient.readAll() + '\n';
+            QFile geometry(gradientKind <= 4 ? QStringLiteral(":/librepaint/gpu/shaders/gradient-vector.wgsl") :
+                QStringLiteral(":/librepaint/gpu/shaders/gradient-angular.wgsl"));
+            if (!geometry.open(QIODevice::ReadOnly)) {
+                error = QStringLiteral("GPU gradient geometry could not be loaded");
+                return {};
+            }
+            source += geometry.readAll() + '\n';
         } else {
             source += "fn gradientPixel(pixel: vec2<i32>) -> vec4<u32> { return vec4<u32>(); }\n";
         }
