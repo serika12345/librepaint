@@ -1195,7 +1195,6 @@ set(gpu_document_input_cases
     selectionCopyAndCutUseGpuSelection
     selectionGrowAndShrinkUseGpuSelection
     invertedSelectionLimitsPaintingAndKra
-    nativeInvertedSelectionsKeepEditingAndSaving
     ellipticalSelectionLimitsPaintingAndKra
     pasteClipboardImageCreatesGpuLayer
     reselectRestoresGpuSelection
@@ -1272,6 +1271,9 @@ set(gpu_document_selection_combination_test libs-ui-selection-combinations-KisGp
 add_test(NAME ${gpu_document_selection_combination_test}
     COMMAND KisGpuDocumentViewTest shapeSelectionCombinationsKeepEditingHistoryAndKra
         selectionOutlineKeepsOnlyEffectiveCoverageBoundaries)
+set(gpu_document_native_selection_kra_test libs-ui-native-selection-kra-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_native_selection_kra_test}
+    COMMAND KisGpuDocumentViewTest nativeInvertedSelectionsKeepEditingAndSaving)
 set(gpu_document_colour_selection_test libs-ui-colour-selection-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_colour_selection_test}
     COMMAND KisGpuDocumentViewTest generatedSelectionViewRetainsAlphaAfterClose
@@ -1312,7 +1314,7 @@ set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_brush_blend_test}
     ${gpu_document_brush_presets_test} ${gpu_document_native_clipboard_test}
     ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_selection_combination_test}
-    ${gpu_document_colour_selection_test} ${gpu_document_path_tool_test}
+    ${gpu_document_colour_selection_test} ${gpu_document_native_selection_kra_test} ${gpu_document_path_tool_test}
     ${gpu_document_path_input_test} ${gpu_document_feather_test} ${gpu_document_filter_test}
     ${gpu_document_grayscale_filter_test} ${gpu_document_hsv_filter_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})
