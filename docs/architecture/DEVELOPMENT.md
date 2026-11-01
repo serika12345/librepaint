@@ -639,6 +639,12 @@ KRAのアルファストリームへ書き出され、再読込・再保存後�
 `TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening`は、
 ペイントレイヤー子の`transparencymask`要素と`.pixelselection`の往復、アルファ被覆と
 表示状態、複数レイヤーのマスク、再保存、マスク削除時の要素とファイルの除去を検査する。
+既存の標準読込側が扱う`masks`包装と`.pixelselection.defaultpixel`を出力し、
+直下のマスク要素とレイヤー単位の既定値を持つ既存ファイルも画素・識別子・被覆を保って読み込む。
+`KisGpuColorSamplingTest::samplesMaskedLayerThroughHistoryAndReopen`は、通常画面で
+8／16ビットとマスクの既定濃度0／17／255を組み合わせ、現在レイヤーの点採色・平均採色、
+マスク削除のUndo／Redo、KRA再読込後の追加編集を既存の採色と照合する。
+GPUで保存したKRAを既存の標準読込側でも開き、編集画素・ノード投影・マスク被覆・既定濃度を全バイトで比較する。
 `KisGpuDocumentViewTest::transparencyMaskActionsUseTheActiveGpuPaintLayer`は、
 アクティブなGPUペイントレイヤーに対する追加・表示切替・削除の操作、
 GPU履歴のUndo／Redo、選択の無い追加の拒否を検査する。

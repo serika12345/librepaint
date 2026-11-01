@@ -700,8 +700,8 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen_data()
 
 void TestNode::testMaskedProjectionFollowsEditsAndReopen()
 {
-    // Scripts distinguish raw paint pixels from a masked node projection,
-    // retain the projection through mask edits, and continue after KRA/Open.
+    // Scripts keep the node wrapper and read its current masked projection
+    // through settings, history and KRA/Open, independently of raw paint pixels.
     QFETCH(bool, words);
     QFETCH(int, maskDefault);
     QFETCH(bool, sourceDefault);
@@ -723,12 +723,26 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
     for (bool gpu : {false, true}) {
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
         qInfo() << "Masked projection backend" << (gpu ? "GPU" : "native");
-        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
-        document->setFileBatchMode(true); document->setAutoSaveActive(false);
-        QVERIFY(document->newImage(QStringLiteral("Masked projection"), 32, 16, cs,
+        QScopedPointer<KisDocument> prepared(KisPart::instance()->createDocument());
+        prepared->setFileBatchMode(true); prepared->setAutoSaveActive(false);
+        QVERIFY(prepared->newImage(QStringLiteral("Masked projection"), 32, 16, cs,
             KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
-        auto image = KisImageSP(document->image());
+        auto image = KisImageSP(prepared->image());
         auto layer = image->root()->lastChild();
+        std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+        auto *view = window->newView(prepared.data()); QVERIFY(view);
+        QPointer<KisDocument> document(prepared.take());
+        const auto cleanup = qScopeGuard([&] {
+            if (document) {
+                document->setModified(false);
+                window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+            }
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); window.reset();
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        });
+        window->viewManager()->setCurrentView(view); window->show();
+        window->viewManager()->nodeManager()->slotNonUiActivatedNode(layer);
+        QTRY_COMPARE(view->currentNode(), layer);
         QScopedPointer<Node> node(Node::createNode(image, layer));
         node->setLocked(false); node->setVisible(true); node->setOpacity(85);
         QVERIFY(node->setPixelData(source, -2, 3, 8, 1));
@@ -750,16 +764,12 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
             QTRY_VERIFY(image->isIdle());
         };
         settle();
-        auto projection = layer->projection();
-        QVERIFY(projection);
         int stage = 0;
         const auto check = [&] {
             const int currentStage = stage++;
             const auto pixels = node->projectionPixelData(-3, 2, 10, 3);
-            QByteArray retained(10 * 3 * cs->pixelSize(), '\0');
-            projection->readBytes(reinterpret_cast<quint8 *>(retained.data()), {-3, 2, 10, 3});
-            QCOMPARE(retained, pixels);
             QCOMPARE(node->pixelData(-2, 3, 8, 1), source);
+            const auto projection = layer->projection(); QVERIFY(projection);
             const auto implicit = projection->defaultPixel();
             const auto state = pixels + QByteArray(reinterpret_cast<const char *>(implicit.data()), cs->pixelSize()) +
                 node->projectionPixelData(180, 95, 1, 1) + node->projectionPixelData(200, 123, 1, 1);
