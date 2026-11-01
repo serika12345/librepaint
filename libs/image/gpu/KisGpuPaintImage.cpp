@@ -32,11 +32,11 @@ Result resultFor(ExecutionCode code)
     return Result::DeviceFailure;
 }
 
-const Layer *maskPaintLayer(const Snapshot &version, LayerId layer)
+const Layer *editableMaskLayer(const Snapshot &version, LayerId layer)
 {
     if (!version) return nullptr;
     for (const auto &value : version->layers)
-        if (value.id == layer && value.kind == LayerKind::Paint && value.transparencyMask && !value.transparencyMaskLocked &&
+        if (value.id == layer && value.transparencyMask && !value.transparencyMaskLocked &&
             !value.userLocked && value.visible) return &value;
     return nullptr;
 }
@@ -544,7 +544,7 @@ OperationId PaintImage::beginTransparencyMaskStroke(LayerId layer, const Brush &
 {
     if (!onThread() || !m_d->handle || m_d->maskStroke || m_d->document->hasActiveStroke()) return {};
     const auto version = m_d->document->snapshot();
-    const Layer *target = maskPaintLayer(version, layer);
+    const Layer *target = editableMaskLayer(version, layer);
     if (!target) return {};
     const auto image = createMaskImage(version, target->transparencyMask);
     if (!image) return {};
@@ -661,7 +661,7 @@ Result PaintImage::paintTransparencyMaskFigure(LayerId layer, const Brush &brush
     if (!m_d->handle) return Result::Closed;
     if (m_d->maskStroke || m_d->document->hasActiveStroke()) return Result::EditInProgress;
     const auto version = m_d->document->snapshot();
-    const Layer *target = maskPaintLayer(version, layer);
+    const Layer *target = editableMaskLayer(version, layer);
     if (!target) return Result::LayerUnavailable;
     const auto image = createMaskImage(version, target->transparencyMask);
     if (!image) return resultFor(m_d->lastRequest.code);

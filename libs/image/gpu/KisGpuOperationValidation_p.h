@@ -166,7 +166,6 @@ bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
         if (layer.kind != LayerKind::Paint && layer.kind != LayerKind::Group) return false;
         if (layer.kind != LayerKind::Group && layer.passThrough) return false;
         if (!validBlendMode(layer.blendMode, format)) return false;
-        if (layer.kind == LayerKind::Group && layer.transparencyMask) return false;
         if (layer.transparencyMask && layer.transparencyMask->byteCount() > SelectionMask::MaximumBytes) return false;
         if (!layer.uuid.isNull()) {
             if (identities.contains(layer.uuid)) return false;

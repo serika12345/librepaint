@@ -785,13 +785,16 @@ void KisGpuPaintImageTest::selectedMoveUsesNativeEmptyDetectionAndKeepsLowAlphaP
 void KisGpuPaintImageTest::erasedMasksRemainTransparentAndAcceptFurtherPainting_data()
 {
     QTest::addColumn<bool>("words");
-    QTest::newRow("u8") << false;
-    QTest::newRow("u16") << true;
+    QTest::addColumn<bool>("groupOwner");
+    QTest::newRow("u8") << false << false;
+    QTest::newRow("u16") << true << false;
+    QTest::newRow("group-u8") << false << true;
+    QTest::newRow("group-u16") << true << true;
 }
 
 void KisGpuPaintImageTest::erasedMasksRemainTransparentAndAcceptFurtherPainting()
 {
-    QFETCH(bool, words);
+    QFETCH(bool, words); QFETCH(bool, groupOwner);
     QString diagnostic;
     const auto device = Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
@@ -800,7 +803,12 @@ void KisGpuPaintImageTest::erasedMasksRemainTransparentAndAcceptFurtherPainting(
     RasterLayer layer{QStringLiteral("Masked"), true, QUuid::createUuid(), {}};
     layer.defaultPixel = {17, 129, 241, quint16(maximumComponent(raster.format))};
     layer.transparencyMask = SelectionMask::fromRectangle({0, 0, 64, 64}, {0, 0, 64, 64});
-    raster.layers = {layer};
+    if (groupOwner) {
+        RasterLayer child{QStringLiteral("Child paint"), true, QUuid::createUuid(), {}};
+        child.parentUuid = layer.uuid; child.defaultPixel = layer.defaultPixel;
+        layer.kind = LayerKind::Group; layer.defaultPixel = {};
+        raster.layers = {layer, child};
+    } else raster.layers = {layer};
     PaintImage image(execution, raster);
     const auto layerId = image.operations().activeLayer();
     const auto initial = image.operations().snapshot();

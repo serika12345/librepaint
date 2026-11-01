@@ -22,7 +22,8 @@ OperationId OperationDocument::beginAffineTransform(const QList<AffineTransformT
     for (const auto &target : layers) {
         const auto layer = target.layer;
         const int index = layerIndex(layer);
-        if (index < 0 || seen.contains(layer) || snapshot()->layers[index].kind != LayerKind::Paint ||
+        if (index < 0 || seen.contains(layer) ||
+            (target.pixels && snapshot()->layers[index].kind != LayerKind::Paint) ||
             snapshot()->layers[index].userLocked || (!target.pixels && !target.mask) ||
             (target.mask && (!snapshot()->layers[index].transparencyMask || snapshot()->layers[index].transparencyMaskLocked))) return {};
         seen.insert(layer);

@@ -1574,7 +1574,7 @@ Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireS
     if (status != Result::Success) return status;
     if (!validLayerName(name)) return Result::InvalidInput;
     const auto index = layerIndex(layer);
-    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
+    if (index < 0) return Result::LayerUnavailable;
     if (snapshot()->layers[index].userLocked) return Result::LayerUnavailable;
     if (snapshot()->layers[index].transparencyMask) return Result::InvalidInput;
     auto mask = prepared ? prepared : selectionCoverage(*snapshot());
@@ -1762,8 +1762,7 @@ Result OperationDocument::replaceTransparencyMask(LayerId layer, const Selection
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     const auto index = layerIndex(layer);
-    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
-        !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
     if (!mask || (!mask->defaultCoverage() && !mask->isEmpty() && mask->bounds().isEmpty()) ||
         mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (snapshot()->layers[index].transparencyMask == mask) return Result::Success;

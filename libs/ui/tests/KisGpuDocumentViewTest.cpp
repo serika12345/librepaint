@@ -336,6 +336,8 @@ private Q_SLOTS:
     void maskChildFreehandStrokeEditsOnlyCoverage_data();
     void maskPresetsKeepOrdinaryEditing_data();
     void maskPresetsKeepOrdinaryEditing();
+    void groupMaskPresetsKeepOrdinaryEditing_data();
+    void groupMaskPresetsKeepOrdinaryEditing();
     void selectionFillUsesGpuSelection();
     void nativeClipboardCoverageKeepsPrecisionAndSavedPixels_data();
     void nativeClipboardCoverageKeepsPrecisionAndSavedPixels();
@@ -3094,28 +3096,29 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
     QTest::addColumn<qreal>("flow");
     QTest::addColumn<int>("figureFillStyle");
     QTest::addColumn<bool>("whiteDefault");
+    QTest::addColumn<bool>("groupOwner");
     for (const auto *name : {"d)_Ink-3_Gpen.kpp", "a)_Eraser_Small.kpp", "b)_Basic-5_Size_default.kpp",
                              "b)_Basic-2_Opacity.kpp", "a)_Eraser_Circle.kpp", "b)_Basic-5_Size_Opacity.kpp", "d)_Ink-7_Brush_Rough.kpp", "y)_Screentones_Regular.kpp", "u)_Pixel_Art_Dithering.kpp", "u)_Pixel_Art.kpp", "u)_Pixel_Art_Fill.kpp",
                              "h)_Charcoal_pencil_large.kpp", "h)_Charcoal_Pencil_Medium.kpp", "h)_Charcoal_Pencil_Thin.kpp"})
         for (const bool words : {false, true}) {
             const QByteArray row = QByteArray(name) + (words ? "-u16" : "-u8");
-            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1) << int(KisFigurePaintingOptions::FillStyleNone) << false;
+            QTest::newRow(row.constData()) << QString::fromLatin1(name) << words << qreal(-1) << int(KisFigurePaintingOptions::FillStyleNone) << false << false;
         }
     for (const bool words : {false, true})
-        QTest::newRow(words ? "Gpen-low-flow-u16" : "Gpen-low-flow-u8") << QStringLiteral("d)_Ink-3_Gpen.kpp") << words << qreal(.37) << int(KisFigurePaintingOptions::FillStyleNone) << false;
+        QTest::newRow(words ? "Gpen-low-flow-u16" : "Gpen-low-flow-u8") << QStringLiteral("d)_Ink-3_Gpen.kpp") << words << qreal(.37) << int(KisFigurePaintingOptions::FillStyleNone) << false << false;
     for (const bool words : {false, true})
         QTest::newRow(words ? "Dithering-soft-low-flow-u16" : "Dithering-soft-low-flow-u8")
-            << QStringLiteral("u)_Pixel_Art_Dithering.kpp") << words << qreal(.37) << int(KisFigurePaintingOptions::FillStyleNone) << false;
+            << QStringLiteral("u)_Pixel_Art_Dithering.kpp") << words << qreal(.37) << int(KisFigurePaintingOptions::FillStyleNone) << false << false;
     for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-7_Brush_Rough.kpp", "u)_Pixel_Art_Dithering.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray("filled-") + preset + (words ? "-u16" : "-u8");
-            QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1) << int(KisFigurePaintingOptions::FillStyleBackgroundColor) << false;
+            QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1) << int(KisFigurePaintingOptions::FillStyleBackgroundColor) << false << false;
         }
     for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-7_Brush_Rough.kpp", "u)_Pixel_Art_Dithering.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray("pattern-filled-") + preset + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1)
-                << int(KisFigurePaintingOptions::FillStylePattern) << false;
+                << int(KisFigurePaintingOptions::FillStylePattern) << false << false;
         }
 
 
@@ -3124,9 +3127,32 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray("white-default-") + preset + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1)
-                << int(KisFigurePaintingOptions::FillStyleNone) << true;
+                << int(KisFigurePaintingOptions::FillStyleNone) << true << false;
         }
 
+
+}
+
+void KisGpuDocumentViewTest::groupMaskPresetsKeepOrdinaryEditing_data()
+{
+    QTest::addColumn<QString>("presetName");
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<qreal>("flow");
+    QTest::addColumn<int>("figureFillStyle");
+    QTest::addColumn<bool>("whiteDefault");
+    QTest::addColumn<bool>("groupOwner");
+    for (const auto *preset : {"c)_Pencil-4_Soft.kpp", "c)_Pencil-6_Quick_Shade.kpp", "a)_Eraser_Circle.kpp"})
+        for (bool words : {false, true}) for (bool white : {false, true}) {
+            const QByteArray row = QByteArray(white ? "group-white-" : "group-finite-") + preset + (words ? "-u16" : "-u8");
+            QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1)
+                << int(KisFigurePaintingOptions::FillStyleNone) << white << true;
+        }
+
+}
+
+void KisGpuDocumentViewTest::groupMaskPresetsKeepOrdinaryEditing()
+{
+    maskPresetsKeepOrdinaryEditing();
 }
 
 void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
@@ -3142,6 +3168,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     QFETCH(qreal, flow);
     QFETCH(int, figureFillStyle);
     QFETCH(bool, whiteDefault);
+    QFETCH(bool, groupOwner);
     const bool filledFigure = figureFillStyle != KisFigurePaintingOptions::FillStyleNone;
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restoreEngine = qScopeGuard([&] {
@@ -3204,15 +3231,41 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
                                    KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
         auto image = KisImageSP(document->image());
         auto layer = image->root()->firstChild(); QVERIFY(layer);
+        if (groupOwner) {
+            const KoColor color(QColor(191, 43, 97, 255), cs);
+            const QByteArray pixel(reinterpret_cast<const char *>(color.data()), cs->pixelSize());
+            layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixel.repeated(area.width() * area.height()).constData()), area);
+            if (gpu) {
+                const auto owner = image->gpuImage();
+                const auto paint = owner->operations().activeLayer();
+                QCOMPARE(owner->groupLayers({paint}, paint, QStringLiteral("Masked group")), Gpu::Result::Success);
+                layer = image->root()->firstChild();
+            } else {
+                KisGroupLayerSP group = new KisGroupLayer(image, QStringLiteral("Masked group"), 255);
+                auto paint = layer;
+                QVERIFY(image->removeNode(paint)); QVERIFY(image->addNode(group)); QVERIFY(image->addNode(paint, group));
+                layer = group;
+            }
+            QVERIFY(layer && layer->inherits("KisGroupLayer"));
+            layer->setDirty(area); image->waitForDone();
+        }
         if (gpu && whiteDefault) {
             const auto owner = image->gpuImage();
-            QCOMPARE(owner->addTransparencyMask(owner->operations().activeLayer()), Gpu::Result::Success);
+            const auto version = owner->operations().snapshot();
+            const auto target = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                [&](const auto &value) { return value.uuid == layer->uuid(); });
+            QVERIFY(target != version->layers.cend());
+            QCOMPARE(owner->addTransparencyMask(target->id), Gpu::Result::Success);
         } else if (gpu) {
             const auto owner = image->gpuImage(); QVERIFY(owner);
-            Gpu::RegionFillSettings settings; settings.seed = {16, 16}; settings.threshold = 1;
-            QCOMPARE(owner->selectRegion(owner->operations().activeLayer(), settings, Gpu::SelectionCombination::Replace), Gpu::Result::Success);
-            QCOMPARE(owner->combineSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(area, initial, area), Gpu::SelectionCombination::Intersect), Gpu::Result::Success);
-            QVERIFY(owner->selectionMask()->isGpuGenerated());
+            if (groupOwner) {
+                QCOMPARE(owner->setSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(area, initial, area)), Gpu::Result::Success);
+            } else {
+                Gpu::RegionFillSettings settings; settings.seed = {16, 16}; settings.threshold = 1;
+                QCOMPARE(owner->selectRegion(owner->operations().activeLayer(), settings, Gpu::SelectionCombination::Replace), Gpu::Result::Success);
+                QCOMPARE(owner->combineSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(area, initial, area), Gpu::SelectionCombination::Intersect), Gpu::Result::Success);
+                QVERIFY(owner->selectionMask()->isGpuGenerated());
+            }
             QVERIFY(image->addGpuTransparencyMaskFromSelection(layer));
             QVERIFY(image->clearGpuSelection());
         } else {
@@ -3223,9 +3276,12 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             }
             selection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(initial.constData()), area);
             KisTransparencyMaskSP mask = new KisTransparencyMask(image, QStringLiteral("Transparency Mask"));
-            mask->setSelection(selection); image->addNode(mask, layer); image->waitForDone();
+            mask->setSelection(selection); QVERIFY(image->addNode(mask, layer));
+            image->refreshGraphAsync(); image->waitForDone();
         }
-        auto child = layer->firstChild(); QVERIFY(child);
+        auto child = layer->firstChild();
+        while (child && !child->inherits("KisTransparencyMask")) child = child->nextSibling();
+        QVERIFY(child);
         std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow()); window->resize(800, 600);
         auto *view = window->newView(document.get()); QVERIFY(view);
         QPointer<KisDocument> lifetime(document.release());
@@ -3385,14 +3441,25 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         };
         const auto parentPixels = [&] {
             QByteArray bytes(initial.size() * cs->pixelSize(), '\0');
-            layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
+            KisPaintDeviceSP device = layer->paintDevice();
+            if (groupOwner) {
+                for (auto child = layer->firstChild(); child; child = child->nextSibling())
+                    if (child->inherits("KisPaintLayer")) { device = child->paintDevice(); break; }
+            }
+            if (!device) return QByteArray{};
+            device->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
             return bytes;
         };
-        const auto originalParent = parentPixels();
+        const auto originalParent = parentPixels(); QVERIFY(!originalParent.isEmpty());
         int state = 0;
         const auto compare = [&] {
-            const auto actual = pixels();
+            auto actual = pixels();
             if (parentPixels() != originalParent) return false;
+            if (groupOwner) {
+                QByteArray projection(initial.size() * cs->pixelSize(), '\0');
+                image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), area);
+                actual += projection;
+            }
             if (pencil && !incrementalPencil) return true; // Fixed-seed random coverage above, state invariants below.
             if (!gpu) expected.append(actual);
             else {
@@ -3442,6 +3509,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             image->waitForDone(); QApplication::processEvents();
         };
         QCOMPARE(pixels(), initial);
+        if (groupOwner) QVERIFY2(compare(), "Prepared group projection must apply the full initial mask");
         const int initialUndoIndex = lifetime->undoStack()->index();
         stroke({{24, 24}, {40, 36}});
         if (filledFigure) QTRY_COMPARE(lifetime->undoStack()->index(), initialUndoIndex + 1);
@@ -3499,7 +3567,9 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
         lifetime->waitForSavingToComplete();
         QVERIFY2(lifetime->openPath(path, KisDocument::DontAddToRecent), qPrintable(lifetime->errorMessage()));
-        image = lifetime->image(); layer = image->root()->firstChild(); child = layer->firstChild(); QVERIFY(child);
+        image = lifetime->image(); layer = image->root()->firstChild(); child = layer->firstChild();
+        while (child && !child->inherits("KisTransparencyMask")) child = child->nextSibling();
+        QVERIFY(child);
         window->viewManager()->nodeManager()->slotUiActivatedNode(child);
         QTRY_COMPARE(view->currentNode(), child);
         QTRY_VERIFY(image->isIdle());
@@ -3526,20 +3596,31 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
 void KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage_data()
 {
     QTest::addColumn<int>("creation");
-    QTest::newRow("retained-finite-mask") << 0;
-    QTest::newRow("ordinary-white-default") << 1;
-    QTest::newRow("ordinary-selection-consumed") << 2;
+    QTest::addColumn<bool>("groupOwner");
+    QTest::newRow("retained-finite-mask") << 0 << false;
+    QTest::newRow("ordinary-white-default") << 1 << false;
+    QTest::newRow("ordinary-selection-consumed") << 2 << false;
+    QTest::newRow("group-retained-finite-mask") << 0 << true;
+    QTest::newRow("group-ordinary-white-default") << 1 << true;
+    QTest::newRow("group-ordinary-selection-consumed") << 2 << true;
 }
 
 void KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage()
 {
-    QFETCH(int, creation);
+    QFETCH(int, creation); QFETCH(bool, groupOwner);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     auto execution = std::make_shared<Gpu::Execution>(device);
-    const auto owner = paintImageWithEncoding(execution, QSize(64, 64));
+    Gpu::RasterImage raster; raster.size = {64, 64};
+    raster.layers = {{QStringLiteral("Mask owner"), true, QUuid::createUuid(), {}}};
+    if (groupOwner) {
+        raster.layers.first().kind = Gpu::LayerKind::Group;
+        Gpu::RasterLayer child{QStringLiteral("Child paint"), true, QUuid::createUuid(), {}};
+        child.parentUuid = raster.layers.first().uuid; raster.layers.append(child);
+    }
+    const auto owner = paintImageWithEncoding(execution, raster);
     QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
     const auto layerId = owner->operations().activeLayer();
     if (creation != 1) QCOMPARE(owner->setSelectionRect(QRect(8, 8, 24, 24)), Gpu::Result::Success);
@@ -3594,6 +3675,7 @@ void KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage()
     QVERIFY(originalMask);
     QCOMPARE(originalMask->coverage(44, 44), quint8(creation == 1 ? 255 : 0));
     auto child = layer->firstChild();
+    while (child && !child->inherits("KisTransparencyMask")) child = child->nextSibling();
     QVERIFY(child);
     QVERIFY(child->inherits("KisTransparencyMask"));
     QVERIFY(image->isGpuTransparencyMaskView(child));

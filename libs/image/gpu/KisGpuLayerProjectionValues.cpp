@@ -322,10 +322,10 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
     for (const auto &layer : layers) {
         identities.insert(layer.uuid, &layer);
         children[layer.parentUuid].append(&layer);
+        if (hasEnabledTransparencyMask(layer))
+            maskDefaults.insert(layer.id, layer.transparencyMask->defaultCoverage());
         if (layer.kind == LayerKind::Paint) {
             result.insert(layer.id, layer.defaultPixel);
-            if (layer.transparencyMask && layer.transparencyMaskVisible)
-                maskDefaults.insert(layer.id, layer.transparencyMask->defaultCoverage());
             implicitSources.insert(layer.id, layer.defaultPixel[3] != 0);
         }
         else remaining.insert(layer.id, 0);

@@ -16,6 +16,7 @@
 #include <QTemporaryDir>
 #include <QScopeGuard>
 #include <QtCore5Compat/QTextCodec>
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <cstring>
@@ -161,6 +162,8 @@ private Q_SLOTS:
     void featheredSelectionAlphaSurvivesSavingAndReopening();
     void offCanvasSelectionKeepsNativeCoverageAcrossReopenedEditing();
     void transparencyMasksSurviveSavingAndReopening();
+    void groupTransparencyMasksKeepNativeStorageAcrossEditing_data();
+    void groupTransparencyMasksKeepNativeStorageAcrossEditing();
     void emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage();
     void offsetsAndDescriptionMetadataSurviveEditing();
     void unsupportedAndInvalidContentsReturnNoDocument();
@@ -1712,6 +1715,67 @@ void TestKraRasterCodec::featheredSelectionAlphaSurvivesSavingAndReopening()
     QVERIFY(again.document.image.selectionMask->isAlpha());
     QVERIFY(*again.document.image.selectionMask == *mask);
     QCOMPARE(again.document.image.layers.size(), source.image.layers.size());
+}
+
+void TestKraRasterCodec::groupTransparencyMasksKeepNativeStorageAcrossEditing_data()
+{
+    QTest::addColumn<bool>("passThrough");
+    QTest::addColumn<int>("defaultCoverage");
+    for (bool passThrough : {false, true}) for (int value : {0, 17, 255}) {
+        const QByteArray tag = QByteArray(passThrough ? "pass-through-" : "isolated-") + QByteArray::number(value);
+        QTest::newRow(tag.constData()) << passThrough << value;
+    }
+}
+
+void TestKraRasterCodec::groupTransparencyMasksKeepNativeStorageAcrossEditing()
+{
+    // A native group owns both nested layers and its mask. Reopening must keep
+    // that ownership, mask metadata and off-canvas coverage for further edits.
+    QFETCH(bool, passThrough); QFETCH(int, defaultCoverage);
+    auto source = document();
+    RasterLayer group{QStringLiteral("Masked group")};
+    group.uuid = QUuid::createUuid(); group.kind = LayerKind::Group; group.passThrough = passThrough;
+    const auto child = source.image.layers.first();
+    source.image.layers.first().parentUuid = group.uuid;
+    SelectionTileMap tiles;
+    for (const auto point : {QPoint(-1, 0), QPoint(1, 1)}) {
+        QByteArray alpha(SelectionMask::AlphaTileBytes, char(defaultCoverage));
+        alpha[9 * 256 + 253] = char(128);
+        alpha[11 * 256 + 7] = char(200);
+        tiles.insert({point.x(), point.y()}, alpha);
+    }
+    group.transparencyMask = SelectionMask::fromAlphaTiles(tiles, quint8(defaultCoverage));
+    QVERIFY(group.transparencyMask);
+    group.transparencyMaskUuid = QUuid::createUuid(); group.transparencyMaskName = QStringLiteral("Group coverage");
+    group.transparencyMaskColorLabelIndex = 4; group.transparencyMaskPinnedToTimeline = true;
+    group.transparencyMaskLocked = true;
+    source.image.layers.prepend(group); source.image.activeLayer = 0;
+    for (int edit = 0; edit < 2; ++edit) {
+        QByteArray bytes; QBuffer output(&bytes); QVERIFY(output.open(QIODevice::WriteOnly));
+        const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+        QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+        auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+        auto actual = std::find_if(loaded.document.image.layers.begin(), loaded.document.image.layers.end(),
+            [&](const auto &layer) { return layer.uuid == group.uuid; });
+        QVERIFY(actual != loaded.document.image.layers.end());
+        QCOMPARE(actual->kind, LayerKind::Group); QCOMPARE(actual->passThrough, passThrough);
+        QCOMPARE(actual->transparencyMaskUuid, group.transparencyMaskUuid);
+        QCOMPARE(actual->transparencyMaskName, group.transparencyMaskName);
+        QCOMPARE(actual->transparencyMaskLocked, group.transparencyMaskLocked);
+        QCOMPARE(actual->transparencyMaskVisible, group.transparencyMaskVisible);
+        QCOMPARE(actual->transparencyMaskColorLabelIndex, group.transparencyMaskColorLabelIndex);
+        QCOMPARE(actual->transparencyMaskPinnedToTimeline, group.transparencyMaskPinnedToTimeline);
+        QVERIFY(actual->transparencyMask);
+        QCOMPARE(actual->transparencyMask->defaultCoverage(), quint8(defaultCoverage));
+        QVERIFY(*actual->transparencyMask == *group.transparencyMask);
+        const auto nested = std::find_if(loaded.document.image.layers.cbegin(), loaded.document.image.layers.cend(),
+            [&](const auto &layer) { return layer.uuid == child.uuid; });
+        QVERIFY(nested != loaded.document.image.layers.cend()); QCOMPARE(nested->parentUuid, group.uuid);
+        QCOMPARE(rgbaAt(*nested, {}), rgbaAt(child, {}));
+        actual->transparencyMaskVisible = false; group.transparencyMaskVisible = false;
+        actual->transparencyMaskName = group.transparencyMaskName = QStringLiteral("Edited group coverage");
+        source = loaded.document;
+    }
 }
 
 void TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening()

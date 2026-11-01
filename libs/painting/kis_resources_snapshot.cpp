@@ -537,7 +537,8 @@ KisGpuBrushResources captureGpuPaintingResources(
     const KisNodeSP target = maskView ? node->parent() : node;
     if (!target) return reject(i18n("A stroke could not be started on this GPU paint layer."));
     for (const auto &layer : image->gpuImage()->operations().snapshot()->layers)
-        if (layer.uuid == target->uuid() && layer.kind == Gpu::LayerKind::Paint) result.layer = layer.id;
+        if (layer.uuid == target->uuid() && (layer.kind == Gpu::LayerKind::Paint ||
+            (maskView && layer.kind == Gpu::LayerKind::Group))) result.layer = layer.id;
     if (!result.layer)
         return reject(i18n("A stroke could not be started on this GPU paint layer."));
     if (maskView) {

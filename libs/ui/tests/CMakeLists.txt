@@ -1226,6 +1226,12 @@ kis_add_test(KisGpuDocumentViewTest.cpp ../../../krita/krita.qrc
 set(gpu_document_layer_test libs-ui-layers-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_layer_test}
     COMMAND KisGpuDocumentViewTest ${gpu_document_layer_cases})
+set(gpu_document_group_mask_test libs-ui-group-masks-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_group_mask_test}
+    COMMAND KisGpuDocumentViewTest groupMaskPresetsKeepOrdinaryEditing
+        maskChildFreehandStrokeEditsOnlyCoverage:group-retained-finite-mask
+        maskChildFreehandStrokeEditsOnlyCoverage:group-ordinary-white-default
+        maskChildFreehandStrokeEditsOnlyCoverage:group-ordinary-selection-consumed)
 set(gpu_document_group_test libs-ui-groups-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_group_test}
     COMMAND KisGpuDocumentViewTest quickGroupsKeepPixelsHistoryAndSaving)
@@ -1309,7 +1315,7 @@ add_test(NAME ${gpu_document_hsv_filter_test}
     COMMAND KisGpuDocumentViewTest hsvAdjustmentActionUsesProductSettingsOnGpuDocument)
 set_tests_properties(${gpu_document_hsv_filter_test} PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=cocoa" RUN_SERIAL TRUE TIMEOUT 60)
-set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test} ${gpu_document_group_test} ${gpu_document_merge_test}
+set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test} ${gpu_document_group_test} ${gpu_document_group_mask_test} ${gpu_document_merge_test}
     ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
     ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_brush_blend_test}
     ${gpu_document_brush_presets_test} ${gpu_document_native_clipboard_test}
