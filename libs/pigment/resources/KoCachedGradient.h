@@ -51,7 +51,7 @@ public:
 
         KoColor tmpColor(m_colorSpace);
         for (qint32 i = 0; i < steps; i++) {
-            m_subject->colorAt(tmpColor, qreal(i) / m_max);
+            m_subject->colorAt(tmpColor, m_max > 0 ? qreal(i) / m_max : 0.0);
             m_colors << tmpColor;
         }
     }

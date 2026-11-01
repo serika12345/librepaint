@@ -8,10 +8,12 @@
 #include <simpletest.h>
 
 #include <QDomElement>
+#include <cmath>
 
 #include "KoColorModelStandardIds.h"
 
 #include "KoStopGradient.h"
+#include "KoCachedGradient.h"
 
 #include "KoColor.h"
 #include "KoColorSpace.h"
@@ -63,6 +65,41 @@ void TestKoStopGradient::testInterpolatesBetweenStops()
     QCOMPARE(middle.green(), middle.red());
     QCOMPARE(middle.blue(), middle.red());
     QCOMPARE(middle.alpha(), 255);
+}
+
+void TestKoStopGradient::singleSampleCacheKeepsFirstColor()
+{
+    // A gradient on a one-pixel canvas/selection uses a one-entry palette.
+    // The native painter and GPU resource capture must retain its first color
+    // at every cache position rather than sampling an undefined 0/0 position.
+    class RecordingGradient final : public KoStopGradient {
+    public:
+        mutable bool finiteSamples = true;
+        void colorAt(KoColor &color, qreal position) const override {
+            if (!std::isfinite(position)) { finiteSamples = false; return; }
+            KoStopGradient::colorAt(color, position);
+        }
+    };
+    const auto gradient = QSharedPointer<RecordingGradient>::create();
+    const auto *rgb = KoColorSpaceRegistry::instance()->rgb8();
+    gradient->setStops({{0, KoColor(QColor(213, 49, 107, 177), rgb)},
+                        {1, KoColor(QColor(17, 129, 241, 93), rgb)}});
+    for (const auto &model : {RGBAColorModelID, GrayAColorModelID}) {
+        const auto *space = KoColorSpaceRegistry::instance()->colorSpace(model.id(), Integer16BitsColorDepthID.id(), QString());
+        QVERIFY(space);
+        KoColor expected(space); gradient->colorAt(expected, 0);
+        const KoCachedGradient cached(gradient, 1, space);
+        QVERIFY2(gradient->finiteSamples, "The gradient resource received a nonfinite cache position");
+        for (const qreal position : {qreal(0), qreal(.5), qreal(1)})
+            QCOMPARE(QByteArray(reinterpret_cast<const char *>(cached.cachedAt(position)), space->pixelSize()),
+                     QByteArray(reinterpret_cast<const char *>(expected.data()), space->pixelSize()));
+        const KoCachedGradient ordinary(gradient, 5, space);
+        for (const qreal position : {qreal(0), qreal(.5), qreal(1)}) {
+            gradient->colorAt(expected, position);
+            QCOMPARE(QByteArray(reinterpret_cast<const char *>(ordinary.cachedAt(position)), space->pixelSize()),
+                     QByteArray(reinterpret_cast<const char *>(expected.data()), space->pixelSize()));
+        }
+    }
 }
 
 KISTEST_MAIN(TestKoStopGradient)

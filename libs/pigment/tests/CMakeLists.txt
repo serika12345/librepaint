@@ -475,3 +475,6 @@ kis_add_tests(
 
 
 macos_test_fixrpath(CCSGraph)
+
+# Stop-gradient loading and native RGB/gray cache colors use the runtime engine.
+add_dependencies(TestKoStopGradient kritalcmsengine)
