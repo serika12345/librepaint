@@ -1373,8 +1373,12 @@ void KisGpuDocumentViewTest::quickGroupsKeepPixelsHistoryAndSaving()
     QVERIFY(document->newImage(QStringLiteral("Layer groups"), area.width(), area.height(), cs,
                                KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, outsideActive ? 3 : 2, {}, 1));
     auto image = KisImageSP(document->image());
-    const KisNodeList originals{image->root()->at(0), image->root()->at(1)};
+    KisNodeList originals{image->root()->at(0), image->root()->at(1)};
     originals[0]->setName(QStringLiteral("One")); originals[1]->setName(QStringLiteral("Two"));
+    for (auto node : originals) {
+        node->setVisible(true); node->setUserLocked(false); node->setOpacity(255);
+        node->setCompositeOpId(QStringLiteral("normal"));
+    }
     const QList<KoColor> colors{KoColor(Qt::red, cs), KoColor(QColor(0, 0, 255, 128), cs)};
     for (int i = 0; i < originals.size(); ++i) {
         const auto pixels = QByteArray(reinterpret_cast<const char *>(colors[i].data()), cs->pixelSize()).repeated(area.width() * area.height());
@@ -1421,13 +1425,13 @@ void KisGpuDocumentViewTest::quickGroupsKeepPixelsHistoryAndSaving()
             output << node->uuid() << (node->parent() == image->root() ? QUuid() : node->parent()->uuid())
                    << node->name() << QByteArray(node->metaObject()->className()) << node->x() << node->y()
                    << node->opacity() << node->visible() << node->userLocked() << node->colorLabelIndex() << node->isPinnedToTimeline();
-            if (const auto layer = qobject_cast<KisLayer *>(node.data())) {
+            if (const auto layer = qobject_cast<const KisLayer *>(node.data())) {
                 auto flags = layer->channelFlags();
                 if (flags.isEmpty()) flags.fill(true, layer->colorSpace()->channelCount());
                 output << flags;
             }
-            if (const auto group = qobject_cast<KisGroupLayer *>(node.data())) output << group->passThroughMode();
-            if (qobject_cast<KisPaintLayer *>(node.data())) {
+            if (const auto group = qobject_cast<const KisGroupLayer *>(node.data())) output << group->passThroughMode();
+            if (qobject_cast<const KisPaintLayer *>(node.data())) {
                 const auto value = node->paintDevice()->defaultPixel();
                 output << QByteArray(reinterpret_cast<const char *>(value.data()), value.colorSpace()->pixelSize()) << pixels(node);
             }

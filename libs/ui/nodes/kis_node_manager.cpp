@@ -1995,7 +1995,7 @@ bool KisNodeManager::QuickGroupAccess::handleGpuUngroup(KisNodeManager *manager)
     if (!owner) return false;
     const auto active = manager->activeNode();
     if (!active || !manager->canModifyLayer(active)) return true;
-    const bool activeGroup = bool(qobject_cast<KisGroupLayer *>(active.data()));
+    const bool activeGroup = bool(qobject_cast<const KisGroupLayer *>(active.data()));
     auto destination = active->parent();
     KisNodeList nodes;
     if (activeGroup) {
