@@ -468,6 +468,18 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
 PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapshot &pinned,
                                            QRect region, LayerId layer, qsizetype maximumBytes,
                                            const SelectionMaskSP &copyMask, bool invertMask)
+{ return readRgbaPixelsImpl(handle, pinned, region, layer, maximumBytes, copyMask, invertMask, false); }
+
+PixelBytesOutcome Execution::readNativeProjectionPixels(DocumentHandle handle, const Snapshot &pinned,
+                                                        QRect region, qsizetype maximumBytes)
+{
+    const auto direct = pinned ? pinned->directProjectionLayer() : LayerId{};
+    return readRgbaPixelsImpl(handle, pinned, region, direct, maximumBytes, {}, false, !direct);
+}
+
+PixelBytesOutcome Execution::readRgbaPixelsImpl(DocumentHandle handle, const Snapshot &pinned,
+                                               QRect region, LayerId layer, qsizetype maximumBytes,
+                                               const SelectionMaskSP &copyMask, bool invertMask, bool nativeProjection)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         PixelBytesOutcome outcome;
@@ -484,10 +496,10 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
     const qint64 byteCount = qint64(region.width()) * region.height() * pixelSize;
     if (byteCount > maximumBytes)
         return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel output capacity exceeded"));
-    const auto clipped = layer ? region : region.intersected(QRect(QPoint(), pinned->size));
+    const auto clipped = layer || nativeProjection ? region : region.intersected(QRect(QPoint(), pinned->size));
     constexpr int size = TileRenderer::TileSize;
     QSet<quint64> coordinates;
-    RgbaPixel defaultPixel{};
+    RgbaPixel defaultPixel = nativeProjection ? pinned->projectionBackground : RgbaPixel{};
     const auto defaults = pinned->projectionDefaultPixels();
     bool uniformProjection = !layer && pinned->projectionBackground != RgbaPixel{};
     QSet<LayerId> projectionLayers;
@@ -500,9 +512,10 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
         if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel coordinates exceed capacity"));
         for (const auto tile : *tiles) coordinates.insert(tile);
     }
-    if ((uniformProjection || (copyMask && defaultPixel != RgbaPixel{})) && !clipped.isEmpty()) {
-        for (int y = Detail::pixelTileIndex(clipped.top(), size); y <= Detail::pixelTileIndex(clipped.bottom(), size); ++y)
-            for (int x = Detail::pixelTileIndex(clipped.left(), size); x <= Detail::pixelTileIndex(clipped.right(), size); ++x)
+    const auto uniformRegion = nativeProjection ? clipped.intersected(QRect(QPoint(), pinned->size)) : clipped;
+    if ((uniformProjection || (copyMask && defaultPixel != RgbaPixel{})) && !uniformRegion.isEmpty()) {
+        for (int y = Detail::pixelTileIndex(uniformRegion.top(), size); y <= Detail::pixelTileIndex(uniformRegion.bottom(), size); ++y)
+            for (int x = Detail::pixelTileIndex(uniformRegion.left(), size); x <= Detail::pixelTileIndex(uniformRegion.right(), size); ++x)
                 coordinates.insert(Detail::key(x, y));
     }
     PixelBytesOutcome outcome;
@@ -525,9 +538,10 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
     for (const auto coordinate : ordered) {
         const QRect tileRegion(Detail::coordinate(coordinate) * size, QSize(size, size));
         const auto readPart = [&]() -> PixelReadbackOutcome {
-            if (!copyMask) return readPixels(handle, pinned, tileRegion, layers, !layer, PixelReadArea::LayerCoordinates);
+            if (!copyMask && !nativeProjection) return readPixels(handle, pinned, tileRegion, layers, !layer, PixelReadArea::LayerCoordinates);
             auto pending = readPixelsAsyncImpl(handle, pinned, tileRegion, layers, !layer,
-                PixelReadArea::LayerCoordinates, false, false, false, false, copyMask, invertMask);
+                PixelReadArea::LayerCoordinates, false, false, false, false, copyMask, invertMask,
+                nullptr, false, false, false, nullptr, nativeProjection);
             if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
                 return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU selection copy completion failed"));
             retireCompletedReadback();
@@ -652,18 +666,29 @@ PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot
     return readBoundsImpl(handle, pinned, layer, includeTransparentColors, false, opacityU8);
 }
 
+PixelReadbackOutcome Execution::readNativeProjectionBounds(DocumentHandle handle, const Snapshot &pinned)
+{
+    const auto direct = pinned ? pinned->directProjectionLayer() : LayerId{};
+    auto result = readBoundsImpl(handle, pinned, direct, false, true, true, !direct);
+    if (result.code != ExecutionCode::Success) return result;
+    const auto implicit = direct ? pinned->projectionDefaultPixels().value(direct) : pinned->projectionBackground;
+    const auto alpha = pinned->format == PixelFormat::Rgba16 ? (implicit[3] - (implicit[3] >> 8) + 128) >> 8 : implicit[3];
+    if (alpha) *result.bounds |= QRect(QPoint(), pinned->size);
+    return result;
+}
+
 PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snapshot &pinned, LayerId layer,
-                                             bool includeTransparentColors, bool sparseProjection, bool opacityU8)
+                                             bool includeTransparentColors, bool sparseProjection, bool opacityU8, bool nativeProjection)
 {
     if (!m_d->onThread()) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Bounds read requires the GPU thread"));
     constexpr int limit = RgbaTile::CoordinateLimit;
     constexpr qsizetype capacity = 256 * 1024 * 1024;
-    const auto area = layer ? PixelReadArea::LayerCoordinates : PixelReadArea::Canvas;
+    const auto area = layer || nativeProjection ? PixelReadArea::LayerCoordinates : PixelReadArea::Canvas;
     const QList<LayerId> selected = layer ? QList<LayerId>{layer} : QList<LayerId>{};
     auto outcome = readPixels(handle, pinned, {}, selected, !layer, area);
     if (outcome.code != ExecutionCode::Success) return outcome;
     outcome.bounds = QRect();
-    outcome.region = layer ? QRect(-limit, -limit, 2 * limit, 2 * limit) : QRect(QPoint(), pinned->size);
+    outcome.region = layer || nativeProjection ? QRect(-limit, -limit, 2 * limit, 2 * limit) : QRect(QPoint(), pinned->size);
     QSet<quint64> coordinates;
     const qsizetype columns = (pinned->size.width() + TileRenderer::TileSize - 1) / TileRenderer::TileSize;
     const qsizetype rows = (pinned->size.height() + TileRenderer::TileSize - 1) / TileRenderer::TileSize;
@@ -699,7 +724,7 @@ PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snap
         const QRect region(Detail::coordinate(coordinate) * TileRenderer::TileSize,
                            QSize(TileRenderer::TileSize, TileRenderer::TileSize));
         const auto readPart = [&] {
-            auto pending = readPixelsAsyncImpl(handle, pinned, region, selected, !layer, area, false, true, includeTransparentColors, false, {}, false, nullptr, false, false, opacityU8);
+            auto pending = readPixelsAsyncImpl(handle, pinned, region, selected, !layer, area, false, true, includeTransparentColors, false, {}, false, nullptr, false, false, opacityU8, nullptr, nativeProjection);
             if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
                 return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU bounds completion failed"));
             retireCompletedReadback();
@@ -832,7 +857,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                                          QRect region, const QList<LayerId> &layers, bool includeProjection,
                                          PixelReadArea area, bool transparencyOnly, bool boundsOnly, bool includeTransparentColors,
                                          bool tileExtentOnly, const SelectionMaskSP &copyMask, bool invertMask,
-                                         const TranslationOperation *selectionSource, bool layerHitTest, bool includeLowAlpha, bool nativeBounds, const AffineTransformOperation *affineSource)
+                                         const TranslationOperation *selectionSource, bool layerHitTest, bool includeLowAlpha, bool nativeBounds, const AffineTransformOperation *affineSource, bool nativeProjection)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         return readyReadback(failure(code, diagnostic));
@@ -900,7 +925,8 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         }
         rendered = paint.version;
         if (includeProjection) {
-            const auto compose = d.renderer->compose(frame.commands, rendered, outcome.region, projectedBase);
+            const auto compose = nativeProjection ? d.renderer->composeImpl(frame.commands, rendered, outcome.region,
+                {}, 0, nullptr, false, true) : d.renderer->compose(frame.commands, rendered, outcome.region, projectedBase);
             if (compose.code != RenderOutcome::Recorded) {
                 cancelFrame();
                 begun = false;

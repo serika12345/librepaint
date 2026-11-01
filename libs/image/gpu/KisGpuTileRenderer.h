@@ -117,7 +117,8 @@ private:
                              const QList<LayerId> &layers);
     ProjectionOutcome composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                   QRect region, const ProjectedSnapshot &base, LayerId group,
-                                  const FrozenLayerProjection *initial = nullptr, bool normalizeRoot = false);
+                                  const FrozenLayerProjection *initial = nullptr, bool normalizeRoot = false,
+                                  bool nativeProjection = false);
     ProjectionOutcome recordInitialProjection(WGPUCommandEncoder commands, const FrozenLayerProjectionSP &initial,
                                              QRect region, const RenderedSnapshot &base);
     RenderOutcome prepareRegion(WGPUCommandEncoder commands, const RegionFillSP &region,

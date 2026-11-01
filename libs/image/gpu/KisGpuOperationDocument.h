@@ -890,7 +890,9 @@ public:
     /** Transparent root projections reuse one full-opacity child, preserving hidden RGB. */
     LayerId directProjectionLayer() const
     {
-        if (projectionBackground[3] != 0) return 0;
+        const auto opacity = format == PixelFormat::Rgba16 ?
+            (projectionBackground[3] - (projectionBackground[3] >> 8) + 128) >> 8 : projectionBackground[3];
+        if (opacity != 0) return 0;
         const Layer *only = nullptr;
         for (const auto &layer : layers) {
             if (!layer.parentUuid.isNull()) continue;

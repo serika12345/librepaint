@@ -1639,8 +1639,9 @@ QRect KisPaintDevice::exactBounds() const
         if (sequence != m_d->gpuBoundsSequence) {
             const auto version = m_d->gpuPixelVersion();
             auto layer = m_d->gpuLayerId();
-            if (!layer) layer = version->directProjectionLayer();
-            const auto result = m_d->gpuImage->execution().readBounds(m_d->gpuImage->handle(), version, layer, false, true);
+            const auto result = layer ?
+                m_d->gpuImage->execution().readBounds(m_d->gpuImage->handle(), version, layer, false, true) :
+                m_d->gpuImage->execution().readNativeProjectionBounds(m_d->gpuImage->handle(), version);
             if (result.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
                 throw std::runtime_error(result.diagnostic.toStdString());
             auto bounds = result.bounds.value();
@@ -1648,7 +1649,7 @@ QRect KisPaintDevice::exactBounds() const
             if (layer) implicit = version->projectionDefaultPixels().value(layer);
             const auto alpha = version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ?
                 (implicit[3] - (implicit[3] >> 8) + 128) >> 8 : implicit[3];
-            if (alpha) bounds |= m_d->defaultBounds->bounds();
+            if (layer && alpha) bounds |= m_d->defaultBounds->bounds();
             m_d->gpuBounds = bounds;
             m_d->gpuBoundsSequence = sequence;
         }
@@ -2474,25 +2475,14 @@ void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
         if (rect.isEmpty()) return;
         const auto count = gpuPixelByteCount(rect, m_d->gpuPixelVersion()->format);
         const auto snapshot = m_d->gpuPixelVersion();
-        auto layer = m_d->gpuLayerId();
-        if (!layer) layer = snapshot->directProjectionLayer();
-        const auto pixels = m_d->gpuImage->execution().readRgbaPixels(m_d->gpuImage->handle(), snapshot, rect, layer, count);
+        const auto layer = m_d->gpuLayerId();
+        const auto pixels = layer ?
+            m_d->gpuImage->execution().readRgbaPixels(m_d->gpuImage->handle(), snapshot, rect, layer, count) :
+            m_d->gpuImage->execution().readNativeProjectionPixels(m_d->gpuImage->handle(), snapshot, rect, count);
         if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
             throw std::runtime_error(pixels.diagnostic.toStdString());
         const auto bgra = gpuPixelTransfer(pixels.bytes, snapshot->format, false);
         std::memcpy(data, bgra.constData(), bgra.size());
-        if (!layer) {
-            const QRect canvas(QPoint(), snapshot->size);
-            const auto background = gpuDefaultColor(snapshot->projectionBackground, snapshot->format, colorSpace());
-            const auto stride = LibrePaint::Image::Gpu::pixelByteCount(snapshot->format);
-            for (int y = 0; y < rect.height(); ++y) {
-                for (int x = 0; x < rect.width(); ++x) {
-                    if (canvas.contains(rect.topLeft() + QPoint(x, y))) continue;
-                    const auto i = (qsizetype(y) * rect.width() + x) * stride;
-                    std::memcpy(data + i, background.data(), stride);
-                }
-            }
-        }
         return;
     }
     m_d->currentStrategy()->readBytes(data, rect);

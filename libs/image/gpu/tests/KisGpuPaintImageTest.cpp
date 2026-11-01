@@ -60,6 +60,8 @@ private Q_SLOTS:
     void mergedSparseDefaultsKeepAllocatedBytes();
     void mergedPixelsKeepRootReadersAndIndependentClearHistory_data();
     void mergedPixelsKeepRootReadersAndIndependentClearHistory();
+    void nativeRootReadsKeepOffCanvasPixelsAndPinnedVersions_data();
+    void nativeRootReadsKeepOffCanvasPixelsAndPinnedVersions();
     void clearedLayersKeepFixedVersionsAndRejectWholeRequests();
     void clearHistoryKeepsItsMeaningAfterDirectWrites();
     void retainedLayerPixelsRemainEditableThroughRemovalAndDiscardedHistory();
@@ -1567,6 +1569,87 @@ void KisGpuPaintImageTest::mergedPixelsKeepRootReadersAndIndependentClearHistory
     QCOMPARE(image.operations().redoCount(), 0);
     const auto retained = execution.readRgbaPixels(image.handle(), newRoot->version(), area, 0, expected.size());
     QCOMPARE(retained.code, ExecutionCode::Success); QCOMPARE(retained.bytes, expected);
+}
+
+void KisGpuPaintImageTest::nativeRootReadsKeepOffCanvasPixelsAndPinnedVersions_data()
+{
+    QTest::addColumn<bool>("words"); QTest::addColumn<int>("alpha");
+    QTest::newRow("u8") << false << 64;
+    QTest::newRow("u16") << true << 64 * 257;
+    QTest::newRow("u16-sub-byte-default") << true << 1;
+    QTest::newRow("u8-transparent-default") << false << 0;
+    QTest::newRow("u16-transparent-default") << true << 0;
+}
+
+void KisGpuPaintImageTest::nativeRootReadsKeepOffCanvasPixelsAndPinnedVersions()
+{
+    // Whole-image merging and retained public root devices need the native
+    // projection beyond the canvas. Display/export reads keep their canvas.
+    QFETCH(bool, words); QFETCH(int, alpha);
+    const auto format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const int scale = words ? 257 : 1;
+    const RgbaPixel background = alpha ? RgbaPixel{quint16(12 * scale), quint16(34 * scale), quint16(56 * scale), quint16(alpha)} : RgbaPixel{};
+    const RgbaPixel color{quint16(17 * scale), quint16(91 * scale), quint16(203 * scale), maximumComponent(format)};
+    const auto pixel = rgbaBytes(color, format), implicit = rgbaBytes(background, format);
+    const QRect canvas(0, 0, 32, 16), first(-5, 2, 3, 4), second(28, 17, 3, 3), region(-8, -4, 160, 32);
+    QString diagnostic; const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage input; input.size = canvas.size(); input.format = format; input.projectionBackground = background;
+    input.layers = {{QStringLiteral("Lower")}, {QStringLiteral("Upper")}};
+    PaintImage image(execution, input);
+    QCOMPARE(image.writeRgbaPixels(1, first, pixel.repeated(first.width() * first.height())), Result::Success);
+    QCOMPARE(image.writeRgbaPixels(2, second, pixel.repeated(second.width() * second.height())), Result::Success);
+    auto hidden = color; hidden[3] = 0;
+    QCOMPARE(image.writeRgbaPixels(1, QRect(100, 5, 1, 1), rgbaBytes(hidden, format)), Result::Success);
+    const auto before = image.operations().snapshot();
+    const auto oldRoot = image.retainLayerPixels(0); QVERIFY(oldRoot);
+    const bool opaqueDefault = words ? (alpha - (alpha >> 8) + 128) >> 8 : alpha;
+    const auto expectedBounds = opaqueDefault ? (first | second | canvas) : (first | second);
+    const auto bounds = execution.readNativeProjectionBounds(image.handle(), before);
+    QCOMPARE(bounds.code, ExecutionCode::Success); QCOMPARE(bounds.bounds.value(), expectedBounds);
+    auto expected = implicit.repeated(region.width() * region.height());
+    const auto replace = [&](QByteArray &bytes, QPoint point, const QByteArray &value) {
+        bytes.replace(((point.y() - region.y()) * region.width() + point.x() - region.x()) * pixel.size(), pixel.size(), value);
+    };
+    for (const auto rect : {first, second})
+        for (int y = rect.top(); y <= rect.bottom(); ++y) for (int x = rect.left(); x <= rect.right(); ++x)
+            replace(expected, {x, y}, pixel);
+    auto native = execution.readNativeProjectionPixels(image.handle(), before, region, expected.size());
+    QCOMPARE(native.code, ExecutionCode::Success); QCOMPARE(native.bytes, expected);
+    const auto canonical = execution.readRgbaPixels(image.handle(), before, first, 0, first.width() * first.height() * pixel.size());
+    QCOMPARE(canonical.code, ExecutionCode::Success); QCOMPARE(canonical.bytes, QByteArray(canonical.bytes.size(), '\0'));
+    const auto rejected = execution.readNativeProjectionPixels(image.handle(), before, region, expected.size() - 1);
+    QCOMPARE(rejected.code, ExecutionCode::CapacityExceeded); QVERIFY(rejected.bytes.isEmpty());
+    QCOMPARE(image.operations().snapshot(), before);
+    LayerMergeRequest request; request.before = before; request.mode = LayerMergeMode::FlattenImage;
+    request.layers = {1, 2}; request.above = 2; request.name = QStringLiteral("Merged"); request.destinationUuid = QUuid::createUuid();
+    for (const auto id : request.layers) request.sourceBounds.insert(id, expectedBounds | canvas);
+    request.allocatedBlocks = {QRect(-64, 0, 128, 64)};
+    QCOMPARE(image.mergeLayers(request), Result::Success);
+    QCOMPARE(oldRoot->version(), before);
+    native = execution.readNativeProjectionPixels(image.handle(), oldRoot->version(), region, expected.size());
+    QCOMPARE(native.code, ExecutionCode::Success); QCOMPARE(native.bytes, expected);
+    const auto originalPixels = expected;
+    const auto copied = expectedBounds | canvas;
+    for (int y = region.top(); y <= region.bottom(); ++y) for (int x = region.left(); x <= region.right(); ++x)
+        if (!copied.contains(x, y)) replace(expected, {x, y}, QByteArray(pixel.size(), '\0'));
+    const auto mergedPixels = image.readRgbaPixels(image.operations().activeLayer(), region, expected.size());
+    QCOMPARE(mergedPixels.code, ExecutionCode::Success); QCOMPARE(mergedPixels.bytes, expected);
+    // Native root replacement keeps its background. A nontransparent root
+    // composites the copied layer over that background; a root whose native
+    // opacityU8 is zero borrows its single child's projection instead.
+    if (opaqueDefault) {
+        expected = originalPixels;
+        auto composedBackground = background;
+        const quint64 maximum = maximumComponent(format);
+        composedBackground[3] = quint16((2 * quint64(alpha) * maximum - quint64(alpha) * alpha + maximum / 2) / maximum);
+        const auto composed = rgbaBytes(composedBackground, format);
+        for (int y = region.top(); y <= region.bottom(); ++y) for (int x = region.left(); x <= region.right(); ++x)
+            if (copied.contains(x, y) && !first.contains(x, y) && !second.contains(x, y)) replace(expected, {x, y}, composed);
+    }
+    const auto current = execution.readNativeProjectionPixels(image.handle(), image.operations().snapshot(), region, expected.size());
+    QCOMPARE(current.code, ExecutionCode::Success); QCOMPARE(current.bytes, expected);
+    QCOMPARE(image.undo(), Result::Success); QCOMPARE(oldRoot->version(), image.operations().snapshot());
 }
 
 void KisGpuPaintImageTest::clearedLayersKeepFixedVersionsAndRejectWholeRequests()

@@ -5,6 +5,7 @@
 
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuPaintJob_p.h"
+#include "KisGpuLayerAllocation_p.h"
 #include "KisGpuNonlinearRgba8_p.h"
 #include "KisGpuRgba8AlphaBlend_p.h"
 #include "KisGpuRgba16Compositing_p.h"
@@ -231,7 +232,7 @@ ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const Rende
 
 ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                            QRect region, const ProjectedSnapshot &base, LayerId group,
-                                           const FrozenLayerProjection *initial, bool normalizeRoot)
+                                           const FrozenLayerProjection *initial, bool normalizeRoot, bool nativeProjection)
 {
     auto &d = *m_d;
     if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) || !document ||
@@ -253,12 +254,30 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 && children.first()->projectionChannelMask == 15 && !children.first()->passThrough && children.first()->blendMode == LayerBlendMode::Normal && !hasEnabledTransparencyMask(*children.first()) :
         document->document()->directProjectionLayer() != 0;
     if (initial) data->directLayerProjection = false;
-    data->region = group || initial ? region : region.intersected(QRect(QPoint(0, 0), document->document()->size));
+    data->region = group || initial || nativeProjection ? region : region.intersected(QRect(QPoint(0, 0), document->document()->size));
     if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
     }
     const auto inputs = normalizeRoot ? QList<LayerProjectionInput>{{0, 255, 15, LayerBlendMode::Normal}} :
         document->document()->projectionInputs(group);
+    auto sourceExtents = document->m_data->sourceExtents;
+    if (nativeProjection || (initial && initial->normalizeRootProjection && !normalizeRoot)) {
+        for (const auto &input : inputs) {
+            const auto &layers = document->document()->layers;
+            const auto found = std::find_if(layers.cbegin(), layers.cend(), [&](const auto &layer) { return layer.id == input.layer; });
+            if (found == layers.cend()) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Native projection source is unavailable")};
+            if (found->kind == LayerKind::Paint) {
+                if (sourceExtents.contains(input.layer)) continue;
+                const auto allocation = paintLayerAllocation(document->document(), *found, PaintGeometryElementLimit);
+                if (!allocation) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Native projection source allocation exceeds capacity")};
+                sourceExtents.insert(input.layer, allocation->extent);
+            } else {
+                const auto extent = groupProjectionExtent(document->document(), input.layer, PaintGeometryElementLimit);
+                if (!extent) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Native group projection allocation exceeds capacity")};
+                sourceExtents.insert(input.layer, *extent);
+            }
+        }
+    }
     QHash<LayerId, SelectionMaskSP> layerMasks;
     for (const auto &layer : document->document()->layers)
         if (layer.transparencyMask && layer.transparencyMaskVisible)
@@ -272,7 +291,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     QPoint targetOrigin;
     if (group) for (const auto &layer : document->document()->layers) if (layer.id == group) targetOrigin = layer.position;
     for (const auto &input : inputs) {
-        auto extent = document->m_data->sourceExtents.value(input.layer);
+        auto extent = sourceExtents.value(input.layer);
         if (input.blendMode == LayerBlendMode::Copy || input.blendMode == LayerBlendMode::DestinationIn || input.blendMode == LayerBlendMode::DestinationAtop)
             extent = QRect(QPoint(), document->document()->size);
         if (!(input.channelMask & 8u) && input.blendMode != LayerBlendMode::Copy) extent &= destinationExtent;
@@ -280,6 +299,10 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             extent = normalizeRoot ? initial->extent : initial->sourceBounds.value(input.layer);
             if (!(input.channelMask & 8u) && input.blendMode != LayerBlendMode::Copy) extent &= destinationExtent;
         }
+        if (initial && initial->normalizeRootProjection && !normalizeRoot &&
+            input.blendMode != LayerBlendMode::Copy && input.blendMode != LayerBlendMode::DestinationIn &&
+            input.blendMode != LayerBlendMode::DestinationAtop)
+            extent &= sourceExtents.value(input.layer);
         sourceClips[input.layer] = extent;
         if (!extent.isEmpty()) {
             const auto first = QPoint(pixelTileIndex(extent.left() - targetOrigin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.top() - targetOrigin.y(), PixelHistoryBlockSize));
@@ -303,8 +326,8 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         }
     }
     if (!group && implicit && !data->region.isEmpty()) {
-        const int left = data->region.left() / TileSize, right = data->region.right() / TileSize;
-        const int top = data->region.top() / TileSize, bottom = data->region.bottom() / TileSize;
+        const int left = pixelTileIndex(data->region.left(), TileSize), right = pixelTileIndex(data->region.right(), TileSize);
+        const int top = pixelTileIndex(data->region.top(), TileSize), bottom = pixelTileIndex(data->region.bottom(), TileSize);
         // Bound derived coordinate bookkeeping before expanding a uniform region.
         if (quint64(right - left + 1) * quint64(bottom - top + 1) > quint64(d.budget->limit / RgbaTile::byteCount(document->document()->format))) {
             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU projection coordinate capacity exceeded")};
@@ -322,7 +345,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
             const auto extent = sourceClips.value(layer.layer);
-            const bool bounded = initial && (normalizeRoot || initial->sourceBounds.contains(layer.layer));
+            const bool bounded = (initial && (normalizeRoot || initial->sourceBounds.contains(layer.layer))) || nativeProjection;
             const bool clipsSource = bounded || transparentSourceAffectsBlend(layer.blendMode) || (!(layer.channelMask & 8u) && layer.blendMode != LayerBlendMode::Copy);
             const QRect tileBounds(Detail::coordinate(coordinate) * TileSize, QSize(TileSize, TileSize));
             if (clipsSource && !extent.intersects(tileBounds)) continue;
@@ -364,7 +387,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 d.error.isEmpty() ? QStringLiteral("GPU Greater alpha resource budget exhausted") : d.error};
     const auto firstComposition = [&](const auto &inputs) {
-        return !initial && inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
+        return !initial && !nativeProjection && inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
                                                 !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
     };
     const bool cachedBase = !group && base && d.backdropVersion.toStrongRef() == base &&

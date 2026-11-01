@@ -197,6 +197,10 @@ public:
      */
     PixelReadbackOutcome readBounds(DocumentHandle handle, const Snapshot &document, LayerId layer,
                                    bool includeTransparentColors = false, bool opacityU8 = false);
+    /** Native document projection bounds, including off-canvas content and the
+     * pinned canvas when its implicit eight-bit opacity is nonzero. Uses GPU
+     * summaries and preserves the retained version and current publication. */
+    PixelReadbackOutcome readNativeProjectionBounds(DocumentHandle handle, const Snapshot &document);
     /** Native opacity classification for layer picking at one image coordinate.
      * Includes the paint layer's visible mask or the group's child projection,
      * and uses opacityU8 semantics in both precisions. Returns a nonempty bounds
@@ -225,6 +229,11 @@ public:
     PixelBytesOutcome readRgbaPixels(DocumentHandle handle, const Snapshot &document,
                                      QRect region, LayerId layer, qsizetype maximumBytes,
                                      const SelectionMaskSP &copyMask = {}, bool invertMask = false);
+    /** Native root paint-device pixels. Includes off-canvas composition and
+     * its implicit pixel, with the same bounded external-read lifetime as
+     * readRgbaPixels(). Canvas/export readers retain their clipped result. */
+    PixelBytesOutcome readNativeProjectionPixels(DocumentHandle handle, const Snapshot &document,
+                                                 QRect region, qsizetype maximumBytes);
 
     /** Complete sparse layer pixels, including hidden and off-canvas tiles.
      * Implicit pixels use the returned document's projectionDefaultPixels().
@@ -313,14 +322,18 @@ private:
     ExecutionOutcome retireDisplayCaches();
     PixelReadbackOutcome readLayerTileExtent(DocumentHandle handle, const Snapshot &document, LayerId layer);
     PixelReadbackOutcome readBoundsImpl(DocumentHandle handle, const Snapshot &document, LayerId layer,
-                                        bool includeTransparentColors, bool sparseProjection, bool opacityU8 = false);
+                                        bool includeTransparentColors, bool sparseProjection, bool opacityU8 = false,
+                                        bool nativeProjection = false);
+    PixelBytesOutcome readRgbaPixelsImpl(DocumentHandle handle, const Snapshot &document, QRect region,
+                                        LayerId layer, qsizetype maximumBytes, const SelectionMaskSP &copyMask,
+                                        bool invertMask, bool nativeProjection);
     std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers, bool includeProjection,
                                    PixelReadArea area, bool transparencyOnly, bool boundsOnly = false,
                                    bool includeTransparentColors = false, bool tileExtentOnly = false,
                                    const SelectionMaskSP &copyMask = {}, bool invertMask = false,
                                    const TranslationOperation *selectionSource = nullptr, bool layerHitTest = false, bool includeLowAlpha = false, bool nativeBounds = false,
-                                   const AffineTransformOperation *affineSource = nullptr);
+                                   const AffineTransformOperation *affineSource = nullptr, bool nativeProjection = false);
 };
 }
 #endif
