@@ -133,7 +133,7 @@ struct InputSample
     bool canvasMirroredV = false;
     /** Native initial direction when the stroke has no earlier painted dab. */
     qreal initialDrawingAngle = 0;
-    /** Native pen-axis calibration in degrees, frozen by the input producer. */
+    /** Native pen-axis calibration in [0, 360) degrees, frozen by the input producer. */
     qreal tiltDirectionOffset = 0;
 
     bool operator==(const InputSample &other) const

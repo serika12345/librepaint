@@ -161,7 +161,8 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         } else if (brush.autoBrush && brush.autoBrush->tiltDirectionRotation) {
             const auto &response = *brush.autoBrush->tiltDirectionRotation;
             const qreal additive = 2 * responseCurveValue(response, tiltDirection(point)) - 1;
-            const qreal value = wrap(-point.canvasRotation / 180. + response.strength * additive, -1, 1);
+            const qreal normalizedBaseAngle = -point.canvasRotation / 360.;
+            const qreal value = wrap(2 * normalizedBaseAngle + response.strength * additive, -1, 1);
             sensorRotation = (1 - value) * M_PI;
             if (sensorRotation >= 2 * M_PI) sensorRotation = std::fmod(sensorRotation, 2 * M_PI);
         } else if (brush.autoBrush && brush.autoBrush->drawingAngleRotation) {

@@ -2697,7 +2697,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     const QByteArray initial(area.width() * area.height(), char(whiteDefault ? 255 : 128));
     QList<QByteArray> expected;
     QTemporaryDir directory; QVERIFY(directory.isValid());
-    for (const bool gpu : pencil ? QList<bool>{true} : QList<bool>{false, true}) {
+    for (const bool gpu : pencil && !incrementalPencil ? QList<bool>{true} : QList<bool>{false, true}) {
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
         auto preset = sourcePreset->clone().dynamicCast<KisPaintOpPreset>();
         if (flow >= 0) {
@@ -2905,7 +2905,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         const auto compare = [&] {
             const auto actual = pixels();
             if (parentPixels() != originalParent) return false;
-            if (pencil) return true; // Fixed-seed GrayA coverage above, state invariants below.
+            if (pencil && !incrementalPencil) return true; // Fixed-seed random coverage above, state invariants below.
             if (!gpu) expected.append(actual);
             else {
                 const auto reference = expected.value(state++);
@@ -8988,7 +8988,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
     QVERIFY(QDir().mkpath(output));
     // Random normal strokes retain their own seed. Fixed-seed native comparisons
     // below protect their pixels; this UI path protects editing and persistence.
-    for (bool gpu : pencil ? QList<bool>{true} : QList<bool>{false, true}) {
+    for (bool gpu : pencil && !incrementalPencil ? QList<bool>{true} : QList<bool>{false, true}) {
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
         auto preset = sourcePreset->clone().dynamicCast<KisPaintOpPreset>();
         QVERIFY(preset);
@@ -9119,7 +9119,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 QCOMPARE(*capture.brush.texture, frozen);
                 settings->setProperty("Texture/Pattern/Brightness", brightness);
             }
-            struct PressureProbe { qreal first, second, speed = 0; QPointF tilt; qreal tiltOffset = 0; };
+            struct PressureProbe { qreal first, second, speed = 0; QPointF tilt; qreal tiltOffset = 0, canvasRotation = 0; bool mirroredH = false, mirroredV = false; };
             QList<PressureProbe> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
                                               {200, .03}, {200, .05}, {200, .06}};
             if (imagePencil) {
@@ -9128,9 +9128,11 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 QVERIFY(capture.brush.autoBrush->imageTips);
             }
             if (incrementalPencil) {
-                pressureCases.prepend({normalDiameter, 1, 0, {}});
+                if (!imagePencil) pressureCases.prepend({normalDiameter, 1, 0, {}});
                 for (const QPointF tilt : {QPointF(35, 15), QPointF(-35, 15), QPointF(15, -35), QPointF(60, 60)})
                     pressureCases.append({normalDiameter, .6, 0, tilt, 17});
+                pressureCases.append({normalDiameter, .6, 0, {35, 15}, 17, 37, true, false});
+                pressureCases.append({normalDiameter, .6, 0, {35, 15}, 17, 37, true, true});
             }
             if (fineliner) for (const auto speed : {qreal(0), qreal(.2), qreal(.9), qreal(1)}) pressureCases.append({5, .6, speed});
             // This bundled size curve starts at x=.00813008. Both low-pressure
@@ -9143,7 +9145,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 const qreal speed = input.speed;
                 const QString probeName = QStringLiteral("pressure-d%1-p%2").arg(diameter).arg(pressure) +
                     (fineliner ? QStringLiteral("-s%1").arg(speed) : QString()) +
-                    (incrementalPencil ? QStringLiteral("-tilt%1,%2-offset%3").arg(input.tilt.x()).arg(input.tilt.y()).arg(input.tiltOffset) : QString());
+                    (incrementalPencil ? QStringLiteral("-tilt%1,%2-offset%3-canvas%4-%5%6").arg(input.tilt.x()).arg(input.tilt.y()).arg(input.tiltOffset).arg(input.canvasRotation).arg(input.mirroredH).arg(input.mirroredV) : QString());
                 resources->setSize(diameter);
                 const auto pressureCapture = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
                                                                       view->canvasBase()->resourceManager());
@@ -9176,11 +9178,12 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                     if (pencil) {
                         distance = KisDistanceInformation(QPointF(64.25, 64.75), .37);
                         const KisRandomSourceSP random(new KisRandomSource(17));
-                        KisPaintInformation first(QPointF(64.25, 64.75), pressure, input.tilt.x(), input.tilt.y());
-                        KisPaintInformation second(QPointF(104.25, 64.75), endPressure, -input.tilt.x(), input.tilt.y() / 2);
-                        KisPaintInformation third(QPointF(66.25, 63.75), pressure / 2, input.tilt.x() / 3, -input.tilt.y());
+                        KisPaintInformation first(QPointF(64.25, 64.75), pressure, input.tilt.x(), input.tilt.y(), 0, 0, 1, 0, speed);
+                        KisPaintInformation second(QPointF(104.25, 64.75), endPressure, -input.tilt.x(), input.tilt.y() / 2, 0, 0, 1, 0, speed);
+                        KisPaintInformation third(QPointF(66.25, 63.75), pressure / 2, input.tilt.x() / 3, -input.tilt.y(), 0, 0, 1, 0, speed);
                         for (auto *point : {&first, &second, &third}) {
                             point->setRandomSource(random); point->setTiltDirectionOffset(input.tiltOffset);
+                            point->setCanvasRotation(input.canvasRotation); point->setCanvasMirroredH(input.mirroredH); point->setCanvasMirroredV(input.mirroredV);
                         }
                         painter.paintLine(first, second, &distance);
                         painter.paintLine(second, third, &distance);
@@ -9225,7 +9228,10 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                     pressureSamples[0].xTilt = input.tilt.x(); pressureSamples[0].yTilt = input.tilt.y();
                     pressureSamples[1].xTilt = -input.tilt.x(); pressureSamples[1].yTilt = input.tilt.y() / 2;
                     pressureSamples[2].xTilt = input.tilt.x() / 3; pressureSamples[2].yTilt = -input.tilt.y();
-                    for (auto &sample : pressureSamples) sample.tiltDirectionOffset = input.tiltOffset;
+                    for (auto &sample : pressureSamples) {
+                        sample.tiltDirectionOffset = input.tiltOffset; sample.canvasRotation = input.canvasRotation;
+                        sample.canvasMirroredH = input.mirroredH; sample.canvasMirroredV = input.mirroredV;
+                    }
                 }
                 for (auto &sample : pressureSamples) sample.speed = speed;
                 if (fineliner) { pressureSamples.last().speed = 1 - speed; pressureSamples.last().timestamp = 1; }
@@ -9322,7 +9328,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
             const auto actual = pixels();
             QFile artifact(QDir(output).filePath((gpu ? QStringLiteral("gpu-") : QStringLiteral("cpu-")) + name + QStringLiteral(".bgra")));
             if (!artifact.open(QIODevice::WriteOnly) || artifact.write(actual) != actual.size()) return false;
-            if (pencil) return true; // Seeded pixel comparisons above; ordinary history below.
+            if (pencil && !incrementalPencil) return true; // Seeded random comparisons above; ordinary history below.
             if (!gpu) expectedStates.append(actual);
             return !gpu || actual == expectedStates.value(state++);
         };

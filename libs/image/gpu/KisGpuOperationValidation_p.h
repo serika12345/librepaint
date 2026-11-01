@@ -295,7 +295,7 @@ inline bool validSample(const InputSample &sample)
         std::isfinite(sample.rotation) && std::isfinite(sample.speed) && sample.speed >= 0 && sample.speed <= 1 &&
         std::isfinite(sample.canvasRotation) && std::abs(sample.canvasRotation) <= 360 &&
         std::isfinite(sample.initialDrawingAngle) && std::isfinite(sample.tiltDirectionOffset) &&
-        sample.tiltDirectionOffset >= 0 && sample.tiltDirectionOffset <= 360;
+        sample.tiltDirectionOffset >= 0 && sample.tiltDirectionOffset < 360;
 }
 
 inline bool validPressureResponse(const PressureResponse &value, qreal maximumStrength = 1)
