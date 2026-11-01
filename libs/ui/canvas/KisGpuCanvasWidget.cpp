@@ -200,6 +200,10 @@ void KisGpuCanvasWidget::collectToolOutline(const KisOptimizedBrushOutline &path
 bool KisGpuCanvasWidget::eventFilter(QObject *object, QEvent *event)
 {
     if (object == m_window) {
+        if (event->type() == QEvent::MouseButtonPress || event->type() == QEvent::TabletPress ||
+            event->type() == QEvent::TouchBegin) {
+            setFocus(Qt::MouseFocusReason);
+        }
         switch (event->type()) {
         case QEvent::MouseButtonPress: case QEvent::MouseButtonRelease:
         case QEvent::MouseButtonDblClick: case QEvent::MouseMove:

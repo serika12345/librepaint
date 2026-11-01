@@ -21,6 +21,8 @@
 #include <kis_slider_spin_box.h>
 #include <QColorSpace>
 #include <QMouseEvent>
+#include <QMenuBar>
+#include <QRadioButton>
 #include <QDockWidget>
 #include <QEnterEvent>
 #include <QListView>
@@ -3831,6 +3833,35 @@ void KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage()
     quint8 childPixel = 0;
     child->paintDevice()->readBytes(&childPixel, 44, 44, 1, 1);
     QVERIFY(childPixel > 0);
+
+    auto *profiles = KisInputProfileManager::instance();
+    profiles->setProfileLocations({QStringLiteral(KRITA_SOURCE_DIR "/krita/data/input/kritadefault.profile")},
+                                 QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/input"));
+    profiles->loadProfiles();
+    const auto moveId = QStringLiteral("KritaTransform/KisToolMove");
+    KoToolManager::instance()->switchToolRequested(moveId);
+    QTRY_COMPARE(KoToolManager::instance()->activeToolId(), moveId);
+    auto *moveTool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), moveId));
+    QVERIFY(moveTool);
+    for (QWidget *panel : moveTool->optionWidgets())
+        if (auto *button = panel->findChild<QRadioButton *>(QStringLiteral("radioSelectedLayer"))) button->setChecked(true);
+    const auto beforeMove = owner->operations().snapshot();
+    const auto beforeMoveHistory = owner->operations().undoCount();
+    window->windowHandle()->requestActivate();
+    window->menuBar()->setFocus();
+    QTRY_VERIFY(window->menuBar()->hasFocus());
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, start);
+    pressed = true;
+    QTest::mouseMove(native.data(), converter->imageToWidget(QPointF(46, 37)).toPoint(), 20);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, converter->imageToWidget(QPointF(46, 37)).toPoint());
+    pressed = false;
+    QVERIFY(owner->operations().hasActiveStroke());
+    QVERIFY(owner->operations().preview() != beforeMove);
+    QTest::keyClick(window->windowHandle(), Qt::Key_Escape);
+    QTRY_VERIFY(!owner->operations().hasActiveStroke());
+    QCOMPARE(owner->operations().snapshot(), beforeMove);
+    QCOMPARE(owner->operations().preview(), beforeMove);
+    QCOMPARE(owner->operations().undoCount(), beforeMoveHistory);
 }
 
 void KisGpuDocumentViewTest::layerPanelTogglesAndRemovesGpuTransparencyMaskChild()
