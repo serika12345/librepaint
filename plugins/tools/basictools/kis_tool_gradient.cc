@@ -52,6 +52,7 @@
 #include "kis_tool_paint.h"
 #include <gpu/KisGpuPaintImage.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorModelStandardIds.h>
 #include <KoCanvasResourceProvider.h>
 #include <QPointer>
 
