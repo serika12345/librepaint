@@ -150,7 +150,7 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
                                         !add(tips->levels.constData(), tips->levels.size() * qsizetype(sizeof(ImageBrushLevel)))) return false;
                                 }
                                 for (const auto *optional : {&brush->autoBrush->sharpnessResponse, &brush->autoBrush->scatter,
-                                                            &brush->autoBrush->drawingAngleRotation})
+                                                            &brush->autoBrush->drawingAngleRotation, &brush->autoBrush->tiltDirectionRotation})
                                     if (*optional && !add((*optional)->curve.constData(), (*optional)->curve.size() * qsizetype(sizeof(qreal)))) return false;
                                 for (const auto *response : {&brush->autoBrush->opacityResponse, &brush->autoBrush->flowResponse})
                                     if (!add(response->curve.constData(), response->curve.size() * qsizetype(sizeof(qreal)))) return false;

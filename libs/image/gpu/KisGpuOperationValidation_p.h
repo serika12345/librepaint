@@ -294,7 +294,8 @@ inline bool validSample(const InputSample &sample)
         std::isfinite(sample.yTilt) && std::abs(sample.yTilt) <= 90 &&
         std::isfinite(sample.rotation) && std::isfinite(sample.speed) && sample.speed >= 0 && sample.speed <= 1 &&
         std::isfinite(sample.canvasRotation) && std::abs(sample.canvasRotation) <= 360 &&
-        std::isfinite(sample.initialDrawingAngle);
+        std::isfinite(sample.initialDrawingAngle) && std::isfinite(sample.tiltDirectionOffset) &&
+        sample.tiltDirectionOffset >= 0 && sample.tiltDirectionOffset <= 360;
 }
 
 inline bool validPressureResponse(const PressureResponse &value, qreal maximumStrength = 1)
@@ -331,7 +332,9 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
             std::abs(qint64(t.offset.y())) > OperationDocument::CoordinateLimit) return false;
     }
     if (brush.maskPainting && format != PixelFormat::Rgba8) return false;
-    if (!validPressureResponse(brush.sizeResponse) ||
+    if ((brush.sizeSensor != Brush::SizeSensor::Pressure && brush.sizeSensor != Brush::SizeSensor::TiltElevation) ||
+        (brush.sizeSensor == Brush::SizeSensor::TiltElevation && brush.sizeSpeedResponse) ||
+        !validPressureResponse(brush.sizeResponse) ||
         (brush.sizeSpeedResponse && (!validPressureResponse(*brush.sizeSpeedResponse) || brush.sizeSpeedResponse->strength != 1)) ||
         !std::isfinite(brush.autoSpacingCoefficient) ||
         brush.autoSpacingCoefficient < 0) return false;
@@ -365,7 +368,10 @@ inline bool validBrush(const Brush &brush, PixelFormat format)
             !validPressureResponse(value.opacityResponse) || !validPressureResponse(value.flowResponse) ||
             (value.scatter && !validPressureResponse(*value.scatter, 5)) ||
             (value.drawingAngleRotation && !validPressureResponse(*value.drawingAngleRotation)) ||
+            (value.tiltDirectionRotation && !validPressureResponse(*value.tiltDirectionRotation)) ||
             (value.drawingAngleRotation && value.constantRotation) ||
+            (value.tiltDirectionRotation && (value.constantRotation || value.drawingAngleRotation)) ||
+            (value.incremental && (brush.additiveMaskingBrush || brush.blendMode == LayerBlendMode::Marker)) ||
             !std::isfinite(value.drawingAngleOffset) || std::abs(value.drawingAngleOffset) > 360 ||
             !std::isfinite(value.fanCornersStep) || value.fanCornersStep < 0 ||
             (value.fanCornersStep > 0 && (!value.drawingAngleRotation || value.fanCornersStep < M_PI / 180. || value.fanCornersStep > 2 * M_PI)) ||

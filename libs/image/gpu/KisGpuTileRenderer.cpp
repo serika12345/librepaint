@@ -1132,7 +1132,6 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     job.appendedGeometry = appendedGeometry.value(tile.key());
                     job.fillEdges = fillBuffer;
                     job.pattern = patternBuffer;
-                    job.values.textureReserved[0] = imageWordOffset;
                     const auto point = coordinate(tile.key()) * TileSize;
                     const float opacity = std::max(0.f, float(operation.brush.opacity));
                     const quint32 count = quint32(std::visit([](const auto &dabs) { return dabs.size(); }, job.geometry));
@@ -1149,6 +1148,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                                       (operation.shape.windingFill ? 4u : 0u) |
                                       (operation.figureStyle.pattern ? 8u : 0u)};
                     job.values.colorHigh = color[1];
+                    job.values.textureReserved[0] = imageWordOffset;
                     job.values.fillColorHigh = fill[1];
                     job.values.pixelFormat = quint32(document->format);
                     if (operation.clearsSelectedPixels) job.values.paintFlags |= ClearSelectedPixels;
@@ -1236,6 +1236,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     }
                     std::memcpy(&job.values.canvasOpacityBits, &opacity, sizeof(opacity));
                     if (operation.brush.autoBrush) job.values.paintFlags |= 512u;
+                    if (operation.brush.autoBrush && operation.brush.autoBrush->incremental) job.values.paintFlags |= 4194304u;
                     if (operation.brush.additiveMaskingBrush) job.values.paintFlags |= 2097152u;
                     job.output->mayContainHiddenRgb = operation.brush.blendMode != LayerBlendMode::Normal ||
                         operation.figureStyle.fillBlendMode != LayerBlendMode::Normal ||

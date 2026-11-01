@@ -64,28 +64,29 @@ void KisGpuImageBrushTest::seededPipeKeepsNativeTip()
 
 void KisGpuImageBrushTest::importedTipKeepsNativeMask_data()
 {
-    QTest::addColumn<int>("side");
+    QTest::addColumn<QSize>("sourceSize");
     QTest::addColumn<qreal>("scale");
     QTest::addColumn<qreal>("angle");
     QTest::addColumn<QPointF>("subpixel");
     QTest::addColumn<bool>("partialAlpha");
     QTest::addColumn<bool>("sixteenBits");
-    struct Case { int side; qreal scale; qreal angle; QPointF subpixel; };
-    const QList<Case> cases{{8, 1, 0, {}}, {8, .75, 0, {.25, .75}},
-        {8, 1, .37, {.125, .25}}, {8, .75, 1.5708, {.75, .125}},
-        {128, 13.75 / 128, 1.5708, {.25, .75}}, {128, .125, 1.97, {.125, .25}}};
+    struct Case { QSize size; qreal scale; qreal angle; QPointF subpixel; };
+    const QList<Case> cases{{{8, 8}, 1, 0, {}}, {{8, 8}, .75, 0, {.25, .75}},
+        {{8, 8}, 1, .37, {.125, .25}}, {{8, 8}, .75, 1.5708, {.75, .125}},
+        {{128, 128}, 13.75 / 128, 1.5708, {.25, .75}}, {{128, 128}, .125, 1.97, {.125, .25}},
+        {{4, 8}, .75, .37, {.125, .25}}, {{8, 4}, .75, 0, {.25, .75}}};
     for (int i = 0; i < cases.size(); ++i) for (bool partial : {false, true})
         for (bool word : {false, true}) {
             const auto &c = cases[i];
             QTest::newRow(qPrintable(QStringLiteral("geometry%1-%2-%3").arg(i)
                 .arg(partial ? "alpha" : "opaque").arg(word ? "u16" : "u8")))
-                << c.side << c.scale << c.angle << c.subpixel << partial << word;
+                << c.size << c.scale << c.angle << c.subpixel << partial << word;
         }
 }
 
 void KisGpuImageBrushTest::importedTipKeepsNativeMask()
 {
-    QFETCH(int, side);
+    QFETCH(QSize, sourceSize);
     QFETCH(qreal, scale);
     QFETCH(qreal, angle);
     QFETCH(QPointF, subpixel);
@@ -93,8 +94,8 @@ void KisGpuImageBrushTest::importedTipKeepsNativeMask()
     QFETCH(bool, sixteenBits);
     // Generated gray grain fixes the source independently of installed presets.
     // The native pyramid and pigment consumer define the expected mask pixels.
-    QImage source(side, side, QImage::Format_ARGB32);
-    for (int y = 0; y < side; ++y) for (int x = 0; x < side; ++x) {
+    QImage source(sourceSize, QImage::Format_ARGB32);
+    for (int y = 0; y < source.height(); ++y) for (int x = 0; x < source.width(); ++x) {
         const int gray = (x * 37 + y * 19 + x * y * 7) % 256;
         source.setPixel(x, y, qRgba(gray, gray, gray, partialAlpha ? (x * 13 + y * 29) % 256 : 255));
     }
@@ -134,11 +135,16 @@ void KisGpuImageBrushTest::importedTipKeepsNativeMask()
     Brush brush;
     const quint16 maximum = sixteenBits ? 65535 : 255;
     brush.rgba = {maximum, maximum, maximum, maximum};
-    brush.diameter = side * scale;
+    brush.diameter = std::max(source.width(), source.height()) * scale;
     brush.autoBrush = AutoBrush{};
     brush.autoBrush->mask = AutoBrush::Mask::Image;
     brush.autoBrush->imageTips = tips;
     brush.autoBrush->angle = angle;
+    // The imported tip shares the GPU resource binding with repeating paper.
+    // Opaque paper keeps native mask pixels unchanged while exercising its offset.
+    brush.texture = BrushTexture{};
+    brush.texture->size = {2, 2};
+    brush.texture->alpha = QByteArray(4, char(255));
     const auto id = image.beginStroke(image.operations().activeLayer(), brush, 17);
     QVERIFY(!id.isNull());
     InputSample sample;

@@ -133,6 +133,8 @@ struct InputSample
     bool canvasMirroredV = false;
     /** Native initial direction when the stroke has no earlier painted dab. */
     qreal initialDrawingAngle = 0;
+    /** Native pen-axis calibration in degrees, frozen by the input producer. */
+    qreal tiltDirectionOffset = 0;
 
     bool operator==(const InputSample &other) const
     {
@@ -140,7 +142,8 @@ struct InputSample
             xTilt == other.xTilt && yTilt == other.yTilt &&
             rotation == other.rotation && timestamp == other.timestamp && speed == other.speed &&
             canvasRotation == other.canvasRotation && canvasMirroredH == other.canvasMirroredH &&
-            canvasMirroredV == other.canvasMirroredV && initialDrawingAngle == other.initialDrawingAngle;
+            canvasMirroredV == other.canvasMirroredV && initialDrawingAngle == other.initialDrawingAngle &&
+            tiltDirectionOffset == other.tiltDirectionOffset;
     }
 };
 
@@ -220,7 +223,7 @@ struct ImageBrushTips
     { return originalSize == other.originalSize && tipCount == other.tipCount && randomSelection == other.randomSelection && levels == other.levels && pixels == other.pixels; }
 };
 
-/** Frozen pixel-brush tip, WASH flow and pressure-controlled application. */
+/** Frozen pixel-brush tip and direct or WASH application inputs. */
 struct AutoBrush
 {
     enum class Mask { GaussianCircle, Circle, Rectangle, Image };
@@ -234,6 +237,8 @@ struct AutoBrush
     bool antialiasEdges = true;
     qreal angle = 0;
     qreal flow = 1;
+    /** Direct painting applies each dab to the destination and its selection. */
+    bool incremental = false;
     bool creamy = true;
     PressureResponse opacityResponse;
     PressureResponse flowResponse;
@@ -247,6 +252,7 @@ struct AutoBrush
     bool constantRotation = false;
     /** Drawing-direction sensor, with the native absolute-rotation curve. */
     std::optional<PressureResponse> drawingAngleRotation;
+    std::optional<PressureResponse> tiltDirectionRotation;
     qreal drawingAngleOffset = 0;
     /** Zero disables the native corner fan; otherwise radians per extra dab. */
     qreal fanCornersStep = 0;
@@ -259,12 +265,13 @@ struct AutoBrush
         return mask == other.mask && (imageTips == other.imageTips ||
             (imageTips && other.imageTips && *imageTips == *other.imageTips)) && fade == other.fade && verticalFade == other.verticalFade &&
             ratio == other.ratio && isotropicSpacing == other.isotropicSpacing && antialiasEdges == other.antialiasEdges &&
-            angle == other.angle && flow == other.flow && creamy == other.creamy &&
+            angle == other.angle && flow == other.flow && incremental == other.incremental && creamy == other.creamy &&
             opacityResponse == other.opacityResponse && flowResponse == other.flowResponse &&
             sharpnessResponse == other.sharpnessResponse && alignOutlinePixels == other.alignOutlinePixels &&
             sharpnessSoftness == other.sharpnessSoftness &&
             precisionLevel == other.precisionLevel && autoPrecision == other.autoPrecision &&
             constantRotation == other.constantRotation && drawingAngleRotation == other.drawingAngleRotation &&
+            tiltDirectionRotation == other.tiltDirectionRotation &&
             drawingAngleOffset == other.drawingAngleOffset && fanCornersStep == other.fanCornersStep &&
             scatter == other.scatter && scatterAxisX == other.scatterAxisX && scatterAxisY == other.scatterAxisY;
     }
@@ -301,15 +308,17 @@ enum class LayerBlendMode : quint8 {
     Marker = 127, Greater, LuminositySai, Copy
 };
 
-/** Frozen marker or generated circular WASH brush settings. */
+/** Frozen marker or pixel-brush settings used by painting and figure callers. */
 struct Brush
 {
+    enum class SizeSensor { Pressure, TiltElevation };
     RgbaPixel rgba{0, 0, 0, 255};
     qreal diameter = 10;
     qreal spacing = 0.1;
     bool autoSpacing = false;
     qreal autoSpacingCoefficient = 1;
     PressureResponse sizeResponse{PressureResponse::Kind::Direct, 1, {}};
+    SizeSensor sizeSensor = SizeSensor::Pressure;
     /** Canvas opacity in [0, 1], frozen before input is accepted. */
     qreal opacity = 1;
     bool erase = false;
@@ -344,7 +353,7 @@ struct Brush
     {
         return rgba == other.rgba && diameter == other.diameter &&
             spacing == other.spacing && autoSpacing == other.autoSpacing &&
-            autoSpacingCoefficient == other.autoSpacingCoefficient && sizeResponse == other.sizeResponse &&
+            autoSpacingCoefficient == other.autoSpacingCoefficient && sizeResponse == other.sizeResponse && sizeSensor == other.sizeSensor &&
             sizeSpeedResponse == other.sizeSpeedResponse &&
             opacity == other.opacity && erase == other.erase &&
             alphaLocked == other.alphaLocked && maskPainting == other.maskPainting && blendMode == other.blendMode &&

@@ -124,6 +124,7 @@ bool captureSizeResponse(const KisPaintOpSettingsSP &settings, LibrePaint::Image
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     brush.sizeSpeedResponse.reset();
+    brush.sizeSensor = Gpu::Brush::SizeSensor::Pressure;
     if (capturePressureResponse(settings, QStringLiteral("Size"), true, brush.sizeResponse)) return true;
     if (!settings->getBool("PressureSize") || !settings->getBool("SizeUseCurve", true) ||
         settings->getInt("SizecurveMode", 0) != 0) return false;
@@ -132,6 +133,14 @@ bool captureSizeResponse(const KisPaintOpSettingsSP &settings, LibrePaint::Image
     QDomDocument sensors;
     const auto definition = settings->getString("SizeSensor");
     if (!sensors.setContent(definition)) return false;
+    if (sensors.documentElement().attribute("id") == QLatin1String("declination")) {
+        auto curve = sensors.documentElement().firstChildElement("curve").text();
+        if (settings->getBool("SizeUseSameCurve", true)) curve = settings->getString("SizecommonCurve", curve);
+        if (!captureCurveResponse(curve, brush.sizeResponse)) return false;
+        brush.sizeResponse.strength = strength;
+        brush.sizeSensor = Gpu::Brush::SizeSensor::TiltElevation;
+        return true;
+    }
     const auto root = sensors.documentElement();
     QList<QDomElement> elements;
     if (root.attribute("id") == QLatin1String("sensorslist")) {
@@ -261,13 +270,15 @@ bool captureBrushTexture(const KisPaintOpSettingsSP &settings, bool erase, Libre
     return true;
 }
 
-FrozenGpuImageTips captureImageBrushTips(const KisPaintOpSettingsSP &settings, const QDomElement &definition)
+FrozenGpuImageTips captureImageBrushTips(const KisPaintOpSettingsSP &settings, const QDomElement &definition, qreal &diameter)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     auto resources = settings->resourcesInterface();
     if (!resources) resources = KisGlobalResourcesInterface::instance();
     const auto native = KisBrush::fromXMLLoadResult(definition, resources).resource<KisBrush>();
     if (!native || native->brushApplication() != ALPHAMASK) return {};
+    diameter = native->userEffectiveSize();
+    if (!qIsFinite(diameter) || diameter <= 0) return {};
     QList<QImage> images;
     bool random = false;
     if (const auto pipe = native.dynamicCast<KisImagePipeBrush>()) {
@@ -343,7 +354,12 @@ FrozenGpuImageTips captureImageBrushTips(const KisPaintOpSettingsSP &settings, c
 
 bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::Gpu::Brush &brush, bool secondary = false)
 {
-    if ((!secondary && settings->getInt("PaintOpAction") != 2) || settings->getString("ColorSource/Type", "plain") != QLatin1String("plain") ||
+    const int action = settings->getInt("PaintOpAction");
+    const bool incremental = !secondary && action == 1;
+    if ((!secondary && action != 1 && action != 2) ||
+        (incremental && (brush.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Marker ||
+                         settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag))) ||
+        settings->getString("ColorSource/Type", "plain") != QLatin1String("plain") ||
         (secondary && settings->getBool(KisPaintOpUtils::MaskingBrushEnabledTag)) ||
         settings->getBool("PaintOpSettings/isAirbrushing") || settings->getBool("PaintOpSettings/ignoreSpacing") ||
         settings->getBool("PaintOpSettings/updateSpacingBetweenDabs") ||
@@ -383,26 +399,34 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
         !equalNumber(root, QStringLiteral("randomness"), 0) || !equalNumber(root, QStringLiteral("density"), 1))) return false;
     if (!qIsFinite(brush.diameter) || brush.diameter <= 0) return false;
     LibrePaint::Image::Gpu::AutoBrush value;
+    value.incremental = incremental;
     value.constantRotation = constantRotation;
     if (checkedRotation && !constantRotation) {
         QDomDocument sensors;
         if (!sensors.setContent(settings->getString("RotationSensor"))) return false;
         const auto sensor = sensors.documentElement();
-        if (sensor.attribute("id") != QLatin1String("drawingangle") || sensor.attribute("lockedAngleMode").toInt()) return false;
+        const bool tilt = sensor.attribute("id") == QLatin1String("ascension");
+        if (!tilt && (sensor.attribute("id") != QLatin1String("drawingangle") || sensor.attribute("lockedAngleMode").toInt())) return false;
         LibrePaint::Image::Gpu::PressureResponse rotation;
         auto curve = sensor.firstChildElement("curve").text();
         if (settings->getBool("RotationUseSameCurve", true)) curve = settings->getString("RotationcommonCurve", curve);
         if (!captureCurveResponse(curve, rotation)) return false;
-        bool offsetOk = false;
-        value.drawingAngleOffset = sensor.attribute("angleOffset", "0").toDouble(&offsetOk);
-        if (!offsetOk || !qIsFinite(value.drawingAngleOffset) || std::abs(value.drawingAngleOffset) > 360) return false;
-        if (sensor.attribute("fanCornersEnabled").toInt()) {
-            bool stepOk = false;
-            const int step = sensor.attribute("fanCornersStep", "30").toInt(&stepOk);
-            if (!stepOk || step < 1 || step > 360) return false;
-            value.fanCornersStep = qreal(step) * M_PI / 180.;
+        if (tilt) {
+            rotation.strength = settings->getDouble("RotationValue", 1);
+            if (!qIsFinite(rotation.strength) || rotation.strength < 0 || rotation.strength > 1) return false;
+            value.tiltDirectionRotation = std::move(rotation);
+        } else {
+            bool offsetOk = false;
+            value.drawingAngleOffset = sensor.attribute("angleOffset", "0").toDouble(&offsetOk);
+            if (!offsetOk || !qIsFinite(value.drawingAngleOffset) || std::abs(value.drawingAngleOffset) > 360) return false;
+            if (sensor.attribute("fanCornersEnabled").toInt()) {
+                bool stepOk = false;
+                const int step = sensor.attribute("fanCornersStep", "30").toInt(&stepOk);
+                if (!stepOk || step < 1 || step > 360) return false;
+                value.fanCornersStep = qreal(step) * M_PI / 180.;
+            }
+            value.drawingAngleRotation = std::move(rotation);
         }
-        value.drawingAngleRotation = std::move(rotation);
     }
     if (settings->getBool("PressureScatter")) {
         LibrePaint::Image::Gpu::PressureResponse scatter;
@@ -434,7 +458,7 @@ bool captureAutoBrush(const KisPaintOpSettingsSP &settings, LibrePaint::Image::G
     value.isotropicSpacing = settings->getBool("Spacing/Isotropic", false);
     if (imageTip) {
         value.mask = LibrePaint::Image::Gpu::AutoBrush::Mask::Image;
-        value.imageTips = captureImageBrushTips(settings, root);
+        value.imageTips = captureImageBrushTips(settings, root, brush.diameter);
         if (!value.imageTips) return false;
         value.ratio = 1; value.fade = 1; value.verticalFade = 1;
     } else {

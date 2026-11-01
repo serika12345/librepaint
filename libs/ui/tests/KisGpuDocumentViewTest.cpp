@@ -2635,7 +2635,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing_data()
 
 
     for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "d)_Ink-3_Gpen.kpp", "u)_Pixel_Art_Dithering.kpp",
-                              "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp", "d)_Ink-2_Fineliner.kpp", "c)_Pencil-1_Hard.kpp", "c)_Pencil-2.kpp", "c)_Pencil-4_Soft.kpp", "c)_Pencil-6_Quick_Shade.kpp"})
+                              "b)_Basic-3_Flow.kpp", "b)_Basic-4_Flow_Opacity.kpp", "d)_Ink-2_Fineliner.kpp", "c)_Pencil-1_Hard.kpp", "c)_Pencil-2.kpp", "c)_Pencil-4_Soft.kpp", "c)_Pencil-6_Quick_Shade.kpp", "c)_Pencil-3_Large_4B.kpp", "c)_Pencil-5_Tilted.kpp"})
         for (bool words : {false, true}) {
             const QByteArray row = QByteArray("white-default-") + preset + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << QString::fromLatin1(preset) << words << qreal(-1)
@@ -2649,7 +2649,8 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(QString, presetName);
     const bool pencil = presetName.startsWith(QLatin1String("c)_Pencil-"));
-    const bool imagePencil = presetName == QLatin1String("c)_Pencil-4_Soft.kpp") || presetName == QLatin1String("c)_Pencil-6_Quick_Shade.kpp");
+    const bool imagePencil = presetName == QLatin1String("c)_Pencil-4_Soft.kpp") || presetName == QLatin1String("c)_Pencil-6_Quick_Shade.kpp") || presetName == QLatin1String("c)_Pencil-5_Tilted.kpp");
+    const bool incrementalPencil = presetName == QLatin1String("c)_Pencil-3_Large_4B.kpp") || presetName == QLatin1String("c)_Pencil-5_Tilted.kpp");
     const bool fineliner = presetName == QLatin1String("d)_Ink-2_Fineliner.kpp");
     const auto restoreTiming = fixedBrushPointerTiming(fineliner);
     QFETCH(bool, words);
@@ -2667,7 +2668,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
     if (imagePencil) {
-        const auto tip = bundle->resource(QStringLiteral("brushes/graphite_grain.gih"));
+        const auto tip = bundle->resource(presetName == QLatin1String("c)_Pencil-5_Tilted.kpp") ? QStringLiteral("brushes/gradient.png") : QStringLiteral("brushes/graphite_grain.gih"));
         QVERIFY(tip);
         auto source = KisGlobalResourcesInterface::instance()->source<KoResource>(ResourceType::Brushes);
         if (!source.bestMatch(tip->md5Sum(), tip->filename(), tip->name())) {
@@ -2775,14 +2776,19 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         if (gpu) {
             const auto capture = captureGpuBrushResources(image, child, view->canvasBase()->resourceManager());
             QVERIFY2(capture.diagnostic.isEmpty(), qPrintable(capture.diagnostic));
+            const qreal resourceOpacity = resources->opacity();
+            if (incrementalPencil) resources->setOpacity(1);
+            const auto restoreProbeOpacity = qScopeGuard([&] { if (incrementalPencil) resources->setOpacity(resourceOpacity); });
             const auto *gray = KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString());
             KisImageSP nativeImage = new KisImage(nullptr, 64, 64, cs, QStringLiteral("Native mask dab reference"));
             KisPaintDeviceSP temporary = new KisPaintDevice(gray);
             KisPaintLayerSP nativeLayer = new KisPaintLayer(nativeImage, QStringLiteral("Gray dab"), 255, temporary);
-            nativeImage->addNode(nativeLayer, nativeImage->root()); nativeLayer->setTemporaryTarget(temporary);
+            nativeImage->addNode(nativeLayer, nativeImage->root());
+            if (!incrementalPencil) nativeLayer->setTemporaryTarget(temporary);
             {
                 KisPainter painter(temporary);
-                painter.setPaintColor(KoColor(Qt::white, gray)); painter.setCompositeOpId(COMPOSITE_ALPHA_DARKEN);
+                painter.setPaintColor(KoColor(Qt::white, gray));
+                painter.setCompositeOpId(incrementalPencil ? COMPOSITE_OVER : COMPOSITE_ALPHA_DARKEN);
                 painter.setPaintOpPreset(resources->currentPreset(), nativeLayer, nativeImage);
                 KisDistanceInformation distance;
                 KisPaintInformation point(QPointF(32, 32), 1);
@@ -8856,7 +8862,9 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
     }
 
     for (const auto &preset : QList<QPair<QString, qreal>>{{QStringLiteral("c)_Pencil-4_Soft.kpp"), 16},
-                                                         {QStringLiteral("c)_Pencil-6_Quick_Shade.kpp"), 60}})
+                                                         {QStringLiteral("c)_Pencil-6_Quick_Shade.kpp"), 60},
+                                                         {QStringLiteral("c)_Pencil-3_Large_4B.kpp"), 10},
+                                                         {QStringLiteral("c)_Pencil-5_Tilted.kpp"), 40}})
         for (bool words : {false, true}) {
             const QByteArray row = preset.first.toLatin1() + (words ? "-u16" : "-u8");
             QTest::newRow(row.constData()) << preset.first << words << 0 << preset.second << false;
@@ -8872,7 +8880,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing_data()
 void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
 {
     QFETCH(QString, presetName);
-    const bool imagePencil = presetName == QLatin1String("c)_Pencil-4_Soft.kpp") || presetName == QLatin1String("c)_Pencil-6_Quick_Shade.kpp");
+    const bool imagePencil = presetName == QLatin1String("c)_Pencil-4_Soft.kpp") || presetName == QLatin1String("c)_Pencil-6_Quick_Shade.kpp") || presetName == QLatin1String("c)_Pencil-5_Tilted.kpp");
+    const bool incrementalPencil = presetName == QLatin1String("c)_Pencil-3_Large_4B.kpp") || presetName == QLatin1String("c)_Pencil-5_Tilted.kpp");
     QFETCH(bool, words);
     QFETCH(int, tipCase);
     QFETCH(qreal, normalDiameter);
@@ -8897,7 +8906,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
     auto sourcePreset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(sourcePreset);
     if (imagePencil) {
-        const auto tip = bundle->resource(QStringLiteral("brushes/graphite_grain.gih"));
+        const auto tip = bundle->resource(presetName == QLatin1String("c)_Pencil-5_Tilted.kpp") ? QStringLiteral("brushes/gradient.png") : QStringLiteral("brushes/graphite_grain.gih"));
         QVERIFY(tip);
         auto source = KisGlobalResourcesInterface::instance()->source<KoResource>(ResourceType::Brushes);
         if (!source.bestMatch(tip->md5Sum(), tip->filename(), tip->name())) {
@@ -9076,7 +9085,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                                                           view->canvasBase()->resourceManager());
             QVERIFY2(capture.diagnostic.isEmpty(), qPrintable(capture.diagnostic));
             QVERIFY(capture.brush.autoBrush);
-            QCOMPARE(capture.brush.autoBrush->mask, imagePencil ? Gpu::AutoBrush::Mask::Image : (presetName == QLatin1String("b)_Basic-5_Size_Opacity.kpp") ||
+            QCOMPARE(capture.brush.autoBrush->mask, imagePencil ? Gpu::AutoBrush::Mask::Image : incrementalPencil ? Gpu::AutoBrush::Mask::GaussianCircle : (presetName == QLatin1String("b)_Basic-5_Size_Opacity.kpp") ||
                       presetName == QLatin1String("b)_Basic-3_Flow.kpp") || presetName == QLatin1String("b)_Basic-4_Flow_Opacity.kpp") ||
                       presetName.startsWith(QLatin1String("h)_Charcoal_")) || pencil ||
                       presetName == QLatin1String("u)_Pixel_Art.kpp") || presetName == QLatin1String("u)_Pixel_Art_Fill.kpp")) ?
@@ -9110,13 +9119,18 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 QCOMPARE(*capture.brush.texture, frozen);
                 settings->setProperty("Texture/Pattern/Brightness", brightness);
             }
-            struct PressureProbe { qreal first, second, speed = 0; };
+            struct PressureProbe { qreal first, second, speed = 0; QPointF tilt; qreal tiltOffset = 0; };
             QList<PressureProbe> pressureCases{{40, .01}, {40, .05}, {40, .1}, {40, .33}, {40, .75}, {40, 1},
                                               {200, .03}, {200, .05}, {200, .06}};
             if (imagePencil) {
                 pressureCases.prepend({normalDiameter, 1});
                 pressureCases.prepend({normalDiameter, .2});
                 QVERIFY(capture.brush.autoBrush->imageTips);
+            }
+            if (incrementalPencil) {
+                pressureCases.prepend({normalDiameter, 1, 0, {}});
+                for (const QPointF tilt : {QPointF(35, 15), QPointF(-35, 15), QPointF(15, -35), QPointF(60, 60)})
+                    pressureCases.append({normalDiameter, .6, 0, tilt, 17});
             }
             if (fineliner) for (const auto speed : {qreal(0), qreal(.2), qreal(.9), qreal(1)}) pressureCases.append({5, .6, speed});
             // This bundled size curve starts at x=.00813008. Both low-pressure
@@ -9128,7 +9142,8 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 const auto pressure = input.second;
                 const qreal speed = input.speed;
                 const QString probeName = QStringLiteral("pressure-d%1-p%2").arg(diameter).arg(pressure) +
-                    (fineliner ? QStringLiteral("-s%1").arg(speed) : QString());
+                    (fineliner ? QStringLiteral("-s%1").arg(speed) : QString()) +
+                    (incrementalPencil ? QStringLiteral("-tilt%1,%2-offset%3").arg(input.tilt.x()).arg(input.tilt.y()).arg(input.tiltOffset) : QString());
                 resources->setSize(diameter);
                 const auto pressureCapture = captureGpuBrushResources(lifetime->image(), lifetime->image()->root()->firstChild(),
                                                                       view->canvasBase()->resourceManager());
@@ -9152,19 +9167,21 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                     }
                     nativeImage->waitForDone();
                 } else {
-                    nativeLayer->setTemporaryTarget(nativeLayer->paintDevice());
+                    if (!incrementalPencil) nativeLayer->setTemporaryTarget(nativeLayer->paintDevice());
                     KisPainter painter(nativeLayer->paintDevice());
                     painter.setPaintColor(KoColor(QColor(17, 129, 241), cs));
-                    painter.setCompositeOpId(COMPOSITE_ALPHA_DARKEN);
+                    painter.setCompositeOpId(incrementalPencil ? COMPOSITE_OVER : COMPOSITE_ALPHA_DARKEN);
                     painter.setPaintOpPreset(resources->currentPreset(), nativeLayer, nativeImage);
                     KisDistanceInformation distance;
                     if (pencil) {
                         distance = KisDistanceInformation(QPointF(64.25, 64.75), .37);
                         const KisRandomSourceSP random(new KisRandomSource(17));
-                        KisPaintInformation first(QPointF(64.25, 64.75), pressure);
-                        KisPaintInformation second(QPointF(104.25, 64.75), endPressure);
-                        KisPaintInformation third(QPointF(66.25, 63.75), pressure / 2);
-                        for (auto *point : {&first, &second, &third}) point->setRandomSource(random);
+                        KisPaintInformation first(QPointF(64.25, 64.75), pressure, input.tilt.x(), input.tilt.y());
+                        KisPaintInformation second(QPointF(104.25, 64.75), endPressure, -input.tilt.x(), input.tilt.y() / 2);
+                        KisPaintInformation third(QPointF(66.25, 63.75), pressure / 2, input.tilt.x() / 3, -input.tilt.y());
+                        for (auto *point : {&first, &second, &third}) {
+                            point->setRandomSource(random); point->setTiltDirectionOffset(input.tiltOffset);
+                        }
                         painter.paintLine(first, second, &distance);
                         painter.paintLine(second, third, &distance);
                     } else if (fineliner) painter.paintLine(KisPaintInformation(QPointF(64.25, 64.75), pressure, 0, 0, 0, 0, 1, 0, speed),
@@ -9184,7 +9201,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 nativeImage->waitForDone();
                 KisPaintDeviceSP destination = new KisPaintDevice(cs);
                 KisPainter merge(destination);
-                merge.setOpacityF(.7);
+                merge.setOpacityF(incrementalPencil ? 1 : .7);
                 for (const auto &rect : nativeLayer->paintDevice()->region().rects())
                     merge.bitBlt(rect.topLeft(), nativeLayer->paintDevice(), rect);
                 QByteArray expected(size.width() * size.height() * pixelBytes, Qt::Uninitialized);
@@ -9203,6 +9220,12 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 if (pencil) {
                     pressureSamples.append({{66.25, 63.75}, pressure / 2});
                     for (auto &sample : pressureSamples) sample.initialDrawingAngle = .37;
+                }
+                if (incrementalPencil) {
+                    pressureSamples[0].xTilt = input.tilt.x(); pressureSamples[0].yTilt = input.tilt.y();
+                    pressureSamples[1].xTilt = -input.tilt.x(); pressureSamples[1].yTilt = input.tilt.y() / 2;
+                    pressureSamples[2].xTilt = input.tilt.x() / 3; pressureSamples[2].yTilt = -input.tilt.y();
+                    for (auto &sample : pressureSamples) sample.tiltDirectionOffset = input.tiltOffset;
                 }
                 for (auto &sample : pressureSamples) sample.speed = speed;
                 if (fineliner) { pressureSamples.last().speed = 1 - speed; pressureSamples.last().timestamp = 1; }

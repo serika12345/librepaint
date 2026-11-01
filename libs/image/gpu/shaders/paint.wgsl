@@ -548,6 +548,177 @@ fn fillPixelCoverage(pixel: vec2<i32>, reflection: u32) -> u32 {
 }
 
 
+fn compositePaintPixel(base: vec4<u32>, sourceColor: vec3<u32>, coverage: u32, sourceHasColor: bool,
+                       blendMode: u32, selectionAlpha: u32, opacityValue: u32, opacityBits: u32,
+                       pixel: vec2<i32>, local: vec2<u32>) -> vec4<u32> {
+    var source = sourceColor;
+    let partialWordSource = (parameters.paintFlags & 32768u) != 0u;
+    let clearsSelectedPixels = (parameters.paintFlags & 131072u) != 0u;
+    if ((parameters.paintFlags & 65536u) != 0u && blendMode != 130u) {
+        let bounds = parameters.destination;
+        if (bounds.z <= 0 || bounds.w <= 0 || pixel.x < bounds.x || pixel.y < bounds.y ||
+            pixel.x >= bounds.x + bounds.z || pixel.y >= bounds.y + bounds.w) {
+            return base;
+        }
+    }
+    let wordCoverage = coverage;
+    var writable = (parameters.paintFlags >> 1u) & 15u;
+    if ((parameters.paintFlags & 1u) != 0u && parameters.erase == 0u) { writable &= 7u; }
+    if ((parameters.paintFlags & 524288u) != 0u && parameters.erase == 0u) {
+        // Alpha8 destinations are converted to opaque GrayA8 before native
+        // composition. Gray uses integer Over/Copy rather than the optimized
+        // four-channel RGB implementations.
+        if (blendMode == 0u) {
+            let alpha = multiplyThreeBytes(coverage, selectionAlpha, opacityValue);
+            let gray = blendByte(base.x, source.x, alpha);
+            return vec4<u32>(vec3<u32>(gray), 255u);
+        }
+        if (blendMode == 130u) {
+            let opacity = multiplyByte(selectionAlpha, opacityValue);
+            var result = base;
+            if (opacity == 255u) { result = vec4<u32>(source, coverage); }
+            else if (opacity != 0u) {
+                let alpha = blendByte(255u, coverage, opacity);
+                var gray = 0u;
+                if (alpha != 0u) {
+                    let mixed = blendByte(base.x, multiplyByte(source.x, coverage), opacity);
+                    gray = min(255u, divideByte(mixed, alpha));
+                }
+                result = vec4<u32>(vec3<u32>(gray), alpha);
+            }
+            return result;
+        }
+    }
+    if (parameters.erase == 0u && blendMode == 130u) {
+        let block = (local.y / 64u) * 4u + local.x / 64u;
+        if ((parameters.native.w & (1u << block)) == 0u) { return base; }
+        if (!sourceHasColor) { source = vec3<u32>(0u); }
+        let opacity = projectionMultiply(opacityBits, projectionMultiply(bitcast<u32>(f32(selectionAlpha)), 0x3b808081u));
+        return copyPixel(base, vec4<u32>(source, coverage), opacity, writable, parameters.native.z != 0u);
+    }
+    if (parameters.erase == 0u && parameters.native.z != 0u && (blendMode >= 127u && blendMode <= 129u)) {
+        let block = (local.y / 64u) * 4u + local.x / 64u;
+        if ((parameters.native.w & (1u << block)) == 0u) { return base; }
+        if (!sourceHasColor) { source = vec3<u32>(0u); }
+        return specialAlphaRgba16Pixel(base, vec4<u32>(source, wordCoverage),
+            opacityValue, writable, selectionAlpha * 257u, blendMode);
+    }
+    if (parameters.erase == 0u && parameters.native.z != 0u && colorIsCoupled(blendMode)) {
+        let block = (local.y / 64u) * 4u + local.x / 64u;
+        if ((parameters.native.w & (1u << block)) == 0u) { return base; }
+        let alpha = appliedWordAlpha(wordCoverage, selectionAlpha * 257u, opacityValue, blendMode);
+        return coupledRgba16Pixel(base, vec4<u32>(source, wordCoverage), alpha, writable, blendMode);
+    }
+    if (partialWordSource) {
+        let block = (local.y / 64u) * 4u + local.x / 64u;
+        if ((parameters.native.w & (1u << block)) == 0u) { return base; }
+        let alpha = appliedWordAlpha(wordCoverage, selectionAlpha * 257u, opacityValue, blendMode);
+        return separableRgba16Pixel(base, vec4<u32>(source, wordCoverage), alpha, writable, blendMode);
+    }
+    if (parameters.erase == 0u && (blendMode == 41u || blendMode == 42u || transparentSourceAffectsBlend(blendMode))) {
+        let block = (local.y / 64u) * 4u + local.x / 64u;
+        if ((parameters.native.w & (1u << block)) == 0u) {
+            return base;
+        }
+        if (blendMode == 127u) {
+            if (!sourceHasColor) { source = vec3<u32>(0u); }
+            return unpackPixel(markerRgba8Pixel(base, vec4<u32>(source, coverage), opacityValue, writable, selectionAlpha));
+        }
+        let alpha = multiplyThreeBytes(coverage, selectionAlpha, opacityValue);
+        if (blendMode == 128u || blendMode == 129u) {
+            return unpackPixel(specialAlphaRgba8Pixel(base, vec4<u32>(source, alpha), 255u, writable, blendMode));
+        }
+        if (colorIsCoupled(blendMode)) {
+            return unpackPixel(coupledRgba8Pixel(base, vec4<u32>(source, coverage), alpha, writable, blendMode));
+        } else {
+        return unpackPixel(destinationRgba8(base, vec4<u32>(source, coverage), alpha, writable, blendMode));
+        }
+        return;
+    }
+    if (parameters.erase != 0u) {
+        var resultAlpha: u32;
+        if (parameters.native.z != 0u) {
+            let masked = mul65535(wordCoverage, selectionAlpha * 257u);
+            let alpha = mul65535(masked, opacityValue);
+            resultAlpha = mul65535(base.w, 65535u - alpha);
+        } else {
+            let alpha = mul255(mul255(coverage, selectionAlpha), opacityValue);
+            resultAlpha = mul255(base.w, 255u - alpha);
+        }
+        // Native erase applies alpha independently of protected color channels.
+        var result = vec4<u32>(base.xyz, resultAlpha);
+        if (clearsSelectedPixels) {
+            let defaultPixel = nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u);
+            var defaultByteAlpha = defaultPixel.w;
+            var resultByteAlpha = resultAlpha;
+            if (parameters.native.z != 0u) {
+                defaultByteAlpha = (defaultPixel.w - (defaultPixel.w >> 8u) + 128u) >> 8u;
+                resultByteAlpha = (resultAlpha - (resultAlpha >> 8u) + 128u) >> 8u;
+            }
+            if (defaultByteAlpha == 0u && resultByteAlpha == 0u) { result = defaultPixel; }
+        }
+        return result;
+    } else if (blendMode == 0u) {
+        var sourceAlpha: u32;
+        if (parameters.native.z != 0u) {
+            sourceAlpha = projectionMultiply(nativeNormalizedAlpha(wordCoverage), opacityBits);
+        } else {
+            sourceAlpha = projectionScaleByte(opacityBits, coverage);
+        }
+        if (selectionAlpha != 255u) {
+            sourceAlpha = projectionMultiply(sourceAlpha, projectionScaleByte(0x3b808081u, selectionAlpha));
+        }
+        if (parameters.native.z != 0u) {
+            return normalRgba16(base, source, sourceAlpha, writable);
+        } else {
+            return unpackPixel(normalRgba8(base, source, sourceAlpha, writable));
+        }
+    } else {
+        // Generic CPU operations quantize the three-factor product once.
+        // Erase and channel-copy retain their distinct two-factor orders.
+        if (parameters.native.z != 0u) {
+            let alpha = appliedWordAlpha(wordCoverage, selectionAlpha * 257u, opacityValue, blendMode);
+            return separableRgba16Pixel(base, vec4<u32>(source, wordCoverage), alpha, writable, blendMode);
+        }
+        var alpha = multiplyThreeBytes(coverage, selectionAlpha, opacityValue);
+        if (blendMode == 26u) {
+            alpha = mul255(mul255(coverage, selectionAlpha), opacityValue);
+        } else if (blendMode >= 28u && blendMode <= 30u) {
+            alpha = mul255(coverage, mul255(selectionAlpha, opacityValue));
+        }
+        let blended = unpackPixel(separableProjectionPixel(base, vec4<u32>(source, alpha), 255u, 15u, blendMode));
+        return select(base, blended, vec4<bool>((writable & 1u) != 0u,
+            (writable & 2u) != 0u, (writable & 4u) != 0u, (writable & 8u) != 0u));
+    }
+}
+
+// BUILDUP composes each native dab in order, preserving selection and protected
+// channels at every application. Normal composition ignores the WASH flow value.
+fn generatedBuildUpPixel(pixel: vec2<i32>, local: vec2<u32>, base: vec4<u32>,
+                         fill: vec4<u32>, fillHasColor: bool, hasFill: bool,
+                         selectionAlpha: u32) -> vec4<u32> {
+    var result = base;
+    if (hasFill) {
+        result = compositePaintPixel(result, fill.xyz, fill.w, fillHasColor, parameters.pattern.z,
+            selectionAlpha, parameters.opacityValue, parameters.canvasOpacityBits, pixel, local);
+    }
+    let wide = parameters.native.z != 0u;
+    let maximum = select(255u, 65535u, wide);
+    let gray = (parameters.paintFlags & 524288u) != 0u;
+    let foreground = nativePixel(parameters.color, parameters.native.x, wide).xyz;
+    for (var index = 0u; index < parameters.count; index++) {
+        let dab = gaussianDab(index);
+        let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
+        if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
+        let coverage = generatedDabCoverage(dab, pixel, point, maximum, gray);
+        let scale = select(0x437f0000u, 0x477fff00u, wide);
+        let opacity = u32(bitcast<f32>(floatAdd(floatMultiply(dab.application.x, scale), 0x3f000000u)));
+        result = compositePaintPixel(result, foreground, coverage, true, parameters.pattern.w,
+            selectionAlpha, opacity, dab.application.x, pixel, local);
+    }
+    return result;
+}
+
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let local = invocation.xy;
@@ -658,6 +829,8 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     var sourceHasColor = strokeCoverage != 0u;
     var blendMode = parameters.pattern.w;
     var generatedInitial = vec4<u32>();
+    var directFill = vec4<u32>();
+    var directFillHasColor = false;
     if ((figureFlags & 1u) != 0u) {
         var fillColor = nativePixel(bitcast<u32>(parameters.mirror.z), parameters.native.y, parameters.native.z != 0u);
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
@@ -667,6 +840,8 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             (any(pixel < vec2<i32>()) || any(pixel >= selection.zw))) { fillColor = vec4<u32>(); }
         var fillAlpha = mul255(fillColor.w, fillCoverage);
         if (parameters.native.z != 0u) { fillAlpha = mul65535(fillColor.w, fillCoverage * 257u); }
+        directFill = vec4<u32>(fillColor.xyz, fillAlpha);
+        directFillHasColor = fillCoverage != 0u;
         if (generatedFilled) {
             if (fillAlpha != 0u) { generatedInitial = vec4<u32>(fillColor.xyz, fillAlpha); }
             if ((figureFlags & 2u) != 0u) { blendMode = parameters.pattern.z; }
@@ -678,6 +853,11 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             blendMode = parameters.pattern.z;
         }
     }
+    if ((parameters.paintFlags & 4194304u) != 0u) {
+        writePaintPixel(index, generatedBuildUpPixel(pixel, local, base, directFill, directFillHasColor,
+            generatedFilled, selectionAlpha));
+        return;
+    }
     if ((parameters.paintFlags & 512u) != 0u) {
         let temporary = generatedBrushSource(pixel, generatedInitial, generatedFilled);
         coverage = temporary.w;
@@ -687,151 +867,6 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             sourceHasColor = any(temporary != vec4<u32>());
         }
     }
-    if ((parameters.paintFlags & 65536u) != 0u && blendMode != 130u) {
-        let bounds = parameters.destination;
-        if (bounds.z <= 0 || bounds.w <= 0 || pixel.x < bounds.x || pixel.y < bounds.y ||
-            pixel.x >= bounds.x + bounds.z || pixel.y >= bounds.y + bounds.w) {
-            writePaintPixel(index, base);
-            return;
-        }
-    }
-    let wordCoverage = coverage;
-    var writable = (parameters.paintFlags >> 1u) & 15u;
-    if ((parameters.paintFlags & 1u) != 0u && parameters.erase == 0u) { writable &= 7u; }
-    if ((parameters.paintFlags & 524288u) != 0u && parameters.erase == 0u) {
-        // Alpha8 destinations are converted to opaque GrayA8 before native
-        // composition. Gray uses integer Over/Copy rather than the optimized
-        // four-channel RGB implementations.
-        if (blendMode == 0u) {
-            let alpha = multiplyThreeBytes(coverage, selectionAlpha, parameters.opacityValue);
-            let gray = blendByte(base.x, source.x, alpha);
-            writePaintPixel(index, vec4<u32>(vec3<u32>(gray), 255u));
-            return;
-        }
-        if (blendMode == 130u) {
-            let opacity = multiplyByte(selectionAlpha, parameters.opacityValue);
-            var result = base;
-            if (opacity == 255u) { result = vec4<u32>(source, coverage); }
-            else if (opacity != 0u) {
-                let alpha = blendByte(255u, coverage, opacity);
-                var gray = 0u;
-                if (alpha != 0u) {
-                    let mixed = blendByte(base.x, multiplyByte(source.x, coverage), opacity);
-                    gray = min(255u, divideByte(mixed, alpha));
-                }
-                result = vec4<u32>(vec3<u32>(gray), alpha);
-            }
-            writePaintPixel(index, result);
-            return;
-        }
-    }
-    if (parameters.erase == 0u && blendMode == 130u) {
-        let block = (local.y / 64u) * 4u + local.x / 64u;
-        if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
-        if (!sourceHasColor) { source = vec3<u32>(0u); }
-        let opacity = projectionMultiply(parameters.canvasOpacityBits, projectionMultiply(bitcast<u32>(f32(selectionAlpha)), 0x3b808081u));
-        writePaintPixel(index, copyPixel(base, vec4<u32>(source, coverage), opacity, writable, parameters.native.z != 0u));
-        return;
-    }
-    if (parameters.erase == 0u && parameters.native.z != 0u && (blendMode >= 127u && blendMode <= 129u)) {
-        let block = (local.y / 64u) * 4u + local.x / 64u;
-        if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
-        if (!sourceHasColor) { source = vec3<u32>(0u); }
-        writePaintPixel(index, specialAlphaRgba16Pixel(base, vec4<u32>(source, wordCoverage),
-            parameters.opacityValue, writable, selectionAlpha * 257u, blendMode));
-        return;
-    }
-    if (parameters.erase == 0u && parameters.native.z != 0u && colorIsCoupled(blendMode)) {
-        let block = (local.y / 64u) * 4u + local.x / 64u;
-        if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
-        let alpha = appliedWordAlpha(wordCoverage, selectionAlpha * 257u, parameters.opacityValue, blendMode);
-        writePaintPixel(index, coupledRgba16Pixel(base, vec4<u32>(source, wordCoverage), alpha, writable, blendMode));
-        return;
-    }
-    if (partialWordSource) {
-        let block = (local.y / 64u) * 4u + local.x / 64u;
-        if ((parameters.native.w & (1u << block)) == 0u) { writePaintPixel(index, base); return; }
-        let alpha = appliedWordAlpha(wordCoverage, selectionAlpha * 257u, parameters.opacityValue, blendMode);
-        writePaintPixel(index, separableRgba16Pixel(base, vec4<u32>(source, wordCoverage), alpha, writable, blendMode));
-        return;
-    }
-    if (parameters.erase == 0u && (blendMode == 41u || blendMode == 42u || transparentSourceAffectsBlend(blendMode))) {
-        let block = (local.y / 64u) * 4u + local.x / 64u;
-        if ((parameters.native.w & (1u << block)) == 0u) {
-            writePaintPixel(index, base);
-            return;
-        }
-        if (blendMode == 127u) {
-            if (!sourceHasColor) { source = vec3<u32>(0u); }
-            writePaintPixel(index, unpackPixel(markerRgba8Pixel(base, vec4<u32>(source, coverage), parameters.opacityValue, writable, selectionAlpha)));
-            return;
-        }
-        let alpha = multiplyThreeBytes(coverage, selectionAlpha, parameters.opacityValue);
-        if (blendMode == 128u || blendMode == 129u) {
-            writePaintPixel(index, unpackPixel(specialAlphaRgba8Pixel(base, vec4<u32>(source, alpha), 255u, writable, blendMode)));
-            return;
-        }
-        if (colorIsCoupled(blendMode)) {
-            writePaintPixel(index, unpackPixel(coupledRgba8Pixel(base, vec4<u32>(source, coverage), alpha, writable, blendMode)));
-        } else {
-        writePaintPixel(index, unpackPixel(destinationRgba8(base, vec4<u32>(source, coverage), alpha, writable, blendMode)));
-        }
-        return;
-    }
-    if (parameters.erase != 0u) {
-        var resultAlpha: u32;
-        if (parameters.native.z != 0u) {
-            let masked = mul65535(wordCoverage, selectionAlpha * 257u);
-            let alpha = mul65535(masked, parameters.opacityValue);
-            resultAlpha = mul65535(base.w, 65535u - alpha);
-        } else {
-            let alpha = mul255(mul255(coverage, selectionAlpha), parameters.opacityValue);
-            resultAlpha = mul255(base.w, 255u - alpha);
-        }
-        // Native erase applies alpha independently of protected color channels.
-        var result = vec4<u32>(base.xyz, resultAlpha);
-        if (clearsSelectedPixels) {
-            let defaultPixel = nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u);
-            var defaultByteAlpha = defaultPixel.w;
-            var resultByteAlpha = resultAlpha;
-            if (parameters.native.z != 0u) {
-                defaultByteAlpha = (defaultPixel.w - (defaultPixel.w >> 8u) + 128u) >> 8u;
-                resultByteAlpha = (resultAlpha - (resultAlpha >> 8u) + 128u) >> 8u;
-            }
-            if (defaultByteAlpha == 0u && resultByteAlpha == 0u) { result = defaultPixel; }
-        }
-        writePaintPixel(index, result);
-    } else if (blendMode == 0u) {
-        var sourceAlpha: u32;
-        if (parameters.native.z != 0u) {
-            sourceAlpha = projectionMultiply(nativeNormalizedAlpha(wordCoverage), parameters.canvasOpacityBits);
-        } else {
-            sourceAlpha = projectionScaleByte(parameters.canvasOpacityBits, coverage);
-        }
-        if (selectionAlpha != 255u) {
-            sourceAlpha = projectionMultiply(sourceAlpha, projectionScaleByte(0x3b808081u, selectionAlpha));
-        }
-        if (parameters.native.z != 0u) {
-            writePaintPixel(index, normalRgba16(base, source, sourceAlpha, writable));
-        } else {
-            writePaintPixel(index, unpackPixel(normalRgba8(base, source, sourceAlpha, writable)));
-        }
-    } else {
-        // Generic CPU operations quantize the three-factor product once.
-        // Erase and channel-copy retain their distinct two-factor orders.
-        if (parameters.native.z != 0u) {
-            let alpha = appliedWordAlpha(wordCoverage, selectionAlpha * 257u, parameters.opacityValue, blendMode);
-            writePaintPixel(index, separableRgba16Pixel(base, vec4<u32>(source, wordCoverage), alpha, writable, blendMode));
-            return;
-        }
-        var alpha = multiplyThreeBytes(coverage, selectionAlpha, parameters.opacityValue);
-        if (blendMode == 26u) {
-            alpha = mul255(mul255(coverage, selectionAlpha), parameters.opacityValue);
-        } else if (blendMode >= 28u && blendMode <= 30u) {
-            alpha = mul255(coverage, mul255(selectionAlpha, parameters.opacityValue));
-        }
-        let blended = unpackPixel(separableProjectionPixel(base, vec4<u32>(source, alpha), 255u, 15u, blendMode));
-        writePaintPixel(index, select(base, blended, vec4<bool>((writable & 1u) != 0u,
-            (writable & 2u) != 0u, (writable & 4u) != 0u, (writable & 8u) != 0u)));
-    }
+    writePaintPixel(index, compositePaintPixel(base, source, coverage, sourceHasColor, blendMode,
+        selectionAlpha, parameters.opacityValue, parameters.canvasOpacityBits, pixel, local));
 }

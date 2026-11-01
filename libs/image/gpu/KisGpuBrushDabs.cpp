@@ -27,6 +27,25 @@ QSizeF characteristicSize(qreal diameter, qreal ratio, qreal scale, qreal angle)
 }
 
 namespace {
+qreal tiltElevation(const InputSample &sample)
+{
+    const qreal x = std::clamp(sample.xTilt / 60., -1., 1.);
+    const qreal y = std::clamp(sample.yTilt / 60., -1., 1.);
+    const qreal minor = std::abs(x) > std::abs(y) ? y : x;
+    return std::acos(std::sqrt(x * x + y * y) / std::sqrt(1 + minor * minor)) / (M_PI * .5);
+}
+qreal tiltDirection(const InputSample &sample)
+{
+    qreal angle = qFuzzyIsNull(sample.xTilt) && qFuzzyIsNull(sample.yTilt) ?
+        -(sample.xTilt >= 0 ? 1 : -1) * (sample.yTilt >= 0 ? 1 : -1) * M_PI_2 :
+        std::atan2(-sample.xTilt, sample.yTilt);
+    if (!qFuzzyIsNull(sample.tiltDirectionOffset)) {
+        angle += sample.tiltDirectionOffset * M_PI / 180.;
+        if (angle < -M_PI) angle += 2 * M_PI;
+        else if (angle > M_PI) angle -= 2 * M_PI;
+    }
+    return angle / (2 * M_PI) + .5;
+}
 qreal responseCurveValue(const PressureResponse &response, qreal pressure)
 {
     if (response.kind == PressureResponse::Kind::Constant) return 1;
@@ -78,7 +97,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         if (brush.autoBrush && brush.autoBrush->imageTips) {
             const auto &size = brush.autoBrush->imageTips->originalSize;
             QTransform transform;
-            const qreal ratio = brush.diameter / size.width();
+            const qreal ratio = brush.diameter / std::max(size.width(), size.height());
             transform.scale(scale * ratio, scale * ratio);
             angle = std::fmod(angle, 2 * M_PI);
             if (angle < 0) angle += 2 * M_PI;
@@ -118,10 +137,12 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         const qreal scale = brush.sizeSpeedResponse ?
             std::clamp(brush.sizeResponse.strength * (responseCurveValue(brush.sizeResponse, point.pressure) *
                 responseCurveValue(*brush.sizeSpeedResponse, point.speed)), qreal(0), qreal(1)) :
-            pressureValue(brush.sizeResponse, point.pressure);
+            pressureValue(brush.sizeResponse, brush.sizeSensor == Brush::SizeSensor::TiltElevation ? tiltElevation(point) : point.pressure);
         const qreal diameter = brush.diameter * scale;
-        const bool tooSmall = brush.autoBrush && brush.autoBrush->imageTips ?
-            diameter < .01 || diameter * brush.autoBrush->imageTips->originalSize.height() / brush.autoBrush->imageTips->originalSize.width() < .01 :
+        const auto originalSize = brush.autoBrush && brush.autoBrush->imageTips ? brush.autoBrush->imageTips->originalSize : QSize();
+        const bool tooSmall = !originalSize.isEmpty() ?
+            diameter * originalSize.width() / std::max(originalSize.width(), originalSize.height()) < .01 ||
+            diameter * originalSize.height() / std::max(originalSize.width(), originalSize.height()) < .01 :
             brush.autoBrush ?
             scale * std::max(1, int(brush.diameter)) < .01 ||
             scale * std::max(1, int(brush.diameter * brush.autoBrush->ratio)) < .01 :
@@ -135,6 +156,12 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             qreal value = std::fmod(2 * normalizedBaseAngle + 1., 2.);
             if (value < 0) value += 2.;
             value -= 1.;
+            sensorRotation = (1 - value) * M_PI;
+            if (sensorRotation >= 2 * M_PI) sensorRotation = std::fmod(sensorRotation, 2 * M_PI);
+        } else if (brush.autoBrush && brush.autoBrush->tiltDirectionRotation) {
+            const auto &response = *brush.autoBrush->tiltDirectionRotation;
+            const qreal additive = 2 * responseCurveValue(response, tiltDirection(point)) - 1;
+            const qreal value = wrap(-point.canvasRotation / 180. + response.strength * additive, -1, 1);
             sensorRotation = (1 - value) * M_PI;
             if (sensorRotation >= 2 * M_PI) sensorRotation = std::fmod(sensorRotation, 2 * M_PI);
         } else if (brush.autoBrush && brush.autoBrush->drawingAngleRotation) {
@@ -277,6 +304,8 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             first.position = (1 - fraction) * first.position + fraction * last.position;
             first.pressure = (1 - fraction) * first.pressure + fraction * last.pressure;
             first.speed = (1 - fraction) * first.speed + fraction * last.speed;
+            first.xTilt = (1 - fraction) * first.xTilt + fraction * last.xTilt;
+            first.yTilt = (1 - fraction) * first.yTilt + fraction * last.yTilt;
             accumulated = {};
             if (!paintLineDab(first)) return false;
             if (first.position == previous && fraction != 0) return false;
@@ -317,6 +346,8 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             middle.position = (leftInner + rightInner) / 2;
             middle.pressure = .5 * curve.first.pressure + .5 * curve.last.pressure;
             middle.speed = .5 * curve.first.speed + .5 * curve.last.speed;
+            middle.xTilt = .5 * curve.first.xTilt + .5 * curve.last.xTilt;
+            middle.yTilt = .5 * curve.first.yTilt + .5 * curve.last.yTilt;
             pending.append({middle, rightInner, right, curve.last});
             pending.append({curve.first, left, leftInner, middle});
         }

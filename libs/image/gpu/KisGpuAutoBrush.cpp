@@ -35,7 +35,7 @@ int maskSide(qreal metric, qreal subpixel)
 bool imageDab(const Brush &brush, const BrushDab &point, QPointF subpixel, AutoBrushDab &dab)
 {
     const auto &tips = *brush.autoBrush->imageTips;
-    const qreal scale = point.scale * (brush.diameter / tips.originalSize.width());
+    const qreal scale = point.scale * (brush.diameter / std::max(tips.originalSize.width(), tips.originalSize.height()));
     qsizetype index = 0;
     while (index + 1 < tips.levels.size() &&
            (tips.levels[index].scale * .5 > scale || std::abs(tips.levels[index].scale * .5 - scale) < 1e-6)) ++index;
@@ -190,7 +190,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         }
         const double radius = brush.diameter * point.scale / 2;
         const double fadeStart = std::max(0., radius - 1.);
-        const qreal opacity = pressureValue(settings.opacityResponse, point.pressure);
+        const qreal opacity = pressureValue(settings.opacityResponse, point.pressure) * (settings.incremental ? brush.opacity : 1);
         constexpr float exponent = .1f;
         averageOpacity = averageOpacity < opacity ? opacity : exponent * opacity + (1.0 - exponent) * averageOpacity;
         AutoBrushDab dab;

@@ -85,7 +85,8 @@ LibrePaint::Image::Gpu::InputSample gpuInputSample(const KisPaintInformation &in
 {
     return {information.pos(), information.pressure(), information.xTilt(), information.yTilt(),
             information.rotation(), quint64(information.currentTime()), information.drawingSpeed(),
-            information.canvasRotation(), information.canvasMirroredH(), information.canvasMirroredV(), initialDrawingAngle};
+            information.canvasRotation(), information.canvasMirroredH(), information.canvasMirroredV(), initialDrawingAngle,
+            information.tiltDirectionOffset()};
 }
 
 QString gpuInputError(LibrePaint::Image::Gpu::Result result)

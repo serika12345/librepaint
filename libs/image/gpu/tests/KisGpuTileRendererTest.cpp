@@ -5675,13 +5675,17 @@ void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()
 void KisGpuTileRendererTest::scatteredInputKeepsFrozenSeedAndPartitions_data()
 {
     QTest::addColumn<bool>("imageTip");
-    QTest::newRow("generated") << false;
-    QTest::newRow("imported-image") << true;
+    QTest::addColumn<bool>("incremental");
+    QTest::newRow("generated") << false << false;
+    QTest::newRow("imported-image") << true << false;
+    QTest::newRow("generated-buildup-tilt") << false << true;
+    QTest::newRow("image-buildup-tilt") << true << true;
 }
 
 void KisGpuTileRendererTest::scatteredInputKeepsFrozenSeedAndPartitions()
 {
     QFETCH(bool, imageTip);
+    QFETCH(bool, incremental);
     // The generated Pencil-1/2 family consumes two Taus88 values per painted
     // dab, including corner fans. Rebuilding a preview must replay that order.
     Brush brush;
@@ -5693,6 +5697,14 @@ void KisGpuTileRendererTest::scatteredInputKeepsFrozenSeedAndPartitions()
     brush.autoBrush->scatter = PressureResponse{PressureResponse::Kind::Direct, .09, {}};
     brush.autoBrush->drawingAngleRotation = PressureResponse{PressureResponse::Kind::Direct, 1, {}};
     brush.autoBrush->fanCornersStep = M_PI / 2;
+    if (incremental) {
+        brush.autoBrush->incremental = true;
+        brush.opacity = .37;
+        brush.autoBrush->drawingAngleRotation.reset();
+        brush.autoBrush->fanCornersStep = 0;
+        brush.autoBrush->tiltDirectionRotation = PressureResponse{PressureResponse::Kind::Direct, 1, {}};
+        brush.sizeSensor = Brush::SizeSensor::TiltElevation;
+    }
     if (imageTip) {
         auto tips = QSharedPointer<ImageBrushTips>::create();
         tips->originalSize = {4, 4}; tips->tipCount = 2; tips->randomSelection = true;
@@ -5706,8 +5718,12 @@ void KisGpuTileRendererTest::scatteredInputKeepsFrozenSeedAndPartitions()
         brush.autoBrush->imageTips = tips;
     }
 
-    const QList<InputSample> input{{{20.25, 60.75}, .7}, {{110.25, 60.75}, .8},
-                                  {{35.25, 59.75}, .5}, {{35.25, 100.75}, .9}, {{90.25, 30.75}, .1}};
+    QList<InputSample> input{{{20.25, 60.75}, .7}, {{110.25, 60.75}, .8},
+                            {{35.25, 59.75}, .5}, {{35.25, 100.75}, .9}, {{90.25, 30.75}, .1}};
+    if (incremental) for (qsizetype i = 0; i < input.size(); ++i) {
+        input[i].xTilt = 35 - i * 10; input[i].yTilt = -15 + i * 9;
+        input[i].tiltDirectionOffset = 17;
+    }
     OperationDocument whole({128, 128}), chunks({128, 128});
     const auto a = whole.beginStroke(whole.activeLayer(), brush, 77);
     const auto b = chunks.beginStroke(chunks.activeLayer(), brush, 77);
