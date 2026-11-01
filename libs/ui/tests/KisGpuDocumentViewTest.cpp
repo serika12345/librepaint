@@ -10976,8 +10976,10 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
             resources->setCurrentCompositeOp(repeat == 2 ? QStringLiteral("copy") : QStringLiteral("normal"));
             if (reopened && repeat == 2) resources->setCurrentCompositeOp(QStringLiteral("erase"));
             resources->setMirrorHorizontal(false); resources->setMirrorVertical(false); resources->setGlobalAlphaLock(false);
-            if (!maskTarget && shape == 2 && repeat == 2)
-                qobject_cast<KisPaintLayer *>(layer.data())->setChannelLockFlags(QBitArray{true, false, true, false});
+            if (!maskTarget && shape == 2 && repeat == 2) {
+                QBitArray channels(4, false); channels.setBit(0); channels.setBit(2);
+                qobject_cast<KisPaintLayer *>(layer.data())->setChannelLockFlags(channels);
+            }
             const auto toolId = QStringLiteral("KritaFill/KisToolGradient");
             KoToolManager::instance()->switchToolRequested(toolId);
             auto *tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), toolId)); QVERIFY(tool);
@@ -10985,7 +10987,7 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
             tool->optionWidgets();
             QVERIFY(QMetaObject::invokeMethod(tool, "slotSetShape", Qt::DirectConnection, Q_ARG(int, shape)));
             QVERIFY(QMetaObject::invokeMethod(tool, "slotSetRepeat", Qt::DirectConnection, Q_ARG(int, repeat)));
-            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetReverse", Qt::DirectConnection, Q_ARG(bool, repeat == 2)));
+            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetReverse", Qt::DirectConnection, Q_ARG(bool, repeat == 2 || (reopened && shape >= 4))));
             QVERIFY(QMetaObject::invokeMethod(tool, "slotSetDither", Qt::DirectConnection, Q_ARG(bool, repeat == 1)));
             QVERIFY(QMetaObject::invokeMethod(tool, "slotSetAntiAliasThreshold", Qt::DirectConnection, Q_ARG(qreal, .2)));
             const auto before = capture(); const int history = lifetime->undoStack()->index();
@@ -11013,13 +11015,13 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
             QScopedPointer<KisDocument> native(KisPart::instance()->createDocument());
             native->setFileBatchMode(true); native->setAutoSaveActive(false);
             QVERIFY2(native->openPath(saved, KisDocument::DontAddToRecent), qPrintable(native->errorMessage()));
-            const auto image = KisImageSP(native->image()); image->waitForDone();
-            const auto layer = KisLayerUtils::findNodeByUuid(image->root(), paintUuid); QVERIFY(layer);
+            auto image = KisImageSP(native->image()); image->waitForDone();
+            auto layer = KisLayerUtils::findNodeByUuid(image->root(), paintUuid); QVERIFY(layer);
             QByteArray pixels(area.width() * area.height() * cs->pixelSize(), '\0'), projection(pixels.size(), '\0'), coverage;
             layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), area);
             image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), area);
             if (maskTarget) {
-                const auto mask = KisLayerUtils::findNodeByUuid(image->root(), maskUuid); QVERIFY(mask);
+                auto mask = KisLayerUtils::findNodeByUuid(image->root(), maskUuid); QVERIFY(mask);
                 coverage.resize(area.width() * area.height());
                 qobject_cast<KisTransparencyMask *>(mask.data())->selection()->pixelSelection()->readBytes(
                     reinterpret_cast<quint8 *>(coverage.data()), area);
