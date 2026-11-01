@@ -1490,7 +1490,7 @@ void KisGpuDocumentViewTest::quickGroupsKeepPixelsHistoryAndSaving()
     resources->setFGColor(foreground); resources->setOpacity(1); resources->setCurrentCompositeOp(QStringLiteral("normal"));
     const auto beforeFill = pixels(target);
     auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color_opacity"));
-    QVERIFY(fill && fill->isEnabled()); fill->trigger(); image->waitForDone(); QApplication::processEvents();
+    QVERIFY(fill); QTRY_VERIFY(fill->isEnabled()); fill->trigger(); image->waitForDone(); QApplication::processEvents();
     const auto expected = QByteArray(reinterpret_cast<const char *>(foreground.data()), cs->pixelSize()).repeated(area.width() * area.height());
     QTRY_COMPARE(pixels(target), expected);
     lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(target), beforeFill);
@@ -1504,7 +1504,7 @@ void KisGpuDocumentViewTest::quickGroupsKeepPixelsHistoryAndSaving()
     QTRY_VERIFY(view->currentNode() && view->currentNode()->uuid() == groupUuid);
     const auto ungroupHistory = lifetime->undoStack()->count();
     auto *ungroup = window->viewManager()->actionManager()->actionByName(QStringLiteral("quick_ungroup"));
-    QVERIFY(ungroup && ungroup->isEnabled()); ungroup->trigger(); image->waitForDone();
+    QVERIFY(ungroup); QTRY_VERIFY(ungroup->isEnabled()); ungroup->trigger(); image->waitForDone();
     QTRY_VERIFY(!find(groupUuid));
     QCOMPARE(image->root()->childCount(), quint32((clipping ? 3 : 2) + (outsideActive ? 1 : 0)));
     QCOMPARE(lifetime->undoStack()->count(), ungroupHistory + 1);
