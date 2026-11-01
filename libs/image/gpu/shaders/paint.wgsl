@@ -630,10 +630,8 @@ fn compositePaintPixel(base: vec4<u32>, sourceColor: vec3<u32>, coverage: u32, s
         }
         if (colorIsCoupled(blendMode)) {
             return unpackPixel(coupledRgba8Pixel(base, vec4<u32>(source, coverage), alpha, writable, blendMode));
-        } else {
-        return unpackPixel(destinationRgba8(base, vec4<u32>(source, coverage), alpha, writable, blendMode));
         }
-        return;
+        return unpackPixel(destinationRgba8(base, vec4<u32>(source, coverage), alpha, writable, blendMode));
     }
     if (parameters.erase != 0u) {
         var resultAlpha: u32;
