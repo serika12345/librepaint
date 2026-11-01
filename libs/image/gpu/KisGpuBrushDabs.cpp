@@ -310,18 +310,15 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                     if (fraction < 0 || fraction > 1) { accumulated += QPointF(dx, dy); return true; }
                 }
             }
-            const auto previous = first.position;
             first.position = (1 - fraction) * first.position + fraction * last.position;
             first.pressure = (1 - fraction) * first.pressure + fraction * last.pressure;
             first.speed = (1 - fraction) * first.speed + fraction * last.speed;
             first.xTilt = (1 - fraction) * first.xTilt + fraction * last.xTilt;
             first.yTilt = (1 - fraction) * first.yTilt + fraction * last.yTilt;
             accumulated = {};
+            // Native spacing can emit an unchanged rounded position while
+            // resetting its distance. The dab limit bounds these iterations.
             if (!paintLineDab(first)) return false;
-            if (first.position == previous && fraction != 0) {
-                qWarning() << "GPU brush spacing made no progress" << first.position << last.position << fraction;
-                return false;
-            }
         }
         return true;
     };
