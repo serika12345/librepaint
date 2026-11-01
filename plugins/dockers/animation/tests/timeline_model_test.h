@@ -26,6 +26,7 @@ private Q_SLOTS:
     void testConverter();
     void testAddingExistingLayerPinsItAndMakesItActive();
     void testCurveSelectionSurvivesFacadeReplacementAndDestruction();
+    void testRemovingGroupDropsDescendantRowsAndRestoresThem();
     void testView();
     void testOnionSkins();
 

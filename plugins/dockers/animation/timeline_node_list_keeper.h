@@ -42,7 +42,8 @@ public:
 
     OtherLayersList otherLayersList() const;
 
-    void updateActiveDummy(KisNodeDummy *dummy);
+    // Returns false during row notifications; the caller retries after them.
+    bool updateActiveDummy(KisNodeDummy *dummy);
 
 private Q_SLOTS:
     void slotEndInsertDummy(KisNodeDummy *dummy);
@@ -99,6 +100,7 @@ public:
     };
 
 private:
+    void removeDummyRow(KisNodeDummy *dummy);
     struct Private;
     const QScopedPointer<Private> m_d;
 };

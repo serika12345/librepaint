@@ -14,6 +14,7 @@
 
 #include <QSet>
 #include <QPointer>
+#include <QScopedValueRollback>
 #include <qabstractitemmodel.h>
 #include <QtGlobal>
 #include <qhashfunctions.h>
@@ -44,6 +45,7 @@ struct TimelineNodeListKeeper::Private
     KisDummiesFacadeBase *dummiesFacade;
     KisNodeDisplayModeAdapter *displayModeAdapter;
     bool showGlobalSelectionMask;
+    bool changingRows = false;
 
     TimelineFramesIndexConverter converter;
 
@@ -112,8 +114,9 @@ int TimelineNodeListKeeper::rowCount()
     return m_d->dummiesList.size();
 }
 
-void TimelineNodeListKeeper::updateActiveDummy(KisNodeDummy *dummy)
+bool TimelineNodeListKeeper::updateActiveDummy(KisNodeDummy *dummy)
 {
+    if (m_d->changingRows) return false;
     bool oldRemoved = false;
     bool newAdded = false;
 
@@ -121,12 +124,13 @@ void TimelineNodeListKeeper::updateActiveDummy(KisNodeDummy *dummy)
     m_d->converter.updateActiveDummy(dummy, &oldRemoved, &newAdded);
 
     if (oldRemoved) {
-        slotBeginRemoveDummy(oldActiveDummy);
+        removeDummyRow(oldActiveDummy);
     }
 
     if (newAdded) {
         slotEndInsertDummy(dummy);
     }
+    return true;
 }
 
 void TimelineNodeListKeeper::slotUpdateDummyContent(QPointer<KisNodeDummy> dummy)
@@ -200,6 +204,7 @@ void TimelineNodeListKeeper::slotEndInsertDummy(KisNodeDummy *dummy)
     if (m_d->converter.isDummyVisible(dummy)) {
         int pos = m_d->converter.rowForDummy(dummy);
 
+        QScopedValueRollback<bool> changingRows(m_d->changingRows, true);
         m_d->model->callBeginInsertRows(QModelIndex(), pos, pos);
         m_d->dummiesList.insert(pos, 1, dummy);
         m_d->tryConnectDummy(dummy);
@@ -209,9 +214,19 @@ void TimelineNodeListKeeper::slotEndInsertDummy(KisNodeDummy *dummy)
 
 void TimelineNodeListKeeper::slotBeginRemoveDummy(KisNodeDummy *dummy)
 {
+    // The facade removes the complete subtree after this notification.
+    for (auto child = dummy->firstChild(); child; child = child->nextSibling()) {
+        slotBeginRemoveDummy(child);
+    }
+    removeDummyRow(dummy);
+}
+
+void TimelineNodeListKeeper::removeDummyRow(KisNodeDummy *dummy)
+{
     if (m_d->dummiesList.contains(dummy)) {
         int pos = m_d->dummiesList.indexOf(dummy);
 
+        QScopedValueRollback<bool> changingRows(m_d->changingRows, true);
         m_d->model->callBeginRemoveRows(QModelIndex(), pos, pos);
         m_d->disconnectDummy(dummy);
         m_d->dummiesList.remove(pos);
@@ -231,7 +246,7 @@ void TimelineNodeListKeeper::slotDummyChanged(KisNodeDummy *dummy)
     if (!present && shouldBe) {
         slotEndInsertDummy(dummy);
     } else if (present && !shouldBe) {
-        slotBeginRemoveDummy(dummy);
+        removeDummyRow(dummy);
     }
 }
 

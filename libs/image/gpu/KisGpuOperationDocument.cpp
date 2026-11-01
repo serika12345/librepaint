@@ -2012,6 +2012,14 @@ Result OperationDocument::groupLayers(const QList<LayerId> &layers, LayerId acti
     m_nextLayer = draft->m_nextLayer;
     LayerHistoryChange change;
     change.groupingAction = clippingLayerName.isEmpty() ? HistoryAction::GroupLayers : HistoryAction::CreateClippingGroup;
+    // Undoing the native batch's initial group insertion reselects its former
+    // active node. Keep this selection separate from pinned pixel versions.
+    if (before->activeLayer != activeRoot || before->selectedLayers != QList<LayerId>{activeRoot}) {
+        auto selectedBefore = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
+        selectedBefore->activeLayer = activeRoot;
+        selectedBefore->selectedLayers = {activeRoot};
+        m_history[m_index] = selectedBefore;
+    }
     commitVersion(version, change);
     return Result::Success;
 }

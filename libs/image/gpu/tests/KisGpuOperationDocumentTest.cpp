@@ -1054,6 +1054,7 @@ void KisGpuOperationDocumentTest::groupingKeepsFrozenPixelsAndSingleHistory()
     auto input = nestedImage();
     auto other = rasterImage().layers.last();
     other.visible = true;
+    other.uuid = QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"));
     input.layers.append(other);
     OperationDocument document(input);
     const auto stroke = document.beginStroke(1, Brush{}, 17);
@@ -1096,7 +1097,17 @@ void KisGpuOperationDocumentTest::groupingKeepsFrozenPixelsAndSingleHistory()
         QVERIFY(mask.operations.isEmpty());
     }
     QCOMPARE(document.undo(), Result::Success);
-    QCOMPARE(document.snapshot(), before);
+    const auto undone = document.snapshot();
+    QCOMPARE(undone->historyRevision(), before->historyRevision());
+    QCOMPARE(undone->activeLayer, active);
+    QCOMPARE(undone->selectedLayers, QList<LayerId>{active});
+    QCOMPARE(before->selectedLayers, (QList<LayerId>{2, 4}));
+    QCOMPARE(undone->layers.size(), before->layers.size());
+    for (qsizetype i = 0; i < before->layers.size(); ++i) {
+        QCOMPARE(undone->layers[i].uuid, before->layers[i].uuid);
+        QCOMPARE(undone->layers[i].parentUuid, before->layers[i].parentUuid);
+        QVERIFY(undone->layers[i].operations == before->layers[i].operations);
+    }
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), grouped);
     QCOMPARE(document.ungroupLayers({}, 5), Result::Success);

@@ -108,6 +108,53 @@ void TimelineModelTest::testCurveSelectionSurvivesFacadeReplacementAndDestructio
 
 #include "timeline_frames_index_converter.h"
 
+void TimelineModelTest::testRemovingGroupDropsDescendantRowsAndRestoresThem()
+{
+    // Timeline rows must stay usable while a group is removed and restored.
+    constructImage();
+    auto child = KisPaintLayerSP(new KisPaintLayer(m_image, "child", OPACITY_OPAQUE_U8));
+    child->setPinnedToTimeline(true);
+    m_layer2->setPinnedToTimeline(false);
+    m_image->addNode(child, m_layer2);
+    m_layer1->setPinnedToTimeline(true);
+    m_shapeController->setImage(m_image);
+    QTRY_VERIFY(m_shapeController->hasDummyForNode(child));
+    KisAnimTimelineFramesModel model(nullptr);
+    model.setDummiesFacade(m_shapeController, m_image, m_displayModeAdapter);
+    model.slotCurrentNodeChanged(m_layer2);
+    const auto checkRows = [&] {
+        for (int row = 0; row < model.rowCount(); ++row) {
+            const auto index = model.index(row, 0);
+            QVERIFY(model.nodeAt(index));
+            model.flags(index);
+            model.data(index, KisAnimTimelineFramesModel::FrameExistsRole);
+        }
+    };
+    const auto groupedRows = model.rowCount();
+    model.slotCurrentNodeChanged(m_layer1);
+    QCOMPARE(model.rowCount(), groupedRows - 1);
+    bool childVisible = false;
+    for (int row = 0; row < model.rowCount(); ++row) childVisible |= model.nodeAt(model.index(row, 0)).data() == child.data();
+    QVERIFY(childVisible); // Selecting another layer retains the pinned child.
+    model.slotCurrentNodeChanged(m_layer2);
+    checkRows();
+    const auto reselect = connect(&model, &QAbstractItemModel::rowsAboutToBeRemoved, &model, [&] {
+        model.slotCurrentNodeChanged(m_layer4);
+    });
+    QVERIFY(m_image->removeNode(m_layer2));
+    QTRY_VERIFY(!m_shapeController->hasDummyForNode(m_layer2));
+    QTRY_COMPARE(model.nodeAt(model.index(model.activeLayerRow(), 0)).data(), m_layer4.data());
+    disconnect(reselect);
+    QCOMPARE(model.rowCount(), groupedRows - 1);
+    checkRows();
+    model.slotCurrentNodeChanged(m_layer1);
+    QVERIFY(m_image->addNode(m_layer2));
+    QTRY_VERIFY(m_shapeController->hasDummyForNode(child));
+    model.slotCurrentNodeChanged(m_layer2);
+    QCOMPARE(model.rowCount(), groupedRows);
+    checkRows();
+}
+
 void TimelineModelTest::testConverter()
 {
     // Consumer: Animation timeline docker users reviewing the layers shown in the timeline.
