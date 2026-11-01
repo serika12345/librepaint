@@ -1195,6 +1195,7 @@ set(gpu_document_input_cases
     selectionCopyAndCutUseGpuSelection
     selectionGrowAndShrinkUseGpuSelection
     invertedSelectionLimitsPaintingAndKra
+    nativeInvertedSelectionsKeepEditingAndSaving
     ellipticalSelectionLimitsPaintingAndKra
     pasteClipboardImageCreatesGpuLayer
     reselectRestoresGpuSelection
