@@ -365,8 +365,11 @@ LayerTileCoordinatesOutcome Execution::layerTileCoordinates(DocumentHandle handl
         for (const auto coordinate : ordered) result.coordinates.append(Detail::coordinate(coordinate));
     } else {
         const auto coordinates = layerCoordinates(pinned, *selected, outcome.region, maximumTiles);
-        if (!coordinates) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Complete group pixel capacity exceeded"));
+        const auto extent = Detail::groupProjectionExtent(pinned, layer,
+            qMin(Detail::PaintGeometryElementLimit, maximumBytes / qsizetype(sizeof(QRect))));
+        if (!coordinates || !extent) return reject(ExecutionCode::CapacityExceeded, QStringLiteral("Complete group pixel capacity exceeded"));
         for (const auto coordinate : *coordinates) result.coordinates.append(Detail::coordinate(coordinate));
+        if (!extent->isEmpty()) result.writtenAreas.append(*extent);
     }
     return result;
 }

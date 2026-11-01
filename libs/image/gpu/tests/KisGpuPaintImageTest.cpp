@@ -56,6 +56,8 @@ private Q_SLOTS:
     void colorFillKeepsVersionsHistoryAndWholeRequestFailures();
     void contiguousFillKeepsFrozenPixelsHistoryAndClones();
     void paperReferencesRejectRetainedResourceOverflow();
+    void mergedSparseDefaultsKeepAllocatedBytes_data();
+    void mergedSparseDefaultsKeepAllocatedBytes();
     void mergedPixelsKeepRootReadersAndIndependentClearHistory_data();
     void mergedPixelsKeepRootReadersAndIndependentClearHistory();
     void clearedLayersKeepFixedVersionsAndRejectWholeRequests();
@@ -1463,6 +1465,50 @@ void KisGpuPaintImageTest::clearHistoryKeepsItsMeaningAfterDirectWrites()
     // The document's public undo display reads this action after direct writes.
     QCOMPARE(image.operations().historyAction(count), HistoryAction::ClearPixels);
     QCOMPARE(image.operations().historyAction(count), HistoryAction::ClearPixels);
+}
+
+void KisGpuPaintImageTest::mergedSparseDefaultsKeepAllocatedBytes_data()
+{ mergedPixelsKeepRootReadersAndIndependentClearHistory_data(); }
+
+void KisGpuPaintImageTest::mergedSparseDefaultsKeepAllocatedBytes()
+{
+    // KRA and native paint devices distinguish untouched storage from allocated
+    // transparent bytes: changing the default changes only the former.
+    QFETCH(bool, words);
+    QString diagnostic; const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic)); Execution execution(device);
+    const auto format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const RgbaPixel color = words ? RgbaPixel{11111, 22222, 33333, 65535} : RgbaPixel{17, 91, 203, 255};
+    const RgbaPixel implicit = words ? RgbaPixel{55555, 44444, 33333, 22222} : RgbaPixel{219, 179, 139, 99};
+    const auto pixel = rgbaBytes(color, format), defaultPixel = rgbaBytes(implicit, format);
+    QByteArray source(256 * 256 * pixel.size(), '\0');
+    for (const int x : {5, 197}) source.replace((3 * 256 + x) * pixel.size(), pixel.size(), pixel);
+    RasterImage input; input.size = {256, 64}; input.format = format;
+    input.layers = {{QStringLiteral("Sparse source"), true, {}, {{{0, 0}, source, format}}}, {QStringLiteral("Empty")}};
+    input.layers[0].writtenAreas = {QRect(5, 3, 1, 1), QRect(197, 3, 1, 1)};
+    PaintImage image(execution, input);
+    LayerMergeRequest request; request.before = image.operations().snapshot(); request.mode = LayerMergeMode::Down;
+    request.layers = {1, 2}; request.above = 2; request.name = QStringLiteral("Merged");
+    request.homogeneousComposition = true; request.destinationUuid = QUuid::createUuid();
+    request.sourceBounds.insert(1, QRect(0, 0, 256, 64)); request.sourceBounds.insert(2, QRect{});
+    request.allocatedBlocks = {QRect(0, 0, 64, 64), QRect(192, 0, 64, 64)};
+    QCOMPARE(image.mergeLayers(request), Result::Success);
+    const auto merged = image.operations().snapshot();
+    const auto pixels = image.retainLayerPixels(merged->activeLayer); QVERIFY(pixels);
+    QCOMPARE(image.markSaved(merged), Result::Success);
+    QCOMPARE(image.writeLayerDefaultPixel(pixels, implicit), Result::Success);
+    QCOMPARE(image.operations().undoCount(), 1); QVERIFY(!image.operations().isModified());
+    const auto area = QRect(0, 0, 256, 64);
+    auto expected = defaultPixel.repeated(area.width() * area.height());
+    const auto zeros = QByteArray(64 * pixel.size(), '\0');
+    for (int y = 0; y < 64; ++y) for (const int x : {0, 192}) expected.replace((y * 256 + x) * pixel.size(), zeros.size(), zeros);
+    for (const int x : {5, 197}) expected.replace((3 * 256 + x) * pixel.size(), pixel.size(), pixel);
+    const auto actual = image.readRgbaPixels(merged->activeLayer, area, expected.size());
+    QCOMPARE(actual.code, ExecutionCode::Success); QCOMPARE(actual.bytes, expected);
+    const auto retained = execution.readRgbaPixels(image.handle(), merged, area, merged->activeLayer, expected.size());
+    QCOMPARE(retained.code, ExecutionCode::Success); QCOMPARE(retained.bytes, source.first(area.width() * area.height() * pixel.size()));
+    QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(merged->activeLayer, area, expected.size()).bytes, expected);
 }
 
 void KisGpuPaintImageTest::mergedPixelsKeepRootReadersAndIndependentClearHistory_data()

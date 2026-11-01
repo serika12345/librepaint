@@ -1595,7 +1595,19 @@ QRect KisPaintDevice::extent() const
 {
     if (m_d->gpuSelection) return m_d->gpuSelectionBounds();
     if (m_d->gpuImage) {
-        auto result = m_d->gpuAllocatedRegion().boundingRect();
+        const auto version = m_d->gpuPixelVersion();
+        const auto id = m_d->gpuLayerId();
+        const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(), [id](const auto &value) { return value.id == id; });
+        QRect result;
+        if (layer != version->layers.cend() && layer->kind == LibrePaint::Image::Gpu::LayerKind::Paint) {
+            result = m_d->gpuAllocatedRegion().boundingRect();
+        } else {
+            const auto maximum = m_d->gpuImage->limits().rasterBytes / LibrePaint::Image::Gpu::RgbaTile::byteCount(version->format);
+            const auto outcome = m_d->gpuImage->execution().layerTileCoordinates(m_d->gpuImage->handle(), version, id, maximum);
+            if (outcome.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
+                throw std::runtime_error(outcome.diagnostic.toStdString());
+            for (const auto &area : outcome.writtenAreas) result |= area;
+        }
         if (defaultPixel().opacityU8()) result |= m_d->defaultBounds->bounds();
         return result;
     }

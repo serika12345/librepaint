@@ -111,4 +111,52 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
     if (layer.defaultPixel[3]) result.extent |= QRect(QPoint(), document->size);
     return result;
 }
+std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId group, qsizetype maximumRectangles)
+{
+    QHash<LayerId, const Layer *> nodes;
+    QHash<QUuid, QList<const Layer *>> children;
+    for (const auto &layer : document->layers) { nodes.insert(layer.id, &layer); children[layer.parentUuid].append(&layer); }
+    const auto root = nodes.value(group);
+    if (!root || root->kind != LayerKind::Group) return std::nullopt;
+    QList<const Layer *> ordered{root};
+    for (qsizetype i = 0; i < ordered.size(); ++i)
+        for (const auto child : children.value(ordered[i]->uuid)) ordered.append(child);
+    QHash<LayerId, QRect> extents;
+    const auto defaults = document->projectionDefaultPixels();
+    for (qsizetype i = ordered.size(); i-- > 0;) {
+        const auto node = ordered[i];
+        if (node->kind == LayerKind::Paint) {
+            const auto allocated = paintLayerAllocation(document, *node, maximumRectangles);
+            if (!allocated) return std::nullopt;
+            extents.insert(node->id, allocated->extent);
+            continue;
+        }
+        const auto inputs = document->projectionInputs(node->id);
+        const auto direct = inputs.size() == 1 ? nodes.value(inputs.first().layer) : nullptr;
+        if (direct && children.value(node->uuid).size() == 1 && children.value(node->uuid).first()->id == direct->id && direct->opacity == 255 &&
+            direct->projectionChannelMask == 15 && !direct->passThrough && direct->blendMode == LayerBlendMode::Normal &&
+            !hasEnabledTransparencyMask(*direct)) {
+            extents.insert(node->id, extents.value(direct->id));
+            continue;
+        }
+        QRect destination;
+        for (const auto &input : inputs) {
+            auto extent = extents.value(input.layer);
+            if (input.blendMode == LayerBlendMode::Copy || input.blendMode == LayerBlendMode::DestinationIn ||
+                input.blendMode == LayerBlendMode::DestinationAtop) extent = QRect(QPoint(), document->size);
+            if (!(input.channelMask & 8u) && input.blendMode != LayerBlendMode::Copy) extent &= destination;
+            if (extent.isEmpty()) continue;
+            const auto first = QPoint(pixelTileIndex(extent.left() - node->position.x(), PixelHistoryBlockSize),
+                pixelTileIndex(extent.top() - node->position.y(), PixelHistoryBlockSize));
+            const auto last = QPoint(pixelTileIndex(extent.right() - node->position.x(), PixelHistoryBlockSize),
+                pixelTileIndex(extent.bottom() - node->position.y(), PixelHistoryBlockSize));
+            destination |= QRect(first * PixelHistoryBlockSize + node->position,
+                (last + QPoint(1, 1)) * PixelHistoryBlockSize + node->position - QPoint(1, 1));
+        }
+        if (defaults.value(node->id)[3]) destination |= QRect(QPoint(), document->size);
+        extents.insert(node->id, destination);
+    }
+    return extents.value(group);
+}
+
 }

@@ -1288,23 +1288,26 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         const auto owner = view->gpuImage();
         const auto version = owner->operations().snapshot();
         const auto changed = [&] { return view->gpuImage() != owner || owner->operations().snapshot() != version; };
-        if (state && view->root()->uuid() != version->rootUuid) {
+        auto targetRoot = view->root();
+        const bool replaceRoot = state && targetRoot->uuid() != version->rootUuid;
+        if (replaceRoot) {
             auto root = state->roots.value(version->rootUuid);
             if (!root) {
                 root = new KisGroupLayer(view, QStringLiteral("root"), OPACITY_OPAQUE_U8, view->colorSpace(),
                     KisPaintDevice::fromGpuImage(owner, 0, {}, view->colorSpace()));
+                root->setGraphListener(nullptr);
                 root->setUuid(version->rootUuid);
+                for (auto child = targetRoot->firstChild(); child; child = child->nextSibling())
+                    if (child->isFakeNode()) view->addNode(child->clone(), root, root->lastChild(),
+                        KisNodeAdditionFlags(KisNodeAdditionFlag::DontActivateNode));
                 state->roots.insert(version->rootUuid, root);
             }
-            view->setRootLayer(root);
-            if (changed()) continue;
-            view->notifyLayersChanged();
-            if (changed()) continue;
-        } else if (!state) view->root()->setUuid(version->rootUuid);
+            targetRoot = root;
+        } else if (!state) targetRoot->setUuid(version->rootUuid);
         QHash<QUuid, KisNodeSP> existing = retainedNodes ? *retainedNodes : QHash<QUuid, KisNodeSP>();
         QSet<QUuid> desired;
         for (const auto &layer : version->layers) desired.insert(layer.uuid);
-        QList<KisNodeSP> attached{view->root()};
+        QList<KisNodeSP> attached{targetRoot};
         for (qsizetype i = 0; i < attached.size(); ++i)
             for (auto node = attached[i]->firstChild(); node; node = node->nextSibling()) attached.append(node);
         for (qsizetype i = 1; i < attached.size(); ++i) {
@@ -1313,7 +1316,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             const bool retainedMaskView = isGpuTransparencyMaskViewNode(node) && node->parent() &&
                 desired.contains(node->parent()->uuid());
             if (!node->inherits("KisSelectionMask") && !retainedMaskView && !desired.contains(node->uuid()) && node->parent() &&
-                (node->parent() == view->root() || desired.contains(node->parent()->uuid()))) view->removeNode(node);
+                (node->parent() == targetRoot || desired.contains(node->parent()->uuid()))) view->removeNode(node);
             if (changed()) break;
         }
         if (view->gpuImage() != owner) return;
@@ -1377,7 +1380,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         for (const auto &layer : version->layers) children[layer.parentUuid].append(&layer);
         QList<QUuid> parents{QUuid()};
         for (qsizetype i = 0; i < parents.size() && !changed(); ++i) {
-            auto parent = parents[i].isNull() ? view->root() : existing.value(parents[i]);
+            auto parent = parents[i].isNull() ? targetRoot : existing.value(parents[i]);
             KisNodeSP above;
             qsizetype index = 0;
             for (const auto layer : children.value(parents[i])) {
@@ -1460,6 +1463,13 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         }
         if (view->gpuImage() != owner) return;
         if (changed()) continue;
+        if (replaceRoot) {
+            // Publish a complete subtree, matching the native root replacement.
+            view->setRootLayer(qobject_cast<KisGroupLayer *>(targetRoot.data()));
+            if (changed()) continue;
+            view->notifyLayersChanged();
+            if (changed()) continue;
+        }
         if (state) {
             for (auto it = state->transparencyMasks.begin(); it != state->transparencyMasks.end();) {
                 if (!desired.contains(it.key())) it = state->transparencyMasks.erase(it);

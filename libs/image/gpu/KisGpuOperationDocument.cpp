@@ -647,7 +647,7 @@ Result OperationDocument::writeLayerMask(LayerId layer, LayerProperty property, 
 Result OperationDocument::writeLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba)
 { return applyLayerDefaultPixel(layer, rgba, nullptr); }
 
-Result OperationDocument::applyLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba, Snapshot *retainedVersion)
+Result OperationDocument::applyLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba, Snapshot *retainedVersion) try
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -682,6 +682,7 @@ Result OperationDocument::applyLayerDefaultPixel(LayerId layer, const RgbaPixel 
     if (retainedVersion) *retainedVersion = retained;
     return Result::Success;
 }
+catch (const std::bad_alloc &) { return Result::CapacityExceeded; }
 
 Result OperationDocument::writeLayerName(LayerId layer, const QString &name)
 {
@@ -2143,7 +2144,7 @@ Result OperationDocument::ungroupLayers(const QList<LayerId> &layers, LayerId ac
     return Result::Success;
 }
 
-Result OperationDocument::mergeLayers(const LayerMergeRequest &request)
+Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -2223,9 +2224,12 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request)
     } else {
         if (nextLayer == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
         QSet<QUuid> used;
-        for (const auto &retained : m_history) for (const auto &layer : retained->layers) {
-            used.insert(layer.uuid);
-            if (layer.transparencyMask) used.insert(layer.transparencyMaskUuid);
+        for (const auto &retained : m_history) {
+            used.insert(retained->rootUuid);
+            for (const auto &layer : retained->layers) {
+                used.insert(layer.uuid);
+                if (layer.transparencyMask) used.insert(layer.transparencyMaskUuid);
+            }
         }
         if (request.destinationUuid.isNull() || used.contains(request.destinationUuid)) return Result::InvalidInput;
         used.insert(request.destinationUuid);
@@ -2353,12 +2357,13 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request)
         version->sampleCount += samples; version->rasterBytes += bytes;
     }
     version->selectedLayers = {version->activeLayer};
-    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    m_nextLayer = nextLayer; m_nextOperation = nextOperation;
+    version->m_modifiedRevision = version->m_revision = m_nextRevision + 1;
     LayerHistoryChange change; change.layerStructureAction = action;
     commitVersion(version, change);
+    m_nextRevision = version->revision(); m_nextLayer = nextLayer; m_nextOperation = nextOperation;
     return Result::Success;
 }
+catch (const std::bad_alloc &) { return Result::CapacityExceeded; }
 
 Result OperationDocument::clearLayers(const QList<LayerId> &layers)
 {
