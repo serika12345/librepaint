@@ -146,8 +146,11 @@ private Q_SLOTS:
     void samplesMaskedLayerThroughHistoryAndReopen_data()
     {
         QTest::addColumn<bool>("words");
-        QTest::newRow("u8") << false;
-        QTest::newRow("u16") << true;
+        QTest::addColumn<int>("maskDefault");
+        for (bool words : {false, true}) for (int value : {0, 17, 255}) {
+            const QByteArray name = QByteArray(words ? "u16-mask" : "u8-mask") + QByteArray::number(value);
+            QTest::newRow(name.constData()) << words << value;
+        }
     }
     void samplesMaskedLayerThroughHistoryAndReopen();
 private:
@@ -159,6 +162,7 @@ void KisGpuColorSamplingTest::samplesMaskedLayerThroughHistoryAndReopen()
     // The ordinary current-layer sampler reads the physical node projection,
     // including mask changes and history, without applying parent opacity.
     QFETCH(bool, words);
+    QFETCH(int, maskDefault);
     const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restore = qScopeGuard([&] {
         if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
@@ -177,6 +181,8 @@ void KisGpuColorSamplingTest::samplesMaskedLayerThroughHistoryAndReopen()
         layer->paintDevice()->fill({12, 9, 1, 1}, KoColor(QColor(17, 129, 233, 255), cs));
         QVERIFY(image->addNode(layer));
         KisSelectionSP selection = new KisSelection;
+        const quint8 defaultCoverage = maskDefault;
+        selection->pixelSelection()->setDefaultPixel(KoColor(&defaultCoverage, KoColorSpaceRegistry::instance()->alpha8()));
         selection->pixelSelection()->select({0, 0, 32, 16}, 128);
         const quint8 coverage[]{0, 1, 128, 255};
         selection->pixelSelection()->writeBytes(coverage, {10, 9, 4, 1});
@@ -197,14 +203,16 @@ void KisGpuColorSamplingTest::samplesMaskedLayerThroughHistoryAndReopen()
     for (const bool gpu : {false, true}) {
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
         const auto saved = directory.filePath(gpu ? QStringLiteral("gpu.kra") : QStringLiteral("native.kra"));
+        QByteArray savedPixels, savedProjection, savedCoverage;
         int stage = 0;
         for (const bool reopened : {false, true}) {
             std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
             document->setFileBatchMode(true); document->setAutoSaveActive(false);
-            QVERIFY(document->openPath(reopened ? saved : baseline, KisDocument::DontAddToRecent));
-            const auto image = KisImageSP(document->image()); image->waitForDone();
+            QVERIFY2(document->openPath(reopened ? saved : baseline, KisDocument::DontAddToRecent),
+                qPrintable(QStringLiteral("gpu=%1 reopened=%2: %3").arg(gpu).arg(reopened).arg(document->errorMessage())));
+            auto image = KisImageSP(document->image()); image->waitForDone();
             QCOMPARE(bool(image->gpuImage()), gpu);
-            const auto layer = image->root()->firstChild(); QVERIFY(layer);
+            auto layer = image->root()->firstChild(); QVERIFY(layer);
             const auto mask = layer->firstChild(); QVERIFY(mask);
             std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
             auto *view = window->newView(document.get()); QVERIFY(view);
@@ -236,6 +244,14 @@ void KisGpuColorSamplingTest::samplesMaskedLayerThroughHistoryAndReopen()
                     helper.endAction(); helper.deactivate();
                     QTRY_COMPARE(raw.size(), 1);
                     const auto color = qvariant_cast<KoColor>(raw.takeFirst().first());
+                    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+                    if (!results.isEmpty()) {
+                        QFile output(QDir(results).filePath(QStringLiteral("masked-sampling-%1-%2-%3.bgra")
+                            .arg(QString::fromLatin1(QTest::currentDataTag()), gpu ? QStringLiteral("gpu") : QStringLiteral("native")).arg(stage)));
+                        QVERIFY(output.open(QIODevice::WriteOnly));
+                        QCOMPARE(output.write(reinterpret_cast<const char *>(color.data()), color.colorSpace()->pixelSize()),
+                            qint64(color.colorSpace()->pixelSize()));
+                    }
                     if (!gpu) reference.append(color);
                     else QCOMPARE(color, reference.value(stage));
                     ++stage;
@@ -251,11 +267,38 @@ void KisGpuColorSamplingTest::samplesMaskedLayerThroughHistoryAndReopen()
                 lifetime->undoStack()->redo(); image->waitForDone(); QVERIFY(!layer->firstChild()); sample();
                 lifetime->undoStack()->undo(); image->waitForDone(); QVERIFY(layer->firstChild());
             } else {
-                layer->paintDevice()->fill({12, 9, 1, 1}, KoColor(QColor(233, 81, 19, 255), cs));
+                const KoColor edit(QColor(233, 81, 19, 255), cs);
+                layer->paintDevice()->writeBytes(edit.data(), {12, 9, 1, 1});
                 layer->setDirty(image->bounds()); image->waitForDone(); sample();
             }
             QVERIFY(lifetime->saveAs(saved, KisDocument::nativeFormatMimeType(), false));
             lifetime->waitForSavingToComplete();
+            if (gpu && reopened) {
+                savedPixels.resize(32 * 16 * cs->pixelSize()); savedProjection.resize(savedPixels.size());
+                savedCoverage.resize(32 * 16);
+                layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(savedPixels.data()), {0, 0, 32, 16});
+                layer->projection()->readBytes(reinterpret_cast<quint8 *>(savedProjection.data()), {0, 0, 32, 16});
+                const auto maskView = qobject_cast<KisTransparencyMask *>(layer->firstChild().data()); QVERIFY(maskView);
+                maskView->selection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(savedCoverage.data()), {0, 0, 32, 16});
+            }
+        }
+        if (gpu) {
+            // The existing native reader must recover a GPU save's mask,
+            // including its global default, and exact editable paint pixels.
+            qputenv("LIBREPAINT_GPU_ENGINE", "0");
+            QScopedPointer<KisDocument> native(KisPart::instance()->createDocument());
+            native->setFileBatchMode(true); native->setAutoSaveActive(false);
+            QVERIFY2(native->openPath(saved, KisDocument::DontAddToRecent), qPrintable(native->errorMessage()));
+            auto decoded = KisImageSP(native->image()); decoded->waitForDone();
+            QVERIFY(!decoded->gpuImage());
+            auto layer = decoded->root()->firstChild(); QVERIFY(layer);
+            const auto mask = qobject_cast<KisTransparencyMask *>(layer->firstChild().data()); QVERIFY(mask);
+            QCOMPARE(mask->selection()->pixelSelection()->defaultPixel().opacityU8(), quint8(maskDefault));
+            QByteArray pixels(savedPixels.size(), '\0'), projection(savedProjection.size(), '\0'), coverage(savedCoverage.size(), '\0');
+            layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), {0, 0, 32, 16});
+            layer->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), {0, 0, 32, 16});
+            mask->selection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(coverage.data()), {0, 0, 32, 16});
+            QCOMPARE(pixels, savedPixels); QCOMPARE(projection, savedProjection); QCOMPARE(coverage, savedCoverage);
         }
     }
 }

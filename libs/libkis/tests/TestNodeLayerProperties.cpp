@@ -34,6 +34,7 @@
 #include <kis_config.h>
 #include <kis_image.h>
 #include <kis_group_layer.h>
+#include <kis_layer_utils.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_transparency_mask.h>
@@ -692,7 +693,7 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen_data()
     QTest::addColumn<int>("maskDefault");
     QTest::addColumn<bool>("sourceDefault");
     for (bool words : {false, true}) for (int maskDefault : {0, 17, 255}) for (bool sourceDefault : {false, true}) {
-        const auto name = QByteArray(words ? "u16" : "u8") + "-mask" + QByteArray::number(maskDefault) + (sourceDefault ? "-default" : "-transparent");
+        const QByteArray name = QByteArray(words ? "u16" : "u8") + "-mask" + QByteArray::number(maskDefault) + (sourceDefault ? "-default" : "-transparent");
         QTest::newRow(name.constData()) << words << maskDefault << sourceDefault;
     }
 }
@@ -721,12 +722,13 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
     QList<QRect> referenceBounds;
     for (bool gpu : {false, true}) {
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        qInfo() << "Masked projection backend" << (gpu ? "GPU" : "native");
         QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
         document->setFileBatchMode(true); document->setAutoSaveActive(false);
         QVERIFY(document->newImage(QStringLiteral("Masked projection"), 32, 16, cs,
             KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
         auto image = KisImageSP(document->image());
-        const auto layer = image->root()->lastChild();
+        auto layer = image->root()->lastChild();
         QScopedPointer<Node> node(Node::createNode(image, layer));
         node->setLocked(false); node->setVisible(true); node->setOpacity(85);
         QVERIFY(node->setPixelData(source, -2, 3, 8, 1));
@@ -734,18 +736,25 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
         if (sourceDefault) layer->paintDevice()->setDefaultPixel(KoColor(QColor(11, 63, 129, 127), cs));
         Document api(document.data(), false);
         QScopedPointer<TransparencyMask> mask(api.createTransparencyMask(QStringLiteral("Coverage")));
-        Selection coverage;
         const quint8 defaultCoverage = maskDefault;
-        coverage.selection()->pixelSelection()->setDefaultPixel(KoColor(&defaultCoverage, KoColorSpaceRegistry::instance()->alpha8()));
+        KisSelectionSP coverageValues = new KisSelection;
+        coverageValues->pixelSelection()->setDefaultPixel(KoColor(&defaultCoverage, KoColorSpaceRegistry::instance()->alpha8()));
+        Selection coverage(coverageValues);
         coverage.setPixelData(QByteArray::fromHex("000180ff000180ff"), -2, 3, 8, 1);
         mask->setSelection(&coverage);
         QVERIFY(node->addChildNode(mask.data(), nullptr));
-        const auto settle = [&] { layer->setDirty(image->bounds() | QRect(-64, -64, 192, 192)); image->waitForDone(); };
+        const auto settle = [&] {
+            layer->setDirty(image->bounds() | QRect(-64, -64, 192, 192));
+            if (!gpu) KisLayerUtils::forceAllDelayedNodesUpdate(image->root());
+            image->waitForDone();
+            QTRY_VERIFY(image->isIdle());
+        };
         settle();
         auto projection = layer->projection();
         QVERIFY(projection);
         int stage = 0;
         const auto check = [&] {
+            const int currentStage = stage++;
             const auto pixels = node->projectionPixelData(-3, 2, 10, 3);
             QByteArray retained(10 * 3 * cs->pixelSize(), '\0');
             projection->readBytes(reinterpret_cast<quint8 *>(retained.data()), {-3, 2, 10, 3});
@@ -758,15 +767,19 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
             if (!results.isEmpty()) {
                 QVERIFY(QDir().mkpath(results));
                 QFile output(QDir(results).filePath(QStringLiteral("masked-projection-%1-%2-%3.bin")
-                    .arg(QString::fromLatin1(QTest::currentDataTag()), gpu ? QStringLiteral("gpu") : QStringLiteral("native")).arg(stage)));
+                    .arg(QString::fromLatin1(QTest::currentDataTag()), gpu ? QStringLiteral("gpu") : QStringLiteral("native")).arg(currentStage)));
                 QVERIFY(output.open(QIODevice::WriteOnly)); QCOMPARE(output.write(state), state.size());
             }
+            const auto maskView = qobject_cast<KisTransparencyMask *>(layer->firstChild().data());
+            QVERIFY(maskView);
+            QByteArray coverageBytes(8, '\0');
+            maskView->selection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(coverageBytes.data()), {-2, 3, 8, 1});
+            qInfo() << "Projection stage" << currentStage << "coverage" << coverageBytes.toHex();
             if (!gpu) reference.append(state);
-            else QCOMPARE(state, reference.value(stage));
+            else QCOMPARE(state, reference.value(currentStage));
             const auto bounds = projection->exactBounds();
             if (!gpu) referenceBounds.append(bounds);
-            else QCOMPARE(bounds, referenceBounds.value(stage));
-            ++stage;
+            else QCOMPARE(bounds, referenceBounds.value(currentStage));
         };
         check();
         if (const auto owner = image->gpuImage()) {
@@ -779,8 +792,9 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
             QCOMPARE(owner->execution().requested(owner->handle()), fixed);
         }
         QVERIFY(node->projectionPixelData(-2, 3, 8, 1) != source);
-        Selection replacement;
-        replacement.selection()->pixelSelection()->setDefaultPixel(KoColor(&defaultCoverage, KoColorSpaceRegistry::instance()->alpha8()));
+        KisSelectionSP replacementValues = new KisSelection;
+        replacementValues->pixelSelection()->setDefaultPixel(KoColor(&defaultCoverage, KoColorSpaceRegistry::instance()->alpha8()));
+        Selection replacement(replacementValues);
         replacement.setPixelData(QByteArray::fromHex("ff800100ff800100"), -2, 3, 8, 1);
         mask->setSelection(&replacement); settle(); check();
         QVERIFY(mask->remove()); image->waitForDone();
@@ -793,7 +807,12 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
         const auto identity = node->uniqueId();
         QTemporaryDir directory; QVERIFY(directory.isValid());
         const auto path = directory.filePath(QStringLiteral("masked-projection.kra"));
-        QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+        if (!gpu) KisLayerUtils::forceAllDelayedNodesUpdate(image->root());
+        image->waitForDone();
+        QTRY_VERIFY(image->isIdle());
+        QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false),
+            qPrintable(QStringLiteral("backend=%1: %2; idle=%3 locked=%4 saving=%5").arg(gpu ? QStringLiteral("GPU") : QStringLiteral("native"), document->errorMessage())
+                .arg(image->isIdle()).arg(image->locked()).arg(document->isSaving())));
         document->waitForSavingToComplete();
         QVERIFY(document->openPath(path, KisDocument::DontAddToRecent));
         image = document->image(); image->waitForDone();
@@ -804,6 +823,7 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
         QCOMPARE(loaded->pixelData(-2, 4, 8, 1), source);
         QCOMPARE(image->root()->lastChild()->uuid(), identity);
         image->root()->lastChild()->setDirty(image->bounds() | QRect(-64, -64, 192, 192)); image->waitForDone();
+        QTRY_VERIFY(image->isIdle());
         const auto edited = loaded->projectionPixelData(-2, 4, 8, 1);
         if (!gpu) reference.append(edited);
         else QCOMPARE(edited, reference.value(stage));

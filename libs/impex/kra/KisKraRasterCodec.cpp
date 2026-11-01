@@ -190,13 +190,25 @@ bool integer(const QDomElement &element, const QString &name, int &value, const 
 Outcome transparencyMaskElement(const QDomElement &layer, QDomElement &mask)
 {
     mask = {};
-    for (auto child = layer.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
+    const auto append = [&](const QDomElement &child) -> Outcome {
         if (child.tagName() != QLatin1String("mask") ||
             child.attribute(QStringLiteral("nodetype")) != QLatin1String("transparencymask"))
             return unsupported(QStringLiteral("KRA paint layers support one transparency mask child"));
         if (!mask.isNull())
             return unsupported(QStringLiteral("KRA paint layers support only one transparency mask"));
         mask = child;
+        return {Status::Success, {}};
+    };
+    for (auto child = layer.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
+        if (child.tagName() == QLatin1String("masks")) {
+            for (auto nested = child.firstChildElement(); !nested.isNull(); nested = nested.nextSiblingElement()) {
+                const auto result = append(nested);
+                if (result.code != Status::Success) return result;
+            }
+        } else {
+            const auto result = append(child);
+            if (result.code != Status::Success) return result;
+        }
     }
     return {Status::Success, {}};
 }
@@ -701,9 +713,12 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             QString maskFilename = maskElement.isNull() ? QString() : maskElement.attribute(QStringLiteral("filename"));
             if (!layer.transparencyMask) {
                 if (!maskElement.isNull()) {
-                    element.removeChild(maskElement);
+                    auto parent = maskElement.parentNode();
+                    parent.removeChild(maskElement);
+                    if (parent.nodeName() == QLatin1String("masks") && !parent.hasChildNodes()) element.removeChild(parent);
                     const auto maskPath = folder + QStringLiteral("/layers/") + maskFilename;
                     files.remove(maskPath + QStringLiteral(".pixelselection"));
+                    files.remove(maskPath + QStringLiteral(".pixelselection.defaultpixel"));
                     files.remove(maskPath + QStringLiteral(".defaultpixel"));
                     files.remove(maskPath + QStringLiteral(".xmp.metadata"));
                 }
@@ -716,8 +731,13 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                         maskFilename = base + QString::number(suffix);
                     filenames.insert(maskFilename);
                     maskElement = xml.createElement(QStringLiteral("mask"));
-                    element.appendChild(maskElement);
                 }
+                auto masks = element.firstChildElement(QStringLiteral("masks"));
+                if (masks.isNull()) {
+                    masks = xml.createElement(QStringLiteral("masks"));
+                    element.appendChild(masks);
+                }
+                if (maskElement.parentNode() != masks) masks.appendChild(maskElement);
                 if (!component(maskFilename)) return invalid(QStringLiteral("Invalid KRA transparency mask identity"));
                 QUuid maskUuid = layer.transparencyMaskUuid.isNull() ?
                     QUuid(maskElement.attribute(QStringLiteral("uuid"))) : layer.transparencyMaskUuid;
@@ -746,7 +766,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                 maskElement.setAttribute(QStringLiteral("x"), QString::number(maskOffset.x()));
                 maskElement.setAttribute(QStringLiteral("y"), QString::number(maskOffset.y()));
                 files.insert(maskPath + QStringLiteral(".pixelselection"), std::move(maskPixels));
-                files.insert(maskPath + QStringLiteral(".defaultpixel"), QByteArray(1, char(layer.transparencyMask->defaultCoverage())));
+                files.insert(maskPath + QStringLiteral(".pixelselection.defaultpixel"), QByteArray(1, char(layer.transparencyMask->defaultCoverage())));
+                files.remove(maskPath + QStringLiteral(".defaultpixel"));
                 files.remove(maskPath + QStringLiteral(".xmp.metadata"));
             }
         }
@@ -925,6 +946,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         if (transparencyMaskElement(old.value(), oldMask).code == Status::Success && !oldMask.isNull()) {
             const auto maskPath = folder + QStringLiteral("/layers/") + oldMask.attribute(QStringLiteral("filename"));
             files.remove(maskPath + QStringLiteral(".pixelselection"));
+            files.remove(maskPath + QStringLiteral(".pixelselection.defaultpixel"));
             files.remove(maskPath + QStringLiteral(".defaultpixel"));
             files.remove(maskPath + QStringLiteral(".xmp.metadata"));
         }
@@ -1574,8 +1596,13 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                     return fail(invalid(QStringLiteral("Invalid KRA transparency mask values")));
                 const auto maskPath = folder + QStringLiteral("/layers/") + maskFilename;
                 quint8 maskDefaultPixel = 0;
-                if (document.files.contains(maskPath + QStringLiteral(".defaultpixel"))) {
-                    const auto pixel = document.files.value(maskPath + QStringLiteral(".defaultpixel"));
+                const auto defaultPath = maskPath + QStringLiteral(".pixelselection.defaultpixel");
+                const auto previousDefaultPath = maskPath + QStringLiteral(".defaultpixel");
+                if (document.files.contains(defaultPath) && document.files.contains(previousDefaultPath) &&
+                    document.files.value(defaultPath) != document.files.value(previousDefaultPath))
+                    return fail(invalid(QStringLiteral("Conflicting KRA transparency mask default pixels")));
+                if (document.files.contains(defaultPath) || document.files.contains(previousDefaultPath)) {
+                    const auto pixel = document.files.value(document.files.contains(defaultPath) ? defaultPath : previousDefaultPath);
                     if (pixel.size() != 1)
                         return fail(invalid(QStringLiteral("Invalid KRA transparency mask default pixel")));
                     maskDefaultPixel = quint8(pixel.front());
@@ -1604,6 +1631,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                 layer.transparencyMaskVisible = maskVisible == QLatin1String("1");
                 layer.transparencyMaskLocked = maskLocked == QLatin1String("1");
                 document.files.remove(maskPath + QStringLiteral(".pixelselection"));
+                document.files.remove(defaultPath);
                 document.files.remove(maskPath + QStringLiteral(".defaultpixel"));
             }
             document.files.remove(path);
