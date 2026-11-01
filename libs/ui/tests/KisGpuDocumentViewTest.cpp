@@ -9228,11 +9228,16 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 }
                 nativeLayer->setTemporaryTarget({});
                 nativeImage->waitForDone();
-                KisPaintDeviceSP destination = new KisPaintDevice(cs);
-                KisPainter merge(destination);
-                merge.setOpacityF(incrementalPencil ? 1 : .7);
-                for (const auto &rect : nativeLayer->paintDevice()->region().rects())
-                    merge.bitBlt(rect.topLeft(), nativeLayer->paintDevice(), rect);
+                // BUILDUP's reference is the directly painted layer, including
+                // RGB at zero alpha. WASH merges its source with canvas opacity.
+                KisPaintDeviceSP destination = nativeLayer->paintDevice();
+                if (!incrementalPencil) {
+                    destination = new KisPaintDevice(cs);
+                    KisPainter merge(destination);
+                    merge.setOpacityF(.7);
+                    for (const auto &rect : nativeLayer->paintDevice()->region().rects())
+                        merge.bitBlt(rect.topLeft(), nativeLayer->paintDevice(), rect);
+                }
                 QByteArray expected(size.width() * size.height() * pixelBytes, Qt::Uninitialized);
                 destination->readBytes(reinterpret_cast<quint8 *>(expected.data()), QRect(QPoint(), size));
                 QString diagnostic;
@@ -9264,7 +9269,7 @@ void KisGpuDocumentViewTest::standardAutoBrushPresetsKeepOrdinaryEditing()
                 QCOMPARE(pressureOwner->appendSamples(operation, pressureSamples), Gpu::Result::Success);
                 QCOMPARE(pressureOwner->commitStroke(operation), Gpu::Result::Success);
                 const auto readback = pressureOwner->readRgbaPixels(pressureOwner->operations().activeLayer(), QRect(QPoint(), size), expected.size());
-                QCOMPARE(readback.code, Gpu::ExecutionCode::Success);
+                QVERIFY2(readback.code == Gpu::ExecutionCode::Success, qPrintable(readback.diagnostic));
                 auto actual = readback.bytes;
                 for (qsizetype i = 0; i < actual.size(); i += pixelBytes)
                     for (int byte = 0; byte < channelBytes; ++byte) std::swap(actual[i + byte], actual[i + 2 * channelBytes + byte]);

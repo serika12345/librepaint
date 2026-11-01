@@ -7,6 +7,7 @@
 #include <QPainterPath>
 #include <QTransform>
 #include <QVector2D>
+#include <QDebug>
 #include <boost/random/taus88.hpp>
 #include <boost/random/uniform_smallint.hpp>
 #include <algorithm>
@@ -148,7 +149,10 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             scale * std::max(1, int(brush.diameter * brush.autoBrush->ratio)) < .01 :
                                                   scale * diameter < .01;
         if (tooSmall) { spacing = {.5, .5}; return true; }
-        if (count >= PaintGeometryElementLimit) return false;
+        if (count >= PaintGeometryElementLimit) {
+            qWarning() << "GPU brush dab count exceeds the geometry limit" << count;
+            return false;
+        }
         qreal sensorRotation = point.canvasRotation * M_PI / 180.;
         if (brush.autoBrush && brush.autoBrush->constantRotation) {
             // Preserve the native wrap before converting checked rotation to radians.
@@ -298,7 +302,10 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                     const qreal alpha = (dx * a) * (dx * a) + (dy * b) * (dy * b);
                     const qreal beta = x * dx * a * a + y * dy * b * b;
                     const qreal discriminant = beta * beta - alpha * gamma;
-                    if (discriminant < 0) return false;
+                    if (discriminant < 0) {
+                        qWarning() << "GPU brush elliptical spacing has no solution" << first.position << last.position;
+                        return false;
+                    }
                     fraction = (-beta + std::sqrt(discriminant)) / alpha;
                     if (fraction < 0 || fraction > 1) { accumulated += QPointF(dx, dy); return true; }
                 }
@@ -311,7 +318,10 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             first.yTilt = (1 - fraction) * first.yTilt + fraction * last.yTilt;
             accumulated = {};
             if (!paintLineDab(first)) return false;
-            if (first.position == previous && fraction != 0) return false;
+            if (first.position == previous && fraction != 0) {
+                qWarning() << "GPU brush spacing made no progress" << first.position << last.position << fraction;
+                return false;
+            }
         }
         return true;
     };
