@@ -296,6 +296,9 @@ public:
     Result reorderLayers(const QList<LayerId> &order);
     Result moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid,
                       LayerId activeRoot = 0);
+    Result groupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &groupName,
+                       const QString &clippingLayerName = {});
+    Result ungroupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &replacementName = {});
     Result removeLayer(LayerId layer);
     Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
     /** Clears whole layers atomically while retained versions remain readable. */

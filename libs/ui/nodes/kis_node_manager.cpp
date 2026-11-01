@@ -1948,6 +1948,93 @@ void KisNodeManager::ClipboardAccess::insertMimeLayersAsLastChild(KisNodeManager
                                   clearPixelSelection);
 }
 
+bool KisNodeManager::QuickGroupAccess::handleGpuGroup(KisNodeManager *manager, bool clipping)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto image = manager->m_d->view ? KisImageSP(manager->m_d->view->image()) : KisImageSP();
+    const auto owner = image ? image->gpuImage() : nullptr;
+    if (!owner) return false;
+    auto active = manager->activeNode();
+    if (!active || !manager->canMoveLayer(active)) return true;
+    auto nodes = KisLayerUtils::sortMergeableNodes(image->root(), manager->selectedNodes());
+    KisLayerUtils::filterMergeableNodes(nodes);
+    if (nodes.isEmpty()) return true;
+    if (KisLayerUtils::checkIsChildOf(active, nodes)) active = nodes.first();
+    const auto version = owner->operations().snapshot();
+    QList<Gpu::LayerId> roots;
+    Gpu::LayerId activeId = 0;
+    for (const auto &layer : version->layers) if (layer.uuid == active->uuid()) activeId = layer.id;
+    for (const auto &node : nodes) {
+        if (!node || node->image() != image.data() || !node->parent() || KisLayerUtils::findRoot(node) != image->root()) {
+            ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+            return true;
+        }
+        const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &layer) { return layer.uuid == node->uuid(); });
+        if (found == version->layers.cend()) {
+            ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+            return true;
+        }
+        roots.append(found->id);
+    }
+    const auto groupName = image->nextLayerName(clipping ?
+        i18nc("default name for a clipping group layer", "Clipping Group") : i18nc("A group of layers", "Group"));
+    const auto maskName = clipping ? i18nc("default name for quick clip group mask layer", "Mask Layer") : QString();
+    const QPointer<KisNodeManager> guard(manager);
+    const auto result = owner->groupLayers(roots, activeId, groupName, maskName);
+    if (guard && result != Gpu::Result::Success)
+        ModificationAccess::showWarning(manager, i18n("The selected layers could not be grouped. Check the layer hierarchy and finish the active operation before trying again."));
+    return true;
+}
+
+bool KisNodeManager::QuickGroupAccess::handleGpuUngroup(KisNodeManager *manager)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto image = manager->m_d->view ? KisImageSP(manager->m_d->view->image()) : KisImageSP();
+    const auto owner = image ? image->gpuImage() : nullptr;
+    if (!owner) return false;
+    const auto active = manager->activeNode();
+    if (!active || !manager->canModifyLayer(active)) return true;
+    const bool activeGroup = bool(qobject_cast<KisGroupLayer *>(active.data()));
+    auto destination = active->parent();
+    KisNodeList nodes;
+    if (activeGroup) {
+        for (auto child = active->firstChild(); child; child = child->nextSibling()) nodes.append(child);
+    } else {
+        if (!destination || !destination->parent()) return true;
+        destination = destination->parent();
+        nodes = manager->selectedNodes();
+    }
+    if (!destination) return true;
+    for (const auto &node : nodes) {
+        if (!destination->allowAsChild(node)) {
+            const auto message = destination->parent() ?
+                i18n("Cannot move layer \"%1\" into new parent \"%2\"", node->name(), destination->name()) :
+                i18n("Cannot move layer \"%1\" into the root layer", node->name());
+            showFloatingMessage(manager, message);
+            return true;
+        }
+    }
+    const auto version = owner->operations().snapshot();
+    QList<Gpu::LayerId> moving;
+    Gpu::LayerId activeId = 0;
+    for (const auto &layer : version->layers) {
+        if (layer.uuid == active->uuid()) activeId = layer.id;
+        if (!activeGroup && std::any_of(nodes.cbegin(), nodes.cend(),
+            [&](const auto &node) { return node && node->uuid() == layer.uuid; })) moving.append(layer.id);
+    }
+    if (!activeId || (!activeGroup && moving.size() != nodes.size())) {
+        ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+        return true;
+    }
+    const auto replacement = activeGroup && nodes.isEmpty() && version->layers.size() == 1 ? image->nextLayerName() : QString();
+    const QPointer<KisNodeManager> guard(manager);
+    const auto result = owner->ungroupLayers(moving, activeId, replacement);
+    if (guard && result != Gpu::Result::Success)
+        ModificationAccess::showWarning(manager, i18n("The selected layers could not be ungrouped. Check the layer hierarchy and finish the active operation before trying again."));
+    return true;
+}
+
 KisNodeOperationBatch *KisNodeManager::QuickGroupAccess::operationBatch(KisNodeManager *manager,
                                                                         const KUndo2MagicString &actionName)
 {

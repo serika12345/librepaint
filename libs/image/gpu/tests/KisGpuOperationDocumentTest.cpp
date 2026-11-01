@@ -95,6 +95,9 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void groupingKeepsFrozenPixelsAndSingleHistory_data();
+    void groupingKeepsFrozenPixelsAndSingleHistory();
+    void ungroupingMasksAndRejectedGroupsPreserveState();
     void painterPrimitivesKeepStartsTimesAndAtomicRejection();
     void selectedClearKeepsOneAtomicHistoryAndFrozenCoverage();
     void colorConversionAdmissionAndCapacityPreserveVersion();
@@ -1032,6 +1035,138 @@ void KisGpuOperationDocumentTest::nestedRemovalOwnsDescendantsAndOneHistoryStep(
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), fixed);
     QCOMPARE(document.redo(), Result::Success);
+}
+
+void KisGpuOperationDocumentTest::groupingKeepsFrozenPixelsAndSingleHistory_data()
+{
+    QTest::addColumn<bool>("clipping");
+    QTest::addColumn<bool>("outsideActive");
+    QTest::newRow("group") << false << false;
+    QTest::newRow("clipping-group") << true << false;
+    QTest::newRow("group-outside-active") << false << true;
+    QTest::newRow("clipping-outside-active") << true << true;
+}
+
+void KisGpuOperationDocumentTest::groupingKeepsFrozenPixelsAndSingleHistory()
+{
+    QFETCH(bool, clipping);
+    QFETCH(bool, outsideActive);
+    auto input = nestedImage();
+    auto other = rasterImage().layers.last();
+    other.visible = true;
+    input.layers.append(other);
+    OperationDocument document(input);
+    const auto stroke = document.beginStroke(1, Brush{}, 17);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(10, 12), sample(20, 18)}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const LayerId active = outsideActive ? 3 : 2;
+    const auto expectedParent = outsideActive ? QUuid() : input.layers[2].uuid;
+    QCOMPARE(document.selectLayers({2, 4}, active), Result::Success);
+    const auto before = document.snapshot();
+    const auto history = document.undoCount();
+    QCOMPARE(document.groupLayers({2, 4}, active, QStringLiteral("Group"), clipping ? QStringLiteral("Mask Layer") : QString()), Result::Success);
+    const auto grouped = document.snapshot();
+    QCOMPARE(document.undoCount(), history + 1);
+    QCOMPARE(document.historyAction(history + 1), clipping ? HistoryAction::CreateClippingGroup : HistoryAction::GroupLayers);
+    QCOMPARE(grouped->sampleCount, before->sampleCount);
+    QCOMPARE(grouped->rasterBytes, before->rasterBytes);
+    const auto group = std::find_if(grouped->layers.cbegin(), grouped->layers.cend(),
+        [](const Layer &layer) { return layer.id == 5; });
+    QVERIFY(group != grouped->layers.cend());
+    QCOMPARE(group->kind, LayerKind::Group);
+    QCOMPARE(group->parentUuid, expectedParent);
+    for (const auto &old : before->layers) {
+        const auto found = std::find_if(grouped->layers.cbegin(), grouped->layers.cend(),
+            [&](const Layer &layer) { return layer.id == old.id; });
+        QVERIFY(found != grouped->layers.cend());
+        QCOMPARE(found->uuid, old.uuid);
+        QVERIFY(found->operations == old.operations);
+        QCOMPARE(found->defaultPixel, old.defaultPixel);
+        QCOMPARE(found->position, old.position);
+        QCOMPARE(found->parentUuid, old.id == 2 || old.id == 4 ? group->uuid : old.parentUuid);
+    }
+    QCOMPARE(grouped->activeLayer, LayerId(clipping ? 6 : 2));
+    QCOMPARE(grouped->selectedLayers, clipping ? QList<LayerId>{6} : (QList<LayerId>{2, 4}));
+    if (clipping) {
+        const auto &mask = grouped->layers.last();
+        QCOMPARE(mask.id, LayerId(6));
+        QCOMPARE(mask.parentUuid, group->uuid);
+        QCOMPARE(mask.projectionChannelMask, quint8(7));
+        QVERIFY(mask.operations.isEmpty());
+    }
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), grouped);
+    QCOMPARE(document.ungroupLayers({}, 5), Result::Success);
+    const auto ungrouped = document.snapshot();
+    QCOMPARE(document.undoCount(), history + 2);
+    QCOMPARE(document.historyAction(history + 2), HistoryAction::UngroupLayers);
+    QCOMPARE(ungrouped->sampleCount, before->sampleCount);
+    QCOMPARE(ungrouped->rasterBytes, before->rasterBytes);
+    for (const auto &layer : ungrouped->layers) {
+        QVERIFY(layer.id != 5);
+        if (layer.id == 2 || layer.id == 4 || layer.id == 6) QCOMPARE(layer.parentUuid, expectedParent);
+    }
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), grouped);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), ungrouped);
+}
+
+void KisGpuOperationDocumentTest::ungroupingMasksAndRejectedGroupsPreserveState()
+{
+    auto input = nestedImage();
+    auto &maskedLayer = input.layers[0];
+    maskedLayer.transparencyMask = SelectionMask::fromAlphaCoverage(QRect(0, 0, 4, 4), QByteArray(16, char(73)), QRect(0, 0, 32, 32));
+    maskedLayer.transparencyMaskUuid = QUuid::createUuid();
+    maskedLayer.transparencyMaskName = QStringLiteral("Retained mask");
+    maskedLayer.transparencyMaskColorLabelIndex = 5;
+    maskedLayer.transparencyMaskPinnedToTimeline = true;
+    maskedLayer.transparencyMaskVisible = false;
+    maskedLayer.transparencyMaskLocked = true;
+    OperationDocument document(input);
+    const auto before = document.snapshot();
+    QCOMPARE(document.ungroupLayers({}, 2), Result::Success);
+    const auto after = document.snapshot();
+    QCOMPARE(after->layers.size(), 2);
+    const auto paintLayer = std::find_if(after->layers.cbegin(), after->layers.cend(),
+        [](const Layer &layer) { return layer.id == 1; });
+    QVERIFY(paintLayer != after->layers.cend());
+    QCOMPARE(paintLayer->parentUuid, input.layers[2].uuid);
+    QCOMPARE(paintLayer->transparencyMask, maskedLayer.transparencyMask);
+    QCOMPARE(paintLayer->transparencyMaskUuid, maskedLayer.transparencyMaskUuid);
+    QCOMPARE(paintLayer->transparencyMaskName, maskedLayer.transparencyMaskName);
+    QCOMPARE(paintLayer->transparencyMaskColorLabelIndex, 5);
+    QVERIFY(paintLayer->transparencyMaskPinnedToTimeline);
+    QVERIFY(!paintLayer->transparencyMaskVisible);
+    QVERIFY(paintLayer->transparencyMaskLocked);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.groupLayers({1, 1}, 1, QStringLiteral("Invalid")), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.redoCount(), 1);
+    const auto edit = document.beginStroke(1, Brush{}, 17);
+    QVERIFY(!edit.isNull());
+    QCOMPARE(document.groupLayers({1}, 1, QStringLiteral("Busy")), Result::EditInProgress);
+    QCOMPARE(document.ungroupLayers({}, 2), Result::EditInProgress);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.cancelStroke(edit), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), after);
+    Limits limits;
+    limits.layerCount = input.layers.size();
+    OperationDocument bounded(input, limits);
+    const auto fixed = bounded.snapshot();
+    QCOMPARE(bounded.groupLayers({1}, 1, QStringLiteral("Capacity")), Result::CapacityExceeded);
+    QCOMPARE(bounded.snapshot(), fixed);
+    QCOMPARE(bounded.undoCount(), 0);
+    input.layers[2].userLocked = true;
+    OperationDocument protectedParent(input);
+    const auto protectedVersion = protectedParent.snapshot();
+    QCOMPARE(protectedParent.ungroupLayers({}, 2), Result::LayerUnavailable);
+    QCOMPARE(protectedParent.snapshot(), protectedVersion);
 }
 
 void KisGpuOperationDocumentTest::nestedDuplicationCopiesSubtreePixelsAndIndependentParents()

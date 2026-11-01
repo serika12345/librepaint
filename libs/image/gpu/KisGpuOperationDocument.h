@@ -911,7 +911,8 @@ enum class HistoryAction {
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
     ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
     ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors,
-    Grayscale, HsvAdjustment, ConvertColorSpace, MoveSelectionPixels, TransformLayer
+    Grayscale, HsvAdjustment, ConvertColorSpace, MoveSelectionPixels, TransformLayer,
+    GroupLayers, CreateClippingGroup, UngroupLayers
 };
 
 struct Limits
@@ -1172,6 +1173,17 @@ public:
      */
     Result moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid,
                       LayerId activeRoot = 0);
+    /** Groups filtered roots above activeRoot without replacing their pixels or
+     * identities. An optional clipping name adds the native inherit-alpha paint
+     * layer. The complete operation, including selection, is one undo step.
+     */
+    Result groupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &groupName,
+                       const QString &clippingLayerName = {});
+    /** Ungroups the active group, or moves selected roots out of its parent.
+     * A replacement name supplies the native last-layer removal behavior.
+     * Admission failure preserves the entire hierarchy and both history branches.
+     */
+    Result ungroupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &replacementName = {});
     /** Removes a layer and its descendants; selection follows the nearest remaining list position. */
     Result removeLayer(LayerId layer);
     /** Removes a set atomically in one history entry. Selection follows the
@@ -1290,11 +1302,13 @@ private:
         bool movedSelectionPixels = false;
         bool translatedLayers = false;
         bool transformedLayers = false;
+        HistoryAction groupingAction = HistoryAction::None;
         /** Adds or removes one layer's transparency mask in its retained version. */
         bool addedTransparencyMask = false;
         bool removedTransparencyMask = false;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
+    std::unique_ptr<OperationDocument> layerGroupingDraft() const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,
                           const RasterLayer &properties, qsizetype index, bool activate = true);
     std::unique_ptr<OperationDocument> cloneVersion(const Snapshot &source, bool preserveLayerUuids,

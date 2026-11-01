@@ -34,6 +34,7 @@ bool KisNodeManager::createQuickGroupImpl(KisNodeOperationBatch *batch,
 
 void KisNodeManager::createQuickGroup()
 {
+    if (QuickGroupAccess::handleGpuGroup(this, false)) return;
     KisNodeOperationBatch *batch = QuickGroupAccess::operationBatch(this, kundo2_i18n("Quick Group"));
 
     KisNodeSP parent;
@@ -43,6 +44,7 @@ void KisNodeManager::createQuickGroup()
 
 void KisNodeManager::createQuickClippingGroup()
 {
+    if (QuickGroupAccess::handleGpuGroup(this, true)) return;
     KisNodeOperationBatch *batch = QuickGroupAccess::operationBatch(this, kundo2_i18n("Quick Clipping Group"));
 
     KisNodeSP parent;
@@ -60,6 +62,7 @@ void KisNodeManager::createQuickClippingGroup()
 
 void KisNodeManager::quickUngroup()
 {
+    if (QuickGroupAccess::handleGpuUngroup(this)) return;
     const KisNodeSP active = QuickGroupAccess::activeNode(this);
     if (!active || !QuickGroupAccess::canModifyLayer(this, active)) {
         return;

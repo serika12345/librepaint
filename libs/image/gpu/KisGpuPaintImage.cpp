@@ -1213,6 +1213,11 @@ Result PaintImage::moveLayers(const QList<LayerId> &layers, const QUuid &parentU
     const auto result = m_d->document->moveLayers(layers, parentUuid, aboveUuid, activeRoot);
     return m_d->document->snapshot() == before ? result : publish(result);
 }
+Result PaintImage::groupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &groupName,
+                              const QString &clippingLayerName)
+{ return onThread() ? publish(m_d->document->groupLayers(layers, activeRoot, groupName, clippingLayerName)) : Result::InvalidInput; }
+Result PaintImage::ungroupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &replacementName)
+{ return onThread() ? publish(m_d->document->ungroupLayers(layers, activeRoot, replacementName)) : Result::InvalidInput; }
 Result PaintImage::removeLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
 Result PaintImage::removeLayers(const QList<LayerId> &layers, const QString &replacementName)

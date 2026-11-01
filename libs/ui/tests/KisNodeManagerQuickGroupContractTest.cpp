@@ -157,6 +157,9 @@ void KisNodeManager::QuickGroupAccess::addClippingMask(KisNodeManager *,
     clippingMaskNames.append(maskName);
 }
 
+bool KisNodeManager::QuickGroupAccess::handleGpuGroup(KisNodeManager *, bool) { return false; }
+bool KisNodeManager::QuickGroupAccess::handleGpuUngroup(KisNodeManager *) { return false; }
+
 bool KisNodeManager::QuickGroupAccess::canModifyLayer(KisNodeManager *, KisNodeSP node)
 {
     canModifyRequests.append(node);

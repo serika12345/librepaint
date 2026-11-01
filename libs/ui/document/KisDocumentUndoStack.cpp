@@ -26,6 +26,9 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::MoveLayer: return kundo2_i18n("Move layer");
     case HistoryAction::TranslateLayer: return kundo2_i18n("Move");
     case HistoryAction::TransformLayer: return kundo2_i18n("Transform");
+    case HistoryAction::GroupLayers: return kundo2_i18n("Quick Group");
+    case HistoryAction::CreateClippingGroup: return kundo2_i18n("Quick Clipping Group");
+    case HistoryAction::UngroupLayers: return kundo2_i18n("Quick Ungroup");
     case HistoryAction::MoveSelectionPixels: return kundo2_i18n("Move Selection");
     case HistoryAction::RenameLayer: return kundo2_i18n("Rename layer");
     case HistoryAction::ChangeOpacity: return kundo2_i18n("Change layer opacity");

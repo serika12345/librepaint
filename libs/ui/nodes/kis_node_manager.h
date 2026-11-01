@@ -554,6 +554,8 @@ protected:
     };
 
     struct KRITAUI_EXPORT QuickGroupAccess {
+        static bool handleGpuGroup(KisNodeManager *manager, bool clipping);
+        static bool handleGpuUngroup(KisNodeManager *manager);
         static KisNodeOperationBatch *operationBatch(KisNodeManager *manager, const KUndo2MagicString &actionName);
         static KisNodeSP activeNode(KisNodeManager *manager);
         static bool canMoveLayer(KisNodeManager *manager, KisNodeSP node);

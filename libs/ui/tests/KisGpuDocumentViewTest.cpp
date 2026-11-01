@@ -13,6 +13,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QDataStream>
 #include <QSpinBox>
 #include <QComboBox>
 #include <KisFigurePaintingOptions.h>
@@ -303,6 +304,8 @@ private Q_SLOTS:
     void canvasBackgroundFollowsPreferencesWithoutEditing();
     void standardAutoBrushPresetsKeepOrdinaryEditing_data();
     void standardAutoBrushPresetsKeepOrdinaryEditing();
+    void quickGroupsKeepPixelsHistoryAndSaving_data();
+    void quickGroupsKeepPixelsHistoryAndSaving();
     void stabilizedPresetsKeepOrdinaryEditing_data();
     void stabilizedPresetsKeepOrdinaryEditing();
     void stabilizerPrimitivesRetainIndependentLineStarts();
@@ -1334,6 +1337,169 @@ void KisGpuDocumentViewTest::layerPanelReordersSelectionWithOneHistoryEntry()
         original[i]->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
         QCOMPARE(actual, pixels[i]);
     }
+}
+
+void KisGpuDocumentViewTest::quickGroupsKeepPixelsHistoryAndSaving_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("clipping");
+    QTest::addColumn<bool>("outsideActive");
+    for (const bool gpu : {false, true}) for (const bool words : {false, true}) for (const bool clipping : {false, true}) {
+        const auto row = QByteArray(gpu ? "gpu-" : "native-") + (words ? "u16-" : "u8-") + (clipping ? "clipping" : "group");
+        QTest::newRow(row.constData()) << gpu << words << clipping << false;
+    }
+    QTest::newRow("native-u8-outside-active") << false << false << false << true;
+    QTest::newRow("gpu-u8-outside-active") << true << false << false << true;
+}
+
+void KisGpuDocumentViewTest::quickGroupsKeepPixelsHistoryAndSaving()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, words);
+    QFETCH(bool, clipping);
+    QFETCH(bool, outsideActive);
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const QRect area(0, 0, 32, 16);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setAutoSaveActive(false);
+    document->setFileBatchMode(true);
+    QVERIFY(document->newImage(QStringLiteral("Layer groups"), area.width(), area.height(), cs,
+                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, outsideActive ? 3 : 2, {}, 1));
+    auto image = KisImageSP(document->image());
+    const KisNodeList originals{image->root()->at(0), image->root()->at(1)};
+    originals[0]->setName(QStringLiteral("One")); originals[1]->setName(QStringLiteral("Two"));
+    const QList<KoColor> colors{KoColor(Qt::red, cs), KoColor(QColor(0, 0, 255, 128), cs)};
+    for (int i = 0; i < originals.size(); ++i) {
+        const auto pixels = QByteArray(reinterpret_cast<const char *>(colors[i].data()), cs->pixelSize()).repeated(area.width() * area.height());
+        originals[i]->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixels.constData()), area);
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get()); QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto close = qScopeGuard([&] {
+        if (lifetime) { lifetime->setModified(false); window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger(); }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotUiActivatedNode(outsideActive ? image->root()->at(2) : originals.last());
+    manager->slotSetSelectedNodes(originals);
+    const auto allNodes = [&] {
+        KisNodeList result;
+        for (auto child = image->root()->firstChild(); child; child = child->nextSibling()) result.append(child);
+        for (qsizetype i = 0; i < result.size(); ++i)
+            for (auto child = result[i]->firstChild(); child; child = child->nextSibling()) result.append(child);
+        return result;
+    };
+    const auto find = [&](const QUuid &uuid) {
+        for (const auto &node : allNodes()) if (node->uuid() == uuid) return node;
+        return KisNodeSP();
+    };
+    const auto selected = [&] {
+        QSet<QUuid> result;
+        for (const auto &node : manager->selectedNodes()) result.insert(node->uuid());
+        return result;
+    };
+    const auto pixels = [&](const KisNodeSP &node) {
+        QByteArray bytes(area.width() * area.height() * cs->pixelSize(), '\0');
+        const auto device = node == image->root() ? image->projection() : node->paintDevice();
+        device->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
+        return bytes;
+    };
+    const auto state = [&] {
+        QByteArray bytes;
+        QDataStream output(&bytes, QIODevice::WriteOnly);
+        for (const auto &node : allNodes()) {
+            output << node->uuid() << (node->parent() == image->root() ? QUuid() : node->parent()->uuid())
+                   << node->name() << QByteArray(node->metaObject()->className()) << node->x() << node->y()
+                   << node->opacity() << node->visible() << node->userLocked() << node->colorLabelIndex() << node->isPinnedToTimeline();
+            if (const auto layer = qobject_cast<KisLayer *>(node.data())) {
+                auto flags = layer->channelFlags();
+                if (flags.isEmpty()) flags.fill(true, layer->colorSpace()->channelCount());
+                output << flags;
+            }
+            if (const auto group = qobject_cast<KisGroupLayer *>(node.data())) output << group->passThroughMode();
+            if (qobject_cast<KisPaintLayer *>(node.data())) {
+                const auto value = node->paintDevice()->defaultPixel();
+                output << QByteArray(reinterpret_cast<const char *>(value.data()), value.colorSpace()->pixelSize()) << pixels(node);
+            }
+        }
+        return bytes;
+    };
+    const auto before = state();
+    const auto beforeProjection = pixels(image->root());
+    const auto history = lifetime->undoStack()->count();
+    auto *action = window->viewManager()->actionManager()->actionByName(clipping ?
+        QStringLiteral("create_quick_clipping_group") : QStringLiteral("create_quick_group"));
+    QVERIFY(action && action->isEnabled()); action->trigger(); image->waitForDone();
+    QTRY_COMPARE(image->root()->childCount(), quint32(outsideActive ? 2 : 1));
+    auto group = image->root()->lastChild();
+    QVERIFY(qobject_cast<KisGroupLayer *>(group.data()));
+    QTRY_COMPARE(group->childCount(), quint32(clipping ? 3 : 2));
+    QCOMPARE(lifetime->undoStack()->count(), history + 1);
+    QCOMPARE(group->at(0)->uuid(), originals[0]->uuid());
+    QCOMPARE(group->at(1)->uuid(), originals[1]->uuid());
+    QCOMPARE(pixels(image->root()), beforeProjection);
+    const auto groupUuid = group->uuid();
+    const auto targetUuid = clipping ? group->lastChild()->uuid() : originals[outsideActive ? 0 : 1]->uuid();
+    QTRY_VERIFY(view->currentNode() && view->currentNode()->uuid() == targetUuid);
+    const QSet<QUuid> selectedAfter = clipping ? QSet<QUuid>{targetUuid} : QSet<QUuid>{originals[0]->uuid(), originals[1]->uuid()};
+    QTRY_COMPARE(selected(), selectedAfter);
+    if (clipping) QVERIFY(qobject_cast<KisLayer *>(group->lastChild().data())->alphaChannelDisabled());
+    const auto grouped = state();
+    lifetime->undoStack()->undo(); image->waitForDone(); QTRY_COMPARE(state(), before);
+    QTRY_COMPARE(selected(), (QSet<QUuid>{originals[0]->uuid(), originals[1]->uuid()}));
+    lifetime->undoStack()->redo(); image->waitForDone(); QTRY_COMPARE(state(), grouped);
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    int saves = 0;
+    const auto saveAndOpen = [&] {
+        const auto path = directory.filePath(QStringLiteral("groups-%1.kra").arg(++saves));
+        if (!lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false)) return false;
+        lifetime->waitForSavingToComplete();
+        if (!lifetime->openPath(path, KisDocument::DontAddToRecent)) return false;
+        image = lifetime->image(); image->waitForDone(); QApplication::processEvents();
+        return true;
+    };
+    QVERIFY2(saveAndOpen(), qPrintable(lifetime->errorMessage()));
+    QTRY_COMPARE(state(), grouped);
+    auto target = find(targetUuid); QVERIFY(target);
+    manager->slotUiActivatedNode(target); manager->slotSetSelectedNodes({target});
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    const KoColor foreground(QColor(241, 17, 129), cs);
+    resources->setFGColor(foreground); resources->setOpacity(1); resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    const auto beforeFill = pixels(target);
+    auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color_opacity"));
+    QVERIFY(fill && fill->isEnabled()); fill->trigger(); image->waitForDone(); QApplication::processEvents();
+    const auto expected = QByteArray(reinterpret_cast<const char *>(foreground.data()), cs->pixelSize()).repeated(area.width() * area.height());
+    QTRY_COMPARE(pixels(target), expected);
+    lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(target), beforeFill);
+    lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(pixels(target), expected);
+    const auto filledProjection = pixels(image->root());
+    if (!outsideActive) QCOMPARE(filledProjection, expected);
+    const auto filled = state();
+    QVERIFY2(saveAndOpen(), qPrintable(lifetime->errorMessage())); QTRY_COMPARE(state(), filled);
+    group = find(groupUuid); QVERIFY(group);
+    manager->slotUiActivatedNode(group); manager->slotSetSelectedNodes({group});
+    const auto ungroupHistory = lifetime->undoStack()->count();
+    auto *ungroup = window->viewManager()->actionManager()->actionByName(QStringLiteral("quick_ungroup"));
+    QVERIFY(ungroup && ungroup->isEnabled()); ungroup->trigger(); image->waitForDone();
+    QTRY_VERIFY(!find(groupUuid));
+    QCOMPARE(image->root()->childCount(), quint32((clipping ? 3 : 2) + (outsideActive ? 1 : 0)));
+    QCOMPARE(lifetime->undoStack()->count(), ungroupHistory + 1);
+    QCOMPARE(pixels(find(targetUuid)), expected);
+    const auto ungrouped = state();
+    lifetime->undoStack()->undo(); image->waitForDone(); QTRY_COMPARE(state(), filled);
+    lifetime->undoStack()->redo(); image->waitForDone(); QTRY_COMPARE(state(), ungrouped);
+    QVERIFY2(saveAndOpen(), qPrintable(lifetime->errorMessage())); QTRY_COMPARE(state(), ungrouped);
+    QCOMPARE(pixels(image->root()), filledProjection);
 }
 
 void KisGpuDocumentViewTest::layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry_data()

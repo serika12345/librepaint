@@ -243,6 +243,8 @@ QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
+    if (m_layerHistoryChanges[index].groupingAction != HistoryAction::None)
+        return m_layerHistoryChanges[index].groupingAction;
     if (m_layerHistoryChanges[index].transformedLayers) return HistoryAction::TransformLayer;
     if (m_layerHistoryChanges[index].movedSelectionPixels) return HistoryAction::MoveSelectionPixels;
     if (m_layerHistoryChanges[index].translatedLayers) return HistoryAction::TranslateLayer;
@@ -1954,6 +1956,115 @@ Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &
         m_history[m_index] = before;
     }
     commitVersion(version);
+    return Result::Success;
+}
+
+std::unique_ptr<OperationDocument> OperationDocument::layerGroupingDraft() const
+{
+    auto draft = std::make_unique<OperationDocument>(RasterImage{snapshot()->size, {}, 0}, m_limits);
+    draft->m_identity = m_identity;
+    draft->m_history = {snapshot()};
+    draft->m_layerHistoryChanges = {LayerHistoryChange{}};
+    draft->m_index = 0;
+    draft->m_nextLayer = m_nextLayer;
+    draft->m_nextOperation = m_nextOperation;
+    // These intermediate revisions never reach execution or a document reader.
+    // Publication assigns one fresh revision on this owner after all steps pass.
+    draft->m_nextRevision = 0;
+    return draft;
+}
+
+Result OperationDocument::groupLayers(const QList<LayerId> &layers, LayerId activeRoot,
+                                      const QString &groupName, const QString &clippingLayerName)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (!validLayerName(groupName) || (!clippingLayerName.isEmpty() && !validLayerName(clippingLayerName)) ||
+        layers.isEmpty()) return Result::InvalidInput;
+    const auto active = layerIndex(activeRoot);
+    if (active < 0) return Result::LayerUnavailable;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    const auto before = snapshot();
+    auto draft = layerGroupingDraft();
+    RasterLayer group;
+    group.name = groupName;
+    group.kind = LayerKind::Group;
+    group.uuid = QUuid::createUuid();
+    RasterImage input;
+    input.size = before->size;
+    input.format = before->format;
+    input.colorProfile = before->colorProfile;
+    input.layers = {group};
+    OperationDocument source(input, m_limits);
+    group.parentUuid = before->layers[active].parentUuid;
+    auto result = draft->insertLayers({{source.snapshot(), source.activeLayer(), group}}, active + 1);
+    if (result != Result::Success) return result;
+    result = draft->moveLayers(layers, group.uuid, {}, layers.contains(activeRoot) ? activeRoot : layers.first());
+    if (result != Result::Success) return result;
+    if (!clippingLayerName.isEmpty()) {
+        const auto mask = draft->addLayer(clippingLayerName, draft->snapshot()->layers.size(), false, group.uuid);
+        if (!mask) return Result::CapacityExceeded;
+        result = draft->writeLayerProjectionMask(mask, 7);
+        if (result != Result::Success) return result;
+    }
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*draft->snapshot()));
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    m_nextLayer = draft->m_nextLayer;
+    LayerHistoryChange change;
+    change.groupingAction = clippingLayerName.isEmpty() ? HistoryAction::GroupLayers : HistoryAction::CreateClippingGroup;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
+Result OperationDocument::ungroupLayers(const QList<LayerId> &layers, LayerId activeRoot,
+                                        const QString &replacementName)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto active = layerIndex(activeRoot);
+    if (active < 0) return Result::LayerUnavailable;
+    if (!replacementName.isEmpty() && !validLayerName(replacementName)) return Result::InvalidInput;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    const auto before = snapshot();
+    const auto &node = before->layers[active];
+    if (node.userLocked) return Result::LayerUnavailable;
+    const bool activeGroup = node.kind == LayerKind::Group;
+    const auto parent = activeGroup ? active : [&] {
+        for (qsizetype i = 0; i < before->layers.size(); ++i)
+            if (before->layers[i].uuid == node.parentUuid) return i;
+        return qsizetype(-1);
+    }();
+    if (parent < 0) return Result::LayerUnavailable;
+    const auto &group = before->layers[parent];
+    if (group.userLocked) return Result::LayerUnavailable;
+    for (auto uuid = group.parentUuid; !uuid.isNull();) {
+        const auto ancestor = std::find_if(before->layers.cbegin(), before->layers.cend(),
+            [&](const Layer &layer) { return layer.uuid == uuid; });
+        if (ancestor == before->layers.cend() || ancestor->userLocked) return Result::LayerUnavailable;
+        uuid = ancestor->parentUuid;
+    }
+    QList<LayerId> children;
+    for (const auto &layer : before->layers)
+        if (layer.parentUuid == group.uuid) children.append(layer.id);
+    const auto moving = activeGroup ? children : layers;
+    const bool removeGroup = activeGroup ||
+        QSet<LayerId>(moving.cbegin(), moving.cend()) == QSet<LayerId>(children.cbegin(), children.cend());
+    auto draft = layerGroupingDraft();
+    if (!moving.isEmpty()) {
+        const auto result = draft->moveLayers(moving, group.parentUuid, group.uuid,
+            activeGroup ? 0 : moving.contains(activeRoot) ? activeRoot : moving.first());
+        if (result != Result::Success) return result;
+    } else if (!activeGroup) return Result::InvalidInput;
+    if (removeGroup) {
+        const auto result = draft->removeLayers({group.id}, replacementName);
+        if (result != Result::Success) return result;
+    }
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*draft->snapshot()));
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    m_nextLayer = draft->m_nextLayer;
+    LayerHistoryChange change;
+    change.groupingAction = HistoryAction::UngroupLayers;
+    commitVersion(version, change);
     return Result::Success;
 }
 
