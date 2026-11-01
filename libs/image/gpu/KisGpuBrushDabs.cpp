@@ -234,6 +234,8 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 fan.position = fan.position + fraction * (point.position - fan.position);
                 fan.pressure = (1 - fraction) * fan.pressure + fraction * point.pressure;
                 fan.speed = (1 - fraction) * fan.speed + fraction * point.speed;
+                fan.xTilt = (1 - fraction) * fan.xTilt + fraction * point.xTilt;
+                fan.yTilt = (1 - fraction) * fan.yTilt + fraction * point.yTilt;
                 if (!append(fan, false, angle)) return false;
             }
         }

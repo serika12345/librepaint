@@ -690,33 +690,6 @@ fn compositePaintPixel(base: vec4<u32>, sourceColor: vec3<u32>, coverage: u32, s
     }
 }
 
-// BUILDUP composes each native dab in order, preserving selection and protected
-// channels at every application. Normal composition ignores the WASH flow value.
-fn generatedBuildUpPixel(pixel: vec2<i32>, local: vec2<u32>, base: vec4<u32>,
-                         fill: vec4<u32>, fillHasColor: bool, hasFill: bool,
-                         selectionAlpha: u32) -> vec4<u32> {
-    var result = base;
-    if (hasFill) {
-        result = compositePaintPixel(result, fill.xyz, fill.w, fillHasColor, parameters.pattern.z,
-            selectionAlpha, parameters.opacityValue, parameters.canvasOpacityBits, pixel, local);
-    }
-    let wide = parameters.native.z != 0u;
-    let maximum = select(255u, 65535u, wide);
-    let gray = (parameters.paintFlags & 524288u) != 0u;
-    let foreground = nativePixel(parameters.color, parameters.native.x, wide).xyz;
-    for (var index = 0u; index < parameters.count; index++) {
-        let dab = gaussianDab(index);
-        let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
-        if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
-        let coverage = generatedDabCoverage(dab, pixel, point, maximum, gray);
-        let scale = select(0x437f0000u, 0x477fff00u, wide);
-        let opacity = u32(bitcast<f32>(floatAdd(floatMultiply(dab.application.x, scale), 0x3f000000u)));
-        result = compositePaintPixel(result, foreground, coverage, true, parameters.pattern.w,
-            selectionAlpha, opacity, dab.application.x, pixel, local);
-    }
-    return result;
-}
-
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let local = invocation.xy;
@@ -821,7 +794,8 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         }
     }
     let base = paintBase(index);
-    var source = nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u).xyz;
+    let foreground = nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u).xyz;
+    var source = foreground;
     var coverage = strokeCoverage;
     if (parameters.native.z != 0u && (parameters.paintFlags & 512u) == 0u) { coverage *= 257u; }
     var sourceHasColor = strokeCoverage != 0u;
@@ -851,12 +825,8 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             blendMode = parameters.pattern.z;
         }
     }
-    if ((parameters.paintFlags & 4194304u) != 0u) {
-        writePaintPixel(index, generatedBuildUpPixel(pixel, local, base, directFill, directFillHasColor,
-            generatedFilled, selectionAlpha));
-        return;
-    }
-    if ((parameters.paintFlags & 512u) != 0u) {
+    let direct = (parameters.paintFlags & 4194304u) != 0u;
+    if (!direct && (parameters.paintFlags & 512u) != 0u) {
         let temporary = generatedBrushSource(pixel, generatedInitial, generatedFilled);
         coverage = temporary.w;
         sourceHasColor = coverage != 0u;
@@ -865,6 +835,42 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             sourceHasColor = any(temporary != vec4<u32>());
         }
     }
-    writePaintPixel(index, compositePaintPixel(base, source, coverage, sourceHasColor, blendMode,
-        selectionAlpha, parameters.opacityValue, parameters.canvasOpacityBits, pixel, local));
+    // WASH merges its accumulated source once. BUILDUP applies fill and each
+    // dab in order through the same call, keeping the full compositor single.
+    var result = base;
+    let fillCount = select(0u, 1u, generatedFilled);
+    let applications = select(1u, parameters.count + fillCount, direct);
+    let wide = parameters.native.z != 0u;
+    let maximum = select(255u, 65535u, wide);
+    let gray = (parameters.paintFlags & 524288u) != 0u;
+    for (var application = 0u; application < applications; application++) {
+        var color = source;
+        var alpha = coverage;
+        var hasColor = sourceHasColor;
+        var mode = blendMode;
+        var opacityValue = parameters.opacityValue;
+        var opacityBits = parameters.canvasOpacityBits;
+        if (direct) {
+            if (generatedFilled && application == 0u) {
+                color = directFill.xyz;
+                alpha = directFill.w;
+                hasColor = directFillHasColor;
+                mode = parameters.pattern.z;
+            } else {
+                let dab = gaussianDab(application - fillCount);
+                let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
+                if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
+                color = foreground;
+                alpha = generatedDabCoverage(dab, pixel, point, maximum, gray);
+                hasColor = true;
+                mode = parameters.pattern.w;
+                let scale = select(0x437f0000u, 0x477fff00u, wide);
+                opacityValue = u32(bitcast<f32>(floatAdd(floatMultiply(dab.application.x, scale), 0x3f000000u)));
+                opacityBits = dab.application.x;
+            }
+        }
+        result = compositePaintPixel(result, color, alpha, hasColor, mode,
+            selectionAlpha, opacityValue, opacityBits, pixel, local);
+    }
+    writePaintPixel(index, result);
 }
