@@ -2795,7 +2795,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
                 painter.setPaintOpPreset(resources->currentPreset(), nativeLayer, nativeImage);
                 KisDistanceInformation distance;
                 KisPaintInformation point(QPointF(32, 32), 1);
-                if (pencil) {
+                if (pencil || imageTip) {
                     distance = KisDistanceInformation(QPointF(32, 32), 0);
                     point.setRandomSource(KisRandomSourceSP(new KisRandomSource(17)));
                 }
