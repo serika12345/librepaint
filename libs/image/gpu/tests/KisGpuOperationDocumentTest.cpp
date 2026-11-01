@@ -1042,11 +1042,14 @@ void KisGpuOperationDocumentTest::nestedRemovalOwnsDescendantsAndOneHistoryStep(
 void KisGpuOperationDocumentTest::mergingKeepsInputsHistoryAndAtomicRejection_data()
 {
     QTest::addColumn<int>("kind");
-    QTest::newRow("down") << int(LayerMergeMode::Down);
-    QTest::newRow("selected") << int(LayerMergeMode::Selected);
-    QTest::newRow("flatten-layer") << int(LayerMergeMode::FlattenLayer);
-    QTest::newRow("flatten-image") << int(LayerMergeMode::FlattenImage);
-    QTest::newRow("new-from-visible") << int(LayerMergeMode::NewFromVisible);
+    QTest::addColumn<bool>("mixed");
+    QTest::newRow("down") << int(LayerMergeMode::Down) << false;
+    QTest::newRow("selected") << int(LayerMergeMode::Selected) << false;
+    QTest::newRow("flatten-layer") << int(LayerMergeMode::FlattenLayer) << false;
+    QTest::newRow("flatten-image") << int(LayerMergeMode::FlattenImage) << false;
+    QTest::newRow("new-from-visible") << int(LayerMergeMode::NewFromVisible) << false;
+    QTest::newRow("flatten-image-mixed") << int(LayerMergeMode::FlattenImage) << true;
+    QTest::newRow("new-from-visible-mixed") << int(LayerMergeMode::NewFromVisible) << true;
 }
 
 void KisGpuOperationDocumentTest::mergingKeepsInputsHistoryAndAtomicRejection()
@@ -1054,9 +1057,14 @@ void KisGpuOperationDocumentTest::mergingKeepsInputsHistoryAndAtomicRejection()
     // Consumers keep pinned pixels, edit the new layer, and undo the entire
     // merge. Stale, busy and over-budget requests must preserve that history.
     QFETCH(int, kind);
+    QFETCH(bool, mixed);
     const auto mode = LayerMergeMode(kind);
     auto input = rasterImage();
     input.layers[1].visible = true;
+    if (mixed) {
+        input.layers[0].blendMode = LayerBlendMode::Multiply;
+        input.layers[1].blendMode = LayerBlendMode::Screen;
+    }
     input.layers[1].transparencyMask = SelectionMask::uniform(211);
     input.layers[1].transparencyMaskUuid = QUuid(QStringLiteral("{41424344-4546-4748-494a-4b4c4d4e4f50}"));
     OperationDocument document(input);
@@ -1108,6 +1116,7 @@ void KisGpuOperationDocumentTest::mergingKeepsInputsHistoryAndAtomicRejection()
         QVERIFY(source != output->initialProjection->source->layers.cend());
         QVERIFY(source->operations == before->layers[id - 1].operations);
         QCOMPARE(source->transparencyMask, before->layers[id - 1].transparencyMask);
+        if (mixed) QCOMPARE(source->blendMode, before->layers[id - 1].blendMode);
     }
     QCOMPARE(document.undo(), Result::Success); QCOMPARE(document.snapshot(), before);
     QCOMPARE(document.redo(), Result::Success); QCOMPARE(document.snapshot(), merged);

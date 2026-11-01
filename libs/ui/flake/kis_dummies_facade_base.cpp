@@ -229,7 +229,7 @@ void KisDummiesFacadeBase::slotRemoveNode(KisNodeSP node)
     }
     if (QThread::currentThread() == thread() && m_d->image && m_d->image->isSynchronizingGpuNodes() &&
         !m_d->addNodeConnection.hasPendingSignals() && !m_d->removeNodeConnection.hasPendingSignals() &&
-        hasDummyForNode(node)) {
+        !m_d->nodeChangedConnection.hasPendingSignals() && hasDummyForNode(node)) {
         slotContinueRemoveNode(node);
     } else {
         m_d->removeNodeConnection.start(node);

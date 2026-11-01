@@ -2192,7 +2192,7 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
     }
     if ((!wholeImage && visible.isEmpty()) || (request.mode == LayerMergeMode::Selected && request.layers.size() < 2))
         return Result::Success;
-    if (request.homogeneousComposition) for (const auto layer : visible) {
+    if (request.homogeneousComposition && !wholeImage) for (const auto layer : visible) {
         if (layer->blendMode != visible.first()->blendMode || layer->projectionChannelMask != visible.first()->projectionChannelMask ||
             (request.mode == LayerMergeMode::Down && layer->opacity != visible.first()->opacity)) return Result::InvalidInput;
     }

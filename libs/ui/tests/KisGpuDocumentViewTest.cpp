@@ -1539,6 +1539,8 @@ void KisGpuDocumentViewTest::layerMergesKeepNativeEditing_data()
     for (const int mode : {1, 2, 3, 4}) for (const bool words : {false, true}) {
         const QByteArray name = names[mode] + (words ? "-u16-groups" : "-u8-groups");
         QTest::newRow(name.constData()) << mode << words << true << false << true << 0;
+        const QByteArray normalName = name + "-normal";
+        QTest::newRow(normalName.constData()) << mode << words << false << false << true << 0;
     }
     QTest::newRow("down-u8-public-groups") << 0 << false << false << false << true << 0;
     QTest::newRow("down-u16-public-groups") << 0 << true << false << false << true << 0;
@@ -1571,6 +1573,7 @@ void KisGpuDocumentViewTest::layerMergesKeepNativeEditing()
         QList<bool> rootReplaced;
     } native, gpu;
     const auto run = [&](bool useGpu, Run &result) {
+        qInfo() << "Merge editing backend" << (useGpu ? "gpu" : "native") << "mode" << mode << "groups" << groups;
         qputenv("LIBREPAINT_GPU_ENGINE", useGpu ? "1" : "0");
         std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
         document->setAutoSaveActive(false); document->setFileBatchMode(true);
@@ -1614,9 +1617,15 @@ void KisGpuDocumentViewTest::layerMergesKeepNativeEditing()
             QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); window.reset();
             QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
         });
-        window->viewManager()->setCurrentView(view); window->show(); window->activateWindow();
+        window->viewManager()->setCurrentView(view);
+        window->viewManager()->canvasResourceProvider()->setPaintOpPreset(m_preset);
+        window->show(); window->activateWindow();
         QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= canvas.width());
         auto *manager = window->viewManager()->nodeManager();
+        auto *panel = window->findChild<QDockWidget *>(QStringLiteral("KisLayerBox")); QVERIFY(panel);
+        auto *tree = panel->findChild<QTreeView *>(QStringLiteral("listLayers")); QVERIFY(tree);
+        auto *proxy = qobject_cast<KisNodeFilterProxyModel *>(tree->model()); QVERIFY(proxy);
+        QTRY_VERIFY(proxy->indexFromNode(originals[1]).isValid());
         manager->slotUiActivatedNode(originals[1]); manager->slotSetSelectedNodes({originals[1]});
         auto *addMask = window->viewManager()->actionManager()->actionByName(QStringLiteral("add_new_transparency_mask"));
         QVERIFY(addMask); QTRY_VERIFY(addMask->isEnabled()); addMask->trigger(); image->waitForDone();
@@ -1641,11 +1650,13 @@ void KisGpuDocumentViewTest::layerMergesKeepNativeEditing()
                 QTRY_VERIFY(group->isEnabled()); group->trigger(); image->waitForDone();
                 QTRY_VERIFY(originals[1]->parent() && originals[1]->parent() != image->root());
                 heads = {originals[1]->parent()};
+                QTRY_VERIFY(proxy->indexFromNode(heads.first()).isValid());
             } else for (int i = 0; i < originals.size(); ++i) {
                 manager->slotUiActivatedNode(originals[i]); manager->slotSetSelectedNodes({originals[i]});
                 QTRY_VERIFY(group->isEnabled()); group->trigger(); image->waitForDone();
                 QTRY_VERIFY(originals[i]->parent() && originals[i]->parent() != image->root());
                 heads[i] = originals[i]->parent();
+                QTRY_VERIFY(proxy->indexFromNode(heads[i]).isValid());
                 heads[i]->setName(i ? QStringLiteral("Upper group") : QStringLiteral("Lower group"));
             }
         }
@@ -1730,7 +1741,7 @@ void KisGpuDocumentViewTest::layerMergesKeepNativeEditing()
         const auto after = state(); const auto mergedRaw = pixels(mergedDevice(), inspection);
         if (observeRoot) QTRY_COMPARE(observedRoot, after);
         lifetime->undoStack()->undo(); image->waitForDone();
-        QTRY_COMPARE(state(), before); QCOMPARE(pixels(image->projection(), canvas), beforeProjection);
+        QTRY_COMPARE(state(), before); QTRY_COMPARE(pixels(image->projection(), canvas), beforeProjection);
         QCOMPARE(image->root(), oldRoot);
         QCOMPARE(pixels(mergedDevice(), inspection), mergedRaw);
         lifetime->undoStack()->redo(); image->waitForDone(); QTRY_COMPARE(state(), after);
