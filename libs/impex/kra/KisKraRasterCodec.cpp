@@ -956,6 +956,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         if (!oldSelectionName.isEmpty()) {
             const auto oldPath = selectionPrefix + oldSelectionName;
             files.remove(oldPath + QStringLiteral(".pixelselection"));
+            files.remove(oldPath + QStringLiteral(".pixelselection.defaultpixel"));
             files.remove(oldPath + QStringLiteral(".defaultpixel"));
             files.remove(oldPath + QStringLiteral(".xmp.metadata"));
         }
@@ -971,17 +972,19 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         if (!oldSelectionName.isEmpty() && oldSelectionName != selectionName) {
             const auto oldPath = selectionPrefix + oldSelectionName;
             files.remove(oldPath + QStringLiteral(".pixelselection"));
+            files.remove(oldPath + QStringLiteral(".pixelselection.defaultpixel"));
             files.remove(oldPath + QStringLiteral(".defaultpixel"));
         }
         filenames.insert(selectionName);
         const auto path = selectionPrefix + selectionName;
         QByteArray pixels;
         auto selectionResult = Detail::writeSelectionTiles(value.selection, value.selectionInverted,
-                                                           QRect(QPoint(), value.size), value.selectionKind,
+                                                           value.selectionKind,
                                                            value.selectionMask, limits.rasterBytes, pixels);
         if (selectionResult.code != Status::Success) return selectionResult;
         files.insert(path + QStringLiteral(".pixelselection"), std::move(pixels));
-        files.insert(path + QStringLiteral(".defaultpixel"), QByteArray(1, '\0'));
+        files.insert(path + QStringLiteral(".pixelselection.defaultpixel"), QByteArray(1, value.selectionInverted ? char(255) : char(0)));
+        files.remove(path + QStringLiteral(".defaultpixel"));
         if (selectionMask.isNull()) {
             selectionMask = xml.createElement(QStringLiteral("mask"));
             selectionMask.setAttribute(QStringLiteral("name"), QStringLiteral("Selection Mask"));
@@ -1366,9 +1369,14 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         filenames.insert(filename);
         const auto path = folder + QStringLiteral("/layers/") + filename;
         quint8 defaultPixel = 0;
-        if (document.files.contains(path + QStringLiteral(".defaultpixel"))) {
-            const auto value = document.files.value(path + QStringLiteral(".defaultpixel"));
-            if (value.size() != 1) return fail(invalid(QStringLiteral("Invalid KRA selection default pixel")));
+        const auto defaultPath = path + QStringLiteral(".pixelselection.defaultpixel");
+        const auto previousDefaultPath = path + QStringLiteral(".defaultpixel");
+        for (const auto &entry : {defaultPath, previousDefaultPath}) {
+            if (!document.files.contains(entry)) continue;
+            const auto value = document.files.value(entry);
+            if (value.size() != 1 || (entry == previousDefaultPath && document.files.contains(defaultPath) &&
+                value != document.files.value(defaultPath)))
+                return fail(invalid(QStringLiteral("Invalid KRA selection default pixel")));
             defaultPixel = quint8(value.front());
         }
         QRect selection;
@@ -1389,7 +1397,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         document.image.selectionKind = selectionKind;
         document.image.selectionMask = selectionMask;
         document.files.remove(path + QStringLiteral(".pixelselection"));
-        document.files.remove(path + QStringLiteral(".defaultpixel"));
+        document.files.remove(defaultPath);
+        document.files.remove(previousDefaultPath);
     }
     QList<QDomElement> elements;
     result = collectLayerElements(layers, limits.layers, elements);

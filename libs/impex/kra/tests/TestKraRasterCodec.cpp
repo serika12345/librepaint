@@ -156,6 +156,8 @@ private Q_SLOTS:
     void roundTripRetainsLayersHiddenRgbAndAssociatedFiles();
     void rectangularSelectionSurvivesSavingAndReopening();
     void binaryFreehandSelectionSurvivesSavingAndReopening();
+    void invertedSelectionsKeepNativeDefaultsAcrossReopenedEditing_data();
+    void invertedSelectionsKeepNativeDefaultsAcrossReopenedEditing();
     void featheredSelectionAlphaSurvivesSavingAndReopening();
     void offCanvasSelectionKeepsNativeCoverageAcrossReopenedEditing();
     void transparencyMasksSurviveSavingAndReopening();
@@ -1532,7 +1534,7 @@ void TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening()
         mask.attribute(QStringLiteral("filename")) + QStringLiteral(".pixelselection");
     QVERIFY(!saved.value(selectionPath).isEmpty());
     QCOMPARE(saved.value(image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") +
-        mask.attribute(QStringLiteral("filename")) + QStringLiteral(".defaultpixel")), QByteArray(1, '\0'));
+        mask.attribute(QStringLiteral("filename")) + QStringLiteral(".pixelselection.defaultpixel")), QByteArray(1, '\0'));
 
     const auto result = load(bytes);
     QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
@@ -1555,6 +1557,70 @@ void TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening()
     const auto without = load(cleared);
     QVERIFY2(without.code == Kra::Status::Success, qPrintable(without.diagnostic));
     QVERIFY(without.document.image.selection.isEmpty());
+}
+
+void TestKraRasterCodec::invertedSelectionsKeepNativeDefaultsAcrossReopenedEditing_data()
+{
+    QTest::addColumn<int>("shape");
+    QTest::newRow("rectangle") << 0;
+    QTest::newRow("ellipse") << 1;
+    QTest::newRow("soft-offcanvas") << 2;
+    QTest::newRow("sparse-islands") << 3;
+}
+
+void TestKraRasterCodec::invertedSelectionsKeepNativeDefaultsAcrossReopenedEditing()
+{
+    // Native KRA readers and a reopened paint/fill gesture need the complement
+    // default and every hole byte, including holes beyond the current canvas.
+    QFETCH(int, shape);
+    auto source = document();
+    source.image.selection = QRect(37, 51, 113, 79);
+    source.image.selectionInverted = true;
+    if (shape == 1) source.image.selectionKind = SelectionKind::Ellipse;
+    if (shape >= 2) {
+        SelectionTileMap tiles;
+        for (const auto point : {QPoint(-1, -1), QPoint(2, 1)}) {
+            QByteArray alpha(SelectionMask::AlphaTileBytes, '\0');
+            alpha[253 * 256 + 254] = char(shape == 2 ? 1 : 255);
+            alpha[254 * 256 + 255] = char(shape == 2 ? 128 : 255);
+            tiles.insert({point.x(), point.y()}, alpha);
+        }
+        source.image.selectionMask = SelectionMask::fromAlphaTiles(tiles, 0);
+        QVERIFY(source.image.selectionMask);
+        source.image.selection = source.image.selectionMask->bounds();
+        source.image.selectionKind = SelectionKind::Freehand;
+    }
+    const auto expected = source.image;
+    for (int edit = 0; edit < 2; ++edit) {
+        QByteArray bytes; QBuffer output(&bytes); QVERIFY(output.open(QIODevice::WriteOnly));
+        const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+        QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+        const auto files = entries(bytes);
+        QDomDocument xml; QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+        const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        const auto mask = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("mask"));
+        const auto path = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + mask.attribute(QStringLiteral("filename"));
+        QCOMPARE(files.value(path + QStringLiteral(".pixelselection.defaultpixel")), QByteArray(1, char(255)));
+        QVERIFY(!files.contains(path + QStringLiteral(".defaultpixel")));
+        auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+        QCOMPARE(loaded.document.image.selection, expected.selection);
+        QCOMPARE(loaded.document.image.selectionKind, expected.selectionKind);
+        QVERIFY(loaded.document.image.selectionInverted);
+        if (expected.selectionMask) {
+            QVERIFY(loaded.document.image.selectionMask);
+            const auto actual = loaded.document.image.selectionMask;
+            QCOMPARE(actual->defaultCoverage(), quint8(0));
+            for (const auto point : {QPoint(-2, -3), QPoint(-1, -2), QPoint(766, 509), QPoint(767, 510), QPoint(0, 0), QPoint(255, 255)})
+                QCOMPARE(actual->coverage(point.x(), point.y()), expected.selectionMask->coverage(point.x(), point.y()));
+        }
+        auto previous = files;
+        previous.insert(path + QStringLiteral(".defaultpixel"), previous.take(path + QStringLiteral(".pixelselection.defaultpixel")));
+        QCOMPARE(load(pack(previous)).code, Kra::Status::Success);
+        previous.insert(path + QStringLiteral(".pixelselection.defaultpixel"), QByteArray(1, '\0'));
+        QCOMPARE(load(pack(previous)).code, Kra::Status::InvalidData);
+        source = loaded.document;
+        source.image.layers[0].name = QStringLiteral("Edited after reopening");
+    }
 }
 
 void TestKraRasterCodec::binaryFreehandSelectionSurvivesSavingAndReopening()

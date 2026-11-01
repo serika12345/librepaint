@@ -1046,6 +1046,8 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
         if (!effectiveCoverage) return;
     }
     pixels->clear();
+    const quint8 defaultCoverage = inverted ? 255 : 0;
+    pixels->setDefaultPixel(KoColor(&defaultCoverage, KoColorSpaceRegistry::instance()->alpha8()));
     QPainterPath outline;
     if (coverage && coverage->isGpuGenerated()) {
         if (!effectiveCoverage->isEmpty()) {
@@ -1056,7 +1058,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
         coverage->isAlpha()) {
         // Alpha coverage is written into the CPU mirror so the display keeps the
         // fractional selectedness. The outline follows its half-selected contour.
-        const QRect clip = inverted ? bounds() : coverage->bounds();
+        const QRect clip = inverted ? bounds().united(coverage->bounds()) : coverage->bounds();
         QRegion region;
         if (inverted) pixels->select(clip);
         for (auto tile = coverage->tiles().cbegin(); tile != coverage->tiles().cend(); ++tile) {
@@ -1086,7 +1088,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
         }
         if (outline.isEmpty()) outline.addRect(QRect());
     } else if (!rect.isEmpty() && kind == LibrePaint::Image::Gpu::SelectionKind::Freehand && coverage) {
-        const QRect clip = inverted ? bounds() : coverage->bounds();
+        const QRect clip = inverted ? bounds().united(coverage->bounds()) : coverage->bounds();
         QRegion region;
         for (auto tile = coverage->tiles().cbegin(); tile != coverage->tiles().cend(); ++tile) {
             const int size = LibrePaint::Image::Gpu::SelectionMask::TileSize;
@@ -1152,7 +1154,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
     if (kind == LibrePaint::Image::Gpu::SelectionKind::Freehand)
         outline = outline.simplified();
     pixels->setOutlineCache(outline);
-    selection->updateProjection(inverted ? bounds() : (rect.isEmpty() ? bounds() : rect));
+    selection->updateProjection(inverted ? bounds().united(rect) : (rect.isEmpty() ? bounds() : rect));
     mask->setDirty(inverted ? bounds() : previousRect.united(rect));
     m_gpuSelectionMirrorRect = rect;
     m_gpuSelectionMirrorInverted = inverted;

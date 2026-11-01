@@ -113,6 +113,7 @@
 #include <kis_indirect_painting_support.h>
 #include <kis_properties_configuration.h>
 #include <kis_selection.h>
+#include <kis_selection_mask.h>
 #include <kis_pixel_selection.h>
 #include <kis_selection_tool_helper.h>
 #include <kis_selection_options.h>
@@ -342,6 +343,8 @@ private Q_SLOTS:
     void selectionCopyAndCutUseGpuSelection();
     void selectionGrowAndShrinkUseGpuSelection();
     void invertedSelectionLimitsPaintingAndKra();
+    void nativeInvertedSelectionsKeepEditingAndSaving_data();
+    void nativeInvertedSelectionsKeepEditingAndSaving();
     void ellipticalSelectionLimitsPaintingAndKra();
     void ellipticalToolCreatesDocumentSelection();
     void freehandToolCreatesArbitraryMaskSelection();
@@ -4496,6 +4499,149 @@ void KisGpuDocumentViewTest::selectionGrowAndShrinkUseGpuSelection()
     QCOMPARE(owner->operations().undoCount(), 4);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), selected);
+}
+
+void KisGpuDocumentViewTest::nativeInvertedSelectionsKeepEditingAndSaving_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("soft");
+    for (bool words : {false, true}) for (bool soft : {false, true}) {
+        const QByteArray tag = QByteArray(words ? "u16" : "u8") + (soft ? "-soft-offcanvas" : "-rectangle");
+        QTest::newRow(tag.constData()) << words << soft;
+    }
+}
+
+void KisGpuDocumentViewTest::nativeInvertedSelectionsKeepEditingAndSaving()
+{
+    // Normal fill/clear actions consume native KRA's inverse selection; history
+    // and reopened edits must preserve coverage and document-precision pixels.
+    QFETCH(bool, words); QFETCH(bool, soft);
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto baseline = directory.filePath(QStringLiteral("native-selection.kra"));
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    {
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true); document->setAutoSaveActive(false);
+        KisImageSP image = new KisImage(document->createUndoStore(), 64, 64, cs, "Inverse selection");
+        KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Paint"), 255);
+        layer->paintDevice()->fill(image->bounds(), KoColor(QColor(77, 113, 157, 255), cs));
+        QVERIFY(image->addNode(layer));
+        KisSelectionSP selection = new KisSelection;
+        const quint8 selected = 255;
+        selection->pixelSelection()->setDefaultPixel(KoColor(&selected, KoColorSpaceRegistry::instance()->alpha8()));
+        selection->pixelSelection()->select({16, 16, 32, 32}, 0);
+        if (soft) {
+            const quint8 coverage[]{0, 1, 128, 254, 255};
+            selection->pixelSelection()->writeBytes(coverage, {-3, 9, 5, 1});
+            selection->pixelSelection()->writeBytes(coverage, {14, 20, 5, 1});
+        }
+        KisSelectionMaskSP mask = new KisSelectionMask(image);
+        mask->setSelection(selection); mask->setActive(true);
+        QVERIFY(image->addNode(mask, image->root()));
+        document->setCurrentImage(image); image->refreshGraphAsync(); image->waitForDone();
+        QVERIFY(document->saveAs(baseline, KisDocument::nativeFormatMimeType(), false));
+        document->waitForSavingToComplete();
+        const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!results.isEmpty()) {
+            QVERIFY(QDir().mkpath(results));
+            QVERIFY(QFile::copy(baseline, QDir(results).filePath(QStringLiteral("native-inverse-%1-source.kra")
+                .arg(QString::fromLatin1(QTest::currentDataTag())))));
+        }
+    }
+    QList<QByteArray> reference;
+    for (bool gpu : {false, true}) {
+        qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        const auto saved = directory.filePath(gpu ? QStringLiteral("gpu.kra") : QStringLiteral("native.kra"));
+        int stage = 0;
+        for (bool reopened : {false, true}) {
+            std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+            document->setFileBatchMode(true); document->setAutoSaveActive(false);
+            QVERIFY2(document->openPath(reopened ? saved : baseline, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+            auto image = KisImageSP(document->image()); image->waitForDone();
+            QCOMPARE(bool(image->gpuImage()), gpu);
+            auto layer = image->root()->firstChild();
+            while (layer && !layer->inherits("KisPaintLayer")) layer = layer->nextSibling();
+            QVERIFY(layer);
+            std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+            auto *view = window->newView(document.get()); QVERIFY(view);
+            QPointer<KisDocument> lifetime(document.release());
+            const auto cleanup = qScopeGuard([&] {
+                if (lifetime) {
+                    lifetime->setModified(false);
+                    window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+                }
+                QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); window.reset();
+                QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            });
+            window->viewManager()->setCurrentView(view); window->show();
+            window->viewManager()->nodeManager()->slotNonUiActivatedNode(layer);
+            QTRY_COMPARE(view->currentNode(), layer);
+            const auto capture = [&]() -> QByteArray {
+                image->waitForDone();
+                QByteArray pixels(64 * 64 * cs->pixelSize(), '\0'), projection(pixels.size(), '\0');
+                layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), image->bounds());
+                image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), image->bounds());
+                const auto selection = image->globalSelection();
+                if (!selection) return {};
+                QByteArray coverage(70 * 66, '\0');
+                selection->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(coverage.data()), {-3, -1, 70, 66});
+                return pixels + projection + coverage + char(selection->pixelSelection()->defaultPixel().opacityU8());
+            };
+            const auto check = [&] {
+                const auto state = capture(); QVERIFY(!state.isEmpty());
+                const int currentStage = stage++;
+                const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+                if (!results.isEmpty()) {
+                    QFile output(QDir(results).filePath(QStringLiteral("native-inverse-%1-%2-%3.bin")
+                        .arg(QString::fromLatin1(QTest::currentDataTag()), gpu ? QStringLiteral("gpu") : QStringLiteral("native")).arg(currentStage)));
+                    QVERIFY(output.open(QIODevice::WriteOnly)); QCOMPARE(output.write(state), state.size());
+                }
+                if (!gpu) reference.append(state);
+                else QCOMPARE(state, reference.value(currentStage));
+            };
+            check();
+            auto *resources = window->viewManager()->canvasResourceProvider();
+            resources->setPaintOpPreset(m_preset);
+            resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+            resources->setOpacity(1); resources->setEraserMode(false);
+            resources->setCurrentCompositeOp(QStringLiteral("normal"));
+            auto *action = window->viewManager()->actionManager()->actionByName(reopened
+                ? QStringLiteral("clear") : QStringLiteral("fill_selection_foreground_color"));
+            QVERIFY(action);
+            const auto before = capture();
+            action->trigger(); image->waitForDone();
+            QTRY_COMPARE(lifetime->undoStack()->index(), 1);
+            const auto edited = capture(); QVERIFY(edited != before); check();
+            lifetime->undoStack()->undo(); image->waitForDone();
+            QTRY_COMPARE(lifetime->undoStack()->index(), 0);
+            QCOMPARE(capture(), before); check();
+            lifetime->undoStack()->redo(); image->waitForDone();
+            QTRY_COMPARE(lifetime->undoStack()->index(), 1);
+            QCOMPARE(capture(), edited); check();
+            QVERIFY(lifetime->saveAs(saved, KisDocument::nativeFormatMimeType(), false));
+            lifetime->waitForSavingToComplete();
+        }
+        if (gpu) {
+            // The native reader must recover the re-saved global default and
+            // exact off-canvas coverage for subsequent selection editing.
+            qputenv("LIBREPAINT_GPU_ENGINE", "0");
+            QScopedPointer<KisDocument> native(KisPart::instance()->createDocument());
+            native->setFileBatchMode(true); native->setAutoSaveActive(false);
+            QVERIFY2(native->openPath(saved, KisDocument::DontAddToRecent), qPrintable(native->errorMessage()));
+            auto image = KisImageSP(native->image()); image->waitForDone();
+            const auto selection = image->globalSelection(); QVERIFY(selection);
+            QCOMPARE(selection->pixelSelection()->defaultPixel().opacityU8(), quint8(255));
+            QByteArray coverage(70 * 66, '\0');
+            selection->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(coverage.data()), {-3, -1, 70, 66});
+            QCOMPARE(coverage, reference.last().mid(2 * 64 * 64 * cs->pixelSize(), coverage.size()));
+        }
+    }
 }
 
 void KisGpuDocumentViewTest::invertedSelectionLimitsPaintingAndKra()

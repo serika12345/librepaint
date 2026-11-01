@@ -39,7 +39,7 @@ bool ellipseContains(int x, int y, const QRect &rect)
 }
 }
 
-Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint offset,
+static Outcome readFiniteSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint offset,
                            QRect imageBounds, qsizetype maximumBytes, QRect &selection, bool &inverted,
                            LibrePaint::Image::Gpu::SelectionKind &kind,
                            LibrePaint::Image::Gpu::SelectionMaskSP &mask)
@@ -48,11 +48,19 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
     inverted = false;
     kind = LibrePaint::Image::Gpu::SelectionKind::Rectangle;
     mask.clear();
-    if (defaultPixel != 0) return unsupported();
+    if (defaultPixel != 0 && defaultPixel != 255) return unsupported();
     const auto adoptFiniteCoverage = [&]() {
         LibrePaint::Image::Gpu::SelectionMaskSP coverage;
-        const auto result = readTransparencyMask(data, offset, imageBounds, maximumBytes, coverage);
+        const auto result = readTransparencyMask(data, offset, imageBounds, maximumBytes, coverage, defaultPixel);
         if (result.code != Status::Success) return result;
+        if (defaultPixel) {
+            auto tiles = coverage->tiles();
+            for (auto tile = tiles.begin(); tile != tiles.end(); ++tile)
+                for (auto &value : tile.value()) value = char(255u - quint8(value));
+            const auto holes = SelectionMask::fromAlphaTiles(tiles, 0);
+            coverage = holes ? holes->withAllocatedBlocks(coverage->allocatedBlocks()) : SelectionMaskSP{};
+            if (!coverage) return capacity();
+        }
         selection = coverage->bounds(); inverted = false;
         kind = LibrePaint::Image::Gpu::SelectionKind::Freehand; mask = coverage;
         return result;
@@ -109,7 +117,8 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
                 const qint64 worldX = qint64(x) + px + offset.x(), worldY = qint64(y) + py + offset.y();
                 constexpr qint64 limit = RgbaTile::CoordinateLimit;
                 if (worldX < -limit || worldY < -limit || worldX >= limit || worldY >= limit) return invalid();
-                const auto value = quint8(pixels.at(py * FileTileSize + px));
+                const auto stored = quint8(pixels.at(py * FileTileSize + px));
+                const auto value = defaultPixel ? quint8(255u - stored) : stored;
                 const bool inImage = imageBounds.contains(QPoint(int(worldX), int(worldY)));
                 if (value == 0) {
                     if (inImage) {
@@ -168,7 +177,7 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
         selection = QRect(minimumX, minimumY, int(width), int(height));
         return {Status::Success, {}};
     }
-    if (imageBounds.isValid() && !imageBounds.isEmpty() && unselectedInImage > 0 &&
+    if (!defaultPixel && imageBounds.isValid() && !imageBounds.isEmpty() && unselectedInImage > 0 &&
         qint64(imageBounds.width()) * imageBounds.height() == selected + unselectedInImage &&
         imageBounds.contains(QRect(minimumX, minimumY, int(width), int(height)))) {
         const qint64 holeWidth = qint64(holeMaximumX) - holeMinimumX + 1;
@@ -179,7 +188,7 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
             return {Status::Success, {}};
         }
     }
-    if (!imageBits.isNull() && unselectedInImage > 0 &&
+    if (!defaultPixel && !imageBits.isNull() && unselectedInImage > 0 &&
         qint64(imageBounds.width()) * imageBounds.height() == selected + unselectedInImage) {
         const qint64 holeWidth = qint64(holeMaximumX) - holeMinimumX + 1;
         const qint64 holeHeight = qint64(holeMaximumY) - holeMinimumY + 1;
@@ -237,7 +246,20 @@ Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint o
     return adoptFiniteCoverage();
 }
 
-Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &imageBounds,
+Outcome readSelectionTiles(const QByteArray &data, quint8 defaultPixel, QPoint offset,
+                           QRect imageBounds, qsizetype maximumBytes, QRect &selection, bool &inverted,
+                           SelectionKind &kind, SelectionMaskSP &mask)
+{
+    const auto result = readFiniteSelectionTiles(data, defaultPixel, offset, imageBounds,
+                                                maximumBytes, selection, inverted, kind, mask);
+    if (result.code != Status::Success || !defaultPixel) return result;
+    if (selection.isEmpty())
+        return {Status::UnsupportedData, QStringLiteral("KRA selections with no finite boundary are not supported")};
+    inverted = !inverted;
+    return result;
+}
+
+Outcome writeSelectionTiles(const QRect &selection, bool inverted,
                             LibrePaint::Image::Gpu::SelectionKind kind,
                             const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
                             qsizetype maximumBytes, QByteArray &output)
@@ -246,7 +268,7 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
         return {Status::UnsupportedData, QStringLiteral("KRA selection writing requires explicit external Alpha8 pixels")};
     if (kind == LibrePaint::Image::Gpu::SelectionKind::Freehand &&
         (!mask || mask->isEmpty() || mask->bounds() != selection)) return invalid();
-    const QRect area = inverted ? imageBounds : selection;
+    const QRect area = selection;
     if (area.isEmpty()) {
         output = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 1\nDATA 0\n");
         return {Status::Success, {}};
@@ -260,9 +282,9 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
     const int bottom = floorDivide(area.bottom(), FileTileSize);
     const qint64 denseCount = qint64(right - left + 1) * (bottom - top + 1);
     QList<Coordinates> coordinates;
-    if (denseCount > maximumBytes / FileTileBytes && kind == SelectionKind::Freehand && !inverted) {
-        // Finite masks can contain distant islands. Native KRA defaults to zero
-        // between stored tiles, so capacity follows the occupied tile set.
+    if (denseCount > maximumBytes / FileTileBytes && kind == SelectionKind::Freehand) {
+        // Finite coverage or holes can contain distant islands. Capacity follows
+        // occupied tiles; the stored default describes the space between them.
         QSet<Coordinates> occupied;
         for (auto source = mask->tiles().cbegin(); source != mask->tiles().cend(); ++source) {
             const auto origin = QPoint(source.key().first, source.key().second) * SelectionMask::TileSize;
@@ -297,7 +319,6 @@ Outcome writeSelectionTiles(const QRect &selection, bool inverted, const QRect &
             for (int py = tile.top(); py <= tile.bottom(); ++py) {
                 const int row = py - y * FileTileSize;
                 for (int px = tile.left(); px <= tile.right(); ++px) {
-                    if (inverted && !imageBounds.contains(px, py)) continue;
                     const quint8 value = mask->coverage(px, py);
                     pixels[row * FileTileSize + px - x * FileTileSize] = char(inverted ? 255u - value : value);
                 }

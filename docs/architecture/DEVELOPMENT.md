@@ -612,6 +612,12 @@ Undoによる除去を検査する。
 `TestKraRasterCodec::featheredSelectionAlphaSurvivesSavingAndReopening`は、部分被覆のアルファマスクが
 KRAのアルファストリームへ書き出され、再読込・再保存後も被覆値・選択形状・画素・反転状態を
 保つことを検査する。
+`TestKraRasterCodec::invertedSelectionsKeepNativeDefaultsAcrossReopenedEditing`は、矩形・楕円・
+部分被覆・疎な穴を既定濃度255の標準KRAへ保存し、再読込後の編集・再保存で被覆を保つことを検査する。
+標準と既存の既定値の入力、競合値の拒否、キャンバス外の穴も対象とする。
+`KisGpuDocumentViewTest::nativeInvertedSelectionsKeepEditingAndSaving`は、既存の標準保存側で作った
+反転選択を通常画面で開き、8／16ビットの塗りつぶし・消去・Undo／Redo・KRA再読込を比較する。
+GPU保存の選択を標準読込側でも開き、既定濃度とキャンバス外の被覆を照合する。
 `KisGpuOperationDocumentTest::transparencyMaskHistoryComposition`は、矩形選択からの
 透明マスク追加、描画後の被覆保持、表示切替、削除、Undo／Redo、被覆と表示状態、
 追加・表示切替・削除の履歴種別を検査する。
