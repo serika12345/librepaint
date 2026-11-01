@@ -10938,7 +10938,7 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
             view->canvasBase()->snapGuide()->enableSnapping(false);
             window->viewManager()->nodeManager()->slotNonUiActivatedNode(maskTarget ? mask : layer);
             QTRY_COMPARE(view->currentNode(), maskTarget ? mask : layer);
-            const auto capture = [&] {
+            const auto capture = [&]() -> QByteArray {
                 image->waitForDone();
                 QByteArray pixels(area.width() * area.height() * cs->pixelSize(), '\0'), projection(pixels.size(), '\0');
                 layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), area);

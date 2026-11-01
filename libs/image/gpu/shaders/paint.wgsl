@@ -257,7 +257,7 @@ fn gradientColor(pixel: vec2<i32>) -> vec4<u32> {
     let shape = parameters.pattern.y;
     let spiralSeam = shape >= 6u && parameters.patternSampling.y == 0u && hasAntialias;
     var threshold = doubleDivide(antiAlias, length);
-    var smooth = parameters.patternSampling.y == 1u && (shape < 4u || shape >= 6u) && hasAntialias;
+    var seamSmoothing = parameters.patternSampling.y == 1u && (shape < 4u || shape >= 6u) && hasAntialias;
     var distance = Word64(0u);
     var seam = Word64(0u);
     if ((shape == 4u && hasAntialias) || spiralSeam) {
@@ -271,16 +271,16 @@ fn gradientColor(pixel: vec2<i32>) -> vec4<u32> {
         if (any(distance != Word64(0u))) {
             threshold = doubleDivide(threshold, doubleMultiply(Word64(0x54442d18u, 0x401921fbu), distance));
         }
-        smooth = any(distance != Word64(0u)) && (!spiralSeam || gradientLess(distance, length));
+        seamSmoothing = any(distance != Word64(0u)) && (!spiralSeam || gradientLess(distance, length));
         if (spiralSeam) { seam = gradientRepeated(doubleDivide(gradientAngle(px, py, dx, dy), Word64(0x54442d18u, 0x401921fbu))); }
     }
-    let center = smooth && shape >= 1u && shape <= 3u && !gradientLess(threshold, t);
+    let center = seamSmoothing && shape >= 1u && shape <= 3u && !gradientLess(threshold, t);
     if (!center) { t = gradientRepeated(t); }
     if ((parameters.patternSampling.x & 1u) != 0u) { t = doubleSubtract(one, t); }
     var color = gradientCached(t);
     if (!spiralSeam) { seam = t; }
     let reverseThreshold = doubleSubtract(one, threshold);
-    if (smooth && !center && (!gradientLess(threshold, seam) || !gradientLess(seam, reverseThreshold))) {
+    if (seamSmoothing && !center && (!gradientLess(threshold, seam) || !gradientLess(seam, reverseThreshold))) {
         let twice = doubleMultiply(doubleInteger(2u), threshold);
         var s = doubleDivide(doubleSubtract(seam, reverseThreshold), twice);
         if (!gradientLess(threshold, seam)) { s = doubleAdd(half, doubleDivide(seam, twice)); }
