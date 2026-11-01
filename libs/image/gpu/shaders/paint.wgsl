@@ -182,16 +182,16 @@ fn gradientPosition(pixel: vec2<i32>) -> Word64 {
     let dx = doubleSubtract(parameters.patternMap1.xy, parameters.patternMap0.xy);
     let dy = doubleSubtract(parameters.patternMap1.zw, parameters.patternMap0.zw);
     let length = doubleSqrt(doubleAdd(doubleMultiply(dx, dx), doubleMultiply(dy, dy)));
-    if (parameters.pattern.y < 4u && gradientLess(length, epsilon)) { return zero; }
+    if (GRADIENT_SHAPE < 4u && gradientLess(length, epsilon)) { return zero; }
     let px = doubleSubtract(markerInteger(pixel.x), parameters.patternMap0.xy);
     let py = doubleSubtract(markerInteger(pixel.y), parameters.patternMap0.zw);
-    if (parameters.pattern.y >= 4u) {
+    if (GRADIENT_SHAPE >= 4u) {
         let angle = gradientAngle(px, py, dx, dy);
         let pi = Word64(0x54442d18u, 0x400921fbu);
         let one = Word64(0u, 0x3ff00000u);
         let turn = doubleDivide(angle, Word64(0x54442d18u, 0x401921fbu));
-        if (parameters.pattern.y == 4u) { return turn; }
-        if (parameters.pattern.y == 5u) {
+        if (GRADIENT_SHAPE == 4u) { return turn; }
+        if (GRADIENT_SHAPE == 5u) {
             if (gradientLess(angle, pi)) { return doubleDivide(angle, pi); }
             return doubleSubtract(one, doubleDivide(doubleSubtract(angle, pi), pi));
         }
@@ -199,21 +199,21 @@ fn gradientPosition(pixel: vec2<i32>) -> Word64 {
         if (!gradientLess(length, epsilon)) {
             radius = doubleDivide(doubleSqrt(doubleAdd(doubleMultiply(px, px), doubleMultiply(py, py))), length);
         }
-        if (parameters.pattern.y == 7u) { return doubleAdd(radius, doubleSubtract(one, turn)); }
+        if (GRADIENT_SHAPE == 7u) { return doubleAdd(radius, doubleSubtract(one, turn)); }
         return doubleAdd(radius, turn);
     }
-    if (parameters.pattern.y == 2u) {
+    if (GRADIENT_SHAPE == 2u) {
         return doubleDivide(doubleSqrt(doubleAdd(doubleMultiply(px, px), doubleMultiply(py, py))), length);
     }
     let nx = doubleDivide(dx, length); let ny = doubleDivide(dy, length);
-    if (parameters.pattern.y == 3u) {
+    if (GRADIENT_SHAPE == 3u) {
         if (!gradientLess(epsilon, length)) { return zero; }
         let first = doubleMagnitude(doubleAdd(doubleMultiply(doubleNegate(ny), px), doubleMultiply(nx, py)));
         let second = doubleMagnitude(doubleAdd(doubleMultiply(doubleNegate(ny), doubleNegate(py)), doubleMultiply(nx, px)));
         return doubleDivide(select(second, first, wordLessEqual(second, first)), length);
     }
     var t = doubleDivide(doubleAdd(doubleMultiply(px, nx), doubleMultiply(py, ny)), length);
-    if (parameters.pattern.y == 1u && gradientLess(t, doubleNegate(epsilon))) { t = doubleNegate(t); }
+    if (GRADIENT_SHAPE == 1u && gradientLess(t, doubleNegate(epsilon))) { t = doubleNegate(t); }
     return t;
 }
 fn gradientRepeated(value: Word64) -> Word64 {
@@ -230,7 +230,7 @@ fn gradientRepeated(value: Word64) -> Word64 {
         if (gradientLess(value, epsilon)) { integer = doubleSubtract(integer, one); }
         return doubleSubtract(value, integer);
     }
-    if (parameters.pattern.y >= 6u) {
+    if (GRADIENT_SHAPE >= 6u) {
         var fraction = doubleSubtract(doubleMagnitude(value), integral);
         let halfIntegral = doubleFloor(doubleMultiply(doubleMagnitude(value), doubleInteger(2u)));
         if (patternCoordinate(halfIntegral, 2u).pixel == 1) { fraction = doubleSubtract(one, fraction); }
@@ -254,7 +254,7 @@ fn gradientColor(pixel: vec2<i32>) -> vec4<u32> {
     let length = doubleSqrt(doubleAdd(doubleMultiply(dx, dx), doubleMultiply(dy, dy)));
     let antiAlias = parameters.patternMap2.xy;
     let hasAntialias = gradientLess(Word64(0u, 0x3cb00000u), antiAlias);
-    let shape = parameters.pattern.y;
+    let shape = GRADIENT_SHAPE;
     let spiralSeam = shape >= 6u && parameters.patternSampling.y == 0u && hasAntialias;
     var threshold = doubleDivide(antiAlias, length);
     var seamSmoothing = parameters.patternSampling.y == 1u && (shape < 4u || shape >= 6u) && hasAntialias;
@@ -988,7 +988,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if ((figureFlags & 1u) != 0u) {
         var fillColor = nativePixel(bitcast<u32>(parameters.mirror.z), parameters.native.y, parameters.native.z != 0u);
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
-        if ((figureFlags & 16u) != 0u) { fillColor = gradientPixel(pixel); }
+        if (GRADIENT_FILL_ENABLED && (figureFlags & 16u) != 0u) { fillColor = gradientPixel(pixel); }
         // Region post-filters can select outside the finite fill source. The
         // native source device supplies transparent black there, including Copy.
         if ((parameters.paintFlags & 262144u) != 0u &&

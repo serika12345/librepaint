@@ -242,8 +242,10 @@ struct TileRenderer::Private
     }
     bool prepareRgba16Power();
     Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main",
-        quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr, bool separableBlendEnabled = false, quint32 coupledPixelFormat = 0, quint32 nativeLabKind = 0);
-    WGPUComputePipeline blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend, quint32 secondBlend = 0);
+        quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr, bool separableBlendEnabled = false,
+        quint32 coupledPixelFormat = 0, quint32 nativeLabKind = 0, quint32 gradientKind = 0);
+    WGPUComputePipeline blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend, quint32 secondBlend = 0,
+        quint32 gradientKind = 0);
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);
     Detail::NativeBuffer recordBounds(WGPUCommandEncoder commands, const QList<TileView> &tiles,
