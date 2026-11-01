@@ -329,6 +329,16 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
             return {};
         }
         source += imageBrush.readAll() + '\n';
+        if (gradientKind) {
+            QFile gradient(QStringLiteral(":/librepaint/gpu/shaders/gradient.wgsl"));
+            if (!gradient.open(QIODevice::ReadOnly)) {
+                error = QStringLiteral("GPU gradient arithmetic could not be loaded");
+                return {};
+            }
+            source += gradient.readAll() + '\n';
+        } else {
+            source += "fn gradientPixel(pixel: vec2<i32>) -> vec4<u32> { return vec4<u32>(); }\n";
+        }
     }
     if (path.endsWith(QLatin1String("/region.wgsl"))) {
         QFile lab(QStringLiteral(":/librepaint/gpu/shaders/native-lab.wgsl"));
