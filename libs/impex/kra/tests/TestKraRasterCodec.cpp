@@ -1754,6 +1754,19 @@ void TestKraRasterCodec::groupTransparencyMasksKeepNativeStorageAcrossEditing()
         QByteArray bytes; QBuffer output(&bytes); QVERIFY(output.open(QIODevice::WriteOnly));
         const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
         QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+        const auto files = entries(bytes);
+        QDomDocument xml; QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+        QDomElement groupElement;
+        const auto layers = xml.elementsByTagName(QStringLiteral("layer"));
+        for (int i = 0; i < layers.size(); ++i) {
+            const auto element = layers.item(i).toElement();
+            if (QUuid(element.attribute(QStringLiteral("uuid"))) == group.uuid) groupElement = element;
+        }
+        QVERIFY(!groupElement.isNull());
+        QVERIFY(groupElement.firstChildElement(QStringLiteral("masks")).isNull());
+        const auto maskElement = groupElement.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("mask"));
+        QCOMPARE(QUuid(maskElement.attribute(QStringLiteral("uuid"))), group.transparencyMaskUuid);
+        QCOMPARE(maskElement.attribute(QStringLiteral("nodetype")), QStringLiteral("transparencymask"));
         auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
         auto actual = std::find_if(loaded.document.image.layers.begin(), loaded.document.image.layers.end(),
             [&](const auto &layer) { return layer.uuid == group.uuid; });

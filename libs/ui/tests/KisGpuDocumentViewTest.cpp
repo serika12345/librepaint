@@ -3212,6 +3212,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
     const QByteArray initial(area.width() * area.height(), char(whiteDefault ? 255 : 128));
     QList<QByteArray> expected;
     QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto nativeGroupSource = directory.filePath(QStringLiteral("native-group-source.kra"));
     for (const bool gpu : pencil && !incrementalPencil ? QList<bool>{true} : QList<bool>{false, true}) {
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
         auto preset = sourcePreset->clone().dynamicCast<KisPaintOpPreset>();
@@ -3227,11 +3228,16 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         KisResourceModel presets(ResourceType::PaintOpPresets); QVERIFY(presets.addResource(preset));
         std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
         document->setAutoSaveActive(false); document->setFileBatchMode(true);
-        QVERIFY(document->newImage(QStringLiteral("Ordinary mask editing"), area.width(), area.height(), cs,
-                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+        const bool nativeGroupInput = groupOwner && gpu && QFileInfo::exists(nativeGroupSource);
+        if (nativeGroupInput) {
+            QVERIFY2(document->openPath(nativeGroupSource, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+        } else {
+            QVERIFY(document->newImage(QStringLiteral("Ordinary mask editing"), area.width(), area.height(), cs,
+                                       KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+        }
         auto image = KisImageSP(document->image());
         auto layer = image->root()->firstChild(); QVERIFY(layer);
-        if (groupOwner) {
+        if (groupOwner && !nativeGroupInput) {
             const KoColor color(QColor(191, 43, 97, 255), cs);
             const QByteArray pixel(reinterpret_cast<const char *>(color.data()), cs->pixelSize());
             layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixel.repeated(area.width() * area.height()).constData()), area);
@@ -3249,7 +3255,9 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             QVERIFY(layer && layer->inherits("KisGroupLayer"));
             layer->setDirty(area); image->waitForDone();
         }
-        if (gpu && whiteDefault) {
+        if (nativeGroupInput) {
+            QVERIFY(layer->inherits("KisGroupLayer"));
+        } else if (gpu && whiteDefault) {
             const auto owner = image->gpuImage();
             const auto version = owner->operations().snapshot();
             const auto target = std::find_if(version->layers.cbegin(), version->layers.cend(),
@@ -3510,6 +3518,16 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         };
         QCOMPARE(pixels(), initial);
         if (groupOwner) QVERIFY2(compare(), "Prepared group projection must apply the full initial mask");
+        if (groupOwner && !gpu) {
+            QVERIFY2(lifetime->saveAs(nativeGroupSource, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+            lifetime->waitForSavingToComplete();
+            const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+            if (!results.isEmpty()) {
+                QVERIFY(QDir().mkpath(results));
+                QVERIFY(QFile::copy(nativeGroupSource, QDir(results).filePath(QStringLiteral("native-group-%1-source.kra")
+                    .arg(QString::fromLatin1(QTest::currentDataTag())))));
+            }
+        }
         const int initialUndoIndex = lifetime->undoStack()->index();
         stroke({{24, 24}, {40, 36}});
         if (filledFigure) QTRY_COMPARE(lifetime->undoStack()->index(), initialUndoIndex + 1);
@@ -3590,6 +3608,26 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         QVERIFY2(lifetime->saveAs(directory.filePath(gpu ? QStringLiteral("gpu-edited.kra") : QStringLiteral("cpu-edited.kra")),
             KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
         lifetime->waitForSavingToComplete();
+        if (groupOwner && gpu) {
+            qputenv("LIBREPAINT_GPU_ENGINE", "0");
+            const auto resetEngine = qScopeGuard([&] { qputenv("LIBREPAINT_GPU_ENGINE", "1"); });
+            QScopedPointer<KisDocument> native(KisPart::instance()->createDocument());
+            native->setFileBatchMode(true); native->setAutoSaveActive(false);
+            QVERIFY2(native->openPath(directory.filePath(QStringLiteral("gpu-edited.kra")), KisDocument::DontAddToRecent), qPrintable(native->errorMessage()));
+            auto nativeImage = KisImageSP(native->image()); nativeImage->waitForDone();
+            auto nativeGroup = nativeImage->root()->firstChild(); QVERIFY(nativeGroup && nativeGroup->inherits("KisGroupLayer"));
+            QCOMPARE(nativeGroup->uuid(), layer->uuid());
+            KisNodeSP nativeMask, nativePaint;
+            for (auto node = nativeGroup->firstChild(); node; node = node->nextSibling()) {
+                if (node->inherits("KisTransparencyMask")) nativeMask = node;
+                else if (node->inherits("KisPaintLayer")) nativePaint = node;
+            }
+            QVERIFY(nativeMask && nativePaint); QCOMPARE(nativeMask->uuid(), child->uuid());
+            QByteArray actualMask(initial.size(), '\0'), actualPaint(originalParent.size(), '\0');
+            nativeMask->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actualMask.data()), area);
+            nativePaint->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actualPaint.data()), area);
+            QCOMPARE(actualMask, edited); QCOMPARE(actualPaint, originalParent);
+        }
     }
 }
 

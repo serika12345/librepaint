@@ -1445,7 +1445,7 @@ endif()
 # Five background rows each cover capture retries under a fully loaded GUI.
 set_tests_properties(${gpu_document_background_tests} PROPERTIES TIMEOUT 180)
 # Mask preset cases compare native and GPU editing through KRA reload for both precisions.
-set_tests_properties(${gpu_document_layer_test} PROPERTIES TIMEOUT 900)
+set_tests_properties(${gpu_document_layer_test} ${gpu_document_group_mask_test} PROPERTIES TIMEOUT 900)
 set_tests_properties(${gpu_document_group_test} ${gpu_document_merge_test} PROPERTIES TIMEOUT 1800)
 set_tests_properties(${gpu_document_pixel_test} PROPERTIES TIMEOUT 600)
 set_tests_properties(${gpu_document_selection_combination_test} PROPERTIES TIMEOUT 600)

@@ -205,8 +205,15 @@ Outcome transparencyMaskElement(const QDomElement &layer, QDomElement &mask)
             child.tagName() == QLatin1String("layers")) {
             if (groupChildren) return invalid(QStringLiteral("Duplicate KRA group layer container"));
             groupChildren = true;
+            for (auto nested = child.firstChildElement(); !nested.isNull(); nested = nested.nextSiblingElement()) {
+                if (nested.tagName() == QLatin1String("layer")) continue;
+                const auto result = append(nested);
+                if (result.code != Status::Success) return result;
+            }
             continue;
         }
+        if (layer.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer"))
+            return unsupported(QStringLiteral("KRA group children and masks require a layers container"));
         if (child.tagName() == QLatin1String("masks")) {
             for (auto nested = child.firstChildElement(); !nested.isNull(); nested = nested.nextSiblingElement()) {
                 const auto result = append(nested);
@@ -399,6 +406,9 @@ Outcome collectLayerElements(const QDomElement &layers, qsizetype maximum, QList
             // The root selection mask is a document value, not a paint layer.
             if (root && child.tagName() == QLatin1String("mask") &&
                 child.attribute(QStringLiteral("nodetype")) == QLatin1String("selectionmask")) continue;
+            if (!root && container.parentNode().toElement().attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") &&
+                child.tagName() == QLatin1String("mask") &&
+                child.attribute(QStringLiteral("nodetype")) == QLatin1String("transparencymask")) continue;
             if (pending.size() + elements.size() >= maximum) return false;
             pending.append(child);
         }
@@ -679,6 +689,10 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             element.setAttribute(QStringLiteral("collapsed"), QStringLiteral("0"));
             if (layer.kind == LayerKind::Paint) element.setAttribute(QStringLiteral("onionskin"), QStringLiteral("0"));
         }
+        QDomElement maskElement;
+        result = transparencyMaskElement(element, maskElement);
+        if (result.code != Status::Success) return result;
+        element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") : QStringLiteral("grouplayer"));
         const auto path = folder + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename"));
         const QPoint offset = layer.position;
         element.setAttribute(QStringLiteral("x"), offset.x());
@@ -706,11 +720,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             if (!element.hasAttribute(QStringLiteral("profile")))
                 element.setAttribute(QStringLiteral("profile"), image.attribute(QStringLiteral("profile")));
         }
-        element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") : QStringLiteral("grouplayer"));
         {
-            QDomElement maskElement;
-            result = transparencyMaskElement(element, maskElement);
-            if (result.code != Status::Success) return result;
             QString maskFilename = maskElement.isNull() ? QString() : maskElement.attribute(QStringLiteral("filename"));
             if (!layer.transparencyMask) {
                 if (!maskElement.isNull()) {
@@ -733,12 +743,17 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                     filenames.insert(maskFilename);
                     maskElement = xml.createElement(QStringLiteral("mask"));
                 }
-                auto masks = element.firstChildElement(QStringLiteral("masks"));
+                const auto container = layer.kind == LayerKind::Group ? QStringLiteral("layers") : QStringLiteral("masks");
+                auto masks = element.firstChildElement(container);
                 if (masks.isNull()) {
-                    masks = xml.createElement(QStringLiteral("masks"));
+                    masks = xml.createElement(container);
                     element.appendChild(masks);
                 }
-                if (maskElement.parentNode() != masks) masks.appendChild(maskElement);
+                if (maskElement.parentNode() != masks) {
+                    auto previous = maskElement.parentNode();
+                    masks.appendChild(maskElement);
+                    if (previous.nodeName() == QLatin1String("masks") && !previous.hasChildNodes()) element.removeChild(previous);
+                }
                 if (!component(maskFilename)) return invalid(QStringLiteral("Invalid KRA transparency mask identity"));
                 QUuid maskUuid = layer.transparencyMaskUuid.isNull() ?
                     QUuid(maskElement.attribute(QStringLiteral("uuid"))) : layer.transparencyMaskUuid;
