@@ -28,7 +28,8 @@
 #include <QApplication>
 #include <QMetaObject>
 #include <QPainter>
-#include <QPicture>
+#include <QPaintEngine>
+#include <QPaintDevice>
 #include <QPointer>
 #include <QScopeGuard>
 #include <QResizeEvent>
@@ -36,6 +37,77 @@
 #include <cmath>
 
 namespace {
+class ToolStrokeEngine final : public QPaintEngine
+{
+public:
+    explicit ToolStrokeEngine(QList<LibrePaint::Canvas::Gpu::ToolStroke> &strokes)
+        : QPaintEngine(PainterPaths | PrimitiveTransform | AlphaBlend | Antialiasing), m_strokes(strokes) {}
+    bool valid() const { return m_valid; }
+    bool begin(QPaintDevice *) override { setActive(true); return true; }
+    bool end() override { setActive(false); return true; }
+    Type type() const override { return User; }
+    void updateState(const QPaintEngineState &state) override
+    {
+        m_pen = state.pen(); m_transform = state.transform(); m_opacity = state.opacity();
+    }
+    void drawPath(const QPainterPath &path) override
+    {
+        if (!m_valid || m_pen.style() == Qt::NoPen || path.isEmpty()) return;
+        if (path.elementCount() > 65536 || m_strokes.size() >= 64) { m_valid = false; return; }
+        LibrePaint::Canvas::Gpu::ToolStroke stroke;
+        stroke.contours = path.toSubpathPolygons(m_transform);
+        for (const auto &contour : stroke.contours) {
+            if (contour.size() > 65536 - m_points) { m_valid = false; return; }
+            m_points += contour.size();
+        }
+        stroke.color = m_pen.color();
+        stroke.color.setAlphaF(stroke.color.alphaF() * m_opacity);
+        stroke.thickness = m_pen.widthF();
+        if (!stroke.thickness) stroke.thickness = 1;
+        else if (!m_pen.isCosmetic()) stroke.thickness *= std::sqrt(std::abs(m_transform.determinant()));
+        m_strokes.append(std::move(stroke));
+    }
+    // The image owner presents raster previews independently of tool strokes.
+    void drawPixmap(const QRectF &, const QPixmap &, const QRectF &) override {}
+    void drawImage(const QRectF &, const QImage &, const QRectF &, Qt::ImageConversionFlags) override {}
+private:
+    QList<LibrePaint::Canvas::Gpu::ToolStroke> &m_strokes;
+    QPen m_pen;
+    QTransform m_transform;
+    qreal m_opacity = 1;
+    qsizetype m_points = 0;
+    bool m_valid = true;
+};
+
+class ToolStrokeDevice final : public QPaintDevice
+{
+public:
+    ToolStrokeDevice(QList<LibrePaint::Canvas::Gpu::ToolStroke> &strokes, QSize size)
+        : m_engine(strokes), m_size(size) {}
+    QPaintEngine *paintEngine() const override { return &m_engine; }
+    bool valid() const { return m_engine.valid(); }
+protected:
+    int metric(PaintDeviceMetric value) const override
+    {
+        switch (value) {
+        case PdmWidth: return m_size.width();
+        case PdmHeight: return m_size.height();
+        case PdmDpiX: case PdmDpiY: case PdmPhysicalDpiX: case PdmPhysicalDpiY: return 96;
+        case PdmDepth: return 32;
+        case PdmDevicePixelRatio: return 1;
+        case PdmDevicePixelRatioScaled: return int(QPaintDevice::devicePixelRatioFScale());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+        case PdmDevicePixelRatioF_EncodedA: case PdmDevicePixelRatioF_EncodedB:
+            return QPaintDevice::encodeMetricF(value, 1.0);
+#endif
+        default: return 0;
+        }
+    }
+private:
+    mutable ToolStrokeEngine m_engine;
+    QSize m_size;
+};
+
 class GpuCanvasUpdateInfo final : public KisUpdateInfo
 {
 public:
@@ -155,10 +227,8 @@ bool KisGpuCanvasWidget::updateToolDecorations()
         const QColor color = eraser ? config.getEraserCursorMainColor() : config.getCursorMainColor();
         m_toolOutline.color = canvas()->displayRendererInterface()->convertColorToDisplayColorSpace(
             KoColor(color, KoColorSpaceRegistry::instance()->rgb8()));
-        // #89: replace this active Qt paint receiver when the remaining tool
-        // painting primitives have native GPU consumers. It records commands;
-        // document pixels stay with the GPU image owner.
-        QPicture commands;
+        QList<LibrePaint::Canvas::Gpu::ToolStroke> strokes;
+        ToolStrokeDevice commands(strokes, size());
         QPainter painter(&commands);
         painter.setTransform(coordinatesConverter()->flakeToWidgetTransform());
         QPointer<KisGpuCanvasWidget> guard(this);
@@ -168,7 +238,8 @@ bool KisGpuCanvasWidget::updateToolDecorations()
         });
         toolProxy()->paint(painter, *canvas()->viewConverter());
         painter.end();
-        if (!guard || !m_window) return false;
+        if (!guard || !m_window || !commands.valid()) return false;
+        m_toolOutline.painted = std::move(strokes);
     }
     if (const auto selection = canvas()->image()->globalSelection(); selection && selection->outlineCacheValid()) {
         const auto transform = coordinatesConverter()->imageToWidgetTransform();
@@ -202,7 +273,9 @@ bool KisGpuCanvasWidget::eventFilter(QObject *object, QEvent *event)
     if (object == m_window) {
         if (event->type() == QEvent::MouseButtonPress || event->type() == QEvent::TabletPress ||
             event->type() == QEvent::TouchBegin) {
+            QPointer<KisGpuCanvasWidget> guard(this);
             setFocus(Qt::MouseFocusReason);
+            if (!guard) return true;
         }
         switch (event->type()) {
         case QEvent::MouseButtonPress: case QEvent::MouseButtonRelease:

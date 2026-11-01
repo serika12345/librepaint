@@ -241,6 +241,8 @@ void CanvasWindow::renderFrame()
             auto outline = d.outline;
             const auto logicalToPhysical = QTransform::fromScale(devicePixelRatio(), devicePixelRatio());
             for (auto &contour : outline.contours) contour = logicalToPhysical.map(contour);
+            for (auto &stroke : outline.painted)
+                for (auto &contour : stroke.contours) contour = logicalToPhysical.map(contour);
             auto checkers = d.checkers;
             if (checkers) checkers->targetToPattern =
                 QTransform::fromScale(1.0 / devicePixelRatio(), 1.0 / devicePixelRatio()) * checkers->targetToPattern;

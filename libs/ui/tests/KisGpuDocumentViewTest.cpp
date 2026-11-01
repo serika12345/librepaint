@@ -3697,9 +3697,8 @@ void KisGpuDocumentViewTest::maskChildFreehandStrokeEditsOnlyCoverage()
     QFETCH(int, creation); QFETCH(bool, groupOwner);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
-    const auto device = Gpu::Device::createNative(diagnostic);
-    QVERIFY2(device, qPrintable(diagnostic));
-    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
     Gpu::RasterImage raster; raster.size = {64, 64};
     raster.layers = {{QStringLiteral("Mask owner"), true, QUuid::createUuid(), {}}};
     if (groupOwner) {

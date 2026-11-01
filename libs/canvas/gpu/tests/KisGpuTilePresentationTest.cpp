@@ -71,6 +71,8 @@ private Q_SLOTS:
     void displayResourcesRetainTheirNativeDevice();
     void toolOutlinesMoveAndClearWithoutChangingDocumentPixels_data();
     void toolOutlinesMoveAndClearWithoutChangingDocumentPixels();
+    void paintedToolStrokesKeepOrderAndDocument_data();
+    void paintedToolStrokesKeepOrderAndDocument();
     void invalidToolOutlinesPreserveTheTarget_data();
     void invalidToolOutlinesPreserveTheTarget();
 
@@ -1007,6 +1009,59 @@ void KisGpuTilePresentationTest::toolOutlinesMoveAndClearWithoutChangingDocument
     }
 }
 
+void KisGpuTilePresentationTest::paintedToolStrokesKeepOrderAndDocument_data()
+{
+    QTest::addColumn<quint32>("format");
+    QTest::newRow("rgba") << quint32(WGPUTextureFormat_RGBA8Unorm);
+    QTest::newRow("bgra") << quint32(WGPUTextureFormat_BGRA8Unorm);
+}
+
+void KisGpuTilePresentationTest::paintedToolStrokesKeepOrderAndDocument()
+{
+    QFETCH(quint32, format);
+    OperationDocument document({64, 64});
+    dot(document, {32.5, 32.5}, {192, 17, 64, 255});
+    const auto before = document.snapshot();
+    const auto history = document.undoCount();
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    Surface surface(m_device, {64, 64}, format); QVERIFY(surface.ready);
+    auto commands = m_device->beginCommands(); QVERIFY(commands);
+    const auto layers = renderer.record(commands, before); QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    const auto sourcePixels = projection.version->tiles().first().pixels;
+    QByteArray original, sourceBefore;
+    for (int stage = 0; stage < 4; ++stage) {
+        if (stage) commands = m_device->beginCommands();
+        ToolOutline outline;
+        if (stage == 1 || stage == 2) {
+            const QList<QPolygonF> path{QPolygonF{{8.5, 8.5}, {55.5, 8.5}, {55.5, 55.5}, {8.5, 55.5}, {8.5, 8.5}}};
+            outline.painted = {{path, QColor(192, 192, 192), 3}, {path, QColor(0, 0, 0, stage == 2 ? 128 : 255), 1}};
+        }
+        const auto drawn = presentation.record(commands, projection.version, surface.target, QTransform(),
+            Qt::white, identityDisplay(before), {}, outline);
+        QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
+        auto reads = readTexture(*m_device, commands, surface, sourcePixels);
+        QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+        QVERIFY(reads->finish(*m_device));
+        auto screen = reads->results.front()->data;
+        if (format == WGPUTextureFormat_BGRA8Unorm)
+            for (int i = 0; i < screen.size(); i += 4) { const char red = screen[i]; screen[i] = screen[i + 2]; screen[i + 2] = red; }
+        if (!stage) { original = screen; sourceBefore = reads->results.back()->data; }
+        QCOMPARE(reads->results.back()->data, sourceBefore);
+        if (stage == 1 || stage == 2) {
+            const auto pixel = [&](int x, int y) { return screen.mid((y * 64 + x) * 4, 4); };
+            QCOMPARE(pixel(7, 20), QByteArray::fromHex("c0c0c0ff"));
+            QCOMPARE(pixel(8, 20), QByteArray::fromHex(stage == 2 ? "606060ff" : "000000ff"));
+            QCOMPARE(pixel(9, 20), QByteArray::fromHex("c0c0c0ff"));
+            QCOMPARE(pixel(12, 20), QByteArray::fromHex("ffffffff"));
+        } else QCOMPARE(screen, original);
+        QCOMPARE(document.snapshot(), before);
+        QCOMPARE(document.undoCount(), history);
+    }
+}
+
 void KisGpuTilePresentationTest::invalidToolOutlinesPreserveTheTarget_data()
 {
     QTest::addColumn<int>("invalid");
@@ -1014,6 +1069,10 @@ void KisGpuTilePresentationTest::invalidToolOutlinesPreserveTheTarget_data()
     QTest::newRow("negative-width") << 1;
     QTest::newRow("invalid-color") << 2;
     QTest::newRow("vertex-budget") << 3;
+    QTest::newRow("painted-nonfinite-point") << 4;
+    QTest::newRow("painted-invalid-color") << 5;
+    QTest::newRow("painted-negative-width") << 6;
+    QTest::newRow("painted-stroke-budget") << 7;
 }
 
 void KisGpuTilePresentationTest::invalidToolOutlinesPreserveTheTarget()
@@ -1039,6 +1098,14 @@ void KisGpuTilePresentationTest::invalidToolOutlinesPreserveTheTarget()
     if (invalid == 3) {
         auto &contour = outline.contours.first();
         for (int i = 0; i < 12000; ++i) contour.append(QPointF(i, i % 2));
+    }
+    if (invalid >= 4) {
+        ToolStroke stroke{outline.contours, Qt::black, 1};
+        outline.contours.clear();
+        if (invalid == 4) stroke.contours.first()[0].setX(std::numeric_limits<qreal>::quiet_NaN());
+        if (invalid == 5) stroke.color = QColor();
+        if (invalid == 6) stroke.thickness = -1;
+        for (int i = 0; i < (invalid == 7 ? 65 : 1); ++i) outline.painted.append(stroke);
     }
     const auto outcome = presentation.record(commands, projection.version, surface.target, QTransform(), Qt::white, identityDisplay(projection.version->document()), {}, outline);
     auto reads = readTexture(*m_device, commands, surface);

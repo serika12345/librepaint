@@ -28,6 +28,7 @@ static_assert(sizeof(Uniforms) == 192);
 struct Draw { Detail::Buffer uniform; Detail::Bindings bindings; Uniforms values{}; };
 struct OutlineVertex { float x, y; };
 struct OutlineUniforms { float viewport[4]; float color[4]; };
+struct StrokeDraw { Detail::Buffer uniform, vertices; Detail::Bindings bindings; quint32 count = 0; };
 constexpr qsizetype maximumOutlineVertices = 65536;
 
 bool outlineGeometry(const ToolOutline &outline, std::vector<OutlineVertex> &vertices)
@@ -103,6 +104,9 @@ struct TilePresentation::Private
     quint32 backgroundFormat = 0;
     Detail::Shader outlineShader;
     Detail::Pipeline outlinePipeline;
+    Detail::Pipeline paintedOutlinePipeline;
+    Detail::Layout paintedOutlineLayout;
+    quint32 paintedOutlineFormat = 0;
     Detail::Layout outlineLayout;
     Detail::Buffer outlineVertices;
     Detail::Buffer outlineUniform;
@@ -158,7 +162,7 @@ struct TilePresentation::Private
         return true;
     }
 
-    bool prepareOutline(quint32 targetFormat, qsizetype vertices)
+    bool prepareOutline(quint32 targetFormat, qsizetype vertices, bool painted = false)
     {
         if (!outlineShader) {
             QFile file(QStringLiteral(":/librepaint/canvas/shaders/tool_outline.wgsl"));
@@ -172,10 +176,15 @@ struct TilePresentation::Private
             outlineShader.reset(wgpuDeviceCreateShaderModule(device->nativeDevice(), &descriptor));
             if (!outlineShader) return false;
         }
-        if (!outlinePipeline || outlineFormat != targetFormat) {
+        const auto createPipeline = [&](bool solid) {
             WGPUBlendState blend{};
-            blend.color = {WGPUBlendOperation_Subtract, WGPUBlendFactor_DstAlpha, WGPUBlendFactor_Src};
-            blend.alpha = {WGPUBlendOperation_Add, WGPUBlendFactor_Zero, WGPUBlendFactor_One};
+            if (solid) {
+                blend.color = {WGPUBlendOperation_Add, WGPUBlendFactor_SrcAlpha, WGPUBlendFactor_OneMinusSrcAlpha};
+                blend.alpha = {WGPUBlendOperation_Add, WGPUBlendFactor_One, WGPUBlendFactor_OneMinusSrcAlpha};
+            } else {
+                blend.color = {WGPUBlendOperation_Subtract, WGPUBlendFactor_DstAlpha, WGPUBlendFactor_Src};
+                blend.alpha = {WGPUBlendOperation_Add, WGPUBlendFactor_Zero, WGPUBlendFactor_One};
+            }
             WGPUColorTargetState color{};
             color.format = WGPUTextureFormat(targetFormat);
             color.blend = &blend;
@@ -204,6 +213,10 @@ struct TilePresentation::Private
             descriptor.multisample.mask = 0xffffffff;
             descriptor.fragment = &fragment;
             Detail::Pipeline next(wgpuDeviceCreateRenderPipeline(device->nativeDevice(), &descriptor));
+            return next;
+        };
+        if (!outlinePipeline || outlineFormat != targetFormat) {
+            auto next = createPipeline(false);
             if (!next || !device->diagnostic().isEmpty()) return false;
             Detail::Layout layout(wgpuRenderPipelineGetBindGroupLayout(next.get(), 0));
             if (!layout) return false;
@@ -227,6 +240,15 @@ struct TilePresentation::Private
             outlineLayout = std::move(layout);
             outlineBindings = std::move(nextBindings);
             outlineFormat = targetFormat;
+        }
+        if (painted && (!paintedOutlinePipeline || paintedOutlineFormat != targetFormat)) {
+            auto next = createPipeline(true);
+            if (!next || !device->diagnostic().isEmpty()) return false;
+            Detail::Layout layout(wgpuRenderPipelineGetBindGroupLayout(next.get(), 0));
+            if (!layout) return false;
+            paintedOutlinePipeline = std::move(next);
+            paintedOutlineLayout = std::move(layout);
+            paintedOutlineFormat = targetFormat;
         }
         if (outlineCapacity < vertices) {
             qsizetype capacity = std::max<qsizetype>(64, outlineCapacity);
@@ -302,6 +324,43 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         return {false, QStringLiteral("GPU tool outline requires finite geometry, a positive width and at most 65536 vertices"), 0};
     if (!outlineVertices.empty() && !d.prepareOutline(target.format, qsizetype(outlineVertices.size())))
         return {false, QStringLiteral("GPU tool outline resources could not be prepared: %1").arg(d.device->diagnostic()), 0};
+    if (outline.painted.size() > 64)
+        return {false, QStringLiteral("GPU tool decoration exceeds 64 painted strokes"), 0};
+    std::vector<StrokeDraw> paintedDraws;
+    qsizetype paintedVertices = outlineVertices.size();
+    for (const auto &stroke : outline.painted) {
+        ToolOutline value;
+        value.contours = stroke.contours; value.color = stroke.color; value.thickness = stroke.thickness;
+        std::vector<OutlineVertex> vertices;
+        if (!outlineGeometry(value, vertices) || qsizetype(vertices.size()) > maximumOutlineVertices - paintedVertices)
+            return {false, QStringLiteral("GPU painted tool geometry exceeds the finite contour budget"), 0};
+        paintedVertices += vertices.size();
+        if (vertices.empty()) continue;
+        if (!d.prepareOutline(target.format, 0, true))
+            return {false, QStringLiteral("GPU painted tool pipeline could not be prepared"), 0};
+        StrokeDraw draw;
+        draw.count = quint32(vertices.size());
+        WGPUBufferDescriptor buffer{};
+        buffer.size = vertices.size() * sizeof(OutlineVertex);
+        buffer.usage = WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst;
+        draw.vertices.reset(wgpuDeviceCreateBuffer(d.device->nativeDevice(), &buffer));
+        buffer.size = sizeof(OutlineUniforms);
+        buffer.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
+        draw.uniform.reset(wgpuDeviceCreateBuffer(d.device->nativeDevice(), &buffer));
+        if (!draw.vertices || !draw.uniform)
+            return {false, QStringLiteral("GPU painted tool buffers could not be prepared"), 0};
+        WGPUBindGroupEntry entry{}; entry.buffer = draw.uniform.get(); entry.size = sizeof(OutlineUniforms);
+        WGPUBindGroupDescriptor bindings{};
+        bindings.layout = d.paintedOutlineLayout.get(); bindings.entryCount = 1; bindings.entries = &entry;
+        draw.bindings.reset(wgpuDeviceCreateBindGroup(d.device->nativeDevice(), &bindings));
+        if (!draw.bindings) return {false, QStringLiteral("GPU painted tool binding could not be prepared"), 0};
+        const OutlineUniforms values{{float(target.size.width()), float(target.size.height()), 0, 0},
+            {float(stroke.color.redF()), float(stroke.color.greenF()), float(stroke.color.blueF()), float(stroke.color.alphaF())}};
+        wgpuQueueWriteBuffer(d.device->queue(), draw.uniform.get(), 0, &values, sizeof(values));
+        wgpuQueueWriteBuffer(d.device->queue(), draw.vertices.get(), 0, vertices.data(), vertices.size() * sizeof(OutlineVertex));
+        paintedDraws.push_back(std::move(draw));
+    }
+
     const auto tiles = projection->tiles();
     const QRectF viewport(QPointF(0, 0), target.size);
     const QRectF region(projection->region());
@@ -440,6 +499,13 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
             wgpuRenderPassEncoderSetBindGroup(pass, 0, draw.bindings.get(), 0, nullptr);
             wgpuRenderPassEncoderDraw(pass, 6, 1, 0, 0);
         }
+    }
+    for (const auto &draw : paintedDraws) {
+        wgpuRenderPassEncoderSetPipeline(pass, d.paintedOutlinePipeline.get());
+        wgpuRenderPassEncoderSetViewport(pass, 0, 0, target.size.width(), target.size.height(), 0, 1);
+        wgpuRenderPassEncoderSetBindGroup(pass, 0, draw.bindings.get(), 0, nullptr);
+        wgpuRenderPassEncoderSetVertexBuffer(pass, 0, draw.vertices.get(), 0, quint64(draw.count) * sizeof(OutlineVertex));
+        wgpuRenderPassEncoderDraw(pass, draw.count, 1, 0, 0);
     }
     if (!outlineVertices.empty()) {
         wgpuRenderPassEncoderSetPipeline(pass, d.outlinePipeline.get());

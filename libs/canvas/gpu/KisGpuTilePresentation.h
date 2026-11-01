@@ -59,16 +59,24 @@ struct CheckerPattern
     QTransform targetToPattern;
 };
 
-/** Display-only contours in physical target pixels, independent of the document transform.
- * Thickness is measured in physical pixels; cursor RGB controls contrast against
- * the displayed image while preserving destination alpha.
- * One frame admits at most 65536 contour points and generated triangle vertices.
+/** Display-colored tool paths with physical cosmetic stroke thickness. */
+struct ToolStroke
+{
+    QList<QPolygonF> contours;
+    QColor color{Qt::black};
+    qreal thickness = 1;
+};
+
+/** Display-only contours in physical target pixels. Cursor contours contrast
+ * against the image and preserve target alpha; painted strokes use their own
+ * color and opacity. One frame admits at most 65536 generated vertices.
  */
 struct ToolOutline
 {
     QList<QPolygonF> contours;
     QColor color{Qt::white};
     qreal thickness = 1;
+    QList<ToolStroke> painted;
 };
 
 /** Display-only crop geometry. toTarget maps the tool's view coordinates to
