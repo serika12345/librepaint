@@ -397,6 +397,7 @@ private Q_SLOTS:
     void colorFillActionsPreservePixelsHistoryAndSaving();
 private:
     KisPaintOpPresetSP m_preset;
+    std::shared_ptr<LibrePaint::Image::Gpu::Execution> m_gradientExecution;
 };
 
 void KisGpuDocumentViewTest::layerPanelThumbnailsReadOnlyReducedGpuPixels()
@@ -10909,6 +10910,13 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
     }
     QList<QByteArray> reference;
     for (const bool gpu : {false, true}) {
+        // Compare KRA tabs on the application's shared execution, including
+        // the reopened document's attachment and retained-resource lifetime.
+        if (gpu && !m_gradientExecution) {
+            QString diagnostic;
+            m_gradientExecution = KisPart::instance()->gpuExecution(diagnostic);
+            QVERIFY2(m_gradientExecution, qPrintable(diagnostic));
+        }
         qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
         const auto saved = directory.filePath(gpu ? QStringLiteral("gpu.kra") : QStringLiteral("native.kra"));
         int stage = 0;
