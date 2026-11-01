@@ -37,6 +37,6 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
 /** Writes layer transparency coverage as one KRA alpha8 pixel-selection stream. */
 Outcome writeTransparencyMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
                               const QRect &imageBounds, qsizetype maximumBytes,
-                              QByteArray &output);
+                              QByteArray &output, QPoint &offset);
 }
 #endif

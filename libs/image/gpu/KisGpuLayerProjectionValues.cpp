@@ -341,9 +341,12 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
     const auto maskedDefault = [&](LayerId id) {
         auto pixel = result.value(id);
         const auto coverage = maskDefaults.value(id, 255);
-        if (coverage != 255) pixel[3] = format == PixelFormat::Rgba16 ?
-            quint16(Detail::multiplyWord(pixel[3], quint32(coverage) * 257u)) :
-            quint16(Detail::multiplyByte(pixel[3], coverage));
+        if (coverage != 255) {
+            pixel[3] = format == PixelFormat::Rgba16 ?
+                quint16(Detail::multiplyWord(pixel[3], quint32(coverage) * 257u)) :
+                quint16(Detail::multiplyByte(pixel[3], coverage));
+            if (!pixel[3]) pixel = {};
+        }
         return pixel;
     };
     for (qsizetype index = 0; index < ready.size(); ++index) {

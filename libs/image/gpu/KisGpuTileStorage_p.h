@@ -78,12 +78,14 @@ struct ProjectionInput {
     LayerBlendMode blendMode = LayerBlendMode::Normal;
     /** Null means the layer contributes without alpha coverage. */
     SelectionMaskSP mask;
+    QRect maskExtent;
     /** Document-coordinate clipping for transparent-source or alpha-protected composition. */
     QRect sourceExtent;
     bool boundedSource = false;
     bool operator==(const ProjectionInput &other) const {
         return pixels == other.pixels && opacity == other.opacity && channelMask == other.channelMask &&
-            blendMode == other.blendMode && mask == other.mask && sourceExtent == other.sourceExtent && boundedSource == other.boundedSource;
+            blendMode == other.blendMode && mask == other.mask && maskExtent == other.maskExtent &&
+            sourceExtent == other.sourceExtent && boundedSource == other.boundedSource;
     }
 };
 using ProjectionInputs = QMap<quint64, QList<ProjectionInput>>;

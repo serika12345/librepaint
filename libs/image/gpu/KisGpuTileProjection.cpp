@@ -22,6 +22,7 @@ namespace {
 struct CompositeParameters {
     quint32 opacityBits = 0x3f800000, flags = 0, channelMask = 15, blendModeOpacity = 0;
     qint32 sourceLeft = 0, sourceTop = 0, sourceRight = 0, sourceBottom = 0;
+    qint32 maskLeft = 0, maskTop = 0, maskRight = 0, maskBottom = 0;
 };
 struct CompositeUniform
 {
@@ -329,6 +330,10 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 layer.blendMode != LayerBlendMode::DestinationAtop && layer.blendMode != LayerBlendMode::Copy) continue;
             ProjectionInput input{pixels, layer.opacity, layer.channelMask, layer.blendMode};
             input.mask = layerMasks.value(layer.layer);
+            if (input.mask) {
+                input.maskExtent = input.mask->allocatedBounds();
+                if (input.mask->defaultCoverage()) input.maskExtent |= QRect(QPoint(), document->document()->size);
+            }
             input.boundedSource = bounded;
             if (clipsSource) input.sourceExtent = extent;
             data->inputs[coordinate].append(input);
@@ -451,10 +456,15 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 values[layer].sourceTop = localExtent.top();
                 values[layer].sourceRight = localExtent.isEmpty() ? 0 : localExtent.right() + 1;
                 values[layer].sourceBottom = localExtent.isEmpty() ? 0 : localExtent.bottom() + 1;
+                const auto maskExtent = source.maskExtent.translated(-coordinate(tile.key()) * TileSize);
+                values[layer].maskLeft = maskExtent.left();
+                values[layer].maskTop = maskExtent.top();
+                values[layer].maskRight = maskExtent.isEmpty() ? 0 : maskExtent.right() + 1;
+                values[layer].maskBottom = maskExtent.isEmpty() ? 0 : maskExtent.bottom() + 1;
                 values[layer].blendModeOpacity = quint32(source.blendMode) | (quint32(source.opacity) << 8);
                 const bool normalize = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
                 values[layer].flags = quint32(normalize) | (document->document()->format == PixelFormat::Rgba16 ? 2u : 0u) |
-                    (source.boundedSource ? 4u : 0u);
+                    (source.boundedSource ? 4u : 0u) | (source.mask ? 8u : 0u);
                 hiddenRgb = source.blendMode != LayerBlendMode::Normal ||
                     !(source.channelMask & 8u) || source.opacity < 128 ||
                     (hiddenRgb && !normalize);

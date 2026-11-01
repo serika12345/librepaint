@@ -3,7 +3,7 @@
 
 // flags holds transparent-base normalization, RGBA16 precision and explicit source bounds.
 // blendModeOpacity holds LayerBlendMode in the low byte and opacity in the next.
-struct CompositeParameters { opacityBits: u32, flags: u32, channelMask: u32, blendModeOpacity: u32, sourceLeft: i32, sourceTop: i32, sourceRight: i32, sourceBottom: i32, }
+struct CompositeParameters { opacityBits: u32, flags: u32, channelMask: u32, blendModeOpacity: u32, sourceLeft: i32, sourceTop: i32, sourceRight: i32, sourceBottom: i32, maskLeft: i32, maskTop: i32, maskRight: i32, maskBottom: i32, }
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(1) var<storage, read> layerPixels: array<u32>;
 @group(0) @binding(2) var<storage, read_write> outputPixels: array<u32>;
@@ -23,7 +23,10 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha:
     var destination = unpackPixel(base);
     if ((values.flags & 1u) != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
     var source = unpackPixel(layer);
-    if (maskAlpha != 255u) { source.w = multiplyByte(source.w, maskAlpha); }
+    if (maskAlpha != 255u) {
+        source.w = multiplyByte(source.w, maskAlpha);
+        if (source.w == 0u) { source = vec4<u32>(0u); }
+    }
     if ((values.blendModeOpacity & 255u) == 130u) {
         return packPixel(copyPixel(destination, source, values.opacityBits, values.channelMask, false));
     }
@@ -65,13 +68,20 @@ fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameter
     if (((values.flags & 4u) != 0u || transparentSourceAffectsBlend(values.blendModeOpacity & 255u) || ((values.channelMask & 8u) == 0u && (values.blendModeOpacity & 255u) != 130u)) &&
         (any(position < vec2<i32>(values.sourceLeft, values.sourceTop)) ||
          any(position >= vec2<i32>(values.sourceRight, values.sourceBottom)))) { return base; }
+    var maskedLayer = layer;
+    if ((values.flags & 8u) != 0u &&
+        (any(position < vec2<i32>(values.maskLeft, values.maskTop)) ||
+         any(position >= vec2<i32>(values.maskRight, values.maskBottom)))) { maskedLayer = vec2<u32>(0u); }
     if ((values.flags & 2u) == 0u) {
-        return vec2<u32>(projectionOver(base.x, layer.x, values, maskAlpha), 0u);
+        return vec2<u32>(projectionOver(base.x, maskedLayer.x, values, maskAlpha), 0u);
     }
     var destination = nativePixel(base.x, base.y, true);
     if ((values.flags & 1u) != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
-    var source = nativePixel(layer.x, layer.y, true);
-    if (maskAlpha != 255u) { source.w = mul65535(source.w, maskAlpha * 257u); }
+    var source = nativePixel(maskedLayer.x, maskedLayer.y, true);
+    if (maskAlpha != 255u) {
+        source.w = mul65535(source.w, maskAlpha * 257u);
+        if (source.w == 0u) { source = vec4<u32>(0u); }
+    }
     if ((values.blendModeOpacity & 255u) == 130u) {
         return nativePixelWords(copyPixel(destination, source, values.opacityBits, values.channelMask, true), true);
     }

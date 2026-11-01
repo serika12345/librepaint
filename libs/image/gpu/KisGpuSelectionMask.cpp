@@ -20,6 +20,36 @@ constexpr int MaximumFeatherRadius = 512;
 int floorDivide(qint64 value, int divisor)
 { return int(value / divisor - (value % divisor < 0)); }
 
+QRect selectionStorageBlock(QRect area, QPoint origin = {})
+{
+    if (area.isEmpty()) return {};
+    area.translate(-origin);
+    return QRect(QPoint(floorDivide(area.left(), 64), floorDivide(area.top(), 64)) * 64 + origin,
+        QPoint((floorDivide(area.right(), 64) + 1) * 64 - 1, (floorDivide(area.bottom(), 64) + 1) * 64 - 1) + origin);
+}
+
+SelectionMaskSP generatedSelectionStorage(const SelectionMaskSP &mask, const QList<QPoint> &tiles)
+{
+    QList<QRect> blocks;
+    for (const auto point : tiles) {
+        const auto area = QRect(point * SelectionMask::TileSize, QSize(SelectionMask::TileSize, SelectionMask::TileSize)) & mask->bounds();
+        if (!area.isEmpty()) blocks.append(selectionStorageBlock(area));
+    }
+    return mask->withAllocatedBlocks(blocks);
+}
+
+SelectionMaskSP translatedSelectionStorage(const SelectionMaskSP &result, const SelectionMask &source, QPoint offset, QRect clip)
+{
+    if (!result) return {};
+    QList<QRect> blocks;
+    const QPoint origin = source.allocatedBlocks().isEmpty() ? offset : source.allocatedBlocks().first().topLeft() + offset;
+    for (const auto &block : source.allocatedBlocks()) {
+        const auto area = block.translated(offset) & clip;
+        if (!area.isEmpty()) blocks.append(selectionStorageBlock(area, origin));
+    }
+    return result->withAllocatedBlocks(blocks);
+}
+
 bool validTileCoordinate(const QPoint &coordinate)
 {
     const qint64 left = qint64(coordinate.x()) * SelectionMask::TileSize;
@@ -169,6 +199,62 @@ QSharedPointer<const SelectionMask> morph(const SelectionMask &source, int xRadi
 SelectionMask::SelectionMask(QRect bounds, SelectionTileMap tiles, CoverageFormat format, quint8 defaultCoverage)
     : m_bounds(bounds), m_tiles(std::move(tiles)), m_format(format), m_defaultCoverage(defaultCoverage)
 {
+    constexpr int side = 64;
+    if (m_tiles.isEmpty()) return;
+    for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) {
+        const QPoint origin(tile.key().first * TileSize, tile.key().second * TileSize);
+        for (int by = 0; by < TileSize; by += side) for (int bx = 0; bx < TileSize; bx += side) {
+            bool differs = false;
+            for (int y = by; y < by + side && !differs; ++y) for (int x = bx; x < bx + side; ++x) {
+                const qsizetype index = qsizetype(y) * TileSize + x;
+                const auto value = format == CoverageFormat::Alpha ? quint8(tile->at(index)) :
+                    quint8((quint8(tile->at(index >> 3)) & (1u << (index & 7))) ? 255 : 0);
+                if (value != defaultCoverage) { differs = true; break; }
+            }
+            if (differs) m_allocatedBlocks.append(QRect(origin + QPoint(bx, by), QSize(side, side)));
+        }
+    }
+    std::sort(m_allocatedBlocks.begin(), m_allocatedBlocks.end(), [](const QRect &a, const QRect &b) {
+        return a.top() == b.top() ? a.left() < b.left() : a.top() < b.top();
+    });
+}
+
+QRect SelectionMask::allocatedBounds() const
+{
+    QRect result;
+    for (const auto &block : m_allocatedBlocks) result |= block;
+    return result;
+}
+
+QSharedPointer<const SelectionMask> SelectionMask::withAllocatedBlocks(const QList<QRect> &blocks) const
+{
+    if (blocks.size() > MaximumBytes / qsizetype(sizeof(QRect)) ||
+        byteCount() - m_allocatedBlocks.size() * qsizetype(sizeof(QRect)) >
+            MaximumBytes - blocks.size() * qsizetype(sizeof(QRect))) return {};
+    QRect bounds;
+    QSet<QPoint> cells;
+    constexpr int side = 64;
+    const QPoint origin = blocks.isEmpty() ? QPoint{} : blocks.first().topLeft();
+    for (const auto &block : blocks) {
+        if (block.isEmpty() || qint64(block.left()) < -CoordinateLimit || qint64(block.top()) < -CoordinateLimit ||
+            qint64(block.x()) + block.width() > CoordinateLimit || qint64(block.y()) + block.height() > CoordinateLimit ||
+            block.width() % side || block.height() % side || (block.x() - origin.x()) % side || (block.y() - origin.y()) % side ||
+            qint64(block.width() / side) * (block.height() / side) > MaximumBytes / (side * side)) return {};
+        for (int y = block.top(); y <= block.bottom(); y += side) for (int x = block.left(); x <= block.right(); x += side) {
+            cells.insert({x, y});
+            if (cells.size() > MaximumBytes / (side * side)) return {};
+        }
+        bounds |= block;
+    }
+    if (!m_bounds.isEmpty() && !bounds.contains(m_bounds)) return {};
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(*this));
+    result->m_allocatedBlocks.clear();
+    for (const auto &point : cells) result->m_allocatedBlocks.append(QRect(point, QSize(side, side)));
+    std::sort(result->m_allocatedBlocks.begin(), result->m_allocatedBlocks.end(), [](const QRect &a, const QRect &b) {
+        return a.top() == b.top() ? a.left() < b.left() : a.top() < b.top();
+    });
+    if (result->byteCount() > MaximumBytes) return {};
+    return result;
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::empty()
@@ -417,7 +503,6 @@ QSharedPointer<const SelectionMask> SelectionMask::fromAlphaTiles(const Selectio
 
 QSharedPointer<const SelectionMask> SelectionMask::fromAlphaTiles(const SelectionTileMap &tiles, quint8 defaultCoverage)
 {
-    if (!defaultCoverage) return tiles.isEmpty() ? empty() : fromAlphaTiles(tiles);
     if (tiles.size() > MaximumBytes / AlphaTileBytes) return {};
     SelectionTileMap retained;
     QRect bounds;
@@ -434,6 +519,7 @@ QSharedPointer<const SelectionMask> SelectionMask::fromAlphaTiles(const Selectio
         }
         if (differs) retained.insert(tile.key(), tile.value());
     }
+    if (!defaultCoverage && retained.isEmpty()) return empty();
     return SelectionMaskSP(new SelectionMask(bounds, std::move(retained), CoverageFormat::Alpha, defaultCoverage));
 }
 
@@ -447,7 +533,7 @@ QSharedPointer<const SelectionMask> SelectionMask::fromRegion(const QSharedPoint
     result->m_region = source;
     result->m_outlineRuns = outlineRuns;
     result->m_nativePixels = pixels;
-    return result;
+    return generatedSelectionStorage(result, result->tileCoordinates());
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::fromCombination(const QSharedPointer<const SelectionCombinationSource> &source,
@@ -461,21 +547,27 @@ QSharedPointer<const SelectionMask> SelectionMask::fromCombination(const QShared
         !validOutline(source->extent, {}) || !validOutline(bounds, outlineRuns) ||
         (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
     for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
-    if (bounds.isEmpty()) return uniform(source->defaultCoverage());
+    if (bounds.isEmpty()) {
+        const auto result = uniform(source->defaultCoverage());
+        return source->pixels == SelectionCombinationSource::Pixels::InvertTransparency ?
+            result->withAllocatedBlocks(source->first->allocatedBlocks()) : result;
+    }
     auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha, source->defaultCoverage()));
     result->m_combination = source;
     result->m_outlineRuns = outlineRuns;
     result->m_nativePixels = pixels;
-    return result;
+    return source->pixels == SelectionCombinationSource::Pixels::InvertTransparency ?
+        result->withAllocatedBlocks(source->first->allocatedBlocks()) : generatedSelectionStorage(result, source->tiles);
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, const QRect &clip) const
 {
-    if (m_defaultCoverage) return m_bounds.isEmpty() ? uniform(m_defaultCoverage) : SelectionMaskSP{};
+    const auto retained = [&](const SelectionMaskSP &result) { return translatedSelectionStorage(result, *this, delta, clip); };
+    if (m_defaultCoverage) return m_bounds.isEmpty() ? retained(uniform(m_defaultCoverage)) : SelectionMaskSP{};
     if (isGpuGenerated()) return {};
     if (clip.isEmpty() ||
         std::abs(delta.x()) > CoordinateLimit || std::abs(delta.y()) > CoordinateLimit) return {};
-    if (isEmpty()) return empty();
+    if (isEmpty()) return retained(empty());
     if (m_format == CoverageFormat::Alpha) {
         AlphaBuilder builder;
         for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) {
@@ -493,8 +585,8 @@ QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, cons
                 }
             }
         }
-        if (builder.bounds.isEmpty() && builder.bytes >= 0) return empty();
-        return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Alpha);
+        if (builder.bounds.isEmpty() && builder.bytes >= 0) return retained(empty());
+        return retained(make(builder.bounds, std::move(builder.tiles), CoverageFormat::Alpha));
     }
     CoverageBuilder builder;
     for (auto tile = m_tiles.cbegin(); tile != m_tiles.cend(); ++tile) {
@@ -518,8 +610,8 @@ QSharedPointer<const SelectionMask> SelectionMask::translated(QPoint delta, cons
             }
         }
     }
-    if (builder.bounds.isEmpty() && builder.bytes >= 0) return empty();
-    return make(builder.bounds, std::move(builder.tiles), CoverageFormat::Binary);
+    if (builder.bounds.isEmpty() && builder.bytes >= 0) return retained(empty());
+    return retained(make(builder.bounds, std::move(builder.tiles), CoverageFormat::Binary));
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::fromTranslation(
@@ -530,13 +622,13 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTranslation(
         source->tiles.size() > MaximumBytes / AlphaTileBytes || !validOutline(source->extent, {}) ||
         !validOutline(bounds, outlineRuns) || (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
     for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
-    if (bounds.isEmpty()) return uniform(source->source->defaultCoverage());
+    if (bounds.isEmpty()) return translatedSelectionStorage(uniform(source->source->defaultCoverage()), *source->source, source->offset, source->clip);
     auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha,
         source->source->defaultCoverage()));
     result->m_translation = source;
     result->m_outlineRuns = outlineRuns;
     result->m_nativePixels = pixels;
-    return result;
+    return translatedSelectionStorage(result, *source->source, source->offset, source->clip);
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::fromPaint(const QSharedPointer<const SelectionPaintSource> &source,
@@ -551,7 +643,7 @@ QSharedPointer<const SelectionMask> SelectionMask::fromPaint(const QSharedPointe
     auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha,
         quint8(layer->defaultPixel[3])));
     result->m_paint = source; result->m_outlineRuns = outlineRuns; result->m_nativePixels = pixels;
-    return result;
+    return result->withAllocatedBlocks(source->allocatedBlocks);
 }
 
 QSharedPointer<const SelectionMask> SelectionMask::fromTransform(const QSharedPointer<const SelectionMaskTransformSource> &source,
@@ -563,7 +655,14 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTransform(const QSharedPo
     auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha,
         source->selection ? source->source->defaultCoverage() : 0));
     result->m_transform = source; result->m_outlineRuns = outlineRuns; result->m_nativePixels = pixels;
-    return result;
+    QList<QRect> blocks;
+    QPoint origin = source->plan->positionDelta;
+    if (source->selection) {
+        blocks = source->source->allocatedBlocks();
+        origin = blocks.isEmpty() ? QPoint{} : blocks.first().topLeft();
+    }
+    if (!source->output.isEmpty()) blocks.append(selectionStorageBlock(source->output, origin));
+    return result->withAllocatedBlocks(blocks);
 }
 
 QList<QPoint> SelectionMask::tileCoordinates() const
@@ -771,6 +870,6 @@ bool SelectionMask::operator==(const SelectionMask &other) const
     return m_format == other.m_format && m_defaultCoverage == other.m_defaultCoverage &&
         m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
         m_region == other.m_region && m_combination == other.m_combination && m_translation == other.m_translation && m_paint == other.m_paint && m_transform == other.m_transform &&
-        m_outlineRuns == other.m_outlineRuns;
+        m_outlineRuns == other.m_outlineRuns && m_allocatedBlocks == other.m_allocatedBlocks;
 }
 }

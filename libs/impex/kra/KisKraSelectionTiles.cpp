@@ -369,6 +369,7 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
     QSet<QPoint> seen;
     KisLzfCompression compression;
     SelectionTileMap tiles;
+    QList<QRect> allocated;
     qsizetype bytes = 0;
     QByteArray pixels;
     for (quint32 index = 0; index < count; ++index) {
@@ -379,6 +380,9 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
         const int y = fields[1].toInt(&ok);
         if (!ok || y % FileTileSize || seen.contains({x, y})) return invalid();
         seen.insert({x, y});
+        const qint64 left = qint64(x) + offset.x(), top = qint64(y) + offset.y();
+        if (left < -limit || top < -limit || left + FileTileSize > limit || top + FileTileSize > limit) return invalid();
+        allocated.append(QRect(int(left), int(top), FileTileSize, FileTileSize));
         const int size = fields[3].toInt(&ok);
         if (!ok || size < 1 || size > FileTileBytes + 1 || size > input.bytesAvailable()) return invalid();
         const auto encoded = input.read(size);
@@ -414,7 +418,8 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
         }
     }
     if (!input.atEnd()) return invalid();
-    mask = SelectionMask::fromAlphaTiles(tiles, defaultCoverage);
+    const auto coverage = SelectionMask::fromAlphaTiles(tiles, defaultCoverage);
+    mask = coverage ? coverage->withAllocatedBlocks(allocated) : SelectionMaskSP{};
     if (!mask)
         return {Status::UnsupportedData, QStringLiteral("KRA transparency mask coverage could not be adopted")};
     return {Status::Success, {}};
@@ -422,16 +427,35 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
 
 Outcome writeTransparencyMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
                               const QRect &imageBounds, qsizetype maximumBytes,
-                              QByteArray &output)
+                              QByteArray &output, QPoint &offset)
 {
-    if (!mask || imageBounds.isEmpty())
+    if (!mask || mask->isGpuGenerated() || imageBounds.isEmpty())
         return {Status::InvalidData, QStringLiteral("KRA transparency mask requires coverage and image bounds")};
-    if (mask->isEmpty())
-        return writeSelectionTiles({}, false, imageBounds, LibrePaint::Image::Gpu::SelectionKind::Rectangle,
-                                   {}, maximumBytes, output);
-    constexpr int limit = LibrePaint::Image::Gpu::RgbaTile::CoordinateLimit;
-    return writeSelectionTiles(mask->bounds(), false, QRect(-limit, -limit, 2 * limit, 2 * limit),
-                               LibrePaint::Image::Gpu::SelectionKind::Freehand, mask,
-                               maximumBytes, output);
+    const auto &blocks = mask->allocatedBlocks();
+    if (maximumBytes < 0 || blocks.size() > maximumBytes / FileTileBytes) return capacity();
+    if (!mask->bounds().isEmpty() && blocks.isEmpty()) return invalid();
+    offset = blocks.isEmpty() ? QPoint{} : QPoint(blocks.first().x() % FileTileSize, blocks.first().y() % FileTileSize);
+    QByteArray bytes = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 1\nDATA ") +
+        QByteArray::number(blocks.size()) + '\n';
+    KisLzfCompression compression;
+    const auto capacity = compression.outputBufferSize(FileTileBytes);
+    QByteArray encoded(capacity, Qt::Uninitialized), pixels(FileTileBytes, Qt::Uninitialized);
+    for (const auto &block : blocks) {
+        if (block.size() != QSize(FileTileSize, FileTileSize) ||
+            (block.x() - offset.x()) % FileTileSize || (block.y() - offset.y()) % FileTileSize) return invalid();
+        for (int y = 0; y < FileTileSize; ++y) for (int x = 0; x < FileTileSize; ++x)
+            pixels[y * FileTileSize + x] = char(mask->coverage(block.x() + x, block.y() + y));
+        const auto size = compression.compress(reinterpret_cast<const quint8 *>(pixels.constData()), FileTileBytes,
+            reinterpret_cast<quint8 *>(encoded.data()), capacity);
+        if (size <= 0) return {Status::IoFailure, QStringLiteral("KRA transparency compression failed")};
+        const bool compressed = size < FileTileBytes;
+        const int payload = compressed ? size : FileTileBytes;
+        bytes += QByteArray::number(block.x() - offset.x()) + ',' + QByteArray::number(block.y() - offset.y()) +
+            QByteArrayLiteral(",LZF,") + QByteArray::number(payload + 1) + '\n';
+        bytes += char(compressed ? 1 : 0);
+        bytes.append(compressed ? encoded.constData() : pixels.constData(), payload);
+    }
+    output = std::move(bytes);
+    return {Status::Success, {}};
 }
 }

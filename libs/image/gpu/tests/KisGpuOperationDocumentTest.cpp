@@ -4606,8 +4606,21 @@ void KisGpuOperationDocumentTest::ordinaryMaskCreationKeepsDefaultsSelectionAndH
         QCOMPARE(mask->coverage(-504, 773), value);
         QCOMPARE(mask->coverage(100000, -100000), value);
         QCOMPARE(mask->bounds(), QRect(-505, 773, 5, 5));
-        QCOMPARE(mask->byteCount(), qsizetype(SelectionMask::AlphaTileBytes));
+        QCOMPARE(mask->allocatedBlocks(), (QList<QRect>{QRect(-512, 768, 64, 64)}));
         QVERIFY(*mask != *flat);
+        const auto stored = mask->withAllocatedBlocks({QRect(-512, 768, 64, 64), QRect(512, -64, 64, 64)});
+        QVERIFY(stored && *stored != *mask);
+        QCOMPARE(stored->coverage(520, -60), value);
+        QCOMPARE(stored->allocatedBounds(), QRect(-512, -64, 1088, 896));
+        QVERIFY(!mask->withAllocatedBlocks({QRect(512, -64, 64, 64)}));
+        OperationDocument retained({64, 64});
+        QCOMPARE(retained.addTransparencyMask(retained.activeLayer()), Result::Success);
+        const auto before = retained.snapshot();
+        QCOMPARE(retained.replaceTransparencyMask(retained.activeLayer(), stored), Result::Success);
+        const auto after = retained.snapshot();
+        QCOMPARE(after->layers.first().transparencyMask, stored);
+        QCOMPARE(retained.undo(), Result::Success); QCOMPARE(retained.snapshot(), before);
+        QCOMPARE(retained.redo(), Result::Success); QCOMPARE(retained.snapshot(), after);
     }
 }
 

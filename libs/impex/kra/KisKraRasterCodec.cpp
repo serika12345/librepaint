@@ -739,9 +739,12 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                 maskElement.setAttribute(QStringLiteral("y"), QStringLiteral("0"));
                 const auto maskPath = folder + QStringLiteral("/layers/") + maskFilename;
                 QByteArray maskPixels;
+                QPoint maskOffset;
                 result = Detail::writeTransparencyMask(layer.transparencyMask, QRect(QPoint(), value.size),
-                                                        limits.rasterBytes, maskPixels);
+                                                        limits.rasterBytes, maskPixels, maskOffset);
                 if (result.code != Status::Success) return result;
+                maskElement.setAttribute(QStringLiteral("x"), QString::number(maskOffset.x()));
+                maskElement.setAttribute(QStringLiteral("y"), QString::number(maskOffset.y()));
                 files.insert(maskPath + QStringLiteral(".pixelselection"), std::move(maskPixels));
                 files.insert(maskPath + QStringLiteral(".defaultpixel"), QByteArray(1, char(layer.transparencyMask->defaultCoverage())));
                 files.remove(maskPath + QStringLiteral(".xmp.metadata"));

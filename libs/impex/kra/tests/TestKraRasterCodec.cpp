@@ -1805,6 +1805,14 @@ void TestKraRasterCodec::emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage()
     const auto outside = SelectionMask::fromAlphaCoverage(bounds, QByteArray::fromHex("01807fffff01807fffff01807f"), bounds);
     QVERIFY(outside);
     QList<SelectionMaskSP> masks{SelectionMask::empty(), outside, SelectionMask::uniform(17), SelectionMask::uniform(255)};
+    for (const auto value : {quint8(0), quint8(17), quint8(255)}) {
+        // Native consumers use allocated selection bounds even when every
+        // stored byte equals the default. Shifted, distant blocks must survive
+        // saving and additional edits without becoming a dense allocation.
+        const auto allocated = SelectionMask::uniform(value)->withAllocatedBlocks({QRect(-125, 67, 64, 64), QRect(643, 259, 64, 64)});
+        QVERIFY(allocated);
+        masks.append(allocated);
+    }
     for (quint8 value : {quint8(17), quint8(255)}) {
         SelectionTileMap tiles;
         QByteArray alpha(SelectionMask::AlphaTileBytes, char(value));
@@ -1828,6 +1836,7 @@ void TestKraRasterCodec::emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage()
         const auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
         const auto &actual = loaded.document.image.layers[0];
         QVERIFY(actual.transparencyMask); QVERIFY(*actual.transparencyMask == *mask);
+        QCOMPARE(actual.transparencyMask->allocatedBlocks(), mask->allocatedBlocks());
         QCOMPARE(actual.transparencyMask->defaultCoverage(), mask->defaultCoverage());
         QCOMPARE(actual.transparencyMask->coverage(-505, 773), mask->coverage(-505, 773));
         QCOMPARE(actual.transparencyMask->coverage(100000, -100000), mask->coverage(100000, -100000));

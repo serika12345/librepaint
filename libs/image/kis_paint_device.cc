@@ -213,7 +213,7 @@ public:
     QRect gpuSelectionBounds() const
     {
         auto bounds = gpuSelection->bounds();
-        if (gpuSelection->defaultCoverage()) bounds |= defaultBounds->bounds();
+        if (gpuSelection->defaultCoverage()) bounds = gpuSelection->allocatedBounds() | defaultBounds->bounds();
         return bounds;
     }
     KisPaintDeviceSP selectionThumbnailSource() const
@@ -1593,7 +1593,8 @@ void KisPaintDevice::extent(qint32 &x, qint32 &y, qint32 &w, qint32 &h) const
 
 QRect KisPaintDevice::extent() const
 {
-    if (m_d->gpuSelection) return m_d->gpuSelectionBounds();
+    if (m_d->gpuSelection) return m_d->gpuSelection->allocatedBounds() |
+        (m_d->gpuSelection->defaultCoverage() ? m_d->defaultBounds->bounds() : QRect{});
     if (m_d->gpuImage) {
         const auto version = m_d->gpuPixelVersion();
         const auto id = m_d->gpuLayerId();
@@ -1616,7 +1617,10 @@ QRect KisPaintDevice::extent() const
 
 KisRegion KisPaintDevice::region() const
 {
-    if (m_d->gpuSelection) return KisRegion(QVector<QRect>{m_d->gpuSelection->bounds()});
+    if (m_d->gpuSelection) {
+        const auto &blocks = m_d->gpuSelection->allocatedBlocks();
+        return KisRegion(QVector<QRect>(blocks.cbegin(), blocks.cend()));
+    }
     if (m_d->gpuImage) return m_d->gpuAllocatedRegion();
     return m_d->currentStrategy()->region();
 }

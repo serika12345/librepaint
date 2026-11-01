@@ -492,6 +492,10 @@ QSharedPointer<PaintImage> PaintImage::createMaskImage(const Snapshot &version, 
         raster.size = version->size;
         raster.layers = {{QStringLiteral("Transparency coverage")}};
         if (mask->defaultCoverage()) raster.layers.first().defaultPixel = {255, 255, 255, mask->defaultCoverage()};
+        if (!mask->allocatedBlocks().isEmpty()) {
+            const auto origin = mask->allocatedBlocks().first().topLeft();
+            raster.layers.first().position = {origin.x() % 64, origin.y() % 64};
+        }
         PaintImageSP image(new PaintImage(m_d->execution, raster, m_d->limits));
         const auto layer = image->operations().activeLayer();
         const auto accepted = [&](Result result) {
@@ -500,14 +504,15 @@ QSharedPointer<PaintImage> PaintImage::createMaskImage(const Snapshot &version, 
                 QStringLiteral("GPU mask input preparation failed (%1)").arg(int(result))};
             return false;
         };
-        if (mask->defaultCoverage()) {
+        {
             Brush copy; copy.blendMode = LayerBlendMode::Copy;
             FigureStyle clear; clear.outline = false; clear.fill = RgbaPixel{};
             clear.fillBlendMode = LayerBlendMode::Copy; clear.ignoreSelection = true;
             Brush white; white.rgba = {255, 255, 255, 255};
             FigureStyle fill; fill.outline = false; fill.fill = white.rgba;
-            for (const auto point : coordinates) {
-                const QRect tile(point * SelectionMask::TileSize, QSize(SelectionMask::TileSize, SelectionMask::TileSize));
+            QRegion allocated;
+            for (const auto &block : mask->allocatedBlocks()) allocated += block;
+            for (const auto &tile : allocated) {
                 const QPointF first(tile.topLeft()), last(tile.topLeft() + QPoint(tile.width(), tile.height()));
                 if (!accepted(image->paintFigure(layer, copy, {{first, 1}, {last, 1}},
                     {ShapeKind::Rectangle, first, last, 0}, clear, 0))) return {};
@@ -519,17 +524,6 @@ QSharedPointer<PaintImage> PaintImage::createMaskImage(const Snapshot &version, 
                 if (!accepted(image->setSelectionMask(finite)) ||
                     !accepted(image->paintFigure(layer, white, {{first, 1}, {last, 1}},
                         {ShapeKind::Rectangle, first, last, 0}, fill, 0))) return {};
-            }
-        } else if (!mask->isEmpty()) {
-            if (!accepted(image->setSelectionMask(mask))) return {};
-            Brush white; white.rgba = {255, 255, 255, 255};
-            FigureStyle fill; fill.outline = false; fill.fill = white.rgba;
-            for (const auto point : coordinates) {
-                const QPointF first(point * SelectionMask::TileSize);
-                const QPointF last = first + QPointF(SelectionMask::TileSize, SelectionMask::TileSize);
-                const auto result = image->paintFigure(layer, white, {{first, 1}, {last, 1}},
-                    {ShapeKind::Rectangle, first, last, 0}, fill, 0);
-                if (!accepted(result)) return {};
             }
         }
         const auto selected = version->selectionKind == SelectionKind::Freehand ? image->setSelectionMask(version->selectionMask, version->selectionInverted) :

@@ -53,6 +53,7 @@ struct SelectionTranslationSource
     QSharedPointer<const SelectionMask> source;
     QPoint offset;
     QRect extent;
+    QRect clip;
     QList<QPoint> tiles;
 };
 
@@ -62,6 +63,7 @@ struct SelectionPaintSource
     QSharedPointer<const DocumentVersion> source;
     quint64 layer = 0;
     QList<QPoint> tiles;
+    QList<QRect> allocatedBlocks;
 };
 
 /** Transparency-mask gray and independent selection opacity through a frozen
@@ -134,6 +136,12 @@ public:
     /** Native transparency-mask tiles replace their default coverage. Fully
      * transparent tiles remain significant when the default is nonzero. */
     static QSharedPointer<const SelectionMask> fromAlphaTiles(const SelectionTileMap &tiles, quint8 defaultCoverage);
+    /** Retains native pixel-selection storage, including all-default blocks.
+     * Invalid regions, missing nondefault pixels or metadata capacity return null.
+     * Coverage remains unchanged; versions share the immutable pixel source. */
+    QSharedPointer<const SelectionMask> withAllocatedBlocks(const QList<QRect> &blocks) const;
+    const QList<QRect> &allocatedBlocks() const { return m_allocatedBlocks; }
+    QRect allocatedBounds() const;
     /** Frozen GPU-generated coverage. Only its exact bounds and display/hit
      * geometry are CPU values; editing and external pixel readers use the
      * retained GPU source. Invalid geometry or capacity returns null.
@@ -201,7 +209,7 @@ public:
     const SelectionTileMap &tiles() const { return m_tiles; }
     /** Bytes per stored tile for this coverage format. */
     qsizetype tileBytes() const { return m_format == CoverageFormat::Alpha ? AlphaTileBytes : TileBytes; }
-    qsizetype byteCount() const { return m_tiles.size() * tileBytes() + m_outlineRuns.size() * qsizetype(sizeof(QRect)); }
+    qsizetype byteCount() const { return m_tiles.size() * tileBytes() + (m_outlineRuns.size() + m_allocatedBlocks.size()) * qsizetype(sizeof(QRect)); }
     bool operator==(const SelectionMask &other) const;
     bool operator!=(const SelectionMask &other) const { return !(*this == other); }
 
@@ -232,6 +240,7 @@ private:
     QSharedPointer<const SelectionPaintSource> m_paint;
     QSharedPointer<const SelectionMaskTransformSource> m_transform;
     QList<QRect> m_outlineRuns;
+    QList<QRect> m_allocatedBlocks;
     std::shared_ptr<Detail::SelectionPixels> m_nativePixels;
 };
 

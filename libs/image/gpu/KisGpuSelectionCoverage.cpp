@@ -5,6 +5,7 @@
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuExecution_p.h"
 #include "KisGpuReadbackBatch_p.h"
+#include "KisGpuLayerAllocation_p.h"
 #include <QScopeGuard>
 #include <array>
 #include <algorithm>
@@ -400,6 +401,9 @@ ExecutionOutcome Execution::paintedSelectionCoverage(DocumentHandle handle, cons
     const quint8 defaultCoverage = quint8(sourceLayer->defaultPixel[3]);
     auto paint = QSharedPointer<SelectionPaintSource>::create();
     paint->source = source; paint->layer = layer;
+    const auto allocation = paintLayerAllocation(source, *sourceLayer, SelectionMask::MaximumBytes / qsizetype(sizeof(QRect)));
+    if (!allocation) return {ExecutionCode::CapacityExceeded, QStringLiteral("Painted mask storage exceeds metadata capacity")};
+    for (const auto &block : allocation->blocks) paint->allocatedBlocks.append(block);
     QRect bounds;
     QList<QRect> runs;
     for (auto tile = raw.cbegin(); tile != raw.cend(); ++tile) {
@@ -597,7 +601,13 @@ ExecutionOutcome Execution::translateSelectionCoverage(const SelectionMaskSP &so
     if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("Selection movement requires submitted work")};
     if (d.device->readbackPending() && !d.device->finish()) return {ExecutionCode::DeviceFailure, d.device->diagnostic()};
     const auto extent = source->bounds().translated(offset).intersected(clip);
-    if (extent.isEmpty()) { *result = SelectionMask::uniform(source->defaultCoverage()); return {ExecutionCode::Success, {}}; }
+    auto operation = QSharedPointer<SelectionTranslationSource>::create();
+    operation->source = source; operation->offset = offset; operation->extent = extent; operation->clip = clip;
+    if (extent.isEmpty()) {
+        *result = SelectionMask::fromTranslation(operation, {}, {}, std::make_shared<SelectionPixels>());
+        return *result ? ExecutionOutcome{ExecutionCode::Success, {}} :
+            ExecutionOutcome{ExecutionCode::CapacityExceeded, QStringLiteral("Translated mask storage exceeds capacity")};
+    }
     QSet<QPoint> candidates;
     for (const auto point : source->tileCoordinates()) {
         const auto area = QRect(point * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize))
@@ -605,8 +615,7 @@ ExecutionOutcome Execution::translateSelectionCoverage(const SelectionMaskSP &so
         if (!appendTiles(candidates, area))
             return {ExecutionCode::CapacityExceeded, QStringLiteral("Selection movement exceeds its tile capacity")};
     }
-    auto operation = QSharedPointer<SelectionTranslationSource>::create();
-    operation->source = source; operation->offset = offset; operation->extent = extent; operation->tiles = sortedTiles(candidates);
+    operation->tiles = sortedTiles(candidates);
     const auto native = std::make_shared<SelectionPixels>();
     const auto pending = SelectionMask::fromTranslation(operation, extent, {}, native);
     if (!pending) return {ExecutionCode::InvalidRequest, QStringLiteral("Selection movement inputs are invalid")};

@@ -120,6 +120,7 @@ private Q_SLOTS:
     void patternFillBlendModeMatchesLayerComposition();
     void fillBlendModePreservesOpacityAlphaLockAndChannelMask();
     void layerTransparencyMaskMultipliesCompositionAlpha();
+    void maskedCopyKeepsNativeTransparentComponents();
     void autoBrushProducesCoverageAndRetainsPixels();
     void paperResourceKeepsFrozenPixelsHistoryAndCapacity();
     void additiveMaskingBrushKeepsFrozenInputAndHistory();
@@ -5704,6 +5705,32 @@ void KisGpuTileRendererTest::layerTransparencyMaskMultipliesCompositionAlpha()
     QCOMPARE(pixel(composed, 40, 40), QByteArray::fromHex("c81e4680"));
     QCOMPARE(pixel(composed, 8, 8), QByteArray(4, '\0'));
     QCOMPARE(pixel(composed, 56, 56), QByteArray(4, '\0'));
+}
+
+void KisGpuTileRendererTest::maskedCopyKeepsNativeTransparentComponents()
+{
+    // Copy onto an empty native mask projection preserves hidden components
+    // only at full coverage. Partial application with zero resulting alpha
+    // clears them, and zero coverage leaves the empty destination unchanged.
+    for (const auto format : {PixelFormat::Rgba8, PixelFormat::Rgba16}) {
+        const auto pixel = rgbaBytes(format == PixelFormat::Rgba8 ? RgbaPixel{11, 63, 129, 0} :
+            RgbaPixel{1111, 6333, 12999, 0}, format);
+        for (const auto alpha : {quint8(0), quint8(1), quint8(128), quint8(255)}) {
+            RasterImage input; input.size = {64, 64}; input.format = format;
+            input.layers = {{QStringLiteral("Copy")}};
+            auto &layer = input.layers.first(); layer.blendMode = LayerBlendMode::Copy;
+            layer.tiles = {{{0, 0}, pixel.repeated(256 * 256), format}};
+            layer.transparencyMask = alpha ? SelectionMask::fromAlphaCoverage(QRect(0, 0, 64, 64),
+                QByteArray(64 * 64, char(alpha)), QRect(0, 0, 64, 64)) : SelectionMask::empty();
+            OperationDocument document(input); TileRenderer renderer(m_device);
+            const auto rendered = render(renderer, document.snapshot()); QVERIFY(rendered);
+            const auto composed = project(renderer, rendered, QRect(0, 0, 64, 64)); QVERIFY(composed);
+            const auto expected = alpha == 255 ? pixel : QByteArray(pixel.size(), '\0');
+            QVERIFY(!composed->tiles().isEmpty());
+            QCOMPARE(readBuffer(composed->tiles().first().pixels).first(pixel.size()), expected);
+            QCOMPARE(readTile(rendered, document.activeLayer(), {0, 0}).first(pixel.size()), pixel);
+        }
+    }
 }
 
 void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()

@@ -1544,6 +1544,12 @@ void KisGpuDocumentViewTest::layerMergesKeepNativeEditing_data()
     }
     QTest::newRow("down-u8-public-groups") << 0 << false << false << false << true << 0;
     QTest::newRow("down-u16-public-groups") << 0 << true << false << false << true << 0;
+    QTest::newRow("down-u8-public-groups-varied") << 0 << false << true << false << true << 0;
+    QTest::newRow("down-u16-public-groups-varied") << 0 << true << true << false << true << 0;
+    for (const int mode : {0, 1, 2}) for (const bool words : {false, true}) {
+        const QByteArray name = names[mode] + (words ? "-u16-mask-default" : "-u8-mask-default");
+        QTest::newRow(name.constData()) << mode << words << false << false << false << 4;
+    }
     for (const int mode : {0, 1, 2}) for (const bool words : {false, true}) for (const int protection : {1, 2, 3}) {
         if (mode == 2 && protection == 1) continue;
         const QByteArray name = names[mode] + (words ? "-u16-" : "-u8-") +
@@ -1594,6 +1600,8 @@ void KisGpuDocumentViewTest::layerMergesKeepNativeEditing()
             const QRect input = sparse ? QRect(5, 3, 1, 1) : varied ? (i ? QRect(3, -3, 24, 18) : QRect(-5, 2, 24, 18)) : canvas;
             const auto pixels = QByteArray(reinterpret_cast<const char *>(colors[i].data()), cs->pixelSize()).repeated(input.width() * input.height());
             node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixels.constData()), input);
+            if (protection == 4 && i == 1)
+                node->paintDevice()->setDefaultPixel(KoColor(QColor(11, 63, 129, 127), cs));
             node->setDirty(input);
             if (sparse && i == 0) {
                 node->paintDevice()->writeBytes(colors[i].data(), QRect(197, 3, 1, 1));

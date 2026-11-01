@@ -161,7 +161,9 @@ LibrePaint::Image::Gpu::SelectionMaskSP importedTransparencyMaskCoverage(const K
         fixed.readBytes(reinterpret_cast<quint8 *>(bytes.data()), coordinate.x() * size, coordinate.y() * size, size, size);
         tiles.insert({coordinate.x(), coordinate.y()}, std::move(bytes));
     }
-    return Gpu::SelectionMask::fromAlphaTiles(tiles, fixed.defaultPixel().data()[0]);
+    const auto coverage = Gpu::SelectionMask::fromAlphaTiles(tiles, fixed.defaultPixel().data()[0]);
+    const auto blocks = fixed.region().rects();
+    return coverage ? coverage->withAllocatedBlocks(QList<QRect>(blocks.cbegin(), blocks.cend())) : Gpu::SelectionMaskSP{};
 }
 
 /** Writes retained GPU coverage into a view-only alpha selection. The mask node
@@ -191,10 +193,7 @@ void writeGpuTransparencyMaskPixels(KisTransparencyMask *mask,
     const quint8 defaultCoverage = coverage ? coverage->defaultCoverage() : 0;
     pixels->setDefaultPixel(KoColor(&defaultCoverage, pixels->colorSpace()));
     if (coverage) {
-        const int size = LibrePaint::Image::Gpu::SelectionMask::TileSize;
-        for (auto tile = coverage->tiles().cbegin(); tile != coverage->tiles().cend(); ++tile) {
-            const auto covered = QRect(QPoint(tile.key().first, tile.key().second) * size, QSize(size, size)).intersected(coverage->bounds());
-            if (covered.isEmpty()) continue;
+        for (const auto &covered : coverage->allocatedBlocks()) {
             QByteArray values(covered.width() * covered.height(), '\0');
             for (int y = covered.top(); y <= covered.bottom(); ++y)
                 for (int x = covered.left(); x <= covered.right(); ++x)
