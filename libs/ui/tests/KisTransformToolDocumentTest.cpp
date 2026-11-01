@@ -474,9 +474,21 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     std::unique_ptr<KisDocument> reopened(KisPart::instance()->createDocument()); reopened->setFileBatchMode(true);
     QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
     const auto next = reopened->image()->gpuImage(); QVERIFY(next);
-    QCOMPARE(next->operations().snapshot()->format, format);
-    QVERIFY(next->operations().snapshot()->layers.first().transparencyMask);
-    QCOMPARE(verifyMask(next->operations().snapshot()->layers.first().transparencyMask), expectedMask);
+    const auto reloaded = next->operations().snapshot();
+    QCOMPARE(reloaded->format, format);
+    const auto nextLayer = [&](const QUuid &uuid) -> const Gpu::Layer * {
+        for (const auto &value : reloaded->layers) if (value.uuid == uuid) return &value;
+        return nullptr;
+    };
+    const auto nextPixels = nextLayer(raster.layers[pixelIndex].uuid);
+    const auto nextMask = nextLayer(raster.layers.first().uuid);
+    QVERIFY(nextPixels && nextMask && nextMask->transparencyMask);
+    QCOMPARE(nextPixels->kind, Gpu::LayerKind::Paint);
+    QCOMPARE(nextPixels->parentUuid, raster.layers[pixelIndex].parentUuid);
+    QCOMPARE(nextMask->kind, groupOwner ? Gpu::LayerKind::Group : Gpu::LayerKind::Paint);
+    QCOMPARE(nextMask->transparencyMaskUuid, before->layers.first().transparencyMaskUuid);
+    QCOMPARE(verifyMask(nextMask->transparencyMask), expectedMask);
+    const auto nextPixelId = nextPixels->id, nextMaskId = nextMask->id;
     if (nativeSelection) {
         QVERIFY(reopened->image()->globalSelection());
         QCOMPARE(reopened->image()->globalSelection()->selectedExactRect(), nativeSelection->selectedExactRect());
@@ -484,23 +496,22 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         reopened->image()->globalSelection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(savedSelection.data()), selectionFrame);
         QCOMPARE(savedSelection, expectedSelection);
     }
-    QCOMPARE(next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes, expected);
-    const auto reloaded = next->operations().snapshot();
+    QCOMPARE(next->readRgbaPixels(nextPixelId, frame, expected.size()).bytes, expected);
     if (maskOnly) {
-        const auto layer = next->operations().snapshot()->layers.first().id;
+        const auto layer = nextMaskId;
         QCOMPARE(next->fillTransparencyMask(layer, {128, 128, 128}, .5), Gpu::Result::Success);
         const auto edited = verifyMask(next->layerTransparencyMask(layer));
         QVERIFY(edited != expectedMask);
         QCOMPARE(next->undo(), Gpu::Result::Success); QCOMPARE(verifyMask(next->layerTransparencyMask(layer)), expectedMask);
         QCOMPARE(next->redo(), Gpu::Result::Success); QCOMPARE(verifyMask(next->layerTransparencyMask(layer)), edited);
-        QCOMPARE(next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes, expected);
+        QCOMPARE(next->readRgbaPixels(nextPixelId, frame, expected.size()).bytes, expected);
         return;
     }
     QCOMPARE(next->fillLayer(next->operations().activeLayer(), {0x12, 0x34, 0x56}, .5), Gpu::Result::Success);
-    const auto edited = next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes;
+    const auto edited = next->readRgbaPixels(nextPixelId, frame, expected.size()).bytes;
     QVERIFY(edited != expected);
-    QCOMPARE(next->undo(), Gpu::Result::Success); QCOMPARE(next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes, expected);
-    QCOMPARE(next->redo(), Gpu::Result::Success); QCOMPARE(next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes, edited);
+    QCOMPARE(next->undo(), Gpu::Result::Success); QCOMPARE(next->readRgbaPixels(nextPixelId, frame, expected.size()).bytes, expected);
+    QCOMPARE(next->redo(), Gpu::Result::Success); QCOMPARE(next->readRgbaPixels(nextPixelId, frame, expected.size()).bytes, edited);
 }
 void KisTransformToolDocumentTest::previewNotificationCanCancelOrCloseDocument_data()
 {

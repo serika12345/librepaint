@@ -3295,11 +3295,19 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         QPointer<KisDocument> lifetime(document.release());
         BrushPointerClock pointerClock;
         QPointer<QWindow> input; bool pressed = false;
+        const auto reportClose = [&](const char *stage) {
+            if (!qEnvironmentVariableIsEmpty("LIBREPAINT_GPU_RESULT_DIR"))
+                qInfo() << "Mask workflow close" << gpu << stage;
+        };
         const auto closeWindow = qScopeGuard([&] {
+            reportClose("begin");
             if (pressed && input) { if (lifetime) lifetime->image()->requestStrokeCancellation(); QTest::mouseRelease(input, Qt::LeftButton); }
             if (lifetime) { lifetime->setModified(false); window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger(); }
+            reportClose("document closed");
             QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); window.reset();
+            reportClose("window destroyed");
             QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            reportClose("deferred deletion complete");
         });
         window->viewManager()->setCurrentView(view);
         for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
@@ -3531,7 +3539,26 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         const int initialUndoIndex = lifetime->undoStack()->index();
         stroke({{24, 24}, {40, 36}});
         if (filledFigure) QTRY_COMPARE(lifetime->undoStack()->index(), initialUndoIndex + 1);
-        const auto painted = pixels(); QVERIFY(painted != initial);
+        const auto painted = pixels();
+        if (gpu && painted == initial) {
+            const auto owner = image->gpuImage();
+            qWarning() << "Unchanged mask stroke history" << initialUndoIndex << lifetime->undoStack()->index()
+                       << "active input" << owner->operations().hasActiveStroke();
+            for (const auto &value : owner->operations().snapshot()->layers) {
+                if (value.uuid != layer->uuid() || !value.transparencyMask) continue;
+                const auto paint = value.transparencyMask->paintSource();
+                if (!paint) { qWarning() << "Mask has no retained paint source"; continue; }
+                for (const auto &source : paint->source->layers) for (const auto &operation : source.operations) {
+                    const auto stroke = std::get_if<Gpu::PaintSnapshot>(&operation);
+                    if (!stroke || !*stroke) continue;
+                    qWarning() << "Retained mask stroke" << (*stroke)->randomSeed << (*stroke)->sampleCount
+                               << (*stroke)->brush.diameter << (*stroke)->brush.opacity;
+                    for (const auto &sample : (*stroke)->inputSamples())
+                        qWarning() << "Retained mask input" << sample.position << sample.pressure << sample.timestamp;
+                }
+            }
+        }
+        QVERIFY(painted != initial);
         QVERIFY2(compare(), "Ordinary mask preset painting must match native Alpha8 pixels");
         lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(), initial);
         lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(pixels(), painted);
