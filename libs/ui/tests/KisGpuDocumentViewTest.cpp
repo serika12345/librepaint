@@ -3581,6 +3581,12 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         QTRY_VERIFY(deselect && deselect->isEnabled()); deselect->trigger(); image->waitForDone();
         QTRY_VERIFY(!view->selection() || view->selection()->selectedExactRect().isEmpty());
         const auto saved = pixels();
+        if (groupOwner) {
+            auto *group = qobject_cast<KisGroupLayer *>(layer.data()); QVERIFY(group);
+            group->setPassThroughMode(true); image->refreshGraphAsync(); image->waitForDone();
+            QCOMPARE(pixels(), saved);
+            QVERIFY2(compare(), "Pass-through groups must retain the mask and use native child composition");
+        }
         const auto path = directory.filePath(gpu ? QStringLiteral("gpu.kra") : QStringLiteral("cpu.kra"));
         QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
         lifetime->waitForSavingToComplete();
@@ -3592,6 +3598,10 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         QTRY_COMPARE(view->currentNode(), child);
         QTRY_VERIFY(image->isIdle());
         QCOMPARE(pixels(), saved); QVERIFY2(compare(), "KRA reload must preserve the entire edited mask");
+        if (groupOwner) {
+            const auto *group = qobject_cast<KisGroupLayer *>(layer.data()); QVERIFY(group);
+            QVERIFY(group->passThroughMode());
+        }
         QTRY_VERIFY(!view->selection() || view->selection()->selectedExactRect().isEmpty());
         configure(); prepareInput();
         window->activateWindow(); input->requestActivate();
@@ -3605,6 +3615,12 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         QVERIFY2(compare(), "Mask preset editing after KRA reload must preserve native pixels");
         const auto edited = pixels(); lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(), saved);
         lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(pixels(), edited);
+        if (groupOwner) {
+            auto *group = qobject_cast<KisGroupLayer *>(layer.data()); QVERIFY(group);
+            group->setPassThroughMode(false); image->refreshGraphAsync(); image->waitForDone();
+            QCOMPARE(pixels(), edited);
+            QVERIFY2(compare(), "Returning to isolated composition must restore the retained group mask");
+        }
         QVERIFY2(lifetime->saveAs(directory.filePath(gpu ? QStringLiteral("gpu-edited.kra") : QStringLiteral("cpu-edited.kra")),
             KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
         lifetime->waitForSavingToComplete();
@@ -3627,6 +3643,10 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             nativeMask->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actualMask.data()), area);
             nativePaint->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actualPaint.data()), area);
             QCOMPARE(actualMask, edited); QCOMPARE(actualPaint, originalParent);
+            QByteArray nativeProjection(originalParent.size(), '\0'), gpuProjection(originalParent.size(), '\0');
+            nativeImage->projection()->readBytes(reinterpret_cast<quint8 *>(nativeProjection.data()), area);
+            image->projection()->readBytes(reinterpret_cast<quint8 *>(gpuProjection.data()), area);
+            QCOMPARE(nativeProjection, gpuProjection);
         }
     }
 }
