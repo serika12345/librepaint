@@ -244,6 +244,7 @@ public:
     mutable QUuid gpuSequenceDocument;
     mutable QList<LibrePaint::Image::Gpu::LayerOperation> gpuSequenceOperations;
     mutable LibrePaint::Image::Gpu::RgbaPixel gpuSequenceDefault{};
+    mutable LibrePaint::Image::Gpu::FrozenLayerProjectionSP gpuSequenceInitial;
     mutable int gpuSequence = 0;
     mutable bool gpuSequenceKnown = false;
     KisNodeWSP parent;
@@ -820,7 +821,7 @@ const KisDefaultBoundsSP KisPaintDevice::Private::transitionalDefaultBounds = ne
 KisPaintDevice::Private::Private(KisPaintDevice *paintDevice, LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer)
     : q(paintDevice),
       gpuImage(std::move(image)),
-      gpuPixels(gpuImage && layer ? gpuImage->retainLayerPixels(layer) : LibrePaint::Image::Gpu::LayerPixelReferenceSP{}),
+      gpuPixels(gpuImage ? gpuImage->retainLayerPixels(layer) : LibrePaint::Image::Gpu::LayerPixelReferenceSP{}),
       basicStrategy(gpuImage ? nullptr : new KisPaintDeviceStrategy(paintDevice, this)),
       isProjectionDevice(false),
       supportsWrapAroundMode(false),
@@ -1476,9 +1477,11 @@ int KisPaintDevice::sequenceNumber() const
             for (const auto &layer : version->layers) {
                 if (layer.id != m_d->gpuLayerId()) continue;
                 if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Group) changed = true;
-                changed |= layer.operations != m_d->gpuSequenceOperations || layer.defaultPixel != m_d->gpuSequenceDefault;
+                changed |= layer.operations != m_d->gpuSequenceOperations || layer.defaultPixel != m_d->gpuSequenceDefault ||
+                    layer.initialProjection != m_d->gpuSequenceInitial;
                 m_d->gpuSequenceOperations = layer.operations;
                 m_d->gpuSequenceDefault = layer.defaultPixel;
+                m_d->gpuSequenceInitial = layer.initialProjection;
             }
         }
         if (changed) m_d->gpuSequence = m_d->gpuSequence == std::numeric_limits<int>::max() ? 0 : m_d->gpuSequence + 1;
@@ -1879,7 +1882,15 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
     color.convertTo(colorSpace());
     if (m_d->gpuImage) {
         if (color == defaultPixel()) return;
-        throw std::logic_error("Default pixel changes are unavailable for this GPU pixel view");
+        if (!m_d->gpuLayerId()) throw std::logic_error("GPU image projection is read-only");
+        const auto rgba = LibrePaint::Image::Gpu::rgbaPixel(gpuPixelTransfer(
+            QByteArray(reinterpret_cast<const char *>(color.data()), colorSpace()->pixelSize()), m_d->gpuPixelVersion()->format, true),
+            m_d->gpuPixelVersion()->format);
+        if (!rgba) throw std::invalid_argument("GPU default pixel encoding is invalid");
+        const auto result = m_d->gpuImage->writeLayerDefaultPixel(m_d->gpuPixels, *rgba);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU default pixel write failed: " + std::to_string(int(result)));
+        return;
     }
 
     m_d->dataManager()->setDefaultPixel(color.data());

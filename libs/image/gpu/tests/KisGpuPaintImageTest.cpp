@@ -56,6 +56,8 @@ private Q_SLOTS:
     void colorFillKeepsVersionsHistoryAndWholeRequestFailures();
     void contiguousFillKeepsFrozenPixelsHistoryAndClones();
     void paperReferencesRejectRetainedResourceOverflow();
+    void mergedPixelsKeepRootReadersAndIndependentClearHistory_data();
+    void mergedPixelsKeepRootReadersAndIndependentClearHistory();
     void clearedLayersKeepFixedVersionsAndRejectWholeRequests();
     void clearHistoryKeepsItsMeaningAfterDirectWrites();
     void retainedLayerPixelsRemainEditableThroughRemovalAndDiscardedHistory();
@@ -1461,6 +1463,64 @@ void KisGpuPaintImageTest::clearHistoryKeepsItsMeaningAfterDirectWrites()
     // The document's public undo display reads this action after direct writes.
     QCOMPARE(image.operations().historyAction(count), HistoryAction::ClearPixels);
     QCOMPARE(image.operations().historyAction(count), HistoryAction::ClearPixels);
+}
+
+void KisGpuPaintImageTest::mergedPixelsKeepRootReadersAndIndependentClearHistory_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::newRow("u8") << false;
+    QTest::newRow("u16") << true;
+}
+
+void KisGpuPaintImageTest::mergedPixelsKeepRootReadersAndIndependentClearHistory()
+{
+    // Public root devices outlive Flatten Image. A direct write after clearing
+    // its output must stay with that clear step when the merge is undone/redone.
+    QFETCH(bool, words);
+    QString diagnostic; const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    const auto format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const RgbaPixel color = words ? RgbaPixel{11111, 22222, 33333, 65535} : RgbaPixel{17, 91, 203, 255};
+    const auto pixel = rgbaBytes(color, format);
+    RasterImage input; input.size = {32, 16}; input.format = format;
+    input.layers = {{QStringLiteral("Source"), true, {}, {{{0, 0}, pixel.repeated(256 * 256), format}}},
+                    {QStringLiteral("Empty")}};
+    PaintImage image(execution, input);
+    const auto before = image.operations().snapshot();
+    const auto oldRoot = image.retainLayerPixels(0); QVERIFY(oldRoot);
+    LayerMergeRequest request; request.before = before; request.mode = LayerMergeMode::FlattenImage;
+    request.layers = {1, 2}; request.above = 2; request.name = QStringLiteral("Merged");
+    request.destinationUuid = QUuid::createUuid();
+    request.sourceBounds.insert(1, QRect(0, 0, 256, 256)); request.sourceBounds.insert(2, QRect(0, 0, 256, 256));
+    request.allocatedBlocks = {QRect(0, 0, 256, 256)};
+    QCOMPARE(image.mergeLayers(request), Result::Success);
+    const auto merged = image.operations().snapshot(); const auto layer = merged->activeLayer;
+    const auto newRoot = image.retainLayerPixels(0); QVERIFY(newRoot); QVERIFY(newRoot != oldRoot);
+    QCOMPARE(oldRoot->version(), before); QCOMPARE(newRoot->version(), merged);
+    const QRect area(0, 0, 32, 16);
+    const auto expected = pixel.repeated(area.width() * area.height());
+    const auto original = execution.readRgbaPixels(image.handle(), oldRoot->version(), area, 0, expected.size());
+    QCOMPARE(original.code, ExecutionCode::Success); QCOMPARE(original.bytes, expected);
+    QCOMPARE(image.clearLayers({layer}), Result::Success);
+    const auto edit = rgbaBytes(words ? RgbaPixel{55555, 44444, 33333, 65535} : RgbaPixel{219, 179, 139, 255}, format);
+    QCOMPARE(image.writeRgbaPixels(layer, QRect(3, 5, 1, 1), edit), Result::Success);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(oldRoot->version(), before); QCOMPARE(newRoot->version(), image.operations().snapshot());
+    const auto restored = image.readRgbaPixels(layer, area, expected.size());
+    QCOMPARE(restored.code, ExecutionCode::Success); QCOMPARE(restored.bytes, expected);
+    QCOMPARE(image.redo(), Result::Success);
+    auto cleared = QByteArray(expected.size(), '\0');
+    cleared.replace((5 * area.width() + 3) * pixel.size(), pixel.size(), edit);
+    const auto redone = image.readRgbaPixels(layer, area, expected.size());
+    QCOMPARE(redone.code, ExecutionCode::Success); QCOMPARE(redone.bytes, cleared);
+    QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(oldRoot->version(), image.operations().snapshot());
+    QCOMPARE(newRoot->version()->rootUuid, merged->rootUuid);
+    QCOMPARE(image.renameLayer(1, QStringLiteral("Independent source")), Result::Success);
+    QCOMPARE(image.operations().redoCount(), 0);
+    const auto retained = execution.readRgbaPixels(image.handle(), newRoot->version(), area, 0, expected.size());
+    QCOMPARE(retained.code, ExecutionCode::Success); QCOMPARE(retained.bytes, expected);
 }
 
 void KisGpuPaintImageTest::clearedLayersKeepFixedVersionsAndRejectWholeRequests()

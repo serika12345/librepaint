@@ -51,6 +51,8 @@ private Q_SLOTS:
     void gaussianWeightedOnImportedPixelKeepsCpuMergeByte();
     void gaussianPixelCorrectionKeepsCpuExtent_data();
     void gaussianPixelCorrectionKeepsCpuExtent();
+    void repeatedMergesRebuildKeepPinnedPixelsAndRetry_data();
+    void repeatedMergesRebuildKeepPinnedPixelsAndRetry();
     void isolatedGroupsKeepProjectionAndRetainedSubtreePixels_data();
     void isolatedGroupsKeepProjectionAndRetainedSubtreePixels();
     void transparentLayerPixelsFollowRootProjectionSemantics_data();
@@ -205,6 +207,60 @@ private:
                               QRect visible, const ProjectedSnapshot &base = {});
     DevicePtr m_device;
 };
+
+void KisGpuTileRendererTest::repeatedMergesRebuildKeepPinnedPixelsAndRetry_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::newRow("u8") << false;
+    QTest::newRow("u16") << true;
+}
+
+void KisGpuTileRendererTest::repeatedMergesRebuildKeepPinnedPixelsAndRetry()
+{
+    // A long editing history must reconstruct merged pixels without depending
+    // on old frame buffers. Capacity rejection keeps the earlier reader valid.
+    QFETCH(bool, words);
+    const auto format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const RgbaPixel color = words ? RgbaPixel{11111, 22222, 33333, 65535} : RgbaPixel{17, 91, 203, 255};
+    const auto raw = rgbaBytes(color, format).repeated(RgbaTile::Size * RgbaTile::Size);
+    RasterImage input; input.size = {256, 256}; input.format = format;
+    input.layers = {{QStringLiteral("Source"), true, {}, {{{0, 0}, raw, format}}}};
+    OperationDocument document(input);
+    const auto before = document.snapshot();
+    for (int i = 0; i < 96; ++i) {
+        const auto lower = document.activeLayer();
+        const auto upper = document.addLayer(QStringLiteral("Empty")); QVERIFY(upper);
+        LayerMergeRequest request; request.before = document.snapshot();
+        request.mode = LayerMergeMode::Down; request.layers = {lower, upper}; request.above = upper;
+        request.name = QStringLiteral("Merged"); request.destinationUuid = QUuid::createUuid();
+        request.homogeneousComposition = true;
+        request.sourceBounds.insert(lower, QRect(0, 0, 256, 256)); request.sourceBounds.insert(upper, QRect{});
+        request.allocatedBlocks = {QRect(0, 0, 256, 256)};
+        QCOMPARE(document.mergeLayers(request), Result::Success);
+    }
+    const auto committed = document.snapshot();
+    const auto merged = committed->activeLayer;
+    {
+        TileRenderer bounded(m_device, 4 * RgbaTile::byteCount(format));
+        const auto pinned = render(bounded, before); QVERIFY(pinned);
+        const auto commands = m_device->beginCommands(); QVERIFY(commands);
+        const auto rejected = bounded.record(commands, committed, pinned);
+        QCOMPARE(rejected.code, RenderOutcome::CapacityExceeded); QVERIFY(!rejected.version);
+        QVERIFY(m_device->submitCommands(true));
+        QCOMPARE(readTile(pinned, before->activeLayer, {0, 0}), raw);
+        QCOMPARE(document.snapshot(), committed);
+    }
+    TileRenderer renderer(m_device, 128 * 1024 * 1024);
+    const auto rebuilt = render(renderer, committed); QVERIFY(rebuilt);
+    QCOMPARE(readTile(rebuilt, merged, {0, 0}), raw);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto previous = render(renderer, document.snapshot()); QVERIFY(previous);
+    QCOMPARE(readTile(previous, document.snapshot()->layers.first().id, {0, 0}), raw);
+    QVERIFY(previous->tiles(document.activeLayer()).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), merged, {0, 0}), raw);
+    QCOMPARE(readTile(rebuilt, merged, {0, 0}), raw);
+}
 
 void KisGpuTileRendererTest::markerMatchesNormalEngine_data()
 {

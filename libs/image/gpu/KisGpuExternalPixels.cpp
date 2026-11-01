@@ -99,7 +99,8 @@ std::optional<bool> blockExistsBefore(const Layer &layer, qsizetype before, QRec
             if (!intersects || *intersects) return intersects;
         }
     }
-    return false;
+    return layer.initialProjection && std::any_of(layer.initialProjection->allocatedBlocks.cbegin(),
+        layer.initialProjection->allocatedBlocks.cend(), [&](const auto &area) { return area.intersects(block); });
 }
 
 std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCache &geometry)
@@ -112,14 +113,14 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCac
             const auto &write = **value;
             if (writeIntersects(write, block)) {
                 result.append({write.writeGroup ? write.writeGroup : write.id.sequence, 0});
-                break;
+                return result;
             }
         } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
             if ((*translation)->selectedPixels) {
                 if ((*translation)->clearRect.intersects(block) ||
                     (*translation)->copyRect.translated((*translation)->offset).intersects(block)) {
                     result.append({(*translation)->id.sequence, (*translation)->version});
-                    break;
+                    return result;
                 }
             } else {
                 block.translate(-(*translation)->offset);
@@ -132,7 +133,7 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCac
                 for (const auto &pass : (*affine)->plan->passes) transformed = affineOutputRegion(pass, transformed);
                 changed = transformed.intersects(block) || (*affine)->selection->clearRect.intersects(block);
             }
-            if (changed) { result.append({(*affine)->id.sequence, (*affine)->version}); break; }
+            if (changed) { result.append({(*affine)->id.sequence, (*affine)->version}); return result; }
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             const auto keep = (*crop)->rect.normalized();
             if (!keep.contains(block)) {
@@ -141,7 +142,7 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCac
                 if (!*exists) continue;
                 result.append({(*crop)->id.sequence, (*crop)->version});
                 block = block.intersected(keep);
-                if (block.isEmpty()) break;
+                if (block.isEmpty()) return result;
             }
         } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
             // Filters retain their frozen coverage; a block inside that coverage
@@ -154,6 +155,9 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCac
             if (*intersects) result.append({paint.id.sequence, paint.version});
         }
     }
+    if (layer.initialProjection && std::any_of(layer.initialProjection->allocatedBlocks.cbegin(),
+        layer.initialProjection->allocatedBlocks.cend(), [&](const auto &area) { return area.intersects(block); }))
+        result.append({0, quint64(quintptr(layer.initialProjection.data()))});
     return result;
 }
 
@@ -280,7 +284,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
                 for (qint64 x = blockIndex(qint64(region.left()) - selected.position.x()); x <= blockIndex(qint64(region.right()) - selected.position.x()); ++x) {
                     const auto blockKey = Detail::key(int(x), int(y));
                     const QRect block(int(x * blockSize + selected.position.x()), int(y * blockSize + selected.position.y()), blockSize, blockSize);
-                    if (candidate->operations != selected.operations) {
+                    if (candidate->operations != selected.operations || candidate->initialProjection != selected.initialProjection) {
                         auto lineage = lineages.constFind(blockKey);
                         if (lineage == lineages.cend()) {
                             const auto selectedLineage = pixelLineage(selected, block, geometry);

@@ -17,6 +17,7 @@
 #include "KisImageResolutionProxy.h"
 #include "kis_pointer_utils.h"
 #include <kis_meta_data_store.h>
+#include <kis_meta_data_merge_strategy.h>
 #include <klocalizedstring.h>
 #include "gpu/KisGpuPaintImage.h"
 #include <KoColorSpaceRegistry.h>
@@ -28,6 +29,7 @@
 #include <QHash>
 #include <QColorSpace>
 #include <QSet>
+#include <QRegion>
 #include <QScopedValueRollback>
 #include <QThread>
 #include <stdexcept>
@@ -41,6 +43,7 @@ struct KisGpuImageViewState
     LibrePaint::Image::Gpu::Snapshot synchronized;
     quint64 previewRevision = 0;
     QHash<QUuid, KisNodeSP> nodes;
+    QHash<QUuid, KisGroupLayerSP> roots;
     /** Last mask coverage written into each layer's layer-panel view node. */
     QHash<QUuid, LibrePaint::Image::Gpu::SelectionMaskSP> transparencyMasks;
 };
@@ -449,6 +452,130 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         previousMask.commit();
         previousRemembered.commit();
     }
+    return result == Gpu::Result::Success;
+}
+
+bool KisImage::mergeGpuLayers(LibrePaint::Image::Gpu::LayerMergeRequest request,
+                              const KisNodeList &sources, const KisMetaData::MergeStrategy *strategy)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = gpuImage();
+    const auto state = gpuViewState();
+    if (!owner || !state || sources.isEmpty() || QThread::currentThread() != owner->thread() ||
+        owner->operations().snapshot() != request.before) return false;
+    const bool down = request.mode == Gpu::LayerMergeMode::Down;
+    const bool wholeImage = request.mode == Gpu::LayerMergeMode::FlattenImage || request.mode == Gpu::LayerMergeMode::NewFromVisible;
+    const auto stillCurrent = [&] { return gpuImage() == owner && owner->operations().snapshot() == request.before; };
+    int visible = 0;
+    for (const auto &source : sources) visible += source->visible();
+    const bool removesOnly = visible == 1 && (down ||
+        (request.mode == Gpu::LayerMergeMode::Selected && request.layers.size() > 1));
+    const QRect domain(-Gpu::OperationDocument::CoordinateLimit, -Gpu::OperationDocument::CoordinateLimit,
+                       2 * Gpu::OperationDocument::CoordinateLimit, 2 * Gpu::OperationDocument::CoordinateLimit);
+    QRect wholeBounds;
+    if (wholeImage) wholeBounds = (sources.first()->exactBounds() | bounds()) & domain;
+    QHash<Gpu::LayerId, QRect> extents;
+    for (const auto id : request.layers) {
+        const auto found = std::find_if(request.before->layers.cbegin(), request.before->layers.cend(),
+            [id](const auto &layer) { return layer.id == id; });
+        if (found == request.before->layers.cend()) return false;
+        auto node = state->nodes.value(found->uuid);
+        if (!node) return false;
+        QRect area;
+        if (wholeImage) area = wholeBounds;
+        else if (!removesOnly && node->visible()) {
+            if (down) {
+                const auto extent = qobject_cast<KisLayer *>(node.data())->projection()->extent();
+                extents.insert(id, extent);
+                area = request.homogeneousComposition ? extent : extent | bounds();
+            } else area = node->exactBounds() | bounds();
+        }
+        if (!stillCurrent()) return false;
+        request.sourceBounds.insert(id, area.intersected(domain));
+    }
+    if (removesOnly || (!wholeImage && visible == 0))
+        return owner->mergeLayers(request) == Gpu::Result::Success;
+    const bool groupDown = down && request.homogeneousComposition && sources.size() == 2 &&
+        sources[0]->inherits("KisGroupLayer") && sources[1]->inherits("KisGroupLayer");
+    const QPoint origin = down && request.homogeneousComposition ? QPoint(sources.first()->x(), sources.first()->y()) : QPoint{};
+    const auto alignedBlocks = [&](QRect area) {
+        if (area.isEmpty()) return QRect{};
+        constexpr int side = 64;
+        const auto index = [](int value) { return value >= 0 ? value / side : (value - side + 1) / side; };
+        const QPoint first(index(area.left() - origin.x()), index(area.top() - origin.y()));
+        const QPoint last(index(area.right() - origin.x()), index(area.bottom() - origin.y()));
+        return QRect(first * side + origin, (last + QPoint(1, 1)) * side + origin - QPoint(1, 1)).intersected(domain);
+    };
+    QRegion blocks;
+    for (const auto id : request.layers) {
+        if (down && request.homogeneousComposition && id == request.layers.first()) {
+            const auto &lower = *std::find_if(request.before->layers.cbegin(), request.before->layers.cend(),
+                [id](const auto &layer) { return layer.id == id; });
+            if (lower.kind == Gpu::LayerKind::Paint && !Gpu::hasEnabledTransparencyMask(lower)) {
+                for (const auto &block : sources.first()->paintDevice()->region().rects()) blocks += block;
+                continue;
+            }
+        }
+        blocks += alignedBlocks(request.sourceBounds.value(id));
+    }
+    for (const auto &block : blocks) request.allocatedBlocks.append(block);
+    if (!stillCurrent()) return false;
+    KisNodeList prototypes;
+    KisNodeSP merged;
+    {
+        QScopedValueRollback<bool> syncing(m_synchronizingGpuNodes, true);
+        const auto copyProperties = [](KisNodeSP destination, KisNodeSP source) {
+            destination->mergeNodeProperties(source->nodeProperties());
+            destination->setCollapsed(source->collapsed());
+            auto *layer = qobject_cast<KisLayer *>(destination.data());
+            auto *original = qobject_cast<KisLayer *>(source.data());
+            if (layer && original) {
+                layer->setChannelFlags(original->channelFlags());
+                layer->metaData()->copyFrom(original->metaData());
+            }
+        };
+        if (groupDown) {
+            merged = new KisGroupLayer(this, request.name, OPACITY_OPAQUE_U8);
+            copyProperties(merged, sources.first());
+        } else merged = new KisPaintLayer(this, request.name, OPACITY_OPAQUE_U8);
+        prototypes.append(merged);
+        request.destinationUuid = merged->uuid();
+        if (groupDown) {
+            KisNodeList descendants;
+            for (const auto &source : sources)
+                for (auto child = source->firstChild(); child; child = child->nextSibling()) descendants.append(child);
+            for (qsizetype i = 0; i < descendants.size(); ++i) {
+                KisNodeSP source = descendants[i];
+                KisNodeSP copy;
+                if (source->inherits("KisGroupLayer")) copy = new KisGroupLayer(this, source->name(), source->opacity());
+                else if (source->inherits("KisPaintLayer")) copy = new KisPaintLayer(this, source->name(), source->opacity());
+                else if (source->inherits("KisTransparencyMask")) copy = new KisTransparencyMask(this, source->name());
+                else return false;
+                copyProperties(copy, source);
+                request.copiedUuids.insert(source->uuid(), copy->uuid());
+                prototypes.append(copy);
+                for (auto child = source->firstChild(); child; child = child->nextSibling()) descendants.append(child);
+            }
+        }
+        if (down) {
+            if (!strategy || sources.size() != 2) return false;
+            const auto first = extents.value(request.layers[0]), second = extents.value(request.layers[1]);
+            const double a = qint32(quint32(first.width()) * quint32(first.height()));
+            const double b = qint32(quint32(second.width()) * quint32(second.height()));
+            const double norm = qMax(a, b);
+            KisLayerSP destination = qobject_cast<KisLayer *>(merged.data());
+            auto lower = sources[0], upper = sources[1];
+            strategy->merge(destination->metaData(), {qobject_cast<KisLayer *>(lower.data())->metaData(),
+                qobject_cast<KisLayer *>(upper.data())->metaData()}, {a / norm, b / norm});
+        }
+    }
+    if (!stillCurrent()) return false;
+    for (const auto &node : prototypes) if (state->nodes.contains(node->uuid())) return false;
+    for (const auto &node : prototypes) state->nodes.insert(node->uuid(), node);
+    KisImageSP retained = this;
+    const auto result = owner->mergeLayers(request);
+    if (result != Gpu::Result::Success)
+        for (const auto &node : prototypes) state->nodes.remove(node->uuid());
     return result == Gpu::Result::Success;
 }
 
@@ -1041,6 +1168,7 @@ void KisImage::connectGpuImageUpdates()
     const auto image = gpuImage();
     auto state = QSharedPointer<KisGpuImageViewState>::create();
     state->synchronized = image->operations().snapshot();
+    state->roots.insert(state->synchronized->rootUuid, rootLayer());
     state->previewRevision = image->operations().preview()->revision();
     for (const auto &layer : state->synchronized->layers)
         if (layer.transparencyMask) state->transparencyMasks.insert(layer.uuid, layer.transparencyMask);
@@ -1160,6 +1288,19 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         const auto owner = view->gpuImage();
         const auto version = owner->operations().snapshot();
         const auto changed = [&] { return view->gpuImage() != owner || owner->operations().snapshot() != version; };
+        if (state && view->root()->uuid() != version->rootUuid) {
+            auto root = state->roots.value(version->rootUuid);
+            if (!root) {
+                root = new KisGroupLayer(view, QStringLiteral("root"), OPACITY_OPAQUE_U8, view->colorSpace(),
+                    KisPaintDevice::fromGpuImage(owner, 0, {}, view->colorSpace()));
+                root->setUuid(version->rootUuid);
+                state->roots.insert(version->rootUuid, root);
+            }
+            view->setRootLayer(root);
+            if (changed()) continue;
+            view->notifyLayersChanged();
+            if (changed()) continue;
+        } else if (!state) view->root()->setUuid(version->rootUuid);
         QHash<QUuid, KisNodeSP> existing = retainedNodes ? *retainedNodes : QHash<QUuid, KisNodeSP>();
         QSet<QUuid> desired;
         for (const auto &layer : version->layers) desired.insert(layer.uuid);
@@ -1338,6 +1479,12 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 }
             }
             retainedNodes->swap(retained);
+            QSet<QUuid> roots;
+            for (const auto &version : owner->operations().historyVersions()) roots.insert(version->rootUuid);
+            for (auto root = state->roots.begin(); root != state->roots.end();) {
+                if (!roots.contains(root.key())) root = state->roots.erase(root);
+                else ++root;
+            }
         }
         return;
     }

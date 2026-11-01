@@ -229,7 +229,8 @@ ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const Rende
 { return composeImpl(commands, document, region, base, 0); }
 
 ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
-                                           QRect region, const ProjectedSnapshot &base, LayerId group)
+                                           QRect region, const ProjectedSnapshot &base, LayerId group,
+                                           const FrozenLayerProjection *initial, bool normalizeRoot)
 {
     auto &d = *m_d;
     if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) || !document ||
@@ -250,11 +251,13 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     for (const auto &layer : document->document()->layers) if (layer.parentUuid == parent) children.append(&layer);
     data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 && children.first()->projectionChannelMask == 15 && !children.first()->passThrough && children.first()->blendMode == LayerBlendMode::Normal && !hasEnabledTransparencyMask(*children.first()) :
         document->document()->directProjectionLayer() != 0;
-    data->region = group ? region : region.intersected(QRect(QPoint(0, 0), document->document()->size));
+    if (initial) data->directLayerProjection = false;
+    data->region = group || initial ? region : region.intersected(QRect(QPoint(0, 0), document->document()->size));
     if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
     }
-    const auto inputs = document->document()->projectionInputs(group);
+    const auto inputs = normalizeRoot ? QList<LayerProjectionInput>{{0, 255, 15, LayerBlendMode::Normal}} :
+        document->document()->projectionInputs(group);
     QHash<LayerId, SelectionMaskSP> layerMasks;
     for (const auto &layer : document->document()->layers)
         if (layer.transparencyMask && layer.transparencyMaskVisible)
@@ -272,6 +275,10 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         if (input.blendMode == LayerBlendMode::Copy || input.blendMode == LayerBlendMode::DestinationIn || input.blendMode == LayerBlendMode::DestinationAtop)
             extent = QRect(QPoint(), document->document()->size);
         if (!(input.channelMask & 8u) && input.blendMode != LayerBlendMode::Copy) extent &= destinationExtent;
+        if (initial && (normalizeRoot || initial->sourceBounds.contains(input.layer))) {
+            extent = normalizeRoot ? initial->extent : initial->sourceBounds.value(input.layer);
+            if (!(input.channelMask & 8u) && input.blendMode != LayerBlendMode::Copy) extent &= destinationExtent;
+        }
         sourceClips[input.layer] = extent;
         if (!extent.isEmpty()) {
             const auto first = QPoint(pixelTileIndex(extent.left() - targetOrigin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.top() - targetOrigin.y(), PixelHistoryBlockSize));
@@ -314,13 +321,15 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
             const auto extent = sourceClips.value(layer.layer);
-            const bool clipsSource = transparentSourceAffectsBlend(layer.blendMode) || (!(layer.channelMask & 8u) && layer.blendMode != LayerBlendMode::Copy);
+            const bool bounded = initial && (normalizeRoot || initial->sourceBounds.contains(layer.layer));
+            const bool clipsSource = bounded || transparentSourceAffectsBlend(layer.blendMode) || (!(layer.channelMask & 8u) && layer.blendMode != LayerBlendMode::Copy);
             const QRect tileBounds(Detail::coordinate(coordinate) * TileSize, QSize(TileSize, TileSize));
             if (clipsSource && !extent.intersects(tileBounds)) continue;
             if (!pixels && !clipsSource && layer.blendMode != LayerBlendMode::DestinationIn &&
                 layer.blendMode != LayerBlendMode::DestinationAtop && layer.blendMode != LayerBlendMode::Copy) continue;
             ProjectionInput input{pixels, layer.opacity, layer.channelMask, layer.blendMode};
             input.mask = layerMasks.value(layer.layer);
+            input.boundedSource = bounded;
             if (clipsSource) input.sourceExtent = extent;
             data->inputs[coordinate].append(input);
         }
@@ -350,7 +359,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 d.error.isEmpty() ? QStringLiteral("GPU Greater alpha resource budget exhausted") : d.error};
     const auto firstComposition = [&](const auto &inputs) {
-        return inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
+        return !initial && inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
                                                 !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
     };
     const bool cachedBase = !group && base && d.backdropVersion.toStrongRef() == base &&
@@ -444,7 +453,8 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 values[layer].sourceBottom = localExtent.isEmpty() ? 0 : localExtent.bottom() + 1;
                 values[layer].blendModeOpacity = quint32(source.blendMode) | (quint32(source.opacity) << 8);
                 const bool normalize = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
-                values[layer].flags = quint32(normalize) | (document->document()->format == PixelFormat::Rgba16 ? 2u : 0u);
+                values[layer].flags = quint32(normalize) | (document->document()->format == PixelFormat::Rgba16 ? 2u : 0u) |
+                    (source.boundedSource ? 4u : 0u);
                 hiddenRgb = source.blendMode != LayerBlendMode::Normal ||
                     !(source.channelMask & 8u) || source.opacity < 128 ||
                     (hiddenRgb && !normalize);

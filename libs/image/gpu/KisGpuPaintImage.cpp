@@ -127,6 +127,11 @@ Result PaintImage::requestAfterWrite(Result result)
     if (result == Result::Success) requestCurrentVersion();
     return result;
 }
+Result PaintImage::writeLayerDefaultPixel(const LayerPixelReferenceSP &pixels, const RgbaPixel &rgba)
+{
+    if (!onThread() || !pixels || m_d->layerPixels.value(pixels->m_uuid).toStrongRef() != pixels) return Result::InvalidInput;
+    return requestAfterWrite(m_d->document->applyLayerDefaultPixel(pixels->m_layer, rgba, &pixels->m_version));
+}
 Result PaintImage::writeLayerName(LayerId layer, const QString &name)
 { return onThread() ? requestAfterWrite(m_d->document->writeLayerName(layer, name)) : Result::InvalidInput; }
 Result PaintImage::writeLayerVisible(LayerId layer, bool visible)
@@ -150,11 +155,12 @@ LayerPixelReferenceSP PaintImage::retainLayerPixels(LayerId layer)
     const auto version = layerPixelVersion();
     const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
         [layer](const auto &value) { return value.id == layer; });
-    if (found == version->layers.cend()) return {};
-    auto reference = m_d->layerPixels.value(found->uuid).toStrongRef();
+    if (layer && found == version->layers.cend()) return {};
+    const auto uuid = layer ? found->uuid : version->rootUuid;
+    auto reference = m_d->layerPixels.value(uuid).toStrongRef();
     if (!reference) {
-        reference.reset(new LayerPixelReference(layer, found->uuid, version));
-        m_d->layerPixels.insert(found->uuid, reference);
+        reference.reset(new LayerPixelReference(layer, uuid, version));
+        m_d->layerPixels.insert(uuid, reference);
     }
     return reference;
 }
@@ -438,7 +444,9 @@ void PaintImage::refreshLayerPixelReferences()
         }
         const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
             [&](const auto &layer) { return layer.uuid == reference->m_uuid; });
-        if (found != version->layers.cend()) {
+        if (!reference->m_layer && version->rootUuid == reference->m_uuid) {
+            reference->m_version = version;
+        } else if (found != version->layers.cend()) {
             reference->m_layer = found->id;
             reference->m_version = version;
         }
@@ -1218,6 +1226,8 @@ Result PaintImage::groupLayers(const QList<LayerId> &layers, LayerId activeRoot,
 { return onThread() ? publish(m_d->document->groupLayers(layers, activeRoot, groupName, clippingLayerName)) : Result::InvalidInput; }
 Result PaintImage::ungroupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &replacementName)
 { return onThread() ? publish(m_d->document->ungroupLayers(layers, activeRoot, replacementName)) : Result::InvalidInput; }
+Result PaintImage::mergeLayers(const LayerMergeRequest &request)
+{ return onThread() ? publish(m_d->document->mergeLayers(request)) : Result::InvalidInput; }
 Result PaintImage::removeLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
 Result PaintImage::removeLayers(const QList<LayerId> &layers, const QString &replacementName)

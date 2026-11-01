@@ -33,6 +33,43 @@ namespace LibrePaint::Image::Gpu {
 using LayerId = quint64;
 class DocumentVersion;
 using Snapshot = QSharedPointer<const DocumentVersion>;
+enum class LayerMergeMode : quint8 { Down, Selected, FlattenLayer, FlattenImage, NewFromVisible };
+
+/** Native layer-operation inputs resolved by the image consumer. Bounds limit
+ * each projection plane's contribution; they include off-canvas native pixels.
+ */
+struct LayerMergeRequest
+{
+    Snapshot before;
+    QList<LayerId> layers;
+    LayerId above = 0;
+    QUuid parentUuid;
+    QString name;
+    QUuid destinationUuid;
+    QHash<QUuid, QUuid> copiedUuids;
+    LayerMergeMode mode = LayerMergeMode::Selected;
+    bool homogeneousComposition = false;
+    bool pinnedToTimeline = false;
+    int colorLabelIndex = 0;
+    QHash<LayerId, QRect> sourceBounds;
+    /** Exact destination storage blocks, aligned to the native 64-pixel grid. */
+    QList<QRect> allocatedBlocks;
+};
+
+/** Frozen predecessor projections used as a paint layer's initial pixels.
+ * The renderer evaluates these inputs on its GPU queue. Subsequent paint,
+ * transforms, history and external readers use the resulting layer pixels.
+ */
+struct FrozenLayerProjection
+{
+    Snapshot source;
+    QHash<LayerId, QRect> sourceBounds;
+    QRect extent;
+    QList<QRect> allocatedBlocks;
+    qsizetype retainedBytes = 0;
+    bool normalizeRootProjection = false;
+};
+using FrozenLayerProjectionSP = QSharedPointer<const FrozenLayerProjection>;
 enum class SelectionKind : quint8 { Rectangle, Ellipse, Freehand };
 
 enum class RegionFillMode : quint8 { Contiguous, Similar };
@@ -758,7 +795,7 @@ struct ConvertedLayerPixels
     QList<QRect> writtenAreas;
 };
 
-struct Layer
+struct KRITAIMAGEGPUOPERATIONS_EXPORT Layer
 {
     LayerId id = 0;
     QString name;
@@ -791,6 +828,9 @@ struct Layer
     QString transparencyMaskName = QStringLiteral("Transparency Mask");
     int transparencyMaskColorLabelIndex = 0;
     bool transparencyMaskPinnedToTimeline = false;
+    FrozenLayerProjectionSP initialProjection;
+    qsizetype inputSampleCount() const;
+    qsizetype retainedRasterBytes() const;
 };
 
 /** True when this layer's retained transparency mask contributes to composition. */
@@ -832,6 +872,8 @@ public:
     PixelFormat format = PixelFormat::Rgba8;
     QByteArray colorProfile;
     RgbaPixel projectionBackground{};
+    /** Identity of the public root tree, replaced by Flatten Image and restored by history. */
+    QUuid rootUuid;
     QList<Layer> layers;
     LayerId activeLayer = 0;
     QList<LayerId> selectedLayers;
@@ -912,7 +954,8 @@ enum class HistoryAction {
     ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode,
     ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors,
     Grayscale, HsvAdjustment, ConvertColorSpace, MoveSelectionPixels, TransformLayer,
-    GroupLayers, CreateClippingGroup, UngroupLayers
+    GroupLayers, CreateClippingGroup, UngroupLayers,
+    MergeDown, MergeSelected, FlattenLayer, FlattenImage, NewFromVisible
 };
 
 struct Limits
@@ -1132,6 +1175,8 @@ public:
     /** Direct background writes preserve history, pending input and fixed snapshots. */
     Result writeProjectionBackground(const RgbaPixel &rgba);
     /** Direct property writes preserve history transitions, pending input and fixed snapshots. */
+    /** Direct default write preserves history positions and fixed reader versions. */
+    Result writeLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba);
     Result writeLayerName(LayerId layer, const QString &name);
     Result writeLayerVisible(LayerId layer, bool visible);
     Result writeLayerOpacity(LayerId layer, quint8 opacity);
@@ -1184,6 +1229,11 @@ public:
      * Admission failure preserves the entire hierarchy and both history branches.
      */
     Result ungroupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &replacementName = {});
+    /** Replaces the requested roots with native merged pixels, or retains them
+     * for NewFromVisible. One accepted request is one history entry. Frozen
+     * versions and rejected requests retain their pixels and identities.
+     */
+    Result mergeLayers(const LayerMergeRequest &request);
     /** Removes a layer and its descendants; selection follows the nearest remaining list position. */
     Result removeLayer(LayerId layer);
     /** Removes a set atomically in one history entry. Selection follows the
@@ -1302,7 +1352,7 @@ private:
         bool movedSelectionPixels = false;
         bool translatedLayers = false;
         bool transformedLayers = false;
-        HistoryAction groupingAction = HistoryAction::None;
+        HistoryAction layerStructureAction = HistoryAction::None;
         /** Adds or removes one layer's transparency mask in its retained version. */
         bool addedTransparencyMask = false;
         bool removedTransparencyMask = false;
@@ -1341,6 +1391,7 @@ private:
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
+    Result applyLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba, Snapshot *retainedVersion);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member,
                                               const T &value, quint8 componentMask = 15);
     Result writeLayerMask(LayerId layer, LayerProperty property, quint8 Layer::*member, quint8 value);

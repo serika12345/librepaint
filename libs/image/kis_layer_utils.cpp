@@ -25,6 +25,7 @@
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_image.h"
+#include "gpu/KisGpuPaintImage.h"
 #include "kis_node.h"
 #include "kis_layer.h"
 #include "kis_paint_layer.h"
@@ -645,24 +646,22 @@ namespace Private {
         MergeDownInfoSP m_info;
     };
 
+    static QString mergedNodeName(const KisNodeList &nodes, const QString &provided)
+    {
+        if (!provided.isEmpty()) return provided;
+        auto name = nodes.first()->name();
+        const auto suffix = i18n("Merged");
+        if (KisImageConfig(true).renameMergedLayers() && !name.endsWith(suffix)) name += QStringLiteral(" ") + suffix;
+        return name;
+    }
+
     struct CreateMergedLayerMultiple : public KisCommandUtils::AggregateCommand {
         CreateMergedLayerMultiple(MergeMultipleInfoSP info, const QString name = QString() )
             : m_info(info),
               m_name(name) {}
 
         void populateChildCommands() override {
-            QString mergedLayerName;
-            if (m_name.isEmpty()){
-                const QString mergedLayerSuffix = i18n("Merged");
-                mergedLayerName = m_info->mergedNodes.first()->name();
-
-                if (KisImageConfig(true).renameMergedLayers() && !mergedLayerName.endsWith(mergedLayerSuffix)) {
-                    mergedLayerName = QString("%1 %2")
-                        .arg(mergedLayerName).arg(mergedLayerSuffix);
-                }
-            } else {
-                mergedLayerName = m_name;
-            }
+            const auto mergedLayerName = mergedNodeName(m_info->mergedNodes, m_name);
 
             auto channelFlagsLazy = [](KisNodeSP node) {
                 KisLayer *layer = dynamic_cast<KisLayer*>(node.data());
@@ -1477,6 +1476,62 @@ namespace Private {
     /**
      * \see a comment in mergeMultipleLayersImpl()
      */
+    static bool mergeGpuNodes(KisImageSP image, const KisNodeList &sources, const KisNodeList &removed,
+                       KisNodeSP putAfter, const QString &name, LibrePaint::Image::Gpu::LayerMergeMode mode,
+                       const KisMetaData::MergeStrategy *strategy = nullptr)
+    {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const auto owner = image->gpuImage();
+        if (!owner) return false;
+        if (sources.isEmpty() || !putAfter) return true;
+        Gpu::LayerMergeRequest request;
+        request.before = owner->operations().snapshot();
+        request.name = name; request.mode = mode;
+        KisNodeSP parent;
+        if (mode == Gpu::LayerMergeMode::FlattenImage) {
+            while (putAfter->parent() && putAfter->parent() != image->root()) putAfter = putAfter->parent();
+            parent = image->root();
+        } else CleanUpNodes::findPerfectParent(removed, putAfter, parent);
+        if (!parent || !putAfter || putAfter == image->root()) return true;
+        request.parentUuid = parent == image->root() ? QUuid() : parent->uuid();
+        const auto idFor = [&](const KisNodeSP &node) {
+            for (const auto &layer : request.before->layers) if (layer.uuid == node->uuid()) return layer.id;
+            return Gpu::LayerId(0);
+        };
+        request.above = idFor(putAfter);
+        KisNodeList inputs = removed.isEmpty() ? sources : removed;
+        if (mode == Gpu::LayerMergeMode::FlattenImage || mode == Gpu::LayerMergeMode::NewFromVisible) {
+            inputs.clear();
+            for (auto node = image->root()->firstChild(); node; node = node->nextSibling()) inputs.append(node);
+        }
+        KisNodeList ordered, toOrder = inputs;
+        filterMergeableNodes(toOrder);
+        sortMergeableNodes(image->root(), toOrder, ordered);
+        for (const auto &node : ordered) {
+            const auto id = idFor(node);
+            if (!id) { qWarning() << "GPU layer merge requires paint or group nodes"; return true; }
+            request.layers.append(id);
+        }
+        if (request.layers.isEmpty()) return true;
+        auto first = sources.first();
+        auto *firstLayer = qobject_cast<KisLayer *>(first.data());
+        if (!firstLayer) return true;
+        request.colorLabelIndex = first->colorLabelIndex();
+        request.homogeneousComposition = !firstLayer->layerStyle();
+        for (auto node : sources) {
+            auto *candidate = qobject_cast<KisLayer *>(node.data());
+            if (!candidate) return true;
+            request.pinnedToTimeline |= node->isPinnedToTimeline();
+            request.homogeneousComposition &= !candidate->layerStyle() && candidate->compositeOpId() == firstLayer->compositeOpId() &&
+                candidate->channelFlags() == firstLayer->channelFlags();
+            if (mode == Gpu::LayerMergeMode::Down)
+                request.homogeneousComposition &= candidate->opacity() == firstLayer->opacity() &&
+                    (*candidate->colorSpace() == *firstLayer->colorSpace());
+        }
+        if (!image->mergeGpuLayers(request, sources, strategy)) qWarning() << "GPU layer merge was rejected";
+        return true;
+    }
+
     void mergeDown(KisImageSP image, KisLayerSP layer, const KisMetaData::MergeStrategy* strategy, MergeFlags flags)
     {
         if (!layer->prevSibling()) return;
@@ -1489,6 +1544,8 @@ namespace Private {
         }
 
         if (!prevLayer) return;
+        if (mergeGpuNodes(image, {prevLayer, layer}, {prevLayer, layer}, layer, prevLayer->name(),
+                          LibrePaint::Image::Gpu::LayerMergeMode::Down, strategy)) return;
 
         if (!layer->visible() && !prevLayer->visible()) {
             return;
@@ -1931,7 +1988,8 @@ namespace Private {
     void mergeMultipleLayersImpl(KisImageSP image, KisNodeList mergedNodes, KisNodeSP putAfter,
                                  bool flattenSingleLayer, const KUndo2MagicString &actionName,
                                  bool cleanupNodes = true, const QString layerName = QString(),
-                                 MergeFlags flags = None)
+                                 MergeFlags flags = None,
+                                 LibrePaint::Image::Gpu::LayerMergeMode mode = LibrePaint::Image::Gpu::LayerMergeMode::Selected)
     {
         if (!putAfter) {
             putAfter = mergedNodes.first();
@@ -1975,6 +2033,11 @@ namespace Private {
         if (!putAfter->parent()) {
             return;
         }
+
+        KisNodeList gpuRemoved = mergedNodes;
+        gpuRemoved.append(invisibleNodes);
+        if (mergeGpuNodes(image, mergedNodes, cleanupNodes ? gpuRemoved : KisNodeList{}, putAfter,
+                          mergedNodeName(mergedNodes, layerName), mode)) return;
 
         KisProcessingApplicator applicator(image, 0,
                                            KisProcessingApplicator::NONE,
@@ -2094,7 +2157,7 @@ namespace Private {
         mergeMultipleLayersImpl(image, mergedNodes, putAfter,
                                 true, kundo2_i18n("New From Visible"),
                                 false, i18nc("New layer created from all the visible layers", "Visible"),
-                                flags);
+                                flags, LibrePaint::Image::Gpu::LayerMergeMode::NewFromVisible);
     }
 
     struct MergeSelectionMasks : public KisCommandUtils::AggregateCommand {
@@ -2198,7 +2261,7 @@ namespace Private {
         mergeMultipleLayersImpl(image, mergedNodes, layer,
                                 true, kundo2_i18n("Flatten Layer"),
                                 true, QString(),
-                                flags);
+                                flags, LibrePaint::Image::Gpu::LayerMergeMode::FlattenLayer);
     }
 
     void flattenImage(KisImageSP image, KisNodeSP activeNode, MergeFlags flags)
@@ -2214,7 +2277,7 @@ namespace Private {
         mergeMultipleLayersImpl(image, mergedNodes, activeNode,
                                 true, kundo2_i18n("Flatten Image"),
                                 true, QString(),
-                                flags);
+                                flags, LibrePaint::Image::Gpu::LayerMergeMode::FlattenImage);
     }
 
     KisSimpleUpdateCommand::KisSimpleUpdateCommand(KisNodeList nodes, bool finalize, KUndo2Command *parent)

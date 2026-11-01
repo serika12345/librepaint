@@ -94,6 +94,7 @@ void includeLayerDescendants(const QList<Layer> &layers, QSet<LayerId> &included
 
 void copyLayerOperations(const Layer &source, Layer &copy, const QUuid &identity, quint64 &sequence)
 {
+    copy.initialProjection = source.initialProjection;
     copy.operations.clear();
     QHash<quint64, quint64> writeGroups;
     for (const auto &sourceOperation : source.operations) {
@@ -150,6 +151,20 @@ QList<InputSample> PaintOperation::inputSamples() const
     return result;
 }
 
+qsizetype Layer::inputSampleCount() const
+{
+    qsizetype count = initialProjection ? initialProjection->source->sampleCount : 0;
+    for (const auto &operation : operations) count += operationSamples(operation);
+    return count;
+}
+
+qsizetype Layer::retainedRasterBytes() const
+{
+    qsizetype bytes = initialProjection ? initialProjection->source->rasterBytes + initialProjection->retainedBytes : 0;
+    for (const auto &operation : operations) bytes += operationRasterBytes(operation);
+    return bytes;
+}
+
 OperationDocument::OperationDocument(QSize size, Limits limits)
     : OperationDocument(RasterImage{size, {{QStringLiteral("Paint Layer 1"), true, {}, {}}}, 0}, limits) {}
 
@@ -177,14 +192,14 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
         version->projectionBackground = {};
         version->sampleCount = 0;
         version->rasterBytes = 0;
-        for (const auto &layer : version->layers)
-            for (const auto &operation : layer.operations) {
-                version->sampleCount += operationSamples(operation);
-                version->rasterBytes += operationRasterBytes(operation);
-            }
+        for (const auto &layer : version->layers) {
+            version->sampleCount += layer.inputSampleCount();
+            version->rasterBytes += layer.retainedRasterBytes();
+        }
     }
     auto result = std::make_unique<OperationDocument>(RasterImage{source->size, {}, 0}, m_limits);
     version->m_document = result->m_identity;
+    if (!preserveLayerUuids) version->rootUuid = QUuid::createUuid();
     QHash<QUuid, QUuid> identities;
     if (!preserveLayerUuids)
         for (const auto &layer : version->layers) identities.insert(layer.uuid, QUuid::createUuid());
@@ -243,8 +258,8 @@ QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
-    if (m_layerHistoryChanges[index].groupingAction != HistoryAction::None)
-        return m_layerHistoryChanges[index].groupingAction;
+    if (m_layerHistoryChanges[index].layerStructureAction != HistoryAction::None)
+        return m_layerHistoryChanges[index].layerStructureAction;
     if (m_layerHistoryChanges[index].transformedLayers) return HistoryAction::TransformLayer;
     if (m_layerHistoryChanges[index].movedSelectionPixels) return HistoryAction::MoveSelectionPixels;
     if (m_layerHistoryChanges[index].translatedLayers) return HistoryAction::TranslateLayer;
@@ -626,6 +641,45 @@ Result OperationDocument::writeLayerMask(LayerId layer, LayerProperty property, 
         m_nextRevision = revision;
         return result;
     }
+    return Result::Success;
+}
+
+Result OperationDocument::writeLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba)
+{ return applyLayerDefaultPixel(layer, rgba, nullptr); }
+
+Result OperationDocument::applyLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba, Snapshot *retainedVersion)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto source = retainedVersion ? *retainedVersion : snapshot();
+    if (!source || source->documentId() != m_identity) return Result::StaleVersion;
+    if (!validPixel(rgba, source->format)) return Result::InvalidInput;
+    const Layer *selected = nullptr;
+    for (const auto &value : source->layers) if (value.id == layer) selected = &value;
+    if (!selected || selected->kind != LayerKind::Paint) return Result::LayerUnavailable;
+    if (selected->defaultPixel == rgba) return Result::Success;
+    if (quint64(m_history.size()) + 1 > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
+    auto history = m_history;
+    auto retained = source;
+    auto nextRevision = m_nextRevision;
+    const auto update = [&](const Snapshot &before) -> Snapshot {
+        if (before->format != source->format || before->colorProfile != source->colorProfile) return before;
+        for (qsizetype i = 0; i < before->layers.size(); ++i) {
+            const auto &candidate = before->layers[i];
+            if (candidate.id != layer || candidate.uuid != selected->uuid || candidate.defaultPixel != selected->defaultPixel) continue;
+            auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
+            version->layers[i].defaultPixel = rgba; version->m_revision = ++nextRevision;
+            return version;
+        }
+        return before;
+    };
+    for (auto &version : history) {
+        const auto before = version; version = update(before);
+        if (before == source) retained = version;
+    }
+    if (retained == source) retained = update(source);
+    m_history.swap(history); m_nextRevision = nextRevision;
+    if (retainedVersion) *retainedVersion = retained;
     return Result::Success;
 }
 
@@ -1174,6 +1228,13 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         if (found->kind != properties.kind || found->defaultPixel != properties.defaultPixel ||
             (found->kind == LayerKind::Group &&
              (properties.channelWriteMask != 15 || !found->operations.isEmpty()))) return Result::InvalidInput;
+        if (found->initialProjection) {
+            const auto count = found->initialProjection->source->sampleCount;
+            const auto bytes = found->initialProjection->source->rasterBytes + found->initialProjection->retainedBytes;
+            if (count > m_limits.samplesPerDocument - samples || bytes > m_limits.rasterBytes - pixels)
+                return Result::CapacityExceeded;
+            samples += count; pixels += bytes;
+        }
         for (const auto &operation : found->operations) {
             if (operationSamples(operation) > m_limits.samplesPerStroke ||
                 operationSamples(operation) > m_limits.samplesPerDocument - samples ||
@@ -1303,6 +1364,12 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
     qsizetype samples = original->sampleCount, pixels = original->rasterBytes;
     quint64 nextOperation = m_nextOperation;
     for (const auto index : ordered) {
+        if (const auto &initial = original->layers[index].initialProjection) {
+            const auto bytes = initial->source->rasterBytes + initial->retainedBytes;
+            if (initial->source->sampleCount > m_limits.samplesPerDocument - samples || bytes > m_limits.rasterBytes - pixels)
+                return Result::CapacityExceeded;
+            samples += initial->source->sampleCount; pixels += bytes;
+        }
         for (const auto &operation : original->layers[index].operations) {
             if (operationSamples(operation) > m_limits.samplesPerDocument - samples ||
                 operationRasterBytes(operation) > m_limits.rasterBytes - pixels ||
@@ -2011,7 +2078,7 @@ Result OperationDocument::groupLayers(const QList<LayerId> &layers, LayerId acti
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     m_nextLayer = draft->m_nextLayer;
     LayerHistoryChange change;
-    change.groupingAction = clippingLayerName.isEmpty() ? HistoryAction::GroupLayers : HistoryAction::CreateClippingGroup;
+    change.layerStructureAction = clippingLayerName.isEmpty() ? HistoryAction::GroupLayers : HistoryAction::CreateClippingGroup;
     // Undoing the native batch's initial group insertion reselects its former
     // active node. Keep this selection separate from pinned pixel versions.
     if (before->activeLayer != activeRoot || before->selectedLayers != QList<LayerId>{activeRoot}) {
@@ -2071,7 +2138,224 @@ Result OperationDocument::ungroupLayers(const QList<LayerId> &layers, LayerId ac
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     m_nextLayer = draft->m_nextLayer;
     LayerHistoryChange change;
-    change.groupingAction = HistoryAction::UngroupLayers;
+    change.layerStructureAction = HistoryAction::UngroupLayers;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
+Result OperationDocument::mergeLayers(const LayerMergeRequest &request)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto before = snapshot();
+    if (request.before != before) return Result::StaleVersion;
+    if (request.layers.isEmpty() || !validLayerName(request.name) ||
+        int(request.mode) > int(LayerMergeMode::NewFromVisible) || request.colorLabelIndex < 0 || request.colorLabelIndex > 8)
+        return Result::InvalidInput;
+    const bool wholeImage = request.mode == LayerMergeMode::FlattenImage || request.mode == LayerMergeMode::NewFromVisible;
+    QHash<LayerId, const Layer *> values;
+    QHash<QUuid, const Layer *> identities;
+    for (const auto &layer : before->layers) { values.insert(layer.id, &layer); identities.insert(layer.uuid, &layer); }
+    const auto anchor = values.value(request.above);
+    if (!anchor || anchor->parentUuid != request.parentUuid) return Result::LayerUnavailable;
+    for (auto parent = request.parentUuid; !parent.isNull();) {
+        const auto node = identities.value(parent);
+        if (!node || node->kind != LayerKind::Group || node->userLocked) return Result::LayerUnavailable;
+        parent = node->parentUuid;
+    }
+    QSet<LayerId> roots;
+    QList<const Layer *> visible;
+    for (const auto id : request.layers) {
+        const auto layer = values.value(id);
+        if (!layer || roots.contains(id) || !request.sourceBounds.contains(id)) return Result::InvalidInput;
+        const auto area = request.sourceBounds.value(id);
+        if (area.width() < 0 || area.height() < 0 || (!area.isEmpty() &&
+            (area.left() < -CoordinateLimit || area.top() < -CoordinateLimit ||
+             qint64(area.x()) + area.width() > CoordinateLimit || qint64(area.y()) + area.height() > CoordinateLimit)))
+            return Result::InvalidInput;
+        roots.insert(id);
+        if (layer->visible) visible.append(layer);
+    }
+    for (const auto id : request.layers)
+        for (auto parent = values.value(id)->parentUuid; !parent.isNull(); parent = identities.value(parent)->parentUuid)
+            if (roots.contains(identities.value(parent)->id)) return Result::InvalidInput;
+    if (request.mode == LayerMergeMode::Down) {
+        if (request.layers.size() != 2) return Result::InvalidInput;
+        const auto lower = values.value(request.layers[0]), upper = values.value(request.layers[1]);
+        if (lower->parentUuid != upper->parentUuid) return Result::InvalidInput;
+        LayerId previous = 0;
+        for (const auto &layer : before->layers) if (layer.parentUuid == upper->parentUuid) {
+            if (layer.id == upper->id && previous != lower->id) return Result::InvalidInput;
+            previous = layer.id;
+        }
+    }
+    if ((!wholeImage && visible.isEmpty()) || (request.mode == LayerMergeMode::Selected && request.layers.size() < 2))
+        return Result::Success;
+    if (request.homogeneousComposition) for (const auto layer : visible) {
+        if (layer->blendMode != visible.first()->blendMode || layer->projectionChannelMask != visible.first()->projectionChannelMask ||
+            (request.mode == LayerMergeMode::Down && layer->opacity != visible.first()->opacity)) return Result::InvalidInput;
+    }
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    const bool keepSources = request.mode == LayerMergeMode::NewFromVisible;
+    QSet<LayerId> removed = keepSources ? QSet<LayerId>{} : roots;
+    if (!keepSources) includeLayerDescendants(before->layers, removed);
+    const auto action = [&] {
+        switch (request.mode) {
+        case LayerMergeMode::Down: return HistoryAction::MergeDown;
+        case LayerMergeMode::Selected: return HistoryAction::MergeSelected;
+        case LayerMergeMode::FlattenLayer: return HistoryAction::FlattenLayer;
+        case LayerMergeMode::FlattenImage: return HistoryAction::FlattenImage;
+        case LayerMergeMode::NewFromVisible: return HistoryAction::NewFromVisible;
+        }
+        return HistoryAction::None;
+    }();
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
+    QList<Layer> added;
+    auto nextLayer = m_nextLayer;
+    auto nextOperation = m_nextOperation;
+    if (visible.size() == 1 && (request.mode == LayerMergeMode::Down ||
+        (request.mode == LayerMergeMode::Selected && request.layers.size() > 1))) {
+        removed.remove(visible.first()->id);
+        QSet<LayerId> retained{visible.first()->id};
+        includeLayerDescendants(before->layers, retained);
+        removed.subtract(retained);
+        version->activeLayer = visible.first()->id;
+    } else {
+        if (nextLayer == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+        QSet<QUuid> used;
+        for (const auto &retained : m_history) for (const auto &layer : retained->layers) {
+            used.insert(layer.uuid);
+            if (layer.transparencyMask) used.insert(layer.transparencyMaskUuid);
+        }
+        if (request.destinationUuid.isNull() || used.contains(request.destinationUuid)) return Result::InvalidInput;
+        used.insert(request.destinationUuid);
+        Layer output;
+        output.id = ++nextLayer;
+        output.uuid = request.destinationUuid;
+        output.name = request.name;
+        output.parentUuid = request.parentUuid;
+        output.colorLabelIndex = request.colorLabelIndex;
+        output.pinnedToTimeline = request.pinnedToTimeline;
+        const bool groupDown = request.mode == LayerMergeMode::Down && request.homogeneousComposition &&
+            visible.size() == 2 && visible[0]->kind == LayerKind::Group && visible[1]->kind == LayerKind::Group;
+        if (groupDown) {
+            const auto id = output.id;
+            const auto uuid = output.uuid;
+            output = *visible.first();
+            output.id = id; output.uuid = uuid; output.name = request.name; output.parentUuid = request.parentUuid;
+            output.pinnedToTimeline = visible[0]->pinnedToTimeline || visible[1]->pinnedToTimeline;
+            added.append(output);
+            QHash<QUuid, QUuid> copied{{visible[0]->uuid, output.uuid}, {visible[1]->uuid, output.uuid}};
+            QList<const Layer *> pending{visible[0], visible[1]};
+            for (qsizetype i = 0; i < pending.size(); ++i) {
+                for (const auto &child : before->layers) if (child.parentUuid == pending[i]->uuid) {
+                    if (nextLayer == std::numeric_limits<quint64>::max() ||
+                        quint64(child.operations.size()) > std::numeric_limits<quint64>::max() - nextOperation)
+                        return Result::CapacityExceeded;
+                    auto clone = child;
+                    clone.id = ++nextLayer;
+                    clone.uuid = request.copiedUuids.value(child.uuid);
+                    if (clone.uuid.isNull() || used.contains(clone.uuid)) return Result::InvalidInput;
+                    used.insert(clone.uuid);
+                    clone.parentUuid = copied.value(child.parentUuid);
+                    if (clone.transparencyMask) {
+                        clone.transparencyMaskUuid = request.copiedUuids.value(child.transparencyMaskUuid);
+                        if (clone.transparencyMaskUuid.isNull() || used.contains(clone.transparencyMaskUuid)) return Result::InvalidInput;
+                        used.insert(clone.transparencyMaskUuid);
+                    }
+                    copyLayerOperations(child, clone, m_identity, nextOperation);
+                    copied.insert(child.uuid, clone.uuid);
+                    added.append(std::move(clone)); pending.append(&child);
+                }
+            }
+        } else {
+            const bool down = request.mode == LayerMergeMode::Down;
+            if (request.homogeneousComposition && !wholeImage) {
+                output.blendMode = visible.first()->blendMode;
+                output.projectionChannelMask = visible.first()->projectionChannelMask;
+                if (down) output.opacity = visible.first()->opacity;
+            }
+            QSet<LayerId> included;
+            for (const auto layer : visible) included.insert(layer->id);
+            includeLayerDescendants(before->layers, included);
+            auto source = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
+            source->layers.clear(); source->selection = {}; source->selectionMask.clear();
+            source->sampleCount = 0; source->rasterBytes = 0;
+            auto projection = QSharedPointer<FrozenLayerProjection>::create();
+            projection->normalizeRootProjection = wholeImage;
+            if (request.allocatedBlocks.size() > m_limits.rasterBytes / qsizetype(sizeof(QRect))) return Result::CapacityExceeded;
+            for (const auto &block : request.allocatedBlocks) {
+                if (block.isEmpty() || block.left() < -CoordinateLimit || block.top() < -CoordinateLimit ||
+                    qint64(block.x()) + block.width() > CoordinateLimit || qint64(block.y()) + block.height() > CoordinateLimit)
+                    return Result::InvalidInput;
+            }
+            projection->allocatedBlocks = request.allocatedBlocks;
+            if (wholeImage) projection->extent = QRect(QPoint(), before->size);
+            projection->retainedBytes = sizeof(FrozenLayerProjection) + sizeof(DocumentVersion) + request.allocatedBlocks.size() * sizeof(QRect);
+            const auto defaults = before->projectionDefaultPixels();
+            if (down && request.homogeneousComposition) {
+                output.defaultPixel = defaults.value(visible.first()->id, visible.first()->defaultPixel);
+                if (hasEnabledTransparencyMask(*visible.first())) {
+                    const auto coverage = visible.first()->transparencyMask->defaultCoverage();
+                    output.defaultPixel[3] = quint16((quint64(output.defaultPixel[3]) * coverage + 127u) / 255u);
+                }
+                output.position = visible.first()->position;
+            }
+            source->projectionBackground = wholeImage ? before->projectionBackground : output.defaultPixel;
+            for (auto layer : before->layers) {
+                if (!included.contains(layer.id)) continue;
+                if (roots.contains(layer.id)) {
+                    layer.parentUuid = {};
+                    if (!wholeImage) layer.passThrough = false;
+                    if (request.homogeneousComposition && !wholeImage) {
+                        layer.blendMode = LayerBlendMode::Normal;
+                        layer.projectionChannelMask |= 8u;
+                    }
+                    if (down) {
+                        if (request.homogeneousComposition) {
+                            layer.opacity = 255; layer.projectionChannelMask = 15;
+                            if (layer.id == visible.first()->id) layer.blendMode = LayerBlendMode::Copy;
+                        } else if (layer.id == visible.first()->id ||
+                                   bool(visible[0]->projectionChannelMask & 8u) == bool(visible[1]->projectionChannelMask & 8u)) {
+                            layer.projectionChannelMask |= 8u;
+                        }
+                    }
+                    const auto area = request.sourceBounds.value(layer.id);
+                    projection->sourceBounds.insert(layer.id, area);
+                    projection->extent |= area;
+                }
+                source->sampleCount += layer.inputSampleCount(); source->rasterBytes += layer.retainedRasterBytes();
+                projection->retainedBytes += sizeof(Layer) + layer.name.size() * sizeof(QChar) + layer.operations.size() * sizeof(LayerOperation);
+                source->layers.append(std::move(layer));
+            }
+            source->activeLayer = visible.isEmpty() ? 0 : visible.first()->id;
+            source->selectedLayers = source->activeLayer ? QList<LayerId>{source->activeLayer} : QList<LayerId>{};
+            projection->source = source;
+            output.initialProjection = projection;
+            added.append(std::move(output));
+        }
+        version->activeLayer = added.first().id;
+    }
+    if (added.size() > m_limits.layerCount - (before->layers.size() - removed.size())) return Result::CapacityExceeded;
+    QList<Layer> finalLayers;
+    for (const auto &layer : before->layers) {
+        if (!removed.contains(layer.id)) finalLayers.append(layer);
+        if (layer.id == request.above) finalLayers.append(added);
+    }
+    version->layers = std::move(finalLayers);
+    if (request.mode == LayerMergeMode::FlattenImage) version->rootUuid = QUuid::createUuid();
+    if (!validLayerHierarchy(version->layers, version->format)) return Result::InvalidInput;
+    version->sampleCount = 0; version->rasterBytes = 0;
+    for (const auto &layer : version->layers) {
+        const auto samples = layer.inputSampleCount(), bytes = layer.retainedRasterBytes();
+        if (samples > m_limits.samplesPerDocument - version->sampleCount || bytes > m_limits.rasterBytes - version->rasterBytes)
+            return Result::CapacityExceeded;
+        version->sampleCount += samples; version->rasterBytes += bytes;
+    }
+    version->selectedLayers = {version->activeLayer};
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    m_nextLayer = nextLayer; m_nextOperation = nextOperation;
+    LayerHistoryChange change; change.layerStructureAction = action;
     commitVersion(version, change);
     return Result::Success;
 }
@@ -2093,11 +2377,10 @@ Result OperationDocument::clearLayers(const QList<LayerId> &layers)
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     for (auto &layer : version->layers) {
         if (!cleared.contains(layer.id)) continue;
-        for (const auto &operation : layer.operations) {
-            version->sampleCount -= operationSamples(operation);
-            version->rasterBytes -= operationRasterBytes(operation);
-        }
+        version->sampleCount -= layer.inputSampleCount();
+        version->rasterBytes -= layer.retainedRasterBytes();
         layer.operations.clear();
+        layer.initialProjection.clear();
     }
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
@@ -2356,10 +2639,8 @@ Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QStri
     }
     for (qsizetype i = version->layers.size(); i-- > 0;) {
         if (!removed.contains(version->layers[i].id)) continue;
-        for (const auto &operation : version->layers[i].operations) {
-            version->sampleCount -= operationSamples(operation);
-            version->rasterBytes -= operationRasterBytes(operation);
-        }
+        version->sampleCount -= version->layers[i].inputSampleCount();
+        version->rasterBytes -= version->layers[i].retainedRasterBytes();
         version->layers.removeAt(i);
     }
     if (replace) {

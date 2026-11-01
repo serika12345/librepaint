@@ -2680,26 +2680,96 @@ void TestNode::testGpuThumbnailTransfersOnlyRequestedPixels()
     QCOMPARE(execution.requested(owner->handle()), fixed);
 }
 
+void TestNode::testMergeDown_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("words");
+    QTest::newRow("native-u8") << false << false;
+    QTest::newRow("native-u16") << false << true;
+    QTest::newRow("gpu-u8") << true << false;
+    QTest::newRow("gpu-u16") << true << true;
+}
+
 void TestNode::testMergeDown()
 {
-    KisImageSP image = new KisImage(0, 100, 100, KoColorSpaceRegistry::instance()->rgb8(), "test");
-
-    KisNodeSP layer = new KisPaintLayer(image, "test1", 255);
-    {
-        KisFillPainter gc(layer->paintDevice());
-        gc.fillRect(0, 0, 100, 100, KoColor(Qt::gray, layer->colorSpace()));
+    // Scripting callers merge the upper layer, retain the result, undo/redo,
+    // save it, and continue editing without altering the removed source nodes.
+    QFETCH(bool, gpu);
+    QFETCH(bool, words);
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const QRect area(0, 0, 32, 16);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setAutoSaveActive(false); document->setFileBatchMode(true);
+    QVERIFY(document->newImage(QStringLiteral("Public layer merge"), area.width(), area.height(), cs,
+        KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+    auto image = KisImageSP(document->image());
+    KisNodeSP lower = image->root()->at(0), upper = image->root()->at(1);
+    lower->setName(QStringLiteral("Lower")); upper->setName(QStringLiteral("Upper"));
+    for (auto node : {lower, upper}) {
+        node->setVisible(true); node->setUserLocked(false); node->setOpacity(255);
+        node->setCompositeOpId(QStringLiteral("normal"));
     }
-    image->addNode(layer);
-
-    KisNodeSP layer2 = new KisPaintLayer(image, "test2", 255);
-    {
-        KisFillPainter gc(layer2->paintDevice());
-        gc.fillRect(0, 0, 100, 100, KoColor(Qt::gray, layer2->colorSpace()));
-    }
-    image->addNode(layer2);
-    NodeSP n1 = NodeSP(Node::createNode(image, layer));
-    Node *n2 = n1->mergeDown();
-    delete n2;
+    const KoColor lowerColor(QColor(17, 91, 203, 255), cs), upperColor(QColor(231, 19, 73, 128), cs);
+    const auto lowerBytes = QByteArray(reinterpret_cast<const char *>(lowerColor.data()), cs->pixelSize()).repeated(area.width() * area.height());
+    const auto upperBytes = QByteArray(reinterpret_cast<const char *>(upperColor.data()), cs->pixelSize()).repeated(area.width() * area.height());
+    lower->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(lowerBytes.constData()), area);
+    upper->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(upperBytes.constData()), area);
+    KisPaintDeviceSP reference = new KisPaintDevice(cs), source = new KisPaintDevice(cs);
+    reference->writeBytes(reinterpret_cast<const quint8 *>(lowerBytes.constData()), area);
+    source->writeBytes(reinterpret_cast<const quint8 *>(upperBytes.constData()), area);
+    { KisPainter painter(reference); painter.bitBlt(area.topLeft(), source, area); }
+    QByteArray expected(lowerBytes.size(), '\0');
+    reference->readBytes(reinterpret_cast<quint8 *>(expected.data()), area);
+    if (!gpu) image->refreshGraphAsync();
+    image->waitForDone();
+    NodeSP bottom(Node::createNode(image, lower)), top(Node::createNode(image, upper));
+    QVERIFY(!bottom->mergeDown());
+    const auto history = document->undoStack()->count();
+    NodeSP merged(top->mergeDown());
+    QCOMPARE(image->root()->childCount(), quint32(1));
+    QVERIFY(merged);
+    QCOMPARE(merged->name(), QStringLiteral("Lower"));
+    QCOMPARE(merged->pixelData(area.x(), area.y(), area.width(), area.height()), expected);
+    QCOMPARE(bottom->pixelData(0, 0, area.width(), area.height()), lowerBytes);
+    QCOMPARE(top->pixelData(0, 0, area.width(), area.height()), upperBytes);
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    const auto mergedUuid = merged->uniqueId();
+    QVERIFY(mergedUuid != bottom->uniqueId() && mergedUuid != top->uniqueId());
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(image->root()->childCount(), quint32(2));
+    QCOMPARE(bottom->pixelData(0, 0, area.width(), area.height()), lowerBytes);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(image->root()->childCount(), quint32(1));
+    QCOMPARE(merged->pixelData(0, 0, area.width(), area.height()), expected);
+    const KoColor changed(QColor(7, 211, 31), cs);
+    const QByteArray edit(reinterpret_cast<const char *>(changed.data()), cs->pixelSize());
+    QVERIFY(bottom->setPixelData(edit, 3, 5, 1, 1));
+    QCOMPARE(merged->pixelData(0, 0, area.width(), area.height()), expected);
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("merged.kra"));
+    QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    document->waitForSavingToComplete();
+    QVERIFY(document->openPath(path, KisDocument::DontAddToRecent));
+    image = document->image(); image->waitForDone();
+    QCOMPARE(image->root()->childCount(), quint32(1));
+    NodeSP reopened(Node::createNode(image, image->root()->at(0)));
+    QCOMPARE(reopened->uniqueId(), mergedUuid);
+    QCOMPARE(reopened->pixelData(0, 0, area.width(), area.height()), expected);
+    QVERIFY(reopened->setPixelData(edit, 5, 7, 1, 1));
+    QCOMPARE(reopened->pixelData(5, 7, 1, 1), edit);
+    const auto secondPath = directory.filePath(QStringLiteral("edited-merged.kra"));
+    QVERIFY(document->saveAs(secondPath, KisDocument::nativeFormatMimeType(), false));
+    document->waitForSavingToComplete();
+    QVERIFY(document->openPath(secondPath, KisDocument::DontAddToRecent));
+    image = document->image(); image->waitForDone();
+    NodeSP final(Node::createNode(image, image->root()->at(0)));
+    QCOMPARE(final->pixelData(5, 7, 1, 1), edit);
 }
 
 void TestNode::testFindChildNodes()

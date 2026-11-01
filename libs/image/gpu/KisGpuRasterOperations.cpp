@@ -31,6 +31,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         throw std::invalid_argument("invalid raster selection");
     QSharedPointer<DocumentVersion> initial(new DocumentVersion);
     initial->m_document = m_identity;
+    initial->rootUuid = QUuid::createUuid();
     initial->m_committed = true;
     initial->size = image.size;
     initial->format = image.format;
@@ -240,6 +241,7 @@ Result OperationDocument::commitColorConversion(OperationId id, const Snapshot &
         if (!Detail::validWrittenAreas(*write)) return Result::InvalidInput;
         layer->defaultPixel = pixels.defaultPixel;
         layer->operations.clear();
+        layer->initialProjection.clear();
         if (!write->tiles.isEmpty()) layer->operations.append(TileWriteSnapshot(write));
     }
     for (const auto &layer : version->layers)

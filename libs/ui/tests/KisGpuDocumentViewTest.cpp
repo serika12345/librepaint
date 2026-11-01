@@ -112,6 +112,7 @@
 #include <kis_indirect_painting_support.h>
 #include <kis_properties_configuration.h>
 #include <kis_selection.h>
+#include <kis_pixel_selection.h>
 #include <kis_selection_tool_helper.h>
 #include <kis_selection_options.h>
 #include <kis_layer_properties_icons.h>
@@ -306,6 +307,8 @@ private Q_SLOTS:
     void standardAutoBrushPresetsKeepOrdinaryEditing();
     void quickGroupsKeepPixelsHistoryAndSaving_data();
     void quickGroupsKeepPixelsHistoryAndSaving();
+    void layerMergesKeepNativeEditing_data();
+    void layerMergesKeepNativeEditing();
     void stabilizedPresetsKeepOrdinaryEditing_data();
     void stabilizedPresetsKeepOrdinaryEditing();
     void stabilizerPrimitivesRetainIndependentLineStarts();
@@ -1514,6 +1517,246 @@ void KisGpuDocumentViewTest::quickGroupsKeepPixelsHistoryAndSaving()
     lifetime->undoStack()->redo(); image->waitForDone(); QTRY_COMPARE(state(), ungrouped);
     QVERIFY2(saveAndOpen(), qPrintable(lifetime->errorMessage())); QTRY_COMPARE(state(), ungrouped);
     QCOMPARE(pixels(image->root()), filledProjection);
+}
+
+void KisGpuDocumentViewTest::layerMergesKeepNativeEditing_data()
+{
+    QTest::addColumn<int>("mode");
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("varied");
+    QTest::addColumn<bool>("sparse");
+    QTest::addColumn<bool>("groups");
+    const QList<QByteArray> names{"down", "selected", "layer", "image", "visible"};
+    for (int mode = 0; mode < names.size(); ++mode)
+        for (const bool words : {false, true}) for (const bool varied : {false, true}) {
+            const auto name = names[mode] + (words ? "-u16" : "-u8") + (varied ? "-varied" : "-normal");
+            QTest::newRow(name.constData()) << mode << words << varied << false << false;
+        }
+    QTest::newRow("down-u8-sparse-default") << 0 << false << false << true << false;
+    QTest::newRow("down-u16-sparse-default") << 0 << true << false << true << false;
+    for (const int mode : {1, 2, 3, 4}) for (const bool words : {false, true}) {
+        const auto name = names[mode] + (words ? "-u16-groups" : "-u8-groups");
+        QTest::newRow(name.constData()) << mode << words << true << false << true;
+    }
+}
+
+void KisGpuDocumentViewTest::layerMergesKeepNativeEditing()
+{
+    QFETCH(int, mode);
+    QFETCH(bool, words);
+    QFETCH(bool, varied);
+    QFETCH(bool, sparse);
+    QFETCH(bool, groups);
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const QRect canvas(0, 0, 32, 16), inspection(-16, -16, sparse ? 288 : 64, 48);
+    struct Run {
+        bool ok = false;
+        QList<QByteArray> states, projections, mergedPixels;
+        QList<bool> rootReplaced;
+    } native, gpu;
+    const auto run = [&](bool useGpu, Run &result) {
+        qputenv("LIBREPAINT_GPU_ENGINE", useGpu ? "1" : "0");
+        std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+        document->setAutoSaveActive(false); document->setFileBatchMode(true);
+        QVERIFY(document->newImage(QStringLiteral("Layer merging"), canvas.width(), canvas.height(), cs,
+            KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+        auto image = KisImageSP(document->image());
+        image->setDefaultProjectionColor(KoColor(QColor(12, 34, 56, 64), cs));
+        KisNodeList originals{image->root()->at(0), image->root()->at(1)};
+        originals[0]->setName(QStringLiteral("Lower")); originals[1]->setName(QStringLiteral("Upper"));
+        const QList<KoColor> colors{KoColor(QColor(17, 91, 203, 127), cs), KoColor(QColor(231, 19, 73, 159), cs)};
+        for (int i = 0; i < originals.size(); ++i) {
+            auto node = originals[i];
+            node->setVisible(true); node->setUserLocked(false);
+            node->setOpacity(varied ? (i ? 205 : 137) : 179);
+            node->setCompositeOpId(varied ? (i ? QStringLiteral("screen") : QStringLiteral("multiply")) : QStringLiteral("normal"));
+            node->setColorLabelIndex(i ? 3 : 2); node->setPinnedToTimeline(i == 0);
+            if (varied) { node->setX(i ? 3 : -7); node->setY(i ? -5 : 4); }
+            const QRect input = sparse ? QRect(5, 3, 1, 1) : varied ? (i ? QRect(3, -3, 24, 18) : QRect(-5, 2, 24, 18)) : canvas;
+            const auto pixels = QByteArray(reinterpret_cast<const char *>(colors[i].data()), cs->pixelSize()).repeated(input.width() * input.height());
+            node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixels.constData()), input);
+            node->setDirty(input);
+            if (sparse && i == 0) {
+                node->paintDevice()->writeBytes(colors[i].data(), QRect(197, 3, 1, 1));
+                node->setDirty(QRect(197, 3, 1, 1));
+            }
+        }
+        if (!useGpu) image->refreshGraphAsync();
+        image->waitForDone();
+        std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+        window->resize(800, 600);
+        auto *view = window->newView(document.get()); QVERIFY(view);
+        QPointer<KisDocument> lifetime(document.release());
+        const auto close = qScopeGuard([&] {
+            if (lifetime) { lifetime->setModified(false); window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger(); }
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); window.reset();
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        });
+        window->viewManager()->setCurrentView(view); window->show(); window->activateWindow();
+        QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= canvas.width());
+        auto *manager = window->viewManager()->nodeManager();
+        manager->slotUiActivatedNode(originals[1]); manager->slotSetSelectedNodes({originals[1]});
+        auto *addMask = window->viewManager()->actionManager()->actionByName(QStringLiteral("add_new_transparency_mask"));
+        QVERIFY(addMask); QTRY_VERIFY(addMask->isEnabled()); addMask->trigger(); image->waitForDone();
+        QTRY_COMPARE(originals[1]->childCount(), 1U);
+        auto *mask = qobject_cast<KisTransparencyMask *>(originals[1]->firstChild().data()); QVERIFY(mask);
+        const quint8 coverage = 211;
+        KisSelectionSP selection = new KisSelection(new KisDefaultBounds(image));
+        selection->pixelSelection()->setDefaultPixel(KoColor(&coverage, KoColorSpaceRegistry::instance()->alpha8()));
+        const QByteArray hole(16, '\0');
+        selection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(hole.constData()), QRect(8, 4, 4, 4));
+        selection->updateProjection();
+        if (useGpu) QVERIFY(image->writeGpuTransparencyMaskSelection(mask, selection));
+        else { mask->setSelection(selection); mask->setDirty(); image->refreshGraphAsync(); }
+        image->waitForDone();
+        KisNodeList heads = originals;
+        if (groups) {
+            auto *group = window->viewManager()->actionManager()->actionByName(QStringLiteral("create_quick_group"));
+            QVERIFY(group);
+            if (mode == 2) {
+                manager->slotUiActivatedNode(originals[1]); manager->slotSetSelectedNodes(originals);
+                QTRY_VERIFY(group->isEnabled()); group->trigger(); image->waitForDone();
+                QTRY_VERIFY(originals[1]->parent() && originals[1]->parent() != image->root());
+                heads = {originals[1]->parent()};
+            } else for (int i = 0; i < originals.size(); ++i) {
+                manager->slotUiActivatedNode(originals[i]); manager->slotSetSelectedNodes({originals[i]});
+                QTRY_VERIFY(group->isEnabled()); group->trigger(); image->waitForDone();
+                QTRY_VERIFY(originals[i]->parent() && originals[i]->parent() != image->root());
+                heads[i] = originals[i]->parent();
+            }
+        }
+        manager->slotUiActivatedNode(heads.last());
+        manager->slotSetSelectedNodes(mode == 1 ? heads : KisNodeList{heads.last()});
+        QTRY_COMPARE(view->currentNode(), heads.last());
+        const auto allNodes = [&] {
+            KisNodeList nodes;
+            for (auto child = image->root()->firstChild(); child; child = child->nextSibling()) nodes.append(child);
+            for (qsizetype i = 0; i < nodes.size(); ++i)
+                for (auto child = nodes[i]->firstChild(); child; child = child->nextSibling()) nodes.append(child);
+            return nodes;
+        };
+        const auto pixels = [&](KisPaintDeviceSP device, const QRect &area) {
+            QByteArray bytes(area.width() * area.height() * device->pixelSize(), '\0');
+            device->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area); return bytes;
+        };
+        const auto state = [&] {
+            QByteArray bytes; QDataStream output(&bytes, QIODevice::WriteOnly);
+            const auto background = image->defaultProjectionColor();
+            output << QByteArray(reinterpret_cast<const char *>(background.data()), cs->pixelSize());
+            const auto nodes = allNodes();
+            for (auto node : nodes) {
+                output << nodes.indexOf(node->parent()) << node->name() << QByteArray(node->metaObject()->className())
+                       << node->x() << node->y() << node->opacity() << node->visible() << node->userLocked()
+                       << node->colorLabelIndex() << node->isPinnedToTimeline();
+                if (const auto layer = qobject_cast<KisLayer *>(node.data())) {
+                    auto flags = layer->channelFlags();
+                    if (flags.isEmpty()) flags.fill(true, layer->colorSpace()->channelCount());
+                    output << layer->compositeOpId() << flags;
+                }
+                if (const auto group = qobject_cast<KisGroupLayer *>(node.data())) output << group->passThroughMode();
+                if (qobject_cast<KisPaintLayer *>(node.data()) || qobject_cast<KisTransparencyMask *>(node.data())) {
+                    const auto value = node->paintDevice()->defaultPixel();
+                    output << QByteArray(reinterpret_cast<const char *>(value.data()), value.colorSpace()->pixelSize())
+                           << pixels(node->paintDevice(), inspection);
+                }
+            }
+            return bytes;
+        };
+        auto oldRoot = image->root();
+        const auto before = state(), beforeProjection = pixels(image->projection(), canvas);
+        const auto history = lifetime->undoStack()->count();
+        const QStringList actions{QStringLiteral("merge_layer"), QStringLiteral("merge_layer"), QStringLiteral("flatten_layer"),
+                                  QStringLiteral("flatten_image"), QStringLiteral("new_from_visible")};
+        auto *action = window->viewManager()->actionManager()->actionByName(actions[mode]);
+        QVERIFY(action); QTRY_VERIFY(action->isEnabled()); action->trigger(); image->waitForDone();
+        QTRY_COMPARE(lifetime->undoStack()->count(), history + 1);
+        QTRY_VERIFY(view->currentNode() && view->currentNode() != heads.last());
+        auto merged = view->currentNode();
+        QVERIFY(qobject_cast<KisPaintLayer *>(merged.data()));
+        QVERIFY(merged->uuid() != originals[0]->uuid() && merged->uuid() != originals[1]->uuid());
+        const auto mergedUuid = merged->uuid();
+        const auto capture = [&] {
+            result.states.append(state()); result.projections.append(pixels(image->projection(), canvas));
+            result.mergedPixels.append(pixels(merged->paintDevice(), inspection));
+            result.rootReplaced.append(image->root() != oldRoot);
+        };
+        capture();
+        if (mode == 3) QCOMPARE(pixels(oldRoot->projection(), canvas), beforeProjection);
+        if (sparse) {
+            merged->paintDevice()->setDefaultPixel(KoColor(QColor(9, 37, 71, 83), cs));
+            merged->setDirty(inspection);
+            if (!useGpu) image->refreshGraphAsync();
+            image->waitForDone(); capture();
+        }
+        const auto after = state(); const auto mergedRaw = pixels(merged->paintDevice(), inspection);
+        lifetime->undoStack()->undo(); image->waitForDone();
+        QTRY_COMPARE(state(), before); QCOMPARE(pixels(image->projection(), canvas), beforeProjection);
+        QCOMPARE(image->root(), oldRoot);
+        QCOMPARE(pixels(merged->paintDevice(), inspection), mergedRaw);
+        lifetime->undoStack()->redo(); image->waitForDone(); QTRY_COMPARE(state(), after);
+        QTRY_VERIFY(view->currentNode() && view->currentNode()->uuid() == mergedUuid);
+        capture();
+        QTemporaryDir directory; QVERIFY(directory.isValid());
+        int saves = 0;
+        const auto saveAndOpen = [&] {
+            const auto path = directory.filePath(QStringLiteral("merge-%1.kra").arg(++saves));
+            if (!lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false)) return false;
+            lifetime->waitForSavingToComplete();
+            if (!lifetime->openPath(path, KisDocument::DontAddToRecent)) return false;
+            image = lifetime->image(); image->waitForDone(); QApplication::processEvents();
+            merged.clear();
+            for (auto node : allNodes()) if (node->uuid() == mergedUuid) merged = node;
+            return bool(merged);
+        };
+        QVERIFY2(saveAndOpen(), qPrintable(lifetime->errorMessage())); QTRY_COMPARE(state(), after);
+        manager->slotUiActivatedNode(merged); manager->slotSetSelectedNodes({merged});
+        QTRY_COMPARE(view->currentNode(), merged);
+        // Root identity is compared around merge/history, while KRA keeps the
+        // persistent identity of the editable output layer.
+        result.states.append(state()); result.projections.append(pixels(image->projection(), canvas));
+        result.mergedPixels.append(pixels(merged->paintDevice(), inspection));
+        auto *resources = window->viewManager()->canvasResourceProvider();
+        resources->setPaintOpPreset(m_preset); resources->setFGColor(KoColor(QColor(29, 211, 137), cs));
+        resources->setOpacity(0.5); resources->setCurrentCompositeOp(QStringLiteral("normal"));
+        auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color_opacity"));
+        QVERIFY(fill); QTRY_VERIFY(fill->isEnabled()); fill->trigger(); image->waitForDone();
+        const auto filled = state(); QVERIFY(filled != after);
+        lifetime->undoStack()->undo(); image->waitForDone(); QTRY_COMPARE(state(), after);
+        lifetime->undoStack()->redo(); image->waitForDone(); QTRY_COMPARE(state(), filled);
+        result.states.append(state()); result.projections.append(pixels(image->projection(), canvas));
+        result.mergedPixels.append(pixels(merged->paintDevice(), inspection));
+        QVERIFY2(saveAndOpen(), qPrintable(lifetime->errorMessage())); QTRY_COMPARE(state(), filled);
+        result.states.append(state()); result.projections.append(pixels(image->projection(), canvas));
+        result.mergedPixels.append(pixels(merged->paintDevice(), inspection));
+        result.ok = true;
+    };
+    run(false, native); QVERIFY(native.ok);
+    run(true, gpu); QVERIFY(gpu.ok);
+    if (!qEnvironmentVariableIsEmpty("LIBREPAINT_GPU_RESULT_DIR")) {
+        const auto root = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR") + QStringLiteral("/merge-") + QLatin1String(QTest::currentDataTag());
+        QVERIFY(QDir().mkpath(root));
+        for (const bool useGpu : {false, true}) {
+            const auto &result = useGpu ? gpu : native;
+            const auto prefix = useGpu ? QStringLiteral("gpu-") : QStringLiteral("native-");
+            for (int i = 0; i < result.states.size(); ++i) {
+                const QList<QPair<QString, QByteArray>> files{{QStringLiteral("state"), result.states[i]},
+                    {QStringLiteral("projection"), result.projections[i]}, {QStringLiteral("layer"), result.mergedPixels[i]}};
+                for (const auto &entry : files) {
+                    QFile file(root + '/' + prefix + QString::number(i) + '.' + entry.first);
+                    QVERIFY(file.open(QIODevice::WriteOnly)); QCOMPARE(file.write(entry.second), entry.second.size());
+                }
+            }
+        }
+    }
+    QCOMPARE(gpu.states, native.states);
+    QCOMPARE(gpu.projections, native.projections);
+    QCOMPARE(gpu.mergedPixels, native.mergedPixels);
+    QCOMPARE(gpu.rootReplaced, native.rootReplaced);
 }
 
 void KisGpuDocumentViewTest::layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry_data()

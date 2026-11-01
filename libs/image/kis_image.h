@@ -46,7 +46,7 @@ class KisProofingConfiguration;
 class KisPaintDevice;
 class KisImageGlobalSelectionManagementInterface;
 struct KisGpuImageViewState;
-namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; class DocumentVersion; struct HsvAdjustment;
+namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; class DocumentVersion; struct HsvAdjustment; struct LayerMergeRequest;
 using Snapshot = QSharedPointer<const DocumentVersion>;
 enum class SelectionKind : quint8;
 enum class SelectionCombination : quint8;
@@ -176,6 +176,12 @@ public:
      */
     bool insertGpuLayers(const KisNodeList &nodes, qsizetype index, KisNodeSP parent = {},
                          bool clearPixelSelection = false);
+    /** Prepares merged node identities and metadata before publishing one GPU
+     * merge. Sources stay alive through admission; rejected requests preserve
+     * nodes, pixels and history. Requires the image/device thread.
+     */
+    bool mergeGpuLayers(LibrePaint::Image::Gpu::LayerMergeRequest request, const KisNodeList &sources,
+                        const KisMetaData::MergeStrategy *strategy = nullptr);
     /** Imports a public mask selection as a direct write. History count and
      * fixed snapshots stay unchanged; invalid or over-budget input returns false. */
     bool writeGpuTransparencyMaskSelection(KisNodeSP node, const KisSelectionSP &selection);

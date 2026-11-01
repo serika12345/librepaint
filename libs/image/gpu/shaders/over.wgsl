@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// flags holds transparent-base normalization in bit0 and RGBA16 precision in bit1.
+// flags holds transparent-base normalization, RGBA16 precision and explicit source bounds.
 // blendModeOpacity holds LayerBlendMode in the low byte and opacity in the next.
 struct CompositeParameters { opacityBits: u32, flags: u32, channelMask: u32, blendModeOpacity: u32, sourceLeft: i32, sourceTop: i32, sourceRight: i32, sourceBottom: i32, }
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
@@ -62,7 +62,7 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha:
 }
 
 fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameters, maskAlpha: u32, position: vec2<i32>) -> vec2<u32> {
-    if ((transparentSourceAffectsBlend(values.blendModeOpacity & 255u) || ((values.channelMask & 8u) == 0u && (values.blendModeOpacity & 255u) != 130u)) &&
+    if (((values.flags & 4u) != 0u || transparentSourceAffectsBlend(values.blendModeOpacity & 255u) || ((values.channelMask & 8u) == 0u && (values.blendModeOpacity & 255u) != 130u)) &&
         (any(position < vec2<i32>(values.sourceLeft, values.sourceTop)) ||
          any(position >= vec2<i32>(values.sourceRight, values.sourceBottom)))) { return base; }
     if ((values.flags & 2u) == 0u) {

@@ -742,9 +742,15 @@ Node* Node::mergeDown()
     if (!qobject_cast<KisLayer*>(d->node.data())) return 0;
     if (!d->node->prevSibling()) return 0;
 
+    const auto parent = d->node->parent();
+    const auto count = parent ? parent->childCount() : 0;
+    int position = 0;
+    if (parent) for (auto child = parent->firstChild(); child && child != d->node; child = child->nextSibling()) ++position;
     d->image->mergeDown(qobject_cast<KisLayer*>(d->node.data()), KisMetaData::MergeStrategyRegistry::instance()->get("Drop"));
     d->image->waitForDone();
 
+    if (d->image->gpuImage() && parent && position > 0 && parent->childCount() + 1 == count)
+        return Node::createNode(d->image, parent->at(position - 1));
     return Node::createNode(d->image, d->node->prevSibling());
 }
 

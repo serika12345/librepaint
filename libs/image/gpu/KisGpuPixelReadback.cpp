@@ -133,6 +133,16 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
         ? (maximum <= std::numeric_limits<qsizetype>::max() / expansion ? maximum * expansion : std::numeric_limits<qsizetype>::max())
         : maximum;
     if (affinePresent) stageMaximum = std::max(stageMaximum, qsizetype(256 * 1024 * 1024 / RgbaTile::byteCount(format)));
+    if (layer.initialProjection) for (const auto &block : layer.initialProjection->allocatedBlocks) {
+        const auto area = block.intersected(needed);
+        if (area.isEmpty()) continue;
+        const int left = Detail::pixelTileIndex(area.left(), TileRenderer::TileSize), right = Detail::pixelTileIndex(area.right(), TileRenderer::TileSize);
+        const int top = Detail::pixelTileIndex(area.top(), TileRenderer::TileSize), bottom = Detail::pixelTileIndex(area.bottom(), TileRenderer::TileSize);
+        if (qint64(right - left + 1) * (bottom - top + 1) > stageMaximum) return std::nullopt;
+        for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
+            coordinates.insert(Detail::key(x, y)); if (coordinates.size() > stageMaximum) return std::nullopt;
+        }
+    }
     for (const auto &operation : layer.operations) {
         if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
             for (const auto &tile : (*write)->tiles) {
@@ -786,7 +796,7 @@ PixelReadbackOutcome Execution::readLayerTileExtent(DocumentHandle handle, const
     if (!layer) {
         bool nonempty = pinned->projectionBackground[3] != 0;
         for (const auto &value : pinned->layers)
-            if (value.visible && (!value.operations.isEmpty() || value.defaultPixel[3])) nonempty = true;
+            if (value.visible && (value.initialProjection || !value.operations.isEmpty() || value.defaultPixel[3])) nonempty = true;
         // The image-returning projection boundary populates complete 64-pixel storage blocks.
         if (nonempty) outcome.bounds = QRect(0, 0, ((pinned->size.width() + 63) / 64) * 64,
                                              ((pinned->size.height() + 63) / 64) * 64);

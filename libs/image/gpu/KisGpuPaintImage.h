@@ -97,7 +97,8 @@ public:
     ExecutionOutcome lastRequestOutcome() const;
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;
-    /** Retains a live layer's pixel identity; null for unavailable/off-thread requests.
+    /** Retains a live layer's pixel identity; zero retains the current root projection.
+     * Null for unavailable/off-thread requests. Removed roots keep their fixed pixels.
      * References follow committed pixels and active movement previews. Painting
      * keeps committed pixels; cancellation and close discard movement previews.
      */
@@ -247,6 +248,7 @@ public:
     Result writeRgbaPixels(const LayerPixelReferenceSP &pixels, QRect region, const QByteArray &bytes);
     /** Direct background writes request pixels without adding history or edit notifications. */
     Result writeProjectionBackground(const RgbaPixel &rgba);
+    Result writeLayerDefaultPixel(const LayerPixelReferenceSP &pixels, const RgbaPixel &rgba);
     Result writeLayerName(LayerId layer, const QString &name);
     Result writeLayerVisible(LayerId layer, bool visible);
     Result writeLayerOpacity(LayerId layer, quint8 opacity);
@@ -299,6 +301,7 @@ public:
     Result groupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &groupName,
                        const QString &clippingLayerName = {});
     Result ungroupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &replacementName = {});
+    Result mergeLayers(const LayerMergeRequest &request);
     Result removeLayer(LayerId layer);
     Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
     /** Clears whole layers atomically while retained versions remain readable. */

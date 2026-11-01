@@ -80,9 +80,10 @@ struct ProjectionInput {
     SelectionMaskSP mask;
     /** Document-coordinate clipping for transparent-source or alpha-protected composition. */
     QRect sourceExtent;
+    bool boundedSource = false;
     bool operator==(const ProjectionInput &other) const {
         return pixels == other.pixels && opacity == other.opacity && channelMask == other.channelMask &&
-            blendMode == other.blendMode && mask == other.mask && sourceExtent == other.sourceExtent;
+            blendMode == other.blendMode && mask == other.mask && sourceExtent == other.sourceExtent && boundedSource == other.boundedSource;
     }
 };
 using ProjectionInputs = QMap<quint64, QList<ProjectionInput>>;
@@ -180,6 +181,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline translationPipeline;
     Detail::NativeBindingLayout cropLayout;
     Detail::NativeComputePipeline cropPipeline;
+    Detail::NativeComputePipeline implicitPixelPipeline;
+    Detail::NativeBindingLayout implicitPixelLayout;
     Detail::NativeBindingLayout selectionCopyLayout;
     Detail::NativeComputePipeline selectionCopyPipeline;
     Detail::NativeBindingLayout selectionSplitLayout, selectionMergeLayout;
@@ -208,6 +211,8 @@ struct TileRenderer::Private
         RegionCoverage coverage;
     };
     QHash<const RegionFill *, RegionCacheEntry> regionCache;
+    struct InitialProjectionEntry { QRect region; ProjectedSnapshot pixels; };
+    QHash<const FrozenLayerProjection *, QList<InitialProjectionEntry>> initialProjections;
     int regionDepth = 0;
     QWeakPointer<const LibrePaint::Pigment::Color::NativeLabConversion> nativeLabDefinition;
     std::shared_ptr<Detail::BufferStorage> nativeLabValues;
@@ -309,6 +314,8 @@ struct TileRenderer::Private
     };
     CropResult cropTiles(WGPUCommandEncoder commands, const Detail::Tiles &source, QRect keep,
                         const RgbaPixel &defaultPixel, PixelFormat format, QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
+    CropResult restoreImplicitPixels(WGPUCommandEncoder commands, const Detail::Tiles &source,
+        const QList<QRect> &allocatedBlocks, const RgbaPixel &implicit, PixelFormat format);
     struct SelectionCopyResult {
         RenderOutcome::Code code;
         std::shared_ptr<Detail::Tile> tile;

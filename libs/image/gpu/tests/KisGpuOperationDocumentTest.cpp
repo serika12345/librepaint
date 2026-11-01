@@ -95,6 +95,8 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void mergingKeepsInputsHistoryAndAtomicRejection_data();
+    void mergingKeepsInputsHistoryAndAtomicRejection();
     void groupingKeepsFrozenPixelsAndSingleHistory_data();
     void groupingKeepsFrozenPixelsAndSingleHistory();
     void ungroupingMasksAndRejectedGroupsPreserveState();
@@ -1035,6 +1037,97 @@ void KisGpuOperationDocumentTest::nestedRemovalOwnsDescendantsAndOneHistoryStep(
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), fixed);
     QCOMPARE(document.redo(), Result::Success);
+}
+
+void KisGpuOperationDocumentTest::mergingKeepsInputsHistoryAndAtomicRejection_data()
+{
+    QTest::addColumn<int>("kind");
+    QTest::newRow("down") << int(LayerMergeMode::Down);
+    QTest::newRow("selected") << int(LayerMergeMode::Selected);
+    QTest::newRow("flatten-layer") << int(LayerMergeMode::FlattenLayer);
+    QTest::newRow("flatten-image") << int(LayerMergeMode::FlattenImage);
+    QTest::newRow("new-from-visible") << int(LayerMergeMode::NewFromVisible);
+}
+
+void KisGpuOperationDocumentTest::mergingKeepsInputsHistoryAndAtomicRejection()
+{
+    // Consumers keep pinned pixels, edit the new layer, and undo the entire
+    // merge. Stale, busy and over-budget requests must preserve that history.
+    QFETCH(int, kind);
+    const auto mode = LayerMergeMode(kind);
+    auto input = rasterImage();
+    input.layers[1].visible = true;
+    input.layers[1].transparencyMask = SelectionMask::uniform(211);
+    input.layers[1].transparencyMaskUuid = QUuid(QStringLiteral("{41424344-4546-4748-494a-4b4c4d4e4f50}"));
+    OperationDocument document(input);
+    const auto unpainted = document.snapshot();
+    const auto stroke = document.beginStroke(1, Brush{}, 17);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(10, 12), sample(20, 18)}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.selectLayers({1, 2}, 2), Result::Success);
+    const auto before = document.snapshot();
+    const auto requestFor = [&](Snapshot version) {
+        LayerMergeRequest request;
+        request.before = version; request.mode = mode; request.name = QStringLiteral("Merged");
+        request.layers = mode == LayerMergeMode::FlattenLayer ? QList<LayerId>{2} : QList<LayerId>{1, 2};
+        request.above = 2; request.homogeneousComposition = true;
+        request.destinationUuid = QUuid(QStringLiteral("{51525354-5556-5758-595a-5b5c5d5e5f60}"));
+        for (const auto id : request.layers) request.sourceBounds.insert(id, QRect(-256, -256, 768, 768));
+        request.allocatedBlocks = {QRect(-256, -256, 768, 768)};
+        return request;
+    };
+    auto request = requestFor(before);
+    auto stale = request; stale.before = unpainted;
+    QCOMPARE(document.mergeLayers(stale), Result::StaleVersion);
+    auto invalid = request; invalid.destinationUuid = input.layers.first().uuid;
+    QCOMPARE(document.mergeLayers(invalid), Result::InvalidInput);
+    invalid = request; invalid.sourceBounds.remove(request.layers.first());
+    QCOMPARE(document.mergeLayers(invalid), Result::InvalidInput);
+    const auto pending = document.beginStroke(1, Brush{}, 19);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(document.mergeLayers(request), Result::EditInProgress);
+    QCOMPARE(document.cancelStroke(pending), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    const auto history = document.undoCount();
+    QCOMPARE(document.mergeLayers(request), Result::Success);
+    const auto merged = document.snapshot();
+    QCOMPARE(document.undoCount(), history + 1);
+    QCOMPARE(merged->selectedLayers, QList<LayerId>{merged->activeLayer});
+    QVERIFY(!merged->rootUuid.isNull());
+    QCOMPARE(merged->rootUuid == before->rootUuid, mode != LayerMergeMode::FlattenImage);
+    const auto output = std::find_if(merged->layers.cbegin(), merged->layers.cend(),
+        [&](const auto &layer) { return layer.id == merged->activeLayer; });
+    QVERIFY(output != merged->layers.cend());
+    QCOMPARE(output->uuid, request.destinationUuid);
+    QVERIFY(output->initialProjection);
+    QVERIFY(!output->transparencyMask);
+    for (const auto id : request.layers) {
+        const auto source = std::find_if(output->initialProjection->source->layers.cbegin(), output->initialProjection->source->layers.cend(),
+            [id](const auto &layer) { return layer.id == id; });
+        QVERIFY(source != output->initialProjection->source->layers.cend());
+        QVERIFY(source->operations == before->layers[id - 1].operations);
+        QCOMPARE(source->transparencyMask, before->layers[id - 1].transparencyMask);
+    }
+    QCOMPARE(document.undo(), Result::Success); QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.redo(), Result::Success); QCOMPARE(document.snapshot(), merged);
+    QCOMPARE(document.clearLayers({merged->activeLayer}), Result::Success);
+    for (const auto &layer : document.snapshot()->layers) if (layer.id == merged->activeLayer)
+        QVERIFY(!layer.initialProjection && layer.operations.isEmpty());
+    QVERIFY(output->initialProjection);
+    QCOMPARE(document.undo(), Result::Success); QCOMPARE(document.snapshot(), merged);
+    QCOMPARE(document.duplicateLayers({merged->activeLayer}, {QStringLiteral("Merged copy")}, merged->activeLayer), Result::Success);
+    for (const auto &layer : document.snapshot()->layers) if (layer.id == document.activeLayer())
+        QCOMPARE(layer.initialProjection, output->initialProjection);
+    Limits limits;
+    limits.rasterBytes = unpainted->rasterBytes;
+    OperationDocument bounded(input, limits);
+    const auto retained = bounded.snapshot();
+    QCOMPARE(bounded.mergeLayers(requestFor(retained)), Result::CapacityExceeded);
+    QCOMPARE(bounded.snapshot(), retained);
+    QCOMPARE(bounded.undoCount(), 0);
+    QVERIFY(!bounded.isModified());
+    QCOMPARE(bounded.renameLayer(1, QStringLiteral("Still editable")), Result::Success);
 }
 
 void KisGpuOperationDocumentTest::groupingKeepsFrozenPixelsAndSingleHistory_data()
