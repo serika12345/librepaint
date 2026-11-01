@@ -1269,6 +1269,7 @@ void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory()
     RasterLayer group{QStringLiteral("Group"), true, QUuid::createUuid(), {}};
     group.kind = LayerKind::Group;
     group.position = {3, 5};
+    group.transparencyMask = mask;
     RasterLayer child{QStringLiteral("Child"), true, QUuid::createUuid(), {{{0, 0}, tile, input.format}}};
     child.parentUuid = group.uuid;
     child.position = {7, -3};
@@ -1281,7 +1282,7 @@ void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory()
     const auto groupId = before->layers[0].id, childId = before->layers[1].id, topId = before->layers[2].id;
     const auto childPixels = image.retainLayerPixels(childId), topPixels = image.retainLayerPixels(topId);
     QCOMPARE(image.markSaved(before), Result::Success);
-    const QList<LayerTranslationTarget> targets{{groupId, true, false}, {childId, true, true}, {topId, true, false}};
+    const QList<LayerTranslationTarget> targets{{groupId, true, true}, {childId, true, true}, {topId, true, false}};
     const QPoint delta(13, -7);
     auto token = image.beginLayerTranslation(targets);
     QVERIFY(!token.isNull());
@@ -1298,8 +1299,10 @@ void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory()
         QCOMPARE(read.bytes, pixels);
         QCOMPARE(image.readRgbaPixels(layer, sourceRect, pixels.size()).bytes, pixels);
     }
-    QCOMPARE(preview->layers[1].transparencyMask->coverage(26, 2), quint8(128));
-    QCOMPARE(preview->layers[1].transparencyMask->coverage(12, 9), quint8(0));
+    for (int i : {0, 1}) {
+        QCOMPARE(preview->layers[i].transparencyMask->coverage(26, 2), quint8(128));
+        QCOMPARE(preview->layers[i].transparencyMask->coverage(12, 9), quint8(0));
+    }
     QCOMPARE(image.cancelLayerTranslation(token), Result::Success);
     QCOMPARE(image.operations().snapshot(), before);
     QCOMPARE(childPixels->version(), before);
@@ -1319,14 +1322,25 @@ void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory()
     QCOMPARE(image.operations().undoCount(), 1);
     QCOMPARE(image.undo(), Result::Success);
     for (int i = 0; i < 3; ++i) QCOMPARE(image.operations().snapshot()->layers[i].position, before->layers[i].position);
-    QCOMPARE(image.operations().snapshot()->layers[1].transparencyMask, mask);
+    for (int i : {0, 1}) QCOMPARE(image.operations().snapshot()->layers[i].transparencyMask, mask);
     QCOMPARE(image.readRgbaPixels(topId, sourceRect, pixels.size()).bytes, pixels);
     QCOMPARE(image.redo(), Result::Success);
     QCOMPARE(image.operations().snapshot()->layers[1].position, child.position + delta);
     QCOMPARE(image.operations().snapshot()->layers[2].position, top.position + delta);
     QCOMPARE(image.operations().snapshot()->layers[1].transparencyMask->coverage(26, 2), quint8(128));
     QCOMPARE(before->layers[1].position, child.position);
-    QCOMPARE(before->layers[1].transparencyMask, mask);
+    for (int i : {0, 1}) QCOMPARE(before->layers[i].transparencyMask, mask);
+    const auto groupBefore = image.operations().snapshot();
+    token = image.beginLayerTranslation(QList<LayerTranslationTarget>{{groupId, false, true}});
+    QVERIFY(!token.isNull());
+    QCOMPARE(image.updateLayerTranslation(token, {-2, 3}), Result::Success);
+    QCOMPARE(image.commitLayerTranslation(token), Result::Success);
+    const auto movedGroup = image.operations().snapshot();
+    QCOMPARE(movedGroup->layers[0].transparencyMask->bounds(), groupBefore->layers[0].transparencyMask->bounds().translated(-2, 3));
+    for (int i = 0; i < 3; ++i) QCOMPARE(movedGroup->layers[i].position, groupBefore->layers[i].position);
+    QCOMPARE(movedGroup->layers[1].transparencyMask, groupBefore->layers[1].transparencyMask);
+    QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.operations().snapshot(), groupBefore);
+    QCOMPARE(image.redo(), Result::Success); QCOMPARE(image.operations().snapshot(), movedGroup);
     const auto maskBefore = image.operations().snapshot()->layers[1].transparencyMask;
     token = image.beginLayerTranslation(QList<LayerTranslationTarget>{{childId, false, true}});
     QVERIFY(!token.isNull());

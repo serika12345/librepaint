@@ -138,25 +138,31 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra_d
     QTest::addColumn<bool>("generated");
     QTest::addColumn<int>("maskDefault");
     QTest::addColumn<bool>("maskOnly");
+    QTest::addColumn<bool>("groupOwner");
     for (const bool words : {false, true})
         for (const auto filter : {"NearestNeighbor", "Bilinear", "Bicubic", "Hermite", "Bell", "BSpline", "Lanczos3", "Mitchell"})
             for (int operation = 0; operation < 5; ++operation)
-                QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3").arg(words ? "word" : "byte").arg(filter).arg(operation))) << words << QString::fromLatin1(filter) << operation << false << 0 << false;
+                QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3").arg(words ? "word" : "byte").arg(filter).arg(operation))) << words << QString::fromLatin1(filter) << operation << false << 0 << false << false;
     for (const bool words : {false, true}) for (int operation : {6, 7, 8, 9})
-        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2").arg(words ? "word" : "byte").arg(operation))) << words << QStringLiteral("Bicubic") << operation << false << 0 << false;
+        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2").arg(words ? "word" : "byte").arg(operation))) << words << QStringLiteral("Bicubic") << operation << false << 0 << false << false;
     for (const bool words : {false, true}) for (int operation : {0, 1, 2, 3, 4, 6, 7, 8, 9})
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-generated").arg(words ? "word" : "byte").arg(operation)))
-            << words << QStringLiteral("Bicubic") << operation << true << 0 << false;
+            << words << QStringLiteral("Bicubic") << operation << true << 0 << false << false;
 
     for (const bool words : {false, true}) for (int maskDefault : {17, 255}) for (int operation : {0, 1, 2, 3, 4, 6, 7, 8, 9})
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3")
             .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
-            << words << QStringLiteral("Bicubic") << operation << false << maskDefault << false;
+            << words << QStringLiteral("Bicubic") << operation << false << maskDefault << false << false;
 
     for (const bool words : {false, true}) for (int maskDefault : {0, 255}) for (int operation : {0, 2, 3, 4, 6, 7, 8, 9, 10, 11})
         QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3-mask-only")
             .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
-            << words << QStringLiteral("Bicubic") << operation << false << maskDefault << true;
+            << words << QStringLiteral("Bicubic") << operation << false << maskDefault << true << false;
+
+    for (const bool words : {false, true}) for (int maskDefault : {0, 255}) for (int operation : {0, 2, 4, 11})
+        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3-group-mask")
+            .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
+            << words << QStringLiteral("Bicubic") << operation << false << maskDefault << true << true;
 
 }
 
@@ -165,7 +171,8 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(bool, words); QFETCH(QString, filter); QFETCH(int, operation);
     QFETCH(bool, generated);
-    QFETCH(int, maskDefault); QFETCH(bool, maskOnly);
+    QFETCH(int, maskDefault); QFETCH(bool, maskOnly); QFETCH(bool, groupOwner);
+    const int pixelIndex = groupOwner ? 1 : 0;
     const int selectionOperation = operation == 10 ? 6 : operation == 11 ? 4 : operation;
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     qputenv("LIBREPAINT_GPU_ENGINE", "1");
@@ -206,20 +213,44 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         }
         raster.layers.first().transparencyMask = Gpu::SelectionMask::fromAlphaTiles(tiles, quint8(maskDefault));
     }
+    if (groupOwner) {
+        auto child = raster.layers.first();
+        child.transparencyMask.clear();
+        auto &group = raster.layers.first();
+        group.kind = Gpu::LayerKind::Group;
+        group.name = QStringLiteral("Masked group");
+        group.position = {};
+        group.uuid = QUuid::createUuid();
+        child.parentUuid = group.uuid;
+        raster.layers.append(child);
+    }
     QString diagnostic;
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
     QVERIFY2(execution, qPrintable(diagnostic));
     const auto owner = Gpu::PaintImageSP::create(execution, raster);
-    const auto layerId = owner->operations().activeLayer();
+    const auto layerId = owner->operations().snapshot()->layers[pixelIndex].id;
+    const auto maskId = owner->operations().snapshot()->layers.first().id;
     QCOMPARE(owner->writeRgbaPixels(layerId, sourceRect, source), Gpu::Result::Success);
     if (generated) {
         const auto mask = generatedCoverage(owner, raster.layers.first().transparencyMask);
         QVERIFY2(mask && mask->isGpuGenerated(), qPrintable(owner->lastRequestOutcome().diagnostic));
-        QCOMPARE(owner->replaceTransparencyMask(layerId, mask), Gpu::Result::Success);
+        QCOMPARE(owner->replaceTransparencyMask(maskId, mask), Gpu::Result::Success);
     }
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Transform editing"), cs));
     auto image = KisImageSP(document->image());
+    const auto maskParent = image->root()->firstChild(); QVERIFY(maskParent);
+    KisNodeSP maskNode;
+    for (auto node = maskParent->firstChild(); node; node = node->nextSibling())
+        if (node->inherits("KisTransparencyMask")) maskNode = node;
+    QVERIFY(maskNode);
+    KisNodeSP paintNode = maskParent;
+    if (groupOwner) {
+        for (auto node = maskParent->firstChild(); node; node = node->nextSibling())
+            if (node->uuid() == raster.layers[pixelIndex].uuid) paintNode = node;
+        QVERIFY(paintNode != maskParent);
+    }
+
     if (selectionOperation == 6) QVERIFY(image->setGpuSelectionRect({-1, 6, 9, 8}, false));
     else if (selectionOperation == 7) QVERIFY(image->setGpuSelectionEllipse({-1, 6, 9, 8}, false));
     else if (selectionOperation == 4 || selectionOperation == 8) {
@@ -297,7 +328,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     window->show(); window->viewManager()->canvasResourceProvider()->setPaintOpPreset(m_preset);
     QTRY_VERIFY(!windowReady.isEmpty());
     if (maskOnly) {
-        const auto child = image->root()->firstChild()->firstChild(); QVERIFY(child);
+        const auto child = maskNode;
         auto *manager = window->viewManager()->nodeManager();
         manager->slotUiActivatedNode(child); manager->slotSetSelectedNodes({child});
         QCOMPARE(manager->activeNode(), child);
@@ -397,7 +428,6 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
     }
     QCOMPARE(actualMask, expectedMask);
     QCOMPARE(preview->layers.first().transparencyMask->defaultCoverage(), *maskReference->defaultPixel().data());
-    const auto maskNode = image->root()->firstChild()->firstChild(); QVERIFY(maskNode);
     QByteArray previewMask(expectedMask.size(), '\0');
     maskNode->paintDevice()->readBytes(reinterpret_cast<quint8 *>(previewMask.data()), frame);
     QCOMPARE(previewMask, expectedMask);
@@ -408,9 +438,9 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         image->globalSelection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(actualSelection.data()), selectionFrame);
         QCOMPARE(actualSelection, expectedSelection);
     }
-    QCOMPARE(preview->layers.first().position, reference->offset());
-    QCOMPARE(image->root()->firstChild()->paintDevice()->exactBounds(), reference->exactBounds());
-    QCOMPARE(image->root()->firstChild()->paintDevice()->extent(), reference->extent());
+    QCOMPARE(preview->layers[pixelIndex].position, reference->offset());
+    QCOMPARE(paintNode->paintDevice()->exactBounds(), reference->exactBounds());
+    QCOMPARE(paintNode->paintDevice()->extent(), reference->extent());
     QCOMPARE(owner->operations().snapshot(), before);
     if (operation == 9 || operation == 11) {
         tool->requestStrokeCancellation();
@@ -454,23 +484,23 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
         reopened->image()->globalSelection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(savedSelection.data()), selectionFrame);
         QCOMPARE(savedSelection, expectedSelection);
     }
-    QCOMPARE(next->readRgbaPixels(next->operations().activeLayer(), frame, expected.size()).bytes, expected);
+    QCOMPARE(next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes, expected);
     const auto reloaded = next->operations().snapshot();
     if (maskOnly) {
-        const auto layer = next->operations().activeLayer();
+        const auto layer = next->operations().snapshot()->layers.first().id;
         QCOMPARE(next->fillTransparencyMask(layer, {128, 128, 128}, .5), Gpu::Result::Success);
         const auto edited = verifyMask(next->layerTransparencyMask(layer));
         QVERIFY(edited != expectedMask);
         QCOMPARE(next->undo(), Gpu::Result::Success); QCOMPARE(verifyMask(next->layerTransparencyMask(layer)), expectedMask);
         QCOMPARE(next->redo(), Gpu::Result::Success); QCOMPARE(verifyMask(next->layerTransparencyMask(layer)), edited);
-        QCOMPARE(next->readRgbaPixels(layer, frame, expected.size()).bytes, expected);
+        QCOMPARE(next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes, expected);
         return;
     }
     QCOMPARE(next->fillLayer(next->operations().activeLayer(), {0x12, 0x34, 0x56}, .5), Gpu::Result::Success);
-    const auto edited = next->readRgbaPixels(next->operations().activeLayer(), frame, expected.size()).bytes;
+    const auto edited = next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes;
     QVERIFY(edited != expected);
-    QCOMPARE(next->undo(), Gpu::Result::Success); QCOMPARE(next->readRgbaPixels(next->operations().activeLayer(), frame, expected.size()).bytes, expected);
-    QCOMPARE(next->redo(), Gpu::Result::Success); QCOMPARE(next->readRgbaPixels(next->operations().activeLayer(), frame, expected.size()).bytes, edited);
+    QCOMPARE(next->undo(), Gpu::Result::Success); QCOMPARE(next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes, expected);
+    QCOMPARE(next->redo(), Gpu::Result::Success); QCOMPARE(next->readRgbaPixels(next->operations().snapshot()->layers[pixelIndex].id, frame, expected.size()).bytes, edited);
 }
 void KisTransformToolDocumentTest::previewNotificationCanCancelOrCloseDocument_data()
 {

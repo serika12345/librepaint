@@ -558,11 +558,17 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra_data()
     QTest::addColumn<bool>("words");
     QTest::addColumn<bool>("painted");
     QTest::addColumn<QString>("mode");
+    QTest::addColumn<bool>("groupOwner");
     for (bool words : {false, true}) for (bool painted : {false, true})
         for (const auto &mode : {"forest", "pick-layer", "pick-group", "mask", "protected-mask"})
             QTest::newRow(qPrintable(QStringLiteral("u%1-%2%3").arg(words ? 16 : 8).arg(QString::fromLatin1(mode))
                 .arg(painted ? QStringLiteral("-painted") : QString())))
-                << words << painted << QString::fromLatin1(mode);
+                << words << painted << QString::fromLatin1(mode) << false;
+    for (bool words : {false, true}) for (bool painted : {false, true}) for (const auto &mode : {"forest", "mask"})
+        QTest::newRow(qPrintable(QStringLiteral("u%1-%2-group-mask%3").arg(words ? 16 : 8).arg(QString::fromLatin1(mode))
+            .arg(painted ? QStringLiteral("-painted") : QString())))
+            << words << painted << QString::fromLatin1(mode) << true;
+
 }
 
 void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
@@ -571,6 +577,7 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     QFETCH(bool, words);
     QFETCH(bool, painted);
     QFETCH(QString, mode);
+    QFETCH(bool, groupOwner);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     qputenv("LIBREPAINT_GPU_ENGINE", "1");
     const auto restoreEngine = qScopeGuard([&] {
@@ -600,6 +607,12 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     Gpu::RasterLayer other = hidden;
     other.name = QStringLiteral("Other selected layer"); other.uuid = QUuid::createUuid(); other.visible = true;
     other.parentUuid = {}; other.tiles.clear(); other.position = {-5, 2};
+    if (groupOwner) {
+        group.transparencyMask = child.transparencyMask;
+        child.transparencyMask.clear();
+    }
+    const auto maskOwnerUuid = groupOwner ? group.uuid : child.uuid;
+    const Gpu::LayerId maskOwnerId = groupOwner ? 1 : 2;
     raster.layers = {group, child, hidden, locked, other};
     QString diagnostic;
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
@@ -607,13 +620,13 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     const auto owner = Gpu::PaintImageSP::create(execution, raster);
     if (painted) {
         Gpu::Brush white; white.diameter = 2; white.rgba = {255, 255, 255, 255};
-        const auto stroke = owner->beginTransparencyMaskStroke(2, white, 17); QVERIFY(!stroke.isNull());
+        const auto stroke = owner->beginTransparencyMaskStroke(maskOwnerId, white, 17); QVERIFY(!stroke.isNull());
         QCOMPARE(owner->appendSamples(stroke, {{{25, 25}, 1}}), Gpu::Result::Success);
         QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
-        QVERIFY(owner->layerTransparencyMask(2)->isGpuGenerated());
+        QVERIFY(owner->layerTransparencyMask(maskOwnerId)->isGpuGenerated());
     }
-    const auto sourceMaskRegion = owner->layerTransparencyMask(2)->bounds();
-    const auto originalMask = execution->readSelectionPixels(owner->layerTransparencyMask(2), sourceMaskRegion,
+    const auto sourceMaskRegion = owner->layerTransparencyMask(maskOwnerId)->bounds();
+    const auto originalMask = execution->readSelectionPixels(owner->layerTransparencyMask(maskOwnerId), sourceMaskRegion,
         sourceMaskRegion.width() * sourceMaskRegion.height());
     QCOMPARE(originalMask.code, Gpu::ExecutionCode::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -627,7 +640,13 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     const auto groupNode = find(document->image()->root(), group.uuid, find);
     const auto childNode = find(document->image()->root(), child.uuid, find);
     const auto otherNode = find(document->image()->root(), other.uuid, find);
-    QVERIFY(groupNode); QVERIFY(childNode); QVERIFY(otherNode); QVERIFY(childNode->firstChild());
+    QVERIFY(groupNode); QVERIFY(childNode); QVERIFY(otherNode);
+    const auto findMask = [](KisNodeSP parent) -> KisNodeSP {
+        for (auto node = parent->firstChild(); node; node = node->nextSibling())
+            if (node->inherits("KisTransparencyMask")) return node;
+        return {};
+    };
+    const auto maskNode = findMask(groupOwner ? groupNode : childNode); QVERIFY(maskNode);
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
     window->resize(800, 600);
     auto *view = window->newView(document.get()); QVERIFY(view);
@@ -643,7 +662,7 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     for (auto *dock : window->findChildren<QDockWidget *>()) dock->hide();
     window->show(); window->viewManager()->canvasResourceProvider()->setPaintOpPreset(m_preset);
     auto *manager = window->viewManager()->nodeManager();
-    const auto active = mode == QStringLiteral("mask") ? childNode->firstChild() :
+    const auto active = mode == QStringLiteral("mask") ? maskNode :
                         mode == QStringLiteral("protected-mask") ? childNode : otherNode;
     manager->slotUiActivatedNode(active);
     manager->slotSetSelectedNodes(mode == QStringLiteral("forest") ? KisNodeList{groupNode, otherNode} : KisNodeList{active});
@@ -700,9 +719,9 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
                 layer->kind != original.kind || layer->parentUuid != original.parentUuid ||
                 layer->visible != original.visible || layer->userLocked != original.userLocked) return false;
         }
-        const auto childLayer = byUuid(version, child.uuid);
-        return childLayer && childLayer->transparencyMask &&
-            childLayer->transparencyMaskLocked == (mode == QStringLiteral("protected-mask")) && childLayer->transparencyMask->bounds() ==
+        const auto maskedLayer = byUuid(version, maskOwnerUuid);
+        return maskedLayer && maskedLayer->transparencyMask &&
+            maskedLayer->transparencyMaskLocked == (mode == QStringLiteral("protected-mask")) && maskedLayer->transparencyMask->bounds() ==
             sourceMaskRegion.translated(moved && mode != QStringLiteral("protected-mask") ? delta : QPoint());
     };
     tool->beginPrimaryAction(&begin); QVERIFY(owner->operations().hasActiveStroke()); tool->continuePrimaryAction(&move);
@@ -710,11 +729,11 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
         for (const auto &candidate : owner->operations().preview()->layers)
             qDebug() << candidate.name << candidate.position << candidate.parentUuid << candidate.visible << candidate.userLocked
                      << (candidate.transparencyMask ? candidate.transparencyMask->bounds() : QRect());
-        qDebug() << "original mask bounds" << before->layers[1].transparencyMask->bounds()
+        qDebug() << "original mask bounds" << byUuid(before, maskOwnerUuid)->transparencyMask->bounds()
                  << "preview is canonical" << (owner->operations().preview() == before);
     }
     QVERIFY(check(owner->operations().preview(), true));
-    const auto maskPreview = byUuid(owner->operations().preview(), child.uuid)->transparencyMask;
+    const auto maskPreview = byUuid(owner->operations().preview(), maskOwnerUuid)->transparencyMask;
     const auto maskRegion = sourceMaskRegion.translated(mode != QStringLiteral("protected-mask") ? delta : QPoint());
     QCOMPARE(execution->readSelectionPixels(maskPreview, maskRegion, originalMask.bytes.size()).bytes, originalMask.bytes);
     QCOMPARE(owner->operations().snapshot(), before);
@@ -735,7 +754,7 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
     const auto next = reopened->image()->gpuImage(); QVERIFY(next);
     QVERIFY(check(next->operations().snapshot(), true));
-    QCOMPARE(execution->readSelectionPixels(byUuid(next->operations().snapshot(), child.uuid)->transparencyMask,
+    QCOMPARE(execution->readSelectionPixels(byUuid(next->operations().snapshot(), maskOwnerUuid)->transparencyMask,
                                             maskRegion, originalMask.bytes.size()).bytes, originalMask.bytes);
     QCOMPARE(next->readRgbaPixels(byUuid(next->operations().snapshot(), child.uuid)->id, patch.translated(pixels ? delta : QPoint()),
                                   16 * pixelBytes).bytes, pixel.repeated(16));
@@ -747,7 +766,7 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     const auto nextGroup = find(continued->image()->root(), group.uuid, find);
     const auto nextOther = find(continued->image()->root(), other.uuid, find);
     QVERIFY(nextChild); QVERIFY(nextGroup); QVERIFY(nextOther);
-    const auto nextActive = mode == QStringLiteral("mask") ? nextChild->firstChild() :
+    const auto nextActive = mode == QStringLiteral("mask") ? findMask(groupOwner ? nextGroup : nextChild) :
                             mode == QStringLiteral("protected-mask") ? nextChild : nextOther;
     manager = window->viewManager()->nodeManager();
     manager->slotUiActivatedNode(nextActive);
@@ -771,7 +790,7 @@ void KisMoveToolDocumentTest::layerPickingForestAndMasksKeepHistoryAndKra()
     }
     const auto editedChild = byUuid(edited, child.uuid), savedChild = byUuid(saved, child.uuid);
     QVERIFY(editedChild); QVERIFY(savedChild);
-    QCOMPARE(editedChild->transparencyMask->bounds(), savedChild->transparencyMask->bounds().translated(
+    QCOMPARE(byUuid(edited, maskOwnerUuid)->transparencyMask->bounds(), byUuid(saved, maskOwnerUuid)->transparencyMask->bounds().translated(
         mode != QStringLiteral("protected-mask") ? additional : QPoint()));
     QCOMPARE(next->readRgbaPixels(editedChild->id, patch.translated(pixels ? delta + additional : QPoint()),
                                   16 * pixelBytes).bytes, pixel.repeated(16));
