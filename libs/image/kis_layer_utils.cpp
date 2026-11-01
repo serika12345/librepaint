@@ -1115,7 +1115,7 @@ namespace Private {
                                                            m_info->dstNode,
                                                            m_putAfter->parent(),
                                                            m_putAfter,
-                                                           true, false));
+                                                           true, true));
 
         }
 
