@@ -173,7 +173,8 @@ public:
      * RGB is weighted by alpha. Integer ties round upward. Zero aggregate alpha
      * returns zero RGBA. Components use the pinned document's precision.
      * Layer zero samples transparent pixels beyond the canvas;
-     * other layers retain off-canvas and implicit pixels. Transfers use 32 bytes for RGBA8
+     * other layers sample their physical projection, including an enabled
+     * transparency mask, off-canvas and implicit pixels. Transfers use 32 bytes for RGBA8
      * and 36 bytes for RGBA16,
      * independent of the sampled area. Thread, asynchronous completion, lifetime
      * and rejection follow readPixelsAsync(); requests/publication stay current.
@@ -201,6 +202,9 @@ public:
      * pinned canvas when its implicit eight-bit opacity is nonzero. Uses GPU
      * summaries and preserves the retained version and current publication. */
     PixelReadbackOutcome readNativeProjectionBounds(DocumentHandle handle, const Snapshot &document);
+    /** Physical node projection, including its enabled transparency mask but
+     * excluding the node's opacity, blend mode and visibility in its parent. */
+    PixelReadbackOutcome readLayerProjectionBounds(DocumentHandle handle, const Snapshot &document, LayerId layer);
     /** Native opacity classification for layer picking at one image coordinate.
      * Includes the paint layer's visible mask or the group's child projection,
      * and uses opacityU8 semantics in both precisions. Returns a nonempty bounds
@@ -234,6 +238,10 @@ public:
      * readRgbaPixels(). Canvas/export readers retain their clipped result. */
     PixelBytesOutcome readNativeProjectionPixels(DocumentHandle handle, const Snapshot &document,
                                                  QRect region, qsizetype maximumBytes);
+    /** Packed physical node projection, with the bounded external-read lifetime
+     * of readRgbaPixels(). Layer zero selects the native root projection. */
+    PixelBytesOutcome readLayerProjectionPixels(DocumentHandle handle, const Snapshot &document,
+                                                LayerId layer, QRect region, qsizetype maximumBytes);
 
     /** Complete sparse layer pixels, including hidden and off-canvas tiles.
      * Implicit pixels use the returned document's projectionDefaultPixels().
@@ -323,16 +331,16 @@ private:
     PixelReadbackOutcome readLayerTileExtent(DocumentHandle handle, const Snapshot &document, LayerId layer);
     PixelReadbackOutcome readBoundsImpl(DocumentHandle handle, const Snapshot &document, LayerId layer,
                                         bool includeTransparentColors, bool sparseProjection, bool opacityU8 = false,
-                                        bool nativeProjection = false);
+                                        bool nativeProjection = false, bool layerProjection = false);
     PixelBytesOutcome readRgbaPixelsImpl(DocumentHandle handle, const Snapshot &document, QRect region,
                                         LayerId layer, qsizetype maximumBytes, const SelectionMaskSP &copyMask,
-                                        bool invertMask, bool nativeProjection);
+                                        bool invertMask, bool nativeProjection, bool layerProjection = false);
     std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers, bool includeProjection,
                                    PixelReadArea area, bool transparencyOnly, bool boundsOnly = false,
                                    bool includeTransparentColors = false, bool tileExtentOnly = false,
                                    const SelectionMaskSP &copyMask = {}, bool invertMask = false,
-                                   const TranslationOperation *selectionSource = nullptr, bool layerHitTest = false, bool includeLowAlpha = false, bool nativeBounds = false,
+                                   const TranslationOperation *selectionSource = nullptr, bool layerProjection = false, bool includeLowAlpha = false, bool nativeBounds = false,
                                    const AffineTransformOperation *affineSource = nullptr, bool nativeProjection = false);
 };
 }

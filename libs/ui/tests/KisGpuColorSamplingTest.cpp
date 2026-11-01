@@ -6,11 +6,13 @@
 #include <QDockWidget>
 #include <QDir>
 #include <QFileInfo>
+#include <QFile>
 #include <QIcon>
 #include <QPointer>
 #include <QMouseEvent>
 #include <QScopeGuard>
 #include <QSignalSpy>
+#include <QTemporaryDir>
 #include <KLocalizedString>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLocator.h>
@@ -43,6 +45,9 @@
 #include <kis_node.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
+#include <kis_transparency_mask.h>
+#include <kis_selection.h>
+#include <kis_pixel_selection.h>
 #include <kis_config.h>
 #include <kis_tool.h>
 #include <kis_tool_utils.h>
@@ -138,9 +143,122 @@ private Q_SLOTS:
     }
     void samplesLayerAndProjectionWithoutEditing();
     void samplesU16DocumentColorWithoutQuantizing();
+    void samplesMaskedLayerThroughHistoryAndReopen_data()
+    {
+        QTest::addColumn<bool>("words");
+        QTest::newRow("u8") << false;
+        QTest::newRow("u16") << true;
+    }
+    void samplesMaskedLayerThroughHistoryAndReopen();
 private:
     KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuColorSamplingTest::samplesMaskedLayerThroughHistoryAndReopen()
+{
+    // The ordinary current-layer sampler reads the physical node projection,
+    // including mask changes and history, without applying parent opacity.
+    QFETCH(bool, words);
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto baseline = directory.filePath(QStringLiteral("source.kra"));
+    {
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true); document->setAutoSaveActive(false);
+        KisImageSP image = new KisImage(document->createUndoStore(), 32, 16, cs, "Masked sampling");
+        KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Paint"), 85);
+        layer->paintDevice()->fill({0, 0, 32, 16}, KoColor(QColor(241, 37, 89, 219), cs));
+        layer->paintDevice()->fill({12, 9, 1, 1}, KoColor(QColor(17, 129, 233, 255), cs));
+        QVERIFY(image->addNode(layer));
+        KisSelectionSP selection = new KisSelection;
+        selection->pixelSelection()->select({0, 0, 32, 16}, 128);
+        const quint8 coverage[]{0, 1, 128, 255};
+        selection->pixelSelection()->writeBytes(coverage, {10, 9, 4, 1});
+        KisTransparencyMaskSP mask = new KisTransparencyMask(image, QStringLiteral("Coverage"));
+        mask->setSelection(selection); QVERIFY(image->addNode(mask, layer));
+        document->setCurrentImage(image); image->refreshGraphAsync(); image->waitForDone();
+        QVERIFY(document->saveAs(baseline, KisDocument::nativeFormatMimeType(), false));
+        document->waitForSavingToComplete();
+        const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!results.isEmpty()) {
+            QVERIFY(QDir().mkpath(results));
+            const auto artifact = QDir(results).filePath(QStringLiteral("masked-sampling-%1-source.kra")
+                .arg(QString::fromLatin1(QTest::currentDataTag())));
+            if (!QFileInfo::exists(artifact)) QVERIFY(QFile::copy(baseline, artifact));
+        }
+    }
+    QList<KoColor> reference;
+    for (const bool gpu : {false, true}) {
+        qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        const auto saved = directory.filePath(gpu ? QStringLiteral("gpu.kra") : QStringLiteral("native.kra"));
+        int stage = 0;
+        for (const bool reopened : {false, true}) {
+            std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+            document->setFileBatchMode(true); document->setAutoSaveActive(false);
+            QVERIFY(document->openPath(reopened ? saved : baseline, KisDocument::DontAddToRecent));
+            const auto image = KisImageSP(document->image()); image->waitForDone();
+            QCOMPARE(bool(image->gpuImage()), gpu);
+            const auto layer = image->root()->firstChild(); QVERIFY(layer);
+            const auto mask = layer->firstChild(); QVERIFY(mask);
+            std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+            auto *view = window->newView(document.get()); QVERIFY(view);
+            QPointer<KisDocument> lifetime(document.release());
+            const auto cleanup = qScopeGuard([&] {
+                if (lifetime) {
+                    lifetime->setModified(false);
+                    window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+                }
+                QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); window.reset();
+                QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            });
+            window->viewManager()->setCurrentView(view);
+            window->show();
+            auto *manager = window->viewManager()->nodeManager();
+            window->viewManager()->canvasResourceProvider()->setPaintOpPreset(m_preset);
+            manager->slotNonUiActivatedNode(layer);
+            QTRY_COMPARE(view->currentNode(), layer);
+            KisAsyncColorSamplerHelper helper(view->canvasBase());
+            QSignalSpy raw(&helper, &KisAsyncColorSamplerHelper::sigRawColorSelected);
+            const auto sample = [&] {
+                manager->slotNonUiActivatedNode(layer);
+                QTRY_COMPARE(view->currentNode(), layer);
+                const auto history = lifetime->undoStack()->index();
+                const auto fixed = image->gpuImage() ? image->gpuImage()->operations().snapshot() : LibrePaint::Image::Gpu::Snapshot{};
+                for (int radius : {1, 3}) {
+                    helper.activate(true, true);
+                    helper.startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), radius, 100);
+                    helper.endAction(); helper.deactivate();
+                    QTRY_COMPARE(raw.size(), 1);
+                    const auto color = qvariant_cast<KoColor>(raw.takeFirst().first());
+                    if (!gpu) reference.append(color);
+                    else QCOMPARE(color, reference.value(stage));
+                    ++stage;
+                }
+                QCOMPARE(lifetime->undoStack()->index(), history);
+                if (fixed) QCOMPARE(image->gpuImage()->operations().snapshot(), fixed);
+            };
+            sample();
+            if (!reopened) {
+                manager->slotUiActivatedNode(mask); manager->slotSetSelectedNodes({mask}); manager->removeNode();
+                image->waitForDone(); QVERIFY(!layer->firstChild()); sample();
+                lifetime->undoStack()->undo(); image->waitForDone(); QVERIFY(layer->firstChild()); sample();
+                lifetime->undoStack()->redo(); image->waitForDone(); QVERIFY(!layer->firstChild()); sample();
+                lifetime->undoStack()->undo(); image->waitForDone(); QVERIFY(layer->firstChild());
+            } else {
+                layer->paintDevice()->fill({12, 9, 1, 1}, KoColor(QColor(233, 81, 19, 255), cs));
+                layer->setDirty(image->bounds()); image->waitForDone(); sample();
+            }
+            QVERIFY(lifetime->saveAs(saved, KisDocument::nativeFormatMimeType(), false));
+            lifetime->waitForSavingToComplete();
+        }
+    }
+}
 
 void KisGpuColorSamplingTest::samplesU16DocumentColorWithoutQuantizing()
 {

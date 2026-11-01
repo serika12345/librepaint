@@ -477,9 +477,16 @@ PixelBytesOutcome Execution::readNativeProjectionPixels(DocumentHandle handle, c
     return readRgbaPixelsImpl(handle, pinned, region, direct, maximumBytes, {}, false, !direct);
 }
 
+PixelBytesOutcome Execution::readLayerProjectionPixels(DocumentHandle handle, const Snapshot &pinned,
+                                                       LayerId layer, QRect region, qsizetype maximumBytes)
+{
+    if (!layer) return readNativeProjectionPixels(handle, pinned, region, maximumBytes);
+    return readRgbaPixelsImpl(handle, pinned, region, layer, maximumBytes, {}, false, false, true);
+}
+
 PixelBytesOutcome Execution::readRgbaPixelsImpl(DocumentHandle handle, const Snapshot &pinned,
                                                QRect region, LayerId layer, qsizetype maximumBytes,
-                                               const SelectionMaskSP &copyMask, bool invertMask, bool nativeProjection)
+                                               const SelectionMaskSP &copyMask, bool invertMask, bool nativeProjection, bool layerProjection)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         PixelBytesOutcome outcome;
@@ -500,20 +507,24 @@ PixelBytesOutcome Execution::readRgbaPixelsImpl(DocumentHandle handle, const Sna
     constexpr int size = TileRenderer::TileSize;
     QSet<quint64> coordinates;
     RgbaPixel defaultPixel = nativeProjection ? pinned->projectionBackground : RgbaPixel{};
+    bool maskedProjection = false;
     const auto defaults = pinned->projectionDefaultPixels();
     bool uniformProjection = !layer && pinned->projectionBackground != RgbaPixel{};
     QSet<LayerId> projectionLayers;
     if (!layer) for (const auto &input : pinned->projectionInputs()) projectionLayers.insert(input.layer);
     for (const auto &value : pinned->layers) {
         if (layer ? value.id != layer : !projectionLayers.contains(value.id)) continue;
-        if (layer) defaultPixel = defaults.value(value.id);
+        if (layer) {
+            defaultPixel = defaults.value(value.id);
+            maskedProjection = layerProjection && hasEnabledTransparencyMask(value);
+        }
         else uniformProjection |= defaults.value(value.id) != RgbaPixel{};
         const auto tiles = layerCoordinates(pinned, value, clipped, std::numeric_limits<qsizetype>::max());
         if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel coordinates exceed capacity"));
         for (const auto tile : *tiles) coordinates.insert(tile);
     }
     const auto uniformRegion = nativeProjection ? clipped.intersected(QRect(QPoint(), pinned->size)) : clipped;
-    if ((uniformProjection || (copyMask && defaultPixel != RgbaPixel{})) && !uniformRegion.isEmpty()) {
+    if ((uniformProjection || ((copyMask || maskedProjection) && defaultPixel != RgbaPixel{})) && !uniformRegion.isEmpty()) {
         for (int y = Detail::pixelTileIndex(uniformRegion.top(), size); y <= Detail::pixelTileIndex(uniformRegion.bottom(), size); ++y)
             for (int x = Detail::pixelTileIndex(uniformRegion.left(), size); x <= Detail::pixelTileIndex(uniformRegion.right(), size); ++x)
                 coordinates.insert(Detail::key(x, y));
@@ -538,10 +549,10 @@ PixelBytesOutcome Execution::readRgbaPixelsImpl(DocumentHandle handle, const Sna
     for (const auto coordinate : ordered) {
         const QRect tileRegion(Detail::coordinate(coordinate) * size, QSize(size, size));
         const auto readPart = [&]() -> PixelReadbackOutcome {
-            if (!copyMask && !nativeProjection) return readPixels(handle, pinned, tileRegion, layers, !layer, PixelReadArea::LayerCoordinates);
+            if (!copyMask && !nativeProjection && !layerProjection) return readPixels(handle, pinned, tileRegion, layers, !layer, PixelReadArea::LayerCoordinates);
             auto pending = readPixelsAsyncImpl(handle, pinned, tileRegion, layers, !layer,
                 PixelReadArea::LayerCoordinates, false, false, false, false, copyMask, invertMask,
-                nullptr, false, false, false, nullptr, nativeProjection);
+                nullptr, layerProjection, false, false, nullptr, nativeProjection);
             if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
                 return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU selection copy completion failed"));
             retireCompletedReadback();
@@ -677,8 +688,16 @@ PixelReadbackOutcome Execution::readNativeProjectionBounds(DocumentHandle handle
     return result;
 }
 
+PixelReadbackOutcome Execution::readLayerProjectionBounds(DocumentHandle handle, const Snapshot &pinned, LayerId layer)
+{
+    if (!layer) return readNativeProjectionBounds(handle, pinned);
+    if (pinned) for (const auto &value : pinned->layers)
+        if (value.id == layer && !hasEnabledTransparencyMask(value)) return readBounds(handle, pinned, layer, false, true);
+    return readBoundsImpl(handle, pinned, layer, false, true, true, false, true);
+}
+
 PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snapshot &pinned, LayerId layer,
-                                             bool includeTransparentColors, bool sparseProjection, bool opacityU8, bool nativeProjection)
+                                             bool includeTransparentColors, bool sparseProjection, bool opacityU8, bool nativeProjection, bool layerProjection)
 {
     if (!m_d->onThread()) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Bounds read requires the GPU thread"));
     constexpr int limit = RgbaTile::CoordinateLimit;
@@ -706,6 +725,17 @@ PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snap
         const auto tiles = layerCoordinates(pinned, value, outcome.region, maximumCoordinates);
         if (!tiles) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Bounds tile coordinate capacity exceeded"));
         for (const auto coordinate : *tiles) coordinates.insert(coordinate);
+        if (layerProjection && hasEnabledTransparencyMask(value) && pixel != RgbaPixel{}) {
+            auto extent = value.transparencyMask->allocatedBounds();
+            if (value.transparencyMask->defaultCoverage()) extent |= QRect(QPoint(), pinned->size);
+            if (!extent.isEmpty()) {
+                const int left = Detail::pixelTileIndex(extent.left(), TileRenderer::TileSize), right = Detail::pixelTileIndex(extent.right(), TileRenderer::TileSize);
+                const int top = Detail::pixelTileIndex(extent.top(), TileRenderer::TileSize), bottom = Detail::pixelTileIndex(extent.bottom(), TileRenderer::TileSize);
+                if (qint64(right - left + 1) * (bottom - top + 1) > maximumCoordinates)
+                    return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Masked projection bounds coordinates exceed capacity"));
+                for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) coordinates.insert(Detail::key(x, y));
+            }
+        }
         if (sparseProjection && coordinates.size() > maximumCoordinates)
             return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Preview bounds tile capacity exceeded"));
     }
@@ -724,7 +754,7 @@ PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snap
         const QRect region(Detail::coordinate(coordinate) * TileRenderer::TileSize,
                            QSize(TileRenderer::TileSize, TileRenderer::TileSize));
         const auto readPart = [&] {
-            auto pending = readPixelsAsyncImpl(handle, pinned, region, selected, !layer, area, false, true, includeTransparentColors, false, {}, false, nullptr, false, false, opacityU8, nullptr, nativeProjection);
+            auto pending = readPixelsAsyncImpl(handle, pinned, region, selected, !layer, area, false, true, includeTransparentColors, false, {}, false, nullptr, layerProjection, false, opacityU8, nullptr, nativeProjection);
             if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
                 return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU bounds completion failed"));
             retireCompletedReadback();
@@ -857,7 +887,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                                          QRect region, const QList<LayerId> &layers, bool includeProjection,
                                          PixelReadArea area, bool transparencyOnly, bool boundsOnly, bool includeTransparentColors,
                                          bool tileExtentOnly, const SelectionMaskSP &copyMask, bool invertMask,
-                                         const TranslationOperation *selectionSource, bool layerHitTest, bool includeLowAlpha, bool nativeBounds, const AffineTransformOperation *affineSource, bool nativeProjection)
+                                         const TranslationOperation *selectionSource, bool layerProjection, bool includeLowAlpha, bool nativeBounds, const AffineTransformOperation *affineSource, bool nativeProjection)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         return readyReadback(failure(code, diagnostic));
@@ -942,6 +972,34 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         RenderOutcome::Code copyCode = RenderOutcome::Recorded;
         QString copyDiagnostic;
         const auto append = [&](LayerId layer, QList<TileView> tiles) {
+            const auto definition = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),
+                [&](const auto &value) { return value.id == layer; });
+            const bool physicalMask = layerProjection && definition != pinned->layers.cend() && hasEnabledTransparencyMask(*definition);
+            if (physicalMask) {
+                const auto implicit = pinned->projectionDefaultPixels().value(layer);
+                QSet<QPoint> present;
+                for (const auto &tile : tiles) present.insert(tile.coordinate);
+                if (implicit != RgbaPixel{}) {
+                    for (int y = Detail::pixelTileIndex(outcome.region.top(), TileRenderer::TileSize);
+                         y <= Detail::pixelTileIndex(outcome.region.bottom(), TileRenderer::TileSize); ++y)
+                        for (int x = Detail::pixelTileIndex(outcome.region.left(), TileRenderer::TileSize);
+                             x <= Detail::pixelTileIndex(outcome.region.right(), TileRenderer::TileSize); ++x)
+                            if (!present.contains({x, y})) tiles.append({{x, y}, nullptr});
+                }
+                auto extent = definition->transparencyMask->allocatedBounds();
+                if (definition->transparencyMask->defaultCoverage()) extent |= QRect(QPoint(), pinned->size);
+                for (auto &tile : tiles) {
+                    if (!outcome.region.intersects(QRect(tile.coordinate * TileRenderer::TileSize,
+                                                        QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) continue;
+                    const auto copied = d.renderer->m_d->copySelection(frame.commands, tile, implicit,
+                        pinned->format, definition->transparencyMask, false, extent);
+                    if (copied.code != RenderOutcome::Recorded) {
+                        copyCode = copied.code; copyDiagnostic = copied.diagnostic; return false;
+                    }
+                    selectionPins.append(copied.tile);
+                    tile.pixels = copied.tile->pixels.get();
+                }
+            }
             if (copyMask) {
                 const auto implicit = layer ? pinned->projectionDefaultPixels().value(layer) : RgbaPixel{};
                 if (implicit != RgbaPixel{}) {
@@ -1006,7 +1064,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                     for (auto tile = transformed.tiles.cbegin(); tile != transformed.tiles.cend(); ++tile)
                         views.append({Detail::coordinate(tile.key()), tile.value()->pixels.get()});
                     summary = d.renderer->m_d->recordBounds(frame.commands, views, outcome.region, {}, pinned->format, true);
-                } else if (boundsOnly && layerHitTest) {
+                } else if (boundsOnly && layerProjection) {
                     const auto layer = layers.first();
                     const auto definition = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),
                         [&](const auto &value) { return value.id == layer; });
@@ -1015,16 +1073,19 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                     TileView input{point, nullptr};
                     for (const auto &tile : rendered->tiles(layer)) if (tile.coordinate == point) input = tile;
                     const bool masked = definition->transparencyMask && definition->transparencyMaskVisible;
+                    auto extent = masked ? definition->transparencyMask->allocatedBounds() : QRect{};
+                    if (masked && definition->transparencyMask->defaultCoverage()) extent |= QRect(QPoint(), pinned->size);
                     const auto copied = d.renderer->m_d->copySelection(frame.commands, input,
                         pinned->projectionDefaultPixels().value(layer), pinned->format,
-                        masked ? definition->transparencyMask : SelectionMask::empty(), !masked);
+                        masked ? definition->transparencyMask : SelectionMask::empty(), !masked,
+                        masked ? std::optional<QRect>(extent) : std::nullopt);
                     if (copied.code != RenderOutcome::Recorded) {
                         cancelFrame(); begun = false;
                         return rejected(executionCode(copied.code), copied.diagnostic);
                     }
                     selectionPins.append(copied.tile);
                     summary = d.renderer->m_d->recordBounds(frame.commands, {{point, copied.tile->pixels.get()}},
-                        outcome.region, {}, pinned->format, false, true);
+                        outcome.region, nativeBounds ? pinned->projectionDefaultPixels().value(layer) : RgbaPixel{}, pinned->format, false, true);
                 } else if (boundsOnly && selectionSource) {
                     const auto layer = layers.first();
                     const auto implicit = pinned->projectionDefaultPixels().value(layer);

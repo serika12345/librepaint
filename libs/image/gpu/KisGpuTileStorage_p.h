@@ -325,7 +325,8 @@ struct TileRenderer::Private
     };
     SelectionCopyResult copySelection(WGPUCommandEncoder commands, const TileView &source,
                                       const RgbaPixel &implicit, PixelFormat format,
-                                      const SelectionMaskSP &mask, bool inverted);
+                                      const SelectionMaskSP &mask, bool inverted,
+                                      std::optional<QRect> projectionExtent = {});
     struct FilterResult {
         RenderOutcome::Code code;
         Detail::Tiles tiles;

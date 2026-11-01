@@ -13,6 +13,8 @@
 #include <InfoObject.h>
 #include <KoStore.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorSpace.h>
+#include <KoColor.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/orchestration/kis_action_manager.h>
@@ -682,6 +684,130 @@ void TestNode::testPassThroughGroupsKeepPublicReadsAndPropertyHistory()
     const auto *copiedGroup = dynamic_cast<GroupLayer *>(copied.data());
     QVERIFY(copiedGroup && copiedGroup->passThroughMode());
     QCOMPARE(copied->projectionPixelData(0, 0, 1, 1), own);
+}
+
+void TestNode::testMaskedProjectionFollowsEditsAndReopen_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<int>("maskDefault");
+    QTest::addColumn<bool>("sourceDefault");
+    for (bool words : {false, true}) for (int maskDefault : {0, 17, 255}) for (bool sourceDefault : {false, true}) {
+        const auto name = QByteArray(words ? "u16" : "u8") + "-mask" + QByteArray::number(maskDefault) + (sourceDefault ? "-default" : "-transparent");
+        QTest::newRow(name.constData()) << words << maskDefault << sourceDefault;
+    }
+}
+
+void TestNode::testMaskedProjectionFollowsEditsAndReopen()
+{
+    // Scripts distinguish raw paint pixels from a masked node projection,
+    // retain the projection through mask edits, and continue after KRA/Open.
+    QFETCH(bool, words);
+    QFETCH(int, maskDefault);
+    QFETCH(bool, sourceDefault);
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    QByteArray source;
+    for (int i = 0; i < 8; ++i) {
+        const quint16 channels[]{quint16(37 * (words ? 257 : 1)), quint16(89 * (words ? 257 : 1)),
+            quint16(151 * (words ? 257 : 1)), quint16((i < 4 ? 219 : 0) * (words ? 257 : 1))};
+        source.append(reinterpret_cast<const char *>(channels), words ? 8 : 0);
+        if (!words) for (const auto channel : channels) source.append(char(channel));
+    }
+    QList<QByteArray> reference;
+    QList<QRect> referenceBounds;
+    for (bool gpu : {false, true}) {
+        qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true); document->setAutoSaveActive(false);
+        QVERIFY(document->newImage(QStringLiteral("Masked projection"), 32, 16, cs,
+            KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+        auto image = KisImageSP(document->image());
+        const auto layer = image->root()->lastChild();
+        QScopedPointer<Node> node(Node::createNode(image, layer));
+        node->setLocked(false); node->setVisible(true); node->setOpacity(85);
+        QVERIFY(node->setPixelData(source, -2, 3, 8, 1));
+        QVERIFY(node->setPixelData(source.first(cs->pixelSize()), 180, 95, 1, 1));
+        if (sourceDefault) layer->paintDevice()->setDefaultPixel(KoColor(QColor(11, 63, 129, 127), cs));
+        Document api(document.data(), false);
+        QScopedPointer<TransparencyMask> mask(api.createTransparencyMask(QStringLiteral("Coverage")));
+        Selection coverage;
+        const quint8 defaultCoverage = maskDefault;
+        coverage.selection()->pixelSelection()->setDefaultPixel(KoColor(&defaultCoverage, KoColorSpaceRegistry::instance()->alpha8()));
+        coverage.setPixelData(QByteArray::fromHex("000180ff000180ff"), -2, 3, 8, 1);
+        mask->setSelection(&coverage);
+        QVERIFY(node->addChildNode(mask.data(), nullptr));
+        const auto settle = [&] { layer->setDirty(image->bounds() | QRect(-64, -64, 192, 192)); image->waitForDone(); };
+        settle();
+        auto projection = layer->projection();
+        QVERIFY(projection);
+        int stage = 0;
+        const auto check = [&] {
+            const auto pixels = node->projectionPixelData(-3, 2, 10, 3);
+            QByteArray retained(10 * 3 * cs->pixelSize(), '\0');
+            projection->readBytes(reinterpret_cast<quint8 *>(retained.data()), {-3, 2, 10, 3});
+            QCOMPARE(retained, pixels);
+            QCOMPARE(node->pixelData(-2, 3, 8, 1), source);
+            const auto implicit = projection->defaultPixel();
+            const auto state = pixels + QByteArray(reinterpret_cast<const char *>(implicit.data()), cs->pixelSize()) +
+                node->projectionPixelData(180, 95, 1, 1) + node->projectionPixelData(200, 123, 1, 1);
+            const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+            if (!results.isEmpty()) {
+                QVERIFY(QDir().mkpath(results));
+                QFile output(QDir(results).filePath(QStringLiteral("masked-projection-%1-%2-%3.bin")
+                    .arg(QString::fromLatin1(QTest::currentDataTag()), gpu ? QStringLiteral("gpu") : QStringLiteral("native")).arg(stage)));
+                QVERIFY(output.open(QIODevice::WriteOnly)); QCOMPARE(output.write(state), state.size());
+            }
+            if (!gpu) reference.append(state);
+            else QCOMPARE(state, reference.value(stage));
+            const auto bounds = projection->exactBounds();
+            if (!gpu) referenceBounds.append(bounds);
+            else QCOMPARE(bounds, referenceBounds.value(stage));
+            ++stage;
+        };
+        check();
+        if (const auto owner = image->gpuImage()) {
+            const auto fixed = owner->operations().snapshot();
+            const auto rejected = owner->execution().readLayerProjectionPixels(owner->handle(), fixed,
+                fixed->layers.last().id, {-3, 2, 10, 3}, 0);
+            QCOMPARE(rejected.code, LibrePaint::Image::Gpu::ExecutionCode::CapacityExceeded);
+            QVERIFY(rejected.bytes.isEmpty());
+            QCOMPARE(owner->operations().snapshot(), fixed);
+            QCOMPARE(owner->execution().requested(owner->handle()), fixed);
+        }
+        QVERIFY(node->projectionPixelData(-2, 3, 8, 1) != source);
+        Selection replacement;
+        replacement.selection()->pixelSelection()->setDefaultPixel(KoColor(&defaultCoverage, KoColorSpaceRegistry::instance()->alpha8()));
+        replacement.setPixelData(QByteArray::fromHex("ff800100ff800100"), -2, 3, 8, 1);
+        mask->setSelection(&replacement); settle(); check();
+        QVERIFY(mask->remove()); image->waitForDone();
+        QCOMPARE(node->projectionPixelData(-2, 3, 8, 1), source);
+        document->undoStack()->undo(); settle(); check();
+        document->undoStack()->redo(); image->waitForDone();
+        QCOMPARE(node->projectionPixelData(-2, 3, 8, 1), source);
+        document->undoStack()->undo(); settle(); check();
+        const auto expected = node->projectionPixelData(-3, 2, 10, 3);
+        const auto identity = node->uniqueId();
+        QTemporaryDir directory; QVERIFY(directory.isValid());
+        const auto path = directory.filePath(QStringLiteral("masked-projection.kra"));
+        QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+        document->waitForSavingToComplete();
+        QVERIFY(document->openPath(path, KisDocument::DontAddToRecent));
+        image = document->image(); image->waitForDone();
+        QScopedPointer<Node> loaded(api.nodeByUniqueID(identity));
+        QVERIFY(loaded);
+        QCOMPARE(loaded->projectionPixelData(-3, 2, 10, 3), expected);
+        QVERIFY(loaded->setPixelData(source, -2, 4, 8, 1));
+        QCOMPARE(loaded->pixelData(-2, 4, 8, 1), source);
+        QCOMPARE(image->root()->lastChild()->uuid(), identity);
+        image->root()->lastChild()->setDirty(image->bounds() | QRect(-64, -64, 192, 192)); image->waitForDone();
+        const auto edited = loaded->projectionPixelData(-2, 4, 8, 1);
+        if (!gpu) reference.append(edited);
+        else QCOMPARE(edited, reference.value(stage));
+    }
 }
 
 void TestNode::testGpuMaskInsertionPropertiesHistoryAndReopen()

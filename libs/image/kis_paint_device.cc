@@ -1398,6 +1398,10 @@ KisPaintDevice::~KisPaintDevice()
 
 void KisPaintDevice::setProjectionDevice(bool value)
 {
+    if (m_d->isProjectionDevice != value) {
+        m_d->gpuBoundsSequence = -1;
+        m_d->gpuSequenceKnown = false;
+    }
     m_d->isProjectionDevice = value;
 }
 
@@ -1470,7 +1474,7 @@ int KisPaintDevice::sequenceNumber() const
         const auto version = m_d->gpuPixelVersion();
         if (m_d->gpuSequenceKnown && m_d->gpuSequenceRevision == version->revision() &&
             m_d->gpuSequenceDocument == version->documentId()) return m_d->gpuSequence;
-        bool changed = !m_d->gpuSequenceKnown;
+        bool changed = !m_d->gpuSequenceKnown || m_d->isProjectionDevice;
         if (!m_d->gpuLayerId()) {
             changed = true;
         } else {
@@ -1639,7 +1643,8 @@ QRect KisPaintDevice::exactBounds() const
         if (sequence != m_d->gpuBoundsSequence) {
             const auto version = m_d->gpuPixelVersion();
             auto layer = m_d->gpuLayerId();
-            const auto result = layer ?
+            const auto result = layer && m_d->isProjectionDevice ?
+                m_d->gpuImage->execution().readLayerProjectionBounds(m_d->gpuImage->handle(), version, layer) : layer ?
                 m_d->gpuImage->execution().readBounds(m_d->gpuImage->handle(), version, layer, false, true) :
                 m_d->gpuImage->execution().readNativeProjectionBounds(m_d->gpuImage->handle(), version);
             if (result.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
@@ -2476,7 +2481,8 @@ void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
         const auto count = gpuPixelByteCount(rect, m_d->gpuPixelVersion()->format);
         const auto snapshot = m_d->gpuPixelVersion();
         const auto layer = m_d->gpuLayerId();
-        const auto pixels = layer ?
+        const auto pixels = layer && m_d->isProjectionDevice ?
+            m_d->gpuImage->execution().readLayerProjectionPixels(m_d->gpuImage->handle(), snapshot, layer, rect, count) : layer ?
             m_d->gpuImage->execution().readRgbaPixels(m_d->gpuImage->handle(), snapshot, rect, layer, count) :
             m_d->gpuImage->execution().readNativeProjectionPixels(m_d->gpuImage->handle(), snapshot, rect, count);
         if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success)

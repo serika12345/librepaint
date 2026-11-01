@@ -18,6 +18,7 @@ struct ColorReadbackResources
     qsizetype bytes;
     NativeBuffer output;
     std::vector<NativeBuffer> parameters;
+    QList<std::shared_ptr<Tile>> projectionTiles;
     ColorReadbackResources(std::shared_ptr<Budget> owner, qsizetype count)
         : budget(std::move(owner)), bytes(count) { budget->used += bytes; }
     ~ColorReadbackResources() { budget->used -= bytes; }
@@ -75,7 +76,8 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
     if (document == d.documents.cend() || document->requested->documentId() != pinned->documentId())
         return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Color sample document is no longer attached or belongs to another handle"));
     bool available = !layer;
-    for (const auto &value : pinned->layers) available |= value.id == layer;
+    const Layer *definition = nullptr;
+    for (const auto &value : pinned->layers) if (value.id == layer) { available = true; definition = &value; }
     if (!available) return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Color sample layer is unavailable"));
     const qint64 extent = radius - 1;
     constexpr qint64 limit = OperationDocument::CoordinateLimit;
@@ -132,7 +134,25 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
         QMap<quint64, WGPUBuffer> tiles;
         for (const auto &tile : projected ? projected->tiles() : rendered ? rendered->tiles(layer) : QList<TileView>{})
             tiles.insert(key(tile.coordinate.x(), tile.coordinate.y()), tile.pixels);
-        const auto implicit = layer ? pinned->projectionDefaultPixels().value(layer) : RgbaPixel{};
+        auto implicit = layer ? pinned->projectionDefaultPixels().value(layer) : RgbaPixel{};
+        if (definition && hasEnabledTransparencyMask(*definition)) {
+            auto extent = definition->transparencyMask->allocatedBounds();
+            if (definition->transparencyMask->defaultCoverage()) extent |= canvas;
+            for (int y = first.y(); y <= last.y(); ++y) for (int x = first.x(); x <= last.x(); ++x) {
+                const auto coordinate = key(x, y);
+                const auto copied = d.renderer->m_d->copySelection(frame.commands, {{x, y}, tiles.value(coordinate)},
+                    implicit, pinned->format, definition->transparencyMask, false, extent);
+                if (copied.code != RenderOutcome::Recorded) {
+                    cancelFrame(); begun = false;
+                    return rejected(copied.code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded : ExecutionCode::DeviceFailure,
+                        copied.diagnostic);
+                }
+                work->projectionTiles.append(copied.tile);
+                tiles.insert(coordinate, copied.tile->pixels.get());
+            }
+            // Every sampled tile now contains the physical projection.
+            implicit = {};
+        }
         const auto implicitWords = packedPixelWords(implicit, pinned->format);
         wgpuCommandEncoderClearBuffer(frame.commands, work->output.get(), 0, summaryBytes);
         for (int y = first.y(); y <= last.y(); ++y) {

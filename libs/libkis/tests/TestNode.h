@@ -98,6 +98,8 @@ private Q_SLOTS:
     void testFigureGroupInputLimitsKeepPixelsAndRedo();
     void testLayerAndDocumentProjectionsRemainDistinct();
     void testProjectionPixelData();
+    void testMaskedProjectionFollowsEditsAndReopen_data();
+    void testMaskedProjectionFollowsEditsAndReopen();
     void testThumbnail();
     void testGpuBoundsAndThumbnailMatchNativePixels_data();
     void testGpuBoundsAndThumbnailMatchNativePixels();

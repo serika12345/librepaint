@@ -188,6 +188,7 @@ struct Q_DECL_HIDDEN KisLayer::Private
 
     KisLayerProjectionPlaneSP projectionPlane;
     KisSafeNodeProjectionStoreSP safeProjection;
+    mutable KisPaintDeviceSP gpuProjection;
 
     KisLayerMasksCache masksCache;
 };
@@ -860,6 +861,18 @@ KisLayerProjectionPlaneSP KisLayer::internalProjectionPlane() const
 KisPaintDeviceSP KisLayer::projection() const
 {
     KisPaintDeviceSP originalDevice = original();
+
+    if (originalDevice && originalDevice->gpuPixelImage() && (needProjection() || hasEffectMasks())) {
+        const auto owner = originalDevice->gpuPixelImage();
+        const auto pixels = originalDevice->gpuPixelReference();
+        if (!m_d->gpuProjection || m_d->gpuProjection->gpuPixelImage() != owner ||
+            m_d->gpuProjection->gpuPixelReference() != pixels ||
+            *m_d->gpuProjection->colorSpace() != *originalDevice->colorSpace()) {
+            m_d->gpuProjection = KisPaintDevice::fromGpuImage(owner, pixels ? pixels->layer() : 0, {}, originalDevice->colorSpace());
+            m_d->gpuProjection->setProjectionDevice(true);
+        }
+        return m_d->gpuProjection;
+    }
 
     return needProjection() || hasEffectMasks() ?
         m_d->safeProjection->getDeviceLazy(originalDevice) : originalDevice;

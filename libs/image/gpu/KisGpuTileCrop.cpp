@@ -9,7 +9,7 @@ using namespace Detail;
 
 TileRenderer::Private::SelectionCopyResult TileRenderer::Private::copySelection(
     WGPUCommandEncoder commands, const TileView &source, const RgbaPixel &implicit, PixelFormat format,
-    const SelectionMaskSP &mask, bool inverted)
+    const SelectionMaskSP &mask, bool inverted, std::optional<QRect> projectionExtent)
 {
     if (!ensureTileCapacity(1, format))
         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU selection copy tile budget exhausted")};
@@ -23,8 +23,11 @@ TileRenderer::Private::SelectionCopyResult TileRenderer::Private::copySelection(
     }
     if (!selectionCopyPipeline || !selectionCopyLayout)
         return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU selection copy pipeline creation failed")};
-    const quint32 values[]{quint32(format), quint32(inverted), quint32(!source.pixels), 0,
-                           implicit[0], implicit[1], implicit[2], implicit[3]};
+    const QRect extent = projectionExtent.value_or(QRect()).translated(-source.coordinate * TileSize);
+    const quint32 values[]{quint32(format), quint32(inverted), quint32(!source.pixels), quint32(bool(projectionExtent)),
+                           implicit[0], implicit[1], implicit[2], implicit[3],
+                           quint32(extent.left()), quint32(extent.top()),
+                           quint32(extent.x() + extent.width()), quint32(extent.y() + extent.height())};
     auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
     const auto output = allocateTile(format);
     if (!parameters || !output)
