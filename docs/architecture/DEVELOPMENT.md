@@ -1702,6 +1702,13 @@ Basic-5 Size default・Eraser Circle・矩形筆先のEraser Smallについて�
 `libs/ui/tests/KisGpuMultibrushEditingTest.{h,cpp}`がこの利用側の試験を所有し、
 結果は`LIBREPAINT_GPU_RESULT_DIR/multibrush-<条件>-{native,gpu}-<番号>.bin`へ保存する。
 関連する一式は`ctest --test-dir build/tdd-linux -R '^libs-ui-multibrush-KisGpuDocumentViewTest$' --output-on-failure`で実行する。
+同じ文書・入力・保存の試験実装を使う`dynamicBrushPresetsKeepNativeEditingHistoryAndKra`は、
+動的ブラシの質量・抵抗、Basic-5 Size default・Eraser Circle・Eraser Small、各入力補正、
+タップとGroupの透明度マスクについてRGB8・RGB16の既存結果を照合する。
+確定した補正後の入力、設定変更後のUndo／Redo、KRA再読込後の追加編集を検査し、
+`dynamic-brush-<条件>-{native,gpu}-<番号>.bin`を保存する。
+通常のツール登録を使うため試験対象は動的ブラシのプラグインにも依存する。
+関連する一式は`ctest --test-dir build/tdd-linux -R '^libs-ui-dynamic-brush-KisGpuDocumentViewTest$' --output-on-failure`で実行する。
 描画試験は塗りと輪郭の色、Undo／Redo、全画素一致を検査する。
 塗り領域全体がタイル予算を超える場合の原子的な拒否と、表示領域だけを一枚のタイルで生成することを照合する。
 一直線上の頂点だけを塗る要求は、画素と一回の履歴を保持し、塗り用タイルの割当をゼロに保つ。

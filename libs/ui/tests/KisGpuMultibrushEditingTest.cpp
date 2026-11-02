@@ -299,9 +299,10 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
                 if (dynamic) {
                     QVERIFY(operation->brush.transforms.isEmpty());
                     if (smoothing == 0 && !QByteArray(QTest::currentDataTag()).startsWith("tap-")) {
-                        QVERIFY(operation->samples.size() > 1);
+                        const auto samples = operation->inputSamples();
+                        QVERIFY(samples.size() > 1);
                         const QPointF rawEnd = (reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75)) + QPointF(12, 2);
-                        QVERIFY(operation->samples.last().position != rawEnd);
+                        QVERIFY(samples.last().position != rawEnd);
                     }
                 } else QCOMPARE(operation->brush.transforms.size(), qsizetype(mode == 0 ? 3 : mode == 1 ? 4 : mode == 3 ? 12 : mode == 4 ? 2 : 16));
             }
