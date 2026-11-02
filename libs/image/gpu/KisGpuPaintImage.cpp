@@ -785,6 +785,10 @@ Result PaintImage::clearMaskPixels(LayerId layer, bool selectedOnly, const QUuid
     const auto sourceLayer = image->operations().activeLayer();
     const auto cleared = selectedOnly ? image->clearSelectedPixels({sourceLayer}) : image->clearLayers({sourceLayer});
     if (cleared != Result::Success) return cleared;
+    if (!selectedOnly) {
+        const auto reset = image->writeLayerDefaultPixel(image->retainLayerPixels(sourceLayer), {});
+        if (reset != Result::Success) return reset;
+    }
     return replaceMaskFromImage(layer, *image, sourceLayer, false, true, maskUuid, selectedOnly ? firstEdit : 0);
 }
 

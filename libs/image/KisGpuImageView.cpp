@@ -1499,11 +1499,13 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             KisSelectionSP internalSelection;
             if (auto *adjustment = qobject_cast<KisAdjustmentLayer *>(node.data())) {
                 adjustment->original()->bindGpuLayer(owner, layer.id);
-                if (!adjustment->filter() || adjustment->filter()->toXML().toUtf8() != layer.filter->xml)
+                if (!adjustment->filter() || adjustment->filter()->name() != layer.filter->id ||
+                    adjustment->filter()->version() != layer.filter->version || adjustment->filter()->toXML().toUtf8() != layer.filter->xml)
                     adjustment->setFilter(nativeFilterConfiguration(*layer.filter));
                 internalSelection = adjustment->internalSelection();
             } else if (auto *mask = qobject_cast<KisFilterMask *>(node.data())) {
-                if (!mask->filter() || mask->filter()->toXML().toUtf8() != layer.filter->xml)
+                if (!mask->filter() || mask->filter()->name() != layer.filter->id ||
+                    mask->filter()->version() != layer.filter->version || mask->filter()->toXML().toUtf8() != layer.filter->xml)
                     mask->setFilter(nativeFilterConfiguration(*layer.filter));
                 internalSelection = mask->selection();
             } else if (auto *group = qobject_cast<KisGroupLayer *>(node.data())) group->original()->bindGpuLayer(owner, layer.id);

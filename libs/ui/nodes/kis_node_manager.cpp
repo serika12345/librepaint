@@ -227,22 +227,6 @@ void KisNodeManager::LifecycleAccess::connectReselectionOutput(KisNodeManager *m
         [manager](KisImageWSP source, KisNodeSP active, const KisNodeList &selected) {
             if (manager->m_d->imageView && source &&
                 source.data() == manager->m_d->imageView->image().data()) {
-                if (const auto owner = source->gpuImage()) {
-                    // Queued reselection may outlive Undo/Redo or a new dialog.
-                    // Apply it only while it matches the document's selection.
-                    if (owner->operations().filterNodeEditTarget()) return;
-                    const auto version = owner->operations().snapshot();
-                    QUuid expectedActive;
-                    QList<QUuid> expectedSelected;
-                    for (const auto &layer : version->layers) {
-                        if (layer.id == version->activeLayer) expectedActive = layer.uuid;
-                        if (version->selectedLayers.contains(layer.id)) expectedSelected.append(layer.uuid);
-                    }
-                    if (active && active->uuid() != expectedActive) return;
-                    QList<QUuid> requestedSelected;
-                    for (const auto &node : selected) if (node) requestedSelected.append(node->uuid());
-                    if (!selected.isEmpty() && requestedSelected != expectedSelected) return;
-                }
                 manager->slotImageRequestNodeReselection(active, selected);
             }
         });

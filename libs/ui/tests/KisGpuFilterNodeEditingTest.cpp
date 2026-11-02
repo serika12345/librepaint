@@ -256,18 +256,19 @@ void FilterNodeEditingTest::run()
         manager->nodeManager()->nodeProperties(node);
     });
     QVERIFY(visited); QVERIFY(previewReady);
-    if (owner->operations().snapshot() != inserted) {
-        const auto actual = owner->operations().snapshot();
-        qInfo() << "Property cancellation" << inserted->revision() << actual->revision()
-                << inserted->activeLayer << actual->activeLayer << inserted->selectedLayers << actual->selectedLayers;
-        for (qsizetype i = 0; i < actual->layers.size(); ++i) {
-            const auto &a = actual->layers[i]; const auto &b = inserted->layers[i];
-            qInfo() << a.id << b.name << a.name << (a.filter == b.filter)
-                    << b.filterSelection.data() << a.filterSelection.data();
-        }
-    }
-    QCOMPARE(owner->operations().snapshot(), inserted);
+    // Layer-panel selection restoration can replace the version container.
+    // Cancellation preserves the content revision, history and final selection.
+    const auto cancelled = owner->operations().snapshot();
+    QCOMPARE(cancelled->documentId(), inserted->documentId());
+    QCOMPARE(cancelled->revision(), inserted->revision());
+    QCOMPARE(cancelled->historyRevision(), inserted->historyRevision());
+    QCOMPARE(cancelled->activeLayer, inserted->activeLayer);
+    QCOMPARE(cancelled->selectedLayers, inserted->selectedLayers);
+    QCOMPARE(owner->operations().undoCount(), beforeCount + 1);
+    QCOMPARE(owner->operations().redoCount(), 0);
+    QVERIFY(!owner->operations().hasActiveStroke());
     QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, firstPixels);
+    QCOMPARE(owner->readRgbaPixels(1, area, raw.size()).bytes, raw);
     runDialog(true, [&] {
         manager->nodeManager()->nodeProperties(node);
     });

@@ -958,18 +958,10 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         let kind = u32(parameters.tile.z);
         result = filtered(base, kind, wide);
         if (selected != 255u) {
-            if (kind >= FILTER_MAXIMIZE) {
-                // Product filters copy their result through the selection with
-                // native Copy, including alpha and hidden-color rounding.
-                let opacity = projectionMultiply(bitcast<u32>(f32(selected)), 0x3b808081u);
-                result = copyPixel(base, result, opacity, 15u, wide);
-            } else {
-                let keep = 255u - selected;
-                result = vec4<u32>(
-                    (base.x * keep + result.x * selected + 127u) / 255u,
-                    (base.y * keep + result.y * selected + 127u) / 255u,
-                    (base.z * keep + result.z * selected + 127u) / 255u, base.w);
-            }
+            // Product filters copy their result through the selection with
+            // native Copy, including alpha and hidden-color rounding.
+            let opacity = projectionMultiply(bitcast<u32>(f32(selected)), 0x3b808081u);
+            result = copyPixel(base, result, opacity, 15u, wide);
         }
     }
     let words = nativePixelWords(result, wide);
