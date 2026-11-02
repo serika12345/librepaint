@@ -932,6 +932,22 @@ bool KisImage::hsvAdjustmentGpuLayerColors(KisNodeSP layer,
     return layerId && owner->hsvAdjustment(layerId, settings) == LibrePaint::Image::Gpu::Result::Success;
 }
 
+bool KisImage::colorFilterGpuLayerColors(KisNodeSP layer, LibrePaint::Image::Gpu::FilterKind kind,
+                                         const LibrePaint::Image::Gpu::ColorOverlay &overlay)
+{
+    const auto owner = gpuImage();
+    if (!owner || !layer || layer->image() != this ||
+        QThread::currentThread() != owner->thread()) return false;
+    const auto layerId = gpuLayerId(owner->operations().snapshot(), layer);
+    if (!layerId) return false;
+    const auto device = layer->paintDevice();
+    if (!device) return false;
+    const QRect area = kind == LibrePaint::Image::Gpu::FilterKind::ResetTransparent ? bounds() :
+        device->exactBounds().intersected(bounds());
+    if (area.isEmpty()) return true;
+    return owner->colorFilter(layerId, kind, overlay, area) == LibrePaint::Image::Gpu::Result::Success;
+}
+
 bool KisImage::addGpuTransparencyMaskFromSelection(KisNodeSP layer)
 {
     const auto owner = gpuImage();

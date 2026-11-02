@@ -661,10 +661,24 @@ using CropSnapshot = QSharedPointer<const CropOperation>;
  * Rec.709 luminance (0.2126 R + 0.7152 G + 0.0722 B) of the stored
  * sRGB-encoded bytes, rounded half up by the integer rule
  * `(2126 R + 7152 G + 722 B + 5000) / 10000`. HsvAdjustment applies the
- * product HSV/HSL Adjustment slider values to stored RGB. All kinds preserve
- * alpha.
+ * product HSV/HSL Adjustment slider values to stored RGB. Maximum/Minimum
+ * retain tied extrema. ResetTransparent uses native opacityU8 == 0.
+ * ColorOverlay applies the frozen color composition to color channels.
  */
-enum class FilterKind : quint8 { InvertColors, Grayscale, HsvAdjustment };
+enum class FilterKind : quint8 {
+    InvertColors, Grayscale, HsvAdjustment, MaximizeChannel, MinimizeChannel,
+    ResetTransparent, ColorOverlay
+};
+
+/** Product Fast Color Overlay values, converted to document components once. */
+struct ColorOverlay
+{
+    RgbaPixel color{62, 140, 236, 255};
+    qint32 opacity = 100;
+    LayerBlendMode blendMode = LayerBlendMode::Normal;
+    bool isValid(PixelFormat format) const
+    { return validPixel(color, format) && opacity >= 0 && opacity <= 100 && blendMode <= LayerBlendMode::Copy; }
+};
 
 /** Product HSV/HSL Adjustment modes, matching the product filter's `type` key.
  *
@@ -761,9 +775,9 @@ KRITAIMAGEGPUOPERATIONS_EXPORT bool freezeLumaCoefficients(
  * the operation is accepted. An HSV/HSL Adjustment also freezes its raw
  * product values (`hue`, `saturation`, `value`), its color mode, the legacy
  * compatibility flag, the Colorize flag and the effective document luma
- * coefficients. Only RGB participates: alpha is preserved, and
- * transparent pixels keep alpha zero while their hidden RGB is filtered like
- * the corresponding channel-mask arithmetic. Coverage and settings are
+ * coefficients. Maximum/Minimum preserve alpha; ResetTransparent replaces
+ * the entire pixel when native opacityU8 is zero. ColorOverlay freezes its
+ * document color, opacity and composition. Coverage and settings are
  * retained for every document version and Undo/Redo step.
  */
 struct FilterOperation
@@ -782,6 +796,9 @@ struct FilterOperation
     bool colorize = false;
     /** Effective document luma coefficients for HSY, YUV and Colorize. */
     std::array<double, 3> luma{0.2126, 0.7152, 0.0722};
+    ColorOverlay overlay;
+    /** Product process extent, clipped to the document at acceptance. */
+    QRect applyRect;
     QRect selectionRect{};
     bool selectionInverted = false;
     SelectionKind selectionKind = SelectionKind::Rectangle;
@@ -1021,7 +1038,8 @@ enum class HistoryAction {
     ChangeSelection, AddTransparencyMask, RemoveTransparencyMask, ChangeMaskVisibility, InvertColors,
     Grayscale, HsvAdjustment, ConvertColorSpace, MoveSelectionPixels, TransformLayer,
     GroupLayers, CreateClippingGroup, UngroupLayers,
-    MergeDown, MergeSelected, FlattenLayer, FlattenImage, NewFromVisible
+    MergeDown, MergeSelected, FlattenLayer, FlattenImage, NewFromVisible,
+    MaximizeChannel, MinimizeChannel, ResetTransparent, ColorOverlay
 };
 
 struct Limits
@@ -1377,6 +1395,9 @@ public:
      * operation.
      */
     Result hsvAdjustment(LayerId layer, const HsvAdjustment &settings);
+    /** Ordinary extrema, transparent reset and frozen color-overlay filters. */
+    Result colorFilter(LayerId layer, FilterKind kind, const ColorOverlay &overlay = {},
+                       const QRect &applyRect = {});
     OperationId beginColorConversion();
     Result cancelColorConversion(OperationId id);
     Result commitColorConversion(OperationId id, const Snapshot &before, PixelFormat format,
@@ -1457,7 +1478,8 @@ private:
     Result addTransparencyMaskWithin(LayerId layer, bool requireSelection, const SelectionMaskSP &prepared = {},
                                      const QString &name = QStringLiteral("Transparency Mask"),
                                      const RasterLayer *imported = nullptr);
-    Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr);
+    Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr,
+                       const ColorOverlay *overlay = nullptr, const QRect &applyRect = {});
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     Result applyLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba, Snapshot *retainedVersion);

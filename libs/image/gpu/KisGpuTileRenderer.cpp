@@ -282,6 +282,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     }
     QByteArray source = shared.readAll() + '\n';
     const auto coupled = [](quint32 mode) { return mode >= 88 && mode <= 126 ? mode : 0u; };
+    source += "const FILTER_BLEND_MODE: u32 = " + QByteArray::number(firstBlend) + "u;\n";
     source += "const COLOR_BLEND_MODE_A: u32 = " + QByteArray::number(coupled(firstBlend)) + "u;\n";
     source += "const COLOR_BLEND_MODE_B: u32 = " + QByteArray::number(coupled(secondBlend)) + "u;\n";
     source += "const WORD_BLEND_MODE_A: u32 = " + QByteArray::number(coupledPixelFormat == 2u ? firstBlend : 0u) + "u;\n";
@@ -292,7 +293,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     source += QByteArray("const GRADIENT_FILL_ENABLED: bool = ") + (gradientKind ? "true;\n" : "false;\n");
     source += "const GRADIENT_SHAPE: u32 = " + QByteArray::number(gradientKind ? gradientKind - 1 : 0) + "u;\n";
     const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
-    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl")) || path.endsWith(QLatin1String("/region.wgsl"))) {
+    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl")) || path.endsWith(QLatin1String("/region.wgsl")) || path.endsWith(QLatin1String("/filter.wgsl"))) {
         QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
         QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
         QFile doubles(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
@@ -1406,7 +1407,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 tiles = std::move(cropped.tiles);
             } else if (const auto filter = std::get_if<FilterSnapshot>(&layer.operations[end])) {
                 auto filtered = d.filterTiles(commands, tiles, **filter, data->defaults.value(layer.id),
-                                              document->size, operationRegions[end + 1], spatialPins);
+                                              document->size, document->format, operationRegions[end + 1], spatialPins);
                 if (filtered.code != RenderOutcome::Recorded) return {filtered.code, {}, filtered.diagnostic};
                 tiles = std::move(filtered.tiles);
             } else if (const auto affine = std::get_if<AffineSnapshot>(&layer.operations[end])) {

@@ -4,6 +4,8 @@
  */
 #include "KisGpuTileStorage_p.h"
 #include <cstring>
+#include "KisGpuNonlinearRgba8_p.h"
+#include "KisGpuRgba16Compositing_p.h"
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
@@ -21,20 +23,24 @@ struct FilterParameters
     quint32 lumaHigh[4];
     quint32 yuvLow[2][4];
     quint32 yuvHigh[2][4];
+    quint32 overlayColor[4];
+    quint32 control[4];
+    qint32 applyRect[4];
 };
-static_assert(sizeof(FilterParameters) == 160,
+static_assert(sizeof(FilterParameters) == 208,
               "filter parameter layout must match filter.wgsl");
 }
 
 TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     WGPUCommandEncoder commands, const Tiles &source, const FilterOperation &filter,
-    const std::shared_ptr<Tile> &fallback, QSize documentSize, QRect region,
+    const std::shared_ptr<Tile> &fallback, QSize documentSize, PixelFormat format, QRect region,
     QList<std::shared_ptr<Tile>> &pins)
 {
     retainTiles(source);
     retainTile(fallback);
     Tiles result = source;
     QRect bounds = region;
+    if (filter.kind >= FilterKind::MaximizeChannel) bounds &= filter.applyRect;
     if (!filter.selectionRect.isEmpty() && !filter.selectionInverted)
         bounds = bounds.intersected(filter.selectionRect);
     if (bounds.isEmpty()) return {RenderOutcome::Recorded, std::move(result), {}};
@@ -72,12 +78,39 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         }
     }
     if (planned.isEmpty()) return {RenderOutcome::Recorded, std::move(result), {}};
-    if (!filterPipeline) {
-        filterPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/filter.wgsl"));
-        if (filterPipeline) filterLayout.reset(wgpuComputePipelineGetBindGroupLayout(filterPipeline.get(), 0));
+    const auto mode = filter.kind == FilterKind::ColorOverlay ? filter.overlay.blendMode : LayerBlendMode::Normal;
+    const bool wide = format == PixelFormat::Rgba16;
+    if ((wide && usesRgba16Cosine(mode) && !prepareRgba16Cosine()) ||
+        (wide && usesRgba16PowerValues(mode) && !prepareRgba16Power()) ||
+        (!wide && usesNonlinearRgba8(mode) && !prepareNonlinearRgba8(true)) ||
+        (!wide && mode == LayerBlendMode::Greater && !prepareGreaterRgba8(true)))
+        return {error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                error.isEmpty() ? QStringLiteral("GPU filter composition resource budget exhausted") : error};
+    if (!filterLayout) {
+        WGPUBindGroupLayoutEntry entries[6]{};
+        for (quint32 i = 0; i < 4; ++i) {
+            entries[i].binding = i;
+            entries[i].visibility = WGPUShaderStage_Compute;
+            entries[i].buffer.type = i == 2 ? WGPUBufferBindingType_Uniform :
+                i == 1 ? WGPUBufferBindingType_Storage : WGPUBufferBindingType_ReadOnlyStorage;
+        }
+        for (quint32 i = 4; i < 6; ++i) {
+            entries[i].binding = i + 5;
+            entries[i].visibility = WGPUShaderStage_Compute;
+            entries[i].texture.sampleType = WGPUTextureSampleType_Uint;
+            entries[i].texture.viewDimension = WGPUTextureViewDimension_2DArray;
+        }
+        WGPUBindGroupLayoutDescriptor descriptor{};
+        descriptor.entryCount = 6;
+        descriptor.entries = entries;
+        filterLayout.reset(wgpuDeviceCreateBindGroupLayout(device->nativeDevice(), &descriptor));
     }
-    if (!filterPipeline || !filterLayout)
-        return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter pipeline creation failed")};
+    auto &pipeline = filterPipelines[quint32(mode) | (wide ? 256u : 0u)];
+    if (!pipeline && filterLayout)
+        pipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/filter.wgsl"), "main",
+                                  quint32(mode), 0, filterLayout.get(), true, wide ? 2u : 1u);
+    if (!pipeline || !filterLayout)
+        return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter pipeline creation failed: ") + error};
     quint32 flags = 1u;
     if (masked) flags |= 2u;
     else if (filter.selectionKind == SelectionKind::Ellipse) flags |= 4u;
@@ -100,9 +133,9 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     for (const auto coordinate : planned) {
         const auto input = source.value(coordinate, fallback);
         if (!input) continue;
-        if (!ensureTileCapacity(1, PixelFormat::Rgba8))
+        if (!ensureTileCapacity(1, format))
             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU filter tile budget exhausted")};
-        const auto output = allocateTile(PixelFormat::Rgba8);
+        const auto output = allocateTile(format);
         if (!output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter allocation failed")};
         std::shared_ptr<CoverageTile> coverage;
         if (masked) {
@@ -117,6 +150,15 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         // original coefficients; the other rules use binary32 conversions.
         qint32 adjustment = 0;
         FilterParameters parameterValues{};
+        parameterValues.applyRect[0] = filter.applyRect.x();
+        parameterValues.applyRect[1] = filter.applyRect.y();
+        parameterValues.applyRect[2] = filter.applyRect.width();
+        parameterValues.applyRect[3] = filter.applyRect.height();
+        for (qsizetype i = 0; i < 4; ++i) parameterValues.overlayColor[i] = filter.overlay.color[i];
+        const float opacity = float(filter.overlay.opacity) / 100.0f;
+        parameterValues.control[0] = wide ? 1u : 0u;
+        std::memcpy(&parameterValues.control[1], &opacity, sizeof(opacity));
+        parameterValues.control[2] = quint32(opacity * maximumComponent(format) + 0.5f);
         if (filter.kind == FilterKind::HsvAdjustment) {
             adjustment = qint32(filter.hsvType) |
                 (filter.compatibilityMode ? 0x100 : 0) | (filter.colorize ? 0x200 : 0);
@@ -142,7 +184,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         auto parameters = createBuffer(device->nativeDevice(), sizeof(parameterValues),
                                        WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
         if (!parameters) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter parameter allocation failed")};
-        WGPUBindGroupEntry entries[4]{};
+        WGPUBindGroupEntry entries[6]{};
         const WGPUBuffer buffers[]{input->pixels.get(), output->pixels.get(), parameters.get(),
                                    coverage ? coverage->pixels.get() : unusedSelection.get()};
         for (quint32 i = 0; i < 4; ++i) {
@@ -150,9 +192,13 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
             entries[i].buffer = buffers[i];
             entries[i].size = wgpuBufferGetSize(buffers[i]);
         }
+        entries[4].binding = 9;
+        entries[4].textureView = wide && cosineView ? cosineView.get() : nonlinearView.get();
+        entries[5].binding = 10;
+        entries[5].textureView = wide && powerView ? powerView.get() : greaterView.get();
         WGPUBindGroupDescriptor descriptor{};
         descriptor.layout = filterLayout.get();
-        descriptor.entryCount = 4;
+        descriptor.entryCount = 6;
         descriptor.entries = entries;
         NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &descriptor));
         if (!bindings || !device->diagnostic().isEmpty())
@@ -161,7 +207,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
                              &parameterValues, sizeof(parameterValues));
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
         if (!pass) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter commands failed")};
-        wgpuComputePassEncoderSetPipeline(pass, filterPipeline.get());
+        wgpuComputePassEncoderSetPipeline(pass, pipeline.get());
         wgpuComputePassEncoderSetBindGroup(pass, 0, bindings.get(), 0, nullptr);
         wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
         wgpuComputePassEncoderEnd(pass);

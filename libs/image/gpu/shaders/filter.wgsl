@@ -18,6 +18,10 @@ struct FilterParameters {
     // blue/red chroma gains, and luma offset, in product binary64 precision.
     yuvLow: array<vec4<u32>, 2>,
     yuvHigh: array<vec4<u32>, 2>,
+    overlayColor: vec4<u32>,
+    // Native word format, product binary32 opacity, quantized opacity, reserved.
+    control: vec4<u32>,
+    applyRect: vec4<i32>,
 }
 
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
@@ -36,6 +40,10 @@ const COVERAGE_INVERTED: u32 = 8u;
 const FILTER_INVERT_COLORS: u32 = 0u;
 const FILTER_GRAYSCALE: u32 = 1u;
 const FILTER_HSV_ADJUSTMENT: u32 = 2u;
+const FILTER_MAXIMIZE: u32 = 3u;
+const FILTER_MINIMIZE: u32 = 4u;
+const FILTER_RESET_TRANSPARENT: u32 = 5u;
+const FILTER_COLOR_OVERLAY: u32 = 6u;
 
 // Product HSV/HSL Adjustment modes selected by the product `type` key. HSY
 // and YUV, like the product Colorize option, also use the document luma
@@ -885,14 +893,48 @@ fn hsvAdjustmentPixel(base: vec4<u32>, adjustment: vec4<i32>) -> vec4<u32> {
 // linearization is applied. Adding 5000 before the division rounds half up,
 // making the RGBA8 result independent of floating-point behavior. Alpha is
 // carried through unchanged, matching Invert Colors.
-fn filtered(base: vec4<u32>, kind: u32) -> vec4<u32> {
+fn overlayPixel(base: vec4<u32>, wide: bool) -> vec4<u32> {
+    let source = parameters.overlayColor;
+    let opacity = parameters.control.y;
+    let quantizedOpacity = parameters.control.z;
+    let mode = FILTER_BLEND_MODE;
+    if (mode == 130u) { return copyPixel(base, source, opacity, 7u, wide); }
+    if (mode == 0u) {
+        if (wide) {
+            let alpha = projectionMultiply(nativeNormalizedAlpha(source.w), opacity);
+            return normalRgba16(base, source.xyz, alpha, 7u);
+        }
+        let alpha = projectionScaleByte(opacity, source.w);
+        return unpackPixel(normalRgba8(base, source.xyz, alpha, 7u));
+    }
+    if (wide) {
+        if (mode >= 127u && mode <= 129u) {
+            return specialAlphaRgba16Pixel(base, source, quantizedOpacity, 7u, 65535u, mode);
+        }
+        let alpha = appliedWordAlpha(source.w, 65535u, quantizedOpacity, mode);
+        if (colorIsCoupled(mode)) { return coupledRgba16Pixel(base, source, alpha, 7u, mode); }
+        return separableRgba16Pixel(base, source, alpha, 7u, mode);
+    }
+    return unpackPixel(separableProjectionPixel(base, source, quantizedOpacity, 7u, mode));
+}
+
+fn filtered(base: vec4<u32>, kind: u32, wide: bool) -> vec4<u32> {
+    if (kind == FILTER_MAXIMIZE || kind == FILTER_MINIMIZE) {
+        var extreme = max(max(base.x, base.y), base.z);
+        if (kind == FILTER_MINIMIZE) { extreme = min(min(base.x, base.y), base.z); }
+        return vec4<u32>(select(vec3<u32>(0u), base.xyz, base.xyz == vec3<u32>(extreme)), base.w);
+    }
+    if (kind == FILTER_RESET_TRANSPARENT) {
+        var alpha = base.w;
+        if (wide) { alpha = (alpha - (alpha >> 8u) + 128u) >> 8u; }
+        return select(base, vec4<u32>(0u), alpha == 0u);
+    }
+    if (kind == FILTER_COLOR_OVERLAY) { return overlayPixel(base, wide); }
     if (kind == FILTER_GRAYSCALE) {
         let luminance = (2126u * base.x + 7152u * base.y + 722u * base.z + 5000u) / 10000u;
         return vec4<u32>(luminance, luminance, luminance, base.w);
     }
-    if (kind == FILTER_HSV_ADJUSTMENT) {
-        return hsvAdjustmentPixel(base, parameters.adjustment);
-    }
+    if (kind == FILTER_HSV_ADJUSTMENT) { return hsvAdjustmentPixel(base, parameters.adjustment); }
     return vec4<u32>(255u - base.x, 255u - base.y, 255u - base.z, base.w);
 }
 
@@ -901,25 +943,36 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let local = invocation.xy;
     if (any(local >= vec2<u32>(256u))) { return; }
     let index = local.y * 256u + local.x;
+    let wide = parameters.control.x != 0u;
+    let offset = index * select(1u, 2u, wide);
+    var high = 0u;
+    if (wide) { high = basePixels[offset + 1u]; }
+    let base = nativePixel(basePixels[offset], high, wide);
     let flags = u32(parameters.tile.w);
     let selected = selectedness(parameters.tile.xy + vec2<i32>(local), index, flags);
-    if (selected == 0u) {
-        outputPixels[index] = basePixels[index];
-        return;
+    var result = base;
+    let pixel = parameters.tile.xy + vec2<i32>(local);
+    let area = parameters.applyRect;
+    let inArea = all(pixel >= area.xy) && all(pixel < area.xy + area.zw);
+    if (selected != 0u && (u32(parameters.tile.z) < FILTER_MAXIMIZE || inArea)) {
+        let kind = u32(parameters.tile.z);
+        result = filtered(base, kind, wide);
+        if (selected != 255u) {
+            if (kind >= FILTER_MAXIMIZE) {
+                // Product filters copy their result through the selection with
+                // native Copy, including alpha and hidden-color rounding.
+                let opacity = projectionMultiply(bitcast<u32>(f32(selected)), 0x3b808081u);
+                result = copyPixel(base, result, opacity, 15u, wide);
+            } else {
+                let keep = 255u - selected;
+                result = vec4<u32>(
+                    (base.x * keep + result.x * selected + 127u) / 255u,
+                    (base.y * keep + result.y * selected + 127u) / 255u,
+                    (base.z * keep + result.z * selected + 127u) / 255u, base.w);
+            }
+        }
     }
-    let base = unpackPixel(basePixels[index]);
-    let result = filtered(base, u32(parameters.tile.z));
-    if (selected == 255u) {
-        outputPixels[index] = packPixel(result);
-        return;
-    }
-    // Fractional coverage interpolates between the source and the filtered
-    // pixel; alpha is carried through unchanged so transparent pixels stay
-    // transparent.
-    let keep = 255u - selected;
-    outputPixels[index] = packPixel(vec4<u32>(
-        (base.x * keep + result.x * selected + 127u) / 255u,
-        (base.y * keep + result.y * selected + 127u) / 255u,
-        (base.z * keep + result.z * selected + 127u) / 255u,
-        base.w));
+    let words = nativePixelWords(result, wide);
+    outputPixels[offset] = words.x;
+    if (wide) { outputPixels[offset + 1u] = words.y; }
 }

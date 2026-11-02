@@ -68,8 +68,8 @@ private:
      */
     bool applyGpuFilter(const QString &filterId, KisFilterConfigurationSP config, bool interactive);
     /** Parses and applies one product HSV/HSL Adjustment configuration. */
-    bool applyGpuHsvConfiguration(KisFilterConfigurationSP config);
-    void showGpuHsvFilterDialog(const QString &filterId, KisFilterConfigurationSP config);
+    bool applyGpuConfiguration(KisFilterConfigurationSP config);
+    void showGpuFilterDialog(const QString &filterId, KisFilterConfigurationSP config);
 
     struct Private;
     QScopedPointer<Private> d;

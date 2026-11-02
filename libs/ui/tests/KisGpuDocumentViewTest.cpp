@@ -5,6 +5,7 @@
 #include <array>
 #include "KisGpuMultibrushEditingTest.h"
 #include "KisGpuRegionFillEditingTest.h"
+#include "KisGpuColorFilterEditingTest.h"
 #include <QApplication>
 #include <QClipboard>
 #include <kis_clipboard.h>
@@ -332,6 +333,8 @@ private Q_SLOTS:
     void layerPanelThumbnailsReadOnlyReducedGpuPixels();
     void rectangularSelectionLimitsPainting();
     void transparencyMaskActionsUseTheActiveGpuPaintLayer();
+    void colorFilterActionsKeepNativeEditing_data();
+    void colorFilterActionsKeepNativeEditing();
     void invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters();
     void desaturateActionAppliesGrayscaleOnGpuDocument();
     void hsvAdjustmentActionUsesProductSettingsOnGpuDocument();
@@ -10538,3 +10541,8 @@ void KisGpuDocumentViewTest::dynamicBrushPresetsKeepNativeEditingHistoryAndKra()
 
 KISTEST_MAIN(KisGpuDocumentViewTest)
 #include "KisGpuDocumentViewTest.moc"
+
+void KisGpuDocumentViewTest::colorFilterActionsKeepNativeEditing_data()
+{ ColorFilterEditingTest::addData(); }
+void KisGpuDocumentViewTest::colorFilterActionsKeepNativeEditing()
+{ ColorFilterEditingTest::run(); }

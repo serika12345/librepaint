@@ -46,7 +46,7 @@ class KisProofingConfiguration;
 class KisPaintDevice;
 class KisImageGlobalSelectionManagementInterface;
 struct KisGpuImageViewState;
-namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; class DocumentVersion; struct HsvAdjustment; struct LayerMergeRequest;
+namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; class DocumentVersion; struct HsvAdjustment; struct ColorOverlay; enum class FilterKind : quint8; struct LayerMergeRequest;
 using Snapshot = QSharedPointer<const DocumentVersion>;
 enum class SelectionKind : quint8;
 enum class SelectionCombination : quint8;
@@ -150,6 +150,9 @@ public:
      */
     bool hsvAdjustmentGpuLayerColors(KisNodeSP layer,
                                      const LibrePaint::Image::Gpu::HsvAdjustment &settings);
+    /** Applies extrema/reset/overlay to a same-image editable GPU paint node. */
+    bool colorFilterGpuLayerColors(KisNodeSP layer, LibrePaint::Image::Gpu::FilterKind kind,
+                                   const LibrePaint::Image::Gpu::ColorOverlay &overlay);
     bool setGpuTransparencyMaskVisible(KisNodeSP layer, bool visible);
     bool removeGpuTransparencyMask(KisNodeSP layer);
     bool gpuTransparencyMaskVisible(KisNodeSP layer) const;

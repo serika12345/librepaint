@@ -276,6 +276,10 @@ HistoryAction OperationDocument::historyAction(int index) const
         switch (m_layerHistoryChanges[index].filterKind) {
         case FilterKind::Grayscale: return HistoryAction::Grayscale;
         case FilterKind::HsvAdjustment: return HistoryAction::HsvAdjustment;
+        case FilterKind::MaximizeChannel: return HistoryAction::MaximizeChannel;
+        case FilterKind::MinimizeChannel: return HistoryAction::MinimizeChannel;
+        case FilterKind::ResetTransparent: return HistoryAction::ResetTransparent;
+        case FilterKind::ColorOverlay: return HistoryAction::ColorOverlay;
         case FilterKind::InvertColors: break;
         }
         return HistoryAction::InvertColors;
@@ -2585,12 +2589,20 @@ Result OperationDocument::hsvAdjustment(LayerId layer, const HsvAdjustment &sett
     return applyFilter(layer, FilterKind::HsvAdjustment, &settings);
 }
 
-Result OperationDocument::applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings)
+Result OperationDocument::colorFilter(LayerId layer, FilterKind kind, const ColorOverlay &overlay, const QRect &applyRect)
+{
+    if (kind < FilterKind::MaximizeChannel || kind > FilterKind::ColorOverlay ||
+        (kind == FilterKind::ColorOverlay && !overlay.isValid(snapshot()->format))) return Result::InvalidInput;
+    return applyFilter(layer, kind, nullptr, &overlay, applyRect);
+}
+
+Result OperationDocument::applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings,
+                                      const ColorOverlay *overlay, const QRect &applyRect)
 {
     if (kind == FilterKind::HsvAdjustment && !settings) return Result::InvalidInput;
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if (snapshot()->format == PixelFormat::Rgba16) return Result::InvalidInput;
+    if (snapshot()->format == PixelFormat::Rgba16 && kind < FilterKind::MaximizeChannel) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
         snapshot()->layers[index].userLocked) return Result::LayerUnavailable;
@@ -2601,6 +2613,9 @@ Result OperationDocument::applyFilter(LayerId layer, FilterKind kind, const HsvA
     operation->version = 1;
     operation->layer = layer;
     operation->kind = kind;
+    if (overlay) operation->overlay = *overlay;
+    operation->applyRect = (applyRect.isEmpty() ? QRect(QPoint(), snapshot()->size) : applyRect)
+        .intersected(QRect(QPoint(), snapshot()->size));
     if (kind == FilterKind::HsvAdjustment) {
         // hsvAdjustment() validated the settings before admission. The luma
         // coefficients are copied from the frozen value rather than resolved

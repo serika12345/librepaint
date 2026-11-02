@@ -192,7 +192,7 @@ struct TileRenderer::Private
     Detail::NativeBindingLayout affineLayout;
     Detail::NativeComputePipeline affinePipeline;
     Detail::NativeBindingLayout filterLayout;
-    Detail::NativeComputePipeline filterPipeline;
+    std::map<quint32, Detail::NativeComputePipeline> filterPipelines;
     Detail::NativeBindingLayout thumbnailLayout;
     Detail::NativeComputePipeline thumbnailPipeline;
     Detail::NativeBindingLayout resizeLayout;
@@ -343,7 +343,7 @@ struct TileRenderer::Private
      */
     FilterResult filterTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
                              const FilterOperation &filter, const std::shared_ptr<Detail::Tile> &fallback,
-                             QSize documentSize, QRect region,
+                             QSize documentSize, PixelFormat format, QRect region,
                              QList<std::shared_ptr<Detail::Tile>> &pins);
 };
 }

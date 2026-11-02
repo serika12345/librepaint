@@ -344,6 +344,8 @@ public:
      * the frozen operation survives Undo/Redo and KRA pixel saving.
      */
     Result hsvAdjustment(LayerId layer, const HsvAdjustment &settings);
+    Result colorFilter(LayerId layer, FilterKind kind, const ColorOverlay &overlay = {},
+                       const QRect &applyRect = {});
     Result undo();
     Result redo();
     Result setHistoryIndex(int index);
