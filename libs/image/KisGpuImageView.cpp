@@ -160,7 +160,6 @@ void writeGpuMaskPixels(const KisSelectionSP &selection,
     if (!selection || !selection->pixelSelection()) return;
     KisPixelSelectionSP pixels = selection->pixelSelection();
     const auto retained = coverage ? coverage : LibrePaint::Image::Gpu::SelectionMask::empty();
-    if (pixels->gpuSelectionCoverage() == retained && pixels->offset() == position) return;
     QRect touched = previousBounds.intersected(clip);
     if (retained->defaultCoverage()) touched |= clip;
     pixels->bindGpuCoverage(owner, retained, maskUuid, position);
@@ -1406,7 +1405,7 @@ void KisImage::connectGpuImageUpdates()
                     auto node = nodes.value(layer.uuid);
                     if (auto *adjustment = qobject_cast<KisAdjustmentLayer *>(node.data())) selection = adjustment->internalSelection();
                     else if (auto *mask = qobject_cast<KisFilterMask *>(node.data())) selection = mask->selection();
-                    if (selection) {
+                    if (selection && (filterBefore != layer.filterSelection || selection->pixelSelection()->offset() != layer.position)) {
                         state->filterSelections.insert(layer.uuid, layer.filterSelection);
                         writeGpuMaskPixels(selection, owner, layer.filterSelection,
                             filterBefore ? filterBefore->bounds() : QRect{}, retainedView->bounds(), layer.uuid, layer.position);
@@ -1420,6 +1419,7 @@ void KisImage::connectGpuImageUpdates()
                 for (auto child = parent->firstChild(); child; child = child->nextSibling()) {
                     auto *mask = qobject_cast<KisTransparencyMask *>(child.data());
                     if (!mask) continue;
+                    if (previous == layer.transparencyMask && mask->paintDevice()->offset() == layer.transparencyMaskPosition) break;
                     state->transparencyMasks.insert(layer.uuid, layer.transparencyMask);
                     writeGpuMaskPixels(mask->selection(), owner, layer.transparencyMask,
                         previous ? previous->bounds() : QRect{}, retainedView->bounds(), layer.transparencyMaskUuid, layer.transparencyMaskPosition);

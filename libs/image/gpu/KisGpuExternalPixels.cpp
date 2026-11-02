@@ -166,10 +166,15 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCac
 
 using MaskLineage = QList<std::tuple<QUuid, quint64, quint64>>;
 
-std::optional<MaskLineage> maskLineage(SelectionMaskSP mask, const QRect &block, GeometryCache &geometry)
+std::optional<MaskLineage> maskLineage(SelectionMaskSP mask, QRect block, GeometryCache &geometry)
 {
     MaskLineage result;
     while (mask) {
+        if (const auto &translation = mask->translationSource()) {
+            block.translate(-translation->offset);
+            mask = translation->source;
+            continue;
+        }
         const auto &paint = mask->paintSource();
         if (!paint || !paint->previous || paint->firstEditOperation < 0) {
             result.append({{}, quint64(quintptr(mask.data())), 0});
@@ -470,6 +475,11 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
         }
         return {};
     };
+    const auto maskPosition = [&](const Snapshot &version) {
+        if (version) for (const auto &node : version->layers)
+            if (editableMaskCoverage(node, maskUuid)) return node.uuid == maskUuid ? node.position : node.transparencyMaskPosition;
+        return retainedPosition;
+    };
     const auto currentTarget = findTarget(current);
     if (layer && currentTarget.first && currentTarget.first != layer) return Result::LayerUnavailable;
     const auto selected = retainedCoverage ? *retainedCoverage : currentTarget.second;
@@ -497,7 +507,8 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
         QList<OperationDocument::VersionMaskWrite> writes;
         constexpr int blockSize = Detail::PixelHistoryBlockSize;
         const auto blockIndex = [](qint64 value) { return value >= 0 ? value / blockSize : (value - blockSize + 1) / blockSize; };
-        const auto origin = selected->allocatedBlocks().isEmpty() ? retainedPosition : selected->allocatedBlocks().first().topLeft();
+        const auto selectedPosition = retainedCoverage ? retainedPosition : maskPosition(current);
+        const auto origin = selectedPosition;
         auto versions = closed ? QList<Snapshot>{} : document.m_history;
         bool selectedInHistory = false;
         for (const auto &version : versions) if (findTarget(version).second == selected) selectedInHistory = true;
@@ -509,6 +520,11 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
             const auto target = findTarget(version);
             const auto previous = retainedOnly ? selected : target.second;
             if (!previous) continue;
+            const auto previousPosition = retainedOnly ? selectedPosition : maskPosition(version);
+            const qint64 dx = qint64(previousPosition.x()) - selectedPosition.x(), dy = qint64(previousPosition.y()) - selectedPosition.y();
+            if (qint64(region.left()) + dx < -limit || qint64(region.right()) + dx >= limit ||
+                qint64(region.top()) + dy < -limit || qint64(region.bottom()) + dy >= limit) return Result::InvalidInput;
+            const QPoint placement{int(dx), int(dy)};
             QRegion allowed;
             for (qint64 y = blockIndex(qint64(region.top()) - origin.y()); y <= blockIndex(qint64(region.bottom()) - origin.y()); ++y)
                 for (qint64 x = blockIndex(qint64(region.left()) - origin.x()); x <= blockIndex(qint64(region.right()) - origin.x()); ++x) {
@@ -521,11 +537,11 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
                             if (!lineage) return Result::CapacityExceeded;
                             selectedLineage = selectedLineages.insert(key, *lineage);
                         }
-                        const auto lineage = maskLineage(previous, block, geometry);
+                        const auto lineage = maskLineage(previous, block.translated(placement), geometry);
                         if (!lineage) return Result::CapacityExceeded;
                         if (*lineage != *selectedLineage) continue;
                     }
-                    allowed += block.intersected(region);
+                    allowed += block.intersected(region).translated(placement);
                 }
             if (allowed.isEmpty()) continue;
             const auto image = createMaskImage(sourceContext, previous);
@@ -540,7 +556,7 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
                     QByteArray alpha(qsizetype(area.width()) * area.height(), Qt::Uninitialized);
                     for (int y = 0; y < area.height(); ++y)
                         std::memcpy(alpha.data() + qsizetype(y) * area.width(),
-                            bytes.constData() + qsizetype(area.y() + y - region.y()) * region.width() + area.x() - region.x(), size_t(area.width()));
+                            bytes.constData() + qsizetype(area.y() + y - placement.y() - region.y()) * region.width() + area.x() - placement.x() - region.x(), size_t(area.width()));
                     auto input = SelectionMask::fromAlphaCoverage(area, alpha, area);
                     if (!input) {
                         if (std::any_of(alpha.cbegin(), alpha.cend(), [](char value) { return value != 0; }))
@@ -582,7 +598,7 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
             if (generated.code != ExecutionCode::Success) return readFailure(generated.code);
             output = output->withPaintHistory(previous, firstEdit, writeUuid);
             if (!output || !document.selectionFitsRetainedInputs(output)) return Result::CapacityExceeded;
-            if (previous == selected) selectedOutput = output;
+            if (previous == selected && previousPosition == selectedPosition) selectedOutput = output;
             if (!retainedOnly) writes.append({version, target.first, maskUuid, output});
         }
         if (!selectedOutput) return Result::LayerUnavailable;

@@ -38,6 +38,11 @@ Result OperationDocument::resizeCanvasWithMasks(const QRect &rect, bool cropLaye
             layer.operations.append(CropSnapshot(crop));
         }
         if (layer.transparencyMask) {
+            const qint64 maskX = qint64(layer.transparencyMaskPosition.x()) + offset.x();
+            const qint64 maskY = qint64(layer.transparencyMaskPosition.y()) + offset.y();
+            if (maskX < std::numeric_limits<qint32>::min() || maskX > std::numeric_limits<qint32>::max() ||
+                maskY < std::numeric_limits<qint32>::min() || maskY > std::numeric_limits<qint32>::max()) return Result::InvalidInput;
+            layer.transparencyMaskPosition = {int(maskX), int(maskY)};
             const auto source = layer.transparencyMask;
             const QRect canvas(QPoint(), rect.size());
             auto mask = masks.value(layer.id);

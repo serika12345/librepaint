@@ -1631,7 +1631,7 @@ void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra()
     const auto read = [&](Node *value, QPoint offset) {
         return value->pixelData(area.x() + offset.x(), area.y() + offset.y(), area.width(), area.height());
     };
-    const auto original = read(node.data(), {});
+    auto original = read(node.data(), {});
     QCOMPARE(node->position(), QPoint());
     const auto history = document->undoStack()->count();
     const QPoint direct(13, -7), moved(-65, 73);
@@ -1661,6 +1661,13 @@ void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra()
     node->move(-101, -97);
     document->undoStack()->redo(); image->waitForDone();
     QCOMPARE(node->position(), moved); QCOMPARE(read(node.data(), moved), original);
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(node->position(), direct); QCOMPARE(read(node.data(), direct), original);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(node->position(), moved); QCOMPARE(read(node.data(), moved), original);
+    QVERIFY(node->setPixelData(QByteArray(1, char(91)), 8 + moved.x(), 8 + moved.y(), 1, 1));
+    const qsizetype patchIndex = (8 - area.y()) * area.width() + 8 - area.x();
+    original[patchIndex] = char(91);
     document->undoStack()->undo(); image->waitForDone();
     QCOMPARE(node->position(), direct); QCOMPARE(read(node.data(), direct), original);
     document->undoStack()->redo(); image->waitForDone();
@@ -1754,6 +1761,14 @@ void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra()
     QCOMPARE(gpuNode->position(), direct); QCOMPARE(read(gpuNode.data(), direct), original);
     gpuDocument->undoStack()->redo();
     QCOMPARE(gpuNode->position(), moved); QCOMPARE(read(gpuNode.data(), moved), original);
+    QVERIFY(gpuNode->setPixelData(QByteArray(1, char(73)), 8 + moved.x(), 8 + moved.y(), 1, 1));
+    auto editedPixels = original; editedPixels[patchIndex] = char(73);
+    gpuDocument->undoStack()->undo();
+    QCOMPARE(gpuNode->position(), direct); QCOMPARE(read(gpuNode.data(), direct), editedPixels);
+    gpuDocument->undoStack()->redo();
+    QCOMPARE(gpuNode->position(), moved); QCOMPARE(read(gpuNode.data(), moved), editedPixels);
+    QVERIFY(gpuNode->setPixelData(QByteArray(1, char(91)), 8 + moved.x(), 8 + moved.y(), 1, 1));
+    QCOMPARE(read(gpuNode.data(), moved), original);
     QScopedPointer<Node> gpuCopy(gpuNode->clone()); QVERIFY(gpuCopy);
     QCOMPARE(gpuCopy->position(), moved);
     gpuCopy->move(copyPosition.x(), copyPosition.y());
@@ -1777,6 +1792,13 @@ void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra()
         QCOMPARE(restoredNode->position(), edited);
         QCOMPARE(read(restoredNode.data(), edited), original);
     }
+    owner->close(); gpuNode.reset(); gpuDocument.reset();
+    node.reset(); loaded.reset(); reopened.reset(); document.reset();
+    const QPoint detached(159, 171);
+    copy->move(detached.x(), detached.y()); gpuCopy->move(detached.x(), detached.y());
+    QCOMPARE(copy->position(), detached); QCOMPARE(gpuCopy->position(), detached);
+    QCOMPARE(read(gpuCopy.data(), detached), read(copy.data(), detached));
+    QCOMPARE(read(gpuCopy.data(), detached), original);
 }
 
 void TestNode::testRawPixelWritesPreserveFormatHistoryAndFailures()

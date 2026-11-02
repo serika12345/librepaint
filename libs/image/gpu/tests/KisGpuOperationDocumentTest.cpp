@@ -4909,17 +4909,20 @@ void KisGpuOperationDocumentTest::transparencyMaskFollowsCanvasResize()
     QCOMPARE(document.addTransparencyMaskFromSelection(layer), Result::Success);
     const auto original = document.layerTransparencyMask(layer);
     QVERIFY(original);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskPosition, QPoint{});
 
     const QRect resized(8, 8, 40, 40);
     QCOMPARE(document.resizeCanvas(resized, true), Result::Success);
     const auto moved = document.layerTransparencyMask(layer);
     QVERIFY(moved);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskPosition, QPoint(-8, -8));
     QVERIFY(moved->contains(0, 0));
     QVERIFY(moved->contains(23, 15));
     QVERIFY(!moved->contains(24, 24));
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot()->size, size);
     QVERIFY(document.layerTransparencyMask(layer) == original);
+    QCOMPARE(document.snapshot()->layers.first().transparencyMaskPosition, QPoint{});
 }
 
 void KisGpuOperationDocumentTest::transparencyMaskFromSelectionShapesAndRejections()
