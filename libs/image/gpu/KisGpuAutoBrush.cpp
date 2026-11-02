@@ -135,11 +135,14 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
     const quint32 mirrors = quint32(brush.mirrorHorizontal) | (quint32(brush.mirrorVertical) << 1);
     const qsizetype reflectionCount = (brush.mirrorHorizontal ? 2 : 1) * (brush.mirrorVertical ? 2 : 1);
     QList<AutoBrushDab> result;
-    qreal averageOpacity = 0;
-    std::optional<AutoBrushDab> original;
-    QPointF savedSubpixel;
-    qreal savedAngle = 0;
-    quint32 savedImageTip = 0;
+    struct HandCache {
+        qreal averageOpacity = 0;
+        std::optional<AutoBrushDab> original;
+        QPointF savedSubpixel;
+        qreal savedAngle = 0;
+        quint32 savedImageTip = 0;
+    };
+    QList<HandCache> hands(std::max(qsizetype(1), brush.transforms.size()));
     qsizetype imageCoordinateWords = 0;
     const bool unaliasedGaussian = settings.mask == AutoBrush::Mask::GaussianCircle && !settings.antialiasEdges;
     constexpr double sqrtTwo = 1.41421356237309504880;
@@ -156,6 +159,12 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
     }
 
     const bool complete = forEachBrushDab(operation, pending, [&](const BrushDab &point) {
+        auto &hand = hands[point.hand];
+        auto &averageOpacity = hand.averageOpacity;
+        auto &original = hand.original;
+        auto &savedSubpixel = hand.savedSubpixel;
+        auto &savedAngle = hand.savedAngle;
+        auto &savedImageTip = hand.savedImageTip;
         if (point.directPixel) {
             AutoBrushDab dab;
             dab.words[0] = dab.words[1] = dab.words[2] = 1;
@@ -304,6 +313,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         maskOperation.brush.basicSmoothing = brush.basicSmoothing;
         maskOperation.brush.weightedSmoothing = brush.weightedSmoothing;
         maskOperation.brush.pixelPerfect = brush.pixelPerfect;
+        maskOperation.brush.transforms = brush.transforms;
         maskOperation.figureStyle.fill.reset();
         maskOperation.figureStyle.pattern.reset();
         maskOperation.figureStyle.gradient.reset();

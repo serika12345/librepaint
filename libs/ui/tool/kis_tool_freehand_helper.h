@@ -30,6 +30,7 @@ class KisPostExecutionUndoAdapter;
 class KisPaintOp;
 class KisFreehandStrokeInfo;
 class KisSmoothingOptions;
+namespace LibrePaint::Image::Gpu { struct BrushTransform; }
 typedef QSharedPointer<KisSmoothingOptions> KisSmoothingOptionsSP;
 
 
@@ -90,6 +91,7 @@ Q_SIGNALS:
 
 protected:
     void cancelPaint();
+    void setGpuMultibrushTransforms(const QList<LibrePaint::Image::Gpu::BrushTransform> &transforms);
 
     void initPaintImpl(qreal startAngle,
                        const KisPaintInformation &pi,
@@ -136,6 +138,7 @@ protected:
     virtual int elapsedStrokeTime() const;
 
 private:
+    friend class KisToolFreehand;
     void paint(KisPaintInformation &info );
     void paintBezierSegment(KisPaintInformation pi1, KisPaintInformation pi2,
                                                    QPointF tangent1, QPointF tangent2 

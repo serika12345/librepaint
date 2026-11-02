@@ -310,6 +310,22 @@ inline bool validPressureResponse(const PressureResponse &value, qreal maximumSt
 
 inline bool validBrush(const Brush &brush, PixelFormat format)
 {
+    if (brush.transforms.size() > BrushTransform::MaximumBytes / qsizetype(sizeof(BrushTransform))) return false;
+    for (const auto &hand : brush.transforms) {
+        const auto &m = hand.matrix;
+        if (hand.mapping > BrushTransform::Mapping::Affine || !std::isfinite(hand.rotation) || std::abs(hand.rotation) > 360) return false;
+        for (const double value : m)
+            if (!std::isfinite(value)) return false;
+        if ((hand.mapping <= BrushTransform::Mapping::Translation &&
+             (std::abs(m[0] - 1) > 1e-10 || std::abs(m[1]) > 1e-10 || std::abs(m[2]) > 1e-10 || std::abs(m[3] - 1) > 1e-10)) ||
+            (hand.mapping == BrushTransform::Mapping::Identity && (std::abs(m[4]) > 1e-10 || std::abs(m[5]) > 1e-10)) ||
+            (hand.mapping == BrushTransform::Mapping::Scale && (std::abs(m[1]) > 1e-10 || std::abs(m[2]) > 1e-10))) return false;
+        if (std::abs(m[0] * m[0] + m[1] * m[1] - 1) > 1e-10 ||
+            std::abs(m[2] * m[2] + m[3] * m[3] - 1) > 1e-10 ||
+            std::abs(m[0] * m[2] + m[1] * m[3]) > 1e-10 ||
+            std::abs(m[4]) > OperationDocument::CoordinateLimit ||
+            std::abs(m[5]) > OperationDocument::CoordinateLimit) return false;
+    }
     if (brush.additiveMaskingBrush) {
         const auto &mask = *brush.additiveMaskingBrush;
         if (!brush.autoBrush || !mask.autoBrush || mask.additiveMaskingBrush || mask.texture ||

@@ -155,6 +155,7 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
                                 for (const auto *response : {&brush->autoBrush->opacityResponse, &brush->autoBrush->flowResponse})
                                     if (!add(response->curve.constData(), response->curve.size() * qsizetype(sizeof(qreal)))) return false;
                             }
+                            if (!add(brush->transforms.constData(), brush->transforms.size() * qsizetype(sizeof(BrushTransform)))) return false;
                             if (brush->texture) {
                                 const auto &paper = *brush->texture;
                                 if (!add(paper.alpha.constData(), paper.alpha.size())) return false;

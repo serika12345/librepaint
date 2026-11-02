@@ -101,6 +101,8 @@ struct KisToolFreehandHelper::Private
 {
     LibrePaint::Image::Gpu::PaintImageSP gpuImage;
     LibrePaint::Image::Gpu::OperationId gpuOperation;
+    QList<LibrePaint::Image::Gpu::BrushTransform> gpuMultibrushTransforms;
+    bool gpuMultibrushConfigured = false;
     QMetaObject::Connection gpuCancellation;
     bool gpuBasicInput = false;
     qreal gpuInitialDrawingAngle = 0;
@@ -232,6 +234,13 @@ KisToolFreehandHelper::KisToolFreehandHelper(KisPaintingInformationBuilder *info
                 [this]() {
                     Q_EMIT requestExplicitUpdateOutline();
                 });
+}
+
+void KisToolFreehandHelper::setGpuMultibrushTransforms(
+    const QList<LibrePaint::Image::Gpu::BrushTransform> &transforms)
+{
+    m_d->gpuMultibrushTransforms = transforms;
+    m_d->gpuMultibrushConfigured = true;
 }
 
 KisToolFreehandHelper::~KisToolFreehandHelper()
@@ -420,6 +429,12 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
             return;
         }
         auto resources = captureGpuBrushResources(image, currentNode, resourceManager);
+        if (m_d->gpuMultibrushConfigured && m_d->gpuMultibrushTransforms.isEmpty()) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("The multibrush settings produce no valid brush positions."));
+            return;
+        }
+        resources.brush.transforms = m_d->gpuMultibrushTransforms;
         resources.brush.pixelPerfect = m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::PIXEL_PERFECT;
         resources.brush.basicSmoothing = m_d->gpuBasicInput;
         if (m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::WEIGHTED_SMOOTHING) {

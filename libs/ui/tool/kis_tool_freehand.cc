@@ -21,6 +21,7 @@
 #include <functional>
 #include <kis_icon.h>
 #include <KoPointerEvent.h>
+#include <QKeyEvent>
 #include <KoViewConverter.h>
 #include <KoCanvasController.h>
 
@@ -237,9 +238,33 @@ bool KisToolFreehand::primaryActionSupportsHiResEvents() const
     return true;
 }
 
+void KisToolFreehand::keyPressEvent(QKeyEvent *event)
+{
+    if (mode() == KisTool::PAINT_MODE && event->key() == Qt::Key_Escape) {
+        event->accept();
+        requestStrokeCancellation();
+        return;
+    }
+    KisToolPaint::keyPressEvent(event);
+}
+
+void KisToolFreehand::requestStrokeCancellation()
+{
+    if (mode() != KisTool::PAINT_MODE) return;
+    setMode(KisTool::HOVER_MODE);
+    QPointer<KisToolFreehand> guard(this);
+    m_helper->cancelPaint();
+    if (!guard) return;
+    auto *canvas2 = static_cast<KisCanvas2 *>(canvas());
+    if (m_assistant && canvas2->paintingAssistantsDecoration())
+        canvas2->paintingAssistantsDecoration()->endStroke();
+    canvas2->viewManager()->enableControls();
+}
+
 void KisToolFreehand::beginPrimaryAction(KoPointerEvent *event)
 {
-    if (image()->gpuImage() && toolId() != QLatin1String("KritaShape/KisToolBrush")) {
+    if (image()->gpuImage() && toolId() != QLatin1String("KritaShape/KisToolBrush") &&
+        toolId() != QLatin1String("KritaShape/KisToolMultiBrush")) {
         static_cast<KisCanvas2*>(canvas())->viewManager()->showFloatingMessage(
             i18n("This drawing tool is not yet available for GPU documents."), QIcon());
         event->ignore();
@@ -289,7 +314,7 @@ void KisToolFreehand::beginPrimaryAction(KoPointerEvent *event)
 
 void KisToolFreehand::continuePrimaryAction(KoPointerEvent *event)
 {
-    CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
+    if (mode() != KisTool::PAINT_MODE) { event->accept(); return; }
 
     requestUpdateOutline(event->point, event);
 
@@ -301,7 +326,7 @@ void KisToolFreehand::continuePrimaryAction(KoPointerEvent *event)
 
 void KisToolFreehand::endPrimaryAction(KoPointerEvent *event)
 {
-    CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
+    if (mode() != KisTool::PAINT_MODE) { if (event) event->accept(); return; }
 
     QPointer<KisToolFreehand> guard(this);
     if (event && image()->gpuImage() && m_helper->isRunning()) doStroke(event);

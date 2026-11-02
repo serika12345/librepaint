@@ -182,6 +182,7 @@ private Q_SLOTS:
     void rejectedFillBlendModesPreserveHistoryAndInput();
     void patternFillFreezesPixelsHistory();
     void gradientFillRetainsResourcesHistoryAndRejectsCapacity();
+    void multibrushRetainsHandsInputHistoryAndRejectsCapacity();
     void emptyFigureIntentPreservesHistory();
     void pathsPreserveCommandsControlPoints();
     void pathCallsRetainInputHistory();
@@ -3983,6 +3984,63 @@ void KisGpuOperationDocumentTest::patternFillFreezesPixelsHistory()
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(*std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->figureStyle.pattern,
              pattern);
+}
+
+void KisGpuOperationDocumentTest::multibrushRetainsHandsInputHistoryAndRejectsCapacity()
+{
+    // The ordinary Multibrush caller must retain its selected hands and input
+    // as one history entry, including rejection without losing accepted input.
+    Brush brush;
+    brush.transforms = {{}, {{1, 0, 0, 1, 7, -3}, BrushTransform::Mapping::Translation},
+        {{-1, 0, 0, 1, 32, 0}, BrushTransform::Mapping::Scale, 0, true, false}};
+    const auto frozen = brush.transforms;
+    Limits limits;
+    limits.samplesPerStroke = 6;
+    limits.rasterBytes = frozen.size() * qsizetype(sizeof(BrushTransform));
+    OperationDocument document({64, 64}, limits);
+    const auto original = document.snapshot();
+    const auto id = document.beginStroke(document.activeLayer(), brush, 17);
+    QVERIFY(!id.isNull());
+    brush.transforms[1].matrix[4] += 100;
+    brush.transforms[1].matrix[5] += 100;
+    QCOMPARE(document.appendSamples(id, {{{5, 7}, 1}, {{12, 15}, .5, 20}}), Result::Success);
+    const auto accepted = document.preview();
+    const auto paint = std::get<PaintSnapshot>(accepted->layers.first().operations.last());
+    QVERIFY(paint->brush.transforms == frozen);
+    QCOMPARE(paint->sampleCount, qsizetype(2));
+    QCOMPARE(document.appendSamples(id, {{{14, 18}, .75, 30}}), Result::CapacityExceeded);
+    QCOMPARE(document.preview(), accepted);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    const auto committed = document.snapshot();
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(committed->rasterBytes, limits.rasterBytes);
+    QVERIFY(document.beginStroke(document.activeLayer(), brush, 18).isNull());
+    QCOMPARE(document.snapshot(), committed);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), original);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), committed);
+    QVERIFY(paint->brush.transforms == frozen);
+
+    OperationDocument control({64, 64});
+    const auto before = control.snapshot();
+    brush.transforms = frozen;
+    auto invalid = brush;
+    invalid.transforms[1].matrix[0] = 2;
+    QVERIFY(control.beginStroke(control.activeLayer(), invalid).isNull());
+    invalid = brush;
+    invalid.transforms[1].rotation = std::numeric_limits<qreal>::quiet_NaN();
+    QVERIFY(control.beginStroke(control.activeLayer(), invalid).isNull());
+    QCOMPARE(control.snapshot(), before);
+    const auto pending = control.beginStroke(control.activeLayer(), brush);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(control.appendSamples(pending, {{{5, 7}, 1}}), Result::Success);
+    const auto retained = control.preview();
+    QCOMPARE(control.appendSamples(pending, {{{OperationDocument::CoordinateLimit, 7}, 1, 20}}), Result::InvalidInput);
+    QCOMPARE(control.preview(), retained);
+    QCOMPARE(control.cancelStroke(pending), Result::Success);
+    QCOMPARE(control.snapshot(), before);
+    QCOMPARE(control.undoCount(), 0);
 }
 
 void KisGpuOperationDocumentTest::gradientFillRetainsResourcesHistoryAndRejectsCapacity()

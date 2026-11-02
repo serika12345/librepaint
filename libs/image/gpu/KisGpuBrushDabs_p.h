@@ -23,6 +23,7 @@ struct BrushDab
     qsizetype sequence;
     bool directPixel = false;
     quint32 imageTipIndex = 0;
+    qsizetype hand = 0;
 };
 /** Calls visit in native dab order; false stops unsupported or over-budget geometry. */
 bool forEachBrushDab(const PaintOperation &operation, bool pending,

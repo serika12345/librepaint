@@ -109,14 +109,31 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                                  QSizeF(brush.diameter * scale, brush.diameter * scale);
     };
     qsizetype count = 0;
-    qsizetype sequence = 0;
-    QPointF spacing(.5, .5), accumulated;
-    qreal spacingRotation = 0;
+    struct HandDistance {
+        qsizetype sequence = 0, dabs = 0;
+        QPointF spacing{.5, .5}, accumulated;
+        qreal spacingRotation = 0;
+        QPointF lastPosition;
+        qreal lastAngle = 0;
+        InputSample lastInformation;
+        bool haveInformation = false;
+    } state;
+    state.lastPosition = operation.shape.kind == ShapeKind::Freehand && !input.isEmpty() ? input.first().position : QPointF();
+    state.lastAngle = input.isEmpty() ? 0 : input.first().initialDrawingAngle;
+    QList<HandDistance> hands(brush.transforms.size(), state);
+    for (qsizetype i = 0; i < hands.size(); ++i)
+        if (operation.shape.kind == ShapeKind::Freehand && !input.isEmpty())
+            hands[i].lastPosition = brush.transforms[i].mapPoint(input.first().position);
+    qsizetype activeHand = 0;
+    auto &sequence = state.sequence;
+    auto &spacing = state.spacing;
+    auto &accumulated = state.accumulated;
+    auto &spacingRotation = state.spacingRotation;
+    auto &lastDabPosition = state.lastPosition;
+    auto &lastDrawingAngle = state.lastAngle;
+    auto &lastPaintInformation = state.lastInformation;
+    auto &haveLastPaintInformation = state.haveInformation;
     boost::taus88 random(quint32(operation.randomSeed));
-    QPointF lastDabPosition = operation.shape.kind == ShapeKind::Freehand && !input.isEmpty() ? input.first().position : QPointF();
-    qreal lastDrawingAngle = input.isEmpty() ? 0 : input.first().initialDrawingAngle;
-    InputSample lastPaintInformation;
-    bool haveLastPaintInformation = false;
     const auto direction = [](QPointF first, QPointF last, qreal fallback) -> qreal {
         if (qFuzzyCompare(first.x(), last.x()) && qFuzzyCompare(first.y(), last.y())) return fallback;
         const QVector2D delta(last - first);
@@ -205,8 +222,9 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             boost::uniform_smallint<int> select(0, brush.autoBrush->imageTips->tipCount - 1);
             imageIndex = select(random);
         }
-        if (!visit({position, point.pressure, scale, metric, angle, point.canvasMirroredH, point.canvasMirroredV, dabSequence, false, imageIndex})) return false;
+        if (!visit({position, point.pressure, scale, metric, angle, point.canvasMirroredH, point.canvasMirroredV, dabSequence, false, imageIndex, activeHand})) return false;
         ++count;
+        ++state.dabs;
         const auto distance = [&](qreal side) {
             return brush.autoSpacing ? brush.autoSpacingCoefficient * (side < 1 ? side : std::sqrt(side)) : side * brush.spacing;
         };
@@ -260,8 +278,9 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 if (count == PaintGeometryElementLimit) return false;
                 // Native sharp one-pixel lines use DDA and bypass the tip,
                 // pressure, paper and distance state of ordinary dabs.
-                if (!visit({QPointF(x, y), 1, 1, QSizeF(1, 1), 0, false, false, sequence, true})) return false;
+                if (!visit({QPointF(x, y), 1, 1, QSizeF(1, 1), 0, false, false, sequence, true, 0, activeHand})) return false;
                 ++count;
+                ++state.dabs;
                 return true;
             };
             if (!pixel()) return false;
@@ -363,6 +382,44 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         }
         return true;
     };
+    const auto mappedInput = [](InputSample point, const BrushTransform *hand) {
+        if (!hand) return point;
+        point.position = hand->mapPoint(point.position);
+        point.canvasMirroredH ^= hand->mirroredH;
+        point.canvasMirroredV ^= hand->mirroredV;
+        const auto normalize = [](qreal angle) {
+            if (angle < 0) angle = 360 + std::fmod(angle, 360.);
+            return angle >= 360 ? std::fmod(angle, 360.) : angle;
+        };
+        const qreal rotation = point.canvasMirroredH != point.canvasMirroredV ? normalize(360 - hand->rotation) : hand->rotation;
+        point.canvasRotation = normalize(point.canvasRotation - rotation);
+        return point;
+    };
+    const auto forHands = [&](const auto &paint) {
+        if (hands.isEmpty()) return paint(nullptr);
+        for (qsizetype i = 0; i < hands.size(); ++i) {
+            activeHand = i;
+            std::swap(state, hands[i]);
+            const bool complete = paint(&brush.transforms[i]);
+            std::swap(state, hands[i]);
+            if (!complete) return false;
+        }
+        return true;
+    };
+    const auto paintPoint = [&](const InputSample &point, bool explicitPoint = false, bool onlyIfEmpty = false) {
+        return forHands([&](const BrushTransform *hand) {
+            return (onlyIfEmpty && state.dabs) || append(mappedInput(point, hand), explicitPoint);
+        });
+    };
+    const auto paintLine = [&](const InputSample &first, const InputSample &last) {
+        return forHands([&](const BrushTransform *hand) { return line(mappedInput(first, hand), mappedInput(last, hand)); });
+    };
+    const auto paintCurve = [&](const InputSample &first, QPointF control1, QPointF control2, const InputSample &last) {
+        return forHands([&](const BrushTransform *hand) {
+            return cubic(mappedInput(first, hand), hand ? hand->mapPoint(control1) : control1,
+                hand ? hand->mapPoint(control2) : control2, mappedInput(last, hand));
+        });
+    };
     if (input.isEmpty()) return true;
     if (brush.basicSmoothing) {
         InputSample previous = input.first(), older;
@@ -377,7 +434,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
             const auto controls = basicCurveControls(first.position, last.position, firstTangent, lastTangent);
             if (!controls) return true;
             paintIssued = true;
-            return cubic(first, (*controls)[0], (*controls)[1], last);
+            return paintCurve(first, (*controls)[0], (*controls)[1], last);
         };
         const auto finish = [&] {
             if (!haveTangent) return true;
@@ -395,7 +452,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 const auto nextTangent = tangent(older, point);
                 if (nextTangent.isNull() || previousTangent.isNull()) {
                     paintIssued = true;
-                    if (!line(previous, point)) return false;
+                    if (!paintLine(previous, point)) return false;
                 } else if (!basicCurve(older, previous, previousTangent, nextTangent)) {
                     return false;
                 }
@@ -412,69 +469,50 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         if (operation.smoothingFinished) {
             const bool completeStationary = paintIssued && !inputMoved;
             if (!paintIssued) {
-                if (!append(previous)) return false;
+                if (!paintPoint(previous)) return false;
             } else if (!finish()) return false;
-            if (completeStationary && count == 0) {
+            if (completeStationary) {
                 auto tap = previous;
                 // A stroke with unchanged raw positions finishes at that exact position.
                 tap.position = originalInput.last().position;
-                if (!append(tap)) return false;
+                if (!paintPoint(tap, false, true)) return false;
             }
         }
         return true;
     }
     if (operation.shape.kind == ShapeKind::Path || !operation.shape.pathCommands.isEmpty()) {
         qsizetype index = 0, call = 0;
-        QPointF lineSpacing = spacing, lineAccumulated = accumulated;
-        qreal lineRotation = spacingRotation;
-        qsizetype lineSequence = sequence;
-        QPointF lineLastPosition;
-        qreal lineLastAngle = 0;
-        InputSample lineLastInformation;
-        bool lineHaveLastInformation = false;
+        HandDistance lineState;
+        QList<HandDistance> lineHands;
         InputSample previous;
         for (const auto command : operation.shape.pathCommands) {
             // A painter-path call owns its distance, while opacity averaging
             // belongs to the whole brush stroke, including intervening lines.
             if (call < operation.shape.pathCalls.size() && index == operation.shape.pathCalls[call].first) {
-                lineSpacing = spacing;
-                lineAccumulated = accumulated;
-                lineRotation = spacingRotation;
-                lineSequence = sequence;
-                lineLastPosition = lastDabPosition;
-                lineLastAngle = lastDrawingAngle;
-                lineLastInformation = lastPaintInformation;
-                lineHaveLastInformation = haveLastPaintInformation;
-                spacing = {.5, .5};
-                accumulated = {};
-                spacingRotation = 0;
-                sequence = 0;
-                lastDabPosition = {};
-                lastDrawingAngle = 0;
-                haveLastPaintInformation = false;
+                lineState = state;
+                lineHands = hands;
+                state = {};
+                hands.fill({});
             }
             if (command == PathCommand::CubicTo) {
-                if (!cubic(previous, input[index].position, input[index + 1].position, input[index + 2])) return false;
+                if (!paintCurve(previous, input[index].position, input[index + 1].position, input[index + 2])) return false;
                 previous = input[index + 2];
                 index += 3;
             } else {
                 const auto point = input[index++];
                 if (command == PathCommand::Point) {
-                    if (!append(point, true)) return false;
-                    accumulated = {};
+                    if (!forHands([&](const BrushTransform *hand) {
+                        if (!append(mappedInput(point, hand), true)) return false;
+                        accumulated = {};
+                        return true;
+                    })) return false;
                 }
-                if (command == PathCommand::LineTo && !line(previous, point)) return false;
+                if (command == PathCommand::LineTo && !paintLine(previous, point)) return false;
                 previous = point;
             }
             if (call < operation.shape.pathCalls.size() && index == operation.shape.pathCalls[call].second) {
-                spacing = lineSpacing;
-                accumulated = lineAccumulated;
-                spacingRotation = lineRotation;
-                sequence = lineSequence;
-                lastDabPosition = lineLastPosition;
-                lastDrawingAngle = lineLastAngle;
-                lastPaintInformation = lineLastInformation;
-                haveLastPaintInformation = lineHaveLastInformation;
+                state = lineState;
+                hands = lineHands;
                 ++call;
             }
         }
@@ -495,7 +533,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
         if (shape.kind == ShapeKind::Rectangle) {
             const QList<QPointF> corners{bounds.topLeft(), bounds.bottomLeft(), bounds.bottomRight(), bounds.topRight()};
             for (qsizetype i = 0; i < corners.size(); ++i)
-                if (!line(point(corners[i]), point(corners[(i + 1) % corners.size()]))) return false;
+                if (!paintLine(point(corners[i]), point(corners[(i + 1) % corners.size()]))) return false;
         } else if (shape.kind == ShapeKind::Ellipse) {
             if (bounds.isEmpty()) return true;
             constexpr qreal kappa = .5522847498;
@@ -507,7 +545,7 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 {bounds.right(), center.y() + ly}, {center.x() + lx, bounds.bottom()}, {center.x(), bounds.bottom()},
                 {center.x() - lx, bounds.bottom()}, {bounds.left(), center.y() + ly}, {bounds.left(), center.y()}};
             for (qsizetype i = 0; i < 12; i += 3)
-                if (!cubic(point(outline[i]), transform.map(outline[i + 1]), transform.map(outline[i + 2]),
+                if (!paintCurve(point(outline[i]), transform.map(outline[i + 1]), transform.map(outline[i + 2]),
                            point(outline[i + 3]))) return false;
         } else {
             QPainterPath path;
@@ -521,13 +559,13 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 sample.position = {element.x, element.y};
                 if (element.isMoveTo()) { previous = sample; havePoint = true; }
                 else if (element.isLineTo()) {
-                    if (havePoint && !line(previous, sample)) return false;
+                    if (havePoint && !paintLine(previous, sample)) return false;
                     previous = sample;
                 } else if (element.type == QPainterPath::CurveToElement) {
                     if (i + 2 >= path.elementCount()) return false;
                     const auto control2 = path.elementAt(i + 1), last = path.elementAt(i + 2);
                     auto end = input.first(); end.position = {last.x, last.y};
-                    if (!cubic(previous, sample.position, {control2.x, control2.y}, end)) return false;
+                    if (!paintCurve(previous, sample.position, {control2.x, control2.y}, end)) return false;
                     previous = end;
                     i += 2;
                 }
@@ -540,11 +578,11 @@ bool forEachBrushDab(const PaintOperation &operation, bool pending,
                 return point.position.x() == input.first().position.x() &&
                        point.position.y() == input.first().position.y();
             });
-        if (stationaryFreehand && !pending && !append(input.last())) return false;
+        if (stationaryFreehand && !pending && !paintPoint(input.last())) return false;
         for (qsizetype i = 1; i < input.size(); ++i)
-            if (!line(input[i - 1], input[i])) return false;
+            if (!paintLine(input[i - 1], input[i])) return false;
         if (operation.shape.kind == ShapeKind::Polygon && input.size() > 1 &&
-            !line(input.last(), input.first())) return false;
+            !paintLine(input.last(), input.first())) return false;
     } else return false;
     return true;
 }

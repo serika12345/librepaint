@@ -346,6 +346,33 @@ enum class LayerBlendMode : quint8 {
 };
 
 /** Frozen marker or pixel-brush settings used by painting and figure callers. */
+/** One ordinary Multibrush hand, frozen in tool order before input starts.
+ * The angle and reflections retain the native decomposition of the rigid map.
+ */
+struct BrushTransform
+{
+    enum class Mapping : quint8 { Identity, Translation, Scale, Affine };
+    std::array<double, 6> matrix{1, 0, 0, 1, 0, 0};
+    Mapping mapping = Mapping::Identity;
+    qreal rotation = 0;
+    bool mirroredH = false;
+    bool mirroredV = false;
+    static constexpr qsizetype MaximumBytes = 64 * 1024 * 1024;
+    bool operator==(const BrushTransform &other) const
+    { return matrix == other.matrix && mapping == other.mapping && rotation == other.rotation && mirroredH == other.mirroredH && mirroredV == other.mirroredV; }
+    QPointF mapPoint(QPointF point) const
+    {
+        switch (mapping) {
+        case Mapping::Identity: return point;
+        case Mapping::Translation: return {point.x() + matrix[4], point.y() + matrix[5]};
+        case Mapping::Scale: return {matrix[0] * point.x() + matrix[4], matrix[3] * point.y() + matrix[5]};
+        case Mapping::Affine: return {matrix[0] * point.x() + matrix[2] * point.y() + matrix[4],
+                                      matrix[1] * point.x() + matrix[3] * point.y() + matrix[5]};
+        }
+        return point;
+    }
+};
+
 struct Brush
 {
     enum class SizeSensor { Pressure, TiltElevation };
@@ -385,13 +412,15 @@ struct Brush
     QSharedPointer<const Brush> additiveMaskingBrush;
     /** Fineliner size multiplies pressure by a unit-strength speed curve. */
     std::optional<PressureResponse> sizeSpeedResponse{};
+    /** Empty is the ordinary single hand; each entry otherwise owns its distance/cache state. */
+    QList<BrushTransform> transforms{};
 
     bool operator==(const Brush &other) const
     {
         return rgba == other.rgba && diameter == other.diameter &&
             spacing == other.spacing && autoSpacing == other.autoSpacing &&
             autoSpacingCoefficient == other.autoSpacingCoefficient && sizeResponse == other.sizeResponse && sizeSensor == other.sizeSensor &&
-            sizeSpeedResponse == other.sizeSpeedResponse &&
+            sizeSpeedResponse == other.sizeSpeedResponse && transforms == other.transforms &&
             opacity == other.opacity && erase == other.erase &&
             alphaLocked == other.alphaLocked && maskPainting == other.maskPainting && blendMode == other.blendMode &&
             channelWriteMask == other.channelWriteMask &&
@@ -995,6 +1024,7 @@ enum class HistoryAction {
 
 struct Limits
 {
+    /** Raw input count multiplied by the number of Multibrush hands. */
     qsizetype samplesPerStroke = 1024 * 1024;
     qsizetype samplesPerDocument = 4 * 1024 * 1024;
     qsizetype layerCount = 4096;
