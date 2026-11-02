@@ -70,7 +70,7 @@ KisFilterConfigurationSP nativeFilterConfiguration(const LibrePaint::Image::Gpu:
     if (!xml.setContent(filter.xml)) return {};
     if (xml.documentElement().tagName() == QLatin1String("filterconfig")) configuration->fromLegacyXML(xml.documentElement());
     else configuration->fromXML(xml.documentElement());
-    return configuration;
+    return configuration->cloneWithResourcesSnapshot();
 }
 
 LibrePaint::Image::Gpu::LayerId gpuLayerId(const LibrePaint::Image::Gpu::Snapshot &version,
