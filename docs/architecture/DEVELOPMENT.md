@@ -998,6 +998,13 @@ Windowsは対応する実行ファイルへ同じ環境変数を渡す。Android
 選択被覆と既存描画の画素を照合する。バケツ、塗りアクションと図形ツールから入力し、
 Undo／Redo、KRA保存・再読込みと追加編集まで確認する。
 この条件は`libs-ui-pixels-KisGpuDocumentViewTest`へ含まれる。
+検査本体は`libs/ui/tests/KisGpuRegionFillEditingTest.{h,cpp}`が所有し、通常画面の試験と
+同じプリセットを受け取る。`feather`を含む条件は、半径1・3・7のGaussianぼかし、
+拡大・縮小後の処理、境界色・類似色・ラベル付き参照、選択、キャンバス外のCopyを
+RGB8／RGB16で既存CPUと照合する。CPU参照にも文書と同じ既定境界を与える。
+`LIBREPAINT_GPU_RESULT_DIR`には`region-fill-<条件>-{first,reedit}-{native,gpu}.rgba`と、
+座標範囲・成分精度・ぼかし半径・拡大値を記録する同名の`.txt`を保存する。
+画素列はRGBA順で、16ビット成分はリトルエンディアンである。
 
 通常のグラデーションは、次の限定したCTestで検査する。
 
