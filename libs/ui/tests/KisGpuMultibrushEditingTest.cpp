@@ -271,8 +271,12 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
             const auto gesture = [&](bool cancel) {
                 const QPointF start = reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75);
                 const bool tap = QByteArray(QTest::currentDataTag()).contains("tap-");
-                const QList<QPointF> points = tap ? QList<QPointF>{} : !dynamic && smoothing ? QList<QPointF>{start + QPointF(3, 1.5), start + QPointF(6, 3), start + QPointF(9, 4.5)} :
+                QList<QPointF> points = tap ? QList<QPointF>{} : !dynamic && smoothing ? QList<QPointF>{start + QPointF(3, 1.5), start + QPointF(6, 3), start + QPointF(9, 4.5)} :
                     QList<QPointF>{start + QPointF(4.5, 1), start + QPointF(8, 4.75), start + QPointF(12, 2)};
+                if (dynamic && !tap) {
+                    points.clear();
+                    for (int step = 1; step <= 12; ++step) points.append(start + QPointF(3 * step, step));
+                }
                 QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
                 KoPointerEvent first(&press, view->canvasBase()->coordinatesConverter()->imageToDocument(start)); tool->beginPrimaryAction(&first);
                 for (const auto &position : points) {
@@ -304,7 +308,7 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
                     if (!QByteArray(QTest::currentDataTag()).startsWith("tap-")) {
                         const auto samples = operation->inputSamples();
                         QVERIFY(samples.size() > 1);
-                        const QPointF rawEnd = (reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75)) + QPointF(12, 2);
+                        const QPointF rawEnd = (reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75)) + QPointF(36, 12);
                         QVERIFY(samples.last().position != rawEnd);
                     }
                 } else QCOMPARE(operation->brush.transforms.size(), qsizetype(mode == 0 ? 3 : mode == 1 ? 4 : mode == 3 ? 12 : mode == 4 ? 2 : 16));

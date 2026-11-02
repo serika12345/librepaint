@@ -117,6 +117,13 @@ void KisToolDyna::continuePrimaryAction(KoPointerEvent *event)
     }
 }
 
+void KisToolDyna::endPrimaryAction(KoPointerEvent *event)
+{
+    // The release position has not passed through the dynamic filter.
+    KisToolFreehand::endPrimaryAction(nullptr);
+    if (event) event->accept();
+}
+
 // dyna algorithm
 int KisToolDyna::applyFilter(qreal mx, qreal my)
 {
