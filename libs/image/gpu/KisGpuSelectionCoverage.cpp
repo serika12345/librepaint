@@ -469,6 +469,9 @@ ExecutionOutcome Execution::combineSelectionCoverage(const SelectionMaskSP &firs
         inverted ? appendTiles(candidates, extent) :
         action == SelectionCombination::Subtract ? append(first) : append(first) && append(second);
     if (!valid) return {ExecutionCode::CapacityExceeded, QStringLiteral("Selection arithmetic exceeds its tile capacity")};
+    // Sparse bounds can overlap while none of their retained tiles reach the
+    // intersection. The result then has no coverage to evaluate or allocate.
+    if (candidates.isEmpty()) { *result = SelectionMask::empty(); return {ExecutionCode::Success, {}}; }
     auto operation = QSharedPointer<SelectionCombinationSource>::create();
     operation->first = first; operation->second = second; operation->action = action;
     operation->extent = extent; operation->inverted = inverted; operation->tiles = sortedTiles(candidates);

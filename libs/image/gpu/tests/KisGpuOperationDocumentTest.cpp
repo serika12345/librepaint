@@ -4996,16 +4996,33 @@ void KisGpuOperationDocumentTest::transparencyMaskFromSelectionShapesAndRejectio
     }
 
     {
-        // Only unlocked paint layers own a transparency mask.
+        // Group and paint masks copy the selection into one reversible change.
+        // Locked owners reject the operation without consuming the selection.
         OperationDocument document(nestedImage());
         const auto group = std::find_if(document.snapshot()->layers.cbegin(), document.snapshot()->layers.cend(),
             [](const Layer &layer) { return layer.kind == LayerKind::Group; });
         QVERIFY(group != document.snapshot()->layers.cend());
-        QCOMPARE(document.setSelectionRect(QRect(4, 4, 16, 16)), Result::Success);
-        QCOMPARE(document.addTransparencyMaskFromSelection(group->id), Result::LayerUnavailable);
+        const auto groupId = group->id;
         const auto paint = document.activeLayer();
+        const QRect rect(4, 4, 16, 16);
+        QCOMPARE(document.setSelectionRect(rect), Result::Success);
+        const auto beforeGroup = document.snapshot();
+        const auto count = document.undoCount();
+        QCOMPARE(document.addTransparencyMaskFromSelection(groupId), Result::Success);
+        QCOMPARE(document.undoCount(), count + 1);
+        const auto expected = SelectionMask::fromRectangle(rect, rect);
+        QVERIFY(*document.layerTransparencyMask(groupId) == *expected);
+        QCOMPARE(document.selectionRect(), rect);
+        const auto withGroup = document.snapshot();
+        QCOMPARE(document.undo(), Result::Success);
+        QCOMPARE(document.snapshot(), beforeGroup);
+        QCOMPARE(document.redo(), Result::Success);
+        QCOMPARE(document.snapshot(), withGroup);
+        QCOMPARE(document.setSelectionRect(rect), Result::Success);
         QCOMPARE(document.setLayerLocked(paint, true), Result::Success);
+        const auto locked = document.snapshot();
         QCOMPARE(document.addTransparencyMaskFromSelection(paint), Result::LayerUnavailable);
+        QCOMPARE(document.snapshot(), locked);
         QCOMPARE(document.setLayerLocked(paint, false), Result::Success);
         QCOMPARE(document.addTransparencyMaskFromSelection(paint), Result::Success);
     }
