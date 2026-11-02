@@ -2531,6 +2531,12 @@ void KisGpuPaintImageTest::contiguousFillKeepsFrozenPixelsHistoryAndClones()
             RegionFillSettings settings;
             settings.seed = {3, 3}; settings.threshold = threshold; settings.antiAlias = antiAlias;
             const RgbaPixel color{quint16(maximum - 13), 173, 61, maximum};
+            for (const int invalid : {-1, 401}) {
+                settings.feather = invalid;
+                QCOMPARE(image.fillRegion(1, settings, color, {}), Result::InvalidInput);
+                QCOMPARE(image.operations().snapshot(), before);
+            }
+            settings.feather = 0;
             const auto filled = image.fillRegion(1, settings, color, {});
             QVERIFY2(filled == Result::Success, qPrintable(image.lastRequestOutcome().diagnostic + QStringLiteral("; ") + device->diagnostic()));
             QCOMPARE(earlier.get().code, ExecutionCode::Success);

@@ -214,6 +214,7 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
         (settings.purpose == RegionCoveragePurpose::Paint && settings.reference == RegionFillReference::CurrentProjection) || settings.colorLabels.size() > 9 ||
         std::any_of(settings.colorLabels.cbegin(), settings.colorLabels.cend(), [](int label) { return label < 0 || label > 8; }) ||
         settings.threshold < 0 || settings.threshold > 255 || settings.sizeMod < -400 || settings.sizeMod > 400 ||
+        settings.feather < 0 || settings.feather > 400 ||
         settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
         !QRect(QPoint(), snapshot()->size).contains(settings.seed) ||
         (settings.boundaryColor && (settings.mode != RegionFillMode::Contiguous || !validPixel(*settings.boundaryColor, snapshot()->format))))
@@ -274,9 +275,9 @@ Result OperationDocument::prepareRegionFill(LayerId layer, const RegionFillSetti
     region->preparedFor = snapshot();
     region->layer = layer;
     region->settings = settings;
-    const int border = (qMax(0, settings.sizeMod) + 63) / 64 * 64;
+    const int border = (qMax(0, settings.sizeMod) + 63) / 64 * 64 + (settings.feather + 63) / 64 * 64;
     region->coverageOrigin = {-border, -border};
-    region->coverageSize = settings.antiAlias || settings.sizeMod
+    region->coverageSize = settings.antiAlias || settings.sizeMod || settings.feather
         ? QSize((source->size.width() + 63) / 64 * 64 + 2 * border,
                 (source->size.height() + 63) / 64 * 64 + 2 * border) : source->size;
     *output = region;

@@ -306,7 +306,7 @@ fn verticalSpan(point: vec2<i32>, radius: i32) -> u32 {
     if (any(p >= parameters.size)) { return; }
     let index = p.y * parameters.size.x + p.x;
     let value = atomicLoad(&labels[index * labelStride() + morphLevels()]);
-    if ((parameters.flags & 2048u) != 0u) {
+    if ((parameters.flags & 2048u) != 0u || parameters.level.z != 0u) {
         coverage[index] = value;
         if (value != 0u) {
             let bounds = scratchIndex() + 4u;
@@ -401,6 +401,58 @@ fn antialiasedCoverage(point: vec2<i32>, rect: vec4<i32>) -> u32 {
     let index = p.y * parameters.size.x + p.x;
     let value = selectionLimited(p, atomicLoad(&labels[parentIndex(index)]));
     coverage[index] = value;
+    if (value != 0u) {
+        atomicMin(&status[1], p.x); atomicMin(&status[2], p.y);
+        atomicMax(&status[3], p.x); atomicMax(&status[4], p.y);
+    }
+}
+
+fn featherRectangle() -> vec4<i32> {
+    let radius = i32(parameters.level.z);
+    return filterRectangle() + vec4<i32>(-radius, -radius, radius, radius);
+}
+fn featherWeight(index: u32) -> Word64 {
+    let offset = parameters.level.y + 2u * index;
+    return Word64(conversion[offset], conversion[offset + 1u]);
+}
+fn featherRounded(sum: Word64) -> u32 {
+    let normalized = doubleMultiply(sum, featherWeight(2u * parameters.level.z + 1u));
+    return min(255u, doubleTruncate(doubleAdd(normalized, Word64(0u, 0x3fe00000u))));
+}
+@compute @workgroup_size(8, 8) fn featherHorizontal(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let p = invocation.xy;
+    if (any(p >= parameters.size)) { return; }
+    let point = vec2<i32>(p);
+    let rect = featherRectangle();
+    let radius = i32(parameters.level.z);
+    var sum = Word64(0u, 0u);
+    if (all(point >= rect.xy) && all(point < rect.zw)) {
+        for (var x = -radius; x <= radius; x++) {
+            let value = u32(rawCoverage(point + vec2<i32>(x, 0), filterRectangle()));
+            sum = doubleAdd(sum, doubleMultiply(featherWeight(u32(x + radius)), doubleInteger(value)));
+        }
+    }
+    atomicStore(&labels[parentIndex(p.y * parameters.size.x + p.x)], featherRounded(sum));
+}
+@compute @workgroup_size(8, 8) fn featherVertical(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let p = invocation.xy;
+    if (any(p >= parameters.size)) { return; }
+    let point = vec2<i32>(p);
+    let rect = featherRectangle();
+    let radius = i32(parameters.level.z);
+    var sum = Word64(0u, 0u);
+    if (all(point >= rect.xy) && all(point < rect.zw)) {
+        for (var y = -radius; y <= radius; y++) {
+            let sample = point + vec2<i32>(0, y);
+            var value = 0u;
+            if (all(sample >= rect.xy) && all(sample < rect.zw) && all(sample >= vec2<i32>()) && all(vec2<u32>(sample) < parameters.size)) {
+                value = atomicLoad(&labels[parentIndex(u32(sample.y) * parameters.size.x + u32(sample.x))]);
+            }
+            sum = doubleAdd(sum, doubleMultiply(featherWeight(u32(y + radius)), doubleInteger(value)));
+        }
+    }
+    let value = selectionLimited(p, featherRounded(sum));
+    coverage[p.y * parameters.size.x + p.x] = value;
     if (value != 0u) {
         atomicMin(&status[1], p.x); atomicMin(&status[2], p.y);
         atomicMax(&status[3], p.x); atomicMax(&status[4], p.y);

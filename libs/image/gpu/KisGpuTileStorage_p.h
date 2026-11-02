@@ -205,6 +205,7 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline regionEncoding;
     std::array<Detail::NativeComputePipeline, 3> regionConnect, regionResolve, regionAntiAlias, regionFiltered;
     std::array<Detail::NativeComputePipeline, 3> regionVertical, regionMorph, regionMorphed;
+    std::array<Detail::NativeComputePipeline, 3> regionFeatherHorizontal, regionFeatherVertical;
     struct RegionCoverage {
         std::shared_ptr<Detail::BufferStorage> pixels, status;
     };
@@ -220,6 +221,7 @@ struct TileRenderer::Private
     std::shared_ptr<Detail::BufferStorage> nativeLabValues;
     bool nativeLabHasDefinition = false;
     int nativeLabRadius = 0;
+    int nativeLabFeather = 0;
     bool selectionZeroUploaded = false;
     QString error;
     QWeakPointer<const RenderedVersion> coverageVersion;

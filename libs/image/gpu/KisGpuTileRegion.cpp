@@ -7,6 +7,7 @@
 #include "KisGpuReadbackBatch_p.h"
 #include <QScopeGuard>
 #include <cstring>
+#include <cmath>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
@@ -28,12 +29,17 @@ quint64 definitionBytes(const LibrePaint::Pigment::Color::NativeLabConversionSP 
     return std::holds_alternative<Value::IntegerClut>(value->definition)
         ? 24 + quint64((value->tableByteCount() + 3) / 4) * 4 : 24 + 12 * sizeof(double);
 }
-quint64 labBufferBytes(const LibrePaint::Pigment::Color::NativeLabConversionSP &value, int radius)
-{ return !value && !radius ? 4 : definitionBytes(value) + (radius ? (2 * radius + 1) * sizeof(quint32) : 0); }
-QByteArray packNativeLab(const LibrePaint::Pigment::Color::NativeLabConversionSP &value, int radius)
+quint64 featherOffset(const LibrePaint::Pigment::Color::NativeLabConversionSP &value, int radius)
+{ return (definitionBytes(value) + (radius ? (2 * radius + 1) * sizeof(quint32) : 0) + 7) / 8 * 8; }
+quint64 labBufferBytes(const LibrePaint::Pigment::Color::NativeLabConversionSP &value, int radius, int feather)
 {
-    QByteArray bytes(qsizetype(labBufferBytes(value, radius)), '\0');
-    if (!value && !radius) return bytes;
+    if (feather) return featherOffset(value, radius) + (2 * feather + 2) * sizeof(double);
+    return !value && !radius ? 4 : definitionBytes(value) + (radius ? (2 * radius + 1) * sizeof(quint32) : 0);
+}
+QByteArray packNativeLab(const LibrePaint::Pigment::Color::NativeLabConversionSP &value, int radius, int feather)
+{
+    QByteArray bytes(qsizetype(labBufferBytes(value, radius, feather)), '\0');
+    if (!value && !radius && !feather) return bytes;
     using Value = LibrePaint::Pigment::Color::NativeLabConversion;
     quint32 header[6]{};
     if (value) {
@@ -65,6 +71,20 @@ QByteArray packNativeLab(const LibrePaint::Pigment::Color::NativeLabConversionSP
             std::memcpy(bytes.data() + definitionBytes(value) + (x + radius) * sizeof(quint32), &extent, sizeof(extent));
         }
     }
+    if (feather) {
+        const double variance = double(feather) * feather;
+        const double multiplicand = 1.0 / (2.0 * M_PI * variance);
+        const double exponent = 1.0 / (2.0 * variance);
+        const auto offset = featherOffset(value, radius);
+        double sum = 0;
+        for (int x = -feather; x <= feather; ++x) {
+            const double weight = multiplicand * std::exp(-double(x * x + feather * feather) * exponent);
+            std::memcpy(bytes.data() + offset + (x + feather) * sizeof(double), &weight, sizeof(weight));
+            sum += weight;
+        }
+        const double factor = 1.0 / sum;
+        std::memcpy(bytes.data() + offset + (2 * feather + 1) * sizeof(double), &factor, sizeof(factor));
+    }
     std::memcpy(bytes.data(), header, sizeof(header));
     return bytes;
 }
@@ -87,15 +107,18 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         (settings.purpose != RegionCoveragePurpose::Paint && settings.purpose != RegionCoveragePurpose::Selection) ||
         (settings.purpose == RegionCoveragePurpose::Paint && settings.reference == RegionFillReference::CurrentProjection) ||
         settings.threshold < 0 || settings.threshold > 255 || settings.sizeMod < -400 || settings.sizeMod > 400 || settings.opacitySpread < 0 || settings.opacitySpread > 100 ||
+        settings.feather < 0 || settings.feather > 400 ||
         !QRect(QPoint(), document.size).contains(settings.seed) ||
         (settings.boundaryColor && (settings.mode != RegionFillMode::Contiguous || !validPixel(*settings.boundaryColor, document.format))))
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU contiguous fill settings are invalid")};
     const int radius = qAbs(settings.sizeMod);
+    const bool antiAlias = settings.antiAlias && !settings.feather;
+    const bool filtered = antiAlias || settings.feather;
     int levels = 0;
     for (int span = 2; span <= 2 * radius + 1; span *= 2) ++levels;
-    const int border = (qMax(0, settings.sizeMod) + 63) / 64 * 64;
+    const int border = (qMax(0, settings.sizeMod) + 63) / 64 * 64 + (settings.feather + 63) / 64 * 64;
     const QPoint expectedOrigin(-border, -border);
-    const QSize expectedSize = settings.antiAlias || radius
+    const QSize expectedSize = filtered || radius
         ? QSize((document.size.width() + 63) / 64 * 64 + 2 * border,
                 (document.size.height() + 63) / 64 * 64 + 2 * border) : document.size;
     if (region->coverageSize != expectedSize || region->coverageOrigin != expectedOrigin)
@@ -142,14 +165,14 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     const auto definition = settings.threshold == 1 ? LibrePaint::Pigment::Color::NativeLabConversionSP{} : settings.labConversion;
     if (definition && !definition->isValid())
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Invalid native Lab colour definition")};
-    if (nativeLabHasDefinition != bool(definition) || nativeLabDefinition.toStrongRef() != definition || nativeLabRadius != radius) {
+    if (nativeLabHasDefinition != bool(definition) || nativeLabDefinition.toStrongRef() != definition || nativeLabRadius != radius || nativeLabFeather != settings.feather) {
         nativeLabValues.reset(); nativeLabDefinition.clear();
     }
     const quint32 kind = !definition ? 0 : std::holds_alternative<LibrePaint::Pigment::Color::NativeLabConversion::IntegerClut>(definition->definition) ? 1 : 2;
     const quint64 stride = qMax(kind == 2 ? 6 : kind == 1 ? 3 : 1, radius ? levels + 1 : 1);
     const quint64 labelBytes = ((count + bool(settings.boundaryColor)) * stride +
-        (radius ? 8 : settings.antiAlias ? 4 : 0)) * sizeof(quint32);
-    const quint64 labBytes = labBufferBytes(definition, radius);
+        (radius ? 8 : filtered ? 4 : 0)) * sizeof(quint32);
+    const quint64 labBytes = labBufferBytes(definition, radius, settings.feather);
     const quint64 required = coverageBytes + labelBytes + atlasBytes + directoryBytes + selectionBytes + 20 + (levels + 1) * sizeof(RegionParameters) +
         (nativeLabValues ? 0 : labBytes);
     WGPULimits limits{};
@@ -168,13 +191,14 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         return result;
     };
     if (!nativeLabValues) {
-        const auto bytes = packNativeLab(definition, radius);
+        const auto bytes = packNativeLab(definition, radius, settings.feather);
         nativeLabValues = allocate(labBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
         if (!nativeLabValues) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("Native Lab resource allocation failed")};
         wgpuQueueWriteBuffer(device->queue(), nativeLabValues->pixels.get(), 0, bytes.constData(), size_t(bytes.size()));
         nativeLabDefinition = definition;
         nativeLabHasDefinition = bool(definition);
         nativeLabRadius = radius;
+        nativeLabFeather = settings.feather;
     }
     const auto lab = nativeLabValues;
     device->retainForFrame(lab);
@@ -233,8 +257,10 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
             : settings.selectionAsBoundary && settings.mode == RegionFillMode::Contiguous) parameters.flags |= 32;
     if (settings.purpose == RegionCoveragePurpose::Selection) parameters.flags |= 4096;
     if (settings.mode == RegionFillMode::Similar) parameters.flags |= 64;
-    if (settings.antiAlias || radius) parameters.flags |= 256;
-    if (settings.antiAlias) parameters.flags |= 2048;
+    if (filtered || radius) parameters.flags |= 256;
+    if (antiAlias) parameters.flags |= 2048;
+    parameters.level[1] = quint32(featherOffset(definition, radius) / 4);
+    parameters.level[2] = quint32(settings.feather);
     if (settings.sizeMod) parameters.flags |= (quint32(radius) << 16) | (settings.sizeMod > 0 ? 512u : 1024u);
     if (settings.boundaryColor) {
         parameters.flags |= 128;
@@ -246,7 +272,7 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     parameters.selection[2] = document.selection.width(); parameters.selection[3] = document.selection.height();
     const quint32 initialStatus[5]{0, quint32(width), quint32(height), 0, 0};
     wgpuQueueWriteBuffer(device->queue(), status->pixels.get(), 0, initialStatus, sizeof(initialStatus));
-    if (settings.antiAlias || radius) {
+    if (filtered || radius) {
         wgpuQueueWriteBuffer(device->queue(), labels->pixels.get(), (count + bool(settings.boundaryColor)) * stride * 4, initialStatus + 1, 16);
         if (radius) wgpuQueueWriteBuffer(device->queue(), labels->pixels.get(), labelBytes - 16, initialStatus + 1, 16);
     }
@@ -280,14 +306,19 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
             QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "morph", 0, 0, regionLayout.get(), false, 0, kind);
         if (radius && !regionMorphed[kind]) regionMorphed[kind] = createPipeline(
             QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "morphed", 0, 0, regionLayout.get(), false, 0, kind);
-        if (settings.antiAlias && !regionAntiAlias[kind]) regionAntiAlias[kind] = createPipeline(
+        if (antiAlias && !regionAntiAlias[kind]) regionAntiAlias[kind] = createPipeline(
             QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "antiAlias", 0, 0, regionLayout.get(), false, 0, kind);
-        if (settings.antiAlias && !regionFiltered[kind]) regionFiltered[kind] = createPipeline(
+        if (antiAlias && !regionFiltered[kind]) regionFiltered[kind] = createPipeline(
             QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "filtered", 0, 0, regionLayout.get(), false, 0, kind);
         if (!regionResolve[kind]) regionResolve[kind] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "resolve", 0, 0, regionLayout.get(), false, 0, kind);
+        if (settings.feather && !regionFeatherHorizontal[kind]) regionFeatherHorizontal[kind] = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "featherHorizontal", 0, 0, regionLayout.get(), false, 0, kind);
+        if (settings.feather && !regionFeatherVertical[kind]) regionFeatherVertical[kind] = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "featherVertical", 0, 0, regionLayout.get(), false, 0, kind);
     }
     if ((radius && (!regionVertical[kind] || !regionMorph[kind] || !regionMorphed[kind])) ||
-        (settings.antiAlias && (!regionAntiAlias[kind] || !regionFiltered[kind])) ||
+        (antiAlias && (!regionAntiAlias[kind] || !regionFiltered[kind])) ||
+        (settings.feather && (!regionFeatherHorizontal[kind] || !regionFeatherVertical[kind])) ||
         (kind && !regionConversions[kind - 1]) || (kind == 2 && !regionEncoding) ||
         !regionClassifiers[kind] || !regionConnect[kind] || !regionResolve[kind] || !regionLayout)
         return {RenderOutcome::DeviceFailure, {}, error};
@@ -325,9 +356,13 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         stages.append({regionMorph[kind].get(), 1u});
         stages.append({regionMorphed[kind].get(), 1u});
     }
-    if (settings.antiAlias) {
+    if (antiAlias) {
         stages.append({regionAntiAlias[kind].get(), 1u});
         stages.append({regionFiltered[kind].get(), 1u});
+    }
+    if (settings.feather) {
+        stages.append({regionFeatherHorizontal[kind].get(), 1u});
+        stages.append({regionFeatherVertical[kind].get(), 1u});
     }
     for (const auto &stage : stages) {
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
