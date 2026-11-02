@@ -14,6 +14,7 @@ struct AutoBrushDab
     std::array<quint32, 36> words{};
     /** Image-tip row ranges and fixed-point chunk origins; coordinate metadata only. */
     QSharedPointer<const QList<quint32>> imageCoordinates;
+    qsizetype hand = 0;
     QRect bounds() const { return {qint32(words[18]), qint32(words[19]), int(words[0]), int(words[1])}; }
 };
 static_assert(sizeof(AutoBrushDab::words) == 144);

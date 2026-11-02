@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuMultibrushEditingTest.h"
+#include <KoTestConfig.h>
 #include <QApplication>
 #include <QDir>
 #include <QFile>
@@ -64,6 +65,10 @@ void MultibrushEditingTest::addData()
             QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << mode << 0 << false;
         }
     for (bool words : {false, true}) {
+        QTest::newRow(words ? "tap-u16" : "tap-u8")
+            << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << 0 << false;
+        QTest::newRow(words ? "smoothed-tap-u16" : "smoothed-tap-u8")
+            << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << 1 << false;
         for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "a)_Eraser_Circle.kpp"}) {
             const QByteArray name = QByteArray("group-mask-") + preset + (words ? "-u16" : "-u8");
             QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << 1 << 0 << true;
@@ -228,7 +233,8 @@ void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Executio
             }
             const auto gesture = [&](bool cancel) {
                 const QPointF start = reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75);
-                const QList<QPointF> points = smoothing ? QList<QPointF>{start + QPointF(3, 1.5), start + QPointF(6, 3), start + QPointF(9, 4.5)} :
+                const bool tap = QByteArray(QTest::currentDataTag()).contains("tap-");
+                const QList<QPointF> points = tap ? QList<QPointF>{} : smoothing ? QList<QPointF>{start + QPointF(3, 1.5), start + QPointF(6, 3), start + QPointF(9, 4.5)} :
                     QList<QPointF>{start + QPointF(4.5, 1), start + QPointF(8, 4.75), start + QPointF(12, 2)};
                 QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
                 KoPointerEvent first(&press, view->canvasBase()->coordinatesConverter()->imageToDocument(start)); tool->beginPrimaryAction(&first);
@@ -238,7 +244,7 @@ void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Executio
                 }
                 if (cancel) { QKeyEvent key(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier); view->canvasBase()->toolProxy()->keyPressEvent(&key); }
                 QMouseEvent release(QEvent::MouseButtonRelease, QPointF(), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
-                KoPointerEvent last(&release, view->canvasBase()->coordinatesConverter()->imageToDocument(points.last())); tool->endPrimaryAction(&last);
+                KoPointerEvent last(&release, view->canvasBase()->coordinatesConverter()->imageToDocument(points.isEmpty() ? start : points.last())); tool->endPrimaryAction(&last);
                 image->waitForDone();
             };
             if (mode == 4) {

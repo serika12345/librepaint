@@ -167,6 +167,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         auto &savedImageTip = hand.savedImageTip;
         if (point.directPixel) {
             AutoBrushDab dab;
+            dab.hand = point.hand;
             dab.words[0] = dab.words[1] = dab.words[2] = 1;
             dab.words[3] = 64u;
             dab.words[18] = quint32(qint32(point.position.x()));
@@ -203,6 +204,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         constexpr float exponent = .1f;
         averageOpacity = averageOpacity < opacity ? opacity : exponent * opacity + (1.0 - exponent) * averageOpacity;
         AutoBrushDab dab;
+        dab.hand = point.hand;
         dab.words[0] = maskSide(metric.width(), subpixel.x());
         dab.words[1] = maskSide(metric.height(), subpixel.y());
         dab.words[3] = (point.mirroredH ? 4u : 0u) | (point.mirroredV ? 8u : 0u);
@@ -306,6 +308,12 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             }
             result.append(mirrored);
         }
+    }
+    if (brush.transforms.size() > 1) {
+        // Each native painter prepends its ready jobs before the first own
+        // stroke job, so the last hand's batch paints first. Geometry and
+        // random choices above retain their original registration order.
+        std::stable_sort(result.begin(), result.end(), [](const AutoBrushDab &a, const AutoBrushDab &b) { return a.hand > b.hand; });
     }
     if (brush.additiveMaskingBrush) {
         auto maskOperation = operation;
