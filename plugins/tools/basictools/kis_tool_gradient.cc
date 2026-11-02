@@ -19,6 +19,7 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QWidget>
+#include <QKeyEvent>
 
 #include <KisImageSignals.h>
 #include <kis_image.h>
@@ -120,14 +121,7 @@ void KisToolGradient::beginPrimaryAction(KoPointerEvent *event)
 
 void KisToolGradient::continuePrimaryAction(KoPointerEvent *event)
 {
-    /**
-     * TODO: The gradient tool is still not in strokes, so the end of
-     *       its action can call processEvent(), which would result in
-     *       nested event handler calls. Please uncomment this line
-     *       when the tool is ported to strokes.
-     */
-    //CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
-
+    if (mode() != KisTool::PAINT_MODE) { event->ignore(); return; }
     // First ensure the old guideline is deleted
     updateGuideline();
 
@@ -144,8 +138,7 @@ void KisToolGradient::continuePrimaryAction(KoPointerEvent *event)
 
 void KisToolGradient::endPrimaryAction(KoPointerEvent *event)
 {
-    Q_UNUSED(event);
-    CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
+    if (mode() != KisTool::PAINT_MODE) { if (event) event->ignore(); return; }
     setMode(KisTool::HOVER_MODE);
 
     if (!currentNode())
@@ -243,6 +236,16 @@ void KisToolGradient::endPrimaryAction(KoPointerEvent *event)
 void KisToolGradient::requestStrokeEnd()
 {
     if (mode() == KisTool::PAINT_MODE) endPrimaryAction(nullptr);
+}
+
+void KisToolGradient::keyPressEvent(QKeyEvent *event)
+{
+    if (mode() == KisTool::PAINT_MODE && event->key() == Qt::Key_Escape) {
+        requestStrokeCancellation();
+        event->accept();
+        return;
+    }
+    KisToolPaint::keyPressEvent(event);
 }
 
 void KisToolGradient::requestStrokeCancellation()

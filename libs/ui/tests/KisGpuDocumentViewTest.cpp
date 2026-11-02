@@ -69,6 +69,7 @@
 #include <canvas/kis_canvas_controller.h>
 #include <canvas/kis_zoom_manager.h>
 #include <input/ui/kis_input_profile_manager.h>
+#include <input/ui/kis_tool_proxy.h>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <KoToolManager.h>
 #include <KoSnapGuide.h>
@@ -11005,7 +11006,12 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
             KoPointerEvent first(&press, view->canvasBase()->coordinatesConverter()->imageToDocument(start)); tool->beginPrimaryAction(&first);
             QMouseEvent move(QEvent::MouseMove, QPointF(), QPointF(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
             KoPointerEvent update(&move, view->canvasBase()->coordinatesConverter()->imageToDocument(end)); tool->continuePrimaryAction(&update);
-            tool->requestStrokeCancellation(); image->waitForDone();
+            QKeyEvent cancel(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+            view->canvasBase()->toolProxy()->keyPressEvent(&cancel); image->waitForDone();
+            QVERIFY(cancel.isAccepted());
+            QMouseEvent cancelledRelease(QEvent::MouseButtonRelease, QPointF(), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+            KoPointerEvent cancelledLast(&cancelledRelease, view->canvasBase()->coordinatesConverter()->imageToDocument(end));
+            tool->endPrimaryAction(&cancelledLast);
             QCOMPARE(lifetime->undoStack()->index(), history); QCOMPARE(capture(), before);
             tool->beginPrimaryAction(&first); tool->continuePrimaryAction(&update);
             QMouseEvent release(QEvent::MouseButtonRelease, QPointF(), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
