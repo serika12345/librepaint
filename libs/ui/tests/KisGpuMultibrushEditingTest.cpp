@@ -95,18 +95,18 @@ void DynamicBrushEditingTest::addData()
         for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "a)_Eraser_Circle.kpp", "a)_Eraser_Small.kpp"})
             for (int parameters : {0, 1}) {
                 const QByteArray name = QByteArray(preset) + (words ? "-u16-" : "-u8-") + QByteArray::number(parameters);
-                QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << parameters << 0 << false;
+                QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << parameters << 1 << false;
             }
         for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "a)_Eraser_Circle.kpp"}) {
             const QByteArray name = QByteArray("group-mask-") + preset + (words ? "-u16" : "-u8");
-            QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << 0 << 0 << true;
+            QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << 0 << 1 << true;
         }
-        for (int smoothing : {1, 2, 3, 4}) {
-            const QByteArray name = QByteArray("smoothed-") + QByteArray::number(smoothing) + (words ? "-u16" : "-u8");
-            QTest::newRow(name.constData()) << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << smoothing << false;
+        for (int parameters : {2, 3, 4, 5}) {
+            const QByteArray name = QByteArray("mass-drag-") + QByteArray::number(parameters) + (words ? "-u16" : "-u8");
+            QTest::newRow(name.constData()) << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << parameters << 1 << false;
         }
         QTest::newRow(words ? "tap-u16" : "tap-u8")
-            << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << 0 << false;
+            << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << 1 << false;
     }
 }
 
@@ -241,12 +241,15 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
             KoToolManager::instance()->switchToolRequested(toolId);
             tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), toolId)); QVERIFY(tool);
             const auto panels = tool->optionWidgets();
-            QVERIFY(tool->setProperty("smoothingType", smoothing));
-            QVERIFY(tool->setProperty("smoothnessQualityMin", 6)); QVERIFY(tool->setProperty("smoothnessQualityMax", 6));
-            QVERIFY(tool->setProperty("useDelayDistance", false)); QVERIFY(tool->setProperty("finishStabilizedCurve", true));
+            if (!dynamic) {
+                QVERIFY(tool->setProperty("smoothingType", smoothing));
+                QVERIFY(tool->setProperty("smoothnessQualityMin", 6)); QVERIFY(tool->setProperty("smoothnessQualityMax", 6));
+                QVERIFY(tool->setProperty("useDelayDistance", false)); QVERIFY(tool->setProperty("finishStabilizedCurve", true));
+            }
             if (dynamic) {
-                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetMass", Qt::DirectConnection, Q_ARG(qreal, mode ? .45 : .01)));
-                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetDrag", Qt::DirectConnection, Q_ARG(qreal, mode ? .25 : .98)));
+                constexpr qreal massAndDrag[][2]{{.01, .98}, {.45, .25}, {0, 0}, {0, 1}, {1, 0}, {1, 1}};
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetMass", Qt::DirectConnection, Q_ARG(qreal, massAndDrag[mode][0])));
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetDrag", Qt::DirectConnection, Q_ARG(qreal, massAndDrag[mode][1])));
             } else {
                 QVERIFY(QMetaObject::invokeMethod(tool, "resetAxes", Qt::DirectConnection));
                 QVERIFY(QMetaObject::invokeMethod(tool, "slotSetHandsCount", Qt::DirectConnection, Q_ARG(int, 3)));
@@ -268,7 +271,7 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
             const auto gesture = [&](bool cancel) {
                 const QPointF start = reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75);
                 const bool tap = QByteArray(QTest::currentDataTag()).contains("tap-");
-                const QList<QPointF> points = tap ? QList<QPointF>{} : smoothing ? QList<QPointF>{start + QPointF(3, 1.5), start + QPointF(6, 3), start + QPointF(9, 4.5)} :
+                const QList<QPointF> points = tap ? QList<QPointF>{} : !dynamic && smoothing ? QList<QPointF>{start + QPointF(3, 1.5), start + QPointF(6, 3), start + QPointF(9, 4.5)} :
                     QList<QPointF>{start + QPointF(4.5, 1), start + QPointF(8, 4.75), start + QPointF(12, 2)};
                 QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
                 KoPointerEvent first(&press, view->canvasBase()->coordinatesConverter()->imageToDocument(start)); tool->beginPrimaryAction(&first);
@@ -298,7 +301,7 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
                 const auto operation = std::get<Gpu::PaintSnapshot>(operations.last());
                 if (dynamic) {
                     QVERIFY(operation->brush.transforms.isEmpty());
-                    if (smoothing == 0 && !QByteArray(QTest::currentDataTag()).startsWith("tap-")) {
+                    if (!QByteArray(QTest::currentDataTag()).startsWith("tap-")) {
                         const auto samples = operation->inputSamples();
                         QVERIFY(samples.size() > 1);
                         const QPointF rawEnd = (reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75)) + QPointF(12, 2);
