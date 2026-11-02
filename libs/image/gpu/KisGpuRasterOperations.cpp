@@ -203,6 +203,38 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
     if (retainedVersion) *retainedVersion = retained;
     return Result::Success;
 }
+Result OperationDocument::applyMaskVersions(const QList<VersionMaskWrite> &writes)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (writes.isEmpty() || writes.size() > m_history.size()) return Result::InvalidInput;
+    if (quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
+    auto history = m_history;
+    auto revision = m_nextRevision;
+    QSet<const DocumentVersion *> updated;
+    for (const auto &write : writes) {
+        const auto index = m_history.indexOf(write.before);
+        if (index < 0 || updated.contains(write.before.data())) return Result::StaleVersion;
+        if (write.maskUuid != writes.first().maskUuid || !write.coverage)
+            return Result::InvalidInput;
+        qsizetype position = -1;
+        for (qsizetype i = 0; i < write.before->layers.size(); ++i)
+            if (write.before->layers[i].id == write.layer && editableMaskCoverage(write.before->layers[i], write.maskUuid)) position = i;
+        if (position < 0) return Result::LayerUnavailable;
+        if (!selectionFitsRetainedInputs(write.coverage)) return Result::CapacityExceeded;
+        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*write.before));
+        auto &layer = version->layers[position];
+        if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.filterSelection = write.coverage;
+        else layer.transparencyMask = write.coverage;
+        version->m_revision = ++revision;
+        history[index] = version;
+        updated.insert(write.before.data());
+    }
+    m_history.swap(history);
+    m_nextRevision = revision;
+    return Result::Success;
+}
+
 OperationId OperationDocument::beginColorConversion()
 {
     if (checkMutation() != Result::Success || m_nextOperation == std::numeric_limits<quint64>::max()) return {};

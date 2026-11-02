@@ -5,6 +5,7 @@
  */
 #include <gpu/KisGpuPaintImage.h>
 #include <QUrl>
+#include <limits>
 #include <QScopedPointer>
 #include <QUuid>
 
@@ -639,10 +640,15 @@ bool Node::setPixelData(QByteArray value, int x, int y, int w, int h)
     if (!d->node) return false;
     KisPaintDeviceSP dev = d->node->paintDevice();
     if (!dev) return false;
-    if (value.length() <  w * h * (int)dev->colorSpace()->pixelSize()) {
+    if (w < 0 || h < 0) return false;
+    const qint64 rowBytes = qint64(w) * dev->colorSpace()->pixelSize();
+    if (h && rowBytes > value.size() / h) {
         qWarning() << "Node::setPixelData: not enough data to write to the paint device";
         return false;
     }
+    if (!w || !h) return true;
+    if (qint64(x) + w - 1 > std::numeric_limits<int>::max() ||
+        qint64(y) + h - 1 > std::numeric_limits<int>::max()) return false;
     dev->writeBytes((const quint8*)value.constData(), x, y, w, h);
     return true;
 }

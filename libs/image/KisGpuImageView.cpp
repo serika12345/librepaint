@@ -153,36 +153,17 @@ KisTransparencyMaskSP findTransparencyMaskChild(KisNodeSP parent)
  * is refreshed only when the document version's coverage changes.
  */
 void writeGpuMaskPixels(const KisSelectionSP &selection,
-                                    const LibrePaint::Image::Gpu::PaintImageSP &owner,
-                                    const LibrePaint::Image::Gpu::SelectionMaskSP &coverage,
-                                    const QRect &previousBounds, const QRect &clip)
+                        const LibrePaint::Image::Gpu::PaintImageSP &owner,
+                        const LibrePaint::Image::Gpu::SelectionMaskSP &coverage,
+                        const QRect &previousBounds, const QRect &clip, const QUuid &maskUuid)
 {
     if (!selection || !selection->pixelSelection()) return;
     KisPixelSelectionSP pixels = selection->pixelSelection();
-    // The retained document owns coverage; this node mirrors finite alpha for
-    // existing readers and thumbnails. Tile writes retain off-canvas pixels,
-    // while dirty propagation covers the visible canvas.
+    const auto retained = coverage ? coverage : LibrePaint::Image::Gpu::SelectionMask::empty();
     QRect touched = previousBounds.intersected(clip);
-    if (coverage && coverage->defaultCoverage()) touched |= clip;
-    pixels->clear();
-    if (coverage && coverage->isGpuGenerated()) {
-        pixels->bindGpuCoverage(owner, coverage);
-        touched |= coverage->bounds().intersected(clip);
-        if (!touched.isEmpty()) pixels->setDirty(touched);
-        return;
-    }
-    const quint8 defaultCoverage = coverage ? coverage->defaultCoverage() : 0;
-    pixels->setDefaultPixel(KoColor(&defaultCoverage, pixels->colorSpace()));
-    if (coverage) {
-        for (const auto &covered : coverage->allocatedBlocks()) {
-            QByteArray values(covered.width() * covered.height(), '\0');
-            for (int y = covered.top(); y <= covered.bottom(); ++y)
-                for (int x = covered.left(); x <= covered.right(); ++x)
-                    values[(y - covered.top()) * covered.width() + x - covered.left()] = char(coverage->coverage(x, y));
-            pixels->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), covered);
-        }
-        touched |= coverage->bounds().intersected(clip);
-    }
+    if (retained->defaultCoverage()) touched |= clip;
+    pixels->bindGpuCoverage(owner, retained, maskUuid);
+    touched |= retained->bounds().intersected(clip);
     if (!touched.isEmpty()) pixels->setDirty(touched);
 }
 }
@@ -692,6 +673,7 @@ bool KisImage::writeGpuTransparencyMaskSelection(KisNodeSP node, const KisSelect
     KisImageSP retained = this;
     return owner->writeTransparencyMask(layer, coverage) == LibrePaint::Image::Gpu::Result::Success;
 }
+
 
 KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
 {
@@ -1423,7 +1405,7 @@ void KisImage::connectGpuImageUpdates()
                     if (selection) {
                         state->filterSelections.insert(layer.uuid, layer.filterSelection);
                         writeGpuMaskPixels(selection, owner, layer.filterSelection,
-                            filterBefore ? filterBefore->bounds() : QRect{}, retainedView->bounds());
+                            filterBefore ? filterBefore->bounds() : QRect{}, retainedView->bounds(), layer.uuid);
                     }
                     if (retainedView->gpuImage() != owner || owner->operations().preview() != preview) break;
                 }
@@ -1436,7 +1418,7 @@ void KisImage::connectGpuImageUpdates()
                     if (!mask) continue;
                     state->transparencyMasks.insert(layer.uuid, layer.transparencyMask);
                     writeGpuMaskPixels(mask->selection(), owner, layer.transparencyMask,
-                        previous ? previous->bounds() : QRect{}, retainedView->bounds());
+                        previous ? previous->bounds() : QRect{}, retainedView->bounds(), layer.transparencyMaskUuid);
                     break;
                 }
                 if (retainedView->gpuImage() != owner || owner->operations().preview() != preview) break;
@@ -1528,7 +1510,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             if (internalSelection && (!state || state->filterSelections.value(layer.uuid) != layer.filterSelection)) {
                 const auto previous = state ? state->filterSelections.value(layer.uuid) : LibrePaint::Image::Gpu::SelectionMaskSP{};
                 writeGpuMaskPixels(internalSelection, owner, layer.filterSelection,
-                    previous ? previous->bounds() : QRect{}, QRect(QPoint(), version->size));
+                    previous ? previous->bounds() : QRect{}, QRect(QPoint(), version->size), layer.uuid);
                 if (state) state->filterSelections.insert(layer.uuid, layer.filterSelection);
             }
             if (node->name() != layer.name) node->setName(layer.name);
@@ -1628,7 +1610,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 }
                 if (!maskView->selection()) maskView->initSelection(layerView);
                 writeGpuMaskPixels(maskView->selection(), owner, layer.transparencyMask, QRect(),
-                                               QRect(QPoint(), version->size));
+                                               QRect(QPoint(), version->size), layer.transparencyMaskUuid);
                 view->addNode(maskView, layerNode, layerNode->lastChild(),
                               KisNodeAdditionFlags(KisNodeAdditionFlag::DontActivateNode));
                 if (view->gpuImage() != owner) return;
@@ -1639,7 +1621,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 const QRect previousBounds = previousMask
                     ? previousMask->bounds() : QRect(QPoint(), version->size);
                 writeGpuMaskPixels(maskView->selection(), owner, layer.transparencyMask, previousBounds,
-                                               QRect(QPoint(), version->size));
+                                               QRect(QPoint(), version->size), layer.transparencyMaskUuid);
             }
             KisNodeSP belowMask;
             qsizetype maskIndex = 0;

@@ -248,6 +248,13 @@ public:
      * compression finish before logical adoption; rejected writes are atomic.
      */
     Result writeRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
+    /** Direct Alpha8 input replaces only the requested region. Native64-block
+     * history ownership preserves unrelated writes across Undo/Redo. Fixed
+     * versions, history position and edit notifications remain unchanged.
+     * Retained coverage and canvas values also serve detached pixel copies
+     * after their source document closes. */
+    Result writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect region, const QByteArray &bytes,
+                           SelectionMaskSP *retainedCoverage = nullptr, QSize retainedCanvasSize = {});
     /** Direct writes also reach retained removed layers and their surviving history.
      * The current scene and its history position stay unchanged for detached layers.
      */
@@ -394,7 +401,7 @@ private:
                                        const QList<InputSample> &samples, const Shape &shape,
                                        const FigureStyle &style, quint64 randomSeed, bool filled, const QUuid &maskUuid = {});
     Result replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled,
-                                bool cleared = false, const QUuid &maskUuid = {});
+                                bool cleared, const QUuid &maskUuid, qsizetype firstEditOperation);
     struct Private;
     std::unique_ptr<Private> m_d;
 };

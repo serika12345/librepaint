@@ -12,6 +12,7 @@
 #include <QRect>
 #include <QVector>
 #include <QSharedPointer>
+#include <QUuid>
 
 #include "kis_debug.h"
 
@@ -980,9 +981,11 @@ private:
     QSharedPointer<LibrePaint::Image::Gpu::LayerPixelReference> gpuPixelReference() const;
     QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> gpuSelectionCoverage() const;
     void bindGpuLayer(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer);
-    /** Immutable Alpha8 view; clear() detaches it before literal input writes. */
+    /** Retains Alpha8 coverage. A node UUID enables direct writes with native
+     * history; an empty UUID binds a read-only document selection. */
     void bindGpuSelection(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
-                          QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> mask);
+                          QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> mask,
+                          const QUuid &maskUuid = {});
     struct Private;
     KisPaintDevice(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer, const QString &name,
                    const KoColorSpace *colorSpace);

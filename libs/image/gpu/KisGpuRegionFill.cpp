@@ -95,6 +95,7 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
             if (!add(paint.data(), sizeof(SelectionPaintSource)) ||
                 !add(paint->tiles.constData(), paint->tiles.size() * qsizetype(sizeof(QPoint)))) return false;
             pending.append(paint->source);
+            pendingMasks.append(paint->previous);
         }
         if (const auto &transform = value->transformSource()) {
             if (!add(transform.data(), sizeof(SelectionMaskTransformSource)) ||

@@ -17,6 +17,7 @@
 #include <QRect>
 #include <QSharedPointer>
 #include <QSize>
+#include <QUuid>
 #include <memory>
 
 namespace LibrePaint::Image::Gpu {
@@ -64,6 +65,11 @@ struct SelectionPaintSource
     quint64 layer = 0;
     QList<QPoint> tiles;
     QList<QRect> allocatedBlocks;
+    /** Native tile-history ownership starts after the temporary input setup. */
+    QSharedPointer<const SelectionMask> previous;
+    qsizetype firstEditOperation = -1;
+    QUuid externalWriteUuid;
+    bool cleared = false;
 };
 
 /** Transparency-mask gray and independent selection opacity through a frozen
@@ -151,6 +157,12 @@ public:
     const QSharedPointer<const SelectionCombinationSource> &combinationSource() const { return m_combination; }
     const QSharedPointer<const SelectionTranslationSource> &translationSource() const { return m_translation; }
     const QSharedPointer<const SelectionPaintSource> &paintSource() const { return m_paint; }
+    /** Retains the previous coverage and the operation range of this mask edit.
+     * An external write shares its UUID across affected history versions;
+     * clear records ownership of the previous allocated native blocks.
+     * Pixels and their native storage remain immutable and shared. */
+    QSharedPointer<const SelectionMask> withPaintHistory(const QSharedPointer<const SelectionMask> &previous,
+        qsizetype firstEditOperation, const QUuid &externalWriteUuid = {}, bool cleared = false) const;
     const QSharedPointer<const SelectionMaskTransformSource> &transformSource() const { return m_transform; }
     /** Finite tile coordinates for input initialization and external reads.
      * Painting, translation and arithmetic retain occupied tiles, including

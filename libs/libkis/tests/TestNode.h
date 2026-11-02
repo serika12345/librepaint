@@ -71,6 +71,8 @@ private Q_SLOTS:
     void testSetColorProfile();
     void testPixelData();
     void testRawPixelWritesPreserveFormatHistoryAndFailures();
+    void testMaskPixelWritesKeepNativeBlockHistoryAndKra_data();
+    void testMaskPixelWritesKeepNativeBlockHistoryAndKra();
     void testRawPixelWritesPreserveOtherLayerHistoryAndRedo();
     void testGpuPixelDataPreservesFormatHistoryAndSharedLifetime();
     void testPixelCopiesAndNodesOutliveTheImageOwner();

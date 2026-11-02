@@ -49,6 +49,8 @@ private Q_SLOTS:
     void paintedMasksKeepSparseGpuCoverageAfterClosure();
     void filterNodeProjectionReadersFollowCoverageEdits_data();
     void filterNodeProjectionReadersFollowCoverageEdits();
+    void maskPixelWritesKeepCommandBlocks_data();
+    void maskPixelWritesKeepCommandBlocks();
     void adjustmentMergesFreezeTheOriginalLowerStack_data();
     void adjustmentMergesFreezeTheOriginalLowerStack();
     void sparsePaintedMasksMoveCombineCropAndRecover();
@@ -2763,6 +2765,90 @@ void KisGpuPaintImageTest::filterNodeProjectionReadersFollowCoverageEdits()
         QCOMPARE(image.clearMaskPixels(target, false, invalid), Result::LayerUnavailable);
         QCOMPARE(image.operations().snapshot(), childEdited);
     }
+}
+
+void KisGpuPaintImageTest::maskPixelWritesKeepCommandBlocks_data()
+{ filterNodeProjectionReadersFollowCoverageEdits_data(); }
+
+void KisGpuPaintImageTest::maskPixelWritesKeepCommandBlocks()
+{
+    QFETCH(bool, words); QFETCH(bool, mask);
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage raster;
+    raster.size = {192, 96}; raster.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    RasterLayer paint; paint.uuid = QUuid::createUuid(); raster.layers.append(paint);
+    PaintImage image(execution, raster);
+    RasterLayer effect;
+    effect.uuid = QUuid::createUuid(); effect.name = QStringLiteral("Mask pixel target");
+    effect.kind = mask ? LayerKind::FilterMask : LayerKind::Adjustment;
+    effect.parentUuid = mask ? paint.uuid : QUuid{};
+    effect.blendMode = LayerBlendMode::Copy;
+    FilterDefinition definition; definition.id = "maximize";
+    definition.settings.kind = FilterKind::MaximizeChannel;
+    definition.xml = QByteArrayLiteral("<params version=\"1\"/>"); effect.filter = definition;
+    const auto target = image.addFilterNode(effect, 1); QVERIFY(target);
+    const auto coverage = [&](const Snapshot &version) {
+        for (const auto &layer : version->layers)
+            if (layer.id == target) return editableMaskCoverage(layer, effect.uuid);
+        return SelectionMaskSP{};
+    };
+    const QRect area(0, 0, 128, 64);
+    const auto bytes = [&](const Snapshot &version) {
+        return execution.readSelectionPixels(coverage(version), area, area.width() * area.height()).bytes;
+    };
+    QCOMPARE(image.writeMaskPixels(target, effect.uuid, {8, 8, 1, 1}, QByteArray(1, char(160))), Result::Success);
+    const auto initial = image.operations().snapshot();
+    QByteArray original(area.width() * area.height(), char(255)); original[8 * area.width() + 8] = char(160);
+    const auto initialActual = bytes(initial);
+    if (initialActual != original) {
+        const auto value = coverage(initial);
+        const auto source = value->paintSource()->source;
+        qInfo() << "direct mask defaults" << value->defaultCoverage() << source->layers.first().defaultPixel
+                << "bounds" << value->bounds() << "operations" << source->layers.first().operations.size()
+                << "written alpha" << quint8(initialActual[8 * area.width() + 8]);
+    }
+    QCOMPARE(initialActual, original);
+    QCOMPARE(image.setSelectionRect({4, 4, 8, 8}), Result::Success);
+    QCOMPARE(image.clearMaskPixels(target, true, effect.uuid), Result::Success);
+    QCOMPARE(image.operations().historyAction(image.operations().undoCount()), HistoryAction::ClearPixels);
+    const auto cleared = image.operations().snapshot();
+    QByteArray input(area.width() * area.height(), Qt::Uninitialized);
+    for (qsizetype i = 0; i < input.size(); ++i) input[i] = char((i * 37 + 11) % 256);
+    const auto count = image.operations().undoCount();
+    QSignalSpy changed(&image, &PaintImage::changed);
+    QCOMPARE(image.writeMaskPixels(target, effect.uuid, area, input), Result::Success);
+    QCOMPARE(bytes(image.operations().snapshot()), input);
+    QCOMPARE(image.operations().undoCount(), count); QCOMPARE(changed.count(), 0);
+    QCOMPARE(image.undo(), Result::Success);
+    QByteArray undone = original;
+    for (int y = 0; y < area.height(); ++y)
+        undone.replace(y * area.width() + 64, 64, input.mid(y * area.width() + 64, 64));
+    QCOMPARE(bytes(image.operations().snapshot()), undone);
+    QCOMPARE(image.writeMaskPixels(target, effect.uuid, {40, 40, 1, 1}, QByteArray(1, char(9))), Result::Success);
+    QCOMPARE(image.writeMaskPixels(target, effect.uuid, {90, 20, 1, 1}, QByteArray(1, char(42))), Result::Success);
+    QCOMPARE(image.redo(), Result::Success);
+    input[20 * area.width() + 90] = char(42);
+    QCOMPARE(bytes(image.operations().snapshot()), input);
+    QCOMPARE(bytes(initial), original);
+    auto retained = coverage(image.operations().snapshot()); QVERIFY(retained);
+    image.close();
+    QCOMPARE(image.writeMaskPixels(0, QUuid::createUuid(), {100, 30, 1, 1}, QByteArray(1, char(73)), &retained, raster.size), Result::Success);
+    input[30 * area.width() + 100] = char(73);
+    QCOMPARE(execution.readSelectionPixels(retained, area, input.size()).bytes, input);
+    QVERIFY(coverage(cleared));
+
+    Limits limits; limits.rasterBytes = 32 * 1024;
+    RasterImage small;
+    small.size = {16, 16}; small.layers = {{QStringLiteral("Bounded mask")}};
+    small.layers.first().transparencyMask = SelectionMask::uniform(255);
+    small.layers.first().transparencyMaskUuid = QUuid::createUuid();
+    PaintImage bounded(execution, small, limits);
+    const auto beforeFailure = bounded.operations().snapshot();
+    QCOMPARE(bounded.writeMaskPixels(1, beforeFailure->layers.first().transparencyMaskUuid,
+        {3, 4, 1, 1}, QByteArray(1, char(51))), Result::CapacityExceeded);
+    QCOMPARE(bounded.operations().snapshot(), beforeFailure);
 }
 
 void KisGpuPaintImageTest::adjustmentMergesFreezeTheOriginalLowerStack_data()

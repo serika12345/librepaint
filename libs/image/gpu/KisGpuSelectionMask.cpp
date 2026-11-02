@@ -646,6 +646,23 @@ QSharedPointer<const SelectionMask> SelectionMask::fromPaint(const QSharedPointe
     return result->withAllocatedBlocks(source->allocatedBlocks);
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::withPaintHistory(const SelectionMaskSP &previous,
+    qsizetype firstEditOperation, const QUuid &externalWriteUuid, bool cleared) const
+{
+    if (!m_paint || !previous || firstEditOperation < 0) return {};
+    const auto &layers = m_paint->source->layers;
+    const auto layer = std::find_if(layers.cbegin(), layers.cend(), [&](const auto &value) { return value.id == m_paint->layer; });
+    if (layer == layers.cend() || firstEditOperation > layer->operations.size()) return {};
+    auto source = QSharedPointer<SelectionPaintSource>::create(*m_paint);
+    source->previous = previous;
+    source->firstEditOperation = firstEditOperation;
+    source->externalWriteUuid = externalWriteUuid;
+    source->cleared = cleared;
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(*this));
+    result->m_paint = std::move(source);
+    return result;
+}
+
 QSharedPointer<const SelectionMask> SelectionMask::fromTransform(const QSharedPointer<const SelectionMaskTransformSource> &source,
     const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
 {

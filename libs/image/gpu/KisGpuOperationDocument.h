@@ -1553,6 +1553,14 @@ private:
     };
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
+    struct VersionMaskWrite
+    {
+        Snapshot before;
+        LayerId layer = 0;
+        QUuid maskUuid;
+        SelectionMaskSP coverage;
+    };
+    Result applyMaskVersions(const QList<VersionMaskWrite> &writes);
     /** Preparation retains bounded immutable reference inputs without changing
      * history. GPU admission checks precede adopting the prepared fill. */
     Result prepareRegionFill(LayerId layer, const RegionFillSettings &settings, RegionFillSP *region) const;

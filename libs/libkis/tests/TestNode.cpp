@@ -80,6 +80,15 @@
 #include <kis_group_layer.h>
 #include <kis_layer_utils.h>
 #include <kis_transaction.h>
+#include <kis_adjustment_layer.h>
+#include <kis_filter_mask.h>
+#include <kis_transparency_mask.h>
+#include <kis_pixel_selection.h>
+#include <kis_selection.h>
+#include <kis_undo_stores.h>
+#include <filter/kis_filter_registry.h>
+#include <filter/kis_filter.h>
+#include <filter/kis_filter_configuration.h>
 #include <kis_properties_configuration.h>
 #include <commands/kis_node_opacity_command.h>
 #include <kis_shape_layer.h>
@@ -1373,6 +1382,199 @@ void TestNode::testProjectionPixelData()
         ds >> channelvalue;
         QVERIFY(channelvalue == 0xFF);
     }
+}
+
+void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<QString>("kind");
+    for (bool words : {false, true}) for (const auto *kind : {"filter", "adjustment", "adjustment-child", "paint-child"}) {
+        const QByteArray row = QByteArray(words ? "word-" : "byte-") + kind;
+        QTest::newRow(row.constData()) << words << QString::fromLatin1(kind);
+    }
+}
+
+void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(bool, words); QFETCH(QString, kind);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic); QVERIFY2(execution, qPrintable(diagnostic));
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const auto filter = KisFilterRegistry::instance()->value("maximize"); QVERIFY(filter);
+    const auto configuration = filter->defaultConfiguration(KisGlobalResourcesInterface::instance());
+    const auto uniform = [] {
+        KisSelectionSP selection = new KisSelection;
+        const quint8 white = 255;
+        selection->pixelSelection()->setDefaultPixel(KoColor(&white, selection->pixelSelection()->colorSpace()));
+        return selection;
+    };
+    QScopedPointer<KisDocument> nativeDocument(KisPart::instance()->createDocument());
+    KisImageSP native = new KisImage(nativeDocument->createUndoStore(), 192, 96, cs, "Native mask writes");
+    nativeDocument->setCurrentImage(native);
+    KisPaintLayerSP nativePaint = new KisPaintLayer(native, "Paint", 255);
+    native->addNode(nativePaint, native->root());
+    KisNodeSP nativeTarget;
+    if (kind == QLatin1String("filter")) {
+        KisFilterMaskSP mask = new KisFilterMask(native, "Target");
+        mask->initSelection(uniform(), nativePaint);
+        mask->setFilter(configuration->cloneWithResourcesSnapshot());
+        native->addNode(mask, nativePaint); nativeTarget = mask;
+    } else if (kind.startsWith(QLatin1String("adjustment"))) {
+        KisAdjustmentLayerSP adjustment = new KisAdjustmentLayer(native, "Adjustment", configuration->cloneWithResourcesSnapshot(), uniform());
+        native->addNode(adjustment, native->root(), nativePaint); nativeTarget = adjustment;
+        if (kind == QLatin1String("adjustment-child")) {
+            KisTransparencyMaskSP mask = new KisTransparencyMask(native, "Target");
+            mask->setSelection(uniform()); native->addNode(mask, adjustment); nativeTarget = mask;
+        }
+    } else {
+        KisTransparencyMaskSP mask = new KisTransparencyMask(native, "Target");
+        mask->setSelection(uniform()); native->addNode(mask, nativePaint); nativeTarget = mask;
+    }
+    Gpu::RasterImage raster;
+    raster.size = {192, 96}; raster.format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    raster.colorProfile = cs->profile()->rawData();
+    Gpu::RasterLayer paint; paint.uuid = QUuid::createUuid(); paint.name = "Paint";
+    raster.layers.append(paint);
+    QUuid maskUuid;
+    Gpu::LayerId maskLayer = 1;
+    if (kind == QLatin1String("paint-child")) {
+        auto &layer = raster.layers.first();
+        layer.transparencyMask = Gpu::SelectionMask::uniform(255);
+        layer.transparencyMaskUuid = maskUuid = QUuid::createUuid();
+        layer.transparencyMaskName = "Target";
+    } else {
+        Gpu::RasterLayer effect;
+        effect.uuid = maskUuid = QUuid::createUuid(); effect.name = "Adjustment";
+        effect.kind = kind == QLatin1String("filter") ? Gpu::LayerKind::FilterMask : Gpu::LayerKind::Adjustment;
+        effect.parentUuid = kind == QLatin1String("filter") ? paint.uuid : QUuid{};
+        effect.blendMode = Gpu::LayerBlendMode::Copy;
+        Gpu::FilterDefinition definition;
+        definition.id = "maximize"; definition.settings.kind = Gpu::FilterKind::MaximizeChannel;
+        definition.xml = QByteArrayLiteral("<params version=\"1\"/>"); effect.filter = definition;
+        effect.filterSelection = Gpu::SelectionMask::uniform(255);
+        if (kind == QLatin1String("adjustment-child")) {
+            effect.transparencyMask = Gpu::SelectionMask::uniform(255);
+            effect.transparencyMaskUuid = maskUuid = QUuid::createUuid();
+            effect.transparencyMaskName = "Target";
+        }
+        raster.layers.append(effect); maskLayer = 2;
+    }
+    auto owner = Gpu::PaintImageSP::create(execution, raster);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, "Mask writes", cs));
+    const auto find = [&](KisImageSP image) {
+        KisNodeList pending{image->root()};
+        for (qsizetype i = 0; i < pending.size(); ++i) {
+            auto node = pending[i];
+            if (node->uuid() == maskUuid) return node;
+            for (auto child = node->firstChild(); child; child = child->nextSibling()) pending.append(child);
+        }
+        return KisNodeSP{};
+    };
+    KisNodeSP target = find(document->image()); QVERIFY(target);
+    QScopedPointer<Node> node(Node::createNode(document->image(), target));
+    QScopedPointer<Node> nativeNode(Node::createNode(native, nativeTarget));
+    QCOMPARE(target->paintDevice()->pixelSize(), 1U);
+    const QRect area(-12, -5, 228, 112);
+    const auto pixels = [&](Node *value) { return value->pixelData(area.x(), area.y(), area.width(), area.height()); };
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    QVERIFY(node->setPixelData(QByteArray(1, char(160)), 8, 8, 1, 1));
+    QVERIFY(nativeNode->setPixelData(QByteArray(1, char(160)), 8, 8, 1, 1));
+    const auto initialPixels = pixels(nativeNode.data());
+    QCOMPARE(pixels(node.data()), initialPixels);
+    QCOMPARE(owner->setSelectionRect({4, 4, 8, 8}), Gpu::Result::Success);
+    const auto before = owner->operations().snapshot();
+    KisSelectionSP selected = new KisSelection;
+    selected->pixelSelection()->select({4, 4, 8, 8}, 255);
+    KisTransaction transaction(nativeTarget->paintDevice());
+    nativeTarget->paintDevice()->clearSelection(selected);
+    std::unique_ptr<KUndo2Command> command(transaction.endAndTake()); command->redo();
+    const auto count = owner->operations().undoCount();
+    QCOMPARE(owner->clearMaskPixels(maskLayer, true, maskUuid), Gpu::Result::Success);
+    QCOMPARE(owner->operations().undoCount(), count + 1);
+    const auto painted = owner->operations().snapshot();
+    const auto paintedPixels = pixels(nativeNode.data());
+    QCOMPARE(pixels(node.data()), paintedPixels);
+    QSignalSpy changes(owner.data(), &Gpu::PaintImage::changed);
+    const auto write = [&](QPoint point, quint8 alpha) {
+        return nativeNode->setPixelData(QByteArray(1, char(alpha)), point.x(), point.y(), 1, 1) &&
+            node->setPixelData(QByteArray(1, char(alpha)), point.x(), point.y(), 1, 1);
+    };
+    QVERIFY(write({50, 30}, 17)); // Same native block as the clear, outside its pixel rectangle.
+    QVERIFY(write({90, 20}, 64)); // Independent native block survives navigation.
+    QVERIFY(write({205, -2}, 83)); // Off-canvas Alpha8 retains the same default and storage.
+    QCOMPARE(changes.count(), 0);
+    QCOMPARE(owner->operations().undoCount(), count + 1);
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    command->undo(); document->undoStack()->undo();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    QVERIFY(write({49, 30}, 9));
+    QVERIFY(write({95, 20}, 111));
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    command->redo(); document->undoStack()->redo();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    command->undo(); document->undoStack()->undo();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    command->redo(); document->undoStack()->redo();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    const auto frozen = [&](const Gpu::Snapshot &version) {
+        for (const auto &layer : version->layers) if (layer.id == maskLayer)
+            return execution->readSelectionPixels(Gpu::editableMaskCoverage(layer, maskUuid), area, area.width() * area.height()).bytes;
+        return QByteArray{};
+    };
+    QCOMPARE(frozen(before), initialPixels); QCOMPARE(frozen(painted), paintedPixels);
+    const auto after = owner->operations().snapshot();
+    QVERIFY(!node->setPixelData(QByteArray(1, char(1)), 0, 0, -1, 1));
+    QVERIFY(!node->setPixelData(QByteArray(1, char(1)), 0, 0, 2, 1));
+    QVERIFY(!node->setPixelData(QByteArray(2, char(1)), std::numeric_limits<int>::max(), 0, 2, 1));
+    QVERIFY(node->setPixelData({}, 0, 0, 0, 7));
+    QCOMPARE(owner->operations().snapshot(), after);
+    QVERIFY(nativeNode->remove()); QVERIFY(node->remove());
+    QVERIFY(write({120, 40}, 33));
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    nativeDocument->undoStack()->undo(); document->undoStack()->undo();
+    native->waitForDone();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    nativeDocument->undoStack()->redo(); document->undoStack()->redo();
+    native->waitForDone();
+    QVERIFY(write({145, 40}, 143));
+    nativeDocument->undoStack()->undo(); document->undoStack()->undo();
+    native->waitForDone();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto path = directory.filePath("direct-mask.kra");
+    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QScopedPointer<Node> loaded(Node::createNode(reopened->image(), find(reopened->image()))); QVERIFY(loaded);
+    QCOMPARE(pixels(loaded.data()), pixels(nativeNode.data()));
+    QVERIFY(nativeNode->setPixelData(QByteArray(1, char(222)), 150, 11, 1, 1));
+    QVERIFY(loaded->setPixelData(QByteArray(1, char(222)), 150, 11, 1, 1));
+    QCOMPARE(pixels(loaded.data()), pixels(nativeNode.data()));
+    QVERIFY(reopened->saveAs(directory.filePath("direct-mask-edited.kra"), KisDocument::nativeFormatMimeType(), false));
+    reopened->waitForSavingToComplete();
+    QScopedPointer<Node> copied(node->clone()); QScopedPointer<Node> nativeCopy(nativeNode->clone());
+    QVERIFY(copied); QVERIFY(nativeCopy);
+    const auto sourcePixels = pixels(node.data());
+    QVERIFY(copied->setPixelData(QByteArray(1, char(197)), 151, 31, 1, 1));
+    QVERIFY(nativeCopy->setPixelData(QByteArray(1, char(197)), 151, 31, 1, 1));
+    QCOMPARE(pixels(copied.data()), pixels(nativeCopy.data()));
+    QCOMPARE(pixels(node.data()), sourcePixels);
+    owner->close(); document.reset(); node.reset(); target.clear();
+    nativeNode.reset(); nativeTarget.clear(); nativePaint.clear(); native.clear(); nativeDocument.reset();
+    QVERIFY(copied->setPixelData(QByteArray(1, char(3)), 210, 103, 1, 1));
+    QVERIFY(nativeCopy->setPixelData(QByteArray(1, char(3)), 210, 103, 1, 1));
+    QCOMPARE(pixels(copied.data()), pixels(nativeCopy.data()));
 }
 
 void TestNode::testRawPixelWritesPreserveFormatHistoryAndFailures()

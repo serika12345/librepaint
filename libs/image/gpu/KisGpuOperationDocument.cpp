@@ -337,7 +337,8 @@ HistoryAction OperationDocument::historyAction(int index) const
     // A retained mask-only edit leaves the layer inputs untouched and is
     // identified by its coverage.
     for (int layer = 0; layer < after.size(); ++layer)
-        if (before[layer].transparencyMask != after[layer].transparencyMask) return HistoryAction::PaintStroke;
+        if (before[layer].transparencyMask != after[layer].transparencyMask ||
+            before[layer].filterSelection != after[layer].filterSelection) return HistoryAction::PaintStroke;
     return HistoryAction::ReplacePixels;
 }
 CropSnapshot OperationDocument::historyCrop(int index) const
