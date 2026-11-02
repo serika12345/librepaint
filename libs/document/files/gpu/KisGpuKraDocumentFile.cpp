@@ -9,6 +9,12 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
 #include <KoColorProfile.h>
+#include <KoColor.h>
+#include <KisGpuBlendMode.h>
+#include <KoColorModelStandardIds.h>
+#include <QDomDocument>
+#include <limits>
+#include <algorithm>
 #include <cstring>
 #include <QSaveFile>
 #include <QHash>
@@ -61,6 +67,9 @@ RasterLayer rasterLayerDescription(const Layer &layer)
     value.transparencyMaskName = layer.transparencyMaskName;
     value.transparencyMaskColorLabelIndex = layer.transparencyMaskColorLabelIndex;
     value.transparencyMaskPinnedToTimeline = layer.transparencyMaskPinnedToTimeline;
+    value.transparencyMaskIndex = layer.transparencyMaskIndex;
+    value.filter = layer.filter;
+    value.filterSelection = layer.filterSelection;
     return value;
 }
 ExecutionOutcome readKraMaskPixels(Execution &execution, RasterImage &image, qsizetype maximumBytes, qsizetype *bytes)
@@ -105,12 +114,69 @@ ExecutionOutcome readKraMaskPixels(Execution &execution, RasterImage &image, qsi
         for (auto &layer : image.layers) {
             layer.transparencyMask = externalMask(layer.transparencyMask);
             if (maskRead.code != ExecutionCode::Success) return maskRead;
+            layer.filterSelection = externalMask(layer.filterSelection);
+            if (maskRead.code != ExecutionCode::Success) return maskRead;
         }
         if (bytes) *bytes = rasterBytes;
         return {ExecutionCode::Success, {}};
     } catch (const std::bad_alloc &) {
         return {ExecutionCode::CapacityExceeded, QStringLiteral("KRA selection read allocation failed")};
     }
+}
+
+bool resolveKraFilters(RasterImage &image)
+{
+    if (std::none_of(image.layers.cbegin(), image.layers.cend(), [](const auto &layer) { return bool(layer.filter); })) return true;
+    const auto registry = KoColorSpaceRegistry::instance();
+    const auto depth = image.format == PixelFormat::Rgba16 ? Integer16BitsColorDepthID.id() : Integer8BitsColorDepthID.id();
+    const auto standard = image.format == PixelFormat::Rgba16 ? registry->rgb16() : registry->rgb8();
+    if (!standard) return false;
+    const auto profile = image.colorProfile.isEmpty() ? standard->profile() :
+        registry->createColorProfileFromData(RGBAColorModelID.id(), depth, image.colorProfile);
+    const auto space = profile ? registry->colorSpace(RGBAColorModelID.id(), depth, profile) : nullptr;
+    if (!space) return false;
+    const auto coefficients = space->lumaCoefficients();
+    const auto missing = std::numeric_limits<double>::quiet_NaN();
+    const std::array<double, 3> luma = coefficients.size() < 3 ? std::array<double, 3>{missing, missing, missing} :
+        std::array<double, 3>{coefficients[0], coefficients[1], coefficients[2]};
+    for (auto &layer : image.layers) {
+        if (!layer.filter) continue;
+        auto &filter = *layer.filter;
+        ColorOverlay overlay;
+        if (filter.id == QLatin1String("fastcoloroverlay")) {
+            const auto mode = layerBlendModeFromCompositeOp(filter.parameters.value(QStringLiteral("compositeop"), COMPOSITE_OVER).toString());
+            if (!mode) return false;
+            overlay.blendMode = *mode;
+            overlay.opacity = filter.parameters.value(QStringLiteral("opacity"), 100).toInt();
+            KoColor color(QColor(62, 140, 236), registry->rgb8());
+            if (filter.parameters.contains(QStringLiteral("color"))) {
+                const auto text = filter.parameters.value(QStringLiteral("color")).toString();
+                QDomDocument xml;
+                if (xml.setContent(text)) {
+                    bool ok = false;
+                    color = KoColor::fromXML(xml.documentElement().firstChildElement(), Integer16BitsColorDepthID.id(), &ok);
+                    if (!ok) return false;
+                } else {
+                    const QColor encoded(text);
+                    if (!encoded.isValid()) return false;
+                    color = KoColor(encoded, registry->rgb8());
+                }
+            }
+            color.convertTo(space);
+            if (image.format == PixelFormat::Rgba16) {
+                quint16 bgra[4];
+                std::memcpy(bgra, color.data(), sizeof(bgra));
+                overlay.color = {bgra[2], bgra[1], bgra[0], bgra[3]};
+            } else {
+                const auto *bgra = color.data();
+                overlay.color = {bgra[2], bgra[1], bgra[0], bgra[3]};
+            }
+        }
+        if (!freezeFilterSettings(filter.id, filter.parameters, luma, overlay, image.format, &filter.settings)) return false;
+        filter.resolved = true;
+        if (!filter.isValid(image.format)) return false;
+    }
+    return true;
 }
 
 }
@@ -146,8 +212,11 @@ FileOpenOutcome PaintDocument::adoptKraImpl(Execution &execution, std::shared_pt
     const auto metadata = Kra::RasterCodec::validateMetadata(loaded.description, loaded.files, Private::formatLimits(limits));
     if (metadata.code != Kra::Status::Success) return {fileCode(metadata.code), {}, metadata.diagnostic};
     try {
-        const auto image = retainedExecution ? PaintImageSP::create(retainedExecution, loaded.image, limits) :
-                                              PaintImageSP::create(execution, loaded.image, limits);
+        auto raster = loaded.image;
+        if (!resolveKraFilters(raster))
+            return {FileCode::UnsupportedData, {}, QStringLiteral("KRA filter color or numeric settings are unavailable")};
+        const auto image = retainedExecution ? PaintImageSP::create(retainedExecution, raster, limits) :
+                                              PaintImageSP::create(execution, raster, limits);
         auto document = std::make_unique<PaintDocument>(image, limits);
         document->m_d->path = path;
         document->m_d->description = loaded.description;

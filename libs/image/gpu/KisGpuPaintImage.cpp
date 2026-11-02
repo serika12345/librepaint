@@ -1046,10 +1046,31 @@ LayerId PaintImage::addFilterNode(const RasterLayer &node, qsizetype index, qsiz
     return layer;
 }
 OperationId PaintImage::beginFilterNodeEdit(LayerId existing, const RasterLayer &node,
-                                           qsizetype index, qsizetype effectIndex)
+                                           qsizetype index, qsizetype effectIndex, bool useDocumentSelection)
 {
     if (!onThread()) return {};
-    const auto id = m_d->document->beginFilterNodeEdit(existing, node, index, effectIndex);
+    auto prepared = node;
+    const auto version = m_d->document->snapshot();
+    if (!existing && useDocumentSelection && !version->selection.isEmpty()) {
+        constexpr int limit = RgbaTile::CoordinateLimit;
+        const QRect clip(-limit, -limit, 2 * limit, 2 * limit);
+        auto coverage = version->selectionKind == SelectionKind::Freehand ? version->selectionMask :
+            version->selectionKind == SelectionKind::Ellipse ? SelectionMask::fromEllipse(version->selection, clip) :
+                                                             SelectionMask::fromRectangle(version->selection, clip);
+        if (!coverage) return {};
+        if (version->selectionInverted) {
+            auto operation = QSharedPointer<SelectionCombinationSource>::create();
+            operation->first = coverage; operation->second = SelectionMask::empty();
+            operation->pixels = SelectionCombinationSource::Pixels::InvertTransparency;
+            operation->extent = coverage->bounds(); operation->tiles = coverage->tileCoordinates();
+            const auto result = m_d->execution.evaluateSelectionCombination(operation, &coverage);
+            if (result.code != ExecutionCode::Success) { m_d->lastRequest = result; return {}; }
+        }
+        if (m_d->document->snapshot() != version) return {};
+        prepared.filterSelection = coverage;
+    }
+    const auto id = m_d->document->beginFilterNodeEdit(existing, prepared, index, effectIndex,
+        useDocumentSelection && node.kind == LayerKind::FilterMask);
     if (!id.isNull()) publish(Result::Success);
     return id;
 }

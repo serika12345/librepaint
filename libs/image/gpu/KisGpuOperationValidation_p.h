@@ -164,6 +164,7 @@ bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
     QHash<QUuid, const LayerValue *> identities;
     for (const auto &layer : layers) {
         if (layer.kind > LayerKind::FilterMask || layer.transparencyMaskIndex < 0) return false;
+        if (layer.kind == LayerKind::FilterMask && (layer.parentUuid.isNull() || layer.transparencyMask)) return false;
         if (isFilterNode(layer.kind) != bool(layer.filter)) return false;
         if (layer.filter && layer.filter->resolved && !layer.filter->isValid(format)) return false;
         if (layer.filterSelection && layer.filterSelection->byteCount() > SelectionMask::MaximumBytes) return false;

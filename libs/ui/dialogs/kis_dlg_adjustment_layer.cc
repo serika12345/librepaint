@@ -15,6 +15,9 @@
 #include <QGridLayout>
 #include <QPixmap>
 #include <QDialogButtonBox>
+#include <QLabel>
+#include <QPushButton>
+#include <filter/kis_filter_registry.h>
 
 #include "KoDialog.h"
 #include "filter/kis_filter.h"
@@ -50,6 +53,15 @@ KisDlgAdjustmentLayer::KisDlgAdjustmentLayer(KisNodeSP node,
     QWidget * page = new QWidget(this);
     wdgFilterNodeCreation.setupUi(page);
     setMainWidget(page);
+    if (!m_nodeFilterInterface) {
+        setObjectName(QStringLiteral("gpuFilterNodeDialog"));
+        m_previewDiagnostic = new QLabel(page);
+        m_previewDiagnostic->setObjectName(QStringLiteral("filterPreviewDiagnostic"));
+        m_previewDiagnostic->setWordWrap(true);
+        m_previewDiagnostic->hide();
+        page->layout()->addWidget(m_previewDiagnostic);
+        wdgFilterNodeCreation.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+    }
 
     wdgFilterNodeCreation.filterGalleryToggle->setChecked(wdgFilterNodeCreation.filterSelector->isFilterGalleryVisible());
     wdgFilterNodeCreation.filterGalleryToggle->setIcon(KisIconUtils::loadIcon("sidebaricon"));
@@ -84,14 +96,33 @@ void KisDlgAdjustmentLayer::slotNameChanged(const QString &text)
 {
     Q_UNUSED(text);
     m_customName = !text.isEmpty();
-    enableButtonOk(m_currentFilter);
+    if (m_nodeFilterInterface) enableButtonOk(m_currentFilter);
+    else Q_EMIT configurationPreviewRequested(m_currentFilter, layerName());
+}
+
+void KisDlgAdjustmentLayer::setInitialConfiguration(const KisFilterConfigurationSP &configuration, bool preserveName)
+{
+    if (!configuration) return;
+    m_customName = preserveName;
+    const auto filter = KisFilterRegistry::instance()->value(configuration->name());
+    if (!filter) return;
+    wdgFilterNodeCreation.filterSelector->setFilter(filter, configuration);
+    slotConfigChanged();
+}
+
+void KisDlgAdjustmentLayer::setPreviewAccepted(bool accepted, const QString &diagnostic)
+{
+    if (m_nodeFilterInterface) return;
+    wdgFilterNodeCreation.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(accepted);
+    if (m_previewDiagnostic) {
+        m_previewDiagnostic->setText(diagnostic);
+        m_previewDiagnostic->setVisible(!diagnostic.isEmpty());
+    }
 }
 
 KisFilterConfigurationSP  KisDlgAdjustmentLayer::filterConfiguration() const
 {
     KisFilterConfigurationSP config = wdgFilterNodeCreation.filterSelector->configuration();
-
-    Q_ASSERT(config);
 
     return config;
 }
@@ -104,19 +135,24 @@ QString KisDlgAdjustmentLayer::layerName() const
 void KisDlgAdjustmentLayer::slotConfigChanged()
 {
     m_currentFilter = filterConfiguration();
-
-    enableButtonOk(m_currentFilter);
-
-    if (m_currentFilter) {
+    if (m_nodeFilterInterface) enableButtonOk(m_currentFilter);
+    if (m_nodeFilterInterface && m_currentFilter)
         m_nodeFilterInterface->setFilter(m_currentFilter->cloneWithResourcesSnapshot());
-        if (!m_customName) {
-            wdgFilterNodeCreation.layerName->blockSignals(true);
-            wdgFilterNodeCreation.layerName->setText(m_layerName + " (" + wdgFilterNodeCreation.filterSelector->currentFilter()->name() + ")");
-            wdgFilterNodeCreation.layerName->blockSignals(false);
-        }
+    if (m_currentFilter && !m_customName) {
+        wdgFilterNodeCreation.layerName->blockSignals(true);
+        wdgFilterNodeCreation.layerName->setText(m_layerName + " (" + wdgFilterNodeCreation.filterSelector->currentFilter()->name() + ")");
+        wdgFilterNodeCreation.layerName->blockSignals(false);
     }
+    if (!m_nodeFilterInterface) {
+        Q_EMIT configurationPreviewRequested(m_currentFilter, layerName());
+        return;
+    }
+    if (m_node) m_node->setDirty();
+}
 
-    m_node->setDirty();
+void KisDlgAdjustmentLayer::requestPreview()
+{
+    slotConfigChanged();
 }
 
 void KisDlgAdjustmentLayer::adjustSize()

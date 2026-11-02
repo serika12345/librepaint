@@ -1934,6 +1934,7 @@ set(kritaui_LIB_SRCS
     document/kis_image_manager.cc
     canvas/kis_image_view_converter.cpp
     nodes/kis_layer_manager.cc
+    nodes/KisGpuFilterNodeEdit.cpp
     nodes/kis_mask_manager.cc
     nodes/kis_node_manager.cpp
     nodes/kis_node_selection_adapter.cpp

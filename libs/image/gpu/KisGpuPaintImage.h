@@ -262,7 +262,7 @@ public:
     Result restoreLayerProperties(const Snapshot &before, const QList<LayerPropertiesSelection> &selection);
     LayerId addFilterNode(const RasterLayer &node, qsizetype index, qsizetype effectIndex = -1);
     OperationId beginFilterNodeEdit(LayerId existing, const RasterLayer &node, qsizetype index,
-                                    qsizetype effectIndex = -1);
+                                    qsizetype effectIndex = -1, bool useDocumentSelection = false);
     Result updateFilterNodeEdit(OperationId id, const FilterDefinition &filter, const QString &name);
     Result commitFilterNodeEdit(OperationId id);
     Result cancelFilterNodeEdit(OperationId id);

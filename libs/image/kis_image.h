@@ -46,7 +46,7 @@ class KisProofingConfiguration;
 class KisPaintDevice;
 class KisImageGlobalSelectionManagementInterface;
 struct KisGpuImageViewState;
-namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; class DocumentVersion; struct HsvAdjustment; struct ColorOverlay; enum class FilterKind : quint8; struct LayerMergeRequest;
+namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; class DocumentVersion; struct HsvAdjustment; struct ColorOverlay; enum class FilterKind : quint8; struct LayerMergeRequest; struct OperationId; struct RasterLayer;
 using Snapshot = QSharedPointer<const DocumentVersion>;
 enum class SelectionKind : quint8;
 enum class SelectionCombination : quint8;
@@ -165,6 +165,11 @@ public:
      * group. Returns the adopted node, or null on invalid input or capacity.
      */
     KisNodeSP addGpuPaintLayer(const QString &name, KisNodeSP parent, qsizetype index, bool pinnedToTimeline);
+    /** Previews a new filter node at a bottom-to-top child position, or edits
+     * an attached filter node. The caller commits/cancels through gpuImage().
+     * Rejection returns a null operation and preserves the tree and history. */
+    LibrePaint::Image::Gpu::OperationId beginGpuFilterNodeEdit(KisNodeSP existing,
+        const LibrePaint::Image::Gpu::RasterLayer &properties, KisNodeSP parent, qsizetype index);
     /** Adopts a detached paint layer at a bottom-to-top child index as one GPU
      * history entry. Preserves the node and its paint device. Invalid or
      * over-budget input returns false before modifying the image. A null

@@ -5235,6 +5235,17 @@ void KisGpuOperationDocumentTest::filterNodePreviewKeepsOneHistoryAndEditableCon
     invalid.xml = QByteArray(FilterDefinition::MaximumXmlBytes + 1, 'x');
     QCOMPARE(document.setFilterDefinition(layer, invalid), Result::InvalidInput);
     QCOMPARE(document.snapshot(), stable);
+    if (mask) {
+        QCOMPARE(document.addTransparencyMask(1), Result::Success);
+        QCOMPARE(document.snapshot()->layers.first().transparencyMaskIndex, 1);
+        const auto withMask = document.snapshot();
+        QCOMPARE(document.removeLayer(layer), Result::Success);
+        QCOMPARE(document.snapshot()->layers.first().transparencyMaskIndex, 0);
+        QCOMPARE(document.snapshot()->layers.size(), 1);
+        QCOMPARE(document.snapshot()->layers.first().transparencyMask, withMask->layers.first().transparencyMask);
+        QCOMPARE(document.undo(), Result::Success);
+        QCOMPARE(document.snapshot(), withMask);
+    }
     const auto editing = document.beginFilterNodeEdit(layer, {}, 0);
     QVERIFY(!editing.isNull());
     document.close();

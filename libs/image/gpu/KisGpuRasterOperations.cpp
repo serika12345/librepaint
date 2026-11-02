@@ -10,8 +10,8 @@
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
-bool validRasterLayerHierarchy(const QList<RasterLayer> &layers)
-{ return Detail::validLayerHierarchy(layers, PixelFormat::Rgba8); }
+bool validRasterLayerHierarchy(const QList<RasterLayer> &layers, PixelFormat format)
+{ return Detail::validLayerHierarchy(layers, format); }
 
 OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     : m_limits(limits), m_identity(QUuid::createUuid())

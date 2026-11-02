@@ -5,6 +5,7 @@
  */
 
 #include "nodes/kis_mask_manager.h"
+#include "nodes/KisGpuFilterNodeEdit.h"
 #include <gpu/KisGpuPaintImage.h>
 #include <klocalizedstring.h>
 
@@ -250,6 +251,17 @@ KisNodeSP KisMaskManager::createTransparencyMask(KisNodeSP activeNode, KisPaintD
 KisNodeSP KisMaskManager::createFilterMask(KisNodeSP activeNode, KisPaintDeviceSP copyFrom, bool quiet, bool convertActiveNode)
 {
     if (!m_view->nodeManager()->canModifyLayer(activeNode)) return 0;
+    if (m_view->image()->gpuImage()) {
+        if (copyFrom || convertActiveNode || !activeNode) return {};
+        KisFilterMaskSP placeholder = new KisFilterMask(m_view->image());
+        KisNodeSP parent, above;
+        adjustMaskPosition(placeholder, activeNode, false, parent, above);
+        const auto initial = quiet ? KisFilterRegistry::instance()->values().first()->defaultConfiguration(
+            KisGlobalResourcesInterface::instance()) : KisFilterConfigurationSP{};
+        return createGpuFilterNode(m_view, parent, above ? parent->index(above) + 1 : 0,
+            LibrePaint::Image::Gpu::LayerKind::FilterMask,
+            createMaskNameCommon(parent, "KisFilterMask", i18n("Filter Mask")), initial, quiet);
+    }
 
     KisFilterMaskSP mask = new KisFilterMask(m_view->image(), "");
     createMaskCommon(mask, activeNode, copyFrom, kundo2_i18n("Add Filter Mask"), "KisFilterMask", i18n("Filter Mask"), false, convertActiveNode);
@@ -329,6 +341,11 @@ KisNodeSP KisMaskManager::createFastColorOverlayMask(KisNodeSP activeNode)
     KisFilterConfigurationSP filter =
         KisFilterRegistry::instance()->value("fastcoloroverlay")->defaultConfiguration(KisGlobalResourcesInterface::instance());
     if (!filter) return nullptr;
+    if (m_view->image()->gpuImage()) {
+        return createGpuFilterNode(m_view, activeLayer, activeLayer->childCount(),
+            LibrePaint::Image::Gpu::LayerKind::FilterMask,
+            createMaskNameCommon(activeLayer, "KisFilterMask", i18n("Color Overlay Mask")), filter, true);
+    }
 
     m_commandsAdapter->beginMacro(kundo2_i18n("Add Fast Color Overlay"));
 
@@ -363,6 +380,10 @@ void KisMaskManager::maskProperties()
     if (!m_view->nodeManager()->canModifyLayer(activeMask())) return;
 
     if (activeMask()->inherits("KisFilterMask")) {
+        if (m_view->image()->gpuImage()) {
+            editGpuFilterNode(m_view, activeMask());
+            return;
+        }
         KisFilterMask *mask = static_cast<KisFilterMask*>(activeMask().data());
 
         KisLayerSP layer = qobject_cast<KisLayer*>(mask->parent().data());

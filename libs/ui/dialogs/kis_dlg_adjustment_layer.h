@@ -12,6 +12,7 @@
 class KisFilterConfiguration;
 class KisNodeFilterInterface;
 class KisViewManager;
+class QLabel;
 #include "kis_types.h"
 #include "ui_wdgfilternodecreation.h"
 
@@ -46,6 +47,13 @@ public:
     ~KisDlgAdjustmentLayer() override;
     KisFilterConfigurationSP  filterConfiguration() const;
     QString layerName() const;
+    /** A null native node/interface delegates preview to the document owner. */
+    void setInitialConfiguration(const KisFilterConfigurationSP &configuration, bool preserveName = false);
+    void setPreviewAccepted(bool accepted, const QString &diagnostic = {});
+    void requestPreview();
+
+Q_SIGNALS:
+    void configurationPreviewRequested(const KisFilterConfigurationSP &configuration, const QString &name);
 
 public Q_SLOTS:
     void adjustSize();
@@ -62,6 +70,7 @@ private:
     KisFilterConfigurationSP m_currentFilter;
     bool m_customName;
     QString m_layerName;
+    QLabel *m_previewDiagnostic = nullptr;
 
 };
 

@@ -80,6 +80,8 @@ Outcome readArchive(QIODevice &source, Limits limits, QMap<QString, QByteArray> 
             continue;
         }
         if (info.name == QLatin1String("maindoc.xml") && info.uncompressedSize > quint64(limits.xmlBytes)) return capacity();
+        if (info.name.endsWith(QLatin1String(".filterconfig")) &&
+            info.uncompressedSize > quint64(qMin(limits.xmlBytes, FilterDefinition::MaximumXmlBytes))) return capacity();
         QuaZipFile file(&archive);
         if (!file.open(QIODevice::ReadOnly)) return invalid(QStringLiteral("Unreadable KRA entry"));
         QByteArray bytes;
@@ -191,9 +193,11 @@ Outcome transparencyMaskElement(const QDomElement &layer, QDomElement &mask)
 {
     mask = {};
     const auto append = [&](const QDomElement &child) -> Outcome {
+        if (child.tagName() == QLatin1String("mask") &&
+            child.attribute(QStringLiteral("nodetype")) == QLatin1String("filtermask")) return {Status::Success, {}};
         if (child.tagName() != QLatin1String("mask") ||
             child.attribute(QStringLiteral("nodetype")) != QLatin1String("transparencymask"))
-            return unsupported(QStringLiteral("KRA layers support one transparency mask child"));
+            return unsupported(QStringLiteral("Unsupported KRA effect mask child"));
         if (!mask.isNull())
             return unsupported(QStringLiteral("KRA layers support only one transparency mask"));
         mask = child;
@@ -231,8 +235,10 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
 {
     const auto type = element.attribute(QStringLiteral("nodetype"));
     const bool group = type == QLatin1String("grouplayer");
-    if (element.tagName() != QLatin1String("layer") || (!group && type != QLatin1String("paintlayer")) ||
-        (element.attribute(QStringLiteral("compositeop")) != QLatin1String("normal") &&
+    const bool filterMask = type == QLatin1String("filtermask");
+    if ((filterMask ? element.tagName() != QLatin1String("mask") : element.tagName() != QLatin1String("layer")) ||
+        (!group && !filterMask && type != QLatin1String("paintlayer") && type != QLatin1String("adjustmentlayer")) ||
+        (!filterMask && element.attribute(QStringLiteral("compositeop")) != QLatin1String("normal") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("multiply") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("screen") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("darken") &&
@@ -363,7 +369,7 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("greater") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("luminosity_sai") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("copy")) ||
-        element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format) ||
+        (!filterMask && element.attribute(QStringLiteral("colorspacename"), colorSpaceName(format)) != colorSpaceName(format)) ||
         element.hasAttribute(QStringLiteral("keyframes")))
         return unsupported(QStringLiteral("KRA requires matching RGB paint layers and groups with a supported composite mode"));
     QDomElement mask;
@@ -403,12 +409,10 @@ Outcome collectLayerElements(const QDomElement &layers, qsizetype maximum, QList
     const auto append = [&](const QDomElement &container) {
         const bool root = container.parentNode().toElement().tagName() == QLatin1String("IMAGE");
         for (auto child = container.lastChildElement(); !child.isNull(); child = child.previousSiblingElement()) {
-            // The root selection mask is a document value, not a paint layer.
-            if (root && child.tagName() == QLatin1String("mask") &&
-                child.attribute(QStringLiteral("nodetype")) == QLatin1String("selectionmask")) continue;
-            if (!root && container.parentNode().toElement().attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") &&
-                child.tagName() == QLatin1String("mask") &&
-                child.attribute(QStringLiteral("nodetype")) == QLatin1String("transparencymask")) continue;
+            const auto type = child.attribute(QStringLiteral("nodetype"));
+            if (child.tagName() == QLatin1String("mask") &&
+                ((root && type == QLatin1String("selectionmask")) ||
+                 (!root && type == QLatin1String("transparencymask")))) continue;
             if (pending.size() + elements.size() >= maximum) return false;
             pending.append(child);
         }
@@ -418,11 +422,78 @@ Outcome collectLayerElements(const QDomElement &layers, qsizetype maximum, QList
     while (!pending.isEmpty()) {
         const auto element = pending.takeLast();
         elements.append(element);
-        if (element.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") &&
-            !append(element.firstChildElement(QStringLiteral("layers")))) return capacity();
+        for (auto child = element.lastChildElement(); !child.isNull(); child = child.previousSiblingElement()) {
+            if (child.tagName() == QLatin1String("layers") || child.tagName() == QLatin1String("masks")) {
+                if (!append(child)) return capacity();
+            } else if (child.attribute(QStringLiteral("nodetype")) != QLatin1String("transparencymask")) {
+                if (pending.size() + elements.size() >= maximum) return capacity();
+                pending.append(child);
+            }
+        }
     }
     return {Status::Success, {}};
 }
+
+Outcome readFilterDefinition(const QDomElement &element, const QByteArray &bytes, PixelFormat format,
+                             FilterDefinition &definition)
+{
+    if (bytes.isEmpty()) return invalid(QStringLiteral("Missing KRA filter configuration"));
+    if (bytes.size() > FilterDefinition::MaximumXmlBytes) return capacity();
+    QDomDocument xml;
+    if (!xml.setContent(bytes)) return invalid(QStringLiteral("Invalid KRA filter configuration XML"));
+    const auto root = xml.documentElement();
+    const bool legacy = root.tagName() == QLatin1String("filterconfig");
+    if (!legacy && root.tagName() != QLatin1String("params"))
+        return invalid(QStringLiteral("Invalid KRA filter configuration root"));
+    definition.id = legacy ? root.attribute(QStringLiteral("name")) : element.attribute(QStringLiteral("filtername"));
+    if (!integer(root, QStringLiteral("version"), definition.version,
+                 element.attribute(QStringLiteral("filterversion"), QStringLiteral("0"))) || definition.version < 0)
+        return invalid(QStringLiteral("Invalid KRA filter version"));
+    definition.xml = bytes;
+    const auto parameterTag = legacy ? QStringLiteral("property") : QStringLiteral("param");
+    for (auto parameter = root.firstChildElement(parameterTag); !parameter.isNull();
+         parameter = parameter.nextSiblingElement(parameterTag)) {
+        const auto name = parameter.attribute(QStringLiteral("name"));
+        if (name.isEmpty() || !validName(name) || definition.parameters.contains(name) || definition.parameters.size() >= 256)
+            return invalid(QStringLiteral("Invalid KRA filter parameter"));
+        if (!legacy && parameter.attribute(QStringLiteral("type")) == QLatin1String("bytearray")) {
+            const auto decoded = QByteArray::fromBase64Encoding(parameter.text().toLatin1(), QByteArray::AbortOnBase64DecodingErrors);
+            if (!decoded) return invalid(QStringLiteral("Invalid KRA filter byte array"));
+            definition.parameters.insert(name, decoded.decoded);
+        } else definition.parameters.insert(name, parameter.text());
+    }
+    // Format parsing retains color definitions as text. Document adoption
+    // resolves their color space and freezes the executable numeric settings.
+    if (!freezeFilterSettings(definition.id, definition.parameters, {0.2126, 0.7152, 0.0722}, {}, format, &definition.settings))
+        return unsupported(QStringLiteral("Unsupported KRA filter or precision"));
+    definition.resolved = false;
+    return {Status::Success, {}};
+}
+
+Outcome readFilterSelection(const QMap<QString, QByteArray> &files, const QString &path, QPoint offset,
+                            QSize size, qsizetype maximumBytes, SelectionMaskSP &selection)
+{
+    for (auto file = files.lowerBound(path + QStringLiteral(".shapeselection")); file != files.cend() &&
+         file.key().startsWith(path + QStringLiteral(".shapeselection")); ++file)
+        return unsupported(QStringLiteral("KRA vector filter selections require shape-mask support"));
+    const QString pixelsPath = path + QStringLiteral(".pixelselection");
+    const QString defaultPath = pixelsPath + QStringLiteral(".defaultpixel");
+    const QString legacyDefaultPath = path + QStringLiteral(".defaultpixel");
+    if (files.contains(defaultPath) && files.contains(legacyDefaultPath) && files.value(defaultPath) != files.value(legacyDefaultPath))
+        return invalid(QStringLiteral("Conflicting KRA filter selection defaults"));
+    const bool hasDefault = files.contains(defaultPath) || files.contains(legacyDefaultPath);
+    quint8 defaultPixel = 255;
+    if (hasDefault) {
+        const auto bytes = files.value(files.contains(defaultPath) ? defaultPath : legacyDefaultPath);
+        if (bytes.size() != 1) return invalid(QStringLiteral("Invalid KRA filter selection default"));
+        defaultPixel = quint8(bytes.front());
+    } else if (files.contains(pixelsPath)) defaultPixel = 0;
+    if (files.contains(pixelsPath))
+        return Detail::readTransparencyMask(files.value(pixelsPath), offset, QRect(QPoint(), size), maximumBytes, selection, defaultPixel);
+    selection = SelectionMask::uniform(defaultPixel);
+    return selection ? Outcome{Status::Success, {}} : capacity();
+}
+
 bool srgbSpace(const QColorSpace &space)
 {
     if (!space.isValid() || space.primaries() != QColorSpace::Primaries::SRgb) return false;
@@ -669,14 +740,14 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
     QMap<QUuid, QDomElement> prepared;
     for (qsizetype i = value.layers.size(); i-- > 0;) {
         const auto &layer = value.layers[i];
-        if (layer.kind == LayerKind::Group && (!layer.tiles.isEmpty() ||
+        if (layer.kind != LayerKind::Paint && (!layer.tiles.isEmpty() ||
             layer.defaultPixel != Image::Gpu::RgbaPixel{} || layer.channelWriteMask != 15))
-            return invalid(QStringLiteral("KRA groups derive their pixels from children"));
+            return invalid(QStringLiteral("KRA non-paint nodes cannot contain raster layer pixels"));
         if (layer.uuid.isNull() || uuids.contains(layer.uuid) || !validName(layer.name)) return invalid(QStringLiteral("Invalid KRA layer identity or name"));
         uuids.insert(layer.uuid);
         QDomElement element = original.value(layer.uuid);
         if (element.isNull()) {
-            element = xml.createElement(QStringLiteral("layer"));
+            element = xml.createElement(layer.kind == LayerKind::FilterMask ? QStringLiteral("mask") : QStringLiteral("layer"));
             QString filename;
             for (int suffix = 2; filename.isEmpty(); ++suffix) {
                 const auto candidate = QStringLiteral("layer%1").arg(suffix);
@@ -692,7 +763,9 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         QDomElement maskElement;
         result = transparencyMaskElement(element, maskElement);
         if (result.code != Status::Success) return result;
-        element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") : QStringLiteral("grouplayer"));
+        element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") :
+            layer.kind == LayerKind::Group ? QStringLiteral("grouplayer") :
+            layer.kind == LayerKind::Adjustment ? QStringLiteral("adjustmentlayer") : QStringLiteral("filtermask"));
         const auto path = folder + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename"));
         const QPoint offset = layer.position;
         element.setAttribute(QStringLiteral("x"), offset.x());
@@ -707,7 +780,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             const auto children = element.firstChildElement(QStringLiteral("layers"));
             if (!children.isNull()) element.removeChild(children);
             element.removeAttribute(QStringLiteral("passthrough"));
-        } else {
+        } else if (layer.kind == LayerKind::Group) {
             files.remove(path);
             files.remove(path + QStringLiteral(".defaultpixel"));
             auto children = element.firstChildElement(QStringLiteral("layers"));
@@ -719,6 +792,40 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             element.setAttribute(QStringLiteral("passthrough"), layer.passThrough ? QStringLiteral("1") : QStringLiteral("0"));
             if (!element.hasAttribute(QStringLiteral("profile")))
                 element.setAttribute(QStringLiteral("profile"), image.attribute(QStringLiteral("profile")));
+        } else {
+            files.remove(path);
+            element.removeAttribute(QStringLiteral("passthrough"));
+        }
+        if (isFilterNode(layer.kind)) {
+            if (!layer.filter || !layer.filterSelection) return invalid(QStringLiteral("Missing KRA filter settings or selection"));
+            element.setAttribute(QStringLiteral("filtername"), layer.filter->id);
+            element.setAttribute(QStringLiteral("filterversion"), layer.filter->version);
+            FilterDefinition parsed;
+            result = readFilterDefinition(element, layer.filter->xml, value.format, parsed);
+            if (result.code != Status::Success) return result;
+            if (parsed.id != layer.filter->id || parsed.version != layer.filter->version)
+                return invalid(QStringLiteral("Inconsistent KRA filter configuration"));
+            element.setAttribute(QStringLiteral("filtername"), layer.filter->id);
+            element.setAttribute(QStringLiteral("filterversion"), layer.filter->version);
+            files.insert(path + QStringLiteral(".filterconfig"), layer.filter->xml);
+            QByteArray pixels;
+            QPoint selectionOffset;
+            result = Detail::writeTransparencyMask(layer.filterSelection, QRect(QPoint(), value.size),
+                limits.rasterBytes, pixels, selectionOffset);
+            if (result.code != Status::Success) return result;
+            // The mask device carries its own offset; the layer position is
+            // the same native coordinate stored by adjustment/filter nodes.
+            element.setAttribute(QStringLiteral("x"), selectionOffset.x());
+            element.setAttribute(QStringLiteral("y"), selectionOffset.y());
+            files.insert(path + QStringLiteral(".pixelselection"), std::move(pixels));
+            files.insert(path + QStringLiteral(".pixelselection.defaultpixel"), QByteArray(1, char(layer.filterSelection->defaultCoverage())));
+            files.remove(path + QStringLiteral(".defaultpixel"));
+        }
+        auto masksContainer = element.firstChildElement(QStringLiteral("masks"));
+        for (auto mask = masksContainer.firstChildElement(); !mask.isNull();) {
+            const auto next = mask.nextSiblingElement();
+            if (mask.attribute(QStringLiteral("nodetype")) == QLatin1String("filtermask")) masksContainer.removeChild(mask);
+            mask = next;
         }
         {
             QString maskFilename = maskElement.isNull() ? QString() : maskElement.attribute(QStringLiteral("filename"));
@@ -950,13 +1057,36 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
     for (qsizetype i = value.layers.size(); i-- > 0;) {
         const auto &layer = value.layers[i];
         if (layer.parentUuid.isNull()) layers.appendChild(prepared.value(layer.uuid));
-        else prepared.value(layer.parentUuid).firstChildElement(QStringLiteral("layers")).appendChild(prepared.value(layer.uuid));
+        else {
+            auto parent = prepared.value(layer.parentUuid);
+            const auto container = parent.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") ?
+                QStringLiteral("layers") : QStringLiteral("masks");
+            auto children = parent.firstChildElement(container);
+            if (children.isNull()) { children = xml.createElement(container); parent.appendChild(children); }
+            children.appendChild(prepared.value(layer.uuid));
+        }
+    }
+    for (const auto &layer : value.layers) {
+        if (!layer.transparencyMask) continue;
+        QDomElement mask;
+        result = transparencyMaskElement(prepared.value(layer.uuid), mask);
+        if (result.code != Status::Success) return result;
+        auto container = mask.parentNode();
+        QList<QDomElement> filters;
+        for (auto child = container.firstChildElement(); !child.isNull(); child = child.nextSiblingElement())
+            if (child.attribute(QStringLiteral("nodetype")) == QLatin1String("filtermask")) filters.prepend(child);
+        container.removeChild(mask);
+        if (layer.transparencyMaskIndex == 0) container.appendChild(mask);
+        else container.insertBefore(mask, filters[layer.transparencyMaskIndex - 1]);
     }
     for (auto old = original.cbegin(); old != original.cend(); ++old) {
         if (uuids.contains(old.key())) continue;
         const auto path = folder + QStringLiteral("/layers/") + old.value().attribute(QStringLiteral("filename"));
         files.remove(path); files.remove(path + QStringLiteral(".defaultpixel")); files.remove(path + QStringLiteral(".icc"));
         files.remove(path + QStringLiteral(".xmp.metadata"));
+        files.remove(path + QStringLiteral(".filterconfig"));
+        files.remove(path + QStringLiteral(".pixelselection"));
+        files.remove(path + QStringLiteral(".pixelselection.defaultpixel"));
         QDomElement oldMask;
         if (transparencyMaskElement(old.value(), oldMask).code == Status::Success && !oldMask.isNull()) {
             const auto maskPath = folder + QStringLiteral("/layers/") + oldMask.attribute(QStringLiteral("filename"));
@@ -1200,7 +1330,7 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         if (value.size.width() <= 0 || value.size.height() <= 0 || value.size.width() > RgbaTile::CoordinateLimit ||
             value.size.height() > RgbaTile::CoordinateLimit || value.activeLayer < 0 ||
             (value.layers.isEmpty() ? value.activeLayer != 0 : value.activeLayer >= value.layers.size()) ||
-            !validRasterLayerHierarchy(value.layers))
+            !validRasterLayerHierarchy(value.layers, value.format))
             return invalid(QStringLiteral("Invalid KRA image structure for layer metadata"));
         if (value.layers.size() > limits.layers) return capacity();
         QMap<QUuid, QString> layerFiles;
@@ -1423,7 +1553,10 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         result = layerDescription(element, offset, imageFormat(image));
         if (result.code != Status::Success) return fail(result);
         RasterLayer layer;
-        layer.kind = element.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") ? LayerKind::Group : LayerKind::Paint;
+        const auto nodeType = element.attribute(QStringLiteral("nodetype"));
+        layer.kind = nodeType == QLatin1String("grouplayer") ? LayerKind::Group :
+            nodeType == QLatin1String("adjustmentlayer") ? LayerKind::Adjustment :
+            nodeType == QLatin1String("filtermask") ? LayerKind::FilterMask : LayerKind::Paint;
         layer.passThrough = element.attribute(QStringLiteral("passthrough"), QStringLiteral("0")) == QLatin1String("1");
         layer.blendMode = element.attribute(QStringLiteral("compositeop")) == QLatin1String("multiply") ? LayerBlendMode::Multiply :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("screen") ? LayerBlendMode::Screen :
@@ -1556,7 +1689,9 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("luminosity_sai") ? LayerBlendMode::LuminositySai :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("copy") ? LayerBlendMode::Copy :
             LayerBlendMode::Normal;
-        const auto parent = element.parentNode().parentNode().toElement();
+        const auto directParent = element.parentNode().toElement();
+        const auto parent = directParent.tagName() == QLatin1String("layer") ? directParent :
+            directParent.parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;
         layer.name = element.attribute(QStringLiteral("name"));
@@ -1602,6 +1737,23 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                                        layer.tiles, &layer.writtenAreas);
             if (result.code != Status::Success) return fail(result);
             rasterBytes += layer.tiles.size() * RgbaTile::byteCount(document.image.format);
+        }
+        if (isFilterNode(layer.kind)) {
+            FilterDefinition filter;
+            result = readFilterDefinition(element, document.files.value(path + QStringLiteral(".filterconfig")),
+                document.image.format, filter);
+            if (result.code != Status::Success) return fail(result);
+            if (filter.byteCount() > limits.rasterBytes - rasterBytes) return fail(capacity());
+            rasterBytes += filter.byteCount();
+            layer.filter = std::move(filter);
+            result = readFilterSelection(document.files, path, offset, document.image.size,
+                limits.rasterBytes - rasterBytes, layer.filterSelection);
+            if (result.code != Status::Success) return fail(result);
+            if (layer.filterSelection->byteCount() > limits.rasterBytes - rasterBytes) return fail(capacity());
+            rasterBytes += layer.filterSelection->byteCount();
+            for (const auto &suffix : {QStringLiteral(".filterconfig"), QStringLiteral(".pixelselection"),
+                                      QStringLiteral(".pixelselection.defaultpixel"), QStringLiteral(".defaultpixel")})
+                document.files.remove(path + suffix);
         }
         QDomElement maskElement;
         result = transparencyMaskElement(element, maskElement);
@@ -1655,6 +1807,9 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             layer.transparencyMask = transparencyMask;
             layer.transparencyMaskVisible = maskVisible == QLatin1String("1");
             layer.transparencyMaskLocked = maskLocked == QLatin1String("1");
+            for (auto child = maskElement.parentNode().lastChildElement(); !child.isNull() && child != maskElement;
+                 child = child.previousSiblingElement())
+                if (child.attribute(QStringLiteral("nodetype")) == QLatin1String("filtermask")) ++layer.transparencyMaskIndex;
             document.files.remove(maskPath + QStringLiteral(".pixelselection"));
             document.files.remove(defaultPath);
             document.files.remove(maskPath + QStringLiteral(".defaultpixel"));
@@ -1669,7 +1824,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         }
         document.image.layers.prepend(std::move(layer));
     }
-    if (!validRasterLayerHierarchy(document.image.layers)) return fail(invalid(QStringLiteral("Invalid KRA layer hierarchy")));
+    if (!validRasterLayerHierarchy(document.image.layers, document.image.format)) return fail(invalid(QStringLiteral("Invalid KRA layer hierarchy")));
     document.image.activeLayer = document.image.layers.isEmpty() ? 0 : document.image.layers.size() - 1 - qMax(0, selected);
     if (generatedUuids) document.description = xml.toByteArray();
     for (const auto &name : {QStringLiteral("maindoc.xml"), QStringLiteral("mimetype"), QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")})
@@ -1699,7 +1854,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         value.activeLayer < 0 || (value.layers.isEmpty() ? value.activeLayer != 0 : value.activeLayer >= value.layers.size()))
         return invalid(QStringLiteral("Invalid KRA image or projection"));
     if (value.layers.size() > limits.layers || document.description.size() > limits.xmlBytes) return capacity();
-    if (!validRasterLayerHierarchy(value.layers)) return invalid(QStringLiteral("Invalid KRA layer hierarchy"));
+    if (!validRasterLayerHierarchy(value.layers, value.format)) return invalid(QStringLiteral("Invalid KRA layer hierarchy"));
     if (projection.colorSpace().isValid() && !srgbSpace(projection.colorSpace()))
         return unsupported(QStringLiteral("KRA projection requires sRGB"));
     auto result = validateMetadata(document.description, document.files, limits);

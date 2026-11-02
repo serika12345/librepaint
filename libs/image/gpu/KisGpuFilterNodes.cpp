@@ -28,7 +28,7 @@ bool OperationDocument::filterFitsRetainedHistory(const FilterDefinition &filter
 }
 
 OperationId OperationDocument::beginFilterNodeEdit(LayerId existing, const RasterLayer &node,
-                                                   qsizetype index, qsizetype effectIndex)
+                                                   qsizetype index, qsizetype effectIndex, bool clearPixelSelection)
 {
     if (checkMutation() != Result::Success || m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return {};
@@ -83,6 +83,12 @@ OperationId OperationDocument::beginFilterNodeEdit(LayerId existing, const Raste
         if (!Detail::validLayerHierarchy(version->layers, before->format)) return {};
         version->rasterBytes += bytes;
         ++m_nextLayer;
+        if (clearPixelSelection) {
+            version->selection = {};
+            version->selectionKind = SelectionKind::Rectangle;
+            version->selectionInverted = false;
+            version->selectionMask.clear();
+        }
     }
     const OperationId id{m_identity, ++m_nextOperation};
     version->activeLayer = target;

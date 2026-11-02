@@ -188,7 +188,15 @@ PaintImageSP PaintImage::cloneRasterLayer(const Snapshot &version, LayerId layer
     const qint64 pixelBytes = qint64(region.width()) * region.height() * pixelSize;
     const qint64 tileBytes = columns * rows * bytesPerTile;
     if (pixelBytes + 2 * tileBytes > maximumWorkingBytes) return {};
-    if (!layer) layer = version->directProjectionLayer();
+    if (!layer) {
+        const auto direct = version->directProjectionLayer();
+        QUuid uuid;
+        for (const auto &node : version->layers) if (node.id == direct) { uuid = node.uuid; break; }
+        const bool filtered = std::any_of(version->layers.cbegin(), version->layers.cend(), [&](const auto &node) {
+            return node.kind == LayerKind::FilterMask && node.parentUuid == uuid && node.visible;
+        });
+        if (!filtered) layer = direct;
+    }
     auto pixels = m_d->execution.readRgbaPixels(m_d->handle, version, region, layer, pixelBytes, mask, invertMask);
     if (pixels.code != ExecutionCode::Success) return {};
     RasterLayer properties{QStringLiteral("Projection"), true, destinationUuid, {}};

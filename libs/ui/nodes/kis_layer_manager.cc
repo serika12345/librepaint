@@ -6,6 +6,7 @@
  */
 
 #include "nodes/kis_layer_manager.h"
+#include "nodes/KisGpuFilterNodeEdit.h"
 
 #include <QRect>
 #include <QApplication>
@@ -275,6 +276,10 @@ void KisLayerManager::layerProperties()
     KisFileLayerSP fileLayer = KisFileLayerSP(dynamic_cast<KisFileLayer*>(layer.data()));
 
     if (adjustmentLayer && !multipleLayersSelected) {
+        if (m_view->image()->gpuImage()) {
+            editGpuFilterNode(m_view, adjustmentLayer);
+            return;
+        }
         KisPaintDeviceSP dev = adjustmentLayer->projection();
 
         KisDlgAdjLayerProps dlg(adjustmentLayer, adjustmentLayer.data(), dev, m_view, adjustmentLayer->filter().data(), adjustmentLayer->name(), i18n("Filter Layer Properties"), m_view->mainWindow(), "dlgadjlayerprops");
@@ -779,6 +784,13 @@ KisNodeSP KisLayerManager::addShapeLayer(KisNodeSP activeNode)
 KisNodeSP KisLayerManager::addAdjustmentLayer(KisNodeSP activeNode)
 {
     KisImageWSP image = m_view->image();
+    if (image->gpuImage()) {
+        KisAdjustmentLayerSP placeholder = new KisAdjustmentLayer(image, {}, {}, {});
+        KisNodeSP parent, above;
+        adjustLayerPosition(placeholder, activeNode ? activeNode : image->root(), parent, above);
+        return createGpuFilterNode(m_view, parent, above ? parent->index(above) + 1 : 0,
+            LibrePaint::Image::Gpu::LayerKind::Adjustment, image->nextLayerName(i18n("Filter Layer")));
+    }
 
     KisSelectionSP selection = m_view->selection();
 

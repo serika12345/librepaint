@@ -887,7 +887,8 @@ struct RasterLayer
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
  */
-KRITAIMAGEGPUOPERATIONS_EXPORT bool validRasterLayerHierarchy(const QList<RasterLayer> &layers);
+KRITAIMAGEGPUOPERATIONS_EXPORT bool validRasterLayerHierarchy(const QList<RasterLayer> &layers,
+    PixelFormat format = PixelFormat::Rgba8);
 struct RasterImage
 {
     QSize size;
@@ -1149,6 +1150,7 @@ public:
     int savedHistoryIndex() const;
     bool isModified() const;
     bool hasActiveStroke() const;
+    LayerId filterNodeEditTarget() const { return m_filterNodeEdit ? m_filterNodeEdit->node : 0; }
     OperationId activeOperation() const;
 
     /** Limits subsequent painting to a document rectangle. Empty clears the
@@ -1230,7 +1232,7 @@ public:
     LayerId addFilterNode(const RasterLayer &node, qsizetype index, qsizetype effectIndex = -1);
     /** Configuration preview is one transaction, including a newly created node. */
     OperationId beginFilterNodeEdit(LayerId existing, const RasterLayer &node, qsizetype index,
-                                    qsizetype effectIndex = -1);
+                                    qsizetype effectIndex = -1, bool clearPixelSelection = false);
     Result updateFilterNodeEdit(OperationId id, const FilterDefinition &filter, const QString &name);
     Result commitFilterNodeEdit(OperationId id);
     Result cancelFilterNodeEdit(OperationId id);

@@ -1636,6 +1636,11 @@ Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireS
     version->layers[index].transparencyMaskName = name;
     version->layers[index].transparencyMaskColorLabelIndex = imported ? imported->transparencyMaskColorLabelIndex : 0;
     version->layers[index].transparencyMaskPinnedToTimeline = imported && imported->transparencyMaskPinnedToTimeline;
+    qsizetype filterCount = 0;
+    for (const auto &child : version->layers)
+        if (child.kind == LayerKind::FilterMask && child.parentUuid == version->layers[index].uuid) ++filterCount;
+    if (imported && (imported->transparencyMaskIndex < 0 || imported->transparencyMaskIndex > filterCount)) return Result::InvalidInput;
+    version->layers[index].transparencyMaskIndex = imported ? imported->transparencyMaskIndex : filterCount;
     if (!requireSelection) {
         version->selection = {};
         version->selectionKind = SelectionKind::Rectangle;
@@ -2701,6 +2706,15 @@ Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QStri
         }
         if (!version->activeLayer && !parentUuid.isNull())
             version->activeLayer = version->layers[indices.value(parentUuid)].id;
+    }
+    for (auto &owner : version->layers) {
+        if (!owner.transparencyMask || removed.contains(owner.id)) continue;
+        qsizetype position = 0, removedBelow = 0;
+        for (const auto &child : snapshot()->layers) {
+            if (child.kind != LayerKind::FilterMask || child.parentUuid != owner.uuid) continue;
+            if (position++ < owner.transparencyMaskIndex && removed.contains(child.id)) ++removedBelow;
+        }
+        owner.transparencyMaskIndex -= removedBelow;
     }
     for (qsizetype i = version->layers.size(); i-- > 0;) {
         if (!removed.contains(version->layers[i].id)) continue;

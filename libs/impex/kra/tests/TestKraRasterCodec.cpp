@@ -162,6 +162,8 @@ private Q_SLOTS:
     void featheredSelectionAlphaSurvivesSavingAndReopening();
     void offCanvasSelectionKeepsNativeCoverageAcrossReopenedEditing();
     void transparencyMasksSurviveSavingAndReopening();
+    void filterNodesKeepSettingsSelectionsAndMaskOrder_data();
+    void filterNodesKeepSettingsSelectionsAndMaskOrder();
     void groupTransparencyMasksKeepNativeStorageAcrossEditing_data();
     void groupTransparencyMasksKeepNativeStorageAcrossEditing();
     void emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage();
@@ -2405,6 +2407,107 @@ void TestKraRasterCodec::legacyLayerWithoutUuidGetsOnePersistentIdentity()
     const auto reopened = load(bytes);
     QVERIFY2(reopened.code == Kra::Status::Success, qPrintable(reopened.diagnostic));
     QCOMPARE(reopened.document.image.layers.first().uuid, uuid);
+}
+
+void TestKraRasterCodec::filterNodesKeepSettingsSelectionsAndMaskOrder_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("mask");
+    QTest::addColumn<QString>("id");
+    for (bool words : {false, true}) for (bool mask : {false, true})
+        for (const auto *id : {"invert", "hsvadjustment", "maximize", "minimize", "fastcoloroverlay"}) {
+            if (words && (QByteArray(id) == "invert" || QByteArray(id) == "hsvadjustment")) continue;
+            const QByteArray row = QByteArray(words ? "word-" : "byte-") + (mask ? "mask-" : "adjustment-") + id;
+            QTest::newRow(row.constData()) << words << mask << QString::fromLatin1(id);
+        }
+}
+
+void TestKraRasterCodec::filterNodesKeepSettingsSelectionsAndMaskOrder()
+{
+    QFETCH(bool, words);
+    QFETCH(bool, mask);
+    QFETCH(QString, id);
+    Kra::Document value;
+    value.image.size = {16, 12};
+    value.image.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    value.image.colorProfile = QColorSpace(words ? QColorSpace::SRgbLinear : QColorSpace::SRgb).iccProfile();
+    RasterLayer paint;
+    paint.name = QStringLiteral("Source"); paint.uuid = QUuid::createUuid();
+    paint.tiles.append({{}, rgbaBytes({17, 91, 203, 137}, value.image.format).repeated(RgbaTile::Size * RgbaTile::Size), value.image.format});
+    RasterLayer filter;
+    filter.kind = mask ? LayerKind::FilterMask : LayerKind::Adjustment;
+    filter.uuid = QUuid::createUuid(); filter.name = QStringLiteral("Editable filter");
+    filter.parentUuid = mask ? paint.uuid : QUuid{};
+    filter.blendMode = mask ? LayerBlendMode::Normal : LayerBlendMode::Copy;
+    FilterDefinition definition;
+    definition.id = id; definition.version = 1; definition.resolved = false;
+    definition.xml = QByteArrayLiteral("<params version=\"1\"><param name=\"h\">31</param><param name=\"s\">17</param>"
+        "<param name=\"color\">#c13e8cec</param><param name=\"opacity\">63</param><param name=\"compositeop\">multiply</param></params>");
+    filter.filter = definition;
+    const QRect coverageArea(-2, 3, 4, 2);
+    const auto alpha = QByteArray::fromHex("00017f80c0feff29");
+    filter.filterSelection = SelectionMask::fromAlphaCoverage(coverageArea, alpha, coverageArea);
+    QVERIFY(filter.filterSelection);
+    paint.transparencyMask = SelectionMask::uniform(203);
+    paint.transparencyMaskUuid = QUuid::createUuid();
+    paint.transparencyMaskName = QStringLiteral("Coverage");
+    paint.transparencyMaskIndex = mask ? 1 : 0;
+    value.image.layers = {paint, filter}; value.image.activeLayer = 1;
+    if (mask) {
+        auto upper = filter;
+        upper.uuid = QUuid::createUuid(); upper.name = QStringLiteral("Upper filter");
+        upper.filterSelection = SelectionMask::uniform(255);
+        value.image.layers.append(upper);
+    }
+    const auto write = [&](const Kra::Document &document, QByteArray &bytes) {
+        QBuffer output(&bytes);
+        if (!output.open(QIODevice::WriteOnly)) return Kra::Outcome{};
+        return Kra::RasterCodec::write(output, document, merged(value.image.size), {}, words ? merged({16, 12}) : QImage{});
+    };
+    QByteArray bytes;
+    const auto saved = write(value, bytes);
+    QVERIFY2(saved.code == Kra::Status::Success, qPrintable(saved.diagnostic));
+    auto reopened = load(bytes);
+    QVERIFY2(reopened.code == Kra::Status::Success, qPrintable(reopened.diagnostic));
+    QCOMPARE(reopened.document.image.layers.size(), value.image.layers.size());
+    const auto find = [](RasterImage &image, const QUuid &uuid) -> RasterLayer * {
+        for (auto &layer : image.layers) if (layer.uuid == uuid) return &layer;
+        return nullptr;
+    };
+    auto *retained = find(reopened.document.image, filter.uuid); QVERIFY(retained);
+    QCOMPARE(retained->kind, filter.kind);
+    QCOMPARE(retained->parentUuid, filter.parentUuid);
+    QCOMPARE(retained->filter->id, id);
+    QCOMPARE(retained->filter->xml, definition.xml);
+    QVERIFY(!retained->filter->resolved);
+    QCOMPARE(retained->filter->parameters.value("opacity").toInt(), 63);
+    for (int y = 0; y < 2; ++y) for (int x = 0; x < 4; ++x)
+        QCOMPARE(retained->filterSelection->coverage(x - 2, y + 3), quint8(alpha[y * 4 + x]));
+    auto *retainedPaint = find(reopened.document.image, paint.uuid); QVERIFY(retainedPaint);
+    QCOMPARE(retainedPaint->transparencyMaskIndex, paint.transparencyMaskIndex);
+    QCOMPARE(retainedPaint->transparencyMask->defaultCoverage(), quint8(203));
+    const auto canonical = retainedPaint->tiles;
+    retained->name = QStringLiteral("Reopened settings");
+    retained->filter->xml.replace("63", "47");
+    retained->filterSelection = SelectionMask::uniform(73);
+    QByteArray edited;
+    const auto resaved = write(reopened.document, edited);
+    QVERIFY2(resaved.code == Kra::Status::Success, qPrintable(resaved.diagnostic));
+    auto final = load(edited);
+    QVERIFY2(final.code == Kra::Status::Success, qPrintable(final.diagnostic));
+    auto *finalFilter = find(final.document.image, filter.uuid); QVERIFY(finalFilter);
+    QCOMPARE(finalFilter->filter->parameters.value("opacity").toInt(), 47);
+    QCOMPARE(finalFilter->filterSelection->defaultCoverage(), quint8(73));
+    QCOMPARE(finalFilter->name, QStringLiteral("Reopened settings"));
+    const auto *finalPaint = find(final.document.image, paint.uuid); QVERIFY(finalPaint);
+    QCOMPARE(finalPaint->tiles.size(), canonical.size());
+    for (qsizetype i = 0; i < canonical.size(); ++i) QCOMPARE(finalPaint->tiles[i].rgba, canonical[i].rgba);
+    auto files = entries(edited);
+    for (auto file = files.begin(); file != files.end(); ++file)
+        if (file.key().endsWith(QLatin1String(".filterconfig"))) { file.value() = QByteArrayLiteral("<params>"); break; }
+    const auto rejected = load(pack(files));
+    QCOMPARE(rejected.code, Kra::Status::InvalidData);
+    QVERIFY(rejected.document.image.layers.isEmpty());
 }
 
 QTEST_GUILESS_MAIN(TestKraRasterCodec)

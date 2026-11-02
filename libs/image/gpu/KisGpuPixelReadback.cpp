@@ -23,6 +23,16 @@
 
 namespace LibrePaint::Image::Gpu {
 namespace {
+LayerId rawProjectionLayer(const Snapshot &version)
+{
+    const auto direct = version ? version->directProjectionLayer() : LayerId{};
+    if (!direct) return 0;
+    QUuid uuid;
+    for (const auto &layer : version->layers) if (layer.id == direct) { uuid = layer.uuid; break; }
+    for (const auto &layer : version->layers)
+        if (layer.kind == LayerKind::FilterMask && layer.parentUuid == uuid && layer.visible) return 0;
+    return direct;
+}
 PixelReadbackOutcome failure(ExecutionCode code, const QString &diagnostic)
 {
     PixelReadbackOutcome outcome;
@@ -507,7 +517,7 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
 PixelBytesOutcome Execution::readNativeProjectionPixels(DocumentHandle handle, const Snapshot &pinned,
                                                         QRect region, qsizetype maximumBytes)
 {
-    const auto direct = pinned ? pinned->directProjectionLayer() : LayerId{};
+    const auto direct = rawProjectionLayer(pinned);
     return readRgbaPixelsImpl(handle, pinned, region, direct, maximumBytes, {}, false, !direct);
 }
 
@@ -713,7 +723,7 @@ PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot
 
 PixelReadbackOutcome Execution::readNativeProjectionBounds(DocumentHandle handle, const Snapshot &pinned)
 {
-    const auto direct = pinned ? pinned->directProjectionLayer() : LayerId{};
+    const auto direct = rawProjectionLayer(pinned);
     auto result = readBoundsImpl(handle, pinned, direct, false, true, true, !direct);
     if (result.code != ExecutionCode::Success) return result;
     const auto implicit = direct ? pinned->projectionDefaultPixels().value(direct) : pinned->projectionBackground;

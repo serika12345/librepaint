@@ -1216,7 +1216,7 @@ set(gpu_document_layer_cases
     layerPanelShowsAndSelectsGpuTransparencyMaskChild
     layerPanelTogglesAndRemovesGpuTransparencyMaskChild
     layerPanelGpuTransparencyMaskChildSurvivesSaving)
-kis_add_test(KisGpuDocumentViewTest.cpp KisGpuMultibrushEditingTest.cpp KisGpuRegionFillEditingTest.cpp KisGpuColorFilterEditingTest.cpp ../../../krita/krita.qrc
+kis_add_test(KisGpuDocumentViewTest.cpp KisGpuMultibrushEditingTest.cpp KisGpuRegionFillEditingTest.cpp KisGpuColorFilterEditingTest.cpp KisGpuFilterNodeEditingTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
     TEST_NAME KisGpuDocumentViewTest
@@ -1323,6 +1323,10 @@ set(gpu_document_color_filter_test libs-ui-filter-color-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_color_filter_test}
     COMMAND KisGpuDocumentViewTest colorFilterActionsKeepNativeEditing)
 set_tests_properties(${gpu_document_color_filter_test} PROPERTIES RUN_SERIAL TRUE TIMEOUT 900)
+set(gpu_document_filter_node_test libs-ui-filter-nodes-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_filter_node_test}
+    COMMAND KisGpuDocumentViewTest filterNodesKeepNativeEditing)
+set_tests_properties(${gpu_document_filter_node_test} PROPERTIES RUN_SERIAL TRUE TIMEOUT 900)
 set(gpu_document_hsv_filter_test libs-ui-filter-hsv-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_hsv_filter_test}
     COMMAND KisGpuDocumentViewTest hsvAdjustmentActionUsesProductSettingsOnGpuDocument)
@@ -1336,7 +1340,7 @@ set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_selection_combination_test}
     ${gpu_document_colour_selection_test} ${gpu_document_native_selection_kra_test} ${gpu_document_path_tool_test}
     ${gpu_document_path_input_test} ${gpu_document_feather_test} ${gpu_document_filter_test}
-    ${gpu_document_grayscale_filter_test} ${gpu_document_hsv_filter_test} ${gpu_document_color_filter_test}
+    ${gpu_document_grayscale_filter_test} ${gpu_document_hsv_filter_test} ${gpu_document_color_filter_test} ${gpu_document_filter_node_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop kritadefaultpaintops
