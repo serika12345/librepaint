@@ -11,5 +11,9 @@ namespace MultibrushEditingTest {
 void addData();
 void run(std::shared_ptr<LibrePaint::Image::Gpu::Execution> &sharedExecution);
 }
+namespace DynamicBrushEditingTest {
+void addData();
+void run(std::shared_ptr<LibrePaint::Image::Gpu::Execution> &sharedExecution);
+}
 
 #endif

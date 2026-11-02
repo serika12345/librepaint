@@ -264,7 +264,8 @@ void KisToolFreehand::requestStrokeCancellation()
 void KisToolFreehand::beginPrimaryAction(KoPointerEvent *event)
 {
     if (image()->gpuImage() && toolId() != QLatin1String("KritaShape/KisToolBrush") &&
-        toolId() != QLatin1String("KritaShape/KisToolMultiBrush")) {
+        toolId() != QLatin1String("KritaShape/KisToolMultiBrush") &&
+        toolId() != QLatin1String("KritaShape/KisToolDyna")) {
         static_cast<KisCanvas2*>(canvas())->viewManager()->showFloatingMessage(
             i18n("This drawing tool is not yet available for GPU documents."), QIcon());
         event->ignore();

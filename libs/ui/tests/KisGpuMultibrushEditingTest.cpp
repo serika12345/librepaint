@@ -84,10 +84,36 @@ void MultibrushEditingTest::addData()
     }
 }
 
-void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Execution> &sharedExecution)
+void DynamicBrushEditingTest::addData()
 {
-    // Consumer: ordinary Multibrush settings and input. Hands must share one
-    // transaction while keeping native per-hand geometry, pixels and history.
+    QTest::addColumn<QString>("presetName");
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<int>("mode");
+    QTest::addColumn<int>("smoothing");
+    QTest::addColumn<bool>("maskTarget");
+    for (bool words : {false, true}) {
+        for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "a)_Eraser_Circle.kpp", "a)_Eraser_Small.kpp"})
+            for (int parameters : {0, 1}) {
+                const QByteArray name = QByteArray(preset) + (words ? "-u16-" : "-u8-") + QByteArray::number(parameters);
+                QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << parameters << 0 << false;
+            }
+        for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "a)_Eraser_Circle.kpp"}) {
+            const QByteArray name = QByteArray("group-mask-") + preset + (words ? "-u16" : "-u8");
+            QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << 0 << 0 << true;
+        }
+        for (int smoothing : {1, 2, 3, 4}) {
+            const QByteArray name = QByteArray("smoothed-") + QByteArray::number(smoothing) + (words ? "-u16" : "-u8");
+            QTest::newRow(name.constData()) << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << smoothing << false;
+        }
+        QTest::newRow(words ? "tap-u16" : "tap-u8")
+            << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << 0 << false;
+    }
+}
+
+static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution> &sharedExecution, bool dynamic)
+{
+    // Consumers: ordinary Multibrush and Dynamic Brush settings and input.
+    // Each gesture keeps its pixels, target and one transaction across KRA reload.
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(QString, presetName); QFETCH(bool, words); QFETCH(int, mode);
     QFETCH(int, smoothing); QFETCH(bool, maskTarget);
@@ -95,7 +121,8 @@ void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Executio
     const auto restoreEngine = qScopeGuard([&] {
         if (oldEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", oldEngine);
     });
-    const QString toolId = QStringLiteral("KritaShape/KisToolMultiBrush");
+    const QString toolId = dynamic ? QStringLiteral("KritaShape/KisToolDyna") : QStringLiteral("KritaShape/KisToolMultiBrush");
+    const QString family = dynamic ? QStringLiteral("dynamic-brush") : QStringLiteral("multibrush");
     KConfigGroup configuration = KSharedConfig::openConfig()->group(toolId);
     const auto entries = configuration.entryMap();
     const auto restoreConfiguration = qScopeGuard([&] {
@@ -111,7 +138,7 @@ void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Executio
         QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
     const auto preset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(preset);
-    preset->setFilename(QStringLiteral("multibrush-") + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kpp"));
+    preset->setFilename(family + QLatin1Char('-') + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kpp"));
     KisResourceModel presets(ResourceType::PaintOpPresets); QVERIFY(presets.addResource(preset));
     const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     const QRect canvas(0, 0, 64, 64), inspected(-8, -8, 80, 80);
@@ -193,14 +220,14 @@ void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Executio
                 const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
                 if (!results.isEmpty()) {
                     if (!QDir().mkpath(results)) return false;
-                    QFile file(QDir(results).filePath(QStringLiteral("multibrush-%1-%2-%3.bin").arg(QString::fromLatin1(QTest::currentDataTag()), gpu ? "gpu" : "native").arg(at)));
+                    QFile file(QDir(results).filePath(QStringLiteral("%1-%2-%3-%4.bin").arg(family, QString::fromLatin1(QTest::currentDataTag()), gpu ? "gpu" : "native").arg(at)));
                     if (!file.open(QIODevice::WriteOnly) || file.write(state) != state.size()) return false;
                 }
                 if (!gpu) { reference.append(state); return true; }
                 if (state == reference.value(at)) return true;
                 const auto expected = reference.value(at);
                 for (int i = 0; i < qMin(state.size(), expected.size()); ++i) if (state[i] != expected[i]) {
-                    qWarning() << "Multibrush state" << at << "byte" << i << "GPU" << quint8(state[i]) << "native" << quint8(expected[i]); break;
+                    qWarning() << family << "state" << at << "byte" << i << "GPU" << quint8(state[i]) << "native" << quint8(expected[i]); break;
                 }
                 return false;
             };
@@ -217,21 +244,26 @@ void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Executio
             QVERIFY(tool->setProperty("smoothingType", smoothing));
             QVERIFY(tool->setProperty("smoothnessQualityMin", 6)); QVERIFY(tool->setProperty("smoothnessQualityMax", 6));
             QVERIFY(tool->setProperty("useDelayDistance", false)); QVERIFY(tool->setProperty("finishStabilizedCurve", true));
-            QVERIFY(QMetaObject::invokeMethod(tool, "resetAxes", Qt::DirectConnection));
-            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetHandsCount", Qt::DirectConnection, Q_ARG(int, 3)));
-            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetAxesAngle", Qt::DirectConnection, Q_ARG(qreal, 27)));
-            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetMirrorHorizontally", Qt::DirectConnection, Q_ARG(bool, true)));
-            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetMirrorVertically", Qt::DirectConnection, Q_ARG(bool, true)));
-            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetTransformMode", Qt::DirectConnection, Q_ARG(int, mode)));
-            if (mode == 5) {
-                KisSliderSpinBox *x = nullptr, *y = nullptr;
-                for (const auto &panel : panels) {
-                    if (!panel) continue;
-                    if (auto *value = panel->findChild<KisSliderSpinBox *>(QStringLiteral("intervalXSpinBox"))) x = value;
-                    if (auto *value = panel->findChild<KisSliderSpinBox *>(QStringLiteral("intervalYSpinBox"))) y = value;
+            if (dynamic) {
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetMass", Qt::DirectConnection, Q_ARG(qreal, mode ? .45 : .01)));
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetDrag", Qt::DirectConnection, Q_ARG(qreal, mode ? .25 : .98)));
+            } else {
+                QVERIFY(QMetaObject::invokeMethod(tool, "resetAxes", Qt::DirectConnection));
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetHandsCount", Qt::DirectConnection, Q_ARG(int, 3)));
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetAxesAngle", Qt::DirectConnection, Q_ARG(qreal, 27)));
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetMirrorHorizontally", Qt::DirectConnection, Q_ARG(bool, true)));
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetMirrorVertically", Qt::DirectConnection, Q_ARG(bool, true)));
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetTransformMode", Qt::DirectConnection, Q_ARG(int, mode)));
+                if (mode == 5) {
+                    KisSliderSpinBox *x = nullptr, *y = nullptr;
+                    for (const auto &panel : panels) {
+                        if (!panel) continue;
+                        if (auto *value = panel->findChild<KisSliderSpinBox *>(QStringLiteral("intervalXSpinBox"))) x = value;
+                        if (auto *value = panel->findChild<KisSliderSpinBox *>(QStringLiteral("intervalYSpinBox"))) y = value;
+                    }
+                    QVERIFY(x && y); x->setValue(16); y->setValue(16);
+                    QVERIFY(QMetaObject::invokeMethod(tool, "slotSetIntervals", Qt::DirectConnection));
                 }
-                QVERIFY(x && y); x->setValue(16); y->setValue(16);
-                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetIntervals", Qt::DirectConnection));
             }
             const auto gesture = [&](bool cancel) {
                 const QPointF start = reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75);
@@ -249,7 +281,7 @@ void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Executio
                 KoPointerEvent last(&release, view->canvasBase()->coordinatesConverter()->imageToDocument(points.isEmpty() ? start : points.last())); tool->endPrimaryAction(&last);
                 image->waitForDone();
             };
-            if (mode == 4) {
+            if (!dynamic && mode == 4) {
                 QVERIFY(QMetaObject::invokeMethod(tool, "slotAddSubbrushesMode", Qt::DirectConnection, Q_ARG(bool, true)));
                 QMouseEvent event(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
                 KoPointerEvent added(&event, view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(47, 32))); tool->beginPrimaryAction(&added);
@@ -259,15 +291,25 @@ void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Executio
             const auto before = capture(); const int history = lifetime->undoStack()->index();
             gesture(true); QCOMPARE(capture(), before); QCOMPARE(lifetime->undoStack()->index(), history);
             gesture(false); QTRY_COMPARE(lifetime->undoStack()->index(), history + 1);
-            const auto edited = capture(); QVERIFY(edited != before); QVERIFY2(check(), "Native/GPU multibrush pixels differ");
+            const auto edited = capture(); QVERIFY(edited != before); QVERIFY2(check(), "Native/GPU freehand tool pixels differ");
             if (gpu && !maskTarget) {
                 const auto owner = image->gpuImage();
                 const auto operations = owner->operations().snapshot()->layers.first().operations;
                 const auto operation = std::get<Gpu::PaintSnapshot>(operations.last());
-                QCOMPARE(operation->brush.transforms.size(), qsizetype(mode == 0 ? 3 : mode == 1 ? 4 : mode == 3 ? 12 : mode == 4 ? 2 : 16));
+                if (dynamic) {
+                    QVERIFY(operation->brush.transforms.isEmpty());
+                    if (smoothing == 0 && !QByteArray(QTest::currentDataTag()).startsWith("tap-")) {
+                        QVERIFY(operation->samples.size() > 1);
+                        const QPointF rawEnd = (reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75)) + QPointF(12, 2);
+                        QVERIFY(operation->samples.last().position != rawEnd);
+                    }
+                } else QCOMPARE(operation->brush.transforms.size(), qsizetype(mode == 0 ? 3 : mode == 1 ? 4 : mode == 3 ? 12 : mode == 4 ? 2 : 16));
             }
             resources->setFGColor(KoColor(Qt::yellow, cs)); resources->setSize(7.25);
-            QVERIFY(QMetaObject::invokeMethod(tool, "slotSetHandsCount", Qt::DirectConnection, Q_ARG(int, 1)));
+            if (dynamic) {
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetMass", Qt::DirectConnection, Q_ARG(qreal, .8)));
+                QVERIFY(QMetaObject::invokeMethod(tool, "slotSetDrag", Qt::DirectConnection, Q_ARG(qreal, .1)));
+            } else QVERIFY(QMetaObject::invokeMethod(tool, "slotSetHandsCount", Qt::DirectConnection, Q_ARG(int, 1)));
             lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(capture(), before); QVERIFY(check());
             lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(capture(), edited); QVERIFY(check());
             QVERIFY2(lifetime->saveAs(saved, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
@@ -288,5 +330,15 @@ void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Executio
         qobject_cast<KisTransparencyMask *>(mask.data())->selection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(coverage.data()), inspected);
     }
     QCOMPARE(pixels + projection + coverage, reference.last());
+}
+
+void MultibrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Execution> &sharedExecution)
+{
+    runFreehandEditing(sharedExecution, false);
+}
+
+void DynamicBrushEditingTest::run(std::shared_ptr<LibrePaint::Image::Gpu::Execution> &sharedExecution)
+{
+    runFreehandEditing(sharedExecution, true);
 }
 

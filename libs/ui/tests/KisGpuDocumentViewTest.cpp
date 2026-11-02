@@ -356,6 +356,8 @@ private Q_SLOTS:
     void gradientsKeepNativeEditingHistoryAndKra();
     void multibrushPresetsKeepNativeEditingHistoryAndKra_data();
     void multibrushPresetsKeepNativeEditingHistoryAndKra();
+    void dynamicBrushPresetsKeepNativeEditingHistoryAndKra_data();
+    void dynamicBrushPresetsKeepNativeEditingHistoryAndKra();
     void ellipticalSelectionLimitsPaintingAndKra();
     void ellipticalToolCreatesDocumentSelection();
     void freehandToolCreatesArbitraryMaskSelection();
@@ -402,7 +404,7 @@ private Q_SLOTS:
 private:
     KisPaintOpPresetSP m_preset;
     std::shared_ptr<LibrePaint::Image::Gpu::Execution> m_gradientExecution;
-    std::shared_ptr<LibrePaint::Image::Gpu::Execution> m_multibrushExecution;
+    std::shared_ptr<LibrePaint::Image::Gpu::Execution> m_freehandExecution;
 };
 
 void KisGpuDocumentViewTest::layerPanelThumbnailsReadOnlyReducedGpuPixels()
@@ -11094,7 +11096,17 @@ void KisGpuDocumentViewTest::multibrushPresetsKeepNativeEditingHistoryAndKra_dat
 
 void KisGpuDocumentViewTest::multibrushPresetsKeepNativeEditingHistoryAndKra()
 {
-    MultibrushEditingTest::run(m_multibrushExecution);
+    MultibrushEditingTest::run(m_freehandExecution);
+}
+
+void KisGpuDocumentViewTest::dynamicBrushPresetsKeepNativeEditingHistoryAndKra_data()
+{
+    DynamicBrushEditingTest::addData();
+}
+
+void KisGpuDocumentViewTest::dynamicBrushPresetsKeepNativeEditingHistoryAndKra()
+{
+    DynamicBrushEditingTest::run(m_freehandExecution);
 }
 
 KISTEST_MAIN(KisGpuDocumentViewTest)
