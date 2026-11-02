@@ -202,9 +202,10 @@ bool KisFilterManager::applyGpuFilter(const QString &filterId, KisFilterConfigur
         showGpuDiagnostic(d->view, i18n("This filter is not yet available for GPU documents."));
         return true;
     }
-    const auto filter = KisFilterRegistry::instance()->value(filterId);
+    auto filter = KisFilterRegistry::instance()->value(filterId);
     if (!filter) return true;
-    if (interactive && filter->showConfigurationWidget()) showGpuFilterDialog(filterId, config);
+    if (interactive && (filterId == QLatin1String("hsvadjustment") ||
+                        filterId == QLatin1String("fastcoloroverlay"))) showGpuFilterDialog(filterId, config);
     else applyGpuConfiguration(config ? config : filter->defaultConfiguration(KisGlobalResourcesInterface::instance()));
     return true;
 }

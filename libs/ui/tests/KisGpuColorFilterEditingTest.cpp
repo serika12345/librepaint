@@ -157,6 +157,13 @@ void ColorFilterEditingTest::run()
     auto *manager = window->viewManager()->filterManager();
     auto *actions = window->viewManager()->actionManager();
     auto *action = actions->actionByName(QStringLiteral("krita_filter_") + id); QVERIFY(action);
+    const QString artifactRoot = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!artifactRoot.isEmpty() && QByteArray(QTest::currentDataTag()) == "byte-maximize-whole") {
+        QDir().mkpath(artifactRoot);
+        lifetime->setFileBatchMode(true);
+        QVERIFY(lifetime->saveAs(artifactRoot + QStringLiteral("/color-filter-input.kra"), KisDocument::nativeFormatMimeType(), false));
+        lifetime->waitForSavingToComplete();
+    }
     const auto count = owner->operations().undoCount();
     if (id == QLatin1String("fastcoloroverlay")) {
         action->trigger();
@@ -168,8 +175,10 @@ void ColorFilterEditingTest::run()
         QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
         QCOMPARE(owner->operations().undoCount(), count);
         QCOMPARE(owner->readRgbaPixels(layer, area, initial.size()).bytes, initial);
-        manager->showFilterDialog(id, config);
+        action->trigger();
         QTRY_VERIFY((dialog = window->findChild<QDialog *>(QStringLiteral("gpuColorOverlayDialog"))));
+        widget = dialog->findChild<KisConfigWidget *>(); QVERIFY(widget);
+        widget->setConfiguration(config);
         dialog->findChild<QDialogButtonBox *>()->button(QDialogButtonBox::Ok)->click();
     } else action->trigger();
     QTRY_COMPARE(owner->operations().undoCount(), count + 1);
@@ -207,6 +216,18 @@ void ColorFilterEditingTest::run()
     nativeApply();
     QVERIFY(compare(QStringLiteral("again"), owner->readRgbaPixels(layer, area, initial.size()).bytes));
     const auto twice = expectedPixels();
+    if (id == QLatin1String("fastcoloroverlay")) {
+        const auto history = owner->operations().undoCount();
+        auto invalid = config->clone();
+        invalid->setProperty("compositeop", QStringLiteral("unavailable-color-overlay"));
+        manager->apply(invalid);
+        invalid = config->clone();
+        invalid->setProperty("opacity", 101);
+        manager->apply(invalid);
+        QCOMPARE(owner->operations().undoCount(), history);
+        QCOMPARE(owner->readRgbaPixels(layer, area, initial.size()).bytes, twice);
+        QVERIFY(!manager->isStrokeRunning());
+    }
     QTemporaryDir directory;
     lifetime->setFileBatchMode(true);
     const auto path = directory.filePath(QStringLiteral("filters.kra"));

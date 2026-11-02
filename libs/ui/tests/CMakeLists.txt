@@ -1341,7 +1341,8 @@ set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop kritadefaultpaintops
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop
-    kritamodifyselection kritaselectiontools kritacolorsfilters kritatooldyna)
+    kritamodifyselection kritaselectiontools kritacolorsfilters kritatooldyna
+    kritaextensioncolorsfilters kritaresettransparent)
 if(NOT IOS)
     add_dependencies(KisGpuDocumentViewTest kritatextproperties)
 endif()

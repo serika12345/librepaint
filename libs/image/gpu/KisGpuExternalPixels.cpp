@@ -64,6 +64,7 @@ std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &bl
 
 bool filterIntersects(const FilterOperation &filter, const QRect &block)
 {
+    if (filter.kind >= FilterKind::MaximizeChannel && !filter.applyRect.intersects(block)) return false;
     if (filter.selectionRect.isEmpty()) return true;
     return filter.selectionInverted ? !filter.selectionRect.contains(block) :
         filter.selectionRect.intersects(block);

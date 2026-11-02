@@ -942,8 +942,13 @@ bool KisImage::colorFilterGpuLayerColors(KisNodeSP layer, LibrePaint::Image::Gpu
     if (!layerId) return false;
     const auto device = layer->paintDevice();
     if (!device) return false;
-    const QRect area = kind == LibrePaint::Image::Gpu::FilterKind::ResetTransparent ? bounds() :
-        device->exactBounds().intersected(bounds());
+    QRect area;
+    try {
+        area = kind == LibrePaint::Image::Gpu::FilterKind::ResetTransparent ? bounds() :
+            device->exactBounds().intersected(bounds());
+    } catch (const std::exception &) {
+        return false;
+    }
     if (area.isEmpty()) return true;
     return owner->colorFilter(layerId, kind, overlay, area) == LibrePaint::Image::Gpu::Result::Success;
 }

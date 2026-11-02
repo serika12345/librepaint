@@ -216,6 +216,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
             // renderer, so its coverage participates in the retained layer extent.
             if (layer.defaultPixel == RgbaPixel{}) continue;
             QRect area = needed;
+            if ((*filter)->kind >= FilterKind::MaximizeChannel) area &= (*filter)->applyRect;
             if (!(*filter)->selectionRect.isEmpty() && !(*filter)->selectionInverted)
                 area = area.intersected((*filter)->selectionRect);
             area = area.intersected(QRect(QPoint(), documentSize));

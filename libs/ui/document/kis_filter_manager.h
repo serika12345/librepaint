@@ -67,7 +67,7 @@ private:
      * filters that carry settings.
      */
     bool applyGpuFilter(const QString &filterId, KisFilterConfigurationSP config, bool interactive);
-    /** Parses and applies one product HSV/HSL Adjustment configuration. */
+    /** Freezes and applies one supported product filter configuration. */
     bool applyGpuConfiguration(KisFilterConfigurationSP config);
     void showGpuFilterDialog(const QString &filterId, KisFilterConfigurationSP config);
 

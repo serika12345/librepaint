@@ -78,6 +78,7 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
         } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
             if (layer.defaultPixel == RgbaPixel{}) continue;
             auto area = QRect(QPoint(), document->size);
+            if ((*filter)->kind >= FilterKind::MaximizeChannel) area &= (*filter)->applyRect;
             if (!(*filter)->selectionRect.isEmpty() && !(*filter)->selectionInverted) area &= (*filter)->selectionRect;
             if (!append(area)) return std::nullopt;
         } else {
