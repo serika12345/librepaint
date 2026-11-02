@@ -11,6 +11,7 @@
 #include <QFile>
 #include <QImage>
 #include <QMouseEvent>
+#include <QPainterPath>
 #include <QPointer>
 #include <QScopeGuard>
 #include <QSettings>
@@ -21,6 +22,7 @@
 #include <KSharedConfig>
 #include <KisAngleSelector.h>
 #include <KisFigurePaintingOptions.h>
+#include <KisGpuBlendMode.h>
 #include <KoColor.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
@@ -65,6 +67,7 @@
 #include <kis_undo_stores.h>
 #include <algorithm>
 #include <cstring>
+#include <memory>
 
 namespace {
 void exchangeRgbaBgra(QByteArray &bytes, int pixelBytes)
