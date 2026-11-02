@@ -34,7 +34,7 @@ KisNodeSP runFilterNodeDialog(KisViewManager *view, KisNodeSP existing, KisNodeS
     properties.uuid = QUuid::createUuid();
     properties.kind = kind;
     properties.name = name;
-    properties.blendMode = kind == Gpu::LayerKind::Adjustment ? Gpu::LayerBlendMode::Copy : Gpu::LayerBlendMode::Normal;
+    properties.blendMode = Gpu::LayerBlendMode::Copy;
     const bool mask = kind == Gpu::LayerKind::FilterMask;
     KisPaintDeviceSP preview = new KisPaintDevice(*(mask ? parent->original() : image->projection()));
     KisDlgAdjustmentLayer dialog({}, nullptr, preview, name,

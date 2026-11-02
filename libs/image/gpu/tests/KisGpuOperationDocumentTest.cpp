@@ -5271,4 +5271,48 @@ void KisGpuOperationDocumentTest::filterNodePreviewKeepsOneHistoryAndEditableCon
     document.close();
     QVERIFY(!document.hasActiveStroke());
     QCOMPARE(document.cancelFilterNodeEdit(editing), Result::Closed);
+    if (mask) {
+        OperationDocument structure(raster);
+        auto retained = node;
+        retained.parentUuid = structure.snapshot()->layers.first().uuid;
+        const auto retainedId = structure.addFilterNode(retained, 1); QVERIFY(retainedId);
+        QCOMPARE(structure.addTransparencyMask(1), Result::Success);
+        const auto ownerUuid = structure.snapshot()->layers.first().uuid;
+        const auto transparencyUuid = structure.snapshot()->layers.first().transparencyMaskUuid;
+        const auto maskBeforeCopy = structure.snapshot();
+        QCOMPARE(structure.duplicateLayers({retainedId}, {QStringLiteral("Copy")}, retainedId), Result::Success);
+        const auto copied = structure.activeLayer(); QVERIFY(copied != retainedId);
+        QCOMPARE(structure.snapshot()->layers.size(), 3);
+        QCOMPARE(structure.snapshot()->layers.first().transparencyMaskIndex, 2);
+        QCOMPARE(structure.undo(), Result::Success);
+        QCOMPARE(structure.snapshot(), maskBeforeCopy);
+        QCOMPARE(structure.redo(), Result::Success);
+        QCOMPARE(structure.moveLayers({retainedId}, ownerUuid, transparencyUuid), Result::Success);
+        QCOMPARE(structure.snapshot()->layers.first().transparencyMaskIndex, 1);
+        QCOMPARE(structure.historyAction(structure.undoCount()), HistoryAction::MoveLayer);
+        const auto aboveTransparency = structure.snapshot();
+        QCOMPARE(structure.moveLayers({retainedId}, ownerUuid, {}), Result::Success);
+        QCOMPARE(structure.snapshot()->layers.first().transparencyMaskIndex, 2);
+        QCOMPARE(structure.undo(), Result::Success);
+        QCOMPARE(structure.snapshot(), aboveTransparency);
+        QCOMPARE(structure.redo(), Result::Success);
+        const auto another = structure.addLayer(QStringLiteral("Another owner")); QVERIFY(another);
+        QUuid anotherUuid;
+        for (const auto &layer : structure.snapshot()->layers) if (layer.id == another) anotherUuid = layer.uuid;
+        QCOMPARE(structure.moveLayers({retainedId}, anotherUuid, {}), Result::Success);
+        QCOMPARE(structure.snapshot()->layers.first().transparencyMaskIndex, 1);
+        bool found = false;
+        for (const auto &layer : structure.snapshot()->layers) if (layer.id == retainedId) {
+            found = true;
+            QCOMPARE(layer.parentUuid, anotherUuid);
+            QVERIFY(layer.filter == retained.filter);
+            QVERIFY(layer.filterSelection);
+        }
+        QVERIFY(found);
+        const auto rejected = structure.snapshot();
+        QCOMPARE(structure.moveLayers({retainedId}, {}, {}), Result::InvalidInput);
+        QCOMPARE(structure.snapshot(), rejected);
+        QCOMPARE(structure.removeLayer(copied), Result::Success);
+        QCOMPARE(structure.snapshot()->layers.first().transparencyMaskIndex, 0);
+    }
 }

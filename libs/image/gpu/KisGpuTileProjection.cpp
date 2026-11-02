@@ -373,7 +373,9 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             const auto &layers = document->document()->layers;
             const auto found = std::find_if(layers.cbegin(), layers.cend(), [&](const auto &layer) { return layer.id == input.layer; });
             if (found == layers.cend()) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Native projection source is unavailable")};
-            if (found->kind == LayerKind::Paint) {
+            if (found->kind == LayerKind::Adjustment) {
+                if (!sourceExtents.contains(input.layer)) sourceExtents.insert(input.layer, QRect(QPoint(), document->document()->size));
+            } else if (found->kind == LayerKind::Paint) {
                 if (sourceExtents.contains(input.layer)) continue;
                 const auto allocation = paintLayerAllocation(document->document(), *found, PaintGeometryElementLimit);
                 if (!allocation) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Native projection source allocation exceeds capacity")};

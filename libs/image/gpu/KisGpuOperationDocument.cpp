@@ -1450,6 +1450,19 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
         copy.parentUuid = copiedIdentities.value(copy.parentUuid, destinationParent);
         version->layers.insert(insertion++, copy);
     }
+    if (!destinationParent.isNull()) {
+        const auto ownerIndex = indices.value(destinationParent, -1);
+        if (ownerIndex >= 0 && original->layers[ownerIndex].transparencyMask) {
+            qsizetype below = 0, added = 0;
+            for (qsizetype i = 0; i <= anchor; ++i)
+                if (original->layers[i].parentUuid == destinationParent && original->layers[i].kind == LayerKind::FilterMask) ++below;
+            for (const auto &copy : copies)
+                if (copy.parentUuid == destinationParent && copy.kind == LayerKind::FilterMask) ++added;
+            if (below <= original->layers[ownerIndex].transparencyMaskIndex)
+                for (auto &owner : version->layers) if (owner.uuid == destinationParent) owner.transparencyMaskIndex += added;
+        }
+    }
+    if (!Detail::validLayerHierarchy(version->layers, original->format)) return Result::InvalidInput;
     version->sampleCount = samples;
     version->rasterBytes = pixels;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
@@ -1990,7 +2003,7 @@ Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &
     if (!parentUuid.isNull()) {
         const auto parent = identities.value(parentUuid);
         if (!parent) return Result::LayerUnavailable;
-        if (parent->kind != LayerKind::Group) return Result::InvalidInput;
+        if (parent->kind == LayerKind::FilterMask) return Result::InvalidInput;
         if (!editable(parentUuid)) return Result::LayerUnavailable;
     }
     QSet<LayerId> requested;
@@ -2012,12 +2025,23 @@ Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &
         if (!values.contains(activeRoot)) return Result::LayerUnavailable;
         if (!moving.contains(activeRoot)) return Result::InvalidInput;
     }
+    bool movingMasks = false, movingLayers = false;
+    for (const auto id : moving) {
+        if (values.value(id)->kind == LayerKind::FilterMask) movingMasks = true;
+        else movingLayers = true;
+    }
+    if (movingMasks && (movingLayers || parentUuid.isNull())) return Result::InvalidInput;
+    if (!movingMasks && !parentUuid.isNull() && identities.value(parentUuid)->kind != LayerKind::Group)
+        return Result::InvalidInput;
     for (auto parent = parentUuid; !parent.isNull(); parent = identities.value(parent)->parentUuid)
         if (moving.contains(identities.value(parent)->id)) return Result::InvalidInput;
+    bool aboveTransparency = false;
     if (!aboveUuid.isNull()) {
         const auto above = identities.value(aboveUuid);
-        if (!above) return Result::LayerUnavailable;
-        if (above->parentUuid != parentUuid || moving.contains(above->id)) return Result::InvalidInput;
+        const auto parent = identities.value(parentUuid);
+        aboveTransparency = parent && parent->transparencyMask && parent->transparencyMaskUuid == aboveUuid;
+        if (!above && !aboveTransparency) return Result::LayerUnavailable;
+        if (above && (above->parentUuid != parentUuid || moving.contains(above->id))) return Result::InvalidInput;
     }
     QList<Layer> ordered;
     QList<LayerId> pending;
@@ -2035,6 +2059,16 @@ Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &
         if (moving.contains(layer.id)) selectedBefore.append(layer.id);
         else remaining.append(layer);
     }
+    QHash<QUuid, qsizetype> maskPositions;
+    for (const auto &owner : original->layers) {
+        if (!owner.transparencyMask) continue;
+        qsizetype position = 0, removedBelow = 0;
+        for (const auto child : children.value(owner.uuid)) {
+            if (values.value(child)->kind != LayerKind::FilterMask) continue;
+            if (position++ < owner.transparencyMaskIndex && moving.contains(child)) ++removedBelow;
+        }
+        maskPositions.insert(owner.uuid, owner.transparencyMaskIndex - removedBelow);
+    }
     qsizetype insertion = remaining.size();
     for (qsizetype i = 0; i < remaining.size(); ++i) {
         if (!aboveUuid.isNull() ? remaining[i].uuid == aboveUuid : remaining[i].parentUuid == parentUuid) {
@@ -2042,6 +2076,21 @@ Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &
             break;
         }
         if (aboveUuid.isNull() && remaining[i].uuid == parentUuid) insertion = i + 1;
+    }
+    if (aboveTransparency) {
+        qsizetype position = 0;
+        for (qsizetype i = 0; i < remaining.size(); ++i) {
+            if (remaining[i].uuid == parentUuid) insertion = i + 1;
+            if (remaining[i].parentUuid != parentUuid || remaining[i].kind != LayerKind::FilterMask) continue;
+            if (position++ == maskPositions.value(parentUuid)) { insertion = i; break; }
+            insertion = i + 1;
+        }
+    }
+    if (movingMasks && maskPositions.contains(parentUuid) && !aboveTransparency) {
+        qsizetype position = 0;
+        for (qsizetype i = 0; i < insertion; ++i)
+            if (remaining[i].parentUuid == parentUuid && remaining[i].kind == LayerKind::FilterMask) ++position;
+        if (position <= maskPositions.value(parentUuid)) maskPositions[parentUuid] += moving.size();
     }
     QList<LayerId> selectedAfter;
     for (auto &layer : ordered) {
@@ -2051,7 +2100,14 @@ Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &
     }
     QHash<QUuid, QList<LayerId>> resultChildren;
     for (const auto &layer : remaining) resultChildren[layer.parentUuid].append(layer.id);
-    if (resultChildren == children) return Result::Success;
+    bool masksChanged = false;
+    for (auto &owner : remaining) if (owner.transparencyMask) {
+        const auto position = maskPositions.value(owner.uuid);
+        masksChanged |= owner.transparencyMaskIndex != position;
+        owner.transparencyMaskIndex = position;
+    }
+    if (resultChildren == children && !masksChanged) return Result::Success;
+    if (!Detail::validLayerHierarchy(remaining, original->format)) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*original));
     version->layers.swap(remaining);
@@ -2063,7 +2119,9 @@ Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &
         before->selectedLayers = selectedBefore;
         m_history[m_index] = before;
     }
-    commitVersion(version);
+    LayerHistoryChange change;
+    change.layerStructureAction = HistoryAction::MoveLayer;
+    commitVersion(version, change);
     return Result::Success;
 }
 
@@ -2182,6 +2240,48 @@ Result OperationDocument::ungroupLayers(const QList<LayerId> &layers, LayerId ac
     change.layerStructureAction = HistoryAction::UngroupLayers;
     commitVersion(version, change);
     return Result::Success;
+}
+
+FrozenLayerProjectionSP OperationDocument::freezeAdjustmentProjection(const Snapshot &before,
+    LayerId node, QRect extent, const QList<QRect> &blocks) const
+{
+    LayerId scope = 0;
+    const auto inputs = before->projectionInputsThrough(node, &scope);
+    QHash<LayerId, LayerProjectionInput> roots;
+    QSet<LayerId> included;
+    for (const auto &input : inputs) { roots.insert(input.layer, input); included.insert(input.layer); }
+    includeLayerDescendants(before->layers, included);
+    auto source = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
+    source->layers.clear(); source->selection = {}; source->selectionMask.clear();
+    source->sampleCount = 0; source->rasterBytes = 0;
+    source->projectionBackground = scope ? RgbaPixel{} : before->projectionBackground;
+    source->activeLayer = node; source->selectedLayers = {node};
+    auto projection = QSharedPointer<FrozenLayerProjection>::create();
+    projection->extent = extent; projection->allocatedBlocks = blocks;
+    projection->nativeSources = true;
+    projection->sourceBounds.insert(node, extent);
+    projection->retainedBytes = sizeof(FrozenLayerProjection) + sizeof(DocumentVersion) + blocks.size() * qsizetype(sizeof(QRect));
+    for (auto layer : before->layers) {
+        if (!included.contains(layer.id)) continue;
+        if (roots.contains(layer.id)) {
+            const auto input = roots.value(layer.id);
+            layer.parentUuid = {}; layer.passThrough = false;
+            layer.opacity = input.opacity; layer.projectionChannelMask = input.channelMask;
+            layer.blendMode = input.blendMode;
+        }
+        if (layer.id == node) {
+            layer.visible = true; layer.opacity = 255;
+            layer.projectionChannelMask = 15; layer.blendMode = LayerBlendMode::Copy;
+        }
+        const auto samples = layer.inputSampleCount(), bytes = layer.retainedRasterBytes();
+        if (samples > m_limits.samplesPerDocument - source->sampleCount || bytes > m_limits.rasterBytes - source->rasterBytes) return {};
+        source->sampleCount += samples; source->rasterBytes += bytes;
+        projection->retainedBytes += sizeof(Layer) + layer.name.size() * sizeof(QChar) + layer.operations.size() * sizeof(LayerOperation);
+        source->layers.append(std::move(layer));
+    }
+    if (projection->retainedBytes > m_limits.rasterBytes || !validLayerHierarchy(source->layers, source->format)) return {};
+    projection->source = source;
+    return projection;
 }
 
 Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
@@ -2322,6 +2422,19 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
             QSet<LayerId> included;
             for (const auto layer : visible) included.insert(layer->id);
             includeLayerDescendants(before->layers, included);
+            QHash<LayerId, FrozenLayerProjectionSP> adjustments;
+            QSet<QUuid> adjustmentIdentities;
+            if (!wholeImage) for (const auto &layer : before->layers) {
+                if (!included.contains(layer.id) || layer.kind != LayerKind::Adjustment) continue;
+                QRect extent = request.sourceBounds.value(layer.id);
+                if (extent.isEmpty()) extent = QRect(QPoint(), before->size);
+                const auto frozen = freezeAdjustmentProjection(before, layer.id, extent, request.allocatedBlocks);
+                if (!frozen) return Result::CapacityExceeded;
+                adjustments.insert(layer.id, frozen);
+                adjustmentIdentities.insert(layer.uuid);
+            }
+            for (const auto &layer : before->layers)
+                if (layer.kind == LayerKind::FilterMask && adjustmentIdentities.contains(layer.parentUuid)) included.remove(layer.id);
             auto source = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
             source->layers.clear(); source->selection = {}; source->selectionMask.clear();
             source->sampleCount = 0; source->rasterBytes = 0;
@@ -2348,6 +2461,12 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
             source->projectionBackground = wholeImage ? before->projectionBackground : output.defaultPixel;
             for (auto layer : before->layers) {
                 if (!included.contains(layer.id)) continue;
+                if (adjustments.contains(layer.id)) {
+                    layer.kind = LayerKind::Paint; layer.filter.reset(); layer.filterSelection.clear();
+                    layer.transparencyMask.clear(); layer.transparencyMaskUuid = {}; layer.transparencyMaskIndex = 0;
+                    layer.defaultPixel = {}; layer.operations.clear();
+                    layer.initialProjection = adjustments.value(layer.id);
+                }
                 if (roots.contains(layer.id)) {
                     layer.parentUuid = {};
                     if (!wholeImage) layer.passThrough = false;

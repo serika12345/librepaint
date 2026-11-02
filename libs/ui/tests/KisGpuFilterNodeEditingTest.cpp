@@ -12,6 +12,8 @@
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTimer>
+#include <QTreeView>
+#include <QAbstractItemModel>
 #include <KisGlobalResourcesInterface.h>
 #include <KoColor.h>
 #include <KoColorProfile.h>
@@ -23,7 +25,7 @@
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/workspace/KisView.h>
 #include <application/ui/workspace/KisViewManager.h>
-#include <dialogs/kis_dlg_adjustment_layer.h>
+#include <kis_config_widget.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <document/KisDocument.h>
 #include <filter/kis_filter.h>
@@ -162,10 +164,30 @@ void FilterNodeEditingTest::run()
         QTimer timer;
         timer.setInterval(10);
         QObject::connect(&timer, &QTimer::timeout, &timer, [&] {
-            auto *dialog = qobject_cast<KisDlgAdjustmentLayer *>(QApplication::activeModalWidget());
-            if (!dialog) return;
+            auto *dialog = qobject_cast<QDialog *>(QApplication::activeModalWidget());
+            if (!dialog || dialog->objectName() != QLatin1String("gpuFilterNodeDialog")) return;
             timer.stop(); visited = true;
-            dialog->setInitialConfiguration(config, true);
+            auto *tree = dialog->findChild<QTreeView *>(QStringLiteral("filtersSelector"));
+            const auto chosenFilter = KisFilterRegistry::instance()->value(config->name());
+            if (!tree || !tree->model() || !chosenFilter) { dialog->reject(); return; }
+            const auto *model = tree->model();
+            std::function<QModelIndex(const QModelIndex &)> find = [&](const QModelIndex &parent) -> QModelIndex {
+                for (int row = 0; row < model->rowCount(parent); ++row) {
+                    const auto index = model->index(row, 0, parent);
+                    if (index.data().toString() == chosenFilter->name()) return index;
+                    const auto nested = find(index);
+                    if (nested.isValid()) return nested;
+                }
+                return {};
+            };
+            const auto chosen = find({});
+            if (!chosen.isValid()) { dialog->reject(); return; }
+            tree->setCurrentIndex(chosen);
+            Q_EMIT tree->activated(chosen);
+            if (auto *widget = dialog->findChild<KisConfigWidget *>()) {
+                widget->setConfiguration(config);
+                Q_EMIT widget->sigConfigurationUpdated();
+            }
             const auto *button = dialog->findChild<QDialogButtonBox *>()->button(QDialogButtonBox::Ok);
             previewReady = button->isEnabled();
             if (accept && previewReady) dialog->accept();
@@ -193,6 +215,7 @@ void FilterNodeEditingTest::run()
     }
     QVERIFY(node);
     QVERIFY(mask ? node->inherits("KisFilterMask") : node->inherits("KisAdjustmentLayer"));
+    QCOMPARE(node->compositeOpId(), nativeNode->compositeOpId());
     QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, expected());
     QCOMPARE(owner->readRgbaPixels(1, area, raw.size()).bytes, raw);
     const auto physicalPixels = [&](KisNodeSP projectedNode) {

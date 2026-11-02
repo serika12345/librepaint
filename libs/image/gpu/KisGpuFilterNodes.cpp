@@ -70,7 +70,7 @@ OperationId OperationDocument::beginFilterNodeEdit(LayerId existing, const Raste
         added.uuid = node.uuid.isNull() ? QUuid::createUuid() : node.uuid;
         added.parentUuid = node.parentUuid;
         added.opacity = node.opacity;
-        added.blendMode = node.kind == LayerKind::Adjustment ? node.blendMode : LayerBlendMode::Normal;
+        added.blendMode = node.blendMode;
         added.filter = node.filter;
         added.filterSelection = node.filterSelection ? node.filterSelection : SelectionMask::uniform(255);
         if (!added.filterSelection) return {};

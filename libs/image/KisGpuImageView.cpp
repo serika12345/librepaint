@@ -599,6 +599,14 @@ bool KisImage::mergeGpuLayers(LibrePaint::Image::Gpu::LayerMergeRequest request,
                 KisNodeSP copy;
                 if (source->inherits("KisGroupLayer")) copy = new KisGroupLayer(this, source->name(), source->opacity());
                 else if (source->inherits("KisPaintLayer")) copy = new KisPaintLayer(this, source->name(), source->opacity());
+                else if (auto *adjustment = qobject_cast<KisAdjustmentLayer *>(source.data()))
+                    copy = new KisAdjustmentLayer(this, source->name(), adjustment->filter()->cloneWithResourcesSnapshot(), {});
+                else if (auto *filter = qobject_cast<KisFilterMask *>(source.data())) {
+                    auto *mask = new KisFilterMask(this, source->name());
+                    mask->setFilter(filter->filter()->cloneWithResourcesSnapshot());
+                    mask->setSelection(new KisSelection(*filter->selection()));
+                    copy = mask;
+                }
                 else if (source->inherits("KisTransparencyMask")) copy = new KisTransparencyMask(this, source->name());
                 else return false;
                 copyProperties(copy, source);

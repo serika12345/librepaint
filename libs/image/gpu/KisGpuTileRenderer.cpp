@@ -564,7 +564,8 @@ ProjectionOutcome TileRenderer::recordInitialProjection(WGPUCommandEncoder comma
         const auto compatible = base && base->document()->documentId() == task.value->source->documentId() ? base : RenderedSnapshot{};
         const auto recorded = recordRegion(commands, task.value->source, task.region, layers, compatible);
         if (recorded.code != RenderOutcome::Recorded) return {recorded.code, {}, recorded.diagnostic};
-        auto projected = composeImpl(commands, recorded.version, task.region, {}, 0, task.value.data());
+        auto projected = composeImpl(commands, recorded.version, task.region, {}, 0, task.value.data(),
+            false, task.value->nativeSources);
         if (projected.code != RenderOutcome::Recorded) return projected;
         if (task.value->normalizeRootProjection) {
             // The root projection is applied normally onto a new empty paint device.

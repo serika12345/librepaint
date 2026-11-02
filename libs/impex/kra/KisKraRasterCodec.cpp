@@ -1687,6 +1687,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("copy") ? LayerBlendMode::Copy :
             LayerBlendMode::Normal;
         const auto directParent = element.parentNode().toElement();
+        if (layer.kind == LayerKind::FilterMask && !element.hasAttribute(QStringLiteral("compositeop")))
+            layer.blendMode = LayerBlendMode::Copy;
         const auto parent = directParent.tagName() == QLatin1String("layer") ? directParent :
             directParent.parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));

@@ -49,6 +49,8 @@ private Q_SLOTS:
     void paintedMasksKeepSparseGpuCoverageAfterClosure();
     void filterNodeProjectionReadersFollowCoverageEdits_data();
     void filterNodeProjectionReadersFollowCoverageEdits();
+    void adjustmentMergesFreezeTheOriginalLowerStack_data();
+    void adjustmentMergesFreezeTheOriginalLowerStack();
     void sparsePaintedMasksMoveCombineCropAndRecover();
     void layerPickingKeepsNativeAlphaMasksAndPinnedRequests_data();
     void layerPickingKeepsNativeAlphaMasksAndPinnedRequests();
@@ -2685,6 +2687,9 @@ void KisGpuPaintImageTest::filterNodeProjectionReadersFollowCoverageEdits()
     auto pixels = read(before, {6, 6});
     QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
     QCOMPARE(pixels.bytes, rgbaBytes(filtered, raster.format));
+    const auto nativeProjection = execution.readNativeProjectionPixels(image.handle(), before, {6, 6, 1, 1}, stride);
+    QVERIFY2(nativeProjection.code == ExecutionCode::Success, qPrintable(nativeProjection.diagnostic));
+    QCOMPARE(nativeProjection.bytes, rgbaBytes(filtered, raster.format));
     QCOMPARE(image.readRgbaPixels(1, {6, 6, 1, 1}, stride).bytes, rgbaBytes(original, raster.format));
     Brush erase; erase.erase = true; erase.diameter = 8;
     const auto cancelled = image.beginTransparencyMaskStroke(target, erase, 17); QVERIFY(!cancelled.isNull());
@@ -2709,6 +2714,64 @@ void KisGpuPaintImageTest::filterNodeProjectionReadersFollowCoverageEdits()
     QCOMPARE(image.setLayerVisible(target, false), Result::Success);
     QCOMPARE(image.readRgbaPixels(0, {0, 0, 1, 1}, stride).bytes, rgbaBytes(original, raster.format));
     QCOMPARE(read(image.operations().snapshot(), {0, 0}).bytes, rgbaBytes(mask ? original : filtered, raster.format));
+}
+
+void KisGpuPaintImageTest::adjustmentMergesFreezeTheOriginalLowerStack_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("down");
+    for (bool words : {false, true}) for (bool down : {false, true}) {
+        const QByteArray row = QByteArray(words ? "word-" : "byte-") + (down ? "down" : "flatten");
+        QTest::newRow(row.constData()) << words << down;
+    }
+}
+
+void KisGpuPaintImageTest::adjustmentMergesFreezeTheOriginalLowerStack()
+{
+    QFETCH(bool, words); QFETCH(bool, down);
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage raster;
+    raster.size = {16, 12}; raster.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const quint16 scale = words ? 257 : 1;
+    RasterLayer lower; lower.name = QStringLiteral("Outside merge"); lower.uuid = QUuid::createUuid();
+    lower.defaultPixel = {quint16(31 * scale), quint16(133 * scale), quint16(59 * scale), maximumComponent(raster.format)};
+    RasterLayer upper; upper.name = QStringLiteral("Inside merge"); upper.uuid = QUuid::createUuid();
+    upper.defaultPixel = {quint16(199 * scale), quint16(47 * scale), quint16(13 * scale), quint16(128 * scale)};
+    raster.layers = {lower, upper};
+    PaintImage image(execution, raster);
+    RasterLayer node; node.kind = LayerKind::Adjustment; node.name = QStringLiteral("Maximum");
+    node.blendMode = LayerBlendMode::Copy;
+    FilterDefinition definition; definition.id = QStringLiteral("maximize");
+    definition.xml = QByteArrayLiteral("<params version=\"1\"/>"); definition.settings.kind = FilterKind::MaximizeChannel;
+    node.filter = definition;
+    const auto adjustment = image.addFilterNode(node, 2); QVERIFY(adjustment);
+    const QRect area(QPoint(), raster.size);
+    const int bytes = area.width() * area.height() * pixelByteCount(raster.format);
+    const auto before = image.operations().snapshot();
+    const auto baseline = image.readRgbaPixels(0, area, bytes);
+    QVERIFY2(baseline.code == ExecutionCode::Success, qPrintable(baseline.diagnostic));
+    LayerMergeRequest request;
+    request.before = before; request.mode = down ? LayerMergeMode::Down : LayerMergeMode::FlattenLayer;
+    request.layers = down ? QList<LayerId>{2, adjustment} : QList<LayerId>{adjustment};
+    request.above = adjustment; request.name = QStringLiteral("Baked filter");
+    request.homogeneousComposition = !down; request.destinationUuid = QUuid::createUuid();
+    request.allocatedBlocks = {QRect(0, 0, 64, 64)};
+    for (const auto id : request.layers) request.sourceBounds.insert(id, area);
+    QCOMPARE(image.mergeLayers(request), Result::Success);
+    const auto mergedId = image.operations().activeLayer();
+    const auto merged = image.readRgbaPixels(0, area, bytes);
+    QVERIFY2(merged.code == ExecutionCode::Success, qPrintable(merged.diagnostic));
+    QCOMPARE(merged.bytes, baseline.bytes);
+    QCOMPARE(image.readRgbaPixels(mergedId, area, bytes).bytes, baseline.bytes);
+    QCOMPARE(image.fillLayerColor(1, {0, 0, maximumComponent(raster.format), maximumComponent(raster.format)}), Result::Success);
+    QCOMPARE(image.readRgbaPixels(0, area, bytes).bytes, baseline.bytes);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(0, area, bytes).bytes, baseline.bytes);
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(0, area, bytes).bytes, baseline.bytes);
 }
 
 int main(int argc, char **argv)

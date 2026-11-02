@@ -69,6 +69,9 @@ struct FrozenLayerProjection
     QList<QRect> allocatedBlocks;
     qsizetype retainedBytes = 0;
     bool normalizeRootProjection = false;
+    /** Physical adjustment inputs use native source allocation before the
+     * selected node's own opacity and composition are applied by its caller. */
+    bool nativeSources = false;
 };
 using FrozenLayerProjectionSP = QSharedPointer<const FrozenLayerProjection>;
 enum class SelectionKind : quint8 { Rectangle, Ellipse, Freehand };
@@ -1492,6 +1495,8 @@ private:
     };
     std::optional<FilterNodeEdit> m_filterNodeEdit;
     bool filterFitsRetainedHistory(const FilterDefinition &filter) const;
+    FrozenLayerProjectionSP freezeAdjustmentProjection(const Snapshot &before, LayerId node,
+        QRect extent, const QList<QRect> &blocks) const;
     friend class PaintImage;
     enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible, MaskLocked, MaskName, MaskColorLabel, MaskPinnedToTimeline };
     struct LayerPropertyEdit {
