@@ -37,7 +37,7 @@ KisNodeSP runFilterNodeDialog(KisViewManager *view, KisNodeSP existing, KisNodeS
     properties.name = name;
     properties.blendMode = Gpu::LayerBlendMode::Copy;
     const bool mask = kind == Gpu::LayerKind::FilterMask;
-    const auto source = mask ? parent->original() : image->projection();
+    KisPaintDeviceSP source = mask ? parent->original() : image->projection();
     KisPaintDeviceSP preview = new KisPaintDevice(image->colorSpace());
     // The selector's CPU filter gallery consumes only a display thumbnail.
     // The live document preview below evaluates the frozen configuration on GPU.
