@@ -1438,6 +1438,7 @@ private:
     friend class KisImageGlobalSelectionManagementInterface;
 
 private:
+    LibrePaint::Image::Gpu::SelectionMaskSP importGpuMaskCoverage(const KisSelectionSP &selection) const;
     class KisImagePrivate;
     KisImagePrivate * m_d;
     bool m_synchronizingGpuNodes = false;

@@ -978,6 +978,7 @@ private:
     friend class KisPixelSelection;
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuPixelImage() const;
     QSharedPointer<LibrePaint::Image::Gpu::LayerPixelReference> gpuPixelReference() const;
+    QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> gpuSelectionCoverage() const;
     void bindGpuLayer(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer);
     /** Immutable Alpha8 view; clear() detaches it before literal input writes. */
     void bindGpuSelection(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,

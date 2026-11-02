@@ -1262,6 +1262,9 @@ LibrePaint::Image::Gpu::PaintImageSP KisPaintDevice::gpuPixelImage() const
 LibrePaint::Image::Gpu::LayerPixelReferenceSP KisPaintDevice::gpuPixelReference() const
 { return m_d->gpuPixels; }
 
+LibrePaint::Image::Gpu::SelectionMaskSP KisPaintDevice::gpuSelectionCoverage() const
+{ return m_d->gpuSelection; }
+
 void KisPaintDevice::bindGpuLayer(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer)
 {
     if (m_d->gpuImage == image && m_d->gpuLayerId() == layer) return;

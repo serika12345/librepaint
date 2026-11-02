@@ -5280,6 +5280,19 @@ void KisGpuOperationDocumentTest::filterNodePreviewKeepsOneHistoryAndEditableCon
         const auto ownerUuid = structure.snapshot()->layers.first().uuid;
         const auto transparencyUuid = structure.snapshot()->layers.first().transparencyMaskUuid;
         const auto maskBeforeCopy = structure.snapshot();
+        OperationDocument pasted(raster);
+        QCOMPARE(pasted.addTransparencyMask(1), Result::Success);
+        const auto beforePaste = pasted.snapshot();
+        for (qsizetype sibling : {0, 1}) {
+            auto imported = retained;
+            imported.uuid = QUuid::createUuid();
+            imported.parentUuid = beforePaste->layers.first().uuid;
+            QCOMPARE(pasted.insertLayers({{maskBeforeCopy, retainedId, imported}}, 1, true, false, sibling), Result::Success);
+            QCOMPARE(pasted.snapshot()->layers.first().transparencyMaskIndex, sibling == 0 ? 1 : 0);
+            QVERIFY(pasted.snapshot()->layers.last().filter == retained.filter);
+            QCOMPARE(pasted.undo(), Result::Success);
+            QCOMPARE(pasted.snapshot(), beforePaste);
+        }
         QCOMPARE(structure.duplicateLayers({retainedId}, {QStringLiteral("Copy")}, retainedId), Result::Success);
         const auto copied = structure.activeLayer(); QVERIFY(copied != retainedId);
         QCOMPARE(structure.snapshot()->layers.size(), 3);

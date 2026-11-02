@@ -767,13 +767,31 @@ Result PaintImage::replaceTransparencyMask(LayerId layer, const SelectionMaskSP 
 Result PaintImage::writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask)
 { return onThread() ? publish(m_d->document->writeTransparencyMask(layer, mask)) : Result::InvalidInput; }
 
-Result PaintImage::replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled)
+Result PaintImage::clearMaskPixels(LayerId layer, bool selectedOnly)
+{
+    if (!onThread()) return Result::InvalidInput;
+    if (!m_d->handle) return Result::Closed;
+    if (m_d->maskStroke || m_d->document->hasActiveStroke()) return Result::EditInProgress;
+    const auto version = m_d->document->snapshot();
+    const auto target = editableMaskLayer(version, layer);
+    if (!target) return Result::LayerUnavailable;
+    if (selectedOnly && version->selection.isEmpty()) return Result::InvalidInput;
+    const auto image = createMaskImage(version, editableMaskCoverage(*target));
+    if (!image) return resultFor(m_d->lastRequest.code);
+    const auto sourceLayer = image->operations().activeLayer();
+    const auto cleared = selectedOnly ? image->clearSelectedPixels({sourceLayer}) : image->clearLayers({sourceLayer});
+    if (cleared != Result::Success) return cleared;
+    return replaceMaskFromImage(layer, *image, sourceLayer, false, true);
+}
+
+Result PaintImage::replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled,
+                                       bool cleared)
 {
     if (!onThread()) return Result::InvalidInput;
     SelectionMaskSP mask;
     const auto read = m_d->execution.paintedSelectionCoverage(source.handle(), source.operations().snapshot(), sourceLayer, &mask);
     if (read.code != ExecutionCode::Success) { m_d->lastRequest = read; return resultFor(read.code); }
-    return publish(m_d->document->replaceTransparencyMask(layer, mask, filled));
+    return publish(m_d->document->replaceTransparencyMask(layer, mask, filled, cleared));
 }
 
 Result PaintImage::refreshMaskStrokePreview(Result result)
@@ -1130,8 +1148,8 @@ LayerId PaintImage::insertLayer(const PaintImage &source, const LayerPixelRefere
 }
 
 Result PaintImage::insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate,
-                                bool clearPixelSelection)
-{ return onThread() ? publish(m_d->document->insertLayers(layers, index, activate, clearPixelSelection)) : Result::InvalidInput; }
+                                bool clearPixelSelection, qsizetype effectIndex)
+{ return onThread() ? publish(m_d->document->insertLayers(layers, index, activate, clearPixelSelection, effectIndex)) : Result::InvalidInput; }
 
 Result PaintImage::duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource)
 { return onThread() ? publish(m_d->document->duplicateLayers(layers, names, activeSource)) : Result::InvalidInput; }

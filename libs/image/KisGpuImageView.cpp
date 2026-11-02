@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuBlendMode.h"
+#include "KisGpuFilterConfiguration.h"
 #include "kis_image.h"
 #include "KisNodeAdditionFlags.h"
 #include "KisImageSignals.h"
@@ -148,47 +149,6 @@ KisTransparencyMaskSP findTransparencyMaskChild(KisNodeSP parent)
     return {};
 }
 
-bool hasNonMaskChild(KisNodeSP node)
-{
-    if (!node) return false;
-    for (auto child = node->firstChild(); child; child = child->nextSibling())
-        if (!isGpuTransparencyMaskViewNode(child)) return true;
-    return false;
-}
-
-LibrePaint::Image::Gpu::SelectionMaskSP importedTransparencyMaskCoverage(const KisSelectionSP &selection)
-{
-    namespace Gpu = LibrePaint::Image::Gpu;
-    if (!selection) return Gpu::SelectionMask::uniform(255);
-    if (selection->hasShapeSelection()) return {};
-    const auto pixels = selection->pixelSelection();
-    if (!pixels || pixels->pixelSize() != 1) return {};
-    KisPaintDevice fixed(*pixels);
-    fixed.setDefaultBounds(new KisDefaultBounds());
-    QSet<QPoint> coordinates;
-    constexpr int size = Gpu::SelectionMask::TileSize;
-    const auto tileIndex = [](int value) { return int(value >= 0 ? qint64(value) / size : (qint64(value) - size + 1) / size); };
-    for (const auto &rect : fixed.region().rects()) {
-        for (int y = tileIndex(rect.top()); y <= tileIndex(rect.bottom()); ++y) {
-            for (int x = tileIndex(rect.left()); x <= tileIndex(rect.right()); ++x) {
-                coordinates.insert({x, y});
-                if (coordinates.size() > Gpu::SelectionMask::MaximumBytes / Gpu::SelectionMask::AlphaTileBytes) return {};
-            }
-        }
-    }
-    Gpu::SelectionTileMap tiles;
-    for (const auto &coordinate : coordinates) {
-        if (qAbs(qint64(coordinate.x()) * size) > Gpu::RgbaTile::CoordinateLimit ||
-            qAbs(qint64(coordinate.y()) * size) > Gpu::RgbaTile::CoordinateLimit) return {};
-        QByteArray bytes(Gpu::SelectionMask::AlphaTileBytes, Qt::Uninitialized);
-        fixed.readBytes(reinterpret_cast<quint8 *>(bytes.data()), coordinate.x() * size, coordinate.y() * size, size, size);
-        tiles.insert({coordinate.x(), coordinate.y()}, std::move(bytes));
-    }
-    const auto coverage = Gpu::SelectionMask::fromAlphaTiles(tiles, fixed.defaultPixel().data()[0]);
-    const auto blocks = fixed.region().rects();
-    return coverage ? coverage->withAllocatedBlocks(QList<QRect>(blocks.cbegin(), blocks.cend())) : Gpu::SelectionMaskSP{};
-}
-
 /** Writes retained GPU coverage into a view-only alpha selection. The mask node
  * is refreshed only when the document version's coverage changes.
  */
@@ -225,6 +185,40 @@ void writeGpuMaskPixels(const KisSelectionSP &selection,
     }
     if (!touched.isEmpty()) pixels->setDirty(touched);
 }
+}
+
+LibrePaint::Image::Gpu::SelectionMaskSP KisImage::importGpuMaskCoverage(const KisSelectionSP &selection) const
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!selection) return Gpu::SelectionMask::uniform(255);
+    if (selection->hasShapeSelection()) return {};
+    const auto pixels = selection->pixelSelection();
+    if (!pixels || pixels->pixelSize() != 1) return {};
+    if (const auto coverage = pixels->gpuSelectionCoverage()) return coverage;
+    KisPaintDevice fixed(*pixels);
+    fixed.setDefaultBounds(new KisDefaultBounds());
+    QSet<QPoint> coordinates;
+    constexpr int size = Gpu::SelectionMask::TileSize;
+    const auto tileIndex = [](int value) { return int(value >= 0 ? qint64(value) / size : (qint64(value) - size + 1) / size); };
+    for (const auto &rect : fixed.region().rects()) {
+        for (int y = tileIndex(rect.top()); y <= tileIndex(rect.bottom()); ++y) {
+            for (int x = tileIndex(rect.left()); x <= tileIndex(rect.right()); ++x) {
+                coordinates.insert({x, y});
+                if (coordinates.size() > Gpu::SelectionMask::MaximumBytes / Gpu::SelectionMask::AlphaTileBytes) return {};
+            }
+        }
+    }
+    Gpu::SelectionTileMap tiles;
+    for (const auto &coordinate : coordinates) {
+        if (qAbs(qint64(coordinate.x()) * size) > Gpu::RgbaTile::CoordinateLimit ||
+            qAbs(qint64(coordinate.y()) * size) > Gpu::RgbaTile::CoordinateLimit) return {};
+        QByteArray bytes(Gpu::SelectionMask::AlphaTileBytes, Qt::Uninitialized);
+        fixed.readBytes(reinterpret_cast<quint8 *>(bytes.data()), coordinate.x() * size, coordinate.y() * size, size, size);
+        tiles.insert({coordinate.x(), coordinate.y()}, std::move(bytes));
+    }
+    const auto coverage = Gpu::SelectionMask::fromAlphaTiles(tiles, fixed.defaultPixel().data()[0]);
+    const auto blocks = fixed.region().rects();
+    return coverage ? coverage->withAllocatedBlocks(QList<QRect>(blocks.cbegin(), blocks.cend())) : Gpu::SelectionMaskSP{};
 }
 
 LibrePaint::Image::Gpu::OperationId KisImage::beginGpuFilterNodeEdit(KisNodeSP existing,
@@ -271,9 +265,7 @@ KisNodeSP KisImage::addGpuPaintLayer(const QString &name, KisNodeSP parent, qsiz
 
 bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent)
 {
-    return node && (!hasNonMaskChild(node) ||
-        (node->inherits("KisPaintLayer") && node->childCount() == 1 && node->firstChild()->inherits("KisTransparencyMask"))) &&
-        insertGpuLayers({node}, index, parent);
+    return node && insertGpuLayers({node}, index, parent);
 }
 
 bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNodeSP parent,
@@ -304,7 +296,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         properties.transparencyMaskLocked = node->userLocked();
         properties.transparencyMaskColorLabelIndex = node->colorLabelIndex();
         properties.transparencyMaskPinnedToTimeline = node->isPinnedToTimeline();
-        properties.transparencyMask = importedTransparencyMaskCoverage(selection);
+        properties.transparencyMask = importGpuMaskCoverage(selection);
         if (!properties.transparencyMask) return false;
         KisImageSP retained = this;
         state->nodes.insert(node->uuid(), node);
@@ -312,7 +304,11 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         if (result != Gpu::Result::Success) state->nodes.remove(node->uuid());
         return result == Gpu::Result::Success;
     }
-    const auto insertion = gpuInsertionIndex(this, owner->operations().snapshot(), parent, index);
+    const bool effectRoots = std::all_of(roots.cbegin(), roots.cend(), [](const auto &node) {
+        return node && node->inherits("KisFilterMask");
+    });
+    if (effectRoots && parent == root()) return false;
+    const auto insertion = gpuInsertionIndex(this, owner->operations().snapshot(), parent, index, effectRoots);
     if (insertion < 0) return false;
     KisNodeList nodes = roots;
     for (const auto &node : roots) if (!node || node->parent()) return false;
@@ -322,8 +318,13 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         if (node->uuid().isNull() || state->nodes.contains(node->uuid()) || identities.contains(node->uuid()) ||
             nodes.size() > owner->limits().layerCount - owner->operations().snapshot()->layers.size()) return false;
         identities.insert(node->uuid());
-        for (auto child = node->firstChild(); child; child = child->nextSibling())
-            if (!child->inherits("KisTransparencyMask")) nodes.append(child);
+        bool hasTransparency = false;
+        qsizetype childIndex = i + 1;
+        for (auto child = node->firstChild(); child; child = child->nextSibling()) {
+            if (!child->inherits("KisTransparencyMask")) nodes.insert(childIndex++, child);
+            else if (hasTransparency) return false;
+            else hasTransparency = true;
+        }
     }
     QList<Gpu::LayerInsertion> prepared;
     qsizetype preparedBytes = 0;
@@ -331,18 +332,25 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         auto *layer = qobject_cast<KisLayer*>(node.data());
         auto *paint = qobject_cast<KisPaintLayer*>(node.data());
         auto *group = qobject_cast<KisGroupLayer*>(node.data());
-        if (!layer || (!paint && !group) || (paint && (node->childCount() > 1 || (node->childCount() && !node->firstChild()->inherits("KisTransparencyMask")))) ||
-            !LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(layer->compositeOpId()) ||
-            node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
-            layer->temporary() || (paint && paint->hasTemporaryTarget()) ||
-            *layer->colorSpace() != *colorSpace()) return false;
-        const auto projectionFlags = layer->channelFlags();
+        auto *adjustment = qobject_cast<KisAdjustmentLayer*>(node.data());
+        auto *filterMask = qobject_cast<KisFilterMask*>(node.data());
+        if ((!layer && !filterMask) || (!paint && !group && !adjustment && !filterMask) ||
+            (filterMask && node->childCount()) ||
+            ((!group && !filterMask) && std::any_of(nodes.cbegin(), nodes.cend(), [&](const auto &child) {
+                return child->parent() == node && !child->inherits("KisFilterMask");
+            })) ||
+            !LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(node->compositeOpId()) ||
+            node->isAnimated() || !node->keyframeChannels().isEmpty() || (layer && (layer->layerStyle() ||
+            layer->temporary() || *layer->colorSpace() != *colorSpace())) ||
+            (paint && paint->hasTemporaryTarget())) return false;
+        const auto projectionFlags = layer ? layer->channelFlags() : QBitArray();
         if (!projectionFlags.isEmpty() && projectionFlags.size() != 4) return false;
-        const auto pixels = group ? group->original() : paint->paintDevice();
+        const auto pixels = group ? group->original() : paint ? paint->paintDevice() : KisPaintDeviceSP{};
         Gpu::RasterLayer properties;
-        properties.kind = group ? Gpu::LayerKind::Group : Gpu::LayerKind::Paint;
+        properties.kind = group ? Gpu::LayerKind::Group : adjustment ? Gpu::LayerKind::Adjustment :
+            filterMask ? Gpu::LayerKind::FilterMask : Gpu::LayerKind::Paint;
         properties.passThrough = group && group->passThroughMode();
-        properties.blendMode = LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(layer->compositeOpId())
+        properties.blendMode = LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(node->compositeOpId())
             .value_or(Gpu::LayerBlendMode::Normal);
         properties.name = node->name();
         properties.uuid = node->uuid();
@@ -367,7 +375,13 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             for (int channel = 0; channel < 4; ++channel)
                 if (flags.testBit(channel)) properties.channelWriteMask |= 1u << channels[channel]->displayPosition();
         }
-        const auto background = pixels->defaultPixel();
+        std::unique_ptr<Gpu::OperationDocument> imported;
+        if (adjustment || filterMask) {
+            properties.filter = freezeGpuFilterConfiguration(adjustment ? adjustment->filter() : filterMask->filter(), colorSpace());
+            properties.filterSelection = importGpuMaskCoverage(adjustment ? adjustment->internalSelection() : filterMask->selection());
+            if (!properties.filter || !properties.filterSelection) return false;
+        }
+        const auto background = pixels ? pixels->defaultPixel() : KoColor(colorSpace());
         const auto *bgra = background.data();
         if (background.colorSpace()->pixelSize() == 8) {
             quint16 components[4];
@@ -385,13 +399,34 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             properties.transparencyMaskPinnedToTimeline = mask->isPinnedToTimeline();
             properties.transparencyMaskVisible = mask->visible();
             properties.transparencyMaskLocked = mask->userLocked();
-            properties.transparencyMask = importedTransparencyMaskCoverage(mask->selection());
+            properties.transparencyMask = importGpuMaskCoverage(mask->selection());
+            for (auto child = node->firstChild(); child && child.data() != mask.data(); child = child->nextSibling())
+                if (child->inherits("KisFilterMask")) ++properties.transparencyMaskIndex;
             if (!properties.transparencyMask) return false;
         }
-        const auto source = pixels->gpuPixelImage();
-        const auto reference = pixels->gpuPixelReference();
-        std::unique_ptr<Gpu::OperationDocument> imported;
-        if (!source && group) {
+        const auto source = pixels ? pixels->gpuPixelImage() : Gpu::PaintImageSP{};
+        const auto reference = pixels ? pixels->gpuPixelReference() : Gpu::LayerPixelReferenceSP{};
+        if (adjustment || filterMask) {
+            Gpu::RasterImage input;
+            input.size = owner->operations().snapshot()->size;
+            input.format = owner->operations().snapshot()->format;
+            input.colorProfile = colorSpace()->profile()->rawData();
+            auto value = properties;
+            value.defaultPixel = properties.defaultPixel = {};
+            value.parentUuid = {};
+            // A mask's temporary import source retains a valid owner hierarchy.
+            if (filterMask) {
+                Gpu::RasterLayer holder;
+                holder.uuid = QUuid::createUuid();
+                value.parentUuid = holder.uuid;
+                input.layers.append(holder);
+            }
+            // Children are inserted together below; this temporary source owns one node.
+            value.transparencyMaskIndex = 0;
+            input.layers.append(value);
+            try { imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits()); }
+            catch (const std::invalid_argument &) { return false; }
+        } else if (!source && group) {
             if (!node->childCount() && ((bgra[0] || bgra[1] || bgra[2] || bgra[3]) ||
                 !pixels->regionForLodSyncing().isEmpty())) return false;
             Gpu::RasterImage input;
@@ -400,6 +435,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             input.colorProfile = colorSpace()->profile()->rawData();
             input.layers = {properties};
             input.layers.first().parentUuid = QUuid();
+            input.layers.first().transparencyMaskIndex = 0;
             try {
                 imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits());
             } catch (const std::invalid_argument &) {
@@ -441,6 +477,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             input.colorProfile = colorSpace()->profile()->rawData();
             input.layers = {properties};
             input.layers.first().parentUuid = QUuid();
+            input.layers.first().transparencyMaskIndex = 0;
             try {
                 imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits());
             } catch (const std::invalid_argument &) {
@@ -463,7 +500,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             if (!flush()) return false;
         }
         const auto version = imported ? imported->snapshot() : reference ? reference->version() : Gpu::Snapshot();
-        const auto sourceId = imported ? imported->activeLayer() : reference ? reference->layer() : Gpu::LayerId(0);
+        const auto sourceId = imported ? imported->snapshot()->layers.last().id : reference ? reference->layer() : Gpu::LayerId(0);
         if (!version || (!imported && (!source || QThread::currentThread() != source->thread() ||
             version->documentId() != source->operations().snapshot()->documentId()))) return false;
         const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
@@ -492,7 +529,15 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         m_hasLastGpuSelection = true;
     }
     for (const auto &node : nodes) state->nodes.insert(node->uuid(), node);
-    const auto result = owner->insertLayers(prepared, insertion, true, clearPixelSelection);
+    qsizetype effectIndex = -1;
+    if (effectRoots) {
+        effectIndex = 0;
+        for (qsizetype i = 0; i < index; ++i) {
+            const auto child = parent->at(i);
+            if (child && (child->inherits("KisFilterMask") || child->inherits("KisTransparencyMask"))) ++effectIndex;
+        }
+    }
+    const auto result = owner->insertLayers(prepared, insertion, true, clearPixelSelection, effectIndex);
     if (result != Gpu::Result::Success) {
         for (const auto &node : nodes) state->nodes.remove(node->uuid());
     } else {
@@ -642,7 +687,7 @@ bool KisImage::writeGpuTransparencyMaskSelection(KisNodeSP node, const KisSelect
     const auto owner = gpuImage();
     if (!owner || QThread::currentThread() != owner->thread() || !isGpuTransparencyMaskView(node) || !selection) return false;
     const auto layer = gpuLayerId(owner->operations().snapshot(), node->parent());
-    const auto coverage = importedTransparencyMaskCoverage(selection);
+    const auto coverage = importGpuMaskCoverage(selection);
     if (!coverage) return false;
     KisImageSP retained = this;
     return owner->writeTransparencyMask(layer, coverage) == LibrePaint::Image::Gpu::Result::Success;
@@ -668,12 +713,14 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         auto *layer = qobject_cast<KisLayer*>(node.data());
         auto *paint = qobject_cast<KisPaintLayer*>(node.data());
         auto *group = qobject_cast<KisGroupLayer*>(node.data());
-        if (!source || !layer || (!paint && !group) || (paint && hasNonMaskChild(node)) ||
-            !LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(layer->compositeOpId()) || node->isAnimated() ||
-            !node->keyframeChannels().isEmpty() || layer->layerStyle() || layer->temporary() ||
-            (paint && paint->hasTemporaryTarget()) ||
-            *layer->colorSpace() != *colorSpace() || pending.size() > owner->limits().layerCount) return {};
-        const auto flags = layer->channelFlags();
+        const bool filterMask = node->inherits("KisFilterMask");
+        const bool adjustment = node->inherits("KisAdjustmentLayer");
+        if (!source || (!layer && !filterMask) || (!paint && !group && !adjustment && !filterMask) ||
+            !LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(node->compositeOpId()) || node->isAnimated() ||
+            !node->keyframeChannels().isEmpty() || (layer && (layer->layerStyle() || layer->temporary() ||
+            *layer->colorSpace() != *colorSpace())) || (paint && paint->hasTemporaryTarget()) ||
+            pending.size() > owner->limits().layerCount) return {};
+        const auto flags = layer ? layer->channelFlags() : QBitArray();
         if (!flags.isEmpty() && flags.size() != 4) return {};
         Gpu::RasterLayer properties;
         properties.name = source->name;
@@ -691,10 +738,14 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         properties.position = source->position;
         properties.kind = source->kind;
         properties.parentUuid = pending[i].second;
+        properties.filter = source->filter;
+        properties.filterSelection = source->filterSelection;
+        properties.transparencyMaskIndex = source->transparencyMaskIndex;
         prepared.append({version, source->id, properties});
+        qsizetype childIndex = i + 1;
         for (auto child = node->firstChild(); child; child = child->nextSibling())
             if (!isGpuTransparencyMaskViewNode(child))
-                pending.append({child, properties.uuid});
+                pending.insert(childIndex++, {child, properties.uuid});
     }
     const auto copied = owner->cloneLayerForest(prepared);
     if (!copied) return {};
@@ -714,24 +765,39 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         node->setCollapsed(pending[i].first->collapsed());
         auto *layer = qobject_cast<KisLayer*>(node.data());
         auto *source = qobject_cast<KisLayer*>(pending[i].first.data());
-        layer->setChannelFlags(source->channelFlags());
-        layer->metaData()->copyFrom(source->metaData());
+        if (layer && source) {
+            layer->setChannelFlags(source->channelFlags());
+            layer->metaData()->copyFrom(source->metaData());
+        }
     }
     return view;
 }
 
 KisNodeList KisImage::cloneGpuNodes(const KisNodeList &roots) const
 {
+    if (!roots.isEmpty() && std::all_of(roots.cbegin(), roots.cend(), [](const auto &node) {
+        return node && node->inherits("KisFilterMask");
+    })) {
+        const auto owner = gpuImage();
+        if (!owner || QThread::currentThread() != owner->thread() || owner->operations().hasActiveStroke()) return {};
+        const auto version = owner->operations().snapshot();
+        KisNodeList copies;
+        for (const auto &node : roots) {
+            if (node->image() != this || !node->parent() || node->childCount() || node->isAnimated() ||
+                !node->keyframeChannels().isEmpty() || !gpuLayerId(version, node)) return {};
+            // A detached mask has no root RGB projection. Its native clone
+            // retains the immutable Alpha8 view and editable configuration.
+            auto copy = node->clone();
+            copy->setUuid(QUuid::createUuid());
+            copies.append(copy);
+        }
+        return copies;
+    }
     auto view = cloneGpuNodeImage(roots);
     if (!view) return {};
     QScopedValueRollback<bool> syncing(view->m_synchronizingGpuNodes, true);
     KisNodeList result;
     while (const auto node = view->root()->firstChild()) {
-        for (auto child = node->firstChild(); child;) {
-            auto next = child->nextSibling();
-            if (isGpuTransparencyMaskViewNode(child)) view->removeNode(child);
-            child = next;
-        }
         if (!view->removeNode(node)) return {};
         result.append(node);
     }

@@ -43,6 +43,18 @@ namespace KisToolUtils {
             if (nodes.isEmpty()) return false;
             if (selection && (owner->selectionRect().isEmpty() || selection != image->globalSelection())) return false;
             const auto version = owner->operations().snapshot();
+            if (nodes.size() == 1 && image->isGpuEditableMaskView(nodes.first())) {
+                const auto target = image->isGpuTransparencyMaskView(nodes.first()) ? nodes.first()->parent() : nodes.first();
+                for (const auto &layer : version->layers) {
+                    if (layer.uuid != target->uuid()) continue;
+                    // An adjustment owns both an internal filter selection and
+                    // optional transparency coverage; this API targets its internal selection.
+                    if (image->isGpuTransparencyMaskView(nodes.first()) &&
+                        LibrePaint::Image::Gpu::isFilterNode(layer.kind)) return false;
+                    return owner->clearMaskPixels(layer.id, bool(selection)) == LibrePaint::Image::Gpu::Result::Success;
+                }
+                return false;
+            }
             QList<LibrePaint::Image::Gpu::LayerId> layers;
             for (auto node : nodes) {
                 if (!node || node->image().data() != image.data()) return false;

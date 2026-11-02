@@ -166,6 +166,9 @@ public:
     Result writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
     /** Replaces retained mask coverage as one history entry; null is rejected. */
     Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
+    /** Clears one editable mask's selected alpha, or resets its finite storage
+     * to its retained default when selectedOnly is false. One history entry. */
+    Result clearMaskPixels(LayerId layer, bool selectedOnly);
     SelectionMaskSP layerTransparencyMask(LayerId layer) const;
     bool layerTransparencyMaskVisible(LayerId layer) const;
 
@@ -283,7 +286,7 @@ public:
      * one version and one notification after atomic adoption.
      */
     Result insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate = true,
-                        bool clearPixelSelection = false);
+                        bool clearPixelSelection = false, qsizetype effectIndex = -1);
     Result selectLayer(LayerId layer);
     Result selectLayers(const QList<LayerId> &layers, LayerId active);
     Result duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource);
@@ -387,7 +390,8 @@ private:
     Result paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
                                        const QList<InputSample> &samples, const Shape &shape,
                                        const FigureStyle &style, quint64 randomSeed, bool filled);
-    Result replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled);
+    Result replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled,
+                                bool cleared = false);
     struct Private;
     std::unique_ptr<Private> m_d;
 };

@@ -9,6 +9,7 @@
 #include <KisGpuFilterConfiguration.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
+#include <KoColorSpaceRegistry.h>
 #include <kis_group_layer.h>
 #include <kis_node.h>
 #include <kis_node_filter_interface.h>
@@ -36,7 +37,12 @@ KisNodeSP runFilterNodeDialog(KisViewManager *view, KisNodeSP existing, KisNodeS
     properties.name = name;
     properties.blendMode = Gpu::LayerBlendMode::Copy;
     const bool mask = kind == Gpu::LayerKind::FilterMask;
-    KisPaintDeviceSP preview = new KisPaintDevice(*(mask ? parent->original() : image->projection()));
+    const auto source = mask ? parent->original() : image->projection();
+    KisPaintDeviceSP preview = new KisPaintDevice(image->colorSpace());
+    // The selector's CPU filter gallery consumes only a display thumbnail.
+    // The live document preview below evaluates the frozen configuration on GPU.
+    preview->convertFromQImage(source->createThumbnail(100, 100),
+        KoColorSpaceRegistry::instance()->rgb8()->profile());
     KisDlgAdjustmentLayer dialog({}, nullptr, preview, name,
         existing ? (mask ? i18n("Filter Mask Properties") : i18n("Filter Layer Properties")) :
                    (mask ? i18n("New Filter Mask") : i18n("New Filter Layer")),

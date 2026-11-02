@@ -1222,7 +1222,7 @@ LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceL
 }
 
 Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate,
-                                       bool clearPixelSelection)
+                                       bool clearPixelSelection, qsizetype effectIndex)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -1268,6 +1268,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
             pixels += operationRasterBytes(operation);
             ++nextOperation;
         }
+        if (found->filterSelection && !selectionFitsRetainedInputs(found->filterSelection)) return Result::CapacityExceeded;
         if (found->filter) {
             if (!filterFitsRetainedHistory(*found->filter) || found->filter->byteCount() > m_limits.rasterBytes - pixels)
                 return Result::CapacityExceeded;
@@ -1277,6 +1278,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         copy.id = ++nextLayer;
         copy.name = properties.name;
         copy.uuid = properties.uuid;
+        copy.transparencyMaskIndex = properties.transparencyMaskIndex;
         if (!properties.transparencyMaskUuid.isNull()) {
             if (!properties.transparencyMask || !selectionFitsRetainedInputs(properties.transparencyMask)) return Result::InvalidInput;
             copy.transparencyMask = properties.transparencyMask;
@@ -1302,6 +1304,25 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
     }
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
     for (qsizetype i = 0; i < added.size(); ++i) version->layers.insert(index + i, added[i]);
+    QHash<QUuid, qsizetype> insertedMasks;
+    for (const auto &node : added)
+        if (node.kind == LayerKind::FilterMask && !inserted.contains(node.parentUuid)) ++insertedMasks[node.parentUuid];
+    if (effectIndex < -1 || (effectIndex >= 0 && (insertedMasks.size() != 1 || insertedMasks.cbegin().value() != added.size())))
+        return Result::InvalidInput;
+    for (auto &node : version->layers) {
+        if (!node.transparencyMask || !insertedMasks.contains(node.uuid)) continue;
+        qsizetype below = 0, total = 0;
+        for (qsizetype i = 0; i < before->layers.size(); ++i)
+            if (before->layers[i].parentUuid == node.uuid && before->layers[i].kind == LayerKind::FilterMask) {
+                ++total;
+                if (i < index) ++below;
+            }
+        if (effectIndex > total + 1) return Result::InvalidInput;
+        // The explicit sibling position distinguishes either side of the native
+        // transparency child, which has no entry in the flat layer list.
+        if ((effectIndex >= 0 ? effectIndex : below) <= node.transparencyMaskIndex)
+            node.transparencyMaskIndex += insertedMasks.value(node.uuid);
+    }
     if (!Detail::validLayerHierarchy(version->layers, before->format)) return Result::InvalidInput;
     nextOperation = m_nextOperation;
     version->selectedLayers.clear();
@@ -1809,7 +1830,7 @@ Result OperationDocument::writeTransparencyMask(LayerId layer, const SelectionMa
     return Result::Success;
 }
 
-Result OperationDocument::replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, bool filled)
+Result OperationDocument::replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, bool filled, bool cleared)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -1829,6 +1850,7 @@ Result OperationDocument::replaceTransparencyMask(LayerId layer, const Selection
     // The changed coverage identifies the brush action; a fill additionally
     // records its operation kind for the history display.
     change.filledLayer = filled;
+    change.clearedLayers = cleared;
     commitVersion(version, change);
     return Result::Success;
 }

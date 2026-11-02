@@ -4,6 +4,7 @@
  */
 #include "KisGpuFilterNodeEditingTest.h"
 #include <QApplication>
+#include <QDialog>
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QPointer>
@@ -44,6 +45,7 @@
 #include <kis_pixel_selection.h>
 #include <kis_selection.h>
 #include <kis_undo_stores.h>
+#include <kis_tool_utils.h>
 #include <algorithm>
 #include <memory>
 #include <functional>
@@ -367,4 +369,96 @@ void FilterNodeEditingTest::run()
     QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
     QVERIFY(reopened->saveAs(directory.filePath("reopened-edited-filters.kra"), KisDocument::nativeFormatMimeType(), false));
     reopened->waitForSavingToComplete();
+    // Clipboard/document insertion retains editable filters and GPU coverage
+    // through the destination's history and KRA storage.
+    KisNodeList forest;
+    for (auto child = reopened->image()->root()->firstChild(); child; child = child->nextSibling())
+        if (qobject_cast<KisLayer *>(child.data())) forest.append(child);
+    if (mask) {
+        const auto detachedMask = reopened->image()->cloneGpuNodes({publicNode});
+        QCOMPARE(detachedMask.size(), 1);
+        QVERIFY(!detachedMask.first()->parent());
+        QVERIFY(detachedMask.first()->uuid() != publicNode->uuid());
+        auto maskOwner = Gpu::PaintImageSP::create(execution, raster);
+        auto maskView = KisImage::fromGpuImage(maskOwner, "Pasted mask", cs);
+        QVERIFY(maskView->insertGpuLayers(detachedMask, 0, maskView->root()->firstChild()));
+        QCOMPARE(maskOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+        const auto insertedMask = maskOwner->operations().snapshot();
+        QCOMPARE(maskOwner->undo(), Gpu::Result::Success);
+        QCOMPARE(maskOwner->readRgbaPixels(0, area, raw.size()).bytes, raw);
+        QCOMPARE(maskOwner->redo(), Gpu::Result::Success);
+        QCOMPARE(maskOwner->operations().snapshot(), insertedMask);
+    }
+    auto copied = reopened->image()->cloneGpuNodeImage(forest); QVERIFY(copied);
+    QCOMPARE(copied->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    auto detached = reopened->image()->cloneGpuNodes(forest); QVERIFY(!detached.isEmpty());
+    Gpu::RasterImage blank;
+    blank.size = area.size(); blank.format = format; blank.colorProfile = cs->profile()->rawData();
+    auto pastedOwner = Gpu::PaintImageSP::create(execution, blank);
+    auto pastedView = KisImage::fromGpuImage(pastedOwner, "Pasted filters", cs);
+    QVERIFY(pastedView->insertGpuLayers(detached, 0));
+    QCOMPARE(pastedOwner->operations().undoCount(), 1);
+    QCOMPARE(pastedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    const auto pasted = pastedOwner->operations().snapshot();
+    QCOMPARE(pastedOwner->undo(), Gpu::Result::Success);
+    QVERIFY(pastedOwner->operations().snapshot()->layers.isEmpty());
+    QCOMPARE(pastedOwner->redo(), Gpu::Result::Success);
+    QCOMPARE(pastedOwner->operations().snapshot(), pasted);
+    for (const auto &layer : pasted->layers) if (Gpu::isFilterNode(layer.kind)) {
+        QVERIFY(layer.filter); QCOMPARE(layer.filter->id, id);
+        QVERIFY(layer.filterSelection);
+    }
+    std::unique_ptr<KisDocument> pastedDocument(KisPart::instance()->createDocument());
+    pastedDocument->setFileBatchMode(true); pastedDocument->setCurrentImage(pastedView);
+    const auto pastedPath = directory.filePath("pasted-editable-filters.kra");
+    QVERIFY(pastedDocument->saveAs(pastedPath, KisDocument::nativeFormatMimeType(), false));
+    pastedDocument->waitForSavingToComplete();
+    std::unique_ptr<KisDocument> pastedReader(KisPart::instance()->createDocument());
+    pastedReader->setFileBatchMode(true);
+    QVERIFY(pastedReader->openPath(pastedPath, KisDocument::DontAddToRecent));
+    QCOMPARE(pastedReader->image()->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected());
+
+    // Delete on the selected editable mask changes alpha, including fractional
+    // document selection, while the source paint pixels remain canonical.
+    Gpu::SelectionTileMap maskTiles;
+    QByteArray maskTile(Gpu::SelectionMask::AlphaTileBytes, char(255));
+    for (int y = 0; y < area.height(); ++y)
+        maskTile.replace(y * Gpu::SelectionMask::TileSize, area.width(), alpha.mid(y * area.width(), area.width()));
+    maskTiles.insert({0, 0}, maskTile);
+    const auto finiteMask = Gpu::SelectionMask::fromAlphaTiles(maskTiles, 255); QVERIFY(finiteMask);
+    QCOMPARE(reopenedOwner->setFilterSelection(reopenedFilter, finiteMask), Gpu::Result::Success);
+    nativeCoverage->pixelSelection()->clear();
+    const quint8 white = 255;
+    nativeCoverage->pixelSelection()->setDefaultPixel(KoColor(&white, nativeCoverage->pixelSelection()->colorSpace()));
+    nativeCoverage->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(alpha.constData()), area);
+    nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
+    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE(reopenedOwner->setSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(area, alpha, area)), Gpu::Result::Success);
+    const auto beforeClear = reopenedOwner->operations().snapshot();
+    const auto beforeClearPixels = expected();
+    QVERIFY(KisToolUtils::clearImage(reopened->image(), {publicNode}, reopened->image()->globalSelection()));
+    nativeCoverage->pixelSelection()->clearSelection(selected);
+    nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
+    QCOMPARE(reopenedOwner->operations().historyAction(reopenedOwner->operations().undoCount()), Gpu::HistoryAction::ClearPixels);
+    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE(reopenedOwner->readRgbaPixels(reopenedPaint, area, raw.size()).bytes, raw);
+    const auto cleared = reopenedOwner->operations().snapshot();
+    QCOMPARE(reopenedOwner->undo(), Gpu::Result::Success);
+    QCOMPARE(reopenedOwner->operations().snapshot(), beforeClear);
+    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, beforeClearPixels);
+    QCOMPARE(reopenedOwner->redo(), Gpu::Result::Success);
+    QCOMPARE(reopenedOwner->operations().snapshot(), cleared);
+    QCOMPARE(reopenedOwner->clearSelection(), Gpu::Result::Success);
+    QVERIFY(KisToolUtils::clearImage(reopened->image(), {publicNode}, {}));
+    nativeCoverage->pixelSelection()->clear();
+    nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
+    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    const auto clearedPath = directory.filePath("cleared-filter-mask.kra");
+    QVERIFY(reopened->saveAs(clearedPath, KisDocument::nativeFormatMimeType(), false));
+    reopened->waitForSavingToComplete();
+    std::unique_ptr<KisDocument> clearedReader(KisPart::instance()->createDocument());
+    clearedReader->setFileBatchMode(true);
+    QVERIFY(clearedReader->openPath(clearedPath, KisDocument::DontAddToRecent));
+    QCOMPARE(clearedReader->image()->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected());
+
 }

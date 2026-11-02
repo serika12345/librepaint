@@ -1264,10 +1264,12 @@ public:
      * refer to existing groups or other prepared nodes. Selects its roots and
      * activates the first root; Undo restores the original selection and active
      * layer. clearPixelSelection clears the pixel selection in that same entry.
+     * effectIndex locates filter-mask roots among the destination owner's
+     * filter and transparency children; -1 uses the flat insertion position.
      * Rejected requests retain the complete document and input state.
      */
     Result insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate = true,
-                        bool clearPixelSelection = false);
+                        bool clearPixelSelection = false, qsizetype effectIndex = -1);
     /** Selection is screen state; selecting an existing layer adds no history entry. */
     Result selectLayer(LayerId layer);
     /** A nonempty screen selection and an independent existing active layer.
@@ -1327,9 +1329,10 @@ public:
      * layer pixels and the mask's composition visibility. Null coverage removes
      * nothing; removeTransparencyMask() owns mask removal. Equal coverage
      * preserves the current version. `filled` marks a selection fill rather
-     * than a brush stroke for the history action.
+     * than a brush stroke; `cleared` records an explicit clear action.
      */
-    Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, bool filled = false);
+    Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, bool filled = false,
+                                   bool cleared = false);
     SelectionMaskSP layerTransparencyMask(LayerId layer) const;
     bool layerTransparencyMaskVisible(LayerId layer) const;
     /** Direct background writes preserve history, pending input and fixed snapshots. */
