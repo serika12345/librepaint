@@ -175,8 +175,8 @@ void TestNode::testMaskCropsKeepPixelsSelectionHistoryAndKra()
         const QRect rect(8, 6, 40, 28);
         crop(rect); QVERIFY(!QTest::currentTestFailed());
         QCOMPARE(document->undoStack()->index(), history + 1);
-        if (!gpu) nativeHistoryLabel = document->undoStack()->command(history)->text();
-        else QCOMPARE(document->undoStack()->command(history)->text(), nativeHistoryLabel);
+        if (!gpu) nativeHistoryLabel = document->undoStack()->command(history)->text().toString();
+        else QCOMPARE(document->undoStack()->command(history)->text().toString(), nativeHistoryLabel);
         const auto *saved = dynamic_cast<const KisCropSavedExtraData *>(document->undoStack()->command(history)->extraData()); QVERIFY(saved);
         QCOMPARE(saved->cropRect(), rect);
         QCOMPARE(saved->cropNode() ? saved->cropNode()->uuid() : QUuid{},

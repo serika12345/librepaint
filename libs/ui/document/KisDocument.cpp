@@ -1493,6 +1493,12 @@ KisDocument *KisDocument::Private::lockAndCloneImpl(bool fetchResourcesFromLayer
             }
         }
     }
+    if ((!window || !window->viewManager()) && !image->hasOpenStrokes()) {
+        // Size-change notifications can queue projection work while events are
+        // delivered above. Standalone document callers wait for that completed
+        // input before trying the same read-only saving lock used by the UI.
+        image->waitForDone();
+    }
 
     Private::StrippedSafeSavingLocker locker(&savingMutex, image);
     if (!locker.successfullyLocked()) {

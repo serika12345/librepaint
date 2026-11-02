@@ -266,7 +266,7 @@ SelectionMaskSP PaintImage::translatedSelectionMask(const SelectionMaskSP &mask,
 {
     if (!onThread() || !mask) return {};
     try {
-        if (mask->bounds().isEmpty() && mask->allocatedBlocks().isEmpty()) return mask;
+        if (mask->bounds().isEmpty() && mask->allocatedBlocks().isEmpty() && !mask->isGpuGenerated()) return mask;
         if (offset.isNull() && clip.contains(mask->bounds() | mask->allocatedBounds())) return mask;
         SelectionMaskSP result;
         const auto checked = m_d->execution.translateSelectionCoverage(mask, offset, clip, &result);
