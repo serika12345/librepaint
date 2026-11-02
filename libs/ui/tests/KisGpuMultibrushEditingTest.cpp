@@ -69,6 +69,8 @@ void MultibrushEditingTest::addData()
             << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << 0 << false;
         QTest::newRow(words ? "smoothed-tap-u16" : "smoothed-tap-u8")
             << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << 1 << false;
+        QTest::newRow(words ? "stabilized-tap-u16" : "stabilized-tap-u8")
+            << QStringLiteral("b)_Basic-5_Size_default.kpp") << words << 0 << 3 << false;
         for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "a)_Eraser_Circle.kpp"}) {
             const QByteArray name = QByteArray("group-mask-") + preset + (words ? "-u16" : "-u8");
             QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << 1 << 0 << true;

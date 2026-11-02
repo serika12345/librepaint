@@ -874,7 +874,7 @@ void KisToolFreehandHelper::endPaint()
     if (m_d->gpuImage) {
         if (m_d->gpuStabilizer && isRunning()) {
             const QPointer<KisToolFreehandHelper> guard(this);
-            if (!m_d->hasPaintAtLeastOnce) paintAt(m_d->previousPaintInformation);
+            if (!m_d->hasPaintAtLeastOnce) KisToolFreehandHelper::paintAt(m_d->previousPaintInformation);
             if (!guard) return;
             if (isRunning()) {
                 try {
@@ -1186,8 +1186,8 @@ void KisToolFreehandHelper::paintGpuStabilizerLines(
             m_d->gpuLineBatch->samples.reserve(lines.size() * 2);
             m_d->gpuLineBatch->commands.reserve(lines.size() * 2);
             for (const auto &line : lines) {
-                // Preserve virtual tool transforms before adopting the input.
-                paintLine(line.first, line.second);
+                // GPU replay applies the frozen hand transforms after smoothing.
+                KisToolFreehandHelper::paintLine(line.first, line.second);
                 if (!guard) return;
                 if (!isRunning()) { m_d->gpuLineBatch.reset(); return; }
             }

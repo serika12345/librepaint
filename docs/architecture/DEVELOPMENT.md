@@ -1692,6 +1692,16 @@ GPU所有者の試験は保持した旧版、使用中・読取り容量・座�
 操作対象と選択集合は独立して保持する。通常画面では対象を選択から外し、
 複製とUndo、選択解除後の対象への復帰を既存経路とGPU経路で照合する。
 操作モデルは未確定入力と選択の保持を検査する。
+`KisGpuOperationDocumentTest::multibrushRetainsHandsInputHistoryAndRejectsCapacity`は、
+マルチブラシの変換値の所有、手数を含む入力容量、変換後の座標、取消しと履歴を検査する。
+`KisGpuDocumentViewTest::multibrushPresetsKeepNativeEditingHistoryAndKra`は、通常のマルチブラシの
+Basic-5 Size default・Eraser Circle・矩形筆先のEraser Smallについて、RGB8・RGB16の
+レイヤー画素と投影、Groupの透明度マスク、Escape、Undo／Redo、KRA再読込後の追加編集を
+既存CPUと全バイトで照合する。対称・ミラー・雪片・複製平行移動・等間隔複製、
+タップと各入力補正を使い、設定変更後の履歴も開始時の変換を保つことを検査する。
+`libs/ui/tests/KisGpuMultibrushEditingTest.{h,cpp}`がこの利用側の試験を所有し、
+結果は`LIBREPAINT_GPU_RESULT_DIR/multibrush-<条件>-{native,gpu}-<番号>.bin`へ保存する。
+関連する一式は`ctest --test-dir build/tdd-linux -R '^libs-ui-multibrush-KisGpuDocumentViewTest$' --output-on-failure`で実行する。
 描画試験は塗りと輪郭の色、Undo／Redo、全画素一致を検査する。
 塗り領域全体がタイル予算を超える場合の原子的な拒否と、表示領域だけを一枚のタイルで生成することを照合する。
 一直線上の頂点だけを塗る要求は、画素と一回の履歴を保持し、塗り用タイルの割当をゼロに保つ。
