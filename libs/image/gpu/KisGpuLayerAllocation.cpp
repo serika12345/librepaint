@@ -128,6 +128,10 @@ std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId gro
     const auto defaults = document->projectionDefaultPixels();
     for (qsizetype i = ordered.size(); i-- > 0;) {
         const auto node = ordered[i];
+        if (isFilterNode(node->kind)) {
+            extents.insert(node->id, node->kind == LayerKind::Adjustment ? QRect(QPoint(), document->size) : QRect{});
+            continue;
+        }
         if (node->kind == LayerKind::Paint) {
             const auto allocated = paintLayerAllocation(document, *node, maximumRectangles);
             if (!allocated) return std::nullopt;

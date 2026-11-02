@@ -799,6 +799,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     });
     for (const auto &layer : document->layers) {
         if (!selected.contains(layer.id) || (region && region->isEmpty())) continue;
+        if (isFilterNode(layer.kind)) continue;
         if (layer.passThrough && !requestedGroups.contains(layer.id)) continue;
         const bool clipsPainting = std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &value) {
             const auto paint = std::get_if<PaintSnapshot>(&value);
@@ -1407,7 +1408,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 tiles = std::move(cropped.tiles);
             } else if (const auto filter = std::get_if<FilterSnapshot>(&layer.operations[end])) {
                 auto filtered = d.filterTiles(commands, tiles, **filter, data->defaults.value(layer.id),
-                                              document->size, document->format, operationRegions[end + 1], spatialPins);
+                                              QRect(QPoint(), document->size), document->format, operationRegions[end + 1], spatialPins);
                 if (filtered.code != RenderOutcome::Recorded) return {filtered.code, {}, filtered.diagnostic};
                 tiles = std::move(filtered.tiles);
             } else if (const auto affine = std::get_if<AffineSnapshot>(&layer.operations[end])) {

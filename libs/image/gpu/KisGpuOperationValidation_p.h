@@ -163,7 +163,11 @@ bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
 {
     QHash<QUuid, const LayerValue *> identities;
     for (const auto &layer : layers) {
-        if (layer.kind != LayerKind::Paint && layer.kind != LayerKind::Group) return false;
+        if (layer.kind > LayerKind::FilterMask || layer.transparencyMaskIndex < 0) return false;
+        if (isFilterNode(layer.kind) != bool(layer.filter)) return false;
+        if (layer.filter && layer.filter->resolved && !layer.filter->isValid(format)) return false;
+        if (layer.filterSelection && layer.filterSelection->byteCount() > SelectionMask::MaximumBytes) return false;
+        if (!isFilterNode(layer.kind) && layer.filterSelection) return false;
         if (layer.kind != LayerKind::Group && layer.passThrough) return false;
         if (!validBlendMode(layer.blendMode, format)) return false;
         if (layer.transparencyMask && layer.transparencyMask->byteCount() > SelectionMask::MaximumBytes) return false;
@@ -181,9 +185,19 @@ bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
         maskIdentities.insert(layer.transparencyMaskUuid);
     }
     for (const auto &layer : layers) {
+        if (!layer.transparencyMask) continue;
+        qsizetype count = 0;
+        for (const auto &child : layers)
+            if (child.parentUuid == layer.uuid && child.kind == LayerKind::FilterMask) ++count;
+        if (layer.transparencyMaskIndex > count) return false;
+    }
+    for (const auto &layer : layers) {
         if (layer.parentUuid.isNull()) continue;
         const auto parent = identities.constFind(layer.parentUuid);
-        if (parent == identities.cend() || (*parent)->kind != LayerKind::Group) return false;
+        if (parent == identities.cend()) return false;
+        if (layer.kind == LayerKind::FilterMask) {
+            if ((*parent)->kind == LayerKind::FilterMask) return false;
+        } else if ((*parent)->kind != LayerKind::Group) return false;
     }
     QHash<QUuid, quint8> colours;
     for (auto entry = identities.cbegin(); entry != identities.cend(); ++entry) {

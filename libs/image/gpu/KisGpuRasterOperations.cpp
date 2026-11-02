@@ -45,11 +45,15 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     for (const auto &source : image.layers) {
         const auto uuid = source.uuid.isNull() ? QUuid::createUuid() : source.uuid;
         if (!validPixel(source.defaultPixel, image.format) || identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 || source.projectionChannelMask > 15 ||
-            (source.kind == LayerKind::Group && (!source.tiles.isEmpty() || !source.writtenAreas.isEmpty() ||
+            (source.kind != LayerKind::Paint && (!source.tiles.isEmpty() || !source.writtenAreas.isEmpty() ||
                 source.defaultPixel != RgbaPixel{} || source.channelWriteMask != 15)) ||
             source.tiles.size() > (limits.rasterBytes - initial->rasterBytes) / RgbaTile::byteCount(image.format)) {
             throw std::invalid_argument("invalid raster layer identity, name or pixel capacity");
         }
+        if (isFilterNode(source.kind) && (!source.filter || !source.filter->isValid(image.format)))
+            throw std::invalid_argument("unresolved or invalid native filter configuration");
+        if (source.filter && source.filter->byteCount() > limits.rasterBytes - initial->rasterBytes)
+            throw std::length_error("native filter configuration capacity exceeded");
         Layer layer;
         layer.id = initial->layers.size() + 1;
         layer.name = source.name;
@@ -67,6 +71,11 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.position = source.position;
         layer.kind = source.kind;
         layer.parentUuid = source.parentUuid;
+        layer.filter = source.filter;
+        layer.filterSelection = isFilterNode(source.kind) ?
+            (source.filterSelection ? source.filterSelection : SelectionMask::uniform(255)) : SelectionMaskSP{};
+        layer.transparencyMaskIndex = source.transparencyMaskIndex;
+        if (layer.filter) initial->rasterBytes += layer.filter->byteCount();
         layer.transparencyMask = source.transparencyMask;
         layer.transparencyMaskVisible = source.transparencyMaskVisible;
         layer.transparencyMaskLocked = source.transparencyMaskLocked;

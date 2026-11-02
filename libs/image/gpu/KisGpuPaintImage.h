@@ -260,6 +260,14 @@ public:
                                  const QList<LayerPropertiesSelection> &selection);
     /** Restores selected preview attributes without changing history or input. */
     Result restoreLayerProperties(const Snapshot &before, const QList<LayerPropertiesSelection> &selection);
+    LayerId addFilterNode(const RasterLayer &node, qsizetype index, qsizetype effectIndex = -1);
+    OperationId beginFilterNodeEdit(LayerId existing, const RasterLayer &node, qsizetype index,
+                                    qsizetype effectIndex = -1);
+    Result updateFilterNodeEdit(OperationId id, const FilterDefinition &filter, const QString &name);
+    Result commitFilterNodeEdit(OperationId id);
+    Result cancelFilterNodeEdit(OperationId id);
+    Result setFilterDefinition(LayerId node, const FilterDefinition &filter, const QString &name = {});
+    Result setFilterSelection(LayerId node, const SelectionMaskSP &coverage);
     LayerId addLayer(const QString &name);
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid = {});
     /** Inserts validated committed inputs as one history entry, preserving the

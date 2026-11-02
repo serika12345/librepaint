@@ -33,20 +33,23 @@ static_assert(sizeof(FilterParameters) == 208,
 
 TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     WGPUCommandEncoder commands, const Tiles &source, const FilterOperation &filter,
-    const std::shared_ptr<Tile> &fallback, QSize documentSize, PixelFormat format, QRect region,
-    QList<std::shared_ptr<Tile>> &pins)
+    const std::shared_ptr<Tile> &fallback, QRect implicitBounds, PixelFormat format, QRect region,
+    QList<std::shared_ptr<Tile>> &pins, bool transparency)
 {
     retainTiles(source);
     retainTile(fallback);
     Tiles result = source;
     QRect bounds = region;
-    if (filter.kind >= FilterKind::MaximizeChannel) bounds &= filter.applyRect;
-    if (!filter.selectionRect.isEmpty() && !filter.selectionInverted)
+    const bool masked = filter.selectionKind == SelectionKind::Freehand;
+    if (filter.bounded || filter.kind >= FilterKind::MaximizeChannel) bounds &= filter.applyRect;
+    if (!transparency && !filter.selectionRect.isEmpty() && !filter.selectionInverted &&
+        (!masked || (filter.selectionMask && !filter.selectionMask->defaultCoverage())))
         bounds = bounds.intersected(filter.selectionRect);
     if (bounds.isEmpty()) return {RenderOutcome::Recorded, std::move(result), {}};
-    const bool masked = filter.selectionKind == SelectionKind::Freehand;
-    if (masked && (!filter.selectionMask || filter.selectionMask->isEmpty()))
+    if (masked && !filter.selectionMask)
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU filter freehand selection has no coverage")};
+    if (masked && filter.selectionMask->isEmpty() && !transparency)
+        return {RenderOutcome::Recorded, std::move(result), {}};
     // Existing content is the layer's painted extent. A non-transparent default
     // pixel extends that extent over the canvas, so those tiles are synthesized.
     QList<quint64> planned;
@@ -54,14 +57,13 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         const QPoint coordinate = Detail::coordinate(tile.key());
         const QRect tileRect(coordinate * TileSize, QSize(TileSize, TileSize));
         if (!tileRect.intersects(bounds)) continue;
-        if (masked && !filter.selectionInverted &&
+        if (!transparency && masked && !filter.selectionInverted && !filter.selectionMask->defaultCoverage() &&
             !filter.selectionMask->isGpuGenerated() && !filter.selectionMask->tiles().contains(SelectionTileKey(coordinate.x(), coordinate.y())))
             continue;
         planned.append(tile.key());
     }
-    if (fallback && !documentSize.isEmpty()) {
-        const QRect content(QPoint(), documentSize);
-        const QRect area = bounds.intersected(content);
+    if (fallback && !implicitBounds.isEmpty()) {
+        const QRect area = bounds.intersected(implicitBounds);
         if (!area.isEmpty()) {
             const int left = pixelTileIndex(area.left(), TileSize);
             const int top = pixelTileIndex(area.top(), TileSize);
@@ -70,7 +72,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
             for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
                 const auto coordinate = Detail::key(x, y);
                 if (source.contains(coordinate)) continue;
-                if (masked && !filter.selectionInverted &&
+                if (!transparency && masked && !filter.selectionInverted && !filter.selectionMask->defaultCoverage() &&
                     !filter.selectionMask->isGpuGenerated() && !filter.selectionMask->tiles().contains(SelectionTileKey(x, y)))
                     continue;
                 planned.append(coordinate);
@@ -105,9 +107,9 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         descriptor.entries = entries;
         filterLayout.reset(wgpuDeviceCreateBindGroupLayout(device->nativeDevice(), &descriptor));
     }
-    auto &pipeline = filterPipelines[quint32(mode) | (wide ? 256u : 0u)];
+    auto &pipeline = filterPipelines[quint32(mode) | (wide ? 256u : 0u) | (transparency ? 512u : 0u)];
     if (!pipeline && filterLayout)
-        pipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/filter.wgsl"), "main",
+        pipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/filter.wgsl"), transparency ? "maskMain" : "main",
                                   quint32(mode), 0, filterLayout.get(), true, wide ? 2u : 1u);
     if (!pipeline || !filterLayout)
         return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter pipeline creation failed: ") + error};
@@ -116,6 +118,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     else if (filter.selectionKind == SelectionKind::Ellipse) flags |= 4u;
     if (filter.selectionInverted) flags |= 8u;
     if (filter.selectionRect.isEmpty() && !masked) flags = 0u;
+    if (filter.bounded) flags |= 16u;
     // These constants depend only on the frozen profile and sliders. Pixel
     // conversion and its ordered qreal rounding stay entirely on the GPU.
     std::array<double, 7> yuv{};
@@ -138,7 +141,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         const auto output = allocateTile(format);
         if (!output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter allocation failed")};
         std::shared_ptr<CoverageTile> coverage;
-        if (masked) {
+        if (masked && !filter.selectionMask->isEmpty()) {
             coverage = coverageTile(commands, filter.selectionMask, coordinate);
             if (!coverage)
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU filter coverage budget exhausted")};
@@ -222,4 +225,44 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     }
     return {RenderOutcome::Recorded, std::move(result), {}};
 }
+
+TileRenderer::Private::FilterResult TileRenderer::Private::applyLayerMasks(
+    WGPUCommandEncoder commands, const Tiles &source, const std::shared_ptr<Tile> &fallback,
+    const Layer &layer, const Snapshot &document, QRect region, QList<std::shared_ptr<Tile>> &pins)
+{
+    QList<const Layer *> filters;
+    for (const auto &child : document->layers)
+        if (child.kind == LayerKind::FilterMask && child.parentUuid == layer.uuid) filters.append(&child);
+    Tiles tiles = source;
+    const auto apply = [&](const FilterSettings &settings, const SelectionMaskSP &mask, bool transparency) -> FilterResult {
+        FilterOperation operation;
+        static_cast<FilterSettings &>(operation) = settings;
+        operation.layer = layer.id;
+        operation.applyRect = region;
+        operation.bounded = true;
+        if (mask) {
+            operation.selectionKind = SelectionKind::Freehand;
+            operation.selectionMask = mask;
+            operation.selectionRect = mask->bounds();
+        }
+        return filterTiles(commands, tiles, operation, fallback, region, document->format, region, pins, transparency);
+    };
+    for (qsizetype i = 0; i <= filters.size(); ++i) {
+        if (i == layer.transparencyMaskIndex && hasEnabledTransparencyMask(layer)) {
+            const auto masked = apply(FilterSettings{}, layer.transparencyMask, true);
+            if (masked.code != RenderOutcome::Recorded) return masked;
+            tiles = masked.tiles;
+        }
+        if (i == filters.size()) break;
+        const auto &node = *filters[i];
+        if (!node.visible) continue;
+        if (!node.filter || !node.filter->isValid(document->format))
+            return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU filter mask configuration is unavailable")};
+        const auto filtered = apply(node.filter->settings, node.filterSelection, false);
+        if (filtered.code != RenderOutcome::Recorded) return filtered;
+        tiles = filtered.tiles;
+    }
+    return {RenderOutcome::Recorded, std::move(tiles), {}};
+}
+
 }

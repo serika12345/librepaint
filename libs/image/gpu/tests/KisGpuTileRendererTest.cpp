@@ -39,6 +39,8 @@ class KisGpuTileRendererTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void retainedFiltersFollowSourceEditsWithoutBakingPixels_data();
+    void retainedFiltersFollowSourceEditsWithoutBakingPixels();
     void basicCurveControlsPreserveClosedSegmentDecisions_data();
     void basicCurveControlsPreserveClosedSegmentDecisions();
     void initTestCase();
@@ -7279,3 +7281,84 @@ int main(int argc, char **argv)
     return QTest::qExec(&test, argc, argv);
 }
 #include "KisGpuTileRendererTest.moc"
+
+void KisGpuTileRendererTest::retainedFiltersFollowSourceEditsWithoutBakingPixels_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("mask");
+    for (bool words : {false, true}) for (bool mask : {false, true}) {
+        const QByteArray name = QByteArray(words ? "word-" : "byte-") + (mask ? "mask" : "adjustment");
+        QTest::newRow(name) << words << mask;
+    }
+}
+
+void KisGpuTileRendererTest::retainedFiltersFollowSourceEditsWithoutBakingPixels()
+{
+    QFETCH(bool, words);
+    QFETCH(bool, mask);
+    RasterImage raster;
+    raster.size = {32, 24};
+    raster.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    raster.layers = {{QStringLiteral("Paint"), true, {}, {}}};
+    OperationDocument document(raster);
+    const auto paint = document.activeLayer();
+    const quint16 scale = words ? 257 : 1;
+    const auto color = [&](quint16 r, quint16 g, quint16 b) -> RgbaPixel {
+        return {quint16(r * scale), quint16(g * scale), quint16(b * scale), maximumComponent(raster.format)};
+    };
+    const auto first = color(11, 83, 207);
+    const auto second = color(199, 47, 13);
+    QCOMPARE(document.fillLayerColor(paint, first), Result::Success);
+    FilterDefinition filter;
+    filter.id = QStringLiteral("maximize");
+    filter.settings.kind = FilterKind::MaximizeChannel;
+    filter.xml = QByteArrayLiteral("<!DOCTYPE params><params/>");
+    RasterLayer node;
+    node.name = QStringLiteral("Retained maximum");
+    node.kind = mask ? LayerKind::FilterMask : LayerKind::Adjustment;
+    node.parentUuid = mask ? document.snapshot()->layers.first().uuid : QUuid{};
+    node.blendMode = mask ? LayerBlendMode::Normal : LayerBlendMode::Copy;
+    node.filter = filter;
+    const auto nodeId = document.addFilterNode(node, 1);
+    QVERIFY(nodeId);
+    TileRenderer renderer(m_device);
+    const QRect area(QPoint(), raster.size);
+    const int stride = pixelByteCount(raster.format);
+    const auto pixel = [&](const QByteArray &bytes) { return bytes.mid((7 * TileRenderer::TileSize + 9) * stride, stride); };
+    auto raw = render(renderer, document.snapshot());
+    QVERIFY(raw);
+    QCOMPARE(pixel(readTile(raw, paint, {0, 0})), rgbaBytes(first, raster.format));
+    auto projected = project(renderer, raw, area);
+    QVERIFY(projected);
+    QVERIFY(!projected->tiles().isEmpty());
+    QCOMPARE(pixel(readBuffer(projected->tiles().first().pixels)), rgbaBytes(color(0, 0, 207), raster.format));
+    // Editing below the retained node re-evaluates its projection, while the
+    // actual paint device continues to hold the unfiltered color.
+    QCOMPARE(document.fillLayerColor(paint, second), Result::Success);
+    raw = render(renderer, document.snapshot(), raw);
+    QCOMPARE(pixel(readTile(raw, paint, {0, 0})), rgbaBytes(second, raster.format));
+    projected = project(renderer, raw, area, projected);
+    QCOMPARE(pixel(readBuffer(projected->tiles().first().pixels)), rgbaBytes(color(199, 0, 0), raster.format));
+    QCOMPARE(document.undo(), Result::Success);
+    raw = render(renderer, document.snapshot(), raw);
+    projected = project(renderer, raw, area, projected);
+    QCOMPARE(pixel(readBuffer(projected->tiles().first().pixels)), rgbaBytes(color(0, 0, 207), raster.format));
+    QCOMPARE(document.redo(), Result::Success);
+    const auto coverage = SelectionMask::fromAlphaCoverage(area,
+        QByteArray(area.width() * area.height(), char(128)), area);
+    QVERIFY(coverage);
+    QCOMPARE(document.setFilterSelection(nodeId, coverage), Result::Success);
+    raw = render(renderer, document.snapshot(), raw);
+    projected = project(renderer, raw, area, projected);
+    const auto selectedProjection = readBuffer(projected->tiles().first().pixels);
+    OperationDocument ordinary(raster);
+    const auto ordinaryPaint = ordinary.activeLayer();
+    QCOMPARE(ordinary.fillLayerColor(ordinaryPaint, second), Result::Success);
+    QCOMPARE(ordinary.setSelectionMask(coverage), Result::Success);
+    QCOMPARE(ordinary.colorFilter(ordinaryPaint, FilterKind::MaximizeChannel), Result::Success);
+    TileRenderer ordinaryRenderer(m_device);
+    const auto ordinaryPixels = render(ordinaryRenderer, ordinary.snapshot());
+    const auto ordinaryProjection = project(ordinaryRenderer, ordinaryPixels, area);
+    QCOMPARE(selectedProjection, readBuffer(ordinaryProjection->tiles().first().pixels));
+    QCOMPARE(pixel(readTile(raw, paint, {0, 0})), rgbaBytes(second, raster.format));
+}

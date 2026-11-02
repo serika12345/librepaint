@@ -124,7 +124,8 @@ bool boundedReference(const Snapshot &source, const RegionFillSettings &settings
             !mask(version->selectionMask) ||
             !add(version->colorProfile.constData(), version->colorProfile.size())) return false;
         for (const auto &layer : version->layers) {
-            if (!mask(layer.transparencyMask)) return false;
+            if (!mask(layer.transparencyMask) || !mask(layer.filterSelection)) return false;
+            if (layer.filter && !add(layer.filter->xml.constData(), layer.filter->byteCount())) return false;
             if (!add(layer.operations.constData(), layer.operations.size() * qsizetype(sizeof(LayerOperation)))) return false;
             for (const auto &operation : layer.operations) {
                 const bool valid = std::visit([&](const auto &value) {

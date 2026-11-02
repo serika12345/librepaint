@@ -289,6 +289,7 @@ QList<LayerProjectionInput> compositionInputs(const QHash<QUuid, QList<const Lay
     while (!pending.isEmpty()) {
         const auto value = pending.takeLast();
         const auto &layer = *value.layer;
+        if (layer.kind == LayerKind::FilterMask) continue;
         const auto opacity = quint8(int(layer.opacity) * value.opacity / 255);
         if (!layer.visible || (!opacity && layer.blendMode != LayerBlendMode::DestinationIn && layer.blendMode != LayerBlendMode::DestinationAtop && !Detail::transparentSourceAffectsBlend(layer.blendMode))) continue;
         if (layer.passThrough) appendChildren(layer.uuid, opacity, layer.projectionChannelMask);
@@ -315,12 +316,14 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
     QHash<LayerId, RgbaPixel> result;
     QHash<LayerId, quint8> maskDefaults;
     QHash<LayerId, bool> implicitSources;
+    QHash<LayerId, LayerKind> kinds;
     QHash<QUuid, const Layer *> identities;
     QHash<QUuid, QList<const Layer *>> children;
     QHash<LayerId, int> remaining;
     QList<const Layer *> ready;
     for (const auto &layer : layers) {
         identities.insert(layer.uuid, &layer);
+        kinds.insert(layer.id, layer.kind);
         children[layer.parentUuid].append(&layer);
         if (hasEnabledTransparencyMask(layer))
             maskDefaults.insert(layer.id, layer.transparencyMask->defaultCoverage());
@@ -328,7 +331,7 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
             result.insert(layer.id, layer.defaultPixel);
             implicitSources.insert(layer.id, layer.defaultPixel[3] != 0);
         }
-        else remaining.insert(layer.id, 0);
+        else if (layer.kind == LayerKind::Group) remaining.insert(layer.id, 0);
     }
     for (const auto &layer : layers) {
         if (layer.parentUuid.isNull() || layer.kind != LayerKind::Group) continue;
@@ -362,6 +365,7 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
             allocated = implicitSources.value(inputs.first().layer);
         } else {
             for (const auto &layer : inputs) {
+                if (kinds.value(layer.layer) == LayerKind::Adjustment) continue;
                 auto source = maskedDefault(layer.layer);
                 const bool wholeRectangle = layer.blendMode == LayerBlendMode::Copy || layer.blendMode == LayerBlendMode::DestinationIn || layer.blendMode == LayerBlendMode::DestinationAtop;
                 if ((!allocated && !(layer.channelMask & 8u) && layer.blendMode != LayerBlendMode::Copy) || (!implicitSources.value(layer.layer) && !wholeRectangle)) continue;

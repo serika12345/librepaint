@@ -63,6 +63,9 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::Grayscale: return kundo2_i18n("Grayscale");
     case HistoryAction::ConvertColorSpace: return kundo2_i18n("Convert Image Color Space");
     case HistoryAction::HsvAdjustment: return kundo2_i18n("HSV Adjustment");
+    case HistoryAction::AddFilterMask: return kundo2_i18n("Add Filter Mask");
+    case HistoryAction::AddAdjustmentLayer: return kundo2_i18n("Add Filter Layer");
+    case HistoryAction::ChangeFilter: return kundo2_i18n("Change Filter");
     case HistoryAction::MaximizeChannel: return kundo2_i18n("Maximize Channel");
     case HistoryAction::MinimizeChannel: return kundo2_i18n("Minimize Channel");
     case HistoryAction::ResetTransparent: return kundo2_i18n("Reset Transparent");

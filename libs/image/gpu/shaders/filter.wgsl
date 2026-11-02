@@ -954,7 +954,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let pixel = parameters.tile.xy + vec2<i32>(local);
     let area = parameters.applyRect;
     let inArea = all(pixel >= area.xy) && all(pixel < area.xy + area.zw);
-    if (selected != 0u && (u32(parameters.tile.z) < FILTER_MAXIMIZE || inArea)) {
+    if (selected != 0u && ((u32(parameters.tile.z) < FILTER_MAXIMIZE && (flags & 16u) == 0u) || inArea)) {
         let kind = u32(parameters.tile.z);
         result = filtered(base, kind, wide);
         if (selected != 255u) {
@@ -970,6 +970,35 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
                     (base.y * keep + result.y * selected + 127u) / 255u,
                     (base.z * keep + result.z * selected + 127u) / 255u, base.w);
             }
+        }
+    }
+    let words = nativePixelWords(result, wide);
+    outputPixels[offset] = words.x;
+    if (wide) { outputPixels[offset + 1u] = words.y; }
+}
+
+// Native transparency masks copy the original pixel onto a transparent plane
+// through Alpha8 coverage. This also retains native hidden-color rounding.
+@compute @workgroup_size(8, 8)
+fn maskMain(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let local = invocation.xy;
+    if (any(local >= vec2<u32>(256u))) { return; }
+    let index = local.y * 256u + local.x;
+    let wide = parameters.control.x != 0u;
+    let offset = index * select(1u, 2u, wide);
+    var high = 0u;
+    if (wide) { high = basePixels[offset + 1u]; }
+    let base = nativePixel(basePixels[offset], high, wide);
+    let pixel = parameters.tile.xy + vec2<i32>(local);
+    let area = parameters.applyRect;
+    var result = base;
+    if (all(pixel >= area.xy) && all(pixel < area.xy + area.zw)) {
+        let coverage = selectedness(pixel, index, u32(parameters.tile.w));
+        result = vec4<u32>(0u);
+        if (coverage == 255u) { result = base; }
+        else if (coverage != 0u) {
+            let opacity = projectionMultiply(bitcast<u32>(f32(coverage)), 0x3b808081u);
+            result = copyPixel(vec4<u32>(0u), base, opacity, 15u, wide);
         }
     }
     let words = nativePixelWords(result, wide);

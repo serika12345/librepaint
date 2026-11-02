@@ -164,6 +164,7 @@ qsizetype Layer::retainedRasterBytes() const
 {
     qsizetype bytes = initialProjection ? initialProjection->source->rasterBytes + initialProjection->retainedBytes : 0;
     for (const auto &operation : operations) bytes += operationRasterBytes(operation);
+    if (filter) bytes += filter->byteCount();
     return bytes;
 }
 
@@ -351,9 +352,10 @@ int OperationDocument::savedHistoryIndex() const
     return -1;
 }
 bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevision != m_savedRevision; }
-bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_affine.isEmpty() || !m_externalOperation.isNull(); }
+bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_affine.isEmpty() || !m_externalOperation.isNull() || m_filterNodeEdit.has_value(); }
 OperationId OperationDocument::activeOperation() const
 {
+    if (m_filterNodeEdit) return m_filterNodeEdit->id;
     if (m_edit) return m_edit->id;
     if (m_translation) return m_translation->id;
     if (!m_affine.isEmpty()) return m_affine.first()->id;
@@ -383,12 +385,14 @@ Result OperationDocument::updateExternalMask(const OperationId &id, LayerId laye
     if (m_closed) return Result::Closed;
     if (m_externalOperation.isNull() || m_externalOperation != id) return Result::StaleOperation;
     const auto index = layerIndex(layer);
-    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (index < 0 || !editableMaskCoverage(snapshot()->layers[index])) return Result::LayerUnavailable;
     if (!mask) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max() || !selectionFitsRetainedInputs(mask))
         return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
-    version->layers[index].transparencyMask = mask;
+    auto &target = version->layers[index];
+    if (isFilterNode(target.kind)) target.filterSelection = mask;
+    else target.transparencyMask = mask;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     version->m_committed = false;
     version->m_pendingOperation = id;
@@ -1262,6 +1266,11 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
             pixels += operationRasterBytes(operation);
             ++nextOperation;
         }
+        if (found->filter) {
+            if (!filterFitsRetainedHistory(*found->filter) || found->filter->byteCount() > m_limits.rasterBytes - pixels)
+                return Result::CapacityExceeded;
+            pixels += found->filter->byteCount();
+        }
         Layer copy = *found;
         copy.id = ++nextLayer;
         copy.name = properties.name;
@@ -1382,6 +1391,12 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
     qsizetype samples = original->sampleCount, pixels = original->rasterBytes;
     quint64 nextOperation = m_nextOperation;
     for (const auto index : ordered) {
+        if (original->layers[index].filter) {
+            const auto &filter = *original->layers[index].filter;
+            if (!filterFitsRetainedHistory(filter) || filter.byteCount() > m_limits.rasterBytes - pixels)
+                return Result::CapacityExceeded;
+            pixels += filter.byteCount();
+        }
         if (const auto &initial = original->layers[index].initialProjection) {
             const auto bytes = initial->source->rasterBytes + initial->retainedBytes;
             if (initial->source->sampleCount > m_limits.samplesPerDocument - samples || bytes > m_limits.rasterBytes - pixels)
@@ -2771,6 +2786,7 @@ void OperationDocument::close()
     m_translationTargets.clear();
     m_translationIds.clear();
     m_externalOperation = {};
+    m_filterNodeEdit.reset();
     m_layerHistoryChanges = {LayerHistoryChange{}};
     m_index = 0;
     m_closed = true;

@@ -11,6 +11,7 @@
 #include <QByteArray>
 #include <QList>
 #include <QHash>
+#include <QMap>
 #include <QPair>
 #include <QPointF>
 #include <QRect>
@@ -780,11 +781,9 @@ KRITAIMAGEGPUOPERATIONS_EXPORT bool freezeLumaCoefficients(
  * document color, opacity and composition. Coverage and settings are
  * retained for every document version and Undo/Redo step.
  */
-struct FilterOperation
+/** Pixel arithmetic shared by ordinary filters and retained filter nodes. */
+struct KRITAIMAGEGPUOPERATIONS_EXPORT FilterSettings
 {
-    OperationId id;
-    quint64 version = 1;
-    LayerId layer = 0;
     FilterKind kind = FilterKind::InvertColors;
     /** Frozen HSV/HSL Adjustment settings; meaningful when kind is HsvAdjustment. */
     qint32 hue = 0;
@@ -797,8 +796,41 @@ struct FilterOperation
     /** Effective document luma coefficients for HSY, YUV and Colorize. */
     std::array<double, 3> luma{0.2126, 0.7152, 0.0722};
     ColorOverlay overlay;
-    /** Product process extent, clipped to the document at acceptance. */
+    bool isValid(PixelFormat format) const;
+    bool operator==(const FilterSettings &other) const;
+};
+
+/** Native configuration retained for editable filter nodes and KRA metadata.
+ * File parsing supplies parameters and XML. Document adoption resolves the
+ * document color/luma once before constructing an executable image.
+ */
+struct KRITAIMAGEGPUOPERATIONS_EXPORT FilterDefinition
+{
+    static constexpr qsizetype MaximumXmlBytes = 1024 * 1024;
+    QString id;
+    qint32 version = 1;
+    QByteArray xml;
+    QMap<QString, QVariant> parameters;
+    FilterSettings settings;
+    bool resolved = true;
+    bool isValid(PixelFormat format) const;
+    qsizetype byteCount() const;
+    bool operator==(const FilterDefinition &other) const;
+};
+
+/** Validates product keys using color/luma already resolved by their owner. */
+KRITAIMAGEGPUOPERATIONS_EXPORT bool freezeFilterSettings(const QString &id,
+    const QMap<QString, QVariant> &parameters, const std::array<double, 3> &luma,
+    const ColorOverlay &overlay, PixelFormat format, FilterSettings *settings);
+
+struct FilterOperation : FilterSettings
+{
+    OperationId id;
+    quint64 version = 1;
+    LayerId layer = 0;
+    /** Ordinary operations clip at acceptance; live nodes use the requested plane. */
     QRect applyRect;
+    bool bounded = false;
     QRect selectionRect{};
     bool selectionInverted = false;
     SelectionKind selectionKind = SelectionKind::Rectangle;
@@ -807,7 +839,7 @@ struct FilterOperation
 using FilterSnapshot = QSharedPointer<const FilterOperation>;
 using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot, FilterSnapshot, AffineSnapshot>;
 
-enum class LayerKind : quint8 { Paint, Group };
+enum class LayerKind : quint8 { Paint, Group, Adjustment, FilterMask };
 
 struct RasterLayer
 {
@@ -845,6 +877,12 @@ struct RasterLayer
     QString transparencyMaskName = QStringLiteral("Transparency Mask");
     int transparencyMaskColorLabelIndex = 0;
     bool transparencyMaskPinnedToTimeline = false;
+    /** Native child order, counting retained filter-mask children from bottom. */
+    qsizetype transparencyMaskIndex = 0;
+    /** Adjustment/filter-mask configuration; empty for paint/group nodes. */
+    std::optional<FilterDefinition> filter;
+    /** Internal Alpha8 selection for adjustment layers and filter masks. */
+    SelectionMaskSP filterSelection;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -909,10 +947,23 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT Layer
     QString transparencyMaskName = QStringLiteral("Transparency Mask");
     int transparencyMaskColorLabelIndex = 0;
     bool transparencyMaskPinnedToTimeline = false;
+    /** Native child order, counting retained filter-mask children from bottom. */
+    qsizetype transparencyMaskIndex = 0;
+    /** Adjustment/filter-mask configuration; empty for paint/group nodes. */
+    std::optional<FilterDefinition> filter;
+    /** Internal Alpha8 selection for adjustment layers and filter masks. */
+    SelectionMaskSP filterSelection;
     FrozenLayerProjectionSP initialProjection;
     qsizetype inputSampleCount() const;
     qsizetype retainedRasterBytes() const;
 };
+
+inline bool isFilterNode(LayerKind kind)
+{ return kind == LayerKind::Adjustment || kind == LayerKind::FilterMask; }
+
+/** Paint tools edit a filter node's internal coverage or a transparency child. */
+inline SelectionMaskSP editableMaskCoverage(const Layer &layer)
+{ return isFilterNode(layer.kind) ? layer.filterSelection : layer.transparencyMask; }
 
 /** True when this layer's retained transparency mask contributes to composition. */
 inline bool hasEnabledTransparencyMask(const Layer &layer)
@@ -1039,6 +1090,7 @@ enum class HistoryAction {
     Grayscale, HsvAdjustment, ConvertColorSpace, MoveSelectionPixels, TransformLayer,
     GroupLayers, CreateClippingGroup, UngroupLayers,
     MergeDown, MergeSelected, FlattenLayer, FlattenImage, NewFromVisible,
+    AddFilterMask, AddAdjustmentLayer, ChangeFilter,
     MaximizeChannel, MinimizeChannel, ResetTransparent, ColorOverlay
 };
 
@@ -1174,6 +1226,17 @@ public:
     Result writeLayerPosition(LayerId layer, QPoint position);
 
     /** Adds and selects a layer in one history entry; returns zero on rejection. */
+    /** One node insertion, including frozen settings and internal selection. */
+    LayerId addFilterNode(const RasterLayer &node, qsizetype index, qsizetype effectIndex = -1);
+    /** Configuration preview is one transaction, including a newly created node. */
+    OperationId beginFilterNodeEdit(LayerId existing, const RasterLayer &node, qsizetype index,
+                                    qsizetype effectIndex = -1);
+    Result updateFilterNodeEdit(OperationId id, const FilterDefinition &filter, const QString &name);
+    Result commitFilterNodeEdit(OperationId id);
+    Result cancelFilterNodeEdit(OperationId id);
+    Result setFilterDefinition(LayerId node, const FilterDefinition &filter,
+                               const QString &name = {});
+    Result setFilterSelection(LayerId node, const SelectionMaskSP &coverage);
     LayerId addLayer(const QString &name);
     /** Inserts and selects a paint layer at a document-list index. A nonnull
      * parent UUID identifies an existing group; null places it at the root.
@@ -1413,6 +1476,13 @@ public:
     void close();
 
 private:
+    struct FilterNodeEdit {
+        OperationId id;
+        LayerId node = 0;
+        bool inserted = false;
+    };
+    std::optional<FilterNodeEdit> m_filterNodeEdit;
+    bool filterFitsRetainedHistory(const FilterDefinition &filter) const;
     friend class PaintImage;
     enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible, MaskLocked, MaskName, MaskColorLabel, MaskPinnedToTimeline };
     struct LayerPropertyEdit {

@@ -110,6 +110,8 @@ struct RenderedVersion::Data
     QMap<LayerId, Detail::Tiles> strokeInputs;
     std::optional<QRect> region;
     QSet<LayerId> selected;
+    /** Derived composition inputs whose ordered effect masks are already applied. */
+    QSet<LayerId> effectProjections;
 };
 
 struct ProjectedVersion::Data
@@ -343,8 +345,11 @@ struct TileRenderer::Private
      */
     FilterResult filterTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
                              const FilterOperation &filter, const std::shared_ptr<Detail::Tile> &fallback,
-                             QSize documentSize, PixelFormat format, QRect region,
-                             QList<std::shared_ptr<Detail::Tile>> &pins);
+                             QRect implicitBounds, PixelFormat format, QRect region,
+                             QList<std::shared_ptr<Detail::Tile>> &pins, bool transparency = false);
+    FilterResult applyLayerMasks(WGPUCommandEncoder commands, const Detail::Tiles &source,
+        const std::shared_ptr<Detail::Tile> &fallback, const Layer &layer, const Snapshot &document,
+        QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
 };
 }
 #endif

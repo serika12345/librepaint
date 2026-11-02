@@ -1038,6 +1038,32 @@ Result PaintImage::checkLayerTranslation(const Snapshot &version, LayerId layer,
 }
 Result PaintImage::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
 { return onThread() ? publish(m_d->document->replaceTiles(layer, tiles)) : Result::InvalidInput; }
+LayerId PaintImage::addFilterNode(const RasterLayer &node, qsizetype index, qsizetype effectIndex)
+{
+    if (!onThread()) return 0;
+    const auto layer = m_d->document->addFilterNode(node, index, effectIndex);
+    if (layer) publish(Result::Success);
+    return layer;
+}
+OperationId PaintImage::beginFilterNodeEdit(LayerId existing, const RasterLayer &node,
+                                           qsizetype index, qsizetype effectIndex)
+{
+    if (!onThread()) return {};
+    const auto id = m_d->document->beginFilterNodeEdit(existing, node, index, effectIndex);
+    if (!id.isNull()) publish(Result::Success);
+    return id;
+}
+Result PaintImage::updateFilterNodeEdit(OperationId id, const FilterDefinition &filter, const QString &name)
+{ return onThread() ? publish(m_d->document->updateFilterNodeEdit(id, filter, name)) : Result::InvalidInput; }
+Result PaintImage::commitFilterNodeEdit(OperationId id)
+{ return onThread() ? publish(m_d->document->commitFilterNodeEdit(id)) : Result::InvalidInput; }
+Result PaintImage::cancelFilterNodeEdit(OperationId id)
+{ return onThread() ? publish(m_d->document->cancelFilterNodeEdit(id)) : Result::InvalidInput; }
+Result PaintImage::setFilterDefinition(LayerId node, const FilterDefinition &filter, const QString &name)
+{ return onThread() ? publish(m_d->document->setFilterDefinition(node, filter, name)) : Result::InvalidInput; }
+Result PaintImage::setFilterSelection(LayerId node, const SelectionMaskSP &coverage)
+{ return onThread() ? publish(m_d->document->setFilterSelection(node, coverage)) : Result::InvalidInput; }
+
 LayerId PaintImage::addLayer(const QString &name)
 {
     if (!onThread()) return 0;

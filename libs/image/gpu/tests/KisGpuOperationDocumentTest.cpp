@@ -95,6 +95,8 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void filterNodePreviewKeepsOneHistoryAndEditableConfiguration_data();
+    void filterNodePreviewKeepsOneHistoryAndEditableConfiguration();
     void mergingKeepsInputsHistoryAndAtomicRejection_data();
     void mergingKeepsInputsHistoryAndAtomicRejection();
     void groupingKeepsFrozenPixelsAndSingleHistory_data();
@@ -5139,3 +5141,103 @@ void KisGpuOperationDocumentTest::colorConversionAdmissionAndCapacityPreserveVer
 }
 QTEST_GUILESS_MAIN(KisGpuOperationDocumentTest)
 #include "KisGpuOperationDocumentTest.moc"
+
+void KisGpuOperationDocumentTest::filterNodePreviewKeepsOneHistoryAndEditableConfiguration_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("mask");
+    for (bool words : {false, true}) for (bool mask : {false, true}) {
+        const QByteArray name = QByteArray(words ? "word-" : "byte-") + (mask ? "mask" : "adjustment");
+        QTest::newRow(name) << words << mask;
+    }
+}
+
+void KisGpuOperationDocumentTest::filterNodePreviewKeepsOneHistoryAndEditableConfiguration()
+{
+    QFETCH(bool, words);
+    QFETCH(bool, mask);
+    RasterImage raster;
+    raster.size = {32, 24};
+    raster.layers = {{QStringLiteral("Paint"), true, {}, {}}};
+    raster.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    OperationDocument document(raster);
+    QVERIFY(!paint(document, {sample(4, 4)}).isNull());
+    QCOMPARE(document.undo(), Result::Success);
+    const auto before = document.snapshot();
+    const auto definition = [](bool minimum) {
+        FilterDefinition filter;
+        filter.id = minimum ? QStringLiteral("minimize") : QStringLiteral("maximize");
+        filter.settings.kind = minimum ? FilterKind::MinimizeChannel : FilterKind::MaximizeChannel;
+        filter.xml = QByteArrayLiteral("<!DOCTYPE params><params/>");
+        return filter;
+    };
+    RasterLayer node;
+    node.kind = mask ? LayerKind::FilterMask : LayerKind::Adjustment;
+    node.name = QStringLiteral("Maximum");
+    node.filter = definition(false);
+    node.parentUuid = mask ? before->layers.first().uuid : QUuid{};
+    node.blendMode = mask ? LayerBlendMode::Normal : LayerBlendMode::Copy;
+    const auto id = document.beginFilterNodeEdit(0, node, before->layers.size());
+    QVERIFY(!id.isNull());
+    QVERIFY(document.hasActiveStroke());
+    QCOMPARE(document.activeOperation(), id);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.preview()->layers.size(), 2);
+    QVERIFY(!document.preview()->isCommitted());
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.redoCount(), 1);
+    QCOMPARE(document.setSelectionRect(QRect(2, 2, 8, 8)), Result::EditInProgress);
+    const auto pending = document.preview();
+    auto invalid = definition(false);
+    invalid.settings.kind = FilterKind::MinimizeChannel;
+    QCOMPARE(document.updateFilterNodeEdit(id, invalid, QStringLiteral("Invalid")), Result::InvalidInput);
+    QCOMPARE(document.preview(), pending);
+    QCOMPARE(document.updateFilterNodeEdit(id, definition(true), QStringLiteral("Minimum")), Result::Success);
+    QCOMPARE(document.preview()->layers.last().filter->settings.kind, FilterKind::MinimizeChannel);
+    QCOMPARE(document.cancelFilterNodeEdit(id), Result::Success);
+    QCOMPARE(document.preview(), before);
+    QCOMPARE(document.redoCount(), 1);
+    QVERIFY(!document.hasActiveStroke());
+
+    const auto layer = document.addFilterNode(node, document.snapshot()->layers.size());
+    QVERIFY(layer);
+    const auto inserted = document.snapshot();
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.redoCount(), 0);
+    QCOMPARE(inserted->layers.last().kind, node.kind);
+    QCOMPARE(inserted->layers.last().filter->xml, node.filter->xml);
+    QCOMPARE(inserted->layers.last().filterSelection->defaultCoverage(), quint8(255));
+    QCOMPARE(document.historyAction(1), mask ? HistoryAction::AddFilterMask : HistoryAction::AddAdjustmentLayer);
+    const auto noOp = document.beginFilterNodeEdit(layer, {}, 0);
+    QVERIFY(!noOp.isNull());
+    QCOMPARE(document.commitFilterNodeEdit(noOp), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.snapshot(), inserted);
+    QCOMPARE(document.setFilterDefinition(layer, definition(true), QStringLiteral("Minimum")), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    const auto changed = document.snapshot();
+    QCOMPARE(changed->layers.last().filter->settings.kind, FilterKind::MinimizeChannel);
+    QCOMPARE(inserted->layers.last().filter->settings.kind, FilterKind::MaximizeChannel);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), inserted);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), changed);
+    const auto coverage = SelectionMask::fromAlphaCoverage(QRect(0, 0, 2, 2), QByteArray(4, char(73)), QRect(0, 0, 32, 24));
+    QVERIFY(coverage);
+    QCOMPARE(document.setFilterSelection(layer, coverage), Result::Success);
+    QCOMPARE(document.snapshot()->layers.last().filterSelection, coverage);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), changed);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.last().filterSelection, coverage);
+    const auto stable = document.snapshot();
+    invalid = definition(false);
+    invalid.xml = QByteArray(FilterDefinition::MaximumXmlBytes + 1, 'x');
+    QCOMPARE(document.setFilterDefinition(layer, invalid), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), stable);
+    const auto editing = document.beginFilterNodeEdit(layer, {}, 0);
+    QVERIFY(!editing.isNull());
+    document.close();
+    QVERIFY(!document.hasActiveStroke());
+    QCOMPARE(document.cancelFilterNodeEdit(editing), Result::Closed);
+}

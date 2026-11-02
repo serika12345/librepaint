@@ -230,9 +230,77 @@ ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const Rende
                                        QRect region, const ProjectedSnapshot &base)
 { return composeImpl(commands, document, region, base, 0); }
 
+RenderOutcome TileRenderer::prepareFilterProjection(WGPUCommandEncoder commands,
+    const RenderedSnapshot &document, QRect region, const QList<LayerProjectionInput> &inputs,
+    LayerId group, const FrozenLayerProjection *initial, bool nativeProjection)
+{
+    auto &d = *m_d;
+    const auto snapshot = document->document();
+    auto data = std::make_shared<RenderedVersion::Data>(*document->m_data);
+    const auto preparedVersion = RenderedSnapshot(new RenderedVersion(data));
+    QHash<LayerId, const Layer *> nodes;
+    for (const auto &node : snapshot->layers) nodes.insert(node.id, &node);
+    QRect extent(QPoint(), snapshot->size);
+    for (const auto &input : inputs) extent |= data->sourceExtents.value(input.layer);
+    const QRect evaluated = region.intersected(extent);
+    if (evaluated.isEmpty()) return {RenderOutcome::Recorded, preparedVersion, {}};
+    std::shared_ptr<Tile> zero;
+    const auto defaultTile = [&](LayerId layer) -> std::shared_ptr<Tile> {
+        if (auto tile = data->defaults.value(layer)) return tile;
+        if (!zero) {
+            if (!d.ensureTileCapacity(1, snapshot->format)) return {};
+            zero = d.allocateTile(snapshot->format);
+            if (!zero) return {};
+            wgpuCommandEncoderClearBuffer(commands, zero->pixels.get(), 0, wgpuBufferGetSize(zero->pixels.get()));
+            data->selectionWork.append(zero);
+        }
+        return zero;
+    };
+    QList<LayerProjectionInput> preceding;
+    for (const auto &input : inputs) {
+        const auto *node = nodes.value(input.layer);
+        if (!node) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Filter projection node is unavailable")};
+        Tiles pixels = data->layers.value(node->id);
+        auto fallback = defaultTile(node->id);
+        if (!fallback) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Filter projection default capacity exceeded")};
+        if (node->kind == LayerKind::Adjustment) {
+            if (!node->filter || !node->filter->isValid(snapshot->format))
+                return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Adjustment configuration is unavailable")};
+            const auto lower = composeImpl(commands, preparedVersion, evaluated, {}, group, initial, false,
+                                           nativeProjection, &preceding, true);
+            if (lower.code != RenderOutcome::Recorded) return {lower.code, {}, lower.diagnostic};
+            FilterOperation operation;
+            static_cast<FilterSettings &>(operation) = node->filter->settings;
+            operation.layer = node->id;
+            operation.applyRect = evaluated;
+            operation.bounded = true;
+            if (node->filterSelection) {
+                operation.selectionKind = SelectionKind::Freehand;
+                operation.selectionMask = node->filterSelection;
+                operation.selectionRect = node->filterSelection->bounds();
+            }
+            const auto filtered = d.filterTiles(commands, lower.version->m_data->tiles, operation, fallback,
+                evaluated, snapshot->format, evaluated, data->selectionWork);
+            if (filtered.code != RenderOutcome::Recorded) return {filtered.code, {}, filtered.diagnostic};
+            pixels = filtered.tiles;
+            for (const auto &tile : lower.version->m_data->tiles) data->selectionWork.append(tile);
+            data->sourceExtents[node->id] = lower.version->m_data->sourceExtent | evaluated;
+            data->selected.insert(node->id);
+        }
+        const auto masked = d.applyLayerMasks(commands, pixels, fallback, *node, snapshot,
+                                              evaluated, data->selectionWork);
+        if (masked.code != RenderOutcome::Recorded) return {masked.code, {}, masked.diagnostic};
+        data->layers[node->id] = masked.tiles;
+        data->effectProjections.insert(node->id);
+        preceding.append(input);
+    }
+    return {RenderOutcome::Recorded, preparedVersion, {}};
+}
+
 ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                            QRect region, const ProjectedSnapshot &base, LayerId group,
-                                           const FrozenLayerProjection *initial, bool normalizeRoot, bool nativeProjection)
+                                           const FrozenLayerProjection *initial, bool normalizeRoot, bool nativeProjection,
+                                           const QList<LayerProjectionInput> *compositionInputs, bool preparedInputs)
 {
     auto &d = *m_d;
     if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) || !document ||
@@ -242,6 +310,26 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection requires the owning GPU and document")};
     }
     if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
+    const auto resolvedInputs = compositionInputs ? *compositionInputs :
+        normalizeRoot ? QList<LayerProjectionInput>{{0, 255, 15, LayerBlendMode::Normal}} :
+        document->document()->projectionInputs(group);
+    if (!preparedInputs && !normalizeRoot) {
+        bool hasFilters = false;
+        for (const auto &input : resolvedInputs) {
+            for (const auto &node : document->document()->layers) if (node.id == input.layer) {
+                hasFilters = hasFilters || node.kind == LayerKind::Adjustment;
+                for (const auto &child : document->document()->layers)
+                    if (child.kind == LayerKind::FilterMask && child.parentUuid == node.uuid) hasFilters = true;
+                break;
+            }
+        }
+        if (hasFilters) {
+            const auto prepared = prepareFilterProjection(commands, document, region, resolvedInputs, group, initial, nativeProjection);
+            if (prepared.code != RenderOutcome::Recorded) return {prepared.code, {}, prepared.diagnostic};
+            return composeImpl(commands, prepared.version, region, base, group, initial, normalizeRoot,
+                               nativeProjection, &resolvedInputs, true);
+        }
+    }
     auto data = std::make_shared<ProjectedVersion::Data>();
     data->source = document;
     QUuid parent;
@@ -258,8 +346,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
     }
-    const auto inputs = normalizeRoot ? QList<LayerProjectionInput>{{0, 255, 15, LayerBlendMode::Normal}} :
-        document->document()->projectionInputs(group);
+    const auto &inputs = resolvedInputs;
     auto sourceExtents = document->m_data->sourceExtents;
     if (nativeProjection || (initial && initial->normalizeRootProjection && !normalizeRoot)) {
         for (const auto &input : inputs) {
@@ -280,7 +367,8 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     }
     QHash<LayerId, SelectionMaskSP> layerMasks;
     for (const auto &layer : document->document()->layers)
-        if (layer.transparencyMask && layer.transparencyMaskVisible)
+        if (layer.transparencyMask && layer.transparencyMaskVisible &&
+            !document->m_data->effectProjections.contains(layer.id))
             layerMasks.insert(layer.id, layer.transparencyMask);
     QSet<quint64> coordinates;
     // A single fully opaque paint layer supplies the legacy transparent-root projection,
