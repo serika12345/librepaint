@@ -139,7 +139,14 @@ void KisDocumentUndoStack::synchronizeGpuHistory()
         auto *command = sameIdentity ? m_gpuCommands.value(revision) : nullptr;
         if (!owned.contains(command)) command = nullptr;
         if (!command) {
-            command = new KUndo2Command(historyLabel(document.historyAction(index)));
+            auto label = historyLabel(document.historyAction(index));
+            if (const auto crop = document.historyCrop(index)) {
+                bool mask = !crop->maskUuid.isNull();
+                for (const auto &layer : versions[index]->layers)
+                    if (layer.id == crop->layer) mask |= layer.kind == LayerKind::FilterMask;
+                if (mask) label = kundo2_i18n("Crop Mask");
+            }
+            command = new KUndo2Command(label);
             allocated.append(command);
         }
         if (!command->extraData()) {
@@ -148,8 +155,8 @@ void KisDocumentUndoStack::synchronizeGpuHistory()
                                                                                  KisCropSavedExtraData::RESIZE_IMAGE,
                                                               resize->rect));
             if (const auto crop = document.historyCrop(index)) {
-                QUuid uuid;
-                for (const auto &layer : versions[index]->layers)
+                QUuid uuid = crop->maskUuid;
+                if (uuid.isNull()) for (const auto &layer : versions[index]->layers)
                     if (layer.id == crop->layer) uuid = layer.uuid;
                 const auto currentImage = image();
                 const auto node = currentImage ? KisLayerUtils::findNodeByUuid(currentImage->root(), uuid) : KisNodeSP();

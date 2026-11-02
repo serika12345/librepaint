@@ -171,7 +171,15 @@ std::optional<MaskLineage> maskLineage(SelectionMaskSP mask, QRect block, Geomet
     MaskLineage result;
     while (mask) {
         if (const auto &translation = mask->translationSource()) {
-            block.translate(-translation->offset);
+            const auto sourceBlock = block.translated(-translation->offset);
+            if (!translation->clip.contains(block) && std::any_of(translation->source->allocatedBlocks().cbegin(),
+                translation->source->allocatedBlocks().cend(), [&](const auto &area) { return area.intersects(sourceBlock); })) {
+                // Cropping replaces an allocated native block, including its
+                // retained pixels. Later direct writes belong to this version.
+                result.append({{}, quint64(quintptr(mask.data())), 0});
+                return result;
+            }
+            block = sourceBlock;
             mask = translation->source;
             continue;
         }

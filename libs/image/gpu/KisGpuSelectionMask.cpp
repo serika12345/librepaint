@@ -622,7 +622,6 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTranslation(
         source->tiles.size() > MaximumBytes / AlphaTileBytes || !validOutline(source->extent, {}) ||
         !validOutline(bounds, outlineRuns) || (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
     for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
-    if (bounds.isEmpty()) return translatedSelectionStorage(uniform(source->source->defaultCoverage()), *source->source, source->offset, source->clip);
     auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha,
         source->source->defaultCoverage()));
     result->m_translation = source;

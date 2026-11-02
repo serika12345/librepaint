@@ -73,6 +73,8 @@ private Q_SLOTS:
     void testRawPixelWritesPreserveFormatHistoryAndFailures();
     void testMaskPixelWritesKeepNativeBlockHistoryAndKra_data();
     void testMaskPixelWritesKeepNativeBlockHistoryAndKra();
+    void testMaskCropsKeepPixelsSelectionHistoryAndKra_data();
+    void testMaskCropsKeepPixelsSelectionHistoryAndKra();
     void testMaskMovesKeepCoordinatesHistoryAndKra_data();
     void testMaskMovesKeepCoordinatesHistoryAndKra();
     void testRawPixelWritesPreserveOtherLayerHistoryAndRedo();

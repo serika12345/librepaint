@@ -334,7 +334,7 @@ public:
     /** Clears whole layers atomically while retained versions remain readable. */
     Result clearLayers(const QList<LayerId> &layers);
     Result clearSelectedPixels(const QList<LayerId> &layers);
-    Result cropLayer(LayerId layer, const QRect &rect);
+    Result cropLayer(LayerId layer, const QRect &rect, const QUuid &maskUuid = {});
     Result resizeCanvas(const QRect &rect, bool cropLayers);
     /** Publishes one canvas-bounded color fill before notifying attached consumers.
      * The fill blend mode is frozen with the fill intent.

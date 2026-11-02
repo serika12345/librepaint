@@ -660,6 +660,8 @@ struct CropOperation
     quint64 version = 1;
     LayerId layer = 0;
     QRect rect;
+    /** Non-null identifies a transparency child cropped independently. */
+    QUuid maskUuid;
 };
 using CropSnapshot = QSharedPointer<const CropOperation>;
 /** Pixel filter kinds available to GPU paint layers.
@@ -1605,8 +1607,11 @@ private:
     Result updateLayerTranslationWithMasks(OperationId id, QPoint offset,
         const QHash<LayerId, SelectionMaskSP> &masks, const SelectionMaskSP &selection = {},
         const QHash<LayerId, SelectionMaskSP> &filterSelections = {});
-    Result cropLayerWithMask(LayerId layer, const QRect &rect, const SelectionMaskSP &mask);
-    Result resizeCanvasWithMasks(const QRect &rect, bool cropLayers, const QHash<LayerId, SelectionMaskSP> &masks);
+    QList<LayerId> layerCropParticipants(LayerId root, const QUuid &maskUuid) const;
+    Result cropLayerWithMasks(LayerId layer, const QRect &rect,
+        const QHash<QUuid, SelectionMaskSP> &masks, const QUuid &maskUuid = {});
+    Result resizeCanvasWithMasks(const QRect &rect, bool cropLayers,
+        const QHash<QUuid, SelectionMaskSP> &masks, const SelectionMaskSP &selection = {});
     /** An external edit (a mask stroke on a derived GPU image) borrows this
      * document's active-input state so saving and mutation stay blocked without
      * recording the derived operation as document history.

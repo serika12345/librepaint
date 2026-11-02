@@ -1204,12 +1204,13 @@ void KisImage::cropNode(KisNodeSP node, const QRect& newRect, const bool activeF
         const KisImageSP retained = this;
         KisNodeSP ancestor = node ? node->parent() : KisNodeSP();
         while (ancestor && ancestor != root()) ancestor = ancestor->parent();
-        if (!ancestor) throw std::invalid_argument("GPU layer crop requires an attached paint layer");
+        if (!ancestor || node->image().data() != this) throw std::invalid_argument("GPU crop requires an attached node from this image");
         const auto version = owner->operations().snapshot();
+        const bool childMask = node->inherits("KisTransparencyMask");
         const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(),
-                                       [&node](const auto &value) { return value.uuid == node->uuid(); });
+            [&](const auto &value) { return childMask ? value.transparencyMaskUuid == node->uuid() : value.uuid == node->uuid(); });
         if (layer == version->layers.cend()) throw std::invalid_argument("GPU layer crop target is unavailable");
-        const auto result = owner->cropLayer(layer->id, newRect);
+        const auto result = owner->cropLayer(layer->id, newRect, childMask ? node->uuid() : QUuid{});
         if (result != LibrePaint::Image::Gpu::Result::Success)
             throw std::runtime_error(QStringLiteral("GPU layer crop rejected (%1)").arg(int(result)).toStdString());
         return;

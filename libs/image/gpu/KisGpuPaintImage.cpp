@@ -266,8 +266,8 @@ SelectionMaskSP PaintImage::translatedSelectionMask(const SelectionMaskSP &mask,
 {
     if (!onThread() || !mask) return {};
     try {
-        if (mask->bounds().isEmpty()) return mask->translated(offset, clip);
-        if (offset.isNull() && clip.contains(mask->bounds())) return mask;
+        if (mask->bounds().isEmpty() && mask->allocatedBlocks().isEmpty()) return mask;
+        if (offset.isNull() && clip.contains(mask->bounds() | mask->allocatedBounds())) return mask;
         SelectionMaskSP result;
         const auto checked = m_d->execution.translateSelectionCoverage(mask, offset, clip, &result);
         if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
@@ -1178,47 +1178,89 @@ Result PaintImage::clearLayers(const QList<LayerId> &layers)
 { return onThread() ? publish(m_d->document->clearLayers(layers)) : Result::InvalidInput; }
 Result PaintImage::clearSelectedPixels(const QList<LayerId> &layers)
 { return onThread() ? publish(m_d->document->clearSelectedPixels(layers)) : Result::InvalidInput; }
-Result PaintImage::cropLayer(LayerId layer, const QRect &rect)
+Result PaintImage::cropLayer(LayerId layer, const QRect &rect, const QUuid &maskUuid)
 {
     if (!onThread()) return Result::InvalidInput;
-    const auto status = m_d->document->checkMutation();
+    auto &document = *m_d->document;
+    const auto status = document.checkMutation();
     if (status != Result::Success) return status;
-    const auto before = m_d->document->snapshot();
-    SelectionMaskSP mask;
-    const auto source = m_d->document->layerTransparencyMask(layer);
-    if (source && (source->isGpuGenerated() || source->defaultCoverage())) {
-        mask = translatedSelectionMask(source, {}, rect);
+    if (!Detail::validCropRect(rect)) return Result::InvalidInput;
+    const auto before = document.snapshot();
+    const auto participants = document.layerCropParticipants(layer, maskUuid);
+    if (participants.isEmpty()) return Result::LayerUnavailable;
+    QHash<QUuid, SelectionMaskSP> masks;
+    const auto prepare = [&](const QUuid &uuid, const SelectionMaskSP &coverage) {
+        if (!coverage) return Result::Success;
+        const auto mask = rect.normalized().isEmpty() ? SelectionMask::uniform(coverage->defaultCoverage()) :
+            translatedSelectionMask(coverage, {}, rect.normalized());
         if (!mask) return resultFor(m_d->lastRequest.code);
+        masks.insert(uuid, mask);
+        return Result::Success;
+    };
+    for (const auto id : participants) {
+        const auto &source = before->layers[document.layerIndex(id)];
+        if (maskUuid.isNull()) {
+            const auto result = prepare(source.uuid, source.filterSelection);
+            if (result != Result::Success) return result;
+        }
+        const auto result = prepare(source.transparencyMaskUuid, source.transparencyMask);
+        if (result != Result::Success) return result;
     }
-    if (m_d->document->snapshot() != before) return Result::StaleVersion;
-    return publish(m_d->document->cropLayerWithMask(layer, rect, mask));
+    if (document.snapshot() != before) return Result::StaleVersion;
+    return publish(document.cropLayerWithMasks(layer, rect, masks, maskUuid));
 }
 Result PaintImage::resizeCanvas(const QRect &rect, bool cropLayers)
 {
     if (!onThread()) return Result::InvalidInput;
-    const auto &document = *m_d->document;
+    auto &document = *m_d->document;
     const auto status = document.checkMutation();
     if (status != Result::Success) return status;
     if (!Detail::validCanvasRect(rect)) return Result::InvalidInput;
     const auto before = document.snapshot();
+    if (!cropLayers && rect == QRect(QPoint(), before->size)) return Result::Success;
+    constexpr qint64 limit = RgbaTile::CoordinateLimit;
+    const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
+    const auto offset = -rect.topLeft();
+    const auto withinDomain = [&](QRect bounds) {
+        return bounds.isEmpty() || (qint64(bounds.left()) + offset.x() >= -limit && qint64(bounds.top()) + offset.y() >= -limit &&
+            qint64(bounds.right()) + offset.x() < limit && qint64(bounds.bottom()) + offset.y() < limit);
+    };
     if (!cropLayers) {
-        for (const auto &layer : before->layers) {
-            if (layer.kind == LayerKind::Group) continue;
-            const auto admitted = checkLayerTranslation(before, layer.id, -rect.topLeft());
+        for (const auto &layer : before->layers) if (layer.kind == LayerKind::Paint) {
+            const auto admitted = checkLayerTranslation(before, layer.id, offset);
             if (admitted != Result::Success) return admitted;
         }
+        if (!withinDomain(before->selection)) return Result::InvalidInput;
     }
-    QHash<LayerId, SelectionMaskSP> masks;
-    for (const auto &layer : before->layers) {
-        if (!layer.transparencyMask || (!layer.transparencyMask->isGpuGenerated() && !layer.transparencyMask->defaultCoverage())) continue;
-        const auto mask = translatedSelectionMask(layer.transparencyMask, -rect.topLeft(), QRect(QPoint(), rect.size()));
+    QHash<QUuid, SelectionMaskSP> masks;
+    const auto prepare = [&](const QUuid &uuid, const SelectionMaskSP &coverage) {
+        if (!coverage) return Result::Success;
+        if (!cropLayers && !withinDomain(coverage->bounds() | coverage->allocatedBounds())) return Result::InvalidInput;
+        const auto mask = translatedSelectionMask(coverage, offset, cropLayers ? QRect(QPoint(), rect.size()) : domain);
         if (!mask) return resultFor(m_d->lastRequest.code);
-        masks.insert(layer.id, mask);
+        masks.insert(uuid, mask);
+        return Result::Success;
+    };
+    for (const auto &layer : before->layers) {
+        auto result = prepare(layer.uuid, layer.filterSelection);
+        if (result != Result::Success) return result;
+        result = prepare(layer.transparencyMaskUuid, layer.transparencyMask);
+        if (result != Result::Success) return result;
+    }
+    SelectionMaskSP selection;
+    const bool clippedEllipse = cropLayers && before->selectionKind == SelectionKind::Ellipse && !rect.contains(before->selection);
+    if (!before->selection.isEmpty() && (before->selectionKind == SelectionKind::Freehand || clippedEllipse)) {
+        const auto input = before->selectionKind == SelectionKind::Freehand ? before->selectionMask :
+            SelectionMask::fromEllipse(before->selection, rect);
+        const auto source = input ? input : SelectionMask::empty();
+        selection = translatedSelectionMask(source, offset, cropLayers ? QRect(QPoint(), rect.size()) : domain);
+        if (!selection) return resultFor(m_d->lastRequest.code);
     }
     if (document.snapshot() != before) return Result::StaleVersion;
-    const auto result = m_d->document->resizeCanvasWithMasks(rect, cropLayers, masks);
+    const auto result = document.resizeCanvasWithMasks(rect, cropLayers, masks, selection);
     return document.snapshot() == before ? result : publish(result);
 }
+
 Result PaintImage::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
                              qreal opacity, bool erase, bool alphaLocked,
                              LayerBlendMode blendMode)

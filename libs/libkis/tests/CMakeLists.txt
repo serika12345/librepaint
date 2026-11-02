@@ -12,7 +12,7 @@ kis_add_tests(
     LINK_LIBRARIES kritalibkis kritatestsdk
     )
 
-target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp TestNodeLayerProperties.cpp TestNodeDocumentSession.cpp TestNodeFigureGroups.cpp)
+target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp TestNodeLayerProperties.cpp TestNodeDocumentSession.cpp TestNodeFigureGroups.cpp TestNodeMaskCrop.cpp)
 target_sources(TestDocument PRIVATE TestDocumentU16Blend.cpp TestDocumentKraPreview.cpp TestDocumentJpegExport.cpp TestDocumentLayerMetadata.cpp TestDocumentPngImport.cpp TestDocumentJpegImport.cpp TestDocumentLayerState.cpp TestDocumentDefaultBrush.cpp)
 
 add_dependencies(TestDocument
@@ -24,7 +24,7 @@ add_dependencies(TestNode kritakraimport kritakraexport kritapngimport kritapnge
 add_dependencies(TestNode kritaroundmarkerpaintop)
 add_dependencies(TestNode kritadefaulttools)
 add_dependencies(TestNode kritatoolcrop)
-add_dependencies(TestNode kritalayerdocker)
+add_dependencies(TestNode kritalayerdocker kritacolorsfilters)
 target_link_libraries(TestDocument kritaimpexkra kritadocumentpainting)
 
 qt6_add_resources(public_node_window_resources

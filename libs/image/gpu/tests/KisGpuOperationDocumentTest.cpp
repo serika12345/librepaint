@@ -1761,7 +1761,6 @@ void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistory()
     QVERIFY(document.beginStroke(2, Brush{}, 41).isNull());
     const QList<RgbaTile> pixels{{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')}};
     QCOMPARE(document.replaceTiles(2, pixels), Result::LayerUnavailable);
-    QCOMPARE(document.cropLayer(2, {1, 2, 16, 16}), Result::LayerUnavailable);
     QCOMPARE(document.clearLayers({2}), Result::LayerUnavailable);
     QVERIFY(document.beginLayerTranslation(2).isNull());
     QCOMPARE(document.writeLayerChannelMask(2, 7), Result::LayerUnavailable);
@@ -1780,6 +1779,15 @@ void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistory()
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     QCOMPARE(document.undoCount(), 2);
     QCOMPARE(fixed->layers[2].opacity, quint8(255));
+    const auto beforeCrop = document.snapshot();
+    QCOMPARE(document.cropLayer(2, {1, 2, 16, 16}), Result::Success);
+    QCOMPARE(document.historyAction(3), HistoryAction::CropLayer);
+    QCOMPARE(document.historyCrop(3)->layer, LayerId(2));
+    QCOMPARE(document.snapshot()->layers[1].position, QPoint(7, -9));
+    QCOMPARE(document.snapshot()->layers[2].operations, beforeCrop->layers[2].operations);
+    QCOMPARE(document.snapshot()->layers.first().operations.size(), beforeCrop->layers.first().operations.size() + 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), beforeCrop);
 }
 
 void KisGpuOperationDocumentTest::layerCropPreservesValuesHistory()

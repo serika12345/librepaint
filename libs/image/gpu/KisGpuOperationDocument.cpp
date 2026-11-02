@@ -285,7 +285,7 @@ HistoryAction OperationDocument::historyAction(int index) const
         }
         return HistoryAction::InvertColors;
     }
-    if (m_layerHistoryChanges[index].changedSelection &&
+    if (m_layerHistoryChanges[index].changedSelection && !m_layerHistoryChanges[index].canvasResize &&
         m_history[index - 1]->layers.size() == m_history[index]->layers.size())
         return HistoryAction::ChangeSelection;
     if (m_layerHistoryChanges[index].crop) return HistoryAction::CropLayer;
@@ -2636,39 +2636,77 @@ Result OperationDocument::clearSelectedPixels(const QList<LayerId> &layers)
     return Result::Success;
 }
 
-Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
-{ return cropLayerWithMask(layer, rect, {}); }
+QList<LayerId> OperationDocument::layerCropParticipants(LayerId root, const QUuid &maskUuid) const
+{
+    const auto index = layerIndex(root);
+    if (index < 0) return {};
+    if (!maskUuid.isNull()) return snapshot()->layers[index].transparencyMask &&
+        snapshot()->layers[index].transparencyMaskUuid == maskUuid ? QList<LayerId>{root} : QList<LayerId>{};
+    QHash<QUuid, QList<LayerId>> children;
+    QHash<LayerId, QUuid> identities;
+    for (const auto &layer : snapshot()->layers) {
+        children[layer.parentUuid].append(layer.id);
+        identities.insert(layer.id, layer.uuid);
+    }
+    QList<LayerId> result{root};
+    for (qsizetype i = 0; i < result.size(); ++i) result.append(children.value(identities.value(result[i])));
+    return result;
+}
 
-Result OperationDocument::cropLayerWithMask(LayerId layer, const QRect &rect, const SelectionMaskSP &preparedMask)
+Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
+{ return cropLayerWithMasks(layer, rect, {}); }
+
+Result OperationDocument::cropLayerWithMasks(LayerId root, const QRect &rect,
+    const QHash<QUuid, SelectionMaskSP> &masks, const QUuid &maskUuid)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    const auto index = layerIndex(layer);
-    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
+    const auto participants = layerCropParticipants(root, maskUuid);
+    if (participants.isEmpty()) return Result::LayerUnavailable;
     if (!validCropRect(rect)) return Result::InvalidInput;
-    if (m_nextOperation == std::numeric_limits<quint64>::max() ||
+    const auto source = snapshot();
+    quint64 count = 0;
+    for (const auto id : participants) if (maskUuid.isNull() && source->layers[layerIndex(id)].kind == LayerKind::Paint) ++count;
+    const bool separateDescriptor = !maskUuid.isNull() || source->layers[layerIndex(root)].kind != LayerKind::Paint;
+    count += separateDescriptor;
+    if (count > std::numeric_limits<quint64>::max() - m_nextOperation ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-    auto operation = QSharedPointer<CropOperation>::create();
-    operation->id = {m_identity, m_nextOperation + 1};
-    operation->layer = layer;
-    operation->rect = rect;
-    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
-    if (const auto &source = snapshot()->layers[index].transparencyMask) {
-        SelectionMaskSP mask = preparedMask;
-        if (source->defaultCoverage()) {
-            if (source->bounds().isEmpty()) mask = source;
-            else if (!mask) return Result::InvalidInput;
-        } else if (!source->isGpuGenerated()) {
-            mask = source->isEmpty() || !source->bounds().intersects(rect) ? SelectionMask::empty() : source->translated(QPoint(), rect);
+    auto sequence = m_nextOperation;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*source));
+    CropSnapshot descriptor;
+    const auto cropMask = [&](const SelectionMaskSP &coverage, const QUuid &uuid) {
+        auto result = masks.value(uuid);
+        if (!result && rect.normalized().isEmpty()) result = SelectionMask::uniform(coverage->defaultCoverage());
+        if (!result && !coverage->isGpuGenerated()) result = coverage->translated({}, rect.normalized());
+        return result && result->byteCount() <= m_limits.rasterBytes && selectionFitsRetainedInputs(result) ? result : SelectionMaskSP{};
+    };
+    for (const auto id : participants) {
+        auto &layer = version->layers[layerIndex(id)];
+        if (maskUuid.isNull() && layer.kind == LayerKind::Paint) {
+            auto crop = QSharedPointer<CropOperation>::create();
+            crop->id = {m_identity, ++sequence}; crop->layer = id; crop->rect = rect;
+            layer.operations.append(CropSnapshot(crop));
+            if (id == root) descriptor = crop;
         }
-        if (!mask || !selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
-        version->layers[index].transparencyMask = mask;
+        if (maskUuid.isNull() && layer.filterSelection) {
+            const auto mask = cropMask(layer.filterSelection, layer.uuid);
+            if (!mask) return Result::CapacityExceeded;
+            layer.filterSelection = mask;
+        }
+        if (layer.transparencyMask) {
+            const auto mask = cropMask(layer.transparencyMask, layer.transparencyMaskUuid);
+            if (!mask) return Result::CapacityExceeded;
+            layer.transparencyMask = mask;
+        }
     }
-    version->layers[index].operations.append(CropSnapshot(operation));
+    if (separateDescriptor) {
+        auto crop = QSharedPointer<CropOperation>::create();
+        crop->id = {m_identity, ++sequence}; crop->layer = root; crop->rect = rect; crop->maskUuid = maskUuid;
+        descriptor = crop;
+    }
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    ++m_nextOperation;
-    LayerHistoryChange change;
-    change.crop = operation;
+    m_nextOperation = sequence;
+    LayerHistoryChange change; change.crop = descriptor;
     commitVersion(version, change);
     return Result::Success;
 }
