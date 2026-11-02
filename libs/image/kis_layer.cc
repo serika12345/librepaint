@@ -361,7 +361,7 @@ void KisLayer::setChannelFlags(const QBitArray & channelFlags)
 
     const auto currentImage = image().toStrongRef();
     const auto owner = currentImage ? currentImage->gpuImage() : LibrePaint::Image::Gpu::PaintImageSP();
-    if (graphListener() && owner) {
+    if (graphListener() && owner && !currentImage->isSynchronizingGpuNodes()) {
         if (!channelFlags.isEmpty() && channelFlags.size() != 4)
             throw std::invalid_argument("GPU projection channel flags require four components");
         quint8 mask = 15;
@@ -413,8 +413,10 @@ void KisLayer::setTemporary(bool t)
 void KisLayer::setImage(KisImageWSP image)
 {
     // we own the projection device, so we should take care about it
-    KisPaintDeviceSP projection = this->projection();
-    if (projection && projection != original()) {
+    const auto originalDevice = original();
+    KisPaintDeviceSP projection = !image && originalDevice && originalDevice->gpuPixelImage()
+        ? m_d->gpuProjection : this->projection();
+    if (projection && projection != originalDevice) {
         projection->setDefaultBounds(new KisDefaultBounds(image));
     }
     m_d->safeProjection->setImage(image);

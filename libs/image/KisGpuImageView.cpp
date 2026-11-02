@@ -1381,7 +1381,8 @@ void KisImage::connectGpuImageUpdates()
             if (!resize && previousSize != synchronized->size)
                 resize = ComplexSizeChangedSignal(QRect(QPoint(), previousSize), synchronized->size);
             if (resize) Q_EMIT retainedView->sigSizeChanged(resize->oldStillPoint, resize->newStillPoint);
-            if ((selectionChanged || hierarchyChanged) && synchronized == version) {
+            if ((selectionChanged || hierarchyChanged) && synchronized == version &&
+                !operations.filterNodeEditTarget()) {
                 KisNodeList selected;
                 KisNodeSP active;
                 for (const auto &layer : synchronized->layers) {
@@ -1566,7 +1567,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 if (node->parent() != parent || parent->at(index) != node) {
                     if (node->parent()) view->removeNode(node);
                     if (changed()) break;
-                    const auto flags = layer->id == version->activeLayer
+                    const auto flags = layer->id == version->activeLayer && !owner->operations().filterNodeEditTarget()
                         ? KisNodeAdditionFlags(KisNodeAdditionFlag::None)
                         : KisNodeAdditionFlags(KisNodeAdditionFlag::DontActivateNode);
                     view->addNode(node, parent, above, flags);

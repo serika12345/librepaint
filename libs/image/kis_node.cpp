@@ -360,10 +360,9 @@ void KisNode::preparePropertyChange(NodePropertyChange property, const QVariant 
     const auto currentImage = image();
     if (!m_d->graphListener || !currentImage) return;
     const auto owner = currentImage->gpuImage();
-    if (!owner) return;
+    if (!owner || currentImage->isSynchronizingGpuNodes()) return;
     LibrePaint::Image::Gpu::LayerId id = 0;
     const bool mask = bool(qobject_cast<KisTransparencyMask *>(this));
-    if (mask && currentImage->isSynchronizingGpuNodes()) return;
     const auto identity = mask && parent() ? parent()->uuid() : uuid();
     for (const auto &layer : owner->operations().snapshot()->layers)
         if (layer.uuid == identity) { id = layer.id; break; }

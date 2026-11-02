@@ -17,6 +17,7 @@
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <filter/kis_filter_registry.h>
 
 #include "KoDialog.h"
@@ -104,6 +105,10 @@ void KisDlgAdjustmentLayer::setInitialConfiguration(const KisFilterConfiguration
 {
     if (!configuration) return;
     m_customName = preserveName;
+    if (preserveName) {
+        const QSignalBlocker blocker(wdgFilterNodeCreation.layerName);
+        wdgFilterNodeCreation.layerName->setText(m_layerName);
+    }
     const auto filter = KisFilterRegistry::instance()->value(configuration->name());
     if (!filter) return;
     wdgFilterNodeCreation.filterSelector->setFilter(filter, configuration);

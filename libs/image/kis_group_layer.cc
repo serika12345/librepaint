@@ -383,7 +383,7 @@ bool KisGroupLayer::passThroughMode() const
 void KisGroupLayer::setPassThroughMode(bool value)
 {
     const auto owner = image() ? image()->gpuImage() : LibrePaint::Image::Gpu::PaintImageSP();
-    if (graphListener() && owner) {
+    if (graphListener() && owner && !image()->isSynchronizingGpuNodes()) {
         LibrePaint::Image::Gpu::LayerId id = 0;
         for (const auto &layer : owner->operations().snapshot()->layers)
             if (layer.uuid == uuid()) { id = layer.id; break; }

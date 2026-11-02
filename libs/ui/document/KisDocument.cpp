@@ -444,9 +444,13 @@ QString gpuKraEditingError(const QDomElement &image)
         const auto element = pending.takeLast();
         const auto attributes = element.attributes();
         const auto &supported = element == image ? imageAttributes : layerAttributes;
+        const auto nodeType = element.attribute(QStringLiteral("nodetype"));
+        const bool filterNode = nodeType == QLatin1String("adjustmentlayer") || nodeType == QLatin1String("filtermask");
         for (int i = 0; i < attributes.size(); ++i) {
             const auto name = attributes.item(i).nodeName();
-            if (!supported.contains(name))
+            const bool filterAttribute = filterNode &&
+                (name == QLatin1String("filtername") || name == QLatin1String("filterversion"));
+            if (!supported.contains(name) && !filterAttribute)
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", name);
         }
         if (element != image && element.attribute(QStringLiteral("onionskin"), QStringLiteral("0")) != QLatin1String("0"))

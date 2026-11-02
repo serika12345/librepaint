@@ -35,6 +35,7 @@
 #include <KisResourceLocator.h>
 #include <KisResourceModel.h>
 #include <KisGlobalResourcesInterface.h>
+#include <KisGpuFilterConfiguration.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <memory>
@@ -1455,9 +1456,8 @@ void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
         effect.kind = kind == QLatin1String("filter") ? Gpu::LayerKind::FilterMask : Gpu::LayerKind::Adjustment;
         effect.parentUuid = kind == QLatin1String("filter") ? paint.uuid : QUuid{};
         effect.blendMode = Gpu::LayerBlendMode::Copy;
-        Gpu::FilterDefinition definition;
-        definition.id = "maximize"; definition.settings.kind = Gpu::FilterKind::MaximizeChannel;
-        definition.xml = QByteArrayLiteral("<params version=\"1\"/>"); effect.filter = definition;
+        const auto definition = freezeGpuFilterConfiguration(configuration, cs); QVERIFY(definition);
+        effect.filter = *definition;
         effect.filterSelection = Gpu::SelectionMask::uniform(255);
         if (kind == QLatin1String("adjustment-child")) {
             effect.transparencyMask = Gpu::SelectionMask::uniform(255);
@@ -1496,7 +1496,8 @@ void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
     selected->pixelSelection()->select({4, 4, 8, 8}, 255);
     KisTransaction transaction(nativeTarget->paintDevice());
     nativeTarget->paintDevice()->clearSelection(selected);
-    std::unique_ptr<KUndo2Command> command(transaction.endAndTake()); command->redo();
+    transaction.commit(native->undoAdapter());
+    native->waitForDone();
     const auto count = owner->operations().undoCount();
     QCOMPARE(owner->clearMaskPixels(maskLayer, true, maskUuid), Gpu::Result::Success);
     QCOMPARE(owner->operations().undoCount(), count + 1);
@@ -1514,16 +1515,16 @@ void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
     QCOMPARE(changes.count(), 0);
     QCOMPARE(owner->operations().undoCount(), count + 1);
     QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    command->undo(); document->undoStack()->undo();
+    nativeDocument->undoStack()->undo(); native->waitForDone(); document->undoStack()->undo();
     QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
     QVERIFY(write({49, 30}, 9));
     QVERIFY(write({95, 20}, 111));
     QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    command->redo(); document->undoStack()->redo();
+    nativeDocument->undoStack()->redo(); native->waitForDone(); document->undoStack()->redo();
     QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    command->undo(); document->undoStack()->undo();
+    nativeDocument->undoStack()->undo(); native->waitForDone(); document->undoStack()->undo();
     QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    command->redo(); document->undoStack()->redo();
+    nativeDocument->undoStack()->redo(); native->waitForDone(); document->undoStack()->redo();
     QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
     const auto frozen = [&](const Gpu::Snapshot &version) {
         for (const auto &layer : version->layers) if (layer.id == maskLayer)
@@ -1558,9 +1559,10 @@ void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
     QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
     QScopedPointer<Node> loaded(Node::createNode(reopened->image(), find(reopened->image()))); QVERIFY(loaded);
     QCOMPARE(pixels(loaded.data()), pixels(nativeNode.data()));
-    QVERIFY(nativeNode->setPixelData(QByteArray(1, char(222)), 150, 11, 1, 1));
+    QScopedPointer<Node> loadedNative(nativeNode->clone()); QVERIFY(loadedNative);
+    QVERIFY(loadedNative->setPixelData(QByteArray(1, char(222)), 150, 11, 1, 1));
     QVERIFY(loaded->setPixelData(QByteArray(1, char(222)), 150, 11, 1, 1));
-    QCOMPARE(pixels(loaded.data()), pixels(nativeNode.data()));
+    QCOMPARE(pixels(loaded.data()), pixels(loadedNative.data()));
     QVERIFY(reopened->saveAs(directory.filePath("direct-mask-edited.kra"), KisDocument::nativeFormatMimeType(), false));
     reopened->waitForSavingToComplete();
     QScopedPointer<Node> copied(node->clone()); QScopedPointer<Node> nativeCopy(nativeNode->clone());

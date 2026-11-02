@@ -390,6 +390,71 @@ void KisTiledDataManagerTest::testTransactions()
 
 }
 
+void KisTiledDataManagerTest::testUntrackedWritesAcrossUndoRedo()
+{
+    // Public pixel writes do not add commands. Undo must still restore the
+    // command's blocks while preserving writes in independent blocks.
+    const quint8 defaultPixel = 255;
+    KisTiledDataManager dm(1, &defaultPixel);
+    const auto write = [&](int x, int y, quint8 value) { dm.writeBytes(&value, x, y, 1, 1); };
+    const auto pixel = [&](int x, int y) {
+        quint8 value = 0;
+        dm.readBytes(&value, x, y, 1, 1);
+        return value;
+    };
+    write(8, 8, 160);
+    auto first = dm.getMemento();
+    dm.clear(4, 4, 8, 8, quint8(0));
+    dm.commit();
+    write(50, 30, 17);
+    write(90, 20, 64);
+    write(205, -2, 83);
+    KisTiledDataManager copy(dm);
+    dm.rollback(first);
+    QCOMPARE(pixel(8, 8), quint8(160));
+    QCOMPARE(pixel(50, 30), defaultPixel);
+    QCOMPARE(pixel(90, 20), quint8(64));
+    QCOMPARE(pixel(205, -2), quint8(83));
+    write(49, 30, 9);
+    write(95, 20, 111);
+    for (int i = 0; i < 2; ++i) {
+        dm.rollforward(first);
+        QCOMPARE(pixel(8, 8), quint8(0));
+        QCOMPARE(pixel(49, 30), defaultPixel);
+        QCOMPARE(pixel(50, 30), quint8(17));
+        QCOMPARE(pixel(90, 20), quint8(64));
+        QCOMPARE(pixel(95, 20), quint8(111));
+        dm.rollback(first);
+        QCOMPARE(pixel(8, 8), quint8(160));
+        QCOMPARE(pixel(49, 30), quint8(9));
+        QCOMPARE(pixel(50, 30), defaultPixel);
+        QCOMPARE(pixel(95, 20), quint8(111));
+    }
+    dm.rollforward(first);
+    auto second = dm.getMemento();
+    dm.clear(80, 16, 8, 8, quint8(0));
+    dm.commit();
+    write(100, 20, 31);
+    dm.rollback(second);
+    QCOMPARE(pixel(90, 20), quint8(64));
+    QCOMPARE(pixel(95, 20), quint8(111));
+    QCOMPARE(pixel(100, 20), defaultPixel);
+    dm.rollback(first);
+    QCOMPARE(pixel(95, 20), quint8(111));
+    dm.rollforward(first);
+    dm.rollforward(second);
+    QCOMPARE(pixel(100, 20), quint8(31));
+    quint8 copiedPixel = 0;
+    copy.readBytes(&copiedPixel, 8, 8, 1, 1);
+    QCOMPARE(copiedPixel, quint8(0));
+    copy.readBytes(&copiedPixel, 50, 30, 1, 1);
+    QCOMPARE(copiedPixel, quint8(17));
+    copy.readBytes(&copiedPixel, 95, 20, 1, 1);
+    QCOMPARE(copiedPixel, defaultPixel);
+    dm.purgeHistory(first);
+    dm.purgeHistory(second);
+}
+
 void KisTiledDataManagerTest::testPurgeHistory()
 {
     quint8 defaultPixel = 0;

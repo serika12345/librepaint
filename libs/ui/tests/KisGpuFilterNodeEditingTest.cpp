@@ -205,6 +205,8 @@ void FilterNodeEditingTest::run()
     QVERIFY(visited); QVERIFY(previewReady);
     QCOMPARE(owner->operations().snapshot(), before);
     QVERIFY(!owner->operations().hasActiveStroke());
+    QVERIFY(manager->activeNode());
+    QCOMPARE(manager->activeNode()->uuid(), paint.uuid);
     runDialog(true, [&] { create->trigger(); });
     QVERIFY(visited); QVERIFY(previewReady);
     QCOMPARE(owner->operations().undoCount(), beforeCount + 1);
@@ -213,9 +215,12 @@ void FilterNodeEditingTest::run()
     const auto target = inserted->activeLayer;
     KisNodeSP node;
     for (const auto &layer : inserted->layers) if (layer.id == target) {
-        for (auto candidate : QList<KisNodeSP>{view->image()->root()->firstChild(), view->image()->root()->lastChild(),
-             view->image()->root()->firstChild()->firstChild()})
-            if (candidate && candidate->uuid() == layer.uuid) node = candidate;
+        KisNodeList pending{view->image()->root()};
+        for (qsizetype i = 0; i < pending.size(); ++i) {
+            const auto candidate = pending[i];
+            if (candidate->uuid() == layer.uuid) { node = candidate; break; }
+            for (auto child = candidate->firstChild(); child; child = child->nextSibling()) pending.append(child);
+        }
     }
     QVERIFY(node);
     QVERIFY(mask ? node->inherits("KisFilterMask") : node->inherits("KisAdjustmentLayer"));
@@ -233,7 +238,17 @@ void FilterNodeEditingTest::run()
     QCOMPARE(owner->operations().snapshot(), before);
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QCOMPARE(owner->operations().snapshot(), inserted);
+    KisNodeList restored{view->image()->root()};
+    const auto targetUuid = node->uuid();
+    node.clear();
+    for (qsizetype i = 0; i < restored.size(); ++i) {
+        const auto candidate = restored[i];
+        if (candidate->uuid() == targetUuid) { node = candidate; break; }
+        for (auto child = candidate->firstChild(); child; child = child->nextSibling()) restored.append(child);
+    }
+    QVERIFY(node);
     manager->nodeManager()->slotNonUiActivatedNode(node);
+    QCOMPARE(owner->operations().snapshot(), inserted);
     const QString updatedId = id == QLatin1String("maximize") ? QStringLiteral("minimize") : QStringLiteral("maximize");
     config = KisFilterRegistry::instance()->value(updatedId)->defaultConfiguration(KisGlobalResourcesInterface::instance());
     const auto firstPixels = expected();
@@ -241,6 +256,16 @@ void FilterNodeEditingTest::run()
         manager->nodeManager()->nodeProperties(node);
     });
     QVERIFY(visited); QVERIFY(previewReady);
+    if (owner->operations().snapshot() != inserted) {
+        const auto actual = owner->operations().snapshot();
+        qInfo() << "Property cancellation" << inserted->revision() << actual->revision()
+                << inserted->activeLayer << actual->activeLayer << inserted->selectedLayers << actual->selectedLayers;
+        for (qsizetype i = 0; i < actual->layers.size(); ++i) {
+            const auto &a = actual->layers[i]; const auto &b = inserted->layers[i];
+            qInfo() << a.id << b.name << a.name << (a.filter == b.filter)
+                    << b.filterSelection.data() << a.filterSelection.data();
+        }
+    }
     QCOMPARE(owner->operations().snapshot(), inserted);
     QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, firstPixels);
     runDialog(true, [&] {

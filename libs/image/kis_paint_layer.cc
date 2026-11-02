@@ -249,7 +249,7 @@ void KisPaintLayer::setChannelLockFlags(const QBitArray& channelFlags)
 {
     Q_ASSERT(((quint32)channelFlags.count() == colorSpace()->channelCount() || channelFlags.isEmpty()));
     const bool gpu = image() && image()->gpuImage();
-    if (gpu) {
+    if (gpu && !image()->isSynchronizingGpuNodes()) {
         if (!channelFlags.isEmpty() && channelFlags.size() != 4)
             throw std::invalid_argument("GPU paint layers require four channel flags");
         quint8 mask = 15;
