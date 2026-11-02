@@ -24,6 +24,7 @@
 #include <application/ui/workspace/KisView.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <dialogs/kis_dlg_adjustment_layer.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <document/KisDocument.h>
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
@@ -194,6 +195,13 @@ void FilterNodeEditingTest::run()
     QVERIFY(mask ? node->inherits("KisFilterMask") : node->inherits("KisAdjustmentLayer"));
     QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, expected());
     QCOMPARE(owner->readRgbaPixels(1, area, raw.size()).bytes, raw);
+    const auto physicalPixels = [&](KisNodeSP projectedNode) {
+        QByteArray bytes(raw.size(), '\0');
+        projectedNode->projection()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
+        exchangeRgbaBgra(bytes, stride);
+        return bytes;
+    };
+    QCOMPARE(physicalPixels(mask ? node->parent() : node), physicalPixels(mask ? KisNodeSP(nativePaint) : nativeNode));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QCOMPARE(owner->operations().snapshot(), before);
     QCOMPARE(owner->redo(), Gpu::Result::Success);
@@ -203,15 +211,13 @@ void FilterNodeEditingTest::run()
     config = KisFilterRegistry::instance()->value(updatedId)->defaultConfiguration(KisGlobalResourcesInterface::instance());
     const auto firstPixels = expected();
     runDialog(false, [&] {
-        if (mask) KisNodeManager::PropertyDialogAccess::showMaskProperties(manager->nodeManager());
-        else KisNodeManager::PropertyDialogAccess::showLayerProperties(manager->nodeManager());
+        manager->nodeManager()->nodeProperties(node);
     });
     QVERIFY(visited); QVERIFY(previewReady);
     QCOMPARE(owner->operations().snapshot(), inserted);
     QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, firstPixels);
     runDialog(true, [&] {
-        if (mask) KisNodeManager::PropertyDialogAccess::showMaskProperties(manager->nodeManager());
-        else KisNodeManager::PropertyDialogAccess::showLayerProperties(manager->nodeManager());
+        manager->nodeManager()->nodeProperties(node);
     });
     QVERIFY(visited); QVERIFY(previewReady);
     QCOMPARE(owner->operations().undoCount(), beforeCount + 2);
@@ -236,6 +242,38 @@ void FilterNodeEditingTest::run()
         const auto importedOwner = imported->image()->gpuImage(); QVERIFY(importedOwner);
         QCOMPARE(importedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
     }
+    QCOMPARE(owner->clearSelection(), Gpu::Result::Success);
+    manager->nodeManager()->slotNonUiActivatedNode(node);
+    QVERIFY(view->image()->isGpuEditableMaskView(node));
+    const auto beforeMaskEdit = owner->operations().snapshot();
+    Gpu::Brush erase;
+    erase.erase = true; erase.diameter = 4;
+    const auto stroke = owner->beginTransparencyMaskStroke(target, erase, 17);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(owner->appendPoint(stroke, {{5, 5}, 1}), Gpu::Result::Success);
+    QCOMPARE(owner->operations().snapshot(), beforeMaskEdit);
+    QCOMPARE(owner->cancelStroke(stroke), Gpu::Result::Success);
+    QCOMPARE(owner->operations().snapshot(), beforeMaskEdit);
+    const auto filteredPixels = expected();
+    auto *resources = manager->canvasResourceProvider();
+    resources->setFGColor(KoColor(Qt::black, cs));
+    resources->setOpacity(1); resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    auto *fill = manager->actionManager()->actionByName("fill_selection_foreground_color");
+    QVERIFY(fill); QVERIFY(fill->isEnabled());
+    const auto maskHistory = owner->operations().undoCount();
+    fill->trigger();
+    QCOMPARE(owner->operations().undoCount(), maskHistory + 1);
+    const auto nativeCoverage = mask ? qobject_cast<KisFilterMask *>(nativeNode.data())->selection() :
+        qobject_cast<KisAdjustmentLayer *>(nativeNode.data())->internalSelection();
+    nativeCoverage->pixelSelection()->clear(area);
+    nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
+    QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE(owner->readRgbaPixels(1, area, raw.size()).bytes, raw);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, filteredPixels);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, expected());
     lifetime->setFileBatchMode(true);
     const auto path = directory.filePath("filters.kra");
     QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
@@ -269,4 +307,41 @@ void FilterNodeEditingTest::run()
             QCOMPARE(reopenedOwner->setFilterDefinition(layer.id, updated, "Reopened settings"), Gpu::Result::Success);
         }
     QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    const auto reopenedPixels = expected();
+    Gpu::LayerId reopenedFilter = 0;
+    for (const auto &layer : reopenedOwner->operations().snapshot()->layers)
+        if (Gpu::isFilterNode(layer.kind)) reopenedFilter = layer.id;
+    QVERIFY(reopenedFilter);
+    QCOMPARE(reopenedOwner->setFilterSelection(reopenedFilter, Gpu::SelectionMask::uniform(255)), Gpu::Result::Success);
+    nativeCoverage->pixelSelection()->clear();
+    nativeCoverage->pixelSelection()->setDefaultPixel(KoColor(Qt::white, nativeCoverage->pixelSelection()->colorSpace()));
+    nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
+    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE(reopenedOwner->readRgbaPixels(reopenedPaint, area, raw.size()).bytes, raw);
+    QCOMPARE(reopenedOwner->undo(), Gpu::Result::Success);
+    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, reopenedPixels);
+    QCOMPARE(reopenedOwner->redo(), Gpu::Result::Success);
+    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    const auto beforeDirect = reopenedOwner->operations().snapshot();
+    const auto directCount = reopenedOwner->operations().undoCount();
+    KisNodeSP publicNode;
+    QList<KisNodeSP> publicNodes{reopened->image()->root()};
+    for (qsizetype i = 0; i < publicNodes.size(); ++i) {
+        auto candidate = publicNodes[i];
+        if (candidate->inherits(mask ? "KisFilterMask" : "KisAdjustmentLayer")) publicNode = candidate;
+        for (auto child = candidate->firstChild(); child; child = child->nextSibling()) publicNodes.append(child);
+    }
+    QVERIFY(publicNode);
+    auto *publicFilter = dynamic_cast<KisNodeFilterInterface *>(publicNode.data()); QVERIFY(publicFilter);
+    const auto directConfiguration = filter->defaultConfiguration(KisGlobalResourcesInterface::instance());
+    publicFilter->setFilter(directConfiguration->cloneWithResourcesSnapshot());
+    QCOMPARE(reopenedOwner->operations().undoCount(), directCount);
+    for (const auto &layer : beforeDirect->layers) if (layer.id == reopenedFilter) QCOMPARE(layer.filter->id, updatedId);
+    for (const auto &layer : reopenedOwner->operations().snapshot()->layers)
+        if (layer.id == reopenedFilter) QCOMPARE(layer.filter->id, id);
+    dynamic_cast<KisNodeFilterInterface *>(nativeNode.data())->setFilter(directConfiguration->cloneWithResourcesSnapshot());
+    nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
+    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QVERIFY(reopened->saveAs(directory.filePath("reopened-edited-filters.kra"), KisDocument::nativeFormatMimeType(), false));
+    reopened->waitForSavingToComplete();
 }

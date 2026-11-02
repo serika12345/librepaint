@@ -2442,7 +2442,8 @@ void TestKraRasterCodec::filterNodesKeepSettingsSelectionsAndMaskOrder()
     FilterDefinition definition;
     definition.id = id; definition.version = 1; definition.resolved = false;
     definition.xml = QByteArrayLiteral("<params version=\"1\"><param name=\"h\">31</param><param name=\"s\">17</param>"
-        "<param name=\"color\">#c13e8cec</param><param name=\"opacity\">63</param><param name=\"compositeop\">multiply</param></params>");
+        "<param name=\"color\">#c13e8cec</param><param name=\"opacity\">99</param><param name=\"opacity\">63</param>"
+        "<param name=\"compositeop\">multiply</param></params>");
     filter.filter = definition;
     const QRect coverageArea(-2, 3, 4, 2);
     const auto alpha = QByteArray::fromHex("00017f80c0feff29");

@@ -156,7 +156,7 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
         }
     }
     auto *source = canvas()->resourceManager();
-    const bool maskTarget = image()->isGpuTransparencyMaskView(currentNode());
+    const bool maskTarget = image()->isGpuEditableMaskView(currentNode());
     const auto *colorSpace = maskTarget ? KoColorSpaceRegistry::instance()->colorSpace(
         GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image()->colorSpace();
     LibrePaint::Image::Gpu::FigureStyle style;

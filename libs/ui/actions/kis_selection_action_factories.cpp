@@ -284,7 +284,7 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         if (usePattern) {
             QString diagnostic;
             const auto pattern = captureGpuPatternResource(resources->currentPattern(),
-                image->isGpuTransparencyMaskView(node) ? KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace(),
+                image->isGpuEditableMaskView(node) ? KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace(),
                 QTransform(), diagnostic);
             if (!pattern) {
                 reject(diagnostic);
@@ -313,7 +313,7 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
             return;
         }
         KoColor nativeColor = useBgColor ? resources->bgColor() : resources->fgColor();
-        const bool maskTarget = image->isGpuTransparencyMaskView(node);
+        const bool maskTarget = image->isGpuEditableMaskView(node);
         nativeColor.convertTo(maskTarget ? KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace());
         const auto gray = nativeColor.data()[0];
         const std::array<quint8, 3> rgb{gray, gray, gray};
@@ -332,7 +332,7 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
             resources->resourceManager()->resource(KoCanvasResource::GlobalAlphaLock).toBool();
         Gpu::LayerId layer = 0;
         // A selected mask child fills the parent layer's retained coverage.
-        const KisNodeSP fillNode = maskTarget ? node->parent() : node;
+        const KisNodeSP fillNode = image->isGpuTransparencyMaskView(node) ? node->parent() : node;
         for (const auto &candidate : owner->operations().snapshot()->layers)
             if (fillNode && candidate.uuid == fillNode->uuid()) layer = candidate.id;
         if (!layer || !view->blockUntilOperationsFinished(image)) return;

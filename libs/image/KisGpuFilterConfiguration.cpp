@@ -11,6 +11,10 @@
 #include <KoColorModelStandardIds.h>
 #include <cstring>
 #include <limits>
+#include <kis_image.h>
+#include <kis_node.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <stdexcept>
 
 std::optional<LibrePaint::Image::Gpu::FilterDefinition> freezeGpuFilterConfiguration(
     const KisFilterConfigurationSP &configuration, const KoColorSpace *colorSpace)
@@ -54,4 +58,23 @@ std::optional<LibrePaint::Image::Gpu::FilterDefinition> freezeGpuFilterConfigura
     if (!Gpu::freezeFilterSettings(definition.id, definition.parameters, luma, overlay, format, &definition.settings) ||
         !definition.isValid(format)) return std::nullopt;
     return definition;
+}
+
+bool writeGpuNodeFilterConfiguration(KisNode *node, const KisFilterConfigurationSP &configuration)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisImageSP image = node ? node->image().toStrongRef() : KisImageSP{};
+    const auto owner = image ? image->gpuImage() : Gpu::PaintImageSP{};
+    if (!owner || !node->parent() || image->isSynchronizingGpuNodes()) return false;
+    const auto version = owner->operations().snapshot();
+    Gpu::LayerId target = 0;
+    for (const auto &layer : version->layers)
+        if (layer.uuid == node->uuid() && Gpu::isFilterNode(layer.kind)) { target = layer.id; break; }
+    if (!target) throw std::runtime_error("GPU filter node is unavailable");
+    const auto frozen = freezeGpuFilterConfiguration(configuration, image->colorSpace());
+    if (!frozen) throw std::invalid_argument("GPU filter configuration is unavailable for this image");
+    const auto result = owner->writeFilterDefinition(target, *frozen);
+    if (result != Gpu::Result::Success)
+        throw std::runtime_error("GPU filter configuration write failed: " + std::to_string(int(result)));
+    return true;
 }

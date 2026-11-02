@@ -5246,6 +5246,26 @@ void KisGpuOperationDocumentTest::filterNodePreviewKeepsOneHistoryAndEditableCon
         QCOMPARE(document.undo(), Result::Success);
         QCOMPARE(document.snapshot(), withMask);
     }
+    const auto directBefore = document.snapshot();
+    const auto directHistory = document.undoCount();
+    auto external = definition(true);
+    external.version = 7;
+    external.xml = QByteArrayLiteral("<params version=\"7\"/>");
+    QCOMPARE(document.writeFilterDefinition(layer, external), Result::Success);
+    QCOMPARE(document.undoCount(), directHistory);
+    QCOMPARE(document.snapshot()->layers.last().filter->version, 7);
+    QCOMPARE(directBefore->layers.last().filter->version, 1);
+    // Undoing the explicit configuration command restores its frozen value;
+    // undoing a coverage edit alone retains the untracked public setter.
+    QCOMPARE(document.setHistoryIndex(1), Result::Success);
+    QCOMPARE(document.snapshot()->layers.last().filter->settings.kind, FilterKind::MaximizeChannel);
+    QCOMPARE(document.snapshot()->layers.last().filter->version, 1);
+    QCOMPARE(document.setHistoryIndex(2), Result::Success);
+    QCOMPARE(document.snapshot()->layers.last().filter->settings.kind, FilterKind::MinimizeChannel);
+    QCOMPARE(document.snapshot()->layers.last().filter->version, 1);
+    QCOMPARE(document.writeFilterDefinition(layer, external), Result::Success);
+    QCOMPARE(document.setHistoryIndex(directHistory), Result::Success);
+    QCOMPARE(document.snapshot()->layers.last().filter->version, 7);
     const auto editing = document.beginFilterNodeEdit(layer, {}, 0);
     QVERIFY(!editing.isNull());
     document.close();

@@ -103,6 +103,9 @@ struct LoadOutcome
 class KRITAIMPEXKRA_EXPORT RasterCodec
 {
 public:
+    /** Filter nodes retain native XML/parameters with unresolved scalar color
+     * settings. The document owner resolves those against the image profile
+     * before constructing an executable GPU image. */
     static LoadOutcome read(QIODevice &source, Limits limits = {});
     /** Validates retained XML and associated files without allocating raster pixels. */
     static Outcome validateMetadata(const QByteArray &description, const QMap<QString, QByteArray> &files, Limits limits = {});

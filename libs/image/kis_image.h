@@ -161,6 +161,9 @@ public:
      * remains the owner of the coverage.
      */
     bool isGpuTransparencyMaskView(KisNodeSP node) const;
+    /** Alpha8 editing target: a transparency child, filter mask, or adjustment
+     * layer's internal selection. Coverage remains owned by document versions. */
+    bool isGpuEditableMaskView(KisNodeSP node) const;
     /** Adds a GPU paint layer at a bottom-to-top child index in the given
      * group. Returns the adopted node, or null on invalid input or capacity.
      */

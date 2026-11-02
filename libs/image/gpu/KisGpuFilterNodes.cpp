@@ -24,6 +24,10 @@ bool OperationDocument::filterFitsRetainedHistory(const FilterDefinition &filter
         for (const auto &layer : version->layers) if (layer.filter && !add(*layer.filter)) return false;
     if (m_preview) for (const auto &layer : m_preview->layers)
         if (layer.filter && !add(*layer.filter)) return false;
+    for (const auto &change : m_layerHistoryChanges) {
+        if (change.beforeFilter && !add(*change.beforeFilter)) return false;
+        if (change.afterFilter && !add(*change.afterFilter)) return false;
+    }
     return add(filter);
 }
 
@@ -146,9 +150,20 @@ Result OperationDocument::commitFilterNodeEdit(OperationId id)
     }
     version->m_pendingOperation = {};
     LayerHistoryChange change;
+    change.layer = edit.node;
     change.layerStructureAction = edit.inserted ?
         (version->layers[index].kind == LayerKind::FilterMask ? HistoryAction::AddFilterMask : HistoryAction::AddAdjustmentLayer) :
         HistoryAction::ChangeFilter;
+    if (!edit.inserted) {
+        const auto &before = snapshot()->layers[layerIndex(edit.node)];
+        const auto &after = version->layers[index];
+        if (!(before.filter == after.filter)) {
+            change.beforeFilter = before.filter;
+            change.afterFilter = after.filter;
+        } else change.layerStructureAction = HistoryAction::RenameLayer;
+        if (before.name != after.name)
+            change.propertyEdits.append({LayerProperty::Name, edit.node, before.name, after.name});
+    }
     m_preview.clear();
     m_filterNodeEdit.reset();
     commitVersion(version, change);
@@ -204,6 +219,49 @@ Result OperationDocument::setFilterSelection(LayerId node, const SelectionMaskSP
     LayerHistoryChange change;
     change.layerStructureAction = HistoryAction::PaintStroke;
     commitVersion(version, change);
+    return Result::Success;
+}
+
+Result OperationDocument::writeFilterDefinition(LayerId node, const FilterDefinition &filter)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(node);
+    if (index < 0 || !isFilterNode(snapshot()->layers[index].kind)) return Result::LayerUnavailable;
+    const auto current = snapshot();
+    if (!filter.isValid(current->format)) return Result::InvalidInput;
+    if (current->layers[index].filter && *current->layers[index].filter == filter) return Result::Success;
+    if (!filterFitsRetainedHistory(filter)) return Result::CapacityExceeded;
+    const auto contains = [&](const Snapshot &version) {
+        if (version->format != current->format || version->colorProfile != current->colorProfile) return false;
+        for (const auto &layer : version->layers)
+            if (layer.id == node && layer.uuid == current->layers[index].uuid && layer.filter) return true;
+        return false;
+    };
+    const auto changesFilter = [&](int position) {
+        const auto &change = m_layerHistoryChanges[position];
+        return change.layer == node && bool(change.beforeFilter) && bool(change.afterFilter);
+    };
+    int first = m_index, last = m_index;
+    while (first > 0 && !changesFilter(first) && contains(m_history[first - 1])) --first;
+    while (last + 1 < m_history.size() && !changesFilter(last + 1) && contains(m_history[last + 1])) ++last;
+    if (quint64(last - first + 1) > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
+    auto history = m_history;
+    auto revision = m_nextRevision;
+    for (int i = first; i <= last; ++i) {
+        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*history[i]));
+        for (auto &layer : version->layers) if (layer.id == node) {
+            const auto beforeBytes = layer.filter->byteCount();
+            if (filter.byteCount() > m_limits.rasterBytes - (version->rasterBytes - beforeBytes)) return Result::CapacityExceeded;
+            version->rasterBytes += filter.byteCount() - beforeBytes;
+            layer.filter = filter;
+            break;
+        }
+        version->m_revision = ++revision;
+        history[i] = version;
+    }
+    m_history.swap(history);
+    m_nextRevision = revision;
     return Result::Success;
 }
 }

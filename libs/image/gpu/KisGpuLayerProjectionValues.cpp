@@ -11,6 +11,7 @@
 #include <QFile>
 #include <cmath>
 #include <stdexcept>
+#include <QSet>
 
 namespace LibrePaint::Image::Gpu {
 const QByteArray &Detail::rgba16PowerValues()
@@ -275,7 +276,8 @@ RgbaPixel normalProjectionPixel16(RgbaPixel destination, const RgbaPixel &source
     return destination;
 }
 
-QList<LayerProjectionInput> compositionInputs(const QHash<QUuid, QList<const Layer *>> &children, const QUuid &parent)
+QList<LayerProjectionInput> compositionInputs(const QHash<QUuid, QList<const Layer *>> &children,
+    const QUuid &parent, const QSet<LayerId> &forced = {})
 {
     struct Pending { const Layer *layer; quint8 opacity; quint8 parentMask; };
     QList<Pending> pending;
@@ -291,7 +293,7 @@ QList<LayerProjectionInput> compositionInputs(const QHash<QUuid, QList<const Lay
         const auto &layer = *value.layer;
         if (layer.kind == LayerKind::FilterMask) continue;
         const auto opacity = quint8(int(layer.opacity) * value.opacity / 255);
-        if (!layer.visible || (!opacity && layer.blendMode != LayerBlendMode::DestinationIn && layer.blendMode != LayerBlendMode::DestinationAtop && !Detail::transparentSourceAffectsBlend(layer.blendMode))) continue;
+        if (!forced.contains(layer.id) && (!layer.visible || (!opacity && layer.blendMode != LayerBlendMode::DestinationIn && layer.blendMode != LayerBlendMode::DestinationAtop && !Detail::transparentSourceAffectsBlend(layer.blendMode)))) continue;
         if (layer.passThrough) appendChildren(layer.uuid, opacity, layer.projectionChannelMask);
         else result.append({layer.id, opacity, quint8(layer.projectionChannelMask & value.parentMask), layer.blendMode});
     }
@@ -309,6 +311,36 @@ QList<LayerProjectionInput> DocumentVersion::projectionInputs(LayerId group) con
     }
     if (group && parent.isNull()) throw std::invalid_argument("GPU projection group is unavailable");
     return compositionInputs(children, parent);
+}
+
+QList<LayerProjectionInput> DocumentVersion::projectionInputsThrough(LayerId adjustment, LayerId *scope) const
+{
+    QHash<QUuid, const Layer *> identities;
+    QHash<QUuid, QList<const Layer *>> children;
+    const Layer *target = nullptr;
+    for (const auto &layer : layers) {
+        identities.insert(layer.uuid, &layer);
+        children[layer.parentUuid].append(&layer);
+        if (layer.id == adjustment) target = &layer;
+    }
+    if (!target || target->kind != LayerKind::Adjustment) throw std::invalid_argument("GPU adjustment node is unavailable");
+    QSet<LayerId> forced{target->id};
+    QUuid parent;
+    LayerId group = 0;
+    for (auto ancestor = identities.value(target->parentUuid); ancestor;
+         ancestor = identities.value(ancestor->parentUuid)) {
+        if (ancestor->kind == LayerKind::Group && !ancestor->passThrough) {
+            parent = ancestor->uuid; group = ancestor->id; break;
+        }
+        forced.insert(ancestor->id);
+    }
+    auto result = compositionInputs(children, parent, forced);
+    for (qsizetype i = 0; i < result.size(); ++i) if (result[i].layer == adjustment) {
+        result.resize(i + 1);
+        if (scope) *scope = group;
+        return result;
+    }
+    throw std::invalid_argument("GPU adjustment projection scope is unavailable");
 }
 
 QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
@@ -332,6 +364,10 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
             implicitSources.insert(layer.id, layer.defaultPixel[3] != 0);
         }
         else if (layer.kind == LayerKind::Group) remaining.insert(layer.id, 0);
+        else {
+            result.insert(layer.id, RgbaPixel{});
+            implicitSources.insert(layer.id, false);
+        }
     }
     for (const auto &layer : layers) {
         if (layer.parentUuid.isNull() || layer.kind != LayerKind::Group) continue;

@@ -534,18 +534,15 @@ KisGpuBrushResources captureGpuPaintingResources(
     };
     if (!image || !image->gpuImage() || !node || node->image().data() != image.data() || !resources)
         return reject(i18n("A stroke could not be started on this GPU paint layer."));
-    // The layer-panel mask child targets its parent layer's retained mask.
-    const bool maskView = image->isGpuTransparencyMaskView(node);
-    const KisNodeSP target = maskView ? node->parent() : node;
+    const bool maskView = image->isGpuEditableMaskView(node);
+    const KisNodeSP target = image->isGpuTransparencyMaskView(node) ? node->parent() : node;
     if (!target) return reject(i18n("A stroke could not be started on this GPU paint layer."));
     for (const auto &layer : image->gpuImage()->operations().snapshot()->layers)
         if (layer.uuid == target->uuid() && (layer.kind == Gpu::LayerKind::Paint ||
-            (maskView && layer.kind == Gpu::LayerKind::Group))) result.layer = layer.id;
+            (maskView && (layer.kind == Gpu::LayerKind::Group || Gpu::isFilterNode(layer.kind))))) result.layer = layer.id;
     if (!result.layer)
         return reject(i18n("A stroke could not be started on this GPU paint layer."));
     if (maskView) {
-        if (!image->gpuImage()->layerTransparencyMask(result.layer))
-            return reject(i18n("The transparency mask is unavailable for this GPU paint layer."));
         result.transparencyMask = true;
     }
     const auto preset = resources->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();

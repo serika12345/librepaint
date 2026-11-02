@@ -23,6 +23,13 @@
 
 namespace LibrePaint::Image::Gpu {
 namespace {
+bool hasFilterProjection(const Snapshot &version, const Layer &node)
+{
+    if (node.kind == LayerKind::Adjustment) return true;
+    return std::any_of(version->layers.cbegin(), version->layers.cend(), [&](const auto &child) {
+        return child.kind == LayerKind::FilterMask && child.parentUuid == node.uuid && child.visible;
+    });
+}
 LayerId rawProjectionLayer(const Snapshot &version)
 {
     const auto direct = version ? version->directProjectionLayer() : LayerId{};
@@ -298,6 +305,34 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
 std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const Layer &layer, QRect region, qsizetype maximum)
 {
     if (layer.kind == LayerKind::Paint) return paintLayerCoordinates(layer, region, maximum, document->pendingOperation(), document->size, document->format);
+    if (layer.kind == LayerKind::FilterMask) return QList<quint64>{};
+    if (layer.kind == LayerKind::Adjustment) {
+        QSet<quint64> coordinates;
+        const auto canvas = region.intersected(QRect(QPoint(), document->size));
+        if (!canvas.isEmpty()) {
+            const int left = Detail::pixelTileIndex(canvas.left(), TileRenderer::TileSize);
+            const int right = Detail::pixelTileIndex(canvas.right(), TileRenderer::TileSize);
+            const int top = Detail::pixelTileIndex(canvas.top(), TileRenderer::TileSize);
+            const int bottom = Detail::pixelTileIndex(canvas.bottom(), TileRenderer::TileSize);
+            if (qint64(right - left + 1) * (bottom - top + 1) > maximum) return std::nullopt;
+            for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) coordinates.insert(Detail::key(x, y));
+        }
+        QHash<LayerId, const Layer *> nodes;
+        for (const auto &value : document->layers) nodes.insert(value.id, &value);
+        for (const auto &input : document->projectionInputsThrough(layer.id)) {
+            const auto source = nodes.value(input.layer);
+            if (!source || source->kind == LayerKind::Adjustment) continue;
+            const auto tiles = layerCoordinates(document, *source, region, maximum);
+            if (!tiles) return std::nullopt;
+            for (const auto tile : *tiles) {
+                coordinates.insert(tile);
+                if (coordinates.size() > maximum) return std::nullopt;
+            }
+        }
+        auto ordered = coordinates.values();
+        std::sort(ordered.begin(), ordered.end());
+        return ordered;
+    }
     QHash<QUuid, QList<const Layer *>> children;
     for (const auto &value : document->layers) children[value.parentUuid].append(&value);
     QList<const Layer *> pending{&layer};
@@ -306,8 +341,8 @@ std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const L
         for (const auto child : children.value(pending[i]->uuid)) {
             if (!child->visible || !child->opacity) continue;
             if (child->kind == LayerKind::Group) pending.append(child);
-            else {
-                const auto tiles = paintLayerCoordinates(*child, region, maximum, document->pendingOperation(), document->size, document->format);
+            else if (child->kind != LayerKind::FilterMask) {
+                const auto tiles = layerCoordinates(document, *child, region, maximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
@@ -560,7 +595,7 @@ PixelBytesOutcome Execution::readRgbaPixelsImpl(DocumentHandle handle, const Sna
         if (layer ? value.id != layer : !projectionLayers.contains(value.id)) continue;
         if (layer) {
             defaultPixel = defaults.value(value.id);
-            maskedProjection = layerProjection && hasEnabledTransparencyMask(value);
+            maskedProjection = layerProjection && (hasEnabledTransparencyMask(value) || hasFilterProjection(pinned, value));
         }
         else uniformProjection |= defaults.value(value.id) != RgbaPixel{};
         const auto tiles = layerCoordinates(pinned, value, clipped, std::numeric_limits<qsizetype>::max());
@@ -736,7 +771,7 @@ PixelReadbackOutcome Execution::readLayerProjectionBounds(DocumentHandle handle,
 {
     if (!layer) return readNativeProjectionBounds(handle, pinned);
     if (pinned) for (const auto &value : pinned->layers)
-        if (value.id == layer && !hasEnabledTransparencyMask(value)) return readBounds(handle, pinned, layer, false, true);
+        if (value.id == layer && !hasEnabledTransparencyMask(value) && !hasFilterProjection(pinned, value)) return readBounds(handle, pinned, layer, false, true);
     return readBoundsImpl(handle, pinned, layer, false, true, true, false, true);
 }
 
@@ -769,9 +804,9 @@ PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snap
         const auto tiles = layerCoordinates(pinned, value, outcome.region, maximumCoordinates);
         if (!tiles) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Bounds tile coordinate capacity exceeded"));
         for (const auto coordinate : *tiles) coordinates.insert(coordinate);
-        if (layerProjection && hasEnabledTransparencyMask(value) && pixel != RgbaPixel{}) {
-            auto extent = value.transparencyMask->allocatedBounds();
-            if (value.transparencyMask->defaultCoverage()) extent |= QRect(QPoint(), pinned->size);
+        if (layerProjection && (hasEnabledTransparencyMask(value) || hasFilterProjection(pinned, value)) && pixel != RgbaPixel{}) {
+            auto extent = value.transparencyMask ? value.transparencyMask->allocatedBounds() : QRect{};
+            if (hasFilterProjection(pinned, value) || (value.transparencyMask && value.transparencyMask->defaultCoverage())) extent |= QRect(QPoint(), pinned->size);
             if (!extent.isEmpty()) {
                 const int left = Detail::pixelTileIndex(extent.left(), TileRenderer::TileSize), right = Detail::pixelTileIndex(extent.right(), TileRenderer::TileSize);
                 const int top = Detail::pixelTileIndex(extent.top(), TileRenderer::TileSize), bottom = Detail::pixelTileIndex(extent.bottom(), TileRenderer::TileSize);
@@ -957,6 +992,14 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         selected.insert(layer);
     }
     QList<LayerId> generatedLayers = layers;
+    if (layerProjection) for (const auto id : layers) {
+        const auto node = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(), [&](const auto &value) { return value.id == id; });
+        if (node->kind != LayerKind::Adjustment) continue;
+        for (const auto &input : pinned->projectionInputsThrough(id)) if (!selected.contains(input.layer)) {
+            generatedLayers.append(input.layer);
+            selected.insert(input.layer);
+        }
+    }
     if (includeProjection) {
         for (const auto &layer : pinned->projectionInputs()) {
             if (!selected.contains(layer.layer)) {
@@ -998,6 +1041,14 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
             return rejected(executionCode(paint.code), paint.diagnostic);
         }
         rendered = paint.version;
+        if (layerProjection) for (const auto id : layers) {
+            const auto physical = d.renderer->prepareNodeProjection(frame.commands, rendered, outcome.region, id);
+            if (physical.code != RenderOutcome::Recorded) {
+                cancelFrame(); begun = false;
+                return rejected(executionCode(physical.code), physical.diagnostic);
+            }
+            rendered = physical.version;
+        }
         if (includeProjection) {
             const auto compose = nativeProjection ? d.renderer->composeImpl(frame.commands, rendered, outcome.region,
                 {}, 0, nullptr, false, true) : d.renderer->compose(frame.commands, rendered, outcome.region, projectedBase);
@@ -1018,7 +1069,8 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         const auto append = [&](LayerId layer, QList<TileView> tiles) {
             const auto definition = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),
                 [&](const auto &value) { return value.id == layer; });
-            const bool physicalMask = layerProjection && definition != pinned->layers.cend() && hasEnabledTransparencyMask(*definition);
+            const bool physicalMask = layerProjection && !rendered->m_data->effectProjections.contains(layer) &&
+                definition != pinned->layers.cend() && hasEnabledTransparencyMask(*definition);
             if (physicalMask) {
                 const auto implicit = pinned->projectionDefaultPixels().value(layer);
                 QSet<QPoint> present;
@@ -1108,6 +1160,9 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                     for (auto tile = transformed.tiles.cbegin(); tile != transformed.tiles.cend(); ++tile)
                         views.append({Detail::coordinate(tile.key()), tile.value()->pixels.get()});
                     summary = d.renderer->m_d->recordBounds(frame.commands, views, outcome.region, {}, pinned->format, true);
+                } else if (boundsOnly && layerProjection && rendered->m_data->effectProjections.contains(layers.first())) {
+                    summary = d.renderer->m_d->recordBounds(frame.commands, rendered->tiles(layers.first()),
+                        outcome.region, {}, pinned->format, false, true);
                 } else if (boundsOnly && layerProjection) {
                     const auto layer = layers.first();
                     const auto definition = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),

@@ -124,6 +124,8 @@ private:
     RenderOutcome prepareFilterProjection(WGPUCommandEncoder commands, const RenderedSnapshot &document,
         QRect region, const QList<LayerProjectionInput> &inputs, LayerId group,
         const FrozenLayerProjection *initial, bool nativeProjection);
+    RenderOutcome prepareNodeProjection(WGPUCommandEncoder commands, const RenderedSnapshot &document,
+        QRect region, LayerId node);
     ProjectionOutcome recordInitialProjection(WGPUCommandEncoder commands, const FrozenLayerProjectionSP &initial,
                                              QRect region, const RenderedSnapshot &base);
     RenderOutcome prepareRegion(WGPUCommandEncoder commands, const RegionFillSP &region,

@@ -267,6 +267,7 @@ public:
     Result commitFilterNodeEdit(OperationId id);
     Result cancelFilterNodeEdit(OperationId id);
     Result setFilterDefinition(LayerId node, const FilterDefinition &filter, const QString &name = {});
+    Result writeFilterDefinition(LayerId node, const FilterDefinition &filter);
     Result setFilterSelection(LayerId node, const SelectionMaskSP &coverage);
     LayerId addLayer(const QString &name);
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid = {});

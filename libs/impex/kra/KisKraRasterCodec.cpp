@@ -446,20 +446,17 @@ Outcome readFilterDefinition(const QDomElement &element, const QByteArray &bytes
     if (!legacy && root.tagName() != QLatin1String("params"))
         return invalid(QStringLiteral("Invalid KRA filter configuration root"));
     definition.id = legacy ? root.attribute(QStringLiteral("name")) : element.attribute(QStringLiteral("filtername"));
-    if (!integer(root, QStringLiteral("version"), definition.version,
-                 element.attribute(QStringLiteral("filterversion"), QStringLiteral("0"))) || definition.version < 0)
+    if (!integer(root, QStringLiteral("version"), definition.version, QStringLiteral("0")) || definition.version < 0)
         return invalid(QStringLiteral("Invalid KRA filter version"));
     definition.xml = bytes;
     const auto parameterTag = legacy ? QStringLiteral("property") : QStringLiteral("param");
     for (auto parameter = root.firstChildElement(parameterTag); !parameter.isNull();
          parameter = parameter.nextSiblingElement(parameterTag)) {
         const auto name = parameter.attribute(QStringLiteral("name"));
-        if (name.isEmpty() || !validName(name) || definition.parameters.contains(name) || definition.parameters.size() >= 256)
+        if (!validName(name) || (!definition.parameters.contains(name) && definition.parameters.size() >= 256))
             return invalid(QStringLiteral("Invalid KRA filter parameter"));
         if (!legacy && parameter.attribute(QStringLiteral("type")) == QLatin1String("bytearray")) {
-            const auto decoded = QByteArray::fromBase64Encoding(parameter.text().toLatin1(), QByteArray::AbortOnBase64DecodingErrors);
-            if (!decoded) return invalid(QStringLiteral("Invalid KRA filter byte array"));
-            definition.parameters.insert(name, decoded.decoded);
+            definition.parameters.insert(name, QByteArray::fromBase64(parameter.text().toLatin1()));
         } else definition.parameters.insert(name, parameter.text());
     }
     // Format parsing retains color definitions as text. Document adoption

@@ -719,6 +719,8 @@ Result OperationDocument::restoreLayerHistoryChange(const LayerHistoryChange &ch
         const auto result = restoreLayerPropertyEdit(edit, forward);
         if (result != Result::Success) return result;
     }
+    const auto &filter = forward ? change.afterFilter : change.beforeFilter;
+    if (filter) return writeFilterDefinition(change.layer, *filter);
     return Result::Success;
 }
 
@@ -1799,14 +1801,16 @@ Result OperationDocument::replaceTransparencyMask(LayerId layer, const Selection
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     const auto index = layerIndex(layer);
-    if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
+    if (index < 0 || !editableMaskCoverage(snapshot()->layers[index])) return Result::LayerUnavailable;
     if (!mask || (!mask->defaultCoverage() && !mask->isEmpty() && mask->bounds().isEmpty()) ||
         mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
-    if (snapshot()->layers[index].transparencyMask == mask) return Result::Success;
+    if (editableMaskCoverage(snapshot()->layers[index]) == mask) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
-    version->layers[index].transparencyMask = mask;
+    auto &target = version->layers[index];
+    if (isFilterNode(target.kind)) target.filterSelection = mask;
+    else target.transparencyMask = mask;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     // The changed coverage identifies the brush action; a fill additionally

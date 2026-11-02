@@ -35,9 +35,18 @@ Result resultFor(ExecutionCode code)
 const Layer *editableMaskLayer(const Snapshot &version, LayerId layer)
 {
     if (!version) return nullptr;
-    for (const auto &value : version->layers)
-        if (value.id == layer && value.transparencyMask && !value.transparencyMaskLocked &&
-            !value.userLocked && value.visible) return &value;
+    for (const auto &value : version->layers) {
+        if (value.id != layer || !editableMaskCoverage(value) || value.userLocked || !value.visible ||
+            (!isFilterNode(value.kind) && value.transparencyMaskLocked)) continue;
+        auto parentUuid = value.parentUuid;
+        while (!parentUuid.isNull()) {
+            const auto parent = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                [&](const auto &candidate) { return candidate.uuid == parentUuid; });
+            if (parent == version->layers.cend() || parent->userLocked || !parent->visible) return nullptr;
+            parentUuid = parent->parentUuid;
+        }
+        return &value;
+    }
     return nullptr;
 }
 
@@ -456,6 +465,7 @@ void PaintImage::refreshLayerPixelReferences()
 Snapshot PaintImage::layerPixelVersion() const
 {
     const auto preview = m_d->document->preview();
+    if (m_d->document->filterNodeEditTarget()) return preview;
     if (m_d->maskStroke && preview->pendingOperation() == m_d->maskStroke->id) return preview;
     if ((m_d->document->m_translation && preview->pendingOperation() == m_d->document->m_translation->id) ||
         (!m_d->document->m_affine.isEmpty() && preview->pendingOperation() == m_d->document->m_affine.first()->id)) return preview;
@@ -546,7 +556,7 @@ OperationId PaintImage::beginTransparencyMaskStroke(LayerId layer, const Brush &
     const auto version = m_d->document->snapshot();
     const Layer *target = editableMaskLayer(version, layer);
     if (!target) return {};
-    const auto image = createMaskImage(version, target->transparencyMask);
+    const auto image = createMaskImage(version, editableMaskCoverage(*target));
     if (!image) return {};
     Brush maskBrush = brush;
     // Mask coverage owns its own alpha; layer channel locks and alpha locks
@@ -663,7 +673,7 @@ Result PaintImage::paintTransparencyMaskFigure(LayerId layer, const Brush &brush
     const auto version = m_d->document->snapshot();
     const Layer *target = editableMaskLayer(version, layer);
     if (!target) return Result::LayerUnavailable;
-    const auto image = createMaskImage(version, target->transparencyMask);
+    const auto image = createMaskImage(version, editableMaskCoverage(*target));
     if (!image) return resultFor(m_d->lastRequest.code);
     Brush maskBrush = brush;
     maskBrush.maskPainting = true;
@@ -716,7 +726,7 @@ Result PaintImage::paintGradient(LayerId layer, const Brush &brush, const Gradie
     const auto version = m_d->document->snapshot();
     const Layer *target = editableMaskLayer(version, layer);
     if (!target) return Result::LayerUnavailable;
-    const auto maskImage = createMaskImage(version, target->transparencyMask);
+    const auto maskImage = createMaskImage(version, editableMaskCoverage(*target));
     if (!maskImage) return resultFor(m_d->lastRequest.code);
     Brush maskBrush = brush;
     maskBrush.maskPainting = true;
@@ -1082,6 +1092,8 @@ Result PaintImage::cancelFilterNodeEdit(OperationId id)
 { return onThread() ? publish(m_d->document->cancelFilterNodeEdit(id)) : Result::InvalidInput; }
 Result PaintImage::setFilterDefinition(LayerId node, const FilterDefinition &filter, const QString &name)
 { return onThread() ? publish(m_d->document->setFilterDefinition(node, filter, name)) : Result::InvalidInput; }
+Result PaintImage::writeFilterDefinition(LayerId node, const FilterDefinition &filter)
+{ return onThread() ? publish(m_d->document->writeFilterDefinition(node, filter)) : Result::InvalidInput; }
 Result PaintImage::setFilterSelection(LayerId node, const SelectionMaskSP &coverage)
 { return onThread() ? publish(m_d->document->setFilterSelection(node, coverage)) : Result::InvalidInput; }
 

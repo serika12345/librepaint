@@ -1001,6 +1001,10 @@ public:
      * Unavailable group identities throw std::invalid_argument.
      */
     QList<LayerProjectionInput> projectionInputs(LayerId group = 0) const;
+    /** Lower-stack inputs through one adjustment node, including its hidden
+     * configuration. Returns its containing isolated group through scope.
+     * Unavailable or non-adjustment nodes throw std::invalid_argument. */
+    QList<LayerProjectionInput> projectionInputsThrough(LayerId adjustment, LayerId *scope = nullptr) const;
     QSize size;
     PixelFormat format = PixelFormat::Rgba8;
     QByteArray colorProfile;
@@ -1238,6 +1242,9 @@ public:
     Result cancelFilterNodeEdit(OperationId id);
     Result setFilterDefinition(LayerId node, const FilterDefinition &filter,
                                const QString &name = {});
+    /** Direct public configuration write. Preserves history count and pinned
+     * versions; explicit configuration commands retain their Undo/Redo values. */
+    Result writeFilterDefinition(LayerId node, const FilterDefinition &filter);
     Result setFilterSelection(LayerId node, const SelectionMaskSP &coverage);
     LayerId addLayer(const QString &name);
     /** Inserts and selects a paint layer at a document-list index. A nonnull
@@ -1509,6 +1516,7 @@ private:
         CropSnapshot crop;
         std::optional<CanvasResize> canvasResize;
         QList<LayerPropertyEdit> propertyEdits;
+        std::optional<FilterDefinition> beforeFilter, afterFilter;
         bool changedLayerProperties = false;
         bool changedSelection = false;
         bool movedSelectionPixels = false;

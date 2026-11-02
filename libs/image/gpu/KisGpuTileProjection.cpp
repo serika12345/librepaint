@@ -297,6 +297,26 @@ RenderOutcome TileRenderer::prepareFilterProjection(WGPUCommandEncoder commands,
     return {RenderOutcome::Recorded, preparedVersion, {}};
 }
 
+RenderOutcome TileRenderer::prepareNodeProjection(WGPUCommandEncoder commands,
+    const RenderedSnapshot &document, QRect region, LayerId id)
+{
+    const auto snapshot = document->document();
+    const Layer *node = nullptr;
+    for (const auto &layer : snapshot->layers) if (layer.id == id) { node = &layer; break; }
+    if (!node) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU projection node is unavailable")};
+    LayerId scope = 0;
+    QList<LayerProjectionInput> inputs;
+    if (node->kind == LayerKind::Adjustment) inputs = snapshot->projectionInputsThrough(id, &scope);
+    else {
+        const bool filtered = std::any_of(snapshot->layers.cbegin(), snapshot->layers.cend(), [&](const auto &child) {
+            return child.kind == LayerKind::FilterMask && child.parentUuid == node->uuid && child.visible;
+        });
+        if (!filtered) return {RenderOutcome::Recorded, document, {}};
+        inputs.append({id, 255, 15, LayerBlendMode::Normal});
+    }
+    return prepareFilterProjection(commands, document, region, inputs, scope, nullptr, true);
+}
+
 ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                            QRect region, const ProjectedSnapshot &base, LayerId group,
                                            const FrozenLayerProjection *initial, bool normalizeRoot, bool nativeProjection,

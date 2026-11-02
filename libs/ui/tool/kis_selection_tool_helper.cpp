@@ -108,7 +108,7 @@ bool KisSelectionToolHelper::selectGpuColourRegion(KisNodeSP reference,
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto owner = m_image ? m_image->gpuImage() : Gpu::PaintImageSP{};
-    if (!owner || !reference || m_image->isGpuTransparencyMaskView(reference)) return false;
+    if (!owner || !reference || m_image->isGpuEditableMaskView(reference)) return false;
     Gpu::SelectionCombination combination;
     switch (action) {
     case SELECTION_DEFAULT:

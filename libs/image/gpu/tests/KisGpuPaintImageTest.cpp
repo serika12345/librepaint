@@ -47,6 +47,8 @@ private Q_SLOTS:
     void erasedMasksRemainTransparentAndAcceptFurtherPainting();
     void defaultMasksKeepGroupProjectionAndCoordinateEdits();
     void paintedMasksKeepSparseGpuCoverageAfterClosure();
+    void filterNodeProjectionReadersFollowCoverageEdits_data();
+    void filterNodeProjectionReadersFollowCoverageEdits();
     void sparsePaintedMasksMoveCombineCropAndRecover();
     void layerPickingKeepsNativeAlphaMasksAndPinnedRequests_data();
     void layerPickingKeepsNativeAlphaMasksAndPinnedRequests();
@@ -2639,6 +2641,74 @@ void KisGpuPaintImageTest::contiguousFillKeepsFrozenPixelsHistoryAndClones()
     const auto projection = warm.readProjectionImage(repeated.handle(), repeated.operations().snapshot(), 2048);
     QVERIFY2(projection.code == ExecutionCode::Success, qPrintable(projection.diagnostic));
     QCOMPARE(QByteArray(reinterpret_cast<const char *>(projection.image.constBits()), 2048), pixels.bytes);
+}
+
+void KisGpuPaintImageTest::filterNodeProjectionReadersFollowCoverageEdits_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("mask");
+    for (bool words : {false, true}) for (bool mask : {false, true}) {
+        const QByteArray row = QByteArray(words ? "word-" : "byte-") + (mask ? "mask" : "adjustment");
+        QTest::newRow(row.constData()) << words << mask;
+    }
+}
+
+void KisGpuPaintImageTest::filterNodeProjectionReadersFollowCoverageEdits()
+{
+    QFETCH(bool, words); QFETCH(bool, mask);
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage raster;
+    raster.size = {16, 12}; raster.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const quint16 scale = words ? 257 : 1;
+    const RgbaPixel original{quint16(17 * scale), quint16(91 * scale), quint16(203 * scale), maximumComponent(raster.format)};
+    const RgbaPixel filtered{0, 0, quint16(203 * scale), maximumComponent(raster.format)};
+    RasterLayer paint; paint.name = QStringLiteral("Source"); paint.uuid = QUuid::createUuid();
+    paint.defaultPixel = original; raster.layers.append(paint);
+    PaintImage image(execution, raster);
+    RasterLayer node;
+    node.kind = mask ? LayerKind::FilterMask : LayerKind::Adjustment;
+    node.name = QStringLiteral("Maximum"); node.parentUuid = mask ? paint.uuid : QUuid{};
+    node.blendMode = mask ? LayerBlendMode::Normal : LayerBlendMode::Copy;
+    FilterDefinition definition; definition.id = QStringLiteral("maximize");
+    definition.xml = QByteArrayLiteral("<params version=\"1\"/>");
+    definition.settings.kind = FilterKind::MaximizeChannel;
+    node.filter = definition;
+    const auto target = image.addFilterNode(node, 1); QVERIFY(target);
+    const auto physical = mask ? LayerId(1) : target;
+    const int stride = pixelByteCount(raster.format);
+    const auto read = [&](const Snapshot &version, QPoint point) {
+        return execution.readLayerProjectionPixels(image.handle(), version, physical, QRect(point, QSize(1, 1)), stride);
+    };
+    const auto before = image.operations().snapshot();
+    auto pixels = read(before, {6, 6});
+    QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+    QCOMPARE(pixels.bytes, rgbaBytes(filtered, raster.format));
+    QCOMPARE(image.readRgbaPixels(1, {6, 6, 1, 1}, stride).bytes, rgbaBytes(original, raster.format));
+    Brush erase; erase.erase = true; erase.diameter = 8;
+    const auto cancelled = image.beginTransparencyMaskStroke(target, erase, 17); QVERIFY(!cancelled.isNull());
+    QCOMPARE(image.appendPoint(cancelled, {{6, 6}, 1}), Result::Success);
+    QCOMPARE(image.operations().snapshot(), before);
+    pixels = read(image.operations().preview(), {6, 6});
+    QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+    QCOMPARE(pixels.bytes, rgbaBytes(original, raster.format));
+    QCOMPARE(image.cancelStroke(cancelled), Result::Success);
+    QCOMPARE(image.operations().snapshot(), before);
+    QCOMPARE(read(before, {6, 6}).bytes, rgbaBytes(filtered, raster.format));
+    const auto stroke = image.beginTransparencyMaskStroke(target, erase, 17); QVERIFY(!stroke.isNull());
+    QCOMPARE(image.appendPoint(stroke, {{6, 6}, 1}), Result::Success);
+    QCOMPARE(image.commitStroke(stroke), Result::Success);
+    QCOMPARE(image.operations().undoCount(), 2);
+    QCOMPARE(read(image.operations().snapshot(), {6, 6}).bytes, rgbaBytes(original, raster.format));
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(read(image.operations().snapshot(), {6, 6}).bytes, rgbaBytes(filtered, raster.format));
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(read(image.operations().snapshot(), {6, 6}).bytes, rgbaBytes(original, raster.format));
+    QCOMPARE(image.readRgbaPixels(1, {6, 6, 1, 1}, stride).bytes, rgbaBytes(original, raster.format));
+    QCOMPARE(image.setLayerVisible(target, false), Result::Success);
+    QCOMPARE(image.readRgbaPixels(0, {0, 0, 1, 1}, stride).bytes, rgbaBytes(original, raster.format));
+    QCOMPARE(read(image.operations().snapshot(), {0, 0}).bytes, rgbaBytes(mask ? original : filtered, raster.format));
 }
 
 int main(int argc, char **argv)
