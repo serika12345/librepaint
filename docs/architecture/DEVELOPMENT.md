@@ -1636,6 +1636,13 @@ Undo／Redo、KRA保存・再読込後の追加編集まで照合する。
 ```
 固定した塗りは`LIBREPAINT_GPU_RESULT_DIR`へ`filled-<図形>-tool`と`fill-only-rectangle-tool`のKRA・PNGを出力する。
 折れ線・多角形はクリックした頂点をダブルクリックで確定する。描画通知中のタブ終了では進行中の操作を取り消す。
+図形のドラッグ中はEscapeで取り消す。直後にボタンを解放しても画素・選択・履歴は変わらず、
+次の図形を独立した操作として確定できる。直線の通常描画・GPU描画は
+`lineToolPreservesPreviewCancellationAndHistory`で、プレビューの取消し、保存と続く消去を検査する。
+`shapeSelectionCombinationsKeepEditingHistoryAndKra`は矩形・楕円・多角形選択の取消しから
+次の選択、塗り、Undo／Redo、KRA再読込後の追加編集までを、RGB8／RGB16で照合する。
+`maskPresetsKeepOrdinaryEditing`の塗り付き楕円は、標準描画・GPU描画のマスク被覆と投影を
+取消し前後で照合してから、通常の確定・履歴・保存の検査を続ける。
 `KisToolProxyContractTest`は、継続を辞退したダブルクリックの直後に、次の描画の開始入力が届くことを検査する。
 `KisGpuTileRendererTest`は矩形・角丸矩形の回転、閉じた輪郭、取消し、Undo／Redo、未確定入力の保持を検査する。
 図形の塗りはQtの参照描画と全画素を比較し、曲線、小さい曲線、負座標、偶奇・巻き数、
