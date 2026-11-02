@@ -11247,7 +11247,8 @@ void KisGpuDocumentViewTest::multibrushPresetsKeepNativeEditingHistoryAndKra()
             QVERIFY(QMetaObject::invokeMethod(tool, "slotSetTransformMode", Qt::DirectConnection, Q_ARG(int, mode)));
             if (mode == 5) {
                 KisSliderSpinBox *x = nullptr, *y = nullptr;
-                for (auto *panel : panels) {
+                for (const auto &panel : panels) {
+                    if (!panel) continue;
                     if (auto *value = panel->findChild<KisSliderSpinBox *>(QStringLiteral("intervalXSpinBox"))) x = value;
                     if (auto *value = panel->findChild<KisSliderSpinBox *>(QStringLiteral("intervalYSpinBox"))) y = value;
                 }
@@ -11272,7 +11273,7 @@ void KisGpuDocumentViewTest::multibrushPresetsKeepNativeEditingHistoryAndKra()
             if (mode == 4) {
                 QVERIFY(QMetaObject::invokeMethod(tool, "slotAddSubbrushesMode", Qt::DirectConnection, Q_ARG(bool, true)));
                 QMouseEvent event(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-                KoPointerEvent added(&event, view->canvasBase()->coordinatesConverter()->imageToDocument({47, 32})); tool->beginPrimaryAction(&added);
+                KoPointerEvent added(&event, view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(47, 32))); tool->beginPrimaryAction(&added);
                 tool->endPrimaryAction(&added);
                 QVERIFY(QMetaObject::invokeMethod(tool, "slotAddSubbrushesMode", Qt::DirectConnection, Q_ARG(bool, false)));
             }
