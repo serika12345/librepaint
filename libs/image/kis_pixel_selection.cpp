@@ -127,7 +127,7 @@ const KoColorSpace *KisPixelSelection::compositionSourceColorSpace() const
 }
 
 void KisPixelSelection::bindGpuCoverage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
-                                       LibrePaint::Image::Gpu::SelectionMaskSP mask, const QUuid &maskUuid)
+                                       LibrePaint::Image::Gpu::SelectionMaskSP mask, const QUuid &maskUuid, QPoint position)
 {
     if (!mask) throw std::invalid_argument("Selection views require retained coverage");
     QRegion region;
@@ -135,10 +135,10 @@ void KisPixelSelection::bindGpuCoverage(QSharedPointer<LibrePaint::Image::Gpu::P
     if (!runs.isEmpty()) region.setRects(runs.constData(), runs.size());
     QPainterPath outline;
     outline.addRegion(region);
-    bindGpuSelection(std::move(image), std::move(mask), maskUuid);
+    bindGpuSelection(std::move(image), std::move(mask), maskUuid, position);
     setOutlineCache(outline.simplified());
     m_d->invalidateThumbnailImage();
-    m_d->lod0CachesOffset = QPoint();
+    m_d->lod0CachesOffset = position;
 }
 
 bool KisPixelSelection::read(QIODevice *stream)
@@ -401,6 +401,8 @@ void KisPixelSelection::invert()
 
 void KisPixelSelection::moveTo(const QPoint &pt)
 {
+    const bool gpu = bool(gpuSelectionCoverage());
+    if (gpu) KisPaintDevice::moveTo(pt);
     const int lod = defaultBounds()->currentLevelOfDetail();
     const QPoint lod0Point = !lod ? pt :
         pt * KisLodTransform::lodToInvScale(lod);
@@ -419,7 +421,7 @@ void KisPixelSelection::moveTo(const QPoint &pt)
 
     m_d->lod0CachesOffset = lod0Point;
 
-    KisPaintDevice::moveTo(pt);
+    if (!gpu) KisPaintDevice::moveTo(pt);
 }
 
 bool KisPixelSelection::isTotallyUnselected(const QRect & r) const

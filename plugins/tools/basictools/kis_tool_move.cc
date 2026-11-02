@@ -37,6 +37,8 @@
 #include "kis_paint_layer.h"
 #include "kis_group_layer.h"
 #include "kis_transparency_mask.h"
+#include "kis_adjustment_layer.h"
+#include "kis_filter_mask.h"
 #include <gpu/KisGpuExecution.h>
 #include "strokes/move_stroke_strategy.h"
 #include "kis_tool_movetooloptionswidget.h"
@@ -91,8 +93,9 @@ QList<LibrePaint::Image::Gpu::LayerTranslationTarget> gpuMoveTargets(
         KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
             if (!node->isEditable(false)) return;
             const bool mask = bool(qobject_cast<KisTransparencyMask *>(node.data()));
+            const bool internal = qobject_cast<KisAdjustmentLayer *>(node.data()) || qobject_cast<KisFilterMask *>(node.data());
             const auto ownerNode = mask ? node->parent() : node;
-            if (!ownerNode || (!mask && !qobject_cast<KisPaintLayer *>(node.data()) &&
+            if (!ownerNode || (!mask && !internal && !qobject_cast<KisPaintLayer *>(node.data()) &&
                                            !qobject_cast<KisGroupLayer *>(node.data()))) return;
             const auto layer = layers.value(ownerNode->uuid());
             if (!layer) return;
@@ -102,6 +105,7 @@ QList<LibrePaint::Image::Gpu::LayerTranslationTarget> gpuMoveTargets(
             }
             auto &target = targets[indices.value(layer)];
             if (mask) target.mask = true;
+            else if (internal) target.filterSelection = true;
             else target.pixels = true;
         });
     }

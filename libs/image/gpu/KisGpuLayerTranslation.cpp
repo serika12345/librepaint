@@ -40,9 +40,11 @@ OperationId OperationDocument::beginLayerTranslation(const QList<LayerTranslatio
     QSet<LayerId> seen;
     for (const auto &target : targets) {
         const auto index = layerIndex(target.layer);
-        if (index < 0 || seen.contains(target.layer) || (!target.pixels && !target.mask)) return {};
+        if (index < 0 || seen.contains(target.layer) || (!target.pixels && !target.mask && !target.filterSelection)) return {};
         const auto &source = snapshot()->layers[index];
-        if (source.userLocked || (target.mask && source.transparencyMaskLocked) || (!target.pixels && !source.transparencyMask)) return {};
+        if (source.userLocked || (target.mask && (!source.transparencyMask || source.transparencyMaskLocked)) ||
+            (target.filterSelection && (!isFilterNode(source.kind) || !source.filterSelection)) ||
+            (target.pixels && source.kind != LayerKind::Paint && source.kind != LayerKind::Group)) return {};
         seen.insert(target.layer);
     }
     QHash<LayerId, OperationId> identities;
@@ -114,7 +116,8 @@ Result OperationDocument::updateLayerTranslation(OperationId id, QPoint offset)
 { return updateLayerTranslationWithMasks(id, offset, {}); }
 
 Result OperationDocument::updateLayerTranslationWithMasks(OperationId id, QPoint offset,
-    const QHash<LayerId, SelectionMaskSP> &masks, const SelectionMaskSP &selection)
+    const QHash<LayerId, SelectionMaskSP> &masks, const SelectionMaskSP &selection,
+    const QHash<LayerId, SelectionMaskSP> &filterSelections)
 {
     if (m_closed) return Result::Closed;
     if (!m_translation || m_translation->id != id) return Result::StaleOperation;
@@ -150,19 +153,28 @@ Result OperationDocument::updateLayerTranslationWithMasks(OperationId id, QPoint
                 target.operations.append(TranslationSnapshot(operation));
             }
         }
-        if (participant.mask && source.transparencyMask && !source.transparencyMask->isEmpty() && !offset.isNull()) {
-            if (source.transparencyMask->defaultCoverage()) {
-                target.transparencyMask = source.transparencyMask->bounds().isEmpty() ? source.transparencyMask : masks.value(participant.layer);
-                if (!target.transparencyMask || !selectionFitsRetainedInputs(target.transparencyMask)) return Result::InvalidInput;
-                continue;
-            }
-            const auto bounds = source.transparencyMask->bounds();
-            if (qint64(bounds.left()) + offset.x() < -limit || qint64(bounds.right()) + offset.x() >= limit ||
-                qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit)
+        const auto translateMask = [&](const SelectionMaskSP &coverage, const SelectionMaskSP &prepared,
+                                       QPoint before, SelectionMaskSP &output, QPoint &position) {
+            const auto movedPosition = checkedPosition(before, offset);
+            if (!movedPosition) return Result::InvalidInput;
+            const auto bounds = coverage->allocatedBounds() | coverage->bounds();
+            if (!bounds.isEmpty() && (qint64(bounds.left()) + offset.x() < -limit || qint64(bounds.right()) + offset.x() >= limit ||
+                qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit))
                 return Result::InvalidInput;
-            target.transparencyMask = source.transparencyMask->isGpuGenerated() ? masks.value(participant.layer) :
-                source.transparencyMask->translated(offset, domain);
-            if (!target.transparencyMask || !selectionFitsRetainedInputs(target.transparencyMask)) return Result::CapacityExceeded;
+            output = offset.isNull() ? coverage : prepared ? prepared : coverage->translated(offset, domain);
+            if (!output || !selectionFitsRetainedInputs(output)) return Result::CapacityExceeded;
+            position = *movedPosition;
+            return Result::Success;
+        };
+        if (participant.mask) {
+            const auto result = translateMask(source.transparencyMask, masks.value(participant.layer),
+                source.transparencyMaskPosition, target.transparencyMask, target.transparencyMaskPosition);
+            if (result != Result::Success) return result;
+        }
+        if (participant.filterSelection) {
+            const auto result = translateMask(source.filterSelection, filterSelections.value(participant.layer),
+                source.position, target.filterSelection, target.position);
+            if (result != Result::Success) return result;
         }
     }
     auto operation = QSharedPointer<TranslationOperation>::create(*m_translation);
@@ -182,7 +194,7 @@ Result OperationDocument::commitLayerTranslation(OperationId id)
     if (!m_translation || m_translation->id != id) return Result::StaleOperation;
     if (m_preview && (m_translation->selectedPixels || !m_translation->offset.isNull())) {
         LayerHistoryChange change;
-        change.property = m_translation->selectedPixels || !m_translationTargets.first().pixels ? LayerProperty::None : LayerProperty::Position;
+        change.property = m_translation->selectedPixels || (!m_translationTargets.first().pixels && !m_translationTargets.first().filterSelection) ? LayerProperty::None : LayerProperty::Position;
         change.layer = m_translation->layer;
         change.changedSelection = m_translation->selectedPixels;
         change.movedSelectionPixels = m_translation->selectedPixels;
@@ -194,7 +206,9 @@ Result OperationDocument::commitLayerTranslation(OperationId id)
             if (participant.layer == change.layer) {
                 change.before = before;
                 change.after = after;
-            } else if (participant.pixels && !m_translation->selectedPixels) change.propertyEdits.append({LayerProperty::Position, participant.layer, before, after});
+            } else if ((participant.pixels || participant.filterSelection) && !m_translation->selectedPixels) change.propertyEdits.append({LayerProperty::Position, participant.layer, before, after});
+            if (participant.mask) change.propertyEdits.append({LayerProperty::MaskPosition, participant.layer,
+                snapshot()->layers[index].transparencyMaskPosition, m_preview->layers[index].transparencyMaskPosition});
         }
         commitVersion(m_preview, change);
     }
@@ -221,21 +235,26 @@ Result OperationDocument::writeLayerPosition(LayerId layer, QPoint position)
     return applyLayerPosition(layer, position, nullptr);
 }
 
-QList<Snapshot> OperationDocument::layerPositionVersions(const Snapshot &source, LayerId layer) const
+QList<Snapshot> OperationDocument::layerPositionVersions(const Snapshot &source, LayerId layer, bool mask) const
 {
     const int index = m_history.indexOf(source);
     if (index < 0) return {source};
     const auto containsLayer = [&](const Snapshot &state) {
-        for (const auto &candidate : state->layers) if (candidate.id == layer) return true;
+        for (const auto &candidate : state->layers) if (candidate.id == layer) {
+            if (!mask) return true;
+            for (const auto &original : source->layers) if (original.id == layer)
+                return candidate.transparencyMask && candidate.transparencyMaskUuid == original.transparencyMaskUuid;
+        }
         return false;
     };
+    const auto property = mask ? LayerProperty::MaskPosition : LayerProperty::Position;
     const auto changesPosition = [&](int index) {
         if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
             if (!resize->rect.topLeft().isNull()) return true;
         const auto &change = m_layerHistoryChanges[index];
-        if (change.layer == layer && change.property == LayerProperty::Position) return true;
+        if (change.layer == layer && change.property == property) return true;
         for (const auto &edit : change.propertyEdits)
-            if (edit.layer == layer && edit.property == LayerProperty::Position) return true;
+            if (edit.layer == layer && edit.property == property) return true;
         return false;
     };
     int first = index, last = index;
@@ -269,7 +288,7 @@ Result OperationDocument::applyLayerPosition(LayerId layer, QPoint position, Sna
             const auto offset = checkedOffset(qint64(position.x()) - candidate.position.x(),
                                                qint64(position.y()) - candidate.position.y());
             if (!offset) return Result::InvalidInput;
-            if (candidate.kind == LayerKind::Group) {
+            if (candidate.kind == LayerKind::Group || isFilterNode(candidate.kind)) {
                 candidate.position = position;
                 break;
             }

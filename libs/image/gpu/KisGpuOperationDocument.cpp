@@ -302,7 +302,8 @@ HistoryAction OperationDocument::historyAction(int index) const
     case LayerProperty::MaskPinnedToTimeline: return HistoryAction::ChangeTimelinePin;
     case LayerProperty::ChannelMask: return HistoryAction::ChangeChannelLock;
     case LayerProperty::ProjectionMask: return HistoryAction::ChangeProjectionChannels;
-    case LayerProperty::Position: return HistoryAction::TranslateLayer;
+    case LayerProperty::Position:
+    case LayerProperty::MaskPosition: return HistoryAction::TranslateLayer;
     case LayerProperty::None: break;
     case LayerProperty::ColorLabel:
     case LayerProperty::MaskColorLabel: break;
@@ -740,6 +741,8 @@ Result OperationDocument::restoreLayerPropertyEdit(const LayerPropertyEdit &chan
         return projection ? writeLayerProjectionMask(change.layer, mask) : writeLayerChannelMask(change.layer, mask);
     }
     case LayerProperty::Position: return writeLayerPosition(change.layer, value.toPoint());
+    case LayerProperty::MaskPosition:
+        return writeLayerProperty(change.layer, LayerProperty::MaskPosition, &Layer::transparencyMaskPosition, value.toPoint());
     case LayerProperty::None: return Result::Success;
     case LayerProperty::Name: return writeLayerName(change.layer, value.toString());
     case LayerProperty::Opacity: return writeLayerOpacity(change.layer, quint8(value.toUInt()));
@@ -1283,6 +1286,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         if (!properties.transparencyMaskUuid.isNull()) {
             if (!properties.transparencyMask || !selectionFitsRetainedInputs(properties.transparencyMask)) return Result::InvalidInput;
             copy.transparencyMask = properties.transparencyMask;
+            copy.transparencyMaskPosition = properties.transparencyMaskPosition;
             copy.transparencyMaskUuid = properties.transparencyMaskUuid;
             copy.transparencyMaskName = properties.transparencyMaskName;
             copy.transparencyMaskVisible = properties.transparencyMaskVisible;
@@ -1667,6 +1671,7 @@ Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireS
     }
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].transparencyMask = mask;
+    version->layers[index].transparencyMaskPosition = imported ? imported->transparencyMaskPosition : QPoint{};
     version->layers[index].transparencyMaskVisible = imported ? imported->transparencyMaskVisible : true;
     version->layers[index].transparencyMaskLocked = imported ? imported->transparencyMaskLocked : false;
     version->layers[index].transparencyMaskUuid = identity;

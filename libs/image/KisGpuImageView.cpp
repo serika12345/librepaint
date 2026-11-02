@@ -149,20 +149,21 @@ KisTransparencyMaskSP findTransparencyMaskChild(KisNodeSP parent)
     return {};
 }
 
-/** Writes retained GPU coverage into a view-only alpha selection. The mask node
- * is refreshed only when the document version's coverage changes.
+/** Binds retained GPU coverage and native coordinates to an Alpha8 node view.
+ * The node UUID routes direct writes through the image owner.
  */
 void writeGpuMaskPixels(const KisSelectionSP &selection,
                         const LibrePaint::Image::Gpu::PaintImageSP &owner,
                         const LibrePaint::Image::Gpu::SelectionMaskSP &coverage,
-                        const QRect &previousBounds, const QRect &clip, const QUuid &maskUuid)
+                        const QRect &previousBounds, const QRect &clip, const QUuid &maskUuid, QPoint position)
 {
     if (!selection || !selection->pixelSelection()) return;
     KisPixelSelectionSP pixels = selection->pixelSelection();
     const auto retained = coverage ? coverage : LibrePaint::Image::Gpu::SelectionMask::empty();
+    if (pixels->gpuSelectionCoverage() == retained && pixels->offset() == position) return;
     QRect touched = previousBounds.intersected(clip);
     if (retained->defaultCoverage()) touched |= clip;
-    pixels->bindGpuCoverage(owner, retained, maskUuid);
+    pixels->bindGpuCoverage(owner, retained, maskUuid, position);
     touched |= retained->bounds().intersected(clip);
     if (!touched.isEmpty()) pixels->setDirty(touched);
 }
@@ -277,6 +278,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         properties.transparencyMaskLocked = node->userLocked();
         properties.transparencyMaskColorLabelIndex = node->colorLabelIndex();
         properties.transparencyMaskPinnedToTimeline = node->isPinnedToTimeline();
+        properties.transparencyMaskPosition = selection->pixelSelection()->offset();
         properties.transparencyMask = importGpuMaskCoverage(selection);
         if (!properties.transparencyMask) return false;
         KisImageSP retained = this;
@@ -380,6 +382,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             properties.transparencyMaskPinnedToTimeline = mask->isPinnedToTimeline();
             properties.transparencyMaskVisible = mask->visible();
             properties.transparencyMaskLocked = mask->userLocked();
+            properties.transparencyMaskPosition = mask->paintDevice()->offset();
             properties.transparencyMask = importGpuMaskCoverage(mask->selection());
             for (auto child = node->firstChild(); child && child.data() != mask.data(); child = child->nextSibling())
                 if (child->inherits("KisFilterMask")) ++properties.transparencyMaskIndex;
@@ -1398,7 +1401,7 @@ void KisImage::connectGpuImageUpdates()
             QScopedValueRollback<bool> syncing(retainedView->m_synchronizingGpuNodes, true);
             for (const auto &layer : preview->layers) {
                 const auto filterBefore = state->filterSelections.value(layer.uuid);
-                if (layer.filterSelection && filterBefore != layer.filterSelection) {
+                if (layer.filterSelection) {
                     KisSelectionSP selection;
                     auto node = nodes.value(layer.uuid);
                     if (auto *adjustment = qobject_cast<KisAdjustmentLayer *>(node.data())) selection = adjustment->internalSelection();
@@ -1406,12 +1409,12 @@ void KisImage::connectGpuImageUpdates()
                     if (selection) {
                         state->filterSelections.insert(layer.uuid, layer.filterSelection);
                         writeGpuMaskPixels(selection, owner, layer.filterSelection,
-                            filterBefore ? filterBefore->bounds() : QRect{}, retainedView->bounds(), layer.uuid);
+                            filterBefore ? filterBefore->bounds() : QRect{}, retainedView->bounds(), layer.uuid, layer.position);
                     }
                     if (retainedView->gpuImage() != owner || owner->operations().preview() != preview) break;
                 }
                 const auto previous = state->transparencyMasks.value(layer.uuid);
-                if (!layer.transparencyMask || previous == layer.transparencyMask) continue;
+                if (!layer.transparencyMask) continue;
                 const auto parent = nodes.value(layer.uuid);
                 if (!parent) continue;
                 for (auto child = parent->firstChild(); child; child = child->nextSibling()) {
@@ -1419,7 +1422,7 @@ void KisImage::connectGpuImageUpdates()
                     if (!mask) continue;
                     state->transparencyMasks.insert(layer.uuid, layer.transparencyMask);
                     writeGpuMaskPixels(mask->selection(), owner, layer.transparencyMask,
-                        previous ? previous->bounds() : QRect{}, retainedView->bounds(), layer.transparencyMaskUuid);
+                        previous ? previous->bounds() : QRect{}, retainedView->bounds(), layer.transparencyMaskUuid, layer.transparencyMaskPosition);
                     break;
                 }
                 if (retainedView->gpuImage() != owner || owner->operations().preview() != preview) break;
@@ -1510,10 +1513,11 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 internalSelection = mask->selection();
             } else if (auto *group = qobject_cast<KisGroupLayer *>(node.data())) group->original()->bindGpuLayer(owner, layer.id);
             else node->paintDevice()->bindGpuLayer(owner, layer.id);
-            if (internalSelection && (!state || state->filterSelections.value(layer.uuid) != layer.filterSelection)) {
+            if (internalSelection && (!state || state->filterSelections.value(layer.uuid) != layer.filterSelection ||
+                internalSelection->pixelSelection()->offset() != layer.position)) {
                 const auto previous = state ? state->filterSelections.value(layer.uuid) : LibrePaint::Image::Gpu::SelectionMaskSP{};
                 writeGpuMaskPixels(internalSelection, owner, layer.filterSelection,
-                    previous ? previous->bounds() : QRect{}, QRect(QPoint(), version->size), layer.uuid);
+                    previous ? previous->bounds() : QRect{}, QRect(QPoint(), version->size), layer.uuid, layer.position);
                 if (state) state->filterSelections.insert(layer.uuid, layer.filterSelection);
             }
             if (node->name() != layer.name) node->setName(layer.name);
@@ -1602,7 +1606,8 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 continue;
             }
             const bool contentChanged = !state ||
-                state->transparencyMasks.value(layer.uuid) != layer.transparencyMask;
+                state->transparencyMasks.value(layer.uuid) != layer.transparencyMask ||
+                (maskView && maskView->paintDevice()->offset() != layer.transparencyMaskPosition);
             if (!maskView) {
                 KisLayerSP layerView = qobject_cast<KisLayer *>(layerNode.data());
                 if (!layerView) continue;
@@ -1613,7 +1618,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 }
                 if (!maskView->selection()) maskView->initSelection(layerView);
                 writeGpuMaskPixels(maskView->selection(), owner, layer.transparencyMask, QRect(),
-                                               QRect(QPoint(), version->size), layer.transparencyMaskUuid);
+                                               QRect(QPoint(), version->size), layer.transparencyMaskUuid, layer.transparencyMaskPosition);
                 view->addNode(maskView, layerNode, layerNode->lastChild(),
                               KisNodeAdditionFlags(KisNodeAdditionFlag::DontActivateNode));
                 if (view->gpuImage() != owner) return;
@@ -1624,7 +1629,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 const QRect previousBounds = previousMask
                     ? previousMask->bounds() : QRect(QPoint(), version->size);
                 writeGpuMaskPixels(maskView->selection(), owner, layer.transparencyMask, previousBounds,
-                                               QRect(QPoint(), version->size), layer.transparencyMaskUuid);
+                                               QRect(QPoint(), version->size), layer.transparencyMaskUuid, layer.transparencyMaskPosition);
             }
             KisNodeSP belowMask;
             qsizetype maskIndex = 0;

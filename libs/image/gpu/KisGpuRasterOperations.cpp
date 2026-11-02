@@ -77,6 +77,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.transparencyMaskIndex = source.transparencyMaskIndex;
         if (layer.filter) initial->rasterBytes += layer.filter->byteCount();
         layer.transparencyMask = source.transparencyMask;
+        layer.transparencyMaskPosition = source.transparencyMaskPosition;
         layer.transparencyMaskVisible = source.transparencyMaskVisible;
         layer.transparencyMaskLocked = source.transparencyMaskLocked;
         layer.transparencyMaskUuid = source.transparencyMask && source.transparencyMaskUuid.isNull() ?
@@ -226,6 +227,10 @@ Result OperationDocument::applyMaskVersions(const QList<VersionMaskWrite> &write
         auto &layer = version->layers[position];
         if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.filterSelection = write.coverage;
         else layer.transparencyMask = write.coverage;
+        if (write.position) {
+            if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.position = *write.position;
+            else layer.transparencyMaskPosition = *write.position;
+        }
         version->m_revision = ++revision;
         history[index] = version;
         updated.insert(write.before.data());

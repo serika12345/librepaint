@@ -49,6 +49,13 @@
 #include <kis_canvas2.h>
 #include <kis_config.h>
 #include <kis_image.h>
+#include <kis_paint_layer.h>
+#include <kis_adjustment_layer.h>
+#include <kis_filter_mask.h>
+#include <kis_transparency_mask.h>
+#include <filter/kis_filter_registry.h>
+#include <filter/kis_filter.h>
+#include <filter/kis_filter_configuration.h>
 #include <kis_node.h>
 #include <commands/kis_node_property_list_command.h>
 #include <kis_layer_properties_icons.h>
@@ -124,6 +131,8 @@ private Q_SLOTS:
     }
     void nativeAffineEditingKeepsPixelsHistoryAndKra_data();
     void nativeAffineEditingKeepsPixelsHistoryAndKra();
+    void internalMasksMoveAndTransformThroughHistoryAndKra_data();
+    void internalMasksMoveAndTransformThroughHistoryAndKra();
     void previewNotificationCanCancelOrCloseDocument_data();
     void previewNotificationCanCancelOrCloseDocument();
 private:
@@ -564,6 +573,185 @@ void KisTransformToolDocumentTest::previewNotificationCanCancelOrCloseDocument()
     QCOMPARE(owner->operations().snapshot(), before);
     QCOMPARE(owner->operations().undoCount(), 0);
     if (!close) QCOMPARE(owner->readRgbaPixels(layer, {16, 16, 8, 8}, pixel.size() * 64).bytes, pixel.repeated(64));
+}
+
+void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAndKra_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("adjustment");
+    QTest::addColumn<bool>("selected");
+    QTest::addColumn<int>("maskDefault");
+    for (const bool words : {false, true}) for (const bool adjustment : {false, true})
+        for (const bool selected : {false, true}) for (const int maskDefault : {0, 255})
+            QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3-default%4").arg(words ? "word" : "byte")
+                .arg(adjustment ? "adjustment" : "filter").arg(selected ? "selected" : "whole").arg(maskDefault)))
+                << words << adjustment << selected << maskDefault;
+}
+
+void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAndKra()
+{
+    QFETCH(bool, words); QFETCH(bool, adjustment); QFETCH(bool, selected); QFETCH(int, maskDefault);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    KisConfig(true).disableOpenGL();
+    QTemporaryDir files; QVERIFY(files.isValid());
+    std::unique_ptr<KisDocument> source(KisPart::instance()->createDocument());
+    source->setFileBatchMode(true);
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    KisImageSP native = new KisImage(source->createUndoStore(), 64, 48, cs, "Mask tools");
+    source->setCurrentImage(native);
+    KisPaintLayerSP paint = new KisPaintLayer(native, "Source", 255); native->addNode(paint, native->root());
+    const KoColor color(QColor(61, 137, 219, 197), cs);
+    paint->paintDevice()->fill(0, 0, 64, 48, color.data());
+    const auto filter = KisFilterRegistry::instance()->value("maximize"); QVERIFY(filter);
+    const auto config = filter->defaultConfiguration(KisGlobalResourcesInterface::instance())->cloneWithResourcesSnapshot();
+    KisSelectionSP coverage = new KisSelection;
+    coverage->pixelSelection()->moveTo(-65, 73);
+    const quint8 defaultValue = quint8(maskDefault);
+    coverage->pixelSelection()->setDefaultPixel(KoColor(&defaultValue, coverage->pixelSelection()->colorSpace()));
+    QByteArray values(17 * 13, Qt::Uninitialized);
+    for (int i = 0; i < values.size(); ++i) values[i] = char((i * 43 + 1) % 256);
+    coverage->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), 8, 6, 17, 13);
+    KisNodeSP target;
+    if (adjustment) {
+        target = new KisAdjustmentLayer(native, "Adjustment", config, coverage);
+        native->addNode(target, native->root(), paint);
+    } else {
+        KisFilterMaskSP mask = new KisFilterMask(native, "Filter");
+        mask->initSelection(coverage, paint); mask->setFilter(config); native->addNode(mask, paint); target = mask;
+    }
+    KisTransparencyMaskSP child;
+    if (adjustment) {
+        child = new KisTransparencyMask(native, "Independent child");
+        KisSelectionSP childCoverage = new KisSelection;
+        const quint8 white = 255;
+        childCoverage->pixelSelection()->setDefaultPixel(KoColor(&white, childCoverage->pixelSelection()->colorSpace()));
+        childCoverage->pixelSelection()->moveTo(77, -69);
+        childCoverage->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), 24, 20, 17, 13);
+        child->setSelection(childCoverage); native->addNode(child, target);
+    }
+    native->refreshGraphAsync(); native->waitForDone();
+    const auto input = files.filePath("native-mask-tools.kra");
+    QVERIFY(source->saveAs(input, KisDocument::nativeFormatMimeType(), false)); source->waitForSavingToComplete();
+    const QUuid targetUuid = target->uuid(), childUuid = child ? child->uuid() : QUuid{}, paintUuid = paint->uuid();
+    const QRect frame(-128, -128, 320, 320);
+    const auto find = [](KisImageSP image, const QUuid &uuid) -> KisNodeSP {
+        KisNodeList nodes{image->root()};
+        for (qsizetype i = 0; i < nodes.size(); ++i) {
+            const auto node = nodes[i]; if (node->uuid() == uuid) return node;
+            for (auto child = node->firstChild(); child; child = child->nextSibling()) nodes.append(child);
+        }
+        return {};
+    };
+    QList<QList<QByteArray>> expected;
+    QList<QList<QPoint>> expectedPositions;
+    for (const bool gpu : {false, true}) {
+        qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+        std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument()); document->setFileBatchMode(true);
+        QVERIFY2(document->openPath(input, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+        KisImageSP image = document->image();
+        const auto node = find(image, targetUuid); QVERIFY(node);
+        const auto snapshot = [&](KisImageSP view) {
+            QList<QByteArray> output;
+            for (const auto &uuid : {targetUuid, childUuid, paintUuid}) {
+                const auto current = find(view, uuid);
+                if (!current) { output.append(QByteArray{}); continue; }
+                QByteArray bytes(frame.width() * frame.height() * current->paintDevice()->pixelSize(), Qt::Uninitialized);
+                current->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), frame);
+                output.append(bytes);
+            }
+            QByteArray projection(64 * 48 * cs->pixelSize(), Qt::Uninitialized);
+            view->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), 0, 0, 64, 48);
+            output.append(projection); return output;
+        };
+        const auto positions = [&](KisImageSP view) {
+            QList<QPoint> result;
+            for (const auto &uuid : {targetUuid, childUuid}) {
+                const auto current = find(view, uuid);
+                result.append(current ? current->paintDevice()->offset() : QPoint{});
+            }
+            return result;
+        };
+        int stage = 0;
+        const auto compare = [&](KisImageSP view) {
+            const auto bytes = snapshot(view); const auto coordinates = positions(view);
+            const int index = stage++;
+            if (!gpu) { expected.append(bytes); expectedPositions.append(coordinates); }
+            else { QCOMPARE(bytes, expected.at(index)); QCOMPARE(coordinates, expectedPositions.at(index)); }
+        };
+        QSignalSpy ready(KisPart::instance(), &KisPart::sigMainWindowCreated);
+        std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow()); window->resize(800, 600);
+        auto *view = window->newView(document.get()); QVERIFY(view);
+        QPointer<KisDocument> lifetime(document.release()); QPointer<KisTool> tool;
+        const auto cleanup = qScopeGuard([&] {
+            if (tool) tool->requestStrokeCancellation();
+            if (lifetime) lifetime->setModified(false);
+            window.reset(); QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        });
+        window->viewManager()->setCurrentView(view); window->show();
+        window->viewManager()->canvasResourceProvider()->setPaintOpPreset(m_preset); QTRY_VERIFY(!ready.isEmpty());
+        auto *manager = window->viewManager()->nodeManager();
+        manager->slotUiActivatedNode(node); manager->slotSetSelectedNodes({node});
+        compare(image);
+        const int initialHistory = lifetime->undoStack()->count();
+        const auto moveId = QStringLiteral("KritaTransform/KisToolMove");
+        KoToolManager::instance()->switchToolRequested(moveId);
+        tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), moveId)); QVERIFY(tool);
+        QVERIFY(QMetaObject::invokeMethod(tool, "slotMoveDiscreteRight"));
+        tool->requestStrokeEnd(); image->waitForDone(); QApplication::processEvents();
+        QCOMPARE(lifetime->undoStack()->count(), initialHistory + 1); compare(image);
+        lifetime->undoStack()->undo(); image->waitForDone(); compare(image);
+        lifetime->undoStack()->redo(); image->waitForDone(); compare(image);
+        if (selected) {
+            KisSelectionSP selection = new KisSelection;
+            selection->pixelSelection()->select(QRect(7, 5, 28, 25));
+            if (gpu) QVERIFY(image->setGpuSelectionRect(QRect(7, 5, 28, 25)));
+            else image->setGlobalSelection(selection);
+        }
+        const auto beforeTransform = snapshot(image); const auto coordinates = positions(image);
+        const int beforeHistory = lifetime->undoStack()->count();
+        const auto transformId = QStringLiteral("KisToolTransform");
+        KoToolManager::instance()->switchToolRequested(transformId);
+        tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), transformId)); QVERIFY(tool);
+        image->waitForDone(); QApplication::processEvents();
+        QWidget *panel = nullptr;
+        for (auto widget : tool->optionWidgets()) if (widget->metaObject()->indexOfSlot("slotFilterChanged(KoID)") >= 0) panel = widget.data();
+        QVERIFY(panel); QVERIFY(QMetaObject::invokeMethod(panel, "slotFilterChanged", Q_ARG(KoID, KoID("Bicubic"))));
+        QVERIFY(tool->setProperty("scaleX", 137.)); QVERIFY(tool->setProperty("scaleY", 63.));
+        QVERIFY(tool->setProperty("rotateZ", .47));
+        QVERIFY(QMetaObject::invokeMethod(tool, "requestImageRecalculation"));
+        image->waitForDone();
+        tool->requestStrokeCancellation(); image->waitForDone();
+        QCOMPARE(snapshot(image), beforeTransform); QCOMPARE(positions(image), coordinates);
+        QCOMPARE(lifetime->undoStack()->count(), beforeHistory);
+        KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+        KoToolManager::instance()->switchToolRequested(transformId);
+        tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), transformId)); QVERIFY(tool);
+        image->waitForDone(); QApplication::processEvents();
+        QVERIFY(tool->setProperty("scaleX", 137.)); QVERIFY(tool->setProperty("scaleY", 63.));
+        QVERIFY(tool->setProperty("rotateZ", .47));
+        QVERIFY(QMetaObject::invokeMethod(tool, "requestImageRecalculation"));
+        tool->requestStrokeEnd(); image->waitForDone(); QApplication::processEvents();
+        QVERIFY(snapshot(image) != beforeTransform);
+        QCOMPARE(lifetime->undoStack()->count(), beforeHistory + 1); compare(image);
+        lifetime->undoStack()->undo(); image->waitForDone(); compare(image);
+        lifetime->undoStack()->redo(); image->waitForDone(); compare(image);
+        KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush")); tool.clear();
+        const auto path = files.filePath(gpu ? "gpu-transformed.kra" : "cpu-transformed.kra");
+        QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+        lifetime->waitForSavingToComplete();
+        std::unique_ptr<KisDocument> reopened(KisPart::instance()->createDocument()); reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        compare(reopened->image());
+        const auto continued = find(reopened->image(), targetUuid); QVERIFY(continued);
+        continued->paintDevice()->moveTo(79, 89); reopened->image()->refreshGraphAsync(); reopened->image()->waitForDone();
+        compare(reopened->image());
+        QCOMPARE(stage, expected.size());
+    }
 }
 
 KISTEST_MAIN(KisTransformToolDocumentTest)

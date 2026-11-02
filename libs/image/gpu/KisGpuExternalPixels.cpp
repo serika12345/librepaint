@@ -379,8 +379,81 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
     if (adopted == Result::Success) requestCurrentVersion();
     return adopted;
 }
+Result PaintImage::writeMaskPosition(const QUuid &maskUuid, QPoint position,
+                                    SelectionMaskSP *retainedCoverage, QPoint retainedPosition)
+{ return applyMaskPosition(maskUuid, position, retainedCoverage, retainedPosition, true); }
+
+Result PaintImage::applyMaskPosition(const QUuid &maskUuid, QPoint position,
+                                    SelectionMaskSP *retainedCoverage, QPoint retainedPosition, bool request)
+{
+    if (!onThread() || maskUuid.isNull() || !retainedCoverage || !*retainedCoverage) return Result::InvalidInput;
+    auto &document = *m_d->document;
+    const auto status = document.checkMutation();
+    if (status != Result::Success && status != Result::Closed) return status;
+    if (position == retainedPosition) return Result::Success;
+    const auto selected = *retainedCoverage;
+    Snapshot source;
+    LayerId layerId = 0;
+    bool child = false;
+    if (status != Result::Closed) {
+        for (const auto &version : document.m_history) {
+            for (const auto &layer : version->layers) {
+                if (editableMaskCoverage(layer, maskUuid) != selected) continue;
+                source = version;
+                layerId = layer.id;
+                child = layer.transparencyMaskUuid == maskUuid;
+                break;
+            }
+            if (source == document.snapshot()) break;
+        }
+    }
+    constexpr qint64 limit = RgbaTile::CoordinateLimit;
+    const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
+    const auto move = [&](const SelectionMaskSP &coverage, QPoint before) -> SelectionMaskSP {
+        const qint64 x = qint64(position.x()) - before.x(), y = qint64(position.y()) - before.y();
+        if (x < -2 * limit || x > 2 * limit || y < -2 * limit || y > 2 * limit) return {};
+        const auto bounds = coverage->allocatedBounds() | coverage->bounds();
+        if (!bounds.isEmpty() && (qint64(bounds.left()) + x < -limit || qint64(bounds.right()) + x >= limit ||
+            qint64(bounds.top()) + y < -limit || qint64(bounds.bottom()) + y >= limit)) return {};
+        return translatedSelectionMask(coverage, QPoint(int(x), int(y)), domain);
+    };
+    try {
+        QList<OperationDocument::VersionMaskWrite> writes;
+        SelectionMaskSP output;
+        if (source) {
+            QHash<QPair<quintptr, QPoint>, SelectionMaskSP> prepared;
+            for (const auto &version : document.layerPositionVersions(source, layerId, child)) {
+                for (const auto &layer : version->layers) {
+                    if (layer.id != layerId) continue;
+                    const auto coverage = editableMaskCoverage(layer, maskUuid);
+                    if (!coverage) return Result::LayerUnavailable;
+                    const auto before = child ? layer.transparencyMaskPosition : layer.position;
+                    const auto key = qMakePair(quintptr(coverage.data()), before);
+                    if (!prepared.contains(key)) {
+                        const auto moved = move(coverage, before);
+                        if (!moved) return Result::CapacityExceeded;
+                        prepared.insert(key, moved);
+                    }
+                    const auto moved = prepared.value(key);
+                    writes.append({version, layerId, maskUuid, moved, position});
+                    if (version == source) output = moved;
+                }
+            }
+        } else output = move(selected, retainedPosition);
+        if (!output) return Result::CapacityExceeded;
+        const auto result = writes.isEmpty() ? Result::Success : document.applyMaskVersions(writes);
+        if (result == Result::Success) {
+            *retainedCoverage = output;
+            if (request && !writes.isEmpty()) requestCurrentVersion();
+        }
+        return result;
+    } catch (const std::bad_alloc &) {
+        return Result::CapacityExceeded;
+    }
+}
+
 Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect region, const QByteArray &bytes,
-                                   SelectionMaskSP *retainedCoverage, QSize retainedCanvasSize)
+                                   SelectionMaskSP *retainedCoverage, QSize retainedCanvasSize, QPoint retainedPosition)
 {
     if (!onThread() || maskUuid.isNull()) return Result::InvalidInput;
     auto &d = *m_d;
@@ -424,7 +497,7 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
         QList<OperationDocument::VersionMaskWrite> writes;
         constexpr int blockSize = Detail::PixelHistoryBlockSize;
         const auto blockIndex = [](qint64 value) { return value >= 0 ? value / blockSize : (value - blockSize + 1) / blockSize; };
-        const auto origin = selected->allocatedBlocks().isEmpty() ? QPoint{} : selected->allocatedBlocks().first().topLeft();
+        const auto origin = selected->allocatedBlocks().isEmpty() ? retainedPosition : selected->allocatedBlocks().first().topLeft();
         auto versions = closed ? QList<Snapshot>{} : document.m_history;
         bool selectedInHistory = false;
         for (const auto &version : versions) if (findTarget(version).second == selected) selectedInHistory = true;

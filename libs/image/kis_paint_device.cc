@@ -195,6 +195,7 @@ public:
     LibrePaint::Image::Gpu::SelectionMaskSP gpuSelection;
     QUuid gpuSelectionMaskUuid;
     QSize gpuSelectionCanvasSize;
+    QPoint gpuSelectionPosition;
 
     quint64 gpuLayerId() const { return gpuPixels ? gpuPixels->layer() : 0; }
     KisRegion gpuAllocatedRegion() const
@@ -357,6 +358,7 @@ public:
             gpuSelection = rhs->gpuSelection;
             gpuSelectionMaskUuid = rhs->gpuSelectionMaskUuid.isNull() ? QUuid{} : QUuid::createUuid();
             gpuSelectionCanvasSize = rhs->gpuSelectionCanvasSize;
+            gpuSelectionPosition = rhs->gpuSelectionPosition;
             gpuSequence = rhs->gpuSequence;
             return;
         }
@@ -1279,7 +1281,7 @@ void KisPaintDevice::bindGpuLayer(LibrePaint::Image::Gpu::PaintImageSP image, qu
 }
 
 void KisPaintDevice::bindGpuSelection(LibrePaint::Image::Gpu::PaintImageSP image,
-                                     LibrePaint::Image::Gpu::SelectionMaskSP mask, const QUuid &maskUuid)
+                                     LibrePaint::Image::Gpu::SelectionMaskSP mask, const QUuid &maskUuid, QPoint position)
 {
     if (!image || !mask || QThread::currentThread() != image->thread() ||
         colorSpace() != KoColorSpaceRegistry::instance()->alpha8())
@@ -1287,6 +1289,7 @@ void KisPaintDevice::bindGpuSelection(LibrePaint::Image::Gpu::PaintImageSP image
     clear();
     m_d->gpuSelectionCanvasSize = image->operations().snapshot()->size;
     m_d->gpuSelectionMaskUuid = maskUuid;
+    m_d->gpuSelectionPosition = position;
     m_d->gpuSelectionOwner = std::move(image);
     m_d->gpuSelection = std::move(mask);
     m_d->gpuSequence = m_d->gpuSequence == std::numeric_limits<int>::max() ? 0 : m_d->gpuSequence + 1;
@@ -1538,7 +1541,16 @@ KisDefaultBoundsBaseSP KisPaintDevice::defaultBounds() const
 
 void KisPaintDevice::moveTo(const QPoint &pt)
 {
-    if (m_d->gpuSelection) throw std::logic_error("GPU selection views are immutable");
+    if (m_d->gpuSelection) {
+        if (m_d->gpuSelectionMaskUuid.isNull()) throw std::logic_error("GPU document selection is read-only");
+        const auto result = m_d->gpuSelectionOwner->writeMaskPosition(m_d->gpuSelectionMaskUuid, pt,
+            &m_d->gpuSelection, m_d->gpuSelectionPosition);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU mask movement failed: " + std::to_string(int(result)));
+        m_d->gpuSelectionPosition = pt;
+        m_d->gpuSequence = m_d->gpuSequence == std::numeric_limits<int>::max() ? 0 : m_d->gpuSequence + 1;
+        return;
+    }
     if (m_d->gpuImage) {
         if (!m_d->gpuLayerId()) throw std::logic_error("GPU image projection is read-only");
         const auto result = m_d->gpuImage->writeLayerPosition(m_d->gpuPixels, pt);
@@ -1572,7 +1584,7 @@ void KisPaintDevice::setY(qint32 y)
 
 qint32 KisPaintDevice::x() const
 {
-    if (m_d->gpuSelection) return 0;
+    if (m_d->gpuSelection) return m_d->gpuSelectionPosition.x();
     if (m_d->gpuImage) {
         const auto version = m_d->gpuPixelVersion();
         for (const auto &layer : version->layers)
@@ -1584,7 +1596,7 @@ qint32 KisPaintDevice::x() const
 
 qint32 KisPaintDevice::y() const
 {
-    if (m_d->gpuSelection) return 0;
+    if (m_d->gpuSelection) return m_d->gpuSelectionPosition.y();
     if (m_d->gpuImage) {
         const auto version = m_d->gpuPixelVersion();
         for (const auto &layer : version->layers)
@@ -1957,6 +1969,7 @@ void KisPaintDevice::clear()
     m_d->gpuSelectionOwner.clear();
     m_d->gpuSelectionMaskUuid = {};
     m_d->gpuSelectionCanvasSize = {};
+    m_d->gpuSelectionPosition = {};
     m_d->dataManager()->clear();
     m_d->cache()->invalidate();
 }
@@ -2517,7 +2530,7 @@ void KisPaintDevice::writeBytes(const quint8 *data, const QRect &rect)
             throw std::invalid_argument("GPU mask write exceeds its Alpha8 input capacity");
         if (rect.isEmpty()) return;
         const auto result = m_d->gpuSelectionOwner->writeMaskPixels(0, m_d->gpuSelectionMaskUuid, rect,
-            QByteArray(reinterpret_cast<const char *>(data), qsizetype(count)), &m_d->gpuSelection, m_d->gpuSelectionCanvasSize);
+            QByteArray(reinterpret_cast<const char *>(data), qsizetype(count)), &m_d->gpuSelection, m_d->gpuSelectionCanvasSize, m_d->gpuSelectionPosition);
         if (result != LibrePaint::Image::Gpu::Result::Success)
             throw std::runtime_error("GPU mask write failed: " + std::to_string(int(result)));
         m_d->gpuSequence = m_d->gpuSequence == std::numeric_limits<int>::max() ? 0 : m_d->gpuSequence + 1;

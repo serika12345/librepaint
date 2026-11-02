@@ -618,7 +618,7 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTranslation(
     const QSharedPointer<const SelectionTranslationSource> &source, const QRect &bounds,
     const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
 {
-    if (!source || !source->source || (!source->source->isGpuGenerated() && !source->source->defaultCoverage()) || !pixels ||
+    if (!source || !source->source || !pixels ||
         source->tiles.size() > MaximumBytes / AlphaTileBytes || !validOutline(source->extent, {}) ||
         !validOutline(bounds, outlineRuns) || (!bounds.isEmpty() && !source->extent.contains(bounds))) return {};
     for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};

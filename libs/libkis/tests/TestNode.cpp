@@ -1579,6 +1579,206 @@ void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
     QCOMPARE(pixels(copied.data()), pixels(nativeCopy.data()));
 }
 
+void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra_data()
+{
+    testMaskPixelWritesKeepNativeBlockHistoryAndKra_data();
+}
+
+void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra()
+{
+    QFETCH(bool, words); QFETCH(QString, kind);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    KisImageSP image = new KisImage(document->createUndoStore(), 64, 48, cs, "Mask coordinates");
+    document->setCurrentImage(image);
+    KisPaintLayerSP paint = new KisPaintLayer(image, "Paint", 255);
+    image->addNode(paint, image->root());
+    const auto uniform = [] {
+        KisSelectionSP selection = new KisSelection;
+        const quint8 white = 255;
+        selection->pixelSelection()->setDefaultPixel(KoColor(&white, selection->pixelSelection()->colorSpace()));
+        return selection;
+    };
+    const auto filter = KisFilterRegistry::instance()->value("maximize"); QVERIFY(filter);
+    const auto config = filter->defaultConfiguration(KisGlobalResourcesInterface::instance())->cloneWithResourcesSnapshot();
+    KisNodeSP target;
+    if (kind == QLatin1String("filter")) {
+        KisFilterMaskSP mask = new KisFilterMask(image, "Target");
+        mask->initSelection(uniform(), paint); mask->setFilter(config);
+        image->addNode(mask, paint); target = mask;
+    } else if (kind.startsWith(QLatin1String("adjustment"))) {
+        KisAdjustmentLayerSP adjustment = new KisAdjustmentLayer(image, "Adjustment", config, uniform());
+        image->addNode(adjustment, image->root(), paint); target = adjustment;
+        if (kind == QLatin1String("adjustment-child")) {
+            KisTransparencyMaskSP mask = new KisTransparencyMask(image, "Target");
+            mask->setSelection(uniform()); image->addNode(mask, adjustment); target = mask;
+        }
+    } else {
+        KisTransparencyMaskSP mask = new KisTransparencyMask(image, "Target");
+        mask->setSelection(uniform()); image->addNode(mask, paint); target = mask;
+    }
+    QScopedPointer<Node> node(Node::createNode(image, target));
+    QCOMPARE(target->paintDevice()->pixelSize(), 1U);
+    QVERIFY(node->setPixelData(QByteArray::fromHex("a04010"), 8, 8, 3, 1));
+    const QRect area(-8, -8, 40, 32);
+    const auto read = [&](Node *value, QPoint offset) {
+        return value->pixelData(area.x() + offset.x(), area.y() + offset.y(), area.width(), area.height());
+    };
+    const auto original = read(node.data(), {});
+    QCOMPARE(node->position(), QPoint());
+    const auto history = document->undoStack()->count();
+    const QPoint direct(13, -7), moved(-65, 73);
+    node->move(direct.x(), direct.y());
+    QCOMPARE(node->position(), direct);
+    QCOMPARE(target->paintDevice()->offset(), direct);
+    QCOMPARE(read(node.data(), direct), original);
+    QCOMPARE(document->undoStack()->count(), history);
+    {
+        KisTransaction transaction(target->paintDevice());
+        node->move(moved.x(), moved.y());
+        transaction.commit(image->undoAdapter());
+    }
+    image->waitForDone();
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    QCOMPARE(node->position(), moved);
+    QCOMPARE(read(node.data(), moved), original);
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(node->position(), direct);
+    QCOMPARE(read(node.data(), direct), original);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(node->position(), moved);
+    QCOMPARE(read(node.data(), moved), original);
+    node->move(29, -37);
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(node->position(), direct); QCOMPARE(read(node.data(), direct), original);
+    node->move(-101, -97);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(node->position(), moved); QCOMPARE(read(node.data(), moved), original);
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(node->position(), direct); QCOMPARE(read(node.data(), direct), original);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(node->position(), moved); QCOMPARE(read(node.data(), moved), original);
+    QScopedPointer<Node> copy(node->clone()); QVERIFY(copy);
+    QCOMPARE(copy->position(), moved);
+    const QPoint copyPosition(111, -129);
+    copy->move(copyPosition.x(), copyPosition.y());
+    QCOMPARE(copy->position(), copyPosition);
+    QCOMPARE(read(copy.data(), copyPosition), original);
+    QCOMPARE(node->position(), moved);
+    QCOMPARE(read(node.data(), moved), original);
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto path = directory.filePath("moved-mask.kra");
+    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    KisNodeSP restored;
+    KisNodeList pending{reopened->image()->root()};
+    for (qsizetype i = 0; i < pending.size(); ++i) {
+        const auto candidate = pending[i];
+        if (candidate->uuid() == target->uuid()) { restored = candidate; break; }
+        for (auto child = candidate->firstChild(); child; child = child->nextSibling()) pending.append(child);
+    }
+    QVERIFY(restored);
+    QScopedPointer<Node> loaded(Node::createNode(reopened->image(), restored));
+    QCOMPARE(loaded->position(), moved);
+    QCOMPARE(read(loaded.data(), moved), original);
+    const QPoint edited(79, 89);
+    loaded->move(edited.x(), edited.y());
+    QCOMPARE(loaded->position(), edited);
+    QCOMPARE(read(loaded.data(), edited), original);
+
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    QScopedPointer<KisDocument> gpuDocument(KisPart::instance()->createDocument());
+    gpuDocument->setFileBatchMode(true);
+    QVERIFY2(gpuDocument->openPath(path, KisDocument::DontAddToRecent), qPrintable(gpuDocument->errorMessage()));
+    const auto owner = gpuDocument->image()->gpuImage(); QVERIFY(owner);
+    const auto findNode = [&](KisImageSP view) -> KisNodeSP {
+        KisNodeList candidates{view->root()};
+        for (qsizetype i = 0; i < candidates.size(); ++i) {
+            const auto candidate = candidates[i];
+            if (candidate->uuid() == target->uuid()) return candidate;
+            for (auto child = candidate->firstChild(); child; child = child->nextSibling()) candidates.append(child);
+        }
+        return {};
+    };
+    const auto gpuTarget = findNode(gpuDocument->image()); QVERIFY(gpuTarget);
+    QScopedPointer<Node> gpuNode(Node::createNode(gpuDocument->image(), gpuTarget));
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    const auto gpuHistory = gpuDocument->undoStack()->count();
+    gpuNode->move(direct.x(), direct.y());
+    QCOMPARE(gpuNode->position(), direct);
+    QCOMPARE(read(gpuNode.data(), direct), original);
+    QCOMPARE(gpuDocument->undoStack()->count(), gpuHistory);
+    LibrePaint::Image::Gpu::LayerId layerId = 0;
+    const bool internal = kind == QLatin1String("filter") || kind == QLatin1String("adjustment");
+    for (const auto &layer : owner->operations().snapshot()->layers)
+        if ((internal ? layer.uuid : layer.transparencyMaskUuid) == target->uuid()) layerId = layer.id;
+    QVERIFY(layerId);
+    const QList<LibrePaint::Image::Gpu::LayerTranslationTarget> targets{{layerId, false, !internal, internal}};
+    auto token = owner->beginLayerTranslation(targets); QVERIFY(!token.isNull());
+    QCOMPARE(owner->updateLayerTranslation(token, moved - direct), LibrePaint::Image::Gpu::Result::Success);
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    QCOMPARE(owner->cancelLayerTranslation(token), LibrePaint::Image::Gpu::Result::Success);
+    QCOMPARE(gpuNode->position(), direct);
+    QCOMPARE(read(gpuNode.data(), direct), original);
+    token = owner->beginLayerTranslation(targets); QVERIFY(!token.isNull());
+    QCOMPARE(owner->updateLayerTranslation(token, moved - direct), LibrePaint::Image::Gpu::Result::Success);
+    QCOMPARE(owner->commitLayerTranslation(token), LibrePaint::Image::Gpu::Result::Success);
+    QCOMPARE(gpuDocument->undoStack()->count(), gpuHistory + 1);
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    gpuDocument->undoStack()->undo();
+    QCOMPARE(gpuNode->position(), direct);
+    QCOMPARE(read(gpuNode.data(), direct), original);
+    gpuDocument->undoStack()->redo();
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    gpuNode->move(29, -37);
+    gpuDocument->undoStack()->undo();
+    QCOMPARE(gpuNode->position(), direct); QCOMPARE(read(gpuNode.data(), direct), original);
+    gpuNode->move(-101, -97);
+    gpuDocument->undoStack()->redo();
+    QCOMPARE(gpuNode->position(), moved); QCOMPARE(read(gpuNode.data(), moved), original);
+    gpuDocument->undoStack()->undo();
+    QCOMPARE(gpuNode->position(), direct); QCOMPARE(read(gpuNode.data(), direct), original);
+    gpuDocument->undoStack()->redo();
+    QCOMPARE(gpuNode->position(), moved); QCOMPARE(read(gpuNode.data(), moved), original);
+    QScopedPointer<Node> gpuCopy(gpuNode->clone()); QVERIFY(gpuCopy);
+    QCOMPARE(gpuCopy->position(), moved);
+    gpuCopy->move(copyPosition.x(), copyPosition.y());
+    QCOMPARE(gpuCopy->position(), copyPosition);
+    QCOMPARE(read(gpuCopy.data(), copyPosition), read(copy.data(), copyPosition));
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    const auto gpuPath = directory.filePath("gpu-moved-mask.kra");
+    QVERIFY2(gpuDocument->saveAs(gpuPath, KisDocument::nativeFormatMimeType(), false), qPrintable(gpuDocument->errorMessage()));
+    gpuDocument->waitForSavingToComplete();
+    for (const auto &engine : {QByteArray("0"), QByteArray("1")}) {
+        qputenv("LIBREPAINT_GPU_ENGINE", engine);
+        QScopedPointer<KisDocument> restoredDocument(KisPart::instance()->createDocument());
+        restoredDocument->setFileBatchMode(true);
+        QVERIFY2(restoredDocument->openPath(gpuPath, KisDocument::DontAddToRecent), qPrintable(restoredDocument->errorMessage()));
+        const auto restoredTarget = findNode(restoredDocument->image()); QVERIFY(restoredTarget);
+        QScopedPointer<Node> restoredNode(Node::createNode(restoredDocument->image(), restoredTarget));
+        QCOMPARE(restoredNode->position(), moved);
+        QCOMPARE(read(restoredNode.data(), moved), original);
+        restoredNode->move(edited.x(), edited.y());
+        QCOMPARE(restoredNode->position(), edited);
+        QCOMPARE(read(restoredNode.data(), edited), original);
+    }
+}
+
 void TestNode::testRawPixelWritesPreserveFormatHistoryAndFailures()
 {
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());

@@ -131,6 +131,7 @@ struct LayerTranslationTarget
     LayerId layer = 0;
     bool pixels = true;
     bool mask = false;
+    bool filterSelection = false;
 };
 
 /** Attributes enabled for one layer by the properties dialog. Component masks
@@ -633,13 +634,14 @@ struct AffineTransformOperation
     std::optional<QList<QRect>> allocatedBlocks;
     bool transformPixels = true;
     bool transformMask = false;
+    bool transformFilterSelection = false;
     /** Null transforms the complete layer; otherwise captures and clears the
      * frozen selection, transforms its pixels and merges them normally.
      */
     TranslationSnapshot selection;
 };
 using AffineSnapshot = QSharedPointer<const AffineTransformOperation>;
-struct AffineTransformTarget { LayerId layer = 0; bool pixels = true; bool mask = false; };
+struct AffineTransformTarget { LayerId layer = 0; bool pixels = true; bool mask = false; bool filterSelection = false; };
 struct AffineLayerPlan {
     LayerId layer = 0;
     AffinePlanSP plan;
@@ -648,6 +650,7 @@ struct AffineLayerPlan {
      * native selected-pixel capture/clear/merge still has an observable result.
      */
     bool recomposeSelection = false;
+    SelectionMaskSP filterSelection;
 };
 
 /** Resets preceding pixels outside the requested rectangle to the layer default. */
@@ -886,6 +889,8 @@ struct RasterLayer
     std::optional<FilterDefinition> filter;
     /** Internal Alpha8 selection for adjustment layers and filter masks. */
     SelectionMaskSP filterSelection;
+    /** Native coordinate of the independent transparency child device. */
+    QPoint transparencyMaskPosition{};
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -957,6 +962,8 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT Layer
     std::optional<FilterDefinition> filter;
     /** Internal Alpha8 selection for adjustment layers and filter masks. */
     SelectionMaskSP filterSelection;
+    /** Native coordinate of the independent transparency child device. */
+    QPoint transparencyMaskPosition{};
     FrozenLayerProjectionSP initialProjection;
     qsizetype inputSampleCount() const;
     qsizetype retainedRasterBytes() const;
@@ -1504,7 +1511,7 @@ private:
     FrozenLayerProjectionSP freezeAdjustmentProjection(const Snapshot &before, LayerId node,
         QRect extent, const QList<QRect> &blocks) const;
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible, MaskLocked, MaskName, MaskColorLabel, MaskPinnedToTimeline };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible, MaskLocked, MaskName, MaskColorLabel, MaskPinnedToTimeline, MaskPosition };
     struct LayerPropertyEdit {
         LayerProperty property;
         LayerId layer;
@@ -1559,6 +1566,7 @@ private:
         LayerId layer = 0;
         QUuid maskUuid;
         SelectionMaskSP coverage;
+        std::optional<QPoint> position;
     };
     Result applyMaskVersions(const QList<VersionMaskWrite> &writes);
     /** Preparation retains bounded immutable reference inputs without changing
@@ -1579,7 +1587,7 @@ private:
                                      const RasterLayer *imported = nullptr);
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr,
                        const ColorOverlay *overlay = nullptr, const QRect &applyRect = {});
-    QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
+    QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer, bool mask = false) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     Result applyLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba, Snapshot *retainedVersion);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member,
@@ -1595,7 +1603,8 @@ private:
     Result checkMutation() const;
     Result updateSelectionTranslation(OperationId id, QPoint offset, const SelectionMaskSP &preparedSelection);
     Result updateLayerTranslationWithMasks(OperationId id, QPoint offset,
-        const QHash<LayerId, SelectionMaskSP> &masks, const SelectionMaskSP &selection = {});
+        const QHash<LayerId, SelectionMaskSP> &masks, const SelectionMaskSP &selection = {},
+        const QHash<LayerId, SelectionMaskSP> &filterSelections = {});
     Result cropLayerWithMask(LayerId layer, const QRect &rect, const SelectionMaskSP &mask);
     Result resizeCanvasWithMasks(const QRect &rect, bool cropLayers, const QHash<LayerId, SelectionMaskSP> &masks);
     /** An external edit (a mask stroke on a derived GPU image) borrows this

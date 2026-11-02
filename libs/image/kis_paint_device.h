@@ -985,7 +985,7 @@ private:
      * history; an empty UUID binds a read-only document selection. */
     void bindGpuSelection(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
                           QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> mask,
-                          const QUuid &maskUuid = {});
+                          const QUuid &maskUuid = {}, QPoint position = {});
     struct Private;
     KisPaintDevice(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer, const QString &name,
                    const KoColorSpace *colorSpace);

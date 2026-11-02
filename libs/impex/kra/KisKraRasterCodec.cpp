@@ -806,7 +806,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             element.setAttribute(QStringLiteral("filterversion"), layer.filter->version);
             files.insert(path + QStringLiteral(".filterconfig"), layer.filter->xml);
             QByteArray pixels;
-            QPoint selectionOffset;
+            const QPoint selectionOffset = layer.position;
             result = Detail::writeTransparencyMask(layer.filterSelection, QRect(QPoint(), value.size),
                 limits.rasterBytes, pixels, selectionOffset);
             if (result.code != Status::Success) return result;
@@ -879,7 +879,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                 maskElement.setAttribute(QStringLiteral("y"), QStringLiteral("0"));
                 const auto maskPath = folder + QStringLiteral("/layers/") + maskFilename;
                 QByteArray maskPixels;
-                QPoint maskOffset;
+                const QPoint maskOffset = layer.transparencyMaskPosition;
                 result = Detail::writeTransparencyMask(layer.transparencyMask, QRect(QPoint(), value.size),
                                                         limits.rasterBytes, maskPixels, maskOffset);
                 if (result.code != Status::Success) return result;
@@ -1804,6 +1804,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                 return fail(invalid(QStringLiteral("Invalid KRA transparency mask timeline state")));
             layer.transparencyMaskPinnedToTimeline = maskTimeline == QLatin1String("1");
             layer.transparencyMask = transparencyMask;
+            layer.transparencyMaskPosition = {maskX, maskY};
             layer.transparencyMaskVisible = maskVisible == QLatin1String("1");
             layer.transparencyMaskLocked = maskLocked == QLatin1String("1");
             for (auto child = maskElement.parentNode().lastChildElement(); !child.isNull() && child != maskElement;

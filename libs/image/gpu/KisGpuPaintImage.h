@@ -254,7 +254,11 @@ public:
      * Retained coverage and canvas values also serve detached pixel copies
      * after their source document closes. */
     Result writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect region, const QByteArray &bytes,
-                           SelectionMaskSP *retainedCoverage = nullptr, QSize retainedCanvasSize = {});
+                           SelectionMaskSP *retainedCoverage = nullptr, QSize retainedCanvasSize = {}, QPoint retainedPosition = {});
+    /** Absolute Alpha8 device move outside history. Copies retain an independent
+     * coordinate and coverage; live node writes update their position lineage. */
+    Result writeMaskPosition(const QUuid &maskUuid, QPoint position, SelectionMaskSP *retainedCoverage,
+                             QPoint retainedPosition);
     /** Direct writes also reach retained removed layers and their surviving history.
      * The current scene and its history position stay unchanged for detached layers.
      */
@@ -392,6 +396,8 @@ private:
     Snapshot layerPixelVersion() const;
     Result checkLayerTranslation(const Snapshot &version, LayerId layer, QPoint offset) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
+    Result applyMaskPosition(const QUuid &maskUuid, QPoint position, SelectionMaskSP *retainedCoverage,
+                             QPoint retainedPosition, bool request);
     Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory,
                            Snapshot *retainedVersion = nullptr);
     QSharedPointer<PaintImage> createMaskImage(const Snapshot &version, const SelectionMaskSP &mask);

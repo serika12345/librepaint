@@ -61,6 +61,7 @@ RasterLayer rasterLayerDescription(const Layer &layer)
     value.passThrough = layer.passThrough;
     value.blendMode = layer.blendMode;
     value.transparencyMask = layer.transparencyMask;
+    value.transparencyMaskPosition = layer.transparencyMaskPosition;
     value.transparencyMaskVisible = layer.transparencyMaskVisible;
     value.transparencyMaskLocked = layer.transparencyMaskLocked;
     value.transparencyMaskUuid = layer.transparencyMaskUuid;

@@ -448,22 +448,39 @@ Outcome readTransparencyMask(const QByteArray &data, QPoint offset, QRect imageB
 
 Outcome writeTransparencyMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
                               const QRect &imageBounds, qsizetype maximumBytes,
-                              QByteArray &output, QPoint &offset)
+                              QByteArray &output, const QPoint &offset)
 {
     if (!mask || mask->isGpuGenerated() || imageBounds.isEmpty())
         return {Status::InvalidData, QStringLiteral("KRA transparency mask requires coverage and image bounds")};
     const auto &blocks = mask->allocatedBlocks();
     if (maximumBytes < 0 || blocks.size() > maximumBytes / FileTileBytes) return capacity();
     if (!mask->bounds().isEmpty() && blocks.isEmpty()) return invalid();
-    offset = blocks.isEmpty() ? QPoint{} : QPoint(blocks.first().x() % FileTileSize, blocks.first().y() % FileTileSize);
+    QSet<QPoint> coordinates;
+    const auto tileIndex = [](qint64 value) { return value >= 0 ? value / FileTileSize : (value - FileTileSize + 1) / FileTileSize; };
+    for (const auto &block : blocks) {
+        if (block.size() != QSize(FileTileSize, FileTileSize)) return invalid();
+        for (qint64 y = tileIndex(qint64(block.top()) - offset.y()); y <= tileIndex(qint64(block.bottom()) - offset.y()); ++y)
+            for (qint64 x = tileIndex(qint64(block.left()) - offset.x()); x <= tileIndex(qint64(block.right()) - offset.x()); ++x) {
+                const qint64 left = x * FileTileSize, top = y * FileTileSize;
+                if (left < std::numeric_limits<int>::min() || top < std::numeric_limits<int>::min() ||
+                    left > std::numeric_limits<int>::max() - FileTileSize || top > std::numeric_limits<int>::max() - FileTileSize)
+                    return invalid();
+                coordinates.insert({int(left), int(top)});
+                if (coordinates.size() > maximumBytes / FileTileBytes) return capacity();
+            }
+    }
+    auto ordered = coordinates.values();
+    std::sort(ordered.begin(), ordered.end(), [](QPoint a, QPoint b) { return a.y() == b.y() ? a.x() < b.x() : a.y() < b.y(); });
     QByteArray bytes = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 1\nDATA ") +
-        QByteArray::number(blocks.size()) + '\n';
+        QByteArray::number(ordered.size()) + '\n';
     KisLzfCompression compression;
     const auto capacity = compression.outputBufferSize(FileTileBytes);
     QByteArray encoded(capacity, Qt::Uninitialized), pixels(FileTileBytes, Qt::Uninitialized);
-    for (const auto &block : blocks) {
-        if (block.size() != QSize(FileTileSize, FileTileSize) ||
-            (block.x() - offset.x()) % FileTileSize || (block.y() - offset.y()) % FileTileSize) return invalid();
+    for (const auto &coordinate : ordered) {
+        const qint64 worldX = qint64(coordinate.x()) + offset.x(), worldY = qint64(coordinate.y()) + offset.y();
+        if (worldX < std::numeric_limits<int>::min() || worldY < std::numeric_limits<int>::min() ||
+            worldX > std::numeric_limits<int>::max() - FileTileSize || worldY > std::numeric_limits<int>::max() - FileTileSize) return invalid();
+        const QRect block(int(worldX), int(worldY), FileTileSize, FileTileSize);
         for (int y = 0; y < FileTileSize; ++y) for (int x = 0; x < FileTileSize; ++x)
             pixels[y * FileTileSize + x] = char(mask->coverage(block.x() + x, block.y() + y));
         const auto size = compression.compress(reinterpret_cast<const quint8 *>(pixels.constData()), FileTileBytes,
@@ -471,7 +488,7 @@ Outcome writeTransparencyMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mas
         if (size <= 0) return {Status::IoFailure, QStringLiteral("KRA transparency compression failed")};
         const bool compressed = size < FileTileBytes;
         const int payload = compressed ? size : FileTileBytes;
-        bytes += QByteArray::number(block.x() - offset.x()) + ',' + QByteArray::number(block.y() - offset.y()) +
+        bytes += QByteArray::number(coordinate.x()) + ',' + QByteArray::number(coordinate.y()) +
             QByteArrayLiteral(",LZF,") + QByteArray::number(payload + 1) + '\n';
         bytes += char(compressed ? 1 : 0);
         bytes.append(compressed ? encoded.constData() : pixels.constData(), payload);

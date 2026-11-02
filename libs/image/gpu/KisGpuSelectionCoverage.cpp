@@ -596,7 +596,7 @@ ExecutionOutcome Execution::translateSelectionCoverage(const SelectionMaskSP &so
 {
     auto &d = *m_d;
     constexpr qint64 limit = OperationDocument::CoordinateLimit;
-    if (!d.onThread() || !source || (!source->isGpuGenerated() && !source->defaultCoverage()) || !result || clip.isEmpty() ||
+    if (!d.onThread() || !source || !result || clip.isEmpty() ||
         qAbs(qint64(offset.x())) > 2 * limit || qAbs(qint64(offset.y())) > 2 * limit ||
         clip.x() < -limit || clip.y() < -limit || qint64(clip.x()) + clip.width() > limit ||
         qint64(clip.y()) + clip.height() > limit)

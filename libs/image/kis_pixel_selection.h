@@ -51,7 +51,7 @@ public:
      */
     void bindGpuCoverage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
                          QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> mask,
-                         const QUuid &maskUuid = {});
+                         const QUuid &maskUuid = {}, QPoint position = {});
 
     KisSelectionComponent* clone(KisSelection*) override;
 

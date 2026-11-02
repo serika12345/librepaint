@@ -24,12 +24,14 @@ OperationId OperationDocument::beginAffineTransform(const QList<AffineTransformT
         const int index = layerIndex(layer);
         if (index < 0 || seen.contains(layer) ||
             (target.pixels && snapshot()->layers[index].kind != LayerKind::Paint) ||
-            snapshot()->layers[index].userLocked || (!target.pixels && !target.mask) ||
-            (target.mask && (!snapshot()->layers[index].transparencyMask || snapshot()->layers[index].transparencyMaskLocked))) return {};
+            snapshot()->layers[index].userLocked || (!target.pixels && !target.mask && !target.filterSelection) ||
+            (target.mask && (!snapshot()->layers[index].transparencyMask || snapshot()->layers[index].transparencyMaskLocked)) ||
+            (target.filterSelection && (!isFilterNode(snapshot()->layers[index].kind) || !snapshot()->layers[index].filterSelection))) return {};
         seen.insert(layer);
         auto operation = QSharedPointer<AffineTransformOperation>::create();
         operation->id = {m_identity, ++sequence}; operation->layer = layer;
         operation->transformPixels = target.pixels; operation->transformMask = target.mask;
+        operation->transformFilterSelection = target.filterSelection;
         if (selected) {
             auto selection = QSharedPointer<TranslationOperation>::create();
             selection->id = operation->id; selection->layer = layer; selection->selectedPixels = true;
@@ -84,6 +86,12 @@ Result OperationDocument::updateAffineTransform(OperationId id, const QList<Affi
             changed |= *before != *found->mask;
             version->layers[index].transparencyMask = found->mask;
         } else if (found->mask) return Result::InvalidInput;
+        if (original->transformFilterSelection) {
+            if (!found->filterSelection) return Result::InvalidInput;
+            if (!selectionFitsRetainedInputs(found->filterSelection)) return Result::CapacityExceeded;
+            changed |= *version->layers[index].filterSelection != *found->filterSelection;
+            version->layers[index].filterSelection = found->filterSelection;
+        } else if (found->filterSelection) return Result::InvalidInput;
         operations.append(operation);
     }
     if (!changed) { m_preview.clear(); return Result::Success; }

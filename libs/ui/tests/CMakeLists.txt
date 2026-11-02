@@ -1421,7 +1421,7 @@ kis_add_test(KisTransformToolDocumentTest.cpp ../../../krita/krita.qrc
     TEST_NAME_VAR transform_tool_document_test
     LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk kritatooltransform_static ${QUAZIP_LIBRARIES})
 add_dependencies(KisTransformToolDocumentTest
-    kritatooltransform kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
+    kritacolorsfilters kritatooltransform kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritakraexport kritapngexport)
 if(NOT IOS)
     add_dependencies(KisTransformToolDocumentTest kritatextproperties)

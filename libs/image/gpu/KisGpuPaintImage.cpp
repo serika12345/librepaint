@@ -7,6 +7,7 @@
 #include "KisGpuOperationValidation_p.h"
 #include <QThread>
 #include <QRegion>
+#include <QScopeGuard>
 #include <algorithm>
 #include <new>
 #include <stdexcept>
@@ -264,12 +265,9 @@ SelectionMaskSP PaintImage::complementSelectionMask(const SelectionMaskSP &mask,
 SelectionMaskSP PaintImage::translatedSelectionMask(const SelectionMaskSP &mask, QPoint offset, QRect clip)
 {
     if (!onThread() || !mask) return {};
-    if (mask->defaultCoverage()) {
-        if (mask->bounds().isEmpty()) return mask;
-    }
     try {
+        if (mask->bounds().isEmpty()) return mask->translated(offset, clip);
         if (offset.isNull() && clip.contains(mask->bounds())) return mask;
-        if (!mask->isGpuGenerated() && !mask->defaultCoverage()) return mask->translated(offset, clip);
         SelectionMaskSP result;
         const auto checked = m_d->execution.translateSelectionCoverage(mask, offset, clip, &result);
         if (checked.code != ExecutionCode::Success) { m_d->lastRequest = checked; return {}; }
@@ -1012,19 +1010,25 @@ Result PaintImage::updateLayerTranslation(OperationId id, QPoint offset)
         const auto admitted = checkLayerTranslation(version, target.layer, offset);
         if (admitted != Result::Success) return admitted;
     }
-    QHash<LayerId, SelectionMaskSP> masks;
+    QHash<LayerId, SelectionMaskSP> masks, filterSelections;
     for (const auto &target : document.m_translationTargets) {
-        const auto mask = document.layerTransparencyMask(target.layer);
-        if (!target.mask || !mask || (!mask->isGpuGenerated() && !mask->defaultCoverage()) || mask->isEmpty() || offset.isNull()) continue;
-        const auto bounds = mask->bounds();
-        if (qint64(bounds.left()) + offset.x() < -limit || qint64(bounds.right()) + offset.x() >= limit ||
-            qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit)
-            return Result::InvalidInput;
-        const auto moved = translatedSelectionMask(mask, offset, domain);
-        if (!moved) return m_d->lastRequest.code == ExecutionCode::Busy ? Result::Busy : resultFor(m_d->lastRequest.code);
-        masks.insert(target.layer, moved);
+        const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &value) { return value.id == target.layer; });
+        const auto prepare = [&](const SelectionMaskSP &mask, QHash<LayerId, SelectionMaskSP> &prepared) {
+            if (!mask || offset.isNull()) return Result::Success;
+            const auto bounds = mask->allocatedBounds() | mask->bounds();
+            if (!bounds.isEmpty() && (qint64(bounds.left()) + offset.x() < -limit || qint64(bounds.right()) + offset.x() >= limit ||
+                qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit))
+                return Result::InvalidInput;
+            const auto moved = translatedSelectionMask(mask, offset, domain);
+            if (!moved) return m_d->lastRequest.code == ExecutionCode::Busy ? Result::Busy : resultFor(m_d->lastRequest.code);
+            prepared.insert(target.layer, moved);
+            return Result::Success;
+        };
+        if (target.mask) { const auto result = prepare(layer->transparencyMask, masks); if (result != Result::Success) return result; }
+        if (target.filterSelection) { const auto result = prepare(layer->filterSelection, filterSelections); if (result != Result::Success) return result; }
     }
-    return publish(m_d->document->updateLayerTranslationWithMasks(id, offset, masks));
+    return publish(m_d->document->updateLayerTranslationWithMasks(id, offset, masks, {}, filterSelections));
 }
 Result PaintImage::commitLayerTranslation(OperationId id)
 { return onThread() ? publish(m_d->document->commitLayerTranslation(id)) : Result::InvalidInput; }
@@ -1343,10 +1347,65 @@ Result PaintImage::removeLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
 Result PaintImage::removeLayers(const QList<LayerId> &layers, const QString &replacementName)
 { return onThread() ? publish(m_d->document->removeLayers(layers, replacementName)) : Result::InvalidInput; }
-Result PaintImage::undo() { return onThread() ? publish(m_d->document->undo()) : Result::InvalidInput; }
-Result PaintImage::redo() { return onThread() ? publish(m_d->document->redo()) : Result::InvalidInput; }
+Result PaintImage::undo()
+{
+    if (!onThread()) return Result::InvalidInput;
+    return m_d->document->undoCount() ? setHistoryIndex(m_d->document->m_index - 1) : publish(m_d->document->undo());
+}
+Result PaintImage::redo()
+{
+    if (!onThread()) return Result::InvalidInput;
+    return m_d->document->redoCount() ? setHistoryIndex(m_d->document->m_index + 1) : publish(m_d->document->redo());
+}
 Result PaintImage::setHistoryIndex(int index)
-{ return onThread() ? publish(m_d->document->setHistoryIndex(index)) : Result::InvalidInput; }
+{
+    if (!onThread()) return Result::InvalidInput;
+    auto &document = *m_d->document;
+    const auto status = document.checkMutation();
+    if (status != Result::Success) return status;
+    if (index < 0 || index >= document.m_history.size()) return Result::InvalidInput;
+    const auto previousHistory = document.m_history;
+    const auto previousIndex = document.m_index;
+    const auto previousRevision = document.m_nextRevision, previousOperation = document.m_nextOperation;
+    bool completed = false;
+    const auto rollback = qScopeGuard([&] {
+        if (completed) return;
+        document.m_history = previousHistory;
+        document.m_index = previousIndex;
+        document.m_nextRevision = previousRevision;
+        document.m_nextOperation = previousOperation;
+    });
+    while (document.m_index != index) {
+        const bool forward = index > document.m_index;
+        const auto change = document.m_layerHistoryChanges[document.m_index + (forward ? 1 : 0)];
+        const auto next = document.m_index + (forward ? 1 : -1);
+        auto edits = change.propertyEdits;
+        edits.prepend({change.property, change.layer, change.before, change.after});
+        for (const auto &edit : edits) {
+            const bool child = edit.property == OperationDocument::LayerProperty::MaskPosition;
+            if (!child && edit.property != OperationDocument::LayerProperty::Position) continue;
+            const auto destination = document.m_history[next];
+            const auto layer = std::find_if(destination->layers.cbegin(), destination->layers.cend(),
+                [&](const Layer &value) { return value.id == edit.layer; });
+            if (layer == destination->layers.cend()) return Result::LayerUnavailable;
+            if (!child && !isFilterNode(layer->kind)) continue;
+            const auto uuid = child ? layer->transparencyMaskUuid : layer->uuid;
+            auto coverage = editableMaskCoverage(*layer, uuid);
+            if (!coverage) return Result::LayerUnavailable;
+            const auto before = child ? layer->transparencyMaskPosition : layer->position;
+            const auto position = (forward ? edit.after : edit.before).toPoint();
+            const auto current = document.m_index;
+            document.m_index = next;
+            const auto result = applyMaskPosition(uuid, position, &coverage, before, false);
+            document.m_index = current;
+            if (result != Result::Success) return result;
+        }
+        const auto result = document.setHistoryIndex(next);
+        if (result != Result::Success) return result;
+    }
+    completed = true;
+    return publish(Result::Success);
+}
 void PaintImage::close()
 {
     if (!onThread() || !m_d->handle) return;
