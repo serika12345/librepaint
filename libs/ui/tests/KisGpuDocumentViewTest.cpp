@@ -6392,8 +6392,9 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
         toolId == QLatin1String("KisToolSelectPolygonal")) {
         // The held-pointer Escape must preserve the existing selection and
         // leave the next gesture independent, including its saved pixels.
+        auto selectionImage = KisImageSP(lifetime->image());
         QByteArray displayedBefore(region.width() * region.height(), '\0');
-        if (image->globalSelection()) image->globalSelection()->pixelSelection()->readBytes(
+        if (selectionImage->globalSelection()) selectionImage->globalSelection()->pixelSelection()->readBytes(
             reinterpret_cast<quint8 *>(displayedBefore.data()), region);
         const auto cancelledStart = point({16, 208});
         const auto cancelledEnd = point({48, 240});
@@ -6402,11 +6403,11 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
         QTest::mouseMove(native.data(), cancelledEnd, 20);
         QTest::keyClick(native.data(), Qt::Key_Escape);
         QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, cancelledEnd);
-        image->waitForDone();
+        selectionImage->waitForDone();
         QCOMPARE(owner->operations().snapshot(), before);
         QCOMPARE(owner->operations().undoCount(), history);
         QByteArray displayedAfter(displayedBefore.size(), '\0');
-        if (image->globalSelection()) image->globalSelection()->pixelSelection()->readBytes(
+        if (selectionImage->globalSelection()) selectionImage->globalSelection()->pixelSelection()->readBytes(
             reinterpret_cast<quint8 *>(displayedAfter.data()), region);
         QCOMPARE(displayedAfter, displayedBefore);
         QTest::mouseMove(native.data(), start);
