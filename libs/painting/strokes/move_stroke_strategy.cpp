@@ -405,21 +405,12 @@ void MoveStrokeStrategy::finishStrokeCallback()
         KUndo2Command *updateCommand =
             new KisUpdateCommand(node, m_dirtyRects[node], m_updatesFacade, true);
 
-        recursiveApplyNodes({node}, [this, updateCommand, root = node](KisNodeSP node) {
+        recursiveApplyNodes({node}, [this, updateCommand](KisNodeSP node) {
             KIS_SAFE_ASSERT_RECOVER_RETURN(m_d->strategy.find(node) != m_d->strategy.end());
 
             MoveNodeStrategyBase *strategy = m_d->strategy[node].get();
-            if (node != root && node->inherits("KisMask")) {
-                // The mask's selection projection must refresh before its
-                // parent's cached composition, both now and during Undo/Redo.
-                auto *commands = new KisCommandUtils::CompositeCommand(updateCommand);
-                auto *maskUpdate = new KisUpdateCommand(node, m_dirtyRects[root], m_updatesFacade, true);
-                commands->addCommand(maskUpdate);
-                strategy->finishMove(maskUpdate);
-                if (m_updatesEnabled) m_updatesFacade->refreshGraphAsync(node, m_dirtyRects[root]);
-            } else {
-                strategy->finishMove(updateCommand);
-            }
+
+            strategy->finishMove(updateCommand);
         });
 
         notifyCommandDone(KUndo2CommandSP(updateCommand),
@@ -449,15 +440,12 @@ void MoveStrokeStrategy::cancelStrokeCallback()
                 QRect dirtyRect;
 
                 recursiveApplyNodes({node},
-                    [this, &dirtyRect, root = node] (KisNodeSP node) {
+                    [this, &dirtyRect] (KisNodeSP node) {
                         MoveNodeStrategyBase *strategy =
                             m_d->strategy[node].get();
                         KIS_SAFE_ASSERT_RECOVER_RETURN(strategy);
 
-                        const auto changed = strategy->cancelMove();
-                        dirtyRect |= changed;
-                        if (node != root && node->inherits("KisMask"))
-                            m_updatesFacade->refreshGraphAsync(node, changed);
+                        dirtyRect |= strategy->cancelMove();
                     });
 
                 m_dirtyRects[node] |= dirtyRect;
@@ -537,15 +525,12 @@ void MoveStrokeStrategy::doCanvasUpdate(bool forceUpdate)
         QRect dirtyRect;
 
         recursiveApplyNodes({node},
-            [this, &dirtyRect, root = node] (KisNodeSP node) {
+            [this, &dirtyRect] (KisNodeSP node) {
                 MoveNodeStrategyBase *strategy =
                     m_d->strategy[node].get();
                 KIS_SAFE_ASSERT_RECOVER_RETURN(strategy);
 
-                const auto changed = strategy->moveNode(m_finalOffset);
-                dirtyRect |= changed;
-                if (m_updatesEnabled && node != root && node->inherits("KisMask"))
-                    m_updatesFacade->refreshGraphAsync(node, changed);
+                dirtyRect |= strategy->moveNode(m_finalOffset);
             });
 
         m_dirtyRects[node] |= dirtyRect;

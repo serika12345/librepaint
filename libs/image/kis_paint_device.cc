@@ -216,7 +216,7 @@ public:
     QRect gpuSelectionBounds() const
     {
         auto bounds = gpuSelection->bounds();
-        if (gpuSelection->defaultCoverage()) bounds = gpuSelection->allocatedBounds() | defaultBounds->bounds();
+        if (gpuSelection->defaultCoverage()) bounds |= defaultBounds->bounds();
         return bounds;
     }
     KisPaintDeviceSP selectionThumbnailSource() const

@@ -93,7 +93,9 @@ QList<LibrePaint::Image::Gpu::LayerTranslationTarget> gpuMoveTargets(
         KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
             if (!node->isEditable(false)) return;
             const bool mask = bool(qobject_cast<KisTransparencyMask *>(node.data()));
-            const bool internal = qobject_cast<KisAdjustmentLayer *>(node.data()) || qobject_cast<KisFilterMask *>(node.data());
+            const bool filter = bool(qobject_cast<KisFilterMask *>(node.data()));
+            if (node == root && filter && node->paintDevice() && node->paintDevice()->nonDefaultPixelArea().isEmpty()) return;
+            const bool internal = qobject_cast<KisAdjustmentLayer *>(node.data()) || filter;
             const auto ownerNode = mask ? node->parent() : node;
             if (!ownerNode || (!mask && !internal && !qobject_cast<KisPaintLayer *>(node.data()) &&
                                            !qobject_cast<KisGroupLayer *>(node.data()))) return;

@@ -686,7 +686,18 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
         const auto compare = [&](KisImageSP view) {
             const auto bytes = snapshot(view); const auto coordinates = positions(view);
             const int index = stage++;
-            if (!gpu) { expected.append(bytes); expectedPositions.append(coordinates); }
+            if (!gpu) {
+                expected.append(bytes); expectedPositions.append(coordinates);
+                const auto output = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+                if (!output.isEmpty()) {
+                    const auto path = QDir(output).filePath(QString::fromLatin1(QTest::currentDataTag())); QVERIFY(QDir().mkpath(path));
+                    for (qsizetype plane = 0; plane < bytes.size(); ++plane) {
+                        QFile file(QDir(path).filePath(QStringLiteral("native-stage-%1-plane-%2.bin").arg(index).arg(plane)));
+                        QVERIFY(file.open(QIODevice::WriteOnly)); QCOMPARE(file.write(bytes[plane]), bytes[plane].size());
+                    }
+                    qInfo() << "Native mask stage" << index << coordinates;
+                }
+            }
             else {
                 const auto &reference = expected.at(index);
                 const auto output = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
@@ -731,6 +742,22 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
         tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), moveId)); QVERIFY(tool);
         QVERIFY(QMetaObject::invokeMethod(tool, "slotMoveDiscreteRight"));
         tool->requestStrokeEnd(); image->waitForDone(); QApplication::processEvents();
+        if (uniform && !adjustment) {
+            QCOMPARE(lifetime->undoStack()->count(), initialHistory); compare(image);
+            const auto noOp = snapshot(image);
+            KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolTransform"));
+            QApplication::processEvents();
+            KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+            image->waitForDone(); tool.clear();
+            const auto after = snapshot(image);
+            for (qsizetype plane = 0; plane < after.size(); ++plane) QCOMPARE(after[plane], noOp[plane]);
+            QCOMPARE(lifetime->undoStack()->count(), initialHistory); compare(image);
+            const auto path = files.filePath(gpu ? "gpu-uniform-filter.kra" : "native-uniform-filter.kra");
+            QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false)); lifetime->waitForSavingToComplete();
+            std::unique_ptr<KisDocument> reopened(KisPart::instance()->createDocument()); reopened->setFileBatchMode(true);
+            QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent)); compare(reopened->image());
+            continue;
+        }
         QCOMPARE(lifetime->undoStack()->count(), initialHistory + 1); compare(image);
         lifetime->undoStack()->undo(); image->waitForDone(); compare(image);
         lifetime->undoStack()->redo(); image->waitForDone(); compare(image);
@@ -749,6 +776,10 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
         // center reports transform readiness without ending the gesture.
         QApplication::processEvents();
         QTRY_VERIFY(tool->property("translateX").toDouble() != 0 || tool->property("translateY").toDouble() != 0);
+        qInfo() << "Mask transform input" << "gpu" << gpu << "position" << node->paintDevice()->offset()
+                << "exact" << node->paintDevice()->exactBounds() << "extent" << node->paintDevice()->extent()
+                << "default" << node->paintDevice()->defaultBounds()->bounds()
+                << "center" << QPointF(tool->property("translateX").toDouble(), tool->property("translateY").toDouble());
         QWidget *panel = nullptr;
         for (auto widget : tool->optionWidgets()) if (widget->metaObject()->indexOfSlot("slotFilterChanged(KoID)") >= 0) panel = widget.data();
         QVERIFY(panel); QVERIFY(QMetaObject::invokeMethod(panel, "slotFilterChanged", Q_ARG(KoID, KoID("Bicubic"))));

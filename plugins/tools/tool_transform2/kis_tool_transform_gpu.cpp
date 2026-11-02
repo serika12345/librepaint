@@ -108,7 +108,8 @@ void KisToolTransform::startGpuTransform(ToolTransformArgs::TransformMode mode, 
     for (const auto &target : targets) if (target.filterSelection) {
         const auto layer = std::find_if(source->layers.cbegin(), source->layers.cend(), [&](const auto &v) { return v.id == target.layer; });
         handles |= selection ? copy : layer->filterSelection->bounds();
-        if (!selection && layer->filterSelection->defaultCoverage()) handles |= filterDefaults.value(target.layer);
+        if (!selection && layer->kind == Gpu::LayerKind::Adjustment && layer->filterSelection->defaultCoverage())
+            handles |= filterDefaults.value(target.layer);
     }
     if (selection) handles = copy;
     if (handles.isEmpty()) return;
