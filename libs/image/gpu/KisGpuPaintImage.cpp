@@ -32,12 +32,12 @@ Result resultFor(ExecutionCode code)
     return Result::DeviceFailure;
 }
 
-const Layer *editableMaskLayer(const Snapshot &version, LayerId layer)
+const Layer *editableMaskLayer(const Snapshot &version, LayerId layer, const QUuid &maskUuid)
 {
     if (!version) return nullptr;
     for (const auto &value : version->layers) {
-        if (value.id != layer || !editableMaskCoverage(value) || value.userLocked || !value.visible ||
-            (!isFilterNode(value.kind) && value.transparencyMaskLocked)) continue;
+        if (value.id != layer || !editableMaskCoverage(value, maskUuid) || value.userLocked || !value.visible ||
+            ((!isFilterNode(value.kind) || (!maskUuid.isNull() && maskUuid != value.uuid)) && value.transparencyMaskLocked)) continue;
         auto parentUuid = value.parentUuid;
         while (!parentUuid.isNull()) {
             const auto parent = std::find_if(version->layers.cbegin(), version->layers.cend(),
@@ -550,13 +550,13 @@ QSharedPointer<PaintImage> PaintImage::createMaskImage(const Snapshot &version, 
     return {};
 }
 
-OperationId PaintImage::beginTransparencyMaskStroke(LayerId layer, const Brush &brush, quint64 seed)
+OperationId PaintImage::beginTransparencyMaskStroke(LayerId layer, const Brush &brush, quint64 seed, const QUuid &maskUuid)
 {
     if (!onThread() || !m_d->handle || m_d->maskStroke || m_d->document->hasActiveStroke()) return {};
     const auto version = m_d->document->snapshot();
-    const Layer *target = editableMaskLayer(version, layer);
+    const Layer *target = editableMaskLayer(version, layer, maskUuid);
     if (!target) return {};
-    const auto image = createMaskImage(version, editableMaskCoverage(*target));
+    const auto image = createMaskImage(version, editableMaskCoverage(*target, maskUuid));
     if (!image) return {};
     Brush maskBrush = brush;
     // Mask coverage owns its own alpha; layer channel locks and alpha locks
@@ -571,7 +571,7 @@ OperationId PaintImage::beginTransparencyMaskStroke(LayerId layer, const Brush &
         image->cancelStroke(id);
         return {};
     }
-    m_d->maskStroke.reset(new MaskStroke{image, layer, imageLayer, id});
+    m_d->maskStroke.reset(new MaskStroke{image, layer, imageLayer, id, false, maskUuid});
     return id;
 }
 Result PaintImage::appendSamples(OperationId id, const QList<InputSample> &samples)
@@ -658,22 +658,22 @@ Result PaintImage::paintFigure(LayerId layer, const Brush &brush, const QList<In
 
 Result PaintImage::paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
                                                const QList<InputSample> &samples, const Shape &shape,
-                                               const FigureStyle &style, quint64 randomSeed)
+                                               const FigureStyle &style, quint64 randomSeed, const QUuid &maskUuid)
 {
-    return paintTransparencyMaskFigure(layer, brush, samples, shape, style, randomSeed, false);
+    return paintTransparencyMaskFigure(layer, brush, samples, shape, style, randomSeed, false, maskUuid);
 }
 
 Result PaintImage::paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
                                                const QList<InputSample> &samples, const Shape &shape,
-                                               const FigureStyle &style, quint64 randomSeed, bool filled)
+                                               const FigureStyle &style, quint64 randomSeed, bool filled, const QUuid &maskUuid)
 {
     if (!onThread()) return Result::InvalidInput;
     if (!m_d->handle) return Result::Closed;
     if (m_d->maskStroke || m_d->document->hasActiveStroke()) return Result::EditInProgress;
     const auto version = m_d->document->snapshot();
-    const Layer *target = editableMaskLayer(version, layer);
+    const Layer *target = editableMaskLayer(version, layer, maskUuid);
     if (!target) return Result::LayerUnavailable;
-    const auto image = createMaskImage(version, editableMaskCoverage(*target));
+    const auto image = createMaskImage(version, editableMaskCoverage(*target, maskUuid));
     if (!image) return resultFor(m_d->lastRequest.code);
     Brush maskBrush = brush;
     maskBrush.maskPainting = true;
@@ -682,17 +682,17 @@ Result PaintImage::paintTransparencyMaskFigure(LayerId layer, const Brush &brush
     const LayerId imageLayer = image->operations().activeLayer();
     const auto result = image->paintFigure(imageLayer, maskBrush, samples, shape, style, randomSeed);
     if (result != Result::Success) return result;
-    return replaceMaskFromImage(layer, *image, imageLayer, filled);
+    return replaceMaskFromImage(layer, *image, imageLayer, filled, false, maskUuid);
 }
 
 Result PaintImage::fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
-                                        qreal opacity, bool erase, bool alphaLocked)
+                                        qreal opacity, bool erase, bool alphaLocked, const QUuid &maskUuid)
 {
-    return fillTransparencyMask(layer, rgb, opacity, erase, alphaLocked, LayerBlendMode::Normal);
+    return fillTransparencyMask(layer, rgb, opacity, erase, alphaLocked, LayerBlendMode::Normal, maskUuid);
 }
 
 Result PaintImage::fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
-                                        qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode)
+                                        qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode, const QUuid &maskUuid)
 {
     Q_UNUSED(alphaLocked);
     Brush brush;
@@ -708,25 +708,25 @@ Result PaintImage::fillTransparencyMask(LayerId layer, const std::array<quint8, 
     const QSize size = m_d->document->snapshot()->size;
     const QPointF end(size.width(), size.height());
     return paintTransparencyMaskFigure(layer, brush, {{{0, 0}, 1}, {end, 1}},
-                                       {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0, true);
+                                       {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0, true, maskUuid);
 }
 
 Result PaintImage::fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
-                                               qreal opacity, bool erase, bool alphaLocked)
+                                               qreal opacity, bool erase, bool alphaLocked, const QUuid &maskUuid)
 {
-    return fillTransparencyMaskPattern(layer, pattern, opacity, erase, alphaLocked, LayerBlendMode::Normal);
+    return fillTransparencyMaskPattern(layer, pattern, opacity, erase, alphaLocked, LayerBlendMode::Normal, maskUuid);
 }
 
-Result PaintImage::paintGradient(LayerId layer, const Brush &brush, const GradientFill &gradient, bool transparencyMask)
+Result PaintImage::paintGradient(LayerId layer, const Brush &brush, const GradientFill &gradient, bool transparencyMask, const QUuid &maskUuid)
 {
     if (!onThread()) return Result::InvalidInput;
     if (!transparencyMask) return publish(m_d->document->paintGradient(layer, brush, gradient));
     if (!m_d->handle) return Result::Closed;
     if (m_d->maskStroke || m_d->document->hasActiveStroke()) return Result::EditInProgress;
     const auto version = m_d->document->snapshot();
-    const Layer *target = editableMaskLayer(version, layer);
+    const Layer *target = editableMaskLayer(version, layer, maskUuid);
     if (!target) return Result::LayerUnavailable;
-    const auto maskImage = createMaskImage(version, editableMaskCoverage(*target));
+    const auto maskImage = createMaskImage(version, editableMaskCoverage(*target, maskUuid));
     if (!maskImage) return resultFor(m_d->lastRequest.code);
     Brush maskBrush = brush;
     maskBrush.maskPainting = true;
@@ -735,11 +735,11 @@ Result PaintImage::paintGradient(LayerId layer, const Brush &brush, const Gradie
     const auto maskLayer = maskImage->operations().activeLayer();
     const auto result = maskImage->paintGradient(maskLayer, maskBrush, gradient);
     if (result != Result::Success) return result;
-    return replaceMaskFromImage(layer, *maskImage, maskLayer, true);
+    return replaceMaskFromImage(layer, *maskImage, maskLayer, true, false, maskUuid);
 }
 
 Result PaintImage::fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
-                                               qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode)
+                                               qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode, const QUuid &maskUuid)
 {
     Q_UNUSED(alphaLocked);
     if (!pattern.isValid()) return Result::InvalidInput;
@@ -756,42 +756,42 @@ Result PaintImage::fillTransparencyMaskPattern(LayerId layer, const PatternFill 
     const QSize size = m_d->document->snapshot()->size;
     const QPointF end(size.width(), size.height());
     return paintTransparencyMaskFigure(layer, brush, {{{0, 0}, 1}, {end, 1}},
-                                       {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0, true);
+                                       {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0, true, maskUuid);
 }
 
-Result PaintImage::replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask)
+Result PaintImage::replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, const QUuid &maskUuid)
 {
     if (!onThread()) return Result::InvalidInput;
-    return publish(m_d->document->replaceTransparencyMask(layer, mask));
+    return publish(m_d->document->replaceTransparencyMask(layer, mask, false, false, maskUuid));
 }
 Result PaintImage::writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask)
 { return onThread() ? publish(m_d->document->writeTransparencyMask(layer, mask)) : Result::InvalidInput; }
 
-Result PaintImage::clearMaskPixels(LayerId layer, bool selectedOnly)
+Result PaintImage::clearMaskPixels(LayerId layer, bool selectedOnly, const QUuid &maskUuid)
 {
     if (!onThread()) return Result::InvalidInput;
     if (!m_d->handle) return Result::Closed;
     if (m_d->maskStroke || m_d->document->hasActiveStroke()) return Result::EditInProgress;
     const auto version = m_d->document->snapshot();
-    const auto target = editableMaskLayer(version, layer);
+    const auto target = editableMaskLayer(version, layer, maskUuid);
     if (!target) return Result::LayerUnavailable;
     if (selectedOnly && version->selection.isEmpty()) return Result::InvalidInput;
-    const auto image = createMaskImage(version, editableMaskCoverage(*target));
+    const auto image = createMaskImage(version, editableMaskCoverage(*target, maskUuid));
     if (!image) return resultFor(m_d->lastRequest.code);
     const auto sourceLayer = image->operations().activeLayer();
     const auto cleared = selectedOnly ? image->clearSelectedPixels({sourceLayer}) : image->clearLayers({sourceLayer});
     if (cleared != Result::Success) return cleared;
-    return replaceMaskFromImage(layer, *image, sourceLayer, false, true);
+    return replaceMaskFromImage(layer, *image, sourceLayer, false, true, maskUuid);
 }
 
 Result PaintImage::replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled,
-                                       bool cleared)
+                                       bool cleared, const QUuid &maskUuid)
 {
     if (!onThread()) return Result::InvalidInput;
     SelectionMaskSP mask;
     const auto read = m_d->execution.paintedSelectionCoverage(source.handle(), source.operations().snapshot(), sourceLayer, &mask);
     if (read.code != ExecutionCode::Success) { m_d->lastRequest = read; return resultFor(read.code); }
-    return publish(m_d->document->replaceTransparencyMask(layer, mask, filled, cleared));
+    return publish(m_d->document->replaceTransparencyMask(layer, mask, filled, cleared, maskUuid));
 }
 
 Result PaintImage::refreshMaskStrokePreview(Result result)
@@ -802,7 +802,7 @@ Result PaintImage::refreshMaskStrokePreview(Result result)
     const auto coverage = m_d->execution.paintedSelectionCoverage(session.image->handle(), session.image->operations().preview(),
         session.imageLayer, &mask);
     if (coverage.code != ExecutionCode::Success) { m_d->lastRequest = coverage; return resultFor(coverage.code); }
-    return publish(m_d->document->updateExternalMask(session.id, session.layer, mask));
+    return publish(m_d->document->updateExternalMask(session.id, session.layer, mask, session.maskUuid));
 }
 
 Result PaintImage::commitMaskStroke()
@@ -817,7 +817,7 @@ Result PaintImage::commitMaskStroke()
     const auto coverage = m_d->execution.paintedSelectionCoverage(session.image->handle(), session.image->operations().snapshot(),
         session.imageLayer, &mask);
     if (coverage.code != ExecutionCode::Success) { m_d->lastRequest = coverage; return resultFor(coverage.code); }
-    const auto result = m_d->document->commitExternalMask(session.id, session.layer, mask);
+    const auto result = m_d->document->commitExternalMask(session.id, session.layer, mask, session.maskUuid);
     if (result == Result::Success) m_d->maskStroke.reset();
     return publish(result);
 }

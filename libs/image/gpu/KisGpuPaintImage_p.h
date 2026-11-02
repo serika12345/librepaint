@@ -20,6 +20,7 @@ struct MaskStroke
     LayerId imageLayer = 0;
     OperationId id;
     bool committed = false;
+    QUuid maskUuid;
 };
 
 struct PaintImage::Private

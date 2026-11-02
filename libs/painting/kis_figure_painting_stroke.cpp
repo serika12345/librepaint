@@ -134,7 +134,7 @@ struct KisFigurePaintingStroke::GpuStroke
         }
         const quint32 randomSeed = QRandomGenerator::global()->generate();
         const auto result = resources.transparencyMask
-            ? owner->paintTransparencyMaskFigure(resources.layer, resources.brush, samples, *shape, style, randomSeed)
+            ? owner->paintTransparencyMaskFigure(resources.layer, resources.brush, samples, *shape, style, randomSeed, resources.maskUuid)
             : owner->paintFigure(resources.layer, resources.brush, samples, *shape, style, randomSeed);
         if (result != Gpu::Result::Success) {
             warnKrita << "A GPU figure stroke was rejected:" << int(result);

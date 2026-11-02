@@ -485,8 +485,8 @@ void KisToolFill::fillGpuSelection(QPoint seed)
         return;
     }
     const auto result = region ? owner->fillRegion(layer, regionSettings, pixel, pattern, opacity, erase, alphaLocked, *blend) : mask
-        ? (pattern ? owner->fillTransparencyMaskPattern(layer, *pattern, opacity, erase, alphaLocked)
-                   : owner->fillTransparencyMask(layer, maskColor, opacity, erase, alphaLocked))
+        ? (pattern ? owner->fillTransparencyMaskPattern(layer, *pattern, opacity, erase, alphaLocked, node->uuid())
+                   : owner->fillTransparencyMask(layer, maskColor, opacity, erase, alphaLocked, node->uuid()))
         : (pattern ? owner->fillLayerPattern(layer, *pattern, opacity, erase, alphaLocked, *blend)
                    : owner->fillLayerColor(layer, pixel, opacity, erase, alphaLocked, *blend));
     if (result == Gpu::Result::EmptyOperation) return;

@@ -208,7 +208,7 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
         for (qsizetype i = 1; i < capturedPoints.size(); ++i) samples.append({capturedPoints[i], 1});
         const QPointer<KisToolShape> tool(this);
         const auto result = captured.transparencyMask ?
-            owner->paintTransparencyMaskFigure(captured.layer, captured.brush, samples, capturedShape, style, 0) :
+            owner->paintTransparencyMaskFigure(captured.layer, captured.brush, samples, capturedShape, style, 0, captured.maskUuid) :
             owner->paintFigure(captured.layer, captured.brush, samples, capturedShape, style, 0);
         if (tool && result != Gpu::Result::Success)
             Q_EMIT tool->statusTextChanged(i18n("The figure could not be drawn on this GPU paint layer."));

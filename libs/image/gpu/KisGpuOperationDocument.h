@@ -966,8 +966,11 @@ inline bool isFilterNode(LayerKind kind)
 { return kind == LayerKind::Adjustment || kind == LayerKind::FilterMask; }
 
 /** Paint tools edit a filter node's internal coverage or a transparency child. */
-inline SelectionMaskSP editableMaskCoverage(const Layer &layer)
-{ return isFilterNode(layer.kind) ? layer.filterSelection : layer.transparencyMask; }
+inline SelectionMaskSP editableMaskCoverage(const Layer &layer, const QUuid &maskUuid = {})
+{
+    if (isFilterNode(layer.kind) && (maskUuid.isNull() || maskUuid == layer.uuid)) return layer.filterSelection;
+    return maskUuid.isNull() || maskUuid == layer.transparencyMaskUuid ? layer.transparencyMask : SelectionMaskSP{};
+}
 
 /** True when this layer's retained transparency mask contributes to composition. */
 inline bool hasEnabledTransparencyMask(const Layer &layer)
@@ -1332,7 +1335,7 @@ public:
      * than a brush stroke; `cleared` records an explicit clear action.
      */
     Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, bool filled = false,
-                                   bool cleared = false);
+                                   bool cleared = false, const QUuid &maskUuid = {});
     SelectionMaskSP layerTransparencyMask(LayerId layer) const;
     bool layerTransparencyMaskVisible(LayerId layer) const;
     /** Direct background writes preserve history, pending input and fixed snapshots. */
@@ -1593,8 +1596,8 @@ private:
      */
     Result beginExternalStroke(const OperationId &id);
     Result endExternalStroke(const OperationId &id);
-    Result updateExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask);
-    Result commitExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask);
+    Result updateExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask, const QUuid &maskUuid);
+    Result commitExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask, const QUuid &maskUuid);
     qsizetype layerIndex(LayerId layer) const;
     void replacePreview(const QSharedPointer<const PaintOperation> &operation);
     void commitVersion(const Snapshot &version);

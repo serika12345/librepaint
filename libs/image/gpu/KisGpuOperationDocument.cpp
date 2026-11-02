@@ -380,18 +380,18 @@ Result OperationDocument::endExternalStroke(const OperationId &id)
     return Result::Success;
 }
 
-Result OperationDocument::updateExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask)
+Result OperationDocument::updateExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask, const QUuid &maskUuid)
 {
     if (m_closed) return Result::Closed;
     if (m_externalOperation.isNull() || m_externalOperation != id) return Result::StaleOperation;
     const auto index = layerIndex(layer);
-    if (index < 0 || !editableMaskCoverage(snapshot()->layers[index])) return Result::LayerUnavailable;
+    if (index < 0 || !editableMaskCoverage(snapshot()->layers[index], maskUuid)) return Result::LayerUnavailable;
     if (!mask) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max() || !selectionFitsRetainedInputs(mask))
         return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     auto &target = version->layers[index];
-    if (isFilterNode(target.kind)) target.filterSelection = mask;
+    if (isFilterNode(target.kind) && (maskUuid.isNull() || maskUuid == target.uuid)) target.filterSelection = mask;
     else target.transparencyMask = mask;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     version->m_committed = false;
@@ -400,14 +400,14 @@ Result OperationDocument::updateExternalMask(const OperationId &id, LayerId laye
     return Result::Success;
 }
 
-Result OperationDocument::commitExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask)
+Result OperationDocument::commitExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask, const QUuid &maskUuid)
 {
     if (m_closed) return Result::Closed;
     if (m_externalOperation.isNull() || m_externalOperation != id) return Result::StaleOperation;
     const auto preview = m_preview;
     m_externalOperation = {};
     m_preview.clear();
-    const auto result = replaceTransparencyMask(layer, mask);
+    const auto result = replaceTransparencyMask(layer, mask, false, false, maskUuid);
     if (result != Result::Success) { m_externalOperation = id; m_preview = preview; }
     return result;
 }
@@ -1830,20 +1830,20 @@ Result OperationDocument::writeTransparencyMask(LayerId layer, const SelectionMa
     return Result::Success;
 }
 
-Result OperationDocument::replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, bool filled, bool cleared)
+Result OperationDocument::replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, bool filled, bool cleared, const QUuid &maskUuid)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     const auto index = layerIndex(layer);
-    if (index < 0 || !editableMaskCoverage(snapshot()->layers[index])) return Result::LayerUnavailable;
+    if (index < 0 || !editableMaskCoverage(snapshot()->layers[index], maskUuid)) return Result::LayerUnavailable;
     if (!mask || (!mask->defaultCoverage() && !mask->isEmpty() && mask->bounds().isEmpty()) ||
         mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
-    if (editableMaskCoverage(snapshot()->layers[index]) == mask) return Result::Success;
+    if (editableMaskCoverage(snapshot()->layers[index], maskUuid) == mask) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     auto &target = version->layers[index];
-    if (isFilterNode(target.kind)) target.filterSelection = mask;
+    if (isFilterNode(target.kind) && (maskUuid.isNull() || maskUuid == target.uuid)) target.filterSelection = mask;
     else target.transparencyMask = mask;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;

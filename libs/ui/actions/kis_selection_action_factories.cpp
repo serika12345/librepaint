@@ -338,8 +338,8 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         if (!layer || !view->blockUntilOperationsFinished(image)) return;
         if (!lifetime || lifetime->image().data() != image.data() || image->gpuImage() != owner) return;
         const auto result = maskTarget
-            ? (usePattern ? owner->fillTransparencyMaskPattern(layer, patternFill, opacity, erase, alphaLocked, fillBlendMode)
-                          : owner->fillTransparencyMask(layer, rgb, opacity, erase, alphaLocked, fillBlendMode))
+            ? (usePattern ? owner->fillTransparencyMaskPattern(layer, patternFill, opacity, erase, alphaLocked, fillBlendMode, node->uuid())
+                          : owner->fillTransparencyMask(layer, rgb, opacity, erase, alphaLocked, fillBlendMode, node->uuid()))
             : (usePattern ? owner->fillLayerPattern(layer, patternFill, opacity, erase, alphaLocked, fillBlendMode)
                           : owner->fillLayerColor(layer, fillColor, opacity, erase, alphaLocked, fillBlendMode));
         if (result != Gpu::Result::Success) {

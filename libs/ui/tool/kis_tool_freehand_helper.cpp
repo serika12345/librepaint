@@ -472,7 +472,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         }
         const quint32 randomSeed = QRandomGenerator::global()->generate();
         m_d->gpuOperation = resources.transparencyMask
-            ? owner->beginTransparencyMaskStroke(resources.layer, resources.brush, randomSeed)
+            ? owner->beginTransparencyMaskStroke(resources.layer, resources.brush, randomSeed, resources.maskUuid)
             : owner->beginStroke(resources.layer, resources.brush, randomSeed);
         if (m_d->gpuOperation.isNull()) {
             m_d->gpuStabilizer.reset();

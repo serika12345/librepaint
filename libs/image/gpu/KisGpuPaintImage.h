@@ -165,10 +165,10 @@ public:
     Result removeTransparencyMask(LayerId layer);
     Result writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
     /** Replaces retained mask coverage as one history entry; null is rejected. */
-    Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
+    Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, const QUuid &maskUuid = {});
     /** Clears one editable mask's selected alpha, or resets its finite storage
      * to its retained default when selectedOnly is false. One history entry. */
-    Result clearMaskPixels(LayerId layer, bool selectedOnly);
+    Result clearMaskPixels(LayerId layer, bool selectedOnly, const QUuid &maskUuid = {});
     SelectionMaskSP layerTransparencyMask(LayerId layer) const;
     bool layerTransparencyMaskVisible(LayerId layer) const;
 
@@ -179,23 +179,26 @@ public:
      * identity participates in active-input, cancel and undo blocking like a
      * normal stroke, although the temporary input has no document history.
      */
-    OperationId beginTransparencyMaskStroke(LayerId layer, const Brush &brush, quint64 seed);
+    // An explicit node UUID selects an internal filter mask or transparency child;
+    // an empty UUID selects a filter node's internal coverage or another
+    // layer kind's transparency child.
+    OperationId beginTransparencyMaskStroke(LayerId layer, const Brush &brush, quint64 seed, const QUuid &maskUuid = {});
     /** Adopts one completed figure into the retained mask as one history entry. */
     Result paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
                                        const QList<InputSample> &samples, const Shape &shape,
-                                       const FigureStyle &style, quint64 randomSeed);
+                                       const FigureStyle &style, quint64 randomSeed, const QUuid &maskUuid = {});
     /** Fills the retained mask through the current selection as one history entry.
      * `erase` clears selected coverage instead of adding it.
      */
     Result fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
-                                qreal opacity = 1, bool erase = false, bool alphaLocked = false);
+                                qreal opacity = 1, bool erase = false, bool alphaLocked = false, const QUuid &maskUuid = {});
     Result fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &gray,
-                                qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode);
+                                qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode, const QUuid &maskUuid = {});
     Result fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
-                                       qreal opacity = 1, bool erase = false, bool alphaLocked = false);
+                                       qreal opacity = 1, bool erase = false, bool alphaLocked = false, const QUuid &maskUuid = {});
 
     Result fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
-                                       qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode);
+                                       qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode, const QUuid &maskUuid = {});
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
@@ -337,7 +340,7 @@ public:
                       const std::optional<PatternFill> &pattern, qreal opacity = 1, bool erase = false,
                       bool alphaLocked = false, LayerBlendMode blendMode = LayerBlendMode::Normal);
     /** One undoable gradient on paint pixels or their retained transparency mask. */
-    Result paintGradient(LayerId layer, const Brush &brush, const GradientFill &gradient, bool transparencyMask = false);
+    Result paintGradient(LayerId layer, const Brush &brush, const GradientFill &gradient, bool transparencyMask = false, const QUuid &maskUuid = {});
     /** Frozen node-projection selection; only geometry metadata is read back. */
     Result selectRegion(LayerId reference, const RegionFillSettings &settings, SelectionCombination action);
     /** Complements RGB within the current selection coverage as one history
@@ -389,9 +392,9 @@ private:
     Result commitMaskStroke();
     Result paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
                                        const QList<InputSample> &samples, const Shape &shape,
-                                       const FigureStyle &style, quint64 randomSeed, bool filled);
+                                       const FigureStyle &style, quint64 randomSeed, bool filled, const QUuid &maskUuid = {});
     Result replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled,
-                                bool cleared = false);
+                                bool cleared = false, const QUuid &maskUuid = {});
     struct Private;
     std::unique_ptr<Private> m_d;
 };

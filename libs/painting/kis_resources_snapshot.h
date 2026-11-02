@@ -32,9 +32,10 @@ struct KRITAPAINTING_EXPORT KisGpuBrushResources
 {
     LibrePaint::Image::Gpu::Brush brush;
     LibrePaint::Image::Gpu::LayerId layer = 0;
-    /** Input targets the parent layer's retained transparency mask, not pixels. */
+    /** Input targets retained Alpha8 coverage; maskUuid identifies its node. */
     bool transparencyMask = false;
     QString diagnostic;
+    QUuid maskUuid;
 };
 
 KRITAPAINTING_EXPORT KisGpuBrushResources captureGpuBrushResources(

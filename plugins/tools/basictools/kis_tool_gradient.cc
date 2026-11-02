@@ -185,7 +185,7 @@ void KisToolGradient::endPrimaryAction(KoPointerEvent *event)
         // Native gradient painting does not mirror its canvas-wide source.
         brush.mirrorHorizontal = brush.mirrorVertical = false;
         const QPointer<KisToolGradient> tool(this);
-        const auto result = owner->paintGradient(captured.layer, brush, *gradient, captured.transparencyMask);
+        const auto result = owner->paintGradient(captured.layer, brush, *gradient, captured.transparencyMask, captured.maskUuid);
         if (tool) {
             if (result != Gpu::Result::Success && result != Gpu::Result::EmptyOperation)
                 Q_EMIT tool->statusTextChanged(i18n("The gradient could not be drawn on this GPU layer."));

@@ -544,6 +544,7 @@ KisGpuBrushResources captureGpuPaintingResources(
         return reject(i18n("A stroke could not be started on this GPU paint layer."));
     if (maskView) {
         result.transparencyMask = true;
+        result.maskUuid = node->uuid();
     }
     const auto preset = resources->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
     if (withBrushTip && (!preset || (preset->paintOp().id() != QLatin1String("roundmarker") &&

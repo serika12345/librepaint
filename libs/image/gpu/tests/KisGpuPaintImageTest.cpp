@@ -2714,6 +2714,55 @@ void KisGpuPaintImageTest::filterNodeProjectionReadersFollowCoverageEdits()
     QCOMPARE(image.setLayerVisible(target, false), Result::Success);
     QCOMPARE(image.readRgbaPixels(0, {0, 0, 1, 1}, stride).bytes, rgbaBytes(original, raster.format));
     QCOMPARE(read(image.operations().snapshot(), {0, 0}).bytes, rgbaBytes(mask ? original : filtered, raster.format));
+    if (!mask) {
+        QCOMPARE(image.setLayerVisible(target, true), Result::Success);
+        QCOMPARE(image.setFilterSelection(target, SelectionMask::uniform(255)), Result::Success);
+        QCOMPARE(image.addTransparencyMask(target), Result::Success);
+        const auto paired = image.operations().snapshot();
+        QUuid internalUuid, transparencyUuid;
+        for (const auto &layer : paired->layers) if (layer.id == target) {
+            internalUuid = layer.uuid; transparencyUuid = layer.transparencyMaskUuid;
+        }
+        QVERIFY(!internalUuid.isNull()); QVERIFY(!transparencyUuid.isNull());
+        const auto coverage = [&](const Snapshot &version, const QUuid &identity) {
+            for (const auto &layer : version->layers)
+                if (layer.id == target) return editableMaskCoverage(layer, identity);
+            return SelectionMaskSP{};
+        };
+        const auto alpha = [&](const Snapshot &version, const QUuid &identity) {
+            return execution.readSelectionPixels(coverage(version, identity), {0, 0, 16, 12}, 192).bytes;
+        };
+        const auto internal = image.beginTransparencyMaskStroke(target, erase, 17, internalUuid);
+        QVERIFY(!internal.isNull());
+        QCOMPARE(image.appendPoint(internal, {{6, 6}, 1}), Result::Success);
+        QCOMPARE(coverage(image.operations().preview(), transparencyUuid), coverage(paired, transparencyUuid));
+        QCOMPARE(image.commitStroke(internal), Result::Success);
+        const auto internalEdited = image.operations().snapshot();
+        const auto erasedAlpha = alpha(internalEdited, internalUuid);
+        QCOMPARE(erasedAlpha.size(), 192);
+        QCOMPARE(quint8(erasedAlpha[6 * 16 + 6]), quint8(0));
+        QCOMPARE(coverage(internalEdited, transparencyUuid), coverage(paired, transparencyUuid));
+        QCOMPARE(image.undo(), Result::Success);
+        QCOMPARE(image.operations().snapshot(), paired);
+        const auto child = image.beginTransparencyMaskStroke(target, erase, 17, transparencyUuid);
+        QVERIFY(!child.isNull());
+        QCOMPARE(image.appendPoint(child, {{6, 6}, 1}), Result::Success);
+        QCOMPARE(coverage(image.operations().preview(), internalUuid), coverage(paired, internalUuid));
+        QCOMPARE(image.commitStroke(child), Result::Success);
+        const auto childEdited = image.operations().snapshot();
+        QCOMPARE(alpha(childEdited, transparencyUuid), erasedAlpha);
+        QCOMPARE(coverage(childEdited, internalUuid), coverage(paired, internalUuid));
+        QCOMPARE(alpha(internalEdited, internalUuid), erasedAlpha);
+        QCOMPARE(image.readRgbaPixels(1, {6, 6, 1, 1}, stride).bytes, rgbaBytes(original, raster.format));
+        QCOMPARE(image.undo(), Result::Success);
+        QCOMPARE(image.operations().snapshot(), paired);
+        QCOMPARE(image.redo(), Result::Success);
+        QCOMPARE(image.operations().snapshot(), childEdited);
+        const auto invalid = QUuid::createUuid();
+        QVERIFY(image.beginTransparencyMaskStroke(target, erase, 17, invalid).isNull());
+        QCOMPARE(image.clearMaskPixels(target, false, invalid), Result::LayerUnavailable);
+        QCOMPARE(image.operations().snapshot(), childEdited);
+    }
 }
 
 void KisGpuPaintImageTest::adjustmentMergesFreezeTheOriginalLowerStack_data()
