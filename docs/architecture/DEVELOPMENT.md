@@ -1704,7 +1704,7 @@ Basic-5 Size default・Eraser Circle・矩形筆先のEraser Smallについて�
 関連する一式は`ctest --test-dir build/tdd-linux -R '^libs-ui-multibrush-KisGpuDocumentViewTest$' --output-on-failure`で実行する。
 同じ文書・入力・保存の試験実装を使う`dynamicBrushPresetsKeepNativeEditingHistoryAndKra`は、
 動的ブラシの質量・抵抗の設定と上下限、Basic-5 Size default・Eraser Circle・Eraser Small、既定の基本補正、
-タップとGroupの透明度マスクについてRGB8・RGB16の既存結果を照合する。
+タップ、直線と折れた入力、Groupの透明度マスクについてRGB8・RGB16の既存結果を照合する。
 確定した補正後の入力、設定変更後のUndo／Redo、KRA再読込後の追加編集を検査し、
 `dynamic-brush-<条件>-{native,gpu}-<番号>.bin`を保存する。
 通常のツール登録を使うため試験対象は動的ブラシのプラグインにも依存する。
