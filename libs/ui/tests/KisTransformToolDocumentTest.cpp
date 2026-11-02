@@ -583,16 +583,20 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
     QTest::addColumn<bool>("adjustment");
     QTest::addColumn<bool>("selected");
     QTest::addColumn<int>("maskDefault");
+    QTest::addColumn<bool>("uniform");
     for (const bool words : {false, true}) for (const bool adjustment : {false, true})
         for (const bool selected : {false, true}) for (const int maskDefault : {0, 255})
             QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3-default%4").arg(words ? "word" : "byte")
                 .arg(adjustment ? "adjustment" : "filter").arg(selected ? "selected" : "whole").arg(maskDefault)))
-                << words << adjustment << selected << maskDefault;
+                << words << adjustment << selected << maskDefault << false;
+    for (const bool adjustment : {false, true})
+        QTest::newRow(adjustment ? "byte-adjustment-whole-uniform" : "byte-filter-whole-uniform")
+            << false << adjustment << false << 255 << true;
 }
 
 void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAndKra()
 {
-    QFETCH(bool, words); QFETCH(bool, adjustment); QFETCH(bool, selected); QFETCH(int, maskDefault);
+    QFETCH(bool, words); QFETCH(bool, adjustment); QFETCH(bool, selected); QFETCH(int, maskDefault); QFETCH(bool, uniform);
     const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restoreEngine = qScopeGuard([&] {
         if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
@@ -617,7 +621,7 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
     coverage->pixelSelection()->setDefaultPixel(KoColor(&defaultValue, coverage->pixelSelection()->colorSpace()));
     QByteArray values(17 * 13, Qt::Uninitialized);
     for (int i = 0; i < values.size(); ++i) values[i] = char((i * 43 + 1) % 256);
-    coverage->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), 8, 6, 17, 13);
+    if (!uniform) coverage->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(values.constData()), 8, 6, 17, 13);
     KisNodeSP target;
     if (adjustment) {
         target = new KisAdjustmentLayer(native, "Adjustment", config, coverage);
@@ -683,7 +687,29 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
             const auto bytes = snapshot(view); const auto coordinates = positions(view);
             const int index = stage++;
             if (!gpu) { expected.append(bytes); expectedPositions.append(coordinates); }
-            else { QCOMPARE(bytes, expected.at(index)); QCOMPARE(coordinates, expectedPositions.at(index)); }
+            else {
+                const auto &reference = expected.at(index);
+                const auto output = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+                for (qsizetype plane = 0; plane < bytes.size(); ++plane) if (bytes[plane] != reference[plane]) {
+                    if (!output.isEmpty()) {
+                        const auto path = QDir(output).filePath(QString::fromLatin1(QTest::currentDataTag()));
+                        QVERIFY(QDir().mkpath(path));
+                        for (const auto &entry : {qMakePair(QStringLiteral("actual"), bytes[plane]),
+                                                  qMakePair(QStringLiteral("expected"), reference[plane])}) {
+                            QFile file(QDir(path).filePath(QStringLiteral("stage-%1-plane-%2-%3.bin").arg(index).arg(plane).arg(entry.first)));
+                            QVERIFY(file.open(QIODevice::WriteOnly)); QCOMPARE(file.write(entry.second), entry.second.size());
+                        }
+                    }
+                    const auto common = qMin(bytes[plane].size(), reference[plane].size());
+                    for (qsizetype offset = 0; offset < common; ++offset) if (bytes[plane][offset] != reference[plane][offset]) {
+                        qWarning() << "Mask tool difference" << "stage" << index << "plane" << plane << "byte" << offset
+                                   << "actual" << quint8(bytes[plane][offset]) << "expected" << quint8(reference[plane][offset]);
+                        break;
+                    }
+                }
+                for (qsizetype plane = 0; plane < bytes.size(); ++plane) QCOMPARE(bytes[plane], reference[plane]);
+                QCOMPARE(coordinates, expectedPositions.at(index));
+            }
         };
         QSignalSpy ready(KisPart::instance(), &KisPart::sigMainWindowCreated);
         std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow()); window->resize(800, 600);
@@ -730,7 +756,18 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
         QVERIFY(tool->setProperty("rotateZ", .47));
         QVERIFY(QMetaObject::invokeMethod(tool, "requestImageRecalculation"));
         tool->requestStrokeCancellation(); image->waitForDone();
-        QCOMPARE(snapshot(image), beforeTransform); QCOMPARE(positions(image), coordinates);
+        const auto cancelled = snapshot(image);
+        const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        for (qsizetype plane = 0; plane < cancelled.size(); ++plane) if (cancelled[plane] != beforeTransform[plane] && !resultDirectory.isEmpty()) {
+            const auto path = QDir(resultDirectory).filePath(QString::fromLatin1(QTest::currentDataTag())); QVERIFY(QDir().mkpath(path));
+            for (const auto &entry : {qMakePair(QStringLiteral("actual"), cancelled[plane]), qMakePair(QStringLiteral("expected"), beforeTransform[plane])}) {
+                QFile file(QDir(path).filePath(QStringLiteral("%1-cancel-plane-%2-%3.bin").arg(gpu ? "gpu" : "native").arg(plane).arg(entry.first)));
+                QVERIFY(file.open(QIODevice::WriteOnly)); QCOMPARE(file.write(entry.second), entry.second.size());
+            }
+            qWarning() << "Mask transform cancellation" << "gpu" << gpu << "plane" << plane;
+        }
+        for (qsizetype plane = 0; plane < cancelled.size(); ++plane) QCOMPARE(cancelled[plane], beforeTransform[plane]);
+        QCOMPARE(positions(image), coordinates);
         QCOMPARE(lifetime->undoStack()->count(), beforeHistory);
         KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
         KoToolManager::instance()->switchToolRequested(transformId);

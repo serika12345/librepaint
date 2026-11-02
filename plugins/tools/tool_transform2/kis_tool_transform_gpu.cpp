@@ -148,7 +148,7 @@ void KisToolTransform::updateGpuTransform()
         if (!plan) { valid = false; break; }
         Gpu::AffineLayerPlan prepared{target.layer, QSharedPointer<Gpu::AffinePlan>::create(*plan), {},
             bool(m_gpuSelection) && !requested.isIdentity()};
-        const auto transformMask = [&](const Gpu::SelectionMaskSP &captured, QRect defaults,
+        const auto transformMask = [&](const Gpu::SelectionMaskSP &captured, QRect defaults, QPoint devicePosition,
                                        Gpu::SelectionMaskSP &output) {
             if (requested.isIdentity()) { output = captured; return true; }
             // Native GrayA uses the parent bounds while filtering the scalar plane.
@@ -161,12 +161,12 @@ void KisToolTransform::updateGpuTransform()
             const auto maskPlan = worker.gpuPlan(maskBounds, m_gpuSelection ? QRect{} : defaults, captured->bounds());
             if (!maskPlan) return false;
             output = owner->transformedTransparencyMask(captured, m_gpuSelection,
-                bool(m_gpuSelection) && source->selectionInverted, m_gpuSelectionBounds, *maskPlan, defaults);
+                bool(m_gpuSelection) && source->selectionInverted, m_gpuSelectionBounds, *maskPlan, defaults, devicePosition);
             return bool(output);
         };
-        if (target.mask && !transformMask(layer->transparencyMask, m_gpuMaskDefaultBounds.value(target.layer),
+        if (target.mask && !transformMask(layer->transparencyMask, m_gpuMaskDefaultBounds.value(target.layer), layer->transparencyMaskPosition,
             prepared.mask)) { valid = false; break; }
-        if (target.filterSelection && !transformMask(layer->filterSelection, m_gpuFilterDefaultBounds.value(target.layer),
+        if (target.filterSelection && !transformMask(layer->filterSelection, m_gpuFilterDefaultBounds.value(target.layer), layer->position,
             prepared.filterSelection)) { valid = false; break; }
         plans.append(prepared);
     }

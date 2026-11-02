@@ -507,7 +507,7 @@ ExecutionOutcome Execution::evaluateSelectionCombination(const QSharedPointer<co
 }
 
 ExecutionOutcome Execution::transformedMaskCoverage(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-    bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds, SelectionMaskSP *result)
+    bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds, SelectionMaskSP *result, QPoint devicePosition)
 {
     auto &d = *m_d;
     constexpr int limit = RgbaTile::CoordinateLimit;
@@ -526,6 +526,7 @@ ExecutionOutcome Execution::transformedMaskCoverage(const SelectionMaskSP &mask,
     auto operation = QSharedPointer<SelectionMaskTransformSource>::create();
     operation->source = mask; operation->selection = selection; operation->inverted = inverted;
     operation->copyRect = copyRect; operation->output = output;
+    operation->storageOrigin = {devicePosition.x() % 64, devicePosition.y() % 64};
     operation->plan = QSharedPointer<AffinePlan>::create(plan);
     const auto rollback = qScopeGuard([&] { if (d.active) cancelFrame(); });
     if (!selection) {
@@ -550,11 +551,12 @@ ExecutionOutcome Execution::transformedMaskCoverage(const SelectionMaskSP &mask,
             occupied |= part;
         }
         if (!occupied.isEmpty()) {
-            occupied.translate(-plan.positionDelta);
+            const auto origin = operation->storageOrigin + plan.positionDelta;
+            occupied.translate(-origin);
             const auto floor = [](int v) { return v / 64 - (v % 64 < 0); };
             occupied = QRect(QPoint(floor(occupied.left()) * 64, floor(occupied.top()) * 64),
                 QPoint((floor(occupied.right()) + 1) * 64 - 1, (floor(occupied.bottom()) + 1) * 64 - 1));
-            occupied.translate(plan.positionDelta);
+            occupied.translate(origin);
         }
         output = occupied.united(defaultBounds);
         if (!valid(output)) return {ExecutionCode::InvalidRequest, QStringLiteral("Transformed mask extent exceeds coordinate bounds")};

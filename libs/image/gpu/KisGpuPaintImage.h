@@ -132,7 +132,8 @@ public:
      * the native pixel selection, including its parent's default bounds.
      */
     SelectionMaskSP transformedTransparencyMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
-                                               bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds = {});
+                                               bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds = {},
+                                               QPoint devicePosition = {});
     /** Native parent bounds for a mask transformed in the same transaction.
      * Evaluates retained committed pixels on an independent GPU attachment,
      * reads allocation summaries, and leaves this image and history unchanged.

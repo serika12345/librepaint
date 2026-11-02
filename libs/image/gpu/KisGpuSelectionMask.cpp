@@ -673,10 +673,9 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTransform(const QSharedPo
         source->selection ? source->source->defaultCoverage() : 0));
     result->m_transform = source; result->m_outlineRuns = outlineRuns; result->m_nativePixels = pixels;
     QList<QRect> blocks;
-    QPoint origin = source->plan->positionDelta;
+    const QPoint origin = source->storageOrigin;
     if (source->selection) {
         blocks = source->source->allocatedBlocks();
-        origin = blocks.isEmpty() ? QPoint{} : blocks.first().topLeft();
     }
     if (!source->output.isEmpty()) blocks.append(selectionStorageBlock(source->output, origin));
     return result->withAllocatedBlocks(blocks);

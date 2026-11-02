@@ -81,6 +81,8 @@ struct SelectionMaskTransformSource
     QRect copyRect, output;
     bool inverted = false;
     QList<QPoint> tiles;
+    /** Native Alpha8 destination block grid, reduced modulo 64. */
+    QPoint storageOrigin;
 };
 
 /**

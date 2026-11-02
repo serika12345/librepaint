@@ -120,6 +120,27 @@ std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId gro
     Layer imageRoot;
     imageRoot.kind = LayerKind::Group;
     const auto root = group ? nodes.value(group) : &imageRoot;
+    if (root && root->kind == LayerKind::Adjustment) {
+        QRect extent(QPoint(), document->size);
+        for (const auto &input : document->projectionInputsThrough(group)) {
+            const auto source = nodes.value(input.layer);
+            if (!source || source->kind == LayerKind::Adjustment) continue;
+            if (source->kind == LayerKind::Paint) {
+                const auto allocated = paintLayerAllocation(document, *source, maximumRectangles);
+                if (!allocated) return std::nullopt;
+                extent |= allocated->extent;
+            } else if (source->kind == LayerKind::Group) {
+                const auto allocated = groupProjectionExtent(document, source->id, maximumRectangles);
+                if (!allocated) return std::nullopt;
+                extent |= *allocated;
+            }
+        }
+        // Derived adjustment pixels use their own origin-zero device. The
+        // adjustment node's position belongs to its independent Alpha8 mask.
+        const QPoint first(pixelTileIndex(extent.left(), PixelHistoryBlockSize), pixelTileIndex(extent.top(), PixelHistoryBlockSize));
+        const QPoint last(pixelTileIndex(extent.right(), PixelHistoryBlockSize), pixelTileIndex(extent.bottom(), PixelHistoryBlockSize));
+        return QRect(first * PixelHistoryBlockSize, (last + QPoint(1, 1)) * PixelHistoryBlockSize - QPoint(1, 1));
+    }
     if (!root || root->kind != LayerKind::Group) return std::nullopt;
     QList<const Layer *> ordered{root};
     for (qsizetype i = 0; i < ordered.size(); ++i)
