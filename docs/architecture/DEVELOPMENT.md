@@ -999,6 +999,24 @@ Windowsは対応する実行ファイルへ同じ環境変数を渡す。Android
 Undo／Redo、KRA保存・再読込みと追加編集まで確認する。
 この条件は`libs-ui-pixels-KisGpuDocumentViewTest`へ含まれる。
 
+通常のグラデーションは、次の限定したCTestで検査する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentViewTest '^libs-ui-gradients-KisGpuDocumentViewTest$'
+```
+
+`gradientsKeepNativeEditingHistoryAndKra`は、8種の幾何形状、3種の反復とRGB8／RGB16を
+組み合わせた48条件で、通常ツールの入力、前景色を使う資源、反転、滑らか化、ディザ、
+選択付きの描画・透明マスクと成分保護を検査する。標準描画とGPU描画のレイヤー生画素、
+投影とマスク被覆を完全一致で照合し、ドラッグ中のEscapeと解放、確定、資源変更後の
+Undo／Redo、KRA再読込後の追加編集、GPU保存を標準読込側で開いた結果を確認する。
+アプリケーションが共有するGPU実行所有者を文書タブの交換中も保持する。
+`LIBREPAINT_GPU_RESULT_DIR`を設定すると、条件ごとの入力KRAと各段階の比較バイト列を残す。
+Shaped形状、実機入力と環境間一致は、この48条件とは別に確認する。
+資源の単一標本は`TestKoStopGradient::singleSampleCacheKeepsFirstColor`が、RGB16／GrayA16の
+先頭色と通常の複数標本を照合する。画面からの操作確認では、選択したプリセット名、
+描画結果、取消し、Undo／Redo、保存・再読込と追加編集を確認し、自動試験の結果と区別して報告する。
+
 画像所有者の試験は、共有参照からの編集、通知前のGPU要求更新、保存済み版、
 Undo／Redoと、最後の参照による接続解放を検査する。
 外部の矩形書込みは、同じGPUタイル内の別領域、Undo後の直接書込み、再書込み、
