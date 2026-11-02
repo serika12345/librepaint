@@ -100,6 +100,8 @@ void DynamicBrushEditingTest::addData()
         for (const auto *preset : {"b)_Basic-5_Size_default.kpp", "a)_Eraser_Circle.kpp"}) {
             const QByteArray name = QByteArray("group-mask-") + preset + (words ? "-u16" : "-u8");
             QTest::newRow(name.constData()) << QString::fromLatin1(preset) << words << 0 << 1 << true;
+            const QByteArray curve = QByteArray("curve-") + preset + (words ? "-u16" : "-u8");
+            QTest::newRow(curve.constData()) << QString::fromLatin1(preset) << words << 0 << 1 << false;
         }
         for (int parameters : {2, 3, 4, 5}) {
             const QByteArray name = QByteArray("mass-drag-") + QByteArray::number(parameters) + (words ? "-u16" : "-u8");
@@ -268,6 +270,11 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
                     QVERIFY(QMetaObject::invokeMethod(tool, "slotSetIntervals", Qt::DirectConnection));
                 }
             }
+            const auto dynamicPoint = [](QPointF start, int step) {
+                const bool curve = QByteArray(QTest::currentDataTag()).startsWith("curve-");
+                const qreal y = curve ? (step <= 4 ? step : step <= 8 ? 4 + 2 * (step - 4) : 12 - 2.5 * (step - 8)) : step;
+                return start + QPointF(3 * step, y);
+            };
             const auto gesture = [&](bool cancel) {
                 const QPointF start = reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75);
                 const bool tap = QByteArray(QTest::currentDataTag()).contains("tap-");
@@ -275,7 +282,7 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
                     QList<QPointF>{start + QPointF(4.5, 1), start + QPointF(8, 4.75), start + QPointF(12, 2)};
                 if (dynamic && !tap) {
                     points.clear();
-                    for (int step = 1; step <= 12; ++step) points.append(start + QPointF(3 * step, step));
+                    for (int step = 1; step <= 12; ++step) points.append(dynamicPoint(start, step));
                 }
                 QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
                 KoPointerEvent first(&press, view->canvasBase()->coordinatesConverter()->imageToDocument(start)); tool->beginPrimaryAction(&first);
@@ -307,9 +314,12 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
                     QVERIFY(operation->brush.transforms.isEmpty());
                     if (!QByteArray(QTest::currentDataTag()).startsWith("tap-")) {
                         const auto samples = operation->inputSamples();
-                        QVERIFY(samples.size() > 1);
-                        const QPointF rawEnd = (reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75)) + QPointF(36, 12);
-                        QVERIFY(samples.last().position != rawEnd);
+                        QCOMPARE(samples.size(), qsizetype(13));
+                        const QPointF start = reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75);
+                        bool filtered = false;
+                        for (int step = 1; step <= 12; ++step)
+                            filtered |= samples[step].position != dynamicPoint(start, step);
+                        QVERIFY(filtered);
                     }
                 } else QCOMPARE(operation->brush.transforms.size(), qsizetype(mode == 0 ? 3 : mode == 1 ? 4 : mode == 3 ? 12 : mode == 4 ? 2 : 16));
             }
