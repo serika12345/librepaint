@@ -522,16 +522,16 @@ QSharedPointer<PaintImage> PaintImage::createMaskImage(const Snapshot &version, 
             for (const auto &block : mask->allocatedBlocks()) allocated += block;
             for (const auto &tile : allocated) {
                 const QPointF first(tile.topLeft()), last(tile.topLeft() + QPoint(tile.width(), tile.height()));
-                if (!accepted(image->paintFigure(layer, copy, {{first, 1}, {last, 1}},
-                    {ShapeKind::Rectangle, first, last, 0}, clear, 0))) return {};
+                if (!accepted(image->publish(image->m_d->document->paintFigureWithin(layer, copy, {{first, 1}, {last, 1}},
+                    {ShapeKind::Rectangle, first, last, 0}, clear, 0, tile)))) return {};
                 SelectionMaskSP finite;
                 const auto clipped = m_d->execution.combineSelectionCoverage(SelectionMask::empty(), mask,
                     SelectionCombination::Replace, tile, false, &finite);
                 if (clipped.code != ExecutionCode::Success) { m_d->lastRequest = clipped; return {}; }
                 if (finite->isEmpty()) continue;
                 if (!accepted(image->setSelectionMask(finite)) ||
-                    !accepted(image->paintFigure(layer, white, {{first, 1}, {last, 1}},
-                        {ShapeKind::Rectangle, first, last, 0}, fill, 0))) return {};
+                    !accepted(image->publish(image->m_d->document->paintFigureWithin(layer, white, {{first, 1}, {last, 1}},
+                        {ShapeKind::Rectangle, first, last, 0}, fill, 0, tile)))) return {};
             }
         }
         const auto selected = version->selectionKind == SelectionKind::Freehand ? image->setSelectionMask(version->selectionMask, version->selectionInverted) :

@@ -58,6 +58,8 @@
 #include <filter/kis_filter_configuration.h>
 #include <kis_node.h>
 #include <commands/kis_node_property_list_command.h>
+#include <commands/kis_set_global_selection_command.h>
+#include <kis_undo_adapter.h>
 #include <kis_layer_properties_icons.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
@@ -710,30 +712,35 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
             KisSelectionSP selection = new KisSelection;
             selection->pixelSelection()->select(QRect(7, 5, 28, 25));
             if (gpu) QVERIFY(image->setGpuSelectionRect(QRect(7, 5, 28, 25)));
-            else image->setGlobalSelection(selection);
+            else image->undoAdapter()->addCommand(new KisSetGlobalSelectionCommand(image, selection));
         }
         const auto beforeTransform = snapshot(image); const auto coordinates = positions(image);
         const int beforeHistory = lifetime->undoStack()->count();
         const auto transformId = QStringLiteral("KisToolTransform");
         KoToolManager::instance()->switchToolRequested(transformId);
         tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), transformId)); QVERIFY(tool);
-        image->waitForDone(); QApplication::processEvents();
+        // waitForDone finalizes active input; the generated transaction's
+        // center reports transform readiness without ending the gesture.
+        QApplication::processEvents();
+        QTRY_VERIFY(tool->property("translateX").toDouble() != 0 || tool->property("translateY").toDouble() != 0);
         QWidget *panel = nullptr;
         for (auto widget : tool->optionWidgets()) if (widget->metaObject()->indexOfSlot("slotFilterChanged(KoID)") >= 0) panel = widget.data();
         QVERIFY(panel); QVERIFY(QMetaObject::invokeMethod(panel, "slotFilterChanged", Q_ARG(KoID, KoID("Bicubic"))));
         QVERIFY(tool->setProperty("scaleX", 137.)); QVERIFY(tool->setProperty("scaleY", 63.));
         QVERIFY(tool->setProperty("rotateZ", .47));
         QVERIFY(QMetaObject::invokeMethod(tool, "requestImageRecalculation"));
-        image->waitForDone();
         tool->requestStrokeCancellation(); image->waitForDone();
         QCOMPARE(snapshot(image), beforeTransform); QCOMPARE(positions(image), coordinates);
         QCOMPARE(lifetime->undoStack()->count(), beforeHistory);
         KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
         KoToolManager::instance()->switchToolRequested(transformId);
         tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), transformId)); QVERIFY(tool);
-        image->waitForDone(); QApplication::processEvents();
+        QApplication::processEvents();
+        QTRY_VERIFY(tool->property("translateX").toDouble() != 0 || tool->property("translateY").toDouble() != 0);
         QVERIFY(tool->setProperty("scaleX", 137.)); QVERIFY(tool->setProperty("scaleY", 63.));
         QVERIFY(tool->setProperty("rotateZ", .47));
+        QCOMPARE(tool->property("scaleX").toDouble(), 1.37);
+        QCOMPARE(tool->property("scaleY").toDouble(), .63);
         QVERIFY(QMetaObject::invokeMethod(tool, "requestImageRecalculation"));
         tool->requestStrokeEnd(); image->waitForDone(); QApplication::processEvents();
         QVERIFY(snapshot(image) != beforeTransform);
