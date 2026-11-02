@@ -4027,12 +4027,12 @@ void KisGpuOperationDocumentTest::multibrushRetainsHandsInputHistoryAndRejectsCa
     brush.transforms = frozen;
     auto invalid = brush;
     invalid.transforms[1].matrix[0] = 2;
-    QVERIFY(control.beginStroke(control.activeLayer(), invalid).isNull());
+    QVERIFY(control.beginStroke(control.activeLayer(), invalid, 17).isNull());
     invalid = brush;
     invalid.transforms[1].rotation = std::numeric_limits<qreal>::quiet_NaN();
-    QVERIFY(control.beginStroke(control.activeLayer(), invalid).isNull());
+    QVERIFY(control.beginStroke(control.activeLayer(), invalid, 17).isNull());
     QCOMPARE(control.snapshot(), before);
-    const auto pending = control.beginStroke(control.activeLayer(), brush);
+    const auto pending = control.beginStroke(control.activeLayer(), brush, 17);
     QVERIFY(!pending.isNull());
     QCOMPARE(control.appendSamples(pending, {{{5, 7}, 1}}), Result::Success);
     const auto retained = control.preview();
