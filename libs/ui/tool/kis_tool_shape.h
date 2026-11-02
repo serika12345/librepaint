@@ -47,6 +47,7 @@ public:
     KisToolShape(KoCanvasBase * canvas, const QCursor & cursor);
     ~KisToolShape() override;
     int flags() const override;
+    void keyPressEvent(QKeyEvent *event) override;
     WdgGeometryOptions *m_shapeOptionsWidget;
 
 public Q_SLOTS:

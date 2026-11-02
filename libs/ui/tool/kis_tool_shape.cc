@@ -49,6 +49,7 @@
 #include "KoFlakeTypes.h"
 #include "kis_resources_snapshot.h"
 #include <qlist.h>
+#include <QKeyEvent>
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsharedpointer.h>
@@ -92,6 +93,18 @@ public:
         endPaint();
     }
 };
+}
+
+void KisToolShape::keyPressEvent(QKeyEvent *event)
+{
+    // During a pointer action the input manager forwards unclaimed keys to
+    // the tool instead of matching the ordinary cancel-action shortcut.
+    if (mode() == KisTool::PAINT_MODE && event->key() == Qt::Key_Escape) {
+        event->accept();
+        requestStrokeCancellation();
+        return;
+    }
+    KisToolPaint::keyPressEvent(event);
 }
 
 void KisToolShape::paintGpuOutline(const LibrePaint::Image::Gpu::Shape &shape, const KUndo2MagicString &name)

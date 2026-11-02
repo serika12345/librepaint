@@ -151,7 +151,10 @@ void KisToolPolylineBase::beginPrimaryAction(KoPointerEvent *event)
 
 void KisToolPolylineBase::endPrimaryAction(KoPointerEvent *event)
 {
-    CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
+    if (mode() != KisTool::PAINT_MODE) {
+        event->accept();
+        return;
+    }
     setMode(KisTool::HOVER_MODE);
 
     if (m_polylineInteraction.isActive()) {

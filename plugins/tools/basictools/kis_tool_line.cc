@@ -340,8 +340,10 @@ void KisToolLine::continuePrimaryAction(KoPointerEvent *event)
 
 void KisToolLine::endPrimaryAction(KoPointerEvent *event)
 {
-    Q_UNUSED(event);
-    CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
+    if (mode() != KisTool::PAINT_MODE) {
+        event->accept();
+        return;
+    }
     setMode(KisTool::HOVER_MODE);
 
     updateGuideline();
@@ -406,7 +408,11 @@ void KisToolLine::endStroke()
 void KisToolLine::cancelStroke()
 {
     if (!m_strokeIsRunning) return;
-    if (m_startPoint == m_endPoint) return;
+    m_strokeUpdateCompressor.stop();
+    setMode(KisTool::HOVER_MODE);
+    updateGuideline();
+    m_strokeIsRunning = false;
+    m_endPoint = m_startPoint;
 
     /**
      * The actual stroke is run by the timer so it is a legal
@@ -417,10 +423,9 @@ void KisToolLine::cancelStroke()
         const QPointer<KisToolLine> guard(this);
         m_helper->cancel();
         if (!guard) return;
+    } else {
+        m_helper->clearPoints();
     }
-
-    m_strokeIsRunning = false;
-    m_endPoint = m_startPoint;
 }
 
 QPointF KisToolLine::straightLine(QPointF point)

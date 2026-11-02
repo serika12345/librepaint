@@ -1186,7 +1186,8 @@ void KisGpuDocumentViewTest::lineToolPreservesPreviewCancellationAndHistory()
         press({16, 48});
         move({40, 48});
         QVERIFY(QMetaObject::invokeMethod(tool, "updateStroke", Qt::DirectConnection));
-        tool->requestStrokeCancellation();
+        if (native) QTest::keyClick(native.data(), Qt::Key_Escape);
+        else QTest::keyClick(input.data(), Qt::Key_Escape);
         release({40, 48});
         image->waitForDone();
         QCOMPARE(lifetime->undoStack()->count(), 1);
@@ -3507,7 +3508,7 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
             }
             return true;
         };
-        const auto stroke = [&](QList<QPointF> points) {
+        const auto stroke = [&](QList<QPointF> points, bool cancel = false) {
             if (filledFigure && points.size() == 1) points = {points.first() - QPointF(4, 4), points.first() + QPointF(4, 4)};
             const auto *converter = view->canvasBase()->coordinatesConverter();
             const auto point = [&](QPointF value) {
@@ -3528,10 +3529,23 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
                 QTest::mouseMove(input, point(value), 5);
             }
             if (fineliner) pointerClock.advance();
+            if (cancel) QTest::keyClick(input, Qt::Key_Escape);
             QTest::mouseRelease(input, Qt::LeftButton, Qt::NoModifier, point(points.last())); pressed = false;
             image->waitForDone(); QApplication::processEvents();
         };
         QCOMPARE(pixels(), initial);
+        if (filledFigure) {
+            const int historyBefore = lifetime->undoStack()->index();
+            QByteArray projectionBefore(area.width() * area.height() * cs->pixelSize(), '\0');
+            image->projection()->readBytes(reinterpret_cast<quint8 *>(projectionBefore.data()), area);
+            stroke({{16, 16}, {48, 48}}, true);
+            QCOMPARE(lifetime->undoStack()->index(), historyBefore);
+            QCOMPARE(pixels(), initial);
+            QCOMPARE(parentPixels(), originalParent);
+            QByteArray projectionAfter(projectionBefore.size(), '\0');
+            image->projection()->readBytes(reinterpret_cast<quint8 *>(projectionAfter.data()), area);
+            QCOMPARE(projectionAfter, projectionBefore);
+        }
         if (groupOwner) QVERIFY2(compare(), "Prepared group projection must apply the full initial mask");
         if (groupOwner && !gpu) {
             QVERIFY2(lifetime->saveAs(nativeGroupSource, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
@@ -6374,6 +6388,29 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
     QTest::mouseMove(native.data(), start);
     QEnterEvent entered(start, start, native->mapToGlobal(start));
     QApplication::sendEvent(native.data(), &entered);
+    if (toolId == QLatin1String("KisToolSelectRectangular") || toolId == QLatin1String("KisToolSelectElliptical") ||
+        toolId == QLatin1String("KisToolSelectPolygonal")) {
+        // The held-pointer Escape must preserve the existing selection and
+        // leave the next gesture independent, including its saved pixels.
+        QByteArray displayedBefore(region.width() * region.height(), '\0');
+        if (image->globalSelection()) image->globalSelection()->pixelSelection()->readBytes(
+            reinterpret_cast<quint8 *>(displayedBefore.data()), region);
+        const auto cancelledStart = point({16, 208});
+        const auto cancelledEnd = point({48, 240});
+        QTest::mouseMove(native.data(), cancelledStart);
+        QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, cancelledStart);
+        QTest::mouseMove(native.data(), cancelledEnd, 20);
+        QTest::keyClick(native.data(), Qt::Key_Escape);
+        QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, cancelledEnd);
+        image->waitForDone();
+        QCOMPARE(owner->operations().snapshot(), before);
+        QCOMPARE(owner->operations().undoCount(), history);
+        QByteArray displayedAfter(displayedBefore.size(), '\0');
+        if (image->globalSelection()) image->globalSelection()->pixelSelection()->readBytes(
+            reinterpret_cast<quint8 *>(displayedAfter.data()), region);
+        QCOMPARE(displayedAfter, displayedBefore);
+        QTest::mouseMove(native.data(), start);
+    }
     if (toolId == QLatin1String("KisToolSelectPolygonal") || toolId == QLatin1String("KisToolSelectPath")) {
         for (const auto &vertex : vertices) QTest::mouseClick(native.data(), Qt::LeftButton, Qt::NoModifier, point(vertex));
         QTest::mouseDClick(native.data(), Qt::LeftButton, Qt::NoModifier, point(vertices.last()));
