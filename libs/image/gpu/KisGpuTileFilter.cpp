@@ -126,7 +126,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     auto &pipeline = filterPipelines[quint32(mode) | (wide ? 256u : 0u) | (transparency ? 512u : 0u)];
     if (!pipeline && filterLayout)
         pipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/filter.wgsl"), transparency ? "maskMain" : "main",
-                                  quint32(mode), 0, filterLayout.get(), true, wide ? 2u : 1u);
+                                  filterLayout.get(), quint32(mode), 0, wide ? 2u : 1u);
     if (!pipeline || !filterLayout)
         return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter pipeline creation failed: ") + error};
     quint32 flags = 1u;
@@ -177,6 +177,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         for (qsizetype i = 0; i < 4; ++i) parameterValues.overlayColor[i] = filter.overlay.color[i];
         const float opacity = float(filter.overlay.opacity) / 100.0f;
         parameterValues.control[0] = wide ? 1u : 0u;
+        parameterValues.control[3] = quint32(mode);
         std::memcpy(&parameterValues.control[1], &opacity, sizeof(opacity));
         parameterValues.control[2] = quint32(opacity * maximumComponent(format) + 0.5f);
         if (filter.kind == FilterKind::HsvAdjustment) {

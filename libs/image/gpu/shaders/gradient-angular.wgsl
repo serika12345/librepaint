@@ -20,16 +20,16 @@ fn gradientPosition(pixel: vec2<i32>) -> f32 {
     let dx = (parameters.patternMap0.z - parameters.patternMap0.x);
     let dy = (parameters.patternMap0.w - parameters.patternMap0.y);
     let length = sqrt(max(((dx * dx) + (dy * dy)), 0.0));
-    if (GRADIENT_SHAPE < 4u && (length < epsilon)) { return zero; }
+    if (parameters.pattern.y < 4u && (length < epsilon)) { return zero; }
     let px = (f32(pixel.x) - parameters.patternMap0.x);
     let py = (f32(pixel.y) - parameters.patternMap0.y);
-    if (GRADIENT_SHAPE >= 4u) {
+    if (parameters.pattern.y >= 4u) {
         let angle = gradientAngle(px, py, dx, dy);
         let pi = 3.1415927410125732;
         let one = 1.0;
         let turn = (angle / 6.2831854820251465);
-        if (GRADIENT_SHAPE == 4u) { return turn; }
-        if (GRADIENT_SHAPE == 5u) {
+        if (parameters.pattern.y == 4u) { return turn; }
+        if (parameters.pattern.y == 5u) {
             if ((angle < pi)) { return (angle / pi); }
             return (one - ((angle - pi) / pi));
         }
@@ -37,21 +37,21 @@ fn gradientPosition(pixel: vec2<i32>) -> f32 {
         if (!(length < epsilon)) {
             radius = (sqrt(max(((px * px) + (py * py)), 0.0)) / length);
         }
-        if (GRADIENT_SHAPE == 7u) { return (radius + (one - turn)); }
+        if (parameters.pattern.y == 7u) { return (radius + (one - turn)); }
         return (radius + turn);
     }
-    if (GRADIENT_SHAPE == 2u) {
+    if (parameters.pattern.y == 2u) {
         return (sqrt(max(((px * px) + (py * py)), 0.0)) / length);
     }
     let nx = (dx / length); let ny = (dy / length);
-    if (GRADIENT_SHAPE == 3u) {
+    if (parameters.pattern.y == 3u) {
         if (!(epsilon < length)) { return zero; }
         let first = abs((((-ny) * px) + (nx * py)));
         let second = abs((((-ny) * (-py)) + (nx * px)));
         return (select(second, first, (second <= first)) / length);
     }
     var t = (((px * nx) + (py * ny)) / length);
-    if (GRADIENT_SHAPE == 1u && (t < (-epsilon))) { t = (-t); }
+    if (parameters.pattern.y == 1u && (t < (-epsilon))) { t = (-t); }
     return t;
 }
 
@@ -63,7 +63,7 @@ fn gradientColor(pixel: vec2<i32>) -> vec4<u32> {
     let length = sqrt(max(((dx * dx) + (dy * dy)), 0.0));
     let antiAlias = parameters.patternMap1.x;
     let hasAntialias = (2.220446049250313e-16 < antiAlias);
-    let shape = GRADIENT_SHAPE;
+    let shape = parameters.pattern.y;
     let spiralSeam = shape >= 6u && parameters.patternSampling.y == 0u && hasAntialias;
     var threshold = (antiAlias / length);
     var seamSmoothing = parameters.patternSampling.y == 1u && (shape < 4u || shape >= 6u) && hasAntialias;

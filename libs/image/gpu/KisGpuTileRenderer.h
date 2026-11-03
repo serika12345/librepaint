@@ -32,6 +32,7 @@ public:
 private:
     friend class TileRenderer;
     friend class Execution;
+    friend class PipelineCompilationProbe;
     struct Data;
     explicit RenderedVersion(std::shared_ptr<Data> data);
     std::shared_ptr<const Data> m_data;
@@ -87,6 +88,7 @@ struct ProjectionOutcome
 class KRITAGPUIMAGE_EXPORT TileRenderer
 {
     friend class Execution;
+    friend class PipelineCompilationProbe;
 public:
     static constexpr int TileSize = RgbaTile::Size;
     /** RGBA8 size; RgbaTile::byteCount(document.format) supplies precision-aware storage. */

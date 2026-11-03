@@ -776,7 +776,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if ((figureFlags & 1u) != 0u) {
         var fillColor = nativePixel(bitcast<u32>(parameters.mirror.z), parameters.native.y, parameters.native.z != 0u);
         if ((figureFlags & 8u) != 0u) { fillColor = patternPixel(pixel); }
-        if (GRADIENT_FILL_ENABLED && (figureFlags & 16u) != 0u) { fillColor = gradientPixel(pixel); }
+        if ((figureFlags & 16u) != 0u) { fillColor = gradientPixel(pixel); }
         // Region post-filters can select outside the finite fill source. The
         // native source device supplies transparent black there, including Copy.
         if ((parameters.paintFlags & 262144u) != 0u &&

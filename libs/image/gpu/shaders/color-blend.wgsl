@@ -193,8 +193,6 @@ fn colorRecombineMode(mode: u32, source: vec3<u32>, input: vec3<u32>) -> vec3<u3
         }
     }
 }
-// Each production program supplies only its one or two current operations.
-// Constant modes remove unrelated arithmetic before the driver compiles it.
 fn colorRecombine(mode: u32, source: vec3<u32>, destination: vec3<u32>) -> vec3<u32> {
     if (COLOR_BLEND_MODE_A != 0u && mode == COLOR_BLEND_MODE_A) {
         return colorRecombineMode(COLOR_BLEND_MODE_A, source, destination);

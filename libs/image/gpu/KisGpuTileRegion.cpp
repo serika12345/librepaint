@@ -251,6 +251,7 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     parameters.documentSize[0] = document.size.width(); parameters.documentSize[1] = document.size.height();
     parameters.origin[0] = expectedOrigin.x(); parameters.origin[1] = expectedOrigin.y();
     parameters.seed[0] = quint32(settings.seed.x() - expectedOrigin.x()); parameters.seed[1] = quint32(settings.seed.y() - expectedOrigin.y());
+    parameters.flags = kind << 14;
     parameters.format = quint32(document.format); parameters.threshold = settings.threshold; parameters.spread = settings.opacitySpread;
     if (masked || !document.selection.isEmpty()) parameters.flags |= 1;
     if (document.selectionKind == SelectionKind::Ellipse) parameters.flags |= 2;
@@ -298,34 +299,34 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         regionLayout.reset(wgpuDeviceCreateBindGroupLayout(device->nativeDevice(), &layout));
     }
     if (regionLayout) {
-        if (kind && !regionConversions[kind - 1]) regionConversions[kind - 1] = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "convert", 0, 0, regionLayout.get(), false, 0, kind);
+        if (kind && !regionConversion) regionConversion = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "convert", regionLayout.get());
         if (kind == 2 && !regionEncoding) regionEncoding = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "encode", 0, 0, regionLayout.get(), false, 0, kind);
-        if (!regionClassifiers[kind]) regionClassifiers[kind] = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "classify", 0, 0, regionLayout.get(), false, 0, kind);
-        if (!regionConnect[kind]) regionConnect[kind] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "connect", 0, 0, regionLayout.get(), false, 0, kind);
-        if (radius && !regionVertical[kind]) regionVertical[kind] = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "vertical", 0, 0, regionLayout.get(), false, 0, kind);
-        if (radius && !regionMorph[kind]) regionMorph[kind] = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "morph", 0, 0, regionLayout.get(), false, 0, kind);
-        if (radius && !regionMorphed[kind]) regionMorphed[kind] = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "morphed", 0, 0, regionLayout.get(), false, 0, kind);
-        if (antiAlias && !regionAntiAlias[kind]) regionAntiAlias[kind] = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "antiAlias", 0, 0, regionLayout.get(), false, 0, kind);
-        if (antiAlias && !regionFiltered[kind]) regionFiltered[kind] = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "filtered", 0, 0, regionLayout.get(), false, 0, kind);
-        if (!regionResolve[kind]) regionResolve[kind] = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "resolve", 0, 0, regionLayout.get(), false, 0, kind);
-        if (settings.feather && !regionFeatherHorizontal[kind]) regionFeatherHorizontal[kind] = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "featherHorizontal", 0, 0, regionLayout.get(), false, 0, kind);
-        if (settings.feather && !regionFeatherVertical[kind]) regionFeatherVertical[kind] = createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "featherVertical", 0, 0, regionLayout.get(), false, 0, kind);
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "encode", regionLayout.get());
+        if (!regionClassifiers) regionClassifiers = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "classify", regionLayout.get());
+        if (!regionConnect) regionConnect = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "connect", regionLayout.get());
+        if (radius && !regionVertical) regionVertical = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "vertical", regionLayout.get());
+        if (radius && !regionMorph) regionMorph = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "morph", regionLayout.get());
+        if (radius && !regionMorphed) regionMorphed = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "morphed", regionLayout.get());
+        if (antiAlias && !regionAntiAlias) regionAntiAlias = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "antiAlias", regionLayout.get());
+        if (antiAlias && !regionFiltered) regionFiltered = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "filtered", regionLayout.get());
+        if (!regionResolve) regionResolve = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "resolve", regionLayout.get());
+        if (settings.feather && !regionFeatherHorizontal) regionFeatherHorizontal = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "featherHorizontal", regionLayout.get());
+        if (settings.feather && !regionFeatherVertical) regionFeatherVertical = createPipeline(
+            QStringLiteral(":/librepaint/gpu/shaders/region.wgsl"), "featherVertical", regionLayout.get());
     }
-    if ((radius && (!regionVertical[kind] || !regionMorph[kind] || !regionMorphed[kind])) ||
-        (antiAlias && (!regionAntiAlias[kind] || !regionFiltered[kind])) ||
-        (settings.feather && (!regionFeatherHorizontal[kind] || !regionFeatherVertical[kind])) ||
-        (kind && !regionConversions[kind - 1]) || (kind == 2 && !regionEncoding) ||
-        !regionClassifiers[kind] || !regionConnect[kind] || !regionResolve[kind] || !regionLayout)
+    if ((radius && (!regionVertical || !regionMorph || !regionMorphed)) ||
+        (antiAlias && (!regionAntiAlias || !regionFiltered)) ||
+        (settings.feather && (!regionFeatherHorizontal || !regionFeatherVertical)) ||
+        (kind && !regionConversion) || (kind == 2 && !regionEncoding) ||
+        !regionClassifiers || !regionConnect || !regionResolve || !regionLayout)
         return {RenderOutcome::DeviceFailure, {}, error};
     const std::array<std::shared_ptr<BufferStorage>, 8> buffers{uniform, atlas, directory, selection, labels, coverage, status, lab};
     std::array<WGPUBindGroupEntry, 8> bindings{};
@@ -351,23 +352,23 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     }
     struct Stage { WGPUComputePipeline pipeline; quint32 depth; int level = 0; };
     QList<Stage> stages;
-    if (kind) stages.append({regionConversions[kind - 1].get(), (kind == 2 ? 3u : 1u) * (settings.boundaryColor ? 2u : 1u)});
+    if (kind) stages.append({regionConversion.get(), (kind == 2 ? 3u : 1u) * (settings.boundaryColor ? 2u : 1u)});
     if (kind == 2) stages.append({regionEncoding.get(), settings.boundaryColor ? 2u : 1u});
-    stages.append({regionClassifiers[kind].get(), 1u});
-    if (settings.mode == RegionFillMode::Contiguous) stages.append({regionConnect[kind].get(), 1u});
-    stages.append({regionResolve[kind].get(), 1u});
+    stages.append({regionClassifiers.get(), 1u});
+    if (settings.mode == RegionFillMode::Contiguous) stages.append({regionConnect.get(), 1u});
+    stages.append({regionResolve.get(), 1u});
     if (radius) {
-        for (int level = 1; level <= levels; ++level) stages.append({regionVertical[kind].get(), 1u, level});
-        stages.append({regionMorph[kind].get(), 1u});
-        stages.append({regionMorphed[kind].get(), 1u});
+        for (int level = 1; level <= levels; ++level) stages.append({regionVertical.get(), 1u, level});
+        stages.append({regionMorph.get(), 1u});
+        stages.append({regionMorphed.get(), 1u});
     }
     if (antiAlias) {
-        stages.append({regionAntiAlias[kind].get(), 1u});
-        stages.append({regionFiltered[kind].get(), 1u});
+        stages.append({regionAntiAlias.get(), 1u});
+        stages.append({regionFiltered.get(), 1u});
     }
     if (settings.feather) {
-        stages.append({regionFeatherHorizontal[kind].get(), 1u});
-        stages.append({regionFeatherVertical[kind].get(), 1u});
+        stages.append({regionFeatherHorizontal.get(), 1u});
+        stages.append({regionFeatherVertical.get(), 1u});
     }
     for (const auto &stage : stages) {
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);

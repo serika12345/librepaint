@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuDevice.h"
+#include "KisGpuPipelineCache_p.h"
 #include "KisGpuReadbackBatch_p.h"
 #include <QGuiApplication>
 #include <QMutex>
@@ -102,6 +103,7 @@ Device::~Device()
 {
     Q_ASSERT(thread() == QThread::currentThread());
     Q_ASSERT(!isRecordingFrame());
+    m_programs.reset();
     if (isLost()) {
         // wgpu-native aborts the process when a lost device fails its final wait in
         // destroy, drop or poll. Abandon the native handles instead, and keep the

@@ -59,9 +59,9 @@ ExecutionOutcome Execution::readSelectionOutline(const std::shared_ptr<BufferSto
     }
     if (r.coverageGeometryLayout) {
         if (!r.coverageCountPipeline) r.coverageCountPipeline = r.createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/coverage-outline.wgsl"), "countRows", 0, 0, r.coverageGeometryLayout.get());
+            QStringLiteral(":/librepaint/gpu/shaders/coverage-outline.wgsl"), "countRows", r.coverageGeometryLayout.get());
         if (!r.coverageOutlinePipeline) r.coverageOutlinePipeline = r.createPipeline(
-            QStringLiteral(":/librepaint/gpu/shaders/coverage-outline.wgsl"), "writeRows", 0, 0, r.coverageGeometryLayout.get());
+            QStringLiteral(":/librepaint/gpu/shaders/coverage-outline.wgsl"), "writeRows", r.coverageGeometryLayout.get());
     }
     if (!r.coverageCountPipeline || !r.coverageOutlinePipeline)
         return {ExecutionCode::DeviceFailure, r.error};

@@ -63,3 +63,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_tests_properties(${gpu_region_colour_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa" TIMEOUT 300)
 endif()
+
+kis_add_test(KisGpuPipelineBuildTest.cpp
+    TEST_NAME_VAR gpu_pipeline_build_test
+    LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::Gui Qt6::Test WGPUNative::WGPUNative)
+target_compile_definitions(KisGpuPipelineBuildTest PRIVATE kritagpuimage_EXPORTS)
+set_tests_properties(${gpu_pipeline_build_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;__GL_SHADER_DISK_CACHE=0;MESA_SHADER_CACHE_DISABLE=true" TIMEOUT 30)

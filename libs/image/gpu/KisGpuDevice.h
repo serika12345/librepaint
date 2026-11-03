@@ -29,7 +29,7 @@ using WGPUSurface = WGPUSurfaceImpl *;
 using WGPUTextureView = WGPUTextureViewImpl *;
 
 namespace LibrePaint::Image::Gpu {
-namespace Detail { struct ReadbackBatch; }
+namespace Detail { struct ReadbackBatch; struct PipelineCache; }
 class Device;
 using DevicePtr = std::shared_ptr<Device>;
 
@@ -71,12 +71,14 @@ public:
 
 private:
     friend class Execution;
+    friend class TileRenderer;
     friend struct Detail::ReadbackBatch;
     struct Private;
     explicit Device(std::unique_ptr<Private> data);
     bool readbackPending() const;
     void releaseCompletedReadback();
     std::unique_ptr<Private> m_d;
+    std::shared_ptr<Detail::PipelineCache> m_programs;
 };
 }
 #endif

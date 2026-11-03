@@ -20,12 +20,12 @@ fn morphRadius() -> u32 { return parameters.flags >> 16u; }
 fn morphLevels() -> u32 { return 31u - countLeadingZeros(2u * morphRadius() + 1u); }
 fn labelStride() -> u32 {
     var native = 1u;
-    if (NATIVE_LAB_KIND == 2u) { native = 3u; }
-    if (NATIVE_LAB_KIND == 1u) { native = 3u; }
+    if (((parameters.flags >> 14u) & 3u) == 2u) { native = 3u; }
+    if (((parameters.flags >> 14u) & 3u) == 1u) { native = 3u; }
     return max(native, morphLevels() + 1u);
 }
 fn parentIndex(index: u32) -> u32 {
-    return index * labelStride() + select(0u, 2u, NATIVE_LAB_KIND != 0u);
+    return index * labelStride() + select(0u, 2u, ((parameters.flags >> 14u) & 3u) != 0u);
 }
 fn convertedLab(index: u32) -> vec3<u32> {
     let first = atomicLoad(&labels[index * labelStride()]);
@@ -97,7 +97,7 @@ fn opacity(difference: u32) -> u32 {
     let world = vec2<i32>(p) + parameters.origin;
     if (any(world < vec2<i32>()) || any(world >= vec2<i32>(parameters.documentSize))) { return; }
     var index = p.y * parameters.size.x + p.x;
-    let channels = select(1u, 3u, NATIVE_LAB_KIND == 2u);
+    let channels = select(1u, 3u, ((parameters.flags >> 14u) & 3u) == 2u);
     var rgba = pixel(p);
     if (invocation.z >= channels) {
         if (any(p != parameters.seed)) { return; }
@@ -105,9 +105,9 @@ fn opacity(difference: u32) -> u32 {
         rgba = parameters.boundary;
     }
     let input = rgba.rgb * select(257u, 1u, parameters.format != 0u);
-    if (NATIVE_LAB_KIND == 1u) {
+    if (((parameters.flags >> 14u) & 3u) == 1u) {
         storeLab(index, nativeLabClut(input));
-    } else if (NATIVE_LAB_KIND == 2u) {
+    } else if (((parameters.flags >> 14u) & 3u) == 2u) {
         let value = nativeLabLinearComponent(input, invocation.z % channels);
         let offset = index * labelStride() + invocation.z % channels;
         atomicStore(&labels[offset], bitcast<u32>(value));
@@ -154,7 +154,7 @@ fn opacity(difference: u32) -> u32 {
         difference = select(255u, 0u, all(reference == value) || (seedAlpha == 0u && alpha == 0u));
     } else if (seedAlpha == 0u || alpha == 0u) {
         difference = (100u * u32(abs(i32(seedAlpha) - i32(alpha))) + 127u) / 255u;
-    } else if (NATIVE_LAB_KIND != 0u && conversion[0] != 0u) {
+    } else if (((parameters.flags >> 14u) & 3u) != 0u && conversion[0] != 0u) {
         difference = nativeLabDifference(convertedLab(select(parameters.seed.y * parameters.size.x + parameters.seed.x,
             parameters.size.x * parameters.size.y, boundary)),
             convertedLab(index), reference.a, value.a, parameters.format != 0u);

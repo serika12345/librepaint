@@ -170,7 +170,6 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline coverageCountPipeline, coverageOutlinePipeline;
     Detail::NativeBindingLayout layout;
     Detail::NativeComputePipeline pipeline;
-    /** Finite cache of operation-specific programs; command buffers retain recorded programs. */
     std::map<quint32, Detail::NativeComputePipeline> blendPipelines;
     Detail::NativeBindingLayout projectionLayout;
     Detail::NativeComputePipeline projectionPipeline;
@@ -203,12 +202,12 @@ struct TileRenderer::Private
     Detail::NativeBindingLayout colorSampleLayout;
     Detail::NativeComputePipeline colorSamplePipeline;
     Detail::NativeBindingLayout regionLayout;
-    std::array<Detail::NativeComputePipeline, 3> regionClassifiers;
-    std::array<Detail::NativeComputePipeline, 2> regionConversions;
+    Detail::NativeComputePipeline regionClassifiers;
+    Detail::NativeComputePipeline regionConversion;
     Detail::NativeComputePipeline regionEncoding;
-    std::array<Detail::NativeComputePipeline, 3> regionConnect, regionResolve, regionAntiAlias, regionFiltered;
-    std::array<Detail::NativeComputePipeline, 3> regionVertical, regionMorph, regionMorphed;
-    std::array<Detail::NativeComputePipeline, 3> regionFeatherHorizontal, regionFeatherVertical;
+    Detail::NativeComputePipeline regionConnect, regionResolve, regionAntiAlias, regionFiltered;
+    Detail::NativeComputePipeline regionVertical, regionMorph, regionMorphed;
+    Detail::NativeComputePipeline regionFeatherHorizontal, regionFeatherVertical;
     struct RegionCoverage {
         std::shared_ptr<Detail::BufferStorage> pixels, status;
     };
@@ -243,10 +242,10 @@ struct TileRenderer::Private
         for (const auto &tile : tiles) retainTile(tile);
     }
     Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main",
-        quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr, bool separableBlendEnabled = false,
-        quint32 coupledPixelFormat = 0, quint32 nativeLabKind = 0, quint32 gradientKind = 0, bool generatedBrush = false);
-    WGPUComputePipeline blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend, quint32 secondBlend = 0,
-        quint32 gradientKind = 0, bool generatedBrush = false);
+        WGPUBindGroupLayout sharedLayout = nullptr, quint32 firstBlend = 0, quint32 secondBlend = 0,
+        quint32 coupledPixelFormat = 0, bool generatedBrush = false);
+    WGPUComputePipeline blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend,
+        quint32 secondBlend = 0, bool generatedBrush = false);
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);
     Detail::NativeBuffer recordBounds(WGPUCommandEncoder commands, const QList<TileView> &tiles,

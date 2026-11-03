@@ -19,7 +19,7 @@ fn gradientRepeated(value: f32) -> f32 {
         if ((value < epsilon)) { integer = (integer - one); }
         return (value - integer);
     }
-    if (GRADIENT_SHAPE >= 6u) {
+    if (parameters.pattern.y >= 6u) {
         var fraction = (abs(value) - integral);
         let halfIntegral = floor((abs(value) * f32(2u)));
         if (patternCoordinate(halfIntegral, 2u).pixel == 1) { fraction = (one - fraction); }

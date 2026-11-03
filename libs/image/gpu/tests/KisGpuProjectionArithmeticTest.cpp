@@ -43,6 +43,7 @@ void KisGpuProjectionArithmeticTest::normalRgba8ColorsStayWithinOneStep()
     const auto device = Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl"));
+    QFile settings(QStringLiteral(":/librepaint/gpu/shaders/composite-settings.wgsl"));
     QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
     QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
     QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
@@ -52,6 +53,7 @@ void KisGpuProjectionArithmeticTest::normalRgba8ColorsStayWithinOneStep()
     QFile separable16(QStringLiteral(":/librepaint/gpu/shaders/separable-rgba16.wgsl"));
     QFile over(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"));
     QVERIFY(shared.open(QIODevice::ReadOnly));
+    QVERIFY(settings.open(QIODevice::ReadOnly));
     QVERIFY(arithmetic.open(QIODevice::ReadOnly));
     QVERIFY(separable.open(QIODevice::ReadOnly));
     QVERIFY(color.open(QIODevice::ReadOnly));
@@ -63,7 +65,7 @@ void KisGpuProjectionArithmeticTest::normalRgba8ColorsStayWithinOneStep()
     // Normal layer projection supplies the same blend to every RGB channel.
     // Saving and exporting must retain the single-rounded binary32 color,
     // including its subsequent nearest-even quantization to an RGBA8 byte.
-    const QByteArray source = QByteArray("const COLOR_BLEND_MODE_A: u32 = 0u;\nconst COLOR_BLEND_MODE_B: u32 = 0u;\nconst SEPARABLE_BLEND_ENABLED: bool = true;\nconst COUPLED_PIXEL_FORMAT: u32 = 0u;\nconst WORD_BLEND_MODE_A: u32 = 0u;\nconst WORD_BLEND_MODE_B: u32 = 0u;\n") + shared.readAll() + '\n' + arithmetic.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + separable16.readAll() + '\n' + copy.readAll() + '\n' + over.readAll() + R"(
+    const QByteArray source = shared.readAll() + '\n' + settings.readAll() + '\n' + arithmetic.readAll() + '\n' + color.readAll() + '\n' + separable.readAll() + '\n' + normal.readAll() + '\n' + native.readAll() + '\n' + separable16.readAll() + '\n' + copy.readAll() + '\n' + over.readAll() + R"(
 @compute @workgroup_size(64)
 fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = invocation.x;
@@ -264,8 +266,10 @@ void KisGpuProjectionArithmeticTest::normalRgba16StaysWithinOneEightBitStep()
     QString diagnostic;
     const auto device = Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
+    QFile settings(QStringLiteral(":/librepaint/gpu/shaders/composite-settings.wgsl"));
     QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
     QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
+    QVERIFY(settings.open(QIODevice::ReadOnly));
     QVERIFY(arithmetic.open(QIODevice::ReadOnly));
     QVERIFY2(native.open(QIODevice::ReadOnly), "Native RGBA16 composition shader is unavailable");
     const QByteArray source = arithmetic.readAll() + '\n' + native.readAll() + R"(

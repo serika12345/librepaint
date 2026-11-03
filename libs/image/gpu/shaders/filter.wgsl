@@ -565,7 +565,7 @@ fn overlayPixel(base: vec4<u32>, wide: bool) -> vec4<u32> {
     let source = parameters.overlayColor;
     let opacity = parameters.control.y;
     let quantizedOpacity = parameters.control.z;
-    let mode = FILTER_BLEND_MODE;
+    let mode = parameters.control.w;
     if (mode == 130u) { return copyPixel(base, source, opacity, 7u, wide); }
     if (mode == 0u) {
         if (wide) {

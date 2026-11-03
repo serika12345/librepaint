@@ -5,6 +5,8 @@
 
 #include "KisGpuTileRenderer.h"
 #include "KisGpuPaintJob_p.h"
+#include "KisGpuPipelineCache_p.h"
+#include <QCryptographicHash>
 #include "KisGpuRgba8AlphaBlend_p.h"
 #include "KisGpuRgba16Compositing_p.h"
 
@@ -104,96 +106,71 @@ TileRenderer::Private::Private(TileRenderer &renderer, DevicePtr device, qsizety
 TileRenderer::Private::~Private() = default;
 
 NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path, const char *entryPoint,
-    quint32 firstBlend, quint32 secondBlend, WGPUBindGroupLayout sharedLayout, bool separableBlendEnabled, quint32 coupledPixelFormat, quint32 nativeLabKind,
-    quint32 gradientKind, bool generatedBrush)
+    WGPUBindGroupLayout sharedLayout, quint32 firstBlend, quint32 secondBlend,
+    quint32 coupledPixelFormat, bool generatedBrush)
 {
-    QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl")), shader(path);
-    if (!shared.open(QIODevice::ReadOnly) || !shader.open(QIODevice::ReadOnly)) {
-        error = QStringLiteral("GPU compute resources could not be loaded");
-        return {};
-    }
-    QByteArray source = shared.readAll() + '\n';
-    const auto coupled = [](quint32 mode) { return mode >= 88 && mode <= 126 ? mode : 0u; };
-    source += "const FILTER_BLEND_MODE: u32 = " + QByteArray::number(firstBlend) + "u;\n";
-    source += "const COLOR_BLEND_MODE_A: u32 = " + QByteArray::number(coupled(firstBlend)) + "u;\n";
-    source += "const COLOR_BLEND_MODE_B: u32 = " + QByteArray::number(coupled(secondBlend)) + "u;\n";
-    source += "const WORD_BLEND_MODE_A: u32 = " + QByteArray::number(coupledPixelFormat == 2u ? firstBlend : 0u) + "u;\n";
-    source += "const WORD_BLEND_MODE_B: u32 = " + QByteArray::number(coupledPixelFormat == 2u ? secondBlend : 0u) + "u;\n";
-    source += QByteArray("const SEPARABLE_BLEND_ENABLED: bool = ") + (separableBlendEnabled ? "true;\n" : "false;\n");
-    source += "const COUPLED_PIXEL_FORMAT: u32 = " + QByteArray::number(coupledPixelFormat) + "u;\n";
-    source += "const NATIVE_LAB_KIND: u32 = " + QByteArray::number(nativeLabKind) + "u;\n";
-    source += QByteArray("const GRADIENT_FILL_ENABLED: bool = ") + (gradientKind ? "true;\n" : "false;\n");
-    source += QByteArray("const GENERATED_BRUSH_ENABLED: bool = ") + (generatedBrush ? "true;\n" : "false;\n");
-    source += "const GRADIENT_SHAPE: u32 = " + QByteArray::number(gradientKind ? gradientKind - 1 : 0) + "u;\n";
-    const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
-    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl")) || path.endsWith(QLatin1String("/region.wgsl")) || path.endsWith(QLatin1String("/filter.wgsl")) || path.endsWith(QLatin1String("/convolution.wgsl"))) {
-        QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
-        QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
-        QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
-        QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
-        QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
-        QFile copy(QStringLiteral(":/librepaint/gpu/shaders/copy.wgsl"));
-        QFile separable16(QStringLiteral(":/librepaint/gpu/shaders/separable-rgba16.wgsl"));
-        if (!arithmetic.open(QIODevice::ReadOnly) || !separable.open(QIODevice::ReadOnly) ||
-            !normal.open(QIODevice::ReadOnly) || !native.open(QIODevice::ReadOnly) || !separable16.open(QIODevice::ReadOnly) ||
-            !copy.open(QIODevice::ReadOnly) || !color.open(QIODevice::ReadOnly)) {
-            error = QStringLiteral("GPU normal-composition arithmetic could not be loaded");
-            return {};
+    if (device->isLost()) { error = QStringLiteral("GPU device lost"); return {}; }
+    QByteArray source;
+    const auto append = [&](const QString &resource) {
+        QFile file(resource);
+        if (!file.open(QIODevice::ReadOnly)) {
+            error = QStringLiteral("GPU shader resource could not be loaded: %1").arg(resource);
+            return false;
         }
-        source += arithmetic.readAll() + '\n';
-        source += color.readAll() + '\n';
-        source += separable.readAll() + '\n';
-        source += normal.readAll() + '\n';
-        source += native.readAll() + '\n';
-        source += separable16.readAll() + '\n';
-        source += copy.readAll() + '\n';
+        source += file.readAll() + '\n';
+        return true;
+    };
+    const auto library = [&](const char *name) {
+        return append(QStringLiteral(":/librepaint/gpu/shaders/") + QLatin1String(name));
+    };
+    if (!library("rgba.wgsl")) return {};
+    const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
+    const bool region = path.endsWith(QLatin1String("/region.wgsl"));
+    const bool composite = painting || path.endsWith(QLatin1String("/over.wgsl")) ||
+        path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/filter.wgsl"));
+    if ((composite || region) && !library("binary32.wgsl")) return {};
+    const auto coupled = [](quint32 mode) { return mode >= 88 && mode <= 126 ? mode : 0u; };
+    const std::array<double, 7> values{double(coupled(firstBlend)), double(coupled(secondBlend)),
+        double(coupledPixelFormat == 2u ? firstBlend : 0u), double(coupledPixelFormat == 2u ? secondBlend : 0u),
+        double(coupledPixelFormat == 2u && ((firstBlend && !coupled(firstBlend)) || (secondBlend && !coupled(secondBlend)))),
+        double(coupledPixelFormat), double(generatedBrush)};
+    const std::array<const char *, 7> keys{"COLOR_BLEND_MODE_A", "COLOR_BLEND_MODE_B", "WORD_BLEND_MODE_A",
+        "WORD_BLEND_MODE_B", "SEPARABLE_BLEND_ENABLED", "COUPLED_PIXEL_FORMAT", "GENERATED_BRUSH_ENABLED"};
+    if (composite && !library("composite-settings.wgsl")) return {};
+    if (composite) {
+        for (const auto name : {"color-blend.wgsl", "separable.wgsl", "normal-rgba8.wgsl",
+                               "normal-rgba16.wgsl", "separable-rgba16.wgsl", "copy.wgsl"})
+            if (!library(name)) return {};
     }
     if (painting) {
-        QFile gaussian(QStringLiteral(":/librepaint/gpu/shaders/gaussian.wgsl"));
-        if (!gaussian.open(QIODevice::ReadOnly)) {
-            error = QStringLiteral("GPU native brush arithmetic could not be loaded");
-            return {};
-        }
-        source += gaussian.readAll() + '\n';
-        QFile imageBrush(QStringLiteral(":/librepaint/gpu/shaders/image-brush.wgsl"));
-        if (!imageBrush.open(QIODevice::ReadOnly)) {
-            error = QStringLiteral("GPU image brush arithmetic could not be loaded");
-            return {};
-        }
-        source += imageBrush.readAll() + '\n';
-        if (gradientKind) {
-            QFile gradient(QStringLiteral(":/librepaint/gpu/shaders/gradient.wgsl"));
-            if (!gradient.open(QIODevice::ReadOnly)) {
-                error = QStringLiteral("GPU gradient arithmetic could not be loaded");
-                return {};
-            }
-            source += gradient.readAll() + '\n';
-            QFile geometry(gradientKind <= 4 ? QStringLiteral(":/librepaint/gpu/shaders/gradient-vector.wgsl") :
-                QStringLiteral(":/librepaint/gpu/shaders/gradient-angular.wgsl"));
-            if (!geometry.open(QIODevice::ReadOnly)) {
-                error = QStringLiteral("GPU gradient geometry could not be loaded");
-                return {};
-            }
-            source += geometry.readAll() + '\n';
-        } else {
-            source += "fn gradientPixel(pixel: vec2<i32>) -> vec4<u32> { return vec4<u32>(); }\n";
-        }
+        for (const auto name : {"gaussian.wgsl", "image-brush.wgsl", "gradient.wgsl", "gradient-angular.wgsl"})
+            if (!library(name)) return {};
     }
-    if (path.endsWith(QLatin1String("/region.wgsl"))) {
-        QFile lab(QStringLiteral(":/librepaint/gpu/shaders/native-lab.wgsl"));
-        if (!lab.open(QIODevice::ReadOnly)) { error = QStringLiteral("Native Lab arithmetic could not be loaded"); return {}; }
-        source += lab.readAll() + '\n';
+    if (region && !library("native-lab.wgsl")) return {};
+    if (!append(path)) return {};
+    if (!device->m_programs) device->m_programs = std::make_shared<PipelineCache>();
+    auto &cache = *device->m_programs;
+    const auto moduleKey = QCryptographicHash::hash(source, QCryptographicHash::Sha256);
+    QByteArray identity = moduleKey + QByteArray(entryPoint) + '\0';
+    const auto layoutIdentity = reinterpret_cast<quintptr>(sharedLayout);
+    identity.append(reinterpret_cast<const char *>(&layoutIdentity), sizeof(layoutIdentity));
+    if (composite) identity.append(reinterpret_cast<const char *>(values.data()), sizeof(values));
+    const auto pipelineKey = QCryptographicHash::hash(identity, QCryptographicHash::Sha256);
+    if (const auto cached = cache.pipelines.value(pipelineKey)) {
+        wgpuComputePipelineAddRef(cached->get());
+        return NativeComputePipeline(cached->get());
     }
-    source += shader.readAll();
-    WGPUShaderSourceWGSL code{};
-    code.chain.sType = WGPUSType_ShaderSourceWGSL;
-    code.code = {source.constData(), size_t(source.size())};
-    WGPUShaderModuleDescriptor shaderDescriptor{};
-    shaderDescriptor.nextInChain = &code.chain;
-    NativeShader module(wgpuDeviceCreateShaderModule(device->nativeDevice(), &shaderDescriptor));
-    if (!module || !device->diagnostic().isEmpty()) {
-        error = device->diagnostic();
-        return {};
+    auto module = cache.modules.value(moduleKey);
+    if (!module) {
+        WGPUShaderSourceWGSL code{};
+        code.chain.sType = WGPUSType_ShaderSourceWGSL;
+        code.code = {source.constData(), size_t(source.size())};
+        WGPUShaderModuleDescriptor descriptor{};
+        descriptor.nextInChain = &code.chain;
+        NativeShader compiled(wgpuDeviceCreateShaderModule(device->nativeDevice(), &descriptor));
+        if (!compiled || !device->diagnostic().isEmpty()) { error = device->diagnostic(); return {}; }
+        module = std::make_shared<NativeShader>(std::move(compiled));
+        cache.modules.insert(moduleKey, module);
     }
     NativeResource<WGPUPipelineLayout, wgpuPipelineLayoutRelease> explicitLayout;
     if (sharedLayout) {
@@ -205,37 +182,43 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     }
     WGPUComputePipelineDescriptor descriptor{};
     descriptor.layout = explicitLayout.get();
-    descriptor.compute.module = module.get();
+    descriptor.compute.module = module->get();
     descriptor.compute.entryPoint = {entryPoint, WGPU_STRLEN};
-    NativeComputePipeline result(wgpuDeviceCreateComputePipeline(device->nativeDevice(), &descriptor));
-    if (!result || !device->diagnostic().isEmpty()) {
+    std::array<WGPUConstantEntry, 7> constants{};
+    if (composite) {
+        for (size_t i = 0; i < constants.size(); ++i) {
+            constants[i].key = {keys[i], WGPU_STRLEN};
+            constants[i].value = values[i];
+        }
+        descriptor.compute.constantCount = constants.size();
+        descriptor.compute.constants = constants.data();
+    }
+    NativeComputePipeline compiled(wgpuDeviceCreateComputePipeline(device->nativeDevice(), &descriptor));
+    if (!compiled || !device->diagnostic().isEmpty()) {
         error = device->diagnostic().isEmpty() ? QStringLiteral("GPU compute pipeline creation failed") : device->diagnostic();
         return {};
     }
-    return result;
+    const auto retained = std::make_shared<NativeComputePipeline>(std::move(compiled));
+    cache.pipelines.insert(pipelineKey, retained);
+    wgpuComputePipelineAddRef(retained->get());
+    return NativeComputePipeline(retained->get());
 }
 
-WGPUComputePipeline TileRenderer::Private::blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend, quint32 secondBlend, quint32 gradientKind, bool generatedBrush)
+WGPUComputePipeline TileRenderer::Private::blendPipeline(bool paint, bool paired, PixelFormat format,
+    quint32 firstBlend, quint32 secondBlend, bool generatedBrush)
 {
-    const auto coupled = [](quint32 mode) { return mode >= 88 && mode <= 126 ? mode : 0u; };
-    const bool separableBlendEnabled = format == PixelFormat::Rgba16 &&
-        ((firstBlend && !coupled(firstBlend)) || (secondBlend && !coupled(secondBlend)));
-    if (format == PixelFormat::Rgba8) {
-        firstBlend = coupled(firstBlend);
-        secondBlend = coupled(secondBlend);
-    }
-    if (firstBlend == secondBlend) secondBlend = 0;
-    if (!firstBlend && !secondBlend && !gradientKind && !generatedBrush)
+    if (!firstBlend && !secondBlend && !generatedBrush)
         return paint ? pipeline.get() : paired ? pairedProjectionPipeline.get() : projectionPipeline.get();
     if (secondBlend < firstBlend) std::swap(firstBlend, secondBlend);
-    const auto key = firstBlend | (secondBlend << 8) | (quint32(paint) << 16) | (quint32(paired) << 17) | (quint32(separableBlendEnabled) << 18) | (quint32(format == PixelFormat::Rgba16) << 19) | (gradientKind << 20) | (quint32(generatedBrush) << 24);
+    const auto key = firstBlend | (secondBlend << 8u) | (quint32(paint) << 16u) | (quint32(paired) << 17u) |
+        (quint32(format == PixelFormat::Rgba16) << 18u) | (quint32(generatedBrush) << 19u);
     const auto found = blendPipelines.find(key);
     if (found != blendPipelines.end()) return found->second.get();
     auto compiled = createPipeline(paint ? QStringLiteral(":/librepaint/gpu/shaders/paint.wgsl") :
-        QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"), paired ? "mainPair" : "main", firstBlend, secondBlend,
-        paint ? layout.get() : paired ? pairedProjectionLayout.get() : projectionLayout.get(), separableBlendEnabled, format == PixelFormat::Rgba16 ? 2u : 1u, 0, gradientKind, generatedBrush);
+        QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"), paired ? "mainPair" : "main",
+        paint ? layout.get() : paired ? pairedProjectionLayout.get() : projectionLayout.get(),
+        firstBlend, secondBlend, format == PixelFormat::Rgba16 ? 2u : 1u, generatedBrush);
     if (!compiled) return nullptr;
-    if (blendPipelines.size() >= 8) blendPipelines.erase(blendPipelines.begin());
     const auto result = compiled.get();
     blendPipelines.emplace(key, std::move(compiled));
     return result;
@@ -596,9 +579,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
             if (!pass) return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint commands failed")};
             for (size_t i = recordedJobs; i < jobs.size(); ++i) {
-                const auto program = d.blendPipeline(true, false, document->format, jobs[i].values.strokeBlendMode, jobs[i].values.fillBlendMode,
-                    (jobs[i].values.figureFlags & 16u) ? jobs[i].values.patternHeight + 1 : 0,
-                    (jobs[i].values.paintFlags & 512u) != 0u);
+                const auto program = d.blendPipeline(true, false, document->format, jobs[i].values.strokeBlendMode,
+                    jobs[i].values.fillBlendMode, (jobs[i].values.paintFlags & 512u) != 0u);
                 if (!program) {
                     wgpuComputePassEncoderEnd(pass);
                     wgpuComputePassEncoderRelease(pass);
