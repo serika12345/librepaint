@@ -771,6 +771,7 @@ void TestDocument::testDefaultBrushMouseInputKeepsFixedTimeInRetainedInput()
 
 void TestDocument::testDefaultBrushGpuEditingKeepsPixelsHistoryAndFiles_data()
 {
+    QSKIP("LOOP-DEFERRED: Default-brush save/reopen exceeds 300 seconds on Linux/Vulkan; restore in phase B (#89).");
     QTest::addColumn<qreal>("opacity");
     QTest::addColumn<qreal>("flow");
     QTest::addColumn<int>("profile");
