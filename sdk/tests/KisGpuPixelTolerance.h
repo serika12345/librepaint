@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef KIS_GPU_PIXEL_TOLERANCE_P_H
-#define KIS_GPU_PIXEL_TOLERANCE_P_H
+#ifndef KIS_GPU_PIXEL_TOLERANCE_H
+#define KIS_GPU_PIXEL_TOLERANCE_H
 
 #include <QByteArray>
 #include <QString>

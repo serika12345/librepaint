@@ -1216,7 +1216,7 @@ set(gpu_document_layer_cases
     layerPanelShowsAndSelectsGpuTransparencyMaskChild
     layerPanelTogglesAndRemovesGpuTransparencyMaskChild
     layerPanelGpuTransparencyMaskChildSurvivesSaving)
-kis_add_test(KisGpuDocumentViewTest.cpp KisGpuMultibrushEditingTest.cpp KisGpuRegionFillEditingTest.cpp KisGpuColorFilterEditingTest.cpp KisGpuFilterNodeEditingTest.cpp ../../../krita/krita.qrc
+kis_add_test(KisGpuDocumentViewTest.cpp KisGpuDocumentViewTest2.cpp KisGpuDocumentViewTest3.cpp KisGpuDocumentViewTest4.cpp KisGpuDocumentViewTest5.cpp KisGpuDocumentViewTest6.cpp KisGpuMultibrushEditingTest.cpp KisGpuRegionFillEditingTest.cpp KisGpuColorFilterEditingTest.cpp KisGpuFilterNodeEditingTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
     TEST_NAME KisGpuDocumentViewTest

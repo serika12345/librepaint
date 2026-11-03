@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuRegionFillEditingTest.h"
-#include "../../image/gpu/tests/KisGpuPixelTolerance_p.h"
+#include <KisGpuPixelTolerance.h>
 #include <QApplication>
 #include <QBitArray>
 #include <QComboBox>
