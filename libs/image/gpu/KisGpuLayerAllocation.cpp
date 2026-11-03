@@ -35,10 +35,6 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
         allocated += block;
         if (allocated.rectCount() > maximumRectangles) return std::nullopt;
     }
-    if (layer.initialProjection) for (const auto &block : layer.initialProjection->allocatedBlocks) {
-        allocated += block;
-        if (allocated.rectCount() > maximumRectangles) return std::nullopt;
-    }
     for (const auto &operation : layer.operations) {
         auto precedingExtent = allocated.boundingRect();
         if (layer.defaultPixel[3]) precedingExtent |= QRect(QPoint(), document->size);

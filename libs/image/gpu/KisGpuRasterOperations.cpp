@@ -284,7 +284,6 @@ Result OperationDocument::commitColorConversion(OperationId id, const Snapshot &
         layer->defaultPixel = pixels.defaultPixel;
         layer->pixels.reset();
         layer->operations.clear();
-        layer->initialProjection.clear();
         if (!write->tiles.isEmpty()) layer->operations.append(TileWriteSnapshot(write));
     }
     for (const auto &layer : version->layers)

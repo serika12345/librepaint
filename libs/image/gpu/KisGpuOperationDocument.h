@@ -28,12 +28,16 @@
 #include <variant>
 #include <memory>
 #include <optional>
+#include <functional>
 
 namespace LibrePaint::Image::Gpu {
 
 using LayerId = quint64;
 class DocumentVersion;
 using Snapshot = QSharedPointer<const DocumentVersion>;
+class LayerPixels;
+using LayerPixelsSP = std::shared_ptr<const LayerPixels>;
+struct LayerProjectionRequest;
 enum class LayerMergeMode : quint8 { Down, Selected, FlattenLayer, FlattenImage, NewFromVisible };
 
 /** Native layer-operation inputs resolved by the image consumer. Bounds limit
@@ -53,27 +57,24 @@ struct LayerMergeRequest
     bool pinnedToTimeline = false;
     int colorLabelIndex = 0;
     QHash<LayerId, QRect> sourceBounds;
+    std::function<LayerPixelsSP(const LayerProjectionRequest &)> renderProjection;
     /** Exact destination storage blocks, aligned to the native 64-pixel grid. */
     QList<QRect> allocatedBlocks;
 };
 
-/** Frozen predecessor projections used as a paint layer's initial pixels.
- * The renderer evaluates these inputs on its GPU queue. Subsequent paint,
- * transforms, history and external readers use the resulting layer pixels.
- */
-struct FrozenLayerProjection
+/** Inputs used only while generating the initial pixels of a merged layer. */
+struct LayerProjectionRequest
 {
     Snapshot source;
     QHash<LayerId, QRect> sourceBounds;
     QRect extent;
     QList<QRect> allocatedBlocks;
-    qsizetype retainedBytes = 0;
+    RgbaPixel defaultPixel{};
     bool normalizeRootProjection = false;
     /** Physical adjustment inputs use native source allocation before the
      * selected node's own opacity and composition are applied by its caller. */
     bool nativeSources = false;
 };
-using FrozenLayerProjectionSP = QSharedPointer<const FrozenLayerProjection>;
 enum class SelectionKind : quint8 { Rectangle, Ellipse, Freehand };
 
 enum class RegionFillMode : quint8 { Contiguous, Similar };
@@ -959,7 +960,6 @@ public:
 protected:
     LayerPixels() = default;
 };
-using LayerPixelsSP = std::shared_ptr<const LayerPixels>;
 
 struct KRITAIMAGEGPUOPERATIONS_EXPORT Layer
 {
@@ -1004,7 +1004,6 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT Layer
     SelectionMaskSP filterSelection;
     /** Native coordinate of the independent transparency child device. */
     QPoint transparencyMaskPosition{};
-    FrozenLayerProjectionSP initialProjection;
     /** Committed pixels that operations apply to; null starts from defaultPixel. */
     LayerPixelsSP pixels;
 };
@@ -1562,8 +1561,9 @@ private:
     };
     std::optional<FilterNodeEdit> m_filterNodeEdit;
     bool filterFitsRetainedHistory(const FilterDefinition &filter) const;
-    FrozenLayerProjectionSP freezeAdjustmentProjection(const Snapshot &before, LayerId node,
-        QRect extent, const QList<QRect> &blocks) const;
+    LayerPixelsSP renderAdjustmentProjection(const Snapshot &before, LayerId node,
+        QRect extent, const QList<QRect> &blocks,
+        const std::function<LayerPixelsSP(const LayerProjectionRequest &)> &render) const;
     friend class PaintImage;
     enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode, MaskVisible, MaskLocked, MaskName, MaskColorLabel, MaskPinnedToTimeline, MaskPosition };
     struct LayerPropertyEdit {

@@ -1377,7 +1377,22 @@ Result PaintImage::groupLayers(const QList<LayerId> &layers, LayerId activeRoot,
 Result PaintImage::ungroupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &replacementName)
 { return onThread() ? publish(m_d->document->ungroupLayers(layers, activeRoot, replacementName)) : Result::InvalidInput; }
 Result PaintImage::mergeLayers(const LayerMergeRequest &request)
-{ return onThread() ? publish(m_d->document->mergeLayers(request)) : Result::InvalidInput; }
+{
+    if (!onThread()) return Result::InvalidInput;
+    auto prepared = request;
+    ExecutionOutcome outcome{ExecutionCode::Success, {}};
+    prepared.renderProjection = [&](const LayerProjectionRequest &projection) {
+        LayerPixelsSP pixels;
+        outcome = m_d->execution.materializeProjection(projection, &pixels);
+        return pixels;
+    };
+    const auto result = m_d->document->mergeLayers(prepared);
+    if (outcome.code != ExecutionCode::Success) {
+        m_d->lastRequest = outcome;
+        return resultFor(outcome.code);
+    }
+    return publish(result);
+}
 Result PaintImage::removeLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
 Result PaintImage::removeLayers(const QList<LayerId> &layers, const QString &replacementName)

@@ -231,7 +231,7 @@ ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const Rende
 
 RenderOutcome TileRenderer::prepareFilterProjection(WGPUCommandEncoder commands,
     const RenderedSnapshot &document, QRect region, const QList<LayerProjectionInput> &inputs,
-    LayerId group, const FrozenLayerProjection *initial, bool nativeProjection)
+    LayerId group, const LayerProjectionRequest *initial, bool nativeProjection)
 {
     auto &d = *m_d;
     const auto snapshot = document->document();
@@ -328,7 +328,7 @@ RenderOutcome TileRenderer::prepareNodeProjection(WGPUCommandEncoder commands,
 
 ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                            QRect region, const ProjectedSnapshot &base, LayerId group,
-                                           const FrozenLayerProjection *initial, bool normalizeRoot, bool nativeProjection,
+                                           const LayerProjectionRequest *initial, bool normalizeRoot, bool nativeProjection,
                                            const QList<LayerProjectionInput> *compositionInputs, bool preparedInputs)
 {
     auto &d = *m_d;

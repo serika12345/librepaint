@@ -217,9 +217,6 @@ struct TileRenderer::Private
         RegionCoverage coverage;
     };
     QHash<const RegionFillRequest *, RegionCacheEntry> regionCache;
-    struct InitialProjectionEntry { QRect region; ProjectedSnapshot pixels; };
-    QHash<const FrozenLayerProjection *, QList<InitialProjectionEntry>> initialProjections;
-    int regionDepth = 0;
     QWeakPointer<const LibrePaint::Pigment::Color::NativeLabConversion> nativeLabDefinition;
     std::shared_ptr<Detail::BufferStorage> nativeLabValues;
     bool nativeLabHasDefinition = false;

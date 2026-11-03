@@ -299,6 +299,7 @@ private:
     FrameOutcome beginFrame(PresentationSurface *surface);
     /** Checks contiguous coverage before history adoption. Only admission
      * status and bounds cross to the CPU; editing pixels stay on the GPU. */
+    ExecutionOutcome materializeProjection(const LayerProjectionRequest &request, LayerPixelsSP *result);
     ExecutionOutcome checkRegionFill(DocumentHandle handle, const RegionFillRequestSP &request, RegionFillSP *result,
                                      SelectionMaskSP *selection = nullptr);
     ExecutionOutcome regionSelectionOutline(const RegionFillSP &region,

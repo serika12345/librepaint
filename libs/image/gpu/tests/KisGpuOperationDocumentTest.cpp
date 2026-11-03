@@ -1086,6 +1086,13 @@ void KisGpuOperationDocumentTest::mergingKeepsInputsHistoryAndAtomicRejection()
         return request;
     };
     auto request = requestFor(before);
+    request.renderProjection = [](const LayerProjectionRequest &projection) -> LayerPixelsSP {
+        struct Pixels final : LayerPixels {};
+        auto pixels = std::make_shared<Pixels>();
+        pixels->allocatedBlocks = projection.allocatedBlocks;
+        pixels->defaultPixel = projection.defaultPixel;
+        return pixels;
+    };
     auto stale = request; stale.before = unpainted;
     QCOMPARE(document.mergeLayers(stale), Result::StaleVersion);
     auto invalid = request; invalid.destinationUuid = input.layers.first().uuid;
@@ -1108,26 +1115,18 @@ void KisGpuOperationDocumentTest::mergingKeepsInputsHistoryAndAtomicRejection()
         [&](const auto &layer) { return layer.id == merged->activeLayer; });
     QVERIFY(output != merged->layers.cend());
     QCOMPARE(output->uuid, request.destinationUuid);
-    QVERIFY(output->initialProjection);
+    QVERIFY(output->pixels);
     QVERIFY(!output->transparencyMask);
-    for (const auto id : request.layers) {
-        const auto source = std::find_if(output->initialProjection->source->layers.cbegin(), output->initialProjection->source->layers.cend(),
-            [id](const auto &layer) { return layer.id == id; });
-        QVERIFY(source != output->initialProjection->source->layers.cend());
-        QVERIFY(source->operations == before->layers[id - 1].operations);
-        QCOMPARE(source->transparencyMask, before->layers[id - 1].transparencyMask);
-        if (mixed) QCOMPARE(source->blendMode, before->layers[id - 1].blendMode);
-    }
     QCOMPARE(document.undo(), Result::Success); QCOMPARE(document.snapshot(), before);
     QCOMPARE(document.redo(), Result::Success); QCOMPARE(document.snapshot(), merged);
     QCOMPARE(document.clearLayers({merged->activeLayer}), Result::Success);
     for (const auto &layer : document.snapshot()->layers) if (layer.id == merged->activeLayer)
-        QVERIFY(!layer.initialProjection && layer.operations.isEmpty());
-    QVERIFY(output->initialProjection);
+        QVERIFY(!layer.pixels && layer.operations.isEmpty());
+    QVERIFY(output->pixels);
     QCOMPARE(document.undo(), Result::Success); QCOMPARE(document.snapshot(), merged);
     QCOMPARE(document.duplicateLayers({merged->activeLayer}, {QStringLiteral("Merged copy")}, merged->activeLayer), Result::Success);
     for (const auto &layer : document.snapshot()->layers) if (layer.id == document.activeLayer())
-        QCOMPARE(layer.initialProjection, output->initialProjection);
+        QCOMPARE(layer.pixels, output->pixels);
 }
 
 void KisGpuOperationDocumentTest::groupingKeepsFrozenPixelsAndSingleHistory_data()

@@ -58,6 +58,7 @@ public:
 
 private:
     friend class TileRenderer;
+    friend class Execution;
     struct Data;
     explicit ProjectedVersion(std::shared_ptr<Data> data);
     std::shared_ptr<const Data> m_data;
@@ -119,17 +120,17 @@ private:
                              const QList<LayerId> &layers);
     ProjectionOutcome composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                   QRect region, const ProjectedSnapshot &base, LayerId group,
-                                  const FrozenLayerProjection *initial = nullptr, bool normalizeRoot = false,
+                                  const LayerProjectionRequest *initial = nullptr, bool normalizeRoot = false,
                                   bool nativeProjection = false,
                                   const QList<LayerProjectionInput> *compositionInputs = nullptr,
                                   bool preparedInputs = false);
     RenderOutcome prepareFilterProjection(WGPUCommandEncoder commands, const RenderedSnapshot &document,
         QRect region, const QList<LayerProjectionInput> &inputs, LayerId group,
-        const FrozenLayerProjection *initial, bool nativeProjection);
+        const LayerProjectionRequest *initial, bool nativeProjection);
     RenderOutcome prepareNodeProjection(WGPUCommandEncoder commands, const RenderedSnapshot &document,
         QRect region, LayerId node);
-    ProjectionOutcome recordInitialProjection(WGPUCommandEncoder commands, const FrozenLayerProjectionSP &initial,
-                                             QRect region, const RenderedSnapshot &base);
+    ProjectionOutcome recordProjection(WGPUCommandEncoder commands, const LayerProjectionRequest &request,
+                                       const RenderedSnapshot &base);
     RenderOutcome prepareRegion(WGPUCommandEncoder commands, const RegionFillRequestSP &request,
                                 const RenderedSnapshot &base = {});
 };

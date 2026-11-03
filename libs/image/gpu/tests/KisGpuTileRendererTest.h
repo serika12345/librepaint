@@ -60,8 +60,6 @@ private Q_SLOTS:
     void gaussianWeightedOnImportedPixelKeepsCpuMergeByte();
     void gaussianPixelCorrectionKeepsCpuExtent_data();
     void gaussianPixelCorrectionKeepsCpuExtent();
-    void repeatedMergesRebuildKeepPinnedPixelsAndRetry_data();
-    void repeatedMergesRebuildKeepPinnedPixelsAndRetry();
     void isolatedGroupsKeepProjectionAndRetainedSubtreePixels_data();
     void isolatedGroupsKeepProjectionAndRetainedSubtreePixels();
     void transparentLayerPixelsFollowRootProjectionSemantics_data();

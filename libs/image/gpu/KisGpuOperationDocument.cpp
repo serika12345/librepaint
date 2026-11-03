@@ -86,7 +86,6 @@ void includeLayerDescendants(const QList<Layer> &layers, QSet<LayerId> &included
 void copyLayerOperations(const Layer &source, Layer &copy, const QUuid &identity, quint64 &sequence)
 {
     copy.pixels = source.pixels;
-    copy.initialProjection = source.initialProjection;
     copy.operations.clear();
     QHash<quint64, quint64> writeGroups;
     for (const auto &sourceOperation : source.operations) {
@@ -175,7 +174,6 @@ DocumentVersion::DocumentVersion(const DocumentVersion &other)
         layer.pixels = pixels;
         layer.defaultPixel = pixels->defaultPixel;
         layer.operations.clear();
-        layer.initialProjection.clear();
     }
 }
 
@@ -2283,9 +2281,11 @@ Result OperationDocument::ungroupLayers(const QList<LayerId> &layers, LayerId ac
     return Result::Success;
 }
 
-FrozenLayerProjectionSP OperationDocument::freezeAdjustmentProjection(const Snapshot &before,
-    LayerId node, QRect extent, const QList<QRect> &blocks) const
+LayerPixelsSP OperationDocument::renderAdjustmentProjection(const Snapshot &before,
+    LayerId node, QRect extent, const QList<QRect> &blocks,
+    const std::function<LayerPixelsSP(const LayerProjectionRequest &)> &render) const
 {
+    if (!render) return {};
     LayerId scope = 0;
     const auto inputs = before->projectionInputsThrough(node, &scope);
     QHash<LayerId, LayerProjectionInput> roots;
@@ -2296,11 +2296,10 @@ FrozenLayerProjectionSP OperationDocument::freezeAdjustmentProjection(const Snap
     source->layers.clear(); source->selection = {}; source->selectionMask.clear();
     source->projectionBackground = scope ? RgbaPixel{} : before->projectionBackground;
     source->activeLayer = node; source->selectedLayers = {node};
-    auto projection = QSharedPointer<FrozenLayerProjection>::create();
+    auto projection = QSharedPointer<LayerProjectionRequest>::create();
     projection->extent = extent; projection->allocatedBlocks = blocks;
     projection->nativeSources = true;
     projection->sourceBounds.insert(node, extent);
-    projection->retainedBytes = sizeof(FrozenLayerProjection) + sizeof(DocumentVersion) + blocks.size() * qsizetype(sizeof(QRect));
     for (auto layer : before->layers) {
         if (!included.contains(layer.id)) continue;
         if (roots.contains(layer.id)) {
@@ -2313,12 +2312,11 @@ FrozenLayerProjectionSP OperationDocument::freezeAdjustmentProjection(const Snap
             layer.visible = true; layer.opacity = 255;
             layer.projectionChannelMask = 15; layer.blendMode = LayerBlendMode::Copy;
         }
-        projection->retainedBytes += sizeof(Layer) + layer.name.size() * sizeof(QChar) + layer.operations.size() * sizeof(LayerOperation);
         source->layers.append(std::move(layer));
     }
-    if (projection->retainedBytes > m_limits.rasterBytes || !validLayerHierarchy(source->layers, source->format)) return {};
+    if (!validLayerHierarchy(source->layers, source->format)) return {};
     projection->source = source;
-    return projection;
+    return render(*projection);
 }
 
 Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
@@ -2459,13 +2457,13 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
             QSet<LayerId> included;
             for (const auto layer : visible) included.insert(layer->id);
             includeLayerDescendants(before->layers, included);
-            QHash<LayerId, FrozenLayerProjectionSP> adjustments;
+            QHash<LayerId, LayerPixelsSP> adjustments;
             QSet<QUuid> adjustmentIdentities;
             if (!wholeImage) for (const auto &layer : before->layers) {
                 if (!included.contains(layer.id) || layer.kind != LayerKind::Adjustment) continue;
                 QRect extent = request.sourceBounds.value(layer.id);
                 if (extent.isEmpty()) extent = QRect(QPoint(), before->size);
-                const auto frozen = freezeAdjustmentProjection(before, layer.id, extent, request.allocatedBlocks);
+                const auto frozen = renderAdjustmentProjection(before, layer.id, extent, request.allocatedBlocks, request.renderProjection);
                 if (!frozen) return Result::CapacityExceeded;
                 adjustments.insert(layer.id, frozen);
                 adjustmentIdentities.insert(layer.uuid);
@@ -2474,7 +2472,7 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
                 if (layer.kind == LayerKind::FilterMask && adjustmentIdentities.contains(layer.parentUuid)) included.remove(layer.id);
             auto source = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
             source->layers.clear(); source->selection = {}; source->selectionMask.clear();
-            auto projection = QSharedPointer<FrozenLayerProjection>::create();
+            auto projection = QSharedPointer<LayerProjectionRequest>::create();
             projection->normalizeRootProjection = wholeImage;
             if (request.allocatedBlocks.size() > m_limits.rasterBytes / qsizetype(sizeof(QRect))) return Result::CapacityExceeded;
             for (const auto &block : request.allocatedBlocks) {
@@ -2484,7 +2482,6 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
             }
             projection->allocatedBlocks = request.allocatedBlocks;
             if (wholeImage) projection->extent = QRect(QPoint(), before->size);
-            projection->retainedBytes = sizeof(FrozenLayerProjection) + sizeof(DocumentVersion) + request.allocatedBlocks.size() * sizeof(QRect);
             const auto defaults = before->projectionDefaultPixels();
             if (down && request.homogeneousComposition) {
                 output.defaultPixel = defaults.value(visible.first()->id, visible.first()->defaultPixel);
@@ -2501,7 +2498,7 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
                     layer.kind = LayerKind::Paint; layer.filter.reset(); layer.filterSelection.clear();
                     layer.transparencyMask.clear(); layer.transparencyMaskUuid = {}; layer.transparencyMaskIndex = 0;
                     layer.defaultPixel = {}; layer.pixels.reset(); layer.operations.clear();
-                    layer.initialProjection = adjustments.value(layer.id);
+                    layer.pixels = adjustments.value(layer.id);
                 }
                 if (roots.contains(layer.id)) {
                     layer.parentUuid = {};
@@ -2524,13 +2521,15 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
                     projection->extent |= area;
                 }
 
-                projection->retainedBytes += sizeof(Layer) + layer.name.size() * sizeof(QChar) + layer.operations.size() * sizeof(LayerOperation);
                 source->layers.append(std::move(layer));
             }
             source->activeLayer = visible.isEmpty() ? 0 : visible.first()->id;
             source->selectedLayers = source->activeLayer ? QList<LayerId>{source->activeLayer} : QList<LayerId>{};
             projection->source = source;
-            output.initialProjection = projection;
+            if (!request.renderProjection) return Result::InvalidInput;
+            projection->defaultPixel = output.defaultPixel;
+            output.pixels = request.renderProjection(*projection);
+            if (!output.pixels) return Result::CapacityExceeded;
             added.append(std::move(output));
         }
         version->activeLayer = added.first().id;
@@ -2572,7 +2571,6 @@ Result OperationDocument::clearLayers(const QList<LayerId> &layers)
         if (!cleared.contains(layer.id)) continue;
         layer.pixels.reset();
         layer.operations.clear();
-        layer.initialProjection.clear();
     }
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;

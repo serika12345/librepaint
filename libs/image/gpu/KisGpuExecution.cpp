@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuExecution_p.h"
+#include <QScopeGuard>
 #include "KisGpuTileStorage_p.h"
 #include <webgpu/wgpu.h>
 #include <limits>
@@ -196,4 +197,33 @@ ExecutionOutcome Execution::pollReadbacks()
 
 DevicePtr Execution::device() const { return m_d->onThread() ? m_d->device : DevicePtr{}; }
 qsizetype Execution::residentBytes() const { return m_d->onThread() ? m_d->renderer->residentBytes() : 0; }
+ExecutionOutcome Execution::materializeProjection(const LayerProjectionRequest &request, LayerPixelsSP *result)
+{
+    auto &d = *m_d;
+    if (!d.onThread() || !result || !request.source) return {ExecutionCode::InvalidRequest, {}};
+    if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, {}};
+    const auto frame = beginReadbackFrame();
+    if (frame.code != ExecutionCode::Success) return {frame.code, frame.diagnostic};
+    const auto rollback = qScopeGuard([&] { if (d.active) cancelFrame(); });
+    const auto projection = d.renderer->recordProjection(frame.commands, request, {});
+    if (projection.code != RenderOutcome::Recorded)
+        return {projection.code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded :
+            projection.code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure,
+            projection.diagnostic};
+    const auto restored = d.renderer->m_d->restoreImplicitPixels(frame.commands, projection.version->m_data->tiles,
+        request.allocatedBlocks, request.defaultPixel, request.source->format);
+    if (restored.code != RenderOutcome::Recorded) return {ExecutionCode::DeviceFailure, restored.diagnostic};
+    auto pixels = std::make_shared<Detail::RenderedLayerPixels>();
+    pixels->owner = d.renderer->m_d->budget;
+    pixels->tiles = restored.tiles;
+    pixels->uniform = pixels->defaultPixel = request.defaultPixel;
+    pixels->allocatedBlocks = request.allocatedBlocks;
+    for (const auto &tile : std::as_const(pixels->tiles))
+        if (tile) pixels->storageBytes.insert(tile->storage.get(), qsizetype(wgpuBufferGetSize(tile->pixels.get())));
+    const auto submitted = endFrame(false);
+    if (submitted.code != ExecutionCode::Success) return submitted;
+    *result = std::move(pixels);
+    return {ExecutionCode::Success, {}};
+}
+
 }

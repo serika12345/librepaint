@@ -167,7 +167,6 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
     }
     if (affinePresent) stageMaximum = std::max(stageMaximum, qsizetype(256 * 1024 * 1024 / RgbaTile::byteCount(format)));
     QList<QRect> initialBlocks = layer.pixels ? layer.pixels->allocatedBlocks : QList<QRect>{};
-    if (layer.initialProjection) initialBlocks.append(layer.initialProjection->allocatedBlocks);
     for (const auto &block : initialBlocks) {
         const auto area = block.intersected(needed);
         if (area.isEmpty()) continue;
@@ -340,7 +339,6 @@ std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const L
             rendered.pixels = pixels;
             rendered.defaultPixel = pixels->defaultPixel;
             rendered.operations.clear();
-            rendered.initialProjection.clear();
             return paintLayerCoordinates(rendered, region, maximum, {}, document->size, document->format);
         }
         return paintLayerCoordinates(layer, region, maximum, document->pendingOperation(), document->size, document->format);
@@ -971,7 +969,7 @@ PixelReadbackOutcome Execution::readLayerTileExtent(DocumentHandle handle, const
     if (!layer) {
         bool nonempty = pinned->projectionBackground[3] != 0;
         for (const auto &value : pinned->layers)
-            if (value.visible && (value.pixels || pinned->renderedPixels(value.id) || value.initialProjection || !value.operations.isEmpty() || value.defaultPixel[3])) nonempty = true;
+            if (value.visible && (value.pixels || pinned->renderedPixels(value.id) || !value.operations.isEmpty() || value.defaultPixel[3])) nonempty = true;
         // The image-returning projection boundary populates complete 64-pixel storage blocks.
         if (nonempty) outcome.bounds = QRect(0, 0, ((pinned->size.width() + 63) / 64) * 64,
                                              ((pinned->size.height() + 63) / 64) * 64);

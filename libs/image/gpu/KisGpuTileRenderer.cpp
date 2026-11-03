@@ -316,86 +316,28 @@ RenderOutcome TileRenderer::recordRegion(WGPUCommandEncoder commands, const Snap
                       QRect(left * TileSize, top * TileSize, (right - left + 1) * TileSize, (bottom - top + 1) * TileSize), layers);
 }
 
-ProjectionOutcome TileRenderer::recordInitialProjection(WGPUCommandEncoder commands,
-    const FrozenLayerProjectionSP &initial, QRect region, const RenderedSnapshot &base)
+ProjectionOutcome TileRenderer::recordProjection(WGPUCommandEncoder commands,
+    const LayerProjectionRequest &request, const RenderedSnapshot &base)
 {
-    if (!initial || !initial->source)
-        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Missing frozen layer projection")};
-    const auto aligned = [](QRect region, const FrozenLayerProjectionSP &value) {
-        region &= value->extent;
-        if (region.isEmpty()) return QRect{};
-        const auto first = QPoint(pixelTileIndex(region.left(), TileSize), pixelTileIndex(region.top(), TileSize));
-        const auto last = QPoint(pixelTileIndex(region.right(), TileSize), pixelTileIndex(region.bottom(), TileSize));
-        return QRect(first * TileSize, (last + QPoint(1, 1)) * TileSize - QPoint(1, 1));
-    };
-    auto &cache = m_d->initialProjections;
-    const auto cached = [&](const FrozenLayerProjectionSP &value, QRect area) {
-        const auto found = cache.constFind(value.data());
-        if (found != cache.cend()) for (const auto &entry : *found)
-            if (entry.region == area) return entry.pixels;
-        return ProjectedSnapshot{};
-    };
-    struct Pending { FrozenLayerProjectionSP value; QRect region; bool expanded = false; };
-    region = aligned(region, initial);
-    std::vector<Pending> pending{{initial, region}};
-    QSet<const FrozenLayerProjection *> visiting;
-    while (!pending.empty()) {
-        auto &task = pending.back();
-        if (cached(task.value, task.region)) { pending.pop_back(); continue; }
-        if (!task.expanded) {
-            if (visiting.contains(task.value.data()))
-                return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Cyclic frozen layer projection")};
-            visiting.insert(task.value.data()); task.expanded = true;
-            QHash<LayerId, const Layer *> nodes;
-            QHash<QUuid, QList<const Layer *>> children;
-            for (const auto &layer : task.value->source->layers) {
-                nodes.insert(layer.id, &layer); children[layer.parentUuid].append(&layer);
-            }
-            QList<const Layer *> selected;
-            QSet<LayerId> included;
-            for (const auto &input : task.value->source->projectionInputs()) {
-                selected.append(nodes.value(input.layer)); included.insert(input.layer);
-            }
-            std::vector<Pending> dependencies;
-            for (qsizetype i = 0; i < selected.size(); ++i) {
-                const auto layer = selected[i];
-                if (layer->kind == LayerKind::Group) {
-                    for (const auto child : children.value(layer->uuid)) {
-                        if (!child->visible || !child->opacity || included.contains(child->id)) continue;
-                        included.insert(child->id); selected.append(child);
-                    }
-                } else if (layer->initialProjection) {
-                    const auto area = aligned(layerOperationRegions(*layer, task.region).first(), layer->initialProjection);
-                    if (!cached(layer->initialProjection, area)) dependencies.push_back({layer->initialProjection, area});
-                }
-            }
-            for (auto dependency = dependencies.rbegin(); dependency != dependencies.rend(); ++dependency)
-                pending.push_back(std::move(*dependency));
-            continue;
-        }
-        QList<LayerId> layers;
-        for (const auto &input : task.value->source->projectionInputs()) layers.append(input.layer);
-        const auto compatible = base && base->document()->documentId() == task.value->source->documentId() ? base : RenderedSnapshot{};
-        const auto recorded = recordRegion(commands, task.value->source, task.region, layers, compatible);
-        if (recorded.code != RenderOutcome::Recorded) return {recorded.code, {}, recorded.diagnostic};
-        auto projected = composeImpl(commands, recorded.version, task.region, {}, 0, task.value.data(),
-            false, task.value->nativeSources);
-        if (projected.code != RenderOutcome::Recorded) return projected;
-        if (task.value->normalizeRootProjection) {
-            // The root projection is applied normally onto a new empty paint device.
-            auto pixels = std::make_shared<RenderedVersion::Data>();
-            pixels->document = task.value->source; pixels->owner = m_d->budget;
-            pixels->region = task.region; pixels->selected = {0};
-            pixels->layers[0] = projected.version->m_data->tiles;
-            pixels->sourceExtents[0] = task.value->extent;
-            projected = composeImpl(commands, RenderedSnapshot(new RenderedVersion(pixels)), task.region,
-                {}, 0, task.value.data(), true);
-            if (projected.code != RenderOutcome::Recorded) return projected;
-        }
-        cache[task.value.data()].append({task.region, projected.version});
-        visiting.remove(task.value.data()); pending.pop_back();
-    }
-    return {RenderOutcome::Recorded, cached(initial, region), {}};
+    if (!request.source)
+        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Missing layer projection input")};
+    const auto first = QPoint(pixelTileIndex(request.extent.left(), TileSize), pixelTileIndex(request.extent.top(), TileSize));
+    const auto last = QPoint(pixelTileIndex(request.extent.right(), TileSize), pixelTileIndex(request.extent.bottom(), TileSize));
+    const auto region = request.extent.isEmpty() ? QRect{} :
+        QRect(first * TileSize, (last + QPoint(1, 1)) * TileSize - QPoint(1, 1));
+    QList<LayerId> layers;
+    for (const auto &input : request.source->projectionInputs()) layers.append(input.layer);
+    const auto compatible = base && base->document()->documentId() == request.source->documentId() ? base : RenderedSnapshot{};
+    const auto recorded = recordRegion(commands, request.source, region, layers, compatible);
+    if (recorded.code != RenderOutcome::Recorded) return {recorded.code, {}, recorded.diagnostic};
+    auto projected = composeImpl(commands, recorded.version, region, {}, 0, &request, false, request.nativeSources);
+    if (projected.code != RenderOutcome::Recorded || !request.normalizeRootProjection) return projected;
+    auto pixels = std::make_shared<RenderedVersion::Data>();
+    pixels->document = request.source; pixels->owner = m_d->budget;
+    pixels->region = region; pixels->selected = {0};
+    pixels->layers[0] = projected.version->m_data->tiles;
+    pixels->sourceExtents[0] = request.extent;
+    return composeImpl(commands, RenderedSnapshot(new RenderedVersion(pixels)), region, {}, 0, &request, true);
 }
 
 RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapshot &document,
@@ -407,10 +349,6 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         (base && (base->m_data->owner != d.budget || base->document()->documentId() != document->documentId()))) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU versions require their owning device and document")};
     }
-    if (d.regionDepth++ == 0) { d.regionCache.clear(); d.initialProjections.clear(); }
-    const auto regionScope = qScopeGuard([&] {
-        if (--d.regionDepth == 0) { d.regionCache.clear(); d.initialProjections.clear(); }
-    });
     if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
     if (!d.selectionZeroUploaded) {
         wgpuCommandEncoderClearBuffer(commands, d.unusedSelection.get(), 0, SelectionMask::AlphaTileBytes);
@@ -654,7 +592,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 const auto &previous = base->document()->layers;
                 const auto old = std::find_if(previous.cbegin(), previous.cend(), [&](const auto &value) { return value.id == layer.id; });
                 if (old != previous.cend() && old->position == layer.position && old->defaultPixel == layer.defaultPixel &&
-                    old->pixels == layer.pixels && old->initialProjection == layer.initialProjection &&
+                    old->pixels == layer.pixels &&
                     old->operations == layer.operations && base->document()->pendingOperation() == document->pendingOperation())
                     allocation = base->m_data->allocations.value(layer.id);
             }
@@ -675,11 +613,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         QSet<quint64> reusedCoordinates;
         PaintSnapshot appendedOperation;
         Tiles strokeInputs;
-        bool reusedInitial = false;
         if (base) {
             for (const auto &old : base->document()->layers) {
                 if (old.id != layer.id) continue;
-                if (old.pixels != layer.pixels || old.initialProjection != layer.initialProjection) break;
+                if (old.pixels != layer.pixels) break;
                 if (base->m_data->defaultPixels.value(layer.id, old.defaultPixel) != uniform) break;
                 data->defaults[layer.id] = base->m_data->defaults.value(layer.id);
                 const bool droppingStroke = old.operations.size() == layer.operations.size() + 1 &&
@@ -748,7 +685,6 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     reusedPrefix = shared;
                     if (!previousRegion || previousRegion->contains(sourceRegion)) {
                         prefix = reusedPrefix;
-                        reusedInitial = true;
                     }
                 }
                 break;
@@ -777,22 +713,20 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         if (layer.kind == LayerKind::Group) continue;
         auto &tiles = data->layers[layer.id];
         if (start) {
+            auto startingTiles = start->tiles;
+            if (start->uniform != uniform) {
+                if (const auto failure = flushPaint()) return *failure;
+                const auto restored = d.restoreImplicitPixels(commands, startingTiles, start->allocatedBlocks,
+                    uniform, document->format);
+                if (restored.code != RenderOutcome::Recorded) return {restored.code, {}, restored.diagnostic};
+                startingTiles = restored.tiles;
+            }
             const auto startRegion = operationRegions.first();
-            for (auto tile = start->tiles.cbegin(); tile != start->tiles.cend(); ++tile) {
+            for (auto tile = startingTiles.cbegin(); tile != startingTiles.cend(); ++tile) {
                 if (reusedCoordinates.contains(tile.key()) ||
                     !startRegion.intersects(QRect(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize)))) continue;
                 tiles[tile.key()] = tile.value();
             }
-        }
-        if (layer.initialProjection && !reusedInitial) {
-            if (const auto failure = flushPaint()) return *failure;
-            const auto initial = recordInitialProjection(commands, layer.initialProjection, operationRegions.first(), base);
-            if (initial.code != RenderOutcome::Recorded) return {initial.code, {}, initial.diagnostic};
-            const auto restored = d.restoreImplicitPixels(commands, initial.version->m_data->tiles,
-                layer.initialProjection->allocatedBlocks, layer.defaultPixel, document->format);
-            if (restored.code != RenderOutcome::Recorded) return {restored.code, {}, restored.diagnostic};
-            for (auto tile = restored.tiles.cbegin(); tile != restored.tiles.cend(); ++tile)
-                if (!reusedCoordinates.contains(tile.key())) tiles[tile.key()] = tile.value();
         }
         for (qsizetype epoch = prefix; epoch < layer.operations.size();) {
             qsizetype end = epoch;
@@ -1347,9 +1281,12 @@ void TileRenderer::Private::publishLayerPixels(const RenderedSnapshot &version)
                 return std::visit([&](const auto &value) { return value->id == pending; }, operation);
             }))
             continue;
-        if (layer.operations.isEmpty() && !layer.initialProjection) {
-            if (layer.pixels) document->setRenderedPixels(layer.id, layer.pixels);
-            if (layer.pixels || data.layers.value(layer.id).isEmpty()) continue;
+        if (layer.operations.isEmpty()) {
+            if (layer.pixels && layer.pixels->defaultPixel == data.defaultPixels.value(layer.id, layer.defaultPixel)) {
+                document->setRenderedPixels(layer.id, layer.pixels);
+                continue;
+            }
+            if (!layer.pixels && data.layers.value(layer.id).isEmpty()) continue;
         }
         auto allocation = data.allocations.value(layer.id);
         if (!allocation) {
