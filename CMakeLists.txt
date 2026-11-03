@@ -1885,7 +1885,9 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}
                            ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-add_subdirectory(sdk/tests)
+if(BUILD_TESTING)
+    add_subdirectory(sdk/tests)
+endif()
 
 add_subdirectory(libs)
 if(NOT IOS OR KRITA_IOS_BUILD_QML_MODULES)

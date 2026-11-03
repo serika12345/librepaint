@@ -80,4 +80,6 @@ install(TARGETS kritajpegexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
 install(FILES krita_jpeg.desktop DESTINATION ${KDE_INSTALL_APPDIR})
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

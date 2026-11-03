@@ -155,4 +155,6 @@ if(APPLE AND NOT IOS)
     )
 endif()
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

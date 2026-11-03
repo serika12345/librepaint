@@ -30,4 +30,6 @@ qt6_add_resources(kritacanvasgputilepresentation krita_gpu_tile_presentation
 )
 krita_ios_add_static_resource(krita_gpu_tile_presentation)
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

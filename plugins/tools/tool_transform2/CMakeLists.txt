@@ -1,4 +1,6 @@
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 set(kritatooltransform_static_SRCS
     kis_tool_transform_gpu.cpp

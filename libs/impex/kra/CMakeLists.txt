@@ -17,4 +17,6 @@ target_link_libraries(kritaimpexkra
 set_target_properties(kritaimpexkra PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION})
 install(TARGETS kritaimpexkra ${INSTALL_TARGETS_DEFAULT_ARGS})
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

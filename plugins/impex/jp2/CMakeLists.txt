@@ -1,4 +1,6 @@
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 set(libkritaconverter_LIB_SRCS
     jp2_converter.cc

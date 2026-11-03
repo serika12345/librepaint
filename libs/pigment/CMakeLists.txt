@@ -30,7 +30,9 @@ foreach(_obj IN LISTS __per_arch_factory_objs __per_arch_alpha_darken32_factory_
     message("    * ${_obj}")
 endforeach()
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 add_subdirectory(benchmarks)
 
 add_library(kritapigmentcompositeparameterinfoobjects OBJECT

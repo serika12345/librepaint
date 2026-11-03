@@ -44,4 +44,6 @@ target_link_libraries(kritaqmic kritaqmicinterface)
 
 install(TARGETS kritaqmic LIBRARY DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

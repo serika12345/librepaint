@@ -482,4 +482,6 @@ endif()
 
 add_subdirectory(kra)
 target_link_libraries(kritaimpex PRIVATE kritaimpexkra)
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

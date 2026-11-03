@@ -1650,8 +1650,12 @@ set_target_properties(kritaflakesvgtextpropertydataobjects PROPERTIES
 )
 
 add_subdirectory(styles)
-add_subdirectory(tests)
-add_subdirectory(resources/tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
+if(BUILD_TESTING)
+    add_subdirectory(resources/tests)
+endif()
 
 set(DISABLE_CLIP_MASK_PAINTER_ON_MACOS FALSE)
 if (APPLE AND NOT IOS)

@@ -28,4 +28,6 @@ set_target_properties(kritadocumentfiles PROPERTIES
 
 install(TARGETS kritadocumentfiles ${INSTALL_TARGETS_DEFAULT_ARGS})
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

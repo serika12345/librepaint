@@ -238,4 +238,6 @@ set_target_properties(kritainput
 install(TARGETS kritainput ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 add_subdirectory(ui)
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

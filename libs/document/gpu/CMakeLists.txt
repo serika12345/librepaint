@@ -23,4 +23,6 @@ target_link_libraries(kritadocumentpainting
 set_target_properties(kritadocumentpainting PROPERTIES
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION})
 install(TARGETS kritadocumentpainting ${INSTALL_TARGETS_DEFAULT_ARGS})
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

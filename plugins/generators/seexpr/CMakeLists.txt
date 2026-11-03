@@ -18,4 +18,6 @@ target_link_libraries(kritaseexprgenerator kritaapplication kritaapplicationui K
 
 install(TARGETS kritaseexprgenerator  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

@@ -109,4 +109,6 @@ set_target_properties(kritapaintingmetadata PROPERTIES
 
 install(TARGETS kritapaintingmetadata ${INSTALL_TARGETS_DEFAULT_ARGS})
 
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
