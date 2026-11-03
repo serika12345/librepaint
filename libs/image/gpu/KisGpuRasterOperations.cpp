@@ -19,7 +19,6 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     if (!validPixel(image.projectionBackground, image.format) || image.size.width() <= 0 || image.size.height() <= 0 ||
         image.size.width() > CoordinateLimit || image.size.height() > CoordinateLimit ||
         limits.samplesPerStroke <= 0 || limits.layerCount <= 0 || limits.historyBytes < 0 ||
-        limits.compressedWriteBytes <= 0 || limits.compressedWriteBytes > std::numeric_limits<int>::max() ||
         limits.rasterBytes <= 0 || limits.rasterBytes > std::numeric_limits<int>::max() ||
         image.layers.size() > limits.layerCount || image.activeLayer < 0 ||
         (image.layers.isEmpty() ? image.activeLayer != 0 : image.activeLayer >= image.layers.size())) {
@@ -90,7 +89,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         for (const auto &pixels : source.tiles) {
             if (pixels.format != image.format) throw std::invalid_argument("raster tile precision does not match the document");
             if (coordinates.contains(pixels.coordinate)) throw std::invalid_argument("repeated raster tile coordinate");
-            const auto tile = RasterTile::fromPixels(pixels);
+            const auto tile = UploadTile::fromPixels(pixels);
             if (!tile) throw std::invalid_argument("invalid raster tile bytes or coordinates");
             coordinates.insert(pixels.coordinate);
             operation->tiles.append(tile);
@@ -129,7 +128,7 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     auto operation = QSharedPointer<TileWriteOperation>::create();
     for (const auto &pixels : tiles) {
         if (pixels.format != snapshot()->format || coordinates.contains(pixels.coordinate)) return Result::InvalidInput;
-        const auto tile = RasterTile::fromPixels(pixels);
+        const auto tile = UploadTile::fromPixels(pixels);
         if (!tile) return Result::InvalidInput;
         coordinates.insert(pixels.coordinate);
         operation->tiles.append(tile);
@@ -144,95 +143,68 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     return Result::Success;
 }
 
-Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
-                                           Snapshot *retainedVersion)
+Result OperationDocument::applyPixelWrite(const VersionPixelWrite &write, bool recordHistory,
+                                         Snapshot *retainedVersion)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    const int retainedCount = retainedVersion && !m_history.contains(*retainedVersion) ? 1 : 0;
-    if (writes.isEmpty() || writes.size() > m_history.size() + retainedCount) return Result::InvalidInput;
-    if (recordHistory && (writes.size() != 1 || writes.first().before != snapshot())) return Result::StaleVersion;
-    if (quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextOperation ||
-        quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextRevision)
-        return Result::CapacityExceeded;
-    auto history = m_history;
-    auto nextOperation = m_nextOperation;
-    auto nextRevision = m_nextRevision;
-    auto retained = retainedVersion ? *retainedVersion : Snapshot{};
-    const auto group = nextOperation + 1;
-    QSet<const DocumentVersion *> updated;
-    for (const auto &write : writes) {
-        const auto index = m_history.indexOf(write.before);
-        if ((index < 0 && (!retainedVersion || write.before != *retainedVersion)) ||
-            updated.contains(write.before.data())) return Result::StaleVersion;
-        if (write.layer != writes.first().layer || write.tiles.isEmpty()) return Result::InvalidInput;
-        qsizetype layerIndex = -1;
-        for (qsizetype i = 0; i < write.before->layers.size(); ++i)
-            if (write.before->layers[i].id == write.layer) layerIndex = i;
-        if (layerIndex < 0 || write.before->layers[layerIndex].kind != LayerKind::Paint) return Result::LayerUnavailable;
-        if (write.tiles.size() > m_limits.rasterBytes / RgbaTile::byteCount(write.before->format))
-            return Result::CapacityExceeded;
-        auto operation = QSharedPointer<TileWriteOperation>::create();
-        operation->id = {m_identity, ++nextOperation};
-        operation->version = 1;
-        operation->layer = write.layer;
-        operation->writeGroup = group;
-        operation->writtenAreas = write.areas;
-        QSet<QPoint> coordinates;
-        for (const auto &tile : write.tiles) {
-            if (!tile || tile->format() != write.before->format || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
-            coordinates.insert(tile->coordinate());
-            operation->tiles.append(tile);
-        }
-        if (!Detail::validWrittenAreas(*operation)) return Result::InvalidInput;
-        QSharedPointer<DocumentVersion> version(new DocumentVersion(*write.before));
-        version->layers[layerIndex].operations.append(TileWriteSnapshot(operation));
-        version->m_revision = ++nextRevision;
-        if (recordHistory) version->m_modifiedRevision = version->m_revision;
-        if (index >= 0) history[index] = version;
-        if (write.before == retained) retained = version;
-        updated.insert(write.before.data());
+    const auto current = snapshot();
+    if (!write.before || write.before->documentId() != m_identity ||
+        (write.before != current && (!retainedVersion || write.before != *retainedVersion)) ||
+        (recordHistory && write.before != current)) return Result::StaleVersion;
+    if (write.tiles.isEmpty()) return Result::InvalidInput;
+    if (m_nextOperation == std::numeric_limits<quint64>::max() ||
+        m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    qsizetype layerIndex = -1;
+    for (qsizetype i = 0; i < write.before->layers.size(); ++i)
+        if (write.before->layers[i].id == write.layer) layerIndex = i;
+    if (layerIndex < 0 || write.before->layers[layerIndex].kind != LayerKind::Paint) return Result::LayerUnavailable;
+    if (write.tiles.size() > m_limits.rasterBytes / RgbaTile::byteCount(write.before->format)) return Result::CapacityExceeded;
+    auto operation = QSharedPointer<TileWriteOperation>::create();
+    operation->id = {m_identity, m_nextOperation + 1};
+    operation->version = 1; operation->layer = write.layer;
+    operation->writeGroup = operation->id.sequence;
+    operation->writtenAreas = write.areas;
+    QSet<QPoint> coordinates;
+    for (const auto &tile : write.tiles) {
+        if (!tile || tile->format() != write.before->format || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
+        coordinates.insert(tile->coordinate()); operation->tiles.append(tile);
     }
-    if (recordHistory) commitVersion(history[m_index]);
-    else m_history.swap(history);
-    m_nextOperation = nextOperation;
-    m_nextRevision = nextRevision;
-    if (retainedVersion) *retainedVersion = retained;
+    if (!Detail::validWrittenAreas(*operation)) return Result::InvalidInput;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*write.before));
+    version->layers[layerIndex].operations.append(TileWriteSnapshot(operation));
+    version->m_revision = m_nextRevision + 1;
+    if (recordHistory) {
+        version->m_modifiedRevision = version->m_revision;
+        commitVersion(version);
+    } else if (write.before == current) m_history[m_index] = version;
+    ++m_nextOperation; ++m_nextRevision;
+    if (retainedVersion) *retainedVersion = version;
     return Result::Success;
 }
-Result OperationDocument::applyMaskVersions(const QList<VersionMaskWrite> &writes)
+
+Result OperationDocument::applyMaskWrite(const VersionMaskWrite &write)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if (writes.isEmpty() || writes.size() > m_history.size()) return Result::InvalidInput;
-    if (quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
-    auto history = m_history;
-    auto revision = m_nextRevision;
-    QSet<const DocumentVersion *> updated;
-    for (const auto &write : writes) {
-        const auto index = m_history.indexOf(write.before);
-        if (index < 0 || updated.contains(write.before.data())) return Result::StaleVersion;
-        if (write.maskUuid != writes.first().maskUuid || !write.coverage)
-            return Result::InvalidInput;
-        qsizetype position = -1;
-        for (qsizetype i = 0; i < write.before->layers.size(); ++i)
-            if (write.before->layers[i].id == write.layer && editableMaskCoverage(write.before->layers[i], write.maskUuid)) position = i;
-        if (position < 0) return Result::LayerUnavailable;
-        if (!selectionFitsInputs(write.coverage)) return Result::CapacityExceeded;
-        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*write.before));
-        auto &layer = version->layers[position];
-        if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.filterSelection = write.coverage;
-        else layer.transparencyMask = write.coverage;
-        if (write.position) {
-            if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.position = *write.position;
-            else layer.transparencyMaskPosition = *write.position;
-        }
-        version->m_revision = ++revision;
-        history[index] = version;
-        updated.insert(write.before.data());
+    if (write.before != snapshot()) return Result::StaleVersion;
+    if (!write.coverage) return Result::InvalidInput;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    qsizetype position = -1;
+    for (qsizetype i = 0; i < write.before->layers.size(); ++i)
+        if (write.before->layers[i].id == write.layer && editableMaskCoverage(write.before->layers[i], write.maskUuid)) position = i;
+    if (position < 0) return Result::LayerUnavailable;
+    if (!selectionFitsInputs(write.coverage)) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*write.before));
+    auto &layer = version->layers[position];
+    if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.filterSelection = write.coverage;
+    else layer.transparencyMask = write.coverage;
+    if (write.position) {
+        if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.position = *write.position;
+        else layer.transparencyMaskPosition = *write.position;
     }
-    m_history.swap(history);
-    m_nextRevision = revision;
+    version->m_revision = ++m_nextRevision;
+    m_history[m_index] = version;
     return Result::Success;
 }
 
@@ -256,7 +228,7 @@ Result OperationDocument::commitColorConversion(OperationId id, const Snapshot &
         profile.isEmpty() || !validPixel(background, format)) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*before));
-    qsizetype raster = 0, compressed = 0;
+    qsizetype raster = 0;
     QSet<LayerId> seen;
     for (const auto &pixels : converted) {
         auto layer = std::find_if(version->layers.begin(), version->layers.end(),
@@ -273,10 +245,8 @@ Result OperationDocument::commitColorConversion(OperationId id, const Snapshot &
         QSet<QPoint> coordinates;
         for (const auto &tile : pixels.tiles) {
             if (!tile || tile->format() != format || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
-            if (tile->byteCount() > m_limits.rasterBytes - raster ||
-                tile->compressedByteCount() > m_limits.compressedWriteBytes - compressed) return Result::CapacityExceeded;
+            if (tile->byteCount() > m_limits.rasterBytes - raster) return Result::CapacityExceeded;
             raster += tile->byteCount();
-            compressed += tile->compressedByteCount();
             coordinates.insert(tile->coordinate());
             write->tiles.append(tile);
         }

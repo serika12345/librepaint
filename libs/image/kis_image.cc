@@ -363,7 +363,7 @@ public:
         KoColorConversionTransformation::ConversionFlags flags;
         QList<LibrePaint::Image::Gpu::ConvertedLayerPixels> layers;
         QList<QList<QPoint>> coordinates;
-        qsizetype layer = 0, tile = 0, compressed = 0;
+        qsizetype layer = 0, tile = 0, uploadBytes = 0;
         LibrePaint::Image::Gpu::RgbaPixel background{};
         QTimer timer;
         QMetaObject::Connection cancellation;
@@ -1655,10 +1655,9 @@ bool KisImage::KisImagePrivate::startGpuColorConversion(const KoColorSpace *dest
     const auto before = gpuImage->operations().snapshot();
     if (before->format != Gpu::PixelFormat::Rgba16 ||
         (!before->colorProfile.isEmpty() && before->colorProfile != colorSpace->profile()->rawData())) return false;
-    // Simultaneously live per-tile buffers: canonical/native input, native/canonical output,
-    // and zlib's output bound. Prepared compressed tiles have their separate write budget.
+    // Simultaneously live per-tile buffers: canonical/native input and native/canonical output.
     constexpr qsizetype pixels = Gpu::RgbaTile::Size * Gpu::RgbaTile::Size;
-    const qsizetype working = pixels * (8 + 8 + 4 + 4) + Gpu::RasterTile::compressionBufferBytes(Gpu::PixelFormat::Rgba8);
+    const qsizetype working = pixels * (8 + 8 + 4 + 4);
     if (working > gpuImage->limits().rasterBytes) return false;
     auto state = std::make_unique<GpuColorConversion>();
     const auto id = gpuImage->beginColorConversion();
@@ -1774,11 +1773,11 @@ void KisImage::KisImagePrivate::advanceGpuColorConversion()
             canonical[i * 4 + 2] = nativeOutput[i * 4];
             canonical[i * 4 + 3] = nativeOutput[i * 4 + 3];
         }
-        const auto tile = Gpu::RasterTile::fromPixels({coordinate, canonical, Gpu::PixelFormat::Rgba8});
-        if (!tile || tile->compressedByteCount() > state->owner->limits().compressedWriteBytes - state->compressed) {
-            cancelGpuColorConversion(QStringLiteral("GPU image color conversion compressed capacity exceeded")); return;
+        const auto tile = Gpu::UploadTile::fromPixels({coordinate, canonical, Gpu::PixelFormat::Rgba8});
+        if (!tile || tile->byteCount() > state->owner->limits().rasterBytes - state->uploadBytes) {
+            cancelGpuColorConversion(QStringLiteral("GPU image color conversion upload capacity exceeded")); return;
         }
-        state->compressed += tile->compressedByteCount();
+        state->uploadBytes += tile->byteCount();
         state->layers[state->layer].tiles.append(tile);
         ++state->tile;
     } catch (...) { cancelGpuColorConversion(QStringLiteral("GPU image color conversion preparation failed")); }

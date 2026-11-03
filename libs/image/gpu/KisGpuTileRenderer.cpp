@@ -442,7 +442,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     std::vector<PaintJob> jobs;
     struct FillUpload { std::shared_ptr<NativeBuffer> buffer; QList<FigureFillEdge> edges; };
     std::vector<FillUpload> fillUploads;
-    struct Checkpoint { qsizetype operation = 0; QSharedPointer<const RasterTile> pixels; };
+    struct PendingTileUpload { qsizetype operation = 0; QSharedPointer<const UploadTile> pixels; };
     struct Upload { std::shared_ptr<Tile> tile; QByteArray rgba; };
     std::vector<Upload> uploads;
     struct MaskUpload { std::shared_ptr<NativeBuffer> buffer; QByteArray bytes; };
@@ -736,7 +736,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                    !std::holds_alternative<AffineSnapshot>(layer.operations[end])) ++end;
             const auto paintRegion = operationRegions[epoch];
             QMap<quint64, std::array<std::shared_ptr<Tile>, 2>> writable;
-            QMap<quint64, Checkpoint> checkpoints;
+            QMap<quint64, PendingTileUpload> latestUploads;
             for (qsizetype op = epoch; op < end; ++op) {
                 const auto write = std::get_if<TileWriteSnapshot>(&layer.operations[op]);
                 if (!write) continue;
@@ -745,25 +745,25 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     if (!paintRegion.intersects(QRect(point * TileSize, QSize(TileSize, TileSize)))) continue;
                     const auto coordinate = key(point.x(), point.y());
                     if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
-                    checkpoints[coordinate] = {op, tile};
-                    if (checkpoints.size() > d.budget->limit / tileBytes) {
-                        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU checkpoint tile budget exhausted")};
+                    latestUploads[coordinate] = {op, tile};
+                    if (latestUploads.size() > d.budget->limit / tileBytes) {
+                        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU upload tile budget exhausted")};
                     }
                 }
             }
-            if (!d.ensureTileCapacity(checkpoints.size(), document->format)) {
-                return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU checkpoint tile budget exhausted")};
+            if (!d.ensureTileCapacity(latestUploads.size(), document->format)) {
+                return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU upload tile budget exhausted")};
             }
             // Each coordinate starts at its last whole-tile write. Later pixel-local
             // paint operations alternate the two writable buffers in operation order.
-            for (auto checkpoint = checkpoints.cbegin(); checkpoint != checkpoints.cend(); ++checkpoint) {
-                const auto pixels = checkpoint->pixels->rgba();
-                if (pixels.size() != tileBytes) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("CPU raster checkpoint is incomplete")};
+            for (auto upload = latestUploads.cbegin(); upload != latestUploads.cend(); ++upload) {
+                const auto pixels = upload->pixels->rgba();
+                if (pixels.size() != tileBytes) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("CPU raster upload is incomplete")};
                 const auto output = d.allocateTile(document->format);
-                if (!output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU checkpoint allocation failed")};
+                if (!output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU upload allocation failed")};
                 output->mayContainHiddenRgb = containsHiddenRgb(pixels, document->format);
-                tiles[checkpoint.key()] = output;
-                writable[checkpoint.key()][0] = output;
+                tiles[upload.key()] = output;
+                writable[upload.key()][0] = output;
                 uploads.push_back({output, pixels});
             }
             for (qsizetype op = epoch; op < end; ++op) {
@@ -886,8 +886,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     for (int y = top; y <= bottom; ++y) for (int x = left; x <= right; ++x) {
                         const auto coordinate = key(x, y);
                         if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
-                        const auto checkpoint = checkpoints.constFind(coordinate);
-                        if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
+                        const auto upload = latestUploads.constFind(coordinate);
+                        if (upload != latestUploads.cend() && op < upload->operation) continue;
                         affected[coordinate];
                         if (gaussianReferences == PaintGeometryElementLimit)
                             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU Gaussian geometry reference limit exceeded")};
@@ -911,8 +911,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         const QRect tileBounds(QPoint(x, y) * TileSize, QSize(TileSize, TileSize));
                         if (!replacesAlpha && !markerDabIntersects(dab, tileBounds.intersected(geometryRegion))) continue;
                         if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
-                        const auto checkpoint = checkpoints.constFind(coordinate);
-                        if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
+                        const auto upload = latestUploads.constFind(coordinate);
+                        if (upload != latestUploads.cend() && op < upload->operation) continue;
                         if (markerReferences == PaintGeometryElementLimit)
                             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU marker geometry reference limit exceeded")};
                         affected[coordinate].append(dab);
@@ -931,8 +931,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     if (!filled) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU fill tile budget exhausted")};
                     for (const auto coordinate : *filled) {
                         if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
-                        const auto checkpoint = checkpoints.constFind(coordinate);
-                        if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
+                        const auto upload = latestUploads.constFind(coordinate);
+                        if (upload != latestUploads.cend() && op < upload->operation) continue;
                         if (!affected.contains(coordinate)) affected.insert(coordinate, {});
                     }
                     if (affected.size() > d.budget->limit / tileBytes)

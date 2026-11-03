@@ -11,7 +11,7 @@
 #include "kis_transform_worker.h"
 
 #include "KisRegion.h"
-#include "gpu/KisGpuRasterPixels.h"
+#include "gpu/KisGpuPixelData.h"
 
 #include <cmath>
 #include <cstring>

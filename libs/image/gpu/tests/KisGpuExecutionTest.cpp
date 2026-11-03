@@ -264,8 +264,10 @@ void KisGpuExecutionTest::committedPixelsPreserveHistoryAndTrimByStorage()
     Execution execution(m_device);
     const auto handle = execution.open(document.snapshot()).handle;
     const auto layer = document.activeLayer();
+    QList<QWeakPointer<const PaintOperation>> inputOwners;
     for (const int position : {8, 24, 40}) {
         dot(document, {qreal(position), qreal(position)});
+        inputOwners.append(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last()));
         QCOMPARE(execution.request(handle, document.snapshot()).code, ExecutionCode::Success);
         QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
         const auto projection = execution.project(handle, {0, 0, 64, 64});
@@ -280,7 +282,10 @@ void KisGpuExecutionTest::committedPixelsPreserveHistoryAndTrimByStorage()
         QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
     }
     QCOMPARE(document.undoCount(), 4);
-    for (int index = 0; index < 4; ++index) QCOMPARE(document.undo(), Result::Success);
+    for (int index = 0; index < 4; ++index) {
+        QCOMPARE(document.undo(), Result::Success);
+        QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    }
     auto pixels = execution.readRgbaPixels(handle, document.snapshot(), {0, 0, 64, 64}, layer, 64 * 64 * 4);
     QCOMPARE(pixels.code, ExecutionCode::Success);
     QCOMPARE(pixels.bytes.mid((24 * 64 + 24) * 4, 4), QByteArray::fromHex("000000ff"));
@@ -289,6 +294,8 @@ void KisGpuExecutionTest::committedPixelsPreserveHistoryAndTrimByStorage()
     pixels = execution.readRgbaPixels(handle, document.snapshot(), {0, 0, 64, 64}, layer, 64 * 64 * 4);
     QCOMPARE(pixels.code, ExecutionCode::Success);
     QCOMPARE(pixels.bytes.mid((40 * 64 + 40) * 4, 4), QByteArray::fromHex("000000ff"));
+    QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
+    for (const auto &owner : inputOwners) QVERIFY(owner.isNull());
 }
 
 void KisGpuExecutionTest::commitsBeforeRenderingKeepEveryStroke()

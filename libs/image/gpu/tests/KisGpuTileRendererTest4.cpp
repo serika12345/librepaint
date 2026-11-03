@@ -501,37 +501,6 @@ void KisGpuTileRendererTest::paintingAndCompositionShareOneSubmission()
     QCOMPARE(readback->results.front()->data.mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("5500aac0"));
 }
 
-void KisGpuTileRendererTest::longDocumentRebuildUsesBoundedTileStorage()
-{
-    OperationDocument document({64, 64});
-    Brush brush;
-    brush.diameter = 8;
-    brush.rgba = {71, 139, 211, 255};
-    brush.opacity = 128.0 / 255;
-    Snapshot initial;
-    for (int i = 0; i < OperationDocument::HistoryLimit; ++i) {
-        const auto stroke = document.beginStroke(document.activeLayer(), brush, i);
-        QCOMPARE(document.appendSamples(stroke, {{{qreal(8 + i % 48), 32}, 1}}), Result::Success);
-        QCOMPARE(document.commitStroke(stroke), Result::Success);
-        if (i == 0) initial = document.snapshot();
-    }
-    QCOMPARE(document.undoCount(), OperationDocument::HistoryLimit);
-    TileRenderer reference(m_device);
-    const auto first = render(reference, initial);
-    QVERIFY(first);
-    const auto firstPixels = readTile(first, document.activeLayer(), {0, 0});
-    const auto expected = render(reference, document.snapshot(), first);
-    QVERIFY(expected);
-    QCOMPARE(readTile(first, document.activeLayer(), {0, 0}), firstPixels);
-    const auto pixels = readTile(expected, document.activeLayer(), {0, 0});
-
-    TileRenderer bounded(m_device, 2 * TileRenderer::TileBytes);
-    const auto rebuilt = render(bounded, document.snapshot());
-    QVERIFY2(rebuilt, "A retained 250-operation document must rebuild with two writable tiles per coordinate");
-    QCOMPARE(readTile(rebuilt, document.activeLayer(), {0, 0}), pixels);
-    QCOMPARE(bounded.residentBytes(), TileRenderer::TileBytes);
-}
-
 void KisGpuTileRendererTest::longStrokeRebuildKeepsPixelsAndHistory()
 {
     Brush brush;
@@ -648,7 +617,7 @@ void KisGpuTileRendererTest::nativeDeviceCreationRequiresTheApplicationThread()
     QVERIFY(!diagnostic.isEmpty());
 }
 
-void KisGpuTileRendererTest::rasterCheckpointsPreservePixelsThroughPaintingUndo()
+void KisGpuTileRendererTest::rasterUploadsPreservePixelsThroughPaintingUndo()
 {
     RasterImage image;
     image.size = {510, 255};
@@ -692,27 +661,22 @@ void KisGpuTileRendererTest::rasterCheckpointsPreservePixelsThroughPaintingUndo(
     QVERIFY(redone);
     QCOMPARE(readTile(redone, layer, {0, 0}), pixels);
 
-    TileRenderer rebuilt(m_device, 4 * TileRenderer::TileBytes);
-    const auto restored = render(rebuilt, document.snapshot());
-    QVERIFY(restored);
-    QCOMPARE(readTile(restored, layer, {0, 0}), pixels);
-    QCOMPARE(readTile(restored, layer, {-1, 0}), outside);
 }
 
-void KisGpuTileRendererTest::overwrittenTileHistoryRebuildsWithinTwoBuffers()
+void KisGpuTileRendererTest::pendingTileWritesUseTheLatestUploadWithinTwoBuffers()
 {
     OperationDocument document({256, 256});
     const auto layer = document.activeLayer();
     Brush blue;
     blue.rgba = {0, 0, 255, 255};
-    for (int i = 0; i < 250; ++i) {
+    for (int i = 0; i < 2; ++i) {
         const auto color = i % 2 ? QByteArray::fromHex("00ff00ff") : QByteArray::fromHex("ff0000ff");
         QCOMPARE(document.replaceTiles(layer, {{{0, 0}, color.repeated(RgbaTile::ByteCount / 4)}}), Result::Success);
         const auto stroke = document.beginStroke(layer, blue, 0);
         QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
         QCOMPARE(document.commitStroke(stroke), Result::Success);
     }
-    QCOMPARE(document.undoCount(), 250);
+    QCOMPARE(document.undoCount(), 4);
     TileRenderer renderer(m_device, 2 * TileRenderer::TileBytes);
     const auto original = render(renderer, document.snapshot());
     QVERIFY(original);

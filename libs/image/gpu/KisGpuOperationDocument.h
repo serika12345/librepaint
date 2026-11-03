@@ -21,7 +21,7 @@
 #include <QVariant>
 #include <QUuid>
 #include <kritaimagegpuoperations_export.h>
-#include "KisGpuRasterPixels.h"
+#include "KisGpuPixelData.h"
 #include "KisGpuAffineTransform.h"
 #include "KisGpuSelectionMask.h"
 #include <NativeLabConversion.h>
@@ -597,14 +597,14 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
     QList<InputSample> inputSamples() const;
 };
 
-/** Whole-tile replacement; retained compressed pixels preserve external results. */
+/** Pending whole-tile upload for an external pixel write. */
 struct TileWriteOperation
 {
     OperationId id;
     quint64 version = 0;
     LayerId layer = 0;
-    QList<QSharedPointer<const RasterTile>> tiles;
-    /** One external write can preserve different neighbouring history pixels. */
+    QList<QSharedPointer<const UploadTile>> tiles;
+    /** Identifies allocation blocks changed by one external write. */
     quint64 writeGroup = 0;
     /** Empty denotes complete tiles; otherwise these areas identify changed pixel blocks. */
     QList<QRect> writtenAreas;
@@ -938,7 +938,7 @@ struct ConvertedLayerPixels
 {
     LayerId layer = 0;
     RgbaPixel defaultPixel{};
-    QList<QSharedPointer<const RasterTile>> tiles;
+    QList<QSharedPointer<const UploadTile>> tiles;
     QList<QRect> writtenAreas;
 };
 
@@ -1166,8 +1166,6 @@ struct Limits
     /** Raw input count multiplied by the number of Multibrush hands. */
     qsizetype samplesPerStroke = 1024 * 1024;
     qsizetype layerCount = 4096;
-    /** Compressed checkpoints prepared for one atomic external pixel write. */
-    qsizetype compressedWriteBytes = 512 * 1024 * 1024;
     /** Largest raster input that one request may prepare. */
     qsizetype rasterBytes = 256 * 1024 * 1024;
     /** GPU tile bytes that undo versions may add to the current version; the
@@ -1176,7 +1174,7 @@ struct Limits
 };
 
 /**
- * Owns retained painting operations, layer hierarchy and the document's history.
+ * Owns pending painting input, committed pixel versions and document history.
  *
  * Call on one owning thread. Snapshots are immutable and can outlive the owner;
  * consumers retain a snapshot for background work. Each accepted append or shape
@@ -1192,7 +1190,6 @@ struct Limits
 class KRITAIMAGEGPUOPERATIONS_EXPORT OperationDocument
 {
 public:
-    static constexpr int HistoryLimit = 250;
     static constexpr qreal CoordinateLimit = RgbaTile::CoordinateLimit;
 
     explicit OperationDocument(QSize size, Limits limits = {});
@@ -1609,10 +1606,10 @@ private:
     {
         Snapshot before;
         LayerId layer = 0;
-        QList<QSharedPointer<const RasterTile>> tiles;
+        QList<QSharedPointer<const UploadTile>> tiles;
         QList<QRect> areas;
     };
-    Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
+    Result applyPixelWrite(const VersionPixelWrite &write, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
     struct VersionMaskWrite
     {
@@ -1622,7 +1619,7 @@ private:
         SelectionMaskSP coverage;
         std::optional<QPoint> position;
     };
-    Result applyMaskVersions(const QList<VersionMaskWrite> &writes);
+    Result applyMaskWrite(const VersionMaskWrite &write);
     /** Preparation retains bounded immutable reference inputs without changing
      * history. GPU admission checks precede adopting the prepared fill. */
     Result prepareRegionFill(LayerId layer, const RegionFillSettings &settings, RegionFillRequestSP *request) const;
@@ -1642,7 +1639,6 @@ private:
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr,
                        const ColorOverlay *overlay = nullptr, const QRect &applyRect = {},
                        const FilterSettings *convolution = nullptr);
-    QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer, bool mask = false) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     Result applyLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba, Snapshot *retainedVersion);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member,
@@ -1675,6 +1671,7 @@ private:
     Result commitExternalMask(const OperationId &id, LayerId layer, const SelectionMaskSP &mask, const QUuid &maskUuid);
     qsizetype layerIndex(LayerId layer) const;
     void replacePreview(const QSharedPointer<const PaintOperation> &operation);
+    Snapshot compactRenderedInputs(const Snapshot &version) const;
     void commitVersion(const Snapshot &version);
     void commitVersion(const Snapshot &version, const LayerHistoryChange &change);
     void commitPropertyVersion(const Snapshot &version, LayerHistoryChange change, PropertyHistory history);

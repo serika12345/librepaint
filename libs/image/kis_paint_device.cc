@@ -245,9 +245,10 @@ public:
     mutable QRect gpuBounds;
     mutable quint64 gpuSequenceRevision = 0;
     mutable QUuid gpuSequenceDocument;
-    mutable QList<LibrePaint::Image::Gpu::LayerOperation> gpuSequenceOperations;
+    mutable QList<QPair<quint64, quint64>> gpuSequenceOperations;
     mutable LibrePaint::Image::Gpu::RgbaPixel gpuSequenceDefault{};
-    mutable LibrePaint::Image::Gpu::FrozenLayerProjectionSP gpuSequenceInitial;
+    mutable std::weak_ptr<const LibrePaint::Image::Gpu::LayerPixels> gpuSequencePixels;
+    mutable bool gpuSequenceHadPixels = false;
     mutable int gpuSequence = 0;
     mutable bool gpuSequenceKnown = false;
     KisNodeWSP parent;
@@ -1492,11 +1493,15 @@ int KisPaintDevice::sequenceNumber() const
             for (const auto &layer : version->layers) {
                 if (layer.id != m_d->gpuLayerId()) continue;
                 if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Group) changed = true;
-                changed |= layer.operations != m_d->gpuSequenceOperations || layer.defaultPixel != m_d->gpuSequenceDefault ||
-                    layer.initialProjection != m_d->gpuSequenceInitial;
-                m_d->gpuSequenceOperations = layer.operations;
+                QList<QPair<quint64, quint64>> operations;
+                for (const auto &operation : layer.operations)
+                    operations.append(std::visit([](const auto &value) { return qMakePair(value->id.sequence, value->version); }, operation));
+                changed |= operations != m_d->gpuSequenceOperations || layer.defaultPixel != m_d->gpuSequenceDefault ||
+                    layer.pixels != m_d->gpuSequencePixels.lock() || bool(layer.pixels) != m_d->gpuSequenceHadPixels;
+                m_d->gpuSequenceOperations = std::move(operations);
                 m_d->gpuSequenceDefault = layer.defaultPixel;
-                m_d->gpuSequenceInitial = layer.initialProjection;
+                m_d->gpuSequencePixels = layer.pixels;
+                m_d->gpuSequenceHadPixels = bool(layer.pixels);
             }
         }
         if (changed) m_d->gpuSequence = m_d->gpuSequence == std::numeric_limits<int>::max() ? 0 : m_d->gpuSequence + 1;

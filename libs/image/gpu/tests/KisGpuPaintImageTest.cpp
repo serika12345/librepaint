@@ -1227,6 +1227,7 @@ void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory()
     QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.operations().snapshot(), groupBefore);
     QCOMPARE(image.redo(), Result::Success); QCOMPARE(image.operations().snapshot(), movedGroup);
     const auto maskBefore = image.operations().snapshot()->layers[1].transparencyMask;
+    const auto positionBeforeMaskMove = image.operations().snapshot()->layers[1].position;
     token = image.beginLayerTranslation(QList<LayerTranslationTarget>{{childId, false, true}});
     QVERIFY(!token.isNull());
     QCOMPARE(image.updateLayerTranslation(token, {2, 3}), Result::Success);
@@ -1234,7 +1235,7 @@ void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory()
     const QPoint absolute(31, 21);
     QCOMPARE(image.writeLayerPosition(childId, absolute), Result::Success);
     QCOMPARE(image.undo(), Result::Success);
-    QCOMPARE(image.operations().snapshot()->layers[1].position, absolute);
+    QCOMPARE(image.operations().snapshot()->layers[1].position, positionBeforeMaskMove);
     QCOMPARE(image.operations().snapshot()->layers[1].transparencyMask, maskBefore);
     QCOMPARE(image.redo(), Result::Success);
     QCOMPARE(image.operations().snapshot()->layers[1].position, absolute);
@@ -1911,8 +1912,9 @@ void KisGpuPaintImageTest::retainedLayerPixelsRemainEditableThroughRemovalAndDis
     QVERIFY(changed.isEmpty());
     QCOMPARE(execution.readRgbaPixels(image.handle(), pixels->version(), rect, layer, 4).bytes, second);
     QCOMPARE(execution.readRgbaPixels(image.handle(), pinned, rect, layer, 4).bytes, first);
+    const auto detachedWrite = pixels->version();
     QCOMPARE(image.undo(), Result::Success);
-    QCOMPARE(image.readRgbaPixels(layer, rect, 4).bytes, second);
+    QCOMPARE(image.readRgbaPixels(layer, rect, 4).bytes, first);
     QCOMPARE(pixels->version(), image.operations().snapshot());
     QCOMPARE(image.undo(), Result::Success);
     QCOMPARE(image.renameLayer(bottom, QStringLiteral("Discarded layer branch")), Result::Success);
@@ -1920,12 +1922,14 @@ void KisGpuPaintImageTest::retainedLayerPixelsRemainEditableThroughRemovalAndDis
     const auto branch = image.operations().snapshot();
     const auto history = image.operations().undoCount();
     const auto lastPixels = pixels->version();
-    QCOMPARE(image.writeRgbaPixels(pixels, rect, first), Result::Success);
+    const auto third = QByteArray::fromHex("77889933");
+    QCOMPARE(image.writeRgbaPixels(pixels, rect, third), Result::Success);
     QCOMPARE(image.operations().snapshot(), branch);
     QCOMPARE(image.operations().undoCount(), history);
     QCOMPARE(image.readRgbaPixels(bottom, rect, 4).bytes, QByteArray(4, '\0'));
-    QCOMPARE(execution.readRgbaPixels(image.handle(), pixels->version(), rect, layer, 4).bytes, first);
-    QCOMPARE(execution.readRgbaPixels(image.handle(), lastPixels, rect, layer, 4).bytes, second);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), pixels->version(), rect, layer, 4).bytes, third);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), lastPixels, rect, layer, 4).bytes, first);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), detachedWrite, rect, layer, 4).bytes, second);
     QVERIFY(!image.retainLayerPixels(layer));
 }
 

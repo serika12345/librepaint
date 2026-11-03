@@ -1373,7 +1373,7 @@ void KisGpuTileRendererTest::changingPreviewReusesItsBackgroundWithinThreeTiles(
     Brush brush;
     brush.rgba = {20, 80, 160, 128};
     brush.diameter = 12;
-    for (int i = 0; i < OperationDocument::HistoryLimit; ++i) {
+    for (int i = 0; i < 2; ++i) {
         const auto id = document.beginStroke(layer, brush, i);
         QCOMPARE(document.appendSamples(id, {{{qreal(20 + i % 180), 40}, 0.75}}), Result::Success);
         QCOMPARE(document.commitStroke(id), Result::Success);

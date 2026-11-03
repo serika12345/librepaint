@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#ifndef KIS_GPU_RASTER_PIXELS_H
-#define KIS_GPU_RASTER_PIXELS_H
+#ifndef KIS_GPU_PIXEL_DATA_H
+#define KIS_GPU_PIXEL_DATA_H
 
 #include <kritaimagegpuoperations_export.h>
 #include <QByteArray>
@@ -47,30 +47,20 @@ struct RgbaTile
     static constexpr int byteCount(PixelFormat format) { return Size * Size * pixelByteCount(format); }
 };
 
-/**
- * Immutable lossless CPU checkpoint. Construction rejects invalid tile extents
- * and byte counts. Every tile covers exactly 256 x 256
- * pixels inside [-CoordinateLimit, CoordinateLimit) on each axis.
- * Compression uses one zlib stream; decoding is bounded to the format's byte count
- * and consumes the complete stream. Returned byte values have independent
- * lifetimes and retain all channels, including colors under zero alpha.
- */
-class KRITAIMAGEGPUOPERATIONS_EXPORT RasterTile
+/** Validated CPU tile upload, released after its GPU pixels are published. */
+class KRITAIMAGEGPUOPERATIONS_EXPORT UploadTile
 {
 public:
-    /** Compression output allocation bound; zero for an unsupported format. */
-    static qsizetype compressionBufferBytes(PixelFormat format);
-    static QSharedPointer<const RasterTile> fromPixels(const RgbaTile &tile);
+    static QSharedPointer<const UploadTile> fromPixels(const RgbaTile &tile);
     QPoint coordinate() const { return m_coordinate; }
     PixelFormat format() const { return m_format; }
     qsizetype byteCount() const { return RgbaTile::byteCount(m_format); }
-    qsizetype compressedByteCount() const { return m_compressed.size(); }
-    QByteArray rgba() const;
+    QByteArray rgba() const { return m_rgba; }
 
 private:
-    RasterTile(QPoint coordinate, QByteArray data, PixelFormat format);
+    UploadTile(QPoint coordinate, QByteArray data, PixelFormat format);
     QPoint m_coordinate;
-    QByteArray m_compressed;
+    QByteArray m_rgba;
     PixelFormat m_format;
 };
 }

@@ -176,12 +176,11 @@ private Q_SLOTS:
     void visibleLayersComposeOnTheGpuAndReuseUnchangedTiles();
     void compositionPreservesOrderAlphaAndExistingVersionsAtCapacity();
     void paintingAndCompositionShareOneSubmission();
-    void longDocumentRebuildUsesBoundedTileStorage();
     void longStrokeRebuildKeepsPixelsAndHistory();
     void retainedPixelsOwnTheNativeDeviceUntilTheirLastReader();
     void nativeDeviceCreationRequiresTheApplicationThread();
-    void rasterCheckpointsPreservePixelsThroughPaintingUndo();
-    void overwrittenTileHistoryRebuildsWithinTwoBuffers();
+    void rasterUploadsPreservePixelsThroughPaintingUndo();
+    void pendingTileWritesUseTheLatestUploadWithinTwoBuffers();
     void tileWritesPreservePaintingOnOtherCoordinates();
     void implicitLayerPixelsStaySparseThroughEditsAndProjection_data();
     void implicitLayerPixelsStaySparseThroughEditsAndProjection();

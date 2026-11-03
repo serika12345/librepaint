@@ -235,34 +235,6 @@ Result OperationDocument::writeLayerPosition(LayerId layer, QPoint position)
     return applyLayerPosition(layer, position, nullptr);
 }
 
-QList<Snapshot> OperationDocument::layerPositionVersions(const Snapshot &source, LayerId layer, bool mask) const
-{
-    const int index = m_history.indexOf(source);
-    if (index < 0) return {source};
-    const auto containsLayer = [&](const Snapshot &state) {
-        for (const auto &candidate : state->layers) if (candidate.id == layer) {
-            if (!mask) return true;
-            for (const auto &original : source->layers) if (original.id == layer)
-                return candidate.transparencyMask && candidate.transparencyMaskUuid == original.transparencyMaskUuid;
-        }
-        return false;
-    };
-    const auto property = mask ? LayerProperty::MaskPosition : LayerProperty::Position;
-    const auto changesPosition = [&](int index) {
-        if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
-            if (!resize->rect.topLeft().isNull()) return true;
-        const auto &change = m_layerHistoryChanges[index];
-        if (change.layer == layer && change.property == property) return true;
-        for (const auto &edit : change.propertyEdits)
-            if (edit.layer == layer && edit.property == property) return true;
-        return false;
-    };
-    int first = index, last = index;
-    while (first > 0 && !changesPosition(first) && containsLayer(m_history[first - 1])) --first;
-    while (last + 1 < m_history.size() && !changesPosition(last + 1) && containsLayer(m_history[last + 1])) ++last;
-    return m_history.mid(first, last - first + 1);
-}
-
 Result OperationDocument::applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion)
 {
     const auto status = checkMutation();
@@ -273,53 +245,37 @@ Result OperationDocument::applyLayerPosition(LayerId layer, QPoint position, Sna
     for (const auto &candidate : source->layers) if (candidate.id == layer) selected = &candidate;
     if (!selected) return Result::LayerUnavailable;
     if (selected->position == position) return Result::Success;
-    const auto versions = layerPositionVersions(source, layer);
-    const quint64 count = quint64(versions.size());
-    if (count > std::numeric_limits<quint64>::max() - m_nextRevision ||
-        count > std::numeric_limits<quint64>::max() - m_nextOperation) return Result::CapacityExceeded;
-    auto history = m_history;
-    auto retained = source;
-    auto nextRevision = m_nextRevision, nextOperation = m_nextOperation;
-    QHash<QPair<quintptr, QPoint>, TranslationSnapshot> translations;
-    for (const auto &before : versions) {
-        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
-        for (auto &candidate : version->layers) {
-            if (candidate.id != layer) continue;
-            const auto offset = checkedOffset(qint64(position.x()) - candidate.position.x(),
-                                               qint64(position.y()) - candidate.position.y());
-            if (!offset) return Result::InvalidInput;
-            if (candidate.kind == LayerKind::Group || isFilterNode(candidate.kind)) {
-                candidate.position = position;
-                break;
-            }
+    if (m_nextRevision == std::numeric_limits<quint64>::max() ||
+        m_nextOperation == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*source));
+    auto nextOperation = m_nextOperation;
+    for (auto &candidate : version->layers) {
+        if (candidate.id != layer) continue;
+        const auto offset = checkedOffset(qint64(position.x()) - candidate.position.x(),
+                                           qint64(position.y()) - candidate.position.y());
+        if (!offset) return Result::InvalidInput;
+        if (candidate.kind == LayerKind::Paint) {
             auto previous = candidate.operations.isEmpty() ? nullptr :
                 std::get_if<TranslationSnapshot>(&candidate.operations.last());
             if (previous && (*previous)->selectedPixels) previous = nullptr;
             const auto combined = previous ?
                 checkedOffset(qint64((*previous)->offset.x()) + offset->x(), qint64((*previous)->offset.y()) + offset->y()) : offset;
             if (!combined) return Result::InvalidInput;
-            const auto key = qMakePair(previous ? quintptr(previous->data()) : quintptr(0), *offset);
-            if (!combined->isNull() && !translations.contains(key)) {
-                auto operation = QSharedPointer<TranslationOperation>::create();
-                operation->id = {m_identity, ++nextOperation};
-                operation->version = 1;
-                operation->layer = layer;
-                operation->offset = *combined;
-                translations.insert(key, operation);
-            }
             if (previous) candidate.operations.removeLast();
-            if (!combined->isNull()) candidate.operations.append(translations.value(key));
-            candidate.position = position;
-            break;
+            if (!combined->isNull()) {
+                auto operation = QSharedPointer<TranslationOperation>::create();
+                operation->id = {m_identity, ++nextOperation}; operation->version = 1;
+                operation->layer = layer; operation->offset = *combined;
+                candidate.operations.append(TranslationSnapshot(operation));
+            }
         }
-        version->m_revision = ++nextRevision;
-        for (auto &state : history) if (state == before) state = version;
-        if (before == source) retained = version;
+        candidate.position = position;
+        break;
     }
-    m_history.swap(history);
-    m_nextRevision = nextRevision;
+    version->m_revision = ++m_nextRevision;
+    if (source == snapshot()) m_history[m_index] = version;
     m_nextOperation = nextOperation;
-    if (retainedVersion) *retainedVersion = retained;
+    if (retainedVersion) *retainedVersion = version;
     return Result::Success;
 }
 }

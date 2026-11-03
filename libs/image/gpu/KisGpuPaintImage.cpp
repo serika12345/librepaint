@@ -1047,17 +1047,15 @@ Result PaintImage::applyLayerPosition(LayerId layer, QPoint position, Snapshot *
     bool available = false;
     for (const auto &value : source->layers) if (value.id == layer) available = true;
     if (!available) return Result::LayerUnavailable;
-    for (const auto &version : document.layerPositionVersions(source, layer)) {
-        for (const auto &value : version->layers) {
-            if (value.id != layer) continue;
-            const qint64 x = qint64(position.x()) - value.position.x();
-            const qint64 y = qint64(position.y()) - value.position.y();
-            constexpr qint64 limit = 2 * RgbaTile::CoordinateLimit;
-            if (x < -limit || x > limit || y < -limit || y > limit) return Result::InvalidInput;
-            if (value.kind == LayerKind::Group) continue;
-            const auto admitted = checkLayerTranslation(version, layer, QPoint(int(x), int(y)));
-            if (admitted != Result::Success) return admitted;
-        }
+    for (const auto &value : source->layers) {
+        if (value.id != layer) continue;
+        const qint64 x = qint64(position.x()) - value.position.x();
+        const qint64 y = qint64(position.y()) - value.position.y();
+        constexpr qint64 limit = 2 * RgbaTile::CoordinateLimit;
+        if (x < -limit || x > limit || y < -limit || y > limit) return Result::InvalidInput;
+        if (value.kind == LayerKind::Group) continue;
+        const auto admitted = checkLayerTranslation(source, layer, QPoint(int(x), int(y)));
+        if (admitted != Result::Success) return admitted;
     }
     return requestAfterWrite(m_d->document->applyLayerPosition(layer, position, retainedVersion));
 }

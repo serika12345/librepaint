@@ -19,6 +19,17 @@
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
+Layer completedLayer(const Snapshot &version, Layer layer)
+{
+    if (const auto pixels = version->renderedPixels(layer.id)) {
+        layer.pixels = pixels;
+        layer.defaultPixel = pixels->defaultPixel;
+        layer.operations.clear();
+    }
+    return layer;
+}
+
+
 qsizetype operationSamples(const LayerOperation &value)
 {
     const auto paint = std::get_if<PaintSnapshot>(&value);
@@ -200,6 +211,16 @@ QHash<const void *, qsizetype> DocumentVersion::pixelStorageBytes() const
     return result;
 }
 
+Snapshot OperationDocument::compactRenderedInputs(const Snapshot &version) const
+{
+    for (const auto &layer : version->layers) {
+        const auto pixels = version->renderedPixels(layer.id);
+        if (pixels && (layer.pixels != pixels || !layer.operations.isEmpty()))
+            return Snapshot(new DocumentVersion(*version));
+    }
+    return version;
+}
+
 OperationDocument::OperationDocument(QSize size, Limits limits)
     : OperationDocument(RasterImage{size, {{QStringLiteral("Paint Layer 1"), true, {}, {}}}, 0}, limits) {}
 
@@ -217,8 +238,9 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
         if (found == source->layers.cend()) return {};
         QSet<LayerId> included{onlyLayer};
         includeLayerDescendants(source->layers, included);
+        const auto completed = version->layers;
         version->layers.clear();
-        for (const auto &layer : source->layers) if (included.contains(layer.id)) {
+        for (const auto &layer : completed) if (included.contains(layer.id)) {
             version->layers.append(layer);
             if (layer.id == onlyLayer) version->layers.last().parentUuid = QUuid();
         }
@@ -703,28 +725,12 @@ Result OperationDocument::applyLayerDefaultPixel(LayerId layer, const RgbaPixel 
     for (const auto &value : source->layers) if (value.id == layer) selected = &value;
     if (!selected || selected->kind != LayerKind::Paint) return Result::LayerUnavailable;
     if (selected->defaultPixel == rgba) return Result::Success;
-    if (quint64(m_history.size()) + 1 > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
-    auto history = m_history;
-    auto retained = source;
-    auto nextRevision = m_nextRevision;
-    const auto update = [&](const Snapshot &before) -> Snapshot {
-        if (before->format != source->format || before->colorProfile != source->colorProfile) return before;
-        for (qsizetype i = 0; i < before->layers.size(); ++i) {
-            const auto &candidate = before->layers[i];
-            if (candidate.id != layer || candidate.uuid != selected->uuid || candidate.defaultPixel != selected->defaultPixel) continue;
-            auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
-            version->layers[i].defaultPixel = rgba; version->m_revision = ++nextRevision;
-            return version;
-        }
-        return before;
-    };
-    for (auto &version : history) {
-        const auto before = version; version = update(before);
-        if (before == source) retained = version;
-    }
-    if (retained == source) retained = update(source);
-    m_history.swap(history); m_nextRevision = nextRevision;
-    if (retainedVersion) *retainedVersion = retained;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*source));
+    for (auto &candidate : version->layers) if (candidate.id == layer) candidate.defaultPixel = rgba;
+    version->m_revision = ++m_nextRevision;
+    if (source == snapshot()) m_history[m_index] = version;
+    if (retainedVersion) *retainedVersion = version;
     return Result::Success;
 }
 catch (const std::bad_alloc &) { return Result::CapacityExceeded; }
@@ -1101,6 +1107,7 @@ void OperationDocument::commitVersion(const Snapshot &version, const LayerHistor
     auto changes = m_layerHistoryChanges;
     history.erase(history.begin() + m_index + 1, history.end());
     changes.erase(changes.begin() + m_index + 1, changes.end());
+    for (auto &entry : history) entry = compactRenderedInputs(entry);
     history.append(version);
     changes.append(change);
     int index = m_index + 1;
@@ -1109,7 +1116,7 @@ void OperationDocument::commitVersion(const Snapshot &version, const LayerHistor
     auto retained = version->pixelStorageBytes();
     qsizetype historyBytes = 0;
     int first = index;
-    for (int i = index - 1; i >= 0 && index - i <= HistoryLimit; --i) {
+    for (int i = index - 1; i >= 0; --i) {
         const auto buffers = history[i]->pixelStorageBytes();
         qsizetype added = 0;
         for (auto buffer = buffers.cbegin(); buffer != buffers.cend(); ++buffer)
@@ -1305,7 +1312,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         if (found->filterSelection && !selectionFitsInputs(found->filterSelection)) return Result::CapacityExceeded;
         if (found->filter && (!filterFitsRetainedHistory(*found->filter) || found->filter->byteCount() > m_limits.rasterBytes))
             return Result::CapacityExceeded;
-        Layer copy = *found;
+        Layer copy = completedLayer(input.source, *found);
         copy.id = ++nextLayer;
         copy.name = properties.name;
         copy.uuid = properties.uuid;
@@ -1389,7 +1396,7 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     if (layers.isEmpty() || layers.size() != names.size()) return Result::InvalidInput;
-    const auto original = snapshot();
+    const auto original = compactRenderedInputs(snapshot());
     qsizetype previousIndex = -1;
     QSet<LayerId> included;
     QHash<LayerId, QString> copyNames;
@@ -2300,7 +2307,8 @@ LayerPixelsSP OperationDocument::renderAdjustmentProjection(const Snapshot &befo
     projection->extent = extent; projection->allocatedBlocks = blocks;
     projection->nativeSources = true;
     projection->sourceBounds.insert(node, extent);
-    for (auto layer : before->layers) {
+    for (const auto &inputLayer : before->layers) {
+        auto layer = completedLayer(before, inputLayer);
         if (!included.contains(layer.id)) continue;
         if (roots.contains(layer.id)) {
             const auto input = roots.value(layer.id);
@@ -2442,7 +2450,7 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
                         if (clone.transparencyMaskUuid.isNull() || used.contains(clone.transparencyMaskUuid)) return Result::InvalidInput;
                         used.insert(clone.transparencyMaskUuid);
                     }
-                    copyLayerOperations(child, clone, m_identity, nextOperation);
+                    copyLayerOperations(completedLayer(before, child), clone, m_identity, nextOperation);
                     copied.insert(child.uuid, clone.uuid);
                     added.append(std::move(clone)); pending.append(&child);
                 }
@@ -2463,9 +2471,9 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
                 if (!included.contains(layer.id) || layer.kind != LayerKind::Adjustment) continue;
                 QRect extent = request.sourceBounds.value(layer.id);
                 if (extent.isEmpty()) extent = QRect(QPoint(), before->size);
-                const auto frozen = renderAdjustmentProjection(before, layer.id, extent, request.allocatedBlocks, request.renderProjection);
-                if (!frozen) return Result::CapacityExceeded;
-                adjustments.insert(layer.id, frozen);
+                const auto pixels = renderAdjustmentProjection(before, layer.id, extent, request.allocatedBlocks, request.renderProjection);
+                if (!pixels) return Result::CapacityExceeded;
+                adjustments.insert(layer.id, pixels);
                 adjustmentIdentities.insert(layer.uuid);
             }
             for (const auto &layer : before->layers)
@@ -2492,7 +2500,8 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
                 output.position = visible.first()->position;
             }
             source->projectionBackground = wholeImage ? before->projectionBackground : output.defaultPixel;
-            for (auto layer : before->layers) {
+            for (const auto &inputLayer : before->layers) {
+                auto layer = completedLayer(before, inputLayer);
                 if (!included.contains(layer.id)) continue;
                 if (adjustments.contains(layer.id)) {
                     layer.kind = LayerKind::Paint; layer.filter.reset(); layer.filterSelection.clear();
@@ -2537,7 +2546,7 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
     if (added.size() > m_limits.layerCount - (before->layers.size() - removed.size())) return Result::CapacityExceeded;
     QList<Layer> finalLayers;
     for (const auto &layer : before->layers) {
-        if (!removed.contains(layer.id)) finalLayers.append(layer);
+        if (!removed.contains(layer.id)) finalLayers.append(completedLayer(before, layer));
         if (layer.id == request.above) finalLayers.append(added);
     }
     version->layers = std::move(finalLayers);

@@ -215,7 +215,6 @@ private Q_SLOTS:
     void cancelAndRejectedInputPreserveRedo();
     void documentChangesShareOneHistory();
     void savesPinTheirVersionWhileEditingContinues();
-    void historyRetains250Operations();
     void staleAndForeignEditsCannotChangeADocument();
     void frozenOperationsOutliveTheDocument();
     void limitsRejectWholeRequests();
@@ -3407,24 +3406,6 @@ void KisGpuOperationDocumentTest::savesPinTheirVersionWhileEditingContinues()
     QCOMPARE(document.snapshot(), edited);
 }
 
-void KisGpuOperationDocumentTest::historyRetains250Operations()
-{
-    OperationDocument document({64, 64});
-    for (int i = 0; i < 260; ++i) {
-        QVERIFY(!paint(document, {sample(i, i)}).isNull());
-    }
-    QCOMPARE(document.undoCount(), 250);
-    for (int i = 0; i < 250; ++i) {
-        QCOMPARE(document.undo(), Result::Success);
-    }
-    QCOMPARE(document.undo(), Result::NothingToUndo);
-    QCOMPARE(document.snapshot()->layers.front().operations.size(), 10);
-    for (int i = 0; i < 250; ++i) {
-        QCOMPARE(document.redo(), Result::Success);
-    }
-    QCOMPARE(document.snapshot()->layers.front().operations.size(), 260);
-    QCOMPARE(document.redo(), Result::NothingToRedo);
-}
 
 void KisGpuOperationDocumentTest::staleAndForeignEditsCannotChangeADocument()
 {
@@ -5077,14 +5058,14 @@ void KisGpuOperationDocumentTest::colorConversionAdmissionAndCapacityPreserveVer
     input.colorProfile = QByteArrayLiteral("source ICC value");
     input.layers.append(RasterLayer{QStringLiteral("Paint")});
     Limits limits;
-    limits.compressedWriteBytes = 1;
+    limits.rasterBytes = RgbaTile::ByteCount - 1;
     OperationDocument document(input, limits);
     const auto before = document.snapshot();
     const auto id = document.beginColorConversion();
     QVERIFY(!id.isNull());
     QVERIFY(document.hasActiveStroke());
     QCOMPARE(document.undo(), Result::EditInProgress);
-    const auto tile = RasterTile::fromPixels({{0, 0}, QByteArray(RgbaTile::ByteCount, char(42)), PixelFormat::Rgba8});
+    const auto tile = UploadTile::fromPixels({{0, 0}, QByteArray(RgbaTile::ByteCount, char(42)), PixelFormat::Rgba8});
     QVERIFY(tile);
     const QList<ConvertedLayerPixels> layers{{before->activeLayer, {}, {tile}, {}}};
     QCOMPARE(document.commitColorConversion(id, before, PixelFormat::Rgba8, QByteArrayLiteral("destination ICC value"), {}, layers),

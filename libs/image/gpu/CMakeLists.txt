@@ -1,4 +1,3 @@
-find_package(ZLIB 1.2.9 REQUIRED)
 kis_add_library(kritaimagegpuoperations SHARED
     KisGpuOperationDocument.cpp
     KisGpuFilterSettings.cpp
@@ -13,7 +12,7 @@ kis_add_library(kritaimagegpuoperations SHARED
     KisGpuRgba8AlphaBlend.cpp
     KisGpuRgba16Compositing.cpp
     KisGpuCopyCompositing.cpp
-    KisGpuRasterPixels.cpp
+    KisGpuPixelData.cpp
     KisGpuRasterOperations.cpp
     KisGpuRegionFill.cpp
 )
@@ -24,7 +23,6 @@ target_include_directories(kritaimagegpuoperations PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>
 )
 target_link_libraries(kritaimagegpuoperations PUBLIC Qt${QT_MAJOR_VERSION}::Core kritapigmentcolorconversionstages)
-target_link_libraries(kritaimagegpuoperations PRIVATE ZLIB::ZLIB)
 set_target_properties(kritaimagegpuoperations PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON

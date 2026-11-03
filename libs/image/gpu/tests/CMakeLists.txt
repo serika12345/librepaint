@@ -2,7 +2,7 @@ kis_add_test(KisGpuOperationDocumentTest.cpp
     LINK_LIBRARIES kritaimagegpuoperations Qt${QT_MAJOR_VERSION}::Test
 )
 
-kis_add_test(KisGpuRasterPixelsTest.cpp
+kis_add_test(KisGpuPixelDataTest.cpp
     LINK_LIBRARIES kritaimagegpuoperations Qt${QT_MAJOR_VERSION}::Test
 )
 
@@ -68,4 +68,4 @@ kis_add_test(KisGpuPipelineBuildTest.cpp
     TEST_NAME_VAR gpu_pipeline_build_test
     LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::Gui Qt6::Test WGPUNative::WGPUNative)
 target_compile_definitions(KisGpuPipelineBuildTest PRIVATE kritagpuimage_EXPORTS)
-set_tests_properties(${gpu_pipeline_build_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;__GL_SHADER_DISK_CACHE=0;MESA_SHADER_CACHE_DISABLE=true" TIMEOUT 30)
+set_tests_properties(${gpu_pipeline_build_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;__GL_SHADER_DISK_CACHE=0;MESA_SHADER_CACHE_DISABLE=true" TIMEOUT 30 RUN_SERIAL TRUE)

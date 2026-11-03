@@ -6,7 +6,7 @@
 #ifndef KIS_GPU_SELECTION_MASK_H
 #define KIS_GPU_SELECTION_MASK_H
 
-#include "KisGpuRasterPixels.h"
+#include "KisGpuPixelData.h"
 #include <kritaimagegpuoperations_export.h>
 #include <QByteArray>
 #include <QList>

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuAffineTransform.h"
-#include "KisGpuRasterPixels.h"
+#include "KisGpuPixelData.h"
 #include <QtMath>
 #include <cmath>
 #include <limits>

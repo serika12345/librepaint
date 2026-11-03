@@ -123,63 +123,37 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
         return Result::CapacityExceeded;
     Result adopted;
     try {
-        QList<OperationDocument::VersionPixelWrite> writes;
-        qsizetype compressedBytes = 0;
-        // A direct write changes only the version it addresses; undo versions keep their pixels.
-        const QList<Snapshot> versions{current};
-        for (const auto &version : versions) {
-            const Layer *candidate = nullptr;
-            for (const auto &value : version->layers) if (value.id == layer) candidate = &value;
-            if (version->format != current->format || version->colorProfile != current->colorProfile) continue;
-            if (!candidate || candidate->uuid != selected.uuid || candidate->defaultPixel != selected.defaultPixel) continue;
-            const qint64 dx = qint64(candidate->position.x()) - selected.position.x();
-            const qint64 dy = qint64(candidate->position.y()) - selected.position.y();
-            if (qint64(region.left()) + dx < -limit || qint64(region.right()) + dx >= limit ||
-                qint64(region.top()) + dy < -limit || qint64(region.bottom()) + dy >= limit)
-                return Result::InvalidInput;
-            const QPoint placement{int(dx), int(dy)};
-            QMap<quint64, QList<QRect>> areas;
-            constexpr int blockSize = Detail::PixelHistoryBlockSize;
-            const auto blockIndex = [](qint64 value) { return value >= 0 ? value / blockSize : (value - blockSize + 1) / blockSize; };
-            for (qint64 y = blockIndex(qint64(region.top()) - selected.position.y()); y <= blockIndex(qint64(region.bottom()) - selected.position.y()); ++y) {
-                for (qint64 x = blockIndex(qint64(region.left()) - selected.position.x()); x <= blockIndex(qint64(region.right()) - selected.position.x()); ++x) {
-                    const auto blockKey = Detail::key(int(x), int(y));
-                    const QRect block(int(x * blockSize + selected.position.x()), int(y * blockSize + selected.position.y()), blockSize, blockSize);
-                    const auto area = block.intersected(region).translated(placement);
-                    for (int ty = Detail::pixelTileIndex(area.top(), size); ty <= Detail::pixelTileIndex(area.bottom(), size); ++ty)
-                        for (int tx = Detail::pixelTileIndex(area.left(), size); tx <= Detail::pixelTileIndex(area.right(), size); ++tx)
-                            areas[Detail::key(tx, ty)].append(area.intersected(QRect(tx * size, ty * size, size, size)));
-                }
+        OperationDocument::VersionPixelWrite write;
+        write.before = current; write.layer = layer;
+        QMap<quint64, QList<QRect>> areas;
+        constexpr int blockSize = Detail::PixelHistoryBlockSize;
+        const auto blockIndex = [](qint64 value) { return value >= 0 ? value / blockSize : (value - blockSize + 1) / blockSize; };
+        for (qint64 y = blockIndex(qint64(region.top()) - selected.position.y()); y <= blockIndex(qint64(region.bottom()) - selected.position.y()); ++y)
+            for (qint64 x = blockIndex(qint64(region.left()) - selected.position.x()); x <= blockIndex(qint64(region.right()) - selected.position.x()); ++x) {
+                const QRect block(int(x * blockSize + selected.position.x()), int(y * blockSize + selected.position.y()), blockSize, blockSize);
+                const auto area = block.intersected(region);
+                for (int ty = Detail::pixelTileIndex(area.top(), size); ty <= Detail::pixelTileIndex(area.bottom(), size); ++ty)
+                    for (int tx = Detail::pixelTileIndex(area.left(), size); tx <= Detail::pixelTileIndex(area.right(), size); ++tx)
+                        areas[Detail::key(tx, ty)].append(area.intersected(QRect(tx * size, ty * size, size, size)));
             }
-            if (areas.isEmpty()) continue;
-            if (areas.size() > d.limits.rasterBytes / bytesPerTile)
-                return Result::CapacityExceeded;
-            OperationDocument::VersionPixelWrite write;
-            write.before = version;
-            write.layer = layer;
-            for (auto tile = areas.cbegin(); tile != areas.cend(); ++tile) {
-                const auto coordinate = Detail::coordinate(tile.key());
-                const QRect tileRegion(coordinate * size, QSize(size, size));
-                auto pixels = d.execution.readRgbaPixels(d.handle, version, tileRegion, layer, bytesPerTile);
-                if (pixels.code != ExecutionCode::Success) return readFailure(pixels.code);
-                for (const auto &area : tile.value()) {
-                    for (int y = area.top(); y <= area.bottom(); ++y) {
-                        const qsizetype source = (qsizetype(y - placement.y() - region.y()) * region.width() + area.x() - placement.x() - region.x()) * pixelSize;
-                        const qsizetype destination = ((y - tileRegion.y()) * size + area.x() - tileRegion.x()) * pixelSize;
-                        std::memcpy(pixels.bytes.data() + destination, bytes.constData() + source, size_t(area.width()) * pixelSize);
-                    }
-                    write.areas.append(area);
+        for (auto tile = areas.cbegin(); tile != areas.cend(); ++tile) {
+            const auto coordinate = Detail::coordinate(tile.key());
+            const QRect tileRegion(coordinate * size, QSize(size, size));
+            auto pixels = d.execution.readRgbaPixels(d.handle, current, tileRegion, layer, bytesPerTile);
+            if (pixels.code != ExecutionCode::Success) return readFailure(pixels.code);
+            for (const auto &area : tile.value()) {
+                for (int y = area.top(); y <= area.bottom(); ++y) {
+                    const qsizetype source = (qsizetype(y - region.y()) * region.width() + area.x() - region.x()) * pixelSize;
+                    const qsizetype destination = ((y - tileRegion.y()) * size + area.x() - tileRegion.x()) * pixelSize;
+                    std::memcpy(pixels.bytes.data() + destination, bytes.constData() + source, size_t(area.width()) * pixelSize);
                 }
-                const auto checkpoint = RasterTile::fromPixels({coordinate, pixels.bytes, version->format});
-                if (!checkpoint) return Result::CapacityExceeded;
-                if (checkpoint->compressedByteCount() > d.limits.compressedWriteBytes - compressedBytes)
-                    return Result::CapacityExceeded;
-                compressedBytes += checkpoint->compressedByteCount();
-                write.tiles.append(checkpoint);
+                write.areas.append(area);
             }
-            writes.append(write);
+            const auto upload = UploadTile::fromPixels({coordinate, pixels.bytes, current->format});
+            if (!upload) return Result::CapacityExceeded;
+            write.tiles.append(upload);
         }
-        adopted = document.applyPixelVersions(writes, recordHistory, retainedVersion);
+        adopted = document.applyPixelWrite(write, recordHistory, retainedVersion);
     } catch (const std::bad_alloc &) {
         return Result::CapacityExceeded;
     }
@@ -202,17 +176,11 @@ Result PaintImage::applyMaskPosition(const QUuid &maskUuid, QPoint position,
     const auto selected = *retainedCoverage;
     Snapshot source;
     LayerId layerId = 0;
-    bool child = false;
     if (status != Result::Closed) {
-        for (const auto &version : document.m_history) {
-            for (const auto &layer : version->layers) {
-                if (editableMaskCoverage(layer, maskUuid) != selected) continue;
-                source = version;
-                layerId = layer.id;
-                child = layer.transparencyMaskUuid == maskUuid;
-                break;
-            }
-            if (source == document.snapshot()) break;
+        const auto current = document.snapshot();
+        for (const auto &layer : current->layers) {
+            if (editableMaskCoverage(layer, maskUuid) != selected) continue;
+            source = current; layerId = layer.id; break;
         }
     }
     constexpr qint64 limit = RgbaTile::CoordinateLimit;
@@ -226,33 +194,12 @@ Result PaintImage::applyMaskPosition(const QUuid &maskUuid, QPoint position,
         return translatedSelectionMask(coverage, QPoint(int(x), int(y)), domain);
     };
     try {
-        QList<OperationDocument::VersionMaskWrite> writes;
-        SelectionMaskSP output;
-        if (source) {
-            QHash<QPair<quintptr, QPoint>, SelectionMaskSP> prepared;
-            for (const auto &version : document.layerPositionVersions(source, layerId, child)) {
-                for (const auto &layer : version->layers) {
-                    if (layer.id != layerId) continue;
-                    const auto coverage = editableMaskCoverage(layer, maskUuid);
-                    if (!coverage) return Result::LayerUnavailable;
-                    const auto before = child ? layer.transparencyMaskPosition : layer.position;
-                    const auto key = qMakePair(quintptr(coverage.data()), before);
-                    if (!prepared.contains(key)) {
-                        const auto moved = move(coverage, before);
-                        if (!moved) return Result::CapacityExceeded;
-                        prepared.insert(key, moved);
-                    }
-                    const auto moved = prepared.value(key);
-                    writes.append({version, layerId, maskUuid, moved, position});
-                    if (version == source) output = moved;
-                }
-            }
-        } else output = move(selected, retainedPosition);
+        const auto output = move(selected, retainedPosition);
         if (!output) return Result::CapacityExceeded;
-        const auto result = writes.isEmpty() ? Result::Success : document.applyMaskVersions(writes);
+        const auto result = source ? document.applyMaskWrite({source, layerId, maskUuid, output, position}) : Result::Success;
         if (result == Result::Success) {
             *retainedCoverage = output;
-            if (request && !writes.isEmpty()) requestCurrentVersion();
+            if (request && source) requestCurrentVersion();
         }
         return result;
     } catch (const std::bad_alloc &) {
@@ -304,7 +251,7 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
         const auto sourceContext = context.snapshot();
         QMap<std::tuple<int, int, int, int>, SelectionMaskSP> inputs;
         qsizetype retainedBytes = 0;
-        QList<OperationDocument::VersionMaskWrite> writes;
+        std::optional<OperationDocument::VersionMaskWrite> write;
         constexpr int blockSize = Detail::PixelHistoryBlockSize;
         const auto blockIndex = [](qint64 value) { return value >= 0 ? value / blockSize : (value - blockSize + 1) / blockSize; };
         const auto selectedPosition = retainedCoverage ? retainedPosition : maskPosition(current);
@@ -378,13 +325,13 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
             if (generated.code != ExecutionCode::Success) return readFailure(generated.code);
             if (!output || !document.selectionFitsInputs(output)) return Result::CapacityExceeded;
             if (previous == selected && previousPosition == selectedPosition) selectedOutput = output;
-            if (!retainedOnly) writes.append({version, target.first, maskUuid, output});
+            if (!retainedOnly) write = OperationDocument::VersionMaskWrite{version, target.first, maskUuid, output};
         }
         if (!selectedOutput) return Result::LayerUnavailable;
-        const auto adopted = writes.isEmpty() ? Result::Success : document.applyMaskVersions(writes);
+        const auto adopted = write ? document.applyMaskWrite(*write) : Result::Success;
         if (adopted == Result::Success) {
             if (retainedCoverage) *retainedCoverage = selectedOutput;
-            if (!writes.isEmpty()) requestCurrentVersion();
+            if (bool(write)) requestCurrentVersion();
         }
         return adopted;
     } catch (const std::bad_alloc &) {
