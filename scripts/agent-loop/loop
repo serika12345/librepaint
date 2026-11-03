@@ -16,7 +16,9 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repo_root"
 
 if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
-    exec nix develop "$repo_root#test" --command "$0" "$@"
+    # --profile keeps the shell closure as a GC root so restarts do not rebuild dependencies.
+    mkdir -p "$repo_root/build/agent-loop"
+    exec nix develop --profile "$repo_root/build/agent-loop/dev-shell" "$repo_root#test" --command "$0" "$@"
 fi
 export PATH="$repo_root/scripts:$PATH"
 
