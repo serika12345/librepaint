@@ -73,12 +73,12 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
             std::visit([&](const auto &dabs) {
                 if constexpr (std::is_same_v<typename std::decay_t<decltype(dabs)>::value_type, AutoBrushDab>) {
                     auto *destination = mapped + offset + parameterStride;
-                    quint32 coordinateOffset = quint32(dabs.size() * 36);
+                    quint32 coordinateOffset = quint32(dabs.size() * 32);
                     for (qsizetype i = 0; i < dabs.size(); ++i) {
                         auto words = dabs[i].words;
                         if (dabs[i].imageCoordinates) {
                             const auto &coordinates = *dabs[i].imageCoordinates;
-                            words[27] = coordinateOffset;
+                            words[23] = coordinateOffset;
                             std::memcpy(destination + quint64(coordinateOffset) * 4, coordinates.constData(), std::size_t(coordinates.size()) * 4);
                             coordinateOffset += quint32(coordinates.size());
                         }

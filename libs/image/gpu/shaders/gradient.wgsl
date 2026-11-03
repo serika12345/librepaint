@@ -3,44 +3,36 @@
 
 // Frozen gradient resource sampling, repetition, native mixing and quantization.
 
-fn gradientLess(a: Word64, b: Word64) -> bool {
-    if (all(doubleMagnitude(a) == Word64(0u)) && all(doubleMagnitude(b) == Word64(0u))) { return false; }
-    let negativeA = (a.y & 0x80000000u) != 0u;
-    let negativeB = (b.y & 0x80000000u) != 0u;
-    if (negativeA != negativeB) { return negativeA; }
-    if (negativeA) { return !wordLessEqual(doubleMagnitude(a), doubleMagnitude(b)); }
-    return !wordLessEqual(b, a);
-}
 
-fn gradientRepeated(value: Word64) -> Word64 {
-    let one = Word64(0u, 0x3ff00000u); let epsilon = Word64(0u, 0x3cb00000u);
+
+fn gradientRepeated(value: f32) -> f32 {
+    let one = 1.0; let epsilon = 2.220446049250313e-16;
     if (parameters.patternSampling.y == 0u) {
-        if (gradientLess(value, epsilon)) { return Word64(0u); }
-        if (gradientLess(doubleSubtract(one, epsilon), value)) { return one; }
+        if ((value < epsilon)) { return 0.0; }
+        if (((one - epsilon) < value)) { return one; }
         return value;
     }
-    let integral = doubleFloor(doubleMagnitude(value));
+    let integral = floor(abs(value));
     if (parameters.patternSampling.y == 1u) {
         var integer = integral;
-        if ((value.y & 0x80000000u) != 0u) { integer = doubleNegate(integer); }
-        if (gradientLess(value, epsilon)) { integer = doubleSubtract(integer, one); }
-        return doubleSubtract(value, integer);
+        if ((value < 0.0)) { integer = (-integer); }
+        if ((value < epsilon)) { integer = (integer - one); }
+        return (value - integer);
     }
     if (GRADIENT_SHAPE >= 6u) {
-        var fraction = doubleSubtract(doubleMagnitude(value), integral);
-        let halfIntegral = doubleFloor(doubleMultiply(doubleMagnitude(value), doubleInteger(2u)));
-        if (patternCoordinate(halfIntegral, 2u).pixel == 1) { fraction = doubleSubtract(one, fraction); }
-        return doubleMultiply(fraction, doubleInteger(2u));
+        var fraction = (abs(value) - integral);
+        let halfIntegral = floor((abs(value) * f32(2u)));
+        if (patternCoordinate(halfIntegral, 2u).pixel == 1) { fraction = (one - fraction); }
+        return (fraction * f32(2u));
     }
-    var fraction = doubleSubtract(doubleMagnitude(value), integral);
-    if (patternCoordinate(integral, 2u).pixel == 1) { fraction = doubleSubtract(one, fraction); }
+    var fraction = (abs(value) - integral);
+    if (patternCoordinate(integral, 2u).pixel == 1) { fraction = (one - fraction); }
     return fraction;
 }
 
-fn gradientCached(value: Word64) -> vec4<u32> {
+fn gradientCached(value: f32) -> vec4<u32> {
     let count = parameters.pattern.x;
-    let index = min(count - 1u, doubleTruncate(doubleAdd(
-        doubleMultiply(value, doubleInteger(count - 1u)), Word64(0u, 0x3fe00000u))));
+    let index = min(count - 1u, u32(max(((value * f32(count - 1u)) + 0.5), 0.0)));
     return nativePixel(patternPixels[index * 2u], patternPixels[index * 2u + 1u], true);
 }
 
@@ -50,7 +42,7 @@ fn gradientMix(first: vec4<u32>, second: vec4<u32>, weight: u32) -> vec4<u32> {
     var color = vec4<u32>();
     if (alpha != 0u) {
         for (var channel = 0u; channel < 3u; channel++) {
-            color[channel] = patternQuotient(wordAdd(wordProduct(first[channel], a), wordProduct(second[channel], b)), alpha, 65535u);
+            color[channel] = patternQuotient(((f32(first[channel]) * f32(a)) + (f32(second[channel]) * f32(b))), alpha, 65535u);
         }
         color.w = (alpha + 16383u) / 32767u;
     }

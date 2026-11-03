@@ -20,7 +20,7 @@ fn morphRadius() -> u32 { return parameters.flags >> 16u; }
 fn morphLevels() -> u32 { return 31u - countLeadingZeros(2u * morphRadius() + 1u); }
 fn labelStride() -> u32 {
     var native = 1u;
-    if (NATIVE_LAB_KIND == 2u) { native = 6u; }
+    if (NATIVE_LAB_KIND == 2u) { native = 3u; }
     if (NATIVE_LAB_KIND == 1u) { native = 3u; }
     return max(native, morphLevels() + 1u);
 }
@@ -109,9 +109,8 @@ fn opacity(difference: u32) -> u32 {
         storeLab(index, nativeLabClut(input));
     } else if (NATIVE_LAB_KIND == 2u) {
         let value = nativeLabLinearComponent(input, invocation.z % channels);
-        let offset = index * labelStride() + (invocation.z % channels) * 2u;
-        atomicStore(&labels[offset], value.x);
-        atomicStore(&labels[offset + 1u], value.y);
+        let offset = index * labelStride() + invocation.z % channels;
+        atomicStore(&labels[offset], bitcast<u32>(value));
     }
 }
 @compute @workgroup_size(8, 8) fn encode(@builtin(global_invocation_id) invocation: vec3<u32>) {
@@ -125,9 +124,9 @@ fn opacity(difference: u32) -> u32 {
         index = parameters.size.x * parameters.size.y;
     }
     let offset = index * labelStride();
-    let fx = Word64(atomicLoad(&labels[offset]), atomicLoad(&labels[offset + 1u]));
-    let fy = Word64(atomicLoad(&labels[offset + 2u]), atomicLoad(&labels[offset + 3u]));
-    let fz = Word64(atomicLoad(&labels[offset + 4u]), atomicLoad(&labels[offset + 5u]));
+    let fx = bitcast<f32>(atomicLoad(&labels[offset]));
+    let fy = bitcast<f32>(atomicLoad(&labels[offset + 1u]));
+    let fz = bitcast<f32>(atomicLoad(&labels[offset + 2u]));
     storeLab(index, nativeLabEncode(fx, fy, fz));
 }
 @compute @workgroup_size(8, 8) fn classify(@builtin(global_invocation_id) invocation: vec3<u32>) {
@@ -411,13 +410,12 @@ fn featherRectangle() -> vec4<i32> {
     let radius = i32(parameters.level.z);
     return filterRectangle() + vec4<i32>(-radius, -radius, radius, radius);
 }
-fn featherWeight(index: u32) -> Word64 {
-    let offset = parameters.level.y + 2u * index;
-    return Word64(conversion[offset], conversion[offset + 1u]);
+fn featherWeight(index: u32) -> f32 {
+    return bitcast<f32>(conversion[parameters.level.y + index]);
 }
-fn featherRounded(sum: Word64) -> u32 {
-    let normalized = doubleMultiply(sum, featherWeight(2u * parameters.level.z + 1u));
-    return min(255u, doubleTruncate(doubleAdd(normalized, Word64(0u, 0x3fe00000u))));
+fn featherRounded(sum: f32) -> u32 {
+    let normalized = (sum * featherWeight(2u * parameters.level.z + 1u));
+    return min(255u, u32(max((normalized + 0.5), 0.0)));
 }
 @compute @workgroup_size(8, 8) fn featherHorizontal(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let p = invocation.xy;
@@ -425,11 +423,11 @@ fn featherRounded(sum: Word64) -> u32 {
     let point = vec2<i32>(p);
     let rect = featherRectangle();
     let radius = i32(parameters.level.z);
-    var sum = Word64(0u, 0u);
+    var sum = 0.0;
     if (all(point >= rect.xy) && all(point < rect.zw)) {
         for (var x = -radius; x <= radius; x++) {
             let value = u32(rawCoverage(point + vec2<i32>(x, 0), filterRectangle()));
-            sum = doubleAdd(sum, doubleMultiply(featherWeight(u32(x + radius)), doubleInteger(value)));
+            sum = (sum + (featherWeight(u32(x + radius)) * f32(value)));
         }
     }
     atomicStore(&labels[parentIndex(p.y * parameters.size.x + p.x)], featherRounded(sum));
@@ -440,7 +438,7 @@ fn featherRounded(sum: Word64) -> u32 {
     let point = vec2<i32>(p);
     let rect = featherRectangle();
     let radius = i32(parameters.level.z);
-    var sum = Word64(0u, 0u);
+    var sum = 0.0;
     if (all(point >= rect.xy) && all(point < rect.zw)) {
         for (var y = -radius; y <= radius; y++) {
             let sample = point + vec2<i32>(0, y);
@@ -448,7 +446,7 @@ fn featherRounded(sum: Word64) -> u32 {
             if (all(sample >= rect.xy) && all(sample < rect.zw) && all(sample >= vec2<i32>()) && all(vec2<u32>(sample) < parameters.size)) {
                 value = atomicLoad(&labels[parentIndex(u32(sample.y) * parameters.size.x + u32(sample.x))]);
             }
-            sum = doubleAdd(sum, doubleMultiply(featherWeight(u32(y + radius)), doubleInteger(value)));
+            sum = (sum + (featherWeight(u32(y + radius)) * f32(value)));
         }
     }
     let value = selectionLimited(p, featherRounded(sum));

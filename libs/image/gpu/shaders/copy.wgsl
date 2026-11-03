@@ -1,30 +1,10 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Single-round binary32 multiply-add for the native Copy opacity interpolation.
-// The 61-bit accumulator keeps a sticky tail below the final rounding bits.
-fn copyAligned(value: vec2<u32>, power: i32, commonPower: i32) -> vec2<u32> {
-    if (power >= commonPower) { return projectionLeft(value, u32(power - commonPower)); }
-    let shift = u32(commonPower - power);
-    var result = projectionRight(value, shift);
-    if (projectionLowBits(value, shift)) { result.x |= 1u; }
-    return result;
-}
+
 fn copyInterpolate(destination: u32, source: u32, opacity: u32) -> u32 {
-    let difference = floatSubtract(source, destination);
-    if ((difference & 0x7fffffffu) == 0u) { return destination; }
-    let product = projectionProduct(projectionMantissa(difference), projectionMantissa(opacity));
-    let productPower = projectionPower(difference) + projectionPower(opacity);
-    let basePower = projectionPower(destination);
-    let leading = select(31u - countLeadingZeros(product.x), 63u - countLeadingZeros(product.y), product.y != 0u);
-    let highest = max(productPower + i32(leading), basePower + 23);
-    let commonPower = max(min(productPower, basePower), highest - 60);
-    let term = copyAligned(product, productPower, commonPower);
-    let base = copyAligned(vec2<u32>(projectionMantissa(destination), 0u), basePower, commonPower);
-    var result: vec2<u32>;
-    if ((difference & 0x80000000u) != 0u) { result = projectionSubtract(base, term); }
-    else { result = projectionAdd(base, term); }
-    return projectionFloat(result, commonPower);
+    let base = bitcast<f32>(destination);
+    return bitcast<u32>(base + (bitcast<f32>(source) - base) * bitcast<f32>(opacity));
 }
 fn copyPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, writeMask: u32, wide: bool) -> vec4<u32> {
     let locked = (writeMask & 8u) == 0u;

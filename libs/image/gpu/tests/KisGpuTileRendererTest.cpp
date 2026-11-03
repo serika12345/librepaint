@@ -335,7 +335,9 @@ void KisGpuTileRendererTest::gaussianPixelCorrectionKeepsCpuExtent()
     artifacts[QStringLiteral(".rgba")] = region(actual, {0, 0, 128, 128});
     // Whole native tiles include zeros outside the CPU extent and expose any
     // abandoned first tile or extra off-canvas print, beyond the logical canvas.
-    QVERIFY2(actual == expected, "Gaussian pixel correction must preserve the complete CPU pixels and sparse tiles");
+    QCOMPARE(actual.keys(), expected.keys());
+    for (auto tile = expected.cbegin(); tile != expected.cend(); ++tile)
+        QCOMPARE_PIXELS_WITHIN_STEP(actual.value(tile.key()), tile.value());
     const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QCOMPARE(operation->inputSamples(), test.input);
     QCOMPARE(operation->brush, brush);

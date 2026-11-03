@@ -19,12 +19,9 @@ quint32 floatBits(float value)
     std::memcpy(&bits, &value, sizeof(bits));
     return bits;
 }
-void doubleWords(AutoBrushDab &dab, std::size_t index, double value)
+void floatWord(AutoBrushDab &dab, std::size_t index, qreal value)
 {
-    quint64 bits;
-    std::memcpy(&bits, &value, sizeof(bits));
-    dab.words[index] = quint32(bits);
-    dab.words[index + 1] = quint32(bits >> 32);
+    dab.words[index] = floatBits(float(value));
 }
 int maskSide(qreal metric, qreal subpixel)
 {
@@ -70,10 +67,10 @@ bool imageDab(const Brush &brush, const BrushDab &point, QPointF subpixel, AutoB
         dab.words[1] > quint32(PaintGeometryElementLimit / 6)) return false;
     for (const auto value : {samplingInverse.m11() * 65536., samplingInverse.m12() * 65536.})
         if (!std::isfinite(value) || std::abs(value) > std::numeric_limits<qint32>::max()) return false;
-    dab.words[16] = quint32(qint32(samplingInverse.m11() * 65536.));
-    dab.words[17] = quint32(qint32(samplingInverse.m12() * 65536.));
-    dab.words[24] = quint32(level.size.width() + 2); dab.words[25] = quint32(level.size.height() + 2);
-    dab.words[26] = level.wordOffset + point.imageTipIndex * level.tipWordStride;
+    dab.words[10] = quint32(qint32(samplingInverse.m11() * 65536.));
+    dab.words[11] = quint32(qint32(samplingInverse.m12() * 65536.));
+    dab.words[20] = quint32(level.size.width() + 2); dab.words[21] = quint32(level.size.height() + 2);
+    dab.words[22] = level.wordOffset + point.imageTipIndex * level.tipWordStride;
     auto coordinates = QSharedPointer<QList<quint32>>::create(qsizetype(dab.words[1]) * 4, 0);
     for (quint32 y = 0; y < dab.words[1]; ++y) {
         const qreal cy = y + .5;
@@ -84,8 +81,8 @@ bool imageDab(const Brush &brush, const BrushDab &point, QPointF subpixel, AutoB
             if (low > high) std::swap(low, high);
             left = std::max(left, low); right = std::min(right, high);
         };
-        intersect(inverse.m11(), inverse.m21() * cy + inverse.dx(), dab.words[24]);
-        intersect(inverse.m12(), inverse.m22() * cy + inverse.dy(), dab.words[25]);
+        intersect(inverse.m11(), inverse.m21() * cy + inverse.dx(), dab.words[20]);
+        intersect(inverse.m12(), inverse.m22() * cy + inverse.dy(), dab.words[21]);
         if (right <= left) continue;
         const auto first = quint32(std::clamp(qRound(left), 0, int(dab.words[0])));
         const auto last = quint32(std::clamp(qRound(right), 0, int(dab.words[0])));
@@ -170,10 +167,10 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             dab.hand = point.hand;
             dab.words[0] = dab.words[1] = dab.words[2] = 1;
             dab.words[3] = 64u;
-            dab.words[18] = quint32(qint32(point.position.x()));
-            dab.words[19] = quint32(qint32(point.position.y()));
-            dab.words[20] = dab.words[21] = dab.words[22] = floatBits(1.f);
-            dab.words[23] = quint32(settings.creamy);
+            dab.words[12] = quint32(qint32(point.position.x()));
+            dab.words[13] = quint32(qint32(point.position.y()));
+            dab.words[16] = dab.words[17] = dab.words[18] = floatBits(1.f);
+            dab.words[19] = quint32(settings.creamy);
             result.append(dab);
             return result.size() <= PaintGeometryElementLimit / reflectionCount;
         }
@@ -210,31 +207,31 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         dab.words[3] = (point.mirroredH ? 4u : 0u) | (point.mirroredV ? 8u : 0u);
         const qreal narrowSide = brush.diameter * settings.ratio * point.scale;
         dab.words[2] = settings.antialiasEdges ? (narrowSide < 1 ? 6 : narrowSide < 10 ? 3 : 1) : 1;
-        doubleWords(dab, 4, hotSpot.x() - .5 + subpixel.x());
-        doubleWords(dab, 6, hotSpot.y() - .5 + subpixel.y());
-        doubleWords(dab, 8, std::cos(point.angle));
-        doubleWords(dab, 10, std::sin(point.angle));
+        floatWord(dab, 4, hotSpot.x() - .5 + subpixel.x());
+        floatWord(dab, 5, hotSpot.y() - .5 + subpixel.y());
+        floatWord(dab, 6, std::cos(point.angle));
+        floatWord(dab, 7, std::sin(point.angle));
         if (settings.imageTips) {
             if (!imageDab(brush, point, subpixel, dab)) return false;
         } else if (settings.mask != AutoBrush::Mask::GaussianCircle) {
             dab.words[3] |= 1u | (quint32(settings.antialiasEdges) << 1) |
                 (settings.mask == AutoBrush::Mask::Rectangle ? 16u : 0u);
-            doubleWords(dab, 12, 1. / radius);
-            doubleWords(dab, 14, settings.fade == 0 ? 1. : 1. / (settings.fade * radius));
+            floatWord(dab, 8, 1. / radius);
+            floatWord(dab, 9, settings.fade == 0 ? 1. : 1. / (settings.fade * radius));
             const qreal verticalFade = settings.verticalFade.value_or(settings.fade);
-            doubleWords(dab, 24, 2. / narrowSide);
-            doubleWords(dab, 26, verticalFade == 0 ? 1. : 2. / (verticalFade * narrowSide));
+            floatWord(dab, 20, 2. / narrowSide);
+            floatWord(dab, 21, verticalFade == 0 ? 1. : 2. / (verticalFade * narrowSide));
         } else {
-            doubleWords(dab, 12, radius);
-            doubleWords(dab, 14, fadeStart);
-            doubleWords(dab, 16, 255. / (radius - fadeStart));
+            floatWord(dab, 8, radius);
+            floatWord(dab, 9, fadeStart);
+            floatWord(dab, 10, 255. / (radius - fadeStart));
         }
         if (unaliasedGaussian) {
             dab.words[3] |= 32u;
-            dab.words[24] = gaussianParameters[0];
-            dab.words[25] = floatBits(float(sqrtTwo * 12500 / (gaussianFadeDenominator * radius)));
-            dab.words[26] = gaussianParameters[1];
-            dab.words[27] = gaussianParameters[2];
+            dab.words[20] = gaussianParameters[0];
+            dab.words[21] = floatBits(float(sqrtTwo * 12500 / (gaussianFadeDenominator * radius)));
+            dab.words[22] = gaussianParameters[1];
+            dab.words[23] = gaussianParameters[2];
         }
         // Native dab caching reuses the original tip before applying paper at
         // the new document position. Only geometry is shared; flow, opacity
@@ -262,26 +259,26 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
             savedAngle = point.angle;
             savedImageTip = point.imageTipIndex;
         }
-        dab.words[18] = quint32(origin.x());
-        dab.words[19] = quint32(origin.y());
+        dab.words[12] = quint32(origin.x());
+        dab.words[13] = quint32(origin.y());
         // The queued native paintbrush applies paper at the requested rect,
         // then centers the cached bitmap for painting.
-        dab.words[32] = quint32(paperOrigin.x() - origin.x());
-        dab.words[33] = quint32(paperOrigin.y() - origin.y());
-        dab.words[20] = floatBits(float(opacity));
-        dab.words[21] = floatBits(float(settings.flow * pressureValue(settings.flowResponse, point.pressure)));
-        dab.words[22] = floatBits(float(averageOpacity));
-        dab.words[23] = quint32(settings.creamy);
+        dab.words[28] = quint32(paperOrigin.x() - origin.x());
+        dab.words[29] = quint32(paperOrigin.y() - origin.y());
+        dab.words[16] = floatBits(float(opacity));
+        dab.words[17] = floatBits(float(settings.flow * pressureValue(settings.flowResponse, point.pressure)));
+        dab.words[18] = floatBits(float(averageOpacity));
+        dab.words[19] = quint32(settings.creamy);
         if (brush.texture) {
             const auto strength = textureStrength(*brush.texture, point);
-            dab.words[28] = qRound(strength * 255);
-            dab.words[29] = qRound(strength * 65535);
-            dab.words[30] = quint32(brush.texture->mode) | (quint32(brush.texture->soft) << 8);
+            dab.words[24] = qRound(strength * 255);
+            dab.words[25] = qRound(strength * 65535);
+            dab.words[26] = quint32(brush.texture->mode) | (quint32(brush.texture->soft) << 8);
         }
         if (sharpness) {
             const quint32 tolerance = quint32(255 - *sharpness * 255);
             const quint32 transparent = (100 - settings.sharpnessSoftness) * tolerance / 100;
-            dab.words[30] |= 512u | (tolerance << 16) | (transparent << 24);
+            dab.words[26] |= 512u | (tolerance << 16) | (transparent << 24);
         }
         if (dab.imageCoordinates) {
             if (dab.imageCoordinates->size() > PaintGeometryElementLimit - imageCoordinateWords) return false;
@@ -297,13 +294,13 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         if ((reflection & mirrors) != reflection) continue;
         for (qsizetype i = 0; i < originalCount; ++i) {
             auto mirrored = result[i];
-            mirrored.words[31] = reflection;
+            mirrored.words[27] = reflection;
             if (reflection & 1u) {
-                mirrored.words[18] = quint32(2 * brush.mirrorCenter.x() - qint32(mirrored.words[18]) - int(mirrored.words[0]));
+                mirrored.words[12] = quint32(2 * brush.mirrorCenter.x() - qint32(mirrored.words[12]) - int(mirrored.words[0]));
                 mirrored.words[3] ^= 4u;
             }
             if (reflection & 2u) {
-                mirrored.words[19] = quint32(2 * brush.mirrorCenter.y() - qint32(mirrored.words[19]) - int(mirrored.words[1]));
+                mirrored.words[13] = quint32(2 * brush.mirrorCenter.y() - qint32(mirrored.words[13]) - int(mirrored.words[1]));
                 mirrored.words[3] ^= 8u;
             }
             result.append(mirrored);
@@ -330,7 +327,7 @@ std::optional<QList<AutoBrushDab>> autoBrushDabs(const PaintOperation &operation
         for (auto dab : *mask) {
             const auto &secondaryTips = brush.additiveMaskingBrush->autoBrush->imageTips;
             if (secondaryTips && settings.imageTips && secondaryTips != settings.imageTips)
-                dab.words[26] += quint32(settings.imageTips->pixels.size() / 4);
+                dab.words[22] += quint32(settings.imageTips->pixels.size() / 4);
             dab.words[3] |= 128u;
             result.append(dab);
         }

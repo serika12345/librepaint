@@ -3,12 +3,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 fn multiplyThreeWords(a: u32, b: u32, c: u32) -> u32 {
-    let product = projectionProduct(a * b, c);
-    // n = high*65536 + low. This folds the exact 48-bit product through
-    // two divisions by 65535; both quotients and high+low fit 32 bits.
-    let high = (product.y << 16u) | (product.x >> 16u);
-    let low = product.x & 65535u;
-    return (high + (high + low) / 65535u) / 65535u;
+    return u32(floor((f32(a) * f32(b) / 65535.0) * f32(c) / 65535.0));
 }
 fn divideWord(a: u32, b: u32) -> u32 { return (a * 65535u + b / 2u) / b; }
 fn interpolateWord(destination: u32, source: u32, alpha: u32) -> u32 {
@@ -57,23 +52,7 @@ fn penumbraWord(source: u32, destination: u32) -> u32 {
 }
 fn parallelWord(source: u32, destination: u32) -> u32 {
     if (source == 0u || destination == 0u) { return 0u; }
-    let denominator = projectionAdd(vec2<u32>(divideWord(65535u, source), 0u), vec2<u32>(divideWord(65535u, destination), 0u));
-    // 2*65535^2 and the sum of the two rounded reciprocals need 33 bits.
-    // A 33-bit denominator gives a quotient of at most one. Otherwise the
-    // carry before each remainder shift makes exact 33/32 division possible.
-    let low = 0xfffc0002u;
-    if (denominator.y != 0u) { return select(0u, 1u, low >= denominator.x); }
-    var remainder = 1u;
-    var quotient = 0u;
-    for (var bit = 31; bit >= 0; bit -= 1) {
-        let carry = remainder >> 31u;
-        remainder = (remainder << 1u) | ((low >> u32(bit)) & 1u);
-        if (carry != 0u || remainder >= denominator.x) {
-            remainder -= denominator.x;
-            quotient |= 1u << u32(bit);
-        }
-    }
-    return min(65535u, quotient);
+    return u32(min(65535.0, floor(2.0 * f32(source) * f32(destination) / f32(source + destination))));
 }
 fn separableWordChannelMode(mode: u32, source: u32, destination: u32) -> u32 {
     switch mode {

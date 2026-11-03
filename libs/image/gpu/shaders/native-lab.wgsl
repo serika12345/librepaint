@@ -1,24 +1,22 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Integer tetrahedral interpolation of the native converter's original Lab table.
+// Tetrahedral interpolation of the profile Lab table in native f32.
 // Two 16-bit words per conversion word, low half first.
 fn clutWord(table: u32, index: u32) -> u32 {
     let word = conversion[table + (index >> 1u)];
     return (word >> (16u * (index & 1u))) & 65535u;
 }
-// LCMS TetrahedralInterp16: fixed-domain nodes, signed modular accumulation and
-// the same six >= branches that select the cumulative corner order.
+// Sort the fractional coordinates to select the tetrahedron corners.
 fn nativeLabClut(input: vec3<u32>) -> vec3<u32> {
     let grid = vec3<u32>(conversion[2u], conversion[3u], conversion[4u]);
     let table = 6u;
     let domain = grid - vec3(1u);
-    let product = input * domain;
-    let fixed = product + (product + vec3(32767u)) / vec3(65535u);
-    let cell = fixed >> vec3(16u);
-    let rest = fixed & vec3(65535u);
+    let coordinate = vec3<f32>(input) * vec3<f32>(domain) / 65535.0;
+    let cell = min(vec3<u32>(floor(coordinate)), domain);
+    let rest = coordinate - vec3<f32>(cell);
     let strides = vec3<u32>(grid.y * grid.z * 3u, grid.z * 3u, 3u);
     let base = cell.x * strides.x + cell.y * strides.y + cell.z * strides.z;
-    // The step along an axis is zero at the top node, as in LCMS.
+    // At the top node no neighbour exists along that axis.
     let steps = vec3<u32>(
         select(strides.x, 0u, input.x == 65535u),
         select(strides.y, 0u, input.y == 65535u),
@@ -36,8 +34,8 @@ fn nativeLabClut(input: vec3<u32>) -> vec3<u32> {
     }
     var positions: array<u32, 4>;
     positions[0u] = base; positions[1u] = 0u; positions[2u] = 0u; positions[3u] = 0u;
-    var remainders: array<u32, 3>;
-    remainders[0u] = 0u; remainders[1u] = 0u; remainders[2u] = 0u;
+    var remainders: array<f32, 3>;
+    remainders[0u] = 0.0; remainders[1u] = 0.0; remainders[2u] = 0.0;
     for (var step = 0u; step < 3u; step++) {
         let axis = order[step];
         remainders[step] = rest[axis];
@@ -49,78 +47,72 @@ fn nativeLabClut(input: vec3<u32>) -> vec3<u32> {
         let c1 = i32(clutWord(table, positions[1u] + channel)) - c0;
         let c2 = i32(clutWord(table, positions[2u] + channel)) - i32(clutWord(table, positions[1u] + channel));
         let c3 = i32(clutWord(table, positions[3u] + channel)) - i32(clutWord(table, positions[2u] + channel));
-        var sum = c1 * i32(remainders[0u]) + c2 * i32(remainders[1u]) + c3 * i32(remainders[2u]) + 0x8001;
-        sum = sum + (sum >> 16u);
-        output[channel] = (u32(c0 + (sum >> 16u))) & 65535u;
+        let interpolated = f32(c0) + f32(c1) * remainders[0u] +
+            f32(c2) * remainders[1u] + f32(c3) * remainders[2u];
+        output[channel] = u32(clamp(floor(interpolated + 0.5), 0.0, 65535.0));
     }
     return output;
 }
-const LAB_LIMIT = Word64(0xd28f7cd6u, 0x3f822354u);
-const LAB_SLOPE = Word64(0x097b425fu, 0x401f25edu);
-const LAB_INTERCEPT = Word64(0x611a7b96u, 0x3fc1a7b9u);
-const LAB_THIRD = Word64(0x55555555u, 0x3fd55555u);
-const LAB_XYZ_SCALE = Word64(0x00000000u, 0x3fffffe0u);
-const LAB_D50_X = Word64(0xf559b3d0u, 0x3feedab9u);
-const LAB_D50_Z = Word64(0xaf4f0d84u, 0x3fea6594u);
-const LAB_116 = Word64(0x00000000u, 0x405d0000u);
-const LAB_16 = Word64(0x00000000u, 0x40300000u);
-const LAB_100 = Word64(0x00000000u, 0x40590000u);
-const LAB_500 = Word64(0x00000000u, 0x407f4000u);
-const LAB_200 = Word64(0x00000000u, 0x40690000u);
-const LAB_128 = Word64(0x00000000u, 0x40600000u);
-const LAB_255 = Word64(0x00000000u, 0x406fe000u);
-const LAB_65535 = Word64(0x00000000u, 0x40efffe0u);
-const LAB_L_SCALE = Word64(0xcccccccdu, 0x40847accu);
-const LAB_AB_SCALE = Word64(0x00000000u, 0x40701000u);
-const LAB_ALPHA_SCALE = Word64(0x00190019u, 0x3f590019u);
-fn labDouble(index: u32) -> Word64 { return Word64(conversion[6u + index * 2u], conversion[7u + index * 2u]); }
-fn labFunction(value: Word64) -> Word64 {
-    // LCMS cmspcs.c f(): the native double constants and branch order.
-    if ((value.y & 0x80000000u) != 0u || wordLessEqual(value, LAB_LIMIT)) {
-        return doubleAdd(doubleMultiply(LAB_SLOPE, value), LAB_INTERCEPT);
+const LAB_LIMIT = 0.008856452070176601;
+const LAB_SLOPE = 7.787036895751953;
+const LAB_INTERCEPT = 0.13793103396892548;
+const LAB_THIRD = 0.3333333432674408;
+const LAB_XYZ_SCALE = 1.999969482421875;
+const LAB_D50_X = 0.9642000198364258;
+const LAB_D50_Z = 0.8248999714851379;
+const LAB_116 = 116.0;
+const LAB_16 = 16.0;
+const LAB_100 = 100.0;
+const LAB_500 = 500.0;
+const LAB_200 = 200.0;
+const LAB_128 = 128.0;
+const LAB_255 = 255.0;
+const LAB_65535 = 65535.0;
+const LAB_L_SCALE = 655.3499755859375;
+const LAB_AB_SCALE = 257.0;
+const LAB_ALPHA_SCALE = 0.0015259021893143654;
+fn labCoefficient(index: u32) -> f32 { return bitcast<f32>(conversion[6u + index]); }
+fn labFunction(value: f32) -> f32 {
+    // CIE Lab uses a linear segment near zero and a cube root above it.
+    if ((value < 0.0) || (value <= LAB_LIMIT)) {
+        return ((LAB_SLOPE * value) + LAB_INTERCEPT);
     }
-    return wordColorPower(value, LAB_THIRD);
+    return pow(value, LAB_THIRD);
 }
-fn nativeLabLinearComponent(input: vec3<u32>, row: u32) -> Word64 {
-    var sum = Word64(0u);
+fn nativeLabLinearComponent(input: vec3<u32>, row: u32) -> f32 {
+    var sum = 0.0;
     for (var column = 0u; column < 3u; column += 1u) {
-        // cmslut.c From16ToFloat rounds the division in binary32.
-        let normalized = doubleFromFloat(floatDivide(bitcast<u32>(f32(input[column])), 0x477fff00u));
-        sum = doubleAdd(sum, doubleMultiply(normalized, labDouble(row * 3u + column)));
+        let normalized = bitcast<f32>(floatDivide(bitcast<u32>(f32(input[column])), 0x477fff00u));
+        sum = (sum + (normalized * labCoefficient(row * 3u + column)));
     }
-    sum = doubleAdd(sum, labDouble(9u + row));
-    // The matrix writes a float before XYZ2Lab expands it in double.
-    var xyz = doubleMultiply(doubleFromFloat(floatFromDouble(sum)), LAB_XYZ_SCALE);
-    if (row == 0u) { xyz = doubleDivide(xyz, LAB_D50_X); }
-    if (row == 2u) { xyz = doubleDivide(xyz, LAB_D50_Z); }
+    sum = (sum + labCoefficient(9u + row));
+    var xyz = (bitcast<f32>(bitcast<u32>(sum)) * LAB_XYZ_SCALE);
+    if (row == 0u) { xyz = (xyz / LAB_D50_X); }
+    if (row == 2u) { xyz = (xyz / LAB_D50_Z); }
     return labFunction(xyz);
 }
-fn nativeLabEncode(fx: Word64, fy: Word64, fz: Word64) -> vec3<u32> {
-    var lab: array<Word64, 3>;
-    lab[0] = doubleDivide(doubleSubtract(doubleMultiply(LAB_116, fy), LAB_16), LAB_100);
-    lab[1] = doubleDivide(doubleAdd(doubleMultiply(LAB_500, doubleSubtract(fx, fy)), LAB_128), LAB_255);
-    lab[2] = doubleDivide(doubleAdd(doubleMultiply(LAB_200, doubleSubtract(fy, fz)), LAB_128), LAB_255);
+fn nativeLabEncode(fx: f32, fy: f32, fz: f32) -> vec3<u32> {
+    var lab: array<f32, 3>;
+    lab[0] = (((LAB_116 * fy) - LAB_16) / LAB_100);
+    lab[1] = (((LAB_500 * (fx - fy)) + LAB_128) / LAB_255);
+    lab[2] = (((LAB_200 * (fy - fz)) + LAB_128) / LAB_255);
     var result = vec3<u32>();
     for (var c = 0u; c < 3u; c += 1u) {
-        let value = doubleFromFloat(floatFromDouble(lab[c]));
-        if ((value.y & 0x80000000u) != 0u) { result[c] = 0u; }
-        else if (!wordLessEqual(value, Word64(0u, 0x3ff00000u))) { result[c] = 65535u; }
-        else { result[c] = doubleTruncate(doubleAdd(doubleMultiply(value, LAB_65535), Word64(0u, 0x3fe00000u))); }
+        let value = bitcast<f32>(bitcast<u32>(lab[c]));
+        if ((value < 0.0)) { result[c] = 0u; }
+        else if (!(value <= 1.0)) { result[c] = 65535u; }
+        else { result[c] = u32(max(((value * LAB_65535) + 0.5), 0.0)); }
     }
     return result;
 }
 fn nativeLabDifference(a: vec3<u32>, b: vec3<u32>, firstAlpha: u32, secondAlpha: u32, words: bool) -> u32 {
     let multiplier = select(257u, 1u, words);
     // Keep each native LabEncoded2Float division/subtraction before DeltaE.
-    let dl = doubleMagnitude(doubleSubtract(doubleDivide(doubleInteger(a.x), LAB_L_SCALE), doubleDivide(doubleInteger(b.x), LAB_L_SCALE)));
-    let da = doubleMagnitude(doubleSubtract(
-        doubleSubtract(doubleDivide(doubleInteger(a.y), LAB_AB_SCALE), LAB_128),
-        doubleSubtract(doubleDivide(doubleInteger(b.y), LAB_AB_SCALE), LAB_128)));
-    let db = doubleMagnitude(doubleSubtract(
-        doubleSubtract(doubleDivide(doubleInteger(a.z), LAB_AB_SCALE), LAB_128),
-        doubleSubtract(doubleDivide(doubleInteger(b.z), LAB_AB_SCALE), LAB_128)));
-    let alpha = doubleMultiply(doubleInteger(u32(abs(i32(firstAlpha) - i32(secondAlpha))) * multiplier), LAB_ALPHA_SCALE);
-    let sum = doubleAdd(doubleAdd(doubleAdd(doubleMultiply(dl, dl), doubleMultiply(da, da)), doubleMultiply(db, db)), doubleMultiply(alpha, alpha));
-    let difference = doubleSqrt(sum);
-    return min(255u, doubleTruncate(difference));
+    let dl = abs(((f32(a.x) / LAB_L_SCALE) - (f32(b.x) / LAB_L_SCALE)));
+    let da = abs((((f32(a.y) / LAB_AB_SCALE) - LAB_128) - ((f32(b.y) / LAB_AB_SCALE) - LAB_128)));
+    let db = abs((((f32(a.z) / LAB_AB_SCALE) - LAB_128) - ((f32(b.z) / LAB_AB_SCALE) - LAB_128)));
+    let alpha = (f32(u32(abs(i32(firstAlpha) - i32(secondAlpha))) * multiplier) * LAB_ALPHA_SCALE);
+    let sum = ((((dl * dl) + (da * da)) + (db * db)) + (alpha * alpha));
+    let difference = sqrt(max(sum, 0.0));
+    return min(255u, u32(max(difference, 0.0)));
 }

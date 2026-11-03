@@ -3,47 +3,47 @@
 
 // Linear, bi-linear, radial and square gradient coordinates and seam smoothing.
 
-fn gradientPosition(pixel: vec2<i32>) -> Word64 {
-    let zero = Word64(0u); let epsilon = Word64(0u, 0x3cb00000u);
-    let dx = doubleSubtract(parameters.patternMap1.xy, parameters.patternMap0.xy);
-    let dy = doubleSubtract(parameters.patternMap1.zw, parameters.patternMap0.zw);
-    let length = doubleSqrt(doubleAdd(doubleMultiply(dx, dx), doubleMultiply(dy, dy)));
-    if (GRADIENT_SHAPE < 4u && gradientLess(length, epsilon)) { return zero; }
-    let px = doubleSubtract(markerInteger(pixel.x), parameters.patternMap0.xy);
-    let py = doubleSubtract(markerInteger(pixel.y), parameters.patternMap0.zw);
+fn gradientPosition(pixel: vec2<i32>) -> f32 {
+    let zero = 0.0; let epsilon = 2.220446049250313e-16;
+    let dx = (parameters.patternMap0.z - parameters.patternMap0.x);
+    let dy = (parameters.patternMap0.w - parameters.patternMap0.y);
+    let length = sqrt(max(((dx * dx) + (dy * dy)), 0.0));
+    if (GRADIENT_SHAPE < 4u && (length < epsilon)) { return zero; }
+    let px = (f32(pixel.x) - parameters.patternMap0.x);
+    let py = (f32(pixel.y) - parameters.patternMap0.y);
     if (GRADIENT_SHAPE == 2u) {
-        return doubleDivide(doubleSqrt(doubleAdd(doubleMultiply(px, px), doubleMultiply(py, py))), length);
+        return (sqrt(max(((px * px) + (py * py)), 0.0)) / length);
     }
-    let nx = doubleDivide(dx, length); let ny = doubleDivide(dy, length);
+    let nx = (dx / length); let ny = (dy / length);
     if (GRADIENT_SHAPE == 3u) {
-        if (!gradientLess(epsilon, length)) { return zero; }
-        let first = doubleMagnitude(doubleAdd(doubleMultiply(doubleNegate(ny), px), doubleMultiply(nx, py)));
-        let second = doubleMagnitude(doubleAdd(doubleMultiply(doubleNegate(ny), doubleNegate(py)), doubleMultiply(nx, px)));
-        return doubleDivide(select(second, first, wordLessEqual(second, first)), length);
+        if (!(epsilon < length)) { return zero; }
+        let first = abs((((-ny) * px) + (nx * py)));
+        let second = abs((((-ny) * (-py)) + (nx * px)));
+        return (select(second, first, (second <= first)) / length);
     }
-    var t = doubleDivide(doubleAdd(doubleMultiply(px, nx), doubleMultiply(py, ny)), length);
-    if (GRADIENT_SHAPE == 1u && gradientLess(t, doubleNegate(epsilon))) { t = doubleNegate(t); }
+    var t = (((px * nx) + (py * ny)) / length);
+    if (GRADIENT_SHAPE == 1u && (t < (-epsilon))) { t = (-t); }
     return t;
 }
 
 fn gradientColor(pixel: vec2<i32>) -> vec4<u32> {
-    let one = Word64(0u, 0x3ff00000u); let half = Word64(0u, 0x3fe00000u);
+    let one = 1.0; let half = 0.5;
     var t = gradientPosition(pixel);
-    let dx = doubleSubtract(parameters.patternMap1.xy, parameters.patternMap0.xy);
-    let dy = doubleSubtract(parameters.patternMap1.zw, parameters.patternMap0.zw);
-    let length = doubleSqrt(doubleAdd(doubleMultiply(dx, dx), doubleMultiply(dy, dy)));
-    let threshold = doubleDivide(parameters.patternMap2.xy, length);
-    let seamSmoothing = parameters.patternSampling.y == 1u && gradientLess(Word64(0u, 0x3cb00000u), parameters.patternMap2.xy);
-    let center = seamSmoothing && GRADIENT_SHAPE != 0u && !gradientLess(threshold, t);
+    let dx = (parameters.patternMap0.z - parameters.patternMap0.x);
+    let dy = (parameters.patternMap0.w - parameters.patternMap0.y);
+    let length = sqrt(max(((dx * dx) + (dy * dy)), 0.0));
+    let threshold = (parameters.patternMap1.x / length);
+    let seamSmoothing = parameters.patternSampling.y == 1u && (2.220446049250313e-16 < parameters.patternMap1.x);
+    let center = seamSmoothing && GRADIENT_SHAPE != 0u && !(threshold < t);
     if (!center) { t = gradientRepeated(t); }
-    if ((parameters.patternSampling.x & 1u) != 0u) { t = doubleSubtract(one, t); }
-    let reverseThreshold = doubleSubtract(one, threshold);
-    if (seamSmoothing && !center && (!gradientLess(threshold, t) || !gradientLess(t, reverseThreshold))) {
-        let twice = doubleMultiply(doubleInteger(2u), threshold);
-        var s = doubleDivide(doubleSubtract(t, reverseThreshold), twice);
-        if (!gradientLess(threshold, t)) { s = doubleAdd(half, doubleDivide(t, twice)); }
-        let weight = min(32767u, doubleTruncate(doubleAdd(doubleMultiply(doubleSubtract(one, s), doubleInteger(32767u)), half)));
-        return gradientMix(gradientCached(one), gradientCached(Word64(0u)), weight);
+    if ((parameters.patternSampling.x & 1u) != 0u) { t = (one - t); }
+    let reverseThreshold = (one - threshold);
+    if (seamSmoothing && !center && (!(threshold < t) || !(t < reverseThreshold))) {
+        let twice = (f32(2u) * threshold);
+        var s = ((t - reverseThreshold) / twice);
+        if (!(threshold < t)) { s = (half + (t / twice)); }
+        let weight = min(32767u, u32(max((((one - s) * f32(32767u)) + half), 0.0)));
+        return gradientMix(gradientCached(one), gradientCached(0.0), weight);
     }
     return gradientCached(t);
 }

@@ -129,7 +129,6 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl")) || path.endsWith(QLatin1String("/region.wgsl")) || path.endsWith(QLatin1String("/filter.wgsl")) || path.endsWith(QLatin1String("/convolution.wgsl"))) {
         QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
         QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
-        QFile doubles(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
         QFile color(QStringLiteral(":/librepaint/gpu/shaders/color-blend.wgsl"));
         QFile normal(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba8.wgsl"));
         QFile native(QStringLiteral(":/librepaint/gpu/shaders/normal-rgba16.wgsl"));
@@ -137,12 +136,11 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
         QFile separable16(QStringLiteral(":/librepaint/gpu/shaders/separable-rgba16.wgsl"));
         if (!arithmetic.open(QIODevice::ReadOnly) || !separable.open(QIODevice::ReadOnly) ||
             !normal.open(QIODevice::ReadOnly) || !native.open(QIODevice::ReadOnly) || !separable16.open(QIODevice::ReadOnly) ||
-            !copy.open(QIODevice::ReadOnly) || !doubles.open(QIODevice::ReadOnly) || !color.open(QIODevice::ReadOnly)) {
+            !copy.open(QIODevice::ReadOnly) || !color.open(QIODevice::ReadOnly)) {
             error = QStringLiteral("GPU normal-composition arithmetic could not be loaded");
             return {};
         }
         source += arithmetic.readAll() + '\n';
-        source += doubles.readAll() + '\n';
         source += color.readAll() + '\n';
         source += separable.readAll() + '\n';
         source += normal.readAll() + '\n';
@@ -1191,7 +1189,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         const auto &pattern = *operation.figureStyle.pattern;
                         job.values.patternWidth = quint32(pattern.size.width());
                         job.values.patternHeight = quint32(pattern.size.height());
-                        std::memcpy(job.values.patternInverse.data(), pattern.inverse.data(), sizeof(pattern.inverse));
+                        std::transform(pattern.inverse.cbegin(), pattern.inverse.cend(), job.values.patternInverse.begin(),
+                                       [](double value) { return float(value); });
                         job.values.patternFormat = quint32(pattern.format);
                         job.values.patternSampled = pattern.sampled;
                     }
@@ -1201,7 +1200,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         job.values.patternHeight = quint32(gradient.shape);
                         const std::array<double, 6> geometry{gradient.start.x(), gradient.start.y(),
                             gradient.end.x(), gradient.end.y(), gradient.antiAliasThreshold, 0};
-                        std::memcpy(job.values.patternInverse.data(), geometry.data(), sizeof(geometry));
+                        std::transform(geometry.cbegin(), geometry.cend(), job.values.patternInverse.begin(),
+                                       [](double value) { return float(value); });
                         job.values.patternFormat = quint32(gradient.reverse) | (quint32(gradient.dither) << 1);
                         job.values.patternSampled = quint32(gradient.repeat);
                     }

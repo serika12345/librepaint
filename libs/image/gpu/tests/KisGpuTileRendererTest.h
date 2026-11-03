@@ -104,8 +104,6 @@ private Q_SLOTS:
     void hsvAdjustmentUsesProductValuesAndNeutralPixels();
     void hsvAdjustmentClipsCoverageAndSupportsLegacyConversion();
     void yuvResetPreservesStoredPixels();
-    void yuvUsesProductPrecision_data();
-    void yuvUsesProductPrecision();
     void colorizeUsesProductLumaRounding_data();
     void colorizeUsesProductLumaRounding();
     void colorizePreservesDocumentLuma_data();

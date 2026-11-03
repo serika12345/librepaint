@@ -11,24 +11,19 @@
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
-// Must match the FilterParameters uniform layout in filter.wgsl: three
-// vec4<i32> words, binary32 luma, original binary64 coefficients, and the
-// profile/control-only YUV constants as low/high binary64 words.
+// Must match the native f32 FilterParameters uniform layout in filter.wgsl.
 struct FilterParameters
 {
     qint32 tile[4];
     qint32 selection[4];
     qint32 adjustment[4];
     float luma[4];
-    quint32 lumaLow[4];
-    quint32 lumaHigh[4];
-    quint32 yuvLow[2][4];
-    quint32 yuvHigh[2][4];
+    float yuv[2][4];
     quint32 overlayColor[4];
     quint32 control[4];
     qint32 applyRect[4];
 };
-static_assert(sizeof(FilterParameters) == 208,
+static_assert(sizeof(FilterParameters) == 144,
               "filter parameter layout must match filter.wgsl");
 }
 
@@ -187,19 +182,10 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         if (filter.kind == FilterKind::HsvAdjustment) {
             adjustment = qint32(filter.hsvType) |
                 (filter.compatibilityMode ? 0x100 : 0) | (filter.colorize ? 0x200 : 0);
-            for (qsizetype i = 0; i < 3; ++i) {
+            for (qsizetype i = 0; i < 3; ++i)
                 parameterValues.luma[i] = float(filter.luma[i]);
-                quint64 bits = 0;
-                std::memcpy(&bits, &filter.luma[i], sizeof(bits));
-                parameterValues.lumaLow[i] = quint32(bits);
-                parameterValues.lumaHigh[i] = quint32(bits >> 32);
-            }
-            for (qsizetype i = 0; i < qsizetype(yuv.size()); ++i) {
-                quint64 bits = 0;
-                std::memcpy(&bits, &yuv[i], sizeof(bits));
-                parameterValues.yuvLow[i / 4][i % 4] = quint32(bits);
-                parameterValues.yuvHigh[i / 4][i % 4] = quint32(bits >> 32);
-            }
+            for (qsizetype i = 0; i < qsizetype(yuv.size()); ++i)
+                parameterValues.yuv[i / 4][i % 4] = float(yuv[i]);
         }
         const qint32 values[]{origin.x(), origin.y(), qint32(filter.kind), qint32(flags),
                               filter.selectionRect.x(), filter.selectionRect.y(),

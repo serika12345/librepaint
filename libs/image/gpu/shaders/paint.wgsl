@@ -15,9 +15,8 @@ struct Parameters {
     native: vec4<u32>,
     composition: vec4<i32>,
     destination: vec4<i32>,
-    patternMap0: vec4<u32>,
-    patternMap1: vec4<u32>,
-    patternMap2: vec4<u32>,
+    patternMap0: vec4<f32>,
+    patternMap1: vec4<f32>,
     patternSampling: vec4<u32>,
     texture: vec4<i32>,
     textureStorage: vec4<u32>,
@@ -71,71 +70,41 @@ fn patternTexel(pixel: vec2<i32>) -> vec4<u32> {
     if (!wide && parameters.native.z != 0u) { color *= 257u; }
     return color;
 }
-struct PatternCoordinate { pixel: i32, fraction: Word64, }
-fn patternCoordinate(value: Word64, period: u32) -> PatternCoordinate {
-    let magnitude = doubleMagnitude(value);
-    let integral = doubleFloor(magnitude);
-    var fraction = doubleSubtract(magnitude, integral);
-    var wrapped = 0u;
-    if (integral.y < 0x41e00000u) {
-        wrapped = doubleTruncate(integral) % period;
-    } else {
-        let power = doublePower(integral);
-        let bits = wordRight(doubleMantissa(integral), u32(-power));
-        // Resource dimensions are bounded by the owned pixel byte capacity,
-        // so twice a remainder fits in an unsigned word.
-        for (var bit = 52; bit >= 0; bit--) {
-            wrapped = (wrapped * 2u + (wordRight(bits, u32(bit)).x & 1u)) % period;
-        }
-    }
-    if ((value.y & 0x80000000u) != 0u) {
-        if (any(fraction != Word64(0u))) {
-            wrapped = (wrapped + 1u) % period;
-            fraction = doubleSubtract(Word64(0u, 0x3ff00000u), fraction);
-        }
-        if (wrapped != 0u) { wrapped = period - wrapped; }
-    }
-    return PatternCoordinate(i32(wrapped), fraction);
+struct PatternCoordinate { pixel: i32, fraction: f32, }
+fn patternCoordinate(value: f32, period: u32) -> PatternCoordinate {
+    let integral = floor(value);
+    var wrapped = i32(integral % f32(period));
+    if (wrapped < 0) { wrapped += i32(period); }
+    return PatternCoordinate(wrapped, value - integral);
 }
-fn patternQuotient(total: Word64, denominator: u32, maximum: u32) -> u32 {
-    let rounded = wordAdd(total, Word64(denominator / 2u, 0u));
-    var result = 0u;
-    var bit = select(128u, 32768u, maximum == 65535u);
-    loop {
-        if (bit == 0u) { break; }
-        let candidate = result | bit;
-        if (wordLessEqual(wordProduct(candidate, denominator), rounded)) { result = candidate; }
-        bit >>= 1u;
-    }
-    return result;
+fn patternQuotient(total: f32, denominator: u32, maximum: u32) -> u32 {
+    return u32(clamp(floor(total / f32(denominator) + 0.5), 0.0, f32(maximum)));
 }
 fn patternPixel(pixel: vec2<i32>) -> vec4<u32> {
-    let x = markerInteger(pixel.x); let y = markerInteger(pixel.y);
-    let sx = doubleAdd(doubleAdd(doubleMultiply(parameters.patternMap0.xy, x),
-                                doubleMultiply(parameters.patternMap1.xy, y)), parameters.patternMap2.xy);
-    let sy = doubleAdd(doubleAdd(doubleMultiply(parameters.patternMap0.zw, x),
-                                doubleMultiply(parameters.patternMap1.zw, y)), parameters.patternMap2.zw);
+    let x = f32(pixel.x); let y = f32(pixel.y);
+    let sx = (((parameters.patternMap0.x * x) + (parameters.patternMap0.z * y)) + parameters.patternMap1.x);
+    let sy = (((parameters.patternMap0.y * x) + (parameters.patternMap0.w * y)) + parameters.patternMap1.y);
     let mappedX = patternCoordinate(sx, parameters.pattern.x);
     let mappedY = patternCoordinate(sy, parameters.pattern.y);
     let left = mappedX.pixel; let top = mappedY.pixel;
     if (parameters.patternSampling.y == 0u) { return patternTexel(vec2<i32>(left, top)); }
     let hx = mappedX.fraction; let vy = mappedY.fraction;
-    let one = Word64(0u, 0x3ff00000u); let half = Word64(0u, 0x3fe00000u);
-    let complements = array<Word64, 2>(doubleSubtract(one, hx), doubleSubtract(one, vy));
-    let horizontal = array<Word64, 2>(complements[0], hx);
-    let vertical = array<Word64, 2>(complements[1], vy);
-    var totals = array<Word64, 3>(Word64(0u), Word64(0u), Word64(0u));
+    let one = 1.0; let half = 0.5;
+    let complements = array<f32, 2>((one - hx), (one - vy));
+    let horizontal = array<f32, 2>(complements[0], hx);
+    let vertical = array<f32, 2>(complements[1], vy);
+    var totals = array<f32, 3>(0.0, 0.0, 0.0);
     var alpha = 0u; var weightSum = 0u;
     for (var row = 0u; row < 2u; row++) {
         for (var column = 0u; column < 2u; column++) {
             // Native subpixel access rounds each independent weight, then
             // normalizes by their actual sum (which can differ from 255).
-            let weight = doubleTruncate(doubleAdd(doubleMultiply(doubleMultiply(horizontal[column], vertical[row]), doubleInteger(255u)), half));
+            let weight = u32(max((((horizontal[column] * vertical[row]) * f32(255u)) + half), 0.0));
             let color = patternTexel(vec2<i32>(left + i32(column), top + i32(row)));
             let amount = color.w * weight;
             weightSum += weight; alpha += amount;
             for (var channel = 0u; channel < 3u; channel++) {
-                totals[channel] = wordAdd(totals[channel], wordProduct(color[channel], amount));
+                totals[channel] = (totals[channel] + (f32(color[channel]) * f32(amount)));
             }
         }
     }
@@ -149,36 +118,33 @@ fn geometryFour(index: u32) -> vec4<u32> {
     return vec4<u32>(geometryWords[index], geometryWords[index + 1u], geometryWords[index + 2u], geometryWords[index + 3u]);
 }
 struct MarkerMaskDab {
-    center: vec4<u32>,
-    circle: vec4<u32>,
+    center: vec2<f32>,
+    circle: vec2<f32>,
     bounds: vec4<i32>,
 }
 fn markerDab(index: u32) -> MarkerMaskDab {
-    let offset = index * 12u;
-    return MarkerMaskDab(geometryFour(offset), geometryFour(offset + 4u), bitcast<vec4<i32>>(geometryFour(offset + 8u)));
+    let offset = index * 8u;
+    let values = bitcast<vec4<f32>>(geometryFour(offset));
+    return MarkerMaskDab(values.xy, values.zw, bitcast<vec4<i32>>(geometryFour(offset + 4u)));
 }
-fn markerInteger(value: i32) -> Word64 {
-    let negative = value < 0;
-    let magnitude = select(bitcast<u32>(value), 0u - bitcast<u32>(value), negative);
-    return doubleFloat(Word64(magnitude, 0u), 0, select(0u, 0x80000000u, negative));
-}
+
 fn markerCoverage(dab: MarkerMaskDab, pixel: vec2<i32>) -> u32 {
     if (any(pixel < dab.bounds.xy) || any(pixel >= dab.bounds.xy + dab.bounds.zw)) { return 0u; }
-    let dx = doubleSubtract(markerInteger(pixel.x), dab.center.xy);
-    let dy = doubleSubtract(markerInteger(pixel.y), dab.center.zw);
-    let distance = doubleAdd(doubleMultiply(dx, dx), doubleMultiply(dy, dy));
-    let fade = doubleMultiply(doubleSubtract(distance, dab.circle.xy), dab.circle.zw);
-    if ((fade.y & 0x80000000u) != 0u || all(fade == Word64(0u))) { return 255u; }
-    let one = Word64(0u, 0x3ff00000u);
-    if (!wordLessEqual(fade, one)) { return 0u; }
-    return min(255u, doubleTruncate(doubleMultiply(doubleSubtract(one, fade), doubleInteger(255u))));
+    let delta = vec2<f32>(pixel - dab.bounds.xy) - dab.center;
+    let fade = (dot(delta, delta) - dab.circle.x) * dab.circle.y;
+    if (fade <= 0.0) { return 255u; }
+    if (fade >= 1.0) { return 0u; }
+    return u32(255.0 * (1.0 - fade));
 }
 
 fn gaussianDab(index: u32) -> MaskDab {
-    let offset = index * 36u;
-    return MaskDab(geometryFour(offset), geometryFour(offset + 4u), geometryFour(offset + 8u),
-                   geometryFour(offset + 12u), geometryFour(offset + 16u), geometryFour(offset + 20u),
-                   geometryFour(offset + 24u), geometryFour(offset + 28u), bitcast<vec4<i32>>(geometryFour(offset + 32u)));
+    let offset = index * 32u;
+    let coordinates = bitcast<vec4<f32>>(geometryFour(offset + 4u));
+    let shape = geometryFour(offset + 8u);
+    return MaskDab(geometryFour(offset), coordinates.xy, coordinates.zw,
+        bitcast<vec2<f32>>(shape.xy), shape.zw, bitcast<vec2<i32>>(geometryFour(offset + 12u).xy),
+        geometryFour(offset + 16u), geometryFour(offset + 20u), geometryFour(offset + 24u),
+        bitcast<vec4<i32>>(geometryFour(offset + 28u)));
 }
 
 fn paperMultiply(a: u32, b: u32, maximum: u32) -> u32 {
@@ -326,20 +292,8 @@ fn generatedDabCoverage(dab: MaskDab, pixel: vec2<i32>, local: vec2<i32>, maximu
 }
 
 fn washByteColor(destination: u32, source: u32, blend: u32) -> u32 {
-    if (destination == source || blend < 0x3b000000u) { return destination; }
-    if (blend == 0x3f800000u) { return source; }
-    let difference = i32(source) - i32(destination);
-    // Native byte WASH rounds the product before adding the destination.
-    // The bounded byte difference and blend >= 2^-9 fit the sum in 64 bits.
-    let roundedProduct = projectionFloat(projectionProduct(u32(abs(difference)), projectionMantissa(blend)),
-                                         projectionPower(blend));
-    let power = projectionPower(roundedProduct);
-    let product = vec2<u32>(projectionMantissa(roundedProduct), 0u);
-    let base = projectionLeft(vec2<u32>(destination, 0u), u32(-power));
-    var value: vec2<u32>;
-    if (difference < 0) { value = projectionSubtract(base, product); }
-    else { value = projectionAdd(base, product); }
-    return projectionComponent(projectionFloat(value, power));
+    let change = f32(i32(source) - i32(destination)) * bitcast<f32>(blend);
+    return u32(round(clamp(f32(destination) + change, 0.0, 255.0)));
 }
 
 // WASH fills a transparent source before painting its generated outline.
@@ -353,7 +307,7 @@ fn generatedBrushSource(pixel: vec2<i32>, initial: vec4<u32>, withColor: bool) -
     let foreground = nativePixel(parameters.color, parameters.native.x, word).xyz;
     for (var index = 0u; index < parameters.count; index += 1u) {
         let dab = gaussianDab(index);
-        let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
+        let point = pixel - dab.origin;
         if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
         let masking = (dab.size.w & 128u) != 0u;
         let maximum = select(primaryMaximum, 255u, masking);
@@ -401,9 +355,25 @@ fn generatedBrushSource(pixel: vec2<i32>, initial: vec4<u32>, withColor: bool) -
     return result;
 }
 
-fn cellNegate(a: vec2<u32>) -> vec2<u32> { return wordAdd(~a, vec2<u32>(1u, 0u)); }
+fn cellAdd(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+    let low = a.x + b.x;
+    return vec2<u32>(low, a.y + b.y + select(0u, 1u, low < a.x));
+}
+fn cellUnsignedLessEqual(a: vec2<u32>, b: vec2<u32>) -> bool {
+    return a.y < b.y || (a.y == b.y && a.x <= b.x);
+}
+fn cellProduct(a: u32, b: u32) -> vec2<u32> {
+    let low = (a & 65535u) * (b & 65535u);
+    let first = (a >> 16u) * (b & 65535u);
+    let second = (b >> 16u) * (a & 65535u);
+    let middle = (low >> 16u) + (first & 65535u) + (second & 65535u);
+    return vec2<u32>((low & 65535u) | (middle << 16u),
+        (a >> 16u) * (b >> 16u) + (first >> 16u) + (second >> 16u) + (middle >> 16u));
+}
+
+fn cellNegate(a: vec2<u32>) -> vec2<u32> { return cellAdd(~a, vec2<u32>(1u, 0u)); }
 fn cellProductSigned(a: i32, b: i32) -> vec2<u32> {
-    let value = wordProduct(u32(abs(a)), u32(abs(b)));
+    let value = cellProduct(u32(abs(a)), u32(abs(b)));
     if ((a < 0) != (b < 0)) { return cellNegate(value); }
     return value;
 }
@@ -419,7 +389,7 @@ fn cellShift(value: vec2<u32>) -> vec2<u32> {
     return vec2<u32>(value.x << 2u, (value.y << 2u) | (value.x >> 30u));
 }
 fn cellMultiply(value: vec2<u32>, factor: u32) -> vec2<u32> {
-    let low = wordProduct(value.x, factor);
+    let low = cellProduct(value.x, factor);
     return vec2<u32>(low.x, low.y + value.y * factor);
 }
 fn cellLessEqual(a: vec2<u32>, b: vec2<u32>) -> bool {
@@ -441,15 +411,15 @@ fn cellFloorDivide(numerator: vec2<u32>, denominator: u32) -> vec2<u32> {
     }
     var quotient = vec2<u32>(low, magnitude.y / denominator);
     if (negative) {
-        if (remainder != 0u) { quotient = wordAdd(quotient, vec2<u32>(1u, 0u)); }
+        if (remainder != 0u) { quotient = cellAdd(quotient, vec2<u32>(1u, 0u)); }
         quotient = cellNegate(quotient);
     }
     return quotient;
 }
 fn cellRowX(origin: vec2<u32>, yOrigin: i32, delta: vec2<i32>, y: i32) -> vec2<u32> {
-    var numerator = wordAdd(cellShift(cellProductSigned(-yOrigin, delta.x)), cellProductSigned(y, delta.x));
+    var numerator = cellAdd(cellShift(cellProductSigned(-yOrigin, delta.x)), cellProductSigned(y, delta.x));
     if (delta.y < 0) { numerator = cellNegate(numerator); }
-    return wordAdd(cellShift(origin), cellFloorDivide(numerator, u32(abs(delta.y))));
+    return cellAdd(cellShift(origin), cellFloorDivide(numerator, u32(abs(delta.y))));
 }
 // The quotient is at most one pixel (256 subpixels). Nine comparisons avoid
 // narrowing a wide edge's denominator or its clipped intersection numerator.
@@ -458,7 +428,7 @@ fn cellHeight(along: vec2<u32>, width: vec2<u32>, height: i32) -> i32 {
     var quotient = 0u;
     for (var bit = 8; bit >= 0; bit -= 1) {
         let candidate = quotient | (1u << u32(bit));
-        if (wordLessEqual(cellMultiply(width, candidate), numerator)) { quotient = candidate; }
+        if (cellUnsignedLessEqual(cellMultiply(width, candidate), numerator)) { quotient = candidate; }
     }
     if (height < 0) {
         if (any(cellMultiply(width, quotient) != numerator)) { quotient += 1u; }
@@ -473,18 +443,18 @@ fn fillEdgeArea(edge: FigureFillEdge, pixel: vec2<i32>, reflection: u32) -> i32 
     var originY = cellSigned(a.y);
     var delta = b - a;
     if ((reflection & 1u) != 0u) {
-        originX = wordAdd(cellSigned(parameters.mirror.x * 8), cellNegate(originX));
-        originX = wordAdd(originX, cellSigned(edge.mirroredRounding.x));
+        originX = cellAdd(cellSigned(parameters.mirror.x * 8), cellNegate(originX));
+        originX = cellAdd(originX, cellSigned(edge.mirroredRounding.x));
         delta.x = -delta.x + edge.mirroredRounding.z - edge.mirroredRounding.x;
     }
     if ((reflection & 2u) != 0u) {
-        originY = wordAdd(cellSigned(parameters.mirror.y * 8), cellNegate(originY));
-        originY = wordAdd(originY, cellSigned(edge.mirroredRounding.y));
+        originY = cellAdd(cellSigned(parameters.mirror.y * 8), cellNegate(originY));
+        originY = cellAdd(originY, cellSigned(edge.mirroredRounding.y));
         delta.y = -delta.y + edge.mirroredRounding.w - edge.mirroredRounding.y;
     }
-    originX = wordAdd(originX, cellNegate(cellSigned(pixel.x * 64)));
-    originY = wordAdd(originY, cellNegate(cellSigned(pixel.y * 64)));
-    let endY = wordAdd(originY, cellSigned(delta.y));
+    originX = cellAdd(originX, cellNegate(cellSigned(pixel.x * 64)));
+    originY = cellAdd(originY, cellNegate(cellSigned(pixel.y * 64)));
+    let endY = cellAdd(originY, cellSigned(delta.y));
     let rowStart = vec2<u32>(0u);
     let rowEnd = vec2<u32>(64u, 0u);
     if (delta.y == 0 || (cellLessEqual(originY, rowStart) && cellLessEqual(endY, rowStart)) ||
@@ -500,7 +470,7 @@ fn fillEdgeArea(edge: FigureFillEdge, pixel: vec2<i32>, reflection: u32) -> i32 
     if (cellLessEqual(x1, zero) && cellLessEqual(x2, zero)) { return 512 * (y2 - y1); }
     if (cellLessEqual(right, x1) && cellLessEqual(right, x2)) { return 0; }
     if (cellLessEqual(x1, x2)) {
-        let width = wordAdd(x2, cellNegate(x1));
+        let width = cellAdd(x2, cellNegate(x1));
         var ya = y1;
         var yb = y2;
         var xa = i32(x1.x);
@@ -510,18 +480,18 @@ fn fillEdgeArea(edge: FigureFillEdge, pixel: vec2<i32>, reflection: u32) -> i32 
             xa = 0;
         }
         if (cellLessEqual(right, x2)) {
-            yb = y1 + cellHeight(wordAdd(right, cellNegate(x1)), width, y2 - y1);
+            yb = y1 + cellHeight(cellAdd(right, cellNegate(x1)), width, y2 - y1);
             xb = 256;
         }
         return 512 * (yb - y1) - (xa + xb) * (yb - ya);
     }
-    let width = wordAdd(x1, cellNegate(x2));
+    let width = cellAdd(x1, cellNegate(x2));
     var ya = y1;
     var yb = y2;
     var xa = i32(x1.x);
     var xb = i32(x2.x);
     if (cellLessEqual(right, x1)) {
-        ya += cellHeight(wordAdd(x1, cellNegate(right)), width, y2 - y1);
+        ya += cellHeight(cellAdd(x1, cellNegate(right)), width, y2 - y1);
         xa = 256;
     }
     if (cellLessEqual(x2, zero)) {
@@ -533,11 +503,11 @@ fn fillEdgeArea(edge: FigureFillEdge, pixel: vec2<i32>, reflection: u32) -> i32 
 fn fillPixelCoverage(pixel: vec2<i32>, reflection: u32) -> u32 {
     var area = vec2<u32>(0u);
     for (var i = 0u; i < arrayLength(&fillEdges); i += 1u) {
-        area = wordAdd(area, cellSigned(fillEdgeArea(fillEdges[i], pixel, reflection)));
+        area = cellAdd(area, cellSigned(fillEdgeArea(fillEdges[i], pixel, reflection)));
     }
     // Arithmetic right shift of a negative area rounds down before abs.
     var magnitude = area;
-    if (i32(area.y) < 0) { magnitude = wordAdd(cellNegate(area), vec2<u32>(511u, 0u)); }
+    if (i32(area.y) < 0) { magnitude = cellAdd(cellNegate(area), vec2<u32>(511u, 0u)); }
     if ((bitcast<u32>(parameters.mirror.w) & 4u) == 0u) {
         let coverage = (magnitude.x >> 9u) & 511u;
         if (coverage > 256u) { return 512u - coverage; }
@@ -859,7 +829,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
                 mode = parameters.pattern.z;
             } else {
                 let dab = gaussianDab(application - fillCount);
-                let point = pixel - bitcast<vec2<i32>>(dab.coefficient.zw);
+                let point = pixel - dab.origin;
                 if (any(point < vec2<i32>(0)) || any(point >= vec2<i32>(dab.size.xy))) { continue; }
                 color = foreground;
                 alpha = generatedDabCoverage(dab, pixel, point, maximum, gray);

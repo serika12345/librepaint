@@ -8,6 +8,7 @@
 #include <QScopeGuard>
 #include <cstring>
 #include <cmath>
+#include <algorithm>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
@@ -27,13 +28,13 @@ quint64 definitionBytes(const LibrePaint::Pigment::Color::NativeLabConversionSP 
     if (!value) return 24;
     using Value = LibrePaint::Pigment::Color::NativeLabConversion;
     return std::holds_alternative<Value::IntegerClut>(value->definition)
-        ? 24 + quint64((value->tableByteCount() + 3) / 4) * 4 : 24 + 12 * sizeof(double);
+        ? 24 + quint64((value->tableByteCount() + 3) / 4) * 4 : 24 + 12 * sizeof(float);
 }
 quint64 featherOffset(const LibrePaint::Pigment::Color::NativeLabConversionSP &value, int radius)
-{ return (definitionBytes(value) + (radius ? (2 * radius + 1) * sizeof(quint32) : 0) + 7) / 8 * 8; }
+{ return definitionBytes(value) + (radius ? (2 * radius + 1) * sizeof(quint32) : 0); }
 quint64 labBufferBytes(const LibrePaint::Pigment::Color::NativeLabConversionSP &value, int radius, int feather)
 {
-    if (feather) return featherOffset(value, radius) + (2 * feather + 2) * sizeof(double);
+    if (feather) return featherOffset(value, radius) + (2 * feather + 2) * sizeof(float);
     return !value && !radius ? 4 : definitionBytes(value) + (radius ? (2 * radius + 1) * sizeof(quint32) : 0);
 }
 QByteArray packNativeLab(const LibrePaint::Pigment::Color::NativeLabConversionSP &value, int radius, int feather)
@@ -50,8 +51,12 @@ QByteArray packNativeLab(const LibrePaint::Pigment::Color::NativeLabConversionSP
         } else {
             header[0] = 2;
             const auto &matrix = std::get<Value::LinearRgb>(value->definition).matrix;
-            std::memcpy(bytes.data() + 24, matrix.coefficients.data(), 9 * sizeof(double));
-            std::memcpy(bytes.data() + 24 + 9 * sizeof(double), matrix.offset.data(), 3 * sizeof(double));
+            std::array<float, 12> coefficients{};
+            std::transform(matrix.coefficients.cbegin(), matrix.coefficients.cend(), coefficients.begin(),
+                           [](double value) { return float(value); });
+            std::transform(matrix.offset.cbegin(), matrix.offset.cend(), coefficients.begin() + 9,
+                           [](double value) { return float(value); });
+            std::memcpy(bytes.data() + 24, coefficients.data(), sizeof(coefficients));
         }
     }
     if (radius) {
@@ -78,12 +83,12 @@ QByteArray packNativeLab(const LibrePaint::Pigment::Color::NativeLabConversionSP
         const auto offset = featherOffset(value, radius);
         double sum = 0;
         for (int x = -feather; x <= feather; ++x) {
-            const double weight = multiplicand * std::exp(-double(x * x + feather * feather) * exponent);
-            std::memcpy(bytes.data() + offset + (x + feather) * sizeof(double), &weight, sizeof(weight));
+            const float weight = float(multiplicand * std::exp(-double(x * x + feather * feather) * exponent));
+            std::memcpy(bytes.data() + offset + (x + feather) * sizeof(float), &weight, sizeof(weight));
             sum += weight;
         }
-        const double factor = 1.0 / sum;
-        std::memcpy(bytes.data() + offset + (2 * feather + 1) * sizeof(double), &factor, sizeof(factor));
+        const float factor = float(1.0 / sum);
+        std::memcpy(bytes.data() + offset + (2 * feather + 1) * sizeof(float), &factor, sizeof(factor));
     }
     std::memcpy(bytes.data(), header, sizeof(header));
     return bytes;
@@ -169,7 +174,7 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         nativeLabValues.reset(); nativeLabDefinition.clear();
     }
     const quint32 kind = !definition ? 0 : std::holds_alternative<LibrePaint::Pigment::Color::NativeLabConversion::IntegerClut>(definition->definition) ? 1 : 2;
-    const quint64 stride = qMax(kind == 2 ? 6 : kind == 1 ? 3 : 1, radius ? levels + 1 : 1);
+    const quint64 stride = qMax(kind ? 3 : 1, radius ? levels + 1 : 1);
     const quint64 labelBytes = ((count + bool(settings.boundaryColor)) * stride +
         (radius ? 8 : filtered ? 4 : 0)) * sizeof(quint32);
     const quint64 labBytes = labBufferBytes(definition, radius, settings.feather);

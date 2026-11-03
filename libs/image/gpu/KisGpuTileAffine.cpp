@@ -64,10 +64,10 @@ QRect inverseRegion(const AffinePass &pass, QRect output)
     }
     return result.intersected(pass.source);
 }
-std::array<quint32, 36> parameters(const AffinePass &pass, QPoint origin, const RgbaPixel &implicit,
+std::array<quint32, 32> parameters(const AffinePass &pass, QPoint origin, const RgbaPixel &implicit,
                                   PixelFormat format, quint32 count)
 {
-    std::array<quint32, 36> value{quint32(origin.x()), quint32(origin.y()), quint32(format), quint32(pass.kind)};
+    std::array<quint32, 32> value{quint32(origin.x()), quint32(origin.y()), quint32(format), quint32(pass.kind)};
     const auto rect = [&](int offset, QRect bounds) {
         value[offset] = bounds.x(); value[offset + 1] = bounds.y();
         value[offset + 2] = bounds.x() + bounds.width(); value[offset + 3] = bounds.y() + bounds.height();
@@ -75,10 +75,10 @@ std::array<quint32, 36> parameters(const AffinePass &pass, QPoint origin, const 
     rect(4, pass.source); rect(8, pass.destination);
     for (int i = 0; i < 4; ++i) value[12 + i] = pass.map[i];
     value[16] = pass.map[4]; value[17] = pass.map[5]; value[18] = pass.replaceLayer; value[19] = pass.mapWholeLayer;
-    const double values[]{pass.scale, pass.shear, pass.offset, pass.kernel ? pass.kernel->support : 0};
+    const float values[]{float(pass.scale), float(pass.shear), float(pass.offset), float(pass.kernel ? pass.kernel->support : 0)};
     std::memcpy(value.data() + 20, values, sizeof(values));
-    for (int i = 0; i < 4; ++i) value[28 + i] = implicit[i];
-    value[32] = count; value[33] = pass.kernel ? pass.kernel->positionScale : 256;
+    for (int i = 0; i < 4; ++i) value[24 + i] = implicit[i];
+    value[28] = count; value[29] = pass.kernel ? pass.kernel->positionScale : 256;
     return value;
 }
 }

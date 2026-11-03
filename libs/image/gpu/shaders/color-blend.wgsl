@@ -3,9 +3,9 @@
 
 // Coupled RGB operations retain each native binary32/binary64 rounding step.
 // The source byte normalization and final half-up byte conversion are separate.
-const LAMBERT_SCALE: Word64 = Word64(0x74b9bcbeu, 0x40128ba4u);
-const LAMBERT_CURVE: Word64 = Word64(0xa1cac083u, 0x3f93b645u);
-const LAMBERT_GAMMA_CURVE: Word64 = Word64(0x9999999au, 0x3fd99999u);
+const LAMBERT_SCALE: f32 = 4.636369705200195;
+const LAMBERT_CURVE: f32 = 0.01924999989569187;
+const LAMBERT_GAMMA_CURVE: f32 = 0.4000000059604645;
 const COLOR_ONE: u32 = 0x3f800000u;
 const COLOR_EPSILON: u32 = 0x34000000u;
 fn colorIsCoupled(mode: u32) -> bool { return mode >= 88u && mode <= 126u; }
@@ -134,23 +134,23 @@ fn colorRecombineMode(mode: u32, source: vec3<u32>, input: vec3<u32>) -> vec3<u3
         factor = colorDivide(COLOR_ONE, floatSqrt(length));
         for (var i = 0u; i < 3u; i += 1u) {
             let normalized = floatMultiply(r[i], factor);
-            let scaled = doubleMultiply(doubleFromFloat(normalized), Word64(0u, 0x3fe00000u));
-            destination[i] = floatFromDouble(doubleAdd(scaled, Word64(0u, 0x3fe00000u)));
+            let scaled = (bitcast<f32>(normalized) * 0.5);
+            destination[i] = bitcast<u32>((scaled + 0.5));
         }
         return destination;
     }
     if (mode == 125u || mode == 126u) {
         let gamma = mode == 126u;
-        let scale = select(LAMBERT_SCALE, Word64(0u, 0x40000000u), gamma);
+        let scale = select(LAMBERT_SCALE, 2.0, gamma);
         let coefficient = select(LAMBERT_CURVE, LAMBERT_GAMMA_CURVE, gamma);
         for (var i = 0u; i < 3u; i += 1u) {
             let product = floatMultiply(source[i], destination[i]);
-            let value = floatFromDouble(doubleMultiply(doubleFromFloat(product), scale));
+            let value = bitcast<u32>((bitcast<f32>(product) * scale));
             if (colorLess(COLOR_ONE, value)) {
-                let shifted = doubleSubtract(doubleFromFloat(value), Word64(0u, 0x3ff00000u));
-                let squared = doubleMultiply(shifted, shifted);
-                let weighted = doubleMultiply(squared, coefficient);
-                destination[i] = floatFromDouble(doubleAdd(Word64(0u, 0x3ff00000u), weighted));
+                let shifted = (bitcast<f32>(value) - 1.0);
+                let squared = (shifted * shifted);
+                let weighted = (squared * coefficient);
+                destination[i] = bitcast<u32>((1.0 + weighted));
             } else { destination[i] = value; }
         }
         return colorToneMapping(1u, destination);
@@ -209,7 +209,7 @@ fn colorComponentByte(value: u32) -> u32 {
     if (!colorLess(value, COLOR_ONE)) { return 255u; }
     let scaled = floatMultiply(value, 0x437f0000u);
     let rounded = floatAdd(scaled, 0x3f000000u);
-    return projectionMantissa(rounded) >> u32(-projectionPower(rounded));
+    return u32(bitcast<f32>(rounded));
 }
 fn coupledRgba8Pixel(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> u32 {
     if (COUPLED_PIXEL_FORMAT == 2u || (COLOR_BLEND_MODE_A == 0u && COLOR_BLEND_MODE_B == 0u)) { return packPixel(base); }
@@ -247,7 +247,7 @@ fn colorComponentWord(value: u32) -> u32 {
     if (!colorLess(value, COLOR_ONE)) { return 65535u; }
     let scaled = floatMultiply(value, 0x477fff00u);
     let rounded = floatAdd(scaled, 0x3f000000u);
-    return projectionMantissa(rounded) >> u32(-projectionPower(rounded));
+    return u32(bitcast<f32>(rounded));
 }
 fn coupledRgba16Pixel(base: vec4<u32>, source: vec4<u32>, alpha: u32, mask: u32, mode: u32) -> vec4<u32> {
     if (COUPLED_PIXEL_FORMAT == 1u || (COLOR_BLEND_MODE_A == 0u && COLOR_BLEND_MODE_B == 0u)) { return base; }

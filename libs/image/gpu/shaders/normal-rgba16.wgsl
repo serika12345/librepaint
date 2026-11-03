@@ -1,40 +1,17 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Native U16 normal composition follows binary32 normalization and division,
-// single-rounded alpha/color multiply-add, then nearest-even U16 conversion.
+// U16 normal composition evaluates normalized alpha and color in native f32.
 fn nativeNormalizedAlpha(component: u32) -> u32 {
     return projectionMultiply(bitcast<u32>(f32(component)), 0x37800080u);
 }
 fn nativeCombinedAlpha(destination: u32, source: u32) -> u32 {
-    let power = projectionPower(destination);
-    let one = projectionLeft(vec2<u32>(1u, 0u), u32(-power));
-    let complement = projectionFloat(projectionSubtract(one, vec2<u32>(projectionMantissa(destination), 0u)), power);
-    let product = projectionProduct(projectionMantissa(complement), projectionMantissa(source));
-    let productPower = projectionPower(complement) + projectionPower(source);
-    // A nonzero native destination is at least 1/65535. Its mantissa and the
-    // product share a 61-bit accumulator; discarded product bits become sticky
-    // below every binary32 guard bit, including a halfway result.
-    let commonPower = max(productPower, power - 37);
-    let shift = u32(commonPower - productPower);
-    var retained = projectionRight(product, shift);
-    if (projectionLowBits(product, shift)) { retained.x |= 1u; }
-    let base = projectionLeft(vec2<u32>(projectionMantissa(destination), 0u), u32(power - commonPower));
-    return projectionFloat(projectionAdd(base, retained), commonPower);
+    let alpha = bitcast<f32>(destination);
+    return bitcast<u32>(alpha + bitcast<f32>(source) * (1.0 - alpha));
 }
 fn nativeColor(destination: u32, source: u32, blend: u32) -> u32 {
-    // Below 2^-18 a U16 color changes by less than a quarter component,
-    // including binary32 rounding before nearest-even integer conversion.
-    if (blend < 0x36800000u) { return destination; }
-    if (blend == 0x3f800000u) { return source; }
-    let difference = i32(source) - i32(destination);
-    let product = projectionProduct(u32(abs(difference)), projectionMantissa(blend));
-    let power = projectionPower(blend);
-    let base = projectionLeft(vec2<u32>(destination, 0u), u32(-power));
-    var value: vec2<u32>;
-    if (difference < 0) { value = projectionSubtract(base, product); }
-    else { value = projectionAdd(base, product); }
-    return projectionComponent(projectionFloat(value, power));
+    let value = f32(destination) + f32(i32(source) - i32(destination)) * bitcast<f32>(blend);
+    return u32(round(clamp(value, 0.0, 65535.0)));
 }
 fn normalRgba16(base: vec4<u32>, source: vec3<u32>, sourceAlpha: u32, writeMask: u32) -> vec4<u32> {
     if (sourceAlpha == 0u) { return base; }

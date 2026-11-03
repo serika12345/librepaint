@@ -8,13 +8,13 @@
 #include "KisGpuOperationDocument.h"
 
 namespace LibrePaint::Image::Gpu::Detail {
-/** Binary64 native circle inputs and its integer dispatch bounds. */
+/** Native f32 circle inputs relative to their dispatch bounds and its integer dispatch bounds. */
 struct MarkerDab
 {
-    std::array<quint32, 12> words{};
-    QRect bounds() const { return {qint32(words[8]), qint32(words[9]), int(words[10]), int(words[11])}; }
+    std::array<quint32, 8> words{};
+    QRect bounds() const { return {qint32(words[4]), qint32(words[5]), int(words[6]), int(words[7])}; }
 };
-static_assert(sizeof(MarkerDab) == 48);
+static_assert(sizeof(MarkerDab) == 32);
 
 /** Empty source pixels in the allocation rectangle participate in alpha-replacing merges. */
 std::optional<QList<MarkerDab>> markerDabs(const PaintOperation &operation, bool pending, const QRect &region,
