@@ -96,11 +96,11 @@ TileRenderer::Private::Private(TileRenderer &renderer, DevicePtr device, qsizety
         wgpuQueueWriteBuffer(this->device->queue(), opaqueMask.get(), 0,
                              opaque.constData(), opaque.size());
     }
-    pipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/paint.wgsl"));
-    if (!unusedCoverage || !unusedSelection || !unusedPattern || !opaqueMask || !pipeline) return;
-    layout.reset(wgpuComputePipelineGetBindGroupLayout(pipeline.get(), 0));
-    if (!layout) error = QStringLiteral("GPU paint bindings could not be created");
-    if (error.isEmpty()) initializeProjection();
+    if (!unusedCoverage || !unusedSelection || !unusedPattern || !opaqueMask) {
+        error = QStringLiteral("GPU paint resources could not be created");
+        return;
+    }
+    initializeProjection();
 }
 
 TileRenderer::Private::~Private()
@@ -276,7 +276,7 @@ bool TileRenderer::Private::prepareGreaterRgba8(bool full)
 
 NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path, const char *entryPoint,
     quint32 firstBlend, quint32 secondBlend, WGPUBindGroupLayout sharedLayout, bool separableBlendEnabled, quint32 coupledPixelFormat, quint32 nativeLabKind,
-    quint32 gradientKind)
+    quint32 gradientKind, bool generatedBrush)
 {
     QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl")), shader(path);
     if (!shared.open(QIODevice::ReadOnly) || !shader.open(QIODevice::ReadOnly)) {
@@ -294,6 +294,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     source += "const COUPLED_PIXEL_FORMAT: u32 = " + QByteArray::number(coupledPixelFormat) + "u;\n";
     source += "const NATIVE_LAB_KIND: u32 = " + QByteArray::number(nativeLabKind) + "u;\n";
     source += QByteArray("const GRADIENT_FILL_ENABLED: bool = ") + (gradientKind ? "true;\n" : "false;\n");
+    source += QByteArray("const GENERATED_BRUSH_ENABLED: bool = ") + (generatedBrush ? "true;\n" : "false;\n");
     source += "const GRADIENT_SHAPE: u32 = " + QByteArray::number(gradientKind ? gradientKind - 1 : 0) + "u;\n";
     const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
     if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl")) || path.endsWith(QLatin1String("/region.wgsl")) || path.endsWith(QLatin1String("/filter.wgsl")) || path.endsWith(QLatin1String("/convolution.wgsl"))) {
@@ -387,7 +388,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     return result;
 }
 
-WGPUComputePipeline TileRenderer::Private::blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend, quint32 secondBlend, quint32 gradientKind)
+WGPUComputePipeline TileRenderer::Private::blendPipeline(bool paint, bool paired, PixelFormat format, quint32 firstBlend, quint32 secondBlend, quint32 gradientKind, bool generatedBrush)
 {
     const auto coupled = [](quint32 mode) { return mode >= 88 && mode <= 126 ? mode : 0u; };
     const bool separableBlendEnabled = format == PixelFormat::Rgba16 &&
@@ -397,15 +398,15 @@ WGPUComputePipeline TileRenderer::Private::blendPipeline(bool paint, bool paired
         secondBlend = coupled(secondBlend);
     }
     if (firstBlend == secondBlend) secondBlend = 0;
-    if (!firstBlend && !secondBlend && !gradientKind)
+    if (!firstBlend && !secondBlend && !gradientKind && !generatedBrush)
         return paint ? pipeline.get() : paired ? pairedProjectionPipeline.get() : projectionPipeline.get();
     if (secondBlend < firstBlend) std::swap(firstBlend, secondBlend);
-    const auto key = firstBlend | (secondBlend << 8) | (quint32(paint) << 16) | (quint32(paired) << 17) | (quint32(separableBlendEnabled) << 18) | (quint32(format == PixelFormat::Rgba16) << 19) | (gradientKind << 20);
+    const auto key = firstBlend | (secondBlend << 8) | (quint32(paint) << 16) | (quint32(paired) << 17) | (quint32(separableBlendEnabled) << 18) | (quint32(format == PixelFormat::Rgba16) << 19) | (gradientKind << 20) | (quint32(generatedBrush) << 24);
     const auto found = blendPipelines.find(key);
     if (found != blendPipelines.end()) return found->second.get();
     auto compiled = createPipeline(paint ? QStringLiteral(":/librepaint/gpu/shaders/paint.wgsl") :
         QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"), paired ? "mainPair" : "main", firstBlend, secondBlend,
-        paint ? layout.get() : paired ? pairedProjectionLayout.get() : projectionLayout.get(), separableBlendEnabled, format == PixelFormat::Rgba16 ? 2u : 1u, 0, gradientKind);
+        paint ? layout.get() : paired ? pairedProjectionLayout.get() : projectionLayout.get(), separableBlendEnabled, format == PixelFormat::Rgba16 ? 2u : 1u, 0, gradientKind, generatedBrush);
     if (!compiled) return nullptr;
     if (blendPipelines.size() >= 8) blendPipelines.erase(blendPipelines.begin());
     const auto result = compiled.get();
@@ -783,6 +784,15 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         for (size_t i = recordedJobs; i < jobs.size(); ++i) d.retainTile(jobs[i].coverageInput);
         const auto empty = d.zeroBuffer(commands, document->format);
         if (!empty) return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty tile allocation failed")};
+        if (recordedJobs < jobs.size() && !d.pipeline) {
+            d.pipeline = d.createPipeline(QStringLiteral(":/librepaint/gpu/shaders/paint.wgsl"));
+            if (!d.pipeline) return RenderOutcome{RenderOutcome::DeviceFailure, {}, d.error};
+            d.layout.reset(wgpuComputePipelineGetBindGroupLayout(d.pipeline.get(), 0));
+            if (!d.layout) {
+                d.error = QStringLiteral("GPU paint bindings could not be created");
+                return RenderOutcome{RenderOutcome::DeviceFailure, {}, d.error};
+            }
+        }
         if (!preparePaintJobs(*d.device, d.layout.get(), jobs, recordedJobs, empty,
                               d.unusedCoverage.get(), d.unusedSelection.get(), d.unusedPattern.get(),
                               document->format == PixelFormat::Rgba16 && d.cosineView ? d.cosineView.get() : d.nonlinearView.get(),
@@ -806,7 +816,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             if (!pass) return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint commands failed")};
             for (size_t i = recordedJobs; i < jobs.size(); ++i) {
                 const auto program = d.blendPipeline(true, false, document->format, jobs[i].values.strokeBlendMode, jobs[i].values.fillBlendMode,
-                    (jobs[i].values.figureFlags & 16u) ? jobs[i].values.patternHeight + 1 : 0);
+                    (jobs[i].values.figureFlags & 16u) ? jobs[i].values.patternHeight + 1 : 0,
+                    (jobs[i].values.paintFlags & 512u) != 0u);
                 if (!program) {
                     wgpuComputePassEncoderEnd(pass);
                     wgpuComputePassEncoderRelease(pass);

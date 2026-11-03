@@ -773,9 +773,9 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         }
     }
     let figureFlags = bitcast<u32>(parameters.mirror.w);
-    let generatedFilled = (parameters.paintFlags & 512u) != 0u && (figureFlags & 1u) != 0u;
+    let generatedFilled = GENERATED_BRUSH_ENABLED && (figureFlags & 1u) != 0u;
     var strokeCoverage = 0u;
-    if ((parameters.paintFlags & 512u) == 0u) {
+    if (!GENERATED_BRUSH_ENABLED) {
         if ((parameters.paintFlags & 128u) != 0u) { strokeCoverage = previousCoverage[index]; }
         if ((bitcast<u32>(parameters.mirror.w) & 2u) == 0u) {
             for (var i = 0u; i < parameters.count && strokeCoverage != 255u; i += 1u) {
@@ -797,7 +797,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let foreground = nativePixel(parameters.color, parameters.native.x, parameters.native.z != 0u).xyz;
     var source = foreground;
     var coverage = strokeCoverage;
-    if (parameters.native.z != 0u && (parameters.paintFlags & 512u) == 0u) { coverage *= 257u; }
+    if (parameters.native.z != 0u && !GENERATED_BRUSH_ENABLED) { coverage *= 257u; }
     var sourceHasColor = strokeCoverage != 0u;
     var blendMode = parameters.pattern.w;
     var generatedInitial = vec4<u32>();
@@ -826,8 +826,8 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             blendMode = parameters.pattern.z;
         }
     }
-    let direct = (parameters.paintFlags & 4194304u) != 0u;
-    if (!direct && (parameters.paintFlags & 512u) != 0u) {
+    let direct = GENERATED_BRUSH_ENABLED && (parameters.paintFlags & 4194304u) != 0u;
+    if (!direct && GENERATED_BRUSH_ENABLED) {
         let temporary = generatedBrushSource(pixel, generatedInitial, generatedFilled);
         coverage = temporary.w;
         sourceHasColor = coverage != 0u;
