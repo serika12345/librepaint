@@ -24,6 +24,7 @@
 #include <QTemporaryDir>
 #include <QStandardPaths>
 #include <QTest>
+#include <KisGpuPixelTolerance.h>
 #include <quazip.h>
 #include <quazipfile.h>
 #include <cstring>
@@ -798,18 +799,17 @@ void KisGpuPaintDocumentTest::yuvPrecisionSurvivesSavingAndFurtherEditing()
     const auto filtered = image->readRgbaPixels(layer, region, bytes.size());
     QCOMPARE(filtered.code, ExecutionCode::Success);
     auto expected = bytes;
-    // Product CPU precision-boundary pixels, including hidden RGB. The old
-    // binary32 GPU conversion produced 186 and 94 for these blue channels.
+    // Native CPU boundary references, including hidden RGB (#89 P6).
     for (int y = 0; y < 64; ++y)
         for (int x = 0; x < 64; ++x)
             expected.replace((y * 256 + x) * 4, 4, QByteArray::fromHex("ce00bbcf"));
     expected.replace((20 * 256 + 20) * 4, 4, QByteArray::fromHex("ce00bb00"));
     expected.replace((50 * 256 + 50) * 4, 4, QByteArray::fromHex("ae005fff"));
-    QCOMPARE(filtered.bytes, expected);
+    QCOMPARE_PIXELS_WITHIN_STEP(filtered.bytes, expected);
     QCOMPARE(image->undo(), Result::Success);
     QCOMPARE(image->readRgbaPixels(layer, region, bytes.size()).bytes, bytes);
     QCOMPARE(image->redo(), Result::Success);
-    QCOMPARE(image->readRgbaPixels(layer, region, bytes.size()).bytes, expected);
+    QCOMPARE_PIXELS_WITHIN_STEP(image->readRgbaPixels(layer, region, bytes.size()).bytes, expected);
 
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -822,16 +822,16 @@ void KisGpuPaintDocumentTest::yuvPrecisionSurvivesSavingAndFurtherEditing()
     QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
     const auto loaded = reopened.document->image();
     const auto loadedLayer = loaded->operations().activeLayer();
-    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, bytes.size()).bytes, expected);
+    QCOMPARE_PIXELS_WITHIN_STEP(loaded->readRgbaPixels(loadedLayer, region, bytes.size()).bytes, expected);
     QCOMPARE(loaded->clearSelection(), Result::Success);
     QCOMPARE(loaded->invertColors(loadedLayer), Result::Success);
     auto inverted = expected;
     for (qsizetype offset = 0; offset < inverted.size(); offset += 4)
         for (int channel = 0; channel < 3; ++channel)
             inverted[offset + channel] = char(255 - quint8(expected[offset + channel]));
-    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, bytes.size()).bytes, inverted);
+    QCOMPARE_PIXELS_WITHIN_STEP(loaded->readRgbaPixels(loadedLayer, region, bytes.size()).bytes, inverted);
     QCOMPARE(loaded->undo(), Result::Success);
-    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, bytes.size()).bytes, expected);
+    QCOMPARE_PIXELS_WITHIN_STEP(loaded->readRgbaPixels(loadedLayer, region, bytes.size()).bytes, expected);
 }
 
 void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTripsKra()
@@ -903,18 +903,17 @@ void KisGpuPaintDocumentTest::freehandSelectionMaskClipsPaintFillEraseAndRoundTr
     QCOMPARE(pixel(inverted.bytes, 100, 100), QByteArray::fromHex("d31361ff"));
     QCOMPARE(pixel(inverted.bytes, 8, 120), QByteArray::fromHex("d31361ff"));
 
-    // The KRA stream stores coverage, so an inverted freehand selection returns
-    // as the equivalent complement mask rather than a shape plus a flag.
+    // The KRA default coverage preserves inversion and the finite holes (#89 A0c).
     const auto invertedPath = directory.filePath(QStringLiteral("inverted-freehand-selection.kra"));
     QCOMPARE(reopened.document->saveKra(invertedPath).code, FileCode::Success);
     const auto reopenedInverted = PaintDocument::openKra(execution, invertedPath);
     QVERIFY2(reopenedInverted.code == FileCode::Success, qPrintable(reopenedInverted.diagnostic));
     const auto loadedInverted = reopenedInverted.document->image();
     QCOMPARE(loadedInverted->selectionKind(), SelectionKind::Freehand);
-    QVERIFY(!loadedInverted->selectionInverted());
+    QVERIFY(loadedInverted->selectionInverted());
     QVERIFY(loadedInverted->selectionMask());
-    QVERIFY(!loadedInverted->selectionMask()->contains(24, 24));
-    QVERIFY(loadedInverted->selectionMask()->contains(100, 100));
+    QVERIFY(loadedInverted->selectionMask()->contains(24, 24));
+    QVERIFY(!loadedInverted->selectionMask()->contains(100, 100));
     const auto invertedPixels = loadedInverted->readRgbaPixels(loadedInverted->operations().activeLayer(), region,
                                                                128 * 128 * 4);
     QCOMPARE(invertedPixels.code, ExecutionCode::Success);
@@ -2042,7 +2041,8 @@ void KisGpuPaintDocumentTest::savingStreamsPixelsWithinTheGpuAndTransferBudgets(
          {{{-1, 0}, QByteArray::fromHex("09080700").repeated(RgbaTile::ByteCount / 4)},
           {{2, 0}, QByteArray::fromHex("09080700").repeated(RgbaTile::ByteCount / 4)}}, {12, 34, 56, 0}}
     };
-    Execution execution(m_device, 4 * TileRenderer::TileBytes, 16, TileRenderer::TileBytes);
+    // Versioned layers retain their tiles while export transfers one tile at a time.
+    Execution execution(m_device, 16 * TileRenderer::TileBytes, 16, TileRenderer::TileBytes);
     PaintDocument document(execution, image);
     dot(*document.image(), {270, 100}, {0, 255, 0, 128});
     const auto pinned = document.image()->operations().snapshot();

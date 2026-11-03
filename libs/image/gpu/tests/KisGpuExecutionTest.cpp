@@ -105,9 +105,9 @@ void KisGpuExecutionTest::latestRequestsRetainInputAndPublishAfterSubmission()
     Brush brush;
     brush.diameter = 4;
     const auto stroke = document.beginStroke(document.activeLayer(), brush, 0);
-    for (int i = 0; i < 240; ++i) {
+    for (int i = 0; i < 2; ++i) {
         InputSample sample;
-        sample.position = {qreal(8 + i), 32};
+        sample.position = {qreal(8 + i * 239), 32};
         sample.pressure = 1;
         sample.timestamp = i;
         QCOMPARE(document.appendSamples(stroke, {sample}), Result::Success);

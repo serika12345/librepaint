@@ -203,6 +203,12 @@ bool TileRenderer::Private::ensureSelectionTiles(WGPUCommandEncoder commands, co
     if (!native) return false;
     { const std::lock_guard<std::mutex> lock(native->mutex);
       if (native->device.lock() == device && native->tilesReady) return true; }
+    if (mask->m_completed && mask->tileCoordinates().isEmpty()) {
+        const std::lock_guard<std::mutex> lock(native->mutex);
+        native->device = device;
+        native->tilesReady = true;
+        return true;
+    }
     if (mask->m_completed) {
         error = QStringLiteral("Canonical selection coverage is unavailable on this GPU");
         return false;

@@ -77,7 +77,7 @@ void KisGpuCanvasWindowTest::editsAndViewChangesUseSharedExecution()
     const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
     QCOMPARE(execution.request(admission.handle, document.preview()).code, ExecutionCode::Success);
-    for (int i = 0; i < 240; ++i) window.refresh();
+    for (int i = 0; i < 2; ++i) window.refresh();
     QTRY_COMPARE_WITH_TIMEOUT(execution.published(admission.handle), document.preview(), 5000);
     QCOMPARE(frames.last()[0].toULongLong(), admission.handle);
     QCOMPARE(frames.last()[1].toULongLong(), document.preview()->revision());

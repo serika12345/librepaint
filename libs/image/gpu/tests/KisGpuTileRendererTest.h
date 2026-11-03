@@ -33,10 +33,6 @@
 #include "KisGpuGaussianPixelPerfectFixture_p.h"
 #include "gpu/KisGpuBasicCurveControls.h"
 
-#include "KisGpuMultiplyProjectionFixture_p.h"
-#include "KisGpuScreenProjectionFixture_p.h"
-#include "KisGpuMinMaxProjectionFixture_p.h"
-#include "KisGpuAdditionProjectionFixture_p.h"
 
 using namespace LibrePaint::Image::Gpu;
 

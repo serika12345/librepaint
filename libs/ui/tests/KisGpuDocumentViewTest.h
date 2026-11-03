@@ -6,6 +6,7 @@
 #ifndef KISGPUDOCUMENTVIEWTEST_H
 #define KISGPUDOCUMENTVIEWTEST_H
 #include <KisPaintingEngineTestScope.h>
+#include <KisGpuPixelTolerance.h>
 #include <array>
 #include "KisGpuMultibrushEditingTest.h"
 #include "KisGpuRegionFillEditingTest.h"
@@ -162,6 +163,19 @@
 #include <thread>
 
 namespace {
+inline int readSelectionCoverage(const LibrePaint::Image::Gpu::PaintImageSP &owner, QPoint point)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!owner || !owner->selectionMask()) return -1;
+    const auto read = owner->execution().readSelectionPixels(owner->selectionMask(), QRect(point, QSize(1, 1)), 1);
+    if (read.code != Gpu::ExecutionCode::Success || read.bytes.size() != 1) {
+        qWarning().noquote() << read.diagnostic;
+        return -1;
+    }
+    const int alpha = quint8(read.bytes[0]);
+    return owner->selectionInverted() ? 255 - alpha : alpha;
+}
+
 // Speed-sensitive fixtures keep the delivered event clock and the existing
 // input-builder settings identical on the native and GPU window paths.
 class BrushPointerClock : public QObject

@@ -1083,6 +1083,22 @@ void KisGpuDocumentViewTest::ellipticalToolCreatesDocumentSelection()
     QVERIFY(native);
     KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectElliptical"));
     QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectElliptical"));
+    QPointer<KisSelectionOptions> options;
+    for (auto *widget : QApplication::allWidgets())
+        if (widget->objectName() == QLatin1String("KisToolSelectEllipticaloption widget"))
+            if (auto *candidate = qobject_cast<KisSelectionOptions *>(widget)) options = candidate;
+    QVERIFY(options);
+    const auto oldAction = options->action();
+    const auto oldMode = options->mode();
+    const bool oldAA = options->antiAliasSelection();
+    const int oldGrow = options->growSelection(), oldFeather = options->featherSelection();
+    const auto restoreOptions = qScopeGuard([&] {
+        if (!options) return;
+        options->setAction(oldAction); options->setMode(oldMode); options->setAntiAliasSelection(oldAA);
+        options->setGrowSelection(oldGrow); options->setFeatherSelection(oldFeather);
+    });
+    options->setMode(PIXEL_SELECTION); options->setAction(SELECTION_REPLACE);
+    options->setAntiAliasSelection(false); options->setGrowSelection(0); options->setFeatherSelection(0);
     window->activateWindow();
     native->requestActivate();
     view->canvasBase()->canvasWidget()->setFocus();
@@ -1190,6 +1206,22 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QVERIFY(native);
     KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectOutline"));
     QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectOutline"));
+    QPointer<KisSelectionOptions> options;
+    for (auto *widget : QApplication::allWidgets())
+        if (widget->objectName() == QLatin1String("KisToolSelectOutlineoption widget"))
+            if (auto *candidate = qobject_cast<KisSelectionOptions *>(widget)) options = candidate;
+    QVERIFY(options);
+    const auto oldAction = options->action(); const auto oldMode = options->mode();
+    const auto oldAA = options->antiAliasSelection();
+    const int oldGrow = options->growSelection(), oldFeather = options->featherSelection();
+    const auto restoreOptions = qScopeGuard([&] {
+        if (!options) return;
+        options->setAction(oldAction); options->setMode(oldMode); options->setAntiAliasSelection(oldAA);
+        options->setGrowSelection(oldGrow); options->setFeatherSelection(oldFeather);
+    });
+    options->setMode(PIXEL_SELECTION); options->setAction(SELECTION_REPLACE);
+    options->setAntiAliasSelection(false); options->setGrowSelection(0); options->setFeatherSelection(0);
+
     window->activateWindow();
     native->requestActivate();
     view->canvasBase()->canvasWidget()->setFocus();
@@ -1207,8 +1239,8 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QTRY_COMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
     const auto mask = owner->selectionMask();
     QVERIFY(mask);
-    QVERIFY(mask->contains(80, 80));
-    QVERIFY(!mask->contains(176, 176));
+    QVERIFY((readSelectionCoverage(owner, QPoint(80, 80)) > 0));
+    QVERIFY((readSelectionCoverage(owner, QPoint(176, 176)) == 0));
     QCOMPARE(owner->selectionRect(), mask->bounds());
     QTRY_VERIFY(lifetime->image()->globalSelection());
     QTRY_COMPARE(lifetime->image()->globalSelection()->selectedExactRect(), mask->bounds());
@@ -1269,11 +1301,11 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({96, 96}));
     QTRY_COMPARE(owner->selectionRect(), beforeMove.translated(16, 16));
     QVERIFY(owner->selectionMask());
-    QVERIFY(owner->selectionMask()->contains(96, 96));
-    QVERIFY(!owner->selectionMask()->contains(beforeMove.left(), beforeMove.top()));
+    QVERIFY((readSelectionCoverage(owner, QPoint(96, 96)) > 0));
+    QVERIFY((readSelectionCoverage(owner, QPoint(beforeMove.left(), beforeMove.top())) == 0));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), beforeMove);
-    QVERIFY(owner->selectionMask()->contains(80, 80));
+    QVERIFY((readSelectionCoverage(owner, QPoint(80, 80)) > 0));
 
     const auto runFilter = [&](const QString &id, int x, int y) {
         KisOperationConfigurationSP config = new KisOperationConfiguration(id);
@@ -1284,11 +1316,11 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
         lifetime->image()->waitForDone();
     };
     runFilter(QStringLiteral("growselection"), 2, 2);
-    QTRY_VERIFY(owner->selectionMask()->contains(62, 80));
+    QTRY_VERIFY((readSelectionCoverage(owner, QPoint(62, 80)) > 0));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), beforeMove);
     runFilter(QStringLiteral("shrinkselection"), 2, 2);
-    QTRY_VERIFY(!owner->selectionMask()->contains(64, 80));
+    QTRY_VERIFY((readSelectionCoverage(owner, QPoint(64, 80)) == 0));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_COMPARE(owner->selectionRect(), beforeMove);
     runFilter(QStringLiteral("invertselection"), 0, 0);
@@ -1312,12 +1344,12 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QCOMPARE(selectedness({200, 80}), 0);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
-    QTRY_VERIFY(owner->selectionMask()->contains(80, 80));
+    QTRY_VERIFY((readSelectionCoverage(owner, QPoint(80, 80)) > 0));
     runFilter(QStringLiteral("borderselection"), 2, 2);
-    QTRY_VERIFY(owner->selectionMask() && !owner->selectionMask()->contains(80, 80));
-    QVERIFY(owner->selectionMask()->contains(64, 80));
+    QTRY_VERIFY(owner->selectionMask() && (readSelectionCoverage(owner, QPoint(80, 80)) == 0));
+    QVERIFY((readSelectionCoverage(owner, QPoint(64, 80)) > 0));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
-    QTRY_VERIFY(owner->selectionMask()->contains(80, 80));
+    QTRY_VERIFY((readSelectionCoverage(owner, QPoint(80, 80)) > 0));
 
     runFilter(QStringLiteral("shrinkselection"), 200, 200);
     QTRY_VERIFY(owner->selectionRect().isEmpty());
@@ -1329,8 +1361,8 @@ void KisGpuDocumentViewTest::freehandToolCreatesArbitraryMaskSelection()
     QVERIFY(lifetime->image()->reselectGpuSelection());
     QTRY_COMPARE(owner->selectionKind(), Gpu::SelectionKind::Freehand);
     QVERIFY(owner->selectionMask());
-    QVERIFY(owner->selectionMask()->contains(80, 80));
-    QVERIFY(!owner->selectionMask()->contains(176, 176));
+    QVERIFY((readSelectionCoverage(owner, QPoint(80, 80)) > 0));
+    QVERIFY((readSelectionCoverage(owner, QPoint(176, 176)) == 0));
     QCOMPARE(owner->selectionRect(), mask->bounds());
 }
 
@@ -1378,11 +1410,11 @@ void KisGpuDocumentViewTest::polygonToolVerticesCreateFrozenCoverage()
 
     // It uses the same coverage path as freehand for the shared filters.
     QVERIFY(image->growGpuSelectionMask(2, 2));
-    QTRY_VERIFY(owner->selectionMask()->contains(14, 16));
+    QTRY_VERIFY((readSelectionCoverage(owner, QPoint(14, 16)) > 0));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_VERIFY(owner->selectionMask() == mask);
     QVERIFY(image->invertGpuSelectionMask());
-    QTRY_VERIFY(owner->selectionMask() && !owner->selectionMask()->contains(16, 16));
+    QTRY_VERIFY(owner->selectionMask() && (readSelectionCoverage(owner, QPoint(16, 16)) == 0));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QTRY_VERIFY(owner->selectionMask() == mask);
 }
@@ -1509,10 +1541,10 @@ void KisGpuDocumentViewTest::polygonalToolCreatesArbitraryMaskSelection()
     const auto mask = owner->selectionMask();
     QVERIFY(mask);
     QCOMPARE(mask->bounds(), QRect(64, 64, 128, 128));
-    QVERIFY(mask->contains(80, 80));
-    QVERIFY(mask->contains(176, 176));
-    QVERIFY(!mask->contains(48, 48));
-    QVERIFY(!mask->contains(208, 208));
+    QVERIFY((readSelectionCoverage(owner, QPoint(80, 80)) > 0));
+    QVERIFY((readSelectionCoverage(owner, QPoint(176, 176)) > 0));
+    QVERIFY((readSelectionCoverage(owner, QPoint(48, 48)) == 0));
+    QVERIFY((readSelectionCoverage(owner, QPoint(208, 208)) == 0));
     QCOMPARE(owner->selectionRect(), mask->bounds());
     QCOMPARE(owner->operations().undoCount(), 1);
     QTRY_VERIFY(lifetime->image()->globalSelection());
@@ -1636,23 +1668,8 @@ void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra_data()
     QTest::addColumn<bool>("words");
     QTest::addColumn<int>("action");
     QTest::addColumn<QString>("scenario");
-    for (const auto &tool : {QStringLiteral("KisToolSelectContiguous"), QStringLiteral("KisToolSelectSimilar")})
-        for (const bool words : {false, true}) {
-            for (const auto action : {SELECTION_REPLACE, SELECTION_ADD, SELECTION_SUBTRACT, SELECTION_INTERSECT, SELECTION_SYMMETRICDIFFERENCE}) {
-                const QByteArray name = tool.toLatin1() + (words ? "-word-" : "-byte-") + QByteArray::number(int(action));
-                QTest::newRow(name.constData()) << tool << words << int(action) << QStringLiteral("lab");
-            }
-            for (const auto &scenario : {QStringLiteral("hard"), QStringLiteral("all"), QStringLiteral("label"),
-                                         QStringLiteral("masked"), QStringLiteral("shrink")}) {
-                const QByteArray name = tool.toLatin1() + (words ? "-word-" : "-byte-") + scenario.toLatin1();
-                QTest::newRow(name.constData()) << tool << words << int(SELECTION_REPLACE) << scenario;
-            }
-            const QByteArray gradient = tool.toLatin1() + (words ? "-word-spread-gradient" : "-byte-spread-gradient");
-            QTest::newRow(gradient.constData()) << tool << words << int(SELECTION_ADD) << QStringLiteral("spread-gradient");
-            for (const auto &scenario : {QStringLiteral("move"), QStringLiteral("move-clipped"), QStringLiteral("move-inverted")}) {
-                const QByteArray name = tool.toLatin1() + (words ? "-word-" : "-byte-") + scenario.toLatin1();
-                QTest::newRow(name.constData()) << tool << words << int(SELECTION_REPLACE) << scenario;
-            }
-        }
+    QTest::newRow("contiguous-byte-lab") << QStringLiteral("KisToolSelectContiguous") << false << int(SELECTION_REPLACE) << QStringLiteral("lab");
+    // #89 A0c: a masked similar-color selection exercises the delayed GPU read.
+    QTest::newRow("similar-word-masked") << QStringLiteral("KisToolSelectSimilar") << true << int(SELECTION_INTERSECT) << QStringLiteral("masked");
 }
 

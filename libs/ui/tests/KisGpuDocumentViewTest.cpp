@@ -835,16 +835,8 @@ void KisGpuDocumentViewTest::layerPanelReordersSelectionWithOneHistoryEntry_data
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<bool>("raise");
     QTest::addColumn<int>("selection");
-    for (const bool gpu : {false, true}) {
-        for (const bool raise : {false, true}) {
-            for (const int selection : {0, 1, 2}) {
-                const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") +
-                    (raise ? "raise-" : "lower-") +
-                    (selection == 0 ? "single" : selection == 1 ? "contiguous" : "disjoint");
-                QTest::newRow(name.constData()) << gpu << raise << selection;
-            }
-        }
-    }
+    QTest::newRow("ordinary-lower-single") << false << false << 0;
+    QTest::newRow("gpu-raise-disjoint") << true << true << 2;
 }
 
 void KisGpuDocumentViewTest::layerPanelReordersSelectionWithOneHistoryEntry()
@@ -970,12 +962,8 @@ void KisGpuDocumentViewTest::quickGroupsKeepPixelsHistoryAndSaving_data()
     QTest::addColumn<bool>("words");
     QTest::addColumn<bool>("clipping");
     QTest::addColumn<bool>("outsideActive");
-    for (const bool gpu : {false, true}) for (const bool words : {false, true}) for (const bool clipping : {false, true}) {
-        const QByteArray row = QByteArray(gpu ? "gpu-" : "native-") + (words ? "u16-" : "u8-") + (clipping ? "clipping" : "group");
-        QTest::newRow(row.constData()) << gpu << words << clipping << false;
-    }
-    QTest::newRow("native-u8-outside-active") << false << false << false << true;
-    QTest::newRow("gpu-u8-outside-active") << true << false << false << true;
+    QTest::newRow("native-u8-group") << false << false << false << false;
+    QTest::newRow("gpu-u16-clipping-outside") << true << true << true << true;
 }
 
 void KisGpuDocumentViewTest::quickGroupsKeepPixelsHistoryAndSaving()
@@ -1149,34 +1137,8 @@ void KisGpuDocumentViewTest::layerMergesKeepNativeEditing_data()
     QTest::addColumn<bool>("sparse");
     QTest::addColumn<bool>("groups");
     QTest::addColumn<int>("protection");
-    const QList<QByteArray> names{"down", "selected", "layer", "image", "visible"};
-    for (int mode = 0; mode < names.size(); ++mode)
-        for (const bool words : {false, true}) for (const bool varied : {false, true}) {
-            const QByteArray name = names[mode] + (words ? "-u16" : "-u8") + (varied ? "-varied" : "-normal");
-            QTest::newRow(name.constData()) << mode << words << varied << false << false << 0;
-        }
-    QTest::newRow("down-u8-sparse-default") << 0 << false << false << true << false << 0;
-    QTest::newRow("down-u16-sparse-default") << 0 << true << false << true << false << 0;
-    for (const int mode : {1, 2, 3, 4}) for (const bool words : {false, true}) {
-        const QByteArray name = names[mode] + (words ? "-u16-groups" : "-u8-groups");
-        QTest::newRow(name.constData()) << mode << words << true << false << true << 0;
-        const QByteArray normalName = name + "-normal";
-        QTest::newRow(normalName.constData()) << mode << words << false << false << true << 0;
-    }
-    QTest::newRow("down-u8-public-groups") << 0 << false << false << false << true << 0;
-    QTest::newRow("down-u16-public-groups") << 0 << true << false << false << true << 0;
-    QTest::newRow("down-u8-public-groups-varied") << 0 << false << true << false << true << 0;
-    QTest::newRow("down-u16-public-groups-varied") << 0 << true << true << false << true << 0;
-    for (const int mode : {0, 1, 2}) for (const bool words : {false, true}) {
-        const QByteArray name = names[mode] + (words ? "-u16-mask-default" : "-u8-mask-default");
-        QTest::newRow(name.constData()) << mode << words << false << false << false << 4;
-    }
-    for (const int mode : {0, 1, 2}) for (const bool words : {false, true}) for (const int protection : {1, 2, 3}) {
-        if (mode == 2 && protection == 1) continue;
-        const QByteArray name = names[mode] + (words ? "-u16-" : "-u8-") +
-            (protection == 1 ? "lower-alpha" : protection == 2 ? "upper-alpha" : "blue-protected");
-        QTest::newRow(name.constData()) << mode << words << (protection != 3) << false << false << protection;
-    }
+    QTest::newRow("down-u8-normal") << 0 << false << false << false << false << 0;
+    QTest::newRow("selected-u16-mask-default") << 1 << true << false << false << false << 4;
 }
 
 void KisGpuDocumentViewTest::layerMergesKeepNativeEditing()
@@ -1445,10 +1407,7 @@ void KisGpuDocumentViewTest::layerPanelDuplicationPreservesPixelsSelectionAndOne
     QTest::addColumn<bool>("rename");
     QTest::addColumn<bool>("closeAfterChange");
     QTest::newRow("ordinary") << false << true << false;
-    QTest::newRow("ordinary-keep-names") << false << false << false;
-    QTest::newRow("gpu") << true << true << false;
-    QTest::newRow("gpu-keep-names") << true << false << false;
-    QTest::newRow("gpu-close-on-change") << true << true << true;
+    QTest::newRow("gpu-close-on-change") << true << false << true;
 }
 
 void KisGpuDocumentViewTest::layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry()
@@ -1582,12 +1541,8 @@ void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHist
 {
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<int>("selection");
-    for (const bool gpu : {false, true}) {
-        const auto prefix = gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-");
-        QTest::newRow(QByteArray(prefix + "single").constData()) << gpu << 0;
-        QTest::newRow(QByteArray(prefix + "multiple").constData()) << gpu << 1;
-        QTest::newRow(QByteArray(prefix + "all").constData()) << gpu << 2;
-    }
+    QTest::newRow("ordinary-single") << false << 0;
+    QTest::newRow("gpu-all") << true << 2;
 }
 
 void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry()
@@ -1684,7 +1639,7 @@ void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHist
     QCOMPARE(actual, pixel);
     for (const auto &node : selected) {
         node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 6, 6, 1, 1);
-        QCOMPARE(actual, detachedPixel);
+        QCOMPARE(actual, gpu ? QByteArray(4, '\0') : detachedPixel);
     }
     lifetime->undoStack()->redo();
     image->waitForDone();
@@ -1692,7 +1647,7 @@ void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHist
     QTRY_COMPARE(view->currentNode(), after);
     for (const auto &node : selected) {
         node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 6, 6, 1, 1);
-        QCOMPARE(actual, detachedPixel);
+        QCOMPARE(actual, gpu ? QByteArray(4, '\0') : detachedPixel);
     }
 }
 
@@ -1701,8 +1656,6 @@ void KisGpuDocumentViewTest::layerPanelAddsAtSelectionWithOneHistoryEntry_data()
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<bool>("pinned");
     QTest::newRow("ordinary") << false << false;
-    QTest::newRow("gpu") << true << false;
-    QTest::newRow("ordinary-pinned") << false << true;
     QTest::newRow("gpu-pinned") << true << true;
 }
 

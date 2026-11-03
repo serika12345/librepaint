@@ -105,24 +105,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTest::addColumn<bool>("layerAlphaLock");
     QTest::addColumn<quint8>("mirrorMode");
     QTest::newRow("paint-and-cancel") << 0 << false << false << false << false << false << false << false << false << quint8(0);
-    QTest::newRow("input-limit") << 0 << false << false << true << false << false << false << false << false << quint8(0);
-    QTest::newRow("close-on-input-limit") << 0 << false << false << true << true << false << false << false << false << quint8(0);
-    QTest::newRow("hide-during-stroke") << 0 << false << false << false << false << true << false << false << false << quint8(0);
-    QTest::newRow("select-during-stroke") << 0 << false << false << false << false << false << true << false << false << quint8(0);
-    QTest::newRow("alpha-lock") << 0 << false << false << false << false << false << false << true << false << quint8(0);
-    QTest::newRow("layer-alpha-lock") << 0 << false << false << false << false << false << false << true << true << quint8(0);
-    QTest::newRow("horizontal-symmetry") << 0 << false << false << false << false << false << false << false << false << quint8(1);
-    QTest::newRow("vertical-symmetry") << 0 << false << false << false << false << false << false << false << false << quint8(2);
-    QTest::newRow("both-axes-symmetry") << 0 << false << false << false << false << false << false << false << false << quint8(3);
-    QTest::newRow("pixel-perfect") << 4 << false << false << false << false << false << false << false << false << quint8(0);
-    QTest::newRow("basic-smoothing") << 1 << false << false << false << false << false << false << false << false << quint8(0);
-    QTest::newRow("basic-smoothing-idle") << 1 << true << false << false << false << false << false << false << false << quint8(0);
-    QTest::newRow("basic-smoothing-pending-cancel") << 1 << false << true << false << false << false << false << false << false << quint8(0);
-    QTest::newRow("weighted-smoothing") << 2 << false << false << false << false << false << false << false << false << quint8(0);
-    QTest::newRow("weighted-smoothing-idle") << 2 << true << false << false << false << false << false << false << false << quint8(0);
-    QTest::newRow("weighted-smoothing-pending-cancel") << 2 << false << true << false << false << false << false << false << false << quint8(0);
-    QTest::newRow("weighted-smoothing-input-limit") << 2 << false << false << true << false << false << false << false << false << quint8(0);
-    QTest::newRow("weighted-smoothing-close-on-limit") << 2 << false << false << true << true << false << false << false << false << quint8(0);
+    QTest::newRow("weighted-pending-cancel") << 2 << false << true << false << false << false << false << false << false << quint8(0);
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()

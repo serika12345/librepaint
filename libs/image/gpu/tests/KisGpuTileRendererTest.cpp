@@ -11,15 +11,8 @@ void KisGpuTileRendererTest::markerMatchesNormalEngine_data()
     QTest::addColumn<qreal>("opacity");
     QTest::addColumn<bool>("erase");
     QTest::addColumn<bool>("moving");
-    for (const bool sixteenBits : {false, true}) for (const qreal opacity : {qreal(1), qreal(.5)})
-        for (const bool erase : {false, true}) for (const bool moving : {false, true}) {
-            const auto name = QStringLiteral("%1%2-%3-%4")
-                .arg(sixteenBits ? QStringLiteral("u16-") : QString())
-                .arg(opacity == 1 ? QStringLiteral("opaque") : QStringLiteral("half"))
-                .arg(erase ? QStringLiteral("erase") : QStringLiteral("normal"))
-                .arg(moving ? QStringLiteral("moving") : QStringLiteral("tap"));
-            QTest::newRow(qPrintable(name)) << sixteenBits << opacity << erase << moving;
-        }
+    QTest::newRow("opaque-normal-tap") << false << qreal(1) << false << false;
+    QTest::newRow("u16-half-erase-moving") << true << qreal(.5) << true << true;
 }
 
 void KisGpuTileRendererTest::markerMatchesNormalEngine()

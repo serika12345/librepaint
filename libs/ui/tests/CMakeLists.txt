@@ -1602,3 +1602,6 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisStoryboardItemContractTest PRIVATE kritaui_EXPORTS)
+
+target_include_directories(KisGpuDocumentViewTest PRIVATE ${CMAKE_SOURCE_DIR}/sdk/tests)
+target_include_directories(KisGpuColorSamplingTest PRIVATE ${CMAKE_SOURCE_DIR}/sdk/tests)

@@ -10,3 +10,5 @@ qt6_add_resources(KisGpuPaintDocumentTest gpu_paint_result_profile
     PREFIX "/gpu-paint-results"
     BASE "${CMAKE_SOURCE_DIR}/krita/data/profiles/elles-icc-profiles"
     FILES "${CMAKE_SOURCE_DIR}/krita/data/profiles/elles-icc-profiles/sRGB-elle-V2-srgbtrc.icc")
+
+target_include_directories(KisGpuPaintDocumentTest PRIVATE ${CMAKE_SOURCE_DIR}/sdk/tests)

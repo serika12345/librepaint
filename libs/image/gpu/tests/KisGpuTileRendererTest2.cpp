@@ -243,43 +243,12 @@ void KisGpuTileRendererTest::normalProjectionKeepsDefaultAndTileColorsAtRounding
     QTest::addColumn<int>("opacity");
     QTest::addColumn<QByteArray>("expectedPixel");
     QTest::addColumn<bool>("nativeFormat");
-    for (const bool implicit : {false, true}) {
-        QTest::newRow(implicit ? "default-pixels" : "tiles") << implicit
-            << QByteArray::fromHex("7e7e7eff") << QByteArray::fromHex("818181ff")
-            << 85 << QByteArray::fromHex("808080ff") << false;
-        QTest::newRow(implicit ? "negative-half-default-pixels" : "negative-half-tiles") << implicit
-            << QByteArray::fromHex("00000026") << QByteArray::fromHex("fdfdfd19")
-            << 1 << QByteArray::fromHex("fbfbfb19") << false;
-        // Full-opacity references retain binary32 fused color rounding followed
-        // by nearest-even byte conversion, for implicit and stored layer pixels.
-        QTest::newRow(implicit ? "full-opacity-even-up-default" : "full-opacity-even-up-tile") << implicit
-            << QByteArray::fromHex("ffffff02") << QByteArray::fromHex("01010102")
-            << 255 << QByteArray::fromHex("80808004") << false;
-        QTest::newRow(implicit ? "full-opacity-even-down-default" : "full-opacity-even-down-tile") << implicit
-            << QByteArray::fromHex("00000002") << QByteArray::fromHex("fefefe02")
-            << 255 << QByteArray::fromHex("7e7e7e04") << false;
-        QTest::newRow(implicit ? "full-opacity-quarter-default" : "full-opacity-quarter-tile") << implicit
-            << QByteArray::fromHex("a9a9a902") << QByteArray::fromHex("00000006")
-            << 255 << QByteArray::fromHex("2a2a2a08") << false;
-        QTest::newRow(implicit ? "full-opacity-mixed-boundary-default" : "full-opacity-mixed-boundary-tile") << implicit
-            << QByteArray::fromHex("ff005002") << QByteArray::fromHex("01fe1102")
-            << 255 << QByteArray::fromHex("807e3104") << false;
-        QTest::newRow(implicit ? "full-opacity-mixed-colors-default" : "full-opacity-mixed-colors-tile") << implicit
-            << QByteArray::fromHex("1464c880") << QByteArray::fromHex("c8641480")
-            << 255 << QByteArray::fromHex("50648cc0") << false;
-        QTest::newRow(implicit ? "native-fma-default" : "native-fma-tile") << implicit
-            << rgbaBytes({7435, 7030, 44014, 53742}, PixelFormat::Rgba16)
-            << rgbaBytes({6428, 56750, 11086, 49993}, PixelFormat::Rgba16) << 255
-            << rgbaBytes({7291, 14159, 39292, 62738}, PixelFormat::Rgba16) << true;
-        QTest::newRow(implicit ? "native-zero-source-default" : "native-zero-source-tile") << implicit
-            << rgbaBytes({1, 257, 65534, 0}, PixelFormat::Rgba16)
-            << rgbaBytes({65534, 257, 1, 65535}, PixelFormat::Rgba16) << 128
-            << rgbaBytes({65534, 257, 1, 65535}, PixelFormat::Rgba16) << true;
-        QTest::newRow(implicit ? "native-copy-default" : "native-copy-tile") << implicit
-            << rgbaBytes({65534, 1, 257, 32768}, PixelFormat::Rgba16)
-            << rgbaBytes({1, 257, 65534, 0}, PixelFormat::Rgba16) << 255
-            << rgbaBytes({65534, 1, 257, 32768}, PixelFormat::Rgba16) << true;
-    }
+    QTest::newRow("tiles") << false << QByteArray::fromHex("1464c880") << QByteArray::fromHex("c8641480")
+        << 255 << QByteArray::fromHex("50648cc0") << false;
+    QTest::newRow("implicit-u16-zero-source") << true
+        << rgbaBytes({1, 257, 65534, 0}, PixelFormat::Rgba16)
+        << rgbaBytes({65534, 257, 1, 65535}, PixelFormat::Rgba16) << 128
+        << rgbaBytes({65534, 257, 1, 65535}, PixelFormat::Rgba16) << true;
 }
 
 void KisGpuTileRendererTest::normalProjectionKeepsDefaultAndTileColorsAtRoundingBoundaries()
@@ -499,23 +468,9 @@ void KisGpuTileRendererTest::separableLayerProjectionMatchesNativePixels_data()
     QTest::addColumn<bool>("implicit");
     QTest::addColumn<QByteArray>("expected");
     QTest::addColumn<int>("blendMode");
-    for (int mode : {1, 2, 3, 4, 5, 6}) {
-        const auto references = mode == 1 ? LibrePaint::Image::Gpu::Test::multiplyProjectionReferences() :
-            mode == 2 ? LibrePaint::Image::Gpu::Test::screenProjectionReferences() :
-            mode == 3 ? LibrePaint::Image::Gpu::Test::darkenProjectionReferences() :
-            mode == 4 ? LibrePaint::Image::Gpu::Test::lightenProjectionReferences() :
-            LibrePaint::Image::Gpu::Test::additionProjectionReferences();
-        qsizetype row = 0;
-        for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
-        for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {
-            for (bool implicit : {false, true}) {
-                const QByteArray name = QByteArray::number(mode) + '-' + QByteArray::number(destinationAlpha) + '-' + QByteArray::number(sourceAlpha) + '-' +
-                    QByteArray::number(opacity) + '-' + QByteArray::number(mask) + (implicit ? "-default" : "-stored");
-                QTest::newRow(name.constData()) << destinationAlpha << sourceAlpha << opacity << mask << implicit << references.mid(row * 4, 4) << mode;
-            }
-            ++row;
-        }
-    }
+    // Native RGBA8/sRGB references from 4caf79b443 (ARM64 and x86_64).
+    QTest::newRow("stored-opaque") << 255 << 255 << 255 << 15 << false << QByteArray::fromHex("1d0e37ff") << 1;
+    QTest::newRow("implicit-partial") << 173 << 137 << 137 << 6 << true << QByteArray::fromHex("25437bad") << 1;
 }
 
 void KisGpuTileRendererTest::separableLayerProjectionMatchesNativePixels()

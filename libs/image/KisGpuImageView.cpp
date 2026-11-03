@@ -1586,10 +1586,12 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         for (qsizetype i = 0; i < parents.size() && !changed(); ++i) {
             auto parent = parents[i].isNull() ? targetRoot : existing.value(parents[i]);
             KisNodeSP above;
-            qsizetype index = 0;
             for (const auto layer : children.value(parents[i])) {
                 const auto node = existing.value(layer->uuid);
-                if (node->parent() != parent || parent->at(index) != node) {
+                // Transparency and selection views have separate placement below.
+                auto previous = node->prevSibling();
+                while (previous && !desired.contains(previous->uuid())) previous = previous->prevSibling();
+                if (node->parent() != parent || previous != above) {
                     if (node->parent()) view->removeNode(node);
                     if (changed()) break;
                     const auto flags = layer->id == version->activeLayer && !owner->operations().filterNodeEditTarget()
@@ -1600,7 +1602,6 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                 }
                 if (layer->kind != LibrePaint::Image::Gpu::LayerKind::FilterMask) parents.append(layer->uuid);
                 above = node;
-                ++index;
             }
         }
         if (view->gpuImage() != owner) return;

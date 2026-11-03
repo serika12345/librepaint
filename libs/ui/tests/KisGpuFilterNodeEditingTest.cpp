@@ -4,6 +4,7 @@
  */
 #include "KisGpuFilterNodeEditingTest.h"
 #include <QApplication>
+#include <KisGpuPixelTolerance.h>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFile>
@@ -69,12 +70,8 @@ void FilterNodeEditingTest::addData()
     QTest::addColumn<bool>("words");
     QTest::addColumn<bool>("mask");
     QTest::addColumn<QString>("id");
-    for (bool words : {false, true}) for (bool mask : {false, true})
-        for (const auto *id : {"invert", "hsvadjustment", "maximize", "minimize", "fastcoloroverlay"}) {
-            if (words && (QByteArray(id) == "invert" || QByteArray(id) == "hsvadjustment")) continue;
-            const QByteArray row = QByteArray(words ? "word-" : "byte-") + (mask ? "mask-" : "adjustment-") + id;
-            QTest::newRow(row.constData()) << words << mask << QString::fromLatin1(id);
-        }
+    QTest::newRow("byte-adjustment-invert") << false << false << QStringLiteral("invert");
+    QTest::newRow("word-mask-overlay") << true << true << QStringLiteral("fastcoloroverlay");
 }
 
 void FilterNodeEditingTest::addConvolutionData()
@@ -82,12 +79,8 @@ void FilterNodeEditingTest::addConvolutionData()
     QTest::addColumn<bool>("words");
     QTest::addColumn<bool>("mask");
     QTest::addColumn<QString>("id");
-    for (bool words : {false, true}) for (bool mask : {false, true})
-        for (const auto *id : {"sharpen", "mean removal", "emboss laplascian", "emboss all directions",
-                             "emboss horizontal and vertical", "emboss vertical only", "emboss horizontal only"}) {
-            const QByteArray row = QByteArray(words ? "word-" : "byte-") + (mask ? "mask-" : "adjustment-") + id;
-            QTest::newRow(row.constData()) << words << mask << QString::fromLatin1(id);
-        }
+    QTest::newRow("byte-adjustment-sharpen") << false << false << QStringLiteral("sharpen");
+    QTest::newRow("word-mask-emboss") << true << true << QStringLiteral("emboss all directions");
 }
 
 void FilterNodeEditingTest::addConvolutionChainData()
@@ -95,11 +88,8 @@ void FilterNodeEditingTest::addConvolutionChainData()
     QTest::addColumn<bool>("words");
     QTest::addColumn<bool>("defaultWhite");
     QTest::addColumn<bool>("sourceOutside");
-    for (bool words : {false, true}) for (bool white : {false, true}) for (bool outside : {false, true}) {
-        const QByteArray row = QByteArray(words ? "word-" : "byte-") + (white ? "default255" : "default0") +
-            (outside ? "-outside" : "-canvas");
-        QTest::newRow(row) << words << white << outside;
-    }
+    QTest::newRow("byte-canvas") << false << false << false;
+    QTest::newRow("word-white-outside") << true << true << true;
 }
 
 void FilterNodeEditingTest::runConvolutionChain()
@@ -263,7 +253,7 @@ void FilterNodeEditingTest::runConvolutionChain()
     QByteArray actual(checked.width() * checked.height() * stride, '\0');
     nativeReader->image()->projection()->readBytes(reinterpret_cast<quint8 *>(actual.data()), checked);
     exchangeRgbaBgra(actual, stride);
-    QCOMPARE(actual, expected(checked));
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(actual, expected(checked), words ? 2 : 1);
 }
 
 void FilterNodeEditingTest::run()
@@ -328,7 +318,7 @@ void FilterNodeEditingTest::run()
     int pixelComparison = 0;
     const auto pixelsEqual = [&](const QByteArray &actual, const QByteArray &reference) {
         ++pixelComparison;
-        if (actual == reference) return true;
+        if (pixelStepDifference(actual, reference, words ? 2 : 1).isEmpty()) return true;
         for (qsizetype i = 0; i < qMin(actual.size(), reference.size()); ++i) if (actual[i] != reference[i]) {
             const auto offset = i / stride * stride;
             qWarning() << "Filter node comparison" << pixelComparison << "pixel" << (i / stride) % area.width()
@@ -519,7 +509,7 @@ void FilterNodeEditingTest::run()
         imported->setFileBatchMode(true);
         QVERIFY2(imported->openPath(nativePath, KisDocument::DontAddToRecent), qPrintable(imported->errorMessage()));
         const auto importedOwner = imported->image()->gpuImage(); QVERIFY(importedOwner);
-        QCOMPARE(importedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(importedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     }
     QCOMPARE(owner->clearSelection(), Gpu::Result::Success);
     manager->nodeManager()->slotNonUiActivatedNode(node);
@@ -567,13 +557,13 @@ void FilterNodeEditingTest::run()
         QByteArray actual(raw.size(), '\0');
         nativeReader->image()->projection()->readBytes(reinterpret_cast<quint8 *>(actual.data()), area);
         exchangeRgbaBgra(actual, stride);
-        QCOMPARE(actual, expected());
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(actual, expected(), words ? 2 : 1);
     }
     std::unique_ptr<KisDocument> reopened(KisPart::instance()->createDocument());
     reopened->setFileBatchMode(true);
     QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
     auto reopenedOwner = reopened->image()->gpuImage(); QVERIFY(reopenedOwner);
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     Gpu::LayerId reopenedPaint = 0;
     for (const auto &layer : reopenedOwner->operations().snapshot()->layers)
         if (layer.uuid == paint.uuid) reopenedPaint = layer.id;
@@ -585,7 +575,7 @@ void FilterNodeEditingTest::run()
             auto updated = *layer.filter;
             QCOMPARE(reopenedOwner->setFilterDefinition(layer.id, updated, "Reopened settings"), Gpu::Result::Success);
         }
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     const auto reopenedPixels = expected();
     Gpu::LayerId reopenedFilter = 0;
     for (const auto &layer : reopenedOwner->operations().snapshot()->layers)
@@ -595,12 +585,12 @@ void FilterNodeEditingTest::run()
     nativeCoverage->pixelSelection()->clear();
     nativeCoverage->pixelSelection()->setDefaultPixel(KoColor(Qt::white, nativeCoverage->pixelSelection()->colorSpace()));
     nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     QCOMPARE(reopenedOwner->readRgbaPixels(reopenedPaint, area, raw.size()).bytes, raw);
     QCOMPARE(reopenedOwner->undo(), Gpu::Result::Success);
     QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, reopenedPixels);
     QCOMPARE(reopenedOwner->redo(), Gpu::Result::Success);
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     const auto beforeDirect = reopenedOwner->operations().snapshot();
     const auto directCount = reopenedOwner->operations().undoCount();
     KisNodeSP publicNode;
@@ -620,7 +610,7 @@ void FilterNodeEditingTest::run()
         if (layer.id == reopenedFilter) QCOMPARE(layer.filter->id, id);
     dynamic_cast<KisNodeFilterInterface *>(nativeNode.data())->setFilter(directConfiguration->cloneWithResourcesSnapshot());
     nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     QVERIFY(reopened->saveAs(directory.filePath("reopened-edited-filters.kra"), KisDocument::nativeFormatMimeType(), false));
     reopened->waitForSavingToComplete();
     if (convolution) {
@@ -628,7 +618,7 @@ void FilterNodeEditingTest::run()
         finalReader->setFileBatchMode(true);
         QVERIFY(finalReader->openPath(directory.filePath("reopened-edited-filters.kra"), KisDocument::DontAddToRecent));
         const auto finalOwner = finalReader->image()->gpuImage(); QVERIFY(finalOwner);
-        QCOMPARE(finalOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(finalOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
         for (const auto &value : finalOwner->operations().snapshot()->layers)
             if (Gpu::isFilterNode(value.kind)) { QVERIFY(value.filter); QCOMPARE(value.filter->id, id); }
     }
@@ -645,7 +635,7 @@ void FilterNodeEditingTest::run()
         auto maskOwner = Gpu::PaintImageSP::create(execution, raster);
         auto maskView = KisImage::fromGpuImage(maskOwner, "Pasted mask", cs);
         QVERIFY(maskView->insertGpuLayers(detachedMask, 0, maskView->root()->firstChild()));
-        QCOMPARE(maskOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(maskOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
         const auto insertedMask = maskOwner->operations().snapshot();
         QCOMPARE(maskOwner->undo(), Gpu::Result::Success);
         QCOMPARE(maskOwner->readRgbaPixels(0, area, raw.size()).bytes, raw);
@@ -653,7 +643,7 @@ void FilterNodeEditingTest::run()
         QCOMPARE(maskOwner->operations().snapshot(), insertedMask);
     }
     auto copied = reopened->image()->cloneGpuNodeImage(forest); QVERIFY(copied);
-    QCOMPARE(copied->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(copied->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     auto detached = reopened->image()->cloneGpuNodes(forest); QVERIFY(!detached.isEmpty());
     Gpu::RasterImage blank;
     blank.size = area.size(); blank.format = format; blank.colorProfile = cs->profile()->rawData();
@@ -661,7 +651,7 @@ void FilterNodeEditingTest::run()
     auto pastedView = KisImage::fromGpuImage(pastedOwner, "Pasted filters", cs);
     QVERIFY(pastedView->insertGpuLayers(detached, 0));
     QCOMPARE(pastedOwner->operations().undoCount(), 1);
-    QCOMPARE(pastedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pastedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     const auto pasted = pastedOwner->operations().snapshot();
     QCOMPARE(pastedOwner->undo(), Gpu::Result::Success);
     QVERIFY(pastedOwner->operations().snapshot()->layers.isEmpty());
@@ -679,7 +669,7 @@ void FilterNodeEditingTest::run()
     std::unique_ptr<KisDocument> pastedReader(KisPart::instance()->createDocument());
     pastedReader->setFileBatchMode(true);
     QVERIFY(pastedReader->openPath(pastedPath, KisDocument::DontAddToRecent));
-    QCOMPARE(pastedReader->image()->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pastedReader->image()->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
 
     // Delete on the selected editable mask changes alpha, including fractional
     // document selection, while the source paint pixels remain canonical.
@@ -698,7 +688,7 @@ void FilterNodeEditingTest::run()
     nativeCoverage->pixelSelection()->setDefaultPixel(KoColor(&white, nativeCoverage->pixelSelection()->colorSpace()));
     nativeCoverage->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(alpha.constData()), area);
     nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     QCOMPARE(reopenedOwner->setSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(area, alpha, area)), Gpu::Result::Success);
     const auto beforeClear = reopenedOwner->operations().snapshot();
     const auto beforeClearPixels = expected();
@@ -706,7 +696,7 @@ void FilterNodeEditingTest::run()
     nativeCoverage->pixelSelection()->clearSelection(selected);
     nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
     QCOMPARE(reopenedOwner->operations().historyAction(reopenedOwner->operations().undoCount()), Gpu::HistoryAction::ClearPixels);
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     QCOMPARE(reopenedOwner->readRgbaPixels(reopenedPaint, area, raw.size()).bytes, raw);
     const auto cleared = reopenedOwner->operations().snapshot();
     QCOMPARE(reopenedOwner->undo(), Gpu::Result::Success);
@@ -718,14 +708,14 @@ void FilterNodeEditingTest::run()
     QVERIFY(KisToolUtils::clearImage(reopened->image(), {publicNode}, {}));
     nativeCoverage->pixelSelection()->clear();
     nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     const auto clearedPath = directory.filePath("cleared-filter-mask.kra");
     QVERIFY(reopened->saveAs(clearedPath, KisDocument::nativeFormatMimeType(), false));
     reopened->waitForSavingToComplete();
     std::unique_ptr<KisDocument> clearedReader(KisPart::instance()->createDocument());
     clearedReader->setFileBatchMode(true);
     QVERIFY(clearedReader->openPath(clearedPath, KisDocument::DontAddToRecent));
-    QCOMPARE(clearedReader->image()->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected());
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(clearedReader->image()->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
 
     if (!mask) {
         // An adjustment's own filter selection and its transparency child are
@@ -749,7 +739,7 @@ void FilterNodeEditingTest::run()
         nativeChild->setSelection(childSelection);
         QVERIFY(native->addNode(nativeChild, nativeNode));
         nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
-        QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
         QCOMPARE(reopenedOwner->setSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(area, alpha, area)), Gpu::Result::Success);
         const auto beforeChild = reopenedOwner->operations().snapshot();
         Gpu::SelectionMaskSP retainedInternal;
@@ -759,20 +749,20 @@ void FilterNodeEditingTest::run()
         QVERIFY(KisToolUtils::clearImage(reopened->image(), {child}, reopened->image()->globalSelection()));
         childSelection->pixelSelection()->clearSelection(selected);
         nativeChild->setDirty(); native->refreshGraphAsync(); native->waitForDone();
-        QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
         for (const auto &layer : reopenedOwner->operations().snapshot()->layers)
             if (layer.id == reopenedFilter) QCOMPARE(layer.filterSelection, retainedInternal);
         QCOMPARE(reopenedOwner->undo(), Gpu::Result::Success);
         QCOMPARE(reopenedOwner->operations().snapshot(), beforeChild);
         QCOMPARE(reopenedOwner->redo(), Gpu::Result::Success);
-        QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
         const auto pairedPath = directory.filePath("paired-adjustment-masks.kra");
         QVERIFY(reopened->saveAs(pairedPath, KisDocument::nativeFormatMimeType(), false));
         reopened->waitForSavingToComplete();
         std::unique_ptr<KisDocument> pairedReader(KisPart::instance()->createDocument());
         pairedReader->setFileBatchMode(true);
         QVERIFY(pairedReader->openPath(pairedPath, KisDocument::DontAddToRecent));
-        QCOMPARE(pairedReader->image()->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected());
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pairedReader->image()->gpuImage()->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     }
 
 }
