@@ -1,5 +1,6 @@
 set(kritaimpex_LIB_SRCS
     KisImportExportFilterFactory.cpp
+    KisExportRasterRows.h
 )
 
 add_library(kritaimpexfilterstateobjects OBJECT
@@ -372,6 +373,8 @@ endif()
 set(kritaimpexui_LIB_SRCS
     ui/KisImportExportAsyncFeedback.cpp
     ui/KisImportExportManager.cpp
+    ui/KisGpuExportRasterRows.cpp
+    ui/KisGpuExportRasterRows.h
     ui/KisSaveGroupVisitor.cpp
     ui/KisImportExportDialogs.cpp
     ui/kis_dlg_missing_color_profile.cpp
@@ -465,6 +468,8 @@ target_link_libraries(kritaimpexui
         ${PNG_LIBRARIES}
 )
 
+target_link_libraries(kritaimpexui PRIVATE kritagpuimage)
+
 if(ANDROID)
     if(TARGET LibAV)
         target_link_libraries(kritaimpexui PRIVATE LibAV)
@@ -475,4 +480,6 @@ if(ANDROID)
     endif()
 endif()
 
+add_subdirectory(kra)
+target_link_libraries(kritaimpex PRIVATE kritaimpexkra)
 add_subdirectory(tests)

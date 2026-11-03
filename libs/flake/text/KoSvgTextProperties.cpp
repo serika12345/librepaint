@@ -7,7 +7,6 @@
 #include "KoSvgTextProperties.h"
 
 #include <QFontMetrics>
-#include <QGlobalStatic>
 #include <QMap>
 #include <QRegularExpression>
 
@@ -1253,67 +1252,65 @@ QStringList KoSvgTextProperties::supportedXmlAttributes()
     return attributes;
 }
 
-namespace {
-Q_GLOBAL_STATIC(KoSvgTextProperties, s_defaultProperties)
-}
-
 const KoSvgTextProperties &KoSvgTextProperties::defaultProperties()
 {
-    if (!s_defaultProperties.exists()) {
+    static const KoSvgTextProperties defaults = [] {
+        KoSvgTextProperties properties;
         using namespace KoSvgText;
 
-        s_defaultProperties->setProperty(WritingModeId, HorizontalTB);
-        s_defaultProperties->setProperty(DirectionId, DirectionLeftToRight);
-        s_defaultProperties->setProperty(UnicodeBidiId, BidiNormal);
-        s_defaultProperties->setProperty(TextAnchorId, AnchorStart);
-        s_defaultProperties->setProperty(DominantBaselineId, BaselineAuto);
-        s_defaultProperties->setProperty(AlignmentBaselineId, BaselineDominant);
-        s_defaultProperties->setProperty(BaselineShiftModeId, ShiftNone);
-        s_defaultProperties->setProperty(BaselineShiftValueId, QVariant::fromValue(KoSvgText::CssLengthPercentage()));
-        s_defaultProperties->setProperty(KerningId, fromAutoValue(AutoValue()));
-        s_defaultProperties->setProperty(TextOrientationId, OrientationMixed);
-        s_defaultProperties->setProperty(LetterSpacingId, QVariant::fromValue(AutoLengthPercentage()));
-        s_defaultProperties->setProperty(WordSpacingId, QVariant::fromValue(AutoLengthPercentage()));
+        properties.setProperty(WritingModeId, HorizontalTB);
+        properties.setProperty(DirectionId, DirectionLeftToRight);
+        properties.setProperty(UnicodeBidiId, BidiNormal);
+        properties.setProperty(TextAnchorId, AnchorStart);
+        properties.setProperty(DominantBaselineId, BaselineAuto);
+        properties.setProperty(AlignmentBaselineId, BaselineDominant);
+        properties.setProperty(BaselineShiftModeId, ShiftNone);
+        properties.setProperty(BaselineShiftValueId, QVariant::fromValue(KoSvgText::CssLengthPercentage()));
+        properties.setProperty(KerningId, fromAutoValue(AutoValue()));
+        properties.setProperty(TextOrientationId, OrientationMixed);
+        properties.setProperty(LetterSpacingId, QVariant::fromValue(AutoLengthPercentage()));
+        properties.setProperty(WordSpacingId, QVariant::fromValue(AutoLengthPercentage()));
 
-        s_defaultProperties->setProperty(FontFamiliesId, QStringLiteral("sans-serif"));
-        s_defaultProperties->setProperty(FontStyleId, QVariant::fromValue(KoSvgText::CssFontStyleData()));
-        s_defaultProperties->setProperty(FontStretchId, 100);
-        s_defaultProperties->setProperty(FontWeightId, 400);
-        s_defaultProperties->setProperty(FontSizeId, QVariant::fromValue(KoSvgText::CssLengthPercentage(12.0)));
-        s_defaultProperties->setProperty(FontSizeAdjustId, fromAutoValue(AutoValue()));
+        properties.setProperty(FontFamiliesId, QStringLiteral("sans-serif"));
+        properties.setProperty(FontStyleId, QVariant::fromValue(KoSvgText::CssFontStyleData()));
+        properties.setProperty(FontStretchId, 100);
+        properties.setProperty(FontWeightId, 400);
+        properties.setProperty(FontSizeId, QVariant::fromValue(KoSvgText::CssLengthPercentage(12.0)));
+        properties.setProperty(FontSizeAdjustId, fromAutoValue(AutoValue()));
 
-        s_defaultProperties->setProperty(FontSynthesisBoldId, true);
-        s_defaultProperties->setProperty(FontSynthesisItalicId, true);
-        s_defaultProperties->setProperty(FontSynthesisSmallCapsId, true);
-        s_defaultProperties->setProperty(FontSynthesisSuperSubId, true);
+        properties.setProperty(FontSynthesisBoldId, true);
+        properties.setProperty(FontSynthesisItalicId, true);
+        properties.setProperty(FontSynthesisSmallCapsId, true);
+        properties.setProperty(FontSynthesisSuperSubId, true);
 
-        s_defaultProperties->setProperty(FontOpticalSizingId, true);
-        s_defaultProperties->setProperty(TextRenderingId, RenderingAuto);
+        properties.setProperty(FontOpticalSizingId, true);
+        properties.setProperty(TextRenderingId, RenderingAuto);
         {
             using namespace KoSvgText;
             TextDecorations deco = DecorationNone;
 
-            s_defaultProperties->setProperty(TextDecorationLineId, QVariant::fromValue(deco));
-            s_defaultProperties->setProperty(TextDecorationPositionId, QVariant::fromValue(KoSvgText::TextUnderlinePosition()));
-            s_defaultProperties->setProperty(TextDecorationColorId, QVariant::fromValue(Qt::transparent));
-            s_defaultProperties->setProperty(TextDecorationStyleId, Solid);
+            properties.setProperty(TextDecorationLineId, QVariant::fromValue(deco));
+            properties.setProperty(TextDecorationPositionId, QVariant::fromValue(KoSvgText::TextUnderlinePosition()));
+            properties.setProperty(TextDecorationColorId, QVariant::fromValue(Qt::transparent));
+            properties.setProperty(TextDecorationStyleId, Solid);
 
-            s_defaultProperties->setProperty(TextCollapseId, Collapse);
-            s_defaultProperties->setProperty(TextWrapId, Wrap);
+            properties.setProperty(TextCollapseId, Collapse);
+            properties.setProperty(TextWrapId, Wrap);
             TextSpaceTrims trim = TrimNone;
-            s_defaultProperties->setProperty(TextTrimId, QVariant::fromValue(trim));
-            s_defaultProperties->setProperty(LineBreakId, LineBreakAuto);
-            s_defaultProperties->setProperty(WordBreakId, WordBreakNormal);
-            s_defaultProperties->setProperty(TextAlignAllId, AlignStart);
-            s_defaultProperties->setProperty(TextAlignLastId, AlignLastAuto);
-            s_defaultProperties->setProperty(TextTransformId, TextTransformNone);
-            s_defaultProperties->setProperty(LineHeightId, QVariant::fromValue(KoSvgText::LineHeightInfo()));
-            s_defaultProperties->setProperty(TabSizeId, QVariant::fromValue(KoSvgText::TabSizeInfo()));
+            properties.setProperty(TextTrimId, QVariant::fromValue(trim));
+            properties.setProperty(LineBreakId, LineBreakAuto);
+            properties.setProperty(WordBreakId, WordBreakNormal);
+            properties.setProperty(TextAlignAllId, AlignStart);
+            properties.setProperty(TextAlignLastId, AlignLastAuto);
+            properties.setProperty(TextTransformId, TextTransformNone);
+            properties.setProperty(LineHeightId, QVariant::fromValue(KoSvgText::LineHeightInfo()));
+            properties.setProperty(TabSizeId, QVariant::fromValue(KoSvgText::TabSizeInfo()));
             HangingPunctuations hang = HangNone;
-            s_defaultProperties->setProperty(HangingPunctuationId, QVariant::fromValue(hang));
+            properties.setProperty(HangingPunctuationId, QVariant::fromValue(hang));
         }
-    }
-    return *s_defaultProperties;
+        return properties;
+    }();
+    return defaults;
 }
 
 bool KoSvgTextProperties::propertyIsBlockOnly(PropertyId id)

@@ -10,6 +10,7 @@
 #include <jerror.h>
 
 #include <QIODevice>
+#include <QCryptographicHash>
 #include <jpeglib.h>
 #include <QtGlobal>
 
@@ -24,6 +25,8 @@ struct KisJPEGSourceManager : public jpeg_source_mgr
     QIODevice* input;
     JOCTET* buffer;
     bool anyDataReceived;
+    QCryptographicHash *digest;
+    qint64 bufferBytes;
 };
 
 typedef KisJPEGSourceManager* KisJPEGSourceManagerPtr;
@@ -35,12 +38,17 @@ void init_source(j_decompress_ptr cinfo)
 {
     KisJPEGSourceManagerPtr src = (KisJPEGSourceManagerPtr)cinfo->src;
     src->anyDataReceived = false;
+    src->bufferBytes = 0;
 }
 
 boolean fill_input_buffer(j_decompress_ptr cinfo)
 {
     KisJPEGSourceManagerPtr src = (KisJPEGSourceManagerPtr)cinfo->src;
+    if (src->digest && src->bufferBytes)
+        src->digest->addData(QByteArrayView(reinterpret_cast<const char *>(src->buffer), src->bufferBytes));
+    src->bufferBytes = 0;
     qint64 numBytesRead = src->input->read(reinterpret_cast<char*>(src->buffer), INPUT_BUFFER_SIZE);
+    if (numBytesRead > 0) src->bufferBytes = numBytesRead;
 
     if (numBytesRead <= 0) {
         if (!src->anyDataReceived)	{
@@ -78,7 +86,12 @@ void skip_input_data(j_decompress_ptr cinfo, long numBytes)
 
 void term_source(j_decompress_ptr cinfo)
 {
-    Q_UNUSED(cinfo);
+    auto *src = static_cast<KisJPEGSourceManagerPtr>(cinfo->src);
+    if (src->digest && src->bufferBytes) {
+        const qint64 consumed = src->bufferBytes - qint64(src->bytes_in_buffer);
+        src->digest->addData(QByteArrayView(reinterpret_cast<const char *>(src->buffer), consumed));
+        src->bufferBytes = 0;
+    }
 }
 
 }
@@ -87,7 +100,7 @@ void term_source(j_decompress_ptr cinfo)
 namespace KisJPEGSource
 {
 
-void setSource(j_decompress_ptr cinfo, QIODevice* inputDevice)
+void setSource(j_decompress_ptr cinfo, QIODevice* inputDevice, QCryptographicHash *digest)
 {
     KisJPEGSourceManagerPtr src = 0;
 
@@ -108,6 +121,8 @@ void setSource(j_decompress_ptr cinfo, QIODevice* inputDevice)
     src->resync_to_restart = jpeg_resync_to_restart;
     src->term_source = term_source;
     src->input = inputDevice;
+    src->digest = digest;
+    src->bufferBytes = 0;
     src->bytes_in_buffer = 0;
     src->next_input_byte = 0;
 }

@@ -10,6 +10,8 @@
 #include <QObject>
 #include <QPointer>
 #include <QString>
+#include <QDateTime>
+#include <optional>
 
 #include <KisImportExportErrorCode.h>
 #include <kis_types.h>
@@ -35,7 +37,9 @@ public:
     ~KraConverter() override;
 
     KisImportExportErrorCode buildImage(QIODevice *io);
-    KisImportExportErrorCode buildFile(QIODevice *io, const QString &filename, bool addMergedImage = true);
+    KisImportExportErrorCode buildFile(QIODevice *io, const QString &filename, bool addMergedImage = true,
+                                      const QDateTime &saveTime = QDateTime::currentDateTime(),
+                                      std::optional<bool> compressRaster = {});
     /**
      * Retrieve the constructed image
      */
@@ -51,7 +55,7 @@ public Q_SLOTS:
 
 private:
 
-    KisImportExportErrorCode saveRootDocuments(KoStore *store);
+    KisImportExportErrorCode saveRootDocuments(KoStore *store, const QDateTime &saveTime);
     bool saveToStream(QIODevice *dev);
     QDomDocument createDomDocument();
     KisImportExportErrorCode savePreview(KoStore *store);

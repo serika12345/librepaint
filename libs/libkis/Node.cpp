@@ -3,7 +3,9 @@
  *
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
+#include <gpu/KisGpuPaintImage.h>
 #include <QUrl>
+#include <limits>
 #include <QScopedPointer>
 #include <QUuid>
 
@@ -44,6 +46,7 @@
 
 #include <kis_raster_keyframe_channel.h>
 #include <kis_keyframe.h>
+#include "KisGpuBlendMode.h"
 #include "KoCanvasResourcesIds.h"
 #include "KoColorModelStandardIds.h"
 #include "kis_debug.h"
@@ -201,6 +204,16 @@ QString Node::blendingMode() const
 void Node::setBlendingMode(QString value)
 {
     if (!d->node) return;
+    if (const auto owner = d->image->gpuImage()) {
+        const auto mode = LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(value);
+        if (!mode) return;
+        for (const auto &layer : owner->operations().snapshot()->layers)
+            if (layer.uuid == d->node->uuid()) {
+                owner->setLayerBlendMode(layer.id, *mode);
+                return;
+            }
+        return;
+    }
 
     KUndo2Command *cmd = new KisNodeCompositeOpCommand(d->node,
                                                        value);
@@ -280,7 +293,16 @@ QList<Node*> Node::findChildNodes(const QString &name, bool recursive, bool part
 
 bool Node::addChildNode(Node *child, Node *above)
 {
-    if (!d->node) return false;
+    if (!d->node || !child || !child->d->node) return false;
+
+    KisImageSP image = d->image;
+    if (image && image->gpuImage()) {
+        if (above && (!above->d->node || above->d->node->parent() != d->node)) return false;
+        const auto index = above ? d->node->index(above->d->node) + 1 : d->node->childCount();
+        if (!image->insertGpuLayers({child->d->node}, index, d->node)) return false;
+        child->d->image = image;
+        return true;
+    }
 
     KUndo2Command *cmd = 0;
 
@@ -618,10 +640,15 @@ bool Node::setPixelData(QByteArray value, int x, int y, int w, int h)
     if (!d->node) return false;
     KisPaintDeviceSP dev = d->node->paintDevice();
     if (!dev) return false;
-    if (value.length() <  w * h * (int)dev->colorSpace()->pixelSize()) {
+    if (w < 0 || h < 0) return false;
+    const qint64 rowBytes = qint64(w) * dev->colorSpace()->pixelSize();
+    if (h && rowBytes > value.size() / h) {
         qWarning() << "Node::setPixelData: not enough data to write to the paint device";
         return false;
     }
+    if (!w || !h) return true;
+    if (qint64(x) + w - 1 > std::numeric_limits<int>::max() ||
+        qint64(y) + h - 1 > std::numeric_limits<int>::max()) return false;
     dev->writeBytes((const quint8*)value.constData(), x, y, w, h);
     return true;
 }
@@ -635,6 +662,11 @@ QRect Node::bounds() const
 void Node::move(int x, int y)
 {
     if (!d->node) return;
+    auto device = d->node->paintDevice();
+    if (device && qobject_cast<KisPaintLayer *>(d->node.data())) {
+        device->moveTo(x, y);
+        return;
+    }
     d->node->setX(x);
     d->node->setY(y);
 }
@@ -647,14 +679,28 @@ QPoint Node::position() const
 
 bool Node::remove()
 {
-    if (!d->node) return false;
-    if (!d->node->parent()) return false;
+    if (!d->node || !d->node->parent()) return false;
+    KisImageSP image = d->node->image();
+    if (!image) return false;
+    if (const auto owner = image->gpuImage()) {
+        if (image->isGpuTransparencyMaskView(d->node)) {
+            const auto parent = d->node->parent();
+            for (const auto &layer : owner->operations().snapshot()->layers)
+                if (layer.uuid == parent->uuid())
+                    return owner->removeTransparencyMask(layer.id) == LibrePaint::Image::Gpu::Result::Success;
+            return false;
+        }
+        const auto version = owner->operations().snapshot();
+        for (const auto &layer : version->layers) {
+            if (layer.uuid == d->node->uuid())
+                return owner->removeLayer(layer.id) == LibrePaint::Image::Gpu::Result::Success;
+        }
+        return false;
+    }
 
-    KUndo2Command *cmd = new KisImageLayerRemoveCommand(d->image, d->node);
-
-    KisProcessingApplicator::runSingleCommandStroke(d->image, cmd);
-    d->image->waitForDone();
-
+    KUndo2Command *cmd = new KisImageLayerRemoveCommand(image, d->node);
+    KisProcessingApplicator::runSingleCommandStroke(image, cmd);
+    image->waitForDone();
     return true;
 }
 
@@ -702,9 +748,15 @@ Node* Node::mergeDown()
     if (!qobject_cast<KisLayer*>(d->node.data())) return 0;
     if (!d->node->prevSibling()) return 0;
 
+    const auto parent = d->node->parent();
+    const auto count = parent ? parent->childCount() : 0;
+    int position = 0;
+    if (parent) for (auto child = parent->firstChild(); child && child != d->node; child = child->nextSibling()) ++position;
     d->image->mergeDown(qobject_cast<KisLayer*>(d->node.data()), KisMetaData::MergeStrategyRegistry::instance()->get("Drop"));
     d->image->waitForDone();
 
+    if (parent && position > 0 && parent->childCount() + 1 == count)
+        return Node::createNode(d->image, parent->at(position - 1));
     return Node::createNode(d->image, d->node->prevSibling());
 }
 
@@ -743,9 +795,18 @@ void Node::cropNode(int x, int y, int w, int h)
     if (!qobject_cast<KisLayer*>(d->node.data())) return;
     if (!d->node->parent()) return;
 
-    QRect rect = QRect(x, y, w, h);
-    d->image->cropNode(d->node, rect);
-    d->image->waitForDone();
+    KisImageSP image = d->image;
+    if (!image) return;
+    if (image->gpuImage()) {
+        constexpr qint64 limit = LibrePaint::Image::Gpu::RgbaTile::CoordinateLimit;
+        if (x < -limit || x > limit || y < -limit || y > limit ||
+            qint64(x) + w < -limit || qint64(x) + w > limit ||
+            qint64(y) + h < -limit || qint64(y) + h > limit)
+            throw std::invalid_argument("GPU layer crop rectangle exceeds the pixel coordinate domain");
+    }
+    const KisNodeSP node = d->node;
+    image->cropNode(node, QRect(x, y, w, h));
+    image->waitForDone();
 }
 
 void Node::shearNode(double angleX, double angleY)
@@ -894,7 +955,7 @@ void Node::paintLine(const QPointF pointOne, const QPointF pointTwo, double pres
     pointTwoInfo.setPos(pointTwo);
 
     KisFigurePaintingStroke stroke =
-        PaintingResources::createFigurePaintingStroke(d->image, node(), strokeStyle);
+        PaintingResources::createFigurePaintingStroke(d->node->image(), node(), strokeStyle);
     stroke.paintLine(pointOneInfo, pointTwoInfo);
 }
 
@@ -910,7 +971,7 @@ void Node::paintRectangle(const QRectF &rect, const QString strokeStyle, const Q
     // void KisFigurePaintingStroke::paintRect(const QRectF &rect)
 
     KisFigurePaintingStroke stroke = PaintingResources::createFigurePaintingStroke(
-        d->image, node(), strokeStyle, fillStyle);
+        d->node->image(), node(), strokeStyle, fillStyle);
     stroke.paintRect(rect);
 }
 
@@ -925,7 +986,7 @@ void Node::paintPolygon(const QList<QPointF> listPoint, const QString strokeStyl
     // strategy needs points in vPointF format
     QVector<QPointF> points = points.fromList(listPoint);
     KisFigurePaintingStroke stroke = PaintingResources::createFigurePaintingStroke(
-        d->image, node(), strokeStyle, fillStyle);
+        d->node->image(), node(), strokeStyle, fillStyle);
     stroke.paintPolygon(points);
 }
 
@@ -938,7 +999,7 @@ void Node::paintEllipse(const QRectF &rect, const QString strokeStyle, const QSt
     }
 
     KisFigurePaintingStroke stroke = PaintingResources::createFigurePaintingStroke(
-        d->image, node(), strokeStyle, fillStyle);
+        d->node->image(), node(), strokeStyle, fillStyle);
     stroke.paintEllipse(rect);
 }
 
@@ -951,6 +1012,6 @@ void Node::paintPath(const QPainterPath &path, const QString strokeStyle, const 
     }
 
     KisFigurePaintingStroke stroke = PaintingResources::createFigurePaintingStroke(
-        d->image, node(), strokeStyle, fillStyle);
+        d->node->image(), node(), strokeStyle, fillStyle);
     stroke.paintPainterPath(path);
 }

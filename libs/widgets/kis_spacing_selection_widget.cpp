@@ -118,4 +118,4 @@ void KisSpacingSelectionWidget::Private::slotAutoSpacing(bool value)
     Q_EMIT q->sigSpacingChanged();
 }
 
-#include "moc_kis_spacing_selection_widget.moc"
+#include "moc_kis_spacing_selection_widget.cpp"

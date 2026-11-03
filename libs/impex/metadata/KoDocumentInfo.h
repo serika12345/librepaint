@@ -18,6 +18,7 @@
 
 class QDomDocument;
 class QDomElement;
+class QDateTime;
 
 /**
  * @short The class containing all meta information about a document
@@ -62,6 +63,10 @@ public:
     QDomDocument save(QDomDocument &doc,
                       bool isAutosaving = false,
                       bool documentModified = true);
+
+    /** Save with an explicit timestamp. Invalid timestamps leave the information unchanged. */
+    QDomDocument save(QDomDocument &doc, bool isAutosaving,
+                     bool documentModified, const QDateTime &saveTime);
 
     /**
      * Set information about the author.
@@ -122,7 +127,7 @@ public:
 private:
     /// Bumps the editing cycles count and save date, and then calls updateParameters
     void updateParametersAndBumpNumCycles(bool isAutosaving,
-                                          bool documentModified);
+                                          bool documentModified, const QDateTime &saveTime);
 
     /**
      * Set information about the author

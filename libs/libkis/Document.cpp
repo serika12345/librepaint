@@ -8,6 +8,7 @@
 #include <QPointer>
 #include <QUrl>
 #include <QDomDocument>
+#include <memory>
 
 #include <KisSynchronizedConnection.h>
 #include <KoColorSpaceConstants.h>
@@ -80,7 +81,21 @@
 #include <qobject.h>
 #include <qstringview.h>
 #include <qtransform.h>
+#include <gpu/KisGpuOperationDocument.h>
+#include <stdexcept>
 
+namespace {
+QRect canvasRectangle(KisImageSP image, int x, int y, int width, int height)
+{
+    if (image->gpuImage()) {
+        constexpr qint64 limit = LibrePaint::Image::Gpu::RgbaTile::CoordinateLimit;
+        if (width <= 0 || height <= 0 || width > limit || height > limit ||
+            x < -limit || y < -limit || qint64(x) + width > limit || qint64(y) + height > limit)
+            throw std::invalid_argument("GPU canvas rectangle exceeds the positive dimension or pixel coordinate domain");
+    }
+    return QRect(x, y, width, height);
+}
+}
 
 struct Document::Private {
     Private() {}
@@ -256,14 +271,17 @@ QColor Document::backgroundColor()
 
 bool Document::setBackgroundColor(const QColor &color)
 {
-    if (!d->document) return false;
-    if (!d->document->image()) return false;
+    QPointer<KisDocument> document = d->document;
+    if (!document) return false;
+    auto *image = document->image().data();
+    if (!image) return false;
 
-    KoColor background = KoColor(color, d->document->image()->colorSpace());
-    d->document->image()->setDefaultProjectionColor(background);
+    KoColor background = KoColor(color, image->colorSpace());
+    image->setDefaultProjectionColor(background);
 
-    d->document->image()->setModifiedWithoutUndo();
-    d->document->image()->initialRefreshGraph();
+    image->setModifiedWithoutUndo();
+    if (!document || document->image().data() != image) return true;
+    image->initialRefreshGraph();
 
     return true;
 }
@@ -523,19 +541,23 @@ void Document::crop(int x, int y, int w, int h)
     if (!d->document) return;
     KisImageSP image = d->document->image();
     if (!image) return;
-    QRect rc(x, y, w, h);
+    const auto rc = canvasRectangle(image, x, y, w, h);
     image->cropImage(rc);
     image->waitForDone();
 }
 
 bool Document::exportImage(const QString &filename, const InfoObject &exportConfiguration)
 {
-    if (!d->document) return false;
+    if (!d->document || !d->document->image()) return false;
 
     const QString outputFormatString = KisMimeDatabase::mimeTypeForFile(filename, false);
     const QByteArray outputFormat = outputFormatString.toLatin1();
 
-    return d->document->exportDocumentSync(filename, outputFormat, exportConfiguration.configuration());
+    if (d->document->image()->gpuImage())
+        return d->document->exportDocumentSync(filename, outputFormat, exportConfiguration.configuration());
+
+    std::unique_ptr<KisDocument> snapshot(d->document->cloneWithImageReadLock());
+    return snapshot && snapshot->exportDocumentSync(filename, outputFormat, exportConfiguration.configuration());
 }
 
 void Document::flatten()
@@ -551,11 +573,7 @@ void Document::resizeImage(int x, int y, int w, int h)
     if (!d->document) return;
     KisImageSP image = d->document->image();
     if (!image) return;
-    QRect rc;
-    rc.setX(x);
-    rc.setY(y);
-    rc.setWidth(w);
-    rc.setHeight(h);
+    const auto rc = canvasRectangle(image, x, y, w, h);
 
     image->resizeImage(rc);
     image->waitForDone();
@@ -817,7 +835,7 @@ QImage Document::projection(int x, int y, int w, int h) const
 QImage Document::thumbnail(int w, int h) const
 {
     if (!d->document || !d->document->image()) return QImage();
-    return d->document->generatePreview(QSize(w, h)).toImage();
+    return d->document->generatePreviewImage(QSize(w, h));
 }
 
 

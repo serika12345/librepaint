@@ -129,7 +129,7 @@ void KisJPEGXLTest::testCmykWithLayers()
 
         KisDocument *doc2 = KisPart::instance()->createDocument();
         doc2->setFileBatchMode(true);
-        const bool r = doc2->importDocument(outputFileName);
+        const bool r = doc2->importExportManager()->importDocument(outputFileName, KisDocument::nativeFormatMimeType()).isOk();
 
         QVERIFY(r);
         QVERIFY(doc2->errorMessage().isEmpty());
@@ -196,7 +196,7 @@ void KisJPEGXLTest::testMultipage()
 
         KisDocument *doc2 = KisPart::instance()->createDocument();
         doc2->setFileBatchMode(true);
-        const bool r = doc2->importDocument(outputFileName);
+        const bool r = doc2->importExportManager()->importDocument(outputFileName, KisDocument::nativeFormatMimeType()).isOk();
 
         QVERIFY(r);
         QVERIFY(doc2->errorMessage().isEmpty());

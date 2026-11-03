@@ -9,6 +9,7 @@
 #include <QCheckBox>
 #include <QSlider>
 #include <QApplication>
+#include <memory>
 
 #include <kpluginfactory.h>
 
@@ -76,19 +77,16 @@ KisImportExportErrorCode KisPNGExport::convert(KisDocument *document, QIODevice 
 
     KisExifInfoVisitor eIV;
     eIV.visit(image->rootLayer().data());
-    KisMetaData::Store *eI = 0;
-    if (eIV.metaDataCount() == 1) {
-        eI = eIV.exifInfo();
-    }
-    if (eI) {
-        KisMetaData::Store* copy = new KisMetaData::Store(*eI);
-        eI = copy;
-    }
+    std::unique_ptr<KisMetaData::Store> metadata;
+    if (eIV.metaDataCount() == 1 && eIV.exifInfo())
+        metadata = std::make_unique<KisMetaData::Store>(*eIV.exifInfo());
 
     KisPNGConverter pngConverter(document);
 
-    KisImportExportErrorCode res = pngConverter.buildFile(io, image->bounds(), image->xRes(), image->yRes(), image->projection(), beginIt, endIt, options, eI);
-    delete eI;
+    const auto rows = document->importExportManager()->exportRows();
+    KisImportExportErrorCode res = rows ?
+        pngConverter.buildFile(io, *rows, image->xRes(), image->yRes(), beginIt, endIt, options, metadata.get()) :
+        pngConverter.buildFile(io, image->bounds(), image->xRes(), image->yRes(), image->projection(), beginIt, endIt, options, metadata.get());
     dbgFile << " Result =" << res;
     return res;
 }

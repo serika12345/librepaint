@@ -22,6 +22,10 @@ private Q_SLOTS:
     void testRoundTrip();
 
     void testSaveEmpty();
+    void testChannelProtectionSurvivesResaving_data();
+    void testChannelProtectionSurvivesResaving();
+    void testSavedPreviewPreservesImagePixels_data();
+    void testSavedPreviewPreservesImagePixels();
     void testRoundTripFillLayerColor();
     void testRoundTripFillLayerPattern();
 

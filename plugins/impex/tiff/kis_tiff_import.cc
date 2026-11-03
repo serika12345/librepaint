@@ -64,6 +64,7 @@
 #include <KisExiv2IODevice.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <KisImageBarrierLock.h>
 #include <kis_meta_data_backend_registry.h>
 #include <kis_meta_data_tags.h>
 #include <kis_paint_layer.h>
@@ -1474,17 +1475,25 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
     case ORIENTATION_BOTLEFT:
         KisTransformWorker::mirrorY(layer->paintDevice());
         break;
-    case ORIENTATION_LEFTTOP:
+    case ORIENTATION_LEFTTOP: {
+        {
+            KisImageBarrierLock lock(m_image);
+            KisTransformWorker::mirrorY(layer->paintDevice());
+        }
         m_image->rotateImage(M_PI / 2);
-        KisTransformWorker::mirrorY(layer->paintDevice());
         break;
+    }
     case ORIENTATION_RIGHTTOP:
         m_image->rotateImage(M_PI / 2);
         break;
-    case ORIENTATION_RIGHTBOT:
+    case ORIENTATION_RIGHTBOT: {
+        {
+            KisImageBarrierLock lock(m_image);
+            KisTransformWorker::mirrorX(layer->paintDevice());
+        }
         m_image->rotateImage(M_PI / 2);
-        KisTransformWorker::mirrorX(layer->paintDevice());
         break;
+    }
     case ORIENTATION_LEFTBOT:
         m_image->rotateImage(-M_PI / 2 + M_PI * 2);
         break;

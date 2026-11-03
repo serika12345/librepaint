@@ -12,6 +12,8 @@ class TestChannel : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testProjectionChannelVisibility_data();
+    void testProjectionChannelVisibility();
     void testPixelDataU8();
     void testPixelDataU16();
     void testPixelDataF16();

@@ -11,16 +11,29 @@
 #define __KIS_CLIPBOARD_H_
 
 #include <QObject>
+#include <QRect>
+#include <QUuid>
 #include <QSize>
+#include <optional>
 
 #include <kis_types.h>
 
 #include <kritaui_export.h>
+#include <QImage>
 
 class QRect;
 class QMimeData;
 class KisTimeSpan;
 class KoColorSpace;
+namespace LibrePaint::Image::Gpu { class PaintImage; }
+
+struct GpuClipboardMask
+{
+    QRect rect;
+    bool ellipse = false;
+    bool keepInside = false;
+    QImage coverage;
+};
 
 class KisClipboardPrivate;
 
@@ -116,7 +129,26 @@ public:
 
     QSize clipSize() const;
 
-    void setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy = false);
+    /** Captures layers before replacing clipboard data. Returns false on
+     * capture refusal, preserving the previous clipboard contents.
+     */
+    bool setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy = false);
+    /** Captures the committed GPU canvas as one independent paint layer.
+     * Requires the GUI/image thread. The workspace budget covers packed source
+     * pixels, padded raster tiles and their checkpoint encoding. Refusal keeps
+     * the previous clipboard and source state; the copy retains execution.
+     */
+    bool setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes = 256 * 1024 * 1024, QRect region = {},
+                          std::optional<GpuClipboardMask> mask = {});
+    /** Captures one GPU layer's pixels in region; false keeps the previous clipboard. */
+    bool setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes = 256 * 1024 * 1024,
+                     QRect region = {}, std::optional<GpuClipboardMask> mask = {});
+    /** Imports external image data into the destination encoding at the supplied
+     * canvas position. Retains source precision through ICC conversion and
+     * returns an independent GPU layer; refusal leaves the document untouched.
+     */
+    QSharedPointer<LibrePaint::Image::Gpu::PaintImage> importGpuImage(KisImageSP destination, const QImage &source,
+                                                                  QPoint position, qsizetype memoryBudgetBytes);
     bool hasLayers() const;
     bool hasLayerStyles() const;
 

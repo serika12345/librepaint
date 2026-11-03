@@ -3,27 +3,1310 @@
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
 #include "TestNode.h"
+#include <kis_mimedata.h>
 #include <simpletest.h>
 #include <QColor>
+#include <QColorSpace>
+#include <QApplication>
+#include <QMouseEvent>
+#include <KoToolManager.h>
+#include <KoPointerEvent.h>
+#include <KoSnapGuide.h>
+#include <QIcon>
+#include <QPointer>
+#include <QScopeGuard>
+#include <KLocalizedString>
+#include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisViewManager.h>
+#include <application/ui/workspace/KisView.h>
+#include <canvas/kis_canvas_resource_provider.h>
+#include <canvas/kis_coordinates_converter.h>
+#include <canvas/kis_zoom_manager.h>
+#include <kis_canvas2.h>
+#include <kis_tool.h>
+#include <application/ui/orchestration/kis_action_manager.h>
+#include <application/ui/orchestration/kis_action.h>
+#include <nodes/kis_node_manager.h>
+#include <kis_config.h>
+#include <opengl/kis_opengl.h>
+#include <actions/input/KisApplicationInputActions.h>
+#include <input/ui/kis_input_profile_manager.h>
+#include <KisResourceStorage.h>
+#include <KisResourceLocator.h>
+#include <KisResourceModel.h>
+#include <KisGlobalResourcesInterface.h>
+#include <KisGpuFilterConfiguration.h>
+#include <brushengine/kis_paintop_registry.h>
+#include <brushengine/kis_paintop_settings.h>
+#include <memory>
+#include <limits>
+#include <exception>
+#include <algorithm>
+#include <cstring>
 #include <QDataStream>
+#include <kundo2stack.h>
+#include <QSignalSpy>
+#include <QTemporaryDir>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QSemaphore>
+#include <QThread>
+#include <QTimer>
+#include <KisRunnableBasedStrokeStrategy.h>
+#include <KisRunnableStrokeJobData.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
+#include <gpu/KisGpuPaintDocument.h>
 
 #include <KritaVersionWrapper.h>
 #include <Node.h>
+#include <Document.h>
+#include <InfoObject.h>
 #include <Krita.h>
 
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
+#include <KoResourcePaths.h>
 #include <KoColor.h>
+#include <metadata/KoDocumentInfo.h>
+#include <QDateTime>
 
 #include <kis_image.h>
+#include <kis_image_config.h>
+#include <kis_crop_saved_extra_data.h>
+#include <kis_undo_adapter.h>
 #include <kis_fill_painter.h>
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
+#include <kis_layer_utils.h>
+#include <kis_transaction.h>
+#include <kis_adjustment_layer.h>
+#include <kis_filter_mask.h>
+#include <kis_transparency_mask.h>
+#include <kis_pixel_selection.h>
+#include <kis_selection.h>
+#include <kis_undo_stores.h>
+#include <filter/kis_filter_registry.h>
+#include <filter/kis_filter.h>
+#include <filter/kis_filter_configuration.h>
+#include <kis_properties_configuration.h>
+#include <commands/kis_node_opacity_command.h>
 #include <kis_shape_layer.h>
 #include <document/KisDocument.h>
 #include <application/ui/orchestration/KisPart.h>
 
 #include <testui.h>
+
+namespace {
+class HistoryNavigationImageJob final : public KisRunnableBasedStrokeStrategy
+{
+public:
+    HistoryNavigationImageJob() : KisRunnableBasedStrokeStrategy(QLatin1String("history-navigation-image-job"))
+    {
+        enableJob(JOB_DOSTROKE);
+        setClearsRedoOnStart(false);
+    }
+};
+
+class PausedHistoryImageJob
+{
+public:
+    PausedHistoryImageJob(KisImageSP image, bool active = false) : m_image(image)
+    {
+        m_stroke = image->startStroke(new HistoryNavigationImageJob);
+        image->addJob(m_stroke, new KisRunnableStrokeJobData([entered = m_entered, resume = m_resume] {
+            entered->release();
+            resume->acquire();
+        }));
+        if (!active) {
+            image->endStroke(m_stroke);
+            m_ended = true;
+        }
+    }
+    ~PausedHistoryImageJob() { finish(); }
+    bool waitForStart() { return m_entered->tryAcquire(1, 5000); }
+    void finish()
+    {
+        if (m_finished) return;
+        if (!m_ended) m_image->endStroke(m_stroke);
+        m_resume->release();
+        m_image->waitForDone();
+        m_finished = true;
+    }
+private:
+    KisImageSP m_image;
+    KisStrokeId m_stroke;
+    std::shared_ptr<QSemaphore> m_entered = std::make_shared<QSemaphore>();
+    std::shared_ptr<QSemaphore> m_resume = std::make_shared<QSemaphore>();
+    bool m_ended = false;
+    bool m_finished = false;
+};
+}
+
+void TestNode::initTestCase()
+{
+    Q_INIT_RESOURCE(krita);
+    const auto prefix = qEnvironmentVariable("KIS_TEST_PREFIX_PATH");
+    const auto stagedActions = QDir(prefix).filePath(QStringLiteral("share/krita/actions"));
+    const auto actions = !prefix.isEmpty() && QDir(stagedActions).exists() ? stagedActions :
+        QStringLiteral(KRITA_SOURCE_DIR "/krita");
+    KoResourcePaths::addAssetDir(QStringLiteral("kis_actions"), actions);
+    QIcon::setThemeSearchPaths({QStringLiteral(":/icons")});
+    QIcon::setFallbackSearchPaths({QStringLiteral(":/icons")});
+    KLocalizedString::setApplicationDomain("krita");
+    KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
+    KisInputProfileManager::instance()->setActions(createApplicationInputActions());
+    QString bundlePath = QStringLiteral(KRITA_SOURCE_DIR "/libs/resources/tests/data/bundles/test1.bundle");
+    const auto stagedBundle = QDir(prefix).filePath(QStringLiteral("bin/data/test1.bundle"));
+    if (!prefix.isEmpty() && QFileInfo(stagedBundle).isFile()) bundlePath = stagedBundle;
+    auto bundle = KisResourceStorageSP::create(bundlePath);
+    QVERIFY(bundle->valid());
+    QVERIFY(KisResourceLocator::instance()->addStorage(bundlePath, bundle));
+    auto preset = KisPaintOpRegistry::instance()->defaultPreset(
+        KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    QVERIFY(preset);
+    preset->setName(QStringLiteral("Public node window fixture"));
+    preset->setFilename(QStringLiteral("public-node-window-fixture.kpp"));
+    QImage preview(16, 16, QImage::Format_ARGB32);
+    preview.fill(Qt::black);
+    preset->setImage(preview);
+    KisResourceModel presets(ResourceType::PaintOpPresets);
+    QVERIFY(presets.addResource(preset));
+}
+
+void TestNode::testExportImageCancelsWhenItsSourceChangesBeforeCapture_data()
+{
+    QTest::addColumn<bool>("closeDocument");
+    QTest::newRow("replaced") << false;
+    QTest::newRow("closed") << true;
+}
+
+void TestNode::testExportImageCancelsWhenItsSourceChangesBeforeCapture()
+{
+    QFETCH(bool, closeDocument);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Invalidated export artifacts retained at" << directory.path();
+        }
+    });
+    KisConfig(true).disableOpenGL();
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    KisImageSP image = new KisImage(document->createUndoStore(), 8, 8, cs, "Original export");
+    image->addNode(new KisPaintLayer(image, QStringLiteral("Original"), 255));
+    document->setCurrentImage(image);
+    document->setFileBatchMode(true);
+    image->waitForDone();
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto cleanup = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    Document api(lifetime, false);
+    PausedHistoryImageJob pending(image);
+    QVERIFY(pending.waitForStart());
+    QVERIFY(!image->isIdle());
+    bool changed = false;
+    KisImageSP replacement;
+    QTimer::singleShot(0, window.get(), [&] {
+        pending.finish();
+        if (closeDocument) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        } else {
+            replacement = new KisImage(lifetime->createUndoStore(), 12, 6, cs, "Replacement");
+            replacement->addNode(new KisPaintLayer(replacement, QStringLiteral("Replacement"), 255));
+            lifetime->setCurrentImage(replacement);
+            lifetime->setModified(true);
+            api.setFileName(directory.filePath(QStringLiteral("replacement.kra")));
+            replacement->waitForDone();
+        }
+        changed = true;
+    });
+    InfoObject settings;
+    settings.setProperty("alpha", true);
+    const auto path = directory.filePath(QStringLiteral("invalidated.png"));
+    const bool exported = api.exportImage(path, settings);
+    QVERIFY(changed);
+    if (closeDocument) QVERIFY(lifetime.isNull());
+    const auto outputSize = QImage(path).size();
+    QVERIFY2(!exported, qPrintable(QStringLiteral("An invalidated source was exported as %1x%2")
+        .arg(outputSize.width()).arg(outputSize.height())));
+    QVERIFY(!QFile::exists(path));
+    if (closeDocument) {
+        QVERIFY(lifetime.isNull());
+    } else {
+        QCOMPARE(lifetime->image().data(), replacement.data());
+        QCOMPARE(api.fileName(), directory.filePath(QStringLiteral("replacement.kra")));
+        QVERIFY(lifetime->isModified());
+    }
+}
+
+void TestNode::testLayerCropPreservesPublicPixelsAndHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<QRect>("crop");
+    QTest::addColumn<QByteArray>("defaultBgra");
+    QTest::addColumn<bool>("locked");
+    QTest::addColumn<bool>("nested");
+    for (const bool gpu : {false, true}) {
+        const auto prefix = gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-");
+        const QRect bounds(-3, 5, 260, 12);
+        QTest::newRow(QByteArray(prefix + "boundary").constData()) << gpu << bounds << QByteArray::fromHex("00000000") << false << false;
+        QTest::newRow(QByteArray(prefix + "default").constData()) << gpu << bounds << QByteArray::fromHex("33221149") << false << false;
+        QTest::newRow(QByteArray(prefix + "transparent-default-rgb").constData()) << gpu << bounds << QByteArray::fromHex("33221100") << false << false;
+        QTest::newRow(QByteArray(prefix + "locked").constData()) << gpu << bounds << QByteArray::fromHex("00000000") << true << false;
+        QTest::newRow(QByteArray(prefix + "reversed").constData()) << gpu << QRect(256, 16, -259, -11) << QByteArray::fromHex("00000000") << false << false;
+        QTest::newRow(QByteArray(prefix + "empty").constData()) << gpu << QRect(50, 10, 0, 5) << QByteArray::fromHex("00000000") << false << false;
+        QTest::newRow(QByteArray(prefix + "containing").constData()) << gpu << QRect(-1024, -1024, 2048, 2048) << QByteArray::fromHex("00000000") << false << false;
+        QTest::newRow(QByteArray(prefix + "nested").constData()) << gpu << bounds << QByteArray::fromHex("33221149") << false << true;
+    }
+}
+
+void TestNode::testLayerCropPreservesPublicPixelsAndHistory()
+try
+{
+    QFETCH(bool, gpu);
+    QFETCH(QRect, crop);
+    QFETCH(QByteArray, defaultBgra);
+    QFETCH(bool, locked);
+    QFETCH(bool, nested);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisImageConfig configuration(false);
+    const int previousThreads = configuration.maxNumberOfThreads();
+    const auto restoreThreads = qScopeGuard([&] { configuration.setMaxNumberOfThreads(previousThreads); });
+    configuration.setMaxNumberOfThreads(1);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const QPoint position(17, -9);
+    const QUuid targetUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}"));
+    const QUuid innerUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa1}"));
+    const QUuid outerUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa2}"));
+    const QUuid siblingUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa3}"));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    Gpu::PaintImageSP owner;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage raster;
+        raster.size = {512, 64};
+        raster.layers = {{QStringLiteral("Crop target"), true, {}, {}}};
+        raster.layers.first().position = position;
+        raster.layers.first().uuid = targetUuid;
+        raster.layers.first().defaultPixel = {quint8(defaultBgra[2]), quint8(defaultBgra[1]), quint8(defaultBgra[0]), quint8(defaultBgra[3])};
+        if (nested) {
+            raster.layers.first().parentUuid = innerUuid;
+            Gpu::RasterLayer sibling{QStringLiteral("Uncropped sibling"), true, siblingUuid, {}};
+            sibling.parentUuid = innerUuid;
+            Gpu::RasterLayer inner{QStringLiteral("Inner"), true, innerUuid, {}};
+            inner.kind = Gpu::LayerKind::Group;
+            inner.parentUuid = outerUuid;
+            Gpu::RasterLayer outer{QStringLiteral("Outer"), true, outerUuid, {}};
+            outer.kind = Gpu::LayerKind::Group;
+            raster.layers.append({sibling, inner, outer});
+        }
+        owner = Gpu::PaintImageSP::create(execution, raster);
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Public layer crop")));
+    } else {
+        QVERIFY(document->newImage(QStringLiteral("Public layer crop"), 512, 64, cs,
+                                  KoColor(QColor(Qt::transparent), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+        document->image()->waitForDone();
+        document->image()->root()->firstChild()->paintDevice()->setDefaultPixel(
+            KoColor(reinterpret_cast<const quint8*>(defaultBgra.constData()), cs));
+        KisNodeSP target = document->image()->root()->firstChild();
+        target->setUuid(targetUuid);
+        if (nested) {
+            KisImageSP image = document->image();
+            KisGroupLayerSP outer = new KisGroupLayer(image, QStringLiteral("Outer"), 255);
+            outer->setUuid(outerUuid);
+            QVERIFY(image->addNode(outer));
+            KisGroupLayerSP inner = new KisGroupLayer(image, QStringLiteral("Inner"), 255);
+            inner->setUuid(innerUuid);
+            QVERIFY(image->addNode(inner, outer));
+            QVERIFY(image->moveNode(target, inner, KisNodeSP()));
+            KisPaintLayerSP sibling = new KisPaintLayer(image, QStringLiteral("Uncropped sibling"), 255);
+            sibling->setUuid(siblingUuid);
+            QVERIFY(image->addNode(sibling, inner));
+        }
+    }
+    const auto layer = KisLayerUtils::findNodeByUuid(document->image()->root(), targetUuid);
+    QVERIFY(layer);
+    const auto siblingPixel = QByteArray::fromHex("887766ff");
+    if (nested) {
+        const auto sibling = KisLayerUtils::findNodeByUuid(document->image()->root(), siblingUuid);
+        QVERIFY(sibling);
+        sibling->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(siblingPixel.constData()), 450, 40, 1, 1);
+    }
+    const auto hierarchyPreserved = [&](KisImageSP image) {
+        if (!nested) return true;
+        const auto target = KisLayerUtils::findNodeByUuid(image->root(), targetUuid);
+        const auto sibling = KisLayerUtils::findNodeByUuid(image->root(), siblingUuid);
+        if (!target || !sibling || !target->parent() || !target->parent()->parent()) return false;
+        const auto inner = target->parent(), outer = inner->parent();
+        QByteArray actual(4, '\0');
+        sibling->paintDevice()->readBytes(reinterpret_cast<quint8*>(actual.data()), 450, 40, 1, 1);
+        return inner->uuid() == innerUuid && outer->uuid() == outerUuid && outer->parent() == image->root() &&
+            sibling->parent() == inner && inner->childCount() == 2 && actual == siblingPixel;
+    };
+    QScopedPointer<Node> node(Node::createNode(document->image(), layer));
+    node->move(position.x(), position.y());
+    const QList<QPoint> points{{-260, 6}, {-3, 5}, {0, 5}, {256, 16}, {257, 16}, {9, 17}, {14, -20}, {450, 40}};
+    for (int i = 0; i < points.size(); ++i) {
+        QByteArray pixel(4, '\0');
+        pixel[0] = char(31 + i * 17); pixel[1] = char(41 + i * 11); pixel[2] = char(53 + i * 19);
+        pixel[3] = char(i == 2 ? 0 : i % 2 ? 73 : 255);
+        QVERIFY(node->setPixelData(pixel, points[i].x(), points[i].y(), 1, 1));
+    }
+    node->setLocked(locked);
+    const QRect region(-300, -40, 850, 128);
+    const auto before = node->pixelData(region.x(), region.y(), region.width(), region.height());
+    auto expected = before;
+    const auto keep = crop.normalized();
+    for (int y = 0; y < region.height(); ++y) for (int x = 0; x < region.width(); ++x) {
+        if (!keep.contains(region.topLeft() + QPoint(x, y)))
+            std::memcpy(expected.data() + (y * region.width() + x) * 4, defaultBgra.constData(), 4);
+    }
+    const auto uuid = node->uniqueId();
+    const int history = document->undoStack()->index();
+    try {
+        node->cropNode(crop.x(), crop.y(), crop.width(), crop.height());
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Public layer crop failed: ") + QString::fromUtf8(error.what())));
+    }
+    const int outside = ((16 - region.y()) * region.width() + 257 - region.x()) * 4;
+    QCOMPARE(node->pixelData(257, 16, 1, 1), expected.mid(outside, 4));
+    QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), expected);
+    QCOMPARE(node->position(), position);
+    QCOMPARE(node->uniqueId(), uuid);
+    QCOMPARE(node->locked(), locked);
+    QCOMPARE(document->image()->size(), QSize(512, 64));
+    QCOMPARE(document->undoStack()->index(), history + 1);
+    QVERIFY2(hierarchyPreserved(document->image()), "Cropping a nested paint layer must preserve its parents and sibling pixels");
+    const auto *extra = dynamic_cast<const KisCropSavedExtraData*>(document->undoStack()->command(history)->extraData());
+    QVERIFY(extra);
+    QCOMPARE(extra->cropRect(), crop);
+    QCOMPARE(extra->cropNode(), layer);
+    QScopedPointer<Node> copy(node->clone());
+    QVERIFY(copy);
+    QCOMPARE(copy->position(), position);
+    QCOMPARE(copy->pixelData(region.x(), region.y(), region.width(), region.height()), expected);
+    document->undoStack()->undo();
+    document->image()->waitForDone();
+    QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), before);
+    QVERIFY(hierarchyPreserved(document->image()));
+    document->undoStack()->redo();
+    document->image()->waitForDone();
+    QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), expected);
+    QVERIFY(hierarchyPreserved(document->image()));
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Layer crop artifacts retained at" << output.path();
+        }
+    });
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
+    settings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    const auto kra = output.filePath(QStringLiteral("cropped.kra"));
+    QSignalSpy saved(document.data(), &KisDocument::sigSavingFinished);
+    QVERIFY(document->saveAs(kra, KisDocument::nativeFormatMimeType(), false, settings));
+    QTRY_COMPARE(saved.size(), 1);
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY(reopened->openPath(kra, KisDocument::DontAddToRecent));
+    QScopedPointer<Node> loaded(Node::createNode(reopened->image(), KisLayerUtils::findNodeByUuid(reopened->image()->root(), uuid)));
+    QCOMPARE(loaded->position(), position);
+    QCOMPARE(loaded->uniqueId(), uuid);
+    QCOMPARE(loaded->pixelData(region.x(), region.y(), region.width(), region.height()), expected);
+    QVERIFY(hierarchyPreserved(reopened->image()));
+    InfoObject pngSettings;
+    pngSettings.setProperty("alpha", true);
+    pngSettings.setProperty("interlaced", false);
+    pngSettings.setProperty("compression", 3);
+    pngSettings.setProperty("saveSRGBProfile", true);
+    pngSettings.setProperty("forceSRGB", false);
+    pngSettings.setProperty("storeAuthor", false);
+    pngSettings.setProperty("storeMetaData", false);
+    const auto png = output.filePath(QStringLiteral("cropped.png"));
+    Document api(document.data(), false);
+    QVERIFY(api.exportImage(png, pngSettings));
+    const auto decoded = QImage(png).convertToFormat(QImage::Format_RGBA8888);
+    QCOMPARE(decoded.size(), QSize(512, 64));
+    auto projection = QByteArray(512 * 64 * 4, '\0');
+    document->image()->projection()->readBytes(reinterpret_cast<quint8*>(projection.data()), QRect(0, 0, 512, 64));
+    for (qsizetype i = 0; i < projection.size(); i += 4) std::swap(projection[i], projection[i + 2]);
+    for (int y = 0; y < 64; ++y)
+        QCOMPARE(QByteArray(reinterpret_cast<const char*>(decoded.constScanLine(y)), 512 * 4), projection.mid(y * 512 * 4, 512 * 4));
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const auto prefix = QStringLiteral("crop-") + QString::fromLatin1(QTest::currentDataTag());
+        const auto write = [&](const QString &suffix, const QByteArray &bytes) {
+            QFile file(QDir(results).filePath(prefix + suffix));
+            return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+        };
+        QVERIFY(write(QStringLiteral(".bgra"), expected));
+        QVERIFY(write(QStringLiteral(".projection.rgba"), projection));
+        QByteArray state;
+        QDataStream stream(&state, QIODevice::WriteOnly);
+        stream.setVersion(QDataStream::Qt_5_15);
+        stream << position << uuid << crop << node->bounds() << qint32(document->undoStack()->index());
+        QVERIFY(write(QStringLiteral(".state"), state));
+        QVERIFY(QFile::copy(kra, QDir(results).filePath(prefix + QStringLiteral(".kra"))));
+        QVERIFY(QFile::copy(png, QDir(results).filePath(prefix + QStringLiteral(".png"))));
+    }
+
+    const QPoint additional(1100, 44);
+    QVERIFY(node->setPixelData(QByteArray::fromHex("a1b2c3ff"), additional.x(), additional.y(), 1, 1));
+    QCOMPARE(node->pixelData(additional.x(), additional.y(), 1, 1), QByteArray::fromHex("a1b2c3ff"));
+}
+catch (const std::exception &error)
+{
+    QFAIL(qPrintable(QStringLiteral("Public layer crop/read failed: ") + QString::fromUtf8(error.what())));
+}
+
+void TestNode::testGpuLayerCropKeepsUnrelatedDirectWritesAcrossUndo()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    Gpu::RasterImage source;
+    source.size = {64, 64};
+    source.layers = {{QStringLiteral("Crop target"), true,
+                      QUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}")), {}}};
+    const auto owner = Gpu::PaintImageSP::create(execution, source);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Independent crop write")));
+    QScopedPointer<Node> node(Node::createNode(document->image(), document->image()->root()->firstChild()));
+    const auto original = QByteArray::fromHex("112233ff"), written = QByteArray::fromHex("a1b2c300");
+    QVERIFY(node->setPixelData(original, 8, 8, 1, 1));
+    node->cropNode(16, 16, 32, 32);
+    QVERIFY(node->setPixelData(written, 1100, 44, 1, 1));
+    QCOMPARE(document->undoStack()->count(), 1);
+    document->undoStack()->undo();
+    QCOMPARE(node->pixelData(8, 8, 1, 1), original);
+    QCOMPARE(node->pixelData(1100, 44, 1, 1), written);
+    document->undoStack()->redo();
+    QCOMPARE(node->pixelData(8, 8, 1, 1), QByteArray(4, '\0'));
+    QCOMPARE(node->pixelData(1100, 44, 1, 1), written);
+    QCOMPARE(document->undoStack()->index(), 1);
+
+}
+
+void TestNode::testLayerCropToolPreservesConfirmationResumptionAndCancellation_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<QString>("mode");
+    QTest::addColumn<int>("cropType");
+    QTest::addColumn<bool>("nested");
+    QTest::addColumn<bool>("groupTarget");
+    for (const bool gpu : {false, true}) for (const int type : {2, 0, 1}) {
+        const QByteArray scope = type == 2 ? QByteArray() : type == 0 ? QByteArrayLiteral("image-") : QByteArrayLiteral("canvas-");
+        for (const auto *mode : {"confirm", "cancel", "resume-cancel", "resume-reapply", "locked"}) {
+            const QByteArray name = (gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-")) + scope + mode;
+            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << type << false << false;
+        }
+        if (gpu) for (const auto *mode : {"close-confirm", "close-resume"}) {
+            const QByteArray name = QByteArrayLiteral("gpu-") + scope + mode;
+            QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << type << false << false;
+        }
+    }
+    for (const auto *mode : {"reject-retry", "close-reject"}) {
+        const QByteArray name = QByteArrayLiteral("gpu-canvas-") + mode;
+        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 1 << false << false;
+    }
+    for (const bool gpu : {false, true}) {
+        for (const auto *mode : {"confirm", "resume-cancel", "resume-reapply", "locked"}) {
+            const QByteArray name = (gpu ? QByteArrayLiteral("gpu-nested-") : QByteArrayLiteral("ordinary-nested-")) + mode;
+            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << 2 << true << false;
+        }
+    }
+    for (const auto *mode : {"confirm", "cancel", "resume-cancel", "resume-reapply"}) {
+        const QByteArray name = QByteArrayLiteral("gpu-group-") + mode;
+        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 2 << true << true;
+    }
+}
+
+void TestNode::testLayerCropCanReleaseItsPublicCallerDuringNotification()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Closing crop")));
+    QScopedPointer<Node> node(Node::createNode(document->image(), document->image()->root()->firstChild()));
+    QVERIFY(node->setPixelData(QByteArray::fromHex("112233ff"), 3, 4, 1, 1));
+    const auto unchanged = owner->operations().preview();
+    const auto requested = execution->requested(owner->handle());
+    KisImageSP foreign = new KisImage(nullptr, 64, 64, document->image()->colorSpace(), QStringLiteral("Other image"));
+    KisPaintLayerSP foreignLayer = new KisPaintLayer(foreign, QStringLiteral("Same UUID, different image"), 255);
+    foreignLayer->setUuid(node->uniqueId());
+    QVERIFY(foreign->addNode(foreignLayer));
+    QVERIFY_THROWS_EXCEPTION(std::invalid_argument, document->image()->cropNode(foreignLayer, QRect(10, 10, 20, 20)));
+    QVERIFY_EXCEPTION_THROWN(node->cropNode(std::numeric_limits<int>::max(), 0, 1, 1), std::invalid_argument);
+    QVERIFY_EXCEPTION_THROWN(node->cropNode(0, 0, std::numeric_limits<int>::min(), 1), std::invalid_argument);
+    QCOMPARE(owner->operations().preview(), unchanged);
+    QCOMPARE(execution->requested(owner->handle()), requested);
+    const auto connection = connect(owner.data(), &Gpu::PaintImage::changed, this, [&] {
+        node.reset();
+        document.reset();
+    });
+    auto *caller = node.data();
+    caller->cropNode(10, 10, 20, 20);
+    disconnect(connection);
+    QVERIFY(!node);
+    QVERIFY(!document);
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(owner->readRgbaPixels(1, {3, 4, 1, 1}, 4).bytes, QByteArray(4, '\0'));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(1, {3, 4, 1, 1}, 4).bytes, QByteArray::fromHex("332211ff"));
+}
+
+void TestNode::testLayerCropToolPreservesConfirmationResumptionAndCancellation()
+try
+{
+    QFETCH(bool, gpu);
+    QFETCH(QString, mode);
+    QFETCH(int, cropType);
+    QFETCH(bool, nested);
+    QFETCH(bool, groupTarget);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisImageConfig configuration(false);
+    const int previousThreads = configuration.maxNumberOfThreads();
+    const auto restoreThreads = qScopeGuard([&] { configuration.setMaxNumberOfThreads(previousThreads); });
+    configuration.setMaxNumberOfThreads(1);
+    KisConfig(true).disableOpenGL();
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        if (nested) {
+            const QUuid innerUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa1}"));
+            const QUuid outerUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa2}"));
+            Gpu::RasterImage raster;
+            raster.size = {64, 64};
+            raster.layers = {{QStringLiteral("Crop target"), true,
+                              QUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}")), {}}};
+            raster.layers.first().parentUuid = innerUuid;
+            Gpu::RasterLayer inner{QStringLiteral("Inner"), true, innerUuid, {}};
+            inner.kind = Gpu::LayerKind::Group;
+            inner.parentUuid = outerUuid;
+            Gpu::RasterLayer outer{QStringLiteral("Outer"), true, outerUuid, {}};
+            outer.kind = Gpu::LayerKind::Group;
+            raster.layers.append({inner, outer});
+            owner = Gpu::PaintImageSP::create(execution, raster);
+        } else {
+            owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+        }
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer crop tool")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Layer crop tool"), 64, 64, cs,
+                                  KoColor(QColor(Qt::transparent), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    }
+    KisImageSP image = document->image();
+    KisNodeSP layer = image->root()->firstChild();
+    if (nested) {
+        if (gpu) {
+            layer = layer->firstChild()->firstChild();
+        } else {
+            KisGroupLayerSP outer = new KisGroupLayer(image, QStringLiteral("Outer"), 255);
+            QVERIFY(image->addNode(outer));
+            KisGroupLayerSP inner = new KisGroupLayer(image, QStringLiteral("Inner"), 255);
+            QVERIFY(image->addNode(inner, outer));
+            QVERIFY(image->moveNode(layer, inner, KisNodeSP()));
+        }
+    }
+    const auto parent = layer->parent();
+    const auto grandparent = parent->parent();
+    const KisNodeSP target = groupTarget ? parent : layer;
+    QScopedPointer<Node> node(Node::createNode(image, layer));
+    const auto pixels = QByteArray::fromHex("332211ff").repeated(64 * 64);
+    QVERIFY(node->setPixelData(pixels, 0, 0, 64, 64));
+    if (mode == QLatin1String("locked")) node->setLocked(true);
+    QSignalSpy ready(KisPart::instance(), &KisPart::sigMainWindowCreated);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    QPointer<KisTool> tool;
+    QMetaObject::Connection interruption;
+    const auto cleanup = qScopeGuard([&] {
+        QObject::disconnect(interruption);
+        if (tool) tool->requestStrokeCancellation();
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    if (nested) window->viewManager()->nodeManager()->slotNonUiActivatedNode(target);
+    window->show();
+    window->activateWindow();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    QTRY_VERIFY(!ready.isEmpty());
+    QTRY_COMPARE(window->viewManager()->nodeManager()->activeNode(), target);
+    auto preset = KisPaintOpRegistry::instance()->defaultPreset(KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    QVERIFY(preset);
+    window->viewManager()->canvasResourceProvider()->setPaintOpPreset(preset);
+    view->zoomManager()->zoomTo100();
+    const auto id = QStringLiteral("KisToolCrop");
+    KoToolManager::instance()->switchToolRequested(id);
+    tool = qobject_cast<KisTool*>(KoToolManager::instance()->toolById(view->canvasBase(), id));
+    QVERIFY(tool);
+    QVERIFY(tool->property("cropTypeSelectable").toBool());
+    QVERIFY(QMetaObject::invokeMethod(tool, "setCropTypeLegacy", Q_ARG(int, cropType)));
+    QVERIFY(QMetaObject::invokeMethod(tool, "setAllowGrow", Q_ARG(bool, true)));
+    QVERIFY(QMetaObject::invokeMethod(tool, "setGrowCenter", Q_ARG(bool, false)));
+    for (const auto *property : {"lockWidth", "lockHeight", "lockRatio"}) QVERIFY(tool->setProperty(property, false));
+    view->canvasBase()->snapGuide()->enableSnapping(false);
+    const QRect crop(8, 8, 24, 24);
+    QVERIFY(tool->setProperty("cropX", crop.x()));
+    QVERIFY(tool->setProperty("cropY", crop.y()));
+    QVERIFY(tool->setProperty("cropWidth", crop.width()));
+    QVERIFY(tool->setProperty("cropHeight", crop.height()));
+    QCOMPARE(tool->property("cropType").toInt(), cropType);
+    QCOMPARE(tool->property("cropX").toInt(), crop.x());
+    QCOMPARE(tool->property("cropY").toInt(), crop.y());
+    QCOMPARE(tool->property("cropWidth").toInt(), crop.width());
+    QCOMPARE(tool->property("cropHeight").toInt(), crop.height());
+    bool closed = false;
+    const auto closeOnChange = [&] {
+        interruption = connect(owner.data(), &Gpu::PaintImage::changed, tool.data(), [&] {
+            if (closed) return;
+            closed = true;
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        });
+    };
+    if (mode == QLatin1String("cancel")) {
+        tool->requestStrokeCancellation();
+        QCOMPARE(lifetime->undoStack()->index(), 0);
+        QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
+        return;
+    }
+    if (mode == QLatin1String("reject-retry") || mode == QLatin1String("close-reject")) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        const auto before = owner->operations().preview();
+        QSignalSpy errors(tool, &KoToolBase::statusTextChanged);
+        if (mode == QLatin1String("close-reject")) {
+            interruption = connect(tool, &KoToolBase::statusTextChanged, this, [&] {
+                lifetime->setModified(false);
+                window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+                QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            });
+        }
+        QCOMPARE(execution->beginReadbackFrame().code, Gpu::ExecutionCode::Success);
+        auto cancelFrame = qScopeGuard([&] { execution->cancelFrame(); });
+        tool->requestStrokeEnd();
+        QCOMPARE(errors.size(), 1);
+        QVERIFY(!errors.first().first().toString().isEmpty());
+        QCOMPARE(owner->operations().preview(), before);
+        QCOMPARE(image->size(), QSize(64, 64));
+        QCOMPARE(execution->cancelFrame().code, Gpu::ExecutionCode::Success);
+        cancelFrame.dismiss();
+        if (mode == QLatin1String("close-reject")) {
+            QTRY_VERIFY(!tool);
+            return;
+        }
+        QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
+    }
+    if (mode == QLatin1String("close-confirm")) closeOnChange();
+    tool->requestStrokeEnd();
+    image->waitForDone();
+    if (closed) {
+        QTRY_VERIFY(!tool);
+        QCOMPARE(owner->operations().undoCount(), 1);
+        return;
+    }
+    if (mode == QLatin1String("locked") && cropType == 2) {
+        QCOMPARE(lifetime->undoStack()->index(), 0);
+        QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
+        return;
+    }
+    QCOMPARE(lifetime->undoStack()->index(), 1);
+    QCOMPARE(image->size(), cropType == 2 ? QSize(64, 64) : crop.size());
+    QCOMPARE(node->pixelData(4, 4, 1, 1), cropType == 2 ? QByteArray(4, '\0') : QByteArray::fromHex("332211ff"));
+    QCOMPARE(node->pixelData(-4, -4, 1, 1), cropType == 1 ? QByteArray::fromHex("332211ff") : QByteArray(4, '\0'));
+    QCOMPARE(node->pixelData(12, 12, 1, 1), QByteArray::fromHex("332211ff"));
+    QCOMPARE(layer->parent(), parent);
+    QCOMPARE(parent->parent(), grandparent);
+    if (mode.startsWith(QLatin1String("resume")) || mode == QLatin1String("close-resume")) {
+        if (mode == QLatin1String("close-resume")) closeOnChange();
+        if (cropType == 1) QVERIFY(QMetaObject::invokeMethod(tool, "setCropTypeLegacy", Q_ARG(int, 0)));
+        QCOMPARE(tool->property("cropType").toInt(), cropType == 1 ? 0 : cropType);
+        QCOMPARE(window->viewManager()->canvasResourceProvider()->currentNode(), target);
+        const auto *last = image->undoAdapter()->presentCommand();
+        QVERIFY(last);
+        const auto *saved = dynamic_cast<const KisCropSavedExtraData*>(last->extraData());
+        QVERIFY(saved);
+        QCOMPARE(saved->cropNode(), cropType == 2 ? target : KisNodeSP());
+        const auto converter = view->canvasBase()->coordinatesConverter();
+        const QPointF point = converter->imageToDocument(QPointF(40, 40));
+        QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+        KoPointerEvent begin(&press, point);
+        tool->beginPrimaryAction(&begin);
+        QCOMPARE(tool->property("cropWidth").toInt(), 1);
+        QCOMPARE(tool->property("cropHeight").toInt(), 1);
+        QMouseEvent release(QEvent::MouseButtonRelease, QPointF(), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
+        KoPointerEvent end(&release, point);
+        tool->endPrimaryAction(&end);
+        if (closed) {
+            QTRY_VERIFY(!tool);
+            QCOMPARE(owner->operations().undoCount(), 0);
+            return;
+        }
+        QCOMPARE(lifetime->undoStack()->index(), 0);
+        QCOMPARE(image->size(), QSize(64, 64));
+        QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
+        QCOMPARE(tool->property("cropX").toInt(), crop.x());
+        QCOMPARE(tool->property("cropWidth").toInt(), crop.width());
+        if (mode == QLatin1String("resume-cancel")) {
+            tool->requestStrokeCancellation();
+            QCOMPARE(lifetime->undoStack()->index(), 0);
+            return;
+        }
+        QVERIFY(tool->setProperty("cropWidth", 16));
+        tool->requestStrokeEnd();
+        image->waitForDone();
+        QCOMPARE(lifetime->undoStack()->index(), 1);
+        QCOMPARE(lifetime->undoStack()->count(), 1);
+        QCOMPARE(node->pixelData(24, 12, 1, 1), QByteArray(4, '\0'));
+    }
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
+    QCOMPARE(image->size(), QSize(64, 64));
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(node->pixelData(4, 4, 1, 1), cropType == 2 ? QByteArray(4, '\0') : QByteArray::fromHex("332211ff"));
+    QCOMPARE(layer->parent(), parent);
+    QCOMPARE(parent->parent(), grandparent);
+}
+catch (const std::exception &error)
+{
+    QFAIL(qPrintable(QStringLiteral("Layer crop tool failed: ") + QString::fromUtf8(error.what())));
+}
+
+void TestNode::testImportedLayerPositionSurvivesPublicCopiesAndSaving_data()
+{
+    QTest::addColumn<QPoint>("position");
+    QTest::newRow("origin") << QPoint();
+    QTest::newRow("negative-x") << QPoint(-73, 19);
+    QTest::newRow("negative-y") << QPoint(17, -65);
+    QTest::newRow("tile-aligned") << QPoint(256, -256);
+}
+
+void TestNode::testImportedLayerPositionSurvivesPublicCopiesAndSaving()
+{
+    // A scripting consumer must retain the device position independently of
+    // the image-coordinate pixels when opening and resaving a moved layer.
+    QFETCH(QPoint, position);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Files = LibrePaint::Document::Gpu;
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QScopedPointer<KisDocument> original(KisPart::instance()->createDocument());
+    original->setFileBatchMode(true);
+    QVERIFY(original->newImage(QStringLiteral("Position source"), 64, 64, cs,
+                              KoColor(QColor(Qt::transparent), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    original->image()->root()->firstChild()->setUuid(QUuid(QStringLiteral("{61626364-6566-6768-696a-6b6c6d6e6f70}")));
+    Document originalApi(original.data(), false);
+    QScopedPointer<Node> source(Node::createNode(original->image(), original->image()->root()->firstChild()));
+    QVERIFY(source->setPixelData(QByteArray::fromHex("112233ff"), 5, 9, 1, 1));
+    QVERIFY(source->setPixelData(QByteArray::fromHex("55667700"), 8, 13, 1, 1));
+    source->move(position.x(), position.y());
+    QCOMPARE(source->position(), position);
+    const QRect region(position - QPoint(32, 32), QSize(96, 96));
+    auto originalPixels = source->pixelData(region.x(), region.y(), region.width(), region.height());
+    const auto originalBounds = source->bounds();
+    const auto path = directory.filePath(QStringLiteral("source.kra"));
+    QVERIFY(originalApi.saveAs(path));
+
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    auto opened = Files::PaintDocument::openKra(execution, path);
+    QVERIFY2(opened.code == Files::FileCode::Success, qPrintable(opened.diagnostic));
+    const auto owner = opened.document->image();
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Imported position")));
+    Document apiDocument(document.data(), false);
+    QScopedPointer<Node> node(Node::createNode(document->image(), document->image()->root()->firstChild()));
+    QCOMPARE(node->position(), position);
+    QCOMPARE(node->bounds(), originalBounds);
+    QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    const QRect writtenRegion(position - QPoint(32, 32), QSize(80, 64));
+    const auto writtenPixels = QByteArray::fromHex("a1b2c300556677ff").repeated(80 * 64 / 2);
+    const int historyBeforeWrite = document->undoStack()->index();
+    QVERIFY(source->setPixelData(writtenPixels, writtenRegion.x(), writtenRegion.y(), writtenRegion.width(), writtenRegion.height()));
+    QVERIFY(node->setPixelData(writtenPixels, writtenRegion.x(), writtenRegion.y(), writtenRegion.width(), writtenRegion.height()));
+    QCOMPARE(document->undoStack()->index(), historyBeforeWrite);
+    originalPixels = source->pixelData(region.x(), region.y(), region.width(), region.height());
+    QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    QScopedPointer<Node> copy(node->clone());
+    QVERIFY(copy);
+    QCOMPARE(copy->position(), position);
+    QCOMPARE(copy->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    QScopedPointer<Node> foreignCopy(source->clone());
+    QScopedPointer<Node> root(Node::createNode(document->image(), document->image()->root()));
+    for (Node *candidate : {copy.data(), foreignCopy.data()}) {
+        QVERIFY(candidate);
+        QVERIFY2(root->addChildNode(candidate, nullptr), candidate == copy.data() ? "GPU copy insertion" : "CPU copy insertion");
+        QCOMPARE(candidate->position(), position);
+        QCOMPARE(candidate->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+        QVERIFY(candidate->remove());
+        QCOMPARE(candidate->position(), position);
+        QCOMPARE(candidate->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    }
+    const auto pinned = owner->operations().snapshot();
+    const auto point = position + QPoint(14, 15);
+    QCOMPARE(owner->replaceRgbaPixels(owner->operations().activeLayer(), QRect(point, QSize(1, 1)),
+                                     QByteArray::fromHex("778899ff")), Gpu::Result::Success);
+    document->undoStack()->undo();
+    document->image()->waitForDone();
+    QCOMPARE(node->position(), position);
+    QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    document->undoStack()->redo();
+    document->image()->waitForDone();
+    QCOMPARE(node->position(), position);
+    const auto edited = node->pixelData(region.x(), region.y(), region.width(), region.height());
+    QVERIFY(edited != originalPixels);
+
+    const auto saved = directory.filePath(QStringLiteral("resaved.kra"));
+    QVERIFY(apiDocument.saveAs(saved));
+    QScopedPointer<Document> reopened(Krita::instance()->openDocument(saved));
+    QVERIFY(reopened);
+    QScopedPointer<Node> loaded(reopened->nodeByUniqueID(node->uniqueId()));
+    QVERIFY(loaded);
+    QCOMPARE(loaded->position(), position);
+    QCOMPARE(loaded->pixelData(region.x(), region.y(), region.width(), region.height()), edited);
+    const auto fixed = directory.filePath(QStringLiteral("fixed.kra"));
+    QCOMPARE(opened.document->exportKra(fixed, pinned).code, Files::FileCode::Success);
+    auto fixedDocument = Files::PaintDocument::openKra(execution, fixed);
+    QVERIFY2(fixedDocument.code == Files::FileCode::Success, qPrintable(fixedDocument.diagnostic));
+    const auto fixedView = KisImage::fromGpuImage(fixedDocument.document->image(), QStringLiteral("Fixed position"));
+    QScopedPointer<Node> fixedNode(Node::createNode(fixedView, fixedView->root()->firstChild()));
+    QCOMPARE(fixedNode->position(), position);
+    QCOMPARE(fixedNode->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const auto stem = QStringLiteral("position-%1-%2").arg(position.x()).arg(position.y());
+        QFile pixels(QDir(results).filePath(stem + QStringLiteral(".bgra")));
+        QVERIFY(pixels.open(QIODevice::WriteOnly));
+        QCOMPARE(pixels.write(edited), edited.size());
+        QFile state(QDir(results).filePath(stem + QStringLiteral(".state")));
+        QVERIFY(state.open(QIODevice::WriteOnly));
+        QDataStream values(&state);
+        values.setVersion(QDataStream::Qt_5_15);
+        values.setByteOrder(QDataStream::BigEndian);
+        values << qint32(node->position().x()) << qint32(node->position().y())
+               << node->bounds() << node->uniqueId();
+        QCOMPARE(values.status(), QDataStream::Ok);
+        QVERIFY(QFile::copy(saved, QDir(results).filePath(stem + QStringLiteral(".kra"))));
+    }
+}
+
+void TestNode::testAbsoluteLayerMovementPreservesPixelsAndDirectHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("ordinary") << false;
+    QTest::newRow("gpu") << true;
+}
+
+void TestNode::testAbsoluteLayerMovementPreservesPixelsAndDirectHistory()
+{
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const QPoint initial(7, -3), destination(-12, 17);
+    const QPoint first(12, 9), shifted = first + destination - initial;
+    const auto before = QByteArray::fromHex("112233ff445566006677888899aabbff");
+    const auto after = QByteArray::fromHex("a1b2c3ff445566006677888899aabbff");
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage input;
+        input.size = {64, 64};
+        input.layers = {{QStringLiteral("Move target"), true, {}, {}}, {QStringLiteral("Unchanged"), true, {}, {}}};
+        input.layers.first().position = initial;
+        owner = Gpu::PaintImageSP::create(execution, input);
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Absolute move"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 64, 64, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Absolute move"));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Move target"), 255));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Unchanged"), 255));
+    }
+    document->setCurrentImage(image);
+    const auto layer = image->root()->firstChild();
+    QScopedPointer<Node> node(Node::createNode(image, layer));
+    QScopedPointer<Node> other(Node::createNode(image, image->root()->lastChild()));
+    if (!gpu) node->move(initial.x(), initial.y());
+    QVERIFY(node->setPixelData(before, first.x(), first.y(), 2, 2));
+    QVERIFY(other->setPixelData(QByteArray::fromHex("778899ff"), first.x(), first.y(), 1, 1));
+    if (gpu) {
+        QByteArray rgba = after;
+        for (qsizetype i = 0; i < rgba.size(); i += 4) std::swap(rgba[i], rgba[i + 2]);
+        QCOMPARE(owner->replaceRgbaPixels(1, QRect(first, QSize(2, 2)), rgba), Gpu::Result::Success);
+    } else {
+        KisTransaction edit(layer->paintDevice());
+        QVERIFY(node->setPixelData(after, first.x(), first.y(), 2, 2));
+        edit.commit(image->undoAdapter());
+    }
+    image->waitForDone();
+    document->undoStack()->undo();
+    image->waitForDone();
+    const auto modified = document->isModified();
+    QCOMPARE(node->pixelData(first.x(), first.y(), 2, 2), before);
+    try {
+        node->move(destination.x(), destination.y());
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Public Node.move failed: ") + QString::fromUtf8(error.what())));
+    }
+    QCOMPARE(node->position(), destination);
+    QCOMPARE(node->pixelData(shifted.x(), shifted.y(), 2, 2), before);
+    QCOMPARE(node->pixelData(first.x(), first.y(), 2, 2), QByteArray(16, '\0'));
+    QCOMPARE(other->pixelData(first.x(), first.y(), 1, 1), QByteArray::fromHex("778899ff"));
+    QCOMPARE(document->undoStack()->count(), 1);
+    QCOMPARE(document->undoStack()->index(), 0);
+    QCOMPARE(document->isModified(), modified);
+    document->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(node->position(), destination);
+    QCOMPARE(node->pixelData(shifted.x(), shifted.y(), 2, 2), after);
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(node->position(), destination);
+    QCOMPARE(node->pixelData(shifted.x(), shifted.y(), 2, 2), before);
+    QScopedPointer<Node> copy(node->clone());
+    QVERIFY(copy);
+    const QPoint copyPosition(43, -11);
+    const auto copyPoint = shifted + copyPosition - destination;
+    copy->move(copyPosition.x(), copyPosition.y());
+    QCOMPARE(copy->position(), copyPosition);
+    QCOMPARE(copy->pixelData(copyPoint.x(), copyPoint.y(), 2, 2), before);
+    QCOMPARE(node->position(), destination);
+    QCOMPARE(node->pixelData(shifted.x(), shifted.y(), 2, 2), before);
+    QVERIFY(node->remove());
+    image->waitForDone();
+    const QPoint removedPosition(29, 37);
+    const auto removedPoint = shifted + removedPosition - destination;
+    try {
+        node->move(removedPosition.x(), removedPosition.y());
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Removed Node.move failed: ") + QString::fromUtf8(error.what())));
+    }
+    QCOMPARE(node->position(), removedPosition);
+    QCOMPARE(node->pixelData(removedPoint.x(), removedPoint.y(), 2, 2), before);
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(node->position(), removedPosition);
+    QCOMPARE(node->pixelData(removedPoint.x(), removedPoint.y(), 2, 2), before);
+}
+
+void TestNode::testGpuBoundsUseOnlyScalarReadback_data()
+{
+    QTest::addColumn<bool>("opaqueDefault");
+    QTest::addColumn<bool>("visiblePixel");
+    QTest::addColumn<bool>("hiddenPixel");
+    QTest::newRow("transparent-default") << false << true << true;
+    QTest::newRow("transparent-empty") << false << false << false;
+    QTest::newRow("transparent-hidden-rgb") << false << false << true;
+    QTest::newRow("opaque-default") << true << true << true;
+    QTest::newRow("opaque-empty") << true << false << false;
+    QTest::newRow("opaque-hole") << true << false << true;
+}
+
+void TestNode::testGpuBoundsUseOnlyScalarReadback()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(bool, opaqueDefault);
+    QFETCH(bool, visiblePixel);
+    QFETCH(bool, hiddenPixel);
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device, 8 * Gpu::TileRenderer::TileBytes, 1, 16);
+    Gpu::RasterImage input;
+    input.size = {64, 64};
+    input.layers = {{QStringLiteral("Bounds"), true, {}, {}}};
+    auto &layer = input.layers.first();
+    layer.defaultPixel = opaqueDefault ? LibrePaint::Image::Gpu::RgbaPixel{7, 11, 19, 255} : LibrePaint::Image::Gpu::RgbaPixel{};
+    QByteArray pixels = LibrePaint::Image::Gpu::rgbaBytes(layer.defaultPixel, LibrePaint::Image::Gpu::PixelFormat::Rgba8);
+    pixels = pixels.repeated(Gpu::RgbaTile::Size * Gpu::RgbaTile::Size);
+    if (visiblePixel) pixels.replace((6 * 256 + 253) * 4, 4, QByteArray::fromHex("112233ff"));
+    if (hiddenPixel) pixels.replace((7 * 256 + 254) * 4, 4, QByteArray::fromHex("44556600"));
+    layer.tiles = {{{-1, 0}, pixels}};
+    const auto owner = Gpu::PaintImageSP::create(execution, input);
+    const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Scalar bounds"));
+    QScopedPointer<Node> node(Node::createNode(image, image->root()->firstChild()));
+    QRect bounds;
+    try {
+        bounds = node->bounds();
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Bounds exceeded the scalar transfer budget: ") + QString::fromUtf8(error.what())));
+    }
+    const QRect expected = opaqueDefault ?
+        (visiblePixel ? QRect(-3, 0, 67, 64) : hiddenPixel ? QRect(-2, 0, 66, 64) : QRect(0, 0, 64, 64)) :
+        (visiblePixel ? QRect(-3, 6, 1, 1) : QRect());
+    QCOMPARE(bounds, expected);
+    // Compare the public result with the existing device's exact pixel contract.
+    KisImageSP ordinary = new KisImage(nullptr, 64, 64, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Bounds reference"));
+    KisPaintLayerSP reference = new KisPaintLayer(ordinary, QStringLiteral("Bounds"), 255);
+    ordinary->addNode(reference);
+    const auto bgra = Gpu::rgbaBytes({layer.defaultPixel[2], layer.defaultPixel[1], layer.defaultPixel[0], layer.defaultPixel[3]}, input.format);
+    reference->paintDevice()->setDefaultPixel(KoColor(reinterpret_cast<const quint8 *>(bgra.constData()), ordinary->colorSpace()));
+    for (qsizetype i = 0; i < pixels.size(); i += 4) std::swap(pixels[i], pixels[i + 2]);
+    reference->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(pixels.constData()), QRect(-256, 0, 256, 256));
+    QScopedPointer<Node> ordinaryNode(Node::createNode(ordinary, reference));
+    QCOMPARE(bounds, ordinaryNode->bounds());
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QVERIFY(!owner->operations().isModified());
+}
+
+void TestNode::testLayerPropertiesPreservePublicHistorySemantics_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("existing-image") << false;
+    QTest::newRow("gpu-image") << true;
+}
+
+void TestNode::testLayerPropertiesPreservePublicHistorySemantics()
+{
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage input;
+        input.size = {64, 64};
+        input.layers = {{QStringLiteral("Recorded edit"), true, {}, {}}, {QStringLiteral("Other"), true, {}, {}}};
+        owner = Gpu::PaintImageSP::create(execution, input);
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Layer properties"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 64, 64, KoColorSpaceRegistry::instance()->rgb8(), "Layer properties");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Recorded edit"), 255));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Other"), 255));
+    }
+    document->setCurrentImage(image);
+    auto layer = image->root()->firstChild();
+    NodeSP node(Node::createNode(image, layer));
+    const auto before = QByteArray::fromHex("0000ffff");
+    const auto after = QByteArray::fromHex("ff0000ff");
+    QVERIFY(node->setPixelData(before, 8, 12, 1, 1));
+    if (gpu) {
+        QCOMPARE(owner->replaceRgbaPixels(1, QRect(8, 12, 1, 1), QByteArray::fromHex("0000ffff")), Gpu::Result::Success);
+    } else {
+        KisTransaction transaction(layer->paintDevice());
+        QVERIFY(node->setPixelData(after, 8, 12, 1, 1));
+        transaction.commit(image->undoAdapter());
+    }
+    image->waitForDone();
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(node->pixelData(8, 12, 1, 1), before);
+    QCOMPARE(document->undoStack()->index(), 0);
+    QCOMPARE(document->undoStack()->count(), 1);
+    QVERIFY(!document->isModified());
+    const auto *historyCommand = document->undoStack()->command(0);
+    QSignalSpy modified(document.data(), &KisDocument::modified);
+    node->setName(QStringLiteral("Renamed"));
+    node->setOpacity(-1);
+    QCOMPARE(node->opacity(), 0);
+    node->setOpacity(300);
+    QCOMPARE(node->opacity(), 255);
+    node->setOpacity(128);
+    node->setVisible(false);
+    node->setLocked(true);
+    layer->setPinnedToTimeline(true);
+    node->setColorLabel(5);
+    Document publicDocument(document.data(), false);
+    publicDocument.refreshProjection();
+    QCOMPARE(publicDocument.pixelData(8, 12, 1, 1), QByteArray(4, '\0'));
+    QCOMPARE(node->pixelData(8, 12, 1, 1), before);
+    QCOMPARE(document->undoStack()->index(), 0);
+    QCOMPARE(document->undoStack()->count(), 1);
+    QVERIFY(!document->isModified());
+    QVERIFY(modified.isEmpty());
+    document->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(node->name(), QStringLiteral("Renamed"));
+    QCOMPARE(node->opacity(), 128);
+    QVERIFY(!node->visible());
+    QVERIFY(node->locked());
+    QVERIFY(layer->isPinnedToTimeline());
+    QCOMPARE(node->colorLabel(), 5);
+    QCOMPARE(node->pixelData(8, 12, 1, 1), after);
+    QCOMPARE(document->undoStack()->index(), 1);
+    QCOMPARE(document->undoStack()->count(), 1);
+    QCOMPARE(document->undoStack()->command(0), historyCommand);
+    node->setName(QString());
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(node->name(), QString());
+    QCOMPARE(node->opacity(), 128);
+    QVERIFY(!node->visible());
+    QVERIFY(node->locked());
+    QVERIFY(layer->isPinnedToTimeline());
+    QCOMPARE(node->colorLabel(), 5);
+    QCOMPARE(node->pixelData(8, 12, 1, 1), before);
+    QCOMPARE(document->undoStack()->count(), 1);
+    QVERIFY(!document->isModified());
+    if (gpu) {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const auto path = directory.filePath(QStringLiteral("layer-properties.kra"));
+        document->setFileBatchMode(true);
+        QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        const auto loaded = reopened->image()->root()->firstChild();
+        QCOMPARE(loaded->name(), QString());
+        QCOMPARE(loaded->opacity(), quint8(128));
+        QVERIFY(!loaded->visible());
+        QVERIFY(loaded->userLocked());
+        QVERIFY(loaded->isPinnedToTimeline());
+        QCOMPARE(loaded->colorLabelIndex(), 5);
+    }
+}
+
+void TestNode::testGpuNodeNotificationKeepsReentrantPropertyWrites()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Reentrant layer properties"));
+    document->setCurrentImage(image);
+    auto layer = image->root()->firstChild();
+    NodeSP node(Node::createNode(image, layer));
+    QCOMPARE(owner->writeRgbaPixels(1, QRect(8, 12, 1, 1), QByteArray::fromHex("ff0000ff")), Gpu::Result::Success);
+    bool reacted = false;
+    QObject receiver;
+    QObject::connect(layer.data(), &KisNode::sigNodeChangedInternal, &receiver, [&] {
+        if (reacted || node->visible()) return;
+        reacted = true;
+        node->setOpacity(64);
+    });
+    QCOMPARE(owner->setLayerVisible(1, false), Gpu::Result::Success);
+    QVERIFY(reacted);
+    QVERIFY(!node->visible());
+    QCOMPARE(node->opacity(), 64);
+    QCOMPARE(owner->operations().snapshot()->layers.first().opacity, quint8(64));
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(node->visible());
+    QCOMPARE(node->opacity(), 64);
+    Document publicDocument(document.data(), false);
+    QCOMPARE(publicDocument.pixelData(8, 12, 1, 1), QByteArray::fromHex("0000ff40"));
+    QCOMPARE(node->pixelData(8, 12, 1, 1), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QVERIFY(!node->visible());
+    QCOMPARE(node->opacity(), 64);
+}
+
+void TestNode::testDirectOpacityWritesPreserveRecordedPropertyUndo_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("existing-image") << false;
+    QTest::newRow("gpu-image") << true;
+}
+
+void TestNode::testDirectOpacityWritesPreserveRecordedPropertyUndo()
+{
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Opacity history"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 64, 64, KoColorSpaceRegistry::instance()->rgb8(), "Opacity history");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Layer"), 255));
+    }
+    document->setCurrentImage(image);
+    auto layer = image->root()->firstChild();
+    NodeSP node(Node::createNode(image, layer));
+    QScopedPointer<KisNodeOpacityCommand> command;
+    if (gpu) {
+        QCOMPARE(owner->setLayerOpacity(1, 128), Gpu::Result::Success);
+    } else {
+        command.reset(new KisNodeOpacityCommand(layer, 128));
+        command->redo();
+    }
+    image->waitForDone();
+    QCOMPARE(node->opacity(), 128);
+    node->setOpacity(64);
+    QCOMPARE(node->opacity(), 64);
+    if (gpu) QCOMPARE(owner->undo(), Gpu::Result::Success);
+    else command->undo();
+    image->waitForDone();
+    QCOMPARE(node->opacity(), 255);
+    if (gpu) QCOMPARE(owner->redo(), Gpu::Result::Success);
+    else command->redo();
+    image->waitForDone();
+    QCOMPARE(node->opacity(), 128);
+    if (gpu) QCOMPARE(owner->undo(), Gpu::Result::Success);
+    else command->undo();
+    node->setOpacity(32);
+    if (gpu) QCOMPARE(owner->redo(), Gpu::Result::Success);
+    else command->redo();
+    if (gpu) QCOMPARE(owner->undo(), Gpu::Result::Success);
+    else command->undo();
+    image->waitForDone();
+    QCOMPARE(node->opacity(), 255);
+}
 
 void TestNode::testSetColorSpace()
 {
@@ -110,6 +1393,1607 @@ void TestNode::testProjectionPixelData()
     }
 }
 
+void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<QString>("kind");
+    for (bool words : {false, true}) for (const auto *kind : {"filter", "adjustment", "adjustment-child", "paint-child"}) {
+        const QByteArray row = QByteArray(words ? "word-" : "byte-") + kind;
+        QTest::newRow(row.constData()) << words << QString::fromLatin1(kind);
+    }
+}
+
+void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(bool, words); QFETCH(QString, kind);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic); QVERIFY2(execution, qPrintable(diagnostic));
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const auto filter = KisFilterRegistry::instance()->value("maximize"); QVERIFY(filter);
+    const auto configuration = filter->defaultConfiguration(KisGlobalResourcesInterface::instance());
+    const auto uniform = [] {
+        KisSelectionSP selection = new KisSelection;
+        const quint8 white = 255;
+        selection->pixelSelection()->setDefaultPixel(KoColor(&white, selection->pixelSelection()->colorSpace()));
+        return selection;
+    };
+    QScopedPointer<KisDocument> nativeDocument(KisPart::instance()->createDocument());
+    KisImageSP native = new KisImage(nativeDocument->createUndoStore(), 192, 96, cs, "Native mask writes");
+    nativeDocument->setCurrentImage(native);
+    KisPaintLayerSP nativePaint = new KisPaintLayer(native, "Paint", 255);
+    native->addNode(nativePaint, native->root());
+    KisNodeSP nativeTarget;
+    if (kind == QLatin1String("filter")) {
+        KisFilterMaskSP mask = new KisFilterMask(native, "Target");
+        mask->initSelection(uniform(), nativePaint);
+        mask->setFilter(configuration->cloneWithResourcesSnapshot());
+        native->addNode(mask, nativePaint); nativeTarget = mask;
+    } else if (kind.startsWith(QLatin1String("adjustment"))) {
+        KisAdjustmentLayerSP adjustment = new KisAdjustmentLayer(native, "Adjustment", configuration->cloneWithResourcesSnapshot(), uniform());
+        native->addNode(adjustment, native->root(), nativePaint); nativeTarget = adjustment;
+        if (kind == QLatin1String("adjustment-child")) {
+            KisTransparencyMaskSP mask = new KisTransparencyMask(native, "Target");
+            mask->setSelection(uniform()); native->addNode(mask, adjustment); nativeTarget = mask;
+        }
+    } else {
+        KisTransparencyMaskSP mask = new KisTransparencyMask(native, "Target");
+        mask->setSelection(uniform()); native->addNode(mask, nativePaint); nativeTarget = mask;
+    }
+    Gpu::RasterImage raster;
+    raster.size = {192, 96}; raster.format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    raster.colorProfile = cs->profile()->rawData();
+    Gpu::RasterLayer paint; paint.uuid = QUuid::createUuid(); paint.name = "Paint";
+    raster.layers.append(paint);
+    QUuid maskUuid;
+    Gpu::LayerId maskLayer = 1;
+    if (kind == QLatin1String("paint-child")) {
+        auto &layer = raster.layers.first();
+        layer.transparencyMask = Gpu::SelectionMask::uniform(255);
+        layer.transparencyMaskUuid = maskUuid = QUuid::createUuid();
+        layer.transparencyMaskName = "Target";
+    } else {
+        Gpu::RasterLayer effect;
+        effect.uuid = maskUuid = QUuid::createUuid(); effect.name = "Adjustment";
+        effect.kind = kind == QLatin1String("filter") ? Gpu::LayerKind::FilterMask : Gpu::LayerKind::Adjustment;
+        effect.parentUuid = kind == QLatin1String("filter") ? paint.uuid : QUuid{};
+        effect.blendMode = Gpu::LayerBlendMode::Copy;
+        const auto definition = freezeGpuFilterConfiguration(configuration, cs); QVERIFY(definition);
+        effect.filter = *definition;
+        effect.filterSelection = Gpu::SelectionMask::uniform(255);
+        if (kind == QLatin1String("adjustment-child")) {
+            effect.transparencyMask = Gpu::SelectionMask::uniform(255);
+            effect.transparencyMaskUuid = maskUuid = QUuid::createUuid();
+            effect.transparencyMaskName = "Target";
+        }
+        raster.layers.append(effect); maskLayer = 2;
+    }
+    auto owner = Gpu::PaintImageSP::create(execution, raster);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, "Mask writes", cs));
+    const auto find = [&](KisImageSP image) {
+        KisNodeList pending{image->root()};
+        for (qsizetype i = 0; i < pending.size(); ++i) {
+            auto node = pending[i];
+            if (node->uuid() == maskUuid) return node;
+            for (auto child = node->firstChild(); child; child = child->nextSibling()) pending.append(child);
+        }
+        return KisNodeSP{};
+    };
+    KisNodeSP target = find(document->image()); QVERIFY(target);
+    QScopedPointer<Node> node(Node::createNode(document->image(), target));
+    QScopedPointer<Node> nativeNode(Node::createNode(native, nativeTarget));
+    QCOMPARE(target->paintDevice()->pixelSize(), 1U);
+    const QRect area(-12, -5, 228, 112);
+    const auto pixels = [&](Node *value) { return value->pixelData(area.x(), area.y(), area.width(), area.height()); };
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    QVERIFY(node->setPixelData(QByteArray(1, char(160)), 8, 8, 1, 1));
+    QVERIFY(nativeNode->setPixelData(QByteArray(1, char(160)), 8, 8, 1, 1));
+    const auto initialPixels = pixels(nativeNode.data());
+    QCOMPARE(pixels(node.data()), initialPixels);
+    QCOMPARE(owner->setSelectionRect({4, 4, 8, 8}), Gpu::Result::Success);
+    const auto before = owner->operations().snapshot();
+    KisSelectionSP selected = new KisSelection;
+    selected->pixelSelection()->select({4, 4, 8, 8}, 255);
+    KisTransaction transaction(nativeTarget->paintDevice());
+    nativeTarget->paintDevice()->clearSelection(selected);
+    transaction.commit(native->undoAdapter());
+    native->waitForDone();
+    const auto count = owner->operations().undoCount();
+    QCOMPARE(owner->clearMaskPixels(maskLayer, true, maskUuid), Gpu::Result::Success);
+    QCOMPARE(owner->operations().undoCount(), count + 1);
+    const auto painted = owner->operations().snapshot();
+    const auto paintedPixels = pixels(nativeNode.data());
+    QCOMPARE(pixels(node.data()), paintedPixels);
+    QSignalSpy changes(owner.data(), &Gpu::PaintImage::changed);
+    const auto write = [&](QPoint point, quint8 alpha) {
+        return nativeNode->setPixelData(QByteArray(1, char(alpha)), point.x(), point.y(), 1, 1) &&
+            node->setPixelData(QByteArray(1, char(alpha)), point.x(), point.y(), 1, 1);
+    };
+    QVERIFY(write({50, 30}, 17)); // Same native block as the clear, outside its pixel rectangle.
+    QVERIFY(write({90, 20}, 64)); // Independent native block survives navigation.
+    QVERIFY(write({205, -2}, 83)); // Off-canvas Alpha8 retains the same default and storage.
+    QCOMPARE(changes.count(), 0);
+    QCOMPARE(owner->operations().undoCount(), count + 1);
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    nativeDocument->undoStack()->undo(); native->waitForDone(); document->undoStack()->undo();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    QVERIFY(write({49, 30}, 9));
+    QVERIFY(write({95, 20}, 111));
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    nativeDocument->undoStack()->redo(); native->waitForDone(); document->undoStack()->redo();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    nativeDocument->undoStack()->undo(); native->waitForDone(); document->undoStack()->undo();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    nativeDocument->undoStack()->redo(); native->waitForDone(); document->undoStack()->redo();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    const auto frozen = [&](const Gpu::Snapshot &version) {
+        for (const auto &layer : version->layers) if (layer.id == maskLayer)
+            return execution->readSelectionPixels(Gpu::editableMaskCoverage(layer, maskUuid), area, area.width() * area.height()).bytes;
+        return QByteArray{};
+    };
+    QCOMPARE(frozen(before), initialPixels); QCOMPARE(frozen(painted), paintedPixels);
+    const auto after = owner->operations().snapshot();
+    QVERIFY(!node->setPixelData(QByteArray(1, char(1)), 0, 0, -1, 1));
+    QVERIFY(!node->setPixelData(QByteArray(1, char(1)), 0, 0, 2, 1));
+    QVERIFY(!node->setPixelData(QByteArray(2, char(1)), std::numeric_limits<int>::max(), 0, 2, 1));
+    QVERIFY(node->setPixelData({}, 0, 0, 0, 7));
+    QCOMPARE(owner->operations().snapshot(), after);
+    QVERIFY(nativeNode->remove()); QVERIFY(node->remove());
+    QVERIFY(write({120, 40}, 33));
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    nativeDocument->undoStack()->undo(); document->undoStack()->undo();
+    native->waitForDone();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    nativeDocument->undoStack()->redo(); document->undoStack()->redo();
+    native->waitForDone();
+    QVERIFY(write({145, 40}, 143));
+    nativeDocument->undoStack()->undo(); document->undoStack()->undo();
+    native->waitForDone();
+    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto path = directory.filePath("direct-mask.kra");
+    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QScopedPointer<Node> loaded(Node::createNode(reopened->image(), find(reopened->image()))); QVERIFY(loaded);
+    QCOMPARE(pixels(loaded.data()), pixels(nativeNode.data()));
+    QScopedPointer<Node> loadedNative(nativeNode->clone()); QVERIFY(loadedNative);
+    QVERIFY(loadedNative->setPixelData(QByteArray(1, char(222)), 150, 11, 1, 1));
+    QVERIFY(loaded->setPixelData(QByteArray(1, char(222)), 150, 11, 1, 1));
+    QCOMPARE(pixels(loaded.data()), pixels(loadedNative.data()));
+    QVERIFY(reopened->saveAs(directory.filePath("direct-mask-edited.kra"), KisDocument::nativeFormatMimeType(), false));
+    reopened->waitForSavingToComplete();
+    QScopedPointer<Node> copied(node->clone()); QScopedPointer<Node> nativeCopy(nativeNode->clone());
+    QVERIFY(copied); QVERIFY(nativeCopy);
+    const auto sourcePixels = pixels(node.data());
+    QVERIFY(copied->setPixelData(QByteArray(1, char(197)), 151, 31, 1, 1));
+    QVERIFY(nativeCopy->setPixelData(QByteArray(1, char(197)), 151, 31, 1, 1));
+    QCOMPARE(pixels(copied.data()), pixels(nativeCopy.data()));
+    QCOMPARE(pixels(node.data()), sourcePixels);
+    owner->close(); document.reset(); node.reset(); target.clear();
+    nativeNode.reset(); nativeTarget.clear(); nativePaint.clear(); native.clear(); nativeDocument.reset();
+    QVERIFY(copied->setPixelData(QByteArray(1, char(3)), 210, 103, 1, 1));
+    QVERIFY(nativeCopy->setPixelData(QByteArray(1, char(3)), 210, 103, 1, 1));
+    QCOMPARE(pixels(copied.data()), pixels(nativeCopy.data()));
+}
+
+void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra_data()
+{
+    testMaskPixelWritesKeepNativeBlockHistoryAndKra_data();
+}
+
+void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra()
+{
+    QFETCH(bool, words); QFETCH(QString, kind);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    KisImageSP image = new KisImage(document->createUndoStore(), 64, 48, cs, "Mask coordinates");
+    document->setCurrentImage(image);
+    KisPaintLayerSP paint = new KisPaintLayer(image, "Paint", 255);
+    image->addNode(paint, image->root());
+    const auto uniform = [] {
+        KisSelectionSP selection = new KisSelection;
+        const quint8 white = 255;
+        selection->pixelSelection()->setDefaultPixel(KoColor(&white, selection->pixelSelection()->colorSpace()));
+        return selection;
+    };
+    const auto filter = KisFilterRegistry::instance()->value("maximize"); QVERIFY(filter);
+    const auto config = filter->defaultConfiguration(KisGlobalResourcesInterface::instance())->cloneWithResourcesSnapshot();
+    KisNodeSP target;
+    if (kind == QLatin1String("filter")) {
+        KisFilterMaskSP mask = new KisFilterMask(image, "Target");
+        mask->initSelection(uniform(), paint); mask->setFilter(config);
+        image->addNode(mask, paint); target = mask;
+    } else if (kind.startsWith(QLatin1String("adjustment"))) {
+        KisAdjustmentLayerSP adjustment = new KisAdjustmentLayer(image, "Adjustment", config, uniform());
+        image->addNode(adjustment, image->root(), paint); target = adjustment;
+        if (kind == QLatin1String("adjustment-child")) {
+            KisTransparencyMaskSP mask = new KisTransparencyMask(image, "Target");
+            mask->setSelection(uniform()); image->addNode(mask, adjustment); target = mask;
+        }
+    } else {
+        KisTransparencyMaskSP mask = new KisTransparencyMask(image, "Target");
+        mask->setSelection(uniform()); image->addNode(mask, paint); target = mask;
+    }
+    QScopedPointer<Node> node(Node::createNode(image, target));
+    QCOMPARE(target->paintDevice()->pixelSize(), 1U);
+    QVERIFY(node->setPixelData(QByteArray::fromHex("a04010"), 8, 8, 3, 1));
+    const QRect area(-8, -8, 40, 32);
+    const auto read = [&](Node *value, QPoint offset) {
+        return value->pixelData(area.x() + offset.x(), area.y() + offset.y(), area.width(), area.height());
+    };
+    auto original = read(node.data(), {});
+    QCOMPARE(node->position(), QPoint());
+    const auto history = document->undoStack()->count();
+    const QPoint direct(13, -7), moved(-65, 73);
+    node->move(direct.x(), direct.y());
+    QCOMPARE(node->position(), direct);
+    QCOMPARE(target->paintDevice()->offset(), direct);
+    QCOMPARE(read(node.data(), direct), original);
+    QCOMPARE(document->undoStack()->count(), history);
+    {
+        KisTransaction transaction(target->paintDevice());
+        node->move(moved.x(), moved.y());
+        transaction.commit(image->undoAdapter());
+    }
+    image->waitForDone();
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    QCOMPARE(node->position(), moved);
+    QCOMPARE(read(node.data(), moved), original);
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(node->position(), direct);
+    QCOMPARE(read(node.data(), direct), original);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(node->position(), moved);
+    QCOMPARE(read(node.data(), moved), original);
+    node->move(29, -37);
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(node->position(), direct); QCOMPARE(read(node.data(), direct), original);
+    node->move(-101, -97);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(node->position(), moved); QCOMPARE(read(node.data(), moved), original);
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(node->position(), direct); QCOMPARE(read(node.data(), direct), original);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(node->position(), moved); QCOMPARE(read(node.data(), moved), original);
+    QVERIFY(node->setPixelData(QByteArray(1, char(91)), 8 + moved.x(), 8 + moved.y(), 1, 1));
+    const qsizetype patchIndex = (8 - area.y()) * area.width() + 8 - area.x();
+    original[patchIndex] = char(91);
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(node->position(), direct); QCOMPARE(read(node.data(), direct), original);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(node->position(), moved); QCOMPARE(read(node.data(), moved), original);
+    QScopedPointer<Node> copy(node->clone()); QVERIFY(copy);
+    QCOMPARE(copy->position(), moved);
+    const QPoint copyPosition(111, -129);
+    copy->move(copyPosition.x(), copyPosition.y());
+    QCOMPARE(copy->position(), copyPosition);
+    QCOMPARE(read(copy.data(), copyPosition), original);
+    QCOMPARE(node->position(), moved);
+    QCOMPARE(read(node.data(), moved), original);
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto path = directory.filePath("moved-mask.kra");
+    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    KisNodeSP restored;
+    KisNodeList pending{reopened->image()->root()};
+    for (qsizetype i = 0; i < pending.size(); ++i) {
+        const auto candidate = pending[i];
+        if (candidate->uuid() == target->uuid()) { restored = candidate; break; }
+        for (auto child = candidate->firstChild(); child; child = child->nextSibling()) pending.append(child);
+    }
+    QVERIFY(restored);
+    QScopedPointer<Node> loaded(Node::createNode(reopened->image(), restored));
+    QCOMPARE(loaded->position(), moved);
+    QCOMPARE(read(loaded.data(), moved), original);
+    const QPoint edited(79, 89);
+    loaded->move(edited.x(), edited.y());
+    QCOMPARE(loaded->position(), edited);
+    QCOMPARE(read(loaded.data(), edited), original);
+
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    QScopedPointer<KisDocument> gpuDocument(KisPart::instance()->createDocument());
+    gpuDocument->setFileBatchMode(true);
+    QVERIFY2(gpuDocument->openPath(path, KisDocument::DontAddToRecent), qPrintable(gpuDocument->errorMessage()));
+    const auto owner = gpuDocument->image()->gpuImage(); QVERIFY(owner);
+    const auto findNode = [&](KisImageSP view) -> KisNodeSP {
+        KisNodeList candidates{view->root()};
+        for (qsizetype i = 0; i < candidates.size(); ++i) {
+            const auto candidate = candidates[i];
+            if (candidate->uuid() == target->uuid()) return candidate;
+            for (auto child = candidate->firstChild(); child; child = child->nextSibling()) candidates.append(child);
+        }
+        return {};
+    };
+    const auto gpuTarget = findNode(gpuDocument->image()); QVERIFY(gpuTarget);
+    QScopedPointer<Node> gpuNode(Node::createNode(gpuDocument->image(), gpuTarget));
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    const auto gpuHistory = gpuDocument->undoStack()->count();
+    gpuNode->move(direct.x(), direct.y());
+    QCOMPARE(gpuNode->position(), direct);
+    QCOMPARE(read(gpuNode.data(), direct), original);
+    QCOMPARE(gpuDocument->undoStack()->count(), gpuHistory);
+    LibrePaint::Image::Gpu::LayerId layerId = 0;
+    const bool internal = kind == QLatin1String("filter") || kind == QLatin1String("adjustment");
+    for (const auto &layer : owner->operations().snapshot()->layers)
+        if ((internal ? layer.uuid : layer.transparencyMaskUuid) == target->uuid()) layerId = layer.id;
+    QVERIFY(layerId);
+    const QList<LibrePaint::Image::Gpu::LayerTranslationTarget> targets{{layerId, false, !internal, internal}};
+    auto token = owner->beginLayerTranslation(targets); QVERIFY(!token.isNull());
+    QCOMPARE(owner->updateLayerTranslation(token, moved - direct), LibrePaint::Image::Gpu::Result::Success);
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    QCOMPARE(owner->cancelLayerTranslation(token), LibrePaint::Image::Gpu::Result::Success);
+    QCOMPARE(gpuNode->position(), direct);
+    QCOMPARE(read(gpuNode.data(), direct), original);
+    token = owner->beginLayerTranslation(targets); QVERIFY(!token.isNull());
+    QCOMPARE(owner->updateLayerTranslation(token, moved - direct), LibrePaint::Image::Gpu::Result::Success);
+    QCOMPARE(owner->commitLayerTranslation(token), LibrePaint::Image::Gpu::Result::Success);
+    QCOMPARE(gpuDocument->undoStack()->count(), gpuHistory + 1);
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    gpuDocument->undoStack()->undo();
+    QCOMPARE(gpuNode->position(), direct);
+    QCOMPARE(read(gpuNode.data(), direct), original);
+    gpuDocument->undoStack()->redo();
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    gpuNode->move(29, -37);
+    gpuDocument->undoStack()->undo();
+    QCOMPARE(gpuNode->position(), direct); QCOMPARE(read(gpuNode.data(), direct), original);
+    gpuNode->move(-101, -97);
+    gpuDocument->undoStack()->redo();
+    QCOMPARE(gpuNode->position(), moved); QCOMPARE(read(gpuNode.data(), moved), original);
+    gpuDocument->undoStack()->undo();
+    QCOMPARE(gpuNode->position(), direct); QCOMPARE(read(gpuNode.data(), direct), original);
+    gpuDocument->undoStack()->redo();
+    QCOMPARE(gpuNode->position(), moved); QCOMPARE(read(gpuNode.data(), moved), original);
+    QVERIFY(gpuNode->setPixelData(QByteArray(1, char(73)), 8 + moved.x(), 8 + moved.y(), 1, 1));
+    auto editedPixels = original; editedPixels[patchIndex] = char(73);
+    gpuDocument->undoStack()->undo();
+    QCOMPARE(gpuNode->position(), direct); QCOMPARE(read(gpuNode.data(), direct), editedPixels);
+    gpuDocument->undoStack()->redo();
+    QCOMPARE(gpuNode->position(), moved); QCOMPARE(read(gpuNode.data(), moved), editedPixels);
+    QVERIFY(gpuNode->setPixelData(QByteArray(1, char(91)), 8 + moved.x(), 8 + moved.y(), 1, 1));
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    QScopedPointer<Node> gpuCopy(gpuNode->clone()); QVERIFY(gpuCopy);
+    QCOMPARE(gpuCopy->position(), moved);
+    gpuCopy->move(copyPosition.x(), copyPosition.y());
+    QCOMPARE(gpuCopy->position(), copyPosition);
+    QCOMPARE(read(gpuCopy.data(), copyPosition), read(copy.data(), copyPosition));
+    QCOMPARE(gpuNode->position(), moved);
+    QCOMPARE(read(gpuNode.data(), moved), original);
+    const auto gpuPath = directory.filePath("gpu-moved-mask.kra");
+    QVERIFY2(gpuDocument->saveAs(gpuPath, KisDocument::nativeFormatMimeType(), false), qPrintable(gpuDocument->errorMessage()));
+    gpuDocument->waitForSavingToComplete();
+    for (const auto &engine : {QByteArray("0"), QByteArray("1")}) {
+        qputenv("LIBREPAINT_GPU_ENGINE", engine);
+        QScopedPointer<KisDocument> restoredDocument(KisPart::instance()->createDocument());
+        restoredDocument->setFileBatchMode(true);
+        QVERIFY2(restoredDocument->openPath(gpuPath, KisDocument::DontAddToRecent), qPrintable(restoredDocument->errorMessage()));
+        const auto restoredTarget = findNode(restoredDocument->image()); QVERIFY(restoredTarget);
+        QScopedPointer<Node> restoredNode(Node::createNode(restoredDocument->image(), restoredTarget));
+        QCOMPARE(restoredNode->position(), moved);
+        QCOMPARE(read(restoredNode.data(), moved), original);
+        restoredNode->move(edited.x(), edited.y());
+        QCOMPARE(restoredNode->position(), edited);
+        QCOMPARE(read(restoredNode.data(), edited), original);
+    }
+    owner->close(); gpuNode.reset(); gpuDocument.reset();
+    node.reset(); loaded.reset(); reopened.reset(); document.reset();
+    const QPoint detached(159, 171);
+    copy->move(detached.x(), detached.y()); gpuCopy->move(detached.x(), detached.y());
+    QCOMPARE(copy->position(), detached); QCOMPARE(gpuCopy->position(), detached);
+    QCOMPARE(read(gpuCopy.data(), detached), read(copy.data(), detached));
+    QCOMPARE(read(gpuCopy.data(), detached), original);
+}
+
+void TestNode::testRawPixelWritesPreserveFormatHistoryAndFailures()
+{
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisImageSP image = new KisImage(document->createUndoStore(), 100, 100, KoColorSpaceRegistry::instance()->rgb8(), "test");
+    KisNodeSP layer = new KisPaintLayer(image, "Pixels", 255);
+    image->addNode(layer);
+    document->setCurrentImage(image);
+    image->waitForDone();
+    NodeSP node(Node::createNode(image, layer));
+    const auto raw = QByteArray::fromHex("120a2700197fafe00000ffffff000080");
+    const auto count = document->undoStack()->count();
+    const auto index = document->undoStack()->index();
+    const auto modified = document->isModified();
+    QVERIFY(node->setPixelData(raw + QByteArrayLiteral("ignored suffix"), -1, -1, 2, 2));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    QCOMPARE(node->pixelData(20, 20, 2, 2), QByteArray(16, '\0'));
+    QVERIFY(!node->setPixelData(raw.first(15), -1, -1, 2, 2));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    QVERIFY(node->setPixelData({}, 0, 0, 0, 0));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    QCOMPARE(document->undoStack()->count(), count);
+    QCOMPARE(document->undoStack()->index(), index);
+    QCOMPARE(document->isModified(), modified);
+    NodeSP group(Node::createNode(image, image->rootLayer()));
+    QVERIFY(!group->setPixelData(raw, 0, 0, 2, 2));
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestNode::testRawPixelWritesPreserveOtherLayerHistoryAndRedo()
+{
+    QScopedPointer<KisDocument> owner(KisPart::instance()->createDocument());
+    KisImageSP image = new KisImage(owner->createUndoStore(), 128, 128, KoColorSpaceRegistry::instance()->rgb8(), "test");
+    KisNodeSP edited = new KisPaintLayer(image, "Recorded edit", 255);
+    KisNodeSP imported = new KisPaintLayer(image, "External pixels", 255);
+    image->addNode(edited);
+    image->addNode(imported);
+    owner->setCurrentImage(image);
+    NodeSP editedNode(Node::createNode(image, edited));
+    NodeSP importedNode(Node::createNode(image, imported));
+    const auto before = QByteArray::fromHex("0000ffff");
+    const auto after = QByteArray::fromHex("ff0000ff");
+    const auto external = QByteArray::fromHex("120a2700");
+    QVERIFY(editedNode->setPixelData(before, 8, 12, 1, 1));
+    {
+        KisTransaction transaction(edited->paintDevice());
+        QVERIFY(editedNode->setPixelData(after, 8, 12, 1, 1));
+        transaction.commit(image->undoAdapter());
+    }
+    image->waitForDone();
+    QCOMPARE(owner->undoStack()->count(), 1);
+    owner->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(editedNode->pixelData(8, 12, 1, 1), before);
+    const auto modified = owner->isModified();
+    QVERIFY(importedNode->setPixelData(external, -1, -1, 1, 1));
+    QCOMPARE(owner->undoStack()->index(), 0);
+    QCOMPARE(owner->undoStack()->count(), 1);
+    QVERIFY(owner->undoStack()->canRedo());
+    QCOMPARE(owner->isModified(), modified);
+    QVERIFY(editedNode->setPixelData(external, 8, 12, 1, 1));
+    QVERIFY(editedNode->setPixelData(external, 96, 96, 1, 1));
+    QCOMPARE(editedNode->pixelData(8, 12, 1, 1), external);
+    owner->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(editedNode->pixelData(8, 12, 1, 1), after);
+    QCOMPARE(editedNode->pixelData(96, 96, 1, 1), external);
+    QCOMPARE(importedNode->pixelData(-1, -1, 1, 1), external);
+    owner->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(editedNode->pixelData(8, 12, 1, 1), external);
+    QCOMPARE(editedNode->pixelData(96, 96, 1, 1), external);
+    QCOMPARE(importedNode->pixelData(-1, -1, 1, 1), external);
+    KisPart::instance()->removeDocument(owner.data(), false);
+}
+
+void TestNode::testGpuPixelDataPreservesFormatHistoryAndSharedLifetime()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto image = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto handle = image->handle();
+    QSignalSpy changed(image.data(), &Gpu::PaintImage::changed);
+    auto pixels = KisPaintDevice::fromGpuImage(image, image->operations().activeLayer());
+    KisNodeSP layer = new KisPaintLayer(KisImageWSP(), QStringLiteral("GPU pixels"), 255, pixels);
+    NodeSP node(Node::createNode(KisImageSP(), layer));
+    const auto raw = QByteArray::fromHex("120a2700197fafe00000ffffff000080");
+    QVERIFY(node->setPixelData(raw + QByteArrayLiteral("ignored suffix"), -1, -1, 2, 2));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    QCOMPARE(node->pixelData(20, 20, 2, 2), QByteArray(16, '\0'));
+    QVERIFY(!node->setPixelData(raw.first(15), -1, -1, 2, 2));
+    QVERIFY(node->setPixelData({}, 0, 0, 0, 0));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    node->setVisible(false);
+    QCOMPARE(node->projectionPixelData(-1, -1, 2, 2), raw);
+    QCOMPARE(image->operations().undoCount(), 0);
+    QCOMPARE(image->operations().redoCount(), 0);
+    QVERIFY(!image->operations().isModified());
+    QVERIFY(changed.isEmpty());
+    const auto native = execution.readRgbaPixels(handle, image->operations().snapshot(), {-1, -1, 2, 2}, 1, 16);
+    QCOMPARE(native.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(native.bytes, QByteArray::fromHex("270a1200af7f19e0ff0000ff0000ff80"));
+    const auto retained = node->pixelData(-1, -1, 2, 2);
+    const auto after = QByteArray::fromHex("01020304");
+    image.clear();
+    pixels.clear();
+    layer.clear();
+    QVERIFY(execution.requested(handle));
+    QVERIFY(node->setPixelData(after, 0, 0, 1, 1));
+    QCOMPARE(node->pixelData(0, 0, 1, 1), after);
+    QCOMPARE(retained, raw);
+    node.clear();
+    QVERIFY(!execution.requested(handle));
+    QCOMPARE(execution.pendingDocuments(), qsizetype(0));
+}
+
+void TestNode::testPixelCopiesAndNodesOutliveTheImageOwner()
+{
+    KisImageSP image = new KisImage(nullptr, 100, 100, KoColorSpaceRegistry::instance()->rgb8(), "test");
+    KisNodeSP layer = new KisPaintLayer(image, "Pixels", 255);
+    image->addNode(layer);
+    NodeSP node(Node::createNode(image, layer));
+    const auto before = QByteArray::fromHex("197fafe0");
+    const auto after = QByteArray::fromHex("120a2700");
+    QVERIFY(node->setPixelData(before, 8, 12, 1, 1));
+    const auto retained = node->pixelData(8, 12, 1, 1);
+    QVERIFY(node->setPixelData(after, 8, 12, 1, 1));
+    QCOMPARE(retained, before);
+    QCOMPARE(node->pixelData(8, 12, 1, 1), after);
+    image->waitForDone();
+    layer.clear();
+    image.clear();
+    QCOMPARE(node->pixelData(8, 12, 1, 1), after);
+    QCOMPARE(retained, before);
+}
+
+void TestNode::testDetachedLayerCopiesPreserveIndependentPixels_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("duplicate");
+    QTest::addColumn<bool>("removed");
+    QTest::newRow("ordinary-clone") << false << false << false;
+    QTest::newRow("ordinary-duplicate") << false << true << false;
+    QTest::newRow("gpu-clone") << true << false << false;
+    QTest::newRow("gpu-duplicate") << true << true << false;
+    QTest::newRow("gpu-removed-clone") << true << false << true;
+    QTest::newRow("gpu-removed-duplicate") << true << true << true;
+}
+
+void TestNode::testDetachedLayerCopiesPreserveIndependentPixels()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, duplicate);
+    QFETCH(bool, removed);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Layer copy"));
+    } else {
+        image = new KisImage(nullptr, 64, 32, KoColorSpaceRegistry::instance()->rgb8(), "Layer copy");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Source"), 173));
+    }
+    auto layer = image->root()->firstChild();
+    NodeSP source(Node::createNode(image, layer));
+    source->setName(QStringLiteral("Source"));
+    source->setOpacity(173);
+    source->setVisible(false);
+    source->setAlphaLocked(true);
+    const auto before = QByteArray::fromHex("197fafe00000ffff120a2700ff000080");
+    const auto copiedEdit = QByteArray::fromHex("010203ff");
+    const auto sourceEdit = QByteArray::fromHex("ffeedd80");
+    QVERIFY(source->setPixelData(before, -1, 3, 2, 2));
+    if (removed) QCOMPARE(owner->removeLayer(owner->operations().activeLayer()), Gpu::Result::Success);
+    const auto version = owner ? owner->operations().snapshot() : Gpu::Snapshot();
+    const auto history = owner ? owner->operations().undoCount() : 0;
+    const auto childCount = image->root()->childCount();
+    NodeSP copy;
+    try {
+        copy.reset(duplicate ? source->duplicate() : source->clone());
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    QVERIFY(copy);
+    QVERIFY(!copy->parentNode());
+    QCOMPARE(image->root()->childCount(), childCount);
+    QVERIFY(copy->uniqueId() != source->uniqueId());
+    QCOMPARE(copy->name(), source->name());
+    QCOMPARE(copy->opacity(), 173);
+    QVERIFY(!copy->visible());
+    QVERIFY(copy->alphaLocked());
+    QCOMPARE(copy->pixelData(-1, 3, 2, 2), before);
+    if (owner) {
+        QCOMPARE(owner->operations().snapshot(), version);
+        QCOMPARE(owner->operations().undoCount(), history);
+    }
+    QVERIFY(copy->setPixelData(copiedEdit, -1, 3, 1, 1));
+    QCOMPARE(source->pixelData(-1, 3, 2, 2), before);
+    QVERIFY(source->setPixelData(sourceEdit, 0, 4, 1, 1));
+    const auto expected = copiedEdit + before.mid(4);
+    QCOMPARE(copy->pixelData(-1, 3, 2, 2), expected);
+    copy->setName(QStringLiteral("Independent"));
+    QCOMPARE(source->name(), QStringLiteral("Source"));
+    source.clear();
+    layer.clear();
+    image.clear();
+    owner.clear();
+    QCOMPARE(copy->pixelData(-1, 3, 2, 2), expected);
+    QVERIFY(copy->setPixelData(sourceEdit, -1, 3, 1, 1));
+    QCOMPARE(copy->pixelData(-1, 3, 1, 1), sourceEdit);
+}
+
+void TestNode::testInsertedLayersPreserveIdentityPixelsAndHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<int>("kind");
+    for (const bool gpu : {false, true}) {
+        for (const int kind : {0, 1, 2}) {
+            const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") +
+                (kind == 0 ? "created" : kind == 1 ? "cloned-above-source" : "duplicated");
+            QTest::newRow(name.constData()) << gpu << kind;
+        }
+    }
+}
+
+void TestNode::testInsertedLayersPreserveIdentityPixelsAndHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(int, kind);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage input;
+        input.size = {32, 16};
+        input.layers = {{QStringLiteral("Source"), true, {}, {}}, {QStringLiteral("Top"), true, {}, {}}};
+        owner = Gpu::PaintImageSP::create(execution, input);
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Public layer insertion"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 32, 16, KoColorSpaceRegistry::instance()->rgb8(), "Public layer insertion");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Source"), 255));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Top"), 255));
+    }
+    document->setCurrentImage(image);
+    Document api(document.data(), false);
+    NodeSP root(api.rootNode());
+    NodeSP source(Node::createNode(image, image->root()->firstChild()));
+    const auto before = QByteArray::fromHex("197fafe00000ffff120a2700ff000080");
+    const auto after = QByteArray::fromHex("a1b2c3ff");
+    QVERIFY(source->setPixelData(before, 5, 7, 2, 2));
+    NodeSP child(kind == 0 ? api.createNode(QStringLiteral("Inserted"), QStringLiteral("paintlayer")) :
+                 kind == 1 ? source->clone() : source->duplicate());
+    QVERIFY(child);
+    child->setName(QStringLiteral("Inserted"));
+    if (kind == 0) QVERIFY(child->setPixelData(before, 5, 7, 2, 2));
+    const auto identity = child->uniqueId();
+    const auto history = document->undoStack()->count();
+    try {
+        QVERIFY(root->addChildNode(child.data(), kind == 1 ? source.data() : nullptr));
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    image->waitForDone();
+    const auto index = kind == 1 ? 1 : 2;
+    QCOMPARE(image->root()->childCount(), 3U);
+    const auto native = image->root()->at(index);
+    QCOMPARE(native->uuid(), identity);
+    QCOMPARE(child->uniqueId(), identity);
+    QCOMPARE(child->pixelData(5, 7, 2, 2), before);
+    QScopedPointer<Node> parent(child->parentNode());
+    QVERIFY(parent);
+    QCOMPARE(parent->uniqueId(), root->uniqueId());
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    QTRY_VERIFY(document->isModified());
+    QVERIFY(child->setPixelData(after, 5, 7, 1, 1));
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), after);
+    QCOMPARE(source->pixelData(5, 7, 2, 2), before);
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), 2U);
+    QVERIFY(!native->parent());
+    QCOMPARE(child->pixelData(5, 7, 1, 1), after);
+    document->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(image->root()->at(index), native);
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), after);
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestNode::testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInputs()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Native insertion"));
+    KisNodeSP layer = new KisPaintLayer(image, QStringLiteral("Wide input"), 255);
+    auto pixels = layer->paintDevice();
+    const auto bytes = QByteArray::fromHex("112233ff").repeated(65 * 256);
+    pixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 0, 0, 65 * 256, 1);
+    NodeSP root(Node::createNode(image, image->root()));
+    NodeSP child(Node::createNode(image, layer));
+    QVERIFY(root->addChildNode(child.data(), nullptr));
+    QCOMPARE(image->root()->lastChild(), layer);
+    QCOMPARE(layer->paintDevice(), pixels);
+    QCOMPARE(child->pixelData(65 * 256 - 1, 0, 1, 1), QByteArray::fromHex("112233ff"));
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(image->root()->lastChild(), layer);
+    QCOMPARE(layer->paintDevice(), pixels);
+
+    Gpu::Limits limits;
+    limits.rasterBytes = Gpu::RgbaTile::ByteCount;
+    auto bounded = Gpu::PaintImageSP::create(execution, QSize(32, 16), limits);
+    auto boundedImage = KisImage::fromGpuImage(bounded, QStringLiteral("Bounded insertion"));
+    NodeSP boundedRoot(Node::createNode(boundedImage, boundedImage->root()));
+    NodeSP copy(child->clone());
+    const auto before = bounded->operations().preview();
+    QVERIFY(!boundedRoot->addChildNode(copy.data(), nullptr));
+    QCOMPARE(bounded->operations().preview(), before);
+    QVERIFY(!copy->parentNode());
+    QCOMPARE(copy->pixelData(0, 0, 1, 1), QByteArray::fromHex("112233ff"));
+    KisNodeSP invalid = new KisPaintLayer(boundedImage, QString(70000, QLatin1Char('x')), 255);
+    const auto originalDevice = invalid->paintDevice();
+    try {
+        QVERIFY(!boundedImage->insertGpuLayer(invalid, 0));
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    QCOMPARE(bounded->operations().preview(), before);
+    QCOMPARE(invalid->paintDevice(), originalDevice);
+    QVERIFY(!invalid->parent());
+    KisNodeSP prepared = new KisPaintLayer(boundedImage, QStringLiteral("Prepared first"), 255);
+    auto preparedPixels = prepared->paintDevice();
+    preparedPixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 0, 0, 1, 1);
+    QSignalSpy changed(bounded.data(), &Gpu::PaintImage::changed);
+    QVERIFY(!boundedImage->insertGpuLayers({prepared, invalid}, 0));
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(bounded->operations().preview(), before);
+    QVERIFY(!prepared->parent());
+    QCOMPARE(prepared->paintDevice(), preparedPixels);
+    QByteArray retainedPixel(4, Qt::Uninitialized);
+    preparedPixels->readBytes(reinterpret_cast<quint8*>(retainedPixel.data()), 0, 0, 1, 1);
+    QCOMPARE(retainedPixel, bytes.left(4));
+    QVERIFY(!boundedImage->insertGpuLayers({prepared, prepared}, 0));
+    QCOMPARE(bounded->operations().preview(), before);
+    QVERIFY(boundedImage->insertGpuLayers({prepared}, 0));
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(boundedImage->root()->firstChild(), prepared);
+    QCOMPARE(prepared->paintDevice(), preparedPixels);
+    preparedPixels->readBytes(reinterpret_cast<quint8*>(retainedPixel.data()), 0, 0, 1, 1);
+    QCOMPARE(retainedPixel, bytes.left(4));
+    QCOMPARE(bounded->operations().undoCount(), 1);
+    QCOMPARE(bounded->undo(), Gpu::Result::Success);
+    QVERIFY(!prepared->parent());
+    QCOMPARE(bounded->redo(), Gpu::Result::Success);
+    QCOMPARE(boundedImage->root()->firstChild(), prepared);
+
+    const auto admissionBefore = bounded->operations().preview();
+    const auto admissionSignals = changed.size();
+    QScopedPointer<QMimeData> mime(KisMimeData::mimeForLayers({prepared}, boundedImage, false));
+    QVERIFY(mime);
+    QList<Gpu::PaintImageSP> blockers;
+    for (int i = 0; i < 16; ++i) {
+        try {
+            blockers.append(Gpu::PaintImageSP::create(bounded->execution(), QSize(1, 1)));
+        } catch (const std::length_error &) {
+            break;
+        }
+    }
+    QVERIFY(!blockers.isEmpty());
+    bool copyInput = true;
+    try {
+        const auto rejected = KisMimeData::loadNodesFast(mime.data(), boundedImage, nullptr, copyInput);
+        QVERIFY(rejected.isEmpty());
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    QCOMPARE(bounded->operations().preview(), admissionBefore);
+    QCOMPARE(changed.size(), admissionSignals);
+    blockers.clear();
+    const auto copied = KisMimeData::loadNodesFast(mime.data(), boundedImage, nullptr, copyInput);
+    QCOMPARE(copied.size(), 1);
+    QVERIFY(copied.first() != prepared);
+    QVERIFY(!copied.first()->parent());
+    QCOMPARE(bounded->operations().preview(), admissionBefore);
+    QCOMPARE(changed.size(), admissionSignals);
+
+}
+
+void TestNode::testLayerRemovalPreservesPixelsAndHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("cloned");
+    QTest::addColumn<bool>("viaParent");
+    for (bool gpu : {false, true}) for (bool cloned : {false, true}) for (bool viaParent : {false, true}) {
+        const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") +
+            (cloned ? "cloned-" : "created-") + (viaParent ? "parent" : "self");
+        QTest::newRow(name.constData()) << gpu << cloned << viaParent;
+    }
+}
+
+void TestNode::testLayerRemovalPreservesPixelsAndHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, cloned);
+    QFETCH(bool, viaParent);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, QSize(32, 16)), "Public removal");
+    } else {
+        image = new KisImage(document->createUndoStore(), 32, 16, KoColorSpaceRegistry::instance()->rgb8(), "Public removal");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Source"), 255));
+    }
+    document->setCurrentImage(image);
+    Document api(document.data(), false);
+    NodeSP root(api.rootNode());
+    NodeSP bottom(Node::createNode(image, image->root()->firstChild()));
+    const auto original = QByteArray::fromHex("112233ff");
+    const auto inserted = QByteArray::fromHex("445566ff");
+    const auto detached = QByteArray::fromHex("778899ff");
+    QVERIFY(bottom->setPixelData(original, 5, 7, 1, 1));
+    NodeSP child(cloned ? bottom->clone() : api.createNode("Removable", "paintlayer"));
+    QVERIFY(root->addChildNode(child.data(), nullptr));
+    QVERIFY(child->setPixelData(inserted, 5, 7, 1, 1));
+    const auto native = image->root()->lastChild();
+    const auto history = document->undoStack()->count();
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    document->setFileBatchMode(true);
+    QVERIFY(document->saveAs(directory.filePath("removal.kra"), KisDocument::nativeFormatMimeType(), false));
+    QTRY_VERIFY(!document->isModified());
+    if (gpu) {
+        const auto owner = image->gpuImage();
+        const auto before = owner->operations().snapshot();
+        const auto stroke = owner->beginStroke(before->layers.first().id, {}, 17);
+        QVERIFY(!stroke.isNull());
+        QVERIFY(!(viaParent ? root->removeChildNode(child.data()) : child->remove()));
+        QCOMPARE(owner->operations().snapshot(), before);
+        QCOMPARE(document->undoStack()->count(), history);
+        QCOMPARE(native->parent(), image->root());
+        QCOMPARE(owner->cancelStroke(stroke), Gpu::Result::Success);
+    }
+    try {
+        QVERIFY(viaParent ? root->removeChildNode(child.data()) : child->remove());
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), 1U);
+    QVERIFY(!native->parent());
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    QTRY_VERIFY(document->isModified());
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), original);
+    QCOMPARE(child->pixelData(5, 7, 1, 1), inserted);
+    QVERIFY(child->setPixelData(detached, 5, 7, 1, 1));
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), original);
+    QVERIFY(!child->remove());
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(image->root()->lastChild(), native);
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), detached);
+    QTRY_VERIFY(!document->isModified());
+    document->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), 1U);
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), original);
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestNode::testHistoryNavigationWaitsForImageJobs_data()
+{
+    QTest::addColumn<QString>("navigation");
+    QTest::addColumn<bool>("active");
+    QTest::addColumn<bool>("cloned");
+    QTest::newRow("undo") << QStringLiteral("undo") << false << false;
+    QTest::newRow("redo") << QStringLiteral("redo") << false << false;
+    QTest::newRow("set-index") << QStringLiteral("set-index") << false << false;
+    QTest::newRow("active-undo") << QStringLiteral("undo") << true << false;
+    QTest::newRow("active-redo") << QStringLiteral("redo") << true << false;
+    QTest::newRow("worker-clone-undo") << QStringLiteral("undo") << false << true;
+}
+
+void TestNode::testHistoryNavigationWaitsForImageJobs()
+{
+    QFETCH(QString, navigation);
+    QFETCH(bool, active);
+    QFETCH(bool, cloned);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(document->newImage(QStringLiteral("History navigation with pending image work"), 32, 16, cs,
+                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, active ? 2 : 1, {}, 1));
+    KisImageSP image = document->image();
+    if (cloned) {
+        QScopedPointer<KisDocument> copy;
+        bool usedWorkerThread = false;
+        const auto stroke = image->startStroke(new HistoryNavigationImageJob);
+        image->addJob(stroke, new KisRunnableStrokeJobData([&] {
+            usedWorkerThread = QThread::currentThread() != qApp->thread();
+            copy.reset(document->clone());
+            copy->moveToThread(qApp->thread());
+        }, KisStrokeJobData::BARRIER, KisStrokeJobData::EXCLUSIVE));
+        image->endStroke(stroke);
+        image->waitForDone();
+        QVERIFY(usedWorkerThread);
+        QVERIFY(copy);
+        QCOMPARE(copy->thread(), qApp->thread());
+        image = copy->image();
+        document.swap(copy);
+    }
+    if (active) {
+        QScopedPointer<Node> first(Node::createNode(image, image->root()->firstChild()));
+        QVERIFY(first->remove());
+    }
+    const auto original = image->root()->firstChild();
+    QScopedPointer<Node> api(Node::createNode(image, original));
+    QVERIFY(api->remove());
+    const int historyCount = active ? 2 : 1;
+    QCOMPARE(document->undoStack()->count(), historyCount);
+    QCOMPARE(document->undoStack()->index(), historyCount);
+    if (navigation == QStringLiteral("redo")) {
+        document->undoStack()->undo();
+        image->waitForDone();
+        if (active) {
+            document->undoStack()->undo();
+            image->waitForDone();
+        }
+        QCOMPARE(document->undoStack()->index(), 0);
+        QCOMPARE(active ? image->root()->lastChild() : image->root()->firstChild(), original);
+    }
+    const int initialIndex = document->undoStack()->index();
+    QSignalSpy changes(document->undoStack(), &KUndo2Stack::indexChanged);
+    PausedHistoryImageJob pending(image, active);
+    QVERIFY(pending.waitForStart());
+    QVERIFY(!image->isIdle());
+    QCOMPARE(image->hasOpenStrokes(), active);
+    if (navigation == QStringLiteral("undo")) document->undoStack()->undo();
+    else if (navigation == QStringLiteral("redo")) document->undoStack()->redo();
+    else document->undoStack()->setIndex(0);
+    QCOMPARE(document->undoStack()->index(), initialIndex);
+    QCOMPARE(changes.count(), 0);
+    pending.finish();
+    QVERIFY(!image->hasOpenStrokes());
+    if (active) {
+        if (navigation == QStringLiteral("undo")) document->undoStack()->undo();
+        else document->undoStack()->redo();
+    }
+    const int expectedIndex = initialIndex + (navigation == QStringLiteral("redo") ? 1 : -1);
+    QTRY_COMPARE(document->undoStack()->index(), expectedIndex);
+    image->waitForDone();
+    QCOMPARE(document->undoStack()->count(), historyCount);
+    QCOMPARE(changes.count(), 1);
+    QCOMPARE(image->root()->firstChild(), active || initialIndex ? original : KisNodeSP());
+}
+
+void TestNode::testDeferredHistoryRequestsPreserveOrderAndLifetime_data()
+{
+    QTest::addColumn<QString>("operation");
+    for (const auto &operation : {"ordered", "replace-image", "destroy-document", "notification-replace", "notification-destroy", "close-notification"})
+        QTest::newRow(operation) << QString::fromLatin1(operation);
+}
+
+void TestNode::testDeferredHistoryRequestsPreserveOrderAndLifetime()
+{
+    QFETCH(QString, operation);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(document->newImage(QStringLiteral("Deferred history lifetime"), 32, 16, cs,
+                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    KisImageSP image = document->image();
+    const auto original = image->root()->firstChild();
+    QScopedPointer<Node> api(Node::createNode(image, original));
+    const auto pixels = api->pixelData(0, 0, 1, 1);
+    QVERIFY(api->remove());
+    QCOMPARE(document->undoStack()->index(), 1);
+    QPointer<KUndo2Stack> lifetime(document->undoStack());
+    QSignalSpy changes(lifetime, &KUndo2Stack::indexChanged);
+    QSignalSpy undoRequests(image.data(), &KisImage::sigUndoDuringStrokeRequested);
+    QSignalSpy redoRequests(image.data(), &KisImage::sigRedoDuringStrokeRequested);
+    PausedHistoryImageJob pending(image);
+    QVERIFY(pending.waitForStart());
+
+    const auto replaceAndRecord = [&] {
+        if (!document->newImage(QStringLiteral("Replacement history"), 32, 16, cs,
+                                KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1)) return false;
+        KisImageSP replacement = document->image();
+        while (replacement->root()->firstChild()) {
+            QScopedPointer<Node> node(Node::createNode(replacement, replacement->root()->firstChild()));
+            if (!node->remove()) return false;
+        }
+        return document->undoStack()->index() == 2;
+    };
+    bool replaced = false;
+    QMetaObject::Connection notification;
+    const auto disconnectNotification = qScopeGuard([&] { QObject::disconnect(notification); });
+    if (operation.startsWith(QStringLiteral("notification-"))) {
+        notification = connect(image.data(), &KisImage::sigUndoDuringStrokeRequested, image.data(), [&] {
+            pending.finish();
+            if (operation == QStringLiteral("notification-destroy")) document.reset();
+            else replaced = replaceAndRecord();
+        });
+    } else if (operation == QStringLiteral("close-notification")) {
+        notification = connect(image.data(), &KisImage::sigAboutToBeDeleted, image.data(), [stack = lifetime.data()] {
+            stack->undo();
+        });
+    }
+    document->undoStack()->undo();
+    if (operation == QStringLiteral("ordered")) {
+        document->undoStack()->redo();
+        document->undoStack()->undo();
+        QCOMPARE(document->undoStack()->index(), 1);
+        QCOMPARE(changes.count(), 0);
+        pending.finish();
+        QTRY_COMPARE(changes.count(), 3);
+        QCOMPARE(document->undoStack()->index(), 0);
+        image->waitForDone();
+        QCOMPARE(changes.at(0).at(0).toInt(), 0);
+        QCOMPARE(changes.at(1).at(0).toInt(), 1);
+        QCOMPARE(changes.at(2).at(0).toInt(), 0);
+        QCOMPARE(undoRequests.count(), 2);
+        QCOMPARE(redoRequests.count(), 1);
+        QCOMPARE(image->root()->firstChild(), original);
+        return;
+    }
+    if (operation == QStringLiteral("replace-image")) {
+        pending.finish();
+        replaced = replaceAndRecord();
+    } else if (operation == QStringLiteral("destroy-document") || operation == QStringLiteral("close-notification")) {
+        pending.finish();
+        document.reset();
+    }
+    if (operation.endsWith(QStringLiteral("destroy")) || operation == QStringLiteral("destroy-document") || operation == QStringLiteral("close-notification")) {
+        QVERIFY(lifetime.isNull());
+        QCOMPARE(image->root()->childCount(), 0U);
+        QCOMPARE(api->pixelData(0, 0, 1, 1), pixels);
+        return;
+    }
+    QVERIFY(replaced);
+    KisImageSP replacement = document->image();
+    QSignalSpy replacementChanges(document->undoStack(), &KUndo2Stack::indexChanged);
+    document->undoStack()->undo();
+    QTRY_COMPARE(document->undoStack()->index(), 1);
+    replacement->waitForDone();
+    QCOMPARE(replacementChanges.count(), 1);
+    QCOMPARE(replacement->root()->childCount(), 1U);
+    QCOMPARE(image->root()->childCount(), 0U);
+}
+
+void TestNode::testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("ordinary-document") << false;
+    QTest::newRow("gpu-document") << true;
+}
+
+void TestNode::testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory()
+{
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::shared_ptr<Gpu::Execution> execution;
+    Gpu::PaintImageSP owner;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        const auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Public removal in window")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Public removal in window"), 32, 16, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    KisImageSP image = lifetime->image();
+    QCOMPARE(image->root()->childCount(), 1U);
+    const auto native = image->root()->firstChild();
+    auto *manager = window->viewManager()->nodeManager();
+    QTRY_COMPARE(manager->activeNode(), native);
+    QScopedPointer<Node> api(Node::createNode(image, native));
+    QVERIFY(api->remove());
+    image->waitForDone();
+    QTRY_COMPARE(image->root()->childCount(), 0U);
+    QTRY_VERIFY(manager->activeNode() != native);
+    QTRY_VERIFY(!manager->selectedNodes().contains(native));
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QTRY_COMPARE(image->root()->firstChild(), native);
+    QTRY_COMPARE(manager->activeNode(), native);
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QTRY_COMPARE(image->root()->childCount(), 0U);
+    QTRY_VERIFY(manager->activeNode() != native);
+    QTRY_VERIFY(!manager->selectedNodes().contains(native));
+}
+
+void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<QString>("figure");
+    QTest::addColumn<QString>("strokeStyle");
+    QTest::addColumn<QString>("rejection");
+    QTest::addColumn<bool>("cloned");
+    QTest::addColumn<QString>("fillStyle");
+    QTest::addColumn<int>("foregroundAlpha");
+    for (const bool gpu : {false, true}) for (const auto &kind : {QStringLiteral("line"), QStringLiteral("rectangle")}) {
+        const auto figure = QStringLiteral("nested-") + kind;
+        QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure))
+            << gpu << figure << QStringLiteral("ForegroundColor") << QString() << false
+            << (kind == QLatin1String("line") ? QStringLiteral("None") : QStringLiteral("BackgroundColor")) << 255;
+    }
+    for (const bool gpu : {false, true}) for (const bool cloned : {false, true}) {
+        for (const bool mirrored : {false, true}) for (const auto &kind : {QStringLiteral("rectangle"), QStringLiteral("line")}) {
+            const auto figure = QStringLiteral("offcanvas-") + (mirrored ? QStringLiteral("mirrored-") : QString()) + kind;
+            const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure +
+                (cloned ? QStringLiteral("-clone") : QString());
+            const bool line = kind == QLatin1String("line");
+            QTest::newRow(qPrintable(name)) << gpu << figure << (line ? QStringLiteral("ForegroundColor") : QStringLiteral("None"))
+                << QString() << cloned << (line ? QStringLiteral("None") : QStringLiteral("ForegroundColor")) << 255;
+        }
+    }
+    for (bool gpu : {false, true}) {
+        for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
+                                  QStringLiteral("ellipse"), QStringLiteral("polygon"), QStringLiteral("polygon-pair")}) {
+            for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure + '-' + style;
+                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << false << QStringLiteral("None") << 255;
+            }
+        }
+    }
+    for (bool gpu : {false, true}) {
+        QTest::newRow(gpu ? "gpu-line-None" : "ordinary-line-None")
+            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << false << QStringLiteral("None") << 255;
+    }
+    for (bool gpu : {false, true}) {
+        for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
+                                  QStringLiteral("ellipse"), QStringLiteral("polygon"), QStringLiteral("polygon-pair")}) {
+            for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                const auto name = (gpu ? QStringLiteral("gpu-clone-") : QStringLiteral("ordinary-clone-")) + figure + '-' + style;
+                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << true << QStringLiteral("None") << 255;
+            }
+        }
+        QTest::newRow(gpu ? "gpu-clone-line-None" : "ordinary-clone-line-None")
+            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << true << QStringLiteral("None") << 255;
+    }
+    for (bool gpu : {false, true}) {
+        for (const auto &figure : {QStringLiteral("rectangle"), QStringLiteral("ellipse"), QStringLiteral("polygon")}) {
+            for (const auto &stroke : {QStringLiteral("None"), QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                for (const auto &fill : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                    const auto name = (gpu ? QStringLiteral("gpu-solid-") : QStringLiteral("ordinary-solid-")) +
+                        figure + '-' + stroke + '-' + fill;
+                    QTest::newRow(qPrintable(name)) << gpu << figure << stroke << QString() << false << fill << 255;
+                }
+            }
+        }
+        QTest::newRow(gpu ? "gpu-clone-solid-rectangle" : "ordinary-clone-solid-rectangle")
+            << gpu << QStringLiteral("rectangle") << QStringLiteral("ForegroundColor") << QString() << true << QStringLiteral("BackgroundColor") << 255;
+    }
+    for (bool gpu : {false, true}) {
+        for (int alpha : {0, 128}) {
+            const auto prefix = (gpu ? QStringLiteral("gpu-swatch-") : QStringLiteral("ordinary-swatch-")) + QString::number(alpha);
+            QTest::newRow(qPrintable(prefix + QStringLiteral("-line")))
+                << gpu << QStringLiteral("line") << QStringLiteral("ForegroundColor") << QString() << false << QStringLiteral("None") << alpha;
+            QTest::newRow(qPrintable(prefix + QStringLiteral("-fill")))
+                << gpu << QStringLiteral("rectangle") << QStringLiteral("None") << QString() << false << QStringLiteral("ForegroundColor") << alpha;
+        }
+    }
+    QTest::newRow("ordinary-preserve-none")
+        << false << QStringLiteral("line") << QStringLiteral("ForegroundColor") << QStringLiteral("none") << false << QStringLiteral("None") << 255;
+    for (bool gpu : {false, true}) {
+        QTest::newRow(gpu ? "gpu-preserve-empty-fill" : "ordinary-preserve-empty-fill")
+            << gpu << QStringLiteral("polygon-pair") << QStringLiteral("None") << QStringLiteral("empty-fill") << false << QStringLiteral("ForegroundColor") << 255;
+    }
+    for (bool gpu : {false, true}) {
+        const auto prefix = gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-");
+        for (const auto &figure : {QStringLiteral("path-line"), QStringLiteral("path-curve"), QStringLiteral("path-subpaths")}) {
+            for (const auto &stroke : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                QTest::newRow(qPrintable(prefix + figure + '-' + stroke))
+                    << gpu << figure << stroke << QString() << false << QStringLiteral("None") << 255;
+            }
+        }
+        for (const auto &figure : {QStringLiteral("path-hole-even-odd"), QStringLiteral("path-hole-winding")}) {
+            QTest::newRow(qPrintable(prefix + figure))
+                << gpu << figure << QStringLiteral("None") << QString() << false << QStringLiteral("ForegroundColor") << 255;
+        }
+        QTest::newRow(qPrintable(prefix + QStringLiteral("clone-path-curve")))
+            << gpu << QStringLiteral("path-curve") << QStringLiteral("ForegroundColor") << QString() << true << QStringLiteral("None") << 255;
+        QTest::newRow(qPrintable(prefix + QStringLiteral("path-empty")))
+            << gpu << QStringLiteral("path-empty") << QStringLiteral("ForegroundColor") << QStringLiteral("empty-path") << false << QStringLiteral("None") << 255;
+    }
+    for (const auto &reason : {QStringLiteral("busy"), QStringLiteral("invalid-pressure"), QStringLiteral("none")}) {
+        QTest::newRow(qPrintable(QStringLiteral("gpu-preserve-") + reason))
+            << true << QStringLiteral("line") << QStringLiteral("ForegroundColor") << reason << false << QStringLiteral("None") << 255;
+    }
+}
+
+void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(QString, figure);
+    QFETCH(QString, strokeStyle);
+    QFETCH(QString, rejection);
+    QFETCH(bool, cloned);
+    QFETCH(QString, fillStyle);
+    QFETCH(int, foregroundAlpha);
+    const bool nested = figure.startsWith(QLatin1String("nested-"));
+    if (nested) figure.remove(0, 7);
+    const bool offCanvas = figure.startsWith(QLatin1String("offcanvas-"));
+    const bool offCanvasLine = offCanvas && figure.endsWith(QLatin1String("line"));
+    const bool offCanvasMirror = figure.startsWith(QLatin1String("offcanvas-mirrored-"));
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    std::shared_ptr<Gpu::Execution> execution;
+    Gpu::PaintImageSP owner;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        const auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        Gpu::RasterImage raster;
+        raster.size = {64, 64};
+        raster.layers.append({QStringLiteral("Requested layer"), true, QUuid::createUuid(), {}});
+        if (nested) {
+            raster.layers.append({QStringLiteral("Inner group"), true, QUuid::createUuid(), {}});
+            raster.layers.append({QStringLiteral("Outer group"), true, QUuid::createUuid(), {}});
+            raster.layers[1].kind = raster.layers[2].kind = Gpu::LayerKind::Group;
+            raster.layers[0].parentUuid = raster.layers[1].uuid;
+            raster.layers[1].parentUuid = raster.layers[2].uuid;
+        }
+        raster.layers.append({QStringLiteral("Active layer"), true, QUuid::createUuid(), {}});
+        raster.activeLayer = raster.layers.size() - 1;
+        owner = Gpu::PaintImageSP::create(execution, raster);
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Public figure")));
+    } else {
+        QVERIFY(document->newImage(QStringLiteral("Public figure"), 64, 64, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+        if (nested) {
+            KisImageSP image = document->image();
+            const auto target = image->root()->firstChild();
+            KisNodeSP outer = new KisGroupLayer(image, QStringLiteral("Outer group"), 255);
+            KisNodeSP inner = new KisGroupLayer(image, QStringLiteral("Inner group"), 255);
+            image->removeNode(target);
+            image->addNode(outer, image->root(), quint32(0));
+            image->addNode(inner, outer);
+            image->addNode(target, inner);
+        }
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    window->activateWindow();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    KisImageSP image = lifetime->image();
+    KisNodeSP target = image->root()->firstChild();
+    if (nested) target = target->firstChild()->firstChild();
+    const auto active = image->root()->lastChild();
+    QVERIFY(target != active);
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotNonUiActivatedNode(active);
+    QTRY_COMPARE(manager->activeNode(), active);
+    auto preset = KisPaintOpRegistry::instance()->defaultPreset(KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    QVERIFY(preset);
+    preset->settings()->setPaintOpSize(8);
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(preset);
+    resources->setSize(8);
+    resources->setOpacity(1);
+    resources->setGlobalAlphaLock(false);
+    resources->setMirrorHorizontal(offCanvasMirror);
+    resources->setMirrorVertical(false);
+    image->setMirrorAxesCenter(offCanvasMirror ? QPointF(-4, 0.5) : QPointF(0.5, 0.5));
+    resources->setFGColor(KoColor(QColor(17, 129, 241, foregroundAlpha), cs));
+    resources->setBGColor(KoColor(QColor(221, 17, 44), cs));
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    const auto fillExpected = fillStyle == QLatin1String("BackgroundColor") ?
+        QByteArray::fromHex("2c11ddff") : QByteArray::fromHex("f18111ff");
+    const bool filledWithoutOutline = strokeStyle == QLatin1String("None") && fillStyle != QLatin1String("None");
+    const auto expected = filledWithoutOutline ? fillExpected : strokeStyle == QLatin1String("BackgroundColor") ?
+        QByteArray::fromHex("2c11ddff") : QByteArray::fromHex("f18111ff");
+    const bool pathHole = figure.startsWith(QLatin1String("path-hole-"));
+    QList<QPoint> exterior = offCanvasLine ? QList<QPoint>{{-4, -4}, {68, 68}} :
+        QList<QPoint>{{-4, 32}, {68, 32}, {32, -4}, {32, 68}};
+    if (offCanvasMirror) {
+        const auto original = exterior;
+        for (const auto point : original) exterior.append({-512 - point.x(), point.y()});
+    }
+    const QRect figureBounds = offCanvasMirror ? QRect(-588, -12, 664, 88) : QRect(-12, -12, 88, 88);
+    const QPoint sample(pathHole ? 16 : 32, pathHole ? 32 : filledWithoutOutline ? 24 :
+                          offCanvasLine || figure == QLatin1String("line") || figure == QLatin1String("polygon-pair") ||
+                          figure == QLatin1String("path-line") || figure == QLatin1String("path-curve") ? 32 :
+                          fillStyle != QLatin1String("None") ? 10 : 12);
+    QScopedPointer<Node> api(Node::createNode(image, target));
+    QScopedPointer<Node> activeApi(Node::createNode(image, active));
+    if (cloned) {
+        QScopedPointer<Node> copy(api->clone());
+        QVERIFY(copy);
+        QScopedPointer<Node> root(Node::createNode(image, image->root()));
+        QVERIFY(root->addChildNode(copy.data(), nullptr));
+        image->waitForDone();
+        api.swap(copy);
+        for (KisNodeSP candidate = image->root()->firstChild(); candidate; candidate = candidate->nextSibling()) {
+            if (candidate->uuid() == api->uniqueId()) target = candidate;
+        }
+        QCOMPARE(target->uuid(), api->uniqueId());
+        QTRY_COMPARE(manager->activeNode(), target);
+        manager->slotNonUiActivatedNode(active);
+        QTRY_COMPARE(manager->activeNode(), active);
+    }
+    const auto before = api->pixelData(0, 0, 64, 64);
+    const auto activeBefore = activeApi->pixelData(0, 0, 64, 64);
+    const int count = lifetime->undoStack()->count();
+    const int index = lifetime->undoStack()->index();
+    Gpu::OperationId pending;
+    if (rejection == QLatin1String("busy")) {
+        pending = owner->beginStroke(owner->operations().activeLayer(), Gpu::Brush{}, 0);
+        QVERIFY(!pending.isNull());
+        QCOMPARE(owner->appendSamples(pending, {{{4, 4}, 1}}), Gpu::Result::Success);
+    }
+    const auto cancelPending = qScopeGuard([&] {
+        if (owner && !pending.isNull() && owner->operations().activeOperation() == pending)
+            owner->cancelStroke(pending);
+    });
+    try {
+        if (rejection == QLatin1String("empty-fill")) {
+            api->paintPolygon({{12, 32}, {52, 32}}, strokeStyle, fillStyle);
+        } else if (figure.startsWith(QLatin1String("path-"))) {
+            QPainterPath path;
+            if (pathHole) {
+                path.addRect({12, 12, 40, 40});
+                path.addRect({24, 24, 16, 16});
+                if (figure == QLatin1String("path-hole-winding")) path.setFillRule(Qt::WindingFill);
+            } else if (figure == QLatin1String("path-subpaths")) {
+                path.moveTo(12, 12);
+                path.lineTo(52, 12);
+                path.moveTo(12, 52);
+                path.lineTo(52, 52);
+            } else if (figure != QLatin1String("path-empty")) {
+                path.moveTo(12, 32);
+                if (figure == QLatin1String("path-curve")) path.cubicTo(20, 12, 40, 52, 52, 32);
+                else path.lineTo(52, 32);
+            }
+            api->paintPath(path, strokeStyle, fillStyle);
+        } else if (rejection == QLatin1String("none")) {
+            api->paintRectangle({12, 12, 40, 40}, QStringLiteral("None"), QStringLiteral("None"));
+        } else if (figure == QLatin1String("line")) {
+            api->paintLine({12, 32}, {52, 32}, rejection == QLatin1String("invalid-pressure") ? -1 : 0.5, 1, strokeStyle);
+        }
+        else if (offCanvasLine) api->paintLine({-12, -12}, {76, 76}, 1, 1, strokeStyle);
+        else if (offCanvas) api->paintRectangle({-12, -12, 88, 88}, strokeStyle, fillStyle);
+        else if (figure == QLatin1String("rectangle")) api->paintRectangle({12, 12, 40, 40}, strokeStyle, fillStyle);
+        else if (figure == QLatin1String("ellipse")) api->paintEllipse({12, 12, 40, 40}, strokeStyle, fillStyle);
+        else if (figure == QLatin1String("polygon-pair")) api->paintPolygon({{12, 32}, {52, 32}}, strokeStyle, QStringLiteral("None"));
+        else api->paintPolygon({{12, 12}, {52, 12}, {32, 52}}, strokeStyle, fillStyle);
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    resources->setFGColor(KoColor(Qt::green, cs));
+    resources->setBGColor(KoColor(Qt::yellow, cs));
+    resources->setSize(30);
+    resources->setMirrorHorizontal(false);
+    if (pending.isNull()) image->waitForDone();
+    if (!rejection.isEmpty()) {
+        QApplication::sendPostedEvents();
+        const bool emptyIntent = rejection == QLatin1String("none") || rejection == QLatin1String("empty-fill") ||
+                                 rejection == QLatin1String("empty-path");
+        QTRY_COMPARE(lifetime->undoStack()->count(), count + (emptyIntent ? 1 : 0));
+        QCOMPARE(lifetime->undoStack()->index(), index + (emptyIntent ? 1 : 0));
+        QCOMPARE(api->pixelData(0, 0, 64, 64), before);
+        QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
+        QCOMPARE(manager->activeNode(), active);
+        if (owner) QCOMPARE(owner->operations().activeOperation(), pending);
+        if (!pending.isNull()) QCOMPARE(owner->cancelStroke(pending), Gpu::Result::Success);
+        if (emptyIntent) {
+            lifetime->undoStack()->undo();
+            image->waitForDone();
+            QCOMPARE(lifetime->undoStack()->index(), index);
+            QCOMPARE(api->pixelData(0, 0, 64, 64), before);
+            lifetime->undoStack()->redo();
+            image->waitForDone();
+            QCOMPARE(lifetime->undoStack()->index(), index + 1);
+            QCOMPARE(api->pixelData(0, 0, 64, 64), before);
+        }
+        return;
+    }
+    QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
+    QCOMPARE(lifetime->undoStack()->index(), index + 1);
+    QCOMPARE(api->pixelData(sample.x(), sample.y(), 1, 1), expected);
+    const auto exteriorDiagnostic = [&](bool painted) -> QString {
+        if (!offCanvas) return {};
+        for (const auto point : exterior) {
+            const auto actual = api->pixelData(point.x(), point.y(), 1, 1);
+            const auto wanted = painted ? fillExpected : QByteArray(4, '\0');
+            if (actual != wanted)
+                return QStringLiteral("Pixel (%1, %2): actual %3, expected %4")
+                    .arg(point.x()).arg(point.y()).arg(QString::fromLatin1(actual.toHex()), QString::fromLatin1(wanted.toHex()));
+        }
+        return {};
+    };
+    const auto paintedExterior = exteriorDiagnostic(true);
+    QVERIFY2(paintedExterior.isEmpty(), qPrintable(paintedExterior));
+    if (offCanvas && !offCanvasLine) QCOMPARE(api->bounds(), figureBounds);
+    if (pathHole) {
+        QCOMPARE(api->pixelData(32, 32, 1, 1), figure == QLatin1String("path-hole-winding") ? fillExpected : QByteArray(4, char(0)));
+    } else if (fillStyle != QLatin1String("None")) {
+        QCOMPARE(api->pixelData(32, 24, 1, 1), fillExpected);
+    }
+    if (figure == QLatin1String("path-subpaths")) QCOMPARE(api->pixelData(32, 32, 1, 1), QByteArray(4, char(0)));
+    if (fillStyle != QLatin1String("None") && (figure == QLatin1String("rectangle") || figure == QLatin1String("polygon")))
+        QCOMPARE(api->pixelData(32, 12, 1, 1), fillExpected);
+    QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
+    QCOMPARE(manager->activeNode(), active);
+    const auto painted = api->pixelData(0, 0, 64, 64);
+    QVERIFY(painted != before);
+    Document apiDocument(lifetime.data(), false);
+    apiDocument.refreshProjection();
+    QCOMPARE(apiDocument.pixelData(sample.x(), sample.y(), 1, 1), expected);
+    if (gpu && figure == QLatin1String("line")) {
+        const auto version = owner->operations().snapshot();
+        const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                                        [&](const auto &value) { return value.uuid == target->uuid(); });
+        QVERIFY(layer != version->layers.cend());
+        QVERIFY(!layer->operations.isEmpty());
+        const auto operation = std::get<Gpu::PaintSnapshot>(layer->operations.last());
+        QVERIFY(operation);
+        const auto samples = operation->inputSamples();
+        QCOMPARE(samples.size(), 2);
+        QCOMPARE(samples.first().pressure, 0.5);
+        QCOMPARE(samples.last().pressure, 1.0);
+    }
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(api->pixelData(0, 0, 64, 64), before);
+    QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
+    const auto undoneExterior = exteriorDiagnostic(false);
+    QVERIFY2(undoneExterior.isEmpty(), qPrintable(undoneExterior));
+    if (offCanvas) QVERIFY(api->bounds().isEmpty());
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(api->pixelData(0, 0, 64, 64), painted);
+    QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
+    const auto redoneExterior = exteriorDiagnostic(true);
+    QVERIFY2(redoneExterior.isEmpty(), qPrintable(redoneExterior));
+    if (offCanvas && !offCanvasLine) QCOMPARE(api->bounds(), figureBounds);
+    if (offCanvas) {
+        const QRect rawRegion(-592, -16, 672, 96);
+        const auto rawPixels = api->pixelData(rawRegion.x(), rawRegion.y(), rawRegion.width(), rawRegion.height());
+        QCOMPARE(rawPixels.size(), rawRegion.width() * rawRegion.height() * 4);
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const auto preserveFailure = qScopeGuard([&] {
+            if (QTest::currentTestFailed()) {
+                directory.setAutoRemove(false);
+                QFile pixels(directory.filePath(QStringLiteral("before-export.bgra")));
+                if (pixels.open(QIODevice::WriteOnly)) pixels.write(rawPixels);
+                qInfo() << "Off-canvas export artifacts retained at" << directory.path();
+            }
+        });
+        lifetime->setFileBatchMode(true);
+        const auto path = directory.filePath(QStringLiteral("offcanvas.kra"));
+        QVERIFY(apiDocument.saveAs(path));
+        apiDocument.waitForDone();
+        QScopedPointer<Document> reopened(Krita::instance()->openDocument(path));
+        QVERIFY(reopened);
+        QScopedPointer<Node> loadedNode(reopened->nodeByUniqueID(api->uniqueId()));
+        QVERIFY(loadedNode);
+        for (const auto point : exterior)
+            QCOMPARE(loadedNode->pixelData(point.x(), point.y(), 1, 1), fillExpected);
+        if (!offCanvasLine) QCOMPARE(loadedNode->bounds(), figureBounds);
+        QCOMPARE(loadedNode->pixelData(rawRegion.x(), rawRegion.y(), rawRegion.width(), rawRegion.height()), rawPixels);
+        InfoObject configuration;
+        configuration.setProperty("alpha", true);
+        configuration.setProperty("interlaced", false);
+        configuration.setProperty("compression", 3);
+        configuration.setProperty("saveSRGBProfile", true);
+        configuration.setProperty("forceSRGB", false);
+        configuration.setProperty("storeAuthor", false);
+        configuration.setProperty("storeMetaData", false);
+        const auto pngPath = directory.filePath(QStringLiteral("offcanvas.png"));
+        const bool exported = apiDocument.exportImage(pngPath, configuration);
+        QVERIFY2(exported, qPrintable(QStringLiteral("PNG export failed: %1; saving=%2 idle=%3 locked=%4")
+            .arg(lifetime->errorMessage()).arg(lifetime->isSaving()).arg(image->isIdle()).arg(image->locked())));
+        const QImage png(pngPath);
+        QCOMPARE(png.size(), QSize(64, 64));
+        const auto projection = apiDocument.pixelData(0, 0, 64, 64);
+        const auto exportedProjection = png.convertToFormat(QImage::Format_ARGB32);
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(exportedProjection.constBits()), exportedProjection.sizeInBytes()), projection);
+        QCOMPARE(png.colorSpace().iccProfile(), cs->profile()->rawData());
+        const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!results.isEmpty()) {
+            QVERIFY(QDir().mkpath(results));
+            const auto stem = QDir(results).filePath(QString::fromLatin1(QTest::currentDataTag()));
+            QFile raw(stem + QStringLiteral(".bgra"));
+            QVERIFY(raw.open(QIODevice::WriteOnly));
+            QCOMPARE(raw.write(rawPixels), rawPixels.size());
+            QVERIFY(QFile::copy(path, stem + QStringLiteral(".kra")));
+            QVERIFY(QFile::copy(pngPath, stem + QStringLiteral(".png")));
+        }
+        loadedNode.reset();
+        QVERIFY(reopened->close());
+    }
+}
+
+void TestNode::testLayerAndDocumentProjectionsRemainDistinct()
+{
+    QScopedPointer<KisDocument> owner(KisPart::instance()->createDocument());
+    KisImageSP image = new KisImage(owner->createUndoStore(), 64, 64, KoColorSpaceRegistry::instance()->rgb8(), "test");
+    KisNodeSP lower = new KisPaintLayer(image, "Lower", 255);
+    KisNodeSP upper = new KisPaintLayer(image, "Upper", 255);
+    image->addNode(lower);
+    image->addNode(upper);
+    owner->setCurrentImage(image);
+    NodeSP lowerNode(Node::createNode(image, lower));
+    NodeSP upperNode(Node::createNode(image, upper));
+    const auto red = QByteArray::fromHex("0000ffff").repeated(4);
+    const auto blue = QByteArray::fromHex("120a2700ff0000ffff0000ffff0000ff");
+    QVERIFY(lowerNode->setPixelData(red, 8, 12, 2, 2));
+    QVERIFY(upperNode->setPixelData(blue, 8, 12, 2, 2));
+    upperNode->setVisible(false);
+    Document document(owner.data(), false);
+    document.refreshProjection();
+    QCOMPARE(document.pixelData(8, 12, 2, 2), red);
+    QCOMPARE(upperNode->pixelData(8, 12, 2, 2), blue);
+    QCOMPARE(upperNode->projectionPixelData(8, 12, 2, 2), blue);
+    upperNode->setVisible(true);
+    document.refreshProjection();
+    QCOMPARE(document.pixelData(8, 12, 2, 2), red.first(4) + blue.mid(4));
+    QCOMPARE(lowerNode->pixelData(8, 12, 2, 2), red);
+    QCOMPARE(upperNode->pixelData(8, 12, 2, 2), blue);
+    KisPart::instance()->removeDocument(owner.data(), false);
+}
+
 void TestNode::testThumbnail()
 {
     KisImageSP image = new KisImage(0, 100, 100, KoColorSpaceRegistry::instance()->rgb8(), "test");
@@ -130,26 +3014,196 @@ void TestNode::testThumbnail()
     }
 }
 
+void TestNode::testGpuBoundsAndThumbnailMatchNativePixels_data()
+{
+    QTest::addColumn<QByteArray>("defaultPixel");
+    QTest::newRow("transparent") << QByteArray::fromHex("00000000");
+    QTest::newRow("implicit-color") << QByteArray::fromHex("316ac2c8");
+}
+
+void TestNode::testGpuBoundsAndThumbnailMatchNativePixels()
+{
+    QFETCH(QByteArray, defaultPixel);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    Gpu::RasterLayer imported;
+    imported.name = QStringLiteral("Pixels");
+    for (int i = 0; i < 4; ++i) imported.defaultPixel[i] = quint8(defaultPixel[i]);
+    auto owner = Gpu::PaintImageSP::create(execution, Gpu::RasterImage{{64, 32}, {imported}, 0});
+    auto gpuImage = KisImage::fromGpuImage(owner, QStringLiteral("GPU thumbnail"));
+    auto gpuLayer = gpuImage->root()->firstChild();
+    NodeSP gpuNode(Node::createNode(gpuImage, gpuLayer));
+    KisImageSP cpuImage = new KisImage(nullptr, 64, 32, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Native thumbnail"));
+    KisNodeSP cpuLayer = new KisPaintLayer(cpuImage, QStringLiteral("Pixels"), 255);
+    cpuImage->addNode(cpuLayer);
+    auto bgraDefault = defaultPixel;
+    std::swap(bgraDefault[0], bgraDefault[2]);
+    cpuLayer->paintDevice()->setDefaultPixel(KoColor(reinterpret_cast<const quint8 *>(bgraDefault.constData()), cpuImage->colorSpace()));
+    NodeSP cpuNode(Node::createNode(cpuImage, cpuLayer));
+    const auto bytes = QByteArray::fromHex("12345600aa1122ff00000000000000001020308000000000");
+    QVERIFY(cpuNode->setPixelData(bytes, -1, -1, 3, 2));
+    QVERIFY(gpuNode->setPixelData(bytes, -1, -1, 3, 2));
+    QCOMPARE(gpuNode->bounds(), cpuNode->bounds());
+    QCOMPARE(gpuNode->thumbnail(12, 10), cpuNode->thumbnail(12, 10));
+    QCOMPARE(gpuNode->position(), cpuNode->position());
+    const auto sequence = gpuLayer->thumbnailSeqNo();
+    QVERIFY(owner->addLayer(QStringLiteral("Other")));
+    QCOMPARE(gpuLayer->thumbnailSeqNo(), sequence);
+    QVERIFY(gpuNode->setPixelData(QByteArray::fromHex("552211ff"), 0, -1, 1, 1));
+    QVERIFY(gpuLayer->thumbnailSeqNo() != sequence);
+    QVERIFY(cpuNode->setPixelData(QByteArray::fromHex("552211ff"), 0, -1, 1, 1));
+    QCOMPARE(gpuNode->bounds(), cpuNode->bounds());
+    QCOMPARE(gpuNode->thumbnail(12, 10), cpuNode->thumbnail(12, 10));
+}
+
+void TestNode::testGpuThumbnailTransfersOnlyRequestedPixels()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device, 8 * Gpu::TileRenderer::TileBytes, 1, 4096);
+    Gpu::RasterImage raster;
+    raster.size = {64, 32};
+    raster.layers = {{QStringLiteral("Thumbnail pixels"), true, {}, {}}};
+    KisImageSP reference = new KisImage(nullptr, 64, 32, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Reference"));
+    KisNodeSP referenceLayer = new KisPaintLayer(reference, QStringLiteral("Thumbnail pixels"), 255);
+    reference->addNode(referenceLayer);
+    for (int y = -1; y <= 0; ++y) for (int x = -1; x <= 0; ++x) {
+        QByteArray rgba(Gpu::RgbaTile::ByteCount, '\0');
+        const int px = x < 0 ? 255 : 0, py = y < 0 ? 255 : 0;
+        const auto color = x < 0 && y < 0 ? QByteArray::fromHex("12345600") : QByteArray::fromHex("316ac2c8");
+        rgba.replace((py * 256 + px) * 4, 4, color);
+        raster.layers.first().tiles.append({{x, y}, rgba});
+        auto bgra = rgba;
+        for (qsizetype i = 0; i < bgra.size(); i += 4) std::swap(bgra[i], bgra[i + 2]);
+        referenceLayer->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(bgra.constData()), QRect(x * 256, y * 256, 256, 256));
+    }
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Bounded thumbnail"));
+    NodeSP actual(Node::createNode(image, image->root()->firstChild()));
+    NodeSP expected(Node::createNode(reference, referenceLayer));
+    const auto fixed = owner->operations().snapshot();
+    QImage thumbnail;
+    try {
+        thumbnail = actual->thumbnail(12, 10);
+        QCOMPARE(image->root()->firstChild()->paintDevice()->createThumbnail(12, 10, KisThumbnailBoundsMode::Coarse),
+                 referenceLayer->paintDevice()->createThumbnail(12, 10, KisThumbnailBoundsMode::Coarse));
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Public thumbnail requested full-resolution pixel transfer: ") + QString::fromUtf8(error.what())));
+    }
+    QCOMPARE(thumbnail, expected->thumbnail(12, 10));
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const QList<QPair<QString, QImage>> images{{QStringLiteral("public-thumbnail-precise"), thumbnail},
+            {QStringLiteral("public-thumbnail-coarse"), image->root()->firstChild()->paintDevice()->createThumbnail(12, 10, KisThumbnailBoundsMode::Coarse)}};
+        for (const auto &entry : images) {
+            const auto rgba = entry.second.convertToFormat(QImage::Format_RGBA8888);
+            QFile file(QDir(results).filePath(entry.first + QStringLiteral(".rgba")));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(reinterpret_cast<const char*>(rgba.constBits()), rgba.sizeInBytes()), rgba.sizeInBytes());
+            QVERIFY(entry.second.save(QDir(results).filePath(entry.first + QStringLiteral(".png"))));
+        }
+    }
+    QCOMPARE(owner->operations().snapshot(), fixed);
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QCOMPARE(execution.requested(owner->handle()), fixed);
+}
+
+void TestNode::testMergeDown_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("words");
+    QTest::newRow("native-u8") << false << false;
+    QTest::newRow("native-u16") << false << true;
+    QTest::newRow("gpu-u8") << true << false;
+    QTest::newRow("gpu-u16") << true << true;
+}
+
 void TestNode::testMergeDown()
 {
-    KisImageSP image = new KisImage(0, 100, 100, KoColorSpaceRegistry::instance()->rgb8(), "test");
-
-    KisNodeSP layer = new KisPaintLayer(image, "test1", 255);
-    {
-        KisFillPainter gc(layer->paintDevice());
-        gc.fillRect(0, 0, 100, 100, KoColor(Qt::gray, layer->colorSpace()));
+    // Scripting callers merge the upper layer, retain the result, undo/redo,
+    // save it, and continue editing without altering the removed source nodes.
+    QFETCH(bool, gpu);
+    QFETCH(bool, words);
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", gpu ? "1" : "0");
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const QRect area(0, 0, 32, 16);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setAutoSaveActive(false); document->setFileBatchMode(true);
+    QVERIFY(document->newImage(QStringLiteral("Public layer merge"), area.width(), area.height(), cs,
+        KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+    auto image = KisImageSP(document->image());
+    KisNodeSP lower = image->root()->at(0), upper = image->root()->at(1);
+    lower->setName(QStringLiteral("Lower")); upper->setName(QStringLiteral("Upper"));
+    for (auto node : {lower, upper}) {
+        node->setVisible(true); node->setUserLocked(false); node->setOpacity(255);
+        node->setCompositeOpId(QStringLiteral("normal"));
     }
-    image->addNode(layer);
-
-    KisNodeSP layer2 = new KisPaintLayer(image, "test2", 255);
-    {
-        KisFillPainter gc(layer2->paintDevice());
-        gc.fillRect(0, 0, 100, 100, KoColor(Qt::gray, layer2->colorSpace()));
-    }
-    image->addNode(layer2);
-    NodeSP n1 = NodeSP(Node::createNode(image, layer));
-    Node *n2 = n1->mergeDown();
-    delete n2;
+    const KoColor lowerColor(QColor(17, 91, 203, 255), cs), upperColor(QColor(231, 19, 73, 128), cs);
+    const auto lowerBytes = QByteArray(reinterpret_cast<const char *>(lowerColor.data()), cs->pixelSize()).repeated(area.width() * area.height());
+    const auto upperBytes = QByteArray(reinterpret_cast<const char *>(upperColor.data()), cs->pixelSize()).repeated(area.width() * area.height());
+    lower->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(lowerBytes.constData()), area);
+    upper->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(upperBytes.constData()), area);
+    KisPaintDeviceSP reference = new KisPaintDevice(cs), source = new KisPaintDevice(cs);
+    reference->writeBytes(reinterpret_cast<const quint8 *>(lowerBytes.constData()), area);
+    source->writeBytes(reinterpret_cast<const quint8 *>(upperBytes.constData()), area);
+    { KisPainter painter(reference); painter.bitBlt(area.topLeft(), source, area); }
+    QByteArray expected(lowerBytes.size(), '\0');
+    reference->readBytes(reinterpret_cast<quint8 *>(expected.data()), area);
+    if (!gpu) image->refreshGraphAsync();
+    image->waitForDone();
+    NodeSP bottom(Node::createNode(image, lower)), top(Node::createNode(image, upper));
+    QVERIFY(!bottom->mergeDown());
+    const auto history = document->undoStack()->count();
+    NodeSP merged(top->mergeDown());
+    QCOMPARE(image->root()->childCount(), quint32(1));
+    QVERIFY(merged);
+    QCOMPARE(merged->name(), QStringLiteral("Lower"));
+    QCOMPARE(merged->pixelData(area.x(), area.y(), area.width(), area.height()), expected);
+    QCOMPARE(bottom->pixelData(0, 0, area.width(), area.height()), lowerBytes);
+    QCOMPARE(top->pixelData(0, 0, area.width(), area.height()), upperBytes);
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    const auto mergedUuid = merged->uniqueId();
+    QVERIFY(mergedUuid != bottom->uniqueId() && mergedUuid != top->uniqueId());
+    document->undoStack()->undo(); image->waitForDone();
+    QCOMPARE(image->root()->childCount(), quint32(2));
+    QCOMPARE(bottom->pixelData(0, 0, area.width(), area.height()), lowerBytes);
+    document->undoStack()->redo(); image->waitForDone();
+    QCOMPARE(image->root()->childCount(), quint32(1));
+    QCOMPARE(merged->pixelData(0, 0, area.width(), area.height()), expected);
+    const KoColor changed(QColor(7, 211, 31), cs);
+    const QByteArray edit(reinterpret_cast<const char *>(changed.data()), cs->pixelSize());
+    QVERIFY(bottom->setPixelData(edit, 3, 5, 1, 1));
+    QCOMPARE(merged->pixelData(0, 0, area.width(), area.height()), expected);
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("merged.kra"));
+    QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    document->waitForSavingToComplete();
+    QVERIFY(document->openPath(path, KisDocument::DontAddToRecent));
+    image = document->image(); image->waitForDone();
+    QCOMPARE(image->root()->childCount(), quint32(1));
+    NodeSP reopened(Node::createNode(image, image->root()->at(0)));
+    QCOMPARE(reopened->uniqueId(), mergedUuid);
+    QCOMPARE(reopened->pixelData(0, 0, area.width(), area.height()), expected);
+    QVERIFY(reopened->setPixelData(edit, 5, 7, 1, 1));
+    QCOMPARE(reopened->pixelData(5, 7, 1, 1), edit);
+    const auto secondPath = directory.filePath(QStringLiteral("edited-merged.kra"));
+    QVERIFY(document->saveAs(secondPath, KisDocument::nativeFormatMimeType(), false));
+    document->waitForSavingToComplete();
+    QVERIFY(document->openPath(secondPath, KisDocument::DontAddToRecent));
+    image = document->image(); image->waitForDone();
+    NodeSP final(Node::createNode(image, image->root()->at(0)));
+    QCOMPARE(final->pixelData(5, 7, 1, 1), edit);
 }
 
 void TestNode::testFindChildNodes()

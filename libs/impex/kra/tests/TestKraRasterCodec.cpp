@@ -1,0 +1,2515 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#include <kra/KisKraRasterCodec.h>
+#include <QBuffer>
+#include <QColorSpace>
+#include <QDomDocument>
+#include <QDateTime>
+#include <QTimeZone>
+#include <QFile>
+#include <QDir>
+#include <QImage>
+#include <QTest>
+#include <QTemporaryDir>
+#include <QScopeGuard>
+#include <QtCore5Compat/QTextCodec>
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <cstring>
+#include <quazip.h>
+#include <quazipfile.h>
+#include <quazipfileinfo.h>
+#include <quazipnewinfo.h>
+
+namespace Kra = LibrePaint::ImportExport::Kra;
+using namespace LibrePaint::Image::Gpu;
+
+namespace {
+QMap<QString, QByteArray> entries(const QByteArray &bytes)
+{
+    QBuffer input;
+    input.setData(bytes);
+    if (!input.open(QIODevice::ReadOnly)) return {};
+    QuaZip archive(&input);
+    archive.setAutoClose(false);
+    if (!archive.open(QuaZip::mdUnzip)) return {};
+    QMap<QString, QByteArray> result;
+    for (bool more = archive.goToFirstFile(); more; more = archive.goToNextFile()) {
+        QuaZipFile file(&archive);
+        if (!file.open(QIODevice::ReadOnly)) return {};
+        result.insert(archive.getCurrentFileName(), file.readAll());
+        file.close();
+    }
+    archive.close();
+    return result;
+}
+
+QByteArray pack(const QMap<QString, QByteArray> &files)
+{
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    if (!output.open(QIODevice::WriteOnly)) return {};
+    QuaZip archive(&output);
+    archive.setAutoClose(false);
+    if (!archive.open(QuaZip::mdCreate)) return {};
+    for (auto item = files.cbegin(); item != files.cend(); ++item) {
+        QuaZipFile file(&archive);
+        QuaZipNewInfo info(item.key());
+        info.dateTime = QDateTime(QDate(1980, 1, 1), QTime(0, 0), QTimeZone(QTimeZone::UTC));
+        if (!file.open(QIODevice::WriteOnly, info)) return {};
+        if (file.write(item.value()) != item.value().size()) return {};
+        file.close();
+    }
+    archive.close();
+    return bytes;
+}
+
+Kra::LoadOutcome load(const QByteArray &bytes, Kra::Limits limits = {})
+{
+    QBuffer input;
+    input.setData(bytes);
+    if (!input.open(QIODevice::ReadOnly)) return {};
+    const auto result = Kra::RasterCodec::read(input, limits);
+    if (!input.isOpen()) return {};
+    return result;
+}
+
+QByteArray rgbaAt(const RasterLayer &layer, QPoint point)
+{
+    for (const auto &tile : layer.tiles) {
+        const auto local = point - tile.coordinate * RgbaTile::Size;
+        if (local.x() >= 0 && local.y() >= 0 && local.x() < RgbaTile::Size && local.y() < RgbaTile::Size) {
+            return tile.rgba.mid((local.y() * RgbaTile::Size + local.x()) * 4, 4);
+        }
+    }
+    QByteArray value;
+    for (const auto channel : layer.defaultPixel) value.append(char(channel));
+    return value;
+}
+
+Kra::Document document()
+{
+    Kra::Document value;
+    value.image.size = {513, 257};
+    value.image.activeLayer = 1;
+    value.image.layers = {
+        {QStringLiteral("Lower red"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")),
+         {{{-1, 0}, QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4)},
+          {{1, 1}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)}}},
+        {QStringLiteral("Hidden blue"), false, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")),
+         {{{0, 0}, QByteArray::fromHex("0000ff80").repeated(RgbaTile::ByteCount / 4)}}}
+    };
+    value.image.layers[0].defaultPixel = {17, 23, 31, 0};
+    value.image.layers[1].defaultPixel = {255, 255, 255, 255};
+    value.files.insert(QStringLiteral("documentinfo.xml"), QByteArrayLiteral("<document-info><title>Ink</title></document-info>"));
+    value.files.insert(QStringLiteral("notes/custom.bin"), QByteArray::fromHex("ff00017f"));
+    return value;
+}
+
+QImage merged(QSize size)
+{
+    QImage image(size, QImage::Format_RGBA8888);
+    image.fill(QColor(10, 20, 30, 128));
+    image.setColorSpace(QColorSpace::SRgb);
+    return image;
+}
+}
+
+class TestKraRasterCodec : public QObject
+{
+    Q_OBJECT
+private Q_SLOTS:
+    void layerTileEncodingMatchesTheCpuWriter_data();
+    void layerTileEncodingMatchesTheCpuWriter();
+    void groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf_data();
+    void groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf();
+    void previewSamplingPreservesEdgesAndWeightedAlpha_data();
+    void previewSamplingPreservesEdgesAndWeightedAlpha();
+    void previewRowsRejectIncompletePixels();
+    void savedPngResolutionComesFromDocumentMetadata_data();
+    void savedPngResolutionComesFromDocumentMetadata();
+    void archiveMetadataIsIndependentOfClockAndHost();
+    void layerOpacityAndLockSurviveEditingAndResaving();
+    void channelProtectionSurvivesEditingAndResaving_data();
+    void channelProtectionSurvivesEditingAndResaving();
+    void passThroughGroupsSurviveEditingAndResaving();
+    void layerBlendModesSurviveEditingAndResaving();
+    void projectionChannelsSurviveEditingAndResaving_data();
+    void projectionChannelsSurviveEditingAndResaving();
+    void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
+    void layerImageMetadataFollowsIdentityThroughReplacement();
+    void invalidLayerImageMetadataPreservesTheDocument_data();
+    void invalidLayerImageMetadataPreservesTheDocument();
+    void newLayersKeepUnownedMetadataFilesIndependent();
+    void documentColorSettingsSurviveReplacementAndClearing();
+    void documentTitlesMoveAssociatedFilesAtomically();
+    void unicodePathsIgnoreTheDefaultZipFilenameCodec();
+    void imageProfileIdentitySurvivesMetadataUpdates_data();
+    void retainedU16MetadataPreservesPixelEncoding_data();
+    void retainedU16MetadataPreservesPixelEncoding();
+    void imageProfileIdentitySurvivesMetadataUpdates();
+    void existingPaintFilesPreservePixelsAndDefaults_data();
+    void existingPaintFilesPreservePixelsAndDefaults();
+    void roundTripRetainsLayersHiddenRgbAndAssociatedFiles();
+    void rectangularSelectionSurvivesSavingAndReopening();
+    void binaryFreehandSelectionSurvivesSavingAndReopening();
+    void invertedSelectionsKeepNativeDefaultsAcrossReopenedEditing_data();
+    void invertedSelectionsKeepNativeDefaultsAcrossReopenedEditing();
+    void featheredSelectionAlphaSurvivesSavingAndReopening();
+    void offCanvasSelectionKeepsNativeCoverageAcrossReopenedEditing();
+    void transparencyMasksSurviveSavingAndReopening();
+    void filterNodesKeepSettingsSelectionsAndMaskOrder_data();
+    void filterNodesKeepSettingsSelectionsAndMaskOrder();
+    void groupTransparencyMasksKeepNativeStorageAcrossEditing_data();
+    void groupTransparencyMasksKeepNativeStorageAcrossEditing();
+    void emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage();
+    void offsetsAndDescriptionMetadataSurviveEditing();
+    void unsupportedAndInvalidContentsReturnNoDocument();
+    void capacityAndFailedWritesPreserveCallerValues();
+    void pixelPrecisionMismatchesPreserveArchiveOutput_data();
+    void pixelPrecisionMismatchesPreserveArchiveOutput();
+    void malformedPixelsAndProfilesAreAtomic_data();
+    void malformedPixelsAndProfilesAreAtomic();
+    void zipDirectoryCapacityPreservesTheOutput();
+    void legacyLayerWithoutUuidGetsOnePersistentIdentity();
+    void emptyDocumentsRequireAnExplicitLayerContainer();
+    void defaultOnlyStorageBlocksSurviveSavingAndReopening();
+};
+
+void TestKraRasterCodec::defaultOnlyStorageBlocksSurviveSavingAndReopening()
+{
+    const auto encode = [](const Kra::Document &document) {
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        if (!output.open(QIODevice::WriteOnly)) return QByteArray{};
+        if (Kra::RasterCodec::write(output, document, merged(document.image.size)).code != Kra::Status::Success)
+            return QByteArray{};
+        return bytes;
+    };
+    auto value = document();
+    value.image.layers.resize(1);
+    value.image.activeLayer = 0;
+    auto &layer = value.image.layers.first();
+    layer.defaultPixel = {};
+    layer.tiles = {{{-1, -1}, QByteArray(RgbaTile::ByteCount, '\0')}};
+    layer.writtenAreas = {QRect(-64, -64, 64, 64)};
+    const auto first = encode(value);
+    QVERIFY(!first.isEmpty());
+    const auto files = entries(first);
+    QDomDocument description;
+    QVERIFY(description.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    const auto image = description.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto element = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
+    const QString path = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename"));
+    const auto stream = files.value(path);
+    QVERIFY(stream.startsWith(QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 4\nDATA 1\n-64,-64,LZF,")));
+    const auto restored = load(first);
+    QCOMPARE(restored.code, Kra::Status::Success);
+    QCOMPARE(restored.document.image.layers.first().writtenAreas, layer.writtenAreas);
+    QCOMPARE(entries(encode(restored.document)).value(path), stream);
+}
+
+void TestKraRasterCodec::layerTileEncodingMatchesTheCpuWriter_data()
+{
+    QTest::addColumn<QSize>("size");
+    QTest::addColumn<QByteArray>("filePixels");
+    QTest::addColumn<QByteArray>("expectedStream");
+    constexpr int fileTileBytes = 64 * 64 * 4;
+    QByteArray pixels(fileTileBytes, '\0');
+    pixels.replace(0, 12, QByteArray::fromHex("332211ff000000004d484b80"));
+    // CPU KRA save from TestDocument::testSavedKraEmbeddedPngsAgreeAcrossBackends
+    // (three-pixels), commit 773b4defee. BGRA pixels above, transparent default,
+    // one 64 x 64 tile; the entire encoded stream is the compatibility contract.
+    QByteArray expected = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 4\nDATA 1\n0,0,LZF,394\n");
+    expected += QByteArray::fromHex(
+        "010333004d00e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900"
+        "e0f900e0d50002220048e0d5e0e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f9"
+        "00e0f900e0f900e0f900030011004be1f905e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900"
+        "e0f900e0f900e0f900e0f900e0d60002ff0080e0d6e1e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f9"
+        "00e0f900e0f900e0f900e0f900e0f9002000200020002000200020002000200020002000200020002000200020002000"
+        "200020002000200020002000200020002000200020002000200020002000200020002000200020002000200020002000"
+        "200020002000200020002000200020002000200020002000200020002000200020002000200020002000200020002000"
+        "20002000200020002000200020002000200020001f000000000000000000000000000000000000000000000000000000"
+        "00000000000300000000"
+    );
+    QTest::newRow("compressible") << QSize(3, 1) << pixels << expected;
+
+    quint32 random = 0x13579bdf;
+    for (auto &byte : pixels) {
+        random ^= random << 13;
+        random ^= random >> 17;
+        random ^= random << 5;
+        byte = char(random >> 24);
+    }
+    expected = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 4\nDATA 1\n0,0,LZF,16385\n");
+    expected += char(0);
+    expected += pixels;
+    QTest::newRow("incompressible") << QSize(64, 64) << pixels << expected;
+}
+
+void TestKraRasterCodec::layerTileEncodingMatchesTheCpuWriter()
+{
+    QFETCH(QSize, size);
+    QFETCH(QByteArray, filePixels);
+    QFETCH(QByteArray, expectedStream);
+    RgbaTile tile{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')};
+    for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x) {
+        const auto source = filePixels.constData() + (y * 64 + x) * 4;
+        auto destination = tile.rgba.data() + (y * RgbaTile::Size + x) * 4;
+        destination[0] = source[2]; destination[1] = source[1];
+        destination[2] = source[0]; destination[3] = source[3];
+    }
+    Kra::Document value;
+    value.image.size = size;
+    value.image.layers = {{QStringLiteral("Encoded pixels"), true,
+        QUuid(QStringLiteral("{d2000001-1122-3344-5566-778899aabbcc}")), {tile}}};
+    QImage projection(size, QImage::Format_RGBA8888);
+    projection.setColorSpace(QColorSpace::SRgb);
+    for (int y = 0; y < size.height(); ++y)
+        std::memcpy(projection.scanLine(y), tile.rgba.constData() + y * RgbaTile::Size * 4, size.width() * 4);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, value, projection).code, Kra::Status::Success);
+    const auto files = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
+    const QString path = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + layer.attribute(QStringLiteral("filename"));
+    const auto actual = files.value(path);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
+    QVERIFY(QDir().mkpath(destination));
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "KRA tile stream artifacts retained at" << destination;
+        }
+    });
+    const auto writeArtifact = [&](const QString &suffix, const QByteArray &data) {
+        QFile file(QDir(destination).filePath(QStringLiteral("kra-layer-tile-%1-%2")
+            .arg(QString::fromLatin1(QTest::currentDataTag()), suffix)));
+        return file.open(QIODevice::WriteOnly) && file.write(data) == data.size();
+    };
+    QVERIFY(writeArtifact(QStringLiteral("actual.tiles"), actual));
+    QVERIFY(writeArtifact(QStringLiteral("expected.tiles"), expectedStream));
+    QVERIFY(writeArtifact(QStringLiteral("input.bgra"), filePixels));
+    QCOMPARE(actual, expectedStream);
+    const auto restored = load(bytes);
+    QCOMPARE(restored.code, Kra::Status::Success);
+    QCOMPARE(restored.document.image.layers.size(), 1);
+    QCOMPARE(restored.document.image.layers[0].tiles.size(), 1);
+    QCOMPARE(restored.document.image.layers[0].tiles[0].rgba, tile.rgba);
+}
+
+void TestKraRasterCodec::groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf_data()
+{
+    QTest::addColumn<int>("depth");
+    QTest::newRow("group") << 1;
+    QTest::newRow("nested-group") << 2;
+}
+
+void TestKraRasterCodec::groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf()
+{
+    QFETCH(int, depth);
+    const auto original = document();
+    QByteArray bytes;
+    QBuffer initial(&bytes);
+    QVERIFY(initial.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(initial, original, merged(original.image.size)).code, Kra::Status::Success);
+    auto files = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    auto layers = xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).firstChildElement(QStringLiteral("layers"));
+    const QList<QUuid> groups{
+        QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")),
+        QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"))};
+    for (int level = 0; level < depth; ++level) {
+        auto group = layers.firstChildElement(QStringLiteral("layer")).cloneNode(false).toElement();
+        group.setAttribute(QStringLiteral("nodetype"), QStringLiteral("grouplayer"));
+        group.setAttribute(QStringLiteral("filename"), QStringLiteral("group%1").arg(level));
+        group.setAttribute(QStringLiteral("name"), QStringLiteral("Group %1").arg(level));
+        group.setAttribute(QStringLiteral("uuid"), groups[level].toString());
+        group.setAttribute(QStringLiteral("selected"), QStringLiteral("false"));
+        group.setAttribute(QStringLiteral("visible"), QStringLiteral("1"));
+        group.setAttribute(QStringLiteral("opacity"), QStringLiteral("128"));
+        group.setAttribute(QStringLiteral("colorlabel"), level + 3);
+        group.setAttribute(QStringLiteral("passthrough"), QStringLiteral("0"));
+        auto children = xml.createElement(QStringLiteral("layers"));
+        while (!layers.firstChild().isNull()) children.appendChild(layers.firstChild());
+        group.appendChild(children);
+        layers.appendChild(group);
+    }
+    files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+    const auto input = pack(files);
+    Kra::Limits tooFewLayers;
+    tooFewLayers.layers = original.image.layers.size() + depth - 1;
+    QCOMPARE(load(input, tooFewLayers).code, Kra::Status::CapacityExceeded);
+    auto conflicting = files;
+    QDomDocument duplicate;
+    QVERIFY(duplicate.setContent(conflicting.value(QStringLiteral("maindoc.xml"))));
+    const auto nodes = duplicate.elementsByTagName(QStringLiteral("layer"));
+    nodes.at(nodes.size() - 1).toElement().setAttribute(QStringLiteral("uuid"), groups[depth - 1].toString());
+    conflicting[QStringLiteral("maindoc.xml")] = duplicate.toByteArray();
+    const auto rejected = load(pack(conflicting));
+    QCOMPARE(rejected.code, Kra::Status::InvalidData);
+    QVERIFY(rejected.document.image.layers.isEmpty());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile fixture(QDir(results).filePath(QStringLiteral("hierarchy-input-%1.kra").arg(depth)));
+        QVERIFY(fixture.open(QIODevice::WriteOnly));
+        QCOMPARE(fixture.write(input), input.size());
+    }
+    auto opened = load(input);
+    QVERIFY2(opened.code == Kra::Status::Success, qPrintable(opened.diagnostic));
+    QCOMPARE(opened.document.image.layers.size(), original.image.layers.size() + depth);
+    const auto selected = original.image.layers[original.image.activeLayer].uuid;
+    QCOMPARE(opened.document.image.layers[opened.document.image.activeLayer].uuid, selected);
+    for (auto &layer : opened.document.image.layers) {
+        if (layer.uuid == original.image.layers[0].uuid) layer.name = QStringLiteral("Edited lower red");
+        if (groups.contains(layer.uuid)) {
+            QCOMPARE(layer.colorLabelIndex, groups.indexOf(layer.uuid) + 3);
+            layer.opacity = 64;
+            layer.colorLabelIndex = 7;
+        }
+    }
+    QByteArray saved;
+    QBuffer output(&saved);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, opened.document, merged(original.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QVERIFY2(reopened.code == Kra::Status::Success, qPrintable(reopened.diagnostic));
+    QCOMPARE(reopened.document.image.layers[reopened.document.image.activeLayer].uuid, selected);
+    for (const auto &layer : reopened.document.image.layers)
+        if (groups.contains(layer.uuid)) QCOMPARE(layer.colorLabelIndex, 7);
+    for (const auto &expected : original.image.layers) {
+        bool found = false;
+        for (const auto &layer : reopened.document.image.layers) {
+            if (layer.uuid != expected.uuid) continue;
+            found = true;
+            QCOMPARE(layer.name, expected.uuid == original.image.layers[0].uuid ? QStringLiteral("Edited lower red") : expected.name);
+            QCOMPARE(layer.visible, expected.visible);
+            QCOMPARE(layer.defaultPixel, expected.defaultPixel);
+            for (const auto &tile : expected.tiles) {
+                bool tileFound = false;
+                for (const auto &actual : layer.tiles) {
+                    if (actual.coordinate != tile.coordinate) continue;
+                    tileFound = true;
+                    QCOMPARE(actual.rgba, tile.rgba);
+                }
+                QVERIFY(tileFound);
+            }
+        }
+        QVERIFY(found);
+    }
+    QVERIFY(xml.setContent(reopened.document.description));
+    layers = xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).firstChildElement(QStringLiteral("layers"));
+    for (int level = depth - 1; level >= 0; --level) {
+        const auto group = layers.firstChildElement(QStringLiteral("layer"));
+        QVERIFY(group.nextSiblingElement().isNull());
+        QCOMPARE(group.attribute(QStringLiteral("nodetype")), QStringLiteral("grouplayer"));
+        QCOMPARE(QUuid(group.attribute(QStringLiteral("uuid"))), groups[level]);
+        QCOMPARE(group.attribute(QStringLiteral("opacity")), QStringLiteral("64"));
+        layers = group.firstChildElement(QStringLiteral("layers"));
+    }
+    const auto upper = layers.firstChildElement(QStringLiteral("layer"));
+    QCOMPARE(QUuid(upper.attribute(QStringLiteral("uuid"))), original.image.layers[1].uuid);
+    QCOMPARE(upper.attribute(QStringLiteral("selected")), QStringLiteral("true"));
+    QCOMPARE(QUuid(upper.nextSiblingElement().attribute(QStringLiteral("uuid"))), original.image.layers[0].uuid);
+    QCOMPARE(reopened.document.files.value(QStringLiteral("notes/custom.bin")), original.files.value(QStringLiteral("notes/custom.bin")));
+    if (!results.isEmpty()) {
+        QFile file(QDir(results).filePath(QStringLiteral("hierarchy-output-%1.kra").arg(depth)));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(saved), saved.size());
+    }
+}
+
+void TestKraRasterCodec::previewSamplingPreservesEdgesAndWeightedAlpha_data()
+{
+    QTest::addColumn<QSize>("sourceSize");
+    QTest::addColumn<QSize>("previewSize");
+    QTest::addColumn<QColor>("first");
+    QTest::addColumn<QColor>("second");
+    QTest::addColumn<QColor>("edgeStart");
+    QTest::addColumn<QColor>("middleLeft");
+    QTest::addColumn<QColor>("middleRight");
+    QTest::addColumn<QColor>("edgeEnd");
+    const QColor red(255, 0, 0, 255), blue(0, 0, 255, 255), hiddenBlue(0, 0, 255, 0);
+    const QColor purple(128, 0, 128, 255), fadedRed(255, 0, 0, 128);
+    QTest::newRow("opaque-upscale") << QSize(2, 1) << QSize(256, 128) << red << blue
+        << red << QColor(128, 0, 127, 255) << QColor(127, 0, 128, 255) << blue;
+    QTest::newRow("portrait-upscale") << QSize(1, 2) << QSize(128, 256) << red << blue
+        << red << QColor(128, 0, 127, 255) << QColor(127, 0, 128, 255) << blue;
+    QTest::newRow("transparent-upscale") << QSize(2, 1) << QSize(256, 128) << red << hiddenBlue
+        << red << fadedRed << QColor(255, 0, 0, 127) << QColor(0, 0, 0, 0);
+    QTest::newRow("opaque-area-reduction") << QSize(512, 2) << QSize(256, 1) << red << blue
+        << purple << purple << purple << purple;
+    QTest::newRow("transparent-area-reduction") << QSize(512, 2) << QSize(256, 1) << red << hiddenBlue
+        << fadedRed << fadedRed << fadedRed << fadedRed;
+    QTest::newRow("thin-canvas") << QSize(512, 1) << QSize(256, 1) << red << blue
+        << purple << purple << purple << purple;
+    const QColor dot(17, 33, 81, 127);
+    QTest::newRow("one-pixel") << QSize(1, 1) << QSize(256, 256) << dot << dot
+        << dot << dot << dot << dot;
+}
+
+void TestKraRasterCodec::previewSamplingPreservesEdgesAndWeightedAlpha()
+{
+    QFETCH(QSize, sourceSize);
+    QFETCH(QSize, previewSize);
+    QFETCH(QColor, first);
+    QFETCH(QColor, second);
+    QFETCH(QColor, edgeStart);
+    QFETCH(QColor, middleLeft);
+    QFETCH(QColor, middleRight);
+    QFETCH(QColor, edgeEnd);
+    const bool vertical = sourceSize.width() == 1 && sourceSize.height() > 1;
+    QImage projection(sourceSize, QImage::Format_RGBA8888);
+    projection.setColorSpace(QColorSpace::SRgb);
+    for (int y = 0; y < sourceSize.height(); ++y)
+        for (int x = 0; x < sourceSize.width(); ++x)
+            projection.setPixelColor(x, y, ((vertical ? y : x) % 2) ? second : first);
+    Kra::Document source;
+    source.image.size = sourceSize;
+    RasterLayer layer;
+    layer.name = QStringLiteral("Preview samples");
+    layer.uuid = QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}"));
+    for (int tileX = 0; tileX * RgbaTile::Size < sourceSize.width(); ++tileX) {
+        RgbaTile tile{{tileX, 0}, QByteArray(RgbaTile::ByteCount, '\0')};
+        const int copied = qMin(RgbaTile::Size, sourceSize.width() - tileX * RgbaTile::Size) * 4;
+        for (int y = 0; y < sourceSize.height(); ++y)
+            std::memcpy(tile.rgba.data() + y * RgbaTile::Size * 4,
+                        projection.constScanLine(y) + tileX * RgbaTile::Size * 4, copied);
+        layer.tiles.append(tile);
+    }
+    source.image.layers.append(layer);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto result = Kra::RasterCodec::write(output, source, projection);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    const auto saved = entries(bytes);
+    const auto mergedPixels = QImage::fromData(saved.value(QStringLiteral("mergedimage.png"))).convertToFormat(QImage::Format_RGBA8888);
+    QCOMPARE(mergedPixels.size(), projection.size());
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(mergedPixels.constBits()), mergedPixels.sizeInBytes()),
+             QByteArray(reinterpret_cast<const char *>(projection.constBits()), projection.sizeInBytes()));
+    const auto preview = QImage::fromData(saved.value(QStringLiteral("preview.png")));
+    QCOMPARE(preview.size(), previewSize);
+    const auto at = [&](int index) {
+        return vertical ? preview.pixelColor(preview.width() / 2, index)
+                        : preview.pixelColor(index, preview.height() / 2);
+    };
+    QCOMPARE(at(0), edgeStart);
+    QCOMPARE(at(127), middleLeft);
+    QCOMPARE(at(128), middleRight);
+    QCOMPARE(at(255), edgeEnd);
+    qsizetype rowsRead = 0;
+    const auto streamed = Kra::RasterCodec::createPreview(sourceSize, [&](int y) {
+        ++rowsRead;
+        return QByteArray(reinterpret_cast<const char *>(projection.constScanLine(y)), sourceSize.width() * 4);
+    });
+    const auto decoded = preview.convertToFormat(QImage::Format_RGBA8888);
+    QCOMPARE(streamed.size(), decoded.size());
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(streamed.constBits()), streamed.sizeInBytes()),
+             QByteArray(reinterpret_cast<const char *>(decoded.constBits()), decoded.sizeInBytes()));
+    QVERIFY(rowsRead <= sourceSize.height() + 2 * previewSize.height());
+    const auto restored = load(bytes);
+    QCOMPARE(restored.code, Kra::Status::Success);
+    QCOMPARE(rgbaAt(restored.document.image.layers.first(), QPoint()), QByteArray(reinterpret_cast<const char *>(projection.constBits()), 4));
+}
+
+void TestKraRasterCodec::previewRowsRejectIncompletePixels()
+{
+    QVERIFY(Kra::RasterCodec::createPreview({2, 2}, [](int y) { return QByteArray(y ? 7 : 8, '\0'); }).isNull());
+    bool called = false;
+    QVERIFY(Kra::RasterCodec::createPreview({RgbaTile::CoordinateLimit + 1, 1}, [&](int) {
+        called = true;
+        return QByteArray();
+    }).isNull());
+    QVERIFY(!called);
+}
+
+void TestKraRasterCodec::savedPngResolutionComesFromDocumentMetadata_data()
+{
+    QTest::addColumn<QPointF>("resolution");
+    QTest::addColumn<QSize>("density");
+    QTest::newRow("document-resolution") << QPointF(300, 150) << QSize(11811, 5906);
+    QTest::newRow("png-density-range") << QPointF(1e-300, 1e300) << QSize(1, std::numeric_limits<int>::max());
+}
+
+void TestKraRasterCodec::savedPngResolutionComesFromDocumentMetadata()
+{
+    QFETCH(QPointF, resolution);
+    QFETCH(QSize, density);
+    auto source = document();
+    Kra::ImageMetadata metadata;
+    metadata.resolution = resolution;
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QList<QByteArray> archives;
+    for (int hostDensity : {2835, 3780}) {
+        auto projection = merged(source.image.size);
+        projection.setDotsPerMeterX(hostDensity);
+        projection.setDotsPerMeterY(hostDensity);
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(output, source, projection).code, Kra::Status::Success);
+        const auto saved = entries(bytes);
+        for (const auto &name : {QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")}) {
+            const auto image = QImage::fromData(saved.value(name));
+            QVERIFY(!image.isNull());
+            QCOMPARE(image.dotsPerMeterX(), density.width());
+            QCOMPARE(image.dotsPerMeterY(), density.height());
+        }
+        archives.append(bytes);
+    }
+    QCOMPARE(archives[0], archives[1]);
+}
+
+void TestKraRasterCodec::archiveMetadataIsIndependentOfClockAndHost()
+{
+    const auto source = document();
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    QBuffer input(&bytes);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    QuaZip archive(&input);
+    archive.setAutoClose(false);
+    QVERIFY(archive.open(QuaZip::mdUnzip));
+    int count = 0;
+    for (bool more = archive.goToFirstFile(); more; more = archive.goToNextFile()) {
+        QuaZipFileInfo64 info;
+        QVERIFY(archive.getCurrentFileInfo(&info));
+        QCOMPARE(info.dateTime.date(), QDate(1980, 1, 1));
+        QCOMPARE(info.dateTime.time(), QTime(0, 0));
+        QCOMPARE(info.versionCreated >> 8, 3);
+        ++count;
+    }
+    QVERIFY(count > 0);
+}
+
+void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
+{
+    auto source = document();
+    source.image.layers[0].opacity = 128;
+    source.image.projectionBackground = {17, 34, 51, 128};
+    source.image.layers[0].userLocked = true;
+    source.image.layers[0].pinnedToTimeline = true;
+    source.image.layers[0].colorLabelIndex = 5;
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    QCOMPARE(imported.document.image.projectionBackground, source.image.projectionBackground);
+    QCOMPARE(imported.document.image.layers[0].opacity, quint8(128));
+    QVERIFY(imported.document.image.layers[0].userLocked);
+    QVERIFY(imported.document.image.layers[0].pinnedToTimeline);
+    QCOMPARE(imported.document.image.layers[0].colorLabelIndex, 5);
+    auto edited = imported.document;
+    edited.image.layers[0].opacity = 64;
+    edited.image.layers[0].userLocked = false;
+    edited.image.layers[0].colorLabelIndex = 0;
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(edited.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    QCOMPARE(reopened.document.image.projectionBackground, source.image.projectionBackground);
+    QCOMPARE(reopened.document.image.layers[0].opacity, quint8(64));
+    QVERIFY(!reopened.document.image.layers[0].userLocked);
+    QVERIFY(reopened.document.image.layers[0].pinnedToTimeline);
+    QCOMPARE(reopened.document.image.layers[0].colorLabelIndex, 0);
+    QCOMPARE(reopened.document.image.layers[0].tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
+}
+
+void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving_data()
+{
+    QTest::addColumn<quint8>("mask");
+    QTest::addColumn<QString>("serializedFlags");
+    QTest::newRow("all-writable") << quint8(15) << QString();
+    QTest::newRow("alpha-protected") << quint8(7) << QStringLiteral("1110");
+    QTest::newRow("red-only") << quint8(1) << QStringLiteral("0010");
+    QTest::newRow("alpha-only") << quint8(8) << QStringLiteral("0001");
+    QTest::newRow("all-protected") << quint8(0) << QStringLiteral("0000");
+}
+
+void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving()
+{
+    QFETCH(quint8, mask);
+    QFETCH(QString, serializedFlags);
+    auto source = document();
+    source.image.layers[0].channelWriteMask = mask;
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    QCOMPARE(imported.document.image.layers[0].channelWriteMask, mask);
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("channel-protection-") +
+                       QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kra")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(bytes), bytes.size());
+    }
+    QDomDocument xml;
+    QVERIFY(xml.setContent(entries(bytes).value(QStringLiteral("maindoc.xml"))));
+    const auto layers = xml.elementsByTagName(QStringLiteral("layer"));
+    for (int i = 0; i < layers.size(); ++i) {
+        const auto element = layers.item(i).toElement();
+        if (element.attribute(QStringLiteral("uuid")) == source.image.layers[0].uuid.toString())
+            QCOMPARE(element.attribute(QStringLiteral("channellockflags")), serializedFlags);
+    }
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, imported.document, merged(source.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    QCOMPARE(reopened.document.image.layers[0].channelWriteMask, mask);
+    QCOMPARE(reopened.document.image.layers[0].tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
+    auto unlocked = reopened.document;
+    unlocked.image.layers[0].channelWriteMask = 15;
+    QByteArray cleared;
+    QBuffer clearedOutput(&cleared);
+    QVERIFY(clearedOutput.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(clearedOutput, unlocked, merged(source.image.size)).code, Kra::Status::Success);
+    const auto clearedDocument = load(cleared);
+    QCOMPARE(clearedDocument.code, Kra::Status::Success);
+    QCOMPARE(clearedDocument.document.image.layers[0].channelWriteMask, quint8(15));
+}
+
+void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
+{
+    const auto expectedId = [](LayerBlendMode mode) {
+        switch (mode) {
+        case LayerBlendMode::Multiply: return QStringLiteral("multiply");
+        case LayerBlendMode::Screen: return QStringLiteral("screen");
+        case LayerBlendMode::Darken: return QStringLiteral("darken");
+        case LayerBlendMode::Lighten: return QStringLiteral("lighten");
+        case LayerBlendMode::Addition: return QStringLiteral("add");
+        case LayerBlendMode::LinearDodge: return QStringLiteral("linear_dodge");
+        case LayerBlendMode::Difference: return QStringLiteral("diff");
+        case LayerBlendMode::Exclusion: return QStringLiteral("exclusion");
+        case LayerBlendMode::Subtract: return QStringLiteral("subtract");
+        case LayerBlendMode::LinearBurn: return QStringLiteral("linear_burn");
+        case LayerBlendMode::InverseSubtract: return QStringLiteral("inverse_subtract");
+        case LayerBlendMode::GrainMerge: return QStringLiteral("grain_merge");
+        case LayerBlendMode::GrainExtract: return QStringLiteral("grain_extract");
+        case LayerBlendMode::Overlay: return QStringLiteral("overlay");
+        case LayerBlendMode::HardLight: return QStringLiteral("hard_light");
+        case LayerBlendMode::PinLight: return QStringLiteral("pin_light");
+        case LayerBlendMode::Divide: return QStringLiteral("divide");
+        case LayerBlendMode::ColorDodge: return QStringLiteral("dodge");
+        case LayerBlendMode::ColorBurn: return QStringLiteral("burn");
+        case LayerBlendMode::HardMix: return QStringLiteral("hard mix");
+        case LayerBlendMode::VividLight: return QStringLiteral("vivid_light");
+        case LayerBlendMode::LinearLight: return QStringLiteral("linear light");
+        case LayerBlendMode::Equivalence: return QStringLiteral("equivalence");
+        case LayerBlendMode::Allanon: return QStringLiteral("allanon");
+        case LayerBlendMode::HardMixPhotoshop: return QStringLiteral("hard_mix_photoshop");
+        case LayerBlendMode::Erase: return QStringLiteral("erase");
+        case LayerBlendMode::Behind: return QStringLiteral("behind");
+        case LayerBlendMode::CopyRed: return QStringLiteral("copy_red");
+        case LayerBlendMode::CopyGreen: return QStringLiteral("copy_green");
+        case LayerBlendMode::CopyBlue: return QStringLiteral("copy_blue");
+        case LayerBlendMode::BitwiseXor: return QStringLiteral("xor");
+        case LayerBlendMode::BitwiseOr: return QStringLiteral("or");
+        case LayerBlendMode::BitwiseAnd: return QStringLiteral("and");
+        case LayerBlendMode::BitwiseNand: return QStringLiteral("nand");
+        case LayerBlendMode::BitwiseNor: return QStringLiteral("nor");
+        case LayerBlendMode::BitwiseXnor: return QStringLiteral("xnor");
+        case LayerBlendMode::Implication: return QStringLiteral("implication");
+        case LayerBlendMode::NotImplication: return QStringLiteral("not_implication");
+        case LayerBlendMode::Converse: return QStringLiteral("converse");
+        case LayerBlendMode::NotConverse: return QStringLiteral("not_converse");
+        case LayerBlendMode::DestinationIn: return QStringLiteral("destination-in");
+        case LayerBlendMode::DestinationAtop: return QStringLiteral("destination-atop");
+        case LayerBlendMode::Reflect: return QStringLiteral("reflect");
+        case LayerBlendMode::Glow: return QStringLiteral("glow");
+        case LayerBlendMode::Freeze: return QStringLiteral("freeze");
+        case LayerBlendMode::Heat: return QStringLiteral("heat");
+        case LayerBlendMode::GlowHeat: return QStringLiteral("glow_heat");
+        case LayerBlendMode::HeatGlow: return QStringLiteral("heat_glow");
+        case LayerBlendMode::ReflectFreeze: return QStringLiteral("reflect_freeze");
+        case LayerBlendMode::FreezeReflect: return QStringLiteral("freeze_reflect");
+        case LayerBlendMode::QuadraticHybrid: return QStringLiteral("heat_glow_freeze_reflect_hybrid");
+        case LayerBlendMode::Parallel: return QStringLiteral("parallel");
+        case LayerBlendMode::HardOverlay: return QStringLiteral("hard overlay");
+        case LayerBlendMode::SoftLightPegtopDelphi: return QStringLiteral("soft_light_pegtop_delphi");
+        case LayerBlendMode::Negation: return QStringLiteral("negation");
+        case LayerBlendMode::PenumbraA: return QStringLiteral("penumbra a");
+        case LayerBlendMode::PenumbraB: return QStringLiteral("penumbra b");
+        case LayerBlendMode::FlatLight: return QStringLiteral("flat_light");
+        case LayerBlendMode::HardMixSofterPhotoshop: return QStringLiteral("hard_mix_softer_photoshop");
+        case LayerBlendMode::GeometricMean: return QStringLiteral("geometric_mean");
+        case LayerBlendMode::Interpolation: return QStringLiteral("interpolation");
+        case LayerBlendMode::InterpolationB: return QStringLiteral("interpolation 2x");
+        case LayerBlendMode::PenumbraC: return QStringLiteral("penumbra c");
+        case LayerBlendMode::PenumbraD: return QStringLiteral("penumbra d");
+        case LayerBlendMode::SoftLightIFSIllusions: return QStringLiteral("soft_light_ifs_illusions");
+        case LayerBlendMode::SoftLightSvg: return QStringLiteral("soft_light_svg");
+        case LayerBlendMode::SoftLightPhotoshop: return QStringLiteral("soft_light");
+        case LayerBlendMode::GammaLight: return QStringLiteral("gamma_light");
+        case LayerBlendMode::GammaIllumination: return QStringLiteral("gamma_illumination");
+        case LayerBlendMode::PNormA: return QStringLiteral("pnorm_a");
+        case LayerBlendMode::PNormB: return QStringLiteral("pnorm_b");
+        case LayerBlendMode::SuperLight: return QStringLiteral("super_light");
+        case LayerBlendMode::TintIFSIllusions: return QStringLiteral("tint_ifs_illusions");
+        case LayerBlendMode::FogLightenIFSIllusions: return QStringLiteral("fog_lighten_ifs_illusions");
+        case LayerBlendMode::EasyDodge: return QStringLiteral("easy dodge");
+        case LayerBlendMode::GammaDark: return QStringLiteral("gamma_dark");
+        case LayerBlendMode::ShadeIFSIllusions: return QStringLiteral("shade_ifs_illusions");
+        case LayerBlendMode::FogDarkenIFSIllusions: return QStringLiteral("fog_darken_ifs_illusions");
+        case LayerBlendMode::EasyBurn: return QStringLiteral("easy burn");
+        case LayerBlendMode::Modulo: return QStringLiteral("modulo");
+        case LayerBlendMode::ModuloContinuous: return QStringLiteral("modulo_continuous");
+        case LayerBlendMode::DivisiveModulo: return QStringLiteral("divisive_modulo");
+        case LayerBlendMode::DivisiveModuloContinuous: return QStringLiteral("divisive_modulo_continuous");
+        case LayerBlendMode::ModuloShift: return QStringLiteral("modulo_shift");
+        case LayerBlendMode::ModuloShiftContinuous: return QStringLiteral("modulo_shift_continuous");
+        case LayerBlendMode::ArcTangent: return QStringLiteral("arc_tangent");
+        case LayerBlendMode::AdditiveSubtractive: return QStringLiteral("additive_subtractive");
+        case LayerBlendMode::ColorHsy: return QStringLiteral("color");
+        case LayerBlendMode::HueHsy: return QStringLiteral("hue");
+        case LayerBlendMode::TintHsy: return QStringLiteral("tint");
+        case LayerBlendMode::SaturationHsy: return QStringLiteral("saturation");
+        case LayerBlendMode::IncreaseSaturationHsy: return QStringLiteral("inc_saturation");
+        case LayerBlendMode::DecreaseSaturationHsy: return QStringLiteral("dec_saturation");
+        case LayerBlendMode::LightnessHsy: return QStringLiteral("luminize");
+        case LayerBlendMode::IncreaseLightnessHsy: return QStringLiteral("inc_luminosity");
+        case LayerBlendMode::DecreaseLightnessHsy: return QStringLiteral("dec_luminosity");
+        case LayerBlendMode::ColorHsi: return QStringLiteral("color_hsi");
+        case LayerBlendMode::HueHsi: return QStringLiteral("hue_hsi");
+        case LayerBlendMode::SaturationHsi: return QStringLiteral("saturation_hsi");
+        case LayerBlendMode::IncreaseSaturationHsi: return QStringLiteral("inc_saturation_hsi");
+        case LayerBlendMode::DecreaseSaturationHsi: return QStringLiteral("dec_saturation_hsi");
+        case LayerBlendMode::LightnessHsi: return QStringLiteral("intensity");
+        case LayerBlendMode::IncreaseLightnessHsi: return QStringLiteral("inc_intensity");
+        case LayerBlendMode::DecreaseLightnessHsi: return QStringLiteral("dec_intensity");
+        case LayerBlendMode::ColorHsl: return QStringLiteral("color_hsl");
+        case LayerBlendMode::HueHsl: return QStringLiteral("hue_hsl");
+        case LayerBlendMode::SaturationHsl: return QStringLiteral("saturation_hsl");
+        case LayerBlendMode::IncreaseSaturationHsl: return QStringLiteral("inc_saturation_hsl");
+        case LayerBlendMode::DecreaseSaturationHsl: return QStringLiteral("dec_saturation_hsl");
+        case LayerBlendMode::LightnessHsl: return QStringLiteral("lightness");
+        case LayerBlendMode::IncreaseLightnessHsl: return QStringLiteral("inc_lightness");
+        case LayerBlendMode::DecreaseLightnessHsl: return QStringLiteral("dec_lightness");
+        case LayerBlendMode::ColorHsv: return QStringLiteral("color_hsv");
+        case LayerBlendMode::HueHsv: return QStringLiteral("hue_hsv");
+        case LayerBlendMode::SaturationHsv: return QStringLiteral("saturation_hsv");
+        case LayerBlendMode::IncreaseSaturationHsv: return QStringLiteral("inc_saturation_hsv");
+        case LayerBlendMode::DecreaseSaturationHsv: return QStringLiteral("dec_saturation_hsv");
+        case LayerBlendMode::LightnessHsv: return QStringLiteral("value");
+        case LayerBlendMode::IncreaseLightnessHsv: return QStringLiteral("inc_value");
+        case LayerBlendMode::DecreaseLightnessHsv: return QStringLiteral("dec_value");
+        case LayerBlendMode::DarkerColor: return QStringLiteral("darker color");
+        case LayerBlendMode::LighterColor: return QStringLiteral("lighter color");
+        case LayerBlendMode::TangentNormalMap: return QStringLiteral("tangent_normalmap");
+        case LayerBlendMode::ReorientedNormalMap: return QStringLiteral("combine_normal");
+        case LayerBlendMode::LambertLighting: return QStringLiteral("lambert_lighting");
+        case LayerBlendMode::LambertLightingGamma22: return QStringLiteral("lambert_lighting_gamma2.2");
+        case LayerBlendMode::Marker: return QStringLiteral("marker");
+        case LayerBlendMode::Greater: return QStringLiteral("greater");
+        case LayerBlendMode::LuminositySai: return QStringLiteral("luminosity_sai");
+        case LayerBlendMode::Normal: break;
+        }
+        return QStringLiteral("normal");
+    };
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge, LayerBlendMode::Difference, LayerBlendMode::Exclusion, LayerBlendMode::Subtract, LayerBlendMode::LinearBurn, LayerBlendMode::InverseSubtract, LayerBlendMode::GrainMerge, LayerBlendMode::GrainExtract, LayerBlendMode::Overlay, LayerBlendMode::HardLight, LayerBlendMode::PinLight, LayerBlendMode::Divide, LayerBlendMode::ColorDodge, LayerBlendMode::ColorBurn, LayerBlendMode::HardMix, LayerBlendMode::VividLight, LayerBlendMode::LinearLight, LayerBlendMode::Equivalence, LayerBlendMode::Allanon, LayerBlendMode::HardMixPhotoshop, LayerBlendMode::Erase, LayerBlendMode::Behind, LayerBlendMode::CopyRed, LayerBlendMode::CopyGreen, LayerBlendMode::CopyBlue, LayerBlendMode::BitwiseXor, LayerBlendMode::BitwiseOr, LayerBlendMode::BitwiseAnd, LayerBlendMode::BitwiseNand, LayerBlendMode::BitwiseNor, LayerBlendMode::BitwiseXnor, LayerBlendMode::Implication, LayerBlendMode::NotImplication, LayerBlendMode::Converse, LayerBlendMode::NotConverse, LayerBlendMode::DestinationIn, LayerBlendMode::DestinationAtop, LayerBlendMode::Reflect, LayerBlendMode::Glow, LayerBlendMode::Freeze, LayerBlendMode::Heat, LayerBlendMode::GlowHeat, LayerBlendMode::HeatGlow, LayerBlendMode::ReflectFreeze, LayerBlendMode::FreezeReflect, LayerBlendMode::QuadraticHybrid, LayerBlendMode::Parallel, LayerBlendMode::HardOverlay, LayerBlendMode::SoftLightPegtopDelphi, LayerBlendMode::Negation, LayerBlendMode::PenumbraA, LayerBlendMode::PenumbraB, LayerBlendMode::FlatLight, LayerBlendMode::HardMixSofterPhotoshop, LayerBlendMode::GeometricMean, LayerBlendMode::Interpolation, LayerBlendMode::InterpolationB, LayerBlendMode::PenumbraC, LayerBlendMode::PenumbraD, LayerBlendMode::SoftLightIFSIllusions, LayerBlendMode::SoftLightSvg, LayerBlendMode::SoftLightPhotoshop, LayerBlendMode::GammaLight, LayerBlendMode::GammaIllumination, LayerBlendMode::PNormA, LayerBlendMode::PNormB, LayerBlendMode::SuperLight, LayerBlendMode::TintIFSIllusions, LayerBlendMode::FogLightenIFSIllusions, LayerBlendMode::EasyDodge, LayerBlendMode::GammaDark, LayerBlendMode::ShadeIFSIllusions, LayerBlendMode::FogDarkenIFSIllusions, LayerBlendMode::EasyBurn, LayerBlendMode::Modulo, LayerBlendMode::ModuloContinuous, LayerBlendMode::DivisiveModulo, LayerBlendMode::DivisiveModuloContinuous, LayerBlendMode::ModuloShift, LayerBlendMode::ModuloShiftContinuous, LayerBlendMode::ArcTangent, LayerBlendMode::AdditiveSubtractive, LayerBlendMode::ColorHsy, LayerBlendMode::HueHsy, LayerBlendMode::TintHsy, LayerBlendMode::SaturationHsy, LayerBlendMode::IncreaseSaturationHsy, LayerBlendMode::DecreaseSaturationHsy, LayerBlendMode::LightnessHsy, LayerBlendMode::IncreaseLightnessHsy, LayerBlendMode::DecreaseLightnessHsy, LayerBlendMode::ColorHsi, LayerBlendMode::HueHsi, LayerBlendMode::SaturationHsi, LayerBlendMode::IncreaseSaturationHsi, LayerBlendMode::DecreaseSaturationHsi, LayerBlendMode::LightnessHsi, LayerBlendMode::IncreaseLightnessHsi, LayerBlendMode::DecreaseLightnessHsi, LayerBlendMode::ColorHsl, LayerBlendMode::HueHsl, LayerBlendMode::SaturationHsl, LayerBlendMode::IncreaseSaturationHsl, LayerBlendMode::DecreaseSaturationHsl, LayerBlendMode::LightnessHsl, LayerBlendMode::IncreaseLightnessHsl, LayerBlendMode::DecreaseLightnessHsl, LayerBlendMode::ColorHsv, LayerBlendMode::HueHsv, LayerBlendMode::SaturationHsv, LayerBlendMode::IncreaseSaturationHsv, LayerBlendMode::DecreaseSaturationHsv, LayerBlendMode::LightnessHsv, LayerBlendMode::IncreaseLightnessHsv, LayerBlendMode::DecreaseLightnessHsv, LayerBlendMode::DarkerColor, LayerBlendMode::LighterColor, LayerBlendMode::TangentNormalMap, LayerBlendMode::ReorientedNormalMap, LayerBlendMode::LambertLighting, LayerBlendMode::LambertLightingGamma22, LayerBlendMode::Marker, LayerBlendMode::Greater, LayerBlendMode::LuminositySai}) {
+        auto source = document();
+        RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
+        group.kind = LayerKind::Group;
+        group.blendMode = mode;
+        source.image.layers[0].parentUuid = group.uuid;
+        source.image.layers[0].blendMode = mode;
+        source.image.layers.append(group);
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+        QDomDocument xml;
+        QVERIFY(xml.setContent(entries(bytes).value(QStringLiteral("maindoc.xml"))));
+        const auto elements = xml.elementsByTagName(QStringLiteral("layer"));
+        for (int i = 0; i < elements.size(); ++i) {
+            const auto element = elements.item(i).toElement();
+            if (element.attribute(QStringLiteral("uuid")) != group.uuid.toString() &&
+                element.attribute(QStringLiteral("uuid")) != source.image.layers[0].uuid.toString()) continue;
+            QCOMPARE(element.attribute(QStringLiteral("compositeop")), expectedId(mode));
+        }
+        const auto imported = load(bytes);
+        QCOMPARE(imported.code, Kra::Status::Success);
+        for (const auto &expected : source.image.layers) {
+            const auto found = std::find_if(imported.document.image.layers.cbegin(), imported.document.image.layers.cend(),
+                [&](const RasterLayer &layer) { return layer.uuid == expected.uuid; });
+            QVERIFY(found != imported.document.image.layers.cend());
+            QCOMPARE(found->blendMode, expected.blendMode);
+        }
+        auto edited = imported.document;
+        for (auto &layer : edited.image.layers) layer.blendMode = LayerBlendMode::Normal;
+        QByteArray saved;
+        QBuffer destination(&saved);
+        QVERIFY(destination.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::Success);
+        const auto reopened = load(saved);
+        QCOMPARE(reopened.code, Kra::Status::Success);
+        for (const auto &layer : reopened.document.image.layers) QCOMPARE(layer.blendMode, LayerBlendMode::Normal);
+        edited.image.layers[0].blendMode = LayerBlendMode(255);
+        const auto retained = saved;
+        QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::InvalidData);
+        QCOMPARE(saved, retained);
+    }
+}
+
+void TestKraRasterCodec::passThroughGroupsSurviveEditingAndResaving()
+{
+    auto source = document();
+    RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
+    group.kind = LayerKind::Group;
+    group.passThrough = true;
+    source.image.layers[0].parentUuid = group.uuid;
+    source.image.layers.append(group);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    QVERIFY(imported.document.image.layers.last().passThrough);
+    const RasterLayer *child = nullptr;
+    for (const auto &layer : imported.document.image.layers)
+        if (layer.uuid == source.image.layers[0].uuid) child = &layer;
+    QVERIFY(child);
+    QCOMPARE(child->parentUuid, group.uuid);
+    QCOMPARE(child->tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
+    auto edited = imported.document;
+    edited.image.layers.last().passThrough = false;
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    QVERIFY(!reopened.document.image.layers.last().passThrough);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(entries(bytes).value(QStringLiteral("maindoc.xml"))));
+    const auto elements = xml.elementsByTagName(QStringLiteral("layer"));
+    for (int index = 0; index < elements.size(); ++index) {
+        auto element = elements.item(index).toElement();
+        const auto old = element.attribute(QStringLiteral("passthrough"));
+        element.setAttribute(QStringLiteral("passthrough"), element.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") ? QStringLiteral("2") : QStringLiteral("1"));
+        auto files = entries(bytes);
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        const auto invalid = load(pack(files));
+        QCOMPARE(invalid.code, Kra::Status::InvalidData);
+        QVERIFY(invalid.document.image.layers.isEmpty());
+        if (old.isEmpty()) element.removeAttribute(QStringLiteral("passthrough"));
+        else element.setAttribute(QStringLiteral("passthrough"), old);
+    }
+}
+
+void TestKraRasterCodec::projectionChannelsSurviveEditingAndResaving_data()
+{
+    QTest::addColumn<quint8>("mask");
+    QTest::addColumn<QString>("serializedFlags");
+    const char *flags[] = {"0000", "0010", "0100", "0110", "1000", "1010", "1100", "1110",
+                           "0001", "0011", "0101", "0111", "1001", "1011", "1101", ""};
+    for (int mask = 0; mask < 16; ++mask)
+        QTest::newRow(QByteArray::number(mask, 16).constData()) << quint8(mask) << QString::fromLatin1(flags[mask]);
+}
+
+void TestKraRasterCodec::projectionChannelsSurviveEditingAndResaving()
+{
+    QFETCH(quint8, mask);
+    QFETCH(QString, serializedFlags);
+    auto source = document();
+    RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
+    group.kind = LayerKind::Group;
+    source.image.layers.append(group);
+    for (auto &layer : source.image.layers) layer.projectionChannelMask = mask;
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    for (const auto &layer : imported.document.image.layers) QCOMPARE(layer.projectionChannelMask, mask);
+    QCOMPARE(imported.document.image.layers[0].tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(entries(bytes).value(QStringLiteral("maindoc.xml"))));
+    const auto layers = xml.elementsByTagName(QStringLiteral("layer"));
+    QCOMPARE(layers.size(), 3);
+    for (int i = 0; i < layers.size(); ++i)
+        QCOMPARE(layers.item(i).toElement().attribute(QStringLiteral("channelflags")), serializedFlags);
+    auto edited = imported.document;
+    edited.image.layers[0].projectionChannelMask = 15;
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    QCOMPARE(reopened.document.image.layers[0].projectionChannelMask, quint8(15));
+    QCOMPARE(reopened.document.image.layers[1].projectionChannelMask, mask);
+    QCOMPARE(reopened.document.image.layers[2].projectionChannelMask, mask);
+    for (const auto bad : {QStringLiteral("10"), QStringLiteral("1112"), QStringLiteral("11111")}) {
+        auto files = entries(bytes);
+        layers.item(0).toElement().setAttribute(QStringLiteral("channelflags"), bad);
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        const auto rejected = load(pack(files));
+        QCOMPARE(rejected.code, Kra::Status::InvalidData);
+        QVERIFY(rejected.document.image.layers.isEmpty());
+    }
+    auto invalid = source;
+    invalid.image.layers[0].projectionChannelMask = 16;
+    QByteArray rejected;
+    QBuffer rejectedOutput(&rejected);
+    QVERIFY(rejectedOutput.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(rejectedOutput, invalid, merged(source.image.size)).code, Kra::Status::InvalidData);
+}
+
+void TestKraRasterCodec::retainedU16MetadataPreservesPixelEncoding_data()
+{
+    QTest::addColumn<int>("mixture");
+    QTest::newRow("metadata-only-preserves-encoding-and-background") << 0;
+    QTest::newRow("mixed-layer-depth-is-rejected") << 1;
+    QTest::newRow("mixed-layer-icc-is-rejected") << 2;
+}
+void TestKraRasterCodec::retainedU16MetadataPreservesPixelEncoding()
+{
+    QFETCH(int, mixture);
+    QFile profile(QFINDTESTDATA("../../../../krita/data/profiles/elles-icc-profiles/sRGB-elle-V2-g10.icc"));
+    QVERIFY(profile.open(QIODevice::ReadOnly));
+    Kra::Document source;
+    source.files.insert(QStringLiteral("image/annotations/icc"), profile.readAll());
+    QDomDocument xml;
+    QVERIFY(xml.setContent(QByteArrayLiteral(R"xml(<DOC syntaxVersion="2"><IMAGE name="image" width="2" height="1" colorspacename="RGBA16" profile="sRGB-elle-V2-g10.icc"><layers/><ProjectionBackgroundColor/></IMAGE></DOC>)xml")));
+    auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto background = rgbaBytes({1, 257, 65534, 32768}, PixelFormat::Rgba16).toBase64();
+    image.firstChildElement(QStringLiteral("ProjectionBackgroundColor")).setAttribute(QStringLiteral("ColorData"), QString::fromLatin1(background));
+    if (mixture) {
+        auto layer = xml.createElement(QStringLiteral("layer"));
+        layer.setAttribute(QStringLiteral("nodetype"), QStringLiteral("grouplayer"));
+        layer.setAttribute(QStringLiteral("visible"), QStringLiteral("1"));
+        layer.setAttribute(QStringLiteral("name"), QStringLiteral("Group"));
+        layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("normal"));
+        layer.setAttribute(QStringLiteral("colorspacename"), mixture == 1 ? QStringLiteral("RGBA") : QStringLiteral("RGBA16"));
+        layer.setAttribute(QStringLiteral("uuid"), QStringLiteral("{a00b0001-1122-3344-5566-778899aabbcc}"));
+        layer.setAttribute(QStringLiteral("filename"), QStringLiteral("layer2"));
+        image.firstChildElement(QStringLiteral("layers")).appendChild(layer);
+        if (mixture == 2)
+            source.files.insert(QStringLiteral("image/layers/layer2.icc"), QColorSpace(QColorSpace::DisplayP3).iccProfile());
+        source.files.insert(QStringLiteral("maindoc.xml"), xml.toByteArray());
+        source.files.insert(QStringLiteral("mimetype"), QByteArrayLiteral("application/x-krita"));
+        const auto rejected = load(pack(source.files));
+        QCOMPARE(rejected.code, Kra::Status::UnsupportedData);
+        QVERIFY(rejected.document.image.layers.isEmpty());
+        QCOMPARE(Kra::RasterCodec::validateMetadata(xml.toByteArray(), source.files).code, Kra::Status::UnsupportedData);
+        return;
+    }
+    source.description = xml.toByteArray();
+    Kra::ImageMetadata update;
+    update.producerVersion = QStringLiteral("metadata update");
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, update).code, Kra::Status::Success);
+    QDomDocument actual;
+    QVERIFY(actual.setContent(source.description));
+    const auto retained = actual.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    QCOMPARE(retained.attribute(QStringLiteral("colorspacename")), QStringLiteral("RGBA16"));
+    QCOMPARE(retained.firstChildElement(QStringLiteral("ProjectionBackgroundColor")).attribute(QStringLiteral("ColorData")), QString::fromLatin1(background));
+}
+
+void TestKraRasterCodec::imageProfileIdentitySurvivesMetadataUpdates_data()
+{
+    QTest::addColumn<bool>("retained");
+    QTest::newRow("new-description") << false;
+    QTest::newRow("retained-description") << true;
+}
+
+void TestKraRasterCodec::imageProfileIdentitySurvivesMetadataUpdates()
+{
+    QFETCH(bool, retained);
+    auto source = document();
+    if (retained) {
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+        const auto opened = load(bytes);
+        QCOMPARE(opened.code, Kra::Status::Success);
+        source = opened.document;
+    }
+    Kra::ImageMetadata metadata;
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.profileName = QStringLiteral("sRGB <&> 名前");
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto opened = load(bytes);
+    QCOMPARE(opened.code, Kra::Status::Success);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(opened.document.description));
+    QCOMPARE(xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).attribute(QStringLiteral("profile")), metadata.profileName);
+    const auto extracted = Kra::RasterCodec::readImageMetadata(opened.document.description, opened.document.files);
+    QCOMPARE(extracted.code, Kra::Status::Success);
+    QCOMPARE(extracted.metadata.profileName, metadata.profileName);
+    QCOMPARE(extracted.metadata.iccProfile, metadata.iccProfile);
+    const auto name = metadata.profileName;
+    metadata.profileName.clear();
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QCOMPARE(Kra::RasterCodec::readImageMetadata(source.description, source.files).metadata.profileName, name);
+    const auto unchanged = source;
+    const QStringList invalidNames{QString(QChar::Null), QString(QChar(0xd800)), QString(65537, QLatin1Char('x'))};
+    for (const auto &invalid : invalidNames) {
+        metadata.profileName = invalid;
+        QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::InvalidData);
+        QCOMPARE(source.description, unchanged.description);
+        QCOMPARE(source.files, unchanged.files);
+    }
+}
+
+void TestKraRasterCodec::unicodePathsIgnoreTheDefaultZipFilenameCodec()
+{
+    auto source = document();
+    const QString title = QStringLiteral("保存契約");
+    Kra::ImageMetadata metadata;
+    metadata.documentInfo = QStringLiteral("<document-info><about><title>%1</title></about></document-info>")
+        .arg(title).toUtf8();
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.profileName = QStringLiteral("Fixture embedded sRGB");
+    metadata.annotations = {{QStringLiteral("notes"), QStringLiteral("Kept annotation"),
+                             QByteArray::fromHex("ff00017f")}};
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+
+    // Existing KRA writers use UTF-8 names without the ZIP UTF-8 flag.
+    QBuffer inspection(&bytes);
+    QVERIFY(inspection.open(QIODevice::ReadOnly));
+    QuaZip archive(&inspection);
+    archive.setFileNameCodec("UTF-8");
+    QVERIFY(archive.open(QuaZip::mdUnzip));
+    QVERIFY(archive.setCurrentFile(title + QStringLiteral("/annotations/icc")));
+    QuaZipFileInfo64 entry;
+    QVERIFY(archive.getCurrentFileInfo(&entry));
+    QVERIFY(!(entry.flags & 0x0800));
+    archive.close();
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile artifact(QDir(directory).filePath(QStringLiteral("utf8-internal-paths.kra")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(bytes), bytes.size());
+    }
+
+    QuaZip originalDefaults;
+    auto *const previousCodec = originalDefaults.getFileNameCodec();
+    QVERIFY(previousCodec);
+    {
+        const auto restore = qScopeGuard([&] {
+            QuaZip::setDefaultFileNameCodec(previousCodec);
+            QuaZip restoredDefaults;
+            QCOMPARE(restoredDefaults.getFileNameCodec(), previousCodec);
+            qInfo() << "Restored ZIP filename codec" << restoredDefaults.getFileNameCodec()->name();
+        });
+        auto *const latin1 = QTextCodec::codecForName("ISO-8859-1");
+        QVERIFY(latin1);
+        QuaZip::setDefaultFileNameCodec(latin1);
+        QuaZip changedDefaults;
+        QCOMPARE(changedDefaults.getFileNameCodec(), latin1);
+        qInfo() << "ZIP filename codec" << previousCodec->name() << "forced to" << latin1->name();
+        QByteArray encodedAgain;
+        QBuffer secondOutput(&encodedAgain);
+        QVERIFY(secondOutput.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(secondOutput, source, merged(source.image.size)).code, Kra::Status::Success);
+        QCOMPARE(encodedAgain, bytes);
+        const auto restored = load(bytes);
+        QVERIFY2(restored.code == Kra::Status::Success, qPrintable(restored.diagnostic));
+        QCOMPARE(restored.document.image.size, source.image.size);
+        QCOMPARE(restored.document.image.layers.size(), source.image.layers.size());
+        for (int i = 0; i < source.image.layers.size(); ++i) {
+            const auto &expected = source.image.layers[i];
+            const auto &actual = restored.document.image.layers[i];
+            QCOMPARE(actual.uuid, expected.uuid);
+            QCOMPARE(actual.defaultPixel, expected.defaultPixel);
+            QCOMPARE(actual.tiles.size(), expected.tiles.size());
+            for (int tile = 0; tile < expected.tiles.size(); ++tile) {
+                QCOMPARE(actual.tiles[tile].coordinate, expected.tiles[tile].coordinate);
+                QCOMPARE(actual.tiles[tile].rgba, expected.tiles[tile].rgba);
+            }
+        }
+        QCOMPARE(restored.document.files.value(title + QStringLiteral("/annotations/icc")), metadata.iccProfile);
+        const auto values = Kra::RasterCodec::readImageMetadata(restored.document.description, restored.document.files);
+        QCOMPARE(values.code, Kra::Status::Success);
+        QCOMPARE(values.metadata.profileName, metadata.profileName);
+        QCOMPARE(values.metadata.iccProfile, metadata.iccProfile);
+        QCOMPARE(values.metadata.annotations.size(), 1);
+        QCOMPARE(values.metadata.annotations.first().type, metadata.annotations.first().type);
+        QCOMPARE(values.metadata.annotations.first().bytes, metadata.annotations.first().bytes);
+    }
+}
+
+void TestKraRasterCodec::documentTitlesMoveAssociatedFilesAtomically()
+{
+    auto source = document();
+    QByteArray initial;
+    QBuffer output(&initial);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto opened = load(initial);
+    QCOMPARE(opened.code, Kra::Status::Success);
+    source = opened.document;
+    source.files.insert(QStringLiteral("image/extra.bin"), QByteArrayLiteral("retained associated bytes"));
+    const auto originalFiles = source.files;
+    Kra::ImageMetadata metadata;
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.annotations = {{QStringLiteral("project"), QStringLiteral("Kept annotation"), QByteArrayLiteral("annotation bytes")}};
+    const auto updateTitle = [&](const QString &title) {
+        QDomDocument info;
+        auto root = info.createElement(QStringLiteral("document-info"));
+        info.appendChild(root);
+        auto about = info.createElement(QStringLiteral("about"));
+        root.appendChild(about);
+        auto name = info.createElement(QStringLiteral("title"));
+        name.appendChild(info.createTextNode(title));
+        about.appendChild(name);
+        metadata.documentInfo = info.toByteArray();
+        return Kra::RasterCodec::updateImageMetadata(source, metadata);
+    };
+    const QString title = QStringLiteral("保存 <&> title");
+    QCOMPARE(updateTitle(title).code, Kra::Status::Success);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(source.description));
+    QCOMPARE(xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).attribute(QStringLiteral("name")), title);
+    for (auto entry = originalFiles.cbegin(); entry != originalFiles.cend(); ++entry) {
+        if (!entry.key().startsWith(QLatin1String("image/"))) continue;
+        QVERIFY(!source.files.contains(entry.key()));
+        QCOMPARE(source.files.value(title + entry.key().mid(5)), entry.value());
+    }
+    QCOMPARE(source.files.value(title + QStringLiteral("/annotations/project")), QByteArrayLiteral("annotation bytes"));
+    QCOMPARE(source.files.value(QStringLiteral("notes/custom.bin")), originalFiles.value(QStringLiteral("notes/custom.bin")));
+    QCOMPARE(updateTitle(QStringLiteral("Renamed document")).code, Kra::Status::Success);
+    for (const auto &name : source.files.keys()) QVERIFY(!name.startsWith(title + QLatin1Char('/')));
+    for (const auto &unsafe : {QStringLiteral("../outside"), QStringLiteral("with/slash"), QStringLiteral("with\\backslash"), QStringLiteral(".."), QString(), QString(1010, QLatin1Char('x'))}) {
+        QCOMPARE(updateTitle(unsafe).code, Kra::Status::Success);
+        QVERIFY(xml.setContent(source.description));
+        QCOMPARE(xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).attribute(QStringLiteral("name")), QStringLiteral("Renamed document"));
+        QCOMPARE(source.files.value(QStringLiteral("documentinfo.xml")), metadata.documentInfo);
+    }
+    QByteArray saved;
+    QBuffer savedOutput(&saved);
+    QVERIFY(savedOutput.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(savedOutput, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto restored = load(saved);
+    QCOMPARE(restored.code, Kra::Status::Success);
+    QCOMPARE(restored.document.image.layers.size(), source.image.layers.size());
+    for (int i = 0; i < source.image.layers.size(); ++i) {
+        QCOMPARE(restored.document.image.layers[i].uuid, source.image.layers[i].uuid);
+        QCOMPARE(restored.document.image.layers[i].defaultPixel, source.image.layers[i].defaultPixel);
+        const auto &expected = source.image.layers[i].tiles;
+        const auto &actual = restored.document.image.layers[i].tiles;
+        QCOMPARE(actual.size(), expected.size());
+        for (int tile = 0; tile < expected.size(); ++tile) {
+            QCOMPARE(actual[tile].coordinate, expected[tile].coordinate);
+            QCOMPARE(actual[tile].rgba, expected[tile].rgba);
+        }
+    }
+    QCOMPARE(restored.document.files.value(QStringLiteral("Renamed document/extra.bin")), QByteArrayLiteral("retained associated bytes"));
+    const auto restoredMetadata = Kra::RasterCodec::readImageMetadata(restored.document.description, restored.document.files);
+    QCOMPARE(restoredMetadata.code, Kra::Status::Success);
+    QCOMPARE(restoredMetadata.metadata.iccProfile, metadata.iccProfile);
+    QCOMPARE(restoredMetadata.metadata.annotations.first().bytes, metadata.annotations.first().bytes);
+    const auto beforeCollision = source;
+    for (const auto &name : {QStringLiteral("Collision/extra.bin"), QStringLiteral("Collision/annotations/unrelated")}) {
+        source = beforeCollision;
+        source.files.insert(name, QByteArrayLiteral("unrelated caller data"));
+        const auto unchanged = source;
+        QCOMPARE(updateTitle(QStringLiteral("Collision")).code, Kra::Status::InvalidData);
+        QCOMPARE(source.description, unchanged.description);
+        QCOMPARE(source.files, unchanged.files);
+    }
+}
+
+void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
+{
+    auto source = document();
+    Kra::ImageMetadata metadata;
+    metadata.resolution = {300, 150};
+    QDomDocument axes;
+    QVERIFY(axes.setContent(QByteArrayLiteral(
+        "<MirrorAxis>"
+        "<mirrorHorizontal type=\"value\" value=\"1\"/>"
+        "<mirrorVertical type=\"value\" value=\"1\"/>"
+        "<lockHorizontal type=\"value\" value=\"1\"/>"
+        "<lockVertical type=\"value\" value=\"0\"/>"
+        "<hideHorizontalDecoration type=\"value\" value=\"0\"/>"
+        "<hideVerticalDecoration type=\"value\" value=\"1\"/>"
+        "<handleSize type=\"value\" value=\"19.5\"/>"
+        "<horizontalHandlePosition type=\"value\" value=\"8.25\"/>"
+        "<verticalHandlePosition type=\"value\" value=\"-4.5\"/>"
+        "<axisPosition type=\"pointf\" x=\"21.25\" y=\"13.5\"/>"
+        "</MirrorAxis>"
+    )));
+    metadata.mirrorAxis = axes.toByteArray();
+    metadata.documentInfo = source.files.value(QStringLiteral("documentinfo.xml"));
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.annotations = {{QStringLiteral("notes"), QStringLiteral("Notes"), QByteArrayLiteral("kept")}};
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("mirror-axis-metadata.kra")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(bytes), bytes.size());
+    }
+    const auto valid = entries(bytes);
+    const auto extracted = Kra::RasterCodec::readImageMetadata(valid.value(QStringLiteral("maindoc.xml")), valid);
+    QCOMPARE(extracted.code, Kra::Status::Success);
+    QCOMPARE(extracted.metadata.resolution, metadata.resolution);
+    QCOMPARE(extracted.metadata.iccProfile, metadata.iccProfile);
+    QCOMPARE(extracted.metadata.documentInfo, metadata.documentInfo);
+    for (const auto &name : {QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")})
+        QVERIFY(!QImage::fromData(valid.value(name)).colorSpace().isValid());
+    QCOMPARE(extracted.metadata.mirrorAxis, metadata.mirrorAxis);
+    QCOMPARE(extracted.metadata.annotations.size(), 1);
+    QCOMPARE(extracted.metadata.annotations.first().bytes, QByteArrayLiteral("kept"));
+    for (int change = 0; change < 14; ++change) {
+        auto files = valid;
+        QDomDocument xml;
+        QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+        auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
+        auto annotation = annotations.firstChildElement();
+        const auto prefix = image.attribute(QStringLiteral("name")) + QStringLiteral("/annotations/");
+        if (change == 0) image.setAttribute(QStringLiteral("x-res"), QStringLiteral("nan"));
+        if (change == 1) image.setAttribute(QStringLiteral("y-res"), QStringLiteral("0"));
+        if (change == 2) files[QStringLiteral("documentinfo.xml")] = QByteArrayLiteral("<invalid/>");
+        if (change == 3) files.remove(prefix + QStringLiteral("notes"));
+        if (change == 4) annotations.appendChild(annotation.cloneNode(true));
+        if (change == 5) annotation.setAttribute(QStringLiteral("type"), QStringLiteral("../outside"));
+        if (change == 6) image.appendChild(annotations.cloneNode(true));
+        auto firstLayer = image.firstChildElement(QStringLiteral("layers")).firstChildElement();
+        if (change == 7) firstLayer.setAttribute(QStringLiteral("opacity"), QStringLiteral("256"));
+        if (change == 8) firstLayer.setAttribute(QStringLiteral("locked"), QStringLiteral("2"));
+        auto background = image.firstChildElement(QStringLiteral("ProjectionBackgroundColor"));
+        if (change == 9) background.setAttribute(QStringLiteral("ColorData"), QStringLiteral("%%%"));
+        if (change == 10) background.setAttribute(QStringLiteral("ColorData"), QStringLiteral("AA=="));
+        if (change == 11) image.appendChild(background.cloneNode(true));
+        if (change == 12) firstLayer.setAttribute(QStringLiteral("intimeline"), QStringLiteral("2"));
+        if (change == 13) image.appendChild(image.firstChildElement(QStringLiteral("MirrorAxis")).cloneNode(true));
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        const auto rejected = Kra::RasterCodec::readImageMetadata(files.value(QStringLiteral("maindoc.xml")), files);
+        QCOMPARE(rejected.code, Kra::Status::InvalidData);
+        QVERIFY(!rejected.diagnostic.isEmpty());
+        QVERIFY(rejected.metadata.iccProfile.isEmpty());
+        QVERIFY(rejected.metadata.annotations.isEmpty());
+        const auto imported = load(pack(files));
+        QCOMPARE(imported.code, Kra::Status::InvalidData);
+        QVERIFY(imported.document.image.layers.isEmpty());
+    }
+    auto cleared = extracted.metadata;
+    cleared.mirrorAxis.clear();
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, cleared).code, Kra::Status::Success);
+    const auto withoutAxes = Kra::RasterCodec::readImageMetadata(source.description, source.files);
+    QCOMPARE(withoutAxes.code, Kra::Status::Success);
+    QVERIFY(withoutAxes.metadata.mirrorAxis.isEmpty());
+    const auto unchanged = source;
+    cleared.mirrorAxis = QByteArrayLiteral("<invalid/>");
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, cleared).code, Kra::Status::InvalidData);
+    QCOMPARE(source.description, unchanged.description);
+    QCOMPARE(source.files, unchanged.files);
+
+}
+
+void TestKraRasterCodec::documentColorSettingsSurviveReplacementAndClearing()
+{
+    auto source = document();
+    Kra::ImageMetadata metadata;
+    metadata.documentInfo = source.files.value(QStringLiteral("documentinfo.xml"));
+    // Color XML from TestDocument's fixed ordinary KRA fixture, commit 721eb5f23b.
+    QDomDocument history, assistants;
+    QVERIFY(history.setContent(QByteArrayLiteral("<ColorHistory>"
+        "<RGB b=\"0.250980406999588\" g=\"0.0666666701436043\" r=\"0.752941191196442\" space=\"sRGB-elle-V2-srgbtrc.icc\"/>"
+        "<RGB b=\"0.321568638086319\" g=\"0.639215707778931\" r=\"0.14509804546833\" space=\"sRGB-elle-V2-srgbtrc.icc\"/>"
+        "</ColorHistory>")));
+    QVERIFY(assistants.setContent(QByteArrayLiteral("<GlobalAssistantsColor SimpleColorData=\"17,63,129,201\"/>")));
+    for (int step = 0; step < 3; ++step) {
+        if (step == 1) {
+            auto colors = history.documentElement();
+            colors.appendChild(colors.firstChild());
+            assistants.documentElement().setAttribute(QStringLiteral("SimpleColorData"), QStringLiteral("67,23,149,101"));
+        }
+        metadata.colorHistory = step == 2 ? QByteArray() : history.toByteArray();
+        metadata.assistantsGlobalColor = step == 2 ? QByteArray() : assistants.toByteArray();
+        QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+        const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!resultDirectory.isEmpty()) {
+            QVERIFY(QDir().mkpath(resultDirectory));
+            QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("document-color-settings-%1.kra").arg(step)));
+            QVERIFY(artifact.open(QIODevice::WriteOnly));
+            QCOMPARE(artifact.write(bytes), bytes.size());
+        }
+        const auto restored = load(bytes);
+        QCOMPARE(restored.code, Kra::Status::Success);
+        const auto values = Kra::RasterCodec::readImageMetadata(restored.document.description, restored.document.files);
+        QCOMPARE(values.code, Kra::Status::Success);
+        QCOMPARE(values.metadata.colorHistory, metadata.colorHistory);
+        QCOMPARE(values.metadata.assistantsGlobalColor, metadata.assistantsGlobalColor);
+        if (step == 2) continue;
+        for (const auto &tag : {QStringLiteral("ColorHistory"), QStringLiteral("GlobalAssistantsColor")}) {
+            auto files = restored.document.files;
+            QDomDocument duplicate;
+            QVERIFY(duplicate.setContent(restored.document.description));
+            auto image = duplicate.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+            image.appendChild(image.firstChildElement(tag).cloneNode(true));
+            files[QStringLiteral("maindoc.xml")] = duplicate.toByteArray();
+            const auto rejected = Kra::RasterCodec::readImageMetadata(files.value(QStringLiteral("maindoc.xml")), files);
+            QCOMPARE(rejected.code, Kra::Status::InvalidData);
+            QVERIFY(rejected.metadata.colorHistory.isEmpty());
+            QVERIFY(rejected.metadata.assistantsGlobalColor.isEmpty());
+            QCOMPARE(load(pack(files)).code, Kra::Status::InvalidData);
+        }
+    }
+    const auto unchanged = source;
+    for (const bool colorHistory : {false, true}) {
+        for (const auto &bytes : {QByteArrayLiteral("<invalid/>"), QByteArrayLiteral("invalid XML")}) {
+            auto invalid = metadata;
+            (colorHistory ? invalid.colorHistory : invalid.assistantsGlobalColor) = bytes;
+            QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, invalid).code, Kra::Status::InvalidData);
+            QCOMPARE(source.description, unchanged.description);
+            QCOMPARE(source.files, unchanged.files);
+        }
+        auto oversized = metadata;
+        Kra::Limits limits;
+        limits.xmlBytes = source.description.size() + 1;
+        (colorHistory ? oversized.colorHistory : oversized.assistantsGlobalColor) = QByteArray(limits.xmlBytes + 1, 'x');
+        QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, oversized, limits).code, Kra::Status::CapacityExceeded);
+        QCOMPARE(source.description, unchanged.description);
+        QCOMPARE(source.files, unchanged.files);
+    }
+}
+
+void TestKraRasterCodec::emptyDocumentsRequireAnExplicitLayerContainer()
+{
+    Kra::Document source;
+    source.image.size = QSize(32, 24);
+    QImage projection(source.image.size, QImage::Format_RGBA8888);
+    projection.fill(Qt::transparent);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, projection).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QCOMPARE(imported.code, Kra::Status::Success);
+    QCOMPARE(imported.document.image.size, source.image.size);
+    QVERIFY(imported.document.image.layers.isEmpty());
+    QCOMPARE(imported.document.image.activeLayer, 0);
+    for (const bool duplicate : {false, true}) {
+        auto files = entries(bytes);
+        QDomDocument xml;
+        QVERIFY(xml.setContent(files[QStringLiteral("maindoc.xml")]));
+        auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        const auto layers = image.firstChildElement(QStringLiteral("layers"));
+        if (duplicate) image.appendChild(layers.cloneNode(true));
+        else image.removeChild(layers);
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        QCOMPARE(load(pack(files)).code, Kra::Status::InvalidData);
+    }
+}
+
+void TestKraRasterCodec::existingPaintFilesPreservePixelsAndDefaults_data()
+{
+    QTest::addColumn<QString>("filename");
+    QTest::addColumn<QByteArray>("defaultRgba");
+    QTest::newRow("transparent-projection") << QStringLiteral("single_layer_no_channel_flags_transp_def_pixel.kra") << QByteArray::fromHex("ffffffff");
+    QTest::newRow("opaque-default") << QStringLiteral("single_layer_no_channel_flags_nontransp_def_pixel.kra") << QByteArray::fromHex("ffffffff");
+}
+
+void TestKraRasterCodec::existingPaintFilesPreservePixelsAndDefaults()
+{
+    QFETCH(QString, filename);
+    QFETCH(QByteArray, defaultRgba);
+    QFile file(QStringLiteral(KRA_COMPATIBILITY_DATA_DIR) + QLatin1Char('/') + filename);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto bytes = file.readAll();
+    const auto result = load(bytes);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.size, QSize(100, 100));
+    QCOMPARE(result.document.image.layers.size(), 1);
+    const auto &layer = result.document.image.layers.first();
+    QCOMPARE(layer.name, QStringLiteral("Layer 1"));
+    QCOMPARE(layer.uuid, QUuid(QStringLiteral("{405c189d-df09-476e-a202-a9480b57c3e6}")));
+    QCOMPARE(rgbaAt(layer, {-1000, -1000}), defaultRgba);
+    const auto original = entries(bytes);
+    const auto expected = QImage::fromData(original.value(QStringLiteral("mergedimage.png"))).convertToFormat(QImage::Format_RGBA8888);
+    QVERIFY(expected.width() >= 100 && expected.height() >= 100);
+    // The other fixture's saved preview differs from its layer samples. Its
+    // authoritative layer pixels are compared with the existing KRA reader.
+    if (filename.contains(QStringLiteral("nontransp"))) {
+        for (int y = 0; y < 100; ++y) {
+            for (int x = 0; x < 100; ++x) {
+                QCOMPARE(rgbaAt(layer, {x, y}), QByteArray(reinterpret_cast<const char *>(expected.constScanLine(y) + x * 4), 4));
+            }
+        }
+    }
+    QCOMPARE(result.document.files.value(QStringLiteral("unnamed/annotations/icc")), original.value(QStringLiteral("unnamed/annotations/icc")));
+    OperationDocument imported(result.document.image);
+    QCOMPARE(imported.undoCount(), 0);
+    QVERIFY(!imported.isModified());
+}
+
+void TestKraRasterCodec::roundTripRetainsLayersHiddenRgbAndAssociatedFiles()
+{
+    const auto source = document();
+    const auto projection = merged(source.image.size);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto written = Kra::RasterCodec::write(output, source, projection);
+    QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+    QVERIFY(output.isOpen());
+    const auto result = load(bytes);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.size, source.image.size);
+    QCOMPARE(result.document.image.activeLayer, source.image.activeLayer);
+    QCOMPARE(result.document.image.layers.size(), 2);
+    for (int i = 0; i < 2; ++i) {
+        const auto &before = source.image.layers[i];
+        const auto &after = result.document.image.layers[i];
+        QCOMPARE(after.name, before.name);
+        QCOMPARE(after.visible, before.visible);
+        QCOMPARE(after.uuid, before.uuid);
+        QCOMPARE(after.defaultPixel, before.defaultPixel);
+        for (const auto &tile : before.tiles) {
+            QCOMPARE(rgbaAt(after, tile.coordinate * 256), tile.rgba.first(4));
+            QCOMPARE(rgbaAt(after, tile.coordinate * 256 + QPoint(255, 255)), tile.rgba.last(4));
+        }
+    }
+    for (auto item = source.files.cbegin(); item != source.files.cend(); ++item) QCOMPARE(result.document.files.value(item.key()), item.value());
+    const auto saved = entries(bytes);
+    QCOMPARE(saved.value(QStringLiteral("mimetype")), QByteArrayLiteral("application/x-krita"));
+    auto storedProjection = projection;
+    storedProjection.setColorSpace({});
+    QCOMPARE(QImage::fromData(saved.value(QStringLiteral("mergedimage.png"))).convertToFormat(QImage::Format_RGBA8888), storedProjection);
+    QCOMPARE(document().image.layers[0].tiles[0].rgba, source.image.layers[0].tiles[0].rgba);
+}
+
+void TestKraRasterCodec::rectangularSelectionSurvivesSavingAndReopening()
+{
+    auto source = document();
+    source.image.selection = QRect(37, 51, 113, 79);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+    QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+    const auto saved = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(saved.value(QStringLiteral("maindoc.xml"))));
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto mask = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("mask"));
+    QCOMPARE(mask.attribute(QStringLiteral("nodetype")), QStringLiteral("selectionmask"));
+    const auto selectionPath = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") +
+        mask.attribute(QStringLiteral("filename")) + QStringLiteral(".pixelselection");
+    QVERIFY(!saved.value(selectionPath).isEmpty());
+    QCOMPARE(saved.value(image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") +
+        mask.attribute(QStringLiteral("filename")) + QStringLiteral(".pixelselection.defaultpixel")), QByteArray(1, '\0'));
+
+    const auto result = load(bytes);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.selection, QRect(37, 51, 113, 79));
+    QByteArray resaved;
+    QBuffer destination(&resaved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, result.document, merged(result.document.image.size)).code, Kra::Status::Success);
+    const auto again = load(resaved);
+    QVERIFY2(again.code == Kra::Status::Success, qPrintable(again.diagnostic));
+    QCOMPARE(again.document.image.selection, QRect(37, 51, 113, 79));
+    QCOMPARE(again.document.image.layers.size(), source.image.layers.size());
+
+    auto clearedDocument = result.document;
+    clearedDocument.image.selection = {};
+    QByteArray cleared;
+    QBuffer clearedOutput(&cleared);
+    QVERIFY(clearedOutput.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(clearedOutput, clearedDocument, merged(clearedDocument.image.size)).code, Kra::Status::Success);
+    const auto without = load(cleared);
+    QVERIFY2(without.code == Kra::Status::Success, qPrintable(without.diagnostic));
+    QVERIFY(without.document.image.selection.isEmpty());
+}
+
+void TestKraRasterCodec::invertedSelectionsKeepNativeDefaultsAcrossReopenedEditing_data()
+{
+    QTest::addColumn<int>("shape");
+    QTest::newRow("rectangle") << 0;
+    QTest::newRow("ellipse") << 1;
+    QTest::newRow("soft-offcanvas") << 2;
+    QTest::newRow("sparse-islands") << 3;
+}
+
+void TestKraRasterCodec::invertedSelectionsKeepNativeDefaultsAcrossReopenedEditing()
+{
+    // Native KRA readers and a reopened paint/fill gesture need the complement
+    // default and every hole byte, including holes beyond the current canvas.
+    QFETCH(int, shape);
+    auto source = document();
+    source.image.selection = QRect(37, 51, 113, 79);
+    source.image.selectionInverted = true;
+    if (shape == 1) source.image.selectionKind = SelectionKind::Ellipse;
+    if (shape >= 2) {
+        SelectionTileMap tiles;
+        for (const auto point : {QPoint(-1, -1), QPoint(2, 1)}) {
+            QByteArray alpha(SelectionMask::AlphaTileBytes, '\0');
+            alpha[253 * 256 + 254] = char(shape == 2 ? 1 : 255);
+            alpha[254 * 256 + 255] = char(shape == 2 ? 128 : 255);
+            tiles.insert({point.x(), point.y()}, alpha);
+        }
+        source.image.selectionMask = SelectionMask::fromAlphaTiles(tiles, 0);
+        QVERIFY(source.image.selectionMask);
+        source.image.selection = source.image.selectionMask->bounds();
+        source.image.selectionKind = SelectionKind::Freehand;
+    }
+    const auto expected = source.image;
+    for (int edit = 0; edit < 2; ++edit) {
+        QByteArray bytes; QBuffer output(&bytes); QVERIFY(output.open(QIODevice::WriteOnly));
+        const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+        QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+        const auto files = entries(bytes);
+        QDomDocument xml; QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+        const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        const auto mask = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("mask"));
+        const auto path = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + mask.attribute(QStringLiteral("filename"));
+        QCOMPARE(files.value(path + QStringLiteral(".pixelselection.defaultpixel")), QByteArray(1, char(255)));
+        QVERIFY(!files.contains(path + QStringLiteral(".defaultpixel")));
+        auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+        QCOMPARE(loaded.document.image.selection, expected.selection);
+        QCOMPARE(loaded.document.image.selectionKind, expected.selectionKind);
+        QVERIFY(loaded.document.image.selectionInverted);
+        if (expected.selectionMask) {
+            QVERIFY(loaded.document.image.selectionMask);
+            const auto actual = loaded.document.image.selectionMask;
+            QCOMPARE(actual->defaultCoverage(), quint8(0));
+            for (const auto point : {QPoint(-2, -3), QPoint(-1, -2), QPoint(766, 509), QPoint(767, 510), QPoint(0, 0), QPoint(255, 255)})
+                QCOMPARE(actual->coverage(point.x(), point.y()), expected.selectionMask->coverage(point.x(), point.y()));
+        }
+        auto previous = files;
+        previous.insert(path + QStringLiteral(".defaultpixel"), previous.take(path + QStringLiteral(".pixelselection.defaultpixel")));
+        QCOMPARE(load(pack(previous)).code, Kra::Status::Success);
+        previous.insert(path + QStringLiteral(".pixelselection.defaultpixel"), QByteArray(1, '\0'));
+        QCOMPARE(load(pack(previous)).code, Kra::Status::InvalidData);
+        source = loaded.document;
+        source.image.layers[0].name = QStringLiteral("Edited after reopening");
+    }
+}
+
+void TestKraRasterCodec::binaryFreehandSelectionSurvivesSavingAndReopening()
+{
+    auto source = document();
+    const QRect clip(QPoint(), source.image.size);
+    const QList<QPointF> polygon{{40, 38}, {84, 38}, {84, 74}, {62, 74}, {62, 110}, {40, 110}};
+    const auto mask = SelectionMask::fromPolygon(polygon, clip);
+    QVERIFY(mask);
+    QVERIFY(!mask->isAlpha());
+    QVERIFY(mask->contains(48, 48));
+    QVERIFY(!mask->contains(70, 100));
+    source.image.selection = mask->bounds();
+    source.image.selectionKind = SelectionKind::Freehand;
+    source.image.selectionMask = mask;
+
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+    QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+    const auto result = load(bytes);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.selection, mask->bounds());
+    QCOMPARE(result.document.image.selectionKind, SelectionKind::Freehand);
+    QVERIFY(!result.document.image.selectionInverted);
+    QVERIFY(result.document.image.selectionMask);
+    QVERIFY(!result.document.image.selectionMask->isAlpha());
+    QVERIFY(*result.document.image.selectionMask == *mask);
+
+    QByteArray resaved;
+    QBuffer destination(&resaved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, result.document, merged(result.document.image.size)).code,
+             Kra::Status::Success);
+    const auto again = load(resaved);
+    QVERIFY2(again.code == Kra::Status::Success, qPrintable(again.diagnostic));
+    QVERIFY(again.document.image.selectionMask && !again.document.image.selectionMask->isAlpha());
+    QVERIFY(*again.document.image.selectionMask == *mask);
+}
+
+void TestKraRasterCodec::featheredSelectionAlphaSurvivesSavingAndReopening()
+{
+    auto source = document();
+    const QRect bounds(40, 38, 44, 36);
+    QByteArray alpha(bounds.width() * bounds.height(), '\0');
+    for (int y = 0; y < bounds.height(); ++y) {
+        for (int x = 0; x < bounds.width(); ++x) {
+            const int distance = std::min({x, y, bounds.width() - 1 - x, bounds.height() - 1 - y});
+            alpha[y * bounds.width() + x] = char(quint8(std::min(255, distance * 64)));
+        }
+    }
+    const auto mask = SelectionMask::fromAlphaCoverage(bounds, alpha, QRect(QPoint(), source.image.size));
+    QVERIFY(mask);
+    QVERIFY(mask->isAlpha());
+    int fractional = 0;
+    for (int y = mask->bounds().top(); y <= mask->bounds().bottom(); ++y)
+        for (int x = mask->bounds().left(); x <= mask->bounds().right(); ++x) {
+            const quint8 value = mask->coverage(x, y);
+            if (value > 0 && value < 255) ++fractional;
+        }
+    QVERIFY(fractional > 0);
+    source.image.selection = mask->bounds();
+    source.image.selectionKind = SelectionKind::Freehand;
+    source.image.selectionMask = mask;
+
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+    QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+    const auto result = load(bytes);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.selection, mask->bounds());
+    QCOMPARE(result.document.image.selectionKind, SelectionKind::Freehand);
+    QVERIFY(!result.document.image.selectionInverted);
+    QVERIFY(result.document.image.selectionMask);
+    QVERIFY(result.document.image.selectionMask->isAlpha());
+    QVERIFY(*result.document.image.selectionMask == *mask);
+
+    QByteArray resaved;
+    QBuffer destination(&resaved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, result.document, merged(result.document.image.size)).code,
+             Kra::Status::Success);
+    const auto again = load(resaved);
+    QVERIFY2(again.code == Kra::Status::Success, qPrintable(again.diagnostic));
+    QVERIFY(again.document.image.selectionMask);
+    QVERIFY(again.document.image.selectionMask->isAlpha());
+    QVERIFY(*again.document.image.selectionMask == *mask);
+    QCOMPARE(again.document.image.layers.size(), source.image.layers.size());
+}
+
+void TestKraRasterCodec::groupTransparencyMasksKeepNativeStorageAcrossEditing_data()
+{
+    QTest::addColumn<bool>("passThrough");
+    QTest::addColumn<int>("defaultCoverage");
+    for (bool passThrough : {false, true}) for (int value : {0, 17, 255}) {
+        const QByteArray tag = QByteArray(passThrough ? "pass-through-" : "isolated-") + QByteArray::number(value);
+        QTest::newRow(tag.constData()) << passThrough << value;
+    }
+}
+
+void TestKraRasterCodec::groupTransparencyMasksKeepNativeStorageAcrossEditing()
+{
+    // A native group owns both nested layers and its mask. Reopening must keep
+    // that ownership, mask metadata and off-canvas coverage for further edits.
+    QFETCH(bool, passThrough); QFETCH(int, defaultCoverage);
+    auto source = document();
+    RasterLayer group{QStringLiteral("Masked group")};
+    group.uuid = QUuid::createUuid(); group.kind = LayerKind::Group; group.passThrough = passThrough;
+    const auto child = source.image.layers.first();
+    source.image.layers.first().parentUuid = group.uuid;
+    SelectionTileMap tiles;
+    for (const auto point : {QPoint(-1, 0), QPoint(1, 1)}) {
+        QByteArray alpha(SelectionMask::AlphaTileBytes, char(defaultCoverage));
+        alpha[9 * 256 + 253] = char(128);
+        alpha[11 * 256 + 7] = char(200);
+        tiles.insert({point.x(), point.y()}, alpha);
+    }
+    group.transparencyMask = SelectionMask::fromAlphaTiles(tiles, quint8(defaultCoverage));
+    QVERIFY(group.transparencyMask);
+    group.transparencyMaskUuid = QUuid::createUuid(); group.transparencyMaskName = QStringLiteral("Group coverage");
+    group.transparencyMaskColorLabelIndex = 4; group.transparencyMaskPinnedToTimeline = true;
+    group.transparencyMaskLocked = true;
+    source.image.layers.prepend(group); source.image.activeLayer = 0;
+    for (int edit = 0; edit < 2; ++edit) {
+        QByteArray bytes; QBuffer output(&bytes); QVERIFY(output.open(QIODevice::WriteOnly));
+        const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+        QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+        const auto files = entries(bytes);
+        QDomDocument xml; QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+        QDomElement groupElement;
+        const auto layers = xml.elementsByTagName(QStringLiteral("layer"));
+        for (int i = 0; i < layers.size(); ++i) {
+            const auto element = layers.item(i).toElement();
+            if (QUuid(element.attribute(QStringLiteral("uuid"))) == group.uuid) groupElement = element;
+        }
+        QVERIFY(!groupElement.isNull());
+        QVERIFY(groupElement.firstChildElement(QStringLiteral("masks")).isNull());
+        const auto maskElement = groupElement.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("mask"));
+        QCOMPARE(QUuid(maskElement.attribute(QStringLiteral("uuid"))), group.transparencyMaskUuid);
+        QCOMPARE(maskElement.attribute(QStringLiteral("nodetype")), QStringLiteral("transparencymask"));
+        auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+        auto actual = std::find_if(loaded.document.image.layers.begin(), loaded.document.image.layers.end(),
+            [&](const auto &layer) { return layer.uuid == group.uuid; });
+        QVERIFY(actual != loaded.document.image.layers.end());
+        QCOMPARE(actual->kind, LayerKind::Group); QCOMPARE(actual->passThrough, passThrough);
+        QCOMPARE(actual->transparencyMaskUuid, group.transparencyMaskUuid);
+        QCOMPARE(actual->transparencyMaskName, group.transparencyMaskName);
+        QCOMPARE(actual->transparencyMaskLocked, group.transparencyMaskLocked);
+        QCOMPARE(actual->transparencyMaskVisible, group.transparencyMaskVisible);
+        QCOMPARE(actual->transparencyMaskColorLabelIndex, group.transparencyMaskColorLabelIndex);
+        QCOMPARE(actual->transparencyMaskPinnedToTimeline, group.transparencyMaskPinnedToTimeline);
+        QVERIFY(actual->transparencyMask);
+        QCOMPARE(actual->transparencyMask->defaultCoverage(), quint8(defaultCoverage));
+        QVERIFY(*actual->transparencyMask == *group.transparencyMask);
+        const auto nested = std::find_if(loaded.document.image.layers.cbegin(), loaded.document.image.layers.cend(),
+            [&](const auto &layer) { return layer.uuid == child.uuid; });
+        QVERIFY(nested != loaded.document.image.layers.cend()); QCOMPARE(nested->parentUuid, group.uuid);
+        QCOMPARE(rgbaAt(*nested, {}), rgbaAt(child, {}));
+        actual->transparencyMaskVisible = false; group.transparencyMaskVisible = false;
+        actual->transparencyMaskName = group.transparencyMaskName = QStringLiteral("Edited group coverage");
+        source = loaded.document;
+    }
+}
+
+void TestKraRasterCodec::transparencyMasksSurviveSavingAndReopening()
+{
+    auto source = document();
+    const QRect imageRect(QPoint(), source.image.size);
+    const QRect softBounds(40, 38, 44, 36);
+    QByteArray alpha(softBounds.width() * softBounds.height(), '\0');
+    for (int y = 0; y < softBounds.height(); ++y)
+        for (int x = 0; x < softBounds.width(); ++x)
+            alpha[y * softBounds.width() + x] =
+                char(quint8(1 + ((x + y) * 253) / (softBounds.width() + softBounds.height() - 2)));
+    const auto soft = SelectionMask::fromAlphaCoverage(softBounds, alpha, imageRect);
+    QVERIFY(soft && soft->isAlpha());
+    const auto hard = SelectionMask::fromRectangle(QRect(100, 80, 60, 40), imageRect);
+    QVERIFY(hard && !hard->isAlpha());
+    source.image.selection = {};
+    source.image.layers[0].transparencyMask = soft;
+    source.image.layers[0].transparencyMaskVisible = false;
+    source.image.layers[1].transparencyMask = hard;
+    source.image.layers[1].transparencyMaskVisible = true;
+    for (int i = 0; i < 2; ++i) {
+        auto &layer = source.image.layers[i];
+        layer.transparencyMaskUuid = QUuid::createUuidV5(layer.uuid, QByteArrayLiteral("retained mask"));
+        layer.transparencyMaskName = i ? QStringLiteral("Hard edge") : QStringLiteral("Soft edge");
+        layer.transparencyMaskColorLabelIndex = i + 3;
+        layer.transparencyMaskPinnedToTimeline = i == 0;
+    }
+
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+    QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+    const auto saved = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(saved.value(QStringLiteral("maindoc.xml"))));
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto folder = image.attribute(QStringLiteral("name"));
+    int maskElements = 0;
+    for (auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement();
+         !layer.isNull(); layer = layer.nextSiblingElement()) {
+        if (layer.attribute(QStringLiteral("nodetype")) != QLatin1String("paintlayer")) continue;
+        QVERIFY(!layer.firstChildElement(QStringLiteral("masks")).isNull());
+        for (auto mask = layer.firstChildElement(QStringLiteral("masks")).firstChildElement(); !mask.isNull(); mask = mask.nextSiblingElement()) {
+            QCOMPARE(mask.tagName(), QStringLiteral("mask"));
+            QCOMPARE(mask.attribute(QStringLiteral("nodetype")), QStringLiteral("transparencymask"));
+            QVERIFY(!mask.attribute(QStringLiteral("filename")).isEmpty());
+            QVERIFY(saved.contains(folder + QStringLiteral("/layers/") +
+                                   mask.attribute(QStringLiteral("filename")) + QStringLiteral(".pixelselection")));
+            ++maskElements;
+        }
+    }
+    QCOMPARE(maskElements, 2);
+
+    const auto result = load(bytes);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.layers.size(), 2);
+    for (int i = 0; i < 2; ++i) {
+        const auto &actual = result.document.image.layers[i]; const auto &expected = source.image.layers[i];
+        QCOMPARE(actual.transparencyMaskUuid, expected.transparencyMaskUuid);
+        QCOMPARE(actual.transparencyMaskName, expected.transparencyMaskName);
+        QCOMPARE(actual.transparencyMaskColorLabelIndex, expected.transparencyMaskColorLabelIndex);
+        QCOMPARE(actual.transparencyMaskPinnedToTimeline, expected.transparencyMaskPinnedToTimeline);
+    }
+    QVERIFY(result.document.image.layers[0].transparencyMask);
+    QVERIFY(result.document.image.layers[0].transparencyMask->isAlpha());
+    QVERIFY(*result.document.image.layers[0].transparencyMask == *soft);
+    QVERIFY(!result.document.image.layers[0].transparencyMaskVisible);
+    QVERIFY(result.document.image.layers[1].transparencyMask);
+    QCOMPARE(result.document.image.layers[1].transparencyMask->bounds(), hard->bounds());
+    QCOMPARE(result.document.image.layers[1].transparencyMask->coverage(120, 100), quint8(255));
+    QCOMPARE(result.document.image.layers[1].transparencyMask->coverage(80, 60), quint8(0));
+    QVERIFY(result.document.image.layers[1].transparencyMaskVisible);
+
+    // Earlier GPU saves put masks directly below the layer and used the
+    // layer-level default entry. Existing files retain their exact pixels.
+    auto previousFiles = saved;
+    for (auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement();
+         !layer.isNull(); layer = layer.nextSiblingElement()) {
+        auto masks = layer.firstChildElement(QStringLiteral("masks"));
+        const auto name = masks.firstChildElement().attribute(QStringLiteral("filename"));
+        const auto path = folder + QStringLiteral("/layers/") + name;
+        previousFiles.insert(path + QStringLiteral(".defaultpixel"), previousFiles.take(path + QStringLiteral(".pixelselection.defaultpixel")));
+        while (!masks.firstChild().isNull()) layer.appendChild(masks.firstChild());
+        layer.removeChild(masks);
+    }
+    previousFiles[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+    const auto previous = load(pack(previousFiles));
+    QVERIFY2(previous.code == Kra::Status::Success, qPrintable(previous.diagnostic));
+    QCOMPARE(previous.document.image.layers.size(), result.document.image.layers.size());
+    for (int i = 0; i < 2; ++i) {
+        const auto &actual = previous.document.image.layers[i];
+        const auto &expected = result.document.image.layers[i];
+        QVERIFY(actual.transparencyMask && *actual.transparencyMask == *expected.transparencyMask);
+        QCOMPARE(actual.transparencyMaskUuid, expected.transparencyMaskUuid);
+        QCOMPARE(actual.transparencyMaskName, expected.transparencyMaskName);
+        QCOMPARE(actual.transparencyMaskVisible, expected.transparencyMaskVisible);
+        QCOMPARE(actual.transparencyMaskColorLabelIndex, expected.transparencyMaskColorLabelIndex);
+        QCOMPARE(actual.transparencyMaskPinnedToTimeline, expected.transparencyMaskPinnedToTimeline);
+        QCOMPARE(actual.tiles.size(), expected.tiles.size());
+        for (int tile = 0; tile < actual.tiles.size(); ++tile) {
+            QCOMPARE(actual.tiles[tile].coordinate, expected.tiles[tile].coordinate);
+            QCOMPARE(actual.tiles[tile].rgba, expected.tiles[tile].rgba);
+        }
+    }
+
+    // Resaving the loaded document preserves both mask representations, their
+    // visibility and the layer pixels.
+    for (const auto &loaded : {result.document, previous.document}) {
+        QByteArray resaved;
+        QBuffer destination(&resaved);
+        QVERIFY(destination.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(destination, loaded, merged(loaded.image.size)).code,
+                 Kra::Status::Success);
+        const auto again = load(resaved);
+        QVERIFY2(again.code == Kra::Status::Success, qPrintable(again.diagnostic));
+        QVERIFY(again.document.image.layers[0].transparencyMask);
+        QVERIFY(*again.document.image.layers[0].transparencyMask == *soft);
+        QVERIFY(!again.document.image.layers[0].transparencyMaskVisible);
+        QVERIFY(again.document.image.layers[1].transparencyMask);
+        QCOMPARE(again.document.image.layers[1].transparencyMask->bounds(), hard->bounds());
+        QCOMPARE(again.document.image.layers[1].transparencyMask->coverage(120, 100), quint8(255));
+        QCOMPARE(again.document.image.layers[1].transparencyMask->coverage(80, 60), quint8(0));
+        QVERIFY(again.document.image.layers[1].transparencyMaskVisible);
+        for (int i = 0; i < 2; ++i) {
+            const auto &actual = again.document.image.layers[i]; const auto &expected = source.image.layers[i];
+            QCOMPARE(actual.transparencyMaskUuid, expected.transparencyMaskUuid);
+            QCOMPARE(actual.transparencyMaskName, expected.transparencyMaskName);
+            QCOMPARE(actual.transparencyMaskColorLabelIndex, expected.transparencyMaskColorLabelIndex);
+            QCOMPARE(actual.transparencyMaskPinnedToTimeline, expected.transparencyMaskPinnedToTimeline);
+        }
+        for (int i = 0; i < 2; ++i)
+            for (const auto &tile : source.image.layers[i].tiles)
+                QCOMPARE(rgbaAt(again.document.image.layers[i], tile.coordinate * 256), tile.rgba.first(4));
+
+        // Removing a mask removes its mask element and pixel-selection entry.
+        auto cleared = again.document;
+        cleared.image.layers[0].transparencyMask.clear();
+        QByteArray withoutMask;
+        QBuffer clearedOutput(&withoutMask);
+        QVERIFY(clearedOutput.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(clearedOutput, cleared, merged(cleared.image.size)).code, Kra::Status::Success);
+        const auto clearedFiles = entries(withoutMask);
+        QDomDocument clearedXml;
+        QVERIFY(clearedXml.setContent(clearedFiles.value(QStringLiteral("maindoc.xml"))));
+        const auto clearedImage = clearedXml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        int remainingMasks = 0;
+        const auto allMasks = clearedImage.elementsByTagName(QStringLiteral("mask"));
+        for (int i = 0; i < allMasks.size(); ++i)
+            if (allMasks.at(i).toElement().attribute(QStringLiteral("nodetype")) == QLatin1String("transparencymask")) ++remainingMasks;
+        QCOMPARE(remainingMasks, 1);
+        const auto clearedResult = load(withoutMask);
+        QVERIFY2(clearedResult.code == Kra::Status::Success, qPrintable(clearedResult.diagnostic));
+        QVERIFY(!clearedResult.document.image.layers[0].transparencyMask);
+        QVERIFY(clearedResult.document.image.layers[1].transparencyMask);
+        QCOMPARE(clearedResult.document.image.layers[1].transparencyMask->bounds(), hard->bounds());
+        QCOMPARE(clearedResult.document.image.layers[1].transparencyMask->coverage(120, 100), quint8(255));
+    }
+
+    auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement();
+    layer.appendChild(layer.firstChildElement(QStringLiteral("mask")).cloneNode(true));
+    previousFiles[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+    QCOMPARE(load(pack(previousFiles)).code, Kra::Status::UnsupportedData);
+}
+
+void TestKraRasterCodec::offCanvasSelectionKeepsNativeCoverageAcrossReopenedEditing()
+{
+    // A rotated selection can extend beyond every canvas edge. Saving and a
+    // subsequent edit must keep those alpha values for the next tool gesture.
+    auto source = document();
+    const QRect bounds(-8, -5, source.image.size.width() + 17, source.image.size.height() + 11);
+    QByteArray values(bounds.width() * bounds.height(), '\0');
+    for (int i = 0; i < values.size(); ++i) values[i] = char((i * 71 + 1) % 256);
+    const auto mask = SelectionMask::fromAlphaCoverage(bounds, values, bounds); QVERIFY(mask);
+    source.image.selection = mask->bounds(); source.image.selectionKind = SelectionKind::Freehand;
+    source.image.selectionMask = mask; source.image.selectionInverted = false;
+    for (int edit = 0; edit < 2; ++edit) {
+        QByteArray bytes; QBuffer output(&bytes); QVERIFY(output.open(QIODevice::WriteOnly));
+        const auto written = Kra::RasterCodec::write(output, source, merged(source.image.size));
+        QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
+        auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+        QCOMPARE(loaded.document.image.selection, mask->bounds());
+        QCOMPARE(loaded.document.image.selectionKind, SelectionKind::Freehand);
+        QVERIFY(!loaded.document.image.selectionInverted);
+        QVERIFY(loaded.document.image.selectionMask);
+        QVERIFY(*loaded.document.image.selectionMask == *mask);
+        source = loaded.document;
+        source.image.layers[0].name = QStringLiteral("Edited after reopening");
+    }
+}
+
+void TestKraRasterCodec::emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage()
+{
+    const QRect bounds(-8, -5, 4, 3);
+    const auto outside = SelectionMask::fromAlphaCoverage(bounds, QByteArray::fromHex("01807fffff01807fffff01807f"), bounds);
+    QVERIFY(outside);
+    QList<SelectionMaskSP> masks{SelectionMask::empty(), outside, SelectionMask::uniform(17), SelectionMask::uniform(255)};
+    for (const auto value : {quint8(0), quint8(17), quint8(255)}) {
+        // Native consumers use allocated selection bounds even when every
+        // stored byte equals the default. Shifted, distant blocks must survive
+        // saving and additional edits without becoming a dense allocation.
+        const auto allocated = SelectionMask::uniform(value)->withAllocatedBlocks({QRect(-125, 67, 64, 64), QRect(643, 259, 64, 64)});
+        QVERIFY(allocated);
+        masks.append(allocated);
+    }
+    for (quint8 value : {quint8(17), quint8(255)}) {
+        SelectionTileMap tiles;
+        QByteArray alpha(SelectionMask::AlphaTileBytes, char(value));
+        alpha[5 * 256 + 7] = 0;
+        alpha[9 * 256 + 11] = char(200);
+        tiles.insert({-2, 3}, alpha);
+        const auto mask = SelectionMask::fromAlphaTiles(tiles, value);
+        QVERIFY(mask);
+        masks.append(mask);
+    }
+    for (const auto &mask : masks) {
+        auto source = document();
+        auto &layer = source.image.layers[0];
+        layer.transparencyMask = mask;
+        layer.transparencyMaskLocked = true;
+        layer.transparencyMaskVisible = false;
+        QByteArray bytes;
+        QBuffer output(&bytes); QVERIFY(output.open(QIODevice::WriteOnly));
+        const auto write = Kra::RasterCodec::write(output, source, merged(source.image.size));
+        QVERIFY2(write.code == Kra::Status::Success, qPrintable(write.diagnostic));
+        const auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+        const auto &actual = loaded.document.image.layers[0];
+        QVERIFY(actual.transparencyMask); QVERIFY(*actual.transparencyMask == *mask);
+        QCOMPARE(actual.transparencyMask->allocatedBlocks(), mask->allocatedBlocks());
+        QCOMPARE(actual.transparencyMask->defaultCoverage(), mask->defaultCoverage());
+        QCOMPARE(actual.transparencyMask->coverage(-505, 773), mask->coverage(-505, 773));
+        QCOMPARE(actual.transparencyMask->coverage(100000, -100000), mask->coverage(100000, -100000));
+        QVERIFY(actual.transparencyMaskLocked); QVERIFY(!actual.transparencyMaskVisible);
+        for (const auto &tile : layer.tiles)
+            QCOMPARE(rgbaAt(actual, tile.coordinate * 256), tile.rgba.first(4));
+        QByteArray again;
+        QBuffer destination(&again); QVERIFY(destination.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(destination, loaded.document, merged(source.image.size)).code, Kra::Status::Success);
+        const auto reopened = load(again); QCOMPARE(reopened.code, Kra::Status::Success);
+        QVERIFY(*reopened.document.image.layers[0].transparencyMask == *mask);
+        QVERIFY(reopened.document.image.layers[0].transparencyMaskLocked);
+    }
+}
+
+void TestKraRasterCodec::offsetsAndDescriptionMetadataSurviveEditing()
+{
+    const auto initial = document();
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, initial, merged(initial.image.size)).code, Kra::Status::Success);
+    auto source = load(bytes).document;
+    QDomDocument xml;
+    QVERIFY(xml.setContent(source.description));
+    auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    image.setAttribute(QStringLiteral("x-res"), QStringLiteral("144"));
+    image.setAttribute(QStringLiteral("description"), QStringLiteral("Retained metadata"));
+    QDomDocument timing;
+    QVERIFY(timing.setContent(QByteArrayLiteral("<animation><framerate type=\"value\" value=\"24\"/>"
+        "<range type=\"timerange\" from=\"0\" to=\"100\"/><currentTime type=\"value\" value=\"17\"/></animation>")));
+    image.appendChild(xml.importNode(timing.documentElement(), true));
+    source.description = xml.toByteArray();
+    const auto timingPath = image.attribute(QStringLiteral("name")) + QStringLiteral("/animation/index.xml");
+    const auto timingBytes = QByteArrayLiteral("<animation-metadata><framerate type=\"value\" value=\"30\"/>"
+        "<range type=\"timerange\" from=\"5\" to=\"125\"/><currentTime type=\"value\" value=\"23\"/></animation-metadata>");
+    source.files.insert(timingPath, timingBytes);
+    // File-owner metadata updates retain settings that their caller has not replaced.
+    Kra::ImageMetadata updated;
+    updated.resolution = {144, 72};
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, updated).code, Kra::Status::Success);
+    source.image.layers[1].position = {17, -9};
+    source.image.layers[1].name = QStringLiteral("Renamed");
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto result = load(saved);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.document.image.layers[1].name, QStringLiteral("Renamed"));
+    QCOMPARE(result.document.image.layers[1].position, QPoint(17, -9));
+    QCOMPARE(rgbaAt(result.document.image.layers[1], {0, 0}), QByteArray::fromHex("0000ff80"));
+    QCOMPARE(rgbaAt(result.document.image.layers[1], {255, 255}), QByteArray::fromHex("0000ff80"));
+    QVERIFY(xml.setContent(result.document.description));
+    image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    QCOMPARE(image.attribute(QStringLiteral("x-res")), QStringLiteral("144"));
+    QCOMPARE(image.attribute(QStringLiteral("description")), QStringLiteral("Retained metadata"));
+    const auto retainedTiming = image.firstChildElement(QStringLiteral("animation"));
+    QCOMPARE(retainedTiming.firstChildElement(QStringLiteral("framerate")).attribute(QStringLiteral("value")), QStringLiteral("24"));
+    QCOMPARE(retainedTiming.firstChildElement(QStringLiteral("range")).attribute(QStringLiteral("from")), QStringLiteral("0"));
+    QCOMPARE(retainedTiming.firstChildElement(QStringLiteral("range")).attribute(QStringLiteral("to")), QStringLiteral("100"));
+    QCOMPARE(retainedTiming.firstChildElement(QStringLiteral("currentTime")).attribute(QStringLiteral("value")), QStringLiteral("17"));
+    QCOMPARE(result.document.files.value(timingPath), timingBytes);
+    QCOMPARE(image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer")).attribute(QStringLiteral("x")), QStringLiteral("17"));
+}
+
+void TestKraRasterCodec::unsupportedAndInvalidContentsReturnNoDocument()
+{
+    QFile fixture(QStringLiteral(KRA_COMPATIBILITY_DATA_DIR) + QStringLiteral("/single_layer_no_channel_flags_transp_def_pixel.kra"));
+    QVERIFY(fixture.open(QIODevice::ReadOnly));
+    const auto valid = entries(fixture.readAll());
+    for (int change = 0; change < 5; ++change) {
+        auto files = valid;
+        QDomDocument xml;
+        QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+        auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
+        if (change == 0) layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("unknown-composite-op"));
+        if (change == 1) layer.setAttribute(QStringLiteral("nodetype"), QStringLiteral("unsupportedlayer"));
+        if (change == 2) image.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("LABA"));
+        if (change == 3) layer.setAttribute(QStringLiteral("filename"), QStringLiteral("../outside"));
+        if (change == 4) files[QStringLiteral("unnamed/layers/layer2.defaultpixel")] = QByteArray(3, '\0');
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        if (change < 4) {
+            QCOMPARE(Kra::RasterCodec::validateMetadata(files.value(QStringLiteral("maindoc.xml")), files).code,
+                     change < 3 ? Kra::Status::UnsupportedData : Kra::Status::InvalidData);
+        }
+        const auto result = load(pack(files));
+        QCOMPARE(result.code, change < 3 ? Kra::Status::UnsupportedData : Kra::Status::InvalidData);
+        QVERIFY(!result.diagnostic.isEmpty());
+        QVERIFY(result.document.image.layers.isEmpty());
+    }
+}
+
+void TestKraRasterCodec::pixelPrecisionMismatchesPreserveArchiveOutput_data()
+{
+    QTest::addColumn<int>("change");
+    QTest::newRow("background-outside-component-range") << 0;
+    QTest::newRow("default-outside-component-range") << 1;
+    QTest::newRow("tile-precision-mismatch") << 2;
+}
+
+void TestKraRasterCodec::pixelPrecisionMismatchesPreserveArchiveOutput()
+{
+    QFETCH(int, change);
+    auto source = document();
+    if (change == 0) source.image.projectionBackground[0] = 256;
+    if (change == 1) source.image.layers[0].defaultPixel[0] = 256;
+    if (change == 2) source.image.layers[0].tiles[0].format = PixelFormat::Rgba16;
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::ReadWrite));
+    const auto result = Kra::RasterCodec::write(output, source, merged(source.image.size));
+    QCOMPARE(result.code, Kra::Status::InvalidData);
+    QVERIFY(!result.diagnostic.isEmpty());
+    QVERIFY(bytes.isEmpty());
+    QCOMPARE(output.pos(), qint64(0));
+}
+
+void TestKraRasterCodec::capacityAndFailedWritesPreserveCallerValues()
+{
+    const auto source = document();
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    Kra::Limits limits;
+    limits.archiveBytes = 64;
+    const auto tooLarge = load(bytes, limits);
+    QCOMPARE(tooLarge.code, Kra::Status::CapacityExceeded);
+    QVERIFY(tooLarge.document.image.layers.isEmpty());
+    QByteArray untouched = QByteArrayLiteral("original bytes");
+    QBuffer rejected(&untouched);
+    QVERIFY(rejected.open(QIODevice::ReadWrite));
+    auto invalid = source;
+    invalid.image.layers[1].uuid = invalid.image.layers[0].uuid;
+    QCOMPARE(Kra::RasterCodec::write(rejected, invalid, merged(invalid.image.size)).code, Kra::Status::InvalidData);
+    QCOMPARE(untouched, QByteArrayLiteral("original bytes"));
+    QCOMPARE(Kra::RasterCodec::write(rejected, source, merged({1, 1})).code, Kra::Status::InvalidData);
+    QCOMPARE(untouched, QByteArrayLiteral("original bytes"));
+    QBuffer readOnly;
+    readOnly.setData(QByteArrayLiteral("original bytes"));
+    QVERIFY(readOnly.open(QIODevice::ReadOnly));
+    QCOMPARE(Kra::RasterCodec::write(readOnly, source, merged(source.image.size)).code, Kra::Status::IoFailure);
+    QCOMPARE(readOnly.data(), QByteArrayLiteral("original bytes"));
+    QCOMPARE(source.image.layers[0].tiles[0].rgba, document().image.layers[0].tiles[0].rgba);
+    auto foreignProjection = merged(source.image.size);
+    foreignProjection.setColorSpace(QColorSpace::DisplayP3);
+    QCOMPARE(Kra::RasterCodec::write(rejected, source, foreignProjection).code, Kra::Status::UnsupportedData);
+    QCOMPARE(untouched, QByteArrayLiteral("original bytes"));
+    limits = {};
+    limits.archiveBytes = 256;
+    QCOMPARE(Kra::RasterCodec::write(rejected, source, merged(source.image.size), limits).code, Kra::Status::CapacityExceeded);
+    QCOMPARE(untouched, QByteArrayLiteral("original bytes"));
+    QCOMPARE(Kra::RasterCodec::write(rejected, source, merged(source.image.size)).code, Kra::Status::IoFailure);
+    QCOMPARE(untouched, QByteArrayLiteral("original bytes"));
+}
+
+void TestKraRasterCodec::malformedPixelsAndProfilesAreAtomic_data()
+{
+    QTest::addColumn<int>("change");
+    QTest::addColumn<Kra::Status>("status");
+    QTest::newRow("truncated-compressed-pixels") << 0 << Kra::Status::InvalidData;
+    QTest::newRow("tile-stream-trailer") << 1 << Kra::Status::InvalidData;
+    QTest::newRow("duplicate-tile") << 2 << Kra::Status::InvalidData;
+    QTest::newRow("invalid-profile") << 3 << Kra::Status::InvalidData;
+    QTest::newRow("foreign-profile") << 4 << Kra::Status::UnsupportedData;
+    QTest::newRow("unsafe-archive-path") << 5 << Kra::Status::InvalidData;
+    QTest::newRow("expanded-raster-capacity") << 6 << Kra::Status::CapacityExceeded;
+    QTest::newRow("xml-capacity") << 7 << Kra::Status::CapacityExceeded;
+    QTest::newRow("non-srgb-table-curve") << 8 << Kra::Status::UnsupportedData;
+    QTest::newRow("invalid-color-label") << 9 << Kra::Status::InvalidData;
+}
+
+void TestKraRasterCodec::malformedPixelsAndProfilesAreAtomic()
+{
+    QFETCH(int, change);
+    QFETCH(Kra::Status, status);
+    QFile fixture(QStringLiteral(KRA_COMPATIBILITY_DATA_DIR) + QStringLiteral("/single_layer_no_channel_flags_transp_def_pixel.kra"));
+    QVERIFY(fixture.open(QIODevice::ReadOnly));
+    auto files = entries(fixture.readAll());
+    const auto header = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 4\nDATA ");
+    const auto raw = QByteArrayLiteral("0,0,LZF,16385\n") + char(0) + QByteArray(16384, '\0');
+    const auto path = QStringLiteral("unnamed/layers/layer2");
+    if (change == 0) files[path] = header + QByteArrayLiteral("1\n0,0,LZF,2\n") + QByteArray::fromHex("0100");
+    if (change == 1) files[path] += 'x';
+    if (change == 2) files[path] = header + QByteArrayLiteral("2\n") + raw + raw;
+    if (change == 3) files[QStringLiteral("unnamed/annotations/icc")] = QByteArrayLiteral("invalid profile");
+    if (change == 4) files[QStringLiteral("unnamed/annotations/icc")] = QColorSpace(QColorSpace::DisplayP3).iccProfile();
+    if (change == 5) files[QStringLiteral("../outside")] = QByteArrayLiteral("data");
+    if (change == 8) {
+        QList<uint16_t> curve;
+        for (int value = 0; value < 256; ++value)
+            curve.append(qRound(std::pow(value / 255.0, 2.2) * 65535));
+        files[QStringLiteral("unnamed/annotations/icc")] = QColorSpace(QColorSpace::Primaries::SRgb, curve).iccProfile();
+    }
+    if (change == 9) {
+        QDomDocument xml;
+        QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+        xml.elementsByTagName(QStringLiteral("layer")).at(0).toElement().setAttribute(QStringLiteral("colorlabel"), QStringLiteral("invalid"));
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+    }
+    Kra::Limits limits;
+    if (change == 6) limits.rasterBytes = 1;
+    if (change == 7) limits.xmlBytes = 16;
+    const auto result = load(pack(files), limits);
+    QCOMPARE(result.code, status);
+    QVERIFY(!result.diagnostic.isEmpty());
+    QVERIFY(result.document.image.layers.isEmpty());
+    QVERIFY(result.document.files.isEmpty());
+}
+
+void TestKraRasterCodec::zipDirectoryCapacityPreservesTheOutput()
+{
+    Kra::Document source;
+    source.image.size = {1, 1};
+    source.image.layers = {{QStringLiteral("Layer"), true, QUuid::createUuid(), {}}};
+    for (int i = 0; i < 256; ++i) source.files.insert(QStringLiteral("empty/%1").arg(i), {});
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged({1, 1})).code, Kra::Status::Success);
+    qsizetype expanded = 0;
+    for (const auto &entry : entries(bytes)) expanded += entry.size();
+    QVERIFY(bytes.size() > expanded);
+    Kra::Limits limits;
+    limits.archiveBytes = expanded;
+    QByteArray untouched;
+    QBuffer rejected(&untouched);
+    QVERIFY(rejected.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(rejected, source, merged({1, 1}), limits).code, Kra::Status::CapacityExceeded);
+    QVERIFY(untouched.isEmpty());
+}
+
+void TestKraRasterCodec::layerImageMetadataFollowsIdentityThroughReplacement()
+{
+    const auto encode = [](const Kra::Document &value) {
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        if (!output.open(QIODevice::WriteOnly) || Kra::RasterCodec::write(output, value, merged(value.image.size)).code != Kra::Status::Success) return QByteArray();
+        return bytes;
+    };
+    const auto names = [](const Kra::Document &value) {
+        QMap<QUuid, QString> result;
+        QDomDocument xml;
+        if (!xml.setContent(value.description)) return result;
+        const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        const auto elements = image.elementsByTagName(QStringLiteral("layer"));
+        for (int i = 0; i < elements.size(); ++i) {
+            const auto element = elements.at(i).toElement();
+            result.insert(QUuid(element.attribute(QStringLiteral("uuid"))), image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename")) + QStringLiteral(".xmp.metadata"));
+        }
+        return result;
+    };
+    auto initial = load(encode(document()));
+    QCOMPARE(initial.code, Kra::Status::Success);
+    auto &value = initial.document;
+    const auto oldNames = names(value);
+    const auto kept = value.image.layers[0].uuid;
+    const auto removed = value.image.layers[1].uuid;
+    value.files.insert(QStringLiteral("image/layers/.xmp.metadata"), QByteArrayLiteral("root-packet"));
+    value.files.insert(oldNames.value(kept), QByteArrayLiteral("kept-packet"));
+    value.files.insert(oldNames.value(removed), QByteArrayLiteral("removed-packet"));
+    const auto extracted = Kra::RasterCodec::readImageMetadata(value.description, value.files);
+    QCOMPARE(extracted.code, Kra::Status::Success);
+    QVERIFY(extracted.metadata.rootLayerXmp.has_value());
+    QVERIFY(extracted.metadata.layerXmp.has_value());
+    QCOMPARE(*extracted.metadata.rootLayerXmp, QByteArrayLiteral("root-packet"));
+    QCOMPARE(extracted.metadata.layerXmp->value(kept), QByteArrayLiteral("kept-packet"));
+    Kra::ImageMetadata unowned;
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(value, unowned).code, Kra::Status::Success);
+    QCOMPARE(value.files.value(oldNames.value(kept)), QByteArrayLiteral("kept-packet"));
+    QCOMPARE(value.files.value(QStringLiteral("image/layers/.xmp.metadata")), QByteArrayLiteral("root-packet"));
+
+    value.image.layers.removeLast();
+    const QUuid created(QStringLiteral("{6a080099-1122-3344-5566-778899aabbcc}"));
+    value.image.layers.append({QStringLiteral("New layer"), true, created, {}});
+    value.image.activeLayer = 1;
+    Kra::ImageMetadata replacement;
+    replacement.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    replacement.profileName = QStringLiteral("Fixture embedded sRGB");
+    replacement.rootLayerXmp = QByteArrayLiteral("updated-root");
+    replacement.layerXmp = QMap<QUuid, QByteArray>{{kept, QByteArrayLiteral("updated-kept")}, {created, QByteArrayLiteral("created-packet")}};
+    const auto updated = Kra::RasterCodec::updateImageMetadata(value, replacement);
+    QVERIFY2(updated.code == Kra::Status::Success, qPrintable(updated.diagnostic));
+    QVERIFY(!value.files.contains(oldNames.value(removed)));
+    const auto after = Kra::RasterCodec::readImageMetadata(value.description, value.files);
+    QCOMPARE(after.code, Kra::Status::Success);
+    QCOMPARE(*after.metadata.rootLayerXmp, QByteArrayLiteral("updated-root"));
+    QCOMPARE(*after.metadata.layerXmp, *replacement.layerXmp);
+    const auto reopened = load(encode(value));
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    const auto saved = Kra::RasterCodec::readImageMetadata(reopened.document.description, reopened.document.files);
+    QCOMPARE(*saved.metadata.layerXmp, *replacement.layerXmp);
+    QCOMPARE(saved.metadata.rootLayerXmp, replacement.rootLayerXmp);
+    QCOMPARE(reopened.document.image.layers[0].tiles[0].rgba, value.image.layers[0].tiles[0].rgba);
+    QCOMPARE(reopened.document.files.value(QStringLiteral("notes/custom.bin")), document().files.value(QStringLiteral("notes/custom.bin")));
+    replacement.rootLayerXmp = QByteArray();
+    replacement.layerXmp = QMap<QUuid, QByteArray>();
+    auto cleared = reopened.document;
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(cleared, replacement).code, Kra::Status::Success);
+    QVERIFY(!cleared.files.contains(QStringLiteral("image/layers/.xmp.metadata")));
+    for (const auto &name : names(cleared)) QVERIFY(!cleared.files.contains(name));
+    const auto absent = Kra::RasterCodec::readImageMetadata(cleared.description, cleared.files);
+    QCOMPARE(absent.code, Kra::Status::Success);
+    QVERIFY(!absent.metadata.rootLayerXmp.has_value());
+    cleared.files.insert(QStringLiteral("image/layers/.xmp.metadata"), {});
+    const auto empty = Kra::RasterCodec::readImageMetadata(cleared.description, cleared.files);
+    QCOMPARE(empty.code, Kra::Status::Success);
+    QVERIFY(empty.metadata.rootLayerXmp.has_value());
+    QVERIFY(empty.metadata.rootLayerXmp->isEmpty());
+}
+
+void TestKraRasterCodec::invalidLayerImageMetadataPreservesTheDocument_data()
+{
+    QTest::addColumn<QString>("reason");
+    QTest::newRow("foreign-layer") << QStringLiteral("foreign");
+    QTest::newRow("null-layer") << QStringLiteral("null");
+    QTest::newRow("packet-capacity") << QStringLiteral("capacity");
+}
+
+void TestKraRasterCodec::invalidLayerImageMetadataPreservesTheDocument()
+{
+    QFETCH(QString, reason);
+    auto value = document();
+    const auto originalDescription = value.description;
+    const auto originalFiles = value.files;
+    Kra::Limits limits;
+    Kra::ImageMetadata metadata;
+    metadata.layerXmp = QMap<QUuid, QByteArray>();
+    Kra::Status expected = Kra::Status::InvalidData;
+    if (reason == QLatin1String("foreign")) metadata.layerXmp->insert(QUuid(QStringLiteral("{6a080099-1122-3344-5566-778899aabbcc}")), QByteArrayLiteral("foreign"));
+    else if (reason == QLatin1String("null")) metadata.layerXmp->insert({}, QByteArrayLiteral("null"));
+    else {
+        limits.archiveBytes = 65536;
+        metadata.rootLayerXmp = QByteArray(limits.archiveBytes + 1, 'x');
+        expected = Kra::Status::CapacityExceeded;
+    }
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(value, metadata, limits).code, expected);
+    QCOMPARE(value.description, originalDescription);
+    QCOMPARE(value.files, originalFiles);
+}
+
+void TestKraRasterCodec::newLayersKeepUnownedMetadataFilesIndependent()
+{
+    Kra::Document value;
+    value.image.size = {1, 1};
+    value.image.layers = {{QStringLiteral("New paint"), true, QUuid(QStringLiteral("{6a080099-1122-3344-5566-778899aabbcc}")), {}}};
+    const QString orphan = QStringLiteral("image/layers/layer1.xmp.metadata");
+    value.files.insert(orphan, QByteArrayLiteral("unowned-packet"));
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, value, merged({1, 1})).code, Kra::Status::Success);
+    const auto files = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
+    const QString associated = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + layer.attribute(QStringLiteral("filename")) + QStringLiteral(".xmp.metadata");
+    QVERIFY(!files.contains(associated));
+    QCOMPARE(files.value(orphan), QByteArrayLiteral("unowned-packet"));
+}
+
+void TestKraRasterCodec::legacyLayerWithoutUuidGetsOnePersistentIdentity()
+{
+    QFile fixture(QStringLiteral(KRA_COMPATIBILITY_DATA_DIR) + QStringLiteral("/single_layer_no_channel_flags_transp_def_pixel.kra"));
+    QVERIFY(fixture.open(QIODevice::ReadOnly));
+    auto files = entries(fixture.readAll());
+    QDomDocument xml;
+    QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).firstChildElement(QStringLiteral("layers"))
+        .firstChildElement(QStringLiteral("layer")).removeAttribute(QStringLiteral("uuid"));
+    files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+    const auto imported = load(pack(files));
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    const auto uuid = imported.document.image.layers.first().uuid;
+    QVERIFY(!uuid.isNull());
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto saved = Kra::RasterCodec::write(output, imported.document, merged(imported.document.image.size));
+    QVERIFY2(saved.code == Kra::Status::Success, qPrintable(saved.diagnostic));
+    const auto reopened = load(bytes);
+    QVERIFY2(reopened.code == Kra::Status::Success, qPrintable(reopened.diagnostic));
+    QCOMPARE(reopened.document.image.layers.first().uuid, uuid);
+}
+
+void TestKraRasterCodec::filterNodesKeepSettingsSelectionsAndMaskOrder_data()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("mask");
+    QTest::addColumn<QString>("id");
+    for (bool words : {false, true}) for (bool mask : {false, true})
+        for (const auto *id : {"invert", "hsvadjustment", "maximize", "minimize", "fastcoloroverlay"}) {
+            if (words && (QByteArray(id) == "invert" || QByteArray(id) == "hsvadjustment")) continue;
+            const QByteArray row = QByteArray(words ? "word-" : "byte-") + (mask ? "mask-" : "adjustment-") + id;
+            QTest::newRow(row.constData()) << words << mask << QString::fromLatin1(id);
+        }
+}
+
+void TestKraRasterCodec::filterNodesKeepSettingsSelectionsAndMaskOrder()
+{
+    QFETCH(bool, words);
+    QFETCH(bool, mask);
+    QFETCH(QString, id);
+    Kra::Document value;
+    value.image.size = {16, 12};
+    value.image.format = words ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    value.image.colorProfile = QColorSpace(words ? QColorSpace::SRgbLinear : QColorSpace::SRgb).iccProfile();
+    RasterLayer paint;
+    paint.name = QStringLiteral("Source"); paint.uuid = QUuid::createUuid();
+    paint.tiles.append({{}, rgbaBytes({17, 91, 203, 137}, value.image.format).repeated(RgbaTile::Size * RgbaTile::Size), value.image.format});
+    RasterLayer filter;
+    filter.kind = mask ? LayerKind::FilterMask : LayerKind::Adjustment;
+    filter.uuid = QUuid::createUuid(); filter.name = QStringLiteral("Editable filter");
+    filter.parentUuid = mask ? paint.uuid : QUuid{};
+    filter.blendMode = mask ? LayerBlendMode::Normal : LayerBlendMode::Copy;
+    FilterDefinition definition;
+    definition.id = id; definition.version = 1; definition.resolved = false;
+    definition.xml = QByteArrayLiteral("<params version=\"1\"><param name=\"h\">31</param><param name=\"s\">17</param>"
+        "<param name=\"color\">#c13e8cec</param><param name=\"opacity\">99</param><param name=\"opacity\">63</param>"
+        "<param name=\"compositeop\">multiply</param></params>");
+    filter.filter = definition;
+    const QRect coverageArea(-2, 3, 4, 2);
+    const auto alpha = QByteArray::fromHex("00017f80c0feff29");
+    filter.filterSelection = SelectionMask::fromAlphaCoverage(coverageArea, alpha, coverageArea);
+    QVERIFY(filter.filterSelection);
+    paint.transparencyMask = SelectionMask::uniform(203);
+    paint.transparencyMaskUuid = QUuid::createUuid();
+    paint.transparencyMaskName = QStringLiteral("Coverage");
+    paint.transparencyMaskIndex = mask ? 1 : 0;
+    value.image.layers = {paint, filter}; value.image.activeLayer = 1;
+    if (mask) {
+        auto upper = filter;
+        upper.uuid = QUuid::createUuid(); upper.name = QStringLiteral("Upper filter");
+        upper.filterSelection = SelectionMask::uniform(255);
+        value.image.layers.append(upper);
+    }
+    const auto write = [&](const Kra::Document &document, QByteArray &bytes) {
+        QBuffer output(&bytes);
+        if (!output.open(QIODevice::WriteOnly)) return Kra::Outcome{};
+        return Kra::RasterCodec::write(output, document, merged(value.image.size), {}, words ? merged({16, 12}) : QImage{});
+    };
+    QByteArray bytes;
+    const auto saved = write(value, bytes);
+    QVERIFY2(saved.code == Kra::Status::Success, qPrintable(saved.diagnostic));
+    auto reopened = load(bytes);
+    QVERIFY2(reopened.code == Kra::Status::Success, qPrintable(reopened.diagnostic));
+    QCOMPARE(reopened.document.image.layers.size(), value.image.layers.size());
+    const auto find = [](RasterImage &image, const QUuid &uuid) -> RasterLayer * {
+        for (auto &layer : image.layers) if (layer.uuid == uuid) return &layer;
+        return nullptr;
+    };
+    auto *retained = find(reopened.document.image, filter.uuid); QVERIFY(retained);
+    QCOMPARE(retained->kind, filter.kind);
+    QCOMPARE(retained->parentUuid, filter.parentUuid);
+    QCOMPARE(retained->filter->id, id);
+    QCOMPARE(retained->filter->xml, definition.xml);
+    QVERIFY(!retained->filter->resolved);
+    QCOMPARE(retained->filter->parameters.value("opacity").toInt(), 63);
+    for (int y = 0; y < 2; ++y) for (int x = 0; x < 4; ++x)
+        QCOMPARE(retained->filterSelection->coverage(x - 2, y + 3), quint8(alpha[y * 4 + x]));
+    auto *retainedPaint = find(reopened.document.image, paint.uuid); QVERIFY(retainedPaint);
+    QCOMPARE(retainedPaint->transparencyMaskIndex, paint.transparencyMaskIndex);
+    QCOMPARE(retainedPaint->transparencyMask->defaultCoverage(), quint8(203));
+    const auto canonical = retainedPaint->tiles;
+    retained->name = QStringLiteral("Reopened settings");
+    retained->filter->xml.replace("63", "47");
+    retained->filterSelection = SelectionMask::uniform(73);
+    QByteArray edited;
+    const auto resaved = write(reopened.document, edited);
+    QVERIFY2(resaved.code == Kra::Status::Success, qPrintable(resaved.diagnostic));
+    auto final = load(edited);
+    QVERIFY2(final.code == Kra::Status::Success, qPrintable(final.diagnostic));
+    auto *finalFilter = find(final.document.image, filter.uuid); QVERIFY(finalFilter);
+    QCOMPARE(finalFilter->filter->parameters.value("opacity").toInt(), 47);
+    QCOMPARE(finalFilter->filterSelection->defaultCoverage(), quint8(73));
+    QCOMPARE(finalFilter->name, QStringLiteral("Reopened settings"));
+    const auto *finalPaint = find(final.document.image, paint.uuid); QVERIFY(finalPaint);
+    QCOMPARE(finalPaint->tiles.size(), canonical.size());
+    for (qsizetype i = 0; i < canonical.size(); ++i) QCOMPARE(finalPaint->tiles[i].rgba, canonical[i].rgba);
+    auto files = entries(edited);
+    for (auto file = files.begin(); file != files.end(); ++file)
+        if (file.key().endsWith(QLatin1String(".filterconfig"))) { file.value() = QByteArrayLiteral("<params>"); break; }
+    const auto rejected = load(pack(files));
+    QCOMPARE(rejected.code, Kra::Status::InvalidData);
+    QVERIFY(rejected.document.image.layers.isEmpty());
+}
+
+QTEST_GUILESS_MAIN(TestKraRasterCodec)
+#include "TestKraRasterCodec.moc"

@@ -11,3 +11,14 @@ add_test(
         testRoundtripCicpIccProfile
         testLoadPngWithLegacyProfile
 )
+
+add_test(
+    NAME plugins-impex-png-KisPngRowWritingContractTest
+    COMMAND kis_png_test testFileWritingPreservesExistingData testWriteCancellation testRowEncodingPreservesPixels testRowEncodingPreservesColorOptions testRowReadFailureStopsEncoding testWriteFailureReleasesSourcePixels
+)
+
+set_tests_properties(
+    plugins-impex-png-KisPngHdrAndColorProfileContractTest
+    plugins-impex-png-KisPngRowWritingContractTest
+    PROPERTIES RESOURCE_LOCK kis_png_test_resources
+)

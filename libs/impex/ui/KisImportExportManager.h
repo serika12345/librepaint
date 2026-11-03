@@ -16,6 +16,7 @@
 #include <kis_types.h>
 
 #include "KisImportExportErrorCode.h"
+#include "KisExportRasterRows.h"
 #include "kritaui_export.h"
 
 class KisDocument;
@@ -106,6 +107,12 @@ public:
      */
     static void fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration, KisImageSP image);
 
+    /** Fixed rows for the active GPU conversion; null for CPU images and
+     * outside conversion. The manager owns the producer through serialization.
+     * Retained descriptors return Cancelled after conversion ends.
+     */
+    KisExportRasterRowsSP exportRows() const;
+
     /**
      * Get if the filter manager is batch mode (true)
      * or in interactive mode (true)
@@ -126,6 +133,7 @@ private:
 
 
     void fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration);
+    static void fillExportPixelProperties(KisPropertiesConfigurationSP exportConfiguration, const KoColorSpace *colorSpace, bool containsTransparency);
     bool askUserAboutExportConfiguration(QSharedPointer<KisImportExportFilter> filter, KisPropertiesConfigurationSP exportConfiguration, const QByteArray &from, const QByteArray &to, bool batchMode, const bool showWarnings, bool *alsoAsKra, bool isAdvancedExporting = false);
 
     KisImportExportErrorCode doImport(const QString &location, QSharedPointer<KisImportExportFilter> filter);

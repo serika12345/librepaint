@@ -9,6 +9,7 @@
 #include <kpluginfactory.h>
 
 #include <document/KisDocument.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <qcontainerfwd.h>
 #include <qobject.h>
 
@@ -29,6 +30,7 @@ KraImport::~KraImport()
 
 KisImportExportErrorCode KraImport::convert(KisDocument *document, QIODevice *io,  KisPropertiesConfigurationSP /*configuration*/)
 {
+    if (KisPart::instance()->gpuEngineEnabled()) return document->importGpuKra(*io);
     KraConverter kraConverter(document);
     KisImportExportErrorCode result = kraConverter.buildImage(io);
     if (result.isOk()) {

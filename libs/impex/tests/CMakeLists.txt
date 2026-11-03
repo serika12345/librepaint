@@ -47,6 +47,13 @@ kis_add_tests(
         Qt${QT_MAJOR_VERSION}::Widgets
 )
 target_compile_definitions(kis_import_user_feedback_test PRIVATE kritaapplicationui_EXPORTS)
+kis_add_test(KisImportExportAsyncFeedbackTest.cpp ../ui/KisImportExportAsyncFeedback.cpp
+    TEST_NAME KisImportExportAsyncFeedbackTest
+    TEST_NAME_VAR async_feedback_test
+    LINK_LIBRARIES kritaimpexerrorobjects Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Widgets Qt${QT_MAJOR_VERSION}::Concurrent KF${KF_MAJOR}::I18n)
+target_compile_definitions(KisImportExportAsyncFeedbackTest PRIVATE kritaimpex_EXPORTS)
+set_tests_properties(${async_feedback_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 if(UNIX AND NOT APPLE)
     set_tests_properties(
         ${import_user_feedback_test_names}

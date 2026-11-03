@@ -10,13 +10,16 @@
 #include <QSlider>
 
 #include <kpluginfactory.h>
+#include <klocalizedstring.h>
 #include <QApplication>
 
 #include <KisImportExportManager.h>
 
 #include <KisExportCheckRegistry.h>
 #include <document/KisDocument.h>
+#include <application/kis_config.h>
 #include <kis_shape_layer.h>
+#include <kis_properties_configuration.h>
 #include <qcontainerfwd.h>
 #include <QtGlobal>
 #include <qobject.h>
@@ -40,13 +43,20 @@ KraExport::~KraExport()
 {
 }
 
-KisImportExportErrorCode KraExport::convert(KisDocument *document, QIODevice *io,  KisPropertiesConfigurationSP /*configuration*/)
+KisImportExportErrorCode KraExport::convert(KisDocument *document, QIODevice *io, KisPropertiesConfigurationSP configuration)
 {
     KisImageSP image = document->savingImage();
     KIS_ASSERT_RECOVER_RETURN_VALUE(image, ImportExportCodes::InternalError);
 
     KraConverter kraConverter(document, updater());
-    KisImportExportErrorCode res = kraConverter.buildFile(io, filename(), !document->isAutosaving());
+    const auto saveTime = configuration && configuration->hasProperty("documentSaveTime")
+        ? configuration->getProperty("documentSaveTime").toDateTime() : QDateTime::currentDateTime();
+    if (!saveTime.isValid()) {
+        document->setErrorMessage(i18n("The document save time is invalid."));
+        return ImportExportCodes::FormatFeaturesUnsupported;
+    }
+    KisImportExportErrorCode res = kraConverter.buildFile(io, filename(), !document->isAutosaving(), saveTime,
+        configuration ? configuration->getBool("compressRasterData", KisConfig(true).compressKra()) : KisConfig(true).compressKra());
     dbgFile << "KraExport::convert result =" << res;
     return res;
 }

@@ -13,6 +13,7 @@
 #include "kis_layer.h"
 #include "kis_types.h"
 #include <kis_group_layer.h>
+#include <stdexcept>
 
 TransparencyMask::TransparencyMask(KisImageSP image, QString name, QObject *parent) :
     Node(image, new KisTransparencyMask(image, name), parent)
@@ -46,6 +47,12 @@ Selection *TransparencyMask::selection() const
 void TransparencyMask::setSelection(Selection *selection)
 {
     KisTransparencyMask *mask = qobject_cast<KisTransparencyMask*>(this->node().data());
+    KisImageSP image = mask->image();
+    if (image && image->isGpuTransparencyMaskView(mask)) {
+        if (!selection || !image->writeGpuTransparencyMaskSelection(mask, selection->selection()))
+            throw std::invalid_argument("GPU transparency mask selection replacement failed");
+        return;
+    }
     mask->setSelection(selection->selection());
 }
 

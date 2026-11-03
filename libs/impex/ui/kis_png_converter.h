@@ -10,6 +10,9 @@
 #include <png.h>
 
 #include <QColor>
+#include <atomic>
+#include <memory>
+#include <QPointer>
 
 #include "kis_types.h"
 #include "kis_global.h"
@@ -17,9 +20,12 @@
 #include <kritaui_export.h>
 #include <KisImportExportErrorCode.h>
 
+namespace LibrePaint::Image::Gpu { class Execution; }
+
 class KoStore;
 class KisDocument;
 class KoColorSpace;
+struct KisExportRasterRows;
 
 
 namespace KisMetaData
@@ -90,8 +96,17 @@ public:
      * @param iod device to access the data
      */
     KisImportExportErrorCode buildImage(QIODevice* iod);
+    /** Validates and decodes default-profile RGB8/U16 PNG input before acquiring a GPU.
+     * Prepared pixels belong to this converter until buildGpuImage() consumes them.
+     * Failure leaves the document and its current image unchanged.
+     */
+    KisImportExportErrorCode prepareGpuImage(QIODevice *iod);
+    /** Constructs a saved GPU image using shared execution on its owning thread. */
+    KisImportExportErrorCode buildGpuImage(std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution);
     /**
-     * Save a layer to a PNG
+     * Save a layer to a PNG using a temporary file and atomic replacement.
+     * Cancellation and conversion failure preserve the destination's contents
+     * or its absence. The directory must permit temporary-file creation.
      * @param filename the name of the destination file
      * @param imageRect the image rectangle to save
      * @param xRes resolution along x axis
@@ -104,6 +119,10 @@ public:
      */
     KisImportExportErrorCode buildFile(const QString &filename, const QRect &imageRect, const qreal xRes, const qreal yRes, KisPaintDeviceSP device, vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd, KisPNGOptions options, KisMetaData::Store* metaData);
     KisImportExportErrorCode buildFile(QIODevice*, const QRect &imageRect, const qreal xRes, const qreal yRes, KisPaintDeviceSP device, vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd, KisPNGOptions options, KisMetaData::Store* metaData);
+    /** Encodes fixed native rows using the same formatting and color options. */
+    KisImportExportErrorCode buildFile(QIODevice*, const KisExportRasterRows &rows, qreal xRes, qreal yRes,
+                                     vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd,
+                                     KisPNGOptions options, KisMetaData::Store *metaData);
     /**
      * Retrieve the constructed image
      */
@@ -118,14 +137,21 @@ public:
     static bool isColorSpaceSupported(const KoColorSpace *cs);
 
 public Q_SLOTS:
+    /** Requests encoding cancellation from any thread while the converter remains alive. */
     virtual void cancel();
 private:
+    struct PreparedImage;
+    std::unique_ptr<PreparedImage> m_prepared;
+    KisImportExportErrorCode decodeImage(QIODevice *iod, bool gpu);
+    KisImportExportErrorCode encodeRows(QIODevice*, const KisExportRasterRows &rows, qreal xRes, qreal yRes,
+                                       vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd,
+                                       KisPNGOptions options, KisMetaData::Store *metaData);
     void progress(png_structp png_ptr, png_uint_32 row_number, int pass);
 private:
     png_uint_32 m_max_row;
     KisImageSP m_image;
-    KisDocument *m_doc;
-    bool m_stop;
+    QPointer<KisDocument> m_doc;
+    std::atomic_bool m_stop;
     bool m_batchMode;
     QString m_path;
 };

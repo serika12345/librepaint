@@ -70,7 +70,14 @@ QDomDocument KoDocumentInfo::save(QDomDocument &doc,
                                   bool isAutosaving,
                                   bool documentModified)
 {
-    updateParametersAndBumpNumCycles(isAutosaving, documentModified);
+    return save(doc, isAutosaving, documentModified, QDateTime::currentDateTime());
+}
+
+QDomDocument KoDocumentInfo::save(QDomDocument &doc, bool isAutosaving,
+                                  bool documentModified, const QDateTime &saveTime)
+{
+    if (!saveTime.isValid()) return QDomDocument();
+    updateParametersAndBumpNumCycles(isAutosaving, documentModified, saveTime);
 
     QDomElement s = saveAboutInfo(doc);
     if (!s.isNull())
@@ -227,14 +234,14 @@ QDomElement KoDocumentInfo::saveAboutInfo(QDomDocument &doc)
 }
 
 void KoDocumentInfo::updateParametersAndBumpNumCycles(bool isAutosaving,
-                                                      bool documentModified)
+                                                      bool documentModified, const QDateTime &saveTime)
 {
     if (isAutosaving) {
         return;
     }
 
     setAboutInfo("editing-cycles", QString::number(aboutInfo("editing-cycles").toInt() + 1));
-    setAboutInfo("date", QDateTime::currentDateTime().toString(Qt::ISODate));
+    setAboutInfo("date", saveTime.toString(Qt::ISODate));
 
     updateParameters(documentModified);
 }

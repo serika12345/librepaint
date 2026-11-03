@@ -15,6 +15,15 @@
 #include <KoPathShape.h>
 
 #include <KoColorProfileQuery.h>
+#include <KoStore.h>
+#include <QBuffer>
+#include <QDateTime>
+#include <QDir>
+#include <QDomDocument>
+#include <QFile>
+#include <QScopeGuard>
+#include <QTemporaryDir>
+#include <kis_properties_configuration.h>
 #include "filter/kis_filter_registry.h"
 #include "filter/kis_filter_configuration.h"
 #include "kis_image.h"
@@ -86,7 +95,8 @@ void KisKraSaverTest::testRoundTrip()
     doc->image()->rootLayer()->accept(cv1);
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    result = doc2->loadNativeFormat("roundtriptest.kra");
+    doc2->setFileBatchMode(true);
+    result = doc2->openPath("roundtriptest.kra", KisDocument::DontAddToRecent);
     QVERIFY(result);
 
     KisCountVisitor cv2(list, KoProperties());
@@ -117,7 +127,8 @@ void KisKraSaverTest::testSaveEmpty()
     doc->image()->rootLayer()->accept(cv1);
 
     KisDocument *doc2 = KisPart::instance()->createDocument();
-    doc2->loadNativeFormat("emptytest.kra");
+    doc2->setFileBatchMode(true);
+    QVERIFY(doc2->openPath("emptytest.kra", KisDocument::DontAddToRecent));
 
     KisCountVisitor cv2(list, KoProperties());
     doc2->image()->rootLayer()->accept(cv2);
@@ -125,6 +136,152 @@ void KisKraSaverTest::testSaveEmpty()
 
     delete doc2;
     delete doc;
+}
+
+void KisKraSaverTest::testChannelProtectionSurvivesResaving_data()
+{
+    QTest::addColumn<QString>("flags");
+    QTest::newRow("default-writable") << QString();
+    QTest::newRow("explicit-writable") << QStringLiteral("1111");
+    QTest::newRow("alpha-protected") << QStringLiteral("1110");
+    QTest::newRow("one-writable") << QStringLiteral("0100");
+    QTest::newRow("all-protected") << QStringLiteral("0000");
+}
+
+void KisKraSaverTest::testChannelProtectionSurvivesResaving()
+{
+    QFETCH(QString, flags);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restoreEngine = qScopeGuard([&] {
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    KisImageSP image = new KisImage(nullptr, 2, 1, cs, QStringLiteral("Channel protection"));
+    KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Paint"), 255);
+    layer->setUuid(QUuid(QStringLiteral("{52334fd3-f4e4-498f-8a49-8fa5873ed931}")));
+    QBitArray channelFlags(flags.size());
+    for (int i = 0; i < flags.size(); ++i) channelFlags.setBit(i, flags[i] == QLatin1Char('1'));
+    layer->setChannelLockFlags(channelFlags);
+    const auto pixels = QByteArray::fromHex("332211ff66554480");
+    layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixels.constData()), 0, 0, 2, 1);
+    image->addNode(layer);
+    document->setCurrentImage(image);
+    image->initialRefreshGraph();
+    image->waitForDone();
+
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Channel protection artifacts retained at" << output.path();
+        }
+    });
+    const auto expectedFlags = flags == QStringLiteral("1111") ? QString() : flags;
+    const auto expectedChannels = channelFlags.isEmpty() ? QBitArray(4, true) : channelFlags;
+    for (int cycle = 0; cycle < 2; ++cycle) {
+        const auto path = output.filePath(QStringLiteral("saved-%1.kra").arg(cycle));
+        QVERIFY(document->exportDocumentSync(path, KisDocument::nativeFormatMimeType()));
+        QScopedPointer<KoStore> store(KoStore::createStore(path, KoStore::Read, "", KoStore::Zip));
+        QVERIFY(!store->bad());
+        QVERIFY(store->open(QStringLiteral("maindoc.xml")));
+        QDomDocument xml;
+        QVERIFY(xml.setContent(store->device()->readAll()));
+        QVERIFY(store->close());
+        const auto layers = xml.elementsByTagName(QStringLiteral("layer"));
+        QCOMPARE(layers.size(), 1);
+        const auto attributes = layers.item(0).toElement();
+        QVERIFY(attributes.hasAttribute(QStringLiteral("channellockflags")));
+        QCOMPARE(attributes.attribute(QStringLiteral("channellockflags")), expectedFlags);
+
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent));
+        reopened->image()->waitForDone();
+        const auto paint = qobject_cast<KisPaintLayer *>(reopened->image()->root()->firstChild().data());
+        QVERIFY(paint);
+        const auto actualFlags = paint->channelLockFlags();
+        QCOMPARE(actualFlags.isEmpty() ? QBitArray(4, true) : actualFlags, expectedChannels);
+        QByteArray actual(pixels.size(), Qt::Uninitialized);
+        paint->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 0, 0, 2, 1);
+        QCOMPARE(actual, pixels);
+        document.reset(reopened.take());
+    }
+}
+
+void KisKraSaverTest::testSavedPreviewPreservesImagePixels_data()
+{
+    QTest::addColumn<QSize>("sourceSize");
+    QTest::newRow("fractional-enlargement") << QSize(33, 17);
+    QTest::newRow("integer-pixel-art") << QSize(32, 16);
+    QTest::newRow("reduction") << QSize(513, 257);
+    QTest::newRow("thin-document") << QSize(1, 1025);
+}
+
+void KisKraSaverTest::testSavedPreviewPreservesImagePixels()
+{
+    QFETCH(QSize, sourceSize);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const QColor background(17, 34, 51, 128);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisImageSP image = new KisImage(nullptr, sourceSize.width(), sourceSize.height(), cs, QStringLiteral("Saved preview"));
+    image->setDefaultProjectionColor(KoColor(background, cs));
+    KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Preview pixels"), 255);
+    layer->setUuid(QUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}")));
+    image->addNode(layer);
+    document->setCurrentImage(image);
+    image->initialRefreshGraph();
+    image->waitForDone();
+    const auto expected = document->generatePreviewImage(QSize(256, 256)).convertToFormat(QImage::Format_ARGB32);
+    QVERIFY(!expected.isNull());
+    QCOMPARE(expected.pixelColor(0, 0), background);
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Saved preview artifacts retained at" << output.path();
+        }
+    });
+    QVERIFY(expected.save(output.filePath(QStringLiteral("expected.png"))));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
+    settings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    const auto path = output.filePath(QStringLiteral("preview.kra"));
+    QVERIFY(document->exportDocumentSync(path, KisDocument::nativeFormatMimeType(), settings));
+    QFile saved(path);
+    QVERIFY(saved.open(QIODevice::ReadOnly));
+    QByteArray archive = saved.readAll();
+    QBuffer input(&archive);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    QScopedPointer<KoStore> store(KoStore::createStore(&input, KoStore::Read, "", KoStore::Zip));
+    QVERIFY(!store->bad());
+    QVERIFY(store->open(QStringLiteral("preview.png")));
+    const auto png = store->device()->readAll();
+    QVERIFY(store->close());
+    const auto preview = QImage::fromData(png, "PNG").convertToFormat(QImage::Format_ARGB32);
+    QVERIFY(preview.save(output.filePath(QStringLiteral("actual.png"))));
+    QCOMPARE(preview.pixelColor(0, 0), background);
+    QCOMPARE(preview, expected);
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent));
+    QCOMPARE(reopened->image()->size(), sourceSize);
+    QCOMPARE(reopened->image()->defaultProjectionColor(), KoColor(background, cs));
+    QCOMPARE(reopened->generatePreviewImage(QSize(256, 256)).convertToFormat(QImage::Format_ARGB32), expected);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const auto prefix = QDir(results).filePath(QStringLiteral("saved-preview-") + QString::fromLatin1(QTest::currentDataTag()));
+        QVERIFY(QFile::copy(path, prefix + QStringLiteral(".kra")));
+        QFile pixels(prefix + QStringLiteral(".png"));
+        QVERIFY(pixels.open(QIODevice::WriteOnly));
+        QCOMPARE(pixels.write(png), png.size());
+    }
 }
 
 #include <generator/kis_generator.h>
@@ -155,7 +312,8 @@ void testRoundTripFillLayerImpl(const QString &testName, KisFilterConfigurationS
     doc->exportDocumentSync("roundtrip_fill_layer_test.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_fill_layer_test.kra");
+    doc2->setFileBatchMode(true);
+    QVERIFY(doc2->openPath("roundtrip_fill_layer_test.kra", KisDocument::DontAddToRecent));
 
     doc2->image()->waitForDone();
     chk.checkImage(doc2->image(), "01_fill_layer_round_trip");
@@ -248,7 +406,8 @@ void KisKraSaverTest::testRoundTripLayerStyles()
 
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_layer_styles.kra");
+    doc2->setFileBatchMode(true);
+    QVERIFY(doc2->openPath("roundtrip_layer_styles.kra", KisDocument::DontAddToRecent));
 
     doc2->image()->waitForDone();
     chk.checkImage(doc2->image(), "00_initial_layers");
@@ -296,7 +455,8 @@ void KisKraSaverTest::testRoundTripAnimation()
     doc->exportDocumentSync("roundtrip_animation.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_animation.kra");
+    doc2->setFileBatchMode(true);
+    QVERIFY(doc2->openPath("roundtrip_animation.kra", KisDocument::DontAddToRecent));
     KisImageSP image2 = doc2->image();
     KisNodeSP node = image2->root()->firstChild();
 
@@ -387,7 +547,8 @@ void KisKraSaverTest::testRoundTripColorizeMask()
     doc->exportDocumentSync("roundtrip_colorize.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_colorize.kra");
+    doc2->setFileBatchMode(true);
+    QVERIFY(doc2->openPath("roundtrip_colorize.kra", KisDocument::DontAddToRecent));
     KisImageSP image2 = doc2->image();
     KisNodeSP node = image2->root()->firstChild()->firstChild();
 
@@ -456,7 +617,8 @@ void KisKraSaverTest::testRoundTripShapeLayer()
     doc->exportDocumentSync("roundtrip_shapelayer_test.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_shapelayer_test.kra");
+    doc2->setFileBatchMode(true);
+    QVERIFY(doc2->openPath("roundtrip_shapelayer_test.kra", KisDocument::DontAddToRecent));
 
     qApp->processEvents();
     doc2->image()->waitForDone();
@@ -516,7 +678,8 @@ void KisKraSaverTest::testRoundTripShapeSelection()
     doc->exportDocumentSync("roundtrip_shapeselection_test.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_shapeselection_test.kra");
+    doc2->setFileBatchMode(true);
+    QVERIFY(doc2->openPath("roundtrip_shapeselection_test.kra", KisDocument::DontAddToRecent));
 
     qApp->processEvents();
     doc2->image()->waitForDone();
@@ -558,7 +721,8 @@ void KisKraSaverTest::testRoundTripStoryboard()
     QVERIFY(result);
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    result = doc2->loadNativeFormat("storyboardroundtriptest.kra");
+    doc2->setFileBatchMode(true);
+    result = doc2->openPath("storyboardroundtriptest.kra", KisDocument::DontAddToRecent);
     QVERIFY(result);
 
     QCOMPARE(doc2->getStoryboardItemList().count(), list.count());
@@ -610,7 +774,8 @@ void KisKraSaverTest::testRoundTripCicp()
     doc->exportDocumentSync(name, doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    bool result = doc2->loadNativeFormat(name);
+    doc2->setFileBatchMode(true);
+    bool result = doc2->openPath(name, KisDocument::DontAddToRecent);
     QVERIFY(result);
     doc2->image()->waitForDone();
 

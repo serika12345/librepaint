@@ -670,7 +670,7 @@ const KoColorProfile *KisKraLoadVisitor::loadProfile(const QString &location, co
         }
         else {
             // Create a colorspace with the embedded profile
-            const KoColorProfile *profile = KoColorSpaceRegistry::instance()->createColorProfile(colorModelId, colorDepthId, data, customProfileNameAliasForKra());
+            const KoColorProfile *profile = KoColorSpaceRegistry::instance()->createColorProfileFromData(colorModelId, colorDepthId, data, customProfileNameAliasForKra());
             m_profileCache[hash] = profile;
             result = profile;
         }

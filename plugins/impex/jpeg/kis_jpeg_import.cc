@@ -10,6 +10,8 @@
 #include <kpluginfactory.h>
 
 #include <document/KisDocument.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <QPointer>
 #include <application/ui/workspace/KisViewManager.h>
 #include <KisImportExportManager.h>
 #include <qcontainerfwd.h>
@@ -33,8 +35,17 @@ KisJPEGImport::~KisJPEGImport()
 KisImportExportErrorCode KisJPEGImport::convert(KisDocument *document, QIODevice *io,  KisPropertiesConfigurationSP /*configuration*/)
 {
     KisJPEGConverter ib(document, batchMode());
-    KisImportExportErrorCode result = ib.buildImage(io);
-    if (result.isOk()) {
+    QPointer<KisDocument> guard(document);
+    KisImportExportErrorCode result;
+    if (KisPart::instance()->gpuEngineEnabled()) {
+        result = ib.prepareGpuImage(io);
+        if (!result.isOk() || !guard) return result;
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        if (!execution) return KisImportExportErrorCode(diagnostic);
+        result = ib.buildGpuImage(execution);
+    } else result = ib.buildImage(io);
+    if (result.isOk() && guard) {
         document->setCurrentImage(ib.image());
     }
     return result;

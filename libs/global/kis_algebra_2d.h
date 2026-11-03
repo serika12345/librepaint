@@ -527,7 +527,12 @@ public:
     }
 
     qreal value(const QPointF &pt) const {
-        return crossProduct(m_p, pt - m_a) * m_norm_p_inv;
+        const QPointF offset = pt - m_a;
+        const qreal product = m_p.y() * offset.x();
+        // Compensate the rounded product so fused evaluation preserves the boundary sign.
+        const qreal error = std::fma(-m_p.y(), offset.x(), product);
+        const qreal determinant = std::fma(m_p.x(), offset.y(), -product);
+        return (determinant + error) * m_norm_p_inv;
     }
 
     int pos(const QPointF &pt) const {

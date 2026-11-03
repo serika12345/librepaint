@@ -16,6 +16,14 @@
 #include <QMimeData>
 #include <QScopedPointer>
 #include <QTemporaryFile>
+#include <QThread>
+#include <QColorSpace>
+#include <KoColorSpace.h>
+#include <KoColorSpaceRegistry.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
+#include <cstring>
+#include <stdexcept>
 
 // kritaglobal
 #include <algorithm>
@@ -349,10 +357,33 @@ KisPaintDeviceSP KisClipboard::clipFromKritaLayers(const KoColorSpace *cs) const
     if (nodes.size() > 1) {
         // we explicitly include point (0,0) into the bounds since that
         // is a requirement for the image
-        const QRect bounds =
-            std::accumulate(nodes.begin(), nodes.end(), QRect(0, 0, 1, 1),
-                            kismpl::mem_bit_or(&KisNode::exactBounds));
+        const auto boundsForNodes = [&] {
+            return std::accumulate(nodes.begin(), nodes.end(), QRect(0, 0, 1, 1),
+                                   kismpl::mem_bit_or(&KisNode::exactBounds));
+        };
 
+        const KisImageSP source = nodes.first()->image();
+        if (source && source->gpuImage()) {
+            try {
+                const QRect bounds = boundsForNodes();
+                KisNodeList roots;
+                for (auto node = source->root()->firstChild(); node; node = node->nextSibling()) roots.append(node);
+                auto projectionImage = source;
+                const bool resize = !source->bounds().contains(bounds);
+                if (nodes != roots || resize) {
+                    projectionImage = source->cloneGpuNodeImage(nodes);
+                    if (!projectionImage) return nullptr;
+                    if (resize && projectionImage->gpuImage()->resizeCanvas(QRect(QPoint(), bounds.size()), false) !=
+                        LibrePaint::Image::Gpu::Result::Success) return nullptr;
+                }
+                return projectionImage->projection();
+            } catch (const std::exception &error) {
+                qWarning() << "Could not read copied GPU layer projection:" << error.what();
+                return nullptr;
+            }
+        }
+
+        const QRect bounds = boundsForNodes();
         // if no color space provided choose the most used one in the layer data
         if (cs == nullptr) {
             QHash<const KoColorSpace *, int> colorSpacesCount;
@@ -677,7 +708,7 @@ QSize KisClipboard::clipSize() const
 
         return clip->exactBounds().size();
     } else {
-        if (d->clipboard->mimeData()->hasImage()) {
+        if (cbData && cbData->hasImage()) {
             QImage qimage = d->clipboard->image();
             return qimage.size();
         }
@@ -685,22 +716,190 @@ QSize KisClipboard::clipSize() const
     return QSize();
 }
 
-void KisClipboard::setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy)
+bool KisClipboard::setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy)
 {
     /**
      * See a comment in KisMimeData::deepCopyNodes()
      */
     QMimeData *data = KisMimeData::mimeForLayersDeepCopy(nodes, image, forceCopy);
     if (!data)
-        return;
+        return false;
 
     d->clipboard->setMimeData(data);
+    return true;
+}
+
+namespace {
+LibrePaint::Image::Gpu::SelectionMaskSP clipboardCoverage(const GpuClipboardMask &mask, qsizetype budget)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const QRect bounds = mask.rect.normalized();
+    if (qint64(bounds.width()) * bounds.height() > std::min<qsizetype>(budget, Gpu::SelectionMask::MaximumBytes)) return {};
+    Gpu::SelectionMaskSP coverage;
+    if (!mask.coverage.isNull()) {
+        if (mask.coverage.size() != bounds.size() ||
+            (mask.coverage.format() != QImage::Format_Alpha8 && mask.coverage.format() != QImage::Format_Grayscale8)) return {};
+        QByteArray bytes(bounds.width() * bounds.height(), '\0');
+        for (int y = 0; y < bounds.height(); ++y)
+            std::memcpy(bytes.data() + qsizetype(y) * bounds.width(), mask.coverage.constScanLine(y), bounds.width());
+        coverage = Gpu::SelectionMask::fromAlphaCoverage(bounds, bytes, bounds);
+        if (!coverage && std::all_of(bytes.cbegin(), bytes.cend(), [](char value) { return value == 0; }))
+            coverage = Gpu::SelectionMask::empty();
+    } else coverage = mask.ellipse ? Gpu::SelectionMask::fromEllipse(bounds, bounds) :
+                                     Gpu::SelectionMask::fromRectangle(bounds, bounds);
+    return coverage && coverage->byteCount() <= budget ? coverage : Gpu::SelectionMaskSP{};
+}
+}
+
+bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes, QRect region, std::optional<GpuClipboardMask> mask)
+{
+    const auto owner = image ? image->gpuImage() : nullptr;
+    if (!owner || QThread::currentThread() != thread() || QThread::currentThread() != owner->thread() ||
+        !owner->handle() || owner->operations().hasActiveStroke() || memoryBudgetBytes < 0) return false;
+    const auto version = owner->operations().snapshot();
+    const QRect captured = region.isNull() ? QRect(QPoint(), version->size) :
+        region.normalized().intersected(QRect(QPoint(), version->size));
+    if (captured.isEmpty()) return false;
+    try {
+        const auto coverage = mask && !mask->rect.isEmpty() ? clipboardCoverage(*mask, memoryBudgetBytes) :
+            LibrePaint::Image::Gpu::SelectionMaskSP{};
+        if (mask && !mask->rect.isEmpty() && !coverage) return false;
+        const auto copied = owner->cloneRasterLayer(version, 0, captured, QUuid::createUuid(),
+                                                    memoryBudgetBytes - (coverage ? coverage->byteCount() : 0), coverage, mask && !mask->keepInside);
+        if (!copied) return false;
+        if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;
+        auto captured = KisImage::fromGpuImage(copied, QStringLiteral("Projection"), image->colorSpace());
+        captured->setResolution(image->xRes(), image->yRes());
+        auto *data = KisMimeData::mimeForLayers({captured->root()->firstChild()}, captured, true);
+        if (!data) return false;
+        d->clipboard->setMimeData(data);
+        return true;
+    } catch (const std::exception &error) {
+        qWarning() << "Could not capture merged clipboard image:" << error.what();
+        return false;
+    }
+}
+
+bool KisClipboard::setGpuLayer(KisImageSP image, const QUuid &layer, qsizetype memoryBudgetBytes, QRect region, std::optional<GpuClipboardMask> mask)
+{
+    const auto owner = image ? image->gpuImage() : nullptr;
+    if (!owner || layer.isNull() || QThread::currentThread() != thread() ||
+        QThread::currentThread() != owner->thread() || !owner->handle() ||
+        owner->operations().hasActiveStroke() || memoryBudgetBytes < 0) return false;
+    const auto version = owner->operations().snapshot();
+    LibrePaint::Image::Gpu::LayerId layerId = 0;
+    for (const auto &candidate : version->layers)
+        if (candidate.uuid == layer) layerId = candidate.id;
+    if (!layerId) return false;
+    const QRect captured = region.isNull() ? QRect(QPoint(), version->size) :
+        region.normalized().intersected(QRect(QPoint(), version->size));
+    if (captured.isEmpty()) return false;
+    try {
+        const auto coverage = mask && !mask->rect.isEmpty() ? clipboardCoverage(*mask, memoryBudgetBytes) :
+            LibrePaint::Image::Gpu::SelectionMaskSP{};
+        if (mask && !mask->rect.isEmpty() && !coverage) return false;
+        const auto copied = owner->cloneRasterLayer(version, layerId, captured, QUuid::createUuid(),
+                                                    memoryBudgetBytes - (coverage ? coverage->byteCount() : 0), coverage, mask && !mask->keepInside);
+        if (!copied) return false;
+        if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;
+        auto capturedImage = KisImage::fromGpuImage(copied, QStringLiteral("Layer"), image->colorSpace());
+        capturedImage->setResolution(image->xRes(), image->yRes());
+        auto *data = KisMimeData::mimeForLayers({capturedImage->root()->firstChild()}, capturedImage, true);
+        if (!data) return false;
+        d->clipboard->setMimeData(data);
+        return true;
+    } catch (const std::exception &error) {
+        qWarning() << "Could not capture a GPU layer region:" << error.what();
+        return false;
+    }
+}
+
+QSharedPointer<LibrePaint::Image::Gpu::PaintImage> KisClipboard::importGpuImage(
+    KisImageSP destination, const QImage &source, QPoint position, qsizetype memoryBudgetBytes)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = destination ? destination->gpuImage() : nullptr;
+    if (!owner || !owner->handle() || QThread::currentThread() != thread() ||
+        QThread::currentThread() != owner->thread() || owner->operations().hasActiveStroke() ||
+        source.isNull() || memoryBudgetBytes < 0) return {};
+    const auto version = owner->operations().snapshot();
+    const auto *targetSpace = destination->colorSpace();
+    if (!targetSpace || targetSpace->colorModelId() != RGBAColorModelID ||
+        targetSpace->pixelSize() != Gpu::pixelByteCount(version->format) ||
+        targetSpace->profile()->rawData() != version->colorProfile ||
+        !QRect(QPoint(), version->size).contains(QRect(position, source.size()))) return {};
+    const bool sourceWords = source.depth() > 32;
+    const int sourcePixelBytes = sourceWords ? 8 : 4;
+    const int targetPixelBytes = Gpu::pixelByteCount(version->format);
+    const qint64 packedBytes = qint64(source.width()) * source.height() * targetPixelBytes;
+    const qint64 columns = (position.x() % Gpu::RgbaTile::Size + qint64(source.width()) + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+    const qint64 rows = (position.y() % Gpu::RgbaTile::Size + qint64(source.height()) + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+    const qint64 workingBytes = packedBytes + qint64(source.width()) * (source.height() + 1) * sourcePixelBytes +
+        qint64(source.width()) * targetPixelBytes + 2 * columns * rows * Gpu::RgbaTile::byteCount(version->format);
+    if (workingBytes > memoryBudgetBytes) return {};
+    try {
+        auto *registry = KoColorSpaceRegistry::instance();
+        const auto *profile = source.colorSpace().isValid() ? registry->profileForQColorSpace(source.colorSpace()) : registry->rgb8()->profile();
+        if (source.colorSpace().isValid() && !profile) return {};
+        const auto *sourceSpace = sourceWords ? registry->rgb16(profile) : registry->rgb8(profile);
+        if (!sourceSpace) return {};
+        const QImage input = source.convertToFormat(sourceWords ? QImage::Format_RGBA64 : QImage::Format_ARGB32);
+        if (input.isNull()) return {};
+        QByteArray packed(packedBytes, Qt::Uninitialized);
+        QByteArray inputRow(source.width() * sourcePixelBytes, Qt::Uninitialized);
+        QByteArray convertedRow(source.width() * targetPixelBytes, Qt::Uninitialized);
+        for (int y = 0; y < source.height(); ++y) {
+            for (int x = 0; x < source.width(); ++x) {
+                if (sourceWords) {
+                    const auto pixel = reinterpret_cast<const QRgba64 *>(input.constScanLine(y))[x];
+                    const quint16 bgra[]{pixel.blue(), pixel.green(), pixel.red(), pixel.alpha()};
+                    std::memcpy(inputRow.data() + x * 8, bgra, sizeof(bgra));
+                } else {
+                    const auto pixel = reinterpret_cast<const QRgb *>(input.constScanLine(y))[x];
+                    const quint8 bgra[]{quint8(qBlue(pixel)), quint8(qGreen(pixel)), quint8(qRed(pixel)), quint8(qAlpha(pixel))};
+                    std::memcpy(inputRow.data() + x * 4, bgra, sizeof(bgra));
+                }
+            }
+            if (!sourceSpace->convertPixelsTo(reinterpret_cast<const quint8 *>(inputRow.constData()),
+                    reinterpret_cast<quint8 *>(convertedRow.data()), targetSpace, source.width(),
+                    KoColorConversionTransformation::internalRenderingIntent(),
+                    KoColorConversionTransformation::internalConversionFlags())) return {};
+            for (int x = 0; x < source.width(); ++x) {
+                Gpu::RgbaPixel pixel;
+                if (targetPixelBytes == 8) {
+                    quint16 bgra[4];
+                    std::memcpy(bgra, convertedRow.constData() + x * 8, sizeof(bgra));
+                    pixel = {bgra[2], bgra[1], bgra[0], bgra[3]};
+                } else {
+                    const auto *bgra = reinterpret_cast<const quint8 *>(convertedRow.constData()) + x * 4;
+                    pixel = {bgra[2], bgra[1], bgra[0], bgra[3]};
+                }
+                const auto bytes = Gpu::rgbaBytes(pixel, version->format);
+                std::memcpy(packed.data() + (qsizetype(y) * source.width() + x) * targetPixelBytes,
+                            bytes.constData(), targetPixelBytes);
+            }
+        }
+        Gpu::RasterImage raster;
+        raster.size = version->size;
+        raster.format = version->format;
+        raster.colorProfile = version->colorProfile;
+        raster.layers.append({QStringLiteral("Pasted"), true, QUuid::createUuid(), {}});
+        const auto imported = Gpu::PaintImageSP::create(owner->execution(), raster);
+        if (imported->writeRgbaPixels(imported->operations().activeLayer(), QRect(position, source.size()), packed) != Gpu::Result::Success)
+            return {};
+        if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return {};
+        return imported;
+    } catch (const std::exception &error) {
+        qWarning() << "Could not import clipboard image:" << error.what();
+        return {};
+    }
 }
 
 bool KisClipboard::hasLayers() const
 {
     const QByteArray mimeType = QByteArrayLiteral("application/x-krita-node-internal-pointer");
-    return d->clipboard->mimeData()->hasFormat(mimeType);
+    const auto *data = d->clipboard->mimeData();
+    return data && data->hasFormat(mimeType);
 }
 
 bool KisClipboard::hasLayerStyles() const
@@ -709,24 +908,27 @@ bool KisClipboard::hasLayerStyles() const
     //       result of this function, because we allow pasting
     //       of the layer styles as 'text/plain'
 
-    return d->clipboard->mimeData()->hasFormat("application/x-krita-layer-style");
+    const auto *data = d->clipboard->mimeData();
+    return data && data->hasFormat("application/x-krita-layer-style");
 }
 
 const QMimeData *KisClipboard::layersMimeData() const
 {
     const QMimeData *cbData = d->clipboard->mimeData();
-    return cbData->hasFormat("application/x-krita-node-internal-pointer") ? cbData : 0;
+    return cbData && cbData->hasFormat("application/x-krita-node-internal-pointer") ? cbData : nullptr;
 }
 
 bool KisClipboard::hasUrls() const
 {
-    return d->clipboard->mimeData()->hasUrls();
+    const auto *data = d->clipboard->mimeData();
+    return data && data->hasUrls();
 }
 
 
 bool KisClipboard::hasImage() const
 {
-    return d->clipboard->mimeData()->hasImage();
+    const auto *data = d->clipboard->mimeData();
+    return data && data->hasImage();
 }
 
 QImage KisClipboard::getImageFromMimeData(const QMimeData *cbData) const

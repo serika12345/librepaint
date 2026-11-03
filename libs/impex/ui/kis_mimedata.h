@@ -110,6 +110,9 @@ private:
 public:
     static QMimeData* mimeForLayers(const KisNodeList &nodes, KisImageSP image, bool forceCopy = false);
     static QMimeData* mimeForLayersDeepCopy(const KisNodeList &nodes, KisImageSP image, bool forceCopy);
+    /** clearPixelSelection adopts a copied forest and clears the GPU pixel
+     * selection atomically. It requires a GPU destination and no applicator.
+     */
     static bool insertMimeLayers(const QMimeData *data,
                                  KisImageSP image,
                                  KisShapeController *shapeController,
@@ -119,7 +122,8 @@ public:
                                  NodeInsertionInterface *nodeInsertionAdapter,
                                  bool changeOffset = false,
                                  QPointF offset = QPointF(),
-                                 KisProcessingApplicator *applicator = nullptr);
+                                 KisProcessingApplicator *applicator = nullptr,
+                                 bool clearPixelSelection = false);
 
 protected:
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))

@@ -11,16 +11,24 @@
 #include <QIODevice>
 #include <QUrl>
 #include <QVersionNumber>
+#include <algorithm>
+#include <cmath>
+#include <limits>
 
 #include <KoStore.h>
 #include <KoStoreDevice.h>
 #include <KoUpdater.h>
 #include <metadata/KoDocumentInfo.h>
+#include <KoColorSpaceRegistry.h>
+#include <KoColorSpace.h>
+#include <kra/KisKraRasterCodec.h>
 
 #include <document/KisDocument.h>
+#include <application/kis_config.h>
 #include <KritaVersionWrapper.h>
 #include <kis_clone_layer.h>
 #include <kis_image.h>
+#include <kis_paint_device.h>
 #include <qcoreapplication.h>
 #include <qdebug.h>
 #include <QtGlobal>
@@ -28,7 +36,6 @@
 #include <qlist.h>
 #include <qlogging.h>
 #include <qnamespace.h>
-#include <qpixmap.h>
 #include <qpointer.h>
 
 #include "KisImportExportErrorCode.h"
@@ -148,8 +155,10 @@ StoryboardCommentList KraConverter::storyboardCommentList()
     return m_storyboardCommentList;
 }
 
-KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &filename, bool addMergedImage)
+KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &filename, bool addMergedImage,
+                                               const QDateTime &saveTime, std::optional<bool> compressRaster)
 {
+    if (!saveTime.isValid()) return ImportExportCodes::FormatFeaturesUnsupported;
     if (m_image->size().isEmpty()) {
         return ImportExportCodes::Failure;
     }
@@ -166,9 +175,9 @@ KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &f
 
     setProgress(20);
 
-    m_kraSaver = new KisKraSaver(m_doc, filename, addMergedImage);
+    m_kraSaver = new KisKraSaver(m_doc, filename, addMergedImage, compressRaster.value_or(KisConfig(true).compressKra()));
 
-    KisImportExportErrorCode resultCode = saveRootDocuments(m_store);
+    KisImportExportErrorCode resultCode = saveRootDocuments(m_store, saveTime);
 
     if (!resultCode.isOk()) {
         return resultCode;
@@ -229,7 +238,7 @@ KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &f
     return ImportExportCodes::OK;
 }
 
-KisImportExportErrorCode KraConverter::saveRootDocuments(KoStore *store)
+KisImportExportErrorCode KraConverter::saveRootDocuments(KoStore *store, const QDateTime &saveTime)
 {
     dbgFile << "Saving root";
     if (store->open("root")) {
@@ -248,7 +257,7 @@ KisImportExportErrorCode KraConverter::saveRootDocuments(KoStore *store)
                                                           /*DTD name*/, "document-info" /*tag name*/, "1.1");
         doc = m_doc->documentInfo()->save(doc,
                                           m_doc->isAutosaving(),
-                                          m_doc->isModified());
+                                          m_doc->isModified(), saveTime);
         KoStoreDevice dev(store);
         QByteArray s = doc.toByteArray(); // this is already Utf8!
         bool success = dev.write(s.data(), s.size());
@@ -307,8 +316,23 @@ QDomDocument KraConverter::createDomDocument()
 
 KisImportExportErrorCode KraConverter::savePreview(KoStore *store)
 {
-    QPixmap pix = m_doc->generatePreview(QSize(256, 256));
-    QImage preview(pix.toImage().convertToFormat(QImage::Format_ARGB32, Qt::ColorOnly));
+    QImage preview;
+    const auto projection = m_image->projection();
+    const auto srgb = KoColorSpaceRegistry::instance()->rgb8();
+    constexpr int limit = LibrePaint::Image::Gpu::RgbaTile::CoordinateLimit;
+    if (m_image->width() <= limit && m_image->height() <= limit &&
+        *m_image->colorSpace() == *srgb && *projection->colorSpace() == *srgb) {
+        const int width = m_image->width();
+        preview = LibrePaint::ImportExport::Kra::RasterCodec::createPreview(m_image->size(), [projection, width](int y) {
+            QByteArray row(width * 4, Qt::Uninitialized);
+            projection->readBytes(reinterpret_cast<quint8 *>(row.data()), 0, y, width, 1);
+            for (int x = 0; x < width; ++x) std::swap(row[x * 4], row[x * 4 + 2]);
+            return row;
+        });
+        if (preview.isNull()) return ImportExportCodes::InsufficientMemory;
+    } else {
+        preview = m_doc->generatePreviewImage(QSize(256, 256)).convertToFormat(QImage::Format_ARGB32, Qt::ColorOnly);
+    }
     if (preview.size().isEmpty()) {
         QSize newSize = m_doc->savingImage()->bounds().size();
         // make sure dimensions are at least one pixel, because extreme aspect ratios may cause rounding to zero
@@ -316,6 +340,11 @@ KisImportExportErrorCode KraConverter::savePreview(KoStore *store)
         preview = QImage(newSize, QImage::Format_ARGB32);
         preview.fill(QColor(0, 0, 0, 0));
     }
+    const auto density = [](qreal resolution) {
+        return int(qBound(1.0, std::floor((resolution * 72) / 0.0254 + 0.5), double(std::numeric_limits<int>::max())));
+    };
+    preview.setDotsPerMeterX(density(m_image->xRes()));
+    preview.setDotsPerMeterY(density(m_image->yRes()));
 
     KoStoreDevice io(store);
     if (!io.open(QIODevice::WriteOnly)) {
@@ -479,6 +508,8 @@ bool KraConverter::completeLoading(KoStore* store)
         return false;
     }
 
+    // Complete projection color conversion before removing the enclosing updates filter.
+    m_image->waitForDone();
     m_image->enableDirtyRequests();
 
     if (!m_kraLoader->warningMessages().isEmpty()) {

@@ -71,9 +71,10 @@
 
 using namespace KRA;
 
-KisKraSaveVisitor::KisKraSaveVisitor(KoStore *store, const QString & name, QMap<const KisNode*, QString> nodeFileNames)
+KisKraSaveVisitor::KisKraSaveVisitor(KoStore *store, const QString & name, QMap<const KisNode*, QString> nodeFileNames, bool compressRaster)
     : KisNodeVisitor()
     , m_store(store)
+    , m_compressRaster(compressRaster)
     , m_external(false)
     , m_name(name)
     , m_nodeFileNames(nodeFileNames)
@@ -352,8 +353,7 @@ bool KisKraSaveVisitor::savePaintDevice(KisPaintDeviceSP device,
                                         QString location)
 {
     // Layer data
-    KisConfig cfg(true);
-    m_store->setCompressionEnabled(cfg.compressKra());
+    m_store->setCompressionEnabled(m_compressRaster);
 
     KisPaintDeviceFramesInterface *frameInterface = device->framesInterface();
     QList<int> frames;

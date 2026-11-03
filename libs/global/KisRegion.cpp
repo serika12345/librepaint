@@ -71,7 +71,9 @@ QVector<QRect>::iterator mergeRects(QVector<QRect>::iterator beginIt,
     while (it != endIt) {
         auto rowEnd = std::upper_bound(it, endIt, *it, MergePolicy::rowIsLess);
         for (auto rowIt = it; rowIt != rowEnd; ++rowIt) {
-            if (policy.rowHeight(*resultIt) == policy.rowHeight(*rowIt) &&
+            if (!policy.rowIsLess(*resultIt, *rowIt) &&
+                    !policy.rowIsLess(*rowIt, *resultIt) &&
+                    policy.rowHeight(*resultIt) == policy.rowHeight(*rowIt) &&
                     policy.nextCol(*resultIt) == policy.col(*rowIt)) {
                 *resultIt |= *rowIt;
             } else {
