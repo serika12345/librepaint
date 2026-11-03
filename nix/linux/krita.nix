@@ -112,6 +112,7 @@ let
       "-DWGPUNative_INCLUDE_DIR:PATH=${lib.getDev wgpuNative}/include"
       "-DWGPUNative_LIBRARY:FILEPATH=${wgpuNative}/lib/libwgpu_native.so"
       "-DALLOW_UNSTABLE=QT6"
+      "-DBUILD_TESTING=OFF"
       "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=OFF"
       "-DBUILD_WITH_QT6=ON"
       "-DENABLE_UPDATERS=OFF"

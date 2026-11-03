@@ -890,7 +890,11 @@
             && !(packageSet.lib.hasPrefix "result-" topLevel);
         };
       librepaintBuildSource = mkLibrepaintBuildSource pkgs false;
-      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs false;
+      linuxBuildSource = import ./nix/application-source.nix {
+        inherit (linuxPkgs) lib;
+        src = ./.;
+        excludeTests = true;
+      };
       linuxAndroidCompileSource = mkLibrepaintBuildSource linuxPkgs true;
       librepaintPolicySource = mkLibrepaintPolicySource pkgs;
       linuxPolicySource = mkLibrepaintPolicySource linuxPkgs;

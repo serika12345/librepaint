@@ -2,6 +2,7 @@
   lib,
   src,
   excludeAndroidPackage ? false,
+  excludeTests ? false,
 }:
 
 lib.cleanSourceWith {
@@ -60,5 +61,6 @@ lib.cleanSourceWith {
       excludeAndroidPackage
       && (relativePath == "packaging/android/apk" || lib.hasPrefix "packaging/android/apk/" relativePath)
     )
+    && !(excludeTests && builtins.elem "tests" (lib.splitString "/" relativePath))
     && !(lib.hasPrefix "README" topLevel);
 }
