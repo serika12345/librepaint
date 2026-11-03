@@ -108,20 +108,28 @@ struct RegionFillSettings
     LibrePaint::Pigment::Color::NativeLabConversionSP labConversion;
 };
 
-/** Frozen reference pixels for a colour-region fill. Replaying history, cloning
- * and recovery evaluate the same predecessor, independently of later writes. */
+/** Generated colour-region coverage. Its source document is released after generation. */
 struct RegionFill
 {
-    Snapshot source;
     QWeakPointer<const DocumentVersion> preparedFor;
     LayerId layer = 0;
-    RegionFillSettings settings;
-    /** Finite coverage includes native selection blocks for edge filtering. */
+    RegionCoveragePurpose purpose = RegionCoveragePurpose::Paint;
+    QSize documentSize;
     QSize coverageSize;
     QPoint coverageOrigin;
     QRect bounds;
+    std::shared_ptr<Detail::SelectionPixels> pixels;
 };
 using RegionFillSP = QSharedPointer<const RegionFill>;
+
+/** Inputs retained only until coverage generation completes. */
+struct RegionFillRequest
+{
+    Snapshot source;
+    RegionFillSettings settings;
+    QSharedPointer<RegionFill> result;
+};
+using RegionFillRequestSP = QSharedPointer<const RegionFillRequest>;
 
 /** One participant in an ordinary move. Pixel and transparency-mask locks
  * are resolved by the tool's current node selection before admission.
@@ -1617,8 +1625,8 @@ private:
     Result applyMaskVersions(const QList<VersionMaskWrite> &writes);
     /** Preparation retains bounded immutable reference inputs without changing
      * history. GPU admission checks precede adopting the prepared fill. */
-    Result prepareRegionFill(LayerId layer, const RegionFillSettings &settings, RegionFillSP *region) const;
-    bool selectionFitsRetainedInputs(const SelectionMaskSP &mask) const;
+    Result prepareRegionFill(LayerId layer, const RegionFillSettings &settings, RegionFillRequestSP *request) const;
+    bool selectionFitsInputs(const SelectionMaskSP &mask) const;
     Result fillRegion(LayerId layer, const RegionFillSP &region, const RgbaPixel &color,
                       const std::optional<PatternFill> &pattern, qreal opacity, bool erase,
                       bool alphaLocked, LayerBlendMode blendMode);

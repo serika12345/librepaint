@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuPaintImage_p.h"
+#include "KisGpuSelectionSources_p.h"
 #include "KisGpuOperationValidation_p.h"
 #include <QThread>
 #include <QRegion>
@@ -1274,19 +1275,17 @@ Result PaintImage::fillRegion(LayerId layer, const RegionFillSettings &settings,
 {
     if (!onThread()) return Result::InvalidInput;
     try {
-        RegionFillSP region;
-        const auto prepared = m_d->document->prepareRegionFill(layer, settings, &region);
+        RegionFillRequestSP request;
+        const auto prepared = m_d->document->prepareRegionFill(layer, settings, &request);
         if (prepared != Result::Success) return prepared;
-        QRect bounds;
-        const auto checked = m_d->execution.checkRegionFill(m_d->handle, region, &bounds);
+        RegionFillSP region;
+        const auto checked = m_d->execution.checkRegionFill(m_d->handle, request, &region);
         if (checked.code != ExecutionCode::Success) {
             m_d->lastRequest = checked;
             return resultFor(checked.code);
         }
-        if (bounds.isEmpty()) return Result::EmptyOperation;
-        auto bounded = QSharedPointer<RegionFill>::create(*region);
-        bounded->bounds = bounds;
-        return publish(m_d->document->fillRegion(layer, bounded, color, pattern, opacity, erase, alphaLocked, blendMode));
+        if (region->bounds.isEmpty()) return Result::EmptyOperation;
+        return publish(m_d->document->fillRegion(layer, region, color, pattern, opacity, erase, alphaLocked, blendMode));
     } catch (const std::bad_alloc &) {
         return Result::CapacityExceeded;
     }
@@ -1299,12 +1298,12 @@ Result PaintImage::selectRegion(LayerId reference, const RegionFillSettings &set
         auto input = settings;
         input.purpose = RegionCoveragePurpose::Selection;
         if (input.reference == RegionFillReference::CurrentLayer) input.reference = RegionFillReference::CurrentProjection;
-        RegionFillSP region;
-        const auto prepared = m_d->document->prepareRegionFill(reference, input, &region);
+        RegionFillRequestSP request;
+        const auto prepared = m_d->document->prepareRegionFill(reference, input, &request);
         if (prepared != Result::Success) return prepared;
-        QRect bounds;
+        RegionFillSP region;
         SelectionMaskSP selection;
-        const auto checked = m_d->execution.checkRegionFill(m_d->handle, region, &bounds, &selection);
+        const auto checked = m_d->execution.checkRegionFill(m_d->handle, request, &region, &selection);
         if (checked.code != ExecutionCode::Success) {
             m_d->lastRequest = checked;
             return resultFor(checked.code);

@@ -376,7 +376,7 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
             SelectionMaskSP output;
             const auto generated = d.execution.paintedSelectionCoverage(image->handle(), source, sourceLayer, &output);
             if (generated.code != ExecutionCode::Success) return readFailure(generated.code);
-            if (!output || !document.selectionFitsRetainedInputs(output)) return Result::CapacityExceeded;
+            if (!output || !document.selectionFitsInputs(output)) return Result::CapacityExceeded;
             if (previous == selected && previousPosition == selectedPosition) selectedOutput = output;
             if (!retainedOnly) writes.append({version, target.first, maskUuid, output});
         }

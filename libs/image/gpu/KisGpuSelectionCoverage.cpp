@@ -198,31 +198,22 @@ std::shared_ptr<CoverageTile> TileRenderer::Private::combinedCoverageTile(WGPUCo
 
 bool TileRenderer::Private::ensureSelectionTiles(WGPUCommandEncoder commands, const SelectionMaskSP &mask)
 {
-    if (!mask || !mask->isGpuGenerated() || mask->regionSource() || !device->ownsCommands(commands)) return false;
+    if (!mask || !mask->isGpuGenerated() || !mask->m_regionRect.isEmpty() || !device->ownsCommands(commands)) return false;
     const auto native = mask->nativePixels();
     if (!native) return false;
     { const std::lock_guard<std::mutex> lock(native->mutex);
       if (native->device.lock() == device && native->tilesReady) return true; }
+    if (mask->m_completed) {
+        error = QStringLiteral("Canonical selection coverage is unavailable on this GPU");
+        return false;
+    }
     QMap<quint64, std::shared_ptr<BufferStorage>> tiles;
-    if (const auto &transform = mask->transformSource()) {
+    if (const auto &transform = mask->m_transform) {
         if (!transformMaskTiles(commands, *transform, &tiles)) return false;
-    } else if (const auto &paint = mask->paintSource()) {
-        const auto source = renderer.record(commands, paint->source);
-        if (source.code != RenderOutcome::Recorded) { error = source.diagnostic; return false; }
-        const auto layers = source.version->m_data->layers.value(paint->layer);
-        for (const auto point : paint->tiles) {
-            const auto raw = layers.value(key(point.x(), point.y()));
-            if (!raw) { error = QStringLiteral("Painted mask replay lost an occupied source tile"); return false; }
-            retainTile(raw);
-            const auto packed = packSelectionTile(commands, raw->pixels.get(), QRect(point * TileSize, QSize(TileSize, TileSize)),
-                                                   point, mask->bounds(), 1, mask->defaultCoverage());
-            if (!packed) return false;
-            tiles.insert(key(point.x(), point.y()), packed->storage);
-        }
     } else {
         for (const auto point : mask->tileCoordinates()) {
-            const auto output = mask->translationSource() ? translatedCoverageTile(commands, *mask->translationSource(), point) :
-                mask->combinationSource() ? combinedCoverageTile(commands, *mask->combinationSource(), point) : nullptr;
+            const auto output = mask->m_translation ? translatedCoverageTile(commands, *mask->m_translation, point) :
+                mask->m_combination ? combinedCoverageTile(commands, *mask->m_combination, point) : nullptr;
             if (!output) return false;
             tiles.insert(key(point.x(), point.y()), output->storage);
         }
@@ -316,23 +307,20 @@ std::shared_ptr<CoverageTile> TileRenderer::Private::generatedCoverageTile(WGPUC
     if (!mask || !mask->isGpuGenerated() || !device->ownsCommands(commands)) return {};
     const auto point = coordinate(tileKey);
     std::shared_ptr<CoverageTile> output;
-    if (const auto &region = mask->regionSource()) {
+    if (!mask->m_regionRect.isEmpty()) {
         std::shared_ptr<BufferStorage> pixels;
         if (QRect(point * TileSize, QSize(TileSize, TileSize)).intersects(mask->bounds())) {
-            { const auto native = mask->nativePixels(); const std::lock_guard<std::mutex> lock(native->mutex);
+            const auto native = mask->nativePixels();
+            { const std::lock_guard<std::mutex> lock(native->mutex);
               if (native->device.lock() == device) pixels = native->region; }
             if (!pixels) {
-                const auto prepared = renderer.prepareRegion(commands, region);
-                if (prepared.code != RenderOutcome::Recorded) { error = prepared.diagnostic; return {}; }
-                pixels = regionCache.value(region.data()).coverage.pixels;
+                error = QStringLiteral("Canonical region coverage is unavailable on this GPU");
+                return {};
             }
-            if (!pixels) return {};
-            { const auto native = mask->nativePixels(); const std::lock_guard<std::mutex> lock(native->mutex);
-              native->device = device; native->region = pixels; }
             device->retainForFrame(pixels);
         }
         output = packSelectionTile(commands, pixels ? pixels->pixels.get() : nullptr,
-            QRect(region->coverageOrigin, region->coverageSize), point, mask->bounds(), pixels ? 0 : 2);
+            mask->m_regionRect, point, mask->bounds(), pixels ? 0 : 2);
     } else {
         if (!ensureSelectionTiles(commands, mask)) return {};
         std::shared_ptr<BufferStorage> pixels;
@@ -440,7 +428,7 @@ ExecutionOutcome Execution::paintedSelectionCoverage(DocumentHandle handle, cons
     native->device = d.device; native->tilesReady = true;
     const auto mask = SelectionMask::fromPaint(paint, bounds, runs, native);
     if (!mask) return {ExecutionCode::InvalidRequest, QStringLiteral("Painted coverage geometry or source is invalid")};
-    *result = mask;
+    *result = mask->completed();
     return {ExecutionCode::Success, {}};
 }
 
@@ -502,7 +490,7 @@ ExecutionOutcome Execution::evaluateSelectionCombination(const QSharedPointer<co
     frozen->tiles = std::move(occupied);
     const auto mask = SelectionMask::fromCombination(frozen, bounds, runs, native);
     if (!mask) return {ExecutionCode::InvalidRequest, QStringLiteral("Selection arithmetic geometry is invalid")};
-    *result = mask;
+    *result = mask->completed();
     return {ExecutionCode::Success, {}};
 }
 
@@ -590,7 +578,7 @@ ExecutionOutcome Execution::transformedMaskCoverage(const SelectionMaskSP &mask,
     operation->tiles = std::move(occupied);
     const auto transformed = SelectionMask::fromTransform(operation, bounds, runs, native);
     if (!transformed) return {ExecutionCode::InvalidRequest, QStringLiteral("Mask transform geometry is invalid")};
-    *result = transformed;
+    *result = transformed->completed();
     return {ExecutionCode::Success, {}};
 }
 
@@ -610,7 +598,7 @@ ExecutionOutcome Execution::translateSelectionCoverage(const SelectionMaskSP &so
     auto operation = QSharedPointer<SelectionTranslationSource>::create();
     operation->source = source; operation->offset = offset; operation->extent = extent; operation->clip = clip;
     if (extent.isEmpty()) {
-        *result = SelectionMask::fromTranslation(operation, {}, {}, std::make_shared<SelectionPixels>());
+        *result = SelectionMask::fromTranslation(operation, {}, {}, std::make_shared<SelectionPixels>())->completed();
         return *result ? ExecutionOutcome{ExecutionCode::Success, {}} :
             ExecutionOutcome{ExecutionCode::CapacityExceeded, QStringLiteral("Translated mask storage exceeds capacity")};
     }
@@ -640,7 +628,7 @@ ExecutionOutcome Execution::translateSelectionCoverage(const SelectionMaskSP &so
     operation->tiles = std::move(occupied);
     const auto mask = SelectionMask::fromTranslation(operation, bounds, runs, native);
     if (!mask) return {ExecutionCode::InvalidRequest, QStringLiteral("Selection movement geometry is invalid")};
-    *result = mask;
+    *result = mask->completed();
     return {ExecutionCode::Success, {}};
 }
 
@@ -666,7 +654,6 @@ PixelBytesOutcome Execution::readSelectionPixels(const SelectionMaskSP &mask, QR
     try {
         PixelBytesOutcome outcome;
         outcome.region = region;
-        outcome.document = mask->regionSource() ? mask->regionSource()->source : Snapshot{};
         outcome.bytes = QByteArray(qsizetype(region.width()) * region.height(), char(mask->defaultCoverage()));
         const auto area = region.intersected(mask->bounds());
         if (!mask->isGpuGenerated()) {

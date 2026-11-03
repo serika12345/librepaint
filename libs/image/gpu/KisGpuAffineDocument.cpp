@@ -55,7 +55,7 @@ Result OperationDocument::updateAffineTransform(OperationId id, const QList<Affi
         return Result::CapacityExceeded;
     const bool selected = std::any_of(m_affine.cbegin(), m_affine.cend(), [](const auto &operation) { return bool(operation->selection); });
     if (!selected && (selection || inverted)) return Result::InvalidInput;
-    if (selection && (selection->byteCount() > SelectionMask::MaximumBytes || !selectionFitsRetainedInputs(selection)))
+    if (selection && (selection->byteCount() > SelectionMask::MaximumBytes || !selectionFitsInputs(selection)))
         return Result::CapacityExceeded;
     QSet<LayerId> seen;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
@@ -80,7 +80,7 @@ Result OperationDocument::updateAffineTransform(OperationId id, const QList<Affi
         }
         if (original->transformMask) {
             if (!found->mask) return Result::InvalidInput;
-            if (found->mask->byteCount() > SelectionMask::MaximumBytes || !selectionFitsRetainedInputs(found->mask))
+            if (found->mask->byteCount() > SelectionMask::MaximumBytes || !selectionFitsInputs(found->mask))
                 return Result::CapacityExceeded;
             const auto &before = version->layers[index].transparencyMask;
             changed |= *before != *found->mask;
@@ -88,7 +88,7 @@ Result OperationDocument::updateAffineTransform(OperationId id, const QList<Affi
         } else if (found->mask) return Result::InvalidInput;
         if (original->transformFilterSelection) {
             if (!found->filterSelection) return Result::InvalidInput;
-            if (!selectionFitsRetainedInputs(found->filterSelection)) return Result::CapacityExceeded;
+            if (!selectionFitsInputs(found->filterSelection)) return Result::CapacityExceeded;
             changed |= *version->layers[index].filterSelection != *found->filterSelection;
             version->layers[index].filterSelection = found->filterSelection;
         } else if (found->filterSelection) return Result::InvalidInput;

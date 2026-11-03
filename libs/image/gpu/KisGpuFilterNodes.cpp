@@ -45,7 +45,7 @@ OperationId OperationDocument::beginFilterNodeEdit(LayerId existing, const Raste
     } else {
         if (!isFilterNode(node.kind) || !node.filter || !node.filter->isValid(before->format) ||
             !Detail::validLayerName(node.name) || !filterFitsRetainedHistory(*node.filter) ||
-            !selectionFitsRetainedInputs(node.filterSelection) || !node.tiles.isEmpty() ||
+            !selectionFitsInputs(node.filterSelection) || !node.tiles.isEmpty() ||
             !node.writtenAreas.isEmpty() || node.defaultPixel != RgbaPixel{} ||
             before->layers.size() >= m_limits.layerCount || index < 0 || index > before->layers.size() ||
             m_nextLayer == std::numeric_limits<quint64>::max()) return {};
@@ -207,7 +207,7 @@ Result OperationDocument::setFilterSelection(LayerId node, const SelectionMaskSP
     if (index < 0 || !isFilterNode(snapshot()->layers[index].kind) || snapshot()->layers[index].userLocked)
         return Result::LayerUnavailable;
     if (!coverage || coverage->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
-    if (!selectionFitsRetainedInputs(coverage) || m_nextRevision == std::numeric_limits<quint64>::max())
+    if (!selectionFitsInputs(coverage) || m_nextRevision == std::numeric_limits<quint64>::max())
         return Result::CapacityExceeded;
     if (snapshot()->layers[index].filterSelection == coverage) return Result::Success;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));

@@ -58,7 +58,7 @@ private Q_SLOTS:
     void rejectedTranslationKeepsHiddenPixelsHistoryPreviewAndRequests();
     void colorFillKeepsVersionsHistoryAndWholeRequestFailures();
     void contiguousFillKeepsFrozenPixelsHistoryAndClones();
-    void paperReferencesRejectRetainedResourceOverflow();
+    void colourSelectionAcceptsGeneratedPixelsWithoutChargingPaintInputs();
     void mergedSparseDefaultsKeepAllocatedBytes_data();
     void mergedSparseDefaultsKeepAllocatedBytes();
     void mergedPixelsKeepRootReadersAndIndependentClearHistory_data();
@@ -87,9 +87,9 @@ private Q_SLOTS:
 };
 
 
-// A colour selection retains the painted source. Reject its complete input
-// before accepting a history entry when the retained paper exceeds capacity.
-void KisGpuPaintImageTest::paperReferencesRejectRetainedResourceOverflow()
+// #89: generated colour coverage releases its brush and paper inputs, so the
+// per-request raster limit does not charge the preceding stroke again.
+void KisGpuPaintImageTest::colourSelectionAcceptsGeneratedPixelsWithoutChargingPaintInputs()
 {
     QString diagnostic;
     const auto device = Device::createNative(diagnostic); QVERIFY2(device, qPrintable(diagnostic));
@@ -109,9 +109,13 @@ void KisGpuPaintImageTest::paperReferencesRejectRetainedResourceOverflow()
     const auto pixels = image.readRgbaPixels(image.operations().activeLayer(), QRect(0, 0, 64, 64), 64 * 64 * 4);
     QCOMPARE(pixels.code, ExecutionCode::Success);
     RegionFillSettings settings; settings.seed = {32, 32}; settings.threshold = 1;
-    QCOMPARE(image.selectRegion(image.operations().activeLayer(), settings, SelectionCombination::Replace), Result::CapacityExceeded);
+    QCOMPARE(image.selectRegion(image.operations().activeLayer(), settings, SelectionCombination::Replace), Result::Success);
+    QCOMPARE(image.operations().undoCount(), 2);
+    const auto selected = image.operations().snapshot();
+    QCOMPARE(image.undo(), Result::Success);
     QCOMPARE(image.operations().snapshot(), before);
-    QCOMPARE(image.operations().undoCount(), 1);
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.operations().snapshot(), selected);
     QCOMPARE(image.readRgbaPixels(image.operations().activeLayer(), QRect(0, 0, 64, 64), pixels.bytes.size()).bytes, pixels.bytes);
 }
 
@@ -2556,13 +2560,6 @@ void KisGpuPaintImageTest::maskPixelWritesKeepCommandBlocks()
     const auto initial = image.operations().snapshot();
     QByteArray original(area.width() * area.height(), char(255)); original[8 * area.width() + 8] = char(160);
     const auto initialActual = bytes(initial);
-    if (initialActual != original) {
-        const auto value = coverage(initial);
-        const auto source = value->paintSource()->source;
-        qInfo() << "direct mask defaults" << value->defaultCoverage() << source->layers.first().defaultPixel
-                << "bounds" << value->bounds() << "operations" << source->layers.first().operations.size()
-                << "written alpha" << quint8(initialActual[8 * area.width() + 8]);
-    }
     QCOMPARE(initialActual, original);
     QCOMPARE(image.setSelectionRect({4, 4, 8, 8}), Result::Success);
     QCOMPARE(image.clearMaskPixels(target, true, effect.uuid), Result::Success);

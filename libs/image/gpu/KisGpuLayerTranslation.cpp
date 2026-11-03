@@ -102,7 +102,7 @@ Result OperationDocument::updateSelectionTranslation(OperationId id, QPoint offs
     if (before->selectionMask && !offset.isNull()) {
         version->selectionMask = before->selectionMask->isGpuGenerated() ? preparedSelection :
             before->selectionMask->translated(offset, QRect(-limit, -limit, 2 * limit, 2 * limit));
-        if (!version->selectionMask || !selectionFitsRetainedInputs(version->selectionMask)) return Result::CapacityExceeded;
+        if (!version->selectionMask || !selectionFitsInputs(version->selectionMask)) return Result::CapacityExceeded;
     }
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     version->m_committed = false;
@@ -162,7 +162,7 @@ Result OperationDocument::updateLayerTranslationWithMasks(OperationId id, QPoint
                 qint64(bounds.top()) + offset.y() < -limit || qint64(bounds.bottom()) + offset.y() >= limit))
                 return Result::InvalidInput;
             output = offset.isNull() ? coverage : prepared ? prepared : coverage->translated(offset, domain);
-            if (!output || !selectionFitsRetainedInputs(output)) return Result::CapacityExceeded;
+            if (!output || !selectionFitsInputs(output)) return Result::CapacityExceeded;
             position = *movedPosition;
             return Result::Success;
         };

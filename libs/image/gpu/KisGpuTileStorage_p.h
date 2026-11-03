@@ -7,6 +7,7 @@
 #define KIS_GPU_TILE_STORAGE_P_H
 
 #include "KisGpuTileRenderer.h"
+#include "KisGpuSelectionSources_p.h"
 #include "KisGpuAffineTransform.h"
 #include "KisGpuPaintGeometry_p.h"
 #include <QMap>
@@ -36,7 +37,7 @@ struct BufferStorage
     ~BufferStorage() { usage->bytes -= wgpuBufferGetSize(pixels.get()); }
 };
 /** Canonical selection pixels outlive display-cache eviction. The frozen
- * source replays after device replacement; GPU residency holds no device cycle.
+ * coverage is canonical; GPU residency holds no device cycle.
  * Its mutex permits immutable masks to be retained/released by file workers.
  */
 struct SelectionPixels
@@ -212,10 +213,10 @@ struct TileRenderer::Private
         std::shared_ptr<Detail::BufferStorage> pixels, status;
     };
     struct RegionCacheEntry {
-        QWeakPointer<const RegionFill> source;
+        QWeakPointer<const RegionFillRequest> source;
         RegionCoverage coverage;
     };
-    QHash<const RegionFill *, RegionCacheEntry> regionCache;
+    QHash<const RegionFillRequest *, RegionCacheEntry> regionCache;
     struct InitialProjectionEntry { QRect region; ProjectedSnapshot pixels; };
     QHash<const FrozenLayerProjection *, QList<InitialProjectionEntry>> initialProjections;
     int regionDepth = 0;
@@ -282,7 +283,7 @@ struct TileRenderer::Private
         RegionCoverage coverage;
         QString diagnostic;
     };
-    RegionResult regionCoverage(WGPUCommandEncoder commands, const RegionFillSP &region,
+    RegionResult regionCoverage(WGPUCommandEncoder commands, const RegionFillRequestSP &request,
                                 const RenderedSnapshot &source, const ProjectedSnapshot &projection = {});
     struct TranslationResult {
         RenderOutcome::Code code;

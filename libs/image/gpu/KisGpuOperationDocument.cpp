@@ -424,7 +424,7 @@ Result OperationDocument::updateExternalMask(const OperationId &id, LayerId laye
     const auto index = layerIndex(layer);
     if (index < 0 || !editableMaskCoverage(snapshot()->layers[index], maskUuid)) return Result::LayerUnavailable;
     if (!mask) return Result::InvalidInput;
-    if (m_nextRevision == std::numeric_limits<quint64>::max() || !selectionFitsRetainedInputs(mask))
+    if (m_nextRevision == std::numeric_limits<quint64>::max() || !selectionFitsInputs(mask))
         return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     auto &target = version->layers[index];
@@ -503,7 +503,7 @@ Result OperationDocument::setSelectionMask(const SelectionMaskSP &mask, bool inv
     if (snapshot()->selectionKind == SelectionKind::Freehand && snapshot()->selectionMask == mask &&
         snapshot()->selectionInverted == inverted) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-    if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
+    if (!selectionFitsInputs(mask)) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->selection = mask->bounds();
     version->selectionInverted = inverted;
@@ -545,7 +545,7 @@ Result OperationDocument::combineSelectionMask(const SelectionMaskSP &mask, Sele
         ? mask : previous->combined(*mask, action, clip, inverted);
     if (!result) return Result::CapacityExceeded;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-    if (!selectionFitsRetainedInputs(result)) return Result::CapacityExceeded;
+    if (!selectionFitsInputs(result)) return Result::CapacityExceeded;
     const auto coverage = !inverted && *result == *previous ? previous : result;
     // Native selection tools retain their accepted transaction even when the
     // resulting coverage is unchanged or an intersection leaves no selection.
@@ -1304,7 +1304,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
                 nextOperation == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
             ++nextOperation;
         }
-        if (found->filterSelection && !selectionFitsRetainedInputs(found->filterSelection)) return Result::CapacityExceeded;
+        if (found->filterSelection && !selectionFitsInputs(found->filterSelection)) return Result::CapacityExceeded;
         if (found->filter && (!filterFitsRetainedHistory(*found->filter) || found->filter->byteCount() > m_limits.rasterBytes))
             return Result::CapacityExceeded;
         Layer copy = *found;
@@ -1313,7 +1313,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         copy.uuid = properties.uuid;
         copy.transparencyMaskIndex = properties.transparencyMaskIndex;
         if (!properties.transparencyMaskUuid.isNull()) {
-            if (!properties.transparencyMask || !selectionFitsRetainedInputs(properties.transparencyMask)) return Result::InvalidInput;
+            if (!properties.transparencyMask || !selectionFitsInputs(properties.transparencyMask)) return Result::InvalidInput;
             copy.transparencyMask = properties.transparencyMask;
             copy.transparencyMaskPosition = properties.transparencyMaskPosition;
             copy.transparencyMaskUuid = properties.transparencyMaskUuid;
@@ -1667,7 +1667,7 @@ Result OperationDocument::addTransparencyMaskWithin(LayerId layer, bool requireS
     if (!mask && !requireSelection && snapshot()->selection.isEmpty()) mask = SelectionMask::uniform(255);
     if (!mask || mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-    if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
+    if (!selectionFitsInputs(mask)) return Result::CapacityExceeded;
     auto sequence = m_nextOperation;
     QUuid identity;
     const auto occupied = [&](const QUuid &candidate) {
@@ -1829,7 +1829,7 @@ Result OperationDocument::writeTransparencyMask(LayerId layer, const SelectionMa
     if (index < 0 || !snapshot()->layers[index].transparencyMask) return Result::LayerUnavailable;
     if (!mask || mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (snapshot()->layers[index].transparencyMask == mask) return Result::Success;
-    if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
+    if (!selectionFitsInputs(mask)) return Result::CapacityExceeded;
     const auto identity = snapshot()->layers[index].transparencyMaskUuid;
     QList<int> affected;
     for (int i = 0; i < m_history.size(); ++i)
@@ -1859,7 +1859,7 @@ Result OperationDocument::replaceTransparencyMask(LayerId layer, const Selection
         mask->byteCount() > SelectionMask::MaximumBytes) return Result::InvalidInput;
     if (editableMaskCoverage(snapshot()->layers[index], maskUuid) == mask) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-    if (!selectionFitsRetainedInputs(mask)) return Result::CapacityExceeded;
+    if (!selectionFitsInputs(mask)) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     auto &target = version->layers[index];
     if (isFilterNode(target.kind) && (maskUuid.isNull() || maskUuid == target.uuid)) target.filterSelection = mask;
@@ -2677,7 +2677,7 @@ Result OperationDocument::cropLayerWithMasks(LayerId root, const QRect &rect,
         auto result = masks.value(uuid);
         if (!result && rect.normalized().isEmpty()) result = SelectionMask::uniform(coverage->defaultCoverage());
         if (!result && !coverage->isGpuGenerated()) result = coverage->translated({}, rect.normalized());
-        return result && result->byteCount() <= m_limits.rasterBytes && selectionFitsRetainedInputs(result) ? result : SelectionMaskSP{};
+        return result && result->byteCount() <= m_limits.rasterBytes && selectionFitsInputs(result) ? result : SelectionMaskSP{};
     };
     for (const auto id : participants) {
         auto &layer = version->layers[layerIndex(id)];

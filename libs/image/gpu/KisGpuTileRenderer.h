@@ -130,7 +130,7 @@ private:
         QRect region, LayerId node);
     ProjectionOutcome recordInitialProjection(WGPUCommandEncoder commands, const FrozenLayerProjectionSP &initial,
                                              QRect region, const RenderedSnapshot &base);
-    RenderOutcome prepareRegion(WGPUCommandEncoder commands, const RegionFillSP &region,
+    RenderOutcome prepareRegion(WGPUCommandEncoder commands, const RegionFillRequestSP &request,
                                 const RenderedSnapshot &base = {});
 };
 }

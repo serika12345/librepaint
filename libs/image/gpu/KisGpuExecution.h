@@ -147,7 +147,7 @@ public:
                                    QRect region, const QList<LayerId> &layers = {},
                                    bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
     /** Exact Alpha8 bytes for explicit external selection reads and saving.
-     * The retained mask owns its frozen source independently of document handles.
+     * The retained mask owns its generated GPU coverage independently of document handles.
      * Coordinates are preserved, including off-canvas coverage. Reads stream one
      * native tile at a time within the transfer limit and never change the mask,
      * requests or publication. Owning-thread and Busy rules follow readPixels().
@@ -299,7 +299,7 @@ private:
     FrameOutcome beginFrame(PresentationSurface *surface);
     /** Checks contiguous coverage before history adoption. Only admission
      * status and bounds cross to the CPU; editing pixels stay on the GPU. */
-    ExecutionOutcome checkRegionFill(DocumentHandle handle, const RegionFillSP &region, QRect *bounds,
+    ExecutionOutcome checkRegionFill(DocumentHandle handle, const RegionFillRequestSP &request, RegionFillSP *result,
                                      SelectionMaskSP *selection = nullptr);
     ExecutionOutcome regionSelectionOutline(const RegionFillSP &region,
         const std::shared_ptr<Detail::BufferStorage> &pixels, const QRect &bounds, SelectionMaskSP *selection);

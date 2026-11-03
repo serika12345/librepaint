@@ -96,16 +96,16 @@ QByteArray packNativeLab(const LibrePaint::Pigment::Color::NativeLabConversionSP
 }
 
 TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
-    WGPUCommandEncoder commands, const RegionFillSP &region, const RenderedSnapshot &source, const ProjectedSnapshot &projection)
+    WGPUCommandEncoder commands, const RegionFillRequestSP &request, const RenderedSnapshot &source, const ProjectedSnapshot &projection)
 {
-    const auto cached = regionCache.constFind(region.data());
-    if (cached != regionCache.cend() && cached->source.toStrongRef() == region)
+    const auto cached = regionCache.constFind(request.data());
+    if (cached != regionCache.cend() && cached->source.toStrongRef() == request)
         return {RenderOutcome::Recorded, cached->coverage, {}};
-    if (!region || !region->source || !source || source->document() != region->source ||
-        (region->settings.reference == RegionFillReference::CurrentLayer ? region->source->layers.size() != 1 : !projection || projection->document() != region->source))
+    if (!request || !request->result || !request->source || !source || source->document() != request->source ||
+        (request->settings.reference == RegionFillReference::CurrentLayer ? request->source->layers.size() != 1 : !projection || projection->document() != request->source))
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU contiguous fill has no frozen reference layer")};
-    const auto &document = *region->source;
-    const auto &settings = region->settings;
+    const auto &document = *request->source;
+    const auto &settings = request->settings;
     if ((settings.mode != RegionFillMode::Contiguous && settings.mode != RegionFillMode::Similar) ||
         (settings.reference != RegionFillReference::CurrentLayer && settings.reference != RegionFillReference::AllLayers &&
          settings.reference != RegionFillReference::ColorLabeledLayers && settings.reference != RegionFillReference::CurrentProjection) ||
@@ -126,9 +126,9 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     const QSize expectedSize = filtered || radius
         ? QSize((document.size.width() + 63) / 64 * 64 + 2 * border,
                 (document.size.height() + 63) / 64 * 64 + 2 * border) : document.size;
-    if (region->coverageSize != expectedSize || region->coverageOrigin != expectedOrigin)
+    if (request->result->coverageSize != expectedSize || request->result->coverageOrigin != expectedOrigin)
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Region coverage has an invalid filtering extent")};
-    const quint64 width = region->coverageSize.width(), height = region->coverageSize.height();
+    const quint64 width = request->result->coverageSize.width(), height = request->result->coverageSize.height();
     const int tileLeft = expectedOrigin.x() / 256 - (expectedOrigin.x() % 256 < 0);
     const int tileTop = expectedOrigin.y() / 256 - (expectedOrigin.y() % 256 < 0);
     const quint64 columns = (qint64(expectedOrigin.x()) + qint64(width) + 255) / 256 - tileLeft;
@@ -137,14 +137,14 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     const auto directoryIndex = [&](QPoint tile) { return (tile.y() - tileTop) * qsizetype(columns) + tile.x() - tileLeft; };
     const auto inDirectory = [&](QPoint tile) { return tile.x() >= tileLeft && tile.y() >= tileTop &&
         quint64(tile.x() - tileLeft) < columns && quint64(tile.y() - tileTop) < rows; };
-    const auto sourceTiles = projection ? projection->tiles() : source->tiles(region->layer);
+    const auto sourceTiles = projection ? projection->tiles() : source->tiles(request->result->layer);
     QList<TileView> present;
     for (const auto &tile : sourceTiles) if (inDirectory(tile.coordinate)) present.append(tile);
     const bool masked = document.selectionKind == SelectionKind::Freehand;
     quint64 maskBytes = 0;
     QList<QPair<QPoint, std::shared_ptr<CoverageTile>>> generatedMask;
     if (masked && document.selectionMask && document.selectionMask->isGpuGenerated()) {
-        const auto area = document.selectionMask->bounds().intersected(QRect(expectedOrigin, region->coverageSize));
+        const auto area = document.selectionMask->bounds().intersected(QRect(expectedOrigin, request->result->coverageSize));
         if (!area.isEmpty()) {
             const int left = pixelTileIndex(area.left(), TileSize), right = pixelTileIndex(area.right(), TileSize);
             const int top = pixelTileIndex(area.top(), TileSize), bottom = pixelTileIndex(area.bottom(), TileSize);
@@ -227,7 +227,7 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
     if (projection) {
         for (const auto &tile : projection->m_data->tiles) retainTile(tile);
     } else {
-        for (const auto &tile : source->m_data->layers.value(region->layer)) retainTile(tile);
+        for (const auto &tile : source->m_data->layers.value(request->result->layer)) retainTile(tile);
     }
     if (masked && document.selectionMask) {
         offset = 0;
@@ -379,22 +379,22 @@ TileRenderer::Private::RegionResult TileRenderer::Private::regionCoverage(
         wgpuComputePassEncoderEnd(pass); wgpuComputePassEncoderRelease(pass);
     }
     RegionCoverage result{coverage, status};
-    regionCache.insert(region.data(), {region, result});
+    regionCache.insert(request.data(), {request, result});
     return {RenderOutcome::Recorded, result, {}};
 }
 
-RenderOutcome TileRenderer::prepareRegion(WGPUCommandEncoder commands, const RegionFillSP &region, const RenderedSnapshot &base)
+RenderOutcome TileRenderer::prepareRegion(WGPUCommandEncoder commands, const RegionFillRequestSP &request, const RenderedSnapshot &base)
 {
-    if (!region || !region->source) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Missing contiguous fill reference")};
-    const auto compatible = base && base->document()->documentId() == region->source->documentId() ? base : RenderedSnapshot{};
-    const QRect area(QPoint(), region->source->size);
-    QList<LayerId> layers{region->layer};
-    const bool merged = region->settings.reference != RegionFillReference::CurrentLayer;
+    if (!request || !request->result || !request->source) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Missing contiguous fill reference")};
+    const auto compatible = base && base->document()->documentId() == request->source->documentId() ? base : RenderedSnapshot{};
+    const QRect area(QPoint(), request->source->size);
+    QList<LayerId> layers{request->result->layer};
+    const bool merged = request->settings.reference != RegionFillReference::CurrentLayer;
     if (merged) {
         layers.clear();
-        for (const auto &layer : region->source->layers) layers.append(layer.id);
+        for (const auto &layer : request->source->layers) layers.append(layer.id);
     }
-    const auto source = recordRegion(commands, region->source, area, layers, compatible);
+    const auto source = recordRegion(commands, request->source, area, layers, compatible);
     if (source.code != RenderOutcome::Recorded) return source;
     ProjectedSnapshot projection;
     if (merged) {
@@ -402,16 +402,16 @@ RenderOutcome TileRenderer::prepareRegion(WGPUCommandEncoder commands, const Reg
         if (result.code != RenderOutcome::Recorded) return {result.code, {}, result.diagnostic};
         projection = result.version;
     }
-    const auto coverage = m_d->regionCoverage(commands, region, source.version, projection);
+    const auto coverage = m_d->regionCoverage(commands, request, source.version, projection);
     return {coverage.code, source.version, coverage.diagnostic};
 }
 
-ExecutionOutcome Execution::checkRegionFill(DocumentHandle handle, const RegionFillSP &region, QRect *bounds,
+ExecutionOutcome Execution::checkRegionFill(DocumentHandle handle, const RegionFillRequestSP &request, RegionFillSP *result,
                                            SelectionMaskSP *selection)
 {
     auto &d = *m_d;
-    if (!d.onThread() || !bounds || !region || !region->source || !d.documents.contains(handle) ||
-        d.documents[handle].requested != region->preparedFor.toStrongRef())
+    if (!d.onThread() || !result || !request || !request->result || !request->source || !d.documents.contains(handle) ||
+        d.documents[handle].requested != request->result->preparedFor.toStrongRef())
         return {ExecutionCode::InvalidRequest, QStringLiteral("Contiguous fill requires the attached current version")};
     if (d.active || d.device->isRecordingFrame())
         return {ExecutionCode::Busy, QStringLiteral("Contiguous fill requires submitted earlier work")};
@@ -423,11 +423,11 @@ ExecutionOutcome Execution::checkRegionFill(DocumentHandle handle, const RegionF
     const auto frame = beginReadbackFrame();
     if (frame.code != ExecutionCode::Success) return {frame.code, frame.diagnostic};
     const auto rollback = qScopeGuard([&] { if (d.active) cancelFrame(); d.renderer->m_d->regionCache.clear(); });
-    const auto source = d.renderer->prepareRegion(frame.commands, region, d.documents[handle].rendered);
+    const auto source = d.renderer->prepareRegion(frame.commands, request, d.documents[handle].rendered);
     if (source.code != RenderOutcome::Recorded)
         return {source.code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded :
             source.code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure, source.diagnostic};
-    const auto coverage = d.renderer->m_d->regionCache.value(region.data()).coverage;
+    const auto coverage = d.renderer->m_d->regionCache.value(request.data()).coverage;
     auto reads = ReadbackBatch::create(*d.device, 1);
     if (!reads || !coverage.status || !reads->recordBuffer(*d.device, frame.commands, 0, coverage.status->pixels.get(), 20))
         return {ExecutionCode::DeviceFailure, QStringLiteral("GPU contiguous fill admission read failed")};
@@ -437,9 +437,13 @@ ExecutionOutcome Execution::checkRegionFill(DocumentHandle handle, const RegionF
         return {ExecutionCode::DeviceFailure, QStringLiteral("GPU contiguous fill admission status is incomplete")};
     quint32 values[5]; std::memcpy(values, reads->results[0]->data.constData(), sizeof(values));
     if (values[0]) return {ExecutionCode::InvalidRequest, QStringLiteral("This color reference requires native Lab difference support")};
-    *bounds = values[1] <= values[3] && values[2] <= values[4]
-        ? QRect(QPoint(values[1], values[2]), QPoint(values[3], values[4])).translated(region->coverageOrigin) : QRect();
-    if (selection) return regionSelectionOutline(region, coverage.pixels, *bounds, selection);
+    request->result->bounds = values[1] <= values[3] && values[2] <= values[4]
+        ? QRect(QPoint(values[1], values[2]), QPoint(values[3], values[4])).translated(request->result->coverageOrigin) : QRect();
+    auto native = std::make_shared<SelectionPixels>();
+    native->device = d.device; native->region = coverage.pixels;
+    request->result->pixels = native;
+    *result = request->result;
+    if (selection) return regionSelectionOutline(*result, coverage.pixels, (*result)->bounds, selection);
     return {ExecutionCode::Success, {}};
 }
 }

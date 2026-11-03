@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuSelectionMask.h"
+#include "KisGpuSelectionSources_p.h"
 #include "KisGpuOperationDocument.h"
 #include <QVector>
 #include <QSet>
@@ -526,11 +527,11 @@ QSharedPointer<const SelectionMask> SelectionMask::fromAlphaTiles(const Selectio
 QSharedPointer<const SelectionMask> SelectionMask::fromRegion(const QSharedPointer<const RegionFill> &source,
     const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels)
 {
-    if (!source || !source->source || !pixels || source->settings.purpose != RegionCoveragePurpose::Selection ||
+    if (!source || !pixels || source->purpose != RegionCoveragePurpose::Selection ||
         !validOutline(bounds, outlineRuns) || (!bounds.isEmpty() && !QRect(source->coverageOrigin, source->coverageSize).contains(bounds))) return {};
     if (bounds.isEmpty()) return empty();
     auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha));
-    result->m_region = source;
+    result->m_regionRect = QRect(source->coverageOrigin, source->coverageSize);
     result->m_outlineRuns = outlineRuns;
     result->m_nativePixels = pixels;
     return generatedSelectionStorage(result, result->tileCoordinates());
@@ -641,7 +642,8 @@ QSharedPointer<const SelectionMask> SelectionMask::fromPaint(const QSharedPointe
     for (const auto point : source->tiles) if (!validTileCoordinate(point)) return {};
     auto result = QSharedPointer<SelectionMask>(new SelectionMask(bounds, {}, CoverageFormat::Alpha,
         quint8(layer->defaultPixel[3])));
-    result->m_paint = source; result->m_outlineRuns = outlineRuns; result->m_nativePixels = pixels;
+    result->m_generatedTiles = source->tiles; result->m_completed = true;
+    result->m_outlineRuns = outlineRuns; result->m_nativePixels = pixels;
     return result->withAllocatedBlocks(source->allocatedBlocks);
 }
 
@@ -665,8 +667,8 @@ QSharedPointer<const SelectionMask> SelectionMask::fromTransform(const QSharedPo
 
 QList<QPoint> SelectionMask::tileCoordinates() const
 {
+    if (m_completed) return m_generatedTiles;
     if (m_transform) return m_transform->tiles;
-    if (m_paint) return m_paint->tiles;
     if (m_combination) return m_combination->tiles;
     if (m_translation) return m_translation->tiles;
     QList<QPoint> result;
@@ -863,11 +865,24 @@ quint8 SelectionMask::coverage(int x, int y) const
     return (quint8(tile.value().at(index >> 3)) & (1u << (index & 7))) ? 255 : 0;
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::completed() const
+{
+    auto result = QSharedPointer<SelectionMask>::create(*this);
+    if (!isGpuGenerated()) return result;
+    result->m_generatedTiles = tileCoordinates();
+    result->m_completed = true;
+    result->m_combination.clear();
+    result->m_translation.clear();
+    result->m_transform.clear();
+    return result;
+}
+
 bool SelectionMask::operator==(const SelectionMask &other) const
 {
     return m_format == other.m_format && m_defaultCoverage == other.m_defaultCoverage &&
         m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
-        m_region == other.m_region && m_combination == other.m_combination && m_translation == other.m_translation && m_paint == other.m_paint && m_transform == other.m_transform &&
+        m_combination == other.m_combination && m_translation == other.m_translation && m_transform == other.m_transform &&
+        m_completed == other.m_completed && (!m_completed || m_nativePixels == other.m_nativePixels) &&
         m_outlineRuns == other.m_outlineRuns && m_allocatedBlocks == other.m_allocatedBlocks;
 }
 }

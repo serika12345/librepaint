@@ -35,50 +35,10 @@ enum class SelectionCombination : quint8 { Replace, Add, Subtract, Intersect, Sy
 
 class SelectionMask;
 class DocumentVersion;
-/** Frozen Alpha8 selection arithmetic and mask inversion. */
-struct SelectionCombinationSource
-{
-    enum class Pixels : quint8 { Selection, InvertTransparency };
-    QSharedPointer<const SelectionMask> first, second;
-    Pixels pixels = Pixels::Selection;
-    SelectionCombination action = SelectionCombination::Replace;
-    QRect extent;
-    bool inverted = false;
-    QList<QPoint> tiles;
-    quint8 defaultCoverage() const;
-};
-
-/** Frozen input for moving a generated selection without reading its pixels. */
-struct SelectionTranslationSource
-{
-    QSharedPointer<const SelectionMask> source;
-    QPoint offset;
-    QRect extent;
-    QRect clip;
-    QList<QPoint> tiles;
-};
-
-/** Frozen raw layer alpha produced by ordinary transparency-mask painting. */
-struct SelectionPaintSource
-{
-    QSharedPointer<const DocumentVersion> source;
-    quint64 layer = 0;
-    QList<QPoint> tiles;
-    QList<QRect> allocatedBlocks;
-};
-
-/** Transparency-mask gray and independent selection opacity through a frozen
- * native affine filter. Retained inputs also reconstruct coverage after loss. */
-struct SelectionMaskTransformSource
-{
-    QSharedPointer<const SelectionMask> source, selection;
-    QSharedPointer<const AffinePlan> plan;
-    QRect copyRect, output;
-    bool inverted = false;
-    QList<QPoint> tiles;
-    /** Native Alpha8 destination block grid, reduced modulo 64. */
-    QPoint storageOrigin;
-};
+struct SelectionCombinationSource;
+struct SelectionTranslationSource;
+struct SelectionPaintSource;
+struct SelectionMaskTransformSource;
 
 /**
  * Frozen document coverage for an arbitrary selection.
@@ -149,12 +109,7 @@ public:
      * geometry are CPU values; editing and external pixel readers use the
      * retained GPU source. Invalid geometry or capacity returns null.
      */
-    bool isGpuGenerated() const { return m_region || m_combination || m_translation || m_paint || m_transform; }
-    const QSharedPointer<const RegionFill> &regionSource() const { return m_region; }
-    const QSharedPointer<const SelectionCombinationSource> &combinationSource() const { return m_combination; }
-    const QSharedPointer<const SelectionTranslationSource> &translationSource() const { return m_translation; }
-    const QSharedPointer<const SelectionPaintSource> &paintSource() const { return m_paint; }
-    const QSharedPointer<const SelectionMaskTransformSource> &transformSource() const { return m_transform; }
+    bool isGpuGenerated() const { return bool(m_nativePixels); }
     /** Finite tile coordinates for input initialization and external reads.
      * Painting, translation and arithmetic retain occupied tiles, including
      * off-canvas coverage. Region sources supply their bounded tile extent. */
@@ -212,13 +167,14 @@ public:
     const SelectionTileMap &tiles() const { return m_tiles; }
     /** Bytes per stored tile for this coverage format. */
     qsizetype tileBytes() const { return m_format == CoverageFormat::Alpha ? AlphaTileBytes : TileBytes; }
-    qsizetype byteCount() const { return m_tiles.size() * tileBytes() + (m_outlineRuns.size() + m_allocatedBlocks.size()) * qsizetype(sizeof(QRect)); }
+    qsizetype byteCount() const { return m_tiles.size() * tileBytes() + m_generatedTiles.size() * qsizetype(sizeof(QPoint)) + (m_outlineRuns.size() + m_allocatedBlocks.size()) * qsizetype(sizeof(QRect)); }
     bool operator==(const SelectionMask &other) const;
     bool operator!=(const SelectionMask &other) const { return !(*this == other); }
 
 private:
     friend class Execution;
     friend class TileRenderer;
+    QSharedPointer<const SelectionMask> completed() const;
     static QSharedPointer<const SelectionMask> fromRegion(const QSharedPointer<const RegionFill> &source,
         const QRect &bounds, const QList<QRect> &outlineRuns, const std::shared_ptr<Detail::SelectionPixels> &pixels);
     static QSharedPointer<const SelectionMask> fromCombination(const QSharedPointer<const SelectionCombinationSource> &source,
@@ -237,24 +193,18 @@ private:
     SelectionTileMap m_tiles;
     CoverageFormat m_format = CoverageFormat::Binary;
     quint8 m_defaultCoverage = 0;
-    QSharedPointer<const RegionFill> m_region;
     QSharedPointer<const SelectionCombinationSource> m_combination;
     QSharedPointer<const SelectionTranslationSource> m_translation;
-    QSharedPointer<const SelectionPaintSource> m_paint;
     QSharedPointer<const SelectionMaskTransformSource> m_transform;
+    QRect m_regionRect;
+    QList<QPoint> m_generatedTiles;
+    bool m_completed = false;
     QList<QRect> m_outlineRuns;
     QList<QRect> m_allocatedBlocks;
     std::shared_ptr<Detail::SelectionPixels> m_nativePixels;
 };
 
 using SelectionMaskSP = QSharedPointer<const SelectionMask>;
-
-inline quint8 SelectionCombinationSource::defaultCoverage() const
-{
-    const int a = first ? first->defaultCoverage() : 0;
-    if (pixels == Pixels::InvertTransparency) return quint8(255 - a);
-    return 0;
-}
 
 }
 #endif

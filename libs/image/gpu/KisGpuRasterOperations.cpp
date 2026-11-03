@@ -218,7 +218,7 @@ Result OperationDocument::applyMaskVersions(const QList<VersionMaskWrite> &write
         for (qsizetype i = 0; i < write.before->layers.size(); ++i)
             if (write.before->layers[i].id == write.layer && editableMaskCoverage(write.before->layers[i], write.maskUuid)) position = i;
         if (position < 0) return Result::LayerUnavailable;
-        if (!selectionFitsRetainedInputs(write.coverage)) return Result::CapacityExceeded;
+        if (!selectionFitsInputs(write.coverage)) return Result::CapacityExceeded;
         auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*write.before));
         auto &layer = version->layers[position];
         if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.filterSelection = write.coverage;

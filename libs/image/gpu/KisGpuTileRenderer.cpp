@@ -1025,15 +1025,13 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 std::shared_ptr<BufferStorage> regionCoverage;
                 if (operation.region && !affected.isEmpty()) {
                     if (const auto failure = flushPaint()) return *failure;
-                    auto cached = d.regionCache.constFind(operation.region.data());
-                    if (cached == d.regionCache.cend() || cached->source.toStrongRef() != operation.region) {
-                        const auto prepared = prepareRegion(commands, operation.region, base);
-                        if (prepared.code != RenderOutcome::Recorded) return prepared;
-                        cached = d.regionCache.constFind(operation.region.data());
+                    const auto native = operation.region->pixels;
+                    if (native) {
+                        const std::lock_guard<std::mutex> lock(native->mutex);
+                        if (native->device.lock() == d.device) regionCoverage = native->region;
                     }
-                    if (cached == d.regionCache.cend())
-                        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU contiguous coverage was not generated")};
-                    regionCoverage = cached->coverage.pixels;
+                    if (!regionCoverage)
+                        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Generated region coverage is unavailable")};
                 }
                 if (!d.ensureTileCapacity(required, document->format)) {
                     return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
@@ -1209,8 +1207,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         job.values.patternReserved1 = operation.region->coverageSize.height();
                         job.values.selectionX = operation.region->coverageOrigin.x();
                         job.values.selectionY = operation.region->coverageOrigin.y();
-                        job.values.selectionWidth = operation.region->source->size.width();
-                        job.values.selectionHeight = operation.region->source->size.height();
+                        job.values.selectionWidth = operation.region->documentSize.width();
+                        job.values.selectionHeight = operation.region->documentSize.height();
                         job.selectionCoverage = std::shared_ptr<NativeBuffer>(regionCoverage, &regionCoverage->pixels);
                         d.device->retainForFrame(regionCoverage);
                     } else if (operation.selectionKind == SelectionKind::Freehand) {

@@ -53,7 +53,7 @@ Result OperationDocument::resizeCanvasWithMasks(const QRect &rect, bool cropLaye
                 QRect(-RgbaTile::CoordinateLimit, -RgbaTile::CoordinateLimit, 2 * RgbaTile::CoordinateLimit, 2 * RgbaTile::CoordinateLimit);
             auto result = masks.value(uuid);
             if (!result && !coverage->isGpuGenerated()) result = coverage->translated(offset, clip);
-            return result && result->byteCount() <= m_limits.rasterBytes && selectionFitsRetainedInputs(result) ? result : SelectionMaskSP{};
+            return result && result->byteCount() <= m_limits.rasterBytes && selectionFitsInputs(result) ? result : SelectionMaskSP{};
         };
         if (layer.filterSelection) {
             const auto moved = moveMask(layer.filterSelection, layer.uuid);
@@ -104,7 +104,7 @@ Result OperationDocument::resizeCanvasWithMasks(const QRect &rect, bool cropLaye
                 const QRect domain(-RgbaTile::CoordinateLimit, -RgbaTile::CoordinateLimit, 2 * RgbaTile::CoordinateLimit, 2 * RgbaTile::CoordinateLimit);
                 if (source && !source->isGpuGenerated()) moved = source->translated(offset, cropLayers ? QRect(QPoint(), rect.size()) : domain);
             }
-            if (!moved || !selectionFitsRetainedInputs(moved)) return Result::CapacityExceeded;
+            if (!moved || !selectionFitsInputs(moved)) return Result::CapacityExceeded;
             version->selectionMask = moved->isEmpty() ? SelectionMaskSP{} : moved;
             version->selection = moved->bounds();
             version->selectionKind = moved->isEmpty() ? SelectionKind::Rectangle : SelectionKind::Freehand;

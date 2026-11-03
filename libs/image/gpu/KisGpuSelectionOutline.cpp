@@ -163,7 +163,7 @@ ExecutionOutcome Execution::regionSelectionOutline(const RegionFillSP &region,
     native->region = pixels;
     const auto result = SelectionMask::fromRegion(region, bounds, runs, native);
     if (!result) return {ExecutionCode::InvalidRequest, QStringLiteral("Selection outline geometry is invalid")};
-    *selection = result;
+    *selection = result->completed();
     return {ExecutionCode::Success, {}};
 }
 }
