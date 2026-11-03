@@ -191,9 +191,6 @@ bool Device::finish()
 }
 
 DevicePtr Device::createNative(QString &diagnostic)
-{ return createNative(diagnostic, false); }
-
-DevicePtr Device::createNative(QString &diagnostic, bool enableTimestampQueries)
 {
     diagnostic.clear();
     auto *application = qobject_cast<QGuiApplication *>(QCoreApplication::instance());
@@ -232,16 +229,7 @@ DevicePtr Device::createNative(QString &diagnostic, bool enableTimestampQueries)
         diagnostic = data->error.isEmpty() ? QStringLiteral("The required native GPU adapter is unavailable") : data->error;
         return {};
     }
-    const WGPUFeatureName timestampFeature = WGPUFeatureName_TimestampQuery;
-    if (enableTimestampQueries && !wgpuAdapterHasFeature(data->adapter.get(), timestampFeature)) {
-        diagnostic = QStringLiteral("The native GPU does not support diagnostic timestamp queries");
-        return {};
-    }
     WGPUDeviceDescriptor descriptor{};
-    if (enableTimestampQueries) {
-        descriptor.requiredFeatureCount = 1;
-        descriptor.requiredFeatures = &timestampFeature;
-    }
     descriptor.deviceLostCallbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
     descriptor.deviceLostCallbackInfo.userdata1 = data.get();
     descriptor.deviceLostCallbackInfo.callback = [](WGPUDevice const *, WGPUDeviceLostReason reason, WGPUStringView message, void *context, void *) noexcept {
