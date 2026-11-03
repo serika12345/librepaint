@@ -182,6 +182,7 @@ ExecutionOutcome Execution::pollReadbacks()
     auto &d = *m_d;
     if (!d.onThread()) return {ExecutionCode::InvalidRequest, QStringLiteral("Readback polling requires the GPU thread")};
     if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("A GPU frame is recording")};
+    if (d.device->isLost()) return {ExecutionCode::DeviceFailure, d.device->diagnostic()};
     wgpuDevicePoll(d.device->nativeDevice(), false, nullptr);
     const bool pending = d.device->readbackPending();
     retireCompletedReadback();

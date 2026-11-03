@@ -18,9 +18,7 @@ class KisGpuExecutionTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
-    void nativeWaitFailureReportsAnErrorAndReleasesTheOwner();
-    void nativeReadbackFailureReportsAnErrorAndReleasesTheOwner();
-    void nativeSubmissionFailureReportsAnErrorAndReleasesTheOwner();
+    void nativeValidationErrorsReportAnErrorAndReleaseTheOwner();
     void abandonedReadbackResultsRemainValidThroughNativeCleanup();
     void abandonedReadbackResultsRemainValidThroughNativeCleanup_data();
 
@@ -50,61 +48,22 @@ void KisGpuExecutionTest::initTestCase()
     QVERIFY2(m_device, qPrintable(diagnostic));
 }
 
-void KisGpuExecutionTest::nativeWaitFailureReportsAnErrorAndReleasesTheOwner()
+void KisGpuExecutionTest::nativeValidationErrorsReportAnErrorAndReleaseTheOwner()
 {
     QString diagnostic;
     auto device = Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     const std::weak_ptr<Device> lifetime = device;
-    // An invalid submission produces a deterministic native wait error without GPU fault injection.
-    const WGPUSubmissionIndex invalidSubmission = std::numeric_limits<WGPUSubmissionIndex>::max();
-    QVERIFY(!wgpuDevicePoll(device->nativeDevice(), true, &invalidSubmission));
-    QVERIFY(!device->diagnostic().isEmpty());
-    QVERIFY(!device->isLost());
-    QVERIFY(!device->beginCommands());
-    QVERIFY(!device->finish());
-    device.reset();
-    QVERIFY(lifetime.expired());
-}
-
-void KisGpuExecutionTest::nativeReadbackFailureReportsAnErrorAndReleasesTheOwner()
-{
-    QString diagnostic;
-    auto device = Device::createNative(diagnostic);
-    QVERIFY2(device, qPrintable(diagnostic));
-    const std::weak_ptr<Device> lifetime = device;
-    auto buffer = Detail::createBuffer(device->nativeDevice(), 256, WGPUBufferUsage_MapRead | WGPUBufferUsage_CopyDst);
-    QVERIFY(buffer);
-    // An unmapped read exercises native errors with an installed application handler.
-    QVERIFY(!wgpuBufferGetConstMappedRange(buffer.get(), 0, 256));
+    // wgpu-native aborts on wait, mapping and submission errors, so inject a
+    // validation error that it reports through the application handler.
+    WGPUBufferDescriptor invalid{};
+    invalid.size = 256;
+    invalid.usage = WGPUBufferUsage_MapRead | WGPUBufferUsage_Storage;
+    Detail::NativeBuffer buffer(wgpuDeviceCreateBuffer(device->nativeDevice(), &invalid));
     QVERIFY(!device->diagnostic().isEmpty());
     QVERIFY(!device->isLost());
     QVERIFY(!device->beginCommands());
     buffer.reset();
-    device.reset();
-    QVERIFY(lifetime.expired());
-}
-
-void KisGpuExecutionTest::nativeSubmissionFailureReportsAnErrorAndReleasesTheOwner()
-{
-    QString diagnostic;
-    auto device = Device::createNative(diagnostic);
-    QVERIFY2(device, qPrintable(diagnostic));
-    const std::weak_ptr<Device> lifetime = device;
-    Detail::NativeCommands commands(wgpuDeviceCreateCommandEncoder(device->nativeDevice(), nullptr));
-    QVERIFY(commands);
-    Detail::NativeSubmission submission(wgpuCommandEncoderFinish(commands.get(), nullptr));
-    QVERIFY(submission);
-    const auto handle = submission.get();
-    wgpuQueueSubmit(device->queue(), 1, &handle);
-    QVERIFY(device->finish());
-    // A rejected duplicate exercises native queue errors with an installed application handler.
-    wgpuQueueSubmit(device->queue(), 1, &handle);
-    QVERIFY(!device->diagnostic().isEmpty());
-    QVERIFY(!device->isLost());
-    QVERIFY(!device->beginCommands());
-    submission.reset();
-    commands.reset();
     device.reset();
     QVERIFY(lifetime.expired());
 }

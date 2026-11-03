@@ -31,7 +31,7 @@ PresentationSurface::~PresentationSurface()
 {
     Q_ASSERT(m_d->device->thread() == QThread::currentThread());
     discard();
-    if (!m_d->size.isEmpty()) wgpuSurfaceUnconfigure(m_d->surface.get());
+    if (!m_d->size.isEmpty() && !m_d->device->isLost()) wgpuSurfaceUnconfigure(m_d->surface.get());
 }
 DevicePtr PresentationSurface::device() const { return m_d->device; }
 QSize PresentationSurface::size() const { return m_d->size; }
@@ -40,7 +40,8 @@ WGPUTextureView PresentationSurface::target() const { return m_d->view.get(); }
 bool PresentationSurface::configure(QSize size)
 {
     auto &d = *m_d;
-    if (d.device->thread() != QThread::currentThread() || size.isEmpty() || d.texture || d.device->isRecordingFrame()) return false;
+    if (d.device->thread() != QThread::currentThread() || size.isEmpty() || d.texture || d.device->isRecordingFrame() ||
+        d.device->isLost()) return false;
     WGPULimits limits{};
     if (wgpuDeviceGetLimits(d.device->nativeDevice(), &limits) != WGPUStatus_Success ||
         quint32(size.width()) > limits.maxTextureDimension2D ||
@@ -107,6 +108,8 @@ void PresentationSurface::discard()
 {
     m_d->view.reset();
     // Releasing an unpresented surface texture returns it to the native surface.
-    m_d->texture.reset();
+    // wgpu-native aborts when that return fails on a lost device, so abandon it.
+    if (m_d->device->isLost()) (void)m_d->texture.release();
+    else m_d->texture.reset();
 }
 }

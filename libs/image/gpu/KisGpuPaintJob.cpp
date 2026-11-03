@@ -61,6 +61,7 @@ bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<Pa
         bufferDescriptor.size = bytes;
         bufferDescriptor.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_Storage;
         bufferDescriptor.mappedAtCreation = true;
+        if (device.isLost()) return false;
         NativeBuffer buffer(wgpuDeviceCreateBuffer(device.nativeDevice(), &bufferDescriptor));
         if (!buffer) return false;
         auto mapped = static_cast<char *>(wgpuBufferGetMappedRange(buffer.get(), 0, std::size_t(bytes)));

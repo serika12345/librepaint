@@ -69,7 +69,7 @@ struct Device::Private
     QThread *thread = QThread::currentThread();
     mutable QMutex mutex;
     QString error;
-    std::atomic<bool> lost{false}, failed{false};
+    std::atomic<bool> lost{false}, failed{false}, destroying{false};
     // Callback addresses survive per-device native cleanup.
     std::shared_ptr<ReadbackBatch> readback;
     std::shared_ptr<NativeInstance> instance;
@@ -102,7 +102,18 @@ Device::~Device()
 {
     Q_ASSERT(thread() == QThread::currentThread());
     Q_ASSERT(!isRecordingFrame());
+    if (isLost()) {
+        // wgpu-native aborts the process when a lost device fails its final wait in
+        // destroy, drop or poll. Abandon the native handles instead, and keep the
+        // private state alive because native callbacks may still reference it.
+        (void)m_d->commands.release();
+        (void)m_d->queue.release();
+        (void)m_d->device.release();
+        (void)m_d.release();
+        return;
+    }
     if (readbackPending()) finish();
+    m_d->destroying.store(true, std::memory_order_release);
     wgpuDeviceDestroy(m_d->device.get());
     wgpuDevicePoll(m_d->device.get(), true, nullptr);
     m_d->retireStorage();
@@ -173,7 +184,7 @@ bool Device::retainForFrame(const std::shared_ptr<void> &storage)
 }
 bool Device::finish()
 {
-    if (thread() != QThread::currentThread() || isRecordingFrame()) return false;
+    if (thread() != QThread::currentThread() || isRecordingFrame() || isLost()) return false;
     wgpuDevicePoll(nativeDevice(), true, nullptr);
     m_d->retireStorage();
     return !isLost() && diagnostic().isEmpty() && !readbackPending();
@@ -234,8 +245,10 @@ DevicePtr Device::createNative(QString &diagnostic, bool enableTimestampQueries)
     descriptor.deviceLostCallbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
     descriptor.deviceLostCallbackInfo.userdata1 = data.get();
     descriptor.deviceLostCallbackInfo.callback = [](WGPUDevice const *, WGPUDeviceLostReason reason, WGPUStringView message, void *context, void *) noexcept {
-        if (reason == WGPUDeviceLostReason_Destroyed || reason == WGPUDeviceLostReason_InstanceDropped) return;
         auto *data = static_cast<Private *>(context);
+        // wgpu-native also reports spontaneous loss as Destroyed, so only a
+        // destruction this device started is ignored.
+        if (reason == WGPUDeviceLostReason_InstanceDropped || data->destroying.load(std::memory_order_acquire)) return;
         data->lost.store(true, std::memory_order_release);
         data->fail(message);
     };

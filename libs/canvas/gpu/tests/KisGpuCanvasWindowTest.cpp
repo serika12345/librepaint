@@ -452,8 +452,11 @@ void KisGpuCanvasWindowTest::failedDevicesRejectSurfaceAcquisitionAndReleaseWind
         QVERIFY(QTest::qWaitForWindowExposed(&window));
         auto surface = LibrePaint::Canvas::Gpu::Detail::createWindowSurface(device, window);
         QVERIFY(surface->configure(QSizeF(window.size() * window.devicePixelRatio()).toSize()));
-        const WGPUSubmissionIndex invalidSubmission = std::numeric_limits<WGPUSubmissionIndex>::max();
-        QVERIFY(!wgpuDevicePoll(device->nativeDevice(), true, &invalidSubmission));
+        // A validation error fails the device without the wgpu-native paths that abort.
+        WGPUBufferDescriptor invalid{};
+        invalid.size = 256;
+        invalid.usage = WGPUBufferUsage_MapRead | WGPUBufferUsage_Storage;
+        wgpuBufferRelease(wgpuDeviceCreateBuffer(device->nativeDevice(), &invalid));
         QVERIFY(!device->diagnostic().isEmpty());
         const auto acquired = surface->acquire();
         QCOMPARE(acquired.code, ExecutionCode::DeviceFailure);
