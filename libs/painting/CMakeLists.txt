@@ -7,6 +7,7 @@ set(kritapainting_LIB_SRCS
     KisStrokeSpeedMonitor.cpp
     kis_figure_painting_stroke.cpp
     kis_resources_snapshot.cpp
+    KisBrushTextureMask.cpp
     kis_painting_utils.cpp
 
     strokes/freehand_stroke.cpp
@@ -103,6 +104,8 @@ kis_add_library(kritapainting SHARED
 generate_export_header(kritapainting BASE_NAME kritapainting)
 
 target_link_libraries(kritapainting
+    PRIVATE
+        kritalibbrush
     PUBLIC
         kritaimage
         kritapaintingundo

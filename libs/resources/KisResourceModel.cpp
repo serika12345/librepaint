@@ -40,7 +40,6 @@ struct KisAllResourcesModel::Private {
     QString resourceType;
     int columnCount {StorageActive};
     int cachedRowCount {-1};
-    int externalResourcesRemovedCount {0};
 };
 
 KisAllResourcesModel::KisAllResourcesModel(const QString &resourceType, QObject *parent)
@@ -768,32 +767,19 @@ void KisAllResourcesModel::endExternalResourceImport(const QString &resourceType
 void KisAllResourcesModel::beginExternalResourceRemove(const QString &resourceType, const QVector<int> &resourceIds)
 {
     if (resourceType != d->resourceType) return;
+    Q_UNUSED(resourceIds);
 
-    Q_FOREACH (int resourceId, resourceIds) {
-        const QModelIndex index = indexForResourceId(resourceId);
-        if (index.isValid()) {
-            beginRemoveRows(QModelIndex(), index.row(), index.row());
-            d->externalResourcesRemovedCount++;
-        } else {
-            // it's fine if the index is invalid; it probably means it's one of the duplicates (another resource with the same type and content was already in the database)
-            dbgResources << "KisAllResourcesModel::beginExternalResourceRemove got invalid index" << index << "for resourceId" << resourceId
-                         << "of type" << resourceType << "(possibly the resource was deduplicated via sql query and that's why it doesn't appear in the model)";
-        }
-    }
+    // SQL groups equivalent resources across storages. Removing a group member
+    // can replace its representative and reorder rows while retaining the group.
+    beginResetModel();
 }
 
 void KisAllResourcesModel::endExternalResourceRemove(const QString &resourceType)
 {
     if (resourceType != d->resourceType) return;
 
-    if (d->externalResourcesRemovedCount > 0) {
-        resetQuery();
-    }
-    for (int i = 0; i < d->externalResourcesRemovedCount; i++) {
-        endRemoveRows();
-    }
-
-    d->externalResourcesRemovedCount = 0;
+    resetQuery();
+    endResetModel();
 }
 
 void KisAllResourcesModel::slotResourceActiveStateChanged(const QString &resourceType, int resourceId)

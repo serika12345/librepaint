@@ -5,6 +5,7 @@
 
 #include <QTest>
 
+#include <KisGpuBlendMode.h>
 #include <KisImageBarrierLock.h>
 #include <KisNodeAdditionFlags.h>
 #include <KisRenderedDab.h>

@@ -10,6 +10,7 @@
 #include "kis_painter.h"
 #include "KisFreehandStrokeInfo.h"
 #include "kis_paintop.h"
+#include "kis_distance_information.h"
 #include <algorithm>
 #include <qcontainerfwd.h>
 #include <utility>
@@ -31,9 +32,11 @@ void KisMaskedFreehandStrokePainter::applyToAllPainters(Func func)
 {
     KIS_SAFE_ASSERT_RECOVER_NOOP(m_stroke);
     func(m_stroke);
+    m_strokeHasPainted |= m_stroke->dragDistance->isStarted() || m_stroke->painter->hasDirtyRegion();
 
     if (m_mask) {
         func(m_mask);
+        m_maskHasPainted |= m_mask->dragDistance->isStarted() || m_mask->painter->hasDirtyRegion();
     }
 }
 
@@ -41,6 +44,16 @@ void KisMaskedFreehandStrokePainter::paintAt(const KisPaintInformation &pi)
 {
     applyToAllPainters([&] (KisFreehandStrokeInfo *data) {
         data->painter->paintAt(pi, data->dragDistance);
+    });
+}
+
+void KisMaskedFreehandStrokePainter::paintAtIfEmpty(const KisPaintInformation &pi)
+{
+    applyToAllPainters([&] (KisFreehandStrokeInfo *data) {
+        const bool hasPainted = data == m_stroke ? m_strokeHasPainted : m_maskHasPainted;
+        if (!hasPainted && !data->dragDistance->isStarted() && !data->painter->hasDirtyRegion()) {
+            data->painter->paintAt(pi, data->dragDistance);
+        }
     });
 }
 
@@ -147,9 +160,13 @@ QVector<QRect> KisMaskedFreehandStrokePainter::takeDirtyRegion()
 {
     KIS_SAFE_ASSERT_RECOVER_NOOP(m_stroke);
 
+    // Direct line implementations and asynchronous updates can change pixels
+    // without registering a dab in the distance information.
+    m_strokeHasPainted |= m_stroke->painter->hasDirtyRegion();
     QVector<QRect> result = m_stroke->painter->takeDirtyRegion();
 
     if (m_mask) {
+        m_maskHasPainted |= m_mask->painter->hasDirtyRegion();
         result += m_mask->painter->takeDirtyRegion();
     }
 

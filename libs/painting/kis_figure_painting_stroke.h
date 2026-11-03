@@ -10,6 +10,7 @@
 #include <QPainterPath>
 #include <QPen>
 #include <QTransform>
+#include <memory>
 
 #include <KisFigurePaintingOptions.h>
 #include <brushengine/kis_paint_information.h>
@@ -24,7 +25,7 @@ class KisStrokesFacade;
 /**
  * Owns one figure-painting stroke from creation through final update.
  *
- * The image and node are retained by the resource snapshot. The canvas
+ * The image and node are retained by the captured painting state. The canvas
  * resource provider is borrowed only while the constructor captures its
  * resource interface. Destruction completes the stroke.
  */
@@ -71,7 +72,9 @@ private:
 private:
     KisStrokeId m_strokeId;
     KisResourcesSnapshotSP m_resources;
-    KisStrokesFacade *m_strokesFacade;
+    KisStrokesFacade *m_strokesFacade = nullptr;
+    struct GpuStroke;
+    std::unique_ptr<GpuStroke> m_gpuStroke;
 };
 
 #endif

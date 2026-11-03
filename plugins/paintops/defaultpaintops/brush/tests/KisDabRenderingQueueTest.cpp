@@ -50,6 +50,9 @@ struct SurrogateCacheInterface : public KisDabRenderingQueue::CacheInterface
 
 #include <kis_mask_generator.h>
 #include "kis_auto_brush.h"
+#include "kis_imagepipe_brush.h"
+#include "kis_random_source.h"
+#include <QFile>
 
 KisDabCacheUtils::DabRenderingResources *testResourcesFactory()
 {
@@ -61,6 +64,80 @@ KisDabCacheUtils::DabRenderingResources *testResourcesFactory()
     resources->brush = brush;
 
     return resources;
+}
+
+void KisDabRenderingQueueTest::testRandomPipeKeepsQueuedPixels_data()
+{
+    QTest::addColumn<bool>("delayed");
+    QTest::newRow("immediate-render") << false;
+    QTest::newRow("delayed-render") << true;
+}
+
+void KisDabRenderingQueueTest::testRandomPipeKeepsQueuedPixels()
+{
+    QFETCH(bool, delayed);
+    const QString filename = QFINDTESTDATA("../../../../../libs/brush/tests/data/C_Dirty_Spot.gih");
+    QVERIFY(!filename.isEmpty());
+    QFile file(filename); QVERIFY(file.open(QIODevice::ReadOnly));
+    KisBrushSP source(new KisImagePipeBrush(filename));
+    QVERIFY(source->loadFromDevice(&file, {}));
+    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+    const KoColor white(Qt::white, cs);
+    const KisDabShape shape(.05, 1, 0);
+    struct PipeCache : SurrogateCacheInterface {
+        QList<quint32> selected;
+        void getDabType(bool hasDabInCache, KisDabCacheUtils::DabRenderingResources *resources,
+                        const KisDabCacheUtils::DabRequestInfo &request,
+                        KisDabCacheUtils::DabGenerationInfo *di, bool *shouldUseCache) override
+        {
+            SurrogateCacheInterface::getDabType(hasDabInCache, resources, request, di, shouldUseCache);
+            di->shape = request.shape; di->paintColor = request.color;
+            selected.append(resources->brush->brushIndex());
+        }
+    };
+    const auto factory = [&] {
+        auto *resources = new KisDabCacheUtils::DabRenderingResources;
+        resources->brush = source->clone().dynamicCast<KisBrush>();
+        resources->brush->notifyStrokeStarted();
+        return resources;
+    };
+    KisDabRenderingQueue queue(cs, factory);
+    auto *cache = new PipeCache;
+    queue.setCacheInterface(cache);
+    const KisRandomSourceSP live(new KisRandomSource(17)), expectedRandom(new KisRandomSource(17));
+    auto expectedBrush = source->clone().dynamicCast<KisBrush>();
+    expectedBrush->notifyStrokeStarted();
+    QList<KisDabRenderingJobSP> jobs;
+    QList<QByteArray> expected;
+    const auto bytes = [](const KisFixedPaintDeviceSP &device) {
+        return QByteArray(reinterpret_cast<const char *>(device->data()),
+            device->bounds().width() * device->bounds().height() * device->pixelSize());
+    };
+    const auto execute = [&](const KisDabRenderingJobSP &job) {
+        auto *resources = queue.fetchResourcesFromCache();
+        KisDabRenderingJobRunner::executeOneJob(job.data(), resources, &queue);
+        qDebug() << "sequence" << job->seqNo << "queued tip" << cache->selected[job->seqNo]
+                 << "rendered tip" << resources->brush->brushIndex();
+        queue.putResourcesToCache(resources);
+    };
+    for (int seq = 0; seq < 3; ++seq) {
+        KisPaintInformation info(QPointF(32 + seq * 20, 32), 1);
+        info.setRandomSource(live);
+        KisDabCacheUtils::DabRequestInfo request(white, info.pos(), shape, info, 1);
+        const auto job = queue.addDab(request, 1, 1);
+        QVERIFY(job); jobs.append(job);
+        KisPaintInformation reference(info); reference.setRandomSource(expectedRandom);
+        expectedBrush->prepareForSeqNo(reference, seq);
+        KisFixedPaintDeviceSP dab(new KisFixedPaintDevice(cs));
+        expectedBrush->mask(dab, white, shape, reference);
+        expected.append(bytes(dab));
+        if (!delayed) execute(job);
+    }
+    if (delayed) for (const auto &job : jobs) execute(job);
+    for (int seq = 0; seq < jobs.size(); ++seq) {
+        QVERIFY(jobs[seq]->originalDevice);
+        QCOMPARE(bytes(jobs[seq]->originalDevice), expected[seq]);
+    }
 }
 
 void KisDabRenderingQueueTest::testCachedDabs()

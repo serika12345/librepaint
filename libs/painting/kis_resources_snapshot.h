@@ -15,12 +15,48 @@
 #include "kis_default_bounds.h"
 #include <KoCanvasResourcesInterface.h>
 #include <KoResourceSignature.h>
+#include <gpu/KisGpuOperationDocument.h>
 
 class KoCompositeOp;
 class KisPainter;
 class KisPostExecutionUndoAdapter;
 class KoPattern;
 class KisInterstrokeDataFactory;
+class KoCanvasResourceProvider;
+
+/** Frozen target and painting resources for the GPU painting consumers.
+ * Image, node and provider are borrowed for capture only. A nonempty diagnostic
+ * rejects painting before an operation or history entry is created.
+ */
+struct KRITAPAINTING_EXPORT KisGpuBrushResources
+{
+    LibrePaint::Image::Gpu::Brush brush;
+    LibrePaint::Image::Gpu::LayerId layer = 0;
+    /** Input targets retained Alpha8 coverage; maskUuid identifies its node. */
+    bool transparencyMask = false;
+    QString diagnostic;
+    QUuid maskUuid;
+};
+
+KRITAPAINTING_EXPORT KisGpuBrushResources captureGpuBrushResources(
+    KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources);
+
+/** Captures a solid figure fill independently of the selected brush tip. */
+KRITAPAINTING_EXPORT KisGpuBrushResources captureGpuFillResources(
+    KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources);
+
+/** Imports the selected pattern resource in the document's native encoding.
+ * Only resource pixels cross the CPU boundary; mapping and interpolation run
+ * on the GPU. The returned value owns pixels and the frozen inverse transform.
+ */
+KRITAPAINTING_EXPORT std::optional<LibrePaint::Image::Gpu::PatternFill> captureGpuPatternResource(
+    KoPatternSP pattern, const KoColorSpace *colorSpace, const QTransform &transform, QString &diagnostic);
+
+/** Samples a baked gradient resource at the product mixing precision and cache
+ * resolution. The caller freezes geometry and options in the returned value.
+ */
+KRITAPAINTING_EXPORT std::optional<LibrePaint::Image::Gpu::GradientFill> captureGpuGradientResource(
+    KoAbstractGradientSP gradient, const KoColorSpace *colorSpace, int steps, bool dither, QString &diagnostic);
 
 /**
  * @brief The KisResourcesSnapshot class takes a snapshot of the various resources

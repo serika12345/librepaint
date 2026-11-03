@@ -13,6 +13,7 @@
 #include <kis_coordinates_converter.h>
 
 #include <QMouseEvent>
+#include <QPointer>
 #include <QTabletEvent>
 #include <QTouchEvent>
 #include <QWidget>
@@ -158,8 +159,13 @@ bool KisToolProxy::forwardEvent(ActionState state, KisTool::ToolAction action, Q
         } else if (mouseEvent->type() == QEvent::MouseMove) {
             mouseMoveEvent(mouseEvent, docPoint);
         }
+        const QPointer<KisToolProxy> guard(this);
         forwardToTool(state, action, originalEvent, docPoint);
         retval = mouseEvent->isAccepted();
+        if (guard && state == BEGIN && !retval) {
+            // A declined action has no END callback to release the proxy's press state.
+            priv()->isToolPressed = false;
+        }
     }
     else if (touchEvent) {
         QPointF docPoint = widgetToDocument(touchEvent->touchPoints().at(0).pos());
@@ -188,6 +194,7 @@ void KisToolProxy::forwardToTool(ActionState state, KisTool::ToolAction action, 
 
     if (!eventValid || !activeTool) return;
 
+    const QPointer<KisToolProxy> guard(this);
     switch (state) {
     case BEGIN:
         if (action == KisTool::Primary) {
@@ -203,7 +210,7 @@ void KisToolProxy::forwardToTool(ActionState state, KisTool::ToolAction action, 
                 activeTool->beginAlternateAction(&ev, KisTool::actionToAlternateAction(action));
             }
         }
-        Q_EMIT toolPrimaryActionActivated(true);
+        if (guard) Q_EMIT toolPrimaryActionActivated(true);
         break;
     case CONTINUE:
         if (action == KisTool::Primary) {
@@ -218,7 +225,7 @@ void KisToolProxy::forwardToTool(ActionState state, KisTool::ToolAction action, 
         } else {
             activeTool->endAlternateAction(&ev, KisTool::actionToAlternateAction(action));
         }
-        Q_EMIT toolPrimaryActionActivated(false);
+        if (guard) Q_EMIT toolPrimaryActionActivated(false);
         break;
     }
 }

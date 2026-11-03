@@ -25,6 +25,8 @@
 #include <QTextCodec>
 #include <QByteArray>
 #include <QBuffer>
+#include <QDateTime>
+#include <QTimeZone>
 
 #include <KConfig>
 #include <KSharedConfig>
@@ -41,6 +43,7 @@ struct KoQuaZipStore::Private {
     bool directoryListCached {false};
     int compressionLevel {Z_DEFAULT_COMPRESSION};
     bool usingSaveFile {false};
+    bool canonicalKraMetadata {false};
     QByteArray cache;
     QBuffer buffer;
 };
@@ -147,6 +150,8 @@ QStringList KoQuaZipStore::directoryList() const
 void KoQuaZipStore::init(const QByteArray &appIdentification)
 {
     Q_D(KoStore);
+    dd->canonicalKraMetadata = appIdentification == "application/x-krita";
+    if (dd->canonicalKraMetadata) dd->archive->setOsCode(3);
 
     bool enableZip64 = false;
     if (appIdentification == "application/x-krita") {
@@ -169,6 +174,8 @@ void KoQuaZipStore::init(const QByteArray &appIdentification)
         if (d->writeMimetype) {
             QuaZipFile f(dd->archive);
             QuaZipNewInfo newInfo("mimetype");
+            if (dd->canonicalKraMetadata)
+                newInfo.dateTime = QDateTime(QDate(1980, 1, 1), QTime(0, 0), QTimeZone(QTimeZone::UTC));
             newInfo.setPermissions(QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther);
             if (!f.open(QIODevice::WriteOnly, newInfo, 0, 0, 0, Z_NO_COMPRESSION)) {
                 d->good = false;
@@ -208,6 +215,8 @@ bool KoQuaZipStore::openWrite(const QString &name)
     delete dd->currentFile;
     dd->currentFile = new QuaZipFile(dd->archive);
     QuaZipNewInfo newInfo(fixedPath);
+    if (dd->canonicalKraMetadata)
+        newInfo.dateTime = QDateTime(QDate(1980, 1, 1), QTime(0, 0), QTimeZone(QTimeZone::UTC));
     newInfo.setPermissions(QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther);
     bool r = dd->currentFile->open(QIODevice::WriteOnly, newInfo, 0, 0, Z_DEFLATED, dd->compressionLevel);
     if (!r) {

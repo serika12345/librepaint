@@ -25,51 +25,6 @@
 
 #include <type_traits>
 
-class RecordingColorSamplerFacade : public KisStrokesFacade
-{
-public:
-    KisStrokeId startStroke(KisStrokeStrategy *strokeStrategy) override
-    {
-        m_events.append(QStringLiteral("start"));
-        m_stroke.reset(new KisStroke(strokeStrategy));
-        return m_stroke;
-    }
-
-    void addJob(KisStrokeId id, KisStrokeJobData *data) override
-    {
-        Q_ASSERT(id.toStrongRef() == m_stroke);
-        m_events.append(QStringLiteral("job"));
-        m_stroke->addJob(data);
-        QScopedPointer<KisStrokeJob> job(m_stroke->popOneJob());
-        Q_ASSERT(job);
-        job->run();
-    }
-
-    void endStroke(KisStrokeId id) override
-    {
-        Q_ASSERT(id.toStrongRef() == m_stroke);
-        m_events.append(QStringLiteral("end"));
-        m_stroke->endStroke();
-    }
-
-    bool cancelStroke(KisStrokeId id) override
-    {
-        Q_ASSERT(id.toStrongRef() == m_stroke);
-        m_events.append(QStringLiteral("cancel"));
-        m_stroke->cancelStroke();
-        return true;
-    }
-
-    const QStringList &events() const
-    {
-        return m_events;
-    }
-
-private:
-    KisStrokeSP m_stroke;
-    QStringList m_events;
-};
-
 class TestPaintingBoundary : public QObject
 {
     Q_OBJECT
@@ -192,13 +147,15 @@ void TestPaintingBoundary::figurePaintingContracts()
 void TestPaintingBoundary::colorSamplingStrokeFinalizesAfterQueuedSamples()
 {
     const KoColorSpace *colorSpace = KoColorSpaceRegistry::instance()->rgb8();
-    KisPaintDeviceSP device = new KisPaintDevice(colorSpace);
+    KisImageSP image = new KisImage(nullptr, 32, 32, colorSpace, QStringLiteral("Sampling"));
+    KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Colors"), 255);
+    QVERIFY(image->addNode(layer));
+    auto device = layer->paintDevice();
     const KoColor red(Qt::red, colorSpace);
     const KoColor blue(Qt::blue, colorSpace);
     device->fill(QRect(4, 5, 1, 1), red);
     device->fill(QRect(8, 9, 1, 1), blue);
 
-    RecordingColorSamplerFacade facade;
     KisColorSamplerStroke stroke;
     QVector<KoColor> updatedColors;
     QVector<KoColor> finalColors;
@@ -211,29 +168,49 @@ void TestPaintingBoundary::colorSamplingStrokeFinalizesAfterQueuedSamples()
                 finalColors.append(color);
             });
 
-    stroke.start(&facade, 1, 100);
+    QVERIFY(stroke.start(image, 1, 100));
     QVERIFY(stroke.isActive());
-    stroke.addSample(device, QPoint(4, 5), KoColor(Qt::black, colorSpace));
-    stroke.addSample(device, QPoint(8, 9), KoColor(Qt::black, colorSpace));
+    stroke.addSample(layer, QPoint(4, 5), KoColor(Qt::black, colorSpace));
+    stroke.addSample(layer, QPoint(8, 9), KoColor(Qt::black, colorSpace));
 
-    QCOMPARE(facade.events(), QStringList({QStringLiteral("start"),
-                                           QStringLiteral("job"),
-                                           QStringLiteral("job")}));
     QCOMPARE(finalColors.size(), 0);
 
     stroke.finish();
 
     QVERIFY(!stroke.isActive());
-    QCOMPARE(facade.events(), QStringList({QStringLiteral("start"),
-                                           QStringLiteral("job"),
-                                           QStringLiteral("job"),
-                                           QStringLiteral("job"),
-                                           QStringLiteral("end")}));
-    QCOMPARE(updatedColors.size(), 2);
+    image->waitForDone();
+    QTRY_COMPARE(updatedColors.size(), 2);
     QCOMPARE(updatedColors.at(0).toQColor(), QColor(Qt::red));
     QCOMPARE(updatedColors.at(1).toQColor(), QColor(Qt::blue));
-    QCOMPARE(finalColors.size(), 1);
+    QTRY_COMPARE(finalColors.size(), 1);
     QCOMPARE(finalColors.constFirst().toQColor(), QColor(Qt::blue));
+
+    QVERIFY(stroke.start(image, 1, 100));
+    stroke.addSample(layer, QPoint(4, 5), KoColor(Qt::black, colorSpace));
+    stroke.finish();
+    stroke.cancel();
+    image->waitForDone();
+    QCoreApplication::sendPostedEvents();
+    QCOMPARE(updatedColors.size(), 2);
+    QCOMPARE(finalColors.size(), 1);
+    QVERIFY(stroke.start(image, 1, 100));
+    stroke.addSample(layer, QPoint(4, 5), KoColor(Qt::black, colorSpace));
+    stroke.finish();
+    image->waitForDone();
+    QTRY_COMPARE(finalColors.size(), 2);
+    QCOMPARE(finalColors.last().toQColor(), QColor(Qt::red));
+
+    for (const bool transparentSample : {false, true}) {
+        KisImageSP empty = new KisImage(nullptr, 4, 4, colorSpace, QStringLiteral("Empty sampling"));
+        KisImageWSP lifetime(empty);
+        QVERIFY(stroke.start(empty, 1, 100));
+        if (transparentSample) stroke.addSample({}, QPoint(), KoColor(Qt::black, colorSpace));
+        stroke.finish();
+        empty->waitForDone();
+        empty.clear();
+        QTRY_VERIFY(!lifetime.isValid());
+        QCOMPARE(finalColors.size(), 2);
+    }
 }
 
 QTEST_MAIN(TestPaintingBoundary)

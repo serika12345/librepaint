@@ -118,6 +118,7 @@ void KisToolInvocationAction::activate(int shortcut)
     }
 
     d->activatedToolProxy = inputManager()->toolProxy();
+    if (!d->activatedToolProxy) return;
 
     d->isUsingOtherColor = shortcut == ActivateWithOtherColorShortcut;
 

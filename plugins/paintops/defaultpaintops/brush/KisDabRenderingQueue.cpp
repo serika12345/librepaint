@@ -15,6 +15,7 @@
 #include "kis_assert.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_painter.h"
+#include "kis_random_source.h"
 #include "KisOptimizedByteArray.h"
 
 #include <QMutex>
@@ -147,6 +148,10 @@ KisDabRenderingJobSP KisDabRenderingQueue::addDab(const KisDabCacheUtils::DabReq
     KisDabCacheUtils::DabRenderingResources *resources = m_d->fetchResourcesFromCache();
     KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(resources, KisDabRenderingJobSP());
 
+    // The worker replays resource choices from this dab's frozen random state.
+    // Only admission advances the shared input stream.
+    const KisRandomSourceSP dabRandom(new KisRandomSource(*request.info.randomSource()));
+
     // We should sync the cached brush into the current seqNo
     resources->syncResourcesToSeqNo(seqNo, request.info);
 
@@ -156,6 +161,7 @@ KisDabRenderingJobSP KisDabRenderingQueue::addDab(const KisDabCacheUtils::DabReq
 
     bool shouldUseCache = false;
     m_d->cacheInterface->getDabType(lastDabJobIndex >= 0, resources, request, &job->generationInfo, &shouldUseCache);
+    job->generationInfo.info.setRandomSource(dabRandom);
 
     m_d->putResourcesToCache(resources);
     resources = nullptr;

@@ -12,6 +12,7 @@
 #include "../kis_auto_brush.h"
 #include "kis_circle_mask_generator.h"
 #include "kis_rect_mask_generator.h"
+#include "kis_gauss_circle_mask_generator.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include <KoColor.h>
@@ -179,6 +180,23 @@ void KisAutoBrushTest::testClone()
     QImage res2 = fdev2->convertToQImage(0);
 
     QCOMPARE(res1, res2);
+}
+
+void KisAutoBrushTest::testGaussianMaskRoundsDistanceBeforeAlpha()
+{
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    KisAutoBrush brush(new KisGaussCircleMaskGenerator(40, 1, 1, 1, 2, true), 6.28319, 0);
+    const KisDabShape shape(0.9752055205292725, 1, 0);
+    const KisPaintInformation info(QPointF(0, 0), 1);
+    KisFixedPaintDeviceSP dab = new KisFixedPaintDevice(cs);
+    brush.mask(dab, KoColor(QColor(17, 34, 51), cs), shape, info,
+               0.7466662357699647, 0.44528838501027224);
+    QCOMPARE(dab->bounds().size(), QSize(40, 40));
+    // A correctly rounded binary32 square root of 353.5946044921875 is
+    // 18.804111480712891. The reciprocal estimate one ULP below it changes
+    // the caller's mask alpha from 178 to 179 at this antialiased edge.
+    const QByteArray pixel(reinterpret_cast<const char *>(dab->data() + (37 * 40 + 13) * 4), 4);
+    QCOMPARE(pixel, QByteArray::fromHex("332211b2"));
 }
 
 SIMPLE_TEST_MAIN(KisAutoBrushTest)

@@ -393,6 +393,12 @@ public:
         }
     }
 
+    void beginPrimaryDoubleClickAction(KoPointerEvent *event) override
+    {
+        record(QStringLiteral("double"), event);
+        event->ignore();
+    }
+
     void continuePrimaryAction(KoPointerEvent *event) override
     {
         record(QStringLiteral("continue"), event);
@@ -592,6 +598,7 @@ private Q_SLOTS:
     void forwardsTabletStrokeToCurrentTool();
     void forwardsSingleTouchStrokeToCurrentTool();
     void reportsIgnoredMousePress();
+    void declinedDoubleClickAllowsTheNextStrokeToBegin();
 
 private:
     bool m_hadTouchPressureSetting{false};
@@ -912,6 +919,36 @@ void KisToolProxyContractTest::reportsIgnoredMousePress()
     QVERIFY(!proxy.forwardEvent(KisToolProxy::BEGIN, KisTool::Primary, press.get(), press.get()));
     QCOMPARE(tool.snapshots.size(), 1);
     QCOMPARE(tool.snapshots.constFirst().phase, QStringLiteral("begin"));
+}
+
+void KisToolProxyContractTest::declinedDoubleClickAllowsTheNextStrokeToBegin()
+{
+    TestShapeController shapeController;
+    TestToolCanvas canvas(&shapeController);
+    KisToolProxy proxy(&canvas);
+    KisKActionCollection actionCollection(this);
+    TestCanvasController controller(&canvas, &actionCollection);
+    proxy.priv()->controller = &controller;
+    canvas.setToolProxy(&proxy);
+    RecordingTool tool(&canvas);
+    proxy.setActiveTool(&tool);
+
+    auto press = mouseEvent(QEvent::MouseButtonPress, {100, 120}, {1000, 1200},
+                            Qt::LeftButton, Qt::LeftButton, 10);
+    auto release = mouseEvent(QEvent::MouseButtonRelease, {100, 120}, {1000, 1200},
+                              Qt::LeftButton, Qt::NoButton, 20);
+    auto doubleClick = mouseEvent(QEvent::MouseButtonDblClick, {100, 120}, {1000, 1200},
+                                  Qt::LeftButton, Qt::LeftButton, 30);
+    auto next = mouseEvent(QEvent::MouseButtonPress, {200, 220}, {1100, 1300},
+                           Qt::LeftButton, Qt::LeftButton, 40);
+    QVERIFY(proxy.forwardEvent(KisToolProxy::BEGIN, KisTool::Primary, press.get(), press.get()));
+    QVERIFY(proxy.forwardEvent(KisToolProxy::END, KisTool::Primary, release.get(), release.get()));
+    QVERIFY(!proxy.forwardEvent(KisToolProxy::BEGIN, KisTool::Primary, doubleClick.get(), doubleClick.get()));
+    QCOMPARE(tool.snapshots.last().phase, QStringLiteral("double"));
+    QVERIFY(proxy.forwardEvent(KisToolProxy::BEGIN, KisTool::Primary, next.get(), next.get()));
+    QCOMPARE(tool.snapshots.size(), 4);
+    QCOMPARE(tool.snapshots.last().phase, QStringLiteral("begin"));
+    QCOMPARE(tool.snapshots.last().documentPoint, canvas.coordinatesConverter()->widgetToDocument(QPointF(200, 220)));
 }
 
 QTEST_MAIN(KisToolProxyContractTest)
