@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-if (( $# != 5 )); then
-    echo "usage: audit-android-package <apk-or-aab> <abi> <llvm-readelf> <aapt2> <product-or-test>" >&2
+if (( $# < 5 || $# > 6 )); then
+    echo "usage: audit-android-package <apk-or-aab> <abi> <llvm-readelf> <aapt2> <product-or-test> [platform-plugin]" >&2
     exit 2
 fi
 
@@ -12,6 +12,7 @@ expected_abi="$2"
 readelf_tool="$3"
 aapt2_tool="$4"
 package_scope="$5"
+expected_platform_plugin="${6:-}"
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 
 if [[ "$package_scope" != product && "$package_scope" != test ]]; then
@@ -93,8 +94,20 @@ if [[ "$libcxx_count" != 1 ]]; then
 fi
 
 unzip -qq "$package_path" '*.so' -d "$audit_root/unpacked"
+if [[ -n "$expected_platform_plugin" ]]; then
+    packaged_plugin="$audit_root/unpacked/$library_prefix/$expected_abi/libplugins_platforms_qtforandroid_${expected_abi}.so"
+    test -s "$expected_platform_plugin"
+    test -s "$packaged_plugin"
+    expected_plugin_id="$("$readelf_tool" -n "$expected_platform_plugin" | awk '/Build ID:/ {print $3}')"
+    packaged_plugin_id="$("$readelf_tool" -n "$packaged_plugin" | awk '/Build ID:/ {print $3}')"
+    if [[ -z "$expected_plugin_id" || "$expected_plugin_id" != "$packaged_plugin_id" ]]; then
+        echo "Android package contains a different Qt platform plugin" >&2
+        exit 1
+    fi
+fi
 while IFS= read -r -d '' library; do
-    "$readelf_tool" -h "$library" | grep -Fq "$expected_machine"
+    # Consume the full report so the inspector can finish writing.
+    "$readelf_tool" -h "$library" | grep -F "$expected_machine" > /dev/null
     if "$readelf_tool" -dW "$library" | grep -E 'Shared library: .*\[(libQt5|libKF5)' >&2; then
         echo "Android ELF depends on Qt 5 or KF5: $library" >&2
         exit 1
@@ -113,6 +126,14 @@ if [[ "$package_path" == *.apk ]]; then
     "$aapt2_tool" dump badging "$package_path" >"$audit_root/badging"
     grep -Fq "minSdkVersion:'28'" "$audit_root/badging"
     grep -Fq "targetSdkVersion:'35'" "$audit_root/badging"
+    if [[ "$package_scope" == test ]]; then
+        apk_signer="$(dirname "$aapt2_tool")/apksigner"
+        test -x "$apk_signer"
+        if ! "$apk_signer" verify "$package_path"; then
+            echo "Android test APK has no valid installation signature" >&2
+            exit 1
+        fi
+    fi
 fi
 
 echo "Android package audit passed: $package_path ($expected_abi)"

@@ -66,14 +66,20 @@ PUBLIC_HEADER_OWNERS = (
     (
         "libs/document",
         ("libs/document",),
-        ("libs/document/files", "libs/document/tests", "libs/document/ui"),
+        ("libs/document/files", "libs/document/tests", "libs/document/ui", "libs/document/gpu"),
         "KRITADOCUMENT_EXPORT",
     ),
     (
         "libs/document/files",
         ("libs/document/files",),
-        ("libs/document/files/tests",),
+        ("libs/document/files/tests", "libs/document/files/gpu"),
         "KRITADOCUMENTFILES_EXPORT",
+    ),
+    (
+        "libs/document/gpu",
+        ("libs/document/gpu", "libs/document/files/gpu"),
+        (),
+        "KRITADOCUMENTPAINTING_EXPORT",
     ),
     (
         "libs/document/ui",
@@ -81,12 +87,17 @@ PUBLIC_HEADER_OWNERS = (
         ("libs/document/ui/tests",),
         "KRITADOCUMENTUI_EXPORT",
     ),
-    ("libs/image", ("libs/image",), (), "KRITAIMAGE_EXPORT"),
+    (
+        "libs/image",
+        ("libs/image",),
+        (),
+        ("KRITAIMAGE_EXPORT", "KRITAIMAGEGPUOPERATIONS_EXPORT", "KRITAGPUIMAGE_EXPORT", "KRITALZFCOMPRESSION_EXPORT"),
+    ),
     (
         "libs/impex",
         ("libs/impex",),
         ("libs/impex/animation", "libs/impex/tests", "libs/impex/ui"),
-        "KRITAIMPEX_EXPORT",
+        ("KRITAIMPEX_EXPORT", "KRITAIMPEXKRA_EXPORT"),
     ),
     (
         "libs/impex",
@@ -264,10 +275,10 @@ def validate_public_headers(repository_root: Path) -> int:
         compile_contracts = _declared_public_header_names(
             repository_root, source_directory, owner_headers
         )
-        export_macros = (
-            export_macro,
-            f"{export_macro}_TEMPLATE",
-            f"{export_macro}_INSTANCE",
+        bases = (export_macro,) if isinstance(export_macro, str) else export_macro
+        export_macros = tuple(
+            variant for base in bases
+            for variant in (base, f"{base}_TEMPLATE", f"{base}_INSTANCE")
         )
         for name, (relative, path) in owner_headers.items():
             if not consumers[name]:

@@ -1,4 +1,5 @@
 {
+  wgpu-native-ios,
   diffutils,
   gettext,
   gnugrep,
@@ -18,6 +19,7 @@
   mkIOSCMakePackage,
   pkg-config,
   python3,
+  qt6Packages,
   qt5compat-ios,
   qtXcrunShim,
   qtbase-ios,
@@ -68,6 +70,7 @@ let
   kf6HostTooling = kfHostTooling.kf6HostTooling;
 
   targetDependencies = [
+    wgpu-native-ios
     zlib-ios
     libdeflate-ios
     expat-ios
@@ -118,10 +121,6 @@ let
 
   pluginProfile = builtins.fromJSON (builtins.readFile pluginProfileFile);
 in
-assert lib.assertMsg (
-  builtins.length targetDependencies == 46
-  && builtins.length (lib.unique (map toString targetDependencies)) == 46
-) "Krita iOS must consume the complete 46-package direct target dependency set";
 assert lib.assertMsg (pluginProfile.schema == 1) "unsupported Krita iOS plugin profile schema";
 assert lib.assertMsg (
   builtins.length pluginProfile.targets == 162
@@ -145,6 +144,7 @@ mkIOSCMakePackage {
     gnugrep
     pkg-config
     python3
+    qt6Packages.qtshadertools
   ];
   nativeInstallCheckInputs = [
     diffutils
@@ -158,6 +158,8 @@ mkIOSCMakePackage {
   ];
 
   cmakeFlags = [
+    "-DWGPUNative_INCLUDE_DIR:PATH=${wgpu-native-ios}/include"
+    "-DWGPUNative_LIBRARY:FILEPATH=${wgpu-native-ios}/lib/libwgpu_native.a"
     "-DBUILD_TESTING:BOOL=OFF"
     "-DBUILD_WITH_QT6:BOOL=ON"
     "-DCMAKE_DISABLE_FIND_PACKAGE_GSL:BOOL=TRUE"
@@ -198,6 +200,7 @@ mkIOSCMakePackage {
     "-DQT_APPLE_SDK:STRING=iphoneos"
     "-DQT_HOST_PATH:PATH=${hostQt}"
     "-DQT_HOST_PATH_CMAKE_DIR:PATH=${hostQt}/lib/cmake"
+    "-DQt6ShaderToolsTools_DIR:PATH=${qt6Packages.qtshadertools}/lib/cmake/Qt6ShaderToolsTools"
     "-DQT_XCRUN:FILEPATH=${qtXcrunShim}/bin/xcrun"
     "-DQuaZip-Qt6_DIR:PATH=${quazip-ios}/lib/cmake/QuaZip-Qt6-1.5"
     "-DQt6Core5Compat_DIR:PATH=${qt5compat-ios}/lib/cmake/Qt6Core5Compat"

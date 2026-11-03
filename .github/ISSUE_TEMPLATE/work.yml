@@ -14,7 +14,7 @@ body:
     id: scope
     attributes:
       label: 範囲と所有者
-      description: 対象ファイル、プラットフォーム、構造変更時の移動元と移動先を記載してください。
+      description: まとめて実装する関連機能と利用経路、所有ファイル、対象OSを記載してください。構造変更は移動元と移動先を示してください。
     validations:
       required: true
   - type: textarea
@@ -28,13 +28,13 @@ body:
     id: acceptance
     attributes:
       label: 完了条件
-      description: 利用者から観測できる結果と、受入れに必要な条件を記載してください。
+      description: 関連実装を統合した版で観測する結果と、最終受入れ条件を記載してください。途中コミットとは区別してください。
     validations:
       required: true
   - type: textarea
     id: verification
     attributes:
       label: 検証方法と停止条件
-      description: 試験、コマンド、プラットフォーム別の検証範囲と、対象を超える条件を記載してください。
+      description: 実装中に必要な局所確認と、統合後にまとめて行う検証・対象OSを分けて記載してください。早期の全体検査が必要な具体的条件と、実装を止める条件を示してください。
     validations:
       required: true

@@ -647,35 +647,35 @@ void KisCompositionBenchmark::detectBuildArchitecture()
 void KisCompositionBenchmark::checkRoundingAlphaDarken_05_03()
 {
 #if !defined(XSIMD_NO_SUPPORTED_ARCHITECTURE) && XSIMD_UNIVERSAL_BUILD_PASS
-    checkRounding<AlphaDarkenCompositor32<quint8, quint32, KoAlphaDarkenParamsWrapperCreamy> >(0.5,0.3);
+    checkRounding<AlphaDarkenCompositor32<KoAlphaDarkenParamsWrapperCreamy> >(0.5,0.3);
 #endif
 }
 
 void KisCompositionBenchmark::checkRoundingAlphaDarken_05_05()
 {
 #if !defined(XSIMD_NO_SUPPORTED_ARCHITECTURE) && XSIMD_UNIVERSAL_BUILD_PASS
-    checkRounding<AlphaDarkenCompositor32<quint8, quint32, KoAlphaDarkenParamsWrapperCreamy> >(0.5,0.5);
+    checkRounding<AlphaDarkenCompositor32<KoAlphaDarkenParamsWrapperCreamy> >(0.5,0.5);
 #endif
 }
 
 void KisCompositionBenchmark::checkRoundingAlphaDarken_05_07()
 {
 #if !defined(XSIMD_NO_SUPPORTED_ARCHITECTURE) && XSIMD_UNIVERSAL_BUILD_PASS
-    checkRounding<AlphaDarkenCompositor32<quint8, quint32, KoAlphaDarkenParamsWrapperCreamy> >(0.5,0.7);
+    checkRounding<AlphaDarkenCompositor32<KoAlphaDarkenParamsWrapperCreamy> >(0.5,0.7);
 #endif
 }
 
 void KisCompositionBenchmark::checkRoundingAlphaDarken_05_10()
 {
 #if !defined(XSIMD_NO_SUPPORTED_ARCHITECTURE) && XSIMD_UNIVERSAL_BUILD_PASS
-    checkRounding<AlphaDarkenCompositor32<quint8, quint32, KoAlphaDarkenParamsWrapperCreamy> >(0.5,1.0);
+    checkRounding<AlphaDarkenCompositor32<KoAlphaDarkenParamsWrapperCreamy> >(0.5,1.0);
 #endif
 }
 
 void KisCompositionBenchmark::checkRoundingAlphaDarken_05_10_08()
 {
 #if !defined(XSIMD_NO_SUPPORTED_ARCHITECTURE) && XSIMD_UNIVERSAL_BUILD_PASS
-    checkRounding<AlphaDarkenCompositor32<quint8, quint32, KoAlphaDarkenParamsWrapperCreamy> >(0.5,1.0,0.8);
+    checkRounding<AlphaDarkenCompositor32<KoAlphaDarkenParamsWrapperCreamy> >(0.5,1.0,0.8);
 #endif
 }
 

@@ -697,19 +697,23 @@ class MacOSReleaseBundleTest(unittest.TestCase):
             frameworks.mkdir(parents=True)
             consumer = frameworks / "consumer.dylib"
             consumer.write_bytes(b"\xcf\xfa\xed\xfeconsumer")
-            dependency = Path("/nix/store/test-invalid/lib/invalid.dylib")
-            original_exists = Path.exists
+            dependency = Path(directory) / "invalid.dylib"
+            dependency.write_bytes(b"invalid")
 
-            def copy(source, destination):
-                Path(destination).write_bytes(b"invalid")
-                if copy_mock.call_count > 1:
-                    raise AssertionError("repeated copying without progress")
+            def inspect(command, **kwargs):
+                if command[:2] == ["otool", "-D"]:
+                    output = f"{consumer}:\n"
+                elif command[:2] == ["otool", "-L"]:
+                    output = otool_l(str(consumer), (str(dependency),))
+                else:
+                    raise AssertionError(f"unexpected tool invocation: {command}")
+                return subprocess.CompletedProcess(command, 0, output, "")
 
-            with mock.patch.object(Path, "exists", lambda p: p == dependency or original_exists(p)), \
-                    mock.patch.object(deploy.shutil, "copy2", side_effect=copy) as copy_mock, \
-                    mock.patch.object(deploy, "getLinkedLibs", return_value=[dependency]):
+            with mock.patch.object(deploy.subprocess, "run", side_effect=inspect):
                 with self.assertRaisesRegex(RuntimeError, "invalid.dylib"):
                     deploy.copyNixStoreDependencyClosure(app)
+            self.assertEqual(dependency.read_bytes(), b"invalid")
+            self.assertFalse((frameworks / dependency.name).exists())
 
     def test_deployment_finds_qml_runtime_roots_with_application_last(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

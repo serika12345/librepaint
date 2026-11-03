@@ -1,0 +1,158 @@
+--- a/src/plugins/platforms/android/qandroidplatformintegration.cpp
++++ b/src/plugins/platforms/android/qandroidplatformintegration.cpp
+@@ -23,6 +23,7 @@
+ #endif
+ #include "qandroidplatformopenglwindow.h"
+ #include "qandroidplatformscreen.h"
++#include "qandroidplatformnativesurfacewindow.h"
+ #include "qandroidplatformservices.h"
+ #include "qandroidplatformtheme.h"
+ #include "qandroidsystemlocale.h"
+@@ -86,6 +87,8 @@
+ 
+ void *QAndroidPlatformNativeInterface::nativeResourceForIntegration(const QByteArray &resource)
+ {
++    if (resource == "librepaintAndroidNativeWindow")
++        return this;
+     if (resource=="JavaVM")
+         return QtAndroidPrivate::javaVM();
+     if (resource == "QtActivity") {
+@@ -126,6 +129,12 @@
+ 
+ void *QAndroidPlatformNativeInterface::nativeResourceForWindow(const QByteArray &resource, QWindow *window)
+ {
++    if (resource == "librepaintAndroidNativeWindow" && window &&
++        window->surfaceType() == QSurface::VulkanSurface &&
++        window->property("_librepaint_gpu_surface").toBool()) {
++        auto *w = static_cast<QAndroidPlatformNativeSurfaceWindow *>(window->handle());
++        return w ? w->acquireNativeWindow() : nullptr;
++    }
+ #if QT_CONFIG(vulkan)
+     if (resource == "vkSurface") {
+         if (window->surfaceType() == QSurface::VulkanSurface) {
+@@ -409,6 +418,9 @@
+     if (!isValidAndroidContextForRendering())
+         return nullptr;
+ 
++    if (window->property("_librepaint_gpu_surface").toBool())
++        return new QAndroidPlatformNativeSurfaceWindow(window);
++
+ #if QT_CONFIG(vulkan)
+     if (window->surfaceType() == QSurface::VulkanSurface)
+         return new QAndroidPlatformVulkanWindow(window);
+--- a/src/plugins/platforms/android/CMakeLists.txt
++++ b/src/plugins/platforms/android/CMakeLists.txt
+@@ -34,6 +34,7 @@
+         qandroidplatformservices.cpp qandroidplatformservices.h
+         qandroidplatformtheme.cpp qandroidplatformtheme.h
+         qandroidplatformwindow.cpp qandroidplatformwindow.h
++        qandroidplatformnativesurfacewindow.cpp qandroidplatformnativesurfacewindow.h
+         qandroidsystemlocale.cpp qandroidsystemlocale.h
+         androidwindowembedding.cpp androidwindowembedding.h
+         androidbackendregister.cpp androidbackendregister.h
+--- /dev/null
++++ b/src/plugins/platforms/android/qandroidplatformnativesurfacewindow.h
+@@ -0,0 +1,25 @@
++// SPDX-FileCopyrightText: 2026 LibrePaint contributors
++// SPDX-License-Identifier: GPL-2.0-or-later
++#ifndef QANDROIDPLATFORMNATIVESURFACEWINDOW_H
++#define QANDROIDPLATFORMNATIVESURFACEWINDOW_H
++#include "qandroidplatformwindow.h"
++#include <android/native_window.h>
++QT_BEGIN_NAMESPACE
++class QAndroidPlatformNativeSurfaceWindow : public QAndroidPlatformWindow
++{
++public:
++    explicit QAndroidPlatformNativeSurfaceWindow(QWindow *window);
++    ~QAndroidPlatformNativeSurfaceWindow();
++    QSurfaceFormat format() const override;
++    void setGeometry(const QRect &rect) override;
++    void applicationStateChanged(Qt::ApplicationState state) override;
++    // The caller releases the acquired reference with ANativeWindow_release().
++    ANativeWindow *acquireNativeWindow();
++protected:
++    void clearSurface() override;
++private:
++    void destroyAndClearSurface();
++    ANativeWindow *m_nativeWindow = nullptr;
++};
++QT_END_NAMESPACE
++#endif
+--- /dev/null
++++ b/src/plugins/platforms/android/qandroidplatformnativesurfacewindow.cpp
+@@ -0,0 +1,75 @@
++// SPDX-FileCopyrightText: 2026 LibrePaint contributors
++// SPDX-License-Identifier: GPL-2.0-or-later
++#include "qandroidplatformnativesurfacewindow.h"
++#include "androidjnimain.h"
++#include "qandroideventdispatcher.h"
++#include "qandroidplatformscreen.h"
++#include <QSurfaceFormat>
++#include <qpa/qwindowsysteminterface.h>
++#include <android/native_window_jni.h>
++QT_BEGIN_NAMESPACE
++using namespace Qt::StringLiterals;
++QAndroidPlatformNativeSurfaceWindow::QAndroidPlatformNativeSurfaceWindow(QWindow *window)
++    : QAndroidPlatformWindow(window) {}
++QAndroidPlatformNativeSurfaceWindow::~QAndroidPlatformNativeSurfaceWindow()
++{
++    m_surfaceWaitCondition.wakeAll();
++    destroyAndClearSurface();
++}
++QSurfaceFormat QAndroidPlatformNativeSurfaceWindow::format() const
++{
++    return window()->requestedFormat();
++}
++void QAndroidPlatformNativeSurfaceWindow::setGeometry(const QRect &rect)
++{
++    QAndroidPlatformWindow::setGeometry(rect);
++    if (!rect.isEmpty() && !screen()->availableGeometry().isEmpty())
++        QWindowSystemInterface::handleExposeEvent(window(), QRect(QPoint(), rect.size()));
++}
++void QAndroidPlatformNativeSurfaceWindow::applicationStateChanged(Qt::ApplicationState state)
++{
++    if (state <= Qt::ApplicationHidden)
++        destroyAndClearSurface();
++    QAndroidPlatformWindow::applicationStateChanged(state);
++}
++void QAndroidPlatformNativeSurfaceWindow::clearSurface()
++{
++    if (m_nativeWindow) {
++        ANativeWindow_release(m_nativeWindow);
++        m_nativeWindow = nullptr;
++        decrementSurfacesCount();
++    }
++}
++void QAndroidPlatformNativeSurfaceWindow::destroyAndClearSurface()
++{
++    QMutexLocker lock(&m_surfaceMutex);
++    destroySurface();
++    clearSurface();
++}
++ANativeWindow *QAndroidPlatformNativeSurfaceWindow::acquireNativeWindow()
++{
++    if (QAndroidEventDispatcherStopper::stopped() ||
++        QGuiApplication::applicationState() <= Qt::ApplicationHidden)
++        return nullptr;
++    QMutexLocker lock(&m_surfaceMutex);
++    if (!m_androidSurfaceCreated) {
++        QtAndroidPrivate::AndroidDeadlockProtector protector(
++                u"QAndroidPlatformNativeSurfaceWindow::acquireNativeWindow()"_s);
++        if (!protector.acquire())
++            return nullptr;
++        createSurface();
++        m_surfaceWaitCondition.wait(&m_surfaceMutex);
++    }
++    if (!m_androidSurfaceCreated || !m_androidSurfaceObject.isValid())
++        return nullptr;
++    if (!m_nativeWindow) {
++        QJniEnvironment env;
++        m_nativeWindow = ANativeWindow_fromSurface(env.jniEnv(), m_androidSurfaceObject.object());
++        if (!m_nativeWindow)
++            return nullptr;
++        incrementSurfacesCount();
++    }
++    ANativeWindow_acquire(m_nativeWindow);
++    return m_nativeWindow;
++}
++QT_END_NAMESPACE

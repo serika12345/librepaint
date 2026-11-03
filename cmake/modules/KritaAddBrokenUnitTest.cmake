@@ -31,7 +31,7 @@ function(KRITA_ADD_UNIT_TEST)
   # TARGET_NAME_VAR and TEST_NAME_VAR are undocumented args used by
   # kis_add_tests
   set(oneValueArgs TEST_NAME NAME_PREFIX TARGET_NAME_VAR TEST_NAME_VAR PCH_FILE)
-  set(multiValueArgs LINK_LIBRARIES)
+  set(multiValueArgs LINK_LIBRARIES TEST_ARGS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   set(_sources ${ARG_UNPARSED_ARGUMENTS})
   list(LENGTH _sources _sourceCount)
@@ -93,7 +93,7 @@ function(KRITA_ADD_UNIT_TEST)
 
   # do not add it as test, so make test skips it unless asked for it
   if(NOT ARG_BROKEN OR KRITA_ENABLE_BROKEN_TESTS)
-    add_test(NAME ${_testname} COMMAND ${_targetname})
+    add_test(NAME ${_testname} COMMAND ${_targetname} ${ARG_TEST_ARGS})
   endif()
 
   target_link_libraries(${_targetname} ${ARG_LINK_LIBRARIES})

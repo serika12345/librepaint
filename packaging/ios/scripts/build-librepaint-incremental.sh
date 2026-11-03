@@ -36,6 +36,7 @@ if [[ "${KRITA_IOS_INCREMENTAL_ENV:-0}" != "1" ]]; then
                 "$repo_root/packaging/ios/versions.env"
             find \
                 "$repo_root/nix/ios" \
+                "$repo_root/nix/gpu" \
                 "$repo_root/packaging/ios/deps" \
                 "$repo_root/packaging/ios/frameworks" \
                 "$repo_root/packaging/ios/manifests" \
@@ -436,7 +437,7 @@ print_plan() {
 }
 
 build_target() {
-    cmake --build "$build_dir" --target "$target" --parallel
+    cmake --build "$build_dir" --target "$target" --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
     local app="$build_dir/bin/LibrePaint.app"
     local binary="$app/LibrePaint"
     local plist="$app/Info.plist"
