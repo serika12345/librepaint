@@ -56,6 +56,8 @@ RasterLayer rasterLayerDescription(const Layer &layer)
     value.position = layer.position;
     value.kind = layer.kind;
     value.parentUuid = layer.parentUuid;
+    value.cloneSourceUuid = layer.cloneSourceUuid;
+    value.cloneFromOriginal = layer.cloneFromOriginal;
     value.colorLabelIndex = layer.colorLabelIndex;
     value.projectionChannelMask = layer.projectionChannelMask;
     value.passThrough = layer.passThrough;

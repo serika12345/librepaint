@@ -287,6 +287,14 @@ public:
     Result setFilterDefinition(LayerId node, const FilterDefinition &filter, const QString &name = {});
     Result writeFilterDefinition(LayerId node, const FilterDefinition &filter);
     Result setFilterSelection(LayerId node, const SelectionMaskSP &coverage);
+    LayerId addCloneLayer(const RasterLayer &node, qsizetype index);
+    Result setCloneSource(LayerId layer, const QUuid &source, bool fromOriginal);
+    Result writeCloneSource(LayerId layer, const QUuid &source, bool fromOriginal);
+    OperationId beginCloneSourceEdit(const QList<LayerId> &layers);
+    Result updateCloneSourceEdit(OperationId id, const QUuid &source);
+    Result commitCloneSourceEdit(OperationId id);
+    Result cancelCloneSourceEdit(OperationId id);
+
     LayerId addLayer(const QString &name);
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid = {});
     /** Inserts validated committed inputs as one history entry, preserving the

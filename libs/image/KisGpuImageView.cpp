@@ -5,6 +5,7 @@
 #include "KisGpuBlendMode.h"
 #include "KisGpuFilterConfiguration.h"
 #include "kis_image.h"
+#include "kis_clone_layer.h"
 #include "KisNodeAdditionFlags.h"
 #include "KisImageSignals.h"
 #include "kis_paint_layer.h"
@@ -59,7 +60,7 @@ namespace {
 LibrePaint::Image::Gpu::Snapshot gpuNodeViewVersion(const LibrePaint::Image::Gpu::PaintImageSP &owner)
 {
     const auto &operations = owner->operations();
-    return operations.filterNodeEditTarget() ? operations.preview() : operations.snapshot();
+    return operations.filterNodeEditTarget() || operations.isEditingCloneSource() ? operations.preview() : operations.snapshot();
 }
 
 KisFilterConfigurationSP nativeFilterConfiguration(const LibrePaint::Image::Gpu::FilterDefinition &filter)
@@ -294,6 +295,31 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
     if (insertion < 0) return false;
     KisNodeList nodes = roots;
     for (const auto &node : roots) if (!node || node->parent()) return false;
+    if (roots.size() == 1) if (auto *clone = qobject_cast<const KisCloneLayer *>(roots.first().data())) {
+        if (clone->childCount() || clone->uuid().isNull() || state->nodes.contains(clone->uuid()) ||
+            (clone->copyFrom() && clone->copyFrom()->image() != this)) return false;
+        Gpu::RasterLayer properties;
+        properties.kind = Gpu::LayerKind::Clone;
+        properties.uuid = clone->uuid();
+        properties.name = clone->name();
+        properties.parentUuid = parent == root() ? QUuid{} : parent->uuid();
+        properties.visible = clone->visible();
+        properties.opacity = clone->opacity();
+        properties.userLocked = clone->userLocked();
+        properties.pinnedToTimeline = clone->isPinnedToTimeline();
+        properties.colorLabelIndex = clone->colorLabelIndex();
+        properties.position = {clone->x(), clone->y()};
+        properties.blendMode = Gpu::layerBlendModeFromCompositeOp(clone->compositeOpId()).value_or(Gpu::LayerBlendMode::Normal);
+        properties.cloneSourceUuid = clone->copyFrom() ? clone->copyFrom()->uuid() : QUuid{};
+        properties.cloneFromOriginal = clone->copyType() == COPY_ORIGINAL;
+        state->nodes.insert(clone->uuid(), roots.first());
+        if (!owner->addCloneLayer(properties, insertion)) {
+            state->nodes.remove(clone->uuid());
+            return false;
+        }
+        return true;
+    }
+
     QSet<QUuid> identities;
     for (qsizetype i = 0; i < nodes.size(); ++i) {
         const auto node = nodes[i];
@@ -425,7 +451,10 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
                 return false;
             }
         } else if (!source) {
-            if (pixels->colorSpace()->pixelSize() != 4) return false;
+            const auto format = owner->operations().snapshot()->format;
+            const auto pixelBytes = Gpu::pixelByteCount(format);
+            const auto tileBytes = Gpu::RgbaTile::byteCount(format);
+            if (pixels->colorSpace()->pixelSize() != pixelBytes) return false;
             const auto budget = owner->limits().rasterBytes - owner->operations().snapshot()->rasterBytes - preparedBytes;
             QSet<QPoint> coordinates;
             const auto tileIndex = [](int value) { return int(value >= 0 ? qint64(value) / 256 : (qint64(value) - 255) / 256); };
@@ -434,7 +463,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
                     for (int y = tileIndex(rect.top()); y <= tileIndex(rect.bottom()); ++y) {
                         for (int x = tileIndex(rect.left()); x <= tileIndex(rect.right()); ++x) {
                             coordinates.insert({x, y});
-                            if (coordinates.size() > budget / Gpu::RgbaTile::ByteCount) return false;
+                            if (coordinates.size() > budget / tileBytes) return false;
                         }
                     }
                 }
@@ -449,7 +478,11 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             if (!collect(fixed.region())) return false;
             const auto fixedBackground = fixed.defaultPixel();
             const auto *fixedBgra = fixedBackground.data();
-            properties.defaultPixel = {fixedBgra[2], fixedBgra[1], fixedBgra[0], fixedBgra[3]};
+            if (pixelBytes == 8) {
+                quint16 components[4];
+                std::memcpy(components, fixedBgra, sizeof(components));
+                properties.defaultPixel = {components[2], components[1], components[0], components[3]};
+            } else properties.defaultPixel = {fixedBgra[2], fixedBgra[1], fixedBgra[0], fixedBgra[3]};
             auto ordered = coordinates.values();
             std::sort(ordered.begin(), ordered.end(), [](QPoint left, QPoint right) {
                 return left.y() == right.y() ? left.x() < right.x() : left.y() < right.y();
@@ -474,10 +507,13 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
                 return accepted;
             };
             for (const auto &coordinate : ordered) {
-                QByteArray bytes(Gpu::RgbaTile::ByteCount, Qt::Uninitialized);
+                QByteArray bytes(tileBytes, Qt::Uninitialized);
                 fixed.readBytes(reinterpret_cast<quint8*>(bytes.data()), coordinate.x() * 256, coordinate.y() * 256, 256, 256);
-                for (qsizetype offset = 0; offset < bytes.size(); offset += 4) std::swap(bytes[offset], bytes[offset + 2]);
-                batch.append({coordinate, std::move(bytes)});
+                const auto channelBytes = pixelBytes / 4;
+                for (qsizetype offset = 0; offset < bytes.size(); offset += pixelBytes)
+                    for (int byte = 0; byte < channelBytes; ++byte)
+                        std::swap(bytes[offset + byte], bytes[offset + 2 * channelBytes + byte]);
+                batch.append({coordinate, std::move(bytes), format});
                 if (batch.size() == 64 && !flush()) return false;
             }
             if (!flush()) return false;
@@ -491,7 +527,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         if (found == version->layers.cend()) return false;
         for (const auto &operation : found->operations) {
             if (const auto tiles = std::get_if<Gpu::TileWriteSnapshot>(&operation)) {
-                const auto bytes = (*tiles)->tiles.size() * Gpu::RgbaTile::ByteCount;
+                const auto bytes = (*tiles)->tiles.size() * Gpu::RgbaTile::byteCount(version->format);
                 if (bytes > owner->limits().rasterBytes - owner->operations().snapshot()->rasterBytes - preparedBytes) return false;
                 preparedBytes += bytes;
             }
@@ -1501,10 +1537,17 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         for (qsizetype index = 0; index < version->layers.size(); ++index) {
             const auto &layer = version->layers[index];
             KisNodeSP node = existing.value(layer.uuid);
+            if (node && ((layer.kind == LibrePaint::Image::Gpu::LayerKind::Clone) !=
+                         bool(qobject_cast<KisCloneLayer *>(node.data())))) {
+                if (node->parent()) view->removeNode(node);
+                node.clear();
+            }
             if (!node) {
                 if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Group)
                     node = new KisGroupLayer(view, layer.name, layer.opacity, view->colorSpace(),
                                              KisPaintDevice::fromGpuImage(owner, layer.id, {}, view->colorSpace()));
+                else if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Clone)
+                    node = new KisCloneLayer({}, view, layer.name, layer.opacity);
                 else if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Adjustment)
                     node = new KisAdjustmentLayer(view, layer.name, nativeFilterConfiguration(*layer.filter), {});
                 else if (layer.kind == LibrePaint::Image::Gpu::LayerKind::FilterMask) {
@@ -1530,6 +1573,9 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                     mask->filter()->version() != layer.filter->version || mask->filter()->toXML().toUtf8() != layer.filter->xml)
                     mask->setFilter(nativeFilterConfiguration(*layer.filter));
                 internalSelection = mask->selection();
+            } else if (auto *clone = qobject_cast<KisCloneLayer *>(node.data())) {
+                clone->setX(layer.position.x());
+                clone->setY(layer.position.y());
             } else if (auto *group = qobject_cast<KisGroupLayer *>(node.data())) group->original()->bindGpuLayer(owner, layer.id);
             else node->paintDevice()->bindGpuLayer(owner, layer.id);
             if (internalSelection && (!state || state->filterSelections.value(layer.uuid) != layer.filterSelection ||
@@ -1576,6 +1622,16 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             if (node->isPinnedToTimeline() != layer.pinnedToTimeline) node->setPinnedToTimeline(layer.pinnedToTimeline);
             if (changed()) break;
             if (node->colorLabelIndex() != layer.colorLabelIndex) node->setColorLabelIndex(layer.colorLabelIndex);
+            if (changed()) break;
+        }
+        if (view->gpuImage() != owner) return;
+        if (changed()) continue;
+        for (const auto &layer : version->layers) if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Clone) {
+            auto *clone = qobject_cast<KisCloneLayer *>(existing.value(layer.uuid).data());
+            const auto source = qobject_cast<KisLayer *>(existing.value(layer.cloneSourceUuid).data());
+            if (!clone) continue;
+            if (clone->copyFrom().data() != source) clone->setCopyFrom(source);
+            clone->setCopyType(layer.cloneFromOriginal ? COPY_ORIGINAL : COPY_PROJECTION);
             if (changed()) break;
         }
         if (view->gpuImage() != owner) return;

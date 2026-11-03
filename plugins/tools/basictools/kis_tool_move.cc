@@ -36,6 +36,7 @@
 #include "kis_tool_utils.h"
 #include "kis_paint_layer.h"
 #include "kis_group_layer.h"
+#include "kis_clone_layer.h"
 #include "kis_transparency_mask.h"
 #include "kis_adjustment_layer.h"
 #include "kis_filter_mask.h"
@@ -98,7 +99,7 @@ QList<LibrePaint::Image::Gpu::LayerTranslationTarget> gpuMoveTargets(
             const bool internal = qobject_cast<KisAdjustmentLayer *>(node.data()) || filter;
             const auto ownerNode = mask ? node->parent() : node;
             if (!ownerNode || (!mask && !internal && !qobject_cast<KisPaintLayer *>(node.data()) &&
-                                           !qobject_cast<KisGroupLayer *>(node.data()))) return;
+                                           !qobject_cast<KisGroupLayer *>(node.data()) && !qobject_cast<KisCloneLayer *>(node.data()))) return;
             const auto layer = layers.value(ownerNode->uuid());
             if (!layer) return;
             if (!indices.contains(layer)) {

@@ -53,4 +53,22 @@
 - 描画・合成・表示は `libs/image/gpu/`、キャンバスは `libs/canvas/gpu/`、文書寿命は `libs/document/gpu/` が所有する。
 - 移行中の起動設定 `LIBREPAINT_GPU_ENGINE=1` は、通常経路への統一後に撤去する。
 
+### 静止クローンレイヤーの参照と評価
+
+RGBA8/U16文書のクローンレイヤーは、参照元のUUID、原画素または投影の選択、
+独立した移動量を文書版に保持する。グループの子参照とクローンの元参照を合わせて検査し、
+評価の循環を拒否する。元レイヤーの可視性と合成属性は、クローン自身の合成属性から独立する。
+
+| 責務 | 所有先 |
+| --- | --- |
+| 元参照、循環検査、変更のプレビュー・確定・取消しと履歴 | `libs/image/gpu/KisGpuCloneLayers.cpp`、`KisGpuOperationValidation_p.h` |
+| 固定した文書版からの原画素・投影評価 | `libs/image/gpu/KisGpuCloneProjection.cpp`、`KisGpuTileRenderer.cpp` |
+| 元削除時のPaintレイヤー化 | `libs/image/gpu/KisGpuPaintCloneLayers.cpp` |
+| 通常ノード、元変更ダイアログ、移動ツールとの接続 | `libs/image/KisGpuImageView.cpp`、`libs/image/kis_clone_layer.cpp`、`libs/ui/dialogs/KisDlgChangeCloneSource.cpp`、`plugins/tools/basictools/kis_tool_move.cc` |
+| KRAの元UUID・参照方式・位置の保存と読込 | `libs/document/files/gpu/KisGpuKraDocumentFile.cpp`、`libs/impex/kra/KisKraRasterCodec.cpp` |
+
+元レイヤーを削除するときは、削除前の版を保持したGPU投影をPaintレイヤーの初期画素として
+同じ履歴操作で確定する。Undoは生きた元参照を復元する。表示・外部読取り・KRA保存は
+対象の文書版を使い、通常のクローン評価はCPU画素正本や旧ストロークキューへ同期しない。
+
 詳細な責務の置換元・置換先と実行段階は Issue #89 の本文を参照します。

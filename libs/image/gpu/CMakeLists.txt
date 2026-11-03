@@ -3,6 +3,7 @@ kis_add_library(kritaimagegpuoperations SHARED
     KisGpuOperationDocument.cpp
     KisGpuFilterSettings.cpp
     KisGpuFilterNodes.cpp
+    KisGpuCloneLayers.cpp
     KisGpuSelectionMask.cpp
     KisGpuLayerTranslation.cpp
     KisGpuAffineTransform.cpp
@@ -48,6 +49,7 @@ find_package(WGPUNative REQUIRED)
 add_library(kritaimagegputiles OBJECT
     KisGpuPaintGeometry.cpp
     KisGpuLayerAllocation.cpp
+    KisGpuCloneProjection.cpp
     KisGpuAutoBrush.cpp
     KisGpuBrushDabs.cpp
     KisGpuMarkerBrush.cpp
@@ -81,7 +83,8 @@ qt6_add_resources(kritaimagegputiles krita_gpu_tiles
 )
 krita_ios_add_static_resource(krita_gpu_tiles)
 
-add_library(kritaimagegpupaint OBJECT KisGpuPaintImage.cpp KisGpuPaintImage.h KisGpuExternalPixels.cpp)
+add_library(kritaimagegpupaint OBJECT KisGpuPaintImage.cpp KisGpuPaintImage.h
+    KisGpuExternalPixels.cpp KisGpuPaintCloneLayers.cpp)
 target_compile_definitions(kritaimagegpupaint PRIVATE kritagpuimage_EXPORTS)
 target_link_libraries(kritaimagegpupaint PUBLIC kritaimagegpuoperations Qt6::Core PRIVATE kritaimagegputiles)
 set_target_properties(kritaimagegpupaint PROPERTIES POSITION_INDEPENDENT_CODE ON)

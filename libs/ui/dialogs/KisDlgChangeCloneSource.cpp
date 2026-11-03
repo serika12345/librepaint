@@ -7,6 +7,7 @@
 #include "KisDlgChangeCloneSource.h"
 
 #include <kis_clone_layer.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
 #include <kis_processing_applicator.h>
 #include <KisImageSignals.h>
@@ -33,7 +34,7 @@ struct KisDlgChangeCloneSource::Private
         : cloneLayers(layers)
         , view(view)
         , image(view->image())
-        , applicator(new KisProcessingApplicator(image, 0,
+        , applicator(image->gpuImage() ? nullptr : new KisProcessingApplicator(image, 0,
                                                  KisProcessingApplicator::NONE,
                                                  /* emitSignals = */ KisImageSignalVector(),
                                                  kundo2_i18n("Change Clone Layers")))
@@ -46,6 +47,9 @@ struct KisDlgChangeCloneSource::Private
     Ui::WdgChangeCloneSource ui;
     QScopedPointer<KisProcessingApplicator> applicator;
     bool modified;
+    LibrePaint::Image::Gpu::PaintImageSP gpu;
+    LibrePaint::Image::Gpu::OperationId gpuEdit;
+
 
     void addToTargetListRecursively(KisNodeSP node, bool addSelf = true);
     void filterOutAncestorsAndClonesRecursively(KisLayerSP layer);
@@ -108,6 +112,15 @@ KisDlgChangeCloneSource::KisDlgChangeCloneSource(QList<KisCloneLayerSP> layers, 
     , d(new Private(layers, view))
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN(!layers.isEmpty());
+    d->gpu = d->image->gpuImage();
+    if (d->gpu) {
+        QList<LibrePaint::Image::Gpu::LayerId> targets;
+        for (const auto &layer : layers)
+            for (const auto &node : d->gpu->operations().snapshot()->layers)
+                if (layer->uuid() == node.uuid) targets.append(node.id);
+        if (targets.size() == layers.size()) d->gpuEdit = d->gpu->beginCloneSourceEdit(targets);
+    }
+
 
     connect(d->image.data(), &KisImage::sigStrokeCancellationRequested,
             this, &KisDlgChangeCloneSource::reject);
@@ -132,6 +145,10 @@ KisDlgChangeCloneSource::KisDlgChangeCloneSource(QList<KisCloneLayerSP> layers, 
 KisDlgChangeCloneSource::~KisDlgChangeCloneSource()
 {
     dbgUI << "dialog destroyed";
+    if (d->gpu && !d->gpuEdit.isNull()) {
+        if (result() == QDialog::Accepted && d->modified) d->gpu->commitCloneSourceEdit(d->gpuEdit);
+        else d->gpu->cancelCloneSourceEdit(d->gpuEdit);
+    }
     if (d->applicator) {
         if (result() == QDialog::Accepted && d->modified) {
             dbgUI << "Accepted";
@@ -184,7 +201,10 @@ void KisDlgChangeCloneSource::slotCancelChangesAndSetNewTarget()
 {
     KisLayerSP targetLayer = d->getSelectedTargetLayer();
     if (targetLayer) {
-        d->applicator->applyCommand(d->createCommand(targetLayer));
+        if (d->gpu) {
+            if (d->gpuEdit.isNull() || d->gpu->updateCloneSourceEdit(d->gpuEdit, targetLayer->uuid()) !=
+                LibrePaint::Image::Gpu::Result::Success) return;
+        } else d->applicator->applyCommand(d->createCommand(targetLayer));
         d->modified = true;
     }
 }

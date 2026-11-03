@@ -237,7 +237,7 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
     const bool group = type == QLatin1String("grouplayer");
     const bool filterMask = type == QLatin1String("filtermask");
     if ((filterMask ? element.tagName() != QLatin1String("mask") : element.tagName() != QLatin1String("layer")) ||
-        (!group && !filterMask && type != QLatin1String("paintlayer") && type != QLatin1String("adjustmentlayer")) ||
+        (!group && !filterMask && type != QLatin1String("paintlayer") && type != QLatin1String("clonelayer") && type != QLatin1String("adjustmentlayer")) ||
         (!filterMask && element.attribute(QStringLiteral("compositeop")) != QLatin1String("normal") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("multiply") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("screen") &&
@@ -762,8 +762,21 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         if (result.code != Status::Success) return result;
         element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") :
             layer.kind == LayerKind::Group ? QStringLiteral("grouplayer") :
-            layer.kind == LayerKind::Adjustment ? QStringLiteral("adjustmentlayer") : QStringLiteral("filtermask"));
+            layer.kind == LayerKind::Adjustment ? QStringLiteral("adjustmentlayer") :
+            layer.kind == LayerKind::Clone ? QStringLiteral("clonelayer") : QStringLiteral("filtermask"));
         const auto path = folder + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename"));
+        if (layer.kind == LayerKind::Clone) {
+            element.setAttribute(QStringLiteral("clonefromuuid"), layer.cloneSourceUuid.toString());
+            element.setAttribute(QStringLiteral("clonetype"), layer.cloneFromOriginal ? 1 : 0);
+            QString sourceName;
+            for (const auto &source : value.layers)
+                if (source.uuid == layer.cloneSourceUuid) { sourceName = source.name; break; }
+            element.setAttribute(QStringLiteral("clonefrom"), sourceName);
+        } else {
+            element.removeAttribute(QStringLiteral("clonefromuuid"));
+            element.removeAttribute(QStringLiteral("clonefrom"));
+            element.removeAttribute(QStringLiteral("clonetype"));
+        }
         const QPoint offset = layer.position;
         element.setAttribute(QStringLiteral("x"), offset.x());
         element.setAttribute(QStringLiteral("y"), offset.y());
@@ -1553,7 +1566,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         const auto nodeType = element.attribute(QStringLiteral("nodetype"));
         layer.kind = nodeType == QLatin1String("grouplayer") ? LayerKind::Group :
             nodeType == QLatin1String("adjustmentlayer") ? LayerKind::Adjustment :
-            nodeType == QLatin1String("filtermask") ? LayerKind::FilterMask : LayerKind::Paint;
+            nodeType == QLatin1String("filtermask") ? LayerKind::FilterMask :
+            nodeType == QLatin1String("clonelayer") ? LayerKind::Clone : LayerKind::Paint;
         layer.passThrough = element.attribute(QStringLiteral("passthrough"), QStringLiteral("0")) == QLatin1String("1");
         layer.blendMode = element.attribute(QStringLiteral("compositeop")) == QLatin1String("multiply") ? LayerBlendMode::Multiply :
             element.attribute(QStringLiteral("compositeop")) == QLatin1String("screen") ? LayerBlendMode::Screen :
@@ -1693,6 +1707,16 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             directParent.parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;
+        if (layer.kind == LayerKind::Clone) {
+            const auto mode = element.attribute(QStringLiteral("clonetype"), QStringLiteral("0"));
+            if (mode != QLatin1String("0") && mode != QLatin1String("1"))
+                return fail(invalid(QStringLiteral("Invalid KRA clone source mode")));
+            layer.cloneFromOriginal = mode == QLatin1String("1");
+            const auto uuid = element.attribute(QStringLiteral("clonefromuuid"));
+            layer.cloneSourceUuid = QUuid(uuid);
+            if (!uuid.isEmpty() && layer.cloneSourceUuid.isNull() && QUuid(uuid).toString() != uuid)
+                return fail(invalid(QStringLiteral("Invalid KRA clone source identity")));
+        }
         layer.name = element.attribute(QStringLiteral("name"));
         layer.visible = element.attribute(QStringLiteral("visible")) == QLatin1String("1");
         layer.opacity = quint8(element.attribute(QStringLiteral("opacity"), QStringLiteral("255")).toUInt());
@@ -1823,6 +1847,20 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             selected = document.image.layers.size();
         }
         document.image.layers.prepend(std::move(layer));
+    }
+    for (const auto &element : elements) {
+        if (element.attribute(QStringLiteral("nodetype")) != QLatin1String("clonelayer") ||
+            element.hasAttribute(QStringLiteral("clonefromuuid"))) continue;
+        const auto name = element.attribute(QStringLiteral("clonefrom"));
+        QUuid source;
+        for (const auto &candidate : elements)
+            if (candidate.attribute(QStringLiteral("name")) == name) {
+                source = QUuid(candidate.attribute(QStringLiteral("uuid")));
+                break;
+            }
+        if (source.isNull()) return fail(invalid(QStringLiteral("Missing KRA clone source")));
+        const QUuid identity(element.attribute(QStringLiteral("uuid")));
+        for (auto &layer : document.image.layers) if (layer.uuid == identity) layer.cloneSourceUuid = source;
     }
     if (!validRasterLayerHierarchy(document.image.layers, document.image.format)) return fail(invalid(QStringLiteral("Invalid KRA layer hierarchy")));
     document.image.activeLayer = document.image.layers.isEmpty() ? 0 : document.image.layers.size() - 1 - qMax(0, selected);

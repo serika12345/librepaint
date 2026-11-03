@@ -849,6 +849,7 @@ Result PaintImage::commitStroke(OperationId id)
 Result PaintImage::cancelStroke(OperationId id)
 {
     if (!onThread()) return Result::InvalidInput;
+    if (m_d->document->isEditingCloneSource()) return cancelCloneSourceEdit(id);
     if (m_d->maskStroke) {
         if (m_d->maskStroke->id != id) return Result::StaleOperation;
         std::unique_ptr<MaskStroke> session = std::move(m_d->maskStroke);
@@ -1388,10 +1389,6 @@ Result PaintImage::ungroupLayers(const QList<LayerId> &layers, LayerId activeRoo
 { return onThread() ? publish(m_d->document->ungroupLayers(layers, activeRoot, replacementName)) : Result::InvalidInput; }
 Result PaintImage::mergeLayers(const LayerMergeRequest &request)
 { return onThread() ? publish(m_d->document->mergeLayers(request)) : Result::InvalidInput; }
-Result PaintImage::removeLayer(LayerId layer)
-{ return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
-Result PaintImage::removeLayers(const QList<LayerId> &layers, const QString &replacementName)
-{ return onThread() ? publish(m_d->document->removeLayers(layers, replacementName)) : Result::InvalidInput; }
 Result PaintImage::undo()
 {
     if (!onThread()) return Result::InvalidInput;

@@ -5,6 +5,8 @@
  */
 
 #include "kis_clone_layer.h"
+#include "gpu/KisGpuPaintImage.h"
+#include <stdexcept>
 
 #include <klocalizedstring.h>
 
@@ -44,6 +46,8 @@ struct Q_DECL_HIDDEN KisCloneLayer::Private
     }
 
     KisPaintDeviceSP fallback;
+    mutable KisPaintDeviceSP gpuProjection;
+    mutable QWeakPointer<LibrePaint::Image::Gpu::PaintImage> gpuProjectionOwner;
     KisLodCapableLayerOffset offset;
 
     KisLayerSP copyFrom;
@@ -141,6 +145,24 @@ KisPaintDeviceSP KisCloneLayer::original() const
     return retval;
 }
 
+KisPaintDeviceSP KisCloneLayer::projection() const
+{
+    const auto image = this->image();
+    if (image && image->gpuImage()) {
+        const auto owner = image->gpuImage();
+        for (const auto &node : owner->operations().snapshot()->layers) {
+            if (node.uuid != uuid() || node.kind != LibrePaint::Image::Gpu::LayerKind::Clone) continue;
+            if (!m_d->gpuProjection || m_d->gpuProjectionOwner.toStrongRef() != owner) {
+                m_d->gpuProjection = KisPaintDevice::fromGpuImage(owner, node.id, {}, image->colorSpace());
+                m_d->gpuProjection->setProjectionDevice(true);
+                m_d->gpuProjectionOwner = owner;
+            }
+            return m_d->gpuProjection;
+        }
+    }
+    return KisLayer::projection();
+}
+
 bool KisCloneLayer::needProjection() const
 {
     return m_d->offset->x() || m_d->offset->y();
@@ -230,10 +252,28 @@ qint32 KisCloneLayer::y() const
 }
 void KisCloneLayer::setX(qint32 x)
 {
+    const auto image = this->image().toStrongRef();
+    if (image && image->gpuImage() && !image->isSynchronizingGpuNodes()) {
+        const auto owner = image->gpuImage();
+        for (const auto &node : owner->operations().snapshot()->layers) if (node.uuid == uuid()) {
+            if (owner->writeLayerPosition(node.id, QPoint(x, y())) != LibrePaint::Image::Gpu::Result::Success)
+                throw std::runtime_error("GPU clone position write failed");
+            break;
+        }
+    }
     m_d->offset->setX(x);
 }
 void KisCloneLayer::setY(qint32 y)
 {
+    const auto image = this->image().toStrongRef();
+    if (image && image->gpuImage() && !image->isSynchronizingGpuNodes()) {
+        const auto owner = image->gpuImage();
+        for (const auto &node : owner->operations().snapshot()->layers) if (node.uuid == uuid()) {
+            if (owner->writeLayerPosition(node.id, QPoint(x(), y)) != LibrePaint::Image::Gpu::Result::Success)
+                throw std::runtime_error("GPU clone position write failed");
+            break;
+        }
+    }
     m_d->offset->setY(y);
 }
 
@@ -290,6 +330,16 @@ void KisCloneLayer::accept(KisProcessingVisitor &visitor, KisUndoAdapter *undoAd
 
 void KisCloneLayer::setCopyFrom(KisLayerSP fromLayer)
 {
+    const auto image = this->image().toStrongRef();
+    if (image && image->gpuImage() && !image->isSynchronizingGpuNodes()) {
+        const auto owner = image->gpuImage();
+        for (const auto &node : owner->operations().snapshot()->layers) if (node.uuid == uuid()) {
+            if (owner->writeCloneSource(node.id, fromLayer ? fromLayer->uuid() : QUuid{}, m_d->type == COPY_ORIGINAL) != LibrePaint::Image::Gpu::Result::Success)
+                throw std::invalid_argument("GPU clone source is unavailable or cyclic");
+            break;
+        }
+    }
+
     if (m_d->copyFrom) {
         m_d->copyFrom->unregisterClone(this);
     }
@@ -308,6 +358,16 @@ KisLayerSP KisCloneLayer::copyFrom() const
 
 void KisCloneLayer::setCopyType(CopyLayerType type)
 {
+    const auto image = this->image().toStrongRef();
+    if (image && image->gpuImage() && !image->isSynchronizingGpuNodes()) {
+        const auto owner = image->gpuImage();
+        for (const auto &node : owner->operations().snapshot()->layers) if (node.uuid == uuid()) {
+            if (owner->writeCloneSource(node.id, m_d->copyFrom ? m_d->copyFrom->uuid() : QUuid{}, type == COPY_ORIGINAL) != LibrePaint::Image::Gpu::Result::Success)
+                throw std::invalid_argument("GPU clone source mode is unavailable");
+            break;
+        }
+    }
+
     m_d->type = type;
 }
 

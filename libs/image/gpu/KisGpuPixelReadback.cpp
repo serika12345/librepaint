@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuExecution_p.h"
+#include "KisGpuCloneProjection_p.h"
 #include "KisGpuAutoBrush_p.h"
 #include "KisGpuMarkerBrush_p.h"
 #include "KisGpuReadbackBatch_p.h"
@@ -332,6 +333,10 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
 
 std::optional<QList<quint64>> layerCoordinates(const Snapshot &document, const Layer &layer, QRect region, qsizetype maximum)
 {
+    if (layer.kind == LayerKind::Clone) {
+        const auto resolved = Detail::CloneLayerProjection::resolve(document, layer, maximum);
+        return resolved ? paintLayerCoordinates(*resolved, region, maximum, document->pendingOperation(), document->size, document->format) : std::nullopt;
+    }
     if (layer.kind == LayerKind::Paint) return paintLayerCoordinates(layer, region, maximum, document->pendingOperation(), document->size, document->format);
     if (layer.kind == LayerKind::FilterMask) return QList<quint64>{};
     if (layer.kind == LayerKind::Adjustment) {

@@ -438,7 +438,8 @@ QString gpuKraEditingError(const QDomElement &image)
         QStringLiteral("colorspacename"), QStringLiteral("profile"), QStringLiteral("locked"),
         QStringLiteral("intimeline"), QStringLiteral("colorlabel"), QStringLiteral("channelflags"),
         QStringLiteral("channellockflags"), QStringLiteral("passthrough"), QStringLiteral("collapsed"),
-        QStringLiteral("onionskin")};
+        QStringLiteral("onionskin"), QStringLiteral("clonefrom"), QStringLiteral("clonefromuuid"),
+        QStringLiteral("clonetype")};
     QList<QDomElement> pending{image};
     while (!pending.isEmpty()) {
         const auto element = pending.takeLast();

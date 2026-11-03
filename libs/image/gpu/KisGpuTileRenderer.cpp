@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuTileRenderer.h"
+#include "KisGpuCloneProjection_p.h"
 #include "KisGpuPaintJob_p.h"
 #include "KisGpuNonlinearRgba8_p.h"
 #include "KisGpuRgba8AlphaBlend_p.h"
@@ -542,7 +543,10 @@ ProjectionOutcome TileRenderer::recordInitialProjection(WGPUCommandEncoder comma
             }
             QList<const Layer *> selected;
             QSet<LayerId> included;
-            for (const auto &input : task.value->source->projectionInputs()) {
+            const auto inputs = task.value->sourceLayer ?
+                QList<LayerProjectionInput>{{task.value->sourceLayer, 255, 15, LayerBlendMode::Copy}} :
+                task.value->source->projectionInputs();
+            for (const auto &input : inputs) {
                 selected.append(nodes.value(input.layer)); included.insert(input.layer);
             }
             std::vector<Pending> dependencies;
@@ -563,12 +567,15 @@ ProjectionOutcome TileRenderer::recordInitialProjection(WGPUCommandEncoder comma
             continue;
         }
         QList<LayerId> layers;
-        for (const auto &input : task.value->source->projectionInputs()) layers.append(input.layer);
+        const auto inputs = task.value->sourceLayer ?
+            QList<LayerProjectionInput>{{task.value->sourceLayer, 255, 15, LayerBlendMode::Copy}} :
+            task.value->source->projectionInputs();
+        for (const auto &input : inputs) layers.append(input.layer);
         const auto compatible = base && base->document()->documentId() == task.value->source->documentId() ? base : RenderedSnapshot{};
         const auto recorded = recordRegion(commands, task.value->source, task.region, layers, compatible);
         if (recorded.code != RenderOutcome::Recorded) return {recorded.code, {}, recorded.diagnostic};
         auto projected = composeImpl(commands, recorded.version, task.region, {}, 0, task.value.data(),
-            false, task.value->nativeSources);
+            false, task.value->nativeSources, &inputs);
         if (projected.code != RenderOutcome::Recorded) return projected;
         if (task.value->normalizeRootProjection) {
             // The root projection is applied normally onto a new empty paint device.
@@ -846,8 +853,13 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     const bool needsSourceExtents = std::any_of(document->layers.cbegin(), document->layers.cend(), [](const auto &layer) {
         return transparentSourceAffectsBlend(layer.blendMode) || !(layer.projectionChannelMask & 8u);
     });
-    for (const auto &layer : document->layers) {
-        if (!selected.contains(layer.id) || (region && region->isEmpty())) continue;
+    for (const auto &storedLayer : document->layers) {
+        if (!selected.contains(storedLayer.id) || (region && region->isEmpty())) continue;
+        const auto clone = storedLayer.kind == LayerKind::Clone ?
+            CloneLayerProjection::resolve(document, storedLayer, PaintGeometryElementLimit) : std::optional<Layer>{};
+        if (storedLayer.kind == LayerKind::Clone && !clone)
+            return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU clone source could not be resolved")};
+        const auto &layer = clone ? *clone : storedLayer;
         if (isFilterNode(layer.kind)) continue;
         if (layer.passThrough && !requestedGroups.contains(layer.id)) continue;
         const bool clipsPainting = std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &value) {
