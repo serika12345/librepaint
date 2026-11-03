@@ -16,12 +16,14 @@
 #include <QPainterPath>
 #include <QScopeGuard>
 #include <QThread>
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <gpu/KisGpuTileRenderer.h>
 #include <gpu/KisGpuDevice.h>
 #include <gpu/KisGpuReadbackBatch_p.h>
 #include <webgpu/wgpu.h>
+#include "KisGpuPixelTolerance_p.h"
 #include "KisGpuGaussianBrushFixture_p.h"
 #include "KisGpuGaussianBasicSmoothingFixture_p.h"
 #include "KisGpuGaussianWeightedSmoothingFixture_p.h"
@@ -67,8 +69,8 @@ private Q_SLOTS:
     void projectionChannelsInvalidateGroupReuseAndKeepRetainedPixels();
     void partialLayerOpacityComposesOverTransparency_data();
     void partialLayerOpacityComposesOverTransparency();
-    void normalProjectionPreservesBinary32Rounding_data();
-    void normalProjectionPreservesBinary32Rounding();
+    void normalProjectionStaysWithinOneStep_data();
+    void normalProjectionStaysWithinOneStep();
     void normalProjectionKeepsDefaultAndTileColorsAtRoundingBoundaries_data();
     void normalProjectionKeepsDefaultAndTileColorsAtRoundingBoundaries();
     void explicitPassThroughReadAfterParentKeepsSubtreePixels();
@@ -359,7 +361,7 @@ void KisGpuTileRendererTest::markerMatchesNormalEngine()
             QCOMPARE(file.write(entry.second), qint64(entry.second.size()));
         }
     }
-    QCOMPARE(actual, expected);
+    QCOMPARE_PIXELS_WITHIN_STEP(actual, expected);
 }
 
 void KisGpuTileRendererTest::basicCurveControlsPreserveClosedSegmentDecisions_data()
@@ -702,7 +704,7 @@ void KisGpuTileRendererTest::gaussianWeightedKeepsCpuPixels()
     QVERIFY(final);
     const auto actual = pixels(final, document.activeLayer());
     artifacts[QStringLiteral(".rgba")] = actual;
-    QCOMPARE(actual, test.rgba);
+    QCOMPARE_PIXELS_WITHIN_STEP(actual, test.rgba);
     const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QCOMPARE(operation->inputSamples(), test.input);
     QCOMPARE(operation->brush, brush);
@@ -820,7 +822,7 @@ void KisGpuTileRendererTest::gaussianWeightedOnImportedPixelKeepsCpuMergeByte()
     artifacts[QStringLiteral(".tile.rgba")] = pixels;
     const auto actual = pixels.mid(offset, 4);
     artifacts[QStringLiteral(".rgba")] = actual;
-    QCOMPARE(actual, test.rgba);
+    QCOMPARE_PIXELS_WITHIN_STEP(actual, test.rgba);
     const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
     QCOMPARE(operation->inputSamples(), test.input);
     QCOMPARE(operation->brush, brush);
@@ -2275,31 +2277,18 @@ void KisGpuTileRendererTest::layerCountChangesInvalidateTransparentProjectionReu
     QVERIFY(renderer.residentBytes() <= 2 * TileRenderer::TileBytes);
 }
 
-void KisGpuTileRendererTest::normalProjectionPreservesBinary32Rounding_data()
+void KisGpuTileRendererTest::normalProjectionStaysWithinOneStep_data()
 {
     QTest::addColumn<int>("opacity");
-    QTest::addColumn<QByteArray>("expectedHash");
-    // Reference: production RGBA8 source-over at 5cd3e87, all byte-alpha
-    // pairs, BGR source (18,52,86), destination (51,102,153), transparent
-    // destination RGB normalized to zero. Scalar and batched ARM64/NEON64
-    // and x86_64 results agree. Hashes cover the complete straight RGBA tile.
-    struct Case { int opacity; const char *hash; };
-    const Case cases[] = {
-        {1, "397ded9ba63a06e74ed56775eb1dfd7b823621913fbe6034fbbf31e9ea8e5c82"},
-        {128, "c6633dd35c638b9d271d776fe77e400f84c7ee2863d939e16489ac806974fad6"},
-        {254, "91359ff33552e7bc841cbcc1b8fdcd9c0a9a9e34eae84643488544529a992b2a"},
-        {255, "181798e20485cea5823ec6c209ccf4e9963cff73ec1d92cf1566beee4ba0dab4"},
-    };
-    for (const auto &c : cases) {
-        const QByteArray name = QByteArray::number(c.opacity);
-        QTest::newRow(name.constData()) << c.opacity << QByteArray(c.hash);
+    for (const int opacity : {1, 128, 254, 255}) {
+        const QByteArray name = QByteArray::number(opacity);
+        QTest::newRow(name.constData()) << opacity;
     }
 }
 
-void KisGpuTileRendererTest::normalProjectionPreservesBinary32Rounding()
+void KisGpuTileRendererTest::normalProjectionStaysWithinOneStep()
 {
     QFETCH(int, opacity);
-    QFETCH(QByteArray, expectedHash);
     QByteArray lower(RgbaTile::ByteCount, '\0'), upper(RgbaTile::ByteCount, '\0');
     for (int destinationAlpha = 0; destinationAlpha < 256; ++destinationAlpha) {
         for (int sourceAlpha = 0; sourceAlpha < 256; ++sourceAlpha) {
@@ -2331,7 +2320,27 @@ void KisGpuTileRendererTest::normalProjectionPreservesBinary32Rounding()
         QCOMPARE(artifact.write(actual), actual.size());
     }
     QCOMPARE(actual.size(), RgbaTile::ByteCount);
-    QCOMPARE(QCryptographicHash::hash(actual, QCryptographicHash::Sha256).toHex(), expectedHash);
+    // Straight-alpha normal composition evaluated in double precision (#107:
+    // within one 8-bit step). Fully transparent results carry no color.
+    QByteArray expected(RgbaTile::ByteCount, '\0');
+    for (int index = 0; index < 256 * 256; ++index) {
+        const auto *d = reinterpret_cast<const quint8 *>(lower.constData()) + index * 4;
+        const auto *u = reinterpret_cast<const quint8 *>(upper.constData()) + index * 4;
+        const double sourceAlpha = u[3] / 255.0 * opacity / 255.0;
+        const double destinationAlpha = d[3] / 255.0;
+        const double alpha = sourceAlpha + destinationAlpha * (1.0 - sourceAlpha);
+        auto *e = reinterpret_cast<quint8 *>(expected.data()) + index * 4;
+        e[3] = quint8(std::lround(alpha * 255.0));
+        if (e[3] == 0) {
+            std::memcpy(e, actual.constData() + index * 4, 3);
+            continue;
+        }
+        for (int channel = 0; channel < 3; ++channel) {
+            const double color = (u[channel] * sourceAlpha + d[channel] * destinationAlpha * (1.0 - sourceAlpha)) / alpha;
+            e[channel] = quint8(std::lround(std::clamp(color, 0.0, 255.0)));
+        }
+    }
+    QCOMPARE_PIXELS_WITHIN_STEP(actual, expected);
 }
 
 void KisGpuTileRendererTest::normalProjectionKeepsDefaultAndTileColorsAtRoundingBoundaries_data()

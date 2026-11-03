@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuRegionFillEditingTest.h"
+#include "../../image/gpu/tests/KisGpuPixelTolerance_p.h"
 #include <QApplication>
 #include <QBitArray>
 #include <QComboBox>
@@ -630,7 +631,7 @@ void RegionFillEditingTest::run(const KisPaintOpPresetSP &preset)
                        << "native" << expected.mid((i / stride) * stride, stride).toHex(); break;
         }
     }
-    QCOMPARE(actual.bytes, expected);
+    { const QString difference = pixelStepDifference(actual.bytes, expected, words ? 2 : 1); QVERIFY2(difference.isEmpty(), qPrintable(difference)); }
     resources->setFGColor(KoColor(Qt::green, cs));
     QImage changedPattern(2, 2, QImage::Format_ARGB32);
     changedPattern.fill(Qt::yellow);
@@ -641,7 +642,7 @@ void RegionFillEditingTest::run(const KisPaintOpPresetSP &preset)
     undo->trigger();
     QCOMPARE(owner->readRgbaPixels(layer, inspected, initial.size()).bytes, initial);
     redo->trigger();
-    QCOMPARE(owner->readRgbaPixels(layer, inspected, initial.size()).bytes, expected);
+    { const QString difference = pixelStepDifference(owner->readRgbaPixels(layer, inspected, initial.size()).bytes, expected, words ? 2 : 1); QVERIFY2(difference.isEmpty(), qPrintable(difference)); }
     QTemporaryDir directory;
     lifetime->setFileBatchMode(true);
     const auto path = directory.filePath(QStringLiteral("fill.kra"));
@@ -668,7 +669,7 @@ void RegionFillEditingTest::run(const KisPaintOpPresetSP &preset)
     for (const auto &candidate : reopened->operations().snapshot()->layers)
         if (candidate.uuid == fillUuid) reopenedLayer = candidate.id;
     QVERIFY(reopenedLayer);
-    QCOMPARE(reopened->readRgbaPixels(reopenedLayer, inspected, initial.size()).bytes, expected);
+    { const QString difference = pixelStepDifference(reopened->readRgbaPixels(reopenedLayer, inspected, initial.size()).bytes, expected, words ? 2 : 1); QVERIFY2(difference.isEmpty(), qPrintable(difference)); }
     lifetime->setCurrentImage(KisImage::fromGpuImage(reopened, QStringLiteral("Reopened fill"), cs));
     owner = reopened;
     image = lifetime->image();
@@ -691,8 +692,8 @@ void RegionFillEditingTest::run(const KisPaintOpPresetSP &preset)
     QVERIFY(saveRegionPixels(QStringLiteral("reedit"), editedAgain, expectedPixels()));
     QCOMPARE(editedAgain, expectedPixels());
     undo->trigger();
-    QCOMPARE(reopened->readRgbaPixels(reopenedLayer, inspected, initial.size()).bytes, expected);
+    { const QString difference = pixelStepDifference(reopened->readRgbaPixels(reopenedLayer, inspected, initial.size()).bytes, expected, words ? 2 : 1); QVERIFY2(difference.isEmpty(), qPrintable(difference)); }
     redo->trigger();
-    QCOMPARE(reopened->readRgbaPixels(reopenedLayer, inspected, initial.size()).bytes, expectedPixels());
+    { const QString difference = pixelStepDifference(reopened->readRgbaPixels(reopenedLayer, inspected, initial.size()).bytes, expectedPixels(), words ? 2 : 1); QVERIFY2(difference.isEmpty(), qPrintable(difference)); }
 }
 

@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// Nonnegative finite binary32 opacity, alpha and native color components.
-// Integer evaluation fixes normalization, gradual underflow, single-rounded
-// multiply-add and quotient rounding before nearest-even component conversion.
+// Opacity, alpha and native color components travel as binary32 bit patterns.
+// The 64-bit integer helpers are exact; floating-point helpers use native f32
+// (#107: saved pixels stay within one 8-bit step across hosts).
 fn projectionAdd(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
     let low = a.x + b.x;
     return vec2<u32>(low, a.y + b.y + select(0u, 1u, low < a.x));
@@ -39,23 +39,7 @@ fn projectionRoundedShift(value: vec2<u32>, count: u32) -> u32 {
         (projectionLowBits(value, count - 1u) || (quotient & 1u) != 0u));
 }
 fn projectionFloat(value: vec2<u32>, scale: i32) -> u32 {
-    if (all(value == vec2<u32>(0u))) { return 0u; }
-    var leading = 31u - countLeadingZeros(value.x);
-    if (value.y != 0u) { leading = 63u - countLeadingZeros(value.y); }
-    if (scale + i32(leading) < -126) {
-        // Gradual underflow rounds the original integer directly to 2^-149.
-        // Rounding to a normal mantissa first would round some ties twice.
-        let shift = -149 - scale;
-        if (shift > 0) { return projectionRoundedShift(value, u32(shift)); }
-        return value.x << u32(-shift);
-    }
-    let shift = i32(leading) - 23;
-    var mantissa: u32;
-    var power = scale + shift;
-    if (shift > 0) { mantissa = projectionRoundedShift(value, u32(shift)); }
-    else { mantissa = value.x << u32(-shift); }
-    if (mantissa == 0x1000000u) { mantissa >>= 1u; power += 1; }
-    return (u32(power + 23 + 127) << 23u) | (mantissa & 0x7fffffu);
+    return bitcast<u32>(ldexp(f32(value.y) * 4294967296.0 + f32(value.x), scale));
 }
 fn projectionMantissa(value: u32) -> u32 {
     let fraction = value & 0x7fffffu;
@@ -71,7 +55,7 @@ fn projectionPower(value: u32) -> i32 {
     return -149 - i32(countLeadingZeros(fraction) - 8u);
 }
 fn projectionScaleByte(value: u32, factor: u32) -> u32 {
-    return projectionFloat(vec2<u32>(projectionMantissa(value) * factor, 0u), projectionPower(value));
+    return bitcast<u32>(bitcast<f32>(value) * f32(factor));
 }
 fn projectionProduct(a: u32, b: u32) -> vec2<u32> {
     // Normalized mantissas have 24 bits. U16 triples also multiply a 32-bit
@@ -82,58 +66,22 @@ fn projectionProduct(a: u32, b: u32) -> vec2<u32> {
     return vec2<u32>(sum, (a >> 16u) * (b >> 16u) + (cross >> 16u) + select(0u, 1u, sum < low));
 }
 fn projectionMultiply(a: u32, b: u32) -> u32 {
-    return projectionFloat(projectionProduct(projectionMantissa(a), projectionMantissa(b)),
-                           projectionPower(a) + projectionPower(b));
+    return bitcast<u32>(bitcast<f32>(a) * bitcast<f32>(b));
 }
 fn projectionAlpha(sourceAlpha: u32, destinationAlpha: u32) -> u32 {
-    let weighted = projectionScaleByte(sourceAlpha, 255u - destinationAlpha);
-    let product = projectionProduct(projectionMantissa(weighted), 0x808081u);
-    let productPower = projectionPower(weighted) - 31;
-    // Keep 56 significant accumulator bits. Discarded product bits become a
-    // sticky bit, below every guard bit used by binary32 normalization.
-    let commonPower = max(productPower, i32(firstLeadingBit(destinationAlpha)) + 1 - 56);
-    let shift = u32(commonPower - productPower);
-    var retained = projectionRight(product, shift);
-    if (projectionLowBits(product, shift)) { retained.x |= 1u; }
-    let destination = projectionLeft(vec2<u32>(destinationAlpha, 0u), u32(-commonPower));
-    return projectionFloat(projectionAdd(retained, destination), commonPower);
+    let destination = f32(destinationAlpha);
+    return bitcast<u32>(destination + bitcast<f32>(sourceAlpha) * (255.0 - destination) / 255.0);
 }
 fn projectionDivide(a: u32, b: u32) -> u32 {
     if (a == 0u) { return 0u; }
-    let denominator = projectionMantissa(b);
-    var remainder = projectionMantissa(a);
-    var exponent = projectionPower(a) - projectionPower(b);
-    if (remainder < denominator) { remainder <<= 1u; exponent -= 1; }
-    remainder -= denominator;
-    var quotient = 1u;
-    for (var bit = 0u; bit < 23u; bit += 1u) {
-        remainder <<= 1u;
-        quotient <<= 1u;
-        if (remainder >= denominator) { remainder -= denominator; quotient |= 1u; }
-    }
-    // Retain a guard bit and a sticky remainder through normal/subnormal
-    // encoding, so a tiny quotient receives only one nearest-even rounding.
-    remainder <<= 1u;
-    let guardBit = select(0u, 1u, remainder >= denominator);
-    if (guardBit != 0u) { remainder -= denominator; }
-    let value = (quotient << 2u) | (guardBit << 1u) | select(0u, 1u, remainder != 0u);
-    return projectionFloat(vec2<u32>(value, 0u), exponent - 25);
+    return bitcast<u32>(bitcast<f32>(a) / bitcast<f32>(b));
 }
 fn projectionComponent(value: u32) -> u32 {
-    if (value == 0u) { return 0u; }
-    let shift = -projectionPower(value);
-    if (shift > 24) { return 0u; }
-    return projectionRoundedShift(vec2<u32>(projectionMantissa(value), 0u), u32(shift));
+    return u32(round(max(bitcast<f32>(value), 0.0)));
 }
 fn projectionColor(destination: u32, source: u32, blend: u32) -> u32 {
-    // Byte colors differ by at most 255. Below 2^-9 the exact change is
-    // less than half a byte, including its intermediate binary32 rounding.
+    // Below 2^-9 the change is less than half a byte.
     if (blend < 0x3b000000u) { return destination; }
-    let difference = i32(source) - i32(destination);
-    let product = vec2<u32>(u32(abs(difference)) * projectionMantissa(blend), 0u);
-    let base = projectionLeft(vec2<u32>(destination, 0u), u32(-projectionPower(blend)));
-    var value: vec2<u32>;
-    if (difference < 0) { value = projectionSubtract(base, product); }
-    else { value = projectionAdd(base, product); }
-    return projectionComponent(projectionFloat(value, projectionPower(blend)));
+    let difference = f32(i32(source) - i32(destination));
+    return u32(round(max(f32(destination) + difference * bitcast<f32>(blend), 0.0)));
 }
