@@ -26,6 +26,7 @@ private Q_SLOTS:
 
     void latestRequestsRetainInputAndPublishAfterSubmission();
     void cancellationAndClosureInvalidateRecordedFrames();
+    void replacingTheDeviceRebuildsAcceptedDocuments_data();
     void replacingTheDeviceRebuildsAcceptedDocuments();
     void documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure();
     void viewportsGenerateOnlyVisibleTilesAndLayers();
@@ -214,11 +215,31 @@ void KisGpuExecutionTest::cancellationAndClosureInvalidateRecordedFrames()
     QVERIFY(reopened.handle != handle);
 }
 
+void KisGpuExecutionTest::replacingTheDeviceRebuildsAcceptedDocuments_data()
+{
+    QTest::addColumn<bool>("sixteenBits");
+    QTest::newRow("rgba8") << false;
+    QTest::newRow("rgba16") << true;
+}
+
 void KisGpuExecutionTest::replacingTheDeviceRebuildsAcceptedDocuments()
 {
+    QFETCH(bool, sixteenBits);
+    const auto format = sixteenBits ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
+    const auto hidden = sixteenBits ? RgbaPixel{1, 257, 65534, 0} : RgbaPixel{17, 34, 51, 0};
+    const auto color = sixteenBits ? RgbaPixel{65534, 257, 1, 65535} : RgbaPixel{51, 34, 17, 255};
+    RasterImage input;
+    input.size = {64, 64};
+    input.format = format;
+    input.layers = {{QStringLiteral("Recovered paint"), true, {}, {}, hidden}};
     Execution execution(m_device);
-    OperationDocument document({64, 64});
-    dot(document, {32, 32});
+    OperationDocument document(input);
+    Brush brush;
+    brush.rgba = color;
+    const auto stroke = document.beginStroke(document.activeLayer(), brush, 17);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
     const auto handle = execution.open(document.snapshot()).handle;
     QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
     const auto old = execution.project(handle, {0, 0, 64, 64});
@@ -242,10 +263,17 @@ void KisGpuExecutionTest::replacingTheDeviceRebuildsAcceptedDocuments()
     QVERIFY(rebuilt.version->device() != old.version->device());
     const auto pixels = Detail::ReadbackBatch::create(*replacement, 1);
     QVERIFY(pixels);
-    QVERIFY(pixels->recordBuffer(*replacement, frame.commands, 0, rebuilt.version->tiles().first().pixels, TileRenderer::TileBytes));
+    const auto pixelBytes = pixelByteCount(format);
+    QVERIFY(pixels->recordBuffer(*replacement, frame.commands, 0, rebuilt.version->tiles().first().pixels,
+                                RgbaTile::byteCount(format)));
     QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
-    QCOMPARE(pixels->results.front()->data.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixels->results.front()->data.mid((32 * 256 + 32) * pixelBytes, pixelBytes), rgbaBytes(color, format));
     QCOMPARE(execution.pendingDocuments(), 0);
+    const auto recovered = execution.readRgbaPixels(handle, document.snapshot(), {2, 3, 1, 1},
+                                                   document.activeLayer(), pixelBytes);
+    QVERIFY2(recovered.code == ExecutionCode::Success, qPrintable(recovered.diagnostic));
+    QCOMPARE(recovered.bytes, rgbaBytes(hidden, format));
+    QCOMPARE(document.undoCount(), 1);
 }
 
 void KisGpuExecutionTest::documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure()
