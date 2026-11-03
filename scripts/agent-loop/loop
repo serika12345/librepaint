@@ -28,6 +28,8 @@ verify_timeout="${AGENT_LOOP_VERIFY_TIMEOUT:-4h}"
 codex_bin="${AGENT_LOOP_CODEX:-$(ls -t "$HOME"/.vscode-server/extensions/openai.chatgpt-*/bin/linux-x86_64/codex \
     "$HOME"/.vscode/extensions/openai.chatgpt-*/bin/linux-x86_64/codex 2>/dev/null | head -1)}"
 codex_bin="${codex_bin:-codex}"
+model="${AGENT_LOOP_MODEL:-gpt-6.1-sol}"
+reasoning_effort="${AGENT_LOOP_REASONING_EFFORT:-xhigh}"
 state_dir="$repo_root/build/agent-loop"
 log_dir="$state_dir/logs"
 mkdir -p "$log_dir"
@@ -127,9 +129,10 @@ while true; do
         fi
     } >"$state_dir/prompt-current.md"
 
-    say "iteration $iteration start ($(git rev-parse --short HEAD))"
+    say "iteration $iteration start ($(git rev-parse --short HEAD), $model/$reasoning_effort)"
     timeout --kill-after=5m "$iteration_timeout" \
-        "$codex_bin" exec --dangerously-bypass-approvals-and-sandbox -C "$repo_root" - \
+        "$codex_bin" exec --dangerously-bypass-approvals-and-sandbox -C "$repo_root" \
+        -m "$model" -c "model_reasoning_effort=\"$reasoning_effort\"" - \
         <"$state_dir/prompt-current.md" >"$log" 2>&1
     rc=$?
     say "iteration $iteration codex exit=$rc"
