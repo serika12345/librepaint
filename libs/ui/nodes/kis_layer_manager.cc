@@ -762,13 +762,7 @@ KisNodeSP KisLayerManager::addCloneLayer(KisNodeList nodes)
     KisNodeSP node, lastClonedNode;
     Q_FOREACH (node, filteredNodes) {
         lastClonedNode = new KisCloneLayer(qobject_cast<KisLayer*>(node.data()), image.data(), image->nextLayerName( i18n("Clone Layer") ), OPACITY_OPAQUE_U8);
-        if (image->gpuImage()) {
-            KisNodeSP parent, above;
-            adjustLayerPosition(lastClonedNode, newAbove, parent, above);
-            if (!parent || !image->insertGpuLayers({lastClonedNode}, above ? parent->index(above) + 1 : 0, parent))
-                return {};
-            m_view->nodeManager()->slotNonUiActivatedNode(lastClonedNode);
-        } else addLayerCommon(newAbove, lastClonedNode, true, 0);
+        addLayerCommon(newAbove, lastClonedNode, true, 0 );
     }
 
     return lastClonedNode;

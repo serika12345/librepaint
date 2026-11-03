@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuLayerAllocation_p.h"
-#include "KisGpuCloneProjection_p.h"
 #include "KisGpuPaintGeometry_p.h"
 #include "KisGpuAutoBrush_p.h"
 #include "KisGpuMarkerBrush_p.h"
@@ -11,10 +10,6 @@
 namespace LibrePaint::Image::Gpu::Detail {
 std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, const Layer &layer, qsizetype maximumRectangles)
 {
-    if (layer.kind == LayerKind::Clone) {
-        const auto resolved = CloneLayerProjection::resolve(document, layer, maximumRectangles);
-        return resolved ? paintLayerAllocation(document, *resolved, maximumRectangles) : std::nullopt;
-    }
     constexpr int limit = RgbaTile::CoordinateLimit;
     const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
     QPoint origin = layer.position;
@@ -146,10 +141,6 @@ std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId gro
         const QPoint last(pixelTileIndex(extent.right(), PixelHistoryBlockSize), pixelTileIndex(extent.bottom(), PixelHistoryBlockSize));
         return QRect(first * PixelHistoryBlockSize, (last + QPoint(1, 1)) * PixelHistoryBlockSize - QPoint(1, 1));
     }
-    if (root && (root->kind == LayerKind::Paint || root->kind == LayerKind::Clone)) {
-        const auto allocation = paintLayerAllocation(document, *root, maximumRectangles);
-        return allocation ? std::optional<QRect>(allocation->extent) : std::nullopt;
-    }
     if (!root || root->kind != LayerKind::Group) return std::nullopt;
     QList<const Layer *> ordered{root};
     for (qsizetype i = 0; i < ordered.size(); ++i)
@@ -162,7 +153,7 @@ std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId gro
             extents.insert(node->id, node->kind == LayerKind::Adjustment ? QRect(QPoint(), document->size) : QRect{});
             continue;
         }
-        if (node->kind == LayerKind::Paint || node->kind == LayerKind::Clone) {
+        if (node->kind == LayerKind::Paint) {
             const auto allocated = paintLayerAllocation(document, *node, maximumRectangles);
             if (!allocated) return std::nullopt;
             extents.insert(node->id, allocated->extent);

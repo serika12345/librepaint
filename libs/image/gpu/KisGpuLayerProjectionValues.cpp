@@ -363,35 +363,20 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
             result.insert(layer.id, layer.defaultPixel);
             implicitSources.insert(layer.id, layer.defaultPixel[3] != 0);
         }
-        else if (layer.kind == LayerKind::Group || layer.kind == LayerKind::Clone) remaining.insert(layer.id, 0);
+        else if (layer.kind == LayerKind::Group) remaining.insert(layer.id, 0);
         else {
             result.insert(layer.id, RgbaPixel{});
             implicitSources.insert(layer.id, false);
         }
     }
-    QHash<LayerId, QList<const Layer *>> consumers;
     for (const auto &layer : layers) {
-        if (!remaining.contains(layer.id)) continue;
-        if (!layer.parentUuid.isNull()) {
-            const auto parent = identities.value(layer.parentUuid);
-            if (!parent || parent->kind != LayerKind::Group) throw std::logic_error("Invalid retained group parent");
-            ++remaining[parent->id];
-            consumers[layer.id].append(parent);
-        }
-        if (layer.kind == LayerKind::Clone) {
-            const auto source = identities.value(layer.cloneSourceUuid);
-            if (source && remaining.contains(source->id)) {
-                ++remaining[layer.id];
-                consumers[source->id].append(&layer);
-            }
-        }
+        if (layer.parentUuid.isNull() || layer.kind != LayerKind::Group) continue;
+        const auto parent = identities.value(layer.parentUuid);
+        if (!parent || parent->kind != LayerKind::Group) throw std::logic_error("Invalid retained group parent");
+        ++remaining[parent->id];
     }
     for (const auto &layer : layers)
-        if (remaining.contains(layer.id) && remaining.value(layer.id) == 0) ready.append(&layer);
-    const auto complete = [&](LayerId id) {
-        for (const auto consumer : consumers.value(id))
-            if (--remaining[consumer->id] == 0) ready.append(consumer);
-    };
+        if (layer.kind == LayerKind::Group && remaining.value(layer.id) == 0) ready.append(&layer);
     const auto maskedDefault = [&](LayerId id) {
         auto pixel = result.value(id);
         const auto coverage = maskDefaults.value(id, 255);
@@ -405,18 +390,6 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
     };
     for (qsizetype index = 0; index < ready.size(); ++index) {
         const auto group = ready[index];
-        if (group->kind == LayerKind::Clone) {
-            auto source = identities.value(group->cloneSourceUuid);
-            bool original = group->cloneFromOriginal;
-            while (source && original && source->kind == LayerKind::Clone) {
-                original = source->cloneFromOriginal;
-                source = identities.value(source->cloneSourceUuid);
-            }
-            result.insert(group->id, source ? (original ? result.value(source->id) : maskedDefault(source->id)) : RgbaPixel{});
-            implicitSources.insert(group->id, source && implicitSources.value(source->id));
-            complete(group->id);
-            continue;
-        }
         const auto ownChildren = children.value(group->uuid);
         const auto inputs = compositionInputs(children, group->uuid);
         RgbaPixel pixel{};
@@ -487,7 +460,10 @@ QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels() const
         }
         result.insert(group->id, pixel);
         implicitSources.insert(group->id, allocated);
-        complete(group->id);
+        if (!group->parentUuid.isNull()) {
+            const auto parent = identities.value(group->parentUuid);
+            if (--remaining[parent->id] == 0) ready.append(parent);
+        }
     }
     if (result.size() != layers.size()) throw std::logic_error("Invalid retained layer hierarchy");
     return result;

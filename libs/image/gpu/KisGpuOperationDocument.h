@@ -32,7 +32,6 @@
 namespace LibrePaint::Image::Gpu {
 
 using LayerId = quint64;
-namespace Detail { struct CloneLayerProjection; }
 class DocumentVersion;
 using Snapshot = QSharedPointer<const DocumentVersion>;
 enum class LayerMergeMode : quint8 { Down, Selected, FlattenLayer, FlattenImage, NewFromVisible };
@@ -70,8 +69,6 @@ struct FrozenLayerProjection
     QList<QRect> allocatedBlocks;
     qsizetype retainedBytes = 0;
     bool normalizeRootProjection = false;
-    /** A clone copies this node's native pixels before its own composition. */
-    LayerId sourceLayer = 0;
     /** Physical adjustment inputs use native source allocation before the
      * selected node's own opacity and composition are applied by its caller. */
     bool nativeSources = false;
@@ -858,7 +855,7 @@ struct FilterOperation : FilterSettings
 using FilterSnapshot = QSharedPointer<const FilterOperation>;
 using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot, FilterSnapshot, AffineSnapshot>;
 
-enum class LayerKind : quint8 { Paint, Group, Adjustment, FilterMask, Clone };
+enum class LayerKind : quint8 { Paint, Group, Adjustment, FilterMask };
 
 struct RasterLayer
 {
@@ -904,9 +901,6 @@ struct RasterLayer
     SelectionMaskSP filterSelection;
     /** Native coordinate of the independent transparency child device. */
     QPoint transparencyMaskPosition{};
-    /** Live source identity; clone offsets are independent of source placement. */
-    QUuid cloneSourceUuid{};
-    bool cloneFromOriginal = false;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -980,9 +974,6 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT Layer
     SelectionMaskSP filterSelection;
     /** Native coordinate of the independent transparency child device. */
     QPoint transparencyMaskPosition{};
-    /** Live source identity; clone offsets are independent of source placement. */
-    QUuid cloneSourceUuid{};
-    bool cloneFromOriginal = false;
     FrozenLayerProjectionSP initialProjection;
     qsizetype inputSampleCount() const;
     qsizetype retainedRasterBytes() const;
@@ -1074,7 +1065,6 @@ public:
 private:
     friend class OperationDocument;
     friend class PaintImage;
-    friend struct Detail::CloneLayerProjection;
     DocumentVersion() = default;
     DocumentVersion(const DocumentVersion &) = default;
     QUuid m_document;
@@ -1131,7 +1121,7 @@ enum class HistoryAction {
     AddFilterMask, AddAdjustmentLayer, ChangeFilter,
     MaximizeChannel, MinimizeChannel, ResetTransparent, ColorOverlay,
     Sharpen, MeanRemoval, EmbossLaplacian, EmbossAllDirections,
-    EmbossHorizontalVertical, EmbossVertical, EmbossHorizontal, AddCloneLayer, ChangeCloneSource
+    EmbossHorizontalVertical, EmbossVertical, EmbossHorizontal
 };
 
 struct Limits
@@ -1189,7 +1179,6 @@ public:
     int savedHistoryIndex() const;
     bool isModified() const;
     bool hasActiveStroke() const;
-    bool isEditingCloneSource() const { return m_cloneSourceEdit.has_value(); }
     LayerId filterNodeEditTarget() const { return m_filterNodeEdit ? m_filterNodeEdit->node : 0; }
     OperationId activeOperation() const;
 
@@ -1282,14 +1271,6 @@ public:
      * versions; explicit configuration commands retain their Undo/Redo values. */
     Result writeFilterDefinition(LayerId node, const FilterDefinition &filter);
     Result setFilterSelection(LayerId node, const SelectionMaskSP &coverage);
-    LayerId addCloneLayer(const RasterLayer &node, qsizetype index);
-    Result setCloneSource(LayerId layer, const QUuid &source, bool fromOriginal);
-    Result writeCloneSource(LayerId layer, const QUuid &source, bool fromOriginal);
-    OperationId beginCloneSourceEdit(const QList<LayerId> &layers);
-    Result updateCloneSourceEdit(OperationId id, const QUuid &source);
-    Result commitCloneSourceEdit(OperationId id);
-    Result cancelCloneSourceEdit(OperationId id);
-
     LayerId addLayer(const QString &name);
     /** Inserts and selects a paint layer at a document-list index. A nonnull
      * parent UUID identifies an existing group; null places it at the root.
@@ -1533,10 +1514,6 @@ public:
     void close();
 
 private:
-    /** The image owner resolves live clone inputs before an atomic removal. */
-    Result removeLayers(const QList<LayerId> &layers, const QString &replacementName,
-                        const QHash<LayerId, Layer> &detachedClones);
-
     struct FilterNodeEdit {
         OperationId id;
         LayerId node = 0;
@@ -1560,7 +1537,6 @@ private:
         QVariant before, after;
         bool mergeable = false;
         bool duplicatedLayers = false;
-        QList<LayerId> cloneSourceLayers;
         bool clearedLayers = false;
         bool filledLayer = false;
         /** One paint layer gained an RGB filter operation in its retained version. */
@@ -1678,8 +1654,6 @@ private:
     QHash<LayerId, OperationId> m_translationIds;
     /** Operation identity of a derived mask edit; carries no document history. */
     OperationId m_externalOperation;
-    struct CloneSourceEdit { OperationId id; QList<LayerId> layers; };
-    std::optional<CloneSourceEdit> m_cloneSourceEdit;
     Snapshot m_preview;
     bool m_closed = false;
 };

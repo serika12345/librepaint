@@ -163,14 +163,13 @@ bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
 {
     QHash<QUuid, const LayerValue *> identities;
     for (const auto &layer : layers) {
-        if (layer.kind > LayerKind::Clone || layer.transparencyMaskIndex < 0) return false;
+        if (layer.kind > LayerKind::FilterMask || layer.transparencyMaskIndex < 0) return false;
         if (layer.kind == LayerKind::FilterMask && (layer.parentUuid.isNull() || layer.transparencyMask)) return false;
         if (isFilterNode(layer.kind) != bool(layer.filter)) return false;
         if (layer.filter && layer.filter->resolved && !layer.filter->isValid(format)) return false;
         if (layer.filterSelection && layer.filterSelection->byteCount() > SelectionMask::MaximumBytes) return false;
         if (!isFilterNode(layer.kind) && layer.filterSelection) return false;
         if (layer.kind != LayerKind::Group && layer.passThrough) return false;
-        if (layer.kind != LayerKind::Clone && (!layer.cloneSourceUuid.isNull() || layer.cloneFromOriginal)) return false;
         if (!validBlendMode(layer.blendMode, format)) return false;
         if (layer.transparencyMask && layer.transparencyMask->byteCount() > SelectionMask::MaximumBytes) return false;
         if (!layer.uuid.isNull()) {
@@ -215,30 +214,7 @@ bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
             current = identities.value(current)->parentUuid;
         }
     }
-    // A group evaluates its children; a clone evaluates its named source.
-    // Checking both edges rejects a clone of a containing group as well as
-    // direct and indirect clone-reference cycles.
-    QHash<qsizetype, qsizetype> pending;
-    QHash<qsizetype, QList<qsizetype>> consumers;
-    for (qsizetype i = 0; i < layers.size(); ++i) pending.insert(i, 0);
-    const auto depends = [&](qsizetype node, qsizetype source) {
-        ++pending[node];
-        consumers[source].append(node);
-    };
-    for (qsizetype i = 0; i < layers.size(); ++i) {
-        const auto &layer = layers[i];
-        if (!layer.parentUuid.isNull() && identities.value(layer.parentUuid)->kind == LayerKind::Group)
-            depends(identities.value(layer.parentUuid) - layers.constData(), i);
-        if (layer.kind != LayerKind::Clone || layer.cloneSourceUuid.isNull()) continue;
-        const auto source = identities.value(layer.cloneSourceUuid);
-        if (!source || (source->kind != LayerKind::Paint && source->kind != LayerKind::Group && source->kind != LayerKind::Clone)) return false;
-        depends(i, source - layers.constData());
-    }
-    QList<qsizetype> ready;
-    for (qsizetype i = 0; i < layers.size(); ++i) if (!pending.value(i)) ready.append(i);
-    for (qsizetype i = 0; i < ready.size(); ++i)
-        for (const auto consumer : consumers.value(ready[i])) if (--pending[consumer] == 0) ready.append(consumer);
-    return ready.size() == layers.size();
+    return true;
 }
 
 inline bool validCropRect(qint32 x, qint32 y, qint32 width, qint32 height)

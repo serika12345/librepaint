@@ -57,7 +57,6 @@ public:
     bool allowAsChild(KisNodeSP) const override;
 
     KisPaintDeviceSP original() const override;
-    KisPaintDeviceSP projection() const override;
     KisPaintDeviceSP paintDevice() const override;
     bool needProjection() const override;
 

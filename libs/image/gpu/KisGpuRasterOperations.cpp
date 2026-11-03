@@ -71,8 +71,6 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.position = source.position;
         layer.kind = source.kind;
         layer.parentUuid = source.parentUuid;
-        layer.cloneSourceUuid = source.cloneSourceUuid;
-        layer.cloneFromOriginal = source.cloneFromOriginal;
         layer.filter = source.filter;
         layer.filterSelection = isFilterNode(source.kind) ?
             (source.filterSelection ? source.filterSelection : SelectionMask::uniform(255)) : SelectionMaskSP{};

@@ -44,7 +44,7 @@ OperationId OperationDocument::beginLayerTranslation(const QList<LayerTranslatio
         const auto &source = snapshot()->layers[index];
         if (source.userLocked || (target.mask && (!source.transparencyMask || source.transparencyMaskLocked)) ||
             (target.filterSelection && (!isFilterNode(source.kind) || !source.filterSelection)) ||
-            (target.pixels && source.kind != LayerKind::Paint && source.kind != LayerKind::Group && source.kind != LayerKind::Clone)) return {};
+            (target.pixels && source.kind != LayerKind::Paint && source.kind != LayerKind::Group)) return {};
         seen.insert(target.layer);
     }
     QHash<LayerId, OperationId> identities;
@@ -288,7 +288,7 @@ Result OperationDocument::applyLayerPosition(LayerId layer, QPoint position, Sna
             const auto offset = checkedOffset(qint64(position.x()) - candidate.position.x(),
                                                qint64(position.y()) - candidate.position.y());
             if (!offset) return Result::InvalidInput;
-            if (candidate.kind == LayerKind::Group || candidate.kind == LayerKind::Clone || isFilterNode(candidate.kind)) {
+            if (candidate.kind == LayerKind::Group || isFilterNode(candidate.kind)) {
                 candidate.position = position;
                 break;
             }

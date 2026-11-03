@@ -13,8 +13,6 @@ class TestNode : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
-    void testCloneLayersKeepOrdinaryEditingHistoryAndKra_data();
-    void testCloneLayersKeepOrdinaryEditingHistoryAndKra();
     void testGpuSessionUsesOrdinaryCreationPaintingAndReopen_data();
     void testGpuSessionUsesOrdinaryCreationPaintingAndReopen();
     void testGpuSessionCreationRefusalKeepsTheDialog();

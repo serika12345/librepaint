@@ -211,7 +211,6 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
             layer.uuid = identities.value(layer.uuid);
             if (layer.transparencyMask) layer.transparencyMaskUuid = QUuid::createUuidV5(layer.uuid, QByteArrayLiteral("transparency-mask"));
             layer.parentUuid = identities.value(layer.parentUuid);
-            if (layer.kind == LayerKind::Clone) layer.cloneSourceUuid = identities.value(layer.cloneSourceUuid, layer.cloneSourceUuid);
         }
         for (auto &operation : layer.operations) {
             if (const auto *paint = std::get_if<PaintSnapshot>(&operation)) {
@@ -362,10 +361,9 @@ int OperationDocument::savedHistoryIndex() const
     return -1;
 }
 bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevision != m_savedRevision; }
-bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_affine.isEmpty() || !m_externalOperation.isNull() || m_filterNodeEdit.has_value() || m_cloneSourceEdit.has_value(); }
+bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_affine.isEmpty() || !m_externalOperation.isNull() || m_filterNodeEdit.has_value(); }
 OperationId OperationDocument::activeOperation() const
 {
-    if (m_cloneSourceEdit) return m_cloneSourceEdit->id;
     if (m_filterNodeEdit) return m_filterNodeEdit->id;
     if (m_edit) return m_edit->id;
     if (m_translation) return m_translation->id;
@@ -1483,7 +1481,6 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
     }
     for (auto &copy : copies) {
         copy.parentUuid = copiedIdentities.value(copy.parentUuid, destinationParent);
-        if (copy.kind == LayerKind::Clone) copy.cloneSourceUuid = copiedIdentities.value(copy.cloneSourceUuid, copy.cloneSourceUuid);
         version->layers.insert(insertion++, copy);
     }
     if (!destinationParent.isNull()) {
@@ -2870,10 +2867,6 @@ Result OperationDocument::applyFilter(LayerId layer, FilterKind kind, const HsvA
 }
 
 Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QString &replacementName)
-{ return removeLayers(layers, replacementName, {}); }
-
-Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QString &replacementName,
-                                       const QHash<LayerId, Layer> &detachedClones)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -2933,29 +2926,6 @@ Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QStri
         version->rasterBytes -= version->layers[i].retainedRasterBytes();
         version->layers.removeAt(i);
     }
-    QSet<QUuid> removedIdentities;
-    for (const auto &layer : snapshot()->layers) if (removed.contains(layer.id)) removedIdentities.insert(layer.uuid);
-    auto nextOperation = m_nextOperation;
-    for (auto &layer : version->layers) {
-        if (layer.kind != LayerKind::Clone || !removedIdentities.contains(layer.cloneSourceUuid)) continue;
-        const auto prepared = detachedClones.constFind(layer.id);
-        if (prepared == detachedClones.cend() || prepared->id != layer.id || prepared->uuid != layer.uuid ||
-            prepared->kind != LayerKind::Paint || !prepared->cloneSourceUuid.isNull()) return Result::InvalidInput;
-        if (quint64(prepared->operations.size()) > std::numeric_limits<quint64>::max() - nextOperation)
-            return Result::CapacityExceeded;
-        const auto source = *prepared;
-        layer = source;
-        copyLayerOperations(source, layer, m_identity, nextOperation);
-    }
-    version->sampleCount = 0;
-    version->rasterBytes = 0;
-    for (const auto &layer : version->layers) {
-        const auto samples = layer.inputSampleCount(), bytes = layer.retainedRasterBytes();
-        if (samples > m_limits.samplesPerDocument - version->sampleCount ||
-            bytes > m_limits.rasterBytes - version->rasterBytes) return Result::CapacityExceeded;
-        version->sampleCount += samples;
-        version->rasterBytes += bytes;
-    }
     if (replace) {
         Layer replacement{m_nextLayer + 1, replacementName, true, {}, QUuid::createUuid()};
         version->activeLayer = replacement.id;
@@ -2967,7 +2937,6 @@ Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QStri
     for (const auto &layer : version->layers)
         if (selected.contains(layer.id) || layer.id == version->activeLayer) version->selectedLayers.append(layer.id);
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    m_nextOperation = nextOperation;
     commitVersion(version);
     return Result::Success;
 }
@@ -3036,7 +3005,6 @@ void OperationDocument::close()
     m_translationIds.clear();
     m_externalOperation = {};
     m_filterNodeEdit.reset();
-    m_cloneSourceEdit.reset();
     m_layerHistoryChanges = {LayerHistoryChange{}};
     m_index = 0;
     m_closed = true;

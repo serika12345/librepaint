@@ -61,14 +61,3 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_tests_properties(${gpu_region_colour_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa" TIMEOUT 300)
 endif()
-
-# Clone references keep source edits and retained versions on the GPU.
-kis_add_test(KisGpuCloneLayersTest.cpp
-    TEST_NAME_VAR gpu_clone_layers_test
-    LINK_LIBRARIES kritaimagegpupaint kritaimagegputiles kritaimagegpuoperations Qt6::Gui Qt6::Test WGPUNative::WGPUNative)
-target_compile_definitions(KisGpuCloneLayersTest PRIVATE kritagpuimage_EXPORTS)
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set_tests_properties(${gpu_clone_layers_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 900)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set_tests_properties(${gpu_clone_layers_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
-endif()

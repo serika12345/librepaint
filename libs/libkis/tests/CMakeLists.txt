@@ -12,7 +12,7 @@ kis_add_tests(
     LINK_LIBRARIES kritalibkis kritatestsdk
     )
 
-target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp TestNodeLayerProperties.cpp TestNodeDocumentSession.cpp TestNodeFigureGroups.cpp TestNodeMaskCrop.cpp TestNodeCloneLayers.cpp)
+target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp TestNodeLayerProperties.cpp TestNodeDocumentSession.cpp TestNodeFigureGroups.cpp TestNodeMaskCrop.cpp)
 target_sources(TestDocument PRIVATE TestDocumentU16Blend.cpp TestDocumentKraPreview.cpp TestDocumentJpegExport.cpp TestDocumentLayerMetadata.cpp TestDocumentPngImport.cpp TestDocumentJpegImport.cpp TestDocumentLayerState.cpp TestDocumentDefaultBrush.cpp)
 
 add_dependencies(TestDocument
