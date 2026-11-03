@@ -1851,8 +1851,6 @@ set(kritaflake_SRCS
     resources/KoFontStorage.cpp
     resources/KoCssStylePreset.cpp
 
-    tests/MockShapes.cpp
-
     $<TARGET_OBJECTS:kritaflakeinsetsobjects>
     $<TARGET_OBJECTS:kritaflakeshapeanchorobjects>
     $<TARGET_OBJECTS:kritaflakeshapebackgroundobjects>
@@ -1938,6 +1936,9 @@ ki18n_wrap_ui(kritaflake_SRCS
 )
 
 kis_add_library(kritaflake SHARED ${kritaflake_SRCS})
+if(BUILD_TESTING)
+    target_sources(kritaflake PRIVATE tests/MockShapes.cpp)
+endif()
 generate_export_header(kritaflake BASE_NAME kritaflake)
 
 target_include_directories(kritaflake
