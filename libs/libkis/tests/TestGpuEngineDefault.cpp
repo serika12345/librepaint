@@ -11,6 +11,7 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
+#include <kis_paint_device.h>
 #include <kis_node.h>
 #include <QRegularExpression>
 #include <QScopeGuard>
@@ -31,12 +32,12 @@ void TestGpuEngineDefault::engineSelection_data()
 {
     QTest::addColumn<QByteArray>("setting");
     QTest::addColumn<bool>("enabled");
-    QTest::newRow("unset") << QByteArray() << true;
-    QTest::newRow("empty") << QByteArray("") << true;
+    QTest::newRow("unset") << QByteArray() << false;
+    QTest::newRow("empty") << QByteArray("") << false;
     QTest::newRow("disabled") << QByteArray("0") << false;
     QTest::newRow("enabled") << QByteArray("1") << true;
-    QTest::newRow("other-value") << QByteArray("false") << true;
-    QTest::newRow("two-zeros") << QByteArray("00") << true;
+    QTest::newRow("other-value") << QByteArray("false") << false;
+    QTest::newRow("two-zeros") << QByteArray("00") << false;
 }
 
 void TestGpuEngineDefault::engineSelection()
@@ -99,8 +100,8 @@ void TestGpuEngineDefault::ordinaryDocumentsUseSelectedEngine()
 
     if (setting.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
     else qputenv("LIBREPAINT_GPU_ENGINE", setting);
-    const bool fallback = qEnvironmentVariableIsSet("LIBREPAINT_TEST_GPU_UNAVAILABLE") && setting != "0";
-    const bool gpu = setting != "0" && !fallback;
+    const bool fallback = qEnvironmentVariableIsSet("LIBREPAINT_TEST_GPU_UNAVAILABLE") && setting == "1";
+    const bool gpu = setting == "1" && !fallback;
     const auto expectFallback = [&] {
         if (fallback) QTest::ignoreMessage(QtWarningMsg,
             QRegularExpression(QStringLiteral("GPU engine initialization failed\\. Using the CPU painting engine: .+")));
@@ -116,6 +117,7 @@ void TestGpuEngineDefault::ordinaryDocumentsUseSelectedEngine()
     QVERIFY(created->errorMessage().isEmpty());
     Document createdApi(created.data(), false);
     QCOMPARE(createdApi.pixelData(3, 3, 1, 1), QByteArray::fromHex("332211ff"));
+    QCOMPARE(created->image()->projection()->pixel(QPoint(3, 3)), color);
     const auto createdPath = directory.filePath(QStringLiteral("created.") + extension);
     created->setFileBatchMode(true);
     QVERIFY2(created->saveAs(createdPath, mime.toLatin1(), false), qPrintable(created->errorMessage()));

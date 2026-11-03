@@ -13,6 +13,7 @@ class TestCompositeOpInversion : public QObject
     Q_OBJECT
 public:
 private Q_SLOTS:
+    void initTestCase();
     void test();
     void test_data();
 

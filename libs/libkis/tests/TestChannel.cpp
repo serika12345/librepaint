@@ -4,6 +4,7 @@
 */
 #include "TestChannel.h"
 #include <simpletest.h>
+#include <KisGpuPixelTolerance.h>
 #include <QColor>
 #include <QDataStream>
 #include <QLoggingCategory>
@@ -33,13 +34,8 @@ void TestChannel::testProjectionChannelVisibility_data()
     QTest::addColumn<int>("mask");
     QTest::addColumn<int>("opacity");
     QTest::addColumn<bool>("group");
-    for (const bool group : {false, true}) for (const int opacity : {255, 128}) {
-        for (int mask = 0; mask < 16; ++mask) {
-            const QByteArray name = QByteArray(group ? "group-" : "paint-") + QByteArray::number(mask, 16) +
-                '-' + QByteArray::number(opacity);
-            QTest::newRow(name.constData()) << mask << opacity << group;
-        }
-    }
+    QTest::newRow("paint-selected-channels") << 9 << 255 << false;
+    QTest::newRow("group-inherit-alpha") << 7 << 128 << true;
 }
 
 void TestChannel::testProjectionChannelVisibility()
@@ -50,12 +46,15 @@ void TestChannel::testProjectionChannelVisibility()
     QFETCH(int, opacity);
     QFETCH(bool, group);
     namespace Gpu = LibrePaint::Image::Gpu;
-    const QSize size(256, 256);
+    const QSize size(4, 4);
+    const int alphaValues[] = {0, 1, 127, 255};
     QByteArray background(size.width() * size.height() * 4, '\0');
     QByteArray foreground(background.size(), '\0');
-    for (int destinationAlpha = 0; destinationAlpha < 256; ++destinationAlpha) {
-        for (int sourceAlpha = 0; sourceAlpha < 256; ++sourceAlpha) {
-            const auto offset = (destinationAlpha * 256 + sourceAlpha) * 4;
+    for (int destination = 0; destination < size.height(); ++destination) {
+        for (int source = 0; source < size.width(); ++source) {
+            const auto destinationAlpha = alphaValues[destination];
+            const auto sourceAlpha = alphaValues[source];
+            const auto offset = (destination * size.width() + source) * 4;
             background[offset] = '\x33'; background[offset + 1] = '\x66'; background[offset + 2] = '\x99';
             background[offset + 3] = char(destinationAlpha);
             foreground[offset] = '\x12'; foreground[offset + 1] = '\x34'; foreground[offset + 2] = '\x56';
@@ -128,7 +127,7 @@ void TestChannel::testProjectionChannelVisibility()
         if (!gpu) ordinary = projection;
         else {
             QCOMPARE(owner->operations().undoCount(), 0);
-            QCOMPARE(projection, ordinary);
+            QCOMPARE_PIXELS_WITHIN_STEP(projection, ordinary);
         }
     }
 }

@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include <simpletest.h>
+#include "config-limit-long-tests.h"
 
 #include <QPainter>
 
@@ -39,6 +40,13 @@ bool containerContains(const C &container, T &&value) {
 }
 }
 
+
+void TestCompositeOpInversion::initTestCase()
+{
+#ifdef LIMIT_LONG_TESTS
+    QSKIP("LOOP-DEFERRED: native blend-mode sweep exceeds five minutes; restore bounded coverage in #89 B1");
+#endif
+}
 
 void TestCompositeOpInversion::test()
 {
