@@ -3,7 +3,7 @@
 
 // flags holds transparent-base normalization, RGBA16 precision and explicit source bounds.
 // blendModeOpacity holds LayerBlendMode in the low byte and opacity in the next.
-struct CompositeParameters { opacityBits: u32, flags: u32, channelMask: u32, blendModeOpacity: u32, sourceLeft: i32, sourceTop: i32, sourceRight: i32, sourceBottom: i32, maskLeft: i32, maskTop: i32, maskRight: i32, maskBottom: i32, }
+struct CompositeParameters { opacity: f32, flags: u32, channelMask: u32, blendModeOpacity: u32, sourceLeft: i32, sourceTop: i32, sourceRight: i32, sourceBottom: i32, maskLeft: i32, maskTop: i32, maskRight: i32, maskBottom: i32, }
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(1) var<storage, read> layerPixels: array<u32>;
 @group(0) @binding(2) var<storage, read_write> outputPixels: array<u32>;
@@ -28,39 +28,16 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters, maskAlpha:
         if (source.w == 0u) { source = vec4<u32>(0u); }
     }
     if ((values.blendModeOpacity & 255u) == 130u) {
-        return packPixel(copyPixel(destination, source, values.opacityBits, values.channelMask, false));
+        return packPixel(copyPixel(destination, source, values.opacity, values.channelMask, false));
     }
     if ((values.blendModeOpacity & 255u) != 0u) {
         return separableProjectionPixel(destination, source, values.blendModeOpacity >> 8u, values.channelMask, values.blendModeOpacity & 255u);
     }
     if (source.w == 0u) { return packPixel(destination); }
-    if (values.channelMask == 15u && source.w == 255u && values.opacityBits == 0x3f800000u) {
+    if (values.channelMask == 15u && source.w == 255u && values.opacity == 1.0) {
         return packPixel(source);
     }
-    // Full-opacity byte colors have binary32 error below 2^-14. The odd
-    // divisor 255 of an opaque base stays farther from every half-byte.
-    if (values.opacityBits == 0x3f800000u && destination.w == 255u) {
-        for (var channel = 0u; channel < 3u; channel += 1u) {
-            if ((values.channelMask & (1u << channel)) != 0u) {
-                destination[channel] = (source[channel] * source.w + destination[channel] * (255u - source.w) + 127u) / 255u;
-            }
-        }
-        return packPixel(destination);
-    }
-    if (values.opacityBits == 0x3f800000u && values.channelMask == 15u && destination.w != 0u) {
-        let denominator = source.w * 255u + destination.w * (255u - source.w);
-        let numerator = source.xyz * (source.w * 255u) + destination.xyz * (destination.w * (255u - source.w));
-        let quotient = numerator / vec3<u32>(denominator);
-        let doubledRemainder = (numerator - quotient * denominator) * 2u;
-        let gap = abs(vec3<i32>(doubledRemainder) - vec3<i32>(i32(denominator)));
-        // Rounding boundaries retain the precise calculation below.
-        if (all(gap > vec3<i32>(16))) {
-            // The distance exceeds 8/65025 in color units, beyond the error.
-            let rounded = quotient + select(vec3<u32>(0u), vec3<u32>(1u), doubledRemainder > vec3<u32>(denominator));
-            return packPixel(vec4<u32>(rounded, (denominator + 127u) / 255u));
-        }
-    }
-    let sourceAlpha = projectionScaleByte(values.opacityBits, source.w);
+    let sourceAlpha = (values.opacity * f32(source.w));
     return normalRgba8(destination, source.xyz, sourceAlpha, values.channelMask);
 }
 
@@ -83,7 +60,7 @@ fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameter
         if (source.w == 0u) { source = vec4<u32>(0u); }
     }
     if ((values.blendModeOpacity & 255u) == 130u) {
-        return nativePixelWords(copyPixel(destination, source, values.opacityBits, values.channelMask, true), true);
+        return nativePixelWords(copyPixel(destination, source, values.opacity, values.channelMask, true), true);
     }
     if ((values.blendModeOpacity & 255u) >= 127u && (values.blendModeOpacity & 255u) <= 129u) {
         return nativePixelWords(specialAlphaRgba16Pixel(destination, source, (values.blendModeOpacity >> 8u) * 257u,
@@ -96,7 +73,7 @@ fn projectionWords(base: vec2<u32>, layer: vec2<u32>, values: CompositeParameter
         }
         return nativePixelWords(separableRgba16Pixel(destination, source, alpha, values.channelMask, values.blendModeOpacity & 255u), true);
     }
-    let sourceAlpha = projectionMultiply(nativeNormalizedAlpha(source.w), values.opacityBits);
+    let sourceAlpha = (nativeNormalizedAlpha(source.w) * values.opacity);
     return nativePixelWords(normalRgba16(destination, source.xyz, sourceAlpha, values.channelMask), true);
 }
 

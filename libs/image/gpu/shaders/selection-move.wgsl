@@ -17,9 +17,9 @@ fn inside(position: vec2<i32>, bounds: vec4<i32>) -> bool {
     return all(position >= bounds.xy) && all(position < bounds.zw);
 }
 fn composeNormal(background: vec4<u32>, foreground: vec4<u32>, amount: u32, wide: bool) -> vec4<u32> {
-    var alpha = bitcast<u32>(f32(foreground.w));
+    var alpha = f32(foreground.w);
     if (wide) { alpha = nativeNormalizedAlpha(foreground.w); }
-    if (amount != 255u) { alpha = projectionMultiply(alpha, projectionScaleByte(0x3b808081u, amount)); }
+    if (amount != 255u) { alpha = (alpha * (0.00392156886 * f32(amount))); }
     if (wide) { return normalRgba16(background, foreground.xyz, alpha, 15u); }
     return unpackPixel(normalRgba8(background, foreground.xyz, alpha, 15u));
 }

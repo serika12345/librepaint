@@ -312,12 +312,12 @@ fn specialAlphaRgba8Pixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask
     }
     let nextAlpha = alpha + oldAlpha - multiplyByte(alpha, oldAlpha);
     if (select(nextAlpha != 0u, oldAlpha != 0u, locked)) {
-        let a = colorDivide(bitcast<u32>(f32(alpha)), 0x437f0000u);
+        let a = safeRatio(f32(alpha), 255.0);
         for (var i = 0u; i < 3u; i += 1u) {
             if ((mask & (1u << i)) == 0u) { continue; }
-            let s = colorDivide(bitcast<u32>(f32(source[i])), 0x437f0000u);
-            let d = colorDivide(bitcast<u32>(f32(destination[i])), 0x437f0000u);
-            destination[i] = colorComponentByte(floatAdd(floatMultiply(s, a), d));
+            let s = safeRatio(f32(source[i]), 255.0);
+            let d = safeRatio(f32(destination[i]), 255.0);
+            destination[i] = colorComponentByte(((s * a) + d));
         }
     }
     if (!locked) { destination.w = nextAlpha; }

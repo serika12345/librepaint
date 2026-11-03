@@ -562,7 +562,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU layer mask coverage capacity exceeded")};
                 }
                 const float opacity = float(source.opacity) / 255.0f;
-                std::memcpy(&values[layer].opacityBits, &opacity, sizeof(opacity));
+                values[layer].opacity = opacity;
                 values[layer].channelMask = source.channelMask;
                 const auto localExtent = source.sourceExtent.translated(-coordinate(tile.key()) * TileSize);
                 values[layer].sourceLeft = localExtent.left();

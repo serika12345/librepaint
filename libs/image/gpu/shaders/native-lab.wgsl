@@ -82,11 +82,11 @@ fn labFunction(value: f32) -> f32 {
 fn nativeLabLinearComponent(input: vec3<u32>, row: u32) -> f32 {
     var sum = 0.0;
     for (var column = 0u; column < 3u; column += 1u) {
-        let normalized = bitcast<f32>(floatDivide(bitcast<u32>(f32(input[column])), 0x477fff00u));
+        let normalized = safeRatio(f32(input[column]), 65535.0);
         sum = (sum + (normalized * labCoefficient(row * 3u + column)));
     }
     sum = (sum + labCoefficient(9u + row));
-    var xyz = (bitcast<f32>(bitcast<u32>(sum)) * LAB_XYZ_SCALE);
+    var xyz = (sum * LAB_XYZ_SCALE);
     if (row == 0u) { xyz = (xyz / LAB_D50_X); }
     if (row == 2u) { xyz = (xyz / LAB_D50_Z); }
     return labFunction(xyz);
@@ -98,7 +98,7 @@ fn nativeLabEncode(fx: f32, fy: f32, fz: f32) -> vec3<u32> {
     lab[2] = (((LAB_200 * (fy - fz)) + LAB_128) / LAB_255);
     var result = vec3<u32>();
     for (var c = 0u; c < 3u; c += 1u) {
-        let value = bitcast<f32>(bitcast<u32>(lab[c]));
+        let value = lab[c];
         if ((value < 0.0)) { result[c] = 0u; }
         else if (!(value <= 1.0)) { result[c] = 65535u; }
         else { result[c] = u32(max(((value * LAB_65535) + 0.5), 0.0)); }

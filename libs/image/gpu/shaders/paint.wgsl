@@ -4,7 +4,7 @@
 struct Parameters {
     origin: vec2<i32>,
     color: u32,
-    canvasOpacityBits: u32,
+    canvasOpacity: f32,
     opacityValue: u32,
     erase: u32,
     count: u32,
@@ -141,9 +141,11 @@ fn gaussianDab(index: u32) -> MaskDab {
     let offset = index * 32u;
     let coordinates = bitcast<vec4<f32>>(geometryFour(offset + 4u));
     let shape = geometryFour(offset + 8u);
+    let application = geometryFour(offset + 16u);
     return MaskDab(geometryFour(offset), coordinates.xy, coordinates.zw,
         bitcast<vec2<f32>>(shape.xy), shape.zw, bitcast<vec2<i32>>(geometryFour(offset + 12u).xy),
-        geometryFour(offset + 16u), geometryFour(offset + 20u), geometryFour(offset + 24u),
+        BrushApplication(bitcast<f32>(application.x), bitcast<f32>(application.y), bitcast<f32>(application.z), application.w != 0u),
+        geometryFour(offset + 20u), geometryFour(offset + 24u),
         bitcast<vec4<i32>>(geometryFour(offset + 28u)));
 }
 
@@ -181,88 +183,88 @@ fn paperCoverage(dab: MaskDab, pixel: vec2<i32>, coverage: u32, maximum: u32) ->
     return multiplyThreeBytes(source, coverage, strength);
 }
 
-fn washAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {
-    let flow = values.y;
-    var opacity = values.x;
-    var average = values.z;
-    if (values.w == 0u) {
-        opacity = floatMultiply(opacity, flow);
-        average = floatMultiply(average, flow);
+fn washAlpha(destination: u32, coverage: u32, values: BrushApplication) -> u32 {
+    let flow = values.flow;
+    var opacity = values.opacity;
+    var average = values.average;
+    if (!values.creamy) {
+        opacity = (opacity * flow);
+        average = (average * flow);
     }
-    let opacityValue = floatMultiply(0x437f0000u, opacity);
-    let averageByte = floatMultiply(0x437f0000u, average);
-    let mask = floatMultiply(bitcast<u32>(f32(coverage)), 0x3b808081u);
-    let source = floatMultiply(mask, opacityValue);
-    if (source == 0u) { return destination; }
-    let current = bitcast<u32>(f32(destination));
+    let opacityValue = (255.0 * opacity);
+    let averageByte = (255.0 * average);
+    let mask = (f32(coverage) * 0.00392156886);
+    let source = (mask * opacityValue);
+    if (source == 0.0) { return destination; }
+    let current = f32(destination);
     var fullFlow = current;
     if (average > opacity) {
         if (averageByte > current) {
-            fullFlow = floatAdd(floatMultiply(floatSubtract(averageByte, source), floatDivide(current, averageByte)), source);
+            fullFlow = (((averageByte - source) * safeRatio(current, averageByte)) + source);
         }
     } else if (opacityValue > current) {
-        fullFlow = floatAdd(floatMultiply(floatSubtract(opacityValue, current), mask), current);
+        fullFlow = (((opacityValue - current) * mask) + current);
     }
-    if (flow == 0x3f800000u) { return projectionComponent(fullFlow); }
+    if (flow == 1.0) { return roundComponent(fullFlow); }
     var zeroFlow = current;
-    if (values.w == 0u) {
-        zeroFlow = floatSubtract(floatAdd(source, current), floatMultiply(floatMultiply(source, current), 0x3b808081u));
+    if (!values.creamy) {
+        zeroFlow = ((source + current) - ((source * current) * 0.00392156886));
     }
-    return projectionComponent(floatAdd(floatMultiply(floatSubtract(fullFlow, zeroFlow), flow), zeroFlow));
+    return roundComponent((((fullFlow - zeroFlow) * flow) + zeroFlow));
 }
 
 // Optimized native U16 WASH normalizes stored words, interpolates in
 // binary32, then rounds each retained dab back to a word.
-fn maskWashAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {
-    let flow = values.y;
-    var opacity = values.x;
-    var average = values.z;
-    if (values.w == 0u) {
-        opacity = floatMultiply(opacity, flow);
-        average = floatMultiply(average, flow);
+fn maskWashAlpha(destination: u32, coverage: u32, values: BrushApplication) -> u32 {
+    let flow = values.flow;
+    var opacity = values.opacity;
+    var average = values.average;
+    if (!values.creamy) {
+        opacity = (opacity * flow);
+        average = (average * flow);
     }
     // Generic GrayA8 WASH quantizes its settings before each dab and uses
     // integer interpolation. RGB keeps binary32 intermediates instead.
-    let opacityByte = u32(bitcast<f32>(floatAdd(floatMultiply(opacity, 0x437f0000u), 0x3f000000u)));
-    let averageByte = u32(bitcast<f32>(floatAdd(floatMultiply(average, 0x437f0000u), 0x3f000000u)));
+    let opacityByte = u32(((opacity * 255.0) + 0.5));
+    let averageByte = u32(((average * 255.0) + 0.5));
     let source = multiplyByte(coverage, opacityByte);
     var full = destination;
     if (averageByte > opacityByte) {
         if (averageByte > destination) { full = blendByte(source, averageByte, divideByte(destination, averageByte)); }
     } else if (opacityByte > destination) { full = blendByte(destination, opacityByte, coverage); }
-    if (flow == 0x3f800000u) { return full; }
+    if (flow == 1.0) { return full; }
     var zero = destination;
-    if (values.w == 0u) { zero = source + destination - multiplyByte(source, destination); }
-    let flowByte = u32(bitcast<f32>(floatAdd(floatMultiply(flow, 0x437f0000u), 0x3f000000u)));
+    if (!values.creamy) { zero = source + destination - multiplyByte(source, destination); }
+    let flowByte = u32(((flow * 255.0) + 0.5));
     return blendByte(zero, full, flowByte);
 }
 
-fn washWordAlpha(destination: u32, coverage: u32, values: vec4<u32>) -> u32 {
-    let flow = values.y;
-    var opacity = values.x;
-    var average = values.z;
-    if (values.w == 0u) {
-        opacity = floatMultiply(opacity, flow);
-        average = floatMultiply(average, flow);
+fn washWordAlpha(destination: u32, coverage: u32, values: BrushApplication) -> u32 {
+    let flow = values.flow;
+    var opacity = values.opacity;
+    var average = values.average;
+    if (!values.creamy) {
+        opacity = (opacity * flow);
+        average = (average * flow);
     }
     let mask = nativeNormalizedAlpha(coverage);
     let current = nativeNormalizedAlpha(destination);
-    let source = floatMultiply(mask, opacity);
+    let source = (mask * opacity);
     var full = current;
     if (average > opacity) {
         if (average > current) {
-            full = floatMultiplyAdd(floatSubtract(average, source), floatDivide(current, average), source);
+            full = ((average - source) * safeRatio(current, average) + source);
         }
     } else if (opacity > current) {
-        full = floatMultiplyAdd(floatSubtract(opacity, current), mask, current);
+        full = ((opacity - current) * mask + current);
     }
     var alpha = full;
-    if (flow != 0x3f800000u) {
+    if (flow != 1.0) {
         var zero = current;
-        if (values.w == 0u) { zero = floatMultiplyAdd(source ^ 0x80000000u, current, floatAdd(source, current)); }
-        alpha = floatMultiplyAdd(floatSubtract(full, zero), flow, zero);
+        if (!values.creamy) { zero = (-source * current + (source + current)); }
+        alpha = ((full - zero) * flow + zero);
     }
-    return projectionComponent(floatMultiply(alpha, 0x477fff00u));
+    return roundComponent((alpha * 65535.0));
 }
 
 fn generatedDabCoverage(dab: MaskDab, pixel: vec2<i32>, local: vec2<i32>, maximum: u32, gray: bool) -> u32 {
@@ -291,8 +293,8 @@ fn generatedDabCoverage(dab: MaskDab, pixel: vec2<i32>, local: vec2<i32>, maximu
     return paperCoverage(dab, pixel, coverage, maximum);
 }
 
-fn washByteColor(destination: u32, source: u32, blend: u32) -> u32 {
-    let change = f32(i32(source) - i32(destination)) * bitcast<f32>(blend);
+fn washByteColor(destination: u32, source: u32, blend: f32) -> u32 {
+    let change = f32(i32(source) - i32(destination)) * blend;
     return u32(round(clamp(f32(destination) + change, 0.0, 255.0)));
 }
 
@@ -317,15 +319,15 @@ fn generatedBrushSource(pixel: vec2<i32>, initial: vec4<u32>, withColor: bool) -
             continue;
         }
         if (withColor) {
-            var opacity = dab.application.x;
-            if (dab.application.w == 0u) { opacity = floatMultiply(opacity, dab.application.y); }
+            var opacity = dab.application.opacity;
+            if (!dab.application.creamy) { opacity = (opacity * dab.application.flow); }
             if (gray) {
-                let opacityByte = u32(bitcast<f32>(floatAdd(floatMultiply(opacity, 0x437f0000u), 0x3f000000u)));
+                let opacityByte = u32(((opacity * 255.0) + 0.5));
                 let alpha = multiplyByte(coverage, opacityByte);
                 if (result.w == 0u) { result = vec4<u32>(foreground, result.w); }
                 else { result = vec4<u32>(vec3<u32>(blendByte(result.x, foreground.x, alpha)), result.w); }
             } else if (word) {
-                let alpha = floatMultiply(nativeNormalizedAlpha(coverage), opacity);
+                let alpha = (nativeNormalizedAlpha(coverage) * opacity);
                 if (result.w == 0u) { result = vec4<u32>(foreground, result.w); }
                 else {
                     for (var c = 0u; c < 3u; c += 1u) {
@@ -333,10 +335,10 @@ fn generatedBrushSource(pixel: vec2<i32>, initial: vec4<u32>, withColor: bool) -
                     }
                 }
             } else {
-                let mask = floatMultiply(bitcast<u32>(f32(coverage)), 0x3b808081u);
-                let source = floatMultiply(mask, floatMultiply(0x437f0000u, opacity));
-                if (source == 0u) { continue; }
-                let alpha = floatMultiply(source, 0x3b808081u);
+                let mask = (f32(coverage) * 0.00392156886);
+                let source = (mask * (255.0 * opacity));
+                if (source == 0.0) { continue; }
+                let alpha = (source * 0.00392156886);
                 if (result.w == 0u) { result = vec4<u32>(foreground, result.w); }
                 else {
                     for (var c = 0u; c < 3u; c += 1u) {
@@ -519,7 +521,7 @@ fn fillPixelCoverage(pixel: vec2<i32>, reflection: u32) -> u32 {
 
 
 fn compositePaintPixel(base: vec4<u32>, sourceColor: vec3<u32>, coverage: u32, sourceHasColor: bool,
-                       blendMode: u32, selectionAlpha: u32, opacityValue: u32, opacityBits: u32,
+                       blendMode: u32, selectionAlpha: u32, opacityValue: u32, opacity: f32,
                        pixel: vec2<i32>, local: vec2<u32>) -> vec4<u32> {
     var source = sourceColor;
     let partialWordSource = (parameters.paintFlags & 32768u) != 0u;
@@ -563,8 +565,8 @@ fn compositePaintPixel(base: vec4<u32>, sourceColor: vec3<u32>, coverage: u32, s
         let block = (local.y / 64u) * 4u + local.x / 64u;
         if ((parameters.native.w & (1u << block)) == 0u) { return base; }
         if (!sourceHasColor) { source = vec3<u32>(0u); }
-        let opacity = projectionMultiply(opacityBits, projectionMultiply(bitcast<u32>(f32(selectionAlpha)), 0x3b808081u));
-        return copyPixel(base, vec4<u32>(source, coverage), opacity, writable, parameters.native.z != 0u);
+        let selectedOpacity = opacity * f32(selectionAlpha) / 255.0;
+        return copyPixel(base, vec4<u32>(source, coverage), selectedOpacity, writable, parameters.native.z != 0u);
     }
     if (parameters.erase == 0u && parameters.native.z != 0u && (blendMode >= 127u && blendMode <= 129u)) {
         let block = (local.y / 64u) * 4u + local.x / 64u;
@@ -627,14 +629,14 @@ fn compositePaintPixel(base: vec4<u32>, sourceColor: vec3<u32>, coverage: u32, s
         }
         return result;
     } else if (blendMode == 0u) {
-        var sourceAlpha: u32;
+        var sourceAlpha: f32;
         if (parameters.native.z != 0u) {
-            sourceAlpha = projectionMultiply(nativeNormalizedAlpha(wordCoverage), opacityBits);
+            sourceAlpha = (nativeNormalizedAlpha(wordCoverage) * opacity);
         } else {
-            sourceAlpha = projectionScaleByte(opacityBits, coverage);
+            sourceAlpha = (opacity * f32(coverage));
         }
         if (selectionAlpha != 255u) {
-            sourceAlpha = projectionMultiply(sourceAlpha, projectionScaleByte(0x3b808081u, selectionAlpha));
+            sourceAlpha = (sourceAlpha * (0.00392156886 * f32(selectionAlpha)));
         }
         if (parameters.native.z != 0u) {
             return normalRgba16(base, source, sourceAlpha, writable);
@@ -820,7 +822,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         var hasColor = sourceHasColor;
         var mode = blendMode;
         var opacityValue = parameters.opacityValue;
-        var opacityBits = parameters.canvasOpacityBits;
+        var opacity = parameters.canvasOpacity;
         if (direct) {
             if (generatedFilled && application == 0u) {
                 color = directFill.xyz;
@@ -835,13 +837,13 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
                 alpha = generatedDabCoverage(dab, pixel, point, maximum, gray);
                 hasColor = true;
                 mode = parameters.pattern.w;
-                let scale = select(0x437f0000u, 0x477fff00u, wide);
-                opacityValue = u32(bitcast<f32>(floatAdd(floatMultiply(dab.application.x, scale), 0x3f000000u)));
-                opacityBits = dab.application.x;
+                let scale = select(255.0, 65535.0, wide);
+                opacityValue = u32(((dab.application.opacity * scale) + 0.5));
+                opacity = dab.application.opacity;
             }
         }
         result = compositePaintPixel(result, color, alpha, hasColor, mode,
-            selectionAlpha, opacityValue, opacityBits, pixel, local);
+            selectionAlpha, opacityValue, opacity, pixel, local);
     }
     writePaintPixel(index, result);
 }

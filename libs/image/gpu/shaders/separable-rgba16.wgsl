@@ -244,12 +244,12 @@ fn specialAlphaRgba16PixelMode(base: vec4<u32>, source: vec4<u32>, opacity: u32,
     }
     let nextAlpha = alpha + oldAlpha - mul65535(alpha, oldAlpha);
     if (select(nextAlpha != 0u, oldAlpha != 0u, locked)) {
-        let a = projectionDivide(bitcast<u32>(f32(alpha)), 0x477fff00u);
+        let a = safeRatio(f32(alpha), 65535.0);
         for (var i = 0u; i < 3u; i += 1u) {
             if ((mask & (1u << i)) == 0u) { continue; }
-            let s = projectionDivide(bitcast<u32>(f32(source[i])), 0x477fff00u);
-            let d = projectionDivide(bitcast<u32>(f32(destination[i])), 0x477fff00u);
-            destination[i] = colorComponentWord(floatAdd(floatMultiply(s, a), d));
+            let s = safeRatio(f32(source[i]), 65535.0);
+            let d = safeRatio(f32(destination[i]), 65535.0);
+            destination[i] = colorComponentWord(((s * a) + d));
         }
     }
     if (!locked) { destination.w = nextAlpha; }

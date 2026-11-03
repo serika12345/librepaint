@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+struct BrushApplication { opacity: f32, flow: f32, average: f32, creamy: bool, }
+
 struct MaskDab {
     size: vec4<u32>,
     center: vec2<f32>,
@@ -8,7 +10,7 @@ struct MaskDab {
     radius: vec2<f32>,
     coefficient: vec2<u32>,
     origin: vec2<i32>,
-    application: vec4<u32>,
+    application: BrushApplication,
     vertical: vec4<u32>,
     texture: vec4<u32>,
     paperOffset: vec4<i32>,

@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+struct FilterControl { word: u32, opacity: f32, quantizedOpacity: u32, mode: u32, }
+
 struct FilterParameters {
     // Tile origin x/y, filter kind, coverage flags.
     tile: vec4<i32>,
@@ -16,7 +18,7 @@ struct FilterParameters {
     yuv: array<vec4<f32>, 2>,
     overlayColor: vec4<u32>,
     // Native word format, product binary32 opacity, quantized opacity, reserved.
-    control: vec4<u32>,
+    control: FilterControl,
     applyRect: vec4<i32>,
 }
 
@@ -563,16 +565,16 @@ fn hsvAdjustmentPixel(base: vec4<u32>, adjustment: vec4<i32>) -> vec4<u32> {
 // carried through unchanged, matching Invert Colors.
 fn overlayPixel(base: vec4<u32>, wide: bool) -> vec4<u32> {
     let source = parameters.overlayColor;
-    let opacity = parameters.control.y;
-    let quantizedOpacity = parameters.control.z;
-    let mode = parameters.control.w;
+    let opacity = parameters.control.opacity;
+    let quantizedOpacity = parameters.control.quantizedOpacity;
+    let mode = parameters.control.mode;
     if (mode == 130u) { return copyPixel(base, source, opacity, 7u, wide); }
     if (mode == 0u) {
         if (wide) {
-            let alpha = projectionMultiply(nativeNormalizedAlpha(source.w), opacity);
+            let alpha = (nativeNormalizedAlpha(source.w) * opacity);
             return normalRgba16(base, source.xyz, alpha, 7u);
         }
-        let alpha = projectionScaleByte(opacity, source.w);
+        let alpha = (opacity * f32(source.w));
         return unpackPixel(normalRgba8(base, source.xyz, alpha, 7u));
     }
     if (wide) {
@@ -617,7 +619,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let local = invocation.xy;
     if (any(local >= vec2<u32>(256u))) { return; }
     let index = local.y * 256u + local.x;
-    let wide = parameters.control.x != 0u;
+    let wide = parameters.control.word != 0u;
     let offset = index * select(1u, 2u, wide);
     var high = 0u;
     if (wide) { high = basePixels[offset + 1u]; }
@@ -634,7 +636,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
         if (selected != 255u) {
             // Product filters copy their result through the selection with
             // native Copy, including alpha and hidden-color rounding.
-            let opacity = projectionMultiply(bitcast<u32>(f32(selected)), 0x3b808081u);
+            let opacity = (f32(selected) * 0.00392156886);
             result = copyPixel(base, result, opacity, 15u, wide);
         }
     }
@@ -650,7 +652,7 @@ fn maskMain(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let local = invocation.xy;
     if (any(local >= vec2<u32>(256u))) { return; }
     let index = local.y * 256u + local.x;
-    let wide = parameters.control.x != 0u;
+    let wide = parameters.control.word != 0u;
     let offset = index * select(1u, 2u, wide);
     var high = 0u;
     if (wide) { high = basePixels[offset + 1u]; }
@@ -663,7 +665,7 @@ fn maskMain(@builtin(global_invocation_id) invocation: vec3<u32>) {
         result = vec4<u32>(0u);
         if (coverage == 255u) { result = base; }
         else if (coverage != 0u) {
-            let opacity = projectionMultiply(bitcast<u32>(f32(coverage)), 0x3b808081u);
+            let opacity = (f32(coverage) * 0.00392156886);
             result = copyPixel(vec4<u32>(0u), base, opacity, 15u, wide);
         }
     }

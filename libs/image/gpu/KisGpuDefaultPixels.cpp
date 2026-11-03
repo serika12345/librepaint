@@ -72,7 +72,7 @@ RenderOutcome TileRenderer::prepareDefaultPixels(const Snapshot &document)
         if (!output || !uniform || !mask) return {};
         CompositeParameters values;
         const float alpha = float(opacity) / 255.0f;
-        std::memcpy(&values.opacityBits, &alpha, sizeof(alpha));
+        values.opacity = alpha;
         values.flags = document->format == PixelFormat::Rgba16 ? 2u : 0u;
         values.channelMask = channels; values.blendModeOpacity = quint32(mode) | (quint32(opacity) << 8);
         values.sourceRight = values.sourceBottom = 1;

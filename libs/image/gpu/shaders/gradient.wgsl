@@ -62,10 +62,10 @@ fn gradientPixel(pixel: vec2<i32>) -> vec4<u32> {
     let maximum = select(255.0, 65535.0, wide);
     var result = vec4<u32>();
     for (var channel = 0u; channel < 4u; channel++) {
-        let normalized = floatDivide(bitcast<u32>(f32(color[channel])), bitcast<u32>(65535.0));
-        let delta = floatMultiply(floatSubtract(bitcast<u32>(noise), normalized), bitcast<u32>(scale));
-        let value = floatMultiply(floatAdd(normalized, delta), bitcast<u32>(maximum));
-        result[channel] = u32(clamp(bitcast<f32>(floatAdd(value, bitcast<u32>(0.5))), 0.0, maximum));
+        let normalized = safeRatio(f32(color[channel]), 65535.0);
+        let delta = ((noise - normalized) * scale);
+        let value = ((normalized + delta) * maximum);
+        result[channel] = u32(clamp((value + 0.5), 0.0, maximum));
     }
     return result;
 }

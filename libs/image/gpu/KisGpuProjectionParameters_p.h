@@ -7,7 +7,8 @@
 #include <QtGlobal>
 namespace LibrePaint::Image::Gpu::Detail {
 struct CompositeParameters {
-    quint32 opacityBits = 0x3f800000, flags = 0, channelMask = 15, blendModeOpacity = 0;
+    float opacity = 1.f;
+    quint32 flags = 0, channelMask = 15, blendModeOpacity = 0;
     qint32 sourceLeft = 0, sourceTop = 0, sourceRight = 0, sourceBottom = 0;
     qint32 maskLeft = 0, maskTop = 0, maskRight = 0, maskBottom = 0;
 };

@@ -18,7 +18,8 @@ namespace LibrePaint::Image::Gpu::Detail {
 struct PaintParameters
 {
     qint32 x = 0, y = 0;
-    quint32 color = 0, canvasOpacityBits = 0;
+    quint32 color = 0;
+    float canvasOpacity = 0;
     quint32 opacityValue = 255, erase = 0, count = 0, paintFlags = 30;
     qint32 mirrorX = 0, mirrorY = 0;
     quint32 fillColor = 0, figureFlags = 0;

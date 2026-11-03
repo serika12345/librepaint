@@ -127,7 +127,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     const bool region = path.endsWith(QLatin1String("/region.wgsl"));
     const bool composite = painting || path.endsWith(QLatin1String("/over.wgsl")) ||
         path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/filter.wgsl"));
-    if ((composite || region) && !library("binary32.wgsl")) return {};
+    if ((composite || region) && !library("composite-float.wgsl")) return {};
     const auto coupled = [](quint32 mode) { return mode >= 88 && mode <= 126 ? mode : 0u; };
     const std::array<double, 7> values{double(coupled(firstBlend)), double(coupled(secondBlend)),
         double(coupledPixelFormat == 2u ? firstBlend : 0u), double(coupledPixelFormat == 2u ? secondBlend : 0u),
@@ -1177,7 +1177,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                             }
                         }
                     }
-                    std::memcpy(&job.values.canvasOpacityBits, &opacity, sizeof(opacity));
+                    job.values.canvasOpacity = opacity;
                     if (operation.brush.autoBrush) job.values.paintFlags |= 512u;
                     if (operation.brush.autoBrush && operation.brush.autoBrush->incremental) job.values.paintFlags |= 4194304u;
                     if (operation.brush.additiveMaskingBrush) job.values.paintFlags |= 2097152u;
