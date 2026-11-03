@@ -76,7 +76,7 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
         } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
             allocated &= aligned((*crop)->rect.normalized());
         } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
-            if (layer.defaultPixel == RgbaPixel{}) continue;
+            if (layer.defaultPixel == RgbaPixel{} && !isConvolutionFilter((*filter)->kind)) continue;
             auto area = QRect(QPoint(), document->size);
             if ((*filter)->kind >= FilterKind::MaximizeChannel) area &= (*filter)->applyRect;
             if (!(*filter)->selectionRect.isEmpty() && !(*filter)->selectionInverted) area &= (*filter)->selectionRect;
@@ -190,6 +190,63 @@ std::optional<QRect> groupProjectionExtent(const Snapshot &document, LayerId gro
         extents.insert(node->id, destination);
     }
     return extents.value(group);
+}
+
+QRect convolutionInputRegion(QRect output)
+{
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    return output.isEmpty() ? output : output.adjusted(-1, -1, 1, 1).intersected(QRect(-limit, -limit, 2 * limit, 2 * limit));
+}
+
+QList<QRect> filterMaskRegions(const Snapshot &document, const Layer &layer, QRect output)
+{
+    QList<const Layer *> filters;
+    for (const auto &child : document->layers)
+        if (child.kind == LayerKind::FilterMask && child.parentUuid == layer.uuid) filters.append(&child);
+    QList<QRect> regions(filters.size() + 1, output);
+    for (qsizetype i = filters.size(); i-- > 0;) {
+        const auto filter = filters[i];
+        regions[i] = regions[i + 1];
+        if (filter->visible && filter->filter && isConvolutionFilter(filter->filter->settings.kind))
+            regions[i] = convolutionInputRegion(regions[i]);
+    }
+    return regions;
+}
+
+FilterProjectionRegions filterProjectionRegions(const Snapshot &document,
+    const QList<LayerProjectionInput> &inputs, QRect output)
+{
+    QHash<LayerId, const Layer *> nodes;
+    for (const auto &layer : document->layers) nodes.insert(layer.id, &layer);
+    FilterProjectionRegions result;
+    auto needed = output;
+    for (qsizetype i = inputs.size(); i-- > 0;) {
+        const auto node = nodes.value(inputs[i].layer);
+        if (!node) continue;
+        const auto input = filterMaskRegions(document, *node, needed).first();
+        result.output[node->id] = needed;
+        result.input[node->id] = input;
+        if (node->kind == LayerKind::Adjustment) {
+            needed |= node->filter && isConvolutionFilter(node->filter->settings.kind)
+                ? convolutionInputRegion(input) : input;
+        }
+    }
+    return result;
+}
+
+std::optional<QRect> filterRepeatBounds(const Snapshot &document, const Layer &layer, qsizetype maximumRectangles)
+{
+    QRect bounds(QPoint(), document->size);
+    if (layer.kind == LayerKind::Paint) {
+        const auto allocation = paintLayerAllocation(document, layer, maximumRectangles);
+        if (!allocation) return std::nullopt;
+        bounds |= allocation->extent;
+    } else {
+        const auto extent = groupProjectionExtent(document, layer.id, maximumRectangles);
+        if (!extent) return std::nullopt;
+        bounds |= *extent;
+    }
+    return bounds;
 }
 
 }

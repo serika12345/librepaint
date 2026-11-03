@@ -1064,6 +1064,25 @@ bool KisImage::colorFilterGpuLayerColors(KisNodeSP layer, LibrePaint::Image::Gpu
     return owner->colorFilter(layerId, kind, overlay, area) == LibrePaint::Image::Gpu::Result::Success;
 }
 
+bool KisImage::convolutionFilterGpuLayerColors(KisNodeSP layer, const LibrePaint::Image::Gpu::FilterSettings &settings)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = gpuImage();
+    if (!owner || !layer || layer->image() != this || QThread::currentThread() != owner->thread() ||
+        !Gpu::isConvolutionFilter(settings.kind)) return false;
+    const auto layerId = gpuLayerId(owner->operations().snapshot(), layer);
+    const auto device = layer->paintDevice();
+    if (!layerId || !device) return false;
+    QRect area;
+    try {
+        area = device->exactBounds().adjusted(-3, -3, 3, 3).intersected(bounds());
+    } catch (const std::exception &) {
+        return false;
+    }
+    if (area.isEmpty()) return true;
+    return owner->convolutionFilter(layerId, settings, area) == Gpu::Result::Success;
+}
+
 bool KisImage::addGpuTransparencyMaskFromSelection(KisNodeSP layer)
 {
     const auto owner = gpuImage();

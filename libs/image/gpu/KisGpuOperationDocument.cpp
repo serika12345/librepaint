@@ -281,6 +281,13 @@ HistoryAction OperationDocument::historyAction(int index) const
         case FilterKind::MinimizeChannel: return HistoryAction::MinimizeChannel;
         case FilterKind::ResetTransparent: return HistoryAction::ResetTransparent;
         case FilterKind::ColorOverlay: return HistoryAction::ColorOverlay;
+        case FilterKind::Sharpen: return HistoryAction::Sharpen;
+        case FilterKind::MeanRemoval: return HistoryAction::MeanRemoval;
+        case FilterKind::EmbossLaplacian: return HistoryAction::EmbossLaplacian;
+        case FilterKind::EmbossAllDirections: return HistoryAction::EmbossAllDirections;
+        case FilterKind::EmbossHorizontalVertical: return HistoryAction::EmbossHorizontalVertical;
+        case FilterKind::EmbossVertical: return HistoryAction::EmbossVertical;
+        case FilterKind::EmbossHorizontal: return HistoryAction::EmbossHorizontal;
         case FilterKind::InvertColors: break;
         }
         return HistoryAction::InvertColors;
@@ -2805,8 +2812,14 @@ Result OperationDocument::colorFilter(LayerId layer, FilterKind kind, const Colo
     return applyFilter(layer, kind, nullptr, &overlay, applyRect);
 }
 
+Result OperationDocument::convolutionFilter(LayerId layer, const FilterSettings &settings, const QRect &applyRect)
+{
+    if (!isConvolutionFilter(settings.kind) || !settings.isValid(snapshot()->format)) return Result::InvalidInput;
+    return applyFilter(layer, settings.kind, nullptr, nullptr, applyRect, &settings);
+}
+
 Result OperationDocument::applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings,
-                                      const ColorOverlay *overlay, const QRect &applyRect)
+                                      const ColorOverlay *overlay, const QRect &applyRect, const FilterSettings *convolution)
 {
     if (kind == FilterKind::HsvAdjustment && !settings) return Result::InvalidInput;
     const auto status = checkMutation();
@@ -2822,9 +2835,11 @@ Result OperationDocument::applyFilter(LayerId layer, FilterKind kind, const HsvA
     operation->version = 1;
     operation->layer = layer;
     operation->kind = kind;
+    if (convolution) static_cast<FilterSettings &>(*operation) = *convolution;
     if (overlay) operation->overlay = *overlay;
     operation->applyRect = (applyRect.isEmpty() ? QRect(QPoint(), snapshot()->size) : applyRect)
         .intersected(QRect(QPoint(), snapshot()->size));
+    if (convolution) operation->samplingBounds = QRect(QPoint(), snapshot()->size);
     if (kind == FilterKind::HsvAdjustment) {
         // hsvAdjustment() validated the settings before admission. The luma
         // coefficients are copied from the frozen value rather than resolved

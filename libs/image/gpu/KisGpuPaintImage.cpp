@@ -1274,6 +1274,9 @@ Result PaintImage::fillLayerPattern(LayerId layer, const PatternFill &pattern,
                                     LayerBlendMode blendMode)
 { return onThread() ? publish(m_d->document->fillLayerPattern(layer, pattern, opacity, erase, alphaLocked, blendMode)) : Result::InvalidInput; }
 
+Result PaintImage::convolutionFilter(LayerId layer, const FilterSettings &settings, const QRect &applyRect)
+{ return onThread() ? publish(m_d->document->convolutionFilter(layer, settings, applyRect)) : Result::InvalidInput; }
+
 Result PaintImage::fillRegion(LayerId layer, const RegionFillSettings &settings, const RgbaPixel &color,
                             const std::optional<PatternFill> &pattern, qreal opacity, bool erase,
                             bool alphaLocked, LayerBlendMode blendMode)

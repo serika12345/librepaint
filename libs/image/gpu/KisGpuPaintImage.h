@@ -373,6 +373,7 @@ public:
     Result hsvAdjustment(LayerId layer, const HsvAdjustment &settings);
     Result colorFilter(LayerId layer, FilterKind kind, const ColorOverlay &overlay = {},
                        const QRect &applyRect = {});
+    Result convolutionFilter(LayerId layer, const FilterSettings &settings, const QRect &applyRect);
     Result undo();
     Result redo();
     Result setHistoryIndex(int index);

@@ -6,6 +6,7 @@
 #include "KisGpuBlendMode.h"
 #include <filter/kis_filter_configuration.h>
 #include <KoColor.h>
+#include <KoChannelInfo.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
@@ -55,8 +56,18 @@ std::optional<LibrePaint::Image::Gpu::FilterDefinition> freezeGpuFilterConfigura
     const auto missing = std::numeric_limits<double>::quiet_NaN();
     const std::array<double, 3> luma = source.size() < 3 ? std::array<double, 3>{missing, missing, missing} :
         std::array<double, 3>{source[0], source[1], source[2]};
-    if (!Gpu::freezeFilterSettings(definition.id, definition.parameters, luma, overlay, format, &definition.settings) ||
-        !definition.isValid(format)) return std::nullopt;
+    if (!Gpu::freezeFilterSettings(definition.id, definition.parameters, luma, overlay, format, &definition.settings)) return std::nullopt;
+    if (Gpu::isConvolutionFilter(definition.settings.kind)) {
+        const auto flags = configuration->channelFlags();
+        if (!flags.isEmpty()) {
+            const auto channels = colorSpace->channels();
+            if (flags.size() != channels.size()) return std::nullopt;
+            definition.settings.channelWriteMask = 0;
+            for (int i = 0; i < channels.size(); ++i)
+                if (flags.testBit(i)) definition.settings.channelWriteMask |= 1u << channels[i]->displayPosition();
+        }
+    }
+    if (!definition.isValid(format)) return std::nullopt;
     return definition;
 }
 

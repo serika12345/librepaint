@@ -336,8 +336,14 @@ private Q_SLOTS:
     void transparencyMaskActionsUseTheActiveGpuPaintLayer();
     void colorFilterActionsKeepNativeEditing_data();
     void colorFilterActionsKeepNativeEditing();
+    void convolutionFiltersKeepNativeEditing_data();
+    void convolutionFiltersKeepNativeEditing();
     void filterNodesKeepNativeEditing_data();
     void filterNodesKeepNativeEditing();
+    void convolutionFilterNodesKeepNativeEditing_data();
+    void convolutionFilterNodesKeepNativeEditing();
+    void convolutionChainsKeepNativeProjection_data();
+    void convolutionChainsKeepNativeProjection();
     void invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters();
     void desaturateActionAppliesGrayscaleOnGpuDocument();
     void hsvAdjustmentActionUsesProductSettingsOnGpuDocument();
@@ -10550,7 +10556,22 @@ void KisGpuDocumentViewTest::colorFilterActionsKeepNativeEditing_data()
 void KisGpuDocumentViewTest::colorFilterActionsKeepNativeEditing()
 { ColorFilterEditingTest::run(); }
 
+void KisGpuDocumentViewTest::convolutionFiltersKeepNativeEditing_data()
+{ ColorFilterEditingTest::addConvolutionData(); }
+void KisGpuDocumentViewTest::convolutionFiltersKeepNativeEditing()
+{ ColorFilterEditingTest::run(); }
+
 void KisGpuDocumentViewTest::filterNodesKeepNativeEditing_data()
 { FilterNodeEditingTest::addData(); }
 void KisGpuDocumentViewTest::filterNodesKeepNativeEditing()
 { FilterNodeEditingTest::run(); }
+
+void KisGpuDocumentViewTest::convolutionFilterNodesKeepNativeEditing_data()
+{ FilterNodeEditingTest::addConvolutionData(); }
+void KisGpuDocumentViewTest::convolutionFilterNodesKeepNativeEditing()
+{ FilterNodeEditingTest::run(); }
+
+void KisGpuDocumentViewTest::convolutionChainsKeepNativeProjection_data()
+{ FilterNodeEditingTest::addConvolutionChainData(); }
+void KisGpuDocumentViewTest::convolutionChainsKeepNativeProjection()
+{ FilterNodeEditingTest::runConvolutionChain(); }

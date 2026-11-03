@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuTileStorage_p.h"
+#include "KisGpuLayerAllocation_p.h"
+#include <algorithm>
 #include <cstring>
 #include "KisGpuNonlinearRgba8_p.h"
 #include "KisGpuRgba16Compositing_p.h"
@@ -39,6 +41,8 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     retainTiles(source);
     retainTile(fallback);
     Tiles result = source;
+    const bool convolution = isConvolutionFilter(filter.kind) && !transparency;
+    auto implicit = fallback;
     QRect bounds = region;
     const bool masked = filter.selectionKind == SelectionKind::Freehand;
     if (filter.bounded || filter.kind >= FilterKind::MaximizeChannel) bounds &= filter.applyRect;
@@ -62,8 +66,16 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
             continue;
         planned.append(tile.key());
     }
-    if (fallback && !implicitBounds.isEmpty()) {
-        const QRect area = bounds.intersected(implicitBounds);
+    if (convolution && !implicit) {
+        if (!ensureTileCapacity(1, format))
+            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU convolution default exceeds working capacity")};
+        implicit = allocateTile(format);
+        if (!implicit) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU convolution default allocation failed")};
+        wgpuCommandEncoderClearBuffer(commands, implicit->pixels.get(), 0, RgbaTile::byteCount(format));
+        pins.append(implicit);
+    }
+    if ((fallback && !implicitBounds.isEmpty()) || convolution) {
+        const QRect area = convolution ? bounds : bounds.intersected(implicitBounds);
         if (!area.isEmpty()) {
             const int left = pixelTileIndex(area.left(), TileSize);
             const int top = pixelTileIndex(area.top(), TileSize);
@@ -80,6 +92,13 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         }
     }
     if (planned.isEmpty()) return {RenderOutcome::Recorded, std::move(result), {}};
+    Tiles convolved;
+    if (convolution) {
+        const auto repeat = filter.samplingBounds.isEmpty() ? implicitBounds.united(filter.applyRect) : filter.samplingBounds;
+        const auto processed = convolutionTiles(commands, source, filter, implicit, repeat, format, bounds, planned, pins);
+        if (processed.code != RenderOutcome::Recorded) return processed;
+        convolved = processed.tiles;
+    }
     const auto mode = filter.kind == FilterKind::ColorOverlay ? filter.overlay.blendMode : LayerBlendMode::Normal;
     const bool wide = format == PixelFormat::Rgba16;
     if ((wide && usesRgba16Cosine(mode) && !prepareRgba16Cosine()) ||
@@ -89,21 +108,21 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         return {error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 error.isEmpty() ? QStringLiteral("GPU filter composition resource budget exhausted") : error};
     if (!filterLayout) {
-        WGPUBindGroupLayoutEntry entries[6]{};
-        for (quint32 i = 0; i < 4; ++i) {
+        WGPUBindGroupLayoutEntry entries[7]{};
+        for (quint32 i = 0; i < 5; ++i) {
             entries[i].binding = i;
             entries[i].visibility = WGPUShaderStage_Compute;
             entries[i].buffer.type = i == 2 ? WGPUBufferBindingType_Uniform :
                 i == 1 ? WGPUBufferBindingType_Storage : WGPUBufferBindingType_ReadOnlyStorage;
         }
-        for (quint32 i = 4; i < 6; ++i) {
-            entries[i].binding = i + 5;
+        for (quint32 i = 5; i < 7; ++i) {
+            entries[i].binding = i + 4;
             entries[i].visibility = WGPUShaderStage_Compute;
             entries[i].texture.sampleType = WGPUTextureSampleType_Uint;
             entries[i].texture.viewDimension = WGPUTextureViewDimension_2DArray;
         }
         WGPUBindGroupLayoutDescriptor descriptor{};
-        descriptor.entryCount = 6;
+        descriptor.entryCount = 7;
         descriptor.entries = entries;
         filterLayout.reset(wgpuDeviceCreateBindGroupLayout(device->nativeDevice(), &descriptor));
     }
@@ -134,7 +153,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
                double(filter.value) / 100.0};
     }
     for (const auto coordinate : planned) {
-        const auto input = source.value(coordinate, fallback);
+        const auto input = source.value(coordinate, implicit);
         if (!input) continue;
         if (!ensureTileCapacity(1, format))
             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU filter tile budget exhausted")};
@@ -187,21 +206,23 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         auto parameters = createBuffer(device->nativeDevice(), sizeof(parameterValues),
                                        WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
         if (!parameters) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter parameter allocation failed")};
-        WGPUBindGroupEntry entries[6]{};
+        WGPUBindGroupEntry entries[7]{};
+        const auto processed = convolved.value(coordinate);
         const WGPUBuffer buffers[]{input->pixels.get(), output->pixels.get(), parameters.get(),
-                                   coverage ? coverage->pixels.get() : unusedSelection.get()};
-        for (quint32 i = 0; i < 4; ++i) {
+                                   coverage ? coverage->pixels.get() : unusedSelection.get(),
+                                   processed ? processed->pixels.get() : unusedPattern.get()};
+        for (quint32 i = 0; i < 5; ++i) {
             entries[i].binding = i;
             entries[i].buffer = buffers[i];
             entries[i].size = wgpuBufferGetSize(buffers[i]);
         }
-        entries[4].binding = 9;
-        entries[4].textureView = wide && cosineView ? cosineView.get() : nonlinearView.get();
-        entries[5].binding = 10;
-        entries[5].textureView = wide && powerView ? powerView.get() : greaterView.get();
+        entries[5].binding = 9;
+        entries[5].textureView = wide && cosineView ? cosineView.get() : nonlinearView.get();
+        entries[6].binding = 10;
+        entries[6].textureView = wide && powerView ? powerView.get() : greaterView.get();
         WGPUBindGroupDescriptor descriptor{};
         descriptor.layout = filterLayout.get();
-        descriptor.entryCount = 6;
+        descriptor.entryCount = 7;
         descriptor.entries = entries;
         NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &descriptor));
         if (!bindings || !device->diagnostic().isEmpty())
@@ -233,23 +254,34 @@ TileRenderer::Private::FilterResult TileRenderer::Private::applyLayerMasks(
     QList<const Layer *> filters;
     for (const auto &child : document->layers)
         if (child.kind == LayerKind::FilterMask && child.parentUuid == layer.uuid) filters.append(&child);
+    const auto regions = filterMaskRegions(document, layer, region);
+    QRect defaultBounds = region;
+    if (std::any_of(filters.cbegin(), filters.cend(), [](const auto *node) {
+        return node->visible && node->filter && isConvolutionFilter(node->filter->settings.kind);
+    })) {
+        const auto bounds = filterRepeatBounds(document, layer, PaintGeometryElementLimit);
+        if (!bounds) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU filter border geometry exceeds capacity")};
+        defaultBounds = *bounds;
+    }
     Tiles tiles = source;
-    const auto apply = [&](const FilterSettings &settings, const SelectionMaskSP &mask, bool transparency) -> FilterResult {
+    const auto apply = [&](const FilterSettings &settings, const SelectionMaskSP &mask,
+                           bool transparency, QRect output) -> FilterResult {
         FilterOperation operation;
         static_cast<FilterSettings &>(operation) = settings;
         operation.layer = layer.id;
-        operation.applyRect = region;
+        operation.applyRect = output;
+        operation.samplingBounds = defaultBounds.united(output);
         operation.bounded = true;
         if (mask) {
             operation.selectionKind = SelectionKind::Freehand;
             operation.selectionMask = mask;
             operation.selectionRect = mask->bounds();
         }
-        return filterTiles(commands, tiles, operation, fallback, region, document->format, region, pins, transparency);
+        return filterTiles(commands, tiles, operation, fallback, defaultBounds, document->format, output, pins, transparency);
     };
     for (qsizetype i = 0; i <= filters.size(); ++i) {
         if (i == layer.transparencyMaskIndex && hasEnabledTransparencyMask(layer)) {
-            const auto masked = apply(FilterSettings{}, layer.transparencyMask, true);
+            const auto masked = apply(FilterSettings{}, layer.transparencyMask, true, regions[i]);
             if (masked.code != RenderOutcome::Recorded) return masked;
             tiles = masked.tiles;
         }
@@ -258,7 +290,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::applyLayerMasks(
         if (!node.visible) continue;
         if (!node.filter || !node.filter->isValid(document->format))
             return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU filter mask configuration is unavailable")};
-        const auto filtered = apply(node.filter->settings, node.filterSelection, false);
+        const auto filtered = apply(node.filter->settings, node.filterSelection, false, regions[i + 1]);
         if (filtered.code != RenderOutcome::Recorded) return filtered;
         tiles = filtered.tiles;
     }

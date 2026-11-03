@@ -6,6 +6,9 @@
 #define KIS_GPU_FILTER_NODE_EDITING_TEST_H
 namespace FilterNodeEditingTest {
 void addData();
+void addConvolutionData();
+void addConvolutionChainData();
+void runConvolutionChain();
 void run();
 }
 #endif

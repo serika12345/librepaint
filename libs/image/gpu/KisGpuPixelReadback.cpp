@@ -120,6 +120,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
     QRect needed = region.intersected(domain);
     QHash<quint64, QRect> afterSpatialOperations;
     qsizetype remainingTranslations = 0;
+    qsizetype remainingConvolutions = 0;
     bool selectedTranslation = false;
     bool affinePresent = false;
     for (auto operation = layer.operations.crbegin(); operation != layer.operations.crend(); ++operation) {
@@ -140,6 +141,12 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
         } else if (const auto crop = std::get_if<CropSnapshot>(&*operation)) {
             afterSpatialOperations.insert((*crop)->id.sequence, needed);
             needed = needed.intersected((*crop)->rect.normalized());
+        } else if (const auto filter = std::get_if<FilterSnapshot>(&*operation);
+                   filter && isConvolutionFilter((*filter)->kind)) {
+            afterSpatialOperations.insert((*filter)->id.sequence, needed);
+            ++remainingConvolutions;
+            const auto filtered = needed.intersected((*filter)->applyRect);
+            if (!filtered.isEmpty()) needed |= filtered.adjusted(-1, -1, 1, 1).intersected(domain);
         }
     }
     QSet<quint64> coordinates;
@@ -149,6 +156,15 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
     qsizetype stageMaximum = remainingTranslations
         ? (maximum <= std::numeric_limits<qsizetype>::max() / expansion ? maximum * expansion : std::numeric_limits<qsizetype>::max())
         : maximum;
+    if (remainingConvolutions) {
+        // Each 3x3 pass needs one source pixel around its output. Allow the
+        // corresponding tile fringe while retaining the final caller budget.
+        const qint64 fringe = (remainingConvolutions + TileRenderer::TileSize - 1) / TileRenderer::TileSize;
+        const qint64 side = 2 * fringe + 1;
+        const qint64 factor = side * side;
+        stageMaximum = stageMaximum <= std::numeric_limits<qsizetype>::max() / factor
+            ? stageMaximum * factor : std::numeric_limits<qsizetype>::max();
+    }
     if (affinePresent) stageMaximum = std::max(stageMaximum, qsizetype(256 * 1024 * 1024 / RgbaTile::byteCount(format)));
     if (layer.initialProjection) for (const auto &block : layer.initialProjection->allocatedBlocks) {
         const auto area = block.intersected(needed);
@@ -169,7 +185,7 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
                 if (coordinates.size() > stageMaximum) return std::nullopt;
             }
         } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
-            if (--remainingTranslations == 0 && !affinePresent) stageMaximum = maximum;
+            if (--remainingTranslations == 0 && !remainingConvolutions && !affinePresent) stageMaximum = maximum;
             const auto target = afterSpatialOperations.value((*translation)->id.sequence);
             QSet<quint64> moved;
             const auto append = [&](QRect pixels) {
@@ -229,9 +245,21 @@ std::optional<QList<quint64>> paintLayerCoordinates(const Layer &layer, QRect re
             }
             needed = target;
         } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
+            const bool convolution = isConvolutionFilter((*filter)->kind);
+            if (convolution) {
+                const auto target = afterSpatialOperations.value((*filter)->id.sequence);
+                for (auto tile = coordinates.begin(); tile != coordinates.end();) {
+                    const QRect bounds(Detail::coordinate(*tile) * TileRenderer::TileSize,
+                                       QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+                    if (!target.intersects(bounds)) tile = coordinates.erase(tile);
+                    else ++tile;
+                }
+                needed = target;
+                if (--remainingConvolutions == 0 && !remainingTranslations && !affinePresent) stageMaximum = maximum;
+            }
             // A filter over canvas-wide default content synthesizes tiles in the
             // renderer, so its coverage participates in the retained layer extent.
-            if (layer.defaultPixel == RgbaPixel{}) continue;
+            if (layer.defaultPixel == RgbaPixel{} && !convolution) continue;
             QRect area = needed;
             if ((*filter)->kind >= FilterKind::MaximizeChannel) area &= (*filter)->applyRect;
             if (!(*filter)->selectionRect.isEmpty() && !(*filter)->selectionInverted)

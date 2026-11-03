@@ -16,6 +16,7 @@
 #include <QTreeView>
 #include <QAbstractItemModel>
 #include <KisGlobalResourcesInterface.h>
+#include <KisGpuFilterConfiguration.h>
 #include <KoColor.h>
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>
@@ -39,6 +40,7 @@
 #include <kis_filter_mask.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <kis_image_config.h>
 #include <kis_node_filter_interface.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
@@ -73,6 +75,159 @@ void FilterNodeEditingTest::addData()
         }
 }
 
+void FilterNodeEditingTest::addConvolutionData()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("mask");
+    QTest::addColumn<QString>("id");
+    for (bool words : {false, true}) for (bool mask : {false, true})
+        for (const auto *id : {"sharpen", "mean removal", "emboss laplascian", "emboss all directions",
+                             "emboss horizontal and vertical", "emboss vertical only", "emboss horizontal only"}) {
+            const QByteArray row = QByteArray(words ? "word-" : "byte-") + (mask ? "mask-" : "adjustment-") + id;
+            QTest::newRow(row.constData()) << words << mask << QString::fromLatin1(id);
+        }
+}
+
+void FilterNodeEditingTest::addConvolutionChainData()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<bool>("defaultWhite");
+    QTest::addColumn<bool>("sourceOutside");
+    for (bool words : {false, true}) for (bool white : {false, true}) for (bool outside : {false, true}) {
+        const QByteArray row = QByteArray(words ? "word-" : "byte-") + (white ? "default255" : "default0") +
+            (outside ? "-outside" : "-canvas");
+        QTest::newRow(row) << words << white << outside;
+    }
+}
+
+void FilterNodeEditingTest::runConvolutionChain()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(bool, words);
+    QFETCH(bool, defaultWhite);
+    QFETCH(bool, sourceOutside);
+    const auto previousEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
+    KisImageConfig imageConfig(false);
+    const auto threads = imageConfig.maxNumberOfThreads();
+    const auto restore = qScopeGuard([&] {
+        imageConfig.setMaxNumberOfThreads(threads);
+        if (previousEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previousEngine);
+    });
+    imageConfig.setMaxNumberOfThreads(1);
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const auto format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    const int stride = Gpu::pixelByteCount(format);
+    const QRect canvas(0, 0, 270, 18), checked(-9, -7, 288, 32);
+    const auto written = sourceOutside ? QRect(-5, -3, 280, 24) : canvas;
+    KisImageSP native = new KisImage(new KisSurrogateUndoStore, canvas.width(), canvas.height(), cs, "Convolution chain");
+    KisGroupLayerSP group = new KisGroupLayer(native, "Filtered group", 255); native->addNode(group);
+    KisPaintLayerSP paint = new KisPaintLayer(native, "Source", 255); native->addNode(paint, group);
+    if (sourceOutside) paint->paintDevice()->moveTo(3, -2);
+    QByteArray raw;
+    const quint16 a8[]{0, 1, 63, 127, 128, 192, 254, 255};
+    const quint16 a16[]{0, 1, 127, 128, 129, 257, 32767, 65535};
+    for (int y = 0; y < written.height(); ++y) for (int x = 0; x < written.width(); ++x) {
+        const auto scale = words ? 257 : 1;
+        raw += Gpu::rgbaBytes({quint16((19 + (y * 7 + x * 3) % 220) * scale),
+            quint16((31 + (y * 5 + x * 11) % 200) * scale), quint16((13 + (y * 13 + x * 7) % 230) * scale),
+            words ? a16[(x + y) % 8] : a8[(x + y) % 8]}, format);
+    }
+    auto bgra = raw; exchangeRgbaBgra(bgra, stride);
+    paint->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(bgra.constData()), written);
+    const auto config = [&](const char *id) {
+        const auto filter = KisFilterRegistry::instance()->value(QString::fromLatin1(id));
+        return filter ? filter->defaultConfiguration(KisGlobalResourcesInterface::instance())->cloneWithResourcesSnapshot() : KisFilterConfigurationSP();
+    };
+    const auto selection = [&](int seed, bool white) {
+        KisSelectionSP result = new KisSelection;
+        const quint8 coverage = white ? 255 : 0;
+        result->pixelSelection()->setDefaultPixel(KoColor(&coverage, result->pixelSelection()->colorSpace()));
+        QByteArray alpha(canvas.width() * canvas.height(), '\0');
+        const quint8 levels[]{0, 1, 64, 127, 128, 192, 254, 255};
+        for (qsizetype i = 0; i < alpha.size(); ++i) alpha[i] = char(levels[(i * 3 + i / canvas.width() + seed) % 8]);
+        result->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(alpha.constData()), canvas);
+        return result;
+    };
+    const auto addMask = [&](KisNodeSP parent, const char *id, int seed) {
+        KisFilterMaskSP result = new KisFilterMask(native, QString::fromLatin1(id));
+        result->initSelection(selection(seed, defaultWhite), parent);
+        result->setFilter(config(id)); native->addNode(result, parent);
+        return result;
+    };
+    addMask(paint, "sharpen", 1);
+    KisTransparencyMaskSP transparency = new KisTransparencyMask(native, "Between filters");
+    transparency->setSelection(selection(2, true)); native->addNode(transparency, paint);
+    addMask(paint, "emboss laplascian", 3);
+    const auto groupFilter = addMask(group, "mean removal", 4);
+    KisAdjustmentLayerSP adjustment = new KisAdjustmentLayer(native, "Top adjustment",
+        config("emboss horizontal and vertical"), selection(5, defaultWhite));
+    native->addNode(adjustment, native->root(), group);
+    native->refreshGraphAsync(); native->waitForDone();
+    const auto expected = [&](QRect region) {
+        QByteArray bytes(region.width() * region.height() * stride, '\0');
+        native->projection()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), region);
+        exchangeRgbaBgra(bytes, stride);
+        return bytes;
+    };
+    QTemporaryDir directory; QVERIFY(directory.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) { directory.setAutoRemove(false); qInfo() << "Convolution chain artifacts" << directory.path(); }
+    });
+    std::unique_ptr<KisDocument> nativeDocument(KisPart::instance()->createDocument());
+    nativeDocument->setCurrentImage(native); nativeDocument->setFileBatchMode(true);
+    const auto inputPath = directory.filePath("native-chain.kra");
+    QVERIFY(nativeDocument->saveAs(inputPath, KisDocument::nativeFormatMimeType(), false));
+    nativeDocument->waitForSavingToComplete();
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    std::unique_ptr<KisDocument> imported(KisPart::instance()->createDocument()); imported->setFileBatchMode(true);
+    QVERIFY2(imported->openPath(inputPath, KisDocument::DontAddToRecent), qPrintable(imported->errorMessage()));
+    const auto owner = imported->image()->gpuImage(); QVERIFY(owner);
+    const auto compare = [&](const Gpu::PaintImageSP &value, QRect region, const char *stage) {
+        const auto reference = expected(region);
+        const auto actual = value->readRgbaPixels(0, region, reference.size());
+        if (actual.bytes == reference) return true;
+        qWarning() << stage << actual.diagnostic << "region" << region;
+        for (const auto &entry : {qMakePair(QStringLiteral("native"), reference), qMakePair(QStringLiteral("gpu"), actual.bytes)}) {
+            QFile file(directory.filePath(QString::fromLatin1(stage) + QLatin1Char('-') + entry.first + QStringLiteral(".rgba")));
+            if (file.open(QIODevice::WriteOnly)) file.write(entry.second);
+        }
+        return false;
+    };
+    const QRect seam(254, 0, 5, 18);
+    QVERIFY(compare(owner, seam, "seam-first"));
+    QVERIFY(compare(owner, checked, "offcanvas"));
+    QVERIFY(compare(owner, seam, "seam-after-expanded-read"));
+    const auto before = owner->readRgbaPixels(0, checked, checked.width() * checked.height() * stride).bytes;
+    Gpu::LayerId target = 0;
+    for (const auto &node : owner->operations().snapshot()->layers) if (node.uuid == groupFilter->uuid()) target = node.id;
+    QVERIFY(target);
+    const auto updated = config("emboss all directions");
+    const auto definition = freezeGpuFilterConfiguration(updated, cs); QVERIFY(definition);
+    QCOMPARE(owner->setFilterDefinition(target, *definition, "Changed group filter"), Gpu::Result::Success);
+    groupFilter->setFilter(updated); native->refreshGraphAsync(); native->waitForDone();
+    QVERIFY(compare(owner, checked, "changed"));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(0, checked, before.size()).bytes, before);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QVERIFY(compare(owner, seam, "redo-seam"));
+    const auto saved = directory.filePath("gpu-chain.kra");
+    QVERIFY(imported->saveAs(saved, KisDocument::nativeFormatMimeType(), false)); imported->waitForSavingToComplete();
+    std::unique_ptr<KisDocument> reopened(KisPart::instance()->createDocument()); reopened->setFileBatchMode(true);
+    QVERIFY(reopened->openPath(saved, KisDocument::DontAddToRecent));
+    const auto reopenedOwner = reopened->image()->gpuImage(); QVERIFY(reopenedOwner);
+    imported.reset();
+    QVERIFY(compare(reopenedOwner, checked, "reopened"));
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    std::unique_ptr<KisDocument> nativeReader(KisPart::instance()->createDocument()); nativeReader->setFileBatchMode(true);
+    QVERIFY(nativeReader->openPath(saved, KisDocument::DontAddToRecent)); nativeReader->image()->waitForDone();
+    QByteArray actual(checked.width() * checked.height() * stride, '\0');
+    nativeReader->image()->projection()->readBytes(reinterpret_cast<quint8 *>(actual.data()), checked);
+    exchangeRgbaBgra(actual, stride);
+    QCOMPARE(actual, expected(checked));
+}
+
 void FilterNodeEditingTest::run()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -95,12 +250,14 @@ void FilterNodeEditingTest::run()
     const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     const auto format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
     const int stride = Gpu::pixelByteCount(format);
-    const QRect area(0, 0, 16, 12);
+    const bool convolution = id == QLatin1String("sharpen") || id == QLatin1String("mean removal") ||
+        id.startsWith(QLatin1String("emboss "));
+    const QRect area(QPoint(), convolution ? QSize(270, 12) : QSize(16, 12));
     QByteArray raw;
     for (int y = 0; y < area.height(); ++y) for (int x = 0; x < area.width(); ++x) {
         const quint16 scale = words ? 257 : 1;
         raw += Gpu::rgbaBytes({quint16((17 + y * 9) * scale), quint16(91 * scale),
-            quint16((203 - x * 7) * scale), quint16((x % 4 ? 137 : 0) * scale)}, format);
+            quint16((203 - (convolution ? x % 27 : x) * 7) * scale), quint16((x % 4 ? 137 : 0) * scale)}, format);
     }
     QByteArray nativeRaw = raw; exchangeRgbaBgra(nativeRaw, stride);
     const quint8 levels[]{0, 1, 64, 127, 128, 192, 254, 255};
@@ -136,10 +293,15 @@ void FilterNodeEditingTest::run()
     Gpu::RasterImage raster;
     raster.size = area.size(); raster.format = format; raster.colorProfile = cs->profile()->rawData();
     Gpu::RasterLayer paint; paint.name = "Source"; paint.uuid = QUuid::createUuid();
-    Gpu::RgbaTile tile; tile.format = format; tile.rgba = QByteArray(Gpu::RgbaTile::byteCount(format), '\0');
-    for (int y = 0; y < area.height(); ++y)
-        tile.rgba.replace(y * Gpu::RgbaTile::Size * stride, area.width() * stride, raw.mid(y * area.width() * stride, area.width() * stride));
-    paint.tiles.append(tile); raster.layers.append(paint);
+    for (int x = 0; x < area.width(); x += Gpu::RgbaTile::Size) {
+        Gpu::RgbaTile tile; tile.coordinate = {x / Gpu::RgbaTile::Size, 0}; tile.format = format;
+        tile.rgba = QByteArray(Gpu::RgbaTile::byteCount(format), '\0');
+        const int rowBytes = qMin(Gpu::RgbaTile::Size, area.width() - x) * stride;
+        for (int y = 0; y < area.height(); ++y)
+            tile.rgba.replace(y * Gpu::RgbaTile::Size * stride, rowBytes, raw.mid((y * area.width() + x) * stride, rowBytes));
+        paint.tiles.append(tile);
+    }
+    raster.layers.append(paint);
     auto owner = Gpu::PaintImageSP::create(execution, raster); QVERIFY(owner);
     QCOMPARE(owner->setSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(area, alpha, area)), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -249,7 +411,8 @@ void FilterNodeEditingTest::run()
     QVERIFY(node);
     manager->nodeManager()->slotNonUiActivatedNode(node);
     QCOMPARE(owner->operations().snapshot(), inserted);
-    const QString updatedId = id == QLatin1String("maximize") ? QStringLiteral("minimize") : QStringLiteral("maximize");
+    const QString updatedId = convolution ? (id == QLatin1String("sharpen") ? QStringLiteral("mean removal") : QStringLiteral("sharpen")) :
+        id == QLatin1String("maximize") ? QStringLiteral("minimize") : QStringLiteral("maximize");
     config = KisFilterRegistry::instance()->value(updatedId)->defaultConfiguration(KisGlobalResourcesInterface::instance());
     const auto firstPixels = expected();
     runDialog(false, [&] {
@@ -397,6 +560,15 @@ void FilterNodeEditingTest::run()
     QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
     QVERIFY(reopened->saveAs(directory.filePath("reopened-edited-filters.kra"), KisDocument::nativeFormatMimeType(), false));
     reopened->waitForSavingToComplete();
+    if (convolution) {
+        std::unique_ptr<KisDocument> finalReader(KisPart::instance()->createDocument());
+        finalReader->setFileBatchMode(true);
+        QVERIFY(finalReader->openPath(directory.filePath("reopened-edited-filters.kra"), KisDocument::DontAddToRecent));
+        const auto finalOwner = finalReader->image()->gpuImage(); QVERIFY(finalOwner);
+        QCOMPARE(finalOwner->readRgbaPixels(0, area, raw.size()).bytes, expected());
+        for (const auto &value : finalOwner->operations().snapshot()->layers)
+            if (Gpu::isFilterNode(value.kind)) { QVERIFY(value.filter); QCOMPARE(value.filter->id, id); }
+    }
     // Clipboard/document insertion retains editable filters and GPU coverage
     // through the destination's history and KRA storage.
     KisNodeList forest;

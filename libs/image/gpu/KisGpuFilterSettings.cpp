@@ -13,13 +13,20 @@ std::optional<FilterKind> nativeKind(const QString &id)
     if (id == QLatin1String("maximize")) return FilterKind::MaximizeChannel;
     if (id == QLatin1String("minimize")) return FilterKind::MinimizeChannel;
     if (id == QLatin1String("fastcoloroverlay")) return FilterKind::ColorOverlay;
+    if (id == QLatin1String("sharpen")) return FilterKind::Sharpen;
+    if (id == QLatin1String("mean removal")) return FilterKind::MeanRemoval;
+    if (id == QLatin1String("emboss laplascian")) return FilterKind::EmbossLaplacian;
+    if (id == QLatin1String("emboss all directions")) return FilterKind::EmbossAllDirections;
+    if (id == QLatin1String("emboss horizontal and vertical")) return FilterKind::EmbossHorizontalVertical;
+    if (id == QLatin1String("emboss vertical only")) return FilterKind::EmbossVertical;
+    if (id == QLatin1String("emboss horizontal only")) return FilterKind::EmbossHorizontal;
     return std::nullopt;
 }
 }
 
 bool FilterSettings::isValid(PixelFormat format) const
 {
-    if (!pixelByteCount(format) || kind > FilterKind::ColorOverlay) return false;
+    if (!pixelByteCount(format) || kind > FilterKind::EmbossHorizontal || channelWriteMask > 15) return false;
     if (format == PixelFormat::Rgba16 && kind < FilterKind::MaximizeChannel) return false;
     if (kind == FilterKind::ColorOverlay) return overlay.isValid(format);
     if (kind != FilterKind::HsvAdjustment) return true;
@@ -35,7 +42,8 @@ bool FilterSettings::operator==(const FilterSettings &other) const
     return kind == other.kind && hue == other.hue && saturation == other.saturation &&
         value == other.value && hsvType == other.hsvType && compatibilityMode == other.compatibilityMode &&
         colorize == other.colorize && luma == other.luma && overlay.color == other.overlay.color &&
-        overlay.opacity == other.overlay.opacity && overlay.blendMode == other.overlay.blendMode;
+        overlay.opacity == other.overlay.opacity && overlay.blendMode == other.overlay.blendMode &&
+        channelWriteMask == other.channelWriteMask;
 }
 
 bool FilterDefinition::isValid(PixelFormat format) const

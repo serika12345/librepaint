@@ -676,8 +676,12 @@ using CropSnapshot = QSharedPointer<const CropOperation>;
  */
 enum class FilterKind : quint8 {
     InvertColors, Grayscale, HsvAdjustment, MaximizeChannel, MinimizeChannel,
-    ResetTransparent, ColorOverlay
+    ResetTransparent, ColorOverlay, Sharpen, MeanRemoval, EmbossLaplacian,
+    EmbossAllDirections, EmbossHorizontalVertical, EmbossVertical, EmbossHorizontal
 };
+
+constexpr bool isConvolutionFilter(FilterKind kind)
+{ return kind >= FilterKind::Sharpen && kind <= FilterKind::EmbossHorizontal; }
 
 /** Product Fast Color Overlay values, converted to document components once. */
 struct ColorOverlay
@@ -804,6 +808,8 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT FilterSettings
     /** Effective document luma coefficients for HSY, YUV and Colorize. */
     std::array<double, 3> luma{0.2126, 0.7152, 0.0722};
     ColorOverlay overlay;
+    /** Frozen RGB/alpha channels selected by the native convolution caller. */
+    quint8 channelWriteMask = 15;
     bool isValid(PixelFormat format) const;
     bool operator==(const FilterSettings &other) const;
 };
@@ -838,6 +844,8 @@ struct FilterOperation : FilterSettings
     LayerId layer = 0;
     /** Ordinary operations clip at acceptance; live nodes use the requested plane. */
     QRect applyRect;
+    /** Native repeat-border domain; empty uses the input's default bounds. */
+    QRect samplingBounds;
     bool bounded = false;
     QRect selectionRect{};
     bool selectionInverted = false;
@@ -1111,7 +1119,9 @@ enum class HistoryAction {
     GroupLayers, CreateClippingGroup, UngroupLayers,
     MergeDown, MergeSelected, FlattenLayer, FlattenImage, NewFromVisible,
     AddFilterMask, AddAdjustmentLayer, ChangeFilter,
-    MaximizeChannel, MinimizeChannel, ResetTransparent, ColorOverlay
+    MaximizeChannel, MinimizeChannel, ResetTransparent, ColorOverlay,
+    Sharpen, MeanRemoval, EmbossLaplacian, EmbossAllDirections,
+    EmbossHorizontalVertical, EmbossVertical, EmbossHorizontal
 };
 
 struct Limits
@@ -1488,6 +1498,7 @@ public:
     /** Ordinary extrema, transparent reset and frozen color-overlay filters. */
     Result colorFilter(LayerId layer, FilterKind kind, const ColorOverlay &overlay = {},
                        const QRect &applyRect = {});
+    Result convolutionFilter(LayerId layer, const FilterSettings &settings, const QRect &applyRect);
     OperationId beginColorConversion();
     Result cancelColorConversion(OperationId id);
     Result commitColorConversion(OperationId id, const Snapshot &before, PixelFormat format,
@@ -1588,7 +1599,8 @@ private:
                                      const QString &name = QStringLiteral("Transparency Mask"),
                                      const RasterLayer *imported = nullptr);
     Result applyFilter(LayerId layer, FilterKind kind, const HsvAdjustment *settings = nullptr,
-                       const ColorOverlay *overlay = nullptr, const QRect &applyRect = {});
+                       const ColorOverlay *overlay = nullptr, const QRect &applyRect = {},
+                       const FilterSettings *convolution = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer, bool mask = false) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     Result applyLayerDefaultPixel(LayerId layer, const RgbaPixel &rgba, Snapshot *retainedVersion);

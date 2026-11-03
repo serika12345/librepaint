@@ -244,6 +244,7 @@ RenderOutcome TileRenderer::prepareFilterProjection(WGPUCommandEncoder commands,
     for (const auto &input : inputs) extent |= data->sourceExtents.value(input.layer);
     const QRect evaluated = region.intersected(extent);
     if (evaluated.isEmpty()) return {RenderOutcome::Recorded, preparedVersion, {}};
+    const auto regions = filterProjectionRegions(snapshot, inputs, evaluated);
     std::shared_ptr<Tile> zero;
     const auto defaultTile = [&](LayerId layer) -> std::shared_ptr<Tile> {
         if (auto tile = data->defaults.value(layer)) return tile;
@@ -260,19 +261,28 @@ RenderOutcome TileRenderer::prepareFilterProjection(WGPUCommandEncoder commands,
     for (const auto &input : inputs) {
         const auto *node = nodes.value(input.layer);
         if (!node) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Filter projection node is unavailable")};
+        const auto output = regions.output.value(node->id);
+        const auto inputRegion = regions.input.value(node->id);
         Tiles pixels = data->layers.value(node->id);
         auto fallback = defaultTile(node->id);
         if (!fallback) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Filter projection default capacity exceeded")};
         if (node->kind == LayerKind::Adjustment) {
             if (!node->filter || !node->filter->isValid(snapshot->format))
                 return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Adjustment configuration is unavailable")};
-            const auto lower = composeImpl(commands, preparedVersion, evaluated, {}, group, initial, false,
+            const auto sourceRegion = isConvolutionFilter(node->filter->settings.kind)
+                ? convolutionInputRegion(inputRegion) : inputRegion;
+            const auto lower = composeImpl(commands, preparedVersion, sourceRegion, {}, group, initial, false,
                                            nativeProjection, &preceding, true);
             if (lower.code != RenderOutcome::Recorded) return {lower.code, {}, lower.diagnostic};
             FilterOperation operation;
             static_cast<FilterSettings &>(operation) = node->filter->settings;
             operation.layer = node->id;
-            operation.applyRect = evaluated;
+            operation.applyRect = inputRegion;
+            if (isConvolutionFilter(operation.kind)) {
+                const auto bounds = filterRepeatBounds(snapshot, *node, PaintGeometryElementLimit);
+                if (!bounds) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU adjustment border geometry exceeds capacity")};
+                operation.samplingBounds = bounds->united(inputRegion);
+            }
             operation.bounded = true;
             if (node->filterSelection) {
                 operation.selectionKind = SelectionKind::Freehand;
@@ -280,15 +290,15 @@ RenderOutcome TileRenderer::prepareFilterProjection(WGPUCommandEncoder commands,
                 operation.selectionRect = node->filterSelection->bounds();
             }
             const auto filtered = d.filterTiles(commands, lower.version->m_data->tiles, operation, fallback,
-                evaluated, snapshot->format, evaluated, data->selectionWork);
+                sourceRegion, snapshot->format, inputRegion, data->selectionWork);
             if (filtered.code != RenderOutcome::Recorded) return {filtered.code, {}, filtered.diagnostic};
             pixels = filtered.tiles;
             for (const auto &tile : lower.version->m_data->tiles) data->selectionWork.append(tile);
-            data->sourceExtents[node->id] = lower.version->m_data->sourceExtent | evaluated;
+            data->sourceExtents[node->id] = lower.version->m_data->sourceExtent | inputRegion;
             data->selected.insert(node->id);
         }
         const auto masked = d.applyLayerMasks(commands, pixels, fallback, *node, snapshot,
-                                              evaluated, data->selectionWork);
+                                              output, data->selectionWork);
         if (masked.code != RenderOutcome::Recorded) return {masked.code, {}, masked.diagnostic};
         data->layers[node->id] = masked.tiles;
         data->effectProjections.insert(node->id);

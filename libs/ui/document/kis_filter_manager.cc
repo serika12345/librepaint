@@ -15,6 +15,7 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include <KisGpuBlendMode.h>
+#include <KisGpuFilterConfiguration.h>
 #include <QHash>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -197,7 +198,10 @@ bool KisFilterManager::applyGpuFilter(const QString &filterId, KisFilterConfigur
     const bool supported = filterId == QLatin1String("invert") || filterId == QLatin1String("desaturate") ||
         filterId == QLatin1String("hsvadjustment") || filterId == QLatin1String("maximize") ||
         filterId == QLatin1String("minimize") || filterId == QLatin1String("resettransparent") ||
-        filterId == QLatin1String("fastcoloroverlay");
+        filterId == QLatin1String("fastcoloroverlay") || filterId == QLatin1String("sharpen") ||
+        filterId == QLatin1String("mean removal") || filterId == QLatin1String("emboss laplascian") ||
+        filterId == QLatin1String("emboss all directions") || filterId == QLatin1String("emboss horizontal and vertical") ||
+        filterId == QLatin1String("emboss vertical only") || filterId == QLatin1String("emboss horizontal only");
     if (!supported) {
         showGpuDiagnostic(d->view, i18n("This filter is not yet available for GPU documents."));
         return true;
@@ -218,7 +222,15 @@ bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config)
     namespace Gpu = LibrePaint::Image::Gpu;
     const QString id = config->name();
     bool applied = false;
-    if (id == QLatin1String("hsvadjustment")) {
+    const bool convolution = id == QLatin1String("sharpen") || id == QLatin1String("mean removal") ||
+        id == QLatin1String("emboss laplascian") || id == QLatin1String("emboss all directions") ||
+        id == QLatin1String("emboss horizontal and vertical") || id == QLatin1String("emboss vertical only") ||
+        id == QLatin1String("emboss horizontal only");
+    if (convolution) {
+        const auto frozen = freezeGpuFilterConfiguration(config, image->colorSpace());
+        if (!frozen) return false;
+        applied = image->convolutionFilterGpuLayerColors(d->view->activeNode(), frozen->settings);
+    } else if (id == QLatin1String("hsvadjustment")) {
         const auto parsed = gpuHsvConfiguration(config, image->colorSpace());
         if (!parsed.valid) {
             showGpuDiagnostic(d->view, parsed.diagnostic);

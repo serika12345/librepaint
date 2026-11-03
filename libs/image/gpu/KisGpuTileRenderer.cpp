@@ -53,6 +53,9 @@ QList<QRect> layerOperationRegions(const Layer &layer, const QRect &paintRegion)
                                (right - left + 1) * TileSize, (bottom - top + 1) * TileSize).intersected(layerDomain);
             }
         }
+        if (const auto filter = std::get_if<FilterSnapshot>(&layer.operations[i]);
+            filter && isConvolutionFilter((*filter)->kind) && !needed.isEmpty())
+            needed = needed.adjusted(-1, -1, 1, 1).intersected(layerDomain);
         if (const auto affine = std::get_if<AffineSnapshot>(&layer.operations[i]); affine && !needed.isEmpty()) {
             auto transformed = needed;
             for (qsizetype stage = (*affine)->plan->passes.size(); stage-- > 0;)
@@ -293,7 +296,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path,
     source += QByteArray("const GRADIENT_FILL_ENABLED: bool = ") + (gradientKind ? "true;\n" : "false;\n");
     source += "const GRADIENT_SHAPE: u32 = " + QByteArray::number(gradientKind ? gradientKind - 1 : 0) + "u;\n";
     const bool painting = path.endsWith(QLatin1String("/paint.wgsl"));
-    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl")) || path.endsWith(QLatin1String("/region.wgsl")) || path.endsWith(QLatin1String("/filter.wgsl"))) {
+    if (painting || path.endsWith(QLatin1String("/over.wgsl")) || path.endsWith(QLatin1String("/selection-move.wgsl")) || path.endsWith(QLatin1String("/affine.wgsl")) || path.endsWith(QLatin1String("/region.wgsl")) || path.endsWith(QLatin1String("/filter.wgsl")) || path.endsWith(QLatin1String("/convolution.wgsl"))) {
         QFile arithmetic(QStringLiteral(":/librepaint/gpu/shaders/binary32.wgsl"));
         QFile separable(QStringLiteral(":/librepaint/gpu/shaders/separable.wgsl"));
         QFile doubles(QStringLiteral(":/librepaint/gpu/shaders/binary64.wgsl"));
@@ -629,7 +632,53 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             if (child->kind == LayerKind::Group) selectedGroups.append(child);
         }
     }
-    if (base && base->document() == document && base->m_data->region == region && base->m_data->selected == selected &&
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    const QRect layerDomain(-limit, -limit, 2 * limit, 2 * limit);
+    const QRect paintRegion = region ? region->intersected(layerDomain) : layerDomain;
+    auto recordedRegion = region;
+    QHash<LayerId, QRect> layerRegions;
+    const bool spatialEffects = std::any_of(document->layers.cbegin(), document->layers.cend(), [](const auto &node) {
+        return node.visible && isFilterNode(node.kind) && node.filter && isConvolutionFilter(node.filter->settings.kind);
+    });
+    if (spatialEffects && !paintRegion.isEmpty()) {
+        struct GroupInput { LayerId id; QRect region; };
+        QList<GroupInput> pendingGroups;
+        const auto addNode = [&](const Layer &node, QRect output) {
+            const auto needed = filterMaskRegions(document, node, output).first();
+            if (layerRegions.contains(node.id) && layerRegions.value(node.id).contains(needed)) return;
+            layerRegions[node.id] |= needed;
+            if (node.kind == LayerKind::Group) pendingGroups.append({node.id, layerRegions.value(node.id)});
+        };
+        const auto addScope = [&](const QList<LayerProjectionInput> &inputs, QRect output) {
+            const auto regions = filterProjectionRegions(document, inputs, output);
+            for (const auto &input : inputs) {
+                const auto node = nodes.value(input.layer);
+                if (node && selected.contains(node->id)) addNode(*node, regions.output.value(node->id));
+            }
+        };
+        QSet<LayerId> roots;
+        for (const auto id : layers) {
+            roots.insert(id);
+            addNode(*nodes.value(id), paintRegion);
+        }
+        QList<LayerProjectionInput> rootInputs;
+        for (const auto &input : document->projectionInputs())
+            if (roots.contains(input.layer)) rootInputs.append(input);
+        addScope(rootInputs, paintRegion);
+        for (const auto id : layers)
+            if (nodes.value(id)->kind == LayerKind::Adjustment)
+                addScope(document->projectionInputsThrough(id), paintRegion);
+        for (qsizetype i = 0; i < pendingGroups.size(); ++i) {
+            const auto task = pendingGroups[i];
+            addScope(document->projectionInputs(task.id), task.region);
+        }
+        for (const auto id : selected) {
+            if (!layerRegions.contains(id)) layerRegions.insert(id, paintRegion);
+            if (recordedRegion) *recordedRegion |= layerRegions.value(id);
+        }
+    }
+    if (base && base->document() == document && base->m_data->region == recordedRegion &&
+        base->m_data->layerRegions == layerRegions && base->m_data->selected == selected &&
         ((region && region->isEmpty()) || std::all_of(requestedGroups.cbegin(), requestedGroups.cend(),
             [&](LayerId group) { return base->m_data->groupInputs.contains(group); })))
         return {RenderOutcome::Recorded, base, {}};
@@ -680,12 +729,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     auto data = std::make_shared<RenderedVersion::Data>();
     data->document = document;
     data->owner = d.budget;
-    data->region = region;
+    data->region = recordedRegion;
+    data->layerRegions = layerRegions;
     data->selected = selected;
     if (!selectedGroups.isEmpty()) data->defaultPixels = document->projectionDefaultPixels();
-    constexpr int limit = RgbaTile::CoordinateLimit;
-    const QRect layerDomain(-limit, -limit, 2 * limit, 2 * limit);
-    const QRect paintRegion = region ? region->intersected(layerDomain) : layerDomain;
     std::vector<PaintJob> jobs;
     struct FillUpload { std::shared_ptr<NativeBuffer> buffer; QList<FigureFillEdge> edges; };
     std::vector<FillUpload> fillUploads;
@@ -824,7 +871,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             data->sourceExtents[layer.id] = allocation->extent;
         }
         const auto uniform = data->defaultPixels.value(layer.id, layer.defaultPixel);
-        const auto operationRegions = layerOperationRegions(layer, paintRegion);
+        const auto operationRegions = layerOperationRegions(layer, layerRegions.value(layer.id, paintRegion));
+        const std::optional<QRect> previousRegion = base && base->m_data->layerRegions.contains(layer.id)
+            ? std::optional<QRect>(base->m_data->layerRegions.value(layer.id)) : base ? base->m_data->region : std::nullopt;
         qsizetype prefix = 0;
         qsizetype reusedPrefix = 0;
         QSet<quint64> reusedCoordinates;
@@ -861,11 +910,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 }
                 const auto sourceRegion = operationRegions[shared];
                 bool sharedSpatialOperation = false;
-                for (qsizetype i = 0; i < shared; ++i)
+                for (qsizetype i = 0; i < shared; ++i) {
                     sharedSpatialOperation = sharedSpatialOperation || std::holds_alternative<TranslationSnapshot>(layer.operations[i]) ||
                         std::holds_alternative<AffineSnapshot>(layer.operations[i]) ||
                         std::holds_alternative<CropSnapshot>(layer.operations[i]);
-                if (matches && (!sharedSpatialOperation || !base->m_data->region || base->m_data->region->contains(sourceRegion))) {
+                    if (const auto filter = std::get_if<FilterSnapshot>(&layer.operations[i]); filter && isConvolutionFilter((*filter)->kind))
+                        sharedSpatialOperation = true;
+                }
+                if (matches && (!sharedSpatialOperation || !previousRegion || previousRegion->contains(sourceRegion))) {
                     const auto &oldTiles = base->m_data->layers[layer.id];
                     for (auto tile = oldTiles.cbegin(); tile != oldTiles.cend(); ++tile) {
                         if (!sourceRegion.intersects(QRect(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize)))) continue;
@@ -898,7 +950,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         }
                     }
                     reusedPrefix = shared;
-                    if (!base->m_data->region || base->m_data->region->contains(sourceRegion)) {
+                    if (!previousRegion || previousRegion->contains(sourceRegion)) {
                         prefix = reusedPrefix;
                         reusedInitial = true;
                     }
@@ -1060,7 +1112,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 bool appendedOnly = !replacesAlpha && extending && retainCoverage && preserveCoverage &&
                     d.coverageVersion.toStrongRef() == base && d.coverageLayer == layer.id &&
                     base->m_data->selected == selected && base->m_data->defaultPixels == data->defaultPixels &&
-                    (!base->m_data->region || base->m_data->region->contains(paintRegion));
+                    (!previousRegion || previousRegion->contains(paintRegion));
                 if (appendedOnly) {
                     const qint64 regionTiles =
                         (qint64(pixelTileIndex(paintRegion.right(), TileSize)) - pixelTileIndex(paintRegion.left(), TileSize) + 1) *
@@ -1446,18 +1498,19 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         for (const auto group : selectedGroups) if (remaining.value(group->id) == 0) ready.append(group->id);
         for (qsizetype index = 0; index < ready.size(); ++index) {
             const auto group = ready[index];
+            const auto groupRegion = layerRegions.value(group, paintRegion);
             if (!nodes.value(group)->passThrough || requestedGroups.contains(group)) {
                 ProjectedSnapshot previous;
                 if (base && base->m_data->groupInputs.contains(group)) {
                     auto cached = std::make_shared<ProjectedVersion::Data>();
                     cached->source = base;
-                    cached->region = paintRegion;
+                    cached->region = base->m_data->layerRegions.value(group, base->m_data->region.value_or(groupRegion));
                     cached->tiles = base->m_data->layers.value(group);
                     cached->inputs = base->m_data->groupInputs.value(group);
                     cached->directLayerProjection = base->m_data->directGroups.contains(group);
                     previous = ProjectedSnapshot(new ProjectedVersion(cached));
                 }
-                const auto projected = composeImpl(commands, version, paintRegion, previous, group);
+                const auto projected = composeImpl(commands, version, groupRegion, previous, group);
                 if (projected.code != RenderOutcome::Recorded) return {projected.code, {}, projected.diagnostic};
                 data->layers[group] = projected.version->m_data->tiles;
                 data->sourceExtents[group] = projected.version->m_data->sourceExtent;

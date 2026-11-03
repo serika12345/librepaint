@@ -70,6 +70,13 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::MinimizeChannel: return kundo2_i18n("Minimize Channel");
     case HistoryAction::ResetTransparent: return kundo2_i18n("Reset Transparent");
     case HistoryAction::ColorOverlay: return kundo2_i18n("Fast Color Overlay");
+    case HistoryAction::Sharpen: return kundo2_i18n("Sharpen");
+    case HistoryAction::MeanRemoval: return kundo2_i18n("Mean Removal");
+    case HistoryAction::EmbossLaplacian: return kundo2_i18n("Emboss (Laplacian)");
+    case HistoryAction::EmbossAllDirections: return kundo2_i18n("Emboss in All Directions");
+    case HistoryAction::EmbossHorizontalVertical: return kundo2_i18n("Emboss Horizontal & Vertical");
+    case HistoryAction::EmbossVertical: return kundo2_i18n("Emboss Vertical Only");
+    case HistoryAction::EmbossHorizontal: return kundo2_i18n("Emboss Horizontal Only");
     case HistoryAction::CropLayer: return kundo2_i18n("Crop Layer");
     case HistoryAction::CropImage: return kundo2_i18n("Crop Image");
     case HistoryAction::ResizeCanvas: return kundo2_i18n("Resize Image");

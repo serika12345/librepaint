@@ -109,6 +109,8 @@ struct RenderedVersion::Data
     std::shared_ptr<Detail::Tile> background;
     QMap<LayerId, Detail::Tiles> strokeInputs;
     std::optional<QRect> region;
+    /** Valid input coverage per node when spatial effect chains need different halos. */
+    QHash<LayerId, QRect> layerRegions;
     QSet<LayerId> selected;
     /** Derived composition inputs whose ordered effect masks are already applied. */
     QSet<LayerId> effectProjections;
@@ -193,6 +195,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline selectionSplitPipeline, selectionMergePipeline;
     Detail::NativeBindingLayout affineLayout;
     Detail::NativeComputePipeline affinePipeline;
+    Detail::NativeComputePipeline convolutionPipeline;
+    Detail::NativeBindingLayout convolutionLayout;
     Detail::NativeBindingLayout filterLayout;
     std::map<quint32, Detail::NativeComputePipeline> filterPipelines;
     Detail::NativeBindingLayout thumbnailLayout;
@@ -347,6 +351,10 @@ struct TileRenderer::Private
                              const FilterOperation &filter, const std::shared_ptr<Detail::Tile> &fallback,
                              QRect implicitBounds, PixelFormat format, QRect region,
                              QList<std::shared_ptr<Detail::Tile>> &pins, bool transparency = false);
+    FilterResult convolutionTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
+        const FilterOperation &filter, const std::shared_ptr<Detail::Tile> &fallback,
+        QRect repeatBounds, PixelFormat format, QRect area, const QList<quint64> &planned,
+        QList<std::shared_ptr<Detail::Tile>> &pins);
     FilterResult applyLayerMasks(WGPUCommandEncoder commands, const Detail::Tiles &source,
         const std::shared_ptr<Detail::Tile> &fallback, const Layer &layer, const Snapshot &document,
         QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);

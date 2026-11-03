@@ -6,6 +6,7 @@
 #define KIS_GPU_COLOR_FILTER_EDITING_TEST_H
 namespace ColorFilterEditingTest {
 void addData();
+void addConvolutionData();
 void run();
 }
 #endif

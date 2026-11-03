@@ -28,6 +28,7 @@ struct FilterParameters {
 @group(0) @binding(1) var<storage, read_write> outputPixels: array<u32>;
 @group(0) @binding(2) var<uniform> parameters: FilterParameters;
 @group(0) @binding(3) var<storage, read> selectionCoverage: array<u32>;
+@group(0) @binding(4) var<storage, read> convolutionPixels: array<u32>;
 
 // Coverage flags. A freehand mask is always byte coverage: the renderer
 // expands binary masks before binding them, matching layer composition.
@@ -918,7 +919,13 @@ fn overlayPixel(base: vec4<u32>, wide: bool) -> vec4<u32> {
     return unpackPixel(separableProjectionPixel(base, source, quantizedOpacity, 7u, mode));
 }
 
-fn filtered(base: vec4<u32>, kind: u32, wide: bool) -> vec4<u32> {
+fn filtered(base: vec4<u32>, kind: u32, wide: bool, index: u32) -> vec4<u32> {
+    if (kind >= 7u) {
+        let offset = index * select(1u, 2u, wide);
+        var high = 0u;
+        if (wide) { high = convolutionPixels[offset + 1u]; }
+        return nativePixel(convolutionPixels[offset], high, wide);
+    }
     if (kind == FILTER_MAXIMIZE || kind == FILTER_MINIMIZE) {
         var extreme = max(max(base.x, base.y), base.z);
         if (kind == FILTER_MINIMIZE) { extreme = min(min(base.x, base.y), base.z); }
@@ -956,7 +963,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let inArea = all(pixel >= area.xy) && all(pixel < area.xy + area.zw);
     if (selected != 0u && ((u32(parameters.tile.z) < FILTER_MAXIMIZE && (flags & 16u) == 0u) || inArea)) {
         let kind = u32(parameters.tile.z);
-        result = filtered(base, kind, wide);
+        result = filtered(base, kind, wide, index);
         if (selected != 255u) {
             // Product filters copy their result through the selection with
             // native Copy, including alpha and hidden-color rounding.

@@ -16,6 +16,7 @@
 #include <KisGlobalResourcesInterface.h>
 #include <KisGpuBlendMode.h>
 #include <KoColor.h>
+#include <KoChannelInfo.h>
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
@@ -57,11 +58,29 @@ void ColorFilterEditingTest::addData()
     QTest::addColumn<bool>("words");
     QTest::addColumn<QString>("scenario");
     QTest::addColumn<bool>("selected");
+    QTest::addColumn<int>("channelMask");
     for (bool words : {false, true}) for (const auto *scenario : {
         "maximize", "minimize", "resettransparent", "overlay-normal", "overlay-tint", "overlay-multiply", "overlay-copy"}) {
         for (bool selected : {false, true}) {
             const QByteArray name = QByteArray(words ? "word-" : "byte-") + scenario + (selected ? "-selected" : "-whole");
-            QTest::newRow(name) << words << QString::fromLatin1(scenario) << selected;
+            QTest::newRow(name) << words << QString::fromLatin1(scenario) << selected << 15;
+        }
+    }
+}
+
+void ColorFilterEditingTest::addConvolutionData()
+{
+    QTest::addColumn<bool>("words");
+    QTest::addColumn<QString>("scenario");
+    QTest::addColumn<bool>("selected");
+    QTest::addColumn<int>("channelMask");
+    for (bool words : {false, true}) for (const auto *id : {
+        "sharpen", "mean removal", "emboss laplascian", "emboss all directions",
+        "emboss horizontal and vertical", "emboss vertical only", "emboss horizontal only"}) {
+        for (bool selected : {false, true}) for (int channelMask : {15, 7, 10}) {
+            const QByteArray name = QByteArray(words ? "word-" : "byte-") + id +
+                (selected ? "-selected-" : "-whole-") + QByteArray::number(channelMask);
+            QTest::newRow(name) << words << QString::fromLatin1(id) << selected << channelMask;
         }
     }
 }
@@ -72,13 +91,16 @@ void ColorFilterEditingTest::run()
     QFETCH(bool, words);
     QFETCH(QString, scenario);
     QFETCH(bool, selected);
+    QFETCH(int, channelMask);
     const QString id = scenario.startsWith(QLatin1String("overlay-")) ? QStringLiteral("fastcoloroverlay") : scenario;
     const auto filter = KisFilterRegistry::instance()->value(id);
     QVERIFY(filter);
     const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     const auto format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
     const int stride = Gpu::pixelByteCount(format);
-    const QRect area(0, 0, 32, 16);
+    const bool convolution = id == QLatin1String("sharpen") || id == QLatin1String("mean removal") ||
+        id.startsWith(QLatin1String("emboss "));
+    const QRect area(QPoint(), convolution ? QSize(270, 12) : QSize(32, 16));
     QByteArray initial(area.width() * area.height() * stride, '\0');
     const quint16 alpha16[]{0, 1, 127, 128, 129, 257, 32767, 65535};
     const quint16 alpha8[]{0, 1, 63, 127, 128, 254, 255, 255};
@@ -103,6 +125,13 @@ void ColorFilterEditingTest::run()
         selection->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(alpha.constData()), area);
     }
     auto config = filter->defaultConfiguration(KisGlobalResourcesInterface::instance());
+    if (channelMask != 15) {
+        QBitArray flags(cs->channelCount());
+        const auto channels = cs->channels();
+        for (int i = 0; i < channels.size(); ++i)
+            flags.setBit(i, channelMask & (1 << channels[i]->displayPosition()));
+        config->setChannelFlags(flags);
+    }
     if (id == QLatin1String("fastcoloroverlay")) {
         config->setProperty("color", QColor(62, 140, 236, 193));
         config->setProperty("opacity", 63);
@@ -119,7 +148,9 @@ void ColorFilterEditingTest::run()
         return bytes;
     };
     const auto nativeApply = [&] {
-        const QRect processRect = id == QLatin1String("resettransparent") ? area : expectedDevice->exactBounds().intersected(area);
+        const auto bounds = expectedDevice->exactBounds();
+        const QRect processRect = id == QLatin1String("resettransparent") ? area :
+            (convolution ? bounds.adjusted(-3, -3, 3, 3) : bounds).intersected(area);
         filter->process(expectedDevice, expectedDevice, selection, processRect, config->cloneWithResourcesSnapshot());
     };
     QString diagnostic;
@@ -129,10 +160,15 @@ void ColorFilterEditingTest::run()
     raster.size = area.size(); raster.format = format; raster.colorProfile = cs->profile()->rawData();
     Gpu::RasterLayer imported;
     imported.name = QStringLiteral("Color filter editing"); imported.uuid = QUuid::createUuid();
-    Gpu::RgbaTile tile; tile.format = format; tile.rgba = QByteArray(Gpu::RgbaTile::byteCount(format), '\0');
-    for (int y = 0; y < area.height(); ++y)
-        tile.rgba.replace(y * Gpu::RgbaTile::Size * stride, area.width() * stride, initial.mid(y * area.width() * stride, area.width() * stride));
-    imported.tiles.append(tile); raster.layers.append(imported);
+    for (int x = 0; x < area.width(); x += Gpu::RgbaTile::Size) {
+        Gpu::RgbaTile tile; tile.coordinate = {x / Gpu::RgbaTile::Size, 0}; tile.format = format;
+        tile.rgba = QByteArray(Gpu::RgbaTile::byteCount(format), '\0');
+        const int rowBytes = qMin(Gpu::RgbaTile::Size, area.width() - x) * stride;
+        for (int y = 0; y < area.height(); ++y)
+            tile.rgba.replace(y * Gpu::RgbaTile::Size * stride, rowBytes, initial.mid((y * area.width() + x) * stride, rowBytes));
+        imported.tiles.append(tile);
+    }
+    raster.layers.append(imported);
     auto owner = Gpu::PaintImageSP::create(execution, raster);
     QVERIFY(owner);
     if (selected) QCOMPARE(owner->setSelectionMask(Gpu::SelectionMask::fromAlphaCoverage(area, alpha, area)), Gpu::Result::Success);
@@ -180,7 +216,8 @@ void ColorFilterEditingTest::run()
         widget = dialog->findChild<KisConfigWidget *>(); QVERIFY(widget);
         widget->setConfiguration(config);
         dialog->findChild<QDialogButtonBox *>()->button(QDialogButtonBox::Ok)->click();
-    } else action->trigger();
+    } else if (channelMask != 15) manager->apply(config);
+    else action->trigger();
     QTRY_COMPARE(owner->operations().undoCount(), count + 1);
     QVERIFY(!manager->isStrokeRunning());
     nativeApply();
