@@ -75,14 +75,7 @@ let
     pythonPackages.sip
     pythonPackages.setuptools
   ];
-  runtimePyQt = pythonPackages.pyqt6.override {
-    withLocation = false;
-    withMultimedia = false;
-    withPdf = false;
-    withSerialPort = false;
-    withSpeech = false;
-    withWebSockets = false;
-  };
+  runtimePyQt = pkgs.callPackage ./pyqt-runtime.nix { };
   runtimePythonPath = lib.makeSearchPath pythonPackages.python.sitePackages [
     runtimePyQt
     pythonPackages.pyqt6-sip
