@@ -6,6 +6,7 @@
 #include <QMimeData>
 #include <QSignalSpy>
 #include <QTest>
+#include <functional>
 
 #include "nodes/kis_node_model.h"
 
@@ -44,6 +45,12 @@ public:
     {
         return createIndex(row, column, token<void>(id));
     }
+
+    void resetRows()
+    {
+        beginResetModel();
+        endResetModel();
+    }
 };
 
 const QMimeData *dropEnabledData = nullptr;
@@ -56,6 +63,7 @@ QModelIndex indexFromNodeResult;
 QModelIndex currentActiveNodeIndex;
 QList<QModelIndex> activeNodeIndexUpdates;
 QList<const KisNode *> selectionUpdates;
+std::function<void()> selectionCallback;
 int dummyColumnCount = 2;
 QList<QModelIndex> remainingIndexes;
 QList<QVariant> remainingValues;
@@ -158,6 +166,9 @@ void KisNodeModel::SetDataAccess::setActiveNodeIndex(KisNodeModel *, const QMode
 void KisNodeModel::SetDataAccess::setSelectionAdapterActiveNode(KisNodeModel *, const KisNodeSP &node)
 {
     selectionUpdates.append(node.data());
+    if (selectionCallback) {
+        selectionCallback();
+    }
 }
 
 int KisNodeModel::SetDataAccess::dummyColumns(const KisNodeModel *)
@@ -276,6 +287,10 @@ private Q_SLOTS:
     void repeatedActiveRoleDoesNotRepeatNotifications();
     void alternateActiveRoleRequestsIsolation();
     void removedNodeFallbackActivatesItsParent();
+    void activationResetsRows_data();
+    void activationResetsRows();
+    void activationDestroysModel_data();
+    void activationDestroysModel();
     void remainingRolesPreserveDelegateResult();
 };
 
@@ -291,6 +306,7 @@ void KisNodeModelSetDataContractTest::init()
     currentActiveNodeIndex = {};
     activeNodeIndexUpdates.clear();
     selectionUpdates.clear();
+    selectionCallback = {};
     dummyColumnCount = 2;
     remainingIndexes.clear();
     remainingValues.clear();
@@ -396,6 +412,69 @@ void KisNodeModelSetDataContractTest::remainingRolesPreserveDelegateResult()
     QCOMPARE(remainingValues, QList<QVariant>({value}));
     QCOMPARE(remainingRoles, QList<int>({Qt::ToolTipRole}));
     QCOMPARE(takeParentCount, 0);
+}
+
+void KisNodeModelSetDataContractTest::activationResetsRows_data()
+{
+    QTest::addColumn<int>("role");
+    QTest::addColumn<bool>("duringIsolation");
+    QTest::newRow("selection") << int(KisNodeModel::ActiveRole) << false;
+    QTest::newRow("alternate-selection") << int(KisNodeModel::AlternateActiveRole) << false;
+    QTest::newRow("isolation") << int(KisNodeModel::AlternateActiveRole) << true;
+}
+
+void KisNodeModelSetDataContractTest::activationResetsRows()
+{
+    QFETCH(int, role);
+    QFETCH(bool, duringIsolation);
+    TestNodeModel model;
+    const QModelIndex index = model.testIndex(3, 0, 7);
+    nodeFromIndexResult = nodeToken(4);
+    indexFromNodeResult = index;
+    QSignalSpy resetSpy(&model, &QAbstractItemModel::modelReset);
+    QSignalSpy changedSpy(&model, &QAbstractItemModel::dataChanged);
+    QSignalSpy isolationSpy(&model, &KisNodeModel::toggleIsolateActiveNode);
+
+    if (duringIsolation) {
+        connect(&model, &KisNodeModel::toggleIsolateActiveNode, &model, [&model] { model.resetRows(); });
+    } else {
+        selectionCallback = [&model] { model.resetRows(); };
+    }
+
+    QVERIFY(model.setData(index, true, role));
+    QCOMPARE(selectionUpdates, QList<const KisNode *>({nodeFromIndexResult.data()}));
+    QCOMPARE(resetSpy.count(), 1);
+    // A view must never receive an index into the rows discarded by activation.
+    QCOMPARE(changedSpy.count(), 0);
+    QCOMPARE(isolationSpy.count(), role == KisNodeModel::AlternateActiveRole ? 1 : 0);
+}
+
+void KisNodeModelSetDataContractTest::activationDestroysModel_data()
+{
+    activationResetsRows_data();
+}
+
+void KisNodeModelSetDataContractTest::activationDestroysModel()
+{
+    QFETCH(int, role);
+    QFETCH(bool, duringIsolation);
+    auto *model = new TestNodeModel;
+    const QModelIndex index = model->testIndex(3, 0, 7);
+    nodeFromIndexResult = nodeToken(4);
+    indexFromNodeResult = index;
+    QSignalSpy destroyedSpy(model, &QObject::destroyed);
+    QSignalSpy changedSpy(model, &QAbstractItemModel::dataChanged);
+    QSignalSpy isolationSpy(model, &KisNodeModel::toggleIsolateActiveNode);
+    if (duringIsolation) {
+        connect(model, &KisNodeModel::toggleIsolateActiveNode, this, [model] { delete model; });
+    } else {
+        selectionCallback = [model] { delete model; };
+    }
+
+    QVERIFY(model->setData(index, true, role));
+    QCOMPARE(destroyedSpy.count(), 1);
+    QCOMPARE(changedSpy.count(), 0);
+    QCOMPARE(isolationSpy.count(), duringIsolation ? 1 : 0);
 }
 
 QTEST_GUILESS_MAIN(KisNodeModelSetDataContractTest)

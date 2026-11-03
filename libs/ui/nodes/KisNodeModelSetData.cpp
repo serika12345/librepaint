@@ -5,6 +5,8 @@
 
 #include "kis_node_model.h"
 #include "kis_types.h"
+#include <QPersistentModelIndex>
+#include <QPointer>
 #include <qabstractitemmodel.h>
 #include <QtGlobal>
 #include <qvariant.h>
@@ -37,14 +39,25 @@ bool KisNodeModel::setData(const QModelIndex &index, const QVariant &value, int 
             return true;
         }
 
+        // Activating a GPU node can synchronously rebuild the facade and reset
+        // the model. The reset already notifies views about the replaced rows.
+        const QPersistentModelIndex changedIndex(index);
+        const QPointer<KisNodeModel> model(this);
         SetDataAccess::setActiveNodeIndex(this, newActiveNode);
         SetDataAccess::setSelectionAdapterActiveNode(this, activatedNode);
+        if (!model) {
+            return true;
+        }
 
         if (role == KisNodeModel::AlternateActiveRole) {
             Q_EMIT toggleIsolateActiveNode();
         }
 
-        Q_EMIT dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(SetDataAccess::dummyColumns(this)));
+        if (model && changedIndex.isValid()) {
+            const QModelIndex currentIndex(changedIndex);
+            Q_EMIT dataChanged(currentIndex.siblingAtColumn(0),
+                               currentIndex.siblingAtColumn(SetDataAccess::dummyColumns(this)));
+        }
         return true;
     }
 
