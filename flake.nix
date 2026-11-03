@@ -914,7 +914,7 @@
       linuxPackages = import ./nix/linux {
         pkgs = linuxPkgs;
         source = linuxBuildSource;
-        appImageRuntime = inputs.nix-appimage.packages.${linuxSystem}.appimage-runtimes.appimage-type2-runtime;
+        appImageRuntime = linuxPkgs.callPackage ./nix/linux/appimage-runtime.nix { };
         appImageAppRun = linuxAppImageAppRun;
         appImageExtraFiles = "${inputs.nix-appimage}/extra-files.sh";
         auditLinuxAppImage = ./scripts/platform/audit-linux-appimage.py;
