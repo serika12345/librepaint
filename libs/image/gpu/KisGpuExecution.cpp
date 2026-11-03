@@ -11,6 +11,13 @@
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
+namespace {
+ExecutionCode uniformPreparationCode(RenderOutcome::Code code)
+{
+    return code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded :
+        code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure;
+}
+}
 Execution::Execution(DevicePtr device, qsizetype bytes, qsizetype documents, qsizetype readbackBytes)
 {
     if (!device || device->thread() != QThread::currentThread() ||
@@ -52,6 +59,11 @@ DocumentAdmission Execution::open(const Snapshot &snapshot)
     if (d.documents.size() >= d.maximumDocuments || d.nextHandle == std::numeric_limits<quint64>::max()) {
         return {ExecutionCode::CapacityExceeded, 0, QStringLiteral("GPU document capacity exceeded")};
     }
+    if (!d.device->isRecordingFrame()) {
+        const auto prepared = d.renderer->prepareDefaultPixels(snapshot);
+        if (prepared.code != RenderOutcome::Recorded)
+            return {uniformPreparationCode(prepared.code), 0, prepared.diagnostic};
+    }
     const auto handle = ++d.nextHandle;
     Private::Document document;
     document.requested = snapshot;
@@ -69,6 +81,11 @@ ExecutionOutcome Execution::request(DocumentHandle handle, const Snapshot &snaps
     }
     if (document->requested == snapshot) return {ExecutionCode::Success, {}};
     if (document->serial == std::numeric_limits<quint64>::max()) return {ExecutionCode::CapacityExceeded, QStringLiteral("GPU document request sequence exhausted")};
+    if (!d.device->isRecordingFrame()) {
+        const auto prepared = d.renderer->prepareDefaultPixels(snapshot);
+        if (prepared.code != RenderOutcome::Recorded)
+            return {uniformPreparationCode(prepared.code), prepared.diagnostic};
+    }
     document->requested = snapshot;
     ++document->serial;
     return {ExecutionCode::Success, {}};
@@ -112,6 +129,11 @@ FrameOutcome Execution::beginFrame(PresentationSurface *surface)
         return {ExecutionCode::Busy, nullptr, nullptr, QStringLiteral("A GPU frame or pixel transfer is active")};
     retireCompletedReadback();
     if (d.device->isLost()) return {ExecutionCode::DeviceFailure, nullptr, nullptr, QStringLiteral("GPU device lost")};
+    for (const auto &document : d.documents) {
+        const auto prepared = d.renderer->prepareDefaultPixels(document.requested);
+        if (prepared.code != RenderOutcome::Recorded)
+            return {uniformPreparationCode(prepared.code), nullptr, nullptr, prepared.diagnostic};
+    }
     if (surface) {
         const auto acquired = surface->acquire();
         if (acquired.code != ExecutionCode::Success) return {acquired.code, nullptr, nullptr, acquired.diagnostic};
@@ -202,6 +224,9 @@ ExecutionOutcome Execution::materializeProjection(const LayerProjectionRequest &
     auto &d = *m_d;
     if (!d.onThread() || !result || !request.source) return {ExecutionCode::InvalidRequest, {}};
     if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, {}};
+    const auto prepared = d.renderer->prepareDefaultPixels(request.source);
+    if (prepared.code != RenderOutcome::Recorded)
+        return {uniformPreparationCode(prepared.code), prepared.diagnostic};
     const auto frame = beginReadbackFrame();
     if (frame.code != ExecutionCode::Success) return {frame.code, frame.diagnostic};
     const auto rollback = qScopeGuard([&] { if (d.active) cancelFrame(); });

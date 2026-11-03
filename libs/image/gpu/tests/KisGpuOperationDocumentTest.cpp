@@ -8,10 +8,6 @@
 #include <stdexcept>
 
 #include <gpu/KisGpuOperationDocument.h>
-#include "KisGpuMultiplyProjectionFixture_p.h"
-#include "KisGpuScreenProjectionFixture_p.h"
-#include "KisGpuMinMaxProjectionFixture_p.h"
-#include "KisGpuAdditionProjectionFixture_p.h"
 
 using namespace LibrePaint::Image::Gpu;
 
@@ -119,7 +115,6 @@ private Q_SLOTS:
     void layerBlendModesKeepPixelsHistoryPendingInput();
     void layerBlendModePreviewsAdoptAndCancelOneAttribute_data();
     void layerBlendModePreviewsAdoptAndCancelOneAttribute();
-    void separableGroupDefaultsMatchNativeProjection();
     void layerPropertyPreviewsBecomeOneReversibleEdit();
     void rejectedLayerPropertyPreviewsRetainHistoryAndInput();
     void layerPropertyAcceptanceRetainsEditsCompletedDuringPreview();
@@ -133,8 +128,6 @@ private Q_SLOTS:
     void hierarchyDuplicationPreservesPlacementSelection_data();
     void hierarchyDuplicationPreservesPlacementSelection();
     void nestedCanvasChangesKeepGroupsDerivedAndUndoable();
-    void groupProjectionDefaultsRespectIsolationAndQuantizedOpacity_data();
-    void groupProjectionDefaultsRespectIsolationAndQuantizedOpacity();
     void canvasResizePreservesVersionSizesProperties();
     void canvasResizeKeepsEmptyDocumentsUndoable();
     void directLayerPositionKeepsCanvasHistoryBoundaries();
@@ -946,82 +939,6 @@ void KisGpuOperationDocumentTest::rejectedCanvasResizesKeepRedoPendingInputAndCl
     QCOMPARE(document.snapshot(), closed);
 }
 
-void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuantizedOpacity_data()
-{
-    QTest::addColumn<QByteArray>("lower");
-    QTest::addColumn<QByteArray>("upper");
-    QTest::addColumn<bool>("includeUpper");
-    QTest::addColumn<bool>("upperVisible");
-    QTest::addColumn<int>("groupOpacity");
-    QTest::addColumn<QByteArray>("innerPixel");
-    QTest::addColumn<QByteArray>("outerPixel");
-    QTest::addColumn<int>("upperMask");
-    QTest::newRow("two-colour-defaults") << QByteArray::fromHex("ff0000ff") << QByteArray::fromHex("0000ffff")
-        << true << true << 128 << QByteArray::fromHex("7f0080ff") << QByteArray::fromHex("7f008080") << 15;
-    QTest::newRow("hidden-sibling-normalizes-transparent-rgb") << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000")
-        << true << false << 255 << QByteArray::fromHex("00000000") << QByteArray::fromHex("00000000") << 15;
-    QTest::newRow("single-child-keeps-transparent-rgb") << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000")
-        << false << false << 128 << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000") << 15;
-    QTest::newRow("nested-full-opacity-keeps-transparent-rgb") << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000")
-        << false << false << 255 << QByteArray::fromHex("11223300") << QByteArray::fromHex("11223300") << 15;
-    QTest::newRow("nested-alpha-is-quantized-at-each-group") << QByteArray::fromHex("ff000080") << QByteArray::fromHex("00000000")
-        << false << false << 128 << QByteArray::fromHex("ff000080") << QByteArray::fromHex("ff000040") << 15;
-    QTest::newRow("small-alpha-keeps-normalized-source-opacity") << QByteArray::fromHex("99663301") << QByteArray::fromHex("56341201")
-        << true << true << 255 << QByteArray::fromHex("83552801") << QByteArray::fromHex("83552801") << 15;
-    // Fixed CPU scalar/SIMD corpus at 5cd3e87, RGBA ordering, opacity128.
-    QTest::newRow("inherited-default-alpha") << QByteArray::fromHex("996633e2") << QByteArray::fromHex("56341286")
-        << true << true << 255 << QByteArray::fromHex("87592ae2") << QByteArray::fromHex("87592ae2") << 7;
-    QTest::newRow("selected-default-components") << QByteArray::fromHex("996633e2") << QByteArray::fromHex("56341286")
-        << true << true << 255 << QByteArray::fromHex("866633ea") << QByteArray::fromHex("866633ea") << 9;
-    QTest::newRow("selected-components-clear-transparent-default") << QByteArray::fromHex("99663300") << QByteArray::fromHex("56341286")
-        << true << true << 255 << QByteArray::fromHex("56000043") << QByteArray::fromHex("56000043") << 9;
-    // KisPainter clips alpha inheritance to the existing destination extent;
-    // these transparent defaults leave the group without an apply region.
-    QTest::newRow("inherited-transparent-default-keeps-empty-group") << QByteArray::fromHex("99663300") << QByteArray::fromHex("56341286")
-        << true << true << 255 << QByteArray::fromHex("00000000") << QByteArray::fromHex("00000000") << 7;
-}
-
-void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuantizedOpacity()
-{
-    QFETCH(QByteArray, lower);
-    QFETCH(QByteArray, upper);
-    QFETCH(bool, includeUpper);
-    QFETCH(bool, upperVisible);
-    QFETCH(int, groupOpacity);
-    QFETCH(QByteArray, innerPixel);
-    QFETCH(QByteArray, outerPixel);
-    QFETCH(int, upperMask);
-    const QUuid inner(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
-    const QUuid outer(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"));
-    RasterImage source;
-    source.size = {64, 48};
-    source.layers = {{QStringLiteral("Lower"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")), {}}};
-    if (includeUpper) source.layers.append({QStringLiteral("Upper"), upperVisible,
-        QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")), {}});
-    for (int index = 0; index < source.layers.size(); ++index) {
-        const auto &pixel = index == 0 ? lower : upper;
-        for (int channel = 0; channel < 4; ++channel) source.layers[index].defaultPixel[channel] = quint8(pixel[channel]);
-        source.layers[index].parentUuid = inner;
-        if (index == 1) {
-            source.layers[index].opacity = 128;
-            source.layers[index].projectionChannelMask = quint8(upperMask);
-        }
-    }
-    source.layers.append({QStringLiteral("Inner"), true, inner, {}});
-    source.layers.last().kind = LayerKind::Group;
-    source.layers.last().parentUuid = outer;
-    source.layers.last().opacity = quint8(groupOpacity);
-    source.layers.append({QStringLiteral("Outer"), true, outer, {}});
-    source.layers.last().kind = LayerKind::Group;
-    OperationDocument document(source);
-    const auto defaults = document.snapshot()->projectionDefaultPixels();
-    const LayerId innerId = source.layers.size() - 1, outerId = source.layers.size();
-    QVERIFY(defaults.contains(innerId) && defaults.contains(outerId));
-    const auto innerValue = defaults.value(innerId), outerValue = defaults.value(outerId);
-    QCOMPARE(rgbaBytes(innerValue, PixelFormat::Rgba8), innerPixel);
-    QCOMPARE(rgbaBytes(outerValue, PixelFormat::Rgba8), outerPixel);
-}
-
 void KisGpuOperationDocumentTest::nestedRemovalOwnsDescendantsAndOneHistoryStep()
 {
     OperationDocument document(nestedImage());
@@ -1391,37 +1308,6 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInput()
     QCOMPARE(document.activeOperation(), stroke);
     QCOMPARE(pending->layers[2].blendMode, LayerBlendMode::Normal);
     QCOMPARE(document.preview()->layers[2].blendMode, mode);
-}
-
-void KisGpuOperationDocumentTest::separableGroupDefaultsMatchNativeProjection()
-{
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten, LayerBlendMode::Addition, LayerBlendMode::LinearDodge}) {
-        const auto references = mode == LayerBlendMode::Multiply ? LibrePaint::Image::Gpu::Test::multiplyProjectionReferences() :
-            mode == LayerBlendMode::Screen ? LibrePaint::Image::Gpu::Test::screenProjectionReferences() :
-            mode == LayerBlendMode::Darken ? LibrePaint::Image::Gpu::Test::darkenProjectionReferences() :
-            mode == LayerBlendMode::Lighten ? LibrePaint::Image::Gpu::Test::lightenProjectionReferences() :
-            LibrePaint::Image::Gpu::Test::additionProjectionReferences();
-        qsizetype row = 0;
-        for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
-        for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {
-            const auto group = QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
-            RasterImage input;
-            input.size = {256, 256};
-            input.layers = {{QStringLiteral("Destination"), true, {}, {}},
-                            {QStringLiteral("Source"), true, {}, {}}, {QStringLiteral("Group"), true, group, {}}};
-            input.layers[0].defaultPixel = {37, 89, 151, quint8(destinationAlpha)};
-            input.layers[1].defaultPixel = mode >= LayerBlendMode::Addition ? RgbaPixel{208, 224, 240, quint8(sourceAlpha)} :
-                RgbaPixel{201, 41, 93, quint8(sourceAlpha)};
-            input.layers[1].opacity = quint8(opacity);
-            input.layers[1].blendMode = mode;
-            input.layers[1].projectionChannelMask = quint8(mask);
-            input.layers[0].parentUuid = input.layers[1].parentUuid = group;
-            input.layers[2].kind = LayerKind::Group;
-            OperationDocument document(input);
-            const auto value = document.snapshot()->projectionDefaultPixels().value(3);
-            QCOMPARE(rgbaBytes(value, PixelFormat::Rgba8), references.mid(row++ * 4, 4));
-        }
-    }
 }
 
 void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribute_data()

@@ -6,8 +6,8 @@
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuPaintJob_p.h"
 #include "KisGpuLayerAllocation_p.h"
-#include "KisGpuRgba8AlphaBlend_p.h"
-#include "KisGpuRgba16Compositing_p.h"
+#include "KisGpuBlendModes_p.h"
+#include "KisGpuProjectionParameters_p.h"
 #include <QFile>
 #include <QThread>
 #include <QSet>
@@ -19,11 +19,6 @@
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
-struct CompositeParameters {
-    quint32 opacityBits = 0x3f800000, flags = 0, channelMask = 15, blendModeOpacity = 0;
-    qint32 sourceLeft = 0, sourceTop = 0, sourceRight = 0, sourceBottom = 0;
-    qint32 maskLeft = 0, maskTop = 0, maskRight = 0, maskBottom = 0;
-};
 struct CompositeUniform
 {
     CompositeParameters values[2]{};

@@ -1027,6 +1027,11 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         if (!available.contains(layer) || selected.contains(layer)) return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read layer is unavailable or repeated"));
         selected.insert(layer);
     }
+    const auto defaults = d.renderer->prepareDefaultPixels(pinned);
+    if (defaults.code != RenderOutcome::Recorded)
+        return rejected(defaults.code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded :
+            defaults.code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure,
+            defaults.diagnostic);
     QList<LayerId> generatedLayers = layers;
     if (layerProjection) for (const auto id : layers) {
         const auto node = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(), [&](const auto &value) { return value.id == id; });

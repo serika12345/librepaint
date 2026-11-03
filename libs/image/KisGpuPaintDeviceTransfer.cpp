@@ -53,10 +53,10 @@ KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintIm
         }
     };
     if (layer) {
-        setDefault(version->projectionDefaultPixels().value(layer));
         const auto pixels = image->execution().readLayerPixels(image->handle(), version, layer, capacity);
         if (pixels.code != Gpu::ExecutionCode::Success)
             throw std::runtime_error(pixels.diagnostic.toStdString());
+        setDefault(version->projectionDefaultPixels().value(layer));
         for (const auto &tile : pixels.tiles)
             write(tile.rgba, QRect(tile.coordinate * Gpu::RgbaTile::Size, QSize(Gpu::RgbaTile::Size, Gpu::RgbaTile::Size)));
     } else {

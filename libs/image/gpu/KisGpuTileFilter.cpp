@@ -6,7 +6,6 @@
 #include "KisGpuLayerAllocation_p.h"
 #include <algorithm>
 #include <cstring>
-#include "KisGpuRgba16Compositing_p.h"
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;

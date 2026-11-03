@@ -7,7 +7,7 @@
 #define KIS_GPU_OPERATION_VALIDATION_P_H
 
 #include "KisGpuOperationDocument.h"
-#include "KisGpuRgba16Compositing_p.h"
+#include "KisGpuBlendModes_p.h"
 #include "KisGpuPaintGeometry_p.h"
 #include <QSet>
 #include <QHash>

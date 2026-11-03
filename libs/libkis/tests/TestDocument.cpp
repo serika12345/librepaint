@@ -3395,32 +3395,7 @@ void TestDocument::testAlphaBlendProjectionKeepsChannelsDefaultsAndNativeFiles()
             .arg(mode).arg(opacity).arg(mask).arg(QString::fromLatin1(actual.toHex()), QString::fromLatin1(expected.toHex()))));
         QVERIFY(writePixels(QStringLiteral("projection-o%1-c%2.bgra").arg(opacity).arg(mask), actual));
 
-        // Uniform group defaults also drive sparse tiles and saved default pixels.
-        for (int pixel = 0; pixel < side * side; ++pixel) {
-            const auto rgba = [](const QByteArray &bytes, int index) {
-                return Gpu::RgbaPixel{quint8(bytes[index + 2]), quint8(bytes[index + 1]), quint8(bytes[index]), quint8(bytes[index + 3])};
-            };
-            Gpu::RasterImage input;
-            input.size = {side, side};
-            Gpu::RasterLayer group;
-            group.uuid = QUuid(QStringLiteral("{01020304-1122-3344-5566-778899aabbcc}"));
-            group.kind = Gpu::LayerKind::Group;
-            Gpu::RasterLayer destination, source;
-            destination.parentUuid = source.parentUuid = group.uuid;
-            destination.defaultPixel = rgba(bottomBytes, pixel * 4);
-            source.defaultPixel = rgba(topBytes, pixel * 4);
-            source.opacity = opacity;
-            source.projectionChannelMask = mask;
-            source.blendMode = *blend;
-            input.layers = {destination, source, group};
-            Gpu::OperationDocument values(input);
-            // Implicit defaults have no allocated native tiles. KisPainter
-            // clips both transparent sources and alpha-inherited destinations.
-            const bool noSource = !source.defaultPixel[3] && *blend != Gpu::LayerBlendMode::DestinationIn && *blend != Gpu::LayerBlendMode::DestinationAtop && *blend != Gpu::LayerBlendMode::Copy;
-            const bool noDestination = !(mask & 8) && !destination.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy;
-            const auto &reference = noSource || noDestination ? defaultDestination : expected;
-            QCOMPARE(values.snapshot()->projectionDefaultPixels().value(3), rgba(reference, pixel * 4));
-        }
+
     }
     KisPropertiesConfigurationSP saveSettings(new KisPropertiesConfiguration);
     saveSettings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));

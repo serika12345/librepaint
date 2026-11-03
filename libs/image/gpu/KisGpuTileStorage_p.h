@@ -172,6 +172,8 @@ struct TileRenderer::Private
     Detail::NativeBindingLayout layout;
     Detail::NativeComputePipeline pipeline;
     std::map<quint32, Detail::NativeComputePipeline> blendPipelines;
+    QByteArray defaultPixelsKey;
+    QHash<LayerId, RgbaPixel> rawDefaultPixels, maskedDefaultPixels;
     Detail::NativeBindingLayout projectionLayout;
     Detail::NativeComputePipeline projectionPipeline;
     Detail::NativeBindingLayout pairedProjectionLayout;

@@ -420,6 +420,11 @@ ExecutionOutcome Execution::checkRegionFill(DocumentHandle handle, const RegionF
     if (d.maximumReadbackBytes < 20)
         return {ExecutionCode::CapacityExceeded, QStringLiteral("Contiguous fill admission metadata exceeds the readback capacity")};
     retireCompletedReadback();
+    const auto defaults = d.renderer->prepareDefaultPixels(request->source);
+    if (defaults.code != RenderOutcome::Recorded)
+        return {defaults.code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded :
+            defaults.code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure,
+            defaults.diagnostic};
     const auto frame = beginReadbackFrame();
     if (frame.code != ExecutionCode::Success) return {frame.code, frame.diagnostic};
     const auto rollback = qScopeGuard([&] { if (d.active) cancelFrame(); d.renderer->m_d->regionCache.clear(); });

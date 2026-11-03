@@ -1959,6 +1959,11 @@ KoColor KisPaintDevice::defaultPixel() const
         }
         for (const auto &layer : version->layers) {
             if (layer.id != projectedLayer) continue;
+            if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Group) {
+                const auto prepared = m_d->gpuImage->execution().readPixels(m_d->gpuImage->handle(), version, {}, {layer.id}, false);
+                if (prepared.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
+                    throw std::runtime_error(prepared.diagnostic.toStdString());
+            }
             const auto rgba = layer.kind == LibrePaint::Image::Gpu::LayerKind::Group ?
                 version->projectionDefaultPixels().value(layer.id) : layer.defaultPixel;
             return gpuDefaultColor(rgba, version->format, colorSpace());

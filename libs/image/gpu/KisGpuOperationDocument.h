@@ -1044,10 +1044,10 @@ public:
     /** Admission state is queried on the OperationDocument owner's thread. */
     bool isCommitted() const { return m_committed; }
     OperationId pendingOperation() const { return m_committed ? OperationId{} : m_pendingOperation; }
-    /** Uniform projection values before each node's own opacity. Group values
-     * derive from child defaults, order, visibility, opacity and projection components.
-     */
-    QHash<LayerId, RgbaPixel> projectionDefaultPixels() const;
+    /** Uniform node values before own opacity; applyTransparency includes its mask.
+     * Execution prepares GPU group values at document/read boundaries. Standalone
+     * renderers use prepareDefaultPixels(); missing values throw std::logic_error. */
+    QHash<LayerId, RgbaPixel> projectionDefaultPixels(bool applyTransparency = false) const;
     /** Bottom-to-top inputs for the root, or one group's isolated subtree.
      * A group boundary excludes its own attributes and all outside state.
      * Unavailable group identities throw std::invalid_argument.
@@ -1099,6 +1099,11 @@ public:
 private:
     friend class OperationDocument;
     friend class PaintImage;
+    friend class TileRenderer;
+    QByteArray projectionDefaultsKey() const;
+    bool projectionDefaultsReady() const;
+    void setProjectionDefaultPixels(const QByteArray &key, const QHash<LayerId, RgbaPixel> &raw,
+        const QHash<LayerId, RgbaPixel> &masked) const;
     struct RenderedLayers;
     DocumentVersion();
     /** Copies the state and folds every rendered layer into its pixels. */

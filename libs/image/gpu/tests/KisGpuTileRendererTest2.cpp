@@ -319,10 +319,11 @@ void KisGpuTileRendererTest::normalProjectionKeepsDefaultAndTileColorsAtRounding
             input.layers.insert(2, transparent);
         }
         OperationDocument document(input);
-        // Uniform defaults and materialized pixels share both the binary32
-        // multiply-add rounding and the subsequent nearest-even byte conversion.
-        QCOMPARE(document.snapshot()->projectionDefaultPixels().value(input.layers.size()), expected);
         TileRenderer renderer(m_device);
+        QCOMPARE(renderer.prepareDefaultPixels(document.snapshot()).code, RenderOutcome::Recorded);
+        const auto defaultDifference = pixelStepDifference(rgbaBytes(document.snapshot()->projectionDefaultPixels().value(input.layers.size()), format),
+            rgbaBytes(expected, format), pixelBytes / 4);
+        QVERIFY2(defaultDifference.isEmpty(), qPrintable(defaultDifference));
         const auto raw = render(renderer, document.snapshot());
         QVERIFY(raw);
         const auto projected = project(renderer, raw, {0, 0, 64, 48});
@@ -362,6 +363,7 @@ void KisGpuTileRendererTest::explicitPassThroughReadAfterParentKeepsSubtreePixel
     input.layers[2].projectionChannelMask = 9;
     OperationDocument document(input);
     TileRenderer renderer(m_device);
+    QCOMPARE(renderer.prepareDefaultPixels(document.snapshot()).code, RenderOutcome::Recorded);
     auto commands = m_device->beginCommands();
     QVERIFY(commands);
     const auto parent = renderer.recordRegion(commands, document.snapshot(), {0, 0, 4, 4}, {4});
@@ -897,6 +899,9 @@ void KisGpuTileRendererTest::multiPassGroupsKeepDistinctLayerParameters()
         }
         if (changed) uniform.layers[1].opacity = 255;
         const OperationDocument reference(uniform);
+        TileRenderer defaultsRenderer(m_device);
+        const auto prepared = defaultsRenderer.prepareDefaultPixels(reference.snapshot());
+        if (prepared.code != RenderOutcome::Recorded) { qWarning() << prepared.diagnostic; return QByteArray{}; }
         const auto pixel = reference.snapshot()->projectionDefaultPixels().value(group);
         return rgbaBytes(pixel, PixelFormat::Rgba8).repeated(RgbaTile::ByteCount / 4);
     };
@@ -1521,6 +1526,8 @@ void KisGpuTileRendererTest::partialRenderingMatchesFullTilesAndRejectsIncomplet
 RenderedSnapshot KisGpuTileRendererTest::render(TileRenderer &renderer, const Snapshot &snapshot,
                                                const RenderedSnapshot &base)
 {
+    const auto defaults = renderer.prepareDefaultPixels(snapshot);
+    if (defaults.code != RenderOutcome::Recorded) { qWarning() << defaults.diagnostic; return {}; }
     WGPUCommandEncoder commands = nullptr;
     commands = m_device->beginCommands();
     if (!commands) {

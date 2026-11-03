@@ -79,6 +79,11 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
     const Layer *definition = nullptr;
     for (const auto &value : pinned->layers) if (value.id == layer) { available = true; definition = &value; }
     if (!available) return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Color sample layer is unavailable"));
+    const auto defaults = d.renderer->prepareDefaultPixels(pinned);
+    if (defaults.code != RenderOutcome::Recorded)
+        return rejected(defaults.code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded :
+            defaults.code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure,
+            defaults.diagnostic);
     const qint64 extent = radius - 1;
     constexpr qint64 limit = OperationDocument::CoordinateLimit;
     if (qint64(point.x()) - extent < -limit || qint64(point.y()) - extent < -limit ||

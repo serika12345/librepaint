@@ -7,11 +7,7 @@ kis_add_library(kritaimagegpuoperations SHARED
     KisGpuAffineTransform.cpp
     KisGpuAffineDocument.cpp
     KisGpuCanvasResize.cpp
-    KisGpuLayerProjectionValues.cpp
-    KisGpuCoupledColorBlend.cpp
-    KisGpuRgba8AlphaBlend.cpp
-    KisGpuRgba16Compositing.cpp
-    KisGpuCopyCompositing.cpp
+    KisGpuLayerInputs.cpp
     KisGpuPixelData.cpp
     KisGpuRasterOperations.cpp
     KisGpuRegionFill.cpp
@@ -47,6 +43,7 @@ add_library(kritaimagegputiles OBJECT
     KisGpuPaintJob.cpp
     KisGpuTileRenderer.cpp
     KisGpuTileProjection.cpp
+    KisGpuDefaultPixels.cpp
     KisGpuTileTranslation.cpp
     KisGpuSelectedTranslation.cpp
     KisGpuTileAffine.cpp

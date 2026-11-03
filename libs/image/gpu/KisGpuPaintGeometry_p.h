@@ -7,8 +7,7 @@
 
 #include "KisGpuOperationDocument.h"
 #include "KisGpuBasicCurveControls.h"
-#include "KisGpuRgba8Compositing_p.h"
-#include "KisGpuRgba16Compositing_p.h"
+#include "KisGpuBlendModes_p.h"
 #include <QRect>
 #include <optional>
 

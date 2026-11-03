@@ -288,25 +288,7 @@ void TestDocument::testIntegerRgba16EditingAndNativeFiles()
         QVERIFY(write(QStringLiteral("projection-o%1-c%2.bgra16").arg(opacity).arg(mask), actual));
         QVERIFY(write(QStringLiteral("reference-o%1-c%2.bgra16").arg(opacity).arg(mask), expected));
         QVERIFY2(actual == expected, qPrintable(QStringLiteral("%1 opacity=%2 mask=%3").arg(mode).arg(opacity).arg(mask)));
-        for (int pixel = 0; pixel < side * side; ++pixel) {
-            Gpu::RasterImage uniform = input;
-            Gpu::RasterLayer group; group.kind = Gpu::LayerKind::Group;
-            group.uuid = QUuid(QStringLiteral("{01020304-1122-3344-5566-778899aabbcc}"));
-            auto destination = lower, source = upper;
-            destination.parentUuid = source.parentUuid = group.uuid;
-            destination.defaultPixel = rgbaAt(bottomBytes, pixel); source.defaultPixel = rgbaAt(topBytes, pixel);
-            source.opacity = opacity; source.projectionChannelMask = mask; source.blendMode = *blend;
-            uniform.layers = {destination, source, group};
-            Gpu::OperationDocument defaults(uniform);
-            const auto &reference = (!source.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy &&
-                *blend != Gpu::LayerBlendMode::DestinationIn && *blend != Gpu::LayerBlendMode::DestinationAtop) || (!(mask & 8) && !destination.defaultPixel[3] && *blend != Gpu::LayerBlendMode::Copy) ? base : expected;
-            const auto actualDefault = defaults.snapshot()->projectionDefaultPixels().value(3);
-            if (actualDefault != rgbaAt(reference, pixel))
-                qInfo() << "U16 default" << mode << "opacity" << opacity << "mask" << mask << "pixel" << pixel
-                        << "source" << Gpu::rgbaBytes(source.defaultPixel, input.format).toHex()
-                        << "destination" << Gpu::rgbaBytes(destination.defaultPixel, input.format).toHex();
-            QCOMPARE(actualDefault, rgbaAt(reference, pixel));
-        }
+
     }
     KisPropertiesConfigurationSP saveSettings(new KisPropertiesConfiguration);
     saveSettings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));

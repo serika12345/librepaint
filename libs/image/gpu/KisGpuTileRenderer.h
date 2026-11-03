@@ -101,6 +101,8 @@ public:
     TileRenderer &operator=(const TileRenderer &) = delete;
 
     /** Generates all sparse layer tiles, including pixels outside the canvas. */
+    /** Prepares uniform group values before beginning a command frame. */
+    RenderOutcome prepareDefaultPixels(const Snapshot &document);
     RenderOutcome record(WGPUCommandEncoder commands, const Snapshot &document,
                          const RenderedSnapshot &base = {});
     /** Generates complete tiles intersecting the region for exactly these layers. */

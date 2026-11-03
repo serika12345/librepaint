@@ -15,6 +15,9 @@
 #include <QSet>
 #include <QHash>
 #include <mutex>
+#include <QDataStream>
+#include <QIODevice>
+#include <QCryptographicHash>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
@@ -159,6 +162,8 @@ struct DocumentVersion::RenderedLayers
 {
     mutable std::mutex mutex;
     QHash<LayerId, LayerPixelsSP> layers;
+    QByteArray defaultsKey;
+    QHash<LayerId, RgbaPixel> rawDefaults, maskedDefaults;
 };
 
 DocumentVersion::DocumentVersion() : m_rendered(std::make_shared<RenderedLayers>()) {}
@@ -177,6 +182,9 @@ DocumentVersion::DocumentVersion(const DocumentVersion &other)
     {
         const std::lock_guard<std::mutex> lock(other.m_rendered->mutex);
         rendered = other.m_rendered->layers;
+        m_rendered->defaultsKey = other.m_rendered->defaultsKey;
+        m_rendered->rawDefaults = other.m_rendered->rawDefaults;
+        m_rendered->maskedDefaults = other.m_rendered->maskedDefaults;
     }
     if (rendered.isEmpty()) return;
     for (auto &layer : layers) {
@@ -186,6 +194,59 @@ DocumentVersion::DocumentVersion(const DocumentVersion &other)
         layer.defaultPixel = pixels->defaultPixel;
         layer.operations.clear();
     }
+}
+
+QByteArray DocumentVersion::projectionDefaultsKey() const
+{
+    QByteArray metadata;
+    QDataStream stream(&metadata, QIODevice::WriteOnly);
+    stream << quint8(format) << quint64(layers.size());
+    for (const auto &layer : layers) {
+        stream << layer.id << quint8(layer.kind) << layer.uuid << layer.parentUuid
+            << layer.visible << layer.passThrough << layer.opacity << quint16(layer.blendMode)
+            << layer.projectionChannelMask;
+        for (const auto component : layer.defaultPixel) stream << component;
+        stream << quint8(hasEnabledTransparencyMask(layer) ? layer.transparencyMask->defaultCoverage() : 255);
+    }
+    return QCryptographicHash::hash(metadata, QCryptographicHash::Sha256);
+}
+
+bool DocumentVersion::projectionDefaultsReady() const
+{
+    if (std::none_of(layers.cbegin(), layers.cend(), [](const auto &layer) {
+            return layer.kind == LayerKind::Group ||
+                (hasEnabledTransparencyMask(layer) && layer.transparencyMask->defaultCoverage() != 255);
+        })) return true;
+    const auto key = projectionDefaultsKey();
+    const std::lock_guard<std::mutex> lock(m_rendered->mutex);
+    return m_rendered->defaultsKey == key;
+}
+
+void DocumentVersion::setProjectionDefaultPixels(const QByteArray &key,
+    const QHash<LayerId, RgbaPixel> &raw, const QHash<LayerId, RgbaPixel> &masked) const
+{
+    const std::lock_guard<std::mutex> lock(m_rendered->mutex);
+    m_rendered->defaultsKey = key;
+    m_rendered->rawDefaults = raw;
+    m_rendered->maskedDefaults = masked;
+}
+
+QHash<LayerId, RgbaPixel> DocumentVersion::projectionDefaultPixels(bool applyTransparency) const
+{
+    const auto key = projectionDefaultsKey();
+    {
+        const std::lock_guard<std::mutex> lock(m_rendered->mutex);
+        if (m_rendered->defaultsKey == key)
+            return applyTransparency ? m_rendered->maskedDefaults : m_rendered->rawDefaults;
+    }
+    QHash<LayerId, RgbaPixel> result;
+    for (const auto &layer : layers) {
+        if (layer.kind == LayerKind::Group || (applyTransparency && hasEnabledTransparencyMask(layer) &&
+            layer.transparencyMask->defaultCoverage() != 255))
+            throw std::logic_error("GPU projection defaults have not been prepared");
+        result.insert(layer.id, layer.kind == LayerKind::Paint ? layer.defaultPixel : RgbaPixel{});
+    }
+    return result;
 }
 
 void DocumentVersion::setRenderedPixels(LayerId layer, const LayerPixelsSP &pixels) const
@@ -2494,8 +2555,7 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
             if (down && request.homogeneousComposition) {
                 output.defaultPixel = defaults.value(visible.first()->id, visible.first()->defaultPixel);
                 if (hasEnabledTransparencyMask(*visible.first())) {
-                    const auto coverage = visible.first()->transparencyMask->defaultCoverage();
-                    output.defaultPixel[3] = quint16((quint64(output.defaultPixel[3]) * coverage + 127u) / 255u);
+                    output.defaultPixel = before->projectionDefaultPixels(true).value(visible.first()->id);
                 }
                 output.position = visible.first()->position;
             }

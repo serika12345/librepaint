@@ -7,8 +7,7 @@
 #include "KisGpuPaintJob_p.h"
 #include "KisGpuPipelineCache_p.h"
 #include <QCryptographicHash>
-#include "KisGpuRgba8AlphaBlend_p.h"
-#include "KisGpuRgba16Compositing_p.h"
+#include "KisGpuBlendModes_p.h"
 
 #include <QFile>
 #include <QCryptographicHash>
@@ -349,6 +348,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         (base && (base->m_data->owner != d.budget || base->document()->documentId() != document->documentId()))) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU versions require their owning device and document")};
     }
+    if (!document->projectionDefaultsReady() && std::any_of(document->layers.cbegin(), document->layers.cend(),
+            [](const auto &layer) { return layer.kind == LayerKind::Group; }))
+        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Prepare GPU default pixels before recording this document")};
     if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
     if (!d.selectionZeroUploaded) {
         wgpuCommandEncoderClearBuffer(commands, d.unusedSelection.get(), 0, SelectionMask::AlphaTileBytes);
