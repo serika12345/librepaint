@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# Unattended Codex loop for issue #89.
+#
+# Usage (on nixos, from the repository root):
+#   scripts/agent-loop/start      # launch detached
+#   scripts/agent-loop/status     # show current iteration and recent results
+#   touch build/agent-loop/STOP   # stop after the current iteration
+#
+# Each iteration runs one fresh `codex exec` session with prompt.md, then
+# guarantees commit + push, and periodically runs the full `verify` so the
+# next iteration sees regressions.
+
+set -uo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$repo_root"
+
+if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
+    exec nix develop "$repo_root#test" --command "$0" "$@"
+fi
+export PATH="$repo_root/scripts:$PATH"
+
+branch="${AGENT_LOOP_BRANCH:-feature/issue-89-gpu-engine-rewrite}"
+iteration_timeout="${AGENT_LOOP_ITERATION_TIMEOUT:-150m}"
+verify_every="${AGENT_LOOP_VERIFY_EVERY:-4}"
+verify_timeout="${AGENT_LOOP_VERIFY_TIMEOUT:-4h}"
+# Prefer the newest Codex bundled with the VS Code extension; the Nix profile build lags behind ~/.codex/config.toml.
+codex_bin="${AGENT_LOOP_CODEX:-$(ls -t "$HOME"/.vscode-server/extensions/openai.chatgpt-*/bin/linux-x86_64/codex \
+    "$HOME"/.vscode/extensions/openai.chatgpt-*/bin/linux-x86_64/codex 2>/dev/null | head -1)}"
+codex_bin="${codex_bin:-codex}"
+state_dir="$repo_root/build/agent-loop"
+log_dir="$state_dir/logs"
+mkdir -p "$log_dir"
+
+exec 9>"$state_dir/lock"
+if ! flock -n 9; then
+    echo "agent-loop: another loop is running" >&2
+    exit 1
+fi
+
+iteration="$(cat "$state_dir/iteration" 2>/dev/null || echo 0)"
+stuck=0
+backoff=0
+
+say() { printf '%s %s\n' "$(date '+%F %T')" "$*" | tee -a "$state_dir/loop.log"; }
+
+current_branch="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "$current_branch" != "$branch" ]]; then
+    say "worktree is on $current_branch, expected $branch"
+    exit 1
+fi
+
+push_with_retry() {
+    local attempt
+    for attempt in 1 2 3 4 5; do
+        if git push -q origin "HEAD:$branch"; then return 0; fi
+        git pull -q --rebase origin "$branch" || git rebase --abort 2>/dev/null
+        sleep $((attempt * 30))
+    done
+    say "push failed after retries"
+    return 1
+}
+
+commit_leftovers() {
+    # Tracked changes plus untracked files in source directories only.
+    git add -u
+    git ls-files --others --exclude-standard -- libs plugins scripts docs cmake packaging sdk benchmarks \
+        | while IFS= read -r path; do
+            if [[ "$(stat -c %s "$path" 2>/dev/null || echo 0)" -lt 2000000 ]]; then git add -- "$path"; fi
+        done
+    if ! git diff --cached --quiet; then
+        git commit -q -m "WIP: agent-loop iteration $iteration leftover changes
+
+Committed by scripts/agent-loop/loop because the iteration ended with
+uncommitted work. The next iteration continues from here." && say "committed leftovers"
+    fi
+}
+
+run_verify() {
+    local out="$state_dir/verify-last.log"
+    say "verify start"
+    local rc
+    timeout --kill-after=5m "$verify_timeout" ./scripts/verify >"$out" 2>&1
+    rc=$?
+    {
+        echo "commit: $(git rev-parse --short HEAD)"
+        echo "finished: $(date '+%F %T')"
+        echo "exit: $rc"
+        echo "--- failures ---"
+        grep -E '\*\*\*Failed|\*\*\*Timeout|Exception|Not Run|error:|FAILED|FAIL!' "$out" | head -60
+        echo "--- tail ---"
+        tail -25 "$out"
+    } >"$state_dir/verify-last.txt"
+    say "verify exit=$rc"
+}
+
+while true; do
+    if [[ -e "$state_dir/STOP" ]]; then say "STOP file found, exiting"; exit 0; fi
+    if [[ -e "$state_dir/DONE" ]]; then say "DONE file found, exiting"; exit 0; fi
+
+    iteration=$((iteration + 1))
+    echo "$iteration" >"$state_dir/iteration"
+    log="$log_dir/iteration-$(printf '%04d' "$iteration").log"
+
+    git fetch -q origin "$branch" && git rebase -q "origin/$branch" 2>/dev/null || git rebase --abort 2>/dev/null
+    before="$(git rev-parse HEAD)"
+
+    {
+        cat scripts/agent-loop/prompt.md
+        echo
+        echo "## ループ駆動からの文脈"
+        echo
+        echo "- 反復番号: $iteration"
+        echo "- 現在版: $(git rev-parse --short HEAD)"
+        echo "- 直前までのコミットなし連続回数: $stuck"
+        if [[ -f "$state_dir/verify-last.txt" ]]; then
+            echo "- 最新の全体 verify 要約（build/agent-loop/verify-last.txt）:"
+            echo '```'
+            head -80 "$state_dir/verify-last.txt"
+            echo '```'
+        else
+            echo "- 全体 verify はまだ実行されていない。"
+        fi
+        if (( stuck >= 2 )); then
+            echo
+            echo "**直近 $stuck 回の反復でコミットが増えていない。現在の項目を小さく分割するか、阻害を Issue に記録して後回しにし、必ず別の前進をコミットせよ。**"
+        fi
+    } >"$state_dir/prompt-current.md"
+
+    say "iteration $iteration start ($(git rev-parse --short HEAD))"
+    timeout --kill-after=5m "$iteration_timeout" \
+        "$codex_bin" exec --dangerously-bypass-approvals-and-sandbox -C "$repo_root" - \
+        <"$state_dir/prompt-current.md" >"$log" 2>&1
+    rc=$?
+    say "iteration $iteration codex exit=$rc"
+
+    # Kill test or build processes the session may have left behind in this worktree.
+    pkill -f "$repo_root/build/tdd-linux" 2>/dev/null || true
+
+    commit_leftovers
+    push_with_retry
+
+    after="$(git rev-parse HEAD)"
+    if [[ "$before" == "$after" ]]; then stuck=$((stuck + 1)); else stuck=0; fi
+    git log --oneline "$before..$after" | sed 's/^/  /' | tee -a "$state_dir/loop.log"
+
+    if grep -qiE 'refresh token has expired|unauthorized \(401\)|not logged in' "$log" && [[ "$before" == "$after" ]]; then
+        say "codex authentication failed; run '$codex_bin login' and then scripts/agent-loop/start"
+        exit 1
+    fi
+    if grep -qiE 'usage limit|rate limit|quota|429|Too Many Requests' "$log" && [[ "$before" == "$after" ]]; then
+        backoff=$(( backoff == 0 ? 900 : (backoff * 2 > 3600 ? 3600 : backoff * 2) ))
+        say "rate limited, sleeping ${backoff}s"
+        sleep "$backoff"
+        continue
+    fi
+    backoff=0
+
+    if (( iteration % verify_every == 0 )); then run_verify; fi
+    sleep 15
+done

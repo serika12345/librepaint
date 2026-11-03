@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Launch scripts/agent-loop/loop detached from the terminal (survives SSH logout).
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+state_dir="$repo_root/build/agent-loop"
+mkdir -p "$state_dir"
+rm -f "$state_dir/STOP"
+cd "$repo_root"
+setsid nohup "$repo_root/scripts/agent-loop/loop" >>"$state_dir/loop.out" 2>&1 </dev/null &
+echo "agent-loop started (pid $!), log: $state_dir/loop.log"

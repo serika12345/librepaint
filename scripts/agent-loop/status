@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Show agent-loop progress.
+set -uo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+state_dir="$repo_root/build/agent-loop"
+if pgrep -f "$repo_root/scripts/agent-loop/loop" >/dev/null; then echo "running"; else echo "not running"; fi
+[[ -e "$state_dir/STOP" ]] && echo "STOP requested"
+echo "iteration: $(cat "$state_dir/iteration" 2>/dev/null || echo 0)"
+echo "--- loop.log ---"
+tail -20 "$state_dir/loop.log" 2>/dev/null
+echo "--- verify ---"
+head -4 "$state_dir/verify-last.txt" 2>/dev/null || echo "not run yet"
