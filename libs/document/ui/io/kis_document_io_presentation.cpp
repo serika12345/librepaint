@@ -5,6 +5,7 @@
  */
 
 #include "kis_document_io_presentation.h"
+#include <QPointer>
 
 #include <KisImportExportErrorCode.h>
 
@@ -123,8 +124,11 @@ void KisDocumentIoPresentation::presentSaveResult(
 
 void KisDocumentIoPresentation::notifySaveSucceeded(const QString &filePath)
 {
+    QPointer<KisDocumentIoPresentation> guard(this);
     Q_EMIT savingCompleted();
+    if (!guard) return;
     Q_EMIT savingFinished(filePath);
+    if (!guard) return;
     Q_EMIT statusBarMessage(i18n("Finished saving %1", QFileInfo(filePath).fileName()),
                             successMessageTimeout);
 }

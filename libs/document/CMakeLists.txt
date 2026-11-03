@@ -27,6 +27,7 @@ set_target_properties(kritadocument PROPERTIES
 
 install(TARGETS kritadocument ${INSTALL_TARGETS_DEFAULT_ARGS})
 
+add_subdirectory(gpu)
 add_subdirectory(files)
 add_subdirectory(ui)
 add_subdirectory(tests)

@@ -5,6 +5,7 @@
 #ifndef KIS_DISPLAY_COLOR_TRANSFORM_H
 #define KIS_DISPLAY_COLOR_TRANSFORM_H
 
+#include <KoColorConversionStages.h>
 #include <QRect>
 #include <QScopedPointer>
 #include <QSharedPointer>
@@ -44,6 +45,7 @@ public:
     const KoColorSpace *paintingColorSpace() const;
     QSharedPointer<KisDisplayColorFilter> displayFilter() const;
     ConversionOptions conversionOptions() const;
+    KoColorConversionStagesResult canvasDisplayStages(const KoColorSpace *source) const;
     bool usesDisplayFilter() const;
 
     QColor toQColor(const KoColor &color,
