@@ -68,13 +68,13 @@ struct CopyCompositor128 {
         if (xsimd::all(opacity_is_null_mask)) {
             // noop
         } else if (xsimd::all(opacity_norm_vec == oneValue)) {
-            if (xsimd::all(src_alpha == zeroValue)) {
-                dataWrapper.clearPixels(dst);
-            } else {
-                dataWrapper.copyPixels(src, dst);
-            }
+            dataWrapper.copyPixels(src, dst);
 
         } else {
+            const float_m opacity_is_opaque_mask = opacity_norm_vec == oneValue;
+            const float_v original_src_c1 = src_c1;
+            const float_v original_src_c2 = src_c2;
+            const float_v original_src_c3 = src_c3;
             float_v dst_alpha;
             float_v dst_c1;
             float_v dst_c2;
@@ -82,12 +82,19 @@ struct CopyCompositor128 {
 
             dataWrapper.read(dst, dst_c1, dst_c2, dst_c3, dst_alpha);
 
+            const float_v original_dst_c1 = dst_c1;
+            const float_v original_dst_c2 = dst_c2;
+            const float_v original_dst_c3 = dst_c3;
             const float_v newAlpha = dst_alpha + opacity_norm_vec * (src_alpha - dst_alpha);
 
             if (xsimd::all(newAlpha == zeroValue)) {
-                dataWrapper.clearPixels(dst);
+                dataWrapper.write(dst,
+                    xsimd::select(opacity_is_opaque_mask, original_src_c1, xsimd::select(opacity_is_null_mask, original_dst_c1, zeroValue)),
+                    xsimd::select(opacity_is_opaque_mask, original_src_c2, xsimd::select(opacity_is_null_mask, original_dst_c2, zeroValue)),
+                    xsimd::select(opacity_is_opaque_mask, original_src_c3, xsimd::select(opacity_is_null_mask, original_dst_c3, zeroValue)),
+                    xsimd::select(opacity_is_opaque_mask, src_alpha, xsimd::select(opacity_is_null_mask, dst_alpha, zeroValue)));
             } else {
-                PixelStateRecoverHelper<channels_type, _impl> pixelRecoverHelper(dst_c1, dst_c2, dst_c3);
+                PixelStateRecoverHelper<float, _impl> pixelRecoverHelper(dst_c1, dst_c2, dst_c3);
 
                 src_c1 *= src_alpha;
                 src_c2 *= src_alpha;
@@ -131,9 +138,19 @@ struct CopyCompositor128 {
                  * such case we should recover original value of the pixels to
                  * be consistent with the scalar version of the algorithm.
                  */
+                const float_m alpha_is_null_mask = newAlpha == zeroValue;
+                dst_c1 = xsimd::select(alpha_is_null_mask, zeroValue, dst_c1);
+                dst_c2 = xsimd::select(alpha_is_null_mask, zeroValue, dst_c2);
+                dst_c3 = xsimd::select(alpha_is_null_mask, zeroValue, dst_c3);
                 pixelRecoverHelper.recoverPixels(opacity_is_null_mask, dst_c1, dst_c2, dst_c3);
 
-                dataWrapper.write(dst, dst_c1, dst_c2, dst_c3, newAlpha);
+                dataWrapper.write(dst,
+                    xsimd::select(opacity_is_opaque_mask, original_src_c1, dst_c1),
+                    xsimd::select(opacity_is_opaque_mask, original_src_c2, dst_c2),
+                    xsimd::select(opacity_is_opaque_mask, original_src_c3, dst_c3),
+                    xsimd::select(opacity_is_opaque_mask, src_alpha,
+                        xsimd::select(opacity_is_null_mask, dst_alpha,
+                            xsimd::select(alpha_is_null_mask, zeroValue, newAlpha))));
             }
         }
     }
@@ -169,11 +186,7 @@ struct CopyCompositor128 {
             // noop
         } else if (opacity == 1.0f) {
             if (allChannelsFlag && !alphaLocked) {
-                if (srcAlpha == 0.0f) {
-                    KoStreamedMathFunctions::clearPixel<sizeof(Pixel)>(dst);
-                } else {
-                    KoStreamedMathFunctions::copyPixel<sizeof(Pixel)>(src, dst);
-                }
+                KoStreamedMathFunctions::copyPixel<sizeof(Pixel)>(src, dst);
             } else {
                 if (d[alpha_pos] != KoColorSpaceMathsTraits<channels_type>::zeroValue ||
                     alphaLocked) {

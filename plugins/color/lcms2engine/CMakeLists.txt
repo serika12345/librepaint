@@ -62,9 +62,11 @@ set ( lcmsengine_SRCS
     colorspaces/ycbcr_f32/YCbCrF32ColorSpace.cpp
 
     colorprofiles/LcmsColorProfileContainer.cpp
+    colorprofiles/BuiltinLcmsProfile.cpp
     colorprofiles/IccColorProfile.cpp
     colorprofiles/LcmsPredefinedPipelineFunctions.cpp
     IccColorSpaceEngine.cpp
+    LcmsColorConversionStages_p.cpp
     LcmsColorSpace.cpp
     LcmsEnginePlugin.cpp
 )

@@ -11,6 +11,43 @@
 #include "KoColorSpaceMaths.h"
 #include "KoCompositeOpBase.h"
 #include <KoCompositeOpRegistry.h>
+#include <libs/global/KoAlwaysInline.h>
+#include <cmath>
+#include <type_traits>
+
+struct KoBgrU8Traits;
+
+template<bool haveMask, class ParamsWrapper>
+ALWAYS_INLINE void compositeAlphaDarken32(const quint8 *src, quint8 *dst, const quint8 *mask,
+                                         const ParamsWrapper &params)
+{
+    // Keep the SIMD byte-domain intermediates through the final nearest-even
+    // quantization, including when a tile boundary leaves a scalar pixel.
+    constexpr float unitRec = 1.0f / 255.0f;
+    const float opacity = 255.0f * params.opacity;
+    const float averageOpacity = 255.0f * params.averageOpacity;
+    const float maskAlpha = haveMask ? float(src[3]) * float(*mask) * (1.0f / (255.0f * 255.0f))
+                                    : float(src[3]) * unitRec;
+    const float srcAlpha = maskAlpha * opacity;
+    if (srcAlpha == 0.0f) return;
+
+    const float dstAlpha = dst[3];
+    const float blend = srcAlpha * unitRec;
+    for (int i = 0; i < 3; ++i) {
+        dst[i] = dstAlpha == 0.0f ? src[i]
+                                 : quint8(std::nearbyint(blend * (float(src[i]) - float(dst[i])) + float(dst[i])));
+    }
+
+    const float fullFlowAlpha = params.averageOpacity > params.opacity
+        ? (averageOpacity > dstAlpha ? (averageOpacity - srcAlpha) * (dstAlpha / averageOpacity) + srcAlpha : dstAlpha)
+        : (opacity > dstAlpha ? (opacity - dstAlpha) * maskAlpha + dstAlpha : dstAlpha);
+    const float alpha = [&]() {
+        if (params.flow == 1.0f) return fullFlowAlpha;
+        const float zeroFlowAlpha = ParamsWrapper::calculateZeroFlowAlpha(srcAlpha, dstAlpha, unitRec);
+        return (fullFlowAlpha - zeroFlowAlpha) * params.flow + zeroFlowAlpha;
+    }();
+    dst[3] = quint8(std::nearbyint(alpha));
+}
 
 /**
  * A template version of the alphadarken composite operation to use in colorspaces
@@ -45,8 +82,13 @@ public:
         ParamsWrapper paramsWrapper(params);
 
         qint32        srcInc       = (params.srcRowStride == 0) ? 0 : channels_nb;
-        channels_type flow         = scale<channels_type>(paramsWrapper.flow);
-        channels_type opacity      = scale<channels_type>(paramsWrapper.opacity);
+        constexpr bool byteRgba = std::is_same_v<Traits, KoBgrU8Traits>;
+        channels_type flow = 0;
+        channels_type opacity = 0;
+        if constexpr (!byteRgba) {
+            flow = scale<channels_type>(paramsWrapper.flow);
+            opacity = scale<channels_type>(paramsWrapper.opacity);
+        }
         quint8*       dstRowStart  = params.dstRowStart;
         const quint8* srcRowStart  = params.srcRowStart;
         const quint8* maskRowStart = params.maskRowStart;
@@ -57,27 +99,31 @@ public:
             const quint8*        mask = maskRowStart;
 
             for(qint32 c=params.cols; c>0; --c) {
-                channels_type srcAlpha = (alpha_pos == -1) ? unitValue<channels_type>() : src[alpha_pos];
-                channels_type dstAlpha = (alpha_pos == -1) ? unitValue<channels_type>() : dst[alpha_pos];
-                channels_type mskAlpha = useMask ? mul(scale<channels_type>(*mask), srcAlpha) : srcAlpha;
+                if constexpr (byteRgba) {
+                    compositeAlphaDarken32<useMask>(src, dst, mask, paramsWrapper);
+                } else {
+                    channels_type srcAlpha = (alpha_pos == -1) ? unitValue<channels_type>() : src[alpha_pos];
+                    channels_type dstAlpha = (alpha_pos == -1) ? unitValue<channels_type>() : dst[alpha_pos];
+                    channels_type mskAlpha = useMask ? mul(scale<channels_type>(*mask), srcAlpha) : srcAlpha;
 
-                srcAlpha = mul(mskAlpha, opacity);
+                    srcAlpha = mul(mskAlpha, opacity);
 
-                if(dstAlpha != zeroValue<channels_type>()) {
-                    for(qint32 i=0; i <channels_nb; i++) {
-                        if(i != alpha_pos)
-                            dst[i] = lerp(dst[i], src[i], srcAlpha);
+                    if(dstAlpha != zeroValue<channels_type>()) {
+                        for(qint32 i=0; i <channels_nb; i++) {
+                            if(i != alpha_pos)
+                                dst[i] = lerp(dst[i], src[i], srcAlpha);
+                        }
                     }
-                }
-                else {
-                    for(qint32 i=0; i <channels_nb; i++) {
-                        if(i != alpha_pos)
-                            dst[i] = src[i];
+                    else {
+                        for(qint32 i=0; i <channels_nb; i++) {
+                            if(i != alpha_pos)
+                                dst[i] = src[i];
+                        }
                     }
-                }
 
-                if(alpha_pos != -1) {
-                    dst[alpha_pos] = calculateAlpha(params, paramsWrapper, flow, opacity, srcAlpha, dstAlpha, mskAlpha);
+                    if(alpha_pos != -1) {
+                        dst[alpha_pos] = calculateAlpha(params, paramsWrapper, flow, opacity, srcAlpha, dstAlpha, mskAlpha);
+                    }
                 }
 
                 src += srcInc;

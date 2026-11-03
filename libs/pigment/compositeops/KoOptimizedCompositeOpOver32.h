@@ -87,13 +87,24 @@ struct OverCompositor32 {
              * be converted to zeroes, which is exactly what we need
              */
             new_alpha = dst_alpha + (uint8Max - dst_alpha) * src_alpha * uint8MaxRec1;
+            // Empty lanes retain the same already-rounded source alpha as the
+            // scalar and all-empty paths, including in a mixed tile row.
+            new_alpha = xsimd::select(dst_alpha == zeroValue, src_alpha, new_alpha);
 
-            // Optimized version of:
-            //     src_blend = src_alpha / new_alpha;
-            src_blend = OptiDiv<_impl>::divVector(src_alpha, new_alpha);
+#if XSIMD_WITH_NEON64
+        // xsimd's NEON float division refines a reciprocal estimate, including
+        // on AArch64. Hardware division preserves the scalar quotient rounding.
+        src_blend = vdivq_f32(src_alpha, new_alpha);
+#else
+        src_blend = src_alpha / new_alpha;
+#endif
+            src_blend = xsimd::select(dst_alpha == uint8Max, src_alpha * uint8MaxRec1, src_blend);
 
         }
 
+        // Transparent lanes preserve destination RGB just like scalar composition,
+        // even when another lane makes the vector take the opaque-copy path.
+        src_blend = xsimd::select(src_alpha == zeroValue, zeroValue, src_blend);
         if (!xsimd::all(src_blend == oneValue)) {
             KoStreamedMath<_impl>::template fetch_colors_32<true>(dst, dst_c1, dst_c2, dst_c3);
 
@@ -150,9 +161,7 @@ struct OverCompositor32 {
                 }
             } else {
                 dstAlpha += (uint8Max - dstAlpha) * srcAlpha * uint8Rec1;
-                // Optimized version of:
-                //     srcBlendNorm = srcAlpha / dstAlpha);
-                srcBlendNorm = OptiDiv<_impl>::divScalar(srcAlpha, dstAlpha);
+                srcBlendNorm = srcAlpha / dstAlpha;
             }
 
             if(allChannelsFlag) {

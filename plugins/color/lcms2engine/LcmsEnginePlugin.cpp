@@ -27,7 +27,7 @@
 #include <KoColorProfileQuery.h>
 #include "KoColorModelStandardIds.h"
 #include "KoColorProfileConstants.h"
-#include "colorprofiles/LcmsColorProfileContainer.h"
+#include "colorprofiles/BuiltinLcmsProfile_p.h"
 
 #include "colorspaces/cmyk_u8/CmykU8ColorSpace.h"
 #include "colorspaces/cmyk_u16/CmykU16ColorSpace.h"
@@ -149,7 +149,7 @@ LcmsEnginePlugin::LcmsEnginePlugin(QObject *parent, const QVariantList &)
 
     // ------------------- LAB ---------------------------------
 
-    KoColorProfile *labProfile = LcmsColorProfileContainer::createFromLcmsProfile(cmsCreateLab4Profile(0));
+    KoColorProfile *labProfile = createBuiltinLcmsProfile(cmsCreateLab4Profile(0));
     registry->addProfile(labProfile);
 
     registry->add(new LabU8ColorSpaceFactory());
@@ -170,7 +170,7 @@ LcmsEnginePlugin::LcmsEnginePlugin(QObject *parent, const QVariantList &)
 
     // ------------------- RGB ---------------------------------
 
-    KoColorProfile *rgbProfile = LcmsColorProfileContainer::createFromLcmsProfile(cmsCreate_sRGBProfile());
+    KoColorProfile *rgbProfile = createBuiltinLcmsProfile(cmsCreate_sRGBProfile());
     registry->addProfile(rgbProfile);
 
     KoColorProfileQuery query(PRIMARIES_ITU_R_BT_2020_2_AND_2100_0, TRC_ITU_R_BT_2100_0_PQ);
@@ -227,7 +227,7 @@ LcmsEnginePlugin::LcmsEnginePlugin(QObject *parent, const QVariantList &)
     cmsToneCurve *Gamma = cmsBuildGamma(0, 2.2);
     cmsHPROFILE hProfile = cmsCreateGrayProfile(cmsD50_xyY(), Gamma);
     cmsFreeToneCurve(Gamma);
-    KoColorProfile *defProfile = LcmsColorProfileContainer::createFromLcmsProfile(hProfile);
+    KoColorProfile *defProfile = createBuiltinLcmsProfile(hProfile);
     registry->addProfile(defProfile);
 
     registry->add(new GrayAU8ColorSpaceFactory());
@@ -278,7 +278,7 @@ LcmsEnginePlugin::LcmsEnginePlugin(QObject *parent, const QVariantList &)
 
     // ------------------- XYZ ---------------------------------
 
-    KoColorProfile *xyzProfile = LcmsColorProfileContainer::createFromLcmsProfile(cmsCreateXYZProfile());
+    KoColorProfile *xyzProfile = createBuiltinLcmsProfile(cmsCreateXYZProfile());
     registry->addProfile(xyzProfile);
 
     registry->add(new XyzU8ColorSpaceFactory());

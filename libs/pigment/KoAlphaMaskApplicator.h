@@ -11,6 +11,7 @@
 #include "KoAlphaMaskApplicatorBase.h"
 #include "KoColorSpaceTraits.h"
 #include "KoMultiArchBuildSupport.h"
+#include <cmath>
 
 
 template<typename _channels_type_,
@@ -50,6 +51,34 @@ struct KoAlphaMaskApplicator : public KoAlphaMaskApplicatorBase
     }
 };
 
+/** RGBA8 inverse masks quantize the final alpha with the SIMD body's nearest-even rule. */
+template<>
+struct KoAlphaMaskApplicator<quint8, 4, 3, xsimd::generic> : public KoAlphaMaskApplicatorBase
+{
+    void applyInverseNormedFloatMask(quint8 *pixels, const float *alpha, qint32 nPixels) const override
+    {
+        for (; nPixels > 0; --nPixels, pixels += 4, ++alpha) {
+            pixels[3] = quint8(std::nearbyint(float(pixels[3]) * (1.0f - *alpha)));
+        }
+    }
+
+    void fillInverseAlphaNormedFloatMaskWithColor(quint8 *pixels, const float *alpha,
+                                                 const quint8 *brushColor, qint32 nPixels) const override
+    {
+        for (; nPixels > 0; --nPixels, pixels += 4, ++alpha) {
+            pixels[0] = brushColor[0];
+            pixels[1] = brushColor[1];
+            pixels[2] = brushColor[2];
+            pixels[3] = quint8(std::nearbyint(255.0f * (1.0f - *alpha)));
+        }
+    }
+
+    void fillGrayBrushWithColor(quint8 *dst, const QRgb *brush, quint8 *brushColor, qint32 nPixels) const override
+    {
+        KoColorSpaceTrait<quint8, 4, 3>::fillGrayBrushWithColor(dst, brush, brushColor, nPixels);
+    }
+};
+
 #if !defined(XSIMD_NO_SUPPORTED_ARCHITECTURE)
 
 #include "KoStreamedMath.h"
@@ -57,7 +86,7 @@ struct KoAlphaMaskApplicator : public KoAlphaMaskApplicatorBase
 template<typename _impl>
 struct KoAlphaMaskApplicator<
         quint8, 4, 3, _impl,
-        typename std::enable_if<!std::is_same<_impl, xsimd::generic>::value>::type> : public KoAlphaMaskApplicatorBase
+        typename std::enable_if<!std::is_same<_impl, xsimd::generic>::value>::type> : public KoAlphaMaskApplicator<quint8, 4, 3, xsimd::generic>
 {
     using uint_v = typename KoStreamedMath<_impl>::uint_v;
     using int_v = typename KoStreamedMath<_impl>::int_v;
@@ -91,9 +120,9 @@ struct KoAlphaMaskApplicator<
             alpha += float_v::size;
         }
 
-        KoColorSpaceTrait<quint8, 4, 3>::
-            applyInverseAlphaNormedFloatMask(pixels, alpha, block2);
-        }
+        KoAlphaMaskApplicator<quint8, 4, 3, xsimd::generic>::
+            applyInverseNormedFloatMask(pixels, alpha, block2);
+    }
 
     void fillInverseAlphaNormedFloatMaskWithColor(quint8 * pixels,
                                                   const float * alpha,
@@ -116,7 +145,7 @@ struct KoAlphaMaskApplicator<
             alpha += float_v::size;
         }
 
-        KoColorSpaceTrait<quint8, 4, 3>::
+        KoAlphaMaskApplicator<quint8, 4, 3, xsimd::generic>::
             fillInverseAlphaNormedFloatMaskWithColor(pixels, alpha, brushColor, block2);
     }
 

@@ -609,6 +609,10 @@ public:
      */
     virtual quint8 difference(const quint8* src1, const quint8* src2) const = 0;
 
+    /** Freezes the same Lab16 converter used by differenceA(). Definition values
+     * outlive the colour space and contain no borrowed LCMS handles. */
+    LibrePaint::Pigment::Color::NativeLabConversionResult nativeLabConversion() const;
+
     /**
      * Get the difference between 2 colors, normalized in the range (0,255). This function
      * takes the Alpha channel of the pixel into account. Alpha channel has the same

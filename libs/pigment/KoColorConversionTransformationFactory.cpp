@@ -21,6 +21,8 @@ struct Q_DECL_HIDDEN KoColorConversionTransformationFactory::Private {
     QString dstDepthId;
     QString srcProfile;
     QString dstProfile;
+    QByteArray srcProfileData;
+    QByteArray dstProfileData;
 };
 
 KoColorConversionTransformationFactory::KoColorConversionTransformationFactory(const QString &_srcModelId, const QString &_srcDepthId, const QString &_srcProfile, const QString &_dstModelId, const QString &_dstDepthId, const QString &_dstProfile) : d(new Private)
@@ -33,6 +35,20 @@ KoColorConversionTransformationFactory::KoColorConversionTransformationFactory(c
     d->dstProfile = KoColorSpaceRegistry::instance()->profileAlias(_dstProfile);
 }
 
+KoColorConversionTransformationFactory::KoColorConversionTransformationFactory(const QString &srcModelId, const QString &srcDepthId, const KoColorProfile *srcProfile,
+                                                                               const QString &dstModelId, const QString &dstDepthId, const KoColorProfile *dstProfile)
+    : KoColorConversionTransformationFactory(srcModelId, srcDepthId, QString(), dstModelId, dstDepthId, QString())
+{
+    if (srcProfile) {
+        d->srcProfile = srcProfile->name();
+        d->srcProfileData = srcProfile->rawData();
+    }
+    if (dstProfile) {
+        d->dstProfile = dstProfile->name();
+        d->dstProfileData = dstProfile->rawData();
+    }
+}
+
 KoColorConversionTransformationFactory::~KoColorConversionTransformationFactory()
 {
     delete d;
@@ -42,7 +58,8 @@ bool KoColorConversionTransformationFactory::canBeSource(const KoColorSpace* src
 {
     return ((srcCS->colorModelId().id() == d->srcModelId)
             && (srcCS->colorDepthId().id() == d->srcDepthId)
-            && (d->srcProfile == "" || srcCS->profile()->name() == d->srcProfile));
+            && (d->srcProfile == "" || srcCS->profile()->name() == d->srcProfile)
+            && (d->srcProfileData.isEmpty() || srcCS->profile()->rawData() == d->srcProfileData));
 }
 
 bool KoColorConversionTransformationFactory::canBeDestination(const KoColorSpace* dstCS) const
@@ -50,7 +67,8 @@ bool KoColorConversionTransformationFactory::canBeDestination(const KoColorSpace
     dbgPigment << dstCS->colorModelId().id() << " " << d->dstModelId << " " << dstCS->colorDepthId().id() << " " <<  d->dstDepthId << " " << d->dstProfile << " " << (dstCS->profile() ? dstCS->profile()->name() : "noprofile")  << " " << d->dstProfile;
     return ((dstCS->colorModelId().id() == d->dstModelId)
             && (dstCS->colorDepthId().id() == d->dstDepthId)
-            && (d->dstProfile == "" || dstCS->profile()->name() == d->dstProfile));
+            && (d->dstProfile == "" || dstCS->profile()->name() == d->dstProfile)
+            && (d->dstProfileData.isEmpty() || dstCS->profile()->rawData() == d->dstProfileData));
 }
 
 QString KoColorConversionTransformationFactory::srcColorModelId() const
@@ -79,5 +97,15 @@ QString KoColorConversionTransformationFactory::dstColorDepthId() const
 QString KoColorConversionTransformationFactory::dstProfile() const
 {
     return d->dstProfile;
+}
+
+QByteArray KoColorConversionTransformationFactory::srcProfileData() const
+{
+    return d->srcProfileData;
+}
+
+QByteArray KoColorConversionTransformationFactory::dstProfileData() const
+{
+    return d->dstProfileData;
 }
 

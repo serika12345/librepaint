@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include <QHash>
+#include <QSet>
 #include <QReadWriteLock>
 #include <QString>
 #include <QtGlobal>
@@ -18,6 +19,7 @@
 #include "KoColorProfileConstants.h"
 #include "KoColorSpaceFactory.h"
 #include "KoColorProfile.h"
+#include "KoColorProfileKey_p.h"
 #include "KoColorProfileQuery.h"
 #include "KoColorimetryUtils.h"
 
@@ -25,7 +27,8 @@
 struct KoColorProfileStorage::Private {
     QHash<QString, KoColorProfile * > profileMap;
     QHash<QByteArray, KoColorProfile * > profileUniqueIdMap;
-    QList<KoColorProfile *> duplicates;
+    QHash<KoColorProfileKey, KoColorProfile*> profileDataMap;
+    QSet<KoColorProfile*> ownedProfiles;
     QHash<QString, QString> profileAlias;
     QReadWriteLock lock;
 
@@ -33,21 +36,7 @@ struct KoColorProfileStorage::Private {
 
     ~Private()
     {
-        Q_FOREACH (KoColorProfile *p, profileMap) {
-            profileUniqueIdMap.remove(p->uniqueId());
-            duplicates.removeAll(p);
-            delete p;
-        }
-        profileMap.clear();
-        Q_FOREACH (KoColorProfile *p, profileUniqueIdMap) {
-            duplicates.removeAll(p);
-            delete p;
-        }
-        profileUniqueIdMap.clear();
-        Q_FOREACH(KoColorProfile *p, duplicates) {
-            delete p;
-        }
-        duplicates.clear();
+        qDeleteAll(ownedProfiles);
     }
 };
 
@@ -61,17 +50,24 @@ KoColorProfileStorage::~KoColorProfileStorage()
 {
 }
 
-void KoColorProfileStorage::addProfile(KoColorProfile *profile)
+void KoColorProfileStorage::addProfile(KoColorProfile *profile, bool replaceExistingNames)
 {
     QWriteLocker locker(&d->lock);
 
     if (profile->valid()) {
-        d->profileMap[profile->name()] = profile;
-        if (d->profileUniqueIdMap.contains(profile->uniqueId())) {
-            //warnPigment << "Duplicated profile" << profile->name() << profile->fileName() << d->profileUniqueIdMap[profile->uniqueId()]->fileName();
-            d->duplicates.append(d->profileUniqueIdMap[profile->uniqueId()]);
+        d->ownedProfiles.insert(profile);
+        const auto key = koColorProfileKey(profile);
+        if (!d->profileDataMap.contains(key)) d->profileDataMap.insert(key, profile);
+        if (replaceExistingNames) {
+            d->profileMap[profile->name()] = profile;
+            d->profileUniqueIdMap.insert(profile->uniqueId(), profile);
+        } else {
+            const bool named = d->profileMap.contains(profile->name()) ||
+                               d->profileMap.contains(d->profileAlias.value(profile->name(), profile->name()));
+            const bool identified = d->profileUniqueIdMap.contains(profile->uniqueId());
+            if (!named) d->profileMap.insert(profile->name(), profile);
+            if (!identified) d->profileUniqueIdMap.insert(profile->uniqueId(), profile);
         }
-        d->profileUniqueIdMap.insert(profile->uniqueId(), profile);
     }
 }
 
@@ -79,15 +75,22 @@ void KoColorProfileStorage::removeProfile(KoColorProfile *profile)
 {
     QWriteLocker locker(&d->lock);
 
-    d->profileMap.remove(profile->name());
-    d->profileUniqueIdMap.remove(profile->uniqueId());
-    d->duplicates.removeAll(profile);
+    const auto key = koColorProfileKey(profile);
+    auto named = d->profileMap.find(profile->name());
+    if (named != d->profileMap.end() && koColorProfileKey(named.value()) == key) {
+        d->profileMap.erase(named);
+    }
+    auto identified = d->profileUniqueIdMap.find(profile->uniqueId());
+    if (identified != d->profileUniqueIdMap.end() && koColorProfileKey(identified.value()) == key) {
+        d->profileUniqueIdMap.erase(identified);
+    }
+    d->profileDataMap.remove(key);
+    d->ownedProfiles.remove(profile);
 }
 
 bool KoColorProfileStorage::containsProfile(const KoColorProfile *profile)
 {
-    QReadLocker l(&d->lock);
-    return d->profileMap.contains(profile->name());
+    return profileByData(profile->name(), profile->rawData()) != nullptr;
 }
 
 void KoColorProfileStorage::addProfileAlias(const QString &name, const QString &to)
@@ -126,13 +129,19 @@ const KoColorProfile *KoColorProfileStorage::profileByName(const QString &name) 
     return d->profileMap.value(d->profileAlias.value(name, name), 0);
 }
 
+const KoColorProfile *KoColorProfileStorage::profileByData(const QString &name, const QByteArray &data) const
+{
+    QReadLocker l(&d->lock);
+    return d->profileDataMap.value(qMakePair(name, data));
+}
+
 void KoColorProfileStorage::Private::populateUniqueIdMap()
 {
     QWriteLocker l(&lock);
     profileUniqueIdMap.clear();
 
-    for (auto it = profileMap.constBegin();
-         it != profileMap.constEnd();
+    for (auto it = profileDataMap.constBegin();
+         it != profileDataMap.constEnd();
          ++it) {
 
         KoColorProfile *profile = it.value();
@@ -172,6 +181,17 @@ QList<const KoColorProfile *> KoColorProfileStorage::profilesFor(const KoColorSp
             //         if (profile->colorSpaceSignature() == csf->colorSpaceSignature()) {
             profiles.push_back(profile);
         }
+    }
+    return profiles;
+}
+
+QList<const KoColorProfile *> KoColorProfileStorage::profilesForConversions(const KoColorSpaceFactory *csf) const
+{
+    if (!csf) return {};
+    QReadLocker l(&d->lock);
+    QList<const KoColorProfile *> profiles;
+    for (const auto *profile : d->profileDataMap) {
+        if (csf->profileIsCompatible(profile)) profiles.append(profile);
     }
     return profiles;
 }

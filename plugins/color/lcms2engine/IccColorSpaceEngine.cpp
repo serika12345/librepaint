@@ -6,6 +6,7 @@
  */
 
 #include "IccColorSpaceEngine.h"
+#include "LcmsColorConversionStages_p.h"
 
 #include <klocalizedstring.h>
 
@@ -13,6 +14,9 @@
 #include <KoColorProfileQuery.h>
 #include <kis_assert.h>
 #include <lcms2.h>
+#include <memory>
+#include <mutex>
+#include <optional>
 #include <QtGlobal>
 #include <qhashfunctions.h>
 #include <QDebug>
@@ -74,6 +78,21 @@ public:
 
 public:
 
+    KoColorConversionStagesResult displayStages() const override
+    {
+        return lcmsDisplayStages(m_transform, srcColorSpace(), dstColorSpace());
+    }
+
+    LibrePaint::Pigment::Color::NativeLabConversionResult nativeLabConversion() const override
+    {
+        using Result = LibrePaint::Pigment::Color::NativeLabConversionResult;
+        std::lock_guard<std::mutex> guard(m_nativeLabMutex);
+        if (m_nativeLab) return *m_nativeLab;
+        auto result = lcmsNativeLabConversion(m_transform, srcColorSpace(), dstColorSpace());
+        if (result.code != Result::CapacityExceeded) m_nativeLab = result;
+        return result;
+    }
+
     void transform(const quint8 *src, quint8 *dst, qint32 numPixels) const override
     {
         Q_ASSERT(m_transform);
@@ -83,6 +102,8 @@ public:
     }
 private:
     mutable cmsHTRANSFORM m_transform;
+    mutable std::mutex m_nativeLabMutex;
+    mutable std::optional<LibrePaint::Pigment::Color::NativeLabConversionResult> m_nativeLab;
 };
 
 class KoLcmsColorProofingConversionTransformation : public KoColorProofingConversionTransformation
@@ -259,12 +280,11 @@ void IccColorSpaceEngine::removeProfile(const QString &filename)
 {
     KoColorSpaceRegistry *registry = KoColorSpaceRegistry::instance();
 
-    KoColorProfile *profile = new IccColorProfile(filename);
-    Q_CHECK_PTR(profile);
+    std::unique_ptr<KoColorProfile> profile(new IccColorProfile(filename));
     profile->load();
 
     if (profile->valid() && registry->profileByName(profile->name())) {
-        registry->removeProfile(profile);
+        registry->removeProfile(profile.get());
     }
 }
 

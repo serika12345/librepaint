@@ -14,6 +14,7 @@ class KoCopyColorConversionTransformation : public KoColorConversionTransformati
 {
 public:
     explicit KoCopyColorConversionTransformation(const KoColorSpace *cs);
+    KoColorConversionStagesResult displayStages() const override;
     void transform(const quint8 *srcU8, quint8 *dstU8, qint32 nPixels) const override;
 };
 

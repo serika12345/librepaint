@@ -9,6 +9,8 @@
 #include "KoColorConversionTransformationFactory.h"
 
 #include <KoColorSpace.h>
+#include <KoColorProfile.h>
+#include <KoColorModelStandardIds.h>
 #include <cstring>
 #include <QtGlobal>
 #include <qhashfunctions.h>
@@ -38,4 +40,21 @@ KoColorConversionTransformation* KoCopyColorConversionTransformationFactory::cre
     Q_ASSERT(canBeDestination(dstColorSpace));
     Q_ASSERT(srcColorSpace->id() == dstColorSpace->id());
     return new KoCopyColorConversionTransformation(srcColorSpace);
+}
+
+KoColorConversionStagesResult KoCopyColorConversionTransformation::displayStages() const
+{
+    const KoColorSpace *cs = srcColorSpace();
+    if (cs->colorModelId() != RGBAColorModelID ||
+        (cs->colorDepthId() != Integer8BitsColorDepthID &&
+         cs->colorDepthId() != Integer16BitsColorDepthID) || !cs->profile()) {
+        return {KoColorConversionStagesResult::Unsupported, {},
+                QStringLiteral("GPU display stages require integer RGB")};
+    }
+    KoColorConversionStages value;
+    value.input.depth = cs->colorDepthId() == Integer16BitsColorDepthID
+        ? KoColorConversionStages::Encoding::U16 : KoColorConversionStages::Encoding::U8;
+    value.input.iccProfile = cs->profile()->rawData();
+    value.output = value.input;
+    return {KoColorConversionStagesResult::Success, std::move(value), {}};
 }

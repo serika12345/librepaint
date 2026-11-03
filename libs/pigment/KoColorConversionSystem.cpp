@@ -41,11 +41,8 @@ KoColorConversionSystem::~KoColorConversionSystem()
 
 void KoColorConversionSystem::connectToEngine(Node* _node, Node* _engine)
 {
-    Vertex* v1 = createVertex(_node, _engine);
-    Vertex* v2 = createVertex(_engine, _node);
-
-    Q_UNUSED(v1);
-    Q_UNUSED(v2);
+    if (!vertexBetween(_node, _engine)) createVertex(_node, _engine);
+    if (!vertexBetween(_engine, _node)) createVertex(_engine, _node);
 }
 
 KoColorConversionSystem::Node* KoColorConversionSystem::insertEngine(const KoColorSpaceEngine* engine)
@@ -56,7 +53,7 @@ KoColorConversionSystem::Node* KoColorConversionSystem::insertEngine(const KoCol
     n->depthId = engine->id();
     n->profileName = engine->id();
     n->referenceDepth = 64; // engine don't have reference depth,
-    d->graph.insert(key, n);
+    d->graph.insert(qMakePair(key, QByteArray()), n);
     n->init(engine);
     return n;
 }
@@ -100,7 +97,7 @@ void KoColorConversionSystem::insertColorSpace(const KoColorSpaceFactory* csf)
     } else {
         // Initialise the nodes
         Q_FOREACH (const KoColorProfile* profile, profiles) {
-            Node* n = nodeFor(modelId, depthId, profile->name());
+            Node* n = nodeFor(modelId, depthId, profile);
             cctfs.append(csf->colorConversionLinksFromProfile(profile));
             n->init(csf);
             if (!csf->colorSpaceEngine().isEmpty()) {
@@ -108,7 +105,7 @@ void KoColorConversionSystem::insertColorSpace(const KoColorSpaceFactory* csf)
                 Q_ASSERT(engine);
                 NodeKey engineKey(engine->id(), engine->id(), engine->id());
                 Node* engineNode = 0;
-                QHash<NodeKey, Node*>::ConstIterator it = d->graph.constFind(engineKey);
+                auto it = d->graph.constFind(qMakePair(engineKey, QByteArray()));
                 if (it != d->graph.constEnd()) {
                     engineNode = it.value();
                 } else {
@@ -124,9 +121,9 @@ void KoColorConversionSystem::insertColorSpace(const KoColorSpaceFactory* csf)
     // Construct a link for "custom" transformation
     cctfs.append(csf->colorConversionLinks());
     Q_FOREACH (KoColorConversionTransformationFactory* cctf, cctfs) {
-        Node* srcNode = nodeFor(cctf->srcColorModelId(), cctf->srcColorDepthId(), cctf->srcProfile());
+        Node* srcNode = nodeFor(NodeKey(cctf->srcColorModelId(), cctf->srcColorDepthId(), cctf->srcProfile()), cctf->srcProfileData());
         Q_ASSERT(srcNode);
-        Node* dstNode = nodeFor(cctf->dstColorModelId(), cctf->dstColorDepthId(), cctf->dstProfile());
+        Node* dstNode = nodeFor(NodeKey(cctf->dstColorModelId(), cctf->dstColorDepthId(), cctf->dstProfile()), cctf->dstProfileData());
         Q_ASSERT(dstNode);
         // Check if the two nodes are already connected
         Vertex* v = vertexBetween(srcNode, dstNode);
@@ -172,12 +169,12 @@ void KoColorConversionSystem::insertColorProfile(const KoColorProfile* _profile)
     Q_FOREACH (const KoColorSpaceFactory* factory, factories) {
         QString modelId = factory->colorModelId().id();
         QString depthId = factory->colorDepthId().id();
-        Node* n = nodeFor(modelId, depthId, _profile->name());
+        Node* n = nodeFor(modelId, depthId, _profile);
         n->init(factory);
         if (!factory->colorSpaceEngine().isEmpty()) {
             KoColorSpaceEngine* engine = KoColorSpaceEngineRegistry::instance()->get(factory->colorSpaceEngine());
             Q_ASSERT(engine);
-            Node* engineNode = d->graph[ NodeKey(engine->id(), engine->id(), engine->id())];
+            Node* engineNode = d->graph.value(qMakePair(NodeKey(engine->id(), engine->id(), engine->id()), QByteArray()));
             Q_ASSERT(engineNode);
 
             if (engine->supportsColorSpace(modelId, depthId, _profile)) {
@@ -187,9 +184,9 @@ void KoColorConversionSystem::insertColorProfile(const KoColorProfile* _profile)
         QList<KoColorConversionTransformationFactory*> cctfs = factory->colorConversionLinks();
         cctfs.append(factory->colorConversionLinksFromProfile(_profile));
         Q_FOREACH (KoColorConversionTransformationFactory* cctf, cctfs) {
-            Node* srcNode = nodeFor(cctf->srcColorModelId(), cctf->srcColorDepthId(), cctf->srcProfile());
+            Node* srcNode = nodeFor(NodeKey(cctf->srcColorModelId(), cctf->srcColorDepthId(), cctf->srcProfile()), cctf->srcProfileData());
             Q_ASSERT(srcNode);
-            Node* dstNode = nodeFor(cctf->dstColorModelId(), cctf->dstColorDepthId(), cctf->dstProfile());
+            Node* dstNode = nodeFor(NodeKey(cctf->dstColorModelId(), cctf->dstColorDepthId(), cctf->dstProfile()), cctf->dstProfileData());
             Q_ASSERT(dstNode);
             if (srcNode == n || dstNode == n) {
                 // Check if the two nodes are already connected
@@ -212,24 +209,29 @@ void KoColorConversionSystem::insertColorProfile(const KoColorProfile* _profile)
 
 const KoColorSpace* KoColorConversionSystem::defaultColorSpaceForNode(const Node* node) const
 {
+    if (node->profile) {
+        return d->registryInterface->colorSpace(node->modelId, node->depthId, node->profile.get());
+    }
     return d->registryInterface->colorSpace(node->modelId, node->depthId, node->profileName);
 }
 
-KoColorConversionSystem::Node* KoColorConversionSystem::createNode(const QString& _modelId, const QString& _depthId, const QString& _profileName)
+KoColorConversionSystem::Node* KoColorConversionSystem::createNode(const NodeKey &key, const KoColorProfile *profile, const QByteArray &data)
 {
     Node* n = new Node;
-    n->modelId = _modelId;
-    n->depthId = _depthId;
-    n->profileName = _profileName;
-    d->graph.insert(NodeKey(_modelId, _depthId, _profileName), n);
+    n->modelId = key.modelId;
+    n->depthId = key.depthId;
+    n->profileName = key.profileName;
+    if (profile) n->profile.reset(profile->clone());
+    d->graph.insert(qMakePair(key, profile ? profile->rawData() : data), n);
     return n;
 }
 
 const KoColorConversionSystem::Node* KoColorConversionSystem::nodeFor(const KoColorSpace* _colorSpace) const
 {
     const KoColorProfile* profile = _colorSpace->profile();
-    return nodeFor(_colorSpace->colorModelId().id(), _colorSpace->colorDepthId().id(),
-                   profile ? profile->name() : "default");
+    const NodeKey key(_colorSpace->colorModelId().id(), _colorSpace->colorDepthId().id(),
+                      profile ? profile->name() : "default");
+    return d->graph.value(qMakePair(key, profile ? profile->rawData() : QByteArray()));
 }
 
 const KoColorConversionSystem::Node* KoColorConversionSystem::nodeFor(const QString& _colorModelId, const QString& _colorDepthId, const QString& _profileName) const
@@ -240,8 +242,9 @@ const KoColorConversionSystem::Node* KoColorConversionSystem::nodeFor(const QStr
 
 const KoColorConversionSystem::Node* KoColorConversionSystem::nodeFor(const NodeKey& key) const
 {
-    dbgPigmentCCS << "Look for node: " << key.modelId << " " << key.depthId << " " << key.profileName << " " << d->graph.value(key);
-    return d->graph.value(key);
+    const KoColorProfile *profile = d->registryInterface->profileByName(key.profileName);
+    const NodeKey resolvedKey(key.modelId, key.depthId, profile ? profile->name() : key.profileName);
+    return d->graph.value(qMakePair(resolvedKey, profile ? profile->rawData() : QByteArray()));
 }
 
 KoColorConversionSystem::Node* KoColorConversionSystem::nodeFor(const QString& _colorModelId, const QString& _colorDepthId, const QString& _profileName)
@@ -251,12 +254,45 @@ KoColorConversionSystem::Node* KoColorConversionSystem::nodeFor(const QString& _
 
 KoColorConversionSystem::Node* KoColorConversionSystem::nodeFor(const KoColorConversionSystem::NodeKey& key)
 {
-    QHash<NodeKey, Node*>::ConstIterator it = d->graph.constFind(key);
+    if (const KoColorProfile *profile = d->registryInterface->profileByName(key.profileName)) {
+        return nodeFor(key.modelId, key.depthId, profile);
+    }
+    auto it = d->graph.constFind(qMakePair(key, QByteArray()));
     if (it != d->graph.constEnd()) {
         return it.value();
     } else {
-        return createNode(key.modelId, key.depthId, key.profileName);
+        return createNode(key);
     }
+}
+
+KoColorConversionSystem::Node *KoColorConversionSystem::nodeFor(const NodeKey &key, const QByteArray &profileData)
+{
+    if (profileData.isEmpty()) return nodeFor(key);
+    auto it = d->graph.constFind(qMakePair(key, profileData));
+    return it == d->graph.constEnd() ? createNode(key, nullptr, profileData) : it.value();
+}
+
+KoColorConversionSystem::Node *KoColorConversionSystem::nodeFor(const QString &modelId, const QString &depthId, const KoColorProfile *profile)
+{
+    const NodeKey key(modelId, depthId, profile->name());
+    const auto contentKey = qMakePair(key, profile->rawData());
+    auto it = d->graph.constFind(contentKey);
+    if (it != d->graph.constEnd()) {
+        if (!it.value()->profile) it.value()->profile.reset(profile->clone());
+        return it.value();
+    }
+
+    // Custom conversion links can reserve a node before its profile is loaded.
+    // Keep their vertices when the real profile becomes available.
+    auto placeholder = d->graph.find(qMakePair(key, QByteArray()));
+    if (placeholder != d->graph.end() && !placeholder.value()->profile && !placeholder.value()->isEngine) {
+        Node *node = placeholder.value();
+        d->graph.erase(placeholder);
+        node->profile.reset(profile->clone());
+        d->graph.insert(contentKey, node);
+        return node;
+    }
+    return createNode(key, profile);
 }
 
 QList<KoColorConversionSystem::Node*> KoColorConversionSystem::nodesFor(const QString& _modelId, const QString& _depthId)

@@ -145,13 +145,13 @@ template<class ParentColorSpace, class DstColorSpaceTraits = typename DstTraitsF
 class LcmsFromRGBP2020PQTransformationFactory : public KoColorConversionTransformationFactory
 {
 public:
-    LcmsFromRGBP2020PQTransformationFactory(const QString &targetProfileName, const QString &linearProfileName)
+    LcmsFromRGBP2020PQTransformationFactory(const KoColorProfile *targetProfile, const KoColorProfile *linearProfile)
         : KoColorConversionTransformationFactory(RGBAColorModelID.id(),
                                                  colorDepthIdForChannelType<typename ParentColorSpace::ColorSpaceTraits::channels_type>().id(),
-                                                 targetProfileName,
+                                                 targetProfile,
                                                  RGBAColorModelID.id(),
                                                  colorDepthIdForChannelType<typename DstColorSpaceTraits::channels_type>().id(),
-                                                 linearProfileName)
+                                                 linearProfile)
     {
     }
 
@@ -174,13 +174,13 @@ template<class ParentColorSpace, class DstColorSpaceTraits = typename DstTraitsF
 class LcmsToRGBP2020PQTransformationFactory : public KoColorConversionTransformationFactory
 {
 public:
-    LcmsToRGBP2020PQTransformationFactory(const QString &targetProfileName, const QString &linearProfileName)
+    LcmsToRGBP2020PQTransformationFactory(const KoColorProfile *targetProfile, const KoColorProfile *linearProfile)
         : KoColorConversionTransformationFactory(RGBAColorModelID.id(),
                                                  colorDepthIdForChannelType<typename DstColorSpaceTraits::channels_type>().id(),
-                                                 linearProfileName,
+                                                 linearProfile,
                                                  RGBAColorModelID.id(),
                                                  colorDepthIdForChannelType<typename ParentColorSpace::ColorSpaceTraits::channels_type>().id(),
-                                                 targetProfileName)
+                                                 targetProfile)
     {
     }
 
@@ -203,13 +203,13 @@ template<class ParentColorSpace, class DstColorSpaceTraits>
 class LcmsScaleRGBP2020PQTransformationFactory : public KoColorConversionTransformationFactory
 {
 public:
-    LcmsScaleRGBP2020PQTransformationFactory(const QString &targetProfileName)
+    LcmsScaleRGBP2020PQTransformationFactory(const KoColorProfile *targetProfile)
         : KoColorConversionTransformationFactory(RGBAColorModelID.id(),
                                                  colorDepthIdForChannelType<typename ParentColorSpace::ColorSpaceTraits::channels_type>().id(),
-                                                 targetProfileName,
+                                                 targetProfile,
                                                  RGBAColorModelID.id(),
                                                  colorDepthIdForChannelType<typename DstColorSpaceTraits::channels_type>().id(),
-                                                 targetProfileName)
+                                                 targetProfile)
     {
         KIS_SAFE_ASSERT_RECOVER_NOOP(srcColorDepthId() != dstColorDepthId());
     }

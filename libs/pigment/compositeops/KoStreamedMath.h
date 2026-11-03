@@ -115,40 +115,6 @@ struct OptiRound {
 #if !defined(XSIMD_NO_SUPPORTED_ARCHITECTURE)
 
 template<typename _impl>
-struct OptiDiv {
-    using float_v = xsimd::batch<float, _impl>;
-
-    ALWAYS_INLINE static float divScalar(const float &divident, const float &divisor)
-    {
-#ifdef __SSE__
-        float result = NAN;
-
-        __m128 x = _mm_set_ss(divisor);
-        __m128 y = _mm_set_ss(divident);
-        x = _mm_rcp_ss(x);
-        x = _mm_mul_ss(x, y);
-
-        _mm_store_ss(&result, x);
-        return result;
-#elif defined __ARM_NEON
-        auto x = vdupq_n_f32(divisor);
-        auto y = vdupq_n_f32(divident);
-        x = vrecpeq_f32(x);
-        x = vmulq_f32(x, y);
-
-        return vgetq_lane_f32(x, 0);
-#else
-        return (1.f / divisor) * divident;
-#endif
-    }
-
-    ALWAYS_INLINE static float_v divVector(const float_v &divident, const float_v &divisor)
-    {
-        return divident * xsimd::reciprocal(divisor);
-    }
-};
-
-template<typename _impl>
 struct KoStreamedMath {
     using int_v = xsimd::batch<int, _impl>;
     using uint_v = xsimd::batch<unsigned int, _impl>;

@@ -13,8 +13,9 @@
 #include "KoCompositeOpRegistry.h"
 #include "KoStreamedMath.h"
 #include "KoAlphaDarkenParamsWrapper.h"
+#include "KoCompositeOpAlphaDarken.h"
 
-template<typename channels_type, typename pixel_type, typename ParamsWrapperT>
+template<typename ParamsWrapperT>
 struct AlphaDarkenCompositor32 {
     using ParamsWrapper = ParamsWrapperT;
 
@@ -65,7 +66,8 @@ struct AlphaDarkenCompositor32 {
         float_v dst_alpha = KoStreamedMath<_impl>::template fetch_alpha_32<true>(dst);
         src_alpha = msk_norm_alpha * opacity_vec;
 
-        const float_m empty_dst_pixels_mask = dst_alpha == zeroValue;
+        const float_m zero_src_pixels_mask = src_alpha == zeroValue;
+        const float_m empty_dst_pixels_mask = (dst_alpha == zeroValue) & ~zero_src_pixels_mask;
 
         float_v src_c1;
         float_v src_c2;
@@ -77,7 +79,7 @@ struct AlphaDarkenCompositor32 {
 
         KoStreamedMath<_impl>::template fetch_colors_32<src_aligned>(src, src_c1, src_c2, src_c3);
 
-        const bool srcAlphaIsZero = xsimd::all(src_alpha == zeroValue);
+        const bool srcAlphaIsZero = xsimd::all(zero_src_pixels_mask);
         if (srcAlphaIsZero) return;
 
         const bool dstAlphaIsZero = xsimd::all(empty_dst_pixels_mask);
@@ -119,7 +121,12 @@ struct AlphaDarkenCompositor32 {
                 if (xsimd::none(fullFlowAlpha_mask)) {
                     return dst_alpha;
                 } else {
+#if XSIMD_WITH_NEON64
+                    // Preserve the same rounded quotient as scalar composition.
+                    const float_v reverse_blend = vdivq_f32(dst_alpha, average_opacity_vec);
+#else
                     const float_v reverse_blend = dst_alpha / average_opacity_vec;
+#endif
                     const float_v opt1 = (average_opacity_vec - src_alpha) * reverse_blend + src_alpha;
                     return xsimd::select(fullFlowAlpha_mask, opt1, dst_alpha);
                 }
@@ -135,6 +142,7 @@ struct AlphaDarkenCompositor32 {
             }
         }();
 
+        const float_v original_dst_alpha = dst_alpha;
         dst_alpha = [&]() {
             if (oparams.flow == 1.0) {
                 return fullFlowAlpha;
@@ -144,6 +152,8 @@ struct AlphaDarkenCompositor32 {
             }
         }();
 
+        dst_alpha = xsimd::select(zero_src_pixels_mask, original_dst_alpha, dst_alpha);
+
         KoStreamedMath<_impl>::write_channels_32(dst, dst_alpha, dst_c1, dst_c2, dst_c3);
     }
 
@@ -151,64 +161,10 @@ struct AlphaDarkenCompositor32 {
      * Composes one pixel of the source into the destination
      */
     template <bool haveMask, typename _impl>
-    static ALWAYS_INLINE void compositeOnePixelScalar(const channels_type *src, channels_type *dst, const quint8 *mask, float opacity, const ParamsWrapper &oparams)
+    static ALWAYS_INLINE void compositeOnePixelScalar(const quint8 *src, quint8 *dst, const quint8 *mask, float opacity, const ParamsWrapper &oparams)
     {
-        using namespace Arithmetic;
-        const qint32 alpha_pos = 3;
-
-        const float uint8Rec1 = 1.0f / 255.0f;
-        const float uint8Rec2 = 1.0f / (255.0f * 255.0f);
-        const float uint8Max = 255.0;
-
-        // we don't use directly passed value
         Q_UNUSED(opacity);
-
-        // instead we use value calculated by ParamsWrapper
-        opacity = oparams.opacity;
-
-        const quint8 dstAlphaInt = dst[alpha_pos];
-        const float dstAlphaNorm = dstAlphaInt ? dstAlphaInt * uint8Rec1 : 0.0;
-        const float mskAlphaNorm = [&]() {
-            if (haveMask) {
-                return float(*mask) * uint8Rec2 * src[alpha_pos];
-            } else {
-                return src[alpha_pos] * uint8Rec1;
-            }
-        }();
-        const float srcAlphaNorm = mskAlphaNorm * opacity;
-
-        if (dstAlphaInt != 0) {
-            dst[0] = KoStreamedMath<_impl>::lerp_mixed_u8_float(dst[0], src[0], srcAlphaNorm);
-            dst[1] = KoStreamedMath<_impl>::lerp_mixed_u8_float(dst[1], src[1], srcAlphaNorm);
-            dst[2] = KoStreamedMath<_impl>::lerp_mixed_u8_float(dst[2], src[2], srcAlphaNorm);
-        } else {
-            const auto *s = reinterpret_cast<const pixel_type*>(src);
-            auto *d = reinterpret_cast<pixel_type*>(dst);
-            *d = *s;
-        }
-
-
-        const float flow = oparams.flow;
-        const float averageOpacity = oparams.averageOpacity;
-
-        const float fullFlowAlpha = [&]() {
-            if (averageOpacity > opacity) {
-                return averageOpacity > dstAlphaNorm ? lerp(srcAlphaNorm, averageOpacity, dstAlphaNorm / averageOpacity) : dstAlphaNorm;
-            } else {
-                return opacity > dstAlphaNorm ? lerp(dstAlphaNorm, opacity, mskAlphaNorm) : dstAlphaNorm;
-            }
-        }();
-
-        const float dstAlpha = [&](){
-            if (flow == 1.0f) {
-                return fullFlowAlpha * uint8Max;
-            } else {
-                const float zeroFlowAlpha = ParamsWrapper::calculateZeroFlowAlpha(srcAlphaNorm, dstAlphaNorm);
-                return lerp(zeroFlowAlpha, fullFlowAlpha, flow) * uint8Max;
-            }
-        }();
-
-        dst[alpha_pos] = KoStreamedMath<_impl>::round_float_to_u8(dstAlpha);
+        compositeAlphaDarken32<haveMask>(src, dst, mask, oparams);
     }
 };
 
@@ -229,9 +185,9 @@ public:
     void composite(const KoCompositeOp::ParameterInfo& params) const override
     {
         if(params.maskRowStart) {
-            KoStreamedMath<_impl>::template genericComposite32<true, true, AlphaDarkenCompositor32<quint8, quint32, ParamsWrapper> >(params);
+            KoStreamedMath<_impl>::template genericComposite32<true, true, AlphaDarkenCompositor32<ParamsWrapper> >(params);
         } else {
-            KoStreamedMath<_impl>::template genericComposite32<false, true, AlphaDarkenCompositor32<quint8, quint32, ParamsWrapper> >(params);
+            KoStreamedMath<_impl>::template genericComposite32<false, true, AlphaDarkenCompositor32<ParamsWrapper> >(params);
         }
     }
 };

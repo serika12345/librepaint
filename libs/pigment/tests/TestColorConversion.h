@@ -21,6 +21,7 @@ private Q_SLOTS:
     void testHCI();
     void testHCY();
     void testYUV();
+    void testYUVKeepsCancellationIndependentOfFusedMultiplyAdd();
     void testLabLCH();
     void testXYZxyY();
     void testCMYCMYK();

@@ -1,6 +1,23 @@
 project(kritapigment)
 
+add_library(kritapigmentcolorconversionstages INTERFACE)
+target_include_directories(kritapigmentcolorconversionstages INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_link_libraries(kritapigmentcolorconversionstages INTERFACE Qt${QT_MAJOR_VERSION}::Core)
+
+
 ko_compile_for_all_implementations_no_scalar(__per_arch_factory_objs compositeops/KoOptimizedCompositeOpFactoryPerArch.cpp)
+ko_compile_for_all_implementations_no_scalar(__per_arch_alpha_darken32_factory_objs compositeops/KoOptimizedCompositeOpAlphaDarken32FactoryPerArch.cpp)
+# Each binary32 product and sum is rounded before the final alpha byte.
+if(MSVC)
+    set_property(SOURCE ${__per_arch_alpha_darken32_factory_objs}
+        compositeops/KoOptimizedCompositeOpAlphaDarken32FactoryPerArch_Scalar.cpp
+        APPEND PROPERTY COMPILE_OPTIONS /fp:strict)
+else()
+    set_property(SOURCE ${__per_arch_alpha_darken32_factory_objs}
+        compositeops/KoOptimizedCompositeOpAlphaDarken32FactoryPerArch_Scalar.cpp
+        APPEND PROPERTY COMPILE_OPTIONS -ffp-contract=off)
+endif()
 ko_compile_for_all_implementations(__per_arch_alpha_applicator_factory_objs KoAlphaMaskApplicatorFactoryImpl.cpp)
 ko_compile_for_all_implementations(__per_arch_rgb_scaler_factory_objs KoOptimizedPixelDataScalerU8ToU16FactoryImpl.cpp)
 set(__per_arch_rgb_scaler_scalar_objs ${__per_arch_rgb_scaler_factory_objs})
@@ -9,7 +26,7 @@ set(__per_arch_rgb_scaler_vector_objs ${__per_arch_rgb_scaler_factory_objs})
 list(FILTER __per_arch_rgb_scaler_vector_objs EXCLUDE REGEX "_Scalar\\.cpp$")
 
 message("Following objects are generated from the per-arch lib")
-foreach(_obj IN LISTS __per_arch_factory_objs __per_arch_alpha_applicator_factory_objs __per_arch_rgb_scaler_factory_objs)
+foreach(_obj IN LISTS __per_arch_factory_objs __per_arch_alpha_darken32_factory_objs __per_arch_alpha_applicator_factory_objs __per_arch_rgb_scaler_factory_objs)
     message("    * ${_obj}")
 endforeach()
 
@@ -278,6 +295,14 @@ target_include_directories(kritapigmentcolorconversionsobjects
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 target_link_libraries(kritapigmentcolorconversionsobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+# Product conversions round each written product before its surrounding sum.
+# In YUV, cancellation can amplify a contracted product into a different
+# stored RGBA8 byte, so this numerical owner uses the same order on every CPU.
+if(MSVC)
+    target_compile_options(kritapigmentcolorconversionsobjects PRIVATE /fp:strict)
+else()
+    target_compile_options(kritapigmentcolorconversionsobjects PRIVATE -ffp-contract=off)
+endif()
 set_target_properties(kritapigmentcolorconversionsobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
@@ -379,7 +404,7 @@ set_target_properties(kritapigmentalphadarkenparamswrapperobjects PROPERTIES
 add_library(kritapigmentcolorconversiontransformationobjects OBJECT KoColorConversionTransformation.cpp)
 target_compile_definitions(kritapigmentcolorconversiontransformationobjects PRIVATE kritapigment_EXPORTS)
 target_include_directories(kritapigmentcolorconversiontransformationobjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/libs/global ${CMAKE_BINARY_DIR}/libs/global)
-target_link_libraries(kritapigmentcolorconversiontransformationobjects PUBLIC Boost::boost KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
+target_link_libraries(kritapigmentcolorconversiontransformationobjects PUBLIC kritapigmentcolorconversionstages Boost::boost KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
 set_target_properties(kritapigmentcolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 
 add_library(kritapigmentmultiplecolorconversiontransformationobjects OBJECT KoMultipleColorConversionTransformation.cpp)
@@ -428,7 +453,9 @@ set(kritapigment_SRCS
     colorspaces/KoSimpleColorSpaceEngine.cpp
     compositeops/KoOptimizedCompositeOpFactory.cpp
     compositeops/KoOptimizedCompositeOpFactoryPerArch_Scalar.cpp
+    compositeops/KoOptimizedCompositeOpAlphaDarken32FactoryPerArch_Scalar.cpp
     ${__per_arch_factory_objs}
+    ${__per_arch_alpha_darken32_factory_objs}
     ${__per_arch_alpha_applicator_factory_objs}
     KoAlphaMaskApplicatorFactory.cpp
     colorprofiles/KoDummyColorProfile.cpp
