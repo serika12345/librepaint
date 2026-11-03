@@ -18,7 +18,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
 {
     if (!validPixel(image.projectionBackground, image.format) || image.size.width() <= 0 || image.size.height() <= 0 ||
         image.size.width() > CoordinateLimit || image.size.height() > CoordinateLimit ||
-        limits.samplesPerStroke <= 0 || limits.samplesPerDocument <= 0 || limits.layerCount <= 0 ||
+        limits.samplesPerStroke <= 0 || limits.layerCount <= 0 || limits.historyBytes < 0 ||
         limits.compressedWriteBytes <= 0 || limits.compressedWriteBytes > std::numeric_limits<int>::max() ||
         limits.rasterBytes <= 0 || limits.rasterBytes > std::numeric_limits<int>::max() ||
         image.layers.size() > limits.layerCount || image.activeLayer < 0 ||
@@ -47,12 +47,12 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         if (!validPixel(source.defaultPixel, image.format) || identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 || source.projectionChannelMask > 15 ||
             (source.kind != LayerKind::Paint && (!source.tiles.isEmpty() || !source.writtenAreas.isEmpty() ||
                 source.defaultPixel != RgbaPixel{} || source.channelWriteMask != 15)) ||
-            source.tiles.size() > (limits.rasterBytes - initial->rasterBytes) / RgbaTile::byteCount(image.format)) {
+            source.tiles.size() > limits.rasterBytes / RgbaTile::byteCount(image.format)) {
             throw std::invalid_argument("invalid raster layer identity, name or pixel capacity");
         }
         if (isFilterNode(source.kind) && (!source.filter || !source.filter->isValid(image.format)))
             throw std::invalid_argument("unresolved or invalid native filter configuration");
-        if (source.filter && source.filter->byteCount() > limits.rasterBytes - initial->rasterBytes)
+        if (source.filter && source.filter->byteCount() > limits.rasterBytes)
             throw std::length_error("native filter configuration capacity exceeded");
         Layer layer;
         layer.id = initial->layers.size() + 1;
@@ -75,7 +75,6 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.filterSelection = isFilterNode(source.kind) ?
             (source.filterSelection ? source.filterSelection : SelectionMask::uniform(255)) : SelectionMaskSP{};
         layer.transparencyMaskIndex = source.transparencyMaskIndex;
-        if (layer.filter) initial->rasterBytes += layer.filter->byteCount();
         layer.transparencyMask = source.transparencyMask;
         layer.transparencyMaskPosition = source.transparencyMaskPosition;
         layer.transparencyMaskVisible = source.transparencyMaskVisible;
@@ -103,7 +102,6 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
             if (!source.writtenAreas.isEmpty()) operation->writeGroup = operation->id.sequence;
             if (!Detail::validWrittenAreas(*operation)) throw std::invalid_argument("invalid raster written areas");
             layer.operations.append(TileWriteSnapshot(operation));
-            initial->rasterBytes += operation->tiles.size() * RgbaTile::byteCount(image.format);
         }
         if (source.tiles.isEmpty() && !source.writtenAreas.isEmpty()) throw std::invalid_argument("written areas require raster tiles");
         initial->layers.append(layer);
@@ -124,7 +122,7 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     const auto index = layerIndex(layer);
     if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
     if (tiles.isEmpty()) return Result::EmptyOperation;
-    if (tiles.size() > (m_limits.rasterBytes - snapshot()->rasterBytes) / RgbaTile::byteCount(snapshot()->format) ||
+    if (tiles.size() > m_limits.rasterBytes / RgbaTile::byteCount(snapshot()->format) ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSet<QPoint> coordinates;
@@ -141,7 +139,6 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     operation->layer = layer;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].operations.append(TileWriteSnapshot(operation));
-    version->rasterBytes += tiles.size() * RgbaTile::byteCount(snapshot()->format);
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;
@@ -173,7 +170,7 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
         for (qsizetype i = 0; i < write.before->layers.size(); ++i)
             if (write.before->layers[i].id == write.layer) layerIndex = i;
         if (layerIndex < 0 || write.before->layers[layerIndex].kind != LayerKind::Paint) return Result::LayerUnavailable;
-        if (write.tiles.size() > (m_limits.rasterBytes - write.before->rasterBytes) / RgbaTile::byteCount(write.before->format))
+        if (write.tiles.size() > m_limits.rasterBytes / RgbaTile::byteCount(write.before->format))
             return Result::CapacityExceeded;
         auto operation = QSharedPointer<TileWriteOperation>::create();
         operation->id = {m_identity, ++nextOperation};
@@ -190,7 +187,6 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
         if (!Detail::validWrittenAreas(*operation)) return Result::InvalidInput;
         QSharedPointer<DocumentVersion> version(new DocumentVersion(*write.before));
         version->layers[layerIndex].operations.append(TileWriteSnapshot(operation));
-        version->rasterBytes += write.tiles.size() * RgbaTile::byteCount(write.before->format);
         version->m_revision = ++nextRevision;
         if (recordHistory) version->m_modifiedRevision = version->m_revision;
         if (index >= 0) history[index] = version;
@@ -286,6 +282,7 @@ Result OperationDocument::commitColorConversion(OperationId id, const Snapshot &
         }
         if (!Detail::validWrittenAreas(*write)) return Result::InvalidInput;
         layer->defaultPixel = pixels.defaultPixel;
+        layer->pixels.reset();
         layer->operations.clear();
         layer->initialProjection.clear();
         if (!write->tiles.isEmpty()) layer->operations.append(TileWriteSnapshot(write));
@@ -295,8 +292,6 @@ Result OperationDocument::commitColorConversion(OperationId id, const Snapshot &
     version->format = format;
     version->colorProfile = profile;
     version->projectionBackground = background;
-    version->sampleCount = 0;
-    version->rasterBytes = raster;
     version->m_modifiedRevision = version->m_revision = m_nextRevision + 1;
     LayerHistoryChange change;
     change.convertedColorSpace = true;

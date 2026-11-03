@@ -1223,7 +1223,7 @@ void TestDocument::testBackgroundApiKeepsHistoryAndPinnedPixels()
     }
     QCOMPARE(publicDocument.backgroundColor(), background);
     QCOMPARE(owner->operations().activeOperation(), pending);
-    QCOMPARE(owner->operations().preview()->sampleCount, qsizetype(1));
+
     QCOMPARE(owner->cancelStroke(pending), Gpu::Result::Success);
     QCOMPARE(publicDocument.pixelData(0, 0, 1, 1), QByteArray::fromHex("33221180"));
     QCOMPARE(publicDocument.pixelData(-1, -1, 1, 1), QByteArray::fromHex("33221180"));

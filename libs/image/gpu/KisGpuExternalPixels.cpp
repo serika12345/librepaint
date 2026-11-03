@@ -16,198 +16,6 @@
 
 namespace LibrePaint::Image::Gpu {
 namespace {
-using Lineage = QList<QPair<quint64, quint64>>;
-struct GeometryCache
-{
-    PixelFormat format;
-    QHash<const PaintOperation *, std::optional<QList<Detail::MarkerDab>>> markers;
-    QHash<const PaintOperation *, std::optional<QList<Detail::FigureFillEdge>>> fills;
-    QHash<const PaintOperation *, std::optional<QList<Detail::AutoBrushDab>>> gaussian;
-};
-
-bool writeIntersects(const TileWriteOperation &write, const QRect &block)
-{
-    if (write.writtenAreas.isEmpty()) {
-        for (const auto &tile : write.tiles)
-            if (QRect(tile->coordinate() * RgbaTile::Size, QSize(RgbaTile::Size, RgbaTile::Size)).intersects(block)) return true;
-    } else {
-        for (const auto &area : write.writtenAreas) if (area.intersects(block)) return true;
-    }
-    return false;
-}
-
-std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &block, GeometryCache &geometry)
-{
-    if (paint.compositionBounds && !paint.compositionBounds->intersects(block)) return false;
-    if (paint.brush.autoBrush) {
-        auto found = geometry.gaussian.constFind(&paint);
-        if (found == geometry.gaussian.cend()) found = geometry.gaussian.insert(&paint, Detail::autoBrushDabs(paint, false));
-        if (!*found) return std::nullopt;
-        for (const auto &dab : **found) if (dab.bounds().intersects(block)) return true;
-    } else {
-        auto found = geometry.markers.constFind(&paint);
-        if (found == geometry.markers.cend()) {
-            constexpr int limit = RgbaTile::CoordinateLimit;
-            found = geometry.markers.insert(&paint, Detail::markerDabs(paint, false, QRect(-limit, -limit, 2 * limit, 2 * limit)));
-        }
-        if (!*found) return std::nullopt;
-        for (const auto &dab : **found)
-            if (Detail::usesAllocatedSourceRegion(paint, geometry.format) ? dab.bounds().intersects(block) : Detail::markerDabIntersects(dab, block)) return true;
-    }
-    if (hasFigureFill(paint.figureStyle)) {
-        auto fill = geometry.fills.constFind(&paint);
-        if (fill == geometry.fills.cend()) fill = geometry.fills.insert(&paint, Detail::figureFillEdges(paint));
-        if (!*fill) return std::nullopt;
-        const auto tiles = Detail::figureFillTiles(**fill, paint.brush, block, 1, Detail::PixelHistoryBlockSize);
-        if (!tiles || !tiles->isEmpty()) return true;
-    }
-    return false;
-}
-
-bool filterIntersects(const FilterOperation &filter, const QRect &block)
-{
-    if (filter.kind >= FilterKind::MaximizeChannel && !filter.applyRect.intersects(block)) return false;
-    if (filter.selectionRect.isEmpty()) return true;
-    return filter.selectionInverted ? !filter.selectionRect.contains(block) :
-        filter.selectionRect.intersects(block);
-}
-
-std::optional<bool> blockExistsBefore(const Layer &layer, qsizetype before, QRect block, GeometryCache &geometry)
-{
-    while (before-- > 0) {
-        const auto &operation = layer.operations[before];
-        if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
-            if (writeIntersects(**write, block)) return true;
-        } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
-            if ((*translation)->selectedPixels) {
-                if ((*translation)->clearRect.intersects(block) ||
-                    (*translation)->copyRect.translated((*translation)->offset).intersects(block)) return true;
-            } else block.translate(-(*translation)->offset);
-        } else if (const auto affine = std::get_if<AffineSnapshot>(&operation)) {
-            if ((*affine)->allocatedBlocks) {
-                return std::any_of((*affine)->allocatedBlocks->cbegin(), (*affine)->allocatedBlocks->cend(), [&](const auto &area) { return area.intersects(block); });
-            }
-            if (!(*affine)->selection) return true;
-            auto transformed = (*affine)->selection->copyRect;
-            for (const auto &pass : (*affine)->plan->passes) transformed = affineOutputRegion(pass, transformed);
-            if (transformed.intersects(block) || (*affine)->selection->clearRect.intersects(block)) return true;
-        } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
-            if (!(*crop)->rect.normalized().intersects(block)) return false;
-            // A partially cropped history block stays allocated even when its remaining pixels are defaults.
-        } else if (std::holds_alternative<FilterSnapshot>(operation)) {
-            // A filter rewrites existing pixels and allocates no source block.
-            continue;
-        } else {
-            const auto intersects = paintIntersects(*std::get<PaintSnapshot>(operation), block, geometry);
-            if (!intersects || *intersects) return intersects;
-        }
-    }
-    return layer.initialProjection && std::any_of(layer.initialProjection->allocatedBlocks.cbegin(),
-        layer.initialProjection->allocatedBlocks.cend(), [&](const auto &area) { return area.intersects(block); });
-}
-
-std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCache &geometry, qsizetype firstOperation = 0)
-{
-    Lineage result;
-    QRect historyBlock = block;
-    for (qsizetype index = layer.operations.size(); index-- > firstOperation;) {
-        const auto &operation = layer.operations[index];
-        if (const auto value = std::get_if<TileWriteSnapshot>(&operation)) {
-            const auto &write = **value;
-            if (writeIntersects(write, block)) {
-                result.append({write.writeGroup ? write.writeGroup : write.id.sequence, 0});
-                return result;
-            }
-        } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
-            if ((*translation)->selectedPixels) {
-                if ((*translation)->clearRect.intersects(block) ||
-                    (*translation)->copyRect.translated((*translation)->offset).intersects(block)) {
-                    result.append({(*translation)->id.sequence, (*translation)->version});
-                    return result;
-                }
-            } else {
-                block.translate(-(*translation)->offset);
-                historyBlock.translate(-(*translation)->offset);
-            }
-        } else if (const auto affine = std::get_if<AffineSnapshot>(&operation)) {
-            bool changed = !(*affine)->selection;
-            if ((*affine)->selection) {
-                auto transformed = (*affine)->selection->copyRect;
-                for (const auto &pass : (*affine)->plan->passes) transformed = affineOutputRegion(pass, transformed);
-                changed = transformed.intersects(block) || (*affine)->selection->clearRect.intersects(block);
-            }
-            if (changed) { result.append({(*affine)->id.sequence, (*affine)->version}); return result; }
-        } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
-            const auto keep = (*crop)->rect.normalized();
-            if (!keep.contains(block)) {
-                const auto exists = blockExistsBefore(layer, index, historyBlock, geometry);
-                if (!exists) return std::nullopt;
-                if (!*exists) continue;
-                result.append({(*crop)->id.sequence, (*crop)->version});
-                block = block.intersected(keep);
-                if (block.isEmpty()) return result;
-            }
-        } else if (const auto filter = std::get_if<FilterSnapshot>(&operation)) {
-            // Filters retain their frozen coverage; a block inside that coverage
-            // gains one lineage entry so later external writes can distinguish it.
-            if (filterIntersects(**filter, block)) result.append({(*filter)->id.sequence, (*filter)->version});
-        } else {
-            const auto &paint = *std::get<PaintSnapshot>(operation);
-            const auto intersects = paintIntersects(paint, block, geometry);
-            if (!intersects) return std::nullopt;
-            if (*intersects) result.append({paint.id.sequence, paint.version});
-        }
-    }
-    if (firstOperation == 0 && layer.initialProjection && std::any_of(layer.initialProjection->allocatedBlocks.cbegin(),
-        layer.initialProjection->allocatedBlocks.cend(), [&](const auto &area) { return area.intersects(block); }))
-        result.append({0, quint64(quintptr(layer.initialProjection.data()))});
-    return result;
-}
-
-using MaskLineage = QList<std::tuple<QUuid, quint64, quint64>>;
-
-std::optional<MaskLineage> maskLineage(SelectionMaskSP mask, QRect block, GeometryCache &geometry)
-{
-    MaskLineage result;
-    while (mask) {
-        if (const auto &translation = mask->translationSource()) {
-            const auto sourceBlock = block.translated(-translation->offset);
-            if (!translation->clip.contains(block) && std::any_of(translation->source->allocatedBlocks().cbegin(),
-                translation->source->allocatedBlocks().cend(), [&](const auto &area) { return area.intersects(sourceBlock); })) {
-                // Cropping replaces an allocated native block, including its
-                // retained pixels. Later direct writes belong to this version.
-                result.append({{}, quint64(quintptr(mask.data())), 0});
-                return result;
-            }
-            block = sourceBlock;
-            mask = translation->source;
-            continue;
-        }
-        const auto &paint = mask->paintSource();
-        if (!paint || !paint->previous || paint->firstEditOperation < 0) {
-            result.append({{}, quint64(quintptr(mask.data())), 0});
-            return result;
-        }
-        if (paint->cleared && std::any_of(paint->previous->allocatedBlocks().cbegin(),
-            paint->previous->allocatedBlocks().cend(), [&](const auto &area) { return area.intersects(block); })) {
-            result.append({paint->source->documentId(), 0, paint->source->revision()});
-            return result;
-        }
-        const auto &layers = paint->source->layers;
-        const auto source = std::find_if(layers.cbegin(), layers.cend(), [&](const auto &layer) { return layer.id == paint->layer; });
-        if (source == layers.cend()) return std::nullopt;
-        const auto edits = pixelLineage(*source, block, geometry, paint->firstEditOperation);
-        if (!edits) return std::nullopt;
-        if (!edits->isEmpty() && !paint->externalWriteUuid.isNull()) {
-            result.append({paint->externalWriteUuid, 0, 0});
-            return result;
-        }
-        for (const auto &edit : *edits) result.append({paint->source->documentId(), edit.first, edit.second});
-        mask = paint->previous;
-    }
-    return std::nullopt;
-}
-
 Result readFailure(ExecutionCode code)
 {
     if (code == ExecutionCode::CapacityExceeded) return Result::CapacityExceeded;
@@ -311,16 +119,14 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
     constexpr int size = RgbaTile::Size;
     const qint64 columns = Detail::pixelTileIndex(region.right(), size) - Detail::pixelTileIndex(region.left(), size) + 1;
     const qint64 rows = Detail::pixelTileIndex(region.bottom(), size) - Detail::pixelTileIndex(region.top(), size) + 1;
-    if (columns * rows > (d.limits.rasterBytes - current->rasterBytes) / bytesPerTile)
+    if (columns * rows > d.limits.rasterBytes / bytesPerTile)
         return Result::CapacityExceeded;
     Result adopted;
     try {
-        GeometryCache geometry{current->format, {}, {}, {}};
-        QHash<quint64, Lineage> lineages;
         QList<OperationDocument::VersionPixelWrite> writes;
         qsizetype compressedBytes = 0;
-        auto versions = recordHistory ? QList<Snapshot>{current} : document.m_history;
-        if (retainedVersion && !versions.contains(current)) versions.append(current);
+        // A direct write changes only the version it addresses; undo versions keep their pixels.
+        const QList<Snapshot> versions{current};
         for (const auto &version : versions) {
             const Layer *candidate = nullptr;
             for (const auto &value : version->layers) if (value.id == layer) candidate = &value;
@@ -339,17 +145,6 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
                 for (qint64 x = blockIndex(qint64(region.left()) - selected.position.x()); x <= blockIndex(qint64(region.right()) - selected.position.x()); ++x) {
                     const auto blockKey = Detail::key(int(x), int(y));
                     const QRect block(int(x * blockSize + selected.position.x()), int(y * blockSize + selected.position.y()), blockSize, blockSize);
-                    if (candidate->operations != selected.operations || candidate->initialProjection != selected.initialProjection) {
-                        auto lineage = lineages.constFind(blockKey);
-                        if (lineage == lineages.cend()) {
-                            const auto selectedLineage = pixelLineage(selected, block, geometry);
-                            if (!selectedLineage) return Result::CapacityExceeded;
-                            lineage = lineages.insert(blockKey, *selectedLineage);
-                        }
-                        const auto candidateLineage = pixelLineage(*candidate, block.translated(placement), geometry);
-                        if (!candidateLineage) return Result::CapacityExceeded;
-                        if (*candidateLineage != *lineage) continue;
-                    }
                     const auto area = block.intersected(region).translated(placement);
                     for (int ty = Detail::pixelTileIndex(area.top(), size); ty <= Detail::pixelTileIndex(area.bottom(), size); ++ty)
                         for (int tx = Detail::pixelTileIndex(area.left(), size); tx <= Detail::pixelTileIndex(area.right(), size); ++tx)
@@ -357,7 +152,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
                 }
             }
             if (areas.isEmpty()) continue;
-            if (areas.size() > (d.limits.rasterBytes - version->rasterBytes) / bytesPerTile)
+            if (areas.size() > d.limits.rasterBytes / bytesPerTile)
                 return Result::CapacityExceeded;
             OperationDocument::VersionPixelWrite write;
             write.before = version;
@@ -507,20 +302,16 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
         contextInput.size = canvas;
         OperationDocument context(contextInput, d.limits);
         const auto sourceContext = context.snapshot();
-        GeometryCache geometry{PixelFormat::Rgba8, {}, {}, {}};
-        QHash<quint64, MaskLineage> selectedLineages;
         QMap<std::tuple<int, int, int, int>, SelectionMaskSP> inputs;
         qsizetype retainedBytes = 0;
-        const QUuid writeUuid = QUuid::createUuid();
         QList<OperationDocument::VersionMaskWrite> writes;
         constexpr int blockSize = Detail::PixelHistoryBlockSize;
         const auto blockIndex = [](qint64 value) { return value >= 0 ? value / blockSize : (value - blockSize + 1) / blockSize; };
         const auto selectedPosition = retainedCoverage ? retainedPosition : maskPosition(current);
         const auto origin = selectedPosition;
-        auto versions = closed ? QList<Snapshot>{} : document.m_history;
-        bool selectedInHistory = false;
-        for (const auto &version : versions) if (findTarget(version).second == selected) selectedInHistory = true;
-        if (!selectedInHistory) versions.append(sourceContext);
+        // A direct write changes only the current version; a detached mask keeps its own copy.
+        const bool selectedInHistory = !closed && current && findTarget(current).second == selected;
+        const QList<Snapshot> versions{selectedInHistory ? current : sourceContext};
         SelectionMaskSP selectedOutput;
         for (qsizetype index = 0; index < versions.size(); ++index) {
             const auto &version = versions[index];
@@ -538,24 +329,12 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
                 for (qint64 x = blockIndex(qint64(region.left()) - origin.x()); x <= blockIndex(qint64(region.right()) - origin.x()); ++x) {
                     const auto key = Detail::key(int(x), int(y));
                     const QRect block(int(x * blockSize + origin.x()), int(y * blockSize + origin.y()), blockSize, blockSize);
-                    if (previous != selected) {
-                        auto selectedLineage = selectedLineages.constFind(key);
-                        if (selectedLineage == selectedLineages.cend()) {
-                            const auto lineage = maskLineage(selected, block, geometry);
-                            if (!lineage) return Result::CapacityExceeded;
-                            selectedLineage = selectedLineages.insert(key, *lineage);
-                        }
-                        const auto lineage = maskLineage(previous, block.translated(placement), geometry);
-                        if (!lineage) return Result::CapacityExceeded;
-                        if (*lineage != *selectedLineage) continue;
-                    }
                     allowed += block.intersected(region).translated(placement);
                 }
             if (allowed.isEmpty()) continue;
             const auto image = createMaskImage(sourceContext, previous);
             if (!image) return readFailure(d.lastRequest.code);
             const auto sourceLayer = image->operations().activeLayer();
-            const auto firstEdit = image->operations().snapshot()->layers.first().operations.size();
             if (image->clearSelection() != Result::Success) return Result::CapacityExceeded;
             for (const auto &area : allowed) {
                 const auto key = std::make_tuple(area.x(), area.y(), area.width(), area.height());
@@ -594,17 +373,9 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
                 }
             }
             const auto source = image->operations().snapshot();
-            if (source->sampleCount > (d.limits.rasterBytes - retainedBytes) / qsizetype(sizeof(InputSample)))
-                return Result::CapacityExceeded;
-            retainedBytes += source->sampleCount * qsizetype(sizeof(InputSample));
-            const auto operationCount = source->layers.first().operations.size();
-            if (operationCount > (d.limits.rasterBytes - retainedBytes) / qsizetype(sizeof(PaintOperation)))
-                return Result::CapacityExceeded;
-            retainedBytes += operationCount * qsizetype(sizeof(PaintOperation));
             SelectionMaskSP output;
             const auto generated = d.execution.paintedSelectionCoverage(image->handle(), source, sourceLayer, &output);
             if (generated.code != ExecutionCode::Success) return readFailure(generated.code);
-            output = output->withPaintHistory(previous, firstEdit, writeUuid);
             if (!output || !document.selectionFitsRetainedInputs(output)) return Result::CapacityExceeded;
             if (previous == selected && previousPosition == selectedPosition) selectedOutput = output;
             if (!retainedOnly) writes.append({version, target.first, maskUuid, output});

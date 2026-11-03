@@ -89,6 +89,14 @@ struct ProjectionInput {
     }
 };
 using ProjectionInputs = QMap<quint64, QList<ProjectionInput>>;
+/** Committed layer pixels; tiles are shared with the versions derived from them. */
+struct RenderedLayerPixels final : LayerPixels
+{
+    std::shared_ptr<Budget> owner;
+    Tiles tiles;
+    std::shared_ptr<Tile> defaultTile;
+    RgbaPixel uniform{};
+};
 }
 
 namespace LibrePaint::Image::Gpu {
@@ -269,6 +277,8 @@ struct TileRenderer::Private
     WGPUBuffer zeroBuffer(WGPUCommandEncoder commands, PixelFormat format);
     std::shared_ptr<Detail::Tile> allocateTile(PixelFormat format);
     bool ensureTileCapacity(qsizetype count, PixelFormat format);
+    /** Records committed layer pixels of a submitted complete render on its document version. */
+    void publishLayerPixels(const RenderedSnapshot &version);
     /** Uploads the mask's alpha tile for one document tile coordinate. */
     std::shared_ptr<Detail::CoverageTile> coverageTile(WGPUCommandEncoder commands,
                                                     const SelectionMaskSP &mask, quint64 coordinate);

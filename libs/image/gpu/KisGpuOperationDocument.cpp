@@ -14,6 +14,7 @@
 #include <QScopeGuard>
 #include <QSet>
 #include <QHash>
+#include <mutex>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
@@ -22,18 +23,6 @@ qsizetype operationSamples(const LayerOperation &value)
 {
     const auto paint = std::get_if<PaintSnapshot>(&value);
     return paint ? (*paint)->sampleCount : 0;
-}
-qsizetype operationRasterBytes(const LayerOperation &value)
-{
-    if (const auto paint = std::get_if<PaintSnapshot>(&value))
-        return ((*paint)->figureStyle.pattern ? (*paint)->figureStyle.pattern->byteCount() : 0) +
-            ((*paint)->figureStyle.gradient ? (*paint)->figureStyle.gradient->byteCount() : 0) +
-            ((*paint)->brush.texture ? (*paint)->brush.texture->alpha.size() : 0) +
-            (*paint)->brush.transforms.size() * qsizetype(sizeof(BrushTransform));
-    const auto write = std::get_if<TileWriteSnapshot>(&value);
-    qsizetype bytes = 0;
-    if (write) for (const auto &tile : (*write)->tiles) bytes += tile->byteCount();
-    return bytes;
 }
 }
 
@@ -96,6 +85,7 @@ void includeLayerDescendants(const QList<Layer> &layers, QSet<LayerId> &included
 
 void copyLayerOperations(const Layer &source, Layer &copy, const QUuid &identity, quint64 &sequence)
 {
+    copy.pixels = source.pixels;
     copy.initialProjection = source.initialProjection;
     copy.operations.clear();
     QHash<quint64, quint64> writeGroups;
@@ -153,19 +143,63 @@ QList<InputSample> PaintOperation::inputSamples() const
     return result;
 }
 
-qsizetype Layer::inputSampleCount() const
+LayerPixels::~LayerPixels() = default;
+
+struct DocumentVersion::RenderedLayers
 {
-    qsizetype count = initialProjection ? initialProjection->source->sampleCount : 0;
-    for (const auto &operation : operations) count += operationSamples(operation);
-    return count;
+    mutable std::mutex mutex;
+    QHash<LayerId, LayerPixelsSP> layers;
+};
+
+DocumentVersion::DocumentVersion() : m_rendered(std::make_shared<RenderedLayers>()) {}
+
+DocumentVersion::DocumentVersion(const DocumentVersion &other)
+    : size(other.size), format(other.format), colorProfile(other.colorProfile),
+      projectionBackground(other.projectionBackground), rootUuid(other.rootUuid), layers(other.layers),
+      activeLayer(other.activeLayer), selectedLayers(other.selectedLayers), selection(other.selection),
+      selectionInverted(other.selectionInverted), selectionKind(other.selectionKind),
+      selectionMask(other.selectionMask),
+      m_rendered(std::make_shared<RenderedLayers>()), m_document(other.m_document),
+      m_revision(other.m_revision), m_modifiedRevision(other.m_modifiedRevision),
+      m_committed(other.m_committed), m_pendingOperation(other.m_pendingOperation)
+{
+    QHash<LayerId, LayerPixelsSP> rendered;
+    {
+        const std::lock_guard<std::mutex> lock(other.m_rendered->mutex);
+        rendered = other.m_rendered->layers;
+    }
+    if (rendered.isEmpty()) return;
+    for (auto &layer : layers) {
+        const auto pixels = rendered.value(layer.id);
+        if (!pixels) continue;
+        layer.pixels = pixels;
+        layer.defaultPixel = pixels->defaultPixel;
+        layer.operations.clear();
+        layer.initialProjection.clear();
+    }
 }
 
-qsizetype Layer::retainedRasterBytes() const
+void DocumentVersion::setRenderedPixels(LayerId layer, const LayerPixelsSP &pixels) const
 {
-    qsizetype bytes = initialProjection ? initialProjection->source->rasterBytes + initialProjection->retainedBytes : 0;
-    for (const auto &operation : operations) bytes += operationRasterBytes(operation);
-    if (filter) bytes += filter->byteCount();
-    return bytes;
+    const std::lock_guard<std::mutex> lock(m_rendered->mutex);
+    if (pixels && !m_rendered->layers.contains(layer)) m_rendered->layers.insert(layer, pixels);
+}
+
+LayerPixelsSP DocumentVersion::renderedPixels(LayerId layer) const
+{
+    const std::lock_guard<std::mutex> lock(m_rendered->mutex);
+    return m_rendered->layers.value(layer);
+}
+
+QHash<const void *, qsizetype> DocumentVersion::pixelStorageBytes() const
+{
+    const std::lock_guard<std::mutex> lock(m_rendered->mutex);
+    QHash<const void *, qsizetype> result;
+    for (const auto &layer : layers) {
+        const auto pixels = m_rendered->layers.value(layer.id, layer.pixels);
+        if (pixels) result.insert(pixels->storageBytes);
+    }
+    return result;
 }
 
 OperationDocument::OperationDocument(QSize size, Limits limits)
@@ -193,12 +227,6 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
         version->activeLayer = onlyLayer;
         version->selectedLayers = {onlyLayer};
         version->projectionBackground = {};
-        version->sampleCount = 0;
-        version->rasterBytes = 0;
-        for (const auto &layer : version->layers) {
-            version->sampleCount += layer.inputSampleCount();
-            version->rasterBytes += layer.retainedRasterBytes();
-        }
     }
     auto result = std::make_unique<OperationDocument>(RasterImage{source->size, {}, 0}, m_limits);
     version->m_document = result->m_identity;
@@ -872,7 +900,7 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
         !snapshot()->layers[index].visible || snapshot()->layers[index].userLocked ||
         !validBrush(brush, snapshot()->format) ||
         brush.transforms.size() > m_limits.samplesPerStroke ||
-        resourceBytes > m_limits.rasterBytes || snapshot()->rasterBytes > m_limits.rasterBytes - resourceBytes ||
+        resourceBytes > m_limits.rasterBytes ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return {};
@@ -946,8 +974,6 @@ Result OperationDocument::appendSamplesWithin(OperationId id, const QList<InputS
     const qsizetype count = m_edit->sampleCount;
     const qsizetype handCount = std::max(qsizetype(1), m_edit->brush.transforms.size());
     if (samples.size() > m_limits.samplesPerStroke / handCount - count ||
-        count > m_limits.samplesPerDocument - snapshot()->sampleCount ||
-        samples.size() > m_limits.samplesPerDocument - snapshot()->sampleCount - count ||
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return Result::CapacityExceeded;
     }
@@ -1002,10 +1028,9 @@ Result OperationDocument::paintFigureWithin(LayerId layer, const Brush &brush, c
         (style.gradient ? style.gradient->byteCount() : 0) +
         (brush.texture ? brush.texture->alpha.size() : 0) + brush.transforms.size() * qsizetype(sizeof(BrushTransform));
     if (samples.size() > m_limits.samplesPerStroke / std::max(qsizetype(1), brush.transforms.size()) ||
-        samples.size() > m_limits.samplesPerDocument - snapshot()->sampleCount ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision > std::numeric_limits<quint64>::max() - (samples.isEmpty() ? 1 : 2) ||
-        resourceBytes > m_limits.rasterBytes || snapshot()->rasterBytes > m_limits.rasterBytes - resourceBytes) {
+        resourceBytes > m_limits.rasterBytes) {
         return Result::CapacityExceeded;
     }
     const auto id = beginStroke(layer, brush, randomSeed);
@@ -1043,7 +1068,7 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
         (style.gradient ? style.gradient->byteCount() : 0) +
         (m_edit->brush.texture ? m_edit->brush.texture->alpha.size() : 0) +
         m_edit->brush.transforms.size() * qsizetype(sizeof(BrushTransform));
-    if (resourceBytes > m_limits.rasterBytes || snapshot()->rasterBytes > m_limits.rasterBytes - resourceBytes)
+    if (resourceBytes > m_limits.rasterBytes)
         return Result::CapacityExceeded;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<PaintOperation> operation(new PaintOperation(*m_edit));
@@ -1062,8 +1087,6 @@ void OperationDocument::replacePreview(const QSharedPointer<const PaintOperation
 {
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[layerIndex(operation->layer)].operations.append(operation);
-    version->sampleCount += operation->sampleCount;
-    version->rasterBytes += operationRasterBytes(LayerOperation(PaintSnapshot(operation)));
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     version->m_committed = false;
     version->m_pendingOperation = operation->id;
@@ -1083,11 +1106,26 @@ void OperationDocument::commitVersion(const Snapshot &version, const LayerHistor
     history.append(version);
     changes.append(change);
     int index = m_index + 1;
-    if (index > HistoryLimit) {
-        history.removeFirst();
-        changes.removeFirst();
+    // Count buffers once across all versions. Current pixels are required for
+    // editing; the history budget covers the additional buffers retained by Undo.
+    auto retained = version->pixelStorageBytes();
+    qsizetype historyBytes = 0;
+    int first = index;
+    for (int i = index - 1; i >= 0 && index - i <= HistoryLimit; --i) {
+        const auto buffers = history[i]->pixelStorageBytes();
+        qsizetype added = 0;
+        for (auto buffer = buffers.cbegin(); buffer != buffers.cend(); ++buffer)
+            if (!retained.contains(buffer.key())) added += buffer.value();
+        if (added > m_limits.historyBytes - historyBytes) break;
+        historyBytes += added;
+        retained.insert(buffers);
+        first = i;
+    }
+    if (first) {
+        history.erase(history.begin(), history.begin() + first);
+        changes.erase(changes.begin(), changes.begin() + first);
         changes[0] = {};
-        --index;
+        index -= first;
     }
     version->m_committed = true;
     m_history.swap(history);
@@ -1246,8 +1284,6 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
     for (const auto &version : m_history)
         for (const auto &layer : version->layers) identities.insert(layer.uuid);
     QList<Layer> added;
-    auto samples = before->sampleCount;
-    auto pixels = before->rasterBytes;
     auto nextLayer = m_nextLayer;
     auto nextOperation = m_nextOperation;
     for (const auto &input : layers) {
@@ -1263,28 +1299,14 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         if (found->kind != properties.kind || found->defaultPixel != properties.defaultPixel ||
             (found->kind == LayerKind::Group &&
              (properties.channelWriteMask != 15 || !found->operations.isEmpty()))) return Result::InvalidInput;
-        if (found->initialProjection) {
-            const auto count = found->initialProjection->source->sampleCount;
-            const auto bytes = found->initialProjection->source->rasterBytes + found->initialProjection->retainedBytes;
-            if (count > m_limits.samplesPerDocument - samples || bytes > m_limits.rasterBytes - pixels)
-                return Result::CapacityExceeded;
-            samples += count; pixels += bytes;
-        }
         for (const auto &operation : found->operations) {
             if (operationSamples(operation) > m_limits.samplesPerStroke ||
-                operationSamples(operation) > m_limits.samplesPerDocument - samples ||
-                operationRasterBytes(operation) > m_limits.rasterBytes - pixels ||
                 nextOperation == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-            samples += operationSamples(operation);
-            pixels += operationRasterBytes(operation);
             ++nextOperation;
         }
         if (found->filterSelection && !selectionFitsRetainedInputs(found->filterSelection)) return Result::CapacityExceeded;
-        if (found->filter) {
-            if (!filterFitsRetainedHistory(*found->filter) || found->filter->byteCount() > m_limits.rasterBytes - pixels)
-                return Result::CapacityExceeded;
-            pixels += found->filter->byteCount();
-        }
+        if (found->filter && (!filterFitsRetainedHistory(*found->filter) || found->filter->byteCount() > m_limits.rasterBytes))
+            return Result::CapacityExceeded;
         Layer copy = *found;
         copy.id = ++nextLayer;
         copy.name = properties.name;
@@ -1357,8 +1379,6 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         version->selectionKind = SelectionKind::Rectangle;
         version->selectionMask.clear();
     }
-    version->sampleCount = samples;
-    version->rasterBytes = pixels;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     m_nextLayer = nextLayer;
     m_nextOperation = nextOperation;
@@ -1423,27 +1443,15 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
     if (included.size() > m_limits.layerCount - original->layers.size() ||
         quint64(included.size()) > std::numeric_limits<quint64>::max() - m_nextLayer ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-    qsizetype samples = original->sampleCount, pixels = original->rasterBytes;
     quint64 nextOperation = m_nextOperation;
     for (const auto index : ordered) {
         if (original->layers[index].filter) {
             const auto &filter = *original->layers[index].filter;
-            if (!filterFitsRetainedHistory(filter) || filter.byteCount() > m_limits.rasterBytes - pixels)
+            if (!filterFitsRetainedHistory(filter) || filter.byteCount() > m_limits.rasterBytes)
                 return Result::CapacityExceeded;
-            pixels += filter.byteCount();
         }
-        if (const auto &initial = original->layers[index].initialProjection) {
-            const auto bytes = initial->source->rasterBytes + initial->retainedBytes;
-            if (initial->source->sampleCount > m_limits.samplesPerDocument - samples || bytes > m_limits.rasterBytes - pixels)
-                return Result::CapacityExceeded;
-            samples += initial->source->sampleCount; pixels += bytes;
-        }
-        for (const auto &operation : original->layers[index].operations) {
-            if (operationSamples(operation) > m_limits.samplesPerDocument - samples ||
-                operationRasterBytes(operation) > m_limits.rasterBytes - pixels ||
-                nextOperation == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-            samples += operationSamples(operation);
-            pixels += operationRasterBytes(operation);
+        for (qsizetype i = 0; i < original->layers[index].operations.size(); ++i) {
+            if (nextOperation == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
             ++nextOperation;
         }
     }
@@ -1496,8 +1504,6 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
         }
     }
     if (!Detail::validLayerHierarchy(version->layers, original->format)) return Result::InvalidInput;
-    version->sampleCount = samples;
-    version->rasterBytes = pixels;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     m_nextLayer = nextLayer;
     m_nextOperation = nextOperation;
@@ -2288,7 +2294,6 @@ FrozenLayerProjectionSP OperationDocument::freezeAdjustmentProjection(const Snap
     includeLayerDescendants(before->layers, included);
     auto source = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
     source->layers.clear(); source->selection = {}; source->selectionMask.clear();
-    source->sampleCount = 0; source->rasterBytes = 0;
     source->projectionBackground = scope ? RgbaPixel{} : before->projectionBackground;
     source->activeLayer = node; source->selectedLayers = {node};
     auto projection = QSharedPointer<FrozenLayerProjection>::create();
@@ -2308,9 +2313,6 @@ FrozenLayerProjectionSP OperationDocument::freezeAdjustmentProjection(const Snap
             layer.visible = true; layer.opacity = 255;
             layer.projectionChannelMask = 15; layer.blendMode = LayerBlendMode::Copy;
         }
-        const auto samples = layer.inputSampleCount(), bytes = layer.retainedRasterBytes();
-        if (samples > m_limits.samplesPerDocument - source->sampleCount || bytes > m_limits.rasterBytes - source->rasterBytes) return {};
-        source->sampleCount += samples; source->rasterBytes += bytes;
         projection->retainedBytes += sizeof(Layer) + layer.name.size() * sizeof(QChar) + layer.operations.size() * sizeof(LayerOperation);
         source->layers.append(std::move(layer));
     }
@@ -2472,7 +2474,6 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
                 if (layer.kind == LayerKind::FilterMask && adjustmentIdentities.contains(layer.parentUuid)) included.remove(layer.id);
             auto source = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
             source->layers.clear(); source->selection = {}; source->selectionMask.clear();
-            source->sampleCount = 0; source->rasterBytes = 0;
             auto projection = QSharedPointer<FrozenLayerProjection>::create();
             projection->normalizeRootProjection = wholeImage;
             if (request.allocatedBlocks.size() > m_limits.rasterBytes / qsizetype(sizeof(QRect))) return Result::CapacityExceeded;
@@ -2499,7 +2500,7 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
                 if (adjustments.contains(layer.id)) {
                     layer.kind = LayerKind::Paint; layer.filter.reset(); layer.filterSelection.clear();
                     layer.transparencyMask.clear(); layer.transparencyMaskUuid = {}; layer.transparencyMaskIndex = 0;
-                    layer.defaultPixel = {}; layer.operations.clear();
+                    layer.defaultPixel = {}; layer.pixels.reset(); layer.operations.clear();
                     layer.initialProjection = adjustments.value(layer.id);
                 }
                 if (roots.contains(layer.id)) {
@@ -2522,7 +2523,7 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
                     projection->sourceBounds.insert(layer.id, area);
                     projection->extent |= area;
                 }
-                source->sampleCount += layer.inputSampleCount(); source->rasterBytes += layer.retainedRasterBytes();
+
                 projection->retainedBytes += sizeof(Layer) + layer.name.size() * sizeof(QChar) + layer.operations.size() * sizeof(LayerOperation);
                 source->layers.append(std::move(layer));
             }
@@ -2543,13 +2544,6 @@ Result OperationDocument::mergeLayers(const LayerMergeRequest &request) try
     version->layers = std::move(finalLayers);
     if (request.mode == LayerMergeMode::FlattenImage) version->rootUuid = QUuid::createUuid();
     if (!validLayerHierarchy(version->layers, version->format)) return Result::InvalidInput;
-    version->sampleCount = 0; version->rasterBytes = 0;
-    for (const auto &layer : version->layers) {
-        const auto samples = layer.inputSampleCount(), bytes = layer.retainedRasterBytes();
-        if (samples > m_limits.samplesPerDocument - version->sampleCount || bytes > m_limits.rasterBytes - version->rasterBytes)
-            return Result::CapacityExceeded;
-        version->sampleCount += samples; version->rasterBytes += bytes;
-    }
     version->selectedLayers = {version->activeLayer};
     version->m_modifiedRevision = version->m_revision = m_nextRevision + 1;
     LayerHistoryChange change; change.layerStructureAction = action;
@@ -2576,8 +2570,7 @@ Result OperationDocument::clearLayers(const QList<LayerId> &layers)
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     for (auto &layer : version->layers) {
         if (!cleared.contains(layer.id)) continue;
-        version->sampleCount -= layer.inputSampleCount();
-        version->rasterBytes -= layer.retainedRasterBytes();
+        layer.pixels.reset();
         layer.operations.clear();
         layer.initialProjection.clear();
     }
@@ -2602,7 +2595,7 @@ Result OperationDocument::clearSelectedPixels(const QList<LayerId> &layers)
             return Result::LayerUnavailable;
         selected.insert(id);
     }
-    if (m_limits.samplesPerStroke < 2 || layers.size() > (m_limits.samplesPerDocument - current->sampleCount) / 2 ||
+    if (m_limits.samplesPerStroke < 2 ||
         quint64(layers.size()) > std::numeric_limits<quint64>::max() - m_nextOperation ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     const QRect region = current->selectionInverted ? QRect(QPoint(), current->size) : current->selection;
@@ -2632,7 +2625,6 @@ Result OperationDocument::clearSelectedPixels(const QList<LayerId> &layers)
         operation->selectionKind = current->selectionKind;
         operation->selectionMask = current->selectionMask;
         layer.operations.append(PaintSnapshot(operation));
-        version->sampleCount += 2;
     }
     version->m_modifiedRevision = version->m_revision = m_nextRevision + 1;
     LayerHistoryChange change;
@@ -2773,8 +2765,7 @@ Result OperationDocument::fillLayerStyle(LayerId layer, const RgbaPixel &color,
                                          const FigureStyle &style, qreal opacity,
                                          bool erase, bool alphaLocked)
 {
-    if (style.pattern && (style.pattern->byteCount() > m_limits.rasterBytes ||
-                          snapshot()->rasterBytes > m_limits.rasterBytes - style.pattern->byteCount()))
+    if (style.pattern && style.pattern->byteCount() > m_limits.rasterBytes)
         return Result::CapacityExceeded;
     Brush brush;
     brush.rgba = color;
@@ -2922,8 +2913,6 @@ Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QStri
     }
     for (qsizetype i = version->layers.size(); i-- > 0;) {
         if (!removed.contains(version->layers[i].id)) continue;
-        version->sampleCount -= version->layers[i].inputSampleCount();
-        version->rasterBytes -= version->layers[i].retainedRasterBytes();
         version->layers.removeAt(i);
     }
     if (replace) {

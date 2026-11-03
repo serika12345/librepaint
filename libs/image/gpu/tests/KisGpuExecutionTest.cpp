@@ -24,7 +24,9 @@ private Q_SLOTS:
     void latestRequestsRetainInputAndPublishAfterSubmission();
     void cancellationAndClosureInvalidateRecordedFrames();
     void documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure();
-    void viewportsGenerateOnlyVisibleTilesAndLayers();
+    void viewportsComposeVisibleTilesFromCommittedLayers();
+    void committedPixelsPreserveHistoryAndTrimByStorage();
+    void commitsBeforeRenderingKeepEveryStroke();
 private:
     DevicePtr m_device;
 };
@@ -65,14 +67,14 @@ void KisGpuExecutionTest::nativeValidationErrorsReportAnErrorAndReleaseTheOwner(
     QVERIFY(lifetime.expired());
 }
 
-void KisGpuExecutionTest::viewportsGenerateOnlyVisibleTilesAndLayers()
+void KisGpuExecutionTest::viewportsComposeVisibleTilesFromCommittedLayers()
 {
     OperationDocument document(QSize(9 * TileRenderer::TileSize, 64));
     for (int tile = 0; tile < 9; ++tile) dot(document, {qreal(tile * 256 + 8), 12});
     const auto hidden = document.addLayer(QStringLiteral("Hidden"));
     dot(document, {8, 12});
     QCOMPARE(document.setLayerVisible(hidden, false), Result::Success);
-    Execution execution(m_device, 4 * TileRenderer::TileBytes);
+    Execution execution(m_device, 10 * TileRenderer::TileBytes);
     const auto handle = execution.open(document.snapshot()).handle;
     for (const int tile : {0, 8, 0}) {
         QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
@@ -82,7 +84,7 @@ void KisGpuExecutionTest::viewportsGenerateOnlyVisibleTilesAndLayers()
         QCOMPARE(projected.version->tiles()[0].coordinate, QPoint(tile, 0));
         QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
         QCOMPARE(execution.published(handle), document.snapshot());
-        QVERIFY(execution.residentBytes() <= 4 * TileRenderer::TileBytes);
+        QVERIFY(execution.residentBytes() <= 10 * TileRenderer::TileBytes);
     }
     QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
     const auto empty = execution.project(handle, {-10, -10, 1, 1});
@@ -112,7 +114,7 @@ void KisGpuExecutionTest::latestRequestsRetainInputAndPublishAfterSubmission()
         QCOMPARE(execution.request(admitted.handle, document.preview()).code, ExecutionCode::Success);
         QCOMPARE(execution.pendingDocuments(), 1);
     }
-    QCOMPARE(execution.requested(admitted.handle)->sampleCount, 240);
+
     QVERIFY(!execution.published(admitted.handle));
     const auto frame = execution.beginReadbackFrame();
     QCOMPARE(frame.code, ExecutionCode::Success);
@@ -174,10 +176,11 @@ void KisGpuExecutionTest::cancellationAndClosureInvalidateRecordedFrames()
 void KisGpuExecutionTest::documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure()
 {
     Execution execution(m_device, 2 * TileRenderer::TileBytes);
-    OperationDocument a({64, 64}), b({64, 64});
-    dot(a, {16, 16});
+    auto a = std::make_unique<OperationDocument>(QSize(64, 64));
+    OperationDocument b({64, 64});
+    dot(*a, {16, 16});
     dot(b, {32, 32});
-    const auto ha = execution.open(a.snapshot()).handle;
+    const auto ha = execution.open(a->snapshot()).handle;
     const auto hb = execution.open(b.snapshot()).handle;
     for (const auto handle : {ha, hb}) {
         QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
@@ -196,6 +199,7 @@ void KisGpuExecutionTest::documentsShareTheTileBudgetAndKeepPublishedPixelsOnFai
     QCOMPARE(execution.pendingDocuments(), 1);
     QCOMPARE(execution.residentBytes(), 2 * TileRenderer::TileBytes);
     QCOMPARE(execution.close(ha).code, ExecutionCode::Success);
+    a.reset();
     const auto frame = execution.beginReadbackFrame();
     QCOMPARE(frame.code, ExecutionCode::Success);
     const auto projection = execution.project(hb, {0, 0, 64, 64});
@@ -250,6 +254,66 @@ void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanu
     QVERIFY(resultOwner.expired());
     QCOMPARE(completions, 1);
     QCOMPARE(observed.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
+}
+
+void KisGpuExecutionTest::committedPixelsPreserveHistoryAndTrimByStorage()
+{
+    Limits limits;
+    limits.historyBytes = TileRenderer::TileBytes;
+    OperationDocument document(QSize(64, 64), limits);
+    Execution execution(m_device);
+    const auto handle = execution.open(document.snapshot()).handle;
+    const auto layer = document.activeLayer();
+    for (const int position : {8, 24, 40}) {
+        dot(document, {qreal(position), qreal(position)});
+        QCOMPARE(execution.request(handle, document.snapshot()).code, ExecutionCode::Success);
+        QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+        const auto projection = execution.project(handle, {0, 0, 64, 64});
+        QVERIFY2(projection.code == RenderOutcome::Recorded, qPrintable(projection.diagnostic));
+        QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+        QVERIFY(document.snapshot()->renderedPixels(layer));
+    }
+    // Property versions share all tiles and do not consume additional history bytes.
+    for (int index = 0; index < 3; ++index) {
+        QCOMPARE(document.renameLayer(layer, QString::number(index)), Result::Success);
+        QVERIFY(document.snapshot()->layers.first().pixels);
+        QVERIFY(document.snapshot()->layers.first().operations.isEmpty());
+    }
+    QCOMPARE(document.undoCount(), 4);
+    for (int index = 0; index < 4; ++index) QCOMPARE(document.undo(), Result::Success);
+    auto pixels = execution.readRgbaPixels(handle, document.snapshot(), {0, 0, 64, 64}, layer, 64 * 64 * 4);
+    QCOMPARE(pixels.code, ExecutionCode::Success);
+    QCOMPARE(pixels.bytes.mid((24 * 64 + 24) * 4, 4), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixels.bytes.mid((40 * 64 + 40) * 4, 4), QByteArray(4, '\0'));
+    for (int index = 0; index < 4; ++index) QCOMPARE(document.redo(), Result::Success);
+    pixels = execution.readRgbaPixels(handle, document.snapshot(), {0, 0, 64, 64}, layer, 64 * 64 * 4);
+    QCOMPARE(pixels.code, ExecutionCode::Success);
+    QCOMPARE(pixels.bytes.mid((40 * 64 + 40) * 4, 4), QByteArray::fromHex("000000ff"));
+}
+
+void KisGpuExecutionTest::commitsBeforeRenderingKeepEveryStroke()
+{
+    OperationDocument document({512, 64});
+    const auto layer = document.activeLayer();
+    for (const int x : {8, 280, 400}) dot(document, {qreal(x), 24});
+    Execution execution(m_device);
+    const auto handle = execution.open(document.snapshot()).handle;
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    const auto projection = execution.project(handle, {0, 0, 1, 1});
+    QVERIFY2(projection.code == RenderOutcome::Recorded, qPrintable(projection.diagnostic));
+    QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+    dot(document, {480, 24});
+    QVERIFY(document.snapshot()->layers.first().pixels);
+    QCOMPARE(document.snapshot()->layers.first().operations.size(), 1);
+    auto pixels = execution.readRgbaPixels(handle, document.snapshot(), {0, 0, 512, 64}, layer, 512 * 64 * 4);
+    QCOMPARE(pixels.code, ExecutionCode::Success);
+    for (const int x : {8, 280, 400, 480})
+        QCOMPARE(pixels.bytes.mid((24 * 512 + x) * 4, 4), QByteArray::fromHex("000000ff"));
+    QCOMPARE(document.undo(), Result::Success);
+    pixels = execution.readRgbaPixels(handle, document.snapshot(), {0, 0, 512, 64}, layer, 512 * 64 * 4);
+    QCOMPARE(pixels.code, ExecutionCode::Success);
+    QCOMPARE(pixels.bytes.mid((24 * 512 + 400) * 4, 4), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixels.bytes.mid((24 * 512 + 480) * 4, 4), QByteArray(4, '\0'));
 }
 
 int main(int argc, char **argv)

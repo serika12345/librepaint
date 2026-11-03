@@ -409,7 +409,7 @@ private:
                                        const QList<InputSample> &samples, const Shape &shape,
                                        const FigureStyle &style, quint64 randomSeed, bool filled, const QUuid &maskUuid = {});
     Result replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled,
-                                bool cleared, const QUuid &maskUuid, qsizetype firstEditOperation);
+                                bool cleared, const QUuid &maskUuid);
     struct Private;
     std::unique_ptr<Private> m_d;
 };

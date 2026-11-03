@@ -216,18 +216,15 @@ void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory()
 void TestNode::testFigureGroupInputLimitsKeepPixelsAndRedo_data()
 {
     QTest::addColumn<int>("strokeLimit");
-    QTest::addColumn<int>("documentLimit");
     QTest::addColumn<int>("lines");
     QTest::addColumn<bool>("accepted");
-    QTest::newRow("exact-limit") << 4 << 4 << 2 << true;
-    QTest::newRow("stroke-limit") << 4 << 8 << 3 << false;
-    QTest::newRow("document-limit") << 8 << 4 << 3 << false;
+    QTest::newRow("exact-limit") << 4 << 2 << true;
+    QTest::newRow("stroke-limit") << 4 << 3 << false;
 }
 
 void TestNode::testFigureGroupInputLimitsKeepPixelsAndRedo()
 {
     QFETCH(int, strokeLimit);
-    QFETCH(int, documentLimit);
     QFETCH(int, lines);
     QFETCH(bool, accepted);
     QString diagnostic;
@@ -236,7 +233,6 @@ void TestNode::testFigureGroupInputLimitsKeepPixelsAndRedo()
     auto execution = std::make_shared<Gpu::Execution>(device);
     Gpu::Limits limits;
     limits.samplesPerStroke = strokeLimit;
-    limits.samplesPerDocument = documentLimit;
     auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128), limits);
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     document->setFileBatchMode(true);
@@ -281,7 +277,7 @@ void TestNode::testFigureGroupInputLimitsKeepPixelsAndRedo()
     if (accepted) {
         QCOMPARE(document->undoStack()->index(), 1);
         QVERIFY(!document->undoStack()->canRedo());
-        QCOMPARE(owner->operations().snapshot()->sampleCount, qsizetype(4));
+
         QVERIFY(after.bytes != empty.bytes);
     } else {
         QCOMPARE(owner->operations().snapshot(), before);

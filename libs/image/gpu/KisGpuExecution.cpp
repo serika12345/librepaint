@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuExecution_p.h"
+#include "KisGpuTileStorage_p.h"
 #include <webgpu/wgpu.h>
 #include <limits>
 #include <stdexcept>
@@ -138,9 +139,10 @@ ProjectionOutcome Execution::project(DocumentHandle handle, QRect region)
     d.attempted = true;
     QList<LayerId> layers;
     for (const auto &layer : document->requested->projectionInputs()) layers.append(layer.layer);
-    const auto rendered = d.renderer->recordRegion(d.commands, document->requested,
-                                                   region.intersected(QRect(QPoint(0, 0), document->requested->size)),
-                                                   layers, document->rendered);
+    // Layers render completely so a submitted frame can publish them as committed
+    // pixels; only the composition is limited to the requested region.
+    const auto rendered = d.renderer->recordImpl(d.commands, document->requested, document->rendered,
+                                                 std::nullopt, layers);
     if (rendered.code != RenderOutcome::Recorded) return {rendered.code, {}, rendered.diagnostic};
     const auto projected = d.renderer->compose(d.commands, rendered.version, region, document->projected);
     if (projected.code != RenderOutcome::Recorded) return projected;
@@ -173,6 +175,7 @@ ExecutionOutcome Execution::endFrame(bool publish, bool waitForReadback)
         document.rendered = stage.rendered;
         document.projected = stage.projected;
         document.published = stage.rendered->document();
+        d.renderer->m_d->publishLayerPixels(stage.rendered);
     }
     return {ExecutionCode::Success, {}};
 }

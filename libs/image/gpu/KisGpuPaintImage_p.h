@@ -21,8 +21,6 @@ struct MaskStroke
     OperationId id;
     bool committed = false;
     QUuid maskUuid;
-    SelectionMaskSP previous;
-    qsizetype firstEditOperation = 0;
 };
 
 struct PaintImage::Private

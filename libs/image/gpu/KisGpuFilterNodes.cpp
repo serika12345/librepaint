@@ -62,7 +62,7 @@ OperationId OperationDocument::beginFilterNodeEdit(LayerId existing, const Raste
             for (const auto &layer : before->layers) if (layer.uuid == uuid) { ancestor = &layer; break; }
         }
         const auto bytes = node.filter->byteCount();
-        if (bytes > m_limits.rasterBytes - before->rasterBytes) return {};
+        if (bytes > m_limits.rasterBytes) return {};
         Layer added;
         added.id = m_nextLayer + 1;
         added.kind = node.kind;
@@ -85,7 +85,6 @@ OperationId OperationDocument::beginFilterNodeEdit(LayerId existing, const Raste
         target = added.id;
         version->layers.insert(index, added);
         if (!Detail::validLayerHierarchy(version->layers, before->format)) return {};
-        version->rasterBytes += bytes;
         ++m_nextLayer;
         if (clearPixelSelection) {
             version->selection = {};
@@ -119,12 +118,10 @@ Result OperationDocument::updateFilterNodeEdit(OperationId id, const FilterDefin
     if (index < 0) return Result::LayerUnavailable;
     const auto &previous = current->layers[index];
     if (previous.filter && *previous.filter == filter && previous.name == name) return Result::Success;
-    const auto oldBytes = previous.filter ? previous.filter->byteCount() : 0;
-    if (filter.byteCount() > m_limits.rasterBytes - (current->rasterBytes - oldBytes)) return Result::CapacityExceeded;
+    if (filter.byteCount() > m_limits.rasterBytes) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*current));
     version->layers[index].filter = filter;
     version->layers[index].name = name;
-    version->rasterBytes += filter.byteCount() - oldBytes;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     version->m_committed = false;
     version->m_pendingOperation = id;
@@ -251,9 +248,7 @@ Result OperationDocument::writeFilterDefinition(LayerId node, const FilterDefini
     for (int i = first; i <= last; ++i) {
         auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*history[i]));
         for (auto &layer : version->layers) if (layer.id == node) {
-            const auto beforeBytes = layer.filter->byteCount();
-            if (filter.byteCount() > m_limits.rasterBytes - (version->rasterBytes - beforeBytes)) return Result::CapacityExceeded;
-            version->rasterBytes += filter.byteCount() - beforeBytes;
+            if (filter.byteCount() > m_limits.rasterBytes) return Result::CapacityExceeded;
             layer.filter = filter;
             break;
         }

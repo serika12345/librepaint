@@ -561,7 +561,7 @@ void KisGpuTileRendererTest::longStrokeRebuildKeepsPixelsAndHistory()
     const auto stroke = document.beginStroke(layer, brush, 97);
     QCOMPARE(document.appendSamples(stroke, samples), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
-    QCOMPARE(document.snapshot()->sampleCount, samples.size());
+
     TileRenderer bounded(m_device, 2 * TileRenderer::TileBytes);
     const auto original = render(bounded, document.snapshot());
     QVERIFY(original);

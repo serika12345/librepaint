@@ -1187,8 +1187,10 @@ void KisGpuTileRendererTest::paperResourceKeepsFrozenPixelsHistoryAndCapacity()
     QCOMPARE(document.appendSamples(id, {{{32, 32}, 1}}), Result::Success);
     QCOMPARE(document.commitStroke(id), Result::Success);
     const auto accepted = document.snapshot();
-    QCOMPARE(accepted->rasterBytes, 4);
-    QVERIFY(document.beginStroke(document.activeLayer(), brush, 18).isNull());
+
+    const auto next = document.beginStroke(document.activeLayer(), brush, 18);
+    QVERIFY(!next.isNull());
+    QCOMPARE(document.cancelStroke(next), Result::Success);
     QCOMPARE(document.snapshot(), accepted);
     QCOMPARE(document.undoCount(), 1);
     TileRenderer renderer(m_device, 8 * TileRenderer::TileBytes);

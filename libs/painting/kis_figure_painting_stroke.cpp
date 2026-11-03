@@ -54,9 +54,8 @@ struct KisFigurePaintingStroke::GpuStroke
         if (!resources.diagnostic.isEmpty()) return;
         const auto &document = owner->operations();
         const auto limits = document.limits();
-        if (input.size() > limits.samplesPerStroke - samples.size() ||
-            input.size() > limits.samplesPerDocument - document.snapshot()->sampleCount - samples.size()) {
-            resources.diagnostic = QStringLiteral("GPU figure input exceeds the document input budget.");
+        if (input.size() > limits.samplesPerStroke - samples.size()) {
+            resources.diagnostic = QStringLiteral("GPU figure input exceeds the stroke input budget.");
             return;
         }
         if (shape) {
@@ -343,9 +342,8 @@ void KisFigurePaintingStroke::paintPainterPath(const QPainterPath &path)
     if (m_gpuStroke) {
         const auto &document = m_gpuStroke->owner->operations();
         const auto limits = document.limits();
-        if (path.elementCount() > limits.samplesPerStroke ||
-            path.elementCount() > limits.samplesPerDocument - document.snapshot()->sampleCount) {
-            m_gpuStroke->resources.diagnostic = QStringLiteral("GPU path input exceeds the document input budget.");
+        if (path.elementCount() > limits.samplesPerStroke) {
+            m_gpuStroke->resources.diagnostic = QStringLiteral("GPU path input exceeds the stroke input budget.");
             return;
         }
         Gpu::Shape shape;

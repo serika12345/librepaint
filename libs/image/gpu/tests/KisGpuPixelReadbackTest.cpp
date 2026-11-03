@@ -504,6 +504,7 @@ void KisGpuPixelReadbackTest::resizedProjectionRejectsPinnedWorkingStorageWithou
     QCOMPARE(execution.requested(handle), fixed);
     QCOMPARE(execution.published(handle), fixed);
     pinned.clear();
+    document.close(); // Release Undo tiles as well as the explicit preview pins.
     const auto result = execution.readResizedProjectionImage(handle, fixed, {4, 2}, 32);
     QVERIFY2(result.code == ExecutionCode::Success, qPrintable(result.diagnostic));
     QCOMPARE(result.image.pixelColor(0, 0), QColor(20, 34, 51, 255));

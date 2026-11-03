@@ -426,7 +426,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             }
         } else if (!source) {
             if (pixels->colorSpace()->pixelSize() != 4) return false;
-            const auto budget = owner->limits().rasterBytes - owner->operations().snapshot()->rasterBytes - preparedBytes;
+            const auto budget = owner->limits().rasterBytes - preparedBytes;
             QSet<QPoint> coordinates;
             const auto tileIndex = [](int value) { return int(value >= 0 ? qint64(value) / 256 : (qint64(value) - 255) / 256); };
             const auto collect = [&](const KisRegion &region) {
@@ -492,7 +492,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         for (const auto &operation : found->operations) {
             if (const auto tiles = std::get_if<Gpu::TileWriteSnapshot>(&operation)) {
                 const auto bytes = (*tiles)->tiles.size() * Gpu::RgbaTile::ByteCount;
-                if (bytes > owner->limits().rasterBytes - owner->operations().snapshot()->rasterBytes - preparedBytes) return false;
+                if (bytes > owner->limits().rasterBytes - preparedBytes) return false;
                 preparedBytes += bytes;
             }
         }

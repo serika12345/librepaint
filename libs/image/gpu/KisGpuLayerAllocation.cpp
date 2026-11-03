@@ -31,6 +31,10 @@ std::optional<LayerAllocation> paintLayerAllocation(const Snapshot &document, co
         return QRect(first * PixelHistoryBlockSize + origin, (last + QPoint(1, 1)) * PixelHistoryBlockSize + origin - QPoint(1, 1)).intersected(domain);
     };
     const auto append = [&](QRect area) { allocated += aligned(area); return allocated.rectCount() <= maximumRectangles; };
+    if (layer.pixels) for (const auto &block : layer.pixels->allocatedBlocks) {
+        allocated += block;
+        if (allocated.rectCount() > maximumRectangles) return std::nullopt;
+    }
     if (layer.initialProjection) for (const auto &block : layer.initialProjection->allocatedBlocks) {
         allocated += block;
         if (allocated.rectCount() > maximumRectangles) return std::nullopt;

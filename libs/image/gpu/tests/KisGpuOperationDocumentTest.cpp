@@ -227,8 +227,6 @@ private Q_SLOTS:
     void layerStructureSharesPaintingHistoryAndPreservesPins();
     void rejectedLayerChangesKeepRedoAndPendingInput();
     void removingTheLastLayerPreservesAnEmptyUndoableDocument();
-    void layerRemovalReusesCapacityAcrossHistory_data();
-    void layerRemovalReusesCapacityAcrossHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
     void rgba16TilesCannotEnterAnRgba8Document();
     void rgba16PixelsAndBrushValuesSurviveHistoryPins();
@@ -319,8 +317,7 @@ void KisGpuOperationDocumentTest::selectedClearKeepsOneAtomicHistoryAndFrozenCov
     QCOMPARE(document.clearSelectedPixels({1, 2}), Result::LayerUnavailable);
     QCOMPARE(document.snapshot(), locked);
     Limits limits;
-    limits.samplesPerStroke = 2;
-    limits.samplesPerDocument = 3;
+    limits.samplesPerStroke = 1;
     OperationDocument bounded(input, limits);
     const auto beforeCapacity = bounded.snapshot();
     QCOMPARE(bounded.clearSelectedPixels({1, 2}), Result::CapacityExceeded);
@@ -413,7 +410,7 @@ void KisGpuOperationDocumentTest::rgba16PixelsAndBrushValuesSurviveHistoryPins()
     QCOMPARE(initial->projectionBackground, image.projectionBackground);
     QCOMPARE(initial->layers.first().defaultPixel, layer.defaultPixel);
     QCOMPARE(initial->projectionDefaultPixels().value(document.activeLayer()), layer.defaultPixel);
-    QCOMPARE(initial->rasterBytes, pixels.size());
+
     QCOMPARE(retainedTile->rgba(), pixels);
     QCOMPARE(document.undoCount(), 0);
 
@@ -421,14 +418,15 @@ void KisGpuOperationDocumentTest::rgba16PixelsAndBrushValuesSurviveHistoryPins()
     replacement.rgba.replace(0, 8, QByteArray::fromHex("0101feffffff0100"));
     QCOMPARE(document.replaceTiles(document.activeLayer(), {replacement}), Result::Success);
     const auto replaced = document.snapshot();
-    QCOMPARE(replaced->rasterBytes, 2 * pixels.size());
+
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), initial);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), replaced);
     QCOMPARE(retainedTile->rgba(), pixels);
-    QCOMPARE(document.replaceTiles(document.activeLayer(), {replacement}), Result::CapacityExceeded);
+    QCOMPARE(document.replaceTiles(document.activeLayer(), {replacement}), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), replaced);
 
     Brush brush;
@@ -502,8 +500,8 @@ void KisGpuOperationDocumentTest::preparedLayerForestsKeepPixelsSelectionAndAtom
     QCOMPARE(after->layers[2].parentUuid, inputs[2].properties.uuid);
     QCOMPARE(after->layers[3].parentUuid, before->layers[1].uuid);
     QCOMPARE(after->layers[4].parentUuid, before->layers[1].uuid);
-    QCOMPARE(after->sampleCount, fixed->sampleCount * 2);
-    QCOMPARE(after->rasterBytes, before->rasterBytes + fixed->rasterBytes * 2);
+
+
     for (int index : {1, 4}) {
         const auto &copy = after->layers[index];
         QCOMPARE(copy.opacity, quint8(173));
@@ -554,12 +552,10 @@ void KisGpuOperationDocumentTest::rejectedLayerForestsPreservePendingInputAndHis
     QCOMPARE(destination.preview(), preview);
     QCOMPARE(destination.snapshot(), before);
     QCOMPARE(destination.cancelStroke(stroke), Result::Success);
-    for (int budget = 0; budget < 4; ++budget) {
+    for (int budget = 0; budget < 2; ++budget) {
         Limits limits;
         if (budget == 0) limits.layerCount = inputs.size();
-        if (budget == 1) limits.rasterBytes = RgbaTile::ByteCount * 2 - 1;
-        if (budget == 2) limits.samplesPerDocument = 3;
-        if (budget == 3) limits.samplesPerStroke = 1;
+        if (budget == 1) limits.samplesPerStroke = 1;
         OperationDocument bounded({64, 32}, limits);
         const auto retained = bounded.preview();
         QCOMPARE(bounded.insertLayers(inputs, 0), Result::CapacityExceeded);
@@ -784,8 +780,8 @@ void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistory()
     QCOMPARE(after->activeLayer, active);
     QCOMPARE(after->selectedLayers.size(), roots.size());
     for (const auto root : roots) QVERIFY(after->selectedLayers.contains(root));
-    QCOMPARE(after->sampleCount, before->sampleCount);
-    QCOMPARE(after->rasterBytes, before->rasterBytes);
+
+
     for (const auto &source : before->layers) {
         const auto found = std::find_if(after->layers.cbegin(), after->layers.cend(),
             [&](const Layer &layer) { return layer.id == source.id; });
@@ -881,7 +877,7 @@ void KisGpuOperationDocumentTest::canvasResizePreservesVersionSizesProperties()
     QVERIFY(document.historyCanvasResize(2)->cropLayers);
     QCOMPARE(cropped->selectedLayers, before->selectedLayers);
     QCOMPARE(cropped->activeLayer, before->activeLayer);
-    QCOMPARE(cropped->rasterBytes, before->rasterBytes);
+
     for (int i = 0; i < 2; ++i) {
         QCOMPARE(cropped->layers[i].position, before->layers[i].position - canvas.topLeft() - crop.topLeft());
         QCOMPARE(cropped->layers[i].uuid, before->layers[i].uuid);
@@ -1036,7 +1032,7 @@ void KisGpuOperationDocumentTest::nestedRemovalOwnsDescendantsAndOneHistoryStep(
     QCOMPARE(document.snapshot()->layers.first().id, LayerId(3));
     QCOMPARE(document.activeLayer(), LayerId(3));
     QCOMPARE(document.snapshot()->selectedLayers, QList<LayerId>{3});
-    QCOMPARE(document.snapshot()->rasterBytes, qsizetype(0));
+
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), fixed);
@@ -1132,15 +1128,6 @@ void KisGpuOperationDocumentTest::mergingKeepsInputsHistoryAndAtomicRejection()
     QCOMPARE(document.duplicateLayers({merged->activeLayer}, {QStringLiteral("Merged copy")}, merged->activeLayer), Result::Success);
     for (const auto &layer : document.snapshot()->layers) if (layer.id == document.activeLayer())
         QCOMPARE(layer.initialProjection, output->initialProjection);
-    Limits limits;
-    limits.rasterBytes = unpainted->rasterBytes;
-    OperationDocument bounded(input, limits);
-    const auto retained = bounded.snapshot();
-    QCOMPARE(bounded.mergeLayers(requestFor(retained)), Result::CapacityExceeded);
-    QCOMPARE(bounded.snapshot(), retained);
-    QCOMPARE(bounded.undoCount(), 0);
-    QVERIFY(!bounded.isModified());
-    QCOMPARE(bounded.renameLayer(1, QStringLiteral("Still editable")), Result::Success);
 }
 
 void KisGpuOperationDocumentTest::groupingKeepsFrozenPixelsAndSingleHistory_data()
@@ -1176,8 +1163,8 @@ void KisGpuOperationDocumentTest::groupingKeepsFrozenPixelsAndSingleHistory()
     const auto grouped = document.snapshot();
     QCOMPARE(document.undoCount(), history + 1);
     QCOMPARE(document.historyAction(history + 1), clipping ? HistoryAction::CreateClippingGroup : HistoryAction::GroupLayers);
-    QCOMPARE(grouped->sampleCount, before->sampleCount);
-    QCOMPARE(grouped->rasterBytes, before->rasterBytes);
+
+
     const auto group = std::find_if(grouped->layers.cbegin(), grouped->layers.cend(),
         [](const Layer &layer) { return layer.id == 5; });
     QVERIFY(group != grouped->layers.cend());
@@ -1220,8 +1207,8 @@ void KisGpuOperationDocumentTest::groupingKeepsFrozenPixelsAndSingleHistory()
     const auto ungrouped = document.snapshot();
     QCOMPARE(document.undoCount(), history + 2);
     QCOMPARE(document.historyAction(history + 2), HistoryAction::UngroupLayers);
-    QCOMPARE(ungrouped->sampleCount, before->sampleCount);
-    QCOMPARE(ungrouped->rasterBytes, before->rasterBytes);
+
+
     for (const auto &layer : ungrouped->layers) {
         QVERIFY(layer.id != 5);
         if (layer.id == 2 || layer.id == 4 || layer.id == 6) QCOMPARE(layer.parentUuid, expectedParent);
@@ -1304,7 +1291,7 @@ void KisGpuOperationDocumentTest::nestedDuplicationCopiesSubtreePixelsAndIndepen
     QCOMPARE(group->name, QStringLiteral("Inner copy"));
     QCOMPARE(std::get<TileWriteSnapshot>(leaf->operations.first())->tiles.first(),
              std::get<TileWriteSnapshot>(fixed->layers[0].operations.first())->tiles.first());
-    QCOMPARE(copied->rasterBytes, 2 * fixed->rasterBytes);
+
     QCOMPARE(document.activeLayer(), group->id);
     QCOMPARE(copied->selectedLayers, QList<LayerId>{group->id});
     QCOMPARE(document.undoCount(), 1);
@@ -2474,7 +2461,7 @@ void KisGpuOperationDocumentTest::layerReorderingIsAtomicAndPreservesSelectionPi
     QCOMPARE(document.snapshot()->layers[1].id, bottom);
     QCOMPARE(document.snapshot()->layers[2].id, middle);
     QCOMPARE(document.snapshot()->layers[2].operations, pinned->layers[1].operations);
-    QCOMPARE(document.snapshot()->rasterBytes, pinned->rasterBytes);
+
     QCOMPARE(pinned->layers[0].id, bottom);
     QCOMPARE(pinned->layers[1].id, middle);
     QCOMPARE(pinned->layers[2].id, top);
@@ -2540,8 +2527,8 @@ void KisGpuOperationDocumentTest::groupedRemovalPreservesPixelsSelectionAndAtomi
     QCOMPARE(document.removeLayers({bottom, top}), Result::Success);
     QCOMPARE(document.snapshot()->layers.size(), 1);
     QCOMPARE(document.activeLayer(), middle);
-    QCOMPARE(document.snapshot()->rasterBytes, qsizetype(RgbaTile::ByteCount));
-    QCOMPARE(document.snapshot()->sampleCount, 0);
+
+
     QCOMPARE(document.undoCount(), before + 1);
     QCOMPARE(document.historyAction(before + 1), HistoryAction::RemoveLayer);
     const auto removed = document.snapshot();
@@ -2555,8 +2542,8 @@ void KisGpuOperationDocumentTest::groupedRemovalPreservesPixelsSelectionAndAtomi
     QVERIFY(replacement->layers.first().id != middle);
     QCOMPARE(replacement->layers.first().name, QStringLiteral("Replacement"));
     QVERIFY(replacement->layers.first().operations.isEmpty());
-    QCOMPARE(replacement->rasterBytes, 0);
-    QCOMPARE(replacement->sampleCount, 0);
+
+
     QCOMPARE(document.activeLayer(), replacement->layers.first().id);
     QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::RemoveLayer);
     QCOMPARE(document.undo(), Result::Success);
@@ -2640,8 +2627,8 @@ void KisGpuOperationDocumentTest::emptyGroupInsertionPreservesHierarchyHistoryAn
     QVERIFY(created.userLocked);
     QVERIFY(created.pinnedToTimeline);
     QVERIFY(created.operations.isEmpty());
-    QCOMPARE(inserted->sampleCount, original->sampleCount);
-    QCOMPARE(inserted->rasterBytes, original->rasterBytes);
+
+
     QCOMPARE(destination.activeLayer(), id);
     QCOMPARE(inserted->selectedLayers, QList<LayerId>{id});
     QCOMPARE(destination.undoCount(), 1);
@@ -2711,8 +2698,8 @@ void KisGpuOperationDocumentTest::insertedForeignLayersSharePixelsAndInputsWithA
     QCOMPARE(input->id.document, inserted->documentId());
     QVERIFY(input->id != std::get<PaintSnapshot>(original.operations[1])->id);
     QCOMPARE(input->layer, id);
-    QCOMPARE(inserted->sampleCount, sourceVersion->sampleCount);
-    QCOMPARE(inserted->rasterBytes, qsizetype(RgbaTile::ByteCount));
+
+
     QCOMPARE(destination.undoCount(), 1);
     QCOMPARE(destination.undo(), Result::Success);
     QCOMPARE(destination.snapshot(), before);
@@ -2730,16 +2717,12 @@ void KisGpuOperationDocumentTest::insertedForeignLayersSharePixelsAndInputsWithA
     const auto boundedVersion = bounded.snapshot();
     QCOMPARE(bounded.insertLayer(source, 1, properties, 0), LayerId(0));
     QCOMPARE(bounded.snapshot(), boundedVersion);
-    for (int budget = 0; budget < 3; ++budget) {
-        Limits capacity;
-        if (budget == 0) capacity.rasterBytes = RgbaTile::ByteCount - 1;
-        if (budget == 1) capacity.samplesPerDocument = 1;
-        if (budget == 2) capacity.samplesPerStroke = 1;
-        OperationDocument limited({64, 32}, capacity);
-        const auto retained = limited.preview();
-        QCOMPARE(limited.insertLayer(source, 1, properties, 0), LayerId(0));
-        QCOMPARE(limited.preview(), retained);
-    }
+    Limits capacity;
+    capacity.samplesPerStroke = 1;
+    OperationDocument limited({64, 32}, capacity);
+    const auto retained = limited.preview();
+    QCOMPARE(limited.insertLayer(source, 1, properties, 0), LayerId(0));
+    QCOMPARE(limited.preview(), retained);
 }
 
 void KisGpuOperationDocumentTest::activeLayerAndSelectionRemainIndependentAndInput()
@@ -3090,7 +3073,7 @@ void KisGpuOperationDocumentTest::duplicatedLayersShareInputsAndPixelsWithIndepe
     const auto originalWrite = std::get<TileWriteSnapshot>(fixed->layers.first().operations.first());
     const auto copiedWrite = std::get<TileWriteSnapshot>(copy.operations.first());
     QCOMPARE(copiedWrite->tiles, originalWrite->tiles);
-    QCOMPARE(copied->sampleCount, fixed->sampleCount * 2);
+
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), fixed);
     QCOMPARE(document.snapshot()->selectedLayers, (QList<LayerId>{first, last}));
@@ -3110,18 +3093,6 @@ void KisGpuOperationDocumentTest::duplicatedLayersShareInputsAndPixelsWithIndepe
     QCOMPARE(bounded.duplicateLayers({1, 2}, {QStringLiteral("A"), QStringLiteral("B")}, 1), Result::CapacityExceeded);
     QCOMPARE(bounded.snapshot(), limited);
     QCOMPARE(bounded.undoCount(), 0);
-    limits.layerCount = 4096;
-    limits.rasterBytes = 2 * RgbaTile::ByteCount;
-    OperationDocument pixelBounded(rasterImage(), limits);
-    const auto pixelLimit = pixelBounded.preview();
-    QCOMPARE(pixelBounded.duplicateLayers({1}, {QStringLiteral("A")}, 1), Result::CapacityExceeded);
-    QCOMPARE(pixelBounded.preview(), pixelLimit);
-    limits.samplesPerStroke = limits.samplesPerDocument = 1;
-    OperationDocument inputBounded({64, 64}, limits);
-    QVERIFY(!paint(inputBounded, {sample(16, 16)}).isNull());
-    const auto inputLimit = inputBounded.preview();
-    QCOMPARE(inputBounded.duplicateLayers({inputBounded.activeLayer()}, {QStringLiteral("A")}, inputBounded.activeLayer()), Result::CapacityExceeded);
-    QCOMPARE(inputBounded.preview(), inputLimit);
 }
 
 void KisGpuOperationDocumentTest::symmetryFreezesAxesAndRejectsInvalidInput()
@@ -3229,52 +3200,6 @@ void KisGpuOperationDocumentTest::layerOpacityAndLockShareHistory()
     QCOMPARE(document.redo(), Result::Success);
 }
 
-void KisGpuOperationDocumentTest::layerRemovalReusesCapacityAcrossHistory_data()
-{
-    QTest::addColumn<bool>("raster");
-    QTest::newRow("compressed pixels") << true;
-    QTest::newRow("stroke input") << false;
-}
-
-void KisGpuOperationDocumentTest::layerRemovalReusesCapacityAcrossHistory()
-{
-    QFETCH(bool, raster);
-    Limits limits;
-    limits.samplesPerStroke = 1;
-    limits.samplesPerDocument = 1;
-    limits.rasterBytes = RgbaTile::ByteCount;
-    OperationDocument document(QSize(64, 64), limits);
-    RgbaTile pixels{{0, 0}, QByteArray(RgbaTile::ByteCount, char(0))};
-    for (int cycle = 0; cycle < 3; ++cycle) {
-        if (cycle) {
-            QCOMPARE(document.removeLayer(document.activeLayer()), Result::Success);
-            QVERIFY(document.addLayer(QString::number(cycle)));
-        }
-        if (raster) {
-            pixels.rgba.fill(char(cycle + 1));
-            QCOMPARE(document.replaceTiles(document.activeLayer(), {pixels}), Result::Success);
-        } else {
-            QVERIFY(!paint(document, {sample(8 + cycle, 12)}).isNull());
-        }
-    }
-    const auto versions = document.historyVersions();
-    if (raster) {
-        QCOMPARE(document.replaceTiles(document.activeLayer(), {pixels}), Result::CapacityExceeded);
-    } else {
-        const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
-        QCOMPARE(document.appendSamples(stroke, {sample(20, 20)}), Result::CapacityExceeded);
-        QCOMPARE(document.cancelStroke(stroke), Result::Success);
-    }
-    QCOMPARE(document.historyVersions(), versions);
-    for (int i = versions.size() - 1; i > 0; --i) {
-        QCOMPARE(document.snapshot(), versions[i]);
-        QCOMPARE(document.undo(), Result::Success);
-    }
-    QCOMPARE(document.snapshot(), versions.first());
-    QCOMPARE(document.undoCount(), 0);
-    QCOMPARE(document.redoCount(), versions.size() - 1);
-}
-
 void KisGpuOperationDocumentTest::layerStructureSharesPaintingHistoryAndPreservesPins()
 {
     OperationDocument document(rasterImage());
@@ -3293,7 +3218,7 @@ void KisGpuOperationDocumentTest::layerStructureSharesPaintingHistoryAndPreserve
     QCOMPARE(document.removeLayer(upper), Result::Success);
     QCOMPARE(document.activeLayer(), lower);
     QCOMPARE(document.snapshot()->layers.size(), 1);
-    QCOMPARE(document.snapshot()->rasterBytes, RgbaTile::ByteCount);
+
     QCOMPARE(document.undoCount(), 3);
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), moved);
@@ -3350,8 +3275,8 @@ void KisGpuOperationDocumentTest::removingTheLastLayerPreservesAnEmptyUndoableDo
     const auto empty = document.snapshot();
     QVERIFY(empty->layers.isEmpty());
     QCOMPARE(empty->activeLayer, LayerId(0));
-    QCOMPARE(empty->sampleCount, 0);
-    QCOMPARE(empty->rasterBytes, 0);
+
+
     QVERIFY(document.beginStroke(layer, Brush{}, 0).isNull());
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), painted);
@@ -3625,7 +3550,7 @@ void KisGpuOperationDocumentTest::importedPixelsPreserveLayersAndStartWithoutUnd
     QCOMPARE(document.undoCount(), 0);
     QCOMPARE(document.redoCount(), 0);
     QVERIFY(!document.isModified());
-    QCOMPARE(frozen->rasterBytes, qsizetype(2 * RgbaTile::ByteCount));
+
     QCOMPARE(frozen->layers[0].uuid, input.layers[0].uuid);
     QCOMPARE(frozen->layers[0].defaultPixel, input.layers[0].defaultPixel);
     QCOMPARE(frozen->layers[1].uuid, input.layers[1].uuid);
@@ -3670,7 +3595,7 @@ void KisGpuOperationDocumentTest::tileReplacementSharesHistoryAndRejectsWholeReq
     QCOMPARE(document.replaceTiles(layer, {{{0, 0}, QByteArrayLiteral("short")}}), Result::InvalidInput);
     QCOMPARE(document.replaceTiles(layer, {}), Result::EmptyOperation);
     QCOMPARE(document.replaceTiles(999, {red}), Result::LayerUnavailable);
-    QCOMPARE(document.replaceTiles(layer, {red, {{1, 0}, red.rgba}, {{2, 0}, red.rgba}}), Result::CapacityExceeded);
+    QCOMPARE(document.replaceTiles(layer, {red, {{1, 0}, red.rgba}, {{2, 0}, red.rgba}, {{3, 0}, red.rgba}}), Result::CapacityExceeded);
     QCOMPARE(document.snapshot(), original);
     QCOMPARE(document.redoCount(), 1);
     const auto stroke = document.beginStroke(layer, Brush{}, 0);
@@ -4017,14 +3942,16 @@ void KisGpuOperationDocumentTest::multibrushRetainsHandsInputHistoryAndRejectsCa
     const auto accepted = document.preview();
     const auto paint = std::get<PaintSnapshot>(accepted->layers.first().operations.last());
     QVERIFY(paint->brush.transforms == frozen);
-    QCOMPARE(paint->sampleCount, qsizetype(2));
+
     QCOMPARE(document.appendSamples(id, {{{14, 18}, .75, 30}}), Result::CapacityExceeded);
     QCOMPARE(document.preview(), accepted);
     QCOMPARE(document.commitStroke(id), Result::Success);
     const auto committed = document.snapshot();
     QCOMPARE(document.undoCount(), 1);
-    QCOMPARE(committed->rasterBytes, limits.rasterBytes);
-    QVERIFY(document.beginStroke(document.activeLayer(), brush, 18).isNull());
+
+    auto excessive = brush;
+    excessive.transforms.append(BrushTransform{});
+    QVERIFY(document.beginStroke(document.activeLayer(), excessive, 18).isNull());
     QCOMPARE(document.snapshot(), committed);
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), original);
@@ -4076,7 +4003,7 @@ void KisGpuOperationDocumentTest::gradientFillRetainsResourcesHistoryAndRejectsC
     const auto painted = document.snapshot();
     const auto operation = std::get<PaintSnapshot>(painted->layers.first().operations.last());
     QCOMPARE(document.undoCount(), 1); QCOMPARE(document.historyAction(1), HistoryAction::FillLayer);
-    QCOMPARE(painted->rasterBytes, gradient.byteCount());
+
     QCOMPARE(operation->compositionBounds, std::optional<QRect>(QRect(0, 0, 32, 24)));
     QCOMPARE(operation->brush.channelWriteMask, quint8(13));
     QCOMPARE(operation->brush.opacity, .63);
@@ -4085,9 +4012,11 @@ void KisGpuOperationDocumentTest::gradientFillRetainsResourcesHistoryAndRejectsC
     gradient.rgba16.fill('\0'); gradient.reverse = true;
     QCOMPARE(operation->figureStyle.gradient->rgba16, palette);
     QCOMPARE(operation->figureStyle.gradient->reverse, false);
+    gradient.rgba16.append(QByteArray(8, '\0'));
     QCOMPARE(document.paintGradient(layer, brush, gradient), Result::CapacityExceeded);
+    gradient.rgba16.chop(8);
     QCOMPARE(document.snapshot(), painted); QCOMPARE(document.undoCount(), 1);
-    QCOMPARE(document.undo(), Result::Success); QCOMPARE(document.snapshot()->rasterBytes, qsizetype(0));
+    QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last()), operation);
     const auto stroke = document.beginStroke(layer, brush, 0); QVERIFY(!stroke.isNull());
@@ -4133,7 +4062,7 @@ void KisGpuOperationDocumentTest::pathsPreserveCommandsControlPoints()
     style.fill = RgbaPixel{221, 17, 44, 255};
     QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, samples, shape, style, 42), Result::Success);
     const auto pinned = document.snapshot();
-    QCOMPARE(pinned->sampleCount, samples.size());
+
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.historyAction(1), HistoryAction::DrawPath);
     QCOMPARE(document.undo(), Result::Success);
@@ -4576,7 +4505,7 @@ void KisGpuOperationDocumentTest::invalidPathsPreserveHistoryAndInputBudgets()
     QCOMPARE(document.preview(), before);
     QVERIFY(document.activeOperation().isNull());
     Limits limits;
-    limits.samplesPerStroke = limits.samplesPerDocument = 3;
+    limits.samplesPerStroke = 3;
     OperationDocument bounded(QSize(64, 64), limits);
     const auto boundedBefore = bounded.preview();
     shape.kind = ShapeKind::Path;

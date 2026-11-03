@@ -109,7 +109,7 @@ struct ColorSampleOutcome
 class KRITAGPUIMAGE_EXPORT Execution
 {
 public:
-    explicit Execution(DevicePtr device, qsizetype byteBudget = 128 * 1024 * 1024,
+    explicit Execution(DevicePtr device, qsizetype byteBudget = 1024 * 1024 * 1024,
                        qsizetype maximumDocuments = 16,
                        qsizetype maximumReadbackBytes = 64 * 1024 * 1024);
     ~Execution();

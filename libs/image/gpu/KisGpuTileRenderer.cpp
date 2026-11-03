@@ -861,7 +861,27 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         if (!selected.contains(layer.id) || (region && region->isEmpty())) continue;
         if (isFilterNode(layer.kind)) continue;
         if (layer.passThrough && !requestedGroups.contains(layer.id)) continue;
-        const bool clipsPainting = std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &value) {
+        const auto ownPixels = layer.kind == LayerKind::Paint ? document->renderedPixels(layer.id) : LayerPixelsSP{};
+        const auto startPixels = ownPixels ? ownPixels : layer.pixels;
+        const auto *start = startPixels ? dynamic_cast<const RenderedLayerPixels *>(startPixels.get()) : nullptr;
+        if (startPixels && (!start || start->owner != d.budget))
+            return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU layer pixels belong to another renderer")};
+        if (ownPixels) {
+            // An earlier frame rendered exactly this version; no operation is evaluated again.
+            data->layers[layer.id] = start->tiles;
+            data->defaultPixels[layer.id] = start->uniform;
+            if (start->defaultTile) data->defaults[layer.id] = start->defaultTile;
+            if (needsSourceExtents) {
+                auto allocation = std::make_shared<LayerAllocation>();
+                for (const auto &block : start->allocatedBlocks) allocation->blocks += block;
+                allocation->extent = allocation->blocks.boundingRect();
+                if (layer.defaultPixel[3]) allocation->extent |= QRect(QPoint(), document->size);
+                data->sourceExtents[layer.id] = allocation->extent;
+                data->allocations[layer.id] = std::move(allocation);
+            }
+            continue;
+        }
+        const bool clipsPainting =std::any_of(layer.operations.cbegin(), layer.operations.cend(), [](const auto &value) {
             const auto paint = std::get_if<PaintSnapshot>(&value);
             return paint && ((*paint)->brush.alphaLocked || !((*paint)->brush.channelWriteMask & 8u));
         });
@@ -870,7 +890,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             if (base && base->document()->size == document->size && base->m_data->allocations.contains(layer.id)) {
                 const auto &previous = base->document()->layers;
                 const auto old = std::find_if(previous.cbegin(), previous.cend(), [&](const auto &value) { return value.id == layer.id; });
-                if (old != previous.cend() && old->position == layer.position && old->defaultPixel == layer.defaultPixel && old->initialProjection == layer.initialProjection &&
+                if (old != previous.cend() && old->position == layer.position && old->defaultPixel == layer.defaultPixel &&
+                    old->pixels == layer.pixels && old->initialProjection == layer.initialProjection &&
                     old->operations == layer.operations && base->document()->pendingOperation() == document->pendingOperation())
                     allocation = base->m_data->allocations.value(layer.id);
             }
@@ -895,7 +916,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         if (base) {
             for (const auto &old : base->document()->layers) {
                 if (old.id != layer.id) continue;
-                if (old.initialProjection != layer.initialProjection) break;
+                if (old.pixels != layer.pixels || old.initialProjection != layer.initialProjection) break;
                 if (base->m_data->defaultPixels.value(layer.id, old.defaultPixel) != uniform) break;
                 data->defaults[layer.id] = base->m_data->defaults.value(layer.id);
                 const bool droppingStroke = old.operations.size() == layer.operations.size() + 1 &&
@@ -970,6 +991,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 break;
             }
         }
+        if (start && start->defaultTile && start->uniform == uniform && !data->defaults.value(layer.id))
+            data->defaults[layer.id] = start->defaultTile;
         if (uniform != RgbaPixel{} && !data->defaults.value(layer.id)) {
             if (!d.ensureTileCapacity(1, document->format)) {
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU default pixel tile budget exhausted")};
@@ -990,6 +1013,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         }
         if (layer.kind == LayerKind::Group) continue;
         auto &tiles = data->layers[layer.id];
+        if (start) {
+            const auto startRegion = operationRegions.first();
+            for (auto tile = start->tiles.cbegin(); tile != start->tiles.cend(); ++tile) {
+                if (reusedCoordinates.contains(tile.key()) ||
+                    !startRegion.intersects(QRect(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize)))) continue;
+                tiles[tile.key()] = tile.value();
+            }
+        }
         if (layer.initialProjection && !reusedInitial) {
             if (const auto failure = flushPaint()) return *failure;
             const auto initial = recordInitialProjection(commands, layer.initialProjection, operationRegions.first(), base);
@@ -1139,7 +1170,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         const auto old = std::find_if(oldLayers.cbegin(), oldLayers.cend(),
                                                       [&](const auto &candidate) { return candidate.id == other.id; });
                         appendedOnly = old != oldLayers.cend() && old->defaultPixel == other.defaultPixel &&
-                            old->operations == other.operations;
+                            old->pixels == other.pixels && old->operations == other.operations;
                     }
                 }
                 QMap<quint64, QList<MarkerDab>> affected;
@@ -1537,5 +1568,44 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     d.coverageVersion = version;
     d.coverageLayer = pendingCoverageLayer;
     return {RenderOutcome::Recorded, version, {}};
+}
+
+void TileRenderer::Private::publishLayerPixels(const RenderedSnapshot &version)
+{
+    if (!version || version->m_data->owner != budget || version->m_data->region) return;
+    const auto &data = *version->m_data;
+    const auto &document = data.document;
+    const auto pending = document->pendingOperation();
+    for (const auto &layer : document->layers) {
+        if (layer.kind != LayerKind::Paint || !data.selected.contains(layer.id) || data.strokeInputs.contains(layer.id) ||
+            document->renderedPixels(layer.id))
+            continue;
+        if (!pending.isNull() && std::any_of(layer.operations.cbegin(), layer.operations.cend(), [&](const auto &operation) {
+                return std::visit([&](const auto &value) { return value->id == pending; }, operation);
+            }))
+            continue;
+        if (layer.operations.isEmpty() && !layer.initialProjection) {
+            if (layer.pixels) document->setRenderedPixels(layer.id, layer.pixels);
+            if (layer.pixels || data.layers.value(layer.id).isEmpty()) continue;
+        }
+        auto allocation = data.allocations.value(layer.id);
+        if (!allocation) {
+            auto computed = paintLayerAllocation(document, layer, PaintGeometryElementLimit);
+            if (!computed) continue;
+            allocation = std::make_shared<LayerAllocation>(std::move(*computed));
+        }
+        auto pixels = std::make_shared<RenderedLayerPixels>();
+        pixels->owner = budget;
+        pixels->tiles = data.layers.value(layer.id);
+        pixels->defaultTile = data.defaults.value(layer.id);
+        pixels->uniform = data.defaultPixels.value(layer.id, layer.defaultPixel);
+        for (const auto &block : allocation->blocks) pixels->allocatedBlocks.append(block);
+        pixels->defaultPixel = pixels->uniform;
+        for (const auto &tile : std::as_const(pixels->tiles))
+            if (tile) pixels->storageBytes.insert(tile->storage.get(), qsizetype(wgpuBufferGetSize(tile->pixels.get())));
+        if (pixels->defaultTile) pixels->storageBytes.insert(pixels->defaultTile->storage.get(),
+            qsizetype(wgpuBufferGetSize(pixels->defaultTile->pixels.get())));
+        document->setRenderedPixels(layer.id, pixels);
+    }
 }
 }

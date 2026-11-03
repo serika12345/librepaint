@@ -933,11 +933,33 @@ struct ConvertedLayerPixels
     QList<QRect> writtenAreas;
 };
 
+/** Committed GPU pixels of one paint layer. The renderer creates them from a
+ * submitted frame and owns their tiles; document code reads only the native
+ * 64-pixel allocation blocks, default pixel and native storage identities.
+ */
+class KRITAIMAGEGPUOPERATIONS_EXPORT LayerPixels
+{
+public:
+    virtual ~LayerPixels();
+    LayerPixels(const LayerPixels &) = delete;
+    LayerPixels &operator=(const LayerPixels &) = delete;
+    /** Allocated native blocks in document coordinates. */
+    QList<QRect> allocatedBlocks;
+    RgbaPixel defaultPixel{};
+    /** Native buffer identities and sizes, for deduplicated history accounting. */
+    QHash<const void *, qsizetype> storageBytes;
+protected:
+    LayerPixels() = default;
+};
+using LayerPixelsSP = std::shared_ptr<const LayerPixels>;
+
 struct KRITAIMAGEGPUOPERATIONS_EXPORT Layer
 {
     LayerId id = 0;
     QString name;
     bool visible = true;
+    /** Operations after pixels. Committed operations are folded into pixels
+     * once a frame has rendered them; only pending input remains here. */
     QList<LayerOperation> operations;
     QUuid uuid;
     RgbaPixel defaultPixel{};
@@ -975,8 +997,8 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT Layer
     /** Native coordinate of the independent transparency child device. */
     QPoint transparencyMaskPosition{};
     FrozenLayerProjectionSP initialProjection;
-    qsizetype inputSampleCount() const;
-    qsizetype retainedRasterBytes() const;
+    /** Committed pixels that operations apply to; null starts from defaultPixel. */
+    LayerPixelsSP pixels;
 };
 
 inline bool isFilterNode(LayerKind kind)
@@ -1044,8 +1066,6 @@ public:
     SelectionKind selectionKind = SelectionKind::Rectangle;
     /** Frozen arbitrary coverage; null for rectangular and elliptical kinds. */
     SelectionMaskSP selectionMask;
-    qsizetype sampleCount = 0;
-    qsizetype rasterBytes = 0;
 
     /** Transparent root projections reuse one full-opacity child, preserving hidden RGB. */
     LayerId directProjectionLayer() const
@@ -1062,11 +1082,21 @@ public:
         return only && only->blendMode == LayerBlendMode::Normal && !only->passThrough && only->visible && only->opacity == 255 && only->projectionChannelMask == 15 && !hasEnabledTransparencyMask(*only) ? only->id : 0;
     }
 
+    /** Records the pixels a submitted frame produced for one layer of exactly
+     * this version. Later versions derived from this one start from them. */
+    void setRenderedPixels(LayerId layer, const LayerPixelsSP &pixels) const;
+    LayerPixelsSP renderedPixels(LayerId layer) const;
+    /** Distinct native buffers retained by the layer pixels of this version. */
+    QHash<const void *, qsizetype> pixelStorageBytes() const;
+
 private:
     friend class OperationDocument;
     friend class PaintImage;
-    DocumentVersion() = default;
-    DocumentVersion(const DocumentVersion &) = default;
+    struct RenderedLayers;
+    DocumentVersion();
+    /** Copies the state and folds every rendered layer into its pixels. */
+    DocumentVersion(const DocumentVersion &other);
+    std::shared_ptr<RenderedLayers> m_rendered;
     QUuid m_document;
     quint64 m_revision = 0;
     quint64 m_modifiedRevision = 0;
@@ -1128,11 +1158,14 @@ struct Limits
 {
     /** Raw input count multiplied by the number of Multibrush hands. */
     qsizetype samplesPerStroke = 1024 * 1024;
-    qsizetype samplesPerDocument = 4 * 1024 * 1024;
     qsizetype layerCount = 4096;
     /** Compressed checkpoints prepared for one atomic external pixel write. */
     qsizetype compressedWriteBytes = 512 * 1024 * 1024;
+    /** Largest raster input that one request may prepare. */
     qsizetype rasterBytes = 256 * 1024 * 1024;
+    /** GPU tile bytes that undo versions may add to the current version; the
+     * oldest versions are dropped first. */
+    qsizetype historyBytes = 512 * 1024 * 1024;
 };
 
 /**
