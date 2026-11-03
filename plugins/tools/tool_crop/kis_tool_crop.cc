@@ -49,6 +49,15 @@
 #include <qset.h>
 
 
+namespace {
+bool supportsNodeCrop(const KisNodeSP &node)
+{
+    return node && (node->paintDevice() ||
+        (node->image() && node->image()->gpuImage() &&
+         (node->inherits("KisGroupLayer") || node->inherits("KisAdjustmentLayer"))));
+}
+}
+
 struct DecorationLine
 {
     QPointF start;
@@ -178,11 +187,9 @@ void KisToolCrop::activate(const QSet<KoShape*> &shapes)
     }
     useCursor(cursor());
 
-    //pixel layer
-    if(resources->currentNode() && resources->currentNode()->paintDevice()) {
+    if (supportsNodeCrop(resources->currentNode())) {
         setCropTypeSelectable(true);
     }
-    //vector layer
     else {
         if (m_cropType != ImageCropType && m_cropType != CanvasCropType) {
             setCropType(ImageCropType);
@@ -229,11 +236,9 @@ void KisToolCrop::canvasResourceChanged(int key, const QVariant &res)
 {
     KisTool::canvasResourceChanged(key, res);
 
-    //pixel layer
-    if(currentNode() && currentNode()->paintDevice()) {
+    if (supportsNodeCrop(currentNode())) {
         setCropTypeSelectable(true);
     }
-    //vector layer
     else {
         if (m_cropType != ImageCropType && m_cropType != CanvasCropType) {
             setCropType(ImageCropType);
@@ -507,7 +512,7 @@ void KisToolCrop::crop()
 
     KisImageSP image = currentImage();
     try {
-        if (imageCrop || !currentNode()->paintDevice()) {
+        if (imageCrop || !supportsNodeCrop(currentNode())) {
             if (m_cropType == CanvasCropType) {
                 image->resizeImage(cropRect);
             } else {

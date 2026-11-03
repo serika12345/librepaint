@@ -520,26 +520,31 @@ void TestNode::testLayerCropToolPreservesConfirmationResumptionAndCancellation_d
     QTest::addColumn<QString>("mode");
     QTest::addColumn<int>("cropType");
     QTest::addColumn<bool>("nested");
+    QTest::addColumn<bool>("groupTarget");
     for (const bool gpu : {false, true}) for (const int type : {2, 0, 1}) {
         const QByteArray scope = type == 2 ? QByteArray() : type == 0 ? QByteArrayLiteral("image-") : QByteArrayLiteral("canvas-");
         for (const auto *mode : {"confirm", "cancel", "resume-cancel", "resume-reapply", "locked"}) {
             const QByteArray name = (gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-")) + scope + mode;
-            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << type << false;
+            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << type << false << false;
         }
         if (gpu) for (const auto *mode : {"close-confirm", "close-resume"}) {
             const QByteArray name = QByteArrayLiteral("gpu-") + scope + mode;
-            QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << type << false;
+            QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << type << false << false;
         }
     }
     for (const auto *mode : {"reject-retry", "close-reject"}) {
         const QByteArray name = QByteArrayLiteral("gpu-canvas-") + mode;
-        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 1 << false;
+        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 1 << false << false;
     }
     for (const bool gpu : {false, true}) {
         for (const auto *mode : {"confirm", "resume-cancel", "resume-reapply", "locked"}) {
             const QByteArray name = (gpu ? QByteArrayLiteral("gpu-nested-") : QByteArrayLiteral("ordinary-nested-")) + mode;
-            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << 2 << true;
+            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << 2 << true << false;
         }
+    }
+    for (const auto *mode : {"confirm", "cancel", "resume-cancel", "resume-reapply"}) {
+        const QByteArray name = QByteArrayLiteral("gpu-group-") + mode;
+        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 2 << true << true;
     }
 }
 
@@ -587,6 +592,7 @@ try
     QFETCH(QString, mode);
     QFETCH(int, cropType);
     QFETCH(bool, nested);
+    QFETCH(bool, groupTarget);
     namespace Gpu = LibrePaint::Image::Gpu;
     KisImageConfig configuration(false);
     const int previousThreads = configuration.maxNumberOfThreads();
@@ -638,6 +644,7 @@ try
     }
     const auto parent = layer->parent();
     const auto grandparent = parent->parent();
+    const KisNodeSP target = groupTarget ? parent : layer;
     QScopedPointer<Node> node(Node::createNode(image, layer));
     const auto pixels = QByteArray::fromHex("332211ff").repeated(64 * 64);
     QVERIFY(node->setPixelData(pixels, 0, 0, 64, 64));
@@ -662,12 +669,12 @@ try
         QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     });
     window->viewManager()->setCurrentView(view);
-    if (nested) window->viewManager()->nodeManager()->slotNonUiActivatedNode(layer);
+    if (nested) window->viewManager()->nodeManager()->slotNonUiActivatedNode(target);
     window->show();
     window->activateWindow();
     QVERIFY(QTest::qWaitForWindowExposed(window.get()));
     QTRY_VERIFY(!ready.isEmpty());
-    QTRY_COMPARE(window->viewManager()->nodeManager()->activeNode(), layer);
+    QTRY_COMPARE(window->viewManager()->nodeManager()->activeNode(), target);
     auto preset = KisPaintOpRegistry::instance()->defaultPreset(KoID("roundmarker"), KisGlobalResourcesInterface::instance());
     QVERIFY(preset);
     window->viewManager()->canvasResourceProvider()->setPaintOpPreset(preset);
@@ -676,6 +683,7 @@ try
     KoToolManager::instance()->switchToolRequested(id);
     tool = qobject_cast<KisTool*>(KoToolManager::instance()->toolById(view->canvasBase(), id));
     QVERIFY(tool);
+    QVERIFY(tool->property("cropTypeSelectable").toBool());
     QVERIFY(QMetaObject::invokeMethod(tool, "setCropTypeLegacy", Q_ARG(int, cropType)));
     QVERIFY(QMetaObject::invokeMethod(tool, "setAllowGrow", Q_ARG(bool, true)));
     QVERIFY(QMetaObject::invokeMethod(tool, "setGrowCenter", Q_ARG(bool, false)));
@@ -759,12 +767,12 @@ try
         if (mode == QLatin1String("close-resume")) closeOnChange();
         if (cropType == 1) QVERIFY(QMetaObject::invokeMethod(tool, "setCropTypeLegacy", Q_ARG(int, 0)));
         QCOMPARE(tool->property("cropType").toInt(), cropType == 1 ? 0 : cropType);
-        QCOMPARE(window->viewManager()->canvasResourceProvider()->currentNode(), layer);
+        QCOMPARE(window->viewManager()->canvasResourceProvider()->currentNode(), target);
         const auto *last = image->undoAdapter()->presentCommand();
         QVERIFY(last);
         const auto *saved = dynamic_cast<const KisCropSavedExtraData*>(last->extraData());
         QVERIFY(saved);
-        QCOMPARE(saved->cropNode(), cropType == 2 ? layer : KisNodeSP());
+        QCOMPARE(saved->cropNode(), cropType == 2 ? target : KisNodeSP());
         const auto converter = view->canvasBase()->coordinatesConverter();
         const QPointF point = converter->imageToDocument(QPointF(40, 40));
         QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
