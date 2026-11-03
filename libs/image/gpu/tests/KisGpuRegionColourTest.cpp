@@ -37,7 +37,7 @@ private Q_SLOTS:
     void similarColourCoverageKeepsNativeDifference();
     void colourSelectionUsesUnclippedMaskedProjection();
     void maskVersionsKeepColdRenderCoverage();
-    void colourSelectionRetainsPixelsAfterClosureAndDeviceReplacement();
+    void colourSelectionRetainsPixelsAfterClosure();
     void generatedSelectionActionsRetainAlphaAndHistory();
     void generatedSelectionMovesKeepClippedAlphaAndHistory();
 };
@@ -486,9 +486,6 @@ void KisGpuRegionColourTest::generatedSelectionMovesKeepClippedAlphaAndHistory()
         image.close();
     }
     QVERIFY(replayed);
-    const auto replacement = Device::createNative(diagnostic);
-    QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
     QCOMPARE(execution.readSelectionPixels(replayed, canvas, replayedAlpha.size()).bytes, replayedAlpha);
 }
 
@@ -527,7 +524,7 @@ void KisGpuRegionColourTest::maskVersionsKeepColdRenderCoverage()
     }
 }
 
-void KisGpuRegionColourTest::colourSelectionRetainsPixelsAfterClosureAndDeviceReplacement()
+void KisGpuRegionColourTest::colourSelectionRetainsPixelsAfterClosure()
 {
     QString diagnostic;
     const auto device = Device::createNative(diagnostic);
@@ -564,12 +561,6 @@ void KisGpuRegionColourTest::colourSelectionRetainsPixelsAfterClosureAndDeviceRe
     }
     QCOMPARE(execution.pendingDocuments(), qsizetype(0));
     auto pixels = execution.readSelectionPixels(mask, canvas, expected.size());
-    QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
-    QCOMPARE(pixels.bytes, expected);
-    const auto replacement = Device::createNative(diagnostic);
-    QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-    pixels = execution.readSelectionPixels(mask, canvas, expected.size());
     QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
     QCOMPARE(pixels.bytes, expected);
     PaintImage continued(execution, size);

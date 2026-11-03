@@ -1050,10 +1050,6 @@ void KisGpuPaintImageTest::paintedMasksKeepSparseGpuCoverageAfterClosure()
     }
     QCOMPARE(execution.pendingDocuments(), qsizetype(0));
     QCOMPARE(execution.readSelectionPixels(painted, far, alpha.size()).bytes, alpha);
-    const auto replacement = Device::createNative(diagnostic);
-    QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-    QCOMPARE(execution.readSelectionPixels(painted, far, alpha.size()).bytes, alpha);
     QCOMPARE(execution.readSelectionPixels(painted, QRect(0, 0, 256, 256), alpha.size()).bytes, nearPixels);
 }
 
@@ -1182,8 +1178,6 @@ void KisGpuPaintImageTest::sparsePaintedMasksMoveCombineCropAndRecover()
     QVERIFY(matches(image.layerTransparencyMask(1), literal->translated(-crop.topLeft(), QRect(QPoint(), crop.size()))));
     QCOMPARE(image.undo(), Result::Success); QCOMPARE(image.operations().snapshot(), before);
     image.close();
-    const auto replacement = Device::createNative(diagnostic); QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
     QVERIFY(matches(replayed, replayedLiteral));
     QVERIFY(matches(painted, literal));
 }

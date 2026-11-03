@@ -58,6 +58,7 @@ private:
     void refresh();
     void refreshNow();
     bool m_refreshQueued = false;
+    bool m_deviceFailureReported = false;
     void updateBackground();
     bool updateDisplayConversion();
     bool m_displayConversionDirty = true;

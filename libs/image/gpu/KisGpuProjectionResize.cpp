@@ -144,7 +144,7 @@ ImageReadbackOutcome Execution::readResizedProjectionImage(DocumentHandle handle
 {
     using namespace Detail;
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
-        return ImageReadbackOutcome{code, {}, 0, {}, diagnostic};
+        return ImageReadbackOutcome{code, {}, {}, diagnostic};
     };
     const auto checked = readPixels(handle, pinned, {}, {}, true);
     if (checked.code != ExecutionCode::Success) return rejected(checked.code, checked.diagnostic);
@@ -158,7 +158,7 @@ ImageReadbackOutcome Execution::readResizedProjectionImage(DocumentHandle handle
     const qreal scaleX = qreal(scaledCanvas.width()) / pinned->size.width();
     const qreal scaleY = qreal(scaledCanvas.height()) / pinned->size.height();
     const bool area = scaleX < 1. / 256 || scaleY < 1. / 256;
-    ImageReadbackOutcome result{ExecutionCode::Success, pinned, checked.generation, {}, {}};
+    ImageReadbackOutcome result{ExecutionCode::Success, pinned, {}, {}};
     const bool constant = std::all_of(pinned->layers.cbegin(), pinned->layers.cend(),
         [](const auto &layer) {
             return !layer.visible || std::all_of(layer.operations.cbegin(), layer.operations.cend(),

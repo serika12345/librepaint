@@ -21,7 +21,6 @@ struct CanvasWindow::Private
 {
     DevicePtr device;
     Execution &execution;
-    quint64 generation;
     DocumentHandle handle = 0;
     QTransform transform;
     DisplayChannels channels;
@@ -36,7 +35,7 @@ struct CanvasWindow::Private
     std::unique_ptr<TilePresentation> presentation;
 
     explicit Private(Execution &execution)
-        : device(execution.device()), execution(execution), generation(execution.generation()) {}
+        : device(execution.device()), execution(execution) {}
 
     void releaseSurface()
     {
@@ -160,13 +159,10 @@ QRect CanvasWindow::documentViewport() const
 bool CanvasWindow::resetSurface()
 {
     auto &d = *m_d;
-    const auto next = d.execution.device();
-    if (d.recording || !next || d.device->isRecordingFrame() || next->isRecordingFrame()) return false;
+    if (d.recording || d.device->isRecordingFrame()) return false;
     const bool visible = isVisible();
     d.releaseSurface();
     destroy();
-    d.device = next;
-    d.generation = d.execution.generation();
     connectSurface();
     if (visible) show();
     return true;
@@ -199,10 +195,6 @@ void CanvasWindow::renderFrame()
 {
     auto &d = *m_d;
     if (d.recording || !isExposed() || !d.execution.requested(d.handle) || !d.conversion) return;
-    if (d.device != d.execution.device() || d.generation != d.execution.generation()) {
-        resetSurface();
-        return;
-    }
     d.recording = true;
     bool begun = false;
     const auto outcome = [&]() -> ExecutionOutcome {
@@ -266,14 +258,13 @@ void CanvasWindow::renderFrame()
     }();
     d.recording = false;
     const auto handle = d.handle;
-    const auto generation = d.generation;
     if (outcome.code == ExecutionCode::Success) {
         const auto document = d.execution.published(handle);
-        if (document) Q_EMIT frameSubmitted(handle, document->revision(), generation);
+        if (document) Q_EMIT frameSubmitted(handle, document->revision());
     } else if (outcome.code == ExecutionCode::Busy) {
         refresh();
     } else {
-        Q_EMIT renderingFailed(handle, generation, outcome.code, outcome.diagnostic);
+        Q_EMIT renderingFailed(handle, outcome.code, outcome.diagnostic);
     }
 }
 }

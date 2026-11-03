@@ -510,7 +510,7 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
 ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const Snapshot &pinned, qsizetype maximumBytes)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
-        return ImageReadbackOutcome{code, {}, 0, {}, diagnostic};
+        return ImageReadbackOutcome{code, {}, {}, diagnostic};
     };
     if (maximumBytes < 0) return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Projection pixel capacity is invalid"));
     const auto checked = readPixels(handle, pinned, {}, {}, true);
@@ -540,7 +540,6 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
     }
     ImageReadbackOutcome outcome;
     outcome.document = pinned;
-    outcome.generation = checked.generation;
     outcome.image = QImage(pinned->size, pinned->format == PixelFormat::Rgba16 ? QImage::Format_RGBA64 : QImage::Format_RGBA8888);
     if (outcome.image.isNull()) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Projection image allocation failed"));
     outcome.image.fill(Qt::transparent);
@@ -638,7 +637,6 @@ PixelBytesOutcome Execution::readRgbaPixelsImpl(DocumentHandle handle, const Sna
     }
     PixelBytesOutcome outcome;
     outcome.document = pinned;
-    outcome.generation = checked.generation;
     outcome.region = region;
     try {
         outcome.bytes.resize(qsizetype(byteCount));
@@ -1038,7 +1036,6 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
     }
     PixelReadbackOutcome outcome;
     outcome.document = pinned;
-    outcome.generation = d.generation;
     outcome.region = area == PixelReadArea::Canvas ? region.intersected(QRect(QPoint(0, 0), pinned->size)) : region;
     if (transparencyOnly) outcome.containsTransparency = false;
     if (boundsOnly || tileExtentOnly) outcome.bounds = QRect();

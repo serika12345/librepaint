@@ -665,7 +665,7 @@ PixelBytesOutcome Execution::readSelectionPixels(const SelectionMaskSP &mask, QR
         return failed(ExecutionCode::CapacityExceeded, QStringLiteral("Selection read exceeds the pixel capacity"));
     try {
         PixelBytesOutcome outcome;
-        outcome.region = region; outcome.generation = d.generation;
+        outcome.region = region;
         outcome.document = mask->regionSource() ? mask->regionSource()->source : Snapshot{};
         outcome.bytes = QByteArray(qsizetype(region.width()) * region.height(), char(mask->defaultCoverage()));
         const auto area = region.intersected(mask->bounds());

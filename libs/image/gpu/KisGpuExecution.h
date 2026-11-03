@@ -54,7 +54,6 @@ struct PixelReadbackOutcome
 {
     ExecutionCode code = ExecutionCode::InvalidRequest;
     Snapshot document;
-    quint64 generation = 0;
     QRect region;
     QList<PixelTile> tiles;
     QString diagnostic;
@@ -74,7 +73,6 @@ struct ImageReadbackOutcome
 {
     ExecutionCode code = ExecutionCode::InvalidRequest;
     Snapshot document;
-    quint64 generation = 0;
     QImage image;
     QString diagnostic;
 };
@@ -82,7 +80,6 @@ struct PixelBytesOutcome
 {
     ExecutionCode code = ExecutionCode::InvalidRequest;
     Snapshot document;
-    quint64 generation = 0;
     QRect region;
     QByteArray bytes;
     QString diagnostic;
@@ -91,7 +88,6 @@ struct ColorSampleOutcome
 {
     ExecutionCode code = ExecutionCode::InvalidRequest;
     Snapshot document;
-    quint64 generation = 0;
     RgbaPixel rgba{};
     QString diagnostic;
 };
@@ -287,10 +283,7 @@ public:
     ImageReadbackOutcome readResizedProjectionImage(DocumentHandle handle, const Snapshot &document,
                                                     QSize scaledCanvas, qsizetype maximumBytes);
 
-    /** Rebuilds accepted documents lazily on a new device; active frames reject replacement. */
-    ExecutionOutcome replaceDevice(DevicePtr device);
     DevicePtr device() const;
-    quint64 generation() const;
     qsizetype residentBytes() const;
 
 private:

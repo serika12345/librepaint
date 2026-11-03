@@ -25,7 +25,7 @@ struct Execution::Private
     struct Stage
     {
         DocumentHandle handle = 0;
-        quint64 serial = 0, generation = 0;
+        quint64 serial = 0;
         RenderedSnapshot rendered;
         ProjectedSnapshot projected;
     };
@@ -33,7 +33,7 @@ struct Execution::Private
     qsizetype byteBudget, maximumDocuments, maximumReadbackBytes;
     std::unique_ptr<TileRenderer> renderer;
     QHash<DocumentHandle, Document> documents;
-    quint64 nextHandle = 0, generation = 1;
+    quint64 nextHandle = 0;
     PresentationSurface *surface = nullptr;
     WGPUCommandEncoder commands = nullptr;
     bool active = false, attempted = false;
@@ -51,8 +51,7 @@ struct Execution::Private
     bool isCurrent(const Stage &value) const
     {
         const auto document = documents.constFind(value.handle);
-        return value.handle && document != documents.cend() && document->serial == value.serial &&
-            value.generation == generation;
+        return value.handle && document != documents.cend() && document->serial == value.serial;
     }
 };
 }

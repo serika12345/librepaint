@@ -144,7 +144,7 @@ ProjectionOutcome Execution::project(DocumentHandle handle, QRect region)
     if (rendered.code != RenderOutcome::Recorded) return {rendered.code, {}, rendered.diagnostic};
     const auto projected = d.renderer->compose(d.commands, rendered.version, region, document->projected);
     if (projected.code != RenderOutcome::Recorded) return projected;
-    d.stage = {handle, document->serial, d.generation, rendered.version, projected.version};
+    d.stage = {handle, document->serial, rendered.version, projected.version};
     return projected;
 }
 
@@ -191,30 +191,6 @@ ExecutionOutcome Execution::pollReadbacks()
     return {pending ? ExecutionCode::Busy : ExecutionCode::Success, {}};
 }
 
-ExecutionOutcome Execution::replaceDevice(DevicePtr device)
-{
-    auto &d = *m_d;
-    if (!d.onThread() || !device || device->thread() != QThread::currentThread()) {
-        return {ExecutionCode::InvalidRequest, QStringLiteral("Replacement requires a device on the owning thread")};
-    }
-    if (d.active || d.device->isRecordingFrame() || device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("GPU replacement requires submitted frames")};
-    if (d.generation == std::numeric_limits<quint64>::max()) return {ExecutionCode::CapacityExceeded, QStringLiteral("GPU generation exhausted")};
-    auto renderer = std::make_unique<TileRenderer>(device, d.byteBudget);
-    if (d.device->readbackPending()) d.device->finish();
-    d.device->releaseCompletedReadback();
-    d.readbackColor.reset();
-    d.readbackProjected.clear();
-    d.readbackRendered.clear();
-    for (auto &document : d.documents) {
-        document.projected.clear();
-        document.rendered.clear();
-    }
-    d.renderer = std::move(renderer);
-    d.device = std::move(device);
-    ++d.generation;
-    return {ExecutionCode::Success, {}};
-}
 DevicePtr Execution::device() const { return m_d->onThread() ? m_d->device : DevicePtr{}; }
-quint64 Execution::generation() const { return m_d->onThread() ? m_d->generation : 0; }
 qsizetype Execution::residentBytes() const { return m_d->onThread() ? m_d->renderer->residentBytes() : 0; }
 }

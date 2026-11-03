@@ -5784,11 +5784,6 @@ void KisGpuDocumentViewTest::generatedSelectionViewRetainsAlphaAfterClose()
     owner->close();
     QVERIFY(verify(copied, expected));
     QVERIFY(verify(invertedPixels, inverse));
-    const auto replacement = Gpu::Device::createNative(diagnostic);
-    QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution->replaceDevice(replacement).code, Gpu::ExecutionCode::Success);
-    QVERIFY(verify(copied, expected));
-    QVERIFY(verify(invertedPixels, inverse));
 }
 
 void KisGpuDocumentViewTest::colourSelectionToolsKeepPixelsHistoryAndKra_data()

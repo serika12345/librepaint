@@ -63,7 +63,7 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         std::promise<ColorSampleOutcome> result;
-        result.set_value({code, {}, 0, {}, diagnostic});
+        result.set_value({code, {}, {}, diagnostic});
         return result.get_future();
     };
     auto &d = *m_d;
@@ -178,10 +178,9 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
         auto completion = std::make_shared<std::promise<ColorSampleOutcome>>();
         auto future = completion->get_future();
         auto *read = reads->results.front().get();
-        const auto generation = d.generation;
         const auto maximumCount = quint32(region.width() * region.height());
-        read->completed = [read, completion, pinned, generation, maximumCount, summaryBytes] {
-            ColorSampleOutcome result{ExecutionCode::Success, pinned, generation, {}, {}};
+        read->completed = [read, completion, pinned, maximumCount, summaryBytes] {
+            ColorSampleOutcome result{ExecutionCode::Success, pinned, {}, {}};
             std::array<quint32, 9> values{};
             if (read->data.size() == summaryBytes) std::memcpy(values.data(), read->data.constData(), size_t(summaryBytes));
             const bool wide = pinned->format == PixelFormat::Rgba16;

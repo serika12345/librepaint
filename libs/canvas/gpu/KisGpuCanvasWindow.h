@@ -20,9 +20,9 @@ namespace LibrePaint::Canvas::Gpu {
  * document owner. Transform coordinates are logical window pixels.
  *
  * Surface resources retain their device through native window destruction.
- * resetSurface() recreates that connection after device replacement, including
- * hidden windows. Active frames reject reset. Frame notifications identify
- * the document and device generation that actually completed submission.
+ * resetSurface() recreates the native surface connection, including hidden
+ * windows. Active frames reject reset. Frame notifications identify the
+ * document revision that actually completed submission.
  */
 class KRITACANVAS_EXPORT CanvasWindow : public QWindow
 {
@@ -53,9 +53,8 @@ public:
     bool resetSurface();
 
 Q_SIGNALS:
-    void frameSubmitted(quint64 handle, quint64 revision, quint64 generation);
-    void renderingFailed(quint64 handle, quint64 generation,
-                         LibrePaint::Image::Gpu::ExecutionCode code, const QString &diagnostic);
+    void frameSubmitted(quint64 handle, quint64 revision);
+    void renderingFailed(quint64 handle, LibrePaint::Image::Gpu::ExecutionCode code, const QString &diagnostic);
 
 protected:
     bool event(QEvent *event) override;

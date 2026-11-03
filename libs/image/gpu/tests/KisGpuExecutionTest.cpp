@@ -20,12 +20,9 @@ private Q_SLOTS:
     void initTestCase();
     void nativeValidationErrorsReportAnErrorAndReleaseTheOwner();
     void abandonedReadbackResultsRemainValidThroughNativeCleanup();
-    void abandonedReadbackResultsRemainValidThroughNativeCleanup_data();
 
     void latestRequestsRetainInputAndPublishAfterSubmission();
     void cancellationAndClosureInvalidateRecordedFrames();
-    void replacingTheDeviceRebuildsAcceptedDocuments_data();
-    void replacingTheDeviceRebuildsAcceptedDocuments();
     void documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure();
     void viewportsGenerateOnlyVisibleTilesAndLayers();
 private:
@@ -174,67 +171,6 @@ void KisGpuExecutionTest::cancellationAndClosureInvalidateRecordedFrames()
     QVERIFY(reopened.handle != handle);
 }
 
-void KisGpuExecutionTest::replacingTheDeviceRebuildsAcceptedDocuments_data()
-{
-    QTest::addColumn<bool>("sixteenBits");
-    QTest::newRow("rgba8") << false;
-    QTest::newRow("rgba16") << true;
-}
-
-void KisGpuExecutionTest::replacingTheDeviceRebuildsAcceptedDocuments()
-{
-    QFETCH(bool, sixteenBits);
-    const auto format = sixteenBits ? PixelFormat::Rgba16 : PixelFormat::Rgba8;
-    const auto hidden = sixteenBits ? RgbaPixel{1, 257, 65534, 0} : RgbaPixel{17, 34, 51, 0};
-    const auto color = sixteenBits ? RgbaPixel{65534, 257, 1, 65535} : RgbaPixel{51, 34, 17, 255};
-    RasterImage input;
-    input.size = {64, 64};
-    input.format = format;
-    input.layers = {{QStringLiteral("Recovered paint"), true, {}, {}, hidden}};
-    Execution execution(m_device);
-    OperationDocument document(input);
-    Brush brush;
-    brush.rgba = color;
-    const auto stroke = document.beginStroke(document.activeLayer(), brush, 17);
-    QVERIFY(!stroke.isNull());
-    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
-    QCOMPARE(document.commitStroke(stroke), Result::Success);
-    const auto handle = execution.open(document.snapshot()).handle;
-    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
-    const auto old = execution.project(handle, {0, 0, 64, 64});
-    QCOMPARE(old.code, RenderOutcome::Recorded);
-    QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
-    const auto generation = execution.generation();
-    QString diagnostic;
-    const auto replacement = Device::createNative(diagnostic);
-    QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Busy);
-    QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-    QCOMPARE(execution.generation(), generation + 1);
-    QCOMPARE(execution.published(handle), document.snapshot());
-    QCOMPARE(execution.pendingDocuments(), 1);
-    const auto frame = execution.beginReadbackFrame();
-    QCOMPARE(frame.code, ExecutionCode::Success);
-    const auto rebuilt = execution.project(handle, {0, 0, 64, 64});
-    QCOMPARE(rebuilt.code, RenderOutcome::Recorded);
-    QVERIFY(rebuilt.version->device() != old.version->device());
-    const auto pixels = Detail::ReadbackBatch::create(*replacement, 1);
-    QVERIFY(pixels);
-    const auto pixelBytes = pixelByteCount(format);
-    QVERIFY(pixels->recordBuffer(*replacement, frame.commands, 0, rebuilt.version->tiles().first().pixels,
-                                RgbaTile::byteCount(format)));
-    QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
-    QCOMPARE(pixels->results.front()->data.mid((32 * 256 + 32) * pixelBytes, pixelBytes), rgbaBytes(color, format));
-    QCOMPARE(execution.pendingDocuments(), 0);
-    const auto recovered = execution.readRgbaPixels(handle, document.snapshot(), {2, 3, 1, 1},
-                                                   document.activeLayer(), pixelBytes);
-    QVERIFY2(recovered.code == ExecutionCode::Success, qPrintable(recovered.diagnostic));
-    QCOMPARE(recovered.bytes, rgbaBytes(hidden, format));
-    QCOMPARE(document.undoCount(), 1);
-}
-
 void KisGpuExecutionTest::documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure()
 {
     Execution execution(m_device, 2 * TileRenderer::TileBytes);
@@ -272,17 +208,8 @@ void KisGpuExecutionTest::documentsShareTheTileBudgetAndKeepPublishedPixelsOnFai
     QCOMPARE(pixels->results.front()->data.mid((48 * 256 + 48) * 4, 4), QByteArray::fromHex("000000ff"));
 }
 
-
-
-
-
-
-
-
-
 void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanup()
 {
-    QFETCH(bool, replaceDevice);
     QString diagnostic;
     auto device = Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
@@ -316,12 +243,6 @@ void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanu
         batch.reset();
         QVERIFY(!resultOwner.expired());
         QVERIFY(device->submitCommands(false));
-        if (replaceDevice) {
-            const auto replacement = Device::createNative(diagnostic);
-            QVERIFY2(replacement, qPrintable(diagnostic));
-            QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-            QVERIFY(resultOwner.expired());
-        }
     }
     QVERIFY(resultOwner.expired());
     device.reset();
@@ -329,13 +250,6 @@ void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanu
     QVERIFY(resultOwner.expired());
     QCOMPARE(completions, 1);
     QCOMPARE(observed.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
-}
-
-void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanup_data()
-{
-    QTest::addColumn<bool>("replaceDevice");
-    QTest::newRow("execution-close") << false;
-    QTest::newRow("device-replacement") << true;
 }
 
 int main(int argc, char **argv)

@@ -22,7 +22,7 @@ private Q_SLOTS:
     void colorSamplesKeepCanonicalDiskAlphaAndTransferLimits_data();
     void colorSamplesKeepCanonicalDiskAlphaAndTransferLimits();
     void colorSamplesKeepPaintedVersionsAndPublication();
-    void colorSamplesOutliveCloseAndDeviceReplacement();
+    void colorSamplesOutliveClose();
     void rejectedColorSamplesLeaveTheNextReadAvailable();
     void passThroughReadsKeepSubtreeBoundaryAndRootCapacity_data();
     void passThroughReadsKeepSubtreeBoundaryAndRootCapacity();
@@ -32,7 +32,7 @@ private Q_SLOTS:
     void pinnedPixelsKeepNewerRequestsAndPublishedState();
     void hiddenLayersAndVisibleProjectionRemainDistinct();
     void boundedReadsRejectAtomicallyAndRecover();
-    void closedDocumentsAndDeviceGenerationsGuardReads();
+    void closedDocumentsGuardReads();
     void cpuPixelsOutliveExecutionAndDevices();
     void savingReadsOffCanvasTilesAndRetainsImplicitPixels();
     void selectedReadsFitWithoutGeneratingUnrequestedPixels();
@@ -127,18 +127,6 @@ void KisGpuPixelReadbackTest::rgba16ReadsPreserveNativeComponentsAcrossMixedDocu
     QCOMPARE(document.redo(), Result::Success);
     QCOMPARE(document.snapshot(), current);
     QCOMPARE(complete.tiles.first().rgba, input.layers.first().tiles.first().rgba);
-    QString diagnostic;
-    const auto replacementDevice = Device::createNative(diagnostic);
-    QVERIFY2(replacementDevice, qPrintable(diagnostic));
-    QCOMPARE(execution.replaceDevice(replacementDevice).code, ExecutionCode::Success);
-    QCOMPARE(execution.generation(), quint64(2));
-    QCOMPARE(execution.requested(handle), current);
-    QCOMPARE(execution.readRgbaPixels(handle, fixed, {-1, 0, 1, 1}, layer, 8).bytes, stored);
-    QCOMPARE(execution.readRgbaPixels(handle, current, {-1, 0, 1, 1}, layer, 8).bytes, nextPixel);
-    QCOMPARE(execution.readRgbaPixels(byteHandle, byteDocument.snapshot(), {0, 0, 1, 1},
-                                     byteDocument.activeLayer(), 4).bytes, QByteArray(4, '\0'));
-    QCOMPARE(complete.tiles.first().rgba, input.layers.first().tiles.first().rgba);
-
 }
 
 void KisGpuPixelReadbackTest::rgba16ReadCapacityRejectsNativeTileBytesAtomically()
@@ -255,7 +243,6 @@ void KisGpuPixelReadbackTest::colorSamplesKeepCanonicalDiskAlphaAndTransferLimit
         QCOMPARE(file.write(rgbaBytes(result.rgba, format)), qint64(pixelSize));
     }
     QCOMPARE(result.document,fixed);
-    QCOMPARE(result.generation,execution.generation());
     QCOMPARE(execution.requested(handle),fixed);
     QVERIFY(!execution.published(handle));
     QCOMPARE(document.snapshot(),fixed);
@@ -1003,7 +990,6 @@ void KisGpuPixelReadbackTest::rectangularPixelsStreamDefaultsHiddenLayersAndCanv
     const auto read = execution.readRgbaPixels(handle, pinned, region, layer, bytes);
     QVERIFY2(read.code == ExecutionCode::Success, qPrintable(read.diagnostic));
     QCOMPARE(read.document, pinned);
-    QCOMPARE(read.generation, execution.generation());
     QCOMPARE(read.region, region);
     QByteArray expected = projection ? QByteArray(bytes, '\0') : QByteArray::fromHex("070b0d00").repeated(bytes / 4);
     if (projection) {
@@ -1057,7 +1043,6 @@ void KisGpuPixelReadbackTest::completeImagesStreamThinCanvasesAndOutliveTheirDev
         retained = execution.readProjectionImage(handle, pinned, 1 * 513 * 4);
         QVERIFY2(retained.code == ExecutionCode::Success, qPrintable(retained.diagnostic));
         QCOMPARE(retained.document, pinned);
-        QCOMPARE(retained.generation, execution.generation());
         QCOMPARE(retained.image.size(), image.size);
         QCOMPARE(retained.image.colorSpace(), QColorSpace(QColorSpace::SRgb));
         for (int y = 0; y < retained.image.height(); ++y)
@@ -1139,7 +1124,7 @@ void KisGpuPixelReadbackTest::colorSamplesKeepPaintedVersionsAndPublication()
     QCOMPARE(execution.published(handle), pinned);
 }
 
-void KisGpuPixelReadbackTest::colorSamplesOutliveCloseAndDeviceReplacement()
+void KisGpuPixelReadbackTest::colorSamplesOutliveClose()
 {
     std::future<ColorSampleOutcome> retained;
     std::weak_ptr<Device> lifetime;
@@ -1153,14 +1138,6 @@ void KisGpuPixelReadbackTest::colorSamplesOutliveCloseAndDeviceReplacement()
         const auto pinned = document.snapshot();
         Execution execution(device, 8 * TileRenderer::TileBytes, 1, 32);
         const auto handle = execution.open(pinned).handle;
-        auto old = execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 3);
-        const auto replacement = Device::createNative(diagnostic);
-        QVERIFY2(replacement, qPrintable(diagnostic));
-        QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-        const auto previous = old.get();
-        QCOMPARE(previous.code, ExecutionCode::Success);
-        QCOMPARE(previous.generation, quint64(1));
-        QCOMPARE(previous.rgba, (RgbaPixel{17, 129, 241, 255}));
         retained = execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 3);
         QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
     }
@@ -1168,7 +1145,6 @@ void KisGpuPixelReadbackTest::colorSamplesOutliveCloseAndDeviceReplacement()
     QCOMPARE(retained.wait_for(std::chrono::seconds(0)), std::future_status::ready);
     const auto sampled = retained.get();
     QVERIFY2(sampled.code == ExecutionCode::Success, qPrintable(sampled.diagnostic));
-    QCOMPARE(sampled.generation, quint64(2));
     QCOMPARE(sampled.rgba, (RgbaPixel{17, 129, 241, 255}));
 }
 
@@ -1433,7 +1409,6 @@ void KisGpuPixelReadbackTest::pinnedPixelsKeepNewerRequestsAndPublishedState()
     const auto old = execution.readPixels(handle, pinned, {0, 0, 512, 64}, {layer});
     QCOMPARE(old.code, ExecutionCode::Success);
     QCOMPARE(old.document, pinned);
-    QCOMPARE(old.generation, execution.generation());
     QCOMPARE(old.region, QRect(0, 0, 512, 64));
     QCOMPARE(old.tiles.size(), 2);
     QCOMPARE(pixel(old, layer, {8, 12}), QByteArray::fromHex("ff0000ff"));
@@ -1521,7 +1496,7 @@ void KisGpuPixelReadbackTest::boundedReadsRejectAtomicallyAndRecover()
     QCOMPARE(execution.published(handle), pinned);
 }
 
-void KisGpuPixelReadbackTest::closedDocumentsAndDeviceGenerationsGuardReads()
+void KisGpuPixelReadbackTest::closedDocumentsGuardReads()
 {
     Execution execution(m_device);
     OperationDocument document({64, 64}), other({64, 64});
@@ -1535,14 +1510,6 @@ void KisGpuPixelReadbackTest::closedDocumentsAndDeviceGenerationsGuardReads()
     QVERIFY(empty.tiles.isEmpty());
     const auto before = execution.readPixels(handle, pinned, {0, 0, 64, 64});
     QCOMPARE(before.code, ExecutionCode::Success);
-    QString diagnostic;
-    const auto replacement = Device::createNative(diagnostic);
-    QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-    const auto rebuilt = execution.readPixels(handle, pinned, {0, 0, 64, 64});
-    QCOMPARE(rebuilt.code, ExecutionCode::Success);
-    QVERIFY(rebuilt.generation > before.generation);
-    QCOMPARE(pixel(rebuilt, 0, {8, 12}), pixel(before, 0, {8, 12}));
     QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
     QCOMPARE(execution.readPixels(handle, pinned, {0, 0, 64, 64}).code, ExecutionCode::InvalidRequest);
     QCOMPARE(pixel(before, 0, {8, 12}), QByteArray::fromHex("ff0000ff"));

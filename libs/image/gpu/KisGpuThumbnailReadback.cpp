@@ -64,7 +64,7 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
     LayerId layer, QRect source, QSize size, qsizetype maximumBytes, bool includeLayerTileExtent)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
-        return ImageReadbackOutcome{code, {}, 0, {}, diagnostic};
+        return ImageReadbackOutcome{code, {}, {}, diagnostic};
     };
     const auto checked = readPixels(handle, pinned, {}, layer ? QList<LayerId>{layer} : QList<LayerId>{},
                                     !layer, PixelReadArea::LayerCoordinates);
@@ -78,7 +78,7 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
     const qint64 pixels = qint64(size.width()) * size.height();
     if (pixels > maximumBytes / pixelSize || pixels > std::numeric_limits<int>::max() / pixelSize)
         return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Thumbnail output pixel capacity exceeded"));
-    ImageReadbackOutcome outcome{ExecutionCode::Success, pinned, checked.generation, {}, {}};
+    ImageReadbackOutcome outcome{ExecutionCode::Success, pinned, {}, {}};
     if (size.isEmpty()) return outcome;
     outcome.image = QImage(size, pinned->format == PixelFormat::Rgba16 ? QImage::Format_RGBA64 : QImage::Format_RGBA8888);
     if (outcome.image.isNull()) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Thumbnail allocation failed"));

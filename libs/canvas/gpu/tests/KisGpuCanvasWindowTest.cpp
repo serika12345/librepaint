@@ -45,7 +45,6 @@ private Q_SLOTS:
     void nativeSurfaceRecreationPreservesDocumentAndContinuesPresentation();
     void capacityFailurePreservesPublicationAndCanRetry();
     void busyFramesRetryTheLatestRequestedImage();
-    void deviceReplacementRecreatesVisibleAndHiddenSurfaces();
 private:
     DevicePtr m_device;
 };
@@ -82,7 +81,6 @@ void KisGpuCanvasWindowTest::editsAndViewChangesUseSharedExecution()
     QTRY_COMPARE_WITH_TIMEOUT(execution.published(admission.handle), document.preview(), 5000);
     QCOMPARE(frames.last()[0].toULongLong(), admission.handle);
     QCOMPARE(frames.last()[1].toULongLong(), document.preview()->revision());
-    QCOMPARE(frames.last()[2].toULongLong(), execution.generation());
     const auto transform = QTransform::fromTranslate(8, 16).scale(2, 2);
     const auto before = frames.size();
     QVERIFY(window.setDocumentToWindow(transform));
@@ -242,56 +240,8 @@ void KisGpuCanvasWindowTest::nativeSurfaceRecreationPreservesDocumentAndContinue
     window.refresh();
     QTRY_VERIFY_WITH_TIMEOUT(frames.size() > previousFrames, 5000);
     QCOMPARE(execution.published(handle), document.snapshot());
-    QCOMPARE(frames.last()[2].toULongLong(), execution.generation());
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(errors.size(), 0);
-}
-
-void KisGpuCanvasWindowTest::deviceReplacementRecreatesVisibleAndHiddenSurfaces()
-{
-    QString diagnostic;
-    auto device = Device::createNative(diagnostic);
-    QVERIFY2(device, qPrintable(diagnostic));
-    std::weak_ptr<Device> previous = device;
-    Execution execution(device);
-    OperationDocument document({64, 64});
-    const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
-    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
-    QCOMPARE(document.commitStroke(stroke), Result::Success);
-    const auto handle = execution.open(document.snapshot()).handle;
-    CanvasWindow visible(execution), hidden(execution);
-    QVERIFY(visible.setDocument(handle));
-    QVERIFY(visible.setDisplayConversion(handle, identityDisplay(execution.requested(handle))));
-    QVERIFY(hidden.setDocument(handle));
-    QVERIFY(hidden.setDisplayConversion(handle, identityDisplay(execution.requested(handle))));
-    visible.resize(128, 128);
-    hidden.resize(128, 128);
-    visible.setPosition(100, 100);
-    hidden.setPosition(260, 100);
-    QSignalSpy visibleFrames(&visible, &CanvasWindow::frameSubmitted);
-    QSignalSpy hiddenFrames(&hidden, &CanvasWindow::frameSubmitted);
-    QSignalSpy visibleErrors(&visible, &CanvasWindow::renderingFailed);
-    QSignalSpy hiddenErrors(&hidden, &CanvasWindow::renderingFailed);
-    visible.show();
-    hidden.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&visible));
-    QVERIFY(QTest::qWaitForWindowExposed(&hidden));
-    QTRY_VERIFY_WITH_TIMEOUT(!visibleFrames.isEmpty() && !hiddenFrames.isEmpty(), 5000);
-    hidden.hide();
-    device.reset();
-    const auto replacement = Device::createNative(diagnostic);
-    QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-    QVERIFY(visible.resetSurface());
-    QVERIFY(hidden.resetSurface());
-    QVERIFY(previous.expired());
-    QTRY_COMPARE_WITH_TIMEOUT(visibleFrames.last()[2].toULongLong(), execution.generation(), 5000);
-    hidden.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&hidden));
-    QTRY_COMPARE_WITH_TIMEOUT(hiddenFrames.last()[2].toULongLong(), execution.generation(), 5000);
-    QCOMPARE(execution.published(handle), document.snapshot());
-    QCOMPARE(visibleErrors.size(), 0);
-    QCOMPARE(hiddenErrors.size(), 0);
 }
 
 void KisGpuCanvasWindowTest::capacityFailurePreservesPublicationAndCanRetry()
@@ -326,9 +276,8 @@ void KisGpuCanvasWindowTest::capacityFailurePreservesPublicationAndCanRetry()
     window.refresh();
     QTRY_VERIFY_WITH_TIMEOUT(!errors.isEmpty(), 5000);
     QCOMPARE(errors.last()[0].toULongLong(), handle);
-    QCOMPARE(errors.last()[1].toULongLong(), execution.generation());
-    QCOMPARE(qvariant_cast<ExecutionCode>(errors.last()[2]), ExecutionCode::CapacityExceeded);
-    QVERIFY(!errors.last()[3].toString().isEmpty());
+    QCOMPARE(qvariant_cast<ExecutionCode>(errors.last()[1]), ExecutionCode::CapacityExceeded);
+    QVERIFY(!errors.last()[2].toString().isEmpty());
     QCOMPARE(execution.published(handle), original);
     QCOMPARE(frames.size(), submitted);
     QCOMPARE(document.undoCount(), 3);
@@ -365,11 +314,6 @@ void KisGpuCanvasWindowTest::presentationFramesSubmitThroughTheOwningWindow()
     QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
     QCOMPARE(execution.published(handle), document.snapshot());
     QCOMPARE(execution.pendingDocuments(), 0);
-    QString diagnostic;
-    const auto replacement = Device::createNative(diagnostic);
-    QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-    QCOMPARE(execution.beginPresentationFrame(*surface).code, ExecutionCode::InvalidRequest);
 }
 
 void KisGpuCanvasWindowTest::unconfiguredSurfacesAreRejectedBeforeNativeSubmission()

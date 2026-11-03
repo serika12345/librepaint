@@ -25,6 +25,7 @@
 #include <kis_selection.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <gpu/KisGpuCanvasWindow.h>
+#include <klocalizedstring.h>
 #include <QApplication>
 #include <QMetaObject>
 #include <QPainter>
@@ -148,8 +149,19 @@ KisGpuCanvasWidget::KisGpuCanvasWidget(KisCanvas2 *canvas, KisCoordinatesConvert
     connect(m_image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, [this] { refresh(); });
     connect(canvas->image().data(), &KisImage::sigLayersChangedAsync, this, [this] { refresh(); });
     connect(m_window, &LibrePaint::Canvas::Gpu::CanvasWindow::renderingFailed, this,
-            [this](quint64, quint64, LibrePaint::Image::Gpu::ExecutionCode, const QString &diagnostic) {
-        if (m_window) this->canvas()->viewManager()->showFloatingMessage(diagnostic, QIcon());
+            [this](quint64, LibrePaint::Image::Gpu::ExecutionCode code, const QString &diagnostic) {
+        if (!m_window) return;
+        if (code != LibrePaint::Image::Gpu::ExecutionCode::DeviceFailure) {
+            this->canvas()->viewManager()->showFloatingMessage(diagnostic, QIcon());
+            return;
+        }
+        // A failed device rejects all later GPU work, so report it once and
+        // point to the autosave recovery offered at the next start.
+        if (m_deviceFailureReported) return;
+        m_deviceFailureReported = true;
+        this->canvas()->viewManager()->showFloatingMessage(
+            i18n("The GPU stopped working (%1). Restart LibrePaint to recover the document from its last autosave.", diagnostic),
+            QIcon(), 60000, KisFloatingMessage::High);
     });
 }
 
