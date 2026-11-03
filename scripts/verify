@@ -26,6 +26,4 @@ case "$(uname -s)" in
 esac
 
 ./scripts/build-incremental native build
-ctest --preset "$preset"
-
-echo "verify: OK"
+exec "$repo_root/scripts/run-with-test-display" ctest --preset "$preset"

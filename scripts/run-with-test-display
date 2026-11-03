@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2026 LibrePaint contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Run a command with a temporary Xvfb display on Linux when DISPLAY is unset."""
+
+import os
+import select
+import signal
+import subprocess
+import sys
+import tempfile
+
+
+class Interrupted(Exception):
+    def __init__(self, signum):
+        self.signum = signum
+
+
+def interrupt(signum, _frame):
+    raise Interrupted(signum)
+
+
+def stop(process):
+    if process is None:
+        return
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        pass
+    # A command can exit while descendants still own its display or log pipes.
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    process.wait()
+
+
+def main(command):
+    if not command:
+        print("usage: run-with-test-display <command> [arguments...]", file=sys.stderr)
+        return 2
+    if sys.platform != "linux" or os.environ.get("DISPLAY"):
+        os.execvp(command[0], command)
+
+    xvfb = None
+    child = None
+    signals = (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)
+    previous_handlers = {signum: signal.signal(signum, interrupt) for signum in signals}
+    try:
+        with tempfile.TemporaryFile() as log:
+            read_fd, write_fd = os.pipe()
+            try:
+                xvfb = subprocess.Popen(
+                    ["Xvfb", "-displayfd", str(write_fd), "-screen", "0", "1280x1024x24",
+                     "-nolisten", "tcp", "-noreset"],
+                    pass_fds=(write_fd,), stdout=log, stderr=log, start_new_session=True,
+                )
+            finally:
+                os.close(write_fd)
+                if xvfb is None:
+                    os.close(read_fd)
+            try:
+                if not select.select([read_fd], [], [], 10)[0]:
+                    raise RuntimeError("Xvfb did not report a ready display within 10 seconds")
+                number = os.read(read_fd, 64).strip()
+                if not number or not number.isdigit():
+                    raise RuntimeError("Xvfb exited or reported an invalid display number")
+            except RuntimeError:
+                log.seek(0)
+                sys.stderr.write(log.read().decode(errors="replace"))
+                raise
+            finally:
+                os.close(read_fd)
+
+            display = ":" + number.decode("ascii")
+            print(f"run-with-test-display: Xvfb ready on {display}", file=sys.stderr, flush=True)
+            child = subprocess.Popen(command, env=os.environ | {"DISPLAY": display},
+                                     start_new_session=True)
+            result = child.wait()
+            return result if result >= 0 else 128 - result
+    except Interrupted as error:
+        return 128 + error.signum
+    except (OSError, RuntimeError) as error:
+        print(f"run-with-test-display: {error}", file=sys.stderr)
+        return 1
+    finally:
+        for signum in signals:
+            signal.signal(signum, signal.SIG_IGN)
+        stop(child)
+        stop(xvfb)
+        for signum, handler in previous_handlers.items():
+            signal.signal(signum, handler)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

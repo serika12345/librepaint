@@ -33,4 +33,5 @@ case "$(uname -s)" in
 esac
 
 "$build_incremental_path" native build "$target"
-ctest --preset "$preset" --tests-regex "$test_regex"
+exec "$repo_root/scripts/run-with-test-display" \
+    ctest --preset "$preset" --tests-regex "$test_regex"
