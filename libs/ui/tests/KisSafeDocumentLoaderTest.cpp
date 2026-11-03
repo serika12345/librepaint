@@ -1,6 +1,7 @@
 #include "KisSafeDocumentLoaderTest.h"
 
 #include <QSignalSpy>
+#include <QScopeGuard>
 #include <QTemporaryFile>
 #include <testui.h>
 
@@ -9,6 +10,16 @@
 #include <kis_paint_device.h>
 
 namespace {
+auto enableGpuEngine()
+{
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    return qScopeGuard([previous] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
+        else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+}
+
 void checkLoadedColor(const QSignalSpy &spy, const QColor &expected)
 {
     QVERIFY(!spy.isEmpty());
@@ -31,6 +42,7 @@ bool writeToFile(QFile &file, const QColor &color)
 
 void KisSafeDocumentLoaderTest::test()
 {
+    const auto engine = enableGpuEngine();
     QTemporaryFile file("safe_loader_test_XXXXXX.png");
 
     QVERIFY(file.open());
@@ -68,6 +80,7 @@ void KisSafeDocumentLoaderTest::test()
 
 void KisSafeDocumentLoaderTest::testFileLost()
 {
+    const auto engine = enableGpuEngine();
     QTemporaryFile file("safe_loader_test_XXXXXX.png");
 
     QVERIFY(file.open());

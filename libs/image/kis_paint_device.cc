@@ -2409,7 +2409,11 @@ void KisPaintDevice::clearSelection(KisSelectionSP selection)
 
 bool KisPaintDevice::pixel(qint32 x, qint32 y, QColor *c) const
 {
-    if (m_d->gpuSelection) { quint8 value; readBytes(&value, {x, y, 1, 1}); colorSpace()->toQColor(&value, c); return true; }
+    if (m_d->gpuImage || m_d->gpuSelection) {
+        const auto value = pixel(QPoint(x, y));
+        value.toQColor(c);
+        return true;
+    }
     KisHLineConstIteratorSP iter = createHLineConstIteratorNG(x, y, 1);
 
     const quint8 *pix = iter->rawDataConst();
@@ -2424,7 +2428,10 @@ bool KisPaintDevice::pixel(qint32 x, qint32 y, QColor *c) const
 
 bool KisPaintDevice::pixel(qint32 x, qint32 y, KoColor * kc) const
 {
-    if (m_d->gpuSelection) { quint8 value; readBytes(&value, {x, y, 1, 1}); kc->setColor(&value, colorSpace()); return true; }
+    if (m_d->gpuImage || m_d->gpuSelection) {
+        *kc = pixel(QPoint(x, y));
+        return true;
+    }
     KisHLineConstIteratorSP iter = createHLineConstIteratorNG(x, y, 1);
 
     const quint8 *pix = iter->rawDataConst();
@@ -2438,7 +2445,11 @@ bool KisPaintDevice::pixel(qint32 x, qint32 y, KoColor * kc) const
 
 KoColor KisPaintDevice::pixel(const QPoint &pos) const
 {
-    if (m_d->gpuSelection) { quint8 value; readBytes(&value, QRect(pos, QSize(1, 1))); return KoColor(&value, colorSpace()); }
+    if (m_d->gpuImage || m_d->gpuSelection) {
+        KoColor value(colorSpace());
+        readBytes(value.data(), QRect(pos, QSize(1, 1)));
+        return value;
+    }
     KisHLineConstIteratorSP iter = createHLineConstIteratorNG(pos.x(), pos.y(), 1);
     return KoColor(iter->rawDataConst(), m_d->colorSpace());
 }

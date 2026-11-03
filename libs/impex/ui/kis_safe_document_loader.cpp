@@ -21,6 +21,8 @@
 #include "KisQStringListFwd.h"
 #include "document/KisDocument.h"
 #include <kis_image.h>
+#include <kis_paint_device.h>
+#include <KoColor.h>
 #include "kis_assert.h"
 #include "kis_debug.h"
 #include "kis_signal_compressor.h"
@@ -445,7 +447,23 @@ void KisSafeDocumentLoader::delayedLoadStart()
     else {
         KisPaintDeviceSP paintDevice = new KisPaintDevice(m_d->doc->image()->colorSpace());
         KisPaintDeviceSP projection = m_d->doc->image()->projection();
-        paintDevice->makeCloneFrom(projection, projection->extent());
+        if (m_d->doc->image()->gpuImage()) {
+            paintDevice->setDefaultBounds(projection->defaultBounds());
+            paintDevice->setDefaultPixel(projection->defaultPixel());
+            const auto bounds = projection->extent();
+            constexpr int blockSize = 256;
+            for (int y = bounds.top(); !bounds.isEmpty() && y <= bounds.bottom(); y += blockSize) {
+                for (int x = bounds.left(); x <= bounds.right(); x += blockSize) {
+                    const QRect area(x, y, qMin(blockSize, bounds.right() - x + 1),
+                                     qMin(blockSize, bounds.bottom() - y + 1));
+                    QByteArray bytes(area.width() * area.height() * projection->pixelSize(), Qt::Uninitialized);
+                    projection->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
+                    paintDevice->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), area);
+                }
+            }
+        } else {
+            paintDevice->makeCloneFrom(projection, projection->extent());
+        }
         Q_EMIT loadingFinished(paintDevice,
                              m_d->doc->image()->xRes(),
                              m_d->doc->image()->yRes(),
