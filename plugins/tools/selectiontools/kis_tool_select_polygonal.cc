@@ -60,6 +60,24 @@ void KisToolSelectPolygonal::finishPolyline(const QVector<QPointF> &points)
     if (!kisCanvas)
         return;
 
+    if (currentImage() && currentImage()->gpuImage()) {
+        if (points.count() < 3) return;
+        KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Polygon"));
+        if (antiAliasSelection() || growSelection() != 0 || featherSelection() != 0) {
+            QPainterPath path;
+            path.addPolygon(points);
+            path.closeSubpath();
+            if (helper.selectGpuSelectionPath(path, antiAliasSelection(), growSelection(), featherSelection(), selectionAction())) return;
+        } else {
+            const auto mask = KisSelectionToolHelper::gpuSelectionMaskFromPolygon(
+                QList<QPointF>(points.cbegin(), points.cend()), currentImage()->size());
+            if (mask && helper.selectGpuSelection(mask, selectionAction())) return;
+        }
+        kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
+                                   QStringLiteral("object-locked"));
+        return;
+    }
+
     const QRectF boundingViewRect = pixelToView(KisAlgebra2D::accumulateBounds(points));
 
     KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Polygon"));

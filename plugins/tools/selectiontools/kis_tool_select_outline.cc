@@ -65,6 +65,24 @@ void KisToolSelectOutline::finishOutline(const QVector<QPointF>& points)
     const QRectF boundingRect = KisAlgebra2D::accumulateBounds(points);
     const QRectF boundingViewRect = pixelToView(boundingRect);
 
+    if (currentImage() && currentImage()->gpuImage()) {
+        if (points.count() < 3) return;
+        KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Freehand Selection"));
+        if (antiAliasSelection() || growSelection() != 0 || featherSelection() != 0) {
+            QPainterPath path;
+            path.addPolygon(points);
+            path.closeSubpath();
+            if (helper.selectGpuSelectionPath(path, antiAliasSelection(), growSelection(), featherSelection(), selectionAction())) return;
+        } else {
+            const auto mask = KisSelectionToolHelper::gpuSelectionMaskFromPolygon(
+                QList<QPointF>(points.cbegin(), points.cend()), currentImage()->size());
+            if (mask && helper.selectGpuSelection(mask, selectionAction())) return;
+        }
+        kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
+                                   QStringLiteral("object-locked"));
+        return;
+    }
+
     KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Freehand Selection"));
 
     if (helper.tryDeselectCurrentSelection(boundingViewRect, selectionAction())) {

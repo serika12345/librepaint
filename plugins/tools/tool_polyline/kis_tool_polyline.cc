@@ -8,6 +8,7 @@
  */
 
 #include "kis_tool_polyline.h"
+#include <kis_image.h>
 #include "KisQStringListFwd.h"
 #include "kis_cursor.h"
 #include "kis_tool_polyline_base.h"
@@ -56,6 +57,10 @@ void KisToolPolyline::finishPolyline(const QVector<QPointF>& points)
     const KisToolShape::ShapeAddInfo info =
         shouldAddShape(currentNode());
 
+    if (!info.shouldAddShape && image()->gpuImage()) {
+        paintGpuPolyline(points, false, kundo2_i18n("Draw Polyline"));
+        return;
+    }
     if (!info.shouldAddShape || info.shouldAddSelectionShape) {
         KisFigurePaintingStroke stroke(kundo2_i18n("Draw Polyline"),
                                        image(),

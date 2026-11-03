@@ -6,6 +6,7 @@
  */
 
 #include "nodes/kis_layer_manager.h"
+#include "nodes/KisGpuFilterNodeEdit.h"
 
 #include <QRect>
 #include <QApplication>
@@ -41,6 +42,7 @@
 #include <kis_clone_layer.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <kis_layer.h>
 #include <kis_paint_device.h>
 #include <flake/kis_shape_layer.h>
@@ -274,6 +276,10 @@ void KisLayerManager::layerProperties()
     KisFileLayerSP fileLayer = KisFileLayerSP(dynamic_cast<KisFileLayer*>(layer.data()));
 
     if (adjustmentLayer && !multipleLayersSelected) {
+        if (m_view->image()->gpuImage()) {
+            editGpuFilterNode(m_view, adjustmentLayer);
+            return;
+        }
         KisPaintDeviceSP dev = adjustmentLayer->projection();
 
         KisDlgAdjLayerProps dlg(adjustmentLayer, adjustmentLayer.data(), dev, m_view, adjustmentLayer->filter().data(), adjustmentLayer->name(), i18n("Filter Layer Properties"), m_view->mainWindow(), "dlgadjlayerprops");
@@ -696,6 +702,28 @@ void KisLayerManager::addLayerCommon(KisNodeSP activeNode, KisNodeSP layer, bool
 KisLayerSP KisLayerManager::addPaintLayer(KisNodeSP activeNode)
 {
     KisImageWSP image = m_view->image();    
+    if (image->gpuImage()) {
+        KisImageSP retainedImage = image;
+        KisNodeSP parent = activeNode ? activeNode : image->root();
+        KisNodeSP above = parent->lastChild();
+        if (parent != image->root() && parent->inherits("KisGroupLayer") && parent->collapsed()) {
+            above = parent;
+            parent = parent->parent();
+        } else {
+            while (parent && (!parent->inherits("KisGroupLayer") || !parent->isEditable(false))) {
+                above = parent;
+                parent = parent->parent();
+            }
+        }
+        if (!parent) {
+            parent = image->root();
+            above = parent->lastChild();
+        }
+        const qsizetype index = above ? parent->index(above) + 1 : 0;
+        KisNodeSP node = retainedImage->addGpuPaintLayer(image->nextLayerName(i18n("Paint Layer")), parent, index,
+                                                       KisConfig(true).autoPinLayersToTimeline());
+        return qobject_cast<KisLayer *>(node.data());
+    }
     KisLayerSP layer = new KisPaintLayer(image.data(),  image->nextLayerName( i18n("Paint Layer") ), OPACITY_OPAQUE_U8, image->colorSpace());
 
     KisConfig cfg(true);
@@ -710,6 +738,14 @@ KisNodeSP KisLayerManager::addGroupLayer(KisNodeSP activeNode)
 {
     KisImageWSP image = m_view->image();
     KisGroupLayerSP group = new KisGroupLayer(image.data(), image->nextLayerName( i18nc("A group of layers", "Group") ), OPACITY_OPAQUE_U8);
+    if (image->gpuImage()) {
+        KisNodeSP parent;
+        KisNodeSP above;
+        adjustLayerPosition(group, activeNode ? activeNode : image->root(), parent, above);
+        const qsizetype index = above ? parent->index(above) + 1 : 0;
+        if (!image->insertGpuLayer(group, index, parent)) return {};
+        return group;
+    }
     addLayerCommon(activeNode, group, false, 0);
     return group;
 }
@@ -748,6 +784,13 @@ KisNodeSP KisLayerManager::addShapeLayer(KisNodeSP activeNode)
 KisNodeSP KisLayerManager::addAdjustmentLayer(KisNodeSP activeNode)
 {
     KisImageWSP image = m_view->image();
+    if (image->gpuImage()) {
+        KisAdjustmentLayerSP placeholder = new KisAdjustmentLayer(image, {}, {}, {});
+        KisNodeSP parent, above;
+        adjustLayerPosition(placeholder, activeNode ? activeNode : image->root(), parent, above);
+        return createGpuFilterNode(m_view, parent, above ? parent->index(above) + 1 : 0,
+            LibrePaint::Image::Gpu::LayerKind::Adjustment, image->nextLayerName(i18n("Filter Layer")));
+    }
 
     KisSelectionSP selection = m_view->selection();
 

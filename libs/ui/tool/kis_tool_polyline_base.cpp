@@ -9,6 +9,7 @@
 #include <klocalizedstring.h>
 #include <QMouseEvent>
 #include <QPainterPath>
+#include <QPointer>
 #include <QTabletEvent>
 
 #include <KoPointerEvent.h>
@@ -150,7 +151,10 @@ void KisToolPolylineBase::beginPrimaryAction(KoPointerEvent *event)
 
 void KisToolPolylineBase::endPrimaryAction(KoPointerEvent *event)
 {
-    CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
+    if (mode() != KisTool::PAINT_MODE) {
+        event->accept();
+        return;
+    }
     setMode(KisTool::HOVER_MODE);
 
     if (m_polylineInteraction.isActive()) {
@@ -292,9 +296,11 @@ void KisToolPolylineBase::endStroke(bool closePolyline)
 
     const QVector<QPointF> points =
         m_polylineInteraction.finish(closePolyline);
+    const QPointer<KisToolPolylineBase> guard(this);
     if (points.count() > 1) {
         finishPolyline(points);
     }
+    if (!guard) return;
     updateArea();
     endShape();
 }

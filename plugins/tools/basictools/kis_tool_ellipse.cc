@@ -19,6 +19,7 @@
 #include "kis_tool_shape.h"
 #include "kundo2magicstring.h"
 #include <KoCanvasBase.h>
+#include <gpu/KisGpuOperationDocument.h>
 #include <KoShapeStroke.h>
 
 #include <application/ui/workspace/KisViewManager.h>
@@ -70,6 +71,11 @@ void KisToolEllipse::finishRect(const QRectF& rect, qreal roundCornersX, qreal r
     const KisToolShape::ShapeAddInfo info =
         shouldAddShape(currentNode());
 
+    if (!info.shouldAddShape && image()->gpuImage()) {
+        paintGpuOutline({LibrePaint::Image::Gpu::ShapeKind::Ellipse, rect.topLeft(), rect.bottomRight(), getRotationAngle()},
+                        kundo2_i18n("Draw Ellipse"));
+        return;
+    }
     if (!info.shouldAddShape) {
         KisFigurePaintingStroke stroke(kundo2_i18n("Draw Ellipse"),
                                        image(),

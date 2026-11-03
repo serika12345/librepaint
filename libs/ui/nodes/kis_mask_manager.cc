@@ -5,6 +5,8 @@
  */
 
 #include "nodes/kis_mask_manager.h"
+#include "nodes/KisGpuFilterNodeEdit.h"
+#include <gpu/KisGpuPaintImage.h>
 #include <klocalizedstring.h>
 
 #include <kactioncollection.h>
@@ -214,6 +216,27 @@ KisNodeSP KisMaskManager::createSelectionMask(KisNodeSP activeNode, KisPaintDevi
 
 KisNodeSP KisMaskManager::createTransparencyMask(KisNodeSP activeNode, KisPaintDeviceSP copyFrom, bool convertActiveNode)
 {
+    if (KisImageSP image = m_view->image(); image && image->gpuImage()) {
+        // Document versions own coverage; the selected child is its panel view.
+        // Conversion also removes the source layer and needs that transaction.
+        if (convertActiveNode || copyFrom || !activeNode) return 0;
+        const auto owner = image->gpuImage();
+        const auto version = owner->operations().snapshot();
+        LibrePaint::Image::Gpu::LayerId layer = 0;
+        for (const auto &value : version->layers)
+            if (value.uuid == activeNode->uuid()) { layer = value.id; break; }
+        if (!layer) return 0;
+        const QPointer<KisMaskManager> guard(this);
+        const auto name = createMaskNameCommon(activeNode, QStringLiteral("KisTransparencyMask"), i18n("Transparency Mask"));
+        if (owner->addTransparencyMask(layer, name) != LibrePaint::Image::Gpu::Result::Success) return 0;
+        if (!guard || m_view->image().toStrongRef() != image) return 0;
+        for (auto child = activeNode->firstChild(); child; child = child->nextSibling()) {
+            if (!image->isGpuTransparencyMaskView(child)) continue;
+            m_view->nodeManager()->slotUiActivatedNode(child);
+            return child;
+        }
+        return 0;
+    }
     if (!m_view->nodeManager()->canModifyLayer(activeNode)) return 0;
 
     KisMaskSP mask = new KisTransparencyMask(m_view->image(), "");
@@ -228,6 +251,17 @@ KisNodeSP KisMaskManager::createTransparencyMask(KisNodeSP activeNode, KisPaintD
 KisNodeSP KisMaskManager::createFilterMask(KisNodeSP activeNode, KisPaintDeviceSP copyFrom, bool quiet, bool convertActiveNode)
 {
     if (!m_view->nodeManager()->canModifyLayer(activeNode)) return 0;
+    if (m_view->image()->gpuImage()) {
+        if (copyFrom || convertActiveNode || !activeNode) return {};
+        KisFilterMaskSP placeholder = new KisFilterMask(m_view->image());
+        KisNodeSP parent, above;
+        adjustMaskPosition(placeholder, activeNode, false, parent, above);
+        const auto initial = quiet ? KisFilterRegistry::instance()->values().first()->defaultConfiguration(
+            KisGlobalResourcesInterface::instance()) : KisFilterConfigurationSP{};
+        return createGpuFilterNode(m_view, parent, above ? parent->index(above) + 1 : 0,
+            LibrePaint::Image::Gpu::LayerKind::FilterMask,
+            createMaskNameCommon(parent, "KisFilterMask", i18n("Filter Mask")), initial, quiet);
+    }
 
     KisFilterMaskSP mask = new KisFilterMask(m_view->image(), "");
     createMaskCommon(mask, activeNode, copyFrom, kundo2_i18n("Add Filter Mask"), "KisFilterMask", i18n("Filter Mask"), false, convertActiveNode);
@@ -307,6 +341,11 @@ KisNodeSP KisMaskManager::createFastColorOverlayMask(KisNodeSP activeNode)
     KisFilterConfigurationSP filter =
         KisFilterRegistry::instance()->value("fastcoloroverlay")->defaultConfiguration(KisGlobalResourcesInterface::instance());
     if (!filter) return nullptr;
+    if (m_view->image()->gpuImage()) {
+        return createGpuFilterNode(m_view, activeLayer, activeLayer->childCount(),
+            LibrePaint::Image::Gpu::LayerKind::FilterMask,
+            createMaskNameCommon(activeLayer, "KisFilterMask", i18n("Color Overlay Mask")), filter, true);
+    }
 
     m_commandsAdapter->beginMacro(kundo2_i18n("Add Fast Color Overlay"));
 
@@ -341,6 +380,10 @@ void KisMaskManager::maskProperties()
     if (!m_view->nodeManager()->canModifyLayer(activeMask())) return;
 
     if (activeMask()->inherits("KisFilterMask")) {
+        if (m_view->image()->gpuImage()) {
+            editGpuFilterNode(m_view, activeMask());
+            return;
+        }
         KisFilterMask *mask = static_cast<KisFilterMask*>(activeMask().data());
 
         KisLayerSP layer = qobject_cast<KisLayer*>(mask->parent().data());

@@ -206,6 +206,8 @@ void KisNodeManagerSetupContractTest::commandActionsPreserveRoutesAndFlags()
         actionRoute("toggle_layer_lock", "triggered()", "toggleLock()"),
         actionRoute("toggle_layer_inherit_alpha", "triggered()", "toggleInheritAlpha()"),
         actionRoute("toggle_layer_alpha_lock", "triggered()", "toggleAlphaLock()"),
+        actionRoute("toggle_gpu_transparency_mask", "triggered()", "toggleGpuTransparencyMask()"),
+        actionRoute("remove_gpu_transparency_mask", "triggered()", "removeGpuTransparencyMask()"),
         actionRoute("split_alpha_into_mask", "triggered()", "slotSplitAlphaIntoMask()"),
         actionRoute("split_alpha_write", "triggered()", "slotSplitAlphaWrite()"),
         actionRoute("split_alpha_save_merged", "triggered()", "slotSplitAlphaSaveMerged()"),

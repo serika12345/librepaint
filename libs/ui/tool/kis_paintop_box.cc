@@ -20,6 +20,8 @@
 #include <QApplication>
 #include <QMenu>
 #include <QTime>
+#include <QPointer>
+#include <QScopeGuard>
 
 #include <KSharedConfig>
 #include <kis_debug.h>
@@ -1043,66 +1045,51 @@ void KisPaintopBox::slotCanvasResourceChangeAttempted(int key, const QVariant &v
 
 void KisPaintopBox::slotCanvasResourceChanged(int key, const QVariant &value)
 {
-    if (m_viewManager) {
-        sender()->blockSignals(true);
+    if (m_viewManager && !m_handlingCanvasResourceChange) {
+        m_handlingCanvasResourceChange = true;
+        const QPointer<KisPaintopBox> guard(this);
+        const auto finish = qScopeGuard([guard] {
+            if (guard) guard->m_handlingCanvasResourceChange = false;
+        });
         KisPaintOpPresetSP preset = m_viewManager->canvasResourceProvider()->resourceManager()->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
         if (preset && m_resourceProvider->currentPreset()->name() != preset->name()) {
             QString compositeOp = preset->settings()->getString("CompositeOp");
             updateCompositeOp(compositeOp);
+            if (!guard) return;
             resourceSelected(preset);
         }
+        if (!guard) return;
 
         if (key == KoCanvasResource::CurrentPaintOpPreset) {
             /**
              * Update currently selected preset in both the popup widgets
              */
             m_presetsChooserPopup->canvasResourceChanged(preset);
+            if (!guard) return;
             m_presetsEditor->currentPresetChanged(preset);
-        }
-
-        if (key == KoCanvasResource::CurrentCompositeOp) {
+        } else if (key == KoCanvasResource::CurrentCompositeOp) {
             if (m_resourceProvider->currentCompositeOp() != m_currCompositeOpID) {
                 updateCompositeOp(m_resourceProvider->currentCompositeOp());
             }
-        }
-
-        if (key == KoCanvasResource::Size) {
+        } else if (key == KoCanvasResource::Size) {
             setSliderValue("size", m_resourceProvider->size());
-        }
-
-        if (key == KoCanvasResource::BrushRotation) {
+        } else if (key == KoCanvasResource::BrushRotation) {
             setAngleSliderValue("rotation", m_resourceProvider->brushRotation());
-        }
-
-        if (key == KoCanvasResource::PatternSize) {
+        } else if (key == KoCanvasResource::PatternSize) {
             setMultiplierSliderValue("patternsize", m_resourceProvider->patternSize());
-        }
-
-        if (key == KoCanvasResource::Opacity) {
+        } else if (key == KoCanvasResource::Opacity) {
             setSliderValue("opacity", m_resourceProvider->opacity());
-        }
-
-        if (key == KoCanvasResource::Flow) {
+        } else if (key == KoCanvasResource::Flow) {
             setSliderValue("flow", m_resourceProvider->flow());
-        }
-
-        if (key == KoCanvasResource::EraserMode) {
+        } else if (key == KoCanvasResource::EraserMode) {
             m_eraseAction->setChecked(value.toBool());
-        }
-
-        if (key == KoCanvasResource::DisablePressure) {
+        } else if (key == KoCanvasResource::DisablePressure) {
             m_disablePressureAction->setChecked(value.toBool());
-        }
-
-        if (key == KoCanvasResource::MirrorHorizontal) {
+        } else if (key == KoCanvasResource::MirrorHorizontal) {
             m_hMirrorAction->setChecked(value.toBool());
-        }
-
-        if (key == KoCanvasResource::MirrorVertical) {
+        } else if (key == KoCanvasResource::MirrorVertical) {
             m_vMirrorAction->setChecked(value.toBool());
         }
-
-        sender()->blockSignals(false);
     }
 }
 

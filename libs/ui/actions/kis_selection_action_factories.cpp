@@ -13,6 +13,13 @@
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 
 #include <QMimeData>
+#include <QImage>
+#include <QPointer>
+#include <cstring>
+#include <KoPattern.h>
+#include <KoColorSpaceRegistry.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <KisGpuBlendMode.h>
 
 #include <klocalizedstring.h>
 #include <kundo2command.h>
@@ -79,6 +86,7 @@
 #include <qpainterpath.h>
 #include <qsharedpointer.h>
 #include <qtransform.h>
+#include <QPointer>
 #include "kis_update_outline_job.h"
 
 namespace ActionHelper {
@@ -165,6 +173,12 @@ void KisSelectAllActionFactory::run(KisViewManager *view)
     KisImageWSP image = view->image();
     if (!image) return;
 
+    if (image->gpuImage()) {
+        if (image->setGpuSelectionRect(image->bounds())) return;
+        view->showFloatingMessage(i18n("The document selection could not be updated."), QIcon());
+        return;
+    }
+
     if (view->canvasBase()->toolProxy()->selectAll()) {
         return;
     }
@@ -203,6 +217,12 @@ void KisDeselectActionFactory::run(KisViewManager *view)
     KisImageWSP image = view->image();
     if (!image) return;
 
+    if (image->gpuImage()) {
+        if (image->clearGpuSelection()) return;
+        view->showFloatingMessage(i18n("The document selection could not be updated."), QIcon());
+        return;
+    }
+
     if (view->canvasBase()->toolProxy()->hasSelection()) {
         // see KisCutCopyActionFactory::run
         KisImageBarrierLock lock(image, std::try_to_lock);
@@ -223,6 +243,11 @@ void KisReselectActionFactory::run(KisViewManager *view)
 {
     KisImageWSP image = view->image();
     if (!image) return;
+    if (image->gpuImage()) {
+        if (!image->reselectGpuSelection())
+            view->showFloatingMessage(i18n("There is no previous GPU selection to restore."), QIcon());
+        return;
+    }
 
     KUndo2Command *cmd = new KisReselectActiveSelectionCommand(view->activeNode(), image);
 
@@ -236,7 +261,7 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
     KisNodeSP node = view->activeNode();
     if (!node || !node->hasEditablePaintDevice()) return;
 
-    KisImageWSP image = view->image();
+    KisImageSP image = view->image();
 
     KisSelectionSP selection = view->selection();
 
@@ -246,6 +271,84 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         usePattern = true;
     } else if (fillSource.contains("bg")) {
         useBgColor = true;
+    }
+
+    if (const auto owner = image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QPointer<KisViewManager> lifetime(view);
+        const auto reject = [&](const QString &message) {
+            if (lifetime) lifetime->showFloatingMessage(message, QIcon(), 2000, KisFloatingMessage::Low);
+        };
+        auto *resources = view->canvasResourceProvider();
+        Gpu::PatternFill patternFill;
+        if (usePattern) {
+            QString diagnostic;
+            const auto pattern = captureGpuPatternResource(resources->currentPattern(),
+                image->isGpuEditableMaskView(node) ? KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace(),
+                QTransform(), diagnostic);
+            if (!pattern) {
+                reject(diagnostic);
+                return;
+            }
+            patternFill = *pattern;
+        }
+        const auto composite = resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
+        const bool erase = composite == COMPOSITE_ERASE || resources->eraserMode();
+        Gpu::LayerBlendMode fillBlendMode = Gpu::LayerBlendMode::Normal;
+        if (erase) {
+            // Erase remains a coverage removal and never carries a blend mode.
+            if (composite != COMPOSITE_ERASE && composite != COMPOSITE_OVER) {
+                reject(i18n("This blend mode is not yet available for this document."));
+                return;
+            }
+        } else if (const auto mode = Gpu::layerBlendModeFromCompositeOp(composite)) {
+            fillBlendMode = *mode;
+        } else {
+            reject(i18n("This blend mode is not yet available for this document."));
+            return;
+        }
+        const qreal opacity = fillSource.contains("opacity") ? resources->opacity() : 1;
+        if (!qIsFinite(opacity) || opacity < 0 || opacity > 1) {
+            reject(i18n("The fill opacity is invalid."));
+            return;
+        }
+        KoColor nativeColor = useBgColor ? resources->bgColor() : resources->fgColor();
+        const bool maskTarget = image->isGpuEditableMaskView(node);
+        nativeColor.convertTo(maskTarget ? KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace());
+        const auto gray = nativeColor.data()[0];
+        const std::array<quint8, 3> rgb{gray, gray, gray};
+        Gpu::RgbaPixel fillColor;
+        if (maskTarget) {
+            fillColor = {gray, gray, gray, 255};
+        } else if (owner->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
+            quint16 bgra[4];
+            std::memcpy(bgra, nativeColor.data(), sizeof(bgra));
+            fillColor = {bgra[2], bgra[1], bgra[0], 65535};
+        } else {
+            const auto bgra = nativeColor.data();
+            fillColor = {bgra[2], bgra[1], bgra[0], 255};
+        }
+        const bool alphaLocked = !resources->eraserMode() &&
+            resources->resourceManager()->resource(KoCanvasResource::GlobalAlphaLock).toBool();
+        Gpu::LayerId layer = 0;
+        // A selected mask child fills the parent layer's retained coverage.
+        const KisNodeSP fillNode = image->isGpuTransparencyMaskView(node) ? node->parent() : node;
+        for (const auto &candidate : owner->operations().snapshot()->layers)
+            if (fillNode && candidate.uuid == fillNode->uuid()) layer = candidate.id;
+        if (!layer || !view->blockUntilOperationsFinished(image)) return;
+        if (!lifetime || lifetime->image().data() != image.data() || image->gpuImage() != owner) return;
+        const auto result = maskTarget
+            ? (usePattern ? owner->fillTransparencyMaskPattern(layer, patternFill, opacity, erase, alphaLocked, fillBlendMode, node->uuid())
+                          : owner->fillTransparencyMask(layer, rgb, opacity, erase, alphaLocked, fillBlendMode, node->uuid()))
+            : (usePattern ? owner->fillLayerPattern(layer, patternFill, opacity, erase, alphaLocked, fillBlendMode)
+                          : owner->fillLayerColor(layer, fillColor, opacity, erase, alphaLocked, fillBlendMode));
+        if (result != Gpu::Result::Success) {
+            reject(maskTarget ? i18n("The GPU transparency mask could not be filled.")
+                              : i18n("The GPU layer could not be filled."));
+            return;
+        }
+        if (lifetime) lifetime->canvasResourceProvider()->slotPainting();
+        return;
     }
 
     KisResourcesSnapshotSP resources =
@@ -313,12 +416,80 @@ void KisImageResizeToSelectionActionFactory::run(KisViewManager *view)
     view->image()->cropImage(selection->selectedExactRect());
 }
 
+namespace {
+
+QImage freehandClipboardCoverage(const QRect &bounds,
+                                 const LibrePaint::Image::Gpu::SelectionMaskSP &mask)
+{
+    QImage coverage(bounds.size(), QImage::Format_Alpha8);
+    if (!mask || coverage.isNull()) return {};
+    coverage.fill(0);
+    for (int y = 0; y < bounds.height(); ++y) {
+        uchar *line = coverage.scanLine(y);
+        for (int x = 0; x < bounds.width(); ++x)
+            line[x] = mask->coverage(bounds.x() + x, bounds.y() + y);
+    }
+    return coverage;
+}
+
+}
+
 void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
 {
     KisImageSP image = view->image();
     if (!image) return;
 
     if (!view->blockUntilOperationsFinished(image)) return;
+
+    if (const auto owner = image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QPointer<KisViewManager> guard(view);
+        const auto sourceVersion = owner->operations().snapshot();
+        const auto sourceMask = owner->selectionMask();
+        const auto sourceKind = owner->selectionKind();
+        const QRect selected = owner->selectionRect();
+        if (!selected.isEmpty()) {
+            KisNodeSP node = view->activeNode();
+            Gpu::LayerId layer = 0;
+            for (const auto &candidate : owner->operations().snapshot()->layers)
+                if (node && candidate.uuid == node->uuid()) layer = candidate.id;
+            if (!node || !node->hasEditablePaintDevice() || !layer) {
+                view->showFloatingMessage(i18n("The selected layer cannot be copied from this GPU document."), QIcon());
+                return;
+            }
+            const bool inverted = owner->selectionInverted();
+            const bool freehand = owner->selectionKind() == Gpu::SelectionKind::Freehand;
+            const bool ellipse = owner->selectionKind() == Gpu::SelectionKind::Ellipse;
+            std::optional<GpuClipboardMask> mask;
+            if (freehand) {
+                const QImage coverage = freehandClipboardCoverage(selected, owner->selectionMask());
+                if (coverage.isNull()) {
+                    view->showFloatingMessage(i18n("The freehand selection could not be copied."), QIcon());
+                    return;
+                }
+                mask = GpuClipboardMask{selected, false, !inverted, coverage};
+            }
+            else if (inverted) mask = GpuClipboardMask{selected, ellipse, false};
+            else if (ellipse) mask = GpuClipboardMask{selected, true, true};
+            if (!KisClipboard::instance()->setGpuLayer(image, node->uuid(), 256 * 1024 * 1024,
+                                                       inverted ? QRect() : selected, mask)) {
+                view->showFloatingMessage(i18n("The selected area could not be copied."), QIcon());
+                return;
+            }
+            if (!guard || view->image().data() != image.data() || owner->operations().snapshot() != sourceVersion ||
+                owner->selectionRect() != selected || owner->selectionMask() != sourceMask ||
+                owner->selectionKind() != sourceKind || owner->selectionInverted() != inverted) return;
+            if (flags & CutClip) {
+                const auto result = owner->clearSelectedPixels({layer});
+                if (result != Gpu::Result::Success) {
+                    view->showFloatingMessage(i18n("The selected area could not be cleared."), QIcon());
+                    return;
+                }
+                view->canvasResourceProvider()->slotPainting();
+            }
+            return;
+        }
+    }
 
     // Reference layers is a fake node, so it isn't added to the layer stack, this results in KisSelectedShapesProxy not
     // being aware of the active shapeManager and its selected shapes.
@@ -394,7 +565,7 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
         }
 
         KisImageSP tempImage = ActionHelper::makeImage(view, nodes);
-        KisClipboard::instance()->setLayers(nodes, tempImage);
+        if (!KisClipboard::instance()->setLayers(nodes, tempImage)) return;
 
 
         KUndo2MagicString actionName = flags & CutClip ?
@@ -470,9 +641,33 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
 
 void KisCopyMergedActionFactory::run(KisViewManager *view)
 {
-    KisImageWSP image = view->image();
+    const QPointer<KisViewManager> guard(view);
+    KisImageSP image = view->image();
     if (!image) return;
     if (!view->blockUntilOperationsFinished(image)) return;
+    if (!guard || view->image().data() != image.data()) return;
+
+    if (const auto owner = image->gpuImage()) {
+        const bool inverted = owner->selectionInverted();
+        const bool freehand = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Freehand;
+        const bool ellipse = owner->selectionKind() == LibrePaint::Image::Gpu::SelectionKind::Ellipse;
+        std::optional<GpuClipboardMask> mask;
+        if (freehand) {
+            const QImage coverage = freehandClipboardCoverage(owner->selectionRect(), owner->selectionMask());
+            if (coverage.isNull()) {
+                view->showFloatingMessage(i18n("The freehand selection could not be copied."), QIcon());
+                return;
+            }
+            mask = GpuClipboardMask{owner->selectionRect(), false, !inverted, coverage};
+        }
+        else if (inverted) mask = GpuClipboardMask{owner->selectionRect(), ellipse, false};
+        else if (ellipse) mask = GpuClipboardMask{owner->selectionRect(), true, true};
+        if (!KisClipboard::instance()->setGpuProjection(image, 256 * 1024 * 1024,
+                                                        inverted ? QRect() : owner->selectionRect(), mask) && guard) {
+            view->showFloatingMessage(i18n("The merged image could not be copied."), QIcon());
+        }
+        return;
+    }
 
     image->barrierLock();
     KisPaintDeviceSP dev = new KisPaintDevice(*image->root()->projection());
@@ -484,9 +679,6 @@ void KisCopyMergedActionFactory::run(KisViewManager *view)
     KisImageSP tempImage = ActionHelper::makeImage(view, nodes);
     KisClipboard::instance()->setLayers(nodes, tempImage);
     image->unlock();
-
-    KisProcessingApplicator *ap = beginAction(view, kundo2_i18n("Copy Merged"));
-    endAction(ap, KisOperationConfiguration(id()).toXML());
 }
 
 void KisInvertSelectionOperation::runFromXML(KisViewManager* view, const KisOperationConfiguration& config)

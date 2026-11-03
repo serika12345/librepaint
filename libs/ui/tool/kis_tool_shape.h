@@ -22,6 +22,7 @@
 
 class KoCanvasBase;
 class KoPathShape;
+namespace LibrePaint::Image::Gpu { struct Shape; }
 
 
 class WdgGeometryOptions : public QWidget, public Ui::WdgGeometryOptions
@@ -46,6 +47,7 @@ public:
     KisToolShape(KoCanvasBase * canvas, const QCursor & cursor);
     ~KisToolShape() override;
     int flags() const override;
+    void keyPressEvent(QKeyEvent *event) override;
     WdgGeometryOptions *m_shapeOptionsWidget;
 
 public Q_SLOTS:
@@ -63,6 +65,10 @@ protected:
     QTransform fillTransform();
 
     qreal currentStrokeWidth() const;
+
+    /** Draw one retained GPU outline with the current brush and outline color. */
+    void paintGpuOutline(const LibrePaint::Image::Gpu::Shape &shape, const KUndo2MagicString &name);
+    void paintGpuPolyline(const QVector<QPointF> &points, bool closed, const KUndo2MagicString &name);
 
     struct KRITAUI_EXPORT ShapeAddInfo {
         bool shouldAddShape = false;
@@ -85,6 +91,10 @@ protected:
     virtual void endShape() {}
 
     KConfigGroup m_configGroup;
+
+private:
+    void paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, const QVector<QPointF> &points,
+                        const KUndo2MagicString &name);
 };
 
 #endif // KIS_TOOL_SHAPE_H_

@@ -9,6 +9,7 @@
 #include "kritaui_export.h"
 #include <canvas/KisIdleTaskStrokeStrategy.h>
 #include <QPointer>
+class KisCanvas2;
 
 
 /**
@@ -107,6 +108,7 @@ public:
     ~KisIdleTasksManager();
 
     void setImage(KisImageSP image);
+    static QString unavailableCanvasReason(KisCanvas2 *canvas);
 
     /**
      * @brief Registers the factory for the idle task

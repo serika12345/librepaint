@@ -16,6 +16,5 @@ bool KisNodeManager::trySetNodeProperties(KisNodeSP node, KisImageSP image, KisB
         return false;
     }
 
-    PropertyAccess::applyProperties(node, image, properties);
-    return true;
+    return PropertyAccess::applyProperties(node, image, properties);
 }

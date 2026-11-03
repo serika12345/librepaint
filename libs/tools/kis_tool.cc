@@ -48,6 +48,8 @@
 #include "kis_resources_snapshot.h"
 #include "kis_tool_utils.h"
 #include "kis_types.h"
+#include <gpu/KisGpuPaintImage.h>
+#include <QPointer>
 #include <KisOptimizedBrushOutline.h>
 
 
@@ -506,6 +508,20 @@ void KisTool::mouseMoveEvent(KoPointerEvent *event)
 
 void KisTool::deleteSelection()
 {
+    KisImageSP currentImage = image();
+    if (currentImage && currentImage->gpuImage()) {
+        const auto nodes = selectedNodes();
+        const auto selection = currentImage->globalSelection();
+        QPointer<KisTool> lifetime(this);
+        if (!blockUntilOperationsFinished() || !lifetime) return;
+        const bool cleared = KisToolUtils::clearImage(currentImage, nodes, selection);
+        if (!cleared && lifetime) {
+            toolCanvas(canvas())->showToolMessage(selection ?
+                i18n("Clearing a selection is not yet available for this GPU document.") :
+                i18n("The selected GPU layers could not be cleared."), QStringLiteral("object-locked"));
+        }
+        return;
+    }
     KisResourcesSnapshotSP resources =
         new KisResourcesSnapshot(image(), currentNode(), this->canvas()->resourceManager()->canvasResourcesInterface(), 0, selectedNodes());
 

@@ -9,6 +9,7 @@
 
 #include <QPainterPath>
 #include <QKeyEvent>
+#include <QPointer>
 
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_assert.h"
@@ -227,7 +228,10 @@ void KisToolRectangleBase::continuePrimaryAction(KoPointerEvent *event)
 
 void KisToolRectangleBase::endPrimaryAction(KoPointerEvent *event)
 {
-    CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
+    if (mode() != KisTool::PAINT_MODE) {
+        event->accept();
+        return;
+    }
     // If the event was not originated by the user releasing the button
     // (for example due to the canvas loosing focus), then we just cancel the
     // operation. This prevents some issues with shapes being added after
@@ -260,11 +264,12 @@ void KisToolRectangleBase::endStroke()
 {
     setMode(KisTool::HOVER_MODE);
     updateArea();
+    const QPointer<KisToolRectangleBase> guard(this);
     finishRect(createRect(m_rectangleInteraction.start(),
                           m_rectangleInteraction.end()),
                m_roundCornersX,
                m_roundCornersY);
-    endShape();
+    if (guard) endShape();
 }
 
 void KisToolRectangleBase::cancelStroke()

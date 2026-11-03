@@ -53,6 +53,10 @@ public:
     void beginPrimaryAction(KoPointerEvent *event) override;
     void continuePrimaryAction(KoPointerEvent *event) override;
     void endPrimaryAction(KoPointerEvent *event) override;
+    void requestStrokeEnd() override;
+    void requestStrokeCancellation() override;
+    void deactivate() override;
+    void keyPressEvent(QKeyEvent *event) override;
 
     void paint(QPainter &painter, const KoViewConverter &converter) override;
 

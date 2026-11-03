@@ -18,6 +18,7 @@
 #include "kis_algebra_2d.h"
 #include "kis_tool_freehand_helper.h"
 #include "kundo2magicstring.h"
+#include <gpu/KisGpuOperationDocument.h>
 
 struct KisToolMultihandHelper::Private
 {
@@ -40,6 +41,21 @@ KisToolMultihandHelper::~KisToolMultihandHelper()
 void KisToolMultihandHelper::setupTransformations(const QVector<QTransform> &transformations)
 {
     d->transformations = transformations;
+    QList<LibrePaint::Image::Gpu::BrushTransform> frozen;
+    frozen.reserve(transformations.size());
+    for (const auto &transform : transformations) {
+        using Hand = LibrePaint::Image::Gpu::BrushTransform;
+        const KisAlgebra2D::DecomposedMatrix decomposition(transform);
+        const auto type = transform.type();
+        const auto mapping = type == QTransform::TxNone ? Hand::Mapping::Identity :
+            type == QTransform::TxTranslate ? Hand::Mapping::Translation :
+            type == QTransform::TxScale ? Hand::Mapping::Scale : Hand::Mapping::Affine;
+        frozen.append({{transform.m11(), transform.m12(), transform.m21(), transform.m22(), transform.dx(), transform.dy()},
+            mapping, decomposition.angle,
+            KisAlgebra2D::signPZ(decomposition.scaleX) < 0,
+            KisAlgebra2D::signPZ(decomposition.scaleY) < 0});
+    }
+    setGpuMultibrushTransforms(frozen);
 }
 
 void KisToolMultihandHelper::createPainters(QVector<KisFreehandStrokeInfo*> &strokeInfos,

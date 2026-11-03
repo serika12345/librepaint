@@ -8,6 +8,7 @@
 #include "kis_assert.h"
 #include "kis_meta_data_io_backend.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <exception>
 #include <exiv2/properties.hpp>
@@ -86,7 +87,10 @@ bool KisXMPIO::saveTo(const KisMetaData::Store *store, QIODevice *ioDevice, Head
     dbgMetaData << "Save XMP Data";
     Exiv2::XmpData xmpData_;
 
-    for (const KisMetaData::Entry &entry : *store) {
+    auto keys = store->keys();
+    std::sort(keys.begin(), keys.end());
+    for (const auto &key : keys) {
+        const auto &entry = store->getEntry(key);
         // Check whether the prefix and namespace are know to exiv2
         std::string prefix = exiv2Prefix(entry.schema());
         dbgMetaData << "Saving " << entry.name();

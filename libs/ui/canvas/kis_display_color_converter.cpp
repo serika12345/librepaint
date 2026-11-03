@@ -611,3 +611,8 @@ void KisDisplayColorConverter::getHsyF(const KoColor &color,
 }
 
 #include "moc_kis_display_color_converter.cpp"
+
+KoColorConversionStagesResult KisDisplayColorConverter::canvasDisplayStages(const KoColorSpace *source) const
+{
+    return m_d->transform.canvasDisplayStages(source);
+}

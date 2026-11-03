@@ -10,6 +10,7 @@
 #define KIS_TOOL_CROP_H_
 
 #include <QPoint>
+#include <QLineF>
 #include <klocalizedstring.h>
 #include <QPainterPath>
 
@@ -160,7 +161,7 @@ private:
     QRectF rightHandleRect(QRectF cropBorderRect);
     QRectF upperHandleRect(QRectF cropBorderRect);
     QRectF leftHandleRect(QRectF cropBorderRect);
-    void drawDecorationLine(QPainter *p, DecorationLine *decorLine, QRectF rect);
+    QLineF decorationLine(const DecorationLine *decorLine, QRectF rect) const;
 
     bool tryContinueLastCropAction();
 

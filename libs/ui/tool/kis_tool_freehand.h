@@ -38,6 +38,8 @@ public:
     ~KisToolFreehand() override;
     int flags() const override;
     void mouseMoveEvent(KoPointerEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    void requestStrokeCancellation() override;
     
 
 public Q_SLOTS:

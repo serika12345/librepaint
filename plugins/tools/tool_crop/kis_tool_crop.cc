@@ -18,15 +18,16 @@
 #include <QCheckBox>
 #include <QObject>
 #include <QPainter>
+#include <QPointer>
 #include <QPen>
 #include <QRect>
 #include <QMenu>
+#include <stdexcept>
 
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>
 
 #include <KoCanvasBase.h>
-#include <kis_painter.h>
 #include <kis_cursor.h>
 #include <kis_image.h>
 #include <kis_node.h>
@@ -34,6 +35,7 @@
 #include <KoPointerEvent.h>
 #include <kis_selection.h>
 #include <kis_canvas2.h>
+#include <gpu/KisGpuTilePresentation.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_floating_message.h>
 #include <kis_resources_snapshot.h>
@@ -46,6 +48,15 @@
 #include <qobjectdefs.h>
 #include <qset.h>
 
+
+namespace {
+bool supportsNodeCrop(const KisNodeSP &node)
+{
+    return node && (node->paintDevice() ||
+        (node->image() && node->image()->gpuImage() &&
+         (node->inherits("KisGroupLayer") || node->inherits("KisAdjustmentLayer"))));
+}
+}
 
 struct DecorationLine
 {
@@ -176,11 +187,9 @@ void KisToolCrop::activate(const QSet<KoShape*> &shapes)
     }
     useCursor(cursor());
 
-    //pixel layer
-    if(resources->currentNode() && resources->currentNode()->paintDevice()) {
+    if (supportsNodeCrop(resources->currentNode())) {
         setCropTypeSelectable(true);
     }
-    //vector layer
     else {
         if (m_cropType != ImageCropType && m_cropType != CanvasCropType) {
             setCropType(ImageCropType);
@@ -227,11 +236,9 @@ void KisToolCrop::canvasResourceChanged(int key, const QVariant &res)
 {
     KisTool::canvasResourceChanged(key, res);
 
-    //pixel layer
-    if(currentNode() && currentNode()->paintDevice()) {
+    if (supportsNodeCrop(currentNode())) {
         setCropTypeSelectable(true);
     }
-    //vector layer
     else {
         if (m_cropType != ImageCropType && m_cropType != CanvasCropType) {
             setCropType(ImageCropType);
@@ -346,10 +353,13 @@ bool KisToolCrop::tryContinueLastCropAction()
 
 
         if (cropImageConsistent || cropLayerConsistent) {
-            image()->undoAdapter()->undoLastCommand();
-            image()->waitForDone();
-
-            m_finalRect.setRectInitial(data->cropRect());
+            const auto rect = data->cropRect();
+            KisImageSP retainedImage = image();
+            QPointer<KisToolCrop> guard(this);
+            retainedImage->undoAdapter()->undoLastCommand();
+            retainedImage->waitForDone();
+            if (!guard) return false;
+            m_finalRect.setRectInitial(rect);
             m_haveCropSelection = true;
 
             result = true;
@@ -371,7 +381,10 @@ void KisToolCrop::endPrimaryAction(KoPointerEvent *event)
 
 
     if (!m_haveCropSelection && !haveValidRect) {
-        if (!tryContinueLastCropAction()) {
+        QPointer<KisToolCrop> guard(this);
+        const bool continued = tryContinueLastCropAction();
+        if (!guard) return;
+        if (!continued) {
             m_finalRect.setRectInitial(image()->bounds());
             m_haveCropSelection = true;
         }
@@ -433,11 +446,27 @@ QRectF KisToolCrop::borderLineRect()
 void KisToolCrop::paintOutlineWithHandles(QPainter& gc)
 {
     if (canvas() && (mode() == KisTool::PAINT_MODE || m_haveCropSelection)) {
+        const QRectF wholeImageRect = pixelToView(image()->bounds());
+        const QRectF borderRect = borderLineRect();
+        const auto handles = handlesPath();
+        QList<QLineF> guides;
+        if (m_decoration > 0) {
+            for (int i = decorsIndex[m_decoration - 1]; i < decorsIndex[m_decoration]; ++i)
+                guides.append(decorationLine(&decors[i], borderRect));
+        }
+        if (auto *kisCanvas = dynamic_cast<KisCanvas2 *>(canvas())) {
+            LibrePaint::Canvas::Gpu::CropPreview preview;
+            preview.image = wholeImageRect;
+            preview.crop = borderRect;
+            preview.handles = handles;
+            preview.guides = guides;
+            preview.shade = m_transparentBlack;
+            preview.handleFill = m_transparentGrey;
+            preview.stroke = m_black;
+            preview.thickness = HANDLE_BORDER_LINE_WIDTH * decorationThickness();
+            if (kisCanvas->drawCropPreview(preview)) return;
+        }
         gc.save();
-
-        QRectF wholeImageRect = pixelToView(image()->bounds());
-        QRectF borderRect = borderLineRect();
-
         QPainterPath path;
 
         path.addRect(wholeImageRect);
@@ -453,15 +482,11 @@ void KisToolCrop::paintOutlineWithHandles(QPainter& gc)
         pen.setCosmetic(true);
         gc.setPen(pen);
         gc.setBrush(m_transparentGrey);
-        gc.drawPath(handlesPath());
+        gc.drawPath(handles);
 
         gc.setClipRect(borderRect, Qt::IntersectClip);
 
-        if (m_decoration > 0) {
-            for (int i = decorsIndex[m_decoration-1]; i<decorsIndex[m_decoration]; i++) {
-                drawDecorationLine(&gc, &(decors[i]), borderRect);
-            }
-        }
+        for (const auto &line : guides) gc.drawLine(line);
         gc.restore();
     }
 }
@@ -485,15 +510,22 @@ void KisToolCrop::crop()
 
     QRect cropRect = m_finalRect.rect();
 
-    // The visitor adds the undo steps to the macro
-    if (imageCrop || !currentNode()->paintDevice()) {
-        if (m_cropType == CanvasCropType) {
-            currentImage()->resizeImage(cropRect);
+    KisImageSP image = currentImage();
+    try {
+        if (imageCrop || !supportsNodeCrop(currentNode())) {
+            if (m_cropType == CanvasCropType) {
+                image->resizeImage(cropRect);
+            } else {
+                image->cropImage(cropRect);
+            }
         } else {
-            currentImage()->cropImage(cropRect);
+            image->cropNode(currentNode(), cropRect, m_cropType == FrameCropType);
         }
-    } else {
-        currentImage()->cropNode(currentNode(), cropRect, m_cropType == FrameCropType);
+    } catch (const std::runtime_error &error) {
+        if (!image->gpuImage()) throw;
+        qWarning() << error.what();
+        m_haveCropSelection = true;
+        Q_EMIT statusTextChanged(i18n("The crop could not be applied."));
     }
 }
 
@@ -929,7 +961,7 @@ QRectF KisToolCrop::boundingRect()
     return rect;
 }
 
-void KisToolCrop::drawDecorationLine(QPainter *p, DecorationLine *decorLine, const QRectF rect)
+QLineF KisToolCrop::decorationLine(const DecorationLine *decorLine, const QRectF rect) const
 {
     QPointF start = rect.topLeft();
     QPointF end = rect.topLeft();
@@ -996,5 +1028,5 @@ void KisToolCrop::drawDecorationLine(QPainter *p, DecorationLine *decorLine, con
         break;
     }
 
-    p->drawLine(start, end);
+    return QLineF(start, end);
 }

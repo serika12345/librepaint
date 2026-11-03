@@ -48,7 +48,8 @@ struct TextPropertiesCanvasObserver::Private {
 
     KoSvgTextPropertiesModel *textModel {new KoSvgTextPropertiesModel()};
     KoSvgTextPropertiesModel *characterModel {new KoSvgTextPropertiesModel()};
-    KisCanvasResourceProvider *provider{nullptr};
+    // The view manager owns this provider; the QML observer may outlive its window.
+    QPointer<KisCanvasResourceProvider> provider;
     TextPropertyConfigModel *textPropertyConfigModel {nullptr};
     qreal currentDpi{72.0};
     QStringList locales;
@@ -87,7 +88,10 @@ TextPropertiesCanvasObserver::~TextPropertiesCanvasObserver()
 
 void TextPropertiesCanvasObserver::setViewManager(KisViewManager *kisview)
 {
-    d->provider = kisview->canvasResourceProvider();
+    d->textToProviderCompressor.stop();
+    d->characterToProviderCompressor.stop();
+    if (d->provider) disconnect(d->provider.data(), nullptr, this, nullptr);
+    d->provider = kisview ? kisview->canvasResourceProvider() : nullptr;
     if (d->provider) {
         connect(d->provider, SIGNAL(sigTextPropertiesChanged()),
                 this, SLOT(slotCanvasTextPropertiesChanged()));
@@ -127,7 +131,9 @@ void TextPropertiesCanvasObserver::setCanvas(KoCanvasBase *canvas)
 
 void TextPropertiesCanvasObserver::unsetCanvas()
 {
-    m_canvas = 0;
+    d->textToProviderCompressor.stop();
+    d->characterToProviderCompressor.stop();
+    m_canvas = nullptr;
 }
 
 qreal TextPropertiesCanvasObserver::dpi() const
@@ -169,6 +175,7 @@ void TextPropertiesCanvasObserver::setHasFocus(const bool focus)
 
 void TextPropertiesCanvasObserver::slotCanvasTextPropertiesChanged()
 {
+    if (!d->provider) return;
     KoSvgTextPropertyData data = d->provider->textPropertyData();
     const bool shouldSet = d->hasFocus? !d->textToProviderCompressor.isActive(): true;
     if (d->textModel->textData.get() != data && shouldSet) {
@@ -179,6 +186,7 @@ void TextPropertiesCanvasObserver::slotCanvasTextPropertiesChanged()
 
 void TextPropertiesCanvasObserver::slotCanvasCharacterPropertiesChanged()
 {
+    if (!d->provider) return;
     KoSvgTextPropertyData data = d->provider->characterTextPropertyData();
     const bool shouldSet = d->hasFocus? !d->characterToProviderCompressor.isActive(): true;
     if (d->characterModel->textData.get() != data && shouldSet) {

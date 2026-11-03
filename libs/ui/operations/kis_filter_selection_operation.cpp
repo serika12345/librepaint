@@ -26,6 +26,109 @@
 
 void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewManager* view, const KisOperationConfiguration& config)
 {
+    if (view->image() && view->image()->gpuImage()) {
+        if (view->image()->gpuSelectionFreehand()) {
+            delete filter;
+            if (config.id() == QLatin1String("invertselection")) {
+                if (!view->image()->invertGpuSelectionMask())
+                    view->showFloatingMessage(i18n("The selection could not be inverted."), QIcon());
+                return;
+            }
+            if (config.id() == QLatin1String("featherselection")) {
+                const int radius = config.getInt("radius", 1);
+                if (radius <= 0) return;
+                if (!view->image()->featherGpuSelectionMask(radius))
+                    view->showFloatingMessage(i18n("The selection could not be feathered."), QIcon());
+                return;
+            }
+            if (config.id() == QLatin1String("shrinkselection") ||
+                config.id() == QLatin1String("growselection")) {
+                const int xRadius = config.getInt("x-radius", 1);
+                const int yRadius = config.getInt("y-radius", 1);
+                if (xRadius < 0 || yRadius < 0) {
+                    view->showFloatingMessage(i18n("The selection radius is invalid."), QIcon());
+                    return;
+                }
+                if (xRadius == 0 && yRadius == 0) return;
+                const bool ok = config.id() == QLatin1String("growselection")
+                    ? view->image()->growGpuSelectionMask(xRadius, yRadius)
+                    : view->image()->shrinkGpuSelectionMask(xRadius, yRadius);
+                if (!ok) view->showFloatingMessage(i18n("The selection could not be updated."), QIcon());
+                return;
+            }
+            if (config.id() == QLatin1String("borderselection")) {
+                const int xRadius = config.getInt("x-radius", 1);
+                const int yRadius = config.getInt("y-radius", 1);
+                if (xRadius <= 0 || yRadius <= 0) return;
+                if (!view->image()->borderGpuSelectionMask(xRadius, yRadius))
+                    view->showFloatingMessage(i18n("The selection border could not be created."), QIcon());
+                return;
+            }
+            view->showFloatingMessage(
+                i18n("This selection filter is not yet available for a freehand GPU selection."), QIcon());
+            return;
+        }
+        if (config.id() == QLatin1String("invertselection")) {
+            delete filter;
+            const QRect current = view->image()->gpuSelectionRect();
+            if (current.isEmpty()) return;
+            const bool inverted = view->image()->gpuSelectionInverted();
+            const bool ok = view->image()->gpuSelectionEllipse()
+                ? view->image()->setGpuSelectionEllipse(current, !inverted)
+                : view->image()->setGpuSelectionRect(current, !inverted);
+            if (!ok) view->showFloatingMessage(i18n("The selection could not be inverted."), QIcon());
+            return;
+        }
+        if (config.id() == QLatin1String("shrinkselection") ||
+            config.id() == QLatin1String("growselection")) {
+            const bool grow = config.id() == QLatin1String("growselection");
+            const int xRadius = config.getInt("x-radius", 1);
+            const int yRadius = config.getInt("y-radius", 1);
+            const bool edgeLock = config.getBool("edgeLock", false);
+            const QRect current = view->image()->gpuSelectionRect();
+            delete filter;
+            if (xRadius < 0 || yRadius < 0) {
+                view->showFloatingMessage(i18n("The selection radius is invalid."), QIcon());
+                return;
+            }
+            if (current.isEmpty() || (xRadius == 0 && yRadius == 0)) return;
+            const bool ellipse = view->image()->gpuSelectionEllipse();
+            const QRect imageBounds(QPoint(), view->image()->size());
+            if (view->image()->gpuSelectionInverted()) {
+                const QRect hole = grow
+                    ? current.adjusted(xRadius, yRadius, -xRadius, -yRadius)
+                    : current.adjusted(-xRadius, -yRadius, xRadius, yRadius).intersected(imageBounds);
+                if (hole.isEmpty()) view->image()->setGpuSelectionRect(imageBounds);
+                else if (hole == imageBounds) view->image()->clearGpuSelection();
+                else if (!(ellipse ? view->image()->setGpuSelectionEllipse(hole, true)
+                                   : view->image()->setGpuSelectionRect(hole, true)))
+                    view->showFloatingMessage(i18n("The selection could not be updated."), QIcon());
+                return;
+            }
+            QRect updated;
+            if (grow) {
+                updated = current.adjusted(-xRadius, -yRadius, xRadius, yRadius)
+                    .intersected(QRect(QPoint(), view->image()->size()));
+            } else {
+                int left = xRadius, right = xRadius, top = yRadius, bottom = yRadius;
+                if (edgeLock) {
+                    if (current.left() <= 0) left = 0;
+                    if (current.top() <= 0) top = 0;
+                    if (current.right() + 1 >= view->image()->width()) right = 0;
+                    if (current.bottom() + 1 >= view->image()->height()) bottom = 0;
+                }
+                updated = current.adjusted(left, top, -right, -bottom);
+            }
+            if (updated.isEmpty()) view->image()->clearGpuSelection();
+            else if (!(ellipse ? view->image()->setGpuSelectionEllipse(updated)
+                               : view->image()->setGpuSelectionRect(updated)))
+                view->showFloatingMessage(i18n("The selection could not be updated."), QIcon());
+            return;
+        }
+        view->showFloatingMessage(i18n("Only invert, grow and shrink are available for a rectangular GPU selection."), QIcon());
+        delete filter;
+        return;
+    }
     KisSelectionSP selection = view->selection();
     if (!selection) return;
 

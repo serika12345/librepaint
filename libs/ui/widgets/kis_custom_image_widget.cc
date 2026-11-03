@@ -16,6 +16,7 @@
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QSpacerItem>
+#include <memory>
 
 #include <QMessageBox>
 #include <KoResourcePaths.h>
@@ -314,7 +315,7 @@ KisDocument* KisCustomImageWidget::createNewImage()
             }
         }
     }
-    KisDocument *doc = static_cast<KisDocument*>(KisPart::instance()->createDocument());
+    std::unique_ptr<KisDocument> doc(KisPart::instance()->createDocument());
 
     qint32 width, height;
     double resolution ;
@@ -340,7 +341,10 @@ KisDocument* KisCustomImageWidget::createNewImage()
         bgStyle = KisConfig::FILL_LAYER;
     }
 
-    doc->newImage(txtName->text(), width, height, cs, bgColor, bgStyle, intNumLayers->value(), txtDescription->toPlainText(), resolution);
+    if (!doc->newImage(txtName->text(), width, height, cs, bgColor, bgStyle, intNumLayers->value(), txtDescription->toPlainText(), resolution)) {
+        QMessageBox::critical(this, i18nc("@title:window", "LibrePaint"), doc->errorMessage());
+        return nullptr;
+    }
 
     KisConfig cfg(true);
     cfg.setNumDefaultLayers(intNumLayers->value());
@@ -348,7 +352,7 @@ KisDocument* KisCustomImageWidget::createNewImage()
     cfg.setDefaultBackgroundColor(cmbColor->color().toQColor());
     cfg.setDefaultBackgroundStyle(bgStyle);
 
-    return doc;
+    return doc.release();
 }
 
 void KisCustomImageWidget::setNumberOfLayers(int layers)

@@ -5,6 +5,7 @@
  */
 
 #include "nodes/kis_node_manager.h"
+#include <gpu/KisGpuPaintImage.h>
 #include <klocalizedstring.h>
 #include "KisQStringListFwd.h"
 #include "KoColorSpaceConstants.h"
@@ -17,6 +18,8 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QSet>
+#include <QThread>
 #include <algorithm>
 #include <krita_container_utils.h>
 #include <kactioncollection.h>
@@ -73,6 +76,7 @@
 #include "kis_node_dummies_graph.h"
 #include "kis_mimedata.h"
 #include "kis_layer_utils.h"
+#include <kis_image_config.h>
 #include "krita_utils.h"
 #include "kis_shape_layer.h"
 #include "processing/kis_mirror_processing_visitor.h"
@@ -108,6 +112,7 @@ struct KisNodeManager::Private {
     KisNodeManager * q {nullptr};
     KisViewManager * view {nullptr};
     QPointer<KisView>imageView;
+    KisImageWSP connectedImage;
     KisLayerManager layerManager;
     KisMaskManager maskManager;
     KisNodeCommandsAdapter commandsAdapter;
@@ -128,7 +133,7 @@ struct KisNodeManager::Private {
     KisSignalMapper nodeConversionSignalMapper;
 
     bool lastRequestedIsolatedModeStatus {false};
-    KisSynchronizedConnection<KisNodeSP, KisNodeList> activateNodeConnection;
+    KisSynchronizedConnection<KisImageWSP, KisNodeSP, KisNodeList> activateNodeConnection;
 
     void saveDeviceAsImage(KisPaintDeviceSP device,
                            const QString &defaultName,
@@ -170,6 +175,19 @@ bool KisNodeManager::Private::activateNodeImpl(KisNodeSP node)
     } else {
         previouslyActiveNode = q->activeNode();
 
+        if (imageView->image() && imageView->image()->gpuImage() &&
+            (node->inherits("KisLayer") || imageView->image()->isGpuEditableMaskView(node))) {
+            KisLayerSP layer = qobject_cast<KisLayer *>(node.data());
+            KisMaskSP mask = qobject_cast<KisMask *>(node.data());
+            if (mask) layer = qobject_cast<KisLayer *>(node->parent().data());
+            if (!layer) return false;
+            selection->setActiveLayer(0);
+            imageView->setCurrentNode(node);
+            maskManager.activateMask(mask);
+            layerManager.activateLayer(layer);
+            return true;
+        }
+
         KoShape * shape = view->document()->shapeForNode(node);
 
         KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(shape, false);
@@ -205,7 +223,13 @@ void *KisNodeManager::LifecycleAccess::createPrivateState(KisNodeManager *manage
 
 void KisNodeManager::LifecycleAccess::connectReselectionOutput(KisNodeManager *manager)
 {
-    manager->m_d->activateNodeConnection.connectOutputSlot(manager, &KisNodeManager::slotImageRequestNodeReselection);
+    manager->m_d->activateNodeConnection.setCallback(
+        [manager](KisImageWSP source, KisNodeSP active, const KisNodeList &selected) {
+            if (manager->m_d->imageView && source &&
+                source.data() == manager->m_d->imageView->image().data()) {
+                manager->slotImageRequestNodeReselection(active, selected);
+            }
+        });
 }
 
 void KisNodeManager::LifecycleAccess::destroyPrivateState(void *state)
@@ -238,12 +262,13 @@ void KisNodeManager::LifecycleAccess::disconnectNodeActivation(KisNodeManager *m
 
 void KisNodeManager::LifecycleAccess::disconnectImageSignals(KisNodeManager *manager)
 {
-    manager->m_d->imageView->image()->disconnect(manager);
+    if (manager->m_d->connectedImage) manager->m_d->connectedImage->disconnect(manager);
 }
 
 void KisNodeManager::LifecycleAccess::disconnectReselectionInput(KisNodeManager *manager)
 {
-    manager->m_d->imageView->image()->disconnect(&manager->m_d->activateNodeConnection);
+    if (manager->m_d->connectedImage)
+        manager->m_d->connectedImage->disconnect(&manager->m_d->activateNodeConnection);
 }
 
 void KisNodeManager::LifecycleAccess::assignImageView(KisNodeManager *manager, QPointer<KisView> imageView)
@@ -253,7 +278,8 @@ void KisNodeManager::LifecycleAccess::assignImageView(KisNodeManager *manager, Q
 
 void KisNodeManager::LifecycleAccess::assignCommandImage(KisNodeManager *manager)
 {
-    manager->m_d->commandsAdapter.setImage(manager->m_d->imageView ? manager->m_d->imageView->image() : KisImageWSP());
+    manager->m_d->connectedImage = manager->m_d->imageView ? manager->m_d->imageView->image() : KisImageWSP();
+    manager->m_d->commandsAdapter.setImage(manager->m_d->connectedImage);
 }
 
 void KisNodeManager::LifecycleAccess::connectNodeActivation(KisNodeManager *manager)
@@ -294,8 +320,29 @@ void KisNodeManager::LifecycleAccess::activateNode(KisNodeManager *manager, KisN
 
 void KisNodeManager::LifecycleAccess::connectReselectionInput(KisNodeManager *manager)
 {
-    manager->m_d->activateNodeConnection.connectInputSignal(manager->m_d->imageView->image(),
-                                                            &KisImage::sigRequestNodeReselection);
+    const auto source = manager->m_d->connectedImage;
+    auto *connection = &manager->m_d->activateNodeConnection;
+    QObject::connect(source.data(), &KisImage::sigRequestNodeReselection, connection,
+                     [manager, source, connection](KisNodeSP active, const KisNodeList &selected) {
+        if (QThread::currentThread() == manager->thread() && source && source->gpuImage()) {
+            manager->slotImageRequestNodeReselection(active, selected);
+        } else {
+            connection->start(source, active, selected);
+        }
+    }, Qt::DirectConnection);
+
+    // GPU transparency mask views are removed as a consequence of a document
+    // version change. Returning to the owning paint layer keeps the active
+    // node valid after panel deletion and after Undo/Redo.
+    QObject::connect(source.data(), &KisImage::sigRemoveNodeAsync, manager,
+                     [manager, source](KisNodeSP node) {
+        if (!manager->m_d->imageView || !source || QThread::currentThread() != manager->thread()) return;
+        KisImageSP image = source.toStrongRef();
+        if (!image || image.data() != manager->m_d->imageView->image().data()) return;
+        if (!image->isGpuTransparencyMaskView(node) || manager->activeNode() != node) return;
+        const KisNodeSP next = ImageStateAccess::nearestNodeAfterRemoval(node);
+        if (next) manager->slotImageRequestNodeReselection(next, KisNodeList{next});
+    }, Qt::DirectConnection);
 }
 
 void KisNodeManager::LifecycleAccess::notifyResourceProvider(KisNodeManager *manager, KisNodeSP node)
@@ -516,6 +563,39 @@ void KisNodeManager::TreeOperationAccess::moveNodes(KisNodeManager *manager,
                                                     KisNodeSP aboveThis,
                                                     KisNodeSP activeNode)
 {
+    const auto image = KisImageSP(manager->m_d->view->image());
+    if (const auto owner = image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = [&]() -> Gpu::Result {
+            if (!parent || KisLayerUtils::findRoot(parent) != image->root() ||
+                (aboveThis && aboveThis->parent() != parent)) return Gpu::Result::InvalidInput;
+            QSet<QUuid> identities;
+            for (const auto &node : nodes) {
+                if (!node || !node->parent() || KisLayerUtils::findRoot(node) != image->root() ||
+                    identities.contains(node->uuid())) return Gpu::Result::InvalidInput;
+                identities.insert(node->uuid());
+            }
+            const auto sorted = KisLayerUtils::sortAndFilterAnyMergeableNodesSafe(nodes, image);
+            if (sorted.isEmpty()) return Gpu::Result::InvalidInput;
+            const auto active = sorted.contains(activeNode) ? activeNode : sorted.first();
+            const auto version = owner->operations().snapshot();
+            QList<Gpu::LayerId> moving;
+            Gpu::LayerId activeId = 0;
+            for (const auto &node : sorted) {
+                const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                    [&](const auto &layer) { return layer.uuid == node->uuid(); });
+                if (found == version->layers.cend()) return Gpu::Result::LayerUnavailable;
+                moving.append(found->id);
+                if (node == active) activeId = found->id;
+            }
+            return owner->moveLayers(moving, parent == image->root() ? QUuid() : parent->uuid(),
+                                     aboveThis ? aboveThis->uuid() : QUuid(), activeId);
+        }();
+        if (guard && result != Gpu::Result::Success)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be moved. Finish the active operation and try again."));
+        return;
+    }
     manager->m_d->lazyGetNodeOperationBatch(kundo2_i18n("Move Nodes"))->moveNode(nodes, parent, aboveThis, activeNode);
 }
 
@@ -534,6 +614,17 @@ void KisNodeManager::TreeOperationAccess::addNodes(KisNodeManager *manager,
                                                    KisNodeSP aboveThis,
                                                    KisNodeSP activeNode)
 {
+    auto image = KisImageSP(manager->m_d->view->image());
+    if (image->gpuImage()) {
+        const QPointer<KisNodeManager> guard(manager);
+        const bool validDestination = parent && KisLayerUtils::findRoot(parent) == image->root() &&
+            (!aboveThis || aboveThis->parent() == parent);
+        const bool accepted = validDestination && image->insertGpuLayers(nodes,
+            aboveThis ? parent->index(aboveThis) + 1 : 0, parent);
+        if (guard && !accepted)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be added. Finish the active operation and check the layer settings."));
+        return;
+    }
     manager->m_d->lazyGetNodeOperationBatch(kundo2_i18n("Add Nodes"))->addNode(nodes, parent, aboveThis, activeNode);
 }
 
@@ -549,6 +640,42 @@ void KisNodeManager::TreeOperationAccess::duplicateNodes(KisNodeManager *manager
                                                          const KisNodeList &nodes,
                                                          KisNodeSP activeNode)
 {
+    namespace Gpu = LibrePaint::Image::Gpu;
+    auto image = KisImageSP(manager->m_d->view->image());
+    if (const auto owner = image->gpuImage()) {
+        KisNodeList filteredNodes;
+        for (const auto &node : nodes)
+            if (!image->isGpuTransparencyMaskView(node)) filteredNodes.append(node);
+        QSet<QUuid> selected;
+        for (const auto &node : filteredNodes) {
+            if (!node || !node->parent() || KisLayerUtils::findRoot(node) != image->root() || selected.contains(node->uuid())) {
+                ModificationAccess::showWarning(manager, i18n("The selected layers could not be duplicated."));
+                return;
+            }
+            selected.insert(node->uuid());
+        }
+        if (selected.isEmpty()) return;
+        const auto version = owner->operations().snapshot();
+        QList<Gpu::LayerId> layers;
+        QList<QString> names;
+        Gpu::LayerId active = 0;
+        const bool rename = KisImageConfig(true).renameDuplicatedLayers();
+        const auto prefix = i18n("Copy of");
+        for (const auto &layer : version->layers) {
+            if (!selected.contains(layer.uuid)) continue;
+            layers.append(layer.id);
+            names.append(rename && !layer.name.startsWith(prefix) ? prefix + QLatin1Char(' ') + layer.name : layer.name);
+            if (activeNode && layer.uuid == activeNode->uuid()) active = layer.id;
+        }
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = layers.size() == selected.size() ? owner->duplicateLayers(layers, names, active) : Gpu::Result::LayerUnavailable;
+        if (!guard) return;
+        if (result != Gpu::Result::Success) {
+            ModificationAccess::showWarning(manager, i18n("The layers could not be duplicated. Finish the active operation and try again."));
+            return;
+        }
+        return;
+    }
     const KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->duplicateNode(nodes, activeNode);
@@ -870,6 +997,7 @@ bool KisNodeManager::ActivationAccess::isNodeVisible(KisNodeManager *manager, Ki
 
 bool KisNodeManager::ActivationAccess::activateNode(KisNodeManager *manager, KisNodeSP node)
 {
+    manager->m_d->commandsAdapter.setImage(manager->m_d->imageView->image());
     return manager->m_d->activateNodeImpl(node);
 }
 
@@ -943,6 +1071,16 @@ void KisNodeManager::NodeChangeAccess::setCompositeOp(KisNodeManager *manager,
 void KisNodeManager::SelectionStateAccess::setSelectedNodes(KisNodeManager *manager, const KisNodeList &nodes)
 {
     manager->m_d->selectedNodes = nodes;
+    auto image = manager->m_d->view ? KisImageSP(manager->m_d->view->image()) : KisImageSP();
+    if (!image || image->isSynchronizingGpuNodes() || nodes.isEmpty()) return;
+    const auto owner = image->gpuImage();
+    if (!owner) return;
+    const auto version = owner->operations().snapshot();
+    QList<LibrePaint::Image::Gpu::LayerId> selected;
+    for (const auto &layer : version->layers)
+        for (const auto &node : nodes) if (node && node->uuid() == layer.uuid) selected.append(layer.id);
+    if (selected.size() != nodes.size()) return;
+    owner->selectLayers(selected, version->activeLayer);
 }
 
 KisNodeList KisNodeManager::AccessorAccess::selectedNodes(KisNodeManager *manager)
@@ -989,11 +1127,12 @@ void KisNodeManager::PropertyAccess::showOnionSkinTransparencyWarning(const KisN
     manager->m_d->view->showFloatingMessage(i18n("Onion skins require a layer with transparent background."), QIcon());
 }
 
-void KisNodeManager::PropertyAccess::applyProperties(KisNodeSP node,
+bool KisNodeManager::PropertyAccess::applyProperties(KisNodeSP node,
                                                      KisImageSP image,
                                                      KisBaseNode::PropertyList properties)
 {
     KisNodePropertyListCommand::setNodePropertiesAutoUndo(node, image, properties);
+    return true;
 }
 
 bool KisNodeManager::PropertyDialogAccess::isLayer(KisNodeSP node)
@@ -1166,8 +1305,71 @@ KisNodeSP KisNodeManager::OrderingAccess::activeNode(KisNodeManager *manager)
     return manager->activeNode();
 }
 
+namespace {
+LibrePaint::Image::Gpu::Result moveGpuLayerSelection(const KisImageSP &image, const KisNodeList &nodes, bool raise)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = image->gpuImage();
+    QSet<QUuid> selected;
+    for (const auto &node : nodes) {
+        if (!node || node->image() != image.data() || !node->parent() ||
+            KisLayerUtils::findRoot(node) != image->root() || selected.contains(node->uuid()))
+            return Gpu::Result::InvalidInput;
+        selected.insert(node->uuid());
+    }
+    if (selected.isEmpty()) return Gpu::Result::Success;
+    const auto sorted = KisLayerUtils::sortAndFilterAnyMergeableNodesSafe(nodes, image);
+    if (sorted.isEmpty()) return Gpu::Result::InvalidInput;
+    const auto head = raise ? sorted.last() : sorted.first();
+    const auto parent = head->parent();
+    if (!parent->isEditable(false)) return Gpu::Result::Success;
+    KisNodeSP destination, above;
+    const auto allowsChildren = [&](KisNodeSP candidate) {
+        if (!candidate->isEditable(false) || candidate->collapsed()) return false;
+        for (const auto &node : sorted) if (!candidate->allowAsChild(node)) return false;
+        return true;
+    };
+    if (raise) {
+        const auto next = head->nextSibling();
+        if (next) {
+            if (allowsChildren(next)) destination = next;
+            else { destination = parent; above = next; }
+        } else if (parent->parent()) {
+            destination = parent->parent(); above = parent;
+        }
+    } else {
+        const auto previous = head->prevSibling();
+        if (previous) {
+            if (allowsChildren(previous)) { destination = previous; above = previous->lastChild(); }
+            else { destination = parent; above = previous->prevSibling(); }
+        } else if (parent->parent()) {
+            destination = parent->parent(); above = parent->prevSibling();
+        }
+    }
+    if (!destination || !destination->isEditable(false)) return Gpu::Result::Success;
+    QList<Gpu::LayerId> moving;
+    const auto version = owner->operations().snapshot();
+    for (const auto &node : sorted) {
+        const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &layer) { return layer.uuid == node->uuid(); });
+        if (found == version->layers.cend()) return Gpu::Result::LayerUnavailable;
+        moving.append(found->id);
+    }
+    return owner->moveLayers(moving, destination == image->root() ? QUuid() : destination->uuid(),
+                             above ? above->uuid() : QUuid());
+}
+}
+
 void KisNodeManager::OrderingAccess::raiseNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode)
 {
+    const auto image = KisImageSP(manager->m_d->view->image());
+    if (image->gpuImage()) {
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = moveGpuLayerSelection(image, nodes, true);
+        if (guard && result != LibrePaint::Image::Gpu::Result::Success)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be moved. Finish the active operation and try again."));
+        return;
+    }
     const KUndo2MagicString actionName = kundo2_i18n("Raise Nodes");
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->raiseNode(nodes, activeNode);
@@ -1175,6 +1377,14 @@ void KisNodeManager::OrderingAccess::raiseNodes(KisNodeManager *manager, const K
 
 void KisNodeManager::OrderingAccess::lowerNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode)
 {
+    const auto image = KisImageSP(manager->m_d->view->image());
+    if (image->gpuImage()) {
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = moveGpuLayerSelection(image, nodes, false);
+        if (guard && result != LibrePaint::Image::Gpu::Result::Success)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be moved. Finish the active operation and try again."));
+        return;
+    }
     const KUndo2MagicString actionName = kundo2_i18n("Lower Nodes");
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->lowerNode(nodes, activeNode);
@@ -1202,6 +1412,51 @@ KisNodeSP KisNodeManager::RemovalAccess::activeNode(KisNodeManager *manager)
 
 void KisNodeManager::RemovalAccess::removeNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode)
 {
+    auto image = KisImageSP(manager->m_d->view->image());
+    if (const auto owner = image->gpuImage()) {
+        KisNodeList layers;
+        QList<KisNodeSP> maskViews;
+        for (const auto &node : nodes) {
+            if (image->isGpuTransparencyMaskView(node)) maskViews.append(node);
+            else layers.append(node);
+        }
+        QSet<QUuid> removedMasks;
+        for (const auto &mask : maskViews) {
+            const KisNodeSP layer = mask ? mask->parent() : KisNodeSP();
+            if (!layer) continue;
+            if (layers.contains(layer)) continue;
+            if (removedMasks.contains(layer->uuid())) continue;
+            removedMasks.insert(layer->uuid());
+            if (!image->removeGpuTransparencyMask(layer)) {
+                ModificationAccess::showWarning(manager, i18n("The transparency mask could not be removed. Finish the active operation and try again."));
+                return;
+            }
+        }
+        if (layers.isEmpty()) return;
+        const auto version = owner->operations().snapshot();
+        QList<LibrePaint::Image::Gpu::LayerId> removed;
+        for (const auto &node : layers) {
+            if (!node || node->image() != image.data() || !node->parent()) {
+                ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+                return;
+            }
+            const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                [&](const auto &layer) { return layer.uuid == node->uuid(); });
+            if (found == version->layers.cend()) {
+                ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+                return;
+            }
+            removed.append(found->id);
+        }
+        const bool removesAll = std::all_of(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &layer) { return !layer.parentUuid.isNull() || removed.contains(layer.id); });
+        const auto replacement = removesAll ? image->nextLayerName() : QString{};
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = owner->removeLayers(removed, replacement);
+        if (guard && result != LibrePaint::Image::Gpu::Result::Success)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be removed. Finish the active operation and try again."));
+        return;
+    }
     const KUndo2MagicString actionName = kundo2_i18n("Remove Nodes");
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->removeNode(nodes, activeNode);
@@ -1518,6 +1773,28 @@ KisNodeList KisNodeManager::ToggleAccess::selectedNodes(KisNodeManager *manager)
     return manager->selectedNodes();
 }
 
+void KisNodeManager::toggleGpuTransparencyMask()
+{
+    KisImageSP image = ToggleAccess::image(this);
+    const KisNodeSP node = ToggleAccess::activeNode(this);
+    if (!image || !image->gpuImage() || !node) return;
+    image->setGpuTransparencyMaskVisible(node, !image->gpuTransparencyMaskVisible(node));
+}
+
+void KisNodeManager::removeGpuTransparencyMask()
+{
+    KisImageSP image = ToggleAccess::image(this);
+    const KisNodeSP node = ToggleAccess::activeNode(this);
+    if (!image || !image->gpuImage() || !node) return;
+    image->removeGpuTransparencyMask(node);
+}
+
+KisImageSP KisNodeManager::ToggleAccess::image(KisNodeManager *manager)
+{
+    if (!manager->m_d->view) return KisImageSP();
+    return manager->m_d->view->image();
+}
+
 KisNodeSP KisNodeManager::ToggleAccess::activeNode(KisNodeManager *manager)
 {
     return manager->activeNode();
@@ -1567,6 +1844,10 @@ void KisNodeManager::ToggleAccess::setProperty(KisNodeManager *manager,
                                                          manager->m_d->view->image());
         return;
     case ToggleProperty::Visible:
+        if (KisImageSP image = manager->m_d->view->image(); image && image->isGpuTransparencyMaskView(node)) {
+            image->setGpuTransparencyMaskVisible(node->parent(), value);
+            return;
+        }
         KisLayerPropertiesIcons::setNodePropertyAutoUndo(node,
                                                          KisLayerPropertiesIcons::visible,
                                                          value,
@@ -1599,9 +1880,9 @@ KisNodeSP KisNodeManager::ClipboardAccess::parentNode(KisNodeSP node)
     return node->parent();
 }
 
-void KisNodeManager::ClipboardAccess::setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy)
+bool KisNodeManager::ClipboardAccess::setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy)
 {
-    KisClipboard::instance()->setLayers(nodes, manager->m_d->view->image(), copy);
+    return KisClipboard::instance()->setLayers(nodes, manager->m_d->view->image(), copy);
 }
 
 bool KisNodeManager::ClipboardAccess::canModifyLayers(KisNodeManager *manager, const KisNodeList &nodes)
@@ -1613,6 +1894,10 @@ void KisNodeManager::ClipboardAccess::removeNodes(KisNodeManager *manager,
                                                   const KisNodeList &nodes,
                                                   const KUndo2MagicString &actionName)
 {
+    if (manager->m_d->view->image()->gpuImage()) {
+        RemovalAccess::removeNodes(manager, nodes, manager->activeNode());
+        return;
+    }
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->removeNode(nodes, manager->activeNode());
 }
@@ -1638,7 +1923,8 @@ void KisNodeManager::ClipboardAccess::insertMimeLayersAsLastChild(KisNodeManager
                                                                   bool copyNode,
                                                                   bool changeOffset,
                                                                   QPointF offset,
-                                                                  KisProcessingApplicator *applicator)
+                                                                  KisProcessingApplicator *applicator,
+                                                                  bool clearPixelSelection)
 {
     KisShapeController *shapeController =
         dynamic_cast<KisShapeController *>(manager->m_d->imageView->document()->shapeController());
@@ -1661,7 +1947,95 @@ void KisNodeManager::ClipboardAccess::insertMimeLayersAsLastChild(KisNodeManager
                                   manager->nodeInsertionAdapter(),
                                   changeOffset,
                                   offset,
-                                  applicator);
+                                  applicator,
+                                  clearPixelSelection);
+}
+
+bool KisNodeManager::QuickGroupAccess::handleGpuGroup(KisNodeManager *manager, bool clipping)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto image = manager->m_d->view ? KisImageSP(manager->m_d->view->image()) : KisImageSP();
+    const auto owner = image ? image->gpuImage() : nullptr;
+    if (!owner) return false;
+    auto active = manager->activeNode();
+    if (!active || !manager->canMoveLayer(active)) return true;
+    auto nodes = KisLayerUtils::sortMergeableNodes(image->root(), manager->selectedNodes());
+    KisLayerUtils::filterMergeableNodes(nodes);
+    if (nodes.isEmpty()) return true;
+    if (KisLayerUtils::checkIsChildOf(active, nodes)) active = nodes.first();
+    const auto version = owner->operations().snapshot();
+    QList<Gpu::LayerId> roots;
+    Gpu::LayerId activeId = 0;
+    for (const auto &layer : version->layers) if (layer.uuid == active->uuid()) activeId = layer.id;
+    for (const auto &node : nodes) {
+        if (!node || node->image() != image.data() || !node->parent() || KisLayerUtils::findRoot(node) != image->root()) {
+            ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+            return true;
+        }
+        const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &layer) { return layer.uuid == node->uuid(); });
+        if (found == version->layers.cend()) {
+            ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+            return true;
+        }
+        roots.append(found->id);
+    }
+    const auto groupName = image->nextLayerName(clipping ?
+        i18nc("default name for a clipping group layer", "Clipping Group") : i18nc("A group of layers", "Group"));
+    const auto maskName = clipping ? i18nc("default name for quick clip group mask layer", "Mask Layer") : QString();
+    const QPointer<KisNodeManager> guard(manager);
+    const auto result = owner->groupLayers(roots, activeId, groupName, maskName);
+    if (guard && result != Gpu::Result::Success)
+        ModificationAccess::showWarning(manager, i18n("The selected layers could not be grouped. Check the layer hierarchy and finish the active operation before trying again."));
+    return true;
+}
+
+bool KisNodeManager::QuickGroupAccess::handleGpuUngroup(KisNodeManager *manager)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto image = manager->m_d->view ? KisImageSP(manager->m_d->view->image()) : KisImageSP();
+    const auto owner = image ? image->gpuImage() : nullptr;
+    if (!owner) return false;
+    const auto active = manager->activeNode();
+    if (!active || !manager->canModifyLayer(active)) return true;
+    const bool activeGroup = bool(qobject_cast<const KisGroupLayer *>(active.data()));
+    auto destination = active->parent();
+    KisNodeList nodes;
+    if (activeGroup) {
+        for (auto child = active->firstChild(); child; child = child->nextSibling()) nodes.append(child);
+    } else {
+        if (!destination || !destination->parent()) return true;
+        destination = destination->parent();
+        nodes = manager->selectedNodes();
+    }
+    if (!destination) return true;
+    for (const auto &node : nodes) {
+        if (!destination->allowAsChild(node)) {
+            const auto message = destination->parent() ?
+                i18n("Cannot move layer \"%1\" into new parent \"%2\"", node->name(), destination->name()) :
+                i18n("Cannot move layer \"%1\" into the root layer", node->name());
+            showFloatingMessage(manager, message);
+            return true;
+        }
+    }
+    const auto version = owner->operations().snapshot();
+    QList<Gpu::LayerId> moving;
+    Gpu::LayerId activeId = 0;
+    for (const auto &layer : version->layers) {
+        if (layer.uuid == active->uuid()) activeId = layer.id;
+        if (!activeGroup && std::any_of(nodes.cbegin(), nodes.cend(),
+            [&](const auto &node) { return node && node->uuid() == layer.uuid; })) moving.append(layer.id);
+    }
+    if (!activeId || (!activeGroup && moving.size() != nodes.size())) {
+        ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+        return true;
+    }
+    const auto replacement = activeGroup && nodes.isEmpty() && version->layers.size() == 1 ? image->nextLayerName() : QString();
+    const QPointer<KisNodeManager> guard(manager);
+    const auto result = owner->ungroupLayers(moving, activeId, replacement);
+    if (guard && result != Gpu::Result::Success)
+        ModificationAccess::showWarning(manager, i18n("The selected layers could not be ungrouped. Check the layer hierarchy and finish the active operation before trying again."));
+    return true;
 }
 
 KisNodeOperationBatch *KisNodeManager::QuickGroupAccess::operationBatch(KisNodeManager *manager,

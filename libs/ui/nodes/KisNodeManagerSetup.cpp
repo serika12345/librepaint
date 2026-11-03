@@ -81,6 +81,8 @@ constexpr ActionRegistration trailingActions[]{
     {"toggle_layer_lock", "triggered()", "toggleLock()"},
     {"toggle_layer_inherit_alpha", "triggered()", "toggleInheritAlpha()"},
     {"toggle_layer_alpha_lock", "triggered()", "toggleAlphaLock()"},
+    {"toggle_gpu_transparency_mask", "triggered()", "toggleGpuTransparencyMask()"},
+    {"remove_gpu_transparency_mask", "triggered()", "removeGpuTransparencyMask()"},
     {"split_alpha_into_mask", "triggered()", "slotSplitAlphaIntoMask()"},
     {"split_alpha_write", "triggered()", "slotSplitAlphaWrite()"},
     {"split_alpha_save_merged", "triggered()", "slotSplitAlphaSaveMerged()"},

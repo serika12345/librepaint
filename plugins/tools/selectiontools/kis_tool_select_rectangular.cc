@@ -56,9 +56,32 @@ void KisToolSelectRectangular::finishRect(const QRectF& rect, qreal roundCorners
     if (!kisCanvas)
         return;
 
-    KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Rectangle"));
-
+    const bool gpu = currentImage() && currentImage()->gpuImage();
     QRect rc(rect.normalized().toRect());
+    if (gpu) {
+        if (!rc.isValid()) return;
+        KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Rectangle"));
+        if (roundCornersX > 0 || roundCornersY > 0 || getRotationAngle() != 0 ||
+            antiAliasSelection() || growSelection() != 0 || featherSelection() != 0) {
+            QPainterPath path;
+            if (roundCornersX > 0 || roundCornersY > 0) path.addRoundedRect(rc, roundCornersX, roundCornersY);
+            else path.addRect(rc);
+            getRotatedPath(path, rc.center(), getRotationAngle());
+            if (helper.selectGpuSelectionPath(path, antiAliasSelection(), growSelection(), featherSelection(), selectionAction())) return;
+        } else if (selectionAction() == SELECTION_REPLACE || selectionAction() == SELECTION_DEFAULT) {
+            if (currentImage()->setGpuSelectionRect(rc)) return;
+        } else {
+            using LibrePaint::Image::Gpu::SelectionMask;
+            const auto clip = currentImage()->bounds();
+            const auto mask = rc.intersects(clip) ? SelectionMask::fromRectangle(rc, clip) : SelectionMask::empty();
+            if (mask && helper.selectGpuSelection(mask, selectionAction())) return;
+        }
+        kisCanvas->showToolMessage(i18n("The GPU document selection could not be updated."),
+                                   QStringLiteral("object-locked"));
+        return;
+    }
+
+    KisSelectionToolHelper helper(kisCanvas, kundo2_i18n("Select Rectangle"));
 
     if (helper.tryDeselectCurrentSelection(pixelToView(rc), selectionAction())) {
         return;

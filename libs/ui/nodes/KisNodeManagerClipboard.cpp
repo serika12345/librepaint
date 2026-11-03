@@ -8,6 +8,7 @@
 
 #include <kundo2magicstring.h>
 #include <qpoint.h>
+#include <QPointer>
 
 void KisNodeManager::cutLayersToClipboard()
 {
@@ -25,7 +26,8 @@ void KisNodeManager::cutLayersToClipboard()
         }
     }
 
-    ClipboardAccess::setLayers(this, nodes, false);
+    const QPointer<KisNodeManager> guard(this);
+    if (!ClipboardAccess::setLayers(this, nodes, false) || !guard) return;
 
     if (ClipboardAccess::canModifyLayers(this, nodes)) {
         ClipboardAccess::removeNodes(this, nodes, kundo2_i18n("Cut Nodes"));
@@ -37,7 +39,8 @@ void KisNodeManager::copyLayersToClipboard()
     ClipboardAccess::setLayers(this, ClipboardAccess::selectedNodes(this), true);
 }
 
-void KisNodeManager::pasteLayersFromClipboard(bool changeOffset, QPointF offset, KisProcessingApplicator *applicator)
+void KisNodeManager::pasteLayersFromClipboard(bool changeOffset, QPointF offset, KisProcessingApplicator *applicator,
+                                             bool clearPixelSelection)
 {
     const QMimeData *data = ClipboardAccess::layersMimeData();
     if (!data) {
@@ -49,5 +52,6 @@ void KisNodeManager::pasteLayersFromClipboard(bool changeOffset, QPointF offset,
         targetNode = ClipboardAccess::rootNode(this);
     }
 
-    ClipboardAccess::insertMimeLayersAsLastChild(this, data, targetNode, false, changeOffset, offset, applicator);
+    ClipboardAccess::insertMimeLayersAsLastChild(this, data, targetNode, false, changeOffset, offset, applicator,
+                                                clearPixelSelection);
 }

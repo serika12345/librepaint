@@ -25,6 +25,13 @@
 
 #include <KoCanvasBase.h>
 #include <KoPointerEvent.h>
+#include <KoCanvasResourcesIds.h>
+#include <KoColorSpaceRegistry.h>
+#include <KisGpuBlendMode.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
+#include <QPointer>
+#include <cstring>
 
 #include <qdom.h>
 #include <qlist.h>
@@ -193,6 +200,15 @@ void KisToolFill::beginPrimaryAction(KoPointerEvent *event)
         m_effectiveFillMode = m_fillMode;
     }
 
+    if (image()->gpuImage()) {
+        if (m_effectiveFillMode == FillMode_FillSelection) {
+            fillGpuSelection();
+        } else {
+            fillGpuSelection(lastImagePosition);
+        }
+        return;
+    }
+
     m_seedPoints.append(lastImagePosition);
     beginFilling(lastImagePosition);
     m_isFilling = true;
@@ -357,6 +373,130 @@ void KisToolFill::beginFilling(const QPoint &seedPoint)
     const qreal normalizedScale = m_patternScale * 0.01;
     m_transform.scale(normalizedScale, normalizedScale);
     m_resourcesSnapshot->setFillTransform(m_transform);
+}
+
+void KisToolFill::fillGpuSelection(QPoint seed)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const QPointer<KisToolFill> lifetime(this);
+    const QPointer<KisViewManager> view(static_cast<KisCanvas2 *>(canvas())->viewManager());
+    const auto targetImage = image();
+    const auto owner = targetImage->gpuImage();
+    const auto encoding = owner->operations().snapshot();
+    const auto node = currentNode();
+    const auto reject = [view](const QString &message) {
+        if (view) view->showFloatingMessage(message, QIcon(), 2000, KisFloatingMessage::Low);
+    };
+    auto *resources = view->canvasResourceProvider();
+    const auto composite = m_useCustomBlendingOptions ? m_customCompositeOp :
+        resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
+    const bool erase = composite == COMPOSITE_ERASE || (!m_useCustomBlendingOptions && resources->eraserMode());
+    const auto blend = erase ? std::optional<Gpu::LayerBlendMode>(Gpu::LayerBlendMode::Normal) :
+        Gpu::layerBlendModeFromCompositeOp(composite);
+    if (!blend || (erase && composite != COMPOSITE_OVER && composite != COMPOSITE_ERASE)) {
+        reject(i18n("This blend mode is not yet available for this document."));
+        return;
+    }
+    const qreal opacity = m_useCustomBlendingOptions ? m_customOpacity / 100.0 : resources->opacity();
+    if (!qIsFinite(opacity) || opacity < 0 || opacity > 1) {
+        reject(i18n("The fill opacity is invalid."));
+        return;
+    }
+    const bool mask = targetImage->isGpuTransparencyMaskView(node);
+    const bool region = seed.x() >= 0 && seed.y() >= 0;
+    Gpu::RegionFillSettings regionSettings;
+    if (region) {
+        const bool contiguous = m_effectiveFillMode == FillMode_FillContiguousRegion;
+        if (mask || (contiguous && m_closeGap) || (m_sizemod > 0 && m_stopGrowingAtDarkestPixel)) {
+            reject(i18n("Region filling currently requires a paint layer and growth without darkest-pixel stopping; contiguous filling also requires gap closing to be disabled."));
+            return;
+        }
+        regionSettings.seed = seed;
+        regionSettings.mode = contiguous ? Gpu::RegionFillMode::Contiguous : Gpu::RegionFillMode::Similar;
+        regionSettings.reference = m_reference == Reference_ColorLabeledLayers ? Gpu::RegionFillReference::ColorLabeledLayers :
+            m_reference == Reference_AllLayers ? Gpu::RegionFillReference::AllLayers : Gpu::RegionFillReference::CurrentLayer;
+        if (m_reference == Reference_ColorLabeledLayers) {
+            regionSettings.colorLabels = m_selectedColorLabels;
+            regionSettings.includeActiveLayer = m_useActiveLayer;
+        }
+        if (contiguous && m_contiguousFillMode == ContiguousFillMode_BoundaryFill) {
+            KoColor boundary = m_contiguousFillBoundaryColor;
+            boundary.convertTo(targetImage->colorSpace());
+            if (encoding->format == Gpu::PixelFormat::Rgba16) {
+                quint16 bgra[4];
+                std::memcpy(bgra, boundary.data(), sizeof(bgra));
+                regionSettings.boundaryColor = Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], bgra[3]};
+            } else {
+                const auto *bgra = boundary.data();
+                regionSettings.boundaryColor = Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], bgra[3]};
+            }
+        }
+        regionSettings.threshold = m_threshold;
+        regionSettings.opacitySpread = m_opacitySpread;
+        regionSettings.selectionAsBoundary = m_useSelectionAsBoundary;
+        regionSettings.antiAlias = m_antiAlias;
+        regionSettings.sizeMod = m_sizemod;
+        regionSettings.feather = m_feather;
+        if (m_threshold != 1) {
+            const auto colour = targetImage->colorSpace()->nativeLabConversion();
+            if (colour.code == LibrePaint::Pigment::Color::NativeLabConversionResult::Success)
+                regionSettings.labConversion = colour.value;
+        }
+    }
+    const auto target = mask ? node->parent() : node;
+    Gpu::LayerId layer = 0;
+    for (const auto &candidate : owner->operations().snapshot()->layers)
+        if (target && candidate.uuid == target->uuid()) layer = candidate.id;
+    if (!layer || (mask && *blend != Gpu::LayerBlendMode::Normal)) {
+        reject(i18n("The selected layer cannot be filled with these settings."));
+        return;
+    }
+    QTransform transform;
+    transform.rotate(m_patternRotation);
+    transform.scale(m_patternScale * .01, m_patternScale * .01);
+    std::optional<Gpu::PatternFill> pattern;
+    if (m_fillType == FillType_FillWithPattern) {
+        QString diagnostic;
+        pattern = captureGpuPatternResource(resources->currentPattern(),
+            mask ? KoColorSpaceRegistry::instance()->rgb8() : targetImage->colorSpace(), transform, diagnostic);
+        if (!pattern) { reject(diagnostic); return; }
+    }
+    KoColor color = m_fillType == FillType_FillWithBackgroundColor ? resources->bgColor() : resources->fgColor();
+    const auto displayColor = color.toQColor();
+    const std::array<quint8, 3> maskColor{quint8(displayColor.red()), quint8(displayColor.green()), quint8(displayColor.blue())};
+    color.convertTo(targetImage->colorSpace());
+    Gpu::RgbaPixel pixel;
+    if (owner->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
+        quint16 bgra[4];
+        std::memcpy(bgra, color.data(), sizeof(bgra));
+        pixel = {bgra[2], bgra[1], bgra[0], 65535};
+    } else {
+        const auto *bgra = color.data();
+        pixel = {bgra[2], bgra[1], bgra[0], 255};
+    }
+    const bool alphaLocked = !erase && resources->resourceManager()->resource(KoCanvasResource::GlobalAlphaLock).toBool();
+    // Waiting may process document/tool destruction. All edit inputs are frozen
+    // before re-entry, and admission verifies the original document and node.
+    if (!view->blockUntilOperationsFinished(targetImage) || !lifetime || !view ||
+        view->image() != targetImage || targetImage->gpuImage() != owner || lifetime->currentNode() != node) return;
+    const auto ready = owner->operations().snapshot();
+    if (ready->format != encoding->format || ready->colorProfile != encoding->colorProfile) {
+        reject(i18n("The document color space changed before filling. Please try again."));
+        return;
+    }
+    const auto result = region ? owner->fillRegion(layer, regionSettings, pixel, pattern, opacity, erase, alphaLocked, *blend) : mask
+        ? (pattern ? owner->fillTransparencyMaskPattern(layer, *pattern, opacity, erase, alphaLocked, node->uuid())
+                   : owner->fillTransparencyMask(layer, maskColor, opacity, erase, alphaLocked, node->uuid()))
+        : (pattern ? owner->fillLayerPattern(layer, *pattern, opacity, erase, alphaLocked, *blend)
+                   : owner->fillLayerColor(layer, pixel, opacity, erase, alphaLocked, *blend));
+    if (result == Gpu::Result::EmptyOperation) return;
+    if (result != Gpu::Result::Success) {
+        const auto diagnostic = owner->lastRequestOutcome().diagnostic;
+        reject(region && result == Gpu::Result::InvalidInput && !diagnostic.isEmpty()
+            ? i18n("This reference color conversion is not yet supported for region filling.")
+            : i18n("The selected layer could not be filled."));
+    }
+    else if (view && lifetime) view->canvasResourceProvider()->slotPainting();
 }
 
 void KisToolFill::addFillingOperation(const QPoint &seedPoint)

@@ -67,6 +67,7 @@ public:
     void activate(const QSet<KoShape*> &shapes) override;
     void beginPrimaryAction(KoPointerEvent *event) override;
     void continuePrimaryAction(KoPointerEvent *event) override;
+    void endPrimaryAction(KoPointerEvent *event) override;
 
 protected:
     void initStroke(KoPointerEvent *event) override;

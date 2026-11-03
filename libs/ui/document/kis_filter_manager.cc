@@ -9,7 +9,18 @@
 #include <klocalizedstring.h>
 
 
+#include <array>
+#include <cstring>
+#include <KoColor.h>
+#include <KoColorModelStandardIds.h>
+#include <KoColorSpaceRegistry.h>
+#include <KisGpuBlendMode.h>
+#include <KisGpuFilterConfiguration.h>
 #include <QHash>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QPointer>
+#include <QVBoxLayout>
 #include <KisSignalMapper.h>
 
 #include <QMessageBox>
@@ -25,6 +36,8 @@
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter_configuration.h>
+#include <kis_config_widget.h>
+#include <gpu/KisGpuOperationDocument.h>
 #include <kis_paint_device.h>
 #include <kis_image_animation_interface.h>
 #include <kis_time_span.h>
@@ -51,11 +64,91 @@
 #include "kis_icon_utils.h"
 #include "kis_layer_utils.h"
 #include <KisGlobalResourcesInterface.h>
+#include <kis_image.h>
+#include <kis_floating_message.h>
 #include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
 #include <qset.h>
+
+namespace {
+/** Product HSV/HSL Adjustment keys translated to the GPU operation values.
+ *
+ * The product filter's `defaultConfiguration()` supplies h = s = v = 0,
+ * type = 1 (HSL) and compatibilityMode = false. All five product modes and
+ * the Colorize option are representable: the GPU rule freezes the effective
+ * document luma coefficients once, at apply time, instead of reading a live
+ * color-space object while filtering tiles. Invalid modes and values outside
+ * the product slider range for the selected mode are diagnosed without
+ * starting the CPU filter.
+ */
+struct GpuHsvConfiguration
+{
+    LibrePaint::Image::Gpu::HsvAdjustment settings;
+    bool valid = false;
+    QString diagnostic;
+};
+
+GpuHsvConfiguration gpuHsvConfiguration(KisFilterConfigurationSP config,
+                                        const KoColorSpace *colorSpace)
+{
+    GpuHsvConfiguration result;
+    if (!config) return result;
+    const int type = config->getInt("type", 1);
+    const bool colorize = config->getBool("colorize", false);
+    // The product transformation treats a missing key as legacy mode; its
+    // default configuration writes the key as false, so the dialog path stays
+    // in the modern rule.
+    const bool compatibilityMode = config->getBool("compatibilityMode", true);
+    const int hue = config->getInt("h", 0);
+    const int saturation = config->getInt("s", 0);
+    const int value = config->getInt("v", 0);
+    if (type < 0 || type > 4) {
+        result.diagnostic = i18n("This HSV Adjustment mode is not available for GPU documents.");
+        return result;
+    }
+    const bool yuv = type == 4;
+    if (colorize) {
+        // Colorize shows the 0..360 hue slider for types 0 through 3 and the
+        // 0..100 Yellow-Blue slider for YUV.
+        if (hue < 0 || hue > (yuv ? 100 : 360) || saturation < 0 || saturation > 100 ||
+            value < -100 || value > 100) {
+            result.diagnostic = i18n("HSV Adjustment values are outside the product slider ranges.");
+            return result;
+        }
+    } else if (hue < (yuv ? -100 : -180) || hue > (yuv ? 100 : 180) ||
+               saturation < -100 || saturation > 100 || value < -100 || value > 100) {
+        result.diagnostic = i18n("HSV Adjustment values are outside the product slider ranges.");
+        return result;
+    }
+    using LibrePaint::Image::Gpu::HsvAdjustmentType;
+    result.settings = {hue, saturation, value, HsvAdjustmentType(type), compatibilityMode};
+    result.settings.colorize = colorize;
+    if (result.settings.needsLuma()) {
+        const QVector<qreal> coefficients = colorSpace ? colorSpace->lumaCoefficients()
+                                                       : QVector<qreal>();
+        std::array<qreal, 3> source{};
+        if (coefficients.size() < 3) {
+            result.diagnostic = i18n("The document color space does not provide HSV Adjustment luma coefficients.");
+            return result;
+        }
+        source = {coefficients[0], coefficients[1], coefficients[2]};
+        if (!LibrePaint::Image::Gpu::freezeLumaCoefficients(source, &result.settings.luma)) {
+            result.diagnostic = i18n("The document color space does not provide usable HSV Adjustment luma coefficients.");
+            return result;
+        }
+        result.settings.lumaFrozen = true;
+    }
+    result.valid = true;
+    return result;
+}
+
+void showGpuDiagnostic(KisViewManager *view, const QString &message)
+{
+    view->showFloatingMessage(message, QIcon(), 2000, KisFloatingMessage::Low);
+}
+}
 
 struct KisFilterManager::Private {
     KisAction* reapplyAction = nullptr;
@@ -81,6 +174,10 @@ struct KisFilterManager::Private {
      * \note parent QWidget is set to mainwindow, so we delegate deletion of this widget to Qt (we don't `delete` it ourselves)
      */
     KisDlgFilter *filterDialog = nullptr;
+    /** GPU filter settings use the product configuration widget without a CPU
+     * preview stroke; one dialog applies one accepted configuration.
+     */
+    QPointer<QDialog> gpuFilterDialog;
 };
 
 KisFilterManager::KisFilterManager(KisViewManager * view)
@@ -91,6 +188,144 @@ KisFilterManager::KisFilterManager(KisViewManager * view)
 
 KisFilterManager::~KisFilterManager()
 {
+}
+
+bool KisFilterManager::applyGpuFilter(const QString &filterId, KisFilterConfigurationSP config, bool interactive)
+{
+    if (!d->view) return false;
+    KisImageWSP image = d->view->image();
+    if (!image || !image->gpuImage()) return false;
+    const bool supported = filterId == QLatin1String("invert") || filterId == QLatin1String("desaturate") ||
+        filterId == QLatin1String("hsvadjustment") || filterId == QLatin1String("maximize") ||
+        filterId == QLatin1String("minimize") || filterId == QLatin1String("resettransparent") ||
+        filterId == QLatin1String("fastcoloroverlay") || filterId == QLatin1String("sharpen") ||
+        filterId == QLatin1String("mean removal") || filterId == QLatin1String("emboss laplascian") ||
+        filterId == QLatin1String("emboss all directions") || filterId == QLatin1String("emboss horizontal and vertical") ||
+        filterId == QLatin1String("emboss vertical only") || filterId == QLatin1String("emboss horizontal only");
+    if (!supported) {
+        showGpuDiagnostic(d->view, i18n("This filter is not yet available for GPU documents."));
+        return true;
+    }
+    auto filter = KisFilterRegistry::instance()->value(filterId);
+    if (!filter) return true;
+    if (interactive && (filterId == QLatin1String("hsvadjustment") ||
+                        filterId == QLatin1String("fastcoloroverlay"))) showGpuFilterDialog(filterId, config);
+    else applyGpuConfiguration(config ? config : filter->defaultConfiguration(KisGlobalResourcesInterface::instance()));
+    return true;
+}
+
+bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config)
+{
+    if (!d->view || !config) return false;
+    KisImageWSP image = d->view->image();
+    if (!image || !image->gpuImage()) return false;
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const QString id = config->name();
+    bool applied = false;
+    const bool convolution = id == QLatin1String("sharpen") || id == QLatin1String("mean removal") ||
+        id == QLatin1String("emboss laplascian") || id == QLatin1String("emboss all directions") ||
+        id == QLatin1String("emboss horizontal and vertical") || id == QLatin1String("emboss vertical only") ||
+        id == QLatin1String("emboss horizontal only");
+    if (convolution) {
+        const auto frozen = freezeGpuFilterConfiguration(config, image->colorSpace());
+        if (!frozen) return false;
+        applied = image->convolutionFilterGpuLayerColors(d->view->activeNode(), frozen->settings);
+    } else if (id == QLatin1String("hsvadjustment")) {
+        const auto parsed = gpuHsvConfiguration(config, image->colorSpace());
+        if (!parsed.valid) {
+            showGpuDiagnostic(d->view, parsed.diagnostic);
+            return false;
+        }
+        applied = image->hsvAdjustmentGpuLayerColors(d->view->activeNode(), parsed.settings);
+    } else if (id == QLatin1String("invert")) {
+        applied = image->invertGpuLayerColors(d->view->activeNode());
+    } else if (id == QLatin1String("desaturate")) {
+        applied = image->grayscaleGpuLayerColors(d->view->activeNode());
+    } else {
+        Gpu::FilterKind kind;
+        Gpu::ColorOverlay overlay;
+        if (id == QLatin1String("maximize")) kind = Gpu::FilterKind::MaximizeChannel;
+        else if (id == QLatin1String("minimize")) kind = Gpu::FilterKind::MinimizeChannel;
+        else if (id == QLatin1String("resettransparent")) kind = Gpu::FilterKind::ResetTransparent;
+        else if (id == QLatin1String("fastcoloroverlay")) {
+            kind = Gpu::FilterKind::ColorOverlay;
+            const auto mode = Gpu::layerBlendModeFromCompositeOp(config->getString("compositeop", COMPOSITE_OVER));
+            overlay.opacity = config->getInt("opacity", 100);
+            if (!mode || overlay.opacity < 0 || overlay.opacity > 100) {
+                showGpuDiagnostic(d->view, i18n("This color overlay composition or opacity is not available for GPU documents."));
+                return false;
+            }
+            overlay.blendMode = *mode;
+            KoColor color = config->getColor("color", KoColor(QColor(62, 140, 236), KoColorSpaceRegistry::instance()->rgb8()));
+            color.convertTo(image->colorSpace());
+            if (image->colorSpace()->colorDepthId() == Integer16BitsColorDepthID) {
+                quint16 bgra[4];
+                std::memcpy(bgra, color.data(), sizeof(bgra));
+                overlay.color = {bgra[2], bgra[1], bgra[0], bgra[3]};
+            } else {
+                const auto *bgra = color.data();
+                overlay.color = {bgra[2], bgra[1], bgra[0], bgra[3]};
+            }
+        } else return false;
+        applied = image->colorFilterGpuLayerColors(d->view->activeNode(), kind, overlay);
+    }
+    if (!applied) {
+        showGpuDiagnostic(d->view, i18n("This filter requires an editable GPU paint layer and supported document precision."));
+        return false;
+    }
+    // Keep Apply Filter Again consistent with the CPU path, which records the
+    // accepted configuration after its stroke finishes.
+    d->lastConfiguration = config->clone();
+    if (d->reapplyAction) {
+        d->reapplyAction->setEnabled(true);
+        if (d->reapplyActionReprompt) d->reapplyActionReprompt->setEnabled(true);
+        if (KisFilterSP filter = KisFilterRegistry::instance()->value(config->name()))
+            d->reapplyAction->setText(i18n("Apply Filter Again: %1", filter->name()));
+    }
+    return true;
+}
+
+void KisFilterManager::showGpuFilterDialog(const QString &filterId, KisFilterConfigurationSP config)
+{
+    if (!d->view || !d->view->activeNode()) return;
+    if (d->gpuFilterDialog) {
+        d->gpuFilterDialog->raise();
+        d->gpuFilterDialog->activateWindow();
+        return;
+    }
+    KisFilterSP filter = KisFilterRegistry::instance()->value(filterId);
+    if (!filter) return;
+    auto *dialog = new QDialog(d->view->mainWindow());
+    dialog->setObjectName(filterId == QLatin1String("hsvadjustment") ? QStringLiteral("gpuHsvAdjustmentDialog")
+                                                                   : QStringLiteral("gpuColorOverlayDialog"));
+    dialog->setWindowTitle(i18nc("@title:window", "Filter: %1", filter->name()));
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setModal(false);
+    auto *layout = new QVBoxLayout(dialog);
+    KisConfigWidget *widget = filter->createConfigurationWidget(
+        dialog, d->view->activeNode()->paintDevice(), false);
+    if (!widget) {
+        delete dialog;
+        return;
+    }
+    const KisFilterConfigurationSP initial =
+        config ? config : filter->defaultConfiguration(KisGlobalResourcesInterface::instance());
+    widget->setView(d->view);
+    widget->blockSignals(true);
+    widget->setConfiguration(initial);
+    widget->blockSignals(false);
+    layout->addWidget(widget);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, dialog);
+    layout->addWidget(buttons);
+    connect(buttons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
+    connect(dialog, &QDialog::accepted, this, [this, widget] {
+        auto properties = widget->configuration();
+        auto *accepted = dynamic_cast<KisFilterConfiguration *>(properties.data());
+        if (accepted) applyGpuConfiguration(KisFilterConfigurationSP(accepted));
+    });
+    d->gpuFilterDialog = dialog;
+    dialog->show();
 }
 
 void KisFilterManager::setView(QPointer<KisView>imageView)
@@ -185,6 +420,10 @@ void KisFilterManager::reapplyLastFilter()
 {
     if (!d->lastConfiguration) return;
 
+    // A GPU document owns its pixels in the operation document. Reapply must
+    // take the same intercepted path as the action instead of starting a CPU
+    // stroke and finishing a filter that never ran.
+    if (applyGpuFilter(d->lastConfiguration->name(), d->lastConfiguration, false)) return;
     apply(d->lastConfiguration);
     finish();
 }
@@ -198,6 +437,8 @@ void KisFilterManager::reapplyLastFilterReprompt()
 
 void KisFilterManager::showFilterDialog(const QString &filterId, KisFilterConfigurationSP overrideDefaultConfig)
 {
+    if (applyGpuFilter(filterId, overrideDefaultConfig, true)) return;
+
     if (!d->view->activeNode()->isEditable()) {
         d->view->showFloatingMessage(i18n("Cannot apply filter to locked layer."),
                                       KisIconUtils::loadIcon("object-locked"));
@@ -280,6 +521,8 @@ void KisFilterManager::showFilterDialog(const QString &filterId, KisFilterConfig
 
 void KisFilterManager::apply(KisFilterConfigurationSP _filterConfig)
 {
+    if (_filterConfig && applyGpuFilter(_filterConfig->name(), _filterConfig, false)) return;
+
     KisFilterConfigurationSP filterConfig = _filterConfig->cloneWithResourcesSnapshot();
 
     KisFilterSP filter = KisFilterRegistry::instance()->value(filterConfig->name());

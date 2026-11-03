@@ -35,6 +35,7 @@ class KisToolSelectElliptical : public KisToolSelectUiBase<__KisToolSelectEllipt
 public:
     KisToolSelectElliptical(KoCanvasBase* canvas);
     void resetCursorStyle() override;
+    bool supportsGpuSelection() const override { return true; }
 private:
     void finishRect(const QRectF &rect, qreal roundCornersX, qreal roundCornersY) override;
     void beginShape() override;

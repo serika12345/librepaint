@@ -12,6 +12,7 @@
 #include <kis_composite_progress_proxy.h>
 #include <KisImageBarrierLock.h>
 #include <kis_memory_statistics_server.h>
+#include <QPointer>
 #include <QtGlobal>
 #include <qobject.h>
 #include <qobjectdefs.h>
@@ -62,8 +63,14 @@ KisUndoAdapter *KisDocument::imageUndoAdapter() const
 
 KisDocument *KisDocument::cloneWithImageReadLock()
 {
-    KisImageReadOnlyBarrierLock lock(image());
-    return clone(true);
+    const QPointer<KisDocument> lifetime(this);
+    KisImageSP source = image();
+    if (!source) return nullptr;
+
+    KisImageReadOnlyBarrierLock lock(source);
+    if (!lifetime || lifetime->image().data() != source.data()) return nullptr;
+
+    return lifetime->clone(true);
 }
 
 int KisDocument::animationLength() const

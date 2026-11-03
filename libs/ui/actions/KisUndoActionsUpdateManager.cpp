@@ -12,6 +12,8 @@
 #include <kundo2stack.h>
 
 #include <document/KisDocument.h>
+#include <kis_image.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 
@@ -34,12 +36,24 @@ void KisUndoActionsUpdateManager::setCurrentDocument(KisDocument *document)
 
         m_documentConnections.addConnection(stack, SIGNAL(undoTextChanged(QString)), this, SLOT(slotUndoTextChanged(QString)));
         m_documentConnections.addConnection(stack, SIGNAL(redoTextChanged(QString)), this, SLOT(slotRedoTextChanged(QString)));
+        m_documentConnections.addConnection(stack, &KUndo2Stack::canUndoChanged, m_undoAction, &QAction::setEnabled);
+        m_documentConnections.addConnection(stack, &KUndo2Stack::canRedoChanged, m_redoAction, &QAction::setEnabled);
 
         slotUndoTextChanged(stack->undoText());
         slotRedoTextChanged(stack->redoText());
 
-        m_undoAction->setEnabled(stack->canUndo());
-        m_redoAction->setEnabled(stack->canRedo());
+        const auto updateActions = [this, document = QPointer<KisDocument>(document)] {
+            const auto owner = document && document->image() ? document->image()->gpuImage() : nullptr;
+            const bool pending = owner && owner->operations().hasActiveStroke();
+            m_undoAction->setEnabled(document && (document->undoStack()->canUndo() || pending));
+            m_redoAction->setEnabled(document && document->undoStack()->canRedo() && !pending);
+        };
+        if (const auto owner = document->image() ? document->image()->gpuImage() : nullptr)
+            m_documentConnections.addConnection(owner.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, updateActions);
+        updateActions();
+    } else {
+        m_undoAction->setEnabled(false);
+        m_redoAction->setEnabled(false);
     }
 }
 

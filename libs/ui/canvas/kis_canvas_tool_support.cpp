@@ -21,6 +21,7 @@
 #include "kis_icon_utils.h"
 #include "kis_types.h"
 #include "opengl/kis_opengl_canvas2.h"
+#include "KisGpuCanvasWidget_p.h"
 
 KisSelectionSP KisCanvas2::currentSelectionForTool() const
 {
@@ -62,10 +63,21 @@ void KisCanvas2::showToolMessage(const QString &message, const QString &iconName
     viewManager()->showFloatingMessage(message, KisIconUtils::loadIcon(iconName));
 }
 
+bool KisCanvas2::drawCropPreview(const LibrePaint::Canvas::Gpu::CropPreview &crop)
+{
+    if (auto *gpuCanvas = dynamic_cast<KisGpuCanvasWidget *>(canvasWidget()))
+        return gpuCanvas->collectCropPreview(crop);
+    return false;
+}
+
 void KisCanvas2::drawToolOutline(QPainter *painter,
                                  const KisOptimizedBrushOutline &path,
                                  int thickness)
 {
+    if (auto *gpuCanvas = dynamic_cast<KisGpuCanvasWidget *>(canvasWidget())) {
+        gpuCanvas->collectToolOutline(path, thickness);
+        return;
+    }
     KisOpenGLCanvas2 *openGLCanvas = dynamic_cast<KisOpenGLCanvas2 *>(canvasWidget());
     if (openGLCanvas) {
         painter->beginNativePainting();

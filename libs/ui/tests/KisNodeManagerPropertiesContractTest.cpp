@@ -35,6 +35,7 @@ bool containsOnionSkinValue;
 bool opaqueBackgroundValue;
 int warningCount;
 int applyCount;
+bool applicationSucceeds = true;
 KisNodeSP appliedNodeValue;
 KisImageSP appliedImageValue;
 KisBaseNode::PropertyList appliedPropertiesValue;
@@ -69,7 +70,7 @@ void KisNodeManager::PropertyAccess::showOnionSkinTransparencyWarning(const KisN
     warningCount++;
 }
 
-void KisNodeManager::PropertyAccess::applyProperties(KisNodeSP node,
+bool KisNodeManager::PropertyAccess::applyProperties(KisNodeSP node,
                                                      KisImageSP image,
                                                      KisBaseNode::PropertyList properties)
 {
@@ -77,6 +78,7 @@ void KisNodeManager::PropertyAccess::applyProperties(KisNodeSP node,
     appliedNodeValue = node;
     appliedImageValue = image;
     appliedPropertiesValue = properties;
+    return applicationSucceeds;
 }
 
 class KisNodeManagerPropertiesContractTest : public QObject
@@ -85,6 +87,7 @@ class KisNodeManagerPropertiesContractTest : public QObject
 
 private Q_SLOTS:
     void onionSkinRequiresTransparentBackgroundBeforeUndo();
+    void propertyApplicationFailureIsReported();
 };
 
 void KisNodeManagerPropertiesContractTest::onionSkinRequiresTransparentBackgroundBeforeUndo()
@@ -116,6 +119,7 @@ void KisNodeManagerPropertiesContractTest::onionSkinRequiresTransparentBackgroun
         opaqueBackgroundValue = scenario.hasOpaqueBackground;
         warningCount = 0;
         applyCount = 0;
+        applicationSucceeds = true;
         appliedNodeValue.clear();
         appliedImageValue.clear();
         appliedPropertiesValue.clear();
@@ -130,6 +134,24 @@ void KisNodeManagerPropertiesContractTest::onionSkinRequiresTransparentBackgroun
             QCOMPARE(appliedPropertiesValue.constFirst().name, properties.constFirst().name);
             QCOMPARE(appliedPropertiesValue.constFirst().state, properties.constFirst().state);
         }
+    }
+}
+
+void KisNodeManagerPropertiesContractTest::propertyApplicationFailureIsReported()
+{
+    KisNodeManager manager(nullptr);
+    const KisNodeSP node(token<KisNode>(1));
+    paintLayerValue = false;
+    containsOnionSkinValue = false;
+    opaqueBackgroundValue = false;
+    for (const bool succeeds : {false, true}) {
+        warningCount = 0;
+        applyCount = 0;
+        applicationSucceeds = succeeds;
+        QCOMPARE(manager.trySetNodeProperties(node, {}, {}), succeeds);
+        QCOMPARE(warningCount, 0);
+        QCOMPARE(applyCount, 1);
+        QCOMPARE(appliedNodeValue, node);
     }
 }
 

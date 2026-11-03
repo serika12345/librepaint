@@ -189,8 +189,9 @@ KisToolTransform::~KisToolTransform()
 
 void KisToolTransform::outlineChanged()
 {
+    const auto target = m_canvas;
     Q_EMIT freeTransformChanged();
-    m_canvas->updateCanvas();
+    if (target) target->updateCanvas();
 }
 
 void KisToolTransform::canvasUpdateRequested()
@@ -284,14 +285,16 @@ KisTransformStrategyBase* KisToolTransform::currentStrategy() const
 
 void KisToolTransform::paint(QPainter& gc, const KoViewConverter &converter)
 {
+    QPointer<KisToolTransform> guard(this);
     Q_UNUSED(converter);
 
-    if (!m_strokeId || m_transaction.rootNodes().isEmpty()) return;
+    if (!hasStroke() || m_transaction.rootNodes().isEmpty()) return;
 
     QRectF newRefRect = KisTransformUtils::imageToFlake(m_canvas->coordinatesConverter(), QRectF(0.0,0.0,1.0,1.0));
     if (m_refRect != newRefRect) {
         m_refRect = newRefRect;
         currentStrategy()->externalConfigChanged();
+        if (!guard) return;
     }
     currentStrategy()->setDecorationThickness(decorationThickness());
     currentStrategy()->paint(gc, m_canvas->displayRendererInterface());
@@ -311,9 +314,9 @@ void KisToolTransform::setFunctionalCursor()
         return;
     }
 
-    if (!m_strokeId) {
+    if (!hasStroke()) {
         useCursor(KisCursor::pointingHandCursor());
-    } else if (m_strokeId && m_transaction.rootNodes().isEmpty()) {
+    } else if (hasStroke() && m_transaction.rootNodes().isEmpty()) {
         // we are in the middle of stroke initialization
         useCursor(KisCursor::waitCursor());
     } else {
@@ -348,12 +351,13 @@ void KisToolTransform::cursorOutlineUpdateRequested(const QPointF &imagePos)
 
 void KisToolTransform::beginActionImpl(KoPointerEvent *event, bool usePrimaryAction, KisTool::AlternateAction action)
 {
+    QPointer<KisToolTransform> guard(this);
     if (!nodeEditable()) {
         event->ignore();
         return;
     }
 
-    if (!m_strokeId) {
+    if (!hasStroke()) {
         startStroke(m_currentArgs.mode(), action == KisTool::ChangeSize);
     } else if (!m_transaction.rootNodes().isEmpty()) {
         bool result = false;
@@ -364,11 +368,13 @@ void KisToolTransform::beginActionImpl(KoPointerEvent *event, bool usePrimaryAct
             result = currentStrategy()->beginAlternateAction(event, action);
         }
 
+        if (!guard) return;
         if (result) {
             setMode(KisTool::PAINT_MODE);
         }
     }
 
+    if (!guard) return;
     m_actuallyMoveWhileSelected = false;
 
     outlineChanged();
@@ -376,6 +382,7 @@ void KisToolTransform::beginActionImpl(KoPointerEvent *event, bool usePrimaryAct
 
 void KisToolTransform::continueActionImpl(KoPointerEvent *event, bool usePrimaryAction, KisTool::AlternateAction action)
 {
+    QPointer<KisToolTransform> guard(this);
     if (mode() != KisTool::PAINT_MODE) return;
     if (m_transaction.rootNodes().isEmpty()) return;
 
@@ -387,6 +394,7 @@ void KisToolTransform::continueActionImpl(KoPointerEvent *event, bool usePrimary
         currentStrategy()->continueAlternateAction(event, action);
     }
 
+    if (!guard) return;
     setFunctionalCursor();
     updateOptionWidget();
     outlineChanged();
@@ -394,6 +402,7 @@ void KisToolTransform::continueActionImpl(KoPointerEvent *event, bool usePrimary
 
 void KisToolTransform::endActionImpl(KoPointerEvent *event, bool usePrimaryAction, KisTool::AlternateAction action)
 {
+    QPointer<KisToolTransform> guard(this);
     if (mode() != KisTool::PAINT_MODE) return;
 
     setMode(KisTool::HOVER_MODE);
@@ -409,6 +418,7 @@ void KisToolTransform::endActionImpl(KoPointerEvent *event, bool usePrimaryActio
             result = currentStrategy()->endAlternateAction(event, action);
         }
 
+        if (!guard) return;
         if (result) {
             commitChanges();
         }
@@ -752,7 +762,9 @@ void KisToolTransform::initTransformMode(ToolTransformArgs::TransformMode mode)
 
 void KisToolTransform::initGuiAfterTransformMode()
 {
+    QPointer<KisToolTransform> guard(this);
     currentStrategy()->externalConfigChanged();
+    if (!guard) return;
     outlineChanged();
     updateOptionWidget();
     updateApplyResetAvailability();
@@ -852,13 +864,17 @@ void KisToolTransform::activate(const QSet<KoShape*> &shapes)
         m_transaction = TransformTransactionProperties(QRectF(), &m_currentArgs, KisNodeList(), {});
     }
 
+    QPointer<KisToolTransform> guard(this);
     startStroke(toArgsMode(nextActivationTransformMode), false);
+    if (!guard) return;
     nextActivationTransformMode = KisToolTransform::FreeTransformMode;
 }
 
 void KisToolTransform::deactivate()
 {
+    QPointer<KisToolTransform> guard(this);
     endStroke();
+    if (!guard) return;
     m_canvas->updateCanvas();
     m_actionConnections.clear();
     KisTool::deactivate();
@@ -866,7 +882,7 @@ void KisToolTransform::deactivate()
 
 void KisToolTransform::requestUndoDuringStroke()
 {
-    if (!m_strokeId || m_transaction.rootNodes().isEmpty() || mode() != HOVER_MODE) return;
+    if (!hasStroke() || m_transaction.rootNodes().isEmpty() || mode() != HOVER_MODE) return;
 
     if (!m_changesTracker.canUndo()) {
         cancelStroke();
@@ -877,7 +893,7 @@ void KisToolTransform::requestUndoDuringStroke()
 
 void KisToolTransform::requestRedoDuringStroke()
 {
-    if (!m_strokeId || m_transaction.rootNodes().isEmpty()) return;
+    if (!hasStroke() || m_transaction.rootNodes().isEmpty()) return;
 
     if (m_changesTracker.canRedo()) {
         m_changesTracker.requestRedo();
@@ -891,6 +907,7 @@ void KisToolTransform::requestStrokeEnd()
 
 void KisToolTransform::requestStrokeCancellation()
 {
+    if (m_gpuUpdating) { cancelStroke(); return; }
     if (m_transaction.rootNodes().isEmpty() || m_currentArgs.isIdentity()) {
         cancelStroke();
     } else {
@@ -900,6 +917,7 @@ void KisToolTransform::requestStrokeCancellation()
 
 void KisToolTransform::requestImageRecalculation()
 {
+    if (!m_gpuTransform.isNull()) { updateGpuTransform(); return; }
     if (!m_currentlyUsingOverlayPreviewStyle && m_strokeId && !m_transaction.rootNodes().isEmpty()) {
         image()->addJob(
             m_strokeId,
@@ -911,7 +929,7 @@ void KisToolTransform::requestImageRecalculation()
 
 void KisToolTransform::startStroke(ToolTransformArgs::TransformMode mode, bool forceReset)
 {
-    Q_ASSERT(!m_strokeId);
+    Q_ASSERT(!hasStroke());
 
     KisPaintDeviceSP externalSource = m_externalSourceForNextActivation;
     m_externalSourceForNextActivation.clear();
@@ -926,6 +944,10 @@ void KisToolTransform::startStroke(ToolTransformArgs::TransformMode mode, bool f
 
     m_transaction = TransformTransactionProperties(QRectF(), &m_currentArgs, KisNodeList(), {});
     m_currentArgs = ToolTransformArgs();
+    if (image()->gpuImage()) {
+        startGpuTransform(mode, rootNodes, selection, externalSource);
+        return;
+    }
 
     Q_FOREACH (KisNodeSP currentNode, resources->selectedNodes()) {
         KisCanvas2 *kisCanvas = dynamic_cast<KisCanvas2*>(canvas());
@@ -1053,6 +1075,7 @@ void KisToolTransform::startStroke(ToolTransformArgs::TransformMode mode, bool f
 
 void KisToolTransform::endStroke()
 {
+    if (!m_gpuTransform.isNull()) { finishGpuTransform(true); return; }
     if (!m_strokeId) return;
 
     if (m_currentlyUsingOverlayPreviewStyle &&
@@ -1139,6 +1162,7 @@ void KisToolTransform::slotPreviewDeviceGenerated(KisPaintDeviceSP device)
 
 void KisToolTransform::cancelStroke()
 {
+    if (!m_gpuTransform.isNull()) { finishGpuTransform(false); return; }
     if (!m_strokeId) return;
 
     if (m_asyncUpdateHelper.isActive()) {
@@ -1155,7 +1179,7 @@ void KisToolTransform::cancelStroke()
 
 void KisToolTransform::commitChanges()
 {
-    if (!m_strokeId || m_transaction.rootNodes().isEmpty()) return;
+    if (!hasStroke() || m_transaction.rootNodes().isEmpty()) return;
 
     m_changesTracker.commitConfig(toQShared(m_currentArgs.clone()));
 }
@@ -1167,7 +1191,9 @@ void KisToolTransform::slotTrackerChangedConfig(KisToolChangesTrackerDataSP stat
 
     *m_transaction.currentConfig() = *newArgs;
 
+    QPointer<KisToolTransform> guard(this);
     slotUiChangedConfig(true);
+    if (!guard) return;
     updateOptionWidget();
 }
 
@@ -1258,10 +1284,12 @@ void KisToolTransform::updateApplyResetAvailability()
 
 void KisToolTransform::slotUiChangedConfig(bool needsPreviewRecalculation)
 {
+    QPointer<KisToolTransform> guard(this);
     if (mode() == KisTool::PAINT_MODE) return;
 
     if (needsPreviewRecalculation) {
         currentStrategy()->externalConfigChanged();
+        if (!guard) return;
     }
 
     if (m_currentArgs.mode() == ToolTransformArgs::LIQUIFY) {
@@ -1288,7 +1316,7 @@ void KisToolTransform::slotResetTransform(ToolTransformArgs::TransformMode mode)
         config->setWarpCalculation(KisWarpTransformWorker::WarpCalculation::GRID);
     }
 
-    if (!m_strokeId || m_transaction.rootNodes().isEmpty()) return;
+    if (!hasStroke() || m_transaction.rootNodes().isEmpty()) return;
 
     if (m_currentArgs.continuedTransform()) {
         ToolTransformArgs::TransformMode savedMode = m_currentArgs.mode();
@@ -1339,7 +1367,7 @@ void KisToolTransform::slotCancelTransform()
 
 void KisToolTransform::slotRestartTransform()
 {
-    if (!m_strokeId || m_transaction.rootNodes().isEmpty()) return;
+    if (!hasStroke() || m_transaction.rootNodes().isEmpty()) return;
 
     KisNodeSP root = m_transaction.rootNodes()[0];
     KIS_ASSERT_RECOVER_RETURN(root); // the stroke is guaranteed to be started by an 'if' above
@@ -1351,7 +1379,7 @@ void KisToolTransform::slotRestartTransform()
 
 void KisToolTransform::slotRestartAndContinueTransform()
 {
-    if (!m_strokeId || m_transaction.rootNodes().isEmpty()) return;
+    if (!hasStroke() || m_transaction.rootNodes().isEmpty()) return;
 
     KisNodeSP root = m_transaction.rootNodes()[0];
     KIS_ASSERT_RECOVER_RETURN(root); // the stroke is guaranteed to be started by an 'if' above
@@ -1468,11 +1496,13 @@ void KisToolTransform::setScaleX(double scale)
 
 void KisToolTransform::setTranslateY(double translation)
 {
+    QPointer<KisToolTransform> guard(this);
     TransformToolMode mode = transformMode();
 
-    if (m_strokeId && (mode == FreeTransformMode || mode == PerspectiveTransformMode)) {
+    if (hasStroke() && (mode == FreeTransformMode || mode == PerspectiveTransformMode)) {
         m_currentArgs.setTransformedCenter(QPointF(translateX(), translation));
         currentStrategy()->externalConfigChanged();
+        if (!guard) return;
         updateOptionWidget();
         outlineChanged();
     }
@@ -1480,11 +1510,13 @@ void KisToolTransform::setTranslateY(double translation)
 
 void KisToolTransform::setTranslateX(double translation)
 {
+    QPointer<KisToolTransform> guard(this);
     TransformToolMode mode = transformMode();
 
-    if (m_strokeId && (mode == FreeTransformMode || mode == PerspectiveTransformMode)) {
+    if (hasStroke() && (mode == FreeTransformMode || mode == PerspectiveTransformMode)) {
         m_currentArgs.setTransformedCenter(QPointF(translation, translateY()));
         currentStrategy()->externalConfigChanged();
+        if (!guard) return;
         updateOptionWidget();
         outlineChanged();
     }

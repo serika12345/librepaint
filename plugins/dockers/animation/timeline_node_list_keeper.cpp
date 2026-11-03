@@ -14,6 +14,7 @@
 
 #include <QSet>
 #include <QPointer>
+#include <QScopedValueRollback>
 #include <qabstractitemmodel.h>
 #include <QtGlobal>
 #include <qhashfunctions.h>
@@ -44,11 +45,13 @@ struct TimelineNodeListKeeper::Private
     KisDummiesFacadeBase *dummiesFacade;
     KisNodeDisplayModeAdapter *displayModeAdapter;
     bool showGlobalSelectionMask;
+    bool changingRows = false;
 
     TimelineFramesIndexConverter converter;
 
     QVector<KisNodeDummy*> dummiesList;
     QSet<KisNodeDummy*> connectionsSet;
+    QSet<KisNodeDummy*> removingDummies;
     KisSignalAutoConnectionsStore channelConnectionsStore;
 
     void populateDummiesList() {
@@ -112,8 +115,14 @@ int TimelineNodeListKeeper::rowCount()
     return m_d->dummiesList.size();
 }
 
-void TimelineNodeListKeeper::updateActiveDummy(KisNodeDummy *dummy)
+bool TimelineNodeListKeeper::isRemovingDummy(KisNodeDummy *dummy) const
 {
+    return m_d->removingDummies.contains(dummy);
+}
+
+bool TimelineNodeListKeeper::updateActiveDummy(KisNodeDummy *dummy)
+{
+    if (m_d->changingRows) return false;
     bool oldRemoved = false;
     bool newAdded = false;
 
@@ -121,12 +130,13 @@ void TimelineNodeListKeeper::updateActiveDummy(KisNodeDummy *dummy)
     m_d->converter.updateActiveDummy(dummy, &oldRemoved, &newAdded);
 
     if (oldRemoved) {
-        slotBeginRemoveDummy(oldActiveDummy);
+        removeDummyRow(oldActiveDummy);
     }
 
     if (newAdded) {
         slotEndInsertDummy(dummy);
     }
+    return true;
 }
 
 void TimelineNodeListKeeper::slotUpdateDummyContent(QPointer<KisNodeDummy> dummy)
@@ -198,8 +208,17 @@ void TimelineNodeListKeeper::slotEndInsertDummy(KisNodeDummy *dummy)
     KIS_ASSERT_RECOVER_RETURN(!m_d->dummiesList.contains(dummy));
 
     if (m_d->converter.isDummyVisible(dummy)) {
-        int pos = m_d->converter.rowForDummy(dummy);
+        const int treeRow = m_d->converter.rowForDummy(dummy);
+        int pos = treeRow;
+        // Removal notifications precede the facade's tree change. These rows
+        // have already left our model and must not offset a new active row.
+        for (auto removed : m_d->removingDummies) {
+            const int removedRow = m_d->converter.rowForDummy(removed);
+            if (removedRow >= 0 && removedRow < treeRow) --pos;
+        }
+        KIS_SAFE_ASSERT_RECOVER_RETURN(pos >= 0 && pos <= m_d->dummiesList.size());
 
+        QScopedValueRollback<bool> changingRows(m_d->changingRows, true);
         m_d->model->callBeginInsertRows(QModelIndex(), pos, pos);
         m_d->dummiesList.insert(pos, 1, dummy);
         m_d->tryConnectDummy(dummy);
@@ -209,9 +228,24 @@ void TimelineNodeListKeeper::slotEndInsertDummy(KisNodeDummy *dummy)
 
 void TimelineNodeListKeeper::slotBeginRemoveDummy(KisNodeDummy *dummy)
 {
+    // Other facade listeners can select this node before its destruction.
+    m_d->removingDummies.insert(dummy);
+    connect(dummy, &QObject::destroyed, this, [this, dummy] {
+        m_d->removingDummies.remove(dummy);
+    });
+    // The facade removes the complete subtree after this notification.
+    for (auto child = dummy->firstChild(); child; child = child->nextSibling()) {
+        slotBeginRemoveDummy(child);
+    }
+    removeDummyRow(dummy);
+}
+
+void TimelineNodeListKeeper::removeDummyRow(KisNodeDummy *dummy)
+{
     if (m_d->dummiesList.contains(dummy)) {
         int pos = m_d->dummiesList.indexOf(dummy);
 
+        QScopedValueRollback<bool> changingRows(m_d->changingRows, true);
         m_d->model->callBeginRemoveRows(QModelIndex(), pos, pos);
         m_d->disconnectDummy(dummy);
         m_d->dummiesList.remove(pos);
@@ -223,6 +257,7 @@ void TimelineNodeListKeeper::slotBeginRemoveDummy(KisNodeDummy *dummy)
 
 void TimelineNodeListKeeper::slotDummyChanged(KisNodeDummy *dummy)
 {
+    if (isRemovingDummy(dummy)) return;
     const bool present = m_d->dummiesList.contains(dummy);
     const bool shouldBe = m_d->converter.isDummyVisible(dummy);
 
@@ -231,7 +266,7 @@ void TimelineNodeListKeeper::slotDummyChanged(KisNodeDummy *dummy)
     if (!present && shouldBe) {
         slotEndInsertDummy(dummy);
     } else if (present && !shouldBe) {
-        slotBeginRemoveDummy(dummy);
+        removeDummyRow(dummy);
     }
 }
 

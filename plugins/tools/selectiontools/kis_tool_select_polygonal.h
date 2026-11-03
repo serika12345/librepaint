@@ -33,6 +33,7 @@ class KisToolSelectPolygonal : public KisToolSelectUiBase<__KisToolSelectPolygon
 public:
     KisToolSelectPolygonal(KoCanvasBase* canvas);
     void resetCursorStyle() override;
+    bool supportsGpuSelection() const override { return true; }
 private:
     void finishPolyline(const QVector<QPointF> &points) override;
     void beginShape() override;

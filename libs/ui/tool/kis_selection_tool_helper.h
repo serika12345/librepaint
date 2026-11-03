@@ -8,7 +8,11 @@
 
 #include <kritaui_export.h>
 #include <QList>
+#include <QPainterPath>
 #include <QPointer>
+#include <QSize>
+
+#include <gpu/KisGpuSelectionMask.h>
 
 #include "kundo2magicstring.h"
 #include "kis_selection.h"
@@ -18,6 +22,7 @@ class KoShape;
 class KisCanvas2;
 class KisProcessingApplicator;
 class QMenu;
+namespace LibrePaint::Image::Gpu { struct RegionFillSettings; }
 
 /**
  * XXX: Doc!
@@ -42,6 +47,34 @@ public:
     static QMenu* getSelectionContextMenu(KoCanvasBase* canvas);
 
     SelectionMode tryOverrideSelectionMode(KisSelectionSP activeSelection, SelectionMode currentMode, SelectionAction currentAction) const;
+
+    /** Rasterizes the closed polygon `vertices`, in document pixels, into
+     * frozen binary GPU coverage clipped to `imageSize`. Null reports fewer
+     * than three vertices, non-finite coordinates or no selected pixel.
+     */
+    static LibrePaint::Image::Gpu::SelectionMaskSP gpuSelectionMaskFromPolygon(
+        const QList<QPointF> &vertices, const QSize &imageSize);
+
+    /** Flattens the closed `path`, in document pixels, into one polygon of
+     * vertices for gpuSelectionMaskFromPolygon(). Empty reports no contour, a
+     * path with several contours, or a degenerate polygon instead of silently
+     * approximating part of the path.
+     */
+    static QList<QPointF> gpuSelectionPolygonVertices(const QPainterPath &path);
+
+    /** Applies a frozen shape to the GPU document with the ordinary tool action. */
+    bool selectGpuSelection(const LibrePaint::Image::Gpu::SelectionMaskSP &mask, SelectionAction action);
+
+    /** Freezes geometric tool input using native path coverage, growth and
+     * feathering, then applies one selection/history change. The temporary
+     * input mask contains no document pixels. Failure preserves the document.
+     */
+    bool selectGpuSelectionPath(const QPainterPath &path, bool antiAlias, int grow, int feather,
+                                SelectionAction action);
+    /** Captures the document colour definition and applies a colour selection
+     * to the GPU owner as one ordinary selection/history operation. */
+    bool selectGpuColourRegion(KisNodeSP reference, const LibrePaint::Image::Gpu::RegionFillSettings &settings,
+                                SelectionAction action);
 
 
 private:

@@ -7,6 +7,7 @@
 #include "kis_iptc_io.h"
 #include "kis_meta_data_io_backend.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <exiv2/datasets.hpp>
 #include <exiv2/error.hpp>
@@ -121,7 +122,10 @@ bool KisIptcIO::saveTo(const KisMetaData::Store *store, QIODevice *ioDevice, Hea
     initMappingsTable();
     ioDevice->open(QIODevice::WriteOnly);
     Exiv2::IptcData iptcData;
-    for (const KisMetaData::Entry &entry : *store) {
+    auto keys = store->keys();
+    std::sort(keys.begin(), keys.end());
+    for (const auto &key : keys) {
+        const auto &entry = store->getEntry(key);
         if (d->kmdToIPTC.contains(entry.qualifiedName())) {
             if (blockedEntries.contains(entry.qualifiedName())) {
                 warnKrita << "skipping" << entry.qualifiedName() << entry.value();

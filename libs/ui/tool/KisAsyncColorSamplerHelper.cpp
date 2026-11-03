@@ -13,6 +13,7 @@
 #include <QPainterPath>
 #include <QPalette>
 #include <QPixmap>
+#include <QPointer>
 #include <QtMath>
 #include <QTransform>
 #include <functional>
@@ -30,6 +31,8 @@
 #include <klocalizedstring.h>
 #include "KoCanvasResourcesIds.h"
 #include "KoCanvasResourceProvider.h"
+#include <KoColor.h>
+#include <KoColorSpace.h>
 #include "KoColorSpaceConstants.h"
 #include "KoViewConverter.h"
 #include "KoIcon.h"
@@ -46,6 +49,10 @@
 #include "canvas/KisReferenceImagesDecoration.h"
 #include "kis_display_color_converter.h"
 #include "opengl/kis_opengl.h"
+#include "kis_image.h"
+#include "kis_node.h"
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
 
 
 namespace {
@@ -64,7 +71,7 @@ struct KisAsyncColorSamplerHelper::Private
         : canvas(_canvas)
     {}
 
-    KisCanvas2 *canvas;
+    QPointer<KisCanvas2> canvas;
 
     int sampleResourceId {0};
     bool sampleCurrentLayer {true};
@@ -75,6 +82,9 @@ struct KisAsyncColorSamplerHelper::Private
     bool haveSample {false};
 
     KisColorSamplerStroke samplingStroke;
+    KisImageWSP samplingImage;
+    QUuid samplingDocumentId;
+    quint64 samplingActionSerial = 0;
     typedef KisSignalCompressorWithParam<QPointF> SamplingCompressor;
     QScopedPointer<SamplingCompressor> samplingCompressor;
 
@@ -94,6 +104,15 @@ struct KisAsyncColorSamplerHelper::Private
     QPixmap cache;
     qreal cacheRotation = 0.0;
     bool cacheMirror = false;
+
+    bool isCurrentSamplingDocument() const
+    {
+        const auto image = samplingImage.toStrongRef();
+        if (!canvas || !image || canvas->image().data() != image.data()) return false;
+        const auto owner = image->gpuImage();
+        return samplingDocumentId.isNull() || (owner && owner->handle() &&
+            owner->operations().snapshot()->documentId() == samplingDocumentId);
+    }
 
     const KoViewConverter &converter() const {
         return *canvas->imageView()->viewConverter();
@@ -198,14 +217,23 @@ KisAsyncColorSamplerHelper::KisAsyncColorSamplerHelper(KisCanvas2 *canvas)
     connect(&m_d->samplingStroke, &KisColorSamplerStroke::sigColorUpdated,
             this, &KisAsyncColorSamplerHelper::slotColorSamplingFinished);
     connect(&m_d->samplingStroke, &KisColorSamplerStroke::sigFinalColorSelected,
-            this, &KisAsyncColorSamplerHelper::sigFinalColorSelected);
+            this, [this](const KoColor &color) {
+                if (!m_d->isCurrentSamplingDocument()) { resetSampling(); return; }
+                Q_EMIT sigFinalColorSelected(color);
+            });
+    connect(&m_d->samplingStroke, &KisColorSamplerStroke::sigSamplingFailed,
+            this, [this](const QString &diagnostic) {
+                if (!m_d->isCurrentSamplingDocument()) { resetSampling(); return; }
+                m_d->canvas->viewManager()->showFloatingMessage(
+                    i18n("The color could not be sampled: %1", diagnostic), QIcon());
+            });
     connect(m_d->canvas->displayColorConverter(), SIGNAL(displayConfigurationChanged()), this, SLOT(slotUpdateBgColor()));
     slotUpdateBgColor();
 }
 
 KisAsyncColorSamplerHelper::~KisAsyncColorSamplerHelper()
 {
-    KIS_SAFE_ASSERT_RECOVER_NOOP(!m_d->samplingStroke.isActive());
+    resetSampling();
 }
 
 bool KisAsyncColorSamplerHelper::isActive() const
@@ -215,6 +243,7 @@ bool KisAsyncColorSamplerHelper::isActive() const
 
 void KisAsyncColorSamplerHelper::activate(bool sampleCurrentLayer, bool pickFgColor)
 {
+    resetSampling();
 
     KIS_SAFE_ASSERT_RECOVER_RETURN(!m_d->isActive);
     m_d->isActive = true;
@@ -328,21 +357,36 @@ void KisAsyncColorSamplerHelper::deactivate()
 
 void KisAsyncColorSamplerHelper::startAction(const QPointF &docPoint, int radius, int blend)
 {
+    resetSampling();
     activatePreview();
     m_d->haveSample = true;
-    m_d->samplingStroke.start(m_d->canvas->image().data(), radius, blend);
+    const auto image = m_d->canvas->image();
+    m_d->samplingImage = image;
+    if (const auto owner = image->gpuImage())
+        m_d->samplingDocumentId = owner->operations().snapshot()->documentId();
+    if (!m_d->samplingStroke.start(image, radius, blend)) return;
     m_d->samplingCompressor->start(docPoint);
 }
 
 void KisAsyncColorSamplerHelper::continueAction(const QPointF &docPoint)
 {
-    KIS_SAFE_ASSERT_RECOVER_RETURN(m_d->samplingStroke.isActive());
+    if (!m_d->samplingStroke.isActive()) return;
+    if (!m_d->isCurrentSamplingDocument()) { resetSampling(); return; }
     m_d->samplingCompressor->start(docPoint);
 }
 
 void KisAsyncColorSamplerHelper::endAction()
 {
-    m_d->samplingStroke.finish();
+    m_d->samplingCompressor->stop();
+    if (m_d->samplingStroke.isActive()) m_d->samplingStroke.finish();
+}
+
+void KisAsyncColorSamplerHelper::resetSampling()
+{
+    ++m_d->samplingActionSerial;
+    m_d->samplingImage = KisImageWSP();
+    m_d->samplingDocumentId = {};
+    m_d->samplingStroke.cancel();
 }
 
 QRectF KisAsyncColorSamplerHelper::colorPreviewDocRect(const QPointF &docPoint)
@@ -560,6 +604,7 @@ void KisAsyncColorSamplerHelper::slotAddSamplingJob(const QPointF &docPoint)
      * event when the stroke is already closed
      */
     if (!m_d->samplingStroke.isActive()) return;
+    if (!m_d->isCurrentSamplingDocument()) { resetSampling(); return; }
 
     KisImageSP image = m_d->canvas->image();
 
@@ -570,30 +615,28 @@ void KisAsyncColorSamplerHelper::slotAddSamplingJob(const QPointF &docPoint)
         if (referencesLayer && m_d->canvas->referenceImagesDecoration()->visible()) {
             KoColor color = referencesLayer->getPixel(imagePoint);
             if (color.opacityU8() > 0) {
-                slotColorSamplingFinished(color);
+                m_d->samplingStroke.addReferenceColor(color);
                 return;
             }
         }
     }
 
-    KisPaintDeviceSP device = m_d->sampleCurrentLayer ?
-        m_d->canvas->imageView()->currentNode()->colorSampleSourceDevice() :
-        image->projection();
-
-    if (device) {
-        // Used for color sampler blending.
-        const KoColor currentColor =
-            m_d->canvas->resourceManager()->koColorResource(m_d->sampleResourceId);
-
-        m_d->samplingStroke.addSample(device, imagePoint, currentColor);
-    } else {
-        QString message = i18n("Color sampler does not work on this layer.");
-        m_d->canvas->viewManager()->showFloatingMessage(message, koIcon("object-locked"));
-    }
+    const auto node = m_d->sampleCurrentLayer ?
+        m_d->canvas->imageView()->currentNode() : KisNodeSP();
+    if (m_d->sampleCurrentLayer && !node) return;
+    const auto currentColor =
+        m_d->canvas->resourceManager()->koColorResource(m_d->sampleResourceId);
+    m_d->samplingStroke.addSample(node, imagePoint, currentColor);
 }
 
 void KisAsyncColorSamplerHelper::slotColorSamplingFinished(const KoColor &rawColor)
 {
+    const QPointer<KisAsyncColorSamplerHelper> guard(this);
+    const auto serial = m_d->samplingActionSerial;
+    const auto currentAction = [&] {
+        return guard && m_d->samplingActionSerial == serial && m_d->isCurrentSamplingDocument();
+    };
+    if (!currentAction()) return;
     KoColor color(rawColor);
 
     color.setOpacity(OPACITY_OPAQUE_U8);
@@ -601,9 +644,12 @@ void KisAsyncColorSamplerHelper::slotColorSamplingFinished(const KoColor &rawCol
     if (m_d->updateGlobalColor) {
         m_d->canvas->resourceManager()->setResource(m_d->sampleResourceId, color);
     }
+    if (!currentAction()) return;
 
     Q_EMIT sigRawColorSelected(rawColor);
+    if (!currentAction()) return;
     Q_EMIT sigColorSelected(color);
+    if (!currentAction()) return;
 
     if (!m_d->showPreview) return;
 

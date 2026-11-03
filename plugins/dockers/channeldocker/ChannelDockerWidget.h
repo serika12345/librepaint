@@ -13,6 +13,8 @@
 #include <KisChannelsThumbnailsStrokeStrategyMetatypes.h>
 #include <canvas/KisWidgetWithIdleTask.h>
 #include <QTableView>
+#include <QTimer>
+#include <kis_signal_auto_connection.h>
 #include <kis_canvas2.h>
 
 class ChannelModel;
@@ -31,6 +33,11 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void updateImageThumbnails(const QVector<QImage> &channels, const KoColorSpace *cs);
+    void updateGpuThumbnails();
+
+protected:
+    void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
 
 private:
     KisIdleTasksManager::TaskGuard registerIdleTask(KisCanvas2 *canvas) override;
@@ -39,6 +46,9 @@ private:
 private:
     QTableView *m_channelTable {nullptr};
     ChannelModel *m_model {nullptr};
+    QPointer<KisCanvas2> m_gpuCanvas;
+    QTimer m_gpuUpdate;
+    KisSignalAutoConnectionsStore m_canvasConnections;
 };
 
 

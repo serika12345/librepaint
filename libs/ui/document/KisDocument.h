@@ -55,6 +55,8 @@ class QDomDocument;
 class KisReferenceImagesLayer;
 class KisUniqueColorSet;
 class KoProgressProxy;
+class QIODevice;
+namespace LibrePaint::Document::Gpu { class PaintDocument; }
 
 #include <KisImportExportMimeType.h>
 
@@ -161,6 +163,8 @@ public:
 
 private:
     bool exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPropertiesConfigurationSP exportConfiguration, bool isAdvancedExporting= false);
+    bool exportGpuDocument(const KritaUtils::ExportFileJob &job, bool notifyCompletion,
+                           KisPropertiesConfigurationSP exportConfiguration = {}, bool isAdvancedExporting = false);
 
 public:
     /**
@@ -241,6 +245,9 @@ public:
      * @note The preview is used in the File Dialog and also to create the Thumbnail
      */
     QPixmap generatePreview(const QSize& size);
+
+    /** Returns preview pixels independently of the display's pixmap format. */
+    QImage generatePreviewImage(const QSize& size);
 
     /**
      *  @brief Sets the document to empty.
@@ -486,6 +493,16 @@ Q_SIGNALS:
     void sigRecoveredChanged(bool value);
     void sigPathChanged(const QString &path);
 
+    /** A non-null current image will be replaced.
+     * Receivers may close the document while handling the notification.
+     */
+    void sigCurrentImageAboutToChange();
+
+    /** A different non-null current image has been adopted.
+     * Receivers may close the document while handling the notification.
+     */
+    void sigCurrentImageChanged();
+
     void sigLoadingFinished();
 
     void sigSavingFinished(const QString &filePath);
@@ -613,6 +630,12 @@ public:
     bool newImage(const QString& name, qint32 width, qint32 height, const KoColorSpace * cs, const KoColor &bgColor, KisConfig::BackgroundStyle bgStyle,
                   int numberOfLayers, const QString &imageDescription, const double imageResolution);
 
+    /** Synchronous native import for the ordinary GPU session. The borrowed,
+     * open seekable source stays open. Unsupported features leave the current
+     * image unchanged and supply an error message. Uses the application thread.
+     */
+    KisImportExportErrorCode importGpuKra(QIODevice &source);
+
     bool isSaving() const;
     void waitForSavingToComplete();
 
@@ -648,6 +671,9 @@ public:
 
     /**
      * Set the current image to the specified image and turn undo on.
+     * Adopting a different image resets the document's history. Documents with
+     * views replace their image on the GUI thread; views suspend old input and
+     * rebind their presentation and controls around the adoption notifications.
      */
     void setCurrentImage(KisImageSP image, bool forceInitialUpdate = true, KisNodeSP preActivatedNode = nullptr);
 
@@ -779,6 +805,7 @@ public:
     KisDocument *lockAndCreateSnapshot();
 
     /// Clones the document with its resource storage while holding the image's read barrier lock.
+    /// Returns null if the document closes or its image changes while waiting for the lock.
     KisDocument *cloneWithImageReadLock();
 
     void copyFromDocument(const KisDocument &rhs);
@@ -791,6 +818,8 @@ private:
     };
 
     void copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy);
+    void setCurrentImageImpl(KisImageSP image, bool forceInitialUpdate, KisNodeSP preActivatedNode,
+                             std::shared_ptr<LibrePaint::Document::Gpu::PaintDocument> fileDocument);
 
     QString prettyPath() const;
 

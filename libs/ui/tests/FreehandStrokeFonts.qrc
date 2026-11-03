@@ -1,0 +1,8 @@
+<!-- SPDX-FileCopyrightText: 2026 LibrePaint contributors -->
+<!-- SPDX-License-Identifier: GPL-2.0-or-later -->
+<RCC>
+  <qresource prefix="/freehand-contract-fonts">
+    <file alias="DejaVuSans.ttf">../../flake/tests/data/fonts/DejaVuSans.ttf</file>
+    <file alias="provenance.txt">../../flake/tests/data/fonts/README</file>
+  </qresource>
+</RCC>

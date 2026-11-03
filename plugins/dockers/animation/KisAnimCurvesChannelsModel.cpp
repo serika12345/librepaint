@@ -25,6 +25,7 @@
 #include <qalgorithms.h>
 #include <qcolor.h>
 #include <QtGlobal>
+#include <QPointer>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qnamespace.h>
@@ -35,18 +36,18 @@ const quintptr ID_NODE = 0xffffffff;
 
 struct NodeListItem
 {
-    NodeListItem(KisNodeDummy *dummy)
-        : dummy(dummy)
+    NodeListItem(const KisNodeSP &node)
+        : node(node)
     {}
 
-    KisNodeDummy *dummy;
+    KisNodeSP node;
     QList<KisAnimationCurve*> curves;
 };
 
 struct KisAnimCurvesChannelsModel::Private
 {
     KisAnimCurvesModel *curvesModel;
-    KisDummiesFacadeBase *dummiesFacade = 0;
+    QPointer<KisDummiesFacadeBase> dummiesFacade;
     KisSignalAutoConnectionsStore dummiesFacadeConnections;
 
     QList<NodeListItem*> items;
@@ -61,9 +62,9 @@ struct KisAnimCurvesChannelsModel::Private
         return items.at(row);
     }
 
-    int rowForDummy(KisNodeDummy *dummy) {
+    int rowForNode(const KisNodeSP &node) {
         for (int row=0; row < items.count(); row++) {
-            if (items.at(row)->dummy == dummy) return row;
+            if (items.at(row)->node == node) return row;
         }
 
         return -1;
@@ -103,8 +104,8 @@ void KisAnimCurvesChannelsModel::selectedNodesChanged(const QList<KisNodeSP> &no
     // Remove unselected nodes
     for (int i = m_d->items.count()-1; i >= 0; i--) {
         NodeListItem *item = m_d->items.at(i);
-        if (item && item->dummy) {
-            if (!nodes.contains(item->dummy->node())) {
+        if (item) {
+            if (!m_d->dummiesFacade || !nodes.contains(item->node)) {
                 beginRemoveRows(QModelIndex(), i, i);
                 m_d->items.removeAt(i);
                 endRemoveRows();
@@ -114,8 +115,8 @@ void KisAnimCurvesChannelsModel::selectedNodesChanged(const QList<KisNodeSP> &no
 
                 }
 
-                if (!item->dummy->node().isNull()) {
-                    item->dummy->node()->disconnect(this);
+                if (item->node) {
+                    item->node->disconnect(this);
                 }
 
                 delete item;
@@ -123,18 +124,20 @@ void KisAnimCurvesChannelsModel::selectedNodesChanged(const QList<KisNodeSP> &no
         }
     }
 
+    if (!m_d->dummiesFacade) return;
+
     // Add newly selected nodes
     Q_FOREACH(KisNodeSP node, nodes) {
         KisNodeDummy *dummy = m_d->dummiesFacade->dummyForNode(node);
         if (!dummy) continue;
 
-        if (m_d->rowForDummy(dummy) == -1) {
+        if (m_d->rowForNode(node) == -1) {
             beginInsertRows(QModelIndex(), m_d->items.count(), m_d->items.count());
 
-            NodeListItem *item = new NodeListItem(dummy);
+            NodeListItem *item = new NodeListItem(node);
             m_d->items.append(item);
 
-            Q_FOREACH(KisKeyframeChannel *channel, dummy->node()->keyframeChannels()) {
+            Q_FOREACH(KisKeyframeChannel *channel, node->keyframeChannels()) {
                 m_d->addCurveForChannel(item, channel);
             }
 
@@ -154,7 +157,7 @@ void KisAnimCurvesChannelsModel::reset(const QModelIndex &index)
     if (indexIsNode) {
         NodeListItem *item = m_d->itemForRow(index.row());
 
-        KisNodeSP node = item->dummy->node();
+        KisNodeSP node = item->node;
         if (!node || !node->image())
             return;
 
@@ -176,7 +179,7 @@ void KisAnimCurvesChannelsModel::reset(const QModelIndex &index)
         if (!curve)
             return;
 
-        KisNodeSP node = item->dummy->node();
+        KisNodeSP node = item->node;
 
         if (!node || !node->image())
             return;
@@ -188,8 +191,8 @@ void KisAnimCurvesChannelsModel::reset(const QModelIndex &index)
 
 void KisAnimCurvesChannelsModel::keyframeChannelAddedToNode(KisKeyframeChannel *channel)
 {
-    KisNodeDummy *dummy = m_d->dummiesFacade->dummyForNode(KisNodeSP(channel->node()));
-    int row = m_d->rowForDummy(dummy);
+    if (!m_d->dummiesFacade) return;
+    int row = m_d->rowForNode(KisNodeSP(channel->node()));
     KIS_ASSERT_RECOVER_RETURN(row >= 0);
 
     NodeListItem *item = m_d->itemForRow(row);
@@ -204,16 +207,17 @@ void KisAnimCurvesChannelsModel::keyframeChannelAddedToNode(KisKeyframeChannel *
 
 void KisAnimCurvesChannelsModel::slotNotifyDummyRemoved(KisNodeDummy *dummy)
 {
+    const KisNodeSP removed = dummy->node();
     bool shouldChangeSelection = false;
     KisNodeList newSelectedNodes;
 
     Q_FOREACH (NodeListItem *item, m_d->items) {
-        if (item->dummy == dummy) {
+        if (item->node == removed) {
             shouldChangeSelection = true;
             break;
         }
 
-        newSelectedNodes << item->dummy->node();
+        newSelectedNodes << item->node;
     }
 
     if (shouldChangeSelection) {
@@ -282,7 +286,7 @@ QVariant KisAnimCurvesChannelsModel::data(const QModelIndex &index, int role) co
     switch (role) {
     case Qt::DisplayRole: {
         if (indexIsNode) {
-            return item->dummy->node()->name();
+            return item->node->name();
         } else {
             KisKeyframeChannel *channel = item->curves.at(index.row())->channel();
             return channel->name();
@@ -321,7 +325,7 @@ QVariant KisAnimCurvesChannelsModel::data(const QModelIndex &index, int role) co
 
         KisNodeViewColorScheme nodeColorScheme;
         const QColor backgroundColor = qApp->palette().color(QPalette::Button);
-        const int colorLabelIndex = item->dummy->node()->colorLabelIndex();
+        const int colorLabelIndex = item->node->colorLabelIndex();
         const QColor nodeColor = nodeColorScheme.colorFromLabelIndex(colorLabelIndex);
         return colorLabelIndex > 0 ? KisPaintingTweaks::blendColors(nodeColor, backgroundColor, 0.3) : backgroundColor;
     }

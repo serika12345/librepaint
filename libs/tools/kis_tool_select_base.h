@@ -22,6 +22,7 @@
 #include <kis_selection.h>
 #include <kis_selection_modifier_mapping.h>
 #include <kis_tool.h>
+#include <klocalizedstring.h>
 #include <kritatools_export.h>
 #include <strokes/move_stroke_strategy.h>
 
@@ -55,6 +56,10 @@ public:
         : BaseClass(canvas, cursor, delegateTool)
     {
     }
+
+    /** Whether the concrete tool's selection can be represented by the GPU
+     * document selection contract. */
+    virtual bool supportsGpuSelection() const { return false; }
 
     SelectionAction selectionAction() const
     {
@@ -110,12 +115,15 @@ public:
         const QPointF &pos,
         Qt::KeyboardModifiers modifiers) const
     {
+        if (this->image() && this->image()->gpuImage() && selectionAction() != SELECTION_REPLACE)
+            return KisNodeSP();
         if (modifiers != Qt::NoModifier) {
             return KisNodeSP();
         }
 
         KisToolCanvas *canvasInterface = toolCanvas();
         KisSelectionSP selection = canvasInterface->currentSelectionForTool();
+        if (this->image() && this->image()->gpuImage()) selection = this->image()->globalSelection();
         if (selection && selection->outlineCacheValid()) {
             const qreal handleRadius =
                 qreal(this->handleRadius()) /
@@ -124,8 +132,11 @@ public:
             samplePath.addEllipse(pos, handleRadius, handleRadius);
 
             const QPainterPath selectionPath = selection->outlineCache();
-            if (selectionPath.intersects(samplePath) &&
-                !selectionPath.contains(samplePath)) {
+            const bool edge = selectionPath.intersects(samplePath) &&
+                !selectionPath.contains(samplePath);
+            const bool gpuInterior = this->image() && this->image()->gpuImage() &&
+                selectionPath.contains(pos);
+            if (edge || gpuInterior) {
                 KisNodeSP parent = selection->parentNode();
                 if (parent && parent->isEditable()) {
                     return parent;
@@ -138,6 +149,51 @@ public:
 
     void keyPressEvent(QKeyEvent *event) override
     {
+        if (this->image() && this->image()->gpuImage() && !isSelecting() && !m_gpuMovingSelection) {
+            QPoint delta;
+            switch (event->key()) {
+            case Qt::Key_Left: delta = QPoint(-1, 0); break;
+            case Qt::Key_Right: delta = QPoint(1, 0); break;
+            case Qt::Key_Up: delta = QPoint(0, -1); break;
+            case Qt::Key_Down: delta = QPoint(0, 1); break;
+            default: break;
+            }
+            if (!delta.isNull()) {
+                if (event->modifiers().testFlag(Qt::ControlModifier) &&
+                    event->modifiers().testFlag(Qt::ShiftModifier)) delta *= 1000;
+                else if (event->modifiers().testFlag(Qt::ControlModifier)) delta *= 100;
+                else if (event->modifiers().testFlag(Qt::ShiftModifier)) delta *= 10;
+                const QRect current = this->image()->gpuSelectionRect();
+                if (!current.isEmpty()) {
+                    bool ok = false;
+                    if (this->image()->gpuSelectionFreehand()) {
+                        ok = this->image()->moveGpuSelectionBy(delta);
+                    } else {
+                        ok = this->image()->gpuSelectionEllipse()
+                            ? this->image()->setGpuSelectionEllipse(current.translated(delta),
+                                                                    this->image()->gpuSelectionInverted())
+                            : this->image()->setGpuSelectionRect(current.translated(delta),
+                                                                 this->image()->gpuSelectionInverted());
+                    }
+                    if (!ok) toolCanvas()->showToolMessage(i18n("The selection could not be moved."),
+                                                           QStringLiteral("object-locked"));
+                }
+                event->accept();
+                return;
+            }
+        }
+        if (event->key() == Qt::Key_Escape && m_gpuMovingSelection) {
+            if (this->image()->gpuSelectionFreehand())
+                this->image()->previewGpuSelectionMoveBy(QPoint());
+            else
+                this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
+                                                       m_gpuSelectionStartInverted);
+            m_gpuMovingSelection = false;
+            m_gpuSelectionReleaseCancelled = true;
+            endMoveSelectionInteraction();
+            event->accept();
+            return;
+        }
         const Qt::Key key = normalizedSelectionModifierKey(event);
         m_currentModifiers = Qt::NoModifier;
         if (key == Qt::Key_Control ||
@@ -223,6 +279,25 @@ public:
 
     void beginPrimaryAction(KoPointerEvent *event) override
     {
+        m_gpuSelectionReleaseCancelled = false;
+        const bool gpu = this->image() && this->image()->gpuImage();
+        if (gpu && !supportsGpuSelection()) {
+            toolCanvas()->showToolMessage(
+                i18n("The GPU painting engine currently supports rectangular and elliptical selections only."),
+                QStringLiteral("object-locked"));
+            return;
+        }
+        if (gpu && locateSelectionMaskUnderCursor(this->convertToPixelCoord(event->point), event->modifiers())) {
+            const QRect start = this->image()->gpuSelectionRect();
+            if (start.isEmpty() || !beginMoveSelectionInteraction()) return;
+            m_gpuMovingSelection = true;
+            m_gpuSelectionStartRect = start;
+            m_gpuSelectionPreviewRect = start;
+            m_gpuSelectionStartEllipse = this->image()->gpuSelectionEllipse();
+            m_gpuSelectionStartInverted = this->image()->gpuSelectionInverted();
+            m_gpuSelectionDragStart = this->convertToPixelCoord(event->point);
+            return;
+        }
         if (isSelecting()) {
             BaseClass::beginPrimaryAction(event);
             return;
@@ -249,6 +324,21 @@ public:
 
     void continuePrimaryAction(KoPointerEvent *event) override
     {
+        if (m_gpuMovingSelection) {
+            const QPointF pos = this->convertToPixelCoord(event->point);
+            const QRect moved = m_gpuSelectionStartRect.translated((pos - m_gpuSelectionDragStart).toPoint());
+            if (moved != m_gpuSelectionPreviewRect) {
+                m_gpuSelectionPreviewRect = moved;
+                if (this->image()->gpuSelectionFreehand()) {
+                    this->image()->previewGpuSelectionMoveBy(
+                        moved.topLeft() - m_gpuSelectionStartRect.topLeft());
+                } else {
+                    this->image()->previewGpuSelectionRect(moved, m_gpuSelectionStartEllipse,
+                                                           m_gpuSelectionStartInverted);
+                }
+            }
+            return;
+        }
         if (isMovingSelection()) {
             const QPointF pos = this->convertToPixelCoord(event->point);
             const QPoint offset((pos - m_dragStartPos).toPoint());
@@ -262,6 +352,36 @@ public:
 
     void endPrimaryAction(KoPointerEvent *event) override
     {
+        if (m_gpuSelectionReleaseCancelled) {
+            m_gpuSelectionReleaseCancelled = false;
+            return;
+        }
+        if (m_gpuMovingSelection) {
+            m_gpuMovingSelection = false;
+            endMoveSelectionInteraction();
+            bool movedOk = true;
+            if (m_gpuSelectionPreviewRect != m_gpuSelectionStartRect) {
+                if (this->image()->gpuSelectionFreehand()) {
+                    movedOk = this->image()->moveGpuSelectionBy(
+                        m_gpuSelectionPreviewRect.topLeft() - m_gpuSelectionStartRect.topLeft());
+                } else {
+                    movedOk = m_gpuSelectionStartEllipse
+                        ? this->image()->setGpuSelectionEllipse(m_gpuSelectionPreviewRect, m_gpuSelectionStartInverted)
+                        : this->image()->setGpuSelectionRect(m_gpuSelectionPreviewRect, m_gpuSelectionStartInverted);
+                }
+            }
+            if (!movedOk) {
+                if (this->image()->gpuSelectionFreehand())
+                    this->image()->previewGpuSelectionMoveBy(QPoint());
+                else
+                    this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
+                                                           m_gpuSelectionStartInverted);
+                toolCanvas()->showToolMessage(
+                    i18n("The selection could not be moved."),
+                    QStringLiteral("object-locked"));
+            }
+            return;
+        }
         if (isMovingSelection()) {
             this->image()->endStroke(m_moveStrokeId);
             m_moveStrokeId.clear();
@@ -275,6 +395,21 @@ public:
     bool selectionDidMove() const
     {
         return m_didMove;
+    }
+
+    void deactivatePrimaryAction() override
+    {
+        if (m_gpuMovingSelection) {
+            if (this->image()->gpuSelectionFreehand())
+                this->image()->previewGpuSelectionMoveBy(QPoint());
+            else
+                this->image()->previewGpuSelectionRect(m_gpuSelectionStartRect, m_gpuSelectionStartEllipse,
+                                                       m_gpuSelectionStartInverted);
+            m_gpuMovingSelection = false;
+            m_gpuSelectionReleaseCancelled = true;
+            endMoveSelectionInteraction();
+        }
+        BaseClass::deactivatePrimaryAction();
     }
 
     KisPopupWidgetInterface *popupWidget() override
@@ -349,6 +484,14 @@ private:
         Interaction_Select,
         Interaction_MoveSelection
     };
+
+    bool m_gpuMovingSelection = false;
+    bool m_gpuSelectionReleaseCancelled = false;
+    QRect m_gpuSelectionStartRect;
+    QRect m_gpuSelectionPreviewRect;
+    bool m_gpuSelectionStartEllipse = false;
+    bool m_gpuSelectionStartInverted = false;
+    QPointF m_gpuSelectionDragStart;
 
     SelectionAction mappedSelectionAction() const
     {

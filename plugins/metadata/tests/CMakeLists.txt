@@ -12,3 +12,9 @@ else()
     )
 endif()
 add_dependencies(KisExifTest kritaexif)
+
+kis_add_test(
+    KisMetadataExportTest.cpp
+    LINK_LIBRARIES kritapaintingmetadata kritatestsdk
+)
+add_dependencies(KisMetadataExportTest kritaiptc kritaxmp)

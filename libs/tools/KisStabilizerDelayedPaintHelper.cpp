@@ -8,6 +8,8 @@
 #include "kis_paint_information.h"
 #include <qcontainerfwd.h>
 #include <qobjectdefs.h>
+#include <QPointer>
+#include <new>
 
 constexpr int fixedPaintTimerInterval = 20;
 
@@ -52,10 +54,32 @@ void KisStabilizerDelayedPaintHelper::paintSome() {
         return;
     }
     int now = m_lastPaintTime;
+    if (m_paintLines) {
+        const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
+        try {
+            PaintLines lines;
+            while (m_paintQueue.size() > 1 && m_paintQueue.head().elapsedTime <= now) {
+                const auto first = m_paintQueue.dequeue().paintInfo;
+                lines.append({first, m_paintQueue.head().paintInfo});
+            }
+            const auto paintLines = m_paintLines;
+            if (!lines.isEmpty()) paintLines(lines);
+        } catch (const std::bad_alloc &) {
+            if (!guard) return;
+            const auto allocationFailed = m_batchAllocationFailed;
+            cancel();
+            if (allocationFailed) allocationFailed();
+        }
+        return;
+    }
+    const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
+    const auto paintLine = m_paintLine;
     // Always keep one in the queue since painting requires two points
     while (m_paintQueue.size() > 1 && m_paintQueue.head().elapsedTime <= now) {
         const TimedPaintInfo dequeued = m_paintQueue.dequeue();
-        m_paintLine(dequeued.paintInfo, m_paintQueue.head().paintInfo);
+        const auto next = m_paintQueue.head().paintInfo;
+        paintLine(dequeued.paintInfo, next);
+        if (!guard) return;
     }
 }
 
@@ -65,10 +89,33 @@ void KisStabilizerDelayedPaintHelper::end() {
     if (m_paintQueue.isEmpty()) {
         return;
     }
+    if (m_paintLines) {
+        const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
+        try {
+            PaintLines lines;
+            auto first = m_paintQueue.dequeue().paintInfo;
+            while (!m_paintQueue.isEmpty()) {
+                const auto last = m_paintQueue.dequeue().paintInfo;
+                lines.append({first, last});
+                first = last;
+            }
+            const auto paintLines = m_paintLines;
+            if (!lines.isEmpty()) paintLines(lines);
+        } catch (const std::bad_alloc &) {
+            if (!guard) return;
+            const auto allocationFailed = m_batchAllocationFailed;
+            cancel();
+            if (allocationFailed) allocationFailed();
+        }
+        return;
+    }
     TimedPaintInfo dequeued = m_paintQueue.dequeue();
+    const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
+    const auto paintLine = m_paintLine;
     while (!m_paintQueue.isEmpty()) {
         const TimedPaintInfo dequeued2 = m_paintQueue.dequeue();
-        m_paintLine(dequeued.paintInfo, dequeued2.paintInfo);
+        paintLine(dequeued.paintInfo, dequeued2.paintInfo);
+        if (!guard) return;
         dequeued = dequeued2;
     }
 }
@@ -82,7 +129,10 @@ void KisStabilizerDelayedPaintHelper::stabilizerDelayedPaintTimer() {
     if (m_elapsedTimer.elapsed() - m_lastPaintTime < fixedPaintTimerInterval) {
         return;
     }
+    const QPointer<KisStabilizerDelayedPaintHelper> guard(this);
     paintSome();
+    if (!guard) return;
     // Explicitly update the outline because this is outside the pointer event
-    m_requestUpdateOutline();
+    const auto updateOutline = m_requestUpdateOutline;
+    updateOutline();
 }

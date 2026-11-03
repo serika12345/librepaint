@@ -35,6 +35,7 @@ class KisToolSelectRectangular : public KisToolSelectUiBase<__KisToolSelectRecta
 public:
     KisToolSelectRectangular(KoCanvasBase* canvas);
     void resetCursorStyle() override;
+    bool supportsGpuSelection() const override { return true; }
 private:
     void finishRect(const QRectF& rect, qreal roundCornersX, qreal roundCornersY) override;
     void beginShape() override;

@@ -49,6 +49,7 @@ public:
     void resetCursorStyle() override;
 
 protected:
+    bool supportsGpuSelection() const override { return true; }
 
     bool wantsAutoScroll() const override { return false; }
 

@@ -263,6 +263,12 @@ public Q_SLOTS:
     void toggleVisibility();
     void toggleAlphaLock();
     void toggleInheritAlpha();
+    /** Transparency-mask actions for GPU paint layers. The mask remains owned
+     * by the GPU document versions rather than a CPU mask node, so the layer
+     * panel exposes these actions for the active layer instead of a child node.
+     */
+    void toggleGpuTransparencyMask();
+    void removeGpuTransparencyMask();
 
     /** Open a dialog to change layer's fast color overlay mask properties. */
     void colorOverlayMaskProperties(KisNodeSP node);
@@ -277,7 +283,8 @@ public Q_SLOTS:
 
     void cutLayersToClipboard();
     void copyLayersToClipboard();
-    void pasteLayersFromClipboard(bool changeOffset = false, QPointF offset = QPointF(), KisProcessingApplicator *applicator = nullptr);
+    void pasteLayersFromClipboard(bool changeOffset = false, QPointF offset = QPointF(),
+                                  KisProcessingApplicator *applicator = nullptr, bool clearPixelSelection = false);
 
     void createQuickGroup();
     void createQuickClippingGroup();
@@ -377,7 +384,7 @@ protected:
         static bool containsOnionSkin(const KisBaseNode::PropertyList &properties);
         static bool hasOpaqueBackground(KisNodeSP node);
         static void showOnionSkinTransparencyWarning(const KisNodeManager *manager);
-        static void applyProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties);
+        static bool applyProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties);
     };
 
     struct KRITAUI_EXPORT PropertyDialogAccess {
@@ -497,6 +504,7 @@ protected:
     struct KRITAUI_EXPORT ToggleAccess {
         static KisNodeList selectedNodes(KisNodeManager *manager);
         static KisNodeSP activeNode(KisNodeManager *manager);
+        static KisImageSP image(KisNodeManager *manager);
         static bool supportsProperty(KisNodeSP node, ToggleProperty property);
         static bool propertyState(KisNodeSP node, ToggleProperty property);
         static void setProperty(KisNodeManager *manager, KisNodeSP node, ToggleProperty property, bool value);
@@ -519,7 +527,7 @@ protected:
     struct KRITAUI_EXPORT ClipboardAccess {
         static KisNodeList selectedNodes(KisNodeManager *manager);
         static KisNodeSP parentNode(KisNodeSP node);
-        static void setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy);
+        static bool setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy);
         static bool canModifyLayers(KisNodeManager *manager, const KisNodeList &nodes);
         static void removeNodes(KisNodeManager *manager, const KisNodeList &nodes, const KUndo2MagicString &actionName);
         static const QMimeData *layersMimeData();
@@ -531,7 +539,8 @@ protected:
                                                 bool copyNode,
                                                 bool changeOffset,
                                                 QPointF offset,
-                                                KisProcessingApplicator *applicator);
+                                                KisProcessingApplicator *applicator,
+                                                bool clearPixelSelection);
     };
 
     struct KRITAUI_EXPORT SplitAlphaAccess {
@@ -545,6 +554,8 @@ protected:
     };
 
     struct KRITAUI_EXPORT QuickGroupAccess {
+        static bool handleGpuGroup(KisNodeManager *manager, bool clipping);
+        static bool handleGpuUngroup(KisNodeManager *manager);
         static KisNodeOperationBatch *operationBatch(KisNodeManager *manager, const KUndo2MagicString &actionName);
         static KisNodeSP activeNode(KisNodeManager *manager);
         static bool canMoveLayer(KisNodeManager *manager, KisNodeSP node);

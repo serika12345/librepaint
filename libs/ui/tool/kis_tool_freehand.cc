@@ -21,6 +21,7 @@
 #include <functional>
 #include <kis_icon.h>
 #include <KoPointerEvent.h>
+#include <QKeyEvent>
 #include <KoViewConverter.h>
 #include <KoCanvasController.h>
 
@@ -47,6 +48,8 @@
 #include "canvas/kis_canvas2.h"
 #include "kis_cursor.h"
 #include <application/ui/workspace/KisViewManager.h>
+#include <application/ui/workspace/KisMainWindow.h>
+#include <QStatusBar>
 #include <canvas/kis_painting_assistants_decoration.h>
 #include <qcursor.h>
 #include <QtGlobal>
@@ -68,6 +71,19 @@
 
 using namespace std::placeholders; // For _1 placeholder
 
+namespace {
+void connectFreehandErrors(KisToolFreehandHelper *helper, KisToolFreehand *tool, KisCanvas2 *canvas)
+{
+    QObject::connect(helper, &KisToolFreehandHelper::requestErrorMessage, tool,
+                     [tool, canvas](const QString &message) {
+        QPointer<KisToolFreehand> guard(tool);
+        Q_EMIT tool->statusTextChanged(message);
+        if (!guard) return;
+        canvas->viewManager()->mainWindow()->statusBar()->showMessage(message, 5000);
+        if (guard) canvas->viewManager()->showFloatingMessage(message, QIcon());
+    });
+}
+}
 
 KisToolFreehand::KisToolFreehand(KoCanvasBase * canvas, const QCursor & cursor,
                                  const KUndo2MagicString &transactionText, bool useSavedSmoothing)
@@ -85,6 +101,7 @@ KisToolFreehand::KisToolFreehand(KoCanvasBase * canvas, const QCursor & cursor,
                                          new KisSmoothingOptions(useSavedSmoothing));
 
     connect(m_helper, SIGNAL(requestExplicitUpdateOutline()), SLOT(explicitUpdateOutline()));
+    connectFreehandErrors(m_helper, this, static_cast<KisCanvas2*>(canvas));
 
     connect(qobject_cast<KisCanvas2*>(canvas)->viewManager(), SIGNAL(brushOutlineToggled()), SLOT(explicitUpdateOutline()));
 
@@ -163,6 +180,7 @@ void KisToolFreehand::resetHelper(KisToolFreehandHelper *helper)
 {
     delete m_helper;
     m_helper = helper;
+    connectFreehandErrors(m_helper, this, static_cast<KisCanvas2*>(canvas()));
 }
 
 bool KisToolFreehand::supportsPaintingAssistants() const
@@ -183,8 +201,10 @@ void KisToolFreehand::activate(const QSet<KoShape*> &shapes)
 
 void KisToolFreehand::deactivate()
 {
+    QPointer<KisToolFreehand> guard(this);
     if (mode() == PAINT_MODE) {
         endStroke();
+        if (!guard) return;
         setMode(KisTool::HOVER_MODE);
     }
     KisToolPaint::deactivate();
@@ -206,7 +226,9 @@ void KisToolFreehand::doStroke(KoPointerEvent *event)
 
 void KisToolFreehand::endStroke()
 {
+    QPointer<KisToolFreehand> guard(this);
     m_helper->endPaint();
+    if (!guard) return;
     bool paintOpIgnoredEvent = currentPaintOpPreset()->settings()->mouseReleaseEvent();
     Q_UNUSED(paintOpIgnoredEvent);
 }
@@ -216,8 +238,39 @@ bool KisToolFreehand::primaryActionSupportsHiResEvents() const
     return true;
 }
 
+void KisToolFreehand::keyPressEvent(QKeyEvent *event)
+{
+    if (mode() == KisTool::PAINT_MODE && event->key() == Qt::Key_Escape) {
+        event->accept();
+        requestStrokeCancellation();
+        return;
+    }
+    KisToolPaint::keyPressEvent(event);
+}
+
+void KisToolFreehand::requestStrokeCancellation()
+{
+    if (mode() != KisTool::PAINT_MODE) return;
+    setMode(KisTool::HOVER_MODE);
+    QPointer<KisToolFreehand> guard(this);
+    m_helper->cancelPaint();
+    if (!guard) return;
+    auto *canvas2 = static_cast<KisCanvas2 *>(canvas());
+    if (m_assistant && canvas2->paintingAssistantsDecoration())
+        canvas2->paintingAssistantsDecoration()->endStroke();
+    canvas2->viewManager()->enableControls();
+}
+
 void KisToolFreehand::beginPrimaryAction(KoPointerEvent *event)
 {
+    if (image()->gpuImage() && toolId() != QLatin1String("KritaShape/KisToolBrush") &&
+        toolId() != QLatin1String("KritaShape/KisToolMultiBrush") &&
+        toolId() != QLatin1String("KritaShape/KisToolDyna")) {
+        static_cast<KisCanvas2*>(canvas())->viewManager()->showFloatingMessage(
+            i18n("This drawing tool is not yet available for GPU documents."), QIcon());
+        event->ignore();
+        return;
+    }
     // FIXME: workaround for the Duplicate Op
     trySampleByPaintOp(event, SampleFgImage);
 
@@ -250,12 +303,19 @@ void KisToolFreehand::beginPrimaryAction(KoPointerEvent *event)
         canvas2->viewManager()->disableControls();
     }
 
+    QPointer<KisToolFreehand> guard(this);
     initStroke(event);
+    if (!guard) return;
+    if (image()->gpuImage() && !m_helper->isRunning()) {
+        setMode(KisTool::HOVER_MODE);
+        if (canvas2) canvas2->viewManager()->enableControls();
+        event->ignore();
+    }
 }
 
 void KisToolFreehand::continuePrimaryAction(KoPointerEvent *event)
 {
-    CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
+    if (mode() != KisTool::PAINT_MODE) { event->accept(); return; }
 
     requestUpdateOutline(event->point, event);
 
@@ -267,10 +327,13 @@ void KisToolFreehand::continuePrimaryAction(KoPointerEvent *event)
 
 void KisToolFreehand::endPrimaryAction(KoPointerEvent *event)
 {
-    Q_UNUSED(event);
-    CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
+    if (mode() != KisTool::PAINT_MODE) { if (event) event->accept(); return; }
 
+    QPointer<KisToolFreehand> guard(this);
+    if (event && image()->gpuImage() && m_helper->isRunning()) doStroke(event);
+    if (!guard) return;
     endStroke();
+    if (!guard) return;
 
     if (m_assistant && static_cast<KisCanvas2*>(canvas())->paintingAssistantsDecoration()) {
         static_cast<KisCanvas2*>(canvas())->paintingAssistantsDecoration()->endStroke();

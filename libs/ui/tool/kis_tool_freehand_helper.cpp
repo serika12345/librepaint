@@ -10,6 +10,7 @@
 #include <QElapsedTimer>
 #include <QQueue>
 #include <QVector2D>
+#include <QPointer>
 
 #include <klocalizedstring.h>
 
@@ -26,6 +27,8 @@
 #include "kis_global.h"
 #include "kis_painting_information_builder.h"
 #include "kis_image.h"
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuBasicCurveControls.h>
 #include "kis_painter.h"
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_utils.h>
@@ -42,6 +45,7 @@
 
 #include "kis_random_source.h"
 #include "KisPerStrokeRandomSource.h"
+#include <QRandomGenerator>
 #include "kis_smoothing_options.h"
 
 #include "strokes/freehand_stroke.h"
@@ -51,13 +55,15 @@
 
 #include <math.h>
 #include <QtGlobal>
-#include <qline.h>
 #include <qlist.h>
 #include <qmath.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
 #include <tuple>
+#include <limits>
+#include <new>
+#include <optional>
 
 //#define DEBUG_BEZIER_CURVES
 
@@ -74,8 +80,47 @@ const qreal SPACING_UPDATE_INTERVAL = 50.0;
 // used when airbrushing.
 const qreal TIMING_UPDATE_INTERVAL = 50.0;
 
+namespace {
+LibrePaint::Image::Gpu::InputSample gpuInputSample(const KisPaintInformation &information, qreal initialDrawingAngle)
+{
+    return {information.pos(), information.pressure(), information.xTilt(), information.yTilt(),
+            information.rotation(), quint64(information.currentTime()), information.drawingSpeed(),
+            information.canvasRotation(), information.canvasMirroredH(), information.canvasMirroredV(), initialDrawingAngle,
+            information.tiltDirectionOffset()};
+}
+
+QString gpuInputError(LibrePaint::Image::Gpu::Result result)
+{
+    return result == LibrePaint::Image::Gpu::Result::CapacityExceeded ?
+        i18n("The stroke exceeded the input limit and was cancelled. Try a shorter stroke.") :
+        i18n("The stroke contains invalid input and was cancelled.");
+}
+}
+
 struct KisToolFreehandHelper::Private
 {
+    LibrePaint::Image::Gpu::PaintImageSP gpuImage;
+    LibrePaint::Image::Gpu::OperationId gpuOperation;
+    QList<LibrePaint::Image::Gpu::BrushTransform> gpuMultibrushTransforms;
+    bool gpuMultibrushConfigured = false;
+    QMetaObject::Connection gpuCancellation;
+    bool gpuBasicInput = false;
+    qreal gpuInitialDrawingAngle = 0;
+    LibrePaint::Image::Gpu::InputSample gpuSample(const KisPaintInformation &information) const
+    { return gpuInputSample(information, gpuInitialDrawingAngle); }
+    struct GpuStabilizer {
+        qreal distanceMin;
+        qreal distanceMax;
+        qreal zoom;
+        qreal delayDistance;
+        bool useDelayDistance;
+        bool finishCurve;
+        bool stabilizeSensors;
+        qsizetype inputLimit;
+        qsizetype rawSamples = 1;
+        qsizetype generatedSamples = 0;
+    };
+    std::optional<GpuStabilizer> gpuStabilizer;
     KoCanvasResourceProvider *resourceManager;
     KisPaintingInformationBuilder *infoBuilder;
     KisStrokesFacade *strokesFacade;
@@ -87,6 +132,8 @@ struct KisToolFreehandHelper::Private
     QPointF previousTangent;
 
     bool hasPaintAtLeastOnce;
+    bool hasInputMovement = false;
+    bool paintAtOnlyIfEmpty = false;
 
     QElapsedTimer strokeTime;
     QTimer strokeTimeoutTimer;
@@ -130,6 +177,11 @@ struct KisToolFreehandHelper::Private
     QTimer stabilizerPollTimer;
     KisStabilizedEventsSampler stabilizedSampler;
     KisStabilizerDelayedPaintHelper stabilizerDelayedPaintHelper;
+    struct GpuLineBatch {
+        QList<LibrePaint::Image::Gpu::InputSample> samples;
+        QList<LibrePaint::Image::Gpu::PathCommand> commands;
+    };
+    std::optional<GpuLineBatch> gpuLineBatch;
 
     qreal effectiveSmoothnessDistance(qreal speed) const;
 
@@ -184,8 +236,16 @@ KisToolFreehandHelper::KisToolFreehandHelper(KisPaintingInformationBuilder *info
                 });
 }
 
+void KisToolFreehandHelper::setGpuMultibrushTransforms(
+    const QList<LibrePaint::Image::Gpu::BrushTransform> &transforms)
+{
+    m_d->gpuMultibrushTransforms = transforms;
+    m_d->gpuMultibrushConfigured = true;
+}
+
 KisToolFreehandHelper::~KisToolFreehandHelper()
 {
+    if (m_d->gpuImage) cancelPaint();
     delete m_d;
 }
 
@@ -257,12 +317,14 @@ KisOptimizedBrushOutline KisToolFreehandHelper::paintOpOutline(const QPointF &sa
 
     KisOptimizedBrushOutline outline = settings->brushOutline(info, mode, currentPhysicalZoom());
 
-    if (m_d->resources &&
-        m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::STABILIZER &&
-        m_d->smoothingOptions->useDelayDistance()) {
+    if ((m_d->gpuStabilizer && m_d->gpuStabilizer->useDelayDistance) ||
+        (m_d->resources && !m_d->gpuImage &&
+         m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::STABILIZER &&
+         m_d->smoothingOptions->useDelayDistance())) {
 
-        const qreal R = m_d->smoothingOptions->delayDistance() /
-            m_d->resources->effectiveZoom();
+        const qreal R = m_d->gpuStabilizer ?
+            m_d->gpuStabilizer->delayDistance / m_d->gpuStabilizer->zoom :
+            m_d->smoothingOptions->delayDistance() / m_d->resources->effectiveZoom();
 
         outline.addEllipse(info.pos(), R, R);
     }
@@ -282,6 +344,14 @@ void KisToolFreehandHelper::initPaint(KoPointerEvent *event,
                                       KisNodeSP overrideNode,
                                       KisDefaultBoundsBaseSP bounds)
 {
+    if (m_d->gpuImage) {
+        if (isRunning()) {
+            Q_EMIT requestErrorMessage(i18n("Complete the current stroke before starting another stroke."));
+            return;
+        }
+        cancelPaint();
+        m_d->gpuImage.clear();
+    }
     // When using touch drawing, we only get coordinates when the finger is
     // actually pressed down, never when the finger is in the air. That means we
     // have to clear the distance and speed information in this case, otherwise
@@ -298,6 +368,18 @@ void KisToolFreehandHelper::initPaint(KoPointerEvent *event,
     m_d->strokeTime.start();
     KisPaintInformation pi =
         m_d->infoBuilder->startStroke(event, elapsedStrokeTime(), m_d->resourceManager);
+    if (image->gpuImage() && m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::NO_SMOOTHING &&
+        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::PIXEL_PERFECT &&
+        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::SIMPLE_SMOOTHING &&
+        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::WEIGHTED_SMOOTHING &&
+        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::STABILIZER) {
+        m_d->infoBuilder->reset();
+        Q_EMIT requestErrorMessage(i18n("The freehand smoothing setting is invalid."));
+        return;
+    }
+    m_d->gpuBasicInput = image->gpuImage() &&
+        (m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::SIMPLE_SMOOTHING ||
+         m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::WEIGHTED_SMOOTHING);
     qreal startAngle = KisAlgebra2D::directionBetweenPoints(prevPoint, pixelCoords, 0.0);
 
     initPaintImpl(startAngle,
@@ -312,6 +394,7 @@ void KisToolFreehandHelper::initPaint(KoPointerEvent *event,
 
 bool KisToolFreehandHelper::isRunning() const
 {
+    if (m_d->gpuImage) return !m_d->gpuOperation.isNull() && m_d->gpuImage->operations().activeOperation() == m_d->gpuOperation;
     return bool(m_d->strokeId);
 }
 
@@ -324,12 +407,120 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
                                           KisNodeSP overrideNode,
                                           KisDefaultBoundsBaseSP bounds)
 {
+    m_d->stabilizerDelayedPaintHelper.setPaintLinesCallback({});
+    if (m_d->gpuImage && !image->gpuImage()) {
+        m_d->strokeTimeoutTimer.stop();
+        m_d->gpuBasicInput = false;
+        m_d->gpuStabilizer.reset();
+        disconnect(m_d->gpuCancellation);
+        m_d->gpuImage.clear();
+        m_d->gpuOperation = {};
+    }
+    if (const auto owner = image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        disconnect(m_d->gpuCancellation);
+        m_d->gpuImage = owner;
+        m_d->gpuOperation = {};
+        m_d->gpuInitialDrawingAngle = startAngle;
+        m_d->hasPaintAtLeastOnce = false;
+        if (overrideNode || bounds) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("Overridden paint nodes are not yet supported for GPU freehand input."));
+            return;
+        }
+        auto resources = captureGpuBrushResources(image, currentNode, resourceManager);
+        if (m_d->gpuMultibrushConfigured && m_d->gpuMultibrushTransforms.isEmpty()) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("The multibrush settings produce no valid brush positions."));
+            return;
+        }
+        resources.brush.transforms = m_d->gpuMultibrushTransforms;
+        resources.brush.pixelPerfect = m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::PIXEL_PERFECT;
+        resources.brush.basicSmoothing = m_d->gpuBasicInput;
+        if (m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::WEIGHTED_SMOOTHING) {
+            const auto zoom = resourceManager->resource(KoCanvasResource::EffectiveZoom).toDouble();
+            const qreal scale = m_d->smoothingOptions->useScalableDistance() ? 1.0 / zoom : 1.0;
+            resources.brush.weightedSmoothing = LibrePaint::Image::Gpu::WeightedSmoothing{
+                scale * m_d->smoothingOptions->smoothnessDistanceMin(),
+                scale * m_d->smoothingOptions->smoothnessDistanceMax(),
+                m_d->smoothingOptions->tailAggressiveness(), m_d->smoothingOptions->smoothPressure()};
+        }
+        if (!resources.diagnostic.isEmpty()) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(resources.diagnostic);
+            return;
+        }
+        m_d->gpuStabilizer.reset();
+        if (m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::STABILIZER) {
+            const auto &options = *m_d->smoothingOptions;
+            const qreal zoom = resourceManager->resource(KoCanvasResource::EffectiveZoom).toDouble();
+            const auto limit = owner->limits().samplesPerStroke;
+            const qreal sampleCount = qMax(options.smoothnessDistanceMin(), options.smoothnessDistanceMax());
+            if (!qIsFinite(zoom) || zoom <= 0 || !qIsFinite(sampleCount) ||
+                !qIsFinite(options.smoothnessDistanceMin()) || options.smoothnessDistanceMin() < 0 ||
+                !qIsFinite(options.smoothnessDistanceMax()) || options.smoothnessDistanceMax() < 0 ||
+                !qIsFinite(options.delayDistance()) || options.delayDistance() < 0 ||
+                qMax(qreal(3), sampleCount) > qMin<qsizetype>(limit, std::numeric_limits<int>::max())) {
+                m_d->infoBuilder->reset();
+                Q_EMIT requestErrorMessage(i18n("The stabilizer settings exceed the available input capacity."));
+                return;
+            }
+            m_d->gpuStabilizer = Private::GpuStabilizer{
+                options.smoothnessDistanceMin(), options.smoothnessDistanceMax(), zoom,
+                options.delayDistance(), options.useDelayDistance(),
+                options.finishStabilizedCurve(), options.stabilizeSensors(), limit};
+        }
+        const quint32 randomSeed = QRandomGenerator::global()->generate();
+        m_d->gpuOperation = resources.transparencyMask
+            ? owner->beginTransparencyMaskStroke(resources.layer, resources.brush, randomSeed, resources.maskUuid)
+            : owner->beginStroke(resources.layer, resources.brush, randomSeed);
+        if (m_d->gpuOperation.isNull()) {
+            m_d->gpuStabilizer.reset();
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("A stroke could not be started on this GPU paint layer."));
+            return;
+        }
+        m_d->gpuCancellation = connect(image.data(), &KisImage::sigStrokeCancellationRequested,
+                                      this, &KisToolFreehandHelper::cancelPaint);
+        if (m_d->gpuStabilizer) {
+            m_d->stabilizerDelayedPaintHelper.setPaintLinesCallback(
+                [this](const KisStabilizerDelayedPaintHelper::PaintLines &lines) { paintGpuStabilizerLines(lines); },
+                [this] {
+                    const QPointer<KisToolFreehandHelper> guard(this);
+                    cancelPaint();
+                    if (guard) Q_EMIT requestErrorMessage(gpuInputError(Gpu::Result::CapacityExceeded));
+                });
+            m_d->previousPaintInformation = pi;
+            m_d->hasPaintAtLeastOnce = false;
+            const QPointer<KisToolFreehandHelper> guard(this);
+            try {
+                stabilizerStart(pi);
+            } catch (const std::bad_alloc &) {
+                cancelPaint();
+                if (guard) Q_EMIT requestErrorMessage(i18n("The stabilizer could not retain its input and the stroke was cancelled."));
+            }
+            return;
+        }
+        QPointer<KisToolFreehandHelper> guard(this);
+        const auto result = owner->appendSamples(m_d->gpuOperation, {m_d->gpuSample(pi)});
+        if (!guard) return;
+        if (result != Gpu::Result::Success) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+        } else {
+            m_d->hasPaintAtLeastOnce = true;
+        }
+        return;
+    }
+    m_d->gpuBasicInput = false;
     m_d->strokesFacade = strokesFacade;
 
     m_d->haveTangent = false;
     m_d->previousTangent = QPointF();
 
     m_d->hasPaintAtLeastOnce = false;
+    m_d->hasInputMovement = false;
+    m_d->paintAtOnlyIfEmpty = false;
 
     m_d->previousPaintInformation = pi;
 
@@ -395,95 +586,17 @@ KoCanvasResourceProvider *KisToolFreehandHelper::resourceManager() const
 void KisToolFreehandHelper::paintBezierSegment(KisPaintInformation pi1, KisPaintInformation pi2,
                                                QPointF tangent1, QPointF tangent2)
 {
-    if (tangent1.isNull() || tangent2.isNull()) return;
-
-    const qreal maxSanePoint = 1e6;
-
-    QPointF controlTarget1;
-    QPointF controlTarget2;
-
-    // Shows the direction in which control points go
-    QPointF controlDirection1 = pi1.pos() + tangent1;
-    QPointF controlDirection2 = pi2.pos() - tangent2;
-
-    // Lines in the direction of the control points
-    QLineF line1(pi1.pos(), controlDirection1);
-    QLineF line2(pi2.pos(), controlDirection2);
-
-    // Lines to check whether the control points lay on the opposite
-    // side of the line
-    QLineF line3(controlDirection1, controlDirection2);
-    QLineF line4(pi1.pos(), pi2.pos());
-
-    QPointF intersection;
-    if (line3.intersects(line4, &intersection) == QLineF::BoundedIntersection) {
-        qreal controlLength = line4.length() / 2;
-
-        line1.setLength(controlLength);
-        line2.setLength(controlLength);
-
-        controlTarget1 = line1.p2();
-        controlTarget2 = line2.p2();
-    } else {
-        QLineF::IntersectType type = line1.intersects(line2, &intersection);
-
-        if (type == QLineF::NoIntersection ||
-            intersection.manhattanLength() > maxSanePoint) {
-
-            intersection = 0.5 * (pi1.pos() + pi2.pos());
-//            dbgKrita << "WARNING: there is no intersection point "
-//                     << "in the basic smoothing algorithms";
-        }
-
-        controlTarget1 = intersection;
-        controlTarget2 = intersection;
-    }
-
-    // shows how near to the controlTarget the value raises
-    qreal coeff = 0.8;
-
-    qreal velocity1 = QLineF(QPointF(), tangent1).length();
-    qreal velocity2 = QLineF(QPointF(), tangent2).length();
-
-    if (velocity1 == 0.0 || velocity2 == 0.0) {
-        velocity1 = 1e-6;
-        velocity2 = 1e-6;
-        warnKrita << "WARNING: Basic Smoothing: Velocity is Zero! Please report a bug:" << ppVar(velocity1) << ppVar(velocity2);
-    }
-
-    qreal similarity = qMin(velocity1/velocity2, velocity2/velocity1);
-
-    // the controls should not differ more than 50%
-    similarity = qMax(similarity, qreal(0.5));
-
-    // when the controls are symmetric, their size should be smaller
-    // to avoid corner-like curves
-    coeff *= 1 - qMax(qreal(0.0), similarity - qreal(0.8));
-
-    Q_ASSERT(coeff > 0);
-
-
-    QPointF control1;
-    QPointF control2;
-
-    if (velocity1 > velocity2) {
-        control1 = pi1.pos() * (1.0 - coeff) + coeff * controlTarget1;
-        coeff *= similarity;
-        control2 = pi2.pos() * (1.0 - coeff) + coeff * controlTarget2;
-    } else {
-        control2 = pi2.pos() * (1.0 - coeff) + coeff * controlTarget2;
-        coeff *= similarity;
-        control1 = pi1.pos() * (1.0 - coeff) + coeff * controlTarget1;
-    }
-
-    paintBezierCurve(pi1,
-                     control1,
-                     control2,
-                     pi2);
+    const auto controls = LibrePaint::Image::Gpu::basicCurveControls(pi1.pos(), pi2.pos(), tangent1, tangent2);
+    if (!controls) return;
+    paintBezierCurve(pi1, (*controls)[0], (*controls)[1], pi2);
 }
 
 qreal KisToolFreehandHelper::Private::effectiveSmoothnessDistance(qreal speed) const
 {
+    if (gpuStabilizer) {
+        const auto &settings = *gpuStabilizer;
+        return (1 - speed) * settings.distanceMax + speed * settings.distanceMin;
+    }
     qreal zoomingCoeff = 1.0;
 
     /// stabilizer has inverted meaning of the "scalable distance", because
@@ -503,6 +616,40 @@ void KisToolFreehandHelper::paintEvent(KoPointerEvent *event)
     KisPaintInformation info =
             m_d->infoBuilder->continueStroke(event,
                                              elapsedStrokeTime());
+    if (m_d->gpuImage) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        if (!isRunning()) return;
+        if (m_d->gpuStabilizer) {
+            if (++m_d->gpuStabilizer->rawSamples > m_d->gpuStabilizer->inputLimit) {
+                const QPointer<KisToolFreehandHelper> guard(this);
+                cancelPaint();
+                if (guard) Q_EMIT requestErrorMessage(gpuInputError(Gpu::Result::CapacityExceeded));
+                return;
+            }
+            const QPointer<KisToolFreehandHelper> guard(this);
+            try {
+                m_d->stabilizedSampler.addEvent(info);
+            } catch (const std::bad_alloc &) {
+                cancelPaint();
+                if (guard) Q_EMIT requestErrorMessage(i18n("The stabilizer could not retain its input and the stroke was cancelled."));
+                return;
+            }
+            if (m_d->stabilizerDelayedPaintHelper.running()) m_d->stabilizerDelayedPaintHelper.paintSome();
+            return;
+        }
+        if (m_d->gpuBasicInput) m_d->strokeTimeoutTimer.stop();
+        QPointer<KisToolFreehandHelper> guard(this);
+        const auto owner = m_d->gpuImage;
+        const auto result = owner->appendSamples(m_d->gpuOperation, {m_d->gpuSample(info)});
+        if (!guard) return;
+        if (result != Gpu::Result::Success) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+        } else if (m_d->gpuBasicInput && isRunning()) {
+            m_d->strokeTimeoutTimer.start(100);
+        }
+        return;
+    }
     KisUpdateTimeMonitor::instance()->reportMouseMove(info.pos());
 
     paint(info);
@@ -511,6 +658,8 @@ void KisToolFreehandHelper::paintEvent(KoPointerEvent *event)
 
 void KisToolFreehandHelper::paint(KisPaintInformation &info)
 { 
+    m_d->hasInputMovement |= info.pos().x() != m_d->previousPaintInformation.pos().x() ||
+                             info.pos().y() != m_d->previousPaintInformation.pos().y();
     /**
      * Smooth the coordinates out using the history and the
      * distance. This is a heavily modified version of an algo used in
@@ -722,10 +871,54 @@ void KisToolFreehandHelper::paint(KisPaintInformation &info)
 
 void KisToolFreehandHelper::endPaint()
 {
+    if (m_d->gpuImage) {
+        if (m_d->gpuStabilizer && isRunning()) {
+            const QPointer<KisToolFreehandHelper> guard(this);
+            if (!m_d->hasPaintAtLeastOnce) KisToolFreehandHelper::paintAt(m_d->previousPaintInformation);
+            if (!guard) return;
+            if (isRunning()) {
+                try {
+                    stabilizerEnd();
+                } catch (const std::bad_alloc &) {
+                    cancelPaint();
+                    if (guard) Q_EMIT requestErrorMessage(i18n("The stabilizer could not retain its input and the stroke was cancelled."));
+                }
+            }
+            if (!guard) return;
+        }
+        m_d->strokeTimeoutTimer.stop();
+        m_d->gpuBasicInput = false;
+        m_d->gpuStabilizer.reset();
+        const auto owner = m_d->gpuImage;
+        const auto operation = m_d->gpuOperation;
+        disconnect(m_d->gpuCancellation);
+        const bool commit = isRunning();
+        m_d->gpuOperation = {};
+        m_d->gpuImage.clear();
+        m_d->infoBuilder->reset();
+        if (commit) {
+            const QPointer<KisToolFreehandHelper> guard(this);
+            const auto result = owner->commitStroke(operation);
+            if (result != LibrePaint::Image::Gpu::Result::Success) {
+                owner->cancelStroke(operation);
+                if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+            }
+        }
+        return;
+    }
+    const auto smoothingType = m_d->smoothingOptions->smoothingType();
+    const bool completeStationaryStroke = m_d->hasPaintAtLeastOnce && !m_d->hasInputMovement &&
+        (smoothingType == KisSmoothingOptions::NO_SMOOTHING ||
+         smoothingType == KisSmoothingOptions::SIMPLE_SMOOTHING);
     if (!m_d->hasPaintAtLeastOnce) {
         paintAt(m_d->previousPaintInformation);
     } else if (m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::NO_SMOOTHING) {
         finishStroke();
+    }
+    if (completeStationaryStroke) {
+        m_d->paintAtOnlyIfEmpty = true;
+        paintAt(m_d->previousPaintInformation);
+        m_d->paintAtOnlyIfEmpty = false;
     }
     m_d->strokeTimeoutTimer.stop();
 
@@ -760,6 +953,24 @@ void KisToolFreehandHelper::endPaint()
 
 void KisToolFreehandHelper::cancelPaint()
 {
+    if (m_d->gpuImage) {
+        m_d->strokeTimeoutTimer.stop();
+        m_d->gpuBasicInput = false;
+        m_d->stabilizerPollTimer.stop();
+        m_d->stabilizerDelayedPaintHelper.cancel();
+        m_d->stabilizerDeque.clear();
+        m_d->stabilizedSampler.clear();
+        m_d->usingStabilizer = false;
+        m_d->gpuStabilizer.reset();
+        const auto owner = m_d->gpuImage;
+        const auto operation = m_d->gpuOperation;
+        const bool cancel = isRunning();
+        m_d->gpuOperation = {};
+        disconnect(m_d->gpuCancellation);
+        m_d->infoBuilder->reset();
+        if (cancel) owner->cancelStroke(operation);
+        return;
+    }
     if (!m_d->strokeId) return;
 
     m_d->strokeTimeoutTimer.stop();
@@ -849,7 +1060,7 @@ KisToolFreehandHelper::getStabilizedPaintInfo(const QQueue<KisPaintInformation> 
         it++;
         int i = 2;
 
-        if (m_d->smoothingOptions->stabilizeSensors()) {
+        if (m_d->gpuStabilizer ? m_d->gpuStabilizer->stabilizeSensors : m_d->smoothingOptions->stabilizeSensors()) {
             while (it != end) {
                 qreal k = qreal(i - 1) / i; // coeff for uniform averaging
                 result.KisPaintInformation::mixOtherWithoutTime(k, *it);
@@ -871,90 +1082,162 @@ KisToolFreehandHelper::getStabilizedPaintInfo(const QQueue<KisPaintInformation> 
 
 void KisToolFreehandHelper::stabilizerPollAndPaint()
 {
-    KisStabilizedEventsSampler::iterator it;
-    KisStabilizedEventsSampler::iterator end;
-    std::tie(it, end) = m_d->stabilizedSampler.range();
-    QVector<KisPaintInformation> delayedPaintTodoItems;
-
-    for (; it != end; ++it) {
-        KisPaintInformation sampledInfo = *it;
-
-        bool canPaint = true;
-
-        if (m_d->smoothingOptions->useDelayDistance()) {
-            const qreal R = m_d->smoothingOptions->delayDistance() /
-                    m_d->resources->effectiveZoom();
-
-            QPointF diff = sampledInfo.pos() - m_d->previousPaintInformation.pos();
-            qreal dx = sqrt(pow2(diff.x()) + pow2(diff.y()));
-
-            if (!(dx > R)) {
-                if (m_d->resources->needsAirbrushing()) {
-                    sampledInfo.setPos(m_d->previousPaintInformation.pos());
-                }
-                else {
-                    canPaint = false;
-                }
-            }
-        }
-
-        if (canPaint) {
-            KisPaintInformation newInfo = getStabilizedPaintInfo(m_d->stabilizerDeque, sampledInfo);
-
-            if (m_d->stabilizerDelayedPaintHelper.running()) {
-                delayedPaintTodoItems.append(newInfo);
-            } else {
-                paintLine(m_d->previousPaintInformation, newInfo);
-            }
-            m_d->previousPaintInformation = newInfo;
-
-            // Push the new entry through the queue
-            m_d->stabilizerDeque.dequeue();
-            m_d->stabilizerDeque.enqueue(sampledInfo);
-        } else if (m_d->stabilizerDeque.head().pos() != m_d->previousPaintInformation.pos()) {
-            QQueue<KisPaintInformation>::iterator it = m_d->stabilizerDeque.begin();
-            QQueue<KisPaintInformation>::iterator end = m_d->stabilizerDeque.end();
-
-            while (it != end) {
-                *it = m_d->previousPaintInformation;
-                ++it;
-            }
-        }
+    const QPointer<KisToolFreehandHelper> guard(this);
+    const bool gpu = bool(m_d->gpuImage);
+    if (gpu && !isRunning()) {
+        cancelPaint();
+        return;
     }
+    if (gpu && !m_d->gpuStabilizer) return;
+    try {
+        KisStabilizedEventsSampler::iterator it;
+        KisStabilizedEventsSampler::iterator end;
+        std::tie(it, end) = m_d->stabilizedSampler.range();
+        QVector<KisPaintInformation> delayedPaintTodoItems;
+        KisStabilizerDelayedPaintHelper::PaintLines gpuLines;
 
-    m_d->stabilizedSampler.clear();
+        for (; it != end; ++it) {
+            if (m_d->gpuStabilizer &&
+                ++m_d->gpuStabilizer->generatedSamples > m_d->gpuStabilizer->inputLimit) {
+                cancelPaint();
+                if (guard) Q_EMIT requestErrorMessage(gpuInputError(LibrePaint::Image::Gpu::Result::CapacityExceeded));
+                return;
+            }
+            KisPaintInformation sampledInfo = *it;
 
-    if (m_d->stabilizerDelayedPaintHelper.running()) {
-        m_d->stabilizerDelayedPaintHelper.update(delayedPaintTodoItems);
+            bool canPaint = true;
+
+            if (m_d->gpuStabilizer ? m_d->gpuStabilizer->useDelayDistance : m_d->smoothingOptions->useDelayDistance()) {
+                const qreal R = m_d->gpuStabilizer ?
+                    m_d->gpuStabilizer->delayDistance / m_d->gpuStabilizer->zoom :
+                    m_d->smoothingOptions->delayDistance() / m_d->resources->effectiveZoom();
+
+                QPointF diff = sampledInfo.pos() - m_d->previousPaintInformation.pos();
+                qreal dx = sqrt(pow2(diff.x()) + pow2(diff.y()));
+
+                if (!(dx > R)) {
+                    if (!gpu && m_d->resources->needsAirbrushing()) {
+                        sampledInfo.setPos(m_d->previousPaintInformation.pos());
+                    }
+                    else {
+                        canPaint = false;
+                    }
+                }
+            }
+
+            if (canPaint) {
+                KisPaintInformation newInfo = getStabilizedPaintInfo(m_d->stabilizerDeque, sampledInfo);
+
+                if (m_d->stabilizerDelayedPaintHelper.running()) {
+                    delayedPaintTodoItems.append(newInfo);
+                } else if (gpu) {
+                    gpuLines.append({m_d->previousPaintInformation, newInfo});
+                } else {
+                    paintLine(m_d->previousPaintInformation, newInfo);
+                    if (!guard || (gpu && !isRunning())) return;
+                }
+                m_d->previousPaintInformation = newInfo;
+
+                // Push the new entry through the queue
+                m_d->stabilizerDeque.dequeue();
+                m_d->stabilizerDeque.enqueue(sampledInfo);
+            } else if (m_d->stabilizerDeque.head().pos() != m_d->previousPaintInformation.pos()) {
+                QQueue<KisPaintInformation>::iterator it = m_d->stabilizerDeque.begin();
+                QQueue<KisPaintInformation>::iterator end = m_d->stabilizerDeque.end();
+
+                while (it != end) {
+                    *it = m_d->previousPaintInformation;
+                    ++it;
+                }
+            }
+        }
+
+        m_d->stabilizedSampler.clear();
+
+        if (!gpuLines.isEmpty()) {
+            paintGpuStabilizerLines(gpuLines);
+            if (!guard || !isRunning()) return;
+        }
+
+        if (m_d->stabilizerDelayedPaintHelper.running()) {
+            m_d->stabilizerDelayedPaintHelper.update(delayedPaintTodoItems);
+        } else {
+            Q_EMIT requestExplicitUpdateOutline();
+        }
+    } catch (const std::bad_alloc &) {
+        if (!gpu) throw;
+        if (!guard) return;
+        cancelPaint();
+        if (guard) Q_EMIT requestErrorMessage(i18n("The stabilizer could not retain its input and the stroke was cancelled."));
+    }
+}
+
+void KisToolFreehandHelper::paintGpuStabilizerLines(
+    const QVector<QPair<KisPaintInformation, KisPaintInformation>> &lines)
+{
+    if (!m_d->gpuStabilizer || !isRunning() || lines.isEmpty()) return;
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = m_d->gpuImage;
+    const QPointer<KisToolFreehandHelper> guard(this);
+    auto result = Gpu::Result::CapacityExceeded;
+    try {
+        if (lines.size() <= owner->limits().samplesPerStroke / 2) {
+            m_d->gpuLineBatch.emplace();
+            m_d->gpuLineBatch->samples.reserve(lines.size() * 2);
+            m_d->gpuLineBatch->commands.reserve(lines.size() * 2);
+            for (const auto &line : lines) {
+                // GPU replay applies the frozen hand transforms after smoothing.
+                KisToolFreehandHelper::paintLine(line.first, line.second);
+                if (!guard) return;
+                if (!isRunning()) { m_d->gpuLineBatch.reset(); return; }
+            }
+            auto batch = std::move(*m_d->gpuLineBatch);
+            m_d->gpuLineBatch.reset();
+            result = owner->appendPainterPrimitives(m_d->gpuOperation, batch.samples, batch.commands);
+        }
+    } catch (const std::bad_alloc &) {
+        if (!guard) return;
+        m_d->gpuLineBatch.reset();
+        result = Gpu::Result::CapacityExceeded;
+    }
+    if (!guard) return;
+    if (result != Gpu::Result::Success) {
+        cancelPaint();
+        if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
     } else {
-        Q_EMIT requestExplicitUpdateOutline();
+        m_d->hasPaintAtLeastOnce = true;
     }
 }
 
 void KisToolFreehandHelper::stabilizerEnd()
 {
+    const QPointer<KisToolFreehandHelper> guard(this);
+    const bool gpu = bool(m_d->gpuImage);
     // Stop the timer
     m_d->stabilizerPollTimer.stop();
 
     // Finish the line
-    if (m_d->smoothingOptions->finishStabilizedCurve()) {
+    if (m_d->gpuStabilizer ? m_d->gpuStabilizer->finishCurve : m_d->smoothingOptions->finishStabilizedCurve()) {
         // Process all the existing events first
         stabilizerPollAndPaint();
+        if (!guard || (gpu && !isRunning())) return;
 
         // Draw the finish line with pending events and a time override
         m_d->stabilizedSampler.addFinishingEvent(m_d->stabilizerDeque.size());
         stabilizerPollAndPaint();
+        if (!guard || (gpu && !isRunning())) return;
     }
 
     if (m_d->stabilizerDelayedPaintHelper.running()) {
         m_d->stabilizerDelayedPaintHelper.end();
+        if (!guard) return;
     }
     m_d->usingStabilizer = false;
 }
 
 void KisToolFreehandHelper::slotSmoothingTypeChanged()
 {
-    if (!isRunning()) {
+    if (m_d->gpuImage || !isRunning()) {
         return;
     }
     KisSmoothingOptions::SmoothingType currentSmoothingType =
@@ -970,6 +1253,17 @@ void KisToolFreehandHelper::slotSmoothingTypeChanged()
 
 void KisToolFreehandHelper::finishStroke()
 {
+    if (m_d->gpuImage) {
+        if (!m_d->gpuBasicInput || !isRunning()) return;
+        const auto owner = m_d->gpuImage;
+        const QPointer<KisToolFreehandHelper> guard(this);
+        const auto result = owner->flushSmoothing(m_d->gpuOperation);
+        if (guard && result != LibrePaint::Image::Gpu::Result::Success) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+        }
+        return;
+    }
     if (m_d->haveTangent) {
         m_d->haveTangent = false;
 
@@ -1027,9 +1321,26 @@ qreal KisToolFreehandHelper::currentPhysicalZoom() const
 void KisToolFreehandHelper::paintAt(int strokeInfoId,
                                     const KisPaintInformation &pi)
 {
+    if (m_d->gpuImage) {
+        if (!isRunning()) return;
+        const auto owner = m_d->gpuImage;
+        const QPointer<KisToolFreehandHelper> guard(this);
+        const auto result = m_d->gpuStabilizer ? owner->appendPoint(m_d->gpuOperation, m_d->gpuSample(pi)) :
+            owner->appendSamples(m_d->gpuOperation, {m_d->gpuSample(pi)});
+        if (!guard) return;
+        if (result != LibrePaint::Image::Gpu::Result::Success) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+        } else {
+            m_d->hasPaintAtLeastOnce = true;
+        }
+        return;
+    }
     m_d->hasPaintAtLeastOnce = true;
+    auto *data = new FreehandStrokeStrategy::Data(strokeInfoId, pi);
+    data->onlyIfEmpty = m_d->paintAtOnlyIfEmpty;
     m_d->strokesFacade->addJob(m_d->strokeId,
-                               new FreehandStrokeStrategy::Data(strokeInfoId, pi));
+                               data);
 
 }
 
@@ -1037,6 +1348,37 @@ void KisToolFreehandHelper::paintLine(int strokeInfoId,
                                       const KisPaintInformation &pi1,
                                       const KisPaintInformation &pi2)
 {
+    if (m_d->gpuImage) {
+        if (!isRunning()) return;
+        const auto owner = m_d->gpuImage;
+        const QPointer<KisToolFreehandHelper> guard(this);
+        if (m_d->gpuLineBatch) {
+            auto &batch = *m_d->gpuLineBatch;
+            if (batch.samples.size() > owner->limits().samplesPerStroke - 2) {
+                cancelPaint();
+                if (guard) Q_EMIT requestErrorMessage(gpuInputError(LibrePaint::Image::Gpu::Result::CapacityExceeded));
+                return;
+            }
+            batch.samples.append(m_d->gpuSample(pi1));
+            batch.samples.append(m_d->gpuSample(pi2));
+            batch.commands.append(LibrePaint::Image::Gpu::PathCommand::MoveTo);
+            batch.commands.append(LibrePaint::Image::Gpu::PathCommand::LineTo);
+            return;
+        }
+        const auto result = m_d->gpuStabilizer ?
+            owner->appendLine(m_d->gpuOperation, m_d->gpuSample(pi1), m_d->gpuSample(pi2)) :
+            owner->appendSamples(m_d->gpuOperation, m_d->hasPaintAtLeastOnce ?
+            QList<LibrePaint::Image::Gpu::InputSample>{m_d->gpuSample(pi2)} :
+            QList<LibrePaint::Image::Gpu::InputSample>{m_d->gpuSample(pi1), m_d->gpuSample(pi2)});
+        if (!guard) return;
+        if (result != LibrePaint::Image::Gpu::Result::Success) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+        } else {
+            m_d->hasPaintAtLeastOnce = true;
+        }
+        return;
+    }
     m_d->hasPaintAtLeastOnce = true;
     m_d->strokesFacade->addJob(m_d->strokeId,
                                new FreehandStrokeStrategy::Data(strokeInfoId, pi1, pi2));

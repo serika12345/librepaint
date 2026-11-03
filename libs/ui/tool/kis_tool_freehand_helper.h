@@ -30,6 +30,7 @@ class KisPostExecutionUndoAdapter;
 class KisPaintOp;
 class KisFreehandStrokeInfo;
 class KisSmoothingOptions;
+namespace LibrePaint::Image::Gpu { struct BrushTransform; }
 typedef QSharedPointer<KisSmoothingOptions> KisSmoothingOptionsSP;
 
 
@@ -85,10 +86,12 @@ Q_SIGNALS:
      * event
      */
     void requestExplicitUpdateOutline();
+    /** Reports a rejected or cancelled stroke; receivers may release the tool. */
+    void requestErrorMessage(const QString &message);
 
 protected:
     void cancelPaint();
-    int elapsedStrokeTime() const;
+    void setGpuMultibrushTransforms(const QList<LibrePaint::Image::Gpu::BrushTransform> &transforms);
 
     void initPaintImpl(qreal startAngle,
                        const KisPaintInformation &pi,
@@ -132,7 +135,10 @@ protected:
                                   const QPointF &control2,
                                   const KisPaintInformation &pi2);
 
+    virtual int elapsedStrokeTime() const;
+
 private:
+    friend class KisToolFreehand;
     void paint(KisPaintInformation &info );
     void paintBezierSegment(KisPaintInformation pi1, KisPaintInformation pi2,
                                                    QPointF tangent1, QPointF tangent2 
@@ -140,6 +146,7 @@ private:
 
     void stabilizerStart(KisPaintInformation firstPaintInfo);
     void stabilizerEnd();
+    void paintGpuStabilizerLines(const QVector<QPair<KisPaintInformation, KisPaintInformation>> &lines);
     KisPaintInformation getStabilizedPaintInfo(const QQueue<KisPaintInformation> &queue,
                                                const KisPaintInformation &lastPaintInfo);
     int computeAirbrushTimerInterval() const;

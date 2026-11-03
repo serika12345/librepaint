@@ -34,6 +34,7 @@
 #include <application/ui/orchestration/kis_action.h>
 
 #include <KisToolPaintFactoryBase.h>
+#include <gpu/KisGpuPaintImage.h>
 
 
 #include "tool_transform_args.h"
@@ -250,6 +251,12 @@ private:
     void setTransformFunction(QPointF mousePos, Qt::KeyboardModifiers modifiers);
 
     void commitChanges();
+    bool hasStroke() const;
+    void startGpuTransform(ToolTransformArgs::TransformMode mode, const KisNodeList &roots,
+                           KisSelectionSP selection, KisPaintDeviceSP externalSource);
+    void updateGpuTransform();
+    void finishGpuTransform(bool commit);
+
 
     void initTransformMode(ToolTransformArgs::TransformMode mode);
     void initGuiAfterTransformMode();
@@ -268,6 +275,21 @@ private:
 
     KisPaintDeviceSP m_selectedPortionCache;
     KisStrokeId m_strokeId;
+    LibrePaint::Image::Gpu::PaintImageSP m_gpuImage;
+    LibrePaint::Image::Gpu::OperationId m_gpuTransform;
+    LibrePaint::Image::Gpu::Snapshot m_gpuTransformSource;
+    QList<LibrePaint::Image::Gpu::AffineTransformTarget> m_gpuTransformTargets;
+    QHash<LibrePaint::Image::Gpu::LayerId, QRect> m_gpuTransformBounds;
+    QHash<LibrePaint::Image::Gpu::LayerId, QRect> m_gpuNonDefaultBounds;
+    QHash<LibrePaint::Image::Gpu::LayerId, QRect> m_gpuMaskDefaultBounds;
+    QHash<LibrePaint::Image::Gpu::LayerId, QRect> m_gpuFilterDefaultBounds;
+    LibrePaint::Image::Gpu::SelectionMaskSP m_gpuSelection;
+    QRect m_gpuSelectionBounds;
+    ToolTransformArgs m_gpuAcceptedArgs;
+    bool m_gpuUpdating = false;
+    bool m_gpuUpdatePending = false;
+    bool m_gpuCommitPending = false;
+
     void *m_strokeStrategyCookie {0};
     bool m_currentlyUsingOverlayPreviewStyle {false};
     bool m_preferOverlayPreviewStyle {false};

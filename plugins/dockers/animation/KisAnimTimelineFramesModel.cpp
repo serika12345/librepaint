@@ -90,6 +90,7 @@ struct KisAnimTimelineFramesModel::Private
     {}
 
     int activeLayerIndex;
+    quint64 activationSerial = 0;
 
     QPointer<KisDummiesFacadeBase> dummiesFacade;
     KisImageWSP image;
@@ -300,6 +301,7 @@ void KisAnimTimelineFramesModel::setDummiesFacade(KisDummiesFacadeBase *dummiesF
                                            KisImageSP image,
                                            KisNodeDisplayModeAdapter *displayModeAdapter)
 {
+    ++m_d->activationSerial;
     KisDummiesFacadeBase *oldDummiesFacade = m_d->dummiesFacade;
 
     if (m_d->dummiesFacade && m_d->image) {
@@ -369,6 +371,7 @@ void KisAnimTimelineFramesModel::processUpdateQueue()
 void KisAnimTimelineFramesModel::slotCurrentNodeChanged(KisNodeSP node)
 {    
     if (!node) {
+        ++m_d->activationSerial;
         m_d->activeLayerIndex = -1;
         return;
     }
@@ -379,10 +382,19 @@ void KisAnimTimelineFramesModel::slotCurrentNodeChanged(KisNodeSP node)
         // when views get activated while Krita is closing down.
         return;
     }
+    if (m_d->converter->isRemovingDummy(dummy)) return;
+    const auto serial = ++m_d->activationSerial;
     
     int lastActiveLayerIndex = m_d->activeLayerIndex;
     const bool prevActiveWasPinned = headerData(m_d->activeLayerIndex, Qt::Vertical, PinnedToTimelineRole).toBool();
-    m_d->converter->updateActiveDummy(dummy);
+    if (!m_d->converter->updateActiveDummy(dummy)) {
+        // Selection notifications from row removal may select another layer.
+        // Apply its row changes after the current model notification finishes.
+        QTimer::singleShot(0, this, [this, node, serial] {
+            if (serial == m_d->activationSerial) slotCurrentNodeChanged(node);
+        });
+        return;
+    }
 
     const int row = m_d->converter->rowForDummy(dummy);
     if (row < 0) {

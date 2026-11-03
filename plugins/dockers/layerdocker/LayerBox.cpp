@@ -547,7 +547,8 @@ void LayerBox::setViewManager(KisViewManager* kisview)
 
 void LayerBox::setCanvas(KoCanvasBase *canvas)
 {
-    if (m_canvas == canvas)
+    if (m_canvas == canvas &&
+        (!m_canvas || m_image.toStrongRef() == m_canvas->image().toStrongRef()))
         return;
 
     setEnabled(canvas != 0);
@@ -573,6 +574,7 @@ void LayerBox::setCanvas(KoCanvasBase *canvas)
 
     if (m_canvas) {
         m_image = m_canvas->image();
+        m_wdgLayerBox->listLayers->setActiveChangePreservesSelection(bool(m_image->gpuImage()));
         Q_EMIT imageChanged();
 
         KisDocument* doc = static_cast<KisDocument*>(m_canvas->imageView()->document());
@@ -676,9 +678,28 @@ void LayerBox::notifyImageDeleted()
     setCanvas(0);
 }
 
+KisImageSP LayerBox::currentCanvasImage()
+{
+    if (!m_canvas) return {};
+    const auto image = m_canvas->image().toStrongRef();
+    if (image && image == m_image.toStrongRef()) return image;
+
+    // Model notifications can arrive after the document replaces its image.
+    // Rebind after insertion/reset delivery completes, using the latest canvas.
+    if (!m_canvasImageRefreshQueued) {
+        m_canvasImageRefreshQueued = true;
+        QMetaObject::invokeMethod(this, [this] {
+            m_canvasImageRefreshQueued = false;
+            if (m_canvas) setCanvas(m_canvas);
+        }, Qt::QueuedConnection);
+    }
+    return {};
+}
+
 void LayerBox::updateUI()
 {
-    if (!m_canvas) return;
+    const auto image = currentCanvasImage();
+    if (!image) return;
     if (!m_nodeManager) return;
 
     KisNodeSP activeNode = m_nodeManager->activeNode();
@@ -703,9 +724,9 @@ void LayerBox::updateUI()
     }
 
     m_wdgLayerBox->bnRaise->setEnabled(activeNode && activeNode->isEditable(false) && (activeNode->nextSibling()
-                                                                                       || (activeNode->parent() && activeNode->parent() != m_image->root())));
+                                                                                       || (activeNode->parent() && activeNode->parent() != image->root())));
     m_wdgLayerBox->bnLower->setEnabled(activeNode && activeNode->isEditable(false) && (activeNode->prevSibling()
-                                                                                       || (activeNode->parent() && activeNode->parent() != m_image->root())));
+                                                                                       || (activeNode->parent() && activeNode->parent() != image->root())));
 
     m_wdgLayerBox->doubleOpacity->setEnabled(activeNode && activeNode->isEditable(false));
 
@@ -748,6 +769,8 @@ void LayerBox::updateUI()
  */
 void LayerBox::setCurrentNode(KisNodeSP node)
 {
+    const auto image = currentCanvasImage();
+    if (!image) return;
     /**
      * setCanvas() calls to node managed and layer box are coming out-of-sync,
      * so it might happen that setCurrentNode() call will arrive with a node
@@ -758,7 +781,7 @@ void LayerBox::setCurrentNode(KisNodeSP node)
      * "active layer", and all the initialization should happen in one
      * direction without cycles.
      */
-    if (node && m_image && node->graphListener() != m_image.data()) {
+    if (node && node->graphListener() != image.data()) {
         return;
     }
 
@@ -919,8 +942,9 @@ void LayerBox::slotSelectOpaque()
 
 void LayerBox::slotNodeCollapsedChanged()
 {
-    if (m_nodeModel->hasDummiesFacade()) {
-        expandNodesRecursively(m_image->rootLayer(), m_filteringModel, m_wdgLayerBox->listLayers);
+    const auto image = currentCanvasImage();
+    if (image && m_nodeModel->hasDummiesFacade()) {
+        expandNodesRecursively(image->rootLayer(), m_filteringModel, m_wdgLayerBox->listLayers);
     }
 }
 
@@ -1251,6 +1275,14 @@ void LayerBox::updateLayerOpMenu(const QModelIndex &index, QMenu &menu) {
         addActionToMenu(locksMenu, "toggle_layer_lock");
         addActionToMenu(locksMenu, "toggle_layer_inherit_alpha");
         addActionToMenu(locksMenu, "toggle_layer_alpha_lock");
+        if (m_image && m_image->gpuImage()) {
+            // GPU transparency masks are document-version state rather than
+            // layer-panel child nodes, so their toggle and removal operate on
+            // the active paint layer through these actions.
+            QMenu *maskMenu = menu.addMenu(i18n("&Transparency Mask"));
+            addActionToMenu(maskMenu, "toggle_gpu_transparency_mask");
+            addActionToMenu(maskMenu, "remove_gpu_transparency_mask");
+        }
 
         if (singleNode) {
             QMenu *addLayerMenu = menu.addMenu(i18n("&Add"));

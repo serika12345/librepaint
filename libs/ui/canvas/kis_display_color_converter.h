@@ -7,6 +7,7 @@
 #ifndef __KIS_DISPLAY_COLOR_CONVERTER_H
 #define __KIS_DISPLAY_COLOR_CONVERTER_H
 
+#include <KoColorConversionStages.h>
 #include <QScopedPointer>
 
 #include <KoColorDisplayRendererInterface.h>
@@ -52,6 +53,7 @@ public:
 
     KoColorDisplayRendererInterface* displayRendererInterface() const;
 
+    KoColorConversionStagesResult canvasDisplayStages(const KoColorSpace *source) const;
     const KoColorSpace* paintingColorSpace() const;
     const KoColorSpace* nodeColorSpace() const;
     void setMultiSurfaceDisplayConfig(const KisMultiSurfaceDisplayConfig &config);

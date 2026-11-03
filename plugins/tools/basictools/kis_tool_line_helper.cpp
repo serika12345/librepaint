@@ -16,11 +16,15 @@
 #include "kis_paint_information.h"
 #include "kis_painting_information_builder.h"
 #include "kis_image.h"
+#include <gpu/KisGpuPaintImage.h>
+#include <KLocalizedString>
 #include "kis_smoothing_options.h"
 #include "kis_tool_freehand_helper.h"
 #include "kis_types.h"
 
 #include <KoCanvasResourceProvider.h>
+#include <KoToolBase.h>
+#include <QPointer>
 #include <brushengine/kis_paintop_preset.h>
 #include <cmath>
 #include <cstdlib>
@@ -46,13 +50,16 @@ struct KisToolLineHelper::Private
 
 KisToolLineHelper::KisToolLineHelper(KisPaintingInformationBuilder *infoBuilder,
                                      KoCanvasResourceProvider *resourceManager,
-                                     const KUndo2MagicString &transactionText)
+                                     const KUndo2MagicString &transactionText,
+                                     KoToolBase *errorReceiver)
     : KisToolFreehandHelper(infoBuilder,
                             resourceManager,
                             transactionText,
                             new KisSmoothingOptions(false)),
       m_d(new Private(infoBuilder))
 {
+    connect(this, &KisToolFreehandHelper::requestErrorMessage,
+            errorReceiver, &KoToolBase::statusTextChanged);
 }
 
 KisToolLineHelper::~KisToolLineHelper()
@@ -75,7 +82,9 @@ void KisToolLineHelper::repaintLine(KisImageWSP image, KisNodeSP node,
 {
     if (!m_d->enabled) return;
 
+    const QPointer<KisToolFreehandHelper> guard(this);
     cancelPaint();
+    if (!guard) return;
     if (m_d->linePoints.isEmpty()) return;
 
     qreal startAngle = 0.0;
@@ -101,11 +110,23 @@ void KisToolLineHelper::repaintLine(KisImageWSP image, KisNodeSP node,
     QVector<KisPaintInformation>::const_iterator end = m_d->linePoints.constEnd();
 
     initPaintImpl(startAngle, *it, resourceManager(), image, node, strokesFacade);
+    if (!guard || !isRunning()) return;
     ++it;
 
     while (it != end) {
         paintLine(*(it - 1), *it);
+        if (!guard || !isRunning()) return;
         ++it;
+    }
+    if (const auto owner = image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const auto result = owner->updateShape(owner->operations().activeOperation(),
+            {Gpu::ShapeKind::Line, m_d->linePoints.first().pos(), m_d->linePoints.last().pos()});
+        if (!guard) return;
+        if (result != Gpu::Result::Success) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(i18n("The line could not be drawn and was cancelled."));
+        }
     }
 }
 
@@ -216,9 +237,14 @@ void KisToolLineHelper::movePointsTo(const QPointF &startPoint, const QPointF &e
 void KisToolLineHelper::end()
 {
     if (!m_d->enabled) return;
-    KIS_ASSERT_RECOVER_RETURN(isRunning());
+    if (!isRunning()) {
+        clearPoints();
+        return;
+    }
 
+    const QPointer<KisToolFreehandHelper> guard(this);
     endPaint();
+    if (!guard) return;
     clearPoints();
 }
 
@@ -228,7 +254,9 @@ void KisToolLineHelper::cancel()
     if (!m_d->enabled) return;
     KIS_ASSERT_RECOVER_RETURN(isRunning());
 
+    const QPointer<KisToolFreehandHelper> guard(this);
     cancelPaint();
+    if (!guard) return;
     clearPoints();
 }
 

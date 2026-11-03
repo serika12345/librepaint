@@ -66,6 +66,9 @@ void Viewport::setCanvas(QWidget *canvas)
     m_canvas->setParent(this);
     resetLayout();
     m_canvas->show();
+    // Showing a recreated native canvas can activate its own layout and reset
+    // the widget to its default size. Keep it filling the viewport.
+    resetLayout();
 }
 
 void Viewport::handleDragEnterEvent(QDragEnterEvent *event)

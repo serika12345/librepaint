@@ -23,6 +23,7 @@
 #include "kis_signal_compressor.h"
 #include "kis_signal_auto_connection.h"
 #include "KisAsynchronousStrokeUpdateHelper.h"
+#include <gpu/KisGpuPaintImage.h>
 
 #include "kis_canvas2.h"
 
@@ -120,7 +121,9 @@ Q_SIGNALS:
     void moveInNewPosition(QPoint);
 
 private:
-    void drag(const QPoint& newPos);
+    bool drag(const QPoint& newPos);
+    bool hasStroke() const;
+    bool updateOffset(QPoint offset);
     void cancelStroke();
     QPoint applyModifiers(Qt::KeyboardModifiers modifiers, QPoint pos);
 
@@ -152,6 +155,8 @@ private:
     QPoint m_accumulatedOffset; ///< Total offset including multiple clicks, up/down/left/right keys, etc. added together
 
     KisStrokeId m_strokeId;
+    LibrePaint::Image::Gpu::PaintImageSP m_gpuImage;
+    LibrePaint::Image::Gpu::OperationId m_gpuTranslation;
 
     KisNodeList m_currentlyProcessingNodes;
     bool m_currentlyUsingSelection {false};

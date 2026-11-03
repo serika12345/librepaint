@@ -24,6 +24,8 @@ private Q_SLOTS:
 
     void testLayers();
     void testColorLabels();
+    void testModelActiveNodePreservesExtendedSelection_data();
+    void testModelActiveNodePreservesExtendedSelection();
 
 private:
     KisDocument *m_doc;

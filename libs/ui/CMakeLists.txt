@@ -1848,6 +1848,7 @@ set(kritaui_LIB_SRCS
 
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp
+    canvas/KisGpuCanvasWidget.cpp
     canvas/kis_canvas_tool_support.cpp
     canvas/kis_canvas_updates_compressor.cpp
     canvas/kis_canvas_controller.cpp
@@ -1933,6 +1934,7 @@ set(kritaui_LIB_SRCS
     document/kis_image_manager.cc
     canvas/kis_image_view_converter.cpp
     nodes/kis_layer_manager.cc
+    nodes/KisGpuFilterNodeEdit.cpp
     nodes/kis_mask_manager.cc
     nodes/kis_node_manager.cpp
     nodes/kis_node_selection_adapter.cpp
@@ -2123,6 +2125,7 @@ set(kritaui_LIB_SRCS
     canvas/kis_abstract_perspective_grid.cpp
 
     document/KisDocument.cpp
+    document/KisDocumentUndoStack.cpp
     document/KisDocumentImageState.cpp
     document/KisImageManagerDrop.cpp
     document/KisDocumentTemplate.cpp
@@ -2389,6 +2392,7 @@ target_link_libraries(kritaapplicationui
         kritaapplication
     PRIVATE
         kritadocumentfiles
+        kritadocumentpainting
         kritadocumentui
         kritaimpexui
         kritainputui

@@ -14,6 +14,11 @@
 #include <QClipboard>
 #include <QColor>
 #include <QMimeData>
+#include <QGuiApplication>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
+#include <gpu/KisGpuOperationDocument.h>
+#include <exception>
 
 #include <QAction>
 #include <klocalizedstring.h>
@@ -64,6 +69,8 @@
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_iterator_ng.h"
 #include "kis_clipboard.h"
+#include "kis_mimedata.h"
+#include "kis_layer_utils.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_selection_filters.h"
 #include <kis_figure_painting_stroke.h>
@@ -83,6 +90,51 @@
 #include "application/ui/orchestration/kis_action_manager.h"
 //new
 #include "kis_config_notifier.h"
+
+namespace {
+LibrePaint::Image::Gpu::LayerId insertGpuClipboardLayer(KisImageSP image, const QMimeData *data, QPoint position, const QString &name)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = image ? image->gpuImage() : nullptr;
+    const auto *native = qobject_cast<const KisMimeData *>(data);
+    if (!owner || !native || native->nodes().size() != 1) return 0;
+    const auto node = native->nodes().first();
+    const KisImageSP sourceImage = node->image();
+    const auto source = sourceImage ? sourceImage->gpuImage() : nullptr;
+    if (!source) return 0;
+    const auto version = owner->operations().snapshot();
+    const auto captured = source->operations().snapshot();
+    if (captured->format != version->format || captured->colorProfile != version->colorProfile) return 0;
+    Gpu::LayerId sourceLayer = 0;
+    for (const auto &layer : captured->layers) if (layer.uuid == node->uuid()) sourceLayer = layer.id;
+    if (!sourceLayer) return 0;
+    const auto pixels = source->readRgbaPixels(sourceLayer, QRect(QPoint(), captured->size), 256 * 1024 * 1024);
+    if (pixels.code != Gpu::ExecutionCode::Success || !owner->handle() || !source->handle() ||
+        owner->operations().snapshot() != version || source->operations().snapshot() != captured) return 0;
+    Gpu::RasterImage input;
+    input.size = image->size();
+    input.format = version->format;
+    input.colorProfile = version->colorProfile;
+    input.layers.append({name, true, QUuid::createUuid(), {}});
+    Gpu::PaintImageSP temporary;
+    try {
+        temporary = Gpu::PaintImageSP::create(owner->execution(), input);
+    } catch (const std::exception &) {
+        return 0;
+    }
+    const auto temporaryLayer = temporary->operations().activeLayer();
+    if (temporary->writeRgbaPixels(temporaryLayer, QRect(position, captured->size), pixels.bytes) != Gpu::Result::Success)
+        return 0;
+    const auto retained = temporary->retainLayerPixels(temporaryLayer);
+    qsizetype index = version->layers.size();
+    for (qsizetype i = 0; i < version->layers.size(); ++i)
+        if (version->layers[i].id == version->activeLayer) index = i + 1;
+    Gpu::RasterLayer properties;
+    properties.name = name;
+    properties.uuid = QUuid::createUuid();
+    return retained ? owner->insertLayer(*temporary, retained, properties, index, false) : 0;
+}
+}
 
 KisSelectionManager::KisSelectionManager(KisViewManager * view)
         : m_view(view)
@@ -574,6 +626,29 @@ void KisSelectionManager::fillPatternOpacity()
 
 void KisSelectionManager::copySelectionToNewLayer()
 {
+    const QPointer<KisViewManager> view(m_view);
+    if (KisImageSP image = m_view->image(); image && image->gpuImage()) {
+        const QRect selection = image->gpuSelectionRect();
+        if (selection.isEmpty()) return;
+        const QPointer<const QMimeData> previousClipboard(QGuiApplication::clipboard()->mimeData());
+        copy();
+        if (!view || view->image().data() != image.data()) return;
+        const auto *mime = QGuiApplication::clipboard()->mimeData();
+        if (mime == previousClipboard.data()) return;
+        const QPoint position = image->gpuSelectionInverted() ? QPoint(0, 0) : selection.topLeft();
+        const auto layer = insertGpuClipboardLayer(image, mime, position, i18n("Copied Selection"));
+        if (!view || view->image().data() != image.data()) return;
+        if (!layer) {
+            view->showFloatingMessage(i18n("The selected area could not be copied to a new layer."), QIcon());
+            return;
+        }
+        QUuid uuid;
+        for (const auto &candidate : image->gpuImage()->operations().snapshot()->layers)
+            if (candidate.id == layer) uuid = candidate.uuid;
+        if (const auto node = KisLayerUtils::findNodeByUuid(image->root(), uuid))
+            view->nodeManager()->slotUiActivatedNode(node);
+        return;
+    }
     copy();
     KisPasteActionFactory factory;
     factory.run(KisPasteActionFactory::ForceNewLayer, m_view);
@@ -581,6 +656,39 @@ void KisSelectionManager::copySelectionToNewLayer()
 
 void KisSelectionManager::cutToNewLayer()
 {
+    const QPointer<KisViewManager> view(m_view);
+    if (KisImageSP image = m_view->image(); image && image->gpuImage()) {
+        const QRect selection = image->gpuSelectionRect();
+        const auto owner = image->gpuImage();
+        KisNodeSP node = m_view->activeNode();
+        if (selection.isEmpty() || !owner || !node) return;
+        LibrePaint::Image::Gpu::LayerId sourceLayer = 0;
+        for (const auto &candidate : owner->operations().snapshot()->layers)
+            if (candidate.uuid == node->uuid()) sourceLayer = candidate.id;
+        if (!sourceLayer) return;
+        const QPointer<const QMimeData> previousClipboard(QGuiApplication::clipboard()->mimeData());
+        copy();
+        if (!view || view->image().data() != image.data()) return;
+        const auto *mime = QGuiApplication::clipboard()->mimeData();
+        if (mime == previousClipboard.data()) return;
+        const QPoint position = image->gpuSelectionInverted() ? QPoint(0, 0) : selection.topLeft();
+        const auto layer = insertGpuClipboardLayer(image, mime, position, i18n("Cut Selection"));
+        if (!view || view->image().data() != image.data()) return;
+        if (!layer) {
+            view->showFloatingMessage(i18n("The selected area could not be cut to a new layer."), QIcon());
+            return;
+        }
+        QUuid uuid;
+        for (const auto &candidate : image->gpuImage()->operations().snapshot()->layers)
+            if (candidate.id == layer) uuid = candidate.uuid;
+        if (const auto node = KisLayerUtils::findNodeByUuid(image->root(), uuid))
+            view->nodeManager()->slotUiActivatedNode(node);
+        if (!view || view->image().data() != image.data()) return;
+        if (owner->clearSelectedPixels({sourceLayer}) !=
+            LibrePaint::Image::Gpu::Result::Success)
+            if (view) view->showFloatingMessage(i18n("The source selection could not be cleared."), QIcon());
+        return;
+    }
     cut();
     KisPasteActionFactory factory;
     factory.run(KisPasteActionFactory::ForceNewLayer, m_view);

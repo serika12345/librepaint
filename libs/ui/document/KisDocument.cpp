@@ -6,6 +6,8 @@
  */
 
 #include "KisImportExportUtils.h"
+#include <cstring>
+#include "KisDocumentUndoStack_p.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceModel.h"
 #include "KoColorSet.h"
@@ -17,14 +19,23 @@
 #include <KisMimeDatabase.h>
 
 #include <KoCanvasBase.h>
+#include <KritaVersionWrapper.h>
 #include <KoColor.h>
+#include <kis_dom_utils.h>
 #include <KoColorProfile.h>
 #include <KoColorSpaceEngine.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <info/KoDocumentInfoDlg.h>
 #include <memory>
+#include <functional>
+#include <stdexcept>
+#include <limits>
+#include <optional>
 #include <metadata/KoDocumentInfo.h>
+#include <metadata/kis_meta_data_store.h>
+#include <metadata/kis_meta_data_backend_registry.h>
+#include <metadata/kis_meta_data_io_backend.h>
 #include <KoUnit.h>
 #include <KoID.h>
 #include <KoProgressProxy.h>
@@ -42,6 +53,7 @@
 #include <KisResourceLocator.h>
 #include <KisResourceTypes.h>
 #include <KisGlobalResourcesInterface.h>
+#include <QColorSpace>
 #include <QtGlobal>
 #include <qdatetime.h>
 #include <qhashfunctions.h>
@@ -85,8 +97,11 @@
 #include <QRect>
 #include <QScopedPointer>
 #include <QSize>
+#include <QSet>
+#include <QSignalBlocker>
 #include <QStringList>
 #include <QTimer>
+#include <QThread>
 #include <QWidget>
 #include <QFuture>
 #include <QFutureWatcher>
@@ -94,10 +109,16 @@
 
 // Krita Image
 #include <kis_image_animation_interface.h>
+#include <kis_time_span.h>
 #include <application/kis_config.h>
 #include <flake/kis_shape_layer.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <kis_annotation.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuPaintDocument.h>
+#include <kra/KisKraRasterCodec.h>
+#include <QPointer>
 #include <kis_layer.h>
 #include <kis_name_server.h>
 #include <kis_paint_layer.h>
@@ -179,6 +200,279 @@ QString autoSaveFilePath(const KisDocument *document, const QString &path)
         KisConfig(true).readEntry<bool>("autosavefileshidden"));
 }
 
+KisImportExportErrorCode gpuFileStatus(LibrePaint::Document::Gpu::FileCode code)
+{
+    using LibrePaint::Document::Gpu::FileCode;
+    switch (code) {
+    case FileCode::Success: return ImportExportCodes::OK;
+    case FileCode::CapacityExceeded: return ImportExportCodes::InsufficientMemory;
+    case FileCode::Busy: return ImportExportCodes::Busy;
+    case FileCode::UnsupportedData: return ImportExportCodes::FormatFeaturesUnsupported;
+    case FileCode::IoFailure: return ImportExportCodes::ErrorWhileWriting;
+    default: return ImportExportCodes::Failure;
+    }
+}
+
+struct StaticKraSettings
+{
+    std::optional<int> framerate, time, initialFrame;
+    std::optional<KisTimeSpan> range;
+    std::optional<QString> sequencePath, sequenceName;
+};
+
+KisImportExportErrorCode readStaticKraSettings(const QByteArray &bytes, StaticKraSettings &settings, QString &diagnostic)
+{
+    if (bytes.isEmpty()) return ImportExportCodes::OK;
+    QDomDocument xml;
+    if (!xml.setContent(bytes)) {
+        diagnostic = i18n("Invalid KRA animation settings.");
+        return ImportExportCodes::FileFormatIncorrect;
+    }
+    const auto root = xml.documentElement();
+    const auto unsupported = [&](const QString &feature) -> KisImportExportErrorCode {
+        diagnostic = i18n("The new painting engine cannot edit the KRA feature '%1'.", root.tagName() + QLatin1Char('/') + feature);
+        return ImportExportCodes::FormatFeaturesUnsupported;
+    };
+    const auto invalid = [&](const QString &field) -> KisImportExportErrorCode {
+        diagnostic = i18n("Invalid KRA timing value '%1'.", field);
+        return ImportExportCodes::FileFormatIncorrect;
+    };
+    for (int i = 0; i < root.attributes().size(); ++i)
+        if (root.attributes().item(i).nodeName() != QLatin1String("xmlns"))
+            return unsupported(root.attributes().item(i).nodeName());
+    QSet<QString> seen;
+    std::optional<QString> exportPath, exportName;
+    for (auto value = root.firstChildElement(); !value.isNull(); value = value.nextSiblingElement()) {
+        const auto tag = value.tagName();
+        if (seen.contains(tag)) return invalid(tag);
+        seen.insert(tag);
+        const bool exports = tag == QLatin1String("export-settings");
+        const bool range = tag == QLatin1String("range");
+        if (!exports && !range && tag != QLatin1String("framerate") && tag != QLatin1String("currentTime"))
+            return unsupported(tag);
+        const QSet<QString> attributes = exports ? QSet<QString>{} : range ?
+            QSet<QString>{QStringLiteral("type"), QStringLiteral("from"), QStringLiteral("to")} :
+            QSet<QString>{QStringLiteral("type"), QStringLiteral("value")};
+        for (int i = 0; i < value.attributes().size(); ++i)
+            if (!attributes.contains(value.attributes().item(i).nodeName()))
+                return unsupported(tag + QLatin1Char('/') + value.attributes().item(i).nodeName());
+        if (exports) {
+            QSet<QString> exportFields;
+            for (auto item = value.firstChildElement(); !item.isNull(); item = item.nextSiblingElement()) {
+                const auto name = item.tagName();
+                if (exportFields.contains(name)) return invalid(name);
+                exportFields.insert(name);
+                if (name != QLatin1String("sequenceFilePath") && name != QLatin1String("sequenceBaseName") &&
+                    name != QLatin1String("sequenceInitialFrameNumber")) return unsupported(name);
+                for (int i = 0; i < item.attributes().size(); ++i) {
+                    const auto attribute = item.attributes().item(i).nodeName();
+                    if (attribute != QLatin1String("type") && attribute != QLatin1String("value")) return unsupported(name + QLatin1Char('/') + attribute);
+                }
+                if (!item.firstChildElement().isNull()) return unsupported(name);
+                if (item.attribute(QStringLiteral("type")) != QLatin1String("value") || !item.hasAttribute(QStringLiteral("value"))) return invalid(name);
+                if (name == QLatin1String("sequenceInitialFrameNumber")) {
+                    bool ok = false;
+                    const int number = item.attribute(QStringLiteral("value")).toInt(&ok);
+                    if (!ok) return invalid(name);
+                    settings.initialFrame = number;
+                } else if (name == QLatin1String("sequenceFilePath")) exportPath = item.attribute(QStringLiteral("value"));
+                else exportName = item.attribute(QStringLiteral("value"));
+            }
+        } else {
+            if (!value.firstChildElement().isNull()) return unsupported(tag);
+            if (range) {
+                bool firstOk = false, lastOk = false;
+                value.attribute(QStringLiteral("from")).toInt(&firstOk);
+                value.attribute(QStringLiteral("to")).toInt(&lastOk);
+                KisTimeSpan span;
+                if (!firstOk || !lastOk || !KisDomUtils::loadValue(root, tag, &span) || !span.isValid() || span.isInfinite()) return invalid(tag);
+                settings.range = span;
+            } else if (tag == QLatin1String("framerate")) {
+                float fps = 0;
+                if (!KisDomUtils::loadValue(value, &fps) || !qIsFinite(fps) || fps < 1 ||
+                    double(fps) > std::numeric_limits<int>::max()) return invalid(tag);
+                settings.framerate = int(fps);
+            } else {
+                bool ok = false;
+                const int time = value.attribute(QStringLiteral("value")).toInt(&ok);
+                if (!ok || value.attribute(QStringLiteral("type")) != QLatin1String("value")) return invalid(tag);
+                settings.time = time;
+            }
+        }
+    }
+    if (exportPath) settings.sequencePath = *exportPath;
+    // The native loader uses the last provided export string as the base-name fallback.
+    settings.sequenceName = exportName.value_or(exportPath.value_or(QString()));
+    return ImportExportCodes::OK;
+}
+
+QImage fixedImagePreview(KisImageSP image, const LibrePaint::Image::Gpu::Snapshot &version,
+                        const KoColorSpace *encoding, const QSize &maximum)
+{
+    const auto originalSize = version ? version->size : image->size();
+    const auto newSize = originalSize.scaled(maximum, Qt::KeepAspectRatio).expandedTo({1, 1});
+    const bool pixelArt = originalSize.width() < maximum.width() && originalSize.height() < maximum.height() &&
+        newSize.height() % originalSize.height() == 0 && newSize.width() % originalSize.width() == 0;
+    QImage preview;
+    if (pixelArt) {
+        const auto original = image->convertToQImage(originalSize, nullptr, version, encoding);
+        if (!original.isNull()) preview = original.scaled(newSize, Qt::KeepAspectRatio, Qt::FastTransformation);
+    } else {
+        preview = image->convertToQImage(newSize, nullptr, version, encoding);
+    }
+    if (preview.isNull()) {
+        preview = QImage(newSize, QImage::Format_ARGB32);
+        QPainter painter(&preview);
+        painter.fillRect(preview.rect(), QBrush(KisCanvasWidgetBase::createCheckersImage(newSize.width() / 5)));
+    }
+    return preview;
+}
+
+LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document,
+                                                        LibrePaint::Document::Gpu::PaintDocument &fileDocument,
+                                                        const QDateTime &saveTime = QDateTime::currentDateTime(),
+                                                        std::optional<bool> compressRaster = {})
+{
+    using LibrePaint::Document::Gpu::FileCode;
+    if (QThread::currentThread() != document.thread())
+        return {FileCode::InvalidData, {}, i18n("Image metadata requires the document thread.")};
+    LibrePaint::ImportExport::Kra::ImageMetadata metadata;
+    KisImageSP image = document.image();
+    metadata.resolution = {image->xRes() * 72, image->yRes() * 72};
+    metadata.producerVersion = KritaVersionWrapper::versionString(false);
+    metadata.compressRaster = compressRaster.value_or(KisConfig(true).compressKra());
+    auto info = KisDocument::createDomDocument(QStringLiteral("document-info"), QStringLiteral("document-info"), QStringLiteral("1.1"));
+    metadata.documentInfo = document.documentInfo()->save(info, document.isAutosaving(), document.isModified(), saveTime).toByteArray();
+    metadata.iccProfile = image->profile()->rawData();
+    metadata.profileName = image->profile()->name();
+    QDomDocument colors;
+    auto colorHistory = colors.createElement(QStringLiteral("ColorHistory"));
+    colors.appendChild(colorHistory);
+    for (const auto &color : document.colorHistoryColors()) color.toXML(colors, colorHistory);
+    metadata.colorHistory = colors.toByteArray();
+    QDomDocument assistants;
+    auto assistantsColor = assistants.createElement(QStringLiteral("GlobalAssistantsColor"));
+    assistantsColor.setAttribute(QStringLiteral("SimpleColorData"), KisDomUtils::qColorToQString(document.assistantsGlobalColor()));
+    assistants.appendChild(assistantsColor);
+    metadata.assistantsGlobalColor = assistants.toByteArray();
+    auto *animation = image->animationInterface();
+    QDomDocument timing;
+    auto timingRoot = timing.createElement(QStringLiteral("animation"));
+    timing.appendChild(timingRoot);
+    KisDomUtils::saveValue(&timingRoot, QStringLiteral("framerate"), animation->framerate());
+    KisDomUtils::saveValue(&timingRoot, QStringLiteral("range"), animation->documentPlaybackRange());
+    KisDomUtils::saveValue(&timingRoot, QStringLiteral("currentTime"), animation->currentUITime());
+    metadata.animation = timing.toByteArray();
+    auto animationIndex = document.createDomDocument(QStringLiteral("animation-metadata"), QStringLiteral("1.1"));
+    auto indexRoot = animationIndex.documentElement();
+    for (auto child = timingRoot.firstChild(); !child.isNull(); child = child.nextSibling())
+        indexRoot.appendChild(animationIndex.importNode(child, true));
+    auto exports = animationIndex.createElement(QStringLiteral("export-settings"));
+    KisDomUtils::saveValue(&exports, QStringLiteral("sequenceFilePath"), animation->exportSequenceFilePath());
+    KisDomUtils::saveValue(&exports, QStringLiteral("sequenceBaseName"), animation->exportSequenceBaseName());
+    KisDomUtils::saveValue(&exports, QStringLiteral("sequenceInitialFrameNumber"), animation->exportInitialFrameNumber());
+    indexRoot.appendChild(exports);
+    metadata.animationMetadata = animationIndex.toByteArray();
+    const auto &mirror = document.mirrorAxisConfig();
+    if (!mirror.isDefault()) {
+        QDomDocument axes;
+        axes.appendChild(mirror.saveToXml(axes, QStringLiteral("MirrorAxis")));
+        metadata.mirrorAxis = axes.toByteArray();
+    }
+    for (auto entry = image->beginAnnotations(); entry != image->endAnnotations(); ++entry) {
+        if (*entry && !(*entry)->type().isEmpty() && (*entry)->type() != QLatin1String("icc"))
+            metadata.annotations.append({(*entry)->type(), (*entry)->description(), (*entry)->annotation()});
+    }
+    KisMetaData::IOBackend *backend = nullptr;
+    FileCode metadataStatus = FileCode::Success;
+    QString diagnostic;
+    const auto encode = [&](KisNodeSP node, QByteArray &packet) {
+        auto *layer = qobject_cast<KisLayer *>(node.data());
+        if (!layer || layer->metaData()->isEmpty()) return true;
+        if (!backend) backend = KisMetadataBackendRegistry::instance()->get(QStringLiteral("xmp"));
+        if (!backend || !backend->supportSaving()) {
+            metadataStatus = FileCode::UnsupportedData;
+            diagnostic = i18n("The XMP metadata writer is unavailable.");
+            return false;
+        }
+        QBuffer buffer;
+        if (!backend->saveTo(layer->metaData(), &buffer)) {
+            metadataStatus = FileCode::InvalidData;
+            diagnostic = i18n("Could not save metadata for layer %1.", layer->name());
+            return false;
+        }
+        packet = buffer.data();
+        return true;
+    };
+    KisNodeSP root = image->root();
+    QByteArray rootPacket;
+    if (!encode(root, rootPacket)) return {metadataStatus, {}, diagnostic};
+    metadata.rootLayerXmp = std::move(rootPacket);
+    metadata.layerXmp.emplace();
+    metadata.layerCollapsed.emplace();
+    bool captured = true;
+    KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
+        if (!captured || node == root || node->inherits("KisSelectionMask") ||
+            image->isGpuTransparencyMaskView(node)) return;
+        QByteArray packet;
+        captured = encode(node, packet);
+        if (captured && !packet.isEmpty()) metadata.layerXmp->insert(node->uuid(), std::move(packet));
+        if (captured) metadata.layerCollapsed->insert(node->uuid(), node->collapsed());
+    });
+    if (!captured) return {metadataStatus, {}, diagnostic};
+    return fileDocument.setKraImageMetadata(metadata);
+}
+
+QString gpuKraEditingError(const QDomElement &image)
+{
+    const QSet<QString> imageAttributes{QStringLiteral("name"), QStringLiteral("mime"), QStringLiteral("width"),
+        QStringLiteral("height"), QStringLiteral("colorspacename"), QStringLiteral("profile"),
+        QStringLiteral("description"), QStringLiteral("x-res"), QStringLiteral("y-res")};
+    const QSet<QString> imageChildren{QStringLiteral("layers"), QStringLiteral("ProjectionBackgroundColor"),
+        QStringLiteral("MirrorAxis"), QStringLiteral("Annotations"), QStringLiteral("ColorHistory"),
+        QStringLiteral("GlobalAssistantsColor"), QStringLiteral("Palettes"), QStringLiteral("resources"),
+        QStringLiteral("animation")};
+    const QSet<QString> layerAttributes{QStringLiteral("name"), QStringLiteral("uuid"), QStringLiteral("filename"),
+        QStringLiteral("x"), QStringLiteral("y"), QStringLiteral("visible"), QStringLiteral("selected"),
+        QStringLiteral("nodetype"), QStringLiteral("compositeop"), QStringLiteral("opacity"),
+        QStringLiteral("colorspacename"), QStringLiteral("profile"), QStringLiteral("locked"),
+        QStringLiteral("intimeline"), QStringLiteral("colorlabel"), QStringLiteral("channelflags"),
+        QStringLiteral("channellockflags"), QStringLiteral("passthrough"), QStringLiteral("collapsed"),
+        QStringLiteral("onionskin")};
+    QList<QDomElement> pending{image};
+    while (!pending.isEmpty()) {
+        const auto element = pending.takeLast();
+        const auto attributes = element.attributes();
+        const auto &supported = element == image ? imageAttributes : layerAttributes;
+        const auto nodeType = element.attribute(QStringLiteral("nodetype"));
+        const bool filterNode = nodeType == QLatin1String("adjustmentlayer") || nodeType == QLatin1String("filtermask");
+        for (int i = 0; i < attributes.size(); ++i) {
+            const auto name = attributes.item(i).nodeName();
+            const bool filterAttribute = filterNode &&
+                (name == QLatin1String("filtername") || name == QLatin1String("filterversion"));
+            if (!supported.contains(name) && !filterAttribute)
+                return i18n("The new painting engine cannot edit the KRA feature '%1'.", name);
+        }
+        if (element != image && element.attribute(QStringLiteral("onionskin"), QStringLiteral("0")) != QLatin1String("0"))
+            return i18n("The new painting engine cannot yet restore onion skins.");
+        for (auto child = element.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
+            if (element == image && !imageChildren.contains(child.tagName()))
+                return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
+            if (element == image && (child.tagName() == QLatin1String("Palettes") || child.tagName() == QLatin1String("resources")) &&
+                (child.hasAttributes() || !child.firstChildElement().isNull()))
+                return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
+            if (child.tagName() == QLatin1String("layers"))
+                for (auto layer = child.firstChildElement(); !layer.isNull(); layer = layer.nextSiblingElement()) {
+                    // The root selection mask is represented by the GPU document selection.
+                    if (layer.tagName() == QLatin1String("mask") &&
+                        layer.attribute(QStringLiteral("nodetype")) == QLatin1String("selectionmask")) continue;
+                    pending.append(layer);
+                }
+        }
+    }
+    return {};
+}
+
 }
 
 /**********************************************************
@@ -196,133 +490,6 @@ QString KisDocument::newObjectName()
 }
 
 
-class UndoStack : public KUndo2Stack
-{
-public:
-    UndoStack(KisDocument *doc)
-        : KUndo2Stack(doc),
-          m_doc(doc)
-    {
-    }
-
-    void setIndex(int idx) override {
-        m_postponedJobs.append({PostponedJob::SetIndex, idx});
-        processPostponedJobs();
-    }
-
-    void notifySetIndexChangedOneCommand() override {
-        KisImageWSP image = this->image();
-        image->unlock();
-
-        /**
-         * Some very weird commands may Q_EMIT blocking signals to
-         * the GUI (e.g. KisGuiContextCommand). Here is the best thing
-         * we can do to avoid the deadlock
-         */
-        while(!image->tryBarrierLock()) {
-            QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-        }
-    }
-
-    void undo() override {
-        m_postponedJobs.append({PostponedJob::Undo, 0});
-        processPostponedJobs();
-    }
-
-
-    void redo() override {
-        m_postponedJobs.append({PostponedJob::Redo, 0});
-        processPostponedJobs();
-    }
-
-private:
-    KisImageWSP image() {
-        KisImageWSP currentImage = m_doc->image();
-        Q_ASSERT(currentImage);
-        return currentImage;
-    }
-
-    void setIndexImpl(int idx) {
-        KisImageWSP image = this->image();
-        image->requestStrokeCancellation();
-        if(image->tryBarrierLock()) {
-            KUndo2Stack::setIndex(idx);
-            image->unlock();
-        }
-    }
-
-    void undoImpl() {
-        KisImageWSP image = this->image();
-        image->requestUndoDuringStroke();
-
-        if (image->tryUndoUnfinishedLod0Stroke() == UNDO_OK) {
-            return;
-        }
-
-        if(image->tryBarrierLock()) {
-            KUndo2Stack::undo();
-            image->unlock();
-        }
-    }
-
-    void redoImpl() {
-        KisImageWSP image = this->image();
-        image->requestRedoDuringStroke();
-
-        if(image->tryBarrierLock()) {
-            KUndo2Stack::redo();
-            image->unlock();
-        }
-    }
-
-    void processPostponedJobs() {
-        /**
-         * Some undo commands may call QApplication::processEvents(),
-         * see notifySetIndexChangedOneCommand(). That may cause
-         * recursive calls to the undo stack methods when used from
-         * the Undo History docker. Here we try to handle that gracefully
-         * by accumulating all the requests and executing them at the
-         * topmost level of recursion.
-         */
-        if (m_recursionCounter > 0) return;
-
-        m_recursionCounter++;
-
-        while (!m_postponedJobs.isEmpty()) {
-            PostponedJob job = m_postponedJobs.dequeue();
-            switch (job.type) {
-            case PostponedJob::SetIndex:
-                setIndexImpl(job.index);
-                break;
-            case PostponedJob::Redo:
-                redoImpl();
-                break;
-            case PostponedJob::Undo:
-                undoImpl();
-                break;
-            }
-        }
-
-        m_recursionCounter--;
-    }
-
-private:
-    int m_recursionCounter = 0;
-
-    struct PostponedJob {
-        enum Type {
-            Undo = 0,
-            Redo,
-            SetIndex
-        };
-        Type type = Undo;
-        int index = 0;
-    };
-    QQueue<PostponedJob> m_postponedJobs;
-
-    KisDocument *m_doc;
-};
-
 class Q_DECL_HIDDEN KisDocument::Private
 {
 public:
@@ -332,7 +499,7 @@ public:
         , ioPresentation(new KisDocumentIoPresentation(_q)) // deleted by QObject
         , importExportManager(new KisImportExportManager(_q)) // deleted manually
         , autoSaveTimer(new QTimer(_q))
-        , undoStack(new UndoStack(_q)) // deleted by QObject
+        , undoStack(new KisDocumentUndoStack(_q)) // deleted by QObject
         , readwrite(true)
         , autoSaveActive(true)
         , firstMod(QDateTime::currentDateTime())
@@ -357,7 +524,7 @@ public:
         , ioPresentation(new KisDocumentIoPresentation(_q))
         , importExportManager(new KisImportExportManager(_q))
         , autoSaveTimer(new QTimer(_q))
-        , undoStack(new UndoStack(_q))
+        , undoStack(new KisDocumentUndoStack(_q))
         , nserver(new KisNameServer(*rhs.nserver))
         , preActivatedNode(0) // the node is from another hierarchy!
         , imageIdleWatcher(2000 /*ms*/)
@@ -393,7 +560,7 @@ public:
 
     int autoSaveDelay = 300; // in seconds, 0 to disable.
 
-    KUndo2Stack *undoStack = 0;
+    KisDocumentUndoStack *undoStack = 0;
 
     KisGuidesConfig guidesConfig;
     KisMirrorAxisConfig mirrorAxisConfig;
@@ -410,6 +577,9 @@ public:
 
     KisImageSP image;
     KisImageSP savingImage;
+    std::shared_ptr<LibrePaint::Document::Gpu::PaintDocument> gpuDocument;
+    bool gpuSaving = false;
+    std::function<void()> gpuAutoSaveJob;
 
     KisNodeWSP preActivatedNode;
     KisShapeController* shapeController = 0;
@@ -465,6 +635,9 @@ public:
     KisDocument* lockAndCloneImpl(bool fetchResourcesFromLayers);
 
     void updateDocumentMetadataOnSaving(const QString &filePath, const QByteArray &mimeType);
+    enum class GpuAutoSaveMode { Timer, Recovery, Pause };
+    RecoveryAutoSaveStartResult startGpuAutoSave(const QString &path, GpuAutoSaveMode mode);
+    void runPendingGpuAutoSave();
 
     void connectPresentation()
     {
@@ -502,6 +675,7 @@ void KisDocument::Private::syncDecorationsWrapperLayerState()
 
     const bool needsDecorationsWrapper =
             gridConfig.showGrid() || (guidesConfig.showGuides() && guidesConfig.hasGuides()) || !assistants.isEmpty();
+    if (!needsDecorationsWrapper && !decorationsLayer) return;
     KisDecorationsWrapperLayerSP layerToAdd = needsDecorationsWrapper && !decorationsLayer ? new KisDecorationsWrapperLayer(q) : KisDecorationsWrapperLayerSP();
     struct SyncDecorationsWrapperStroke : public KisSimpleStrokeStrategy {
         SyncDecorationsWrapperStroke(KisImageSP image, KisDecorationsWrapperLayerSP layerToAdd, bool needsDecorationsWrapper)
@@ -699,6 +873,7 @@ KisDocument::KisDocument(const KisDocument &rhs, bool addStorage)
 KisDocument::~KisDocument()
 {
     d->documentIsClosing = true;
+    d->undoStack->beginDocumentClose();
 
     // wait until all the pending operations are in progress
     waitForSavingToComplete();
@@ -753,14 +928,8 @@ KisDocument::~KisDocument()
         d->undoStack->clear();
         d->image->waitForDone();
 
-        KisImageWSP sanityCheckPointer = d->image;
-        Q_UNUSED(sanityCheckPointer);
-
-        // The following line trigger the deletion of the image
+        d->image->setUndoStore(new KisDumbUndoStore());
         d->image.clear();
-
-        // check if the image has actually been deleted
-        KIS_SAFE_ASSERT_RECOVER_NOOP(!sanityCheckPointer.isValid());
     }
 
     if (d->wasStorageAdded) {
@@ -792,6 +961,17 @@ KisDocument *KisDocument::clone(bool addStorage)
 
 bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPropertiesConfigurationSP exportConfiguration, bool isAdvancedExporting)
 {
+    if (job.mimeType == nativeFormatMimeType()) {
+        exportConfiguration = exportConfiguration ? KisPropertiesConfigurationSP(new KisPropertiesConfiguration(*exportConfiguration)) :
+                                                    KisPropertiesConfigurationSP(new KisPropertiesConfiguration);
+        if (!exportConfiguration->hasProperty("compressRasterData"))
+            exportConfiguration->setProperty("compressRasterData", KisConfig(true).compressKra());
+        exportConfiguration->setPropertyNotSaved("compressRasterData");
+        if (exportConfiguration->hasProperty("documentSaveTime")) exportConfiguration->setPropertyNotSaved("documentSaveTime");
+    }
+    if (d->gpuDocument && job.mimeType != nativeFormatMimeType() &&
+        job.mimeType != QByteArrayLiteral("image/png") && job.mimeType != QByteArrayLiteral("image/jpeg"))
+        return exportGpuDocument(job, true, exportConfiguration, isAdvancedExporting);
     // ANDROID NOTES (other comments in this file reference this one!)
     //
     // The Android file system doesn't work like on a real operating system.
@@ -909,6 +1089,8 @@ bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPr
 
     }
 
+    if (d->gpuDocument) return exportGpuDocument(job, true, exportConfiguration, isAdvancedExporting);
+
     const QString actionName =
             job.flags & KritaUtils::SaveIsExporting ?
                 i18n("Exporting Document...") :
@@ -957,6 +1139,114 @@ bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPr
     }
 
     return (result == KritaUtils::BackgroudSavingStartResult::Success);
+}
+
+bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool notifyCompletion,
+                                    KisPropertiesConfigurationSP exportConfiguration, bool isAdvancedExporting)
+{
+    namespace GpuDocument = LibrePaint::Document::Gpu;
+    const auto fileDocument = d->gpuDocument;
+    if (!fileDocument) return false;
+    KisImportExportErrorCode status = ImportExportCodes::Failure;
+    QString diagnostic;
+    QString warning;
+    const bool rasterExport = job.mimeType == QByteArrayLiteral("image/png") ||
+        job.mimeType == QByteArrayLiteral("image/jpeg");
+    const bool exporting = job.flags & KritaUtils::SaveIsExporting;
+    const auto saveTime = exportConfiguration && exportConfiguration->hasProperty("documentSaveTime")
+        ? exportConfiguration->getProperty("documentSaveTime").toDateTime() : QDateTime::currentDateTime();
+    if (job.mimeType == nativeFormatMimeType() && !saveTime.isValid()) {
+        status = ImportExportCodes::FormatFeaturesUnsupported;
+        diagnostic = i18n("The document save time is invalid.");
+    } else if (rasterExport && isAdvancedExporting) {
+        status = ImportExportCodes::FormatFeaturesUnsupported;
+        diagnostic = i18n("Resizing during export requires GPU document support.");
+    } else if (job.mimeType != nativeFormatMimeType() && !rasterExport) {
+        status = ImportExportCodes::FileFormatNotSupported;
+        diagnostic = i18n("This document supports saving and exporting in KRA, PNG and JPEG. Other formats require GPU document support.");
+    } else if (isSaving()) {
+        status = ImportExportCodes::Busy;
+        diagnostic = i18n("Another save operation is in progress.");
+    } else if (rasterExport && !exporting && !fileDocument->image()->operations().snapshot()->isCommitted()) {
+        status = ImportExportCodes::Busy;
+        diagnostic = i18n("Finish the active painting operation before saving.");
+    } else if (rasterExport) {
+        QPointer<KisDocument> guard(this);
+        const auto pinned = fileDocument->image()->operations().snapshot();
+        d->gpuSaving = true;
+        if (!exporting) d->modificationState.markSavingStarted();
+        try {
+            // Keep GPU pixels and format metadata independent of edits made in the export dialog.
+            std::unique_ptr<KisDocument> snapshot(clone(false));
+            snapshot->d->savingImage = snapshot->d->image;
+            const auto clearSavingImage = qScopeGuard([&snapshot] { snapshot->d->savingImage.clear(); });
+            status = snapshot->d->importExportManager->exportDocument(
+                job.filePath, job.filePath, job.mimeType, job.flags & KritaUtils::SaveShowWarnings,
+                exportConfiguration);
+            diagnostic = snapshot->errorMessage();
+            warning = snapshot->warningMessage();
+            if (!status.isOk() && diagnostic.isEmpty()) diagnostic = status.errorMessage();
+        } catch (const std::bad_alloc &) {
+            status = ImportExportCodes::InsufficientMemory;
+            diagnostic = status.errorMessage();
+        } catch (const std::exception &error) {
+            status = ImportExportCodes::Failure;
+            diagnostic = QString::fromUtf8(error.what());
+        }
+        if (!guard) return status.isOk();
+        if (d->gpuDocument != fileDocument) {
+            d->gpuSaving = false;
+            return status.isOk();
+        }
+        if (status.isOk() && !exporting) {
+            const auto adopted = fileDocument->adoptSavedFile(job.filePath, pinned);
+            if (!guard) return true;
+            if (d->gpuDocument != fileDocument) {
+                d->gpuSaving = false;
+                return true;
+            }
+            if (adopted.code != GpuDocument::FileCode::Success) {
+                status = ImportExportCodes::Failure;
+                diagnostic = adopted.diagnostic;
+            } else if (!d->modificationState.wasModifiedWhileSaving() &&
+                       fileDocument->image()->operations().snapshot() == pinned) {
+                d->modificationState.clearImageModifiedWithoutUndo();
+            }
+        }
+        d->gpuSaving = false;
+    } else {
+        QPointer<KisDocument> guard(this);
+        d->gpuSaving = true;
+        if (!exporting) d->modificationState.markSavingStarted();
+        const KisImageSP saveImage = d->image;
+        const auto pinned = fileDocument->image()->operations().snapshot();
+        const auto encoding = saveImage->colorSpace();
+        auto outcome = applyGpuKraMetadata(*this, *fileDocument, saveTime,
+            exportConfiguration ? std::optional<bool>(exportConfiguration->getBool("compressRasterData", KisConfig(true).compressKra())) : std::nullopt);
+        if (outcome.code == GpuDocument::FileCode::Success) {
+            try {
+                const auto preview = pinned->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ?
+                    fixedImagePreview(saveImage, pinned, encoding, {256, 256}) : QImage();
+                outcome = exporting ? fileDocument->exportKra(job.filePath, pinned, preview) :
+                                      fileDocument->saveKra(job.filePath, pinned, preview);
+            } catch (const std::exception &failure) {
+                outcome = {GpuDocument::FileCode::DeviceFailure, {}, QString::fromUtf8(failure.what())};
+            }
+        }
+        const bool success = outcome.code == GpuDocument::FileCode::Success;
+        diagnostic = outcome.diagnostic;
+        status = gpuFileStatus(outcome.code);
+        if (!guard) return status.isOk();
+        d->gpuSaving = false;
+        if (d->gpuDocument != fileDocument) return status.isOk();
+        if (success && !exporting && !d->modificationState.wasModifiedWhileSaving() &&
+            fileDocument->image()->operations().snapshot() == outcome.version)
+            d->modificationState.clearImageModifiedWithoutUndo();
+    }
+    d->lastErrorMessage = diagnostic;
+    d->lastWarningMessage = warning;
+    if (notifyCompletion) slotCompleteSavingDocument(job, status, diagnostic, warning);
+    return status.isOk();
 }
 
 bool KisDocument::exportDocument(const QString &path, const QByteArray &mimeType, bool isAdvancedExporting, bool showWarnings, KisPropertiesConfigurationSP exportConfiguration)
@@ -1014,6 +1304,26 @@ bool KisDocument::save(bool showWarnings, KisPropertiesConfigurationSP exportCon
 QByteArray KisDocument::serializeToNativeByteArray()
 {
     QBuffer buffer;
+
+    if (const auto fileDocument = d->gpuDocument) {
+        if (!buffer.open(QIODevice::ReadWrite)) return {};
+        try {
+            const KisImageSP saveImage = d->image;
+            const auto pinned = fileDocument->image()->operations().snapshot();
+            const auto encoding = saveImage->colorSpace();
+            auto outcome = applyGpuKraMetadata(*this, *fileDocument);
+            if (outcome.code == LibrePaint::Document::Gpu::FileCode::Success) {
+                const auto preview = pinned->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ?
+                    fixedImagePreview(saveImage, pinned, encoding, {256, 256}) : QImage();
+                outcome = fileDocument->exportKra(buffer, pinned, preview);
+            }
+            d->lastErrorMessage = outcome.diagnostic;
+            return outcome.code == LibrePaint::Document::Gpu::FileCode::Success ? buffer.data() : QByteArray();
+        } catch (const std::exception &error) {
+            d->lastErrorMessage = QString::fromUtf8(error.what());
+            return {};
+        }
+    }
 
     QScopedPointer<KisImportExportFilter> filter(KisImportExportManager::filterForMimeType(nativeFormatMimeType(), KisImportExportManager::Export));
     filter->setBatchMode(true);
@@ -1074,7 +1384,9 @@ void KisDocument::Private::updateDocumentMetadataOnSaving(const QString &filePat
 
     q->setReadWrite(Krita::Document::KisDocumentSaveTarget::inspect(filePath).writable);
 
-    if (!modificationState.wasModifiedWhileSaving()) {
+    if (image && image->gpuImage()) {
+        if (!modificationState.wasModifiedWhileSaving()) q->setImageModified();
+    } else if (!modificationState.wasModifiedWhileSaving()) {
         /**
          * If undo stack is already clean/empty, it doesn't Q_EMIT any
          * signals, so we might forget update document modified state
@@ -1181,6 +1493,12 @@ KisDocument *KisDocument::Private::lockAndCloneImpl(bool fetchResourcesFromLayer
             }
         }
     }
+    if ((!window || !window->viewManager()) && !image->hasOpenStrokes()) {
+        // Size-change notifications can queue projection work while events are
+        // delivered above. Standalone document callers wait for that completed
+        // input before trying the same read-only saving lock used by the UI.
+        image->waitForDone();
+    }
 
     Private::StrippedSafeSavingLocker locker(&savingMutex, image);
     if (!locker.successfullyLocked()) {
@@ -1213,6 +1531,14 @@ void KisDocument::copyFromDocument(const KisDocument &rhs)
 
 void KisDocument::copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy)
 {
+    if (policy == REPLACE && d->image && rhs.d->image &&
+        bool(d->image->gpuImage()) != bool(rhs.d->image->gpuImage()))
+        throw std::invalid_argument("Document replacement requires matching painting backends");
+    LibrePaint::Image::Gpu::PaintImageSP preparedGpuImage;
+    if (policy == REPLACE && d->image && rhs.d->image && rhs.d->image->gpuImage()) {
+        preparedGpuImage = rhs.d->image->gpuImage()->cloneTo(*d->image->gpuImage());
+        if (!preparedGpuImage) throw std::invalid_argument("Document replacement requires the owning thread");
+    }
     if (policy == REPLACE) {
         d->decorationsSyncingDisabled = true;
         d->copyFrom(*(rhs.d), this);
@@ -1237,7 +1563,8 @@ void KisDocument::copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy
         if (policy == REPLACE) {
             d->image->barrierLock(/* readOnly = */ false);
             rhs.d->image->barrierLock(/* readOnly = */ true);
-            d->image->copyFromImage(*(rhs.d->image));
+            if (preparedGpuImage) d->image->replaceFromGpuImage(preparedGpuImage, *(rhs.d->image));
+            else d->image->copyFromImage(*(rhs.d->image));
             d->image->unlock();
             rhs.d->image->unlock();
 
@@ -1294,6 +1621,10 @@ void KisDocument::copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy
 
 bool KisDocument::exportDocumentSync(const QString &path, const QByteArray &mimeType, KisPropertiesConfigurationSP exportConfiguration)
 {
+    if (mimeType == nativeFormatMimeType() && exportConfiguration)
+        exportConfiguration->setPropertyNotSaved("documentSaveTime");
+    if (d->gpuDocument)
+        return exportGpuDocument(KritaUtils::ExportFileJob(path, mimeType, KritaUtils::SaveIsExporting), false, exportConfiguration);
     {
         /**
          * The caller guarantees that no one else uses the document (usually,
@@ -1502,6 +1833,80 @@ void KisDocument::slotChildCompletedSavingInBackground(KisImportExportErrorCode 
     }
 }
 
+void KisDocument::Private::runPendingGpuAutoSave()
+{
+    auto job = std::move(gpuAutoSaveJob);
+    gpuAutoSaveJob = {};
+    if (job) job();
+}
+
+KisDocument::RecoveryAutoSaveStartResult KisDocument::Private::startGpuAutoSave(const QString &path, GpuAutoSaveMode mode)
+{
+    if (q->isSaving()) return RecoveryAutoSaveStartResult::AlreadySaving;
+    const auto fileDocument = gpuDocument;
+    if (!fileDocument->image()->operations().activeOperation().isNull()) return RecoveryAutoSaveStartResult::Failed;
+    const auto pinned = fileDocument->image()->operations().snapshot();
+    const KisImageSP saveImage = image;
+    const auto encoding = saveImage->colorSpace();
+    QImage preview;
+    try {
+        if (pinned->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16)
+            preview = fixedImagePreview(saveImage, pinned, encoding, {256, 256});
+    } catch (const std::exception &failure) {
+        lastErrorMessage = QString::fromUtf8(failure.what());
+        return RecoveryAutoSaveStartResult::Failed;
+    }
+    const KritaUtils::ExportFileJob job(path, nativeFormatMimeType(),
+                                      KritaUtils::SaveIsExporting | KritaUtils::SaveInAutosaveMode);
+    gpuSaving = true;
+    modificationState.markSavingStarted();
+    modificationState.markAutoSaveStarted();
+    autoSaveState.markAutoSaveExportStarted();
+    const auto prepared = applyGpuKraMetadata(*q, *fileDocument);
+    gpuAutoSaveJob = [this, fileDocument, pinned, prepared, preview, job, mode] {
+        if (gpuDocument != fileDocument) {
+            gpuSaving = false;
+            autoSaveState.markAutoSaveExportFinished();
+            q->finishRecoveryAutoSaveRequest(job.filePath, false);
+            return;
+        }
+        const QPointer<KisDocument> guard(q);
+        const auto outcome = prepared.code == LibrePaint::Document::Gpu::FileCode::Success ?
+            fileDocument->exportKra(job.filePath, pinned, preview) : prepared;
+        if (!guard) return;
+        const auto status = gpuFileStatus(outcome.code);
+        autoSaveState.markAutoSaveExportFinished();
+        gpuSaving = false;
+        if (documentIsClosing) return;
+        if (gpuDocument != fileDocument) {
+            q->finishRecoveryAutoSaveRequest(job.filePath, false);
+            return;
+        }
+        lastErrorMessage = outcome.diagnostic;
+        if (mode == GpuAutoSaveMode::Recovery) {
+            q->slotCompleteRecoveryAutoSaving(job, status, outcome.diagnostic, {});
+        } else {
+            q->slotCompleteAutoSaving(job, status, outcome.diagnostic, {});
+            if (guard && gpuDocument != fileDocument) {
+                q->finishRecoveryAutoSaveRequest(job.filePath, false);
+                return;
+            }
+            if (guard && recoveryAutoSaveState.hasPendingRequest()) {
+                recoveryAutoSaveState.recordJoinedSave(job.filePath, status.isOk());
+            }
+        }
+        if (guard && recoveryAutoSaveState.hasPendingRequest()) {
+            QTimer::singleShot(0, q, &KisDocument::slotContinuePendingRecoveryAutoSave);
+        }
+    };
+    if (mode == GpuAutoSaveMode::Pause) {
+        runPendingGpuAutoSave();
+    } else {
+        QTimer::singleShot(0, q, [this] { runPendingGpuAutoSave(); });
+    }
+    return RecoveryAutoSaveStartResult::Started;
+}
+
 void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalClonedDocument)
 {
     if (!d->modificationState.isModified() ||
@@ -1510,9 +1915,22 @@ void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalCloned
     }
     const QString autoSaveFileName = autoSaveFilePath(this, localFilePath());
 
+    const QPointer<KisDocument> guard(this);
+    const auto fileDocument = d->gpuDocument;
     d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
+    if (!guard || d->gpuDocument != fileDocument) return;
 
     KisUsageLogger::log(QString("Autosaving: %1").arg(autoSaveFileName));
+
+    if (fileDocument) {
+        if (isSaving() || !fileDocument->image()->operations().activeOperation().isNull()) {
+            d->ioPresentation->notifyAutoSavePostponed();
+            if (guard) setEmergencyAutoSaveInterval();
+            return;
+        }
+        d->startGpuAutoSave(autoSaveFileName, Private::GpuAutoSaveMode::Timer);
+        return;
+    }
 
     const bool hadClonedDocument = bool(optionalClonedDocument);
     KritaUtils::BackgroudSavingStartResult result = KritaUtils::BackgroudSavingStartResult::Failure;
@@ -1694,7 +2112,14 @@ void KisDocument::slotCompleteRecoveryAutoSaving(const KritaUtils::ExportFileJob
                                                  const QString &errorMessage,
                                                  const QString &warningMessage)
 {
+    const QPointer<KisDocument> guard(this);
+    const KisImageWSP image = d->image;
     slotCompleteAutoSaving(job, status, errorMessage, warningMessage);
+    if (!guard) return;
+    if (!image.isValid() || d->image.data() != image.data()) {
+        finishRecoveryAutoSaveRequest(job.filePath, false);
+        return;
+    }
 
     const bool saved = status.isOk()
         && Krita::Document::KisDocumentAutoSaveFiles::isUsable(job.filePath);
@@ -1756,7 +2181,9 @@ void KisDocument::slotContinuePendingRecoveryAutoSave()
     }
 
     d->recoveryAutoSaveState.clearJoinedSavePath();
+    const QPointer<KisDocument> guard(this);
     const RecoveryAutoSaveStartResult result = startRecoveryAutoSave();
+    if (!guard) return;
     if (result == RecoveryAutoSaveStartResult::Started ||
         result == RecoveryAutoSaveStartResult::AlreadySaving) {
         return;
@@ -1908,45 +2335,21 @@ bool KisDocument::isModified() const
 
 QPixmap KisDocument::generatePreview(const QSize& size)
 {
+    return QPixmap::fromImage(generatePreviewImage(size));
+}
+
+QImage KisDocument::generatePreviewImage(const QSize& size)
+{
     KisImageSP image = d->image;
     if (d->savingImage) image = d->savingImage;
 
     if (image) {
-        QRect bounds = image->bounds();
-        QSize originalSize = bounds.size();
-        // QSize may round down one dimension to zero on extreme aspect rations, so ensure 1px minimum
-        QSize newSize = originalSize.scaled(size, Qt::KeepAspectRatio).expandedTo({1, 1});
-
-        bool pixelArt = false;
-        // determine if the image is pixel art or not
-        if (originalSize.width() < size.width() && originalSize.height() < size.height()) {
-            // the image must be smaller than the requested preview
-            // the scale must be integer
-            if (newSize.height()%originalSize.height() == 0 && newSize.width()%originalSize.width() == 0) {
-                pixelArt = true;
-            }
-        }
-
-        QPixmap px;
-        if (pixelArt) {
-            // do not scale while converting (because it uses Bicubic)
-            QImage original = image->convertToQImage(originalSize, 0);
-            // scale using FastTransformation, which is probably Nearest neighbour, suitable for pixel art
-            QImage scaled = original.scaled(newSize, Qt::KeepAspectRatio, Qt::FastTransformation);
-            px = QPixmap::fromImage(scaled);
-        } else {
-            px = QPixmap::fromImage(image->convertToQImage(newSize, 0));
-        }
-        if (px.size() == QSize(0,0)) {
-            px = QPixmap(newSize);
-            QPainter gc(&px);
-            QBrush checkBrush = QBrush(KisCanvasWidgetBase::createCheckersImage(newSize.width() / 5));
-            gc.fillRect(px.rect(), checkBrush);
-            gc.end();
-        }
-        return px;
+        const auto version = image->gpuImage() ? image->gpuImage()->operations().snapshot() : LibrePaint::Image::Gpu::Snapshot{};
+        return fixedImagePreview(image, version, image->colorSpace(), size);
     }
-    return QPixmap(size);
+    QImage preview(size, QImage::Format_ARGB32);
+    preview.fill(Qt::transparent);
+    return preview;
 }
 
 bool KisDocument::importDocument(const QString &_path)
@@ -1971,6 +2374,7 @@ bool KisDocument::importDocument(const QString &_path)
 
 bool KisDocument::openPath(const QString &_path, OpenFlags flags)
 {
+    QPointer<KisDocument> guard(this);
     dbgUI << "path=" << _path;
     d->lastErrorMessage.clear();
 
@@ -2022,6 +2426,7 @@ bool KisDocument::openPath(const QString &_path, OpenFlags flags)
     }
 
     bool ret = openPathInternal(path);
+    if (!guard || !ret) return ret;
 
     if (autosaveOpened || flags & RecoveryFile) {
         setReadWrite(true); // enable save button
@@ -2056,6 +2461,7 @@ bool KisDocument::openPath(const QString &_path, OpenFlags flags)
 
 bool KisDocument::openFile()
 {
+    QPointer<KisDocument> guard(this);
     //dbgUI <<"for" << localFilePath();
     if (!QFile::exists(localFilePath()) && !fileBatchMode()) {
         d->ioPresentation->presentMissingFile(localFilePath(), fileBatchMode());
@@ -2092,6 +2498,7 @@ bool KisDocument::openFile()
     }
 
     KisImportExportErrorCode status = d->importExportManager->importDocument(localFilePath(), typeName);
+    if (!guard) return status.isOk();
 
     if (!status.isOk()) {
         if (window && window->viewManager()) {
@@ -2117,6 +2524,7 @@ bool KisDocument::openFile()
     setMimeTypeAfterLoading(typeName);
     d->syncDecorationsWrapperLayerState();
     d->ioPresentation->notifyLoadSucceeded();
+    if (!guard) return true;
 
     undoStack()->clear();
 
@@ -2127,24 +2535,30 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::startRecoveryAutoSave()
 {
     const QString autoSaveFileName = autoSaveFilePath(this, localFilePath());
 
-    d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
-    KisUsageLogger::log(QString("Autosaving recovery checkpoint: %1").arg(autoSaveFileName));
-
     d->recoveryAutoSaveState.beginSaveStart();
+    const QPointer<KisDocument> guard(this);
+    const auto fileDocument = d->gpuDocument;
+    d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
+    if (!guard || d->gpuDocument != fileDocument) return RecoveryAutoSaveStartResult::Failed;
+    KisUsageLogger::log(QString("Autosaving recovery checkpoint: %1").arg(autoSaveFileName));
 
     // Clear before clone preparation so a modification delivered by its
     // event processing is distinguishable from the revision being saved.
     // Every unsuccessful start restores the flag below.
     d->modificationState.markAutoSaveStarted();
 
-    const KritaUtils::BackgroudSavingStartResult result =
+    const KritaUtils::ExportFileJob job(autoSaveFileName, nativeFormatMimeType(),
+                                      KritaUtils::SaveIsExporting | KritaUtils::SaveInAutosaveMode);
+    const KritaUtils::BackgroudSavingStartResult result = fileDocument ?
+        (isSaving() ? KritaUtils::BackgroudSavingStartResult::AnotherSavingInProgress :
+         d->startGpuAutoSave(autoSaveFileName, Private::GpuAutoSaveMode::Recovery) == RecoveryAutoSaveStartResult::Started ?
+             KritaUtils::BackgroudSavingStartResult::Success : KritaUtils::BackgroudSavingStartResult::Failure) :
         initiateSavingInBackground(i18n("Autosaving..."),
                                    this,
                                    SLOT(slotCompleteRecoveryAutoSaving(KritaUtils::ExportFileJob, KisImportExportErrorCode, QString, QString)),
-                                   KritaUtils::ExportFileJob(autoSaveFileName,
-                                                             nativeFormatMimeType(),
-                                                             KritaUtils::SaveIsExporting | KritaUtils::SaveInAutosaveMode),
+                                   job,
                                    nullptr);
+    if (!guard) return RecoveryAutoSaveStartResult::Failed;
 
     switch (result) {
     case KritaUtils::BackgroudSavingStartResult::Success: {
@@ -2210,7 +2624,9 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::requestRecoveryAutoSave()
 
     d->recoveryAutoSaveState.beginRequest();
 
+    const QPointer<KisDocument> guard(this);
     const RecoveryAutoSaveStartResult result = startRecoveryAutoSave();
+    if (!guard) return result;
     if (result == RecoveryAutoSaveStartResult::Failed) {
         d->recoveryAutoSaveState.cancelRequest();
     } else if (result == RecoveryAutoSaveStartResult::AlreadySaving) {
@@ -2225,12 +2641,20 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::requestRecoveryAutoSave()
 
 void KisDocument::autoSaveOnPause()
 {
+    const QPointer<KisDocument> guard(this);
+    d->runPendingGpuAutoSave();
+    if (!guard) return;
     if (!d->modificationState.isModified() ||
         !d->modificationState.hasChangesAfterAutoSave()) {
         return;
     }
 
     const QString autoSaveFileName = autoSaveFilePath(this, localFilePath());
+
+    if (d->gpuDocument) {
+        d->startGpuAutoSave(autoSaveFileName, Private::GpuAutoSaveMode::Pause);
+        return;
+    }
 
     bool started = exportDocumentSync(autoSaveFileName, nativeFormatMimeType());
 
@@ -2263,11 +2687,11 @@ void KisDocument::setModified(bool mod)
         updateEditingTime(false);
     }
 
-    /// 1) Ignore setModified calls due to autosaving
+    /// 1) Ignore format-side modifications in the CPU autosave clone.
     /// 2) When closing a document, QUndoStack emits a lot of
     ///    modified signals, when clearing itself, so we should
     ///    ignore all of them.
-    if (d->autoSaveState.isExportingAutoSave() || d->documentIsClosing)
+    if ((d->autoSaveState.isExportingAutoSave() && !d->gpuDocument) || d->documentIsClosing)
         return;
 
     //dbgUI<<" url:" << url.path();
@@ -2413,9 +2837,12 @@ KisImportExportManager *KisDocument::importExportManager() const
     return d->importExportManager;
 }
 
-void KisDocument::slotUndoStackCleanChanged(bool value)
+void KisDocument::slotUndoStackCleanChanged(bool)
 {
-    setModified(!value || d->modificationState.imageModifiedWithoutUndo());
+    // GPU edits publish image changes; saving finalizes cleanliness with its fixed file version.
+    if (d->gpuSaving) return;
+    // Queued notifications may describe an earlier history position.
+    setImageModified();
 }
 
 void KisDocument::slotConfigChanged()
@@ -2440,6 +2867,11 @@ void KisDocument::slotConfigChanged()
 
 void KisDocument::slotImageRootChanged()
 {
+    const auto owner = d->image ? d->image->gpuImage() : nullptr;
+    if (owner && (!d->gpuDocument || d->gpuDocument->image() != owner)) {
+        d->gpuDocument = std::make_shared<LibrePaint::Document::Gpu::PaintDocument>(owner);
+        d->undoStack->setImage(d->image);
+    }
     d->syncDecorationsWrapperLayerState();
 }
 
@@ -2688,6 +3120,8 @@ bool KisDocument::openPathInternal(const QString &path)
     if ( path.isEmpty() ) {
         return false;
     }
+    const auto previousIdentity = d->identity;
+    QPointer<KisDocument> guard(this);
 
     if (d->identity.mimeTypeWasAutoDetected()) {
         d->identity.clearMimeType();
@@ -2699,9 +3133,11 @@ bool KisDocument::openPathInternal(const QString &path)
     if ( !closePath() ) {
         return false;
     }
+    if (!guard) return false;
 
     d->identity.setMimeType(mimeType);
     setPath(path);
+    if (!guard) return false;
 
     d->identity.setLocalFilePath(d->identity.path());
 
@@ -2717,6 +3153,14 @@ bool KisDocument::openPathInternal(const QString &path)
 
     setPath(d->identity.path());
     ret = openFile();
+    if (!guard) return ret;
+
+    if (!ret) {
+        const bool pathChanged = d->identity.path() != previousIdentity.path();
+        d->identity = previousIdentity;
+        if (pathChanged) Q_EMIT sigPathChanged(d->identity.path());
+        if (!guard) return false;
+    }
 
     if (ret) {
         Q_EMIT completed();
@@ -2725,6 +3169,144 @@ bool KisDocument::openPathInternal(const QString &path)
         Q_EMIT canceled(QString());
     }
     return ret;
+}
+
+KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
+{
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    namespace Files = LibrePaint::Document::Gpu;
+    const auto reject = [&](const QString &message,
+                            KisImportExportErrorCode status = ImportExportCodes::FormatFeaturesUnsupported) {
+        setErrorMessage(message);
+        return status;
+    };
+    const auto formatStatus = [](Kra::Status code) {
+        switch (code) {
+        case Kra::Status::Success: return ImportExportCodes::OK;
+        case Kra::Status::InvalidData: return ImportExportCodes::FileFormatIncorrect;
+        case Kra::Status::UnsupportedData: return ImportExportCodes::FormatFeaturesUnsupported;
+        case Kra::Status::CapacityExceeded: return ImportExportCodes::InsufficientMemory;
+        case Kra::Status::IoFailure: return ImportExportCodes::ErrorWhileReading;
+        }
+        return ImportExportCodes::FileFormatIncorrect;
+    };
+    const auto loaded = Kra::RasterCodec::read(source);
+    if (loaded.code != Kra::Status::Success) return reject(loaded.diagnostic, formatStatus(loaded.code));
+    const auto metadata = Kra::RasterCodec::readImageMetadata(loaded.document.description, loaded.document.files);
+    if (metadata.code != Kra::Status::Success) return reject(metadata.diagnostic, formatStatus(metadata.code));
+    QDomDocument xml;
+    xml.setContent(loaded.document.description);
+    const auto imageElement = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto unsupported = gpuKraEditingError(imageElement);
+    if (!unsupported.isEmpty()) return reject(unsupported);
+    StaticKraSettings timing;
+    QString timingDiagnostic;
+    for (const auto &bytes : {metadata.metadata.animation, metadata.metadata.animationMetadata}) {
+        const auto status = readStaticKraSettings(bytes, timing, timingDiagnostic);
+        if (!status.isOk()) return reject(timingDiagnostic, status);
+    }
+    QDomDocument info;
+    QList<QPair<QString, QString>> infoUpdates;
+    KoDocumentInfo checkedInfo;
+    connect(&checkedInfo, &KoDocumentInfo::infoUpdated, &checkedInfo,
+            [&](const QString &key, const QString &value) { infoUpdates.append({key, value}); });
+    if (!metadata.metadata.documentInfo.isEmpty() &&
+        (!info.setContent(metadata.metadata.documentInfo) || !checkedInfo.load(info)))
+        return reject(i18n("Invalid KRA document information."), ImportExportCodes::FileFormatIncorrect);
+    KisMirrorAxisConfig mirror = d->mirrorAxisConfig;
+    if (!metadata.metadata.mirrorAxis.isEmpty()) {
+        QDomDocument axes;
+        if (!axes.setContent(metadata.metadata.mirrorAxis) || !mirror.loadFromXml(axes.documentElement()))
+            return reject(i18n("Invalid KRA mirror axis settings."), ImportExportCodes::FileFormatIncorrect);
+    }
+    QList<KoColor> colors = colorHistoryColors();
+    if (!metadata.metadata.colorHistory.isEmpty()) {
+        colors.clear();
+        QDomDocument history;
+        history.setContent(metadata.metadata.colorHistory);
+        for (auto color = history.documentElement().firstChildElement(); !color.isNull(); color = color.nextSiblingElement())
+            colors.append(KoColor::fromXML(color, QStringLiteral("U16")));
+    }
+    QColor assistants = d->globalAssistantsColor;
+    if (!metadata.metadata.assistantsGlobalColor.isEmpty()) {
+        QDomDocument value;
+        value.setContent(metadata.metadata.assistantsGlobalColor);
+        assistants = KisDomUtils::qStringToQColor(value.documentElement().attribute(QStringLiteral("SimpleColorData")));
+    }
+    auto *registry = KoColorSpaceRegistry::instance();
+    const auto depth = loaded.document.image.format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
+    const auto profile = metadata.metadata.iccProfile.isEmpty() ? registry->rgb8()->profile() :
+        registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, metadata.metadata.iccProfile);
+    const auto cs = profile ? registry->colorSpace(QStringLiteral("RGBA"), depth, profile) : nullptr;
+    if (!cs) return reject(i18n("The KRA color profile cannot be loaded."), ImportExportCodes::FormatColorSpaceUnsupported);
+    KisMetaData::Store rootMetadata;
+    QMap<QUuid, KisMetaData::Store> layerMetadata;
+    QStringList metadataWarnings;
+    if (metadata.metadata.rootLayerXmp || (metadata.metadata.layerXmp && !metadata.metadata.layerXmp->isEmpty())) {
+        const auto backend = KisMetadataBackendRegistry::instance()->get(QStringLiteral("xmp"));
+        if (!backend || !backend->supportLoading()) return reject(i18n("The XMP metadata reader is unavailable."));
+        const auto decode = [&](QByteArray packet, const QString &name, KisMetaData::Store &store) {
+            QBuffer buffer(&packet);
+            KisMetaData::Store decoded;
+            if (backend->loadFrom(&decoded, &buffer)) store.copyFrom(&decoded);
+            else metadataWarnings.append(i18n("Could not load metadata for layer %1.", name));
+        };
+        if (metadata.metadata.rootLayerXmp) decode(*metadata.metadata.rootLayerXmp, QStringLiteral("root"), rootMetadata);
+        if (metadata.metadata.layerXmp) {
+            for (const auto &layer : loaded.document.image.layers) {
+                const auto it = metadata.metadata.layerXmp->constFind(layer.uuid);
+                if (it != metadata.metadata.layerXmp->cend()) decode(it.value(), layer.name, layerMetadata[layer.uuid]);
+            }
+        }
+    }
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    if (!execution) return reject(diagnostic, ImportExportCodes::Failure);
+    auto opened = Files::PaintDocument::openKra(execution, loaded.document);
+    if (opened.code != Files::FileCode::Success) return reject(opened.diagnostic, gpuFileStatus(opened.code));
+    const std::shared_ptr<Files::PaintDocument> fileDocument = std::move(opened.document);
+    auto image = KisImage::fromGpuImage(fileDocument->image(), imageElement.attribute(QStringLiteral("name")), cs);
+    KisNodeSP root = image->root();
+    qobject_cast<KisLayer *>(root.data())->metaData()->copyFrom(&rootMetadata);
+    KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
+        if (node == root) return;
+        const auto it = layerMetadata.constFind(node->uuid());
+        auto *layer = qobject_cast<KisLayer *>(node.data());
+        if (layer && it != layerMetadata.cend()) layer->metaData()->copyFrom(&it.value());
+        if (metadata.metadata.layerCollapsed) node->setCollapsed(metadata.metadata.layerCollapsed->value(node->uuid()));
+    });
+    image->setResolution(metadata.metadata.resolution.x() / 72, metadata.metadata.resolution.y() / 72);
+    auto *animation = image->animationInterface();
+    if (timing.framerate) animation->setFramerate(*timing.framerate);
+    if (timing.range) animation->setDocumentRange(*timing.range);
+    if (timing.sequencePath) animation->setExportSequenceFilePath(*timing.sequencePath);
+    if (timing.sequenceName) animation->setExportSequenceBaseName(*timing.sequenceName);
+    if (timing.initialFrame) animation->setExportInitialFrameNumber(*timing.initialFrame);
+    if (timing.time && !animation->initializeStaticTime(*timing.time))
+        return reject(i18n("The KRA requires animated frame regeneration."));
+    for (const auto &annotation : metadata.metadata.annotations)
+        image->addAnnotation(new KisAnnotation(annotation.type, annotation.description, annotation.bytes));
+    if (!localFilePath().isEmpty()) {
+        const auto adopted = fileDocument->adoptSavedFile(localFilePath(), fileDocument->image()->operations().snapshot());
+        if (adopted.code != Files::FileCode::Success) return reject(adopted.diagnostic, gpuFileStatus(adopted.code));
+    }
+    const QPointer<KisDocument> guard(this);
+    // Metadata observers receive the complete adopted image and file owner.
+    if (!metadata.metadata.documentInfo.isEmpty()) {
+        const QSignalBlocker metadataNotifications(d->docInfo);
+        d->docInfo->load(info);
+    }
+    d->mirrorAxisConfig = mirror;
+    d->globalAssistantsColor = assistants;
+    if (!metadataWarnings.isEmpty()) setWarningMessage(metadataWarnings.join(QLatin1Char('\n')));
+    setColorHistoryColors(colors);
+    if (!guard) return ImportExportCodes::OK;
+    setCurrentImageImpl(image, true, {}, fileDocument);
+    for (const auto &update : infoUpdates) {
+        if (!guard || d->image != image) break;
+        Q_EMIT d->docInfo->infoUpdated(update.first, update.second);
+    }
+    return ImportExportCodes::OK;
 }
 
 bool KisDocument::newImage(const QString& name,
@@ -2739,10 +3321,77 @@ bool KisDocument::newImage(const QString& name,
     KisImageSP image;
 
     if (!cs) return false;
+    if (width <= 0 || height <= 0) {
+        setErrorMessage(i18n("Image dimensions must be positive."));
+        return false;
+    }
 
     KisCursorOverrideLock cursorLock(Qt::BusyCursor);
 
-    image = new KisImage(createUndoStore(), width, height, cs, name);
+    const bool gpuSession = KisPart::instance()->gpuEngineEnabled();
+    if (gpuSession) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QColorSpace gpuEncoding = cs->profile()
+            ? QColorSpace::fromIccProfile(cs->profile()->rawData()) : QColorSpace();
+        const bool gpuU16 = cs->colorModelId().id() == QLatin1String("RGBA") &&
+            cs->colorDepthId().id() == QLatin1String("U16") && gpuEncoding.isValid() &&
+            gpuEncoding.transformModel() == QColorSpace::TransformModel::ThreeComponentMatrix;
+        if ((cs != KoColorSpaceRegistry::instance()->rgb8() && !gpuU16) ||
+            (bgStyle != KisConfig::RASTER_LAYER && bgStyle != KisConfig::CANVAS_COLOR)) {
+            setErrorMessage(i18n("The new painting engine requires default 8-bit sRGB or a 16-bit matrix RGB profile, and a raster or canvas background."));
+            return false;
+        }
+        if (numberOfLayers < 1 || numberOfLayers > Gpu::Limits{}.layerCount) {
+            setErrorMessage(i18n("The requested number of layers exceeds the new painting engine's capacity."));
+            return false;
+        }
+        if (!qIsFinite(imageResolution) || imageResolution <= 0) {
+            setErrorMessage(i18n("Image resolution must be positive and finite."));
+            return false;
+        }
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        if (!execution) { setErrorMessage(diagnostic); return false; }
+        Gpu::RasterImage raster;
+        raster.size = {width, height};
+        raster.colorProfile = cs->profile()->rawData();
+        raster.format = cs->pixelSize() == 8 ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+        KoColor initialColor(bgColor);
+        initialColor.convertTo(cs);
+        const auto pixel = initialColor.data();
+        Gpu::RgbaPixel rgba;
+        if (raster.format == Gpu::PixelFormat::Rgba16) {
+            quint16 components[4];
+            std::memcpy(components, pixel, sizeof(components));
+            rgba = {components[2], components[1], components[0], components[3]};
+        } else {
+            rgba = {pixel[2], pixel[1], pixel[0], pixel[3]};
+        }
+        const bool backgroundLayer = bgStyle == KisConfig::RASTER_LAYER;
+        if (!backgroundLayer) raster.projectionBackground = rgba;
+        const bool autopin = KisConfig(true).autoPinLayersToTimeline();
+        for (int i = 0; i < numberOfLayers; ++i) {
+            Gpu::RasterLayer layer;
+            layer.name = i == 0 ? i18nc("Name for the bottom-most layer in the layerstack", "Background") :
+                                 QStringLiteral("%1 %2").arg(i18n("Paint Layer")).arg(i);
+            layer.pinnedToTimeline = (i > 0 || backgroundLayer) && autopin;
+            if (i == 0 && backgroundLayer) {
+                layer.defaultPixel = {rgba[0], rgba[1], rgba[2], Gpu::maximumComponent(raster.format)};
+                layer.opacity = initialColor.opacityU8();
+                layer.userLocked = numberOfLayers > 1;
+            }
+            raster.layers.append(layer);
+        }
+        raster.activeLayer = numberOfLayers - 1;
+        try {
+            image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, raster), name, cs);
+        } catch (const std::exception &error) {
+            setErrorMessage(QString::fromUtf8(error.what()));
+            return false;
+        }
+    } else {
+        image = new KisImage(createUndoStore(), width, height, cs, name);
+    }
 
     Q_CHECK_PTR(image);
 
@@ -2750,7 +3399,7 @@ bool KisDocument::newImage(const QString& name,
     connect(image, SIGNAL(sigImageModifiedWithoutUndo()), this, SLOT(setImageModifiedWithoutUndo()), Qt::UniqueConnection);
     image->setResolution(imageResolution, imageResolution);
 
-    image->assignImageProfile(cs->profile());
+    if (!gpuSession) image->assignImageProfile(cs->profile());
     image->waitForDone();
 
     documentInfo()->setAboutInfo("title", name);
@@ -2769,43 +3418,45 @@ bool KisDocument::newImage(const QString& name,
 
     bool autopin = cfg.autoPinLayersToTimeline();
 
-    KisLayerSP bgLayer;
-    if (bgStyle == KisConfig::RASTER_LAYER || bgStyle == KisConfig::FILL_LAYER) {
-        KoColor strippedAlpha = bgColor;
-        strippedAlpha.setOpacity(OPACITY_OPAQUE_U8);
+    if (!gpuSession) {
+        KisLayerSP bgLayer;
+        if (bgStyle == KisConfig::RASTER_LAYER || bgStyle == KisConfig::FILL_LAYER) {
+            KoColor strippedAlpha = bgColor;
+            strippedAlpha.setOpacity(OPACITY_OPAQUE_U8);
 
-        if (bgStyle == KisConfig::RASTER_LAYER) {
-            bgLayer = new KisPaintLayer(image.data(), i18nc("Name for the bottom-most layer in the layerstack", "Background"), OPACITY_OPAQUE_U8, cs);
-            bgLayer->paintDevice()->setDefaultPixel(strippedAlpha);
-            bgLayer->setPinnedToTimeline(autopin);
-        } else if (bgStyle == KisConfig::FILL_LAYER) {
-            KisFilterConfigurationSP filter_config = KisGeneratorRegistry::instance()->get("color")->defaultConfiguration(KisGlobalResourcesInterface::instance());
-            filter_config->setProperty("color", strippedAlpha.toQColor());
-            filter_config->createLocalResourcesSnapshot();
-            bgLayer = new KisGeneratorLayer(image.data(), i18nc("Name of automatically created background color fill layer", "Background Fill"), filter_config, image->globalSelection());
+            if (bgStyle == KisConfig::RASTER_LAYER) {
+                bgLayer = new KisPaintLayer(image.data(), i18nc("Name for the bottom-most layer in the layerstack", "Background"), OPACITY_OPAQUE_U8, cs);
+                bgLayer->paintDevice()->setDefaultPixel(strippedAlpha);
+                bgLayer->setPinnedToTimeline(autopin);
+            } else if (bgStyle == KisConfig::FILL_LAYER) {
+                KisFilterConfigurationSP filter_config = KisGeneratorRegistry::instance()->get("color")->defaultConfiguration(KisGlobalResourcesInterface::instance());
+                filter_config->setProperty("color", strippedAlpha.toQColor());
+                filter_config->createLocalResourcesSnapshot();
+                bgLayer = new KisGeneratorLayer(image.data(), i18nc("Name of automatically created background color fill layer", "Background Fill"), filter_config, image->globalSelection());
+            }
+
+            bgLayer->setOpacity(bgColor.opacityU8());
+
+            if (numberOfLayers > 1) {
+                //Lock bg layer if others are present.
+                bgLayer->setUserLocked(true);
+            }
+        }
+        else { // KisConfig::CANVAS_COLOR (needs an unlocked starting layer).
+            image->setDefaultProjectionColor(bgColor);
+            bgLayer = new KisPaintLayer(image.data(), image->nextLayerName(), OPACITY_OPAQUE_U8, cs);
         }
 
-        bgLayer->setOpacity(bgColor.opacityU8());
-
-        if (numberOfLayers > 1) {
-            //Lock bg layer if others are present.
-            bgLayer->setUserLocked(true);
-        }
+        Q_CHECK_PTR(bgLayer);
+        image->addNode(bgLayer.data(), image->rootLayer().data());
+        bgLayer->setDirty(QRect(0, 0, width, height));
     }
-    else { // KisConfig::CANVAS_COLOR (needs an unlocked starting layer).
-        image->setDefaultProjectionColor(bgColor);
-        bgLayer = new KisPaintLayer(image.data(), image->nextLayerName(), OPACITY_OPAQUE_U8, cs);
-    }
-
-    Q_CHECK_PTR(bgLayer);
-    image->addNode(bgLayer.data(), image->rootLayer().data());
-    bgLayer->setDirty(QRect(0, 0, width, height));
 
     // reset mirror axis to default:
     d->mirrorAxisConfig.setAxisPosition(QRectF(image->bounds()).center());
     setCurrentImage(image);
 
-    for(int i = 1; i < numberOfLayers; ++i) {
+    for(int i = 1; !gpuSession && i < numberOfLayers; ++i) {
         KisPaintLayerSP layer = new KisPaintLayer(image, image->nextLayerName(), OPACITY_OPAQUE_U8, cs);
         layer->setPinnedToTimeline(autopin);
         image->addNode(layer, image->root(), i);
@@ -2834,6 +3485,7 @@ bool KisDocument::newImage(const QString& name,
 
 bool KisDocument::isSaving() const
 {
+    if (d->gpuSaving) return true;
     const bool result = d->savingMutex.tryLock();
     if (result) {
         d->savingMutex.unlock();
@@ -2843,6 +3495,9 @@ bool KisDocument::isSaving() const
 
 void KisDocument::waitForSavingToComplete()
 {
+    const QPointer<KisDocument> guard(this);
+    d->runPendingGpuAutoSave();
+    if (!guard) return;
     if (isSaving()) {
         KisAsyncActionFeedback f(i18nc("progress dialog message when the user closes the document that is being saved", "Waiting for saving to complete..."), 0);
         f.waitForMutex(d->savingMutex);
@@ -2919,6 +3574,17 @@ void KisDocument::setReferenceImagesLayer(KisSharedPtr<KisReferenceImagesLayer> 
 
 void KisDocument::setPreActivatedNode(KisNodeSP activatedNode)
 {
+    if (activatedNode && d->image && !d->image->isSynchronizingGpuNodes() && activatedNode->image() == d->image.data()) {
+        if (const auto owner = d->image->gpuImage()) {
+            for (const auto &layer : owner->operations().snapshot()->layers) {
+                if (layer.uuid != activatedNode->uuid()) continue;
+                if (layer.id == owner->operations().activeLayer()) break;
+                const auto result = owner->selectLayer(layer.id);
+                KIS_SAFE_ASSERT_RECOVER_RETURN(result == LibrePaint::Image::Gpu::Result::Success);
+                break;
+            }
+        }
+    }
     d->preActivatedNode = activatedNode;
 }
 
@@ -2945,6 +3611,25 @@ KisImageSP KisDocument::savingImage() const
 
 void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, KisNodeSP preActivatedNode)
 {
+    const auto fileDocument = image && image->gpuImage() ?
+        std::make_shared<LibrePaint::Document::Gpu::PaintDocument>(image->gpuImage()) : nullptr;
+    setCurrentImageImpl(image, forceInitialUpdate, preActivatedNode, fileDocument);
+}
+
+void KisDocument::setCurrentImageImpl(KisImageSP image, bool forceInitialUpdate, KisNodeSP preActivatedNode,
+                                     std::shared_ptr<LibrePaint::Document::Gpu::PaintDocument> fileDocument)
+{
+    const bool changedIdentity = image && image != d->image;
+    const QPointer<KisDocument> guard(this);
+    if (changedIdentity && d->image) {
+        Q_EMIT sigCurrentImageAboutToChange();
+        if (!guard) return;
+    }
+    d->gpuDocument = fileDocument;
+    d->undoStack->setImage(nullptr);
+    if (!guard) return;
+    if (changedIdentity) d->undoStack->clear();
+    if (!guard) return;
     if (d->image) {
         // Disconnect existing sig/slot connections
         d->image->setUndoStore(new KisDumbUndoStore());
@@ -2961,9 +3646,25 @@ void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, Kis
 
     d->setImageAndInitIdleWatcher(image);
     d->image->setUndoStore(new KisDocumentUndoStore(d->undoStack));
+    if (!preActivatedNode) {
+        if (const auto owner = image->gpuImage()) {
+            const auto selected = owner->operations().activeLayer();
+            const auto layers = owner->operations().snapshot()->layers;
+            QUuid identity;
+            for (const auto &layer : layers) if (layer.id == selected) identity = layer.uuid;
+            QList<KisNodeSP> nodes{image->root()};
+            for (qsizetype i = 0; i < nodes.size() && !preActivatedNode; ++i)
+                for (auto node = nodes[i]->firstChild(); node; node = node->nextSibling()) {
+                    if (node->uuid() == identity) { preActivatedNode = node; break; }
+                    nodes.append(node);
+                }
+            d->preActivatedNode = preActivatedNode;
+        }
+    }
     d->shapeController->setImage(image, preActivatedNode);
     d->image->setMirrorAxesCenter(KisAlgebra2D::absoluteToRelative(d->mirrorAxisConfig.axisPosition(), image->bounds()));
     setModified(false);
+    d->undoStack->setImage(image);
     connect(d->image, SIGNAL(sigImageModified()), this, SLOT(setImageModified()), Qt::UniqueConnection);
     connect(d->image, SIGNAL(sigImageModifiedWithoutUndo()), this, SLOT(setImageModifiedWithoutUndo()), Qt::UniqueConnection);
     connect(d->image, SIGNAL(sigLayersChangedAsync()), this, SLOT(slotImageRootChanged()));
@@ -2971,6 +3672,8 @@ void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, Kis
     if (forceInitialUpdate) {
         d->image->initialRefreshGraph();
     }
+    image.clear();
+    if (guard && changedIdentity) Q_EMIT sigCurrentImageChanged();
 }
 
 void KisDocument::hackPreliminarySetImage(KisImageSP image)
@@ -2985,6 +3688,10 @@ void KisDocument::hackPreliminarySetImage(KisImageSP image)
 
 void KisDocument::setImageModified()
 {
+    if (const auto image = d->image ? d->image->gpuImage() : nullptr) {
+        setModified(d->modificationState.imageModifiedWithoutUndo() || image->operations().isModified());
+        return;
+    }
     // we only set as modified if undo stack is not at clean state
     setModified(d->modificationState.imageModifiedWithoutUndo() || !d->undoStack->isClean());
 }

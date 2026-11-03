@@ -51,6 +51,10 @@ void KisToolPolygon::finishPolyline(const QVector<QPointF>& points)
     const KisToolShape::ShapeAddInfo info =
         shouldAddShape(currentNode());
 
+    if (!info.shouldAddShape && image()->gpuImage()) {
+        paintGpuPolyline(points, true, kundo2_i18n("Draw Polygon"));
+        return;
+    }
     if (!info.shouldAddShape) {
         KisFigurePaintingStroke stroke(kundo2_i18n("Draw Polygon"),
                                        image(),

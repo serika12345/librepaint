@@ -9,10 +9,17 @@
 #include <QWidget>
 #include <QLayout>
 #include <QGridLayout>
+#include <QPointer>
+#include <QPainterPath>
+#include <cstring>
 
 #include <KoUnit.h>
 #include <KoShape.h>
 #include <KoCanvasBase.h>
+#include <KoCanvasResourceProvider.h>
+#include <KoPattern.h>
+#include <KoColorSpaceRegistry.h>
+#include <KoColorModelStandardIds.h>
 #include <KoShapeController.h>
 #include <KoColorBackground.h>
 #include <KoPatternBackground.h>
@@ -25,6 +32,9 @@
 
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_image.h>
+#include <kis_painting_information_builder.h>
+#include <kis_tool_freehand_helper.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_paint_device.h>
 #include <kis_figure_painting_stroke.h>
@@ -39,6 +49,7 @@
 #include "KoFlakeTypes.h"
 #include "kis_resources_snapshot.h"
 #include <qlist.h>
+#include <QKeyEvent>
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsharedpointer.h>
@@ -50,6 +61,164 @@
 #include "kis_tool.h"
 #include "kis_tool_paint.h"
 #include "kis_types.h"
+
+namespace {
+class KisToolGpuFigureHelper final : public KisToolFreehandHelper
+{
+public:
+    using KisToolFreehandHelper::KisToolFreehandHelper;
+
+    void paint(KisImageWSP image, KisNodeSP node, const LibrePaint::Image::Gpu::Shape &shape,
+               const QVector<QPointF> &points, const LibrePaint::Image::Gpu::FigureStyle &style)
+    {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const auto owner = image->gpuImage();
+        initPaintImpl(0, KisPaintInformation(points.isEmpty() ? shape.first : points.first()), resourceManager(), image, node, image.data());
+        if (!isRunning()) return;
+        const auto operation = owner->operations().activeOperation();
+        auto result = Gpu::Result::Success;
+        if (points.size() > 1) {
+            QList<Gpu::InputSample> vertices;
+            vertices.reserve(points.size() - 1);
+            for (qsizetype i = 1; i < points.size(); ++i) vertices.append({points[i], 1});
+            result = owner->appendSamples(operation, vertices);
+            if (!isRunning()) return;
+        }
+        if (result == Gpu::Result::Success) result = owner->updateFigure(operation, shape, style);
+        if (result != Gpu::Result::Success) {
+            cancelPaint();
+            Q_EMIT requestErrorMessage(i18n("The figure could not be drawn on this GPU paint layer."));
+            return;
+        }
+        endPaint();
+    }
+};
+}
+
+void KisToolShape::keyPressEvent(QKeyEvent *event)
+{
+    // During a pointer action the input manager forwards unclaimed keys to
+    // the tool instead of matching the ordinary cancel-action shortcut.
+    if (mode() == KisTool::PAINT_MODE && event->key() == Qt::Key_Escape) {
+        event->accept();
+        requestStrokeCancellation();
+        return;
+    }
+    KisToolPaint::keyPressEvent(event);
+}
+
+void KisToolShape::paintGpuOutline(const LibrePaint::Image::Gpu::Shape &shape, const KUndo2MagicString &name)
+{
+    paintGpuFigure(shape, {}, name);
+}
+
+void KisToolShape::paintGpuPolyline(const QVector<QPointF> &points, bool closed, const KUndo2MagicString &name)
+{
+    auto vertices = points;
+    if (closed && vertices.size() > 1 && vertices.first() == vertices.last()) vertices.removeLast();
+    if (vertices.size() < 2) return;
+    namespace Gpu = LibrePaint::Image::Gpu;
+    paintGpuFigure({closed ? Gpu::ShapeKind::Polygon : Gpu::ShapeKind::Polyline, vertices.first(), vertices.last(), 0},
+                   vertices, name);
+}
+
+void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, const QVector<QPointF> &points,
+                                const KUndo2MagicString &name)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    auto capturedShape = shape;
+    auto capturedPoints = points;
+    if (shape.kind == Gpu::ShapeKind::Ellipse || shape.kind == Gpu::ShapeKind::Rectangle || shape.kind == Gpu::ShapeKind::RoundedRectangle) {
+        QPainterPath path;
+        const QRectF bounds(shape.first, shape.second);
+        if (shape.kind == Gpu::ShapeKind::Ellipse) path.addEllipse(bounds);
+        else if (shape.kind == Gpu::ShapeKind::RoundedRectangle)
+            path.addRoundedRect(bounds, shape.cornerRadii.width(), shape.cornerRadii.height());
+        else path.addRect(bounds);
+        QTransform rotation;
+        rotation.translate(bounds.center().x(), bounds.center().y()).rotateRadians(shape.rotation)
+            .translate(-bounds.center().x(), -bounds.center().y());
+        path = rotation.map(path);
+        capturedPoints.clear();
+        for (int i = 0; i < path.elementCount(); ++i) {
+            const auto element = path.elementAt(i);
+            if (element.type == QPainterPath::CurveToElement) {
+                capturedShape.pathCommands.append(Gpu::PathCommand::CubicTo);
+                for (int point = 0; point < 3; ++point) {
+                    const auto value = path.elementAt(i + point);
+                    capturedPoints.append({value.x, value.y});
+                }
+                i += 2;
+            } else {
+                capturedShape.pathCommands.append(element.isMoveTo() ? Gpu::PathCommand::MoveTo : Gpu::PathCommand::LineTo);
+                capturedPoints.append({element.x, element.y});
+            }
+        }
+    }
+    auto *source = canvas()->resourceManager();
+    const bool maskTarget = image()->isGpuEditableMaskView(currentNode());
+    const auto *colorSpace = maskTarget ? KoColorSpaceRegistry::instance()->colorSpace(
+        GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image()->colorSpace();
+    LibrePaint::Image::Gpu::FigureStyle style;
+    style.outline = strokeStyle() != KisFigurePaintingOptions::StrokeStyleNone;
+    if (fillStyle() == KisFigurePaintingOptions::FillStylePattern) {
+        QString diagnostic;
+        style.pattern = captureGpuPatternResource(source->resource(KoCanvasResource::CurrentPattern).value<KoPatternSP>(),
+            colorSpace, fillTransform(), diagnostic);
+        if (!style.pattern) {
+            Q_EMIT statusTextChanged(diagnostic);
+            return;
+        }
+    } else if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
+        KoColor color = fillStyle() == KisFigurePaintingOptions::FillStyleForegroundColor ?
+            source->foregroundColor() : source->backgroundColor();
+        color.convertTo(colorSpace);
+        if (maskTarget) {
+            const auto gray = color.data()[0];
+            style.fill = LibrePaint::Image::Gpu::RgbaPixel{gray, gray, gray, 255};
+        } else if (image()->gpuImage()->operations().snapshot()->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16) {
+            quint16 bgra[4];
+            std::memcpy(bgra, color.data(), sizeof(bgra));
+            style.fill = LibrePaint::Image::Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], 65535};
+        } else {
+            const auto bgra = color.data();
+            style.fill = LibrePaint::Image::Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], 255};
+        }
+    }
+    KoCanvasResourceProvider resources;
+    for (int key : {KoCanvasResource::CurrentPaintOpPreset, KoCanvasResource::CurrentEffectiveCompositeOp,
+                    KoCanvasResource::Size, KoCanvasResource::Opacity, KoCanvasResource::MirrorHorizontal,
+                    KoCanvasResource::MirrorVertical, KoCanvasResource::GlobalAlphaLock, KoCanvasResource::EraserMode}) {
+        resources.setResource(key, source->resource(key));
+    }
+    resources.setForegroundColor(strokeStyle() == KisFigurePaintingOptions::StrokeStyleBackground ?
+                                 source->backgroundColor() : source->foregroundColor());
+    if (!style.outline) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const KisImageSP retainedImage = image().toStrongRef();
+        const KisNodeSP retainedNode = currentNode();
+        const auto captured = captureGpuFillResources(retainedImage, retainedNode, &resources);
+        if (!captured.diagnostic.isEmpty()) {
+            Q_EMIT statusTextChanged(captured.diagnostic);
+            return;
+        }
+        const auto owner = retainedImage->gpuImage();
+        style.fillBlendMode = captured.brush.blendMode;
+        QList<Gpu::InputSample> samples{{capturedPoints.isEmpty() ? shape.first : capturedPoints.first(), 1}};
+        for (qsizetype i = 1; i < capturedPoints.size(); ++i) samples.append({capturedPoints[i], 1});
+        const QPointer<KisToolShape> tool(this);
+        const auto result = captured.transparencyMask ?
+            owner->paintTransparencyMaskFigure(captured.layer, captured.brush, samples, capturedShape, style, 0, captured.maskUuid) :
+            owner->paintFigure(captured.layer, captured.brush, samples, capturedShape, style, 0);
+        if (tool && result != Gpu::Result::Success)
+            Q_EMIT tool->statusTextChanged(i18n("The figure could not be drawn on this GPU paint layer."));
+        return;
+    }
+    KisPaintingInformationBuilder builder;
+    KisToolGpuFigureHelper helper(&builder, &resources, name);
+    connect(&helper, &KisToolFreehandHelper::requestErrorMessage, this, &KoToolBase::statusTextChanged);
+    helper.paint(image(), currentNode(), capturedShape, capturedPoints, style);
+}
 
 
 KisToolShape::KisToolShape(KoCanvasBase * canvas, const QCursor & cursor)

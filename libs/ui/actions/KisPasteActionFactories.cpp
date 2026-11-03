@@ -23,6 +23,7 @@
 #include "kis_shape_layer.h"
 #include "kis_import_catcher.h"
 #include "kis_clipboard.h"
+#include "kis_mimedata.h"
 #include "kis_selection.h"
 #include "commands/KisDeselectActiveSelectionCommand.h"
 #include "commands/kis_image_layer_add_command.h"
@@ -33,6 +34,7 @@
 #include "nodes/kis_node_manager.h"
 
 #include <algorithm>
+#include <exception>
 #include <iterator>
 #include <metadata/KoDocumentInfo.h>
 #include <KoSvgPaste.h>
@@ -58,7 +60,14 @@
 #include <KoShapeStroke.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <QApplication>
+#include <QGuiApplication>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuOperationDocument.h>
 #include <QClipboard>
+#include <QDebug>
+#include <QPointer>
+#include <QScopedPointer>
+#include <QUuid>
 #include <qalgorithms.h>
 #include <QtGlobal>
 #include <qlist.h>
@@ -228,14 +237,56 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
 
     const QPointF docPos = view->canvasBase()->canvasController()->currentCursorPosition();
 
+    const bool gpuDocument = bool(image->gpuImage());
+    const bool internalLayers =
+        qobject_cast<const KisMimeData *>(KisClipboard::instance()->layersMimeData());
+    if (const auto owner = image->gpuImage(); owner && !internalLayers) {
+        const auto *mime = QGuiApplication::clipboard()->mimeData();
+        const QImage pastedImage = mime ? KisClipboard::instance()->getImageWithFallback(mime) : QImage();
+        if (pastedImage.isNull()) {
+            view->showFloatingMessage(i18n("Only image clipboard data can be pasted into a GPU document."), QIcon());
+            return;
+        }
+        const QPointer<KisViewManager> guard(view);
+        const auto beforePaste = owner->operations().snapshot();
+        const QSize targetSize = beforePaste->size;
+        QImage source = pastedImage;
+        if (source.width() > targetSize.width() || source.height() > targetSize.height())
+            source = source.copy(0, 0, qMin(source.width(), targetSize.width()),
+                                 qMin(source.height(), targetSize.height()));
+        QPoint position = docPos.toPoint();
+        position.setX(qBound(0, position.x(), qMax(0, targetSize.width() - source.width())));
+        position.setY(qBound(0, position.y(), qMax(0, targetSize.height() - source.height())));
+        const auto temporary = KisClipboard::instance()->importGpuImage(image, source, position, 256 * 1024 * 1024);
+        if (!guard || view->image().data() != image.data() || owner->operations().snapshot() != beforePaste) return;
+        if (!temporary) {
+            view->showFloatingMessage(i18n("The pasted image could not be prepared."), QIcon());
+            return;
+        }
+        const auto pixels = temporary->retainLayerPixels(temporary->operations().activeLayer());
+        const auto version = owner->operations().snapshot();
+        qsizetype index = version->layers.size();
+        for (qsizetype i = 0; i < version->layers.size(); ++i)
+            if (version->layers[i].id == version->activeLayer) index = i + 1;
+        LibrePaint::Image::Gpu::RasterLayer properties;
+        properties.name = i18n("Pasted Layer");
+        properties.uuid = QUuid::createUuid();
+        properties.position = QPoint();
+        if (!owner->insertLayer(*temporary, pixels, properties, index)) {
+            view->showFloatingMessage(i18n("The pasted image could not be added."), QIcon());
+            return;
+        }
+        return;
+    }
+
     // Activate the current tool's paste functionality
-    if (view->canvasBase()->toolProxy()->paste()) {
+    if (!gpuDocument && view->canvasBase()->toolProxy()->paste()) {
         // XXX: "Add saving of XML data for Paste of shapes"
         return;
     }
 
     // Paste shapes
-    if (tryPasteShapes(flags, view)) {
+    if (!gpuDocument && tryPasteShapes(flags, view)) {
         return;
     }
 
@@ -244,6 +295,7 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
 
     // If no shapes, check for layers
     if (KisClipboard::instance()->hasLayers()) {
+        bool placementFailed = false;
         const QPointF offsetTopLeft = [&]() -> QPointF {
             KisPaintDeviceSP clip =
                 KisClipboard::instance()->clipFromKritaLayers(
@@ -251,6 +303,7 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
 
             if (!clip) {
                 pasteAtCursorPosition = false;
+                placementFailed = qobject_cast<const KisMimeData *>(KisClipboard::instance()->layersMimeData());
                 return {};
             }
 
@@ -273,8 +326,9 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
             return offset;
         }();
 
+        if (placementFailed) return;
 
-        if (view->selection()) {
+        if (view->selection() && !gpuDocument) {
             /// TODO: we are relying on a sticky translated string from KisImageLayerAddCommand
             ///       change the string after Krita 5.2.5
             KisProcessingApplicator *ap = beginAction(view, kundo2_i18n("Add Layer"));
@@ -286,7 +340,9 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
             endAction(ap, KisOperationConfiguration(id()).toXML());
         } else {
             view->nodeManager()->pasteLayersFromClipboard(pasteAtCursorPosition,
-                                                          offsetTopLeft);
+                                                          offsetTopLeft,
+                                                          nullptr,
+                                                          gpuDocument);
         }
 
         return;
@@ -391,36 +447,42 @@ void KisPasteIntoActionFactory::run(KisViewManager *viewManager)
 
 void KisPasteNewActionFactory::run(KisViewManager *viewManager)
 {
-    Q_UNUSED(viewManager);
+    if (!viewManager) return;
+    const QPointer<KisViewManager> guard(viewManager);
+    const QPointer<KisMainWindow> window(viewManager->mainWindow());
+    if (!window) return;
 
     KisPaintDeviceSP clip = KisClipboard::instance()->clip(QRect(), true);
-    if (!clip) return;
+    if (!clip || !window) return;
 
-    QRect rect = clip->exactBounds();
-    if (rect.isEmpty()) return;
+    KisImageSP image;
+    try {
+        const QRect rect = clip->exactBounds();
+        if (rect.isEmpty()) return;
+        image = KisImage::fromPaintDevice(clip, rect, i18n("Pasted"), QUuid::createUuid(), 256 * 1024 * 1024);
+        if (!image) {
+            if (guard) viewManager->showFloatingMessage(i18n("The image could not be created from the clipboard."), QIcon());
+            return;
+        }
+    } catch (const std::exception &error) {
+        qWarning() << "Could not create image from clipboard:" << error.what();
+        if (guard) viewManager->showFloatingMessage(i18n("The image could not be created from the clipboard."), QIcon());
+        return;
+    }
+    if (!window) return;
 
-    KisDocument *doc = KisPart::instance()->createDocument();
+    QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     doc->documentInfo()->setAboutInfo("title", i18n("Untitled"));
-    KisImageSP image = new KisImage(doc->createUndoStore(),
-                                    rect.width(),
-                                    rect.height(),
-                                    clip->colorSpace(),
-                                    i18n("Pasted"));
-    bool renamePastedLayers = KisConfig(true).renamePastedLayers();
-    QString pastedLayerName = renamePastedLayers ? image->nextLayerName() + " " + i18n("(pasted)") :
-                                                   image->nextLayerName();
-    KisPaintLayerSP layer =
-            new KisPaintLayer(image.data(), pastedLayerName,
-                              OPACITY_OPAQUE_U8, clip->colorSpace());
-
-    KisPainter::copyAreaOptimized(QPoint(), clip, layer->paintDevice(), rect);
-
-    image->addNode(layer.data(), image->rootLayer());
+    if (KisConfig(true).renamePastedLayers()) {
+        auto layer = image->root()->firstChild();
+        layer->setName(layer->name() + " " + i18n("(pasted)"));
+    }
     doc->setCurrentImage(image);
-    KisPart::instance()->addDocument(doc);
+    if (!window) return;
+    const QPointer<KisDocument> published(doc.take());
+    KisPart::instance()->addDocument(published);
 
-    KisMainWindow *win = viewManager->mainWindow();
-    win->addViewAndNotifyLoadingCompleted(doc);
+    if (window && published) window->addViewAndNotifyLoadingCompleted(published);
 }
 
 void KisPasteReferenceActionFactory::run(KisViewManager *viewManager)

@@ -10,6 +10,9 @@
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QGridLayout>
+#include <QItemSelectionModel>
+#include <QSignalSpy>
+#include <QStandardItemModel>
 
 #include <NodeView.h>
 
@@ -39,6 +42,54 @@ void NodeViewTest::cleanup()
     delete m_shapeController;
     delete m_nameServer;
     delete m_doc;
+}
+
+void NodeViewTest::testModelActiveNodePreservesExtendedSelection_data()
+{
+    QTest::addColumn<bool>("preserveSelection");
+    QTest::newRow("view-owned-selection") << false;
+    QTest::newRow("document-owned-selection") << true;
+}
+
+void NodeViewTest::testModelActiveNodePreservesExtendedSelection()
+{
+    QFETCH(bool, preserveSelection);
+    QStandardItemModel model;
+    model.setColumnCount(3);
+    auto *group = new QStandardItem(QStringLiteral("Group"));
+    group->setColumnCount(3);
+    group->appendRow(new QStandardItem(QStringLiteral("Child")));
+    model.appendRow(group);
+    model.appendRow(new QStandardItem(QStringLiteral("Top")));
+    NodeView view;
+    view.setActiveChangePreservesSelection(preserveSelection);
+    view.setModel(&model);
+    view.setSelectionMode(QAbstractItemView::ExtendedSelection);
+    view.expandAll();
+    const auto groupIndex = model.index(0, 0);
+    const auto childIndex = model.index(0, 0, groupIndex);
+    const auto topIndex = model.index(1, 0);
+    auto *selection = view.selectionModel();
+    QVERIFY(model.setData(groupIndex, true, KisNodeModel::ActiveRole));
+    QCOMPARE(view.currentIndex(), groupIndex);
+    QCOMPARE(selection->selectedRows(), QModelIndexList{groupIndex});
+    selection->select(groupIndex, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+    selection->select(topIndex, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    model.setData(groupIndex, false, KisNodeModel::ActiveRole);
+    QSignalSpy changes(selection, &QItemSelectionModel::selectionChanged);
+
+    QVERIFY(model.setData(childIndex, true, KisNodeModel::ActiveRole));
+
+    QCOMPARE(view.currentIndex(), childIndex);
+    if (preserveSelection) {
+        QCOMPARE(selection->selectedRows().size(), 2);
+        QVERIFY(selection->selectedRows().contains(groupIndex));
+        QVERIFY(selection->selectedRows().contains(topIndex));
+        QCOMPARE(changes.count(), 0);
+    } else {
+        QCOMPARE(selection->selectedRows(), QModelIndexList{childIndex});
+        QCOMPARE(changes.count(), 1);
+    }
 }
 
 

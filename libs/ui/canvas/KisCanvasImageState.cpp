@@ -15,16 +15,20 @@
 void KisCanvas2::connectViewImageSignals()
 {
     KisImageSP currentImage = image();
+    const KisImageWSP source = currentImage;
 
     connect(currentImage.data(),
             &KisImage::sigSizeChanged,
             this,
-            &KisCanvas2::sigViewImageSizeChanged);
+            [this, source](const QPointF &oldStillPoint, const QPointF &newStillPoint) {
+                if (source && source.data() == image().data())
+                    Q_EMIT sigViewImageSizeChanged(oldStillPoint, newStillPoint);
+            });
     connect(currentImage.data(),
             &KisImage::sigResolutionChanged,
             this,
-            [this](double, double) {
-                Q_EMIT sigViewImageResolutionChanged();
+            [this, source](double, double) {
+                if (source && source.data() == image().data()) Q_EMIT sigViewImageResolutionChanged();
             });
     connect(currentImage.data(),
             &KisImage::sigNodeAddedAsync,
@@ -39,11 +43,15 @@ void KisCanvas2::connectViewImageSignals()
     connect(currentImage.data(),
             &KisImage::sigColorSpaceChanged,
             this,
-            &KisCanvas2::sigViewImageColorSpaceChanged);
+            [this, source](const KoColorSpace *colorSpace) {
+                if (source && source.data() == image().data()) Q_EMIT sigViewImageColorSpaceChanged(colorSpace);
+            });
     connect(currentImage.data(),
             &KisImage::sigProfileChanged,
             this,
-            &KisCanvas2::sigViewImageProfileChanged);
+            [this, source](const KoColorProfile *profile) {
+                if (source && source.data() == image().data()) Q_EMIT sigViewImageProfileChanged(profile);
+            });
 }
 
 void KisCanvas2::prepareImageForDisplay()

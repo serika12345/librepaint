@@ -27,6 +27,8 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KoBasicShapeFactory.h>
 #include <kis_figure_painting_stroke.h>
+#include <gpu/KisGpuOperationDocument.h>
+#include <kis_image.h>
 
 #include <KoCanvasController.h>
 #include <KoShapeStroke.h>
@@ -72,6 +74,16 @@ void KisToolRectangle::finishRect(const QRectF &rect, qreal roundCornersX, qreal
     const KisToolShape::ShapeAddInfo info =
         shouldAddShape(currentNode());
 
+    if (!info.shouldAddShape && image()->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        Gpu::Shape shape{Gpu::ShapeKind::Rectangle, rect.topLeft(), rect.bottomRight(), getRotationAngle()};
+        if (roundCornersX > 0 || roundCornersY > 0) {
+            shape.kind = Gpu::ShapeKind::RoundedRectangle;
+            shape.cornerRadii = {qMax(qreal(0), roundCornersX), qMax(qreal(0), roundCornersY)};
+        }
+        paintGpuOutline(shape, kundo2_i18n("Draw Rectangle"));
+        return;
+    }
     if (!info.shouldAddShape) {
         KisFigurePaintingStroke stroke(kundo2_i18n("Draw Rectangle"),
                                        image(),

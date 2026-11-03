@@ -9,7 +9,6 @@ kis_add_tests(
     kis_prescaled_projection_test.cpp
     kis_display_color_converter_contract_test.cpp
     kis_animation_importer_test.cpp
-    KisDocumentReplaceTest.cpp
     kis_derived_resources_test.cpp
     kis_animation_frame_cache_test.cpp
     TestCanvasUiPublicHeaders.cpp
@@ -21,6 +20,19 @@ kis_add_tests(
     KisSafeDocumentLoaderTest.cpp
     LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk
     )
+
+kis_add_test(KisDocumentReplaceTest.cpp
+    TEST_NAME_VAR gpu_document_replace_test
+    LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk kritadocumentfiles kritaimpexkra)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${gpu_document_replace_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+endif()
+
+kis_add_test(KisColorSpaceSelectionTest.cpp
+    TEST_NAME_VAR color_space_selection_test
+    LINK_LIBRARIES kritaapplicationui Qt${QT_MAJOR_VERSION}::Test)
+add_dependencies(KisColorSpaceSelectionTest kritalcmsengine)
+set_tests_properties(${color_space_selection_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 kis_add_test(
     KisSpinBoxSplineUnitConverterTest.cpp
@@ -136,7 +148,7 @@ kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testin
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
-kis_add_test( FreehandStrokeContractTest.cpp
+kis_add_test( FreehandStrokeContractTest.cpp FreehandStrokeFonts.qrc
     TEST_NAME FreehandStrokeContractTest
     LINK_LIBRARIES kritapainting kritalibbrush kritatestsdk
     )
@@ -1166,6 +1178,302 @@ kis_add_test(
     TEST_NAME kis_view_signals_test
     LINK_LIBRARIES kritaapplicationui kritalibkis kritatestsdk
     )
+add_dependencies(kis_view_signals_test kritalcmsengine kritadefaulttools kritaroundmarkerpaintop)
+
+set(gpu_document_input_cases
+    nonlinearU16CanvasTracksTheActualDisplayConfiguration
+    presentsEditsAndReleasesTheClosedTab
+    brushOutlineFollowsTheOrdinaryPointerWithoutEditing
+    freehandInputCommitsOneHistoryEntryAndCanBeCancelled
+    paintingBackendChangesRebindTheCanvas
+    replacementUpdatesPresentationInputHistoryAndSaving
+    ordinaryLayerChangesDuringInput
+    lineToolPreservesPreviewCancellationAndHistory
+    rectangularSelectionLimitsPainting
+    selectionFillUsesGpuSelection
+    selectionMergedCopyUsesGpuSelection
+    selectionCopyAndCutUseGpuSelection
+    selectionGrowAndShrinkUseGpuSelection
+    invertedSelectionLimitsPaintingAndKra
+    ellipticalSelectionLimitsPaintingAndKra
+    pasteClipboardImageCreatesGpuLayer
+    reselectRestoresGpuSelection
+    copySelectionToNewLayerUsesGpuPixels)
+set(gpu_document_crop_cases
+    cropPreviewPreservesPixelsHistoryAndCancellation)
+set(gpu_document_layer_cases
+    layerPanelThumbnailsReadOnlyReducedGpuPixels
+    layerPanelEditsUseOneDocumentHistory
+    layerPanelReordersSelectionWithOneHistoryEntry
+    layerPanelSelectionSurvivesSaving
+    layerPanelSelectionPreservesAnUnselectedActiveLayer
+    layerSelectionCanCloseTheWindowDuringNotification
+    layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry
+    layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry
+    layerPanelAddsAtSelectionWithOneHistoryEntry
+    maskChildFreehandStrokeEditsOnlyCoverage
+    maskPresetsKeepOrdinaryEditing
+    layerPanelShowsAndSelectsGpuTransparencyMaskChild
+    layerPanelTogglesAndRemovesGpuTransparencyMaskChild
+    layerPanelGpuTransparencyMaskChildSurvivesSaving)
+kis_add_test(KisGpuDocumentViewTest.cpp KisGpuMultibrushEditingTest.cpp KisGpuRegionFillEditingTest.cpp KisGpuColorFilterEditingTest.cpp KisGpuFilterNodeEditingTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisGpuDocumentViewTest
+    TEST_NAME_VAR gpu_document_view_test
+    TEST_ARGS ${gpu_document_input_cases}
+    LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritatestsdk)
+set(gpu_document_layer_test libs-ui-layers-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_layer_test}
+    COMMAND KisGpuDocumentViewTest ${gpu_document_layer_cases})
+set(gpu_document_group_mask_test libs-ui-group-masks-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_group_mask_test}
+    COMMAND KisGpuDocumentViewTest groupMaskPresetsKeepOrdinaryEditing
+        maskChildFreehandStrokeEditsOnlyCoverage:group-retained-finite-mask
+        maskChildFreehandStrokeEditsOnlyCoverage:group-ordinary-white-default
+        maskChildFreehandStrokeEditsOnlyCoverage:group-ordinary-selection-consumed)
+set(gpu_document_group_test libs-ui-groups-KisGpuDocumentViewTest)
+set(gpu_document_gradient_test libs-ui-gradients-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_gradient_test}
+    COMMAND KisGpuDocumentViewTest gradientsKeepNativeEditingHistoryAndKra)
+set(gpu_document_multibrush_test libs-ui-multibrush-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_multibrush_test}
+    COMMAND KisGpuDocumentViewTest multibrushPresetsKeepNativeEditingHistoryAndKra)
+set(gpu_document_dynamic_brush_test libs-ui-dynamic-brush-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_dynamic_brush_test}
+    COMMAND KisGpuDocumentViewTest dynamicBrushPresetsKeepNativeEditingHistoryAndKra)
+add_test(NAME ${gpu_document_group_test}
+    COMMAND KisGpuDocumentViewTest quickGroupsKeepPixelsHistoryAndSaving)
+set(gpu_document_merge_test libs-ui-layer-merges-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_merge_test}
+    COMMAND KisGpuDocumentViewTest layerMergesKeepNativeEditing)
+set(gpu_document_pixel_test libs-ui-pixels-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_pixel_test}
+    COMMAND KisGpuDocumentViewTest clearActionPreservesSelectedLayersAndHistory colorFillActionsPreservePixelsHistoryAndSaving selectionFillToolKeepsNativeEditing)
+set(gpu_document_background_tests)
+foreach(background_row IN ITEMS
+        fixed-opaque scrolling-opaque fixed-translucent scrolling-translucent scrolling-image-limit)
+    set(background_test libs-ui-background-${background_row}-KisGpuDocumentViewTest)
+    add_test(NAME ${background_test}
+        COMMAND KisGpuDocumentViewTest canvasBackgroundFollowsPreferencesWithoutEditing:${background_row})
+    list(APPEND gpu_document_background_tests ${background_test})
+endforeach()
+set(gpu_document_selection_nudge_test libs-ui-selection-nudge-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_selection_nudge_test}
+    COMMAND KisGpuDocumentViewTest arrowKeysNudgeGpuSelection)
+set(gpu_document_ellipse_tool_test libs-ui-ellipse-tool-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_ellipse_tool_test}
+    COMMAND KisGpuDocumentViewTest ellipticalToolCreatesDocumentSelection)
+set(gpu_document_freehand_tool_test libs-ui-freehand-tool-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_freehand_tool_test}
+    COMMAND KisGpuDocumentViewTest freehandToolCreatesArbitraryMaskSelection)
+set(gpu_document_brush_presets_test libs-ui-brush-presets-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_brush_presets_test}
+    COMMAND KisGpuDocumentViewTest standardAutoBrushPresetsKeepOrdinaryEditing)
+set(gpu_document_native_clipboard_test libs-ui-native-clipboard-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_native_clipboard_test}
+    COMMAND KisGpuDocumentViewTest nativeClipboardCoverageKeepsPrecisionAndSavedPixels)
+set(gpu_document_brush_blend_test libs-ui-brush-blend-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_brush_blend_test}
+    COMMAND KisGpuDocumentViewTest brushBlendModeUsesEffectiveCompositeOpAndRejectsUnsupported)
+set(gpu_document_polygon_tool_test libs-ui-polygon-tool-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_polygon_tool_test}
+    COMMAND KisGpuDocumentViewTest polygonToolVerticesCreateFrozenCoverage)
+set(gpu_document_polygon_input_test libs-ui-polygon-input-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_polygon_input_test}
+    COMMAND KisGpuDocumentViewTest polygonalToolCreatesArbitraryMaskSelection)
+set(gpu_document_selection_combination_test libs-ui-selection-combinations-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_selection_combination_test}
+    COMMAND KisGpuDocumentViewTest shapeSelectionCombinationsKeepEditingHistoryAndKra
+        selectionOutlineKeepsOnlyEffectiveCoverageBoundaries)
+set(gpu_document_native_selection_kra_test libs-ui-native-selection-kra-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_native_selection_kra_test}
+    COMMAND KisGpuDocumentViewTest nativeInvertedSelectionsKeepEditingAndSaving)
+set(gpu_document_colour_selection_test libs-ui-colour-selection-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_colour_selection_test}
+    COMMAND KisGpuDocumentViewTest generatedSelectionViewRetainsAlphaAfterClose
+        colourSelectionToolsKeepPixelsHistoryAndKra)
+set_tests_properties(${gpu_document_colour_selection_test} PROPERTIES RUN_SERIAL TRUE)
+set(gpu_document_path_tool_test libs-ui-path-tool-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_path_tool_test}
+    COMMAND KisGpuDocumentViewTest pathToolClosedPathCreatesPolygonCoverage)
+set(gpu_document_path_input_test libs-ui-path-input-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_path_input_test}
+    COMMAND KisGpuDocumentViewTest pathToolCreatesArbitraryMaskSelection)
+set(gpu_document_feather_test libs-ui-feather-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_feather_test}
+    COMMAND KisGpuDocumentViewTest featherActionSoftensFreehandSelection)
+set(gpu_document_selection_move_test libs-ui-selection-move-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_selection_move_test}
+    COMMAND KisGpuDocumentViewTest selectionMovePreviewsAndCommitsOneHistory)
+set(gpu_document_crop_test libs-ui-crop-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_crop_test}
+    COMMAND KisGpuDocumentViewTest ${gpu_document_crop_cases})
+set(gpu_document_filter_test libs-ui-filter-invert-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_filter_test}
+    COMMAND KisGpuDocumentViewTest invertColorsActionUsesGpuDocumentAndDiagnosesUnsupportedFilters)
+set_tests_properties(${gpu_document_filter_test} PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=cocoa" RUN_SERIAL TRUE TIMEOUT 60)
+set(gpu_document_grayscale_filter_test libs-ui-filter-grayscale-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_grayscale_filter_test}
+    COMMAND KisGpuDocumentViewTest desaturateActionAppliesGrayscaleOnGpuDocument)
+set_tests_properties(${gpu_document_grayscale_filter_test} PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=cocoa" RUN_SERIAL TRUE TIMEOUT 60)
+set(gpu_document_color_filter_test libs-ui-filter-color-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_color_filter_test}
+    COMMAND KisGpuDocumentViewTest colorFilterActionsKeepNativeEditing)
+set_tests_properties(${gpu_document_color_filter_test} PROPERTIES RUN_SERIAL TRUE TIMEOUT 900)
+set(gpu_document_convolution_filter_test libs-ui-filter-convolution-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_convolution_filter_test}
+    COMMAND KisGpuDocumentViewTest convolutionFiltersKeepNativeEditing convolutionFilterNodesKeepNativeEditing convolutionChainsKeepNativeProjection)
+set_tests_properties(${gpu_document_convolution_filter_test} PROPERTIES RUN_SERIAL TRUE TIMEOUT 900)
+set(gpu_document_filter_node_test libs-ui-filter-nodes-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_filter_node_test}
+    COMMAND KisGpuDocumentViewTest filterNodesKeepNativeEditing)
+set_tests_properties(${gpu_document_filter_node_test} PROPERTIES RUN_SERIAL TRUE TIMEOUT 900)
+set(gpu_document_hsv_filter_test libs-ui-filter-hsv-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_hsv_filter_test}
+    COMMAND KisGpuDocumentViewTest hsvAdjustmentActionUsesProductSettingsOnGpuDocument)
+set_tests_properties(${gpu_document_hsv_filter_test} PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=cocoa" RUN_SERIAL TRUE TIMEOUT 60)
+set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test} ${gpu_document_group_test} ${gpu_document_group_mask_test} ${gpu_document_merge_test} ${gpu_document_gradient_test} ${gpu_document_multibrush_test}
+    ${gpu_document_dynamic_brush_test}
+    ${gpu_document_pixel_test} ${gpu_document_selection_move_test} ${gpu_document_selection_nudge_test}
+    ${gpu_document_ellipse_tool_test} ${gpu_document_freehand_tool_test} ${gpu_document_brush_blend_test}
+    ${gpu_document_brush_presets_test} ${gpu_document_native_clipboard_test}
+    ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_selection_combination_test}
+    ${gpu_document_colour_selection_test} ${gpu_document_native_selection_kra_test} ${gpu_document_path_tool_test}
+    ${gpu_document_path_input_test} ${gpu_document_feather_test} ${gpu_document_filter_test}
+    ${gpu_document_grayscale_filter_test} ${gpu_document_hsv_filter_test} ${gpu_document_color_filter_test} ${gpu_document_convolution_filter_test} ${gpu_document_filter_node_test}
+    ${gpu_document_background_tests} ${gpu_document_crop_test})
+add_dependencies(KisGpuDocumentViewTest
+    kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop kritadefaultpaintops
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop
+    kritamodifyselection kritaselectiontools kritacolorsfilters kritatooldyna
+    kritaextensioncolorsfilters kritaresettransparent kritaconvolutionfilters)
+if(NOT IOS)
+    add_dependencies(KisGpuDocumentViewTest kritatextproperties)
+endif()
+add_dependencies(KisGpuDocumentViewTest kritakraexport kritapngexport)
+
+kis_add_test(KisEllipseToolDocumentTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisEllipseToolDocumentTest
+    TEST_NAME_VAR ellipse_tool_document_test
+    TEST_ARGS drawingPreservesShapeHistoryAndSaving
+    LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk)
+add_dependencies(KisEllipseToolDocumentTest
+    kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop kritadefaultpaintops
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritakraexport kritapngexport
+    kritatoolpolyline kritatoolpolygon)
+if(NOT IOS)
+    add_dependencies(KisEllipseToolDocumentTest kritatextproperties)
+endif()
+set(ellipse_tool_solid_test libs-ui-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_solid_test}
+    COMMAND KisEllipseToolDocumentTest solidFillsPreserveShapeHistoryAndSaving)
+set(ellipse_tool_ordinary_solid_test libs-ui-ordinary-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_ordinary_solid_test}
+    COMMAND KisEllipseToolDocumentTest ordinarySolidFillsPreserveShapeHistoryAndSaving)
+set(ellipse_tool_preset_test libs-ui-preset-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_preset_test}
+    COMMAND KisEllipseToolDocumentTest fillOnlyUsesSelectedPreset)
+set(ellipse_tool_fractional_test libs-ui-fractional-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_fractional_test}
+    COMMAND KisEllipseToolDocumentTest fractionalSolidFillsUseCapturedOpacity)
+set(ellipse_tool_protected_fill_test libs-ui-protected-fractional-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_protected_fill_test}
+    COMMAND KisEllipseToolDocumentTest fractionalFillMatchesPainterWithProtectedChannels)
+set(ellipse_tool_native_fill_test libs-ui-native-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_native_fill_test}
+    COMMAND KisEllipseToolDocumentTest nativeSolidFillsKeepOrdinaryEditing)
+set(ellipse_tool_selected_fill_test libs-ui-native-selected-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_selected_fill_test}
+    COMMAND KisEllipseToolDocumentTest selectedSolidFillsKeepOrdinaryEditing)
+set(ellipse_tool_brush_shape_test libs-ui-native-brush-shapes-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_brush_shape_test}
+    COMMAND KisEllipseToolDocumentTest standardBrushShapesKeepOrdinaryEditing)
+set(ellipse_tool_document_tests ${ellipse_tool_document_test} ${ellipse_tool_solid_test} ${ellipse_tool_ordinary_solid_test}
+    ${ellipse_tool_preset_test} ${ellipse_tool_fractional_test} ${ellipse_tool_protected_fill_test} ${ellipse_tool_native_fill_test}
+    ${ellipse_tool_selected_fill_test} ${ellipse_tool_brush_shape_test})
+set_tests_properties(${ellipse_tool_document_tests} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_tests_properties(${ellipse_tool_document_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+    set_tests_properties(${ellipse_tool_fractional_test} ${ellipse_tool_protected_fill_test}
+        PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${ellipse_tool_document_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 300)
+elseif(WIN32)
+    set_tests_properties(${ellipse_tool_document_tests} PROPERTIES TIMEOUT 300)
+endif()
+
+kis_add_test(KisGpuColorSamplingTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisGpuColorSamplingTest
+    TEST_NAME_VAR gpu_color_sampling_test
+    LINK_LIBRARIES kritaapplicationui kritainputui kritatestsdk)
+add_dependencies(KisGpuColorSamplingTest kritalcmsengine kritadefaulttools kritaroundmarkerpaintop)
+set_tests_properties(${gpu_color_sampling_test} PROPERTIES
+    TIMEOUT 120 RUN_SERIAL TRUE ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+kis_add_test(KisTransformToolDocumentTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisTransformToolDocumentTest
+    TEST_NAME_VAR transform_tool_document_test
+    LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk kritatooltransform_static ${QUAZIP_LIBRARIES})
+add_dependencies(KisTransformToolDocumentTest
+    kritacolorsfilters kritatooltransform kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritakraexport kritapngexport)
+if(NOT IOS)
+    add_dependencies(KisTransformToolDocumentTest kritatextproperties)
+endif()
+set_tests_properties(${transform_tool_document_test} PROPERTIES TIMEOUT 900 RUN_SERIAL TRUE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_tests_properties(${transform_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${transform_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+endif()
+
+kis_add_test(KisMoveToolDocumentTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisMoveToolDocumentTest
+    TEST_NAME_VAR move_tool_document_test
+    LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk ${QUAZIP_LIBRARIES})
+add_dependencies(KisMoveToolDocumentTest
+    kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritakraexport kritapngexport)
+if(NOT IOS)
+    add_dependencies(KisMoveToolDocumentTest kritatextproperties)
+endif()
+set_tests_properties(${move_tool_document_test} PROPERTIES TIMEOUT 300 RUN_SERIAL TRUE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_tests_properties(${move_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${move_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+endif()
+
+# Native window input requires exclusive use of the test display.
+set_tests_properties(${gpu_document_view_tests} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_tests_properties(${gpu_document_view_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${gpu_document_view_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 300)
+elseif(WIN32)
+    set_tests_properties(${gpu_document_view_tests} PROPERTIES TIMEOUT 300)
+endif()
+# Five background rows each cover capture retries under a fully loaded GUI.
+set_tests_properties(${gpu_document_background_tests} PROPERTIES TIMEOUT 180)
+# Mask preset cases compare native and GPU editing through KRA reload for both precisions.
+set_tests_properties(${gpu_document_layer_test} ${gpu_document_group_mask_test} PROPERTIES TIMEOUT 900)
+set_tests_properties(${gpu_document_group_test} ${gpu_document_merge_test} PROPERTIES TIMEOUT 1800)
+set_tests_properties(${gpu_document_gradient_test} PROPERTIES TIMEOUT 1800)
+set_tests_properties(${gpu_document_multibrush_test} ${gpu_document_dynamic_brush_test} PROPERTIES TIMEOUT 1800)
+set_tests_properties(${gpu_document_pixel_test} PROPERTIES TIMEOUT 600)
+set_tests_properties(${gpu_document_selection_combination_test} PROPERTIES TIMEOUT 600)
 
 
 ##### Tests that currently fail and should be fixed #####
@@ -1181,6 +1489,15 @@ krita_add_broken_unit_test( kis_clipboard_test.cpp
     TEST_NAME KisClipboardTest
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
+
+add_test(
+    NAME libs-ui-KisClipboardEmptyContractTest
+    COMMAND KisClipboardTest testEmptyClipboard
+)
+set_tests_properties(libs-ui-KisClipboardEmptyContractTest PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
+
 
 krita_add_broken_unit_test( FreehandStrokeBenchmark.cpp  $<TARGET_PROPERTY:kritatestsdk,SOURCE_DIR>/stroke_testing_utils.cpp
     TEST_NAME FreehandStrokeBenchmark

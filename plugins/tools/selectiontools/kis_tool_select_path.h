@@ -73,6 +73,7 @@ public:
     KisToolSelectPath(KoCanvasBase * canvas);
     bool eventFilter(QObject *obj, QEvent *event) override;
     void resetCursorStyle() override;
+    bool supportsGpuSelection() const override { return true; }
 
 protected:
     void requestStrokeCancellation() override;

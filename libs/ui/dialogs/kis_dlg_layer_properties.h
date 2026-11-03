@@ -46,6 +46,10 @@ public:
 
     ~KisDlgLayerProperties() override;
 
+public Q_SLOTS:
+    void accept() override;
+    void reject() override;
+
 protected Q_SLOTS:
     void updatePreview();
 
