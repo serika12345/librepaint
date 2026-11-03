@@ -507,7 +507,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
                 d.error.isEmpty() ? QStringLiteral("GPU Greater alpha resource budget exhausted") : d.error};
     const auto firstComposition = [&](const auto &inputs) {
-        return !initial && !nativeProjection && inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
+        return !initial && (!nativeProjection || background) && inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
                                                 !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
     };
     const bool cachedBase = !group && base && d.backdropVersion.toStrongRef() == base &&

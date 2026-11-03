@@ -43,6 +43,7 @@
 #include <QDateTime>
 #include <QFile>
 #include <QLineEdit>
+#include <QImage>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPointer>
@@ -55,14 +56,15 @@
 #include <QTreeWidgetItemIterator>
 #include <KLocalizedString>
 #include <memory>
+#include <cstring>
 
 namespace {
-void configureNewDocument(QWidget *widget)
+void configureNewDocument(QWidget *widget, bool sixteenBits = false)
 {
     auto *sections = widget->window()->findChild<QTreeWidget *>();
     for (QTreeWidgetItemIterator item(sections); *item; ++item)
         if ((*item)->text(0) == i18n("Custom Document")) sections->setCurrentItem(*item);
-    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const auto cs = sixteenBits ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     auto *selector = widget->findChild<KisColorSpaceSelector *>(QStringLiteral("colorSpaceSelector"));
     selector->setCurrentColorModel(cs->colorModelId());
     selector->setCurrentColorDepth(cs->colorDepthId());
@@ -81,14 +83,27 @@ void configureNewDocument(QWidget *widget)
 void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen_data()
 {
     QTest::addColumn<int>("sourceFormat");
-    QTest::newRow("new-document") << 0;
-    QTest::newRow("existing-static-native") << 1;
-    QTest::newRow("existing-png") << 2;
+    QTest::addColumn<bool>("sixteenBits");
+    QTest::newRow("new-document") << 0 << false;
+    QTest::newRow("existing-static-native") << 1 << false;
+    QTest::newRow("existing-png") << 2 << false;
+    QTest::newRow("new-u16-document") << 0 << true;
+    QTest::newRow("existing-u16-native") << 1 << true;
 }
 
 void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
 {
     QFETCH(int, sourceFormat);
+    QFETCH(bool, sixteenBits);
+    const auto cs = sixteenBits ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const quint16 foregroundComponents[]{1, 257, 65534, 65535};
+    const QByteArray paintedPixel = sixteenBits
+        ? QByteArray(reinterpret_cast<const char *>(foregroundComponents), sizeof(foregroundComponents))
+        : QByteArray::fromHex("0000ffff");
+    const KoColor foreground(reinterpret_cast<const quint8 *>(paintedPixel.constData()), cs);
+    QByteArray hiddenPixel = paintedPixel;
+    hiddenPixel[hiddenPixel.size() - 1] = 0;
+    if (sixteenBits) hiddenPixel[hiddenPixel.size() - 2] = 0;
     const bool existingStaticDocument = sourceFormat == 1;
     const bool existingPng = sourceFormat == 2;
     const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
@@ -99,7 +114,8 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path()) +
-        (existingStaticDocument ? QStringLiteral("/existing-static") : existingPng ? QStringLiteral("/existing-png") : QString());
+        (sixteenBits ? QLatin1Char('/') + QString::fromLatin1(QTest::currentDataTag()) :
+         existingStaticDocument ? QStringLiteral("/existing-static") : existingPng ? QStringLiteral("/existing-png") : QString());
     QVERIFY(QDir().mkpath(destination));
     const auto retainFailure = qScopeGuard([&] {
         if (QTest::currentTestFailed()) { directory.setAutoRemove(false); qInfo() << "Ordinary GPU session artifacts at" << destination; }
@@ -132,7 +148,6 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
         qputenv("LIBREPAINT_GPU_ENGINE", "0");
         std::unique_ptr<KisDocument> source(KisPart::instance()->createDocument());
         source->setFileBatchMode(true);
-        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
         QVERIFY(source->newImage(QStringLiteral("Ordinary GPU session"), 64, 64, cs, KoColor(QColor(255, 255, 255, 0), cs),
                                  KisConfig::CANVAS_COLOR, 2, {}, 1));
         int identity = 1;
@@ -170,7 +185,7 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
             const auto dismiss = qScopeGuard([&] { pane->reject(); });
             auto *widget = pane->findChild<QWidget *>(QStringLiteral("KisCustomImageWidget"));
             QVERIFY(widget);
-            configureNewDocument(widget);
+            configureNewDocument(widget, sixteenBits);
             created = QMetaObject::invokeMethod(widget, "createImage", Qt::DirectConnection);
         });
         window->slotFileNew();
@@ -181,6 +196,7 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     auto image = KisImageSP(document->image());
     QVERIFY(image->gpuImage());
     QCOMPARE(image->size(), QSize(64, 64));
+    QCOMPARE(image->colorSpace(), cs);
     QCOMPARE(image->root()->childCount(), existingPng ? 1U : 2U);
     if (existingStaticDocument) {
         QCOMPARE(image->animationInterface()->framerate(), 30);
@@ -189,17 +205,27 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     QTRY_VERIFY(window->viewManager()->activeNode());
     QVERIFY(!window->viewManager()->activeNode()->userLocked());
     Document api(document, false);
+    if (sixteenBits) {
+        QScopedPointer<Node> target(Node::createNode(image, image->root()->lastChild()));
+        QVERIFY(target->setPixelData(hiddenPixel, 2, 2, 1, 1));
+        QCOMPARE(target->pixelData(2, 2, 1, 1), hiddenPixel);
+    }
+    const int initialHistory = document->undoStack()->count();
     const auto initialPixels = api.pixelData(0, 0, 64, 64);
     QVERIFY(savePixels(QStringLiteral("initial"), initialPixels));
-    QCOMPARE(initialPixels, QByteArray::fromHex("ffffff00").repeated(64 * 64));
-    const auto paint = [&](KisDocument *current, QPointF from, QPointF to) {
+    const quint16 backgroundComponents[]{65535, 65535, 65535, 0};
+    const auto backgroundPixel = sixteenBits
+        ? QByteArray(reinterpret_cast<const char *>(backgroundComponents), sizeof(backgroundComponents))
+        : QByteArray::fromHex("ffffff00");
+    QCOMPARE(initialPixels, backgroundPixel.repeated(64 * 64));
+    const auto paint = [&](KisDocument *current, QPointF from, QPointF to, bool erase = false) {
         auto preset = KisPaintOpRegistry::instance()->defaultPreset(KoID("roundmarker"), KisGlobalResourcesInterface::instance());
         auto *resources = window->viewManager()->canvasResourceProvider();
         resources->setPaintOpPreset(preset);
         resources->setSize(8);
         resources->setOpacity(1);
-        resources->setFGColor(KoColor(Qt::red, KoColorSpaceRegistry::instance()->rgb8()));
-        resources->setEraserMode(false);
+        resources->setFGColor(foreground);
+        resources->setEraserMode(erase);
         resources->setCurrentCompositeOp(QStringLiteral("normal"));
         resources->setGlobalAlphaLock(false);
         resources->setMirrorHorizontal(false);
@@ -230,15 +256,15 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
         tool->endPrimaryAction(&end);
         current->image()->waitForDone();
         QScopedPointer<Node> target(Node::createNode(current->image(), view->currentNode()));
-        QCOMPARE(target->pixelData(int(midpoint.x()), int(midpoint.y()), 1, 1), QByteArray::fromHex("0000ffff"));
+        QCOMPARE(target->pixelData(int(midpoint.x()), int(midpoint.y()), 1, 1), erase ? hiddenPixel : paintedPixel);
         if (!existingPng) {
             QScopedPointer<Node> background(Node::createNode(current->image(), current->image()->root()->firstChild()));
-            QCOMPARE(background->pixelData(int(midpoint.x()), int(midpoint.y()), 1, 1), QByteArray(4, '\0'));
+            QCOMPARE(background->pixelData(int(midpoint.x()), int(midpoint.y()), 1, 1), QByteArray(cs->pixelSize(), '\0'));
         }
     };
     paint(document, {12, 16}, {52, 16});
-    QCOMPARE(api.pixelData(32, 16, 1, 1), QByteArray::fromHex("0000ffff"));
-    QCOMPARE(document->undoStack()->count(), 1);
+    QCOMPARE(api.pixelData(32, 16, 1, 1), paintedPixel);
+    QCOMPARE(document->undoStack()->count(), initialHistory + 1);
     const auto pixels = api.pixelData(0, 0, 64, 64);
     QVERIFY(savePixels(QStringLiteral("painted"), pixels));
     document->undoStack()->undo();
@@ -247,8 +273,23 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     document->undoStack()->redo();
     image->waitForDone();
     QCOMPARE(api.pixelData(0, 0, 64, 64), pixels);
+    if (sixteenBits) {
+        paint(document, {12, 16}, {52, 16}, true);
+        QCOMPARE(document->undoStack()->count(), initialHistory + 2);
+        const auto erased = api.pixelData(0, 0, 64, 64);
+        QVERIFY(erased != pixels);
+        document->undoStack()->undo();
+        image->waitForDone();
+        QCOMPARE(api.pixelData(0, 0, 64, 64), pixels);
+        document->undoStack()->redo();
+        image->waitForDone();
+        QCOMPARE(api.pixelData(0, 0, 64, 64), erased);
+        document->undoStack()->undo();
+        image->waitForDone();
+        QCOMPARE(api.pixelData(0, 0, 64, 64), pixels);
+    }
     KisPropertiesConfigurationSP nativeSettings;
-    if (existingPng) {
+    if (existingPng || sixteenBits) {
         QDomDocument fixedInfo;
         QVERIFY(fixedInfo.setContent(QByteArrayLiteral("<document-info><about><title>Ordinary PNG session</title>"
             "<creation-date>2000-01-02T03:04:05Z</creation-date><date>2001-02-03T04:05:06Z</date>"
@@ -260,7 +301,7 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
         nativeSettings = new KisPropertiesConfiguration;
         nativeSettings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
     }
-    const auto path = existingPng ? QDir(destination).filePath(QStringLiteral("ordinary-session.kra")) :
+    const auto path = (existingPng || sixteenBits) ? QDir(destination).filePath(QStringLiteral("ordinary-session.kra")) :
                                     directory.filePath(QStringLiteral("ordinary-session.kra"));
     QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false, nativeSettings), qPrintable(document->errorMessage()));
     document->waitForSavingToComplete();
@@ -270,18 +311,23 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     document = window->viewManager()->document();
     QVERIFY(document);
     QVERIFY(document->image()->gpuImage());
+    QCOMPARE(document->image()->colorSpace(), cs);
     if (existingStaticDocument) {
         QCOMPARE(document->image()->animationInterface()->framerate(), 30);
         QCOMPARE(document->image()->animationInterface()->currentUITime(), 17);
     }
     Document reopened(document, false);
     QCOMPARE(reopened.pixelData(0, 0, 64, 64), pixels);
+    if (sixteenBits) {
+        QScopedPointer<Node> target(Node::createNode(document->image(), document->image()->root()->lastChild()));
+        QCOMPARE(target->pixelData(2, 2, 1, 1), hiddenPixel);
+    }
     paint(document, {12, 40}, {52, 40});
     QVERIFY(savePixels(QStringLiteral("reopened-painted"), reopened.pixelData(0, 0, 64, 64)));
-    QCOMPARE(reopened.pixelData(32, 40, 1, 1), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(reopened.pixelData(32, 40, 1, 1), paintedPixel);
     QCOMPARE(document->undoStack()->count(), 1);
     QVERIFY(document->isModified());
-    if (existingPng) {
+    if (existingPng || sixteenBits) {
         document->setColorHistoryColors({});
         QVERIFY2(document->saveAs(QDir(destination).filePath(QStringLiteral("reopened-edited.kra")),
                                   KisDocument::nativeFormatMimeType(), false, nativeSettings), qPrintable(document->errorMessage()));
@@ -307,6 +353,22 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
         QVERIFY2(reopened.exportImage(QDir(destination).filePath(QStringLiteral("reopened-edited.png")), outputSettings),
                  qPrintable(document->errorMessage()));
         QVERIFY(exportDialogVisited);
+        if (sixteenBits) {
+            QFile png(QDir(destination).filePath(QStringLiteral("reopened-edited.png")));
+            QVERIFY(png.open(QIODevice::ReadOnly));
+            const auto header = png.read(26);
+            QCOMPARE(header.size(), 26);
+            QCOMPARE(quint8(header[24]), quint8(16));
+            const auto decoded = QImage(png.fileName()).convertToFormat(QImage::Format_RGBA64);
+            QCOMPARE(decoded.size(), QSize(64, 64));
+            const auto expected = reopened.pixelData(0, 0, 64, 64);
+            for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x) {
+                quint16 bgra[4];
+                std::memcpy(bgra, expected.constData() + (y * 64 + x) * 8, sizeof(bgra));
+                const auto actual = reinterpret_cast<const QRgba64 *>(decoded.constScanLine(y))[x];
+                QCOMPARE(actual, QRgba64::fromRgba64(bgra[2], bgra[1], bgra[0], bgra[3]));
+            }
+        }
     }
 
 }
