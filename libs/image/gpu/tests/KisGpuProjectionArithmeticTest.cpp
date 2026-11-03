@@ -230,7 +230,8 @@ fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     constexpr quint32 count = 256 * 256;
     constexpr quint64 bytes = count * sizeof(quint32);
     auto output = createBuffer(device->nativeDevice(), bytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc);
-    auto parameters = createBuffer(device->nativeDevice(), 32, WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+    std::array<quint32, 12> values{};
+    auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
     QVERIFY(output && parameters);
     WGPUBindGroupEntry entries[2]{};
     entries[0].binding = 2;
@@ -238,7 +239,7 @@ fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     entries[0].size = bytes;
     entries[1].binding = 3;
     entries[1].buffer = parameters.get();
-    entries[1].size = 32;
+    entries[1].size = sizeof(values);
     WGPUBindGroupDescriptor bindingsDescriptor{};
     bindingsDescriptor.layout = layout.get();
     bindingsDescriptor.entryCount = 2;
@@ -272,8 +273,8 @@ fn colorContract(@builtin(global_invocation_id) invocation: vec3<u32>) {
     for (float blend : {0.0f, 1.0f, 1e-15f, std::numeric_limits<float>::min(),
                         std::numeric_limits<float>::denorm_min()}) blends.insert(floatBits(blend));
     for (quint32 blendBits : blends) {
-        const quint32 values[8] = {blendBits, 0, 0, 0, 0, 0, 0, 0};
-        wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
+        values[0] = blendBits;
+        wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values.data(), sizeof(values));
         const auto commands = device->beginCommands();
         QVERIFY(commands);
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);

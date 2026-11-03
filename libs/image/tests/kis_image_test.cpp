@@ -229,7 +229,7 @@ void KisImageTest::testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranch
 void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresentedState_data()
 {
     QTest::addColumn<int>("property");
-    QTest::newRow("unsupported-blend") << 0;
+    QTest::newRow("unknown-blend") << 0;
     QTest::newRow("multiply-blend") << 1;
     QTest::newRow("screen-blend") << 8;
     QTest::newRow("darken-blend") << 9;
@@ -259,7 +259,7 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     auto pixels = layer->paintDevice();
     const auto bytes = QByteArray::fromHex("112233ff");
     pixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 5, 7, 1, 1);
-    if (property == 0) layer->setCompositeOpId(COMPOSITE_SOFT_LIGHT_PHOTOSHOP);
+    if (property == 0) layer->setCompositeOpId(QStringLiteral("unknown-composite-operation"));
     if (property == 1) layer->setCompositeOpId(COMPOSITE_MULT);
     if (property == 8) layer->setCompositeOpId(COMPOSITE_SCREEN);
     if (property == 9) layer->setCompositeOpId(COMPOSITE_DARKEN);
@@ -322,7 +322,7 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     QCOMPARE(image->root()->childCount(), 1U);
     QCOMPARE(layer->paintDevice(), pixels);
     QVERIFY(!layer->parent());
-    if (property == 0) QCOMPARE(layer->compositeOpId(), QString(COMPOSITE_SOFT_LIGHT_PHOTOSHOP));
+    if (property == 0) QCOMPARE(layer->compositeOpId(), QStringLiteral("unknown-composite-operation"));
     if (property == 2) QVERIFY(layer->isAnimated());
     if (property == 3) QVERIFY(layer->layerStyle()->dropShadow()->effectEnabled());
     QCOMPARE(layer->channelFlags(), channels);

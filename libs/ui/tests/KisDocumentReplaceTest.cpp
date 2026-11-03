@@ -331,26 +331,45 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit_data()
 {
     QTest::addColumn<bool>("joinTimer");
     QTest::addColumn<bool>("pause");
-    QTest::newRow("edit-during-recovery-completion") << false << false;
-    QTest::newRow("join-timer-and-edit") << true << false;
-    QTest::newRow("pause-during-recovery") << false << true;
-    QTest::newRow("pause-during-timer") << true << true;
+    QTest::addColumn<bool>("sixteenBits");
+    for (const bool sixteenBits : {false, true}) {
+        const QByteArray prefix = sixteenBits ? QByteArrayLiteral("u16-") : QByteArray();
+        QTest::addRow("%sedit-during-recovery-completion", prefix.constData()) << false << false << sixteenBits;
+        QTest::addRow("%sjoin-timer-and-edit", prefix.constData()) << true << false << sixteenBits;
+        QTest::addRow("%spause-during-recovery", prefix.constData()) << false << true << sixteenBits;
+        QTest::addRow("%spause-during-timer", prefix.constData()) << true << true << sixteenBits;
+    }
 }
 
 void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
 {
     QFETCH(bool, joinTimer);
     QFETCH(bool, pause);
+    QFETCH(bool, sixteenBits);
     namespace Gpu = LibrePaint::Image::Gpu;
     namespace Kra = LibrePaint::ImportExport::Kra;
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
     Gpu::Execution execution(device, 128 * 1024 * 1024, 2);
-    const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    const auto format = sixteenBits ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    const int pixelSize = Gpu::pixelByteCount(format);
+    const auto beforePixels = sixteenBits
+        ? Gpu::rgbaBytes({1, 257, 65534, 65535}, format) + Gpu::rgbaBytes({65534, 1, 257, 0}, format)
+        : QByteArray::fromHex("112233ff12345600");
+    const auto afterPixels = sixteenBits
+        ? Gpu::rgbaBytes({65534, 32767, 256, 65535}, format) + Gpu::rgbaBytes({257, 32768, 1, 0}, format)
+        : QByteArray::fromHex("445566ff65432100");
+    const QRect editedPixels(5, 5, 2, 1);
+    Gpu::RasterImage raster;
+    raster.size = {32, 16};
+    raster.format = format;
+    raster.layers = {{QStringLiteral("Recovered paint"), true, {}, {}}};
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     document->setAutoSaveActive(false);
-    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Latest recovery")));
+    const auto colorSpace = sixteenBits ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Latest recovery"), colorSpace));
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto path = directory.filePath(QStringLiteral("original.kra"));
@@ -364,7 +383,7 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
     document->setColorHistoryColors({KoColor(QColor(Qt::red), KoColorSpaceRegistry::instance()->rgb8())});
     document->setAssistantsGlobalColor(QColor(17, 63, 129, 201));
     const auto layer = owner->operations().activeLayer();
-    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    QCOMPARE(owner->replaceRgbaPixels(layer, editedPixels, beforePixels), Gpu::Result::Success);
     const auto checkpointPath = Krita::Document::KisDocumentAutoSaveFiles::filePath(
         path, document->objectName(), KisConfig(true).readEntry<bool>("autosavefileshidden"));
     int messages = 0;
@@ -379,8 +398,9 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
         QCOMPARE(metadata.code, Kra::Status::Success);
         QVERIFY(metadata.metadata.documentInfo.contains("Before request"));
         verifySavedRgbColorSettings(metadata.metadata, QColor(Qt::red), QColor(17, 63, 129, 201));
-        QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),
-                 QByteArray::fromHex("112233ff"));
+        QCOMPARE(loaded.document.image.format, format);
+        QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * pixelSize, beforePixels.size()),
+                 beforePixels);
         firstCheckpointInspected = true;
     });
     QSignalSpy finished(document.data(), &KisDocument::sigRecoveryAutoSaveFinished);
@@ -391,7 +411,7 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
                                                             KisDocument::RecoveryAutoSaveStartResult::Started);
     QVERIFY(finished.isEmpty());
     QVERIFY(!QFileInfo::exists(checkpointPath));
-    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+    QCOMPARE(owner->replaceRgbaPixels(layer, editedPixels, afterPixels), Gpu::Result::Success);
     document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("After request"));
     document->setColorHistoryColors({KoColor(QColor(Qt::green), KoColorSpaceRegistry::instance()->rgb8())});
     document->setAssistantsGlobalColor(QColor(67, 23, 149, 101));
@@ -402,8 +422,8 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
         QVERIFY(checkpoint.open(QIODevice::ReadOnly));
         const auto loaded = Kra::RasterCodec::read(checkpoint);
         QCOMPARE(loaded.code, Kra::Status::Success);
-        QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),
-                 QByteArray::fromHex("445566ff"));
+        QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * pixelSize, afterPixels.size()),
+                 afterPixels);
     }
     QTRY_COMPARE(finished.size(), 1);
     QVERIFY(firstCheckpointInspected);
@@ -412,13 +432,14 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
     QVERIFY(checkpoint.open(QIODevice::ReadOnly));
     const auto loaded = Kra::RasterCodec::read(checkpoint);
     QCOMPARE(loaded.code, Kra::Status::Success);
+    QCOMPARE(loaded.document.image.format, format);
     const auto metadata = Kra::RasterCodec::readImageMetadata(loaded.document.description, loaded.document.files);
     QCOMPARE(metadata.code, Kra::Status::Success);
     QVERIFY(metadata.metadata.documentInfo.contains("After request"));
     verifySavedRgbColorSettings(metadata.metadata, QColor(Qt::green), QColor(67, 23, 149, 101));
     const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
-    QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), QRect(5, 5, 1, 1), 4).bytes,
-             QByteArray::fromHex("445566ff"));
+    QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), editedPixels, afterPixels.size()).bytes,
+             afterPixels);
     QCOMPARE(document->requestRecoveryAutoSave(), KisDocument::RecoveryAutoSaveStartResult::NoChanges);
     QCOMPARE(owner->operations().undoCount(), 2);
     QVERIFY(document->isModified());
