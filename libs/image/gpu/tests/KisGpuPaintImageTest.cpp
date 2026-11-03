@@ -1306,8 +1306,8 @@ void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory()
         QCOMPARE(image.readRgbaPixels(layer, sourceRect, pixels.size()).bytes, pixels);
     }
     for (int i : {0, 1}) {
-        QCOMPARE(preview->layers[i].transparencyMask->coverage(26, 2), quint8(128));
-        QCOMPARE(preview->layers[i].transparencyMask->coverage(12, 9), quint8(0));
+        QCOMPARE(execution.readSelectionPixels(preview->layers[i].transparencyMask, {26, 2, 1, 1}, 1).bytes, QByteArray(1, char(128)));
+        QCOMPARE(execution.readSelectionPixels(preview->layers[i].transparencyMask, {12, 9, 1, 1}, 1).bytes, QByteArray(1, char(0)));
     }
     QCOMPARE(image.cancelLayerTranslation(token), Result::Success);
     QCOMPARE(image.operations().snapshot(), before);
@@ -1333,7 +1333,7 @@ void KisGpuPaintImageTest::layerForestTranslationKeepsPixelsMasksAndOneHistory()
     QCOMPARE(image.redo(), Result::Success);
     QCOMPARE(image.operations().snapshot()->layers[1].position, child.position + delta);
     QCOMPARE(image.operations().snapshot()->layers[2].position, top.position + delta);
-    QCOMPARE(image.operations().snapshot()->layers[1].transparencyMask->coverage(26, 2), quint8(128));
+    QCOMPARE(execution.readSelectionPixels(image.operations().snapshot()->layers[1].transparencyMask, {26, 2, 1, 1}, 1).bytes, QByteArray(1, char(128)));
     QCOMPARE(before->layers[1].position, child.position);
     for (int i : {0, 1}) QCOMPARE(before->layers[i].transparencyMask, mask);
     const auto groupBefore = image.operations().snapshot();

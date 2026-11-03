@@ -526,7 +526,8 @@ ExecutionOutcome Execution::transformedMaskCoverage(const SelectionMaskSP &mask,
     auto operation = QSharedPointer<SelectionMaskTransformSource>::create();
     operation->source = mask; operation->selection = selection; operation->inverted = inverted;
     operation->copyRect = copyRect; operation->output = output;
-    operation->storageOrigin = {devicePosition.x() % 64, devicePosition.y() % 64};
+    const auto storagePosition = mask->allocatedBlocks().isEmpty() ? devicePosition : mask->allocatedBlocks().first().topLeft();
+    operation->storageOrigin = {storagePosition.x() % 64, storagePosition.y() % 64};
     operation->plan = QSharedPointer<AffinePlan>::create(plan);
     const auto rollback = qScopeGuard([&] { if (d.active) cancelFrame(); });
     if (!selection) {
