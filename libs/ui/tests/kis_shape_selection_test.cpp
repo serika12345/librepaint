@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisPaintingEngineTestScope.h>
 #include "kis_shape_selection_test.h"
 #include <simpletest.h>
 
@@ -28,6 +29,7 @@
 
 void KisShapeSelectionTest::testAddChild()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     const KoColorSpace * cs = KoColorSpaceRegistry::instance()->rgb8();
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     QColor qc(Qt::white);
@@ -89,6 +91,7 @@ KoPathShape *createRectangularShape(const QRectF &rect)
 
 void KisShapeSelectionTest::testUndoFlattening()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     const KoColorSpace * cs = KoColorSpaceRegistry::instance()->rgb8();
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     KoColor bgColor(QColor(255, 255, 255, 0), cs);
@@ -198,6 +201,7 @@ void KisShapeSelectionTest::testUndoFlattening()
 
 void KisShapeSelectionTest::testHistoryOnFlattening()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     const KoColorSpace * cs = KoColorSpaceRegistry::instance()->rgb8();
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     KoColor bgColor(QColor(255, 255, 255, 0), cs);

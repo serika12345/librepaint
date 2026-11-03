@@ -2,6 +2,7 @@
  * SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
+#include <KisPaintingEngineTestScope.h>
 #include <QApplication>
 #include <QDockWidget>
 #include <QDir>
@@ -166,6 +167,7 @@ private:
 
 void KisMoveToolDocumentTest::movementPreservesPreviewCancellationHistoryAndSaving()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(bool, cancel);
     QFETCH(QString, input);

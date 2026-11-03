@@ -37,12 +37,9 @@ KisImportExportErrorCode KisJPEGImport::convert(KisDocument *document, QIODevice
     KisJPEGConverter ib(document, batchMode());
     QPointer<KisDocument> guard(document);
     KisImportExportErrorCode result;
-    if (KisPart::instance()->gpuEngineEnabled()) {
+    if (const auto execution = KisPart::instance()->gpuSessionExecution()) {
         result = ib.prepareGpuImage(io);
         if (!result.isOk() || !guard) return result;
-        QString diagnostic;
-        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
-        if (!execution) return KisImportExportErrorCode(diagnostic);
         result = ib.buildGpuImage(execution);
     } else result = ib.buildImage(io);
     if (result.isOk() && guard) {

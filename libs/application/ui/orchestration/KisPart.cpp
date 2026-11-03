@@ -142,7 +142,18 @@ std::shared_ptr<LibrePaint::Image::Gpu::Execution> KisPart::gpuExecution(QString
 
 bool KisPart::gpuEngineEnabled() const
 {
-    return qgetenv("LIBREPAINT_GPU_ENGINE") == "1";
+    return qgetenv("LIBREPAINT_GPU_ENGINE") != "0";
+}
+
+std::shared_ptr<LibrePaint::Image::Gpu::Execution> KisPart::gpuSessionExecution()
+{
+    if (!gpuEngineEnabled()) return {};
+    QString diagnostic;
+    auto execution = gpuExecution(diagnostic);
+    if (!execution) {
+        warnKrita.noquote() << i18n("GPU engine initialization failed. Using the CPU painting engine: %1", diagnostic);
+    }
+    return execution;
 }
 
 KisPart::KisPart()

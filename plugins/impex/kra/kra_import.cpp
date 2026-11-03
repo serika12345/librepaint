@@ -30,7 +30,7 @@ KraImport::~KraImport()
 
 KisImportExportErrorCode KraImport::convert(KisDocument *document, QIODevice *io,  KisPropertiesConfigurationSP /*configuration*/)
 {
-    if (KisPart::instance()->gpuEngineEnabled()) return document->importGpuKra(*io);
+    if (const auto execution = KisPart::instance()->gpuSessionExecution()) return document->importGpuKra(*io);
     KraConverter kraConverter(document);
     KisImportExportErrorCode result = kraConverter.buildImage(io);
     if (result.isOk()) {

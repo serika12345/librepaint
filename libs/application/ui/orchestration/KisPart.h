@@ -91,7 +91,9 @@ public:
     KisDocument *createTemporaryDocument() const;
     /** Reuses the GUI-thread execution of open GPU images; failure supplies a diagnostic. */
     std::shared_ptr<LibrePaint::Image::Gpu::Execution> gpuExecution(QString &diagnostic);
-    /** Temporary ordinary-session activation; removed after #89's feature and platform acceptance. */
+    /** Selects the ordinary document execution, logging initialization failure before CPU fallback. */
+    std::shared_ptr<LibrePaint::Image::Gpu::Execution> gpuSessionExecution();
+    /** GPU is the default; LIBREPAINT_GPU_ENGINE=0 temporarily selects the CPU engine. */
     bool gpuEngineEnabled() const;
 
     /**

@@ -2,6 +2,7 @@
  * SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
+#include <KisPaintingEngineTestScope.h>
 #include <array>
 #include "KisGpuMultibrushEditingTest.h"
 #include "KisGpuRegionFillEditingTest.h"
@@ -567,6 +568,7 @@ void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving_data
 
 void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(QString, scenario);
     QFETCH(QByteArray, blank);
@@ -810,6 +812,7 @@ void KisGpuDocumentViewTest::clearActionPreservesSelectedLayersAndHistory_data()
 
 void KisGpuDocumentViewTest::clearActionPreservesSelectedLayersAndHistory()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(bool, multiple);
     QFETCH(bool, locked);
@@ -1016,6 +1019,7 @@ void KisGpuDocumentViewTest::lineToolPreservesPreviewCancellationAndHistory_data
 
 void KisGpuDocumentViewTest::lineToolPreservesPreviewCancellationAndHistory()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(bool, reject);
     QFETCH(bool, closeAfterError);
@@ -1261,6 +1265,7 @@ void KisGpuDocumentViewTest::layerPanelReordersSelectionWithOneHistoryEntry_data
 
 void KisGpuDocumentViewTest::layerPanelReordersSelectionWithOneHistoryEntry()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(bool, raise);
     QFETCH(int, selection);
@@ -1864,6 +1869,7 @@ void KisGpuDocumentViewTest::layerPanelDuplicationPreservesPixelsSelectionAndOne
 
 void KisGpuDocumentViewTest::layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(bool, rename);
     QFETCH(bool, closeAfterChange);
@@ -2002,6 +2008,7 @@ void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHist
 
 void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(int, selection);
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -2117,6 +2124,7 @@ void KisGpuDocumentViewTest::layerPanelAddsAtSelectionWithOneHistoryEntry_data()
 
 void KisGpuDocumentViewTest::layerPanelAddsAtSelectionWithOneHistoryEntry()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(bool, pinned);
     const bool previousPin = KisConfig(true).autoPinLayersToTimeline();
@@ -2205,6 +2213,7 @@ void KisGpuDocumentViewTest::layerPanelSelectionPreservesAnUnselectedActiveLayer
 
 void KisGpuDocumentViewTest::layerPanelSelectionPreservesAnUnselectedActiveLayer()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(bool, multiple);
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -2283,6 +2292,7 @@ void KisGpuDocumentViewTest::layerSelectionCanCloseTheWindowDuringNotification_d
 
 void KisGpuDocumentViewTest::layerSelectionCanCloseTheWindowDuringNotification()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     namespace Gpu = LibrePaint::Image::Gpu;
     std::shared_ptr<Gpu::Execution> execution;
@@ -2442,6 +2452,7 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory_data()
 
 void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(bool, locked);
     QFETCH(bool, alphaLocked);
@@ -7221,6 +7232,7 @@ void KisGpuDocumentViewTest::copySelectionToNewLayerUsesGpuPixels()
 
 void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QSettings displaySettings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) +
                               QStringLiteral("/kritadisplayrc"), QSettings::IniFormat);
     const bool hadRenderer = displaySettings.contains(QStringLiteral("OpenGLRenderer"));
@@ -8294,6 +8306,7 @@ void KisGpuDocumentViewTest::paintingBackendChangesRebindTheCanvas_data()
 
 void KisGpuDocumentViewTest::paintingBackendChangesRebindTheCanvas()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, initialGpu);
     QFETCH(bool, replacementGpu);
     namespace Gpu = LibrePaint::Image::Gpu;

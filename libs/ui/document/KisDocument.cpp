@@ -3328,7 +3328,8 @@ bool KisDocument::newImage(const QString& name,
 
     KisCursorOverrideLock cursorLock(Qt::BusyCursor);
 
-    const bool gpuSession = KisPart::instance()->gpuEngineEnabled();
+    const auto execution = KisPart::instance()->gpuSessionExecution();
+    const bool gpuSession = bool(execution);
     if (gpuSession) {
         namespace Gpu = LibrePaint::Image::Gpu;
         const QColorSpace gpuEncoding = cs->profile()
@@ -3349,9 +3350,6 @@ bool KisDocument::newImage(const QString& name,
             setErrorMessage(i18n("Image resolution must be positive and finite."));
             return false;
         }
-        QString diagnostic;
-        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
-        if (!execution) { setErrorMessage(diagnostic); return false; }
         Gpu::RasterImage raster;
         raster.size = {width, height};
         raster.colorProfile = cs->profile()->rawData();

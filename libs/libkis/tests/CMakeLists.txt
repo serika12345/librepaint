@@ -27,6 +27,21 @@ add_dependencies(TestNode kritatoolcrop)
 add_dependencies(TestNode kritalayerdocker kritacolorsfilters)
 target_link_libraries(TestDocument kritaimpexkra kritadocumentpainting)
 
+kis_add_test(TestGpuEngineDefault.cpp
+    TEST_NAME_VAR gpu_engine_default_test
+    TEST_ARGS engineSelection ordinaryDocumentsUseSelectedEngine
+    LINK_LIBRARIES kritalibkis kritatestsdk)
+add_dependencies(TestGpuEngineDefault kritalcmsengine
+    kritakraimport kritakraexport kritapngimport kritapngexport kritajpegimport kritajpegexport)
+set_tests_properties(${gpu_engine_default_test} PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_test(NAME libs-libkis-no-adapter-TestGpuEngineDefault
+        COMMAND TestGpuEngineDefault ordinaryDocumentsUseSelectedEngine)
+    set_tests_properties(libs-libkis-no-adapter-TestGpuEngineDefault PROPERTIES
+        TIMEOUT 120 RUN_SERIAL TRUE
+        ENVIRONMENT "LIBREPAINT_TEST_GPU_UNAVAILABLE=1;VK_DRIVER_FILES=/nonexistent/librepaint-vulkan-driver.json;VK_ICD_FILENAMES=/nonexistent/librepaint-vulkan-driver.json")
+endif()
+
 qt6_add_resources(public_node_window_resources
     ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc

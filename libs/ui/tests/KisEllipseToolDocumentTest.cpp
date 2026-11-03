@@ -2,6 +2,7 @@
  * SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
+#include <KisPaintingEngineTestScope.h>
 #include <QApplication>
 #include <QComboBox>
 #include <QDockWidget>
@@ -679,6 +680,7 @@ void KisEllipseToolDocumentTest::selectedSolidFillsKeepOrdinaryEditing()
 void KisEllipseToolDocumentTest::exerciseFigure(KisPaintOpPresetSP preset, bool gpuForPreset, QByteArray *firstPixels,
                                               qreal opacity, bool words, QHash<QString, QByteArray> *nativeStates)
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     const bool selectedPresetFill = bool(preset);
     if (selectedPresetFill) gpu = gpuForPreset;

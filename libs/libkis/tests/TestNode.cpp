@@ -2,6 +2,7 @@
 
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
+#include <KisPaintingEngineTestScope.h>
 #include "TestNode.h"
 #include <kis_mimedata.h>
 #include <simpletest.h>
@@ -283,6 +284,7 @@ void TestNode::testLayerCropPreservesPublicPixelsAndHistory_data()
 void TestNode::testLayerCropPreservesPublicPixelsAndHistory()
 try
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(QRect, crop);
     QFETCH(QByteArray, defaultBgra);
@@ -588,6 +590,7 @@ void TestNode::testLayerCropCanReleaseItsPublicCallerDuringNotification()
 void TestNode::testLayerCropToolPreservesConfirmationResumptionAndCancellation()
 try
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(QString, mode);
     QFETCH(int, cropType);
@@ -831,6 +834,7 @@ void TestNode::testImportedLayerPositionSurvivesPublicCopiesAndSaving_data()
 
 void TestNode::testImportedLayerPositionSurvivesPublicCopiesAndSaving()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     // A scripting consumer must retain the device position independently of
     // the image-coordinate pixels when opening and resaving a moved layer.
     QFETCH(QPoint, position);
@@ -2318,6 +2322,7 @@ void TestNode::testHistoryNavigationWaitsForImageJobs_data()
 
 void TestNode::testHistoryNavigationWaitsForImageJobs()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(QString, navigation);
     QFETCH(bool, active);
     QFETCH(bool, cloned);
@@ -2397,6 +2402,7 @@ void TestNode::testDeferredHistoryRequestsPreserveOrderAndLifetime_data()
 
 void TestNode::testDeferredHistoryRequestsPreserveOrderAndLifetime()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(QString, operation);
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
@@ -2490,6 +2496,7 @@ void TestNode::testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory_dat
 
 void TestNode::testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     namespace Gpu = LibrePaint::Image::Gpu;
     std::shared_ptr<Gpu::Execution> execution;
@@ -2647,6 +2654,7 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
 
 void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, gpu);
     QFETCH(QString, figure);
     QFETCH(QString, strokeStyle);

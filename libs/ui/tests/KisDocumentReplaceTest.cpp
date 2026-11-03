@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisPaintingEngineTestScope.h>
 #include "KisDocumentReplaceTest.h"
 
 #include <document/KisDocument.h>
@@ -92,6 +93,7 @@ void verifySavedRgbColorSettings(const LibrePaint::ImportExport::Kra::ImageMetad
 
 void KisDocumentReplaceTest::init()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     m_doc = KisPart::instance()->createDocument();
     qDebug() << m_doc->newImage("test", 512, 512, KoColorSpaceRegistry::instance()->colorSpace("RGBA", "U8", 0), KoColor(), KisConfig::RASTER_LAYER, 1, "", 96);
 }
@@ -104,6 +106,7 @@ void KisDocumentReplaceTest::finalize()
 
 void KisDocumentReplaceTest::testCopyFromDocument()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     init();
     QScopedPointer<KisDocument> clonedDoc(m_doc->lockAndCreateSnapshot());
     KisDocument *anotherDoc = KisPart::instance()->createDocument();
@@ -697,6 +700,7 @@ void KisDocumentReplaceTest::testQueuedHistoryNotificationsUseCurrentState_data(
 
 void KisDocumentReplaceTest::testQueuedHistoryNotificationsUseCurrentState()
 {
+    const TestUtil::PaintingEngineScope cpuReference(false);
     QFETCH(bool, deliveredClean);
     QFETCH(bool, untrackedEdit);
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
