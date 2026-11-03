@@ -13,12 +13,24 @@
 
 using namespace LibrePaint::Image::Gpu;
 
+namespace LibrePaint::Image::Gpu::Detail {
+struct DeviceTestAccess
+{
+    static void notifyLoss(Device &device)
+    {
+        static constexpr char message[] = "Injected native device loss";
+        Device::recordDeviceLoss(device.m_d.get(), WGPUDeviceLostReason_Destroyed, {message, sizeof(message) - 1});
+    }
+};
+}
+
 class KisGpuExecutionTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
     void nativeValidationErrorsReportAnErrorAndReleaseTheOwner();
+    void notifiedLossStopsGpuWorkAndReleasesTheOwner();
     void abandonedReadbackResultsRemainValidThroughNativeCleanup();
 
     void latestRequestsRetainInputAndPublishAfterSubmission();
@@ -63,6 +75,35 @@ void KisGpuExecutionTest::nativeValidationErrorsReportAnErrorAndReleaseTheOwner(
     QVERIFY(!device->isLost());
     QVERIFY(!device->beginCommands());
     buffer.reset();
+    device.reset();
+    QVERIFY(lifetime.expired());
+}
+
+void KisGpuExecutionTest::notifiedLossStopsGpuWorkAndReleasesTheOwner()
+{
+    QString diagnostic;
+    auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    const std::weak_ptr<Device> lifetime = device;
+    {
+        Execution execution(device);
+        OperationDocument document({64, 64});
+        dot(document, {12, 12});
+        const auto admitted = execution.open(document.snapshot());
+        QCOMPARE(admitted.code, ExecutionCode::Success);
+        QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+        QCOMPARE(execution.project(admitted.handle, {0, 0, 64, 64}).code, RenderOutcome::Recorded);
+        QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+        // #106: a native loss notification must stop later GPU calls and cleanup waits.
+        QVERIFY(device->finish());
+        Detail::DeviceTestAccess::notifyLoss(*device);
+        QVERIFY(device->isLost());
+        QVERIFY(!device->diagnostic().isEmpty());
+        QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::DeviceFailure);
+        QVERIFY(!device->beginCommands());
+        QVERIFY(!device->finish());
+        QCOMPARE(execution.close(admitted.handle).code, ExecutionCode::Success);
+    }
     device.reset();
     QVERIFY(lifetime.expired());
 }

@@ -98,6 +98,15 @@ struct Device::Private
     }
 };
 
+void Device::recordDeviceLoss(Private *data, quint32 reason, WGPUStringView message) noexcept
+{
+    // wgpu-native also reports spontaneous loss as Destroyed, so only a
+    // destruction this device started is ignored.
+    if (reason == WGPUDeviceLostReason_InstanceDropped || data->destroying.load(std::memory_order_acquire)) return;
+    data->lost.store(true, std::memory_order_release);
+    data->fail(message);
+}
+
 Device::Device(std::unique_ptr<Private> data) : m_d(std::move(data)) {}
 Device::~Device()
 {
@@ -235,12 +244,7 @@ DevicePtr Device::createNative(QString &diagnostic)
     descriptor.deviceLostCallbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
     descriptor.deviceLostCallbackInfo.userdata1 = data.get();
     descriptor.deviceLostCallbackInfo.callback = [](WGPUDevice const *, WGPUDeviceLostReason reason, WGPUStringView message, void *context, void *) noexcept {
-        auto *data = static_cast<Private *>(context);
-        // wgpu-native also reports spontaneous loss as Destroyed, so only a
-        // destruction this device started is ignored.
-        if (reason == WGPUDeviceLostReason_InstanceDropped || data->destroying.load(std::memory_order_acquire)) return;
-        data->lost.store(true, std::memory_order_release);
-        data->fail(message);
+        recordDeviceLoss(static_cast<Private *>(context), quint32(reason), message);
     };
     descriptor.uncapturedErrorCallbackInfo.userdata1 = data.get();
     descriptor.uncapturedErrorCallbackInfo.callback = [](WGPUDevice const *, WGPUErrorType, WGPUStringView message, void *context, void *) noexcept {

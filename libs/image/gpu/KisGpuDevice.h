@@ -19,6 +19,7 @@ struct WGPUBufferImpl;
 struct WGPUCommandEncoderImpl;
 struct WGPUSurfaceImpl;
 struct WGPUTextureViewImpl;
+struct WGPUStringView;
 using WGPUInstance = WGPUInstanceImpl *;
 using WGPUAdapter = WGPUAdapterImpl *;
 using WGPUDevice = WGPUDeviceImpl *;
@@ -29,7 +30,7 @@ using WGPUSurface = WGPUSurfaceImpl *;
 using WGPUTextureView = WGPUTextureViewImpl *;
 
 namespace LibrePaint::Image::Gpu {
-namespace Detail { struct ReadbackBatch; struct PipelineCache; }
+namespace Detail { struct ReadbackBatch; struct PipelineCache; struct DeviceTestAccess; }
 class Device;
 using DevicePtr = std::shared_ptr<Device>;
 
@@ -73,7 +74,9 @@ private:
     friend class Execution;
     friend class TileRenderer;
     friend struct Detail::ReadbackBatch;
+    friend struct Detail::DeviceTestAccess;
     struct Private;
+    static void recordDeviceLoss(Private *data, quint32 reason, WGPUStringView message) noexcept;
     explicit Device(std::unique_ptr<Private> data);
     bool readbackPending() const;
     void releaseCompletedReadback();
