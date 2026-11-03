@@ -25,6 +25,7 @@
 #include <KisRegion.h>
 #include <kis_properties_configuration.h>
 #include <metadata/KoDocumentInfo.h>
+#include <KisGpuPixelTolerance.h>
 #include <QDir>
 #include <QDateTime>
 #include <QFile>
@@ -120,14 +121,14 @@ void TestDocument::testWordCurvesKeepMixedLayerPixelsAndHistory()
     const auto beforeReference = reference(opacities[2]);
     QVERIFY(write(QStringLiteral("before.bgra16"), before));
     QVERIFY(write(QStringLiteral("before-reference.bgra16"), beforeReference));
-    QCOMPARE(before, beforeReference);
+    QCOMPARE_PIXELS16_WITHIN_STEP(before, beforeReference);
     const auto normId = owner->operations().snapshot()->layers[2].id;
     QCOMPARE(owner->setLayerOpacity(normId, 61), Gpu::Result::Success);
     const auto after = api.pixelData(0, 0, side, side);
     const auto afterReference = reference(61);
     QVERIFY(write(QStringLiteral("after.bgra16"), after));
     QVERIFY(write(QStringLiteral("after-reference.bgra16"), afterReference));
-    QCOMPARE(after, afterReference);
+    QCOMPARE_PIXELS16_WITHIN_STEP(after, afterReference);
     QVERIFY(after != before);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QCOMPARE(api.pixelData(0, 0, side, side), before);

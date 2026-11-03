@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuOperationDocument.h"
-#include "KisGpuNonlinearRgba8_p.h"
+#include "KisGpuNonlinearBlend_p.h"
 #include "KisGpuRgba8Compositing_p.h"
 #include "KisGpuRgba8AlphaBlend_p.h"
 #include "KisGpuRgba16Compositing_p.h"
@@ -14,39 +14,6 @@
 #include <QSet>
 
 namespace LibrePaint::Image::Gpu {
-const QByteArray &Detail::rgba16PowerValues()
-{
-    static const auto bytes = [] {
-        QFile resource(QStringLiteral(":/librepaint/gpu/blend/rgba16-power.bin"));
-        if (!resource.open(QIODevice::ReadOnly)) throw std::logic_error("GPU RGBA16 power values are unavailable");
-        auto result = resource.readAll();
-        if (result.size() != Rgba16PowerBytes) throw std::logic_error("GPU RGBA16 power values are incomplete");
-        return result;
-    }();
-    return bytes;
-}
-const QByteArray &Detail::rgba16CosineValues()
-{
-    static const auto bytes = [] {
-        QFile resource(QStringLiteral(":/librepaint/gpu/blend/rgba16-cosine.bin"));
-        if (!resource.open(QIODevice::ReadOnly)) throw std::logic_error("GPU RGBA16 cosine values are unavailable");
-        auto result = resource.readAll();
-        if (result.size() != Rgba16CosineBytes) throw std::logic_error("GPU RGBA16 cosine values are incomplete");
-        return result;
-    }();
-    return bytes;
-}
-const QByteArray &Detail::nonlinearRgba8Values()
-{
-    static const auto bytes = [] {
-        QFile resource(QStringLiteral(":/librepaint/gpu/blend/rgba8-nonlinear.bin"));
-        if (!resource.open(QIODevice::ReadOnly)) throw std::logic_error("GPU nonlinear RGBA8 values are unavailable");
-        auto result = resource.readAll();
-        if (result.size() != NonlinearRgba8Bytes) throw std::logic_error("GPU nonlinear RGBA8 values are incomplete");
-        return result;
-    }();
-    return bytes;
-}
 namespace {
 using Detail::multiplyByte;
 using Detail::multiplyThreeBytes;
@@ -114,8 +81,8 @@ quint32 quantizedBlendChannel(LayerBlendMode mode, quint32 source, quint32 desti
     case LayerBlendMode::HardMixSofterPhotoshop:
         return quint32(qBound(0, 3 * int(destination) - 2 * (255 - int(source)), 255));
     default:
-        return Detail::usesNonlinearRgba8(mode) ? Detail::nonlinearRgba8Channel(mode, source, destination) :
-                                                 multiplyByte(source, destination);
+        return Detail::isNonlinearBlend(mode) ? Detail::nonlinearUnitColor(mode, source, destination, 255) :
+                                               multiplyByte(source, destination);
     }
 }
 RgbaPixel separableProjectionPixel(RgbaPixel destination,

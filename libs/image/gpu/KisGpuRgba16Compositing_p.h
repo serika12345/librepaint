@@ -7,16 +7,6 @@
 #include "KisGpuOperationDocument.h"
 
 namespace LibrePaint::Image::Gpu::Detail {
-constexpr qsizetype Rgba16CosineBytes = 2 * 65536 * 4;
-constexpr qsizetype Rgba16PowerBytes = 8 * 65536 * 4;
-constexpr bool usesRgba16Cosine(LayerBlendMode mode)
-{ return mode == LayerBlendMode::Interpolation || mode == LayerBlendMode::InterpolationB; }
-/** Immutable binary64 cosine words shared by projection defaults and GPU colors. */
-KRITAIMAGEGPUOPERATIONS_EXPORT const QByteArray &rgba16CosineValues();
-constexpr bool usesRgba16PowerValues(LayerBlendMode mode)
-{ return mode == LayerBlendMode::SuperLight || mode == LayerBlendMode::PNormA; }
-/** Native fixed-exponent powers, in four pairs of binary64 word layers. */
-KRITAIMAGEGPUOPERATIONS_EXPORT const QByteArray &rgba16PowerValues();
 inline bool usesSeparableRgba16Blend(LayerBlendMode mode)
 { return mode >= LayerBlendMode::Multiply && mode <= LayerBlendMode::AdditiveSubtractive; }
 inline bool usesSpecialAlphaRgba16Blend(LayerBlendMode mode)

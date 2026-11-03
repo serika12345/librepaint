@@ -153,18 +153,6 @@ struct TileRenderer::Private
     QHash<QByteArray, PatternCacheEntry> patternCache;
     /** Opaque 256 x 256 coverage bound for layers without a transparency mask. */
     Detail::NativeBuffer opaqueMask;
-    Detail::NativeTexture nonlinearTexture;
-    Detail::NativeTextureView nonlinearView;
-    qsizetype nonlinearBytes = 0;
-    Detail::NativeTexture cosineTexture;
-    Detail::NativeTextureView cosineView;
-    qsizetype cosineBytes = 0;
-    Detail::NativeTexture powerTexture;
-    Detail::NativeTextureView powerView;
-    qsizetype powerBytes = 0;
-    Detail::NativeTexture greaterTexture;
-    Detail::NativeTextureView greaterView;
-    qsizetype greaterBytes = 0;
     struct MaskCacheEntry {
         SelectionMaskSP source;
         Detail::CoverageTiles tiles;
@@ -248,16 +236,12 @@ struct TileRenderer::Private
     Private(TileRenderer &renderer, DevicePtr device, qsizetype byteBudget);
     ~Private();
     /** Full channel values count against the renderer budget and remain immutable. */
-    bool prepareNonlinearRgba8(bool full);
-    bool prepareGreaterRgba8(bool full);
-    bool prepareRgba16Cosine();
     void retainTile(const std::shared_ptr<Detail::Tile> &tile) {
         if (tile) device->retainForFrame(tile->storage);
     }
     void retainTiles(const Detail::Tiles &tiles) {
         for (const auto &tile : tiles) retainTile(tile);
     }
-    bool prepareRgba16Power();
     Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main",
         quint32 firstBlend = 0, quint32 secondBlend = 0, WGPUBindGroupLayout sharedLayout = nullptr, bool separableBlendEnabled = false,
         quint32 coupledPixelFormat = 0, quint32 nativeLabKind = 0, quint32 gradientKind = 0, bool generatedBrush = false);

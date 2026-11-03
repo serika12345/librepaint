@@ -6,7 +6,6 @@
 #include "KisGpuLayerAllocation_p.h"
 #include <algorithm>
 #include <cstring>
-#include "KisGpuNonlinearRgba8_p.h"
 #include "KisGpuRgba16Compositing_p.h"
 
 namespace LibrePaint::Image::Gpu {
@@ -116,28 +115,16 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
     }
     const auto mode = filter.kind == FilterKind::ColorOverlay ? filter.overlay.blendMode : LayerBlendMode::Normal;
     const bool wide = format == PixelFormat::Rgba16;
-    if ((wide && usesRgba16Cosine(mode) && !prepareRgba16Cosine()) ||
-        (wide && usesRgba16PowerValues(mode) && !prepareRgba16Power()) ||
-        (!wide && usesNonlinearRgba8(mode) && !prepareNonlinearRgba8(true)) ||
-        (!wide && mode == LayerBlendMode::Greater && !prepareGreaterRgba8(true)))
-        return {error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
-                error.isEmpty() ? QStringLiteral("GPU filter composition resource budget exhausted") : error};
     if (!filterLayout) {
-        WGPUBindGroupLayoutEntry entries[7]{};
+        WGPUBindGroupLayoutEntry entries[5]{};
         for (quint32 i = 0; i < 5; ++i) {
             entries[i].binding = i;
             entries[i].visibility = WGPUShaderStage_Compute;
             entries[i].buffer.type = i == 2 ? WGPUBufferBindingType_Uniform :
                 i == 1 ? WGPUBufferBindingType_Storage : WGPUBufferBindingType_ReadOnlyStorage;
         }
-        for (quint32 i = 5; i < 7; ++i) {
-            entries[i].binding = i + 4;
-            entries[i].visibility = WGPUShaderStage_Compute;
-            entries[i].texture.sampleType = WGPUTextureSampleType_Uint;
-            entries[i].texture.viewDimension = WGPUTextureViewDimension_2DArray;
-        }
         WGPUBindGroupLayoutDescriptor descriptor{};
-        descriptor.entryCount = 7;
+        descriptor.entryCount = 5;
         descriptor.entries = entries;
         filterLayout.reset(wgpuDeviceCreateBindGroupLayout(device->nativeDevice(), &descriptor));
     }
@@ -222,7 +209,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
         auto parameters = createBuffer(device->nativeDevice(), sizeof(parameterValues),
                                        WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
         if (!parameters) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU filter parameter allocation failed")};
-        WGPUBindGroupEntry entries[7]{};
+        WGPUBindGroupEntry entries[5]{};
         const auto processed = convolved.value(coordinate);
         const WGPUBuffer buffers[]{input->pixels.get(), output->pixels.get(), parameters.get(),
                                    coverage ? coverage->pixels.get() : unusedSelection.get(),
@@ -232,13 +219,9 @@ TileRenderer::Private::FilterResult TileRenderer::Private::filterTiles(
             entries[i].buffer = buffers[i];
             entries[i].size = wgpuBufferGetSize(buffers[i]);
         }
-        entries[5].binding = 9;
-        entries[5].textureView = wide && cosineView ? cosineView.get() : nonlinearView.get();
-        entries[6].binding = 10;
-        entries[6].textureView = wide && powerView ? powerView.get() : greaterView.get();
         WGPUBindGroupDescriptor descriptor{};
         descriptor.layout = filterLayout.get();
-        descriptor.entryCount = 7;
+        descriptor.entryCount = 5;
         descriptor.entries = entries;
         NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &descriptor));
         if (!bindings || !device->diagnostic().isEmpty())

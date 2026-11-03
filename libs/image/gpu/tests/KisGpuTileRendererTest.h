@@ -82,15 +82,9 @@ private Q_SLOTS:
     void separableLayerProjectionMatchesNativePixels_data();
     void separableLayerProjectionMatchesNativePixels();
     void channelCopyGroupsKeepHiddenRgbAndNormalizeRoot();
-    void nonlinearBlendValuesShareBoundedResources();
     void minimumNonlinearPaintOpacityKeepsNativeQuantization();
-    void nonlinearResourceBudgetPreservesPixelsAndRetry();
     void wordBlendOperationsFitWithoutByteLookupResources();
-    void wordCurveBudgetPreservesPixelsAndRetry_data();
-    void wordCurveBudgetPreservesPixelsAndRetry();
     void coupledProjectionRetainsOtherBlendOperations();
-    void greaterBlendValuesShareBoundedResources();
-    void greaterResourceBudgetPreservesPixelsAndRetry();
     void transparentSourcesReplaceProjectionAlpha_data();
     void transparentSourcesReplaceProjectionAlpha();
     void threeLayerProjectionFitsOneOutputTile_data();

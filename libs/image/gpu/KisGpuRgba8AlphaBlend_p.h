@@ -9,9 +9,6 @@
 #include <QByteArray>
 
 namespace LibrePaint::Image::Gpu::Detail {
-constexpr qsizetype GreaterRgba8Bytes = 256 * 256 * 4;
-/** Immutable destination-alpha and color-weight pairs; malformed resources throw. */
-KRITAIMAGEGPUOPERATIONS_EXPORT const QByteArray &greaterRgba8Values();
 inline bool usesSpecialAlphaBlend(LayerBlendMode mode)
 { return mode >= LayerBlendMode::Marker && mode <= LayerBlendMode::LuminositySai; }
 RgbaPixel specialAlphaRgba8Pixel(RgbaPixel destination, const RgbaPixel &source,

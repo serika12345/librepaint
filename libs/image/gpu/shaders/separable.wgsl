@@ -17,8 +17,6 @@
 // Parallel=52, HardOverlay=53, SoftLightPegtopDelphi=54, Negation=55,
 // PenumbraA=56, PenumbraB=57, FlatLight=58, HardMixSofterPhotoshop=59.
 // Nonlinear RGBA8 modes GeometricMean through AdditiveSubtractive occupy 60..87.
-@group(0) @binding(9) var separableColorValues: texture_2d_array<u32>;
-@group(0) @binding(10) var blendCurveValues: texture_2d_array<u32>;
 
 fn multiplyByte(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -27,6 +25,157 @@ fn multiplyByte(a: u32, b: u32) -> u32 {
 fn multiplyThreeBytes(a: u32, b: u32, c: u32) -> u32 {
     let product = a * b * c + 0x7f5bu;
     return ((product >> 7u) + product) >> 16u;
+}
+// Nonlinear separable modes 60..87 and the Greater alpha curve in f32.
+// Integer colors are normalized by their depth maximum (255 or 65535) and
+// scaled back with the native half-up rule; saved pixels stay within one
+// 8-bit step of the native engine (#107).
+fn unitColor(value: u32, maximum: u32) -> f32 { return f32(value) / f32(maximum); }
+fn scaledUnitColor(value: f32, maximum: u32) -> u32 {
+    if (value < 0.0) { return 0u; }
+    let scaled = value * f32(maximum);
+    if (!(scaled <= f32(maximum))) { return maximum; }
+    return min(maximum, u32(scaled + 0.5));
+}
+fn multiplyUnit(a: u32, b: u32, maximum: u32) -> u32 {
+    if (maximum == 255u) { return multiplyByte(a, b); }
+    return mul65535(a, b);
+}
+fn unitModulo(value: f32) -> f32 { return value - floor(value); }
+fn ceilingIsOdd(value: f32) -> bool {
+    let integral = floor(value);
+    return ((u32(integral) + select(0u, 1u, integral != value)) & 1u) != 0u;
+}
+fn arcTangentUnit(source: u32, destination: u32, maximum: u32) -> u32 {
+    if (source == 0u) { return 0u; }
+    if (destination == 0u) { return maximum; }
+    let angle = atan(unitColor(source, maximum) / unitColor(destination, maximum));
+    return scaledUnitColor(2.0 * angle / 3.14159265358979, maximum);
+}
+fn gammaDarkUnit(source: u32, destination: u32, maximum: u32) -> u32 {
+    if (destination == 0u || destination == maximum) { return destination; }
+    if (source == 0u) { return 0u; }
+    return scaledUnitColor(pow(unitColor(destination, maximum), 1.0 / unitColor(source, maximum)), maximum);
+}
+fn interpolationUnit(source: u32, destination: u32, maximum: u32) -> u32 {
+    if (source == 0u && destination == 0u) { return 0u; }
+    let pi = 3.14159265358979;
+    return scaledUnitColor(0.5 - 0.25 * cos(pi * unitColor(source, maximum)) -
+        0.25 * cos(pi * unitColor(destination, maximum)), maximum);
+}
+fn divisiveModuloContinuousUnit(source: u32, destination: u32, maximum: u32) -> u32 {
+    // A zero source uses the native qreal epsilon; the fraction truncates to zero.
+    if (destination == 0u || source == 0u) { return 0u; }
+    let s = unitColor(source, maximum);
+    let d = unitColor(destination, maximum);
+    var value = unitModulo((1.0 / s) * d);
+    if (!ceilingIsOdd(d / s)) { value = 1.0 - value; }
+    return scaledUnitColor(value, maximum);
+}
+fn nonlinearUnitColor(mode: u32, source: u32, destination: u32, maximum: u32) -> u32 {
+    let s = unitColor(source, maximum);
+    let d = unitColor(destination, maximum);
+    let lowSource = source <= maximum / 2u;
+    switch mode {
+        case 60u: { return scaledUnitColor(sqrt(s * d), maximum); }
+        case 61u: { return interpolationUnit(source, destination, maximum); }
+        case 62u: {
+            let first = interpolationUnit(source, destination, maximum);
+            return interpolationUnit(first, first, maximum);
+        }
+        case 63u: {
+            if (source == maximum) { return maximum; }
+            return arcTangentUnit(destination, maximum - source, maximum);
+        }
+        case 64u: {
+            if (destination == maximum) { return maximum; }
+            return arcTangentUnit(source, maximum - destination, maximum);
+        }
+        case 65u: { return scaledUnitColor(pow(d, pow(2.0, 2.0 * (0.5 - s))), maximum); }
+        case 66u, 67u: {
+            if (source > maximum / 2u) {
+                var curve = sqrt(d);
+                if (mode == 66u && destination <= maximum / 4u) { curve = ((16.0 * d - 12.0) * d + 4.0) * d; }
+                return scaledUnitColor(d + (2.0 * s - 1.0) * (curve - d), maximum);
+            }
+            return scaledUnitColor(d - (1.0 - 2.0 * s) * d * (1.0 - d), maximum);
+        }
+        case 68u: {
+            if (destination == 0u || destination == maximum) { return destination; }
+            return scaledUnitColor(pow(d, s), maximum);
+        }
+        case 69u: { return maximum - gammaDarkUnit(maximum - source, maximum - destination, maximum); }
+        case 70u, 71u: {
+            // Native P-Norm uses raw integer colors and truncates its result.
+            let rawSource = f32(source);
+            let rawDestination = f32(destination);
+            var value: f32;
+            if (mode == 70u) {
+                value = pow(pow(rawDestination, 2.3333333333333333) + pow(rawSource, 2.3333333333333333), 0.428571428571434);
+            } else {
+                let s2 = rawSource * rawSource;
+                let d2 = rawDestination * rawDestination;
+                value = sqrt(sqrt(d2 * d2 + s2 * s2));
+            }
+            if (!(value <= f32(maximum))) { return maximum; }
+            return u32(value);
+        }
+        case 72u: {
+            if (lowSource) {
+                return scaledUnitColor(1.0 - pow(pow(1.0 - d, 2.875) + pow(1.0 - 2.0 * s, 2.875), 1.0 / 2.875), maximum);
+            }
+            return scaledUnitColor(pow(pow(d, 2.875) + pow(2.0 * s - 1.0, 2.875), 1.0 / 2.875), maximum);
+        }
+        case 73u: { return scaledUnitColor(s * (1.0 - d) + sqrt(d), maximum); }
+        case 74u: {
+            if (lowSource) { return scaledUnitColor((1.0 - (1.0 - s) * s) - (1.0 - d) * (1.0 - s), maximum); }
+            return scaledUnitColor(s - (1.0 - d) * (1.0 - s) + (1.0 - s) * (1.0 - s), maximum);
+        }
+        case 75u: {
+            if (source == maximum) { return maximum; }
+            return scaledUnitColor(pow(d, (1.0 - s) * 1.039999999), maximum);
+        }
+        case 76u: { return gammaDarkUnit(source, destination, maximum); }
+        case 77u: { return scaledUnitColor(1.0 - ((1.0 - d) * s + sqrt(1.0 - s)), maximum); }
+        case 78u: {
+            if (lowSource) { return scaledUnitColor((1.0 - s) * s + s * d, maximum); }
+            return scaledUnitColor(s * d + s - s * s, maximum);
+        }
+        case 79u: {
+            // The native source substitute below one is not representable in f32.
+            let base = select(1.0 - s, 1e-12, source == maximum);
+            return scaledUnitColor(1.0 - pow(base, d * 1.039999999), maximum);
+        }
+        case 80u: { return destination % (source + 1u); }
+        case 81u: { return multiplyUnit(divisiveModuloContinuousUnit(source, destination, maximum), source, maximum); }
+        case 82u: {
+            let inverse = select(1.0 / s, 1.0, source == 0u);
+            return scaledUnitColor(unitModulo(inverse * d), maximum);
+        }
+        case 83u: { return divisiveModuloContinuousUnit(source, destination, maximum); }
+        case 84u: {
+            if (source == maximum && destination == 0u) { return 0u; }
+            return scaledUnitColor(unitModulo(s + d), maximum);
+        }
+        case 85u: {
+            if (source == maximum && destination == 0u) { return maximum; }
+            var value = unitModulo(s + d);
+            if (destination != 0u && !ceilingIsOdd(s + d)) { value = 1.0 - value; }
+            return scaledUnitColor(value, maximum);
+        }
+        case 86u: { return arcTangentUnit(source, destination, maximum); }
+        case 87u: { return scaledUnitColor(abs(sqrt(d) - sqrt(s)), maximum); }
+        default: { return source; }
+    }
+}
+// Native Greater alpha: resulting alpha and the color weight for one pair.
+fn greaterAlphaUnit(oldAlpha: u32, alpha: u32, maximum: u32) -> vec2<u32> {
+    let destination = unitColor(oldAlpha, maximum);
+    let source = unitColor(alpha, maximum);
+    let weight = 1.0 / (1.0 + exp(-40.0 * (destination - source)));
+    let result = max(clamp(destination * weight + source * (1.0 - weight), 0.0, 1.0), destination);
+    let opacity = 1.0 - (1.0 - result) / (1.0 - destination + 1e-16);
+    return vec2<u32>(scaledUnitColor(result, maximum), scaledUnitColor(opacity, maximum));
 }
 fn blendByte(destination: u32, source: u32, alpha: u32) -> u32 {
     let weighted = (i32(source) - i32(destination)) * i32(alpha) + 128;
@@ -98,10 +247,7 @@ fn quantizedBlendChannel(mode: u32, source: u32, destination: u32) -> u32 {
         }
         case 59u: { return u32(clamp(3 * i32(destination) - 2 * (255 - i32(source)), 0, 255)); }
         default: {
-            if (mode >= 60u && mode <= 87u) {
-                let index = mode - 60u;
-                return textureLoad(separableColorValues, vec2<i32>(i32(destination), i32(source)), i32(index / 4u), 0)[index % 4u];
-            }
+            if (mode >= 60u && mode <= 87u) { return nonlinearUnitColor(mode, source, destination, 255u); }
             return multiplyByte(source, destination);
         }
     }
@@ -151,7 +297,7 @@ fn specialAlphaRgba8Pixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask
     let alpha = multiplyThreeBytes(source.w, 255u, opacity);
     if (mode == 128u) {
         if (alpha == 0u || oldAlpha == 255u) { return packPixel(destination); }
-        let pair = textureLoad(blendCurveValues, vec2<i32>(i32(oldAlpha), i32(alpha)), 0, 0).xy;
+        let pair = greaterAlphaUnit(oldAlpha, alpha, 255u);
         for (var i = 0u; i < 3u; i += 1u) {
             if ((mask & (1u << i)) == 0u) { continue; }
             if (oldAlpha == 0u) { destination[i] = source[i]; }

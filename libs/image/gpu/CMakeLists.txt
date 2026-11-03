@@ -31,18 +31,6 @@ set_target_properties(kritaimagegpuoperations PROPERTIES
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
 )
 install(TARGETS kritaimagegpuoperations ${INSTALL_TARGETS_DEFAULT_ARGS})
-qt6_add_resources(kritaimagegpuoperations krita_gpu_blend_values
-    PREFIX "/librepaint/gpu"
-    FILES blend/rgba8-nonlinear.bin blend/rgba16-cosine.bin blend/rgba16-power.bin
-)
-krita_ios_add_static_resource(krita_gpu_blend_values)
-set_source_files_properties("${CMAKE_SOURCE_DIR}/LICENSES/SunPro.txt"
-    PROPERTIES QT_RESOURCE_ALIAS "licenses/SunPro.txt")
-qt6_add_resources(kritaimagegpuoperations krita_gpu_alpha_values
-    PREFIX "/librepaint/gpu"
-    FILES blend/rgba8-greater-alpha.bin "${CMAKE_SOURCE_DIR}/LICENSES/SunPro.txt"
-)
-krita_ios_add_static_resource(krita_gpu_alpha_values)
 
 find_package(WGPUNative REQUIRED)
 add_library(kritaimagegputiles OBJECT

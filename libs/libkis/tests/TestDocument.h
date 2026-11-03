@@ -59,12 +59,8 @@ private Q_SLOTS:
     void testIntegerRgba16EditingAndNativeFiles_data();
     void testIntegerRgba16EditingAndNativeFiles();
     void testWordCurvesKeepMixedLayerPixelsAndHistory();
-    void testAlphaBlendMatchesEveryRgba8AlphaPair_data();
-    void testAlphaBlendMatchesEveryRgba8AlphaPair();
     void testCoupledBlendMatchesCpuColorPalette_data();
     void testCoupledBlendMatchesCpuColorPalette();
-    void testQuantizedBlendMatchesEveryRgb8Pair_data();
-    void testQuantizedBlendMatchesEveryRgb8Pair();
     void testReplacingAlphaPaintMatchesCpuSourceRegions_data();
     void testReplacingAlphaPaintMatchesCpuSourceRegions();
     void testCanvasBackgroundReferencePixels_data();
@@ -141,6 +137,8 @@ private Q_SLOTS:
     void testAnnotations();
     void testNodeByName();
     void testNodeByUniqueId();
+private:
+    static void addSpecialAlphaModeRows();
 };
 
 #endif

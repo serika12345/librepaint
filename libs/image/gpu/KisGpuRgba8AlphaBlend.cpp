@@ -4,22 +4,11 @@
  */
 #include "KisGpuRgba8AlphaBlend_p.h"
 #include "KisGpuRgba8Compositing_p.h"
-#include <QFile>
+#include "KisGpuNonlinearBlend_p.h"
 #include <algorithm>
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu::Detail {
-const QByteArray &greaterRgba8Values()
-{
-    static const auto bytes = [] {
-        QFile resource(QStringLiteral(":/librepaint/gpu/blend/rgba8-greater-alpha.bin"));
-        if (!resource.open(QIODevice::ReadOnly)) throw std::logic_error("GPU Greater alpha values are unavailable");
-        auto result = resource.readAll();
-        if (result.size() != GreaterRgba8Bytes) throw std::logic_error("GPU Greater alpha values are incomplete");
-        return result;
-    }();
-    return bytes;
-}
 namespace {
 quint8 saiChannel(quint8 destination, quint8 source, quint32 alpha)
 {
@@ -48,10 +37,9 @@ RgbaPixel specialAlphaRgba8Pixel(RgbaPixel destination, const RgbaPixel &source,
     const auto alpha = multiplyThreeBytes(source[3], 255, opacity);
     if (mode == LayerBlendMode::Greater) {
         if (!alpha || oldAlpha == 255) return destination;
-        const auto offset = (alpha * 256 + oldAlpha) * 4;
-        const auto &values = greaterRgba8Values();
-        const auto nextAlpha = quint8(values[offset]);
-        const auto weight = quint8(values[offset + 1]);
+        const auto pair = greaterAlphaUnit(oldAlpha, alpha, 255);
+        const auto nextAlpha = quint8(pair.first);
+        const auto weight = quint8(pair.second);
         for (int channel = 0; channel < 3; ++channel) {
             if (!(mask & (1u << channel))) continue;
             if (!oldAlpha) destination[channel] = source[channel];

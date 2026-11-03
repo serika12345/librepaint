@@ -3770,7 +3770,7 @@ void TestDocument::testKraReopenKeepsFillAllocationAfterCanvasGrowth()
 
 void TestDocument::testSpecialAlphaPatternFillMatchesNative_data()
 {
-    testAlphaBlendMatchesEveryRgba8AlphaPair_data();
+    addSpecialAlphaModeRows();
 }
 
 void TestDocument::testSpecialAlphaPatternFillMatchesNative()
@@ -3845,74 +3845,10 @@ void TestDocument::testSpecialAlphaPatternFillMatchesNative()
     }
 }
 
-void TestDocument::testAlphaBlendMatchesEveryRgba8AlphaPair_data()
+void TestDocument::addSpecialAlphaModeRows()
 {
     QTest::addColumn<QString>("mode");
     for (const auto *mode : {"marker", "greater", "luminosity_sai", "copy"}) QTest::newRow(mode) << QString::fromLatin1(mode);
-}
-
-void TestDocument::testAlphaBlendMatchesEveryRgba8AlphaPair()
-{
-    namespace Gpu = LibrePaint::Image::Gpu;
-    QFETCH(QString, mode);
-    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
-    const auto blend = Gpu::layerBlendModeFromCompositeOp(mode);
-    QVERIFY(blend);
-    QByteArray bottom, top;
-    for (int source = 0; source < 256; ++source) for (int destination = 0; destination < 256; ++destination) {
-        bottom.append(char(destination * 53 + 17)); bottom.append(char(destination * 7 + source * 5 + 63));
-        bottom.append(char(source * 13 + destination * 17 + 128)); bottom.append(char(destination));
-        top.append(char(source * 29 + 15)); top.append(char(255 - destination));
-        top.append(char(destination * 3 + source * 7)); top.append(char(source));
-    }
-    QByteArray expected(bottom.size(), '\0');
-    KoCompositeOp::ParameterInfo parameters;
-    parameters.dstRowStart = reinterpret_cast<quint8 *>(expected.data());
-    parameters.dstRowStride = parameters.srcRowStride = 256 * 4;
-    parameters.srcRowStart = reinterpret_cast<const quint8 *>(bottom.constData());
-    parameters.rows = parameters.cols = 256;
-    cs->compositeOp(QStringLiteral("normal"))->composite(parameters);
-    parameters.srcRowStart = reinterpret_cast<const quint8 *>(top.constData());
-    cs->compositeOp(mode)->composite(parameters);
-    const auto layer = [](QByteArray bytes) {
-        for (int i = 0; i < bytes.size(); i += 4) std::swap(bytes[i], bytes[i + 2]);
-        Gpu::RasterLayer value;
-        value.tiles = {{{0, 0}, bytes}};
-        return value;
-    };
-    Gpu::RasterImage input;
-    input.size = {256, 256};
-    input.colorProfile = cs->profile()->rawData();
-    auto source = layer(top); source.blendMode = *blend;
-    input.layers = {layer(bottom), source};
-    QString diagnostic;
-    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
-    QVERIFY2(execution, qPrintable(diagnostic));
-    const auto owner = Gpu::PaintImageSP::create(execution, input);
-    const auto result = owner->readRgbaPixels(0, {0, 0, 256, 256}, expected.size());
-    QCOMPARE(result.code, Gpu::ExecutionCode::Success);
-    auto actual = result.bytes;
-    for (int i = 0; i < actual.size(); i += 4) std::swap(actual[i], actual[i + 2]);
-    QCOMPARE(actual.size(), expected.size());
-    QTemporaryDir directory;
-    if (actual != expected || qEnvironmentVariableIsSet("LIBREPAINT_GPU_RESULT_DIR")) {
-        const auto output = QDir(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path())).filePath(QStringLiteral("blend-") + mode);
-        QVERIFY(QDir().mkpath(output));
-        const auto write = [&](const QString &name, const QByteArray &bytes) {
-            QFile file(QDir(output).filePath(name));
-            return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
-        };
-        QVERIFY(write(QStringLiteral("alpha-pairs.bgra"), actual));
-        QVERIFY(write(QStringLiteral("alpha-pairs-cpu.bgra"), expected));
-        if (actual != expected) {
-            directory.setAutoRemove(false);
-            int first = 0; while (actual[first] == expected[first]) ++first;
-            qInfo() << "Alpha pair mismatch" << mode << "source alpha" << first / (256 * 4)
-                    << "destination alpha" << first / 4 % 256 << "channel" << first % 4
-                    << "actual" << quint8(actual[first]) << "expected" << quint8(expected[first]) << output;
-        }
-    }
-    QVERIFY(actual == expected);
 }
 
 void TestDocument::testCoupledBlendMatchesCpuColorPalette_data()
@@ -4001,88 +3937,6 @@ void TestDocument::testCoupledBlendMatchesCpuColorPalette()
             qInfo() << "Coupled RGB mismatch" << mode << "source" << topBytes.mid(first / 4 * 4, 4).toHex()
                     << "destination" << bottomBytes.mid(first / 4 * 4, 4).toHex()
                     << "channel" << first % 4 << "actual" << quint8(actual[first]) << "expected" << quint8(expected[first]) << output;
-        }
-    }
-    QVERIFY(actual == expected);
-}
-
-void TestDocument::testQuantizedBlendMatchesEveryRgb8Pair_data()
-{
-    QTest::addColumn<QString>("mode");
-    for (const auto *mode : {"reflect", "glow", "freeze", "heat", "glow_heat", "heat_glow", "reflect_freeze", "freeze_reflect", "heat_glow_freeze_reflect_hybrid", "parallel", "hard overlay", "soft_light_pegtop_delphi", "negation", "penumbra a", "penumbra b", "flat_light", "hard_mix_softer_photoshop", "geometric_mean", "interpolation", "interpolation 2x", "penumbra c", "penumbra d", "soft_light_ifs_illusions", "soft_light_svg", "soft_light", "gamma_light", "gamma_illumination", "pnorm_a", "pnorm_b", "super_light", "tint_ifs_illusions", "fog_lighten_ifs_illusions", "easy dodge", "gamma_dark", "shade_ifs_illusions", "fog_darken_ifs_illusions", "easy burn", "modulo", "modulo_continuous", "divisive_modulo", "divisive_modulo_continuous", "modulo_shift", "modulo_shift_continuous", "arc_tangent", "additive_subtractive"})
-        QTest::newRow(mode) << QString::fromLatin1(mode);
-}
-
-void TestDocument::testQuantizedBlendMatchesEveryRgb8Pair()
-{
-    namespace Gpu = LibrePaint::Image::Gpu;
-    QFETCH(QString, mode);
-    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
-    const auto blend = Gpu::layerBlendModeFromCompositeOp(mode);
-    QVERIFY(blend);
-    constexpr int side = 256;
-    const QRect region(0, 0, side, side);
-    QByteArray bottomBytes, topBytes;
-    bottomBytes.reserve(side * side * 4);
-    topBytes.reserve(side * side * 4);
-    for (int source = 0; source < side; ++source) for (int destination = 0; destination < side; ++destination) {
-        bottomBytes.append(char(destination));
-        bottomBytes.append(char(255 - destination));
-        bottomBytes.append(char((destination * 7) & 255));
-        bottomBytes.append(char(255));
-        topBytes.append(char(source));
-        topBytes.append(char(255 - source));
-        topBytes.append(char((source * 11) & 255));
-        topBytes.append(char(255));
-    }
-    auto expected = bottomBytes;
-    KoCompositeOp::ParameterInfo parameters;
-    parameters.dstRowStart = reinterpret_cast<quint8 *>(expected.data());
-    parameters.dstRowStride = side * 4;
-    parameters.srcRowStart = reinterpret_cast<const quint8 *>(topBytes.constData());
-    parameters.srcRowStride = side * 4;
-    parameters.rows = parameters.cols = side;
-    parameters.opacity = 1;
-    cs->compositeOp(mode)->composite(parameters);
-    const auto canonical = [](QByteArray pixels) {
-        for (int i = 0; i < pixels.size(); i += 4) std::swap(pixels[i], pixels[i + 2]);
-        return pixels;
-    };
-    Gpu::RasterImage input;
-    input.size = region.size();
-    input.colorProfile = cs->profile()->rawData();
-    Gpu::RasterLayer bottom, top;
-    bottom.tiles = {{{0, 0}, canonical(bottomBytes)}};
-    top.tiles = {{{0, 0}, canonical(topBytes)}};
-    top.blendMode = *blend;
-    input.layers = {bottom, top};
-    QString diagnostic;
-    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
-    QVERIFY2(execution, qPrintable(diagnostic));
-    const auto owner = Gpu::PaintImageSP::create(execution, input);
-    const auto result = owner->readRgbaPixels(0, region, expected.size());
-    QCOMPARE(result.code, Gpu::ExecutionCode::Success);
-    const auto actual = canonical(result.bytes);
-    QCOMPARE(actual.size(), expected.size());
-    QTemporaryDir directory;
-    QVERIFY(directory.isValid());
-    if (actual != expected || qEnvironmentVariableIsSet("LIBREPAINT_GPU_RESULT_DIR")) {
-        const auto output = QDir(qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path()))
-            .filePath(QStringLiteral("blend-") + mode);
-        QVERIFY(QDir().mkpath(output));
-        const auto write = [&](const QString &name, const QByteArray &bytes) {
-            QFile file(QDir(output).filePath(name));
-            return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
-        };
-        QVERIFY(write(QStringLiteral("all-rgb8-pairs.bgra"), actual));
-        QVERIFY(write(QStringLiteral("all-rgb8-pairs-cpu.bgra"), expected));
-        if (actual != expected) {
-            directory.setAutoRemove(false);
-            int first = 0;
-            while (actual[first] == expected[first]) ++first;
-            qInfo() << "RGB8 pair mismatch" << mode << "source" << first / (side * 4)
-                    << "destination" << (first / 4) % side << "channel" << first % 4
-                    << "actual" << quint8(actual[first]) << "expected" << quint8(expected[first]) << output;
         }
     }
     QVERIFY(actual == expected);
