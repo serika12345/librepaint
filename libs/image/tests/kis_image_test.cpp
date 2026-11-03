@@ -7,17 +7,27 @@
 #include "kis_image_test.h"
 #include <QApplication>
 #include <QSignalSpy>
+#include <QPointer>
+#include <QSemaphore>
+#include <atomic>
+#include <thread>
 
 #include <simpletest.h>
 
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
+#include <KoCompositeOpRegistry.h>
+#include <kis_psd_layer_style.h>
+#include <kis_default_bounds.h>
 
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
 
 #include "kis_image.h"
+#include "kis_projection_updates_filter.h"
+#include "gpu/KisGpuPaintImage.h"
+#include "gpu/KisGpuExecution.h"
 #include "kis_paint_layer.h"
 #include "kis_group_layer.h"
 #include "kis_adjustment_layer.h"
@@ -41,6 +51,422 @@
 
 #define IMAGE_WIDTH 128
 #define IMAGE_HEIGHT 128
+
+namespace {
+struct PausedProjectionState {
+    QSemaphore entered;
+    QSemaphore resume;
+    std::atomic<bool> destroyed{false};
+};
+
+class PausedProjectionFilter final : public KisProjectionUpdatesFilter
+{
+public:
+    explicit PausedProjectionFilter(PausedProjectionState &state) : m_state(state) {}
+    ~PausedProjectionFilter() override { m_state.destroyed = true; }
+    bool filter(KisImage *, KisNode *, const QVector<QRect> &, KisProjectionUpdateFlags) override
+    {
+        return pause();
+    }
+    bool filterRefreshGraph(KisImage *, KisNode *, const QVector<QRect> &, const QRect &, KisProjectionUpdateFlags) override
+    {
+        return pause();
+    }
+private:
+    bool pause()
+    {
+        auto &state = m_state;
+        state.entered.release();
+        state.resume.tryAcquire(1, 5000);
+        return true;
+    }
+    PausedProjectionState &m_state;
+};
+}
+
+void KisImageTest::testProjectionFilterSurvivesRemovalDuringARequest_data()
+{
+    QTest::addColumn<bool>("refreshGraph");
+    QTest::newRow("dirty-request") << false;
+    QTest::newRow("graph-refresh") << true;
+}
+
+void KisImageTest::testProjectionFilterSurvivesRemovalDuringARequest()
+{
+    QFETCH(bool, refreshGraph);
+    PausedProjectionState state;
+    KisImageSP image = new KisImage(nullptr, 32, 32, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Projection request"));
+    KisProjectionUpdatesFilterSP filter(new PausedProjectionFilter(state));
+    const auto cookie = image->addProjectionUpdatesFilter(filter);
+    filter.clear();
+    std::thread request([&] {
+        if (refreshGraph) image->refreshGraphAsync(image->root(), image->bounds());
+        else image->requestProjectionUpdate(image->rootLayer().data(), {image->bounds()}, {});
+    });
+    const bool entered = state.entered.tryAcquire(1, 5000);
+    if (entered) image->removeProjectionUpdatesFilter(cookie).clear();
+    const bool survivedRemoval = !state.destroyed.load();
+    state.resume.release();
+    request.join();
+    QVERIFY(entered);
+    QVERIFY2(survivedRemoval, "An executing projection filter must live until its request finishes");
+    QVERIFY(state.destroyed.load());
+    QVERIFY(!image->currentProjectionUpdatesFilter());
+}
+
+void KisImageTest::testGpuPaintChannelFlagsPreserveProtectedPixelsAndFrozenHistory()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto id = owner->operations().activeLayer();
+    QCOMPARE(owner->writeRgbaPixels(id, QRect(32, 32, 1, 1), QByteArray::fromHex("0a28b480")), Gpu::Result::Success);
+    const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Channel protection"));
+    KisNodeSP node = image->root()->firstChild();
+    auto *layer = qobject_cast<KisPaintLayer*>(node.data());
+    QVERIFY(layer);
+    // The public RGBA8 paint-layer flags use the existing BGRA channel order.
+    QBitArray redOnly(4, false);
+    redOnly.setBit(2);
+    layer->setChannelLockFlags(redOnly);
+    QCOMPARE(layer->channelLockFlags(), redOnly);
+    QVERIFY(layer->alphaLocked());
+    QCOMPARE(owner->operations().snapshot()->layers.first().channelWriteMask, quint8(1));
+    Gpu::Brush brush;
+    brush.rgba = {200, 70, 30, 255};
+    brush.diameter = 8;
+    const auto stroke = owner->beginStroke(id, brush, 7);
+    QCOMPARE(owner->appendSamples(stroke, {{{32, 32}, 1}}), Gpu::Result::Success);
+    QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
+    const auto painted = owner->operations().snapshot();
+    layer->setAlphaLocked(false);
+    QVERIFY(!layer->alphaLocked());
+    QCOMPARE(owner->operations().snapshot()->layers.first().channelWriteMask, quint8(9));
+    QCOMPARE(painted->layers.first().channelWriteMask, quint8(1));
+    QCOMPARE(owner->readRgbaPixels(id, QRect(32, 32, 1, 1), 4).bytes, QByteArray::fromHex("c828b480"));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(id, QRect(32, 32, 1, 1), 4).bytes, QByteArray::fromHex("c828b480"));
+    auto redAndAlpha = redOnly;
+    redAndAlpha.setBit(3);
+    QCOMPARE(layer->channelLockFlags(), redAndAlpha);
+    brush.rgba = {1, 2, 3, 255};
+    const auto next = owner->beginStroke(owner->operations().activeLayer(), brush, 0);
+    QCOMPARE(owner->appendSamples(next, {{{32, 32}, 1}}), Gpu::Result::Success);
+    QCOMPARE(owner->commitStroke(next), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(32, 32, 1, 1), 4).bytes,
+             QByteArray::fromHex("0128b4ff"));
+}
+
+void KisImageTest::testRetainedGpuLayerPixelsOutliveTheImageAndDiscardedHistory()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    std::weak_ptr<Gpu::Execution> executionLifetime = execution;
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(16, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Retained pixels"));
+    const auto bottom = owner->operations().activeLayer();
+    QVERIFY(owner->addLayer(QStringLiteral("Retained")));
+    auto node = image->root()->lastChild();
+    QPointer<KisNode> nodeLifetime(node.data());
+    const auto first = QByteArray::fromHex("332211ff");
+    node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(first.constData()), 5, 5, 1, 1);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->renameLayer(bottom, QStringLiteral("New branch")), Gpu::Result::Success);
+    QCOMPARE(owner->operations().redoCount(), 0);
+    QVERIFY(!node->parent());
+    image.clear();
+    owner.reset();
+    execution.reset();
+    device.reset();
+    QVERIFY(!executionLifetime.expired());
+    QByteArray actual(4, '\0');
+    node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
+    QCOMPARE(actual, first);
+    const auto edited = QByteArray::fromHex("665544aa");
+    node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(edited.constData()), 6, 6, 1, 1);
+    node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 6, 6, 1, 1);
+    QCOMPARE(actual, edited);
+    node.clear();
+    QVERIFY(!nodeLifetime);
+    QVERIFY(executionLifetime.expired());
+}
+
+void KisImageTest::testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranches()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(16, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Layer reference lifetime"));
+    QPointer<KisImage> imageLifetime(image.data());
+    const auto original = owner->operations().activeLayer();
+    QVERIFY(owner->addLayer(QStringLiteral("Added"), 1, true));
+    auto added = image->root()->lastChild();
+    QPointer<KisNode> nodeLifetime(added.data());
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(!added->parent());
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(image->root()->lastChild(), added);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    added.clear();
+    QVERIFY(nodeLifetime);
+    QCOMPARE(owner->renameLayer(original, QStringLiteral("New branch")), Gpu::Result::Success);
+    QCOMPARE(owner->operations().redoCount(), 0);
+    QVERIFY(!nodeLifetime);
+    image.clear();
+    QVERIFY(!imageLifetime);
+}
+
+void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresentedState_data()
+{
+    QTest::addColumn<int>("property");
+    QTest::newRow("unsupported-blend") << 0;
+    QTest::newRow("multiply-blend") << 1;
+    QTest::newRow("screen-blend") << 8;
+    QTest::newRow("darken-blend") << 9;
+    QTest::newRow("lighten-blend") << 10;
+    QTest::newRow("addition-blend") << 11;
+    QTest::newRow("linear-dodge-blend") << 12;
+    QTest::newRow("animation") << 2;
+    QTest::newRow("layer-style") << 3;
+    QTest::newRow("composition-channels") << 4;
+    QTest::newRow("alpha-inheritance") << 5;
+    QTest::newRow("temporary-layer") << 6;
+    QTest::newRow("temporary-pixels") << 7;
+}
+
+void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresentedState()
+{
+    QFETCH(int, property);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Validated insertion"));
+    KisImageSP source = new KisImage(nullptr, 32, 16, image->colorSpace(), QStringLiteral("Foreign input"));
+    KisPaintLayerSP layer = new KisPaintLayer(source, QStringLiteral("Preserved input"), 255);
+    auto pixels = layer->paintDevice();
+    const auto bytes = QByteArray::fromHex("112233ff");
+    pixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 5, 7, 1, 1);
+    if (property == 0) layer->setCompositeOpId(COMPOSITE_SOFT_LIGHT_PHOTOSHOP);
+    if (property == 1) layer->setCompositeOpId(COMPOSITE_MULT);
+    if (property == 8) layer->setCompositeOpId(COMPOSITE_SCREEN);
+    if (property == 9) layer->setCompositeOpId(COMPOSITE_DARKEN);
+    if (property == 10) layer->setCompositeOpId(COMPOSITE_LIGHTEN);
+    if (property == 11) layer->setCompositeOpId(COMPOSITE_ADD);
+    if (property == 12) layer->setCompositeOpId(COMPOSITE_LINEAR_DODGE);
+    if (property == 2) layer->enableAnimation();
+    if (property == 3) {
+        auto style = KisPSDLayerStyleSP::create();
+        style->dropShadow()->setEffectEnabled(true);
+        layer->setLayerStyle(style->cloneWithResourcesSnapshot(KisGlobalResourcesInterface::instance(), {}));
+    }
+    if (property == 4) {
+        QBitArray channels(4, true);
+        channels.setBit(0, false);
+        layer->setChannelFlags(channels);
+    }
+    if (property == 5) layer->disableAlphaChannel(true);
+    if (property == 6) layer->setTemporary(true);
+    if (property == 7) layer->setTemporaryTarget(new KisPaintDevice(layer->colorSpace()));
+    const auto channels = layer->channelFlags();
+    const auto before = owner->operations().snapshot();
+    const auto retainedVersion = owner->operations().preview();
+    QByteArray retained(4, Qt::Uninitialized);
+    pixels->readBytes(reinterpret_cast<quint8*>(retained.data()), 5 + layer->x(), 7 + layer->y(), 1, 1);
+    if (property == 1 || property == 8 || property == 9 || property == 10 || property == 11 || property == 12 || property == 4 || property == 5) {
+        QVERIFY(image->insertGpuLayer(layer, 0));
+        QCOMPARE(image->root()->childCount(), 2U);
+        QCOMPARE(owner->operations().undoCount(), 1);
+        QCOMPARE(layer->channelFlags(), channels);
+        const quint8 expectedMask = (property == 1 || property == 8 || property == 9 || property == 10 || property == 11 || property == 12) ? 15 : property == 4 ? 11 : 7;
+        const auto expectedMode = property == 1 ? Gpu::LayerBlendMode::Multiply : property == 8 ? Gpu::LayerBlendMode::Screen :
+            property == 9 ? Gpu::LayerBlendMode::Darken : property == 10 ? Gpu::LayerBlendMode::Lighten :
+            property == 11 ? Gpu::LayerBlendMode::Addition : property == 12 ? Gpu::LayerBlendMode::LinearDodge : Gpu::LayerBlendMode::Normal;
+        QCOMPARE(owner->operations().snapshot()->layers.first().blendMode, expectedMode);
+        QCOMPARE(owner->operations().snapshot()->layers.first().projectionChannelMask, expectedMask);
+        QCOMPARE(owner->readRgbaPixels(owner->operations().snapshot()->layers.first().id, {5, 7, 1, 1}, 4).bytes,
+                 QByteArray::fromHex("332211ff"));
+        auto copied = image->cloneGpuNodeImage({layer});
+        QVERIFY(copied);
+        const auto copiedLayer = qobject_cast<const KisLayer*>(copied->root()->firstChild().data());
+        QVERIFY(copiedLayer);
+        QCOMPARE(copiedLayer->channelFlags(), channels);
+        QCOMPARE(copiedLayer->compositeOpId(), layer->compositeOpId());
+        QCOMPARE(copied->gpuImage()->operations().snapshot()->layers.first().blendMode, expectedMode);
+        QCOMPARE(copied->gpuImage()->operations().snapshot()->layers.first().projectionChannelMask, expectedMask);
+        QCOMPARE(copied->gpuImage()->readRgbaPixels(copied->gpuImage()->operations().activeLayer(), {5, 7, 1, 1}, 4).bytes,
+                 QByteArray::fromHex("332211ff"));
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QVERIFY(!layer->parent());
+        QCOMPARE(layer->channelFlags(), channels);
+        QCOMPARE(owner->redo(), Gpu::Result::Success);
+        QCOMPARE(layer->channelFlags(), channels);
+        QCOMPARE(owner->operations().snapshot()->layers.first().projectionChannelMask, expectedMask);
+        return;
+    }
+    QVERIFY(!image->insertGpuLayer(layer, 0));
+    QCOMPARE(owner->operations().snapshot(), before);
+    QCOMPARE(owner->operations().preview(), retainedVersion);
+    QCOMPARE(image->root()->childCount(), 1U);
+    QCOMPARE(layer->paintDevice(), pixels);
+    QVERIFY(!layer->parent());
+    if (property == 0) QCOMPARE(layer->compositeOpId(), QString(COMPOSITE_SOFT_LIGHT_PHOTOSHOP));
+    if (property == 2) QVERIFY(layer->isAnimated());
+    if (property == 3) QVERIFY(layer->layerStyle()->dropShadow()->effectEnabled());
+    QCOMPARE(layer->channelFlags(), channels);
+    if (property == 6) QVERIFY(layer->temporary());
+    if (property == 7) QVERIFY(layer->hasTemporaryTarget());
+    QByteArray actual(4, Qt::Uninitialized);
+    pixels->readBytes(reinterpret_cast<quint8*>(actual.data()), 5 + layer->x(), 7 + layer->y(), 1, 1);
+    QCOMPARE(actual, retained);
+}
+
+void KisImageTest::testGpuInsertionKeepsRawPixelsFromWrappedInput()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Raw insertion"));
+    KisImageSP source = new KisImage(nullptr, 32, 16, image->colorSpace(), QStringLiteral("Wrapped source"));
+    KisPaintLayerSP layer = new KisPaintLayer(source, QStringLiteral("Fixed input"), 255);
+    auto pixels = layer->paintDevice();
+    pixels->setDefaultBounds(new KisWrapAroundBoundsWrapper(new KisDefaultBounds(source), QRect(0, 0, 32, 16)));
+    QVERIFY(pixels->defaultBounds()->wrapAroundMode());
+    const auto bytes = QByteArray::fromHex("112233ff");
+    pixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 5, 7, 1, 1);
+    QVERIFY(image->insertGpuLayer(layer, 1));
+    QByteArray actual(4, Qt::Uninitialized);
+    pixels->readBytes(reinterpret_cast<quint8*>(actual.data()), 5, 7, 1, 1);
+    QCOMPARE(actual, bytes);
+    for (QPoint point : {QPoint(37, 7), QPoint(5, 23), QPoint(37, 23)}) {
+        pixels->readBytes(reinterpret_cast<quint8*>(actual.data()), point.x(), point.y(), 1, 1);
+        QCOMPARE(actual, QByteArray(4, '\0'));
+    }
+    QCOMPARE(owner->operations().undoCount(), 1);
+}
+
+void KisImageTest::testGpuImageNotificationLifetime_data()
+{
+    QTest::addColumn<int>("notification");
+    QTest::newRow("layer-added") << 0;
+    QTest::newRow("modified") << 1;
+    QTest::newRow("projection-updated") << 2;
+}
+
+void KisImageTest::testGpuImageNotificationLifetime()
+{
+    QFETCH(int, notification);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(16, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Notification lifetime"));
+    QPointer<KisImage> guard(image.data());
+    bool retainedDuringDelivery = false;
+    const auto release = [&] {
+        image.clear();
+        retainedDuringDelivery = bool(guard);
+    };
+    if (notification == 0) connect(image.data(), &KisImage::sigNodeAddedAsync, this, release);
+    if (notification == 1) connect(image.data(), &KisImage::sigImageModified, this, release);
+    if (notification == 2) connect(image.data(), &KisImage::sigImageUpdated, this, release);
+    QVERIFY(owner->addLayer(QStringLiteral("Added")));
+    QVERIFY(retainedDuringDelivery);
+    QVERIFY(image.isNull());
+    QVERIFY(!guard);
+    QVERIFY(execution.requested(owner->handle()));
+}
+
+void KisImageTest::testGpuImagePublishesLayersProjectionAndSharedLifetime()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    const auto handle = owner->handle();
+    const auto bottomId = owner->operations().activeLayer();
+    QCOMPARE(owner->writeRgbaPixels(bottomId, QRect(8, 12, 1, 1), QByteArray::fromHex("115bcbff")), Gpu::Result::Success);
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("GPU image"));
+    QCOMPARE(image->bounds(), QRect(0, 0, 64, 32));
+    QCOMPARE(image->colorSpace(), KoColorSpaceRegistry::instance()->rgb8());
+    QCOMPARE(image->gpuImage(), owner);
+    QCOMPARE(image->root()->childCount(), 1U);
+    KisNodeSP bottom = image->root()->firstChild();
+    QCOMPARE(bottom->uuid(), owner->operations().snapshot()->layers.front().uuid);
+    QByteArray pixel(4, Qt::Uninitialized);
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 8, 12, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("cb5b11ff"));
+    QSignalSpy nodeChanges(image.data(), &KisImage::sigNodeChanged);
+    const auto stroke = owner->beginStroke(bottomId, Gpu::Brush{}, 7);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(owner->appendSamples(stroke, {{{20, 20}, 1}}), Gpu::Result::Success);
+    QVERIFY(!image->isIdle());
+    QCOMPARE(owner->cancelStroke(stroke), Gpu::Result::Success);
+    QVERIFY(nodeChanges.isEmpty());
+    QSignalSpy updates(image.data(), &KisImage::sigImageUpdated);
+    const auto topId = owner->addLayer(QStringLiteral("Top"));
+    QVERIFY(topId);
+    QCOMPARE(image->root()->childCount(), 2U);
+    QCOMPARE(image->root()->lastChild()->name(), QStringLiteral("Top"));
+    QCOMPARE(owner->replaceRgbaPixels(topId, QRect(8, 12, 1, 1), QByteArray::fromHex("ed2713ff")), Gpu::Result::Success);
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 8, 12, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("1327edff"));
+    QCOMPARE(owner->setLayerVisible(topId, false), Gpu::Result::Success);
+    QVERIFY(!image->root()->lastChild()->visible());
+    image->refreshGraphAsync();
+    image->waitForDone();
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 8, 12, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("cb5b11ff"));
+    QCOMPARE(owner->renameLayer(bottomId, QStringLiteral("Bottom")), Gpu::Result::Success);
+    QCOMPARE(image->root()->firstChild(), bottom);
+    QCOMPARE(bottom->name(), QStringLiteral("Bottom"));
+    QCOMPARE(owner->moveLayer(bottomId, 1), Gpu::Result::Success);
+    QCOMPARE(image->root()->lastChild(), bottom);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(image->root()->firstChild(), bottom);
+    QVERIFY(!updates.isEmpty());
+    image->barrierLock();
+    QVERIFY(image->locked());
+    QVERIFY(image->tryBarrierLock());
+    image->unlock();
+    QVERIFY(image->locked());
+    image->unlock();
+    QVERIFY(image->isIdle());
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    QSignalSpy modifications(image.data(), &KisImage::sigImageModified);
+    nodeChanges.clear();
+    QCOMPARE(owner->replaceRgbaPixels(bottomId, QRect(5, 5, 1, 1), QByteArray::fromHex("010203ff")), Gpu::Result::Success);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(!owner->operations().isModified());
+    QCOMPARE(modifications.size(), 2);
+    QVERIFY(nodeChanges.isEmpty());
+    owner.clear();
+    image.clear();
+    QVERIFY(execution.requested(handle));
+    bottom->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 8, 12, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("cb5b11ff"));
+    bottom.clear();
+    QVERIFY(!execution.requested(handle));
+}
 
 void KisImageTest::layerTests()
 {

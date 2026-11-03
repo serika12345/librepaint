@@ -5,6 +5,10 @@
 
 #include "kis_cubic_curve.h"
 
+#include <QCryptographicHash>
+#include <QDataStream>
+#include <QDir>
+#include <QFile>
 #include <QTest>
 
 #include <memory>
@@ -44,6 +48,8 @@ private Q_SLOTS:
     void editingOverloadsPreserveOrderingAndInvalidateValues();
     void copyAssignmentMetadataAndPredicatesPreserveValueSemantics();
     void evaluationAndTransfersClampAndSample();
+    void defaultBrushPressureTablesMatchAcrossArchitectures_data();
+    void defaultBrushPressureTablesMatchAcrossArchitectures();
     void serializationRoundTripsCornerAndCompatibilityRoutes();
 };
 
@@ -233,6 +239,47 @@ void KisCubicCurveContractTest::evaluationAndTransfersClampAndSample()
     compareNear(cornerCurve.value(0.25), 0.5);
     compareNear(cornerCurve.value(0.5), 0.0);
     compareNear(cornerCurve.value(0.75), 0.5);
+}
+
+void KisCubicCurveContractTest::defaultBrushPressureTablesMatchAcrossArchitectures_data()
+{
+    QTest::addColumn<QString>("curveString");
+    QTest::addColumn<QByteArray>("expectedSha256");
+    // Basic-5 Size Opacity in Krita_4_Default_Resources.bundle, preset SHA-256
+    // bd0610171db6d3eca006e7b12697d7baf3868ef34cbf3b1e792592d2f0957939.
+    // Separate double-precision products and sums produce these 256-value
+    // tables on ARM64 and x86_64. Brush snapshots retain these exact values.
+    QTest::newRow("size")
+        << QStringLiteral("0,0.0698697;0.196891,0.144105;0.689119,0.812227;1,1;")
+        << QByteArrayLiteral("113dbdc1d8c162a8069189713a0b87f3bfaa2e28a6c66e364af0c56056ee544b");
+    QTest::newRow("opacity")
+        << QStringLiteral("0,0;0.325305,0.288175;0.727782,0.924817;1,1;")
+        << QByteArrayLiteral("c9693407dad300f85f192818b87c2e7a597faad9be595ea3e6999285a25a3729");
+}
+
+void KisCubicCurveContractTest::defaultBrushPressureTablesMatchAcrossArchitectures()
+{
+    QFETCH(QString, curveString);
+    QFETCH(QByteArray, expectedSha256);
+    const KisCubicCurve curve(curveString);
+    const auto values = curve.floatTransfer(256);
+    QCOMPARE(values.size(), 256);
+    QByteArray bytes;
+    QDataStream stream(&bytes, QIODevice::WriteOnly);
+    stream.setVersion(QDataStream::Qt_5_15);
+    stream.setByteOrder(QDataStream::BigEndian);
+    stream.setFloatingPointPrecision(QDataStream::DoublePrecision);
+    for (qreal value : values) stream << double(value);
+    QCOMPARE(stream.status(), QDataStream::Ok);
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile file(QDir(directory).filePath(QStringLiteral("default-brush-pressure-") +
+                   QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".f64be")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(bytes), bytes.size());
+    }
+    QCOMPARE(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex(), expectedSha256);
 }
 
 void KisCubicCurveContractTest::serializationRoundTripsCornerAndCompatibilityRoutes()

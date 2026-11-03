@@ -25,8 +25,19 @@
 #include "kis_layer.h"
 #include "kis_selection_mask.h"
 #include "kundo2stack.h"
+#include "gpu/KisGpuPaintImage.h"
+#include <stdexcept>
 
 namespace {
+
+LibrePaint::Image::Gpu::LayerId gpuLayerId(KisImageSP image, KisNodeSP node)
+{
+    if (!node || node->image() != image.data())
+        throw std::invalid_argument("GPU layer edits require a node in the current image");
+    for (const auto &layer : image->gpuImage()->operations().snapshot()->layers)
+        if (layer.uuid == node->uuid()) return layer.id;
+    throw std::invalid_argument("GPU layer edits require a paint layer in the current document");
+}
 
 bool prepareNodeMove(KisNodeSP node, KisNodeSP parent)
 {
@@ -163,6 +174,14 @@ void KisNodeCommandsAdapter::removeNode(KisNodeSP node)
 
 void KisNodeCommandsAdapter::setOpacity(KisNodeSP node, qint32 opacity)
 {
+    const auto currentImage = image();
+    if (const auto owner = currentImage->gpuImage()) {
+        const auto result = owner->setLayerOpacity(gpuLayerId(currentImage, node), quint8(opacity),
+            LibrePaint::Image::Gpu::PropertyHistory::MergeConsecutive);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU layer opacity edit failed: " + std::to_string(int(result)));
+        return;
+    }
     KUndo2Command *cmd = new KisNodeOpacityCommand(node, opacity);
     applyOneCommandAsync(cmd);
 }
@@ -170,6 +189,27 @@ void KisNodeCommandsAdapter::setOpacity(KisNodeSP node, qint32 opacity)
 void KisNodeCommandsAdapter::setCompositeOp(KisNodeSP node,
                                             const KoCompositeOp* compositeOp)
 {
+    const auto currentImage = image();
+    if (const auto owner = currentImage->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        if (compositeOp->id() != COMPOSITE_OVER && compositeOp->id() != COMPOSITE_MULT && compositeOp->id() != COMPOSITE_SCREEN &&
+            compositeOp->id() != COMPOSITE_DARKEN && compositeOp->id() != COMPOSITE_LIGHTEN &&
+            compositeOp->id() != COMPOSITE_ADD && compositeOp->id() != COMPOSITE_LINEAR_DODGE) {
+            qWarning("The selected GPU layer blending mode is unavailable");
+            return;
+        }
+        const auto result = owner->setLayerBlendMode(gpuLayerId(currentImage, node),
+            compositeOp->id() == COMPOSITE_MULT ? Gpu::LayerBlendMode::Multiply :
+                    compositeOp->id() == COMPOSITE_SCREEN ? Gpu::LayerBlendMode::Screen :
+                    compositeOp->id() == COMPOSITE_DARKEN ? Gpu::LayerBlendMode::Darken :
+                    compositeOp->id() == COMPOSITE_LIGHTEN ? Gpu::LayerBlendMode::Lighten :
+                    compositeOp->id() == COMPOSITE_ADD ? Gpu::LayerBlendMode::Addition :
+                    compositeOp->id() == COMPOSITE_LINEAR_DODGE ? Gpu::LayerBlendMode::LinearDodge : Gpu::LayerBlendMode::Normal,
+            Gpu::PropertyHistory::MergeConsecutive);
+        if (result != Gpu::Result::Success)
+            throw std::runtime_error("GPU layer blending mode edit failed: " + std::to_string(int(result)));
+        return;
+    }
     KUndo2Command *cmd = new KisNodeCompositeOpCommand(node,
                                                        compositeOp->id());
     applyOneCommandAsync(cmd);
@@ -177,6 +217,17 @@ void KisNodeCommandsAdapter::setCompositeOp(KisNodeSP node,
 
 void KisNodeCommandsAdapter::setNodeName(KisNodeSP node, const QString &name)
 {
+    const auto currentImage = image();
+    if (const auto owner = currentImage->gpuImage()) {
+        const bool mask = currentImage->isGpuTransparencyMaskView(node);
+        const auto layer = gpuLayerId(currentImage, mask ? node->parent() : node);
+        const auto result = mask ? owner->renameTransparencyMask(layer, name,
+            LibrePaint::Image::Gpu::PropertyHistory::MergeConsecutive) :
+            owner->renameLayer(layer, name, LibrePaint::Image::Gpu::PropertyHistory::MergeConsecutive);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU layer rename failed: " + std::to_string(int(result)));
+        return;
+    }
     KUndo2Command *cmd = new KisNodeRenameCommand(node, node->name(), name);
     applyOneCommandAsync(cmd);
 }

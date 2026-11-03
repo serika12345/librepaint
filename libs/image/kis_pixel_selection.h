@@ -44,6 +44,15 @@ public:
 
     ~KisPixelSelection() override;
 
+    /** Binds immutable Alpha8 GPU pixels and their display contour. The image
+     * pins execution; byte readers retain exact coverage after document closure.
+     * Painting and history use the image owner. maskUuid enables direct node
+     * writes; empty identity retains a read-only selection. clear() detaches.
+     */
+    void bindGpuCoverage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
+                         QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> mask,
+                         const QUuid &maskUuid = {}, QPoint position = {});
+
     KisSelectionComponent* clone(KisSelection*) override;
 
     const KoColorSpace* compositionSourceColorSpace() const override;

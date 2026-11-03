@@ -38,6 +38,7 @@ private Q_SLOTS:
     void testBitBltOldData();
     void testBitBltRough();
     void testTransactions();
+    void testUntrackedWritesAcrossUndoRedo();
     void testPurgeHistory();
     void testUndoSetDefaultPixel();
 

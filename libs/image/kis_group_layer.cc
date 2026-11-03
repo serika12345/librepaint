@@ -24,6 +24,7 @@
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
 #include "kis_image.h"
+#include "gpu/KisGpuPaintImage.h"
 #include "kis_paint_device.h"
 #include "kis_default_bounds.h"
 #include "kis_clone_layer.h"
@@ -37,6 +38,8 @@
 #include <qicon.h>
 #include <qobject.h>
 #include <tuple>
+#include <stdexcept>
+#include <utility>
 
 void kisSharedPtrAddReference(KisGroupLayer *pointer)
 {
@@ -71,10 +74,18 @@ public:
     std::tuple<KisPaintDeviceSP, bool> originalImpl() const;
 };
 
-KisGroupLayer::KisGroupLayer(KisImageWSP image, const QString &name, quint8 opacity, const KoColorSpace * colorSpace) :
+KisGroupLayer::KisGroupLayer(KisImageWSP image, const QString &name, quint8 opacity, const KoColorSpace *colorSpace)
+    : KisGroupLayer(image, name, opacity, colorSpace, KisPaintDeviceSP())
+{
+}
+
+KisGroupLayer::KisGroupLayer(KisImageWSP image, const QString &name, quint8 opacity,
+                           const KoColorSpace *colorSpace, KisPaintDeviceSP projection) :
     KisLayer(image, name, opacity),
     m_d(new Private())
 {
+    m_d->paintDevice = std::move(projection);
+    if (m_d->paintDevice) m_d->paintDevice->setParentNode(this);
     resetCache(colorSpace);
 }
 
@@ -210,6 +221,15 @@ void KisGroupLayer::fillMergedLayerTemplate(KisLayerSP dstLayer, KisLayerSP prev
 
 void KisGroupLayer::resetCache(const KoColorSpace *colorSpace)
 {
+    if (const auto owner = image() ? image()->gpuImage() : nullptr) {
+        if (!image()->root() || image()->root().data() == this)
+            m_d->paintDevice = KisPaintDevice::fromGpuImage(owner, 0, {}, colorSpace ? colorSpace : image()->colorSpace());
+    }
+    if (m_d->paintDevice && m_d->paintDevice->gpuPixelImage()) {
+        m_d->paintDevice->setDefaultBounds(new KisDefaultBounds(image()));
+        m_d->paintDevice->setProjectionDevice(true);
+        return;
+    }
     if (!colorSpace)
         colorSpace = image()->colorSpace();
 
@@ -256,6 +276,9 @@ KisPaintDeviceSP KisGroupLayer::tryObligeChild() const
     KisLayer *child = onlyMeaningfulChild();
 
     if (child) {
+        const auto *group = qobject_cast<const KisGroupLayer *>(child);
+        if (group && group->passThroughMode()) return nullptr;
+
         KisPaintDeviceSP projection = child->projection();
         if (child->channelFlags().isEmpty() &&
                 projection &&
@@ -281,6 +304,7 @@ KisPaintDeviceSP KisGroupLayer::tryObligeChild() const
 
 std::tuple<KisPaintDeviceSP, bool> KisGroupLayer::originalImpl() const
 {
+    if (m_d->paintDevice->gpuPixelImage()) return {m_d->paintDevice, true};
     /**
      * We are too lazy! Let's our children work for us.
      * Try to use children's paintDevice if it's the only
@@ -331,11 +355,22 @@ bool KisGroupLayer::projectionIsValid() const
 
 void KisGroupLayer::setDefaultProjectionColor(KoColor color)
 {
+    if (image() && image()->gpuImage()) {
+        if (this == image()->rootLayer().data()) image()->setDefaultProjectionColor(color);
+        else {
+            color.convertTo(colorSpace());
+            if (color != KoColor::createTransparent(colorSpace()))
+                throw std::logic_error("GPU group projection backgrounds require transparent black");
+        }
+        return;
+    }
     m_d->paintDevice->setDefaultPixel(color);
 }
 
 KoColor KisGroupLayer::defaultProjectionColor() const
 {
+    if (image() && image()->gpuImage()) return this == image()->rootLayer().data() ?
+        image()->defaultProjectionColor() : KoColor::createTransparent(colorSpace());
     KoColor color(m_d->paintDevice->defaultPixel(), m_d->paintDevice->colorSpace());
     return color;
 }
@@ -347,6 +382,14 @@ bool KisGroupLayer::passThroughMode() const
 
 void KisGroupLayer::setPassThroughMode(bool value)
 {
+    const auto owner = image() ? image()->gpuImage() : LibrePaint::Image::Gpu::PaintImageSP();
+    if (graphListener() && owner && !image()->isSynchronizingGpuNodes()) {
+        LibrePaint::Image::Gpu::LayerId id = 0;
+        for (const auto &layer : owner->operations().snapshot()->layers)
+            if (layer.uuid == uuid()) { id = layer.id; break; }
+        if (id && owner->writeLayerPassThrough(id, value) != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU group pass-through write failed");
+    }
     if (m_d->passThroughMode == value) return;
 
     m_d->passThroughMode = value;

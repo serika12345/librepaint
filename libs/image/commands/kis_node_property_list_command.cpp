@@ -16,6 +16,8 @@
 #include "kis_undo_adapter.h"
 #include "kis_layer_properties_icons.h"
 #include "kis_command_ids.h"
+#include "gpu/KisGpuPaintImage.h"
+#include "kis_transparency_mask.h"
 
 #include <memory>
 #include <QtGlobal>
@@ -23,6 +25,8 @@
 #include <qscopedpointer.h>
 #include <qset.h>
 #include <qvariant.h>
+#include <QScopeGuard>
+#include <stdexcept>
 
 // HACK! please refactor out!
 #include "kis_simple_stroke_strategy.h"
@@ -237,6 +241,60 @@ const QSet<QString>& KisNodePropertyListCommand::propsWithNoUpdates()
 void KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node, KisImageSP image, PropertyList proplist)
 {
     const QSet<QString> properties = changedProperties(node->sectionModelProperties(), proplist);
+
+    if (const auto owner = image->gpuImage()) {
+        if (properties.isEmpty()) return;
+        if (properties.size() == 1 &&
+            (properties.contains(KisLayerPropertiesIcons::visible.id()) ||
+             properties.contains(KisLayerPropertiesIcons::locked.id()) ||
+             properties.contains(KisLayerPropertiesIcons::alphaLocked.id()) ||
+             properties.contains(KisLayerPropertiesIcons::inheritAlpha.id()) ||
+             properties.contains(KisLayerPropertiesIcons::passThrough.id()))) {
+            namespace Gpu = LibrePaint::Image::Gpu;
+            if (node->image() != image.data())
+                throw std::invalid_argument("GPU layer properties require a node in the current image");
+            Gpu::LayerId layerId = 0;
+            const bool mask = bool(qobject_cast<KisTransparencyMask *>(node.data()));
+            const auto identity = mask && node->parent() ? node->parent()->uuid() : node->uuid();
+            for (const auto &layer : owner->operations().snapshot()->layers)
+                if (layer.uuid == identity) { layerId = layer.id; break; }
+            image->barrierLock();
+            const auto unlock = qScopeGuard([&] { image->unlock(); });
+            const auto id = *properties.begin();
+            for (const auto &property : proplist) {
+                if (property.id != id) continue;
+                Gpu::Result result;
+                if (mask && id == KisLayerPropertiesIcons::visible.id())
+                    result = owner->setTransparencyMaskVisible(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                else if (mask && id == KisLayerPropertiesIcons::locked.id())
+                    result = owner->setTransparencyMaskLocked(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                else if (mask) throw std::invalid_argument("The GPU mask does not support the requested property");
+                else if (id == KisLayerPropertiesIcons::visible.id())
+                    result = owner->setLayerVisible(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                else if (id == KisLayerPropertiesIcons::locked.id())
+                    result = owner->setLayerLocked(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                else if (id == KisLayerPropertiesIcons::passThrough.id())
+                    result = owner->setLayerPassThrough(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                else {
+                    quint8 mask = 15;
+                    for (const auto &layer : owner->operations().snapshot()->layers)
+                        if (layer.id == layerId) {
+                            mask = id == KisLayerPropertiesIcons::inheritAlpha.id() ?
+                                layer.projectionChannelMask : layer.channelWriteMask;
+                            break;
+                        }
+                    mask = property.state.toBool() ? mask & 7u : mask | 8u;
+                    result = id == KisLayerPropertiesIcons::inheritAlpha.id() ?
+                        owner->setLayerProjectionMask(layerId, mask, Gpu::PropertyHistory::MergeConsecutive) :
+                        owner->setLayerChannelMask(layerId, mask, Gpu::PropertyHistory::MergeConsecutive);
+                }
+                if (result != Gpu::Result::Success)
+                    throw std::runtime_error("GPU layer property edit failed: " + std::to_string(int(result)));
+                return;
+            }
+            throw std::invalid_argument("GPU layer property edit requires the changed value");
+        }
+    }
 
     const bool undo = !properties.isEmpty() &&
         (properties.size() != 1 ||

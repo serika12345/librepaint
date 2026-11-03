@@ -370,6 +370,7 @@ protected:
     KisBaseNodeSP parentCallback() const override;
     void notifyParentVisibilityChanged(bool value) override;
     void baseNodeChangedCallback() override;
+    void preparePropertyChange(NodePropertyChange property, const QVariant &value) override;
     void baseNodeInvalidateAllFramesCallback() override;
     void baseNodeCollapsedChangedCallback() override;
 

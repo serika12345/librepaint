@@ -7,14 +7,14 @@
 #ifndef __KIS_ABSTRACT_COMPRESSION_H
 #define __KIS_ABSTRACT_COMPRESSION_H
 
-#include "kritaimage_export.h"
+#include "kritalzfcompression_export.h"
 #include <QtGlobal>
 
 /**
  * Base class for compression operations
  */
 
-class KRITAIMAGE_EXPORT KisAbstractCompression
+class KRITALZFCOMPRESSION_EXPORT KisAbstractCompression
 {
 public:
     KisAbstractCompression();
@@ -37,11 +37,10 @@ public:
 
     /**
      * Decompresses \p input buffer into \p output buffer.
-     * WARNING: output buffer must be able to fit the input data
      * \param input the input
-     * \param inputLength the input length
+     * \param inputLength the compressed input length
      * \param output the output
-     * \param outputLength is not used!
+     * \param outputLength the available output capacity in bytes
      * \return number of bytes written to the output buffer
      * and 0 if error occurred.
      */

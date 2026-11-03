@@ -20,6 +20,8 @@ private Q_SLOTS:
     void testFreehandOutlineUsesPreviousDistinctCursorPosition();
     void testAutomaticBrushSpacingPreservesConfiguredStrokeGeometry();
     void testScaledBrushSkipsSubpixelDabs();
+    void testCubicTraversalKeepsGeometryAndInput_data();
+    void testCubicTraversalKeepsGeometryAndInput();
 
 };
 

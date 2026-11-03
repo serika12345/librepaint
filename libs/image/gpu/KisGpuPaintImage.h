@@ -1,0 +1,418 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#ifndef KIS_GPU_PAINT_IMAGE_H
+#define KIS_GPU_PAINT_IMAGE_H
+
+#include "KisGpuOperationDocument.h"
+#include <kritagpuimage_export.h>
+#include <QObject>
+#include <QRect>
+#include <memory>
+#include <optional>
+#include <utility>
+
+namespace LibrePaint::Image::Gpu {
+class Execution;
+struct ExecutionOutcome;
+struct PixelBytesOutcome;
+class PaintImage;
+
+/** GUI-thread pixel identity shared by views of one layer. Immutable versions
+ * stay readable through removal and discarded history on the owning image.
+ */
+class KRITAGPUIMAGE_EXPORT LayerPixelReference
+{
+public:
+    LayerId layer() const { return m_layer; }
+    Snapshot version() const { return m_version; }
+private:
+    friend class PaintImage;
+    LayerPixelReference(LayerId layer, QUuid uuid, Snapshot version)
+        : m_layer(layer), m_uuid(uuid), m_version(std::move(version)) {}
+    LayerId m_layer;
+    QUuid m_uuid;
+    Snapshot m_version;
+};
+using LayerPixelReferenceSP = QSharedPointer<LayerPixelReference>;
+
+/** Shared editable image, history, notifications and GPU attachment.
+ * Calls and destruction use the GUI/device thread. Shared execution construction
+ * keeps the execution alive; borrowed execution outlives every image reference.
+ * Accepted edits update the GPU
+ * request before changed() is emitted; admission failures retain logical edits.
+ * Invalid construction throws std::invalid_argument, and exhausted attachment
+ * capacity throws std::length_error. The last image reference closes its handle.
+ */
+class KRITAGPUIMAGE_EXPORT PaintImage : public QObject
+{
+    Q_OBJECT
+public:
+    explicit PaintImage(Execution &execution, QSize size, Limits limits = {});
+    explicit PaintImage(Execution &execution, const RasterImage &image, Limits limits = {});
+    explicit PaintImage(std::shared_ptr<Execution> execution, QSize size, Limits limits = {});
+    explicit PaintImage(std::shared_ptr<Execution> execution, const RasterImage &image, Limits limits = {});
+    ~PaintImage() override;
+    /** Borrowed logical owner; valid for this image lifetime. */
+    const OperationDocument &operations() const;
+    Limits limits() const;
+    quint64 handle() const;
+    /** Borrowed GUI-thread execution owner; shared construction pins its lifetime. */
+    Execution &execution() const;
+    /** Independent committed image with empty, saved history on the same execution.
+     * Immutable input and raster blocks may be shared. Operation identities are
+     * fresh; preserveLayerUuids retains public layer identities for snapshots.
+     * Returns null off-thread; attachment capacity throws std::length_error.
+     */
+    QSharedPointer<PaintImage> clone(bool preserveLayerUuids = false) const;
+    /** Clones logical values into the destination execution, with the same guarantees. */
+    QSharedPointer<PaintImage> cloneTo(Execution &destination, bool preserveLayerUuids = false) const;
+    /** Uses the destination image's execution lifetime, including shared ownership. */
+    QSharedPointer<PaintImage> cloneTo(const PaintImage &destination, bool preserveLayerUuids = false) const;
+    /** Independent editable copy of retained layer pixels on this execution.
+     * Shares immutable input and compressed blocks, with fresh operation identity
+     * and empty saved history. Removed layers use their last retained version.
+     * Returns null for foreign, unavailable or off-thread references; attachment
+     * capacity throws std::length_error.
+     */
+    QSharedPointer<PaintImage> cloneLayerPixels(const LayerPixelReferenceSP &pixels) const;
+    /** Independent saved copy of prepared roots and descendants on one attachment.
+     * Immutable pixel/input blocks are retained. Returns null for invalid or
+     * off-thread input; attachment capacity throws std::length_error.
+     */
+    QSharedPointer<PaintImage> cloneLayerForest(const QList<LayerInsertion> &layers) const;
+    /** Captures fixed canonical pixels as one saved paint layer at the origin.
+     * Layer zero uses the image's canonical byte view. The working estimate
+     * includes packed pixels, padded tiles and checkpoint encoding. Returns null
+     * for invalid, busy, closed, off-thread or rejected pixel reads; attachment
+     * capacity throws std::length_error. The caller supplies the destination
+     * layer identity. Optional document-coordinate coverage applies the clipboard alpha mask
+     * on the GPU before external readback, retaining unassociated RGB. Copies retain shared execution.
+     */
+    QSharedPointer<PaintImage> cloneRasterLayer(const Snapshot &version, LayerId layer, QRect region,
+                                               const QUuid &destinationUuid, qsizetype maximumWorkingBytes,
+                                               const SelectionMaskSP &mask = {}, bool invertMask = false) const;
+    ExecutionOutcome lastRequestOutcome() const;
+    /** Synchronous canonical pixels from the current committed image version. */
+    PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;
+    /** Retains a live layer's pixel identity; zero retains the current root projection.
+     * Null for unavailable/off-thread requests. Removed roots keep their fixed pixels.
+     * References follow committed pixels and active movement previews. Painting
+     * keeps committed pixels; cancellation and close discard movement previews.
+     */
+    LayerPixelReferenceSP retainLayerPixels(LayerId layer);
+
+    /** Selection state for subsequent painting; accepted operations freeze it. */
+    OperationId beginColorConversion();
+    Result cancelColorConversion(OperationId id);
+    Result commitColorConversion(OperationId id, const Snapshot &before, PixelFormat format,
+        const QByteArray &profile, const RgbaPixel &background, const QList<ConvertedLayerPixels> &layers);
+
+    Result setSelectionRect(const QRect &rect, bool inverted = false);
+    Result setSelectionEllipse(const QRect &rect, bool inverted = false);
+    Result setSelectionMask(const SelectionMaskSP &mask, bool inverted = false);
+    Result combineSelectionMask(const SelectionMaskSP &mask, SelectionCombination action);
+    /** Exact finite complement for native selection views; null reports failure.
+     * Retains GPU coverage and leaves the document and history unchanged. */
+    SelectionMaskSP complementSelectionMask(const SelectionMaskSP &mask, QRect clip);
+    /** Moves immutable selection coverage inside clip for preview or adoption.
+     * Returns an empty mask when clipped away, null on failure. Leaves history
+     * unchanged; generated coverage stays on the GPU. */
+    SelectionMaskSP translatedSelectionMask(const SelectionMaskSP &mask, QPoint offset, QRect clip);
+    /** Native Alpha8 filtering for the ordinary selection transform.
+     * Pixels stay on the GPU; immutable results leave history unchanged.
+     * Empty coverage is valid, null reports invalid input, busy or capacity.
+     */
+    SelectionMaskSP transformedSelectionMask(const SelectionMaskSP &mask, const AffinePlan &plan);
+    /** Transparency-mask gray is filtered independently from selectedness.
+     * Null selection transforms the whole mask; selected pixels are cut and
+     * composited over the unchanged remainder. Whole-mask transforms replace
+     * the native pixel selection, including its parent's default bounds.
+     */
+    SelectionMaskSP transformedTransparencyMask(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
+                                               bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds = {},
+                                               QPoint devicePosition = {});
+    /** Native parent bounds for a mask transformed in the same transaction.
+     * Evaluates retained committed pixels on an independent GPU attachment,
+     * reads allocation summaries, and leaves this image and history unchanged.
+     * Empty optional reports invalid input, busy, device or capacity failure.
+     */
+    std::optional<QRect> transformedLayerDefaultBounds(LayerId layer, const AffinePlan &plan);
+    Result clearSelection();
+    bool selectionInverted() const;
+    LibrePaint::Image::Gpu::SelectionKind selectionKind() const;
+    QRect selectionRect() const;
+    SelectionMaskSP selectionMask() const;
+
+    /** Adds a transparency mask to one paint layer from the current selection
+     * coverage. The mask is retained by document versions and composition; it
+     * is not synchronized per stroke. Returns InvalidInput for a layer that
+     * already owns a mask or a document without a selection.
+     */
+    Result addTransparencyMaskFromSelection(LayerId layer);
+    Result addTransparencyMask(LayerId layer);
+    Result addTransparencyMask(LayerId layer, const QString &name);
+    Result insertTransparencyMask(LayerId layer, const RasterLayer &source);
+    Result setTransparencyMaskVisible(LayerId layer, bool visible, PropertyHistory history = PropertyHistory::Separate);
+    Result setTransparencyMaskLocked(LayerId layer, bool locked, PropertyHistory history = PropertyHistory::Separate);
+    Result writeTransparencyMaskVisible(LayerId layer, bool visible);
+    Result writeTransparencyMaskLocked(LayerId layer, bool locked);
+    Result renameTransparencyMask(LayerId layer, const QString &name, PropertyHistory history = PropertyHistory::Separate);
+    Result writeTransparencyMaskName(LayerId layer, const QString &name);
+    Result writeTransparencyMaskColorLabel(LayerId layer, int index);
+    Result writeTransparencyMaskPinnedToTimeline(LayerId layer, bool pinned);
+    Result removeTransparencyMask(LayerId layer);
+    Result writeTransparencyMask(LayerId layer, const SelectionMaskSP &mask);
+    /** Replaces retained mask coverage as one history entry; null is rejected. */
+    Result replaceTransparencyMask(LayerId layer, const SelectionMaskSP &mask, const QUuid &maskUuid = {});
+    /** Clears one editable mask's selected alpha, or resets its finite storage
+     * to its retained default when selectedOnly is false. One history entry. */
+    Result clearMaskPixels(LayerId layer, bool selectedOnly, const QUuid &maskUuid = {});
+    SelectionMaskSP layerTransparencyMask(LayerId layer) const;
+    bool layerTransparencyMaskVisible(LayerId layer) const;
+
+    /** Starts brush/erase input against the layer's retained transparency mask.
+     * The input paints a temporary GPU image initialized from the frozen
+     * coverage; committing converts its alpha back into one mask version and one
+     * history entry. Layer pixels and other layers stay unchanged. The returned
+     * identity participates in active-input, cancel and undo blocking like a
+     * normal stroke, although the temporary input has no document history.
+     */
+    // An explicit node UUID selects an internal filter mask or transparency child;
+    // an empty UUID selects a filter node's internal coverage or another
+    // layer kind's transparency child.
+    OperationId beginTransparencyMaskStroke(LayerId layer, const Brush &brush, quint64 seed, const QUuid &maskUuid = {});
+    /** Adopts one completed figure into the retained mask as one history entry. */
+    Result paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
+                                       const QList<InputSample> &samples, const Shape &shape,
+                                       const FigureStyle &style, quint64 randomSeed, const QUuid &maskUuid = {});
+    /** Fills the retained mask through the current selection as one history entry.
+     * `erase` clears selected coverage instead of adding it.
+     */
+    Result fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &rgb,
+                                qreal opacity = 1, bool erase = false, bool alphaLocked = false, const QUuid &maskUuid = {});
+    Result fillTransparencyMask(LayerId layer, const std::array<quint8, 3> &gray,
+                                qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode, const QUuid &maskUuid = {});
+    Result fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
+                                       qreal opacity = 1, bool erase = false, bool alphaLocked = false, const QUuid &maskUuid = {});
+
+    Result fillTransparencyMaskPattern(LayerId layer, const PatternFill &pattern,
+                                       qreal opacity, bool erase, bool alphaLocked, LayerBlendMode mode, const QUuid &maskUuid = {});
+
+    OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
+    Result appendSamples(OperationId id, const QList<InputSample> &samples);
+    /** Ordered painter primitives target the active paint or mask stroke with
+     * the same atomic input and lifetime contract as OperationDocument.
+     */
+    Result appendPoint(OperationId id, const InputSample &point);
+    Result appendLine(OperationId id, const InputSample &first, const InputSample &last);
+    Result appendPainterPrimitives(OperationId id, const QList<InputSample> &samples,
+                                   const QList<PathCommand> &commands);
+    Result flushSmoothing(OperationId id);
+    Result updateShape(OperationId id, const Shape &shape);
+    Result updateFigure(OperationId id, const Shape &shape, const FigureStyle &style);
+    /** Complete figure adoption publishes one committed version and one notification. */
+    Result paintFigure(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
+                       const Shape &shape, const FigureStyle &style, quint64 randomSeed);
+    Result commitStroke(OperationId id);
+    Result cancelStroke(OperationId id);
+    /** Integer placement keeps original painting inputs and publishes live previews.
+     * One committed gesture adds one history entry; cancellation keeps Redo.
+     */
+    /** Canonical free-transform transaction. Inputs and masks are frozen at
+     * begin; previews always start from the committed pixels. Failed rendering
+     * retains the last valid preview, and commit creates one history entry.
+     */
+    OperationId beginAffineTransform(const QList<AffineTransformTarget> &layers, QRect copyRect = {}, QRect clearRect = {});
+    Result updateAffineTransform(OperationId id, const QList<AffineLayerPlan> &plans,
+                                 const SelectionMaskSP &selection = {}, bool inverted = false);
+    Result commitAffineTransform(OperationId id);
+    Result cancelAffineTransform(OperationId id);
+    OperationId beginLayerTranslation(LayerId layer);
+    OperationId beginLayerTranslation(const QList<LayerTranslationTarget> &targets);
+    OperationId beginSelectionTranslation(LayerId layer, QRect copyRect, QRect clearRect);
+    /** Native opacityU8 handle bounds for the current selected-pixel move. */
+    QRect selectionTranslationBounds(OperationId id) const;
+    Result updateLayerTranslation(OperationId id, QPoint offsetSinceStart);
+    Result commitLayerTranslation(OperationId id);
+    Result cancelLayerTranslation(OperationId id);
+    /** Absolute placement preserves history position, saved state and notifications. */
+    Result writeLayerPosition(LayerId layer, QPoint position);
+    Result writeLayerPosition(const LayerPixelReferenceSP &pixels, QPoint position);
+    Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
+    /** Replaces nonempty packed pixel rectangles in one history entry. */
+    Result replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
+    /** Direct packed RGBA writes at document precision preserve history, notifications and fixed versions.
+     * Ignores surplus input bytes and accepts empty rectangles. Transfers and
+     * compression finish before logical adoption; rejected writes are atomic.
+     */
+    Result writeRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
+    /** Direct Alpha8 input replaces only the requested region. Native64-block
+     * history ownership preserves unrelated writes across Undo/Redo. Fixed
+     * versions, history position and edit notifications remain unchanged.
+     * Retained coverage and canvas values also serve detached pixel copies
+     * after their source document closes. */
+    Result writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect region, const QByteArray &bytes,
+                           SelectionMaskSP *retainedCoverage = nullptr, QSize retainedCanvasSize = {}, QPoint retainedPosition = {});
+    /** Absolute Alpha8 device move outside history. Copies retain an independent
+     * coordinate and coverage; live node writes update their position lineage. */
+    Result writeMaskPosition(const QUuid &maskUuid, QPoint position, SelectionMaskSP *retainedCoverage,
+                             QPoint retainedPosition);
+    /** Direct writes also reach retained removed layers and their surviving history.
+     * The current scene and its history position stay unchanged for detached layers.
+     */
+    Result writeRgbaPixels(const LayerPixelReferenceSP &pixels, QRect region, const QByteArray &bytes);
+    /** Direct background writes request pixels without adding history or edit notifications. */
+    Result writeProjectionBackground(const RgbaPixel &rgba);
+    Result writeLayerDefaultPixel(const LayerPixelReferenceSP &pixels, const RgbaPixel &rgba);
+    Result writeLayerName(LayerId layer, const QString &name);
+    Result writeLayerVisible(LayerId layer, bool visible);
+    Result writeLayerOpacity(LayerId layer, quint8 opacity);
+    Result writeLayerLocked(LayerId layer, bool locked);
+    Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
+    Result writeLayerColorLabel(LayerId layer, int index);
+    /** Publishes one adopted layer-attribute edit after direct UI previews. */
+    Result recordLayerProperties(const Snapshot &before, const Snapshot &after,
+                                 const QList<LayerPropertiesSelection> &selection);
+    /** Restores selected preview attributes without changing history or input. */
+    Result restoreLayerProperties(const Snapshot &before, const QList<LayerPropertiesSelection> &selection);
+    LayerId addFilterNode(const RasterLayer &node, qsizetype index, qsizetype effectIndex = -1);
+    OperationId beginFilterNodeEdit(LayerId existing, const RasterLayer &node, qsizetype index,
+                                    qsizetype effectIndex = -1, bool useDocumentSelection = false);
+    Result updateFilterNodeEdit(OperationId id, const FilterDefinition &filter, const QString &name);
+    Result commitFilterNodeEdit(OperationId id);
+    Result cancelFilterNodeEdit(OperationId id);
+    Result setFilterDefinition(LayerId node, const FilterDefinition &filter, const QString &name = {});
+    Result writeFilterDefinition(LayerId node, const FilterDefinition &filter);
+    Result setFilterSelection(LayerId node, const SelectionMaskSP &coverage);
+    LayerId addLayer(const QString &name);
+    LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid = {});
+    /** Inserts validated committed inputs as one history entry, preserving the
+     * supplied fresh public identity. Rejections leave history unchanged.
+     */
+    LayerId insertLayer(const OperationDocument &source, LayerId layer,
+                        const RasterLayer &properties, qsizetype index, bool activate = true);
+    /** Uses retained pixels, including removed layers, without reading back GPU pixels. */
+    LayerId insertLayer(const PaintImage &source, const LayerPixelReferenceSP &pixels,
+                        const RasterLayer &properties, qsizetype index, bool activate = true);
+    /** Publishes one prepared forest and an optional pixel-selection clear in
+     * one version and one notification after atomic adoption.
+     */
+    Result insertLayers(const QList<LayerInsertion> &layers, qsizetype index, bool activate = true,
+                        bool clearPixelSelection = false, qsizetype effectIndex = -1);
+    Result selectLayer(LayerId layer);
+    Result selectLayers(const QList<LayerId> &layers, LayerId active);
+    Result duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource);
+    Result setLayerVisible(LayerId layer, bool visible);
+    Result setLayerVisible(LayerId layer, bool visible, PropertyHistory history);
+    Result setLayerOpacity(LayerId layer, quint8 opacity);
+    Result setLayerOpacity(LayerId layer, quint8 opacity, PropertyHistory history);
+    Result setLayerLocked(LayerId layer, bool locked);
+    Result setLayerLocked(LayerId layer, bool locked, PropertyHistory history);
+    Result setLayerChannelMask(LayerId layer, quint8 mask, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerChannelMask(LayerId layer, quint8 mask);
+    Result setLayerProjectionMask(LayerId layer, quint8 mask, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerProjectionMask(LayerId layer, quint8 mask);
+    Result setLayerPassThrough(LayerId layer, bool enabled, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerPassThrough(LayerId layer, bool enabled);
+    Result setLayerBlendMode(LayerId layer, LayerBlendMode mode, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerBlendMode(LayerId layer, LayerBlendMode mode);
+    Result renameLayer(LayerId layer, const QString &name);
+    Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
+    Result moveLayer(LayerId layer, qsizetype index);
+    Result reorderLayers(const QList<LayerId> &order);
+    Result moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid,
+                      LayerId activeRoot = 0);
+    Result groupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &groupName,
+                       const QString &clippingLayerName = {});
+    Result ungroupLayers(const QList<LayerId> &layers, LayerId activeRoot, const QString &replacementName = {});
+    Result mergeLayers(const LayerMergeRequest &request);
+    Result removeLayer(LayerId layer);
+    Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
+    /** Clears whole layers atomically while retained versions remain readable. */
+    Result clearLayers(const QList<LayerId> &layers);
+    Result clearSelectedPixels(const QList<LayerId> &layers);
+    Result cropLayer(LayerId layer, const QRect &rect, const QUuid &maskUuid = {});
+    Result resizeCanvas(const QRect &rect, bool cropLayers);
+    /** Publishes one canvas-bounded color fill before notifying attached consumers.
+     * The fill blend mode is frozen with the fill intent.
+     */
+    Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, qreal opacity = 1,
+                     bool erase = false, bool alphaLocked = false,
+                     LayerBlendMode blendMode = LayerBlendMode::Normal);
+    Result fillLayerColor(LayerId layer, const RgbaPixel &color, qreal opacity = 1,
+                          bool erase = false, bool alphaLocked = false,
+                          LayerBlendMode blendMode = LayerBlendMode::Normal);
+    Result fillLayerPattern(LayerId layer, const PatternFill &pattern, qreal opacity = 1,
+                            bool erase = false, bool alphaLocked = false,
+                            LayerBlendMode blendMode = LayerBlendMode::Normal);
+    Result fillRegion(LayerId layer, const RegionFillSettings &settings, const RgbaPixel &color,
+                      const std::optional<PatternFill> &pattern, qreal opacity = 1, bool erase = false,
+                      bool alphaLocked = false, LayerBlendMode blendMode = LayerBlendMode::Normal);
+    /** One undoable gradient on paint pixels or their retained transparency mask. */
+    Result paintGradient(LayerId layer, const Brush &brush, const GradientFill &gradient, bool transparencyMask = false, const QUuid &maskUuid = {});
+    /** Frozen node-projection selection; only geometry metadata is read back. */
+    Result selectRegion(LayerId reference, const RegionFillSettings &settings, SelectionCombination action);
+    /** Complements RGB within the current selection coverage as one history
+     * entry. The filter operation freezes the selection and survives Undo/Redo and KRA pixel saving; alpha and unselected pixels stay intact.
+     */
+    Result invertColors(LayerId layer);
+    /** Replaces RGB with the documented Rec.709 luminance of the stored
+     * sRGB-encoded bytes inside the current selection coverage as one history
+     * entry. Alpha and unselected pixels stay intact; the frozen operation
+     * survives Undo/Redo and KRA pixel saving.
+     */
+    Result grayscale(LayerId layer);
+    /** Applies the product HSV/HSL Adjustment values within the current
+     * selection coverage as one history entry. The settings and mode are
+     * frozen in the operation; alpha and unselected pixels stay intact, and
+     * the frozen operation survives Undo/Redo and KRA pixel saving.
+     */
+    Result hsvAdjustment(LayerId layer, const HsvAdjustment &settings);
+    Result colorFilter(LayerId layer, FilterKind kind, const ColorOverlay &overlay = {},
+                       const QRect &applyRect = {});
+    Result convolutionFilter(LayerId layer, const FilterSettings &settings, const QRect &applyRect);
+    Result undo();
+    Result redo();
+    Result setHistoryIndex(int index);
+    /** Records completed file saving; file owners publish their metadata changes. */
+    Result markSaved(const Snapshot &version);
+    void close();
+
+Q_SIGNALS:
+    void changed();
+    /** Saving changes history cleanliness without changing pixels or GPU requests. */
+    void savedStateChanged();
+
+private:
+    PaintImage(Execution &execution, std::unique_ptr<OperationDocument> document, Limits limits,
+               std::shared_ptr<Execution> retainedExecution = {});
+    bool onThread() const;
+    QSharedPointer<PaintImage> cloneLayerForest(const QList<LayerInsertion> &layers, QSize size) const;
+    Result publish(Result result);
+    Result requestAfterWrite(Result result);
+    void requestCurrentVersion();
+    void refreshLayerPixelReferences();
+    Snapshot layerPixelVersion() const;
+    Result checkLayerTranslation(const Snapshot &version, LayerId layer, QPoint offset) const;
+    Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
+    Result applyMaskPosition(const QUuid &maskUuid, QPoint position, SelectionMaskSP *retainedCoverage,
+                             QPoint retainedPosition, bool request);
+    Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory,
+                           Snapshot *retainedVersion = nullptr);
+    QSharedPointer<PaintImage> createMaskImage(const Snapshot &version, const SelectionMaskSP &mask);
+    Result refreshMaskStrokePreview(Result result);
+    Result commitMaskStroke();
+    Result paintTransparencyMaskFigure(LayerId layer, const Brush &brush,
+                                       const QList<InputSample> &samples, const Shape &shape,
+                                       const FigureStyle &style, quint64 randomSeed, bool filled, const QUuid &maskUuid = {});
+    Result replaceMaskFromImage(LayerId layer, const PaintImage &source, LayerId sourceLayer, bool filled,
+                                bool cleared, const QUuid &maskUuid, qsizetype firstEditOperation);
+    struct Private;
+    std::unique_ptr<Private> m_d;
+};
+using PaintImageSP = QSharedPointer<PaintImage>;
+}
+#endif

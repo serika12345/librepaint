@@ -14,6 +14,8 @@ class KisAlgebra2DTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void testHalfPlane();
+    void testHalfPlaneCollinearBoundary_data();
+    void testHalfPlaneCollinearBoundary();
     void testOuterCircle();
 
     void testQuadraticEquation();

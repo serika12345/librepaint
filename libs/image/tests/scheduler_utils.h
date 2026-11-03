@@ -8,6 +8,8 @@
 #define __SCHEDULER_UTILS_H
 
 #include <QRect>
+#include <QMutex>
+#include <QMutexLocker>
 #include "kis_merge_walker.h"
 #include "kis_stroke_strategy.h"
 #include "kis_stroke_job.h"
@@ -78,6 +80,13 @@ private:
 };
 
 static QStringList globalExecutedDabs;
+static QMutex globalExecutedDabsMutex;
+
+static void recordExecutedDab(const QString &name)
+{
+    QMutexLocker lock(&globalExecutedDabsMutex);
+    globalExecutedDabs << name;
+}
 
 class KisNoopDabStrategy : public KisStrokeJobStrategy
 {
@@ -90,7 +99,7 @@ public:
     void run(KisStrokeJobData *data) override {
         Q_UNUSED(data);
 
-        globalExecutedDabs << m_name;
+        recordExecutedDab(m_name);
     }
 
     virtual QString name(KisStrokeJobData *data) const {
@@ -157,9 +166,9 @@ public:
         KisTestingStrokeJobData *td = dynamic_cast<KisTestingStrokeJobData*>(data);
 
         if (td && td->m_isMutated) {
-            globalExecutedDabs << QString("%1_mutated").arg(name(data));
+            recordExecutedDab(QString("%1_mutated").arg(name(data)));
         } else if (td && td->m_addMutatedJobs) {
-            globalExecutedDabs << name(data);
+            recordExecutedDab(name(data));
 
             for (int i = 0; i < 3; i++) {
                 KisTestingStrokeJobData *newData =
@@ -168,7 +177,7 @@ public:
                 m_parentStrokeStrategy->addMutatedJob(newData);
             }
         } else {
-            globalExecutedDabs << name(data);
+            recordExecutedDab(name(data));
         }
     }
 

@@ -14,6 +14,9 @@ class KisPaintDeviceTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void testSavingIgnoresTileCreationOrder();
+    void testFailedSavingPreservesPixelsAndHistory_data();
+    void testFailedSavingPreservesPixelsAndHistory();
 
     void testCreation();
     void testStore();

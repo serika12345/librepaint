@@ -16,6 +16,7 @@
 
 #include <QPointer>
 #include <QRect>
+#include "gpu/KisGpuAffineTransform.h"
 
 class KisPaintDevice;
 class KisFilterStrategy;
@@ -68,6 +69,14 @@ public:
     // returns false if interrupted
     bool run();
     bool runPartial(const QRect &processRect);
+
+    /** Freeze the same native filter phases and pass order for canonical GPU
+     * editing. Bounds use native opacityU8; opaque defaults additionally supply
+     * the unchanged default domain and tight nondefault pixels for mirroring.
+     * No device pixels are accessed. Invalid coordinates/scales return no plan.
+     */
+    std::optional<LibrePaint::Image::Gpu::AffinePlan> gpuPlan(
+        const QRect &processRect, const QRect &opaqueDefaultBounds = {}, const QRect &nonDefaultBounds = {}) const;
 
     /**
      * Returns a matrix of the transformation executed by the worker.

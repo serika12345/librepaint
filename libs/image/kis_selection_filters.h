@@ -172,9 +172,9 @@ private:
     /**
      * @brief The size of the border added internally to the left and right of
      *        the scanline buffer so that we can read outside the selection rect
-     *        without problems. It must be equal to the largest value in @ref offsets. 
+     *        without problems. It must cover the full search distance, the sum of @ref offsets.
      */
-    static constexpr qint32 horizontalBorderSize {2};
+    static constexpr qint32 horizontalBorderSize {40};
     /**
      * @brief The size of the border added internally to the top and bottom of
      *        the scanline buffer so that we can read outside the selection rect

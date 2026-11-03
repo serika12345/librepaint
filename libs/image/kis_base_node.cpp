@@ -23,6 +23,7 @@
 
 #include "KoColorSpaceConstants.h"
 #include "KoCompositeOpIds.h"
+#include "KisGpuBlendMode.h"
 #include "kis_default_bounds.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"
@@ -31,6 +32,8 @@
 #include "kis_scalar_keyframe_channel.h"
 #include "kis_shared.h"
 #include "kis_types.h"
+#include "gpu/KisGpuPaintImage.h"
+#include <stdexcept>
 
 struct Q_DECL_HIDDEN KisBaseNode::Private
 {
@@ -126,6 +129,7 @@ quint8 KisBaseNode::opacity() const
 
 void KisBaseNode::setOpacity(quint8 val)
 {
+    preparePropertyChange(NodePropertyChange::Opacity, QVariant::fromValue(val));
     m_d->opacityProperty.set(val);
     baseNodeChangedCallback();
 }
@@ -149,6 +153,24 @@ void KisBaseNode::setCompositeOpId(const QString& compositeOp)
 {
     if (m_d->compositeOp == compositeOp) return;
 
+    // Other modes remain unaccepted dialog previews until their GPU composition
+    // and persistence contracts are implemented in #89.
+    const auto currentImage = image();
+    if (currentImage && !currentImage->isSynchronizingGpuNodes() &&
+        LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(compositeOp)) {
+        if (const auto owner = currentImage->gpuImage()) {
+            namespace Gpu = LibrePaint::Image::Gpu;
+            for (const auto &layer : owner->operations().snapshot()->layers) {
+                if (layer.uuid != uuid()) continue;
+                const auto result = owner->writeLayerBlendMode(layer.id,
+                    *LibrePaint::Image::Gpu::layerBlendModeFromCompositeOp(compositeOp));
+                if (result != Gpu::Result::Success)
+                    throw std::runtime_error("GPU layer blending mode write failed: " + std::to_string(int(result)));
+                if (m_d->compositeOp == compositeOp) return;
+                break;
+            }
+        }
+    }
     m_d->compositeOp = compositeOp;
     baseNodeChangedCallback();
     baseNodeInvalidateAllFramesCallback();
@@ -262,6 +284,7 @@ bool KisBaseNode::visible(bool recursive) const
 
 void KisBaseNode::setVisible(bool visible, bool loading)
 {
+    preparePropertyChange(NodePropertyChange::Visible, visible);
     const bool isVisible = m_d->properties.boolProperty(KisLayerPropertiesIcons::visible.id(), true);
     if (!loading && isVisible == visible) return;
 
@@ -311,6 +334,7 @@ bool KisBaseNode::isIsolatedRoot() const
 
 void KisBaseNode::setUserLocked(bool locked)
 {
+    preparePropertyChange(NodePropertyChange::UserLocked, locked);
     const bool isLocked = m_d->properties.boolProperty(KisLayerPropertiesIcons::locked.id(), true);
     if (isLocked == locked) return;
 
@@ -360,6 +384,7 @@ bool KisBaseNode::collapsed() const
 
 void KisBaseNode::setColorLabelIndex(int index)
 {
+    preparePropertyChange(NodePropertyChange::ColorLabel, index);
     const int currentLabel = colorLabelIndex();
 
     if (currentLabel == index) return;
@@ -437,6 +462,7 @@ bool KisBaseNode::isPinnedToTimeline() const
 
 void KisBaseNode::setPinnedToTimeline(bool pinned)
 {
+   preparePropertyChange(NodePropertyChange::PinnedToTimeline, pinned);
    if (pinned == m_d->pinnedToTimeline) return;
 
    m_d->pinnedToTimeline = pinned;

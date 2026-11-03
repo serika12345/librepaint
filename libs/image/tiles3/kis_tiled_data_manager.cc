@@ -18,6 +18,7 @@
 #include <qreadwritelock.h>
 #include <qstringview.h>
 #include <utility>
+#include <algorithm>
 
 #include "KisRegion.h"
 #include "kis_debug.h"
@@ -127,19 +128,28 @@ bool KisTiledDataManager::write(KisPaintDeviceWriter &store)
     }
 
 
+    if (!retval) return false;
+
+    QVector<KisTileSP> tiles;
+    tiles.reserve(m_hashTable->numTiles());
     KisTileHashTableConstIterator iter(m_hashTable);
-    KisTileSP tile;
+    while (const auto tile = iter.tile()) {
+        tiles.append(tile);
+        iter.next();
+    }
+    std::sort(tiles.begin(), tiles.end(), [](const KisTileSP &a, const KisTileSP &b) {
+        return a->row() < b->row() || (a->row() == b->row() && a->col() < b->col());
+    });
 
     KisAbstractTileCompressorSP compressor =
         KisTileCompressorFactory::create(CURRENT_VERSION);
 
-    while ((tile = iter.tile())) {
+    for (const auto &tile : tiles) {
         retval = compressor->writeTile(tile, store);
         if (!retval) {
             warnFile << "Failed to write tile";
             break;
         }
-        iter.next();
     }
 
     return retval;

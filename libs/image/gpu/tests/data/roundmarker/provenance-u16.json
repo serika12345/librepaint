@@ -1,0 +1,139 @@
+{
+  "purpose": "Exact ordinary native RGBA16 roundmarker pixels for GPU composition and retained history.",
+  "sourceCommit": "9cccc0be8e2ff0dc5f0190980afde09b2559a467",
+  "sourceOperation": "TestDocument::testRoundMarkerStrokeMatchesCpuPixels, CPU branch, ordinary document and freehand helper",
+  "platform": "Linux x86_64, AVX2/FMA normal composition, four paint workers",
+  "pixelEncoding": "Straight little-endian RGBA16, 128 by 128 rows; only BGRA/RGBA component order was changed",
+  "colorSpace": "RGBA16",
+  "profile": "sRGB-elle-V2-g10.icc",
+  "profileSha256": "51373873702823054c739d013cf68d37bdd5810544fb5cc6285da7380d454704",
+  "results": [
+    {
+      "name": "u16-opaque-normal-tap",
+      "sha256": "50f3287774eba8118ab4a67c4238d7d08a8f3cd009502e47b7d1fda17ee10de9",
+      "sourceBgraSha256": "f563864abdc5ac7957adcbcc3afbde34059936ed58ae9e1bd138c28dcf71e369",
+      "opacity": 1,
+      "erase": false,
+      "moving": false
+    },
+    {
+      "name": "u16-opaque-normal-moving",
+      "sha256": "e62c8c165f80210248b08c0a3c7f057248e8c67013167db5723fe162c0d957f0",
+      "sourceBgraSha256": "45530376806b65979ae4730558a3a7fbe08afce877433a687b8e8bdded8c0e18",
+      "opacity": 1,
+      "erase": false,
+      "moving": true
+    },
+    {
+      "name": "u16-opaque-erase-tap",
+      "sha256": "fba86590b80ffc11fdb304cabb2ae869fa4dc35ee5a465044275d85ea16c8b55",
+      "sourceBgraSha256": "b890a4350702d02751029fe8f8fab0fee51411fb00986e13f6e3d9164a04211e",
+      "opacity": 1,
+      "erase": true,
+      "moving": false
+    },
+    {
+      "name": "u16-opaque-erase-moving",
+      "sha256": "ba8bec066d9e099e8ad52e863712bbdc49a1b38ed510fd02dba49db2e2296add",
+      "sourceBgraSha256": "4f7e8fd7ad2557fb640574fbd8113447ea313300a5b13bd516671f48118e5da3",
+      "opacity": 1,
+      "erase": true,
+      "moving": true
+    },
+    {
+      "name": "u16-half-normal-tap",
+      "sha256": "a860f8960f66b353733acf60ddc46ec616ab29fa2b5308a198974af453391324",
+      "sourceBgraSha256": "7d4fd75cf502c5430e7b821aebbbd058ab925223aa835d723b5f210302965e39",
+      "opacity": 0.5,
+      "erase": false,
+      "moving": false
+    },
+    {
+      "name": "u16-half-normal-moving",
+      "sha256": "73d9cd01643224e16e93ef8ae4811369898f25efb6d22caa9e3587c1c49eac30",
+      "sourceBgraSha256": "4f63d8a2445b83e29e46986f81ab6a34c8e016aca55950f5076eac7501055760",
+      "opacity": 0.5,
+      "erase": false,
+      "moving": true
+    },
+    {
+      "name": "u16-half-erase-tap",
+      "sha256": "c827c0764f66391648145bb72a58a86c6155820f8a337c9233a1c2162cbb65d2",
+      "sourceBgraSha256": "68791f5f78c66e13ee584998cc82104bbb6bef81fd6abb893db849bc47cabf55",
+      "opacity": 0.5,
+      "erase": true,
+      "moving": false
+    },
+    {
+      "name": "u16-half-erase-moving",
+      "sha256": "c564855e92b67c9e6df1d06a02cade4fe195f8206989cf60423d02a8b204d88f",
+      "sourceBgraSha256": "9742da876d421ce241d60e1f909a1c5db064c2cd2c518137c10494c85fe816b6",
+      "opacity": 0.5,
+      "erase": true,
+      "moving": true
+    }
+  ],
+  "initialSha256": "66ac6428306a28c176fcdfbcf60f1dadbd091164a29d93837c191f02a192757c",
+  "sourceInitialBgraSha256": "59cd2043a593f6aea420b96f5e1acc0e23f8964402d57294bc205eec2af7d28d",
+  "brush": {
+    "paintop": "roundmarker",
+    "diameter": 10,
+    "spacing": 0.02,
+    "useAutoSpacing": false,
+    "PressureSize": false,
+    "foregroundRgba": [
+      65534,
+      257,
+      1,
+      65535
+    ]
+  },
+  "input": [
+    {
+      "position": [
+        12.25,
+        13.75
+      ],
+      "pressure": 1,
+      "time": 0
+    },
+    {
+      "position": [
+        60.125,
+        31.5
+      ],
+      "pressure": 1,
+      "time": 16
+    },
+    {
+      "position": [
+        105.5,
+        91.25
+      ],
+      "pressure": 1,
+      "time": 32
+    }
+  ],
+  "inputRule": "Tap uses the first sample; moving uses all three. Smoothing and symmetry are disabled.",
+  "normalComposition": "An effective source alpha of zero preserves destination RGBA. Native alpha normalization, opacity and mask multiplication round each binary32 stage. Alpha and RGB multiply-add round once, followed by binary32 division and nearest-even U16 conversion.",
+  "initialNativeBgra": {
+    "colors": [
+      "x * 257 + y * 131 + 1",
+      "x * 509 + y * 67 + 255",
+      "x * 127 + y * 257 + 256"
+    ],
+    "alphaValues": [
+      0,
+      1,
+      255,
+      256,
+      257,
+      32767,
+      32768,
+      65534,
+      65535
+    ],
+    "alphaIndex": "(x / 16 + y / 16) % 9",
+    "componentType": "quint16"
+  }
+}

@@ -6,6 +6,7 @@
  */
 
 #include "kis_adjustment_layer.h"
+#include "KisGpuFilterConfiguration.h"
 
 #include <klocalizedstring.h>
 
@@ -58,6 +59,7 @@ KisAdjustmentLayer::~KisAdjustmentLayer()
 
 void KisAdjustmentLayer::setFilter(KisFilterConfigurationSP filterConfig, bool checkCompareConfig)
 {
+    if (writeGpuNodeFilterConfiguration(this, filterConfig)) return;
     filterConfig->setChannelFlags(channelFlags());
     KisSelectionBasedLayer::setFilter(filterConfig, checkCompareConfig);
 }

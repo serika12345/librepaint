@@ -340,6 +340,11 @@ bool KisUpdateScheduler::isIdle()
     return result;
 }
 
+bool KisUpdateScheduler::hasOpenStrokes() const
+{
+    return m_d->strokesQueue.hasOpenedStrokes();
+}
+
 void KisUpdateScheduler::waitForDone()
 {
     do {

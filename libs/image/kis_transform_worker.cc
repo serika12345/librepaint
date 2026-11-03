@@ -11,6 +11,7 @@
 #include "kis_transform_worker.h"
 
 #include "KisRegion.h"
+#include "gpu/KisGpuRasterPixels.h"
 
 #include <cmath>
 #include <cstring>
@@ -232,6 +233,101 @@ void swapValues(T *a, T *b) {
     T c = *a;
     *a = *b;
     *b = c;
+}
+
+std::optional<LibrePaint::Image::Gpu::AffinePlan> KisTransformWorker::gpuPlan(
+    const QRect &processRect, const QRect &opaqueDefaultBounds, const QRect &nonDefaultBounds) const
+{
+    using namespace LibrePaint::Image::Gpu;
+    AffinePlan plan;
+    if (!m_filter || !std::isfinite(m_xscale) || !std::isfinite(m_yscale) ||
+        !std::isfinite(m_rotation) || !std::isfinite(m_xtranslate) || !std::isfinite(m_ytranslate) ||
+        std::abs(m_xscale) < 1. / 256 || std::abs(m_yscale) < 1. / 256) return {};
+    plan.filterId = m_filter->id();
+    if (processRect.isEmpty()) return plan;
+    QRect bounds = processRect;
+    auto xscale = m_xscale, yscale = m_yscale, rotation = m_rotation;
+    auto xtranslate = m_xtranslate, ytranslate = m_ytranslate;
+    const auto resample = [&](AffinePass::Kind kind, double scale, double shear, double offset) {
+        if (!std::isfinite(scale) || std::abs(scale) < 1. / 256 || std::abs(scale) > 32768) return false;
+        KisFilterWeightsBuffer native(m_filter, std::abs(scale));
+        auto kernel = QSharedPointer<AffineKernel>::create();
+        kernel->positionScale = native.weightsPositionScale().to256Frac();
+        kernel->support = m_filter->support(native.weightsPositionScale().toFloat());
+        for (int i = 0; i < 256; ++i) {
+            KisFixedPoint phase; phase.from256Frac(i);
+            const auto weights = native.weights(phase);
+            kernel->phases[i] = {qint32(kernel->weights.size()), weights->span, weights->centerIndex};
+            for (int j = 0; j < weights->span; ++j) kernel->weights.append(weights->weight[j]);
+        }
+        const auto pass = affineResamplePass(kind, bounds, scale, shear, offset, kernel);
+        if (!pass) return false;
+        plan.passes.append(*pass); bounds = pass->destination; return true;
+    };
+    if (m_xshear != 0 || m_yshear != 0) {
+        const bool scaled = !(qFuzzyCompare(xscale, 1.) && qFuzzyCompare(yscale, 1.));
+        const bool sx = !qFuzzyCompare(m_xshear, 0.), sy = !qFuzzyCompare(m_yshear, 0.);
+        if (scaled || (sx && sy)) {
+            if (!resample(AffinePass::Horizontal, xscale, yscale * m_xshear, 0) ||
+                !resample(AffinePass::Vertical, yscale, m_yshear, 0)) return {};
+        } else if (sx) { if (!resample(AffinePass::Horizontal, xscale, m_xshear, 0)) return {}; }
+        else if (sy) { if (!resample(AffinePass::Vertical, yscale, m_yshear, 0)) return {}; }
+        xscale = yscale = 1.;
+    }
+    rotation = rotation < 0 ? -fmod(-rotation, 2 * M_PI) + 2 * M_PI : fmod(rotation, 2 * M_PI);
+    const int quadrant = int(rotation / (M_PI / 2) + .5) & 3;
+    rotation -= quadrant * M_PI / 2;
+    const bool simple = !m_forceSubPixelTranslation && qFuzzyCompare(rotation, 0.) &&
+        (qFuzzyCompare(xscale, 1.) || qFuzzyCompare(xscale, -1.)) &&
+        (qFuzzyCompare(yscale, 1.) || qFuzzyCompare(yscale, -1.));
+    QRect mirrorBounds = bounds;
+    if (quadrant) {
+        AffinePass pass; pass.kind = AffinePass::Remap;
+        pass.source = bounds.adjusted(0, 0, 1, 1); pass.replaceLayer = true;
+        if (quadrant == 1) { pass.map = {0, -1, 1, 0, -1, 0}; plan.positionDelta += QPoint(-1, 0); }
+        if (quadrant == 2) { pass.map = {-1, 0, 0, -1, -1, -1}; plan.positionDelta += QPoint(-1, -1); }
+        if (quadrant == 3) { pass.map = {0, 1, -1, 0, 0, -1}; plan.positionDelta += QPoint(0, -1); }
+        const auto mapRect = [&](QRect rect) {
+            if (rect.isEmpty()) return QRect{};
+            const auto &m = pass.map;
+            const auto point = [&](QPoint p) { return QPoint(m[0] * p.x() + m[1] * p.y() + m[4], m[2] * p.x() + m[3] * p.y() + m[5]); };
+            const auto a = point(rect.topLeft()), b = point(rect.bottomRight());
+            return QRect(QPoint(qMin(a.x(), b.x()), qMin(a.y(), b.y())), QPoint(qMax(a.x(), b.x()), qMax(a.y(), b.y())));
+        };
+        pass.destination = mapRect(pass.source);
+        mirrorBounds = opaqueDefaultBounds.isEmpty() ? mapRect(bounds) : opaqueDefaultBounds.united(mapRect(nonDefaultBounds));
+        bounds = mapRect(bounds); plan.passes.append(pass);
+        if (quadrant != 2) std::swap(xscale, yscale);
+    }
+    if (simple) {
+        const auto mirror = [&](bool horizontal) {
+            const auto twiceCenter = horizontal ? 2 * mirrorBounds.x() + mirrorBounds.width() : 2 * mirrorBounds.y() + mirrorBounds.height();
+            if (horizontal) xtranslate -= twiceCenter; else ytranslate -= twiceCenter;
+            // Native mirroring uses this width check in either orientation.
+            if (mirrorBounds.width() <= 1) return;
+            AffinePass pass; pass.kind = AffinePass::Remap; pass.source = pass.destination = mirrorBounds;
+            if (horizontal) pass.map = {-1, 0, 0, 1, twiceCenter - 1, 0};
+            else pass.map = {1, 0, 0, -1, 0, twiceCenter - 1};
+            plan.passes.append(pass);
+        };
+        if (qFuzzyCompare(xscale, -1.)) mirror(true);
+        if (qFuzzyCompare(yscale, -1.)) mirror(false);
+        constexpr int limit = RgbaTile::CoordinateLimit;
+        if (std::abs(xtranslate) >= 2. * limit || std::abs(ytranslate) >= 2. * limit) return {};
+        const QPoint offset(qRound(xtranslate), qRound(ytranslate));
+        if (!offset.isNull()) {
+            AffinePass pass; pass.kind = AffinePass::Remap; pass.mapWholeLayer = true;
+            pass.map = {1, 0, 0, 1, offset.x(), offset.y()};
+            plan.positionDelta += offset; plan.passes.append(pass);
+        }
+    } else {
+        QTransform sc = QTransform::fromScale(xscale, yscale), r; r.rotateRadians(rotation);
+        const auto matrix = sc * r * QTransform::fromTranslate(xtranslate, ytranslate);
+        const auto a = matrix.m11(), b = matrix.m21(), c = matrix.m31();
+        const auto d = matrix.m12() / a, e = matrix.m22() - b * d, f = matrix.m32() - c * d;
+        if (!resample(AffinePass::Horizontal, a, b, c) || !resample(AffinePass::Vertical, e, d, f)) return {};
+    }
+    return validAffinePlan(plan) ? std::optional<AffinePlan>(plan) : std::nullopt;
 }
 
 bool KisTransformWorker::run()

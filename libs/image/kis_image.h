@@ -11,6 +11,9 @@
 #include <QString>
 #include <QPainter>
 #include <QRect>
+#include <QList>
+#include <QSharedPointer>
+#include <QUuid>
 
 #include <KoColorConversionTransformation.h>
 
@@ -42,6 +45,12 @@ class KUndo2MagicString;
 class KisProofingConfiguration;
 class KisPaintDevice;
 class KisImageGlobalSelectionManagementInterface;
+struct KisGpuImageViewState;
+namespace LibrePaint::Image::Gpu { class PaintImage; class SelectionMask; class DocumentVersion; struct HsvAdjustment; struct ColorOverlay; struct FilterSettings; enum class FilterKind : quint8; struct LayerMergeRequest; struct OperationId; struct RasterLayer;
+using Snapshot = QSharedPointer<const DocumentVersion>;
+enum class SelectionKind : quint8;
+enum class SelectionCombination : quint8;
+using SelectionMaskSP = QSharedPointer<const SelectionMask>; }
 
 namespace KisMetaData
 {
@@ -71,6 +80,137 @@ public:
     ~KisImage() override;
 
     static KisImageSP fromQImage(const QImage &image, KisUndoStore *undoStore);
+    /** Copies fixed device pixels to one paint layer at the origin.
+     * GPU byte views retain GPU ownership; CPU devices use their color space.
+     * The caller supplies the layer identity; document adoption attaches its undo store.
+     * Returns null on invalid input or native capture refusal; attachment capacity
+     * throws std::length_error. Native capture uses the given working estimate.
+     */
+    static KisImageSP fromPaintDevice(KisPaintDeviceSP device, QRect region, const QString &name,
+                                      const QUuid &layerUuid, qsizetype maximumWorkingBytes);
+    /** GUI-thread image view of shared RGBA8 or RGBA16 layers and GPU projection.
+     * The execution owner outlives this image and retained pixel devices.
+     * Invalid or closed images throw std::invalid_argument.
+     */
+    static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name);
+    /** Adopts validated RGBA8 or matrix RGB RGBA16 pixels with matching precision and ICC encoding. */
+    static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
+                                   const KoColorSpace *colorSpace);
+    QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
+    /** Replaces the GPU document selection and updates the CPU selection mirror. */
+    bool setGpuSelectionRect(const QRect &rect, bool inverted = false);
+    bool setGpuSelectionEllipse(const QRect &rect, bool inverted = false);
+    /** Freezes already-rasterized arbitrary coverage in the GPU document. */
+    bool setGpuSelectionMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask, bool inverted = false);
+    bool combineGpuSelectionMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask,
+                                 LibrePaint::Image::Gpu::SelectionCombination action);
+    /** Freezes a closed polygon as hard-edged arbitrary coverage. */
+    bool setGpuSelectionFreehand(const QList<QPointF> &points, bool inverted = false);
+    QRect gpuSelectionRect() const;
+    bool gpuSelectionInverted() const;
+    LibrePaint::Image::Gpu::SelectionKind gpuSelectionKind() const;
+    bool gpuSelectionEllipse() const;
+    bool gpuSelectionFreehand() const;
+    bool moveGpuSelectionBy(QPoint delta);
+    void previewGpuSelectionMoveBy(QPoint delta);
+    bool invertGpuSelectionMask();
+    bool growGpuSelectionMask(int xRadius, int yRadius);
+    bool shrinkGpuSelectionMask(int xRadius, int yRadius);
+    bool borderGpuSelectionMask(int xRadius, int yRadius);
+    /** Softens the frozen arbitrary coverage with a pixel radius in one history
+     * entry. The alpha coverage drives painting and the CPU display mirror. */
+    bool featherGpuSelectionMask(int radius);
+    bool reselectGpuSelection();
+    /** Updates only the CPU display mirror for a pending selection move. */
+    void previewGpuSelectionRect(const QRect &rect, bool ellipse = false, bool inverted = false);
+    void previewGpuSelectionMask(const LibrePaint::Image::Gpu::SelectionMaskSP &mask, bool inverted = false);
+    bool clearGpuSelection();
+    /** Adds one transparency mask to a GPU paint layer from the current
+     * selection coverage. The mask is retained by GPU document versions and
+     * composition; no CPU mask becomes its owner. The node must identify a
+     * paint layer currently represented in the GPU document.
+     */
+    bool addGpuTransparencyMaskFromSelection(KisNodeSP layer);
+    /** Complements RGB on the GPU paint layer for the current selection as one
+     * history entry. False reports a group, mask or foreign node, a locked layer
+     * or an off-thread call; no history entry is added in that case.
+     */
+    bool invertGpuLayerColors(KisNodeSP layer);
+    /** Replaces RGB with the documented Rec.709 luminance of the stored
+     * sRGB-encoded bytes on the GPU paint layer for the current selection as one
+     * history entry. False reports a group, mask or foreign node, a locked layer
+     * or an off-thread call; no history entry is added in that case.
+     */
+    bool grayscaleGpuLayerColors(KisNodeSP layer);
+    /** Applies the product HSV/HSL Adjustment values on the GPU paint layer for
+     * the current selection as one history entry. The settings must carry the
+     * effective document luma coefficients for HSY, YUV and Colorize; false
+     * reports invalid or unfrozen settings, a group, mask or foreign node, a
+     * locked layer or an off-thread call, and adds no history entry.
+     */
+    bool hsvAdjustmentGpuLayerColors(KisNodeSP layer,
+                                     const LibrePaint::Image::Gpu::HsvAdjustment &settings);
+    /** Applies extrema/reset/overlay to a same-image editable GPU paint node. */
+    bool colorFilterGpuLayerColors(KisNodeSP layer, LibrePaint::Image::Gpu::FilterKind kind,
+                                   const LibrePaint::Image::Gpu::ColorOverlay &overlay);
+    bool convolutionFilterGpuLayerColors(KisNodeSP layer, const LibrePaint::Image::Gpu::FilterSettings &settings);
+    bool setGpuTransparencyMaskVisible(KisNodeSP layer, bool visible);
+    bool removeGpuTransparencyMask(KisNodeSP layer);
+    bool gpuTransparencyMaskVisible(KisNodeSP layer) const;
+    /** True when this node is the read-only layer-panel view of a paint
+     * layer's retained GPU transparency mask. The GPU document version
+     * remains the owner of the coverage.
+     */
+    bool isGpuTransparencyMaskView(KisNodeSP node) const;
+    /** Alpha8 editing target: a transparency child, filter mask, or adjustment
+     * layer's internal selection. Coverage remains owned by document versions. */
+    bool isGpuEditableMaskView(KisNodeSP node) const;
+    /** Adds a GPU paint layer at a bottom-to-top child index in the given
+     * group. Returns the adopted node, or null on invalid input or capacity.
+     */
+    KisNodeSP addGpuPaintLayer(const QString &name, KisNodeSP parent, qsizetype index, bool pinnedToTimeline);
+    /** Previews a new filter node at a bottom-to-top child position, or edits
+     * an attached filter node. The caller commits/cancels through gpuImage().
+     * Rejection returns a null operation and preserves the tree and history. */
+    LibrePaint::Image::Gpu::OperationId beginGpuFilterNodeEdit(KisNodeSP existing,
+        const LibrePaint::Image::Gpu::RasterLayer &properties, KisNodeSP parent, qsizetype index);
+    /** Adopts a detached paint layer at a bottom-to-top child index as one GPU
+     * history entry. Preserves the node and its paint device. Invalid or
+     * over-budget input returns false before modifying the image. A null
+     * parent selects the image root.
+     */
+    bool insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent = {});
+    /** Adopts detached paint/group subtrees in one history entry. Validates the
+     * entire forest before binding any node or device; preserves their public
+     * references through Undo/Redo. Root order follows the supplied list.
+     * clearPixelSelection includes selection removal in that history entry and
+     * retains the removed selection for Reselect. Rejection preserves both.
+     */
+    bool insertGpuLayers(const KisNodeList &nodes, qsizetype index, KisNodeSP parent = {},
+                         bool clearPixelSelection = false);
+    /** Prepares merged node identities and metadata before publishing one GPU
+     * merge. Sources stay alive through admission; rejected requests preserve
+     * nodes, pixels and history. Requires the image/device thread.
+     */
+    bool mergeGpuLayers(LibrePaint::Image::Gpu::LayerMergeRequest request, const KisNodeList &sources,
+                        const KisMetaData::MergeStrategy *strategy = nullptr);
+    /** Imports a public mask selection as a direct write. History count and
+     * fixed snapshots stay unchanged; invalid or over-budget input returns false. */
+    bool writeGpuTransparencyMaskSelection(KisNodeSP node, const KisSelectionSP &selection);
+    /** Detached copies of supported GPU subtrees, preserving supplied root order
+     * and independent overlapping roots. Their pixel devices share one copied
+     * image and retain its execution. Invalid input returns an empty list;
+     * attachment capacity throws std::length_error.
+     */
+    KisNodeList cloneGpuNodes(const KisNodeList &nodes) const;
+    /** Independent GPU image containing the supplied paint/group subtrees in
+     * root order, including independent overlapping roots. Retains execution
+     * and native layer properties. Invalid input returns null; attachment
+     * capacity throws std::length_error. Requires the image thread.
+     */
+    KisImageSP cloneGpuNodeImage(const KisNodeList &nodes) const;
+    /** Transient node notifications describe the GPU version being adopted. */
+    bool isSynchronizingGpuNodes() const { return m_synchronizingGpuNodes; }
 
 public: // KisNodeGraphListener implementation
 
@@ -117,6 +257,11 @@ public:
     KisImage *clone(bool exactCopy = false);
 
     void copyFromImage(const KisImage &rhs);
+    /** Adopts a prepared GPU image on this execution and copies source metadata.
+     * The open image has the source dimensions; this image identity stays stable.
+     * Invalid values throw std::invalid_argument before changing the image.
+     */
+    void replaceFromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const KisImage &source);
 
 private:
 
@@ -127,7 +272,8 @@ private:
         EXACT_COPY = 4, /// we need an exact copy of the original image
     };
 
-    void copyFromImageImpl(const KisImage &rhs, int policy);
+    void copyFromImageImpl(const KisImage &rhs, int policy,
+                           QSharedPointer<LibrePaint::Image::Gpu::PaintImage> preparedGpuImage = {});
 
 public:
 
@@ -152,6 +298,11 @@ public:
      * Render a thumbnail of the projection onto a QImage.
      */
     QImage convertToQImage(const QSize& scaledImageSize, const KoColorProfile *profile);
+    /** External preview of one retained GPU version, using its captured document
+     * encoding. The borrowed registry color space remains valid during the call.
+     */
+    QImage convertToQImage(const QSize &scaledImageSize, const KoColorProfile *profile,
+                          const LibrePaint::Image::Gpu::Snapshot &version, const KoColorSpace *documentColorSpace);
 
     /**
      * [low-level] Lock the image without waiting for all the internal job queues are processed
@@ -810,6 +961,7 @@ public:
     bool isIsolatingGroup() const;
 
 Q_SIGNALS:
+    void sigGpuColorConversionFinished(bool success, const QString &diagnostic);
 
     /**
      *  Emitted whenever an action has caused the image to be
@@ -979,6 +1131,11 @@ public:
     KisCompositeProgressProxy* compositeProgressProxy();
 
     bool isIdle(bool allowLocked = false);
+
+    /** True while a stroke owner can still add input, before endStroke() or cancellation.
+     * Call from the image owner thread.
+     */
+    bool hasOpenStrokes() const;
 
     /**
      * @brief Wait until all the queued background jobs are completed and lock the image.
@@ -1244,6 +1401,17 @@ public Q_SLOTS:
 
 private:
 
+    KisImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name, const KoColorSpace *colorSpace);
+    void synchronizeGpuNodes();
+    void synchronizeGpuLayerViews(KisGpuImageViewState *state);
+    QSharedPointer<KisGpuImageViewState> &gpuViewState();
+    void connectGpuImageUpdates();
+    void synchronizeGpuColorSpace();
+    void adoptGpuSelectionMask();
+    void synchronizeGpuSelectionToMask();
+    void updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePaint::Image::Gpu::SelectionKind kind,
+                                const LibrePaint::Image::Gpu::SelectionMaskSP &mask = {});
+    QSharedPointer<LibrePaint::Image::Gpu::PaintImage> cloneGpuImage(bool exactCopy) const;
     KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy);
     KisImage& operator=(const KisImage& rhs);
 
@@ -1271,8 +1439,20 @@ private:
     friend class KisImageGlobalSelectionManagementInterface;
 
 private:
+    LibrePaint::Image::Gpu::SelectionMaskSP importGpuMaskCoverage(const KisSelectionSP &selection) const;
     class KisImagePrivate;
     KisImagePrivate * m_d;
+    bool m_synchronizingGpuNodes = false;
+    QRect m_gpuSelectionMirrorRect;
+    bool m_gpuSelectionMirrorInverted = false;
+    quint8 m_gpuSelectionMirrorKind = 0;
+    LibrePaint::Image::Gpu::SelectionMaskSP m_gpuSelectionMirrorMask;
+    QRect m_lastGpuSelection;
+    bool m_lastGpuSelectionInverted = false;
+    quint8 m_lastGpuSelectionKind = 0;
+    LibrePaint::Image::Gpu::SelectionMaskSP m_lastGpuSelectionMask;
+    bool m_hasLastGpuSelection = false;
+    bool m_hasGpuSelectionMirror = false;
 };
 
 #endif // KIS_IMAGE_H_

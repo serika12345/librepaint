@@ -1,0 +1,72 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#ifndef KIS_GPU_PAINT_JOB_P_H
+#define KIS_GPU_PAINT_JOB_P_H
+
+#include "KisGpuTileStorage_p.h"
+#include "KisGpuPaintGeometry_p.h"
+#include "KisGpuAutoBrush_p.h"
+#include "KisGpuMarkerBrush_p.h"
+#include <variant>
+#include <array>
+#include <vector>
+
+namespace LibrePaint::Image::Gpu::Detail {
+struct PaintParameters
+{
+    qint32 x = 0, y = 0;
+    quint32 color = 0, canvasOpacityBits = 0;
+    quint32 opacityValue = 255, erase = 0, count = 0, paintFlags = 30;
+    qint32 mirrorX = 0, mirrorY = 0;
+    quint32 fillColor = 0, figureFlags = 0;
+    qint32 selectionX = 0, selectionY = 0, selectionWidth = 0, selectionHeight = 0;
+    quint32 patternWidth = 0, patternHeight = 0, fillBlendMode = 0, strokeBlendMode = 0;
+    /** sourceBlocks identifies the sixteen native 64-pixel source blocks in this GPU tile. */
+    quint32 colorHigh = 0, fillColorHigh = 0, pixelFormat = 0, sourceBlocks = 0;
+    qint32 compositionX = 0, compositionY = 0, compositionWidth = 0, compositionHeight = 0;
+    /** Earlier allocated destination bounds for protected non-Copy pixels in mixed figures. */
+    qint32 destinationX = 0, destinationY = 0, destinationWidth = 0, destinationHeight = 0;
+    std::array<quint32, 12> patternInverse{};
+    quint32 patternFormat = 0, patternSampled = 0, patternReserved0 = 0, patternReserved1 = 0;
+    quint32 textureWidth = 0, textureHeight = 0;
+    qint32 textureX = 0, textureY = 0;
+    quint32 textureWordOffset = 0;
+    std::array<quint32, 3> textureReserved{};
+};
+static_assert(sizeof(PaintParameters) == 224);
+constexpr quint32 UniformPixelFill = 16384u;
+constexpr quint32 PartialRgba16Source = 32768u;
+constexpr quint32 RestrictNonCopyDestination = 65536u;
+constexpr quint32 ClearSelectedPixels = 131072u;
+constexpr quint32 ContiguousRegion = 262144u;
+constexpr quint32 MaskPainting = 524288u;
+
+struct PaintJob
+{
+    std::shared_ptr<Tile> input, output;
+    std::shared_ptr<Tile> coverageInput, coverageOutput;
+    NativeBuffer inputs;
+    std::shared_ptr<NativeBuffer> fillEdges;
+    /** Frozen selection coverage for this tile; null binds the zero tile. */
+    std::shared_ptr<NativeBuffer> selectionCoverage;
+    /** Frozen pattern pixels for this operation; null binds the unused tile. */
+    std::shared_ptr<NativeBuffer> pattern;
+    NativeBindings bindings;
+    std::variant<QList<MarkerDab>, QList<AutoBrushDab>> geometry;
+    QList<MarkerDab> appendedGeometry;
+    quint64 coverageCoordinate = 0;
+    bool retainCoverage = false;
+    bool extendsCoverage = false;
+    PaintParameters values{};
+};
+
+quint32 packedPixel(const RgbaPixel &rgba);
+std::array<quint32, 2> packedPixelWords(const RgbaPixel &rgba, PixelFormat format);
+bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<PaintJob> &jobs,
+                      std::size_t first, WGPUBuffer zero, WGPUBuffer unusedCoverage,
+                      WGPUBuffer unusedSelection, WGPUBuffer unusedPattern, WGPUTextureView separableColorValues, WGPUTextureView blendCurveValues);
+}
+#endif

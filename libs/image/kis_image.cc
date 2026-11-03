@@ -6,12 +6,14 @@
  */
 
 #include "kis_image.h"
+#include <cstring>
 
 #include <KoConfig.h> // WORDS_BIGENDIAN
 #include <algorithm>
 #include <iterator>
 #include <krita_container_utils.h>
 
+#include <QColorSpace>
 #include <QtGlobal>
 #include <qatomic.h>
 #include <qcoreapplication.h>
@@ -31,10 +33,17 @@
 #include <math.h>
 
 #include <QImage>
+#include <QTimer>
+#include <QEventLoop>
+#include <QPointer>
+#include <QScopeGuard>
+#include <QColorSpace>
 #include <QPainter>
 #include <QSize>
 #include <QDateTime>
 #include <QRect>
+#include <QMutex>
+#include <QMutexLocker>
 
 #include <klocalizedstring.h>
 
@@ -73,12 +82,19 @@
 #include "kis_strokes_queue_undo_result.h"
 #include "kis_transaction.h"
 #include "kis_meta_data_merge_strategy.h"
+#include "kis_meta_data_store.h"
 #include "kis_memory_statistics_server.h"
 #include "kis_node.h"
 #include "kis_types.h"
 
 #include "kis_image_config.h"
 #include "kis_update_scheduler.h"
+#include "gpu/KisGpuPaintImage.h"
+#include "gpu/KisGpuExecution.h"
+#include "KisGpuPaintDeviceTransfer_p.h"
+#include <stdexcept>
+#include <QScopeGuard>
+#include <QPointer>
 #include "kis_image_signal_router.h"
 #include "kis_image_animation_interface.h"
 #include "kis_keyframe_channel.h"
@@ -158,7 +174,8 @@ public:
     KisImagePrivate(KisImage *_q, qint32 w, qint32 h,
                     const KoColorSpace *c,
                     KisUndoStore *undo,
-                    KisImageAnimationInterface *_animationInterface)
+                    KisImageAnimationInterface *_animationInterface,
+                    LibrePaint::Image::Gpu::PaintImageSP gpu = {})
         : q(_q)
         , lockedForReadOnly(false)
         , width(w)
@@ -172,24 +189,25 @@ public:
         , postExecutionUndoAdapter(undoStore.data(), _q)
         , signalRouter(_q)
         , animationInterface(_animationInterface)
-        , scheduler(_q, _q)
+        , gpuImage(std::move(gpu))
+        , scheduler(gpuImage ? nullptr : new KisUpdateScheduler(_q, _q))
         , axesCenter(QPointF(0.5, 0.5))
     {
-        {
+        if (scheduler) {
             KisImageConfig cfg(true);
             if (cfg.enableProgressReporting()) {
-                scheduler.setProgressProxy(&compositeProgressProxy);
+                cpuScheduler().setProgressProxy(&compositeProgressProxy);
             }
 
             // Each of these lambdas defines a new factory function.
-            scheduler.setLod0ToNStrokeStrategyFactory(
+            cpuScheduler().setLod0ToNStrokeStrategyFactory(
                 [=](bool forgettable) {
                     return KisLodSyncPair(
                         new KisSyncLodCacheStrokeStrategy(KisImageWSP(q), forgettable),
                         KisSyncLodCacheStrokeStrategy::createJobsData(KisImageWSP(q)));
                 });
 
-            scheduler.setSuspendResumeUpdatesStrokeStrategyFactory(
+            cpuScheduler().setSuspendResumeUpdatesStrokeStrategyFactory(
                 [=]() {
                     KisSuspendProjectionUpdatesStrokeStrategy::SharedDataSP data = KisSuspendProjectionUpdatesStrokeStrategy::createSharedData();
 
@@ -201,20 +219,21 @@ public:
                     return std::make_pair(suspend, resume);
                 });
 
-            scheduler.setPurgeRedoStateCallback(
+            cpuScheduler().setPurgeRedoStateCallback(
                         [this] () {
                 undoStore->purgeRedoState();
             });
 
-            scheduler.setPostSyncLod0GUIPlaneRequestForResumeCallback(
+            cpuScheduler().setPostSyncLod0GUIPlaneRequestForResumeCallback(
                         [this] () {
 
                 KIS_SAFE_ASSERT_RECOVER_NOOP(q->currentLevelOfDetail() == 0);
 
                 bool addedUIUpdateRequestSuccessfully = false;
 
-                for (auto it = std::make_reverse_iterator(projectionUpdatesFilters.end());
-                     it != std::make_reverse_iterator(projectionUpdatesFilters.begin());
+                const auto filters = installedProjectionFilters();
+                for (auto it = filters.rbegin();
+                     it != filters.rend();
                      ++it) {
 
                     KisSuspendProjectionUpdatesStrokeStrategy::SuspendUpdatesFilterInterface *iface =
@@ -304,11 +323,24 @@ public:
     KisLocklessStack<QRect> savedDisabledUIUpdates;
 
     // filters are applied in a reversed way, from rbegin() to rend()
+    mutable QMutex projectionFiltersMutex;
     QVector<KisProjectionUpdatesFilterSP> projectionUpdatesFilters;
+    QVector<KisProjectionUpdatesFilterSP> installedProjectionFilters() const
+    {
+        QMutexLocker guard(&projectionFiltersMutex);
+        return projectionUpdatesFilters;
+    }
     QStack<KisProjectionUpdatesFilterCookie> disabledUpdatesCookies;
     KisImageSignalRouter signalRouter;
     KisImageAnimationInterface *animationInterface;
-    KisUpdateScheduler scheduler;
+    LibrePaint::Image::Gpu::PaintImageSP gpuImage;
+    QSharedPointer<KisGpuImageViewState> gpuViewState;
+    std::unique_ptr<KisUpdateScheduler> scheduler;
+    KisUpdateScheduler &cpuScheduler() const
+    {
+        if (!scheduler) throw std::logic_error("CPU stroke execution is unavailable for this GPU image view");
+        return *scheduler;
+    }
     QAtomicInt disableDirtyRequests;
 
     KisCompositeProgressProxy compositeProgressProxy;
@@ -320,6 +352,28 @@ public:
                                      const QVector<QRect> &rects,
                                      const QRect &cropRect,
                                      KisProjectionUpdateFlags flags);
+
+    struct GpuColorConversion {
+        LibrePaint::Image::Gpu::PaintImageSP owner;
+        LibrePaint::Image::Gpu::Snapshot before;
+        LibrePaint::Image::Gpu::OperationId id;
+        const KoColorSpace *source = nullptr;
+        const KoColorSpace *destination = nullptr;
+        KoColorConversionTransformation::Intent intent;
+        KoColorConversionTransformation::ConversionFlags flags;
+        QList<LibrePaint::Image::Gpu::ConvertedLayerPixels> layers;
+        QList<QList<QPoint>> coordinates;
+        qsizetype layer = 0, tile = 0, compressed = 0;
+        LibrePaint::Image::Gpu::RgbaPixel background{};
+        QTimer timer;
+        QMetaObject::Connection cancellation;
+    };
+    std::unique_ptr<GpuColorConversion> gpuColorConversion;
+    void cancelGpuColorConversion(const QString &diagnostic = {}, bool notify = true);
+    void advanceGpuColorConversion();
+    bool startGpuColorConversion(const KoColorSpace *destination,
+        KoColorConversionTransformation::Intent intent,
+        KoColorConversionTransformation::ConversionFlags flags);
 
     bool tryCancelCurrentStrokeAsync();
 
@@ -368,10 +422,60 @@ KisImage::~KisImage()
     /**
      * Request the tools to end currently running strokes
      */
+    m_d->cancelGpuColorConversion({}, false);
     waitForDone();
 
+    if (m_d->gpuImage) QObject::disconnect(m_d->gpuImage.data(), nullptr, this, nullptr);
     delete m_d;
     disconnect(); // in case Qt gets confused
+}
+
+KisImage::KisImage(LibrePaint::Image::Gpu::PaintImageSP image, const QString &name, const KoColorSpace *colorSpace)
+    : m_d(new KisImagePrivate(this, image->operations().snapshot()->size.width(),
+                              image->operations().snapshot()->size.height(),
+                              colorSpace, nullptr,
+                              new KisImageAnimationInterface(this), image))
+{
+    setObjectName(name);
+    setRootLayer(new KisGroupLayer(this, QStringLiteral("root"), OPACITY_OPAQUE_U8));
+}
+
+LibrePaint::Image::Gpu::PaintImageSP KisImage::gpuImage() const
+{
+    return m_d->gpuImage;
+}
+
+QSharedPointer<KisGpuImageViewState> &KisImage::gpuViewState()
+{ return m_d->gpuViewState; }
+
+namespace {
+QString bottomLayerName()
+{
+    return i18nc("Name for the bottom-most layer in the layerstack", "Background");
+}
+}
+
+KisImageSP KisImage::fromPaintDevice(KisPaintDeviceSP device, QRect region, const QString &name,
+                                    const QUuid &layerUuid, qsizetype maximumWorkingBytes)
+{
+    if (!device || region.isEmpty() || layerUuid.isNull() || maximumWorkingBytes < 0) return {};
+    if (const auto owner = device->gpuPixelImage()) {
+        if (QThread::currentThread() != owner->thread()) return {};
+        const auto pixels = device->gpuPixelReference();
+        const auto version = pixels ? pixels->version() : owner->operations().snapshot();
+        const auto captured = owner->cloneRasterLayer(version, pixels ? pixels->layer() : 0,
+                                                      region, layerUuid, maximumWorkingBytes);
+        if (!captured) return {};
+        auto image = fromGpuImage(captured, name, device->colorSpace());
+        image->root()->firstChild()->setName(bottomLayerName());
+        return image;
+    }
+    KisImageSP image = new KisImage(nullptr, region.width(), region.height(), device->colorSpace(), name);
+    KisPaintLayerSP layer = new KisPaintLayer(image, image->nextLayerName(), OPACITY_OPAQUE_U8, device->colorSpace());
+    layer->setUuid(layerUuid);
+    KisPainter::copyAreaOptimized(QPoint(), device, layer->paintDevice(), region);
+    image->addNode(layer, image->root());
+    return image;
 }
 
 KisImageSP KisImage::fromQImage(const QImage &image, KisUndoStore *undoStore)
@@ -448,10 +552,26 @@ void KisImage::copyFromImage(const KisImage &rhs)
     copyFromImageImpl(rhs, REPLACE);
 }
 
-void KisImage::copyFromImageImpl(const KisImage &rhs, int policy)
+void KisImage::replaceFromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, const KisImage &source)
+{
+    if (!gpuImage() || !source.gpuImage() || !image || !image->handle() ||
+        QThread::currentThread() != image->thread() ||
+        &image->execution() != &gpuImage()->execution() || image->operations().snapshot()->size != source.bounds().size())
+        throw std::invalid_argument("GPU image replacement requires matching source dimensions and destination execution");
+    copyFromImageImpl(source, REPLACE, std::move(image));
+}
+
+void KisImage::copyFromImageImpl(const KisImage &rhs, int policy, LibrePaint::Image::Gpu::PaintImageSP preparedGpuImage)
 {
     // make sure we choose exactly one from REPLACE and CONSTRUCT
     KIS_ASSERT_RECOVER_RETURN(bool(policy & REPLACE) != bool(policy & CONSTRUCT));
+    if (bool(gpuImage()) != bool(rhs.gpuImage()))
+        throw std::invalid_argument("Image replacement requires matching painting backends");
+    const auto gpuCopy = rhs.gpuImage() ? (preparedGpuImage ? preparedGpuImage :
+        ((policy & REPLACE) ? rhs.gpuImage()->cloneTo(*gpuImage(), policy & EXACT_COPY) : gpuImage())) : nullptr;
+    if (rhs.gpuImage() && !gpuCopy)
+        throw std::invalid_argument("GPU image replacement requires the owning thread");
+    const KisNodeSP sourceRoot = rhs.root();
 
     /**
      * We should replace the root before emitting any signals, because some of the layers
@@ -487,12 +607,45 @@ void KisImage::copyFromImageImpl(const KisImage &rhs, int policy)
     setObjectName(rhs.objectName());
 
     KisNodeSP oldRoot = this->root();
-    KisNodeSP newRoot = rhs.root()->clone();
+    KisNodeSP newRoot;
+    if (gpuCopy) {
+        QObject::disconnect(m_d->gpuImage.data(), nullptr, this, nullptr);
+        m_d->gpuImage = gpuCopy;
+        newRoot = new KisGroupLayer(this, sourceRoot->name(), sourceRoot->opacity());
+        newRoot->mergeNodeProperties(sourceRoot->nodeProperties());
+    } else {
+        newRoot = sourceRoot->clone();
+    }
     newRoot->setGraphListener(this);
     newRoot->setImage(this);
 
     m_d->rootLayer = dynamic_cast<KisGroupLayer*>(newRoot.data());
     setRoot(newRoot);
+    if (gpuCopy) {
+        // Publish the replacement as a complete subtree, matching CPU clones.
+        newRoot->setGraphListener(nullptr);
+        synchronizeGpuNodes();
+        QQueue<KisNodeSP> sourceNodes;
+        KisLayerUtils::recursiveApplyNodes(sourceRoot, [&sourceNodes](KisNodeSP node) {
+            sourceNodes.enqueue(node);
+        });
+        KisLayerUtils::recursiveApplyNodes(newRoot, [&sourceNodes](KisNodeSP node) {
+            auto source = sourceNodes.dequeue();
+            node->setCollapsed(source->collapsed());
+            auto *layer = qobject_cast<KisLayer *>(node.data());
+            auto *sourceLayer = qobject_cast<KisLayer *>(source.data());
+            if (layer && sourceLayer) {
+                layer->metaData()->copyFrom(sourceLayer->metaData());
+            }
+        });
+        auto source = sourceRoot->firstChild();
+        for (auto node = newRoot->firstChild(); node && source; node = node->nextSibling(), source = source->nextSibling()) {
+            node->setGraphListener(nullptr);
+            node->mergeNodeProperties(source->nodeProperties());
+        }
+        newRoot->setGraphListener(this);
+        connectGpuImageUpdates();
+    }
 
     if (oldRoot) {
         oldRoot->setImage(0);
@@ -591,7 +744,7 @@ void KisImage::copyFromImageImpl(const KisImage &rhs, int policy)
     }
     m_d->annotations = newAnnotations;
 
-    KIS_ASSERT_RECOVER_NOOP(rhs.m_d->projectionUpdatesFilters.isEmpty());
+    KIS_ASSERT_RECOVER_NOOP(rhs.m_d->installedProjectionFilters().isEmpty());
     KIS_ASSERT_RECOVER_NOOP(!rhs.m_d->disableUIUpdateSignals);
     KIS_ASSERT_RECOVER_NOOP(!rhs.m_d->disableDirtyRequests);
 
@@ -606,8 +759,16 @@ KisImage::KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy)
                               rhs.width(), rhs.height(),
                               rhs.colorSpace(),
                               undoStore ? undoStore : new KisDumbUndoStore(),
-                              new KisImageAnimationInterface(*rhs.animationInterface(), this)))
+                              new KisImageAnimationInterface(*rhs.animationInterface(), this),
+                              rhs.cloneGpuImage(exactCopy)))
 {
+    // GPU node constructors temporarily promote weak image references. The
+    // caller adopts the returned raw clone after construction completes.
+    const bool holdConstructionReference = bool(m_d->gpuImage);
+    if (holdConstructionReference) ref();
+    const auto releaseConstructionReference = qScopeGuard([this, holdConstructionReference] {
+        if (holdConstructionReference) deref();
+    });
     // make sure KisImage belongs to the GUI thread
     moveToThread(qApp->thread());
     connect(this, SIGNAL(sigInternalStopIsolatedModeRequested()), SLOT(stopIsolatedMode()));
@@ -740,6 +901,7 @@ KisSelectionSP KisImage::globalSelection() const
 
 bool KisImage::canReselectGlobalSelection()
 {
+    if (m_d->gpuImage) return m_hasLastGpuSelection && !m_lastGpuSelection.isEmpty();
     return m_d->deselectedGlobalSelectionMask;
 }
 
@@ -769,7 +931,7 @@ QString KisImage::nextLayerName(const QString &_baseName) const
 
     // special case if there is only root node
     if (numLayers == 1) {
-        return i18nc("Name for the bottom-most layer in the layerstack", "Background");
+        return bottomLayerName();
     }
 
     if (baseName.isEmpty()) {
@@ -791,10 +953,11 @@ bool KisImage::locked() const
 
 void KisImage::barrierLock(bool readOnly)
 {
+    if (m_d->gpuColorConversion) waitForDone();
     if (!locked()) {
         requestStrokeEnd();
         KisBusyWaitBroker::instance()->notifyWaitOnImageStarted(this);
-        m_d->scheduler.barrierLock();
+        if (m_d->scheduler) m_d->cpuScheduler().barrierLock();
         KisBusyWaitBroker::instance()->notifyWaitOnImageEnded(this);
         m_d->lockedForReadOnly = readOnly;
     } else {
@@ -806,10 +969,11 @@ void KisImage::barrierLock(bool readOnly)
 
 bool KisImage::tryBarrierLock(bool readOnly)
 {
+    if (m_d->gpuColorConversion) return false;
     bool result = true;
 
     if (!locked()) {
-        result = m_d->scheduler.tryBarrierLock();
+        result = !m_d->scheduler || m_d->cpuScheduler().tryBarrierLock();
         m_d->lockedForReadOnly = readOnly;
     }
 
@@ -823,15 +987,23 @@ bool KisImage::tryBarrierLock(bool readOnly)
 
 bool KisImage::isIdle(bool allowLocked)
 {
-    return (allowLocked || !locked()) && m_d->scheduler.isIdle();
+    return (allowLocked || !locked()) && (m_d->gpuImage ?
+        !m_d->gpuImage->operations().hasActiveStroke() : m_d->cpuScheduler().isIdle());
+}
+
+bool KisImage::hasOpenStrokes() const
+{
+    return m_d->gpuImage ? m_d->gpuImage->operations().hasActiveStroke() :
+        m_d->scheduler && m_d->cpuScheduler().hasOpenStrokes();
 }
 
 void KisImage::immediateLockForReadOnly()
 {
+    if (m_d->gpuColorConversion) waitForDone();
     if (!locked()) {
         requestStrokeEnd();
         KisBusyWaitBroker::instance()->notifyWaitOnImageStarted(this);
-        m_d->scheduler.immediateLockForReadOnly();
+        if (m_d->scheduler) m_d->cpuScheduler().immediateLockForReadOnly();
         KisBusyWaitBroker::instance()->notifyWaitOnImageEnded(this);
     }
     m_d->lockCount++;
@@ -846,19 +1018,19 @@ void KisImage::unlock()
         m_d->lockCount--;
 
         if (m_d->lockCount == 0) {
-            m_d->scheduler.unlock(!m_d->lockedForReadOnly);
+            if (m_d->scheduler) m_d->cpuScheduler().unlock(!m_d->lockedForReadOnly);
         }
     }
 }
 
 void KisImage::blockUpdates()
 {
-    m_d->scheduler.blockUpdates();
+    if (m_d->scheduler) m_d->cpuScheduler().blockUpdates();
 }
 
 void KisImage::unblockUpdates()
 {
-    m_d->scheduler.unblockUpdates();
+    if (m_d->scheduler) m_d->cpuScheduler().unblockUpdates();
 }
 
 void KisImage::setSize(const QSize& size)
@@ -870,6 +1042,13 @@ void KisImage::setSize(const QSize& size)
 void KisImage::resizeImageImpl(const QRect& newRect, bool cropLayers)
 {
     if (newRect == bounds() && !cropLayers) return;
+    if (const auto owner = m_d->gpuImage) {
+        const KisImageSP retained = this;
+        const auto result = owner->resizeCanvas(newRect, cropLayers);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error(QStringLiteral("GPU canvas resize rejected (%1)").arg(int(result)).toStdString());
+        return;
+    }
 
     KUndo2MagicString actionName = cropLayers ?
         kundo2_i18n("Crop Image") :
@@ -1021,6 +1200,21 @@ void KisImage::purgeUnusedData(bool isCancellable)
 
 void KisImage::cropNode(KisNodeSP node, const QRect& newRect, const bool activeFrameOnly)
 {
+    if (const auto owner = m_d->gpuImage) {
+        const KisImageSP retained = this;
+        KisNodeSP ancestor = node ? node->parent() : KisNodeSP();
+        while (ancestor && ancestor != root()) ancestor = ancestor->parent();
+        if (!ancestor || node->image().data() != this) throw std::invalid_argument("GPU crop requires an attached node from this image");
+        const auto version = owner->operations().snapshot();
+        const bool childMask = node->inherits("KisTransparencyMask");
+        const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &value) { return childMask ? value.transparencyMaskUuid == node->uuid() : value.uuid == node->uuid(); });
+        if (layer == version->layers.cend()) throw std::invalid_argument("GPU layer crop target is unavailable");
+        const auto result = owner->cropLayer(layer->id, newRect, childMask ? node->uuid() : QUuid{});
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error(QStringLiteral("GPU layer crop rejected (%1)").arg(int(result)).toStdString());
+        return;
+    }
     const bool isLayer = qobject_cast<KisLayer*>(node.data());
     KUndo2MagicString actionName = isLayer ?
         kundo2_i18n("Crop Layer") :
@@ -1434,11 +1628,199 @@ private:
     KisImageWSP m_image;
 };
 
+
+void KisImage::KisImagePrivate::cancelGpuColorConversion(const QString &diagnostic, bool notify)
+{
+    auto state = std::move(gpuColorConversion);
+    if (!state) return;
+    state->timer.stop();
+    QObject::disconnect(state->cancellation);
+    state->owner->cancelColorConversion(state->id);
+    state.reset();
+    if (!diagnostic.isEmpty()) qWarning() << diagnostic;
+    if (notify) Q_EMIT q->sigGpuColorConversionFinished(false, diagnostic);
+}
+
+bool KisImage::KisImagePrivate::startGpuColorConversion(const KoColorSpace *destination,
+    KoColorConversionTransformation::Intent intent, KoColorConversionTransformation::ConversionFlags flags)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!destination || q->locked() || gpuColorConversion || !gpuImage ||
+        colorSpace->colorModelId().id() != QLatin1String("RGBA") ||
+        colorSpace->colorDepthId().id() != QLatin1String("U16") || !colorSpace->profile() ||
+        !QColorSpace::fromIccProfile(colorSpace->profile()->rawData()).isValid() ||
+        QColorSpace::fromIccProfile(colorSpace->profile()->rawData()).transformModel() !=
+            QColorSpace::TransformModel::ThreeComponentMatrix ||
+        *destination != *KoColorSpaceRegistry::instance()->rgb8()) return false;
+    const auto before = gpuImage->operations().snapshot();
+    if (before->format != Gpu::PixelFormat::Rgba16 ||
+        (!before->colorProfile.isEmpty() && before->colorProfile != colorSpace->profile()->rawData())) return false;
+    // Simultaneously live per-tile buffers: canonical/native input, native/canonical output,
+    // and zlib's output bound. Prepared compressed tiles have their separate write budget.
+    constexpr qsizetype pixels = Gpu::RgbaTile::Size * Gpu::RgbaTile::Size;
+    const qsizetype working = pixels * (8 + 8 + 4 + 4) + Gpu::RasterTile::compressionBufferBytes(Gpu::PixelFormat::Rgba8);
+    if (working > gpuImage->limits().rasterBytes) return false;
+    auto state = std::make_unique<GpuColorConversion>();
+    const auto id = gpuImage->beginColorConversion();
+    if (id.isNull()) return false;
+    auto admissionCleanup = qScopeGuard([&] { gpuImage->cancelColorConversion(id); });
+    state->owner = gpuImage;
+    state->before = before;
+    state->id = id;
+    state->source = colorSpace;
+    state->destination = destination;
+    state->intent = intent;
+    state->flags = flags;
+    const auto convertPixel = [&](const Gpu::RgbaPixel &rgba) {
+        const quint16 input[] = {quint16(rgba[2]), quint16(rgba[1]), quint16(rgba[0]), quint16(rgba[3])};
+        quint8 output[4];
+        if (!colorSpace->convertPixelsTo(reinterpret_cast<const quint8 *>(input), output, destination, 1, intent, flags))
+            throw std::runtime_error("The default pixel color conversion failed");
+        return Gpu::RgbaPixel{output[2], output[1], output[0], output[3]};
+    };
+    try {
+        state->background = convertPixel(before->projectionBackground);
+        qsizetype remaining = gpuImage->limits().rasterBytes / (pixels * 4);
+        for (const auto &layer : before->layers) {
+            if (layer.kind != Gpu::LayerKind::Paint) continue;
+            const auto plan = gpuImage->execution().layerTileCoordinates(gpuImage->handle(), before, layer.id, remaining);
+            if (plan.code != Gpu::ExecutionCode::Success) {
+                return false;
+            }
+            remaining -= plan.coordinates.size();
+            state->layers.append({layer.id, convertPixel(layer.defaultPixel), {}, plan.writtenAreas});
+            state->coordinates.append(plan.coordinates);
+        }
+    } catch (...) {
+        return false;
+    }
+    try {
+    QObject::connect(&state->timer, &QTimer::timeout, q, [this] { advanceGpuColorConversion(); });
+    state->cancellation = QObject::connect(q, &KisImage::sigStrokeCancellationRequested, q,
+        [this] { cancelGpuColorConversion(); });
+    state->timer.setInterval(0);
+    gpuColorConversion = std::move(state);
+    gpuColorConversion->timer.start();
+    admissionCleanup.dismiss();
+    return true;
+    } catch (...) {
+        gpuColorConversion.reset();
+        qWarning() << "GPU image color conversion setup failed";
+        return false;
+    }
+}
+
+void KisImage::KisImagePrivate::advanceGpuColorConversion()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    auto *state = gpuColorConversion.get();
+    if (!state) return;
+    if (state->owner != gpuImage || state->owner->operations().snapshot() != state->before ||
+        state->owner->operations().activeOperation() != state->id) {
+        cancelGpuColorConversion();
+        return;
+    }
+    while (state->layer < state->layers.size() &&
+           state->tile == state->coordinates[state->layer].size()) {
+        ++state->layer;
+        state->tile = 0;
+    }
+    if (state->layer == state->layers.size()) {
+        auto completed = std::move(gpuColorConversion);
+        completed->timer.stop();
+        QObject::disconnect(completed->cancellation);
+        QPointer<KisImage> guard(q);
+        const auto owner = completed->owner;
+        const auto id = completed->id;
+        auto cleanup = qScopeGuard([owner, id] { owner->cancelColorConversion(id); });
+        Gpu::Result result = Gpu::Result::CapacityExceeded;
+        try {
+            result = owner->commitColorConversion(id, completed->before,
+                Gpu::PixelFormat::Rgba8, completed->destination->profile()->rawData(),
+                completed->background, completed->layers);
+        } catch (...) {
+            // Observer failures occur after adoption; the accepted version remains authoritative.
+            if (owner->operations().snapshot() != completed->before) result = Gpu::Result::Success;
+        }
+        if (result != Gpu::Result::Success) owner->cancelColorConversion(id);
+        cleanup.dismiss();
+        completed.reset();
+        if (guard) Q_EMIT guard->sigGpuColorConversionFinished(result == Gpu::Result::Success,
+            result == Gpu::Result::Success ? QString() : QStringLiteral("GPU image color conversion adoption failed"));
+        return;
+    }
+    try {
+        const auto coordinate = state->coordinates[state->layer][state->tile];
+        constexpr int side = Gpu::RgbaTile::Size;
+        constexpr qsizetype count = side * side;
+        const auto input = state->owner->execution().readRgbaPixels(state->owner->handle(), state->before,
+            QRect(coordinate * side, QSize(side, side)), state->layers[state->layer].layer, count * 8);
+        if (input.code != Gpu::ExecutionCode::Success) { cancelGpuColorConversion(input.diagnostic); return; }
+        QByteArray nativeInput(count * 8, Qt::Uninitialized), nativeOutput(count * 4, Qt::Uninitialized);
+        for (qsizetype i = 0; i < count; ++i) {
+            const auto *src = reinterpret_cast<const quint8 *>(input.bytes.constData()) + i * 8;
+            quint16 pixel[] = {quint16(src[4] | (src[5] << 8)), quint16(src[2] | (src[3] << 8)),
+                quint16(src[0] | (src[1] << 8)), quint16(src[6] | (src[7] << 8))};
+            std::memcpy(nativeInput.data() + i * 8, pixel, sizeof(pixel));
+        }
+        if (!state->source->convertPixelsTo(reinterpret_cast<const quint8 *>(nativeInput.constData()),
+            reinterpret_cast<quint8 *>(nativeOutput.data()), state->destination, count, state->intent, state->flags)) {
+            cancelGpuColorConversion(QStringLiteral("GPU image tile color conversion failed")); return;
+        }
+        QByteArray canonical(count * 4, Qt::Uninitialized);
+        for (qsizetype i = 0; i < count; ++i) {
+            canonical[i * 4] = nativeOutput[i * 4 + 2];
+            canonical[i * 4 + 1] = nativeOutput[i * 4 + 1];
+            canonical[i * 4 + 2] = nativeOutput[i * 4];
+            canonical[i * 4 + 3] = nativeOutput[i * 4 + 3];
+        }
+        const auto tile = Gpu::RasterTile::fromPixels({coordinate, canonical, Gpu::PixelFormat::Rgba8});
+        if (!tile || tile->compressedByteCount() > state->owner->limits().compressedWriteBytes - state->compressed) {
+            cancelGpuColorConversion(QStringLiteral("GPU image color conversion compressed capacity exceeded")); return;
+        }
+        state->compressed += tile->compressedByteCount();
+        state->layers[state->layer].tiles.append(tile);
+        ++state->tile;
+    } catch (...) { cancelGpuColorConversion(QStringLiteral("GPU image color conversion preparation failed")); }
+}
+
+void KisImage::synchronizeGpuColorSpace()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto version = gpuImage()->operations().snapshot();
+    auto *registry = KoColorSpaceRegistry::instance();
+    const auto depth = version->format == Gpu::PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
+    // Raw operation-only images use the format's established default encoding.
+    const auto profile = version->colorProfile.isEmpty() ?
+        (version->format == Gpu::PixelFormat::Rgba16 ? registry->rgb16()->profile() : registry->rgb8()->profile()) :
+        registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, version->colorProfile);
+    const auto cs = profile ? registry->colorSpace(QStringLiteral("RGBA"), depth, profile) : nullptr;
+    if (cs && *cs != *m_d->colorSpace) {
+        m_d->colorSpace = cs;
+        Q_EMIT sigColorSpaceChanged(cs);
+    }
+}
+
 void KisImage::KisImagePrivate::convertImageColorSpaceImpl(const KoColorSpace *dstColorSpace,
                                                            bool convertLayers,
                                                            KoColorConversionTransformation::Intent renderingIntent,
                                                            KoColorConversionTransformation::ConversionFlags conversionFlags)
 {
+    if (gpuImage) {
+        if (!dstColorSpace || *colorSpace == *dstColorSpace) return;
+        bool started = false;
+        try {
+            q->requestStrokeEnd();
+            started = convertLayers && startGpuColorConversion(dstColorSpace, renderingIntent, conversionFlags);
+        }
+        catch (const std::bad_alloc &) {}
+        if (!started) {
+            const auto diagnostic = QStringLiteral("GPU image color conversion was rejected: unsupported encoding, active operation, lock or preparation capacity");
+            qWarning() << diagnostic;
+            Q_EMIT q->sigGpuColorConversionFinished(false, diagnostic);
+        }
+        return;
+    }
     const KoColorSpace *srcColorSpace = this->colorSpace;
 
     if (!dstColorSpace || *srcColorSpace == *dstColorSpace) return;
@@ -1763,6 +2145,12 @@ void KisImage::flattenLayer(KisLayerSP layer)
 
 void KisImage::setModifiedWithoutUndo()
 {
+    if (m_d->gpuImage) {
+        QPointer<KisImage> guard(this);
+        Q_EMIT sigImageModifiedWithoutUndo();
+        if (guard) Q_EMIT sigImageModified();
+        return;
+    }
     m_d->signalRouter.emitNotification(ModifiedWithoutUndoSignal);
     Q_EMIT sigImageModified();
 }
@@ -1795,18 +2183,82 @@ QImage KisImage::convertToQImage(qint32 x,
 
 
 
+namespace {
+QImage straightPreviewPixels(const QImage &image)
+{
+    const auto premultiplied = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+    if (premultiplied.isNull()) return {};
+    QImage result(image.size(), QImage::Format_ARGB32);
+    if (result.isNull()) return {};
+    result.setColorSpace(image.colorSpace());
+    result.setDevicePixelRatio(image.devicePixelRatio());
+    for (int y = 0; y < result.height(); ++y) {
+        const auto *source = reinterpret_cast<const QRgb*>(premultiplied.constScanLine(y));
+        auto *destination = reinterpret_cast<QRgb*>(result.scanLine(y));
+        for (int x = 0; x < result.width(); ++x) {
+            const int alpha = qAlpha(source[x]);
+            const auto straight = [alpha](int value) { return alpha ? std::min(255, (value * 255 + alpha / 2) / alpha) : 0; };
+            destination[x] = qRgba(straight(qRed(source[x])), straight(qGreen(source[x])), straight(qBlue(source[x])), alpha);
+        }
+    }
+    return result;
+}
+}
+
 QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProfile *profile)
 {
+    return convertToQImage(scaledImageSize, profile,
+        m_d->gpuImage ? m_d->gpuImage->operations().snapshot() : LibrePaint::Image::Gpu::Snapshot{}, colorSpace());
+}
+
+QImage KisImage::convertToQImage(const QSize &scaledImageSize, const KoColorProfile *profile,
+                                const LibrePaint::Image::Gpu::Snapshot &version, const KoColorSpace *documentColorSpace)
+{
+    if (m_d->gpuImage && version && !version->colorProfile.isEmpty()) {
+        auto *registry = KoColorSpaceRegistry::instance();
+        const auto depth = version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
+        const auto encoding = registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, version->colorProfile);
+        documentColorSpace = encoding ? registry->colorSpace(QStringLiteral("RGBA"), depth, encoding) : nullptr;
+    }
+    if (!documentColorSpace || (m_d->gpuImage && (!version ||
+        version->documentId() != m_d->gpuImage->operations().snapshot()->documentId() ||
+        documentColorSpace->pixelSize() != LibrePaint::Image::Gpu::pixelByteCount(version->format))))
+        throw std::invalid_argument("GPU preview requires its retained image version and document encoding");
+    const QSize sourceSize = version ? version->size : size();
+    const QRect sourceBounds(QPoint(), sourceSize);
     if (scaledImageSize.isEmpty()) {
         return QImage();
     }
 
-    KisPaintDeviceSP dev = new KisPaintDevice(colorSpace());
+    if (m_d->gpuImage) {
+        const auto previewColorSpace = KoColorSpaceRegistry::instance()->rgb8();
+        const qreal scaleX = qreal(scaledImageSize.width()) / sourceSize.width();
+        const qreal scaleY = qreal(scaledImageSize.height()) / sourceSize.height();
+        const bool areaResize = scaleX < 1. / 256 || scaleY < 1. / 256;
+        const auto destinationColorSpace = KoColorSpaceRegistry::instance()->rgb8(profile);
+        if (*documentColorSpace == *previewColorSpace &&
+            (!areaResize || (destinationColorSpace && *destinationColorSpace == *previewColorSpace))) {
+            const auto result = m_d->gpuImage->execution().readResizedProjectionImage(m_d->gpuImage->handle(),
+                version, scaledImageSize, 256 * 1024 * 1024);
+            if (result.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
+                throw std::runtime_error(result.diagnostic.toStdString());
+            if (result.image.isNull()) return {};
+            if (result.image.format() == QImage::Format_RGBA8888_Premultiplied || result.image.format() == QImage::Format_ARGB32_Premultiplied)
+                return straightPreviewPixels(result.image);
+            const auto image = result.image.convertToFormat(QImage::Format_ARGB32);
+            return previewColorSpace->convertToQImage(image.constBits(), image.width(), image.height(), profile,
+                KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
+        }
+    }
+
+    KisPaintDeviceSP dev = new KisPaintDevice(documentColorSpace);
+    const auto source = m_d->gpuImage
+        ? kisGpuPaintDeviceTransfer(m_d->gpuImage, 0, new KisDefaultBounds(), version, documentColorSpace) : projection();
     KisPainter gc;
-    gc.copyAreaOptimized(QPoint(0, 0), projection(), dev, bounds());
+    gc.copyAreaOptimized(QPoint(0, 0), source, dev, sourceBounds);
     gc.end();
-    double scaleX = qreal(scaledImageSize.width()) / width();
-    double scaleY = qreal(scaledImageSize.height()) / height();
+    double scaleX = qreal(scaledImageSize.width()) / sourceSize.width();
+    double scaleY = qreal(scaledImageSize.height()) / sourceSize.height();
 
 
     if (scaleX < 1.0/256 || scaleY < 1.0/256) {
@@ -1814,7 +2266,26 @@ QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProf
         // convertToQImage uses KisFixedPoint values, which means that the scale cannot be smaller than 1/2^8
         // BUG:432182
         // FIXME: would be best to extend KisFixedPoint instead
-        return convertToQImage(size(), profile).scaled(scaledImageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        const auto pixels = convertToQImage(sourceSize, profile, version, documentColorSpace);
+        if (pixels.isNull()) return {};
+        const auto outputSize = pixels.size().scaled(scaledImageSize, Qt::KeepAspectRatio).expandedTo({1, 1});
+        QImage resized;
+        if (outputSize.width() >= pixels.width() && outputSize.height() >= pixels.height()) {
+            // Keep the small-image raster interpolation in premultiplied form
+            // until the common integer conversion at the image boundary.
+            resized = QImage(outputSize, QImage::Format_ARGB32_Premultiplied);
+            resized.fill(Qt::transparent);
+            QPainter painter(&resized);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.setRenderHint(QPainter::SmoothPixmapTransform);
+            painter.scale(qreal(outputSize.width()) / pixels.width(), qreal(outputSize.height()) / pixels.height());
+            painter.drawImage(QPoint(), pixels);
+            painter.end();
+        } else {
+            resized = pixels.convertToFormat(QImage::Format_ARGB32_Premultiplied)
+                .scaled(outputSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        }
+        return straightPreviewPixels(resized);
     }
 
     KoDummyUpdaterHolder updaterHolder;
@@ -1852,7 +2323,7 @@ KisPostExecutionUndoAdapter* KisImage::postExecutionUndoAdapter() const
 {
     const int lod = currentLevelOfDetail();
     return lod > 0 ?
-        m_d->scheduler.lodNPostExecutionUndoAdapter() :
+        m_d->cpuScheduler().lodNPostExecutionUndoAdapter() :
         &m_d->postExecutionUndoAdapter;
 }
 
@@ -1885,12 +2356,36 @@ KisUndoAdapter* KisImage::undoAdapter() const
 
 void KisImage::setDefaultProjectionColor(const KoColor &color)
 {
+    if (m_d->gpuImage) {
+        auto converted = color;
+        converted.convertTo(colorSpace());
+        const auto bytes = converted.data();
+        LibrePaint::Image::Gpu::RgbaPixel rgba;
+        if (m_d->gpuImage->operations().snapshot()->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16) {
+            quint16 components[4];
+            std::memcpy(components, bytes, sizeof(components));
+            rgba = {components[2], components[1], components[0], components[3]};
+        } else rgba = {bytes[2], bytes[1], bytes[0], bytes[3]};
+        const auto result = m_d->gpuImage->writeProjectionBackground(rgba);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU canvas background write failed: " + std::to_string(int(result)));
+        return;
+    }
     KIS_ASSERT_RECOVER_RETURN(m_d->rootLayer);
     m_d->rootLayer->setDefaultProjectionColor(color);
 }
 
 KoColor KisImage::defaultProjectionColor() const
 {
+    if (m_d->gpuImage) {
+        const auto &rgba = m_d->gpuImage->operations().snapshot()->projectionBackground;
+        if (m_d->gpuImage->operations().snapshot()->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16) {
+            const quint16 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
+            return KoColor(reinterpret_cast<const quint8 *>(bgra), colorSpace());
+        }
+        const quint8 bgra[] = {quint8(rgba[2]), quint8(rgba[1]), quint8(rgba[0]), quint8(rgba[3])};
+        return KoColor(bgra, colorSpace());
+    }
     KIS_ASSERT_RECOVER(m_d->rootLayer) {
         return KoColor::createTransparent(m_d->colorSpace);
     }
@@ -1919,7 +2414,7 @@ void KisImage::setRootLayer(KisGroupLayerSP rootLayer)
     m_d->rootLayer->setImage(this);
 
     setRoot(m_d->rootLayer.data());
-    this->setDefaultProjectionColor(defaultProjectionColor);
+    if (!m_d->gpuImage) this->setDefaultProjectionColor(defaultProjectionColor);
 }
 
 void KisImage::addAnnotation(KisAnnotationSP annotation)
@@ -1990,7 +2485,13 @@ void KisImage::waitForDone()
 {
     requestStrokeEnd();
     KisBusyWaitBroker::instance()->notifyWaitOnImageStarted(this);
-    m_d->scheduler.waitForDone();
+    while (m_d->gpuColorConversion) {
+        QEventLoop loop;
+        const auto connection = connect(this, &KisImage::sigGpuColorConversionFinished, &loop, &QEventLoop::quit);
+        if (m_d->gpuColorConversion) loop.exec(QEventLoop::ExcludeUserInputEvents);
+        disconnect(connection);
+    }
+    if (m_d->scheduler) m_d->cpuScheduler().waitForDone();
     KisBusyWaitBroker::instance()->notifyWaitOnImageEnded(this);
 }
 
@@ -2007,7 +2508,7 @@ KisStrokeId KisImage::startStroke(KisStrokeStrategy *strokeStrategy)
         requestStrokeEnd();
     }
 
-    return m_d->scheduler.startStroke(strokeStrategy);
+    return m_d->cpuScheduler().startStroke(strokeStrategy);
 }
 
 void KisImage::KisImagePrivate::notifyProjectionUpdatedInPatches(const QRect &rc, QVector<KisRunnableStrokeJobData*> &jobs)
@@ -2192,22 +2693,22 @@ bool KisImage::isIsolatingGroup() const
 void KisImage::addJob(KisStrokeId id, KisStrokeJobData *data)
 {
     KisUpdateTimeMonitor::instance()->reportJobStarted(data);
-    m_d->scheduler.addJob(id, data);
+    m_d->cpuScheduler().addJob(id, data);
 }
 
 void KisImage::endStroke(KisStrokeId id)
 {
-    m_d->scheduler.endStroke(id);
+    m_d->cpuScheduler().endStroke(id);
 }
 
 bool KisImage::cancelStroke(KisStrokeId id)
 {
-    return m_d->scheduler.cancelStroke(id);
+    return m_d->cpuScheduler().cancelStroke(id);
 }
 
 bool KisImage::KisImagePrivate::tryCancelCurrentStrokeAsync()
 {
-    return scheduler.tryCancelCurrentStrokeAsync();
+    return scheduler && cpuScheduler().tryCancelCurrentStrokeAsync();
 }
 
 void KisImage::requestUndoDuringStroke()
@@ -2229,7 +2730,7 @@ void KisImage::requestStrokeCancellation()
 
 UndoResult KisImage::tryUndoUnfinishedLod0Stroke()
 {
-    return m_d->scheduler.tryUndoLastStrokeAsync();
+    return m_d->scheduler ? m_d->cpuScheduler().tryUndoLastStrokeAsync() : UNDO_FAIL;
 }
 
 void KisImage::requestStrokeEnd()
@@ -2256,6 +2757,10 @@ void KisImage::initialRefreshGraph()
 
 void KisImage::refreshGraphAsync(KisNodeSP root, const QVector<QRect> &rects, const QRect &cropRect, KisProjectionUpdateFlags flags)
 {
+    if (m_d->gpuImage) {
+        for (const auto &rect : rects) notifyProjectionUpdated(rect);
+        return;
+    }
     if (!root) root = m_d->rootLayer;
 
     QVector<QRect> requestedRects = rects;
@@ -2294,8 +2799,9 @@ void KisImage::refreshGraphAsync(KisNodeSP root, const QVector<QRect> &rects, co
      * We iterate through the filters in a reversed way. It makes the most nested filters
      * to execute first.
      */
-    for (auto it = m_d->projectionUpdatesFilters.rbegin();
-         it != m_d->projectionUpdatesFilters.rend();
+    const auto filters = m_d->installedProjectionFilters();
+    for (auto it = filters.rbegin();
+         it != filters.rend();
          ++it) {
 
         KIS_SAFE_ASSERT_RECOVER(*it) { continue; }
@@ -2309,23 +2815,24 @@ void KisImage::refreshGraphAsync(KisNodeSP root, const QVector<QRect> &rects, co
         m_d->animationInterface->notifyNodeChanged(root.data(), requestedRects, true);
     }
 
-    m_d->scheduler.fullRefreshAsync(root, requestedRects, cropRect, flags);
+    m_d->cpuScheduler().fullRefreshAsync(root, requestedRects, cropRect, flags);
 }
 
 void KisImage::addSpontaneousJob(KisSpontaneousJob *spontaneousJob)
 {
-    m_d->scheduler.addSpontaneousJob(spontaneousJob);
+    m_d->cpuScheduler().addSpontaneousJob(spontaneousJob);
 }
 
 bool KisImage::hasUpdatesRunning() const
 {
-    return m_d->scheduler.hasUpdatesRunning();
+    return m_d->scheduler && m_d->cpuScheduler().hasUpdatesRunning();
 }
 
 KisProjectionUpdatesFilterCookie KisImage::addProjectionUpdatesFilter(KisProjectionUpdatesFilterSP filter)
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(filter, KisProjectionUpdatesFilterCookie());
 
+    QMutexLocker guard(&m_d->projectionFiltersMutex);
     m_d->projectionUpdatesFilters.append(filter);
 
     return KisProjectionUpdatesFilterCookie(filter.data());
@@ -2333,6 +2840,7 @@ KisProjectionUpdatesFilterCookie KisImage::addProjectionUpdatesFilter(KisProject
 
 KisProjectionUpdatesFilterSP KisImage::removeProjectionUpdatesFilter(KisProjectionUpdatesFilterCookie cookie)
 {
+    QMutexLocker guard(&m_d->projectionFiltersMutex);
     KIS_SAFE_ASSERT_RECOVER_NOOP(cookie);
     KIS_SAFE_ASSERT_RECOVER_NOOP(m_d->projectionUpdatesFilters.last() == cookie);
 
@@ -2348,6 +2856,7 @@ KisProjectionUpdatesFilterSP KisImage::removeProjectionUpdatesFilter(KisProjecti
 
 KisProjectionUpdatesFilterCookie KisImage::currentProjectionUpdatesFilter() const
 {
+    QMutexLocker guard(&m_d->projectionFiltersMutex);
     return !m_d->projectionUpdatesFilters.isEmpty() ?
                 m_d->projectionUpdatesFilters.last().data() :
                 KisProjectionUpdatesFilterCookie();
@@ -2417,12 +2926,12 @@ void KisImage::notifyProjectionUpdated(const QRect &rc)
 
 void KisImage::setWorkingThreadsLimit(int value)
 {
-    m_d->scheduler.setThreadsLimit(value);
+    if (m_d->scheduler) m_d->cpuScheduler().setThreadsLimit(value);
 }
 
 int KisImage::workingThreadsLimit() const
 {
-    return m_d->scheduler.threadsLimit();
+    return m_d->scheduler ? m_d->cpuScheduler().threadsLimit() : 1;
 }
 
 void KisImage::notifySelectionChanged()
@@ -2454,7 +2963,11 @@ void KisImage::KisImagePrivate::
 {
     if (rects.isEmpty()) return;
 
-    scheduler.updateProjection(node, rects, cropRect, flags);
+    if (gpuImage) {
+        for (const auto &rect : rects) q->notifyProjectionUpdated(rect);
+        return;
+    }
+    cpuScheduler().updateProjection(node, rects, cropRect, flags);
 }
 
 void KisImage::requestProjectionUpdate(KisNode *node, const QVector<QRect> &rects, KisProjectionUpdateFlags flags)
@@ -2463,8 +2976,9 @@ void KisImage::requestProjectionUpdate(KisNode *node, const QVector<QRect> &rect
      * We iterate through the filters in a reversed way. It makes the most nested filters
      * to execute first.
      */
-    for (auto it = m_d->projectionUpdatesFilters.rbegin();
-         it != m_d->projectionUpdatesFilters.rend();
+    const auto filters = m_d->installedProjectionFilters();
+    for (auto it = filters.rbegin();
+         it != filters.rend();
          ++it) {
 
         KIS_SAFE_ASSERT_RECOVER(*it) { continue; }
@@ -2633,32 +3147,33 @@ bool KisImage::wrapAroundModePermitted() const
 
 bool KisImage::wrapAroundModeActive() const
 {
-    return m_d->wrapAroundModePermitted &&
-        m_d->scheduler.wrapAroundModeSupported();
+    return m_d->scheduler && m_d->wrapAroundModePermitted &&
+        m_d->cpuScheduler().wrapAroundModeSupported();
 }
 
 int KisImage::currentLevelOfDetail() const
 {
-    return m_d->scheduler.currentLevelOfDetail();
+    return m_d->scheduler ? m_d->cpuScheduler().currentLevelOfDetail() : 0;
 }
 
 void KisImage::explicitRegenerateLevelOfDetail()
 {
-    const KisLodPreferences pref = m_d->scheduler.lodPreferences();
+    if (!m_d->scheduler) return;
+    const KisLodPreferences pref = m_d->cpuScheduler().lodPreferences();
 
     if (pref.lodSupported() && pref.lodPreferred()) {
-        m_d->scheduler.explicitRegenerateLevelOfDetail();
+        m_d->cpuScheduler().explicitRegenerateLevelOfDetail();
     }
 }
 
 void KisImage::setLodPreferences(const KisLodPreferences &value)
 {
-    m_d->scheduler.setLodPreferences(value);
+    if (m_d->scheduler) m_d->cpuScheduler().setLodPreferences(value);
 }
 
 KisLodPreferences KisImage::lodPreferences() const
 {
-    return m_d->scheduler.lodPreferences();
+    return m_d->scheduler ? m_d->cpuScheduler().lodPreferences() : KisLodPreferences{};
 }
 
 void KisImage::nodeCollapsedChanged(KisNode * node)

@@ -17,6 +17,17 @@ class KisImageTest : public QObject
 private Q_SLOTS:
 
     void layerTests();
+    void testProjectionFilterSurvivesRemovalDuringARequest_data();
+    void testProjectionFilterSurvivesRemovalDuringARequest();
+    void testGpuImagePublishesLayersProjectionAndSharedLifetime();
+    void testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranches();
+    void testGpuPaintChannelFlagsPreserveProtectedPixelsAndFrozenHistory();
+    void testRetainedGpuLayerPixelsOutliveTheImageAndDiscardedHistory();
+    void testGpuImageNotificationLifetime_data();
+    void testGpuImageNotificationLifetime();
+    void testGpuInsertionPreservesSupportedStateAndRejectsUnrepresentedState_data();
+    void testGpuInsertionPreservesSupportedStateAndRejectsUnrepresentedState();
+    void testGpuInsertionKeepsRawPixelsFromWrappedInput();
     void benchmarkCreation();
     void testBlockLevelOfDetail();
     void testConvertImageColorSpace();

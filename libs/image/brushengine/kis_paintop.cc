@@ -102,12 +102,20 @@ static void paintBezierCurve(KisPaintOp *paintOp,
                              KisDistanceInformation *currentDistance
                              )
 {
-    LineEquation line = LineEquation::Through(toKisVector2D(pi1.pos()), toKisVector2D(pi2.pos()));
-    qreal d1 = line.absDistance(control1);
-    qreal d2 = line.absDistance(control2);
+    const auto first = toKisVector2D(pi1.pos());
+    const auto last = toKisVector2D(pi2.pos());
+    bool flat;
+    if ((first.array() == last.array()).all()) {
+        flat = (control1.array() == first.array()).all() && (control2.array() == first.array()).all();
+    } else {
+        const LineEquation line = LineEquation::Through(first, last);
+        const qreal d1 = line.absDistance(control1);
+        const qreal d2 = line.absDistance(control2);
+        flat = (d1 < BEZIER_FLATNESS_THRESHOLD && d2 < BEZIER_FLATNESS_THRESHOLD)
+               || qIsNaN(d1) || qIsNaN(d2);
+    }
 
-    if ((d1 < BEZIER_FLATNESS_THRESHOLD && d2 < BEZIER_FLATNESS_THRESHOLD)
-            || qIsNaN(d1) || qIsNaN(d2)) {
+    if (flat) {
         paintOp->paintLine(pi1, pi2, currentDistance);
     } else {
         // Midpoint subdivision. See Foley & Van Dam Computer Graphics P.508

@@ -1,0 +1,348 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#ifndef KIS_GPU_EXECUTION_H
+#define KIS_GPU_EXECUTION_H
+
+#include "KisGpuTileRenderer.h"
+#include <QImage>
+#include <array>
+#include <future>
+#include <optional>
+
+
+namespace LibrePaint::Image::Gpu {
+
+namespace Detail { struct BufferStorage; }
+
+class PresentationSurface;
+using DocumentHandle = quint64;
+enum class ExecutionCode { Success, InvalidRequest, CapacityExceeded, Busy, DeviceFailure, SurfaceOutOfDate };
+enum class PixelReadArea { Canvas, LayerCoordinates };
+
+struct ExecutionOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    QString diagnostic;
+};
+struct DocumentAdmission
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    DocumentHandle handle = 0;
+    QString diagnostic;
+};
+struct FrameOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    WGPUCommandEncoder commands = nullptr;
+    WGPUTextureView target = nullptr;
+    QString diagnostic;
+};
+
+/** Straight RGBA tile bytes at the pinned document precision; U16 components are little-endian.
+ * Layer zero denotes the projection.
+ */
+struct PixelTile
+{
+    LayerId layer = 0;
+    QPoint coordinate;
+    QByteArray rgba;
+};
+struct PixelReadbackOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    Snapshot document;
+    quint64 generation = 0;
+    QRect region;
+    QList<PixelTile> tiles;
+    QString diagnostic;
+    std::optional<bool> containsTransparency{};
+    std::optional<QRect> bounds{};
+    /** Explicitly written regions retained by complete-layer reads for lossless saving. */
+    QList<QRect> writtenAreas{};
+};
+struct LayerTileCoordinatesOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    QList<QPoint> coordinates;
+    QList<QRect> writtenAreas;
+    QString diagnostic;
+};
+struct ImageReadbackOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    Snapshot document;
+    quint64 generation = 0;
+    QImage image;
+    QString diagnostic;
+};
+struct PixelBytesOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    Snapshot document;
+    quint64 generation = 0;
+    QRect region;
+    QByteArray bytes;
+    QString diagnostic;
+};
+struct ColorSampleOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    Snapshot document;
+    quint64 generation = 0;
+    RgbaPixel rgba{};
+    QString diagnostic;
+};
+
+/**
+ * Owns the bounded document requests and frame submission on one GPU queue.
+ * All calls and destruction use the device thread. Each attached document has
+ * one latest immutable request; the logical owner retains accepted input and
+ * history. At most one frame and one projection attempt are active at a time.
+ *
+ * Presentation frames join drawing, composition and display without CPU pixel
+ * transfers or completion waits. Readback frames serve synchronous external
+ * reads; submission completes their requested CPU transfers. Command buffers and presentation targets are
+ * borrowed until submitFrame()/cancelFrame(); keep the presentation surface valid then.
+ * A frame publishes its GPU version only after successful native submission
+ * while its document handle and request remain current. Superseded and closed
+ * documents suppress presentation. Cancellation preserves the published state.
+ */
+class KRITAGPUIMAGE_EXPORT Execution
+{
+public:
+    explicit Execution(DevicePtr device, qsizetype byteBudget = 128 * 1024 * 1024,
+                       qsizetype maximumDocuments = 16,
+                       qsizetype maximumReadbackBytes = 64 * 1024 * 1024);
+    ~Execution();
+    Execution(const Execution &) = delete;
+    Execution &operator=(const Execution &) = delete;
+
+    /** One attachment per document; handle zero denotes rejection. */
+    DocumentAdmission open(const Snapshot &document);
+    ExecutionOutcome request(DocumentHandle handle, const Snapshot &document);
+    ExecutionOutcome close(DocumentHandle handle);
+    Snapshot requested(DocumentHandle handle) const;
+    Snapshot published(DocumentHandle handle) const;
+    qsizetype pendingDocuments() const;
+
+    FrameOutcome beginPresentationFrame(PresentationSurface &surface);
+    FrameOutcome beginReadbackFrame();
+    ProjectionOutcome project(DocumentHandle handle, QRect region);
+    ExecutionOutcome submitFrame();
+    ExecutionOutcome cancelFrame();
+
+
+    /**
+     * Synchronous external read of a retained version belonging to an attached
+     * document. Completes earlier admitted native reads before starting this read;
+     * an unsubmitted frame remains Busy. Preserves newer requests and publication.
+     * Reads selected layers,
+     * including hidden ones, and optionally the visible projection. Returns full
+     * sparse tiles intersecting the document-clipped region by default.
+     * LayerCoordinates preserves off-canvas layer tiles; the projection remains
+     * clipped to the canvas. Absent tiles use the pinned document's projectionDefaultPixels().
+     * The byte limit counts distinct transferred tile buffers.
+     * Rejection returns no partial pixels. CPU values outlive the device.
+     */
+    PixelReadbackOutcome readPixels(DocumentHandle handle, const Snapshot &document,
+                                   QRect region, const QList<LayerId> &layers = {},
+                                   bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
+    /** Exact Alpha8 bytes for explicit external selection reads and saving.
+     * The retained mask owns its frozen source independently of document handles.
+     * Coordinates are preserved, including off-canvas coverage. Reads stream one
+     * native tile at a time within the transfer limit and never change the mask,
+     * requests or publication. Owning-thread and Busy rules follow readPixels().
+     */
+    PixelBytesOutcome readSelectionPixels(const SelectionMaskSP &mask, QRect region, qsizetype maximumBytes);
+    /** Submits a fixed-version read without waiting for GPU completion.
+     * pollReadbacks() drives native callbacks on the GPU thread. An admitted
+     * read completes independently of later edits or document closure; its CPU
+     * result outlives execution and the device. Rejections are ready futures
+     * with no partial pixels. Discarding a future retains native callback storage
+     * until completion. The same transfer budget as readPixels() applies.
+     */
+    std::future<PixelReadbackOutcome> readPixelsAsync(DocumentHandle handle, const Snapshot &document,
+                                   QRect region, const QList<LayerId> &layers = {},
+                                   bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
+    /** Canonical alpha-weighted color of a fixed layer or the canvas projection.
+     * Radius 1 selects the center; radii 2..900 select integer points strictly
+     * inside a disk of radius (radius - 1). Alpha averages all sample positions;
+     * RGB is weighted by alpha. Integer ties round upward. Zero aggregate alpha
+     * returns zero RGBA. Components use the pinned document's precision.
+     * Layer zero samples transparent pixels beyond the canvas;
+     * other layers sample their physical projection, including an enabled
+     * transparency mask, off-canvas and implicit pixels. Transfers use 32 bytes for RGBA8
+     * and 36 bytes for RGBA16,
+     * independent of the sampled area. Thread, asynchronous completion, lifetime
+     * and rejection follow readPixelsAsync(); requests/publication stay current.
+     */
+    std::future<ColorSampleOutcome> readColorSampleAsync(DocumentHandle handle, const Snapshot &document,
+                                                        LayerId layer, QPoint point, int radius);
+    /** Fixed-version projection alpha classification without transferring tile pixels.
+     * A successful result contains the boolean and no tiles. Canvas clipping,
+     * asynchronous completion, lifetime, and rejection follow readPixelsAsync().
+     */
+    std::future<PixelReadbackOutcome> readTransparencyAsync(DocumentHandle handle, const Snapshot &document, QRect region);
+    /** Exact nontransparent layer bounds, including off-canvas pixels. An opaque
+     * implicit pixel selects nondefault pixels instead; the caller supplies its
+     * default bounds. Layer zero measures the canvas-clipped projection.
+     * Streams one tile at a time, transfers sixteen bytes per summary, retains
+     * the version, and preserves requests and publication.
+     * Rejection and thread ownership follow readPixels().
+     * includeTransparentColors measures every nondefault RGBA value for content-preserving moves.
+     * opacityU8 preserves native handle/paint-device classification, including
+     * RGBA16 implicit pixels below the first nonzero eight-bit alpha value.
+     */
+    PixelReadbackOutcome readBounds(DocumentHandle handle, const Snapshot &document, LayerId layer,
+                                   bool includeTransparentColors = false, bool opacityU8 = false);
+    /** Native document projection bounds, including off-canvas content and the
+     * pinned canvas when its implicit eight-bit opacity is nonzero. Uses GPU
+     * summaries and preserves the retained version and current publication. */
+    PixelReadbackOutcome readNativeProjectionBounds(DocumentHandle handle, const Snapshot &document);
+    /** Physical node projection, including its enabled transparency mask but
+     * excluding the node's opacity, blend mode and visibility in its parent. */
+    PixelReadbackOutcome readLayerProjectionBounds(DocumentHandle handle, const Snapshot &document, LayerId layer);
+    /** Native opacity classification for layer picking at one image coordinate.
+     * Includes the paint layer's visible mask or the group's child projection,
+     * and uses opacityU8 semantics in both precisions. Returns a nonempty bounds
+     * value for a hit; only a sixteen-byte summary crosses the GPU boundary.
+     */
+    PixelReadbackOutcome readLayerHitTest(DocumentHandle handle, const Snapshot &document, LayerId layer, QPoint point);
+    /** Bounds of the ordinary move tool's captured selection, before clearing
+     * or placement. Streams GPU tiles and sixteen-byte summaries; no pixel rows.
+     * Native handles use opacityU8; includeLowAlpha additionally measures native
+     * nonzero alpha for content-preserving coordinate admission. The source and
+     * frozen selection remain unchanged on rejection.
+     */
+    PixelReadbackOutcome readSelectedBounds(DocumentHandle handle, const Snapshot &document,
+                                            const TranslationOperation &selection, bool includeLowAlpha = false);
+    /** Nonblocking callback processing; Busy denotes unfinished native reads. */
+    ExecutionOutcome pollReadbacks();
+
+    /** Packed straight RGBA rows at the pinned document precision; U16 is little-endian.
+     * Layer zero reads the visible projection, with transparent pixels outside
+     * the canvas. Other layers preserve hidden, off-canvas and implicit pixels.
+     * Byte limits apply to encoded output; transfers use one tile at a time.
+     * Optional frozen clipboard coverage multiplies alpha on the GPU,
+     * preserving RGB and native precision before transfer. Rejection returns no partial bytes.
+     * Requests and publication stay current.
+     */
+    PixelBytesOutcome readRgbaPixels(DocumentHandle handle, const Snapshot &document,
+                                     QRect region, LayerId layer, qsizetype maximumBytes,
+                                     const SelectionMaskSP &copyMask = {}, bool invertMask = false);
+    /** Native root paint-device pixels. Includes off-canvas composition and
+     * its implicit pixel, with the same bounded external-read lifetime as
+     * readRgbaPixels(). Canvas/export readers retain their clipped result. */
+    PixelBytesOutcome readNativeProjectionPixels(DocumentHandle handle, const Snapshot &document,
+                                                 QRect region, qsizetype maximumBytes);
+    /** Packed physical node projection, with the bounded external-read lifetime
+     * of readRgbaPixels(). Layer zero selects the native root projection. */
+    PixelBytesOutcome readLayerProjectionPixels(DocumentHandle handle, const Snapshot &document,
+                                                LayerId layer, QRect region, qsizetype maximumBytes);
+
+    /** Complete sparse layer pixels, including hidden and off-canvas tiles.
+     * Implicit pixels use the returned document's projectionDefaultPixels().
+     * The output byte limit bounds CPU tiles; each transfer uses one tile.
+     * Complete reads retire derived display caches after GPU completion while
+     * preserving requests and publication. External GPU pins count against the
+     * shared capacity. Rejection returns no partial result.
+     */
+    /** Fixed-version sparse coordinates and explicit written regions; no pixel transfer.
+     * maximumTiles bounds both coordinate storage and the corresponding output tile allocation.
+     */
+    LayerTileCoordinatesOutcome layerTileCoordinates(DocumentHandle handle, const Snapshot &document,
+                                                      LayerId layer, qsizetype maximumTiles);
+    PixelReadbackOutcome readLayerPixels(DocumentHandle handle, const Snapshot &document,
+                                        LayerId layer, qsizetype maximumBytes);
+    /** Complete straight RGBA projection at the document precision, streamed into a bounded CPU image.
+     * RGBA8 uses sRGB; RGBA16 uses linear sRGB and QImage::Format_RGBA64.
+     * Uses the same cache retirement and publication rules as readLayerPixels().
+     */
+    ImageReadbackOutcome readProjectionImage(DocumentHandle handle, const Snapshot &document,
+                                            qsizetype maximumBytes);
+
+    /** Nearest-sample thumbnail of a fixed layer or the canvas-clipped projection.
+     * Preserves document precision and hidden RGB; RGBA16 returns linear-sRGB RGBA64.
+     * Source pixels stay on the GPU. Only bounded chunks of the requested image
+     * are transferred. Upscaling retains the native thumbnail's transparent padding.
+     * Output and native working storage are bounded; rejection returns no image
+     * and preserves requests, publication and editing state.
+     * includeLayerTileExtent unions the source with retained tile bounds for
+     * coarse history previews, including implicit projection padding.
+     */
+    ImageReadbackOutcome readThumbnail(DocumentHandle handle, const Snapshot &document,
+                                      LayerId layer, QRect source, QSize size, qsizetype maximumBytes,
+                                      bool includeLayerTileExtent = false);
+
+    /** Resizes a fixed RGBA8 projection with the native document-preview rules.
+     * Bicubic passes retain alpha-weighted integer rounding and content cropping.
+     * Reductions below 1/256 use Qt area/bilinear rules. When the cropped source
+     * fits inside the requested result, Qt enlarges the bounded returned pixels.
+     * GPU working storage and transfers are bounded; failed reads return no image
+     * and preserve requests, publication and document state.
+     */
+    ImageReadbackOutcome readResizedProjectionImage(DocumentHandle handle, const Snapshot &document,
+                                                    QSize scaledCanvas, qsizetype maximumBytes);
+
+    /** Rebuilds accepted documents lazily on a new device; active frames reject replacement. */
+    ExecutionOutcome replaceDevice(DevicePtr device);
+    DevicePtr device() const;
+    quint64 generation() const;
+    qsizetype residentBytes() const;
+
+private:
+    ExecutionOutcome readSelectionTileOutlines(const SelectionMaskSP &mask, QRect *bounds,
+                                              QList<QRect> *runs, QList<QPoint> *tiles);
+    friend class PaintImage;
+    PixelReadbackOutcome readAffineSelectionBounds(DocumentHandle handle, const Snapshot &document,
+                                                   const AffineTransformOperation &operation);
+    /** Native whole-device transform tile purge; transfers summary metadata. */
+    ExecutionOutcome readNonDefaultBlocks(DocumentHandle handle, const Snapshot &document, LayerId layer, QList<QRect> &blocks);
+    struct Private;
+    std::unique_ptr<Private> m_d;
+    FrameOutcome beginFrame(PresentationSurface *surface);
+    /** Checks contiguous coverage before history adoption. Only admission
+     * status and bounds cross to the CPU; editing pixels stay on the GPU. */
+    ExecutionOutcome checkRegionFill(DocumentHandle handle, const RegionFillSP &region, QRect *bounds,
+                                     SelectionMaskSP *selection = nullptr);
+    ExecutionOutcome regionSelectionOutline(const RegionFillSP &region,
+        const std::shared_ptr<Detail::BufferStorage> &pixels, const QRect &bounds, SelectionMaskSP *selection);
+    ExecutionOutcome readSelectionOutline(const std::shared_ptr<Detail::BufferStorage> &pixels,
+        QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *runs, quint32 format = 0);
+    ExecutionOutcome readSelectionOutline(const std::shared_ptr<Detail::BufferStorage> &pixels,
+        QRect extent, std::optional<QRect> expectedBounds, QRect *bounds, QList<QRect> *runs,
+        quint32 format, quint8 defaultCoverage);
+    ExecutionOutcome combineSelectionCoverage(const SelectionMaskSP &first, const SelectionMaskSP &second,
+        SelectionCombination action, QRect clip, bool inverted, SelectionMaskSP *result);
+    ExecutionOutcome evaluateSelectionCombination(const QSharedPointer<const SelectionCombinationSource> &source,
+                                                  SelectionMaskSP *result);
+    ExecutionOutcome translateSelectionCoverage(const SelectionMaskSP &source, QPoint offset, QRect clip,
+        SelectionMaskSP *result);
+    ExecutionOutcome paintedSelectionCoverage(DocumentHandle handle, const Snapshot &source, LayerId layer,
+        SelectionMaskSP *result);
+    ExecutionOutcome transformedMaskCoverage(const SelectionMaskSP &mask, const SelectionMaskSP &selection,
+        bool inverted, QRect copyRect, const AffinePlan &plan, QRect defaultBounds, SelectionMaskSP *result,
+        QPoint devicePosition = {});
+    ExecutionOutcome endFrame(bool publish, bool waitForReadback = true);
+    void retireCompletedReadback();
+    ExecutionOutcome retireDisplayCaches();
+    PixelReadbackOutcome readLayerTileExtent(DocumentHandle handle, const Snapshot &document, LayerId layer);
+    PixelReadbackOutcome readBoundsImpl(DocumentHandle handle, const Snapshot &document, LayerId layer,
+                                        bool includeTransparentColors, bool sparseProjection, bool opacityU8 = false,
+                                        bool nativeProjection = false, bool layerProjection = false);
+    PixelBytesOutcome readRgbaPixelsImpl(DocumentHandle handle, const Snapshot &document, QRect region,
+                                        LayerId layer, qsizetype maximumBytes, const SelectionMaskSP &copyMask,
+                                        bool invertMask, bool nativeProjection, bool layerProjection = false);
+    std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
+                                   QRect region, const QList<LayerId> &layers, bool includeProjection,
+                                   PixelReadArea area, bool transparencyOnly, bool boundsOnly = false,
+                                   bool includeTransparentColors = false, bool tileExtentOnly = false,
+                                   const SelectionMaskSP &copyMask = {}, bool invertMask = false,
+                                   const TranslationOperation *selectionSource = nullptr, bool layerProjection = false, bool includeLowAlpha = false, bool nativeBounds = false,
+                                   const AffineTransformOperation *affineSource = nullptr, bool nativeProjection = false);
+};
+}
+#endif

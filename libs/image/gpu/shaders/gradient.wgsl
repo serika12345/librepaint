@@ -1,0 +1,79 @@
+// SPDX-FileCopyrightText: 2026 LibrePaint contributors
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+// Frozen gradient resource sampling, repetition, native mixing and quantization.
+
+fn gradientLess(a: Word64, b: Word64) -> bool {
+    if (all(doubleMagnitude(a) == Word64(0u)) && all(doubleMagnitude(b) == Word64(0u))) { return false; }
+    let negativeA = (a.y & 0x80000000u) != 0u;
+    let negativeB = (b.y & 0x80000000u) != 0u;
+    if (negativeA != negativeB) { return negativeA; }
+    if (negativeA) { return !wordLessEqual(doubleMagnitude(a), doubleMagnitude(b)); }
+    return !wordLessEqual(b, a);
+}
+
+fn gradientRepeated(value: Word64) -> Word64 {
+    let one = Word64(0u, 0x3ff00000u); let epsilon = Word64(0u, 0x3cb00000u);
+    if (parameters.patternSampling.y == 0u) {
+        if (gradientLess(value, epsilon)) { return Word64(0u); }
+        if (gradientLess(doubleSubtract(one, epsilon), value)) { return one; }
+        return value;
+    }
+    let integral = doubleFloor(doubleMagnitude(value));
+    if (parameters.patternSampling.y == 1u) {
+        var integer = integral;
+        if ((value.y & 0x80000000u) != 0u) { integer = doubleNegate(integer); }
+        if (gradientLess(value, epsilon)) { integer = doubleSubtract(integer, one); }
+        return doubleSubtract(value, integer);
+    }
+    if (GRADIENT_SHAPE >= 6u) {
+        var fraction = doubleSubtract(doubleMagnitude(value), integral);
+        let halfIntegral = doubleFloor(doubleMultiply(doubleMagnitude(value), doubleInteger(2u)));
+        if (patternCoordinate(halfIntegral, 2u).pixel == 1) { fraction = doubleSubtract(one, fraction); }
+        return doubleMultiply(fraction, doubleInteger(2u));
+    }
+    var fraction = doubleSubtract(doubleMagnitude(value), integral);
+    if (patternCoordinate(integral, 2u).pixel == 1) { fraction = doubleSubtract(one, fraction); }
+    return fraction;
+}
+
+fn gradientCached(value: Word64) -> vec4<u32> {
+    let count = parameters.pattern.x;
+    let index = min(count - 1u, doubleTruncate(doubleAdd(
+        doubleMultiply(value, doubleInteger(count - 1u)), Word64(0u, 0x3fe00000u))));
+    return nativePixel(patternPixels[index * 2u], patternPixels[index * 2u + 1u], true);
+}
+
+fn gradientMix(first: vec4<u32>, second: vec4<u32>, weight: u32) -> vec4<u32> {
+    let a = first.w * weight; let b = second.w * (32767u - weight);
+    let alpha = a + b;
+    var color = vec4<u32>();
+    if (alpha != 0u) {
+        for (var channel = 0u; channel < 3u; channel++) {
+            color[channel] = patternQuotient(wordAdd(wordProduct(first[channel], a), wordProduct(second[channel], b)), alpha, 65535u);
+        }
+        color.w = (alpha + 16383u) / 32767u;
+    }
+    return color;
+}
+
+fn gradientPixel(pixel: vec2<i32>) -> vec4<u32> {
+    let color = gradientColor(pixel);
+    let wide = parameters.native.z != 0u;
+    if ((parameters.patternSampling.x & 2u) == 0u) {
+        if (wide) { return color; }
+        return (color - (color >> vec4<u32>(8u)) + vec4<u32>(128u)) >> vec4<u32>(8u);
+    }
+    let noiseIndex = ((u32(pixel.y) & 63u) << 6u) | (u32(pixel.x) & 63u);
+    let noise = f32(patternPixels[parameters.pattern.x * 2u + noiseIndex]) * (1.0 / 4096.0) + (1.0 / 8192.0);
+    let scale = select(1.0 / 256.0, 1.0 / 65536.0, wide);
+    let maximum = select(255.0, 65535.0, wide);
+    var result = vec4<u32>();
+    for (var channel = 0u; channel < 4u; channel++) {
+        let normalized = floatDivide(bitcast<u32>(f32(color[channel])), bitcast<u32>(65535.0));
+        let delta = floatMultiply(floatSubtract(bitcast<u32>(noise), normalized), bitcast<u32>(scale));
+        let value = floatMultiply(floatAdd(normalized, delta), bitcast<u32>(maximum));
+        result[channel] = u32(clamp(bitcast<f32>(floatAdd(value, bitcast<u32>(0.5))), 0.0, maximum));
+    }
+    return result;
+}

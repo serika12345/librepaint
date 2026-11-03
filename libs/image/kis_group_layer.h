@@ -112,6 +112,10 @@ protected:
 
     QRect amortizedProjectionRectForCleanupInChangePass() const override;
 private:
+    friend class KisImage;
+    KisGroupLayer(KisImageWSP image, const QString &name, quint8 opacity,
+                  const KoColorSpace *colorSpace, KisPaintDeviceSP projection);
+
     bool checkCloneLayer(KisCloneLayerSP clone) const;
     bool checkNodeRecursively(KisNodeSP node) const;
 

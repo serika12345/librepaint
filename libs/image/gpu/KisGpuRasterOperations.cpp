@@ -1,0 +1,309 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#include "KisGpuOperationDocument.h"
+#include "KisGpuOperationValidation_p.h"
+#include <QSet>
+#include <limits>
+#include <stdexcept>
+
+namespace LibrePaint::Image::Gpu {
+bool validRasterLayerHierarchy(const QList<RasterLayer> &layers, PixelFormat format)
+{ return Detail::validLayerHierarchy(layers, format); }
+
+OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
+    : m_limits(limits), m_identity(QUuid::createUuid())
+{
+    if (!validPixel(image.projectionBackground, image.format) || image.size.width() <= 0 || image.size.height() <= 0 ||
+        image.size.width() > CoordinateLimit || image.size.height() > CoordinateLimit ||
+        limits.samplesPerStroke <= 0 || limits.samplesPerDocument <= 0 || limits.layerCount <= 0 ||
+        limits.compressedWriteBytes <= 0 || limits.compressedWriteBytes > std::numeric_limits<int>::max() ||
+        limits.rasterBytes <= 0 || limits.rasterBytes > std::numeric_limits<int>::max() ||
+        image.layers.size() > limits.layerCount || image.activeLayer < 0 ||
+        (image.layers.isEmpty() ? image.activeLayer != 0 : image.activeLayer >= image.layers.size())) {
+        throw std::invalid_argument("invalid raster document dimensions, layers or limits");
+    }
+    if (!Detail::validLayerHierarchy(image.layers, image.format)) throw std::invalid_argument("invalid raster layer hierarchy");
+    if (!Detail::validSelectionRect(image.selection) ||
+        !Detail::validSelectionState(image.selection, image.selectionKind, image.selectionMask))
+        throw std::invalid_argument("invalid raster selection");
+    QSharedPointer<DocumentVersion> initial(new DocumentVersion);
+    initial->m_document = m_identity;
+    initial->rootUuid = QUuid::createUuid();
+    initial->m_committed = true;
+    initial->size = image.size;
+    initial->format = image.format;
+    initial->colorProfile = image.colorProfile;
+    initial->selection = image.selection;
+    initial->selectionInverted = image.selectionInverted;
+    initial->selectionKind = image.selectionKind;
+    initial->selectionMask = image.selectionMask;
+    initial->projectionBackground = image.projectionBackground;
+    QSet<QUuid> identities;
+    for (const auto &source : image.layers) {
+        const auto uuid = source.uuid.isNull() ? QUuid::createUuid() : source.uuid;
+        if (!validPixel(source.defaultPixel, image.format) || identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 || source.projectionChannelMask > 15 ||
+            (source.kind != LayerKind::Paint && (!source.tiles.isEmpty() || !source.writtenAreas.isEmpty() ||
+                source.defaultPixel != RgbaPixel{} || source.channelWriteMask != 15)) ||
+            source.tiles.size() > (limits.rasterBytes - initial->rasterBytes) / RgbaTile::byteCount(image.format)) {
+            throw std::invalid_argument("invalid raster layer identity, name or pixel capacity");
+        }
+        if (isFilterNode(source.kind) && (!source.filter || !source.filter->isValid(image.format)))
+            throw std::invalid_argument("unresolved or invalid native filter configuration");
+        if (source.filter && source.filter->byteCount() > limits.rasterBytes - initial->rasterBytes)
+            throw std::length_error("native filter configuration capacity exceeded");
+        Layer layer;
+        layer.id = initial->layers.size() + 1;
+        layer.name = source.name;
+        layer.visible = source.visible;
+        layer.uuid = uuid;
+        layer.defaultPixel = source.defaultPixel;
+        layer.opacity = source.opacity;
+        layer.userLocked = source.userLocked;
+        layer.pinnedToTimeline = source.pinnedToTimeline;
+        layer.colorLabelIndex = source.colorLabelIndex;
+        layer.channelWriteMask = source.channelWriteMask;
+        layer.projectionChannelMask = source.projectionChannelMask;
+        layer.passThrough = source.passThrough;
+        layer.blendMode = source.blendMode;
+        layer.position = source.position;
+        layer.kind = source.kind;
+        layer.parentUuid = source.parentUuid;
+        layer.filter = source.filter;
+        layer.filterSelection = isFilterNode(source.kind) ?
+            (source.filterSelection ? source.filterSelection : SelectionMask::uniform(255)) : SelectionMaskSP{};
+        layer.transparencyMaskIndex = source.transparencyMaskIndex;
+        if (layer.filter) initial->rasterBytes += layer.filter->byteCount();
+        layer.transparencyMask = source.transparencyMask;
+        layer.transparencyMaskPosition = source.transparencyMaskPosition;
+        layer.transparencyMaskVisible = source.transparencyMaskVisible;
+        layer.transparencyMaskLocked = source.transparencyMaskLocked;
+        layer.transparencyMaskUuid = source.transparencyMask && source.transparencyMaskUuid.isNull() ?
+            QUuid::createUuidV5(uuid, QByteArrayLiteral("transparency-mask")) : source.transparencyMaskUuid;
+        layer.transparencyMaskName = source.transparencyMaskName;
+        layer.transparencyMaskColorLabelIndex = source.transparencyMaskColorLabelIndex;
+        layer.transparencyMaskPinnedToTimeline = source.transparencyMaskPinnedToTimeline;
+        identities.insert(uuid);
+        QSet<QPoint> coordinates;
+        auto operation = QSharedPointer<TileWriteOperation>::create();
+        for (const auto &pixels : source.tiles) {
+            if (pixels.format != image.format) throw std::invalid_argument("raster tile precision does not match the document");
+            if (coordinates.contains(pixels.coordinate)) throw std::invalid_argument("repeated raster tile coordinate");
+            const auto tile = RasterTile::fromPixels(pixels);
+            if (!tile) throw std::invalid_argument("invalid raster tile bytes or coordinates");
+            coordinates.insert(pixels.coordinate);
+            operation->tiles.append(tile);
+        }
+        if (!operation->tiles.isEmpty()) {
+            operation->id = {m_identity, ++m_nextOperation};
+            operation->layer = layer.id;
+            operation->writtenAreas = source.writtenAreas;
+            if (!source.writtenAreas.isEmpty()) operation->writeGroup = operation->id.sequence;
+            if (!Detail::validWrittenAreas(*operation)) throw std::invalid_argument("invalid raster written areas");
+            layer.operations.append(TileWriteSnapshot(operation));
+            initial->rasterBytes += operation->tiles.size() * RgbaTile::byteCount(image.format);
+        }
+        if (source.tiles.isEmpty() && !source.writtenAreas.isEmpty()) throw std::invalid_argument("written areas require raster tiles");
+        initial->layers.append(layer);
+    }
+    m_nextLayer = initial->layers.size();
+    initial->activeLayer = image.layers.isEmpty() ? 0 : image.activeLayer + 1;
+    if (initial->activeLayer) initial->selectedLayers = {initial->activeLayer};
+    if (!Detail::validLayerHierarchy(initial->layers, image.format))
+        throw std::invalid_argument("invalid raster mask identity or properties");
+    m_history.append(initial);
+    m_layerHistoryChanges.append(LayerHistoryChange{});
+}
+
+Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
+    if (tiles.isEmpty()) return Result::EmptyOperation;
+    if (tiles.size() > (m_limits.rasterBytes - snapshot()->rasterBytes) / RgbaTile::byteCount(snapshot()->format) ||
+        m_nextOperation == std::numeric_limits<quint64>::max() ||
+        m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    QSet<QPoint> coordinates;
+    auto operation = QSharedPointer<TileWriteOperation>::create();
+    for (const auto &pixels : tiles) {
+        if (pixels.format != snapshot()->format || coordinates.contains(pixels.coordinate)) return Result::InvalidInput;
+        const auto tile = RasterTile::fromPixels(pixels);
+        if (!tile) return Result::InvalidInput;
+        coordinates.insert(pixels.coordinate);
+        operation->tiles.append(tile);
+    }
+    operation->id = {m_identity, ++m_nextOperation};
+    operation->version = 1;
+    operation->layer = layer;
+    QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
+    version->layers[index].operations.append(TileWriteSnapshot(operation));
+    version->rasterBytes += tiles.size() * RgbaTile::byteCount(snapshot()->format);
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitVersion(version);
+    return Result::Success;
+}
+
+Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
+                                           Snapshot *retainedVersion)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const int retainedCount = retainedVersion && !m_history.contains(*retainedVersion) ? 1 : 0;
+    if (writes.isEmpty() || writes.size() > m_history.size() + retainedCount) return Result::InvalidInput;
+    if (recordHistory && (writes.size() != 1 || writes.first().before != snapshot())) return Result::StaleVersion;
+    if (quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextOperation ||
+        quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextRevision)
+        return Result::CapacityExceeded;
+    auto history = m_history;
+    auto nextOperation = m_nextOperation;
+    auto nextRevision = m_nextRevision;
+    auto retained = retainedVersion ? *retainedVersion : Snapshot{};
+    const auto group = nextOperation + 1;
+    QSet<const DocumentVersion *> updated;
+    for (const auto &write : writes) {
+        const auto index = m_history.indexOf(write.before);
+        if ((index < 0 && (!retainedVersion || write.before != *retainedVersion)) ||
+            updated.contains(write.before.data())) return Result::StaleVersion;
+        if (write.layer != writes.first().layer || write.tiles.isEmpty()) return Result::InvalidInput;
+        qsizetype layerIndex = -1;
+        for (qsizetype i = 0; i < write.before->layers.size(); ++i)
+            if (write.before->layers[i].id == write.layer) layerIndex = i;
+        if (layerIndex < 0 || write.before->layers[layerIndex].kind != LayerKind::Paint) return Result::LayerUnavailable;
+        if (write.tiles.size() > (m_limits.rasterBytes - write.before->rasterBytes) / RgbaTile::byteCount(write.before->format))
+            return Result::CapacityExceeded;
+        auto operation = QSharedPointer<TileWriteOperation>::create();
+        operation->id = {m_identity, ++nextOperation};
+        operation->version = 1;
+        operation->layer = write.layer;
+        operation->writeGroup = group;
+        operation->writtenAreas = write.areas;
+        QSet<QPoint> coordinates;
+        for (const auto &tile : write.tiles) {
+            if (!tile || tile->format() != write.before->format || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
+            coordinates.insert(tile->coordinate());
+            operation->tiles.append(tile);
+        }
+        if (!Detail::validWrittenAreas(*operation)) return Result::InvalidInput;
+        QSharedPointer<DocumentVersion> version(new DocumentVersion(*write.before));
+        version->layers[layerIndex].operations.append(TileWriteSnapshot(operation));
+        version->rasterBytes += write.tiles.size() * RgbaTile::byteCount(write.before->format);
+        version->m_revision = ++nextRevision;
+        if (recordHistory) version->m_modifiedRevision = version->m_revision;
+        if (index >= 0) history[index] = version;
+        if (write.before == retained) retained = version;
+        updated.insert(write.before.data());
+    }
+    if (recordHistory) commitVersion(history[m_index]);
+    else m_history.swap(history);
+    m_nextOperation = nextOperation;
+    m_nextRevision = nextRevision;
+    if (retainedVersion) *retainedVersion = retained;
+    return Result::Success;
+}
+Result OperationDocument::applyMaskVersions(const QList<VersionMaskWrite> &writes)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (writes.isEmpty() || writes.size() > m_history.size()) return Result::InvalidInput;
+    if (quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
+    auto history = m_history;
+    auto revision = m_nextRevision;
+    QSet<const DocumentVersion *> updated;
+    for (const auto &write : writes) {
+        const auto index = m_history.indexOf(write.before);
+        if (index < 0 || updated.contains(write.before.data())) return Result::StaleVersion;
+        if (write.maskUuid != writes.first().maskUuid || !write.coverage)
+            return Result::InvalidInput;
+        qsizetype position = -1;
+        for (qsizetype i = 0; i < write.before->layers.size(); ++i)
+            if (write.before->layers[i].id == write.layer && editableMaskCoverage(write.before->layers[i], write.maskUuid)) position = i;
+        if (position < 0) return Result::LayerUnavailable;
+        if (!selectionFitsRetainedInputs(write.coverage)) return Result::CapacityExceeded;
+        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*write.before));
+        auto &layer = version->layers[position];
+        if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.filterSelection = write.coverage;
+        else layer.transparencyMask = write.coverage;
+        if (write.position) {
+            if (isFilterNode(layer.kind) && layer.uuid == write.maskUuid) layer.position = *write.position;
+            else layer.transparencyMaskPosition = *write.position;
+        }
+        version->m_revision = ++revision;
+        history[index] = version;
+        updated.insert(write.before.data());
+    }
+    m_history.swap(history);
+    m_nextRevision = revision;
+    return Result::Success;
+}
+
+OperationId OperationDocument::beginColorConversion()
+{
+    if (checkMutation() != Result::Success || m_nextOperation == std::numeric_limits<quint64>::max()) return {};
+    const OperationId id{m_identity, ++m_nextOperation};
+    return beginExternalStroke(id) == Result::Success ? id : OperationId{};
+}
+
+Result OperationDocument::cancelColorConversion(OperationId id)
+{ return endExternalStroke(id); }
+
+Result OperationDocument::commitColorConversion(OperationId id, const Snapshot &before, PixelFormat format,
+    const QByteArray &profile, const RgbaPixel &background, const QList<ConvertedLayerPixels> &converted)
+{
+    if (m_closed) return Result::Closed;
+    if (id.isNull() || m_externalOperation != id) return Result::StaleOperation;
+    if (before != snapshot()) return Result::StaleVersion;
+    if (before->format != PixelFormat::Rgba16 || format != PixelFormat::Rgba8 ||
+        profile.isEmpty() || !validPixel(background, format)) return Result::InvalidInput;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    QSharedPointer<DocumentVersion> version(new DocumentVersion(*before));
+    qsizetype raster = 0, compressed = 0;
+    QSet<LayerId> seen;
+    for (const auto &pixels : converted) {
+        auto layer = std::find_if(version->layers.begin(), version->layers.end(),
+            [&](const Layer &value) { return value.id == pixels.layer; });
+        if (layer == version->layers.end() || layer->kind != LayerKind::Paint ||
+            seen.contains(pixels.layer) || !validPixel(pixels.defaultPixel, format)) return Result::InvalidInput;
+        seen.insert(pixels.layer);
+        auto write = QSharedPointer<TileWriteOperation>::create();
+        write->id = id;
+        write->version = 1;
+        write->layer = layer->id;
+        write->writtenAreas = pixels.writtenAreas;
+        if (!write->writtenAreas.isEmpty()) write->writeGroup = id.sequence;
+        QSet<QPoint> coordinates;
+        for (const auto &tile : pixels.tiles) {
+            if (!tile || tile->format() != format || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
+            if (tile->byteCount() > m_limits.rasterBytes - raster ||
+                tile->compressedByteCount() > m_limits.compressedWriteBytes - compressed) return Result::CapacityExceeded;
+            raster += tile->byteCount();
+            compressed += tile->compressedByteCount();
+            coordinates.insert(tile->coordinate());
+            write->tiles.append(tile);
+        }
+        if (!Detail::validWrittenAreas(*write)) return Result::InvalidInput;
+        layer->defaultPixel = pixels.defaultPixel;
+        layer->operations.clear();
+        layer->initialProjection.clear();
+        if (!write->tiles.isEmpty()) layer->operations.append(TileWriteSnapshot(write));
+    }
+    for (const auto &layer : version->layers)
+        if (layer.kind == LayerKind::Paint && !seen.contains(layer.id)) return Result::InvalidInput;
+    version->format = format;
+    version->colorProfile = profile;
+    version->projectionBackground = background;
+    version->sampleCount = 0;
+    version->rasterBytes = raster;
+    version->m_modifiedRevision = version->m_revision = m_nextRevision + 1;
+    LayerHistoryChange change;
+    change.convertedColorSpace = true;
+    commitVersion(version, change);
+    ++m_nextRevision;
+    m_externalOperation = {};
+    return Result::Success;
+}
+
+}

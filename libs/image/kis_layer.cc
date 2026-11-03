@@ -34,6 +34,9 @@
 #include "kis_base_node.h"
 #include "kis_default_bounds.h"
 #include "kis_image.h"
+#include "gpu/KisGpuPaintImage.h"
+#include <KoChannelInfo.h>
+#include <stdexcept>
 
 #include "kis_effect_mask.h"
 #include "kis_filter_mask.h"
@@ -185,6 +188,7 @@ struct Q_DECL_HIDDEN KisLayer::Private
 
     KisLayerProjectionPlaneSP projectionPlane;
     KisSafeNodeProjectionStoreSP safeProjection;
+    mutable KisPaintDeviceSP gpuProjection;
 
     KisLayerMasksCache masksCache;
 };
@@ -355,6 +359,25 @@ void KisLayer::setChannelFlags(const QBitArray & channelFlags)
 {
     Q_ASSERT(channelFlags.isEmpty() ||((quint32)channelFlags.count() == colorSpace()->channelCount()));
 
+    const auto currentImage = image().toStrongRef();
+    const auto owner = currentImage ? currentImage->gpuImage() : LibrePaint::Image::Gpu::PaintImageSP();
+    if (graphListener() && owner && !currentImage->isSynchronizingGpuNodes()) {
+        if (!channelFlags.isEmpty() && channelFlags.size() != 4)
+            throw std::invalid_argument("GPU projection channel flags require four components");
+        quint8 mask = 15;
+        if (!channelFlags.isEmpty()) {
+            mask = 0;
+            const auto channels = colorSpace()->channels();
+            for (int channel = 0; channel < 4; ++channel)
+                if (channelFlags.testBit(channel)) mask |= 1u << channels[channel]->displayPosition();
+        }
+        LibrePaint::Image::Gpu::LayerId id = 0;
+        for (const auto &layer : owner->operations().snapshot()->layers)
+            if (layer.uuid == uuid()) { id = layer.id; break; }
+        if (id && owner->writeLayerProjectionMask(id, mask) != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU projection channel write failed");
+    }
+
     if (KritaUtils::compareChannelFlags(channelFlags,
                                         this->channelFlags())) {
         return;
@@ -390,8 +413,10 @@ void KisLayer::setTemporary(bool t)
 void KisLayer::setImage(KisImageWSP image)
 {
     // we own the projection device, so we should take care about it
-    KisPaintDeviceSP projection = this->projection();
-    if (projection && projection != original()) {
+    const auto originalDevice = original();
+    KisPaintDeviceSP projection = !image && originalDevice && originalDevice->gpuPixelImage()
+        ? m_d->gpuProjection : this->projection();
+    if (projection && projection != originalDevice) {
         projection->setDefaultBounds(new KisDefaultBounds(image));
     }
     m_d->safeProjection->setImage(image);
@@ -838,6 +863,18 @@ KisLayerProjectionPlaneSP KisLayer::internalProjectionPlane() const
 KisPaintDeviceSP KisLayer::projection() const
 {
     KisPaintDeviceSP originalDevice = original();
+
+    if (originalDevice && originalDevice->gpuPixelImage() && (needProjection() || hasEffectMasks())) {
+        const auto owner = originalDevice->gpuPixelImage();
+        const auto pixels = originalDevice->gpuPixelReference();
+        if (!m_d->gpuProjection || m_d->gpuProjection->gpuPixelImage() != owner ||
+            m_d->gpuProjection->gpuPixelReference() != pixels ||
+            *m_d->gpuProjection->colorSpace() != *originalDevice->colorSpace()) {
+            m_d->gpuProjection = KisPaintDevice::fromGpuImage(owner, pixels ? pixels->layer() : 0, {}, originalDevice->colorSpace());
+            m_d->gpuProjection->setProjectionDevice(true);
+        }
+        return m_d->gpuProjection;
+    }
 
     return needProjection() || hasEffectMasks() ?
         m_d->safeProjection->getDeviceLazy(originalDevice) : originalDevice;

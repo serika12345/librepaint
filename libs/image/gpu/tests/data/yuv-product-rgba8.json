@@ -1,0 +1,217 @@
+{
+  "purpose": "Product CPU YUV results for fixed RGBA8 input and original luma coefficients",
+  "producerCommit": "e0b5ccd5787762eab297b019c95a188668e2f2e6",
+  "producer": "KoColorSpace::createColorTransformation(hsv_adjustment) on RGBA8 with explicit luma coefficients",
+  "productSource": "plugins/color/colorspaceextensions/kis_hsv_adjustment.cpp",
+  "conversionSource": "libs/pigment/KoColorConversions.cpp",
+  "input": {
+    "size": [
+      256,
+      256
+    ],
+    "rgbaAtXY": [
+      "x",
+      "y",
+      "(73*x+151*y)%256",
+      "(x+y)%256"
+    ],
+    "overrides": "The first pixel uses sourceRgba; the second uses the same RGB and alpha zero"
+  },
+  "settings": {
+    "controls": "Per-row raw h, s, v, normalized by 100",
+    "type": 4,
+    "colorize": false,
+    "compatibilityMode": false
+  },
+  "rows": [
+    {
+      "name": "quarters",
+      "luma": [
+        0.25,
+        0.5,
+        0.25
+      ],
+      "sourceRgba": [
+        10,
+        74,
+        115,
+        255
+      ],
+      "rgbaSha256": "5fc73111b56e18aeae250c5403b3c832896668cd69ac585d6559af3fcc3cd834",
+      "controls": [
+        50,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "rgba-profile",
+      "luma": [
+        0.2224884,
+        0.71690369,
+        0.06060791
+      ],
+      "sourceRgba": [
+        105,
+        65,
+        235,
+        255
+      ],
+      "rgbaSha256": "efe7d31e52a09ae80a05f5b7aad164848dc0175d19c378a9dc4fa7fbb2c2fb1a",
+      "controls": [
+        50,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "negative-controls",
+      "luma": [
+        0.2126,
+        0.7152,
+        0.0722
+      ],
+      "sourceRgba": [
+        206,
+        1,
+        85,
+        255
+      ],
+      "controls": [
+        -37,
+        63,
+        -19
+      ],
+      "rgbaSha256": "58eace76312915ede478d9c70de5b1eaf50f864b481ae1be966c3bd2205b715f"
+    },
+    {
+      "name": "disabled-chroma",
+      "luma": [
+        0.25,
+        0.5,
+        0.25
+      ],
+      "sourceRgba": [
+        206,
+        1,
+        85,
+        255
+      ],
+      "controls": [
+        -100,
+        -100,
+        100
+      ],
+      "rgbaSha256": "656990afae6c328a4f7f4781b0706a5153ed525eca6e84fc8575c0752d40d972"
+    },
+    {
+      "name": "non-unit-sum-reset",
+      "luma": [
+        0.2,
+        0.3,
+        0.4
+      ],
+      "sourceRgba": [
+        206,
+        1,
+        85,
+        255
+      ],
+      "controls": [
+        0,
+        0,
+        0
+      ],
+      "rgbaSha256": "b183eb03dba995028fbb12000d0ca7144041d626859691a5d3c71855b63160b1"
+    },
+    {
+      "name": "tiny-green-reset",
+      "luma": [
+        0.75,
+        1e-45,
+        0.25
+      ],
+      "sourceRgba": [
+        206,
+        1,
+        85,
+        255
+      ],
+      "controls": [
+        0,
+        0,
+        0
+      ],
+      "rgbaSha256": "f518f3a88fd9161faa42b52fd6538dc001fc532e66a0677e7c665aeed8e85704"
+    },
+    {
+      "name": "tiny-weights",
+      "luma": [
+        1e-45,
+        0.9,
+        1e-38
+      ],
+      "sourceRgba": [
+        206,
+        1,
+        85,
+        255
+      ],
+      "controls": [
+        -99,
+        37,
+        -17
+      ],
+      "rgbaSha256": "16a592b62b5865d474c4b21b8e2733b01238c24aac97a500250a506e494c5e37"
+    },
+    {
+      "name": "near-one-coefficients",
+      "luma": [
+        0.9999999,
+        1e-30,
+        0.9999998
+      ],
+      "sourceRgba": [
+        206,
+        1,
+        85,
+        255
+      ],
+      "controls": [
+        100,
+        99,
+        -100
+      ],
+      "rgbaSha256": "b04c92a43631a590936335d70347b9e90fb3d56384cadf5ac8c3ce40b6ad8ab8"
+    },
+    {
+      "name": "opposite-gain-limits",
+      "luma": [
+        0.2,
+        0.3,
+        0.4
+      ],
+      "sourceRgba": [
+        206,
+        1,
+        85,
+        255
+      ],
+      "controls": [
+        -100,
+        100,
+        0
+      ],
+      "rgbaSha256": "2e7843b609c32720469d0c00872a5d653b22dce673e31079e49ac55f4d438fab"
+    }
+  ],
+  "classification": "Separately rounded product CPU results are the maintained contract; differing GPU precision or CPU fused multiply-add rounding is a known defect",
+  "license": "GPL-2.0-or-later",
+  "copyright": "2026 LibrePaint contributors",
+  "producerCompilePolicy": {
+    "target": "kritapigmentcolorconversionsobjects",
+    "GNUAndClang": "-ffp-contract=off",
+    "MSVC": "/fp:strict",
+    "rule": "Each written binary64 multiplication and addition/subtraction rounds separately to nearest-even"
+  }
+}

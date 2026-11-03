@@ -11,6 +11,8 @@
 #include <QObject>
 #include <QRect>
 #include <QVector>
+#include <QSharedPointer>
+#include <QUuid>
 
 #include "kis_debug.h"
 
@@ -41,6 +43,7 @@ class KisKeyframe;
 class KisRasterKeyframeChannel;
 
 class KisPaintDeviceFramesInterface;
+namespace LibrePaint::Image::Gpu { class PaintImage; class LayerPixelReference; class SelectionMask; }
 
 class KisInterstrokeData;
 using KisInterstrokeDataSP = QSharedPointer<KisInterstrokeData>;
@@ -70,6 +73,17 @@ class KRITAIMAGE_EXPORT KisPaintDevice
     Q_OBJECT
 
 public:
+
+    /** Creates a GUI-thread RGBA8/sRGB view for native byte pixel access.
+     * Layer zero provides the read-only image projection.
+     * Retains the shared GPU image until the last device reference is released.
+     * Invalid or closed images and unavailable layers throw std::invalid_argument.
+     */
+    static KisPaintDeviceSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
+                                        quint64 layer, const QString &name = QString());
+    /** Uses the validated RGBA8/sRGB encoding supplied by the image owner. */
+    static KisPaintDeviceSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
+                                        quint64 layer, const QString &name, const KoColorSpace *colorSpace);
 
     /**
      * Create a new paint device with the specified colorspace.
@@ -959,7 +973,22 @@ protected:
     KisNodeWSP parentNode() const;
 
 private:
+    friend class KisImage;
+    friend class KisGroupLayer;
+    friend class KisLayer;
+    friend class KisPixelSelection;
+    QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuPixelImage() const;
+    QSharedPointer<LibrePaint::Image::Gpu::LayerPixelReference> gpuPixelReference() const;
+    QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> gpuSelectionCoverage() const;
+    void bindGpuLayer(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer);
+    /** Retains Alpha8 coverage. A node UUID enables direct writes with native
+     * history; an empty UUID binds a read-only document selection. */
+    void bindGpuSelection(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
+                          QSharedPointer<const LibrePaint::Image::Gpu::SelectionMask> mask,
+                          const QUuid &maskUuid = {}, QPoint position = {});
     struct Private;
+    KisPaintDevice(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer, const QString &name,
+                   const KoColorSpace *colorSpace);
     Private * const m_d;
 };
 

@@ -1,0 +1,707 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#include "KisGpuTileStorage_p.h"
+#include "KisGpuPaintJob_p.h"
+#include "KisGpuLayerAllocation_p.h"
+#include "KisGpuNonlinearRgba8_p.h"
+#include "KisGpuRgba8AlphaBlend_p.h"
+#include "KisGpuRgba16Compositing_p.h"
+#include <QFile>
+#include <QThread>
+#include <QSet>
+#include <algorithm>
+#include <cstring>
+#include <limits>
+#include <vector>
+
+namespace LibrePaint::Image::Gpu {
+using namespace Detail;
+namespace {
+struct CompositeParameters {
+    quint32 opacityBits = 0x3f800000, flags = 0, channelMask = 15, blendModeOpacity = 0;
+    qint32 sourceLeft = 0, sourceTop = 0, sourceRight = 0, sourceBottom = 0;
+    qint32 maskLeft = 0, maskTop = 0, maskRight = 0, maskBottom = 0;
+};
+struct CompositeUniform
+{
+    CompositeParameters values[2]{};
+    NativeBuffer buffer;
+};
+struct CompositeJob
+{
+    std::shared_ptr<Tile> base, output;
+    std::shared_ptr<Tile> layers[2];
+    std::shared_ptr<CoverageTile> masks[2];
+    NativeBindings bindings;
+    bool paired = false;
+    quint32 blendModes[2]{};
+};
+}
+
+std::shared_ptr<CoverageTile> TileRenderer::Private::coverageTile(WGPUCommandEncoder commands,
+                                                               const SelectionMaskSP &mask, quint64 key)
+{
+    if (!mask || !device->ownsCommands(commands)) return {};
+    const auto found = maskTiles.constFind(mask.data());
+    if (found != maskTiles.cend()) {
+        const auto cached = found->tiles.constFind(key);
+        if (cached != found->tiles.cend()) return *cached;
+    }
+    if (mask->isGpuGenerated()) return generatedCoverageTile(commands, mask, key);
+    if (qsizetype(SelectionMask::AlphaTileBytes) > budget->limit - budget->used) {
+        clearMaskTiles();
+        if (qsizetype(SelectionMask::AlphaTileBytes) > budget->limit - budget->used) return {};
+    }
+    std::shared_ptr<CoverageTile> tile;
+    const auto point = coordinate(key);
+    if (mask->defaultCoverage() && !mask->tiles().contains({point.x(), point.y()})) {
+        tile = packSelectionTile(commands, nullptr, {}, point,
+            QRect(point * TileSize, QSize(TileSize, TileSize)), 2, mask->defaultCoverage());
+        if (!tile) return {};
+    } else {
+        auto pixels = createBuffer(device->nativeDevice(), SelectionMask::AlphaTileBytes,
+                                   WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
+        if (!pixels || !device->diagnostic().isEmpty()) return {};
+        if (mask->isEmpty()) {
+            wgpuCommandEncoderClearBuffer(commands, pixels.get(), 0, SelectionMask::AlphaTileBytes);
+        } else {
+            QByteArray alpha(SelectionMask::AlphaTileBytes, '\0');
+            const int tileX = int(quint32(key)), tileY = int(quint32(key >> 32));
+            const auto stored = mask->tiles().constFind(SelectionTileKey(tileX, tileY));
+            if (stored != mask->tiles().cend()) {
+                const auto &bytes = stored.value();
+                if (mask->isAlpha()) {
+                    if (bytes.size() == SelectionMask::AlphaTileBytes) alpha = bytes;
+                } else if (bytes.size() == SelectionMask::TileBytes) {
+                    for (qsizetype index = 0; index < SelectionMask::AlphaTileBytes; ++index)
+                        if (quint8(bytes.at(index >> 3)) & (1u << (index & 7))) alpha[index] = char(255);
+                }
+            }
+            wgpuQueueWriteBuffer(device->queue(), pixels.get(), 0, alpha.constData(), alpha.size());
+        }
+        tile = std::make_shared<CoverageTile>(std::move(pixels), budget);
+    }
+    auto &entry = maskTiles[mask.data()];
+    entry.source = mask;
+    entry.tiles.insert(key, tile);
+    // Coverage for at most a few masks stays resident; documents that replace
+    // masks release the older uploads instead of retaining unbounded memory.
+    if (maskTiles.size() > 4) {
+        for (auto current = maskTiles.begin(); current != maskTiles.end();) {
+            if (current.key() != mask.data()) current = maskTiles.erase(current);
+            else ++current;
+        }
+    }
+    return tile;
+}
+
+void TileRenderer::Private::clearMaskTiles()
+{ maskTiles.clear(); }
+
+void TileRenderer::Private::initializeProjection()
+{
+    projectionPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"));
+    if (!projectionPipeline) return;
+    projectionLayout.reset(wgpuComputePipelineGetBindGroupLayout(projectionPipeline.get(), 0));
+    if (!projectionLayout) error = QStringLiteral("GPU projection bindings could not be created");
+}
+
+ProjectedVersion::ProjectedVersion(std::shared_ptr<Data> data) : m_data(std::move(data)) {}
+DevicePtr ProjectedVersion::device() const { return m_data->source->device(); }
+Snapshot ProjectedVersion::document() const { return m_data->source->document(); }
+QRect ProjectedVersion::region() const { return m_data->region; }
+QList<TileView> ProjectedVersion::tiles() const
+{
+    QList<TileView> result;
+    result.reserve(m_data->tiles.size());
+    for (auto i = m_data->tiles.cbegin(); i != m_data->tiles.cend(); ++i) {
+        result.append({coordinate(i.key()), i.value()->pixels.get()});
+    }
+    return result;
+}
+
+Detail::NativeBuffer TileRenderer::Private::recordTransparency(WGPUCommandEncoder commands,
+                                                              const ProjectedSnapshot &projection, QRect region)
+{
+    const auto tiles = projection->tiles();
+    const qint64 coordinates = qint64(region.right() / TileSize - region.left() / TileSize + 1) *
+                               (region.bottom() / TileSize - region.top() / TileSize + 1);
+    quint32 initial = tiles.size() < coordinates ? 1 : 0;
+    auto output = createBuffer(device->nativeDevice(), sizeof(initial),
+                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
+    if (!output) return {};
+    wgpuQueueWriteBuffer(device->queue(), output.get(), 0, &initial, sizeof(initial));
+    if (initial) return output;
+    if (!transparencyPipeline) {
+        transparencyPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/transparency.wgsl"));
+        if (!transparencyPipeline) return {};
+        transparencyLayout.reset(wgpuComputePipelineGetBindGroupLayout(transparencyPipeline.get(), 0));
+    }
+    if (!transparencyLayout) return {};
+    for (const auto &tile : tiles) {
+        const auto local = region.intersected(QRect(tile.coordinate * TileSize, QSize(TileSize, TileSize)))
+            .translated(-tile.coordinate * TileSize);
+        const quint32 values[] = {quint32(local.left()), quint32(local.top()),
+                                  quint32(local.right() + 1), quint32(local.bottom() + 1),
+                                  quint32(projection->document()->format), 0, 0, 0};
+        auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+        if (!parameters) return {};
+        wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
+        const WGPUBuffer buffers[] = {tile.pixels, output.get(), parameters.get()};
+        WGPUBindGroupEntry entries[3]{};
+        for (quint32 i = 0; i < 3; ++i) {
+            entries[i].binding = i;
+            entries[i].buffer = buffers[i];
+            entries[i].size = wgpuBufferGetSize(buffers[i]);
+        }
+        WGPUBindGroupDescriptor descriptor{};
+        descriptor.layout = transparencyLayout.get();
+        descriptor.entryCount = 3;
+        descriptor.entries = entries;
+        NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &descriptor));
+        if (!bindings || !device->diagnostic().isEmpty()) return {};
+        const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, transparencyPipeline.get());
+        wgpuComputePassEncoderSetBindGroup(pass, 0, bindings.get(), 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
+    }
+    return output;
+}
+
+Detail::NativeBuffer TileRenderer::Private::recordBounds(WGPUCommandEncoder commands,
+    const QList<TileView> &tiles, QRect region, const RgbaPixel &defaultPixel, PixelFormat format, bool includeTransparentColors, bool opacityU8)
+{
+    const qint32 initial[] = {std::numeric_limits<qint32>::max(), std::numeric_limits<qint32>::max(),
+                              std::numeric_limits<qint32>::min(), std::numeric_limits<qint32>::min()};
+    auto output = createBuffer(device->nativeDevice(), sizeof(initial),
+                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
+    if (!output) return {};
+    wgpuQueueWriteBuffer(device->queue(), output.get(), 0, initial, sizeof(initial));
+    if (tiles.isEmpty()) return output;
+    if (!boundsPipeline) {
+        boundsPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/bounds.wgsl"));
+        if (!boundsPipeline) return {};
+        boundsLayout.reset(wgpuComputePipelineGetBindGroupLayout(boundsPipeline.get(), 0));
+    }
+    if (!boundsLayout) return {};
+    for (const auto &tile : tiles) {
+        const auto origin = tile.coordinate * TileSize;
+        const auto local = region.intersected(QRect(origin, QSize(TileSize, TileSize))).translated(-origin);
+        if (local.isEmpty()) continue;
+        const auto words = packedPixelWords(defaultPixel, format);
+        const auto implicitAlpha = opacityU8 && format == PixelFormat::Rgba16 ?
+            (defaultPixel[3] - (defaultPixel[3] >> 8) + 128) >> 8 : defaultPixel[3];
+        const quint32 values[] = {quint32(origin.x()), quint32(origin.y()), words[0],
+                                  implicitAlpha || includeTransparentColors ? 1u : 0u, quint32(local.left()), quint32(local.top()),
+                                  quint32(local.right() + 1), quint32(local.bottom() + 1),
+                                  words[1], quint32(format), quint32(opacityU8), 0};
+        auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+        if (!parameters) return {};
+        wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
+        const WGPUBuffer buffers[] = {tile.pixels, output.get(), parameters.get()};
+        WGPUBindGroupEntry entries[3]{};
+        for (quint32 i = 0; i < 3; ++i) {
+            entries[i].binding = i;
+            entries[i].buffer = buffers[i];
+            entries[i].size = wgpuBufferGetSize(buffers[i]);
+        }
+        WGPUBindGroupDescriptor descriptor{};
+        descriptor.layout = boundsLayout.get();
+        descriptor.entryCount = 3;
+        descriptor.entries = entries;
+        NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &descriptor));
+        if (!bindings || !device->diagnostic().isEmpty()) return {};
+        const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, boundsPipeline.get());
+        wgpuComputePassEncoderSetBindGroup(pass, 0, bindings.get(), 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 16, TileSize / 16, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
+    }
+    return output;
+}
+
+ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const RenderedSnapshot &document,
+                                       QRect region, const ProjectedSnapshot &base)
+{ return composeImpl(commands, document, region, base, 0); }
+
+RenderOutcome TileRenderer::prepareFilterProjection(WGPUCommandEncoder commands,
+    const RenderedSnapshot &document, QRect region, const QList<LayerProjectionInput> &inputs,
+    LayerId group, const FrozenLayerProjection *initial, bool nativeProjection)
+{
+    auto &d = *m_d;
+    const auto snapshot = document->document();
+    auto data = std::make_shared<RenderedVersion::Data>(*document->m_data);
+    const auto preparedVersion = RenderedSnapshot(new RenderedVersion(data));
+    QHash<LayerId, const Layer *> nodes;
+    for (const auto &node : snapshot->layers) nodes.insert(node.id, &node);
+    QRect extent(QPoint(), snapshot->size);
+    for (const auto &input : inputs) extent |= data->sourceExtents.value(input.layer);
+    const QRect evaluated = region.intersected(extent);
+    if (evaluated.isEmpty()) return {RenderOutcome::Recorded, preparedVersion, {}};
+    const auto regions = filterProjectionRegions(snapshot, inputs, evaluated);
+    std::shared_ptr<Tile> zero;
+    const auto defaultTile = [&](LayerId layer) -> std::shared_ptr<Tile> {
+        if (auto tile = data->defaults.value(layer)) return tile;
+        if (!zero) {
+            if (!d.ensureTileCapacity(1, snapshot->format)) return {};
+            zero = d.allocateTile(snapshot->format);
+            if (!zero) return {};
+            wgpuCommandEncoderClearBuffer(commands, zero->pixels.get(), 0, wgpuBufferGetSize(zero->pixels.get()));
+            data->selectionWork.append(zero);
+        }
+        return zero;
+    };
+    QList<LayerProjectionInput> preceding;
+    for (const auto &input : inputs) {
+        const auto *node = nodes.value(input.layer);
+        if (!node) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Filter projection node is unavailable")};
+        const auto output = regions.output.value(node->id);
+        const auto inputRegion = regions.input.value(node->id);
+        Tiles pixels = data->layers.value(node->id);
+        auto fallback = defaultTile(node->id);
+        if (!fallback) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Filter projection default capacity exceeded")};
+        if (node->kind == LayerKind::Adjustment) {
+            if (!node->filter || !node->filter->isValid(snapshot->format))
+                return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Adjustment configuration is unavailable")};
+            const auto sourceRegion = isConvolutionFilter(node->filter->settings.kind)
+                ? convolutionInputRegion(inputRegion) : inputRegion;
+            const auto lower = composeImpl(commands, preparedVersion, sourceRegion, {}, group, initial, false,
+                                           nativeProjection, &preceding, true);
+            if (lower.code != RenderOutcome::Recorded) return {lower.code, {}, lower.diagnostic};
+            FilterOperation operation;
+            static_cast<FilterSettings &>(operation) = node->filter->settings;
+            operation.layer = node->id;
+            operation.applyRect = inputRegion;
+            if (isConvolutionFilter(operation.kind)) {
+                const QRect canvas(QPoint(), snapshot->size);
+                const auto nativeOutput = data->nativeFilterRegions.value(node->id, canvas);
+                operation.samplingBounds = canvas.united(filterMaskRegions(snapshot, *node, nativeOutput, 3).first());
+            }
+            operation.bounded = true;
+            if (node->filterSelection) {
+                operation.selectionKind = SelectionKind::Freehand;
+                operation.selectionMask = node->filterSelection;
+                operation.selectionRect = node->filterSelection->bounds();
+            }
+            const auto filtered = d.filterTiles(commands, lower.version->m_data->tiles, operation, fallback,
+                sourceRegion, snapshot->format, inputRegion, data->selectionWork);
+            if (filtered.code != RenderOutcome::Recorded) return {filtered.code, {}, filtered.diagnostic};
+            pixels = filtered.tiles;
+            for (const auto &tile : lower.version->m_data->tiles) data->selectionWork.append(tile);
+            data->sourceExtents[node->id] = lower.version->m_data->sourceExtent | inputRegion;
+            data->selected.insert(node->id);
+        }
+        const auto masked = d.applyLayerMasks(commands, pixels, fallback, *node, snapshot,
+            output, data->nativeFilterRegions.value(node->id, QRect(QPoint(), snapshot->size)), data->selectionWork);
+        if (masked.code != RenderOutcome::Recorded) return {masked.code, {}, masked.diagnostic};
+        data->layers[node->id] = masked.tiles;
+        data->effectProjections.insert(node->id);
+        preceding.append(input);
+    }
+    return {RenderOutcome::Recorded, preparedVersion, {}};
+}
+
+RenderOutcome TileRenderer::prepareNodeProjection(WGPUCommandEncoder commands,
+    const RenderedSnapshot &document, QRect region, LayerId id)
+{
+    const auto snapshot = document->document();
+    const Layer *node = nullptr;
+    for (const auto &layer : snapshot->layers) if (layer.id == id) { node = &layer; break; }
+    if (!node) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU projection node is unavailable")};
+    LayerId scope = 0;
+    QList<LayerProjectionInput> inputs;
+    if (node->kind == LayerKind::Adjustment) inputs = snapshot->projectionInputsThrough(id, &scope);
+    else {
+        const bool filtered = std::any_of(snapshot->layers.cbegin(), snapshot->layers.cend(), [&](const auto &child) {
+            return child.kind == LayerKind::FilterMask && child.parentUuid == node->uuid && child.visible;
+        });
+        if (!filtered) return {RenderOutcome::Recorded, document, {}};
+        inputs.append({id, 255, 15, LayerBlendMode::Normal});
+    }
+    return prepareFilterProjection(commands, document, region, inputs, scope, nullptr, true);
+}
+
+ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
+                                           QRect region, const ProjectedSnapshot &base, LayerId group,
+                                           const FrozenLayerProjection *initial, bool normalizeRoot, bool nativeProjection,
+                                           const QList<LayerProjectionInput> *compositionInputs, bool preparedInputs)
+{
+    auto &d = *m_d;
+    if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) || !document ||
+        document->m_data->owner != d.budget || region.width() < 0 || region.height() < 0 ||
+        (base && (base->m_data->source->m_data->owner != d.budget ||
+                  base->document()->documentId() != document->document()->documentId()))) {
+        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection requires the owning GPU and document")};
+    }
+    if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
+    const auto resolvedInputs = compositionInputs ? *compositionInputs :
+        normalizeRoot ? QList<LayerProjectionInput>{{0, 255, 15, LayerBlendMode::Normal}} :
+        document->document()->projectionInputs(group);
+    if (!preparedInputs && !normalizeRoot) {
+        bool hasFilters = false;
+        for (const auto &input : resolvedInputs) {
+            for (const auto &node : document->document()->layers) if (node.id == input.layer) {
+                hasFilters = hasFilters || node.kind == LayerKind::Adjustment;
+                for (const auto &child : document->document()->layers)
+                    if (child.kind == LayerKind::FilterMask && child.parentUuid == node.uuid) hasFilters = true;
+                break;
+            }
+        }
+        if (hasFilters) {
+            const auto prepared = prepareFilterProjection(commands, document, region, resolvedInputs, group, initial, nativeProjection);
+            if (prepared.code != RenderOutcome::Recorded) return {prepared.code, {}, prepared.diagnostic};
+            return composeImpl(commands, prepared.version, region, base, group, initial, normalizeRoot,
+                               nativeProjection, &resolvedInputs, true);
+        }
+    }
+    auto data = std::make_shared<ProjectedVersion::Data>();
+    data->source = document;
+    QUuid parent;
+    if (group) {
+        for (const auto &layer : document->document()->layers) if (layer.id == group) parent = layer.uuid;
+        if (parent.isNull()) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU group is unavailable")};
+    }
+    QList<const Layer *> children;
+    for (const auto &layer : document->document()->layers) if (layer.parentUuid == parent) children.append(&layer);
+    data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 && children.first()->projectionChannelMask == 15 && !children.first()->passThrough && children.first()->blendMode == LayerBlendMode::Normal && !hasEnabledTransparencyMask(*children.first()) :
+        document->document()->directProjectionLayer() != 0;
+    if (initial) data->directLayerProjection = false;
+    data->region = group || initial || nativeProjection ? region : region.intersected(QRect(QPoint(0, 0), document->document()->size));
+    if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
+        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
+    }
+    const auto &inputs = resolvedInputs;
+    auto sourceExtents = document->m_data->sourceExtents;
+    if (nativeProjection || (initial && initial->normalizeRootProjection && !normalizeRoot)) {
+        for (const auto &input : inputs) {
+            const auto &layers = document->document()->layers;
+            const auto found = std::find_if(layers.cbegin(), layers.cend(), [&](const auto &layer) { return layer.id == input.layer; });
+            if (found == layers.cend()) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Native projection source is unavailable")};
+            if (found->kind == LayerKind::Adjustment) {
+                if (!sourceExtents.contains(input.layer)) sourceExtents.insert(input.layer, QRect(QPoint(), document->document()->size));
+            } else if (found->kind == LayerKind::Paint) {
+                if (sourceExtents.contains(input.layer)) continue;
+                const auto allocation = paintLayerAllocation(document->document(), *found, PaintGeometryElementLimit);
+                if (!allocation) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Native projection source allocation exceeds capacity")};
+                sourceExtents.insert(input.layer, allocation->extent);
+            } else {
+                const auto extent = groupProjectionExtent(document->document(), input.layer, PaintGeometryElementLimit);
+                if (!extent) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("Native group projection allocation exceeds capacity")};
+                sourceExtents.insert(input.layer, *extent);
+            }
+        }
+    }
+    QHash<LayerId, SelectionMaskSP> layerMasks;
+    for (const auto &layer : document->document()->layers)
+        if (layer.transparencyMask && layer.transparencyMaskVisible &&
+            !document->m_data->effectProjections.contains(layer.id))
+            layerMasks.insert(layer.id, layer.transparencyMask);
+    QSet<quint64> coordinates;
+    // A single fully opaque paint layer supplies the legacy transparent-root projection,
+    // including the RGB components of pixels whose alpha is zero.
+    const auto background = group || data->directLayerProjection ? std::shared_ptr<Tile>{} : document->m_data->background;
+    QHash<LayerId, QRect> sourceClips;
+    QRect destinationExtent = !group && document->document()->projectionBackground[3] ? QRect(QPoint(), document->document()->size) : QRect{};
+    QPoint targetOrigin;
+    if (group) for (const auto &layer : document->document()->layers) if (layer.id == group) targetOrigin = layer.position;
+    for (const auto &input : inputs) {
+        auto extent = sourceExtents.value(input.layer);
+        if (input.blendMode == LayerBlendMode::Copy || input.blendMode == LayerBlendMode::DestinationIn || input.blendMode == LayerBlendMode::DestinationAtop)
+            extent = QRect(QPoint(), document->document()->size);
+        if (!(input.channelMask & 8u) && input.blendMode != LayerBlendMode::Copy) extent &= destinationExtent;
+        if (initial && (normalizeRoot || initial->sourceBounds.contains(input.layer))) {
+            extent = normalizeRoot ? initial->extent : initial->sourceBounds.value(input.layer);
+            if (!(input.channelMask & 8u) && input.blendMode != LayerBlendMode::Copy) extent &= destinationExtent;
+        }
+        if (initial && initial->normalizeRootProjection && !normalizeRoot &&
+            input.blendMode != LayerBlendMode::Copy && input.blendMode != LayerBlendMode::DestinationIn &&
+            input.blendMode != LayerBlendMode::DestinationAtop)
+            extent &= sourceExtents.value(input.layer);
+        sourceClips[input.layer] = extent;
+        if (!extent.isEmpty()) {
+            const auto first = QPoint(pixelTileIndex(extent.left() - targetOrigin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.top() - targetOrigin.y(), PixelHistoryBlockSize));
+            const auto last = QPoint(pixelTileIndex(extent.right() - targetOrigin.x(), PixelHistoryBlockSize), pixelTileIndex(extent.bottom() - targetOrigin.y(), PixelHistoryBlockSize));
+            destinationExtent |= QRect(first * PixelHistoryBlockSize + targetOrigin,
+                (last + QPoint(1, 1)) * PixelHistoryBlockSize + targetOrigin - QPoint(1, 1));
+        }
+    }
+    data->sourceExtent = data->directLayerProjection && inputs.size() == 1 ? document->m_data->sourceExtents.value(inputs.first().layer) : destinationExtent;
+    bool implicit = bool(background);
+    for (const auto &layer : inputs) {
+        if (!document->m_data->selected.contains(layer.layer)) {
+            return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection requires every visible GPU layer")};
+        }
+        implicit = implicit || bool(document->m_data->defaults.value(layer.layer));
+        const auto &tiles = document->m_data->layers[layer.layer];
+        for (auto tile = tiles.cbegin(); tile != tiles.cend(); ++tile) {
+            if (data->region.intersects(QRect(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize)))) {
+                coordinates.insert(tile.key());
+            }
+        }
+    }
+    if (!group && implicit && !data->region.isEmpty()) {
+        const int left = pixelTileIndex(data->region.left(), TileSize), right = pixelTileIndex(data->region.right(), TileSize);
+        const int top = pixelTileIndex(data->region.top(), TileSize), bottom = pixelTileIndex(data->region.bottom(), TileSize);
+        // Bound derived coordinate bookkeeping before expanding a uniform region.
+        if (quint64(right - left + 1) * quint64(bottom - top + 1) > quint64(d.budget->limit / RgbaTile::byteCount(document->document()->format))) {
+            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU projection coordinate capacity exceeded")};
+        }
+        for (int y = top; y <= bottom; ++y) {
+            for (int x = left; x <= right; ++x) coordinates.insert(key(x, y));
+        }
+    }
+    if (background) {
+        for (const auto coordinate : coordinates) data->inputs[coordinate].append({background, 255});
+    }
+    for (const auto &layer : inputs) {
+        const auto fallback = document->m_data->defaults.value(layer.layer);
+        const auto &tiles = document->m_data->layers[layer.layer];
+        for (const auto coordinate : coordinates) {
+            const auto pixels = tiles.value(coordinate, fallback);
+            const auto extent = sourceClips.value(layer.layer);
+            const bool bounded = (initial && (normalizeRoot || initial->sourceBounds.contains(layer.layer))) || nativeProjection;
+            const bool clipsSource = bounded || transparentSourceAffectsBlend(layer.blendMode) || (!(layer.channelMask & 8u) && layer.blendMode != LayerBlendMode::Copy);
+            const QRect tileBounds(Detail::coordinate(coordinate) * TileSize, QSize(TileSize, TileSize));
+            if (clipsSource && !extent.intersects(tileBounds)) continue;
+            if (!pixels && !clipsSource && layer.blendMode != LayerBlendMode::DestinationIn &&
+                layer.blendMode != LayerBlendMode::DestinationAtop && layer.blendMode != LayerBlendMode::Copy) continue;
+            ProjectionInput input{pixels, layer.opacity, layer.channelMask, layer.blendMode};
+            input.mask = layerMasks.value(layer.layer);
+            if (input.mask) {
+                input.maskExtent = input.mask->allocatedBounds();
+                if (input.mask->defaultCoverage()) input.maskExtent |= QRect(QPoint(), document->document()->size);
+            }
+            input.boundedSource = bounded;
+            if (clipsSource) input.sourceExtent = extent;
+            data->inputs[coordinate].append(input);
+        }
+    }
+    const bool cosine = document->document()->format == PixelFormat::Rgba16 && std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
+        return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return usesRgba16Cosine(input.blendMode); });
+    });
+    if (cosine && !d.prepareRgba16Cosine())
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU RGBA16 cosine resource budget exhausted") : d.error};
+    const bool powerValues = document->document()->format == PixelFormat::Rgba16 && std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
+        return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return usesRgba16PowerValues(input.blendMode); });
+    });
+    if (powerValues && !d.prepareRgba16Power())
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU RGBA16 power resource budget exhausted") : d.error};
+    const bool nonlinear = document->document()->format == PixelFormat::Rgba8 && std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
+        return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return usesNonlinearRgba8(input.blendMode); });
+    });
+    if (nonlinear && !d.prepareNonlinearRgba8(true))
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU nonlinear RGBA8 resource budget exhausted") : d.error};
+    const bool greater = document->document()->format == PixelFormat::Rgba8 && std::any_of(data->inputs.cbegin(), data->inputs.cend(), [](const auto &inputs) {
+        return std::any_of(inputs.cbegin(), inputs.cend(), [](const auto &input) { return input.blendMode == LayerBlendMode::Greater; });
+    });
+    if (greater && !d.prepareGreaterRgba8(true))
+        return {d.error.isEmpty() ? RenderOutcome::CapacityExceeded : RenderOutcome::DeviceFailure, {},
+                d.error.isEmpty() ? QStringLiteral("GPU Greater alpha resource budget exhausted") : d.error};
+    const auto firstComposition = [&](const auto &inputs) {
+        return !initial && !nativeProjection && inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && !inputs.first().mask && (inputs.size() > 1 || background || data->directLayerProjection ||
+                                                !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
+    };
+    const bool cachedBase = !group && base && d.backdropVersion.toStrongRef() == base &&
+        base->m_data->directLayerProjection == data->directLayerProjection;
+    const Layer *topLayer = nullptr;
+    if (!group) for (const auto child : children)
+        if (child->visible && child->opacity) topLayer = child;
+    const bool keepBackdrop = !group && !document->document()->isCommitted() && topLayer &&
+        topLayer->id == document->document()->activeLayer && topLayer->kind == LayerKind::Paint;
+    Tiles reusedBackdrops, nextBackdrops;
+    qsizetype required = 0;
+    bool needsPair = false;
+    for (auto tile = data->inputs.cbegin(); tile != data->inputs.cend(); ++tile) {
+        if (base && base->m_data->directLayerProjection == data->directLayerProjection &&
+            base->m_data->inputs.value(tile.key()) == tile.value()) {
+            data->tiles[tile.key()] = base->m_data->tiles.value(tile.key());
+        } else if (tile.value().size() == 1 && firstComposition(tile.value()) == 1) {
+            data->tiles[tile.key()] = tile.value().first().pixels;
+        } else {
+            const auto backdrop = cachedBase ? d.projectionBackdrops.value(tile.key()) : std::shared_ptr<Tile>{};
+            const auto previous = base ? base->m_data->inputs.value(tile.key()) : QList<ProjectionInput>{};
+            if (backdrop && tile.value().size() > 1 && previous.size() == tile.value().size() &&
+                std::equal(tile.value().cbegin(), tile.value().cend() - 1, previous.cbegin())) {
+                reusedBackdrops[tile.key()] = backdrop;
+                ++required;
+            } else {
+                const auto jobs = tile.value().size() - firstComposition(tile.value());
+                const auto passes = keepBackdrop ? jobs / 2 + 1 : (jobs + 1) / 2;
+                needsPair |= jobs >= (keepBackdrop ? 3 : 2);
+                required += std::min<qsizetype>(2, passes);
+            }
+        }
+    }
+    if (needsPair && !d.pairedProjectionPipeline) {
+        d.pairedProjectionPipeline = d.createPipeline(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"), "mainPair");
+        if (!d.pairedProjectionPipeline) return {RenderOutcome::DeviceFailure, {}, d.error};
+        d.pairedProjectionLayout.reset(wgpuComputePipelineGetBindGroupLayout(d.pairedProjectionPipeline.get(), 0));
+        if (!d.pairedProjectionLayout) d.error = QStringLiteral("GPU paired projection bindings could not be created");
+    }
+    if (needsPair && !d.pairedProjectionLayout) return {RenderOutcome::DeviceFailure, {}, d.error};
+    if (!d.ensureTileCapacity(required, document->document()->format)) {
+        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU projection tile budget exhausted")};
+    }
+    std::vector<CompositeUniform> uniforms;
+    QHash<QByteArray, WGPUBuffer> parameterBuffers;
+    std::vector<CompositeJob> jobs;
+    for (auto tile = data->inputs.cbegin(); tile != data->inputs.cend(); ++tile) {
+        if (data->tiles.contains(tile.key())) continue;
+        const auto firstJob = firstComposition(tile.value());
+        const auto backdrop = reusedBackdrops.value(tile.key());
+        const auto start = backdrop ? tile.value().size() - 1 : firstJob;
+        const auto remaining = tile.value().size() - start;
+        const auto jobCount = keepBackdrop ? remaining / 2 + 1 : (remaining + 1) / 2;
+        const auto a = d.allocateTile(document->document()->format);
+        const auto b = jobCount > 1 ? d.allocateTile(document->document()->format) : std::shared_ptr<Tile>{};
+        if (!a || (jobCount > 1 && !b)) {
+            return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection allocation failed")};
+        }
+        auto input = backdrop ? backdrop : firstJob ? tile.value().first().pixels : std::shared_ptr<Tile>{};
+        const auto pairEnd = tile.value().size() - (keepBackdrop ? 1 : 0);
+        for (qsizetype i = start, passIndex = 0; i < tile.value().size(); ++passIndex) {
+            const int count = i + 2 <= pairEnd ? 2 : 1;
+            const bool paired = count == 2;
+            if (keepBackdrop && tile.value().size() > 1 && i == tile.value().size() - 1)
+                nextBackdrops[tile.key()] = input;
+            CompositeJob job;
+            job.paired = paired;
+            job.base = input;
+            d.retainTile(input);
+            job.output = passIndex % 2 ? b : a;
+            bool hiddenRgb = job.base && job.base->mayContainHiddenRgb;
+            CompositeParameters values[2]{};
+            for (int layer = 0; layer < count; ++layer) {
+                const auto &source = tile.value()[i + layer];
+                job.layers[layer] = source.pixels;
+                d.retainTile(source.pixels);
+                job.blendModes[layer] = quint32(source.blendMode);
+                if (source.mask) {
+                    job.masks[layer] = d.coverageTile(commands, source.mask, tile.key());
+                    if (job.masks[layer]) d.device->retainForFrame(job.masks[layer]->storage);
+                    if (!job.masks[layer])
+                        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU layer mask coverage capacity exceeded")};
+                }
+                const float opacity = float(source.opacity) / 255.0f;
+                std::memcpy(&values[layer].opacityBits, &opacity, sizeof(opacity));
+                values[layer].channelMask = source.channelMask;
+                const auto localExtent = source.sourceExtent.translated(-coordinate(tile.key()) * TileSize);
+                values[layer].sourceLeft = localExtent.left();
+                values[layer].sourceTop = localExtent.top();
+                values[layer].sourceRight = localExtent.isEmpty() ? 0 : localExtent.right() + 1;
+                values[layer].sourceBottom = localExtent.isEmpty() ? 0 : localExtent.bottom() + 1;
+                const auto maskExtent = source.maskExtent.translated(-coordinate(tile.key()) * TileSize);
+                values[layer].maskLeft = maskExtent.left();
+                values[layer].maskTop = maskExtent.top();
+                values[layer].maskRight = maskExtent.isEmpty() ? 0 : maskExtent.right() + 1;
+                values[layer].maskBottom = maskExtent.isEmpty() ? 0 : maskExtent.bottom() + 1;
+                values[layer].blendModeOpacity = quint32(source.blendMode) | (quint32(source.opacity) << 8);
+                const bool normalize = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
+                values[layer].flags = quint32(normalize) | (document->document()->format == PixelFormat::Rgba16 ? 2u : 0u) |
+                    (source.boundedSource ? 4u : 0u) | (source.mask ? 8u : 0u);
+                hiddenRgb = source.blendMode != LayerBlendMode::Normal ||
+                    !(source.channelMask & 8u) || source.opacity < 128 ||
+                    (hiddenRgb && !normalize);
+            }
+            job.output->mayContainHiddenRgb = hiddenRgb;
+            const QByteArray parameterKey(reinterpret_cast<const char *>(values), sizeof(values));
+            auto parameters = parameterBuffers.value(parameterKey);
+            if (!parameters) {
+                CompositeUniform uniform;
+                std::copy(std::begin(values), std::end(values), std::begin(uniform.values));
+                uniform.buffer = createBuffer(d.device->nativeDevice(), sizeof(values),
+                                              WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+                if (!uniform.buffer) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection parameters failed")};
+                parameters = uniform.buffer.get();
+                parameterBuffers.insert(parameterKey, parameters);
+                uniforms.push_back(std::move(uniform));
+            }
+            WGPUBuffer buffers[7]{};
+            quint32 bindingIndices[7]{};
+            quint32 bindingCount = 0;
+            const auto addBinding = [&](quint32 binding, WGPUBuffer buffer) {
+                buffers[bindingCount] = buffer;
+                bindingIndices[bindingCount] = binding;
+                ++bindingCount;
+            };
+            addBinding(0, job.base ? job.base->pixels.get() : d.zeroBuffer(commands, document->document()->format));
+            if (!buffers[0]) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty projection tile allocation failed")};
+            addBinding(1, job.layers[0] ? job.layers[0]->pixels.get() : d.zeroBuffer(commands, document->document()->format));
+            if (!buffers[bindingCount - 1]) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty source tile allocation failed")};
+            addBinding(2, job.output->pixels.get());
+            if (paired) {
+                addBinding(4, job.layers[1] ? job.layers[1]->pixels.get() : d.zeroBuffer(commands, document->document()->format));
+                if (!buffers[bindingCount - 1]) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU empty source tile allocation failed")};
+                addBinding(5, parameters);
+                addBinding(6, job.masks[0] ? job.masks[0]->pixels.get() : d.opaqueMask.get());
+                addBinding(7, job.masks[1] ? job.masks[1]->pixels.get() : d.opaqueMask.get());
+            } else {
+                addBinding(3, parameters);
+                addBinding(6, job.masks[0] ? job.masks[0]->pixels.get() : d.opaqueMask.get());
+            }
+            WGPUBindGroupEntry entries[9]{};
+            for (quint32 index = 0; index < bindingCount; ++index) {
+                entries[index].binding = bindingIndices[index];
+                entries[index].buffer = buffers[index];
+                entries[index].size = wgpuBufferGetSize(buffers[index]);
+            }
+            entries[bindingCount].binding = 9;
+            entries[bindingCount].textureView = document->document()->format == PixelFormat::Rgba16 && d.cosineView ?
+                d.cosineView.get() : d.nonlinearView.get();
+            entries[bindingCount + 1].binding = 10;
+            entries[bindingCount + 1].textureView = document->document()->format == PixelFormat::Rgba16 && d.powerView ?
+                d.powerView.get() : d.greaterView.get();
+            WGPUBindGroupDescriptor descriptor{};
+            descriptor.layout = paired ? d.pairedProjectionLayout.get() : d.projectionLayout.get();
+            descriptor.entryCount = bindingCount + 2;
+            descriptor.entries = entries;
+            job.bindings.reset(wgpuDeviceCreateBindGroup(d.device->nativeDevice(), &descriptor));
+            if (!job.bindings || !d.device->diagnostic().isEmpty())
+                return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection binding failed")};
+            input = job.output;
+            jobs.push_back(std::move(job));
+            i += count;
+        }
+        data->tiles[tile.key()] = input;
+    }
+    for (const auto &uniform : uniforms)
+        wgpuQueueWriteBuffer(d.device->queue(), uniform.buffer.get(), 0, &uniform.values, sizeof(uniform.values));
+    if (!jobs.empty()) {
+        const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+        if (!pass) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection commands failed")};
+        for (const auto &job : jobs) {
+            const auto program = d.blendPipeline(false, job.paired, document->document()->format, job.blendModes[0], job.blendModes[1]);
+            if (!program) {
+                wgpuComputePassEncoderEnd(pass);
+                wgpuComputePassEncoderRelease(pass);
+                return {RenderOutcome::DeviceFailure, {}, d.error};
+            }
+            wgpuComputePassEncoderSetPipeline(pass, program);
+            wgpuComputePassEncoderSetBindGroup(pass, 0, job.bindings.get(), 0, nullptr);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+        }
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
+    }
+    const ProjectedSnapshot result(new ProjectedVersion(data));
+    if (!group) {
+        if (keepBackdrop && cachedBase && d.backdropVersion.toStrongRef() == base) {
+            for (auto tile = d.projectionBackdrops.cbegin(); tile != d.projectionBackdrops.cend(); ++tile)
+                if (data->tiles.contains(tile.key()) && data->inputs.value(tile.key()) == base->m_data->inputs.value(tile.key()))
+                    nextBackdrops[tile.key()] = tile.value();
+        }
+        d.projectionBackdrops = std::move(nextBackdrops);
+        d.backdropVersion = keepBackdrop ? result : ProjectedSnapshot{};
+    }
+    return {RenderOutcome::Recorded, result, {}};
+}
+}

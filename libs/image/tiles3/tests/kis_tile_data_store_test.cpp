@@ -15,6 +15,59 @@
 
 #include "tiles3/kis_tile_data_store.h"
 #include "tiles3/kis_tile_data_store_iterators.h"
+#include <QScopeGuard>
+#include <QSemaphore>
+#include <atomic>
+#include <thread>
+#include <cstring>
+
+void KisTileDataStoreTest::testAllocationPreservesPixelsDuringDocumentMemoryRelease_data()
+{
+    QTest::addColumn<bool>("duplicate");
+    QTest::newRow("new") << false;
+    QTest::newRow("copy") << true;
+}
+
+void KisTileDataStoreTest::testAllocationPreservesPixelsDuringDocumentMemoryRelease()
+{
+    QFETCH(bool, duplicate);
+    auto *store = KisTileDataStore::instance();
+    store->testingSuspendPooler();
+    const auto resumePooler = qScopeGuard([&] { store->testingResumePooler(); });
+    const auto pixel = QByteArray::fromHex("33221149");
+    const auto expected = pixel.repeated(KisTileData::WIDTH * KisTileData::HEIGHT);
+    KisTileData *source = store->allocTileData(4, reinterpret_cast<const quint8 *>(pixel.constData()));
+    source->acquire();
+    const auto releaseSource = qScopeGuard([&] { source->release(); });
+    QSemaphore start;
+    std::atomic<bool> complete{false};
+    std::atomic<bool> preserved{true};
+    std::thread producer([&] {
+        start.acquire();
+        for (int iteration = 0; iteration < 2000; ++iteration) {
+            auto *tile = duplicate ? store->duplicateTileData(source)
+                : store->allocTileData(4, reinterpret_cast<const quint8 *>(pixel.constData()));
+            tile->acquire();
+            tile->blockSwapping();
+            if (std::memcmp(tile->data(), expected.constData(), expected.size()) != 0) preserved = false;
+            tile->unblockSwapping();
+            tile->release();
+            if (!preserved) break;
+        }
+        complete = true;
+    });
+    start.release();
+    for (int iteration = 0; iteration < 2000 && !complete; ++iteration) {
+        KisTiledDataManager::releaseInternalPools();
+        std::this_thread::yield();
+    }
+    producer.join();
+    QVERIFY(preserved.load());
+    source->blockSwapping();
+    const QByteArray original(reinterpret_cast<const char *>(source->data()), expected.size());
+    source->unblockSwapping();
+    QCOMPARE(original, expected);
+}
 
 
 void KisTileDataStoreTest::testClockIterator()
@@ -39,78 +92,62 @@ void KisTileDataStoreTest::testClockIterator()
     tileDataList.append(item);
 
 
-    /// First, full cycle!
-    KisTileDataStoreClockIterator *iter = store->beginClockIteration();
-
-    QVERIFY(iter->hasNext());
-    item = iter->next();
-    QCOMPARE(item, tileDataList[0]);
-
-    QVERIFY(iter->hasNext());
-    item = iter->next();
-    QCOMPARE(item, tileDataList[2]);
-
-    QVERIFY(iter->hasNext());
-    item = iter->next();
-    QCOMPARE(item, tileDataList[1]);
-
-    QVERIFY(!iter->hasNext());
-
-    store->endIteration(iter);
-
-
-    /// Second, iterate until the second item!
-    iter = store->beginClockIteration();
-
-    QVERIFY(iter->hasNext());
-    item = iter->next();
-    QCOMPARE(item, tileDataList[0]);
-
-    store->endIteration(iter);
-
-
-    /// Third, check the position restored!
-    iter = store->beginClockIteration();
-
-    QVERIFY(iter->hasNext());
-    item = iter->next();
-    QCOMPARE(item, tileDataList[2]);
-
-    QVERIFY(iter->hasNext());
-    item = iter->next();
-    QCOMPARE(item, tileDataList[1]);
-
-    QVERIFY(iter->hasNext());
-    item = iter->next();
-    QCOMPARE(item, tileDataList[0]);
-
-    QVERIFY(!iter->hasNext());
-
-    store->endIteration(iter);
-
-
-    /// By this moment clock index has been set
-    /// onto the last item.
-    /// Let's try remove it and see what will happen...
-
-    store->freeTileData(tileDataList[0]);
+    const auto releaseTiles = qScopeGuard([&] {
+        for (auto *tile : tileDataList) store->freeTileData(tile);
+    });
+    KisTileDataStoreClockIterator *iter = nullptr;
+    const auto finishIteration = qScopeGuard([&] {
+        if (iter) store->endIteration(iter);
+    });
 
     iter = store->beginClockIteration();
+    QList<KisTileData *> cycle;
+    while (iter->hasNext()) {
+        item = iter->next();
+        QVERIFY(tileDataList.contains(item));
+        QVERIFY(!cycle.contains(item));
+        cycle.append(item);
+    }
+    QCOMPARE(cycle.size(), tileDataList.size());
+    QCOMPARE(cycle.first(), tileDataList.first());
+    store->endIteration(iter);
+    iter = nullptr;
 
+    iter = store->beginClockIteration();
     QVERIFY(iter->hasNext());
-    item = iter->next();
-    QCOMPARE(item, tileDataList[2]);
-
+    QCOMPARE(iter->next(), cycle[0]);
     QVERIFY(iter->hasNext());
-    item = iter->next();
-    QCOMPARE(item, tileDataList[1]);
+    QCOMPARE(iter->peekNext(), cycle[1]);
+    store->endIteration(iter);
+    iter = nullptr;
 
+    iter = store->beginClockIteration();
+    for (auto *tile : {cycle[1], cycle[2], cycle[0]}) {
+        QVERIFY(iter->hasNext());
+        QCOMPARE(iter->next(), tile);
+    }
+    QVERIFY(!iter->hasNext());
+    store->endIteration(iter);
+    iter = nullptr;
+
+    tileDataList.removeOne(cycle[0]);
+    store->freeTileData(cycle[0]);
+    iter = store->beginClockIteration();
+    for (auto *tile : {cycle[1], cycle[2]}) {
+        QVERIFY(iter->hasNext());
+        QCOMPARE(iter->next(), tile);
+    }
+    QVERIFY(!iter->hasNext());
+    store->endIteration(iter);
+    iter = nullptr;
+
+    tileDataList.removeOne(cycle[1]);
+    store->freeTileData(cycle[1]);
+    iter = store->beginClockIteration();
+    QVERIFY(iter->hasNext());
+    QCOMPARE(iter->next(), cycle[2]);
     QVERIFY(!iter->hasNext());
 
-    store->endIteration(iter);
-
-    store->freeTileData(tileDataList[2]);
-    store->freeTileData(tileDataList[1]);
 }
 
 void KisTileDataStoreTest::testLeaks()

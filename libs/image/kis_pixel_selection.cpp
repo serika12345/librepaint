@@ -39,6 +39,9 @@
 #include "kis_lod_transform.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"
+#include "gpu/KisGpuSelectionMask.h"
+#include <QRegion>
+#include <stdexcept>
 #include "kis_painter.h"
 #include "kis_selection.h"
 #include "kis_selection_component.h"
@@ -121,6 +124,21 @@ const KoColorSpace *KisPixelSelection::compositionSourceColorSpace() const
         colorSpace(GrayAColorModelID.id(),
                    Integer8BitsColorDepthID.id(),
                    QString());
+}
+
+void KisPixelSelection::bindGpuCoverage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
+                                       LibrePaint::Image::Gpu::SelectionMaskSP mask, const QUuid &maskUuid, QPoint position)
+{
+    if (!mask) throw std::invalid_argument("Selection views require retained coverage");
+    QRegion region;
+    const QVector<QRect> runs(mask->outlineRuns().cbegin(), mask->outlineRuns().cend());
+    if (!runs.isEmpty()) region.setRects(runs.constData(), runs.size());
+    QPainterPath outline;
+    outline.addRegion(region);
+    bindGpuSelection(std::move(image), std::move(mask), maskUuid, position);
+    setOutlineCache(outline.simplified());
+    m_d->invalidateThumbnailImage();
+    m_d->lod0CachesOffset = position;
 }
 
 bool KisPixelSelection::read(QIODevice *stream)
@@ -344,8 +362,9 @@ void KisPixelSelection::clear(const QRect & r)
 
 void KisPixelSelection::clear()
 {
-    setDefaultPixel(KoColor::createTransparent(colorSpace()));
+    // Release a retained GPU view before resetting this view's local default.
     KisPaintDevice::clear();
+    setDefaultPixel(KoColor::createTransparent(colorSpace()));
 
     m_d->outlineCacheValid = true;
     m_d->outlineCache = QPainterPath();
@@ -382,6 +401,8 @@ void KisPixelSelection::invert()
 
 void KisPixelSelection::moveTo(const QPoint &pt)
 {
+    const bool gpu = bool(gpuSelectionCoverage());
+    if (gpu) KisPaintDevice::moveTo(pt);
     const int lod = defaultBounds()->currentLevelOfDetail();
     const QPoint lod0Point = !lod ? pt :
         pt * KisLodTransform::lodToInvScale(lod);
@@ -400,7 +421,7 @@ void KisPixelSelection::moveTo(const QPoint &pt)
 
     m_d->lod0CachesOffset = lod0Point;
 
-    KisPaintDevice::moveTo(pt);
+    if (!gpu) KisPaintDevice::moveTo(pt);
 }
 
 bool KisPixelSelection::isTotallyUnselected(const QRect & r) const
@@ -539,15 +560,12 @@ QImage deviceToQImage(KisPaintDeviceSP device,
     QColor color = maskColor;
     const qreal alphaScale = maskColor.alphaF();
 
-    KisSequentialConstIterator it(device, rc);
-    while(it.nextPixel()) {
-        quint8 value = (MAX_SELECTED - *(it.rawDataConst())) * alphaScale;
+    QByteArray values(qsizetype(rc.width()) * rc.height(), Qt::Uninitialized);
+    device->readBytes(reinterpret_cast<quint8 *>(values.data()), rc);
+    for (int y = 0; y < rc.height(); ++y) for (int x = 0; x < rc.width(); ++x) {
+        const quint8 value = (MAX_SELECTED - quint8(values[y * rc.width() + x])) * alphaScale;
         color.setAlpha(value);
-
-        QPoint pt(it.x(), it.y());
-        pt -= rc.topLeft();
-
-        image.setPixel(pt.x(), pt.y(), color.rgba());
+        image.setPixel(x, y, color.rgba());
     }
 
     return image;

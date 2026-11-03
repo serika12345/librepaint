@@ -1,0 +1,1006 @@
+// SPDX-FileCopyrightText: 2026 LibrePaint contributors
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+struct FilterParameters {
+    // Tile origin x/y, filter kind, coverage flags.
+    tile: vec4<i32>,
+    // Selection rectangle x/y/width/height.
+    selection: vec4<i32>,
+    // Raw HSV/HSL/HSY/YUV Adjustment values: h, s, v and
+    // type | legacy << 8 | colorize << 9.
+    adjustment: vec4<i32>,
+    // Binary32 conversions used by the HSV/HSL/HSI/HSY rules.
+    luma: vec4<f32>,
+    // Original binary64 coefficient bits used by Colorize and YUV.
+    lumaLow: vec4<u32>,
+    lumaHigh: vec4<u32>,
+    // Profile/control-only constants: 1-R, 1-B, inverse green weights,
+    // blue/red chroma gains, and luma offset, in product binary64 precision.
+    yuvLow: array<vec4<u32>, 2>,
+    yuvHigh: array<vec4<u32>, 2>,
+    overlayColor: vec4<u32>,
+    // Native word format, product binary32 opacity, quantized opacity, reserved.
+    control: vec4<u32>,
+    applyRect: vec4<i32>,
+}
+
+@group(0) @binding(0) var<storage, read> basePixels: array<u32>;
+@group(0) @binding(1) var<storage, read_write> outputPixels: array<u32>;
+@group(0) @binding(2) var<uniform> parameters: FilterParameters;
+@group(0) @binding(3) var<storage, read> selectionCoverage: array<u32>;
+@group(0) @binding(4) var<storage, read> convolutionPixels: array<u32>;
+
+// Coverage flags. A freehand mask is always byte coverage: the renderer
+// expands binary masks before binding them, matching layer composition.
+const COVERAGE_PRESENT: u32 = 1u;
+const COVERAGE_MASK: u32 = 2u;
+const COVERAGE_ELLIPSE: u32 = 4u;
+const COVERAGE_INVERTED: u32 = 8u;
+
+// Filter kinds frozen by the accepted operation.
+const FILTER_INVERT_COLORS: u32 = 0u;
+const FILTER_GRAYSCALE: u32 = 1u;
+const FILTER_HSV_ADJUSTMENT: u32 = 2u;
+const FILTER_MAXIMIZE: u32 = 3u;
+const FILTER_MINIMIZE: u32 = 4u;
+const FILTER_RESET_TRANSPARENT: u32 = 5u;
+const FILTER_COLOR_OVERLAY: u32 = 6u;
+
+// Product HSV/HSL Adjustment modes selected by the product `type` key. HSY
+// and YUV, like the product Colorize option, also use the document luma
+// coefficients frozen with the operation.
+const HSV_MODE_VALUE: u32 = 0u;
+const HSV_MODE_LIGHTNESS: u32 = 1u;
+const HSV_MODE_INTENSITY: u32 = 2u;
+const HSV_MODE_LUMA: u32 = 3u;
+const HSV_MODE_YUV: u32 = 4u;
+
+const HSV_LEGACY_FLAG: i32 = 256;
+const HSV_COLORIZE_FLAG: i32 = 512;
+
+// Epsilon values from the product's modern HSV transform and legacy color
+// conversion rules.
+const HSV_EPSILON: f32 = 1e-9;
+const CONVERSION_EPSILON: f32 = 1e-6;
+
+// Straight RGBA8 bytes in one word: red is the low byte, alpha the high byte.
+fn selectedness(pixel: vec2<i32>, index: u32, flags: u32) -> u32 {
+    if ((flags & COVERAGE_PRESENT) == 0u) { return 255u; }
+    let inverted = (flags & COVERAGE_INVERTED) != 0u;
+    if ((flags & COVERAGE_MASK) != 0u) {
+        let coverage = (selectionCoverage[index >> 2u] >> ((index & 3u) * 8u)) & 255u;
+        return select(coverage, 255u - coverage, inverted);
+    }
+    let selection = parameters.selection;
+    let outside = pixel.x < selection.x || pixel.y < selection.y ||
+        pixel.x >= selection.x + selection.z || pixel.y >= selection.y + selection.w;
+    var inside = !outside;
+    if ((flags & COVERAGE_ELLIPSE) != 0u) {
+        let center = vec2<f32>(f32(selection.x) + f32(selection.z) * 0.5,
+                               f32(selection.y) + f32(selection.w) * 0.5);
+        let radius = vec2<f32>(f32(selection.z) * 0.5, f32(selection.w) * 0.5);
+        let relative = (vec2<f32>(f32(pixel.x) + 0.5, f32(pixel.y) + 0.5) - center) / radius;
+        inside = dot(relative, relative) <= 1.0;
+    }
+    if (inverted) { inside = !inside; }
+    return select(0u, 255u, inside);
+}
+
+// ---- HSV/HSL Adjustment ---------------------------------------------------
+//
+// This mirrors the product filter's `hsv_adjustment` color transformation for
+// the modes whose rule is a pure RGB point operation. The raw product values
+// are frozen in the operation: hue in [-180, 180] degrees, saturation and
+// value in [-100, 100] percent. The CPU filter scales them by 180 and 100
+// respectively before the pixel loop.
+//
+// Stored channels are decoded to binary32 RGB. The output is clamped and
+// rounded half up to RGBA8, with alpha carried through unchanged.
+//
+// Neutral pixels follow the selected product mode exactly. In the modern HSV
+// policy a pixel with zero chroma ignores hue and saturation and only follows
+// the value slider; in the legacy compatibility mode the product converts hue
+// through its pre-4.3 rule, so a neutral pixel can gain color when saturation
+// rises.
+
+fn fmodValue(a: f32, b: f32) -> f32 {
+    return a - trunc(a / b) * b;
+}
+
+fn normalizeDegrees(angle: f32) -> f32 {
+    var value = angle;
+    if (value < 0.0) { value = 360.0 + fmodValue(value, 360.0); }
+    if (value >= 360.0) { value = fmodValue(value, 360.0); }
+    return value;
+}
+
+fn writeSimple(sextant: i32, x: f32, m: f32, M: f32) -> vec3<f32> {
+    if (sextant == 0) { return vec3<f32>(M, x + m, m); }
+    if (sextant == 1) { return vec3<f32>(x + m, M, m); }
+    if (sextant == 2) { return vec3<f32>(m, M, x + m); }
+    if (sextant == 3) { return vec3<f32>(m, x + m, M); }
+    if (sextant == 4) { return vec3<f32>(x + m, m, M); }
+    if (sextant == 5) { return vec3<f32>(M, m, x + m); }
+    return vec3<f32>(0.0);
+}
+
+fn modeHasChroma(mode: u32, value: f32) -> bool {
+    if (mode == HSV_MODE_VALUE) { return value > HSV_EPSILON; }
+    return value > HSV_EPSILON && value < 1.0 - HSV_EPSILON;
+}
+
+fn modeValue(mode: u32, rgb: vec3<f32>, minimum: f32, maximum: f32, luma: vec3<f32>) -> f32 {
+    if (mode == HSV_MODE_LIGHTNESS) { return 0.5 * (maximum + minimum); }
+    if (mode == HSV_MODE_INTENSITY) { return (rgb.x + rgb.y + rgb.z) / 3.0; }
+    if (mode == HSV_MODE_LUMA) {
+        return rgb.x * luma.x + rgb.y * luma.y + rgb.z * luma.z;
+    }
+    return maximum;
+}
+
+fn modeFixChroma(mode: u32, chroma: f32, value: f32) -> f32 {
+    if (mode == HSV_MODE_LUMA) { return chroma; }
+    if (mode == HSV_MODE_LIGHTNESS) {
+        if (value >= 0.5) { return min(chroma, 2.0 - 2.0 * value); }
+        return min(chroma, 2.0 * value);
+    }
+    if (mode == HSV_MODE_INTENSITY) {
+        let oneThird = 1.0 / 3.0;
+        if (value >= oneThird) { return min(chroma, 1.5 * (1.0 - value)); }
+        return min(chroma, 3.0 * value);
+    }
+    return min(value, chroma);
+}
+
+fn modeWrite(mode: u32, sextant: i32, x: f32, chroma: f32, value: f32,
+             luma: vec3<f32>) -> vec3<f32> {
+    if (mode == HSV_MODE_LUMA) {
+        // The HCY policy writes the pure hue and then shifts all components by
+        // the difference between the requested luma and the written luma.
+        let base = writeSimple(sextant, x, 0.0, chroma);
+        let shift = value - (base.x * luma.x + base.y * luma.y + base.z * luma.z);
+        return base + vec3<f32>(shift);
+    }
+    if (mode == HSV_MODE_LIGHTNESS) {
+        let maximum = value + 0.5 * chroma;
+        let minimum = value - 0.5 * chroma;
+        return writeSimple(sextant, x, minimum, maximum);
+    }
+    if (mode == HSV_MODE_INTENSITY) {
+        let oneThird = 1.0 / 3.0;
+        let minimum = value - oneThird * (chroma + x);
+        let maximum = chroma + minimum;
+        return writeSimple(sextant, x, minimum, maximum);
+    }
+    return writeSimple(sextant, x, value - chroma, value);
+}
+
+// The modern product transformation (`HSVTransform` with the HSV, HSL, HCI or
+// HCY policy). Hue and saturation adjustments do not create chroma on a
+// neutral pixel; the value adjustment moves both value and chroma toward the
+// requested endpoint, exactly as the product rule does.
+fn modernAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, mode: u32,
+                     luma: vec3<f32>) -> vec3<f32> {
+    let maximum = max(rgb.x, max(rgb.y, rgb.z));
+    let minimum = min(rgb.x, min(rgb.y, rgb.z));
+    var chroma = maximum - minimum;
+    var value = modeValue(mode, rgb, minimum, maximum, luma);
+    var hue = 0.0;
+    if (!modeHasChroma(mode, value)) {
+        chroma = 0.0;
+        hue = 0.0;
+        if (dv < 0.0) {
+            value = value * (dv + 1.0);
+        } else {
+            value = value + dv * (1.0 - value);
+        }
+    } else {
+        if (chroma > HSV_EPSILON) {
+            if (rgb.x == maximum) {
+                hue = (rgb.y - rgb.z) / chroma;
+            } else if (rgb.y == maximum) {
+                hue = 2.0 + (rgb.z - rgb.x) / chroma;
+            } else {
+                hue = 4.0 + (rgb.x - rgb.y) / chroma;
+            }
+            hue = hue * 60.0;
+            hue = hue + dh * 180.0;
+            hue = normalizeDegrees(hue);
+            if (ds > 0.0) {
+                chroma = min(1.0, chroma * (1.0 + ds + 2.0 * (ds * ds)));
+            } else {
+                chroma = chroma * (ds + 1.0);
+            }
+        } else {
+            hue = 0.0;
+        }
+        let destination = select(0.0, 1.0, dv > 0.0);
+        let valueCoefficient = destination - value;
+        let chromaCoefficient = 0.0 - chroma;
+        let movement = abs(dv);
+        value = value + movement * valueCoefficient;
+        chroma = chroma + movement * chromaCoefficient;
+        value = clamp(value, 0.0, 1.0);
+        chroma = modeFixChroma(mode, chroma, value);
+    }
+    if (value <= HSV_EPSILON) { return vec3<f32>(0.0); }
+    hue = hue / 60.0;
+    let sextant = i32(hue);
+    let fraction = hue - f32(sextant);
+    var x: f32;
+    if ((sextant & 1) != 0) {
+        x = chroma - chroma * fraction;
+    } else {
+        x = chroma * fraction;
+    }
+    return modeWrite(mode, sextant, x, chroma, value, luma);
+}
+
+// ---- Pre-4.3 compatibility conversions -----------------------------------
+//
+// These reproduce KoColorConversions' RGBToHSV/HSVToRGB, RGBToHSL/HSLToRGB,
+// RGBToHCI/HCIToRGB and RGBToHCY/HCYToRGB for the legacy mode. The product
+// enables this path only through its `compatibilityMode` key, which is frozen
+// with the values.
+
+fn legacyRgbToHsv(rgb: vec3<f32>) -> vec3<f32> {
+    let maximum = max(rgb.x, max(rgb.y, rgb.z));
+    let minimum = min(rgb.x, min(rgb.y, rgb.z));
+    var value = maximum;
+    var saturation = 0.0;
+    if (maximum > CONVERSION_EPSILON) {
+        saturation = (maximum - minimum) / maximum;
+    }
+    var hue = -1.0;
+    if (saturation < CONVERSION_EPSILON) {
+        hue = -1.0;
+    } else {
+        let delta = maximum - minimum;
+        if (rgb.x == maximum) {
+            hue = (rgb.y - rgb.z) / delta;
+        } else if (rgb.y == maximum) {
+            hue = 2.0 + (rgb.z - rgb.x) / delta;
+        } else {
+            hue = 4.0 + (rgb.x - rgb.y) / delta;
+        }
+        hue = hue * 60.0;
+        if (hue < 0.0) { hue = hue + 360.0; }
+    }
+    return vec3<f32>(hue, saturation, value);
+}
+
+fn legacyHsvToRgb(hsv: vec3<f32>) -> vec3<f32> {
+    var hue = hsv.x;
+    let saturation = hsv.y;
+    let value = hsv.z;
+    if (saturation < CONVERSION_EPSILON || hue == -1.0) { return vec3<f32>(value); }
+    if (hue > 360.0 - CONVERSION_EPSILON) { hue = hue - 360.0; }
+    hue = hue / 60.0;
+    let sextant = i32(floor(hue));
+    let fraction = hue - f32(sextant);
+    let p = value * (1.0 - saturation);
+    let q = value * (1.0 - (saturation * fraction));
+    let t = value * (1.0 - (saturation * (1.0 - fraction)));
+    if (sextant == 0) { return vec3<f32>(value, t, p); }
+    if (sextant == 1) { return vec3<f32>(q, value, p); }
+    if (sextant == 2) { return vec3<f32>(p, value, t); }
+    if (sextant == 3) { return vec3<f32>(p, q, value); }
+    if (sextant == 4) { return vec3<f32>(t, p, value); }
+    if (sextant == 5) { return vec3<f32>(value, p, q); }
+    return vec3<f32>(0.0);
+}
+
+fn legacyRgbToHsl(rgb: vec3<f32>) -> vec3<f32> {
+    let maximum = max(rgb.x, max(rgb.y, rgb.z));
+    let minimum = min(rgb.x, min(rgb.y, rgb.z));
+    let lightness = (minimum + maximum) / 2.0;
+    if (lightness <= 0.0) { return vec3<f32>(-1.0, 0.0, lightness); }
+    let vm = maximum - minimum;
+    if (vm <= 0.0) { return vec3<f32>(-1.0, 0.0, lightness); }
+    let saturation = vm / select(2.0 - maximum - minimum, maximum + minimum, lightness <= 0.5);
+    let r2 = (maximum - rgb.x) / vm;
+    let g2 = (maximum - rgb.y) / vm;
+    let b2 = (maximum - rgb.z) / vm;
+    var hue: f32;
+    if (rgb.x == maximum) {
+        if (rgb.y == minimum) { hue = 5.0 + b2; } else { hue = 1.0 - g2; }
+    } else if (rgb.y == maximum) {
+        if (rgb.z == minimum) { hue = 1.0 + r2; } else { hue = 3.0 - b2; }
+    } else {
+        if (rgb.x == minimum) { hue = 3.0 + g2; } else { hue = 5.0 - r2; }
+    }
+    hue = hue * 60.0;
+    hue = fmodValue(hue, 360.0);
+    return vec3<f32>(hue, saturation, lightness);
+}
+
+fn legacyHslToRgb(hsl: vec3<f32>) -> vec3<f32> {
+    var hue = hsl.x;
+    let saturation = hsl.y;
+    let lightness = hsl.z;
+    var value: f32;
+    if (lightness <= 0.5) {
+        // The product's double literal keeps 1 + saturation and its product
+        // with lightness in binary64 until the assignment to float.
+        value = productRgbWeightedSum(vec3<f32>(lightness, lightness, 0.0),
+                                      vec3<f32>(1.0, saturation, 0.0));
+    } else {
+        value = lightness + saturation - lightness * saturation;
+    }
+    if (value <= 0.0) { return vec3<f32>(0.0); }
+    let minimum = lightness + lightness - value;
+    let sv = (value - minimum) / value;
+    hue = fmodValue(hue, 360.0);
+    hue = hue / 60.0;
+    let sextant = i32(hue);
+    let fraction = hue - f32(sextant);
+    let vsf = value * sv * fraction;
+    let mid1 = minimum + vsf;
+    let mid2 = value - vsf;
+    if (sextant == 0) { return vec3<f32>(value, mid1, minimum); }
+    if (sextant == 1) { return vec3<f32>(mid2, value, minimum); }
+    if (sextant == 2) { return vec3<f32>(minimum, value, mid1); }
+    if (sextant == 3) { return vec3<f32>(minimum, mid2, value); }
+    if (sextant == 4) { return vec3<f32>(mid1, minimum, value); }
+    if (sextant == 5) { return vec3<f32>(value, minimum, mid2); }
+    return vec3<f32>(0.0);
+}
+
+fn legacyRgbToHci(rgb: vec3<f32>) -> vec3<f32> {
+    let minimum = min(rgb.x, min(rgb.y, rgb.z));
+    let maximum = max(rgb.x, max(rgb.y, rgb.z));
+    let intensity = (rgb.x + rgb.y + rgb.z) / 3.0;
+    var hue = 0.0;
+    var saturation = 0.0;
+    let chroma = maximum - minimum;
+    if (chroma != 0.0) {
+        if (maximum == rgb.x) {
+            if (minimum == rgb.z) { hue = (rgb.y - rgb.z) / chroma; }
+            else { hue = (rgb.y - rgb.z) / chroma + 6.0; }
+        } else if (maximum == rgb.y) {
+            hue = (rgb.z - rgb.x) / chroma + 2.0;
+        } else if (maximum == rgb.z) {
+            hue = (rgb.x - rgb.y) / chroma + 4.0;
+        }
+        hue = hue / 6.0;
+        saturation = 1.0 - (minimum / intensity);
+    }
+    return vec3<f32>(hue, saturation, intensity);
+}
+
+fn legacyHciToRgb(hci: vec3<f32>) -> vec3<f32> {
+    var hue = hci.x;
+    let chroma = select(hci.y, 0.0, hci.y < 0.0);
+    let intensity = select(hci.z, 0.0, hci.z < 0.0);
+    if (hue > 1.0 || hue < 0.0) { hue = fmodValue(hue, 1.0); }
+    let oneThird = 1.0 / 3.0;
+    let sextant = i32(hue * 6.0);
+    let x = (1.0 - abs(fmodValue(hue * 6.0, 2.0) - 1.0)) * chroma;
+    var r = 0.0;
+    var g = 0.0;
+    var b = 0.0;
+    if (sextant == 0) { r = chroma; g = x; b = 0.0; }
+    else if (sextant == 1) { r = x; g = chroma; b = 0.0; }
+    else if (sextant == 2) { r = 0.0; g = chroma; b = x; }
+    else if (sextant == 3) { r = 0.0; g = x; b = chroma; }
+    else if (sextant == 4) { r = x; g = 0.0; b = chroma; }
+    else if (sextant == 5) { r = chroma; g = 0.0; b = x; }
+    let m = intensity - (oneThird * (r + g + b));
+    return vec3<f32>(r + m, g + m, b + m);
+}
+
+// The HCY functions are the qreal conversions used by the product's legacy
+// HSY rule. The modern HSY rule uses the HCYPolicy above instead.
+fn legacyRgbToHcy(rgb: vec3<f32>, luma: vec3<f32>) -> vec3<f32> {
+    let minimum = min(rgb.x, min(rgb.y, rgb.z));
+    let maximum = max(rgb.x, max(rgb.y, rgb.z));
+    var lumaValue = luma.x * rgb.x + luma.y * rgb.y + luma.z * rgb.z;
+    var chroma = maximum - minimum;
+    var hue = 0.0;
+    if (chroma == 0.0) {
+        hue = 0.0;
+    } else {
+        if (maximum == rgb.x) {
+            if (minimum == rgb.z) {
+                hue = (rgb.y - rgb.z) / chroma;
+            } else {
+                hue = (rgb.y - rgb.z) / chroma + 6.0;
+            }
+        } else if (maximum == rgb.y) {
+            hue = (rgb.z - rgb.x) / chroma + 2.0;
+        } else if (maximum == rgb.z) {
+            hue = (rgb.x - rgb.y) / chroma + 4.0;
+        }
+        hue = hue / 6.0;
+    }
+    if (chroma < 0.0) { chroma = 0.0; }
+    if (lumaValue < 0.0) { lumaValue = 0.0; }
+    return vec3<f32>(clamp(hue, 0.0, 1.0), chroma, lumaValue);
+}
+
+fn legacyHcyToRgb(hcy: vec3<f32>, luma: vec3<f32>) -> vec3<f32> {
+    var hue = hcy.x;
+    let chroma = hcy.y;
+    let lumaValue = hcy.z;
+    if (hue > 1.0 || hue < 0.0) { hue = fmodValue(hue * 2.0, 2.0) / 2.0; }
+    let fract = i32(hue * 6.0);
+    let x = (1.0 - abs(fmodValue(hue * 6.0, 2.0) - 1.0)) * chroma;
+    var r = 0.0;
+    var g = 0.0;
+    var b = 0.0;
+    if (fract == 0) { r = chroma; g = x; b = 0.0; }
+    else if (fract == 1) { r = x; g = chroma; b = 0.0; }
+    else if (fract == 2) { r = 0.0; g = chroma; b = x; }
+    else if (fract == 3) { r = 0.0; g = x; b = chroma; }
+    else if (fract == 4) { r = x; g = 0.0; b = chroma; }
+    else if (fract == 5) { r = chroma; g = 0.0; b = x; }
+    // The product conversion orders the weights R, B, G.
+    let shift = lumaValue - (luma.x * r + luma.z * b + luma.y * g);
+    return vec3<f32>(r + shift, g + shift, b + shift);
+}
+
+// Product RGB conversions round qreal intermediate products and sums before
+// the final binary32 value. For binary32 operands each product has at most
+// 48 significant bits. Integer significands preserve these results across GPU
+// backends, including the lower-lightness legacy HSL conversion.
+struct ColorizeLumaTerm {
+    significand: vec2<u32>, // Low word first, leading bit at position 55.
+    exponent: i32,
+}
+
+fn colorizeShiftLeft(value: vec2<u32>, shift: u32) -> vec2<u32> {
+    if (shift == 0u) { return value; }
+    if (shift < 32u) { return vec2<u32>(value.x << shift, (value.y << shift) | (value.x >> (32u - shift))); }
+    return vec2<u32>(0u, value.x << (shift - 32u));
+}
+
+fn colorizeShiftRightJam(value: vec2<u32>, shift: u32) -> vec2<u32> {
+    if (shift == 0u) { return value; }
+    if (shift < 32u) {
+        let sticky = u32((value.x << (32u - shift)) != 0u);
+        return vec2<u32>((value.x >> shift) | (value.y << (32u - shift)) | sticky, value.y >> shift);
+    }
+    if (shift == 32u) { return vec2<u32>(value.y | u32(value.x != 0u), 0u); }
+    if (shift < 64u) {
+        let sticky = u32(value.x != 0u || (value.y << (64u - shift)) != 0u);
+        return vec2<u32>((value.y >> (shift - 32u)) | sticky, 0u);
+    }
+    return vec2<u32>(u32(any(value != vec2<u32>(0u))), 0u);
+}
+
+fn colorizeAddWords(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+    let low = a.x + b.x;
+    return vec2<u32>(low, a.y + b.y + u32(low < a.x));
+}
+
+fn colorizeLumaProduct(channel: f32, coefficient: f32) -> ColorizeLumaTerm {
+    let a = bitcast<u32>(channel);
+    let b = bitcast<u32>(coefficient);
+    if (a == 0u || b == 0u) { return ColorizeLumaTerm(vec2<u32>(0u), 0); }
+    let ae = (a >> 23u) & 255u;
+    let be = (b >> 23u) & 255u;
+    let am = (a & 0x7fffffu) | select(0u, 0x800000u, ae != 0u);
+    let bm = (b & 0x7fffffu) | select(0u, 0x800000u, be != 0u);
+    let lowProduct = (am & 0xffffu) * (bm & 0xffffu);
+    let crossProduct = (am >> 16u) * (bm & 0xffffu) + (am & 0xffffu) * (bm >> 16u);
+    let low = lowProduct + (crossProduct << 16u);
+    let high = (am >> 16u) * (bm >> 16u) + (crossProduct >> 16u) + u32(low < lowProduct);
+    var leading = firstLeadingBit(low);
+    if (high != 0u) { leading = 32u + firstLeadingBit(high); }
+    let shift = 55u - leading;
+    let exponent = i32(max(ae, 1u) + max(be, 1u)) - 300 - i32(shift);
+    return ColorizeLumaTerm(colorizeShiftLeft(vec2<u32>(low, high), shift), exponent);
+}
+
+fn colorizeAddLumaTerms(first: ColorizeLumaTerm, second: ColorizeLumaTerm) -> ColorizeLumaTerm {
+    if (all(first.significand == vec2<u32>(0u))) { return second; }
+    if (all(second.significand == vec2<u32>(0u))) { return first; }
+    var larger = first;
+    var smaller = second;
+    if (second.exponent > first.exponent) { larger = second; smaller = first; }
+    let aligned = colorizeShiftRightJam(smaller.significand, u32(larger.exponent - smaller.exponent));
+    var sum = colorizeAddWords(larger.significand, aligned);
+    var exponent = larger.exponent;
+    if ((sum.y & 0x1000000u) != 0u) { sum = colorizeShiftRightJam(sum, 1u); exponent += 1; }
+    let discarded = sum.x & 7u;
+    let increment = u32(discarded > 4u || (discarded == 4u && (sum.x & 8u) != 0u));
+    let retained = vec2<u32>((sum.x >> 3u) | (sum.y << 29u), sum.y >> 3u);
+    sum = colorizeShiftLeft(colorizeAddWords(retained, vec2<u32>(increment, 0u)), 3u);
+    if ((sum.y & 0x1000000u) != 0u) { sum = colorizeShiftRightJam(sum, 1u); exponent += 1; }
+    return ColorizeLumaTerm(sum, exponent);
+}
+
+fn colorizeLumaToFloat(total: ColorizeLumaTerm) -> f32 {
+    if (all(total.significand == vec2<u32>(0u))) { return 0.0; }
+    var exponent = total.exponent + 182;
+    let extra = u32(max(1 - exponent, 0));
+    let roundedInput = colorizeShiftRightJam(total.significand, 29u + extra).x;
+    let discarded = roundedInput & 7u;
+    var mantissa = (roundedInput >> 3u) + u32(discarded > 4u || (discarded == 4u && (roundedInput & 8u) != 0u));
+    if (exponent <= 0) { return bitcast<f32>(mantissa); }
+    if (mantissa == 0x1000000u) { mantissa >>= 1u; exponent += 1; }
+    return bitcast<f32>((u32(exponent) << 23u) | (mantissa & 0x7fffffu));
+}
+
+fn productRgbWeightedSum(rgb: vec3<f32>, luma: vec3<f32>) -> f32 {
+    let redGreen = colorizeAddLumaTerms(colorizeLumaProduct(rgb.x, luma.x), colorizeLumaProduct(rgb.y, luma.y));
+    return colorizeLumaToFloat(colorizeAddLumaTerms(redGreen, colorizeLumaProduct(rgb.z, luma.z)));
+}
+
+// A 24-bit RGB mantissa times a 53-bit coefficient. Sixteen-bit digits keep
+// both multiplication passes within u32; the result occupies at most 77 bits.
+fn colorizeMultiplyQrealMantissa(channel: u32, low: u32, high: u32) -> vec3<u32> {
+    let coefficients = array<u32, 4>(low & 0xffffu, low >> 16u,
+                                     high & 0xffffu, ((high >> 16u) & 15u) | 16u);
+    var digits = array<u32, 5>(0u, 0u, 0u, 0u, 0u);
+    var carry = 0u;
+    for (var i = 0u; i < 4u; i += 1u) {
+        let value = (channel & 0xffffu) * coefficients[i] + carry;
+        digits[i] = value & 0xffffu;
+        carry = value >> 16u;
+    }
+    digits[4] = carry;
+    carry = 0u;
+    for (var i = 0u; i < 4u; i += 1u) {
+        let value = (channel >> 16u) * coefficients[i] + digits[i + 1u] + carry;
+        digits[i + 1u] = value & 0xffffu;
+        carry = value >> 16u;
+    }
+    return vec3<u32>(digits[0] | (digits[1] << 16u),
+                      digits[2] | (digits[3] << 16u), digits[4]);
+}
+
+fn colorizeQrealProduct(channel: f32, low: u32, high: u32) -> ColorizeLumaTerm {
+    let input = bitcast<u32>(channel);
+    if (input == 0u) { return ColorizeLumaTerm(vec2<u32>(0u), 0); }
+    // Admission preserves the existing positive binary32 coefficient range.
+    // Nonzero U8 RGB and these coefficients are normal binary64 operands, and
+    // their product exceeds 2^-158, so only normal binary64 rounding is needed.
+    let product = colorizeMultiplyQrealMantissa((input & 0x7fffffu) | 0x800000u, low, high);
+    let shift = 12u + firstLeadingBit(product.z); // 23 or 24 discarded bits.
+    var retained = vec2<u32>((product.x >> shift) | (product.y << (32u - shift)),
+                              (product.y >> shift) | (product.z << (32u - shift)));
+    let remainder = product.x & ((1u << shift) - 1u);
+    let half = 1u << (shift - 1u);
+    retained = colorizeAddWords(retained, vec2<u32>(
+        u32(remainder > half || (remainder == half && (retained.x & 1u) != 0u)), 0u));
+    var exponent = i32((input >> 23u) & 255u) + i32((high >> 20u) & 2047u) - 1225 + i32(shift) - 3;
+    if ((retained.y & 0x200000u) != 0u) {
+        retained = vec2<u32>((retained.x >> 1u) | (retained.y << 31u), retained.y >> 1u);
+        exponent += 1;
+    }
+    return ColorizeLumaTerm(colorizeShiftLeft(retained, 3u), exponent);
+}
+
+fn colorizeProductLuma(rgb: vec3<f32>) -> f32 {
+    let red = colorizeQrealProduct(rgb.x, parameters.lumaLow.x, parameters.lumaHigh.x);
+    let green = colorizeQrealProduct(rgb.y, parameters.lumaLow.y, parameters.lumaHigh.y);
+    let blue = colorizeQrealProduct(rgb.z, parameters.lumaLow.z, parameters.lumaHigh.z);
+    return colorizeLumaToFloat(colorizeAddLumaTerms(colorizeAddLumaTerms(red, green), blue));
+}
+
+fn productRgbInputChannel(channel: u32) -> f32 {
+    if (channel == 0u) { return 0.0; }
+    if (channel == 255u) { return 1.0; }
+    let leading = firstLeadingBit(channel);
+    let numerator = channel << (31u - leading);
+    let mantissa = numerator / 255u + u32(numerator % 255u >= 128u);
+    return bitcast<f32>(((leading + 119u) << 23u) | (mantissa & 0x7fffffu));
+}
+
+// YUV conversion uses signed qreal intermediates, including cancellation and
+// division. Represent a normal binary64 value as signed M * 2^E, with M's
+// leading bit at 52. Integer operations round each written product operation
+// to nearest-even at 53 bits, independently of backend float contraction.
+// The admitted positive coefficient range and -100..100 controls keep every
+// nonzero intermediate normal and finite in binary64; zero is explicit.
+struct YuvValue {
+    mantissa: vec2<u32>,
+    exponent: i32,
+    negative: bool,
+}
+
+fn yuvWordsLess(a: vec2<u32>, b: vec2<u32>) -> bool {
+    return a.y < b.y || (a.y == b.y && a.x < b.x);
+}
+
+fn yuvSubtractWords(a: vec2<u32>, b: vec2<u32>) -> vec2<u32> {
+    return vec2<u32>(a.x - b.x, a.y - b.y - u32(a.x < b.x));
+}
+
+fn yuvParameter(index: u32) -> YuvValue {
+    let low = parameters.yuvLow[index / 4u][index % 4u];
+    let high = parameters.yuvHigh[index / 4u][index % 4u];
+    let negative = (high & 0x80000000u) != 0u;
+    if (low == 0u && (high & 0x7fffffffu) == 0u) {
+        return YuvValue(vec2<u32>(0u), 0, negative);
+    }
+    return YuvValue(vec2<u32>(low, (high & 0xfffffu) | 0x100000u),
+                    i32((high >> 20u) & 2047u) - 1075, negative);
+}
+
+fn yuvInput(channel: f32) -> YuvValue {
+    let bits = bitcast<u32>(channel);
+    if (bits == 0u) { return YuvValue(vec2<u32>(0u), 0, false); }
+    return YuvValue(colorizeShiftLeft(vec2<u32>((bits & 0x7fffffu) | 0x800000u, 0u), 29u),
+                    i32((bits >> 23u) & 255u) - 179, false);
+}
+
+fn yuvLumaTerm(term: ColorizeLumaTerm) -> YuvValue {
+    return YuvValue(vec2<u32>((term.significand.x >> 3u) | (term.significand.y << 29u),
+                              term.significand.y >> 3u), term.exponent + 3, false);
+}
+
+fn yuvScale(value: YuvValue, exponent: i32) -> YuvValue {
+    return YuvValue(value.mantissa, value.exponent + exponent, value.negative);
+}
+
+fn yuvAdd(first: YuvValue, second: YuvValue) -> YuvValue {
+    if (all(first.mantissa == vec2<u32>(0u))) {
+        if (all(second.mantissa == vec2<u32>(0u))) {
+            return YuvValue(vec2<u32>(0u), 0, first.negative && second.negative);
+        }
+        return second;
+    }
+    if (all(second.mantissa == vec2<u32>(0u))) { return first; }
+    var larger = first;
+    var smaller = second;
+    if (second.exponent > first.exponent ||
+        (second.exponent == first.exponent && yuvWordsLess(first.mantissa, second.mantissa))) {
+        larger = second;
+        smaller = first;
+    }
+    let large = colorizeShiftLeft(larger.mantissa, 3u);
+    let small = colorizeShiftRightJam(colorizeShiftLeft(smaller.mantissa, 3u),
+                                      u32(larger.exponent - smaller.exponent));
+    var total: vec2<u32>;
+    if (larger.negative == smaller.negative) { total = colorizeAddWords(large, small); }
+    else { total = yuvSubtractWords(large, small); }
+    if (all(total == vec2<u32>(0u))) { return YuvValue(vec2<u32>(0u), 0, false); }
+    var leading = firstLeadingBit(total.x);
+    if (total.y != 0u) { leading = 32u + firstLeadingBit(total.y); }
+    var exponent = larger.exponent - 3;
+    if (leading > 55u) {
+        total = colorizeShiftRightJam(total, leading - 55u);
+        exponent += i32(leading - 55u);
+    } else {
+        total = colorizeShiftLeft(total, 55u - leading);
+        exponent -= i32(55u - leading);
+    }
+    let discarded = total.x & 7u;
+    var retained = vec2<u32>((total.x >> 3u) | (total.y << 29u), total.y >> 3u);
+    retained = colorizeAddWords(retained, vec2<u32>(
+        u32(discarded > 4u || (discarded == 4u && (retained.x & 1u) != 0u)), 0u));
+    exponent += 3;
+    if ((retained.y & 0x200000u) != 0u) {
+        retained = vec2<u32>((retained.x >> 1u) | (retained.y << 31u), retained.y >> 1u);
+        exponent += 1;
+    }
+    return YuvValue(retained, exponent, larger.negative);
+}
+
+fn yuvSubtract(first: YuvValue, second: YuvValue) -> YuvValue {
+    return yuvAdd(first, YuvValue(second.mantissa, second.exponent, !second.negative));
+}
+
+fn yuvMultiply(first: YuvValue, second: YuvValue) -> YuvValue {
+    let negative = first.negative != second.negative;
+    if (all(first.mantissa == vec2<u32>(0u)) || all(second.mantissa == vec2<u32>(0u))) {
+        return YuvValue(vec2<u32>(0u), 0, negative);
+    }
+    let a = array<u32, 4>(first.mantissa.x & 0xffffu, first.mantissa.x >> 16u,
+                           first.mantissa.y & 0xffffu, first.mantissa.y >> 16u);
+    let b = array<u32, 4>(second.mantissa.x & 0xffffu, second.mantissa.x >> 16u,
+                           second.mantissa.y & 0xffffu, second.mantissa.y >> 16u);
+    var digits: array<u32, 8>;
+    for (var i = 0u; i < 4u; i += 1u) {
+        var carry = 0u;
+        for (var j = 0u; j < 4u; j += 1u) {
+            // 65535^2 + 65535 + 65535 fits exactly in one u32.
+            let value = a[i] * b[j] + digits[i + j] + carry;
+            digits[i + j] = value & 0xffffu;
+            carry = value >> 16u;
+        }
+        digits[i + 4u] = carry;
+    }
+    let words = vec4<u32>(digits[0] | (digits[1] << 16u), digits[2] | (digits[3] << 16u),
+                           digits[4] | (digits[5] << 16u), digits[6] | (digits[7] << 16u));
+    let shift = firstLeadingBit(words.w) + 44u; // 52 or 53 discarded bits.
+    let across = shift - 32u;
+    var retained = vec2<u32>((words.y >> across) | (words.z << (32u - across)),
+                              (words.z >> across) | (words.w << (32u - across)));
+    let remainderHigh = words.y & ((1u << across) - 1u);
+    let halfHigh = 1u << (across - 1u);
+    let increment = u32(remainderHigh > halfHigh ||
+        (remainderHigh == halfHigh && (words.x != 0u || (retained.x & 1u) != 0u)));
+    retained = colorizeAddWords(retained, vec2<u32>(increment, 0u));
+    var exponent = first.exponent + second.exponent + i32(shift);
+    if ((retained.y & 0x200000u) != 0u) {
+        retained = vec2<u32>((retained.x >> 1u) | (retained.y << 31u), retained.y >> 1u);
+        exponent += 1;
+    }
+    return YuvValue(retained, exponent, negative);
+}
+
+fn yuvDivide(first: YuvValue, second: YuvValue) -> YuvValue {
+    // Both YUV denominators are positive 1-coefficient > 2^-25 under the
+    // existing admission contract, so division by zero is unreachable.
+    let negative = first.negative != second.negative;
+    if (all(first.mantissa == vec2<u32>(0u))) {
+        return YuvValue(vec2<u32>(0u), 0, negative);
+    }
+    var quotient = vec2<u32>(0u);
+    var remainder = first.mantissa;
+    var steps = 53u;
+    if (!yuvWordsLess(first.mantissa, second.mantissa)) {
+        quotient.x = 1u;
+        remainder = yuvSubtractWords(first.mantissa, second.mantissa);
+        steps = 52u;
+    }
+    for (var i = 0u; i < steps; i += 1u) {
+        remainder = colorizeShiftLeft(remainder, 1u);
+        let bit = !yuvWordsLess(remainder, second.mantissa);
+        if (bit) { remainder = yuvSubtractWords(remainder, second.mantissa); }
+        quotient = colorizeAddWords(colorizeShiftLeft(quotient, 1u), vec2<u32>(u32(bit), 0u));
+    }
+    let twice = colorizeShiftLeft(remainder, 1u);
+    let tie = all(twice == second.mantissa);
+    let increment = u32(!yuvWordsLess(twice, second.mantissa) &&
+                          (!tie || (quotient.x & 1u) != 0u));
+    quotient = colorizeAddWords(quotient, vec2<u32>(increment, 0u));
+    var exponent = first.exponent - second.exponent - i32(steps);
+    if ((quotient.y & 0x200000u) != 0u) {
+        quotient = vec2<u32>((quotient.x >> 1u) | (quotient.y << 31u), quotient.y >> 1u);
+        exponent += 1;
+    }
+    return YuvValue(quotient, exponent, negative);
+}
+
+fn yuvOutput(value: YuvValue) -> f32 {
+    // RGBA8 clamps after the product qreal-to-float cast. Clamping outside
+    // [0,1] first preserves those bytes even when that cast would overflow.
+    if (value.negative || all(value.mantissa == vec2<u32>(0u))) { return 0.0; }
+    if (value.exponent >= -52) { return 1.0; }
+    return colorizeLumaToFloat(ColorizeLumaTerm(colorizeShiftLeft(value.mantissa, 3u), value.exponent - 3));
+}
+
+// The YUV product rule: hue scales blue chroma, saturation red chroma, and
+// value offsets luma. Preserve each written qreal operation's rounding.
+fn yuvAdjustment(base: vec3<u32>) -> vec3<f32> {
+    let rgb = vec3<f32>(productRgbInputChannel(base.x), productRgbInputChannel(base.y),
+                         productRgbInputChannel(base.z));
+    let redLuma = yuvLumaTerm(colorizeQrealProduct(rgb.x, parameters.lumaLow.x, parameters.lumaHigh.x));
+    let greenLuma = yuvLumaTerm(colorizeQrealProduct(rgb.y, parameters.lumaLow.y, parameters.lumaHigh.y));
+    let blueLuma = yuvLumaTerm(colorizeQrealProduct(rgb.z, parameters.lumaLow.z, parameters.lumaHigh.z));
+    let luma = yuvAdd(yuvAdd(redLuma, greenLuma), blueLuma);
+    let half = YuvValue(vec2<u32>(0u, 0x100000u), -53, false);
+    let negR = yuvParameter(0u);
+    let negB = yuvParameter(1u);
+    let chromaBlue = yuvAdd(yuvScale(yuvDivide(yuvSubtract(yuvInput(rgb.z), luma), negB), -1), half);
+    let chromaRed = yuvAdd(yuvScale(yuvDivide(yuvSubtract(yuvInput(rgb.x), luma), negR), -1), half);
+    let blueChroma = yuvSubtract(yuvMultiply(chromaBlue, yuvParameter(4u)), half);
+    let redChroma = yuvSubtract(yuvMultiply(chromaRed, yuvParameter(5u)), half);
+    let adjustedLuma = yuvAdd(luma, yuvParameter(6u));
+    let red = yuvAdd(adjustedLuma, yuvMultiply(redChroma, yuvScale(negR, 1)));
+    let green = yuvSubtract(yuvSubtract(adjustedLuma, yuvMultiply(blueChroma, yuvParameter(2u))),
+                            yuvMultiply(redChroma, yuvParameter(3u)));
+    let blue = yuvAdd(adjustedLuma, yuvMultiply(blueChroma, yuvScale(negB, 1)));
+    return vec3<f32>(yuvOutput(red), yuvOutput(green), yuvOutput(blue));
+}
+
+// The product Colorize rule: the adjusted luma becomes the HSL lightness and
+// the hue and saturation sliders set the HSL hue and saturation. The product
+// applies its legacy HSL conversion here regardless of the compatibility flag.
+fn colorizeAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32) -> vec3<f32> {
+    var hue = dh * 360.0;
+    if (hue >= 360.0) { hue = 0.0; }
+    let saturation = ds;
+    var lumaValue = colorizeProductLuma(rgb);
+    if (dv > 0.0) {
+        lumaValue = lumaValue * (1.0 - dv);
+        lumaValue = lumaValue + (1.0 - (1.0 - dv));
+    } else if (dv < 0.0) {
+        lumaValue = lumaValue * (dv + 1.0);
+    }
+    return legacyHslToRgb(vec3<f32>(hue, saturation, lumaValue));
+}
+
+fn legacyAdjustment(rgb: vec3<f32>, dh: f32, ds: f32, dv: f32, mode: u32,
+                    luma: vec3<f32>) -> vec3<f32> {
+    if (mode == HSV_MODE_LUMA) {
+        let hcy = legacyRgbToHcy(rgb, luma);
+        let hue = normalizeDegrees(hcy.x * 360.0 + dh * 180.0);
+        let saturation = hcy.y * (ds + 1.0);
+        let lumaValue = hcy.z + dv;
+        return legacyHcyToRgb(vec3<f32>(hue / 360.0, saturation, lumaValue), luma);
+    }
+    if (mode == HSV_MODE_LIGHTNESS) {
+        let hsl = legacyRgbToHsl(rgb);
+        let hue = normalizeDegrees(hsl.x + dh * 180.0);
+        let saturation = hsl.y * (ds + 1.0);
+        var lightness = hsl.z;
+        if (dv < 0.0) {
+            lightness = lightness * (dv + 1.0);
+        } else {
+            lightness = lightness + dv * (1.0 - lightness);
+        }
+        return legacyHslToRgb(vec3<f32>(hue, saturation, lightness));
+    }
+    if (mode == HSV_MODE_INTENSITY) {
+        let hci = legacyRgbToHci(rgb);
+        let rotated = hci.x * 360.0;
+        let hue = normalizeDegrees(rotated + dh * 180.0);
+        let saturation = hci.y * (ds + 1.0);
+        let intensity = hci.z + dv;
+        return legacyHciToRgb(vec3<f32>(hue / 360.0, saturation, intensity));
+    }
+    let hsv = legacyRgbToHsv(rgb);
+    let hue = normalizeDegrees(hsv.x + dh * 180.0);
+    let saturation = hsv.y + ds;
+    let value = hsv.z + dv;
+    return legacyHsvToRgb(vec3<f32>(hue, saturation, value));
+}
+
+fn adjustChannel(value: f32) -> u32 {
+    return u32(floor(clamp(value * 255.0, 0.0, 255.0) + 0.5));
+}
+
+fn hsvAdjustmentPixel(base: vec4<u32>, adjustment: vec4<i32>) -> vec4<u32> {
+    let mode = u32(adjustment.w & 255);
+    let legacy = (adjustment.w & HSV_LEGACY_FLAG) != 0;
+    let colorize = (adjustment.w & HSV_COLORIZE_FLAG) != 0;
+    var dh = f32(adjustment.x);
+    let ds = f32(adjustment.y) / 100.0;
+    let dv = f32(adjustment.z) / 100.0;
+    // The product scales the hue slider by 180 for the HSV/HSL/HSI/HSY
+    // adjustments and by 100 for YUV. Colorize uses the displayed 0..360
+    // range for types 0 through 3 and the 0..100 Yellow-Blue range for YUV.
+    if (colorize) {
+        dh = dh / select(360.0, 100.0, mode == HSV_MODE_YUV);
+    } else if (mode == HSV_MODE_YUV) {
+        dh = dh / 100.0;
+    } else {
+        dh = dh / 180.0;
+    }
+    let luma = vec3<f32>(parameters.luma.x, parameters.luma.y, parameters.luma.z);
+    let rgb = vec3<f32>(f32(base.x) / 255.0, f32(base.y) / 255.0, f32(base.z) / 255.0);
+    var result: vec3<f32>;
+    if (colorize) {
+        let productRgb = vec3<f32>(productRgbInputChannel(base.x), productRgbInputChannel(base.y),
+                                   productRgbInputChannel(base.z));
+        result = colorizeAdjustment(productRgb, dh, ds, dv);
+    } else if (mode == HSV_MODE_YUV) {
+        result = yuvAdjustment(base.xyz);
+    } else if (legacy) {
+        var legacyRgb = rgb;
+        if (mode == HSV_MODE_LIGHTNESS) {
+            legacyRgb = vec3<f32>(productRgbInputChannel(base.x), productRgbInputChannel(base.y),
+                                   productRgbInputChannel(base.z));
+        }
+        result = legacyAdjustment(legacyRgb, dh, ds, dv, mode, luma);
+    } else {
+        result = modernAdjustment(rgb, dh, ds, dv, mode, luma);
+    }
+    // Alpha is carried through unchanged, matching the product transformation
+    // and the other GPU filter kinds.
+    return vec4<u32>(adjustChannel(result.x), adjustChannel(result.y),
+                     adjustChannel(result.z), base.w);
+}
+
+// Grayscale is the Rec.709 luminance of the stored sRGB-encoded RGBA8 bytes:
+// 0.2126 R + 0.7152 G + 0.0722 B. The integer coefficients sum to 10000, so
+// neutral gray (R = G = B) is preserved exactly, and the rule is linear and
+// neutral in the stored sRGB encoding because no transfer-function
+// linearization is applied. Adding 5000 before the division rounds half up,
+// making the RGBA8 result independent of floating-point behavior. Alpha is
+// carried through unchanged, matching Invert Colors.
+fn overlayPixel(base: vec4<u32>, wide: bool) -> vec4<u32> {
+    let source = parameters.overlayColor;
+    let opacity = parameters.control.y;
+    let quantizedOpacity = parameters.control.z;
+    let mode = FILTER_BLEND_MODE;
+    if (mode == 130u) { return copyPixel(base, source, opacity, 7u, wide); }
+    if (mode == 0u) {
+        if (wide) {
+            let alpha = projectionMultiply(nativeNormalizedAlpha(source.w), opacity);
+            return normalRgba16(base, source.xyz, alpha, 7u);
+        }
+        let alpha = projectionScaleByte(opacity, source.w);
+        return unpackPixel(normalRgba8(base, source.xyz, alpha, 7u));
+    }
+    if (wide) {
+        if (mode >= 127u && mode <= 129u) {
+            return specialAlphaRgba16Pixel(base, source, quantizedOpacity, 7u, 65535u, mode);
+        }
+        let alpha = appliedWordAlpha(source.w, 65535u, quantizedOpacity, mode);
+        if (colorIsCoupled(mode)) { return coupledRgba16Pixel(base, source, alpha, 7u, mode); }
+        return separableRgba16Pixel(base, source, alpha, 7u, mode);
+    }
+    return unpackPixel(separableProjectionPixel(base, source, quantizedOpacity, 7u, mode));
+}
+
+fn filtered(base: vec4<u32>, kind: u32, wide: bool, index: u32) -> vec4<u32> {
+    if (kind >= 7u) {
+        let offset = index * select(1u, 2u, wide);
+        var high = 0u;
+        if (wide) { high = convolutionPixels[offset + 1u]; }
+        return nativePixel(convolutionPixels[offset], high, wide);
+    }
+    if (kind == FILTER_MAXIMIZE || kind == FILTER_MINIMIZE) {
+        var extreme = max(max(base.x, base.y), base.z);
+        if (kind == FILTER_MINIMIZE) { extreme = min(min(base.x, base.y), base.z); }
+        return vec4<u32>(select(vec3<u32>(0u), base.xyz, base.xyz == vec3<u32>(extreme)), base.w);
+    }
+    if (kind == FILTER_RESET_TRANSPARENT) {
+        var alpha = base.w;
+        if (wide) { alpha = (alpha - (alpha >> 8u) + 128u) >> 8u; }
+        return select(base, vec4<u32>(0u), alpha == 0u);
+    }
+    if (kind == FILTER_COLOR_OVERLAY) { return overlayPixel(base, wide); }
+    if (kind == FILTER_GRAYSCALE) {
+        let luminance = (2126u * base.x + 7152u * base.y + 722u * base.z + 5000u) / 10000u;
+        return vec4<u32>(luminance, luminance, luminance, base.w);
+    }
+    if (kind == FILTER_HSV_ADJUSTMENT) { return hsvAdjustmentPixel(base, parameters.adjustment); }
+    return vec4<u32>(255u - base.x, 255u - base.y, 255u - base.z, base.w);
+}
+
+@compute @workgroup_size(8, 8)
+fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let local = invocation.xy;
+    if (any(local >= vec2<u32>(256u))) { return; }
+    let index = local.y * 256u + local.x;
+    let wide = parameters.control.x != 0u;
+    let offset = index * select(1u, 2u, wide);
+    var high = 0u;
+    if (wide) { high = basePixels[offset + 1u]; }
+    let base = nativePixel(basePixels[offset], high, wide);
+    let flags = u32(parameters.tile.w);
+    let selected = selectedness(parameters.tile.xy + vec2<i32>(local), index, flags);
+    var result = base;
+    let pixel = parameters.tile.xy + vec2<i32>(local);
+    let area = parameters.applyRect;
+    let inArea = all(pixel >= area.xy) && all(pixel < area.xy + area.zw);
+    if (selected != 0u && ((u32(parameters.tile.z) < FILTER_MAXIMIZE && (flags & 16u) == 0u) || inArea)) {
+        let kind = u32(parameters.tile.z);
+        result = filtered(base, kind, wide, index);
+        if (selected != 255u) {
+            // Product filters copy their result through the selection with
+            // native Copy, including alpha and hidden-color rounding.
+            let opacity = projectionMultiply(bitcast<u32>(f32(selected)), 0x3b808081u);
+            result = copyPixel(base, result, opacity, 15u, wide);
+        }
+    }
+    let words = nativePixelWords(result, wide);
+    outputPixels[offset] = words.x;
+    if (wide) { outputPixels[offset + 1u] = words.y; }
+}
+
+// Native transparency masks copy the original pixel onto a transparent plane
+// through Alpha8 coverage. This also retains native hidden-color rounding.
+@compute @workgroup_size(8, 8)
+fn maskMain(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let local = invocation.xy;
+    if (any(local >= vec2<u32>(256u))) { return; }
+    let index = local.y * 256u + local.x;
+    let wide = parameters.control.x != 0u;
+    let offset = index * select(1u, 2u, wide);
+    var high = 0u;
+    if (wide) { high = basePixels[offset + 1u]; }
+    let base = nativePixel(basePixels[offset], high, wide);
+    let pixel = parameters.tile.xy + vec2<i32>(local);
+    let area = parameters.applyRect;
+    var result = base;
+    if (all(pixel >= area.xy) && all(pixel < area.xy + area.zw)) {
+        let coverage = selectedness(pixel, index, u32(parameters.tile.w));
+        result = vec4<u32>(0u);
+        if (coverage == 255u) { result = base; }
+        else if (coverage != 0u) {
+            let opacity = projectionMultiply(bitcast<u32>(f32(coverage)), 0x3b808081u);
+            result = copyPixel(vec4<u32>(0u), base, opacity, 15u, wide);
+        }
+    }
+    let words = nativePixelWords(result, wide);
+    outputPixels[offset] = words.x;
+    if (wide) { outputPixels[offset + 1u] = words.y; }
+}

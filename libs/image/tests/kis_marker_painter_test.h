@@ -18,6 +18,8 @@ private Q_SLOTS:
     void testFillFullCircle();
     void testFillCirclesDiffSingle();
     void testFillCirclesDiff();
+    void testDiagonalStrokeHasNoInteriorGaps_data();
+    void testDiagonalStrokeHasNoInteriorGaps();
 };
 
 #endif /* __KIS_MARKER_PAINTER_TEST_H */

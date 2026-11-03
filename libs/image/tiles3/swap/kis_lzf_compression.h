@@ -9,13 +9,16 @@
 
 #include "kis_abstract_compression.h"
 
-class KRITAIMAGE_EXPORT KisLzfCompression : public KisAbstractCompression
+class KRITALZFCOMPRESSION_EXPORT KisLzfCompression : public KisAbstractCompression
 {
 public:
     KisLzfCompression();
     ~KisLzfCompression() override;
 
     qint32 compress(const quint8* input, qint32 inputLength, quint8* output, qint32 outputLength) override;
+    /** Bounded LZF decode; returns zero for invalid/truncated input or insufficient output.
+     * On failure callers discard any prefix already written into the output buffer.
+     */
     qint32 decompress(const quint8* input, qint32 inputLength, quint8* output, qint32 outputLength) override;
 
     qint32 outputBufferSize(qint32 dataSize) override;

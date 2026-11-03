@@ -53,12 +53,10 @@
  *       The handle for the transaction is stored on a side of
  *       the caller. And the history will be automatically purged
  *       when the handler dies.
- *     - Anonymous Transaction is in progress - the caller isn't
- *       bothered about transactions at all. We pretend as we do
- *       not support any versioning and do not have any historical
- *       information. The history of such transactions is not purged
- *       automatically, but it is free'd when younger named transaction
- *       is purged.
+ *     - Anonymous Transaction is in progress - writes replace the current
+ *       block values shared by unchanged history states. Commit keeps that
+ *       block identity, while older command-owned blocks retain their values.
+ *       These writes leave the command history unchanged.
  */
 
 #define blockRegistration() (m_registrationBlocked = true)
@@ -194,6 +192,22 @@ void KisMementoManager::commit()
     while ((mi = iter.tile())) {
         parentMI = m_headsHashTable.getTileLazy(mi->col(), mi->row(), newTile);
 
+        if (!namedTransactionInProgress()) {
+            // An untracked write replaces the current block value. Keep its
+            // identity in histories that share this block; older command-owned
+            // blocks retain their own values for Undo and Redo.
+            auto tile = mi->tile(nullptr);
+            parentMI->reset();
+            if (mi->type() == KisMementoItem::CHANGED) {
+                parentMI->changeTile(tile.data());
+            } else {
+                parentMI->deleteTile(tile.data(), mi->tileData());
+            }
+            parentMI->commit();
+            iter.deleteCurrent();
+            continue;
+        }
+
         mi->setParent(parentMI);
         mi->commit();
         revisionList.append(mi);
@@ -204,10 +218,12 @@ void KisMementoManager::commit()
         //iter.next(); // previous line does this for us
     }
 
-    KisHistoryItem hItem;
-    hItem.itemList = revisionList;
-    hItem.memento = m_currentMemento.data();
-    m_revisions.append(hItem);
+    if (namedTransactionInProgress()) {
+        KisHistoryItem hItem;
+        hItem.itemList = revisionList;
+        hItem.memento = m_currentMemento.data();
+        m_revisions.append(hItem);
+    }
 
     m_currentMemento = 0;
     KIS_ASSERT(m_index.isEmpty());

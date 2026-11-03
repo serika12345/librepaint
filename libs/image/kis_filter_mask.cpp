@@ -13,6 +13,7 @@
 #include <QtGlobal>
 
 #include "kis_filter_mask.h"
+#include "KisGpuFilterConfiguration.h"
 #include "KisRenderPassFlags.h"
 #include "KoCompositeOpIds.h"
 #include "filter/kis_filter.h"
@@ -109,6 +110,7 @@ bool KisFilterMask::filterNeedsTransparentPixels() const
 
 void KisFilterMask::setFilter(KisFilterConfigurationSP filterConfig, bool checkCompareConfig)
 {
+    if (writeGpuNodeFilterConfiguration(this, filterConfig)) return;
     KisNodeFilterInterface::setFilter(filterConfig, checkCompareConfig);
     m_d->needsTransparentPixelsCache = std::nullopt;
 }

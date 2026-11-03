@@ -6,7 +6,10 @@
 #include "KisTiledExtentManager.h"
 #include "kis_tile_data_interface.h"
 
+#include <QSemaphore>
 #include <QTest>
+
+#include <thread>
 
 namespace
 {
@@ -41,6 +44,7 @@ private Q_SLOTS:
     void duplicateCountsDelayLastRemoval();
     void removingEdgesShrinksExtent();
     void replaceUsesAllUnsortedUniqueBounds();
+    void concurrentTileAdditionsPublishCompleteExtent();
 };
 
 void KisTiledExtentManagerContractTest::init()
@@ -115,6 +119,43 @@ void KisTiledExtentManagerContractTest::replaceUsesAllUnsortedUniqueBounds()
 
     manager.replaceTileStats({QPoint(1, 2)});
     QCOMPARE(manager.extent(), QRect(64, 128, 64, 64));
+}
+
+void KisTiledExtentManagerContractTest::concurrentTileAdditionsPublishCompleteExtent()
+{
+    constexpr int rounds = 10000;
+    const QRect expected(-64, -64, 128, 128);
+    QRect actual;
+    int completedRounds = 0;
+
+    for (int iteration = 0; iteration < rounds; ++iteration) {
+        KisTiledExtentManager manager;
+        QSemaphore ready;
+        QSemaphore start;
+        auto addColumn = [&](int column) {
+            ready.release();
+            start.acquire();
+            manager.notifyTileAdded(column, -1);
+            manager.notifyTileAdded(column, 0);
+        };
+        std::thread negativeColumn(addColumn, -1);
+        std::thread zeroColumn(addColumn, 0);
+        ready.acquire(2);
+        start.release(2);
+        negativeColumn.join();
+        zeroColumn.join();
+
+        actual = manager.extent();
+        completedRounds = iteration + 1;
+        if (actual != expected) {
+            break;
+        }
+    }
+
+    qInfo() << "concurrent extent rounds" << completedRounds << "of" << rounds
+            << "actual" << actual << "expected" << expected;
+    QCOMPARE(actual, expected);
+    QCOMPARE(completedRounds, rounds);
 }
 
 QTEST_MAIN(KisTiledExtentManagerContractTest)

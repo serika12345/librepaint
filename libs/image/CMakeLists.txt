@@ -1,3 +1,4 @@
+add_subdirectory(gpu)
 add_subdirectory( tests )
 
 add_subdirectory( tiles3 )
@@ -21,9 +22,19 @@ endif()
 
 ko_compile_for_all_implementations_no_scalar(__per_arch_circle_mask_generator_objs kis_brush_mask_applicator_factories.cpp)
 ko_compile_for_all_implementations_no_scalar(_per_arch_processor_objs kis_brush_mask_processor_factories.cpp)
+ko_compile_for_all_implementations_no_scalar(_per_arch_circle_processor_objs kis_brush_circle_mask_processor_factories.cpp)
+
+# Circle coverage preserves x/y symmetry before RGBA8 quantization on every ISA.
+if(_per_arch_circle_processor_objs)
+  if(MSVC)
+    set_property(SOURCE ${_per_arch_circle_processor_objs} APPEND PROPERTY COMPILE_OPTIONS /fp:strict)
+  else()
+    set_property(SOURCE ${_per_arch_circle_processor_objs} APPEND PROPERTY COMPILE_OPTIONS -ffp-contract=off)
+  endif()
+endif()
 
 message("Following objects are generated from the per-arch lib")
-foreach(_obj IN LISTS __per_arch_circle_mask_generator_objs _per_arch_processor_objs)
+foreach(_obj IN LISTS __per_arch_circle_mask_generator_objs _per_arch_processor_objs _per_arch_circle_processor_objs)
   message("    * ${_obj}")
 endforeach()
 
@@ -960,6 +971,12 @@ target_compile_definitions(kritaimagecubiccurveobjects PRIVATE
    kritaglobal_EXPORTS
    kritaimage_EXPORTS
 )
+# Brush snapshots retain double transfer values, including intermediate rounding.
+if(MSVC)
+   target_compile_options(kritaimagecubiccurveobjects PRIVATE /fp:strict)
+else()
+   target_compile_options(kritaimagecubiccurveobjects PRIVATE -ffp-contract=off)
+endif()
 target_include_directories(kritaimagecubiccurveobjects
    PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -1805,7 +1822,7 @@ add_library(kritaimagecompressionobjects OBJECT
    tiles3/swap/kis_abstract_compression.cpp
    tiles3/swap/kis_lzf_compression.cpp
 )
-target_compile_definitions(kritaimagecompressionobjects PRIVATE kritaimage_EXPORTS)
+target_compile_definitions(kritaimagecompressionobjects PRIVATE kritalzfcompression_EXPORTS)
 target_include_directories(kritaimagecompressionobjects
    PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -1816,6 +1833,17 @@ set_target_properties(kritaimagecompressionobjects PROPERTIES
    AUTOMOC OFF
    POSITION_INDEPENDENT_CODE ON
 )
+
+kis_add_library(kritalzfcompression SHARED)
+generate_export_header(kritalzfcompression BASE_NAME kritalzfcompression
+    EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/kritalzfcompression_export.h)
+target_link_libraries(kritalzfcompression PRIVATE kritaimagecompressionobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+target_include_directories(kritalzfcompression PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+set_target_properties(kritalzfcompression PROPERTIES AUTOMOC OFF
+    VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION})
+install(TARGETS kritalzfcompression ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 add_library(kritaimageabstracttilecompressorobjects OBJECT
    tiles3/swap/kis_abstract_tile_compressor.cpp
@@ -1870,6 +1898,10 @@ add_library(kritaimagetiledextentmanagerobjects OBJECT
    tiles3/KisTiledExtentManager.cpp
 )
 target_compile_definitions(kritaimagetiledextentmanagerobjects PRIVATE kritaimage_EXPORTS)
+if (WIN32)
+   # Keep assertion calls direct for the standalone contract's local handlers.
+   target_compile_definitions(kritaimagetiledextentmanagerobjects PRIVATE KRITAGLOBAL_STATIC_DEFINE)
+endif()
 target_include_directories(kritaimagetiledextentmanagerobjects
    PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -2212,6 +2244,11 @@ set(kritaimage_LIB_SRCS
    kis_histogram.cc
    kis_image_animation_interface.cpp
    kis_image.cc
+   KisGpuImageView.cpp
+   KisGpuFilterConfiguration.cpp
+   gpu/KisGpuSelectionInput.cpp
+   gpu/KisGpuSelectionInput.h
+   KisGpuPaintDeviceTransfer.cpp
    kis_image_signal_router.cpp
    kis_image_config.cpp
    KisImageResolutionProxy.cpp
@@ -2233,6 +2270,7 @@ set(kritaimage_LIB_SRCS
    kis_gauss_rect_mask_generator.cpp
    ${__per_arch_circle_mask_generator_objs}
    ${_per_arch_processor_objs}
+   ${_per_arch_circle_processor_objs}
    kis_brush_mask_applicator_factories_Scalar.cpp
    kis_curve_circle_mask_generator.cpp
    kis_curve_rect_mask_generator.cpp
@@ -2480,7 +2518,6 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageconvexhullpointsobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldeviceobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldevicereaderobjects>
-   $<TARGET_OBJECTS:kritaimagecompressionobjects>
    $<TARGET_OBJECTS:kritaimageabstracttilecompressorobjects>
    $<TARGET_OBJECTS:kritaimagelodcapablelayeroffsetobjects>
    $<TARGET_OBJECTS:kritaimagetiledextentmanagerobjects>
@@ -2492,6 +2529,8 @@ kis_add_library(kritaimage SHARED
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
+
+target_link_libraries(kritaimage PUBLIC kritagpuimage kritalzfcompression)
 
 target_link_libraries(kritaimage 
     PUBLIC
