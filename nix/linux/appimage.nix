@@ -112,21 +112,27 @@ let
         ${appImageExtraFiles} ${librepaint}/bin/LibrePaint
         cp -a extras/. root/
 
-        # Nixpkgs bootstrap removes these libraries' build-time libc references
-        # with nuke-refs. Drop its inert markers from the staged ELF search paths.
+        # Drop inert ELF search paths from staged copies of cached nixpkgs libraries:
+        # - libidn2/libunistring: nuke-refs markers left by the nixpkgs bootstrap.
+        # - OpenColorIO: CMake prefixes its absolute libdir with $ORIGIN/../, producing
+        #   a nonexistent "$ORIGIN/..//nix/store/..." entry; its real dependencies follow it.
         python3 - <<'PYTHON'
         from pathlib import Path
         import stat
         import subprocess
 
-        for pattern in ("*-libidn2-*/lib/libidn2.so.*.*", "*-libunistring-*/lib/libunistring.so.*.*"):
+        def inert(entry):
+            return (entry.startswith("/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-")
+                    or entry.startswith("$ORIGIN/..//nix/store/"))
+
+        for pattern in ("*-libidn2-*/lib/libidn2.so.*.*", "*-libunistring-*/lib/libunistring.so.*.*",
+                        "*-opencolorio-*/lib/libOpenColorIO.so.*.*.*"):
             for library in Path("root/nix/store").glob(pattern):
                 if library.is_symlink() or not library.is_file():
                     continue
                 rpath = subprocess.check_output(["patchelf", "--print-rpath", str(library)], text=True).rstrip("\n")
                 entries = rpath.split(":")
-                retained = [entry for entry in entries
-                            if not entry.startswith("/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-")]
+                retained = [entry for entry in entries if not inert(entry)]
                 if entries == retained:
                     continue
                 if retained == [""]:
