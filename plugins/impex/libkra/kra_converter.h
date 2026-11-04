@@ -37,6 +37,10 @@ public:
     ~KraConverter() override;
 
     KisImportExportErrorCode buildImage(QIODevice *io);
+    /** Upgrades a loaded legacy file through the native node and tile owners.
+     * This converter and its document are temporary import owners.
+     */
+    KisImportExportErrorCode convertToCurrentFormat(QIODevice *source, QIODevice *destination);
     KisImportExportErrorCode buildFile(QIODevice *io, const QString &filename, bool addMergedImage = true,
                                       const QDateTime &saveTime = QDateTime::currentDateTime(),
                                       std::optional<bool> compressRaster = {});
@@ -73,6 +77,7 @@ private:
     StoryboardItemList m_storyboardItemList;
     StoryboardCommentList m_storyboardCommentList;
     bool m_stop {false};
+    bool m_preserveDocumentInfo {false};
 
     KoStore *m_store {0};
     KisKraSaver *m_kraSaver {0};

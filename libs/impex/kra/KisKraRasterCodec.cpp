@@ -1492,26 +1492,35 @@ MetadataOutcome RasterCodec::readImageMetadata(const QByteArray &bytes, const QM
     return {Status::Success, std::move(metadata), {}};
 }
 
-bool RasterCodec::isNonRgbaOrAnimated(QIODevice &source)
+namespace {
+QDomDocument archivedDescription(QIODevice &source)
 {
-    if (!source.isOpen() || !source.isReadable() || source.isSequential()) return false;
+    if (!source.isOpen() || !source.isReadable() || source.isSequential()) return {};
     const auto position = source.pos();
     const auto restorePosition = qScopeGuard([&] { source.seek(position); });
-    if (!source.seek(0)) return false;
+    if (!source.seek(0)) return {};
     QuaZip archive(&source);
     archive.setAutoClose(false);
     archive.setFileNameCodec("UTF-8");
-    if (!archive.open(QuaZip::mdUnzip) || !archive.setCurrentFile(QStringLiteral("maindoc.xml"))) return false;
+    if (!archive.open(QuaZip::mdUnzip) ||
+        (!archive.setCurrentFile(QStringLiteral("maindoc.xml")) && !archive.setCurrentFile(QStringLiteral("root")))) return {};
     QuaZipFile file(&archive);
-    if (!file.open(QIODevice::ReadOnly) || file.size() > Limits{}.xmlBytes) return false;
+    if (!file.open(QIODevice::ReadOnly) || file.size() > Limits{}.xmlBytes) return {};
     QDomDocument xml;
-    if (!xml.setContent(file.read(Limits{}.xmlBytes + 1))) return false;
+    if (!xml.setContent(file.read(Limits{}.xmlBytes + 1))) return {};
+    return xml;
+}
+}
+
+bool RasterCodec::isNonRgbaOrAnimated(QIODevice &source)
+{
+    const auto xml = archivedDescription(source);
     const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
     if (image.isNull()) return false;
     const auto colorSpace = image.attribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
     // RgbAF16/RgbAF32 are older spellings of RGBA floating-point spaces.
     if (!colorSpace.startsWith(QLatin1String("RGBA")) && !colorSpace.startsWith(QLatin1String("RgbA"))) return true;
-    QList<QDomElement> pending{image.firstChildElement(QStringLiteral("layers"))};
+    QList<QDomElement> pending{image};
     while (!pending.isEmpty()) {
         const auto element = pending.takeLast();
         if (element.hasAttribute(QStringLiteral("keyframes"))) return true;
@@ -1519,6 +1528,15 @@ bool RasterCodec::isNonRgbaOrAnimated(QIODevice &source)
             pending.append(child);
     }
     return false;
+}
+
+bool RasterCodec::requiresLegacyConversion(QIODevice &source)
+{
+    const auto xml = archivedDescription(source);
+    const auto root = xml.documentElement();
+    const auto version = root.attribute(QStringLiteral("syntaxVersion"));
+    if (version == QLatin1String("1") || version == QLatin1String("1.0")) return true;
+    return !root.elementsByTagName(QStringLiteral("LAYERS")).isEmpty();
 }
 
 LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
@@ -1863,9 +1881,9 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                     limits.rasterBytes - rasterBytes, transparencyMask, maskDefaultPixel);
                 if (result.code != Status::Success) return fail(result);
             }
-            if (!transparencyMask && maskDefaultPixel) transparencyMask = SelectionMask::uniform(maskDefaultPixel);
+            if (!transparencyMask) transparencyMask = SelectionMask::uniform(maskDefaultPixel);
             if (!transparencyMask)
-                return fail(unsupported(QStringLiteral("KRA transparency mask requires nonempty coverage")));
+                return fail(capacity());
             layer.transparencyMaskUuid = QUuid(maskElement.attribute(QStringLiteral("uuid")));
             layer.transparencyMaskName = maskElement.attribute(QStringLiteral("name"), QStringLiteral("Transparency Mask"));
             if (!validName(layer.transparencyMaskName) ||

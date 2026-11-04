@@ -12,6 +12,7 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <qcontainerfwd.h>
 #include <qobject.h>
+#include <QBuffer>
 
 #include "KisImportExportErrorCode.h"
 #include "KisImportExportFilter.h"
@@ -33,7 +34,32 @@ KisImportExportErrorCode KraImport::convert(KisDocument *document, QIODevice *io
 {
     if (KisPart::instance()->gpuEngineEnabled() &&
         !LibrePaint::ImportExport::Kra::RasterCodec::isNonRgbaOrAnimated(*io)) {
-        if (const auto execution = KisPart::instance()->gpuSessionExecution()) return document->importGpuKra(*io);
+        if (const auto execution = KisPart::instance()->gpuSessionExecution()) {
+            if (!LibrePaint::ImportExport::Kra::RasterCodec::requiresLegacyConversion(*io))
+                return document->importGpuKra(*io);
+            QScopedPointer<KisDocument> legacy(KisPart::instance()->createDocument());
+            legacy->setFileBatchMode(true);
+            legacy->setLocalFilePath(document->localFilePath());
+            QBuffer current;
+            current.open(QIODevice::ReadWrite);
+            {
+                KraConverter converter(legacy.data());
+                const auto result = converter.convertToCurrentFormat(io, &current);
+                if (!result.isOk()) {
+                    document->setErrorMessage(legacy->errorMessage());
+                    return result;
+                }
+            }
+            current.close();
+            current.open(QIODevice::ReadOnly);
+            const auto result = document->importGpuKra(current);
+            if (result.isOk()) {
+                QStringList warnings{legacy->warningMessage(), document->warningMessage()};
+                warnings.removeAll(QString());
+                document->setWarningMessage(warnings.join(QLatin1Char('\n')));
+            }
+            return result;
+        }
     }
     KraConverter kraConverter(document);
     KisImportExportErrorCode result = kraConverter.buildImage(io);

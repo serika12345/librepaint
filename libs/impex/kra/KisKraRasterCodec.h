@@ -121,6 +121,11 @@ public:
      * so the selected reader supplies the format diagnostic.
      */
     static bool isNonRgbaOrAnimated(QIODevice &source);
+    /** Legacy descriptions require the native KRA owner to upgrade their nodes,
+     * masks and tile streams before importing the resulting current-format file.
+     * Preserves the open source and its position.
+     */
+    static bool requiresLegacyConversion(QIODevice &source);
     /** Filter nodes retain native XML/parameters with unresolved scalar color
      * settings. The document owner resolves those against the image profile
      * before constructing an executable GPU image. */

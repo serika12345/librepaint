@@ -11,6 +11,7 @@
 #include <QIODevice>
 #include <QUrl>
 #include <QVersionNumber>
+#include <QScopedValueRollback>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -155,6 +156,26 @@ StoryboardCommentList KraConverter::storyboardCommentList()
     return m_storyboardCommentList;
 }
 
+KisImportExportErrorCode KraConverter::convertToCurrentFormat(QIODevice *source, QIODevice *destination)
+{
+    const auto loaded = buildImage(source);
+    if (!loaded.isOk()) return loaded;
+    const auto loadingWarnings = m_doc->warningMessage();
+    m_doc->setCurrentImage(m_image, true, m_activeNodes.isEmpty() ? KisNodeSP() : m_activeNodes.first());
+    m_doc->setAssistants(m_assistants);
+    m_doc->setStoryboardItemList(m_storyboardItemList, true);
+    m_doc->setStoryboardCommentList(m_storyboardCommentList, true);
+    m_image->waitForDone();
+    delete m_store;
+    m_store = nullptr;
+    const QScopedValueRollback<bool> preserveInfo(m_preserveDocumentInfo, true);
+    const auto result = buildFile(destination, m_doc->localFilePath(), false);
+    QStringList warnings{loadingWarnings, m_doc->warningMessage()};
+    warnings.removeAll(QString());
+    m_doc->setWarningMessage(warnings.join(QLatin1Char('\n')));
+    return result;
+}
+
 KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &filename, bool addMergedImage,
                                                const QDateTime &saveTime, std::optional<bool> compressRaster)
 {
@@ -256,7 +277,7 @@ KisImportExportErrorCode KraConverter::saveRootDocuments(KoStore *store, const Q
         QDomDocument doc = KisDocument::createDomDocument("document-info"
                                                           /*DTD name*/, "document-info" /*tag name*/, "1.1");
         doc = m_doc->documentInfo()->save(doc,
-                                          m_doc->isAutosaving(),
+                                          m_preserveDocumentInfo || m_doc->isAutosaving(),
                                           m_doc->isModified(), saveTime);
         KoStoreDevice dev(store);
         QByteArray s = doc.toByteArray(); // this is already Utf8!
@@ -334,7 +355,7 @@ KisImportExportErrorCode KraConverter::savePreview(KoStore *store)
         preview = m_doc->generatePreviewImage(QSize(256, 256)).convertToFormat(QImage::Format_ARGB32, Qt::ColorOnly);
     }
     if (preview.size().isEmpty()) {
-        QSize newSize = m_doc->savingImage()->bounds().size();
+        QSize newSize = m_image->bounds().size();
         // make sure dimensions are at least one pixel, because extreme aspect ratios may cause rounding to zero
         newSize = newSize.scaled(QSize(256, 256), Qt::KeepAspectRatio).expandedTo({1, 1});
         preview = QImage(newSize, QImage::Format_ARGB32);

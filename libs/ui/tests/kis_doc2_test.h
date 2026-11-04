@@ -16,6 +16,7 @@ class KisDocumentTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void testOpenImageTwiceInSameDoc();
+    void testLegacyDefaultPixels();
 };
 
 #endif /* KIS_DOC2_TEST_H */

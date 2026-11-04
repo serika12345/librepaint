@@ -142,6 +142,7 @@ kis_add_tests(
     kis_file_layer_test.cpp
     LINK_LIBRARIES kritaapplication kritaapplicationui kritatransformmaskstubs
     )
+add_dependencies(kis_doc2_test kritakraimport kritakraexport)
 
 kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testing_utils.cpp
     TEST_NAME KisSelectionDecorationTest
