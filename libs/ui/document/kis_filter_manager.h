@@ -61,13 +61,12 @@ private Q_SLOTS:
     void filterDialogHasFinished(int);
 
 private:
-    /** Routes a filter identity to the GPU operation document. False reports a
-     * non-GPU document; every GPU document is handled without starting a CPU
-     * filter stroke. Interactive requests use the product settings widget for
-     * filters that carry settings.
+    /** Routes GPU-document filters through the execution capability table.
+     * False reports a non-GPU document. Interactive requests use the product
+     * settings widget for filters that carry settings.
      */
     bool applyGpuFilter(const QString &filterId, KisFilterConfigurationSP config, bool interactive);
-    /** Freezes and applies one supported product filter configuration. */
+    /** Freezes a product configuration and publishes one GPU-document edit. */
     bool applyGpuConfiguration(KisFilterConfigurationSP config);
     void showGpuFilterDialog(const QString &filterId, KisFilterConfigurationSP config);
 

@@ -11,11 +11,14 @@
 
 #include <array>
 #include <cstring>
+#include <stdexcept>
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include <KisGpuBlendMode.h>
 #include <KisGpuFilterConfiguration.h>
+#include <KisGpuCpuFilter.h>
+#include <KisGpuPaintDeviceTransfer_p.h>
 #include <QHash>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -38,6 +41,7 @@
 #include <filter/kis_filter_configuration.h>
 #include <kis_config_widget.h>
 #include <gpu/KisGpuOperationDocument.h>
+#include <gpu/KisGpuOperationCapabilities.h>
 #include <kis_paint_device.h>
 #include <kis_image_animation_interface.h>
 #include <kis_time_span.h>
@@ -195,20 +199,19 @@ bool KisFilterManager::applyGpuFilter(const QString &filterId, KisFilterConfigur
     if (!d->view) return false;
     KisImageWSP image = d->view->image();
     if (!image || !image->gpuImage()) return false;
-    const bool supported = filterId == QLatin1String("invert") || filterId == QLatin1String("desaturate") ||
-        filterId == QLatin1String("hsvadjustment") || filterId == QLatin1String("maximize") ||
-        filterId == QLatin1String("minimize") || filterId == QLatin1String("resettransparent") ||
-        filterId == QLatin1String("fastcoloroverlay") || filterId == QLatin1String("sharpen") ||
-        filterId == QLatin1String("mean removal") || filterId == QLatin1String("emboss laplascian") ||
-        filterId == QLatin1String("emboss all directions") || filterId == QLatin1String("emboss horizontal and vertical") ||
-        filterId == QLatin1String("emboss vertical only") || filterId == QLatin1String("emboss horizontal only");
-    if (!supported) {
-        showGpuDiagnostic(d->view, i18n("This filter is not yet available for GPU documents."));
+    auto filter = KisFilterRegistry::instance()->value(filterId);
+    if (!filter) {
+        showGpuDiagnostic(d->view, i18n("The requested filter could not be found."));
         return true;
     }
-    auto filter = KisFilterRegistry::instance()->value(filterId);
-    if (!filter) return true;
-    if (interactive && (filterId == QLatin1String("hsvadjustment") ||
+    if (!d->view->activeNode() || !d->view->activeNode()->isEditable()) {
+        showGpuDiagnostic(d->view, i18n("Cannot apply filter to locked layer."));
+        return true;
+    }
+    const bool cpu = LibrePaint::Image::Gpu::filterExecutionLocation(filterId) ==
+        LibrePaint::Image::Gpu::ExecutionLocation::Cpu;
+    if (interactive && ((cpu && filter->showConfigurationWidget()) ||
+                        filterId == QLatin1String("hsvadjustment") ||
                         filterId == QLatin1String("fastcoloroverlay"))) showGpuFilterDialog(filterId, config);
     else applyGpuConfiguration(config ? config : filter->defaultConfiguration(KisGlobalResourcesInterface::instance()));
     return true;
@@ -226,7 +229,9 @@ bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config)
         id == QLatin1String("emboss laplascian") || id == QLatin1String("emboss all directions") ||
         id == QLatin1String("emboss horizontal and vertical") || id == QLatin1String("emboss vertical only") ||
         id == QLatin1String("emboss horizontal only");
-    if (convolution) {
+    if (Gpu::filterExecutionLocation(id) == Gpu::ExecutionLocation::Cpu) {
+        applied = kisGpuApplyCpuFilter(image.data(), d->view->activeNode(), config);
+    } else if (convolution) {
         const auto frozen = freezeGpuFilterConfiguration(config, image->colorSpace());
         if (!frozen) return false;
         applied = image->convolutionFilterGpuLayerColors(d->view->activeNode(), frozen->settings);
@@ -295,15 +300,31 @@ void KisFilterManager::showGpuFilterDialog(const QString &filterId, KisFilterCon
     }
     KisFilterSP filter = KisFilterRegistry::instance()->value(filterId);
     if (!filter) return;
+    KisPaintDeviceSP configurationDevice = d->view->activeNode()->paintDevice();
+    if (!configurationDevice) return;
+    if (LibrePaint::Image::Gpu::filterExecutionLocation(filterId) == LibrePaint::Image::Gpu::ExecutionLocation::Cpu) {
+        try {
+            const auto owner = d->view->image()->gpuImage();
+            const auto version = owner->operations().snapshot();
+            LibrePaint::Image::Gpu::LayerId layerId = 0;
+            for (const auto &layer : version->layers)
+                if (layer.uuid == d->view->activeNode()->uuid()) { layerId = layer.id; break; }
+            if (!layerId) return;
+            configurationDevice = kisGpuPaintDeviceTransfer(owner, layerId, configurationDevice->defaultBounds(),
+                version, configurationDevice->colorSpace());
+        } catch (const std::exception &) {
+            showGpuDiagnostic(d->view, i18n("The layer pixels could not be read for the filter settings."));
+            return;
+        }
+    }
     auto *dialog = new QDialog(d->view->mainWindow());
-    dialog->setObjectName(filterId == QLatin1String("hsvadjustment") ? QStringLiteral("gpuHsvAdjustmentDialog")
-                                                                   : QStringLiteral("gpuColorOverlayDialog"));
+    dialog->setObjectName(filterId == QLatin1String("hsvadjustment") ? QStringLiteral("gpuHsvAdjustmentDialog") :
+        filterId == QLatin1String("fastcoloroverlay") ? QStringLiteral("gpuColorOverlayDialog") : QStringLiteral("gpuFilterDialog"));
     dialog->setWindowTitle(i18nc("@title:window", "Filter: %1", filter->name()));
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->setModal(false);
     auto *layout = new QVBoxLayout(dialog);
-    KisConfigWidget *widget = filter->createConfigurationWidget(
-        dialog, d->view->activeNode()->paintDevice(), false);
+    KisConfigWidget *widget = filter->createConfigurationWidget(dialog, configurationDevice, false);
     if (!widget) {
         delete dialog;
         return;
@@ -319,7 +340,7 @@ void KisFilterManager::showGpuFilterDialog(const QString &filterId, KisFilterCon
     layout->addWidget(buttons);
     connect(buttons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
-    connect(dialog, &QDialog::accepted, this, [this, widget] {
+    connect(dialog, &QDialog::accepted, this, [this, widget, configurationDevice] {
         auto properties = widget->configuration();
         auto *accepted = dynamic_cast<KisFilterConfiguration *>(properties.data());
         if (accepted) applyGpuConfiguration(KisFilterConfigurationSP(accepted));

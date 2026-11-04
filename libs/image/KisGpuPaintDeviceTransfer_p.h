@@ -9,11 +9,15 @@
 class KoColorSpace;
 #include "kis_default_bounds_base.h"
 #include "gpu/KisGpuPaintImage.h"
+#include <kritaimage_export.h>
+
+/** Convert canonical little-endian RGBA and native-endian BGRA pixels. */
+QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu);
 
 /** Temporary native pixels for synchronous CPU image-returning APIs.
  * The returned buffer owns its pixels; the GPU image retains editing ownership.
  */
-KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintImageSP &image,
+KRITAIMAGE_EXPORT KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintImageSP &image,
                                          quint64 layer, KisDefaultBoundsBaseSP bounds,
                                          const LibrePaint::Image::Gpu::Snapshot &version,
                                          const KoColorSpace *colorSpace);

@@ -354,6 +354,8 @@ private Q_SLOTS:
     void transparencyMaskActionsUseTheActiveGpuPaintLayer();
     void colorFilterActionsKeepNativeEditing_data();
     void colorFilterActionsKeepNativeEditing();
+    void cpuFiltersKeepNativeEditing_data();
+    void cpuFiltersKeepNativeEditing();
     void convolutionFiltersKeepNativeEditing_data();
     void convolutionFiltersKeepNativeEditing();
     void filterNodesKeepNativeEditing_data();

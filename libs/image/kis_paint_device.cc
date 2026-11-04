@@ -8,7 +8,6 @@
 
 #include "kis_paint_device.h"
 #include <cstring>
-#include <QtEndian>
 
 #include "KisProcessingInformationPaintDeviceOwnership_p.h"
 #include "KisQStringListFwd.h"
@@ -136,34 +135,10 @@ qsizetype gpuPixelByteCount(const QRect &rect, LibrePaint::Image::Gpu::PixelForm
     return width * height * stride;
 }
 
-// Public pixels use native-endian BGRA; GPU pixels use little-endian RGBA.
-QByteArray gpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu)
-{
-    namespace Gpu = LibrePaint::Image::Gpu;
-    QByteArray output(source.size(), Qt::Uninitialized);
-    const int componentBytes = Gpu::pixelByteCount(format) / 4;
-    for (qsizetype i = 0; i < source.size(); i += componentBytes * 4) {
-        for (int c = 0; c < 4; ++c) {
-            const int other = c == 0 ? 2 : c == 2 ? 0 : c;
-            const auto input = source.data() + i + other * componentBytes;
-            auto destination = output.data() + i + c * componentBytes;
-            if (componentBytes == 1) *destination = *input;
-            else if (toGpu) {
-                quint16 value;
-                std::memcpy(&value, input, sizeof(value));
-                qToLittleEndian(value, destination);
-            } else {
-                const quint16 value = qFromLittleEndian<quint16>(input);
-                std::memcpy(destination, &value, sizeof(value));
-            }
-        }
-    }
-    return output;
-}
 KoColor gpuDefaultColor(const LibrePaint::Image::Gpu::RgbaPixel &rgba,
                         LibrePaint::Image::Gpu::PixelFormat format, const KoColorSpace *space)
 {
-    const auto bytes = gpuPixelTransfer(LibrePaint::Image::Gpu::rgbaBytes(rgba, format), format, false);
+    const auto bytes = kisGpuPixelTransfer(LibrePaint::Image::Gpu::rgbaBytes(rgba, format), format, false);
     return KoColor(reinterpret_cast<const quint8 *>(bytes.constData()), space);
 }
 
@@ -1928,7 +1903,7 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
     if (m_d->gpuImage) {
         if (color == defaultPixel()) return;
         if (!m_d->gpuLayerId()) throw std::logic_error("GPU image projection is read-only");
-        const auto rgba = LibrePaint::Image::Gpu::rgbaPixel(gpuPixelTransfer(
+        const auto rgba = LibrePaint::Image::Gpu::rgbaPixel(kisGpuPixelTransfer(
             QByteArray(reinterpret_cast<const char *>(color.data()), colorSpace()->pixelSize()), m_d->gpuPixelVersion()->format, true),
             m_d->gpuPixelVersion()->format);
         if (!rgba) throw std::invalid_argument("GPU default pixel encoding is invalid");
@@ -2529,7 +2504,7 @@ void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
             m_d->gpuImage->execution().readNativeProjectionPixels(m_d->gpuImage->handle(), snapshot, rect, count);
         if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
             throw std::runtime_error(pixels.diagnostic.toStdString());
-        const auto bgra = gpuPixelTransfer(pixels.bytes, snapshot->format, false);
+        const auto bgra = kisGpuPixelTransfer(pixels.bytes, snapshot->format, false);
         std::memcpy(data, bgra.constData(), bgra.size());
         return;
     }
@@ -2559,7 +2534,7 @@ void KisPaintDevice::writeBytes(const quint8 *data, const QRect &rect)
         if (rect.isEmpty()) return;
         if (!m_d->gpuLayerId()) throw std::logic_error("GPU image projection is read-only");
         const auto count = gpuPixelByteCount(rect, m_d->gpuPixelVersion()->format);
-        const auto rgba = gpuPixelTransfer(QByteArrayView(reinterpret_cast<const char *>(data), count),
+        const auto rgba = kisGpuPixelTransfer(QByteArrayView(reinterpret_cast<const char *>(data), count),
                                           m_d->gpuPixelVersion()->format, true);
         const auto result = m_d->gpuImage->writeRgbaPixels(m_d->gpuPixels, rect, rgba);
         if (result != LibrePaint::Image::Gpu::Result::Success)

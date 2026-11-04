@@ -398,16 +398,15 @@ void KisGpuDocumentViewTest::invertColorsActionUsesGpuDocumentAndDiagnosesUnsupp
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QCOMPARE(owner->readRgbaPixels(layer, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("37e1b9ff"));
 
-    // Unsupported filter identities keep their action but report a diagnostic;
-    // they must not run the CPU filter against a view copy.
+    // Missing plugins report a diagnostic and preserve the current version.
     QSignalSpy messages(window->viewManager(), &KisViewManager::floatingMessageRequested);
     QVERIFY(messages.isValid());
     KisFilterConfigurationSP unsupported(new KisFilterConfiguration(
-        QStringLiteral("levels"), 1, KisGlobalResourcesInterface::instance()));
+        QStringLiteral("missing-filter-plugin"), 1, KisGlobalResourcesInterface::instance()));
     const auto beforeUnsupported = owner->operations().snapshot();
     window->viewManager()->filterManager()->apply(unsupported);
     QTRY_COMPARE(messages.size(), 1);
-    QVERIFY(messages.first().at(0).toString().contains(QStringLiteral("not yet available for GPU documents")));
+    QVERIFY(messages.first().at(0).toString().contains(QStringLiteral("could not be found")));
     QCOMPARE(owner->operations().snapshot(), beforeUnsupported);
     QCOMPARE(lifetime->undoStack()->count(), count + 1);
 }

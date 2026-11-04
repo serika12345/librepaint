@@ -12,6 +12,30 @@
 #include <cstring>
 #include <stdexcept>
 
+// Public pixels use native-endian BGRA; GPU pixels use little-endian RGBA.
+QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QByteArray output(source.size(), Qt::Uninitialized);
+    const int componentBytes = Gpu::pixelByteCount(format) / 4;
+    for (qsizetype i = 0; i < source.size(); i += componentBytes * 4) {
+        for (int c = 0; c < 4; ++c) {
+            const int other = c == 0 ? 2 : c == 2 ? 0 : c;
+            const auto input = source.data() + i + other * componentBytes;
+            auto destination = output.data() + i + c * componentBytes;
+            if (componentBytes == 1) *destination = *input;
+            else if (toGpu) {
+                quint16 value;
+                std::memcpy(&value, input, sizeof(value));
+                qToLittleEndian(value, destination);
+            } else {
+                const quint16 value = qFromLittleEndian<quint16>(input);
+                std::memcpy(destination, &value, sizeof(value));
+            }
+        }
+    }
+    return output;
+}
 KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintImageSP &image,
                                          quint64 layer, KisDefaultBoundsBaseSP bounds,
                                          const LibrePaint::Image::Gpu::Snapshot &version,
