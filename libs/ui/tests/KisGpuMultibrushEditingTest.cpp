@@ -8,6 +8,7 @@
 #include <KisGpuPixelTolerance.h>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPointer>
@@ -19,6 +20,7 @@
 #include <KSharedConfig>
 #include <KisResourceModel.h>
 #include <KisResourceStorage.h>
+#include <KisGlobalResourcesInterface.h>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoPointerEvent.h>
@@ -31,12 +33,14 @@
 #include <application/ui/workspace/KisView.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <brushengine/kis_paintop_preset.h>
+#include <brushengine/kis_paintop_settings.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <canvas/kis_coordinates_converter.h>
 #include <document/KisDocument.h>
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuOperationCapabilities.h>
 #include <input/ui/kis_tool_proxy.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
@@ -62,6 +66,8 @@ void MultibrushEditingTest::addData()
     QTest::addColumn<bool>("maskTarget");
     QTest::newRow("normal-u8") << QStringLiteral("b)_Basic-5_Size_default.kpp") << false << 0 << 0 << false;
     QTest::newRow("group-mask-u16") << QStringLiteral("a)_Eraser_Circle.kpp") << true << 1 << 0 << true;
+    QTest::newRow("cpu-grid-u8") << QStringLiteral("gridbrush.kpp") << false << 0 << 0 << false;
+    QTest::newRow("cpu-deform-selected-mask-u16") << QStringLiteral("deformbrush.kpp") << true << 1 << 0 << true;
 }
 
 void DynamicBrushEditingTest::addData()
@@ -101,7 +107,21 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
     KisResourceModel patterns(ResourceType::Patterns);
     if (patterns.rowCount() == 0)
         QVERIFY(patterns.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/sdk/tests/data/pattern.pat"), false));
-    const auto preset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
+    const auto nativePresetPath = QStringLiteral(KRITA_SOURCE_DIR "/plugins/paintops/defaultpresets/") + presetName;
+    const bool cpu = QFileInfo::exists(nativePresetPath);
+    KisPaintOpPresetSP preset;
+    if (cpu) {
+        preset.reset(new KisPaintOpPreset(nativePresetPath));
+        QVERIFY(preset->load(KisGlobalResourcesInterface::instance()));
+        QVERIFY(preset->valid());
+        preset->setName(QStringLiteral("CPU multibrush ") + QString::fromLatin1(QTest::currentDataTag()));
+        QImage preview(16, 16, QImage::Format_ARGB32); preview.fill(Qt::black); preset->setImage(preview);
+        preset->settings()->setProperty(AIRBRUSH_ENABLED, false);
+        preset->settings()->setProperty("Deform/useMovementPaint", false);
+        preset->settings()->setProperty("Grid/randomBorder", false);
+        preset->settings()->setProperty("ColorOption/useRandomOpacity", false);
+        preset->settings()->setProperty("ColorOption/useRandomHSV", false);
+    } else preset = bundle->resource(QStringLiteral("paintoppresets/") + presetName).dynamicCast<KisPaintOpPreset>();
     QVERIFY(preset);
     preset->setFilename(family + QLatin1Char('-') + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kpp"));
     KisResourceModel presets(ResourceType::PaintOpPresets); QVERIFY(presets.addResource(preset));
@@ -130,6 +150,8 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
             QVERIFY(image->addNode(group)); QVERIFY(image->addNode(layer, group)); target = group;
             KisSelectionSP coverage = new KisSelection;
             coverage->pixelSelection()->select(canvas, 177);
+            if (cpu) for (int y = 0; y < canvas.height(); ++y) for (int x = 0; x < canvas.width(); ++x)
+                coverage->pixelSelection()->select(QRect(x, y, 1, 1), (x * 17 + y * 43) % 256);
             KisTransparencyMaskSP mask = new KisTransparencyMask(image, QStringLiteral("Transparency Mask"));
             mask->setSelection(coverage); QVERIFY(image->addNode(mask, group)); maskUuid = mask->uuid();
         } else QVERIFY(image->addNode(layer));
@@ -243,7 +265,9 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
                 const qreal y = curve ? (step <= 4 ? step : step <= 8 ? 4 + 2 * (step - 4) : 12 - 2.5 * (step - 8)) : step;
                 return start + QPointF(3 * step, y);
             };
-            const auto gesture = [&](bool cancel) {
+            const auto gesture = [&](bool cancel) -> bool {
+                const auto owner = image->gpuImage();
+                const auto committed = owner ? owner->operations().snapshot() : nullptr;
                 const QPointF start = reopened ? QPointF(17.25, 20.75) : QPointF(13.25, 23.75);
                 const bool tap = QByteArray(QTest::currentDataTag()).contains("tap-");
                 QList<QPointF> points = tap ? QList<QPointF>{} : !dynamic && smoothing ? QList<QPointF>{start + QPointF(3, 1.5), start + QPointF(6, 3), start + QPointF(9, 4.5)} :
@@ -258,10 +282,15 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
                     QMouseEvent move(QEvent::MouseMove, QPointF(), QPointF(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
                     KoPointerEvent next(&move, view->canvasBase()->coordinatesConverter()->imageToDocument(position)); tool->continuePrimaryAction(&next);
                 }
+                if (owner && Gpu::brushExecutionLocation(preset->paintOp().id()) == Gpu::ExecutionLocation::Cpu) {
+                    if (!QTest::qWaitFor([&] { return owner->operations().preview() != committed; }, 5000)) return false;
+                    if (owner->operations().snapshot() != committed) return false;
+                }
                 if (cancel) { QKeyEvent key(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier); view->canvasBase()->toolProxy()->keyPressEvent(&key); }
                 QMouseEvent release(QEvent::MouseButtonRelease, QPointF(), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
                 KoPointerEvent last(&release, view->canvasBase()->coordinatesConverter()->imageToDocument(points.isEmpty() ? start : points.last())); tool->endPrimaryAction(&last);
                 image->waitForDone();
+                return true;
             };
             if (!dynamic && mode == 4) {
                 QVERIFY(QMetaObject::invokeMethod(tool, "slotAddSubbrushesMode", Qt::DirectConnection, Q_ARG(bool, true)));
@@ -271,10 +300,10 @@ static void runFreehandEditing(std::shared_ptr<LibrePaint::Image::Gpu::Execution
                 QVERIFY(QMetaObject::invokeMethod(tool, "slotAddSubbrushesMode", Qt::DirectConnection, Q_ARG(bool, false)));
             }
             const auto before = capture(); const int history = lifetime->undoStack()->index();
-            gesture(true); QCOMPARE(capture(), before); QCOMPARE(lifetime->undoStack()->index(), history);
-            gesture(false); QTRY_COMPARE(lifetime->undoStack()->index(), history + 1);
+            QVERIFY(gesture(true)); QCOMPARE(capture(), before); QCOMPARE(lifetime->undoStack()->index(), history);
+            QVERIFY(gesture(false)); QTRY_COMPARE(lifetime->undoStack()->index(), history + 1);
             const auto edited = capture(); QVERIFY(edited != before); QVERIFY2(check(), "Native/GPU freehand tool pixels differ");
-            if (gpu && !maskTarget) {
+            if (gpu && !maskTarget && Gpu::brushExecutionLocation(preset->paintOp().id()) == Gpu::ExecutionLocation::Gpu) {
                 const auto owner = image->gpuImage();
                 const auto operations = owner->operations().snapshot()->layers.first().operations;
                 const auto operation = std::get<Gpu::PaintSnapshot>(operations.last());

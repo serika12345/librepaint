@@ -435,9 +435,14 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
     }
     if (cpu) {
         if (m_d->strokeId || m_d->cpuStroke) return;
-        if (overrideNode || bounds || m_d->gpuMultibrushConfigured) {
+        if (overrideNode || bounds) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(i18n("This brush target is not yet available for this document."));
+            return;
+        }
+        if (m_d->gpuMultibrushConfigured && m_d->gpuMultibrushTransforms.isEmpty()) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("The multibrush settings produce no valid brush positions."));
             return;
         }
         QString diagnostic;
