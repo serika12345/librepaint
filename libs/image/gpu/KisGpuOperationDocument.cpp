@@ -474,7 +474,8 @@ int OperationDocument::savedHistoryIndex() const
     return -1;
 }
 bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevision != m_savedRevision; }
-bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_affine.isEmpty() || !m_externalOperation.isNull() || m_filterNodeEdit.has_value(); }
+bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_affine.isEmpty() ||
+    (!m_externalOperation.isNull() && !(m_filterEdit && m_filterEdit->updating)) || m_filterNodeEdit.has_value(); }
 OperationId OperationDocument::activeOperation() const
 {
     if (m_filterNodeEdit) return m_filterNodeEdit->id;
@@ -1168,6 +1169,14 @@ void OperationDocument::commitVersion(const Snapshot &version)
 
 void OperationDocument::commitVersion(const Snapshot &version, const LayerHistoryChange &change)
 {
+    if (m_filterEdit && m_filterEdit->updating) {
+        auto previewVersion = QSharedPointer<DocumentVersion>(new DocumentVersion(*version));
+        previewVersion->m_committed = false;
+        previewVersion->m_pendingOperation = m_filterEdit->id;
+        m_preview = previewVersion;
+        m_filterEdit->change = change;
+        return;
+    }
     auto history = m_history;
     auto changes = m_layerHistoryChanges;
     history.erase(history.begin() + m_index + 1, history.end());
@@ -3066,6 +3075,7 @@ void OperationDocument::close()
     m_translationIds.clear();
     m_externalOperation = {};
     m_filterNodeEdit.reset();
+    m_filterEdit.reset();
     m_layerHistoryChanges = {LayerHistoryChange{}};
     m_index = 0;
     m_closed = true;

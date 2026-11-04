@@ -19,10 +19,7 @@
 #include <KisGpuFilterConfiguration.h>
 #include <KisGpuCpuFilter.h>
 #include <QHash>
-#include <QDialog>
-#include <QDialogButtonBox>
 #include <QPointer>
-#include <QVBoxLayout>
 #include <KisSignalMapper.h>
 
 #include <QMessageBox>
@@ -40,6 +37,7 @@
 #include <filter/kis_filter_configuration.h>
 #include <kis_config_widget.h>
 #include <gpu/KisGpuOperationDocument.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuOperationCapabilities.h>
 #include <kis_paint_device.h>
 #include <kis_image_animation_interface.h>
@@ -177,10 +175,12 @@ struct KisFilterManager::Private {
      * \note parent QWidget is set to mainwindow, so we delegate deletion of this widget to Qt (we don't `delete` it ourselves)
      */
     KisDlgFilter *filterDialog = nullptr;
-    /** GPU filter settings use the product configuration widget without a CPU
-     * preview stroke; one dialog applies one accepted configuration.
-     */
-    QPointer<QDialog> gpuFilterDialog;
+    KisImageSP gpuFilterImage;
+    KisNodeSP gpuFilterNode;
+    KisPaintDeviceSP gpuFilterSource;
+    LibrePaint::Image::Gpu::PaintImageSP gpuFilterOwner;
+    LibrePaint::Image::Gpu::Snapshot gpuFilterBefore;
+    LibrePaint::Image::Gpu::OperationId gpuFilterOperation;
 };
 
 KisFilterManager::KisFilterManager(KisViewManager * view)
@@ -191,6 +191,8 @@ KisFilterManager::KisFilterManager(KisViewManager * view)
 
 KisFilterManager::~KisFilterManager()
 {
+    if (d->gpuFilterOwner && !d->gpuFilterOperation.isNull())
+        d->gpuFilterOwner->cancelFilterEdit(d->gpuFilterOperation);
 }
 
 bool KisFilterManager::applyGpuFilter(const QString &filterId, KisFilterConfigurationSP config, bool interactive)
@@ -218,7 +220,7 @@ bool KisFilterManager::applyGpuFilter(const QString &filterId, KisFilterConfigur
     return true;
 }
 
-bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config)
+bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config, bool remember)
 {
     if (!d->view || !config) return false;
     KisImageWSP image = d->view->image();
@@ -233,7 +235,8 @@ bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config)
     const auto device = d->view->activeNode() ? d->view->activeNode()->paintDevice() : KisPaintDeviceSP{};
     const auto target = device && device->pixelSize() == 1 ? Gpu::FilterTarget::Alpha : Gpu::FilterTarget::Rgba;
     if (Gpu::filterExecutionLocation(id, target) == Gpu::ExecutionLocation::Cpu) {
-        applied = kisGpuApplyCpuFilter(image.data(), d->view->activeNode(), config);
+        applied = kisGpuApplyCpuFilter(image.data(), d->view->activeNode(), config,
+            remember ? KisPaintDeviceSP{} : d->gpuFilterSource);
     } else if (convolution) {
         const auto frozen = freezeGpuFilterConfiguration(config, image->colorSpace());
         if (!frozen) return false;
@@ -281,8 +284,16 @@ bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config)
         showGpuDiagnostic(d->view, i18n("This filter requires an editable paint layer or mask and supported document precision."));
         return false;
     }
-    // Keep Apply Filter Again consistent with the CPU path, which records the
-    // accepted configuration after its stroke finishes.
+    if (remember) rememberGpuConfiguration(config);
+    return true;
+}
+
+void KisFilterManager::rememberGpuConfiguration(KisFilterConfigurationSP config)
+{
+    if (KisFilterSP filter = KisFilterRegistry::instance()->value(config->name())) {
+        if (filter->bookmarkManager())
+            filter->bookmarkManager()->save(KisBookmarkedConfigurationManager::ConfigLastUsed, config.data());
+    }
     d->lastConfiguration = config->clone();
     if (d->reapplyAction) {
         d->reapplyAction->setEnabled(true);
@@ -290,67 +301,48 @@ bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config)
         if (KisFilterSP filter = KisFilterRegistry::instance()->value(config->name()))
             d->reapplyAction->setText(i18n("Apply Filter Again: %1", filter->name()));
     }
-    return true;
 }
 
 void KisFilterManager::showGpuFilterDialog(const QString &filterId, KisFilterConfigurationSP config)
 {
     if (!d->view || !d->view->activeNode()) return;
-    if (d->gpuFilterDialog) {
-        d->gpuFilterDialog->raise();
-        d->gpuFilterDialog->activateWindow();
+    if (d->filterDialog) {
+        d->filterDialog->setFilter(KisFilterRegistry::instance()->value(filterId), config);
+        d->filterDialog->raise();
+        d->filterDialog->activateWindow();
         return;
     }
-    KisFilterSP filter = KisFilterRegistry::instance()->value(filterId);
-    if (!filter) return;
-    KisPaintDeviceSP configurationDevice = d->view->activeNode()->paintDevice();
+    if (!d->view->blockUntilOperationsFinished(d->view->image())) return;
+    KisPaintDeviceSP configurationDevice;
+    try {
+        configurationDevice = kisGpuFilterConfigurationDevice(d->view->image().data(), d->view->activeNode());
+    } catch (const std::exception &) {
+        showGpuDiagnostic(d->view, i18n("The layer pixels could not be read for the filter settings."));
+        return;
+    }
     if (!configurationDevice) return;
-    const auto target = configurationDevice->pixelSize() == 1 ? LibrePaint::Image::Gpu::FilterTarget::Alpha :
-        LibrePaint::Image::Gpu::FilterTarget::Rgba;
-    if (LibrePaint::Image::Gpu::filterExecutionLocation(filterId, target) == LibrePaint::Image::Gpu::ExecutionLocation::Cpu) {
-        try {
-            configurationDevice = kisGpuFilterConfigurationDevice(d->view->image().data(), d->view->activeNode());
-            if (!configurationDevice) return;
-        } catch (const std::exception &) {
-            showGpuDiagnostic(d->view, i18n("The layer pixels could not be read for the filter settings."));
-            return;
-        }
-    }
-    auto *dialog = new QDialog(d->view->mainWindow());
-    dialog->setObjectName(filterId == QLatin1String("hsvadjustment") ? QStringLiteral("gpuHsvAdjustmentDialog") :
+    d->gpuFilterImage = d->view->image();
+    d->gpuFilterNode = d->view->activeNode();
+    d->gpuFilterSource = configurationDevice;
+    d->gpuFilterOwner = d->gpuFilterImage->gpuImage();
+    d->gpuFilterBefore = d->gpuFilterOwner->operations().snapshot();
+    d->filterDialog = new KisDlgFilter(d->view, d->gpuFilterNode, this, d->view->mainWindow(), configurationDevice);
+    d->filterDialog->setObjectName(filterId == QLatin1String("hsvadjustment") ? QStringLiteral("gpuHsvAdjustmentDialog") :
         filterId == QLatin1String("fastcoloroverlay") ? QStringLiteral("gpuColorOverlayDialog") : QStringLiteral("gpuFilterDialog"));
-    dialog->setWindowTitle(i18nc("@title:window", "Filter: %1", filter->name()));
-    dialog->setAttribute(Qt::WA_DeleteOnClose);
-    dialog->setModal(false);
-    auto *layout = new QVBoxLayout(dialog);
-    KisConfigWidget *widget = filter->createConfigurationWidget(dialog, configurationDevice, false);
-    if (!widget) {
-        delete dialog;
-        return;
-    }
-    const KisFilterConfigurationSP initial =
-        config ? config : filter->defaultConfiguration(KisGlobalResourcesInterface::instance());
-    widget->setView(d->view);
-    widget->blockSignals(true);
-    widget->setConfiguration(initial);
-    widget->blockSignals(false);
-    layout->addWidget(widget);
-    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, dialog);
-    layout->addWidget(buttons);
-    connect(buttons, &QDialogButtonBox::accepted, dialog, &QDialog::accept);
-    connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
-    connect(dialog, &QDialog::accepted, this, [this, widget, configurationDevice] {
-        auto properties = widget->configuration();
-        auto *accepted = dynamic_cast<KisFilterConfiguration *>(properties.data());
-        if (accepted) applyGpuConfiguration(KisFilterConfigurationSP(accepted));
-    });
-    d->gpuFilterDialog = dialog;
-    dialog->show();
+    d->filterDialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(d->filterDialog, &QDialog::finished, this, &KisFilterManager::filterDialogHasFinished);
+    connect(d->gpuFilterImage, &KisImage::sigStrokeCancellationRequested,
+        this, &KisFilterManager::slotStrokeCancelRequested, Qt::UniqueConnection);
+    connect(d->gpuFilterImage, &KisImage::sigStrokeEndRequested,
+        this, &KisFilterManager::slotStrokeEndRequested, Qt::UniqueConnection);
+    d->filterDialog->setFilter(KisFilterRegistry::instance()->value(filterId), config);
+    d->filterDialog->show();
 }
 
 void KisFilterManager::setView(QPointer<KisView>imageView)
 {
-    Q_UNUSED(imageView);
+    if (d->gpuFilterOwner && d->filterDialog && (!imageView || imageView->image().data() != d->gpuFilterImage.data()))
+        d->filterDialog->reject();
 }
 
 
@@ -541,6 +533,21 @@ void KisFilterManager::showFilterDialog(const QString &filterId, KisFilterConfig
 
 void KisFilterManager::apply(KisFilterConfigurationSP _filterConfig)
 {
+    if (_filterConfig && d->gpuFilterOwner && d->filterDialog) {
+        if (d->view->image().data() != d->gpuFilterImage.data() || d->view->activeNode() != d->gpuFilterNode ||
+            d->gpuFilterImage->gpuImage() != d->gpuFilterOwner || !d->gpuFilterNode->isEditable() ||
+            d->gpuFilterOwner->operations().snapshot() != d->gpuFilterBefore) {
+            d->filterDialog->reject();
+            return;
+        }
+        if (d->gpuFilterOperation.isNull()) d->gpuFilterOperation = d->gpuFilterOwner->beginFilterEdit();
+        if (d->gpuFilterOperation.isNull()) return;
+        const auto config = _filterConfig->cloneWithResourcesSnapshot();
+        const auto result = d->gpuFilterOwner->updateFilterEdit(d->gpuFilterOperation,
+            [this, config] { return applyGpuConfiguration(config, false); });
+        d->currentlyAppliedConfiguration = result == LibrePaint::Image::Gpu::Result::Success ? config : KisFilterConfigurationSP{};
+        return;
+    }
     if (_filterConfig && applyGpuFilter(_filterConfig->name(), _filterConfig, false)) return;
 
     KisFilterConfigurationSP filterConfig = _filterConfig->cloneWithResourcesSnapshot();
@@ -600,6 +607,17 @@ void KisFilterManager::apply(KisFilterConfigurationSP _filterConfig)
 
 void KisFilterManager::finish()
 {
+    if (d->gpuFilterOwner) {
+        if (!d->gpuFilterOperation.isNull()) {
+            if (d->currentlyAppliedConfiguration &&
+                d->gpuFilterOwner->commitFilterEdit(d->gpuFilterOperation) == LibrePaint::Image::Gpu::Result::Success) {
+                rememberGpuConfiguration(d->currentlyAppliedConfiguration);
+                d->gpuFilterOperation = {};
+                d->currentlyAppliedConfiguration.clear();
+            } else cancelRunningStroke();
+        }
+        return;
+    }
     Q_ASSERT(d->currentStrokeId);
 
     if (d->filterAllSelectedFrames) {   // Apply filter to the other selected frames...
@@ -635,6 +653,12 @@ void KisFilterManager::finish()
 
 void KisFilterManager::cancelRunningStroke()
 {
+    if (d->gpuFilterOwner) {
+        if (!d->gpuFilterOperation.isNull()) d->gpuFilterOwner->cancelFilterEdit(d->gpuFilterOperation);
+        d->gpuFilterOperation = {};
+        d->currentlyAppliedConfiguration.clear();
+        return;
+    }
     Q_ASSERT(d->currentStrokeId);
 
     // we should to notify the stroke that it should do the updates itself.
@@ -656,7 +680,7 @@ void KisFilterManager::cancelDialog()
 
 bool KisFilterManager::isStrokeRunning() const
 {
-    return bool(d->currentStrokeId);
+    return bool(d->currentStrokeId) || !d->gpuFilterOperation.isNull();
 }
 
 bool KisFilterManager::isIdle() const
@@ -676,19 +700,29 @@ bool KisFilterManager::filterAllSelectedFrames()
 
 void KisFilterManager::slotStrokeEndRequested()
 {
-    if (d->currentStrokeId && d->filterDialog) {
+    if (isStrokeRunning() && d->filterDialog) {
         d->filterDialog->accept();
     }
 }
 
 void KisFilterManager::slotStrokeCancelRequested()
 {
-    if (d->currentStrokeId && d->filterDialog) {
+    if (isStrokeRunning() && d->filterDialog) {
         d->filterDialog->reject();
     }
 }
 void KisFilterManager::filterDialogHasFinished(int)
 {
     // as far as we are concerned, filterDialog has been deleted
+    if (!d->gpuFilterOperation.isNull()) cancelRunningStroke();
+    if (d->gpuFilterImage) {
+        disconnect(d->gpuFilterImage, &KisImage::sigStrokeCancellationRequested, this, &KisFilterManager::slotStrokeCancelRequested);
+        disconnect(d->gpuFilterImage, &KisImage::sigStrokeEndRequested, this, &KisFilterManager::slotStrokeEndRequested);
+    }
     d->filterDialog = nullptr;
+    d->gpuFilterImage.clear();
+    d->gpuFilterNode.clear();
+    d->gpuFilterSource.clear();
+    d->gpuFilterOwner.clear();
+    d->gpuFilterBefore.clear();
 }

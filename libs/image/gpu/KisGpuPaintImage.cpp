@@ -481,6 +481,7 @@ void PaintImage::requestCurrentVersion()
 }
 Result PaintImage::publish(Result result)
 {
+    if (m_d->document->m_filterEdit && m_d->document->m_filterEdit->updating) return result;
     if (result == Result::Success) {
         requestCurrentVersion();
         Q_EMIT changed();
@@ -1092,6 +1093,15 @@ Result PaintImage::commitGeneratorEdit(OperationId id, const QString &name)
 { return onThread() ? publish(m_d->document->commitGeneratorEdit(id, name)) : Result::InvalidInput; }
 Result PaintImage::cancelGeneratorEdit(OperationId id)
 { return onThread() ? publish(m_d->document->cancelGeneratorEdit(id)) : Result::InvalidInput; }
+
+OperationId PaintImage::beginFilterEdit()
+{ return onThread() ? m_d->document->beginFilterEdit() : OperationId{}; }
+Result PaintImage::updateFilterEdit(OperationId id, const std::function<bool()> &apply)
+{ return onThread() ? publish(m_d->document->updateFilterEdit(id, apply)) : Result::InvalidInput; }
+Result PaintImage::commitFilterEdit(OperationId id)
+{ return onThread() ? publish(m_d->document->commitFilterEdit(id)) : Result::InvalidInput; }
+Result PaintImage::cancelFilterEdit(OperationId id)
+{ return onThread() ? publish(m_d->document->cancelFilterEdit(id)) : Result::InvalidInput; }
 LayerId PaintImage::addFilterNode(const RasterLayer &node, qsizetype index, qsizetype effectIndex)
 {
     if (!onThread()) return 0;

@@ -67,7 +67,8 @@ private:
      */
     bool applyGpuFilter(const QString &filterId, KisFilterConfigurationSP config, bool interactive);
     /** Freezes a product configuration and publishes one GPU-document edit. */
-    bool applyGpuConfiguration(KisFilterConfigurationSP config);
+    bool applyGpuConfiguration(KisFilterConfigurationSP config, bool remember = true);
+    void rememberGpuConfiguration(KisFilterConfigurationSP config);
     void showGpuFilterDialog(const QString &filterId, KisFilterConfigurationSP config);
 
     struct Private;

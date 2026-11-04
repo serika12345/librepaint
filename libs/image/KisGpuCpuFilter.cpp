@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-bool kisGpuApplyCpuFilter(KisImage *image, KisNodeSP node, KisFilterConfigurationSP configuration)
+bool kisGpuApplyCpuFilter(KisImage *image, KisNodeSP node, KisFilterConfigurationSP configuration, KisPaintDeviceSP source)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto owner = image ? image->gpuImage() : Gpu::PaintImageSP();
@@ -30,7 +30,7 @@ bool kisGpuApplyCpuFilter(KisImage *image, KisNodeSP node, KisFilterConfiguratio
     const auto filter = KisFilterRegistry::instance()->value(configuration->name());
     if (!filter) return false;
     const auto version = owner->operations().snapshot();
-    const auto device = node->paintDevice();
+    const auto device = source ? source : node->paintDevice();
     const auto layer = qobject_cast<KisPaintLayer *>(node.data());
     const auto selectionLayer = qobject_cast<KisLayer *>(node.data());
     const auto selectionMask = qobject_cast<KisSelectionMask *>(node.data());
@@ -70,7 +70,7 @@ bool kisGpuApplyCpuFilter(KisImage *image, KisNodeSP node, KisFilterConfiguratio
         if (inputBytes <= 0 || outputBytes <= 0 || inputBytes > maximumBytes ||
             outputBytes > maximumBytes - inputBytes) return false;
         QByteArray native;
-        if (alpha) {
+        if (alpha || source) {
             native.resize(inputBytes);
             device->readBytes(reinterpret_cast<quint8 *>(native.data()), input);
         } else {

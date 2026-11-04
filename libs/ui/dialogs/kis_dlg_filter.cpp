@@ -69,7 +69,8 @@ struct KisDlgFilter::Private {
     KisSignalCompressor updateCompressor;
 };
 
-KisDlgFilter::KisDlgFilter(KisViewManager *view, KisNodeSP node, KisFilterManager *filterManager, QWidget *parent) :
+KisDlgFilter::KisDlgFilter(KisViewManager *view, KisNodeSP node, KisFilterManager *filterManager,
+                         QWidget *parent, KisPaintDeviceSP configurationDevice) :
         QDialog(parent),
         d(new Private(filterManager, view))
 {
@@ -95,7 +96,7 @@ KisDlgFilter::KisDlgFilter(KisViewManager *view, KisNodeSP node, KisFilterManage
         d->uiFilterDialog.pushButtonCreateMaskEffect->setVisible(false);
     }
 
-    d->uiFilterDialog.filterSelection->setPaintDevice(true, d->node->paintDevice());
+    d->uiFilterDialog.filterSelection->setPaintDevice(true, configurationDevice ? configurationDevice : d->node->paintDevice());
 
     KGuiItem::assign(d->uiFilterDialog.buttonBox->button(QDialogButtonBox::Ok), KStandardGuiItem::ok());
     KGuiItem::assign(d->uiFilterDialog.buttonBox->button(QDialogButtonBox::Cancel), KStandardGuiItem::cancel());
@@ -152,7 +153,7 @@ void KisDlgFilter::setDialogTitle(KisFilterSP filter)
 
 void KisDlgFilter::startApplyingFilter(KisFilterConfigurationSP config)
 {
-    if (!d->uiFilterDialog.filterSelection->configuration()) return;
+    if (!config) return;
 
     if (d->node->inherits("KisPaintLayer")) {
         config->setChannelFlags(qobject_cast<KisPaintLayer*>(d->node.data())->channelLockFlags());
@@ -190,7 +191,8 @@ void KisDlgFilter::slotFilterWidgetSizeChanged()
 
 void KisDlgFilter::slotOnAccept()
 {
-    if (!d->filterManager->isStrokeRunning()) {
+    d->updateCompressor.stop();
+    if (d->view->image()->gpuImage() || !d->filterManager->isStrokeRunning()) {
         KisFilterConfigurationSP config(d->uiFilterDialog.filterSelection->configuration());
         startApplyingFilter(config);
     }
@@ -205,6 +207,7 @@ void KisDlgFilter::slotOnAccept()
 
 void KisDlgFilter::slotOnReject()
 {
+    d->updateCompressor.stop();
     if (d->filterManager->isStrokeRunning()) {
         d->filterManager->cancelRunningStroke();
     }

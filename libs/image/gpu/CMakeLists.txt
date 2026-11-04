@@ -3,6 +3,7 @@ kis_add_library(kritaimagegpuoperations SHARED
     KisGpuOperationCapabilities.cpp
     KisGpuFilterSettings.cpp
     KisGpuFilterNodes.cpp
+    KisGpuFilterEdit.cpp
     KisGpuSelectionMask.cpp
     KisGpuLayerTranslation.cpp
     KisGpuAffineTransform.cpp

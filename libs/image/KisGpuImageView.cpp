@@ -64,7 +64,8 @@ namespace {
 LibrePaint::Image::Gpu::Snapshot gpuNodeViewVersion(const LibrePaint::Image::Gpu::PaintImageSP &owner)
 {
     const auto &operations = owner->operations();
-    return operations.filterNodeEditTarget() || operations.generatorEditTarget() ? operations.preview() : operations.snapshot();
+    return operations.filterNodeEditTarget() || operations.generatorEditTarget() || operations.hasFilterEdit() ?
+        operations.preview() : operations.snapshot();
 }
 
 KisFilterConfigurationSP nativeFilterConfiguration(const LibrePaint::Image::Gpu::FilterDefinition &filter)
@@ -1247,10 +1248,11 @@ void KisImage::synchronizeGpuSelectionToMask()
 {
     const auto owner = gpuImage();
     if (!owner) return;
-    const QRect rect = owner->selectionRect();
-    const bool inverted = owner->selectionInverted();
-    const auto kind = owner->selectionKind();
-    const auto mask = owner->selectionMask();
+    const auto version = gpuNodeViewVersion(owner);
+    const QRect rect = version->selection;
+    const bool inverted = version->selectionInverted;
+    const auto kind = version->selectionKind;
+    const auto mask = version->selectionMask;
     if (rootLayer() && rootLayer()->selectionMask() && m_hasGpuSelectionMirror &&
         m_gpuSelectionMirrorRect == rect && m_gpuSelectionMirrorInverted == inverted &&
         m_gpuSelectionMirrorKind == quint8(kind) && m_gpuSelectionMirrorMask == mask) return;
@@ -1277,7 +1279,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
 {
     KisImageSP retained = this;
     KisSelectionMaskSP mask = rootLayer() ? rootLayer()->selectionMask() : KisSelectionMaskSP();
-    if (rect.isEmpty() && !inverted) {
+    if (rect.isEmpty() && !inverted && (!mask || !gpuImage()->operations().hasFilterEdit())) {
         if (!mask) return;
         m_hasGpuSelectionMirror = false;
         removeNode(mask);

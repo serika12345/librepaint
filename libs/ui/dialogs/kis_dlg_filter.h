@@ -21,7 +21,8 @@ class KisDlgFilter : public QDialog
 
 public:
 
-    KisDlgFilter(KisViewManager *view, KisNodeSP node, KisFilterManager *filterManager, QWidget *parent = 0);
+    KisDlgFilter(KisViewManager *view, KisNodeSP node, KisFilterManager *filterManager,
+                 QWidget *parent = nullptr, KisPaintDeviceSP configurationDevice = {});
 
     ~KisDlgFilter() override;
 

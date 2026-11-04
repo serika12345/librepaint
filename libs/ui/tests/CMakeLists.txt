@@ -1218,7 +1218,7 @@ set(gpu_document_layer_cases
     layerPanelShowsAndSelectsGpuTransparencyMaskChild
     layerPanelTogglesAndRemovesGpuTransparencyMaskChild
     layerPanelGpuTransparencyMaskChildSurvivesSaving)
-kis_add_test(KisGpuDocumentViewTest.cpp KisGpuDocumentViewTest2.cpp KisGpuDocumentViewTest3.cpp KisGpuDocumentViewTest4.cpp KisGpuDocumentViewTest5.cpp KisGpuDocumentViewTest6.cpp KisGpuMultibrushEditingTest.cpp KisGpuRegionFillEditingTest.cpp KisGpuColorFilterEditingTest.cpp KisGpuCpuFilterEditingTest.cpp KisGpuFilterNodeEditingTest.cpp ../../../krita/krita.qrc
+kis_add_test(KisGpuDocumentViewTest.cpp KisGpuDocumentViewTest2.cpp KisGpuDocumentViewTest3.cpp KisGpuDocumentViewTest4.cpp KisGpuDocumentViewTest5.cpp KisGpuDocumentViewTest6.cpp KisGpuMultibrushEditingTest.cpp KisGpuRegionFillEditingTest.cpp KisGpuColorFilterEditingTest.cpp KisGpuCpuFilterEditingTest.cpp KisGpuFilterPreviewTest.cpp KisGpuFilterNodeEditingTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
     TEST_NAME KisGpuDocumentViewTest
@@ -1326,7 +1326,7 @@ add_test(NAME ${gpu_document_color_filter_test}
     COMMAND KisGpuDocumentViewTest colorFilterActionsKeepNativeEditing)
 set(gpu_document_cpu_filter_test libs-ui-filter-cpu-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_cpu_filter_test}
-    COMMAND KisGpuDocumentViewTest cpuFiltersKeepNativeEditing cpuMaskFiltersKeepNativeEditing)
+    COMMAND KisGpuDocumentViewTest cpuFiltersKeepNativeEditing cpuMaskFiltersKeepNativeEditing filterDialogPreviewsKeepOneHistory)
 set_tests_properties(${gpu_document_color_filter_test} PROPERTIES RUN_SERIAL TRUE TIMEOUT 900)
 set(gpu_document_convolution_filter_test libs-ui-filter-convolution-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_convolution_filter_test}

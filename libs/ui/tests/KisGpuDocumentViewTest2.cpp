@@ -512,14 +512,15 @@ void KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument
     QVERIFY(action->isEnabled());
     const auto count = lifetime->undoStack()->count();
     QCOMPARE(owner->readRgbaPixels(layer, QRect(8, 8, 1, 1), 4).bytes, QByteArray::fromHex("c81e46ff"));
+    const auto beforeDialog = owner->operations().snapshot();
     try { action->trigger(); } catch (const std::exception &error) { QFAIL(error.what()); }
 
     // The action opens the product settings dialog and starts no CPU filter
     // stroke against the view's paint-device copy.
     QDialog *dialog = nullptr;
-    QTRY_VERIFY((dialog = window->findChild<QDialog *>(QStringLiteral("gpuHsvAdjustmentDialog"))));
+    QTRY_VERIFY((dialog = window->findChild<QDialog *>(QStringLiteral("gpuHsvAdjustmentDialog"))) && dialog->isVisible());
     QVERIFY(dialog);
-    QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
+    QCOMPARE(owner->operations().snapshot(), beforeDialog);
     auto *hue = dialog->findChild<QSpinBox *>(QStringLiteral("hSpinBox"));
     auto *saturation = dialog->findChild<QSpinBox *>(QStringLiteral("sSpinBox"));
     auto *value = dialog->findChild<QSpinBox *>(QStringLiteral("vSpinBox"));
@@ -633,10 +634,11 @@ void KisGpuDocumentViewTest::hsvAdjustmentActionUsesProductSettingsOnGpuDocument
 
     // The product dialog's Colorize option reaches the GPU operation without
     // starting a CPU preview stroke.
+    const auto beforeColorizeDialog = owner->operations().snapshot();
     try { action->trigger(); } catch (const std::exception &error) { QFAIL(error.what()); }
-    QTRY_VERIFY((dialog = window->findChild<QDialog *>(QStringLiteral("gpuHsvAdjustmentDialog"))));
+    QTRY_VERIFY((dialog = window->findChild<QDialog *>(QStringLiteral("gpuHsvAdjustmentDialog"))) && dialog->isVisible());
     QVERIFY(dialog);
-    QVERIFY(!window->viewManager()->filterManager()->isStrokeRunning());
+    QCOMPARE(owner->operations().snapshot(), beforeColorizeDialog);
     hue = dialog->findChild<QSpinBox *>(QStringLiteral("hSpinBox"));
     saturation = dialog->findChild<QSpinBox *>(QStringLiteral("sSpinBox"));
     value = dialog->findChild<QSpinBox *>(QStringLiteral("vSpinBox"));

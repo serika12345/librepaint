@@ -96,6 +96,10 @@ Result PaintImage::replaceRgbaPixels(LayerId layer, QRect region, const QByteArr
 Result PaintImage::publishFilterResult(Result result, const Snapshot &before, const QString &filterId)
 {
     auto &document = *m_d->document;
+    if (result == Result::Success && document.m_filterEdit && document.m_filterEdit->updating) {
+        document.m_filterEdit->change.filterId = filterId;
+        return result;
+    }
     if (result == Result::Success && document.snapshot() != before)
         document.m_layerHistoryChanges[document.m_index].filterId = filterId;
     return publish(result);

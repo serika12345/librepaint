@@ -10,8 +10,10 @@
 
 /** Runs an existing CPU filter on affected GPU paint-layer or Alpha8 pixels and
  * publishes the result as one version. Rejections preserve pixels/history.
+ * A retained source supplies the original native pixels during dialog previews.
  */
-KRITAIMAGE_EXPORT bool kisGpuApplyCpuFilter(KisImage *image, KisNodeSP layer, KisFilterConfigurationSP configuration);
+KRITAIMAGE_EXPORT bool kisGpuApplyCpuFilter(KisImage *image, KisNodeSP layer, KisFilterConfigurationSP configuration,
+                                          KisPaintDeviceSP source = {});
 /** Independent native pixels for a CPU filter's settings widget. */
 KRITAIMAGE_EXPORT KisPaintDeviceSP kisGpuFilterConfigurationDevice(KisImage *image, KisNodeSP node);
 #endif
