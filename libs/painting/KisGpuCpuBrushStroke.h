@@ -10,10 +10,11 @@
 #include <QString>
 #include <QRect>
 #include <QByteArray>
+#include <gpu/KisGpuOperationDocument.h>
 #include <memory>
 
 /** Temporary native paint layer or Alpha8 mask and optional sampling projection
- * for CPU brush engines. The GPU document owns previews and history; the
+ * for CPU brush engines and pixel tools. The GPU document owns previews and history; the
  * native scheduler owns only the active stroke.
  */
 class KRITAPAINTING_EXPORT KisGpuCpuBrushStroke
@@ -22,7 +23,8 @@ public:
     /** Smudge adds live dabs to a captured source; clone reads an updating native projection. */
     enum class Projection { None, Captured, Updating };
     static std::unique_ptr<KisGpuCpuBrushStroke> create(KisImageSP image, KisNodeSP node, QString &diagnostic,
-                                                      Projection projection = Projection::None, KisNodeSP samplingNode = {});
+                                                      Projection projection = Projection::None, KisNodeSP samplingNode = {},
+                                                      LibrePaint::Image::Gpu::HistoryAction action = LibrePaint::Image::Gpu::HistoryAction::PaintStroke);
     /** Prepare native sampling and remap a cloned preset's source node. */
     static std::unique_ptr<KisGpuCpuBrushStroke> createForPreset(KisImageSP image, KisNodeSP node,
                                                                KisPaintOpPresetSP &preset, QString &diagnostic);

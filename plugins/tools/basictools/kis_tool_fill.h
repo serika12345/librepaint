@@ -14,6 +14,8 @@
 #include <QList>
 #include <QKeySequence>
 #include <QVector>
+#include <QTimer>
+#include <memory>
 
 #include "kis_tool_paint.h"
 #include <flake/kis_node_shape.h>
@@ -38,6 +40,7 @@ class QPushButton;
 class KisColorButton;
 class QToolButton;
 class KisCompositeOpComboBox;
+class KisGpuCpuBrushStroke;
 
 class KisToolFill : public KisToolPaint
 {
@@ -87,6 +90,9 @@ public:
     void beginAlternateAction(KoPointerEvent *event, AlternateAction action) override;
     void continueAlternateAction(KoPointerEvent *event, AlternateAction action) override;
     void endAlternateAction(KoPointerEvent *event, AlternateAction action) override;
+    void requestStrokeEnd() override;
+    void requestStrokeCancellation() override;
+    void keyPressEvent(QKeyEvent *event) override;
 
     QWidget* createOptionWidget() override;
 
@@ -149,6 +155,8 @@ private:
     QVector<QPoint> m_seedPoints;
     KisStrokeId m_fillStrokeId;
     KisNodeSP m_previousNode {nullptr};
+    std::shared_ptr<KisGpuCpuBrushStroke> m_cpuFill;
+    QTimer m_cpuPreviewTimer;
 
     KConfigGroup m_configGroup;
 
@@ -195,7 +203,8 @@ private:
     void addFillingOperation(const QVector<QPoint> &seedPoints);
     void addUpdateOperation();
     void endFilling();
-    void fillGpuSelection(QPoint seed = QPoint(-1, -1));
+    KisImageSP fillImage() const;
+    KisNodeSP fillNode() const;
 
     void loadConfiguration();
     KoColor loadContiguousFillBoundaryColorFromConfig();

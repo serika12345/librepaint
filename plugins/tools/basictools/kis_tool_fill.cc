@@ -27,11 +27,10 @@
 #include <KoPointerEvent.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoColorSpaceRegistry.h>
-#include <KisGpuBlendMode.h>
-#include <gpu/KisGpuPaintImage.h>
-#include <gpu/KisGpuExecution.h>
+#include <KisGpuCpuBrushStroke.h>
+#include <gpu/KisGpuOperationCapabilities.h>
+#include <QKeyEvent>
 #include <QPointer>
-#include <cstring>
 
 #include <qdom.h>
 #include <qlist.h>
@@ -103,6 +102,15 @@ KisToolFill::KisToolFill(KoCanvasBase * canvas)
 {
     setObjectName("tool_fill");
     connect(&m_compressorFillUpdate, SIGNAL(timeout()), SLOT(slotUpdateFill()));
+    m_cpuPreviewTimer.setInterval(40);
+    connect(&m_cpuPreviewTimer, &QTimer::timeout, this, [this] {
+        const auto fill = m_cpuFill;
+        const QPointer<KisToolFill> guard(this);
+        if (fill && m_fillStrokeId && !fill->updatePreview(m_fillStrokeId) && guard) {
+            requestStrokeCancellation();
+            if (guard) Q_EMIT statusTextChanged(i18n("The fill could not be completed and was cancelled."));
+        }
+    });
 
     KisCanvas2 *kritaCanvas = dynamic_cast<KisCanvas2*>(canvas);
 
@@ -111,6 +119,7 @@ KisToolFill::KisToolFill(KoCanvasBase * canvas)
 
 KisToolFill::~KisToolFill()
 {
+    requestStrokeCancellation();
 }
 
 void KisToolFill::resetCursorStyle()
@@ -141,6 +150,7 @@ void KisToolFill::activate(const QSet<KoShape*> &shapes)
 
 void KisToolFill::deactivate()
 {
+    requestStrokeEnd();
     m_referencePaintDevice = nullptr;
     m_referenceNodeList = nullptr;
     KisCanvas2 *kisCanvas = static_cast<KisCanvas2*>(canvas());
@@ -201,12 +211,26 @@ void KisToolFill::beginPrimaryAction(KoPointerEvent *event)
     }
 
     if (image()->gpuImage()) {
-        if (m_effectiveFillMode == FillMode_FillSelection) {
-            fillGpuSelection();
-        } else {
-            fillGpuSelection(lastImagePosition);
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QPointer<KisToolFill> tool(this);
+        const QPointer<KisViewManager> view(static_cast<KisCanvas2 *>(canvas())->viewManager());
+        const auto targetImage = image();
+        const auto owner = targetImage->gpuImage();
+        const auto node = currentNode();
+        if (!view || !view->blockUntilOperationsFinished(targetImage) || !tool || !view ||
+            view->image() != targetImage || targetImage->gpuImage() != owner || tool->currentNode() != node) return;
+        QString diagnostic;
+        const auto projection = m_effectiveFillMode == FillMode_FillSelection || m_reference == Reference_CurrentLayer ?
+            KisGpuCpuBrushStroke::Projection::None : KisGpuCpuBrushStroke::Projection::Updating;
+        if (Gpu::toolExecutionLocation(Gpu::ToolOperation::Fill) != Gpu::ExecutionLocation::Cpu) return;
+        m_cpuFill = KisGpuCpuBrushStroke::create(targetImage, node, diagnostic, projection, {}, Gpu::HistoryAction::FloodFill);
+        if (!m_cpuFill) {
+            Q_EMIT statusTextChanged(i18n("The selected layer or mask could not be filled."));
+            return;
         }
-        return;
+        m_referencePaintDevice = nullptr;
+        m_referenceNodeList = nullptr;
+        m_cpuPreviewTimer.start();
     }
 
     m_seedPoints.append(lastImagePosition);
@@ -244,6 +268,7 @@ void KisToolFill::continuePrimaryAction(KoPointerEvent *event)
 void KisToolFill::endPrimaryAction(KoPointerEvent *)
 {
     if (m_isFilling) {
+        if (m_compressorFillUpdate.isActive()) slotUpdateFill();
         m_compressorFillUpdate.stop();
         endFilling();
     }
@@ -285,34 +310,34 @@ void KisToolFill::beginFilling(const QPoint &seedPoint)
     setMode(KisTool::PAINT_MODE);
 
     KisStrokeStrategyUndoCommandBased *strategy =
-            new KisStrokeStrategyUndoCommandBased(kundo2_i18n("Flood Fill"), false, image().data());
+            new KisStrokeStrategyUndoCommandBased(kundo2_i18n("Flood Fill"), false, fillImage().data());
     strategy->setSupportsWrapAroundMode(true);
-    m_fillStrokeId = image()->startStroke(strategy);
+    m_fillStrokeId = fillImage()->startStroke(strategy);
     KIS_SAFE_ASSERT_RECOVER_RETURN(m_fillStrokeId);
 
-    m_resourcesSnapshot = new KisResourcesSnapshot(image(), currentNode(), this->canvas()->resourceManager()->canvasResourcesInterface());
+    m_resourcesSnapshot = new KisResourcesSnapshot(fillImage(), fillNode(), this->canvas()->resourceManager()->canvasResourcesInterface());
 
     KisPaintDeviceSP referencePaintDevice = nullptr;
     if (m_effectiveFillMode != FillMode_FillSelection) {
         if (m_reference == Reference_CurrentLayer) {
-            referencePaintDevice = currentNode()->paintDevice();
+            referencePaintDevice = fillNode()->paintDevice();
         } else if (m_reference == Reference_AllLayers) {
-            referencePaintDevice = currentImage()->projection();
+            referencePaintDevice = fillImage()->projection();
         } else if (m_reference == Reference_ColorLabeledLayers) {
             if (!m_referenceNodeList) {
-                referencePaintDevice = KisMergeLabeledLayersCommand::createRefPaintDevice(image(), "Fill Tool Reference Result Paint Device");
+                referencePaintDevice = KisMergeLabeledLayersCommand::createRefPaintDevice(fillImage(), "Fill Tool Reference Result Paint Device");
                 m_referenceNodeList.reset(new KisMergeLabeledLayersCommand::ReferenceNodeInfoList);
             } else {
                 referencePaintDevice = m_referencePaintDevice;
             }
-            KisPaintDeviceSP newReferencePaintDevice = KisMergeLabeledLayersCommand::createRefPaintDevice(image(), "Fill Tool Reference Result Paint Device");
+            KisPaintDeviceSP newReferencePaintDevice = KisMergeLabeledLayersCommand::createRefPaintDevice(fillImage(), "Fill Tool Reference Result Paint Device");
             KisMergeLabeledLayersCommand::ReferenceNodeInfoListSP newReferenceNodeList(new KisMergeLabeledLayersCommand::ReferenceNodeInfoList);
-            const int currentTime = image()->animationInterface()->currentTime();
-            image()->addJob(
+            const int currentTime = fillImage()->animationInterface()->currentTime();
+            fillImage()->addJob(
                 m_fillStrokeId,
                 new KisStrokeStrategyUndoCommandBased::Data(
                     KUndo2CommandSP(new KisMergeLabeledLayersCommand(
-                        image(),
+                        fillImage(),
                         m_referenceNodeList,
                         newReferenceNodeList,
                         referencePaintDevice,
@@ -320,7 +345,7 @@ void KisToolFill::beginFilling(const QPoint &seedPoint)
                         m_selectedColorLabels,
                         KisMergeLabeledLayersCommand::GroupSelectionPolicy_SelectIfColorLabeled,
                         m_previousTime != currentTime,
-                        m_useActiveLayer ? currentNode() : nullptr
+                        m_useActiveLayer ? fillNode() : nullptr
                     )),
                     false,
                     KisStrokeJobData::SEQUENTIAL,
@@ -337,7 +362,7 @@ void KisToolFill::beginFilling(const QPoint &seedPoint)
             // We need to obtain the reference color from the reference paint
             // device, but it is produced in a stroke, so we must get the color
             // after the device is ready. So we get it in the stroke
-            image()->addJob(
+            fillImage()->addJob(
                 m_fillStrokeId,
                 new KisStrokeStrategyUndoCommandBased::Data(
                     KUndo2CommandSP(new KisCommandUtils::LambdaCommand(
@@ -375,128 +400,55 @@ void KisToolFill::beginFilling(const QPoint &seedPoint)
     m_resourcesSnapshot->setFillTransform(m_transform);
 }
 
-void KisToolFill::fillGpuSelection(QPoint seed)
+KisImageSP KisToolFill::fillImage() const
 {
-    namespace Gpu = LibrePaint::Image::Gpu;
-    const QPointer<KisToolFill> lifetime(this);
-    const QPointer<KisViewManager> view(static_cast<KisCanvas2 *>(canvas())->viewManager());
-    const auto targetImage = image();
-    const auto owner = targetImage->gpuImage();
-    const auto encoding = owner->operations().snapshot();
-    const auto node = currentNode();
-    const auto reject = [view](const QString &message) {
-        if (view) view->showFloatingMessage(message, QIcon(), 2000, KisFloatingMessage::Low);
-    };
-    auto *resources = view->canvasResourceProvider();
-    const auto composite = m_useCustomBlendingOptions ? m_customCompositeOp :
-        resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
-    const bool erase = composite == COMPOSITE_ERASE || (!m_useCustomBlendingOptions && resources->eraserMode());
-    const auto blend = erase ? std::optional<Gpu::LayerBlendMode>(Gpu::LayerBlendMode::Normal) :
-        Gpu::layerBlendModeFromCompositeOp(composite);
-    if (!blend || (erase && composite != COMPOSITE_OVER && composite != COMPOSITE_ERASE)) {
-        reject(i18n("This blend mode is not yet available for this document."));
+    if (m_cpuFill) return m_cpuFill->image();
+    return image();
+}
+
+KisNodeSP KisToolFill::fillNode() const
+{
+    return m_cpuFill ? m_cpuFill->node() : currentNode();
+}
+
+void KisToolFill::requestStrokeEnd()
+{
+    if (m_isFilling) endPrimaryAction(nullptr);
+}
+
+void KisToolFill::requestStrokeCancellation()
+{
+    m_compressorFillUpdate.stop();
+    m_cpuPreviewTimer.stop();
+    m_isFilling = false;
+    m_isDragging = false;
+    if (m_fillStrokeId) {
+        auto working = fillImage();
+        const auto stroke = m_fillStrokeId;
+        m_fillStrokeId = nullptr;
+        working->cancelStroke(stroke);
+        working->waitForDone();
+    }
+    if (m_cpuFill) {
+        m_referencePaintDevice = nullptr;
+        m_referenceNodeList = nullptr;
+        m_resourcesSnapshot = nullptr;
+        m_cpuFill.reset();
+    }
+    m_fillMask = nullptr;
+    m_dirtyRect = nullptr;
+    m_seedPoints.clear();
+    setMode(KisTool::HOVER_MODE);
+}
+
+void KisToolFill::keyPressEvent(QKeyEvent *event)
+{
+    if (m_isFilling && event->key() == Qt::Key_Escape) {
+        requestStrokeCancellation();
+        event->accept();
         return;
     }
-    const qreal opacity = m_useCustomBlendingOptions ? m_customOpacity / 100.0 : resources->opacity();
-    if (!qIsFinite(opacity) || opacity < 0 || opacity > 1) {
-        reject(i18n("The fill opacity is invalid."));
-        return;
-    }
-    const bool mask = targetImage->isGpuTransparencyMaskView(node);
-    const bool region = seed.x() >= 0 && seed.y() >= 0;
-    Gpu::RegionFillSettings regionSettings;
-    if (region) {
-        const bool contiguous = m_effectiveFillMode == FillMode_FillContiguousRegion;
-        if (mask || (contiguous && m_closeGap) || (m_sizemod > 0 && m_stopGrowingAtDarkestPixel)) {
-            reject(i18n("Region filling currently requires a paint layer and growth without darkest-pixel stopping; contiguous filling also requires gap closing to be disabled."));
-            return;
-        }
-        regionSettings.seed = seed;
-        regionSettings.mode = contiguous ? Gpu::RegionFillMode::Contiguous : Gpu::RegionFillMode::Similar;
-        regionSettings.reference = m_reference == Reference_ColorLabeledLayers ? Gpu::RegionFillReference::ColorLabeledLayers :
-            m_reference == Reference_AllLayers ? Gpu::RegionFillReference::AllLayers : Gpu::RegionFillReference::CurrentLayer;
-        if (m_reference == Reference_ColorLabeledLayers) {
-            regionSettings.colorLabels = m_selectedColorLabels;
-            regionSettings.includeActiveLayer = m_useActiveLayer;
-        }
-        if (contiguous && m_contiguousFillMode == ContiguousFillMode_BoundaryFill) {
-            KoColor boundary = m_contiguousFillBoundaryColor;
-            boundary.convertTo(targetImage->colorSpace());
-            if (encoding->format == Gpu::PixelFormat::Rgba16) {
-                quint16 bgra[4];
-                std::memcpy(bgra, boundary.data(), sizeof(bgra));
-                regionSettings.boundaryColor = Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], bgra[3]};
-            } else {
-                const auto *bgra = boundary.data();
-                regionSettings.boundaryColor = Gpu::RgbaPixel{bgra[2], bgra[1], bgra[0], bgra[3]};
-            }
-        }
-        regionSettings.threshold = m_threshold;
-        regionSettings.opacitySpread = m_opacitySpread;
-        regionSettings.selectionAsBoundary = m_useSelectionAsBoundary;
-        regionSettings.antiAlias = m_antiAlias;
-        regionSettings.sizeMod = m_sizemod;
-        regionSettings.feather = m_feather;
-        if (m_threshold != 1) {
-            const auto colour = targetImage->colorSpace()->nativeLabConversion();
-            if (colour.code == LibrePaint::Pigment::Color::NativeLabConversionResult::Success)
-                regionSettings.labConversion = colour.value;
-        }
-    }
-    const auto target = mask ? node->parent() : node;
-    Gpu::LayerId layer = 0;
-    for (const auto &candidate : owner->operations().snapshot()->layers)
-        if (target && candidate.uuid == target->uuid()) layer = candidate.id;
-    if (!layer || (mask && *blend != Gpu::LayerBlendMode::Normal)) {
-        reject(i18n("The selected layer cannot be filled with these settings."));
-        return;
-    }
-    QTransform transform;
-    transform.rotate(m_patternRotation);
-    transform.scale(m_patternScale * .01, m_patternScale * .01);
-    std::optional<Gpu::PatternFill> pattern;
-    if (m_fillType == FillType_FillWithPattern) {
-        QString diagnostic;
-        pattern = captureGpuPatternResource(resources->currentPattern(),
-            mask ? KoColorSpaceRegistry::instance()->rgb8() : targetImage->colorSpace(), transform, diagnostic);
-        if (!pattern) { reject(diagnostic); return; }
-    }
-    KoColor color = m_fillType == FillType_FillWithBackgroundColor ? resources->bgColor() : resources->fgColor();
-    const auto displayColor = color.toQColor();
-    const std::array<quint8, 3> maskColor{quint8(displayColor.red()), quint8(displayColor.green()), quint8(displayColor.blue())};
-    color.convertTo(targetImage->colorSpace());
-    Gpu::RgbaPixel pixel;
-    if (owner->operations().snapshot()->format == Gpu::PixelFormat::Rgba16) {
-        quint16 bgra[4];
-        std::memcpy(bgra, color.data(), sizeof(bgra));
-        pixel = {bgra[2], bgra[1], bgra[0], 65535};
-    } else {
-        const auto *bgra = color.data();
-        pixel = {bgra[2], bgra[1], bgra[0], 255};
-    }
-    const bool alphaLocked = !erase && resources->resourceManager()->resource(KoCanvasResource::GlobalAlphaLock).toBool();
-    // Waiting may process document/tool destruction. All edit inputs are frozen
-    // before re-entry, and admission verifies the original document and node.
-    if (!view->blockUntilOperationsFinished(targetImage) || !lifetime || !view ||
-        view->image() != targetImage || targetImage->gpuImage() != owner || lifetime->currentNode() != node) return;
-    const auto ready = owner->operations().snapshot();
-    if (ready->format != encoding->format || ready->colorProfile != encoding->colorProfile) {
-        reject(i18n("The document color space changed before filling. Please try again."));
-        return;
-    }
-    const auto result = region ? owner->fillRegion(layer, regionSettings, pixel, pattern, opacity, erase, alphaLocked, *blend) : mask
-        ? (pattern ? owner->fillTransparencyMaskPattern(layer, *pattern, opacity, erase, alphaLocked, node->uuid())
-                   : owner->fillTransparencyMask(layer, maskColor, opacity, erase, alphaLocked, node->uuid()))
-        : (pattern ? owner->fillLayerPattern(layer, *pattern, opacity, erase, alphaLocked, *blend)
-                   : owner->fillLayerColor(layer, pixel, opacity, erase, alphaLocked, *blend));
-    if (result == Gpu::Result::EmptyOperation) return;
-    if (result != Gpu::Result::Success) {
-        const auto diagnostic = owner->lastRequestOutcome().diagnostic;
-        reject(region && result == Gpu::Result::InvalidInput && !diagnostic.isEmpty()
-            ? i18n("This reference color conversion is not yet supported for region filling.")
-            : i18n("The selected layer could not be filled."));
-    }
-    else if (view && lifetime) view->canvasResourceProvider()->slotPainting();
+    KisToolPaint::keyPressEvent(event);
 }
 
 void KisToolFill::addFillingOperation(const QPoint &seedPoint)
@@ -568,10 +520,10 @@ void KisToolFill::addFillingOperation(const QVector<QPoint> &seedPoints)
         }
         visitor->setOutDirtyRect(m_dirtyRect);
 
-        image()->addJob(
+        fillImage()->addJob(
             m_fillStrokeId,
             new KisStrokeStrategyUndoCommandBased::Data(
-                KUndo2CommandSP(new KisProcessingCommand(visitor, currentNode())),
+                KUndo2CommandSP(new KisProcessingCommand(visitor, fillNode())),
                 false,
                 KisStrokeJobData::SEQUENTIAL,
                 KisStrokeJobData::EXCLUSIVE
@@ -580,12 +532,12 @@ void KisToolFill::addFillingOperation(const QVector<QPoint> &seedPoints)
     } else {
         KisSelectionSP fillMask = m_fillMask;
         QSharedPointer<KisProcessingVisitor::ProgressHelper>
-            progressHelper(new KisProcessingVisitor::ProgressHelper(currentNode()));
+            progressHelper(new KisProcessingVisitor::ProgressHelper(fillNode()));
 
         {
             KisSelectionSP selection = m_resourcesSnapshot->activeSelection();
             KisFillPainter painter;
-            QRect bounds = currentImage()->bounds();
+            QRect bounds = fillImage()->bounds();
             if (selection) {
                 bounds = bounds.intersected(selection->projection()->selectedRect());
             }
@@ -604,7 +556,7 @@ void KisToolFill::addFillingOperation(const QVector<QPoint> &seedPoints)
                 );
 
             for (KisStrokeJobData *job : jobs) {
-                image()->addJob(m_fillStrokeId, job);
+                fillImage()->addJob(m_fillStrokeId, job);
             }
         }
 
@@ -625,10 +577,10 @@ void KisToolFill::addFillingOperation(const QVector<QPoint> &seedPoints)
             visitor->setOutDirtyRect(m_dirtyRect);
             visitor->setProgressHelper(progressHelper);
 
-            image()->addJob(
+            fillImage()->addJob(
                 m_fillStrokeId,
                 new KisStrokeStrategyUndoCommandBased::Data(
-                    KUndo2CommandSP(new KisProcessingCommand(visitor, currentNode())),
+                    KUndo2CommandSP(new KisProcessingCommand(visitor, fillNode())),
                     false,
                     KisStrokeJobData::SEQUENTIAL,
                     KisStrokeJobData::EXCLUSIVE
@@ -642,10 +594,10 @@ void KisToolFill::addUpdateOperation()
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN(m_fillStrokeId);
 
-    image()->addJob(
+    fillImage()->addJob(
         m_fillStrokeId,
         new KisStrokeStrategyUndoCommandBased::Data(
-            KUndo2CommandSP(new KisUpdateCommand(currentNode(), m_dirtyRect, image().data())),
+            KUndo2CommandSP(new KisUpdateCommand(fillNode(), m_dirtyRect, fillImage().data())),
             false,
             KisStrokeJobData::SEQUENTIAL,
             KisStrokeJobData::EXCLUSIVE
@@ -659,8 +611,18 @@ void KisToolFill::endFilling()
     CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
 
     setMode(KisTool::HOVER_MODE);
-    image()->endStroke(m_fillStrokeId);
+    fillImage()->endStroke(m_fillStrokeId);
     m_fillStrokeId = nullptr;
+    m_cpuPreviewTimer.stop();
+    if (m_cpuFill) {
+        const bool accepted = m_cpuFill->commit();
+        m_referencePaintDevice = nullptr;
+        m_referenceNodeList = nullptr;
+        m_resourcesSnapshot = nullptr;
+        m_cpuFill.reset();
+        if (!accepted) Q_EMIT statusTextChanged(i18n("The selected layer or mask could not be filled."));
+        else static_cast<KisCanvas2 *>(canvas())->viewManager()->canvasResourceProvider()->slotPainting();
+    }
     m_fillMask = nullptr;
     m_dirtyRect = nullptr;
 }

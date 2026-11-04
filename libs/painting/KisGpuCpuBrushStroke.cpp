@@ -214,6 +214,7 @@ KisNodeSP copySamplingLayers(KisNodeSP source, KisNodeSP parent, KisNodeSP edite
         native->setOpacity(child->opacity());
         native->setVisible(child->visible());
         native->setCompositeOpId(child->compositeOpId());
+        native->setColorLabelIndex(child->colorLabelIndex());
         native->setChannelFlags(layer->channelFlags());
         if (!working->addNode(native, parent)) throw std::runtime_error("CPU brush sampling layer could not be added");
         if (child == samplingNode) nativeSource = native;
@@ -247,7 +248,7 @@ struct KisGpuCpuBrushStroke::Private
 KisGpuCpuBrushStroke::KisGpuCpuBrushStroke() : m_d(std::make_unique<Private>()) {}
 
 std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP image, KisNodeSP node, QString &diagnostic,
-                                                               Projection projection, KisNodeSP samplingNode)
+                                                               Projection projection, KisNodeSP samplingNode, Gpu::HistoryAction action)
 {
     diagnostic = i18n("A brush stroke could not be started on this paint layer or mask.");
     const auto owner = image ? image->gpuImage() : Gpu::PaintImageSP{};
@@ -271,6 +272,8 @@ std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP im
         d.alpha = alpha; d.maskUuid = alpha && !globalSelection ? node->uuid() : QUuid{};
         d.working = new KisImage(new KisDumbUndoStore, image->width(), image->height(), image->colorSpace(), "CPU brush calculation");
         d.working->setResolution(image->xRes(), image->yRes());
+        d.working->setWrapAroundModeAxis(image->wrapAroundModeAxis());
+        d.working->setWrapAroundModePermitted(image->wrapAroundModePermitted());
         if (projection == Projection::Captured) {
             const auto projection = copyNativePixels(image->projection(), new KisDefaultBounds(d.working));
             d.working->setRootLayer(new CpuBrushRoot(d.working, projection));
@@ -344,7 +347,7 @@ std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP im
         d.working->waitForDone();
         d.pixels->resetDirty();
         d.publishedSerial = d.pixels->serial();
-        d.operation = owner->beginPixelEdit(Gpu::HistoryAction::PaintStroke);
+        d.operation = owner->beginPixelEdit(action);
         if (d.operation.isNull()) return {};
         diagnostic.clear();
         return result;

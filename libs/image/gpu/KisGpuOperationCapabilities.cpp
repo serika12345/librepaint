@@ -9,6 +9,7 @@ ExecutionLocation toolExecutionLocation(ToolOperation operation)
 {
     switch (operation) {
     case ToolOperation::Gradient:
+    case ToolOperation::Fill:
         return ExecutionLocation::Cpu;
     }
     return ExecutionLocation::Cpu;

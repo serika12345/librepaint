@@ -437,13 +437,14 @@ void RegionFillEditingTest::run(const KisPaintOpPresetSP &preset)
             }
             if (selection) selected->pixelSelection()->applySelection(selection->pixelSelection(), SELECTION_INTERSECT);
             if (radius || feather) emptyNativeRegion = selected->pixelSelection()->selectedExactRect().isEmpty();
+            const auto filled = selected->selectedRect();
             KisPaintDeviceSP source = new KisPaintDevice(cs);
             KisFillPainter fill(source);
-            if (pattern) fill.fillRectNoCompose(region, patternResource, transform);
-            else fill.fillRect(region, background ? resources->bgColor() : resources->fgColor());
+            if (pattern) fill.fillRectNoCompose(filled, patternResource, transform);
+            else fill.fillRect(filled, background ? resources->bgColor() : resources->fgColor());
             KisPainter painter(expectedDevice, selected);
             painter.setOpacityF(opacity); painter.setCompositeOpId(composite); painter.setChannelFlags(flags);
-            painter.bitBlt(region.topLeft(), source, region);
+            painter.bitBlt(filled.topLeft(), source, filled);
             return;
         }
         if (contiguous) {
