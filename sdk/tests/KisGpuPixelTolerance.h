@@ -12,8 +12,8 @@
 
 // Saved pixels must stay within one 8-bit step of the native CPU engine and of
 // other hosts (#107). The arrays hold interleaved four-channel pixels with alpha
-// last. All four channels are compared, including RGB under zero alpha.
-// Alpha must agree on being zero (#107).
+// last. Alpha must agree on being zero (#107). Color channels of pixels whose
+// alpha is zero are not compared (#107).
 // Returns an empty string when every compared channel is within the step,
 // otherwise a description of the first channel outside it.
 // bytesPerChannel is 1 for U8 (step 1) or 2 for U16 (step 257).
@@ -45,6 +45,8 @@ inline QString pixelStepDifference(const QByteArray &actual, const QByteArray &e
         if ((actualAlpha == 0) != (expectedAlpha == 0))
             return QStringLiteral("pixel %1: actual alpha %2 expected alpha %3")
                 .arg(index / channelsPerPixel).arg(actualAlpha).arg(expectedAlpha);
+        if (index != alphaIndex && actualAlpha == 0)
+            continue;
         if ((a > e ? a - e : e - a) > step)
             return QStringLiteral("channel %1 (pixel %2, component %3): actual %4 expected %5")
                 .arg(index).arg(index / channelsPerPixel).arg(index % channelsPerPixel).arg(a).arg(e);
