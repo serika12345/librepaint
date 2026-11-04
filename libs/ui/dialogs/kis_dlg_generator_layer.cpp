@@ -60,7 +60,7 @@ KisDlgGeneratorLayer::KisDlgGeneratorLayer(const QString & defaultName, KisViewM
             m_gpuEdit = std::make_unique<GpuEdit>();
             m_gpuEdit->owner = image->gpuImage();
             for (const auto &value : m_gpuEdit->owner->operations().snapshot()->layers)
-                if (value.uuid == layer->uuid()) m_gpuEdit->id = m_gpuEdit->owner->beginGeneratorEdit(value.id);
+                if (value.uuid == layer->uuid()) m_gpuEdit->id = m_gpuEdit->owner->beginCpuLayerEdit(value.id);
         }
     }
 
@@ -103,8 +103,8 @@ void KisDlgGeneratorLayer::saveLayer()
             return;
         }
         layer->setFilter(configuration()->cloneWithResourcesSnapshot());
-        if (m_gpuEdit->owner->commitGeneratorEdit(m_gpuEdit->id, layerName()) != Gpu::Result::Success)
-            m_gpuEdit->owner->cancelGeneratorEdit(m_gpuEdit->id);
+        if (m_gpuEdit->owner->commitCpuLayerEdit(m_gpuEdit->id, layerName()) != Gpu::Result::Success)
+            m_gpuEdit->owner->cancelCpuLayerEdit(m_gpuEdit->id);
         m_gpuEdit->id = {};
         return;
     }
@@ -149,7 +149,7 @@ void KisDlgGeneratorLayer::saveLayer()
 void KisDlgGeneratorLayer::restoreLayer()
 {
     if (m_gpuEdit) {
-        if (!m_gpuEdit->id.isNull()) m_gpuEdit->owner->cancelGeneratorEdit(m_gpuEdit->id);
+        if (!m_gpuEdit->id.isNull()) m_gpuEdit->owner->cancelCpuLayerEdit(m_gpuEdit->id);
         m_gpuEdit->id = {};
         return;
     }

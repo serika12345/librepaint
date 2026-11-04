@@ -792,7 +792,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         QDomElement maskElement;
         result = transparencyMaskElement(element, maskElement);
         if (result.code != Status::Success) return result;
-        element.setAttribute(QStringLiteral("nodetype"), layer.generator ? QStringLiteral("generatorlayer") :
+        element.setAttribute(QStringLiteral("nodetype"), layer.cpuDefinition ? QStringLiteral("generatorlayer") :
             layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") :
             layer.kind == LayerKind::Group ? QStringLiteral("grouplayer") :
             layer.kind == LayerKind::Adjustment ? QStringLiteral("adjustmentlayer") : QStringLiteral("filtermask"));
@@ -851,8 +851,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             files.insert(path + QStringLiteral(".pixelselection.defaultpixel"), QByteArray(1, char(layer.filterSelection->defaultCoverage())));
             files.remove(path + QStringLiteral(".defaultpixel"));
         }
-        if (layer.generator) {
-            const auto &generator = *layer.generator;
+        if (layer.cpuDefinition) {
+            const auto &generator = *layer.cpuDefinition;
             element.setAttribute(QStringLiteral("generatorname"), generator.id);
             element.setAttribute(QStringLiteral("generatorversion"), generator.version);
             files.insert(path + QStringLiteral(".filterconfig"), generator.xml);
@@ -1882,7 +1882,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             rasterBytes += layer.tiles.size() * RgbaTile::byteCount(document.image.format);
         }
         if (nodeType == QLatin1String("generatorlayer")) {
-            GeneratorDefinition generator;
+            CpuLayerDefinition generator;
             generator.id = element.attribute(QStringLiteral("generatorname"));
             generator.xml = document.files.value(path + QStringLiteral(".filterconfig"));
             QDomDocument configuration;
@@ -1898,7 +1898,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
             if (result.code != Status::Success) return fail(result);
             rasterBytes += generator.xml.size() + generator.selection->byteCount();
             if (rasterBytes > limits.rasterBytes) return fail(capacity());
-            layer.generator = std::move(generator);
+            layer.cpuDefinition = std::move(generator);
             for (const auto &suffix : {QStringLiteral(".filterconfig"), QStringLiteral(".pixelselection"),
                                       QStringLiteral(".pixelselection.defaultpixel"), QStringLiteral(".defaultpixel")})
                 document.files.remove(path + suffix);
@@ -2033,6 +2033,9 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         return invalid(QStringLiteral("Invalid KRA image or projection"));
     if (value.layers.size() > limits.layers || document.description.size() > limits.xmlBytes) return capacity();
     if (!validRasterLayerHierarchy(value.layers, value.format)) return invalid(QStringLiteral("Invalid KRA layer hierarchy"));
+    for (const auto &layer : value.layers)
+        if (layer.cpuDefinition && layer.cpuDefinition->feature != LayerFeature::Generator)
+            return unsupported(QStringLiteral("KRA CPU layer requires its native format owner"));
     if (projection.colorSpace().isValid() && !srgbSpace(projection.colorSpace()))
         return unsupported(QStringLiteral("KRA projection requires sRGB"));
     auto result = validateMetadata(document.description, document.files, limits);
@@ -2066,7 +2069,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     qsizetype rasterBytes = 0;
     for (qsizetype i = value.layers.size(); i-- > 0;) {
         const auto &layer = value.layers[i];
-        if (layer.kind != LayerKind::Paint || layer.generator) continue;
+        if (layer.kind != LayerKind::Paint || layer.cpuDefinition) continue;
         const auto path = folder + QStringLiteral("/layers/") + layerFiles.value(layer.uuid);
         const QPoint offset = layer.position;
         QByteArray pixels;

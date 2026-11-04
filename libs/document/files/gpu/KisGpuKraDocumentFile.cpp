@@ -71,7 +71,7 @@ RasterLayer rasterLayerDescription(const Layer &layer)
     value.transparencyMaskIndex = layer.transparencyMaskIndex;
     value.filter = layer.filter;
     value.filterSelection = layer.filterSelection;
-    value.generator = layer.generator;
+    value.cpuDefinition = layer.cpuDefinition;
     return value;
 }
 ExecutionOutcome readKraMaskPixels(Execution &execution, RasterImage &image, qsizetype maximumBytes, qsizetype *bytes)
@@ -327,7 +327,7 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
     for (qsizetype index = 0; index < pinned->layers.size(); ++index) {
         const auto &layer = pinned->layers[index];
         auto &saved = output.image.layers[index];
-        if (layer.kind == LayerKind::Paint && !layer.generator) {
+        if (layer.kind == LayerKind::Paint && !layer.cpuDefinition) {
             const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
             if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};
             saved.writtenAreas = pixels.writtenAreas;

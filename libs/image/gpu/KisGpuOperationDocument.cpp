@@ -3076,6 +3076,7 @@ void OperationDocument::close()
     m_translationTargets.clear();
     m_translationIds.clear();
     m_externalOperation = {};
+    m_cpuLayerEditLayer = 0;
     m_filterNodeEdit.reset();
     m_pixelEdit.reset();
     m_layerHistoryChanges = {LayerHistoryChange{}};

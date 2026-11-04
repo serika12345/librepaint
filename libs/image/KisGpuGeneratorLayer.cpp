@@ -21,8 +21,9 @@
 #include <QDomDocument>
 #include <stdexcept>
 
-KisFilterConfigurationSP gpuGeneratorConfiguration(const LibrePaint::Image::Gpu::GeneratorDefinition &definition)
+KisFilterConfigurationSP gpuGeneratorConfiguration(const LibrePaint::Image::Gpu::CpuLayerDefinition &definition)
 {
+    if (definition.feature != LibrePaint::Image::Gpu::LayerFeature::Generator) return {};
     const auto generator = KisGeneratorRegistry::instance()->value(definition.id);
     if (!generator) return {};
     auto configuration = generator->factoryConfiguration(KisGlobalResourcesInterface::instance());
@@ -38,8 +39,9 @@ bool renderGpuGeneratorLayer(LibrePaint::Image::Gpu::RasterLayer &layer, QSize s
                             const KisGpuCpuLayerContext &context)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
-    if (!layer.generator || !space || (space->pixelSize() != 4 && space->pixelSize() != 8)) return false;
-    const auto &definition = *layer.generator;
+    if (!layer.cpuDefinition || layer.cpuDefinition->feature != Gpu::LayerFeature::Generator ||
+        !space || (space->pixelSize() != 4 && space->pixelSize() != 8)) return false;
+    const auto &definition = *layer.cpuDefinition;
     const auto configuration = gpuGeneratorConfiguration(definition);
     const auto generator = KisGeneratorRegistry::instance()->value(definition.id);
     if (!configuration || !generator || !definition.selection || definition.selection->isGpuGenerated()) return false;
@@ -69,7 +71,6 @@ bool renderGpuGeneratorLayer(LibrePaint::Image::Gpu::RasterLayer &layer, QSize s
             KisPainter::copyAreaOptimized(bounds.topLeft(), generated, result, bounds, selection);
             return result;
         }, context)) return false;
-    layer.generator->resolved = true;
     return true;
 }
 
@@ -80,21 +81,22 @@ bool writeGpuGeneratorConfiguration(KisGeneratorLayer *layer, const KisFilterCon
     const auto owner = image ? image->gpuImage() : Gpu::PaintImageSP{};
     if (!owner || !layer->parent() || image->isSynchronizingGpuNodes()) return false;
     if (!configuration) throw std::invalid_argument("CPU generator requires a configuration");
-    const auto version = owner->operations().generatorEditTarget() ? owner->operations().preview() : owner->operations().snapshot();
+    const auto version = owner->operations().cpuLayerEditTarget() ? owner->operations().preview() : owner->operations().snapshot();
     for (const auto &value : version->layers) {
-        if (value.uuid != layer->uuid() || !value.generator) continue;
+        if (value.uuid != layer->uuid() || !value.cpuDefinition ||
+            value.cpuDefinition->feature != Gpu::LayerFeature::Generator) continue;
         Gpu::RasterLayer rendered;
         rendered.name = value.name;
         rendered.uuid = value.uuid;
-        rendered.generator = value.generator;
-        rendered.generator->id = configuration->name();
-        rendered.generator->version = configuration->version();
-        rendered.generator->xml = configuration->toXML().toUtf8();
-        if (rendered.generator->id == value.generator->id && rendered.generator->version == value.generator->version &&
-            rendered.generator->xml == value.generator->xml) return true;
+        rendered.cpuDefinition = value.cpuDefinition;
+        rendered.cpuDefinition->id = configuration->name();
+        rendered.cpuDefinition->version = configuration->version();
+        rendered.cpuDefinition->xml = configuration->toXML().toUtf8();
+        if (rendered.cpuDefinition->id == value.cpuDefinition->id && rendered.cpuDefinition->version == value.cpuDefinition->version &&
+            rendered.cpuDefinition->xml == value.cpuDefinition->xml) return true;
         if (!renderGpuGeneratorLayer(rendered, version->size, image->colorSpace(), owner->limits().rasterBytes, {owner, version, {}}))
             throw std::runtime_error("CPU generator rendering failed");
-        if (owner->replaceGeneratedLayer(value.id, rendered) != Gpu::Result::Success)
+        if (owner->replaceCpuLayer(value.id, rendered, version) != Gpu::Result::Success)
             throw std::runtime_error("CPU generator upload failed");
         return true;
     }

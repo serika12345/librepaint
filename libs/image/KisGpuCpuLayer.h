@@ -26,8 +26,8 @@ struct KisGpuCpuLayerContext
 
 /** Runs a native CPU layer renderer and prepares canonical sparse RGBA U8/U16
  * tiles. maximumBytes bounds each input/output transfer. The callback returns
- * an independent native device. Success replaces only the raster pixel fields;
- * the caller publishes the definition and pixels together in one version.
+ * an independent native device. Success replaces the raster pixel fields and
+ * marks its CPU definition resolved; replaceCpuLayer publishes both together.
  * A stale context, failed computation or rejected transfer leaves layer intact.
  * An empty context supports format import before attaching a GPU document.
  */

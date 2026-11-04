@@ -243,10 +243,10 @@ public:
     Result writeLayerPosition(LayerId layer, QPoint position);
     Result writeLayerPosition(const LayerPixelReferenceSP &pixels, QPoint position);
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
-    Result replaceGeneratedLayer(LayerId layer, const RasterLayer &rendered);
-    OperationId beginGeneratorEdit(LayerId layer);
-    Result commitGeneratorEdit(OperationId id, const QString &name);
-    Result cancelGeneratorEdit(OperationId id);
+    Result replaceCpuLayer(LayerId layer, const RasterLayer &rendered, const Snapshot &expected);
+    OperationId beginCpuLayerEdit(LayerId layer);
+    Result commitCpuLayerEdit(OperationId id, const QString &name);
+    Result cancelCpuLayerEdit(OperationId id);
     /** Live pixel edits always start from the committed version. The synchronous
      * callback applies existing GPU or CPU processing; only commit adds history.
      * Cancellation preserves the saved state and the complete Redo branch. */

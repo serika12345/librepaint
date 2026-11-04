@@ -3338,7 +3338,7 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
     if (!cs) return reject(i18n("The KRA color profile cannot be loaded."), ImportExportCodes::FormatColorSpaceUnsupported);
     qsizetype generatedBytes = 0;
     for (auto &layer : loaded.document.image.layers) {
-        if (!layer.generator) continue;
+        if (!layer.cpuDefinition) continue;
         if (!renderGpuGeneratorLayer(layer, loaded.document.image.size, cs, Kra::Limits{}.rasterBytes - generatedBytes))
             return reject(i18n("The KRA fill layer could not be rendered."));
         generatedBytes += layer.tiles.size() * LibrePaint::Image::Gpu::RgbaTile::byteCount(loaded.document.image.format);

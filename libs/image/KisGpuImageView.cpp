@@ -56,7 +56,7 @@ struct KisGpuImageViewState
     /** Last mask coverage written into each layer's layer-panel view node. */
     QHash<QUuid, LibrePaint::Image::Gpu::SelectionMaskSP> transparencyMasks;
     QHash<QUuid, LibrePaint::Image::Gpu::SelectionMaskSP> filterSelections;
-    QHash<QUuid, LibrePaint::Image::Gpu::GeneratorDefinition> generators;
+    QHash<QUuid, LibrePaint::Image::Gpu::CpuLayerDefinition> generators;
     /** Frozen SVG and the native writer's encoding of its current public view. */
     QHash<QUuid, QPair<QByteArray, QByteArray>> vectorSelections;
 };
@@ -65,7 +65,7 @@ namespace {
 LibrePaint::Image::Gpu::Snapshot gpuNodeViewVersion(const LibrePaint::Image::Gpu::PaintImageSP &owner)
 {
     const auto &operations = owner->operations();
-    return operations.filterNodeEditTarget() || operations.generatorEditTarget() || operations.hasPixelEdit() ?
+    return operations.filterNodeEditTarget() || operations.cpuLayerEditTarget() || operations.hasPixelEdit() ?
         operations.preview() : operations.snapshot();
 }
 
@@ -449,9 +449,9 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         if (generator) {
             const auto configuration = generator->filter();
             if (!configuration) return false;
-            properties.generator = Gpu::GeneratorDefinition{configuration->name(), configuration->version(),
+            properties.cpuDefinition = Gpu::CpuLayerDefinition{configuration->name(), configuration->version(),
                 configuration->toXML().toUtf8(), importGpuMaskCoverage(generator->internalSelection())};
-            if (!properties.generator->selection) return false;
+            if (!properties.cpuDefinition->selection) return false;
         }
         const auto background = pixels ? pixels->defaultPixel() : KoColor(colorSpace());
         const auto *bgra = background.data();
@@ -788,7 +788,7 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         properties.parentUuid = pending[i].second;
         properties.filter = source->filter;
         properties.filterSelection = source->filterSelection;
-        properties.generator = source->generator;
+        properties.cpuDefinition = source->cpuDefinition;
         properties.transparencyMaskIndex = source->transparencyMaskIndex;
         prepared.append({version, source->id, properties});
         qsizetype childIndex = i + 1;
@@ -1578,8 +1578,8 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                         toQShared(new KisImageResolutionProxy(view))));
                     node = mask;
                 }
-                else if (layer.generator)
-                    node = new KisGeneratorLayer(view, layer.name, gpuGeneratorConfiguration(*layer.generator), {});
+                else if (layer.cpuDefinition && layer.cpuDefinition->feature == LibrePaint::Image::Gpu::LayerFeature::Generator)
+                    node = new KisGeneratorLayer(view, layer.name, gpuGeneratorConfiguration(*layer.cpuDefinition), {});
                 else node = new KisPaintLayer(view, layer.name, layer.opacity,
                                              KisPaintDevice::fromGpuImage(owner, layer.id, {}, view->colorSpace()));
                 node->setUuid(layer.uuid);
@@ -1589,11 +1589,11 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             if (auto *generator = qobject_cast<KisGeneratorLayer *>(node.data())) {
                 generator->original()->bindGpuLayer(owner, layer.id);
                 KisPixelSelectionSP selection = generator->internalSelection()->pixelSelection();
-                const auto &coverage = layer.generator->selection;
-                const auto previous = state ? state->generators.value(layer.uuid) : LibrePaint::Image::Gpu::GeneratorDefinition{};
-                if (previous.id != layer.generator->id || previous.version != layer.generator->version ||
-                    previous.xml != layer.generator->xml || previous.selection != coverage || selection->offset() != layer.position) {
-                    generator->setFilterWithoutUpdate(gpuGeneratorConfiguration(*layer.generator), false);
+                const auto &coverage = layer.cpuDefinition->selection;
+                const auto previous = state ? state->generators.value(layer.uuid) : LibrePaint::Image::Gpu::CpuLayerDefinition{};
+                if (previous.id != layer.cpuDefinition->id || previous.version != layer.cpuDefinition->version ||
+                    previous.xml != layer.cpuDefinition->xml || previous.selection != coverage || selection->offset() != layer.position) {
+                    generator->setFilterWithoutUpdate(gpuGeneratorConfiguration(*layer.cpuDefinition), false);
                     selection->clear();
                     selection->moveTo(layer.position);
                     const quint8 defaultCoverage = coverage->defaultCoverage();
@@ -1607,7 +1607,7 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
                         selection->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()),
                             point.x() * side, point.y() * side, side, side);
                     }
-                    if (state) state->generators.insert(layer.uuid, *layer.generator);
+                    if (state) state->generators.insert(layer.uuid, *layer.cpuDefinition);
                 }
             } else if (auto *adjustment = qobject_cast<KisAdjustmentLayer *>(node.data())) {
                 adjustment->original()->bindGpuLayer(owner, layer.id);

@@ -29,6 +29,7 @@ bool kisGpuRenderCpuLayer(LibrePaint::Image::Gpu::LayerFeature feature,
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     if (Gpu::layerExecutionLocation(feature) != Gpu::ExecutionLocation::Cpu ||
+        (layer.cpuDefinition && layer.cpuDefinition->feature != feature) ||
         !render || !space || maximumBytes < 0 || size.width() <= 0 || size.height() <= 0 ||
         size.width() > Gpu::OperationDocument::CoordinateLimit || size.height() > Gpu::OperationDocument::CoordinateLimit ||
         space->colorModelId() != RGBAColorModelID ||
@@ -50,6 +51,7 @@ bool kisGpuRenderCpuLayer(LibrePaint::Image::Gpu::LayerFeature feature,
         if (!result || *result->colorSpace() != *space || !current()) return false;
         auto prepared = layer;
         if (!kisGpuRasterLayerFromPaintDevice(result, format, maximumBytes, prepared) || !current()) return false;
+        if (prepared.cpuDefinition) prepared.cpuDefinition->resolved = true;
         layer = std::move(prepared);
         return true;
     } catch (const std::exception &) {
