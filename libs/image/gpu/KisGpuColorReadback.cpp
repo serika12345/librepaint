@@ -141,12 +141,10 @@ std::future<ColorSampleOutcome> Execution::readColorSampleAsync(DocumentHandle h
             tiles.insert(key(tile.coordinate.x(), tile.coordinate.y()), tile.pixels);
         auto implicit = layer ? pinned->projectionDefaultPixels().value(layer) : RgbaPixel{};
         if (definition && hasEnabledTransparencyMask(*definition)) {
-            auto extent = definition->transparencyMask->allocatedBounds();
-            if (definition->transparencyMask->defaultCoverage()) extent |= canvas;
             for (int y = first.y(); y <= last.y(); ++y) for (int x = first.x(); x <= last.x(); ++x) {
                 const auto coordinate = key(x, y);
                 const auto copied = d.renderer->m_d->copySelection(frame.commands, {{x, y}, tiles.value(coordinate)},
-                    implicit, pinned->format, definition->transparencyMask, false, extent);
+                    implicit, pinned->format, definition->transparencyMask, false, true);
                 if (copied.code != RenderOutcome::Recorded) {
                     cancelFrame(); begun = false;
                     return rejected(copied.code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded : ExecutionCode::DeviceFailure,

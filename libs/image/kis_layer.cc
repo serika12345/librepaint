@@ -871,6 +871,7 @@ KisPaintDeviceSP KisLayer::projection() const
             m_d->gpuProjection->gpuPixelReference() != pixels ||
             *m_d->gpuProjection->colorSpace() != *originalDevice->colorSpace()) {
             m_d->gpuProjection = KisPaintDevice::fromGpuImage(owner, pixels ? pixels->layer() : 0, {}, originalDevice->colorSpace());
+            m_d->gpuProjection->setDefaultBounds(originalDevice->defaultBounds());
             m_d->gpuProjection->setProjectionDevice(true);
         }
         return m_d->gpuProjection;

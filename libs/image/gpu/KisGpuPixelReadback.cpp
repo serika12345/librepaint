@@ -1122,13 +1122,11 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                              x <= Detail::pixelTileIndex(outcome.region.right(), TileRenderer::TileSize); ++x)
                             if (!present.contains({x, y})) tiles.append({{x, y}, nullptr});
                 }
-                auto extent = definition->transparencyMask->allocatedBounds();
-                if (definition->transparencyMask->defaultCoverage()) extent |= QRect(QPoint(), pinned->size);
                 for (auto &tile : tiles) {
                     if (!outcome.region.intersects(QRect(tile.coordinate * TileRenderer::TileSize,
                                                         QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) continue;
                     const auto copied = d.renderer->m_d->copySelection(frame.commands, tile, implicit,
-                        pinned->format, definition->transparencyMask, false, extent);
+                        pinned->format, definition->transparencyMask, false, true);
                     if (copied.code != RenderOutcome::Recorded) {
                         copyCode = copied.code; copyDiagnostic = copied.diagnostic; return false;
                     }
@@ -1212,12 +1210,10 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                     TileView input{point, nullptr};
                     for (const auto &tile : rendered->tiles(layer)) if (tile.coordinate == point) input = tile;
                     const bool masked = definition->transparencyMask && definition->transparencyMaskVisible;
-                    auto extent = masked ? definition->transparencyMask->allocatedBounds() : QRect{};
-                    if (masked && definition->transparencyMask->defaultCoverage()) extent |= QRect(QPoint(), pinned->size);
                     const auto copied = d.renderer->m_d->copySelection(frame.commands, input,
                         pinned->projectionDefaultPixels().value(layer), pinned->format,
                         masked ? definition->transparencyMask : SelectionMask::empty(), !masked,
-                        masked ? std::optional<QRect>(extent) : std::nullopt);
+                        masked);
                     if (copied.code != RenderOutcome::Recorded) {
                         cancelFrame(); begun = false;
                         return rejected(executionCode(copied.code), copied.diagnostic);
