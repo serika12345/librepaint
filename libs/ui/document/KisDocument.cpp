@@ -631,6 +631,7 @@ public:
     KisImageSP image;
     KisImageSP savingImage;
     std::shared_ptr<LibrePaint::Document::Gpu::PaintDocument> gpuDocument;
+    bool importWithCpu = false;
     bool gpuSaving = false;
     std::function<void()> gpuAutoSaveJob;
 
@@ -2440,6 +2441,11 @@ bool KisDocument::importDocument(const QString &_path)
 bool KisDocument::openPath(const QString &_path, OpenFlags flags)
 {
     QPointer<KisDocument> guard(this);
+    const bool previousImportWithCpu = d->importWithCpu;
+    d->importWithCpu = flags.testFlag(UseCpuEngine);
+    const auto restoreImportEngine = qScopeGuard([guard, previousImportWithCpu] {
+        if (guard) guard->d->importWithCpu = previousImportWithCpu;
+    });
     dbgUI << "path=" << _path;
     d->lastErrorMessage.clear();
 
@@ -2522,6 +2528,11 @@ bool KisDocument::openPath(const QString &_path, OpenFlags flags)
     }
 
     return ret;
+}
+
+bool KisDocument::useGpuEngineForImport() const
+{
+    return !d->importWithCpu && KisPart::instance()->gpuEngineEnabled();
 }
 
 bool KisDocument::openFile()

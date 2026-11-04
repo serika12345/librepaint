@@ -37,7 +37,7 @@ KisImportExportErrorCode KisPNGImport::convert(KisDocument *document, QIODevice 
 {
     KisPNGConverter ib(document, batchMode());
     QPointer<KisDocument> guard(document);
-    const auto res = ib.buildImage(io, KisPart::instance()->gpuSessionExecution());
+    const auto res = ib.buildImage(io, document->useGpuEngineForImport() ? KisPart::instance()->gpuSessionExecution() : nullptr);
     if (res.isOk() && guard){
         document->setCurrentImage(ib.image());
     }

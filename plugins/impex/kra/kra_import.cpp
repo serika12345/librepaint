@@ -32,7 +32,7 @@ KraImport::~KraImport()
 
 KisImportExportErrorCode KraImport::convert(KisDocument *document, QIODevice *io,  KisPropertiesConfigurationSP /*configuration*/)
 {
-    if (KisPart::instance()->gpuEngineEnabled() &&
+    if (document->useGpuEngineForImport() &&
         !LibrePaint::ImportExport::Kra::RasterCodec::isNonRgbaOrAnimated(*io)) {
         if (const auto execution = KisPart::instance()->gpuSessionExecution()) {
             if (!LibrePaint::ImportExport::Kra::RasterCodec::requiresLegacyConversion(*io))

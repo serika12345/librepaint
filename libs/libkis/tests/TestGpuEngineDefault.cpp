@@ -145,6 +145,14 @@ void TestGpuEngineDefault::ordinaryDocumentsUseSelectedEngine()
             QVERIFY(qAbs(int(quint8(pixel[i])) - int(quint8(expected[i]))) <= (extension == QLatin1String("jpg") ? 2 : 0));
         }
     }
+
+    QScopedPointer<KisDocument> cpuImport(KisPart::instance()->createDocument());
+    cpuImport->setFileBatchMode(true);
+    QVERIFY2(cpuImport->openPath(path, KisDocument::DontAddToRecent | KisDocument::UseCpuEngine), qPrintable(cpuImport->errorMessage()));
+    QVERIFY(!cpuImport->image()->gpuImage());
+    expectFallback();
+    QVERIFY2(cpuImport->openPath(path, KisDocument::DontAddToRecent), qPrintable(cpuImport->errorMessage()));
+    QCOMPARE(bool(cpuImport->image()->gpuImage()), gpu);
 }
 
 void TestGpuEngineDefault::excludedColorDocumentsUseCpuEngine()

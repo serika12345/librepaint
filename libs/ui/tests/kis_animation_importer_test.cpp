@@ -14,11 +14,13 @@
 #include "kis_image_animation_interface.h"
 #include "kis_group_layer.h"
 #include <KoUpdater.h>
+#include <KisPaintingEngineTestScope.h>
 
 #include "testui.h"
 
 void KisAnimationImporterTest::testImport()
 {
+    const TestUtil::PaintingEngineScope gpuDefault(true);
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     TestUtil::MaskParent mp(QRect(0,0,512,512));
     document->setCurrentImage(mp.image);
@@ -30,7 +32,8 @@ void KisAnimationImporterTest::testImport()
     files.append(QString(FILES_DATA_DIR) + '/' + "carrot.png");
     files.append(QString(FILES_DATA_DIR) + '/' + "hakonepa.png");
 
-    importer.import(files, 7, 3);
+    QVERIFY(importer.import(files, 7, 3).isOk());
+    QVERIFY(!document->image()->gpuImage());
 
     KisGroupLayerSP root = mp.image->rootLayer();
     KisNodeSP importedLayer = root->lastChild();
@@ -64,6 +67,25 @@ void KisAnimationImporterTest::testImport()
     QVERIFY(TestUtil::compareQImages(pt, source2, imported2));
     QVERIFY(TestUtil::compareQImages(pt, source3, imported3));
 
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void KisAnimationImporterTest::testFailedImportClosesUndoMacro()
+{
+    const TestUtil::PaintingEngineScope gpuDefault(true);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    TestUtil::MaskParent mp(QRect(0, 0, 512, 512));
+    document->setCurrentImage(mp.image);
+    KisAnimationImporter importer(document->image());
+    const auto children = mp.image->root()->childCount();
+    QVERIFY(!importer.import({QString(FILES_DATA_DIR) + "/missing-frame.png"}, 7, 3).isOk());
+    QCOMPARE(mp.image->root()->childCount(), children);
+    QVERIFY(!mp.image->hasOpenStrokes());
+    QVERIFY(importer.import({QString(FILES_DATA_DIR) + "/carrot.png"}, 7, 3).isOk());
+    mp.image->waitForDone();
+    auto *channel = mp.image->root()->lastChild()->getKeyframeChannel(KisKeyframeChannel::Raster.id());
+    QVERIFY(channel);
+    QVERIFY(!channel->keyframeAt(7).isNull());
     KisPart::instance()->removeDocument(document.data(), false);
 }
 

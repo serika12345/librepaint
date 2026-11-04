@@ -84,7 +84,9 @@ public:
     enum OpenFlag {
         None = 0,
         DontAddToRecent = 0x1,
-        RecoveryFile = 0x2
+        RecoveryFile = 0x2,
+        /** Import native CPU pixels for consumers such as animation frames. */
+        UseCpuEngine = 0x4
     };
     Q_DECLARE_FLAGS(OpenFlags, OpenFlag)
 
@@ -134,6 +136,9 @@ public:
      * @return success status
      */
     bool openPath(const QString &path, OpenFlags flags = None);
+
+    /** Selected import engine, including CPU requirements of the current open. */
+    bool useGpuEngineForImport() const;
 
     /**
      * Opens the document given by @p path, without storing the Path

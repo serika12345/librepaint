@@ -14,6 +14,7 @@
 #include <KoUpdater.h>
 #include <QApplication>
 #include <QQueue>
+#include <QScopeGuard>
 #include "KoColorSpaceConstants.h"
 #include "application/ui/orchestration/KisPart.h"
 #include "document/KisDocument.h"
@@ -72,10 +73,11 @@ KisImportExportErrorCode KisAnimationImporter::import(QStringList files, int fir
     // calls to better handle all of these different options!
     // Additionally, we might prefer to use flags for multiple booleans to improve
     // legibility of calls.
-    Q_ASSERT(step > 0);
+    if (step <= 0 || files.isEmpty()) return ImportExportCodes::FileFormatIncorrect;
 
     KisUndoAdapter *undo = m_d->image->undoAdapter();
     undo->beginMacro(kundo2_i18n("Import animation"));
+    const auto finishUndo = qScopeGuard([undo] { undo->endMacro(); });
 
     QScopedPointer<KisDocument> importDoc(KisPart::instance()->createDocument());
     importDoc->setFileBatchMode(true);
@@ -126,8 +128,8 @@ KisImportExportErrorCode KisAnimationImporter::import(QStringList files, int fir
     KisConfig cfg(true);
 
     Q_FOREACH(QString file, files) {
-        bool successfullyLoaded = importDoc->openPath(file, KisDocument::DontAddToRecent);
-        KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(successfullyLoaded, ImportExportCodes::InternalError);
+        const bool successfullyLoaded = importDoc->openPath(file, KisDocument::DontAddToRecent | KisDocument::UseCpuEngine);
+        if (!successfullyLoaded) return ImportExportCodes::ErrorWhileReading;
 
         if ( (!usingPredefinedTimes && frame == firstFrame)
           || (usingPredefinedTimes && frame == optionalKeyframeTimeList.first()) ) {
@@ -207,8 +209,6 @@ KisImportExportErrorCode KisAnimationImporter::import(QStringList files, int fir
             visitor->visit(layerRasterChannelPair.first.data(), undo);
         }
     }
-
-    undo->endMacro();
 
     return status;
 }

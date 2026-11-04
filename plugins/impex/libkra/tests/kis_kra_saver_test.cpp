@@ -100,7 +100,7 @@ void KisKraSaverTest::testRoundTrip()
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
     doc2->setFileBatchMode(true);
-    result = doc2->openPath("roundtriptest.kra", KisDocument::DontAddToRecent);
+    result = doc2->openPath("roundtriptest.kra", KisDocument::DontAddToRecent | KisDocument::UseCpuEngine);
     QVERIFY(result);
 
     KisCountVisitor cv2(list, KoProperties());

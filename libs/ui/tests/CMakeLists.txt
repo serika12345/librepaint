@@ -20,6 +20,7 @@ kis_add_tests(
     KisSafeDocumentLoaderTest.cpp
     LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk
     )
+add_dependencies(kis_animation_importer_test kritapngimport)
 
 kis_add_test(KisDocumentReplaceTest.cpp
     TEST_NAME_VAR gpu_document_replace_test

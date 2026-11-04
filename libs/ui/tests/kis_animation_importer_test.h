@@ -14,6 +14,7 @@ class KisAnimationImporterTest : public QObject {
 
 private Q_SLOTS:
     void testImport();
+    void testFailedImportClosesUndoMacro();
 };
 
 #endif
