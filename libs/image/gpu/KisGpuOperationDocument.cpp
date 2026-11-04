@@ -2841,8 +2841,9 @@ Result OperationDocument::fillLayerStyle(LayerId layer, const RgbaPixel &color,
     brush.alphaLocked = alphaLocked;
     brush.channelWriteMask = alphaLocked ? 7 : 15;
     const auto version = snapshot();
-    const QRect bounds = !version->selection.isEmpty() && !version->selectionInverted ? version->selection :
-        QRect(QPoint(), version->size);
+    QRect bounds(QPoint(), version->size);
+    if (!version->selection.isEmpty() && !version->selectionInverted) bounds &= version->selection;
+    if (bounds.isEmpty()) return Result::EmptyOperation;
     const QPointF start = bounds.topLeft();
     const QPointF end = start + QPointF(bounds.width(), bounds.height());
     const auto result = paintFigureWithin(layer, brush, {{start, 1}, {end, 1}},
