@@ -52,9 +52,8 @@
 #include "kis_tool.h"
 #include "kis_tool_paint.h"
 #include <gpu/KisGpuPaintImage.h>
-#include <KoColorSpaceRegistry.h>
-#include <KoColorModelStandardIds.h>
-#include <KoCanvasResourceProvider.h>
+#include <gpu/KisGpuOperationCapabilities.h>
+#include <KisGpuCpuTool.h>
 #include <QPointer>
 
 
@@ -155,40 +154,33 @@ void KisToolGradient::endPrimaryAction(KoPointerEvent *event)
 
     if (image && image->gpuImage()) {
         namespace Gpu = LibrePaint::Image::Gpu;
-        // The ordinary tool freezes the same baked color resource as the
-        // native painter. The image owner retains only values and GPU pixels.
         const KisNodeSP node = currentNode();
-        const auto captured = captureGpuFillResources(image, node, canvas()->resourceManager());
-        const auto reject = [&](const QString &diagnostic) { Q_EMIT statusTextChanged(diagnostic); };
-        if (!captured.diagnostic.isEmpty()) { reject(captured.diagnostic); updateGuideline(); return; }
-        if (m_shape > KisGradientPainter::GradientShapeReverseSpiral) {
-            reject(i18n("This gradient shape is not yet available for GPU editing."));
-            updateGuideline(); return;
-        }
         const auto owner = image->gpuImage();
-        const auto version = owner->operations().snapshot();
-        QRect bounds(QPoint(), version->size);
-        if (!version->selection.isEmpty() && !version->selectionInverted) bounds &= version->selection;
-        if (bounds.isEmpty()) { updateGuideline(); return; }
-        const auto *colorSpace = captured.transparencyMask ? KoColorSpaceRegistry::instance()->colorSpace(
-            GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image->colorSpace();
-        QString diagnostic;
-        auto gradient = captureGpuGradientResource(resources->currentGradient(), colorSpace,
-            qMax(bounds.width(), bounds.height()), m_dither, diagnostic);
-        if (!gradient) { reject(diagnostic); updateGuideline(); return; }
-        gradient->start = m_startPos; gradient->end = m_endPos;
-        gradient->shape = Gpu::GradientFill::Shape(m_shape);
-        gradient->repeat = Gpu::GradientFill::Repeat(m_repeat);
-        gradient->reverse = m_reverse;
-        gradient->antiAliasThreshold = m_antiAliasThreshold;
-        auto brush = captured.brush;
-        // Native gradient painting does not mirror its canvas-wide source.
-        brush.mirrorHorizontal = brush.mirrorVertical = false;
         const QPointer<KisToolGradient> tool(this);
-        const auto result = owner->paintGradient(captured.layer, brush, *gradient, captured.transparencyMask, captured.maskUuid);
+        const QPointer<KisViewManager> view = dynamic_cast<KisCanvas2 *>(canvas())->viewManager();
+        const auto paint = [resources, start = m_startPos, end = m_endPos,
+                            shape = m_shape, repeat = m_repeat, reverse = m_reverse,
+                            threshold = m_antiAliasThreshold, dither = m_dither]
+                           (KisPaintDeviceSP device, KisSelectionSP selection) mutable {
+            KisGradientPainter painter(device, selection);
+            resources->setupPainter(&painter);
+            painter.setGradientShape(shape);
+            const auto bounds = device->defaultBounds()->bounds();
+            return painter.paintGradient(start, end, repeat, threshold, reverse,
+                                         0, 0, bounds.width(), bounds.height(), dither);
+        };
+        if (!view || !view->blockUntilOperationsFinished(image) || !tool || !view ||
+            view->image().data() != image.data() || image->gpuImage() != owner || tool->currentNode() != node) {
+            if (tool) tool->updateGuideline();
+            return;
+        }
+        auto bounds = node->paintDevice() ? node->paintDevice()->defaultBounds()->bounds() : QRect{};
+        if (bounds.isEmpty()) bounds = image->bounds();
+        const bool accepted = Gpu::toolExecutionLocation(Gpu::ToolOperation::Gradient) == Gpu::ExecutionLocation::Cpu &&
+            kisGpuApplyCpuTool(image, node, QRect(0, 0, bounds.width(), bounds.height()), Gpu::HistoryAction::Gradient, paint);
         if (tool) {
-            if (result != Gpu::Result::Success && result != Gpu::Result::EmptyOperation)
-                Q_EMIT tool->statusTextChanged(i18n("The gradient could not be drawn on this GPU layer."));
+            if (!accepted) Q_EMIT tool->statusTextChanged(i18n("The gradient could not be drawn on this layer or mask."));
+            else if (view) view->canvasResourceProvider()->slotPainting();
             tool->updateGuideline();
         }
         return;

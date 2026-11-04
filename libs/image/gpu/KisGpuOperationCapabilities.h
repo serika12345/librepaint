@@ -11,6 +11,7 @@
 namespace LibrePaint::Image::Gpu {
 enum class ExecutionLocation { Gpu, Cpu };
 enum class FilterTarget { Rgba, Alpha };
+enum class ToolOperation { Gradient };
 
 /** Current execution location for a registered destructive filter. CPU filters
  * run on transferred pixels and publish their result in the GPU document.
@@ -19,5 +20,7 @@ KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation filterExecutionLocation(const Q
     FilterTarget target = FilterTarget::Rgba);
 /** Current freehand brush implementation. Other engines use native CPU pixels. */
 KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation brushExecutionLocation(const QString &id);
+/** One-shot tools compute on transferred native pixels, per the migration scope. */
+KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation toolExecutionLocation(ToolOperation operation);
 }
 #endif

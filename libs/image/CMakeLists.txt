@@ -2253,6 +2253,7 @@ set(kritaimage_LIB_SRCS
    gpu/KisGpuSelectionInput.h
    KisGpuPaintDeviceTransfer.cpp
    KisGpuCpuFilter.cpp
+   KisGpuCpuTool.cpp
    kis_image_signal_router.cpp
    kis_image_config.cpp
    KisImageResolutionProxy.cpp

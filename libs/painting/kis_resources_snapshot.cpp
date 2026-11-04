@@ -20,8 +20,6 @@
 #include <qpoint.h>
 #include <QtGlobal>
 #include <resources/KoAbstractGradient.h>
-#include <KisDitherMaths.h>
-#include <QtEndian>
 #include <KoCompositeOpRegistry.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_settings.h>
@@ -629,53 +627,6 @@ KisGpuBrushResources captureGpuFillResources(
     KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources)
 {
     return captureGpuPaintingResources(image, node, resources, false);
-}
-
-std::optional<LibrePaint::Image::Gpu::GradientFill> captureGpuGradientResource(
-    KoAbstractGradientSP gradient, const KoColorSpace *colorSpace, int steps, bool dither, QString &diagnostic)
-{
-    namespace Gpu = LibrePaint::Image::Gpu;
-    diagnostic.clear();
-    const auto reject = [&](const QString &message) -> std::optional<Gpu::GradientFill> {
-        diagnostic = message;
-        return std::nullopt;
-    };
-    const bool gray = colorSpace && colorSpace->colorModelId() == GrayAColorModelID;
-    if (!gradient || !gradient->valid() || !colorSpace ||
-        (!gray && colorSpace->colorModelId() != RGBAColorModelID) ||
-        (colorSpace->colorDepthId() != Integer8BitsColorDepthID && colorSpace->colorDepthId() != Integer16BitsColorDepthID))
-        return reject(i18n("No usable gradient is selected for this document."));
-    if (steps < 1 || qint64(steps) * 8 + (dither ? 16384 : 0) > Gpu::GradientFill::MaximumBytes)
-        return reject(i18n("The selected gradient exceeds the document's resource capacity."));
-    try {
-        const auto *mixSpace = KoColorSpaceRegistry::instance()->colorSpace(
-            colorSpace->colorModelId().id(), Integer16BitsColorDepthID.id(), colorSpace->profile());
-        if (!mixSpace) return reject(i18n("The gradient mixing color space is unavailable."));
-        Gpu::GradientFill result;
-        result.dither = dither;
-        result.rgba16.resize(qsizetype(steps) * 8);
-        // Match KoCachedGradient's product resolution. A one-pixel region
-        // samples its first endpoint; larger regions include both endpoints.
-        KoColor color(mixSpace);
-        for (int i = 0; i < steps; ++i) {
-            gradient->colorAt(color, steps == 1 ? 0.0 : qreal(i) / (steps - 1));
-            quint16 channels[4]{};
-            std::memcpy(channels, color.data(), mixSpace->pixelSize());
-            const std::array<quint16, 4> rgba = gray ?
-                std::array<quint16, 4>{channels[0], channels[0], channels[0], channels[1]} :
-                std::array<quint16, 4>{channels[2], channels[1], channels[0], channels[3]};
-            for (int channel = 0; channel < 4; ++channel)
-                qToLittleEndian(rgba[channel], result.rgba16.data() + qsizetype(i) * 8 + channel * 2);
-        }
-        if (dither) {
-            result.noise.resize(64 * 64 * 4);
-            for (int i = 0; i < 64 * 64; ++i)
-                qToLittleEndian(quint32(KisDitherMaths::mask[i]), result.noise.data() + i * 4);
-        }
-        return result;
-    } catch (const std::bad_alloc &) {
-        return reject(i18n("The gradient resource could not be allocated."));
-    }
 }
 
 std::optional<LibrePaint::Image::Gpu::PatternFill> captureGpuPatternResource(

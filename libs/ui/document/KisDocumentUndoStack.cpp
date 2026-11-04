@@ -61,6 +61,7 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::ReplacePixels: return kundo2_i18n("Replace pixels");
     case HistoryAction::ClearPixels: return kundo2_i18n("Clear");
     case HistoryAction::FillLayer: return kundo2_i18n("Flood Fill Layer");
+    case HistoryAction::Gradient: return kundo2_i18n("Gradient");
     case HistoryAction::InvertColors: return kundo2_i18n("Invert Colors");
     case HistoryAction::Grayscale: return kundo2_i18n("Grayscale");
     case HistoryAction::ConvertColorSpace: return kundo2_i18n("Convert Image Color Space");

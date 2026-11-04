@@ -4,6 +4,8 @@
  */
 
 #include "KisGpuDocumentViewTest.h"
+#include <KisGpuCpuTool.h>
+#include <gpu/KisGpuOperationCapabilities.h>
 
 void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
 {
@@ -954,16 +956,16 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra_data()
     QTest::addColumn<int>("shape");
     QTest::addColumn<int>("repeat");
     QTest::newRow("u8-linear") << false << 0 << 0;
-    QTest::newRow("u16-conical-repeat") << true << 4 << 2;
+    QTest::newRow("u16-shaped-mask-dither") << true << 8 << 1;
 }
 
 void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
 {
-    // Consumer: the ordinary gradient tool. Native and GPU documents must keep
-    // identical selected paint/mask pixels, projection and history through
-    // resource changes, KRA reopening and another gradient operation.
+    // The ordinary tool keeps paint/mask pixels and projection within one
+    // 8-bit step through resource changes, history and KRA reopening.
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(bool, words); QFETCH(int, shape); QFETCH(int, repeat);
+    QCOMPARE(Gpu::toolExecutionLocation(Gpu::ToolOperation::Gradient), Gpu::ExecutionLocation::Cpu);
     const bool maskTarget = (shape + repeat) % 2;
     const bool groupOwner = maskTarget && shape == 3;
     const auto oldEngine = qgetenv("LIBREPAINT_GPU_ENGINE");
@@ -971,9 +973,9 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
         if (oldEngine.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", oldEngine);
     });
     const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
-    const QRect area(0, 0, 32, 24);
+    const QRect area(0, 0, 270, 48), inspected(-8, -8, 286, 64);
     const auto stateDifference = [&](const QByteArray &actual, const QByteArray &expected) {
-        const qsizetype colorBytes = 2 * area.width() * area.height() * cs->pixelSize();
+        const qsizetype colorBytes = 2 * inspected.width() * inspected.height() * cs->pixelSize();
         const auto colors = pixelStepDifference(actual.left(colorBytes), expected.left(colorBytes), words ? 2 : 1);
         return colors.isEmpty() ? pixelStepDifference(actual.mid(colorBytes), expected.mid(colorBytes), 1, 1) : colors;
     };
@@ -995,13 +997,15 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
         paintUuid = layer->uuid(); targetUuid = target->uuid();
         if (maskTarget) {
             KisSelectionSP coverage = new KisSelection;
+            const quint8 white = 255;
+            coverage->pixelSelection()->setDefaultPixel(KoColor(&white, KoColorSpaceRegistry::instance()->alpha8()));
             coverage->pixelSelection()->select(area, 177);
             KisTransparencyMaskSP mask = new KisTransparencyMask(image, QStringLiteral("Transparency Mask"));
             mask->setSelection(coverage); QVERIFY(image->addNode(mask, target)); maskUuid = mask->uuid();
         }
         KisSelectionSP selected = new KisSelection;
-        selected->pixelSelection()->select({3, 4, 26, 17}, 211);
-        selected->pixelSelection()->select({12, 10, 5, 5}, 0);
+        selected->pixelSelection()->select({243, 4, 26, 39}, 211);
+        selected->pixelSelection()->select({252, 10, 5, 5}, 0);
         KisSelectionMaskSP selection = new KisSelectionMask(image);
         selection->setSelection(selected); selection->setActive(true); QVERIFY(image->addNode(selection, image->root()));
         document->setCurrentImage(image); image->refreshGraphAsync(); image->waitForDone();
@@ -1052,15 +1056,17 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
             QTRY_COMPARE(view->currentNode(), maskTarget ? mask : layer);
             const auto capture = [&]() -> QByteArray {
                 image->waitForDone();
-                QByteArray pixels(area.width() * area.height() * cs->pixelSize(), '\0'), projection(pixels.size(), '\0');
-                layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), area);
-                image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), area);
+                QByteArray pixels(inspected.width() * inspected.height() * cs->pixelSize(), '\0'), projection(pixels.size(), '\0');
+                layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), inspected);
+                image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), inspected);
                 QByteArray coverage;
                 if (maskTarget) {
-                    coverage.resize(area.width() * area.height());
+                    coverage.resize(inspected.width() * inspected.height());
                     qobject_cast<KisTransparencyMask *>(mask.data())->selection()->pixelSelection()->readBytes(
-                        reinterpret_cast<quint8 *>(coverage.data()), area);
+                        reinterpret_cast<quint8 *>(coverage.data()), inspected);
                 }
+                const auto size = coverage.size(); coverage.resize(size + inspected.width() * inspected.height());
+                image->globalSelection()->projection()->readBytes(reinterpret_cast<quint8 *>(coverage.data() + size), inspected);
                 return pixels + projection + coverage;
             };
             const auto check = [&] {
@@ -1107,8 +1113,8 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
             QVERIFY(QMetaObject::invokeMethod(tool, "slotSetDither", Qt::DirectConnection, Q_ARG(bool, repeat == 1)));
             QVERIFY(QMetaObject::invokeMethod(tool, "slotSetAntiAliasThreshold", Qt::DirectConnection, Q_ARG(qreal, .2)));
             const auto before = capture(); const int history = lifetime->undoStack()->index();
-            const QPointF start = reopened ? QPointF(20.75, 15.25) : QPointF(9.25, 9.75);
-            const QPointF end = reopened ? QPointF(15.5, 8.125) : QPointF(16.875, 13.25);
+            const QPointF start = reopened ? QPointF(260.75, 27.25) : QPointF(249.25, 9.75);
+            const QPointF end = reopened ? QPointF(255.5, 8.125) : QPointF(256.875, 33.25);
             QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
             KoPointerEvent first(&press, view->canvasBase()->coordinatesConverter()->imageToDocument(start)); tool->beginPrimaryAction(&first);
             QMouseEvent move(QEvent::MouseMove, QPointF(), QPointF(), Qt::NoButton, Qt::LeftButton, Qt::NoModifier);
@@ -1124,10 +1130,27 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
             QMouseEvent release(QEvent::MouseButtonRelease, QPointF(), QPointF(), Qt::LeftButton, Qt::NoButton, Qt::NoModifier);
             KoPointerEvent last(&release, view->canvasBase()->coordinatesConverter()->imageToDocument(end)); tool->endPrimaryAction(&last);
             image->waitForDone(); QTRY_COMPARE(lifetime->undoStack()->index(), history + 1);
+            if (gpu) {
+                QCOMPARE(image->gpuImage()->operations().historyAction(history + 1), Gpu::HistoryAction::Gradient);
+                QCOMPARE(lifetime->undoStack()->undoText(), kundo2_i18n("Gradient").toString());
+            }
             const auto edited = capture(); QVERIFY(edited != before); check();
             resources->setFGColor(KoColor(Qt::yellow, cs));
             gradient->setStops({{0, KoColor(Qt::red, cs)}, {1, KoColor(Qt::blue, cs)}});
             lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(capture(), before); check();
+            if (gpu && !reopened) {
+                const auto owner = image->gpuImage();
+                QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+                const auto savedState = owner->operations().snapshot();
+                const int redo = owner->operations().redoCount();
+                QVERIFY(!kisGpuApplyCpuTool(image, maskTarget ? mask : layer, area, Gpu::HistoryAction::Gradient,
+                    [&](KisPaintDeviceSP device, KisSelectionSP) {
+                        device->fill(area, KoColor(Qt::white, device->colorSpace()));
+                        return false;
+                    }));
+                QCOMPARE(owner->operations().snapshot(), savedState); QCOMPARE(capture(), before);
+                QCOMPARE(owner->operations().redoCount(), redo); QVERIFY(!owner->operations().isModified());
+            }
             lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(capture(), edited); check();
             QVERIFY(lifetime->saveAs(saved, KisDocument::nativeFormatMimeType(), false)); lifetime->waitForSavingToComplete();
         }
@@ -1138,14 +1161,21 @@ void KisGpuDocumentViewTest::gradientsKeepNativeEditingHistoryAndKra()
             QVERIFY2(native->openPath(saved, KisDocument::DontAddToRecent), qPrintable(native->errorMessage()));
             auto image = KisImageSP(native->image()); image->waitForDone();
             auto layer = KisLayerUtils::findNodeByUuid(image->root(), paintUuid); QVERIFY(layer);
-            QByteArray pixels(area.width() * area.height() * cs->pixelSize(), '\0'), projection(pixels.size(), '\0'), coverage;
-            layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), area);
-            image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), area);
+            QByteArray pixels(inspected.width() * inspected.height() * cs->pixelSize(), '\0'), projection(pixels.size(), '\0'), coverage;
+            layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), inspected);
+            image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), inspected);
             if (maskTarget) {
                 auto mask = KisLayerUtils::findNodeByUuid(image->root(), maskUuid); QVERIFY(mask);
-                coverage.resize(area.width() * area.height());
+                coverage.resize(inspected.width() * inspected.height());
                 qobject_cast<KisTransparencyMask *>(mask.data())->selection()->pixelSelection()->readBytes(
-                    reinterpret_cast<quint8 *>(coverage.data()), area);
+                    reinterpret_cast<quint8 *>(coverage.data()), inspected);
+            }
+            const auto size = coverage.size(); coverage.resize(size + inspected.width() * inspected.height());
+            image->globalSelection()->projection()->readBytes(reinterpret_cast<quint8 *>(coverage.data() + size), inspected);
+            QCOMPARE(layer->name(), QStringLiteral("Paint"));
+            if (maskTarget) {
+                const auto mask = KisLayerUtils::findNodeByUuid(image->root(), maskUuid); QVERIFY(mask);
+                QCOMPARE(mask->name(), QStringLiteral("Transparency Mask")); QCOMPARE(mask->parent(), layer);
             }
             const auto difference = stateDifference(pixels + projection + coverage, reference.last());
             QVERIFY2(difference.isEmpty(), qPrintable(difference));

@@ -5,6 +5,15 @@
 #include "KisGpuOperationCapabilities.h"
 
 namespace LibrePaint::Image::Gpu {
+ExecutionLocation toolExecutionLocation(ToolOperation operation)
+{
+    switch (operation) {
+    case ToolOperation::Gradient:
+        return ExecutionLocation::Cpu;
+    }
+    return ExecutionLocation::Cpu;
+}
+
 ExecutionLocation brushExecutionLocation(const QString &id)
 {
     return id == QLatin1String("paintbrush") || id == QLatin1String("roundmarker") ?
