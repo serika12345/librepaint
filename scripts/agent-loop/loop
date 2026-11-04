@@ -24,7 +24,7 @@ export PATH="$repo_root/scripts:$PATH"
 
 branch="${AGENT_LOOP_BRANCH:-feature/issue-89-gpu-engine-rewrite}"
 iteration_timeout="${AGENT_LOOP_ITERATION_TIMEOUT:-150m}"
-verify_every="${AGENT_LOOP_VERIFY_EVERY:-4}"
+verify_every="${AGENT_LOOP_VERIFY_EVERY:-8}"
 verify_timeout="${AGENT_LOOP_VERIFY_TIMEOUT:-4h}"
 # Prefer the newest Codex bundled with the VS Code extension; the Nix profile build lags behind ~/.codex/config.toml.
 codex_bin="${AGENT_LOOP_CODEX:-$(ls -t "$HOME"/.vscode-server/extensions/openai.chatgpt-*/bin/linux-x86_64/codex \
