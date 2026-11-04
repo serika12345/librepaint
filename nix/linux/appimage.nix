@@ -126,7 +126,8 @@ let
                     or entry.startswith("$ORIGIN/..//nix/store/"))
 
         for pattern in ("*-libidn2-*/lib/libidn2.so.*.*", "*-libunistring-*/lib/libunistring.so.*.*",
-                        "*-opencolorio-*/lib/libOpenColorIO.so.*.*.*"):
+                        "*-opencolorio-*/lib/libOpenColorIO.so.*.*.*",
+                        "*-opencolorio-*/lib/python*/site-packages/PyOpenColorIO/*.so"):
             for library in Path("root/nix/store").glob(pattern):
                 if library.is_symlink() or not library.is_file():
                     continue
