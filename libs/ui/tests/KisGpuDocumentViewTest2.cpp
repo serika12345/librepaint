@@ -1041,11 +1041,15 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         patternImage.setPixelColor(0, 1, QColor(71, 181, 241, 255));
         patternImage.setPixelColor(1, 1, QColor(255, 255, 255, 0));
         const KoPatternSP figurePattern(new KoPattern(patternImage, QStringLiteral("Mask pattern"), QString()));
+        // Sparse random tips need contrast against the finite mask's 128 coverage
+        // so that short strokes survive 8-bit rounding.
+        const QColor maskForeground = presetName == QLatin1String("c)_Pencil-6_Quick_Shade.kpp")
+            ? QColor(Qt::white) : QColor(17, 129, 241);
         const auto configure = [&] {
             resources->setPaintOpPreset(preset); resources->setSize(13.75); resources->setOpacity(.7);
             resources->setGlobalAlphaLock(false); resources->setMirrorHorizontal(false); resources->setMirrorVertical(false);
             resources->setEraserMode(false); resources->setCurrentCompositeOp(QStringLiteral("normal"));
-            resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+            resources->setFGColor(KoColor(maskForeground, cs));
             resources->setBGColor(KoColor(QColor(71, 241, 129), cs));
             if (figureFillStyle == KisFigurePaintingOptions::FillStylePattern) resources->slotPatternActivated(figurePattern);
         };
@@ -1277,7 +1281,10 @@ void KisGpuDocumentViewTest::maskPresetsKeepOrdinaryEditing()
         stroke({{24, 24}, {40, 36}});
         if (filledFigure) QTRY_COMPARE(lifetime->undoStack()->index(), initialUndoIndex + 1);
         const auto painted = pixels();
-        QVERIFY(painted != initial);
+        auto maskColor = resources->fgColor();
+        maskColor.convertTo(KoColorSpaceRegistry::instance()->colorSpace(GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()));
+        QVERIFY2(painted != initial, qPrintable(QStringLiteral("Unchanged mask: GPU=%1, Gray=%2, history=%3 -> %4")
+            .arg(gpu).arg(maskColor.data()[0]).arg(initialUndoIndex).arg(lifetime->undoStack()->index())));
         QVERIFY2(compare(), "Ordinary mask preset painting must match native Alpha8 pixels");
         lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(pixels(), initial);
         lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(pixels(), painted);
