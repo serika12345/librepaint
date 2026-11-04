@@ -175,8 +175,11 @@ bool KisNodeManager::Private::activateNodeImpl(KisNodeSP node)
     } else {
         previouslyActiveNode = q->activeNode();
 
-        if (imageView->image() && imageView->image()->gpuImage() &&
-            (node->inherits("KisLayer") || imageView->image()->isGpuEditableMaskView(node))) {
+        const auto image = imageView->image();
+        const auto selectionMask = qobject_cast<KisSelectionMask *>(node.data());
+        const bool globalSelection = image && selectionMask && selectionMask->selection() == image->globalSelection();
+        if (image && image->gpuImage() &&
+            (node->inherits("KisLayer") || image->isGpuEditableMaskView(node) || globalSelection)) {
             KisLayerSP layer = qobject_cast<KisLayer *>(node.data());
             KisMaskSP mask = qobject_cast<KisMask *>(node.data());
             if (mask) layer = qobject_cast<KisLayer *>(node->parent().data());

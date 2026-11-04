@@ -837,6 +837,13 @@ void KisImage::setOverlaySelectionMask(KisSelectionMaskSP mask)
 
     m_d->targetOverlaySelectionMask = mask;
 
+    if (m_d->gpuImage) {
+        KIS_SAFE_ASSERT_RECOVER_RETURN(!mask || static_cast<KisImage *>(mask->graphListener()) == this);
+        m_d->overlaySelectionMask = mask;
+        undoAdapter()->emitSelectionChanged();
+        return;
+    }
+
     struct UpdateOverlaySelectionStroke : public KisSimpleStrokeStrategy {
         UpdateOverlaySelectionStroke(KisImageSP image)
             : KisSimpleStrokeStrategy(QLatin1String("update-overlay-selection-mask"), kundo2_noi18n("update-overlay-selection-mask")),

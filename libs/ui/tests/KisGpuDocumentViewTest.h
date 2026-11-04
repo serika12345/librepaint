@@ -356,6 +356,8 @@ private Q_SLOTS:
     void colorFilterActionsKeepNativeEditing();
     void cpuFiltersKeepNativeEditing_data();
     void cpuFiltersKeepNativeEditing();
+    void cpuMaskFiltersKeepNativeEditing_data();
+    void cpuMaskFiltersKeepNativeEditing();
     void convolutionFiltersKeepNativeEditing_data();
     void convolutionFiltersKeepNativeEditing();
     void filterNodesKeepNativeEditing_data();

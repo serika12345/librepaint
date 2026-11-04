@@ -1228,6 +1228,8 @@ public:
     QList<Snapshot> historyVersions() const;
     /** Action reaching the given history position; None for the initial or invalid position. */
     HistoryAction historyAction(int index) const;
+    /** Product filter identity for a destructive CPU filter history entry. */
+    QString historyFilterId(int index) const;
     /** Original rectangle and layer identity for resuming a retained crop action. */
     CropSnapshot historyCrop(int index) const;
     std::optional<CanvasResize> historyCanvasResize(int index) const;
@@ -1619,6 +1621,7 @@ private:
         /** Adds or removes one layer's transparency mask in its retained version. */
         bool addedTransparencyMask = false;
         bool removedTransparencyMask = false;
+        QString filterId;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     std::unique_ptr<OperationDocument> layerGroupingDraft() const;

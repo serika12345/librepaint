@@ -1326,7 +1326,7 @@ add_test(NAME ${gpu_document_color_filter_test}
     COMMAND KisGpuDocumentViewTest colorFilterActionsKeepNativeEditing)
 set(gpu_document_cpu_filter_test libs-ui-filter-cpu-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_cpu_filter_test}
-    COMMAND KisGpuDocumentViewTest cpuFiltersKeepNativeEditing)
+    COMMAND KisGpuDocumentViewTest cpuFiltersKeepNativeEditing cpuMaskFiltersKeepNativeEditing)
 set_tests_properties(${gpu_document_color_filter_test} PROPERTIES RUN_SERIAL TRUE TIMEOUT 900)
 set(gpu_document_convolution_filter_test libs-ui-filter-convolution-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_convolution_filter_test}

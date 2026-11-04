@@ -367,6 +367,10 @@ LayerId OperationDocument::activeLayer() const { return snapshot()->activeLayer;
 int OperationDocument::undoCount() const { return m_index; }
 int OperationDocument::redoCount() const { return m_history.size() - m_index - 1; }
 QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
+QString OperationDocument::historyFilterId(int index) const
+{
+    return index > 0 && index < m_layerHistoryChanges.size() ? m_layerHistoryChanges[index].filterId : QString{};
+}
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;

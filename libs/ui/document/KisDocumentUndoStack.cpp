@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KisDocumentUndoStack_p.h"
+#include <filter/kis_filter.h>
+#include <filter/kis_filter_registry.h>
 #include "KisDocument.h"
 #include <kis_image.h>
 #include <kis_node.h>
@@ -147,6 +149,8 @@ void KisDocumentUndoStack::synchronizeGpuHistory()
         if (!owned.contains(command)) command = nullptr;
         if (!command) {
             auto label = historyLabel(document.historyAction(index));
+            if (const auto filter = KisFilterRegistry::instance()->value(document.historyFilterId(index)))
+                label = kundo2_i18nc("Filter as an effect", "Filter \"%1\"", filter->name());
             if (const auto crop = document.historyCrop(index)) {
                 bool mask = !crop->maskUuid.isNull();
                 for (const auto &layer : versions[index]->layers)

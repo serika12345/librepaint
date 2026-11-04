@@ -18,7 +18,6 @@
 #include <KisGpuBlendMode.h>
 #include <KisGpuFilterConfiguration.h>
 #include <KisGpuCpuFilter.h>
-#include <KisGpuPaintDeviceTransfer_p.h>
 #include <QHash>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -208,8 +207,10 @@ bool KisFilterManager::applyGpuFilter(const QString &filterId, KisFilterConfigur
         showGpuDiagnostic(d->view, i18n("Cannot apply filter to locked layer."));
         return true;
     }
-    const bool cpu = LibrePaint::Image::Gpu::filterExecutionLocation(filterId) ==
-        LibrePaint::Image::Gpu::ExecutionLocation::Cpu;
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto device = d->view->activeNode()->paintDevice();
+    const auto target = device && device->pixelSize() == 1 ? Gpu::FilterTarget::Alpha : Gpu::FilterTarget::Rgba;
+    const bool cpu = Gpu::filterExecutionLocation(filterId, target) == Gpu::ExecutionLocation::Cpu;
     if (interactive && ((cpu && filter->showConfigurationWidget()) ||
                         filterId == QLatin1String("hsvadjustment") ||
                         filterId == QLatin1String("fastcoloroverlay"))) showGpuFilterDialog(filterId, config);
@@ -229,7 +230,9 @@ bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config)
         id == QLatin1String("emboss laplascian") || id == QLatin1String("emboss all directions") ||
         id == QLatin1String("emboss horizontal and vertical") || id == QLatin1String("emboss vertical only") ||
         id == QLatin1String("emboss horizontal only");
-    if (Gpu::filterExecutionLocation(id) == Gpu::ExecutionLocation::Cpu) {
+    const auto device = d->view->activeNode() ? d->view->activeNode()->paintDevice() : KisPaintDeviceSP{};
+    const auto target = device && device->pixelSize() == 1 ? Gpu::FilterTarget::Alpha : Gpu::FilterTarget::Rgba;
+    if (Gpu::filterExecutionLocation(id, target) == Gpu::ExecutionLocation::Cpu) {
         applied = kisGpuApplyCpuFilter(image.data(), d->view->activeNode(), config);
     } else if (convolution) {
         const auto frozen = freezeGpuFilterConfiguration(config, image->colorSpace());
@@ -275,7 +278,7 @@ bool KisFilterManager::applyGpuConfiguration(KisFilterConfigurationSP config)
         applied = image->colorFilterGpuLayerColors(d->view->activeNode(), kind, overlay);
     }
     if (!applied) {
-        showGpuDiagnostic(d->view, i18n("This filter requires an editable GPU paint layer and supported document precision."));
+        showGpuDiagnostic(d->view, i18n("This filter requires an editable paint layer or mask and supported document precision."));
         return false;
     }
     // Keep Apply Filter Again consistent with the CPU path, which records the
@@ -302,16 +305,12 @@ void KisFilterManager::showGpuFilterDialog(const QString &filterId, KisFilterCon
     if (!filter) return;
     KisPaintDeviceSP configurationDevice = d->view->activeNode()->paintDevice();
     if (!configurationDevice) return;
-    if (LibrePaint::Image::Gpu::filterExecutionLocation(filterId) == LibrePaint::Image::Gpu::ExecutionLocation::Cpu) {
+    const auto target = configurationDevice->pixelSize() == 1 ? LibrePaint::Image::Gpu::FilterTarget::Alpha :
+        LibrePaint::Image::Gpu::FilterTarget::Rgba;
+    if (LibrePaint::Image::Gpu::filterExecutionLocation(filterId, target) == LibrePaint::Image::Gpu::ExecutionLocation::Cpu) {
         try {
-            const auto owner = d->view->image()->gpuImage();
-            const auto version = owner->operations().snapshot();
-            LibrePaint::Image::Gpu::LayerId layerId = 0;
-            for (const auto &layer : version->layers)
-                if (layer.uuid == d->view->activeNode()->uuid()) { layerId = layer.id; break; }
-            if (!layerId) return;
-            configurationDevice = kisGpuPaintDeviceTransfer(owner, layerId, configurationDevice->defaultBounds(),
-                version, configurationDevice->colorSpace());
+            configurationDevice = kisGpuFilterConfigurationDevice(d->view->image().data(), d->view->activeNode());
+            if (!configurationDevice) return;
         } catch (const std::exception &) {
             showGpuDiagnostic(d->view, i18n("The layer pixels could not be read for the filter settings."));
             return;

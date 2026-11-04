@@ -90,11 +90,56 @@ Result PaintImage::writeRgbaPixels(const LayerPixelReferenceSP &pixels, QRect re
     return applyRgbaPixels(pixels->m_layer, region, bytes, false, &pixels->m_version);
 }
 
-Result PaintImage::replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes)
-{ return applyRgbaPixels(layer, region, bytes, true); }
+Result PaintImage::replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, const QString &filterId)
+{ return applyRgbaPixels(layer, region, bytes, true, nullptr, filterId); }
+
+Result PaintImage::publishFilterResult(Result result, const Snapshot &before, const QString &filterId)
+{
+    auto &document = *m_d->document;
+    if (result == Result::Success && document.snapshot() != before)
+        document.m_layerHistoryChanges[document.m_index].filterId = filterId;
+    return publish(result);
+}
+
+Result PaintImage::replaceMaskPixels(LayerId layer, const QUuid &maskUuid, QRect region,
+                                    const QByteArray &bytes, const QString &filterId)
+{
+    if (!onThread()) return Result::InvalidInput;
+    auto &document = *m_d->document;
+    const auto status = document.checkMutation();
+    if (status != Result::Success) return status;
+    const auto before = document.snapshot();
+    SelectionMaskSP source;
+    QPoint position;
+    if (layer) {
+        const auto found = std::find_if(before->layers.cbegin(), before->layers.cend(),
+            [&](const auto &value) { return value.id == layer; });
+        if (found == before->layers.cend() || maskUuid.isNull()) return Result::LayerUnavailable;
+        source = editableMaskCoverage(*found, maskUuid);
+        if (!source) return Result::LayerUnavailable;
+        if (found->userLocked || (maskUuid != found->uuid && found->transparencyMaskLocked)) return Result::LayerUnavailable;
+        position = maskUuid == found->uuid ? found->position : found->transparencyMaskPosition;
+    } else {
+        if (!maskUuid.isNull() || before->selection.isEmpty()) return Result::LayerUnavailable;
+        const QRect canvas(QPoint(), before->size);
+        source = before->selectionKind == SelectionKind::Freehand ? before->selectionMask :
+            before->selectionKind == SelectionKind::Ellipse ? SelectionMask::fromEllipse(before->selection, canvas | before->selection) :
+                SelectionMask::fromRectangle(before->selection, canvas | before->selection);
+        if (before->selectionInverted && source) source = complementSelectionMask(source, canvas);
+        if (!source) return Result::CapacityExceeded;
+    }
+    // A detached write prepares new coverage without touching the current
+    // document version. Adoption follows only after every transfer succeeds.
+    const auto result = applyMaskPixels(0, {}, region, bytes, &source, before->size, position);
+    if (result != Result::Success) return result;
+    if (document.snapshot() != before) return Result::StaleVersion;
+    const auto adopted = layer ? document.replaceTransparencyMask(layer, source, false, false, maskUuid) :
+        source->isEmpty() ? document.clearSelection() : document.setSelectionMask(source);
+    return publishFilterResult(adopted, before, filterId);
+}
 
 Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory,
-                                 Snapshot *retainedVersion)
+                                 Snapshot *retainedVersion, const QString &filterId)
 {
     if (!onThread()) return Result::InvalidInput;
     auto &d = *m_d;
@@ -157,7 +202,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
     } catch (const std::bad_alloc &) {
         return Result::CapacityExceeded;
     }
-    if (recordHistory) return publish(adopted);
+    if (recordHistory) return publishFilterResult(adopted, current, filterId);
     if (adopted == Result::Success) requestCurrentVersion();
     return adopted;
 }
@@ -211,6 +256,12 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
                                    SelectionMaskSP *retainedCoverage, QSize retainedCanvasSize, QPoint retainedPosition)
 {
     if (!onThread() || maskUuid.isNull()) return Result::InvalidInput;
+    return applyMaskPixels(layer, maskUuid, region, bytes, retainedCoverage, retainedCanvasSize, retainedPosition);
+}
+
+Result PaintImage::applyMaskPixels(LayerId layer, const QUuid &maskUuid, QRect region, const QByteArray &bytes,
+                                   SelectionMaskSP *retainedCoverage, QSize retainedCanvasSize, QPoint retainedPosition)
+{
     auto &d = *m_d;
     auto &document = *d.document;
     const auto status = document.checkMutation();
@@ -218,7 +269,7 @@ Result PaintImage::writeMaskPixels(LayerId layer, const QUuid &maskUuid, QRect r
     if (status != Result::Success && !(closed && retainedCoverage && *retainedCoverage)) return status;
     const auto current = closed ? Snapshot{} : document.snapshot();
     const auto findTarget = [&](const Snapshot &version) -> QPair<LayerId, SelectionMaskSP> {
-        if (!version) return {};
+        if (!version || maskUuid.isNull()) return {};
         for (const auto &node : version->layers) {
             const auto coverage = editableMaskCoverage(node, maskUuid);
             if (coverage) return {node.id, coverage};

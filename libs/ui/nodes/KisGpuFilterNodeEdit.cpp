@@ -30,6 +30,7 @@ KisNodeSP runFilterNodeDialog(KisViewManager *view, KisNodeSP existing, KisNodeS
     const auto owner = image ? image->gpuImage() : Gpu::PaintImageSP{};
     if (!owner || owner->operations().hasActiveStroke() ||
         !Gpu::isFilterNode(kind) || (!existing && (!parent || parent->image().data() != image.data()))) return {};
+    const auto before = owner->operations().snapshot();
     const QPointer<KisViewManager> retainedView(view);
     Gpu::RasterLayer properties;
     properties.uuid = QUuid::createUuid();
@@ -56,6 +57,8 @@ KisNodeSP runFilterNodeDialog(KisViewManager *view, KisNodeSP existing, KisNodeS
     };
     const auto cancel = [&] {
         if (!operation.isNull()) owner->cancelFilterNodeEdit(operation);
+        if (stillAttached() && owner->operations().snapshot()->historyRevision() == before->historyRevision())
+            owner->selectLayers(before->selectedLayers, before->activeLayer);
         operation = {};
         target = 0;
         previewAccepted = false;

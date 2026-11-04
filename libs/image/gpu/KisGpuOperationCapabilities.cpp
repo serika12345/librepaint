@@ -5,8 +5,9 @@
 #include "KisGpuOperationCapabilities.h"
 
 namespace LibrePaint::Image::Gpu {
-ExecutionLocation filterExecutionLocation(const QString &id)
+ExecutionLocation filterExecutionLocation(const QString &id, FilterTarget target)
 {
+    if (target == FilterTarget::Alpha) return ExecutionLocation::Cpu;
     static constexpr const char *gpuFilters[] = {
         "invert", "desaturate", "hsvadjustment", "maximize", "minimize",
         "resettransparent", "fastcoloroverlay", "sharpen", "mean removal",

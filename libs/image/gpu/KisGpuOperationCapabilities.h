@@ -10,10 +10,12 @@
 
 namespace LibrePaint::Image::Gpu {
 enum class ExecutionLocation { Gpu, Cpu };
+enum class FilterTarget { Rgba, Alpha };
 
 /** Current execution location for a registered destructive filter. CPU filters
  * run on transferred pixels and publish their result in the GPU document.
  */
-KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation filterExecutionLocation(const QString &id);
+KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation filterExecutionLocation(const QString &id,
+    FilterTarget target = FilterTarget::Rgba);
 }
 #endif

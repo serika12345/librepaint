@@ -247,7 +247,12 @@ public:
     Result commitGeneratorEdit(OperationId id, const QString &name);
     Result cancelGeneratorEdit(OperationId id);
     /** Replaces nonempty packed pixel rectangles in one history entry. */
-    Result replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
+    Result replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, const QString &filterId = {});
+    /** CPU filter result for an editable Alpha8 mask. Layer zero targets the
+     * document selection; otherwise maskUuid identifies the layer's coverage.
+     * Preserves pixels outside region and publishes one named history entry. */
+    Result replaceMaskPixels(LayerId layer, const QUuid &maskUuid, QRect region,
+                             const QByteArray &bytes, const QString &filterId);
     /** Direct packed RGBA writes at document precision preserve history, notifications and fixed versions.
      * Ignores surplus input bytes and accepts empty rectangles. Transfers and
      * compression finish before logical adoption; rejected writes are atomic.
@@ -405,7 +410,10 @@ private:
     Result applyMaskPosition(const QUuid &maskUuid, QPoint position, SelectionMaskSP *retainedCoverage,
                              QPoint retainedPosition, bool request);
     Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory,
-                           Snapshot *retainedVersion = nullptr);
+                           Snapshot *retainedVersion = nullptr, const QString &filterId = {});
+    Result publishFilterResult(Result result, const Snapshot &before, const QString &filterId);
+    Result applyMaskPixels(LayerId layer, const QUuid &maskUuid, QRect region, const QByteArray &bytes,
+                           SelectionMaskSP *retainedCoverage, QSize retainedCanvasSize, QPoint retainedPosition);
     QSharedPointer<PaintImage> createMaskImage(const Snapshot &version, const SelectionMaskSP &mask);
     Result refreshMaskStrokePreview(Result result);
     Result commitMaskStroke();
