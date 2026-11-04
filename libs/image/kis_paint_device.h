@@ -117,6 +117,19 @@ public:
 
     void makeFullCopyFrom(const KisPaintDevice& rhs, KritaUtils::DeviceCopyMode copyMode = KritaUtils::CopySnapshot, KisNode *newParentNode = 0);
 
+    /** Prepares native CPU tiles for a GPU RGBA or Alpha device on its owning
+     * thread. Preserves sparse allocation, position and implicit pixels.
+     * maximumBytes bounds native tile storage; failure returns null and keeps
+     * the source unchanged. Image migration prepares every device before adoption.
+     */
+    class CpuMigration;
+    QSharedPointer<CpuMigration> prepareCpuMigration(qsizetype maximumBytes) const;
+    /** Adopts prepared CPU tiles in this same device without allocating or
+     * notifying its node. A stale or consumed preparation returns false.
+     * The image owner coordinates the scheduler, history and change notifications.
+     */
+    bool applyCpuMigration(const QSharedPointer<CpuMigration> &migration);
+
 protected:
     /**
      * A special constructor for usage in KisPixelSelection. It allows

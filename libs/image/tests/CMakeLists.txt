@@ -146,6 +146,13 @@ add_dependencies(KisGpuCpuLayerVersionTest kritalcmsengine)
 set_tests_properties(${gpu_cpu_layer_version_test} PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120 RUN_SERIAL TRUE)
 
+kis_add_test(KisGpuCpuDeviceMigrationTest.cpp
+    TEST_NAME_VAR gpu_cpu_device_migration_test
+    LINK_LIBRARIES kritaimage kritatestsdk)
+add_dependencies(KisGpuCpuDeviceMigrationTest kritalcmsengine)
+set_tests_properties(${gpu_cpu_device_migration_test} PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 120 RUN_SERIAL TRUE)
+
 kis_add_test(
     KisTimeSpanContractTest.cpp
     LINK_LIBRARIES

@@ -27,10 +27,12 @@
 #include <algorithm>
 #include <cstring>
 #include <new>
+#include <memory>
 #include <limits>
 #include <string>
 #include <stdexcept>
 #include <QThread>
+#include <QRegion>
 #include <QtGlobal>
 #include <KisRegion.h>
 
@@ -83,6 +85,7 @@
 #include "krita_utils.h"
 #include "tiles3/kis_hline_iterator.h"
 #include "tiles3/kis_vline_iterator.h"
+#include "tiles3/kis_tile_data_interface.h"
 #include <KisStaticInitializer.h>
 #include <qnamespace.h>
 #include <qobject.h>
@@ -136,6 +139,7 @@ KoColor gpuDefaultColor(const LibrePaint::Image::Gpu::RgbaPixel &rgba,
 
 struct KisPaintDevice::Private
 {
+    friend class KisPaintDevice;
     /**
      * Used when the paint device is loading to ensure no lod/animation
      * interferes the process.
@@ -413,6 +417,8 @@ private:
     typedef KisPaintDeviceData Data;
     typedef QSharedPointer<Data> DataSP;
     typedef QHash<int, DataSP> FramesHash;
+
+    void adoptCpuData(DataSP data, KisPaintDeviceStrategy *strategy);
 
     class FrameInsertionCommand : public KUndo2Command
     {
@@ -789,6 +795,114 @@ private:
 const KisDefaultBoundsSP KisPaintDevice::Private::transitionalDefaultBounds = new KisDefaultBounds();
 
 #include "kis_paint_device_strategies.h"
+
+class KisPaintDevice::CpuMigration
+{
+public:
+    KisPaintDeviceSP target;
+    LibrePaint::Image::Gpu::PaintImageSP owner;
+    LibrePaint::Image::Gpu::Snapshot version;
+    LibrePaint::Image::Gpu::SelectionMaskSP selection;
+    QSharedPointer<KisPaintDeviceData> data;
+    std::unique_ptr<Private::KisPaintDeviceStrategy> strategy;
+};
+
+void KisPaintDevice::Private::adoptCpuData(DataSP data, KisPaintDeviceStrategy *strategy)
+{
+    gpuImage.clear();
+    gpuPixels.clear();
+    gpuSelectionOwner.clear();
+    gpuSelection.clear();
+    gpuSelectionMaskUuid = {};
+    gpuSelectionCanvasSize = {};
+    gpuSelectionPosition = {};
+    gpuColorSpace = nullptr;
+    gpuSequenceOperations.clear();
+    gpuSequencePixels.reset();
+    m_lodData.reset();
+    m_externalFrameData.reset();
+    wrappedStrategy.reset();
+    m_data = std::move(data);
+    basicStrategy.reset(strategy);
+}
+
+QSharedPointer<KisPaintDevice::CpuMigration> KisPaintDevice::prepareCpuMigration(qsizetype maximumBytes) const
+{
+    const auto owner = m_d->gpuImage ? m_d->gpuImage : m_d->gpuSelectionOwner;
+    if (!owner || maximumBytes < 0 || QThread::currentThread() != owner->thread() ||
+        m_d->framesInterface || owner->operations().hasActiveStroke()) return {};
+    try {
+        auto prepared = QSharedPointer<CpuMigration>::create();
+        prepared->target = const_cast<KisPaintDevice *>(this);
+        prepared->owner = owner;
+        prepared->version = m_d->gpuImage ? m_d->gpuPixelVersion() : owner->operations().snapshot();
+        prepared->selection = m_d->gpuSelection;
+        const auto position = offset();
+        QVector<QRect> areas;
+        if (m_d->gpuSelection) {
+            const auto &blocks = m_d->gpuSelection->allocatedBlocks();
+            areas = QVector<QRect>(blocks.cbegin(), blocks.cend());
+        } else {
+            const auto allocation = owner->execution().layerTileCoordinates(owner->handle(), prepared->version,
+                m_d->gpuLayerId(), owner->limits().rasterBytes /
+                    LibrePaint::Image::Gpu::RgbaTile::byteCount(prepared->version->format));
+            if (allocation.code != LibrePaint::Image::Gpu::ExecutionCode::Success) return {};
+            areas = allocation.writtenAreas;
+        }
+
+        // Native tiles are aligned relative to the device position. A moved
+        // sparse allocation can straddle several tiles on the CPU grid.
+        const int side = KisTileData::WIDTH;
+        const auto tileIndex = [side](qint64 value) { return value >= 0 ? value / side : (value - side + 1) / side; };
+        QRegion allocation;
+        for (const auto &area : areas) {
+            if (area.isEmpty()) continue;
+            const qint64 left = tileIndex(qint64(area.left()) - position.x()) * side + position.x();
+            const qint64 top = tileIndex(qint64(area.top()) - position.y()) * side + position.y();
+            const qint64 right = (tileIndex(qint64(area.right()) - position.x()) + 1) * side + position.x();
+            const qint64 bottom = (tileIndex(qint64(area.bottom()) - position.y()) + 1) * side + position.y();
+            if (left < std::numeric_limits<int>::min() || top < std::numeric_limits<int>::min() ||
+                right > std::numeric_limits<int>::max() || bottom > std::numeric_limits<int>::max() ||
+                right - left > std::numeric_limits<int>::max() || bottom - top > std::numeric_limits<int>::max()) return {};
+            allocation |= QRect(int(left), int(top), int(right - left), int(bottom - top));
+        }
+        const int pixelBytes = pixelSize();
+        qsizetype remaining = maximumBytes;
+        for (const auto &area : allocation)
+            remaining -= kisNativePixelByteCount(area, pixelBytes, remaining);
+
+        KisPaintDeviceSP native = new KisPaintDevice(colorSpace(), objectName());
+        native->moveTo(position);
+        native->setDefaultPixel(defaultPixel());
+        QByteArray bytes(side * side * pixelBytes, Qt::Uninitialized);
+        for (const auto &area : allocation) {
+            for (int y = area.top(); y < area.top() + area.height(); y += side) {
+                for (int x = area.left(); x < area.left() + area.width(); x += side) {
+                    const QRect block(x, y, side, side);
+                    readBytes(reinterpret_cast<quint8 *>(bytes.data()), block);
+                    native->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), block);
+                }
+            }
+        }
+        prepared->data = toQShared(new KisPaintDeviceData(const_cast<KisPaintDevice *>(this),
+            native->m_d->currentNonLodData(), true));
+        prepared->strategy = std::make_unique<Private::KisPaintDeviceStrategy>(const_cast<KisPaintDevice *>(this), m_d);
+        return prepared;
+    } catch (const std::exception &) {
+        return {};
+    }
+}
+
+bool KisPaintDevice::applyCpuMigration(const QSharedPointer<CpuMigration> &migration)
+{
+    if (!migration || migration->target.data() != this || !migration->data || !migration->strategy ||
+        QThread::currentThread() != migration->owner->thread() ||
+        (m_d->gpuImage ? m_d->gpuImage : m_d->gpuSelectionOwner) != migration->owner ||
+        (m_d->gpuImage ? m_d->gpuPixelVersion() : migration->owner->operations().snapshot()) != migration->version ||
+        m_d->gpuSelection != migration->selection) return false;
+    m_d->adoptCpuData(std::move(migration->data), migration->strategy.release());
+    return true;
+}
 
 KisPaintDevice::Private::Private(KisPaintDevice *paintDevice, LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer)
     : q(paintDevice),
