@@ -14,6 +14,7 @@
 #include <QList>
 #include <QSharedPointer>
 #include <QUuid>
+#include <functional>
 
 #include <KoColorConversionTransformation.h>
 
@@ -197,6 +198,14 @@ public:
     /** Imports a public mask selection as a direct write. History count and
      * fixed snapshots stay unchanged; invalid or over-budget input returns false. */
     bool writeGpuTransparencyMaskSelection(KisNodeSP node, const KisSelectionSP &selection);
+    /** Native vector owner supplies SVG parsing and serialization on the image thread. */
+    using GpuVectorSelectionReader = std::function<KisSelectionSP(KisImage *, const QByteArray &)>;
+    using GpuVectorSelectionWriter = std::function<QByteArray(const KisSelectionSP &, const QRect &)>;
+    void setGpuVectorSelectionCodec(GpuVectorSelectionReader reader, GpuVectorSelectionWriter writer);
+    /** Publishes pending native vector changes before a file snapshot is pinned. */
+    bool flushGpuVectorSelections();
+    /** Rasterizes a native vector edit and publishes its shape and coverage in one history entry. */
+    bool updateGpuVectorSelection(KisNodeSP node, const KisSelectionSP &selection);
     /** Detached copies of supported GPU subtrees, preserving supplied root order
      * and independent overlapping roots. Their pixel devices share one copied
      * image and retain its execution. Invalid input returns an empty list;
@@ -1440,6 +1449,9 @@ private:
 
 private:
     LibrePaint::Image::Gpu::SelectionMaskSP importGpuMaskCoverage(const KisSelectionSP &selection) const;
+    bool synchronizeGpuVectorSelection(KisTransparencyMaskSP mask, const LibrePaint::Image::Gpu::SelectionMaskSP &coverage);
+    GpuVectorSelectionReader m_gpuVectorSelectionReader;
+    GpuVectorSelectionWriter m_gpuVectorSelectionWriter;
     class KisImagePrivate;
     KisImagePrivate * m_d;
     bool m_synchronizingGpuNodes = false;

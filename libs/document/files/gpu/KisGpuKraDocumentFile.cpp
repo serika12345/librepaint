@@ -102,7 +102,8 @@ ExecutionOutcome readKraMaskPixels(Execution &execution, RasterImage &image, qsi
                 rasterBytes += qsizetype(bytes);
             }
             const auto literal = SelectionMask::fromAlphaTiles(tiles, mask->defaultCoverage());
-            const auto result = literal ? literal->withAllocatedBlocks(mask->allocatedBlocks()) : SelectionMaskSP{};
+            const auto allocated = literal ? literal->withAllocatedBlocks(mask->allocatedBlocks()) : SelectionMaskSP{};
+            const auto result = allocated ? allocated->withVectorSelection(mask->vectorSelection()) : SelectionMaskSP{};
             if (!result || result->bounds() != bounds) {
                 maskRead = {ExecutionCode::DeviceFailure, QStringLiteral("KRA selection pixels disagree with the frozen bounds")};
                 return {};

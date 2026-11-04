@@ -460,7 +460,8 @@ bool KisKraSaveVisitor::saveSelection(KisNode* node)
 
     bool retval = true;
 
-    if (node->isAnimated() || selection->hasNonEmptyPixelSelection()) {
+    if (selection->hasShapeSelection()) selection->updateProjection();
+    if (node->isAnimated() || selection->hasNonEmptyPixelSelection() || selection->hasNonEmptyShapeSelection()) {
         KisPaintDeviceSP dev = selection->pixelSelection();
         if (!savePaintDevice(dev, getLocation(node, DOT_PIXEL_SELECTION))) {
             m_errorMessages << i18n("Failed to save the pixel selection data for layer %1.", node->name());

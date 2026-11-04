@@ -117,6 +117,7 @@ public:
     KoShapeManager *shapeManager() const;
 
     static bool saveShapesToStore(KoStore *store, QList<KoShape*> shapes, const QSizeF &sizeInPt);
+    static bool saveShapesToDevice(QIODevice &device, QList<KoShape*> shapes, const QSizeF &sizeInPt);
 
     static QList<KoShape *> createShapesFromSvg(QIODevice *device,
                                                 const QString &baseXmlDir,

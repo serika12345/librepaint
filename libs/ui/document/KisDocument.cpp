@@ -113,6 +113,11 @@
 #include <kis_time_span.h>
 #include <application/kis_config.h>
 #include <flake/kis_shape_layer.h>
+#include <flake/kis_shape_selection.h>
+#include <KisImageResolutionProxy.h>
+#include <kis_selection.h>
+#include <kis_transparency_mask.h>
+#include <kis_default_bounds.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_annotation.h>
@@ -327,6 +332,33 @@ QImage fixedImagePreview(KisImageSP image, const LibrePaint::Image::Gpu::Snapsho
         painter.fillRect(preview.rect(), QBrush(KisCanvasWidgetBase::createCheckersImage(newSize.width() / 5)));
     }
     return preview;
+}
+
+void configureGpuVectorSelections(KisDocument *document, KisImageSP image)
+{
+    if (!image->gpuImage()) return;
+    const QPointer<KisDocument> guard(document);
+    image->setGpuVectorSelectionCodec(
+        [guard](KisImage *view, const QByteArray &svg) -> KisSelectionSP {
+            if (!guard) return {};
+            KisSelectionSP selection = new KisSelection(new KisDefaultBounds(view),
+                toQShared(new KisImageResolutionProxy(view)));
+            auto *shapes = new KisShapeSelection(guard->shapeController(), selection);
+            selection->convertToVectorSelectionNoUndo(shapes);
+            QBuffer input;
+            input.setData(svg);
+            input.open(QIODevice::ReadOnly);
+            if (!shapes->loadSvg(input, view->bounds())) return {};
+            selection->updateProjection();
+            return selection;
+        },
+        [](const KisSelectionSP &selection, const QRect &bounds) {
+            const auto *shapes = dynamic_cast<const KisShapeSelection *>(selection->shapeSelection());
+            if (!shapes) return QByteArray{};
+            QBuffer output;
+            output.open(QIODevice::WriteOnly);
+            return shapes->saveSvg(output, bounds) ? output.data() : QByteArray{};
+        });
 }
 
 LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document,
@@ -1159,6 +1191,7 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
                                     KisPropertiesConfigurationSP exportConfiguration, bool isAdvancedExporting)
 {
     namespace GpuDocument = LibrePaint::Document::Gpu;
+    const QPointer<KisDocument> documentGuard(this);
     const auto fileDocument = d->gpuDocument;
     if (!fileDocument) return false;
     KisImportExportErrorCode status = ImportExportCodes::Failure;
@@ -1181,6 +1214,11 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
     } else if (isSaving()) {
         status = ImportExportCodes::Busy;
         diagnostic = i18n("Another save operation is in progress.");
+    } else if (!d->image->flushGpuVectorSelections()) {
+        status = ImportExportCodes::Busy;
+        diagnostic = i18n("Finish the vector selection edit before saving.");
+    } else if (!documentGuard || d->gpuDocument != fileDocument) {
+        return false;
     } else if (rasterExport && !exporting && !fileDocument->image()->operations().snapshot()->isCommitted()) {
         status = ImportExportCodes::Busy;
         diagnostic = i18n("Finish the active painting operation before saving.");
@@ -1321,8 +1359,11 @@ QByteArray KisDocument::serializeToNativeByteArray()
 
     if (const auto fileDocument = d->gpuDocument) {
         if (!buffer.open(QIODevice::ReadWrite)) return {};
+        const QPointer<KisDocument> guard(this);
         try {
             const KisImageSP saveImage = d->image;
+            if (!d->image->flushGpuVectorSelections()) return {};
+            if (!guard || d->gpuDocument != fileDocument) return {};
             const auto pinned = fileDocument->image()->operations().snapshot();
             const auto encoding = saveImage->colorSpace();
             auto outcome = applyGpuKraMetadata(*this, *fileDocument);
@@ -1859,6 +1900,9 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::Private::startGpuAutoSave(
     if (q->isSaving()) return RecoveryAutoSaveStartResult::AlreadySaving;
     const auto fileDocument = gpuDocument;
     if (!fileDocument->image()->operations().activeOperation().isNull()) return RecoveryAutoSaveStartResult::Failed;
+    const QPointer<KisDocument> guard(q);
+    if (!image->flushGpuVectorSelections()) return RecoveryAutoSaveStartResult::Failed;
+    if (!guard || gpuDocument != fileDocument) return RecoveryAutoSaveStartResult::Failed;
     const auto pinned = fileDocument->image()->operations().snapshot();
     const KisImageSP saveImage = image;
     const auto encoding = saveImage->colorSpace();
@@ -3296,6 +3340,18 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
         if (metadata.metadata.layerCollapsed) node->setCollapsed(metadata.metadata.layerCollapsed->value(node->uuid()));
     });
     image->setResolution(metadata.metadata.resolution.x() / 72, metadata.metadata.resolution.y() / 72);
+    try {
+        configureGpuVectorSelections(this, image);
+        bool imported = true;
+        KisLayerUtils::recursiveApplyNodes(root, [&](KisNodeSP node) {
+            auto *mask = qobject_cast<KisTransparencyMask *>(node.data());
+            if (imported && mask && mask->selection()->hasShapeSelection())
+                imported = image->writeGpuTransparencyMaskSelection(node, mask->selection());
+        });
+        if (!imported) return reject(i18n("The KRA vector selection could not be rendered."));
+    } catch (const std::exception &failure) {
+        return reject(QString::fromUtf8(failure.what()), ImportExportCodes::FileFormatIncorrect);
+    }
     if (metadata.metadata.proofing) image->setProofingConfiguration(KisDocumentProofing::read(*metadata.metadata.proofing));
     auto *animation = image->animationInterface();
     if (timing.framerate) animation->setFramerate(*timing.framerate);
@@ -3672,6 +3728,7 @@ void KisDocument::setCurrentImageImpl(KisImageSP image, bool forceInitialUpdate,
 
     d->setImageAndInitIdleWatcher(image);
     d->image->setUndoStore(new KisDocumentUndoStore(d->undoStack));
+    configureGpuVectorSelections(this, image);
     if (!preActivatedNode) {
         if (const auto owner = image->gpuImage()) {
             const auto selected = owner->operations().activeLayer();

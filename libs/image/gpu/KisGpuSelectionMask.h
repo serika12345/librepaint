@@ -104,6 +104,10 @@ public:
      * Coverage remains unchanged; versions share the immutable pixel source. */
     QSharedPointer<const SelectionMask> withAllocatedBlocks(const QList<QRect> &blocks) const;
     const QList<QRect> &allocatedBlocks() const { return m_allocatedBlocks; }
+    /** Native SVG for an editable vector selection and its frozen coverage.
+     * Raster edits create coverage without this definition. */
+    QSharedPointer<const SelectionMask> withVectorSelection(const QByteArray &svg) const;
+    const QByteArray &vectorSelection() const { return m_vectorSelection; }
     QRect allocatedBounds() const;
     /** Frozen GPU-generated coverage. Only its exact bounds and display/hit
      * geometry are CPU values; editing and external pixel readers use the
@@ -167,7 +171,7 @@ public:
     const SelectionTileMap &tiles() const { return m_tiles; }
     /** Bytes per stored tile for this coverage format. */
     qsizetype tileBytes() const { return m_format == CoverageFormat::Alpha ? AlphaTileBytes : TileBytes; }
-    qsizetype byteCount() const { return m_tiles.size() * tileBytes() + m_generatedTiles.size() * qsizetype(sizeof(QPoint)) + (m_outlineRuns.size() + m_allocatedBlocks.size()) * qsizetype(sizeof(QRect)); }
+    qsizetype byteCount() const { return m_vectorSelection.size() + m_tiles.size() * tileBytes() + m_generatedTiles.size() * qsizetype(sizeof(QPoint)) + (m_outlineRuns.size() + m_allocatedBlocks.size()) * qsizetype(sizeof(QRect)); }
     bool operator==(const SelectionMask &other) const;
     bool operator!=(const SelectionMask &other) const { return !(*this == other); }
 
@@ -201,6 +205,7 @@ private:
     bool m_completed = false;
     QList<QRect> m_outlineRuns;
     QList<QRect> m_allocatedBlocks;
+    QByteArray m_vectorSelection;
     std::shared_ptr<Detail::SelectionPixels> m_nativePixels;
 };
 

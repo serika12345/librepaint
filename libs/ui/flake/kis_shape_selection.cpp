@@ -127,34 +127,32 @@ bool KisShapeSelection::saveSelection(KoStore * store, const QRect &imageRect) c
 
 bool KisShapeSelection::loadSelection(KoStore* store, const QRect &imageRect)
 {
-    QSizeF fragmentSize; // unused!
-
-    // FIXME: we handle xRes() only!
-    KIS_SAFE_ASSERT_RECOVER_NOOP(qFuzzyCompare(m_resolutionProxy->xRes(), m_resolutionProxy->yRes()));
-    const qreal resolutionPPI = 72.0 * m_resolutionProxy->xRes();
-
-    QList<KoShape*> shapes;
-
     if (store->open("content.svg")) {
         KoStoreDevice storeDev(store);
         storeDev.open(QIODevice::ReadOnly);
-
-        shapes = KisShapeLayer::createShapesFromSvg(&storeDev,
-                                                    "", imageRect,
-                                                    resolutionPPI, m_canvas->shapeController()->resourceManager(),
-                                                    true,
-                                                    &fragmentSize);
-
+        const bool loaded = loadSvg(storeDev, imageRect);
         store->close();
-
-        Q_FOREACH (KoShape *shape, shapes) {
-            addShape(shape);
-        }
-
-        return true;
+        return loaded;
     }
 
     return false;
+}
+
+bool KisShapeSelection::loadSvg(QIODevice &device, const QRect &imageRect)
+{
+    KIS_SAFE_ASSERT_RECOVER_NOOP(qFuzzyCompare(m_resolutionProxy->xRes(), m_resolutionProxy->yRes()));
+    QSizeF fragmentSize;
+    const auto shapes = KisShapeLayer::createShapesFromSvg(&device, "", imageRect,
+        72.0 * m_resolutionProxy->xRes(), m_canvas->shapeController()->resourceManager(), true,
+        &fragmentSize);
+    for (auto *shape : shapes) addShape(shape);
+    return true;
+}
+
+bool KisShapeSelection::saveSvg(QIODevice &device, const QRect &imageRect) const
+{
+    const QSizeF sizeInPt(imageRect.width() / m_resolutionProxy->xRes(), imageRect.height() / m_resolutionProxy->yRes());
+    return KisShapeLayer::saveShapesToDevice(device, shapes(), sizeInPt);
 }
 
 void KisShapeSelection::setUpdatesEnabled(bool enabled)

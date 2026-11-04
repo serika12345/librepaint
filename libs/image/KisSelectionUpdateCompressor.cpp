@@ -60,7 +60,9 @@ void KisSelectionUpdateCompressor::startUpdateJob()
         return;
     }
 
-    if (image) {
+    if (image->gpuImage() && image->isGpuTransparencyMaskView(parentNode) && m_parentSelection->hasShapeSelection()) {
+        image->updateGpuVectorSelection(parentNode, m_parentSelection);
+    } else {
         image->addSpontaneousJob(new KisUpdateSelectionJob(m_parentSelection, m_updateRect));
     }
     m_updateRect = QRect();

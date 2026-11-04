@@ -589,16 +589,20 @@ bool KisShapeLayer::saveShapesToStore(KoStore *store, QList<KoShape *> shapes, c
     KoStoreDevice storeDev(store);
     storeDev.open(QIODevice::WriteOnly);
 
-    std::sort(shapes.begin(), shapes.end(), KoShape::compareShapeZIndex);
-
-    SvgWriter writer(shapes);
-    writer.save(storeDev, sizeInPt);
+    const bool saved = saveShapesToDevice(storeDev, shapes, sizeInPt);
 
     if (!store->close()) {
         return false;
     }
 
-    return true;
+    return saved;
+}
+
+bool KisShapeLayer::saveShapesToDevice(QIODevice &device, QList<KoShape *> shapes, const QSizeF &sizeInPt)
+{
+    std::sort(shapes.begin(), shapes.end(), KoShape::compareShapeZIndex);
+    SvgWriter writer(shapes);
+    return writer.save(device, sizeInPt);
 }
 
 QList<KoShape *> KisShapeLayer::createShapesFromSvg(QIODevice *device, const QString &baseXmlDir, const QRectF &rectInPixels, qreal resolutionPPI, KoDocumentResourceManager *resourceManager, bool loadingFromKra, QSizeF *fragmentSize, QStringList *warnings, QStringList *errors)

@@ -258,6 +258,14 @@ QSharedPointer<const SelectionMask> SelectionMask::withAllocatedBlocks(const QLi
     return result;
 }
 
+QSharedPointer<const SelectionMask> SelectionMask::withVectorSelection(const QByteArray &svg) const
+{
+    if (svg.size() > MaximumBytes - (byteCount() - m_vectorSelection.size())) return {};
+    auto result = QSharedPointer<SelectionMask>(new SelectionMask(*this));
+    result->m_vectorSelection = svg;
+    return result;
+}
+
 QSharedPointer<const SelectionMask> SelectionMask::empty()
 {
     static const auto mask = QSharedPointer<const SelectionMask>(new SelectionMask({}, {}, CoverageFormat::Binary));
@@ -883,6 +891,7 @@ bool SelectionMask::operator==(const SelectionMask &other) const
         m_bounds == other.m_bounds && m_tiles == other.m_tiles &&
         m_combination == other.m_combination && m_translation == other.m_translation && m_transform == other.m_transform &&
         m_completed == other.m_completed && (!m_completed || m_nativePixels == other.m_nativePixels) &&
-        m_outlineRuns == other.m_outlineRuns && m_allocatedBlocks == other.m_allocatedBlocks;
+        m_outlineRuns == other.m_outlineRuns && m_allocatedBlocks == other.m_allocatedBlocks &&
+        m_vectorSelection == other.m_vectorSelection;
 }
 }

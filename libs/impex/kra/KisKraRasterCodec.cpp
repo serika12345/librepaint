@@ -715,6 +715,11 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                                  QMap<QString, QByteArray> &files, Limits limits, QMap<QUuid, QString> &layerFiles)
 {
     const auto folder = image.attribute(QStringLiteral("name"));
+    const auto removeVectorSelection = [&](const QString &path) {
+        const auto prefix = path + QStringLiteral(".shapeselection/");
+        auto it = files.lowerBound(prefix);
+        while (it != files.end() && it.key().startsWith(prefix)) it = files.erase(it);
+    };
     QMap<QUuid, QDomElement> original;
     QSet<QString> filenames;
     auto layers = image.firstChildElement(QStringLiteral("layers"));
@@ -862,6 +867,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                     files.remove(maskPath + QStringLiteral(".pixelselection.defaultpixel"));
                     files.remove(maskPath + QStringLiteral(".defaultpixel"));
                     files.remove(maskPath + QStringLiteral(".xmp.metadata"));
+                    removeVectorSelection(maskPath);
                 }
             } else {
                 if (!validName(layer.transparencyMaskName)) return invalid(QStringLiteral("Invalid KRA transparency mask name"));
@@ -915,6 +921,9 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
                 files.insert(maskPath + QStringLiteral(".pixelselection.defaultpixel"), QByteArray(1, char(layer.transparencyMask->defaultCoverage())));
                 files.remove(maskPath + QStringLiteral(".defaultpixel"));
                 files.remove(maskPath + QStringLiteral(".xmp.metadata"));
+                removeVectorSelection(maskPath);
+                if (!layer.transparencyMask->vectorSelection().isEmpty())
+                    files.insert(maskPath + QStringLiteral(".shapeselection/content.svg"), layer.transparencyMask->vectorSelection());
             }
         }
         element.setAttribute(QStringLiteral("name"), layer.name);
@@ -1117,6 +1126,7 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             files.remove(maskPath + QStringLiteral(".pixelselection.defaultpixel"));
             files.remove(maskPath + QStringLiteral(".defaultpixel"));
             files.remove(maskPath + QStringLiteral(".xmp.metadata"));
+            removeVectorSelection(maskPath);
         }
     }
     const auto selectionPrefix = folder + QStringLiteral("/layers/");
@@ -1909,6 +1919,18 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                 if (result.code != Status::Success) return fail(result);
             }
             if (!transparencyMask) transparencyMask = SelectionMask::uniform(maskDefaultPixel);
+            const auto vectorPath = maskPath + QStringLiteral(".shapeselection/content.svg");
+            if (document.files.contains(vectorPath)) {
+                const auto svg = document.files.value(vectorPath);
+                QDomDocument vector;
+                if (svg.size() > limits.xmlBytes) return fail(capacity());
+                if (!vector.setContent(svg) || vector.documentElement().tagName() != QLatin1String("svg"))
+                    return fail(invalid(QStringLiteral("Invalid KRA vector selection SVG")));
+                if (!document.files.contains(maskPath + QStringLiteral(".pixelselection")))
+                    return fail(unsupported(QStringLiteral("KRA vector selection requires its raster projection")));
+                transparencyMask = transparencyMask ? transparencyMask->withVectorSelection(svg) : SelectionMaskSP{};
+                document.files.remove(vectorPath);
+            }
             if (!transparencyMask)
                 return fail(capacity());
             layer.transparencyMaskUuid = QUuid(maskElement.attribute(QStringLiteral("uuid")));

@@ -18,6 +18,7 @@
 #include <kritaui_export.h>
 
 class KoStore;
+class QIODevice;
 class KoShapeControllerBase;
 class KoShapeManager;
 class KisShapeSelectionCanvas;
@@ -56,6 +57,8 @@ public:
     bool saveSelection(KoStore * store, const QRect &imageRect) const;
 
     bool loadSelection(KoStore * store, const QRect &imageRect);
+    bool loadSvg(QIODevice &device, const QRect &imageRect);
+    bool saveSvg(QIODevice &device, const QRect &imageRect) const;
     /**
      * Renders the shapes to a selection. This method should only be called
      * by KisSelection to update it's projection.
