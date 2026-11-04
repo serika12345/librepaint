@@ -1218,7 +1218,7 @@ set(gpu_document_layer_cases
     layerPanelShowsAndSelectsGpuTransparencyMaskChild
     layerPanelTogglesAndRemovesGpuTransparencyMaskChild
     layerPanelGpuTransparencyMaskChildSurvivesSaving)
-kis_add_test(KisGpuDocumentViewTest.cpp KisGpuDocumentViewTest2.cpp KisGpuDocumentViewTest3.cpp KisGpuDocumentViewTest4.cpp KisGpuDocumentViewTest5.cpp KisGpuDocumentViewTest6.cpp KisGpuMultibrushEditingTest.cpp KisGpuRegionFillEditingTest.cpp KisGpuColorFilterEditingTest.cpp KisGpuCpuFilterEditingTest.cpp KisGpuCpuBrushEditingTest.cpp KisGpuCpuFigureEditingTest.cpp KisGpuCpuFillEditingTest.cpp KisGpuCpuSmartPatchEditingTest.cpp KisGpuFilterPreviewTest.cpp KisGpuFilterNodeEditingTest.cpp ../../../krita/krita.qrc
+kis_add_test(KisGpuDocumentViewTest.cpp KisGpuDocumentViewTest2.cpp KisGpuDocumentViewTest3.cpp KisGpuDocumentViewTest4.cpp KisGpuDocumentViewTest5.cpp KisGpuDocumentViewTest6.cpp KisGpuMultibrushEditingTest.cpp KisGpuRegionFillEditingTest.cpp KisGpuColorFilterEditingTest.cpp KisGpuCpuFilterEditingTest.cpp KisGpuCpuBrushEditingTest.cpp KisGpuCpuFigureEditingTest.cpp KisGpuCpuFillEditingTest.cpp KisGpuCpuSmartPatchEditingTest.cpp KisGpuCpuEncloseAndFillEditingTest.cpp KisGpuFilterPreviewTest.cpp KisGpuFilterNodeEditingTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
     TEST_NAME KisGpuDocumentViewTest
@@ -1333,6 +1333,9 @@ add_test(NAME ${gpu_document_cpu_figure_test}
 set(gpu_document_smart_patch_test libs-ui-smart-patch-cpu-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_smart_patch_test}
     COMMAND KisGpuDocumentViewTest cpuSmartPatchKeepsNativeEditing)
+set(gpu_document_enclose_fill_test libs-ui-enclose-fill-cpu-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_enclose_fill_test}
+    COMMAND KisGpuDocumentViewTest cpuEncloseAndFillKeepsNativeEditing)
 set(gpu_document_cpu_filter_test libs-ui-filter-cpu-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_cpu_filter_test}
     COMMAND KisGpuDocumentViewTest cpuFiltersKeepNativeEditing cpuMaskFiltersKeepNativeEditing filterDialogPreviewsKeepOneHistory)
@@ -1358,14 +1361,14 @@ set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test}
     ${gpu_document_polygon_tool_test} ${gpu_document_polygon_input_test} ${gpu_document_selection_combination_test}
     ${gpu_document_colour_selection_test} ${gpu_document_native_selection_kra_test} ${gpu_document_path_tool_test}
     ${gpu_document_path_input_test} ${gpu_document_feather_test} ${gpu_document_filter_test}
-    ${gpu_document_grayscale_filter_test} ${gpu_document_hsv_filter_test} ${gpu_document_color_filter_test} ${gpu_document_cpu_brush_test} ${gpu_document_cpu_figure_test} ${gpu_document_smart_patch_test} ${gpu_document_cpu_filter_test} ${gpu_document_convolution_filter_test} ${gpu_document_filter_node_test}
+    ${gpu_document_grayscale_filter_test} ${gpu_document_hsv_filter_test} ${gpu_document_color_filter_test} ${gpu_document_cpu_brush_test} ${gpu_document_cpu_figure_test} ${gpu_document_smart_patch_test} ${gpu_document_enclose_fill_test} ${gpu_document_cpu_filter_test} ${gpu_document_convolution_filter_test} ${gpu_document_filter_node_test}
     ${gpu_document_background_tests} ${gpu_document_crop_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop kritadefaultpaintops
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop
     kritamodifyselection kritaselectiontools kritacolorsfilters kritatooldyna
     kritaextensioncolorsfilters kritaresettransparent kritaconvolutionfilters kritaposterize kritapixelizefilter
-    kritagridpaintop kritadeformpaintop kritacolorsmudgepaintop kritatoolSmartPatch)
+    kritagridpaintop kritadeformpaintop kritacolorsmudgepaintop kritatoolSmartPatch kritatoolencloseandfill)
 if(NOT IOS)
     add_dependencies(KisGpuDocumentViewTest kritatextproperties)
 endif()

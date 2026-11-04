@@ -362,6 +362,8 @@ private Q_SLOTS:
     void cpuFillsKeepNativeEditing();
     void cpuSmartPatchKeepsNativeEditing_data();
     void cpuSmartPatchKeepsNativeEditing();
+    void cpuEncloseAndFillKeepsNativeEditing_data();
+    void cpuEncloseAndFillKeepsNativeEditing();
     void cpuFiguresKeepNativeEditing_data();
     void cpuFiguresKeepNativeEditing();
     void cpuMaskFiltersKeepNativeEditing_data();

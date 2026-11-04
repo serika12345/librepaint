@@ -10,6 +10,10 @@
 
 #include <QCheckBox>
 #include <QPushButton>
+#include <QPointer>
+#include <QScopeGuard>
+#include <KisGpuCpuBrushStroke.h>
+#include <gpu/KisGpuOperationCapabilities.h>
 
 #include <KisOptionButtonStrip.h>
 #include <KisOptionCollectionWidget.h>
@@ -275,34 +279,64 @@ void KisToolEncloseAndFill::beginAlternateDoubleClickAction(KoPointerEvent *even
 
 void KisToolEncloseAndFill::slot_delegateTool_enclosingMaskProduced(KisPixelSelectionSP enclosingMask)
 {
+    KisImageSP working = image();
+    auto target = currentNode();
+    std::unique_ptr<KisGpuCpuBrushStroke> cpuFill;
+    if (working->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QPointer<KisToolEncloseAndFill> tool(this);
+        const QPointer<KisViewManager> view(static_cast<KisCanvas2 *>(canvas())->viewManager());
+        const auto owner = working->gpuImage();
+        if (!view || !view->blockUntilOperationsFinished(working) || !tool || !view ||
+            view->image().data() != working.data() || working->gpuImage() != owner || currentNode() != target) return;
+        if (Gpu::toolExecutionLocation(Gpu::ToolOperation::EncloseAndFill) != Gpu::ExecutionLocation::Cpu) return;
+        QString diagnostic;
+        cpuFill = KisGpuCpuBrushStroke::create(working, target, diagnostic,
+            m_reference == CurrentLayer ? KisGpuCpuBrushStroke::Projection::None : KisGpuCpuBrushStroke::Projection::Updating,
+            {}, Gpu::HistoryAction::EncloseAndFill);
+        if (!cpuFill) {
+            Q_EMIT statusTextChanged(i18n("The selected layer or mask could not be filled."));
+            return;
+        }
+        working = cpuFill->image();
+        target = cpuFill->node();
+        m_referencePaintDevice = nullptr;
+        m_referenceNodeList = nullptr;
+    }
+    const auto clearCpuReference = qScopeGuard([&] {
+        if (cpuFill) {
+            m_referencePaintDevice = nullptr;
+            m_referenceNodeList = nullptr;
+        }
+    });
     KisStrokeStrategyUndoCommandBased *strategy =
-            new KisStrokeStrategyUndoCommandBased(kundo2_i18n("Enclose and Fill"), false, image().data());
+            new KisStrokeStrategyUndoCommandBased(kundo2_i18n("Enclose and Fill"), false, working.data());
     strategy->setSupportsWrapAroundMode(true);
-    m_fillStrokeId = image()->startStroke(strategy);
+    m_fillStrokeId = working->startStroke(strategy);
     KIS_SAFE_ASSERT_RECOVER_RETURN(m_fillStrokeId);
 
     m_dirtyRect.reset(new QRect);
 
     KisResourcesSnapshotSP resources =
-        new KisResourcesSnapshot(image(), currentNode(), this->canvas()->resourceManager()->canvasResourcesInterface());
+        new KisResourcesSnapshot(working, target, this->canvas()->resourceManager()->canvasResourcesInterface());
 
     if (m_reference == CurrentLayer) {
-        m_referencePaintDevice = currentNode()->paintDevice();
+        m_referencePaintDevice = target->paintDevice();
     } else if (m_reference == AllLayers) {
-        m_referencePaintDevice = currentImage()->projection();
+        m_referencePaintDevice = working->projection();
     } else if (m_reference == ColorLabeledLayers) {
         if (!m_referenceNodeList) {
-            m_referencePaintDevice = KisMergeLabeledLayersCommand::createRefPaintDevice(image(), "Enclose and Fill Tool Reference Result Paint Device");
+            m_referencePaintDevice = KisMergeLabeledLayersCommand::createRefPaintDevice(working, "Enclose and Fill Tool Reference Result Paint Device");
             m_referenceNodeList.reset(new KisMergeLabeledLayersCommand::ReferenceNodeInfoList);
         }
-        KisPaintDeviceSP newReferencePaintDevice = KisMergeLabeledLayersCommand::createRefPaintDevice(image(), "Enclose and Fill Tool Reference Result Paint Device");
+        KisPaintDeviceSP newReferencePaintDevice = KisMergeLabeledLayersCommand::createRefPaintDevice(working, "Enclose and Fill Tool Reference Result Paint Device");
         KisMergeLabeledLayersCommand::ReferenceNodeInfoListSP newReferenceNodeList(new KisMergeLabeledLayersCommand::ReferenceNodeInfoList);
-        const int currentTime = image()->animationInterface()->currentTime();
-        image()->addJob(
+        const int currentTime = working->animationInterface()->currentTime();
+        working->addJob(
             m_fillStrokeId,
             new KisStrokeStrategyUndoCommandBased::Data(
                 KUndo2CommandSP(new KisMergeLabeledLayersCommand(
-                    image(),
+                    working,
                     m_referenceNodeList,
                     newReferenceNodeList,
                     m_referencePaintDevice,
@@ -310,7 +344,7 @@ void KisToolEncloseAndFill::slot_delegateTool_enclosingMaskProduced(KisPixelSele
                     m_selectedColorLabels,
                     KisMergeLabeledLayersCommand::GroupSelectionPolicy_SelectIfColorLabeled,
                     m_previousTime != currentTime,
-                    m_useActiveLayer ? currentNode() : nullptr
+                    m_useActiveLayer ? target : nullptr
                 )),
                 false,
                 KisStrokeJobData::SEQUENTIAL,
@@ -360,30 +394,34 @@ void KisToolEncloseAndFill::slot_delegateTool_enclosingMaskProduced(KisPixelSele
                                                m_customCompositeOp,
                                                m_dirtyRect);
 
-    image()->addJob(
+    working->addJob(
         m_fillStrokeId,
         new KisStrokeStrategyUndoCommandBased::Data(
-            KUndo2CommandSP(new KisProcessingCommand(visitor, currentNode())),
+            KUndo2CommandSP(new KisProcessingCommand(visitor, target)),
             false,
             KisStrokeJobData::SEQUENTIAL,
             KisStrokeJobData::EXCLUSIVE
         )
     );
 
-    image()->addJob(
+    working->addJob(
         m_fillStrokeId,
         new KisStrokeStrategyUndoCommandBased::Data(
-            KUndo2CommandSP(new KisUpdateCommand(currentNode(), m_dirtyRect, image().data())),
+            KUndo2CommandSP(new KisUpdateCommand(target, m_dirtyRect, working.data())),
             false,
             KisStrokeJobData::SEQUENTIAL,
             KisStrokeJobData::EXCLUSIVE
         )
     );
 
-    image()->endStroke(m_fillStrokeId);
+    working->endStroke(m_fillStrokeId);
 
     m_fillStrokeId = nullptr;
     m_dirtyRect = nullptr;
+    if (cpuFill) {
+        if (!cpuFill->commit()) Q_EMIT statusTextChanged(i18n("The selected layer or mask could not be filled."));
+        else static_cast<KisCanvas2 *>(canvas())->viewManager()->canvasResourceProvider()->slotPainting();
+    }
 }
 
 int KisToolEncloseAndFill::flags() const

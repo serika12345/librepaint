@@ -11,6 +11,7 @@ ExecutionLocation toolExecutionLocation(ToolOperation operation)
     case ToolOperation::Gradient:
     case ToolOperation::Fill:
     case ToolOperation::SmartPatch:
+    case ToolOperation::EncloseAndFill:
         return ExecutionLocation::Cpu;
     }
     return ExecutionLocation::Cpu;

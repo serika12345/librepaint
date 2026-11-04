@@ -64,6 +64,7 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::Gradient: return kundo2_i18n("Gradient");
     case HistoryAction::FloodFill: return kundo2_i18n("Flood Fill");
     case HistoryAction::SmartPatch: return kundo2_i18n("Smart Patch");
+    case HistoryAction::EncloseAndFill: return kundo2_i18n("Enclose and Fill");
     case HistoryAction::InvertColors: return kundo2_i18n("Invert Colors");
     case HistoryAction::Grayscale: return kundo2_i18n("Grayscale");
     case HistoryAction::ConvertColorSpace: return kundo2_i18n("Convert Image Color Space");

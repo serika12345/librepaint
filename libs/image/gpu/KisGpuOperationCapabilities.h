@@ -11,7 +11,7 @@
 namespace LibrePaint::Image::Gpu {
 enum class ExecutionLocation { Gpu, Cpu };
 enum class FilterTarget { Rgba, Alpha };
-enum class ToolOperation { Gradient, Fill, SmartPatch };
+enum class ToolOperation { Gradient, Fill, SmartPatch, EncloseAndFill };
 
 /** Current execution location for a registered destructive filter. CPU filters
  * run on transferred pixels and publish their result in the GPU document.
