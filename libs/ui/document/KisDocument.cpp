@@ -3328,7 +3328,8 @@ bool KisDocument::newImage(const QString& name,
 
     KisCursorOverrideLock cursorLock(Qt::BusyCursor);
 
-    const auto execution = KisPart::instance()->gpuSessionExecution();
+    const auto execution = cs->colorModelId() == RGBAColorModelID
+        ? KisPart::instance()->gpuSessionExecution() : nullptr;
     const bool gpuSession = bool(execution);
     if (gpuSession) {
         namespace Gpu = LibrePaint::Image::Gpu;

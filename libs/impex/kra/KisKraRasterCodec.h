@@ -103,6 +103,11 @@ struct LoadOutcome
 class KRITAIMPEXKRA_EXPORT RasterCodec
 {
 public:
+    /** Inspects only the description for a non-RGBA color model or animated nodes.
+     * Preserves the open source and its position. Invalid descriptions return false
+     * so the selected reader supplies the format diagnostic.
+     */
+    static bool isNonRgbaOrAnimated(QIODevice &source);
     /** Filter nodes retain native XML/parameters with unresolved scalar color
      * settings. The document owner resolves those against the image profile
      * before constructing an executable GPU image. */

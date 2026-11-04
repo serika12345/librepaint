@@ -17,6 +17,7 @@
 #include "KisImportExportFilter.h"
 #include "kis_types.h"
 #include "kra_converter.h"
+#include <kra/KisKraRasterCodec.h>
 
 K_PLUGIN_CLASS_WITH_JSON(KraImport, "krita_kra_import.json")
 
@@ -30,7 +31,10 @@ KraImport::~KraImport()
 
 KisImportExportErrorCode KraImport::convert(KisDocument *document, QIODevice *io,  KisPropertiesConfigurationSP /*configuration*/)
 {
-    if (const auto execution = KisPart::instance()->gpuSessionExecution()) return document->importGpuKra(*io);
+    if (KisPart::instance()->gpuEngineEnabled() &&
+        !LibrePaint::ImportExport::Kra::RasterCodec::isNonRgbaOrAnimated(*io)) {
+        if (const auto execution = KisPart::instance()->gpuSessionExecution()) return document->importGpuKra(*io);
+    }
     KraConverter kraConverter(document);
     KisImportExportErrorCode result = kraConverter.buildImage(io);
     if (result.isOk()) {

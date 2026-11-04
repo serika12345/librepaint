@@ -513,6 +513,18 @@ KisImportExportErrorCode KisPNGConverter::buildImage(QIODevice *iod)
     return decodeImage(iod, false);
 }
 
+KisImportExportErrorCode KisPNGConverter::buildImage(QIODevice *iod, std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution)
+{
+    m_prepared.reset();
+    const QPointer<KisDocument> document = m_doc;
+    const bool hadDocument = bool(document);
+    try {
+        const auto result = decodeImage(iod, bool(execution), true);
+        if (!result.isOk() || !m_prepared || (hadDocument && !document)) return result;
+        return buildGpuImage(std::move(execution));
+    } catch (const std::bad_alloc &) { return ImportExportCodes::InsufficientMemory; }
+}
+
 KisImportExportErrorCode KisPNGConverter::prepareGpuImage(QIODevice *iod)
 {
     m_prepared.reset();
@@ -543,7 +555,7 @@ KisImportExportErrorCode KisPNGConverter::buildGpuImage(std::shared_ptr<LibrePai
     catch (const std::exception &error) { return KisImportExportErrorCode(QString::fromUtf8(error.what())); }
 }
 
-KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu)
+KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu, bool allowCpuDocument)
 {
     dbgFile << "Start decoding PNG File";
 
@@ -602,6 +614,10 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu)
     png_uint_32 width, height;
     int color_nb_bits, color_type, interlace_type;
     png_get_IHDR(png_ptr, info_ptr, &width, &height, &color_nb_bits, &color_type, &interlace_type, nullptr, nullptr);
+    if (gpu && allowCpuDocument && (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)) {
+        gpu = false;
+        prepared.reset();
+    }
     if (gpu) {
         if (!width || !height || width > Gpu::OperationDocument::CoordinateLimit || height > Gpu::OperationDocument::CoordinateLimit)
             return ImportExportCodes::FormatFeaturesUnsupported;

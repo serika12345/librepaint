@@ -7,16 +7,19 @@
 #include <Document.h>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorProfile.h>
 #include <application/kis_config.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_node.h>
+#include <kis_properties_configuration.h>
 #include <QRegularExpression>
 #include <QScopeGuard>
 #include <QTemporaryDir>
 #include <kundo2stack.h>
+#include <KisPaintingEngineTestScope.h>
 
 class TestGpuEngineDefault : public QObject
 {
@@ -26,6 +29,7 @@ private Q_SLOTS:
     void engineSelection();
     void ordinaryDocumentsUseSelectedEngine_data();
     void ordinaryDocumentsUseSelectedEngine();
+    void excludedColorDocumentsUseCpuEngine();
 };
 
 void TestGpuEngineDefault::engineSelection_data()
@@ -139,6 +143,73 @@ void TestGpuEngineDefault::ordinaryDocumentsUseSelectedEngine()
         QCOMPARE(pixel.size(), expected.size());
         for (int i = 0; i < pixel.size(); ++i) {
             QVERIFY(qAbs(int(quint8(pixel[i])) - int(quint8(expected[i]))) <= (extension == QLatin1String("jpg") ? 2 : 0));
+        }
+    }
+}
+
+void TestGpuEngineDefault::excludedColorDocumentsUseCpuEngine()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto cs = KoColorSpaceRegistry::instance()->graya8();
+    QVERIFY(cs);
+    const KoColor color(QColor(64, 64, 64), cs);
+    const auto create = [&](KisDocument &document) {
+        return document.newImage(QStringLiteral("Grayscale"), 16, 8, cs, color,
+                                 KisConfig::RASTER_LAYER, 1, {}, 1);
+    };
+    const TestUtil::PaintingEngineScope gpuRequested(true);
+    QScopedPointer<KisDocument> created(KisPart::instance()->createDocument());
+    created->setFileBatchMode(true);
+    QVERIFY2(create(*created), qPrintable(created->errorMessage()));
+    QVERIFY(!created->image()->gpuImage());
+    QCOMPARE(created->image()->colorSpace(), cs);
+    QCOMPARE(created->image()->root()->childCount(), quint32(1));
+    QCOMPARE(created->undoStack()->count(), 0);
+    QVERIFY(!created->isModified());
+    created->image()->waitForDone();
+    const auto expected = created->image()->projection()->pixel(QPoint(3, 3));
+    KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
+    settings->setProperty("forceSRGB", false);
+    settings->setProperty("saveSRGBProfile", true);
+
+    const QPair<QString, QByteArray> formats[] = {
+        {QStringLiteral("kra"), QByteArrayLiteral("application/x-krita")},
+        {QStringLiteral("png"), QByteArrayLiteral("image/png")},
+        {QStringLiteral("jpg"), QByteArrayLiteral("image/jpeg")}};
+    for (const auto &format : formats) {
+        const auto path = directory.filePath(QStringLiteral("grayscale.") + format.first);
+        QVERIFY2(created->saveAs(path, format.second, false, settings), qPrintable(created->errorMessage()));
+        created->waitForSavingToComplete();
+        QScopedPointer<KisDocument> opened(KisPart::instance()->createDocument());
+        opened->setFileBatchMode(true);
+        QVERIFY2(opened->openPath(path, KisDocument::DontAddToRecent), qPrintable(opened->errorMessage()));
+        QVERIFY(!opened->image()->gpuImage());
+        QCOMPARE(opened->image()->colorSpace()->colorModelId(), GrayAColorModelID);
+        QCOMPARE(opened->image()->bounds(), created->image()->bounds());
+        QVERIFY(!opened->isModified());
+        QVERIFY(opened->errorMessage().isEmpty());
+        opened->image()->waitForDone();
+
+        QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
+        reference->setFileBatchMode(true);
+        {
+            const TestUtil::PaintingEngineScope cpuReference(false);
+            QVERIFY2(reference->openPath(path, KisDocument::DontAddToRecent), qPrintable(reference->errorMessage()));
+        }
+        reference->image()->waitForDone();
+        QCOMPARE(opened->image()->colorSpace()->profile()->rawData(), reference->image()->colorSpace()->profile()->rawData());
+        const auto actualPixel = opened->image()->projection()->pixel(QPoint(3, 3));
+        const auto referencePixel = reference->image()->projection()->pixel(QPoint(3, 3));
+        for (quint32 channel = 0; channel < cs->pixelSize(); ++channel)
+            QVERIFY(qAbs(int(actualPixel.data()[channel]) - int(referencePixel.data()[channel])) <= 1);
+        QCOMPARE(actualPixel.opacityU8() == 0, referencePixel.opacityU8() == 0);
+        if (format.first == QLatin1String("kra")) {
+            QCOMPARE(opened->image()->root()->firstChild()->name(), created->image()->root()->firstChild()->name());
+            QCOMPARE(opened->image()->root()->firstChild()->uuid(), created->image()->root()->firstChild()->uuid());
+            for (quint32 channel = 0; channel < cs->pixelSize(); ++channel)
+                QVERIFY(qAbs(int(actualPixel.data()[channel]) - int(expected.data()[channel])) <= 1);
+            QCOMPARE(actualPixel.opacityU8() == 0, expected.opacityU8() == 0);
         }
     }
 }

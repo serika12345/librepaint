@@ -29,7 +29,7 @@ target_link_libraries(TestDocument kritaimpexkra kritadocumentpainting)
 
 kis_add_test(TestGpuEngineDefault.cpp
     TEST_NAME_VAR gpu_engine_default_test
-    TEST_ARGS engineSelection ordinaryDocumentsUseSelectedEngine
+    TEST_ARGS engineSelection ordinaryDocumentsUseSelectedEngine excludedColorDocumentsUseCpuEngine
     LINK_LIBRARIES kritalibkis kritatestsdk)
 add_dependencies(TestGpuEngineDefault kritalcmsengine
     kritakraimport kritakraexport kritapngimport kritapngexport kritajpegimport kritajpegexport)

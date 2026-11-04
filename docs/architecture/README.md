@@ -68,6 +68,7 @@ LibrePaint の開発者が、変更内容から調査対象を絞り、主要な
 - GPU 喪失時は強制終了せず、処理を止めて通知し、最後の自動保存から復旧する。
 - 描画・合成・表示は `libs/image/gpu/`、キャンバスは `libs/canvas/gpu/`、文書寿命は `libs/document/gpu/` が所有する。
 - 現在は `LIBREPAINT_GPU_ENGINE=1` を指定すると、新規文書と KRA・PNG・JPEG 読込が GPU エンジンを使用する。GPU 初期化に失敗した場合は診断を出し、CPU エンジンを使用する。
+- CMYK・Lab・YCbCr・XYZ・Gray の新規文書と KRA 読込、アニメーション KRA、Gray の PNG・JPEG と CMYK の JPEG は、文書ごと CPU エンジンを使用する。PNG・JPEG は解析中に色モデルを判定し、KRA は文書記述を先に調べて読込先を選ぶ。
 - 通常文書での既定化と未移行形式の確認は #89 の A1 で行う。この設定は通常経路への統一後に撤去する。
 
 採用する設計とバックログは Issue #89 の本文を参照します。

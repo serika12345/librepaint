@@ -36,6 +36,7 @@
 #include <QColorSpace>
 #include <QDir>
 #include <QSaveFile>
+#include <KisPaintingEngineTestScope.h>
 
 const QString KraMimetype = "application/x-krita";
 
@@ -263,10 +264,13 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
 
 void KisKraLoaderTest::testLoadAnimated()
 {
+    const TestUtil::PaintingEngineScope gpuRequested(true);
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     doc->setFileBatchMode(true);
     QVERIFY(doc->openPath(QString(FILES_DATA_DIR) + '/' + "load_test_animation.kra", KisDocument::DontAddToRecent));
     KisImageSP image = doc->image();
+
+    QVERIFY(!image->gpuImage());
 
     KisNodeSP node1 = image->root()->firstChild();
     KisNodeSP node2 = node1->nextSibling();

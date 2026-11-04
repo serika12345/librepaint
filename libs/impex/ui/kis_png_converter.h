@@ -96,6 +96,8 @@ public:
      * @param iod device to access the data
      */
     KisImportExportErrorCode buildImage(QIODevice* iod);
+    /** Ordinary import keeps grayscale documents on the CPU and uploads supported RGBA input. */
+    KisImportExportErrorCode buildImage(QIODevice *iod, std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution);
     /** Validates and decodes default-profile RGB8/U16 PNG input before acquiring a GPU.
      * Prepared pixels belong to this converter until buildGpuImage() consumes them.
      * Failure leaves the document and its current image unchanged.
@@ -142,7 +144,7 @@ public Q_SLOTS:
 private:
     struct PreparedImage;
     std::unique_ptr<PreparedImage> m_prepared;
-    KisImportExportErrorCode decodeImage(QIODevice *iod, bool gpu);
+    KisImportExportErrorCode decodeImage(QIODevice *iod, bool gpu, bool allowCpuDocument = false);
     KisImportExportErrorCode encodeRows(QIODevice*, const KisExportRasterRows &rows, qreal xRes, qreal yRes,
                                        vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd,
                                        KisPNGOptions options, KisMetaData::Store *metaData);

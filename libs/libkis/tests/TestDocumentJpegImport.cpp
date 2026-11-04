@@ -445,7 +445,7 @@ void TestDocument::testGpuSessionOpensJpegWithGpuPixelOwnership()
     }
 }
 
-void TestDocument::testJpegRejectedOpenKeepsDocument_data()
+void TestDocument::testJpegOpenSelectsEngineAndKeepsDocumentOnFailure_data()
 {
     QTest::addColumn<QByteArray>("encoded");
     QTest::addColumn<bool>("gpuSession");
@@ -500,7 +500,7 @@ void TestDocument::testJpegRejectedOpenKeepsDocument_data()
     add("raster-capacity", capacity, true);
 }
 
-void TestDocument::testJpegRejectedOpenKeepsDocument()
+void TestDocument::testJpegOpenSelectsEngineAndKeepsDocumentOnFailure()
 {
     QFETCH(QByteArray, encoded);
     QFETCH(bool, gpuSession);
@@ -532,6 +532,26 @@ void TestDocument::testJpegRejectedOpenKeepsDocument()
         reference->setAutoSaveActive(false);
         QVERIFY2(reference->openPath(rejected, KisDocument::DontAddToRecent), qPrintable(reference->errorMessage()));
         QCOMPARE(reference->image()->colorSpace()->colorModelId().id(), validCpuModel);
+        if (validCpuModel != QLatin1String("RGBA")) {
+            qputenv("LIBREPAINT_GPU_ENGINE", gpuSession ? "1" : "0");
+            QScopedPointer<KisDocument> opened(KisPart::instance()->createDocument());
+            opened->setFileBatchMode(true);
+            QVERIFY2(opened->openPath(rejected, KisDocument::DontAddToRecent), qPrintable(opened->errorMessage()));
+            QVERIFY(!opened->image()->gpuImage());
+            QCOMPARE(opened->image()->colorSpace(), reference->image()->colorSpace());
+            QCOMPARE(opened->image()->bounds(), reference->image()->bounds());
+            Document actualApi(opened.data(), false), expectedApi(reference.data(), false);
+            const auto size = opened->image()->size();
+            const auto actual = actualApi.pixelData(0, 0, size.width(), size.height());
+            const auto expected = expectedApi.pixelData(0, 0, size.width(), size.height());
+            QCOMPARE(actual.size(), expected.size());
+            const auto pixelSize = opened->image()->colorSpace()->pixelSize();
+            for (qsizetype i = 0; i < actual.size(); ++i) {
+                QVERIFY(qAbs(int(quint8(actual[i])) - int(quint8(expected[i]))) <= 1);
+                if ((i + 1) % pixelSize == 0) QCOMPARE(actual[i] == 0, expected[i] == 0);
+            }
+            return;
+        }
     }
     qputenv("LIBREPAINT_GPU_ENGINE", gpuSession ? "1" : "0");
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());

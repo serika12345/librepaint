@@ -59,6 +59,8 @@ public:
     ~KisJPEGConverter() override;
 public:
     KisImportExportErrorCode buildImage(QIODevice *io);
+    /** Ordinary import keeps grayscale/CMYK documents on the CPU and uploads supported RGBA input. */
+    KisImportExportErrorCode buildImage(QIODevice *io, std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution);
     /** Decode supported RGB8 input into temporary tiles before acquiring a GPU.
      * Failure preserves the converter's previous image and the document.
      */
@@ -74,7 +76,7 @@ public:
 public Q_SLOTS:
     virtual void cancel();
 private:
-    KisImportExportErrorCode decode(QIODevice *io, bool gpu);
+    KisImportExportErrorCode decode(QIODevice *io, bool gpu, bool allowCpuDocument = false);
     KisImportExportErrorCode encodeRows(QIODevice *io, const KisExportRasterRows &rows,
         qreal xRes, qreal yRes, const KisJPEGOptions &options, KisMetaData::Store *metaData);
 private:

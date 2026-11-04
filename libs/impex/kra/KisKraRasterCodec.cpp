@@ -16,6 +16,7 @@
 #include <QImage>
 #include <QImageWriter>
 #include <QSet>
+#include <QScopeGuard>
 #include <quazip.h>
 #include <quazipfile.h>
 #include <quazipnewinfo.h>
@@ -1447,6 +1448,35 @@ MetadataOutcome RasterCodec::readImageMetadata(const QByteArray &bytes, const QM
         }
     }
     return {Status::Success, std::move(metadata), {}};
+}
+
+bool RasterCodec::isNonRgbaOrAnimated(QIODevice &source)
+{
+    if (!source.isOpen() || !source.isReadable() || source.isSequential()) return false;
+    const auto position = source.pos();
+    const auto restorePosition = qScopeGuard([&] { source.seek(position); });
+    if (!source.seek(0)) return false;
+    QuaZip archive(&source);
+    archive.setAutoClose(false);
+    archive.setFileNameCodec("UTF-8");
+    if (!archive.open(QuaZip::mdUnzip) || !archive.setCurrentFile(QStringLiteral("maindoc.xml"))) return false;
+    QuaZipFile file(&archive);
+    if (!file.open(QIODevice::ReadOnly) || file.size() > Limits{}.xmlBytes) return false;
+    QDomDocument xml;
+    if (!xml.setContent(file.read(Limits{}.xmlBytes + 1))) return false;
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    if (image.isNull()) return false;
+    const auto colorSpace = image.attribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
+    // RgbAF16/RgbAF32 are older spellings of RGBA floating-point spaces.
+    if (!colorSpace.startsWith(QLatin1String("RGBA")) && !colorSpace.startsWith(QLatin1String("RgbA"))) return true;
+    QList<QDomElement> pending{image.firstChildElement(QStringLiteral("layers"))};
+    while (!pending.isEmpty()) {
+        const auto element = pending.takeLast();
+        if (element.hasAttribute(QStringLiteral("keyframes"))) return true;
+        for (auto child = element.firstChildElement(); !child.isNull(); child = child.nextSiblingElement())
+            pending.append(child);
+    }
+    return false;
 }
 
 LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)

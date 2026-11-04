@@ -48,6 +48,7 @@ extern "C" {
 #include <QBuffer>
 #include <QApplication>
 #include <QScopeGuard>
+#include <QPointer>
 #include <QTemporaryFile>
 
 #include <klocalizedstring.h>
@@ -199,7 +200,7 @@ KisJPEGConverter::~KisJPEGConverter()
 {
 }
 
-KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu)
+KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu, bool allowCpuDocument)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     if (!io || !io->isReadable()) return ImportExportCodes::NoAccessToRead;
@@ -228,6 +229,10 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu)
         // read header
         jpeg_read_header(&cinfo, (boolean)true);
 
+        if (gpu && allowCpuDocument && cinfo.out_color_space != JCS_RGB) {
+            gpu = false;
+            prepared.reset();
+        }
         if (gpu) {
             if (!cinfo.image_width || !cinfo.image_height || cinfo.image_width > Gpu::OperationDocument::CoordinateLimit ||
                 cinfo.image_height > Gpu::OperationDocument::CoordinateLimit)
@@ -579,6 +584,17 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu)
 KisImportExportErrorCode KisJPEGConverter::buildImage(QIODevice *io)
 {
     return decode(io, false);
+}
+
+KisImportExportErrorCode KisJPEGConverter::buildImage(QIODevice *io, std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution)
+{
+    m_d->prepared.reset();
+    const QPointer<KisDocument> document = m_d->doc;
+    try {
+        const auto result = decode(io, bool(execution), true);
+        if (!result.isOk() || !m_d->prepared || !document) return result;
+        return buildGpuImage(std::move(execution));
+    } catch (const std::bad_alloc &) { return ImportExportCodes::InsufficientMemory; }
 }
 
 KisImportExportErrorCode KisJPEGConverter::prepareGpuImage(QIODevice *io)
