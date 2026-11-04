@@ -7,6 +7,7 @@ set(kritapainting_LIB_SRCS
     KisStrokeSpeedMonitor.cpp
     kis_figure_painting_stroke.cpp
     kis_resources_snapshot.cpp
+    KisGpuCpuBrushStroke.cpp
     KisBrushTextureMask.cpp
     kis_painting_utils.cpp
 

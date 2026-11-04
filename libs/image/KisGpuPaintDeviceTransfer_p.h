@@ -12,7 +12,7 @@ class KoColorSpace;
 #include <kritaimage_export.h>
 
 /** Convert canonical little-endian RGBA and native-endian BGRA pixels. */
-QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu);
+KRITAIMAGE_EXPORT QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu);
 
 /** Temporary native pixels for synchronous CPU image-returning APIs.
  * The returned buffer owns its pixels; the GPU image retains editing ownership.

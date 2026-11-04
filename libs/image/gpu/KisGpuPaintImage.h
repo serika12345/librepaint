@@ -247,13 +247,13 @@ public:
     OperationId beginGeneratorEdit(LayerId layer);
     Result commitGeneratorEdit(OperationId id, const QString &name);
     Result cancelGeneratorEdit(OperationId id);
-    /** Live filter previews always read the committed version. The synchronous
-     * callback applies one existing GPU or CPU filter; only commit adds history.
+    /** Live pixel edits always start from the committed version. The synchronous
+     * callback applies existing GPU or CPU processing; only commit adds history.
      * Cancellation preserves the saved state and the complete Redo branch. */
-    OperationId beginFilterEdit();
-    Result updateFilterEdit(OperationId id, const std::function<bool()> &apply);
-    Result commitFilterEdit(OperationId id);
-    Result cancelFilterEdit(OperationId id);
+    OperationId beginPixelEdit(HistoryAction action = HistoryAction::None);
+    Result updatePixelEdit(OperationId id, const std::function<bool()> &apply);
+    Result commitPixelEdit(OperationId id);
+    Result cancelPixelEdit(OperationId id);
     /** Replaces nonempty packed pixel rectangles in one history entry. */
     Result replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, const QString &filterId = {});
     /** CPU filter result for an editable Alpha8 mask. Layer zero targets the

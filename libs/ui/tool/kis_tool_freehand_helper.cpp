@@ -29,6 +29,8 @@
 #include "kis_image.h"
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuBasicCurveControls.h>
+#include <gpu/KisGpuOperationCapabilities.h>
+#include <KisGpuCpuBrushStroke.h>
 #include "kis_painter.h"
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_utils.h>
@@ -104,6 +106,8 @@ struct KisToolFreehandHelper::Private
     QList<LibrePaint::Image::Gpu::BrushTransform> gpuMultibrushTransforms;
     bool gpuMultibrushConfigured = false;
     QMetaObject::Connection gpuCancellation;
+    std::shared_ptr<KisGpuCpuBrushStroke> cpuStroke;
+    QTimer cpuPreviewTimer;
     bool gpuBasicInput = false;
     qreal gpuInitialDrawingAngle = 0;
     LibrePaint::Image::Gpu::InputSample gpuSample(const KisPaintInformation &information) const
@@ -225,6 +229,15 @@ KisToolFreehandHelper::KisToolFreehandHelper(KisPaintingInformationBuilder *info
     connect(&m_d->airbrushingTimer, SIGNAL(timeout()), SLOT(doAirbrushing()));
     connect(&m_d->stabilizerPollTimer, SIGNAL(timeout()), SLOT(stabilizerPollAndPaint()));
     connect(m_d->smoothingOptions.data(), SIGNAL(sigSmoothingTypeChanged()), SLOT(slotSmoothingTypeChanged()));
+    m_d->cpuPreviewTimer.setInterval(40);
+    connect(&m_d->cpuPreviewTimer, &QTimer::timeout, this, [this] {
+        const auto stroke = m_d->cpuStroke;
+        const QPointer<KisToolFreehandHelper> guard(this);
+        if (stroke && !stroke->updatePreview(m_d->strokeId) && guard) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(i18n("The brush stroke could not be completed and was cancelled."));
+        }
+    });
 
     m_d->stabilizerDelayedPaintHelper.setPaintLineCallback(
                 [this](const KisPaintInformation &pi1, const KisPaintInformation &pi2) {
@@ -245,7 +258,7 @@ void KisToolFreehandHelper::setGpuMultibrushTransforms(
 
 KisToolFreehandHelper::~KisToolFreehandHelper()
 {
-    if (m_d->gpuImage) cancelPaint();
+    if (m_d->gpuImage || m_d->cpuStroke) cancelPaint();
     delete m_d;
 }
 
@@ -408,13 +421,38 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
                                           KisDefaultBoundsBaseSP bounds)
 {
     m_d->stabilizerDelayedPaintHelper.setPaintLinesCallback({});
-    if (m_d->gpuImage && !image->gpuImage()) {
+    const auto preset = resourceManager->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
+    const bool cpu = image->gpuImage() && preset &&
+        LibrePaint::Image::Gpu::brushExecutionLocation(preset->paintOp().id()) == LibrePaint::Image::Gpu::ExecutionLocation::Cpu;
+    if (m_d->gpuImage && (!image->gpuImage() || cpu)) {
         m_d->strokeTimeoutTimer.stop();
         m_d->gpuBasicInput = false;
         m_d->gpuStabilizer.reset();
         disconnect(m_d->gpuCancellation);
         m_d->gpuImage.clear();
         m_d->gpuOperation = {};
+    }
+    if (cpu) {
+        if (m_d->strokeId || m_d->cpuStroke) return;
+        if (overrideNode || bounds || m_d->gpuMultibrushConfigured ||
+            preset->paintOp().id() == QLatin1String("duplicate") || preset->paintOp().id() == QLatin1String("colorsmudge")) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("This brush target is not yet available for this document."));
+            return;
+        }
+        QString diagnostic;
+        m_d->cpuStroke = KisGpuCpuBrushStroke::create(image, currentNode, diagnostic);
+        if (!m_d->cpuStroke) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(diagnostic);
+            return;
+        }
+        disconnect(m_d->gpuCancellation);
+        m_d->gpuCancellation = connect(image.data(), &KisImage::sigStrokeCancellationRequested,
+                                      this, &KisToolFreehandHelper::cancelPaint);
+        image = m_d->cpuStroke->image();
+        currentNode = m_d->cpuStroke->node();
+        strokesFacade = image.data();
     }
     if (const auto owner = image->gpuImage()) {
         namespace Gpu = LibrePaint::Image::Gpu;
@@ -576,6 +614,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
     if (airbrushing) {
         paintAt(pi);
     }
+    if (m_d->cpuStroke) m_d->cpuPreviewTimer.start();
 }
 
 KoCanvasResourceProvider *KisToolFreehandHelper::resourceManager() const
@@ -613,6 +652,7 @@ qreal KisToolFreehandHelper::Private::effectiveSmoothnessDistance(qreal speed) c
 
 void KisToolFreehandHelper::paintEvent(KoPointerEvent *event)
 {
+    if (!isRunning()) return;
     KisPaintInformation info =
             m_d->infoBuilder->continueStroke(event,
                                              elapsedStrokeTime());
@@ -871,6 +911,7 @@ void KisToolFreehandHelper::paint(KisPaintInformation &info)
 
 void KisToolFreehandHelper::endPaint()
 {
+    if (!m_d->gpuImage && !m_d->strokeId) return;
     if (m_d->gpuImage) {
         if (m_d->gpuStabilizer && isRunning()) {
             const QPointer<KisToolFreehandHelper> guard(this);
@@ -949,6 +990,12 @@ void KisToolFreehandHelper::endPaint()
     m_d->strokesFacade->endStroke(m_d->strokeId);
     m_d->strokeId.clear();
     m_d->infoBuilder->reset();
+    if (auto stroke = std::move(m_d->cpuStroke)) {
+        m_d->cpuPreviewTimer.stop();
+        disconnect(m_d->gpuCancellation);
+        m_d->resources.clear();
+        if (!stroke->commit()) Q_EMIT requestErrorMessage(i18n("The brush stroke could not be completed and was cancelled."));
+    }
 }
 
 void KisToolFreehandHelper::cancelPaint()
@@ -996,6 +1043,14 @@ void KisToolFreehandHelper::cancelPaint()
 
     m_d->strokesFacade->cancelStroke(m_d->strokeId);
     m_d->strokeId.clear();
+    if (auto stroke = std::move(m_d->cpuStroke)) {
+        m_d->cpuPreviewTimer.stop();
+        disconnect(m_d->gpuCancellation);
+        stroke->image()->waitForDone();
+        m_d->resources.clear();
+        m_d->usingStabilizer = false;
+        m_d->infoBuilder->reset();
+    }
 
 }
 

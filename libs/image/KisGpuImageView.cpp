@@ -64,7 +64,7 @@ namespace {
 LibrePaint::Image::Gpu::Snapshot gpuNodeViewVersion(const LibrePaint::Image::Gpu::PaintImageSP &owner)
 {
     const auto &operations = owner->operations();
-    return operations.filterNodeEditTarget() || operations.generatorEditTarget() || operations.hasFilterEdit() ?
+    return operations.filterNodeEditTarget() || operations.generatorEditTarget() || operations.hasPixelEdit() ?
         operations.preview() : operations.snapshot();
 }
 
@@ -1279,7 +1279,7 @@ void KisImage::updateGpuSelectionMask(const QRect &rect, bool inverted, LibrePai
 {
     KisImageSP retained = this;
     KisSelectionMaskSP mask = rootLayer() ? rootLayer()->selectionMask() : KisSelectionMaskSP();
-    if (rect.isEmpty() && !inverted && (!mask || !gpuImage()->operations().hasFilterEdit())) {
+    if (rect.isEmpty() && !inverted && (!mask || !gpuImage()->operations().hasPixelEdit())) {
         if (!mask) return;
         m_hasGpuSelectionMirror = false;
         removeNode(mask);

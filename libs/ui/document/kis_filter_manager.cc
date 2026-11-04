@@ -192,7 +192,7 @@ KisFilterManager::KisFilterManager(KisViewManager * view)
 KisFilterManager::~KisFilterManager()
 {
     if (d->gpuFilterOwner && !d->gpuFilterOperation.isNull())
-        d->gpuFilterOwner->cancelFilterEdit(d->gpuFilterOperation);
+        d->gpuFilterOwner->cancelPixelEdit(d->gpuFilterOperation);
 }
 
 bool KisFilterManager::applyGpuFilter(const QString &filterId, KisFilterConfigurationSP config, bool interactive)
@@ -540,10 +540,10 @@ void KisFilterManager::apply(KisFilterConfigurationSP _filterConfig)
             d->filterDialog->reject();
             return;
         }
-        if (d->gpuFilterOperation.isNull()) d->gpuFilterOperation = d->gpuFilterOwner->beginFilterEdit();
+        if (d->gpuFilterOperation.isNull()) d->gpuFilterOperation = d->gpuFilterOwner->beginPixelEdit();
         if (d->gpuFilterOperation.isNull()) return;
         const auto config = _filterConfig->cloneWithResourcesSnapshot();
-        const auto result = d->gpuFilterOwner->updateFilterEdit(d->gpuFilterOperation,
+        const auto result = d->gpuFilterOwner->updatePixelEdit(d->gpuFilterOperation,
             [this, config] { return applyGpuConfiguration(config, false); });
         d->currentlyAppliedConfiguration = result == LibrePaint::Image::Gpu::Result::Success ? config : KisFilterConfigurationSP{};
         return;
@@ -610,7 +610,7 @@ void KisFilterManager::finish()
     if (d->gpuFilterOwner) {
         if (!d->gpuFilterOperation.isNull()) {
             if (d->currentlyAppliedConfiguration &&
-                d->gpuFilterOwner->commitFilterEdit(d->gpuFilterOperation) == LibrePaint::Image::Gpu::Result::Success) {
+                d->gpuFilterOwner->commitPixelEdit(d->gpuFilterOperation) == LibrePaint::Image::Gpu::Result::Success) {
                 rememberGpuConfiguration(d->currentlyAppliedConfiguration);
                 d->gpuFilterOperation = {};
                 d->currentlyAppliedConfiguration.clear();
@@ -654,7 +654,7 @@ void KisFilterManager::finish()
 void KisFilterManager::cancelRunningStroke()
 {
     if (d->gpuFilterOwner) {
-        if (!d->gpuFilterOperation.isNull()) d->gpuFilterOwner->cancelFilterEdit(d->gpuFilterOperation);
+        if (!d->gpuFilterOperation.isNull()) d->gpuFilterOwner->cancelPixelEdit(d->gpuFilterOperation);
         d->gpuFilterOperation = {};
         d->currentlyAppliedConfiguration.clear();
         return;

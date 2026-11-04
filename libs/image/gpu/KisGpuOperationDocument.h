@@ -1295,7 +1295,7 @@ public:
     Result commitGeneratorEdit(OperationId id, const QString &name);
     Result cancelGeneratorEdit(OperationId id);
     LayerId generatorEditTarget() const { return m_generatorEditLayer; }
-    bool hasFilterEdit() const { return m_filterEdit.has_value(); }
+    bool hasPixelEdit() const { return m_pixelEdit.has_value(); }
     /** A placement preview freezes its layer and starting version. Updates use
      * an integer offset from the start; commit records one history entry and
      * cancellation retains the committed version and redo branch.
@@ -1623,17 +1623,19 @@ private:
         bool addedTransparencyMask = false;
         bool removedTransparencyMask = false;
         QString filterId;
+        HistoryAction pixelEditAction = HistoryAction::None;
     };
-    struct FilterEdit {
+    struct PixelEdit {
         OperationId id;
         LayerHistoryChange change;
         bool updating = false;
+        HistoryAction action = HistoryAction::None;
     };
-    std::optional<FilterEdit> m_filterEdit;
-    OperationId beginFilterEdit();
-    Result updateFilterEdit(OperationId id, const std::function<bool()> &apply);
-    Result commitFilterEdit(OperationId id);
-    Result cancelFilterEdit(OperationId id);
+    std::optional<PixelEdit> m_pixelEdit;
+    OperationId beginPixelEdit(HistoryAction action);
+    Result updatePixelEdit(OperationId id, const std::function<bool()> &apply);
+    Result commitPixelEdit(OperationId id);
+    Result cancelPixelEdit(OperationId id);
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     std::unique_ptr<OperationDocument> layerGroupingDraft() const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,

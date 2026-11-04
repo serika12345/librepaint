@@ -17,5 +17,7 @@ enum class FilterTarget { Rgba, Alpha };
  */
 KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation filterExecutionLocation(const QString &id,
     FilterTarget target = FilterTarget::Rgba);
+/** Current freehand brush implementation. Other engines use native CPU pixels. */
+KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation brushExecutionLocation(const QString &id);
 }
 #endif

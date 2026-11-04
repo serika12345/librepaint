@@ -374,6 +374,8 @@ QString OperationDocument::historyFilterId(int index) const
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
+    if (m_layerHistoryChanges[index].pixelEditAction != HistoryAction::None)
+        return m_layerHistoryChanges[index].pixelEditAction;
     if (m_layerHistoryChanges[index].layerStructureAction != HistoryAction::None)
         return m_layerHistoryChanges[index].layerStructureAction;
     if (m_layerHistoryChanges[index].transformedLayers) return HistoryAction::TransformLayer;
@@ -475,7 +477,7 @@ int OperationDocument::savedHistoryIndex() const
 }
 bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevision != m_savedRevision; }
 bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation || !m_affine.isEmpty() ||
-    (!m_externalOperation.isNull() && !(m_filterEdit && m_filterEdit->updating)) || m_filterNodeEdit.has_value(); }
+    (!m_externalOperation.isNull() && !(m_pixelEdit && m_pixelEdit->updating)) || m_filterNodeEdit.has_value(); }
 OperationId OperationDocument::activeOperation() const
 {
     if (m_filterNodeEdit) return m_filterNodeEdit->id;
@@ -1169,12 +1171,12 @@ void OperationDocument::commitVersion(const Snapshot &version)
 
 void OperationDocument::commitVersion(const Snapshot &version, const LayerHistoryChange &change)
 {
-    if (m_filterEdit && m_filterEdit->updating) {
+    if (m_pixelEdit && m_pixelEdit->updating) {
         auto previewVersion = QSharedPointer<DocumentVersion>(new DocumentVersion(*version));
         previewVersion->m_committed = false;
-        previewVersion->m_pendingOperation = m_filterEdit->id;
+        previewVersion->m_pendingOperation = m_pixelEdit->id;
         m_preview = previewVersion;
-        m_filterEdit->change = change;
+        m_pixelEdit->change = change;
         return;
     }
     auto history = m_history;
@@ -3075,7 +3077,7 @@ void OperationDocument::close()
     m_translationIds.clear();
     m_externalOperation = {};
     m_filterNodeEdit.reset();
-    m_filterEdit.reset();
+    m_pixelEdit.reset();
     m_layerHistoryChanges = {LayerHistoryChange{}};
     m_index = 0;
     m_closed = true;
