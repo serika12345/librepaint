@@ -970,7 +970,7 @@ void TestDocument::testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsuppor
         const auto written = Kra::RasterCodec::write(bad, unsupported, projection);
         QVERIFY2(written.code == Kra::Status::Success, qPrintable(written.diagnostic));
         bad.close();
-        QVERIFY(!document->openPath(badPath, KisDocument::DontAddToRecent));
+        QVERIFY2(!document->openPath(badPath, KisDocument::DontAddToRecent), qPrintable(feature));
         QVERIFY2(document->errorMessage().contains(feature), qPrintable(document->errorMessage()));
         QCOMPARE(document->image(), image);
         QCOMPARE(document->localFilePath(), saved);

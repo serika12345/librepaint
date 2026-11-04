@@ -504,9 +504,13 @@ QString gpuKraEditingError(const QDomElement &image)
         }
         if (element != image && element.attribute(QStringLiteral("onionskin"), QStringLiteral("0")) != QLatin1String("0"))
             return i18n("The new painting engine cannot yet restore onion skins.");
+        QSet<QString> seenChildren;
         for (auto child = element.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
             if (element == image && !imageChildren.contains(child.tagName()))
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
+            if (element == image && seenChildren.contains(child.tagName()))
+                return i18n("Duplicate KRA image setting '%1'.", child.tagName());
+            seenChildren.insert(child.tagName());
             if (element == image && child.tagName() == QLatin1String("Palettes") &&
                 (child.hasAttributes() || !child.firstChildElement().isNull()))
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
