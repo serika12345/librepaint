@@ -769,11 +769,6 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu, 
 
     // Creating the KisImageSP
     if (gpu) {
-        const auto canonical = color_nb_bits == 16 ? KoColorSpaceRegistry::instance()->rgb16() :
-                                                   KoColorSpaceRegistry::instance()->rgb8();
-        if (!canonical || !canonical->profile() || cs->id() != canonical->id() ||
-            cs->profile()->rawData() != canonical->profile()->rawData())
-            return ImportExportCodes::FormatColorSpaceUnsupported;
         prepared->colorSpace = cs;
         prepared->raster.size = QSize(width, height);
         prepared->raster.format = color_nb_bits == 16 ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;

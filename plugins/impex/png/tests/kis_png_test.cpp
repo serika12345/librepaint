@@ -26,6 +26,8 @@
 #include "filestest.h"
 
 #include <testui.h>
+#include <KisPaintingEngineTestScope.h>
+#include <KisGpuPixelTolerance.h>
 
 #ifndef FILES_DATA_DIR
 #error "FILES_DATA_DIR not set. A directory with the data used for testing the importing of files in krita"
@@ -55,6 +57,52 @@ protected:
         return written;
     }
 };
+
+void verifyGpuPngRoundTrip(KisDocument *document, const QString &sourcePath)
+{
+    QVERIFY(document->image()->gpuImage());
+    QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
+    reference->setFileBatchMode(true);
+    {
+        const TestUtil::PaintingEngineScope cpu(false);
+        QVERIFY2(reference->openPath(sourcePath, KisDocument::DontAddToRecent), qPrintable(reference->errorMessage()));
+    }
+    KisImageSP expected = reference->image();
+    expected->initialRefreshGraph();
+    expected->waitForDone();
+    const auto bounds = expected->bounds();
+    QByteArray expectedPixels(bounds.width() * bounds.height() * expected->colorSpace()->pixelSize(), Qt::Uninitialized);
+    expected->projection()->readBytes(reinterpret_cast<quint8 *>(expectedPixels.data()), bounds);
+
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto savedPath = directory.filePath(QStringLiteral("profile.png"));
+    KisPropertiesConfigurationSP options = new KisPropertiesConfiguration();
+    options->setProperty("forceSRGB", false);
+    options->setProperty("saveSRGBProfile", true);
+    QVERIFY2(document->exportDocumentSync(savedPath, "image/png", options), qPrintable(document->errorMessage()));
+
+    for (const bool gpu : {true, false}) {
+        const TestUtil::PaintingEngineScope engine(gpu);
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(savedPath, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        KisImageSP actual = reopened->image();
+        QCOMPARE(bool(actual->gpuImage()), gpu);
+        QCOMPARE(actual->bounds(), bounds);
+        QCOMPARE(actual->colorSpace()->id(), expected->colorSpace()->id());
+        QCOMPARE(actual->colorSpace()->profile()->rawData(), expected->colorSpace()->profile()->rawData());
+        QCOMPARE(actual->colorSpace()->profile()->getColorPrimaries(), expected->colorSpace()->profile()->getColorPrimaries());
+        QCOMPARE(actual->colorSpace()->profile()->getTransferCharacteristics(), expected->colorSpace()->profile()->getTransferCharacteristics());
+        QCOMPARE(actual->xRes(), expected->xRes());
+        QCOMPARE(actual->yRes(), expected->yRes());
+        actual->initialRefreshGraph();
+        actual->waitForDone();
+        QByteArray actualPixels(expectedPixels.size(), Qt::Uninitialized);
+        actual->projection()->readBytes(reinterpret_cast<quint8 *>(actualPixels.data()), bounds);
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(actualPixels, expectedPixels, actual->colorSpace()->pixelSize() / 4);
+    }
+}
 }
 
 void KisPngTest::testFileWritingPreservesExistingData_data()
@@ -475,6 +523,7 @@ void roudTripHdrImage(const KoColorSpace *savingColorSpace)
     }
 
     {
+        const TestUtil::PaintingEngineScope gpu(true);
         QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
         KisImportExportManager manager(doc.data());
         doc->setFileBatchMode(true);
@@ -485,19 +534,13 @@ void roudTripHdrImage(const KoColorSpace *savingColorSpace)
         QVERIFY(loadingStatus.isOk());
 
         KisImageSP image = doc->image();
+        QVERIFY(image->gpuImage());
         image->initialRefreshGraph();
-
-        KoColor resultColor;
-
-//        qDebug() << ppVar(image->colorSpace()) << image->colorSpace()->profile()->name();
-//        image->projection()->pixel(1, 1, &resultColor);
-//        qDebug() << ppVar(resultColor);
-
-        image->convertImageColorSpace(scRGBF32, KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
         image->waitForDone();
 
+        KoColor resultColor;
         image->projection()->pixel(1, 1, &resultColor);
-//        qDebug() << ppVar(resultColor);
+        resultColor.convertTo(scRGBF32);
 
         const float tolerance = savingColorSpace->colorDepthId() == Integer8BitsColorDepthID ? 0.02 : 0.01;
         bool resultIsValid = true;
@@ -594,6 +637,7 @@ void KisPngTest::testRoundtripCicpIccProfile()
     // Failure impact: a reopened PNG is interpreted in the wrong color space.
     QFETCH(ColorPrimaries, primaries);
     QFETCH(TransferCharacteristics, transfer);
+    const TestUtil::PaintingEngineScope gpu(true);
     QVector<double> colorants;
     const KoColorProfile *profile = KoColorSpaceRegistry::instance()->profileFor(KoColorProfileQuery(primaries, transfer));
 
@@ -603,13 +647,18 @@ void KisPngTest::testRoundtripCicpIccProfile()
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     doc->setFileBatchMode(true);
     KisImageSP image = new KisImage(new KisSurrogateUndoStore(), imageRect.width(), imageRect.height(), cs, "test image");
+    KisPaintLayerSP layer = new KisPaintLayer(image, "Profile pixels", OPACITY_OPAQUE_U8);
+    layer->paintDevice()->fill(QRect(0, 0, 257, 129), KoColor(QColor(57, 139, 211, 173), cs));
+    image->addNode(layer, image->root());
+    image->initialRefreshGraph();
+    image->waitForDone();
     doc->setCurrentImage(image);
     const QString name = "roundtrip_cicp_test_"+QString::number(primaries)+"_"+QString::number(transfer)+".png";
 
     KisPropertiesConfigurationSP exportConfiguration = new KisPropertiesConfiguration();
     exportConfiguration->setProperty("saveSRGBProfile", false);
     exportConfiguration->setProperty("forceSRGB", false);
-    doc->exportDocumentSync(name, "image/png", exportConfiguration);
+    QVERIFY(doc->exportDocumentSync(name, "image/png", exportConfiguration));
 
     //---//
 
@@ -627,6 +676,7 @@ void KisPngTest::testRoundtripCicpIccProfile()
     image2->waitForDone();
     QVERIFY(image2->colorSpace()->profile()->getColorPrimaries() == primaries);
     QVERIFY(image2->colorSpace()->profile()->getTransferCharacteristics() == transfer);
+    verifyGpuPngRoundTrip(doc2.data(), name);
 }
 
 void KisPngTest::testLoadPngWithLegacyProfile()
@@ -638,6 +688,7 @@ void KisPngTest::testLoadPngWithLegacyProfile()
     const QString pngFilePath = TestUtil::fetchDataFileLazy("test-png-with-legacy-hdr-profile.png");
     KIS_ASSERT(QFile::exists(pngFilePath));
 
+    const TestUtil::PaintingEngineScope gpu(true);
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     KisImportExportManager manager(doc.data());
     doc->setFileBatchMode(true);
@@ -657,6 +708,7 @@ void KisPngTest::testLoadPngWithLegacyProfile()
     QCOMPARE(profile->name(), KoColorSpaceRegistry::instance()->p2020PQProfile()->name());
     QCOMPARE(profile->getColorPrimaries(), PRIMARIES_ITU_R_BT_2020_2_AND_2100_0);
     QCOMPARE(profile->getTransferCharacteristics(), TRC_ITU_R_BT_2100_0_PQ);
+    verifyGpuPngRoundTrip(doc.data(), pngFilePath);
 }
 
 KISTEST_MAIN(KisPngTest)

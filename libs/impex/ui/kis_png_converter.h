@@ -98,7 +98,7 @@ public:
     KisImportExportErrorCode buildImage(QIODevice* iod);
     /** Ordinary import keeps grayscale documents on the CPU and uploads supported RGBA input. */
     KisImportExportErrorCode buildImage(QIODevice *iod, std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution);
-    /** Validates and decodes default-profile RGB8/U16 PNG input before acquiring a GPU.
+    /** Validates and decodes RGB8/U16 PNG input with its RGB profile before acquiring a GPU.
      * Prepared pixels belong to this converter until buildGpuImage() consumes them.
      * Failure leaves the document and its current image unchanged.
      */
