@@ -485,6 +485,14 @@ void Node::setOpacity(int value)
     if (!d->node) return;
     if (value < 0) value = 0;
     if (value > 255) value = 255;
+    if (const auto owner = d->image->gpuImage()) {
+        for (const auto &layer : owner->operations().snapshot()->layers) {
+            if (layer.uuid == d->node->uuid()) {
+                owner->writeLayerOpacity(layer.id, quint8(value));
+                break;
+            }
+        }
+    }
     d->node->setOpacity(value);
 }
 
