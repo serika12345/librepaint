@@ -1177,7 +1177,7 @@ enum class HistoryAction {
     AddFilterMask, AddAdjustmentLayer, ChangeFilter,
     MaximizeChannel, MinimizeChannel, ResetTransparent, ColorOverlay,
     Sharpen, MeanRemoval, EmbossLaplacian, EmbossAllDirections,
-    EmbossHorizontalVertical, EmbossVertical, EmbossHorizontal, Gradient, FloodFill
+    EmbossHorizontalVertical, EmbossVertical, EmbossHorizontal, Gradient, FloodFill, SmartPatch
 };
 
 struct Limits

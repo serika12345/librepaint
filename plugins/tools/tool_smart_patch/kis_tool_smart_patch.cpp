@@ -51,22 +51,28 @@
 #include "kis_algebra_2d.h"
 #include "kis_resources_snapshot.h"
 #include "kis_selection.h"
+#include <KisGpuCpuBrushStroke.h>
+#include <gpu/KisGpuOperationCapabilities.h>
+#include <QKeyEvent>
+#include <QPointer>
 
 QRect patchImage(KisPaintDeviceSP imageDev, KisPaintDeviceSP maskDev, int radius, int accuracy, KisSelectionSP selection);
 
 class KisToolSmartPatch::InpaintCommand : public KisTransactionBasedCommand {
 public:
-    InpaintCommand( KisPaintDeviceSP maskDev, KisPaintDeviceSP imageDev, int accuracy, int patchRadius, KisSelectionSP selection) :
-        m_maskDev(maskDev), m_imageDev(imageDev), m_accuracy(accuracy), m_patchRadius(patchRadius), m_selection(selection) {}
+    InpaintCommand(KisPaintDeviceSP maskDev, KisNodeSP node, int accuracy, int patchRadius, KisSelectionSP selection) :
+        m_maskDev(maskDev), m_node(node), m_accuracy(accuracy), m_patchRadius(patchRadius), m_selection(selection) {}
 
     KUndo2Command* paint() override {
-        KisTransaction transaction(m_imageDev);
-        patchImage(m_imageDev, m_maskDev, m_patchRadius, m_accuracy, m_selection);
+        KisTransaction transaction(m_node->paintDevice());
+        const auto dirty = patchImage(m_node->paintDevice(), m_maskDev, m_patchRadius, m_accuracy, m_selection);
+        m_node->setDirty(dirty);
         return transaction.endAndTake();
     }
 
 private:
-    KisPaintDeviceSP m_maskDev, m_imageDev;
+    KisPaintDeviceSP m_maskDev;
+    KisNodeSP m_node;
     int m_accuracy, m_patchRadius;
     KisSelectionSP m_selection;
 };
@@ -78,6 +84,8 @@ struct KisToolSmartPatch::Private {
     KisToolSmartPatchOptionsWidget *optionsWidget = nullptr;
     QRectF oldOutlineRect;
     QPainterPath brushOutline;
+    KisImageWSP targetImage;
+    KisNodeSP targetNode;
 };
 
 
@@ -97,6 +105,7 @@ KisToolSmartPatch::KisToolSmartPatch(KoCanvasBase * canvas)
 
 KisToolSmartPatch::~KisToolSmartPatch()
 {
+    requestStrokeCancellation();
     m_d->optionsWidget = nullptr;
     m_d->maskDevPainter.end();
 }
@@ -108,6 +117,7 @@ void KisToolSmartPatch::activate(const QSet<KoShape*> &shapes)
 
 void KisToolSmartPatch::deactivate()
 {
+    requestStrokeCancellation();
     KisToolPaint::deactivate();
 }
 
@@ -153,7 +163,13 @@ void KisToolSmartPatch::beginPrimaryAction(KoPointerEvent *event)
         event->ignore();
         return;
     }
+    if (!nodeEditable()) {
+        event->ignore();
+        return;
+    }
 
+    m_d->targetImage = image();
+    m_d->targetNode = currentNode();
     addMaskPath(event);
     setMode(KisTool::PAINT_MODE);
     KisToolPaint::beginPrimaryAction(event);
@@ -169,9 +185,39 @@ void KisToolSmartPatch::continuePrimaryAction(KoPointerEvent *event)
 void KisToolSmartPatch::endPrimaryAction(KoPointerEvent *event)
 {
     CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
-    addMaskPath(event);
+    if (event) addMaskPath(event);
     KisToolPaint::endPrimaryAction(event);
     setMode(KisTool::HOVER_MODE);
+
+    auto targetImage = m_d->targetImage.toStrongRef();
+    auto targetNode = m_d->targetNode;
+    m_d->targetImage = nullptr;
+    m_d->targetNode.clear();
+    const auto mask = KisPainter::convertToAlphaAsAlpha(m_d->maskDev);
+    const auto dirtyOverlay = m_d->maskDev->exactBounds();
+    m_d->maskDev->clear();
+    if (targetImage) canvas()->updateCanvas(targetImage->pixelToDocument(dirtyOverlay));
+    if (!targetImage || image().data() != targetImage.data() || currentNode() != targetNode || !nodeEditable()) return;
+
+    std::unique_ptr<KisGpuCpuBrushStroke> cpuPatch;
+    if (targetImage->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QPointer<KisToolSmartPatch> tool(this);
+        const QPointer<KisViewManager> view(static_cast<KisCanvas2 *>(canvas())->viewManager());
+        const auto owner = targetImage->gpuImage();
+        if (!view || !view->blockUntilOperationsFinished(targetImage) || !tool || !view ||
+            view->image().data() != targetImage.data() || targetImage->gpuImage() != owner || tool->currentNode() != targetNode) return;
+        if (Gpu::toolExecutionLocation(Gpu::ToolOperation::SmartPatch) != Gpu::ExecutionLocation::Cpu) return;
+        QString diagnostic;
+        cpuPatch = KisGpuCpuBrushStroke::create(targetImage, targetNode, diagnostic,
+            KisGpuCpuBrushStroke::Projection::None, {}, Gpu::HistoryAction::SmartPatch);
+        if (!cpuPatch) {
+            Q_EMIT statusTextChanged(i18n("The smart patch could not be applied to the selected paint layer."));
+            return;
+        }
+        targetImage = cpuPatch->image();
+        targetNode = cpuPatch->node();
+    }
 
     KisCursorOverrideLock cursorLock(KisCursor::waitCursor());
 
@@ -184,22 +230,48 @@ void KisToolSmartPatch::endPrimaryAction(KoPointerEvent *event)
     }
 
     KisResourcesSnapshotSP resources =
-        new KisResourcesSnapshot(image(), currentNode(), this->canvas()->resourceManager()->canvasResourcesInterface());
+        new KisResourcesSnapshot(targetImage, targetNode, this->canvas()->resourceManager()->canvasResourcesInterface());
 
-    KisProcessingApplicator applicator( image(), currentNode(), KisProcessingApplicator::NONE, KisImageSignalVector(),
+    KisProcessingApplicator applicator(targetImage, targetNode, KisProcessingApplicator::NONE, KisImageSignalVector(),
                                         kundo2_i18n("Smart Patch"));
 
     //actual inpaint operation. filling in areas masked by user
-    applicator.applyCommand( new InpaintCommand( KisPainter::convertToAlphaAsAlpha(m_d->maskDev),
-                                                 currentNode()->paintDevice(),
+    applicator.applyCommand( new InpaintCommand(mask, targetNode,
                                                  accuracy, patchRadius,
                                                  resources->activeSelection()),
                              KisStrokeJobData::BARRIER, KisStrokeJobData::EXCLUSIVE );
 
     applicator.end();
-    image()->waitForDone();
+    targetImage->waitForDone();
 
+    if (cpuPatch && (!applicator.successfullyCompletedFuture().get() || !cpuPatch->commit())) {
+        Q_EMIT statusTextChanged(i18n("The smart patch could not be completed and was cancelled."));
+    }
+}
+
+void KisToolSmartPatch::requestStrokeEnd()
+{
+    if (mode() == KisTool::PAINT_MODE) endPrimaryAction(nullptr);
+}
+
+void KisToolSmartPatch::requestStrokeCancellation()
+{
+    const auto dirty = m_d->maskDev->exactBounds();
     m_d->maskDev->clear();
+    m_d->targetImage = nullptr;
+    m_d->targetNode.clear();
+    setMode(KisTool::HOVER_MODE);
+    if (!dirty.isEmpty() && currentImage()) canvas()->updateCanvas(currentImage()->pixelToDocument(dirty));
+}
+
+void KisToolSmartPatch::keyPressEvent(QKeyEvent *event)
+{
+    if (mode() == KisTool::PAINT_MODE && event->key() == Qt::Key_Escape) {
+        requestStrokeCancellation();
+        event->accept();
+        return;
+    }
+    KisToolPaint::keyPressEvent(event);
 }
 
 QPainterPath KisToolSmartPatch::brushOutline( void )

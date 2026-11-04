@@ -44,6 +44,9 @@ public:
     void beginPrimaryAction(KoPointerEvent *event) override;
     void continuePrimaryAction(KoPointerEvent *event) override;
     void endPrimaryAction(KoPointerEvent *event) override;
+    void requestStrokeEnd() override;
+    void requestStrokeCancellation() override;
+    void keyPressEvent(QKeyEvent *event) override;
     void paint(QPainter &painter, const KoViewConverter &converter) override;
     int flags() const override { return KisTool::FLAG_USES_CUSTOM_SIZE | KisTool::FLAG_USES_CUSTOM_PRESET; }
 

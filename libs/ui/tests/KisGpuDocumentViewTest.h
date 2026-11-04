@@ -360,6 +360,8 @@ private Q_SLOTS:
     void cpuBrushesKeepNativeEditing();
     void cpuFillsKeepNativeEditing_data();
     void cpuFillsKeepNativeEditing();
+    void cpuSmartPatchKeepsNativeEditing_data();
+    void cpuSmartPatchKeepsNativeEditing();
     void cpuFiguresKeepNativeEditing_data();
     void cpuFiguresKeepNativeEditing();
     void cpuMaskFiltersKeepNativeEditing_data();

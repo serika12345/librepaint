@@ -10,6 +10,7 @@ ExecutionLocation toolExecutionLocation(ToolOperation operation)
     switch (operation) {
     case ToolOperation::Gradient:
     case ToolOperation::Fill:
+    case ToolOperation::SmartPatch:
         return ExecutionLocation::Cpu;
     }
     return ExecutionLocation::Cpu;
