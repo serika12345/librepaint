@@ -116,6 +116,12 @@ public:
      */
     KisNodeSP node() const;
 
+    /** Explicit sampling source, when supported by the paint engine. A CPU
+     * stroke can redirect its copied settings to a temporary native node.
+     */
+    virtual KisNodeWSP sourceNode() const;
+    virtual void setSourceNode(KisNodeWSP node);
+
     /**
      * Call this function when the paint op is selected or the tool is activated
      */

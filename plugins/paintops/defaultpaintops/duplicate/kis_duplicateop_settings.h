@@ -60,7 +60,8 @@ public:
     using KisBrushBasedPaintOpSettings::brushOutline;
     KisOptimizedBrushOutline brushOutline(const KisPaintInformation &info, const OutlineMode &mode, qreal alignForZoom) override;
 
-    KisNodeWSP sourceNode() const;
+    KisNodeWSP sourceNode() const override;
+    void setSourceNode(KisNodeWSP node) override;
 
     QList<KisUniformPaintOpPropertySP> uniformProperties(KisPaintOpSettingsSP settings, QPointer<KisPaintOpPresetUpdateProxy> updateProxy) override;
 

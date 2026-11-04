@@ -9,23 +9,28 @@
 void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing_data()
 {
     QTest::addColumn<bool>("words");
-    QTest::addColumn<bool>("smudge");
-    QTest::newRow("u8-grid") << false << false;
-    QTest::newRow("u16-selected-deform") << true << false;
-    QTest::newRow("u8-merged-smudge") << false << true;
-    QTest::newRow("u16-selected-offcanvas-smudge") << true << true;
+    QTest::addColumn<QString>("engine");
+    QTest::newRow("u8-grid") << false << QStringLiteral("gridbrush");
+    QTest::newRow("u16-selected-deform") << true << QStringLiteral("deformbrush");
+    QTest::newRow("u8-merged-smudge") << false << QStringLiteral("colorsmudge");
+    QTest::newRow("u16-selected-offcanvas-smudge") << true << QStringLiteral("colorsmudge");
+    QTest::newRow("u8-merged-clone") << false << QStringLiteral("duplicate");
+    QTest::newRow("u16-selected-node-clone") << true << QStringLiteral("duplicate");
 }
 
 void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
-    QFETCH(bool, words); QFETCH(bool, smudge);
+    QFETCH(bool, words); QFETCH(QString, engine);
     const TestUtil::PaintingEngineScope useGpu(true);
-    const QString id = smudge ? QStringLiteral("colorsmudge") : words ? QStringLiteral("deformbrush") : QStringLiteral("gridbrush");
+    const QString id = engine;
+    const bool smudge = id == QLatin1String("colorsmudge");
+    const bool duplicate = id == QLatin1String("duplicate");
+    const bool sampling = smudge || duplicate;
     QCOMPARE(Gpu::brushExecutionLocation(id), Gpu::ExecutionLocation::Cpu);
     QCOMPARE(Gpu::brushExecutionLocation(QStringLiteral("paintbrush")), Gpu::ExecutionLocation::Gpu);
     QCOMPARE(Gpu::brushExecutionLocation(QStringLiteral("roundmarker")), Gpu::ExecutionLocation::Gpu);
-    if (smudge) {
+    if (sampling) {
         KisResourceModel brushes(ResourceType::Brushes);
         if (brushes.rowCount() == 0)
             QVERIFY(brushes.importResourceFile(QStringLiteral(KRITA_SOURCE_DIR "/libs/brush/tests/data/brush.gbr"), false));
@@ -41,6 +46,11 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
     if (smudge) {
         preset->settings()->setProperty("MergedPaint", true);
         preset->settings()->setProperty("ColorRateValue", 0.0);
+    } else if (duplicate) {
+        preset->settings()->setProperty("Duplicateop/CloneFromProjection", !words);
+        preset->settings()->setProperty("Duplicateop/MoveSourcePoint", true);
+        preset->settings()->setProperty("Duplicateop/ResetSourcePoint", false);
+        preset->settings()->setProperty("Duplicateop/Healing", false);
     } else if (words) {
         preset->settings()->setProperty(AIRBRUSH_ENABLED, false);
         preset->settings()->setProperty("Deform/useMovementPaint", false);
@@ -88,22 +98,28 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
             QVERIFY(image->addNode(layer));
         }
         const auto node = image->root()->firstChild();
-        const QRect selectionArea = smudge ? QRect(-5, 4, 14, 24) : QRect(247, 4, 14, 24);
+        const QRect selectionArea = sampling ? QRect(-5, 4, 14, 24) : QRect(247, 4, 14, 24);
         QUuid backdropUuid;
         QByteArray backdropPixels;
-        if (smudge) {
+        if (sampling) {
             KisPaintDeviceSP pixels = new KisPaintDevice(cs);
             pixels->fill(inspected, KoColor(QColor(17, 201, 33, 209), cs));
+            if (duplicate) {
+                for (int y = inspected.top(); y <= inspected.bottom(); ++y)
+                    for (int x = inspected.left(); x <= inspected.right(); ++x)
+                        pixels->fill(QRect(x, y, 1, 1), KoColor(QColor((x + 19) * 7 % 256,
+                            (y + 11) * 5 % 256, (x + y + 31) * 3 % 256, 209), cs));
+            }
             backdropPixels.resize(inspected.width() * inspected.height() * cs->pixelSize());
             pixels->readBytes(reinterpret_cast<quint8 *>(backdropPixels.data()), inspected);
             if (gpu) {
                 const auto owner = image->gpuImage();
-                const auto id = owner->addLayer(QStringLiteral("Smudge source"), 0, false, {});
+                const auto id = owner->addLayer(QStringLiteral("Brush source"), 0, false, {});
                 QVERIFY(id);
                 QCOMPARE(owner->writeRgbaPixels(id, inspected, kisGpuPixelTransfer(backdropPixels, format, true)), Gpu::Result::Success);
                 backdropUuid = owner->operations().snapshot()->layers.first().uuid;
             } else {
-                KisPaintLayerSP backdrop = new KisPaintLayer(image, QStringLiteral("Smudge source"), 255, pixels);
+                KisPaintLayerSP backdrop = new KisPaintLayer(image, QStringLiteral("Brush source"), 255, pixels);
                 backdropUuid = backdrop->uuid();
                 QVERIFY(image->addNode(backdrop, image->root(), quint32(0)));
             }
@@ -153,7 +169,7 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
         QSignalSpy errors(&helper, &KisToolFreehandHelper::requestErrorMessage);
         const auto capture = [&] {
             image->waitForDone();
-            if (smudge) {
+            if (sampling) {
                 image->refreshGraphAsync(image->root(), inspected, inspected);
                 image->waitForDone();
             }
@@ -162,7 +178,7 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
             return bytes;
         };
         const auto original = capture();
-        if (smudge) {
+        if (sampling) {
             QByteArray pixels(original.size(), Qt::Uninitialized);
             image->projection()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), inspected);
             if (!gpu) sourceProjection = pixels;
@@ -170,9 +186,20 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
                           qPrintable(pixelStepDifference(pixels, sourceProjection, words ? 2 : 1)));
         }
         const auto begin = [&] {
-            const qreal x = smudge && words ? -1.5 : 250.5;
+            const qreal x = sampling && words ? -1.5 : 250.5;
             KisPaintInformation first(QPointF(x, 12.5)), last(QPointF(x + 10, 18.5));
             if (words && !image->globalSelection()) return false;
+            if (duplicate) {
+                const auto source = words ? KisLayerUtils::findNodeByUuid(image->root(), backdropUuid) : node;
+                auto settings = resources->currentPreset()->settings();
+                if (settings->mousePressEvent(KisPaintInformation(QPointF(20.5, 10.5)), Qt::ControlModifier, source)) return false;
+                // Disjoint sampling keeps this fixed input independent of
+                // native merged-projection update timing during the stroke.
+                if (settings->mousePressEvent(KisPaintInformation(QPointF(words ? 251.5 : 148.5, 12.5)),
+                    Qt::ControlModifier | Qt::AltModifier, node)) return false;
+                if (settings->sourceNode().data() != source.data()) return false;
+                if (!settings->mousePressEvent(first, Qt::NoModifier, node)) return false;
+            }
             helper.initPaintImpl(0, first, view->canvasBase()->resourceManager(), image, node, image.data());
             if (!helper.isRunning()) return false;
             helper.paintAt(first); helper.paintLine(first, last);
@@ -189,11 +216,16 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
         }
         helper.endPaint();
         QVERIFY(errors.isEmpty()); QVERIFY(!helper.isRunning());
+        if (duplicate) {
+            const auto source = words ? KisLayerUtils::findNodeByUuid(image->root(), backdropUuid) : node;
+            QCOMPARE(resources->currentPreset()->settings()->sourceNode().data(), source.data());
+            resources->currentPreset()->settings()->mouseReleaseEvent();
+        }
         const auto edited = capture(); QVERIFY(edited != original);
         if (!gpu) reference = edited;
         else QVERIFY2(pixelStepDifference(edited, reference, words ? 2 : 1).isEmpty(),
                       qPrintable(pixelStepDifference(edited, reference, words ? 2 : 1)));
-        if (smudge) {
+        if (sampling) {
             QByteArray projection(edited.size(), Qt::Uninitialized);
             image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), inspected);
             if (!gpu) referenceProjection = projection;
@@ -238,9 +270,9 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
                 QByteArray bytes(edited.size(), Qt::Uninitialized);
                 layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), inspected);
                 QVERIFY(pixelStepDifference(bytes, reference, words ? 2 : 1).isEmpty());
-                if (smudge) {
+                if (sampling) {
                     const auto backdrop = KisLayerUtils::findNodeByUuid(reopened->image()->root(), backdropUuid);
-                    QVERIFY(backdrop); QCOMPARE(backdrop->name(), QStringLiteral("Smudge source"));
+                    QVERIFY(backdrop); QCOMPARE(backdrop->name(), QStringLiteral("Brush source"));
                     backdrop->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), inspected);
                     QCOMPARE(bytes, backdropPixels);
                     reopened->image()->refreshGraphAsync(reopened->image()->root(), inspected, inspected);

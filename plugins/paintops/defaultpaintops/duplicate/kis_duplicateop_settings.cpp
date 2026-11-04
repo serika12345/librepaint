@@ -106,6 +106,11 @@ KisNodeWSP KisDuplicateOpSettings::sourceNode() const
     return m_sourceNode;
 }
 
+void KisDuplicateOpSettings::setSourceNode(KisNodeWSP node)
+{
+    m_sourceNode = node;
+}
+
 void KisDuplicateOpSettings::activate()
 {
 }

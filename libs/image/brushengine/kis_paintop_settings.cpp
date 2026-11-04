@@ -153,6 +153,15 @@ bool KisPaintOpSettings::mouseReleaseEvent()
     return true; // ignore the event by default
 }
 
+KisNodeWSP KisPaintOpSettings::sourceNode() const
+{
+    return {};
+}
+
+void KisPaintOpSettings::setSourceNode(KisNodeWSP)
+{
+}
+
 bool KisPaintOpSettings::hasMaskingSettings() const
 {
     return getBool(KisPaintOpUtils::MaskingBrushEnabledTag, false);

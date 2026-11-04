@@ -19,12 +19,15 @@
 class KRITAPAINTING_EXPORT KisGpuCpuBrushStroke
 {
 public:
+    /** Smudge adds live dabs to a captured source; clone reads an updating native projection. */
+    enum class Projection { None, Captured, Updating };
     static std::unique_ptr<KisGpuCpuBrushStroke> create(KisImageSP image, KisNodeSP node, QString &diagnostic,
-                                                      bool sampleProjection = false);
+                                                      Projection projection = Projection::None, KisNodeSP samplingNode = {});
     ~KisGpuCpuBrushStroke();
 
     KisImageSP image() const;
     KisNodeSP node() const;
+    KisNodeSP samplingNode() const;
     bool updatePreview(KisStrokeId stroke);
     bool commit();
 

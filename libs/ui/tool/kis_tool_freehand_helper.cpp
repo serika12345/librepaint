@@ -422,6 +422,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
 {
     m_d->stabilizerDelayedPaintHelper.setPaintLinesCallback({});
     const auto preset = resourceManager->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
+    KisPaintOpPresetSP cpuPreset;
     const bool cpu = image->gpuImage() && preset &&
         LibrePaint::Image::Gpu::brushExecutionLocation(preset->paintOp().id()) == LibrePaint::Image::Gpu::ExecutionLocation::Cpu;
     if (m_d->gpuImage && (!image->gpuImage() || cpu)) {
@@ -434,20 +435,36 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
     }
     if (cpu) {
         if (m_d->strokeId || m_d->cpuStroke) return;
-        if (overrideNode || bounds || m_d->gpuMultibrushConfigured ||
-            preset->paintOp().id() == QLatin1String("duplicate")) {
+        if (overrideNode || bounds || m_d->gpuMultibrushConfigured) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(i18n("This brush target is not yet available for this document."));
             return;
         }
         QString diagnostic;
-        const bool sampleProjection = preset->paintOp().id() == QLatin1String("colorsmudge") &&
-            preset->settings()->getBool("MergedPaint", false);
-        m_d->cpuStroke = KisGpuCpuBrushStroke::create(image, currentNode, diagnostic, sampleProjection);
+        const bool duplicate = preset->paintOp().id() == QLatin1String("duplicate");
+        const bool sampleProjection = (preset->paintOp().id() == QLatin1String("colorsmudge") &&
+            preset->settings()->getBool("MergedPaint", false)) ||
+            (duplicate && preset->settings()->getBool("Duplicateop/CloneFromProjection", false));
+        KisNodeSP samplingNode;
+        if (duplicate && !sampleProjection) {
+            samplingNode = preset->settings()->sourceNode();
+            if (!samplingNode || !samplingNode->graphListener()) samplingNode = currentNode;
+        }
+        bool samplingParent = false;
+        if (samplingNode && currentNode) for (auto ancestor = currentNode->parent(); ancestor; ancestor = ancestor->parent())
+            samplingParent |= ancestor == samplingNode;
+        using Projection = KisGpuCpuBrushStroke::Projection;
+        const auto projection = duplicate && (sampleProjection || samplingParent) ? Projection::Updating :
+            sampleProjection ? Projection::Captured : Projection::None;
+        m_d->cpuStroke = KisGpuCpuBrushStroke::create(image, currentNode, diagnostic, projection, samplingNode);
         if (!m_d->cpuStroke) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(diagnostic);
             return;
+        }
+        if (samplingNode) {
+            cpuPreset = preset->clone().dynamicCast<KisPaintOpPreset>();
+            cpuPreset->settings()->setSourceNode(m_d->cpuStroke->samplingNode());
         }
         disconnect(m_d->gpuCancellation);
         m_d->gpuCancellation = connect(image.data(), &KisImage::sigStrokeCancellationRequested,
@@ -567,7 +584,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
     m_d->resources = new KisResourcesSnapshot(image,
                                               currentNode,
                                               resourceManager->canvasResourcesInterface(),
-                                              bounds);
+                                              bounds, {}, cpuPreset);
     if(overrideNode) {
         m_d->resources->setCurrentNode(overrideNode);
     }
