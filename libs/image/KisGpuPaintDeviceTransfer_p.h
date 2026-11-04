@@ -10,9 +10,31 @@ class KoColorSpace;
 #include "kis_default_bounds_base.h"
 #include "gpu/KisGpuPaintImage.h"
 #include <kritaimage_export.h>
+#include <limits>
+
+enum class KisGpuPixelReadSource { Layer, LayerProjection, CanvasProjection, NativeProjection };
+
+/** Validates native pixel dimensions and encoded capacity before allocation. */
+KRITAIMAGE_EXPORT qsizetype kisNativePixelByteCount(QRect region, int pixelSize,
+    qsizetype maximumBytes = std::numeric_limits<qsizetype>::max());
 
 /** Convert canonical little-endian RGBA and native-endian BGRA pixels. */
 KRITAIMAGE_EXPORT QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu);
+
+/** Explicit fixed-version native pixel read. Layer reads retain off-canvas and
+ * implicit pixels; CanvasProjection clips to the canvas. Rejection throws
+ * before publishing any bytes. The returned buffer owns its native BGRA pixels.
+ */
+KRITAIMAGE_EXPORT QByteArray kisGpuReadNativePixels(const LibrePaint::Image::Gpu::PaintImageSP &image,
+    const LibrePaint::Image::Gpu::Snapshot &version, quint64 layer, QRect region,
+    qsizetype maximumBytes, KisGpuPixelReadSource source);
+
+/** Publishes one complete native pixel write through the retained layer view.
+ * Rejection preserves pixels, history and the retained reference's version.
+ */
+KRITAIMAGE_EXPORT LibrePaint::Image::Gpu::Result kisGpuWriteNativePixels(
+    const LibrePaint::Image::Gpu::PaintImageSP &image,
+    const LibrePaint::Image::Gpu::LayerPixelReferenceSP &pixels, QRect region, QByteArrayView bytes);
 
 /** Copies full-resolution CPU RGBA U8/U16 pixels into canonical sparse tiles.
  * Preserves native allocation areas and the default pixel, including outside

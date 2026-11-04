@@ -5,6 +5,7 @@
 #include "KisGpuExportRasterRows.h"
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <KisGpuPaintDeviceTransfer_p.h>
 #include <kis_image.h>
 #include <KoColorSpace.h>
 #include <KoColorProfile.h>
@@ -12,7 +13,6 @@
 #include <QThread>
 #include <QTimer>
 #include <algorithm>
-#include <QtEndian>
 #include <cstring>
 #include <chrono>
 #include <deque>
@@ -198,21 +198,11 @@ struct KisGpuExportRasterRows::Private {
                     const QPoint origin = tile.coordinate * Side;
                     const auto clipped = QRect(origin, QSize(Side, Side)).intersected(region);
                     for (int row = clipped.top(); row <= clipped.bottom(); ++row) {
-                        for (int column = clipped.left(); column <= clipped.right(); ++column) {
-                            const auto from = ((row - origin.y()) * Side + column - origin.x()) * pixelSize;
-                            const qsizetype to = (qsizetype(row - stripe.firstRow) * size.width() + column) * pixelSize;
-                            if (pixelSize == 8) {
-                                quint16 bgra[4];
-                                for (int c = 0; c < 4; ++c)
-                                    bgra[c] = qFromLittleEndian<quint16>(tile.rgba.constData() + from + (c == 0 ? 2 : c == 2 ? 0 : c) * 2);
-                                std::memcpy(destination + to, bgra, sizeof(bgra));
-                            } else {
-                                destination[to] = quint8(tile.rgba[from + 2]);
-                                destination[to + 1] = quint8(tile.rgba[from + 1]);
-                                destination[to + 2] = quint8(tile.rgba[from]);
-                                destination[to + 3] = quint8(tile.rgba[from + 3]);
-                            }
-                        }
+                        const auto from = ((row - origin.y()) * Side + clipped.left() - origin.x()) * pixelSize;
+                        const qsizetype to = (qsizetype(row - stripe.firstRow) * size.width() + clipped.left()) * pixelSize;
+                        const auto native = kisGpuPixelTransfer(QByteArrayView(tile.rgba).sliced(from,
+                            clipped.width() * pixelSize), pinned->format, false);
+                        std::memcpy(destination + to, native.constData(), size_t(native.size()));
                     }
                 }
                 advance();
@@ -252,7 +242,7 @@ KisGpuExportRasterRows::KisGpuExportRasterRows(KisImageSP image, qsizetype memor
         (!d.pinned->colorProfile.isEmpty() && encoding->profile()->rawData() != d.pinned->colorProfile))
         throw std::invalid_argument("Export precision and document color encoding must match");
     constexpr qint64 scratchBytes = 8 * 1024 * 1024;
-    const qint64 rowBytes = qint64(d.size.width()) * d.pixelSize;
+    const qint64 rowBytes = kisNativePixelByteCount(QRect(0, 0, d.size.width(), 1), d.pixelSize);
     const qint64 workingRows = 2 * std::min(Side, d.size.height()) + 16;
     if (memoryBudgetBytes < scratchBytes || rowBytes > (memoryBudgetBytes - scratchBytes) / workingRows)
         throw std::length_error("GPU export working memory budget exceeded");

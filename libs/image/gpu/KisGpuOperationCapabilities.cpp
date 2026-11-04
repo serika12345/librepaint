@@ -5,6 +5,11 @@
 #include "KisGpuOperationCapabilities.h"
 
 namespace LibrePaint::Image::Gpu {
+ExecutionLocation pixelAccessExecutionLocation(PixelAccess)
+{
+    return ExecutionLocation::Cpu;
+}
+
 ExecutionLocation layerExecutionLocation(LayerFeature feature)
 {
     switch (feature) {

@@ -11,6 +11,7 @@ class Node;
 class Document;
 
 #include <kis_types.h>
+#include <QByteArrayView>
 
 namespace LibKisUtils
 {
@@ -18,6 +19,9 @@ namespace LibKisUtils
 QList<Node *> createNodeList(KisNodeList kisnodes, KisImageWSP image);
 
 Document* findNodeInDocuments(KisNodeSP kisnode);
+
+QByteArray readPixelData(KisPaintDeviceSP device, int x, int y, int width, int height);
+bool writePixelData(KisPaintDeviceSP device, QByteArrayView bytes, int x, int y, int width, int height);
 
 }
 

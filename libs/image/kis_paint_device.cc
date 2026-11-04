@@ -125,16 +125,6 @@ void kisRandomSubAccessorMixColors(const KisPaintDevice *device,
 }
 
 namespace {
-qsizetype gpuPixelByteCount(const QRect &rect, LibrePaint::Image::Gpu::PixelFormat format)
-{
-    const qsizetype width = rect.width();
-    const qsizetype height = rect.height();
-    const auto stride = LibrePaint::Image::Gpu::pixelByteCount(format);
-    if (height && width > std::numeric_limits<qsizetype>::max() / stride / height)
-        throw std::length_error("GPU pixel capacity exceeded");
-    return width * height * stride;
-}
-
 KoColor gpuDefaultColor(const LibrePaint::Image::Gpu::RgbaPixel &rgba,
                         LibrePaint::Image::Gpu::PixelFormat format, const KoColorSpace *space)
 {
@@ -2495,16 +2485,12 @@ void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
     }
     if (m_d->gpuImage) {
         if (rect.isEmpty()) return;
-        const auto count = gpuPixelByteCount(rect, m_d->gpuPixelVersion()->format);
         const auto snapshot = m_d->gpuPixelVersion();
         const auto layer = m_d->gpuLayerId();
-        const auto pixels = layer && m_d->isProjectionDevice ?
-            m_d->gpuImage->execution().readLayerProjectionPixels(m_d->gpuImage->handle(), snapshot, layer, rect, count) : layer ?
-            m_d->gpuImage->execution().readRgbaPixels(m_d->gpuImage->handle(), snapshot, rect, layer, count) :
-            m_d->gpuImage->execution().readNativeProjectionPixels(m_d->gpuImage->handle(), snapshot, rect, count);
-        if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
-            throw std::runtime_error(pixels.diagnostic.toStdString());
-        const auto bgra = kisGpuPixelTransfer(pixels.bytes, snapshot->format, false);
+        const auto source = layer ? (m_d->isProjectionDevice ? KisGpuPixelReadSource::LayerProjection :
+            KisGpuPixelReadSource::Layer) : KisGpuPixelReadSource::NativeProjection;
+        const auto bgra = kisGpuReadNativePixels(m_d->gpuImage, snapshot, layer, rect,
+            std::numeric_limits<qsizetype>::max(), source);
         std::memcpy(data, bgra.constData(), bgra.size());
         return;
     }
@@ -2533,10 +2519,10 @@ void KisPaintDevice::writeBytes(const quint8 *data, const QRect &rect)
     if (m_d->gpuImage) {
         if (rect.isEmpty()) return;
         if (!m_d->gpuLayerId()) throw std::logic_error("GPU image projection is read-only");
-        const auto count = gpuPixelByteCount(rect, m_d->gpuPixelVersion()->format);
-        const auto rgba = kisGpuPixelTransfer(QByteArrayView(reinterpret_cast<const char *>(data), count),
-                                          m_d->gpuPixelVersion()->format, true);
-        const auto result = m_d->gpuImage->writeRgbaPixels(m_d->gpuPixels, rect, rgba);
+        const auto count = kisNativePixelByteCount(rect,
+            LibrePaint::Image::Gpu::pixelByteCount(m_d->gpuPixelVersion()->format));
+        const auto result = kisGpuWriteNativePixels(m_d->gpuImage, m_d->gpuPixels, rect,
+            QByteArrayView(reinterpret_cast<const char *>(data), count));
         if (result != LibrePaint::Image::Gpu::Result::Success)
             throw std::runtime_error("GPU pixel write failed: " + std::to_string(int(result)));
         return;

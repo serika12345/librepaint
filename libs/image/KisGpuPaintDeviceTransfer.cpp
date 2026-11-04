@@ -12,17 +12,33 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColor.h>
 #include <QSet>
+#include <QThread>
 #include <algorithm>
 #include <QtEndian>
 #include <cstring>
 #include <stdexcept>
 
+qsizetype kisNativePixelByteCount(QRect region, int pixelSize, qsizetype maximumBytes)
+{
+    if (region.width() < 0 || region.height() < 0 || pixelSize <= 0 || maximumBytes < 0 ||
+        qint64(region.x()) + region.width() > qint64(std::numeric_limits<int>::max()) + 1 ||
+        qint64(region.y()) + region.height() > qint64(std::numeric_limits<int>::max()) + 1)
+        throw std::invalid_argument("Invalid native pixel transfer dimensions");
+    if (region.isEmpty()) return 0;
+    if (region.width() > maximumBytes / pixelSize / region.height())
+        throw std::length_error("Native pixel transfer capacity exceeded");
+    return qsizetype(region.width()) * region.height() * pixelSize;
+}
+
 // Public pixels use native-endian BGRA; GPU pixels use little-endian RGBA.
 QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
+    const int pixelSize = Gpu::pixelByteCount(format);
+    if (!pixelSize || source.size() % pixelSize)
+        throw std::invalid_argument("GPU pixel transfer requires complete pixels at a supported precision");
     QByteArray output(source.size(), Qt::Uninitialized);
-    const int componentBytes = Gpu::pixelByteCount(format) / 4;
+    const int componentBytes = pixelSize / 4;
     for (qsizetype i = 0; i < source.size(); i += componentBytes * 4) {
         for (int c = 0; c < 4; ++c) {
             const int other = c == 0 ? 2 : c == 2 ? 0 : c;
@@ -40,6 +56,63 @@ QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::Pi
         }
     }
     return output;
+}
+
+QByteArray kisGpuReadNativePixels(const LibrePaint::Image::Gpu::PaintImageSP &image,
+    const LibrePaint::Image::Gpu::Snapshot &version, quint64 layer, QRect region,
+    qsizetype maximumBytes, KisGpuPixelReadSource source)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!image || !version)
+        throw std::invalid_argument("Native pixel reads require an image and an explicit version");
+    const auto count = kisNativePixelByteCount(region, Gpu::pixelByteCount(version->format), maximumBytes);
+    Gpu::PixelBytesOutcome read;
+    switch (source) {
+    case KisGpuPixelReadSource::Layer:
+        if (!layer) throw std::invalid_argument("Native layer reads require a layer");
+        read = image->execution().readRgbaPixels(image->handle(), version, region, layer, count);
+        break;
+    case KisGpuPixelReadSource::LayerProjection:
+        if (!layer) throw std::invalid_argument("Native layer projection reads require a layer");
+        read = image->execution().readLayerProjectionPixels(image->handle(), version, layer, region, count);
+        break;
+    case KisGpuPixelReadSource::CanvasProjection:
+        read = image->execution().readRgbaPixels(image->handle(), version, region, 0, count);
+        break;
+    case KisGpuPixelReadSource::NativeProjection:
+        read = image->execution().readNativeProjectionPixels(image->handle(), version, region, count);
+        break;
+    }
+    if (read.code != Gpu::ExecutionCode::Success)
+        throw std::runtime_error(read.diagnostic.toStdString());
+    if (read.bytes.size() != count)
+        throw std::runtime_error("GPU native pixel read returned incomplete pixels");
+    return kisGpuPixelTransfer(read.bytes, version->format, false);
+}
+
+LibrePaint::Image::Gpu::Result kisGpuWriteNativePixels(const LibrePaint::Image::Gpu::PaintImageSP &image,
+    const LibrePaint::Image::Gpu::LayerPixelReferenceSP &pixels, QRect region, QByteArrayView bytes)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!image || QThread::currentThread() != image->thread() || !pixels || !pixels->version())
+        return Gpu::Result::InvalidInput;
+    try {
+        const auto format = pixels->version()->format;
+        const auto count = kisNativePixelByteCount(region, Gpu::pixelByteCount(format), bytes.size());
+        if (count != bytes.size()) return Gpu::Result::InvalidInput;
+        constexpr qint64 limit = Gpu::RgbaTile::CoordinateLimit;
+        if (region.x() < -limit || region.y() < -limit ||
+            qint64(region.x()) + region.width() > limit || qint64(region.y()) + region.height() > limit)
+            return Gpu::Result::InvalidInput;
+        if (count > image->limits().rasterBytes) return Gpu::Result::CapacityExceeded;
+        return image->writeRgbaPixels(pixels, region, kisGpuPixelTransfer(bytes, format, true));
+    } catch (const std::length_error &) {
+        return Gpu::Result::CapacityExceeded;
+    } catch (const std::invalid_argument &) {
+        return Gpu::Result::InvalidInput;
+    } catch (const std::bad_alloc &) {
+        return Gpu::Result::CapacityExceeded;
+    }
 }
 
 bool kisGpuRasterLayerFromPaintDevice(KisPaintDeviceSP source,
@@ -126,29 +199,16 @@ KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintIm
         throw std::invalid_argument("GPU preview precision and document color encoding must match");
     KisPaintDeviceSP result = new KisPaintDevice(colorSpace);
     result->setDefaultBounds(bounds);
-    // Tile bytes are canonical little-endian; QImage RGBA64 rows use native endian.
+    // QImage RGBA64 rows use native endian; sparse tile bytes are canonical.
     const auto write = [&](QByteArray rgba, QRect rect, bool canonical = true) {
-        if (version->format == Gpu::PixelFormat::Rgba16) {
-            for (qsizetype i = 0; i < rgba.size(); i += 8) {
-                quint16 bgra[4];
-                for (int c = 0; c < 4; ++c) {
-                    const auto source = rgba.constData() + i + (c == 0 ? 2 : c == 2 ? 0 : c) * 2;
-                    if (canonical) bgra[c] = qFromLittleEndian<quint16>(source);
-                    else std::memcpy(&bgra[c], source, sizeof(quint16));
-                }
-                std::memcpy(rgba.data() + i, bgra, sizeof(bgra));
-            }
-        } else for (qsizetype i = 0; i < rgba.size(); i += 4) std::swap(rgba[i], rgba[i + 2]);
-        result->writeBytes(reinterpret_cast<const quint8 *>(rgba.constData()), rect);
+        if (!canonical && version->format == Gpu::PixelFormat::Rgba16)
+            qToLittleEndian<quint16>(rgba.constData(), rgba.size() / 2, rgba.data());
+        const auto native = kisGpuPixelTransfer(rgba, version->format, false);
+        result->writeBytes(reinterpret_cast<const quint8 *>(native.constData()), rect);
     };
     const auto setDefault = [&](const Gpu::RgbaPixel &value) {
-        if (version->format == Gpu::PixelFormat::Rgba16) {
-            const quint16 bgra[] = {value[2], value[1], value[0], value[3]};
-            result->setDefaultPixel(KoColor(reinterpret_cast<const quint8 *>(bgra), colorSpace));
-        } else {
-            const quint8 bgra[] = {quint8(value[2]), quint8(value[1]), quint8(value[0]), quint8(value[3])};
-            result->setDefaultPixel(KoColor(bgra, colorSpace));
-        }
+        const auto native = kisGpuPixelTransfer(Gpu::rgbaBytes(value, version->format), version->format, false);
+        result->setDefaultPixel(KoColor(reinterpret_cast<const quint8 *>(native.constData()), colorSpace));
     };
     if (layer) {
         const auto pixels = image->execution().readLayerPixels(image->handle(), version, layer, maximumBytes);

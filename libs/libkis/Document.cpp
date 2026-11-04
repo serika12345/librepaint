@@ -501,16 +501,9 @@ void Document::setYRes(double yRes) const
 
 QByteArray Document::pixelData(int x, int y, int w, int h) const
 {
-    QByteArray ba;
-
-    if (!d->document) return ba;
-    KisImageSP image = d->document->image();
-    if (!image) return ba;
-
-    KisPaintDeviceSP dev = image->projection();
-    ba.resize(w * h * dev->pixelSize());
-    dev->readBytes(reinterpret_cast<quint8*>(ba.data()), x, y, w, h);
-    return ba;
+    if (!d->document) return {};
+    const KisImageSP image = d->document->image();
+    return LibKisUtils::readPixelData(image ? image->projection() : KisPaintDeviceSP{}, x, y, w, h);
 }
 
 bool Document::close()

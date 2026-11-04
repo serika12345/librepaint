@@ -12,6 +12,7 @@ namespace LibrePaint::Image::Gpu {
 enum class ExecutionLocation { Gpu, Cpu };
 enum class FilterTarget { Rgba, Alpha };
 enum class ToolOperation { Gradient, Fill, SmartPatch, EncloseAndFill };
+enum class PixelAccess { Format, PublicApi };
 enum class LayerFeature {
     Paint, Group, TransparencyMask, SelectionMask,
     Adjustment, Generator, Clone, File, Vector, Text, LayerStyle, ColorizeMask
@@ -28,5 +29,7 @@ KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation brushExecutionLocation(const QS
 KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation toolExecutionLocation(ToolOperation operation);
 /** Placement of layer computation, independent of destructive filter support. */
 KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation layerExecutionLocation(LayerFeature feature);
+/** Formats and public APIs exchange explicit native CPU pixel buffers. */
+KRITAIMAGEGPUOPERATIONS_EXPORT ExecutionLocation pixelAccessExecutionLocation(PixelAccess access);
 }
 #endif

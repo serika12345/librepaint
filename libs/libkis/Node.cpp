@@ -589,16 +589,7 @@ void Node::setVisible(bool visible)
 
 QByteArray Node::pixelData(int x, int y, int w, int h) const
 {
-    QByteArray ba;
-
-    if (!d->node) return ba;
-
-    KisPaintDeviceSP dev = d->node->paintDevice();
-    if (!dev) return ba;
-
-    ba.resize(w * h * dev->pixelSize());
-    dev->readBytes(reinterpret_cast<quint8*>(ba.data()), x, y, w, h);
-    return ba;
+    return LibKisUtils::readPixelData(d->node ? d->node->paintDevice() : KisPaintDeviceSP{}, x, y, w, h);
 }
 
 QByteArray Node::pixelDataAtTime(int x, int y, int w, int h, int time) const
@@ -617,9 +608,7 @@ QByteArray Node::pixelDataAtTime(int x, int y, int w, int h, int time) const
 
     frame->writeFrameToDevice(dev);
 
-    ba.resize(w * h * dev->pixelSize());
-    dev->readBytes(reinterpret_cast<quint8*>(ba.data()), x, y, w, h);
-    return ba;
+    return LibKisUtils::readPixelData(dev, x, y, w, h);
 }
 
 
@@ -638,27 +627,12 @@ QByteArray Node::projectionPixelData(int x, int y, int w, int h) const
     }
     if (!dev) return ba;
 
-    ba.resize(w * h * dev->pixelSize());
-    dev->readBytes(reinterpret_cast<quint8*>(ba.data()), x, y, w, h);
-    return ba;
+    return LibKisUtils::readPixelData(dev, x, y, w, h);
 }
 
 bool Node::setPixelData(QByteArray value, int x, int y, int w, int h)
 {
-    if (!d->node) return false;
-    KisPaintDeviceSP dev = d->node->paintDevice();
-    if (!dev) return false;
-    if (w < 0 || h < 0) return false;
-    const qint64 rowBytes = qint64(w) * dev->colorSpace()->pixelSize();
-    if (h && rowBytes > value.size() / h) {
-        qWarning() << "Node::setPixelData: not enough data to write to the paint device";
-        return false;
-    }
-    if (!w || !h) return true;
-    if (qint64(x) + w - 1 > std::numeric_limits<int>::max() ||
-        qint64(y) + h - 1 > std::numeric_limits<int>::max()) return false;
-    dev->writeBytes((const quint8*)value.constData(), x, y, w, h);
-    return true;
+    return LibKisUtils::writePixelData(d->node ? d->node->paintDevice() : KisPaintDeviceSP{}, value, x, y, w, h);
 }
 
 QRect Node::bounds() const
