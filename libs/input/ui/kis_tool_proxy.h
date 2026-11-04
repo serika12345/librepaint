@@ -10,6 +10,7 @@
 #include <kritainputui_export.h>
 #include <KoToolProxy.h>
 #include <kis_tool.h>
+#include <kis_signal_auto_connection.h>
 
 
 class KRITAINPUTUI_EXPORT KisToolProxy : public KoToolProxy
@@ -60,6 +61,7 @@ protected:
     QPointF documentToWidget(const QPointF &documentPoint) const override;
 
 private:
+    KisSignalAutoConnectionsStore m_imageConnections;
     bool m_isActionActivated;
     KisTool::ToolAction m_lastAction;
 };
