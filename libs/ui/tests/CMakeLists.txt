@@ -1359,7 +1359,7 @@ add_dependencies(KisGpuDocumentViewTest
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop
     kritamodifyselection kritaselectiontools kritacolorsfilters kritatooldyna
     kritaextensioncolorsfilters kritaresettransparent kritaconvolutionfilters kritaposterize kritapixelizefilter
-    kritagridpaintop kritadeformpaintop)
+    kritagridpaintop kritadeformpaintop kritacolorsmudgepaintop)
 if(NOT IOS)
     add_dependencies(KisGpuDocumentViewTest kritatextproperties)
 endif()

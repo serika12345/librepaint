@@ -435,13 +435,15 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
     if (cpu) {
         if (m_d->strokeId || m_d->cpuStroke) return;
         if (overrideNode || bounds || m_d->gpuMultibrushConfigured ||
-            preset->paintOp().id() == QLatin1String("duplicate") || preset->paintOp().id() == QLatin1String("colorsmudge")) {
+            preset->paintOp().id() == QLatin1String("duplicate")) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(i18n("This brush target is not yet available for this document."));
             return;
         }
         QString diagnostic;
-        m_d->cpuStroke = KisGpuCpuBrushStroke::create(image, currentNode, diagnostic);
+        const bool sampleProjection = preset->paintOp().id() == QLatin1String("colorsmudge") &&
+            preset->settings()->getBool("MergedPaint", false);
+        m_d->cpuStroke = KisGpuCpuBrushStroke::create(image, currentNode, diagnostic, sampleProjection);
         if (!m_d->cpuStroke) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(diagnostic);

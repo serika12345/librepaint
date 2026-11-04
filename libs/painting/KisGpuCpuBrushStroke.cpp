@@ -6,6 +6,7 @@
 #include <KisGpuPaintDeviceTransfer_p.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
+#include <kis_group_layer.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
 #include <kis_selection.h>
@@ -24,6 +25,35 @@
 
 namespace {
 namespace Gpu = LibrePaint::Image::Gpu;
+
+KisPaintDeviceSP copyNativePixels(KisPaintDeviceSP source, KisDefaultBoundsBaseSP bounds)
+{
+    const auto area = source->extent();
+    const qint64 count = qint64(area.width()) * area.height() * source->pixelSize();
+    if (count > 256 * 1024 * 1024) throw std::length_error("CPU brush source exceeds capacity");
+    KisPaintDeviceSP result = new KisPaintDevice(source->colorSpace());
+    result->setDefaultBounds(bounds);
+    result->setDefaultPixel(source->defaultPixel());
+    if (count > 0) {
+        QByteArray bytes(count, Qt::Uninitialized);
+        source->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
+        result->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), area);
+    }
+    return result;
+}
+
+// Smudge's native overlay starts from the captured document projection and
+// incorporates its own live dabs. Keep that source separate from the working
+// layer so native graph updates cannot replace it with just the edited layer.
+class CpuBrushRoot final : public KisGroupLayer
+{
+public:
+    CpuBrushRoot(KisImageWSP image, KisPaintDeviceSP pixels)
+        : KisGroupLayer(image, QStringLiteral("CPU brush sampling"), 255), m_pixels(pixels) {}
+    KisPaintDeviceSP projection() const override { return m_pixels; }
+private:
+    KisPaintDeviceSP m_pixels;
+};
 
 class CpuBrushLayer final : public KisPaintLayer
 {
@@ -107,7 +137,8 @@ struct KisGpuCpuBrushStroke::Private
 
 KisGpuCpuBrushStroke::KisGpuCpuBrushStroke() : m_d(std::make_unique<Private>()) {}
 
-std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP image, KisNodeSP node, QString &diagnostic)
+std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP image, KisNodeSP node, QString &diagnostic,
+                                                               bool sampleProjection)
 {
     diagnostic = i18n("A brush stroke could not be started on this paint layer.");
     const auto owner = image ? image->gpuImage() : Gpu::PaintImageSP{};
@@ -124,6 +155,10 @@ std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP im
         d.source = image; d.owner = owner; d.before = before; d.layer = layer->id;
         d.working = new KisImage(new KisDumbUndoStore, image->width(), image->height(), image->colorSpace(), "CPU brush calculation");
         d.working->setResolution(image->xRes(), image->yRes());
+        if (sampleProjection) {
+            const auto projection = copyNativePixels(image->projection(), new KisDefaultBounds(d.working));
+            d.working->setRootLayer(new CpuBrushRoot(d.working, projection));
+        }
         const auto pixels = kisGpuPaintDeviceTransfer(owner, layer->id, new KisDefaultBounds(d.working), before, image->colorSpace());
         d.target = new CpuBrushLayer(d.working, pixels);
         d.target->setChannelLockFlags(paint->channelLockFlags());
