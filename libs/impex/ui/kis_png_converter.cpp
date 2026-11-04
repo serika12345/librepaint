@@ -29,6 +29,7 @@
 #include <QScopeGuard>
 #include <QCryptographicHash>
 #include <gpu/KisGpuPaintImage.h>
+#include <KisGpuPaintDeviceTransfer_p.h>
 #include <stdexcept>
 #include <vector>
 #include <qcontainerfwd.h>
@@ -767,26 +768,13 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu, 
         return ImportExportCodes::FormatColorSpaceUnsupported;
     }
 
-    // Creating the KisImageSP
+    // Format parsing and color conversion produce native CPU rows.
+    std::unique_ptr<KisGpuRasterImport> rasterImport;
     if (gpu) {
+        rasterImport = std::make_unique<KisGpuRasterImport>(QSize(width, height), cs, Gpu::Limits{}.rasterBytes);
         prepared->colorSpace = cs;
         prepared->raster.size = QSize(width, height);
-        prepared->raster.format = color_nb_bits == 16 ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
-        const auto tileBytes = Gpu::RgbaTile::byteCount(prepared->raster.format);
-        Gpu::RasterLayer layer;
-        layer.name = i18nc("Name for the bottom-most layer in the layerstack", "Background");
-        const int columns = (width + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
-        const int rows = (height + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
-        for (int y = 0; y < rows; ++y)
-            for (int x = 0; x < columns; ++x)
-                layer.tiles.append({QPoint(x, y), QByteArray(tileBytes, '\0'), prepared->raster.format});
-        // Retain the native paint device's allocation for exact KRA saves.
-        constexpr int nativeTileSize = 64;
-        for (png_uint_32 y = 0; y < height; y += nativeTileSize)
-            for (png_uint_32 x = 0; x < width; x += nativeTileSize)
-                layer.writtenAreas.append(QRect(x, y, std::min<png_uint_32>(nativeTileSize, width - x),
-                                                std::min<png_uint_32>(nativeTileSize, height - y)));
-        prepared->raster.layers.append(std::move(layer));
+        prepared->raster.format = rasterImport->format();
     } else if (m_image == 0) {
         KisUndoStore *store = m_doc ? m_doc->createUndoStore() : new KisSurrogateUndoStore();
         m_image = new KisImage(store, width, height, cs, "built image");
@@ -969,32 +957,16 @@ KisImportExportErrorCode KisPNGConverter::decodeImage(QIODevice* iod, bool gpu, 
             return ImportExportCodes::FormatFeaturesUnsupported;
         }
         if (!nativeRow.isEmpty()) {
-            if (gpu) {
-                const int columns = (width + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
-                const int pixelBytes = Gpu::pixelByteCount(prepared->raster.format);
-                auto &tiles = prepared->raster.layers[0].tiles;
-                const auto *source = reinterpret_cast<const quint8 *>(nativeRow.constData());
-                for (png_uint_32 x = 0; x < width; ++x) {
-                    auto &tile = tiles[(y / Gpu::RgbaTile::Size) * columns + x / Gpu::RgbaTile::Size];
-                    auto *destination = reinterpret_cast<quint8 *>(tile.rgba.data()) +
-                        ((y % Gpu::RgbaTile::Size) * Gpu::RgbaTile::Size + x % Gpu::RgbaTile::Size) * pixelBytes;
-                    if (prepared->raster.format == Gpu::PixelFormat::Rgba16) {
-                        const auto *pixel = reinterpret_cast<const quint16 *>(source) + x * 4;
-                        qToLittleEndian<quint16>(pixel[2], destination);
-                        qToLittleEndian<quint16>(pixel[1], destination + 2);
-                        qToLittleEndian<quint16>(pixel[0], destination + 4);
-                        qToLittleEndian<quint16>(pixel[3], destination + 6);
-                    } else {
-                        destination[0] = source[x * 4 + 2];
-                        destination[1] = source[x * 4 + 1];
-                        destination[2] = source[x * 4];
-                        destination[3] = source[x * 4 + 3];
-                    }
-                }
-            } else layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(nativeRow.constData()), 0, y, width, 1);
+            if (gpu) rasterImport->appendRow(nativeRow);
+            else layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(nativeRow.constData()), 0, y, width, 1);
         }
     }
     if (!finishPngRead(png_ptr, end_info)) return ImportExportCodes::FileFormatIncorrect;
+    if (gpu) {
+        auto imported = rasterImport->takeLayer();
+        imported.name = i18nc("Name for the bottom-most layer in the layerstack", "Background");
+        prepared->raster.layers.append(std::move(imported));
+    }
     if (m_doc && (gpu || newImage)) {
         // PNG has no layer identities. A versioned namespace and encoded input
         // digest give the same imported document identity on every backend.

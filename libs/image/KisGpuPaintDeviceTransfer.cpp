@@ -58,6 +58,57 @@ QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::Pi
     return output;
 }
 
+KisGpuRasterImport::KisGpuRasterImport(QSize size, const KoColorSpace *colorSpace, qsizetype maximumBytes)
+    : m_size(size)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!colorSpace || colorSpace->colorModelId() != RGBAColorModelID ||
+        (colorSpace->colorDepthId() != Integer8BitsColorDepthID && colorSpace->colorDepthId() != Integer16BitsColorDepthID) ||
+        size.isEmpty() || size.width() > Gpu::RgbaTile::CoordinateLimit || size.height() > Gpu::RgbaTile::CoordinateLimit)
+        throw std::invalid_argument("Native raster import requires supported RGBA dimensions and precision");
+    m_format = colorSpace->colorDepthId() == Integer16BitsColorDepthID ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    const int columns = (size.width() + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+    const int rows = (size.height() + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
+    const auto tileBytes = Gpu::RgbaTile::byteCount(m_format);
+    if (maximumBytes < 0 || qint64(columns) * rows > maximumBytes / tileBytes)
+        throw std::length_error("Native raster import tile capacity exceeded");
+    m_tiles.reserve(columns * rows);
+    for (int y = 0; y < rows; ++y)
+        for (int x = 0; x < columns; ++x)
+            m_tiles.append({QPoint(x, y), QByteArray(tileBytes, '\0'), m_format});
+}
+
+void KisGpuRasterImport::appendRow(QByteArrayView nativePixels)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const int pixelBytes = Gpu::pixelByteCount(m_format);
+    if (m_tiles.isEmpty() || m_nextRow >= m_size.height() || nativePixels.size() != qsizetype(m_size.width()) * pixelBytes)
+        throw std::invalid_argument("Native raster import requires one complete consecutive row");
+    const auto rgba = kisGpuPixelTransfer(nativePixels, m_format, true);
+    const int side = Gpu::RgbaTile::Size;
+    const int columns = (m_size.width() + side - 1) / side;
+    for (int x = 0; x < m_size.width(); x += side) {
+        auto &tile = m_tiles[(m_nextRow / side) * columns + x / side];
+        std::memcpy(tile.rgba.data() + (m_nextRow % side) * side * pixelBytes,
+            rgba.constData() + qsizetype(x) * pixelBytes, size_t(std::min(side, m_size.width() - x)) * pixelBytes);
+    }
+    ++m_nextRow;
+}
+
+LibrePaint::Image::Gpu::RasterLayer KisGpuRasterImport::takeLayer()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (m_tiles.isEmpty() || m_nextRow != m_size.height())
+        throw std::invalid_argument("Native raster import is incomplete or already consumed");
+    Gpu::RasterLayer layer;
+    constexpr int blockSize = Gpu::Detail::PixelHistoryBlockSize;
+    for (int y = 0; y < m_size.height(); y += blockSize)
+        for (int x = 0; x < m_size.width(); x += blockSize)
+            layer.writtenAreas.append(QRect(x, y, std::min(blockSize, m_size.width() - x), std::min(blockSize, m_size.height() - y)));
+    layer.tiles = std::move(m_tiles);
+    return layer;
+}
+
 QByteArray kisGpuReadNativePixels(const LibrePaint::Image::Gpu::PaintImageSP &image,
     const LibrePaint::Image::Gpu::Snapshot &version, quint64 layer, QRect region,
     qsizetype maximumBytes, KisGpuPixelReadSource source)

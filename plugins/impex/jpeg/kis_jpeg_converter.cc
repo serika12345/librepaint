@@ -15,6 +15,7 @@
 #include "kis_meta_data_io_backend.h"
 #include "kis_types.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <exiv2/types.hpp>
@@ -76,6 +77,7 @@ extern "C" {
 #include <kis_painter.h>
 #include <kis_transform_worker.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <KisGpuPaintDeviceTransfer_p.h>
 
 #define ICC_MARKER  (JPEG_APP0 + 2) /* JPEG marker code for ICC */
 #define ICC_OVERHEAD_LEN  14    /* size of non-profile data in APP2 */
@@ -145,25 +147,39 @@ void orientJpegRaster(LibrePaint::Image::Gpu::RasterImage &image, int orientatio
             tiles.append({QPoint(x, y), QByteArray(RgbaTile::ByteCount, '\0')});
     const int sourceColumns = (width + RgbaTile::Size - 1) / RgbaTile::Size;
     const auto &source = image.layers[0].tiles;
+    const auto mapped = [=](int x, int y) {
+        switch (orientation) {
+        case 2: return QPoint(width - 1 - x, y);
+        case 3: return QPoint(width - 1 - x, height - 1 - y);
+        case 4: return QPoint(x, height - 1 - y);
+        case 5: return QPoint(y, x);
+        case 6: return QPoint(height - 1 - y, x);
+        case 7: return QPoint(height - 1 - y, width - 1 - x);
+        case 8: return QPoint(y, width - 1 - x);
+        }
+        return QPoint(x, y);
+    };
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            int dx = x, dy = y;
-            switch (orientation) {
-            case 2: dx = width - 1 - x; break;
-            case 3: dx = width - 1 - x; dy = height - 1 - y; break;
-            case 4: dy = height - 1 - y; break;
-            case 5: dx = y; dy = x; break;
-            case 6: dx = height - 1 - y; dy = x; break;
-            case 7: dx = height - 1 - y; dy = width - 1 - x; break;
-            case 8: dx = y; dy = width - 1 - x; break;
-            }
+            const auto destination = mapped(x, y);
+            const int dx = destination.x(), dy = destination.y();
             const auto &input = source[(y / RgbaTile::Size) * sourceColumns + x / RgbaTile::Size];
             auto &output = tiles[(dy / RgbaTile::Size) * columns + dx / RgbaTile::Size];
             std::memcpy(output.rgba.data() + ((dy % RgbaTile::Size) * RgbaTile::Size + dx % RgbaTile::Size) * 4,
                         input.rgba.constData() + ((y % RgbaTile::Size) * RgbaTile::Size + x % RgbaTile::Size) * 4, 4);
         }
     }
+    QList<QRect> writtenAreas;
+    for (const auto &area : image.layers[0].writtenAreas) {
+        const auto first = mapped(area.left(), area.top()), last = mapped(area.right(), area.bottom());
+        const QRect transformed(QPoint(std::min(first.x(), last.x()), std::min(first.y(), last.y())),
+            QPoint(std::max(first.x(), last.x()), std::max(first.y(), last.y())));
+        for (int y = transformed.top() / RgbaTile::Size; y <= transformed.bottom() / RgbaTile::Size; ++y)
+            for (int x = transformed.left() / RgbaTile::Size; x <= transformed.right() / RgbaTile::Size; ++x)
+                writtenAreas.append(transformed.intersected(QRect(x * RgbaTile::Size, y * RgbaTile::Size, RgbaTile::Size, RgbaTile::Size)));
+    }
     image.layers[0].tiles = std::move(tiles);
+    image.layers[0].writtenAreas = std::move(writtenAreas);
     image.size = size;
 }
 
@@ -242,6 +258,7 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu, bool 
             if (columns * rows > quint64(Gpu::Limits{}.rasterBytes / Gpu::RgbaTile::ByteCount))
                 return ImportExportCodes::InsufficientMemory;
             if (cinfo.data_precision != 8) return ImportExportCodes::FormatColorSpaceUnsupported;
+            if (cinfo.out_color_space != JCS_RGB) return ImportExportCodes::FormatColorSpaceUnsupported;
         }
 
         // Get the colorspace
@@ -263,8 +280,6 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu, bool 
 
             profile = KoColorSpaceRegistry::instance()->createColorProfile(modelId, Integer8BitsColorDepthID.id(), profile_rawdata);
             if (!profile) return ImportExportCodes::FileFormatIncorrect;
-            if (gpu && profile_rawdata != KoColorSpaceRegistry::instance()->rgb8()->profile()->rawData())
-                return ImportExportCodes::FormatColorSpaceUnsupported;
             dbgFile <<"profile name:" << profile->name() <<" product information:" << profile->info();
             //This is stadard for profiles like this
             if (!profile->isSuitableForWorkspace()) {
@@ -310,21 +325,12 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu, bool 
             transform.reset();
         }
 
-        // Creating the KisImageSP
+        std::unique_ptr<KisGpuRasterImport> rasterImport;
         if (gpu) {
-            if (cinfo.out_color_space != JCS_RGB || cs->id() != QStringLiteral("RGBA") || transform ||
-                cs->profile()->rawData() != KoColorSpaceRegistry::instance()->rgb8()->profile()->rawData())
-                return ImportExportCodes::FormatColorSpaceUnsupported;
+            rasterImport = std::make_unique<KisGpuRasterImport>(QSize(cinfo.image_width, cinfo.image_height), cs, Gpu::Limits{}.rasterBytes);
             prepared->colorSpace = cs;
             prepared->raster.size = QSize(cinfo.image_width, cinfo.image_height);
-            Gpu::RasterLayer layer;
-            layer.name = i18nc("Name for the bottom-most layer in the layerstack", "Background");
-            const int columns = (cinfo.image_width + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
-            const int rows = (cinfo.image_height + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
-            for (int y = 0; y < rows; ++y)
-                for (int x = 0; x < columns; ++x)
-                    layer.tiles.append({QPoint(x, y), QByteArray(Gpu::RgbaTile::ByteCount, '\0')});
-            prepared->raster.layers.append(std::move(layer));
+            prepared->raster.format = rasterImport->format();
         } else if (!m_d->image) {
             m_d->image = new KisImage(m_d->doc->createUndoStore(),  cinfo.image_width,  cinfo.image_height, cs, "built image");
             Q_CHECK_PTR(m_d->image);
@@ -358,27 +364,15 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu, bool 
         jpeg_start_decompress(&cinfo);
         auto row = std::make_unique<JSAMPLE[]>(size_t(cinfo.image_width) * cinfo.num_components);
         JSAMPROW row_pointer = row.get();
+        QByteArray nativeRow;
+        if (cinfo.out_color_space == JCS_RGB) nativeRow.resize(qsizetype(cinfo.image_width) * cs->pixelSize());
 
         for (; cinfo.output_scanline < cinfo.image_height;) {
             const auto y = cinfo.output_scanline;
             KisHLineIteratorSP it;
-            if (!gpu) it = layer->paintDevice()->createHLineIteratorNG(0, y, cinfo.image_width);
+            if (nativeRow.isEmpty()) it = layer->paintDevice()->createHLineIteratorNG(0, y, cinfo.image_width);
             jpeg_read_scanlines(&cinfo, &row_pointer, 1);
             quint8 *src = row_pointer;
-            if (gpu) {
-                const int columns = (cinfo.image_width + Gpu::RgbaTile::Size - 1) / Gpu::RgbaTile::Size;
-                auto &tiles = prepared->raster.layers[0].tiles;
-                for (quint32 x = 0; x < cinfo.image_width; ++x) {
-                    auto &tile = tiles[(y / Gpu::RgbaTile::Size) * columns + x / Gpu::RgbaTile::Size];
-                    auto *destination = reinterpret_cast<quint8 *>(tile.rgba.data()) +
-                        ((y % Gpu::RgbaTile::Size) * Gpu::RgbaTile::Size + x % Gpu::RgbaTile::Size) * 4;
-                    destination[0] = src[x * 3];
-                    destination[1] = src[x * 3 + 1];
-                    destination[2] = src[x * 3 + 2];
-                    destination[3] = 255;
-                }
-                continue;
-            }
             switch (cinfo.out_color_space) {
             case JCS_GRAYSCALE:
                 do {
@@ -390,15 +384,15 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu, bool 
                 } while (it->nextPixel());
                 break;
             case JCS_RGB:
-                do {
-                    quint8 *d = it->rawData();
+                for (quint32 x = 0; x < cinfo.image_width; ++x) {
+                    auto *d = reinterpret_cast<quint8 *>(nativeRow.data()) + x * 4;
                     d[2] = *(src++);
                     d[1] = *(src++);
                     d[0] = *(src++);
+                    d[3] = quint8_MAX;
                     if (transform) transform->transform(d, d, 1);
                     d[3] = quint8_MAX;
-
-                } while (it->nextPixel());
+                }
                 break;
             case JCS_CMYK:
                 do {
@@ -414,6 +408,10 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu, bool 
                 break;
             default:
                 return ImportExportCodes::FormatFeaturesUnsupported;
+            }
+            if (!nativeRow.isEmpty()) {
+                if (gpu) rasterImport->appendRow(nativeRow);
+                else layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(nativeRow.constData()), 0, y, cinfo.image_width, 1);
             }
         }
 
@@ -561,6 +559,11 @@ KisImportExportErrorCode KisJPEGConverter::decode(QIODevice *io, bool gpu, bool 
 
         // Finish decompression
         jpeg_finish_decompress(&cinfo);
+        if (gpu) {
+            auto imported = rasterImport->takeLayer();
+            imported.name = i18nc("Name for the bottom-most layer in the layerstack", "Background");
+            prepared->raster.layers.append(std::move(imported));
+        }
         if (gpu || newImage) {
             // JPEG carries no layer identity. The versioned format namespace
             // and consumed input give repeated imports the same identity.

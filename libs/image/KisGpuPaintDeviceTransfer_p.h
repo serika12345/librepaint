@@ -21,6 +21,25 @@ KRITAIMAGE_EXPORT qsizetype kisNativePixelByteCount(QRect region, int pixelSize,
 /** Convert canonical little-endian RGBA and native-endian BGRA pixels. */
 KRITAIMAGE_EXPORT QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu);
 
+/** Converts consecutive native RGBA U8/U16 rows into canonical upload tiles.
+ * Validates padded tile capacity before allocation and publishes only complete
+ * input. Native allocation blocks and transparent padding survive format import.
+ */
+class KRITAIMAGE_EXPORT KisGpuRasterImport
+{
+public:
+    KisGpuRasterImport(QSize size, const KoColorSpace *colorSpace, qsizetype maximumBytes);
+    LibrePaint::Image::Gpu::PixelFormat format() const { return m_format; }
+    void appendRow(QByteArrayView nativePixels);
+    LibrePaint::Image::Gpu::RasterLayer takeLayer();
+
+private:
+    QSize m_size;
+    LibrePaint::Image::Gpu::PixelFormat m_format;
+    QList<LibrePaint::Image::Gpu::RgbaTile> m_tiles;
+    int m_nextRow = 0;
+};
+
 /** Explicit fixed-version native pixel read. Layer reads retain off-canvas and
  * implicit pixels; CanvasProjection clips to the canvas. Rejection throws
  * before publishing any bytes. The returned buffer owns its native BGRA pixels.
