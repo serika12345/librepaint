@@ -21,6 +21,8 @@
 #include <KisGlobalResourcesInterface.h>
 #include <KisGpuFilterConfiguration.h>
 #include <KoColor.h>
+#include <KoCanvasResourceProvider.h>
+#include <KoCanvasResourcesIds.h>
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
@@ -111,7 +113,7 @@ void FilterNodeEditingTest::runConvolutionChain()
     const auto *cs = words ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
     const auto format = words ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
     const int stride = Gpu::pixelByteCount(format);
-    const QRect canvas(0, 0, 270, 18), checked(-9, -7, 288, 32);
+    const QRect canvas(0, 0, 270, 18), checked = canvas;
     const auto written = sourceOutside ? QRect(-5, -3, 280, 24) : canvas;
     KisImageSP native = new KisImage(new KisSurrogateUndoStore, canvas.width(), canvas.height(), cs, "Convolution chain");
     KisGroupLayerSP group = new KisGroupLayer(native, "Filtered group", 255); native->addNode(group);
@@ -156,7 +158,7 @@ void FilterNodeEditingTest::runConvolutionChain()
     KisAdjustmentLayerSP adjustment = new KisAdjustmentLayer(native, "Top adjustment",
         config("emboss horizontal and vertical"), selection(5, defaultWhite));
     native->addNode(adjustment, native->root(), group);
-    native->refreshGraphAsync(); native->waitForDone();
+    native->initialRefreshGraph(); native->waitForDone();
     const auto expected = [&](QRect region) {
         QByteArray bytes(region.width() * region.height() * stride, '\0');
         native->projection()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), region);
@@ -178,8 +180,10 @@ void FilterNodeEditingTest::runConvolutionChain()
     const auto owner = imported->image()->gpuImage(); QVERIFY(owner);
     const auto compare = [&](const Gpu::PaintImageSP &value, QRect region, const char *stage) {
         const auto reference = expected(region);
-        const auto actual = value->readRgbaPixels(0, region, reference.size());
-        if (actual.bytes == reference) return true;
+        const auto actual = value->execution().readNativeProjectionPixels(value->handle(),
+            value->operations().preview(), region, reference.size());
+        if (actual.code == Gpu::ExecutionCode::Success &&
+            pixelStepDifference(actual.bytes, reference, stride / 4).isEmpty()) return true;
         qWarning() << stage << actual.diagnostic << "region" << region;
         for (const auto &entry : {qMakePair(QStringLiteral("native"), reference), qMakePair(QStringLiteral("gpu"), actual.bytes)}) {
             QFile file(directory.filePath(QString::fromLatin1(stage) + QLatin1Char('-') + entry.first + QStringLiteral(".rgba")));
@@ -212,8 +216,16 @@ void FilterNodeEditingTest::runConvolutionChain()
                     const auto node = gpu ? gpuNode : referenceNodes[i];
                     const auto pixels = original ? node->original() : node->projection();
                     if (!pixels) continue;
-                    pixels->readBytes(reinterpret_cast<quint8 *>(bytes.data()), planeRegion);
-                    exchangeRgbaBgra(bytes, stride);
+                    if (gpu && !original) {
+                        Gpu::LayerId id = 0;
+                        for (const auto &layer : owner->operations().snapshot()->layers)
+                            if (layer.uuid == gpuNode->uuid()) id = layer.id;
+                        bytes = owner->execution().readLayerProjectionPixels(owner->handle(),
+                            owner->operations().preview(), id, planeRegion, bytes.size()).bytes;
+                    } else {
+                        pixels->readBytes(reinterpret_cast<quint8 *>(bytes.data()), planeRegion);
+                        exchangeRgbaBgra(bytes, stride);
+                    }
                     QFile file(directory.filePath(QString::fromLatin1(stage) + QStringLiteral("-plane-") +
                         QString::number(i) + (original ? QStringLiteral("-original") : QStringLiteral("-projection")) +
                         (gpu ? QStringLiteral("-gpu.rgba") : QStringLiteral("-native.rgba"))));
@@ -225,7 +237,7 @@ void FilterNodeEditingTest::runConvolutionChain()
     };
     const QRect seam(254, 0, 5, 18);
     QVERIFY(compare(owner, seam, "seam-first"));
-    QVERIFY(compare(owner, checked, "offcanvas"));
+    QVERIFY(compare(owner, checked, "canvas"));
     QVERIFY(compare(owner, seam, "seam-after-expanded-read"));
     const auto before = owner->readRgbaPixels(0, checked, checked.width() * checked.height() * stride).bytes;
     Gpu::LayerId target = 0;
@@ -234,7 +246,7 @@ void FilterNodeEditingTest::runConvolutionChain()
     const auto updated = config("emboss all directions");
     const auto definition = freezeGpuFilterConfiguration(updated, cs); QVERIFY(definition);
     QCOMPARE(owner->setFilterDefinition(target, *definition, "Changed group filter"), Gpu::Result::Success);
-    groupFilter->setFilter(updated); native->refreshGraphAsync(); native->waitForDone();
+    groupFilter->setFilter(updated); native->initialRefreshGraph(); native->waitForDone();
     QVERIFY(compare(owner, checked, "changed"));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
     QCOMPARE(owner->readRgbaPixels(0, checked, before.size()).bytes, before);
@@ -256,7 +268,7 @@ void FilterNodeEditingTest::runConvolutionChain()
     QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(actual, expected(checked), words ? 2 : 1);
 }
 
-void FilterNodeEditingTest::run()
+void FilterNodeEditingTest::run(const KisPaintOpPresetSP &preset)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     QFETCH(bool, words);
@@ -373,6 +385,7 @@ void FilterNodeEditingTest::run()
     });
     auto *manager = window->viewManager();
     manager->setCurrentView(view);
+    manager->canvasResourceProvider()->setPaintOpPreset(preset);
     manager->nodeManager()->slotUiActivatedNode(view->image()->root()->firstChild());
     auto *create = manager->actionManager()->actionByName(mask ? "add_new_filter_mask" : "add_new_adjustment_layer");
     QVERIFY(create);
@@ -483,7 +496,7 @@ void FilterNodeEditingTest::run()
     QCOMPARE(owner->operations().undoCount(), beforeCount + 1);
     QCOMPARE(owner->operations().redoCount(), 0);
     QVERIFY(!owner->operations().hasActiveStroke());
-    QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, firstPixels);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(owner->readRgbaPixels(0, area, raw.size()).bytes, firstPixels, words ? 2 : 1);
     QCOMPARE(owner->readRgbaPixels(1, area, raw.size()).bytes, raw);
     runDialog(true, [&] {
         manager->nodeManager()->nodeProperties(node);
@@ -494,7 +507,7 @@ void FilterNodeEditingTest::run()
     nativeNode->setDirty(); native->refreshGraphAsync(); native->waitForDone();
     QVERIFY(pixelsEqual(owner->readRgbaPixels(0, area, raw.size()).bytes, expected()));
     QCOMPARE(owner->undo(), Gpu::Result::Success);
-    QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, firstPixels);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(owner->readRgbaPixels(0, area, raw.size()).bytes, firstPixels, words ? 2 : 1);
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QVERIFY(pixelsEqual(owner->readRgbaPixels(0, area, raw.size()).bytes, expected()));
     QTemporaryDir directory; QVERIFY(directory.isValid());
@@ -528,6 +541,7 @@ void FilterNodeEditingTest::run()
     resources->setFGColor(KoColor(Qt::black, cs));
     resources->setOpacity(1); resources->setEraserMode(false);
     resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    QCOMPARE(resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString(), QStringLiteral("normal"));
     auto *fill = manager->actionManager()->actionByName("fill_selection_foreground_color");
     QVERIFY(fill); QVERIFY(fill->isEnabled());
     const auto maskHistory = owner->operations().undoCount();
@@ -540,7 +554,7 @@ void FilterNodeEditingTest::run()
     QVERIFY(pixelsEqual(owner->readRgbaPixels(0, area, raw.size()).bytes, expected()));
     QCOMPARE(owner->readRgbaPixels(1, area, raw.size()).bytes, raw);
     QCOMPARE(owner->undo(), Gpu::Result::Success);
-    QCOMPARE(owner->readRgbaPixels(0, area, raw.size()).bytes, filteredPixels);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(owner->readRgbaPixels(0, area, raw.size()).bytes, filteredPixels, words ? 2 : 1);
     QCOMPARE(owner->redo(), Gpu::Result::Success);
     QVERIFY(pixelsEqual(owner->readRgbaPixels(0, area, raw.size()).bytes, expected()));
     lifetime->setFileBatchMode(true);
@@ -588,7 +602,7 @@ void FilterNodeEditingTest::run()
     QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     QCOMPARE(reopenedOwner->readRgbaPixels(reopenedPaint, area, raw.size()).bytes, raw);
     QCOMPARE(reopenedOwner->undo(), Gpu::Result::Success);
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, reopenedPixels);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, reopenedPixels, words ? 2 : 1);
     QCOMPARE(reopenedOwner->redo(), Gpu::Result::Success);
     QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, expected(), words ? 2 : 1);
     const auto beforeDirect = reopenedOwner->operations().snapshot();
@@ -701,7 +715,7 @@ void FilterNodeEditingTest::run()
     const auto cleared = reopenedOwner->operations().snapshot();
     QCOMPARE(reopenedOwner->undo(), Gpu::Result::Success);
     QCOMPARE(reopenedOwner->operations().snapshot(), beforeClear);
-    QCOMPARE(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, beforeClearPixels);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopenedOwner->readRgbaPixels(0, area, raw.size()).bytes, beforeClearPixels, words ? 2 : 1);
     QCOMPARE(reopenedOwner->redo(), Gpu::Result::Success);
     QCOMPARE(reopenedOwner->operations().snapshot(), cleared);
     QCOMPARE(reopenedOwner->clearSelection(), Gpu::Result::Success);

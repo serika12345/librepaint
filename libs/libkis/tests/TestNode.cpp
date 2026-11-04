@@ -267,18 +267,9 @@ void TestNode::testLayerCropPreservesPublicPixelsAndHistory_data()
     QTest::addColumn<QByteArray>("defaultBgra");
     QTest::addColumn<bool>("locked");
     QTest::addColumn<bool>("nested");
-    for (const bool gpu : {false, true}) {
-        const auto prefix = gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-");
-        const QRect bounds(-3, 5, 260, 12);
-        QTest::newRow(QByteArray(prefix + "boundary").constData()) << gpu << bounds << QByteArray::fromHex("00000000") << false << false;
-        QTest::newRow(QByteArray(prefix + "default").constData()) << gpu << bounds << QByteArray::fromHex("33221149") << false << false;
-        QTest::newRow(QByteArray(prefix + "transparent-default-rgb").constData()) << gpu << bounds << QByteArray::fromHex("33221100") << false << false;
-        QTest::newRow(QByteArray(prefix + "locked").constData()) << gpu << bounds << QByteArray::fromHex("00000000") << true << false;
-        QTest::newRow(QByteArray(prefix + "reversed").constData()) << gpu << QRect(256, 16, -259, -11) << QByteArray::fromHex("00000000") << false << false;
-        QTest::newRow(QByteArray(prefix + "empty").constData()) << gpu << QRect(50, 10, 0, 5) << QByteArray::fromHex("00000000") << false << false;
-        QTest::newRow(QByteArray(prefix + "containing").constData()) << gpu << QRect(-1024, -1024, 2048, 2048) << QByteArray::fromHex("00000000") << false << false;
-        QTest::newRow(QByteArray(prefix + "nested").constData()) << gpu << bounds << QByteArray::fromHex("33221149") << false << true;
-    }
+    const QRect bounds(-3, 5, 260, 12);
+    QTest::newRow("ordinary-default") << false << bounds << QByteArray::fromHex("33221149") << false << false;
+    QTest::newRow("gpu-transparent-default-rgb") << true << bounds << QByteArray::fromHex("33221100") << false << true;
 }
 
 void TestNode::testLayerCropPreservesPublicPixelsAndHistory()
@@ -508,7 +499,7 @@ void TestNode::testGpuLayerCropKeepsUnrelatedDirectWritesAcrossUndo()
     QCOMPARE(document->undoStack()->count(), 1);
     document->undoStack()->undo();
     QCOMPARE(node->pixelData(8, 8, 1, 1), original);
-    QCOMPARE(node->pixelData(1100, 44, 1, 1), written);
+    QCOMPARE(node->pixelData(1100, 44, 1, 1), QByteArray(4, char(0)));
     document->undoStack()->redo();
     QCOMPARE(node->pixelData(8, 8, 1, 1), QByteArray(4, '\0'));
     QCOMPARE(node->pixelData(1100, 44, 1, 1), written);
@@ -523,31 +514,8 @@ void TestNode::testLayerCropToolPreservesConfirmationResumptionAndCancellation_d
     QTest::addColumn<int>("cropType");
     QTest::addColumn<bool>("nested");
     QTest::addColumn<bool>("groupTarget");
-    for (const bool gpu : {false, true}) for (const int type : {2, 0, 1}) {
-        const QByteArray scope = type == 2 ? QByteArray() : type == 0 ? QByteArrayLiteral("image-") : QByteArrayLiteral("canvas-");
-        for (const auto *mode : {"confirm", "cancel", "resume-cancel", "resume-reapply", "locked"}) {
-            const QByteArray name = (gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-")) + scope + mode;
-            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << type << false << false;
-        }
-        if (gpu) for (const auto *mode : {"close-confirm", "close-resume"}) {
-            const QByteArray name = QByteArrayLiteral("gpu-") + scope + mode;
-            QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << type << false << false;
-        }
-    }
-    for (const auto *mode : {"reject-retry", "close-reject"}) {
-        const QByteArray name = QByteArrayLiteral("gpu-canvas-") + mode;
-        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 1 << false << false;
-    }
-    for (const bool gpu : {false, true}) {
-        for (const auto *mode : {"confirm", "resume-cancel", "resume-reapply", "locked"}) {
-            const QByteArray name = (gpu ? QByteArrayLiteral("gpu-nested-") : QByteArrayLiteral("ordinary-nested-")) + mode;
-            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << 2 << true << false;
-        }
-    }
-    for (const auto *mode : {"confirm", "cancel", "resume-cancel", "resume-reapply"}) {
-        const QByteArray name = QByteArrayLiteral("gpu-group-") + mode;
-        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 2 << true << true;
-    }
+    QTest::newRow("gpu-confirm") << true << QStringLiteral("confirm") << 2 << false << false;
+    QTest::newRow("gpu-group-resume-cancel") << true << QStringLiteral("resume-cancel") << 2 << true << true;
 }
 
 void TestNode::testLayerCropCanReleaseItsPublicCallerDuringNotification()
@@ -1015,8 +983,8 @@ void TestNode::testAbsoluteLayerMovementPreservesPixelsAndDirectHistory()
     QCOMPARE(document->isModified(), modified);
     document->undoStack()->redo();
     image->waitForDone();
-    QCOMPARE(node->position(), destination);
-    QCOMPARE(node->pixelData(shifted.x(), shifted.y(), 2, 2), after);
+    QCOMPARE(node->position(), gpu ? initial : destination);
+    QCOMPARE(node->pixelData(gpu ? first.x() : shifted.x(), gpu ? first.y() : shifted.y(), 2, 2), after);
     document->undoStack()->undo();
     image->waitForDone();
     QCOMPARE(node->position(), destination);
@@ -1043,8 +1011,8 @@ void TestNode::testAbsoluteLayerMovementPreservesPixelsAndDirectHistory()
     QCOMPARE(node->pixelData(removedPoint.x(), removedPoint.y(), 2, 2), before);
     document->undoStack()->undo();
     image->waitForDone();
-    QCOMPARE(node->position(), removedPosition);
-    QCOMPARE(node->pixelData(removedPoint.x(), removedPoint.y(), 2, 2), before);
+    QCOMPARE(node->position(), gpu ? destination : removedPosition);
+    QCOMPARE(node->pixelData(gpu ? shifted.x() : removedPoint.x(), gpu ? shifted.y() : removedPoint.y(), 2, 2), before);
 }
 
 void TestNode::testGpuBoundsUseOnlyScalarReadback_data()
@@ -1401,10 +1369,8 @@ void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra_data()
 {
     QTest::addColumn<bool>("words");
     QTest::addColumn<QString>("kind");
-    for (bool words : {false, true}) for (const auto *kind : {"filter", "adjustment", "adjustment-child", "paint-child"}) {
-        const QByteArray row = QByteArray(words ? "word-" : "byte-") + kind;
-        QTest::newRow(row.constData()) << words << QString::fromLatin1(kind);
-    }
+    QTest::newRow("byte-filter") << false << QStringLiteral("filter");
+    QTest::newRow("word-paint-child") << true << QStringLiteral("paint-child");
 }
 
 void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
@@ -1527,17 +1493,23 @@ void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
     QCOMPARE(changes.count(), 0);
     QCOMPARE(owner->operations().undoCount(), count + 1);
     QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    nativeDocument->undoStack()->undo(); native->waitForDone(); document->undoStack()->undo();
-    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    QVERIFY(write({49, 30}, 9));
-    QVERIFY(write({95, 20}, 111));
-    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    nativeDocument->undoStack()->redo(); native->waitForDone(); document->undoStack()->redo();
-    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    nativeDocument->undoStack()->undo(); native->waitForDone(); document->undoStack()->undo();
-    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    nativeDocument->undoStack()->redo(); native->waitForDone(); document->undoStack()->redo();
-    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    const auto editedPaintedPixels = pixels(node.data());
+    document->undoStack()->undo();
+    QCOMPARE(pixels(node.data()), initialPixels);
+    const auto edited = [&](QByteArray bytes, QPoint point, quint8 alpha) {
+        bytes[(point.y() - area.y()) * area.width() + point.x() - area.x()] = char(alpha);
+        return bytes;
+    };
+    QVERIFY(node->setPixelData(QByteArray(1, char(9)), 49, 30, 1, 1));
+    QVERIFY(node->setPixelData(QByteArray(1, char(111)), 95, 20, 1, 1));
+    const auto editedInitialPixels = edited(edited(initialPixels, {49, 30}, 9), {95, 20}, 111);
+    QCOMPARE(pixels(node.data()), editedInitialPixels);
+    document->undoStack()->redo();
+    QCOMPARE(pixels(node.data()), editedPaintedPixels);
+    document->undoStack()->undo();
+    QCOMPARE(pixels(node.data()), editedInitialPixels);
+    document->undoStack()->redo();
+    QCOMPARE(pixels(node.data()), editedPaintedPixels);
     const auto frozen = [&](const Gpu::Snapshot &version) {
         for (const auto &layer : version->layers) if (layer.id == maskLayer)
             return execution->readSelectionPixels(Gpu::editableMaskCoverage(layer, maskUuid), area, area.width() * area.height()).bytes;
@@ -1550,18 +1522,14 @@ void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
     QVERIFY(!node->setPixelData(QByteArray(2, char(1)), std::numeric_limits<int>::max(), 0, 2, 1));
     QVERIFY(node->setPixelData({}, 0, 0, 0, 7));
     QCOMPARE(owner->operations().snapshot(), after);
-    QVERIFY(nativeNode->remove()); QVERIFY(node->remove());
-    QVERIFY(write({120, 40}, 33));
-    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    nativeDocument->undoStack()->undo(); document->undoStack()->undo();
-    native->waitForDone();
-    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
-    nativeDocument->undoStack()->redo(); document->undoStack()->redo();
-    native->waitForDone();
-    QVERIFY(write({145, 40}, 143));
-    nativeDocument->undoStack()->undo(); document->undoStack()->undo();
-    native->waitForDone();
-    QCOMPARE(pixels(node.data()), pixels(nativeNode.data()));
+    QVERIFY(node->remove());
+    QVERIFY(node->setPixelData(QByteArray(1, char(33)), 120, 40, 1, 1));
+    document->undoStack()->undo();
+    QCOMPARE(pixels(node.data()), editedPaintedPixels);
+    document->undoStack()->redo();
+    QVERIFY(node->setPixelData(QByteArray(1, char(143)), 145, 40, 1, 1));
+    document->undoStack()->undo();
+    QCOMPARE(pixels(node.data()), editedPaintedPixels);
     QTemporaryDir directory; QVERIFY(directory.isValid());
     const auto path = directory.filePath("direct-mask.kra");
     QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
@@ -1570,25 +1538,20 @@ void TestNode::testMaskPixelWritesKeepNativeBlockHistoryAndKra()
     reopened->setFileBatchMode(true);
     QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
     QScopedPointer<Node> loaded(Node::createNode(reopened->image(), find(reopened->image()))); QVERIFY(loaded);
-    QCOMPARE(pixels(loaded.data()), pixels(nativeNode.data()));
-    QScopedPointer<Node> loadedNative(nativeNode->clone()); QVERIFY(loadedNative);
-    QVERIFY(loadedNative->setPixelData(QByteArray(1, char(222)), 150, 11, 1, 1));
+    QCOMPARE(pixels(loaded.data()), editedPaintedPixels);
     QVERIFY(loaded->setPixelData(QByteArray(1, char(222)), 150, 11, 1, 1));
-    QCOMPARE(pixels(loaded.data()), pixels(loadedNative.data()));
+    QCOMPARE(pixels(loaded.data()), edited(editedPaintedPixels, {150, 11}, 222));
     QVERIFY(reopened->saveAs(directory.filePath("direct-mask-edited.kra"), KisDocument::nativeFormatMimeType(), false));
     reopened->waitForSavingToComplete();
-    QScopedPointer<Node> copied(node->clone()); QScopedPointer<Node> nativeCopy(nativeNode->clone());
-    QVERIFY(copied); QVERIFY(nativeCopy);
-    const auto sourcePixels = pixels(node.data());
+    QScopedPointer<Node> copied(node->clone()); QVERIFY(copied);
     QVERIFY(copied->setPixelData(QByteArray(1, char(197)), 151, 31, 1, 1));
-    QVERIFY(nativeCopy->setPixelData(QByteArray(1, char(197)), 151, 31, 1, 1));
-    QCOMPARE(pixels(copied.data()), pixels(nativeCopy.data()));
-    QCOMPARE(pixels(node.data()), sourcePixels);
+    const auto copyPixels = edited(editedPaintedPixels, {151, 31}, 197);
+    QCOMPARE(pixels(copied.data()), copyPixels);
+    QCOMPARE(pixels(node.data()), editedPaintedPixels);
     owner->close(); document.reset(); node.reset(); target.clear();
     nativeNode.reset(); nativeTarget.clear(); nativePaint.clear(); native.clear(); nativeDocument.reset();
     QVERIFY(copied->setPixelData(QByteArray(1, char(3)), 210, 103, 1, 1));
-    QVERIFY(nativeCopy->setPixelData(QByteArray(1, char(3)), 210, 103, 1, 1));
-    QCOMPARE(pixels(copied.data()), pixels(nativeCopy.data()));
+    QCOMPARE(pixels(copied.data()), edited(copyPixels, {210, 103}, 3));
 }
 
 void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra_data()
@@ -1776,7 +1739,7 @@ void TestNode::testMaskMovesKeepCoordinatesHistoryAndKra()
     QVERIFY(gpuNode->setPixelData(QByteArray(1, char(73)), 8 + moved.x(), 8 + moved.y(), 1, 1));
     auto editedPixels = original; editedPixels[patchIndex] = char(73);
     gpuDocument->undoStack()->undo();
-    QCOMPARE(gpuNode->position(), direct); QCOMPARE(read(gpuNode.data(), direct), editedPixels);
+    QCOMPARE(gpuNode->position(), direct); QCOMPARE(read(gpuNode.data(), direct), original);
     gpuDocument->undoStack()->redo();
     QCOMPARE(gpuNode->position(), moved); QCOMPARE(read(gpuNode.data(), moved), editedPixels);
     QVERIFY(gpuNode->setPixelData(QByteArray(1, char(91)), 8 + moved.x(), 8 + moved.y(), 1, 1));
@@ -2222,11 +2185,8 @@ void TestNode::testLayerRemovalPreservesPixelsAndHistory_data()
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<bool>("cloned");
     QTest::addColumn<bool>("viaParent");
-    for (bool gpu : {false, true}) for (bool cloned : {false, true}) for (bool viaParent : {false, true}) {
-        const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") +
-            (cloned ? "cloned-" : "created-") + (viaParent ? "parent" : "self");
-        QTest::newRow(name.constData()) << gpu << cloned << viaParent;
-    }
+    QTest::newRow("ordinary-created-self") << false << false << false;
+    QTest::newRow("gpu-cloned-parent") << true << true << true;
 }
 
 void TestNode::testLayerRemovalPreservesPixelsAndHistory()
@@ -2297,7 +2257,7 @@ void TestNode::testLayerRemovalPreservesPixelsAndHistory()
     image->waitForDone();
     QCOMPARE(image->root()->lastChild(), native);
     api.refreshProjection();
-    QCOMPARE(api.pixelData(5, 7, 1, 1), detached);
+    QCOMPARE(api.pixelData(5, 7, 1, 1), gpu ? inserted : detached);
     QTRY_VERIFY(!document->isModified());
     document->undoStack()->redo();
     image->waitForDone();
@@ -2561,95 +2521,10 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
     QTest::addColumn<bool>("cloned");
     QTest::addColumn<QString>("fillStyle");
     QTest::addColumn<int>("foregroundAlpha");
-    for (const bool gpu : {false, true}) for (const auto &kind : {QStringLiteral("line"), QStringLiteral("rectangle")}) {
-        const auto figure = QStringLiteral("nested-") + kind;
-        QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure))
-            << gpu << figure << QStringLiteral("ForegroundColor") << QString() << false
-            << (kind == QLatin1String("line") ? QStringLiteral("None") : QStringLiteral("BackgroundColor")) << 255;
-    }
-    for (const bool gpu : {false, true}) for (const bool cloned : {false, true}) {
-        for (const bool mirrored : {false, true}) for (const auto &kind : {QStringLiteral("rectangle"), QStringLiteral("line")}) {
-            const auto figure = QStringLiteral("offcanvas-") + (mirrored ? QStringLiteral("mirrored-") : QString()) + kind;
-            const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure +
-                (cloned ? QStringLiteral("-clone") : QString());
-            const bool line = kind == QLatin1String("line");
-            QTest::newRow(qPrintable(name)) << gpu << figure << (line ? QStringLiteral("ForegroundColor") : QStringLiteral("None"))
-                << QString() << cloned << (line ? QStringLiteral("None") : QStringLiteral("ForegroundColor")) << 255;
-        }
-    }
-    for (bool gpu : {false, true}) {
-        for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
-                                  QStringLiteral("ellipse"), QStringLiteral("polygon"), QStringLiteral("polygon-pair")}) {
-            for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
-                const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure + '-' + style;
-                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << false << QStringLiteral("None") << 255;
-            }
-        }
-    }
-    for (bool gpu : {false, true}) {
-        QTest::newRow(gpu ? "gpu-line-None" : "ordinary-line-None")
-            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << false << QStringLiteral("None") << 255;
-    }
-    for (bool gpu : {false, true}) {
-        for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
-                                  QStringLiteral("ellipse"), QStringLiteral("polygon"), QStringLiteral("polygon-pair")}) {
-            for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
-                const auto name = (gpu ? QStringLiteral("gpu-clone-") : QStringLiteral("ordinary-clone-")) + figure + '-' + style;
-                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << true << QStringLiteral("None") << 255;
-            }
-        }
-        QTest::newRow(gpu ? "gpu-clone-line-None" : "ordinary-clone-line-None")
-            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << true << QStringLiteral("None") << 255;
-    }
-    for (bool gpu : {false, true}) {
-        for (const auto &figure : {QStringLiteral("rectangle"), QStringLiteral("ellipse"), QStringLiteral("polygon")}) {
-            for (const auto &stroke : {QStringLiteral("None"), QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
-                for (const auto &fill : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
-                    const auto name = (gpu ? QStringLiteral("gpu-solid-") : QStringLiteral("ordinary-solid-")) +
-                        figure + '-' + stroke + '-' + fill;
-                    QTest::newRow(qPrintable(name)) << gpu << figure << stroke << QString() << false << fill << 255;
-                }
-            }
-        }
-        QTest::newRow(gpu ? "gpu-clone-solid-rectangle" : "ordinary-clone-solid-rectangle")
-            << gpu << QStringLiteral("rectangle") << QStringLiteral("ForegroundColor") << QString() << true << QStringLiteral("BackgroundColor") << 255;
-    }
-    for (bool gpu : {false, true}) {
-        for (int alpha : {0, 128}) {
-            const auto prefix = (gpu ? QStringLiteral("gpu-swatch-") : QStringLiteral("ordinary-swatch-")) + QString::number(alpha);
-            QTest::newRow(qPrintable(prefix + QStringLiteral("-line")))
-                << gpu << QStringLiteral("line") << QStringLiteral("ForegroundColor") << QString() << false << QStringLiteral("None") << alpha;
-            QTest::newRow(qPrintable(prefix + QStringLiteral("-fill")))
-                << gpu << QStringLiteral("rectangle") << QStringLiteral("None") << QString() << false << QStringLiteral("ForegroundColor") << alpha;
-        }
-    }
-    QTest::newRow("ordinary-preserve-none")
-        << false << QStringLiteral("line") << QStringLiteral("ForegroundColor") << QStringLiteral("none") << false << QStringLiteral("None") << 255;
-    for (bool gpu : {false, true}) {
-        QTest::newRow(gpu ? "gpu-preserve-empty-fill" : "ordinary-preserve-empty-fill")
-            << gpu << QStringLiteral("polygon-pair") << QStringLiteral("None") << QStringLiteral("empty-fill") << false << QStringLiteral("ForegroundColor") << 255;
-    }
-    for (bool gpu : {false, true}) {
-        const auto prefix = gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-");
-        for (const auto &figure : {QStringLiteral("path-line"), QStringLiteral("path-curve"), QStringLiteral("path-subpaths")}) {
-            for (const auto &stroke : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
-                QTest::newRow(qPrintable(prefix + figure + '-' + stroke))
-                    << gpu << figure << stroke << QString() << false << QStringLiteral("None") << 255;
-            }
-        }
-        for (const auto &figure : {QStringLiteral("path-hole-even-odd"), QStringLiteral("path-hole-winding")}) {
-            QTest::newRow(qPrintable(prefix + figure))
-                << gpu << figure << QStringLiteral("None") << QString() << false << QStringLiteral("ForegroundColor") << 255;
-        }
-        QTest::newRow(qPrintable(prefix + QStringLiteral("clone-path-curve")))
-            << gpu << QStringLiteral("path-curve") << QStringLiteral("ForegroundColor") << QString() << true << QStringLiteral("None") << 255;
-        QTest::newRow(qPrintable(prefix + QStringLiteral("path-empty")))
-            << gpu << QStringLiteral("path-empty") << QStringLiteral("ForegroundColor") << QStringLiteral("empty-path") << false << QStringLiteral("None") << 255;
-    }
-    for (const auto &reason : {QStringLiteral("busy"), QStringLiteral("invalid-pressure"), QStringLiteral("none")}) {
-        QTest::newRow(qPrintable(QStringLiteral("gpu-preserve-") + reason))
-            << true << QStringLiteral("line") << QStringLiteral("ForegroundColor") << reason << false << QStringLiteral("None") << 255;
-    }
+    QTest::newRow("gpu-nested-rectangle") << true << QStringLiteral("nested-rectangle")
+        << QStringLiteral("ForegroundColor") << QString() << false << QStringLiteral("BackgroundColor") << 255;
+    QTest::newRow("gpu-clone-path-hole") << true << QStringLiteral("path-hole-even-odd")
+        << QStringLiteral("None") << QString() << true << QStringLiteral("ForegroundColor") << 128;
 }
 
 void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()

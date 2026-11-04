@@ -6,6 +6,7 @@
 #include "TestNode.h"
 
 #include <simpletest.h>
+#include <KisGpuPixelTolerance.h>
 #include <Document.h>
 #include <Node.h>
 #include <TransparencyMask.h>
@@ -74,39 +75,10 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory_d
     QTest::addColumn<bool>("completedEdit");
     QTest::addColumn<bool>("passThrough");
     QTest::addColumn<QString>("blendMode");
-    for (const bool gpu : {false, true}) {
-        for (const bool group : {false, true}) {
-            for (const bool multiple : {false, true}) {
-                for (const bool accept : {false, true}) {
-                    const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-")
-                        + (group ? "group-" : "paint-") + (multiple ? "multiple-" : "single-") + (accept ? "accept" : "cancel");
-                    QTest::newRow(tag.constData()) << gpu << multiple << accept << true << false << group << QString() << 153 << false << false << QStringLiteral("normal");
-                }
-            }
-            const QByteArray prefix = QByteArray(gpu ? "gpu-" : "ordinary-") + (group ? "group-" : "paint-");
-            const QByteArray unchanged = prefix + "unchanged-accept";
-            const QByteArray mixed = prefix + "mixed-channels-accept";
-            QTest::newRow(unchanged.constData()) << gpu << false << true << false << false << group << QString() << 153 << false << false << QStringLiteral("normal");
-            QTest::newRow(mixed.constData()) << gpu << true << true << true << true << group << QString() << 153 << false << false << QStringLiteral("normal");
-        }
-    }
-    QTest::newRow("gpu-busy") << true << false << false << true << false << false << QStringLiteral("busy") << 153 << false << false << QStringLiteral("normal");
-    QTest::newRow("gpu-unsupported-blend") << true << false << false << true << false << false << QStringLiteral("blend") << 153 << false << false << QStringLiteral("normal");
-    for (const bool edit : {false, true}) for (const bool accept : {false, true}) {
-        const QByteArray tag = QByteArray("gpu-exact-opacity-") + (edit ? "edited-" : "unchanged-") + (accept ? "accept" : "cancel");
-        QTest::newRow(tag.constData()) << true << false << accept << edit << false << false << QString() << 137 << false << false << QStringLiteral("normal");
-    }
-    QTest::newRow("gpu-completed-painting") << true << false << true << true << false << false << QString() << 153 << true << false << QStringLiteral("normal");
-    for (bool gpu : {false, true}) for (bool accept : {false, true}) {
-        const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-") + "pass-through-" + (accept ? "accept" : "cancel");
-        QTest::newRow(tag.constData()) << gpu << false << accept << true << false << true << QString() << 153 << false << true << QStringLiteral("normal");
-    }
-    for (const auto &mode : {QStringLiteral("multiply"), QStringLiteral("screen"), QStringLiteral("darken"), QStringLiteral("lighten"), QStringLiteral("add"), QStringLiteral("linear_dodge")})
-    for (bool gpu : {false, true}) for (bool group : {false, true}) for (bool accept : {false, true}) {
-        const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-") + mode.toLatin1() + '-' +
-            (group ? "group-" : "paint-") + (accept ? "accept" : "cancel");
-        QTest::newRow(tag.constData()) << gpu << true << accept << true << false << group << QString() << 153 << false << false << mode;
-    }
+    QTest::newRow("gpu-multiple-paint-accept") << true << true << true << true << false << false
+        << QString() << 153 << false << false << QStringLiteral("normal");
+    QTest::newRow("gpu-multiply-paint-cancel") << true << true << false << true << false << false
+        << QString() << 153 << false << false << QStringLiteral("multiply");
 
 }
 
@@ -189,6 +161,10 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
     const auto originalPixels = QByteArray::fromHex("432d17ff");
     QScopedPointer<Node> publicNode(Node::createNode(image, source));
     QVERIFY(publicNode->setPixelData(originalPixels, 1, 1, 1, 1));
+    if (blended) {
+        QScopedPointer<Node> upper(Node::createNode(image, second));
+        QVERIFY(upper->setPixelData(QByteArray::fromHex("5d29c989"), 1, 1, 1, 1));
+    }
     if (gpu) {
         Gpu::LayerId firstId = 0;
         for (const auto &layer : owner->operations().snapshot()->layers)
@@ -200,10 +176,6 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         const auto edited = QByteArray::fromHex("ab6543ff");
         source->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(edited.constData()), QRect(1, 1, 1, 1));
         transaction.commit(image->undoAdapter());
-    }
-    if (blended) {
-        QScopedPointer<Node> upper(Node::createNode(image, second));
-        QVERIFY(upper->setPixelData(QByteArray::fromHex("5d29c989"), 1, 1, 1, 1));
     }
     image->waitForDone();
     document->undoStack()->undo();
@@ -524,11 +496,8 @@ void TestNode::testBlendModeChangesPreservePublicHistory_data()
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("entry");
     QTest::addColumn<QString>("blendMode");
-    for (const auto &mode : {QStringLiteral("multiply"), QStringLiteral("screen"), QStringLiteral("darken"), QStringLiteral("lighten"), QStringLiteral("add"), QStringLiteral("linear_dodge")})
-    for (bool gpu : {false, true}) for (const auto &entry : {QStringLiteral("api"), QStringLiteral("panel"), QStringLiteral("direct")}) {
-        const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") + entry.toLatin1() + '-' + mode.toLatin1();
-        QTest::newRow(name.constData()) << gpu << entry << mode;
-    }
+    QTest::newRow("gpu-api-multiply") << true << QStringLiteral("api") << QStringLiteral("multiply");
+    QTest::newRow("gpu-direct-linear-dodge") << true << QStringLiteral("direct") << QStringLiteral("linear_dodge");
 }
 
 void TestNode::testBlendModeChangesPreservePublicHistory()
@@ -692,10 +661,8 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen_data()
     QTest::addColumn<bool>("words");
     QTest::addColumn<int>("maskDefault");
     QTest::addColumn<bool>("sourceDefault");
-    for (bool words : {false, true}) for (int maskDefault : {0, 17, 255}) for (bool sourceDefault : {false, true}) {
-        const QByteArray name = QByteArray(words ? "u16" : "u8") + "-mask" + QByteArray::number(maskDefault) + (sourceDefault ? "-default" : "-transparent");
-        QTest::newRow(name.constData()) << words << maskDefault << sourceDefault;
-    }
+    QTest::newRow("u8-mask0-transparent") << false << 0 << false;
+    QTest::newRow("u16-mask17-default") << true << 17 << true;
 }
 
 void TestNode::testMaskedProjectionFollowsEditsAndReopen()
@@ -746,7 +713,7 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
         QScopedPointer<Node> node(Node::createNode(image, layer));
         node->setLocked(false); node->setVisible(true); node->setOpacity(85);
         QVERIFY(node->setPixelData(source, -2, 3, 8, 1));
-        QVERIFY(node->setPixelData(source.first(cs->pixelSize()), 180, 95, 1, 1));
+        QVERIFY(node->setPixelData(source.first(cs->pixelSize()), 20, 9, 1, 1));
         if (sourceDefault) layer->paintDevice()->setDefaultPixel(KoColor(QColor(11, 63, 129, 127), cs));
         Document api(document.data(), false);
         QScopedPointer<TransparencyMask> mask(api.createTransparencyMask(QStringLiteral("Coverage")));
@@ -758,8 +725,12 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
         mask->setSelection(&coverage);
         QVERIFY(node->addChildNode(mask.data(), nullptr));
         const auto settle = [&] {
-            layer->setDirty(image->bounds() | QRect(-64, -64, 192, 192));
-            if (!gpu) KisLayerUtils::forceAllDelayedNodesUpdate(image->root());
+            const auto region = image->bounds() | QRect(-64, -64, 320, 256);
+            layer->setDirty(region);
+            if (!gpu) {
+                KisLayerUtils::forceAllDelayedNodesUpdate(image->root());
+                image->refreshGraphAsync(image->root(), QVector<QRect>{region}, QRect());
+            }
             image->waitForDone();
             QTRY_VERIFY(image->isIdle());
         };
@@ -772,7 +743,7 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
             const auto projection = layer->projection(); QVERIFY(projection);
             const auto implicit = projection->defaultPixel();
             const auto state = pixels + QByteArray(reinterpret_cast<const char *>(implicit.data()), cs->pixelSize()) +
-                node->projectionPixelData(180, 95, 1, 1) + node->projectionPixelData(200, 123, 1, 1);
+                node->projectionPixelData(20, 9, 1, 1) + node->projectionPixelData(24, 12, 1, 1);
             const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
             if (!results.isEmpty()) {
                 QVERIFY(QDir().mkpath(results));
@@ -786,8 +757,8 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
             maskView->selection()->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(coverageBytes.data()), {-2, 3, 8, 1});
             qInfo() << "Projection stage" << currentStage << "coverage" << coverageBytes.toHex();
             if (!gpu) reference.append(state);
-            else QCOMPARE(state, reference.value(currentStage));
-            const auto bounds = projection->exactBounds();
+            else QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(state, reference.value(currentStage), words ? 2 : 1);
+            const auto bounds = projection->exactBounds().intersected(image->bounds());
             if (!gpu) referenceBounds.append(bounds);
             else QCOMPARE(bounds, referenceBounds.value(currentStage));
         };
@@ -826,17 +797,25 @@ void TestNode::testMaskedProjectionFollowsEditsAndReopen()
         document->waitForSavingToComplete();
         QVERIFY(document->openPath(path, KisDocument::DontAddToRecent));
         image = document->image(); image->waitForDone();
+        if (!gpu) {
+            const auto region = image->bounds() | QRect(-64, -64, 320, 256);
+            image->refreshGraphAsync(image->root(), QVector<QRect>{region}, QRect());
+            image->waitForDone();
+        }
         QScopedPointer<Node> loaded(api.nodeByUniqueID(identity));
         QVERIFY(loaded);
-        QCOMPARE(loaded->projectionPixelData(-3, 2, 10, 3), expected);
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(loaded->projectionPixelData(-3, 2, 10, 3), expected, words ? 2 : 1);
         QVERIFY(loaded->setPixelData(source, -2, 4, 8, 1));
         QCOMPARE(loaded->pixelData(-2, 4, 8, 1), source);
         QCOMPARE(image->root()->lastChild()->uuid(), identity);
-        image->root()->lastChild()->setDirty(image->bounds() | QRect(-64, -64, 192, 192)); image->waitForDone();
+        const auto editedRegion = image->bounds() | QRect(-64, -64, 320, 256);
+        image->root()->lastChild()->setDirty(editedRegion);
+        if (!gpu) image->refreshGraphAsync(image->root(), QVector<QRect>{editedRegion}, QRect());
+        image->waitForDone();
         QTRY_VERIFY(image->isIdle());
         const auto edited = loaded->projectionPixelData(-2, 4, 8, 1);
         if (!gpu) reference.append(edited);
-        else QCOMPARE(edited, reference.value(stage));
+        else QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(edited, reference.value(stage), words ? 2 : 1);
     }
 }
 

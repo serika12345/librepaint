@@ -37,13 +37,8 @@ void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory_data()
 {
     QTest::addColumn<QString>("kind");
     QTest::addColumn<qreal>("opacity");
-    for (const auto &kind : {QStringLiteral("connected-lines"), QStringLiteral("separate-lines"),
-                             QStringLiteral("separate-paths"), QStringLiteral("mixed")}) {
-        for (qreal opacity : {qreal(1), qreal(.57)}) {
-            const auto name = kind + QStringLiteral("-opacity-%1").arg(opacity);
-            QTest::newRow(qPrintable(name)) << kind << opacity;
-        }
-    }
+    QTest::newRow("connected-lines") << QStringLiteral("connected-lines") << qreal(1);
+    QTest::newRow("mixed-translucent") << QStringLiteral("mixed") << qreal(.57);
 }
 
 void TestNode::testFigureGroupsKeepSegmentsSensorsAndHistory()

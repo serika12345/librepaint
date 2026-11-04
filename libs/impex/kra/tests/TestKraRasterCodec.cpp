@@ -2011,6 +2011,9 @@ void TestKraRasterCodec::emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage()
         auto source = document();
         auto &layer = source.image.layers[0];
         layer.transparencyMask = mask;
+        // Native 64-pixel storage blocks are aligned relative to the mask offset.
+        layer.transparencyMaskPosition = mask->allocatedBlocks().isEmpty() ?
+            QPoint{} : mask->allocatedBlocks().first().topLeft();
         layer.transparencyMaskLocked = true;
         layer.transparencyMaskVisible = false;
         QByteArray bytes;
@@ -2020,6 +2023,7 @@ void TestKraRasterCodec::emptyAndOffCanvasMasksKeepProtectionAndNativeCoverage()
         const auto loaded = load(bytes); QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
         const auto &actual = loaded.document.image.layers[0];
         QVERIFY(actual.transparencyMask); QVERIFY(*actual.transparencyMask == *mask);
+        QCOMPARE(actual.transparencyMaskPosition, layer.transparencyMaskPosition);
         QCOMPARE(actual.transparencyMask->allocatedBlocks(), mask->allocatedBlocks());
         QCOMPARE(actual.transparencyMask->defaultCoverage(), mask->defaultCoverage());
         QCOMPARE(actual.transparencyMask->coverage(-505, 773), mask->coverage(-505, 773));

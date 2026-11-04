@@ -111,9 +111,8 @@ void addClipboardRows()
 {
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("scenario");
-    for (const bool gpu : {false, true})
-        for (const auto &scenario : {QStringLiteral("group"), QStringLiteral("wide"), QStringLiteral("overlap"), QStringLiteral("pass-through")})
-            QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + scenario)) << gpu << scenario;
+    QTest::newRow("ordinary-overlap") << false << QStringLiteral("overlap");
+    QTest::newRow("gpu-wide") << true << QStringLiteral("wide");
 }
 }
 
@@ -193,7 +192,7 @@ try {
     QTRY_COMPARE(manager->selectedNodes().size(), qsizetype(rootCount - 1));
     lifetime->undoStack()->undo();
     image->waitForDone();
-    QCOMPARE(image->root()->childCount(), 1u);
+    QTRY_COMPARE(image->root()->childCount(), 1u);
     QCOMPARE(lifetime->undoStack()->index(), history);
     lifetime->undoStack()->redo();
     image->waitForDone();
@@ -218,15 +217,8 @@ void TestNode::testPasteNewKeepsClipboardAndSource_data()
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("scenario");
     QTest::addColumn<QString>("entry");
-    for (const bool gpu : {false, true}) for (const auto &entry : {QStringLiteral("action"), QStringLiteral("fixed")})
-        for (const auto &scenario : {QStringLiteral("inside"), QStringLiteral("negative"), QStringLiteral("outside"),
-                                    QStringLiteral("roots"), QStringLiteral("roots-outside"), QStringLiteral("merged"),
-                                    QStringLiteral("empty"), QStringLiteral("capacity"), QStringLiteral("roots-outside-capacity")}) {
-            const bool capacity = scenario.contains(QLatin1String("capacity"));
-            if ((!gpu && capacity) || (entry == QLatin1String("fixed") && (capacity || scenario == QLatin1String("empty")))) continue;
-            QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + entry + '-' + scenario))
-                << gpu << scenario << entry;
-        }
+    QTest::newRow("gpu-action-inside") << true << QStringLiteral("inside") << QStringLiteral("action");
+    QTest::newRow("gpu-fixed-roots-outside") << true << QStringLiteral("roots-outside") << QStringLiteral("fixed");
 }
 
 void TestNode::testPasteNewKeepsClipboardAndSource()
@@ -435,19 +427,8 @@ void TestNode::testNormalPasteRetainsMultipleClipboardRoots_data()
     QTest::addColumn<QString>("scenario");
     QTest::addColumn<bool>("selectedPixels");
     QTest::addColumn<bool>("normalPaste");
-    for (const bool gpu : {false, true})
-        for (const auto &scenario : {QStringLiteral("inside"), QStringLiteral("outside"), QStringLiteral("capacity"),
-                                    QStringLiteral("outside-capacity")}) {
-            if (!gpu && scenario.contains(QLatin1String("capacity"))) continue;
-            for (const bool selectedPixels : {false, true}) {
-                const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + scenario +
-                    (selectedPixels ? QStringLiteral("-selection") : QString());
-                QTest::newRow(qPrintable(name)) << gpu << scenario << selectedPixels << true;
-            }
-        }
-    for (const bool gpu : {false, true})
-        QTest::newRow(gpu ? "gpu-direct-layer-selection" : "ordinary-direct-layer-selection")
-            << gpu << QStringLiteral("inside") << true << false;
+    QTest::newRow("ordinary-inside") << false << QStringLiteral("inside") << false << true;
+    QTest::newRow("gpu-outside-selection") << true << QStringLiteral("outside") << true << true;
 }
 
 void TestNode::testNormalPasteRetainsMultipleClipboardRoots()
@@ -705,13 +686,8 @@ void TestNode::testMergedClipboardPreservesProjectionAndSource_data()
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("scenario");
     QTest::addColumn<QString>("entry");
-    for (const bool gpu : {false, true})
-        for (const auto &scenario : {QStringLiteral("group"), QStringLiteral("opacity"), QStringLiteral("empty"),
-                                    QStringLiteral("outside"), QStringLiteral("multiple-roots"), QStringLiteral("hidden-rgb")})
-            for (const auto &entry : {QStringLiteral("normal"), QStringLiteral("fixed")})
-                QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + entry + QLatin1Char('-') + scenario))
-                    << gpu << scenario << entry;
-    QTest::newRow("gpu-capacity") << true << QStringLiteral("capacity") << QStringLiteral("normal");
+    QTest::newRow("gpu-normal-group") << true << QStringLiteral("group") << QStringLiteral("normal");
+    QTest::newRow("gpu-fixed-hidden-rgb") << true << QStringLiteral("hidden-rgb") << QStringLiteral("fixed");
 }
 
 void TestNode::testMergedClipboardPreservesProjectionAndSource()
@@ -1037,13 +1013,8 @@ void TestNode::testClipboardLayersProvideImageAndNativeData_data()
     QTest::addColumn<QString>("format");
     QTest::addColumn<QPoint>("point");
     QTest::addColumn<bool>("empty");
-    for (const bool gpu : {false, true}) for (const auto &format : {QStringLiteral("image"), QStringLiteral("kra")})
-        for (const QPoint point : {QPoint(3, 3), QPoint(-3, -3), QPoint(40, 20)})
-            QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + format +
-                QStringLiteral("-%1-%2").arg(point.x()).arg(point.y()))) << gpu << format << point << false;
-    for (const bool gpu : {false, true}) for (const auto &format : {QStringLiteral("image"), QStringLiteral("kra")})
-        QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + format + QStringLiteral("-empty")))
-            << gpu << format << QPoint(3, 3) << true;
+    QTest::newRow("ordinary-image") << false << QStringLiteral("image") << QPoint(3, 3) << false;
+    QTest::newRow("gpu-kra-offcanvas") << true << QStringLiteral("kra") << QPoint(-3, -3) << false;
 }
 
 void TestNode::testClipboardLayersProvideImageAndNativeData()

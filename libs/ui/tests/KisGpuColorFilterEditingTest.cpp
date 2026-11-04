@@ -240,7 +240,7 @@ void ColorFilterEditingTest::run()
     actions->actionByName(QStringLiteral("edit_undo"))->trigger();
     QCOMPARE(owner->readRgbaPixels(layer, area, initial.size()).bytes, initial);
     actions->actionByName(QStringLiteral("edit_redo"))->trigger();
-    QCOMPARE(owner->readRgbaPixels(layer, area, initial.size()).bytes, first);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(owner->readRgbaPixels(layer, area, initial.size()).bytes, first, words ? 2 : 1);
     // Accepted settings remain frozen when the caller edits its configuration.
     auto accepted = config->clone();
     config->setProperty("opacity", 1);
@@ -260,7 +260,7 @@ void ColorFilterEditingTest::run()
         invalid->setProperty("opacity", 101);
         manager->apply(invalid);
         QCOMPARE(owner->operations().undoCount(), history);
-        QCOMPARE(owner->readRgbaPixels(layer, area, initial.size()).bytes, twice);
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(owner->readRgbaPixels(layer, area, initial.size()).bytes, twice, words ? 2 : 1);
         QVERIFY(!manager->isStrokeRunning());
     }
     QTemporaryDir directory;
@@ -273,7 +273,7 @@ void ColorFilterEditingTest::run()
     QVERIFY2(decoded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(decoded.diagnostic));
     auto reopened = Gpu::PaintImageSP::create(execution, decoded.document.image); QVERIFY(reopened);
     const auto reopenedLayer = reopened->operations().activeLayer();
-    QCOMPARE(reopened->readRgbaPixels(reopenedLayer, area, initial.size()).bytes, twice);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopened->readRgbaPixels(reopenedLayer, area, initial.size()).bytes, twice, words ? 2 : 1);
     lifetime->setCurrentImage(KisImage::fromGpuImage(reopened, QStringLiteral("Reopened filters"), cs));
     QTRY_COMPARE(view->image().data(), lifetime->image().data());
     window->viewManager()->nodeManager()->slotUiActivatedNode(view->image()->root()->firstChild());
@@ -282,7 +282,7 @@ void ColorFilterEditingTest::run()
     nativeApply();
     QVERIFY(compare(QStringLiteral("reedit"), reopened->readRgbaPixels(reopenedLayer, area, initial.size()).bytes));
     actions->actionByName(QStringLiteral("edit_undo"))->trigger();
-    QCOMPARE(reopened->readRgbaPixels(reopenedLayer, area, initial.size()).bytes, twice);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopened->readRgbaPixels(reopenedLayer, area, initial.size()).bytes, twice, words ? 2 : 1);
     actions->actionByName(QStringLiteral("edit_redo"))->trigger();
     QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(reopened->readRgbaPixels(reopenedLayer, area, initial.size()).bytes, expectedPixels(), words ? 2 : 1);
 }

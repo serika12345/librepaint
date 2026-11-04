@@ -34,6 +34,7 @@ void KisGpuDocumentViewTest::rectangularSelectionLimitsPainting()
     window->viewManager()->setCurrentView(view);
     for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
     window->show();
+
     window->activateWindow();
     QTRY_VERIFY(!windowReady.isEmpty());
     auto *resources = window->viewManager()->canvasResourceProvider();
@@ -59,6 +60,23 @@ void KisGpuDocumentViewTest::rectangularSelectionLimitsPainting()
 
     KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectRectangular"));
     QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectRectangular"));
+    QPointer<KisSelectionOptions> options;
+    const auto selectionTool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KisToolSelectRectangular"));
+    QVERIFY(selectionTool);
+    for (QWidget *widget : selectionTool->optionWidgets())
+        if (auto *candidate = qobject_cast<KisSelectionOptions *>(widget)) options = candidate;
+    QVERIFY(options);
+    const auto oldAction = options->action();
+    const auto oldMode = options->mode();
+    const bool oldAA = options->antiAliasSelection();
+    const int oldGrow = options->growSelection(), oldFeather = options->featherSelection();
+    const auto restoreOptions = qScopeGuard([&] {
+        if (!options) return;
+        options->setAction(oldAction); options->setMode(oldMode); options->setAntiAliasSelection(oldAA);
+        options->setGrowSelection(oldGrow); options->setFeatherSelection(oldFeather);
+    });
+    options->setMode(PIXEL_SELECTION); options->setAction(SELECTION_REPLACE);
+    options->setAntiAliasSelection(false); options->setGrowSelection(0); options->setFeatherSelection(0);
     window->activateWindow();
     native->requestActivate();
     view->canvasBase()->canvasWidget()->setFocus();
@@ -1504,6 +1522,7 @@ void KisGpuDocumentViewTest::polygonalToolCreatesArbitraryMaskSelection()
     window->viewManager()->setCurrentView(view);
     for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
     window->show();
+
     window->activateWindow();
     QTRY_VERIFY(!windowReady.isEmpty());
     const auto *converter = view->canvasBase()->coordinatesConverter();
@@ -1520,6 +1539,23 @@ void KisGpuDocumentViewTest::polygonalToolCreatesArbitraryMaskSelection()
     QVERIFY(native);
     KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectPolygonal"));
     QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectPolygonal"));
+    QPointer<KisSelectionOptions> options;
+    const auto selectionTool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KisToolSelectPolygonal"));
+    QVERIFY(selectionTool);
+    for (QWidget *widget : selectionTool->optionWidgets())
+        if (auto *candidate = qobject_cast<KisSelectionOptions *>(widget)) options = candidate;
+    QVERIFY(options);
+    const auto oldAction = options->action();
+    const auto oldMode = options->mode();
+    const bool oldAA = options->antiAliasSelection();
+    const int oldGrow = options->growSelection(), oldFeather = options->featherSelection();
+    const auto restoreOptions = qScopeGuard([&] {
+        if (!options) return;
+        options->setAction(oldAction); options->setMode(oldMode); options->setAntiAliasSelection(oldAA);
+        options->setGrowSelection(oldGrow); options->setFeatherSelection(oldFeather);
+    });
+    options->setMode(PIXEL_SELECTION); options->setAction(SELECTION_REPLACE);
+    options->setAntiAliasSelection(false); options->setGrowSelection(0); options->setFeatherSelection(0);
     window->activateWindow();
     native->requestActivate();
     view->canvasBase()->canvasWidget()->setFocus();

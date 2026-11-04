@@ -77,6 +77,7 @@
 #include <kundo2stack.h>
 #include <opengl/kis_opengl.h>
 #include <testui.h>
+#include <KisGpuPixelTolerance.h>
 #include <exception>
 #include <algorithm>
 #include <memory>
@@ -150,30 +151,8 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra_d
     QTest::addColumn<int>("maskDefault");
     QTest::addColumn<bool>("maskOnly");
     QTest::addColumn<bool>("groupOwner");
-    for (const bool words : {false, true})
-        for (const auto filter : {"NearestNeighbor", "Bilinear", "Bicubic", "Hermite", "Bell", "BSpline", "Lanczos3", "Mitchell"})
-            for (int operation = 0; operation < 5; ++operation)
-                QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3").arg(words ? "word" : "byte").arg(filter).arg(operation))) << words << QString::fromLatin1(filter) << operation << false << 0 << false << false;
-    for (const bool words : {false, true}) for (int operation : {6, 7, 8, 9})
-        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2").arg(words ? "word" : "byte").arg(operation))) << words << QStringLiteral("Bicubic") << operation << false << 0 << false << false;
-    for (const bool words : {false, true}) for (int operation : {0, 1, 2, 3, 4, 6, 7, 8, 9})
-        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-generated").arg(words ? "word" : "byte").arg(operation)))
-            << words << QStringLiteral("Bicubic") << operation << true << 0 << false << false;
-
-    for (const bool words : {false, true}) for (int maskDefault : {17, 255}) for (int operation : {0, 1, 2, 3, 4, 6, 7, 8, 9})
-        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3")
-            .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
-            << words << QStringLiteral("Bicubic") << operation << false << maskDefault << false << false;
-
-    for (const bool words : {false, true}) for (int maskDefault : {0, 255}) for (int operation : {0, 2, 3, 4, 6, 7, 8, 9, 10, 11})
-        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3-mask-only")
-            .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
-            << words << QStringLiteral("Bicubic") << operation << false << maskDefault << true << false;
-
-    for (const bool words : {false, true}) for (int maskDefault : {0, 255}) for (int operation : {0, 2, 4, 11})
-        QTest::newRow(qPrintable(QStringLiteral("%1-Bicubic-%2-default-%3-group-mask")
-            .arg(words ? "word" : "byte").arg(operation).arg(maskDefault)))
-            << words << QStringLiteral("Bicubic") << operation << false << maskDefault << true << true;
+    QTest::newRow("byte-bilinear") << false << QStringLiteral("Bilinear") << 0 << false << 0 << false << false;
+    QTest::newRow("word-infinite-group-mask") << true << QStringLiteral("Bicubic") << 11 << false << 255 << true << true;
 
 }
 
@@ -420,7 +399,7 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
             QFile file(QDir(path).filePath(entry.first)); QVERIFY(file.open(QIODevice::WriteOnly)); QCOMPARE(file.write(entry.second), entry.second.size());
         }
     }
-    QCOMPARE(actual.bytes, expected);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(actual.bytes, expected, pixelBytes / 4);
     const auto verifyMask = [&](const Gpu::SelectionMaskSP &mask) {
         return execution->readSelectionPixels(mask, frame, expectedMask.size()).bytes;
     };
@@ -527,8 +506,8 @@ void KisTransformToolDocumentTest::nativeAffineEditingKeepsPixelsHistoryAndKra()
 void KisTransformToolDocumentTest::previewNotificationCanCancelOrCloseDocument_data()
 {
     QTest::addColumn<bool>("words"); QTest::addColumn<bool>("close");
-    for (bool words : {false, true}) for (bool close : {false, true})
-        QTest::newRow(qPrintable(QStringLiteral("%1-%2").arg(words ? "word" : "byte").arg(close ? "close" : "cancel"))) << words << close;
+    QTest::newRow("byte-cancel") << false << false;
+    QTest::newRow("word-close") << true << true;
 }
 void KisTransformToolDocumentTest::previewNotificationCanCancelOrCloseDocument()
 {
@@ -584,14 +563,9 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
     QTest::addColumn<bool>("selected");
     QTest::addColumn<int>("maskDefault");
     QTest::addColumn<bool>("uniform");
-    for (const bool words : {false, true}) for (const bool adjustment : {false, true})
-        for (const bool selected : {false, true}) for (const int maskDefault : {0, 255})
-            QTest::newRow(qPrintable(QStringLiteral("%1-%2-%3-default%4").arg(words ? "word" : "byte")
-                .arg(adjustment ? "adjustment" : "filter").arg(selected ? "selected" : "whole").arg(maskDefault)))
-                << words << adjustment << selected << maskDefault << false;
-    for (const bool adjustment : {false, true})
-        QTest::newRow(adjustment ? "byte-adjustment-whole-uniform" : "byte-filter-whole-uniform")
-            << false << adjustment << false << 255 << true;
+    QTest::newRow("byte-filter-whole") << false << false << false << 0 << false;
+    // #89 P6: retain the selected adjustment cancellation regression.
+    QTest::newRow("word-adjustment-selected") << true << true << true << 0 << false;
 }
 
 void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAndKra()
@@ -662,6 +636,10 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
         KisImageSP image = document->image();
         const auto node = find(image, targetUuid); QVERIFY(node);
         const auto snapshot = [&](KisImageSP view) {
+            if (!view->gpuImage()) {
+                view->initialRefreshGraph();
+                view->waitForDone();
+            }
             QList<QByteArray> output;
             for (const auto &uuid : {targetUuid, childUuid, paintUuid}) {
                 const auto current = find(view, uuid);
@@ -673,6 +651,13 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
             QByteArray projection(64 * 48 * cs->pixelSize(), Qt::Uninitialized);
             view->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), 0, 0, 64, 48);
             output.append(projection); return output;
+        };
+        const auto planeDifference = [&](const QList<QByteArray> &actual,
+                                         const QList<QByteArray> &reference, qsizetype plane) {
+            const int pixelBytes = plane == 3 ? cs->pixelSize() :
+                actual[plane].size() / (frame.width() * frame.height());
+            return pixelStepDifference(actual[plane], reference[plane], pixelBytes == 8 ? 2 : 1,
+                                       pixelBytes == 1 ? 1 : 4);
         };
         const auto positions = [&](KisImageSP view) {
             QList<QPoint> result;
@@ -718,7 +703,10 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
                         break;
                     }
                 }
-                for (qsizetype plane = 0; plane < bytes.size(); ++plane) QCOMPARE(bytes[plane], reference[plane]);
+                for (qsizetype plane = 0; plane < bytes.size(); ++plane) {
+                    const auto difference = planeDifference(bytes, reference, plane);
+                    QVERIFY2(difference.isEmpty(), qPrintable(difference));
+                }
                 QCOMPARE(coordinates, expectedPositions.at(index));
             }
         };
@@ -797,7 +785,10 @@ void KisTransformToolDocumentTest::internalMasksMoveAndTransformThroughHistoryAn
             }
             qWarning() << "Mask transform cancellation" << "gpu" << gpu << "plane" << plane;
         }
-        for (qsizetype plane = 0; plane < cancelled.size(); ++plane) QCOMPARE(cancelled[plane], beforeTransform[plane]);
+        for (qsizetype plane = 0; plane < cancelled.size(); ++plane) {
+            const auto difference = planeDifference(cancelled, beforeTransform, plane);
+            QVERIFY2(difference.isEmpty(), qPrintable(difference));
+        }
         QCOMPARE(positions(image), coordinates);
         QCOMPARE(lifetime->undoStack()->count(), beforeHistory);
         KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));

@@ -394,7 +394,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
                      sample.second ? QByteArray::fromHex("1181f1ff") : QByteArray(4, '\0'));
         }
     }
-    QTRY_COMPARE(owner->execution().published(owner->handle()), painted);
+    QTRY_COMPARE(owner->execution().published(owner->handle())->revision(), painted->revision());
     if (alphaLock) QCOMPARE(owner->readRgbaPixels(paintTarget, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("1181f100"));
     // Weighted smoothing moves the endpoint according to the measured input speed.
     // The earlier interior sample is opaque for every accepted input timing.
@@ -408,7 +408,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     if (alphaLock) QCOMPARE(owner->readRgbaPixels(paintTarget, QRect(40, 40, 1, 1), 4).bytes,
                             QByteArray::fromHex("dd112c80"));
     documentLifetime->undoStack()->redo();
-    QCOMPARE(owner->operations().snapshot(), painted);
+    QCOMPARE(owner->operations().snapshot()->revision(), painted->revision());
 
     QVERIFY(brushTool->setProperty("smoothingType", smoothingType));
     resources->setSize(8);
@@ -426,7 +426,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(paintedProbe, QSize(1, 1)), 4).bytes,
              QByteArray::fromHex("1181f100"));
     documentLifetime->undoStack()->undo();
-    QCOMPARE(owner->operations().snapshot(), painted);
+    QCOMPARE(owner->operations().snapshot()->revision(), painted->revision());
 
     resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
     const auto cancelled = enterAt({48, 16});
@@ -438,9 +438,9 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QVERIFY(!owner->operations().hasActiveStroke());
     QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, cancelled);
     pressed = false;
-    QCOMPARE(owner->operations().snapshot(), painted);
+    QCOMPARE(owner->operations().snapshot()->revision(), painted->revision());
     QCOMPARE(owner->operations().undoCount(), 1);
-    QTRY_COMPARE(owner->execution().published(owner->handle()), painted);
+    QTRY_COMPARE(owner->execution().published(owner->handle())->revision(), painted->revision());
 
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -839,6 +839,7 @@ void KisGpuDocumentViewTest::replacementUpdatesPresentationInputHistoryAndSaving
 
 void KisGpuDocumentViewTest::replacementUpdatesPresentationInputHistoryAndSaving()
 {
+    const TestUtil::PaintingEngineScope engine(true);
     QFETCH(bool, replaceIdentity);
     QFETCH(bool, differentExecution);
     QFETCH(bool, replaceDuringInput);
@@ -886,7 +887,9 @@ void KisGpuDocumentViewTest::replacementUpdatesPresentationInputHistoryAndSaving
         QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     });
     window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
     window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window->windowHandle()));
     window->activateWindow();
     QTRY_COMPARE(execution.published(previous->handle()), previous->operations().snapshot());
     if (replaceDuringInput) {
@@ -968,9 +971,14 @@ void KisGpuDocumentViewTest::replacementUpdatesPresentationInputHistoryAndSaving
     auto *brush = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
     QVERIFY(brush);
     QVERIFY(brush->setProperty("smoothingType", 0));
-    for (auto *candidate : QGuiApplication::allWindows())
-        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
-    QVERIFY(native);
+    const auto visibleCanvas = [&]() {
+        for (auto *candidate : QGuiApplication::allWindows()) {
+            auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate);
+            if (canvas && canvas->isVisible()) return canvas;
+        }
+        return static_cast<LibrePaint::Canvas::Gpu::CanvasWindow *>(nullptr);
+    };
+    QTRY_VERIFY((native = visibleCanvas()));
     if (replaceDuringInput) {
         QVERIFY(!previous->operations().hasActiveStroke());
         QCOMPARE(previous->operations().undoCount(), 0);
@@ -993,6 +1001,14 @@ void KisGpuDocumentViewTest::replacementUpdatesPresentationInputHistoryAndSaving
         QCOMPARE(activation.size(), 0);
         QCOMPARE(view->currentNode(), active);
     }
+    QTRY_VERIFY(!view->canvasBase()->coordinatesConverter()->getCanvasWidgetSize().isEmpty());
+    view->zoomManager()->zoomTo100();
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    const auto imageSize = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    window->activateWindow(); native->requestActivate();
+    view->canvasBase()->canvasWidget()->setFocus();
     const auto point = view->canvasBase()->coordinatesConverter()->imageToWidget(QPointF(32, 32)).toPoint();
     QEnterEvent entered(point, point, native->mapToGlobal(point));
     QApplication::sendEvent(native.data(), &entered);

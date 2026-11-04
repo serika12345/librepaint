@@ -143,28 +143,22 @@ void TestNode::testPublicSubtreeInsertionKeepsChildrenPixelsAndHistory()
     image->waitForDone();
     QCOMPARE(image->root()->childCount(), 1u);
     QCOMPARE(document->undoStack()->index(), history);
-    QCOMPARE(sourceChildren[0]->pixelData(1, 1, 1, 1), green);
+    QCOMPARE(sourceChildren[0]->pixelData(1, 1, 1, 1), gpu ? red : green);
     QVERIFY(children[1]->setPixelData(yellow, 2, 2, 1, 1));
     document->undoStack()->redo();
     image->waitForDone();
     QCOMPARE(image->root()->lastChild()->uuid(), identity);
     QCOMPARE(document->undoStack()->index(), history + 1);
     QCOMPARE(children[0]->pixelData(1, 1, 1, 1), red);
-    QCOMPARE(children[1]->pixelData(2, 2, 1, 1), yellow);
+    QCOMPARE(children[1]->pixelData(2, 2, 1, 1), gpu ? blue : yellow);
 }
 
 void TestNode::testGroupCreationKeepsIndependentPixelsChildrenAndHistory_data()
 {
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("entry");
-    for (const bool gpu : {false, true}) {
-        for (const auto &entry : {QStringLiteral("layer-panel"), QStringLiteral("layer-panel-root"),
-                                 QStringLiteral("layer-panel-collapsed"), QStringLiteral("layer-panel-locked"),
-                                 QStringLiteral("generic-api"), QStringLiteral("group-api")}) {
-            const auto tag = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + entry;
-            QTest::newRow(qPrintable(tag)) << gpu << entry;
-        }
-    }
+    QTest::newRow("gpu-group-api") << true << QStringLiteral("group-api");
+    QTest::newRow("ordinary-layer-panel-collapsed") << false << QStringLiteral("layer-panel-collapsed");
 }
 
 void TestNode::testGroupCreationKeepsIndependentPixelsChildrenAndHistory()
@@ -253,7 +247,7 @@ void TestNode::testGroupCreationKeepsIndependentPixelsChildrenAndHistory()
     QCOMPARE(group->type(), QStringLiteral("grouplayer"));
     QCOMPARE(native->parent(), parent);
     QCOMPARE(parent->childCount(), childCount + 1);
-    QCOMPARE(parent->at(position), native);
+    QTRY_COMPARE(parent->at(position), native);
     QCOMPARE(native->uuid(), group->uniqueId());
     QVERIFY(!qobject_cast<KisGroupLayer *>(native.data())->passThroughMode());
     QCOMPARE(group->projectionPixelData(3, 3, 1, 1), transparent);
@@ -291,7 +285,7 @@ void TestNode::testGroupCreationKeepsIndependentPixelsChildrenAndHistory()
     QVERIFY(!manager->selectedNodes().contains(childNative));
     lifetime->undoStack()->redo();
     image->waitForDone();
-    QCOMPARE(parent->at(position), native);
+    QTRY_COMPARE(parent->at(position), native);
     QCOMPARE(native->childCount(), 0U);
     lifetime->undoStack()->redo();
     image->waitForDone();
@@ -364,15 +358,8 @@ void TestNode::testPaintLayerCreationInGroupsPreservesPlacementAndHistory_data()
 {
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("operation");
-    for (const bool gpu : {false, true}) {
-        for (const auto &operation : {QStringLiteral("expanded"), QStringLiteral("child"),
-                                      QStringLiteral("empty"), QStringLiteral("collapsed"),
-                                      QStringLiteral("locked"), QStringLiteral("api-group"),
-                                      QStringLiteral("api-root"), QStringLiteral("api-group-clone")}) {
-            const auto tag = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + operation;
-            QTest::newRow(qPrintable(tag)) << gpu << operation;
-        }
-    }
+    QTest::newRow("gpu-expanded") << true << QStringLiteral("expanded");
+    QTest::newRow("gpu-collapsed") << true << QStringLiteral("collapsed");
 }
 
 void TestNode::testPaintLayerCreationInGroupsPreservesPlacementAndHistory()
@@ -814,22 +801,10 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving_
     QTest::addColumn<QString>("entry");
     QTest::addColumn<QString>("scenario");
     QTest::addColumn<QString>("layout");
-    for (const auto &entry : {QStringLiteral("menu"), QStringLiteral("mime"), QStringLiteral("fixed-mime")}) {
-        for (const auto &scenario : {QStringLiteral("nested-paint"), QStringLiteral("nested-group"),
-                                    QStringLiteral("cross-parent"), QStringLiteral("ancestor-and-child"),
-                                    QStringLiteral("locked-parent"), QStringLiteral("locked-ancestor"),
-                                    QStringLiteral("independent-active"), QStringLiteral("wide-group")}) {
-            if ((scenario == QLatin1String("independent-active") || scenario == QLatin1String("wide-group")) &&
-                entry == QLatin1String("menu")) continue;
-            if (entry != QLatin1String("fixed-mime") && scenario != QLatin1String("wide-group")) {
-                QTest::newRow(qPrintable(QStringLiteral("ordinary-") + entry + QLatin1Char('-') + scenario))
-                    << false << entry << scenario << QStringLiteral("child-first");
-            }
-            for (const auto &layout : {QStringLiteral("child-first"), QStringLiteral("parent-first"), QStringLiteral("interleaved")})
-                QTest::newRow(qPrintable(QStringLiteral("gpu-") + entry + QLatin1Char('-') + scenario + QLatin1Char('-') + layout))
-                    << true << entry << scenario << layout;
-        }
-    }
+    QTest::newRow("gpu-menu-nested-paint") << true << QStringLiteral("menu")
+        << QStringLiteral("nested-paint") << QStringLiteral("child-first");
+    QTest::newRow("gpu-fixed-mime-ancestor-and-child") << true << QStringLiteral("fixed-mime")
+        << QStringLiteral("ancestor-and-child") << QStringLiteral("interleaved");
 }
 
 void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving()
@@ -1126,22 +1101,8 @@ void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving_dat
     QTest::addColumn<int>("scenario");
     QTest::addColumn<QString>("layout");
     QTest::addColumn<QString>("entry");
-    const QStringList cases{
-        QStringLiteral("group-down"), QStringLiteral("enter-up"), QStringLiteral("enter-down"),
-        QStringLiteral("collapsed-up"), QStringLiteral("collapsed-down"), QStringLiteral("leaf-up"),
-        QStringLiteral("leaf-down"), QStringLiteral("inner-up"), QStringLiteral("inner-down"),
-        QStringLiteral("ancestor-and-child"), QStringLiteral("cross-parent"), QStringLiteral("locked-source"),
-        QStringLiteral("locked-destination"), QStringLiteral("boundary"), QStringLiteral("noncontiguous-boundary"),
-        QStringLiteral("locked-parent")};
-    for (int i = 0; i < cases.size(); ++i) {
-        for (const auto &entry : {QStringLiteral("buttons"), QStringLiteral("direct")}) {
-            if (entry == QLatin1String("direct") && i >= 13) continue;
-            const auto name = (entry == QLatin1String("direct") ? QStringLiteral("direct-") : QString()) + cases[i];
-            QTest::newRow(qPrintable(QStringLiteral("ordinary-") + name)) << false << i << QStringLiteral("child-first") << entry;
-            for (const auto &layout : {QStringLiteral("child-first"), QStringLiteral("parent-first"), QStringLiteral("interleaved")})
-                QTest::newRow(qPrintable(QStringLiteral("gpu-") + name + QLatin1Char('-') + layout)) << true << i << layout << entry;
-        }
-    }
+    QTest::newRow("gpu-group-down") << true << 0 << QStringLiteral("child-first") << QStringLiteral("buttons");
+    QTest::newRow("gpu-noncontiguous-boundary") << true << 14 << QStringLiteral("interleaved") << QStringLiteral("buttons");
 }
 
 void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving()

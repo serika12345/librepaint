@@ -1188,12 +1188,12 @@ void KisGpuDocumentViewTest::convolutionFiltersKeepNativeEditing()
 void KisGpuDocumentViewTest::filterNodesKeepNativeEditing_data()
 { FilterNodeEditingTest::addData(); }
 void KisGpuDocumentViewTest::filterNodesKeepNativeEditing()
-{ FilterNodeEditingTest::run(); }
+{ FilterNodeEditingTest::run(m_preset); }
 
 void KisGpuDocumentViewTest::convolutionFilterNodesKeepNativeEditing_data()
 { FilterNodeEditingTest::addConvolutionData(); }
 void KisGpuDocumentViewTest::convolutionFilterNodesKeepNativeEditing()
-{ FilterNodeEditingTest::run(); }
+{ FilterNodeEditingTest::run(m_preset); }
 
 void KisGpuDocumentViewTest::convolutionChainsKeepNativeProjection_data()
 { FilterNodeEditingTest::addConvolutionChainData(); }
