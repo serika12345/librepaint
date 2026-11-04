@@ -866,6 +866,7 @@ void KisGpuDocumentViewTest::featherActionSoftensFreehandSelection()
 
     // Filling through the soft selection keeps the fractional alpha.
     auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(m_preset);
     resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
     resources->setOpacity(1);
     resources->setEraserMode(false);

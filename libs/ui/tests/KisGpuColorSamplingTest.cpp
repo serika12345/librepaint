@@ -197,6 +197,13 @@ void KisGpuColorSamplingTest::samplesMaskedLayerThroughHistoryAndReopen()
                 const auto history = lifetime->undoStack()->index();
                 const auto fixed = image->gpuImage() ? image->gpuImage()->operations().snapshot() : LibrePaint::Image::Gpu::Snapshot{};
                 for (int radius : {1, 3}) {
+                    // Restoring a mask also restores the selected node asynchronously.
+                    // Select the paint layer for each independent sampling action.
+                    image->waitForDone();
+                    QApplication::processEvents();
+                    manager->slotUiActivatedNode(layer);
+                    manager->slotSetSelectedNodes({layer});
+                    QTRY_COMPARE(view->currentNode(), layer);
                     helper.activate(true, true);
                     helper.startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), radius, 100);
                     helper.endAction(); helper.deactivate();
