@@ -7,6 +7,7 @@
 
 #include <gpu/KisGpuOperationDocument.h>
 #include <QMap>
+#include <QStringList>
 #include <kritaimpexkra_export.h>
 #include <functional>
 #include <optional>
@@ -38,6 +39,13 @@ struct Annotation
     QString description;
     QByteArray bytes;
 };
+struct KRITAIMPEXKRA_EXPORT ProofingMetadata
+{
+    QMap<QString, QString> attributes;
+    QByteArray warningColor;
+    QByteArray profile;
+    static const QStringList &attributeNames();
+};
 struct ImageMetadata
 {
     QPointF resolution{72, 72};
@@ -54,6 +62,11 @@ struct ImageMetadata
      */
     QByteArray colorHistory;
     QByteArray assistantsGlobalColor;
+    /** Missing preserves retained proofing data; present empty clears it.
+     * Attributes and warning color use the native KRA representation. The
+     * document owner interprets the settings and registers the embedded ICC.
+     */
+    std::optional<ProofingMetadata> proofing;
     /** Inline legacy timing and the current animation-metadata sidecar.
      * Nonempty values replace the corresponding representation; empty values
      * preserve retained settings for callers that update other metadata.

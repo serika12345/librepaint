@@ -32,11 +32,13 @@
 #include <testui.h>
 #include <kra/KisKraRasterCodec.h>
 #include <QBuffer>
+#include <QDomDocument>
 #include <QTemporaryDir>
 #include <QColorSpace>
 #include <QDir>
 #include <QSaveFile>
 #include <KisPaintingEngineTestScope.h>
+#include <KisProofingConfiguration.h>
 
 const QString KraMimetype = "application/x-krita";
 
@@ -49,10 +51,12 @@ void KisKraLoaderTest::initTestCase()
 
 void KisKraLoaderTest::testLoading()
 {
+    const TestUtil::PaintingEngineScope gpuEngine(true);
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     doc->setFileBatchMode(true);
-    QVERIFY(doc->openPath(QString(FILES_DATA_DIR) + '/' + "load_test.kra", KisDocument::DontAddToRecent));
+    QVERIFY2(doc->openPath(QString(FILES_DATA_DIR) + '/' + "load_test.kra", KisDocument::DontAddToRecent), qPrintable(doc->errorMessage()));
     KisImageSP image = doc->image();
+    QVERIFY(image->gpuImage());
     image->waitForDone();
     QCOMPARE(image->nlayers(), 12);
     QCOMPARE(doc->documentInfo()->aboutInfo("title"), QString("test image for loading"));
@@ -70,6 +74,95 @@ void KisKraLoaderTest::testLoading()
     QCOMPARE(node->name(), QString("Group 1"));
     QVERIFY(node->inherits("KisGroupLayer"));
     QCOMPARE((int) node->childCount(), 2);
+
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QFile source(QString(FILES_DATA_DIR) + '/' + "load_test.kra");
+    QVERIFY(source.open(QIODevice::ReadOnly));
+    const auto original = Kra::RasterCodec::read(source);
+    QCOMPARE(original.code, Kra::Status::Success);
+    const auto originalMetadata = Kra::RasterCodec::readImageMetadata(original.document.description, original.document.files);
+    QCOMPARE(originalMetadata.code, Kra::Status::Success);
+    QVERIFY(originalMetadata.metadata.proofing);
+    QVERIFY(!originalMetadata.metadata.proofing->profile.isEmpty());
+
+    const auto proofing = image->proofingConfiguration();
+    QVERIFY(proofing);
+    const auto registeredProfile = KoColorSpaceRegistry::instance()->profileByName(proofing->proofingProfile);
+    QVERIFY(registeredProfile);
+    QCOMPARE(registeredProfile->rawData(), originalMetadata.metadata.proofing->profile);
+    {
+        const TestUtil::PaintingEngineScope cpuEngine(false);
+        QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
+        reference->setFileBatchMode(true);
+        QVERIFY(reference->openPath(source.fileName(), KisDocument::DontAddToRecent));
+        QVERIFY(reference->image()->proofingConfiguration());
+        QVERIFY(*proofing == *reference->image()->proofingConfiguration());
+    }
+    KisProofingConfigurationSP edited(new KisProofingConfiguration(*proofing));
+    edited->conversionIntent = KoColorConversionTransformation::IntentSaturation;
+    edited->displayIntent = KoColorConversionTransformation::IntentRelativeColorimetric;
+    edited->displayMode = KisProofingConfiguration::Custom;
+    edited->useBlackPointCompensationFirstTransform = false;
+    edited->displayFlags.setFlag(KoColorConversionTransformation::BlackpointCompensation, true);
+    edited->setLegacyAdaptationState(0.0);
+    edited->warningColor = KoColor(Qt::red, KoColorSpaceRegistry::instance()->rgb8());
+    image->setProofingConfiguration(edited);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto savedPath = directory.filePath(QStringLiteral("proofing.kra"));
+    QVERIFY2(doc->exportDocumentSync(savedPath, KraMimetype.toLatin1()), qPrintable(doc->errorMessage()));
+    QFile saved(savedPath);
+    QVERIFY(saved.open(QIODevice::ReadOnly));
+    const auto roundTrip = Kra::RasterCodec::read(saved);
+    QVERIFY2(roundTrip.code == Kra::Status::Success, qPrintable(roundTrip.diagnostic));
+    const auto savedMetadata = Kra::RasterCodec::readImageMetadata(roundTrip.document.description, roundTrip.document.files);
+    QCOMPARE(savedMetadata.code, Kra::Status::Success);
+    QVERIFY(savedMetadata.metadata.proofing);
+    QCOMPARE(savedMetadata.metadata.proofing->profile, originalMetadata.metadata.proofing->profile);
+    for (const bool gpu : {true, false}) {
+        const TestUtil::PaintingEngineScope engine(gpu);
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(savedPath, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        QCOMPARE(bool(reopened->image()->gpuImage()), gpu);
+        QVERIFY(reopened->image()->proofingConfiguration());
+        QVERIFY(*reopened->image()->proofingConfiguration() == *edited);
+    }
+}
+
+void KisKraLoaderTest::testClearingProofing()
+{
+    const TestUtil::PaintingEngineScope gpuEngine(true);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    QVERIFY2(document->openPath(QString(FILES_DATA_DIR) + '/' + "load_test.kra", KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+    QVERIFY(document->image()->gpuImage());
+    QVERIFY(document->image()->proofingConfiguration());
+    document->image()->setProofingConfiguration({});
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("no-proofing.kra"));
+    QVERIFY2(document->exportDocumentSync(path, KraMimetype.toLatin1()), qPrintable(document->errorMessage()));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    const auto saved = Kra::RasterCodec::read(file);
+    QVERIFY2(saved.code == Kra::Status::Success, qPrintable(saved.diagnostic));
+    QDomDocument xml;
+    QVERIFY(xml.setContent(saved.document.description));
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    for (const auto &name : Kra::ProofingMetadata::attributeNames()) QVERIFY(!image.hasAttribute(name));
+    QVERIFY(image.firstChildElement(QStringLiteral("ProofingWarningColor")).isNull());
+    for (auto it = saved.document.files.cbegin(); it != saved.document.files.cend(); ++it)
+        QVERIFY(!it.key().endsWith(QLatin1String("/annotations/proofing/icc")));
+    for (const bool gpu : {true, false}) {
+        const TestUtil::PaintingEngineScope engine(gpu);
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        QCOMPARE(bool(reopened->image()->gpuImage()), gpu);
+        QVERIFY(!reopened->image()->proofingConfiguration());
+    }
 }
 
 void testObligeSingleChildImpl(bool transpDefaultPixel)

@@ -25,6 +25,14 @@
 
 namespace LibrePaint::ImportExport::Kra {
 using namespace Image::Gpu;
+const QStringList &ProofingMetadata::attributeNames()
+{
+    static const QStringList names{QStringLiteral("proofing-profile-name"), QStringLiteral("proofing-model"),
+        QStringLiteral("proofing-depth"), QStringLiteral("proofing-intent"), QStringLiteral("proofing-display-intent"),
+        QStringLiteral("proofing-blackpoint-compensation"), QStringLiteral("proofing-display-blackpoint-compensation"),
+        QStringLiteral("proofing-display-mode"), QStringLiteral("proofing-adaptation-state")};
+    return names;
+}
 namespace {
 Outcome invalid(const QString &detail) { return {Status::InvalidData, detail}; }
 Outcome unsupported(const QString &detail) { return {Status::UnsupportedData, detail}; }
@@ -589,6 +597,18 @@ Outcome extractMetadata(const QDomElement &image, const QMap<QString, QByteArray
     const auto prefix = image.attribute(QStringLiteral("name")) + QStringLiteral("/annotations/");
     metadata.iccProfile = files.value(prefix + QStringLiteral("icc"));
     metadata.profileName = image.attribute(QStringLiteral("profile"));
+    metadata.proofing.emplace();
+    for (const auto &name : ProofingMetadata::attributeNames())
+        if (image.hasAttribute(name)) metadata.proofing->attributes.insert(name, image.attribute(name));
+    const auto warningColor = image.firstChildElement(QStringLiteral("ProofingWarningColor"));
+    if (!warningColor.nextSiblingElement(QStringLiteral("ProofingWarningColor")).isNull())
+        return invalid(QStringLiteral("Duplicate KRA proofing warning color"));
+    if (!warningColor.isNull()) {
+        QDomDocument value;
+        value.appendChild(value.importNode(warningColor, true));
+        metadata.proofing->warningColor = value.toByteArray();
+    }
+    metadata.proofing->profile = files.value(prefix + QStringLiteral("proofing/icc"));
     const auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
     if (!annotations.nextSiblingElement(QStringLiteral("Annotations")).isNull())
         return invalid(QStringLiteral("Duplicate KRA annotation containers"));
@@ -1319,6 +1339,27 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     if (result.code != Status::Success) return result;
     if (!metadata.iccProfile.isEmpty()) files.insert(prefix + QStringLiteral("icc"), metadata.iccProfile);
     if (!metadata.profileName.isEmpty()) image.setAttribute(QStringLiteral("profile"), metadata.profileName);
+    if (metadata.proofing) {
+        const auto &proofing = *metadata.proofing;
+        for (const auto &name : ProofingMetadata::attributeNames()) image.removeAttribute(name);
+        for (auto it = proofing.attributes.cbegin(); it != proofing.attributes.cend(); ++it) {
+            if (!ProofingMetadata::attributeNames().contains(it.key()) || !validName(it.value()))
+                return invalid(QStringLiteral("Invalid KRA proofing attribute"));
+            image.setAttribute(it.key(), it.value());
+        }
+        const auto oldWarning = image.firstChildElement(QStringLiteral("ProofingWarningColor"));
+        if (!oldWarning.isNull()) image.removeChild(oldWarning);
+        if (proofing.warningColor.size() > limits.xmlBytes) return capacity();
+        if (!proofing.warningColor.isEmpty()) {
+            QDomDocument warning;
+            if (!warning.setContent(proofing.warningColor) || warning.documentElement().tagName() != QLatin1String("ProofingWarningColor"))
+                return invalid(QStringLiteral("Invalid KRA proofing warning color"));
+            image.appendChild(xml.importNode(warning.documentElement(), true));
+        }
+        const auto proofingPath = prefix + QStringLiteral("proofing/icc");
+        if (proofing.profile.isEmpty()) files.remove(proofingPath);
+        else files.insert(proofingPath, proofing.profile);
+    }
     if (metadata.documentInfo.isEmpty()) files.remove(QStringLiteral("documentinfo.xml"));
     else files.insert(QStringLiteral("documentinfo.xml"), metadata.documentInfo);
     image.setAttribute(QStringLiteral("x-res"), QString::number(metadata.resolution.x(), 'g', 17));
@@ -1362,7 +1403,8 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     QDomNode previous = image.firstChildElement(QStringLiteral("layers"));
     for (const auto &tag : {QStringLiteral("ProjectionBackgroundColor"), QStringLiteral("GlobalAssistantsColor"),
                             QStringLiteral("MirrorAxis"), QStringLiteral("ColorHistory"), QStringLiteral("Palettes"),
-                            QStringLiteral("resources"), QStringLiteral("animation"), QStringLiteral("Annotations")}) {
+                            QStringLiteral("resources"), QStringLiteral("animation"), QStringLiteral("Annotations"),
+                            QStringLiteral("ProofingWarningColor")}) {
         auto element = image.firstChildElement(tag);
         if (!element.isNull()) { image.insertAfter(element, previous); previous = element; }
     }

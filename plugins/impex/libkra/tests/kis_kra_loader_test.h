@@ -16,6 +16,7 @@ private Q_SLOTS:
      void initTestCase();
 
     void testLoading();
+    void testClearingProofing();
     void testObligeSingleChild();
     void testObligeSingleChildNonTranspPixel();
     void testDirectRasterCompatibility();

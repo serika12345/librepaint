@@ -8,6 +8,7 @@
 #include "KisImportExportUtils.h"
 #include <cstring>
 #include "KisDocumentUndoStack_p.h"
+#include "KisDocumentProofing_p.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceModel.h"
 #include "KoColorSet.h"
@@ -345,6 +346,10 @@ LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document
     metadata.documentInfo = document.documentInfo()->save(info, document.isAutosaving(), document.isModified(), saveTime).toByteArray();
     metadata.iccProfile = image->profile()->rawData();
     metadata.profileName = image->profile()->name();
+    const auto retained = fileDocument.kraImageMetadata();
+    if (retained.code != LibrePaint::ImportExport::Kra::Status::Success)
+        return {FileCode::InvalidData, {}, retained.diagnostic};
+    metadata.proofing = KisDocumentProofing::write(image->proofingConfiguration(), retained.metadata.proofing);
     QDomDocument colors;
     auto colorHistory = colors.createElement(QStringLiteral("ColorHistory"));
     colors.appendChild(colorHistory);
@@ -425,13 +430,14 @@ LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document
 
 QString gpuKraEditingError(const QDomElement &image)
 {
-    const QSet<QString> imageAttributes{QStringLiteral("name"), QStringLiteral("mime"), QStringLiteral("width"),
+    QSet<QString> imageAttributes{QStringLiteral("name"), QStringLiteral("mime"), QStringLiteral("width"),
         QStringLiteral("height"), QStringLiteral("colorspacename"), QStringLiteral("profile"),
         QStringLiteral("description"), QStringLiteral("x-res"), QStringLiteral("y-res")};
+    for (const auto &name : LibrePaint::ImportExport::Kra::ProofingMetadata::attributeNames()) imageAttributes.insert(name);
     const QSet<QString> imageChildren{QStringLiteral("layers"), QStringLiteral("ProjectionBackgroundColor"),
         QStringLiteral("MirrorAxis"), QStringLiteral("Annotations"), QStringLiteral("ColorHistory"),
         QStringLiteral("GlobalAssistantsColor"), QStringLiteral("Palettes"), QStringLiteral("resources"),
-        QStringLiteral("animation")};
+        QStringLiteral("animation"), QStringLiteral("ProofingWarningColor")};
     const QSet<QString> layerAttributes{QStringLiteral("name"), QStringLiteral("uuid"), QStringLiteral("filename"),
         QStringLiteral("x"), QStringLiteral("y"), QStringLiteral("visible"), QStringLiteral("selected"),
         QStringLiteral("nodetype"), QStringLiteral("compositeop"), QStringLiteral("opacity"),
@@ -3276,6 +3282,7 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
         if (metadata.metadata.layerCollapsed) node->setCollapsed(metadata.metadata.layerCollapsed->value(node->uuid()));
     });
     image->setResolution(metadata.metadata.resolution.x() / 72, metadata.metadata.resolution.y() / 72);
+    if (metadata.metadata.proofing) image->setProofingConfiguration(KisDocumentProofing::read(*metadata.metadata.proofing));
     auto *animation = image->animationInterface();
     if (timing.framerate) animation->setFramerate(*timing.framerate);
     if (timing.range) animation->setDocumentRange(*timing.range);
