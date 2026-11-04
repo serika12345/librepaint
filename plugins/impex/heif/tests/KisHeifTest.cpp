@@ -23,6 +23,20 @@
 const QString HeifMimetype = "image/heic";
 const QString AvifMimetype = "image/avif";
 
+namespace {
+KisPaintDeviceSP readPngReference(KisImageSP image)
+{
+    // Read the GPU reference once before comparing or converting codec pixels.
+    image->waitForDone();
+    const auto bounds = image->bounds();
+    QByteArray bytes(bounds.width() * bounds.height() * image->colorSpace()->pixelSize(), Qt::Uninitialized);
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), bounds);
+    KisPaintDeviceSP pixels = new KisPaintDevice(image->colorSpace());
+    pixels->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), bounds);
+    return pixels;
+}
+}
+
 
 
 void KisHeifTest::testImportFromWriteonly()
@@ -140,10 +154,11 @@ void KisHeifTest::testLoadRGB(int bitDepth)
         KoColor pngColor(png_image->colorSpace());
         KoColor heifColor(png_image->colorSpace());
         KoColor avifColor(png_image->colorSpace());
+        const auto pngReference = readPngReference(png_image);
 
         for (int y = 0; y<png_image->height(); y++) {
             for (int x = 0; x<png_image->width(); x++) {
-                png_image->projection()->pixel(x, y, &pngColor);
+                pngReference->pixel(x, y, &pngColor);
                 heif_image->projection()->pixel(x, y, &heifColor);
                 avif_image->projection()->pixel(x, y, &avifColor);
 
@@ -338,8 +353,8 @@ void KisHeifTest::testLoadHDR()
                 RGBAColorModelID.id(),
                 Float32BitsColorDepthID.id(),
                     KoColorSpaceRegistry::instance()->p2020G10Profile());
-        png_image->convertImageColorSpace(cs, KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
-        png_image->waitForDone();
+        KisPaintDeviceSP pngReference = readPngReference(png_image);
+        pngReference->convertTo(cs, KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
 
         KoColor pngColor(cs);
         KoColor heifColor(cs);
@@ -347,7 +362,7 @@ void KisHeifTest::testLoadHDR()
 
         for (int y = 0; y<png_image->height(); y++) {
             for (int x = 0; x<png_image->width(); x++) {
-                png_image->projection()->pixel(x, y, &pngColor);
+                pngReference->pixel(x, y, &pngColor);
                 heif_image_pq->projection()->pixel(x, y, &heifColor);
                 avif_image_pq->projection()->pixel(x, y, &avifColor);
 
