@@ -12,9 +12,9 @@
 #include <QByteArray>
 #include <memory>
 
-/** Temporary native paint layer and optional sampling projection for CPU
- * freehand engines. The GPU document owns previews and history; the native
- * scheduler owns only the active stroke.
+/** Temporary native paint layer or Alpha8 mask and optional sampling projection
+ * for CPU freehand engines. The GPU document owns previews and history; the
+ * native scheduler owns only the active stroke.
  */
 class KRITAPAINTING_EXPORT KisGpuCpuBrushStroke
 {

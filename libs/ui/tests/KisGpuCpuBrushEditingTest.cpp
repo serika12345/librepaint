@@ -4,24 +4,29 @@
  */
 #include "KisGpuDocumentViewTest.h"
 #include <KisGpuPaintDeviceTransfer_p.h>
+#include <KisGpuFilterConfiguration.h>
 #include <gpu/KisGpuOperationCapabilities.h>
+#include <kis_filter_mask.h>
 
 void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing_data()
 {
     QTest::addColumn<bool>("words");
     QTest::addColumn<QString>("engine");
-    QTest::newRow("u8-grid") << false << QStringLiteral("gridbrush");
-    QTest::newRow("u16-selected-deform") << true << QStringLiteral("deformbrush");
-    QTest::newRow("u8-merged-smudge") << false << QStringLiteral("colorsmudge");
-    QTest::newRow("u16-selected-offcanvas-smudge") << true << QStringLiteral("colorsmudge");
-    QTest::newRow("u8-merged-clone") << false << QStringLiteral("duplicate");
-    QTest::newRow("u16-selected-node-clone") << true << QStringLiteral("duplicate");
+    QTest::addColumn<bool>("alpha");
+    QTest::newRow("u8-grid") << false << QStringLiteral("gridbrush") << false;
+    QTest::newRow("u16-selected-deform") << true << QStringLiteral("deformbrush") << false;
+    QTest::newRow("u8-merged-smudge") << false << QStringLiteral("colorsmudge") << false;
+    QTest::newRow("u16-selected-offcanvas-smudge") << true << QStringLiteral("colorsmudge") << false;
+    QTest::newRow("u8-merged-clone") << false << QStringLiteral("duplicate") << false;
+    QTest::newRow("u16-selected-node-clone") << true << QStringLiteral("duplicate") << false;
+    QTest::newRow("u8-white-default-mask-grid") << false << QStringLiteral("gridbrush") << true;
+    QTest::newRow("u16-selected-filter-mask-deform") << true << QStringLiteral("deformbrush") << true;
 }
 
 void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
-    QFETCH(bool, words); QFETCH(QString, engine);
+    QFETCH(bool, words); QFETCH(QString, engine); QFETCH(bool, alpha);
     const TestUtil::PaintingEngineScope useGpu(true);
     const QString id = engine;
     const bool smudge = id == QLatin1String("colorsmudge");
@@ -76,7 +81,11 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
         using KisToolFreehandHelper::paintAt;
         using KisToolFreehandHelper::paintLine;
     };
-    QByteArray reference, referenceProjection, sourceProjection;
+    const quint8 defaultAlpha = words ? 0 : 255;
+    QByteArray initialAlpha(canvas.width() * canvas.height(), Qt::Uninitialized);
+    for (int y = 0; y < canvas.height(); ++y) for (int x = 0; x < canvas.width(); ++x)
+        initialAlpha[y * canvas.width() + x] = char((x * 17 + y * 43) % 256);
+    QByteArray reference, referenceProjection, sourceProjection, referenceSelection;
     for (const bool gpu : {false, true}) {
         std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
         document->setFileBatchMode(true); document->setAutoSaveActive(false);
@@ -97,7 +106,51 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
             layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(initial.constData()), canvas);
             QVERIFY(image->addNode(layer));
         }
-        const auto node = image->root()->firstChild();
+        KisNodeSP node = image->root()->firstChild();
+        const auto paintNode = node;
+        if (alpha) {
+            const auto filter = KisFilterRegistry::instance()->value(QStringLiteral("fastcoloroverlay"));
+            QVERIFY(filter);
+            const auto config = filter->defaultConfiguration(KisGlobalResourcesInterface::instance());
+            if (gpu) {
+                const auto owner = image->gpuImage();
+                const auto coverage = Gpu::SelectionMask::fromAlphaTiles([&] {
+                    Gpu::SelectionTileMap tiles;
+                    for (int tx = 0; tx < 2; ++tx) {
+                        QByteArray bytes(Gpu::SelectionMask::AlphaTileBytes, char(defaultAlpha));
+                        for (int y = 0; y < canvas.height(); ++y)
+                            for (int x = tx * 256; x < qMin((tx + 1) * 256, canvas.width()); ++x)
+                                bytes[y * 256 + x % 256] = initialAlpha[y * canvas.width() + x];
+                        tiles.insert({tx, 0}, bytes);
+                    }
+                    return tiles;
+                }(), defaultAlpha);
+                QVERIFY(coverage);
+                if (words) {
+                    Gpu::RasterLayer mask{QStringLiteral("CPU brush coverage"), true, QUuid::createUuid(), {}};
+                    mask.kind = Gpu::LayerKind::FilterMask; mask.parentUuid = paintNode->uuid();
+                    mask.filter = freezeGpuFilterConfiguration(config, cs); mask.filterSelection = coverage;
+                    QVERIFY(mask.filter); QVERIFY(owner->addFilterNode(mask, 1));
+                    node = KisLayerUtils::findNodeByUuid(image->root(), mask.uuid);
+                } else {
+                    const auto id = owner->operations().activeLayer();
+                    QCOMPARE(owner->addTransparencyMask(id), Gpu::Result::Success);
+                    QCOMPARE(owner->replaceTransparencyMask(id, coverage), Gpu::Result::Success);
+                    node = paintNode->firstChild();
+                }
+            } else {
+                KisSelectionSP coverage = new KisSelection;
+                coverage->pixelSelection()->setDefaultPixel(KoColor(&defaultAlpha, KoColorSpaceRegistry::instance()->alpha8()));
+                coverage->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(initialAlpha.constData()), canvas);
+                KisMaskSP mask;
+                if (words) {
+                    auto filterMask = new KisFilterMask(image, QStringLiteral("CPU brush coverage"));
+                    filterMask->setFilter(config->cloneWithResourcesSnapshot()); mask = filterMask;
+                } else mask = new KisTransparencyMask(image, QStringLiteral("Transparency Mask"));
+                mask->setSelection(coverage); QVERIFY(image->addNode(mask, paintNode)); node = mask;
+            }
+            QVERIFY(node); QCOMPARE(node->paintDevice()->pixelSize(), quint32(1));
+        }
         const QRect selectionArea = sampling ? QRect(-5, 4, 14, 24) : QRect(247, 4, 14, 24);
         QUuid backdropUuid;
         QByteArray backdropPixels;
@@ -156,7 +209,7 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
             QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
         });
         window->viewManager()->setCurrentView(view);
-        window->viewManager()->nodeManager()->slotNonUiActivatedNode(node);
+        window->viewManager()->nodeManager()->slotUiActivatedNode(node);
         auto *resources = window->viewManager()->canvasResourceProvider();
         resources->setPaintOpPreset(preset); resources->setSize(12); resources->setOpacity(.7);
         resources->setCurrentCompositeOp(QStringLiteral("normal")); resources->setEraserMode(false);
@@ -169,15 +222,19 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
         QSignalSpy errors(&helper, &KisToolFreehandHelper::requestErrorMessage);
         const auto capture = [&] {
             image->waitForDone();
-            if (sampling) {
+            if (sampling || alpha) {
                 image->refreshGraphAsync(image->root(), inspected, inspected);
                 image->waitForDone();
             }
-            QByteArray bytes(inspected.width() * inspected.height() * cs->pixelSize(), Qt::Uninitialized);
+            QByteArray bytes(inspected.width() * inspected.height() * node->paintDevice()->pixelSize(), Qt::Uninitialized);
             node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), inspected);
             return bytes;
         };
+        const auto difference = [&](const QByteArray &actual, const QByteArray &expected) {
+            return pixelStepDifference(actual, expected, alpha ? 1 : words ? 2 : 1, alpha ? 1 : 4);
+        };
         const auto original = capture();
+        if (alpha) QCOMPARE(quint8(original[0]), defaultAlpha);
         if (sampling) {
             QByteArray pixels(original.size(), Qt::Uninitialized);
             image->projection()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), inspected);
@@ -223,18 +280,19 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
         }
         const auto edited = capture(); QVERIFY(edited != original);
         if (!gpu) reference = edited;
-        else QVERIFY2(pixelStepDifference(edited, reference, words ? 2 : 1).isEmpty(),
-                      qPrintable(pixelStepDifference(edited, reference, words ? 2 : 1)));
-        if (sampling) {
-            QByteArray projection(edited.size(), Qt::Uninitialized);
+        else QVERIFY2(difference(edited, reference).isEmpty(), qPrintable(difference(edited, reference)));
+        if (sampling || alpha) {
+            QByteArray projection(inspected.width() * inspected.height() * cs->pixelSize(), Qt::Uninitialized);
             image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), inspected);
             if (!gpu) referenceProjection = projection;
             else QVERIFY2(pixelStepDifference(projection, referenceProjection, words ? 2 : 1).isEmpty(),
                           qPrintable(pixelStepDifference(projection, referenceProjection, words ? 2 : 1)));
-            QByteArray unchanged(backdropPixels.size(), Qt::Uninitialized);
-            KisLayerUtils::findNodeByUuid(image->root(), backdropUuid)->paintDevice()->readBytes(
-                reinterpret_cast<quint8 *>(unchanged.data()), inspected);
-            QCOMPARE(unchanged, backdropPixels);
+            if (sampling) {
+                QByteArray unchanged(backdropPixels.size(), Qt::Uninitialized);
+                KisLayerUtils::findNodeByUuid(image->root(), backdropUuid)->paintDevice()->readBytes(
+                    reinterpret_cast<quint8 *>(unchanged.data()), inspected);
+                QCOMPARE(unchanged, backdropPixels);
+            }
         }
         QTRY_COMPARE(lifetime->undoStack()->index(), history + 1);
         lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(capture(), original);
@@ -269,17 +327,55 @@ void KisGpuDocumentViewTest::cpuBrushesKeepNativeEditing()
                 QVERIFY(layer); QCOMPARE(layer->name(), node->name());
                 QByteArray bytes(edited.size(), Qt::Uninitialized);
                 layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), inspected);
-                QVERIFY(pixelStepDifference(bytes, reference, words ? 2 : 1).isEmpty());
+                QVERIFY2(difference(bytes, reference).isEmpty(), qPrintable(difference(bytes, reference)));
+                if (alpha) {
+                    QCOMPARE(layer->paintDevice()->defaultPixel(), node->paintDevice()->defaultPixel());
+                    QCOMPARE(layer->parent()->uuid(), paintNode->uuid());
+                    QCOMPARE(layer->metaObject()->className(), node->metaObject()->className());
+                    if (words) QCOMPARE(qobject_cast<const KisFilterMask *>(layer.data())->filter()->toXML(),
+                                        qobject_cast<KisFilterMask *>(node.data())->filter()->toXML());
+                    if (words) {
+                        const auto selection = reopened->image()->globalSelection(); QVERIFY(selection);
+                        const auto expected = image->globalSelection(); QVERIFY(expected);
+                        QByteArray savedSelection(inspected.width() * inspected.height(), Qt::Uninitialized);
+                        QByteArray expectedSelection(savedSelection.size(), Qt::Uninitialized);
+                        selection->projection()->readBytes(reinterpret_cast<quint8 *>(savedSelection.data()), inspected);
+                        expected->projection()->readBytes(reinterpret_cast<quint8 *>(expectedSelection.data()), inspected);
+                        QCOMPARE(savedSelection, expectedSelection);
+                    }
+                }
                 if (sampling) {
                     const auto backdrop = KisLayerUtils::findNodeByUuid(reopened->image()->root(), backdropUuid);
                     QVERIFY(backdrop); QCOMPARE(backdrop->name(), QStringLiteral("Brush source"));
                     backdrop->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), inspected);
                     QCOMPARE(bytes, backdropPixels);
+                }
+                if (sampling || alpha) {
+                    bytes.resize(inspected.width() * inspected.height() * cs->pixelSize());
                     reopened->image()->refreshGraphAsync(reopened->image()->root(), inspected, inspected);
                     reopened->image()->waitForDone();
                     reopened->image()->projection()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), inspected);
                     QVERIFY(pixelStepDifference(bytes, referenceProjection, words ? 2 : 1).isEmpty());
                 }
+            }
+        }
+        if (alpha) {
+            QByteArray pixels(initial.size(), Qt::Uninitialized);
+            paintNode->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), canvas);
+            QCOMPARE(pixels, initial);
+            if (words) {
+                // Editing the global selection must reach pixels outside its
+                // current coverage instead of clipping the stroke to itself.
+                node = image->rootLayer()->selectionMask(); QVERIFY(node);
+                window->viewManager()->nodeManager()->slotUiActivatedNode(node);
+                resources->setEraserMode(false); resources->setFGColor(KoColor(Qt::white, cs));
+                const auto before = capture();
+                QVERIFY(begin()); helper.endPaint(); QVERIFY(errors.isEmpty());
+                const auto after = capture(); QVERIFY(after != before);
+                if (!gpu) referenceSelection = after;
+                else QVERIFY2(difference(after, referenceSelection).isEmpty(), qPrintable(difference(after, referenceSelection)));
+                lifetime->undoStack()->undo(); image->waitForDone(); QCOMPARE(capture(), before);
+                lifetime->undoStack()->redo(); image->waitForDone(); QCOMPARE(capture(), after);
             }
         }
     }

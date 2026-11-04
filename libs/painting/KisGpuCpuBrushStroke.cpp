@@ -9,11 +9,13 @@
 #include <kis_group_layer.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
+#include <kis_painter.h>
 #include <kis_selection.h>
 #include <kis_pixel_selection.h>
 #include <kis_selection_mask.h>
 #include <kis_transparency_mask.h>
 #include <kis_filter_mask.h>
+#include <kis_adjustment_layer.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_default_bounds.h>
 #include <kis_undo_stores.h>
@@ -45,6 +47,17 @@ KisPaintDeviceSP copyNativePixels(KisPaintDeviceSP source, KisDefaultBoundsBaseS
     return result;
 }
 
+KisSelectionSP copyNativeSelection(KisPaintDeviceSP source, KisDefaultBoundsBaseSP bounds)
+{
+    const auto pixels = copyNativePixels(source, bounds);
+    KisSelectionSP result = new KisSelection;
+    result->pixelSelection()->setDefaultBounds(bounds);
+    result->pixelSelection()->setDefaultPixel(pixels->defaultPixel());
+    const auto area = pixels->extent();
+    KisPainter::copyAreaOptimized(area.topLeft(), pixels, result->pixelSelection(), area);
+    return result;
+}
+
 // Smudge's native overlay starts from the captured document projection and
 // incorporates its own live dabs. Keep that source separate from the working
 // layer so native graph updates cannot replace it with just the edited layer.
@@ -58,21 +71,15 @@ private:
     KisPaintDeviceSP m_pixels;
 };
 
-class CpuBrushLayer final : public KisPaintLayer
+class CpuBrushPixels
 {
 public:
-    using KisPaintLayer::setDirty;
-    CpuBrushLayer(KisImageWSP image, KisPaintDeviceSP device)
-        : KisPaintLayer(image, QStringLiteral("CPU brush pixels"), 255, device) {}
-
-    void setDirty(const QVector<QRect> &rects) override
+    virtual ~CpuBrushPixels() = default;
+    void markDirty(const QVector<QRect> &rects)
     {
-        {
-            QMutexLocker lock(&m_mutex);
-            for (const auto &rect : rects) m_dirty |= rect;
-            ++m_serial;
-        }
-        KisPaintLayer::setDirty(rects);
+        QMutexLocker lock(&m_mutex);
+        for (const auto &rect : rects) m_dirty |= rect;
+        ++m_serial;
     }
 
     QRect dirtyRect() const
@@ -93,16 +100,26 @@ public:
         return m_serial;
     }
 
-    QByteArray previewPixels(QRect area) const
+    QByteArray previewPixels(KisNodeSP node, QRect area) const
     {
-        const qint64 count = qint64(area.width()) * area.height() * colorSpace()->pixelSize();
+        KisPaintDeviceSP pixels = node->paintDevice();
+        const qint64 count = qint64(area.width()) * area.height() * pixels->pixelSize();
         if (count <= 0 || count > 256 * 1024 * 1024) throw std::length_error("CPU brush preview exceeds capacity");
         QByteArray bytes(count, Qt::Uninitialized);
-        KisPaintDeviceSP pixels = paintDevice();
-        if (hasTemporaryTarget()) {
-            pixels = new KisPaintDevice(colorSpace());
-            pixels->setDefaultBounds(paintDevice()->defaultBounds());
-            copyOriginalToProjection(paintDevice(), pixels, area);
+        const auto indirect = dynamic_cast<KisIndirectPaintingSupport *>(node.data());
+        KisIndirectPaintingSupport::ReadLocker lock(indirect);
+        if (indirect->hasTemporaryTarget()) {
+            const auto original = pixels;
+            // Alpha selections compose through their native GrayA source
+            // device, just as KisMask does when displaying indirect strokes.
+            pixels = original->pixelSize() == 1 ? KisPaintDeviceSP(new KisPixelSelection) :
+                KisPaintDeviceSP(new KisPaintDevice(original->colorSpace()));
+            pixels->setDefaultBounds(original->defaultBounds());
+            pixels->setDefaultPixel(original->defaultPixel());
+            KisPainter::copyAreaOptimized(area.topLeft(), original, pixels, area);
+            KisPainter painter(pixels);
+            indirect->setupTemporaryPainter(&painter);
+            painter.bitBlt(area.topLeft(), indirect->temporaryTarget(), area);
         }
         pixels->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
         return bytes;
@@ -114,6 +131,20 @@ private:
     quint64 m_serial = 0;
 };
 
+template<class Base>
+class CpuBrushNode final : public Base, public CpuBrushPixels
+{
+public:
+    using Base::Base;
+    using Base::setDirty;
+    void setDirty(const QVector<QRect> &rects) override
+    {
+        this->markDirty(rects);
+        Base::setDirty(rects);
+    }
+};
+using CpuBrushLayer = CpuBrushNode<KisPaintLayer>;
+
 struct NativePreview
 {
     QMutex mutex;
@@ -124,14 +155,17 @@ struct NativePreview
     bool failed = false;
 };
 
-void copySamplingMasks(KisNodeSP source, KisLayerSP target, KisImageSP working)
+void copySamplingMasks(KisNodeSP source, KisLayerSP target, KisImageSP working,
+                       KisNodeSP edited = {}, KisNodeSP editedTarget = {})
 {
     for (auto child = source->firstChild(); child; child = child->nextSibling()) {
         if (qobject_cast<KisSelectionMask *>(child.data())) continue;
         const auto mask = qobject_cast<KisMask *>(child.data());
         if (!mask) continue;
         KisMaskSP native;
-        if (const auto filter = qobject_cast<KisFilterMask *>(mask)) {
+        if (child == edited) {
+            native = qobject_cast<KisMask *>(editedTarget.data());
+        } else if (const auto filter = qobject_cast<KisFilterMask *>(mask)) {
             auto copy = new KisFilterMask(working, child->name());
             native = copy;
             if (filter->filter()) copy->setFilter(filter->filter()->cloneWithResourcesSnapshot());
@@ -140,7 +174,9 @@ void copySamplingMasks(KisNodeSP source, KisLayerSP target, KisImageSP working)
         } else {
             throw std::invalid_argument("CPU brush sampling mask is unsupported");
         }
-        if (mask->selection())
+        if (child == edited) {
+            if (!native) throw std::invalid_argument("CPU brush mask target is unavailable");
+        } else if (mask->selection())
             native->initSelection(copyNativePixels(mask->selection()->projection(), new KisDefaultBounds(working)), target);
         else native->initSelection(target);
         native->setVisible(child->visible());
@@ -154,7 +190,7 @@ void copySamplingMasks(KisNodeSP source, KisLayerSP target, KisImageSP working)
 // update that projection. Keep a temporary graph so those reads observe the
 // existing scheduler's updates, including layers above the edited layer.
 KisNodeSP copySamplingLayers(KisNodeSP source, KisNodeSP parent, KisNodeSP edited,
-                            KisSharedPtr<CpuBrushLayer> target, KisImageSP working, KisNodeSP samplingNode)
+                            KisNodeSP target, KisImageSP working, KisNodeSP samplingNode)
 {
     KisNodeSP nativeSource;
     for (auto child = source->firstChild(); child; child = child->nextSibling()) {
@@ -168,10 +204,10 @@ KisNodeSP copySamplingLayers(KisNodeSP source, KisNodeSP parent, KisNodeSP edite
             copy->setDefaultProjectionColor(group->defaultProjectionColor());
             native = copy;
         } else if (child == edited) {
-            native = target;
+            native = qobject_cast<KisLayer *>(target.data());
         } else {
             native = new KisPaintLayer(working, child->name(), child->opacity(),
-                copyNativePixels(child->projection(), new KisDefaultBounds(working)));
+                copyNativePixels(child == edited->parent() ? child->original() : child->projection(), new KisDefaultBounds(working)));
         }
         native->setOpacity(child->opacity());
         native->setVisible(child->visible());
@@ -183,7 +219,7 @@ KisNodeSP copySamplingLayers(KisNodeSP source, KisNodeSP parent, KisNodeSP edite
             const auto nestedSource = copySamplingLayers(child, native, edited, target, working, samplingNode);
             if (nestedSource) nativeSource = nestedSource;
         }
-        if (group || child == edited) copySamplingMasks(child, native, working);
+        if (group || child == edited || child == edited->parent()) copySamplingMasks(child, native, working, edited, target);
     }
     return nativeSource;
 }
@@ -196,8 +232,11 @@ struct KisGpuCpuBrushStroke::Private
     Gpu::Snapshot before;
     Gpu::OperationId operation;
     Gpu::LayerId layer = 0;
+    bool alpha = false;
+    QUuid maskUuid;
     KisImageSP working;
-    KisSharedPtr<CpuBrushLayer> target;
+    KisNodeSP target;
+    CpuBrushPixels *pixels = nullptr;
     KisNodeSP samplingNode;
     std::shared_ptr<NativePreview> preview = std::make_shared<NativePreview>();
     quint64 publishedSerial = 0;
@@ -208,37 +247,77 @@ KisGpuCpuBrushStroke::KisGpuCpuBrushStroke() : m_d(std::make_unique<Private>()) 
 std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP image, KisNodeSP node, QString &diagnostic,
                                                                Projection projection, KisNodeSP samplingNode)
 {
-    diagnostic = i18n("A brush stroke could not be started on this paint layer.");
+    diagnostic = i18n("A brush stroke could not be started on this paint layer or mask.");
     const auto owner = image ? image->gpuImage() : Gpu::PaintImageSP{};
     const auto paint = qobject_cast<KisPaintLayer *>(node.data());
-    if (!owner || !paint || node->image().data() != image.data() || !node->parent() || !node->isEditable() ||
+    if (!owner || !node || node->image().data() != image.data() || !node->parent() || !node->isEditable() ||
         owner->operations().hasActiveStroke()) return {};
+    const auto selectionMask = qobject_cast<KisSelectionMask *>(node.data());
+    const bool globalSelection = selectionMask && selectionMask->selection() == image->globalSelection();
+    const bool alpha = node->paintDevice() && node->paintDevice()->pixelSize() == 1 &&
+        (image->isGpuEditableMaskView(node) || globalSelection);
+    if (!paint && !alpha) return {};
     const auto before = owner->operations().snapshot();
     const auto layer = std::find_if(before->layers.cbegin(), before->layers.cend(),
-        [&](const auto &value) { return value.uuid == node->uuid() && value.kind == Gpu::LayerKind::Paint; });
-    if (layer == before->layers.cend()) return {};
+        [&](const auto &value) { return alpha ? bool(Gpu::editableMaskCoverage(value, node->uuid())) :
+            value.uuid == node->uuid() && value.kind == Gpu::LayerKind::Paint; });
+    if (!globalSelection && layer == before->layers.cend()) return {};
     try {
         auto result = std::unique_ptr<KisGpuCpuBrushStroke>(new KisGpuCpuBrushStroke);
         auto &d = *result->m_d;
-        d.source = image; d.owner = owner; d.before = before; d.layer = layer->id;
+        d.source = image; d.owner = owner; d.before = before; d.layer = globalSelection ? 0 : layer->id;
+        d.alpha = alpha; d.maskUuid = alpha && !globalSelection ? node->uuid() : QUuid{};
         d.working = new KisImage(new KisDumbUndoStore, image->width(), image->height(), image->colorSpace(), "CPU brush calculation");
         d.working->setResolution(image->xRes(), image->yRes());
         if (projection == Projection::Captured) {
             const auto projection = copyNativePixels(image->projection(), new KisDefaultBounds(d.working));
             d.working->setRootLayer(new CpuBrushRoot(d.working, projection));
         }
-        const auto pixels = kisGpuPaintDeviceTransfer(owner, layer->id, new KisDefaultBounds(d.working), before, image->colorSpace());
-        d.target = new CpuBrushLayer(d.working, pixels);
-        d.target->setChannelLockFlags(paint->channelLockFlags());
+        if (alpha) {
+            const auto coverage = copyNativeSelection(node->paintDevice(), new KisDefaultBounds(d.working));
+            if (globalSelection) {
+                auto target = new CpuBrushNode<KisSelectionMask>(d.working, node->name());
+                d.target = target;
+                target->setSelection(coverage);
+                target->setActive(true);
+            } else if (const auto adjustment = qobject_cast<KisAdjustmentLayer *>(node.data())) {
+                d.target = new CpuBrushNode<KisAdjustmentLayer>(d.working, node->name(),
+                    adjustment->filter()->cloneWithResourcesSnapshot(), coverage);
+            } else if (const auto filter = qobject_cast<KisFilterMask *>(node.data())) {
+                auto target = new CpuBrushNode<KisFilterMask>(d.working, node->name());
+                d.target = target;
+                target->setSelection(coverage);
+                if (filter->filter()) target->setFilter(filter->filter()->cloneWithResourcesSnapshot());
+            } else {
+                auto target = new CpuBrushNode<KisTransparencyMask>(d.working, node->name());
+                d.target = target;
+                target->setSelection(coverage);
+            }
+        } else {
+            const auto pixels = kisGpuPaintDeviceTransfer(owner, layer->id, new KisDefaultBounds(d.working), before, image->colorSpace());
+            auto target = new CpuBrushLayer(d.working, QStringLiteral("CPU brush pixels"), 255, pixels);
+            target->setChannelLockFlags(paint->channelLockFlags());
+            d.target = target;
+        }
+        d.pixels = dynamic_cast<CpuBrushPixels *>(d.target.data());
         if (projection == Projection::Updating) {
             d.working->rootLayer()->setDefaultProjectionColor(image->defaultProjectionColor());
             d.samplingNode = copySamplingLayers(image->root(), d.working->root(), node, d.target, d.working, samplingNode);
             if (samplingNode == image->root()) d.samplingNode = d.working->root();
-            if (!d.target->parent()) return {};
-        } else if (!d.working->addNode(d.target)) return {};
+            if (globalSelection && !d.working->addNode(d.target, d.working->root())) return {};
+        } else {
+            KisNodeSP parent = d.working->root();
+            if (alpha && !globalSelection && !qobject_cast<KisLayer *>(d.target.data())) {
+                parent = new KisPaintLayer(d.working, QStringLiteral("CPU mask parent"), 255);
+                if (!d.working->addNode(parent)) return {};
+            }
+            if (!d.working->addNode(d.target, parent)) return {};
+        }
+        if (!d.target->parent()) return {};
         if (samplingNode == node) {
             d.samplingNode = d.target;
-            if (projection != Projection::Updating) copySamplingMasks(node, d.target, d.working);
+            if (const KisLayerSP target = qobject_cast<KisLayer *>(d.target.data()); target && projection != Projection::Updating)
+                copySamplingMasks(node, target, d.working);
         } else if (samplingNode && !d.samplingNode) {
             const auto source = copyNativePixels(samplingNode->projection(), new KisDefaultBounds(d.working));
             d.samplingNode = new KisPaintLayer(d.working, QStringLiteral("CPU brush source"), 255, source);
@@ -246,21 +325,12 @@ std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP im
             if (!d.working->addNode(d.samplingNode)) return {};
         }
         d.working->setMirrorAxesCenter(image->mirrorAxesCenter());
-        if (const auto selection = paint->selection()) {
+        const auto selectionLayer = qobject_cast<KisLayer *>(node.data());
+        const auto selection = globalSelection ? KisSelectionSP{} : selectionLayer ? selectionLayer->selection() : image->globalSelection();
+        if (selection) {
             // Native selection devices own ordinary CPU pixels, including the
             // default value of an inverted or empty selection.
-            KisSelectionSP coverage = new KisSelection;
-            coverage->pixelSelection()->setDefaultBounds(new KisDefaultBounds(d.working));
-            const KisPaintDeviceSP source = selection->projection();
-            coverage->pixelSelection()->setDefaultPixel(source->defaultPixel());
-            const QRect area = source->extent();
-            const qint64 count = qint64(area.width()) * area.height();
-            if (count > 256 * 1024 * 1024) return {};
-            if (count > 0) {
-                QByteArray bytes(count, Qt::Uninitialized);
-                source->readBytes(reinterpret_cast<quint8 *>(bytes.data()), area);
-                coverage->pixelSelection()->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), area);
-            }
+            const auto coverage = copyNativeSelection(selection->projection(), new KisDefaultBounds(d.working));
             KisSelectionMaskSP mask = new KisSelectionMask(d.working);
             mask->setSelection(coverage); mask->setActive(true);
             if (!d.working->addNode(mask, d.working->root())) return {};
@@ -270,8 +340,8 @@ std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP im
             d.working->refreshGraphAsync(d.working->root(), area, area);
         } else d.working->refreshGraphAsync();
         d.working->waitForDone();
-        d.target->resetDirty();
-        d.publishedSerial = d.target->serial();
+        d.pixels->resetDirty();
+        d.publishedSerial = d.pixels->serial();
         d.operation = owner->beginPixelEdit(Gpu::HistoryAction::PaintStroke);
         if (d.operation.isNull()) return {};
         diagnostic.clear();
@@ -298,9 +368,10 @@ bool KisGpuCpuBrushStroke::publish(QRect area, const QByteArray &native)
         d.owner->operations().activeOperation() != d.operation) return false;
     try {
         if (area.isEmpty()) return true;
-        const auto bytes = kisGpuPixelTransfer(native, d.before->format, true);
+        const auto bytes = d.alpha ? native : kisGpuPixelTransfer(native, d.before->format, true);
         const auto result = d.owner->updatePixelEdit(d.operation, [&] {
-            return d.owner->replaceRgbaPixels(d.layer, area, bytes) == Gpu::Result::Success;
+            return (d.alpha ? d.owner->replaceMaskPixels(d.layer, d.maskUuid, area, bytes, {}) :
+                d.owner->replaceRgbaPixels(d.layer, area, bytes)) == Gpu::Result::Success;
         });
         return result == Gpu::Result::Success;
     } catch (const std::exception &) {
@@ -329,7 +400,8 @@ bool KisGpuCpuBrushStroke::updatePreview(KisStrokeId stroke)
             // The exclusive job copies a completed native dab batch, including
             // indirect opacity/selection merging, while the stroke remains open.
             d.working->addJob(stroke, new KisRunnableStrokeJobData([target, preview] {
-                const auto serial = target->serial();
+                const auto pixels = dynamic_cast<const CpuBrushPixels *>(target.data());
+                const auto serial = pixels->serial();
                 const auto complete = qScopeGuard([&] {
                     QMutexLocker lock(&preview->mutex);
                     preview->pending = false;
@@ -339,9 +411,9 @@ bool KisGpuCpuBrushStroke::updatePreview(KisStrokeId stroke)
                     if (serial == preview->serial) return;
                 }
                 try {
-                    const auto area = target->dirtyRect();
+                    const auto area = pixels->dirtyRect();
                     if (area.isEmpty()) return;
-                    const auto bytes = target->previewPixels(area);
+                    const auto bytes = pixels->previewPixels(target, area);
                     QMutexLocker lock(&preview->mutex);
                     preview->bytes = bytes;
                     preview->area = area;
@@ -365,8 +437,8 @@ bool KisGpuCpuBrushStroke::commit()
 {
     m_d->working->waitForDone();
     try {
-        const auto area = m_d->target->dirtyRect();
-        if (!area.isEmpty() && !publish(area, m_d->target->previewPixels(area))) return false;
+        const auto area = m_d->pixels->dirtyRect();
+        if (!area.isEmpty() && !publish(area, m_d->pixels->previewPixels(m_d->target, area))) return false;
     } catch (const std::exception &) {
         return false;
     }
