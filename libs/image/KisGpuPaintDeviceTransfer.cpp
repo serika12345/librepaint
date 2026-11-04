@@ -4,9 +4,14 @@
  */
 #include "KisGpuPaintDeviceTransfer_p.h"
 #include "kis_paint_device.h"
+#include "kis_default_bounds.h"
 #include "gpu/KisGpuExecution.h"
+#include "gpu/KisGpuPaintGeometry_p.h"
+#include <KisRegion.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorModelStandardIds.h>
 #include <KoColor.h>
+#include <QSet>
 #include <algorithm>
 #include <QtEndian>
 #include <cstring>
@@ -36,6 +41,74 @@ QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::Pi
     }
     return output;
 }
+
+bool kisGpuRasterLayerFromPaintDevice(KisPaintDeviceSP source,
+    LibrePaint::Image::Gpu::PixelFormat format, qsizetype maximumBytes,
+    LibrePaint::Image::Gpu::RasterLayer &layer)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    if (!source || maximumBytes < 0 || !Gpu::pixelByteCount(format) ||
+        source->colorSpace()->colorModelId() != RGBAColorModelID ||
+        source->colorSpace()->colorDepthId() != (format == Gpu::PixelFormat::Rgba16 ?
+            Integer16BitsColorDepthID : Integer8BitsColorDepthID)) return false;
+    constexpr int side = Gpu::RgbaTile::Size;
+    constexpr int limit = Gpu::RgbaTile::CoordinateLimit;
+    const qsizetype tileBytes = Gpu::RgbaTile::byteCount(format);
+    const auto tileIndex = [](int value) { return int(value >= 0 ? qint64(value) / side : (qint64(value) - side + 1) / side); };
+    try {
+        // Read the full-resolution snapshot independently of LoD and wraparound.
+        KisPaintDevice fixed(*source);
+        fixed.setDefaultBounds(new KisDefaultBounds);
+        const auto region = fixed.region().rects();
+        QSet<QPoint> coordinates;
+        for (const auto &area : region) {
+            if (area.left() < -limit || area.top() < -limit || area.right() >= limit || area.bottom() >= limit) return false;
+            for (int y = tileIndex(area.top()); y <= tileIndex(area.bottom()); ++y) {
+                for (int x = tileIndex(area.left()); x <= tileIndex(area.right()); ++x) {
+                    coordinates.insert({x, y});
+                    if (coordinates.size() > maximumBytes / tileBytes) return false;
+                }
+            }
+        }
+        auto ordered = coordinates.values();
+        std::sort(ordered.begin(), ordered.end(), [](QPoint left, QPoint right) {
+            return left.y() == right.y() ? left.x() < right.x() : left.y() < right.y();
+        });
+        QList<Gpu::RgbaTile> tiles;
+        for (const auto point : ordered) {
+            QByteArray bytes(tileBytes, Qt::Uninitialized);
+            fixed.readBytes(reinterpret_cast<quint8 *>(bytes.data()), point.x() * side, point.y() * side, side, side);
+            tiles.append({point, kisGpuPixelTransfer(bytes, format, true), format});
+        }
+        const auto background = fixed.defaultPixel();
+        const auto rgba = kisGpuPixelTransfer(QByteArrayView(reinterpret_cast<const char *>(background.data()),
+            Gpu::pixelByteCount(format)), format, true);
+        Gpu::RgbaPixel defaultPixel{};
+        for (int c = 0; c < 4; ++c)
+            defaultPixel[c] = format == Gpu::PixelFormat::Rgba16 ?
+                qFromLittleEndian<quint16>(rgba.constData() + c * 2) : quint8(rgba[c]);
+        QList<QRect> writtenAreas;
+        for (const auto &area : region) {
+            for (int y = area.top(); y <= area.bottom(); y += Gpu::Detail::PixelHistoryBlockSize) {
+                for (int x = area.left(); x <= area.right(); x += Gpu::Detail::PixelHistoryBlockSize) {
+                    const QRect block = area.intersected(QRect(x, y,
+                        Gpu::Detail::PixelHistoryBlockSize, Gpu::Detail::PixelHistoryBlockSize));
+                    // A shifted native block can straddle up to four GPU tiles.
+                    for (int ty = tileIndex(block.top()); ty <= tileIndex(block.bottom()); ++ty)
+                        for (int tx = tileIndex(block.left()); tx <= tileIndex(block.right()); ++tx)
+                            writtenAreas.append(block.intersected(QRect(tx * side, ty * side, side, side)));
+                }
+            }
+        }
+        layer.tiles = std::move(tiles);
+        layer.defaultPixel = defaultPixel;
+        layer.writtenAreas = std::move(writtenAreas);
+        return true;
+    } catch (const std::bad_alloc &) {
+        return false;
+    }
+}
+
 KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintImageSP &image,
                                          quint64 layer, KisDefaultBoundsBaseSP bounds,
                                          const LibrePaint::Image::Gpu::Snapshot &version,

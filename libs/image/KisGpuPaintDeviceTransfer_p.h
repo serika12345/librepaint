@@ -14,6 +14,14 @@ class KoColorSpace;
 /** Convert canonical little-endian RGBA and native-endian BGRA pixels. */
 KRITAIMAGE_EXPORT QByteArray kisGpuPixelTransfer(QByteArrayView source, LibrePaint::Image::Gpu::PixelFormat format, bool toGpu);
 
+/** Copies full-resolution CPU RGBA U8/U16 pixels into canonical sparse tiles.
+ * Preserves native allocation areas and the default pixel, including outside
+ * the canvas. Only the layer's pixel fields change; rejection leaves it intact.
+ */
+KRITAIMAGE_EXPORT bool kisGpuRasterLayerFromPaintDevice(KisPaintDeviceSP source,
+    LibrePaint::Image::Gpu::PixelFormat format, qsizetype maximumBytes,
+    LibrePaint::Image::Gpu::RasterLayer &layer);
+
 /** Temporary native pixels for synchronous CPU image-returning APIs.
  * The returned buffer owns its pixels; the GPU image retains editing ownership.
  */

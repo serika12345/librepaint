@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuGeneratorLayer.h"
+#include "KisGpuPaintDeviceTransfer_p.h"
 #include <generator/kis_generator.h>
 #include <generator/kis_generator_registry.h>
 #include <generator/kis_generator_layer.h>
@@ -19,7 +20,6 @@
 #include <KoColorSpace.h>
 #include <KoColor.h>
 #include <QDomDocument>
-#include <cstring>
 #include <stdexcept>
 
 KisFilterConfigurationSP gpuGeneratorConfiguration(const LibrePaint::Image::Gpu::GeneratorDefinition &definition)
@@ -65,21 +65,7 @@ bool renderGpuGeneratorLayer(LibrePaint::Image::Gpu::RasterLayer &layer, QSize s
     }
     KisPaintDeviceSP result = new KisPaintDevice(space);
     KisPainter::copyAreaOptimized(bounds.topLeft(), generated, result, bounds, selection);
-    layer.tiles.clear();
-    layer.defaultPixel = {};
-    for (int y = 0; y < rows; ++y) {
-        for (int x = 0; x < columns; ++x) {
-            QByteArray bytes(Gpu::RgbaTile::byteCount(format), Qt::Uninitialized);
-            result->readBytes(reinterpret_cast<quint8 *>(bytes.data()), x * side, y * side, side, side);
-            if (format == Gpu::PixelFormat::Rgba16) {
-                auto *words = reinterpret_cast<quint16 *>(bytes.data());
-                for (qsizetype i = 0; i < bytes.size() / 2; i += 4) std::swap(words[i], words[i + 2]);
-            } else {
-                for (qsizetype i = 0; i < bytes.size(); i += 4) std::swap(bytes[i], bytes[i + 2]);
-            }
-            layer.tiles.append({{x, y}, std::move(bytes), format});
-        }
-    }
+    if (!kisGpuRasterLayerFromPaintDevice(result, format, maximumBytes, layer)) return false;
     layer.generator->resolved = true;
     return true;
 }

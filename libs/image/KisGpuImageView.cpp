@@ -5,6 +5,7 @@
 #include "KisGpuBlendMode.h"
 #include "KisGpuFilterConfiguration.h"
 #include "KisGpuGeneratorLayer.h"
+#include "KisGpuPaintDeviceTransfer_p.h"
 #include "generator/kis_generator_layer.h"
 #include "kis_image.h"
 #include "KisNodeAdditionFlags.h"
@@ -527,62 +528,20 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
                 return false;
             }
         } else if (!source) {
-            if (pixels->colorSpace()->pixelSize() != 4) return false;
-            const auto budget = owner->limits().rasterBytes - preparedBytes;
-            QSet<QPoint> coordinates;
-            const auto tileIndex = [](int value) { return int(value >= 0 ? qint64(value) / 256 : (qint64(value) - 255) / 256); };
-            const auto collect = [&](const KisRegion &region) {
-                for (const auto &rect : region.rects()) {
-                    for (int y = tileIndex(rect.top()); y <= tileIndex(rect.bottom()); ++y) {
-                        for (int x = tileIndex(rect.left()); x <= tileIndex(rect.right()); ++x) {
-                            coordinates.insert({x, y});
-                            if (coordinates.size() > budget / Gpu::RgbaTile::ByteCount) return false;
-                        }
-                    }
-                }
-                return true;
-            };
-            if (!collect(pixels->regionForLodSyncing())) return false;
-            // Pin full-resolution storage and read raw pixels independently of view modes.
-            KisPaintDevice fixed(*pixels);
-            fixed.setDefaultBounds(new KisDefaultBounds());
-            if (*fixed.colorSpace() != *colorSpace()) return false;
-            coordinates.clear();
-            if (!collect(fixed.region())) return false;
-            const auto fixedBackground = fixed.defaultPixel();
-            const auto *fixedBgra = fixedBackground.data();
-            properties.defaultPixel = {fixedBgra[2], fixedBgra[1], fixedBgra[0], fixedBgra[3]};
-            auto ordered = coordinates.values();
-            std::sort(ordered.begin(), ordered.end(), [](QPoint left, QPoint right) {
-                return left.y() == right.y() ? left.x() < right.x() : left.y() < right.y();
-            });
+            if (*pixels->colorSpace() != *colorSpace()) return false;
             Gpu::RasterImage input;
             input.size = owner->operations().snapshot()->size;
             input.format = owner->operations().snapshot()->format;
             input.colorProfile = colorSpace()->profile()->rawData();
-            input.layers = {properties};
-            input.layers.first().parentUuid = QUuid();
-            input.layers.first().transparencyMaskIndex = 0;
-            try {
-                imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits());
-            } catch (const std::invalid_argument &) {
-                return false;
-            }
-            QList<Gpu::RgbaTile> batch;
-            const auto flush = [&] {
-                if (batch.isEmpty()) return true;
-                const bool accepted = imported->replaceTiles(imported->activeLayer(), batch) == Gpu::Result::Success;
-                batch.clear();
-                return accepted;
-            };
-            for (const auto &coordinate : ordered) {
-                QByteArray bytes(Gpu::RgbaTile::ByteCount, Qt::Uninitialized);
-                fixed.readBytes(reinterpret_cast<quint8*>(bytes.data()), coordinate.x() * 256, coordinate.y() * 256, 256, 256);
-                for (qsizetype offset = 0; offset < bytes.size(); offset += 4) std::swap(bytes[offset], bytes[offset + 2]);
-                batch.append({coordinate, std::move(bytes)});
-                if (batch.size() == 64 && !flush()) return false;
-            }
-            if (!flush()) return false;
+            auto rendered = properties;
+            rendered.parentUuid = {};
+            rendered.transparencyMaskIndex = 0;
+            if (!kisGpuRasterLayerFromPaintDevice(pixels, input.format,
+                    owner->limits().rasterBytes - preparedBytes, rendered)) return false;
+            properties.defaultPixel = rendered.defaultPixel;
+            input.layers = {std::move(rendered)};
+            try { imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits()); }
+            catch (const std::invalid_argument &) { return false; }
         }
         const auto version = imported ? imported->snapshot() : reference ? reference->version() : Gpu::Snapshot();
         const auto sourceId = imported ? imported->snapshot()->layers.last().id : reference ? reference->layer() : Gpu::LayerId(0);
@@ -593,7 +552,8 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         if (found == version->layers.cend()) return false;
         for (const auto &operation : found->operations) {
             if (const auto tiles = std::get_if<Gpu::TileWriteSnapshot>(&operation)) {
-                const auto bytes = (*tiles)->tiles.size() * Gpu::RgbaTile::ByteCount;
+                qsizetype bytes = 0;
+                for (const auto &tile : (*tiles)->tiles) bytes += tile->byteCount();
                 if (bytes > owner->limits().rasterBytes - preparedBytes) return false;
                 preparedBytes += bytes;
             }

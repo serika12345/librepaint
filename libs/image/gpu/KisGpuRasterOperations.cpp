@@ -195,6 +195,7 @@ Result OperationDocument::replaceGeneratedLayer(LayerId id, const RasterLayer &r
             auto operation = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(value));
             operation->id = {m_identity, m_nextOperation + 1};
             operation->layer = id;
+            if (operation->writeGroup) operation->writeGroup = operation->id.sequence;
             target.operations.append(TileWriteSnapshot(operation));
         }
         version->m_modifiedRevision = version->m_revision = ++m_nextRevision;

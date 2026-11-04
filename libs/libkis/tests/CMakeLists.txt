@@ -42,6 +42,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         ENVIRONMENT "LIBREPAINT_TEST_GPU_UNAVAILABLE=1;VK_DRIVER_FILES=/nonexistent/librepaint-vulkan-driver.json;VK_ICD_FILENAMES=/nonexistent/librepaint-vulkan-driver.json")
 endif()
 
+kis_add_test(TestGpuNativeLayerTransfer.cpp
+    TEST_NAME_VAR gpu_native_layer_transfer_test
+    LINK_LIBRARIES kritalibkis kritatestsdk)
+add_dependencies(TestGpuNativeLayerTransfer kritalcmsengine kritakraimport kritakraexport)
+set_tests_properties(${gpu_native_layer_transfer_test} PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE)
+
 qt6_add_resources(public_node_window_resources
     ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
