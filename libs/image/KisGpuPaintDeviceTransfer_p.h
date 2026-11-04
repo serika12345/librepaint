@@ -28,5 +28,6 @@ KRITAIMAGE_EXPORT bool kisGpuRasterLayerFromPaintDevice(KisPaintDeviceSP source,
 KRITAIMAGE_EXPORT KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintImageSP &image,
                                          quint64 layer, KisDefaultBoundsBaseSP bounds,
                                          const LibrePaint::Image::Gpu::Snapshot &version,
-                                         const KoColorSpace *colorSpace);
+                                         const KoColorSpace *colorSpace,
+                                         qsizetype maximumBytes = 256 * 1024 * 1024);
 #endif

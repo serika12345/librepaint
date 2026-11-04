@@ -2248,6 +2248,7 @@ set(kritaimage_LIB_SRCS
    kis_image.cc
    KisGpuImageView.cpp
    KisGpuGeneratorLayer.cpp
+   KisGpuCpuLayer.cpp
    KisGpuFilterConfiguration.cpp
    gpu/KisGpuSelectionInput.cpp
    gpu/KisGpuSelectionInput.h

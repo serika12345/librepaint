@@ -5,6 +5,27 @@
 #include "KisGpuOperationCapabilities.h"
 
 namespace LibrePaint::Image::Gpu {
+ExecutionLocation layerExecutionLocation(LayerFeature feature)
+{
+    switch (feature) {
+    case LayerFeature::Paint:
+    case LayerFeature::Group:
+    case LayerFeature::TransparencyMask:
+    case LayerFeature::SelectionMask:
+        return ExecutionLocation::Gpu;
+    case LayerFeature::Adjustment:
+    case LayerFeature::Generator:
+    case LayerFeature::Clone:
+    case LayerFeature::File:
+    case LayerFeature::Vector:
+    case LayerFeature::Text:
+    case LayerFeature::LayerStyle:
+    case LayerFeature::ColorizeMask:
+        return ExecutionLocation::Cpu;
+    }
+    return ExecutionLocation::Cpu;
+}
+
 ExecutionLocation toolExecutionLocation(ToolOperation operation)
 {
     switch (operation) {

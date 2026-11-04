@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuGeneratorLayer.h"
-#include "KisGpuPaintDeviceTransfer_p.h"
 #include <generator/kis_generator.h>
 #include <generator/kis_generator_registry.h>
 #include <generator/kis_generator_layer.h>
@@ -35,7 +34,8 @@ KisFilterConfigurationSP gpuGeneratorConfiguration(const LibrePaint::Image::Gpu:
 }
 
 bool renderGpuGeneratorLayer(LibrePaint::Image::Gpu::RasterLayer &layer, QSize size,
-                            const KoColorSpace *space, qsizetype maximumBytes)
+                            const KoColorSpace *space, qsizetype maximumBytes,
+                            const KisGpuCpuLayerContext &context)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     if (!layer.generator || !space || (space->pixelSize() != 4 && space->pixelSize() != 8)) return false;
@@ -50,22 +50,25 @@ bool renderGpuGeneratorLayer(LibrePaint::Image::Gpu::RasterLayer &layer, QSize s
     const qint64 columns = (qint64(size.width()) + side - 1) / side;
     const qint64 rows = (qint64(size.height()) + side - 1) / side;
     if (columns * rows > maximumBytes / Gpu::RgbaTile::byteCount(format)) return false;
-    KisPaintDeviceSP generated = new KisPaintDevice(space);
-    generator->generate(KisProcessingInformation(generated, area.topLeft(), {}), area.size(), configuration);
-    KisSelectionSP selection = new KisSelection();
-    auto coverage = selection->pixelSelection();
-    const quint8 defaultCoverage = definition.selection->defaultCoverage();
-    coverage->setDefaultPixel(KoColor(&defaultCoverage, coverage->colorSpace()));
-    for (const auto point : definition.selection->tileCoordinates()) {
-        QByteArray bytes(side * side, Qt::Uninitialized);
-        for (int y = 0; y < side; ++y)
-            for (int x = 0; x < side; ++x)
-                bytes[y * side + x] = char(definition.selection->coverage(point.x() * side + x, point.y() * side + y));
-        coverage->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), point.x() * side, point.y() * side, side, side);
-    }
-    KisPaintDeviceSP result = new KisPaintDevice(space);
-    KisPainter::copyAreaOptimized(bounds.topLeft(), generated, result, bounds, selection);
-    if (!kisGpuRasterLayerFromPaintDevice(result, format, maximumBytes, layer)) return false;
+    if (!kisGpuRenderCpuLayer(Gpu::LayerFeature::Generator, layer, size, space, maximumBytes,
+        [&](KisPaintDeviceSP) -> KisPaintDeviceSP {
+            KisPaintDeviceSP generated = new KisPaintDevice(space);
+            generator->generate(KisProcessingInformation(generated, area.topLeft(), {}), area.size(), configuration);
+            KisSelectionSP selection = new KisSelection();
+            auto coverage = selection->pixelSelection();
+            const quint8 defaultCoverage = definition.selection->defaultCoverage();
+            coverage->setDefaultPixel(KoColor(&defaultCoverage, coverage->colorSpace()));
+            for (const auto point : definition.selection->tileCoordinates()) {
+                QByteArray bytes(side * side, Qt::Uninitialized);
+                for (int y = 0; y < side; ++y)
+                    for (int x = 0; x < side; ++x)
+                        bytes[y * side + x] = char(definition.selection->coverage(point.x() * side + x, point.y() * side + y));
+                coverage->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), point.x() * side, point.y() * side, side, side);
+            }
+            KisPaintDeviceSP result = new KisPaintDevice(space);
+            KisPainter::copyAreaOptimized(bounds.topLeft(), generated, result, bounds, selection);
+            return result;
+        }, context)) return false;
     layer.generator->resolved = true;
     return true;
 }
@@ -89,7 +92,7 @@ bool writeGpuGeneratorConfiguration(KisGeneratorLayer *layer, const KisFilterCon
         rendered.generator->xml = configuration->toXML().toUtf8();
         if (rendered.generator->id == value.generator->id && rendered.generator->version == value.generator->version &&
             rendered.generator->xml == value.generator->xml) return true;
-        if (!renderGpuGeneratorLayer(rendered, version->size, image->colorSpace(), owner->limits().rasterBytes))
+        if (!renderGpuGeneratorLayer(rendered, version->size, image->colorSpace(), owner->limits().rasterBytes, {owner, version, {}}))
             throw std::runtime_error("CPU generator rendering failed");
         if (owner->replaceGeneratedLayer(value.id, rendered) != Gpu::Result::Success)
             throw std::runtime_error("CPU generator upload failed");

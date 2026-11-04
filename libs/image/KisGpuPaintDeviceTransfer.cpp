@@ -112,10 +112,11 @@ bool kisGpuRasterLayerFromPaintDevice(KisPaintDeviceSP source,
 KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintImageSP &image,
                                          quint64 layer, KisDefaultBoundsBaseSP bounds,
                                          const LibrePaint::Image::Gpu::Snapshot &version,
-                                         const KoColorSpace *colorSpace)
+                                         const KoColorSpace *colorSpace, qsizetype maximumBytes)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
-    constexpr qsizetype capacity = 256 * 1024 * 1024;
+    if (!image || !version || maximumBytes < 0)
+        throw std::invalid_argument("invalid GPU pixel transfer source or capacity");
     if (!layer) layer = version->directProjectionLayer();
     const auto validated = image->execution().readRgbaPixels(image->handle(), version, {}, layer, 0);
     if (validated.code != Gpu::ExecutionCode::Success)
@@ -150,7 +151,7 @@ KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintIm
         }
     };
     if (layer) {
-        const auto pixels = image->execution().readLayerPixels(image->handle(), version, layer, capacity);
+        const auto pixels = image->execution().readLayerPixels(image->handle(), version, layer, maximumBytes);
         if (pixels.code != Gpu::ExecutionCode::Success)
             throw std::runtime_error(pixels.diagnostic.toStdString());
         setDefault(version->projectionDefaultPixels().value(layer));
@@ -161,9 +162,9 @@ KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintIm
         setDefault(rgba);
         bool empty = rgba[3] == 0;
         for (const auto &value : version->layers)
-            if (value.visible && (!value.operations.isEmpty() || value.defaultPixel[3])) empty = false;
+            if (value.visible && (value.pixels || !value.operations.isEmpty() || value.defaultPixel[3])) empty = false;
         if (!empty) {
-            const auto pixels = image->execution().readProjectionImage(image->handle(), version, capacity);
+            const auto pixels = image->execution().readProjectionImage(image->handle(), version, maximumBytes);
             if (pixels.code != Gpu::ExecutionCode::Success)
                 throw std::runtime_error(pixels.diagnostic.toStdString());
             for (int y = 0; y < pixels.image.height(); ++y)

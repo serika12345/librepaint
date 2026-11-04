@@ -507,7 +507,8 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             auto rendered = properties;
             rendered.parentUuid = {};
             rendered.transparencyMaskIndex = 0;
-            if (!renderGpuGeneratorLayer(rendered, input.size, colorSpace(), owner->limits().rasterBytes - preparedBytes)) return false;
+            if (!renderGpuGeneratorLayer(rendered, input.size, colorSpace(), owner->limits().rasterBytes - preparedBytes,
+                {owner, owner->operations().snapshot(), {}})) return false;
             properties.defaultPixel = rendered.defaultPixel;
             input.layers = {std::move(rendered)};
             try { imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits()); }
