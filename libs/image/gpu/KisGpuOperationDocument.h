@@ -866,6 +866,17 @@ using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, Translatio
 
 enum class LayerKind : quint8 { Paint, Group, Adjustment, FilterMask };
 
+/** Native CPU generator settings paired with the rendered pixels in one version. */
+struct GeneratorDefinition
+{
+    QString id;
+    int version = 0;
+    QByteArray xml;
+    SelectionMaskSP selection;
+    /** CPU generation completed before admitting the raster image. */
+    bool resolved = false;
+};
+
 struct RasterLayer
 {
     QString name;
@@ -910,6 +921,8 @@ struct RasterLayer
     SelectionMaskSP filterSelection;
     /** Native coordinate of the independent transparency child device. */
     QPoint transparencyMaskPosition{};
+    /** CPU-generated raster layer; empty for ordinary paint layers. */
+    std::optional<GeneratorDefinition> generator;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -1006,6 +1019,7 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT Layer
     QPoint transparencyMaskPosition{};
     /** Committed pixels that operations apply to; null starts from defaultPixel. */
     LayerPixelsSP pixels;
+    std::optional<GeneratorDefinition> generator;
 };
 
 inline bool isFilterNode(LayerKind kind)
@@ -1274,6 +1288,11 @@ public:
     Result cancelStroke(OperationId id);
     /** Replaces full tiles, including hidden layers, in one history entry. */
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
+    Result replaceGeneratedLayer(LayerId layer, const RasterLayer &rendered);
+    OperationId beginGeneratorEdit(LayerId layer);
+    Result commitGeneratorEdit(OperationId id, const QString &name);
+    Result cancelGeneratorEdit(OperationId id);
+    LayerId generatorEditTarget() const { return m_generatorEditLayer; }
     /** A placement preview freezes its layer and starting version. Updates use
      * an integer offset from the start; commit records one history entry and
      * cancellation retains the committed version and redo branch.
@@ -1697,6 +1716,7 @@ private:
     QHash<LayerId, OperationId> m_translationIds;
     /** Operation identity of a derived mask edit; carries no document history. */
     OperationId m_externalOperation;
+    LayerId m_generatorEditLayer = 0;
     Snapshot m_preview;
     bool m_closed = false;
 };

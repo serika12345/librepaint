@@ -124,6 +124,7 @@
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuPaintDocument.h>
 #include <kra/KisKraRasterCodec.h>
+#include <KisGpuGeneratorLayer.h>
 #include <QPointer>
 #include <kis_layer.h>
 #include <kis_name_server.h>
@@ -496,7 +497,9 @@ QString gpuKraEditingError(const QDomElement &image)
             const auto name = attributes.item(i).nodeName();
             const bool filterAttribute = filterNode &&
                 (name == QLatin1String("filtername") || name == QLatin1String("filterversion"));
-            if (!supported.contains(name) && !filterAttribute)
+            const bool generatorAttribute = nodeType == QLatin1String("generatorlayer") &&
+                (name == QLatin1String("generatorname") || name == QLatin1String("generatorversion"));
+            if (!supported.contains(name) && !filterAttribute && !generatorAttribute)
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", name);
         }
         if (element != image && element.attribute(QStringLiteral("onionskin"), QStringLiteral("0")) != QLatin1String("0"))
@@ -504,7 +507,7 @@ QString gpuKraEditingError(const QDomElement &image)
         for (auto child = element.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
             if (element == image && !imageChildren.contains(child.tagName()))
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
-            if (element == image && (child.tagName() == QLatin1String("Palettes") || child.tagName() == QLatin1String("resources")) &&
+            if (element == image && child.tagName() == QLatin1String("Palettes") &&
                 (child.hasAttributes() || !child.firstChildElement().isNull()))
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
             if (child.tagName() == QLatin1String("layers"))
@@ -3248,7 +3251,7 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
         }
         return ImportExportCodes::FileFormatIncorrect;
     };
-    const auto loaded = Kra::RasterCodec::read(source);
+    auto loaded = Kra::RasterCodec::read(source);
     if (loaded.code != Kra::Status::Success) return reject(loaded.diagnostic, formatStatus(loaded.code));
     const auto metadata = Kra::RasterCodec::readImageMetadata(loaded.document.description, loaded.document.files);
     if (metadata.code != Kra::Status::Success) return reject(metadata.diagnostic, formatStatus(metadata.code));
@@ -3257,6 +3260,21 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
     const auto imageElement = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
     const auto unsupported = gpuKraEditingError(imageElement);
     if (!unsupported.isEmpty()) return reject(unsupported);
+    const auto resources = imageElement.firstChildElement(QStringLiteral("resources"));
+    for (auto resource = resources.firstChildElement(); !resource.isNull(); resource = resource.nextSiblingElement()) {
+        const auto type = resource.attribute(QStringLiteral("type"));
+        const auto filename = resource.attribute(QStringLiteral("filename"));
+        const auto md5 = resource.attribute(QStringLiteral("md5sum"));
+        if (type.isEmpty() || filename.isEmpty() || md5.isEmpty())
+            return reject(i18n("Invalid KRA embedded resource."), ImportExportCodes::FileFormatIncorrect);
+        KisResourceModel model(type);
+        if (!model.resourcesForMD5(md5).isEmpty()) continue;
+        QBuffer bytes;
+        bytes.setData(loaded.document.files.value(QStringLiteral("resources/") + type + QLatin1Char('/') + filename));
+        bytes.open(QIODevice::ReadOnly);
+        if (bytes.atEnd() || !model.importResource(filename, &bytes, false, linkedResourcesStorageId()))
+            return reject(i18n("The KRA embedded resource '%1' could not be imported.", filename));
+    }
     KisStoryboardData storyboard;
     if (metadata.metadata.storyboard) {
         QDomDocument xml;
@@ -3303,6 +3321,13 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
         registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, metadata.metadata.iccProfile);
     const auto cs = profile ? registry->colorSpace(QStringLiteral("RGBA"), depth, profile) : nullptr;
     if (!cs) return reject(i18n("The KRA color profile cannot be loaded."), ImportExportCodes::FormatColorSpaceUnsupported);
+    qsizetype generatedBytes = 0;
+    for (auto &layer : loaded.document.image.layers) {
+        if (!layer.generator) continue;
+        if (!renderGpuGeneratorLayer(layer, loaded.document.image.size, cs, Kra::Limits{}.rasterBytes - generatedBytes))
+            return reject(i18n("The KRA fill layer could not be rendered."));
+        generatedBytes += layer.tiles.size() * LibrePaint::Image::Gpu::RgbaTile::byteCount(loaded.document.image.format);
+    }
     KisMetaData::Store rootMetadata;
     QMap<QUuid, KisMetaData::Store> layerMetadata;
     QStringList metadataWarnings;

@@ -464,7 +464,7 @@ void PaintImage::refreshLayerPixelReferences()
 Snapshot PaintImage::layerPixelVersion() const
 {
     const auto preview = m_d->document->preview();
-    if (m_d->document->filterNodeEditTarget()) return preview;
+    if (m_d->document->filterNodeEditTarget() || m_d->document->generatorEditTarget()) return preview;
     if (m_d->maskStroke && preview->pendingOperation() == m_d->maskStroke->id) return preview;
     if ((m_d->document->m_translation && preview->pendingOperation() == m_d->document->m_translation->id) ||
         (!m_d->document->m_affine.isEmpty() && preview->pendingOperation() == m_d->document->m_affine.first()->id)) return preview;
@@ -1077,6 +1077,21 @@ Result PaintImage::checkLayerTranslation(const Snapshot &version, LayerId layer,
 }
 Result PaintImage::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
 { return onThread() ? publish(m_d->document->replaceTiles(layer, tiles)) : Result::InvalidInput; }
+
+Result PaintImage::replaceGeneratedLayer(LayerId layer, const RasterLayer &rendered)
+{ return onThread() ? publish(m_d->document->replaceGeneratedLayer(layer, rendered)) : Result::InvalidInput; }
+
+OperationId PaintImage::beginGeneratorEdit(LayerId layer)
+{
+    if (!onThread()) return {};
+    const auto id = m_d->document->beginGeneratorEdit(layer);
+    if (!id.isNull()) publish(Result::Success);
+    return id;
+}
+Result PaintImage::commitGeneratorEdit(OperationId id, const QString &name)
+{ return onThread() ? publish(m_d->document->commitGeneratorEdit(id, name)) : Result::InvalidInput; }
+Result PaintImage::cancelGeneratorEdit(OperationId id)
+{ return onThread() ? publish(m_d->document->cancelGeneratorEdit(id)) : Result::InvalidInput; }
 LayerId PaintImage::addFilterNode(const RasterLayer &node, qsizetype index, qsizetype effectIndex)
 {
     if (!onThread()) return 0;

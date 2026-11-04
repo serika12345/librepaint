@@ -53,6 +53,8 @@
 #include <generator/kis_generator_registry.h>
 
 #include <KoResourcePaths.h>
+#include <KisResourceModel.h>
+#include <resources/KoPattern.h>
 #include <filestest.h>
 #include <testui.h>
 #include <KisPaintingEngineTestScope.h>
@@ -291,7 +293,7 @@ void KisKraSaverTest::testSavedPreviewPreservesImagePixels()
 void testRoundTripFillLayerImpl(const QString &testName, KisFilterConfigurationSP config)
 {
     TestUtil::ReferenceImageChecker chk(testName, "fill_layer");
-    chk.setFuzzy(2);
+    chk.setFuzzy(1);
 
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
 
@@ -310,6 +312,8 @@ void testRoundTripFillLayerImpl(const QString &testName, KisFilterConfigurationS
 
     p.image->waitForDone();
     chk.checkImage(p.image, "00_initial_layer_update");
+    QByteArray expected(refRect.width() * refRect.height() * 4, Qt::Uninitialized);
+    p.image->projection()->readBytes(reinterpret_cast<quint8 *>(expected.data()), refRect);
 
     doc->exportDocumentSync("roundtrip_fill_layer_test.kra", doc->mimeType());
 
@@ -319,6 +323,9 @@ void testRoundTripFillLayerImpl(const QString &testName, KisFilterConfigurationS
 
     doc2->image()->waitForDone();
     chk.checkImage(doc2->image(), "01_fill_layer_round_trip");
+    QByteArray actual(expected.size(), Qt::Uninitialized);
+    doc2->image()->projection()->readBytes(reinterpret_cast<quint8 *>(actual.data()), refRect);
+    QCOMPARE_PIXELS_WITHIN_STEP(actual, expected);
 
     QVERIFY(chk.testPassed());
 }
@@ -343,6 +350,11 @@ void KisKraSaverTest::testRoundTripFillLayerColor()
 
 void KisKraSaverTest::testRoundTripFillLayerPattern()
 {
+    const QImage image(QString(SYSTEM_RESOURCES_DATA_DIR) + "/patterns/11_drawed_furry.png");
+    QVERIFY(!image.isNull());
+    KoPatternSP pattern(new KoPattern(image, "11_drawed_furry.png", "11_drawed_furry.png"));
+    KisResourceModel patterns(ResourceType::Patterns);
+    if (patterns.resourcesForMD5(pattern->md5Sum()).isEmpty()) QVERIFY(patterns.addResource(pattern));
     KisGeneratorSP generator = KisGeneratorRegistry::instance()->get("pattern");
     QVERIFY(generator);
 
@@ -353,6 +365,8 @@ void KisKraSaverTest::testRoundTripFillLayerPattern()
     QVariant v;
     v.setValue(QString("11_drawed_furry.png"));
     config->setProperty("pattern", v);
+    config->setProperty("fileName", pattern->filename());
+    config->setProperty("md5sum", pattern->md5Sum());
 
     testRoundTripFillLayerImpl("fill_layer_pattern", config);
 }

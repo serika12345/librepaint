@@ -169,6 +169,9 @@ bool validLayerHierarchy(const QList<LayerValue> &layers, PixelFormat format)
         if (layer.filter && layer.filter->resolved && !layer.filter->isValid(format)) return false;
         if (layer.filterSelection && layer.filterSelection->byteCount() > SelectionMask::MaximumBytes) return false;
         if (!isFilterNode(layer.kind) && layer.filterSelection) return false;
+        if (layer.generator && (layer.kind != LayerKind::Paint || layer.generator->id.isEmpty() ||
+            layer.generator->xml.isEmpty() || layer.generator->xml.size() > FilterDefinition::MaximumXmlBytes ||
+            !layer.generator->selection)) return false;
         if (layer.kind != LayerKind::Group && layer.passThrough) return false;
         if (!validBlendMode(layer.blendMode, format)) return false;
         if (layer.transparencyMask && layer.transparencyMask->byteCount() > SelectionMask::MaximumBytes) return false;

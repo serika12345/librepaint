@@ -19,3 +19,7 @@ add_dependencies(kis_kra_saver_test
 kis_add_test(KisGpuKraVectorSelectionTest.cpp
     LINK_LIBRARIES kritaapplicationui kritalibkra kritatestsdk)
 add_dependencies(KisGpuKraVectorSelectionTest kritakraimport kritakraexport krita_shape_paths)
+
+kis_add_test(KisGpuKraGeneratorTest.cpp
+    LINK_LIBRARIES kritaapplicationui kritalibkra kritatestsdk)
+add_dependencies(KisGpuKraGeneratorTest kritakraimport kritakraexport kritacolorgenerator kritapatterngenerator)

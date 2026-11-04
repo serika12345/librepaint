@@ -25,6 +25,8 @@
 #include <commands/kis_change_filter_command.h>
 #include <commands/KisNodeRenameCommand.h>
 #include <kis_generator_layer.h>
+#include <kis_image.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 #include <kis_command_utils.h>
@@ -34,6 +36,12 @@
 #include <qobjectdefs.h>
 
 #define UPDATE_DELAY 100 /*ms */
+
+struct KisDlgGeneratorLayer::GpuEdit
+{
+    LibrePaint::Image::Gpu::PaintImageSP owner;
+    LibrePaint::Image::Gpu::OperationId id;
+};
 
 KisDlgGeneratorLayer::KisDlgGeneratorLayer(const QString & defaultName, KisViewManager *view, QWidget *parent, KisGeneratorLayerSP glayer = 0, const KisFilterConfigurationSP previousConfig = 0, const KisStrokeId stroke = KisStrokeId())
         : QDialog(parent)
@@ -48,6 +56,12 @@ KisDlgGeneratorLayer::KisDlgGeneratorLayer(const QString & defaultName, KisViewM
     if(isEditing){
         setModal(false);
         configBefore = previousConfig->cloneWithResourcesSnapshot();
+        if (const auto image = layer->image(); image && image->gpuImage()) {
+            m_gpuEdit = std::make_unique<GpuEdit>();
+            m_gpuEdit->owner = image->gpuImage();
+            for (const auto &value : m_gpuEdit->owner->operations().snapshot()->layers)
+                if (value.uuid == layer->uuid()) m_gpuEdit->id = m_gpuEdit->owner->beginGeneratorEdit(value.id);
+        }
     }
 
     dlgWidget.setupUi(this);
@@ -81,6 +95,19 @@ KisDlgGeneratorLayer::KisDlgGeneratorLayer(const QString & defaultName, KisViewM
 
 void KisDlgGeneratorLayer::saveLayer()
 {
+    if (m_gpuEdit) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const auto image = layer->image();
+        if (!image || image->gpuImage() != m_gpuEdit->owner || !layer->parent() || m_gpuEdit->id.isNull()) {
+            restoreLayer();
+            return;
+        }
+        layer->setFilter(configuration()->cloneWithResourcesSnapshot());
+        if (m_gpuEdit->owner->commitGeneratorEdit(m_gpuEdit->id, layerName()) != Gpu::Result::Success)
+            m_gpuEdit->owner->cancelGeneratorEdit(m_gpuEdit->id);
+        m_gpuEdit->id = {};
+        return;
+    }
     /*
      * Editing a layer should be using the show function with automatic deletion on close.
      * Because of this, the action should be taken care of when the window is closed and
@@ -121,6 +148,11 @@ void KisDlgGeneratorLayer::saveLayer()
 
 void KisDlgGeneratorLayer::restoreLayer()
 {
+    if (m_gpuEdit) {
+        if (!m_gpuEdit->id.isNull()) m_gpuEdit->owner->cancelGeneratorEdit(m_gpuEdit->id);
+        m_gpuEdit->id = {};
+        return;
+    }
     if (isEditing)
     {
         layer->setFilter(configBefore);
@@ -151,6 +183,7 @@ void KisDlgGeneratorLayer::slotNameChanged(const QString & text)
 
 void KisDlgGeneratorLayer::slotDelayedPreviewGenerator()
 {
+    if (m_gpuEdit && (m_gpuEdit->id.isNull() || !layer->parent())) return;
     if (!m_stroke.isNull()) {
         if (m_updateCookie) {
             m_compressor.start();

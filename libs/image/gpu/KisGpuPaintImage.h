@@ -242,6 +242,10 @@ public:
     Result writeLayerPosition(LayerId layer, QPoint position);
     Result writeLayerPosition(const LayerPixelReferenceSP &pixels, QPoint position);
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
+    Result replaceGeneratedLayer(LayerId layer, const RasterLayer &rendered);
+    OperationId beginGeneratorEdit(LayerId layer);
+    Result commitGeneratorEdit(OperationId id, const QString &name);
+    Result cancelGeneratorEdit(OperationId id);
     /** Replaces nonempty packed pixel rectangles in one history entry. */
     Result replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
     /** Direct packed RGBA writes at document precision preserve history, notifications and fixed versions.

@@ -9,6 +9,7 @@
 #include <QMutexLocker>
 
 #include "kis_generator_layer.h"
+#include "KisGpuGeneratorLayer.h"
 
 #include <boost/none.hpp>
 #include <boost/none_t.hpp>
@@ -81,6 +82,7 @@ KisGeneratorLayer::~KisGeneratorLayer()
 
 void KisGeneratorLayer::setFilter(KisFilterConfigurationSP filterConfig, bool checkCompareConfig)
 {
+    if (writeGpuGeneratorConfiguration(this, filterConfig)) return;
     setFilterWithoutUpdate(filterConfig, checkCompareConfig);
     m_d->updateSignalCompressor.start();
 }
@@ -129,6 +131,10 @@ void KisGeneratorLayer::slotDelayedStaticUpdate()
 
 void KisGeneratorLayer::requestUpdateJobsWithStroke(KisStrokeId strokeId, KisFilterConfigurationSP filterConfig)
 {
+    if (image() && image()->gpuImage()) {
+        writeGpuGeneratorConfiguration(this, filterConfig);
+        return;
+    }
     QMutexLocker locker(&m_d->mutex);
     
     KisImageSP image = this->image().toStrongRef();
@@ -179,6 +185,10 @@ QWeakPointer<boost::none_t> KisGeneratorLayer::previewWithStroke(const KisStroke
 void KisGeneratorLayer::update()
 {
     KisImageSP image = this->image().toStrongRef();
+    if (image && image->gpuImage()) {
+        writeGpuGeneratorConfiguration(this, filter());
+        return;
+    }
 
     KisFilterConfigurationSP filterConfig = filter();
     KIS_SAFE_ASSERT_RECOVER_RETURN(filterConfig);

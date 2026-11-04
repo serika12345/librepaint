@@ -248,7 +248,8 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset, PixelFormat
     const bool group = type == QLatin1String("grouplayer");
     const bool filterMask = type == QLatin1String("filtermask");
     if ((filterMask ? element.tagName() != QLatin1String("mask") : element.tagName() != QLatin1String("layer")) ||
-        (!group && !filterMask && type != QLatin1String("paintlayer") && type != QLatin1String("adjustmentlayer")) ||
+        (!group && !filterMask && type != QLatin1String("paintlayer") && type != QLatin1String("adjustmentlayer") &&
+         type != QLatin1String("generatorlayer")) ||
         (!filterMask && element.attribute(QStringLiteral("compositeop")) != QLatin1String("normal") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("multiply") &&
          element.attribute(QStringLiteral("compositeop")) != QLatin1String("screen") &&
@@ -479,7 +480,7 @@ Outcome readFilterDefinition(const QDomElement &element, const QByteArray &bytes
 }
 
 Outcome readFilterSelection(const QMap<QString, QByteArray> &files, const QString &path, QPoint offset,
-                            QSize size, qsizetype maximumBytes, SelectionMaskSP &selection)
+                            QSize size, qsizetype maximumBytes, SelectionMaskSP &selection, quint8 missingDefault = 255)
 {
     for (auto file = files.lowerBound(path + QStringLiteral(".shapeselection")); file != files.cend() &&
          file.key().startsWith(path + QStringLiteral(".shapeselection")); ++file)
@@ -490,7 +491,7 @@ Outcome readFilterSelection(const QMap<QString, QByteArray> &files, const QStrin
     if (files.contains(defaultPath) && files.contains(legacyDefaultPath) && files.value(defaultPath) != files.value(legacyDefaultPath))
         return invalid(QStringLiteral("Conflicting KRA filter selection defaults"));
     const bool hasDefault = files.contains(defaultPath) || files.contains(legacyDefaultPath);
-    quint8 defaultPixel = 255;
+    quint8 defaultPixel = missingDefault;
     if (hasDefault) {
         const auto bytes = files.value(files.contains(defaultPath) ? defaultPath : legacyDefaultPath);
         if (bytes.size() != 1) return invalid(QStringLiteral("Invalid KRA filter selection default"));
@@ -791,7 +792,8 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
         QDomElement maskElement;
         result = transparencyMaskElement(element, maskElement);
         if (result.code != Status::Success) return result;
-        element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") :
+        element.setAttribute(QStringLiteral("nodetype"), layer.generator ? QStringLiteral("generatorlayer") :
+            layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") :
             layer.kind == LayerKind::Group ? QStringLiteral("grouplayer") :
             layer.kind == LayerKind::Adjustment ? QStringLiteral("adjustmentlayer") : QStringLiteral("filtermask"));
         const auto path = folder + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename"));
@@ -847,6 +849,21 @@ Outcome prepareLayerDescriptions(QDomDocument &xml, QDomElement image, const Ras
             element.setAttribute(QStringLiteral("y"), selectionOffset.y());
             files.insert(path + QStringLiteral(".pixelselection"), std::move(pixels));
             files.insert(path + QStringLiteral(".pixelselection.defaultpixel"), QByteArray(1, char(layer.filterSelection->defaultCoverage())));
+            files.remove(path + QStringLiteral(".defaultpixel"));
+        }
+        if (layer.generator) {
+            const auto &generator = *layer.generator;
+            element.setAttribute(QStringLiteral("generatorname"), generator.id);
+            element.setAttribute(QStringLiteral("generatorversion"), generator.version);
+            files.insert(path + QStringLiteral(".filterconfig"), generator.xml);
+            QByteArray selection;
+            result = Detail::writeTransparencyMask(generator.selection, QRect(QPoint(), value.size),
+                limits.rasterBytes, selection, layer.position);
+            if (result.code != Status::Success) return result;
+            files.insert(path + QStringLiteral(".pixelselection"), selection);
+            files.insert(path + QStringLiteral(".pixelselection.defaultpixel"),
+                QByteArray(1, char(generator.selection->defaultCoverage())));
+            files.remove(path);
             files.remove(path + QStringLiteral(".defaultpixel"));
         }
         auto masksContainer = element.firstChildElement(QStringLiteral("masks"));
@@ -1849,7 +1866,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         uuids.insert(layer.uuid);
         filenames.insert(filename);
         const auto path = folder + QStringLiteral("/layers/") + filename;
-        if (layer.kind == LayerKind::Paint) {
+        if (layer.kind == LayerKind::Paint && nodeType != QLatin1String("generatorlayer")) {
             if (!document.files.contains(path)) return fail(invalid(QStringLiteral("Missing KRA layer pixels")));
             result = profile(document.files, path + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")), imageFormat(image));
             if (result.code != Status::Success) return fail(result);
@@ -1863,6 +1880,28 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
                                        layer.tiles, &layer.writtenAreas);
             if (result.code != Status::Success) return fail(result);
             rasterBytes += layer.tiles.size() * RgbaTile::byteCount(document.image.format);
+        }
+        if (nodeType == QLatin1String("generatorlayer")) {
+            GeneratorDefinition generator;
+            generator.id = element.attribute(QStringLiteral("generatorname"));
+            generator.xml = document.files.value(path + QStringLiteral(".filterconfig"));
+            QDomDocument configuration;
+            if (generator.id.isEmpty() || generator.xml.size() > FilterDefinition::MaximumXmlBytes ||
+                !configuration.setContent(generator.xml) ||
+                (configuration.documentElement().tagName() != QLatin1String("params") &&
+                 configuration.documentElement().tagName() != QLatin1String("filterconfig")) ||
+                !integer(configuration.documentElement(), QStringLiteral("version"), generator.version, QStringLiteral("0")) ||
+                generator.version < 0)
+                return fail(invalid(QStringLiteral("Invalid KRA generator configuration")));
+            result = readFilterSelection(document.files, path, offset, document.image.size,
+                limits.rasterBytes - rasterBytes, generator.selection, 0);
+            if (result.code != Status::Success) return fail(result);
+            rasterBytes += generator.xml.size() + generator.selection->byteCount();
+            if (rasterBytes > limits.rasterBytes) return fail(capacity());
+            layer.generator = std::move(generator);
+            for (const auto &suffix : {QStringLiteral(".filterconfig"), QStringLiteral(".pixelselection"),
+                                      QStringLiteral(".pixelselection.defaultpixel"), QStringLiteral(".defaultpixel")})
+                document.files.remove(path + suffix);
         }
         if (isFilterNode(layer.kind)) {
             FilterDefinition filter;
@@ -2027,7 +2066,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     qsizetype rasterBytes = 0;
     for (qsizetype i = value.layers.size(); i-- > 0;) {
         const auto &layer = value.layers[i];
-        if (layer.kind != LayerKind::Paint) continue;
+        if (layer.kind != LayerKind::Paint || layer.generator) continue;
         const auto path = folder + QStringLiteral("/layers/") + layerFiles.value(layer.uuid);
         const QPoint offset = layer.position;
         QByteArray pixels;

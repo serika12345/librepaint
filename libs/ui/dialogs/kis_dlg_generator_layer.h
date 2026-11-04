@@ -8,6 +8,7 @@
 #define KIS_DLG_GENERATORLAYER_H
 
 #include <QDialog>
+#include <memory>
 #include <QString>
 
 class KisFilterConfiguration;
@@ -55,6 +56,8 @@ protected Q_SLOTS:
     void restoreLayer();
 
 private:
+    struct GpuEdit;
+    std::unique_ptr<GpuEdit> m_gpuEdit;
     Ui_WdgDlgGeneratorLayer dlgWidget;
     KisGeneratorLayerSP layer;
     KisFilterConfigurationSP configBefore;

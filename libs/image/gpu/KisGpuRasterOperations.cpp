@@ -51,6 +51,8 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         }
         if (isFilterNode(source.kind) && (!source.filter || !source.filter->isValid(image.format)))
             throw std::invalid_argument("unresolved or invalid native filter configuration");
+        if (source.generator && !source.generator->resolved)
+            throw std::invalid_argument("unresolved CPU generator pixels");
         if (source.filter && source.filter->byteCount() > limits.rasterBytes)
             throw std::length_error("native filter configuration capacity exceeded");
         Layer layer;
@@ -71,6 +73,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.kind = source.kind;
         layer.parentUuid = source.parentUuid;
         layer.filter = source.filter;
+        layer.generator = source.generator;
         layer.filterSelection = isFilterNode(source.kind) ?
             (source.filterSelection ? source.filterSelection : SelectionMask::uniform(255)) : SelectionMaskSP{};
         layer.transparencyMaskIndex = source.transparencyMaskIndex;
@@ -112,6 +115,103 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         throw std::invalid_argument("invalid raster mask identity or properties");
     m_history.append(initial);
     m_layerHistoryChanges.append(LayerHistoryChange{});
+}
+
+OperationId OperationDocument::beginGeneratorEdit(LayerId layer)
+{
+    const auto index = layerIndex(layer);
+    if (checkMutation() != Result::Success || index < 0 || !snapshot()->layers[index].generator ||
+        m_nextOperation == std::numeric_limits<quint64>::max()) return {};
+    const OperationId id{m_identity, m_nextOperation + 1};
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    if (beginExternalStroke(id) != Result::Success) return {};
+    ++m_nextOperation;
+    m_generatorEditLayer = layer;
+    version->m_committed = false;
+    version->m_pendingOperation = id;
+    m_preview = version;
+    return id;
+}
+
+Result OperationDocument::commitGeneratorEdit(OperationId id, const QString &name)
+{
+    if (m_closed) return Result::Closed;
+    if (!m_generatorEditLayer || id != m_externalOperation) return Result::StaleOperation;
+    if (!Detail::validLayerName(name)) return Result::InvalidInput;
+    const auto index = layerIndex(m_generatorEditLayer);
+    const auto &before = snapshot()->layers[index];
+    const auto &after = preview()->layers[index];
+    if (before.name == name && before.generator->id == after.generator->id &&
+        before.generator->version == after.generator->version && before.generator->xml == after.generator->xml &&
+        before.generator->selection == after.generator->selection) return cancelGeneratorEdit(id);
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*preview()));
+    version->layers[index].name = name;
+    version->m_pendingOperation = {};
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    change.layer = m_generatorEditLayer;
+    change.layerStructureAction = HistoryAction::ChangeFilter;
+    endExternalStroke(id);
+    m_generatorEditLayer = 0;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
+Result OperationDocument::cancelGeneratorEdit(OperationId id)
+{
+    if (m_closed) return Result::Closed;
+    if (!m_generatorEditLayer || id != m_externalOperation) return Result::StaleOperation;
+    m_generatorEditLayer = 0;
+    return endExternalStroke(id);
+}
+
+Result OperationDocument::replaceGeneratedLayer(LayerId id, const RasterLayer &rendered)
+{
+    if (m_closed) return Result::Closed;
+    const auto status = checkMutation();
+    const bool editing = m_generatorEditLayer && m_generatorEditLayer == id && !m_externalOperation.isNull();
+    if (status != Result::Success && !editing) return status;
+    const auto index = layerIndex(id);
+    if (index < 0 || !snapshot()->layers[index].generator || !rendered.generator)
+        return Result::LayerUnavailable;
+    if (m_nextRevision == std::numeric_limits<quint64>::max() ||
+        m_nextOperation == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    try {
+        RasterImage input;
+        input.size = snapshot()->size;
+        input.format = snapshot()->format;
+        input.layers = {rendered};
+        input.layers.first().parentUuid = {};
+        OperationDocument prepared(input, m_limits);
+        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*preview()));
+        auto &target = version->layers[index];
+        const auto &source = prepared.snapshot()->layers.first();
+        target.generator = source.generator;
+        target.defaultPixel = source.defaultPixel;
+        target.pixels.reset();
+        target.operations.clear();
+        for (const auto &value : source.operations) {
+            auto operation = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(value));
+            operation->id = {m_identity, m_nextOperation + 1};
+            operation->layer = id;
+            target.operations.append(TileWriteSnapshot(operation));
+        }
+        version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+        ++m_nextOperation;
+        if (editing) {
+            version->m_committed = false;
+            version->m_pendingOperation = m_externalOperation;
+            m_preview = version;
+        } else {
+            LayerHistoryChange change;
+            change.layer = id;
+            change.layerStructureAction = HistoryAction::ChangeFilter;
+            commitVersion(version, change);
+        }
+        return Result::Success;
+    } catch (const std::invalid_argument &) { return Result::InvalidInput; }
+      catch (const std::bad_alloc &) { return Result::CapacityExceeded; }
 }
 
 Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
