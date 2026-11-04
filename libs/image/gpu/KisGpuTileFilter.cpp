@@ -247,6 +247,7 @@ TileRenderer::Private::FilterResult TileRenderer::Private::applyLayerMasks(
     })) {
         defaultBounds = QRect(QPoint(), document->size);
     }
+    bool firstFilter = true;
     Tiles tiles = source;
     const auto apply = [&](const FilterSettings &settings, const SelectionMaskSP &mask,
                            bool transparency, QRect output, QRect nativeArea) -> FilterResult {
@@ -274,7 +275,17 @@ TileRenderer::Private::FilterResult TileRenderer::Private::applyLayerMasks(
         if (!node.visible) continue;
         if (!node.filter || !node.filter->isValid(document->format))
             return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU filter mask configuration is unavailable")};
-        const auto filtered = apply(node.filter->settings, node.filterSelection, false, regions[i + 1], nativeRegions[i + 1]);
+        auto nativeInput = nativeRegions[i + 1];
+        if (firstFilter && layer.kind == LayerKind::Paint && isConvolutionFilter(node.filter->settings.kind)) {
+            // The first mask samples original paint storage. Later masks sample
+            // the expanded projection produced by their preceding masks.
+            const auto allocation = paintLayerAllocation(document, layer, budget->limit / qsizetype(sizeof(QRect)));
+            if (!allocation) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU filter source extent exceeds its capacity")};
+            nativeInput.setTopLeft({qMax(nativeInput.left(), allocation->extent.left()),
+                                    qMax(nativeInput.top(), allocation->extent.top())});
+        }
+        const auto filtered = apply(node.filter->settings, node.filterSelection, false, regions[i + 1], nativeInput);
+        firstFilter = false;
         if (filtered.code != RenderOutcome::Recorded) return filtered;
         tiles = filtered.tiles;
     }

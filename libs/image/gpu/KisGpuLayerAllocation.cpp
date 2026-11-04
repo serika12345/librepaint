@@ -255,7 +255,7 @@ QHash<LayerId, QRect> nativeFilterOutputRegions(const Snapshot &document)
             if (node->kind == LayerKind::Group) pending.append({document->projectionInputs(node->id), original});
             if (node->kind == LayerKind::Adjustment) {
                 needed = (node->filter && isConvolutionFilter(node->filter->settings.kind)
-                    ? convolutionInputRegion(original, 3) : original).intersected(canvas);
+                    ? convolutionInputRegion(original, 3) : original);
             }
         }
     }

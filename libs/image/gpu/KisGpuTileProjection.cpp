@@ -234,11 +234,8 @@ RenderOutcome TileRenderer::prepareFilterProjection(WGPUCommandEncoder commands,
     const auto preparedVersion = RenderedSnapshot(new RenderedVersion(data));
     QHash<LayerId, const Layer *> nodes;
     for (const auto &node : snapshot->layers) nodes.insert(node.id, &node);
-    QRect extent(QPoint(), snapshot->size);
-    for (const auto &input : inputs) extent |= data->sourceExtents.value(input.layer);
-    const QRect evaluated = region.intersected(extent);
-    if (evaluated.isEmpty()) return {RenderOutcome::Recorded, preparedVersion, {}};
-    const auto regions = filterProjectionRegions(snapshot, inputs, evaluated);
+    if (region.isEmpty()) return {RenderOutcome::Recorded, preparedVersion, {}};
+    const auto regions = filterProjectionRegions(snapshot, inputs, region);
     std::shared_ptr<Tile> zero;
     const auto defaultTile = [&](LayerId layer) -> std::shared_ptr<Tile> {
         if (auto tile = data->defaults.value(layer)) return tile;
