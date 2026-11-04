@@ -9,6 +9,7 @@
 #include "kis_keyframe_channel.h"
 
 #include <simpletest.h>
+#include <KisGpuPixelTolerance.h>
 
 #include <QString>
 
@@ -213,18 +214,26 @@ void KisJPEGXLTest::testMultipage()
             QVERIFY(page2Out);
             QVERIFY(page3Out);
 
-            QVERIFY(TestUtil::comparePaintDevicesClever<uint8_t>(doc1->image()->root()->firstChild()->paintDevice(),
-                                                                 doc2->image()->root()->firstChild()->paintDevice(),
-                                                                 0));
-
-            QVERIFY(
-                TestUtil::comparePaintDevicesClever<uint8_t>(page1->paintDevice(), page1Out->paintDevice(), 0));
-
-            QVERIFY(
-                TestUtil::comparePaintDevicesClever<uint8_t>(page2->paintDevice(), page2Out->paintDevice(), 0));
-
-            QVERIFY(
-                TestUtil::comparePaintDevicesClever<uint8_t>(page3->paintDevice(), page3Out->paintDevice(), 0));
+            const auto comparePixels = [](KisPaintDeviceSP actual, KisPaintDeviceSP expected) {
+                QVERIFY(actual);
+                QVERIFY(expected);
+                QCOMPARE(actual->colorSpace()->id(), QStringLiteral("RGBA"));
+                QCOMPARE(expected->colorSpace()->id(), actual->colorSpace()->id());
+                const auto bounds = expected->exactBounds();
+                QCOMPARE(actual->exactBounds(), bounds);
+                QByteArray actualRow(bounds.width() * 4, Qt::Uninitialized);
+                QByteArray expectedRow(actualRow.size(), Qt::Uninitialized);
+                for (int y = bounds.top(); y <= bounds.bottom(); ++y) {
+                    actual->readBytes(reinterpret_cast<quint8 *>(actualRow.data()), bounds.x(), y, bounds.width(), 1);
+                    expected->readBytes(reinterpret_cast<quint8 *>(expectedRow.data()), bounds.x(), y, bounds.width(), 1);
+                    QCOMPARE_PIXELS_WITHIN_STEP(actualRow, expectedRow);
+                }
+            };
+            comparePixels(doc1->image()->root()->firstChild()->paintDevice(),
+                          doc2->image()->root()->firstChild()->paintDevice());
+            comparePixels(page1->paintDevice(), page1Out->paintDevice());
+            comparePixels(page2->paintDevice(), page2Out->paintDevice());
+            comparePixels(page3->paintDevice(), page3Out->paintDevice());
         }
 
         delete doc2;

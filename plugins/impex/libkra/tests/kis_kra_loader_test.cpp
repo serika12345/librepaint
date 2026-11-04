@@ -74,6 +74,8 @@ void KisKraLoaderTest::testLoading()
 
 void testObligeSingleChildImpl(bool transpDefaultPixel)
 {
+    // Device sharing for a single child is a CPU projection optimization.
+    const TestUtil::PaintingEngineScope cpuProjection(false);
 
     QString id = !transpDefaultPixel ?
         "single_layer_no_channel_flags_nontransp_def_pixel.kra" :
