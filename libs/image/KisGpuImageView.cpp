@@ -800,9 +800,7 @@ KisImageSP KisImage::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, co
         ((format == LibrePaint::Image::Gpu::PixelFormat::Rgba8 && colorSpace->colorDepthId().id() == QLatin1String("U8")) ||
          (format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 &&
           colorSpace->colorDepthId().id() == QLatin1String("U16") && colorSpace->profile() &&
-          QColorSpace::fromIccProfile(colorSpace->profile()->rawData()).isValid() &&
-          QColorSpace::fromIccProfile(colorSpace->profile()->rawData()).transformModel() ==
-              QColorSpace::TransformModel::ThreeComponentMatrix));
+          colorSpace->profile()->valid()));
     if (!validEncoding || (!image->operations().snapshot()->colorProfile.isEmpty() &&
         image->operations().snapshot()->colorProfile != colorSpace->profile()->rawData()))
         throw std::invalid_argument("GPU image precision and document color encoding must match");

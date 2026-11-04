@@ -1,5 +1,6 @@
 kis_add_library(kritaimpexkra SHARED
     KisKraRasterCodec.cpp
+    KisKraColorProfile.cpp
     KisKraPreview.cpp
     KisKraRgbaTiles.cpp
     KisKraSelectionTiles.cpp
@@ -12,7 +13,7 @@ target_include_directories(kritaimpexkra PUBLIC
 )
 target_link_libraries(kritaimpexkra
     PUBLIC kritaimagegpuoperations
-    PRIVATE kritalzfcompression Qt6::Gui Qt6::Xml ${QUAZIP_LIBRARIES}
+    PRIVATE kritalzfcompression kritapigment Qt6::Gui Qt6::Xml ${QUAZIP_LIBRARIES}
 )
 set_target_properties(kritaimpexkra PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON
     VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION})

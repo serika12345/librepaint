@@ -338,22 +338,36 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
     const auto projection = d.execution.readProjectionImage(d.image->handle(), pinned, limits.archiveBytes);
     if (projection.code != ExecutionCode::Success) return {fileCode(projection.code), {}, projection.diagnostic};
     auto merged = projection.image;
-    if (pinned->format == PixelFormat::Rgba16) {
-        // KRA retains U16 layer pixels; the native merged PNG uses the default RGB8 conversion.
-        QByteArray bgra(qsizetype(merged.width()) * merged.height() * 8, Qt::Uninitialized);
+    const auto registry = KoColorSpaceRegistry::instance();
+    if (!registry->rgb8())
+        return {FileCode::UnsupportedData, {}, QStringLiteral("The native RGB color conversion is unavailable")};
+    if (pinned->format == PixelFormat::Rgba16 ||
+        (!pinned->colorProfile.isEmpty() && pinned->colorProfile != registry->rgb8()->profile()->rawData())) {
+        // KRA retains the document encoding; its merged PNG uses the native RGB8 conversion.
+        const bool words = pinned->format == PixelFormat::Rgba16;
+        const int pixelSize = pixelByteCount(pinned->format);
+        QByteArray bgra(qsizetype(merged.width()) * merged.height() * pixelSize, Qt::Uninitialized);
         for (int y = 0; y < merged.height(); ++y) {
-            const auto *source = reinterpret_cast<const QRgba64 *>(merged.constScanLine(y));
-            for (int x = 0; x < merged.width(); ++x) {
-                const quint16 pixel[] = {source[x].blue(), source[x].green(), source[x].red(), source[x].alpha()};
-                std::memcpy(bgra.data() + (qsizetype(y) * merged.width() + x) * 8, pixel, sizeof(pixel));
+            if (words) {
+                const auto *source = reinterpret_cast<const QRgba64 *>(merged.constScanLine(y));
+                for (int x = 0; x < merged.width(); ++x) {
+                    const quint16 pixel[] = {source[x].blue(), source[x].green(), source[x].red(), source[x].alpha()};
+                    std::memcpy(bgra.data() + (qsizetype(y) * merged.width() + x) * pixelSize, pixel, sizeof(pixel));
+                }
+            } else {
+                const auto *source = merged.constScanLine(y);
+                auto *destination = bgra.data() + qsizetype(y) * merged.width() * pixelSize;
+                std::memcpy(destination, source, merged.width() * pixelSize);
+                for (int x = 0; x < merged.width(); ++x) std::swap(destination[x * 4], destination[x * 4 + 2]);
             }
         }
-        const auto registry = KoColorSpaceRegistry::instance();
-        if (!registry->rgb16() || !registry->rgb8())
+        const auto standard = words ? registry->rgb16() : registry->rgb8();
+        if (!standard)
             return {FileCode::UnsupportedData, {}, QStringLiteral("The native RGB color conversion is unavailable")};
-        const auto profile = pinned->colorProfile.isEmpty() ? registry->rgb16()->profile() :
-            registry->createColorProfileFromData(QStringLiteral("RGBA"), QStringLiteral("U16"), pinned->colorProfile);
-        const auto encoding = profile ? registry->colorSpace(QStringLiteral("RGBA"), QStringLiteral("U16"), profile) : nullptr;
+        const auto depth = words ? QStringLiteral("U16") : QStringLiteral("U8");
+        const auto profile = pinned->colorProfile.isEmpty() ? standard->profile() :
+            registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, pinned->colorProfile);
+        const auto encoding = profile ? registry->colorSpace(QStringLiteral("RGBA"), depth, profile) : nullptr;
         if (!encoding) return {FileCode::UnsupportedData, {}, QStringLiteral("The fixed image profile is unavailable")};
         merged = encoding->convertToQImage(reinterpret_cast<const quint8 *>(bgra.constData()),
             merged.width(), merged.height(), registry->rgb8()->profile(),

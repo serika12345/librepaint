@@ -7,6 +7,7 @@
 
 #include <gpu/KisGpuOperationDocument.h>
 #include <QMap>
+#include <QHash>
 #include <QStringList>
 #include <kritaimpexkra_export.h>
 #include <functional>
@@ -106,7 +107,7 @@ struct LoadOutcome
     QString diagnostic;
 };
 
-/** RGBA8/sRGB and default RGBA16/linear-sRGB KRA values, including hidden and off-canvas layer pixels.
+/** RGBA8 and RGBA16 KRA values with embedded RGB profiles, including hidden and off-canvas layer pixels.
  * Devices are borrowed, open, seekable, and remain open after the operation.
  * Read publishes one complete value after validation. The write device is empty.
  * Write validates and encodes
@@ -116,13 +117,15 @@ struct LoadOutcome
 class KRITAIMPEXKRA_EXPORT RasterCodec
 {
 public:
+    /** Historical HDR labels resolved by the native KRA color-profile owner. */
+    static QHash<QString, QString> profileNameAliases();
     /** Inspects only the description for a non-RGBA color model or animated nodes.
      * Preserves the open source and its position. Invalid descriptions return false
      * so the selected reader supplies the format diagnostic.
      */
     static bool isNonRgbaOrAnimated(QIODevice &source);
-    /** Legacy descriptions require the native KRA owner to upgrade their nodes,
-     * masks and tile streams before importing the resulting current-format file.
+    /** Legacy descriptions and HDR profile aliases require the native KRA owner
+     * to upgrade their nodes, masks, tile streams and color profiles before import.
      * Preserves the open source and its position.
      */
     static bool requiresLegacyConversion(QIODevice &source);

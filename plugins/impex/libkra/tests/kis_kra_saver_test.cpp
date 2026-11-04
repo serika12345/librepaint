@@ -55,6 +55,7 @@
 #include <KoResourcePaths.h>
 #include <filestest.h>
 #include <testui.h>
+#include <KisPaintingEngineTestScope.h>
 
 
 const QString KraMimetype = "application/x-krita";
@@ -750,6 +751,7 @@ void KisKraSaverTest::testRoundTripCicp_data()
 
 void KisKraSaverTest::testRoundTripCicp()
 {
+    const TestUtil::PaintingEngineScope gpuEngine(true);
     QFETCH(ColorPrimaries, primaries);
     QFETCH(TransferCharacteristics, transfer);
     QFETCH(qreal, hdrReferenceWhite);
@@ -770,23 +772,36 @@ void KisKraSaverTest::testRoundTripCicp()
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     KisImageSP image = new KisImage(new KisSurrogateUndoStore(), imageRect.width(), imageRect.height(), cs, "test image");
     doc->setCurrentImage(image);
-    const QString name = "roundtrip_cicp_test_"+QString::number(primaries)+"_"+QString::number(transfer)+".kra";
-    doc->exportDocumentSync(name, doc->mimeType());
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto name = directory.filePath(QStringLiteral("cicp.kra"));
+    QVERIFY2(doc->exportDocumentSync(name, doc->mimeType()), qPrintable(doc->errorMessage()));
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
     doc2->setFileBatchMode(true);
     bool result = doc2->openPath(name, KisDocument::DontAddToRecent);
     QVERIFY(result);
     doc2->image()->waitForDone();
+    QVERIFY(doc2->image()->gpuImage());
 
-    {
-        const KoColorProfile *profile = doc2->image()->colorSpace()->profile();
-        QCOMPARE(profile->getColorPrimaries(), primaries);
-        QCOMPARE(profile->getTransferCharacteristics(), transfer);
+    const auto saved = directory.filePath(QStringLiteral("gpu-cicp.kra"));
+    QVERIFY2(doc2->exportDocumentSync(saved, doc2->mimeType()), qPrintable(doc2->errorMessage()));
+
+    for (const bool gpu : {true, false}) {
+        const TestUtil::PaintingEngineScope engine(gpu);
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(saved, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        QCOMPARE(bool(reopened->image()->gpuImage()), gpu);
+        const KoColorProfile *restoredProfile = reopened->image()->profile();
+        QCOMPARE(restoredProfile->rawData(), profile->rawData());
+        QCOMPARE(restoredProfile->getColorPrimaries(), primaries);
+        QCOMPARE(restoredProfile->getTransferCharacteristics(), transfer);
         if (hdrReferenceWhite > 0.0) {
-            QCOMPARE(*profile->hdrReferenceWhite(), hdrReferenceWhite);
+            QVERIFY(restoredProfile->hdrReferenceWhite());
+            QCOMPARE(*restoredProfile->hdrReferenceWhite(), hdrReferenceWhite);
         } else {
-            QVERIFY(!profile->hdrReferenceWhite().has_value());
+            QVERIFY(!restoredProfile->hdrReferenceWhite().has_value());
         }
     }
 

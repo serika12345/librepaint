@@ -1307,14 +1307,12 @@ KisPaintDeviceSP KisPaintDevice::fromGpuImage(LibrePaint::Image::Gpu::PaintImage
     const auto pixels = image->retainLayerPixels(layer);
     if (!pixels) throw std::invalid_argument("GPU paint-device layer is unavailable");
     const auto version = pixels->version();
-    const auto profile = colorSpace && colorSpace->profile() ?
-        QColorSpace::fromIccProfile(colorSpace->profile()->rawData()) : QColorSpace();
     const bool validEncoding = colorSpace && colorSpace->colorModelId().id() == QLatin1String("RGBA") &&
         ((version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba8 &&
           colorSpace->colorDepthId().id() == QLatin1String("U8")) ||
          (version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 &&
-          colorSpace->colorDepthId().id() == QLatin1String("U16") && profile.isValid() &&
-          profile.transformModel() == QColorSpace::TransformModel::ThreeComponentMatrix));
+          colorSpace->colorDepthId().id() == QLatin1String("U16") && colorSpace->profile() &&
+          colorSpace->profile()->valid()));
     if (!validEncoding || (!version->colorProfile.isEmpty() &&
         (!colorSpace->profile() || version->colorProfile != colorSpace->profile()->rawData())))
         throw std::invalid_argument("GPU pixel precision and document color encoding must match");

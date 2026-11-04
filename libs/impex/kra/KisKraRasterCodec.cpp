@@ -10,6 +10,8 @@
 #include <QBuffer>
 #include <QColorSpace>
 #include <QColorTransform>
+#include <KoColorSpaceRegistry.h>
+#include <KoColorProfile.h>
 #include <QDomDocument>
 #include <QDateTime>
 #include <QTimeZone>
@@ -519,18 +521,13 @@ bool srgbSpace(const QColorSpace &space)
 Outcome profile(const QMap<QString, QByteArray> &files, const QString &path, const QString &name, PixelFormat format)
 {
     if (!files.contains(path)) {
-        if (format == PixelFormat::Rgba16) return unsupported(QStringLiteral("RGBA16 KRA requires its matrix RGB ICC profile"));
+        if (format == PixelFormat::Rgba16) return unsupported(QStringLiteral("RGBA16 KRA requires its RGB ICC profile"));
         return name == QLatin1String("sRGB built-in") ? Outcome{Status::Success, {}} :
             unsupported(QStringLiteral("KRA requires an sRGB profile"));
     }
-    const auto space = QColorSpace::fromIccProfile(files.value(path));
-    if (!space.isValid()) return invalid(QStringLiteral("Invalid KRA color profile"));
-    if (format == PixelFormat::Rgba16) {
-        if (space.colorModel() != QColorSpace::ColorModel::Rgb ||
-            space.transformModel() != QColorSpace::TransformModel::ThreeComponentMatrix)
-            return unsupported(QStringLiteral("RGBA16 KRA requires a matrix RGB profile"));
-    } else if (!srgbSpace(space))
-        return unsupported(QStringLiteral("KRA requires an sRGB profile"));
+    const auto depth = format == PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
+    const auto encoding = KoColorSpaceRegistry::instance()->createColorProfileFromData(QStringLiteral("RGBA"), depth, files.value(path));
+    if (!encoding || !encoding->valid()) return invalid(QStringLiteral("Invalid KRA RGB color profile"));
     return {Status::Success, {}};
 }
 Outcome validateFiles(const QMap<QString, QByteArray> &files, Limits limits)
@@ -1200,9 +1197,10 @@ static Outcome applyRasterEncoding(QDomElement image, const RasterImage &value, 
     const bool changedProfile = files.value(imageProfile) != value.colorProfile;
     files.insert(imageProfile, value.colorProfile);
     if (changedProfile) {
-        auto name = QColorSpace::fromIccProfile(value.colorProfile).description();
-        // ICC description padding is not part of the native profile name.
-        while (name.endsWith(QChar::Null)) name.chop(1);
+        const auto depth = value.format == PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
+        const auto encoding = KoColorSpaceRegistry::instance()->createColorProfileFromData(QStringLiteral("RGBA"), depth, value.colorProfile);
+        if (!encoding) return invalid(QStringLiteral("Invalid KRA RGB color profile"));
+        const auto name = encoding->name();
         if (!validName(name)) return invalid(QStringLiteral("Invalid KRA profile name"));
         image.setAttribute(QStringLiteral("profile"), name);
     }
@@ -1452,9 +1450,12 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
         if (element.attribute(QStringLiteral("nodetype")) == QLatin1String("paintlayer") || files.contains(layerProfile)) {
             result = profile(files, layerProfile, image.attribute(QStringLiteral("profile")), imageFormat(image));
             if (result.code != Status::Success) return result;
-            if (imageFormat(image) == PixelFormat::Rgba16 &&
-                files.value(layerProfile) != files.value(folder + QStringLiteral("/annotations/icc")))
-                return unsupported(QStringLiteral("RGBA16 layers and groups require the image's exact ICC encoding"));
+            const auto imageProfile = files.value(folder + QStringLiteral("/annotations/icc"));
+            if (files.value(layerProfile) != imageProfile &&
+                (imageFormat(image) == PixelFormat::Rgba16 ||
+                 !srgbSpace(QColorSpace::fromIccProfile(files.value(layerProfile))) ||
+                 !srgbSpace(QColorSpace::fromIccProfile(imageProfile))))
+                return unsupported(QStringLiteral("RGBA layers and groups require the image's exact ICC encoding"));
         } else if (element.attribute(QStringLiteral("profile"), image.attribute(QStringLiteral("profile"))) != image.attribute(QStringLiteral("profile"))) {
             return unsupported(QStringLiteral("KRA groups require the image's profile"));
         }
@@ -1536,7 +1537,14 @@ bool RasterCodec::requiresLegacyConversion(QIODevice &source)
     const auto root = xml.documentElement();
     const auto version = root.attribute(QStringLiteral("syntaxVersion"));
     if (version == QLatin1String("1") || version == QLatin1String("1.0")) return true;
-    return !root.elementsByTagName(QStringLiteral("LAYERS")).isEmpty();
+    if (!root.elementsByTagName(QStringLiteral("LAYERS")).isEmpty()) return true;
+    const auto aliases = profileNameAliases();
+    const auto image = root.firstChildElement(QStringLiteral("IMAGE"));
+    if (aliases.contains(image.attribute(QStringLiteral("profile")))) return true;
+    const auto layers = image.elementsByTagName(QStringLiteral("layer"));
+    for (int i = 0; i < layers.size(); ++i)
+        if (aliases.contains(layers.at(i).toElement().attribute(QStringLiteral("profile")))) return true;
+    return false;
 }
 
 LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)

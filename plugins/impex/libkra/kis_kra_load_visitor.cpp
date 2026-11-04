@@ -6,6 +6,7 @@
  */
 
 #include "kis_kra_load_visitor.h"
+#include <kra/KisKraRasterCodec.h>
 #include <klocalizedstring.h>
 #include "KisQStringListFwd.h"
 #include "KoColorProfileConstants.h"
@@ -25,8 +26,6 @@
 
 #include <KoMD5Generator.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoColorProfileQuery.h>
-#include <KoColorSpaceEngine.h>
 #include <KoColorProfile.h>
 #include <KoFileDialog.h>
 #include <KoStore.h>
@@ -908,27 +907,5 @@ void KisKraLoadVisitor::loadDeprecatedFilter(KisFilterConfigurationSP cfg)
 
 QHash<QString, QString> KisKraLoadVisitor::customProfileNameAliasForKra()
 {
-    QHash<QString, QString> aliases;
-
-    KoColorProfileQuery query(PRIMARIES_ITU_R_BT_2020_2_AND_2100_0,
-                              TRC_ITU_R_BT_2100_0_PQ,
-                              80.0);
-    const KoColorProfile *profile =
-        KoColorSpaceRegistry::instance()->profileFor(query, false);
-
-    if (profile) {
-        aliases.insert(
-            "High Dynamic Range UHDTV Wide Color Gamut Display (Rec. 2020) - SMPTE ST 2084 PQ EOTF",
-            profile->name());
-    }
-
-    query.hdrReferenceWhite = 180.0;
-    KoColorSpaceEngine *engine = KoColorSpaceEngineRegistry::instance()->get("icc");
-    profile = engine ? engine->getProfile(query) : nullptr;
-
-    if (profile) {
-        aliases.insert("Krita Rec. 2100 Perceptual Quantizer 180nits", profile->name());
-    }
-
-    return aliases;
+    return LibrePaint::ImportExport::Kra::RasterCodec::profileNameAliases();
 }

@@ -39,6 +39,9 @@
 #include <QSaveFile>
 #include <KisPaintingEngineTestScope.h>
 #include <KisProofingConfiguration.h>
+#include <KisGpuPixelTolerance.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <KoStore.h>
 
 const QString KraMimetype = "application/x-krita";
 
@@ -432,28 +435,121 @@ void KisKraLoaderTest::testImportIncorrectFormat()
     TestUtil::testImportIncorrectFormat(KraMimetype);
 }
 
-void KisKraLoaderTest::testLoadingOldHdrProfileNoCicp()
+namespace {
+void compareHdrNodes(KisNodeSP actual, KisNodeSP expected, const QRect &canvas)
 {
+    QVERIFY(actual);
+    QVERIFY(expected);
+    QCOMPARE(actual->name(), expected->name());
+    QCOMPARE(actual->uuid(), expected->uuid());
+    QCOMPARE(actual->metaObject()->className(), expected->metaObject()->className());
+    QCOMPARE(actual->visible(), expected->visible());
+    QCOMPARE(actual->opacity(), expected->opacity());
+    QCOMPARE(actual->compositeOpId(), expected->compositeOpId());
+    QCOMPARE(actual->userLocked(), expected->userLocked());
+    const auto layer = qobject_cast<KisLayer *>(actual.data());
+    const auto referenceLayer = qobject_cast<KisLayer *>(expected.data());
+    if (layer && referenceLayer) QCOMPARE(layer->channelFlags(), referenceLayer->channelFlags());
+    QCOMPARE(actual->x(), expected->x());
+    QCOMPARE(actual->y(), expected->y());
+    const auto pixels = actual->paintDevice();
+    const auto reference = expected->paintDevice();
+    QCOMPARE(bool(pixels), bool(reference));
+    if (pixels) {
+        QCOMPARE(pixels->colorSpace()->profile()->rawData(), reference->colorSpace()->profile()->rawData());
+        QCOMPARE(pixels->defaultPixel(), reference->defaultPixel());
+        const auto bounds = canvas | reference->exactBounds() | pixels->exactBounds();
+        const auto size = qsizetype(bounds.width()) * bounds.height() * pixels->pixelSize();
+        QVERIFY(size <= 256 * 1024 * 1024);
+        QByteArray actualBytes(size, Qt::Uninitialized), expectedBytes(size, Qt::Uninitialized);
+        pixels->readBytes(reinterpret_cast<quint8 *>(actualBytes.data()), bounds);
+        reference->readBytes(reinterpret_cast<quint8 *>(expectedBytes.data()), bounds);
+        QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(actualBytes, expectedBytes, pixels->pixelSize() / 4);
+    }
+    QCOMPARE(actual->childCount(), expected->childCount());
+    auto referenceChild = expected->firstChild();
+    for (auto child = actual->firstChild(); child; child = child->nextSibling()) {
+        compareHdrNodes(child, referenceChild, canvas);
+        referenceChild = referenceChild->nextSibling();
+    }
+}
+
+void checkHdrRoundTrip(const QString &name, double referenceWhite)
+{
+    const auto source = QStringLiteral(FILES_DATA_DIR) + QLatin1Char('/') + name;
+    QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
+    reference->setFileBatchMode(true);
+    {
+        const TestUtil::PaintingEngineScope cpuEngine(false);
+        QVERIFY2(reference->openPath(source, KisDocument::DontAddToRecent), qPrintable(reference->errorMessage()));
+    }
+    reference->image()->waitForDone();
+    const TestUtil::PaintingEngineScope gpuEngine(true);
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     doc->setFileBatchMode(true);
-    QVERIFY(doc->openPath(QString(FILES_DATA_DIR) + '/' + "hdr_gem_old_profile_no_cicp.kra", KisDocument::DontAddToRecent));
-    KisImageSP image = doc->image();
+    QVERIFY2(doc->openPath(source, KisDocument::DontAddToRecent), qPrintable(doc->errorMessage()));
+    auto image = doc->image();
+    QVERIFY(image->gpuImage());
     image->waitForDone();
-    QCOMPARE(image->colorSpace()->profile()->getColorPrimaries(), PRIMARIES_ITU_R_BT_2020_2_AND_2100_0);
-    QCOMPARE(image->colorSpace()->profile()->getTransferCharacteristics(), TRC_ITU_R_BT_2100_0_PQ);
-    QCOMPARE(*image->colorSpace()->profile()->hdrReferenceWhite(), 80.0);
+    const auto profile = image->profile();
+    QCOMPARE(profile->getColorPrimaries(), PRIMARIES_ITU_R_BT_2020_2_AND_2100_0);
+    QCOMPARE(profile->getTransferCharacteristics(), TRC_ITU_R_BT_2100_0_PQ);
+    QVERIFY(profile->hdrReferenceWhite());
+    QCOMPARE(*profile->hdrReferenceWhite(), referenceWhite);
+    QCOMPARE(profile->rawData(), reference->image()->profile()->rawData());
+    QCOMPARE(image->gpuImage()->operations().snapshot()->colorProfile, profile->rawData());
+    QCOMPARE(image->colorSpace()->colorDepthId(), reference->image()->colorSpace()->colorDepthId());
+    compareHdrNodes(image->root()->firstChild(), reference->image()->root()->firstChild(), image->bounds());
+
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto saved = directory.filePath(QStringLiteral("hdr.kra"));
+    QVERIFY2(doc->exportDocumentSync(saved, KraMimetype.toLatin1()), qPrintable(doc->errorMessage()));
+    const auto expectedPreview = reference->image()->convertToQImage(reference->image()->size(), nullptr).convertToFormat(QImage::Format_RGBA8888);
+    QScopedPointer<KoStore> archive(KoStore::createStore(saved, KoStore::Read));
+    QVERIFY(archive && !archive->bad());
+    QVERIFY(archive->open(QStringLiteral("mergedimage.png")));
+    const auto merged = QImage::fromData(archive->read(archive->size())).convertToFormat(QImage::Format_RGBA8888);
+    archive->close();
+    QCOMPARE(merged.size(), expectedPreview.size());
+    QCOMPARE_PIXELS_WITHIN_STEP(QByteArray(reinterpret_cast<const char *>(merged.constBits()), merged.sizeInBytes()),
+                               QByteArray(reinterpret_cast<const char *>(expectedPreview.constBits()), expectedPreview.sizeInBytes()));
+    for (const bool gpu : {true, false}) {
+        const TestUtil::PaintingEngineScope engine(gpu);
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(saved, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        auto restored = reopened->image();
+        QCOMPARE(bool(restored->gpuImage()), gpu);
+        restored->waitForDone();
+        QCOMPARE(restored->profile()->rawData(), profile->rawData());
+        QCOMPARE(restored->size(), image->size());
+        QCOMPARE(restored->xRes(), image->xRes());
+        QCOMPARE(restored->yRes(), image->yRes());
+        auto expected = reference->image()->root()->firstChild();
+        for (auto node = restored->root()->firstChild(); node; node = node->nextSibling()) {
+            compareHdrNodes(node, expected, image->bounds());
+            expected = expected->nextSibling();
+        }
+        QVERIFY(!expected);
+        const auto actualPreview = restored->convertToQImage(restored->size(), nullptr);
+        QCOMPARE(actualPreview.size(), expectedPreview.size());
+        const auto actualRgba = actualPreview.convertToFormat(QImage::Format_RGBA8888);
+        const auto expectedRgba = expectedPreview.convertToFormat(QImage::Format_RGBA8888);
+        QCOMPARE_PIXELS_WITHIN_STEP(QByteArray(reinterpret_cast<const char *>(actualRgba.constBits()), actualRgba.sizeInBytes()),
+                                   QByteArray(reinterpret_cast<const char *>(expectedRgba.constBits()), expectedRgba.sizeInBytes()));
+    }
+}
+}
+
+void KisKraLoaderTest::testLoadingOldHdrProfileNoCicp()
+{
+    checkHdrRoundTrip(QStringLiteral("hdr_gem_old_profile_no_cicp.kra"), 80.0);
 }
 
 void KisKraLoaderTest::testLoadingUncommonHdrProfileWithCicp()
 {
-    QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
-    doc->setFileBatchMode(true);
-    QVERIFY(doc->openPath(QString(FILES_DATA_DIR) + '/' + "hdr_gem_180nits_rec2100pq_profile.kra", KisDocument::DontAddToRecent));
-    KisImageSP image = doc->image();
-    image->waitForDone();
-    QCOMPARE(image->colorSpace()->profile()->getColorPrimaries(), PRIMARIES_ITU_R_BT_2020_2_AND_2100_0);
-    QCOMPARE(image->colorSpace()->profile()->getTransferCharacteristics(), TRC_ITU_R_BT_2100_0_PQ);
-    QCOMPARE(*image->colorSpace()->profile()->hdrReferenceWhite(), 180.0);
+    checkHdrRoundTrip(QStringLiteral("hdr_gem_180nits_rec2100pq_profile.kra"), 180.0);
 }
 
 

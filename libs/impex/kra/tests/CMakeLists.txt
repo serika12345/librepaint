@@ -1,6 +1,9 @@
-kis_add_test(TestKraRasterCodec.cpp
+kis_add_test(TestKraRasterCodec.cpp TEST_NAME_VAR kra_raster_codec_test
     LINK_LIBRARIES kritaimpexkra kritaimagegpuoperations Qt6::Test Qt6::Gui Qt6::Xml ${QUAZIP_LIBRARIES}
 )
+add_dependencies(TestKraRasterCodec kritalcmsengine)
+set_tests_properties(${kra_raster_codec_test} PROPERTIES ENVIRONMENT
+    "KRITA_PLUGIN_PATH=${CMAKE_BINARY_DIR}/bin;EXTRA_RESOURCE_DIRS=${CMAKE_SOURCE_DIR}/krita/data")
 target_compile_definitions(TestKraRasterCodec PRIVATE
     KRA_COMPATIBILITY_DATA_DIR=":/kra-compatibility")
 qt6_add_resources(TestKraRasterCodec kra_compatibility_fixtures
