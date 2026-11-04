@@ -754,6 +754,23 @@ void KisGpuDocumentViewTest::pathToolCreatesArbitraryMaskSelection()
     QVERIFY(native);
     KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolSelectPath"));
     QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KisToolSelectPath"));
+    QPointer<KisSelectionOptions> options;
+    const auto selectionTool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KisToolSelectPath"));
+    QVERIFY(selectionTool);
+    for (QWidget *widget : selectionTool->optionWidgets())
+        if (auto *candidate = qobject_cast<KisSelectionOptions *>(widget)) options = candidate;
+    QVERIFY(options);
+    const auto oldAction = options->action();
+    const auto oldMode = options->mode();
+    const bool oldAA = options->antiAliasSelection();
+    const int oldGrow = options->growSelection(), oldFeather = options->featherSelection();
+    const auto restoreOptions = qScopeGuard([&] {
+        if (!options) return;
+        options->setAction(oldAction); options->setMode(oldMode); options->setAntiAliasSelection(oldAA);
+        options->setGrowSelection(oldGrow); options->setFeatherSelection(oldFeather);
+    });
+    options->setMode(PIXEL_SELECTION); options->setAction(SELECTION_REPLACE);
+    options->setAntiAliasSelection(false); options->setGrowSelection(0); options->setFeatherSelection(0);
     window->activateWindow();
     native->requestActivate();
     view->canvasBase()->canvasWidget()->setFocus();

@@ -68,10 +68,25 @@ public:
         else if (!m_pen.isCosmetic()) stroke.thickness *= std::sqrt(std::abs(m_transform.determinant()));
         m_strokes.append(std::move(stroke));
     }
+    void drawPolygon(const QPointF *points, int count, PolygonDrawMode mode) override
+    { recordPolygon(points, count, mode); }
+    void drawPolygon(const QPoint *points, int count, PolygonDrawMode mode) override
+    { recordPolygon(points, count, mode); }
     // The image owner presents raster previews independently of tool strokes.
     void drawPixmap(const QRectF &, const QPixmap &, const QRectF &) override {}
     void drawImage(const QRectF &, const QImage &, const QRectF &, Qt::ImageConversionFlags) override {}
 private:
+    template<class Point>
+    void recordPolygon(const Point *points, int count, PolygonDrawMode mode)
+    {
+        if (!m_valid || count < 1) return;
+        if (count > 65536) { m_valid = false; return; }
+        QPainterPath path;
+        path.moveTo(points[0]);
+        for (int i = 1; i < count; ++i) path.lineTo(points[i]);
+        if (mode != PolylineMode) path.closeSubpath();
+        drawPath(path);
+    }
     QList<LibrePaint::Canvas::Gpu::ToolStroke> &m_strokes;
     QPen m_pen;
     QTransform m_transform;
