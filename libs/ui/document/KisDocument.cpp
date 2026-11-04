@@ -378,6 +378,14 @@ LibrePaint::Document::Gpu::FileOutcome applyGpuKraMetadata(KisDocument &document
     KisDomUtils::saveValue(&exports, QStringLiteral("sequenceInitialFrameNumber"), animation->exportInitialFrameNumber());
     indexRoot.appendChild(exports);
     metadata.animationMetadata = animationIndex.toByteArray();
+    const KisStoryboardData storyboard{document.getStoryboardItemList(), document.getStoryboardCommentsList()};
+    metadata.storyboard.emplace();
+    if (!storyboard.items.isEmpty() || !storyboard.comments.isEmpty()) {
+        auto xml = document.createDomDocument(QStringLiteral("storyboard-info"), QStringLiteral("1.1"));
+        auto root = xml.documentElement();
+        storyboard.saveXML(xml, root);
+        metadata.storyboard = xml.toByteArray();
+    }
     const auto &mirror = document.mirrorAxisConfig();
     if (!mirror.isDefault()) {
         QDomDocument axes;
@@ -3205,6 +3213,12 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
     const auto imageElement = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
     const auto unsupported = gpuKraEditingError(imageElement);
     if (!unsupported.isEmpty()) return reject(unsupported);
+    KisStoryboardData storyboard;
+    if (metadata.metadata.storyboard) {
+        QDomDocument xml;
+        xml.setContent(*metadata.metadata.storyboard);
+        storyboard = KisStoryboardData::fromXML(xml.documentElement());
+    }
     StaticKraSettings timing;
     QString timingDiagnostic;
     for (const auto &bytes : {metadata.metadata.animation, metadata.metadata.animationMetadata}) {
@@ -3305,10 +3319,16 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
     }
     d->mirrorAxisConfig = mirror;
     d->globalAssistantsColor = assistants;
+    d->m_storyboardItemList = storyboard.items;
+    d->m_storyboardCommentList = storyboard.comments;
     if (!metadataWarnings.isEmpty()) setWarningMessage(metadataWarnings.join(QLatin1Char('\n')));
     setColorHistoryColors(colors);
     if (!guard) return ImportExportCodes::OK;
     setCurrentImageImpl(image, true, {}, fileDocument);
+    if (!guard || d->image != image) return ImportExportCodes::OK;
+    Q_EMIT sigStoryboardItemListChanged();
+    if (!guard || d->image != image) return ImportExportCodes::OK;
+    Q_EMIT sigStoryboardCommentListChanged();
     for (const auto &update : infoUpdates) {
         if (!guard || d->image != image) break;
         Q_EMIT d->docInfo->infoUpdated(update.first, update.second);

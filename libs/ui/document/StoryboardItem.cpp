@@ -133,3 +133,44 @@ StoryboardItemList StoryboardItem::cloneStoryboardItemList(const StoryboardItemL
     }
     return clonedList;
 }
+
+KisStoryboardData KisStoryboardData::fromXML(const QDomElement &root)
+{
+    KisStoryboardData result;
+    for (auto list = root.lastChildElement(); !list.isNull(); list = list.previousSiblingElement()) {
+        if (list.tagName() == QLatin1String("StoryboardItemList")) {
+            for (auto entry = list.firstChildElement(QStringLiteral("storyboarditem"));
+                 !entry.isNull(); entry = entry.nextSiblingElement(QStringLiteral("storyboarditem"))) {
+                auto item = QSharedPointer<StoryboardItem>::create();
+                item->loadXML(entry);
+                result.items.append(item);
+            }
+        } else if (list.tagName() == QLatin1String("StoryboardCommentList")) {
+            for (auto entry = list.firstChildElement(QStringLiteral("storyboardcomment"));
+                 !entry.isNull(); entry = entry.nextSiblingElement(QStringLiteral("storyboardcomment"))) {
+                StoryboardComment comment;
+                if (entry.hasAttribute(QStringLiteral("visibility")))
+                    comment.visibility = entry.attribute(QStringLiteral("visibility")).toInt();
+                comment.name = entry.attribute(QStringLiteral("name"));
+                result.comments.append(comment);
+            }
+        }
+    }
+    return result;
+}
+
+void KisStoryboardData::saveXML(QDomDocument &document, QDomElement &root) const
+{
+    auto commentList = document.createElement(QStringLiteral("StoryboardCommentList"));
+    for (const auto &comment : comments) {
+        auto entry = document.createElement(QStringLiteral("storyboardcomment"));
+        entry.setAttribute(QStringLiteral("name"), comment.name);
+        entry.setAttribute(QStringLiteral("visibility"), comment.visibility);
+        commentList.appendChild(entry);
+    }
+    root.appendChild(commentList);
+
+    auto itemList = document.createElement(QStringLiteral("StoryboardItemList"));
+    for (const auto &item : items) itemList.appendChild(item->toXML(document));
+    root.appendChild(itemList);
+}

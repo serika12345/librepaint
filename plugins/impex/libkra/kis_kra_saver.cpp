@@ -271,7 +271,7 @@ bool KisKraSaver::saveStoryboard(KoStore *store, KisImageSP image, const QString
     Q_UNUSED(uri);
 
     bool success = true;
-    if (m_d->doc->getStoryboardItemList().count() == 0) {
+    if (m_d->doc->getStoryboardItemList().isEmpty() && m_d->doc->getStoryboardCommentsList().isEmpty()) {
         return true;
     } else {
         if (!store->open(m_d->imageName + STORYBOARD_PATH + "index.xml")) {
@@ -407,23 +407,8 @@ void KisKraSaver::saveResourcesToXML(QDomDocument &doc, QDomElement &element)
 
 void KisKraSaver::saveStoryboardToXML(QDomDocument& doc, QDomElement &element)
 {
-    //saving storyboard comments
-    QDomElement eCommentList = doc.createElement("StoryboardCommentList");
-    for (StoryboardComment comment: m_d->doc->getStoryboardCommentsList()) {
-        QDomElement commentElement = doc.createElement("storyboardcomment");
-        commentElement.setAttribute("name", comment.name);
-        commentElement.setAttribute("visibility", comment.visibility);
-        eCommentList.appendChild(commentElement);
-    }
-    element.appendChild(eCommentList);
-
-    //saving storyboard items
-    QDomElement eItemList = doc.createElement("StoryboardItemList");
-    for (StoryboardItemSP item : m_d->doc->getStoryboardItemList()) {
-        QDomElement eItem =  item->toXML(doc);
-        eItemList.appendChild(eItem);
-    }
-    element.appendChild(eItemList);
+    const KisStoryboardData storyboard{m_d->doc->getStoryboardItemList(), m_d->doc->getStoryboardCommentsList()};
+    storyboard.saveXML(doc, element);
 }
 
 void KisKraSaver::saveAnimationMetadataToXML(QDomDocument &doc, QDomElement &element, KisImageSP image)

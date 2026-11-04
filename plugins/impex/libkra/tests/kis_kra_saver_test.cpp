@@ -56,6 +56,7 @@
 #include <filestest.h>
 #include <testui.h>
 #include <KisPaintingEngineTestScope.h>
+#include <KisGpuPixelTolerance.h>
 
 
 const QString KraMimetype = "application/x-krita";
@@ -698,35 +699,166 @@ void KisKraSaverTest::testRoundTripShapeSelection()
 }
 
 
+namespace {
+StoryboardItemSP storyboardItem(int frame, const QString &name, int seconds, int frames, const QString &text, int scroll)
+{
+    auto item = QSharedPointer<StoryboardItem>::create();
+    ThumbnailData thumbnail;
+    thumbnail.frameNum = frame;
+    item->appendChild(QVariant::fromValue(thumbnail));
+    item->appendChild(name);
+    item->appendChild(seconds);
+    item->appendChild(frames);
+    CommentBox comment;
+    comment.content = text;
+    comment.scrollValue = scroll;
+    item->appendChild(QVariant::fromValue(comment));
+    return item;
+}
+
+void verifyStoryboard(KisDocument &document, const KisStoryboardData &expected)
+{
+    const auto items = document.getStoryboardItemList();
+    const auto comments = document.getStoryboardCommentsList();
+    QCOMPARE(items.size(), expected.items.size());
+    QCOMPARE(comments.size(), expected.comments.size());
+    for (qsizetype i = 0; i < items.size(); ++i) {
+        const auto actual = items[i];
+        const auto reference = expected.items[i];
+        QCOMPARE(actual->childCount(), reference->childCount());
+        QCOMPARE(qvariant_cast<ThumbnailData>(actual->child(StoryboardItem::FrameNumber)->data()).frameNum.toInt(),
+                 qvariant_cast<ThumbnailData>(reference->child(StoryboardItem::FrameNumber)->data()).frameNum.toInt());
+        for (int field = StoryboardItem::ItemName; field < StoryboardItem::Comments; ++field)
+            QCOMPARE(actual->child(field)->data(), reference->child(field)->data());
+        for (int field = StoryboardItem::Comments; field < actual->childCount(); ++field) {
+            const auto value = qvariant_cast<CommentBox>(actual->child(field)->data());
+            const auto ref = qvariant_cast<CommentBox>(reference->child(field)->data());
+            QCOMPARE(value.content.toString(), ref.content.toString());
+            QCOMPARE(value.scrollValue.toInt(), ref.scrollValue.toInt());
+        }
+    }
+    for (qsizetype i = 0; i < comments.size(); ++i) {
+        QCOMPARE(comments[i].name, expected.comments[i].name);
+        QCOMPARE(comments[i].visibility, expected.comments[i].visibility);
+    }
+}
+}
+
 void KisKraSaverTest::testRoundTripStoryboard()
 {
-    const KoColorSpace * cs = KoColorSpaceRegistry::instance()->rgb8();
-    QRect imageRect(0,0,512,512);
+    const TestUtil::PaintingEngineScope gpuEngine(true);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto original = directory.filePath(QStringLiteral("original.kra"));
+    const auto edited = directory.filePath(QStringLiteral("edited.kra"));
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QScopedPointer<KisDocument> source(KisPart::instance()->createDocument());
+    KisImageSP image = new KisImage(nullptr, 65, 2, cs, "Storyboard");
+    KisPaintLayerSP layer = new KisPaintLayer(image, "Paint", OPACITY_OPAQUE_U8);
+    image->addNode(layer);
+    layer->paintDevice()->fill(image->bounds(), KoColor(QColor(10, 80, 170, 129), cs));
+    source->setCurrentImage(image);
+    image->initialRefreshGraph();
+    image->waitForDone();
+    QByteArray expectedPixels(65 * 2 * 4, Qt::Uninitialized);
+    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(expectedPixels.data()), 0, 0, 65, 2);
 
-    QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
-    KisImageSP image = new KisImage(new KisSurrogateUndoStore(), imageRect.width(), imageRect.height(), cs, "test image");
-    doc->setCurrentImage(image);
+    KisStoryboardData expected;
+    expected.items = {storyboardItem(12, QStringLiteral("場面 <一>"), 3, 7, QStringLiteral("注釈 & 本文"), 11),
+                      storyboardItem(91, QStringLiteral("Scene two"), 0, 23, QStringLiteral("Second comment"), 29)};
+    CommentBox detail;
+    detail.content = QStringLiteral("Additional notes\n次の行");
+    detail.scrollValue = 5;
+    for (const auto &item : expected.items) item->appendChild(QVariant::fromValue(detail));
+    StoryboardComment visible, hidden;
+    visible.name = QStringLiteral("説明");
+    hidden.name = QStringLiteral("Hidden notes");
+    hidden.visibility = false;
+    expected.comments = {visible, hidden};
+    source->setStoryboardItemList(expected.items);
+    source->setStoryboardCommentList(expected.comments);
+    QVERIFY2(source->exportDocumentSync(original, source->mimeType()), qPrintable(source->errorMessage()));
 
-    // TODO: make initialization of StoryboardItem more fool-proof
-    StoryboardItemSP item(new StoryboardItem());
-    item->appendChild(QVariant::fromValue(ThumbnailData()));
-    item->appendChild("scene0");
-    item->appendChild(10);
-    item->appendChild(2);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    QVERIFY2(document->openPath(original, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+    QVERIFY(document->image()->gpuImage());
+    verifyStoryboard(*document, expected);
 
-    StoryboardItemList list;
-    list.append(item);
+    expected.items.move(1, 0);
+    expected.items[0]->child(StoryboardItem::ItemName)->setData(QStringLiteral("編集した場面"));
+    expected.comments.move(1, 0);
+    expected.comments[0].name = QStringLiteral("Edited notes");
+    expected.comments[0].visibility = true;
+    document->setStoryboardItemList(expected.items);
+    document->setStoryboardCommentList(expected.comments);
+    // The native format follows the document title when renaming its sidecars.
+    document->documentInfo()->setAboutInfo("title", QStringLiteral("Renamed storyboard"));
+    QVERIFY2(document->exportDocumentSync(edited, document->mimeType()), qPrintable(document->errorMessage()));
 
-    doc->setStoryboardItemList(list);
-    bool result = doc->exportDocumentSync("storyboardroundtriptest.kra", doc->mimeType());
-    QVERIFY(result);
+    for (const bool gpu : {true, false}) {
+        const TestUtil::PaintingEngineScope engine(gpu);
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(edited, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        QCOMPARE(bool(reopened->image()->gpuImage()), gpu);
+        verifyStoryboard(*reopened, expected);
+        const auto restoredLayer = reopened->image()->root()->firstChild();
+        QCOMPARE(restoredLayer->uuid(), layer->uuid());
+        QByteArray pixels(expectedPixels.size(), Qt::Uninitialized);
+        restoredLayer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), 0, 0, 65, 2);
+        QCOMPARE_PIXELS_WITHIN_STEP(pixels, expectedPixels);
+    }
+}
 
-    QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->setFileBatchMode(true);
-    result = doc2->openPath("storyboardroundtriptest.kra", KisDocument::DontAddToRecent);
-    QVERIFY(result);
+void KisKraSaverTest::testRoundTripEmptyStoryboard()
+{
+    const TestUtil::PaintingEngineScope gpuEngine(true);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto commentsOnly = directory.filePath(QStringLiteral("comments-only.kra"));
+    const auto cleared = directory.filePath(QStringLiteral("cleared.kra"));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    QVERIFY(document->newImage("Empty storyboard", 2, 1, KoColorSpaceRegistry::instance()->rgb8(),
+                               KoColor(Qt::white, KoColorSpaceRegistry::instance()->rgb8()), KisConfig::RASTER_LAYER, 1, "", 1.0));
+    QVERIFY(document->image()->gpuImage());
+    KisStoryboardData expected;
+    StoryboardComment comment;
+    comment.name = QStringLiteral("Comment without scenes");
+    comment.visibility = false;
+    expected.comments = {comment};
+    document->setStoryboardCommentList(expected.comments);
+    QVERIFY2(document->exportDocumentSync(commentsOnly, KisDocument::nativeFormatMimeType()), qPrintable(document->errorMessage()));
+    QVERIFY2(document->openPath(commentsOnly, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+    verifyStoryboard(*document, expected);
 
-    QCOMPARE(doc2->getStoryboardItemList().count(), list.count());
+    document->setStoryboardCommentList({});
+    QVERIFY2(document->exportDocumentSync(cleared, KisDocument::nativeFormatMimeType()), qPrintable(document->errorMessage()));
+    QScopedPointer<KoStore> store(KoStore::createStore(cleared, KoStore::Read, "", KoStore::Zip));
+    QVERIFY(!store->bad());
+    QVERIFY(store->open(QStringLiteral("maindoc.xml")));
+    QDomDocument xml;
+    QVERIFY(xml.setContent(store->device()->readAll()));
+    QVERIFY(store->close());
+    const auto title = xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).attribute(QStringLiteral("name"));
+    QVERIFY(!store->hasFile(title + QStringLiteral("/storyboard/index.xml")));
+
+    for (const bool gpu : {true, false}) {
+        const TestUtil::PaintingEngineScope engine(gpu);
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(commentsOnly, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        QCOMPARE(bool(reopened->image()->gpuImage()), gpu);
+        verifyStoryboard(*reopened, expected);
+        const auto resaved = directory.filePath(gpu ? QStringLiteral("gpu-comments.kra") : QStringLiteral("cpu-comments.kra"));
+        QVERIFY2(reopened->exportDocumentSync(resaved, KisDocument::nativeFormatMimeType()), qPrintable(reopened->errorMessage()));
+        QVERIFY2(reopened->openPath(resaved, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        verifyStoryboard(*reopened, expected);
+        reopened->setStoryboardItemList({storyboardItem(0, "Stale", 1, 0, "", 0)});
+        QVERIFY2(reopened->openPath(cleared, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        verifyStoryboard(*reopened, {});
+    }
 }
 
 void KisKraSaverTest::testExportToReadonly()

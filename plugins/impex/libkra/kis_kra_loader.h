@@ -115,8 +115,6 @@ private:
     void loadGrid(const QDomElement& elem);
     void loadGuides(const QDomElement& elem);
     void loadMirrorAxis(const QDomElement& elem);
-    void loadStoryboardItemList(const QDomElement& elem);
-    void loadStoryboardCommentList(const QDomElement& elem);
     void loadAudioXML(QDomDocument& xmlDoc, QDomElement &xmlElement, KisDocument* kisDoc);
     QList<KoColor> loadKoColors(const QDomElement& elem) const;
 private:

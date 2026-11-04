@@ -639,18 +639,9 @@ void KisKraLoader::loadStoryboards(KoStore *store, KisDocument */*doc*/)
         document.setContent(data);
         store->close();
 
-        QDomElement root = document.documentElement();
-        QDomNode node;
-        for (node = root.lastChild(); !node.isNull(); node = node.previousSibling()) {
-            if (node.isElement()) {
-                QDomElement element = node.toElement();
-                if (element.tagName() == "StoryboardItemList") {
-                    loadStoryboardItemList(element);
-                } else if (element.tagName() == "StoryboardCommentList") {
-                    loadStoryboardCommentList(element);
-                }
-            }
-        }
+        const auto storyboard = KisStoryboardData::fromXML(document.documentElement());
+        m_d->storyboardItemList.append(storyboard.items);
+        m_d->storyboardCommentList.append(storyboard.comments);
     }
 }
 
@@ -1496,37 +1487,6 @@ void KisKraLoader::loadMirrorAxis(const QDomElement &elem)
     KisMirrorAxisConfig mirrorAxis;
     mirrorAxis.loadFromXml(domElement);
     m_d->document->setMirrorAxisConfig(mirrorAxis);
-}
-
-void KisKraLoader::loadStoryboardItemList(const QDomElement& elem)
-{
-    QDomNode child;
-    for (child = elem.firstChild(); !child.isNull(); child = child.nextSibling()) {
-        QDomElement e = child.toElement();
-        if (e.tagName() == "storyboarditem") {
-            StoryboardItemSP item = toQShared( new StoryboardItem() );
-            item->loadXML(e);
-            m_d->storyboardItemList.append(item);
-        }
-    }
-}
-
-void KisKraLoader::loadStoryboardCommentList(const QDomElement& elem)
-{
-    QDomNode child;
-    for (child = elem.firstChild(); !child.isNull(); child = child.nextSibling()) {
-        QDomElement e = child.toElement();
-        if (e.tagName() == "storyboardcomment") {
-            StoryboardComment comment;
-            if (e.hasAttribute("visibility")) {
-                comment.visibility = e.attribute("visibility").toInt();
-            }
-            if (e.hasAttribute("name")) {
-                comment.name = e.attribute("name");
-            }
-            m_d->storyboardCommentList.append(comment);
-        }
-    }
 }
 
 void KisKraLoader::loadAudioXML(QDomDocument &xmlDoc, QDomElement &xmlElement, KisDocument *kisDoc)

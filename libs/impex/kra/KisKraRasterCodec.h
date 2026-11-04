@@ -74,6 +74,10 @@ struct ImageMetadata
      */
     QByteArray animation;
     QByteArray animationMetadata;
+    /** Native storyboard-info XML, interpreted by the storyboard owner.
+     * Missing preserves retained data; present empty removes the sidecar.
+     */
+    std::optional<QByteArray> storyboard;
     /** Nonempty values replace the saved profile label; empty retains its current label. */
     QString profileName;
     /** Root and public-layer XMP packets. Missing values preserve unowned data;

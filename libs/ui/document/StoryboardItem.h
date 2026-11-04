@@ -206,4 +206,14 @@ private:
     QVector<QSharedPointer<StoryboardChild>> m_childData;
 };
 
+/** Native KRA storyboard lists shared by the document and format owners. */
+struct KRITAUI_EXPORT KisStoryboardData
+{
+    StoryboardItemList items;
+    StoryboardCommentList comments;
+
+    static KisStoryboardData fromXML(const QDomElement &root);
+    void saveXML(QDomDocument &document, QDomElement &root) const;
+};
+
 #endif

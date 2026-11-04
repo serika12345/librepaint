@@ -584,6 +584,14 @@ Outcome extractMetadata(const QDomElement &image, const QMap<QString, QByteArray
         if (!value.setContent(metadata.animationMetadata) || value.documentElement().tagName() != QLatin1String("animation-metadata"))
             return invalid(QStringLiteral("Invalid KRA animation metadata"));
     }
+    const auto storyboardPath = image.attribute(QStringLiteral("name")) + QStringLiteral("/storyboard/index.xml");
+    if (files.contains(storyboardPath)) {
+        metadata.storyboard = files.value(storyboardPath);
+        if (metadata.storyboard->size() > limits.xmlBytes) return capacity();
+        QDomDocument value;
+        if (!value.setContent(*metadata.storyboard) || value.documentElement().tagName() != QLatin1String("storyboard-info"))
+            return invalid(QStringLiteral("Invalid KRA storyboard metadata"));
+    }
     metadata.documentInfo = files.value(QStringLiteral("documentinfo.xml"));
     if (metadata.documentInfo.size() > limits.xmlBytes) return capacity();
     if (files.contains(QStringLiteral("documentinfo.xml"))) {
@@ -1243,6 +1251,12 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
          (!animationMetadata.setContent(metadata.animationMetadata) ||
           animationMetadata.documentElement().tagName() != QLatin1String("animation-metadata"))))
         return invalid(QStringLiteral("Invalid KRA animation settings"));
+    if (metadata.storyboard && !metadata.storyboard->isEmpty()) {
+        if (metadata.storyboard->size() > limits.xmlBytes) return capacity();
+        QDomDocument storyboard;
+        if (!storyboard.setContent(*metadata.storyboard) || storyboard.documentElement().tagName() != QLatin1String("storyboard-info"))
+            return invalid(QStringLiteral("Invalid KRA storyboard metadata"));
+    }
     QDomDocument xml;
     QDomElement image;
     if (document.description.isEmpty()) image = createDescription(xml);
@@ -1311,6 +1325,11 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     }
     if (!metadata.animationMetadata.isEmpty())
         files.insert(folder + QStringLiteral("/animation/index.xml"), metadata.animationMetadata);
+    if (metadata.storyboard) {
+        const auto path = folder + QStringLiteral("/storyboard/index.xml");
+        if (metadata.storyboard->isEmpty()) files.remove(path);
+        else files.insert(path, *metadata.storyboard);
+    }
     const auto prefix = folder + QStringLiteral("/annotations/");
     auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
     for (auto entry = annotations.firstChildElement(); !entry.isNull(); entry = entry.nextSiblingElement())
