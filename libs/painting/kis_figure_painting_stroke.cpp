@@ -25,6 +25,8 @@
 #include "kis_stroke_strategy.h"
 #include "kis_types.h"
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuOperationCapabilities.h>
+#include <KisGpuCpuBrushStroke.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <kis_debug.h>
@@ -32,6 +34,16 @@
 #include <cstring>
 
 namespace Gpu = LibrePaint::Image::Gpu;
+
+struct KisFigurePaintingStroke::CpuStroke
+{
+    KisImageSP source;
+    KisNodeSP sourceNode;
+    std::unique_ptr<KisGpuCpuBrushStroke> transfer;
+    QMetaObject::Connection cancellation;
+    bool cancelled = false;
+    ~CpuStroke() { QObject::disconnect(cancellation); }
+};
 
 struct KisFigurePaintingStroke::GpuStroke
 {
@@ -151,6 +163,25 @@ KisFigurePaintingStroke::KisFigurePaintingStroke(
     KisFigurePaintingOptions::FillStyle fillStyle,
     QTransform fillTransform)
 {
+    auto preset = resourceManager->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
+    const bool cpu = image && image->gpuImage() && preset &&
+        Gpu::brushExecutionLocation(preset->paintOp().id()) == Gpu::ExecutionLocation::Cpu;
+    if (cpu) {
+        m_cpuStroke = std::make_unique<CpuStroke>();
+        m_cpuStroke->source = image;
+        m_cpuStroke->sourceNode = currentNode;
+        QString diagnostic;
+        m_cpuStroke->transfer = KisGpuCpuBrushStroke::createForPreset(image, currentNode, preset, diagnostic);
+        if (!m_cpuStroke->transfer) {
+            warnKrita << diagnostic;
+            return;
+        }
+        const auto state = m_cpuStroke.get();
+        state->cancellation = QObject::connect(image.data(), &KisImage::sigStrokeCancellationRequested,
+            state->transfer->image().data(), [state] { state->cancelled = true; });
+        image = state->transfer->image();
+        currentNode = state->transfer->node();
+    }
     if (image && image->gpuImage()) {
         m_gpuStroke = std::make_unique<GpuStroke>();
         m_gpuStroke->image = image;
@@ -183,7 +214,7 @@ KisFigurePaintingStroke::KisFigurePaintingStroke(
     m_resources =
         new KisResourcesSnapshot(image,
                                  currentNode,
-                                 resourceManager->canvasResourcesInterface());
+                                 resourceManager->canvasResourcesInterface(), {}, {}, cpu ? preset : KisPaintOpPresetSP{});
 
     setupPaintStyles(m_resources, strokeStyle, fillStyle, fillTransform);
 
@@ -252,9 +283,20 @@ KisFigurePaintingStroke::~KisFigurePaintingStroke()
         m_gpuStroke->finish();
         return;
     }
+    if (!m_strokeId) return;
+    if (m_cpuStroke && m_cpuStroke->cancelled) {
+        m_strokesFacade->cancelStroke(m_strokeId);
+        m_cpuStroke->transfer->image()->waitForDone();
+        return;
+    }
     m_strokesFacade->addJob(m_strokeId,
         new KisAsynchronousStrokeUpdateHelper::UpdateData(true));
     m_strokesFacade->endStroke(m_strokeId);
+    if (m_cpuStroke) {
+        m_cpuStroke->transfer->image()->waitForDone();
+        if (!m_cpuStroke->cancelled && !m_cpuStroke->transfer->commit())
+            warnKrita << "A CPU figure stroke could not be published to the GPU document.";
+    }
 }
 
 void KisFigurePaintingStroke::paintLine(const KisPaintInformation &pi0,
@@ -272,6 +314,7 @@ void KisFigurePaintingStroke::paintLine(const KisPaintInformation &pi0,
         m_gpuStroke->setFigure({Gpu::ShapeKind::Line, pi0.pos(), pi1.pos(), 0}, {sample(pi0), sample(pi1)});
         return;
     }
+    if (!m_strokeId) return;
     m_strokesFacade->addJob(m_strokeId,
         new FreehandStrokeStrategy::Data(0,
                                          pi0, pi1));
@@ -287,6 +330,7 @@ void KisFigurePaintingStroke::paintPolyline(const vQPointF &points)
         m_gpuStroke->setFigure({Gpu::ShapeKind::Polyline, points.first(), points.last(), 0}, samples);
         return;
     }
+    if (!m_strokeId) return;
     m_strokesFacade->addJob(m_strokeId,
         new FreehandStrokeStrategy::Data(0,
                                          FreehandStrokeStrategy::Data::POLYLINE,
@@ -305,6 +349,7 @@ void KisFigurePaintingStroke::paintPolygon(const vQPointF &points)
         m_gpuStroke->setFigure({Gpu::ShapeKind::Polygon, vertices.first(), vertices.last(), 0}, samples);
         return;
     }
+    if (!m_strokeId) return;
     m_strokesFacade->addJob(m_strokeId,
         new FreehandStrokeStrategy::Data(0,
                                          FreehandStrokeStrategy::Data::POLYGON,
@@ -318,6 +363,7 @@ void KisFigurePaintingStroke::paintRect(const QRectF &rect)
                               {{rect.topLeft(), 1}, {rect.bottomRight(), 1}});
         return;
     }
+    if (!m_strokeId) return;
     m_strokesFacade->addJob(m_strokeId,
         new FreehandStrokeStrategy::Data(0,
                                          FreehandStrokeStrategy::Data::RECT,
@@ -331,6 +377,7 @@ void KisFigurePaintingStroke::paintEllipse(const QRectF &rect)
                               {{rect.topLeft(), 1}, {rect.bottomRight(), 1}});
         return;
     }
+    if (!m_strokeId) return;
     m_strokesFacade->addJob(m_strokeId,
         new FreehandStrokeStrategy::Data(0,
                                          FreehandStrokeStrategy::Data::ELLIPSE,
@@ -373,6 +420,7 @@ void KisFigurePaintingStroke::paintPainterPath(const QPainterPath &path)
         m_gpuStroke->setFigure(shape, samples);
         return;
     }
+    if (!m_strokeId) return;
     m_strokesFacade->addJob(m_strokeId,
         new FreehandStrokeStrategy::Data(0,
                                          FreehandStrokeStrategy::Data::PAINTER_PATH,
@@ -385,7 +433,7 @@ void KisFigurePaintingStroke::setFGColorOverride(const KoColor &color)
         m_gpuStroke->setColor(color);
         return;
     }
-    m_resources->setFGColorOverride(color);
+    if (m_resources) m_resources->setFGColorOverride(color);
 }
 
 void KisFigurePaintingStroke::setBGColorOverride(const KoColor &color)
@@ -394,7 +442,7 @@ void KisFigurePaintingStroke::setBGColorOverride(const KoColor &color)
         m_gpuStroke->backgroundColor = color;
         return;
     }
-    m_resources->setBGColorOverride(color);
+    if (m_resources) m_resources->setBGColorOverride(color);
 }
 
 void KisFigurePaintingStroke::setSelectionOverride(KisSelectionSP m_selection)
@@ -404,7 +452,7 @@ void KisFigurePaintingStroke::setSelectionOverride(KisSelectionSP m_selection)
         m_gpuStroke->ignoreSelection = !m_selection;
         return;
     }
-    m_resources->setSelectionOverride(m_selection);
+    if (m_resources) m_resources->setSelectionOverride(m_selection);
 }
 
 void KisFigurePaintingStroke::setBrush(const KisPaintOpPresetSP &brush)
@@ -415,7 +463,7 @@ void KisFigurePaintingStroke::setBrush(const KisPaintOpPresetSP &brush)
         else m_gpuStroke->resources.brush.diameter = brush->settings()->paintOpSize();
         return;
     }
-    m_resources->setBrush(brush);
+    if (m_resources) m_resources->setBrush(brush);
 }
 
 void KisFigurePaintingStroke::paintPainterPathQPen(const QPainterPath path,
@@ -426,6 +474,7 @@ void KisFigurePaintingStroke::paintPainterPathQPen(const QPainterPath path,
         m_gpuStroke->resources.diagnostic = QStringLiteral("GPU pen paths require a pen operation.");
         return;
     }
+    if (!m_strokeId) return;
     m_strokesFacade->addJob(m_strokeId,
         new FreehandStrokeStrategy::Data(0,
                                          FreehandStrokeStrategy::Data::QPAINTER_PATH,
@@ -441,6 +490,7 @@ void KisFigurePaintingStroke::paintPainterPathQPenFill(
         m_gpuStroke->resources.diagnostic = QStringLiteral("GPU filled pen paths require a pen fill operation.");
         return;
     }
+    if (!m_strokeId) return;
     m_strokesFacade->addJob(m_strokeId,
         new FreehandStrokeStrategy::Data(0,
                                          FreehandStrokeStrategy::Data::QPAINTER_PATH_FILL,

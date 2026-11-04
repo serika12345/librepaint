@@ -358,6 +358,8 @@ private Q_SLOTS:
     void cpuFiltersKeepNativeEditing();
     void cpuBrushesKeepNativeEditing_data();
     void cpuBrushesKeepNativeEditing();
+    void cpuFiguresKeepNativeEditing_data();
+    void cpuFiguresKeepNativeEditing();
     void cpuMaskFiltersKeepNativeEditing_data();
     void cpuMaskFiltersKeepNativeEditing();
     void filterDialogPreviewsKeepOneHistory_data();

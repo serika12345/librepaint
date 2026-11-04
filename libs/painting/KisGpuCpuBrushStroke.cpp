@@ -17,6 +17,8 @@
 #include <kis_filter_mask.h>
 #include <kis_adjustment_layer.h>
 #include <filter/kis_filter_configuration.h>
+#include <brushengine/kis_paintop_preset.h>
+#include <brushengine/kis_paintop_settings.h>
 #include <kis_default_bounds.h>
 #include <kis_undo_stores.h>
 #include <KisRunnableStrokeJobData.h>
@@ -350,6 +352,31 @@ std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::create(KisImageSP im
         diagnostic = i18n("The brush pixels could not be prepared: %1", QString::fromUtf8(error.what()));
         return {};
     }
+}
+
+std::unique_ptr<KisGpuCpuBrushStroke> KisGpuCpuBrushStroke::createForPreset(
+    KisImageSP image, KisNodeSP node, KisPaintOpPresetSP &preset, QString &diagnostic)
+{
+    const auto id = preset->paintOp().id();
+    const bool duplicate = id == QLatin1String("duplicate");
+    const bool sampleProjection = (id == QLatin1String("colorsmudge") && preset->settings()->getBool("MergedPaint", false)) ||
+        (duplicate && preset->settings()->getBool("Duplicateop/CloneFromProjection", false));
+    KisNodeSP samplingNode;
+    if (duplicate && !sampleProjection) {
+        samplingNode = preset->settings()->sourceNode();
+        if (!samplingNode || !samplingNode->graphListener()) samplingNode = node;
+    }
+    bool samplingParent = false;
+    if (samplingNode && node) for (auto ancestor = node->parent(); ancestor; ancestor = ancestor->parent())
+        samplingParent |= ancestor == samplingNode;
+    const auto projection = duplicate && (sampleProjection || samplingParent) ? Projection::Updating :
+        sampleProjection ? Projection::Captured : Projection::None;
+    auto result = create(image, node, diagnostic, projection, samplingNode);
+    if (result && samplingNode) {
+        preset = preset->clone().dynamicCast<KisPaintOpPreset>();
+        preset->settings()->setSourceNode(result->samplingNode());
+    }
+    return result;
 }
 
 KisGpuCpuBrushStroke::~KisGpuCpuBrushStroke()

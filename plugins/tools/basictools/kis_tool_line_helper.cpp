@@ -17,6 +17,7 @@
 #include "kis_painting_information_builder.h"
 #include "kis_image.h"
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuOperationCapabilities.h>
 #include <KLocalizedString>
 #include "kis_smoothing_options.h"
 #include "kis_tool_freehand_helper.h"
@@ -118,7 +119,8 @@ void KisToolLineHelper::repaintLine(KisImageWSP image, KisNodeSP node,
         if (!guard || !isRunning()) return;
         ++it;
     }
-    if (const auto owner = image->gpuImage()) {
+    if (const auto owner = image->gpuImage(); owner &&
+        LibrePaint::Image::Gpu::brushExecutionLocation(preset->paintOp().id()) == LibrePaint::Image::Gpu::ExecutionLocation::Gpu) {
         namespace Gpu = LibrePaint::Image::Gpu;
         const auto result = owner->updateShape(owner->operations().activeOperation(),
             {Gpu::ShapeKind::Line, m_d->linePoints.first().pos(), m_d->linePoints.last().pos()});

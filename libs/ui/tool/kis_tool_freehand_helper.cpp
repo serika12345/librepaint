@@ -446,31 +446,14 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
             return;
         }
         QString diagnostic;
-        const bool duplicate = preset->paintOp().id() == QLatin1String("duplicate");
-        const bool sampleProjection = (preset->paintOp().id() == QLatin1String("colorsmudge") &&
-            preset->settings()->getBool("MergedPaint", false)) ||
-            (duplicate && preset->settings()->getBool("Duplicateop/CloneFromProjection", false));
-        KisNodeSP samplingNode;
-        if (duplicate && !sampleProjection) {
-            samplingNode = preset->settings()->sourceNode();
-            if (!samplingNode || !samplingNode->graphListener()) samplingNode = currentNode;
-        }
-        bool samplingParent = false;
-        if (samplingNode && currentNode) for (auto ancestor = currentNode->parent(); ancestor; ancestor = ancestor->parent())
-            samplingParent |= ancestor == samplingNode;
-        using Projection = KisGpuCpuBrushStroke::Projection;
-        const auto projection = duplicate && (sampleProjection || samplingParent) ? Projection::Updating :
-            sampleProjection ? Projection::Captured : Projection::None;
-        m_d->cpuStroke = KisGpuCpuBrushStroke::create(image, currentNode, diagnostic, projection, samplingNode);
+        auto preparedPreset = preset;
+        m_d->cpuStroke = KisGpuCpuBrushStroke::createForPreset(image, currentNode, preparedPreset, diagnostic);
         if (!m_d->cpuStroke) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(diagnostic);
             return;
         }
-        if (samplingNode) {
-            cpuPreset = preset->clone().dynamicCast<KisPaintOpPreset>();
-            cpuPreset->settings()->setSourceNode(m_d->cpuStroke->samplingNode());
-        }
+        if (preparedPreset != preset) cpuPreset = preparedPreset;
         disconnect(m_d->gpuCancellation);
         m_d->gpuCancellation = connect(image.data(), &KisImage::sigStrokeCancellationRequested,
                                       this, &KisToolFreehandHelper::cancelPaint);

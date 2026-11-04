@@ -27,7 +27,8 @@ class KisStrokesFacade;
  *
  * The image and node are retained by the captured painting state. The canvas
  * resource provider is borrowed only while the constructor captures its
- * resource interface. Destruction completes the stroke.
+ * resource interface. CPU brush engines render into transferred native pixels
+ * and publish one GPU document edit. Destruction completes the stroke.
  */
 class KRITAPAINTING_EXPORT KisFigurePaintingStroke
 {
@@ -75,6 +76,8 @@ private:
     KisStrokesFacade *m_strokesFacade = nullptr;
     struct GpuStroke;
     std::unique_ptr<GpuStroke> m_gpuStroke;
+    struct CpuStroke;
+    std::unique_ptr<CpuStroke> m_cpuStroke;
 };
 
 #endif

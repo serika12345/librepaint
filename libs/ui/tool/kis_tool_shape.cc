@@ -35,6 +35,7 @@
 #include <kis_painting_information_builder.h>
 #include <kis_tool_freehand_helper.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuOperationCapabilities.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_paint_device.h>
 #include <kis_figure_painting_stroke.h>
@@ -119,7 +120,7 @@ void KisToolShape::paintGpuPolyline(const QVector<QPointF> &points, bool closed,
     if (vertices.size() < 2) return;
     namespace Gpu = LibrePaint::Image::Gpu;
     paintGpuFigure({closed ? Gpu::ShapeKind::Polygon : Gpu::ShapeKind::Polyline, vertices.first(), vertices.last(), 0},
-                   vertices, name);
+                   points, name);
 }
 
 void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, const QVector<QPointF> &points,
@@ -128,8 +129,8 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
     namespace Gpu = LibrePaint::Image::Gpu;
     auto capturedShape = shape;
     auto capturedPoints = points;
+    QPainterPath path;
     if (shape.kind == Gpu::ShapeKind::Ellipse || shape.kind == Gpu::ShapeKind::Rectangle || shape.kind == Gpu::ShapeKind::RoundedRectangle) {
-        QPainterPath path;
         const QRectF bounds(shape.first, shape.second);
         if (shape.kind == Gpu::ShapeKind::Ellipse) path.addEllipse(bounds);
         else if (shape.kind == Gpu::ShapeKind::RoundedRectangle)
@@ -156,6 +157,17 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
         }
     }
     auto *source = canvas()->resourceManager();
+    const auto preset = source->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
+    if (strokeStyle() != KisFigurePaintingOptions::StrokeStyleNone && preset &&
+        Gpu::brushExecutionLocation(preset->paintOp().id()) == Gpu::ExecutionLocation::Cpu) {
+        KisFigurePaintingStroke stroke(name, image(), currentNode(), source, strokeStyle(), fillStyle(), fillTransform());
+        if (points.isEmpty()) stroke.paintPainterPath(path);
+        else if (shape.kind == Gpu::ShapeKind::Polygon) stroke.paintPolygon(points);
+        else stroke.paintPolyline(points);
+        return;
+    }
+    if (shape.kind == Gpu::ShapeKind::Polygon && capturedPoints.size() > 1 && capturedPoints.first() == capturedPoints.last())
+        capturedPoints.removeLast();
     const bool maskTarget = image()->isGpuEditableMaskView(currentNode());
     const auto *colorSpace = maskTarget ? KoColorSpaceRegistry::instance()->colorSpace(
         GrayAColorModelID.id(), Integer8BitsColorDepthID.id(), QString()) : image()->colorSpace();
