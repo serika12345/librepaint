@@ -50,7 +50,8 @@ add_dependencies(KisGpuOperationSmokeTest kritalcmsengine kritadefaulttools
     kritathreshold kritanormalize kritagradientmap kritapalettize kritaindexcolors
     kritafastcolortransferfilter kritahalftone kritascreentonegenerator kritaphongbumpmap
     kritaresettransparent kritapropagatecolors kritacolorgenerator kritapatterngenerator
-    kritagradientgenerator kritasimplexnoisegenerator kritamultigridpatterngenerator kritaqmic)
+    kritagradientgenerator kritasimplexnoisegenerator kritamultigridpatterngenerator kritaqmic
+    kritatoolpolygon kritatoolpolyline)
 if(TARGET kritaseexprgenerator)
     add_dependencies(KisGpuOperationSmokeTest kritaseexprgenerator)
 endif()
@@ -65,11 +66,12 @@ add_test(NAME libs-ui-artistic-filters-KisGpuOperationSmokeTest COMMAND KisGpuOp
 add_test(NAME libs-ui-color-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest colorFilters)
 add_test(NAME libs-ui-resource-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest resourceFilters)
 add_test(NAME libs-ui-generators-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest generators)
+add_test(NAME libs-ui-figures-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest figures)
 set_tests_properties(${gpu_operation_smoke_test} libs-ui-brushes-KisGpuOperationSmokeTest
     libs-ui-filters-KisGpuOperationSmokeTest libs-ui-spatial-filters-KisGpuOperationSmokeTest
     libs-ui-relief-filters-KisGpuOperationSmokeTest libs-ui-artistic-filters-KisGpuOperationSmokeTest
     libs-ui-color-filters-KisGpuOperationSmokeTest libs-ui-resource-filters-KisGpuOperationSmokeTest
-    libs-ui-generators-KisGpuOperationSmokeTest PROPERTIES
+    libs-ui-generators-KisGpuOperationSmokeTest libs-ui-figures-KisGpuOperationSmokeTest PROPERTIES
     TIMEOUT 300 RUN_SERIAL TRUE ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 kis_add_test(KisDocumentReplaceTest.cpp

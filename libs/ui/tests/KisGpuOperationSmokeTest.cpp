@@ -12,6 +12,7 @@
 #include <actions/input/KisApplicationInputActions.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <canvas/kis_coordinates_converter.h>
 #include <document/KisDocument.h>
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
@@ -41,6 +42,8 @@
 #include <kis_paintop_registry.h>
 #include <kis_paintop_preset.h>
 #include <kis_paintop_settings.h>
+#include <kis_tool.h>
+#include <KisFigurePaintingOptions.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLocator.h>
 #include <KisResourceStorage.h>
@@ -53,6 +56,9 @@
 #include <KisSwatch.h>
 #include <KoResourcePaths.h>
 #include <KoJsonTrader.h>
+#include <KoPointerEvent.h>
+#include <KoSnapGuide.h>
+#include <KoToolManager.h>
 #include <Node.h>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -69,6 +75,8 @@
 #include <QSettings>
 #include <QDialog>
 #include <QListWidget>
+#include <QComboBox>
+#include <QMouseEvent>
 #include <functional>
 #include <exception>
 #include <memory>
@@ -249,6 +257,107 @@ Outcome brush(SmokeDocument &doc, const QString &id)
     if (!errors.isEmpty()) return {location, errors.first().first().toString()};
     if (doc.owner->operations().undoCount() != history + 1 || doc.pixels() == before)
         return {location, QStringLiteral("Brush did not publish changed pixels and one history entry")};
+    return {location, {}};
+}
+
+Outcome figure(SmokeDocument &doc, const QString &id)
+{
+    const auto location = Gpu::brushExecutionLocation(QStringLiteral("roundmarker"));
+    auto preset = KisPaintOpRegistry::instance()->defaultPreset(KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    if (!preset) return {location, QStringLiteral("Figure brush preset was not registered")};
+    preset->setName(QStringLiteral("Operation smoke figure"));
+    preset->setFilename(QStringLiteral("operation-smoke-figure.kpp"));
+    QImage preview(16, 16, QImage::Format_ARGB32);
+    preview.fill(Qt::black);
+    preset->setImage(preview);
+    KisResourceModel presets(ResourceType::PaintOpPresets);
+    if (!presets.addResource(preset)) return {location, QStringLiteral("Could not register figure brush preset")};
+    if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
+    auto *resources = doc.window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(preset);
+    resources->setSize(6);
+    resources->setOpacity(1);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    resources->setEraserMode(false);
+    resources->setGlobalAlphaLock(false);
+    resources->setMirrorHorizontal(false);
+    resources->setMirrorVertical(false);
+    resources->setFGColor(KoColor(QColor(221, 19, 73), doc.image->colorSpace()));
+    auto *canvas = doc.view->canvasBase();
+    canvas->resourceManager()->setResource(KoCanvasResource::EffectiveZoom, 1.0);
+    canvas->snapGuide()->enableSnapping(false);
+    const bool line = id == QLatin1String("line");
+    const bool rectangle = id == QLatin1String("rectangle") || id == QLatin1String("rounded-rectangle");
+    const bool path = id == QLatin1String("bezier");
+    const bool vertices = path || id == QLatin1String("polygon") || id == QLatin1String("polyline");
+    const auto toolId = line ? QStringLiteral("KritaShape/KisToolLine") :
+        rectangle ? QStringLiteral("KritaShape/KisToolRectangle") :
+        path ? QStringLiteral("KisToolPath") :
+        id == QLatin1String("polygon") ? QStringLiteral("KisToolPolygon") :
+        id == QLatin1String("polyline") ? QStringLiteral("KisToolPolyline") : QStringLiteral("KritaShape/KisToolEllipse");
+    KoToolManager::instance()->switchToolRequested(toolId);
+    auto *tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(canvas, toolId));
+    if (!tool || KoToolManager::instance()->activeToolId() != toolId)
+        return {location, QStringLiteral("Figure tool could not be activated")};
+    const auto cancel = qScopeGuard([&] { tool->requestStrokeCancellation(); });
+    if (!line) {
+        QComboBox *outline = nullptr, *fill = nullptr;
+        for (QWidget *panel : tool->optionWidgets()) {
+            if (auto *box = panel->findChild<QComboBox *>(QStringLiteral("cmbOutline"))) outline = box;
+            if (auto *box = panel->findChild<QComboBox *>(QStringLiteral("cmbFill"))) fill = box;
+        }
+        if (!outline || !fill) return {location, QStringLiteral("Figure painting options were not available")};
+        outline->setCurrentIndex(KisFigurePaintingOptions::StrokeStyleForeground);
+        fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleNone);
+    }
+    if (rectangle) {
+        const int radius = id == QLatin1String("rounded-rectangle") ? 8 : 0;
+        if (!QMetaObject::invokeMethod(tool, "roundCornersChanged", Qt::DirectConnection,
+                                      Q_ARG(int, radius), Q_ARG(int, radius)))
+            return {location, QStringLiteral("Rectangle corner options were not available")};
+    }
+    // Drive the primary pointer actions and ordinary finish action, letting
+    // tool dispatch and the selected preset choose the drawing implementation.
+    const auto send = [&](QEvent::Type type, QPointF point, bool held = false) {
+        const auto button = type == QEvent::MouseMove ? Qt::NoButton : Qt::LeftButton;
+        const auto buttons = type == QEvent::MouseButtonPress || held ? Qt::LeftButton : Qt::NoButton;
+        QMouseEvent event(type, QPointF(), QPointF(), button, buttons, Qt::NoModifier);
+        KoPointerEvent input(&event, canvas->coordinatesConverter()->imageToDocument(point));
+        if (type == QEvent::MouseButtonPress) tool->beginPrimaryAction(&input);
+        else if (type == QEvent::MouseMove) tool->continuePrimaryAction(&input);
+        else tool->endPrimaryAction(&input);
+    };
+    const auto before = doc.pixels();
+    const auto history = doc.owner->operations().undoCount();
+    QSignalSpy errors(tool, &KoToolBase::statusTextChanged);
+    if (vertices) {
+        const QList<QPointF> points{{12, 12}, {32, 34}, {52, 12}};
+        for (const auto &point : points) {
+            send(QEvent::MouseMove, point);
+            send(QEvent::MouseButtonPress, point);
+            // Dragging a Bezier anchor creates handles, exercising an actual
+            // curve rather than the polygon's straight segments.
+            if (path) send(QEvent::MouseMove, point + QPointF(6, 0), true);
+            send(QEvent::MouseButtonRelease, path ? point + QPointF(6, 0) : point);
+        }
+        tool->requestStrokeEnd();
+    } else {
+        send(QEvent::MouseButtonPress, {12, 10});
+        send(QEvent::MouseMove, {50, 36}, true);
+        if (line) send(QEvent::MouseButtonRelease, {50, 36});
+        // Rectangle-based tools cancel synthetic releases, which also occur
+        // on focus loss. Their finish action commits this synthetic gesture.
+        else tool->requestStrokeEnd();
+    }
+    doc.image->waitForDone();
+    const auto after = doc.pixels();
+    if (doc.image->gpuImage() != doc.owner || before.size() != 64 * 48 * 4 ||
+        after.size() != before.size() || after == before || doc.owner->operations().undoCount() != history + 1) {
+        QString detail = QStringLiteral("Figure tool did not publish changed pixels and one history entry");
+        for (const auto &error : errors)
+            if (!error.first().toString().isEmpty()) detail += QStringLiteral("; ") + error.first().toString();
+        return {location, detail};
+    }
     return {location, {}};
 }
 
@@ -465,7 +574,7 @@ class KisGpuOperationSmokeTest : public QObject
 {
     Q_OBJECT
     enum class Group { Normal, Brushes, Filters, SpatialFilters, ReliefFilters, ArtisticFilters,
-                       ColorFilters, ResourceFilters, Generators };
+                       ColorFilters, ResourceFilters, Generators, Figures };
 private Q_SLOTS:
     void initTestCase()
     {
@@ -531,6 +640,11 @@ private Q_SLOTS:
     void generators()
     {
         runOperations(Group::Generators);
+    }
+
+    void figures()
+    {
+        runOperations(Group::Figures);
     }
 
 private:
@@ -665,11 +779,16 @@ private:
             probes.append({QStringLiteral("generator/") + id, false,
                 [id](SmokeDocument &doc) { return generator(doc, id); }, Group::Generators});
         probes.append({QStringLiteral("filter/gmic"), false, gmic, Group::Generators});
+        for (const auto &id : {QStringLiteral("line"), QStringLiteral("ellipse"), QStringLiteral("rectangle"),
+                              QStringLiteral("rounded-rectangle"), QStringLiteral("polygon"),
+                              QStringLiteral("polyline"), QStringLiteral("bezier")})
+            probes.append({QStringLiteral("tool/") + id, true,
+                [id](SmokeDocument &doc) { return figure(doc, id); }, Group::Figures});
         probes.erase(std::remove_if(probes.begin(), probes.end(), [group](const Probe &probe) {
             return probe.group != group;
         }), probes.end());
         static constexpr const char *functions[] = {"normalOperations", "brushes", "filters",
-            "spatialFilters", "reliefFilters", "artisticFilters", "colorFilters", "resourceFilters", "generators"};
+            "spatialFilters", "reliefFilters", "artisticFilters", "colorFilters", "resourceFilters", "generators", "figures"};
         const auto function = QString::fromLatin1(functions[int(group)]);
         const auto reportSuffix = group == Group::Normal ? QString() : QLatin1Char('.') + function;
         QJsonArray rows;
@@ -681,7 +800,7 @@ private:
             if (path.isEmpty()) return true;
             path += reportSuffix;
             QSaveFile file(path);
-            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b2b3"}, {"rows", rows}}).toJson();
+            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b3a"}, {"rows", rows}}).toJson();
             return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
         };
         QVERIFY(publish());

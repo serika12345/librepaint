@@ -89,7 +89,7 @@ def main(arguments=None):
             report = json.loads(report_path.read_text())
             summarize(report)
             for suffix in (".brushes", ".filters", ".spatialFilters", ".reliefFilters", ".artisticFilters",
-                           ".colorFilters", ".resourceFilters", ".generators"):
+                           ".colorFilters", ".resourceFilters", ".generators", ".figures"):
                 group = json.loads(Path(str(report_path) + suffix).read_text())
                 summarize(group)
                 report["rows"] += group["rows"]
