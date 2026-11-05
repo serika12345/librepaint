@@ -8,6 +8,7 @@
 #include "KisGpuPaintDeviceTransfer_p.h"
 #include "generator/kis_generator_layer.h"
 #include "kis_image.h"
+#include "kis_layer_utils.h"
 #include "KisNodeAdditionFlags.h"
 #include "KisImageSignals.h"
 #include "KisImageGlobalSelectionManagementInterface.h"
@@ -61,6 +62,21 @@ struct KisGpuImageViewState
     /** Frozen SVG and the native writer's encoding of its current public view. */
     QHash<QUuid, QPair<QByteArray, QByteArray>> vectorSelections;
 };
+
+void KisImage::copyGpuNodeMetadataTo(KisImage &target) const
+{
+    const auto state = const_cast<KisImage *>(this)->gpuViewState();
+    auto sources = state ? state->nodes : QHash<QUuid, KisNodeSP>();
+    sources.insert(root()->uuid(), root());
+    KisLayerUtils::recursiveApplyNodes(target.root(), [&sources](KisNodeSP node) {
+        auto source = sources.value(node->uuid());
+        if (!source) return;
+        node->setCollapsed(source->collapsed());
+        auto *layer = qobject_cast<KisLayer *>(node.data());
+        auto *sourceLayer = qobject_cast<KisLayer *>(source.data());
+        if (layer && sourceLayer) layer->metaData()->copyFrom(sourceLayer->metaData());
+    });
+}
 
 namespace {
 LibrePaint::Image::Gpu::Snapshot gpuNodeViewVersion(const LibrePaint::Image::Gpu::PaintImageSP &owner)

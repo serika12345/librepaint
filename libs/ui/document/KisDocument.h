@@ -682,6 +682,13 @@ public:
      */
     void setCurrentImage(KisImageSP image, bool forceInitialUpdate = true, KisNodeSP preActivatedNode = nullptr);
 
+    /** Moves committed GPU pixels and retained undo/redo versions to native CPU
+     * storage for whole-document operations such as animation. Preserves image,
+     * current node/device references, document metadata and saved state. Busy,
+     * over-budget or failed preparation leaves the GPU document attached.
+     */
+    bool migrateToCpu(qsizetype maximumBytes);
+
     /**
      * Set the image of the document preliminary, before the document
      * has completed loading. Some of the document items (shapes) may want

@@ -22,6 +22,16 @@ kis_add_tests(
     )
 add_dependencies(kis_animation_importer_test kritapngimport)
 
+kis_add_test(KisGpuCpuDocumentMigrationTest.cpp ../../../krita/krita.qrc
+    TEST_NAME KisGpuCpuDocumentMigrationTest
+    TEST_NAME_VAR gpu_cpu_document_migration_test
+    LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk)
+add_dependencies(KisGpuCpuDocumentMigrationTest kritakraimport kritakraexport
+    kritalcmsengine kritadefaulttools kritaroundmarkerpaintop)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${gpu_cpu_document_migration_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+endif()
+
 kis_add_test(KisDocumentReplaceTest.cpp
     TEST_NAME_VAR gpu_document_replace_test
     LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk kritadocumentfiles kritaimpexkra)

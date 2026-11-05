@@ -3738,6 +3738,30 @@ void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, Kis
     setCurrentImageImpl(image, forceInitialUpdate, preActivatedNode, fileDocument);
 }
 
+bool KisDocument::migrateToCpu(qsizetype maximumBytes)
+{
+    KisImageSP image = d->image;
+    if (!image || maximumBytes < 0 || QThread::currentThread() != thread() ||
+        d->documentIsClosing || isSaving() || d->recoveryAutoSaveState.hasPendingRequest()) return false;
+    if (!image->gpuImage()) return true;
+    if (!image->tryBarrierLock()) return false;
+    const auto unlock = qScopeGuard([&] { image->unlock(); });
+    const auto prepared = image->prepareCpuMigration(maximumBytes, nullptr, true);
+    if (!prepared) return false;
+    try {
+        if (!d->undoStack->prepareCpuMigration(prepared)) return false;
+    } catch (const std::exception &) {
+        return false;
+    }
+    if (!image->applyCpuMigration(prepared)) return false;
+    d->gpuDocument.reset();
+    connect(image.data(), &KisImage::sigRequestNodeReselection, this, &KisDocument::setPreActivatedNode);
+    d->undoStack->adoptCpuMigration(prepared);
+    Q_EMIT image->sigImageEngineChanged();
+    image->refreshGraphAsync();
+    return true;
+}
+
 void KisDocument::setCurrentImageImpl(KisImageSP image, bool forceInitialUpdate, KisNodeSP preActivatedNode,
                                      std::shared_ptr<LibrePaint::Document::Gpu::PaintDocument> fileDocument)
 {

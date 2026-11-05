@@ -68,6 +68,11 @@ public:
      * Returns null off-thread; attachment capacity throws std::length_error.
      */
     QSharedPointer<PaintImage> clone(bool preserveLayerUuids = false) const;
+    /** Independent saved image of a retained version on this execution.
+     * Shares committed tile versions and preserves public node identities.
+     * Returns null for foreign, unavailable or off-thread input.
+     */
+    QSharedPointer<PaintImage> cloneVersion(const Snapshot &version) const;
     /** Clones logical values into the destination execution, with the same guarantees. */
     QSharedPointer<PaintImage> cloneTo(Execution &destination, bool preserveLayerUuids = false) const;
     /** Uses the destination image's execution lifetime, including shared ownership. */

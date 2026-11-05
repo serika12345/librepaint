@@ -859,6 +859,11 @@ void KisCanvas2::initializeImage()
 
     connect(image, SIGNAL(sigColorSpaceChanged(const KoColorSpace*)), SLOT(slotImageColorSpaceChanged()));
     connect(image, SIGNAL(sigProfileChanged(const KoColorProfile*)), SLOT(slotImageColorSpaceChanged()));
+    connect(image, &KisImage::sigImageEngineChanged, this, [this] {
+        createCanvas(KisConfig(true).useOpenGL());
+        connectCurrentCanvas();
+        slotEffectiveZoomChanged(m_d->coordinatesConverter->effectiveZoom());
+    });
 
     connectCurrentCanvas();
     fetchProofingOptions();

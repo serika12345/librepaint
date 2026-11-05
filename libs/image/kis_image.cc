@@ -453,6 +453,69 @@ LibrePaint::Image::Gpu::PaintImageSP KisImage::gpuImage() const
 class KisImage::CpuMigration
 {
 public:
+    struct HistoryState {
+        KisGroupLayerSP root;
+        KisSelectionMaskSP deselected;
+        QSize size;
+        const KoColorSpace *colorSpace = nullptr;
+        KoColor background;
+        KisNodeSP active;
+        KisNodeList selected;
+
+        explicit HistoryState(const KisImage &image)
+            : root(image.rootLayer()), deselected(image.m_d->deselectedGlobalSelectionMask),
+              size(image.size()), colorSpace(image.colorSpace()), background(image.defaultProjectionColor())
+        {
+            const auto version = image.gpuImage()->operations().snapshot();
+            for (const auto &layer : version->layers) {
+                const auto node = KisLayerUtils::findNodeByUuid(root, layer.uuid);
+                if (layer.id == version->activeLayer) active = node;
+                if (version->selectedLayers.contains(layer.id)) selected.append(node);
+            }
+        }
+
+        void apply(KisImage &image, const std::optional<ComplexSizeChangedSignal> &resize) const
+        {
+            KIS_SAFE_ASSERT_RECOVER_RETURN(!image.gpuImage() && image.locked());
+            const auto previousSize = image.size();
+            const bool differentColorSpace = *image.colorSpace() != *colorSpace;
+            image.m_d->width = size.width();
+            image.m_d->height = size.height();
+            image.m_d->colorSpace = colorSpace;
+            image.setRootLayer(root);
+            image.m_d->deselectedGlobalSelectionMask = deselected;
+            image.setDefaultProjectionColor(background);
+            if (resize) {
+                Q_EMIT image.sigSizeChanged(resize->oldStillPoint, resize->newStillPoint);
+            } else if (previousSize != size) {
+                const ComplexSizeChangedSignal signal(QRect(QPoint(), previousSize), size);
+                Q_EMIT image.sigSizeChanged(signal.oldStillPoint, signal.newStillPoint);
+            }
+            if (differentColorSpace) image.m_d->signalRouter.emitNotification(ColorSpaceChangedSignal);
+            image.notifyLayersChanged();
+            image.notifySelectionChanged();
+            if (active) Q_EMIT image.sigRequestNodeReselection(active, selected);
+            image.refreshGraphAsync();
+        }
+    };
+
+    class HistoryCommand final : public KUndo2Command {
+    public:
+        HistoryCommand(KisImageWSP image, QSharedPointer<HistoryState> before, QSharedPointer<HistoryState> after,
+                       std::optional<ComplexSizeChangedSignal> resize)
+            : m_image(image), m_before(std::move(before)), m_after(std::move(after)), m_resize(resize) {}
+        void undo() override {
+            if (auto image = m_image.toStrongRef())
+                m_before->apply(*image, m_resize ? std::optional(m_resize->inverted()) : std::nullopt);
+        }
+        void redo() override { if (auto image = m_image.toStrongRef()) m_after->apply(*image, m_resize); }
+    private:
+        KisImageWSP m_image;
+        QSharedPointer<HistoryState> m_before, m_after;
+        std::optional<ComplexSizeChangedSignal> m_resize;
+    };
+
+    ~CpuMigration() { qDeleteAll(historyCommands); }
     KisImageSP target;
     LibrePaint::Image::Gpu::PaintImageSP owner;
     LibrePaint::Image::Gpu::Snapshot version;
@@ -460,7 +523,75 @@ public:
     KisPaintDeviceList devices;
     QList<QSharedPointer<KisPaintDevice::CpuMigration>> pixels;
     std::unique_ptr<KisUpdateScheduler> scheduler;
+    QList<KUndo2Command *> historyCommands;
 };
+
+bool KisImage::prepareCpuMigrationHistory(CpuMigration &migration, qsizetype &remaining) const
+{
+    const auto versions = migration.owner->operations().historyVersions();
+    QList<QSharedPointer<CpuMigration::HistoryState>> states;
+    for (const auto &version : versions) {
+        if (version == migration.version) {
+            states.append(QSharedPointer<CpuMigration::HistoryState>::create(*this));
+            continue;
+        }
+        const auto owner = migration.owner->cloneVersion(version);
+        if (!owner) return false;
+        auto *registry = KoColorSpaceRegistry::instance();
+        const auto depth = version->format == LibrePaint::Image::Gpu::PixelFormat::Rgba16 ? QStringLiteral("U16") : QStringLiteral("U8");
+        const auto profile = version->colorProfile.isEmpty() ?
+            (depth == QLatin1String("U16") ? registry->rgb16()->profile() : registry->rgb8()->profile()) :
+            registry->createColorProfileFromData(QStringLiteral("RGBA"), depth, version->colorProfile);
+        const auto space = profile ? registry->colorSpace(QStringLiteral("RGBA"), depth, profile) : nullptr;
+        if (!space) return false;
+        auto native = fromGpuImage(owner, objectName(), space);
+        native->setResolution(xRes(), yRes());
+        native->setGpuVectorSelectionCodec(m_gpuVectorSelectionReader, m_gpuVectorSelectionWriter);
+        copyGpuNodeMetadataTo(*native);
+        auto state = QSharedPointer<CpuMigration::HistoryState>::create(*native);
+        state->deselected = migration.deselectedSelection;
+        native->barrierLock();
+        qsizetype bytes = 0;
+        const auto prepared = native->prepareCpuMigration(remaining, &bytes);
+        const bool applied = prepared && native->applyCpuMigration(prepared);
+        native->unlock();
+        if (!applied) return false;
+        remaining -= bytes;
+        // Historical roots are attached to the live image only when selected.
+        native->setRootLayer(new KisGroupLayer(native, QStringLiteral("root"), OPACITY_OPAQUE_U8));
+        states.append(std::move(state));
+    }
+    for (qsizetype i = 1; i < states.size(); ++i) {
+        const auto &operations = migration.owner->operations();
+        const auto resize = operations.historyCanvasResize(i);
+        std::unique_ptr<KUndo2Command> command(new CpuMigration::HistoryCommand(migration.target, states[i - 1], states[i],
+            resize ? std::optional(ComplexSizeChangedSignal(resize->rect, resize->rect.size())) : std::nullopt));
+        if (resize) command->setExtraData(new KisCropSavedExtraData(resize->cropLayers ?
+            KisCropSavedExtraData::CROP_IMAGE : KisCropSavedExtraData::RESIZE_IMAGE, resize->rect));
+        if (const auto crop = operations.historyCrop(i)) {
+            QUuid uuid = crop->maskUuid;
+            if (uuid.isNull()) for (const auto &layer : versions[i]->layers)
+                if (layer.id == crop->layer) uuid = layer.uuid;
+            const auto node = KisLayerUtils::findNodeByUuid(states[i]->root, uuid);
+            if (node) command->setExtraData(new KisCropSavedExtraData(KisCropSavedExtraData::CROP_LAYER, crop->rect, node));
+        }
+        migration.historyCommands.append(command.get());
+        command.release();
+    }
+    return true;
+}
+
+const QList<KUndo2Command *> &KisImage::cpuMigrationHistoryCommands(const QSharedPointer<CpuMigration> &migration) const
+{
+    KIS_ASSERT(migration && migration->target.data() == this);
+    return migration->historyCommands;
+}
+
+QList<KUndo2Command *> KisImage::takeCpuMigrationHistoryCommands(const QSharedPointer<CpuMigration> &migration)
+{
+    KIS_ASSERT(migration && migration->target.data() == this && !gpuImage());
+    return std::exchange(migration->historyCommands, {});
+}
 
 KisPaintDeviceList KisImage::cpuMigrationDevices() const
 {
@@ -484,7 +615,8 @@ KisPaintDeviceList KisImage::cpuMigrationDevices() const
     return devices;
 }
 
-QSharedPointer<KisImage::CpuMigration> KisImage::prepareCpuMigration(qsizetype maximumBytes, qsizetype *preparedBytes) const
+QSharedPointer<KisImage::CpuMigration> KisImage::prepareCpuMigration(qsizetype maximumBytes, qsizetype *preparedBytes,
+                                                                 bool includeHistory) const
 {
     if (preparedBytes) *preparedBytes = 0;
     const auto owner = gpuImage();
@@ -507,6 +639,7 @@ QSharedPointer<KisImage::CpuMigration> KisImage::prepareCpuMigration(qsizetype m
             remaining -= bytes;
             prepared->pixels.append(pixels);
         }
+        if (includeHistory && !prepareCpuMigrationHistory(*prepared, remaining)) return {};
         prepared->scheduler = std::make_unique<KisUpdateScheduler>(prepared->target.data());
         m_d->configureCpuScheduler(*prepared->scheduler);
         prepared->scheduler->barrierLock();

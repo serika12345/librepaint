@@ -8,6 +8,7 @@
 
 #include <kundo2stack.h>
 #include <kis_types.h>
+#include <kis_image.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <QHash>
 #include <QQueue>
@@ -24,6 +25,8 @@ class KisDocumentUndoStack final : public KUndo2Stack
 public:
     explicit KisDocumentUndoStack(KisDocument *document);
     void setImage(KisImageSP image);
+    bool prepareCpuMigration(const QSharedPointer<KisImage::CpuMigration> &migration);
+    void adoptCpuMigration(const QSharedPointer<KisImage::CpuMigration> &migration);
     void beginDocumentClose();
     void setIndex(int index) override;
     void undo() override;
