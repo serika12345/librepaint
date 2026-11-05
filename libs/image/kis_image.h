@@ -1434,7 +1434,8 @@ private:
 
     KisImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name, const KoColorSpace *colorSpace);
     void synchronizeGpuNodes();
-    KisPaintDeviceList cpuMigrationDevices() const;
+    QHash<QUuid, KisNodeSP> retainedGpuNodes() const;
+    KisPaintDeviceList cpuMigrationDevices(bool includeHistory = false) const;
     void synchronizeGpuLayerViews(KisGpuImageViewState *state);
     QSharedPointer<KisGpuImageViewState> &gpuViewState();
     void connectGpuImageUpdates();

@@ -63,6 +63,15 @@ struct KisGpuImageViewState
     QHash<QUuid, QPair<QByteArray, QByteArray>> vectorSelections;
 };
 
+QHash<QUuid, KisNodeSP> KisImage::retainedGpuNodes() const
+{
+    const auto state = const_cast<KisImage *>(this)->gpuViewState();
+    auto nodes = state ? state->nodes : QHash<QUuid, KisNodeSP>();
+    if (state) for (const auto &root : state->roots) nodes.insert(root->uuid(), root);
+    KisLayerUtils::recursiveApplyNodes(root(), [&nodes](KisNodeSP node) { nodes.insert(node->uuid(), node); });
+    return nodes;
+}
+
 void KisImage::copyGpuNodeMetadataTo(KisImage &target) const
 {
     const auto state = const_cast<KisImage *>(this)->gpuViewState();

@@ -20,6 +20,8 @@
 #include <kis_pixel_selection.h>
 #include <kis_transaction.h>
 #include <kis_crop_saved_extra_data.h>
+#include <kis_layer_utils.h>
+#include <commands/KisNodeRenameCommand.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoColorProfile.h>
 #include <KoResourcePaths.h>
@@ -85,7 +87,192 @@ private Q_SLOTS:
         QTest::newRow("u16-redo-capacity-and-busy-rejection") << true;
     }
     void documentKeepsFilesAndHistory();
+    void historyKeepsLayerReferences_data()
+    {
+        QTest::addColumn<bool>("boundary");
+        QTest::newRow("u8-retained-tree-and-native-branch") << false;
+        QTest::newRow("u16-deleted-subtree-and-pending-redo") << true;
+    }
+    void historyKeepsLayerReferences();
 };
+
+void KisGpuCpuDocumentMigrationTest::historyKeepsLayerReferences()
+{
+    QFETCH(bool, boundary);
+    constexpr qsizetype capacity = 64 * 1024 * 1024;
+    const auto *space = boundary ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const int depth = boundary ? 2 : 1;
+    const QRect area(252, -3, 13, 19);
+    Gpu::RasterImage raster;
+    raster.size = {270, 48};
+    raster.format = boundary ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    raster.colorProfile = space->profile()->rawData();
+    Gpu::RasterLayer fallback, group, layer;
+    fallback.uuid = QUuid::createUuid();
+    fallback.name = QStringLiteral("Outside group");
+    group.uuid = QUuid::createUuid();
+    group.kind = Gpu::LayerKind::Group;
+    group.name = QStringLiteral("Original group");
+    layer.uuid = QUuid::createUuid();
+    layer.parentUuid = group.uuid;
+    layer.name = QStringLiteral("Original paint");
+    raster.layers = {fallback, group, layer};
+    QString diagnostic;
+    const auto gpu = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(gpu, qPrintable(diagnostic));
+    const auto owner = Gpu::PaintImageSP::create(std::make_shared<Gpu::Execution>(gpu), raster);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setAutoSaveActive(false);
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Retained native history"), space);
+    document->setCurrentImage(image);
+    const auto root = image->rootLayer();
+    auto groupNode = KisLayerUtils::findNodeByUuid(root, group.uuid);
+    auto paintNode = KisLayerUtils::findNodeByUuid(root, layer.uuid);
+    auto paint = paintNode->paintDevice();
+    const auto version = owner->operations().snapshot();
+    const auto groupId = version->layers[1].id;
+    const auto paintId = version->layers[2].id;
+    const auto fallbackId = version->layers[0].id;
+    KisPaintDeviceSP seed = new KisPaintDevice(space);
+    seed->fill(area, KoColor(QColor(31, 137, 213, 173), space));
+    const auto originalPixels = pixels(seed, area);
+    auto rgba = originalPixels;
+    for (qsizetype i = 0; i < rgba.size(); i += 4 * depth)
+        for (int byte = 0; byte < depth; ++byte) std::swap(rgba[i + byte], rgba[i + 2 * depth + byte]);
+    QCOMPARE(owner->replaceRgbaPixels(paintId, area, rgba), Gpu::Result::Success);
+    const int branchIndex = document->undoStack()->index();
+    QCOMPARE(owner->moveLayers({paintId}, {}, group.uuid, paintId), Gpu::Result::Success);
+    const int movedIndex = document->undoStack()->index();
+    QCOMPARE(owner->moveLayers({paintId}, group.uuid, {}, paintId), Gpu::Result::Success);
+    const auto addedId = owner->addLayer(QStringLiteral("Added paint"), 0, true, group.uuid);
+    QVERIFY(addedId);
+    KisNodeSP added;
+    for (const auto &value : owner->operations().snapshot()->layers)
+        if (value.id == addedId) added = KisLayerUtils::findNodeByUuid(root, value.uuid);
+    QVERIFY(added);
+    const auto addedPaint = added->paintDevice();
+    QCOMPARE(owner->replaceRgbaPixels(addedId, area.translated(-7, 5), rgba), Gpu::Result::Success);
+    QCOMPARE(owner->renameLayer(paintId, QStringLiteral("Renamed paint")), Gpu::Result::Success);
+    QCOMPARE(owner->setLayerOpacity(paintId, 193), Gpu::Result::Success);
+    QCOMPARE(owner->setLayerChannelMask(paintId, 7), Gpu::Result::Success);
+    QCOMPARE(owner->setLayerProjectionMask(paintId, 13), Gpu::Result::Success);
+    QCOMPARE(owner->setLayerPassThrough(groupId, true), Gpu::Result::Success);
+    const int editedIndex = document->undoStack()->index();
+    const auto channels = qobject_cast<KisPaintLayer *>(paintNode.data())->channelFlags();
+    const auto locks = qobject_cast<KisPaintLayer *>(paintNode.data())->channelLockFlags();
+    const auto editedProjection = pixels(image->projection(), image->bounds());
+    const auto savedVersion = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(savedVersion), Gpu::Result::Success);
+    if (boundary) {
+        QCOMPARE(owner->removeLayer(groupId), Gpu::Result::Success);
+        QCOMPARE(owner->renameLayer(fallbackId, QStringLiteral("Pending redo")), Gpu::Result::Success);
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QVERIFY(!KisLayerUtils::findNodeByUuid(root, group.uuid));
+    }
+    auto *stack = document->undoStack();
+    const int migrationIndex = stack->index(), migrationCount = stack->count();
+    const auto migrationVersion = owner->operations().snapshot();
+    QVERIFY(document->migrateToCpu(capacity));
+    QVERIFY(!paint->prepareCpuMigration(capacity));
+    QVERIFY(!addedPaint->prepareCpuMigration(capacity));
+    QCOMPARE(stack->index(), migrationIndex);
+    QCOMPARE(stack->count(), migrationCount);
+    QCOMPARE(stack->cleanIndex(), editedIndex);
+    QCOMPARE(document->isModified(), boundary);
+
+    stack->setIndex(0);
+    image->waitForDone();
+    QCOMPARE(image->rootLayer(), root);
+    QCOMPARE(KisLayerUtils::findNodeByUuid(root, group.uuid), groupNode);
+    QCOMPARE(KisLayerUtils::findNodeByUuid(root, layer.uuid), paintNode);
+    QCOMPARE(paintNode->paintDevice(), paint);
+    QCOMPARE(paintNode->parent(), groupNode);
+    QCOMPARE(paintNode->name(), layer.name);
+    QCOMPARE(paintNode->opacity(), quint8(255));
+    QCOMPARE(pixels(paint, area), QByteArray(originalPixels.size(), '\0'));
+    QVERIFY(!qobject_cast<KisGroupLayer *>(groupNode.data())->passThroughMode());
+    QVERIFY(!KisLayerUtils::findNodeByUuid(root, added->uuid()));
+    stack->setIndex(movedIndex);
+    image->waitForDone();
+    QCOMPARE(paintNode->parent(), KisNodeSP(root));
+    QCOMPARE(KisLayerUtils::findNodeByUuid(root, layer.uuid), paintNode);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pixels(paint, area), originalPixels, depth);
+    stack->setIndex(editedIndex);
+    image->waitForDone();
+    QCOMPARE(image->rootLayer(), root);
+    QCOMPARE(paintNode->parent(), groupNode);
+    QCOMPARE(paintNode->name(), QStringLiteral("Renamed paint"));
+    QCOMPARE(paintNode->opacity(), quint8(193));
+    QCOMPARE(qobject_cast<KisPaintLayer *>(paintNode.data())->channelFlags(), channels);
+    QCOMPARE(qobject_cast<KisPaintLayer *>(paintNode.data())->channelLockFlags(), locks);
+    QVERIFY(qobject_cast<KisGroupLayer *>(groupNode.data())->passThroughMode());
+    QCOMPARE(KisLayerUtils::findNodeByUuid(root, added->uuid()), added);
+    QCOMPARE(added->paintDevice(), addedPaint);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pixels(addedPaint, area.translated(-7, 5)), originalPixels, depth);
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pixels(image->projection(), image->bounds()), editedProjection, depth);
+    QVERIFY(!document->isModified());
+    if (boundary) {
+        stack->setIndex(migrationCount);
+        image->waitForDone();
+        QVERIFY(!KisLayerUtils::findNodeByUuid(root, group.uuid));
+        QCOMPARE(root->firstChild()->name(), QStringLiteral("Pending redo"));
+        stack->setIndex(editedIndex);
+        image->waitForDone();
+        QCOMPARE(KisLayerUtils::findNodeByUuid(root, group.uuid), groupNode);
+        QCOMPARE(KisLayerUtils::findNodeByUuid(root, layer.uuid), paintNode);
+        QCOMPARE(paintNode->paintDevice(), paint);
+    }
+
+    // Branch from an older GPU version using references retained before adoption.
+    // Return through migrated history before redoing native mementos and commands.
+    stack->setIndex(branchIndex);
+    image->waitForDone();
+    image->barrierLock();
+    KisTransaction transaction(kundo2_i18n("Native branch"), paint);
+    paint->fill(area, KoColor(QColor(193, 71, 13, 239), space));
+    transaction.commit(image->undoAdapter());
+    paintNode->setDirty(area);
+    image->unlock();
+    image->waitForDone();
+    const auto changedPixels = pixels(paint, area);
+    QVERIFY(!pixelStepDifference(changedPixels, originalPixels, depth).isEmpty());
+    stack->push(new KisNodeRenameCommand(paintNode, layer.name, QStringLiteral("Native name")));
+    const int nativeIndex = stack->index();
+    QCOMPARE(nativeIndex, branchIndex + 2);
+    QCOMPARE(stack->count(), nativeIndex);
+    stack->setIndex(0);
+    image->waitForDone();
+    QCOMPARE(paintNode->name(), layer.name);
+    QCOMPARE(pixels(paint, area), QByteArray(originalPixels.size(), '\0'));
+    stack->setIndex(nativeIndex);
+    image->waitForDone();
+    QCOMPARE(KisLayerUtils::findNodeByUuid(root, layer.uuid), paintNode);
+    QCOMPARE(paintNode->paintDevice(), paint);
+    QCOMPARE(paintNode->name(), QStringLiteral("Native name"));
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pixels(paint, area), changedPixels, depth);
+    stack->setIndex(branchIndex);
+    image->waitForDone();
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pixels(paint, area), originalPixels, depth);
+    stack->setIndex(nativeIndex);
+    image->waitForDone();
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pixels(paint, area), changedPixels, depth);
+    QCOMPARE(owner->operations().snapshot(), migrationVersion);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("native-history-branch.kra"));
+    QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    document->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent | KisDocument::UseCpuEngine));
+    const auto reopenedNode = KisLayerUtils::findNodeByUuid(reopened->image()->root(), layer.uuid);
+    QVERIFY(reopenedNode);
+    QCOMPARE(reopenedNode->parent()->uuid(), group.uuid);
+    QCOMPARE(reopenedNode->name(), QStringLiteral("Native name"));
+    QVERIFY(!KisLayerUtils::findNodeByUuid(reopened->image()->root(), added->uuid()));
+    QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pixels(reopenedNode->paintDevice(), area), changedPixels, depth);
+}
 
 void KisGpuCpuDocumentMigrationTest::documentKeepsFilesAndHistory()
 {

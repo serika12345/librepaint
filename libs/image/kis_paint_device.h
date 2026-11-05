@@ -383,6 +383,19 @@ protected:
     friend class KisPaintDeviceTest;
     friend class DataReaderThread;
 
+private:
+    friend class KisImage;
+    /** Native history retains the actual data manager so later CPU transaction
+     * mementos remain valid when returning to a migrated version. The image is
+     * locked while these states are prepared or selected.
+     */
+    class CpuHistoryState;
+    QSharedPointer<CpuHistoryState> cpuMigrationHistoryState(const QSharedPointer<CpuMigration> &migration) const;
+    QSharedPointer<CpuHistoryState> prepareCpuHistoryState(const KisPaintDevice &source) const;
+    void applyCpuHistoryState(const QSharedPointer<CpuHistoryState> &state);
+
+protected:
+
     /**
      * Checks whether a src paint device can be used as source
      * of fast bitBlt operation. The result of the check may
