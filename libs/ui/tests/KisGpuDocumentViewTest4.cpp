@@ -641,7 +641,12 @@ void KisGpuDocumentViewTest::shapeSelectionCombinationsKeepEditingHistoryAndKra(
     }
 
     auto *resources = window->viewManager()->canvasResourceProvider();
+    // Fill reads the effective composite operation from the current preset.
+    resources->setPaintOpPreset(m_preset->clone().dynamicCast<KisPaintOpPreset>());
+    resources->setGlobalAlphaLock(false);
     resources->setOpacity(1); resources->setEraserMode(false); resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    QCOMPARE(resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString(),
+             QStringLiteral("normal"));
     resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
     auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color"));
     QVERIFY(fill); QTRY_VERIFY(fill->isEnabled()); fill->trigger();
