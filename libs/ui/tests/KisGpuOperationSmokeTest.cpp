@@ -38,6 +38,9 @@
 #include <kis_group_layer.h>
 #include <kis_pixel_selection.h>
 #include <kis_selection.h>
+#include <kis_selection_options.h>
+#include <kis_slider_spin_box.h>
+#include <operations/kis_operation_configuration.h>
 #include <kis_transparency_mask.h>
 #include <kis_paintop_registry.h>
 #include <kis_paintop_preset.h>
@@ -77,6 +80,8 @@
 #include <QListWidget>
 #include <QComboBox>
 #include <QMouseEvent>
+#include <KConfigGroup>
+#include <KSharedConfig>
 #include <functional>
 #include <exception>
 #include <memory>
@@ -361,6 +366,198 @@ Outcome figure(SmokeDocument &doc, const QString &id)
     return {location, {}};
 }
 
+QByteArray selectionCoverage(const SmokeDocument &doc)
+{
+    QByteArray bytes(64 * 48, '\0');
+    if (const auto selection = doc.image->globalSelection())
+        selection->pixelSelection()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), doc.image->bounds());
+    return bytes;
+}
+
+Outcome selectionTool(SmokeDocument &doc, const QString &id)
+{
+    const auto location = Gpu::ExecutionLocation::Gpu;
+    const auto combination = id == QLatin1String("add") ? SELECTION_ADD :
+        id == QLatin1String("subtract") ? SELECTION_SUBTRACT :
+        id == QLatin1String("intersect") ? SELECTION_INTERSECT :
+        id == QLatin1String("symmetric-difference") ? SELECTION_SYMMETRICDIFFERENCE : SELECTION_REPLACE;
+    const bool rectangle = id == QLatin1String("rectangle") || id == QLatin1String("vector-rectangle") ||
+        combination != SELECTION_REPLACE;
+    const bool ellipse = id == QLatin1String("ellipse");
+    const bool outline = id == QLatin1String("freehand");
+    const bool bezier = id == QLatin1String("bezier");
+    const bool magnetic = id == QLatin1String("magnetic");
+    const bool color = id == QLatin1String("contiguous") || id == QLatin1String("similar");
+    const auto toolId = rectangle ? QStringLiteral("KisToolSelectRectangular") :
+        ellipse ? QStringLiteral("KisToolSelectElliptical") :
+        outline ? QStringLiteral("KisToolSelectOutline") :
+        bezier ? QStringLiteral("KisToolSelectPath") :
+        magnetic ? QStringLiteral("KisToolSelectMagnetic") :
+        id == QLatin1String("contiguous") ? QStringLiteral("KisToolSelectContiguous") :
+        id == QLatin1String("similar") ? QStringLiteral("KisToolSelectSimilar") : QStringLiteral("KisToolSelectPolygonal");
+    KConfigGroup configuration = KSharedConfig::openConfig()->group(toolId);
+    const auto oldEntries = configuration.entryMap();
+    const auto restoreConfiguration = qScopeGuard([&] {
+        configuration.deleteGroup();
+        for (auto i = oldEntries.cbegin(); i != oldEntries.cend(); ++i) configuration.writeEntry(i.key(), i.value());
+    });
+    configuration.writeEntry("roundCornersX", 0);
+    configuration.writeEntry("roundCornersY", 0);
+    configuration.writeEntry("closeGapAmount", 0);
+    configuration.writeEntry("useSelectionAsBoundary", false);
+    configuration.writeEntry("contiguousSelectionMode", "floodFill");
+    configuration.writeEntry("filterradius", 3.0);
+    configuration.writeEntry("searchradius", 20);
+    configuration.writeEntry("anchorgap", 20);
+    configuration.writeEntry("threshold", magnetic ? 100 : 8);
+    configuration.writeEntry("opacitySpread", 100);
+    if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
+    auto *canvas = doc.view->canvasBase();
+    canvas->resourceManager()->setResource(KoCanvasResource::EffectiveZoom, 1.0);
+    canvas->snapGuide()->enableSnapping(false);
+    KoToolManager::instance()->switchToolRequested(toolId);
+    auto *tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(canvas, toolId));
+    if (!tool || KoToolManager::instance()->activeToolId() != toolId)
+        return {location, QStringLiteral("Selection tool could not be activated")};
+    const auto cancel = qScopeGuard([&] { tool->requestStrokeCancellation(); });
+    KisSelectionOptions *options = nullptr;
+    for (QWidget *panel : tool->optionWidgets())
+        if (auto *candidate = qobject_cast<KisSelectionOptions *>(panel)) options = candidate;
+    if (!options) return {location, QStringLiteral("Selection tool options were not available")};
+    options->setMode(id == QLatin1String("vector-rectangle") ? SHAPE_PROTECTION : PIXEL_SELECTION);
+    options->setAction(combination);
+    options->setAntiAliasSelection(false);
+    options->setGrowSelection(0);
+    options->setFeatherSelection(0);
+    options->setStopGrowingAtDarkestPixel(false);
+    options->setReferenceLayers(KisSelectionOptions::CurrentLayer);
+    if (color) {
+        auto *threshold = options->findWidgetAs<KisSliderSpinBox *>(QStringLiteral("sectionSelectionExtent/sliderThreshold"));
+        auto *spread = options->findWidgetAs<KisSliderSpinBox *>(QStringLiteral("sectionSelectionExtent/sliderSpread"));
+        if (!threshold || !spread) return {location, QStringLiteral("Colour selection options were not available")};
+        threshold->setValue(8);
+        spread->setValue(100);
+    }
+    if (combination != SELECTION_REPLACE && !doc.image->setGpuSelectionRect({24, 10, 26, 24}))
+        return {location, QStringLiteral("Could not initialize the selection combination")};
+    const auto before = selectionCoverage(doc);
+    const auto pixels = doc.pixels();
+    const auto history = doc.owner->operations().undoCount();
+    const auto send = [&](QEvent::Type type, QPointF point, bool held = false) {
+        const auto button = type == QEvent::MouseMove ? Qt::NoButton : Qt::LeftButton;
+        const auto buttons = type == QEvent::MouseButtonPress || held ? Qt::LeftButton : Qt::NoButton;
+        QMouseEvent event(type, QPointF(), QPointF(), button, buttons, Qt::NoModifier);
+        KoPointerEvent input(&event, canvas->coordinatesConverter()->imageToDocument(point));
+        if (type == QEvent::MouseButtonPress) tool->beginPrimaryAction(&input);
+        else if (type == QEvent::MouseMove) tool->continuePrimaryAction(&input);
+        else tool->endPrimaryAction(&input);
+    };
+    if (rectangle || ellipse) {
+        send(QEvent::MouseButtonPress, {10, 18});
+        send(QEvent::MouseMove, {36, 38}, true);
+        tool->requestStrokeEnd();
+    } else if (color) {
+        send(QEvent::MouseButtonPress, {22, 22});
+        send(QEvent::MouseButtonRelease, {22, 22});
+    } else {
+        const QList<QPointF> points{{12, 10}, {50, 14}, {32, 38}};
+        if (outline) {
+            send(QEvent::MouseButtonPress, points.first());
+            for (qsizetype i = 1; i < points.size(); ++i) send(QEvent::MouseMove, points[i], true);
+            // Like rectangle tools, freehand outlines cancel synthetic
+            // releases. The normal finish action commits the held gesture.
+            tool->requestStrokeEnd();
+        } else {
+            for (const auto &point : points) {
+                send(QEvent::MouseMove, point);
+                send(QEvent::MouseButtonPress, point);
+                if (bezier) send(QEvent::MouseMove, point + QPointF(6, 0), true);
+                send(QEvent::MouseButtonRelease, bezier ? point + QPointF(6, 0) : point);
+            }
+            tool->requestStrokeEnd();
+        }
+    }
+    doc.image->waitForDone();
+    const auto after = selectionCoverage(doc);
+    if (doc.image->gpuImage() != doc.owner || before == after ||
+        !doc.image->globalSelection() || doc.image->globalSelection()->selectedExactRect().isEmpty() ||
+        doc.pixels() != pixels || doc.owner->operations().undoCount() != history + 1)
+        return {location, QStringLiteral("Selection tool did not publish changed coverage and one history entry (A7)")};
+    if (id == QLatin1String("vector-rectangle") && !doc.image->globalSelection()->hasShapeSelection())
+        return {location, QStringLiteral("Vector selection mode published raster coverage without editable shapes (A7)")};
+    if (combination != SELECTION_REPLACE) {
+        for (int y = 0; y < 48; ++y) for (int x = 0; x < 64; ++x) {
+            const bool old = QRect(24, 10, 26, 24).contains(x, y);
+            const bool added = QRect(10, 18, 26, 20).contains(x, y);
+            const bool expected = combination == SELECTION_ADD ? old || added :
+                combination == SELECTION_SUBTRACT ? old && !added :
+                combination == SELECTION_INTERSECT ? old && added : old != added;
+            if (quint8(after[y * 64 + x]) != (expected ? 255 : 0))
+                return {location, QStringLiteral("Selection combination did not preserve the requested coverage")};
+        }
+    }
+    return {location, {}};
+}
+
+Outcome selectionEdit(SmokeDocument &doc, const QString &id)
+{
+    const auto location = Gpu::ExecutionLocation::Gpu;
+    const bool filtered = id == QLatin1String("growselection") || id == QLatin1String("shrinkselection") ||
+        id == QLatin1String("borderselection") || id == QLatin1String("featherselection") ||
+        id == QLatin1String("smoothselection") || id == QLatin1String("shrink-empty");
+    const bool freehand = id == QLatin1String("borderselection") || id == QLatin1String("featherselection") ||
+        id == QLatin1String("smoothselection");
+    const auto setup = selectionTool(doc, freehand ? QStringLiteral("polygon") : QStringLiteral("rectangle"));
+    if (!setup.error.isEmpty()) return setup;
+    const auto initial = selectionCoverage(doc);
+    auto *manager = doc.window->viewManager()->actionManager();
+    manager->updateGUI();
+    if (id == QLatin1String("reselect")) {
+        auto *deselect = manager->actionByName(QStringLiteral("deselect"));
+        if (!deselect) return {location, QStringLiteral("Deselect action was not registered")};
+        deselect->trigger();
+        doc.image->waitForDone();
+        if (doc.image->globalSelection()) return {location, QStringLiteral("Deselect did not remove the active selection")};
+        manager->updateGUI();
+    }
+    const auto before = selectionCoverage(doc);
+    const auto pixels = doc.pixels();
+    const auto history = doc.owner->operations().undoCount();
+    if (filtered) {
+        const auto operation = id == QLatin1String("shrink-empty") ? QStringLiteral("shrinkselection") : id;
+        if (!manager->actionByName(operation)) return {location, QStringLiteral("Selection filter was not registered")};
+        KisOperationConfigurationSP config = new KisOperationConfiguration(operation);
+        const int radius = id == QLatin1String("shrink-empty") ? 64 : 3;
+        config->setProperty("x-radius", radius);
+        config->setProperty("y-radius", radius);
+        config->setProperty("radius", radius);
+        config->setProperty("edgeLock", false);
+        config->setProperty("antialiasing", false);
+        manager->runOperationFromConfiguration(config);
+    } else {
+        auto *action = manager->actionByName(id);
+        if (!action) return {location, QStringLiteral("Selection edit action was not registered")};
+        action->trigger();
+    }
+    doc.image->waitForDone();
+    const auto after = selectionCoverage(doc);
+    if (doc.image->gpuImage() != doc.owner || after == before || doc.pixels() != pixels ||
+        doc.owner->operations().undoCount() != history + 1)
+        return {location, QStringLiteral("Selection edit did not publish changed coverage and one history entry (A7)")};
+    if ((id == QLatin1String("deselect") || id == QLatin1String("shrink-empty")) && doc.image->globalSelection())
+        return {location, QStringLiteral("Selection edit did not remove the empty selection")};
+    if (id == QLatin1String("select_all") && after != QByteArray(64 * 48, char(255)))
+        return {location, QStringLiteral("Select all did not cover the canvas")};
+    if (id == QLatin1String("reselect") && after != initial)
+        return {location, QStringLiteral("Reselect did not restore the previous coverage")};
+    if (id == QLatin1String("invert_selection")) {
+        for (qsizetype i = 0; i < before.size(); ++i)
+            if (quint8(after[i]) != 255 - quint8(before[i]))
+                return {location, QStringLiteral("Invert selection did not complement coverage")};
+    }
+    return {location, {}};
+}
+
 Outcome filter(SmokeDocument &doc, const QString &id, bool brightnessContrast = false)
 {
     const auto location = Gpu::filterExecutionLocation(id);
@@ -574,7 +771,7 @@ class KisGpuOperationSmokeTest : public QObject
 {
     Q_OBJECT
     enum class Group { Normal, Brushes, Filters, SpatialFilters, ReliefFilters, ArtisticFilters,
-                       ColorFilters, ResourceFilters, Generators, Figures };
+                       ColorFilters, ResourceFilters, Generators, Figures, Selections, SelectionEdits };
 private Q_SLOTS:
     void initTestCase()
     {
@@ -647,6 +844,16 @@ private Q_SLOTS:
         runOperations(Group::Figures);
     }
 
+    void selections()
+    {
+        runOperations(Group::Selections);
+    }
+
+    void selectionEdits()
+    {
+        runOperations(Group::SelectionEdits);
+    }
+
 private:
     void runOperations(Group group)
     {
@@ -664,13 +871,6 @@ private:
         };
         QList<Probe> probes = {
             {QStringLiteral("document/new-rgba-u8"), true, [](SmokeDocument &) { return Outcome{}; }},
-            {QStringLiteral("selection/rectangle"), true, [](SmokeDocument &doc) {
-                const QRect selected(11, 9, 23, 17);
-                if (!doc.image->setGpuSelectionRect(selected) || !doc.image->globalSelection() ||
-                    doc.image->globalSelection()->selectedExactRect() != selected)
-                    return Outcome{Gpu::ExecutionLocation::Gpu, QStringLiteral("Selection coverage was not adopted")};
-                return Outcome{};
-            }},
             {QStringLiteral("layer/paint"), true, [](SmokeDocument &doc) {
                 if (!doc.openView()) return Outcome{Gpu::ExecutionLocation::Gpu, QStringLiteral("Could not open the document view")};
                 const auto count = doc.image->root()->childCount();
@@ -784,11 +984,25 @@ private:
                               QStringLiteral("polyline"), QStringLiteral("bezier")})
             probes.append({QStringLiteral("tool/") + id, true,
                 [id](SmokeDocument &doc) { return figure(doc, id); }, Group::Figures});
+        for (const auto &id : {QStringLiteral("rectangle"), QStringLiteral("ellipse"), QStringLiteral("freehand"),
+                              QStringLiteral("polygon"), QStringLiteral("bezier"), QStringLiteral("contiguous"),
+                              QStringLiteral("similar"), QStringLiteral("magnetic"), QStringLiteral("vector-rectangle"),
+                              QStringLiteral("add"), QStringLiteral("subtract"), QStringLiteral("intersect"),
+                              QStringLiteral("symmetric-difference")})
+            probes.append({QStringLiteral("selection/") + id, true,
+                [id](SmokeDocument &doc) { return selectionTool(doc, id); }, Group::Selections});
+        for (const auto &id : {QStringLiteral("select_all"), QStringLiteral("deselect"), QStringLiteral("reselect"),
+                              QStringLiteral("invert_selection"), QStringLiteral("growselection"), QStringLiteral("shrinkselection"),
+                              QStringLiteral("borderselection"), QStringLiteral("featherselection"),
+                              QStringLiteral("smoothselection"), QStringLiteral("shrink-empty")})
+            probes.append({QStringLiteral("selection/") + id, true,
+                [id](SmokeDocument &doc) { return selectionEdit(doc, id); }, Group::SelectionEdits});
         probes.erase(std::remove_if(probes.begin(), probes.end(), [group](const Probe &probe) {
             return probe.group != group;
         }), probes.end());
         static constexpr const char *functions[] = {"normalOperations", "brushes", "filters",
-            "spatialFilters", "reliefFilters", "artisticFilters", "colorFilters", "resourceFilters", "generators", "figures"};
+            "spatialFilters", "reliefFilters", "artisticFilters", "colorFilters", "resourceFilters", "generators", "figures",
+            "selections", "selectionEdits"};
         const auto function = QString::fromLatin1(functions[int(group)]);
         const auto reportSuffix = group == Group::Normal ? QString() : QLatin1Char('.') + function;
         QJsonArray rows;
@@ -800,7 +1014,7 @@ private:
             if (path.isEmpty()) return true;
             path += reportSuffix;
             QSaveFile file(path);
-            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b3a"}, {"rows", rows}}).toJson();
+            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b3b"}, {"rows", rows}}).toJson();
             return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
         };
         QVERIFY(publish());
