@@ -9,6 +9,7 @@
 #include "kis_wdg_fastcolortransfer.h"
 
 #include <QLayout>
+#include <QScopedPointer>
 
 #include <KisImportExportFilter.h>
 #include <KisImportExportManager.h>
@@ -65,19 +66,28 @@ KisPropertiesConfigurationSP KisWdgFastColorTransfer::configuration() const
 
     dbgPlugins << "Use as reference file : " << fileName;
 
-    KisDocument *d = KisPart::instance()->createDocument();
+    QScopedPointer<KisDocument> d(KisPart::instance()->createDocument());
 
-    KisImportExportManager manager(d);
+    KisImportExportManager manager(d.data());
     KisImportExportErrorCode status = manager.importDocument(fileName, QString());
     dbgPlugins << "import returned status" << status.errorMessage();
     KisImageWSP importedImage = d->image();
 
     if (importedImage) {
-        ref = importedImage->projection();
+        // Native reads also transfer GPU projections. Convert an independent
+        // CPU device so computing reference statistics preserves the document.
+        const auto projection = importedImage->projection();
+        ref = new KisPaintDevice(projection->colorSpace());
+        const QRect bounds = importedImage->bounds();
+        QByteArray row(qsizetype(bounds.width()) * projection->pixelSize(), Qt::Uninitialized);
+        for (int y = bounds.top(); y <= bounds.bottom(); ++y) {
+            const QRect area(bounds.left(), y, bounds.width(), 1);
+            projection->readBytes(reinterpret_cast<quint8 *>(row.data()), area);
+            ref->writeBytes(reinterpret_cast<const quint8 *>(row.constData()), area);
+        }
     }
     if (!ref) {
         dbgPlugins << "No reference image was specified.";
-        delete d;
         return config;
     }
 
@@ -85,7 +95,6 @@ KisPropertiesConfigurationSP KisWdgFastColorTransfer::configuration() const
     const KoColorSpace* labCS = KoColorSpaceRegistry::instance()->lab16();
     if (!labCS) {
         dbgPlugins << "The LAB colorspace is not available.";
-        delete d;
         return config;
     }
 
@@ -132,8 +141,6 @@ KisPropertiesConfigurationSP KisWdgFastColorTransfer::configuration() const
     config->setProperty("sigmaL", sigmaL_ref);
     config->setProperty("sigmaA", sigmaA_ref);
     config->setProperty("sigmaB", sigmaB_ref);
-
-    delete d;
 
     return config;
 }

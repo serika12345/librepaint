@@ -25,6 +25,7 @@
 #include <tool/kis_tool_freehand_helper.h>
 #include <kis_painting_information_builder.h>
 #include <kis_smoothing_options.h>
+#include <kis_config_widget.h>
 #include <kis_animation_importer.h>
 #include <kis_image_animation_interface.h>
 #include <kis_keyframe_channel.h>
@@ -44,11 +45,15 @@
 #include <KisResourceLoaderRegistry.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoColorProfile.h>
+#include <KoColorSet.h>
+#include <KoStopGradient.h>
+#include <KisSwatch.h>
 #include <KoResourcePaths.h>
 #include <Node.h>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDomDocument>
 #include <QPointer>
 #include <QProcess>
 #include <QProcessEnvironment>
@@ -247,6 +252,7 @@ Outcome filter(SmokeDocument &doc, const QString &id, bool brightnessContrast = 
     if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
     auto config = implementation->defaultConfiguration(KisGlobalResourcesInterface::instance());
     if (!config) return {location, QStringLiteral("Filter did not provide its default configuration")};
+    QTemporaryDir reference;
     if (id == QLatin1String("levels")) config->setProperty("gammavalue", 1.4);
     else if (id == QLatin1String("perchannel")) {
         // The current curves filter owns brightness/contrast as a lightness
@@ -272,6 +278,57 @@ Outcome filter(SmokeDocument &doc, const QString &id, bool brightnessContrast = 
     } else if (id == QLatin1String("noise") || id == QLatin1String("randompick")) {
         for (const auto *key : {"seedThreshold", "seedRed", "seedGreen", "seedBlue", "seedH", "seedV"})
             config->setProperty(key, 41);
+    } else if (id == QLatin1String("crosschannel")) {
+        config->setProperty("nTransfers", 8);
+        config->setProperty("driver6", 7);
+        config->setProperty("curve6", QStringLiteral("0,0.5;1,0.85;"));
+    } else if (id == QLatin1String("asc-cdl")) {
+        config->setProperty("slope", QVariant::fromValue(KoColor(QColor(180, 220, 200), doc.image->colorSpace())));
+    } else if (id == QLatin1String("phongbumpmap")) {
+        config->setProperty("heightChannel", doc.image->colorSpace()->channels().first()->name());
+    } else if (id == QLatin1String("gradientmap")) {
+        KoStopGradient gradient;
+        gradient.setName(QStringLiteral("Operation smoke gradient"));
+        gradient.setStops({KoGradientStop(0.0, KoColor(QColor(19, 41, 173), doc.image->colorSpace())),
+                           KoGradientStop(1.0, KoColor(QColor(239, 181, 31), doc.image->colorSpace()))});
+        QDomDocument xml;
+        auto element = xml.createElement(QStringLiteral("gradient"));
+        gradient.toXML(xml, element);
+        xml.appendChild(element);
+        config->setProperty("gradientXML", xml.toString());
+    } else if (id == QLatin1String("palettize")) {
+        KoColorSetSP palette(new KoColorSet);
+        palette->setName(QStringLiteral("Operation smoke palette"));
+        palette->setFilename(QStringLiteral("operation-smoke.kpl"));
+        for (const auto &color : {QColor(Qt::black), QColor(Qt::white), QColor(221, 19, 73), QColor(31, 173, 91)})
+            palette->addSwatch(KisSwatch(KoColor(color, doc.image->colorSpace())));
+        palette->setValid(true);
+        KisResourceModel palettes(ResourceType::Palettes);
+        if (!palettes.addResource(palette)) return {location, QStringLiteral("Could not register filter palette")};
+        config->setProperty("md5sum", palette->md5Sum());
+        config->setProperty("palette", palette->name());
+    } else if (id == QLatin1String("colortransfer")) {
+        // The ordinary configuration widget imports the reference image and
+        // records the Lab statistics consumed by the filter.
+        if (!reference.isValid()) return {location, QStringLiteral("Could not create reference image directory")};
+        const auto path = reference.filePath(QStringLiteral("reference.png"));
+        QImage image(32, 24, QImage::Format_ARGB32);
+        for (int y = 0; y < image.height(); ++y) for (int x = 0; x < image.width(); ++x)
+            image.setPixelColor(x, y, QColor(80 + x * 4, 30 + y * 6, 40 + (x + y) * 3));
+        if (!image.save(path)) return {location, QStringLiteral("Could not save reference image")};
+        std::unique_ptr<KisConfigWidget> widget(implementation->createConfigurationWidget(nullptr, doc.node->paintDevice(), false));
+        if (!widget) return {location, QStringLiteral("Could not create color transfer configuration widget")};
+        config->setProperty("filename", path);
+        widget->setConfiguration(config);
+        config = dynamic_cast<KisFilterConfiguration *>(widget->configuration().data());
+        if (!config || !config->hasProperty("meanL") || !config->hasProperty("sigmaL"))
+            return {location, QStringLiteral("Reference image statistics were not loaded")};
+    } else if (id == QLatin1String("resettransparent") || id == QLatin1String("propagatecolors")) {
+        QScopedPointer<Node> api(Node::createNode(doc.image, doc.node));
+        QByteArray hole(8 * 8 * 4, char(71));
+        for (int i = 3; i < hole.size(); i += 4) hole[i] = 0;
+        if (!api->setPixelData(hole, 24, 16, 8, 8))
+            return {location, QStringLiteral("Could not initialize transparent filter pixels")};
     }
     const auto before = doc.pixels();
     const auto history = doc.owner->operations().undoCount();
@@ -288,7 +345,8 @@ Outcome filter(SmokeDocument &doc, const QString &id, bool brightnessContrast = 
 class KisGpuOperationSmokeTest : public QObject
 {
     Q_OBJECT
-    enum class Group { Normal, Brushes, Filters, SpatialFilters, ReliefFilters, ArtisticFilters };
+    enum class Group { Normal, Brushes, Filters, SpatialFilters, ReliefFilters, ArtisticFilters,
+                       ColorFilters, ResourceFilters };
 private Q_SLOTS:
     void initTestCase()
     {
@@ -339,6 +397,16 @@ private Q_SLOTS:
     void artisticFilters()
     {
         runOperations(Group::ArtisticFilters);
+    }
+
+    void colorFilters()
+    {
+        runOperations(Group::ColorFilters);
+    }
+
+    void resourceFilters()
+    {
+        runOperations(Group::ResourceFilters);
     }
 
 private:
@@ -458,11 +526,19 @@ private:
         addFilters(Group::ArtisticFilters, {QStringLiteral("noise"), QStringLiteral("oilpaint"),
             QStringLiteral("pixelize"), QStringLiteral("raindrops"), QStringLiteral("randompick"),
             QStringLiteral("roundcorners"), QStringLiteral("smalltiles"), QStringLiteral("wave")});
+        addFilters(Group::ColorFilters, {QStringLiteral("autocontrast"), QStringLiteral("crosschannel"),
+            QStringLiteral("asc-cdl"), QStringLiteral("dodge"), QStringLiteral("burn"),
+            QStringLiteral("threshold"), QStringLiteral("normalize"), QStringLiteral("maximize"),
+            QStringLiteral("minimize"), QStringLiteral("colortoalpha")});
+        addFilters(Group::ResourceFilters, {QStringLiteral("fastcoloroverlay"), QStringLiteral("resettransparent"),
+            QStringLiteral("propagatecolors"), QStringLiteral("gradientmap"), QStringLiteral("palettize"),
+            QStringLiteral("indexcolors"), QStringLiteral("colortransfer"), QStringLiteral("halftone"),
+            QStringLiteral("phongbumpmap")});
         probes.erase(std::remove_if(probes.begin(), probes.end(), [group](const Probe &probe) {
             return probe.group != group;
         }), probes.end());
         static constexpr const char *functions[] = {"normalOperations", "brushes", "filters",
-            "spatialFilters", "reliefFilters", "artisticFilters"};
+            "spatialFilters", "reliefFilters", "artisticFilters", "colorFilters", "resourceFilters"};
         const auto function = QString::fromLatin1(functions[int(group)]);
         const auto reportSuffix = group == Group::Normal ? QString() : QLatin1Char('.') + function;
         QJsonArray rows;
@@ -474,7 +550,7 @@ private:
             if (path.isEmpty()) return true;
             path += reportSuffix;
             QSaveFile file(path);
-            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b2b1"}, {"rows", rows}}).toJson();
+            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b2b2"}, {"rows", rows}}).toJson();
             return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
         };
         QVERIFY(publish());

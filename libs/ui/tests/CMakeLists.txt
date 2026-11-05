@@ -46,7 +46,10 @@ add_dependencies(KisGpuOperationSmokeTest kritalcmsengine kritadefaulttools
     kritaunsharpfilter kritaimageenhancement kritaedgedetection kritaconvertheighttonormalmap
     kritaconvolutionfilters kritaembossfilter kritanoisefilter kritaoilpaintfilter
     kritapixelizefilter kritaraindropsfilter kritarandompickfilter kritaroundcornersfilter
-    kritasmalltilesfilter kritawavefilter)
+    kritasmalltilesfilter kritawavefilter kritaextensioncolorsfilters kritaasccdl kritadodgeburn
+    kritathreshold kritanormalize kritagradientmap kritapalettize kritaindexcolors
+    kritafastcolortransferfilter kritahalftone kritascreentonegenerator kritaphongbumpmap
+    kritaresettransparent kritapropagatecolors)
 if(TARGET kritamypaintop)
     add_dependencies(KisGpuOperationSmokeTest kritamypaintop)
 endif()
@@ -55,9 +58,12 @@ add_test(NAME libs-ui-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSm
 add_test(NAME libs-ui-spatial-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest spatialFilters)
 add_test(NAME libs-ui-relief-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest reliefFilters)
 add_test(NAME libs-ui-artistic-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest artisticFilters)
+add_test(NAME libs-ui-color-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest colorFilters)
+add_test(NAME libs-ui-resource-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest resourceFilters)
 set_tests_properties(${gpu_operation_smoke_test} libs-ui-brushes-KisGpuOperationSmokeTest
     libs-ui-filters-KisGpuOperationSmokeTest libs-ui-spatial-filters-KisGpuOperationSmokeTest
-    libs-ui-relief-filters-KisGpuOperationSmokeTest libs-ui-artistic-filters-KisGpuOperationSmokeTest PROPERTIES
+    libs-ui-relief-filters-KisGpuOperationSmokeTest libs-ui-artistic-filters-KisGpuOperationSmokeTest
+    libs-ui-color-filters-KisGpuOperationSmokeTest libs-ui-resource-filters-KisGpuOperationSmokeTest PROPERTIES
     TIMEOUT 300 RUN_SERIAL TRUE ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 kis_add_test(KisDocumentReplaceTest.cpp
