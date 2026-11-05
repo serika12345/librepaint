@@ -22,6 +22,7 @@
 #include <generator/kis_generator_registry.h>
 #include <generator/kis_generator_layer.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuOperationCapabilities.h>
 #include <input/ui/kis_input_profile_manager.h>
 #include <nodes/kis_node_manager.h>
@@ -79,6 +80,9 @@
 #include <QDialog>
 #include <QListWidget>
 #include <QComboBox>
+#include <QRadioButton>
+#include <QSlider>
+#include <QSpinBox>
 #include <QMouseEvent>
 #include <KConfigGroup>
 #include <KSharedConfig>
@@ -87,6 +91,8 @@
 #include <memory>
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <utility>
 
 namespace Gpu = LibrePaint::Image::Gpu;
 
@@ -363,6 +369,205 @@ Outcome figure(SmokeDocument &doc, const QString &id)
             if (!error.first().toString().isEmpty()) detail += QStringLiteral("; ") + error.first().toString();
         return {location, detail};
     }
+    return {location, {}};
+}
+
+void toolPointer(KisTool *tool, KisCanvas2 *canvas, QEvent::Type type, QPointF point, bool held = false)
+{
+    const auto button = type == QEvent::MouseMove ? Qt::NoButton : Qt::LeftButton;
+    const auto buttons = type == QEvent::MouseButtonPress || held ? Qt::LeftButton : Qt::NoButton;
+    const auto widgetPoint = canvas->coordinatesConverter()->imageToWidget(point);
+    QMouseEvent event(type, widgetPoint, widgetPoint, button, buttons, Qt::NoModifier);
+    KoPointerEvent input(&event, canvas->coordinatesConverter()->imageToDocument(point));
+    if (type == QEvent::MouseButtonPress) tool->beginPrimaryAction(&input);
+    else if (type == QEvent::MouseButtonRelease) tool->endPrimaryAction(&input);
+    else if (held) tool->continuePrimaryAction(&input);
+    else tool->mouseMoveEvent(&input);
+}
+
+Outcome moveOrTransform(SmokeDocument &doc, bool transform)
+{
+    const auto location = Gpu::ExecutionLocation::Gpu;
+    if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
+    auto *canvas = doc.view->canvasBase();
+    canvas->resourceManager()->setResource(KoCanvasResource::EffectiveZoom, 1.0);
+    canvas->snapGuide()->enableSnapping(false);
+    const auto toolId = transform ? QStringLiteral("KisToolTransform") : QStringLiteral("KritaTransform/KisToolMove");
+    const auto source = doc.owner->operations().snapshot();
+    const auto layer = std::find_if(source->layers.cbegin(), source->layers.cend(),
+        [&](const auto &entry) { return entry.uuid == doc.node->uuid(); });
+    if (layer == source->layers.cend()) return {location, QStringLiteral("Tool target has no GPU layer")};
+    const auto read = [&](const Gpu::Snapshot &version) {
+        const auto result = doc.owner->execution().readRgbaPixels(doc.owner->handle(), version,
+            doc.image->bounds(), layer->id, 64 * 48 * 4);
+        return result.code == Gpu::ExecutionCode::Success ? result.bytes : QByteArray{};
+    };
+    const auto before = read(source);
+    if (before.size() != 64 * 48 * 4) return {location, QStringLiteral("Could not read the initial tool pixels")};
+    const auto history = doc.owner->operations().undoCount();
+    // A cancelled preview is the boundary case for the ordinary gesture. A
+    // fresh activation then exercises the same gesture through its finish action.
+    for (const bool cancel : {true, false}) {
+        KoToolManager::instance()->switchToolRequested(toolId);
+        auto *tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(canvas, toolId));
+        if (!tool || KoToolManager::instance()->activeToolId() != toolId)
+            return {location, QStringLiteral("Move/transform tool could not be activated")};
+        const auto cleanup = qScopeGuard([&] { tool->requestStrokeCancellation(); });
+        const auto options = tool->optionWidgets();
+        if (transform) {
+            QSpinBox *scaleX = nullptr, *scaleY = nullptr;
+            for (QWidget *panel : options) {
+                if (auto *spin = panel->findChild<QSpinBox *>(QStringLiteral("scaleXBox"))) scaleX = spin;
+                if (auto *spin = panel->findChild<QSpinBox *>(QStringLiteral("scaleYBox"))) scaleY = spin;
+            }
+            if (!scaleX || !scaleY) return {location, QStringLiteral("Transform scale options were not available")};
+            scaleX->setValue(125);
+            scaleY->setValue(75);
+        } else {
+            QRadioButton *selected = nullptr;
+            for (QWidget *panel : options)
+                if (auto *button = panel->findChild<QRadioButton *>(QStringLiteral("radioSelectedLayer"))) selected = button;
+            if (!selected) return {location, QStringLiteral("Move layer options were not available")};
+            selected->setChecked(true);
+            toolPointer(tool, canvas, QEvent::MouseMove, {20, 16});
+            toolPointer(tool, canvas, QEvent::MouseButtonPress, {20, 16});
+            toolPointer(tool, canvas, QEvent::MouseMove, {27, 21}, true);
+            toolPointer(tool, canvas, QEvent::MouseButtonRelease, {27, 21});
+        }
+        // waitForDone() requests stroke completion; render the preview directly
+        // while the ordinary move/transform gesture is still open.
+        const auto preview = doc.owner->operations().preview();
+        const auto pixels = read(preview);
+        if (!doc.owner->operations().hasActiveStroke() || preview == source ||
+            doc.owner->operations().snapshot() != source || doc.owner->operations().undoCount() != history ||
+            pixels.size() != before.size() || pixels == before)
+            return {location, QStringLiteral("Move/transform did not publish a changed preview before history commit (A7): active=%1 previewChanged=%2 sourceChanged=%3 history=%4/%5 bytes=%6 changed=%7")
+                .arg(doc.owner->operations().hasActiveStroke()).arg(preview != source)
+                .arg(doc.owner->operations().snapshot() != source).arg(doc.owner->operations().undoCount()).arg(history)
+                .arg(pixels.size()).arg(pixels != before)};
+        if (cancel) {
+            tool->requestStrokeCancellation();
+            // Transform cancellation resets its handles for another edit.
+            // Leaving the tool then closes that unchanged editing session.
+            KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+            if (doc.owner->operations().hasActiveStroke() || doc.owner->operations().snapshot() != source ||
+                read(doc.owner->operations().snapshot()) != before || doc.owner->operations().undoCount() != history)
+                return {location, QStringLiteral("Cancelled move/transform changed pixels or history (A7)")};
+        } else {
+            tool->requestStrokeEnd();
+            doc.image->waitForDone();
+            if (doc.image->gpuImage() != doc.owner || doc.owner->operations().hasActiveStroke() ||
+                doc.owner->operations().undoCount() != history + 1 || read(doc.owner->operations().snapshot()) != pixels)
+                return {location, QStringLiteral("Move/transform did not commit its preview as one history entry (A7)")};
+        }
+    }
+    return {location, {}};
+}
+
+Outcome cpuTool(SmokeDocument &doc, Gpu::ToolOperation operation)
+{
+    const auto location = Gpu::toolExecutionLocation(operation);
+    const bool fill = operation == Gpu::ToolOperation::Fill;
+    const bool gradient = operation == Gpu::ToolOperation::Gradient;
+    const bool patch = operation == Gpu::ToolOperation::SmartPatch;
+    const auto toolId = fill ? QStringLiteral("KritaFill/KisToolFill") :
+        gradient ? QStringLiteral("KritaFill/KisToolGradient") :
+        patch ? QStringLiteral("KritaShape/KisToolSmartPatch") : QStringLiteral("KisToolEncloseAndFill");
+    KConfigGroup configuration = KSharedConfig::openConfig()->group(toolId);
+    const auto oldEntries = configuration.entryMap();
+    const auto restoreConfiguration = qScopeGuard([&] {
+        configuration.deleteGroup();
+        for (auto i = oldEntries.cbegin(); i != oldEntries.cend(); ++i) configuration.writeEntry(i.key(), i.value());
+    });
+    configuration.writeEntry("whatToFill", "fillContiguousRegion");
+    configuration.writeEntry("contiguousFillMode", "floodFill");
+    configuration.writeEntry("fillWith", "foregroundColor");
+    configuration.writeEntry("sampleLayersMode", "currentLayer");
+    configuration.writeEntry("thresholdAmount", 8);
+    configuration.writeEntry("opacitySpread", 100);
+    configuration.writeEntry("closeGapAmount", 0);
+    configuration.writeEntry("antiAlias", false);
+    configuration.writeEntry("growSelection", 0);
+    configuration.writeEntry("featherAmount", 0);
+    configuration.writeEntry("useCustomBlendingOptions", false);
+    configuration.writeEntry("shape", 0);
+    configuration.writeEntry("repeat", 0);
+    configuration.writeEntry("reverse", false);
+    configuration.writeEntry("dither", false);
+    configuration.writeEntry("enclosingMethod", "rectangle");
+    configuration.writeEntry("regionSelectionMethod", "allRegions");
+    configuration.writeEntry("regionSelectionIncludeContourRegions", true);
+    configuration.writeEntry("regionSelectionInvert", false);
+    configuration.writeEntry("reference", "currentLayer");
+    configuration.writeEntry("fillThreshold", 8);
+    configuration.writeEntry("fillOpacitySpread", 100);
+    configuration.writeEntry("expand", 0);
+    configuration.writeEntry("feather", 0);
+    auto preset = KisPaintOpRegistry::instance()->defaultPreset(KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    if (!preset) return {location, QStringLiteral("Tool brush preset was not registered")};
+    preset->setName(QStringLiteral("Operation smoke CPU tool"));
+    preset->setFilename(QStringLiteral("operation-smoke-cpu-tool.kpp"));
+    QImage preview(16, 16, QImage::Format_ARGB32);
+    preview.fill(Qt::black);
+    preset->setImage(preview);
+    KisResourceModel presets(ResourceType::PaintOpPresets);
+    if (!presets.addResource(preset)) return {location, QStringLiteral("Could not register tool brush preset")};
+    if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
+    auto *resources = doc.window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(preset);
+    resources->setSize(6);
+    resources->setOpacity(1);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    resources->setEraserMode(false);
+    resources->setGlobalAlphaLock(false);
+    resources->setMirrorHorizontal(false);
+    resources->setMirrorVertical(false);
+    resources->setFGColor(KoColor(QColor(221, 19, 73), doc.image->colorSpace()));
+    resources->setBGColor(KoColor(Qt::white, doc.image->colorSpace()));
+    if (gradient) {
+        auto resource = QSharedPointer<KoStopGradient>::create();
+        resource->setName(QStringLiteral("Operation smoke tool gradient"));
+        resource->setStops({{0, KoColor(Qt::red, doc.image->colorSpace())},
+                            {1, KoColor(Qt::blue, doc.image->colorSpace())}});
+        resource->setValid(true);
+        resources->slotGradientActivated(resource);
+    }
+    auto *canvas = doc.view->canvasBase();
+    canvas->resourceManager()->setResource(KoCanvasResource::EffectiveZoom, 1.0);
+    canvas->snapGuide()->enableSnapping(false);
+    KoToolManager::instance()->switchToolRequested(toolId);
+    auto *tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(canvas, toolId));
+    if (!tool || KoToolManager::instance()->activeToolId() != toolId)
+        return {location, QStringLiteral("CPU tool could not be activated")};
+    const auto cleanup = qScopeGuard([&] { tool->requestStrokeCancellation(); });
+    const auto options = tool->optionWidgets();
+    if (patch) {
+        QSlider *accuracy = nullptr;
+        QSpinBox *radius = nullptr;
+        for (QWidget *panel : options) {
+            if (auto *slider = panel->findChild<QSlider *>(QStringLiteral("accuracySlider"))) accuracy = slider;
+            if (auto *spin = panel->findChild<QSpinBox *>(QStringLiteral("patchRadius"))) radius = spin;
+        }
+        if (!accuracy || !radius) return {location, QStringLiteral("Smart patch options were not available")};
+        accuracy->setValue(0);
+        radius->setValue(2);
+        std::srand(197);
+    }
+    const auto before = doc.pixels();
+    const auto history = doc.owner->operations().undoCount();
+    toolPointer(tool, canvas, QEvent::MouseMove, {16, 14});
+    toolPointer(tool, canvas, QEvent::MouseButtonPress, {16, 14});
+    if (!fill) toolPointer(tool, canvas, QEvent::MouseMove, patch ? QPointF(20, 18) : QPointF(48, 34), true);
+    // Rectangle delegates treat synthetic releases as cancellation; the finish
+    // action commits the enclosing shape before sending its pointer release.
+    if (!fill && !gradient && !patch) tool->requestStrokeEnd();
+    toolPointer(tool, canvas, QEvent::MouseButtonRelease, fill ? QPointF(16, 14) : patch ? QPointF(20, 18) : QPointF(48, 34));
+    doc.image->waitForDone();
+    const auto after = doc.pixels();
+    if (doc.image->gpuImage() != doc.owner || doc.owner->operations().hasActiveStroke() ||
+        before.size() != 64 * 48 * 4 || after.size() != before.size() || after == before ||
+        doc.owner->operations().undoCount() != history + 1)
+        return {location, QStringLiteral("CPU tool did not publish changed pixels and one history entry in the GPU document (A7)")};
     return {location, {}};
 }
 
@@ -771,7 +976,7 @@ class KisGpuOperationSmokeTest : public QObject
 {
     Q_OBJECT
     enum class Group { Normal, Brushes, Filters, SpatialFilters, ReliefFilters, ArtisticFilters,
-                       ColorFilters, ResourceFilters, Generators, Figures, Selections, SelectionEdits };
+                       ColorFilters, ResourceFilters, Generators, Figures, Selections, SelectionEdits, Tools };
 private Q_SLOTS:
     void initTestCase()
     {
@@ -852,6 +1057,11 @@ private Q_SLOTS:
     void selectionEdits()
     {
         runOperations(Group::SelectionEdits);
+    }
+
+    void tools()
+    {
+        runOperations(Group::Tools);
     }
 
 private:
@@ -997,12 +1207,23 @@ private:
                               QStringLiteral("smoothselection"), QStringLiteral("shrink-empty")})
             probes.append({QStringLiteral("selection/") + id, true,
                 [id](SmokeDocument &doc) { return selectionEdit(doc, id); }, Group::SelectionEdits});
+        probes.append({QStringLiteral("tool/transform"), true,
+            [](SmokeDocument &doc) { return moveOrTransform(doc, true); }, Group::Tools});
+        probes.append({QStringLiteral("tool/move"), true,
+            [](SmokeDocument &doc) { return moveOrTransform(doc, false); }, Group::Tools});
+        for (const auto &[id, operation] : {
+                std::pair{QStringLiteral("fill"), Gpu::ToolOperation::Fill},
+                std::pair{QStringLiteral("gradient"), Gpu::ToolOperation::Gradient},
+                std::pair{QStringLiteral("smart-patch"), Gpu::ToolOperation::SmartPatch},
+                std::pair{QStringLiteral("enclose-and-fill"), Gpu::ToolOperation::EncloseAndFill}})
+            probes.append({QStringLiteral("tool/") + id, false,
+                [operation](SmokeDocument &doc) { return cpuTool(doc, operation); }, Group::Tools});
         probes.erase(std::remove_if(probes.begin(), probes.end(), [group](const Probe &probe) {
             return probe.group != group;
         }), probes.end());
         static constexpr const char *functions[] = {"normalOperations", "brushes", "filters",
             "spatialFilters", "reliefFilters", "artisticFilters", "colorFilters", "resourceFilters", "generators", "figures",
-            "selections", "selectionEdits"};
+            "selections", "selectionEdits", "tools"};
         const auto function = QString::fromLatin1(functions[int(group)]);
         const auto reportSuffix = group == Group::Normal ? QString() : QLatin1Char('.') + function;
         QJsonArray rows;
@@ -1014,7 +1235,7 @@ private:
             if (path.isEmpty()) return true;
             path += reportSuffix;
             QSaveFile file(path);
-            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b3b"}, {"rows", rows}}).toJson();
+            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b3c"}, {"rows", rows}}).toJson();
             return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
         };
         QVERIFY(publish());
