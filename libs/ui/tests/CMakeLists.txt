@@ -42,14 +42,22 @@ add_dependencies(KisGpuOperationSmokeTest kritalcmsengine kritadefaulttools
     kritahairypaintop kritadeformpaintop kritacurvepaintop kritaspraypaintop kritafilterop
     kritaexperimentpaintop kritaparticlepaintop kritahatchingpaintop kritasketchpaintop
     kritatangentnormalpaintop kritaexample kritaposterize kritapngimport
-    kritalevelfilter kritacolorsfilters kritablurfilter)
+    kritalevelfilter kritacolorsfilters kritablurfilter kritagaussianhighpassfilter
+    kritaunsharpfilter kritaimageenhancement kritaedgedetection kritaconvertheighttonormalmap
+    kritaconvolutionfilters kritaembossfilter kritanoisefilter kritaoilpaintfilter
+    kritapixelizefilter kritaraindropsfilter kritarandompickfilter kritaroundcornersfilter
+    kritasmalltilesfilter kritawavefilter)
 if(TARGET kritamypaintop)
     add_dependencies(KisGpuOperationSmokeTest kritamypaintop)
 endif()
 add_test(NAME libs-ui-brushes-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest brushes)
 add_test(NAME libs-ui-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest filters)
+add_test(NAME libs-ui-spatial-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest spatialFilters)
+add_test(NAME libs-ui-relief-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest reliefFilters)
+add_test(NAME libs-ui-artistic-filters-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest artisticFilters)
 set_tests_properties(${gpu_operation_smoke_test} libs-ui-brushes-KisGpuOperationSmokeTest
-    libs-ui-filters-KisGpuOperationSmokeTest PROPERTIES
+    libs-ui-filters-KisGpuOperationSmokeTest libs-ui-spatial-filters-KisGpuOperationSmokeTest
+    libs-ui-relief-filters-KisGpuOperationSmokeTest libs-ui-artistic-filters-KisGpuOperationSmokeTest PROPERTIES
     TIMEOUT 300 RUN_SERIAL TRUE ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 kis_add_test(KisDocumentReplaceTest.cpp

@@ -263,6 +263,16 @@ Outcome filter(SmokeDocument &doc, const QString &id, bool brightnessContrast = 
         config->setProperty("horizRadius", 2.0);
         config->setProperty("vertRadius", 2.0);
     } else if (id == QLatin1String("posterize")) config->setProperty("steps", 4);
+    else if (id == QLatin1String("gaussiannoisereducer")) config->setProperty("threshold", 0);
+    else if (id == QLatin1String("raindrops")) {
+        // Fit several drops inside the small smoke document.
+        config->setProperty("dropSize", 12);
+        config->setProperty("number", 5);
+        config->setProperty("seed", 41);
+    } else if (id == QLatin1String("noise") || id == QLatin1String("randompick")) {
+        for (const auto *key : {"seedThreshold", "seedRed", "seedGreen", "seedBlue", "seedH", "seedV"})
+            config->setProperty(key, 41);
+    }
     const auto before = doc.pixels();
     const auto history = doc.owner->operations().undoCount();
     doc.window->viewManager()->filterManager()->apply(config);
@@ -278,7 +288,7 @@ Outcome filter(SmokeDocument &doc, const QString &id, bool brightnessContrast = 
 class KisGpuOperationSmokeTest : public QObject
 {
     Q_OBJECT
-    enum class Group { Normal, Brushes, Filters };
+    enum class Group { Normal, Brushes, Filters, SpatialFilters, ReliefFilters, ArtisticFilters };
 private Q_SLOTS:
     void initTestCase()
     {
@@ -316,6 +326,21 @@ private Q_SLOTS:
         runOperations(Group::Filters);
     }
 
+    void spatialFilters()
+    {
+        runOperations(Group::SpatialFilters);
+    }
+
+    void reliefFilters()
+    {
+        runOperations(Group::ReliefFilters);
+    }
+
+    void artisticFilters()
+    {
+        runOperations(Group::ArtisticFilters);
+    }
+
 private:
     void runOperations(Group group)
     {
@@ -329,6 +354,7 @@ private:
             QString id;
             bool resident;
             std::function<Outcome(SmokeDocument &)> execute;
+            Group group = Group::Normal;
         };
         QList<Probe> probes = {
             {QStringLiteral("document/new-rgba-u8"), true, [](SmokeDocument &) { return Outcome{}; }},
@@ -403,7 +429,7 @@ private:
         for (const auto &id : brushIds)
             probes.append({QStringLiteral("brush/") + id,
                 id == QLatin1String("paintbrush") || id == QLatin1String("roundmarker") || id == QLatin1String("colorsmudge"),
-                [id](SmokeDocument &doc) { return brush(doc, id); }});
+                [id](SmokeDocument &doc) { return brush(doc, id); }, Group::Brushes});
         // Keep #107's required placement independent of today's capabilities,
         // so CPU execution of a resident filter stays visible until A10.
         const QStringList residentFilters = {QStringLiteral("levels"), QStringLiteral("perchannel"),
@@ -411,18 +437,33 @@ private:
             QStringLiteral("desaturate"), QStringLiteral("gaussian blur")};
         for (const auto &id : residentFilters)
             probes.append({QStringLiteral("filter/") + id, true,
-                [id](SmokeDocument &doc) { return filter(doc, id); }});
+                [id](SmokeDocument &doc) { return filter(doc, id); }, Group::Filters});
         probes.append({QStringLiteral("filter/brightness-contrast"), true,
-            [](SmokeDocument &doc) { return filter(doc, QStringLiteral("perchannel"), true); }});
+            [](SmokeDocument &doc) { return filter(doc, QStringLiteral("perchannel"), true); }, Group::Filters});
         probes.append({QStringLiteral("filter/posterize"), false,
-            [](SmokeDocument &doc) { return filter(doc, QStringLiteral("posterize")); }});
+            [](SmokeDocument &doc) { return filter(doc, QStringLiteral("posterize")); }, Group::Filters});
+        const auto addFilters = [&](Group filterGroup, const QStringList &ids) {
+            for (const auto &id : ids)
+                probes.append({QStringLiteral("filter/") + id, false,
+                    [id](SmokeDocument &doc) { return filter(doc, id); }, filterGroup});
+        };
+        addFilters(Group::SpatialFilters, {QStringLiteral("blur"), QStringLiteral("motion blur"),
+            QStringLiteral("lens blur"), QStringLiteral("gaussianhighpass"), QStringLiteral("unsharp"),
+            QStringLiteral("gaussiannoisereducer"), QStringLiteral("waveletnoisereducer"),
+            QStringLiteral("edge detection"), QStringLiteral("height to normal")});
+        addFilters(Group::ReliefFilters, {QStringLiteral("sharpen"), QStringLiteral("mean removal"),
+            QStringLiteral("emboss laplascian"), QStringLiteral("emboss all directions"),
+            QStringLiteral("emboss horizontal and vertical"), QStringLiteral("emboss vertical only"),
+            QStringLiteral("emboss horizontal only"), QStringLiteral("emboss")});
+        addFilters(Group::ArtisticFilters, {QStringLiteral("noise"), QStringLiteral("oilpaint"),
+            QStringLiteral("pixelize"), QStringLiteral("raindrops"), QStringLiteral("randompick"),
+            QStringLiteral("roundcorners"), QStringLiteral("smalltiles"), QStringLiteral("wave")});
         probes.erase(std::remove_if(probes.begin(), probes.end(), [group](const Probe &probe) {
-            const auto probeGroup = probe.id.startsWith(QLatin1String("brush/")) ? Group::Brushes :
-                probe.id.startsWith(QLatin1String("filter/")) ? Group::Filters : Group::Normal;
-            return probeGroup != group;
+            return probe.group != group;
         }), probes.end());
-        const auto function = group == Group::Brushes ? QStringLiteral("brushes") :
-            group == Group::Filters ? QStringLiteral("filters") : QStringLiteral("normalOperations");
+        static constexpr const char *functions[] = {"normalOperations", "brushes", "filters",
+            "spatialFilters", "reliefFilters", "artisticFilters"};
+        const auto function = QString::fromLatin1(functions[int(group)]);
         const auto reportSuffix = group == Group::Normal ? QString() : QLatin1Char('.') + function;
         QJsonArray rows;
         for (const auto &probe : probes)
@@ -433,7 +474,7 @@ private:
             if (path.isEmpty()) return true;
             path += reportSuffix;
             QSaveFile file(path);
-            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b2a"}, {"rows", rows}}).toJson();
+            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b2b1"}, {"rows", rows}}).toJson();
             return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
         };
         QVERIFY(publish());
