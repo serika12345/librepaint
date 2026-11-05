@@ -449,7 +449,7 @@ void TestDocument::testJpegOpenSelectsEngineAndKeepsDocumentOnFailure_data()
 {
     QTest::addColumn<QByteArray>("encoded");
     QTest::addColumn<bool>("gpuSession");
-    QTest::addColumn<QString>("validCpuModel");
+    QTest::addColumn<QString>("validModel");
     const auto add = [](const QByteArray &name, const QByteArray &bytes, bool gpuOnly = false,
                         const QString &model = QString()) {
         for (bool gpu : {false, true}) {
@@ -504,7 +504,7 @@ void TestDocument::testJpegOpenSelectsEngineAndKeepsDocumentOnFailure()
 {
     QFETCH(QByteArray, encoded);
     QFETCH(bool, gpuSession);
-    QFETCH(QString, validCpuModel);
+    QFETCH(QString, validModel);
     const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restore = qScopeGuard([&] {
         if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
@@ -515,7 +515,7 @@ void TestDocument::testJpegOpenSelectsEngineAndKeepsDocumentOnFailure()
     const auto preserveFailure = qScopeGuard([&] {
         if (QTest::currentTestFailed()) {
             directory.setAutoRemove(false);
-            qInfo() << "Rejected JPEG artifacts retained at" << directory.path();
+            qInfo() << "JPEG import artifacts retained at" << directory.path();
         }
     });
     const auto write = [&](const QString &name, const QByteArray &bytes) {
@@ -523,35 +523,35 @@ void TestDocument::testJpegOpenSelectsEngineAndKeepsDocumentOnFailure()
         return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
     };
     QVERIFY(write(QStringLiteral("source.jpg"), fixedJpeg));
-    QVERIFY(write(QStringLiteral("rejected.jpg"), encoded));
-    const auto rejected = directory.filePath(QStringLiteral("rejected.jpg"));
-    if (!validCpuModel.isEmpty()) {
+    QVERIFY(write(QStringLiteral("candidate.jpg"), encoded));
+    const auto candidate = directory.filePath(QStringLiteral("candidate.jpg"));
+    if (!validModel.isEmpty()) {
         qputenv("LIBREPAINT_GPU_ENGINE", "0");
         QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
         reference->setFileBatchMode(true);
         reference->setAutoSaveActive(false);
-        QVERIFY2(reference->openPath(rejected, KisDocument::DontAddToRecent), qPrintable(reference->errorMessage()));
-        QCOMPARE(reference->image()->colorSpace()->colorModelId().id(), validCpuModel);
-        if (validCpuModel != QLatin1String("RGBA")) {
-            qputenv("LIBREPAINT_GPU_ENGINE", gpuSession ? "1" : "0");
-            QScopedPointer<KisDocument> opened(KisPart::instance()->createDocument());
-            opened->setFileBatchMode(true);
-            QVERIFY2(opened->openPath(rejected, KisDocument::DontAddToRecent), qPrintable(opened->errorMessage()));
-            QVERIFY(!opened->image()->gpuImage());
-            QCOMPARE(opened->image()->colorSpace(), reference->image()->colorSpace());
-            QCOMPARE(opened->image()->bounds(), reference->image()->bounds());
-            Document actualApi(opened.data(), false), expectedApi(reference.data(), false);
-            const auto size = opened->image()->size();
-            const auto actual = actualApi.pixelData(0, 0, size.width(), size.height());
-            const auto expected = expectedApi.pixelData(0, 0, size.width(), size.height());
-            QCOMPARE(actual.size(), expected.size());
-            const auto pixelSize = opened->image()->colorSpace()->pixelSize();
-            for (qsizetype i = 0; i < actual.size(); ++i) {
-                QVERIFY(qAbs(int(quint8(actual[i])) - int(quint8(expected[i]))) <= 1);
-                if ((i + 1) % pixelSize == 0) QCOMPARE(actual[i] == 0, expected[i] == 0);
-            }
-            return;
+        QVERIFY2(reference->openPath(candidate, KisDocument::DontAddToRecent), qPrintable(reference->errorMessage()));
+        QCOMPARE(reference->image()->colorSpace()->colorModelId().id(), validModel);
+        qputenv("LIBREPAINT_GPU_ENGINE", gpuSession ? "1" : "0");
+        QScopedPointer<KisDocument> opened(KisPart::instance()->createDocument());
+        opened->setFileBatchMode(true);
+        opened->setAutoSaveActive(false);
+        QVERIFY2(opened->openPath(candidate, KisDocument::DontAddToRecent), qPrintable(opened->errorMessage()));
+        QCOMPARE(bool(opened->image()->gpuImage()), gpuSession && validModel == QLatin1String("RGBA"));
+        QCOMPARE(opened->image()->colorSpace()->id(), reference->image()->colorSpace()->id());
+        QCOMPARE(opened->image()->colorSpace()->profile()->rawData(), reference->image()->colorSpace()->profile()->rawData());
+        QCOMPARE(opened->image()->bounds(), reference->image()->bounds());
+        Document actualApi(opened.data(), false), expectedApi(reference.data(), false);
+        const auto size = opened->image()->size();
+        const auto actual = actualApi.pixelData(0, 0, size.width(), size.height());
+        const auto expected = expectedApi.pixelData(0, 0, size.width(), size.height());
+        QCOMPARE(actual.size(), expected.size());
+        const auto pixelSize = opened->image()->colorSpace()->pixelSize();
+        for (qsizetype i = 0; i < actual.size(); ++i) {
+            QVERIFY(qAbs(int(quint8(actual[i])) - int(quint8(expected[i]))) <= 1);
+            if ((i + 1) % pixelSize == 0) QCOMPARE(actual[i] == 0, expected[i] == 0);
         }
+        return;
     }
     qputenv("LIBREPAINT_GPU_ENGINE", gpuSession ? "1" : "0");
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
@@ -578,7 +578,7 @@ void TestDocument::testJpegOpenSelectsEngineAndKeepsDocumentOnFailure()
     const auto index = document->undoStack()->index();
     document->documentInfo()->setAboutInfo("title", QStringLiteral("Previous JPEG document"));
     QSignalSpy changed(document.data(), &KisDocument::sigCurrentImageChanged);
-    QVERIFY(!document->openPath(rejected, KisDocument::DontAddToRecent));
+    QVERIFY(!document->openPath(candidate, KisDocument::DontAddToRecent));
     QCOMPARE(KisImageSP(document->image()), image);
     QCOMPARE(api.pixelData(0, 0, 3, 2), pixels);
     if (owner) QCOMPARE(owner->operations().preview(), retainedVersion);
