@@ -8,7 +8,7 @@
 Usage: scripts/agent-loop/coverage [--require-complete]
 Reports and the test log are saved under build/agent-loop/coverage-last.*.
 The default checks report execution; --require-complete enforces A14 for the
-listed operations. Brush and other operation groups run as separate tests;
+listed operations. Brush, filter and other operation groups run as separate tests;
 their reports are merged before enforcing completeness.
 """
 
@@ -87,10 +87,11 @@ def main(arguments=None):
             )
         try:
             report = json.loads(report_path.read_text())
-            brushes = json.loads(Path(str(report_path) + ".brushes").read_text())
             summarize(report)
-            summarize(brushes)
-            report["rows"] += brushes["rows"]
+            for suffix in (".brushes", ".filters"):
+                group = json.loads(Path(str(report_path) + suffix).read_text())
+                summarize(group)
+                report["rows"] += group["rows"]
             counts = summarize(report)
         except (OSError, ValueError, TypeError, AttributeError) as error:
             print(f"coverage: {error}; see {log_path}", file=sys.stderr)

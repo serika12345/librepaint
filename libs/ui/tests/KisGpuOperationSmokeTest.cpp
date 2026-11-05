@@ -239,19 +239,37 @@ Outcome brush(SmokeDocument &doc, const QString &id)
     return {location, {}};
 }
 
-Outcome filter(SmokeDocument &doc, const QString &id)
+Outcome filter(SmokeDocument &doc, const QString &id, bool brightnessContrast = false)
 {
     const auto location = Gpu::filterExecutionLocation(id);
     const auto implementation = KisFilterRegistry::instance()->value(id);
     if (!implementation) return {location, QStringLiteral("Filter plugin was not registered")};
     if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
     auto config = implementation->defaultConfiguration(KisGlobalResourcesInterface::instance());
-    if (id == QLatin1String("posterize")) config->setProperty("steps", 4);
+    if (!config) return {location, QStringLiteral("Filter did not provide its default configuration")};
+    if (id == QLatin1String("levels")) config->setProperty("gammavalue", 1.4);
+    else if (id == QLatin1String("perchannel")) {
+        // The current curves filter owns brightness/contrast as a lightness
+        // curve, including the legacy brightnesscontrast KRA conversion.
+        config->setProperty("nTransfers", 8);
+        config->setProperty(brightnessContrast ? "curve7" : "curve0",
+            QStringLiteral("0,0;0.5,0.7;1,1;"));
+    } else if (id == QLatin1String("hsvadjustment")) {
+        config->setProperty("h", 32);
+        config->setProperty("s", 15);
+        config->setProperty("v", 10);
+    } else if (id == QLatin1String("colorbalance")) config->setProperty("cyan_red_midtones", 35);
+    else if (id == QLatin1String("gaussian blur")) {
+        config->setProperty("horizRadius", 2.0);
+        config->setProperty("vertRadius", 2.0);
+    } else if (id == QLatin1String("posterize")) config->setProperty("steps", 4);
     const auto before = doc.pixels();
     const auto history = doc.owner->operations().undoCount();
     doc.window->viewManager()->filterManager()->apply(config);
     doc.image->waitForDone();
-    if (doc.owner->operations().undoCount() != history + 1 || doc.pixels() == before)
+    const auto after = doc.pixels();
+    if (doc.image->gpuImage() != doc.owner || before.size() != 64 * 48 * 4 ||
+        after.size() != before.size() || doc.owner->operations().undoCount() != history + 1 || after == before)
         return {location, QStringLiteral("Filter did not publish changed pixels and one history entry")};
     return {location, {}};
 }
@@ -260,6 +278,7 @@ Outcome filter(SmokeDocument &doc, const QString &id)
 class KisGpuOperationSmokeTest : public QObject
 {
     Q_OBJECT
+    enum class Group { Normal, Brushes, Filters };
 private Q_SLOTS:
     void initTestCase()
     {
@@ -284,16 +303,21 @@ private Q_SLOTS:
 
     void normalOperations()
     {
-        runOperations(false);
+        runOperations(Group::Normal);
     }
 
     void brushes()
     {
-        runOperations(true);
+        runOperations(Group::Brushes);
+    }
+
+    void filters()
+    {
+        runOperations(Group::Filters);
     }
 
 private:
-    void runOperations(bool brushesOnly)
+    void runOperations(Group group)
     {
         const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
         const auto restore = qScopeGuard([&] {
@@ -308,8 +332,6 @@ private:
         };
         QList<Probe> probes = {
             {QStringLiteral("document/new-rgba-u8"), true, [](SmokeDocument &) { return Outcome{}; }},
-            {QStringLiteral("filter/invert"), true, [](SmokeDocument &doc) { return filter(doc, QStringLiteral("invert")); }},
-            {QStringLiteral("filter/posterize"), false, [](SmokeDocument &doc) { return filter(doc, QStringLiteral("posterize")); }},
             {QStringLiteral("selection/rectangle"), true, [](SmokeDocument &doc) {
                 const QRect selected(11, 9, 23, 17);
                 if (!doc.image->setGpuSelectionRect(selected) || !doc.image->globalSelection() ||
@@ -382,10 +404,26 @@ private:
             probes.append({QStringLiteral("brush/") + id,
                 id == QLatin1String("paintbrush") || id == QLatin1String("roundmarker") || id == QLatin1String("colorsmudge"),
                 [id](SmokeDocument &doc) { return brush(doc, id); }});
-        probes.erase(std::remove_if(probes.begin(), probes.end(), [brushesOnly](const Probe &probe) {
-            return probe.id.startsWith(QLatin1String("brush/")) != brushesOnly;
+        // Keep #107's required placement independent of today's capabilities,
+        // so CPU execution of a resident filter stays visible until A10.
+        const QStringList residentFilters = {QStringLiteral("levels"), QStringLiteral("perchannel"),
+            QStringLiteral("hsvadjustment"), QStringLiteral("colorbalance"), QStringLiteral("invert"),
+            QStringLiteral("desaturate"), QStringLiteral("gaussian blur")};
+        for (const auto &id : residentFilters)
+            probes.append({QStringLiteral("filter/") + id, true,
+                [id](SmokeDocument &doc) { return filter(doc, id); }});
+        probes.append({QStringLiteral("filter/brightness-contrast"), true,
+            [](SmokeDocument &doc) { return filter(doc, QStringLiteral("perchannel"), true); }});
+        probes.append({QStringLiteral("filter/posterize"), false,
+            [](SmokeDocument &doc) { return filter(doc, QStringLiteral("posterize")); }});
+        probes.erase(std::remove_if(probes.begin(), probes.end(), [group](const Probe &probe) {
+            const auto probeGroup = probe.id.startsWith(QLatin1String("brush/")) ? Group::Brushes :
+                probe.id.startsWith(QLatin1String("filter/")) ? Group::Filters : Group::Normal;
+            return probeGroup != group;
         }), probes.end());
-        const auto reportSuffix = brushesOnly ? QStringLiteral(".brushes") : QString();
+        const auto function = group == Group::Brushes ? QStringLiteral("brushes") :
+            group == Group::Filters ? QStringLiteral("filters") : QStringLiteral("normalOperations");
+        const auto reportSuffix = group == Group::Normal ? QString() : QLatin1Char('.') + function;
         QJsonArray rows;
         for (const auto &probe : probes)
             rows.append(QJsonObject{{"id", probe.id}, {"required", probe.resident ? "gpu" : "cpu"},
@@ -395,7 +433,7 @@ private:
             if (path.isEmpty()) return true;
             path += reportSuffix;
             QSaveFile file(path);
-            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b1"}, {"rows", rows}}).toJson();
+            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b2a"}, {"rows", rows}}).toJson();
             return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
         };
         QVERIFY(publish());
@@ -422,7 +460,7 @@ private:
                 process.setUnixProcessParameters(QProcess::UnixProcessFlag::DisableCoreDumps);
 #endif
                 process.start(QCoreApplication::applicationFilePath(),
-                    {brushesOnly ? QStringLiteral("brushes") : QStringLiteral("normalOperations"), QStringLiteral("-nocrashhandler")});
+                    {function, QStringLiteral("-nocrashhandler")});
                 const bool finished = process.waitForFinished(20000);
                 if (!finished) {
                     process.kill();
