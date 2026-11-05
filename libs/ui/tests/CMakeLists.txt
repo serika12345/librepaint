@@ -32,6 +32,16 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_tests_properties(${gpu_cpu_document_migration_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
 endif()
 
+kis_add_test(KisGpuOperationSmokeTest.cpp ../../../krita/krita.qrc
+    TEST_NAME KisGpuOperationSmokeTest
+    TEST_NAME_VAR gpu_operation_smoke_test
+    LINK_LIBRARIES kritaapplicationui kritainputui kritalibkis kritatestsdk)
+add_dependencies(KisGpuOperationSmokeTest kritalcmsengine kritadefaulttools
+    kritadefaultpaintops kritaroundmarkerpaintop kritagridpaintop kritacolorsmudgepaintop
+    kritaexample kritaposterize kritapngimport)
+set_tests_properties(${gpu_operation_smoke_test} PROPERTIES
+    TIMEOUT 300 RUN_SERIAL TRUE ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 kis_add_test(KisDocumentReplaceTest.cpp
     TEST_NAME_VAR gpu_document_replace_test
     LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk kritadocumentfiles kritaimpexkra)

@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+
+# SPDX-FileCopyrightText: 2026 LibrePaint contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Run ordinary GPU document operations and summarize their execution results.
+
+Usage: scripts/agent-loop/coverage [--require-complete]
+Reports and the test log are saved under build/agent-loop/coverage-last.*.
+The default checks report execution; --require-complete enforces A14 for the
+listed operations. A2b extends the initial A2a inventory to the full #107 scope.
+"""
+
+import argparse
+from collections import Counter
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def summarize(report):
+    if report.get("schema") != 1 or not isinstance(report.get("rows"), list) or not report["rows"]:
+        raise ValueError("missing operation rows or unsupported coverage schema")
+    counts = Counter(gpu=0, cpu=0, failure=0, resident_cpu=0)
+    identities = set()
+    for row in report["rows"]:
+        identity = row.get("id")
+        if not isinstance(identity, str) or not identity or identity in identities:
+            raise ValueError("missing or duplicate operation identity")
+        identities.add(identity)
+        result = row.get("result")
+        if result not in ("gpu", "cpu", "failure") or row.get("required") not in ("gpu", "cpu"):
+            raise ValueError(f"invalid execution result for {identity}")
+        if not isinstance(row.get("detail"), str):
+            raise ValueError(f"missing operation detail for {identity}")
+        counts[result] += 1
+        counts["resident_cpu"] += result == "cpu" and row["required"] == "gpu"
+    return dict(counts)
+
+
+def render(report):
+    counts = summarize(report)
+    labels = {"gpu": "GPU", "cpu": "CPU経由", "failure": "失敗"}
+
+    def cell(value):
+        return value.replace("|", "\\|").replace("\n", " ").replace("\r", " ")
+
+    lines = [f"対象: {report.get('scope', 'operations')}", "",
+             "| 操作 | 必要な実行場所 | 結果 | 詳細 |", "| --- | --- | --- | --- |"]
+    for row in report["rows"]:
+        lines.append(f"| {cell(row['id'])} | {labels[row['required']]} | "
+                     f"{labels[row['result']]} | {cell(row['detail'])} |")
+    lines += ["", f"GPU: {counts['gpu']} / CPU経由: {counts['cpu']} / 失敗: {counts['failure']}",
+              f"GPU常駐対象のCPU経由: {counts['resident_cpu']}"]
+    return "\n".join(lines) + "\n"
+
+
+def main(arguments=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--require-complete", action="store_true",
+                        help="require zero failures and zero CPU results in GPU-resident scope (A14)")
+    args = parser.parse_args(arguments)
+    if os.environ.get("LIBREPAINT_TEST_SHELL") != "1":
+        parser.error("coverage must run inside: nix develop .#test")
+    state = ROOT / "build/agent-loop"
+    state.mkdir(parents=True, exist_ok=True)
+    log_path = state / "coverage-last.log"
+    for suffix in ("json", "txt"):
+        (state / f"coverage-last.{suffix}").unlink(missing_ok=True)
+    with tempfile.TemporaryDirectory(prefix="coverage-", dir=state) as directory:
+        report_path = Path(directory) / "operations.json"
+        with log_path.open("w") as log:
+            result = subprocess.run(
+                ["timeout", "--kill-after=10s", "10m", str(ROOT / "scripts/run-test"),
+                 "KisGpuOperationSmokeTest"], cwd=ROOT,
+                env=os.environ | {"LIBREPAINT_GPU_COVERAGE_FILE": str(report_path),
+                                  "LIBREPAINT_GPU_COVERAGE_OPERATION": ""},
+                stdout=log, stderr=subprocess.STDOUT, check=False,
+            )
+        try:
+            report = json.loads(report_path.read_text())
+            counts = summarize(report)
+        except (OSError, ValueError, TypeError, AttributeError) as error:
+            print(f"coverage: {error}; see {log_path}", file=sys.stderr)
+            return 1
+    report.update({
+        "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+        "worktree_dirty": bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True)),
+        "finished": datetime.now(timezone.utc).isoformat(),
+        "test_exit": result.returncode,
+        "counts": counts,
+    })
+    (state / "coverage-last.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+    table = render(report)
+    (state / "coverage-last.txt").write_text(table)
+    print(table, end="")
+    print(f"coverage: {state / 'coverage-last.json'}; log: {log_path}")
+    if result.returncode:
+        print(f"coverage: test execution failed ({result.returncode}); see {log_path}", file=sys.stderr)
+        return 1
+    return int(args.require_complete and (counts["failure"] > 0 or counts["resident_cpu"] > 0))
+
+
+if __name__ == "__main__":
+    sys.exit(main())
