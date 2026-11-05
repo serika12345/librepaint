@@ -17,6 +17,9 @@
 #include <filter/kis_filter_configuration.h>
 #include <filter/kis_filter_registry.h>
 #include <document/kis_filter_manager.h>
+#include <generator/kis_generator.h>
+#include <generator/kis_generator_registry.h>
+#include <generator/kis_generator_layer.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuOperationCapabilities.h>
 #include <input/ui/kis_input_profile_manager.h>
@@ -49,6 +52,7 @@
 #include <KoStopGradient.h>
 #include <KisSwatch.h>
 #include <KoResourcePaths.h>
+#include <KoJsonTrader.h>
 #include <Node.h>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -61,6 +65,10 @@
 #include <QScopeGuard>
 #include <QSignalSpy>
 #include <QTemporaryDir>
+#include <QTimer>
+#include <QSettings>
+#include <QDialog>
+#include <QListWidget>
 #include <functional>
 #include <exception>
 #include <memory>
@@ -340,13 +348,124 @@ Outcome filter(SmokeDocument &doc, const QString &id, bool brightnessContrast = 
         return {location, QStringLiteral("Filter did not publish changed pixels and one history entry")};
     return {location, {}};
 }
+
+Outcome generator(SmokeDocument &doc, const QString &id)
+{
+    const auto location = Gpu::layerExecutionLocation(Gpu::LayerFeature::Generator);
+    const auto implementation = KisGeneratorRegistry::instance()->value(id);
+    if (!implementation) return {location, QStringLiteral("Generator plugin was not registered")};
+    if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
+    auto config = implementation->defaultConfiguration(KisGlobalResourcesInterface::instance());
+    if (!config) return {location, QStringLiteral("Generator did not provide its default configuration")};
+    if (id == QLatin1String("color"))
+        config->setProperty("color", QVariant::fromValue(KoColor(QColor(39, 131, 217), doc.image->colorSpace())));
+    else if (id == QLatin1String("simplex_noise")) config->setProperty("seed", 41);
+    else if (id == QLatin1String("seexpr")) config->setProperty("script", QStringLiteral("[$u, $v, 0.35]"));
+    else if (id == QLatin1String("gradient")) {
+        KoStopGradient gradient;
+        gradient.setName(QStringLiteral("Operation smoke generator gradient"));
+        gradient.setStops({KoGradientStop(0.0, KoColor(QColor(19, 41, 173), doc.image->colorSpace())),
+                           KoGradientStop(1.0, KoColor(QColor(239, 181, 31), doc.image->colorSpace()))});
+        QDomDocument xml;
+        auto element = xml.createElement(QStringLiteral("gradient"));
+        gradient.toXML(xml, element);
+        xml.appendChild(element);
+        config->setProperty("gradient", xml.toString());
+    }
+    // Select the generator in the ordinary Add Fill Layer dialog. Keeping the
+    // timer scoped also covers an operation that returns before opening it.
+    QTimer dialogDriver;
+    dialogDriver.setInterval(10);
+    bool configured = false;
+    QString error;
+    QObject::connect(&dialogDriver, &QTimer::timeout, [&] {
+        auto *dialog = qobject_cast<QDialog *>(QApplication::activeModalWidget());
+        if (!dialog || !dialog->inherits("KisDlgGeneratorLayer")) return;
+        dialogDriver.stop();
+        try {
+            auto ids = KisGeneratorRegistry::instance()->keys();
+            ids.sort();
+            auto *gallery = dialog->findChild<QListWidget *>(QStringLiteral("lstGenerators"));
+            if (gallery) gallery->setCurrentRow(ids.indexOf(id));
+            auto *widget = dialog->findChild<KisConfigWidget *>();
+            if (widget) widget->setConfiguration(config);
+            const KisFilterConfigurationSP selected = widget ?
+                dynamic_cast<KisFilterConfiguration *>(widget->configuration().data()) : nullptr;
+            configured = selected && selected->name() == id &&
+                QMetaObject::invokeMethod(dialog, "slotDelayedPreviewGenerator", Qt::DirectConnection);
+            if (configured) dialog->accept();
+            else dialog->reject();
+        } catch (const std::exception &exception) {
+            error = QString::fromUtf8(exception.what());
+            dialog->reject();
+        }
+    });
+    const auto history = doc.owner->operations().undoCount();
+    const auto count = doc.image->root()->childCount();
+    dialogDriver.start();
+    const auto added = doc.window->viewManager()->nodeManager()->createNode(QStringLiteral("KisGeneratorLayer"));
+    doc.image->waitForDone();
+    if (!error.isEmpty()) return {location, error};
+    const auto layer = qobject_cast<const KisGeneratorLayer *>(added.data());
+    if (!configured || !layer || !layer->parent() || !layer->filter() || layer->filter()->name() != id ||
+        doc.image->gpuImage() != doc.owner || doc.image->root()->childCount() != count + 1 ||
+        doc.owner->operations().undoCount() != history + 1)
+        return {location, QStringLiteral("Generator did not publish its configured layer and one history entry (A9)")};
+    QScopedPointer<Node> api(Node::createNode(doc.image, added));
+    const auto pixels = api->pixelData(0, 0, 64, 48);
+    bool visible = false;
+    for (qsizetype i = 3; i < pixels.size(); i += 4) visible |= quint8(pixels[i]) != 0;
+    if (pixels.size() != 64 * 48 * 4 || !visible)
+        return {location, QStringLiteral("Generator did not publish visible native pixels (A9)")};
+    return {location, {}};
+}
+
+Outcome gmic(SmokeDocument &doc)
+{
+    const auto location = Gpu::filterExecutionLocation(QStringLiteral("gmic"));
+    if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
+    if (KoJsonTrader::instance()->query(QStringLiteral("Krita/GMic"), {}).isEmpty())
+        return {location, QStringLiteral("External G'MIC-Qt plugin is unavailable in the application plugin directory (A10)")};
+    const auto action = doc.window->viewManager()->actionManager()->actionByName(QStringLiteral("QMicAgain"));
+    if (!action) return {location, QStringLiteral("G'MIC action plugin was not registered")};
+    QTemporaryDir settingsDirectory;
+    if (!settingsDirectory.isValid()) return {location, QStringLiteral("Could not create G'MIC settings directory")};
+    const auto previousFormat = QSettings::defaultFormat();
+    const auto restore = qScopeGuard([&] { QSettings::setDefaultFormat(previousFormat); });
+    QSettings::setDefaultFormat(QSettings::IniFormat);
+    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, settingsDirectory.path());
+    // Repeat Last Filter is the ordinary noninteractive G'MIC entry point.
+    // A custom command avoids downloads and version-specific filter paths.
+#ifdef Q_OS_MACOS
+    QSettings settings(QStringLiteral("greyc.fr"), QStringLiteral("gmic_qt"));
+#else
+    QSettings settings(QStringLiteral("GREYC"), QStringLiteral("gmic_qt"));
+#endif
+    settings.setValue(QStringLiteral("LastExecution/host_krita/Command"), QStringLiteral("mul"));
+    settings.setValue(QStringLiteral("LastExecution/host_krita/Arguments"), QStringLiteral("0.5"));
+    settings.setValue(QStringLiteral("LastExecution/host_krita/FilterPath"), QString());
+    settings.setValue(QStringLiteral("LastExecution/host_krita/GmicStatusString"), QString());
+    settings.setValue(QStringLiteral("LastExecution/host_krita/InputMode"), 1);
+    settings.setValue(QStringLiteral("LastExecution/host_krita/OutputMode"), 0);
+    settings.sync();
+    const auto before = doc.pixels();
+    const auto history = doc.owner->operations().undoCount();
+    action->setEnabled(true);
+    action->trigger();
+    doc.image->waitForDone();
+    const auto after = doc.pixels();
+    if (doc.image->gpuImage() != doc.owner || after.size() != before.size() || after == before ||
+        doc.owner->operations().undoCount() != history + 1)
+        return {location, QStringLiteral("G'MIC did not publish changed pixels and one history entry (A10)")};
+    return {location, {}};
+}
 }
 
 class KisGpuOperationSmokeTest : public QObject
 {
     Q_OBJECT
     enum class Group { Normal, Brushes, Filters, SpatialFilters, ReliefFilters, ArtisticFilters,
-                       ColorFilters, ResourceFilters };
+                       ColorFilters, ResourceFilters, Generators };
 private Q_SLOTS:
     void initTestCase()
     {
@@ -407,6 +526,11 @@ private Q_SLOTS:
     void resourceFilters()
     {
         runOperations(Group::ResourceFilters);
+    }
+
+    void generators()
+    {
+        runOperations(Group::Generators);
     }
 
 private:
@@ -534,11 +658,18 @@ private:
             QStringLiteral("propagatecolors"), QStringLiteral("gradientmap"), QStringLiteral("palettize"),
             QStringLiteral("indexcolors"), QStringLiteral("colortransfer"), QStringLiteral("halftone"),
             QStringLiteral("phongbumpmap")});
+        const QStringList generatorIds = {QStringLiteral("color"), QStringLiteral("pattern"),
+            QStringLiteral("gradient"), QStringLiteral("simplex_noise"), QStringLiteral("screentone"),
+            QStringLiteral("multigrid"), QStringLiteral("seexpr")};
+        for (const auto &id : generatorIds)
+            probes.append({QStringLiteral("generator/") + id, false,
+                [id](SmokeDocument &doc) { return generator(doc, id); }, Group::Generators});
+        probes.append({QStringLiteral("filter/gmic"), false, gmic, Group::Generators});
         probes.erase(std::remove_if(probes.begin(), probes.end(), [group](const Probe &probe) {
             return probe.group != group;
         }), probes.end());
         static constexpr const char *functions[] = {"normalOperations", "brushes", "filters",
-            "spatialFilters", "reliefFilters", "artisticFilters", "colorFilters", "resourceFilters"};
+            "spatialFilters", "reliefFilters", "artisticFilters", "colorFilters", "resourceFilters", "generators"};
         const auto function = QString::fromLatin1(functions[int(group)]);
         const auto reportSuffix = group == Group::Normal ? QString() : QLatin1Char('.') + function;
         QJsonArray rows;
@@ -550,7 +681,7 @@ private:
             if (path.isEmpty()) return true;
             path += reportSuffix;
             QSaveFile file(path);
-            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b2b2"}, {"rows", rows}}).toJson();
+            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b2b3"}, {"rows", rows}}).toJson();
             return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
         };
         QVERIFY(publish());

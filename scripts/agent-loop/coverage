@@ -79,7 +79,7 @@ def main(arguments=None):
         report_path = Path(directory) / "operations.json"
         with log_path.open("w") as log:
             result = subprocess.run(
-                ["timeout", "--kill-after=10s", "20m", str(ROOT / "scripts/run-test"),
+                ["timeout", "--kill-after=10s", "25m", str(ROOT / "scripts/run-test"),
                  "KisGpuOperationSmokeTest"], cwd=ROOT,
                 env=os.environ | {"LIBREPAINT_GPU_COVERAGE_FILE": str(report_path),
                                   "LIBREPAINT_GPU_COVERAGE_OPERATION": ""},
@@ -89,7 +89,7 @@ def main(arguments=None):
             report = json.loads(report_path.read_text())
             summarize(report)
             for suffix in (".brushes", ".filters", ".spatialFilters", ".reliefFilters", ".artisticFilters",
-                           ".colorFilters", ".resourceFilters"):
+                           ".colorFilters", ".resourceFilters", ".generators"):
                 group = json.loads(Path(str(report_path) + suffix).read_text())
                 summarize(group)
                 report["rows"] += group["rows"]
