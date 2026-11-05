@@ -98,9 +98,10 @@ public:
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
-    /** Prepares all attached GPU devices and a CPU update scheduler within a
-     * shared native tile budget. Call on the owning thread with the image locked
-     * and all edits committed. Failure leaves the GPU image unchanged.
+    /** Prepares attached GPU devices, the remembered deselected mask and a CPU
+     * update scheduler within a shared native tile budget. Call on the owning
+     * thread with the image locked and all edits committed. Failure leaves the
+     * GPU image unchanged.
      */
     class CpuMigration;
     QSharedPointer<CpuMigration> prepareCpuMigration(qsizetype maximumBytes, qsizetype *preparedBytes = nullptr) const;

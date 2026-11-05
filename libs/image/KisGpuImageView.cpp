@@ -10,6 +10,7 @@
 #include "kis_image.h"
 #include "KisNodeAdditionFlags.h"
 #include "KisImageSignals.h"
+#include "KisImageGlobalSelectionManagementInterface.h"
 #include "kis_paint_layer.h"
 #include "kis_group_layer.h"
 #include "kis_paint_device.h"
@@ -567,6 +568,8 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
     QScopedValueRollback<quint8> previousKind(m_lastGpuSelectionKind);
     QScopedValueRollback<Gpu::SelectionMaskSP> previousMask(m_lastGpuSelectionMask);
     QScopedValueRollback<bool> previousRemembered(m_hasLastGpuSelection);
+    const auto deselectedMask = clearPixelSelection && (!owner->selectionRect().isEmpty() || owner->selectionInverted()) ?
+        rootLayer()->selectionMask() : KisSelectionMaskSP();
     if (clearPixelSelection && (!owner->selectionRect().isEmpty() || owner->selectionInverted())) {
         m_lastGpuSelection = owner->selectionRect();
         m_lastGpuSelectionInverted = owner->selectionInverted();
@@ -587,6 +590,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
     if (result != Gpu::Result::Success) {
         for (const auto &node : nodes) state->nodes.remove(node->uuid());
     } else {
+        if (deselectedMask) globalSelectionManagementInterface()->setDeselectedGlobalSelection(deselectedMask);
         previousSelection.commit();
         previousInverted.commit();
         previousKind.commit();
@@ -1065,9 +1069,16 @@ bool KisImage::reselectGpuSelection()
 bool KisImage::clearGpuSelection()
 {
     const auto owner = gpuImage();
-    if (!owner) return false;
+    if (!owner || QThread::currentThread() != owner->thread()) return false;
+    KisImageSP retained = this;
+    QScopedValueRollback<QRect> previousSelection(m_lastGpuSelection);
+    QScopedValueRollback<bool> previousInverted(m_lastGpuSelectionInverted);
+    QScopedValueRollback<quint8> previousKind(m_lastGpuSelectionKind);
+    QScopedValueRollback<LibrePaint::Image::Gpu::SelectionMaskSP> previousMask(m_lastGpuSelectionMask);
+    QScopedValueRollback<bool> previousRemembered(m_hasLastGpuSelection);
     const QRect rect = owner->selectionRect();
     const bool inverted = owner->selectionInverted();
+    const auto deselectedMask = !rect.isEmpty() || inverted ? rootLayer()->selectionMask() : KisSelectionMaskSP();
     if (!rect.isEmpty() || inverted) {
         m_lastGpuSelection = rect;
         m_lastGpuSelectionInverted = inverted;
@@ -1075,7 +1086,14 @@ bool KisImage::clearGpuSelection()
         m_lastGpuSelectionMask = owner->selectionMask();
         m_hasLastGpuSelection = true;
     }
-    return owner->clearSelection() == LibrePaint::Image::Gpu::Result::Success;
+    if (owner->clearSelection() != LibrePaint::Image::Gpu::Result::Success) return false;
+    if (deselectedMask) globalSelectionManagementInterface()->setDeselectedGlobalSelection(deselectedMask);
+    previousSelection.commit();
+    previousInverted.commit();
+    previousKind.commit();
+    previousMask.commit();
+    previousRemembered.commit();
+    return true;
 }
 
 bool KisImage::invertGpuLayerColors(KisNodeSP layer)

@@ -456,6 +456,7 @@ public:
     KisImageSP target;
     LibrePaint::Image::Gpu::PaintImageSP owner;
     LibrePaint::Image::Gpu::Snapshot version;
+    KisSelectionMaskSP deselectedSelection;
     KisPaintDeviceList devices;
     QList<QSharedPointer<KisPaintDevice::CpuMigration>> pixels;
     std::unique_ptr<KisUpdateScheduler> scheduler;
@@ -495,6 +496,7 @@ QSharedPointer<KisImage::CpuMigration> KisImage::prepareCpuMigration(qsizetype m
         prepared->target = const_cast<KisImage *>(this);
         prepared->owner = owner;
         prepared->version = owner->operations().snapshot();
+        prepared->deselectedSelection = m_d->deselectedGlobalSelectionMask;
         prepared->devices = cpuMigrationDevices();
         qsizetype remaining = maximumBytes;
         for (const auto &device : prepared->devices) {
@@ -521,7 +523,8 @@ bool KisImage::applyCpuMigration(const QSharedPointer<CpuMigration> &migration)
         !locked() || m_d->scheduler || gpuImage() != migration->owner ||
         QThread::currentThread() != thread() || QThread::currentThread() != migration->owner->thread() ||
         migration->owner->operations().hasActiveStroke() || m_d->gpuColorConversion ||
-        migration->owner->operations().snapshot() != migration->version) return false;
+        migration->owner->operations().snapshot() != migration->version ||
+        m_d->deselectedGlobalSelectionMask != migration->deselectedSelection) return false;
     try {
         if (cpuMigrationDevices() != migration->devices) return false;
     } catch (const std::exception &) {
