@@ -123,7 +123,9 @@ public:
      * the source unchanged. Image migration prepares every device before adoption.
      */
     class CpuMigration;
-    QSharedPointer<CpuMigration> prepareCpuMigration(qsizetype maximumBytes) const;
+    QSharedPointer<CpuMigration> prepareCpuMigration(qsizetype maximumBytes, qsizetype *preparedBytes = nullptr) const;
+    /** Checks adoption without changing the device, for image-wide preflight. */
+    bool canApplyCpuMigration(const QSharedPointer<CpuMigration> &migration) const;
     /** Adopts prepared CPU tiles in this same device without allocating or
      * notifying its node. A stale or consumed preparation returns false.
      * The image owner coordinates the scheduler, history and change notifications.

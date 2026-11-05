@@ -826,8 +826,9 @@ void KisPaintDevice::Private::adoptCpuData(DataSP data, KisPaintDeviceStrategy *
     basicStrategy.reset(strategy);
 }
 
-QSharedPointer<KisPaintDevice::CpuMigration> KisPaintDevice::prepareCpuMigration(qsizetype maximumBytes) const
+QSharedPointer<KisPaintDevice::CpuMigration> KisPaintDevice::prepareCpuMigration(qsizetype maximumBytes, qsizetype *preparedBytes) const
 {
+    if (preparedBytes) *preparedBytes = 0;
     const auto owner = m_d->gpuImage ? m_d->gpuImage : m_d->gpuSelectionOwner;
     if (!owner || maximumBytes < 0 || QThread::currentThread() != owner->thread() ||
         m_d->framesInterface || owner->operations().hasActiveStroke()) return {};
@@ -839,6 +840,7 @@ QSharedPointer<KisPaintDevice::CpuMigration> KisPaintDevice::prepareCpuMigration
         prepared->selection = m_d->gpuSelection;
         const auto position = offset();
         QVector<QRect> areas;
+        KoColor implicitPixel = defaultPixel();
         if (m_d->gpuSelection) {
             const auto &blocks = m_d->gpuSelection->allocatedBlocks();
             areas = QVector<QRect>(blocks.cbegin(), blocks.cend());
@@ -847,7 +849,19 @@ QSharedPointer<KisPaintDevice::CpuMigration> KisPaintDevice::prepareCpuMigration
                 m_d->gpuLayerId(), owner->limits().rasterBytes /
                     LibrePaint::Image::Gpu::RgbaTile::byteCount(prepared->version->format));
             if (allocation.code != LibrePaint::Image::Gpu::ExecutionCode::Success) return {};
-            areas = allocation.writtenAreas;
+            const auto &layers = prepared->version->layers;
+            const auto layer = std::find_if(layers.cbegin(), layers.cend(),
+                [&](const auto &value) { return value.id == m_d->gpuLayerId(); });
+            const bool projection = layer == layers.cend() || layer->kind != LibrePaint::Image::Gpu::LayerKind::Paint;
+            if (projection) {
+                // Projection extents can enclose distant islands of pixels.
+                // Copy their sparse tiles, preserving the native composition background.
+                const int side = LibrePaint::Image::Gpu::RgbaTile::Size;
+                for (const auto &coordinate : allocation.coordinates)
+                    areas.append(QRect(coordinate * side, QSize(side, side)));
+                implicitPixel = gpuDefaultColor(m_d->gpuLayerId() ? LibrePaint::Image::Gpu::RgbaPixel{} :
+                    prepared->version->projectionBackground, prepared->version->format, colorSpace());
+            } else areas = allocation.writtenAreas;
         }
 
         // Native tiles are aligned relative to the device position. A moved
@@ -873,7 +887,7 @@ QSharedPointer<KisPaintDevice::CpuMigration> KisPaintDevice::prepareCpuMigration
 
         KisPaintDeviceSP native = new KisPaintDevice(colorSpace(), objectName());
         native->moveTo(position);
-        native->setDefaultPixel(defaultPixel());
+        native->setDefaultPixel(implicitPixel);
         QByteArray bytes(side * side * pixelBytes, Qt::Uninitialized);
         for (const auto &area : allocation) {
             for (int y = area.top(); y < area.top() + area.height(); y += side) {
@@ -887,19 +901,25 @@ QSharedPointer<KisPaintDevice::CpuMigration> KisPaintDevice::prepareCpuMigration
         prepared->data = toQShared(new KisPaintDeviceData(const_cast<KisPaintDevice *>(this),
             native->m_d->currentNonLodData(), true));
         prepared->strategy = std::make_unique<Private::KisPaintDeviceStrategy>(const_cast<KisPaintDevice *>(this), m_d);
+        if (preparedBytes) *preparedBytes = maximumBytes - remaining;
         return prepared;
     } catch (const std::exception &) {
         return {};
     }
 }
 
+bool KisPaintDevice::canApplyCpuMigration(const QSharedPointer<CpuMigration> &migration) const
+{
+    return migration && migration->target.data() == this && migration->data && migration->strategy &&
+        QThread::currentThread() == migration->owner->thread() &&
+        (m_d->gpuImage ? m_d->gpuImage : m_d->gpuSelectionOwner) == migration->owner &&
+        (m_d->gpuImage ? m_d->gpuPixelVersion() : migration->owner->operations().snapshot()) == migration->version &&
+        m_d->gpuSelection == migration->selection;
+}
+
 bool KisPaintDevice::applyCpuMigration(const QSharedPointer<CpuMigration> &migration)
 {
-    if (!migration || migration->target.data() != this || !migration->data || !migration->strategy ||
-        QThread::currentThread() != migration->owner->thread() ||
-        (m_d->gpuImage ? m_d->gpuImage : m_d->gpuSelectionOwner) != migration->owner ||
-        (m_d->gpuImage ? m_d->gpuPixelVersion() : migration->owner->operations().snapshot()) != migration->version ||
-        m_d->gpuSelection != migration->selection) return false;
+    if (!canApplyCpuMigration(migration)) return false;
     m_d->adoptCpuData(std::move(migration->data), migration->strategy.release());
     return true;
 }

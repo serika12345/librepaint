@@ -77,6 +77,8 @@
 #include "kis_painter.h"
 #include "kis_selection.h"
 #include "kis_selection_mask.h"
+#include "kis_selection_based_layer.h"
+#include "kis_pixel_selection.h"
 #include "kis_shared.h"
 #include "kis_stroke_strategy_factory.h"
 #include "kis_strokes_queue_undo_result.h"
@@ -193,65 +195,68 @@ public:
         , scheduler(gpuImage ? nullptr : new KisUpdateScheduler(_q, _q))
         , axesCenter(QPointF(0.5, 0.5))
     {
-        if (scheduler) {
-            KisImageConfig cfg(true);
-            if (cfg.enableProgressReporting()) {
-                cpuScheduler().setProgressProxy(&compositeProgressProxy);
-            }
-
-            // Each of these lambdas defines a new factory function.
-            cpuScheduler().setLod0ToNStrokeStrategyFactory(
-                [=](bool forgettable) {
-                    return KisLodSyncPair(
-                        new KisSyncLodCacheStrokeStrategy(KisImageWSP(q), forgettable),
-                        KisSyncLodCacheStrokeStrategy::createJobsData(KisImageWSP(q)));
-                });
-
-            cpuScheduler().setSuspendResumeUpdatesStrokeStrategyFactory(
-                [=]() {
-                    KisSuspendProjectionUpdatesStrokeStrategy::SharedDataSP data = KisSuspendProjectionUpdatesStrokeStrategy::createSharedData();
-
-                    KisSuspendResumePair suspend(new KisSuspendProjectionUpdatesStrokeStrategy(KisImageWSP(q), true, data),
-                                                 KisSuspendProjectionUpdatesStrokeStrategy::createSuspendJobsData(KisImageWSP(q)));
-                    KisSuspendResumePair resume(new KisSuspendProjectionUpdatesStrokeStrategy(KisImageWSP(q), false, data),
-                                                KisSuspendProjectionUpdatesStrokeStrategy::createResumeJobsData(KisImageWSP(q)));
-
-                    return std::make_pair(suspend, resume);
-                });
-
-            cpuScheduler().setPurgeRedoStateCallback(
-                        [this] () {
-                undoStore->purgeRedoState();
-            });
-
-            cpuScheduler().setPostSyncLod0GUIPlaneRequestForResumeCallback(
-                        [this] () {
-
-                KIS_SAFE_ASSERT_RECOVER_NOOP(q->currentLevelOfDetail() == 0);
-
-                bool addedUIUpdateRequestSuccessfully = false;
-
-                const auto filters = installedProjectionFilters();
-                for (auto it = filters.rbegin();
-                     it != filters.rend();
-                     ++it) {
-
-                    KisSuspendProjectionUpdatesStrokeStrategy::SuspendUpdatesFilterInterface *iface =
-                        dynamic_cast<KisSuspendProjectionUpdatesStrokeStrategy::SuspendUpdatesFilterInterface*>(it->data());
-
-                    if (iface) {
-                        iface->addExplicitUIUpdateRect(q->bounds());
-                        addedUIUpdateRequestSuccessfully = true;
-                        break;
-                    }
-                }
-
-                KIS_SAFE_ASSERT_RECOVER_NOOP(addedUIUpdateRequestSuccessfully);
-            });
-        }
+        if (scheduler) configureCpuScheduler(*scheduler);
 
         connect(q, SIGNAL(sigImageModified()), KisMemoryStatisticsServer::instance(), SLOT(notifyImageChanged()));
         connect(undoStore.data(), SIGNAL(historyStateChanged()), &signalRouter, SLOT(emitImageModifiedNotification()));
+    }
+
+    void configureCpuScheduler(KisUpdateScheduler &scheduler)
+    {
+        KisImageConfig cfg(true);
+        if (cfg.enableProgressReporting()) {
+            scheduler.setProgressProxy(&compositeProgressProxy);
+        }
+
+        // Each of these lambdas defines a new factory function.
+        scheduler.setLod0ToNStrokeStrategyFactory(
+            [=](bool forgettable) {
+                return KisLodSyncPair(
+                    new KisSyncLodCacheStrokeStrategy(KisImageWSP(q), forgettable),
+                    KisSyncLodCacheStrokeStrategy::createJobsData(KisImageWSP(q)));
+            });
+
+        scheduler.setSuspendResumeUpdatesStrokeStrategyFactory(
+            [=]() {
+                KisSuspendProjectionUpdatesStrokeStrategy::SharedDataSP data = KisSuspendProjectionUpdatesStrokeStrategy::createSharedData();
+
+                KisSuspendResumePair suspend(new KisSuspendProjectionUpdatesStrokeStrategy(KisImageWSP(q), true, data),
+                                             KisSuspendProjectionUpdatesStrokeStrategy::createSuspendJobsData(KisImageWSP(q)));
+                KisSuspendResumePair resume(new KisSuspendProjectionUpdatesStrokeStrategy(KisImageWSP(q), false, data),
+                                            KisSuspendProjectionUpdatesStrokeStrategy::createResumeJobsData(KisImageWSP(q)));
+
+                return std::make_pair(suspend, resume);
+            });
+
+        scheduler.setPurgeRedoStateCallback(
+                    [this] () {
+            undoStore->purgeRedoState();
+        });
+
+        scheduler.setPostSyncLod0GUIPlaneRequestForResumeCallback(
+                    [this] () {
+
+            KIS_SAFE_ASSERT_RECOVER_NOOP(q->currentLevelOfDetail() == 0);
+
+            bool addedUIUpdateRequestSuccessfully = false;
+
+            const auto filters = installedProjectionFilters();
+            for (auto it = filters.rbegin();
+                 it != filters.rend();
+                 ++it) {
+
+                KisSuspendProjectionUpdatesStrokeStrategy::SuspendUpdatesFilterInterface *iface =
+                    dynamic_cast<KisSuspendProjectionUpdatesStrokeStrategy::SuspendUpdatesFilterInterface*>(it->data());
+
+                if (iface) {
+                    iface->addExplicitUIUpdateRect(q->bounds());
+                    addedUIUpdateRequestSuccessfully = true;
+                    break;
+                }
+            }
+
+            KIS_SAFE_ASSERT_RECOVER_NOOP(addedUIUpdateRequestSuccessfully);
+        });
     }
 
     ~KisImagePrivate() {
@@ -443,6 +448,103 @@ KisImage::KisImage(LibrePaint::Image::Gpu::PaintImageSP image, const QString &na
 LibrePaint::Image::Gpu::PaintImageSP KisImage::gpuImage() const
 {
     return m_d->gpuImage;
+}
+
+class KisImage::CpuMigration
+{
+public:
+    KisImageSP target;
+    LibrePaint::Image::Gpu::PaintImageSP owner;
+    LibrePaint::Image::Gpu::Snapshot version;
+    KisPaintDeviceList devices;
+    QList<QSharedPointer<KisPaintDevice::CpuMigration>> pixels;
+    std::unique_ptr<KisUpdateScheduler> scheduler;
+};
+
+KisPaintDeviceList KisImage::cpuMigrationDevices() const
+{
+    KisPaintDeviceList devices;
+    QSet<const KisPaintDevice *> seen;
+    QList<KisNodeSP> nodes{root()};
+    if (m_d->deselectedGlobalSelectionMask) nodes.append(m_d->deselectedGlobalSelectionMask);
+    for (qsizetype i = 0; i < nodes.size(); ++i) {
+        const auto node = nodes[i];
+        auto candidates = node->getLodCapableDevices();
+        if (const auto *layer = qobject_cast<const KisSelectionBasedLayer *>(node.data())) {
+            if (const auto selection = layer->internalSelection()) candidates.append(selection->pixelSelection());
+        }
+        for (const auto &device : candidates) {
+            if (!device || (!device->gpuPixelImage() && !device->gpuSelectionCoverage()) || seen.contains(device.data())) continue;
+            seen.insert(device.data());
+            devices.append(device);
+        }
+        for (auto child = node->firstChild(); child; child = child->nextSibling()) nodes.append(child);
+    }
+    return devices;
+}
+
+QSharedPointer<KisImage::CpuMigration> KisImage::prepareCpuMigration(qsizetype maximumBytes, qsizetype *preparedBytes) const
+{
+    if (preparedBytes) *preparedBytes = 0;
+    const auto owner = gpuImage();
+    if (!owner || maximumBytes < 0 || !locked() || m_d->gpuColorConversion ||
+        QThread::currentThread() != thread() || QThread::currentThread() != owner->thread() ||
+        owner->operations().hasActiveStroke()) return {};
+    try {
+        auto prepared = QSharedPointer<CpuMigration>::create();
+        prepared->target = const_cast<KisImage *>(this);
+        prepared->owner = owner;
+        prepared->version = owner->operations().snapshot();
+        prepared->devices = cpuMigrationDevices();
+        qsizetype remaining = maximumBytes;
+        for (const auto &device : prepared->devices) {
+            if (device->gpuPixelImage() && device->gpuPixelImage() != owner) return {};
+            qsizetype bytes = 0;
+            const auto pixels = device->prepareCpuMigration(remaining, &bytes);
+            if (!pixels) return {};
+            remaining -= bytes;
+            prepared->pixels.append(pixels);
+        }
+        prepared->scheduler = std::make_unique<KisUpdateScheduler>(prepared->target.data());
+        m_d->configureCpuScheduler(*prepared->scheduler);
+        prepared->scheduler->barrierLock();
+        if (preparedBytes) *preparedBytes = maximumBytes - remaining;
+        return prepared;
+    } catch (const std::exception &) {
+        return {};
+    }
+}
+
+bool KisImage::applyCpuMigration(const QSharedPointer<CpuMigration> &migration)
+{
+    if (!migration || migration->target.data() != this || !migration->scheduler ||
+        !locked() || m_d->scheduler || gpuImage() != migration->owner ||
+        QThread::currentThread() != thread() || QThread::currentThread() != migration->owner->thread() ||
+        migration->owner->operations().hasActiveStroke() || m_d->gpuColorConversion ||
+        migration->owner->operations().snapshot() != migration->version) return false;
+    try {
+        if (cpuMigrationDevices() != migration->devices) return false;
+    } catch (const std::exception &) {
+        return false;
+    }
+    for (qsizetype i = 0; i < migration->devices.size(); ++i)
+        if (!migration->devices[i]->canApplyCpuMigration(migration->pixels[i])) return false;
+
+    // Every fallible preparation is complete. Adoption runs without events or
+    // node notifications, so all device preconditions remain valid throughout.
+    for (qsizetype i = 0; i < migration->devices.size(); ++i) {
+        const bool applied = migration->devices[i]->applyCpuMigration(migration->pixels[i]);
+        KIS_ASSERT(applied);
+    }
+    QObject::disconnect(migration->owner.data(), nullptr, this, nullptr);
+    m_d->scheduler = std::move(migration->scheduler);
+    m_d->gpuImage.clear();
+    m_d->gpuViewState.clear();
+    m_gpuSelectionMirrorMask.clear();
+    m_lastGpuSelectionMask.clear();
+    m_hasLastGpuSelection = false;
+    m_hasGpuSelectionMirror = false;
+    return true;
 }
 
 QSharedPointer<KisGpuImageViewState> &KisImage::gpuViewState()

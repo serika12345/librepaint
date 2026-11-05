@@ -98,6 +98,17 @@ public:
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
+    /** Prepares all attached GPU devices and a CPU update scheduler within a
+     * shared native tile budget. Call on the owning thread with the image locked
+     * and all edits committed. Failure leaves the GPU image unchanged.
+     */
+    class CpuMigration;
+    QSharedPointer<CpuMigration> prepareCpuMigration(qsizetype maximumBytes, qsizetype *preparedBytes = nullptr) const;
+    /** Adopts a current preparation in the same image, nodes and pixel devices.
+     * Keeps the image locked and emits no change notifications. The document
+     * owner coordinates its history, file state and view notifications.
+     */
+    bool applyCpuMigration(const QSharedPointer<CpuMigration> &migration);
     /** Replaces the GPU document selection and updates the CPU selection mirror. */
     bool setGpuSelectionRect(const QRect &rect, bool inverted = false);
     bool setGpuSelectionEllipse(const QRect &rect, bool inverted = false);
@@ -1412,6 +1423,7 @@ private:
 
     KisImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name, const KoColorSpace *colorSpace);
     void synchronizeGpuNodes();
+    KisPaintDeviceList cpuMigrationDevices() const;
     void synchronizeGpuLayerViews(KisGpuImageViewState *state);
     QSharedPointer<KisGpuImageViewState> &gpuViewState();
     void connectGpuImageUpdates();
