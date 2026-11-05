@@ -35,11 +35,18 @@ endif()
 kis_add_test(KisGpuOperationSmokeTest.cpp ../../../krita/krita.qrc
     TEST_NAME KisGpuOperationSmokeTest
     TEST_NAME_VAR gpu_operation_smoke_test
+    TEST_ARGS normalOperations
     LINK_LIBRARIES kritaapplicationui kritainputui kritalibkis kritatestsdk)
 add_dependencies(KisGpuOperationSmokeTest kritalcmsengine kritadefaulttools
     kritadefaultpaintops kritaroundmarkerpaintop kritagridpaintop kritacolorsmudgepaintop
-    kritaexample kritaposterize kritapngimport)
-set_tests_properties(${gpu_operation_smoke_test} PROPERTIES
+    kritahairypaintop kritadeformpaintop kritacurvepaintop kritaspraypaintop kritafilterop
+    kritaexperimentpaintop kritaparticlepaintop kritahatchingpaintop kritasketchpaintop
+    kritatangentnormalpaintop kritaexample kritaposterize kritapngimport)
+if(TARGET kritamypaintop)
+    add_dependencies(KisGpuOperationSmokeTest kritamypaintop)
+endif()
+add_test(NAME libs-ui-brushes-KisGpuOperationSmokeTest COMMAND KisGpuOperationSmokeTest brushes)
+set_tests_properties(${gpu_operation_smoke_test} libs-ui-brushes-KisGpuOperationSmokeTest PROPERTIES
     TIMEOUT 300 RUN_SERIAL TRUE ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 kis_add_test(KisDocumentReplaceTest.cpp

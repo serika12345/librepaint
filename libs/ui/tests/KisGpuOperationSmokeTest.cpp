@@ -36,10 +36,12 @@
 #include <kis_transparency_mask.h>
 #include <kis_paintop_registry.h>
 #include <kis_paintop_preset.h>
+#include <kis_paintop_settings.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLocator.h>
 #include <KisResourceStorage.h>
 #include <KisResourceModel.h>
+#include <KisResourceLoaderRegistry.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoColorProfile.h>
 #include <KoResourcePaths.h>
@@ -57,6 +59,8 @@
 #include <functional>
 #include <exception>
 #include <memory>
+#include <algorithm>
+#include <cmath>
 
 namespace Gpu = LibrePaint::Image::Gpu;
 
@@ -154,11 +158,33 @@ public:
 Outcome brush(SmokeDocument &doc, const QString &id)
 {
     const auto location = Gpu::brushExecutionLocation(id);
-    KisPaintOpPresetSP preset(new KisPaintOpPreset(QStringLiteral(KRITA_SOURCE_DIR "/plugins/paintops/defaultpresets/") + id + QStringLiteral(".kpp")));
+    if (!KisPaintOpRegistry::instance()->value(id))
+        return {location, QStringLiteral("Brush engine was not registered")};
+    const bool mypaint = id == QLatin1String("mypaintbrush");
+    const auto extension = mypaint ? QStringLiteral(".myb") : QStringLiteral(".kpp");
+    const auto path = QStringLiteral(KRITA_SOURCE_DIR "/plugins/paintops/defaultpresets/") + id + extension;
+    KisPaintOpPresetSP preset;
+    if (mypaint) {
+        const auto loader = KisResourceLoaderRegistry::instance()->loader(
+            ResourceType::PaintOpPresets, QStringLiteral("application/x-mypaint-brush"));
+        if (loader) preset = loader->create(path).dynamicCast<KisPaintOpPreset>();
+    } else {
+        preset.reset(new KisPaintOpPreset(path));
+    }
+    if (!preset) return {location, QStringLiteral("Brush preset loader was not registered")};
     if (!preset->load(KisGlobalResourcesInterface::instance()) || !preset->valid())
         return {location, QStringLiteral("Default brush preset could not be loaded")};
+    if (preset->paintOp().id() != id)
+        return {location, QStringLiteral("Default preset selected a different brush engine")};
     preset->setName(QStringLiteral("Operation smoke ") + id);
     preset->setFilename(QStringLiteral("operation-smoke-") + id + QStringLiteral(".kpp"));
+    if (id == QLatin1String("filter")) {
+        const auto implementation = KisFilterRegistry::instance()->value(QStringLiteral("invert"));
+        if (!implementation) return {location, QStringLiteral("Brush filter was not registered")};
+        preset->settings()->setProperty("Filter/id", QStringLiteral("invert"));
+        preset->settings()->setProperty("Filter/configuration",
+            implementation->defaultConfiguration(KisGlobalResourcesInterface::instance())->toXML());
+    }
     QImage preview(16, 16, QImage::Format_ARGB32);
     preview.fill(Qt::black);
     preset->setImage(preview);
@@ -167,6 +193,8 @@ Outcome brush(SmokeDocument &doc, const QString &id)
     if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
     auto *resources = doc.window->viewManager()->canvasResourceProvider();
     resources->setPaintOpPreset(preset);
+    if (!resources->currentPreset() || resources->currentPreset()->paintOp().id() != id)
+        return {location, QStringLiteral("Document view selected a different brush engine")};
     resources->setSize(12);
     resources->setOpacity(1);
     resources->setCurrentCompositeOp(QStringLiteral("normal"));
@@ -182,13 +210,29 @@ Outcome brush(SmokeDocument &doc, const QString &id)
     QSignalSpy errors(&helper, &KisToolFreehandHelper::requestErrorMessage);
     const auto before = doc.pixels();
     const auto history = doc.owner->operations().undoCount();
-    KisPaintInformation first(QPointF(16.5, 16.5)), last(QPointF(43.5, 28.5));
+    KisPaintInformation first(QPointF(16.5, 24.5), 1.0, 20.0, 15.0, 0.0);
+    if (id == QLatin1String("duplicate")) {
+        auto settings = resources->currentPreset()->settings();
+        if (settings->mousePressEvent(KisPaintInformation(QPointF(4.5, 6.5)), Qt::ControlModifier, doc.node) ||
+            !settings->mousePressEvent(first, Qt::NoModifier, doc.node))
+            return {location, QStringLiteral("Clone brush source could not be selected")};
+    }
     helper.initPaintImpl(0, first, doc.view->canvasBase()->resourceManager(), doc.image, doc.node, doc.image.data());
     if (!helper.isRunning()) return {location, QStringLiteral("Brush stroke did not start")};
     helper.paintAt(first);
-    helper.paintLine(first, last);
+    // Curves and shape brushes need a series of changing directions; MyPaint
+    // also consumes elapsed input time. These are ordinary tablet samples.
+    auto previous = first;
+    for (int i = 1; i <= 24; ++i) {
+        KisPaintInformation next(QPointF(16.5 + i, 24.5 + 10.0 * std::sin(i * 0.2)),
+            1.0, 20.0, 15.0, 0.0);
+        next.setCurrentTime(i * 20.0);
+        helper.paintLine(previous, next);
+        previous = next;
+    }
     helper.endPaint();
     doc.image->waitForDone();
+    if (id == QLatin1String("duplicate")) resources->currentPreset()->settings()->mouseReleaseEvent();
     if (!errors.isEmpty()) return {location, errors.first().first().toString()};
     if (doc.owner->operations().undoCount() != history + 1 || doc.pixels() == before)
         return {location, QStringLiteral("Brush did not publish changed pixels and one history entry")};
@@ -240,6 +284,17 @@ private Q_SLOTS:
 
     void normalOperations()
     {
+        runOperations(false);
+    }
+
+    void brushes()
+    {
+        runOperations(true);
+    }
+
+private:
+    void runOperations(bool brushesOnly)
+    {
         const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
         const auto restore = qScopeGuard([&] {
             if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE");
@@ -251,12 +306,8 @@ private Q_SLOTS:
             bool resident;
             std::function<Outcome(SmokeDocument &)> execute;
         };
-        const QList<Probe> probes = {
+        QList<Probe> probes = {
             {QStringLiteral("document/new-rgba-u8"), true, [](SmokeDocument &) { return Outcome{}; }},
-            {QStringLiteral("brush/paintbrush"), true, [](SmokeDocument &doc) { return brush(doc, QStringLiteral("paintbrush")); }},
-            {QStringLiteral("brush/roundmarker"), true, [](SmokeDocument &doc) { return brush(doc, QStringLiteral("roundmarker")); }},
-            {QStringLiteral("brush/colorsmudge"), true, [](SmokeDocument &doc) { return brush(doc, QStringLiteral("colorsmudge")); }},
-            {QStringLiteral("brush/gridbrush"), false, [](SmokeDocument &doc) { return brush(doc, QStringLiteral("gridbrush")); }},
             {QStringLiteral("filter/invert"), true, [](SmokeDocument &doc) { return filter(doc, QStringLiteral("invert")); }},
             {QStringLiteral("filter/posterize"), false, [](SmokeDocument &doc) { return filter(doc, QStringLiteral("posterize")); }},
             {QStringLiteral("selection/rectangle"), true, [](SmokeDocument &doc) {
@@ -320,15 +371,31 @@ private Q_SLOTS:
                 return Outcome{Gpu::ExecutionLocation::Cpu, {}};
             }}
         };
+        // #107 requires three resident engines and thirteen CPU engines.
+        const QStringList brushIds = {QStringLiteral("paintbrush"), QStringLiteral("roundmarker"),
+            QStringLiteral("colorsmudge"), QStringLiteral("duplicate"), QStringLiteral("hairybrush"),
+            QStringLiteral("deformbrush"), QStringLiteral("curvebrush"), QStringLiteral("spraybrush"),
+            QStringLiteral("filter"), QStringLiteral("experimentbrush"), QStringLiteral("particlebrush"),
+            QStringLiteral("gridbrush"), QStringLiteral("hatchingbrush"), QStringLiteral("sketchbrush"),
+            QStringLiteral("tangentnormal"), QStringLiteral("mypaintbrush")};
+        for (const auto &id : brushIds)
+            probes.append({QStringLiteral("brush/") + id,
+                id == QLatin1String("paintbrush") || id == QLatin1String("roundmarker") || id == QLatin1String("colorsmudge"),
+                [id](SmokeDocument &doc) { return brush(doc, id); }});
+        probes.erase(std::remove_if(probes.begin(), probes.end(), [brushesOnly](const Probe &probe) {
+            return probe.id.startsWith(QLatin1String("brush/")) != brushesOnly;
+        }), probes.end());
+        const auto reportSuffix = brushesOnly ? QStringLiteral(".brushes") : QString();
         QJsonArray rows;
         for (const auto &probe : probes)
             rows.append(QJsonObject{{"id", probe.id}, {"required", probe.resident ? "gpu" : "cpu"},
                 {"result", "failure"}, {"detail", "Operation did not finish"}});
         const auto publish = [&] {
-            const auto path = qEnvironmentVariable("LIBREPAINT_GPU_COVERAGE_FILE");
+            auto path = qEnvironmentVariable("LIBREPAINT_GPU_COVERAGE_FILE");
             if (path.isEmpty()) return true;
+            path += reportSuffix;
             QSaveFile file(path);
-            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2a"}, {"rows", rows}}).toJson();
+            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b1"}, {"rows", rows}}).toJson();
             return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
         };
         QVERIFY(publish());
@@ -354,13 +421,14 @@ private Q_SLOTS:
 #if defined(Q_OS_UNIX) && QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
                 process.setUnixProcessParameters(QProcess::UnixProcessFlag::DisableCoreDumps);
 #endif
-                process.start(QCoreApplication::applicationFilePath(), {QStringLiteral("normalOperations"), QStringLiteral("-nocrashhandler")});
+                process.start(QCoreApplication::applicationFilePath(),
+                    {brushesOnly ? QStringLiteral("brushes") : QStringLiteral("normalOperations"), QStringLiteral("-nocrashhandler")});
                 const bool finished = process.waitForFinished(20000);
                 if (!finished) {
                     process.kill();
                     process.waitForFinished(5000);
                 }
-                QFile file(report);
+                QFile file(report + reportSuffix);
                 if (!finished || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0 || !file.open(QIODevice::ReadOnly)) {
                     outcome.error = !finished ? QStringLiteral("Operation process exceeded its time limit") :
                         QStringLiteral("Operation process failed (exit %1)").arg(process.exitCode());
