@@ -285,6 +285,7 @@ set_target_properties(kritagloballatencytrackerobjects PROPERTIES
 
 add_library(kritaglobalsignalcompressorobjects OBJECT
     kis_signal_compressor.cpp
+    KisLatencyProbe.cpp
     kis_signal_compressor_with_param.cpp
 )
 target_compile_definitions(kritaglobalsignalcompressorobjects PRIVATE kritaglobal_EXPORTS)

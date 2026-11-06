@@ -7,6 +7,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisLatencyProbe.h>
 #include "kis_canvas2.h"
 #include <klocalizedstring.h>
 
@@ -1071,6 +1072,7 @@ void KisCanvas2::startUpdateCanvasProjection(const QRect & rc)
 
 void KisCanvas2::updateCanvasProjection()
 {
+    KisLatencyProbe::mark("projection_update");
     auto tryIssueCanvasUpdates = [this](const QRect &vRect) {
         if (!m_d->isBatchUpdateActive) {
             // TODO: Implement info->dirtyViewportRect() for KisOpenGLCanvas2 to avoid updating whole canvas
@@ -1185,6 +1187,7 @@ void KisCanvas2::requestCanvasUpdateMaybeCompressed()
 
 void KisCanvas2::slotDoCanvasUpdate()
 {
+    KisLatencyProbe::mark("canvas_update_dispatch");
 
 #if !KRITA_QT_HAS_UPDATE_COMPRESSION_PATCH
     /**
@@ -1193,6 +1196,7 @@ void KisCanvas2::slotDoCanvasUpdate()
      * which is shared with our own.
      */
     if (m_d->canvasWidget->isBusy()) {
+        KisLatencyProbe::mark("canvas_busy_defer");
         // just restarting the timer
         m_d->canvasUpdateCompressor.start();
         return;
