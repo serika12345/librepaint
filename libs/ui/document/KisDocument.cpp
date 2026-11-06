@@ -28,6 +28,7 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <info/KoDocumentInfoDlg.h>
+#include <kis_image_config.h>
 #include <memory>
 #include <functional>
 #include <stdexcept>
@@ -3738,6 +3739,22 @@ void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, Kis
     setCurrentImageImpl(image, forceInitialUpdate, preActivatedNode, fileDocument);
 }
 
+namespace {
+qsizetype defaultCpuMigrationBudget()
+{
+    constexpr qint64 hardCap = qint64(4) * 1024 * 1024 * 1024;
+    const qreal limit = qBound<qreal>(0.0, KisImageConfig(true).memoryHardLimitPercent(), 100.0);
+    const qint64 configured = qint64(KisImageConfig::totalRAM()) * 1024 * 1024 * limit / 100.0;
+    return qsizetype(qBound<qint64>(0, qMin(configured, hardCap),
+                                    qint64(std::numeric_limits<qsizetype>::max())));
+}
+}
+
+bool KisDocument::migrateToCpu()
+{
+    return migrateToCpu(defaultCpuMigrationBudget());
+}
+
 bool KisDocument::migrateToCpu(qsizetype maximumBytes)
 {
     KisImageSP image = d->image;
@@ -3818,6 +3835,9 @@ void KisDocument::setCurrentImageImpl(KisImageSP image, bool forceInitialUpdate,
     connect(d->image, SIGNAL(sigImageModified()), this, SLOT(setImageModified()), Qt::UniqueConnection);
     connect(d->image, SIGNAL(sigImageModifiedWithoutUndo()), this, SLOT(setImageModifiedWithoutUndo()), Qt::UniqueConnection);
     connect(d->image, SIGNAL(sigLayersChangedAsync()), this, SLOT(slotImageRootChanged()));
+    connect(d->image, &KisImage::sigCpuMigrationRequested, this, [this] {
+        if (d->image && d->image->gpuImage()) migrateToCpu();
+    });
 
     if (forceInitialUpdate) {
         d->image->initialRefreshGraph();

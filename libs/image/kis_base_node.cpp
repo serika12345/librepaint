@@ -10,6 +10,7 @@
 #include <kis_image.h>
 #include <KoProperties.h>
 #include <KisAnimatedOpacityProperty.h>
+#include <kis_debug.h>
 #include <new>
 #include <QtGlobal>
 #include <qdebug.h>
@@ -474,6 +475,12 @@ KisKeyframeChannel * KisBaseNode::getKeyframeChannel(const QString &id, bool cre
     KisKeyframeChannel *channel = getKeyframeChannel(id);
 
     if (!channel && create) {
+        // A raster channel owns native frames. Do not create one while the
+        // document is still resident on the GPU: the migration request keeps
+        // the incomplete state out of the node when it is refused.
+        if (const auto currentImage = image(); currentImage &&
+            !const_cast<KisImage *>(currentImage.data())->requestCpuMigration())
+            return nullptr;
         channel = requestKeyframeChannel(id);
 
         if (channel) {
@@ -491,6 +498,13 @@ bool KisBaseNode::isAnimated() const
 
 void KisBaseNode::enableAnimation()
 {
+    // Animation stores native raster frames, so a resident GPU document must
+    // move to CPU storage before its first channel or frame is created.
+    if (const auto currentImage = image(); currentImage &&
+        !const_cast<KisImage *>(currentImage.data())->requestCpuMigration()) {
+        warnKrita << "Cannot enable animation: the GPU document could not migrate to CPU storage";
+        return;
+    }
     m_d->animated = true;
     baseNodeChangedCallback();
 }

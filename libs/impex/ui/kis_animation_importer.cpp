@@ -75,6 +75,11 @@ KisImportExportErrorCode KisAnimationImporter::import(QStringList files, int fir
     // legibility of calls.
     if (step <= 0 || files.isEmpty()) return ImportExportCodes::FileFormatIncorrect;
 
+    // Imported frames live on native paint devices. Move a resident GPU
+    // document to CPU storage before the undo macro and any raster channel.
+    if (m_d->image->gpuImage() && (!m_d->document || !m_d->document->migrateToCpu()))
+        return ImportExportCodes::InternalError;
+
     KisUndoAdapter *undo = m_d->image->undoAdapter();
     undo->beginMacro(kundo2_i18n("Import animation"));
     const auto finishUndo = qScopeGuard([undo] { undo->endMacro(); });

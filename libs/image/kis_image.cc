@@ -450,6 +450,13 @@ LibrePaint::Image::Gpu::PaintImageSP KisImage::gpuImage() const
     return m_d->gpuImage;
 }
 
+bool KisImage::requestCpuMigration()
+{
+    if (!gpuImage()) return true;
+    Q_EMIT sigCpuMigrationRequested();
+    return !gpuImage();
+}
+
 class KisImage::CpuMigration
 {
 public:

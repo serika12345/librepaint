@@ -15,6 +15,8 @@ class KisAnimationImporterTest : public QObject {
 private Q_SLOTS:
     void testImport();
     void testFailedImportClosesUndoMacro();
+    void testGpuDocumentMigratesForAnimationStartAndImport();
+    void testBusyGpuDocumentKeepsGpuStorageWhenMigrationFails();
 };
 
 #endif

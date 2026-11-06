@@ -98,6 +98,12 @@ public:
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
+    /** Asks the owning document to migrate committed GPU pixels to native
+     * storage for a whole-document operation such as animation. Direct
+     * connections run the migration synchronously; returns false when the
+     * image remains on the GPU (busy, over budget or no owning document).
+     */
+    bool requestCpuMigration();
     /** Prepares attached GPU devices, the remembered deselected mask and a CPU
      * update scheduler within a shared native tile budget. Call on the owning
      * thread with the image locked and all edits committed. Only the current
@@ -984,6 +990,9 @@ public:
 Q_SIGNALS:
     /** Document adoption changed pixel storage and the canvas renderer. */
     void sigImageEngineChanged();
+    /** A whole-document operation needs native pixels; the owning document
+     * migrates and cuts its GPU history in a direct connection. */
+    void sigCpuMigrationRequested();
     void sigGpuColorConversionFinished(bool success, const QString &diagnostic);
 
     /**

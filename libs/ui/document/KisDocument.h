@@ -690,6 +690,9 @@ public:
      */
     bool migrateToCpu(qsizetype maximumBytes);
 
+    /** Migrates to CPU within the document's memory-hard-limit budget. */
+    bool migrateToCpu();
+
     /**
      * Set the image of the document preliminary, before the document
      * has completed loading. Some of the document items (shapes) may want

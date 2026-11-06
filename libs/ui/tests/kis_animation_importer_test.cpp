@@ -13,6 +13,13 @@
 #include "kis_keyframe_channel.h"
 #include "kis_image_animation_interface.h"
 #include "kis_group_layer.h"
+#include "kis_transaction.h"
+#include "kis_config.h"
+#include <KoColor.h>
+#include <KoColorSpaceRegistry.h>
+#include <QImage>
+#include <QTemporaryDir>
+#include <QPoint>
 #include <KoUpdater.h>
 #include <KisPaintingEngineTestScope.h>
 
@@ -86,6 +93,133 @@ void KisAnimationImporterTest::testFailedImportClosesUndoMacro()
     auto *channel = mp.image->root()->lastChild()->getKeyframeChannel(KisKeyframeChannel::Raster.id());
     QVERIFY(channel);
     QVERIFY(!channel->keyframeAt(7).isNull());
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void KisAnimationImporterTest::testGpuDocumentMigratesForAnimationStartAndImport()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto framePath = directory.filePath(QStringLiteral("frame.png"));
+    QImage source(64, 48, QImage::Format_ARGB32);
+    source.fill(QColor(41, 137, 211));
+    QVERIFY(source.save(framePath));
+    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+
+    {
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        document->setFileBatchMode(true);
+        document->setAutoSaveActive(false);
+        QVERIFY(document->newImage(QStringLiteral("Animation start"), 64, 48, cs,
+            KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+        QVERIFY(document->image()->gpuImage());
+        auto node = document->image()->root()->firstChild();
+        QVERIFY(node);
+        node->enableAnimation();
+        QVERIFY(!document->image()->gpuImage());
+        QVERIFY(node->isAnimated());
+        auto *channel = node->getKeyframeChannel(KisKeyframeChannel::Raster.id(), true);
+        QVERIFY(channel);
+        QVERIFY(!channel->keyframeAt(0).isNull());
+        KisPart::instance()->removeDocument(document.data(), false);
+    }
+
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setAutoSaveActive(false);
+    QVERIFY(document->newImage(QStringLiteral("Frame import"), 64, 48, cs,
+        KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    QVERIFY(document->image()->gpuImage());
+    KisAnimationImporter importer(document.data());
+    QVERIFY(importer.import({framePath}, 7, 1).isOk());
+    auto image = document->image();
+    QVERIFY(!image->gpuImage());
+    auto imported = image->root()->lastChild();
+    QVERIFY(imported);
+    auto *channel = imported->getKeyframeChannel(KisKeyframeChannel::Raster.id());
+    QVERIFY(channel);
+    QVERIFY(!channel->keyframeAt(7).isNull());
+    image->animationInterface()->switchCurrentTimeAsync(7);
+    image->waitForDone();
+    const QImage actual = imported->projection()->convertToQImage(imported->colorSpace()->profile());
+    QPoint mismatch;
+    QVERIFY(TestUtil::compareQImages(mismatch, source, actual));
+
+    const QRect edited(4, 4, 12, 10);
+    const QColor fill(223, 71, 29);
+    image->barrierLock();
+    {
+        KisTransaction transaction(imported->paintDevice());
+        imported->paintDevice()->fill(edited, KoColor(fill, cs));
+        transaction.commit(image->undoAdapter());
+    }
+    imported->setDirty(edited);
+    image->unlock();
+    image->waitForDone();
+
+    const auto path = directory.filePath(QStringLiteral("animation.kra"));
+    QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    document->waitForSavingToComplete();
+    {
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent | KisDocument::UseCpuEngine));
+        auto reopenedNode = reopened->image()->root()->lastChild();
+        QVERIFY(reopenedNode);
+        auto *reopenedChannel = reopenedNode->getKeyframeChannel(KisKeyframeChannel::Raster.id());
+        QVERIFY(reopenedChannel);
+        QVERIFY(!reopenedChannel->keyframeAt(7).isNull());
+        reopened->image()->animationInterface()->switchCurrentTimeAsync(7);
+        reopened->image()->waitForDone();
+        KoColor pixel;
+        reopenedNode->paintDevice()->pixel(edited.x() + 1, edited.y() + 1, &pixel);
+        QCOMPARE(pixel.toQColor(), fill);
+    }
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void KisAnimationImporterTest::testBusyGpuDocumentKeepsGpuStorageWhenMigrationFails()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto framePath = directory.filePath(QStringLiteral("frame.png"));
+    QImage frame(32, 24, QImage::Format_ARGB32);
+    frame.fill(QColor(17, 83, 149));
+    QVERIFY(frame.save(framePath));
+    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setAutoSaveActive(false);
+    QVERIFY(document->newImage(QStringLiteral("Busy migration"), 32, 24, cs,
+        KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    auto image = document->image();
+    auto owner = image->gpuImage();
+    QVERIFY(owner);
+    auto node = image->root()->firstChild();
+    QVERIFY(node);
+    const auto path = directory.filePath(QStringLiteral("busy.kra"));
+    QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    document->waitForSavingToComplete();
+    document->setModified(true);
+    QVERIFY(QMetaObject::invokeMethod(document.data(), "slotAutoSave", Qt::DirectConnection));
+    QVERIFY(document->isSaving());
+    const int children = image->root()->childCount();
+
+    node->enableAnimation();
+    QVERIFY(!node->isAnimated());
+    QVERIFY(!node->getKeyframeChannel(KisKeyframeChannel::Raster.id()));
+    QCOMPARE(image->gpuImage(), owner);
+    QCOMPARE(image->root()->childCount(), children);
+
+    KisAnimationImporter importer(document.data());
+    QVERIFY(!importer.import({framePath}, 7, 1).isOk());
+    QCOMPARE(image->gpuImage(), owner);
+    QCOMPARE(image->root()->childCount(), children);
+
+    document->waitForSavingToComplete();
+    node->enableAnimation();
+    QVERIFY(!image->gpuImage());
+    QVERIFY(node->isAnimated());
     KisPart::instance()->removeDocument(document.data(), false);
 }
 
