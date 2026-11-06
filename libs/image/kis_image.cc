@@ -466,13 +466,19 @@ public:
         QBitArray channelLocks;
         KisPaintDeviceSP device;
         QSharedPointer<KisPaintDevice::CpuHistoryState> pixels;
+        /** Alpha mask or derived-layer selection retained across versions. */
+        KisSelectionSP selection;
+        QSharedPointer<KisPaintDevice::CpuHistoryState> selectionPixels;
 
         void apply() const
         {
-            if (!pixels) return;
-            auto targetDevice = device;
+            if (!pixels && !selectionPixels) return;
+            if (pixels) {
+                auto targetDevice = device;
+                targetDevice->applyCpuHistoryState(pixels);
+            }
+            if (selectionPixels) selection->pixelSelection()->applyCpuHistoryState(selectionPixels);
             auto target = node;
-            targetDevice->applyCpuHistoryState(pixels);
             target->setName(name);
             target->setOpacity(opacity);
             target->setCompositeOpId(compositeOp);
@@ -488,7 +494,28 @@ public:
     {
         if (auto *group = qobject_cast<KisGroupLayer *>(node.data())) return group->originalDeviceForCpuMigration();
         if (auto *paint = qobject_cast<KisPaintLayer *>(node.data())) return paint->paintDevice();
+        // Derived layers own their rendered pixels in original(), while Alpha
+        // masks and their filter-selection siblings keep coverage in
+        // paintDevice(). Both are retained so native commands keep referring
+        // to the same node and device after history navigation.
+        if (auto *derived = qobject_cast<KisSelectionBasedLayer *>(node.data())) return derived->original();
+        if (auto *mask = qobject_cast<KisMask *>(node.data())) return mask->paintDevice();
         return {};
+    }
+
+    static KisSelectionSP nodeSelection(KisNodeSP node)
+    {
+        if (auto *layer = qobject_cast<KisSelectionBasedLayer *>(node.data())) return layer->internalSelection();
+        if (auto *mask = qobject_cast<KisMask *>(node.data())) return mask->selection();
+        return {};
+    }
+
+    static QSharedPointer<KisPaintDevice::CpuHistoryState> capturePixels(
+        KisPaintDeviceSP target, KisPaintDeviceSP source, const KisImage &image, CpuMigration &migration)
+    {
+        const auto index = &image == migration.target.data() ? migration.devices.indexOf(source) : -1;
+        if (index >= 0) return target->cpuMigrationHistoryState(migration.pixels[index]);
+        return target->prepareCpuHistoryState(*source);
     }
 
     struct HistoryState {
@@ -514,26 +541,45 @@ public:
             for (qsizetype i = 0; i < sources.size(); ++i) {
                 const auto source = sources[i];
                 const auto sourceDevice = persistentDevice(source);
+                const auto sourceSelection = nodeSelection(source);
                 NodeState state;
-                state.node = sourceDevice ? retained.value(source->uuid(), source) : source;
+                state.node = (sourceDevice || sourceSelection) ? retained.value(source->uuid(), source) : source;
                 identities.insert(source->uuid(), state.node);
-                if (sourceDevice) {
+                if (sourceDevice || sourceSelection) {
                     if (state.node->metaObject() != source->metaObject()) return false;
                     retained.insert(source->uuid(), state.node);
-                    state.device = persistentDevice(state.node);
                     state.name = source->name();
                     state.compositeOp = source->compositeOpId();
                     state.properties = source->sectionModelProperties();
                     state.opacity = source->opacity();
                     state.pinned = source->isPinnedToTimeline();
                     state.colorLabel = source->colorLabelIndex();
-                    state.channels = qobject_cast<const KisLayer *>(source.data())->channelFlags();
+                    if (const auto *layer = qobject_cast<const KisLayer *>(source.data())) state.channels = layer->channelFlags();
                     if (const auto *paint = qobject_cast<const KisPaintLayer *>(source.data())) state.channelLocks = paint->channelLockFlags();
-                    if (&image == migration.target.data() && sourceDevice->gpuPixelImage()) {
-                        const auto index = migration.devices.indexOf(sourceDevice);
-                        if (index < 0) return false;
-                        state.pixels = state.device->cpuMigrationHistoryState(migration.pixels[index]);
-                    } else state.pixels = state.device->prepareCpuHistoryState(*sourceDevice);
+                    if (sourceDevice) {
+                        state.device = persistentDevice(state.node);
+                        state.pixels = capturePixels(state.device, sourceDevice, image, migration);
+                    }
+                    if (sourceSelection) {
+                        auto selection = migration.retainedSelections.value(source->uuid());
+                        if (!selection) {
+                            // The live image keeps its selection object. Historical
+                            // clones provide an independent copy whose pixel data is
+                            // switched per version below.
+                            if (&image == migration.target.data()) selection = sourceSelection;
+                            else selection = new KisSelection(*sourceSelection);
+                            selection->setParentNode(state.node);
+                            migration.retainedSelections.insert(source->uuid(), selection);
+                        }
+                        state.selection = selection;
+                        const auto targetDevice = selection->pixelSelection();
+                        const auto selectedDevice = sourceSelection->pixelSelection();
+                        // Alpha masks store their coverage in the retained mask
+                        // device itself; only derived-layer internal selections
+                        // need a separate device snapshot.
+                        if (targetDevice.data() != state.device.data())
+                            state.selectionPixels = capturePixels(targetDevice, selectedDevice, image, migration);
+                    }
                 }
                 nodes.append(std::move(state));
                 for (auto child = source->firstChild(); child; child = child->nextSibling()) sources.append(child);
@@ -624,6 +670,7 @@ public:
     QList<QSharedPointer<KisPaintDevice::CpuMigration>> pixels;
     std::unique_ptr<KisUpdateScheduler> scheduler;
     QList<KUndo2Command *> historyCommands;
+    QHash<QUuid, KisSelectionSP> retainedSelections;
     bool includeHistory = false;
 };
 
@@ -631,6 +678,11 @@ bool KisImage::prepareCpuMigrationHistory(CpuMigration &migration, qsizetype &re
 {
     const auto versions = migration.owner->operations().historyVersions();
     auto retained = retainedGpuNodes();
+    // Prefer the live selection objects so references held before adoption
+    // remain valid when an older version is selected first.
+    for (auto it = retained.cbegin(); it != retained.cend(); ++it)
+        if (const auto selection = CpuMigration::nodeSelection(it.value()))
+            migration.retainedSelections.insert(it.key(), selection);
     QList<QSharedPointer<CpuMigration::HistoryState>> states;
     for (const auto &version : versions) {
         if (version == migration.version) {

@@ -17,11 +17,18 @@
 #include <kis_group_layer.h>
 #include <kis_paint_layer.h>
 #include <kis_selection.h>
+#include <kis_selection_mask.h>
+#include <kis_mask.h>
 #include <kis_pixel_selection.h>
 #include <kis_transaction.h>
+#include <KisGpuFilterConfiguration.h>
+#include <kis_filter_registry.h>
+#include <kis_filter_configuration.h>
+#include <KisGlobalResourcesInterface.h>
 #include <kis_crop_saved_extra_data.h>
 #include <kis_layer_utils.h>
 #include <commands/KisNodeRenameCommand.h>
+#include <commands/kis_reselect_global_selection_command.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoColorProfile.h>
 #include <KoResourcePaths.h>
@@ -94,6 +101,13 @@ private Q_SLOTS:
         QTest::newRow("u16-deleted-subtree-and-pending-redo") << true;
     }
     void historyKeepsLayerReferences();
+    void historyKeepsMaskAndSelectionReferences_data()
+    {
+        QTest::addColumn<bool>("boundary");
+        QTest::newRow("u8-retained-alpha-mask-and-filter-selection") << false;
+        QTest::newRow("u16-retained-selection-and-native-mask-edit") << true;
+    }
+    void historyKeepsMaskAndSelectionReferences();
 };
 
 void KisGpuCpuDocumentMigrationTest::historyKeepsLayerReferences()
@@ -272,6 +286,163 @@ void KisGpuCpuDocumentMigrationTest::historyKeepsLayerReferences()
     QCOMPARE(reopenedNode->name(), QStringLiteral("Native name"));
     QVERIFY(!KisLayerUtils::findNodeByUuid(reopened->image()->root(), added->uuid()));
     QCOMPARE_PIXELS_WITHIN_DEPTH_STEP(pixels(reopenedNode->paintDevice(), area), changedPixels, depth);
+}
+
+void KisGpuCpuDocumentMigrationTest::historyKeepsMaskAndSelectionReferences()
+{
+    QFETCH(bool, boundary);
+    constexpr qsizetype capacity = 64 * 1024 * 1024;
+    const auto *space = boundary ? KoColorSpaceRegistry::instance()->rgb16() : KoColorSpaceRegistry::instance()->rgb8();
+    const QRect area(250, 3, 13, 19);
+    const QRect bounds(QPoint(), QSize(270, 48));
+    Gpu::RasterImage raster;
+    raster.size = bounds.size();
+    raster.format = boundary ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    raster.colorProfile = space->profile()->rawData();
+    Gpu::RasterLayer layer;
+    layer.uuid = QUuid::createUuid();
+    layer.name = QStringLiteral("Masked paint");
+    raster.layers = {layer};
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    const auto owner = Gpu::PaintImageSP::create(std::make_shared<Gpu::Execution>(device), raster);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setAutoSaveActive(false);
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Retained masks"), space);
+    document->setCurrentImage(image);
+    const auto root = image->rootLayer();
+    const auto paintNode = root->firstChild();
+    QVERIFY(paintNode);
+    const auto paintUuid = paintNode->uuid();
+    const auto paintId = owner->operations().activeLayer();
+    auto *stack = document->undoStack();
+
+    // Keep a deselected global selection through the same migration.
+    QVERIFY(image->setGpuSelectionRect({2, 3, 10, 7}, boundary));
+    const auto coarseSelection = image->globalSelection();
+    QVERIFY(coarseSelection);
+    const auto coarseBytes = pixels(coarseSelection->pixelSelection(), image->bounds());
+    QVERIFY(image->clearGpuSelection());
+    QVERIFY(image->canReselectGlobalSelection());
+
+    const auto coverageBytes = [&](quint8 offset, quint8 step) {
+        QByteArray bytes(area.width() * area.height(), Qt::Uninitialized);
+        for (qsizetype i = 0; i < bytes.size(); ++i) bytes[i] = char(offset + (i * step) % (256 - offset));
+        return bytes;
+    };
+    const auto alphaMask = [&](const QByteArray &bytes) {
+        return Gpu::SelectionMask::fromAlphaCoverage(area, bytes, bounds);
+    };
+    const auto maskA = alphaMask(coverageBytes(0, 3));
+    const auto maskB = alphaMask(coverageBytes(1, 7));
+    const auto maskC = alphaMask(coverageBytes(2, 11));
+    const auto maskD = alphaMask(coverageBytes(3, 13));
+    QVERIFY(maskA && maskB && maskC && maskD);
+
+    QCOMPARE(owner->addTransparencyMask(paintId), Gpu::Result::Success);
+    QCOMPARE(owner->replaceTransparencyMask(paintId, maskA), Gpu::Result::Success);
+    auto maskNode = paintNode->firstChild();
+    QVERIFY(maskNode);
+    auto *mask = qobject_cast<KisMask *>(maskNode.data());
+    QVERIFY(mask);
+    const auto maskSelection = mask->selection();
+    QVERIFY(maskSelection);
+    KisPaintDeviceSP maskDevice = maskNode->paintDevice();
+    const auto maskBytesA = pixels(maskDevice, area);
+    const int indexA = stack->index();
+
+    QCOMPARE(owner->replaceTransparencyMask(paintId, maskB), Gpu::Result::Success);
+    const auto maskBytesB = pixels(maskDevice, area);
+    QVERIFY(maskBytesA != maskBytesB);
+    const int indexB = stack->index();
+
+    const auto filter = KisFilterRegistry::instance()->value(QStringLiteral("fastcoloroverlay"));
+    QVERIFY(filter);
+    const auto frozen = freezeGpuFilterConfiguration(
+        filter->defaultConfiguration(KisGlobalResourcesInterface::instance()), space);
+    QVERIFY(frozen);
+    Gpu::RasterLayer filterLayer{QStringLiteral("Internal coverage"), true, QUuid::createUuid(), {}};
+    filterLayer.kind = Gpu::LayerKind::FilterMask;
+    filterLayer.parentUuid = paintUuid;
+    filterLayer.filter = *frozen;
+    filterLayer.filterSelection = maskC;
+    const auto filterId = owner->addFilterNode(filterLayer, 1);
+    QVERIFY(filterId);
+    auto filterNode = KisLayerUtils::findNodeByUuid(root, filterLayer.uuid);
+    QVERIFY(filterNode);
+    auto *filterMask = qobject_cast<KisMask *>(filterNode.data());
+    QVERIFY(filterMask);
+    const auto filterSelection = filterMask->selection();
+    QVERIFY(filterSelection);
+    KisPaintDeviceSP filterDevice = filterNode->paintDevice();
+    const auto filterBytesC = pixels(filterDevice, area);
+    const int indexFilterC = stack->index();
+
+    QCOMPARE(owner->setFilterSelection(filterId, maskD), Gpu::Result::Success);
+    const auto filterBytesD = pixels(filterDevice, area);
+    QVERIFY(filterBytesC != filterBytesD);
+    const int indexFilterD = stack->index();
+
+    QVERIFY(document->migrateToCpu(capacity));
+    QVERIFY(!image->gpuImage());
+    QCOMPARE(image->rootLayer(), root);
+    QCOMPARE(KisLayerUtils::findNodeByUuid(root, paintUuid), paintNode);
+    QCOMPARE(KisLayerUtils::findNodeByUuid(root, maskNode->uuid()), maskNode);
+    QCOMPARE(KisLayerUtils::findNodeByUuid(root, filterLayer.uuid), filterNode);
+    QCOMPARE(qobject_cast<KisMask *>(maskNode.data())->selection(), maskSelection);
+    QCOMPARE(qobject_cast<KisMask *>(filterNode.data())->selection(), filterSelection);
+
+    const auto checkVersion = [&](int index, const QByteArray &maskBytes, bool hasFilter,
+                                  const QByteArray &filterBytes) {
+        stack->setIndex(index);
+        image->waitForDone();
+        QCOMPARE(KisLayerUtils::findNodeByUuid(root, maskNode->uuid()), maskNode);
+        QCOMPARE(qobject_cast<KisMask *>(maskNode.data())->selection(), maskSelection);
+        QCOMPARE(pixels(maskDevice, area), maskBytes);
+        const auto found = KisLayerUtils::findNodeByUuid(root, filterLayer.uuid);
+        if (hasFilter) {
+            QCOMPARE(found, filterNode);
+            QCOMPARE(qobject_cast<KisMask *>(filterNode.data())->selection(), filterSelection);
+            QCOMPARE(pixels(filterDevice, area), filterBytes);
+        } else {
+            QVERIFY(!found);
+        }
+    };
+    checkVersion(indexA, maskBytesA, false, {});
+    checkVersion(indexB, maskBytesB, false, {});
+    checkVersion(indexFilterC, maskBytesB, true, filterBytesC);
+    checkVersion(indexFilterD, maskBytesB, true, filterBytesD);
+    checkVersion(indexA, maskBytesA, false, {});
+    checkVersion(indexFilterD, maskBytesB, true, filterBytesD);
+
+    // Native edits after adoption keep using the retained pixel managers.
+    image->barrierLock();
+    KisTransaction transaction(kundo2_i18n("Native mask edit"), maskDevice);
+    maskDevice->fill(area, KoColor(Qt::white, maskDevice->colorSpace()));
+    maskNode->setDirty(area);
+    transaction.commit(image->undoAdapter());
+    image->unlock();
+    image->waitForDone();
+    const auto editedBytes = pixels(maskDevice, area);
+    QVERIFY(editedBytes != maskBytesB);
+    stack->undo();
+    image->waitForDone();
+    QCOMPARE(pixels(maskDevice, area), maskBytesB);
+    stack->redo();
+    image->waitForDone();
+    QCOMPARE(pixels(maskDevice, area), editedBytes);
+
+    QVERIFY(image->canReselectGlobalSelection());
+    KisReselectGlobalSelectionCommand reselect(image);
+    reselect.redo();
+    QVERIFY(image->globalSelection());
+    QCOMPARE(image->globalSelection(), coarseSelection);
+    QCOMPARE(pixels(image->globalSelection()->pixelSelection(), image->bounds()), coarseBytes);
+    reselect.undo();
+    QVERIFY(!image->globalSelection());
+    QVERIFY(image->canReselectGlobalSelection());
 }
 
 void KisGpuCpuDocumentMigrationTest::documentKeepsFilesAndHistory()
