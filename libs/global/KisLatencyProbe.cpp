@@ -41,6 +41,15 @@ qint64 now()
 #endif
 }
 
+quint64 threadId()
+{
+#ifdef Q_OS_WIN
+    return GetCurrentThreadId();
+#else
+    return static_cast<quint64>(std::hash<std::thread::id>()(std::this_thread::get_id()) & 0xffff);
+#endif
+}
+
 class Recorder
 {
 public:
@@ -79,8 +88,7 @@ public:
 
     void mark(const char *event, double x, double y, qint64 extra)
     {
-        const Entry entry{now(), event, x, y, extra,
-                          static_cast<quint64>(std::hash<std::thread::id>()(std::this_thread::get_id()) & 0xffff)};
+        const Entry entry{now(), event, x, y, extra, threadId()};
         std::lock_guard<std::mutex> lock(m_mutex);
         m_pending.push_back(entry);
     }
