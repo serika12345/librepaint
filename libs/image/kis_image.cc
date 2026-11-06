@@ -469,15 +469,18 @@ public:
         /** Alpha mask or derived-layer selection retained across versions. */
         KisSelectionSP selection;
         QSharedPointer<KisPaintDevice::CpuHistoryState> selectionPixels;
+        /** Detached shape component for this history version. */
+        KisSelectionSP shapeSelection;
 
-        void apply() const
+        void apply()
         {
-            if (!pixels && !selectionPixels) return;
+            if (!pixels && !selectionPixels && !shapeSelection) return;
             if (pixels) {
                 auto targetDevice = device;
                 targetDevice->applyCpuHistoryState(pixels);
             }
             if (selectionPixels) selection->pixelSelection()->applyCpuHistoryState(selectionPixels);
+            if (shapeSelection) selection->copyShapeSelectionFrom(*shapeSelection);
             auto target = node;
             target->setName(name);
             target->setOpacity(opacity);
@@ -579,6 +582,9 @@ public:
                         // need a separate device snapshot.
                         if (targetDevice.data() != state.device.data())
                             state.selectionPixels = capturePixels(targetDevice, selectedDevice, image, migration);
+                        // Vector shapes are not part of the pixel device state, so
+                        // keep an independent snapshot for each history version.
+                        state.shapeSelection = sourceSelection->shapeSelectionCopy();
                     }
                 }
                 nodes.append(std::move(state));
@@ -595,7 +601,7 @@ public:
             return true;
         }
 
-        void applyNodes(KisImage &image) const
+        void applyNodes(KisImage &image)
         {
             if (image.rootLayer() != root) image.setRootLayer(root);
             QSet<const KisNode *> desired;
@@ -617,10 +623,10 @@ public:
                 }
                 above.insert(state.parent.data(), state.node);
             }
-            for (const auto &state : nodes) state.apply();
+            for (auto &state : nodes) state.apply();
         }
 
-        void apply(KisImage &image, const std::optional<ComplexSizeChangedSignal> &resize) const
+        void apply(KisImage &image, const std::optional<ComplexSizeChangedSignal> &resize)
         {
             KIS_SAFE_ASSERT_RECOVER_RETURN(!image.gpuImage() && image.locked());
             const auto previousSize = image.size();

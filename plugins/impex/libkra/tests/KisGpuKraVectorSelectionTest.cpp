@@ -109,6 +109,7 @@ class KisGpuKraVectorSelectionTest : public QObject
 private Q_SLOTS:
     void vectorSelectionSurvivesEditingAndResaving();
     void rasterReplacementAndRemovalDiscardVectorData();
+    void vectorSelectionFollowsMigratedHistory();
 };
 
 void KisGpuKraVectorSelectionTest::vectorSelectionSurvivesEditingAndResaving()
@@ -212,6 +213,92 @@ void KisGpuKraVectorSelectionTest::rasterReplacementAndRemovalDiscardVectorData(
         QVERIFY(!reopened->image()->root()->firstChild()->firstChild());
         QCOMPARE_PIXELS_WITHIN_STEP(projection(reopened->image()), projection(image));
     }
+}
+
+void KisGpuKraVectorSelectionTest::vectorSelectionFollowsMigratedHistory()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    auto source = sourceDocument();
+    const auto sourcePath = directory.filePath("source.kra");
+    QVERIFY(source->exportDocumentSync(sourcePath, source->mimeType()));
+    const auto originalDescription = vectorDescription(vectorMask(source->image()));
+    const auto originalPixels = projection(source->image());
+
+    const TestUtil::PaintingEngineScope gpu(true);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    QVERIFY2(document->openPath(sourcePath, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+    auto image = document->image();
+    const auto owner = image->gpuImage();
+    QVERIFY(owner);
+    auto mask = vectorMask(image);
+    QVERIFY(mask);
+    auto selection = mask->selection();
+    QVERIFY(selection);
+    const auto edit = [&](const QString &name, const QPointF &offset) {
+        auto *shapes = dynamic_cast<KisShapeSelection *>(selection->shapeSelection());
+        QVERIFY(shapes);
+        QCOMPARE(shapes->shapes().size(), 1);
+        auto *shape = shapes->shapes().first();
+        shape->setPosition(shape->position() + offset);
+        shape->setName(name);
+    };
+
+    edit(QStringLiteral("first_edit"), QPointF(3.5, -1.25));
+    QTRY_COMPARE(owner->operations().undoCount(), 1);
+    const auto firstDescription = vectorDescription(mask);
+    const auto firstPixels = projection(image);
+    const int firstIndex = document->undoStack()->index();
+
+    edit(QStringLiteral("second_edit"), QPointF(0.125, 0.25));
+    QTRY_COMPARE(owner->operations().undoCount(), 2);
+    const auto secondDescription = vectorDescription(mask);
+    const auto secondPixels = projection(image);
+    const int secondIndex = document->undoStack()->index();
+
+    QVERIFY(document->migrateToCpu(64 * 1024 * 1024));
+    QVERIFY(!image->gpuImage());
+    QCOMPARE(vectorMask(image), mask);
+    QCOMPARE(mask->selection(), selection);
+    auto *stack = document->undoStack();
+    QCOMPARE(stack->index(), secondIndex);
+
+    const auto checkVersion = [&](int index, const QVariantList &description, const QByteArray &expected) {
+        stack->setIndex(index);
+        image->waitForDone();
+        QCOMPARE(mask->selection(), selection);
+        QCOMPARE(vectorDescription(mask), description);
+        QCOMPARE_PIXELS_WITHIN_STEP(projection(image), expected);
+    };
+    checkVersion(secondIndex, secondDescription, secondPixels);
+    checkVersion(firstIndex, firstDescription, firstPixels);
+    checkVersion(0, originalDescription, originalPixels);
+    checkVersion(firstIndex, firstDescription, firstPixels);
+    checkVersion(secondIndex, secondDescription, secondPixels);
+
+    // Rasterising the vector selection is a native edit. Undo brings the shape
+    // back on the same retained selection, and redo removes it again.
+    KUndo2Command *flatten = selection->flatten();
+    QVERIFY(flatten);
+    stack->push(flatten);
+    image->waitForDone();
+    QVERIFY(!selection->hasShapeSelection());
+    QCOMPARE_PIXELS_WITHIN_STEP(projection(image), secondPixels);
+    stack->undo();
+    image->waitForDone();
+    QVERIFY(selection->hasShapeSelection());
+    QCOMPARE(vectorDescription(mask), secondDescription);
+    stack->redo();
+    image->waitForDone();
+    QVERIFY(!selection->hasShapeSelection());
+    stack->undo();
+    image->waitForDone();
+    QCOMPARE(vectorDescription(mask), secondDescription);
+
+    // The migrated history still restores the older vector shape afterwards.
+    checkVersion(0, originalDescription, originalPixels);
+    checkVersion(secondIndex, secondDescription, secondPixels);
 }
 
 KISTEST_MAIN(KisGpuKraVectorSelectionTest)
