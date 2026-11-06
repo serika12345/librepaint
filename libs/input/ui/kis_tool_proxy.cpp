@@ -235,6 +235,16 @@ bool KisToolProxy::alternateActionSupportsHiResEvents(KisTool::AlternateAction a
     return activeTool && activeTool->alternateActionSupportsHiResEvents(action);
 }
 
+void KisToolProxy::touchDuringStroke(const QPointF &widgetPoint)
+{
+    KisTool *activeTool = dynamic_cast<KisTool*>(priv()->activeTool);
+    if (!activeTool) {
+        return;
+    }
+
+    activeTool->touchDuringStroke(widgetToDocument(widgetPoint));
+}
+
 void KisToolProxy::setActiveTool(KoToolBase *tool)
 {
     if (!tool) return;

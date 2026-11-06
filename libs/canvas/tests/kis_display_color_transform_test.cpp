@@ -5,6 +5,8 @@
 #include "kis_display_color_transform_test.h"
 
 #include <QColor>
+#include <QElapsedTimer>
+#include <QImage>
 
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
@@ -12,6 +14,7 @@
 
 #include <color/kis_display_color_filter.h>
 #include <color/kis_display_color_transform.h>
+#include <kis_paint_device.h>
 #include <simpletest.h>
 
 namespace {
@@ -82,6 +85,54 @@ void KisDisplayColorTransformTest::testDisplayFilterParticipatesInConversion()
     QCOMPARE(integerResult.colorSpace()->colorDepthId(),
              Integer8BitsColorDepthID);
     QVERIFY(!transform.canSkipDisplayConversion(colorSpace));
+}
+
+void KisDisplayColorTransformTest::testDisplayImagePreservesPixelsWithinRequestedPatch_data()
+{
+    QTest::addColumn<QString>("depth");
+    QTest::addColumn<bool>("filter");
+    QTest::addColumn<bool>("linearProfile");
+    QTest::newRow("display-rgb8") << Integer8BitsColorDepthID.id() << false << false;
+    QTest::newRow("float-conversion") << Float32BitsColorDepthID.id() << false << false;
+    QTest::newRow("profile-conversion") << Integer8BitsColorDepthID.id() << false << true;
+    QTest::newRow("rgb8-display-filter") << Integer8BitsColorDepthID.id() << true << false;
+    QTest::newRow("display-filter") << Float32BitsColorDepthID.id() << true << false;
+}
+
+void KisDisplayColorTransformTest::testDisplayImagePreservesPixelsWithinRequestedPatch()
+{
+    QFETCH(QString, depth);
+    QFETCH(bool, filter);
+    QFETCH(bool, linearProfile);
+    KisDisplayColorTransform transform;
+    configureTransform(transform);
+    const KoColorSpace *colorSpace = KoColorSpaceRegistry::instance()->colorSpace(
+        RGBAColorModelID.id(), depth, linearProfile ? KoColorSpaceRegistry::instance()->p709G10Profile()
+                                                   : standardColorSpace()->profile());
+    QVERIFY(colorSpace);
+    QVERIFY(!linearProfile || *colorSpace != *standardColorSpace());
+    auto displayFilter = QSharedPointer<CountingDisplayColorFilter>::create();
+    if (filter) transform.setDisplayFilter(displayFilter);
+    KisPaintDeviceSP device = new KisPaintDevice(colorSpace);
+    const KoColor background(QColor(240, 245, 250), colorSpace);
+    device->fill(0, 0, 3508, 2480, background.data());
+    const KoColor stroke(QColor(12, 34, 56, 78), colorSpace);
+    device->fill(800, 590, 1908, 1308, stroke.data());
+    const QRect patch(800, 590, 1908, 1308);
+    QImage expected(patch.size(), QImage::Format_ARGB32);
+    KoColor displayedStroke(stroke);
+    displayedStroke.convertTo(standardColorSpace());
+    expected.fill(displayedStroke.toQColor());
+    QElapsedTimer timer;
+    timer.start();
+    const QImage actual = transform.convertImageToDisplayColorSpace(device, patch, filter);
+    qInfo() << "display patch conversion ms" << timer.elapsed() << "pixels" << actual.size();
+    QCOMPARE(actual, expected);
+    QCOMPARE(displayFilter->filteredPixelCount, filter ? quint32(patch.width() * patch.height()) : quint32(0));
+    QCOMPARE(device->exactBounds(), QRect(0, 0, 3508, 2480));
+    KoColor original(colorSpace);
+    device->pixel(0, 0, &original);
+    QCOMPARE(original, background);
 }
 
 SIMPLE_TEST_MAIN(KisDisplayColorTransformTest)

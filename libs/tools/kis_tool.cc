@@ -479,6 +479,11 @@ bool KisTool::supportsPaintingAssistants() const
     return false;
 }
 
+void KisTool::touchDuringStroke(const QPointF &documentPoint)
+{
+    Q_UNUSED(documentPoint);
+}
+
 void KisTool::mouseDoubleClickEvent(KoPointerEvent *event)
 {
     Q_UNUSED(event);

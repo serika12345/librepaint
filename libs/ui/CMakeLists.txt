@@ -1726,6 +1726,21 @@ set_target_properties(kritauiinmemoryframecacheswapperobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritauiquickshapepreviewobjects OBJECT
+    tool/KisQuickShapePreview.cpp
+)
+target_include_directories(kritauiquickshapepreviewobjects
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+target_link_libraries(kritauiquickshapepreviewobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE kritatoolsquickshapeobjects
+)
+set_target_properties(kritauiquickshapepreviewobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritauiopenglupdateinfobuilderstateobjects OBJECT
     opengl/KisOpenGLUpdateInfoBuilderState.cpp
 )
@@ -1984,6 +1999,7 @@ set(kritaui_LIB_SRCS
 
     tool/kis_selection_tool_helper.cpp
     tool/kis_tool_freehand.cc
+    $<TARGET_OBJECTS:kritauiquickshapepreviewobjects>
     tool/kis_painting_information_builder_adapters.cpp
     tool/kis_tool_freehand_helper.cpp
     tool/kis_scratch_pad.cpp

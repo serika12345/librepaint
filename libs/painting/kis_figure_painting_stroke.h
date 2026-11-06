@@ -10,10 +10,13 @@
 #include <QPainterPath>
 #include <QPen>
 #include <QTransform>
+#include <optional>
+#include <QLineF>
 
 #include <KisFigurePaintingOptions.h>
 #include <brushengine/kis_paint_information.h>
 #include <kis_resources_snapshot.h>
+#include <kis_paint_device.h>
 #include <kis_types.h>
 #include <kritapainting_export.h>
 
@@ -39,6 +42,11 @@ public:
         KisFigurePaintingOptions::StrokeStyle strokeStyle,
         KisFigurePaintingOptions::FillStyle fillStyle,
         QTransform fillTransform = QTransform());
+    /** Creates a stroke from an independent copy of the captured resources. */
+    KisFigurePaintingStroke(
+        const KUndo2MagicString &name,
+        const KisResourcesSnapshot &resources,
+        std::optional<int> dabRandomSeed = std::nullopt);
     ~KisFigurePaintingStroke();
 
     KisFigurePaintingStroke(const KisFigurePaintingStroke &) = delete;
@@ -51,6 +59,17 @@ public:
     void paintRect(const QRectF &rect);
     void paintEllipse(const QRectF &rect);
     void paintPainterPath(const QPainterPath &path);
+    /** Queues brush segments with the supplied input held constant along the path. */
+    void paintStrokePath(const QPainterPath &path, const KisPaintInformation &information);
+    struct PreviewSample {
+        KisPaintDeviceSP device;
+        QRect bounds;
+        QLineF line;
+        qreal imageUnitsPerPixel;
+    };
+    /** Builds one bounded appearance sample on a scratch device, without document jobs or Undo. */
+    static PreviewSample createPreviewSample(const KisResourcesSnapshot &resources,
+                                              const KisPaintInformation &information, int randomSeed);
     void setFGColorOverride(const KoColor &color);
     void setBGColorOverride(const KoColor &color);
     void setSelectionOverride(KisSelectionSP m_selection);
@@ -63,6 +82,7 @@ public:
                                   const KoColor &color);
 
 private:
+    void startStroke(const KUndo2MagicString &name, std::optional<int> dabRandomSeed = std::nullopt);
     void setupPaintStyles(KisResourcesSnapshotSP resources,
                           KisFigurePaintingOptions::StrokeStyle strokeStyle,
                           KisFigurePaintingOptions::FillStyle fillStyle,

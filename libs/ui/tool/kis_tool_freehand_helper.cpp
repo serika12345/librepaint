@@ -199,6 +199,20 @@ KisSmoothingOptionsSP KisToolFreehandHelper::smoothingOptions() const
     return m_d->smoothingOptions;
 }
 
+KisPaintInformation KisToolFreehandHelper::currentPaintInformation() const
+{
+    if (m_d->stabilizerDelayedPaintHelper.running() &&
+        m_d->stabilizerDelayedPaintHelper.hasLastPaintInformation()) {
+        return m_d->stabilizerDelayedPaintHelper.lastPaintInformation();
+    }
+    return m_d->previousPaintInformation;
+}
+
+KisResourcesSnapshotSP KisToolFreehandHelper::currentResourcesSnapshot() const
+{
+    return m_d->resources;
+}
+
 KisOptimizedBrushOutline KisToolFreehandHelper::paintOpOutline(const QPointF &savedCursorPos,
                                                                const KoPointerEvent *event,
                                                                const KisPaintOpSettingsSP globalSettings,
@@ -213,12 +227,7 @@ KisOptimizedBrushOutline KisToolFreehandHelper::paintOpOutline(const QPointF &sa
 
     if (!m_d->strokeInfos.isEmpty()) {
         settings = m_d->resources->currentPaintOpPreset()->settings();
-        if (m_d->stabilizerDelayedPaintHelper.running() &&
-                m_d->stabilizerDelayedPaintHelper.hasLastPaintInformation()) {
-            info = m_d->stabilizerDelayedPaintHelper.lastPaintInformation();
-        } else {
-            info = m_d->previousPaintInformation;
-        }
+        info = currentPaintInformation();
 
         /**
          * When LoD mode is active it may happen that the helper has
@@ -260,13 +269,10 @@ KisOptimizedBrushOutline KisToolFreehandHelper::paintOpOutline(const QPointF &sa
     if (m_d->resources &&
         m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::STABILIZER &&
         m_d->smoothingOptions->useDelayDistance()) {
-
         const qreal R = m_d->smoothingOptions->delayDistance() /
             m_d->resources->effectiveZoom();
-
         outline.addEllipse(info.pos(), R, R);
     }
-
     return outline;
 }
 
@@ -786,6 +792,7 @@ void KisToolFreehandHelper::cancelPaint()
     m_d->strokesFacade->cancelStroke(m_d->strokeId);
     m_d->strokeId.clear();
 
+    m_d->infoBuilder->reset();
 }
 
 int KisToolFreehandHelper::elapsedStrokeTime() const

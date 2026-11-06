@@ -14,6 +14,7 @@
 
 #include "kis_types.h"
 #include "kis_default_bounds_base.h"
+#include "kis_resources_snapshot.h"
 #include "kritaui_export.h"
 #include <brushengine/kis_paintop_settings.h>
 #include "kundo2magicstring.h"
@@ -50,6 +51,11 @@ public:
 
     bool isRunning() const;
 
+    /** Copies the current smoothed input while the stroke is running. */
+    KisPaintInformation currentPaintInformation() const;
+    /** Retains the running stroke's snapshot; callers use the shared settings as read-only state. */
+    KisResourcesSnapshotSP currentResourcesSnapshot() const;
+
     void cursorMoved(const QPointF &cursorPos);
 
     /**
@@ -72,6 +78,13 @@ public:
     void paintEvent(KoPointerEvent *event );
     void endPaint();
 
+    /**
+     * Aborts the running stroke and reverts everything it painted. The tool
+     * uses this when the same input sequence must be replaced by different
+     * output, for example by a quick shape.
+     */
+    void cancelPaint();
+
     KisOptimizedBrushOutline paintOpOutline(const QPointF &savedCursorPos,
                                             const KoPointerEvent *event,
                                             const KisPaintOpSettingsSP globalSettings,
@@ -87,7 +100,6 @@ Q_SIGNALS:
     void requestExplicitUpdateOutline();
 
 protected:
-    void cancelPaint();
     int elapsedStrokeTime() const;
 
     void initPaintImpl(qreal startAngle,

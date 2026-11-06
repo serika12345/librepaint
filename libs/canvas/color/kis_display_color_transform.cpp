@@ -27,6 +27,7 @@
 #include <kis_fixed_paint_device.h>
 #include <kis_sequential_iterator.h>
 #include <kis_paint_device.h>
+#include <kis_painter.h>
 #include <qcontainerfwd.h>
 #include <QtGlobal>
 #include <qnamespace.h>
@@ -454,8 +455,22 @@ QImage KisDisplayColorTransform::convertImageToDisplayColorSpace(
     QRect source,
     bool applyDisplayFilter) const
 {
-    KisPaintDeviceSP device = new KisPaintDevice(*sourceDevice.data());
-    const QRect bounds = source.isValid() ? source : device->exactBounds();
+    const QRect bounds = source.isValid() ? source : sourceDevice->exactBounds();
+
+    // Pixels already in the display's 8-bit RGB space can be copied exactly.
+    // A float conversion would allocate and traverse the entire paint device.
+    if (!applyDisplayFilter || !m_d->usesDisplayFilter()) {
+        if (*sourceDevice->colorSpace() == *m_d->canvasColorSpace(Integer8BitsColorDepthID)) {
+            QImage image(bounds.size(), QImage::Format_ARGB32);
+            if (!image.isNull()) sourceDevice->readBytes(image.bits(), bounds);
+            return image;
+        }
+        return sourceDevice->convertToQImage(m_d->canvasProfile, bounds,
+                                            m_d->intent, m_d->conversionFlags);
+    }
+
+    KisPaintDeviceSP device = new KisPaintDevice(sourceDevice->colorSpace());
+    KisPainter::copyAreaOptimized(bounds.topLeft(), sourceDevice, device, bounds);
 
     if (m_d->usesDisplayFilter() && applyDisplayFilter) {
         KIS_ASSERT_RECOVER(m_d->ocioInputColorSpace()->pixelSize() == 16) {

@@ -850,6 +850,19 @@ void KisInputManager::Private::bufferTouchEvent(QTouchEvent *touchEvent)
 #endif
 }
 
+void KisInputManager::Private::notifyTouchDuringStroke(QTouchEvent *touchEvent)
+{
+    if (!toolProxy || !matcher.hasRunningShortcut()) {
+        return;
+    }
+
+    if (touchEvent->touchPoints().size() != 1) {
+        return;
+    }
+
+    toolProxy->touchDuringStroke(touchEvent->touchPoints().at(0).pos());
+}
+
 void KisInputManager::Private::flushBufferedTouchEvents()
 {
     for (QTouchEvent *touchEvent : bufferedTouchEvents) {

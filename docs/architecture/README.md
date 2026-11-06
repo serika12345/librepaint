@@ -103,7 +103,10 @@
 資源スナップショットは`libs/resources`の読出し接続面を保持する。
 
 図形描画は`libs/painting/kis_figure_painting_stroke.{h,cpp}`が所有し、
-`KisFigurePaintingStroke`の寿命がストロークの開始、ジョブ追加、終了をまとめる。
+`KisFigurePaintingStroke`の寿命がストロークの開始、ジョブ追加、終了、取消しをまとめる。
+入力中に編集する図形は、同じストロークの一時領域から以前の図形を消して描き直し、
+明示的な更新要求で画布へ表示する。直接描画のプリセットは画布の画素を共有するため、
+この差し替えを行わずツール側の輪郭表示を使う。
 描線・塗り値は`KisFigurePaintingOptions.h`が定義し、列挙値の順序とスクリプトの
 スタイル名との対応を維持する。
 色採取は`libs/painting/KisColorSamplerStroke.{h,cpp}`が実行し、採取ジョブの後に
@@ -175,6 +178,8 @@ UI側は対象画像、参照画像、キャンバス色資源、カーソルと
 | `libs/tools/kis_rectangle_interaction.{h,cpp}` | 矩形制約、修飾キー、ドラッグ座標、回転、正方形化、移動、中央拡張 |
 | `libs/tools/kis_outline_interaction.{h,cpp}` | 自由形状の点列、継続入力、点の取り消し、完了・取消し |
 | `libs/tools/kis_polyline_interaction.{h,cpp}` | 多角線の点列、ドラッグ区間、閉路状態、点の取り消し、完了・取消し |
+| `libs/tools/kis_quick_shape.{h,cpp}` | 保持した自由描画の点列、静止判定、直線・回転楕円の当てはめ、円への切替え、直線の終点追従と楕円の拡大縮小・回転 |
+| `libs/ui/tool/KisQuickShapePreview.{h,cpp}` | 図形編集のパスとブラシ見本の保持、輪郭に沿った表示、変更前後を含む再描画範囲 |
 | `libs/tools/kis_painting_information_builder.{h,cpp}` | 圧力曲線、速度、傾き、時刻、キャンバス状態から描画入力値を組み立てる |
 | `libs/tools/kis_speed_smoother.{h,cpp}` | 速度の平滑化 |
 | `libs/tools/kis_stabilized_events_sampler.{h,cpp}`、`KisStabilizerDelayedPaintHelper.{h,cpp}` | 入力の実時間標本化と遅延描画キュー |
@@ -184,6 +189,33 @@ UI側は対象画像、参照画像、キャンバス色資源、カーソルと
 UI設定は`libs/ui/tool/kis_painting_information_builder_config_p.h`から値として渡し、
 座標変換と自由描画への接続は`kis_painting_information_builder_adapters.{h,cpp}`が担当する。
 `TestToolCoreContract`と`TestToolSettingsUiContract`は操作結果と設定の保存・再読込を検査する。
+
+自由描画を500ms保持すると、`KisToolFreehand`が元のストロークを取り消して図形編集へ移る。
+直線は始点を固定し、ホールド中と解放時のペン位置を終点にする。
+楕円は中心を固定し、ホールド開始位置からの距離比で拡大縮小し、中心まわりの角度差で回転する。
+円への切替え中も楕円の縦横比と編集した角度を保持し、楕円へ戻すと復元する。
+ホールド中の終点移動、楕円の拡大縮小・回転、円への切替えは、GUIスレッドでパスを更新する。
+元の描画を一度取り消し、ストローク開始時の設定とホールド直前の平滑化済み入力を保持する。
+`libs/painting/kis_figure_painting_stroke.{h,cpp}`の`createPreviewSample`は、一時描画デバイス上で
+小さなブラシ見本を一度生成する。見本の描画範囲は256×256、ブラシ寸法は64画素以内へ
+縮尺を合わせ、返す素材は幅256画素・高さ128画素以内に収める。
+ブラシ本体、マスク、筆圧、不透明度、前景色、背景色、質感と乱数を見本へ反映し、
+作業スレッドで表示色へ変換する。文書の画素とUndo履歴は準備と変形中に保持する。
+`libs/ui/tool/KisQuickShapePreview.{h,cpp}`は、見本と形状をQt GUIの値として保持する。
+変形中は見本を輪郭に沿う帯へ写し、端点の見本も表示する。帯の幅は一定で、楕円の
+拡大縮小と回転も色・透明感・太さを保持する。帯の継ぎ目は画素を置き換えて不透明度の
+重複を防ぎ、画素補間で輪郭を滑らかにする。表示画像は可視範囲と画面解像度に合わせ、
+形状と表示変換が同じ間は再利用する。変更前後の占有範囲を再描画する。
+変形中の表示は保持したブラシ見本による近似とする。文書のレイヤー合成、選択範囲、
+ミラー描画、消しゴム、ブラシの位置依存の効果は確定時の描画経路が適用する。
+これにより表示更新を文書の描画キュー、レイヤー再合成とUndo生成から独立させる。
+ツール切替えや新しいストロークの開始後に届いた見本は、操作世代で判定する。
+ポインターの解放時に確定パスを`KisFigurePaintingStroke`へ一度渡し、元のストロークの設定一式を
+独立したコピーとして引き継ぐ。ホールド直前の入力で元の解像度へ描き、Undo一回分にまとめる。
+文書への描画が完了するまでプレビューを保持する。
+`KisQuickShapePreviewContractTest`は即時の形状追従、幅・色・透明感の維持、継ぎ目の不透明度、
+取消し、画素補間と大きな図形の表示時間を検査する。`FreehandStrokeContractTest`は、
+見本の寸法と文書状態の維持、解放時の描画結果、保持した筆圧と設定、Undo／Redoを検査する。
 
 画像グラフの変更は`libs/image/commands`が所有する。
 `kis_node_commands_adapter.*`は操作対象画像を弱参照し、ノード追加、移動、削除、属性変更の
@@ -203,6 +235,8 @@ UIが安定したアクション識別子を具体的なアクションへ解決
 `libs/input/ui`の`kritainputui`はQt事象接続、設定表示、診断、プラットフォーム統合を所有する。
 macOS、Linux、Android、Windowsでは共有ライブラリー、iOSでは静的ライブラリーとして構築する。
 利用元は`input/ui/...`の公開ヘッダーと`kritainputui`への直接リンクを使う。
+入力管理器は、入力操作の実行中に追加のタッチ点が届いたとき、その位置を活動中のツールへ通知する。
+スタイラス描画中の指の接触のように描画へ抑止される事象も通知対象に含め、解釈は活動中のツールへ委ねる。
 入力装置の識別値とQt分類変換は`libs/flake/KoInputDevice.{h,cpp}`が所有する。
 
 ### アプリケーションと画面の接続
@@ -378,7 +412,7 @@ UIKitの警告時にタイルとピックスマップのキャッシュを解放
 | 段階 | 所有者と主要分岐 | 観測する状態と不変条件 | 現在の契約検査 |
 | --- | --- | --- | --- |
 | 入力受信と照合 | `libs/input`、`libs/input/ui`。マウス、タブレット、タッチ、ネイティブジェスチャー、合成マウス事象の抑止へ分岐する。 | 入力列、選択したアクション、開始・継続・終了・取消し、フォーカス喪失後の状態、アクション群マスクを観測する。一つの物理入力列から有効な命令列を一つ生成し、終了後に照合状態を残さない。 | `TestInputShortcutMatcher`、`TestInputEventSuppressor` |
-| ツール呼出しと描画入力値 | `libs/tools`、`libs/ui/tool`。平滑化なし、基本平滑化、加重平滑化、安定化、遅延描画へ分岐する。 | 座標、筆圧、傾き、回転、速度、時刻、入力順、完了と取消しを観測する。正規化済み入力値と順序をストローク生成まで保持する。 | `TestToolCoreContract`、`KisStabilizedEventsSamplerTest` |
+| ツール呼出しと描画入力値 | `libs/tools`、`libs/ui/tool`。平滑化なし、基本平滑化、加重平滑化、安定化、遅延描画、保持した形状の当てはめへ分岐する。 | 座標、筆圧、傾き、回転、速度、時刻、入力順、完了と取消しを観測する。正規化済み入力値と順序をストローク生成まで保持する。 | `TestToolCoreContract`、`KisStabilizedEventsSamplerTest`、`KisQuickShapeContractTest` |
 | ストローク実行 | `libs/painting/strokes`と`libs/image`のストロークキュー。開始、ジョブ追加、終了、取消し、アンドゥ、リドゥ、非同期更新へ分岐する。 | ジョブ順、アンドゥ命令、キュー完了、`KisImage::isIdle()`と`hasUpdatesRunning()`を観測する。終了後は全ジョブが完了し、取消しとアンドゥは開始前の状態を復元する。 | `FreehandStrokeContractTest`、`kis_strokes_queue_test` |
 | ブラシ画素生成 | `plugins/paintops`、`libs/brush`、`libs/painting`。プリセット、PaintOp、合成方法、間隔、筆圧・速度・乱数センサーへ分岐する。 | 対象ペイントデバイスの画素、変更範囲、乱数源を観測する。同じ固定入力と描画設定は定義した比較規則内で同じ画素結果を生成する。 | `FreehandStrokeContractTest`、PaintOp別試験 |
 | タイル更新と投影 | `libs/image`。dirty領域、更新スケジューラー、レイヤー合成、投影更新へ分岐する。 | レイヤー画素、投影画素、画像更新通知、更新キュー完了を観測する。待機完了後の投影は確定したレイヤー状態と一致する。 | `FreehandStrokeContractTest`、`kis_update_scheduler_test`、`kis_projection_test` |

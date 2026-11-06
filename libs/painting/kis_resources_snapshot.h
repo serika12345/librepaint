@@ -33,6 +33,9 @@ class KRITAPAINTING_EXPORT KisResourcesSnapshot : public KisShared
 public:
     KisResourcesSnapshot(KisImageSP image, KisNodeSP currentNode, KoCanvasResourcesInterfaceSP resources, KisDefaultBoundsBaseSP bounds = 0, KisNodeList selectedNodes = KisNodeList(), KisPaintOpPresetSP presetOverride = 0);
     KisResourcesSnapshot(KisImageSP image, KisNodeSP currentNode, KisDefaultBoundsBaseSP bounds = 0);
+    /** Copies captured settings and clones the preset, retaining image and node lifetime. */
+    KisResourcesSnapshot(const KisResourcesSnapshot &other);
+    KisResourcesSnapshot &operator=(const KisResourcesSnapshot &) = delete;
     ~KisResourcesSnapshot();
 
     void setupPainter(KisPainter *painter);

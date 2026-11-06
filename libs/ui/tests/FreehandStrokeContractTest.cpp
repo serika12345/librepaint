@@ -7,28 +7,38 @@
 #include <QDir>
 #include <QDomDocument>
 #include <QImage>
+#include <QElapsedTimer>
+#include <QPainter>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 
+#include <cmath>
 #include <optional>
+#include <future>
 
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoResourceLoadResult.h>
+#include <KoCanvasResourceProvider.h>
+#include <KoCanvasResourcesIds.h>
 #include <simpletest.h>
 
 #include <KisGlobalResourcesInterface.h>
+#include <KisFigurePaintingOptions.h>
 #include <brushengine/kis_paint_information.h>
 #include <brushengine/kis_paintop_factory.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_settings.h>
+#include <kis_figure_painting_stroke.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
 #include <kis_pixel_selection.h>
 #include <kis_selection.h>
 #include <kis_undo_stores.h>
+#include <kis_quick_shape.h>
+#include "tool/KisQuickShapePreview.h"
 #include <strokes/KisFreehandStrokeInfo.h>
 #include <strokes/freehand_stroke.h>
 
@@ -203,11 +213,11 @@ QByteArray imageDigest(const QImage &image)
 class FreehandStrokeFixture
 {
 public:
-    FreehandStrokeFixture()
+    FreehandStrokeFixture(int width = imageWidth, int height = imageHeight)
         : m_undoStore(new KisSurrogateUndoStore())
         , m_image(new KisImage(m_undoStore,
-                               imageWidth,
-                               imageHeight,
+                               width,
+                               height,
                                KoColorSpaceRegistry::instance()->rgb8(),
                                QStringLiteral("freehand stroke contract")))
         , m_layer(new KisPaintLayer(m_image, QStringLiteral("paint"), OPACITY_OPAQUE_U8))
@@ -256,13 +266,15 @@ public:
                    qreal endPressure = inputPressure,
                    qreal startSpeed = inputSpeed,
                    qreal endSpeed = inputSpeed,
-                   std::optional<int> dabRandomSeed = std::nullopt)
+                   std::optional<int> dabRandomSeed = std::nullopt,
+                   const QColor &color = Qt::black,
+                   qreal opacity = 1.0)
     {
         KisResourcesSnapshotSP resources = new KisResourcesSnapshot(m_image, m_layer);
         resources->setBrush(m_preset);
-        resources->setFGColorOverride(KoColor(Qt::black, m_image->colorSpace()));
+        resources->setFGColorOverride(KoColor(color, m_image->colorSpace()));
         resources->setBGColorOverride(KoColor(Qt::white, m_image->colorSpace()));
-        resources->setOpacity(1.0);
+        resources->setOpacity(opacity);
         resources->setMirroring(false, false);
         resources->setSelectionOverride(m_selection);
 
@@ -316,6 +328,11 @@ public:
         return deviceImage(m_layer->paintDevice());
     }
 
+    KisNodeSP layer() const
+    {
+        return m_layer;
+    }
+
     QRect layerExactBounds() const
     {
         return m_layer->paintDevice()->exactBounds();
@@ -353,6 +370,15 @@ private Q_SLOTS:
     void rectangularSelectionClipsStrokePixels();
     void cancelledStrokeRestoresInitialImage();
     void undoRedoRestoresBothStates();
+    void figurePreviewCommitsOnceOnRelease_data();
+    void figurePreviewCommitsOnceOnRelease();
+    void figureKeepsHeldStrokePressure_data();
+    void figureKeepsHeldStrokePressure();
+    void curvedFigureKeepsHeldStrokeWidth_data();
+    void curvedFigureKeepsHeldStrokeWidth();
+    void figureKeepsStrokeColorOpacityAndCompositing();
+    void previewSampleKeepsHeldAppearanceWithoutDocumentWork_data();
+    void previewSampleKeepsHeldAppearanceWithoutDocumentWork();
 };
 
 void FreehandStrokeContractTest::initTestCase()
@@ -779,6 +805,266 @@ void FreehandStrokeContractTest::undoRedoRestoresBothStates()
              qPrintable(QStringLiteral("redo projection differs at %1,%2").arg(mismatch.x()).arg(mismatch.y())));
     QVERIFY(!fixture.image()->hasUpdatesRunning());
     QVERIFY(fixture.image()->isIdle());
+}
+
+void FreehandStrokeContractTest::figurePreviewCommitsOnceOnRelease_data()
+{
+    QTest::addColumn<bool>("ellipse");
+    QTest::addColumn<bool>("circle");
+    QTest::newRow("line") << false << false;
+    QTest::newRow("ellipse") << true << false;
+    QTest::newRow("circle") << true << true;
+}
+
+void FreehandStrokeContractTest::figurePreviewCommitsOnceOnRelease()
+{
+    QFETCH(bool, ellipse);
+    QFETCH(bool, circle);
+    FreehandStrokeFixture fixture;
+    QVERIFY(fixture.presetLoaded());
+    fixture.runStroke(false);
+    const QImage initial = fixture.projectionImage();
+    fixture.runStroke(true);
+    QCOMPARE(fixture.projectionImage(), initial);
+
+    QVector<QPointF> points;
+    if (ellipse) {
+        for (int i = 0; i < 64; ++i) {
+            const qreal angle = 2.0 * M_PI * i / 64;
+            points.append(QPointF(250 + 180 * std::cos(angle), 250 + 120 * std::sin(angle)));
+        }
+    } else {
+        points = {QPointF(80, 80), QPointF(420, 80)};
+    }
+    KisQuickShape shape = KisQuickShape::recognize(points);
+    QVERIFY(shape.isValid());
+    shape.setSnappedToCircle(circle);
+    KisQuickShapePreview preview;
+    QSignalSpy updates(fixture.image().data(), &KisImage::sigImageUpdated);
+    for (int i = 0; i < 400; ++i) {
+        if (ellipse) {
+            shape.setScale(i % 2 ? 1.01 : 0.99);
+            shape.setRotation(i % 2 ? M_PI / 4 : -M_PI / 4);
+        } else {
+            shape.setLineEnd(QPointF(420, i % 2 ? 84 : 76));
+        }
+        preview.update(shape);
+    }
+    QVERIFY(!preview.path().isEmpty());
+    QVERIFY(fixture.image()->isIdle());
+    QCOMPARE(updates.count(), 0);
+    QCOMPARE(fixture.projectionImage(), initial);
+
+    const QPainterPath releasedPath = preview.path();
+    preview.clear();
+    KoCanvasResourceProvider resourceManager;
+    resourceManager.setResource(KoCanvasResource::CurrentPaintOpPreset, QVariant::fromValue(fixture.preset()));
+    resourceManager.setResource(KoCanvasResource::ForegroundColor, KoColor(Qt::black, fixture.image()->colorSpace()));
+    resourceManager.setResource(KoCanvasResource::BackgroundColor, KoColor(Qt::white, fixture.image()->colorSpace()));
+    resourceManager.setResource(KoCanvasResource::Opacity, QVariant(1.0));
+    resourceManager.setResource(KoCanvasResource::CurrentEffectiveCompositeOp, QStringLiteral("normal"));
+    {
+        KisFigurePaintingStroke stroke(kundo2_noi18n("Draw Shape"), fixture.image(), fixture.layer(),
+                                       &resourceManager, KisFigurePaintingOptions::StrokeStyleForeground,
+                                       KisFigurePaintingOptions::FillStyleNone);
+        stroke.paintPainterPath(releasedPath);
+    }
+    fixture.image()->waitForDone();
+    const QImage committed = fixture.projectionImage();
+    QVERIFY(committed != initial);
+    fixture.undo();
+    QCOMPARE(fixture.projectionImage(), initial);
+    fixture.redo();
+    QCOMPARE(fixture.projectionImage(), committed);
+    QVERIFY(fixture.image()->isIdle());
+}
+
+void FreehandStrokeContractTest::figureKeepsHeldStrokePressure_data()
+{
+    QTest::addColumn<qreal>("pressure");
+    QTest::newRow("light-pressure") << qreal(0.25);
+    QTest::newRow("half-pressure") << qreal(0.5);
+}
+
+void FreehandStrokeContractTest::figureKeepsHeldStrokePressure()
+{
+    QFETCH(qreal, pressure);
+    FreehandStrokeFixture fixture;
+    QVERIFY(fixture.presetLoaded());
+    const QImage initial = fixture.projectionImage();
+    fixture.runStroke(false, pressure, pressure);
+    const QImage expected = fixture.projectionImage();
+    fixture.undo();
+    QCOMPARE(fixture.projectionImage(), initial);
+
+    QPainterPath path;
+    path.moveTo(200, 200);
+    path.lineTo(300, 300);
+    KoCanvasResourceProvider resources;
+    resources.setResource(KoCanvasResource::CurrentPaintOpPreset, QVariant::fromValue(fixture.preset()));
+    resources.setResource(KoCanvasResource::ForegroundColor, KoColor(Qt::black, fixture.image()->colorSpace()));
+    resources.setResource(KoCanvasResource::Opacity, QVariant(1.0));
+    resources.setResource(KoCanvasResource::CurrentEffectiveCompositeOp, QStringLiteral("normal"));
+    const KisPaintInformation heldInput = fixedPaintInformation(QPointF(300, 300), pressure);
+    const KisResourcesSnapshot captured(fixture.image(), fixture.layer(), resources.canvasResourcesInterface());
+    fixture.brushSettings()->setPaintOpSize(600.0);
+    {
+        KisFigurePaintingStroke stroke(kundo2_noi18n("Draw Shape"), captured);
+        stroke.paintStrokePath(path, heldInput);
+    }
+    fixture.image()->waitForDone();
+    QVERIFY2(compareImages(expected, fixture.projectionImage(),
+                           QStringLiteral("held-figure-pressure-actual.png")),
+             "The figure must have the same width as the freehand stroke at the held pressure");
+    fixture.undo();
+    QCOMPARE(fixture.projectionImage(), initial);
+    fixture.redo();
+    QCOMPARE(fixture.projectionImage(), expected);
+}
+
+void FreehandStrokeContractTest::curvedFigureKeepsHeldStrokeWidth_data()
+{
+    QTest::addColumn<qreal>("radiusY");
+    QTest::newRow("ellipse") << qreal(60.0);
+    QTest::newRow("circle") << qreal(100.0);
+}
+
+void FreehandStrokeContractTest::curvedFigureKeepsHeldStrokeWidth()
+{
+    QFETCH(qreal, radiusY);
+    FreehandStrokeFixture fixture;
+    QVERIFY(fixture.presetLoaded());
+    fixture.brushSettings()->setPaintOpSize(40.0);
+    fixture.useSizeSensor(QStringLiteral("pressure"));
+    const QImage initial = fixture.projectionImage();
+    QPainterPath path;
+    path.addEllipse(QPointF(250, 250), 100, radiusY);
+    KoCanvasResourceProvider resources;
+    resources.setResource(KoCanvasResource::CurrentPaintOpPreset, QVariant::fromValue(fixture.preset()));
+    resources.setResource(KoCanvasResource::ForegroundColor, KoColor(Qt::black, fixture.image()->colorSpace()));
+    resources.setResource(KoCanvasResource::Opacity, QVariant(1.0));
+    resources.setResource(KoCanvasResource::CurrentEffectiveCompositeOp, QStringLiteral("normal"));
+    {
+        KisFigurePaintingStroke stroke(kundo2_noi18n("Draw Shape"), fixture.image(), fixture.layer(),
+                                       &resources, KisFigurePaintingOptions::StrokeStyleForeground,
+                                       KisFigurePaintingOptions::FillStyleNone);
+        stroke.paintStrokePath(path, fixedPaintInformation(QPointF(350, 250), 0.5));
+    }
+    fixture.image()->waitForDone();
+    const QImage committed = fixture.layerImage();
+    // Half pressure gives a 20-pixel brush. Every side keeps that thickness;
+    // the full-pressure path would also paint the points 12 pixels outside.
+    const QVector<QPoint> onFigure {
+        QPoint(350, 250), QPoint(150, 250),
+        QPoint(250, 250 - radiusY), QPoint(250, 250 + radiusY)
+    };
+    const QVector<QPoint> outside {
+        QPoint(362, 250), QPoint(138, 250),
+        QPoint(250, 238 - radiusY), QPoint(250, 262 + radiusY)
+    };
+    for (const QPoint &point : onFigure) {
+        QVERIFY(committed.pixelColor(point).alpha() > 0);
+    }
+    for (const QPoint &point : outside) {
+        QCOMPARE(committed.pixelColor(point).alpha(), 0);
+    }
+    fixture.undo();
+    QCOMPARE(fixture.projectionImage(), initial);
+    fixture.redo();
+    QCOMPARE(fixture.layerImage(), committed);
+}
+
+void FreehandStrokeContractTest::figureKeepsStrokeColorOpacityAndCompositing()
+{
+    FreehandStrokeFixture fixture;
+    QVERIFY(fixture.presetLoaded());
+    const QImage initial = fixture.projectionImage();
+    const QColor color(200, 40, 90);
+    fixture.runStroke(false, 0.5, 0.5, inputSpeed, inputSpeed, std::nullopt, color, 0.35);
+    const QImage expected = fixture.projectionImage();
+    fixture.undo();
+    QCOMPARE(fixture.projectionImage(), initial);
+
+    KoCanvasResourceProvider resources;
+    resources.setResource(KoCanvasResource::CurrentPaintOpPreset, QVariant::fromValue(fixture.preset()));
+    resources.setResource(KoCanvasResource::ForegroundColor, KoColor(color, fixture.image()->colorSpace()));
+    resources.setResource(KoCanvasResource::BackgroundColor, KoColor(Qt::white, fixture.image()->colorSpace()));
+    resources.setResource(KoCanvasResource::Opacity, QVariant(0.35));
+    resources.setResource(KoCanvasResource::CurrentEffectiveCompositeOp, QStringLiteral("normal"));
+    const KisResourcesSnapshot captured(fixture.image(), fixture.layer(), resources.canvasResourcesInterface());
+    resources.setResource(KoCanvasResource::ForegroundColor, KoColor(Qt::blue, fixture.image()->colorSpace()));
+    resources.setResource(KoCanvasResource::Opacity, QVariant(1.0));
+    resources.setResource(KoCanvasResource::CurrentEffectiveCompositeOp, QStringLiteral("erase"));
+    QPainterPath path;
+    path.moveTo(200, 200);
+    path.lineTo(300, 300);
+    {
+        KisFigurePaintingStroke stroke(kundo2_noi18n("Draw Shape"), captured);
+        stroke.paintStrokePath(path, fixedPaintInformation(QPointF(300, 300), 0.5));
+    }
+    fixture.image()->waitForDone();
+    QVERIFY2(compareImages(expected, fixture.projectionImage(),
+                           QStringLiteral("held-figure-style-actual.png")),
+             "A held figure must retain the stroke's color, opacity and compositing despite current settings changes");
+    QCOMPARE(captured.currentFgColor(), KoColor(color, fixture.image()->colorSpace()));
+    QCOMPARE(captured.opacity(), 0.35);
+    QCOMPARE(captured.compositeOpId(), QStringLiteral("normal"));
+    fixture.undo();
+    QCOMPARE(fixture.projectionImage(), initial);
+    fixture.redo();
+    QCOMPARE(fixture.projectionImage(), expected);
+}
+
+void FreehandStrokeContractTest::previewSampleKeepsHeldAppearanceWithoutDocumentWork_data()
+{
+    QTest::addColumn<qreal>("pressure");
+    QTest::addColumn<int>("canvasSize");
+    QTest::newRow("light-pressure") << qreal(0.2) << 500;
+    QTest::newRow("half-pressure") << qreal(0.5) << 500;
+    QTest::newRow("large-document") << qreal(0.5) << 3508;
+}
+
+void FreehandStrokeContractTest::previewSampleKeepsHeldAppearanceWithoutDocumentWork()
+{
+    QFETCH(qreal, pressure);
+    QFETCH(int, canvasSize);
+    FreehandStrokeFixture fixture(canvasSize, canvasSize);
+    QVERIFY(fixture.presetLoaded());
+    fixture.preset()->settings()->setPaintOpSize(40);
+    fixture.runStroke(false, pressure, pressure, inputSpeed, inputSpeed, 17, QColor(200, 40, 90), 0.35);
+    const QImage original = fixture.projectionImage();
+    KisResourcesSnapshot captured(fixture.image(), fixture.layer());
+    captured.setBrush(fixture.preset());
+    captured.setFGColorOverride(KoColor(QColor(200, 40, 90), fixture.image()->colorSpace()));
+    captured.setOpacity(0.35);
+    QSignalSpy updates(fixture.image().data(), &KisImage::sigImageUpdated);
+    QElapsedTimer timer;
+    timer.start();
+    const auto sample = KisFigurePaintingStroke::createPreviewSample(
+        captured, fixedPaintInformation(QPointF(300, 300), pressure), 17);
+    qInfo() << "one-time preview material ms" << timer.elapsed() << "pixels" << sample.bounds.size();
+    QVERIFY(sample.bounds.width() <= 256);
+    QVERIFY(sample.bounds.height() <= 128);
+    const QImage appearance = sample.device->convertToQImage(nullptr, sample.bounds);
+    const QColor center = appearance.pixelColor(qRound(sample.line.center().x()), qRound(sample.line.center().y()));
+    QVERIFY(center.alpha() > 0);
+    QVERIFY(center.alpha() <= qCeil(255 * 0.35));
+    QVERIFY(std::abs(center.red() - 200) <= 4);
+    KisQuickShapePreview preview;
+    preview.setStrokeSample(appearance, sample.line, sample.imageUnitsPerPixel);
+    KisQuickShape shape = KisQuickShape::recognize({QPointF(100, 100), QPointF(300, 100)});
+    for (int i = 0; i < 400; ++i) {
+        shape.setLineEnd(QPointF(200 + i % 100, 100));
+        preview.update(shape);
+    }
+    QCOMPARE(updates.count(), 0);
+    QCOMPARE(fixture.projectionImage(), original);
+    fixture.undo();
+    QImage empty(original.size(), original.format());
+    empty.fill(Qt::transparent);
+    QCOMPARE(fixture.projectionImage(), empty);
+    fixture.redo();
+    QCOMPARE(fixture.projectionImage(), original);
 }
 
 int main(int argc, char *argv[])
