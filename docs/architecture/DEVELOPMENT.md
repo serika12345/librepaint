@@ -200,6 +200,38 @@ run-test kis_display_color_transform_test
 ツール切替えで図形編集を取り消した場合は、元の文書画像が残ることを確認する。
 拡大縮小とキャンバス回転、前景色、不透明度、消しゴム、選択範囲と合成方法を変えて反復する。
 
+### GPU 常駐文書の最小比較実験
+
+`experiments/gpu-resident` は、CPU 文書・CPU 合成、CPU 文書・GPU 合成、GPU 常駐文書を
+同じ画素規則と入力で比較する独立した実験である。条件と検証契約は
+[実験の説明](../../experiments/gpu-resident/README.md)を参照する。
+評価済みの開発環境と、`flake.lock` の nixpkgs に含まれる wgpu-native を使う。
+`--prepare` は固定した依存だけを取得し、実験専用の小さい Ninja 木を構成する。
+
+```sh
+./scripts/run-shared-test-env python3 experiments/gpu-resident/run.py --prepare --build-only
+./scripts/run-shared-test-env python3 experiments/gpu-resident/run.py --suite smoke
+./scripts/run-shared-test-env python3 experiments/gpu-resident/run.py --suite full --rounds 3 --samples 12 --output build/gpu-resident/comparison.json
+./scripts/run-shared-test-env python3 experiments/gpu-resident/run.py --suite profile --rounds 2 --samples 3 --output build/gpu-resident/profile.json
+./scripts/run-shared-test-env python3 experiments/gpu-resident/run.py --suite paced --rounds 3 --samples 6 --output build/gpu-resident/paced.json
+```
+
+GPU を利用できる実行環境で一つずつ測定する。画素照合または GPU の検証エラーがあれば
+比較を停止し、その試行のログを調べる。`full` は一更新ずつの完了待ちと最大三更新分の
+発行を比較する。`profile` は GPU 区間時間、`paced` は 4 ms 間隔の入力を検査する。
+JSON は全試行値、画素識別値、論理転送量、実装と実行ファイルの識別値を保持する。
+
+CPU の作業スレッド数は、次のコマンドの `--workers` を `1`、`4`、`8` にして比較する。
+
+```sh
+./scripts/run-shared-test-env python3 experiments/gpu-resident/run.py --suite full --cases light,heavy --modes cpu,hybrid --depths 1 --workers 8 --rounds 3 --samples 6 --output build/gpu-resident/workers8.json
+./scripts/run-shared-test-env ctest --test-dir build/gpu-resident/ninja --output-on-failure
+```
+
+表示用画像を目視確認する場合は `build/gpu-resident/ninja/resident_poc` へ
+`--dump <output.ppm>` を渡す。出力は測定後に白背景へ合成した画像である。
+OS が実際に表示する時刻は別の測定対象として扱う。
+
 ## デスクトップ
 
 ### macOS

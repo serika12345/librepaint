@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+cmake_minimum_required(VERSION 3.20)
+project(GpuResidentPoc LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(Threads REQUIRED)
+add_library(poc_model model.cpp)
+target_compile_options(poc_model PRIVATE -Wall -Wextra -Wpedantic)
+target_link_libraries(poc_model PUBLIC Threads::Threads)
+add_executable(pixel_contract pixel_contract.cpp)
+target_link_libraries(pixel_contract PRIVATE poc_model)
+enable_testing()
+add_test(NAME pixel_contract COMMAND pixel_contract)
+find_path(WGPU_INCLUDE_DIR webgpu/wgpu.h REQUIRED)
+find_library(WGPU_LIBRARY wgpu_native REQUIRED)
+add_executable(resident_poc main.cpp gpu.cpp)
+target_include_directories(resident_poc PRIVATE "${WGPU_INCLUDE_DIR}")
+target_link_libraries(resident_poc PRIVATE poc_model "${WGPU_LIBRARY}")
+target_compile_options(resident_poc PRIVATE -Wall -Wextra -Wpedantic)
+target_compile_definitions(resident_poc PRIVATE POC_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+foreach(mode cpu hybrid gpu)
+    add_test(NAME ${mode}_stroke COMMAND resident_poc --verify --mode ${mode}
+        --size 256 --layers 3 --diameter 96 --frames 5 --varying)
+    add_test(NAME ${mode}_shape COMMAND resident_poc --verify --mode ${mode}
+        --size 256 --layers 3 --diameter 48 --frames 5 --shape)
+    add_test(NAME ${mode}_clipped COMMAND resident_poc --verify --mode ${mode}
+        --size 128 --layers 1 --diameter 128 --frames 3)
+endforeach()
