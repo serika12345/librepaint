@@ -129,31 +129,24 @@ void KisDocumentUndoStack::beginDocumentClose()
     disconnect(m_gpuSaved);
 }
 
-bool KisDocumentUndoStack::prepareCpuMigration(const QSharedPointer<KisImage::CpuMigration> &migration)
+bool KisDocumentUndoStack::prepareCpuMigration()
 {
     if (m_closing || m_recursionCounter || !m_postponedJobs.isEmpty() || !m_gpuImage) return false;
     const auto currentImage = image();
     if (!currentImage || currentImage->gpuImage() != m_gpuImage) return false;
-    const auto &commands = currentImage->cpuMigrationHistoryCommands(migration);
-    if (commands.size() != count() || index() != m_gpuImage->operations().undoCount() ||
-        cleanIndex() != m_gpuImage->operations().savedHistoryIndex()) return false;
+    if (index() != m_gpuImage->operations().undoCount()) return false;
     QList<KUndo2Command *> current;
-    for (int i = 0; i < count(); ++i) {
-        current.append(const_cast<KUndo2Command *>(command(i)));
-        commands[i]->setText(command(i)->text());
-        if (!commands[i]->extraData() && command(i)->extraData())
-            commands[i]->setExtraData(command(i)->extraData()->clone());
-    }
+    for (int i = 0; i < count(); ++i) current.append(const_cast<KUndo2Command *>(command(i)));
     // Reusing the same command list checks for an open native macro without
     // changing history, emitting navigation signals or executing any command.
     return synchronizeCommands(std::move(current), index(), cleanIndex());
 }
 
-void KisDocumentUndoStack::adoptCpuMigration(const QSharedPointer<KisImage::CpuMigration> &migration)
+void KisDocumentUndoStack::adoptCpuMigration()
 {
-    const int currentIndex = index();
-    const int savedIndex = cleanIndex();
-    auto commands = image()->takeCpuMigrationHistoryCommands(migration);
+    // The migrated CPU document starts a new history. The old GPU versions are
+    // intentionally discarded; the document owner preserves file and modified
+    // state around this cut.
     ++m_imageGeneration;
     m_retryTimer.stop();
     disconnect(m_gpuChanges);
@@ -161,8 +154,8 @@ void KisDocumentUndoStack::adoptCpuMigration(const QSharedPointer<KisImage::CpuM
     m_gpuImage.clear();
     m_gpuCommands.clear();
     m_gpuIdentity = {};
-    const bool adopted = synchronizeCommands(std::move(commands), currentIndex, savedIndex);
-    KIS_ASSERT(adopted);
+    m_gpuRevision = 0;
+    KUndo2Stack::clear();
 }
 
 void KisDocumentUndoStack::synchronizeGpuHistory()

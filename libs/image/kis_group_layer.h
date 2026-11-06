@@ -113,7 +113,6 @@ protected:
     QRect amortizedProjectionRectForCleanupInChangePass() const override;
 private:
     friend class KisImage;
-    KisPaintDeviceSP originalDeviceForCpuMigration() const;
     KisGroupLayer(KisImageWSP image, const QString &name, quint8 opacity,
                   const KoColorSpace *colorSpace, KisPaintDeviceSP projection);
 

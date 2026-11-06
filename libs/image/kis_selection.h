@@ -198,20 +198,6 @@ public:
     void clear();
 
     /**
-     * Replace the shape selection component with a copy of @p rhs's component.
-     * The pixel selection component is left untouched. This is used when a
-     * retained selection is switched between history versions.
-     */
-    void copyShapeSelectionFrom(const KisSelection &rhs);
-
-    /**
-     * Create a detached, pixel-empty selection carrying only a copy of this
-     * selection's shape component. It serves as a lightweight per-version
-     * shape snapshot; the source pixels are not copied.
-     */
-    KisSelectionSP shapeSelectionCopy() const;
-
-    /**
      * @brief flatten creates a new pixel selection component from the shape selection
      * and throws away the shape selection. This has no effect if there is no
      * shape selection.

@@ -100,17 +100,12 @@ public:
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
     /** Prepares attached GPU devices, the remembered deselected mask and a CPU
      * update scheduler within a shared native tile budget. Call on the owning
-     * thread with the image locked and all edits committed. Failure leaves the
-     * GPU image unchanged.
+     * thread with the image locked and all edits committed. Only the current
+     * state is captured; GPU history versions are not migrated. Failure leaves
+     * the GPU image unchanged.
      */
     class CpuMigration;
-    QSharedPointer<CpuMigration> prepareCpuMigration(qsizetype maximumBytes, qsizetype *preparedBytes = nullptr,
-                                                   bool includeHistory = false) const;
-    /** Prepared native version-switch commands, owned by the preparation until
-     * taken by the document's undo stack. includeHistory budgets every version.
-     */
-    const QList<KUndo2Command *> &cpuMigrationHistoryCommands(const QSharedPointer<CpuMigration> &migration) const;
-    QList<KUndo2Command *> takeCpuMigrationHistoryCommands(const QSharedPointer<CpuMigration> &migration);
+    QSharedPointer<CpuMigration> prepareCpuMigration(qsizetype maximumBytes, qsizetype *preparedBytes = nullptr) const;
     /** Adopts a current preparation in the same image, nodes and pixel devices.
      * Keeps the image locked and emits no change notifications. The document
      * owner coordinates its history, file state and view notifications.
@@ -291,9 +286,6 @@ public:
     void replaceFromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const KisImage &source);
 
 private:
-    bool prepareCpuMigrationHistory(CpuMigration &migration, qsizetype &remaining) const;
-    void copyGpuNodeMetadataTo(KisImage &target) const;
-
     // must specify exactly one from CONSTRUCT or REPLACE.
     enum CopyPolicy {
         CONSTRUCT = 1, ///< we are copy-constructing a new KisImage
@@ -1434,8 +1426,7 @@ private:
 
     KisImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name, const KoColorSpace *colorSpace);
     void synchronizeGpuNodes();
-    QHash<QUuid, KisNodeSP> retainedGpuNodes() const;
-    KisPaintDeviceList cpuMigrationDevices(bool includeHistory = false) const;
+    KisPaintDeviceList cpuMigrationDevices() const;
     void synchronizeGpuLayerViews(KisGpuImageViewState *state);
     QSharedPointer<KisGpuImageViewState> &gpuViewState();
     void connectGpuImageUpdates();

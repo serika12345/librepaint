@@ -3746,17 +3746,20 @@ bool KisDocument::migrateToCpu(qsizetype maximumBytes)
     if (!image->gpuImage()) return true;
     if (!image->tryBarrierLock()) return false;
     const auto unlock = qScopeGuard([&] { image->unlock(); });
-    const auto prepared = image->prepareCpuMigration(maximumBytes, nullptr, true);
+    const bool wasModified = isModified();
+    const auto prepared = image->prepareCpuMigration(maximumBytes);
     if (!prepared) return false;
-    try {
-        if (!d->undoStack->prepareCpuMigration(prepared)) return false;
-    } catch (const std::exception &) {
-        return false;
-    }
+    if (!d->undoStack->prepareCpuMigration()) return false;
     if (!image->applyCpuMigration(prepared)) return false;
     d->gpuDocument.reset();
     connect(image.data(), &KisImage::sigRequestNodeReselection, this, &KisDocument::setPreActivatedNode);
-    d->undoStack->adoptCpuMigration(prepared);
+    d->undoStack->adoptCpuMigration();
+    if (wasModified) {
+        d->modificationState.markImageModifiedWithoutUndo();
+        setModified(true);
+    } else {
+        setModified(false);
+    }
     Q_EMIT image->sigImageEngineChanged();
     image->refreshGraphAsync();
     return true;

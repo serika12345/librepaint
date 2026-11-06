@@ -682,10 +682,11 @@ public:
      */
     void setCurrentImage(KisImageSP image, bool forceInitialUpdate = true, KisNodeSP preActivatedNode = nullptr);
 
-    /** Moves committed GPU pixels and retained undo/redo versions to native CPU
-     * storage for whole-document operations such as animation. Preserves image,
-     * current node/device references, document metadata and saved state. Busy,
-     * over-budget or failed preparation leaves the GPU document attached.
+    /** Moves committed GPU pixels to native CPU storage for whole-document
+     * operations such as animation. Preserves image, current node/device
+     * references, document metadata, saved state and the modified flag. The
+     * GPU undo/redo history is cut at the adopted state. Busy, over-budget or
+     * failed preparation leaves the GPU document attached.
      */
     bool migrateToCpu(qsizetype maximumBytes);
 

@@ -254,11 +254,6 @@ void KisGroupLayer::resetCache(const KoColorSpace *colorSpace)
     }
 }
 
-KisPaintDeviceSP KisGroupLayer::originalDeviceForCpuMigration() const
-{
-    return m_d->paintDevice;
-}
-
 KisLayer* KisGroupLayer::onlyMeaningfulChild() const
 {
     KisNode *child = firstChild().data();

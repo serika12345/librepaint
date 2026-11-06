@@ -347,33 +347,6 @@ void KisSelection::copyFrom(const KisSelection &rhs)
     }
 }
 
-void KisSelection::copyShapeSelectionFrom(const KisSelection &rhs)
-{
-    KisSelectionComponent *replacement = nullptr;
-    {
-        QReadLocker sourceLock(&rhs.m_d->shapeSelectionPointerLock);
-        if (rhs.m_d->shapeSelection && !rhs.m_d->shapeSelection->isEmpty())
-            replacement = rhs.m_d->shapeSelection->clone(this);
-    }
-
-    KisSelectionComponent *previous = nullptr;
-    {
-        QWriteLocker targetLock(&m_d->shapeSelectionPointerLock);
-        previous = m_d->shapeSelection;
-        m_d->shapeSelection = replacement;
-    }
-
-    if (previous && previous != replacement)
-        Private::safeDeleteShapeSelection(previous, this);
-}
-
-KisSelectionSP KisSelection::shapeSelectionCopy() const
-{
-    KisSelectionSP copy = new KisSelection(nullptr, m_d->resolutionProxy);
-    copy->copyShapeSelectionFrom(*this);
-    return copy;
-}
-
 KisSelection::~KisSelection()
 {
     delete m_d->shapeSelection;

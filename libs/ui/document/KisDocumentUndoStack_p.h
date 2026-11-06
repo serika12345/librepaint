@@ -25,8 +25,8 @@ class KisDocumentUndoStack final : public KUndo2Stack
 public:
     explicit KisDocumentUndoStack(KisDocument *document);
     void setImage(KisImageSP image);
-    bool prepareCpuMigration(const QSharedPointer<KisImage::CpuMigration> &migration);
-    void adoptCpuMigration(const QSharedPointer<KisImage::CpuMigration> &migration);
+    bool prepareCpuMigration();
+    void adoptCpuMigration();
     void beginDocumentClose();
     void setIndex(int index) override;
     void undo() override;

@@ -82,14 +82,6 @@ Execution &PaintImage::execution() const { return m_d->execution; }
 PaintImageSP PaintImage::clone(bool preserveLayerUuids) const
 { return cloneTo(*this, preserveLayerUuids); }
 
-PaintImageSP PaintImage::cloneVersion(const Snapshot &version) const
-{
-    if (!onThread() || !m_d->document->historyVersions().contains(version)) return {};
-    auto document = m_d->document->cloneVersion(version, true);
-    if (!document) return {};
-    return PaintImageSP(new PaintImage(m_d->execution, std::move(document), m_d->limits, m_d->retainedExecution));
-}
-
 PaintImageSP PaintImage::cloneTo(const PaintImage &destination, bool preserveLayerUuids) const
 {
     if (!onThread() || !destination.onThread()) return {};

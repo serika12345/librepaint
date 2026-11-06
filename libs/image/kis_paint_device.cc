@@ -924,44 +924,6 @@ bool KisPaintDevice::applyCpuMigration(const QSharedPointer<CpuMigration> &migra
     return true;
 }
 
-class KisPaintDevice::CpuHistoryState
-{
-public:
-    const KisPaintDevice *target = nullptr;
-    QSharedPointer<KisPaintDeviceData> data;
-};
-
-QSharedPointer<KisPaintDevice::CpuHistoryState> KisPaintDevice::cpuMigrationHistoryState(
-    const QSharedPointer<CpuMigration> &migration) const
-{
-    KIS_ASSERT(migration && migration->target.data() == this && migration->data);
-    auto state = QSharedPointer<CpuHistoryState>::create();
-    state->target = this;
-    state->data = migration->data;
-    return state;
-}
-
-QSharedPointer<KisPaintDevice::CpuHistoryState> KisPaintDevice::prepareCpuHistoryState(const KisPaintDevice &source) const
-{
-    KIS_ASSERT(!source.m_d->gpuImage && !source.m_d->gpuSelection);
-    auto state = QSharedPointer<CpuHistoryState>::create();
-    state->target = this;
-    state->data = &source == this ? m_d->m_data :
-        toQShared(new KisPaintDeviceData(const_cast<KisPaintDevice *>(this), source.m_d->currentNonLodData(), true));
-    return state;
-}
-
-void KisPaintDevice::applyCpuHistoryState(const QSharedPointer<CpuHistoryState> &state)
-{
-    KIS_ASSERT(state && state->target == this && !m_d->gpuImage && !m_d->gpuSelection);
-    const auto *previousSpace = colorSpace();
-    m_d->m_data = state->data;
-    m_d->m_lodData.reset();
-    m_d->m_externalFrameData.reset();
-    m_d->cache()->invalidate();
-    if (*previousSpace != *colorSpace()) emitColorSpaceChanged();
-}
-
 KisPaintDevice::Private::Private(KisPaintDevice *paintDevice, LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer)
     : q(paintDevice),
       gpuImage(std::move(image)),
