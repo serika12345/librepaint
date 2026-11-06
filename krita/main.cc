@@ -15,6 +15,7 @@
 *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
+#include <KisLatencyProbe.h>
 #include <KLocalizedTranslator>
 #include <klocalizedstring.h>
 #include <QByteArray>
@@ -1160,6 +1161,7 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
     installKisIOSPencilInteraction(nativeView, handleKisIOSPencilTap);
 #endif
 
+    KisLatencyProbe::installNativeFilter(&app);
     int state = KisApplication::exec();
 
     {

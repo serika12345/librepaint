@@ -6,6 +6,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisLatencyProbe.h>
 #include "kis_input_manager.h"
 #include "KisQStringListFwd.h"
 #include "KoIntegerMaths.h"
@@ -286,6 +287,7 @@ bool KisInputManager::compressMoveEventCommon(Event *event)
         d->compressedMoveEvent.reset(event->clone());
 #endif
         d->moveEventCompressor.start();
+        KisLatencyProbe::mark("move_compressed");
 
         /**
          * On Linux Qt eats the rest of unneeded events if we
@@ -522,6 +524,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->debugEvent<QMouseEvent, true>(event);
 
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        KisLatencyProbe::mark("qt_mouse_move", mouseEvent->position().x(), mouseEvent->position().y(), int(mouseEvent->buttons()));
         retval = compressMoveEventCommon(mouseEvent);
 
         break;
@@ -707,6 +710,7 @@ bool KisInputManager::eventFilterImpl(QEvent * event)
         d->debugEvent<QTabletEvent, false>(event);
 
         QTabletEvent *tabletEvent = static_cast<QTabletEvent*>(event);
+        KisLatencyProbe::mark("qt_tablet_move", tabletEvent->position().x(), tabletEvent->position().y(), int(tabletEvent->buttons()));
         retval = compressMoveEventCommon(tabletEvent);
 
         if (d->tabletLatencyTracker) {
@@ -1030,6 +1034,7 @@ bool KisInputManager::handleTouchUpdate(QTouchEvent *touchEvent)
 void KisInputManager::slotCompressedMoveEvent()
 {
     if (d->compressedMoveEvent) {
+        KisLatencyProbe::mark("compressed_dispatch");
         // d->touchHasBlockedPressEvents = false;
 
         (void) d->handleCompressedTabletEvent(d->compressedMoveEvent.data());

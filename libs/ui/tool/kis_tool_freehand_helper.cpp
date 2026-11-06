@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisLatencyProbe.h>
 #include "kis_tool_freehand_helper.h"
 
 #include <QTimer>
@@ -1027,6 +1028,7 @@ qreal KisToolFreehandHelper::currentPhysicalZoom() const
 void KisToolFreehandHelper::paintAt(int strokeInfoId,
                                     const KisPaintInformation &pi)
 {
+    KisLatencyProbe::mark("stroke_paint", pi.pos().x(), pi.pos().y());
     m_d->hasPaintAtLeastOnce = true;
     m_d->strokesFacade->addJob(m_d->strokeId,
                                new FreehandStrokeStrategy::Data(strokeInfoId, pi));
@@ -1037,6 +1039,7 @@ void KisToolFreehandHelper::paintLine(int strokeInfoId,
                                       const KisPaintInformation &pi1,
                                       const KisPaintInformation &pi2)
 {
+    KisLatencyProbe::mark("stroke_paint", pi2.pos().x(), pi2.pos().y());
     m_d->hasPaintAtLeastOnce = true;
     m_d->strokesFacade->addJob(m_d->strokeId,
                                new FreehandStrokeStrategy::Data(strokeInfoId, pi1, pi2));

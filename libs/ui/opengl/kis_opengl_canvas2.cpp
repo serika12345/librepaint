@@ -5,6 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisLatencyProbe.h>
 #include "KisQStringListFwd.h"
 #include "KisWraparoundAxis.h"
 #include "kis_assert.h"
@@ -147,6 +148,7 @@ KisOpenGLCanvas2::KisOpenGLCanvas2(KisCanvas2 *canvas,
     cfg.setCanvasState("OPENGL_STARTED");
 
     d->renderer = new KisOpenGLCanvasRenderer(new CanvasBridge(this), image, displayConfig, displayFilter);
+    connect(this, &QOpenGLWidget::frameSwapped, this, [] { KisLatencyProbe::mark("frame_swapped"); });
 
     connect(d->renderer->openGLImageTextures().data(),
             SIGNAL(sigShowFloatingMessage(QString, int, bool)),
@@ -397,6 +399,11 @@ void KisOpenGLCanvas2::paintGL()
         return;
     }
 #endif
+
+    KisLatencyProbe::mark("paintgl_begin");
+    struct ProbePaintEnd {
+        ~ProbePaintEnd() { KisLatencyProbe::mark("paintgl_end"); }
+    } probePaintEnd;
 
     const QRect updateRect = d->updateRect ? *d->updateRect : QRect();
 
