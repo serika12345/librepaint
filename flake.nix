@@ -984,25 +984,33 @@
             ninja
             git
             ripgrep
-          ]);
+          ]) ++ packageSet.lib.optional packageSet.stdenv.isLinux packageSet.mesa;
 
-          shellHook = ''
-            export LIBREPAINT_TEST_SHELL=1
-            export LIBREPAINT_REPO_ROOT="$PWD"
-            export LIBREPAINT_BUILD_ROOT="$PWD/build"
-            export LIBREPAINT_CACHE_ROOT="$PWD/.cache/librepaint"
-            export CCACHE_DIR="$LIBREPAINT_CACHE_ROOT/ccache/native"
-            export CCACHE_BASEDIR="$PWD"
-            export CCACHE_COMPILERCHECK=content
-            export CCACHE_NOHASHDIR=true
-            export NINJA_STATUS='[%f/%t] '
-            mkdir -p "$CCACHE_DIR"
-            echo "LibrePaint native test and policy shell"
-            echo "  build:  build-incremental native build [target]"
-            echo "  quick:  ./scripts/verify-quick"
-            echo "  target: ./scripts/run-test <target> [ctest-regex]"
-            echo "  full:   ./scripts/verify"
-          '';
+          shellHook =
+            packageSet.lib.optionalString packageSet.stdenv.isLinux ''
+              # Xvfb on a bare NixOS system has no GLX vendor library. Use the
+              # Mesa vendor and software drivers from this shell so the GPU
+              # smoke tests can create an OpenGL context without a login session.
+              export LD_LIBRARY_PATH="${packageSet.mesa}/lib''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+              export LIBGL_DRIVERS_PATH="${packageSet.mesa}/lib/dri"
+            ''
+            + ''
+              export LIBREPAINT_TEST_SHELL=1
+              export LIBREPAINT_REPO_ROOT="$PWD"
+              export LIBREPAINT_BUILD_ROOT="$PWD/build"
+              export LIBREPAINT_CACHE_ROOT="$PWD/.cache/librepaint"
+              export CCACHE_DIR="$LIBREPAINT_CACHE_ROOT/ccache/native"
+              export CCACHE_BASEDIR="$PWD"
+              export CCACHE_COMPILERCHECK=content
+              export CCACHE_NOHASHDIR=true
+              export NINJA_STATUS='[%f/%t] '
+              mkdir -p "$CCACHE_DIR"
+              echo "LibrePaint native test and policy shell"
+              echo "  build:  build-incremental native build [target]"
+              echo "  quick:  ./scripts/verify-quick"
+              echo "  target: ./scripts/run-test <target> [ctest-regex]"
+              echo "  full:   ./scripts/verify"
+            '';
         };
       mkGovernanceCheck =
         packageSet: policySource:
