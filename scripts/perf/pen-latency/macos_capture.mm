@@ -56,10 +56,10 @@ struct Sample { double t; std::string phase, band; double x, y; int pressed; };
     if (!pixels) return;
     @synchronized(self) {
         if (!self.detecting) {
-            if (!self.latest) {
-                self.latest = CVPixelBufferRetain(pixels);
-                dispatch_semaphore_signal(self.firstFrame);
-            }
+            BOOL first = self.latest == NULL;
+            if (self.latest) CVPixelBufferRelease(self.latest);
+            self.latest = CVPixelBufferRetain(pixels);
+            if (first) dispatch_semaphore_signal(self.firstFrame);
             return;
         }
         CVPixelBufferLockBaseAddress(pixels, kCVPixelBufferLock_ReadOnly);
@@ -230,11 +230,16 @@ int main(int argc, const char **argv) {
         NSString *meta = [NSString stringWithFormat:
             @"{\"display\": %d, \"frame\": [%zu, %zu], \"points\": [%g, %g, %g, %g], \"scale\": %g, \"refresh\": %g",
             displayIndex, pixelWidth, pixelHeight, bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height, scale, refresh];
+        // Wait until the application shows a canvas of a usable size.
+        const int minCanvas = 300;
+        int rect[4] = {0, 0, 0, 0};
+        bool found = false;
+        for (int i = 0; i < 240 && !found; ++i) {
+            @synchronized(output) { found = findCanvas(output.latest, rect) && rect[2] >= minCanvas && rect[3] >= minCanvas; }
+            if (!found) usleep(500000);
+        }
         @synchronized(output) { savePng(output.latest, [out stringByAppendingPathComponent:@"first-frame.png"]); }
-        int rect[4];
-        bool found;
-        @synchronized(output) { found = findCanvas(output.latest, rect); }
-        if (!found) { fprintf(stderr, "no white canvas visible\n"); return 1; }
+        if (!found) { fprintf(stderr, "no white canvas of at least %d px visible\n", minCanvas); return 1; }
         NSString *canvas = [meta stringByAppendingFormat:@", \"canvas\": [%d, %d, %d, %d]}\n", rect[0], rect[1], rect[2], rect[3]];
         [canvas writeToFile:[out stringByAppendingPathComponent:@"canvas.json"] atomically:YES encoding:NSUTF8StringEncoding error:nil];
         printf("%s", canvas.UTF8String);

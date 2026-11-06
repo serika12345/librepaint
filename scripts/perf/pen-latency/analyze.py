@@ -7,7 +7,8 @@ A run directory contains:
 - ``presentmon.csv`` (optional): PresentMon 2.x output recorded with ``--qpc_time``.
 - ``probe.csv`` (optional): LibrePaint markers written when
   ``LIBREPAINT_LATENCY_LOG`` names the file (``libs/global/KisLatencyProbe``).
-- ``inject.csv`` (optional): synthetic pen samples written by ``PenInject.cs``.
+- ``inject.csv`` (optional): synthetic pen samples written by ``PenInject.cs``
+  or by the capture tools (``windows_capture.cpp``).
 
 All three files use the Windows QueryPerformanceCounter clock. For every
 displayed frame the script finds the newest input that the frame can reflect
@@ -61,17 +62,23 @@ def load_probe(path):
     return frequency, events
 
 
-def load_inject(path):
+POINTER_FLAG_INRANGE_CONTACT = 0x6  # INRANGE | INCONTACT
+
+
+def load_inject(path, probe_frequency=None):
+    """Read PenInject.cs samples (qpc ticks) or capture-tool samples (time_ns)."""
     frequency, rows = load_marked_csv(path)
-    samples = [
-        {
-            "time": int(row["qpc"]),
-            "phase": row["phase"],
-            "flags": int(row["flags"]),
-            "ok": row["ok"] == "1",
-        }
-        for row in rows
-    ]
+    samples = []
+    for row in rows:
+        if "qpc" in row:
+            samples.append({"time": int(row["qpc"]), "phase": row["phase"],
+                            "flags": int(row["flags"]), "ok": row["ok"] == "1"})
+        else:
+            if probe_frequency is None:
+                raise SystemExit("%s: time_ns samples need the probe clock frequency" % path)
+            samples.append({"time": int(row["time_ns"]) * probe_frequency // 1_000_000_000, "phase": row["phase"],
+                            "flags": POINTER_FLAG_INRANGE_CONTACT if row["pressed"] == "1" else 0x2, "ok": True})
+            frequency = probe_frequency
     return frequency, samples
 
 
@@ -129,7 +136,7 @@ class Run:
         if os.path.exists(probe_path):
             self.frequency, self.events = load_probe(probe_path)
         if os.path.exists(inject_path):
-            inject_frequency, self.inject = load_inject(inject_path)
+            inject_frequency, self.inject = load_inject(inject_path, self.frequency)
             self.frequency = self.frequency or inject_frequency
         if self.frequency is None:
             raise SystemExit("%s: probe.csv or inject.csv with a '# frequency=' header is required" % directory)

@@ -12,8 +12,8 @@ right edge of the dense dark columns) is shown, finds the time at which the
 injected pointer was at the corresponding position, and reports the frame
 time minus that input time.
 
-The position offset between pointer and drawing comes from the still dwells
-at the ends of every pass: outline center minus pointer position for hover,
+The position offset between pointer and drawing comes from the screen at the
+end of the still dwells around every pass: outline center minus pointer position for hover,
 ink edge minus pointer position (about the brush radius) for strokes.
 
 Usage: capture_analyze.py [--json OUT] RUN_DIR [RUN_DIR ...]
@@ -31,7 +31,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import analyze  # noqa: E402  (describe, compare)
 
-SETTLE_NS = 150_000_000  # use only the dwell part after the drawing has caught up
 EDGE_PX = 12  # ignore positions this close to the dwell positions
 MAX_LATENCY_NS = 300_000_000
 
@@ -118,19 +117,25 @@ def position(kind, detection):
 
 
 def dwell_offsets(pass_, frames, frame_times):
-    """Displayed position minus pointer position during the settled part of both dwells."""
+    """Displayed position minus pointer position at the end of both dwells.
+
+    Capture APIs deliver a frame only when the screen changes, so the screen
+    at the end of a dwell is the last frame delivered before that time. The
+    dwell is long enough for the drawing to catch up with the still pointer.
+    """
     offsets = []
     for dwell in (pass_.before, pass_.after):
         if not dwell or (pass_.kind == "ink" and not dwell[0][5]):
             continue
-        start, end, x = dwell[0][0] + SETTLE_NS, dwell[-1][0], dwell[0][3]
-        for t in frame_times[bisect.bisect_left(frame_times, start): bisect.bisect_right(frame_times, end)]:
+        end, x = dwell[-1][0], dwell[0][3]
+        for t in reversed(frame_times[: bisect.bisect_right(frame_times, end)]):
             detection = frames[t].get(pass_.band)
             if detection is None:
                 continue
             value = position(pass_.kind, detection)
             if value is not None:
                 offsets.append(value - x)
+            break
     return offsets
 
 

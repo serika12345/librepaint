@@ -36,6 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import trajectory  # noqa: E402
 
 BTN_LEFT = 0x110
+MIN_CANVAS = 300  # pixels; smaller white areas are dialogs or partial windows
 RD = "org.gnome.Mutter.RemoteDesktop"
 SC = "org.gnome.Mutter.ScreenCast"
 
@@ -116,7 +117,7 @@ def find_canvas(frame, threshold=245):
     white = np.all(frame[:, :, :3] >= threshold, axis=2)
     ys, xs = np.nonzero(white)
     if len(xs) == 0:
-        raise SystemExit("no white canvas visible in the captured frame")
+        return None
     h, w = white.shape
     nearest = np.argmin((xs - w / 2) ** 2 + (ys - h / 2) ** 2)
     cx, cy = int(xs[nearest]), int(ys[nearest])
@@ -133,7 +134,7 @@ def find_canvas(frame, threshold=245):
 class Capture:
     def __init__(self, node):
         self.pipe = Gst.parse_launch(
-            "pipewiresrc path=%d always-copy=true ! video/x-raw,format=BGRx ! "
+            "pipewiresrc path=%d always-copy=true ! video/x-raw,format=BGRx,max-framerate=60/1 ! "
             "appsink name=sink emit-signals=true sync=false max-buffers=4 drop=false" % node
         )
         self.sink = self.pipe.get_by_name("sink")
@@ -218,6 +219,7 @@ def main(argv):
     parser.add_argument("--dark", type=int, default=128, help="channel value below which a pixel is dark")
     parser.add_argument("--dense", type=int, default=6, help="dark pixels per column that count as ink")
     parser.add_argument("--snapshot", action="store_true", help="save first-frame.png and exit")
+    parser.add_argument("--wait", type=float, default=120, help="seconds to wait for the canvas")
     args = parser.parse_args(argv)
     os.makedirs(args.out, exist_ok=True)
     Gst.init(None)
@@ -236,21 +238,28 @@ def main(argv):
     capture.dark, capture.dense = args.dark, args.dense
     capture.start()
     try:
-        # Move the pointer out of the way and force one frame with the canvas.
-        mutter.move(1, 1)
-        deadline = time.time() + 5
+        # Move the pointer out of the way (the top-left corner would open the
+        # GNOME activities overview) and wait for one frame with the canvas.
+        mutter.move(1, 300)
+        # Wait until the application shows a canvas of a usable size.
+        deadline = time.time() + args.wait
+        canvas = frame = None
         while time.time() < deadline:
             with capture.lock:
                 frame = capture.latest
             if frame is not None:
-                break
-            time.sleep(0.05)
+                canvas = find_canvas(frame)
+                if canvas and canvas[2] >= MIN_CANVAS and canvas[3] >= MIN_CANVAS:
+                    break
+            time.sleep(0.5)
         if frame is None:
             raise SystemExit("no frame captured")
         save_png(os.path.join(args.out, "first-frame.png"), frame)
         if args.snapshot:
             return 0
-        left, top, width, height = find_canvas(frame)
+        if not canvas or canvas[2] < MIN_CANVAS or canvas[3] < MIN_CANVAS:
+            raise SystemExit("no white canvas of at least %d px visible: %s" % (MIN_CANVAS, canvas))
+        left, top, width, height = canvas
         options = trajectory.options(json.loads(args.options))
         bands = []
         for name, y, half in trajectory.bands(top, height, options):
