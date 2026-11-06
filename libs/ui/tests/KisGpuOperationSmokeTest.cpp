@@ -24,6 +24,7 @@
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuOperationCapabilities.h>
+#include <gpu/KisGpuOperationDocument.h>
 #include <input/ui/kis_input_profile_manager.h>
 #include <nodes/kis_node_manager.h>
 #include <opengl/kis_opengl.h>
@@ -37,6 +38,9 @@
 #include <kis_paint_information.h>
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
+#include <kis_shape_layer.h>
+#include <KoSvgTextShape.h>
+#include <KoSvgTextShapeMarkupConverter.h>
 #include <kis_pixel_selection.h>
 #include <kis_selection.h>
 #include <kis_selection_options.h>
@@ -66,6 +70,10 @@
 #include <KoSnapGuide.h>
 #include <KoToolManager.h>
 #include <Node.h>
+#include <Document.h>
+#include <Filter.h>
+#include <FilterLayer.h>
+#include <Selection.h>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -94,6 +102,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <utility>
 
 namespace Gpu = LibrePaint::Image::Gpu;
@@ -230,6 +239,7 @@ Outcome documentFormat(const QString &id)
 
 Outcome layerType(SmokeDocument &doc, const QString &id)
 {
+    const bool text = id == QLatin1String("text");
     const bool resident = id == QLatin1String("group") || id == QLatin1String("selection-mask");
     const auto location = resident ? Gpu::ExecutionLocation::Gpu : Gpu::ExecutionLocation::Cpu;
     const auto nodeType = id == QLatin1String("group") ? QStringLiteral("KisGroupLayer") :
@@ -242,12 +252,124 @@ Outcome layerType(SmokeDocument &doc, const QString &id)
     if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
     auto *manager = doc.window->viewManager()->nodeManager();
     // Filter masks choose a filter in a dialog unless creation is quiet.
-    const auto added = id == QLatin1String("filter-mask") ? manager->createNode(nodeType, true) :
+    auto added = id == QLatin1String("filter-mask") ? manager->createNode(nodeType, true) :
         manager->createNode(nodeType);
     doc.image->waitForDone();
     if (!added || !added->parent() || !added->inherits(nodeType.toLatin1().constData()) ||
         doc.image->gpuImage() != doc.owner)
-        return {location, QStringLiteral("%1 was not added to the GPU document").arg(nodeType)};
+        return {location, text ? QStringLiteral("Text layer (KisShapeLayer with a text shape) was not added to the GPU document") :
+                                 QStringLiteral("%1 was not added to the GPU document").arg(nodeType)};
+    if (text) {
+        // #107 draws text on the CPU when it changes and sends the result to the GPU.
+        auto *shapeLayer = qobject_cast<KisShapeLayer *>(added.data());
+        std::unique_ptr<KoSvgTextShape> shape(new KoSvgTextShape());
+        shape->setPosition(QPointF(4, 4));
+        KoSvgTextShapeMarkupConverter converter(shape.get());
+        if (!shapeLayer ||
+            !converter.convertFromSvg(QStringLiteral("<text>GPU smoke</text>"), QString(),
+                QRectF(0, 0, doc.image->width(), doc.image->height()), 72.0) ||
+            shape->plainText().isEmpty())
+            return {location, QStringLiteral("Text shape could not be created")};
+        shapeLayer->addShape(shape.release());
+        doc.image->waitForDone();
+        if (shapeLayer->shapeCount() != 1)
+            return {location, QStringLiteral("Text shape was not retained by the layer")};
+    }
+    return {location, {}};
+}
+
+Outcome adjustmentLayer(SmokeDocument &doc)
+{
+    const auto location = Gpu::layerExecutionLocation(Gpu::LayerFeature::Adjustment);
+    if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
+    if (!KisFilterRegistry::instance()->value(QStringLiteral("invert")))
+        return {location, QStringLiteral("Adjustment filter was not registered")};
+    Filter filter;
+    filter.setName(QStringLiteral("invert"));
+    Selection selection;
+    Document api(doc.document ? doc.document.get() : doc.lifetime.data(), false);
+    QScopedPointer<FilterLayer> layer(api.createFilterLayer(
+        QStringLiteral("Operation smoke adjustment"), filter, selection));
+    if (!layer) return {location, QStringLiteral("Adjustment layer could not be created")};
+    const auto before = doc.image->root()->childCount();
+    QScopedPointer<Node> root(Node::createNode(doc.image, doc.image->root()));
+    if (!root || !root->addChildNode(layer.data(), nullptr))
+        return {location, QStringLiteral("Adjustment layer was not added to the GPU document")};
+    doc.image->waitForDone();
+    if (doc.image->root()->childCount() != before + 1 || doc.image->gpuImage() != doc.owner)
+        return {location, QStringLiteral("Adjustment layer was not retained by the GPU document")};
+    for (const auto &entry : doc.owner->operations().snapshot()->layers)
+        if (entry.name == layer->name())
+            return entry.kind == Gpu::LayerKind::Adjustment ? Outcome{location, {}} :
+                Outcome{location, QStringLiteral("Adjustment layer has a different GPU layer kind")};
+    return {location, QStringLiteral("Added adjustment layer has no GPU version")};
+}
+
+Outcome fileLayer(SmokeDocument &doc)
+{
+    const auto location = Gpu::layerExecutionLocation(Gpu::LayerFeature::File);
+    if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
+    QTemporaryDir directory;
+    if (!directory.isValid()) return {location, QStringLiteral("Could not create file layer fixture")};
+    const auto path = directory.filePath(QStringLiteral("operation-smoke-file.png"));
+    QImage source(24, 18, QImage::Format_ARGB32);
+    for (int y = 0; y < source.height(); ++y)
+        for (int x = 0; x < source.width(); ++x)
+            source.setPixelColor(x, y, QColor(x * 10, y * 12, 96, 255));
+    if (!source.save(path)) return {location, QStringLiteral("Could not save file layer fixture")};
+    Document api(doc.document ? doc.document.get() : doc.lifetime.data(), false);
+    QScopedPointer<Node> layer(api.createFileLayer(QStringLiteral("Operation smoke file"), path,
+        QStringLiteral("None"), QStringLiteral("Bicubic")));
+    if (!layer) return {location, QStringLiteral("File layer could not be created")};
+    const auto before = doc.image->root()->childCount();
+    QScopedPointer<Node> root(Node::createNode(doc.image, doc.image->root()));
+    if (!root || !root->addChildNode(layer.data(), nullptr))
+        return {location, QStringLiteral("File layer was not added to the GPU document (A9)")};
+    doc.image->waitForDone();
+    if (doc.image->root()->childCount() != before + 1 || doc.image->gpuImage() != doc.owner)
+        return {location, QStringLiteral("File layer was not retained by the GPU document")};
+    return {location, {}};
+}
+
+Outcome publicApiPixels(bool u16)
+{
+    const auto location = Gpu::pixelAccessExecutionLocation(Gpu::PixelAccess::PublicApi);
+    const auto *colorSpace = u16 ? KoColorSpaceRegistry::instance()->rgb16() :
+                                   KoColorSpaceRegistry::instance()->rgb8();
+    if (!colorSpace) return {location, QStringLiteral("Public API colour space was not registered")};
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setAutoSaveActive(false);
+    if (!document->newImage(QStringLiteral("Operation smoke public API"), 32, 16, colorSpace,
+            KoColor(QColor(7, 9, 11), colorSpace), KisConfig::CANVAS_COLOR, 1, {}, 1))
+        return {location, document->errorMessage()};
+    const auto image = document->image();
+    const auto owner = image->gpuImage();
+    const auto node = image->root()->firstChild();
+    const auto expected = u16 ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    if (!owner || !node) return {location, QStringLiteral("Public API document did not use the GPU engine")};
+    if (owner->operations().snapshot()->format != expected)
+        return {location, QStringLiteral("Public API document used a different GPU pixel format")};
+    QScopedPointer<Node> api(Node::createNode(image, node));
+    const int pixelSize = colorSpace->pixelSize();
+    QByteArray value(8 * 6 * pixelSize, Qt::Uninitialized);
+    for (int i = 0; i < 8 * 6; ++i) {
+        auto *bytes = value.data() + i * pixelSize;
+        if (u16) {
+            const quint16 components[4] = {quint16(1000 + i * 37), quint16(2000 + i * 53),
+                quint16(3000 + i * 71), quint16(65535 - i * 17)};
+            std::memcpy(bytes, components, sizeof(components));
+        } else {
+            const quint8 components[4] = {quint8(40 + i * 7), quint8(90 + i * 11),
+                quint8(160 + i * 13), 235};
+            std::memcpy(bytes, components, sizeof(components));
+        }
+    }
+    if (!api->setPixelData(value, 3, 2, 8, 6) || api->pixelData(3, 2, 8, 6) != value)
+        return {location, QStringLiteral("Public API pixel transfer did not preserve the native bytes")};
+    // The byte count must describe the whole requested rectangle.
+    if (api->setPixelData(value.left(value.size() - pixelSize), 0, 0, 8, 6))
+        return {location, QStringLiteral("Public API accepted a pixel buffer smaller than its rectangle")};
     return {location, {}};
 }
 
@@ -1197,6 +1319,12 @@ private:
                 [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("clone")); }},
             {QStringLiteral("layer/vector"), false,
                 [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("vector")); }},
+            {QStringLiteral("layer/text"), false,
+                [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("text")); }},
+            {QStringLiteral("layer/adjustment"), false,
+                [](SmokeDocument &doc) { return adjustmentLayer(doc); }},
+            {QStringLiteral("layer/file"), false,
+                [](SmokeDocument &doc) { return fileLayer(doc); }},
             {QStringLiteral("mask/selection"), true,
                 [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("selection-mask")); }},
             {QStringLiteral("mask/filter"), false,
@@ -1211,6 +1339,9 @@ private:
                 if (!api->setPixelData(value, 17, 13, 1, 1) || api->pixelData(17, 13, 1, 1) != value)
                     return Outcome{Gpu::ExecutionLocation::Cpu, QStringLiteral("Public native pixel transfer failed")};
                 return Outcome{Gpu::pixelAccessExecutionLocation(Gpu::PixelAccess::PublicApi), {}};
+            }},
+            {QStringLiteral("api/native-pixels-u16"), false, [](SmokeDocument &) {
+                return publicApiPixels(true);
             }},
             {QStringLiteral("animation/start"), false, [](SmokeDocument &doc) {
                 doc.node->enableAnimation();
@@ -1339,7 +1470,7 @@ private:
             if (path.isEmpty()) return true;
             path += reportSuffix;
             QSaveFile file(path);
-            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b3c"}, {"rows", rows}}).toJson();
+            const auto bytes = QJsonDocument(QJsonObject{{"schema", 1}, {"scope", "A2b4b"}, {"rows", rows}}).toJson();
             return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
         };
         QVERIFY(publish());
