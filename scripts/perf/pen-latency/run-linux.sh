@@ -11,7 +11,8 @@
 #   COMMAND receives the canvas path as its last argument.
 # Environment: KRITARC (default: newCursorStyle=0, newOutlineStyle=2,
 #   fpsLimit=100), SETTLE_SECONDS before the capture tool starts waiting for
-#   the canvas (default 5), TRAJECTORY_JSON.
+#   the canvas (default 5), TRAJECTORY_JSON. The application receives
+#   REFERENCE_LOG=<run>/reference.log (used by the reference applications).
 set -euo pipefail
 
 if [ "$#" -lt 6 ] || [ "$5" != "--" ]; then
@@ -38,7 +39,7 @@ for n in $(seq 1 "$runs"); do
   rm -rf "$home"
   mkdir -p "$home/config" "$work/data" "$run"
   printf '%s' "$kritarc" > "$home/config/kritarc"
-  HOME=$home XDG_CONFIG_HOME=$home/config XDG_DATA_HOME=$work/data \
+  HOME=$home XDG_CONFIG_HOME=$home/config XDG_DATA_HOME=$work/data REFERENCE_LOG=$run/reference.log \
     setsid "$@" "$work/canvas.png" > "$run/app.log" 2>&1 < /dev/null &
   app=$!
   sleep "$settle"

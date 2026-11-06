@@ -139,18 +139,24 @@ def dwell_offsets(pass_, frames, frame_times):
     return offsets
 
 
-def analyze_run(directory):
-    samples = read_inject(os.path.join(directory, "inject.csv"))
+def frame_samples(directory):
+    """Return (frames, offsets, samples) for a run.
+
+    samples lists (kind, frame_ns, crossed_ns, arrival_ns): a captured frame
+    and the time at which the injected pointer was at the position the frame
+    shows.
+    """
+    injected = read_inject(os.path.join(directory, "inject.csv"))
     frames = read_capture(os.path.join(directory, "capture.csv"))
     frame_times = list(frames)
-    all_passes = passes(samples)
+    all_passes = passes(injected)
 
     offsets = {"hover": [], "ink": []}
     for pass_ in all_passes:
         offsets[pass_.kind].extend(dwell_offsets(pass_, frames, frame_times))
     offset = {kind: statistics.median(values) if values else None for kind, values in offsets.items()}
 
-    stats = collections.defaultdict(list)
+    samples = []
     for pass_ in all_passes:
         if offset[pass_.kind] is None:
             continue
@@ -165,8 +171,16 @@ def analyze_run(directory):
             crossed = pass_.time_at(value - offset[pass_.kind])
             if crossed is None or not 0 <= t - crossed < MAX_LATENCY_NS:
                 continue
-            stats[pass_.kind + ".input_to_capture"].append((t - crossed) / 1e6)
-            stats[pass_.kind + ".frame_to_arrival"].append((detection["arrival"] - t) / 1e6)
+            samples.append((pass_.kind, t, crossed, detection["arrival"]))
+    return frame_times, offsets, offset, samples
+
+
+def analyze_run(directory):
+    frame_times, offsets, offset, samples = frame_samples(directory)
+    stats = collections.defaultdict(list)
+    for kind, t, crossed, arrival in samples:
+        stats[kind + ".input_to_capture"].append((t - crossed) / 1e6)
+        stats[kind + ".frame_to_arrival"].append((arrival - t) / 1e6)
 
     intervals = [(b - a) / 1e6 for a, b in zip(frame_times, frame_times[1:]) if b - a < 100_000_000]
     result = {key: analyze.describe(values) for key, values in sorted(stats.items())}
