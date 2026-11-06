@@ -54,7 +54,9 @@
 #include <KisResourceModel.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KoCanvasResourcesIds.h>
+#include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
+#include <KoColorSpaceRegistry.h>
 #include <KoColorSet.h>
 #include <KoStopGradient.h>
 #include <KisSwatch.h>
@@ -177,6 +179,77 @@ public:
     Gpu::PaintImageSP owner;
     QString error;
 };
+
+Outcome documentFormat(const QString &id)
+{
+    const auto registry = KoColorSpaceRegistry::instance();
+    const auto integer8 = Integer8BitsColorDepthID.id();
+    const KoColorSpace *cs = nullptr;
+    bool resident = true;
+    if (id == QLatin1String("rgba-u8")) cs = registry->rgb8();
+    else if (id == QLatin1String("rgba-u16")) cs = registry->rgb16();
+    else if (id == QLatin1String("rgba-f16"))
+        cs = registry->colorSpace(RGBAColorModelID.id(), Float16BitsColorDepthID.id(), QString());
+    else if (id == QLatin1String("rgba-f32"))
+        cs = registry->colorSpace(RGBAColorModelID.id(), Float32BitsColorDepthID.id(), QString());
+    else {
+        resident = false;
+        const auto model = id == QLatin1String("cmyka-u8") ? CMYKAColorModelID :
+            id == QLatin1String("laba-u8") ? LABAColorModelID :
+            id == QLatin1String("ycbcr-u8") ? YCbCrAColorModelID :
+            id == QLatin1String("xyza-u8") ? XYZAColorModelID :
+            id == QLatin1String("graya-u8") ? GrayAColorModelID : GrayColorModelID;
+        cs = registry->colorSpace(model.id(), integer8, QString());
+    }
+    const auto location = resident ? Gpu::ExecutionLocation::Gpu : Gpu::ExecutionLocation::Cpu;
+    if (!cs) return {location, QStringLiteral("Document colour space was not registered")};
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setAutoSaveActive(false);
+    const bool created = document->newImage(QStringLiteral("Operation smoke ") + id, 32, 16, cs,
+        KoColor(QColor(19, 41, 73), cs), KisConfig::CANVAS_COLOR, 1, {}, 1);
+    if (!resident) {
+        // #107 opens these documents with the previous engine as a whole.
+        if (!created) return {location, document->errorMessage()};
+        if (document->image()->gpuImage())
+            return {location, QStringLiteral("Excluded colour model was opened by the GPU engine (A1-1)")};
+        return {location, {}};
+    }
+    if (!created) {
+        const auto hint = id.startsWith(QLatin1String("rgba-f"))
+            ? QStringLiteral(" (F16/F32 RGBA documents are A4 scope)") : QString();
+        return {location, document->errorMessage() + hint};
+    }
+    const auto owner = document->image()->gpuImage();
+    if (!owner) return {location, QStringLiteral("RGBA document did not use the GPU engine")};
+    const auto expected = id == QLatin1String("rgba-u16") ? Gpu::PixelFormat::Rgba16 : Gpu::PixelFormat::Rgba8;
+    if (owner->operations().snapshot()->format != expected)
+        return {location, QStringLiteral("RGBA document used a different GPU pixel format")};
+    return {location, {}};
+}
+
+Outcome layerType(SmokeDocument &doc, const QString &id)
+{
+    const bool resident = id == QLatin1String("group") || id == QLatin1String("selection-mask");
+    const auto location = resident ? Gpu::ExecutionLocation::Gpu : Gpu::ExecutionLocation::Cpu;
+    const auto nodeType = id == QLatin1String("group") ? QStringLiteral("KisGroupLayer") :
+        id == QLatin1String("clone") ? QStringLiteral("KisCloneLayer") :
+        id == QLatin1String("selection-mask") ? QStringLiteral("KisSelectionMask") :
+        id == QLatin1String("filter-mask") ? QStringLiteral("KisFilterMask") :
+        id == QLatin1String("colorize-mask") ? QStringLiteral("KisColorizeMask") :
+        id == QLatin1String("transform-mask") ? QStringLiteral("KisTransformMask") :
+        QStringLiteral("KisShapeLayer");
+    if (!doc.openView()) return {location, QStringLiteral("Could not open the document view")};
+    auto *manager = doc.window->viewManager()->nodeManager();
+    // Filter masks choose a filter in a dialog unless creation is quiet.
+    const auto added = id == QLatin1String("filter-mask") ? manager->createNode(nodeType, true) :
+        manager->createNode(nodeType);
+    doc.image->waitForDone();
+    if (!added || !added->parent() || !added->inherits(nodeType.toLatin1().constData()) ||
+        doc.image->gpuImage() != doc.owner)
+        return {location, QStringLiteral("%1 was not added to the GPU document").arg(nodeType)};
+    return {location, {}};
+}
 
 class BrushProbe : public KisToolFreehandHelper
 {
@@ -1080,7 +1153,24 @@ private:
             Group group = Group::Normal;
         };
         QList<Probe> probes = {
-            {QStringLiteral("document/new-rgba-u8"), true, [](SmokeDocument &) { return Outcome{}; }},
+            {QStringLiteral("document/new-rgba-u8"), true,
+                [](SmokeDocument &) { return documentFormat(QStringLiteral("rgba-u8")); }},
+            {QStringLiteral("document/new-rgba-u16"), true,
+                [](SmokeDocument &) { return documentFormat(QStringLiteral("rgba-u16")); }},
+            {QStringLiteral("document/new-rgba-f16"), true,
+                [](SmokeDocument &) { return documentFormat(QStringLiteral("rgba-f16")); }},
+            {QStringLiteral("document/new-rgba-f32"), true,
+                [](SmokeDocument &) { return documentFormat(QStringLiteral("rgba-f32")); }},
+            {QStringLiteral("document/new-cmyka-u8"), false,
+                [](SmokeDocument &) { return documentFormat(QStringLiteral("cmyka-u8")); }},
+            {QStringLiteral("document/new-laba-u8"), false,
+                [](SmokeDocument &) { return documentFormat(QStringLiteral("laba-u8")); }},
+            {QStringLiteral("document/new-ycbcr-u8"), false,
+                [](SmokeDocument &) { return documentFormat(QStringLiteral("ycbcr-u8")); }},
+            {QStringLiteral("document/new-xyza-u8"), false,
+                [](SmokeDocument &) { return documentFormat(QStringLiteral("xyza-u8")); }},
+            {QStringLiteral("document/new-graya-u8"), false,
+                [](SmokeDocument &) { return documentFormat(QStringLiteral("graya-u8")); }},
             {QStringLiteral("layer/paint"), true, [](SmokeDocument &doc) {
                 if (!doc.openView()) return Outcome{Gpu::ExecutionLocation::Gpu, QStringLiteral("Could not open the document view")};
                 const auto count = doc.image->root()->childCount();
@@ -1101,6 +1191,20 @@ private:
                     return Outcome{Gpu::ExecutionLocation::Gpu, QStringLiteral("Transparency mask was not added to the GPU document")};
                 return Outcome{};
             }},
+            {QStringLiteral("layer/group"), true,
+                [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("group")); }},
+            {QStringLiteral("layer/clone"), false,
+                [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("clone")); }},
+            {QStringLiteral("layer/vector"), false,
+                [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("vector")); }},
+            {QStringLiteral("mask/selection"), true,
+                [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("selection-mask")); }},
+            {QStringLiteral("mask/filter"), false,
+                [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("filter-mask")); }},
+            {QStringLiteral("mask/colorize"), false,
+                [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("colorize-mask")); }},
+            {QStringLiteral("mask/transform"), false,
+                [](SmokeDocument &doc) { return layerType(doc, QStringLiteral("transform-mask")); }},
             {QStringLiteral("api/native-pixels"), false, [](SmokeDocument &doc) {
                 QScopedPointer<Node> api(Node::createNode(doc.image, doc.node));
                 const auto value = QByteArray::fromHex("112233ad");
