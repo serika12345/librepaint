@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Unattended Codex loop for issue #89.
+# Unattended coding-agent loop for issue #89.
 #
 # Usage (on nixos, from the repository root):
 #   scripts/agent-loop/start      # launch detached
 #   scripts/agent-loop/status     # show current iteration and recent results
 #   touch build/agent-loop/STOP   # stop after the current iteration
 #
-# Each iteration runs one fresh `codex exec` session with prompt.md, then
+# Each iteration runs one fresh agent session (OpenCode by default, or Codex)
+# with prompt.md, then
 # guarantees commit + push, and periodically runs the full `verify` so the
 # next iteration sees regressions.
 
@@ -26,12 +27,21 @@ branch="${AGENT_LOOP_BRANCH:-feature/issue-89-gpu-engine-rewrite}"
 iteration_timeout="${AGENT_LOOP_ITERATION_TIMEOUT:-150m}"
 verify_every="${AGENT_LOOP_VERIFY_EVERY:-8}"
 verify_timeout="${AGENT_LOOP_VERIFY_TIMEOUT:-4h}"
-# Prefer the newest Codex bundled with the VS Code extension; the Nix profile build lags behind ~/.codex/config.toml.
-codex_bin="${AGENT_LOOP_CODEX:-$(ls -t "$HOME"/.vscode-server/extensions/openai.chatgpt-*/bin/linux-x86_64/codex \
-    "$HOME"/.vscode/extensions/openai.chatgpt-*/bin/linux-x86_64/codex 2>/dev/null | head -1)}"
-codex_bin="${codex_bin:-codex}"
-model="${AGENT_LOOP_MODEL:-gpt-6.1-sol}"
-reasoning_effort="${AGENT_LOOP_REASONING_EFFORT:-xhigh}"
+# agent: opencode (default) or codex.
+agent="${AGENT_LOOP_AGENT:-opencode}"
+if [[ "$agent" == codex ]]; then
+    # Prefer the newest Codex bundled with the VS Code extension; the Nix profile build lags behind ~/.codex/config.toml.
+    agent_bin="${AGENT_LOOP_CODEX:-$(ls -t "$HOME"/.vscode-server/extensions/openai.chatgpt-*/bin/linux-x86_64/codex \
+        "$HOME"/.vscode/extensions/openai.chatgpt-*/bin/linux-x86_64/codex 2>/dev/null | head -1)}"
+    agent_bin="${agent_bin:-codex}"
+    model="${AGENT_LOOP_MODEL:-gpt-6.1-sol}"
+    reasoning_effort="${AGENT_LOOP_REASONING_EFFORT:-xhigh}"
+else
+    agent_bin="${AGENT_LOOP_OPENCODE:-$(command -v opencode || echo /run/current-system/sw/bin/opencode)}"
+    # OpenCode selects the reasoning effort through the model variant suffix.
+    model="${AGENT_LOOP_MODEL:-deepseek/deepseek-flash#high}"
+    reasoning_effort=""
+fi
 state_dir="$repo_root/build/agent-loop"
 log_dir="$state_dir/logs"
 mkdir -p "$log_dir"
@@ -131,13 +141,19 @@ while true; do
         fi
     } >"$state_dir/prompt-current.md"
 
-    say "iteration $iteration start ($(git rev-parse --short HEAD), $model/$reasoning_effort)"
-    timeout --kill-after=5m "$iteration_timeout" \
-        "$codex_bin" exec --dangerously-bypass-approvals-and-sandbox -C "$repo_root" \
-        -m "$model" -c "model_reasoning_effort=\"$reasoning_effort\"" - \
-        <"$state_dir/prompt-current.md" >"$log" 2>&1
+    say "iteration $iteration start ($(git rev-parse --short HEAD), $agent $model${reasoning_effort:+/$reasoning_effort})"
+    if [[ "$agent" == codex ]]; then
+        timeout --kill-after=5m "$iteration_timeout" \
+            "$agent_bin" exec --dangerously-bypass-approvals-and-sandbox -C "$repo_root" \
+            -m "$model" -c "model_reasoning_effort=\"$reasoning_effort\"" - \
+            <"$state_dir/prompt-current.md" >"$log" 2>&1
+    else
+        timeout --kill-after=5m "$iteration_timeout" \
+            "$agent_bin" run --auto --format json -m "$model" --title "agent-loop iteration $iteration" \
+            "$(cat "$state_dir/prompt-current.md")" </dev/null >"$log" 2>&1
+    fi
     rc=$?
-    say "iteration $iteration codex exit=$rc"
+    say "iteration $iteration agent exit=$rc"
 
     # Kill test or build processes the session may have left behind in this worktree.
     pkill -f "$repo_root/build/tdd-linux" 2>/dev/null || true
@@ -149,11 +165,17 @@ while true; do
     if [[ "$before" == "$after" ]]; then stuck=$((stuck + 1)); else stuck=0; fi
     git log --oneline "$before..$after" | sed 's/^/  /' | tee -a "$state_dir/loop.log"
 
-    if grep -qiE 'refresh token has expired|unauthorized \(401\)|not logged in' "$log" && [[ "$before" == "$after" ]]; then
-        say "codex authentication failed; run '$codex_bin login' and then scripts/agent-loop/start"
+    # Classify only the agent's own error lines; build and test output in the log can contain
+    # numbers such as 429 that are not API errors.
+    agent_errors="$(grep -E '^ERROR:|"type":"error"' "$log" | tail -20)"
+    if [[ -n "$agent_errors" && "$before" == "$after" ]] &&
+        grep -qiE 'model_not_found|model unavailable|provider\.no-route|model.*not (supported|found|exist)|unauthorized|\b401\b|invalid.*api.?key|authentication|not logged in|refresh token has expired|insufficient.?balance|\b402\b' <<<"$agent_errors"; then
+        say "agent cannot run (model, authentication or balance); fix the agent setup and then scripts/agent-loop/start"
+        sed 's/^/  /' <<<"$agent_errors" | cut -c1-300 | tee -a "$state_dir/loop.log" >/dev/null
         exit 1
     fi
-    if grep -qiE 'usage limit|rate limit|quota|429|Too Many Requests' "$log" && [[ "$before" == "$after" ]]; then
+    if [[ -n "$agent_errors" && "$before" == "$after" ]] &&
+        grep -qiE 'usage limit|rate.?limit|quota|\b429\b|Too Many Requests|overloaded|\b503\b' <<<"$agent_errors"; then
         backoff=$(( backoff == 0 ? 900 : (backoff * 2 > 3600 ? 3600 : backoff * 2) ))
         say "rate limited, sleeping ${backoff}s"
         sleep "$backoff"

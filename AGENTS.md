@@ -14,7 +14,8 @@ LibrePaint のコーディングエージェント向け運用契約です。
 
 ## 無人ループで進める
 
-- Issue #89 は nixos 上の `scripts/agent-loop/loop` が `codex exec` を反復して進める。
+- Issue #89 は nixos 上の `scripts/agent-loop/loop` が作業エージェント（既定は OpenCode の
+  `deepseek/deepseek-flash#high`。`AGENT_LOOP_AGENT=codex` で Codex）を反復して進める。
   1反復は `scripts/agent-loop/prompt.md` に従い、バックログ最上位の1項目を実装・コミット・push して終わる。
 - 操作：`scripts/agent-loop/start` で起動、`scripts/agent-loop/status` で確認、
   `touch build/agent-loop/STOP` で現在の反復の後に停止する。ログは `build/agent-loop/` にある。
