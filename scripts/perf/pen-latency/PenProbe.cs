@@ -72,15 +72,17 @@ public class PenProbe : Form
         base.WndProc(ref m);
     }
 
+    // Black marks on white so that the capture-based measurement detects them
+    // like the brush outline (hover) and the ink (contact).
     void Draw(Point point, bool contact)
     {
         using (var g = CreateGraphics())
         {
             if (!lastMark.IsEmpty) g.FillRectangle(Brushes.White, lastMark);
             if (contact && lastContact)
-                using (var pen = new Pen(Color.Black, 3)) g.DrawLine(pen, lastPoint, point);
-            lastMark = contact ? Rectangle.Empty : new Rectangle(point.X - 6, point.Y - 6, 13, 13);
-            if (!contact) g.FillRectangle(Brushes.Red, lastMark);
+                using (var pen = new Pen(Color.Black, 20)) { pen.StartCap = pen.EndCap = System.Drawing.Drawing2D.LineCap.Round; g.DrawLine(pen, lastPoint, point); }
+            lastMark = contact ? Rectangle.Empty : new Rectangle(point.X - 10, point.Y - 10, 21, 21);
+            if (!contact) g.FillRectangle(Brushes.Black, lastMark);
         }
         lastPoint = point; lastContact = contact;
     }

@@ -6,11 +6,17 @@
 #
 #   { "target": "LibrePaint" | "Krita" | "PenProbe",
 #     "runs": 5, "app": "<path to the executable>",
-#     "settleSeconds": 12, "inject": { <PenInject.Options fields> } }
+#     "settleSeconds": 12, "inject": { <PenInject.Options fields> },
+#     "capture": false }
+#
+# With "capture": true, windows_capture.exe replays plan.csv (written by
+# trajectory.py) next to this script and records the screen with DXGI
+# Desktop Duplication instead of PenInject.cs replaying its own trajectory.
 #
 # Each run writes <root>\runs\<id>-<n>\ with presentmon.csv, probe.csv
-# (LibrePaint and PenProbe), inject.csv and meta.txt. status.txt reports
-# progress and ends with "done" or "failed: <reason>".
+# (LibrePaint and PenProbe), inject.csv, capture.csv (capture mode) and
+# meta.txt. status.txt reports progress and ends with "done" or
+# "failed: <reason>".
 
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -56,6 +62,15 @@ try {
     $runs = [int]$request.runs
     $settle = if ($request.settleSeconds) { [int]$request.settleSeconds } else { 12 }
 
+    $capture = [bool]$request.capture
+    $captureTool = Join-Path $here 'windows_capture.exe'
+    $plan = Join-Path $here 'plan.csv'
+    function Invoke-Capture([string]$dir) {
+        $log = Join-Path $dir 'capture.log'
+        $process = Start-Process -FilePath $captureTool -ArgumentList @('--out', "`"$dir`"", '--plan', "`"$plan`"") `
+            -PassThru -Wait -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError (Join-Path $dir 'capture.err')
+        if ($process.ExitCode -ne 0) { throw "windows_capture failed: $(Get-Content (Join-Path $dir 'capture.err') -Raw)" }
+    }
     Add-Type -Path (Join-Path $here 'PenInject.cs')
     if ($target -eq 'PenProbe') {
         Add-Type -Path (Join-Path $here 'PenProbe.cs') -ReferencedAssemblies System.Windows.Forms, System.Drawing
@@ -74,11 +89,18 @@ try {
         Write-Meta $dir $request $target
 
         if ($target -eq 'PenProbe') {
-            $seconds = [int]($options.HoverSeconds + $options.Strokes * ($options.StrokeSeconds + $options.GapSeconds) + 8)
-            $hwnd = [PenProbe]::Start((Join-Path $dir 'probe.csv'), $seconds)
-            Start-Sleep -Seconds 2
-            [PenInject]::Run($hwnd, (Join-Path $dir 'inject.csv'), $options) | Out-Null
-            [PenProbe]::Stop()
+            if ($capture) {
+                $planSeconds = [double]((Get-Content $plan -Tail 1).Split(',')[0])
+                $hwnd = [PenProbe]::Start((Join-Path $dir 'probe.csv'), [int]$planSeconds + 30)
+                Start-Sleep -Seconds 2
+                try { Invoke-Capture $dir } finally { [PenProbe]::Stop() }
+            } else {
+                $seconds = [int]($options.HoverSeconds + $options.Strokes * ($options.StrokeSeconds + $options.GapSeconds) + 8)
+                $hwnd = [PenProbe]::Start((Join-Path $dir 'probe.csv'), $seconds)
+                Start-Sleep -Seconds 2
+                [PenInject]::Run($hwnd, (Join-Path $dir 'inject.csv'), $options) | Out-Null
+                [PenProbe]::Stop()
+            }
             continue
         }
 
@@ -103,7 +125,8 @@ try {
         try {
             $hwnd = Wait-MainWindow $app 120
             Start-Sleep -Seconds $settle
-            [PenInject]::Run($hwnd, (Join-Path $dir 'inject.csv'), $options) | Out-Null
+            if ($capture) { Invoke-Capture $dir }
+            else { [PenInject]::Run($hwnd, (Join-Path $dir 'inject.csv'), $options) | Out-Null }
             # The probe writer flushes every 500 ms; leave time for the last batch.
             Start-Sleep -Milliseconds 1500
         }
