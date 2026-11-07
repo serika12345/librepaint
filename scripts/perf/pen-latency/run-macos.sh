@@ -11,6 +11,8 @@
 #   COMMAND receives the canvas path as its last argument.
 # Environment: MACOS_CAPTURE (built macos_capture, required), DISPLAY_INDEX
 #   (default 0), KRITARC, SETTLE_SECONDS (default 5), TRAJECTORY_JSON.
+#   The application receives REFERENCE_LOG=<run>/reference.log (used by the
+#   reference applications).
 set -euo pipefail
 
 if [ "$#" -lt 6 ] || [ "$5" != "--" ]; then
@@ -26,6 +28,12 @@ trajectory=${TRAJECTORY_JSON:-}
 [ -n "$trajectory" ] || trajectory='{}'
 kritarc=${KRITARC:-$'[General]\nnewCursorStyle=0\nnewOutlineStyle=2\nfpsLimit=100\n'}
 mkdir -p "$work" "$out"
+# The measured application gets the plain user environment: variables of a
+# development shell (Python and Qt search paths) would make it load foreign
+# libraries, such as another Qt through PyQt.
+clean_env=(env -u PYTHONPATH -u PYTHONHOME -u PYTHONNOUSERSITE -u PYTHONHASHSEED -u QT_PLUGIN_PATH
+           -u QML2_IMPORT_PATH -u QML_IMPORT_PATH -u QT_ADDITIONAL_PACKAGES_PREFIX_PATH
+           -u DYLD_LIBRARY_PATH -u DYLD_FRAMEWORK_PATH -u DYLD_FALLBACK_LIBRARY_PATH)
 python3 -I "$here/trajectory.py" --options "$trajectory" --out "$work/plan.csv"
 python3 -I "$here/canvas.py" "$work/canvas.png"
 
@@ -36,7 +44,8 @@ for n in $(seq 1 "$runs"); do
   rm -rf "$home"
   mkdir -p "$home/Library/Preferences" "$run"
   printf '%s' "$kritarc" > "$home/Library/Preferences/kritarc"
-  CFFIXED_USER_HOME=$home HOME=$home "$@" "$work/canvas.png" > "$run/app.log" 2>&1 < /dev/null &
+  "${clean_env[@]}" CFFIXED_USER_HOME=$home HOME=$home REFERENCE_LOG=$run/reference.log \
+    "$@" "$work/canvas.png" > "$run/app.log" 2>&1 < /dev/null &
   app=$!
   sleep "$settle"
   status=0
