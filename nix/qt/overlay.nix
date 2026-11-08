@@ -33,6 +33,19 @@ in
         qtbase = qtPrevious.qtbase.overrideAttrs {
           inherit (srcs.qtbase) src version;
         };
+        # nixpkgs patches qtwebengine to install and find the locales under the
+        # data directory. Qt 6.11.3 changed the lookup to iterate
+        # QLibraryInfo::paths(), so the nixpkgs patch no longer applies and a
+        # version for 6.11.3 replaces it.
+        qtwebengine = qtPrevious.qtwebengine.overrideAttrs (old: {
+          patches =
+            builtins.filter (
+              patch: builtins.match ".*locales-path\\.patch" (toString patch) == null
+            ) (old.patches or [ ])
+            ++ [ ./patches/qtwebengine-locales-data-path-6.11.3.patch ];
+        }) // {
+          inherit (qtPrevious.qtwebengine) meta;
+        };
         # nixpkgs backports two qtdeclarative fixes that Qt 6.11.3 already
         # contains; applying them again fails. qtModule.nix attaches meta to
         # the derivation after mkDerivation, and overrideAttrs returns a plain
