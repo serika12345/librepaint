@@ -141,16 +141,26 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 | コミット | 件名 | 変更範囲 | 正式版 | 判定 |
 | --- | --- | --- | --- | --- |
-| ed56d12b50 | Fix unexpected window transparency after enabling CSD on Wayland | src/plugins/platforms/wayland | f1fbd15105（2026-02-27） | 未判定 |
-| d2aa04db1a | Fix cursor update when tablet moves between native surfaces | src/plugins/platforms/wayland | なし | 未判定 |
-| b069509b06 | Fix cursor update on tablet transition between alien widgets | src/plugins/platforms/wayland | なし | 未判定 |
-| 483ceed535 | [wayland] Handle the case when a tablet has multiple tools | src/plugins/platforms/wayland | なし | 未判定 |
-| 3b6b57d0b7 | [wayland] Emit native Enter/Leave events on tablet proximity events | src/plugins/platforms/wayland | なし | 未判定 |
-| bc9fec0a20 | [wayland] Implement raise() and lower() methods for subsurfaces | src/plugins/platforms/wayland, tests/auto/widgets/kernel | なし | 未判定 |
-| 5020e751e6 | [wayland] Make positioners reactive by default | src/plugins/platforms/wayland | なし | 未判定 |
-| 435e604932 | wayland: keep a popup in place when it is resized | src/plugins/platforms/wayland, tests/auto/wayland/shared, tests/auto/wayland/xdgshell | c3cc50d89d（2026-09-09） | 未判定 |
-| eb6579e6d1 | [wayland] Fix flickering when resizing popup windows | src/plugins/platforms/wayland | なし | 未判定 |
-| 693de2c4fb | Wayland client: update cursor position after sending QTabletEvent | src/plugins/platforms/wayland | 4332e5e2c4（2026-07-23） | 未判定 |
+| ed56d12b50 | Fix unexpected window transparency after enabling CSD on Wayland | src/plugins/platforms/wayland | f1fbd15105（2026-02-27） | 正式版で解決済み |
+| d2aa04db1a | Fix cursor update when tablet moves between native surfaces | src/plugins/platforms/wayland | なし | 保留 |
+| b069509b06 | Fix cursor update on tablet transition between alien widgets | src/plugins/platforms/wayland | なし | 保留 |
+| 483ceed535 | [wayland] Handle the case when a tablet has multiple tools | src/plugins/platforms/wayland | なし | 保留 |
+| 3b6b57d0b7 | [wayland] Emit native Enter/Leave events on tablet proximity events | src/plugins/platforms/wayland | なし | 保留 |
+| bc9fec0a20 | [wayland] Implement raise() and lower() methods for subsurfaces | src/plugins/platforms/wayland, tests/auto/widgets/kernel | なし | 不要 |
+| 5020e751e6 | [wayland] Make positioners reactive by default | src/plugins/platforms/wayland | なし | 不要 |
+| 435e604932 | wayland: keep a popup in place when it is resized | src/plugins/platforms/wayland, tests/auto/wayland/shared, tests/auto/wayland/xdgshell | c3cc50d89d（2026-09-09） | 正式版で解決済み |
+| eb6579e6d1 | [wayland] Fix flickering when resizing popup windows | src/plugins/platforms/wayland | なし | 不要 |
+| 693de2c4fb | Wayland client: update cursor position after sending QTabletEvent | src/plugins/platforms/wayland | 4332e5e2c4（2026-07-23） | 正式版で解決済み |
+
+**根拠**
+
+- 正式版で解決済みの3件は、qt/qtbase に同等のコミットがある（ed56d12b50 → f1fbd15105、435e604932 → c3cc50d89d、693de2c4fb → 4332e5e2c4）。6.11.3 以降の正式版を使えば同じ結果になる。
+- 不要の根拠：
+  - bc9fec0a20 はネイティブの subsurface の raise/lower で、LibrePaint は窓の重なり順をこの経路で操作しない。
+  - 5020e751e6 はポップアップの位置が表示の順に依存する不具合の修正で、正式版の Qt の Linux 版でダイアログとポップアップの位置のずれは出ていない（Wayland の計測は 20/16ms で、色プロファイルの修正後は公式 Krita と同程度。DECISIONS.md 2026-11-08）。
+  - eb6579e6d1 はポップアップのリサイズ時のちらつきで、表示だけの問題。主指標（キャンバスの輪郭とインク）に効かず、正式版での計測でも出ていない。
+- 保留の4件（d2aa04db1a、b069509b06、483ceed535、3b6b57d0b7）は、いずれも Wayland のタブレット（ペン）の経路の修正で、カーソルの更新、複数のツールの同時の近接、タブレットの Enter/Leave に関わる。LibrePaint の Linux 版は正式版の Qt で動いているが、これまでの計測は合成マウス入力で、ペンの経路は確かめていない（Linux 開発機にタブレットがない）。
+- 決めるための実験：Wayland で実際のペン（または uinput で作ったタブレットの入力）を使い、(1) 近接したときのカーソルの形、(2) 2つのツールを近づけたときの切り替え、(3) キャンバスとドックの間でペンを移動したときのホバーの状態、の3つを確かめる。不具合が出なければ「不要」にする。
 
 ## キーボードとショートカット（配列、不均衡な押下と解放）
 
