@@ -1,6 +1,6 @@
 # Krita の Qt フォークの改変一覧（for-krita/6.11.3）
 
-Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォーク（`dimula73/qtbase` の `for-krita/6.11.3`、先頭 d918f368da）が Qt 正式版 6.11.3 に加えている 92 件の改変を、目的ごとにまとめ、LibrePaint の依存と判定の方法を記録する。判定が決まったら、この表の「判定」と DECISIONS.md を更新する。
+Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォーク（`dimula73/qtbase` の `for-krita/6.11.3`、先頭 d918f368da）が Qt 正式版 6.11.3 に加えている 92 件の改変を、目的ごとにまとめ、LibrePaint の依存と判定を記録する。「判定」は 2026-11-08 に埋めた。判定の要約は DECISIONS.md の同じ日の行にあり、保留の決定は L1（計測）と Q4（フォークの撤去）で行う。
 
 「正式版」の列は、改変の件名で qt/qtbase の履歴を検索して見つかったコミットを示す（2026-11-08 時点）。件名が変わって取り込まれたものは見落としている可能性がある。
 
@@ -18,7 +18,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 | まとまり | 件数 | 判定 |
 | --- | --- | --- |
-| Windows の ANGLE と OpenGL ES の経路 | 18 | 保留（16件）と不要（2件）。L1 の H7（ANGLE を使わない OpenGL）の結果で決める。ANGLE を残すなら必要、なくすなら不要 |
+| Windows の ANGLE と OpenGL ES の経路 | 18 | 保留（11件）、不要（7件）。L1 の H7（ANGLE を使わない OpenGL）の結果で決める。ANGLE を残すなら必要、なくすなら不要 |
 | 画面更新の間引き（フレームレート圧縮） | 10 | 保留：L1 の H6 で Windows の遅れへの寄与を測り、`KisCanvas2` 側の間引きと1系統にまとめるかを決める |
 | HDR と色変換（バックバッファー、QRhi） | 4 | 保留：Windows の HDR 表示を維持するかと合わせて決める。LibrePaint は `setTextureColorSpace` で依存する |
 | Windows のペン入力（WinTab、Windows Ink、タッチ） | 14 | 必要（9件）、保留（2件）、不要（3件） |
@@ -253,3 +253,11 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
   - 5874f1f131 は GLX の交換間隔の回避で、Qt 6.11.3 の QTBUG-147854 の修正で不要になった（DECISIONS.md 2026-11-07）。
   - b2cc4909b0 は macOS のバンドル内のデータの探索で、macOS 版は正式版の Qt で動いている。
   - 9dc7c77358 は Windows のアクセシビリティを切る環境変数の追加で、LibrePaint は `krita/main.cc:703-712` で `DisableAccessibilityInQt` の設定に応じて設定する。正式版の Qt ではこの変数が効かず、アクセシビリティを切る設定が無効になるだけで、動作は変わらない。Q4 でこの設定項目の扱いを決める。
+
+## Q4 への持ち越し（2026-11-08 の判定のまとめ）
+
+92 件の内訳は、不要 34 件、正式版で解決済み 6 件、LibrePaint 側で代替 4 件、必要 11 件、保留 37 件。
+
+- 必要（11件）：c41d66281e、df3a678309、051139ed72、33a49f25d1、f5a75c4071、41adadd8db、0027358f20、8f8eabfb72、c132390390、82d2864a8a、dc27f27d8e。Windows のペンの9件は、`QT_WINTAB_DESKTOP_RECT` などの環境変数とペンのホバーの状態に直結する。Q4 では、公式に取り込まれるのを待つか、LibrePaint 側で作り直すかを1件ずつ決める。
+- LibrePaint 側で代替（4件）：747423036c、f8a61ebc5b、21d400db4f は `kis_input_manager_p.cpp:242` の回避コードを使い、Windows でも有効にする。f786da6451 はタブ表示の窓の題名を `KisMainWindow` 側で設定する。
+- 保留（37件）：ANGLE 11件と画面更新の間引き 10件は L1 の H7 と H6 の数値で決める。HDR 4件は Windows の HDR 表示を残すかで決める。Wayland のペン 4件は Wayland でペンを使った確認で決める。キーボードの配列 5件は日本語配列での確認で決める。Windows のペン 2件は Surface の計測で決める。ドックのクラッシュ 1件は再現の確認で決める。
