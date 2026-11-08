@@ -13,11 +13,17 @@
     inputs@{ nixpkgs, ... }:
     let
       system = "aarch64-darwin";
-      pkgs = import nixpkgs { inherit system; };
+      # Every platform uses the same Qt release (nix/qt/overlay.nix).
+      qtOverlay = import ./nix/qt/overlay.nix { inherit nixpkgs; };
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ qtOverlay ];
+      };
       linuxSystem = "x86_64-linux";
       linuxPkgs = import nixpkgs {
         system = linuxSystem;
         overlays = [
+          qtOverlay
           (_final: previous: {
             opencolorio = previous.opencolorio.overrideAttrs (old: {
               # OpenColorIO prefixes an absolute CMAKE_INSTALL_LIBDIR with
@@ -42,6 +48,7 @@
           allowUnsupportedSystem = true;
         };
         overlays = [
+          qtOverlay
           (final: previous: {
             # nixpkgs' MinGW patch series currently targets CPython 3.11.
             # Keep the target package-set aliases on that supported series so
@@ -977,10 +984,12 @@
       linuxAndroidPackages = import ./nix/android {
         pkgs = linuxPkgs;
         source = linuxAndroidCompileSource;
+        overlays = [ qtOverlay ];
       };
       linuxAndroidX86_64Packages = import ./nix/android {
         pkgs = linuxPkgs;
         source = linuxAndroidCompileSource;
+        overlays = [ qtOverlay ];
         androidAbi = "x86_64";
         packageName = "librepaint-android-x86_64";
       };
