@@ -11,6 +11,8 @@
 //
 // Build: cc -O2 -shared -fPIC stack_sampler.c -ldl -lpthread -o stack_sampler.so
 
+#define _GNU_SOURCE
+#include <dlfcn.h>
 #include <execinfo.h>
 #include <pthread.h>
 #include <signal.h>
