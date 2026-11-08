@@ -21,7 +21,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | Windows の ANGLE と OpenGL ES の経路 | 18 | 保留（16件）と不要（2件）。L1 の H7（ANGLE を使わない OpenGL）の結果で決める。ANGLE を残すなら必要、なくすなら不要 |
 | 画面更新の間引き（フレームレート圧縮） | 10 | 保留：L1 の H6 で Windows の遅れへの寄与を測り、`KisCanvas2` 側の間引きと1系統にまとめるかを決める |
 | HDR と色変換（バックバッファー、QRhi） | 4 | 保留：Windows の HDR 表示を維持するかと合わせて決める。LibrePaint は `setTextureColorSpace` で依存する |
-| Windows のペン入力（WinTab、Windows Ink、タッチ） | 14 | 必要（8件）、保留（3件）、不要（3件） |
+| Windows のペン入力（WinTab、Windows Ink、タッチ） | 14 | 必要（9件）、保留（2件）、不要（3件） |
 | Wayland のペン入力とウィンドウ | 10 | 正式版で解決済み（3件）、保留（4件）、不要（3件） |
 | キーボードとショートカット（配列、不均衡な押下と解放） | 12 | 必要（2件）、LibrePaint 側で代替（3件）、保留（4件）、不要（3件） |
 | 不具合とクラッシュの修正（ウィジェット、GUI、コア） | 13 | 正式版で解決済み（2件）、不要（11件） |
@@ -103,20 +103,39 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 | コミット | 件名 | 変更範囲 | 正式版 | 判定 |
 | --- | --- | --- | --- | --- |
-| c41d66281e | [win] Generate Enter/Leave events on touching non-client area of the window | src/plugins/platforms/windows | なし | 未判定 |
-| df3a678309 | [win] Remove subscription on WM_MOUSELEAVE when a tablet enters the window | src/plugins/platforms/windows | なし | 未判定 |
-| 7bb46828ae | Disable tablet relative mode in Qt | src/plugins/platforms/windows | なし | 未判定 |
-| 051139ed72 | Fetch mapped screen size from the Wintab driver | src/plugins/platforms/windows | なし | 未判定 |
-| 2357bbfe90 | Add a workaround for button mapping on Lenovo Yoga C940 | src/plugins/platforms/windows | なし | 未判定 |
-| 33a49f25d1 | Add workaround for handling table press correctly in WinInk mode | src/gui/kernel/qguiapplication.cpp, src/gui/kernel/qwindowsysteminterface.cpp, src/plugins/platforms/windows | なし | 未判定 |
-| 7ca0b0e289 | Revert "Query the mouse buttons initially in case the middle button was used" | src/plugins/platforms/windows | なし | 未判定 |
-| f5a75c4071 | WinInk: Synthesize mouse events for full pen stroke | src/plugins/platforms/windows | なし | 未判定 |
-| 41adadd8db | Synthesize Enter/LeaveEvent for accepted QTabletEvent | src/widgets/kernel/qwidgetwindow.cpp | なし | 未判定 |
-| 0027358f20 | Poison Qt's headers with a mark about presence of Enter/Leave patch | src/gui/kernel/qevent.h | なし | 未判定 |
-| 8f8eabfb72 | Fix duplicated syntetic mouse events on WinTab | src/plugins/platforms/windows | なし | 未判定 |
-| c132390390 | Revert "Send LeaveEvent as reaction to WM_POINTERLEAVE to reset hover states" | src/plugins/platforms/windows | なし | 未判定 |
-| a60ed01a25 | [win] Allow explicit accepting of touch events on Windows | src/gui/kernel/qguiapplication.cpp, src/plugins/platforms/windows | なし | 未判定 |
-| d918f368da | Windows: implement touchpad gestures using Direct Manipulation | src/gui/configure.cmake, src/gui/kernel/qevent.cpp, src/plugins/platforms/direct2d ほか | なし | 未判定 |
+| c41d66281e | [win] Generate Enter/Leave events on touching non-client area of the window | src/plugins/platforms/windows | なし | 必要 |
+| df3a678309 | [win] Remove subscription on WM_MOUSELEAVE when a tablet enters the window | src/plugins/platforms/windows | なし | 必要 |
+| 7bb46828ae | Disable tablet relative mode in Qt | src/plugins/platforms/windows | なし | 保留 |
+| 051139ed72 | Fetch mapped screen size from the Wintab driver | src/plugins/platforms/windows | なし | 必要 |
+| 2357bbfe90 | Add a workaround for button mapping on Lenovo Yoga C940 | src/plugins/platforms/windows | なし | 不要 |
+| 33a49f25d1 | Add workaround for handling table press correctly in WinInk mode | src/gui/kernel/qguiapplication.cpp, src/gui/kernel/qwindowsysteminterface.cpp, src/plugins/platforms/windows | なし | 必要 |
+| 7ca0b0e289 | Revert "Query the mouse buttons initially in case the middle button was used" | src/plugins/platforms/windows | なし | 不要 |
+| f5a75c4071 | WinInk: Synthesize mouse events for full pen stroke | src/plugins/platforms/windows | なし | 必要 |
+| 41adadd8db | Synthesize Enter/LeaveEvent for accepted QTabletEvent | src/widgets/kernel/qwidgetwindow.cpp | なし | 必要 |
+| 0027358f20 | Poison Qt's headers with a mark about presence of Enter/Leave patch | src/gui/kernel/qevent.h | なし | 必要 |
+| 8f8eabfb72 | Fix duplicated syntetic mouse events on WinTab | src/plugins/platforms/windows | なし | 必要 |
+| c132390390 | Revert "Send LeaveEvent as reaction to WM_POINTERLEAVE to reset hover states" | src/plugins/platforms/windows | なし | 必要 |
+| a60ed01a25 | [win] Allow explicit accepting of touch events on Windows | src/gui/kernel/qguiapplication.cpp, src/plugins/platforms/windows | なし | 保留 |
+| d918f368da | Windows: implement touchpad gestures using Direct Manipulation | src/gui/configure.cmake, src/gui/kernel/qevent.cpp, src/plugins/platforms/direct2d ほか | なし | 不要 |
+
+**根拠**
+
+- 必要の根拠（LibrePaint が直接使う、または外すとペンの操作が壊れる）：
+  - 051139ed72 は `QT_WINTAB_DESKTOP_RECT` と `QT_IGNORE_WINTAB_MAPPING` を追加する。LibrePaint は `libs/ui/dialogs/KisDlgCustomTabletResolution.cpp:149-161` で両方を設定し、タブレットの対応範囲の設定（Wintab の範囲、仮想画面、任意の矩形）を UI として持つ。この設定は正式版の Qt では効かなくなる。基準機 Surface Pro 7 の内蔵タブレットは主画面にしか対応しないため、この改変がないと座標がずれる。
+  - c41d66281e は、タブレットが窓の非クライアント領域に入ったときの Enter/Leave を作る。ないと、枠を触ったあとカーソルがリサイズの形のまま残る。
+  - df3a678309 は、タブレットが窓に入ったときに `WM_MOUSELEAVE` の購読を外す。ないと、ストロークの途中に余計な leave が届いてホバーの状態が途切れる。
+  - 33a49f25d1 は、Windows Ink の経路でウィジェットが押下を離すまで合成マウスを受け取れない問題（長押しが右クリックになる）を直す。メニューやボタンをペンで操作する経路に効く。
+  - f5a75c4071 は、Windows Ink の押下を受理したときに、ストローク全体（update と up）の合成マウスを作る。
+  - 41adadd8db は、`QTabletEvent` を受理したときに Enter/Leave を合成する。ないと、キャンバス以外のウィジェットでホバーの状態が変わらない。0027358f20 は、その修正があることを示す印で、`CMakeLists.txt:687` の判定に使う。
+  - 8f8eabfb72 は、WinTab で合成マウスが二重に届くのを止める。二重の押下は、クリックやドラッグの誤動作になる。
+  - c132390390 は、`WM_POINTERLEAVE` で Leave だけを送っていた変更を戻し、Enter/Leave の対応を保つ。
+- 不要の根拠：
+  - 2357bbfe90 は Lenovo Yoga C940 のドライバ固有の回避で、基準機と対象の機種に当てはまらない。
+  - 7ca0b0e289 は、WinInk が左ボタンしか報告しないのに他のボタンを初期化していた処理の戻しで、動作を変えない。
+  - d918f368da はタッチパッドのジェスチャを滑らかにするだけで、外すと 1.0.3 と同じ粗いスクロールに戻る（機能は失わない）。6.11.3 のフォークの先頭にある新しい改変で、性能の指標にも関係しない。
+- 保留の実験：
+  - 7bb46828ae（タブレットの相対モードを切る）は、Surface で合成ペン入力の座標の飛びと、`scripts/perf/pen-latency/` の PenProbe の報告レート・取りこぼしを、相対モードのある場合とない場合で比べる。
+  - a60ed01a25（タッチの受理）は、Surface のタッチでパンとズーム、タッチでの描画の設定を確かめる。タッチの操作がペンの操作を妨げないことを確かめてから決める。
 
 ## Wayland のペン入力とウィンドウ
 
