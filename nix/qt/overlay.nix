@@ -34,13 +34,18 @@ in
           inherit (srcs.qtbase) src version;
         };
         # nixpkgs backports two qtdeclarative fixes that Qt 6.11.3 already
-        # contains; applying them again fails.
+        # contains; applying them again fails. qtModule.nix attaches meta to
+        # the derivation after mkDerivation, and overrideAttrs returns a plain
+        # derivation, so meta has to be carried over for consumers that read it
+        # (for example the Android Qt modules).
         qtdeclarative = qtPrevious.qtdeclarative.overrideAttrs (old: {
           patches = builtins.filter (
             patch:
             builtins.match ".*(8a2c82be6ad90e3f2a0760d8bab1e3a8cdb2473a|9d4d376726a6ce15c429128dc65b927e411e40da).*" (toString patch) == null
           ) (old.patches or [ ]);
-        });
+        }) // {
+          inherit (qtPrevious.qtdeclarative) meta;
+        };
       }
     )
   ) { };
