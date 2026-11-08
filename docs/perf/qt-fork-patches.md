@@ -227,14 +227,29 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 | コミット | 件名 | 変更範囲 | 正式版 | 判定 |
 | --- | --- | --- | --- | --- |
-| a7c925fb66 | [windeployqt] Fix windeployqt to find ICU built with Meson | src/tools/windeployqt/main.cpp | なし | 未判定 |
-| 55a0448923 | Use fast path for unsupported mime types | src/plugins/platforms/windows | なし | 未判定 |
-| d002731cb6 | [moc] Remove double checks for file-exists in searchIncludePaths() | src/tools/moc/preprocessor.cpp | なし | 未判定 |
-| f786da6451 | Add QMdiArea::AlwaysShowSubwindowNameInTitleBar | src/widgets/widgets/qmdiarea.h, src/widgets/widgets/qmdisubwindow.cpp, src/widgets/widgets/qmdisubwindow_p.h | なし | 未判定 |
-| d343ee345f | Warn about downgraded precise timers | src/corelib/kernel/qeventdispatcher_win.cpp | cf8cd71476（2026-10-27） | 未判定 |
-| 54de8a5b6d | Add icon caching in QFusionStyle | src/widgets/styles/qfusionstyle.cpp | なし | 未判定 |
-| 7db708f3ff | Assume widgets are rendered in pass-through mode on MacOS | src/gui/painting/qbackingstoredefaultcompositor.cpp | なし | 未判定 |
-| 81a5ac7eb5 | Allow widgets to block kinetic scrolling | src/widgets/util/qflickgesture.cpp, src/widgets/util/qscroller.cpp, src/widgets/util/qscroller.h | なし | 未判定 |
-| 5874f1f131 | Implement QT_GLX_SWAP_INTERVAL_SYNC_WORKAROUND | src/plugins/platforms/xcb | なし | 未判定 |
-| b2cc4909b0 | [macos] Add bundle-local path to GenericDataLocation | src/corelib/io/qstandardpaths_mac.mm | なし | 未判定 |
-| 9dc7c77358 | Add a switch to disable accessibility on Windows | src/plugins/platforms/windows | なし | 未判定 |
+| a7c925fb66 | [windeployqt] Fix windeployqt to find ICU built with Meson | src/tools/windeployqt/main.cpp | なし | 不要 |
+| 55a0448923 | Use fast path for unsupported mime types | src/plugins/platforms/windows | なし | 不要 |
+| d002731cb6 | [moc] Remove double checks for file-exists in searchIncludePaths() | src/tools/moc/preprocessor.cpp | なし | 不要 |
+| f786da6451 | Add QMdiArea::AlwaysShowSubwindowNameInTitleBar | src/widgets/widgets/qmdiarea.h, src/widgets/widgets/qmdisubwindow.cpp, src/widgets/widgets/qmdisubwindow_p.h | なし | LibrePaint 側で代替 |
+| d343ee345f | Warn about downgraded precise timers | src/corelib/kernel/qeventdispatcher_win.cpp | cf8cd71476（2026-10-27） | 正式版で解決済み |
+| 54de8a5b6d | Add icon caching in QFusionStyle | src/widgets/styles/qfusionstyle.cpp | なし | 不要 |
+| 7db708f3ff | Assume widgets are rendered in pass-through mode on MacOS | src/gui/painting/qbackingstoredefaultcompositor.cpp | なし | 不要 |
+| 81a5ac7eb5 | Allow widgets to block kinetic scrolling | src/widgets/util/qflickgesture.cpp, src/widgets/util/qscroller.cpp, src/widgets/util/qscroller.h | なし | 不要 |
+| 5874f1f131 | Implement QT_GLX_SWAP_INTERVAL_SYNC_WORKAROUND | src/plugins/platforms/xcb | なし | 不要 |
+| b2cc4909b0 | [macos] Add bundle-local path to GenericDataLocation | src/corelib/io/qstandardpaths_mac.mm | なし | 不要 |
+| 9dc7c77358 | Add a switch to disable accessibility on Windows | src/plugins/platforms/windows | なし | 不要 |
+
+**根拠**
+
+- LibrePaint 側で代替の1件：f786da6451 の `QMdiArea::AlwaysShowSubwindowNameInTitleBar` は LibrePaint が使う（`libs/application/ui/workspace/KisMainWindow.cpp:250`）。ただし `CMakeLists.txt:817-826` が有無を `HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE` として調べ、`KisMainWindow.cpp:249-251` は印がないとき従来の動作（浮いた窓のときだけ子の名前を出す）になる。1.0.3 はタブ表示でも子の名前を窓の題名に出していたため、Q4 で LibrePaint 側から題名を設定する代替を作る（タブの切り替えで題名を更新する処理は `KisMainWindow` に既にある）。
+- 正式版で解決済みの1件：d343ee345f は qt/qtbase の cf8cd71476 に相当する。
+- 不要の根拠：
+  - a7c925fb66 は windeployqt の ICU の探索で、LibrePaint の配布物は Nix で組み立てる。
+  - 55a0448923 は Windows のクリップボードの形式の一覧を返すときの最適化で、主指標（ペンの入力から表示まで）に関係せず、遅さの計測も出ていない。
+  - d002731cb6 は moc の構築時間だけを短くする。
+  - 54de8a5b6d は QFusionStyle のアイコンのキャッシュで、窓のリサイズの遅さを直す。主指標の対象ではなく、必要になったときに計測して入れる。
+  - 7db708f3ff は macOS のウィジェットの描画の前提で、macOS は正式版の Qt で 21.5/23.3ms（DECISIONS.md 2026-11-07）。
+  - 81a5ac7eb5 は QScroller のフィルターの追加で、LibrePaint のコードは `kis_qscroller_filter` を参照しない（`KRITA_QSCROLLER_PATCH` の検査は `CMakeLists.txt:869-877` にだけある）。
+  - 5874f1f131 は GLX の交換間隔の回避で、Qt 6.11.3 の QTBUG-147854 の修正で不要になった（DECISIONS.md 2026-11-07）。
+  - b2cc4909b0 は macOS のバンドル内のデータの探索で、macOS 版は正式版の Qt で動いている。
+  - 9dc7c77358 は Windows のアクセシビリティを切る環境変数の追加で、LibrePaint は `krita/main.cc:703-712` で `DisableAccessibilityInQt` の設定に応じて設定する。正式版の Qt ではこの変数が効かず、アクセシビリティを切る設定が無効になるだけで、動作は変わらない。Q4 でこの設定項目の扱いを決める。
