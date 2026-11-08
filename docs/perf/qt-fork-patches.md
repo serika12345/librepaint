@@ -23,7 +23,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | HDR と色変換（バックバッファー、QRhi） | 4 | 保留：Windows の HDR 表示を維持するかと合わせて決める。LibrePaint は `setTextureColorSpace` で依存する |
 | Windows のペン入力（WinTab、Windows Ink、タッチ） | 14 | 必要（9件）、保留（2件）、不要（3件） |
 | Wayland のペン入力とウィンドウ | 10 | 正式版で解決済み（3件）、保留（4件）、不要（3件） |
-| キーボードとショートカット（配列、不均衡な押下と解放） | 12 | 必要（2件）、LibrePaint 側で代替（3件）、保留（4件）、不要（3件） |
+| キーボードとショートカット（配列、不均衡な押下と解放） | 12 | 必要（2件）、LibrePaint 側で代替（3件）、保留（5件）、不要（2件） |
 | 不具合とクラッシュの修正（ウィジェット、GUI、コア） | 13 | 正式版で解決済み（2件）、不要（11件） |
 | その他（構築、UI、プラットフォーム固有の調整） | 11 | LibrePaint 側で代替（1件）、正式版で解決済み（1件）、不要（9件） |
 
@@ -166,18 +166,29 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 | コミット | 件名 | 変更範囲 | 正式版 | 判定 |
 | --- | --- | --- | --- | --- |
-| 82d2864a8a | Don't eat ShortcutOverride events when there is a partial-match | src/gui/kernel/qshortcutmap_p.h, src/gui/kernel/qwindowsysteminterface.cpp | なし | 未判定 |
-| dc27f27d8e | Fix unbalanced KeyPress/Release events in children of QMdiArea | src/widgets/widgets/qmdiarea.cpp | なし | 未判定 |
-| 18a07bf888 | Fix shortcuts assigned to special keys on non-latin layouts | src/plugins/platforms/windows | なし | 未判定 |
-| 3fab97e30b | Fix multiple shortcuts match from different keyboard layouts | src/gui/kernel/qshortcutmap.cpp | なし | 未判定 |
-| adf861033b | Fix fallback latin shortcuts not to be the top priority on Windows | src/plugins/platforms/windows | なし | 未判定 |
-| 747423036c | [win] Fix unbalanced KeyPress/Release events when using | src/plugins/platforms/windows | なし | 未判定 |
-| f8a61ebc5b | [win] Fin unbalanced shortcuts on non-latin layouts again | src/plugins/platforms/windows | なし | 未判定 |
-| 9bfd8a120f | Make sure AltGr-based shortcuts are disallowed when textbox is in focus | src/widgets/widgets/qwidgetlinecontrol.cpp | なし | 未判定 |
-| c8049a518f | Fix composing of dead keys with short form of system locale | src/plugins/platforminputcontexts/compose | なし | 未判定 |
-| 07a57fa505 | Fix shortcuts with special keys on non-US layouts on Linux | src/gui/platform/unix | なし | 未判定 |
-| 21d400db4f | Fix unbalanced KeyPress/Release on non-latin keyboard on Linux | src/plugins/platforms/xcb | なし | 未判定 |
-| 35296972ce | Poison Qt's headers with a mark about presence of KeyPress/Release patches | src/gui/kernel/qevent.h | なし | 未判定 |
+| 82d2864a8a | Don't eat ShortcutOverride events when there is a partial-match | src/gui/kernel/qshortcutmap_p.h, src/gui/kernel/qwindowsysteminterface.cpp | なし | 必要 |
+| dc27f27d8e | Fix unbalanced KeyPress/Release events in children of QMdiArea | src/widgets/widgets/qmdiarea.cpp | なし | 必要 |
+| 18a07bf888 | Fix shortcuts assigned to special keys on non-latin layouts | src/plugins/platforms/windows | なし | 保留 |
+| 3fab97e30b | Fix multiple shortcuts match from different keyboard layouts | src/gui/kernel/qshortcutmap.cpp | なし | 保留 |
+| adf861033b | Fix fallback latin shortcuts not to be the top priority on Windows | src/plugins/platforms/windows | なし | 保留 |
+| 747423036c | [win] Fix unbalanced KeyPress/Release events when using | src/plugins/platforms/windows | なし | LibrePaint 側で代替 |
+| f8a61ebc5b | [win] Fin unbalanced shortcuts on non-latin layouts again | src/plugins/platforms/windows | なし | LibrePaint 側で代替 |
+| 9bfd8a120f | Make sure AltGr-based shortcuts are disallowed when textbox is in focus | src/widgets/widgets/qwidgetlinecontrol.cpp | なし | 保留 |
+| c8049a518f | Fix composing of dead keys with short form of system locale | src/plugins/platforminputcontexts/compose | なし | 不要 |
+| 07a57fa505 | Fix shortcuts with special keys on non-US layouts on Linux | src/gui/platform/unix | なし | 保留 |
+| 21d400db4f | Fix unbalanced KeyPress/Release on non-latin keyboard on Linux | src/plugins/platforms/xcb | なし | LibrePaint 側で代替 |
+| 35296972ce | Poison Qt's headers with a mark about presence of KeyPress/Release patches | src/gui/kernel/qevent.h | なし | 不要 |
+
+**根拠**
+
+- 必要の根拠：
+  - 82d2864a8a は、Qt が部分一致のショートカットで ShortcutOverride を食べないようにする。件名に Krita とあり、LibrePaint は独自のショートカット処理 `KisShortcutMatcher`（`libs/input/kis_shortcut_matcher.h:73`）を持つため、この改変がないと独自処理に届かないショートカットが出る。
+  - dc27f27d8e は、QMdiArea の子で Ctrl+Tab を押したときの KeyPress/KeyRelease の不均衡を直す。LibrePaint は文書の切り替えに QMdiArea を使う（`libs/application/ui/workspace/KisMainWindow.cpp:245-251`）。
+- LibrePaint 側で代替の根拠：747423036c、f8a61ebc5b、21d400db4f（非ラテン配列での KeyPress/KeyRelease の不均衡）は、`libs/input/ui/kis_input_manager_p.cpp:242` の回避コード（`useUnbalancedKeyPressEventWorkaround`）と同じ問題を扱う。この回避コードは macOS で常に、Linux では印がないとき（`!KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH`）に有効になり、`KRITA_FIX_UNBALANCED_KEY_EVENTS` で切り替えられる。Q4 では Windows でも印がないときに有効にする（3行程度の変更）。
+- 不要の根拠：
+  - c8049a518f は、システムのロケールが `en_US` の短い形のときに compose の表が見つからない問題で、LibrePaint は端末のロケール（`ja_JP.UTF-8` など）をそのまま使う。
+  - 35296972ce は印だけの改変で、動作を変えない。印がないと上の回避コードが有効になる。
+- 保留（非ラテン配列のショートカットの実際の一致）：18a07bf888、3fab97e30b、adf861033b、07a57fa505、9bfd8a120f は、非ラテン配列で特殊キー（`\`、`/`、`;`、`` ` ``、`'`）や AltGr を使ったときの一致の優先順位を変える。LibrePaint の利用者の配列（日本語）で実際に不具合が出るかを確かめる。確かめ方は、日本語配列で (1) テキストツールの入力中に AltGr 相当の文字を打ち、(2) 特殊キーに割り当てたショートカットを押し、(3) 同じキーに複数の配列で割り当てがある状態でショートカットを押す、の3つを旧版と比べる。不具合が出なければ「不要」にする。
 
 ## 不具合とクラッシュの修正（ウィジェット、GUI、コア）
 
