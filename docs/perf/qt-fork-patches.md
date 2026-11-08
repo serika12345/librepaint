@@ -67,16 +67,22 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 | コミット | 件名 | 変更範囲 | 正式版 | 判定 |
 | --- | --- | --- | --- | --- |
-| e121cb08e5 | Pass proper dirty rect in paint event to QOpenGLWidget with partial updates | src/openglwidgets/qopenglwidget.cpp, src/widgets/kernel/qwidget.cpp, src/widgets/kernel/qwidget_p.h ほか | なし | 未判定 |
-| a9b60ead54 | Implement framerate compression in QWidgetRepaintManager | src/corelib/CMakeLists.txt, src/corelib/kernel/qsignalcompressor.cpp, src/corelib/kernel/qsignalcompressor_p.h ほか | なし | 未判定 |
-| 7ec0f9c727 | Replace QSignalCompressor with a specialized QFrameRateCompressor | src/corelib/CMakeLists.txt, src/corelib/kernel/qframeratecompressor.cpp, src/corelib/kernel/qframeratecompressor_p.h ほか | なし | 未判定 |
-| fb923e4a97 | Add fast-transfer option for QImage when rendering QWidget | src/gui/painting/qbackingstoredefaultcompositor.cpp | なし | 未判定 |
-| 6d39b2c286 | Compress frames in a more parallel way | src/gui/rhi/qrhi.cpp, src/gui/rhi/qrhi.h, src/gui/rhi/qrhi_p.h ほか | なし | 未判定 |
-| dc3246d166 | Fix possible recursion issue in QFrameRateCompressor | src/corelib/kernel/qframeratecompressor.cpp, src/corelib/kernel/qframeratecompressor_p.h | なし | 未判定 |
-| 6e540ae34f | Implement ability to switch FPS compression mode | src/widgets/kernel/qwidgetrepaintmanager.cpp | なし | 未判定 |
-| c7d92e97b8 | Implement optional FPS stats printing | src/corelib/CMakeLists.txt, src/corelib/kernel/qmeasureavgportion_p.h, src/gui/rhi/qrhigles2.cpp | なし | 未判定 |
-| 71fd8157aa | Add QT_FRAME_RATE_OVERRIDE switch | src/widgets/kernel/qwidgetrepaintmanager.cpp | なし | 未判定 |
-| f1cf04e958 | Fix clipping when cutting QOpenGLWidget through the GUI texture | src/widgets/kernel/qwidget.cpp | なし | 未判定 |
+| e121cb08e5 | Pass proper dirty rect in paint event to QOpenGLWidget with partial updates | src/openglwidgets/qopenglwidget.cpp, src/widgets/kernel/qwidget.cpp, src/widgets/kernel/qwidget_p.h ほか | なし | 保留 |
+| a9b60ead54 | Implement framerate compression in QWidgetRepaintManager | src/corelib/CMakeLists.txt, src/corelib/kernel/qsignalcompressor.cpp, src/corelib/kernel/qsignalcompressor_p.h ほか | なし | 保留 |
+| 7ec0f9c727 | Replace QSignalCompressor with a specialized QFrameRateCompressor | src/corelib/CMakeLists.txt, src/corelib/kernel/qframeratecompressor.cpp, src/corelib/kernel/qframeratecompressor_p.h ほか | なし | 保留 |
+| fb923e4a97 | Add fast-transfer option for QImage when rendering QWidget | src/gui/painting/qbackingstoredefaultcompositor.cpp | なし | 保留 |
+| 6d39b2c286 | Compress frames in a more parallel way | src/gui/rhi/qrhi.cpp, src/gui/rhi/qrhi.h, src/gui/rhi/qrhi_p.h ほか | なし | 保留 |
+| dc3246d166 | Fix possible recursion issue in QFrameRateCompressor | src/corelib/kernel/qframeratecompressor.cpp, src/corelib/kernel/qframeratecompressor_p.h | なし | 保留 |
+| 6e540ae34f | Implement ability to switch FPS compression mode | src/widgets/kernel/qwidgetrepaintmanager.cpp | なし | 保留 |
+| c7d92e97b8 | Implement optional FPS stats printing | src/corelib/CMakeLists.txt, src/corelib/kernel/qmeasureavgportion_p.h, src/gui/rhi/qrhigles2.cpp | なし | 保留 |
+| 71fd8157aa | Add QT_FRAME_RATE_OVERRIDE switch | src/widgets/kernel/qwidgetrepaintmanager.cpp | なし | 保留 |
+| f1cf04e958 | Fix clipping when cutting QOpenGLWidget through the GUI texture | src/widgets/kernel/qwidget.cpp | なし | 保留 |
+
+**根拠**
+
+- LibrePaint は、この一群があるときは `krita/main.cc:715-726` で `QT_BACKING_STORE_USE_FAST_QIMAGE_TRANSFER` と `QT_FRAME_RATE_OVERRIDE` を設定し、間引きを Qt（`QFrameRateCompressor`）に任せる。ないときは `KisCanvas2` 側の自前の間引き（`libs/ui/canvas/kis_canvas2.cpp:245`、`:355`、`:407`、`:1181`、`:1192`）が働く。この分岐が「描画の更新の仕組みが2系統ある」の実体で、Q4 の完了条件「1系統にする」はここを指す。
+- L1 の H6 の実験で、Windows の現行版（フォーク、間引きあり）を `QT_FRAME_COMPRESSION_MODE=2`（間引きなし）でも測り、遅れへの寄与を求める。同時に、正式版の Qt で `KisCanvas2` 側の間引きが働いた場合の値と比べる。差が 2ms 未満なら「不要」にし、`KisCanvas2` の1系統にまとめる。
+- e121cb08e5（部分更新の dirty rect）と f1cf04e958（GUI テクスチャの切り抜き）は、間引きとは別に、部分再描画の範囲とクリップの正しさを変える。H6 の計測で部分再描画を残す場合は、この2件だけを「必要」として残す候補にする。
 
 ## HDR と色変換（バックバッファー、QRhi）
 
