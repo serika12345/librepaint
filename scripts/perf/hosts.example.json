@@ -1,0 +1,44 @@
+{
+  "comment": "Copy to build/perf/hosts.json (not tracked) and fill in the hosts and paths. run.py runs on a machine that reaches every host: Windows and Linux hosts over ssh, the macOS host locally. capture_offset_ms is subtracted from capture values; check it per host with presentation_check.py (DEVELOPMENT.md, performance measurement).",
+  "hosts": [
+    {
+      "name": "windows",
+      "kind": "windows",
+      "system": "Windows tablet, integrated GPU, 60 Hz",
+      "ssh": "<ssh alias>",
+      "capture_tool": "<local path of the built windows_capture.exe>",
+      "capture_offset_ms": 0,
+      "targets": [
+        {"name": "LibrePaint-1.0.3", "runner_target": "LibrePaint", "app": "<Windows path of LibrePaint.exe>"},
+        {"name": "Krita", "runner_target": "Krita", "app": "<Windows path of krita.exe>"},
+        {"name": "PenProbe", "runner_target": "PenProbe"}
+      ]
+    },
+    {
+      "name": "linux",
+      "kind": "linux",
+      "system": "GNOME, integrated GPU, 60 Hz",
+      "ssh": "<ssh alias>",
+      "repo": "<repository path on the host>",
+      "work": "<scratch directory on the host>",
+      "remote_out": "<run output directory on the host>",
+      "capture_offset_ms": 16,
+      "targets": [
+        {"name": "LibrePaint", "command": ["<launcher>", "--nosplash"]},
+        {"name": "Reference", "command": ["<python with tkinter>", "scripts/perf/pen-latency/reference_app.py"]}
+      ]
+    },
+    {
+      "name": "macos",
+      "kind": "macos",
+      "system": "Apple silicon, 60 Hz",
+      "capture_tool": "<local path of the built macos_capture>",
+      "work": "<local scratch directory>",
+      "capture_offset_ms": 0,
+      "targets": [
+        {"name": "LibrePaint", "command": ["<path>/LibrePaint.app/Contents/MacOS/LibrePaint", "--nosplash"]},
+        {"name": "Reference", "command": ["<path>/macos_reference_app"]}
+      ]
+    }
+  ]
+}

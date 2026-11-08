@@ -222,6 +222,19 @@ MACOS_CAPTURE=/path/macos_capture \
   scripts/perf/pen-latency/run-macos.sh <名前> 5 <作業ディレクトリー> <出力先> -- <アプリのコマンド>
 ```
 
+複数の機器と対象をまとめて計測するときは、`scripts/perf/run.py`を使う。シナリオ
+（`scripts/perf/scenarios/*.json`）が軌跡、設定、回数、ばらつきの上限、悪化と判定する差を定め、
+手元の機器の設定（`scripts/perf/hosts.example.json`を写した`build/perf/hosts.json`。Git の管理外）が
+各機器への入り方、対象の起動方法、取り込みの補正値を定める。各回で対象を交互に1回ずつ測り、
+集計をJSONに保存し、基準の集計と比べた判定の表を出す。判定が`check`の行があると終了コードは1になる。
+すべての機器に入れる1台（WindowsとLinuxにはssh、macOSはその機器自身）で実行する。
+
+```sh
+scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
+  --label <名前> [--only windows,linux] [--baseline <前回の集計.json>] [--summary docs/perf/results/<名前>.json]
+scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果のディレクトリー>
+```
+
 判定の規則：
 
 - 比較する対象は、同じ機器、同じ窓とキャンバスの大きさ、同じ設定で交互に計測する。

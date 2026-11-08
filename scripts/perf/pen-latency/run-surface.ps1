@@ -80,7 +80,8 @@ try {
         foreach ($property in $request.inject.PSObject.Properties) { $options.($property.Name) = $property.Value }
     }
     $presentMon = Join-Path (Split-Path -Parent $here) 'PresentMon.exe'
-    $id = '{0}-{1}' -f $target, (Get-Date -Format 'yyyyMMdd-HHmmss')
+    $runName = if ($request.name) { [string]$request.name } else { $target }
+    $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
 
     for ($n = 1; $n -le $runs; $n++) {
         $dir = Join-Path $here ("runs\{0}-{1}" -f $id, $n)
