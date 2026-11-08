@@ -4,39 +4,64 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 「正式版」の列は、改変の件名で qt/qtbase の履歴を検索して見つかったコミットを示す（2026-11-08 時点）。件名が変わって取り込まれたものは見落としている可能性がある。
 
-| まとまり | 件数 | 判定の方針（暫定） |
+## 判定の区分
+
+| 区分 | 意味 |
+| --- | --- |
+| 不要 | LibrePaint がその経路を使わない。または、その改変なしで LibrePaint の動作が変わらない |
+| 正式版で解決済み | Qt 正式版（6.11.3 以降）に同等の修正が入っている |
+| LibrePaint 側で代替 | 正式版にはないが、LibrePaint のコードで同じ結果にできる。代替する箇所を書く |
+| 必要 | 正式版の Qt では LibrePaint の動作が壊れる。Q4 では、修正を公式に入れるか LibrePaint 側で作り直すまで外せない |
+| 保留 | 数値か機能の確認で決める。決めるための実験を書く |
+
+根拠は、改変の差分（`gh api repos/dimula73/qtbase/commits/<sha>`）、LibrePaint の依存箇所（`git grep` の結果）、正式版 Qt 6.11.3 での扱いの3つで示す。判断は CHARTER の「一般的な水準を超えて作り込まない」に従い、公式 Krita が全プラットフォームでその改変を使っていることと、LibrePaint が既に正式版の Qt で動いている環境（Linux、macOS）を基準にする。
+
+| まとまり | 件数 | 判定 |
 | --- | --- | --- |
-| Windows の ANGLE と OpenGL ES の経路 | 18 | 保留：L1 の H7（ANGLE を使わない OpenGL）の結果で決める。ANGLE を残すなら必要、なくすなら不要 |
-| 画面更新の間引き（フレームレート圧縮） | 10 | 代替の候補：LibrePaint は Linux と macOS でこれなしに `KisCanvas2` 側の間引きで動いている。L1 の H6 で Windows の遅れへの寄与を測り、1系統にまとめる |
-| HDR と色変換（バックバッファー、QRhi） | 4 | 保留：Windows の HDR 表示を維持するかと合わせて決める。LibrePaint は `setTextureColorSpace`（小さな色選択器）で依存 |
-| Windows のペン入力（WinTab、Windows Ink、タッチ） | 14 | 必要の可能性が高い：ペン入力に直結する。外すかどうかは、合成ペン入力と PenProbe の数値（報告レート、取りこぼし）で確かめる |
-| Wayland のペン入力とウィンドウ | 10 | 要確認：LibrePaint の Linux 版はこれなしで動いている。正式版に取り込み済みのものは、取り込んだ版で解決 |
-| キーボードとショートカット（配列、不均衡な押下と解放） | 12 | 代替の候補：LibrePaint は `KRITA_QT_HAS_UNBALANCED_KEY_PRESS_RELEASE_PATCH` と `KRITA_QT_HAS_ENTER_LEAVE_PATCH` がないとき回避コードで動く（Linux と macOS で既に使用） |
-| 不具合とクラッシュの修正（ウィジェット、GUI、コア） | 13 | 要確認：1件ずつ、再現条件が LibrePaint で起きるかを確かめる。正式版に取り込み済みのものは解決済み |
-| その他（構築、UI、プラットフォーム固有の調整） | 11 | 個別：`QMdiArea::AlwaysShowSubwindowNameInTitleBar` は LibrePaint が使う（代替が必要）。`QT_GLX_SWAP_INTERVAL_SYNC_WORKAROUND` は Linux の交換の止まりと関係し、Qt 6.11.3 の修正で不要の見込み |
+| Windows の ANGLE と OpenGL ES の経路 | 18 | 保留（16件）と不要（2件）。L1 の H7（ANGLE を使わない OpenGL）の結果で決める。ANGLE を残すなら必要、なくすなら不要 |
+| 画面更新の間引き（フレームレート圧縮） | 10 | 保留：L1 の H6 で Windows の遅れへの寄与を測り、`KisCanvas2` 側の間引きと1系統にまとめるかを決める |
+| HDR と色変換（バックバッファー、QRhi） | 4 | 保留：Windows の HDR 表示を維持するかと合わせて決める。LibrePaint は `setTextureColorSpace` で依存する |
+| Windows のペン入力（WinTab、Windows Ink、タッチ） | 14 | 必要（8件）、保留（3件）、不要（3件） |
+| Wayland のペン入力とウィンドウ | 10 | 正式版で解決済み（3件）、保留（4件）、不要（3件） |
+| キーボードとショートカット（配列、不均衡な押下と解放） | 12 | 必要（2件）、LibrePaint 側で代替（3件）、保留（4件）、不要（3件） |
+| 不具合とクラッシュの修正（ウィジェット、GUI、コア） | 13 | 正式版で解決済み（2件）、不要（11件） |
+| その他（構築、UI、プラットフォーム固有の調整） | 11 | LibrePaint 側で代替（1件）、正式版で解決済み（1件）、不要（9件） |
 
 ## Windows の ANGLE と OpenGL ES の経路
 
 | コミット | 件名 | 変更範囲 | 正式版 | 判定 |
 | --- | --- | --- | --- | --- |
-| 927cee712e | Fix difinition in QEGLPlatformContext | src/gui/opengl/platform | なし | 未判定 |
-| 731ab8bba8 | Fix openGL 2.x support in QOpenGL2PaintEngine | src/opengl/qopenglpaintengine.cpp, src/opengl/qopenglpaintengine_p.h | なし | 未判定 |
-| 8ec599f593 | [eglfs] Don't enable QOpenGLCompositor on platforms it is not used | src/opengl/CMakeLists.txt | なし | 未判定 |
-| 50d61a44d5 | [xcb] Fix QPlatformIntegration::openGLModuleType() for XCB platform | src/gui/kernel/qplatformintegration.cpp, src/plugins/platforms/xcb | なし | 未判定 |
-| f5a65b7761 | [win] Recover ANGLE support on Windows | cmake/3rdparty/extra-cmake-modules/find-modules, cmake/FindGLESv2.cmake, src/gui/CMakeLists.txt ほか | なし | 未判定 |
-| 7ad4a8bc17 | QSurfaceFormat: implement color space selection for OpenGL ES | src/gui/kernel/qsurfaceformat.cpp, src/gui/kernel/qsurfaceformat.h, src/gui/opengl/platform ほか | なし | 未判定 |
-| 95bb9c74f1 | Deprecate QT_FEATURE_opengl_dynamic | src/gui/CMakeLists.txt, src/gui/configure.cmake, src/gui/kernel/qopenglcontext.cpp ほか | なし | 未判定 |
-| 747eca7b69 | Let hellogles3 to manually switch API on Windows | examples/opengl/hellogles3/CMakeLists.txt, examples/opengl/hellogles3/app.manifest, examples/opengl/hellogles3/glwindow.cpp ほか | なし | 未判定 |
-| 72a68d87fd | Fix building on platforms without EGL | src/gui/CMakeLists.txt | なし | 未判定 |
-| 02216d26ba | [win+angle] Fix flickering when resizing the Window | src/plugins/platforms/windows | なし | 未判定 |
-| 1efb3f6434 | [win] Implement callback for ANGLE debugging information | src/plugins/platforms/windows | なし | 未判定 |
-| 261c23275e | [win] Implement support for ANGLE's openGL backend | src/gui/kernel/qplatformopenglcontext.h, src/gui/rhi/qrhigles2.cpp, src/gui/rhi/qrhigles2_p.h ほか | なし | 未判定 |
-| 14ebe92549 | Remove dynamicgl from mkspecs | mkspecs/features/win32/opengl.prf | なし | 未判定 |
-| aced4e6119 | Fix crash on Linux when using wayland plugin | src/gui/opengl/platform | なし | 未判定 |
-| 7f50d93a7f | Fix a crash when opening multiple windows in Compatibility openGL profile | src/opengl/qopenglpaintengine.cpp, src/opengl/qopenglpaintengine_p.h | なし | 未判定 |
-| 1a543f2832 | Add workaround for flickering on resizing on ANGLE and Qt6 | src/plugins/platforms/windows | なし | 未判定 |
-| 77d2b02daf | Fix flickering when opening dialogs on ANGLE and Qt6 | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/painting/qplatformbackingstore.cpp ほか | なし | 未判定 |
-| 70086804f9 | Fix EGL format being reset to 0 alpha instead of 2 | src/gui/opengl/platform | なし | 未判定 |
+| 927cee712e | Fix difinition in QEGLPlatformContext | src/gui/opengl/platform | なし | 保留 |
+| 731ab8bba8 | Fix openGL 2.x support in QOpenGL2PaintEngine | src/opengl/qopenglpaintengine.cpp, src/opengl/qopenglpaintengine_p.h | なし | 保留 |
+| 8ec599f593 | [eglfs] Don't enable QOpenGLCompositor on platforms it is not used | src/opengl/CMakeLists.txt | なし | 不要 |
+| 50d61a44d5 | [xcb] Fix QPlatformIntegration::openGLModuleType() for XCB platform | src/gui/kernel/qplatformintegration.cpp, src/plugins/platforms/xcb | なし | 不要 |
+| f5a65b7761 | [win] Recover ANGLE support on Windows | cmake/3rdparty/extra-cmake-modules/find-modules, cmake/FindGLESv2.cmake, src/gui/CMakeLists.txt ほか | なし | 保留 |
+| 7ad4a8bc17 | QSurfaceFormat: implement color space selection for OpenGL ES | src/gui/kernel/qsurfaceformat.cpp, src/gui/kernel/qsurfaceformat.h, src/gui/opengl/platform ほか | なし | 保留 |
+| 95bb9c74f1 | Deprecate QT_FEATURE_opengl_dynamic | src/gui/CMakeLists.txt, src/gui/configure.cmake, src/gui/kernel/qopenglcontext.cpp ほか | なし | 保留 |
+| 747eca7b69 | Let hellogles3 to manually switch API on Windows | examples/opengl/hellogles3/CMakeLists.txt, examples/opengl/hellogles3/app.manifest, examples/opengl/hellogles3/glwindow.cpp ほか | なし | 不要 |
+| 72a68d87fd | Fix building on platforms without EGL | src/gui/CMakeLists.txt | なし | 不要 |
+| 02216d26ba | [win+angle] Fix flickering when resizing the Window | src/plugins/platforms/windows | なし | 保留 |
+| 1efb3f6434 | [win] Implement callback for ANGLE debugging information | src/plugins/platforms/windows | なし | 不要 |
+| 261c23275e | [win] Implement support for ANGLE's openGL backend | src/gui/kernel/qplatformopenglcontext.h, src/gui/rhi/qrhigles2.cpp, src/gui/rhi/qrhigles2_p.h ほか | なし | 保留 |
+| 14ebe92549 | Remove dynamicgl from mkspecs | mkspecs/features/win32/opengl.prf | なし | 保留 |
+| aced4e6119 | Fix crash on Linux when using wayland plugin | src/gui/opengl/platform | なし | 不要 |
+| 7f50d93a7f | Fix a crash when opening multiple windows in Compatibility openGL profile | src/opengl/qopenglpaintengine.cpp, src/opengl/qopenglpaintengine_p.h | なし | 不要 |
+| 1a543f2832 | Add workaround for flickering on resizing on ANGLE and Qt6 | src/plugins/platforms/windows | なし | 保留 |
+| 77d2b02daf | Fix flickering when opening dialogs on ANGLE and Qt6 | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/painting/qplatformbackingstore.cpp ほか | なし | 保留 |
+| 70086804f9 | Fix EGL format being reset to 0 alpha instead of 2 | src/gui/opengl/platform | なし | 保留 |
+
+**根拠**
+
+- まとまりの判定：LibrePaint の Windows 版は既定で ANGLE（`krita/main.cc:656` の `OpenGLRenderer` の既定値 `angle`）を使い、ANGLE 専用の環境変数（`QT_USE_PREMATURE_RESIZE_EVENTS`、`QT_ANGLE_MANUALLY_UPDATE_SURFACE_SIZE`、`QT_PREFILL_RHI_SURFACE`、`krita/main.cc:677-697`）を設定する。f5a65b7761 などの ANGLE 復活の一群は、ANGLE を残すなら必要、やめるなら不要になる。判定は L1 の H7（ANGLE を使わない OpenGL で Windows の遅れが変わるか）で決める。
+- 不要の根拠：
+  - 8ec599f593 は eglfs 専用の変更で、LibrePaint は eglfs を使わない（Linux は xcb と Wayland）。
+  - 50d61a44d5 は xcb の `openGLModuleType()` の報告値の変更で、正式版の Qt で Linux 版が動いている（DECISIONS.md 2026-11-08 の色プロファイルの修正で 20/16ms）。
+  - 747eca7b69 は example の変更で、製品に含まれない。
+  - 72a68d87fd は EGL のない環境の構築の修正で、LibrePaint の Linux と macOS の構築は正式版で通っている。
+  - 1efb3f6434 は ANGLE のデバッグ情報で、LibrePaint は使わない。
+  - aced4e6119 は Linux の Wayland でのクラッシュの修正で、正式版で Wayland の LibrePaint が動いている（同上）。
+  - 7f50d93a7f は複数のトップレベル窓を互換プロファイルで開いたときのクラッシュで、LibrePaint は `KisMainWindow` の MDI（トップレベル窓は1つ）で使う。互換プロファイル自体は `libs/ui/opengl/kis_opengl.cpp:604` で要求するが、窓は1つ。
+- 保留の実験：L1 の H7 で、Windows の LibrePaint を ANGLE なし（デスクトップ OpenGL）で起動し、合成ペン入力のホバー輪郭とインクの中央値・P95 を 1.0.3 と比べる。ANGLE を残す場合はこの一群を「必要」、やめる場合は「不要」にする。7ad4a8bc17 と 70086804f9 は HDR の判定にも従う。
 
 ## 画面更新の間引き（フレームレート圧縮）
 
