@@ -88,10 +88,16 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 | コミット | 件名 | 変更範囲 | 正式版 | 判定 |
 | --- | --- | --- | --- | --- |
-| 752559eb9b | Implement color conversion for the backing store texture | src/gui/CMakeLists.txt, src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h ほか | なし | 未判定 |
-| c55693d623 | Implement a manual test for checking is HDR features work | examples/opengl/CMakeLists.txt, examples/opengl/hdr-qopenglwidget/CMakeLists.txt, examples/opengl/hdr-qopenglwidget/KisGLImageF16.cpp ほか | なし | 未判定 |
-| a1fa6f1629 | Create color conversion pipelines on-demand | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h | なし | 未判定 |
-| 5da2f94813 | Implement feature QRhi::DynamicBlendSwitch | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/rhi/qrhi.h ほか | なし | 未判定 |
+| 752559eb9b | Implement color conversion for the backing store texture | src/gui/CMakeLists.txt, src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h ほか | なし | 保留 |
+| c55693d623 | Implement a manual test for checking is HDR features work | examples/opengl/CMakeLists.txt, examples/opengl/hdr-qopenglwidget/CMakeLists.txt, examples/opengl/hdr-qopenglwidget/KisGLImageF16.cpp ほか | なし | 保留 |
+| a1fa6f1629 | Create color conversion pipelines on-demand | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h | なし | 保留 |
+| 5da2f94813 | Implement feature QRhi::DynamicBlendSwitch | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/rhi/qrhi.h ほか | なし | 保留 |
+
+**根拠**
+
+- LibrePaint の HDR 表示は、この一群の上に成り立つ。`CMakeLists.txt:784-793` は `QOpenGLWidget::setTextureColorSpace` の有無を `HAVE_HDR` として調べ、`libs/ui/opengl/kis_opengl.cpp:813`（HDR 形式の判定）、`:920`（16bit のサーフェスの形式の一覧）、`libs/ui/opengl/KisScreenInformationAdapter.cpp:152`（画面の HDR の検出）、`plugins/dockers/lut/lutdocker_dock.cpp:244`、`plugins/dockers/smallcolorselector/KisGLImageWidget.cpp:65-66` がそれに依存する。`QOpenGLWidget::setTextureColorSpace` は正式版の Qt にない。
+- したがって、この一群を外すと Windows の HDR 表示（10bit のキャンバスと色変換）がなくなる。CHARTER の「UI と操作の見かけは旧版から変えない」に照らすと、HDR の画面での見かけが変わるため、判定は Windows の HDR 表示を残すかどうかで決まる。
+- 決めるための確認：基準機 Surface Pro 7 の内蔵画面は 8bit で、HDR の確認は外部の HDR 画面が要る。確認は「Windows の HDR を有効にした画面で、旧版と Q1 版のキャンバスと色選択器の見かけを並べる」で行う。HDR を残す場合は、Q4 で正式版の Qt に対する同等の色変換（バックバッファーの色空間の変換）を LibrePaint 側に作るか、公式の修正を待つ。HDR をやめる場合はこの一群を「不要」とし、`HAVE_HDR` の分岐を外す。
 
 ## Windows のペン入力（WinTab、Windows Ink、タッチ）
 
