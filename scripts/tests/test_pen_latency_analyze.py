@@ -119,6 +119,36 @@ class PresentMonTest(unittest.TestCase):
         }
         self.assertEqual(analyze.compare(results)["hover.input_to_display"]["runs"], 2)
 
+    def test_a_short_presentmon_recording_is_partial(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with open(os.path.join(directory, "probe.csv"), "w") as handle:
+                handle.write("# frequency=10000000\n")
+                handle.write("time,event,x,y,extra,thread\n")
+                handle.write("%d,native_pointer,0.00,0.00,%d,1\n" % (ms(1000), pointer(INRANGE)))
+            with open(os.path.join(directory, "inject.csv"), "w") as handle:
+                handle.write("time_ns,phase,band,x,y,pressed\n")
+                handle.write("1000000000,move,hover,1.0,1.0,0\n")
+                handle.write("2000000000,move,hover,2.0,1.0,0\n")
+            write_run(directory, [], [(ms(1000), "20.0"), (ms(1020), "20.0")])
+            result = analyze.Run(directory).analyze()
+        self.assertEqual(result["presentmon"]["status"], "partial")
+        self.assertAlmostEqual(result["presentmon"]["coverage"], 0.02, places=2)
+
+
+class PresentMonCoverageComparisonTest(unittest.TestCase):
+    def test_partial_runs_are_left_out_of_the_breakdown_comparison(self):
+        results = {
+            "a": {"hover.input_to_display": {"n": 10, "p50": 50.0},
+                  "presentmon": {"present": True, "status": "present"}},
+            "b": {"hover.input_to_display": {"n": 10, "p50": 51.0},
+                  "presentmon": {"present": True, "status": "present"}},
+            "c": {"hover.input_to_display": {"n": 10, "p50": 52.0},
+                  "presentmon": {"present": True, "status": "partial"}},
+        }
+        entry = analyze.compare(results)["hover.input_to_display"]
+        self.assertEqual(entry["runs"], 2)
+        self.assertAlmostEqual(entry["median_of_medians"], 50.5)
+
 
 class RunComparisonTest(unittest.TestCase):
     def test_spread_is_range_of_run_medians_over_their_median(self):

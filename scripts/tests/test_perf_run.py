@@ -60,12 +60,12 @@ class SummaryTest(unittest.TestCase):
         self.assertAlmostEqual(metric["spread"], 0.0, places=6)
 
 
-def fake_run(state, hover, ink):
+def fake_run(state, hover, ink, presentmon_status="present"):
     return {
         "hover.input_to_capture": {"n": 100, "p05": hover - 5, "p50": hover, "p95": hover + 10},
         "ink.input_to_capture": {"n": 100, "p05": ink - 5, "p50": ink, "p95": ink + 10},
         "state": {"label": state},
-        "presentmon": {"present": True},
+        "presentmon": {"present": presentmon_status != "none", "status": presentmon_status},
     }
 
 
@@ -107,6 +107,33 @@ class RunnerCommandTest(unittest.TestCase):
                 run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
 
 
+class PresentMonAggregateTest(unittest.TestCase):
+    def run_result(self, status, hover, display):
+        return {
+            "metrics": {
+                "hover.input_to_capture": {"n": 10, "p05": hover - 5, "p50": hover, "p95": hover + 10},
+                "hover.input_to_display": {"n": 10, "p05": display - 5, "p50": display, "p95": display + 10},
+            },
+            "state": {"label": "low"},
+            "presentmon": {"present": status != "none", "status": status},
+        }
+
+    def test_partial_runs_stay_in_capture_metrics_and_leave_display_metrics(self):
+        runs = [
+            self.run_result("present", 50.0, 60.0),
+            self.run_result("present", 51.0, 62.0),
+            self.run_result("partial", 52.0, 90.0),
+        ]
+        aggregated = run.aggregate(runs, {"hover.input_to_capture": {}, "hover.input_to_display": {}})
+        self.assertEqual(aggregated["hover.input_to_capture"]["runs"], 3)
+        self.assertEqual(aggregated["hover.input_to_display"]["runs"], 2)
+        self.assertAlmostEqual(aggregated["hover.input_to_display"]["median"], 61.0)
+
+    def test_old_summaries_without_status_count_as_present(self):
+        self.assertEqual(run.presentmon_status({"presentmon": {"present": True}}), "present")
+        self.assertEqual(run.presentmon_status({"presentmon": {"present": False}}), "none")
+
+
 class StateSummaryTest(unittest.TestCase):
     SCENARIO = {
         "name": "test",
@@ -140,6 +167,16 @@ class StateSummaryTest(unittest.TestCase):
         hover_states = {row[9] for row in rows if row[2] == "hover.input_to_capture"}
         self.assertEqual(hover_states, {"low", "high"})
         self.assertTrue(all(row[9] is None for row in rows if row[2] == "ink.input_to_capture"))
+
+    def test_presentmon_status_counts_are_reported(self):
+        summary = self.summarize([
+            fake_run("low", 55.0, 61.0),
+            fake_run("low", 56.0, 61.0, "partial"),
+            fake_run("high", 62.0, 61.0, "none"),
+            fake_run("high", 63.0, 61.0),
+        ])
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["presentmon"], {"present": 2, "partial": 1, "none": 1})
 
 
 class VerdictTest(unittest.TestCase):

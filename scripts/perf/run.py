@@ -22,7 +22,9 @@ Hover latency alternates between two states from one launch to the next
 PresentMon presence. Hover metrics are judged within a state; ink is judged
 over all runs. A Windows target can set "presentmon": "off" to leave
 PresentMon out for a comparison, and "env" to pass environment variables to
-the measured application (run-surface.ps1 records them in meta.txt).
+the measured application (run-surface.ps1 records them in meta.txt). A run
+whose PresentMon CSV covers too little of the injected trajectory is
+reported as partial and left out of PresentMon-based metrics.
 
 Usage:
   run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
@@ -130,12 +132,35 @@ def shifted(stat, offset):
     return {key: (value - offset if key in ("p05", "p50", "p95") else value) for key, value in stat.items()}
 
 
+def presentmon_status(run):
+    """Return "present", "partial" or "none" for one analyzed run."""
+    state = run.get("presentmon") or {}
+    status = state.get("status")
+    if status is None:
+        return "present" if state.get("present") else "none"
+    return status
+
+
+def metric_needs_presentmon(metric):
+    """Whether a metric reads presentmon.csv (so a partial log cannot be used)."""
+    return "input_to_display" in metric or "present_to_display" in metric or metric.startswith("present.")
+
+
 def aggregate(runs, metrics):
-    """Median, P95 and spread of the run medians for every metric."""
+    """Median, P95 and spread of the run medians for every metric.
+
+    Metrics derived from PresentMon leave out runs whose recording is
+    partial; capture-based metrics keep every run.
+    """
     aggregated = {}
     for metric in metrics:
-        medians = [run[metric]["p50"] for run in runs if run[metric].get("n")]
-        p95s = [run[metric]["p95"] for run in runs if run[metric].get("n")]
+        selected = [
+            run["metrics"] for run in runs
+            if run["metrics"].get(metric, {}).get("n")
+            and (not metric_needs_presentmon(metric) or presentmon_status(run) == "present")
+        ]
+        medians = [entry[metric]["p50"] for entry in selected]
+        p95s = [entry[metric]["p95"] for entry in selected]
         if not medians:
             continue
         center = statistics.median(medians)
@@ -173,7 +198,11 @@ def summarize(run_root, hosts, scenario):
                 "presentmon": result.get("presentmon", {"present": False}),
             })
         for target, data in entry["targets"].items():
-            data["metrics"] = aggregate([run["metrics"] for run in data["runs"]], scenario["metrics"])
+            data["metrics"] = aggregate(data["runs"], scenario["metrics"])
+            data["presentmon"] = {
+                status: sum(1 for run in data["runs"] if presentmon_status(run) == status)
+                for status in ("present", "partial", "none")
+            }
             groups = {}
             for run in data["runs"]:
                 groups.setdefault(run["state"].get("label", "unknown"), []).append(run)
@@ -181,8 +210,12 @@ def summarize(run_root, hosts, scenario):
             for state, state_runs in sorted(groups.items()):
                 data["states"][state] = {
                     "runs": len(state_runs),
-                    "presentmon": sum(1 for run in state_runs if run["presentmon"].get("present")),
-                    "metrics": aggregate([run["metrics"] for run in state_runs], scenario["metrics"]),
+                    "presentmon": sum(1 for run in state_runs if presentmon_status(run) == "present"),
+                    "presentmon_status": {
+                        status: sum(1 for run in state_runs if presentmon_status(run) == status)
+                        for status in ("present", "partial", "none")
+                    },
+                    "metrics": aggregate(state_runs, scenario["metrics"]),
                 }
         summary["hosts"][host["name"]] = entry
     return summary
@@ -229,6 +262,9 @@ def judge(summary, scenario, baseline=None):
                     total_runs = len(data.get("runs", [])) if isinstance(data.get("runs"), list) else stat["runs"]
                     if total_runs < scenario["runs"]:
                         problems.append("%d of %d runs" % (total_runs, scenario["runs"]))
+                    partial = sum(1 for run in data.get("runs", []) if presentmon_status(run) == "partial")
+                    if metric_needs_presentmon(metric) and partial:
+                        notes.append("%d partial PresentMon run(s) left out" % partial)
                     base_stat = baseline_metric(baseline, host, target, metric, state)
                     delta = None
                     if base_stat:
@@ -304,8 +340,14 @@ def main(argv):
             continue
         for target, data in entry["targets"].items():
             runs = data.get("runs", [])
-            present = sum(1 for run in runs if run.get("presentmon", {}).get("present"))
-            present_lines.append("   %s/%s: PresentMon %d of %d runs" % (host, target, present, len(runs)))
+            counts = data.get("presentmon") or {
+                "present": sum(1 for run in runs if presentmon_status(run) == "present"),
+                "partial": sum(1 for run in runs if presentmon_status(run) == "partial"),
+                "none": sum(1 for run in runs if presentmon_status(run) == "none"),
+            }
+            present_lines.append(
+                "   %s/%s: PresentMon present %d of %d runs (partial %d, none %d)" % (
+                    host, target, counts["present"], len(runs), counts["partial"], counts["none"]))
     if present_lines:
         print("== PresentMon records")
         print("\n".join(present_lines))

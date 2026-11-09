@@ -192,6 +192,26 @@ def frame_samples(directory):
     return frame_times, offsets, offset, samples
 
 
+def presentmon_state(directory):
+    """PresentMon coverage of the injected trajectory for one run.
+
+    The capture clock and the probe clock are both nanoseconds; PresentMon
+    writes TimeInQPC ticks, so the probe frequency converts the injected span.
+    """
+    path = os.path.join(directory, "presentmon.csv")
+    inject_path = os.path.join(directory, "inject.csv")
+    frequency = analyze.probe_frequency(directory)
+    window = None
+    if frequency and os.path.exists(inject_path):
+        with open(inject_path) as handle:
+            times = [int(row["time_ns"]) for row in csv.DictReader(handle)]
+        if len(times) >= 2:
+            window = (min(times) * frequency // 1_000_000_000,
+                      max(times) * frequency // 1_000_000_000)
+    presents = analyze.load_presents(path) if os.path.exists(path) else []
+    return analyze.presentmon_state(path, presents, window)
+
+
 def tablet_move_interval_p05(directory):
     """p05 of the interval between Qt tablet moves, or None without a probe log."""
     path = os.path.join(directory, "probe.csv")
@@ -258,7 +278,7 @@ def analyze_run(directory):
         "frame_to_arrival_p50_ms": frame_to_arrival,
         "tablet_move_interval_p05_ms": tablet_interval,
     }
-    result["presentmon"] = {"present": os.path.exists(os.path.join(directory, "presentmon.csv"))}
+    result["presentmon"] = presentmon_state(directory)
     return result
 
 
@@ -275,7 +295,11 @@ def main(argv):
         results[os.path.basename(os.path.normpath(directory))] = analyze_run(directory)
     for name, result in results.items():
         frames = result["frames"]
-        presentmon = "present" if result["presentmon"]["present"] else "none"
+        presentmon = result["presentmon"].get("status") or (
+            "present" if result["presentmon"].get("present") else "none")
+        coverage = result["presentmon"].get("coverage")
+        if coverage is not None and presentmon == "partial":
+            presentmon += " (coverage %.1f%%)" % (100 * coverage)
         print("== %s  frames=%d interval %s  state=%s  PresentMon=%s" % (
             name, frames["n"], analyze.format_stat(frames["interval"]), result["state"]["label"], presentmon))
         print("   state: %s" % result["state"]["reason"])

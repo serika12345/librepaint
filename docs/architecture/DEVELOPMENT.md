@@ -208,9 +208,12 @@ Windowsでは、計測対象を利用者の画面のセッションで動かす�
 PresentMonは、短い固定のセッション名`LibrePaintPenLatency`で、起動中のアプリのプロセスIDを
 対象に記録する。runnerは記録の前後に`logman`でそのセッションを止め、開始の有無、終了コード、
 CSVと標準エラー・標準出力の大きさを`meta.txt`に残す（セッションは同時に約64までで、回ごとに
-名前を変えると強制終了した回のセッションが残るため）。`meta.txt`には、起動時と取り込み前の
-タイマーの分解能、最前面の窓、アプリの優先度と親和性も残す（L1（Windowsの約50msの遅れの
-原因の特定）で状態を決める要因を比べるため）。
+名前を変えると強制終了した回のセッションが残るため）。PresentMonが回の途中で止まることがある
+ので、`meta.txt`には終了コードに加えて、runnerが止める前にプロセスが終了していたか
+（`presentmon_exited_before_stop`）と開始・停止の時刻も残す。回ごとの`status.txt`はその回の
+ディレクトリーにも書く。`meta.txt`には、起動時と取り込み前のタイマーの分解能、最前面の窓、
+アプリの優先度と親和性も残す（L1（Windowsの約50msの遅れの原因の特定）で状態を決める要因を
+比べるため）。
 
 L1の仮説は、同じ版のまま環境変数で切り替える。変数がないときは通常の動作のままである。
 `scripts/perf/hosts.json`のWindowsの対象に`env`を書くと、`run.py`が`request.json`に載せ、
@@ -279,7 +282,9 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
   比較を状態ごとに行う。インクは全回でまとめる。状態の境目は2026-11-09の20回の値
   （低い状態 11.2msと3.0〜3.3ms、高い状態 9.6〜9.8msと0.5〜2.0ms）で決めた。
 - Windowsの対象は`presentmon`を`"off"`にするとPresentMonなしで測れる（既定は`on`）。
-  PresentMonの記録がない回は集計に`PresentMon=none`と出し、内訳の比較から外す。
+  PresentMonの記録がない回は集計に`PresentMon=none`と出し、内訳の比較から外す。CSVはあるが
+  `TimeInQPC`の範囲が合成入力の期間の95%未満しか覆っていない回は`PresentMon=partial`と出し、
+  同じく内訳の比較から外す（`run.py`の表には`present`/`partial`/`none`の回数を出す）。
 
 ## デスクトップ
 

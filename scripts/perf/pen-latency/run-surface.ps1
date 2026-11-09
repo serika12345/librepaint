@@ -26,9 +26,15 @@
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $status = Join-Path $here 'status.txt'
+$script:runStatus = $null
 Set-Content -Path $status -Value 'starting'
 
-function Log([string]$text) { Add-Content -Path $status -Value $text }
+function Log([string]$text) {
+    Add-Content -Path $status -Value $text
+    # Keep each run's own progress: the next run overwrites the shared
+    # status.txt, which hid the progress lines of an earlier run (2026-11-10).
+    if ($script:runStatus) { Add-Content -Path $script:runStatus -Value $text }
+}
 
 # Launch-time facts that can latch the hover state of one run (L1 of Issue
 # #108): the system timer resolution, which window is in front, and the app
@@ -190,6 +196,8 @@ try {
     for ($n = 1; $n -le $runs; $n++) {
         $dir = Join-Path $here ("runs\{0}-{1}" -f $id, $n)
         New-Item -ItemType Directory -Force $dir | Out-Null
+        $script:runStatus = Join-Path $dir 'status.txt'
+        Set-Content -Path $script:runStatus -Value 'starting'
         Log "run $n $dir"
         Write-Meta $dir $request $target
         Write-LaunchFacts $dir 'start' $null
@@ -225,6 +233,12 @@ try {
         $presentMonOut = Join-Path $dir 'presentmon.out'
         $pm = $null
         $sessionStarted = $false
+        # PresentMon can stop consuming events while the application keeps
+        # running (2026-11-10: a 1.2 s CSV for a 33 s run). Record whether the
+        # process itself exited before the runner stopped it, and when.
+        $pmExitedBeforeStop = $false
+        $pmStartedAt = $null
+        $pmStoppedAt = $null
 
         Set-TargetEnvironment $request.env
         if ($target -eq 'LibrePaint') { $env:LIBREPAINT_LATENCY_LOG = Join-Path $dir 'probe.csv' }
@@ -252,6 +266,7 @@ try {
                 })
                 $pm = Start-Process -FilePath $presentMon -ArgumentList $pmArgs -PassThru -WindowStyle Hidden `
                     -RedirectStandardError $presentMonErr -RedirectStandardOutput $presentMonOut
+                $pmStartedAt = Get-Date
                 for ($i = 0; $i -lt 40; $i++) {
                     if (Test-PresentMonSession $sessionName) { $sessionStarted = $true; break }
                     if ($pm.HasExited) { break }
@@ -273,6 +288,10 @@ try {
                 [void]$app.WaitForExit(5000)
             }
             if ($pm) {
+                try {
+                    $pm.Refresh()
+                    $pmExitedBeforeStop = $pm.HasExited
+                } catch { }
                 # Stop the session first: ProcessTrace then returns, PresentMon
                 # flushes the CSV and exits even when it missed the process
                 # exit event.
@@ -281,6 +300,7 @@ try {
                     Stop-Process -Id $pm.Id -Force -ErrorAction SilentlyContinue
                     [void]$pm.WaitForExit(5000)
                 }
+                $pmStoppedAt = Get-Date
             }
         }
         if ($presentMonEnabled) {
@@ -295,7 +315,15 @@ try {
                 "presentmon_err_bytes=$(if (Test-Path $presentMonErr) { (Get-Item $presentMonErr).Length } else { 0 })",
                 "presentmon_out_bytes=$(if (Test-Path $presentMonOut) { (Get-Item $presentMonOut).Length } else { 0 })"
             )
-            if ($pm) { $lines += "presentmon_exit=$($pm.ExitCode)" }
+            if ($pm) {
+                $lines += "presentmon_exited_before_stop=$pmExitedBeforeStop"
+                if ($pmStartedAt) { $lines += "presentmon_started_at=$($pmStartedAt.ToString('o'))" }
+                if ($pmStoppedAt) { $lines += "presentmon_stopped_at=$($pmStoppedAt.ToString('o'))" }
+                $exitCode = $null
+                try { $exitCode = $pm.ExitCode } catch { }
+                if ($null -ne $exitCode) { $lines += "presentmon_exit=$exitCode" }
+                else { $lines += "presentmon_exit=unavailable" }
+            }
             if ((Test-Path $presentMonErr) -and ((Get-Item $presentMonErr).Length -gt 2)) {
                 $errText = ((Get-Content $presentMonErr -Raw) -replace "`r?`n", ' ').Trim()
                 if ($errText.Length -gt 300) { $errText = $errText.Substring(0, 300) }

@@ -33,6 +33,13 @@ WM_POINTERUP = 0x0247
 MAX_LINK_MS = 200.0
 MAX_PAINT_TO_PRESENT_MS = 100.0
 
+# Share of the synthetic pen activity that presentmon.csv must cover. A
+# PresentMon session can stop early (2026-11-10: 1.2 s of a 33 s run), and
+# the remaining rows then describe only the start of the run. Those runs are
+# reported as partial and left out of the display breakdown instead of
+# looking like a latency change.
+PRESENTMON_MIN_COVERAGE = 0.95
+
 # Metrics whose run medians are compared across repeated runs.
 PRIMARY_METRICS = ("hover.input_to_display", "contact.ink_input_to_display")
 
@@ -94,6 +101,71 @@ def load_presents(path):
             presents.append((present, row))
     presents.sort(key=lambda item: item[0])
     return presents
+
+
+def measurement_window(inject, events):
+    """Time span of the synthetic pen activity in probe-clock ticks.
+
+    inject.csv is the trajectory that was sent to the application; without
+    it, the probe's own input markers give the span. PresentMon only writes
+    rows for frames that were presented, so a static screen before the
+    activity is not a gap.
+    """
+    if inject:
+        times = [sample["time"] for sample in inject if sample["ok"]]
+        if len(times) >= 2:
+            return min(times), max(times)
+    if events:
+        for name in ("native_pointer", "qt_tablet_move", "outline_request", "paintgl_begin"):
+            times = [entry[0] for entry in events.get(name, [])]
+            if len(times) >= 2:
+                return times[0], times[-1]
+    return None
+
+
+def presentmon_state(path, presents, window):
+    """Report whether presentmon.csv covers the measured activity.
+
+    "none" means no file. "partial" means the file exists but has no usable
+    rows, or its TimeInQPC span covers less than PRESENTMON_MIN_COVERAGE of
+    the measurement window. Only "present" runs belong in the display
+    breakdown.
+    """
+    if not os.path.exists(path):
+        return {"present": False, "status": "none", "coverage": None, "n": 0}
+    if not presents:
+        return {"present": True, "status": "partial", "coverage": 0.0, "n": 0}
+    coverage = None
+    if window and window[1] > window[0]:
+        overlap = min(presents[-1][0], window[1]) - max(presents[0][0], window[0])
+        coverage = max(0.0, overlap / (window[1] - window[0]))
+    status = "present" if coverage is None or coverage >= PRESENTMON_MIN_COVERAGE else "partial"
+    return {"present": True, "status": status, "coverage": coverage, "n": len(presents)}
+
+
+def presentmon_is_usable(result):
+    """Whether a run may be used for the PresentMon display breakdown.
+
+    Older summaries carry only "present"; treat them as usable when their
+    file existed. Results without a "presentmon" entry carry no information
+    and stay in the comparison.
+    """
+    if "presentmon" not in result:
+        return True
+    state = result.get("presentmon") or {}
+    status = state.get("status")
+    if status is None:
+        status = "present" if state.get("present") else "none"
+    return status == "present"
+
+
+def probe_frequency(directory):
+    """Clock frequency written in probe.csv, or None without the file."""
+    path = os.path.join(directory, "probe.csv")
+    if not os.path.exists(path):
+        return None
+    frequency, _ = load_marked_csv(path)
+    return frequency
 
 
 def percentile(values, fraction):
@@ -209,7 +281,9 @@ class Run:
 
         result = {key: describe(values) for key, values in sorted(stats.items())}
         result["presents"] = {"n": len(self.presents), "displayed": displayed}
-        result["presentmon"] = {"present": self.presentmon_present, "n": len(self.presents)}
+        result["presentmon"] = presentmon_state(
+            os.path.join(self.directory, "presentmon.csv"), self.presents,
+            measurement_window(self.inject, self.events))
         if self.events:
             result["input_path"] = {
                 event: len(self.events.get(event, []))
@@ -290,15 +364,16 @@ class Run:
 def compare(results, metrics=PRIMARY_METRICS, require_presentmon=True):
     """Spread of run medians: (max - min) / median of the run medians.
 
-    The breakdown needs PresentMon; a run without presentmon.csv is left out
-    so that a missing log does not look like a latency change.
+    The breakdown needs PresentMon; a run without presentmon.csv, or with a
+    partial recording, is left out so that a missing or short log does not
+    look like a latency change.
     """
     summary = {}
     for metric in metrics:
         medians = [
             result[metric]["p50"] for result in results.values()
             if result.get(metric, {}).get("n")
-            and not (require_presentmon and result.get("presentmon", {}).get("present") is False)
+            and not (require_presentmon and not presentmon_is_usable(result))
         ]
         if len(medians) < 2:
             continue
@@ -331,7 +406,8 @@ def main(argv):
         results[run.name] = run.analyze()
 
     for name, result in results.items():
-        presentmon = "present" if result["presentmon"]["present"] else "none"
+        state = result["presentmon"]
+        presentmon = state.get("status") or ("present" if state.get("present") else "none")
         print("== %s  presents=%d displayed=%d  PresentMon=%s" % (
             name, result["presents"]["n"], result["presents"]["displayed"], presentmon))
         if "input_path" in result:
@@ -343,9 +419,14 @@ def main(argv):
                 continue
             print("   %-44s %s" % (key, format_stat(stat)))
 
-    without_presentmon = sum(1 for result in results.values() if not result["presentmon"]["present"])
-    if without_presentmon:
-        print("== PresentMon none: %d run(s) left out of the breakdown comparison" % without_presentmon)
+    states = [(result.get("presentmon") or {}).get("status")
+              or ("present" if (result.get("presentmon") or {}).get("present") else "none")
+              for result in results.values()]
+    without_presentmon = states.count("none")
+    partial = states.count("partial")
+    if without_presentmon or partial:
+        print("== PresentMon: %d partial, %d none left out of the breakdown comparison" % (
+            partial, without_presentmon))
     comparison = compare(results)
     if comparison:
         print("== spread of run medians ((max - min) / median)")

@@ -116,6 +116,18 @@ class HoverStateTest(unittest.TestCase):
             open(os.path.join(directory, "presentmon.csv"), "w").close()
             self.assertTrue(capture_analyze.analyze_run(directory)["presentmon"]["present"])
 
+    def test_a_presentmon_log_covering_only_the_start_is_partial(self):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            write_probe(directory, [4_170_000] * 100)
+            with open(os.path.join(directory, "presentmon.csv"), "w") as handle:
+                handle.write("Application,TimeInQPC\n")
+                handle.write("LibrePaint.exe,10000000\n")
+                handle.write("LibrePaint.exe,10010000\n")
+            result = capture_analyze.analyze_run(directory)
+        self.assertEqual(result["presentmon"]["status"], "partial")
+        self.assertLess(result["presentmon"]["coverage"], 0.05)
+
 
 class SimulatedDisplayTest(unittest.TestCase):
     def test_recovers_known_delay_for_outline_and_ink(self):
