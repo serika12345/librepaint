@@ -33,19 +33,6 @@ in
         qtbase = qtPrevious.qtbase.overrideAttrs {
           inherit (srcs.qtbase) src version;
         };
-        # nixpkgs patches qtwebengine to install and find the locales under the
-        # data directory. Qt 6.11.3 changed the lookup to iterate
-        # QLibraryInfo::paths(), so the nixpkgs patch no longer applies and a
-        # version for 6.11.3 replaces it.
-        qtwebengine = qtPrevious.qtwebengine.overrideAttrs (old: {
-          patches =
-            builtins.filter (
-              patch: builtins.match ".*locales-path\\.patch" (toString patch) == null
-            ) (old.patches or [ ])
-            ++ [ ./patches/qtwebengine-locales-data-path-6.11.3.patch ];
-        }) // {
-          inherit (qtPrevious.qtwebengine) meta;
-        };
         # Qt Multimedia only needs Qt Quick 3D for its spatial audio QML types,
         # which LibrePaint does not use. nixpkgs already builds it without Qt
         # Quick 3D for Windows; doing the same everywhere keeps Qt Quick 3D out
