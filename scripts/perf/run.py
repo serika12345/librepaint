@@ -132,7 +132,8 @@ def summarize(run_root, hosts, scenario):
         if not os.path.isdir(host_dir):
             continue
         offset = float(host.get("capture_offset_ms", 0.0))
-        entry = {"system": host.get("system", host["kind"]), "capture_offset_ms": offset, "targets": {}}
+        entry = {"kind": host["kind"], "system": host.get("system", host["kind"]),
+                 "capture_offset_ms": offset, "targets": {}}
         for run_name in sorted(os.listdir(host_dir)):
             path = os.path.join(host_dir, run_name)
             if not os.path.exists(os.path.join(path, "capture.csv")):
@@ -275,6 +276,8 @@ def main(argv):
     print(table(rows))
     present_lines = []
     for host, entry in summary["hosts"].items():
+        if entry.get("kind") != "windows":
+            continue
         for target, data in entry["targets"].items():
             runs = data.get("runs", [])
             present = sum(1 for run in runs if run.get("presentmon", {}).get("present"))
