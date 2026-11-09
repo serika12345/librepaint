@@ -221,6 +221,12 @@ class Run:
                               "qt_update_deferred_skipped", "canvas_busy_defer",
                               "gpu_wait_begin", "gpu_wait_end")
             }
+            completed = self.events.get("last_frame_completed_on_gpu", [])
+            if completed:
+                result["l1_last_frame_completed"] = {
+                    "n": len(completed),
+                    "completed": sum(1 for entry in completed if entry[3] == 1),
+                }
         if self.inject:
             result["inject"] = {
                 "n": len(self.inject),
