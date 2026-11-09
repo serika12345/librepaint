@@ -70,7 +70,8 @@ def simulate(directory, delay_ns, arrival_delay_ns=1_000_000):
                 dense = int(round(ink[name] + INK_OFFSET))
                 xmin = dense - 200 if xmin == "" else xmin
                 xmax = dense if xmax == "" else max(xmax, dense)
-            rows.append((frame, frame + arrival_delay_ns, name, xmin, xmax, "" if dense == "" else dense - 200, dense, "", ""))
+            rows.append((frame, frame + arrival_delay_ns, name, xmin, xmax,
+                         "" if dense == "" else dense - 200, dense, "", ""))
         frame += FRAME_NS
     with open(os.path.join(directory, "capture.csv"), "w", newline="") as handle:
         writer = csv.writer(handle)
