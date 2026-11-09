@@ -205,23 +205,24 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | df46429bb3 | Fix slowdown caused by making window system events synchronous. | src/gui/kernel/qwindowsysteminterface.cpp, src/gui/kernel/qwindowsysteminterface.h | なし | 不要 |
 | 7c155ae659 | Implement better parsing of EDID model number | src/gui/util/qedidparser.cpp | なし | 不要 |
 | 83e4fd6099 | Sync buffers of the destination file after QFile::copy() | src/corelib/io/qfile.cpp | なし | 不要 |
-| d850335b2d | [win] Fix pasting copy-pasting QImages to Chrome | src/plugins/platforms/windows | なし | 不要 |
+| d850335b2d | [win] Fix pasting copy-pasting QImages to Chrome | src/plugins/platforms/windows | なし | 保留 |
 | 24ea6b40c2 | Fix QHeaderView failing to init memory mode | src/widgets/itemviews/qheaderview.cpp, tests/auto/widgets/itemviews | e3d05b35b3（2026-10-27） | 正式版で解決済み |
 
 ### 根拠
 
 - 正式版で解決済みの2件は、qt/qtbase に同等のコミットがある（bf2ee30931 → 4292ad0292、24ea6b40c2 → e3d05b35b3）。
 - 不要の根拠：
-  - 29d93a5d62 は libpng の利用者の上限（チャンクのキャッシュと malloc）を外す。LibrePaint の PNG の入出力でこの上限に当たった例はない。当たったとき（大きな PNG を開けない）に再検討する。
+  - 29d93a5d62 は Qt の PNG の読み書きで libpng の利用者の上限を外す。外れる上限は、保持するチャンクの数 1000 と、1つのチャンクの確保 8MB（nixpkgs の libpng 1.6.59 の `pnglibconf.h` の `PNG_USER_CHUNK_CACHE_MAX` と `PNG_USER_CHUNK_MALLOC_MAX`）。当たるのは、チャンクが 1000 を超える PNG（tEXt/iTXt の多い画像）と、1つのチャンクの確保が 8MB を超える PNG（大きな iCCP やテキスト）を Qt の PNG の読み書きで扱う場合。LibrePaint の文書の PNG の入出力は libpng を直接使う（`libs/impex/ui/kis_png_converter.cpp` の `png_read_image`）ので対象外。Qt の PNG の読み込みを使うのは、ブラシ（`libs/brush/kis_png_brush.cpp:52`）、PaintOp プリセット（`libs/image/brushengine/kis_paintop_preset.cpp:180`）、パターン（`libs/pigment/resources/KoPattern.cpp:301`）、参照画像（`libs/ui/canvas/KisReferenceImage.cpp:69`）で、上限に当たる大きさの例はない。当たったとき（これらの PNG が読めない）に再検討する。
   - cf05dd04c8 と d2507d05fa は Qt のジェスチャの管理のヌルと反復の終端の検査で、LibrePaint のジェスチャの使い方でその条件が起きた例はない。
   - 93bd31ff0f は Windows の DrMingw でバックトレースを取るための変更で、デバッグの道具にだけ関係する。
   - f1302dbbc8 はフォントの foundry 名が空白だけのときのクラッシュで、そのフォントを使う例がない。
   - 2ea7817457 は画面読み上げ（UI オートメーション）の `window()` の戻り値で、画面読み上げを使わない通常の操作に関係しない。
-  - df46429bb3 は、タブレットのイベントを Windows 以外で非同期に戻す（Windows では同期のまま）。LibrePaint の Linux と macOS は正式版の Qt（もともと非同期）で 20/16ms、21.5/23.3ms であり、この改変で値は変わらない。
+  - df46429bb3 は、タブレットのイベントを Windows 以外で非同期に戻す（Windows では同期のまま）。比較に使う値の出所は、macOS が 2026-11-07 の v1.0.3（21.5/23.3ms。ホバー/インク、DECISIONS.md 2026-11-07 と #108 の計測の要約で同日・同版）、Linux Wayland が 2026-11-08 の色プロファイル探索の修正後（20/16ms。同様に DECISIONS.md 2026-11-08 と #108 の計測の要約）。どちらも正式版の Qt（もともと非同期）の値で、この改変で値は変わらない。
   - 7c155ae659 は EDID からの画面の名前と製造番号の読み取りで、表示の名前だけが変わる。
   - 83e4fd6099 は `QFile::copy()` のあとの fsync で、電源断のときの耐久性を上げる。文書の保存は `QSaveFile` の経路で、`QFile::copy()` はテンプレート、バックアップ、プロファイルの複製に使う（`libs/global/KisBackup.cpp:37`、`libs/ui/dialogs/kis_dlg_preferences.cc:1527` ほか）。電源断での耐久は CHARTER の「一般的な水準を超えない」に照らして要件にしない。
-  - d850335b2d は Windows で画像を Chrome に貼り付けるときの CF_DIB の不具合で、LibrePaint の貼り付けの主な経路（内部の形式と PNG）に関係しない。
-- 保留の1件：8dadf099b8 は、ドックのドッキングのアニメーション中に `QDockAreaLayoutInfo` が未初期化のまま使われるクラッシュの修正で、LibrePaint のドックの使い方で起こりうる。決めるための確認：ドックを外して戻す操作を繰り返しながら、アンドゥとビューの操作を行い、落ちないかを確かめる。落ちるなら「必要」とする。
+- 保留の2件：
+  - 8dadf099b8 は、ドックのドッキングのアニメーション中に `QDockAreaLayoutInfo` が未初期化のまま使われるクラッシュの修正で、LibrePaint のドックの使い方で起こりうる。決めるための確認：ドックを外して戻す操作を繰り返しながら、アンドゥとビューの操作を行い、落ちないかを確かめる。落ちるなら「必要」とする。
+  - d850335b2d は、アルファを持つ QImage をクリップボードに出すときに CF_DIB を出さず CF_PNG と CF_DIBV5 だけにする改変（Chrome がアルファ付きの CF_DIB を壊れた画像として貼るため）。LibrePaint のコピーは `KisClipboard::setClip` が内部の形式に加えて `mimeData->setImageData(qimage)` で QImage も出す（`libs/impex/ui/kis_clipboard.cc` の 175〜196 行）。キャンバスの画像はアルファを持つため、Windows の Qt は CF_DIB も出し（`src/plugins/platforms/windows/qwindowsmimeregistry.cpp` の `QWindowsMimeImage::formatsForMime`）、Chrome に貼ると壊れる経路に当たる。したがって「主な経路に関係しない」とは言えない。決めるための確認：Windows で LibrePaint のキャンバスの範囲をコピーし、Chrome と Edge に貼って、欠け・色の化けがないかを見る。壊れるなら「必要」、正常なら「不要」とする。
 
 ## その他（構築、UI、プラットフォーム固有の調整）
 
@@ -256,8 +257,8 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 
 ## Q4 への持ち越し（2026-11-08 の判定のまとめ）
 
-92 件の内訳は、不要 34 件、正式版で解決済み 6 件、LibrePaint 側で代替 4 件、必要 11 件、保留 37 件。
+92 件の内訳は、不要 33 件、正式版で解決済み 6 件、LibrePaint 側で代替 4 件、必要 11 件、保留 38 件（2026-11-09 に d850335b2d を不要から保留へ見直した）。
 
 - 必要（11件）：c41d66281e、df3a678309、051139ed72、33a49f25d1、f5a75c4071、41adadd8db、0027358f20、8f8eabfb72、c132390390、82d2864a8a、dc27f27d8e。Windows のペンの9件は、`QT_WINTAB_DESKTOP_RECT` などの環境変数とペンのホバーの状態に直結する。Q4 では、公式に取り込まれるのを待つか、LibrePaint 側で作り直すかを1件ずつ決める。
 - LibrePaint 側で代替（4件）：747423036c、f8a61ebc5b、21d400db4f は `kis_input_manager_p.cpp:242` の回避コードを使い、Windows でも有効にする。f786da6451 はタブ表示の窓の題名を `KisMainWindow` 側で設定する。
-- 保留（37件）：ANGLE 11件と画面更新の間引き 10件は L1 の H7 と H6 の数値で決める。HDR 4件は Windows の HDR 表示を残すかで決める。Wayland のペン 4件は Wayland でペンを使った確認で決める。キーボードの配列 5件は日本語配列での確認で決める。Windows のペン 2件は Surface の計測で決める。ドックのクラッシュ 1件は再現の確認で決める。
+- 保留（38件）：ANGLE 11件と画面更新の間引き 10件は L1 の H7 と H6 の数値で決める。HDR 4件は Windows の HDR 表示を残すかで決める。Wayland のペン 4件は Wayland でペンを使った確認で決める。キーボードの配列 5件は日本語配列での確認で決める。Windows のペン 2件は Surface の計測で決める。ドックのクラッシュ 1件は再現の確認で決める。クリップボードの CF_DIB 1件は Windows で Chrome と Edge への貼り付けを確認して決める。
