@@ -15,11 +15,12 @@
 #
 # Each run writes <root>\runs\<id>-<n>\ with presentmon.csv, probe.csv
 # (LibrePaint and PenProbe), inject.csv, capture.csv (capture mode) and
-# meta.txt. The PresentMon session name includes the run, and meta.txt records
-# whether its log exists. meta.txt also records the timer resolution, the
-# foreground window and the app process settings at the start, after the first
-# window and before the capture. status.txt reports progress and ends with
-# "done" or "failed: <reason>".
+# meta.txt. PresentMon records the app process by its process ID with one
+# fixed session name; the runner stops that session before and after the run
+# and records whether the session started and how large the log is. meta.txt
+# also records the timer resolution, the foreground window and the app process
+# settings at the start, after the first window and before the capture.
+# status.txt reports progress and ends with "done" or "failed: <reason>".
 
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -93,6 +94,17 @@ function Write-LaunchFacts($dir, $stage, $app) {
         } catch { }
     }
     Add-Content -Path (Join-Path $dir 'meta.txt') -Value $lines
+}
+
+function Stop-PresentMonSession([string]$name) {
+    # logman returns a non-zero code when the session does not exist. That is
+    # the normal case before the first run, so ignore it.
+    & logman stop $name -ets 2>&1 | Out-Null
+}
+
+function Test-PresentMonSession([string]$name) {
+    & logman query $name -ets 2>&1 | Out-Null
+    return $LASTEXITCODE -eq 0
 }
 
 function Wait-MainWindow($process, [int]$seconds) {
@@ -187,21 +199,12 @@ try {
         $bitmap.Save($canvas, [System.Drawing.Imaging.ImageFormat]::Png)
         $bitmap.Dispose()
 
-        $processName = [System.IO.Path]::GetFileName([string]$request.app)
-        # A session name per run keeps a session left by an earlier run from
-        # blocking this one. PresentMon 2.x failed to record after it stopped
-        # a session with the same name (2026-11-09 runs).
-        $sessionName = 'LibrePaintPenLatency-{0}-{1}' -f $id, $n
+        $sessionName = if ($request.presentmon_session) { [string]$request.presentmon_session } else { 'LibrePaintPenLatency' }
         $presentMonCsv = Join-Path $dir 'presentmon.csv'
+        $presentMonErr = Join-Path $dir 'presentmon.err'
+        $presentMonOut = Join-Path $dir 'presentmon.out'
         $pm = $null
-        if ($presentMonEnabled) {
-            Get-Process -Name PresentMon -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Milliseconds 500
-            $pmArgs = @('--process_name', $processName, '--output_file', $presentMonCsv, '--qpc_time',
-                '--no_console_stats', '--stop_existing_session', '--terminate_on_proc_exit', '--session_name', $sessionName)
-            $pm = Start-Process -FilePath $presentMon -ArgumentList $pmArgs -PassThru -WindowStyle Hidden `
-                -RedirectStandardError (Join-Path $dir 'presentmon.err') -RedirectStandardOutput (Join-Path $dir 'presentmon.out')
-        }
+        $sessionStarted = $false
 
         if ($target -eq 'LibrePaint') { $env:LIBREPAINT_LATENCY_LOG = Join-Path $dir 'probe.csv' }
         else { Remove-Item Env:LIBREPAINT_LATENCY_LOG -ErrorAction SilentlyContinue }
@@ -209,6 +212,33 @@ try {
         try {
             $hwnd = Wait-MainWindow $app 120
             Write-LaunchFacts $dir 'window' $app
+
+            # Start PresentMon after the app window exists: --process_id is
+            # then valid and --terminate_on_proc_exit sees the process exit.
+            # One fixed session name (see presentmon_command.py) is stopped
+            # before and after each run so that a killed PresentMon cannot
+            # leave a session behind.
+            if ($presentMonEnabled) {
+                Stop-PresentMonSession $sessionName
+                Get-Process -Name 'PresentMon*' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+                Start-Sleep -Milliseconds 500
+                $argTemplate = if ($request.presentmon_arguments) { @($request.presentmon_arguments) } else {
+                    @('--process_id', '{pid}', '--output_file', '{output}', '--qpc_time',
+                        '--no_console_stats', '--terminate_on_proc_exit', '--session_name', $sessionName)
+                }
+                $pmArgs = @($argTemplate | ForEach-Object {
+                    ([string]$_).Replace('{pid}', [string]$app.Id).Replace('{output}', $presentMonCsv)
+                })
+                $pm = Start-Process -FilePath $presentMon -ArgumentList $pmArgs -PassThru -WindowStyle Hidden `
+                    -RedirectStandardError $presentMonErr -RedirectStandardOutput $presentMonOut
+                for ($i = 0; $i -lt 40; $i++) {
+                    if (Test-PresentMonSession $sessionName) { $sessionStarted = $true; break }
+                    if ($pm.HasExited) { break }
+                    Start-Sleep -Milliseconds 250
+                }
+                if (-not $sessionStarted) { Log 'presentmon session did not start' }
+            }
+
             Start-Sleep -Seconds $settle
             Write-LaunchFacts $dir 'capture' $app
             if ($capture) { Invoke-Capture $dir }
@@ -217,18 +247,40 @@ try {
             Start-Sleep -Milliseconds 1500
         }
         finally {
-            if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }
+            if (-not $app.HasExited) {
+                Stop-Process -Id $app.Id -Force
+                [void]$app.WaitForExit(5000)
+            }
             if ($pm) {
-                if (-not $pm.WaitForExit(20000)) {
+                # Stop the session first: ProcessTrace then returns, PresentMon
+                # flushes the CSV and exits even when it missed the process
+                # exit event.
+                Stop-PresentMonSession $sessionName
+                if (-not $pm.WaitForExit(15000)) {
                     Stop-Process -Id $pm.Id -Force -ErrorAction SilentlyContinue
-                    try { & logman stop $sessionName -ets | Out-Null } catch { }
+                    [void]$pm.WaitForExit(5000)
                 }
             }
         }
         if ($presentMonEnabled) {
             $recorded = (Test-Path $presentMonCsv) -and ((Get-Item $presentMonCsv).Length -gt 0)
             $presentMonState = if ($recorded) { 'present' } else { 'none' }
-            Add-Content -Path (Join-Path $dir 'meta.txt') -Value "presentmon_result=$presentMonState"
+            $lines = @(
+                "presentmon_result=$presentMonState",
+                "presentmon_session=$sessionName",
+                "presentmon_session_started=$sessionStarted",
+                "presentmon_session_after=$(Test-PresentMonSession $sessionName)",
+                "presentmon_csv_bytes=$(if (Test-Path $presentMonCsv) { (Get-Item $presentMonCsv).Length } else { 0 })",
+                "presentmon_err_bytes=$(if (Test-Path $presentMonErr) { (Get-Item $presentMonErr).Length } else { 0 })",
+                "presentmon_out_bytes=$(if (Test-Path $presentMonOut) { (Get-Item $presentMonOut).Length } else { 0 })"
+            )
+            if ($pm) { $lines += "presentmon_exit=$($pm.ExitCode)" }
+            if ((Test-Path $presentMonErr) -and ((Get-Item $presentMonErr).Length -gt 2)) {
+                $errText = ((Get-Content $presentMonErr -Raw) -replace "`r?`n", ' ').Trim()
+                if ($errText.Length -gt 300) { $errText = $errText.Substring(0, 300) }
+                $lines += "presentmon_error=$errText"
+            }
+            Add-Content -Path (Join-Path $dir 'meta.txt') -Value $lines
             Log "presentmon=$presentMonState"
         }
         Start-Sleep -Seconds 2

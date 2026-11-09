@@ -38,11 +38,14 @@ if [ -n "${CAPTURE_TOOL:-}" ]; then
   extra=("$CAPTURE_TOOL" "$work/plan.csv")
 fi
 
-python3 -I - "$target" "$runs" "$app" "$inject" "$capture" "${RUN_NAME:-$target}" "${PRESENTMON:-on}" > "$work/request.json" <<'PY'
+python3 -I - "$target" "$runs" "$app" "$inject" "$capture" "${RUN_NAME:-$target}" "${PRESENTMON:-on}" \
+    "$(python3 -I "$here/presentmon_command.py")" > "$work/request.json" <<'PY'
 import json, sys
-target, runs, app, inject, capture, name, presentmon = sys.argv[1:]
-print(json.dumps({"target": target, "runs": int(runs), "app": app, "inject": json.loads(inject),
-                  "capture": capture == "true", "name": name, "presentmon": presentmon}))
+target, runs, app, inject, capture, name, presentmon, presentmon_fields = sys.argv[1:]
+request = {"target": target, "runs": int(runs), "app": app, "inject": json.loads(inject),
+           "capture": capture == "true", "name": name, "presentmon": presentmon}
+request.update(json.loads(presentmon_fields))
+print(json.dumps(request))
 PY
 
 ssh "$host" "New-Item -ItemType Directory -Force $remote | Out-Null; Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $remote/runs, $remote/status.txt; exit 0"

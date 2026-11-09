@@ -190,6 +190,7 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 | `macos_capture.mm` | macOS。Quartzのマウスイベントと ScreenCaptureKit。時刻はmach_absolute_time |
 | `capture_analyze.py` | 取り込み結果から、入力から表示までの時間を集計し、回ごとの中央値のばらつきを出す |
 | `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す |
+| `presentmon_command.py` | WindowsのPresentMonの引数とセッション名を組み立てる。WindowsのPowerShellなしで契約を確かめる |
 | `presentation_check.py` | 表示時刻を通知する参照アプリの記録と取り込みを突き合わせ、取り込みの時刻を検証する |
 | 参照アプリ | 入力を受けたらすぐ描く最小のアプリ。`PenProbe.cs`（Windows）、`reference_app.py`と`wayland_reference_app.c`（Linux）、`macos_reference_app.m`と`macos_metal_reference_app.m`（macOS） |
 | 記録用ライブラリ | ソースを変えずに画面への受け渡しを記録する`gl_swap_trace.c`（Linux、LD_PRELOAD）、`macos_gl_trace.m`（macOS、DYLD_INSERT_LIBRARIES）、GUIスレッドの呼び出し履歴を採る`stack_sampler.c`（Linux） |
@@ -204,8 +205,11 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 
 Windowsでは、計測対象を利用者の画面のセッションで動かすため、スケジュールされたタスクを
 一度登録する。PresentMon（2.x）は計測機の`~/pen-latency/PresentMon.exe`に置く。
-PresentMonは回ごとに別のセッション名で記録し、`meta.txt`に記録の有無、起動時と取り込み前の
-タイマーの分解能、最前面の窓、アプリの優先度と親和性を残す（L1（Windowsの約50msの遅れの
+PresentMonは、短い固定のセッション名`LibrePaintPenLatency`で、起動中のアプリのプロセスIDを
+対象に記録する。runnerは記録の前後に`logman`でそのセッションを止め、開始の有無、終了コード、
+CSVと標準エラー・標準出力の大きさを`meta.txt`に残す（セッションは同時に約64までで、回ごとに
+名前を変えると強制終了した回のセッションが残るため）。`meta.txt`には、起動時と取り込み前の
+タイマーの分解能、最前面の窓、アプリの優先度と親和性も残す（L1（Windowsの約50msの遅れの
 原因の特定）で状態を決める要因を比べるため）。
 
 ```sh
