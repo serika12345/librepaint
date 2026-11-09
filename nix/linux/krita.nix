@@ -7,32 +7,7 @@ let
   inherit (pkgs) lib;
   pythonPackages = pkgs.python3Packages;
 
-  # The PyQt6 modules LibrePaint's Python plugins use. The build and the
-  # runtime share it, so the Qt modules behind the other bindings (Qt WebEngine
-  # for PDF, Location, Multimedia, Speech) are not built.
-  runtimePyQt =
-    (pythonPackages.pyqt6.override {
-      withLocation = false;
-      withMultimedia = false;
-      withPdf = false;
-      withSerialPort = false;
-      withSpeech = false;
-      withWebSockets = false;
-    }).overrideAttrs
-      (old: {
-        # PyQt6 builds a binding only for the Qt modules it finds. The plugins use
-        # QtCore, QtGui, QtWidgets, QtXml and QtQml, so the Qt Quick 3D, Quick
-        # Timeline and WebChannel modules stay out of the build.
-        nativeBuildInputs = builtins.filter usedPyQtInput old.nativeBuildInputs;
-        buildInputs = builtins.filter usedPyQtInput old.buildInputs;
-      });
-  usedPyQtInput =
-    input:
-    !(builtins.elem (input.pname or "") [
-      "qtquick3d"
-      "qtquicktimeline"
-      "qtwebchannel"
-    ]);
+  runtimePyQt = import ../pyqt6.nix { inherit pythonPackages; };
 
   # Started from nixpkgs' krita-unwrapped recipe, reduced to the libraries the
   # LibrePaint CMake files find. It is shared with linux-dependencies so that

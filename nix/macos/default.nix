@@ -14,14 +14,7 @@ let
   python = pkgs.python3;
   pythonPackages = pkgs.python3Packages;
   pythonVersion = python.pythonVersion;
-  runtimePyQt = pythonPackages.pyqt6.override {
-    withLocation = false;
-    withMultimedia = false;
-    withPdf = false;
-    withSerialPort = false;
-    withSpeech = false;
-    withWebSockets = false;
-  };
+  runtimePyQt = import ../pyqt6.nix { inherit pythonPackages; };
   runtimePython = python.withPackages (packages: [
     runtimePyQt
     packages."pyqt6-sip"
