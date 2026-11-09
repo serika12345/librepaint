@@ -141,7 +141,8 @@ class Run:
         if self.frequency is None:
             raise SystemExit("%s: probe.csv or inject.csv with a '# frequency=' header is required" % directory)
         presentmon_path = os.path.join(directory, "presentmon.csv")
-        self.presents = load_presents(presentmon_path) if os.path.exists(presentmon_path) else []
+        self.presentmon_present = os.path.exists(presentmon_path)
+        self.presents = load_presents(presentmon_path) if self.presentmon_present else []
         self.ticks_per_ms = self.frequency / 1000.0
 
     def ms(self, ticks):
@@ -208,6 +209,12 @@ class Run:
 
         result = {key: describe(values) for key, values in sorted(stats.items())}
         result["presents"] = {"n": len(self.presents), "displayed": displayed}
+        result["presentmon"] = {"present": self.presentmon_present, "n": len(self.presents)}
+        if self.events:
+            result["input_path"] = {
+                event: len(self.events.get(event, []))
+                for event in ("native_pointer", "native_wintab", "native_mouse", "qt_tablet_move")
+            }
         if self.inject:
             result["inject"] = {
                 "n": len(self.inject),
@@ -268,11 +275,19 @@ class Run:
             stats["rate." + event + "_interval"] = gaps
 
 
-def compare(results, metrics=PRIMARY_METRICS):
-    """Spread of run medians: (max - min) / median of the run medians."""
+def compare(results, metrics=PRIMARY_METRICS, require_presentmon=True):
+    """Spread of run medians: (max - min) / median of the run medians.
+
+    The breakdown needs PresentMon; a run without presentmon.csv is left out
+    so that a missing log does not look like a latency change.
+    """
     summary = {}
     for metric in metrics:
-        medians = [result[metric]["p50"] for result in results.values() if result.get(metric, {}).get("n")]
+        medians = [
+            result[metric]["p50"] for result in results.values()
+            if result.get(metric, {}).get("n")
+            and not (require_presentmon and result.get("presentmon", {}).get("present") is False)
+        ]
         if len(medians) < 2:
             continue
         center = statistics.median(medians)
@@ -304,14 +319,21 @@ def main(argv):
         results[run.name] = run.analyze()
 
     for name, result in results.items():
-        print("== %s  presents=%d displayed=%d" % (name, result["presents"]["n"], result["presents"]["displayed"]))
+        presentmon = "present" if result["presentmon"]["present"] else "none"
+        print("== %s  presents=%d displayed=%d  PresentMon=%s" % (
+            name, result["presents"]["n"], result["presents"]["displayed"], presentmon))
+        if "input_path" in result:
+            print("   input %s" % " ".join("%s=%d" % item for item in result["input_path"].items()))
         if "inject" in result:
             print("   injected samples=%d failed=%d" % (result["inject"]["n"], result["inject"]["failed"]))
         for key, stat in result.items():
-            if key in ("presents", "inject"):
+            if key in ("presents", "inject", "presentmon", "input_path"):
                 continue
             print("   %-44s %s" % (key, format_stat(stat)))
 
+    without_presentmon = sum(1 for result in results.values() if not result["presentmon"]["present"])
+    if without_presentmon:
+        print("== PresentMon none: %d run(s) left out of the breakdown comparison" % without_presentmon)
     comparison = compare(results)
     if comparison:
         print("== spread of run medians ((max - min) / median)")

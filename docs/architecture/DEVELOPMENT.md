@@ -199,6 +199,9 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 
 Windowsでは、計測対象を利用者の画面のセッションで動かすため、スケジュールされたタスクを
 一度登録する。PresentMon（2.x）は計測機の`~/pen-latency/PresentMon.exe`に置く。
+PresentMonは回ごとに別のセッション名で記録し、`meta.txt`に記録の有無、起動時と取り込み前の
+タイマーの分解能、最前面の窓、アプリの優先度と親和性を残す（L1（Windowsの約50msの遅れの
+原因の特定）で状態を決める要因を比べるため）。
 
 ```sh
 # 計測機で一度だけ（管理者のPowerShell）
@@ -243,6 +246,13 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
 - OSをまたぐ比較は、絶対値よりも同じ回の参照アプリとの差で行う。
 - 合成入力はOSの入力の入口から始まるため、ペンのハードウェアからOSまでの遅れは含まない。
   この区間は、`PenProbe.cs`で報告レートを数値として記録する。
+- Windowsのホバーは、起動ごとに約56msと約63msの2つの状態に分かれる（L1（Windowsの約50msの
+  遅れの原因の特定））。`capture_analyze.py`が各回を`hover.frame_to_arrival`の中央値と
+  `rate.qt_tablet_move_interval`のp05で`low`/`high`/`unknown`に分け、`run.py`はホバーの
+  比較を状態ごとに行う。インクは全回でまとめる。状態の境目は2026-11-09の20回の値
+  （低い状態 11.2msと3.0〜3.3ms、高い状態 9.6〜9.8msと0.5〜2.0ms）で決めた。
+- Windowsの対象は`presentmon`を`"off"`にするとPresentMonなしで測れる（既定は`on`）。
+  PresentMonの記録がない回は集計に`PresentMon=none`と出し、内訳の比較から外す。
 
 ## デスクトップ
 

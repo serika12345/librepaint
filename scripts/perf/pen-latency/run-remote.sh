@@ -16,6 +16,7 @@
 # run records the screen; analyze the runs with capture_analyze.py.
 # RUN_NAME names the run directories (default: TARGET), so that two
 # versions of one application can be told apart.
+# PRESENTMON=off skips PresentMon for one measurement; the default is on.
 set -euo pipefail
 
 if [ "$#" -lt 5 ]; then
@@ -37,11 +38,11 @@ if [ -n "${CAPTURE_TOOL:-}" ]; then
   extra=("$CAPTURE_TOOL" "$work/plan.csv")
 fi
 
-python3 -I - "$target" "$runs" "$app" "$inject" "$capture" "${RUN_NAME:-$target}" > "$work/request.json" <<'PY'
+python3 -I - "$target" "$runs" "$app" "$inject" "$capture" "${RUN_NAME:-$target}" "${PRESENTMON:-on}" > "$work/request.json" <<'PY'
 import json, sys
-target, runs, app, inject, capture, name = sys.argv[1:]
+target, runs, app, inject, capture, name, presentmon = sys.argv[1:]
 print(json.dumps({"target": target, "runs": int(runs), "app": app, "inject": json.loads(inject),
-                  "capture": capture == "true", "name": name}))
+                  "capture": capture == "true", "name": name, "presentmon": presentmon}))
 PY
 
 ssh "$host" "New-Item -ItemType Directory -Force $remote | Out-Null; Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $remote/runs, $remote/status.txt; exit 0"

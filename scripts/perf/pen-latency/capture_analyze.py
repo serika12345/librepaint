@@ -16,6 +16,11 @@ The position offset between pointer and drawing comes from the screen at the
 end of the still dwells around every pass: outline center minus pointer position for hover,
 ink edge minus pointer position (about the brush radius) for strokes.
 
+Each run also gets a hover state ("low", "high" or "unknown") from the frame
+delivery delay and the Qt tablet move interval, and a note whether
+presentmon.csv exists. The states alternate from one launch to the next, so
+hover comparisons are made within a state (L1 of Issue #108).
+
 Usage: capture_analyze.py [--json OUT] RUN_DIR [RUN_DIR ...]
 """
 
@@ -33,6 +38,18 @@ import analyze  # noqa: E402  (describe, compare)
 
 EDGE_PX = 12  # ignore positions this close to the dwell positions
 MAX_LATENCY_NS = 300_000_000
+
+# Hover latency alternates between two states from one launch to the next
+# (L1 of Issue #108). The states are recognised by when the capture tool
+# receives a frame after its present time and by whether Qt receives the pen
+# moves evenly or in bursts. The limits come from the 2026-11-09 runs: the low
+# state had 11.2 ms and 3.0-3.3 ms, the high state 9.6-9.8 ms and 0.5-2.0 ms.
+# Values between the low and high limits are left unknown rather than guessed.
+FRAME_TO_ARRIVAL_LOW_MS = 10.8
+FRAME_TO_ARRIVAL_HIGH_MS = 10.2
+TABLET_INTERVAL_LOW_MS = 2.8
+TABLET_INTERVAL_HIGH_MS = 2.4
+STATE_UNKNOWN = "unknown"
 
 
 def read_inject(path):
@@ -175,6 +192,48 @@ def frame_samples(directory):
     return frame_times, offsets, offset, samples
 
 
+def tablet_move_interval_p05(directory):
+    """p05 of the interval between Qt tablet moves, or None without a probe log."""
+    path = os.path.join(directory, "probe.csv")
+    if not os.path.exists(path):
+        return None
+    frequency, events = analyze.load_probe(path)
+    if not frequency:
+        return None
+    times = [entry[0] for entry in events.get("qt_tablet_move", [])]
+    gaps = [(b - a) * 1000.0 / frequency for a, b in zip(times, times[1:])
+            if (b - a) * 1000.0 / frequency < 200.0]
+    return analyze.percentile(gaps, 0.05) if gaps else None
+
+
+def classify_hover_state(frame_to_arrival_p50_ms, tablet_interval_p05_ms):
+    """Return (label, reason) for the hover state of one run.
+
+    Both indicators vote; disagreement or a value between the limits gives
+    "unknown". A run with one indicator absent uses the other.
+    """
+    votes = []
+    if frame_to_arrival_p50_ms is not None:
+        if frame_to_arrival_p50_ms >= FRAME_TO_ARRIVAL_LOW_MS:
+            votes.append(("low", "hover.frame_to_arrival p50 %.1f ms >= %.1f" % (
+                frame_to_arrival_p50_ms, FRAME_TO_ARRIVAL_LOW_MS)))
+        elif frame_to_arrival_p50_ms <= FRAME_TO_ARRIVAL_HIGH_MS:
+            votes.append(("high", "hover.frame_to_arrival p50 %.1f ms <= %.1f" % (
+                frame_to_arrival_p50_ms, FRAME_TO_ARRIVAL_HIGH_MS)))
+    if tablet_interval_p05_ms is not None:
+        if tablet_interval_p05_ms >= TABLET_INTERVAL_LOW_MS:
+            votes.append(("low", "rate.qt_tablet_move_interval p05 %.1f ms >= %.1f" % (
+                tablet_interval_p05_ms, TABLET_INTERVAL_LOW_MS)))
+        elif tablet_interval_p05_ms <= TABLET_INTERVAL_HIGH_MS:
+            votes.append(("high", "rate.qt_tablet_move_interval p05 %.1f ms <= %.1f" % (
+                tablet_interval_p05_ms, TABLET_INTERVAL_HIGH_MS)))
+    labels = {label for label, _ in votes}
+    if len(labels) != 1:
+        reason = "no indicator in the low or high range" if not votes else "indicators disagree"
+        return STATE_UNKNOWN, reason
+    return labels.pop(), "; ".join(reason for _, reason in votes)
+
+
 def analyze_run(directory):
     frame_times, offsets, offset, samples = frame_samples(directory)
     stats = collections.defaultdict(list)
@@ -189,6 +248,17 @@ def analyze_run(directory):
         kind: {"offset_px": offset[kind], "spread_px": (max(v) - min(v)) if v else None, "n": len(v)}
         for kind, v in offsets.items()
     }
+    frame_to_arrival = result.get("hover.frame_to_arrival", {}).get("p50")
+    tablet_interval = tablet_move_interval_p05(directory)
+    label, reason = classify_hover_state(frame_to_arrival, tablet_interval)
+    result["state"] = {
+        "label": label,
+        "reason": reason,
+        "hover_p50_ms": result.get("hover.input_to_capture", {}).get("p50"),
+        "frame_to_arrival_p50_ms": frame_to_arrival,
+        "tablet_move_interval_p05_ms": tablet_interval,
+    }
+    result["presentmon"] = {"present": os.path.exists(os.path.join(directory, "presentmon.csv"))}
     return result
 
 
@@ -205,14 +275,17 @@ def main(argv):
         results[os.path.basename(os.path.normpath(directory))] = analyze_run(directory)
     for name, result in results.items():
         frames = result["frames"]
-        print("== %s  frames=%d interval %s" % (name, frames["n"], analyze.format_stat(frames["interval"])))
+        presentmon = "present" if result["presentmon"]["present"] else "none"
+        print("== %s  frames=%d interval %s  state=%s  PresentMon=%s" % (
+            name, frames["n"], analyze.format_stat(frames["interval"]), result["state"]["label"], presentmon))
+        print("   state: %s" % result["state"]["reason"])
         for kind, entry in result["calibration"].items():
             print("   calibration %-5s offset=%s px spread=%s px n=%d" % (kind, entry["offset_px"], entry["spread_px"], entry["n"]))
         for key, stat in result.items():
-            if key in ("frames", "calibration"):
+            if key in ("frames", "calibration", "state", "presentmon"):
                 continue
             print("   %-28s %s" % (key, analyze.format_stat(stat)))
-    comparison = analyze.compare(results, PRIMARY)
+    comparison = analyze.compare(results, PRIMARY, require_presentmon=False)
     if comparison:
         print("== spread of run medians ((max - min) / median)")
         for metric, entry in comparison.items():

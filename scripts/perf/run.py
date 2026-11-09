@@ -17,6 +17,12 @@ capture_analyze.py, applies the host's capture clock correction, writes a
 summary JSON, compares it with an optional baseline summary, and prints a
 Markdown table with the verdict.
 
+Hover latency alternates between two states from one launch to the next
+(L1 of Issue #108). The summary carries each run's state and every run's
+PresentMon presence. Hover metrics are judged within a state; ink is judged
+over all runs. A Windows target can set "presentmon": "off" to leave
+PresentMon out for a comparison.
+
 Usage:
   run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
          --label q1 --out build/perf/runs [--only windows,linux] [--baseline OLD.json] \
@@ -63,7 +69,8 @@ def runner_for(host, target, scenario, run_root):
     if kind == "windows":
         argv = [os.path.join(HERE, "pen-latency", "run-remote.sh"), host["ssh"], target["runner_target"], "1",
                 target.get("app", "none"), out]
-        env = {"CAPTURE_TOOL": host["capture_tool"], "TRAJECTORY_JSON": trajectory, "RUN_NAME": target["name"]}
+        env = {"CAPTURE_TOOL": host["capture_tool"], "TRAJECTORY_JSON": trajectory, "RUN_NAME": target["name"],
+               "PRESENTMON": target.get("presentmon", "on")}
         return argv, env, None
     if kind == "linux":
         command = " ".join(shlex.quote(a) for a in target["command"])
@@ -99,8 +106,26 @@ def shifted(stat, offset):
     return {key: (value - offset if key in ("p05", "p50", "p95") else value) for key, value in stat.items()}
 
 
+def aggregate(runs, metrics):
+    """Median, P95 and spread of the run medians for every metric."""
+    aggregated = {}
+    for metric in metrics:
+        medians = [run[metric]["p50"] for run in runs if run[metric].get("n")]
+        p95s = [run[metric]["p95"] for run in runs if run[metric].get("n")]
+        if not medians:
+            continue
+        center = statistics.median(medians)
+        aggregated[metric] = {
+            "median": center,
+            "p95": statistics.median(p95s),
+            "spread": (max(medians) - min(medians)) / center if center else None,
+            "runs": len(medians),
+        }
+    return aggregated
+
+
 def summarize(run_root, hosts, scenario):
-    """Analyze every run directory and group run medians by host and target."""
+    """Analyze every run directory and group run medians by host, target and state."""
     summary = {"scenario": scenario["name"], "hosts": {}}
     for host in hosts:
         host_dir = os.path.join(run_root, host["name"])
@@ -116,60 +141,92 @@ def summarize(run_root, hosts, scenario):
             if target is None:
                 continue
             result = capture_analyze.analyze_run(path)
-            runs = entry["targets"].setdefault(target, {"runs": []})["runs"]
-            runs.append({metric: shifted(result.get(metric, {"n": 0}), offset) for metric in scenario["metrics"]})
+            data = entry["targets"].setdefault(target, {"runs": []})
+            data["runs"].append({
+                "metrics": {metric: shifted(result.get(metric, {"n": 0}), offset) for metric in scenario["metrics"]},
+                "state": result.get("state", {"label": "unknown"}),
+                "presentmon": result.get("presentmon", {"present": False}),
+            })
         for target, data in entry["targets"].items():
-            data["metrics"] = {}
-            for metric in scenario["metrics"]:
-                medians = [run[metric]["p50"] for run in data["runs"] if run[metric].get("n")]
-                p95s = [run[metric]["p95"] for run in data["runs"] if run[metric].get("n")]
-                if not medians:
-                    continue
-                center = statistics.median(medians)
-                data["metrics"][metric] = {
-                    "median": center,
-                    "p95": statistics.median(p95s),
-                    "spread": (max(medians) - min(medians)) / center if center else None,
-                    "runs": len(medians),
+            data["metrics"] = aggregate([run["metrics"] for run in data["runs"]], scenario["metrics"])
+            groups = {}
+            for run in data["runs"]:
+                groups.setdefault(run["state"].get("label", "unknown"), []).append(run)
+            data["states"] = {}
+            for state, state_runs in sorted(groups.items()):
+                data["states"][state] = {
+                    "runs": len(state_runs),
+                    "presentmon": sum(1 for run in state_runs if run["presentmon"].get("present")),
+                    "metrics": aggregate([run["metrics"] for run in state_runs], scenario["metrics"]),
                 }
         summary["hosts"][host["name"]] = entry
     return summary
 
 
+def baseline_metric(baseline, host, target, metric, state):
+    base = (baseline or {}).get("hosts", {}).get(host, {}).get("targets", {}).get(target, {})
+    if state is not None:
+        state_data = base.get("states", {}).get(state)
+        if not state_data:
+            return None
+        return state_data.get("metrics", {}).get(metric)
+    return base.get("metrics", {}).get(metric)
+
+
 def judge(summary, scenario, baseline=None):
-    """Return rows of (host, target, metric, median, p95, spread, verdict)."""
+    """Return rows of (host, target, metric, median, p95, spread, delta, verdict, notes, state)."""
     rows = []
     limit = scenario.get("spread_limit", 0.05)
     for host, entry in summary["hosts"].items():
         for target, data in entry["targets"].items():
+            states = [state for state in data.get("states", {}) if state in ("low", "high")]
             for metric, stat in data.get("metrics", {}).items():
-                notes, problems = [], []
-                if stat["spread"] is not None and stat["spread"] >= limit:
-                    problems.append("spread %.1f%% >= %.0f%%" % (100 * stat["spread"], 100 * limit))
-                if stat["runs"] < scenario["runs"]:
-                    problems.append("%d of %d runs" % (stat["runs"], scenario["runs"]))
-                base = (baseline or {}).get("hosts", {}).get(host, {}).get("targets", {}).get(target, {})
-                base_stat = base.get("metrics", {}).get(metric)
-                delta = None
-                if base_stat:
-                    delta = stat["median"] - base_stat["median"]
-                    threshold = scenario["metrics"][metric]["regression_ms"]
-                    if delta > threshold:
-                        problems.append("regression +%.1f ms" % delta)
-                    elif delta < -threshold:
-                        notes.append("improvement %.1f ms" % delta)
-                verdict = "check" if problems else "ok"
-                rows.append((host, target, metric, stat["median"], stat["p95"], stat["spread"], delta, verdict,
-                             "; ".join(problems + notes)))
+                grouped = states if metric.startswith("hover.") else []
+                if grouped:
+                    groups = [(state, data["states"][state]["metrics"].get(metric), data["states"][state]["runs"])
+                              for state in sorted(grouped)]
+                    if "unknown" in data.get("states", {}):
+                        groups.append(("unknown", data["states"]["unknown"]["metrics"].get(metric),
+                                       data["states"]["unknown"]["runs"]))
+                else:
+                    groups = [(None, stat, stat["runs"])]
+                for state, group_stat, group_runs in groups:
+                    if not group_stat:
+                        continue
+                    notes, problems = [], []
+                    if state is not None:
+                        notes.append("%s state: %d of %d runs" % (
+                            state, group_runs, len(data["runs"])))
+                        if group_stat["runs"] < 2:
+                            problems.append("only %d run in state" % group_stat["runs"])
+                    if group_stat["spread"] is not None and group_stat["spread"] >= limit:
+                        problems.append("spread %.1f%% >= %.0f%%" % (100 * group_stat["spread"], 100 * limit))
+                    total_runs = len(data.get("runs", [])) if isinstance(data.get("runs"), list) else stat["runs"]
+                    if total_runs < scenario["runs"]:
+                        problems.append("%d of %d runs" % (total_runs, scenario["runs"]))
+                    base_stat = baseline_metric(baseline, host, target, metric, state)
+                    delta = None
+                    if base_stat:
+                        delta = group_stat["median"] - base_stat["median"]
+                        threshold = scenario["metrics"][metric]["regression_ms"]
+                        if delta > threshold:
+                            problems.append("regression +%.1f ms" % delta)
+                        elif delta < -threshold:
+                            notes.append("improvement %.1f ms" % delta)
+                    elif baseline is not None and state is not None:
+                        notes.append("baseline has no %s state" % state)
+                    verdict = "check" if problems else "ok"
+                    rows.append((host, target, metric, group_stat["median"], group_stat["p95"], group_stat["spread"],
+                                 delta, verdict, "; ".join(problems + notes), state))
     return rows
 
 
 def table(rows):
-    lines = ["| host | target | metric | median ms | P95 ms | spread | vs baseline | verdict | notes |",
-             "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
-    for host, target, metric, median, p95, spread, delta, verdict, notes in rows:
-        lines.append("| %s | %s | %s | %.1f | %.1f | %s | %s | %s | %s |" % (
-            host, target, metric, median, p95, "-" if spread is None else "%.1f%%" % (100 * spread),
+    lines = ["| host | target | metric | state | median ms | P95 ms | spread | vs baseline | verdict | notes |",
+             "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+    for host, target, metric, median, p95, spread, delta, verdict, notes, state in rows:
+        lines.append("| %s | %s | %s | %s | %.1f | %.1f | %s | %s | %s | %s |" % (
+            host, target, metric, state or "-", median, p95, "-" if spread is None else "%.1f%%" % (100 * spread),
             "-" if delta is None else "%+.1f" % delta, verdict, notes))
     return "\n".join(lines)
 
@@ -216,6 +273,15 @@ def main(argv):
     baseline = json.load(open(args.baseline)) if args.baseline else None
     rows = judge(summary, scenario, baseline)
     print(table(rows))
+    present_lines = []
+    for host, entry in summary["hosts"].items():
+        for target, data in entry["targets"].items():
+            runs = data.get("runs", [])
+            present = sum(1 for run in runs if run.get("presentmon", {}).get("present"))
+            present_lines.append("   %s/%s: PresentMon %d of %d runs" % (host, target, present, len(runs)))
+    if present_lines:
+        print("== PresentMon records")
+        print("\n".join(present_lines))
     destination = args.summary or os.path.join(run_root, "summary.json")
     os.makedirs(os.path.dirname(os.path.abspath(destination)), exist_ok=True)
     with open(destination, "w") as handle:

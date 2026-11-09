@@ -7,7 +7,7 @@
 #   { "target": "LibrePaint" | "Krita" | "PenProbe",
 #     "runs": 5, "app": "<path to the executable>",
 #     "settleSeconds": 12, "inject": { <PenInject.Options fields> },
-#     "capture": false }
+#     "capture": false, "presentmon": "on" }
 #
 # With "capture": true, windows_capture.exe replays plan.csv (written by
 # trajectory.py) next to this script and records the screen with DXGI
@@ -15,8 +15,11 @@
 #
 # Each run writes <root>\runs\<id>-<n>\ with presentmon.csv, probe.csv
 # (LibrePaint and PenProbe), inject.csv, capture.csv (capture mode) and
-# meta.txt. status.txt reports progress and ends with "done" or
-# "failed: <reason>".
+# meta.txt. The PresentMon session name includes the run, and meta.txt records
+# whether its log exists. meta.txt also records the timer resolution, the
+# foreground window and the app process settings at the start, after the first
+# window and before the capture. status.txt reports progress and ends with
+# "done" or "failed: <reason>".
 
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -24,6 +27,73 @@ $status = Join-Path $here 'status.txt'
 Set-Content -Path $status -Value 'starting'
 
 function Log([string]$text) { Add-Content -Path $status -Value $text }
+
+# Launch-time facts that can latch the hover state of one run (L1 of Issue
+# #108): the system timer resolution, which window is in front, and the app
+# process settings. Each is written to meta.txt so a later analysis can tell
+# the two states apart without changing the application.
+$probeSource = @'
+using System;
+using System.Runtime.InteropServices;
+public static class L1Probe
+{
+    [DllImport("ntdll.dll")]
+    public static extern int NtQueryTimerResolution(out uint minimum, out uint maximum, out uint current);
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")]
+    public static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr window);
+    [DllImport("user32.dll")]
+    public static extern bool IsIconic(IntPtr window);
+}
+'@
+try { Add-Type -TypeDefinition $probeSource } catch { Log ("probe type unavailable: " + $_.Exception.Message) }
+
+function Get-TimerResolution {
+    try {
+        [uint32]$minimum = 0
+        [uint32]$maximum = 0
+        [uint32]$current = 0
+        [void][L1Probe]::NtQueryTimerResolution([ref]$minimum, [ref]$maximum, [ref]$current)
+        return "min100ns=$minimum current100ns=$current max100ns=$maximum"
+    } catch { return 'unavailable' }
+}
+
+function Get-Foreground {
+    try {
+        $window = [L1Probe]::GetForegroundWindow()
+        [uint32]$ownerPid = 0
+        [void][L1Probe]::GetWindowThreadProcessId($window, [ref]$ownerPid)
+        $name = ''
+        try { $name = (Get-Process -Id $ownerPid -ErrorAction Stop).ProcessName } catch { }
+        return [pscustomobject]@{
+            pid = $ownerPid
+            name = $name
+            visible = [L1Probe]::IsWindowVisible($window)
+            iconic = [L1Probe]::IsIconic($window)
+        }
+    } catch {
+        return [pscustomobject]@{ pid = 0; name = 'unavailable'; visible = $false; iconic = $false }
+    }
+}
+
+function Write-LaunchFacts($dir, $stage, $app) {
+    $foreground = Get-Foreground
+    $lines = @(
+        "timer_resolution_$stage=$(Get-TimerResolution)",
+        "foreground_$stage=pid=$($foreground.pid) name=$($foreground.name) visible=$($foreground.visible) iconic=$($foreground.iconic)"
+    )
+    if ($app) {
+        $lines += "app_foreground_$stage=$($foreground.pid -eq $app.Id)"
+        try {
+            $lines += "app_priority_$stage=$($app.PriorityClass)"
+            $lines += "app_affinity_$stage=$($app.ProcessorAffinity)"
+        } catch { }
+    }
+    Add-Content -Path (Join-Path $dir 'meta.txt') -Value $lines
+}
 
 function Wait-MainWindow($process, [int]$seconds) {
     $deadline = (Get-Date).AddSeconds($seconds)
@@ -42,7 +112,8 @@ function Write-Meta($dir, $request, $target) {
         "app=$($request.app)",
         "date=$(Get-Date -Format o)",
         "computer=$((Get-CimInstance Win32_ComputerSystem).Model)",
-        "os=$([System.Environment]::OSVersion.VersionString)"
+        "os=$([System.Environment]::OSVersion.VersionString)",
+        "presentmon=$(if ($request.presentmon) { $request.presentmon } else { 'on' })"
     )
     $battery = Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue
     if ($battery) { $lines += "battery_status=$($battery.BatteryStatus) charge=$($battery.EstimatedChargeRemaining)" }
@@ -80,6 +151,7 @@ try {
         foreach ($property in $request.inject.PSObject.Properties) { $options.($property.Name) = $property.Value }
     }
     $presentMon = Join-Path (Split-Path -Parent $here) 'PresentMon.exe'
+    $presentMonEnabled = -not ([string]$request.presentmon -eq 'off')
     $runName = if ($request.name) { [string]$request.name } else { $target }
     $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
 
@@ -88,6 +160,7 @@ try {
         New-Item -ItemType Directory -Force $dir | Out-Null
         Log "run $n $dir"
         Write-Meta $dir $request $target
+        Write-LaunchFacts $dir 'start' $null
 
         if ($target -eq 'PenProbe') {
             if ($capture) {
@@ -115,17 +188,29 @@ try {
         $bitmap.Dispose()
 
         $processName = [System.IO.Path]::GetFileName([string]$request.app)
-        $pmArgs = @('--process_name', $processName, '--output_file', (Join-Path $dir 'presentmon.csv'), '--qpc_time',
-            '--no_console_stats', '--stop_existing_session', '--terminate_on_proc_exit', '--session_name', 'LibrePaintPenLatency')
-        $pm = Start-Process -FilePath $presentMon -ArgumentList $pmArgs -PassThru -WindowStyle Hidden `
-            -RedirectStandardError (Join-Path $dir 'presentmon.err') -RedirectStandardOutput (Join-Path $dir 'presentmon.out')
+        # A session name per run keeps a session left by an earlier run from
+        # blocking this one. PresentMon 2.x failed to record after it stopped
+        # a session with the same name (2026-11-09 runs).
+        $sessionName = 'LibrePaintPenLatency-{0}-{1}' -f $id, $n
+        $presentMonCsv = Join-Path $dir 'presentmon.csv'
+        $pm = $null
+        if ($presentMonEnabled) {
+            Get-Process -Name PresentMon -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Milliseconds 500
+            $pmArgs = @('--process_name', $processName, '--output_file', $presentMonCsv, '--qpc_time',
+                '--no_console_stats', '--stop_existing_session', '--terminate_on_proc_exit', '--session_name', $sessionName)
+            $pm = Start-Process -FilePath $presentMon -ArgumentList $pmArgs -PassThru -WindowStyle Hidden `
+                -RedirectStandardError (Join-Path $dir 'presentmon.err') -RedirectStandardOutput (Join-Path $dir 'presentmon.out')
+        }
 
         if ($target -eq 'LibrePaint') { $env:LIBREPAINT_LATENCY_LOG = Join-Path $dir 'probe.csv' }
         else { Remove-Item Env:LIBREPAINT_LATENCY_LOG -ErrorAction SilentlyContinue }
         $app = Start-Process -FilePath $request.app -ArgumentList @('--nosplash', "`"$canvas`"") -PassThru
         try {
             $hwnd = Wait-MainWindow $app 120
+            Write-LaunchFacts $dir 'window' $app
             Start-Sleep -Seconds $settle
+            Write-LaunchFacts $dir 'capture' $app
             if ($capture) { Invoke-Capture $dir }
             else { [PenInject]::Run($hwnd, (Join-Path $dir 'inject.csv'), $options) | Out-Null }
             # The probe writer flushes every 500 ms; leave time for the last batch.
@@ -133,7 +218,18 @@ try {
         }
         finally {
             if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }
-            if (-not $pm.WaitForExit(10000)) { Stop-Process -Id $pm.Id -Force }
+            if ($pm) {
+                if (-not $pm.WaitForExit(20000)) {
+                    Stop-Process -Id $pm.Id -Force -ErrorAction SilentlyContinue
+                    try { & logman stop $sessionName -ets | Out-Null } catch { }
+                }
+            }
+        }
+        if ($presentMonEnabled) {
+            $recorded = (Test-Path $presentMonCsv) -and ((Get-Item $presentMonCsv).Length -gt 0)
+            $presentMonState = if ($recorded) { 'present' } else { 'none' }
+            Add-Content -Path (Join-Path $dir 'meta.txt') -Value "presentmon_result=$presentMonState"
+            Log "presentmon=$presentMonState"
         }
         Start-Sleep -Seconds 2
     }

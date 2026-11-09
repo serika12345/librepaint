@@ -1,5 +1,5 @@
 {
-  "comment": "Copy to build/perf/hosts.json (not tracked) and fill in the hosts and paths. run.py runs on a machine that reaches every host: Windows and Linux hosts over ssh, the macOS host locally. capture_offset_ms is subtracted from capture values; check it per host with presentation_check.py (DEVELOPMENT.md, performance measurement).",
+  "comment": "Copy to build/perf/hosts.json (not tracked) and fill in the hosts and paths. run.py runs on a machine that reaches every host: Windows and Linux hosts over ssh, the macOS host locally. capture_offset_ms is subtracted from capture values; check it per host with presentation_check.py (DEVELOPMENT.md, performance measurement). A Windows target can set \"presentmon\": \"off\" to measure without PresentMon; the default is on.",
   "hosts": [
     {
       "name": "windows",
@@ -10,6 +10,7 @@
       "capture_offset_ms": 0,
       "targets": [
         {"name": "LibrePaint-1.0.3", "runner_target": "LibrePaint", "app": "<Windows path of LibrePaint.exe>"},
+        {"name": "LibrePaint-1.0.3-noPM", "runner_target": "LibrePaint", "app": "<same path>", "presentmon": "off"},
         {"name": "Krita", "runner_target": "Krita", "app": "<Windows path of krita.exe>"},
         {"name": "PenProbe", "runner_target": "PenProbe"}
       ]
