@@ -1475,15 +1475,17 @@ KisTIFFImport::readImageFromTiff(KisDocument *m_doc,
         KisTransformWorker::mirrorY(layer->paintDevice());
         break;
     case ORIENTATION_LEFTTOP:
-        m_image->rotateImage(M_PI / 2);
+        // Mirror first: rotateImage() runs as an image stroke and would race with it.
         KisTransformWorker::mirrorY(layer->paintDevice());
+        m_image->rotateImage(M_PI / 2);
         break;
     case ORIENTATION_RIGHTTOP:
         m_image->rotateImage(M_PI / 2);
         break;
     case ORIENTATION_RIGHTBOT:
-        m_image->rotateImage(M_PI / 2);
+        // Mirror first: rotateImage() runs as an image stroke and would race with it.
         KisTransformWorker::mirrorX(layer->paintDevice());
+        m_image->rotateImage(M_PI / 2);
         break;
     case ORIENTATION_LEFTBOT:
         m_image->rotateImage(-M_PI / 2 + M_PI * 2);

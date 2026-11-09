@@ -1,6 +1,8 @@
 {
   pkgs,
   source,
+  # Overlays shared by every platform, such as the common Qt release.
+  overlays ? [ ],
   androidAbi ? "arm64-v8a",
   dependencyRecipeRevision ? "0fd95c4efca2e5b5024121bb0ccae5b353956cd9",
   dependencyRecipeHash ? "sha256-HdV3KRydtw94mtVn1ZXGmKPH5Qro33UZEj3KtPc1lj8=",
@@ -12,6 +14,7 @@ let
 
   androidHost = import pkgs.path {
     localSystem = pkgs.stdenv.hostPlatform;
+    inherit overlays;
     config = {
       allowUnfree = true;
       android_sdk.accept_license = true;

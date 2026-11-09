@@ -135,22 +135,17 @@ let
       # Krita's official Windows builds use its Qt fork.  In addition to the
       # HDR texture colour-space API consumed by the small colour selector,
       # this carries the ANGLE, tablet, shortcut and backing-store fixes that
-      # are part of Krita's Windows feature set.
-      # The fork currently records 6.11.0 in its module metadata, while the
-      # Qt modules supplied by this nixpkgs revision are 6.11.1 and require an
-      # exact base version.  Keep the forked implementation and expose it as
-      # the patch-level-compatible version consumed by those modules.
-      version = "6.11.1";
+      # are part of Krita's Windows feature set.  The fork branch
+      # for-krita/6.11.3 matches the Qt release of the other platforms
+      # (nix/qt/overlay.nix).
+      version = "6.11.3";
       src = pkgs.fetchFromGitHub {
         owner = "dimula73";
         repo = "qtbase";
-        rev = "3423b8a5a0b93a7ecb3b06db914d9fd72a68fe8e";
-        hash = "sha256-5xNM6NvMAOTP5MsGVzQwzWAbJXrTk5CmYONJ/in9zoE=";
+        rev = "d918f368da8df4c682874ed6d018c59aa79210c2";
+        hash = "sha256-adfqI0r0/1ppK0I+TpoBCe8SF20RNl/DzHJalRYj/rI=";
       };
       postPatch = (old.postPatch or "") + ''
-        substituteInPlace .cmake.conf \
-          --replace-fail 'set(QT_REPO_MODULE_VERSION "6.11.0")' \
-                         'set(QT_REPO_MODULE_VERSION "6.11.1")'
         substituteInPlace src/plugins/platforms/windows/qwindowseglcontext.cpp \
           --replace-fail '<VersionHelpers.h>' '<versionhelpers.h>'
       '';

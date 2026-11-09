@@ -2,7 +2,7 @@
   "schema": 1,
   "frameworks_version": "6.28.0",
   "target_defaults": {
-    "qt_version": "6.11.1",
+    "qt_version": "6.11.3",
     "sdk_lock": {
       "name": "iphoneos",
       "cmake_cache_value": "iphoneos",
@@ -56,11 +56,11 @@
       },
       "qtbase": {
         "flake_attr": "host-qtbase",
-        "version": "6.11.1"
+        "version": "6.11.3"
       },
       "qttools": {
         "flake_attr": "host-qttools",
-        "version": "6.11.1"
+        "version": "6.11.3"
       }
     },
     "forbidden": {

@@ -1,14 +1,14 @@
 {
   "schema": 1,
-  "qt_version": "6.11.1",
+  "qt_version": "6.11.3",
   "modules": [
     {
       "name": "qtbase",
-      "version": "6.11.1",
+      "version": "6.11.3",
       "source": {
         "flake_attr": "source-qtbase",
-        "archive_name": "qtbase-everywhere-src-6.11.1.tar.xz",
-        "archive_sha256": "d9594a31228aa23ad6b531719a29b45f0f3989fe6c136d45767ea179f233c1ac"
+        "archive_name": "qtbase-everywhere-src-6.11.3.tar.xz",
+        "archive_sha256": "46de0710b594945a5d446ae44354daa386141c6903c53781b2ca547bc62f8f8f"
       },
       "dependencies": {
         "target_packages": [
@@ -21,7 +21,7 @@
       },
       "host_tools": {
         "flake_attr": "host-qtbase",
-        "version": "6.11.1",
+        "version": "6.11.3",
         "cmake_packages": [
           "Qt6HostInfo",
           "Qt6CoreTools",
@@ -244,10 +244,10 @@
           "include/QtConcurrent/QtConcurrent",
           "include/QtCore/QtCore",
           "include/QtCore/qconfig.h",
-          "include/QtCore/6.11.1/QtCore/private/qglobal_p.h",
+          "include/QtCore/6.11.3/QtCore/private/qglobal_p.h",
           "include/QtGui/QtGui",
           "include/QtGui/qtgui-config.h",
-          "include/QtGui/6.11.1/QtGui/private/qrhi_p.h",
+          "include/QtGui/6.11.3/QtGui/private/qrhi_p.h",
           "include/QtJpeg/jpeglib.h",
           "include/QtNetwork/QtNetwork",
           "include/QtNetwork/qtnetwork-config.h",
@@ -323,11 +323,11 @@
     },
     {
       "name": "qtsvg",
-      "version": "6.11.1",
+      "version": "6.11.3",
       "source": {
         "flake_attr": "source-qtsvg",
-        "archive_name": "qtsvg-everywhere-src-6.11.1.tar.xz",
-        "archive_sha256": "7f3cf02f4824bf03c2c5859ea6db173bf1482a1daf24e6cdf7bc78cfa26a8a94"
+        "archive_name": "qtsvg-everywhere-src-6.11.3.tar.xz",
+        "archive_sha256": "9bdf6fa4b5a2d91c3eaa2edd12263fdff0ae19d0ac25d3c99946cd4189a07123"
       },
       "dependencies": {
         "target_packages": [
@@ -339,7 +339,7 @@
       },
       "host_tools": {
         "flake_attr": "host-qtbase",
-        "version": "6.11.1",
+        "version": "6.11.3",
         "cmake_packages": [
           "Qt6HostInfo",
           "Qt6CoreTools",
@@ -411,7 +411,7 @@
           "include/QtSvg/QtSvg",
           "include/QtSvg/QSvgGenerator",
           "include/QtSvg/QSvgRenderer",
-          "include/QtSvg/6.11.1/QtSvg/private/qsvgdocument_p.h",
+          "include/QtSvg/6.11.3/QtSvg/private/qsvgdocument_p.h",
           "include/QtSvgWidgets/QtSvgWidgets",
           "include/QtSvgWidgets/QSvgWidget",
           "lib/cmake/Qt6Svg/Qt6SvgConfig.cmake",
@@ -460,11 +460,11 @@
     },
     {
       "name": "qt5compat",
-      "version": "6.11.1",
+      "version": "6.11.3",
       "source": {
         "flake_attr": "source-qt5compat",
-        "archive_name": "qt5compat-everywhere-src-6.11.1.tar.xz",
-        "archive_sha256": "cfcb9fdaa051aad54b0e61b24ac5693b4887a86e07609f665fea67328a6f161b"
+        "archive_name": "qt5compat-everywhere-src-6.11.3.tar.xz",
+        "archive_sha256": "2e998067417de46355b6750c3709aaa6032fb27e4b16edb5f73fba79fe436516"
       },
       "dependencies": {
         "target_packages": [],
@@ -474,7 +474,7 @@
       },
       "host_tools": {
         "flake_attr": "host-qtbase",
-        "version": "6.11.1",
+        "version": "6.11.3",
         "cmake_packages": [
           "Qt6HostInfo",
           "Qt6CoreTools",
@@ -547,7 +547,7 @@
           "include/QtCore5Compat/QLinkedList",
           "include/QtCore5Compat/QStringRef",
           "include/QtCore5Compat/qtcore5compat-config.h",
-          "include/QtCore5Compat/6.11.1/QtCore5Compat/private/qtcore5compat-config_p.h",
+          "include/QtCore5Compat/6.11.3/QtCore5Compat/private/qtcore5compat-config_p.h",
           "lib/cmake/Qt6Core5Compat/Qt6Core5CompatConfig.cmake",
           "lib/cmake/Qt6Core5CompatPrivate/Qt6Core5CompatPrivateConfig.cmake",
           "lib/libQt6Core5Compat.prl",

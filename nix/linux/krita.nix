@@ -7,9 +7,12 @@ let
   inherit (pkgs) lib;
   pythonPackages = pkgs.python3Packages;
 
-  # Keep this list aligned with nixpkgs' krita-unwrapped recipe.  It is shared
-  # with linux-dependencies so that the source-independent closure can be
-  # fetched or built before the LibrePaint source changes.
+  runtimePyQt = import ../pyqt6.nix { inherit pythonPackages; };
+
+  # Started from nixpkgs' krita-unwrapped recipe, reduced to the libraries the
+  # LibrePaint CMake files find. It is shared with linux-dependencies so that
+  # the source-independent closure can be fetched or built before the
+  # LibrePaint source changes.
   nativeBuildInputs = [
     pkgs.cmake
     pkgs.kdePackages.extra-cmake-modules
@@ -46,23 +49,20 @@ let
     pkgs.libwebp
     pkgs.SDL2
     pkgs.zug
-    pythonPackages.pyqt6
+    runtimePyQt
     pkgs.qt6.qtmultimedia
   ]
   ++ (with pkgs.kdePackages; [
     breeze-icons
-    karchive
+    kcolorscheme
     kcompletion
     kconfig
     kcoreaddons
     kcrash
     kguiaddons
     ki18n
-    kio
-    kitemmodels
     kitemviews
     kwidgetsaddons
-    kwindowsystem
     mlt
     poppler
     quazip
@@ -73,14 +73,6 @@ let
     pythonPackages.sip
     pythonPackages.setuptools
   ];
-  runtimePyQt = pythonPackages.pyqt6.override {
-    withLocation = false;
-    withMultimedia = false;
-    withPdf = false;
-    withSerialPort = false;
-    withSpeech = false;
-    withWebSockets = false;
-  };
   runtimePythonPath = lib.makeSearchPath pythonPackages.python.sitePackages [
     runtimePyQt
     pythonPackages.pyqt6-sip

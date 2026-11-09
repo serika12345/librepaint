@@ -37,6 +37,7 @@
 #include <KisReadWriteLockPolicy.h>
 
 #include <KoColorModelStandardIds.h>
+#include <atomic>
 #include <memory>
 #include <QtGlobal>
 #include <qcontainerfwd.h>
@@ -63,6 +64,13 @@ struct Q_DECL_HIDDEN KoColorSpaceRegistry::Private {
 
     KoGenericRegistry<KoColorSpaceFactory *> colorSpaceFactoryRegistry;
     KoColorProfileStorage profileStorage;
+    /**
+     * Result of p2020PQProfile(). Finding it estimates the transfer curve of
+     * every registered profile, which costs about 10 ms, while canvas
+     * decorations ask for it on every repaint. Adding or removing a profile
+     * resets it.
+     */
+    std::atomic<const KoColorProfile *> p2020PQProfile {nullptr};
     QHash<QString, const KoColorSpace *> csMap;
     QScopedPointer<ConversionSystemInterface> conversionSystemInterface;
     KoColorConversionSystem *colorConversionSystem {nullptr};
@@ -336,6 +344,7 @@ bool KoColorSpaceRegistry::profileIsCompatible(const KoColorProfile *profile, co
 void KoColorSpaceRegistry::addProfileToMap(KoColorProfile *p)
 {
     d->profileStorage.addProfile(p);
+    d->p2020PQProfile.store(nullptr, std::memory_order_release);
 }
 
 void KoColorSpaceRegistry::addProfile(KoColorProfile *p)
@@ -370,6 +379,7 @@ void KoColorSpaceRegistry::addProfile(const KoColorProfile* profile)
 
 void KoColorSpaceRegistry::removeProfile(KoColorProfile* profile)
 {
+    d->p2020PQProfile.store(nullptr, std::memory_order_release);
     d->profileStorage.removeProfile(profile);
     // FIXME: how about removing it from conversion system?
 }
@@ -723,7 +733,15 @@ const KoColorProfile *KoColorSpaceRegistry::p2020G10Profile() const
 
 const KoColorProfile *KoColorSpaceRegistry::p2020PQProfile() const
 {
-    return d->profileStorage.profilesFor(KoColorProfileQuery(PRIMARIES_ITU_R_BT_2020_2_AND_2100_0, TRC_ITU_R_BT_2100_0_PQ, 203.0)).value(0);
+    if (const KoColorProfile *cached = d->p2020PQProfile.load(std::memory_order_acquire)) {
+        return cached;
+    }
+    const KoColorProfile *profile =
+        d->profileStorage.profilesFor(KoColorProfileQuery(PRIMARIES_ITU_R_BT_2020_2_AND_2100_0, TRC_ITU_R_BT_2100_0_PQ, 203.0)).value(0);
+    if (profile) {
+        d->p2020PQProfile.store(profile, std::memory_order_release);
+    }
+    return profile;
 }
 
 const KoColorProfile *KoColorSpaceRegistry::p709G10Profile() const

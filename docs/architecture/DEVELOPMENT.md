@@ -167,6 +167,83 @@ macOSは`tdd-macos`、Linuxは`tdd-linux`のCMakeプリセットを使う。
 他OSを所有する作業、リリース前、そのOSでの問題発覚時は該当OSを追加検証する。
 Androidは構築費用が大きいため、この条件に沿って検証する。
 
+### 性能計測（ペン入力から表示まで）
+
+描画性能の主指標は、実機でペン入力から画面表示までの時間（中央値とP95）であり、
+ホバー中のブラシ輪郭と描画中のインクを分けて測る（[`docs/perf/CHARTER.md`](../perf/CHARTER.md)）。
+性能の判断は、次の手順で得た数値で示す。ハイスピードカメラは最後の体感の確認だけに使う。
+
+計測は、決まった軌跡の合成入力を再生しながら画面を取り込み、各フレームに映った輪郭の中心と
+インクの先端が、何ms前の入力位置に当たるかを数える。軌跡の両端の静止区間で、ポインターと
+描画の位置のずれを較正する。道具は`scripts/perf/pen-latency/`にある。
+
+| 部品 | 役割 |
+| --- | --- |
+| `trajectory.py` | 全OS共通の軌跡（ホバーの往復、左から右への線）と、キャンバスに対する相対の再生計画 |
+| `windows_capture.cpp` | Windows。合成ペン入力（PT_PEN）とDXGI Desktop Duplication。時刻はQueryPerformanceCounter |
+| `mutter_capture.py` | Linux（GNOME）。mutterのRemoteDesktopとScreenCast（PipeWire）。時刻はCLOCK_MONOTONIC |
+| `macos_capture.mm` | macOS。Quartzのマウスイベントと ScreenCaptureKit。時刻はmach_absolute_time |
+| `capture_analyze.py` | 取り込み結果から、入力から表示までの時間を集計し、回ごとの中央値のばらつきを出す |
+| `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す |
+| `presentation_check.py` | 表示時刻を通知する参照アプリの記録と取り込みを突き合わせ、取り込みの時刻を検証する |
+| 参照アプリ | 入力を受けたらすぐ描く最小のアプリ。`PenProbe.cs`（Windows）、`reference_app.py`と`wayland_reference_app.c`（Linux）、`macos_reference_app.m`と`macos_metal_reference_app.m`（macOS） |
+| 記録用ライブラリ | ソースを変えずに画面への受け渡しを記録する`gl_swap_trace.c`（Linux、LD_PRELOAD）、`macos_gl_trace.m`（macOS、DYLD_INSERT_LIBRARIES）、GUIスレッドの呼び出し履歴を採る`stack_sampler.c`（Linux） |
+
+取り込みの時刻と実際の表示時刻の関係は、OSごとに次のとおり確かめてある。
+
+| OS | 確認方法 | 結果 | 扱い |
+| --- | --- | --- | --- |
+| Windows | 同じ回のPresentMonの表示時刻 | 中央値の差2ms以内。表示方式は取り込み中も変わらない | 補正なし |
+| Linux（GNOME） | `wayland_reference_app.c`のwp_presentationの通知 | 取り込みの時刻が表示より15.8〜16.7ms遅い | 16msを引く |
+| macOS | `macos_metal_reference_app.m`のpresentedTime | 差+0.5ms | 補正なし |
+
+Windowsでは、計測対象を利用者の画面のセッションで動かすため、スケジュールされたタスクを
+一度登録する。PresentMon（2.x）は計測機の`~/pen-latency/PresentMon.exe`に置く。
+
+```sh
+# 計測機で一度だけ（管理者のPowerShell）
+powershell -NoProfile -ExecutionPolicy Bypass -File setup-surface.ps1
+# 開発機から。windows_capture.exeはMinGWで構築する（ファイル先頭の構築手順）
+CAPTURE_TOOL=/path/windows_capture.exe \
+  scripts/perf/pen-latency/run-remote.sh <host> LibrePaint 5 '<LibrePaint.exeのパス>' <出力先>
+scripts/perf/pen-latency/capture_analyze.py <出力先>/LibrePaint-*
+scripts/perf/pen-latency/analyze.py <出力先>/LibrePaint-*
+```
+
+LinuxとmacOSでは、計測対象を毎回新しいホームと設定で起動し、終了させる。
+macOSでは`CFFIXED_USER_HOME`で利用者の設定を変えずに起動し、開発シェルの変数は渡さない。
+macOSの取り込みと入力には、実行する端末アプリへ画面収録とアクセシビリティの許可が必要。
+
+```sh
+# Linux（デスクトップにログインしたセッションで）
+scripts/perf/pen-latency/run-linux.sh <名前> 5 <作業ディレクトリー> <出力先> -- <アプリのコマンド>
+# macOS（macos_capture.mmをclang++で構築しておく）
+MACOS_CAPTURE=/path/macos_capture \
+  scripts/perf/pen-latency/run-macos.sh <名前> 5 <作業ディレクトリー> <出力先> -- <アプリのコマンド>
+```
+
+複数の機器と対象をまとめて計測するときは、`scripts/perf/run.py`を使う。シナリオ
+（`scripts/perf/scenarios/*.json`）が軌跡、設定、回数、ばらつきの上限、悪化と判定する差を定め、
+手元の機器の設定（`scripts/perf/hosts.example.json`を写した`build/perf/hosts.json`。Git の管理外）が
+各機器への入り方、対象の起動方法、取り込みの補正値を定める。各回で対象を交互に1回ずつ測り、
+集計をJSONに保存し、基準の集計と比べた判定の表を出す。判定が`check`の行があると終了コードは1になる。
+すべての機器に入れる1台（WindowsとLinuxにはssh、macOSはその機器自身）で実行する。
+
+```sh
+scripts/perf/run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
+  --label <名前> [--only windows,linux] [--baseline <前回の集計.json>] [--summary docs/perf/results/<名前>.json]
+scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果のディレクトリー>
+```
+
+判定の規則：
+
+- 比較する対象は、同じ機器、同じ窓とキャンバスの大きさ、同じ設定で交互に計測する。
+- 各対象を5回測り、回ごとの中央値のばらつき（最大と最小の差を中央値で割ったもの）が5%未満で
+  あることを確かめる。満たさない場合は回数を増やす。
+- OSをまたぐ比較は、絶対値よりも同じ回の参照アプリとの差で行う。
+- 合成入力はOSの入力の入口から始まるため、ペンのハードウェアからOSまでの遅れは含まない。
+  この区間は、`PenProbe.cs`で報告レートを数値として記録する。
+
 ## デスクトップ
 
 ### macOS

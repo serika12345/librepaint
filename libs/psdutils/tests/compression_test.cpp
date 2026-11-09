@@ -142,6 +142,8 @@ void CompressionTest::unknownCompressionTypeIsFatal()
     QProcess process;
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     environment.insert(QString::fromLatin1(invalidOperationVariable), QString::fromLatin1(operation));
+    // Qt built with journald sends qFatal to the journal when stderr is not a terminal.
+    environment.insert(QStringLiteral("QT_FORCE_STDERR_LOGGING"), QStringLiteral("1"));
     process.setProcessEnvironment(environment);
     process.start(QCoreApplication::applicationFilePath());
 

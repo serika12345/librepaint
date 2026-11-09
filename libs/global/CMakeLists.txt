@@ -283,6 +283,26 @@ set_target_properties(kritagloballatencytrackerobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+# Pen-latency markers, enabled only when LIBREPAINT_LATENCY_LOG names an
+# output file (docs/architecture/DEVELOPMENT.md, pen-latency measurement).
+add_library(kritagloballatencyprobeobjects OBJECT
+    KisLatencyProbe.cpp
+)
+target_compile_definitions(kritagloballatencyprobeobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritagloballatencyprobeobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritagloballatencyprobeobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritagloballatencyprobeobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritaglobalsignalcompressorobjects OBJECT
     kis_signal_compressor.cpp
     kis_signal_compressor_with_param.cpp
@@ -836,6 +856,7 @@ kis_add_library(kritaglobal SHARED
     $<TARGET_OBJECTS:kritaglobalsharedobjects>
     $<TARGET_OBJECTS:kritaglobalrandomsourceobjects>
     $<TARGET_OBJECTS:kritagloballatencytrackerobjects>
+    $<TARGET_OBJECTS:kritagloballatencyprobeobjects>
     $<TARGET_OBJECTS:kritaglobalsignalcompressorobjects>
     $<TARGET_OBJECTS:kritaglobalthreadsafesignalcompressorobjects>
     $<TARGET_OBJECTS:kritaglobalacyclicsignalconnectorobjects>

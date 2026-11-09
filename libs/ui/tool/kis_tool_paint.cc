@@ -5,6 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisLatencyProbe.h>
 #include "kis_tool_paint.h"
 #include "KisOptimizedBrushOutline.h"
 #include "KisPopupWidgetInterface.h"
@@ -340,6 +341,7 @@ void KisToolPaint::showBrushSize()
 
 void KisToolPaint::requestUpdateOutline(const QPointF &outlineDocPoint, const KoPointerEvent *event)
 {
+    KisLatencyProbe::mark("outline_request", outlineDocPoint.x(), outlineDocPoint.y());
     QRectF outlinePixelRect;
     QRectF outlineDocRect;
 

@@ -84,8 +84,8 @@ assert lib.assertMsg (
 ) "Qtbase source archive name does not match its pinned version";
 assert lib.assertMsg (
   packageSpec.source.archive_sha256
-  == "d9594a31228aa23ad6b531719a29b45f0f3989fe6c136d45767ea179f233c1ac"
-) "Qtbase source archive hash differs from the audited Qt 6.11.1 archive";
+  == "46de0710b594945a5d446ae44354daa386141c6903c53781b2ca547bc62f8f8f"
+) "Qtbase source archive hash differs from the audited Qt 6.11.3 archive";
 assert lib.assertMsg (
   packageSpec.host_tools.flake_attr == "host-qtbase"
 ) "Qtbase host-tool manifest must use the host-qtbase flake output";
