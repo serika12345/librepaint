@@ -33,4 +33,7 @@ case "$(uname -s)" in
 esac
 
 "$build_incremental_path" native build "$target"
+# An empty CTEST_PARALLEL_LEVEL runs one test per processor (CMake 3.29+);
+# a number limits it on machines with less memory.
+export CTEST_PARALLEL_LEVEL="${CTEST_PARALLEL_LEVEL-}"
 ctest --preset "$preset" --tests-regex "$test_regex"

@@ -163,6 +163,11 @@ macOSは`tdd-macos`、Linuxは`tdd-linux`のCMakeプリセットを使う。
 `LIMIT_LONG_TESTS=ON`、`CRASH_ON_SAFE_ASSERTS=ON`。隔離した試験は原因・決定性・比較規則を
 確認し、一件ずつ通常検査へ戻す。
 
+構築とテストの並列数は機械に任せる。プリセットは並列数を指定せず、`cmake --build`はninjaの既定
+（論理プロセッサー数＋2）、`verify`と`run-test`のCTestは論理プロセッサー数で動く。メモリーが
+足りない機械では、構築を`CMAKE_BUILD_PARALLEL_LEVEL`、CTestを`CTEST_PARALLEL_LEVEL`で下げる
+（例：`CMAKE_BUILD_PARALLEL_LEVEL=4 CTEST_PARALLEL_LEVEL=4 ./scripts/verify`）。
+
 通常の共有UI変更はmacOSのネイティブ検査とiPadOSの構築・静的監査を優先する。
 他OSを所有する作業、リリース前、そのOSでの問題発覚時は該当OSを追加検証する。
 Androidは構築費用が大きいため、この条件に沿って検証する。

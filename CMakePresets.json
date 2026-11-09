@@ -108,13 +108,11 @@
   "buildPresets": [
     {
       "name": "tdd-macos",
-      "configurePreset": "tdd-macos",
-      "jobs": 4
+      "configurePreset": "tdd-macos"
     },
     {
       "name": "tdd-linux",
-      "configurePreset": "tdd-linux",
-      "jobs": 4
+      "configurePreset": "tdd-linux"
     },
     {
       "name": "ios-device",
@@ -136,7 +134,6 @@
         "QT_QPA_PLATFORM": "offscreen"
       },
       "execution": {
-        "jobs": 4,
         "noTestsAction": "error",
         "stopOnFailure": false
       },
@@ -154,7 +151,6 @@
         "WAYLAND_DISPLAY": ""
       },
       "execution": {
-        "jobs": 4,
         "noTestsAction": "error",
         "stopOnFailure": false
       },
