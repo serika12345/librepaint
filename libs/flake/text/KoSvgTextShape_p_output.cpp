@@ -506,7 +506,10 @@ KoSvgTextShape::Private::collectPaths(const KoSvgTextShape *rootShape, QVector<C
                             }
                         } else if (const auto *outlineGlyph = std::get_if<Glyph::Outline>(&result.at(i).glyph)) {
                             chunk.addPath(tf.map(outlineGlyph->path));
-                        } else if (const auto *bitmapGlyph = std::get_if<Glyph::Bitmap>(&result.at(i).glyph)) {
+                        } else if (const auto *bitmapGlyph = std::get_if<Glyph::Bitmap>(&result.at(i).glyph);
+                                   bitmapGlyph && imageFactory && rectangleFactory) {
+                            // Bitmap glyphs become image shapes, so they are left out when the
+                            // shape plugins are not loaded (resource thumbnails in tests).
 
                             for (int b = 0; b < bitmapGlyph->images.size(); b++) {
                                 QImage img = bitmapGlyph->images.at(b);
