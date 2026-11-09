@@ -13,6 +13,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "scripts", "tests"))
@@ -56,6 +57,63 @@ class SummaryTest(unittest.TestCase):
         # The simulated display shows input 50 to 54 ms old; minus 16 ms.
         self.assertTrue(33.0 <= metric["median"] <= 38.5, metric)
         self.assertAlmostEqual(metric["spread"], 0.0, places=6)
+
+
+def fake_run(state, hover, ink):
+    return {
+        "hover.input_to_capture": {"n": 100, "p05": hover - 5, "p50": hover, "p95": hover + 10},
+        "ink.input_to_capture": {"n": 100, "p05": ink - 5, "p50": ink, "p95": ink + 10},
+        "state": {"label": state},
+        "presentmon": {"present": True},
+    }
+
+
+class RunnerCommandTest(unittest.TestCase):
+    def test_windows_target_passes_the_presentmon_setting(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["PRESENTMON"], "on")
+            target["presentmon"] = "off"
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["PRESENTMON"], "off")
+
+
+class StateSummaryTest(unittest.TestCase):
+    SCENARIO = {
+        "name": "test",
+        "runs": 4,
+        "spread_limit": 0.05,
+        "metrics": {"hover.input_to_capture": {"regression_ms": 2.0}, "ink.input_to_capture": {"regression_ms": 2.0}},
+    }
+
+    def summarize(self, results):
+        with tempfile.TemporaryDirectory() as root:
+            for n in range(1, len(results) + 1):
+                path = os.path.join(root, "h", "T-20261108-120000-%d" % n)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+            host = {"name": "h", "kind": "linux", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run", side_effect=results):
+                return run.summarize(root, [host], self.SCENARIO)
+
+    def test_hover_is_grouped_by_state_and_ink_is_not(self):
+        summary = self.summarize([
+            fake_run("low", 55.0, 61.0),
+            fake_run("high", 62.0, 61.0),
+            fake_run("low", 56.0, 61.0),
+            fake_run("high", 63.0, 61.0),
+        ])
+        data = summary["hosts"]["h"]["targets"]["T"]
+        self.assertEqual(data["states"]["low"]["runs"], 2)
+        self.assertEqual(data["states"]["high"]["runs"], 2)
+        self.assertAlmostEqual(data["states"]["low"]["metrics"]["hover.input_to_capture"]["median"], 55.5)
+        rows = run.judge(summary, self.SCENARIO)
+        hover_states = {row[9] for row in rows if row[2] == "hover.input_to_capture"}
+        self.assertEqual(hover_states, {"low", "high"})
+        self.assertTrue(all(row[9] is None for row in rows if row[2] == "ink.input_to_capture"))
 
 
 class VerdictTest(unittest.TestCase):

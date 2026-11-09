@@ -37,7 +37,7 @@ HOVER_OFFSET = 3
 INK_OFFSET = 20
 
 
-def simulate(directory, delay_ns):
+def simulate(directory, delay_ns, arrival_delay_ns=1_000_000):
     samples = list(trajectory.samples(*RECT, OPTIONS))
     bands = trajectory.bands(RECT[1], RECT[3], trajectory.options(OPTIONS))
     start = 1_000_000_000
@@ -70,12 +70,50 @@ def simulate(directory, delay_ns):
                 dense = int(round(ink[name] + INK_OFFSET))
                 xmin = dense - 200 if xmin == "" else xmin
                 xmax = dense if xmax == "" else max(xmax, dense)
-            rows.append((frame, frame + 1_000_000, name, xmin, xmax, "" if dense == "" else dense - 200, dense, "", ""))
+            rows.append((frame, frame + arrival_delay_ns, name, xmin, xmax, "" if dense == "" else dense - 200, dense, "", ""))
         frame += FRAME_NS
     with open(os.path.join(directory, "capture.csv"), "w", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["frame_ns", "arrival_ns", "band", "xmin", "xmax", "dense_xmin", "dense_xmax", "ymin", "ymax"])
         writer.writerows(rows)
+
+
+def write_probe(directory, intervals_ns):
+    """Write Qt tablet moves with the given gaps; frequency is 10 MHz."""
+    with open(os.path.join(directory, "probe.csv"), "w") as handle:
+        handle.write("# frequency=10000000\n")
+        handle.write("time,event,x,y,extra,thread\n")
+        time = 1_000_000_000
+        for gap in intervals_ns:
+            handle.write("%d,qt_tablet_move,0.00,0.00,0,1\n" % time)
+            time += gap // 100  # the probe clock is 10 MHz
+
+
+class HoverStateTest(unittest.TestCase):
+    def test_indicators_of_the_two_states_are_recognised(self):
+        self.assertEqual(capture_analyze.classify_hover_state(11.2, 3.1)[0], "low")
+        self.assertEqual(capture_analyze.classify_hover_state(9.6, 0.8)[0], "high")
+
+    def test_disagreeing_or_between_values_are_unknown(self):
+        self.assertEqual(capture_analyze.classify_hover_state(11.2, 0.8)[0], "unknown")
+        self.assertEqual(capture_analyze.classify_hover_state(10.5, None)[0], "unknown")
+
+    def test_run_reports_state_and_presentmon(self):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000, arrival_delay_ns=11_200_000)
+            write_probe(directory, [4_170_000] * 100)
+            low = capture_analyze.analyze_run(directory)
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000, arrival_delay_ns=9_600_000)
+            write_probe(directory, [200_000, 8_150_000] * 50)
+            high = capture_analyze.analyze_run(directory)
+        self.assertEqual(low["state"]["label"], "low")
+        self.assertEqual(high["state"]["label"], "high")
+        self.assertFalse(low["presentmon"]["present"])
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            open(os.path.join(directory, "presentmon.csv"), "w").close()
+            self.assertTrue(capture_analyze.analyze_run(directory)["presentmon"]["present"])
 
 
 class SimulatedDisplayTest(unittest.TestCase):

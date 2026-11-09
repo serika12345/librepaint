@@ -105,6 +105,21 @@ class FrameAttributionTest(unittest.TestCase):
         self.assertEqual(result["presents"], {"n": 1, "displayed": 0})
 
 
+class PresentMonTest(unittest.TestCase):
+    def test_a_run_without_presentmon_is_reported_and_left_out_of_the_comparison(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, [(ms(1000), "native_pointer", pointer(INRANGE))], [])
+            os.remove(os.path.join(directory, "presentmon.csv"))
+            result = analyze.Run(directory).analyze()
+        self.assertFalse(result["presentmon"]["present"])
+        results = {
+            "with": {"hover.input_to_display": {"n": 10, "p50": 50.0}, "presentmon": {"present": True}},
+            "with2": {"hover.input_to_display": {"n": 10, "p50": 51.0}, "presentmon": {"present": True}},
+            "without": {"hover.input_to_display": {"n": 10, "p50": 52.0}, "presentmon": {"present": False}},
+        }
+        self.assertEqual(analyze.compare(results)["hover.input_to_display"]["runs"], 2)
+
+
 class RunComparisonTest(unittest.TestCase):
     def test_spread_is_range_of_run_medians_over_their_median(self):
         results = {
