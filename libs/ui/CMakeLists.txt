@@ -2405,7 +2405,8 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
 endif()
 
 if(WIN32)
-    target_link_libraries(kritaapplicationui PRIVATE dxgi)
+    # d3d11 supplies ID3D11Device1 for the L1 H1 (frames queued ahead) switch.
+    target_link_libraries(kritaapplicationui PRIVATE dxgi d3d11)
 
     # Private headers are needed for:
     #    * KisDlgCustomTabletResolution

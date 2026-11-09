@@ -29,6 +29,12 @@ class QCoreApplication;
  * move_compressed, compressed_dispatch, outline_request, stroke_paint,
  * projection_update, canvas_update_dispatch, canvas_busy_defer,
  * paintgl_begin, paintgl_end and frame_swapped.
+ *
+ * The L1 experiments add last_frame_completed_on_gpu (extra = 1 when the
+ * previous frame finished on the GPU), qt_update_deferred (Qt's frame
+ * compressor deferred a paint), qt_update_deferred_skipped (H6 (frame update
+ * throttle) painted despite the previous frame), gpu_wait_begin and
+ * gpu_wait_end (H2 (waiting for the display handoff)).
  */
 namespace KisLatencyProbe
 {

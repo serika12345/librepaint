@@ -17,6 +17,8 @@
 # RUN_NAME names the run directories (default: TARGET), so that two
 # versions of one application can be told apart.
 # PRESENTMON=off skips PresentMon for one measurement; the default is on.
+# TARGET_ENV is a JSON object of environment variables for the measured
+# application; run.py fills it from the target's "env" in hosts.json.
 set -euo pipefail
 
 if [ "$#" -lt 5 ]; then
@@ -30,6 +32,7 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
 capture=false
+target_env=${TARGET_ENV:-'{}'}
 extra=()
 if [ -n "${CAPTURE_TOOL:-}" ]; then
   capture=true
@@ -38,15 +41,9 @@ if [ -n "${CAPTURE_TOOL:-}" ]; then
   extra=("$CAPTURE_TOOL" "$work/plan.csv")
 fi
 
-python3 -I - "$target" "$runs" "$app" "$inject" "$capture" "${RUN_NAME:-$target}" "${PRESENTMON:-on}" \
-    "$(python3 -I "$here/presentmon_command.py")" > "$work/request.json" <<'PY'
-import json, sys
-target, runs, app, inject, capture, name, presentmon, presentmon_fields = sys.argv[1:]
-request = {"target": target, "runs": int(runs), "app": app, "inject": json.loads(inject),
-           "capture": capture == "true", "name": name, "presentmon": presentmon}
-request.update(json.loads(presentmon_fields))
-print(json.dumps(request))
-PY
+python3 -I "$here/run_request.py" "$target" "$runs" "$app" "$inject" "$capture" \
+    "${RUN_NAME:-$target}" "${PRESENTMON:-on}" \
+    "$(python3 -I "$here/presentmon_command.py")" "$target_env" > "$work/request.json"
 
 ssh "$host" "New-Item -ItemType Directory -Force $remote | Out-Null; Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $remote/runs, $remote/status.txt; exit 0"
 scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/PenInject.cs" "$here/PenProbe.cs" "$work/request.json" ${extra[@]+"${extra[@]}"} "$host:$remote/"

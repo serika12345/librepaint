@@ -29,6 +29,12 @@ namespace Sync {
 #ifndef GL_SYNC_STATUS
     #define GL_SYNC_STATUS 0x9114
 #endif
+#ifndef GL_ALREADY_SIGNALED
+    #define GL_ALREADY_SIGNALED 0x911A
+#endif
+#ifndef GL_CONDITION_SATISFIED
+    #define GL_CONDITION_SATISFIED 0x911B
+#endif
 
     //Function pointers for glFenceSync and glGetSynciv
     typedef GLsync (*kis_glFenceSync)(GLenum, GLbitfield);
@@ -97,6 +103,14 @@ namespace Sync {
             k_glDeleteSync(syncObject);
         }
     }
+
+    bool waitForCompletion(GLsync syncObject, qint64 timeoutNanoseconds) {
+        if (!syncObject || !k_glClientWaitSync) {
+            return true;
+        }
+        const GLenum status = k_glClientWaitSync(syncObject, 0, static_cast<GLuint64>(timeoutNanoseconds));
+        return status == GL_ALREADY_SIGNALED || status == GL_CONDITION_SATISFIED;
+    }
 }
 
 KisOpenGLSync::KisOpenGLSync()
@@ -112,6 +126,11 @@ KisOpenGLSync::~KisOpenGLSync()
 bool KisOpenGLSync::isSignaled()
 {
     return Sync::syncStatus(m_syncObject) == Sync::Signaled;
+}
+
+bool KisOpenGLSync::waitForCompletion(qint64 timeoutNanoseconds)
+{
+    return Sync::waitForCompletion(m_syncObject, timeoutNanoseconds);
 }
 
 void KisOpenGLSync::init(QOpenGLContext *ctx)

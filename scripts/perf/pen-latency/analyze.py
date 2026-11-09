@@ -215,6 +215,12 @@ class Run:
                 event: len(self.events.get(event, []))
                 for event in ("native_pointer", "native_wintab", "native_mouse", "qt_tablet_move")
             }
+            result["l1_events"] = {
+                event: len(self.events.get(event, []))
+                for event in ("last_frame_completed_on_gpu", "qt_update_deferred",
+                              "qt_update_deferred_skipped", "canvas_busy_defer",
+                              "gpu_wait_begin", "gpu_wait_end")
+            }
         if self.inject:
             result["inject"] = {
                 "n": len(self.inject),

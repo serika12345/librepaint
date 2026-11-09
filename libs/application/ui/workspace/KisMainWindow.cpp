@@ -28,6 +28,7 @@
 #include <QMutexLocker>
 #include <QPointer>
 #include <KoUpdater.h>
+#include <KisL1Switches.h>
 #include <KisSignalMapper.h>
 #include <QTabBar>
 #include <QMoveEvent>
@@ -3277,6 +3278,14 @@ void KisMainWindow::initializeGeometry()
 
         move(x,y);
         setGeometry(geometry().x(), geometry().y(), w, h);
+    }
+
+    // H4 (GPU load of one frame): measure the same build with other window
+    // sizes. LIBREPAINT_L1_WINDOW_SIZE is for the L1 measurements only;
+    // KisL1Switches.h owns the removal condition.
+    const QSize l1WindowSize = KisL1Switches::windowSize();
+    if (l1WindowSize.isValid()) {
+        resize(l1WindowSize);
     }
 #ifdef Q_OS_ANDROID
     // We handle full-screening differently on Android, see viewFullScreen.

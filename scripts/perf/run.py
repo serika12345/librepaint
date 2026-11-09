@@ -21,7 +21,8 @@ Hover latency alternates between two states from one launch to the next
 (L1 of Issue #108). The summary carries each run's state and every run's
 PresentMon presence. Hover metrics are judged within a state; ink is judged
 over all runs. A Windows target can set "presentmon": "off" to leave
-PresentMon out for a comparison.
+PresentMon out for a comparison, and "env" to pass environment variables to
+the measured application (run-surface.ps1 records them in meta.txt).
 
 Usage:
   run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
@@ -34,6 +35,7 @@ import argparse
 import datetime
 import json
 import os
+import re
 import shlex
 import statistics
 import subprocess
@@ -60,6 +62,25 @@ def run_command(argv, env=None, cwd=None):
     return subprocess.run(argv, env=merged, cwd=cwd).returncode
 
 
+ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def target_environment(target):
+    """Return the target's "env" as strings after checking names and values."""
+    env = target.get("env", {})
+    if not isinstance(env, dict):
+        raise SystemExit("target %s: env must be an object" % target["name"])
+    checked = {}
+    for name, value in env.items():
+        if not ENV_NAME.match(name):
+            raise SystemExit("target %s: invalid environment variable name: %s" % (target["name"], name))
+        text = str(value)
+        if "\x00" in text or "\n" in text or "\r" in text:
+            raise SystemExit("target %s: invalid value for %s" % (target["name"], name))
+        checked[name] = text
+    return checked
+
+
 def runner_for(host, target, scenario, run_root):
     """Return (argv, env, collect) to run one measurement of target on host."""
     trajectory = json.dumps(scenario["trajectory"])
@@ -70,8 +91,11 @@ def runner_for(host, target, scenario, run_root):
         argv = [os.path.join(HERE, "pen-latency", "run-remote.sh"), host["ssh"], target["runner_target"], "1",
                 target.get("app", "none"), out]
         env = {"CAPTURE_TOOL": host["capture_tool"], "TRAJECTORY_JSON": trajectory, "RUN_NAME": target["name"],
-               "PRESENTMON": target.get("presentmon", "on")}
+               "PRESENTMON": target.get("presentmon", "on"),
+               "TARGET_ENV": json.dumps(target_environment(target), sort_keys=True)}
         return argv, env, None
+    if kind in ("linux", "macos") and target.get("env"):
+        raise SystemExit("target %s: env is supported only for Windows targets" % target["name"])
     if kind == "linux":
         command = " ".join(shlex.quote(a) for a in target["command"])
         remote_out = host["remote_out"] + "/" + scenario["name"]

@@ -16,6 +16,7 @@
 */
 
 #include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
 #include <KLocalizedTranslator>
 #include <klocalizedstring.h>
 #include <QByteArray>
@@ -659,11 +660,32 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
 #endif
         preferredRenderer = KisOpenGL::convertConfigToOpenGLRenderer(preferredRendererString);
 
+        // H7 (no ANGLE): run the same build with the desktop OpenGL path.
+        // LIBREPAINT_L1_OPENGL_RENDERER is for the L1 measurements only;
+        // KisL1Switches.h owns the removal condition.
+        const QString l1Renderer = KisL1Switches::openGLRenderer();
+        if (l1Renderer == QStringLiteral("desktop")) {
+            preferredRenderer = KisOpenGL::RendererDesktopGL;
+        } else if (l1Renderer == QStringLiteral("angle")) {
+            preferredRenderer = KisOpenGL::RendererOpenGLES;
+        } else if (l1Renderer == QStringLiteral("auto")) {
+            preferredRenderer = KisOpenGL::RendererAuto;
+        }
+
         const KisConfig::CanvasSurfaceBitDepthMode bitDepthMode =
             KisConfig::canvasSurfaceBitDepthMode(&kritarc);
 
-        const KisOpenGL::RendererConfig config =
+        KisOpenGL::RendererConfig config =
             KisOpenGL::selectSurfaceConfig(preferredRenderer, rootSurfaceFormat, bitDepthMode, enableOpenGLDebug);
+
+        // H3 (vertical sync): LIBREPAINT_L1_SWAP_INTERVAL=0 or 1 overrides the
+        // surface setting. -1 (unset) keeps the normal value. This switch is
+        // for the L1 measurements only; KisL1Switches.h owns the removal
+        // condition.
+        const int l1SwapInterval = KisL1Switches::swapInterval();
+        if (l1SwapInterval >= 0) {
+            config.format.setSwapInterval(l1SwapInterval);
+        }
 
         KisOpenGL::setDefaultSurfaceConfig(config);
         KisOpenGL::setDebugSynchronous(openGLDebugSynchronous);
@@ -722,6 +744,15 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
         if (!cfg.detectFpsLimit()) {
             qputenv("QT_FRAME_RATE_OVERRIDE", QString::number(cfg.fpsLimit()).toLatin1());
         }
+    }
+
+    // H6 (frame update throttle): Qt's frame rate compressor has mode 2 for
+    // "no compression". The canvas also paints while the last frame is on the
+    // GPU when LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE is set. This switch is
+    // for the L1 measurements only; KisL1Switches.h owns the removal
+    // condition.
+    if (KisL1Switches::disableUpdateThrottle() && !qEnvironmentVariableIsSet("QT_FRAME_COMPRESSION_MODE")) {
+        qputenv("QT_FRAME_COMPRESSION_MODE", "2");
     }
 #endif
 

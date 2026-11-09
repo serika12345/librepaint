@@ -7,6 +7,7 @@
  */
 
 #include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
 #include "kis_input_manager.h"
 #include "KisQStringListFwd.h"
 #include "KoIntegerMaths.h"
@@ -280,7 +281,11 @@ bool KisInputManager::compressMoveEventCommon(Event *event)
          event->type() == QEvent::TabletMove ||
          event->type() == QEvent::TouchUpdate) &&
             (!d->matcher.supportsHiResInputEvents() ||
-             d->testingCompressBrushEvents)) {
+             d->testingCompressBrushEvents) &&
+            // H5 (hover event decimation): dispatch every move immediately.
+            // LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION is for the L1
+            // measurements only; KisL1Switches.h owns the removal condition.
+            !KisL1Switches::disableMoveCompression()) {
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
         KoPointerEvent::copyQtPointerEvent(event, d->compressedMoveEvent);
 #else

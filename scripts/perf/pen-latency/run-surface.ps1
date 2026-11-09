@@ -7,7 +7,8 @@
 #   { "target": "LibrePaint" | "Krita" | "PenProbe",
 #     "runs": 5, "app": "<path to the executable>",
 #     "settleSeconds": 12, "inject": { <PenInject.Options fields> },
-#     "capture": false, "presentmon": "on" }
+#     "capture": false, "presentmon": "on",
+#     "env": { "LIBREPAINT_L1_SWAP_INTERVAL": "0" } }
 #
 # With "capture": true, windows_capture.exe replays plan.csv (written by
 # trajectory.py) next to this script and records the screen with DXGI
@@ -118,6 +119,20 @@ function Wait-MainWindow($process, [int]$seconds) {
     throw "no main window after $seconds s"
 }
 
+function Set-TargetEnvironment($envMap) {
+    # Environment variables from hosts.json reach the measured application.
+    # They are applied to this PowerShell process before Start-Process, so no
+    # value is ever part of a command line.
+    if (-not $envMap) { return }
+    foreach ($property in $envMap.PSObject.Properties) {
+        $name = [string]$property.Name
+        if ($name -notmatch '^[A-Za-z_][A-Za-z0-9_]*$') {
+            throw "invalid environment variable name: $name"
+        }
+        Set-Item -Path ("Env:" + $name) -Value ([string]$property.Value)
+    }
+}
+
 function Write-Meta($dir, $request, $target) {
     $lines = @(
         "target=$target",
@@ -127,6 +142,11 @@ function Write-Meta($dir, $request, $target) {
         "os=$([System.Environment]::OSVersion.VersionString)",
         "presentmon=$(if ($request.presentmon) { $request.presentmon } else { 'on' })"
     )
+    if ($request.env) {
+        foreach ($property in $request.env.PSObject.Properties) {
+            $lines += "env.$($property.Name)=$($property.Value)"
+        }
+    }
     $battery = Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue
     if ($battery) { $lines += "battery_status=$($battery.BatteryStatus) charge=$($battery.EstimatedChargeRemaining)" }
     $video = Get-CimInstance Win32_VideoController | Select-Object -First 1
@@ -206,6 +226,7 @@ try {
         $pm = $null
         $sessionStarted = $false
 
+        Set-TargetEnvironment $request.env
         if ($target -eq 'LibrePaint') { $env:LIBREPAINT_LATENCY_LOG = Join-Path $dir 'probe.csv' }
         else { Remove-Item Env:LIBREPAINT_LATENCY_LOG -ErrorAction SilentlyContinue }
         $app = Start-Process -FilePath $request.app -ArgumentList @('--nosplash', "`"$canvas`"") -PassThru

@@ -212,6 +212,24 @@ CSVと標準エラー・標準出力の大きさを`meta.txt`に残す（セッ�
 タイマーの分解能、最前面の窓、アプリの優先度と親和性も残す（L1（Windowsの約50msの遅れの
 原因の特定）で状態を決める要因を比べるため）。
 
+L1の仮説は、同じ版のまま環境変数で切り替える。変数がないときは通常の動作のままである。
+`scripts/perf/hosts.json`のWindowsの対象に`env`を書くと、`run.py`が`request.json`に載せ、
+`run-surface.ps1`がアプリの起動前に設定して`meta.txt`に`env.<名前>`として残す。
+
+| 変数 | 仮説 | 値 | 効果 |
+| --- | --- | --- | --- |
+| `LIBREPAINT_L1_MAX_FRAME_LATENCY` | H1（先積みのフレーム数） | 1〜3 | ANGLEのD3D11デバイスに`SetMaximumFrameLatency`を設定する |
+| `LIBREPAINT_L1_WAIT_FOR_GPU` | H2（表示待ちの歯止め） | 1 | 前のフレームのGPU完了を待ってから次を描く。時刻記録に`gpu_wait_begin`/`gpu_wait_end`を出す |
+| `LIBREPAINT_L1_SWAP_INTERVAL` | H3（垂直同期） | 0または1 | サーフェスの交換間隔を上書きする |
+| `LIBREPAINT_L1_WINDOW_SIZE` | H4（1フレームのGPU負荷） | `幅x高さ` | 起動後の窓の大きさを変える |
+| `LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION` | H5（ホバーの間引き） | 1 | 10msの移動イベントの圧縮を通さない（`tabletEventsDelay=0`はkritarcで設定する） |
+| `LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE` | H6（フォークの更新の間引きの歯止め） | 1 | 前のフレームがGPU上でも描く。Qtの`QT_FRAME_COMPRESSION_MODE=2`も設定する。時刻記録に`last_frame_completed_on_gpu`/`qt_update_deferred`を出す |
+| `LIBREPAINT_L1_OPENGL_RENDERER` | H7（フォークなし・ANGLEを使わないOpenGL） | `desktop`/`angle`/`auto` | kritarcの`OpenGLRenderer`を上書きする。正式版Qtの版は別の構築で測る |
+
+切り替えのコードは`libs/global/KisL1Switches.h`がまとめる。それぞれの削除の条件は
+L2（Windowsの遅れを直す）で既定にするか、L1の比較が終わった時点で削除する。Windowsの
+`meta.txt`の`env.*`は、集計で回ごとの切り替えを確かめるために使う。
+
 ```sh
 # 計測機で一度だけ（管理者のPowerShell）
 powershell -NoProfile -ExecutionPolicy Bypass -File setup-surface.ps1

@@ -6,6 +6,7 @@
  */
 
 #include <KisLatencyProbe.h>
+#include <KisL1Switches.h>
 #include "KisQStringListFwd.h"
 #include "KisWraparoundAxis.h"
 #include "kis_assert.h"
@@ -63,7 +64,44 @@
 
 #include "config-qt-patches-present.h"
 
+#ifdef Q_OS_WIN
+#include <d3d11.h>
+#endif
+
 static bool OPENGL_SUCCESS = false;
+
+#if defined(Q_OS_WIN) && QT_CONFIG(egl)
+namespace
+{
+void applyMaximumFrameLatency(QOpenGLContext *context)
+{
+    // H1 (frames queued ahead): ask the D3D11 device behind ANGLE to keep
+    // fewer frames in flight. The value comes from
+    // LIBREPAINT_L1_MAX_FRAME_LATENCY (KisL1Switches.h owns the removal
+    // condition); 0 leaves the driver default.
+    const int latency = KisL1Switches::maxFrameLatency();
+    if (latency <= 0 || !context) return;
+
+    auto *egl = context->nativeInterface<QNativeInterface::QEGLContext>();
+    if (!egl) return;
+
+    using QueryDisplayAttribEXT = unsigned int (*)(EGLDisplay, unsigned int, qintptr *);
+    auto query = reinterpret_cast<QueryDisplayAttribEXT>(context->getProcAddress("eglQueryDisplayAttribEXT"));
+    if (!query) return;
+
+    constexpr unsigned int EGL_D3D11_DEVICE_ANGLE = 0x33A1;
+    qintptr deviceValue = 0;
+    if (!query(egl->display(), EGL_D3D11_DEVICE_ANGLE, &deviceValue) || !deviceValue) return;
+
+    auto *device = reinterpret_cast<ID3D11Device *>(deviceValue);
+    IDXGIDevice1 *dxgiDevice = nullptr;
+    if (SUCCEEDED(device->QueryInterface(__uuidof(IDXGIDevice1), reinterpret_cast<void **>(&dxgiDevice))) && dxgiDevice) {
+        dxgiDevice->SetMaximumFrameLatency(latency);
+        dxgiDevice->Release();
+    }
+}
+}
+#endif
 
 class KisOpenGLCanvas2::CanvasBridge
     : public KisOpenGLCanvasRenderer::CanvasBridge
@@ -361,6 +399,9 @@ void KisOpenGLCanvas2::initializeGL()
 
     d->renderer->initializeGL();
     KisOpenGLSync::init(context());
+#if defined(Q_OS_WIN) && QT_CONFIG(egl)
+    applyMaximumFrameLatency(context());
+#endif
 
 #ifdef Q_OS_IOS
     d->rendererInitialized = true;
@@ -399,6 +440,17 @@ void KisOpenGLCanvas2::paintGL()
         return;
     }
 #endif
+
+    if (KisL1Switches::waitForGpuBeforeNextFrame() &&
+        d->glSyncObject && !d->glSyncObject->isSignaled()) {
+        // H2 (waiting for the display handoff): finish the GPU work of the
+        // previous frame before starting the next one. LIBREPAINT_L1_WAIT_FOR_GPU
+        // is for the L1 measurements only; KisL1Switches.h owns the removal
+        // condition.
+        KisLatencyProbe::mark("gpu_wait_begin");
+        d->glSyncObject->waitForCompletion(100 * 1000 * 1000LL);
+        KisLatencyProbe::mark("gpu_wait_end");
+    }
 
     KisLatencyProbe::mark("paintgl_begin");
     struct ProbePaintEnd {
@@ -478,8 +530,17 @@ void KisOpenGLCanvas2::paintEvent(QPaintEvent *e)
      * need to implement our own one in KisCanvas2, instead we should just skip
      * frames in paintEvent(), when the previous frame hasn't completed yet.
      */
-    if (isBusy()) {
+    const bool lastFrameCompleted = !isBusy();
+    KisLatencyProbe::mark("last_frame_completed_on_gpu", 0, 0, lastFrameCompleted ? 1 : 0);
+    if (!lastFrameCompleted && KisL1Switches::disableUpdateThrottle()) {
+        // H6 (frame update throttle): paint even though the last frame has not
+        // completed. LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE is for the L1
+        // measurements only; KisL1Switches.h owns the removal condition.
+        KisLatencyProbe::mark("qt_update_deferred_skipped");
+        QOpenGLWidget::paintEvent(e);
+    } else if (!lastFrameCompleted) {
         //qWarning() << "WARNING: paint event delivered with the canvas non-ready, rescheduling...";
+        KisLatencyProbe::mark("qt_update_deferred");
         d->shouldSkipRenderingPass = true;
         QOpenGLWidget::paintEvent(e);
         d->shouldSkipRenderingPass = false;

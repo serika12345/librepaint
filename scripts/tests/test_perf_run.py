@@ -9,6 +9,7 @@ more than the scenario threshold.
 """
 
 import importlib.util
+import json
 import os
 import sys
 import tempfile
@@ -79,6 +80,31 @@ class RunnerCommandTest(unittest.TestCase):
             target["presentmon"] = "off"
             _, env, _ = run.runner_for(host, target, scenario, root)
             self.assertEqual(env["PRESENTMON"], "off")
+
+    def test_windows_target_passes_environment_to_the_runner(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "env": {"LIBREPAINT_L1_SWAP_INTERVAL": "0"}}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+        self.assertEqual(json.loads(env["TARGET_ENV"]), {"LIBREPAINT_L1_SWAP_INTERVAL": "0"})
+
+    def test_invalid_environment_name_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "env": {"1BAD": "x"}}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_environment_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "env": {"LIBREPAINT_L1_SWAP_INTERVAL": "0"}}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
 
 
 class StateSummaryTest(unittest.TestCase):
