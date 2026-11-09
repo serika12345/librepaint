@@ -149,7 +149,9 @@
       "configurePreset": "tdd-linux",
       "environment": {
         "KIS_TEST_PREFIX_PATH": "${sourceDir}/build/tdd-linux",
-        "QT_QPA_PLATFORM": "offscreen"
+        "QT_QPA_PLATFORM": "offscreen",
+        "DISPLAY": "",
+        "WAYLAND_DISPLAY": ""
       },
       "execution": {
         "jobs": 4,
