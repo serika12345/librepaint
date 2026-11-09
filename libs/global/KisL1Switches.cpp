@@ -45,44 +45,94 @@ QSize sizeValue(const char *name)
 
 namespace KisL1Switches
 {
-int maxFrameLatency()
+namespace Detail
+{
+int readMaxFrameLatency()
 {
     if (!isSet("LIBREPAINT_L1_MAX_FRAME_LATENCY")) return 0;
     const int value = integerValue("LIBREPAINT_L1_MAX_FRAME_LATENCY", 0);
     return value >= 1 && value <= 3 ? value : 0;
 }
 
-int swapInterval()
+int readSwapInterval()
 {
     if (!isSet("LIBREPAINT_L1_SWAP_INTERVAL")) return -1;
     const int value = integerValue("LIBREPAINT_L1_SWAP_INTERVAL", -1);
     return value == 0 || value == 1 ? value : -1;
 }
 
-bool waitForGpuBeforeNextFrame()
+bool readWaitForGpuBeforeNextFrame()
 {
     return flagValue("LIBREPAINT_L1_WAIT_FOR_GPU");
 }
 
-QSize windowSize()
+QSize readWindowSize()
 {
     return sizeValue("LIBREPAINT_L1_WINDOW_SIZE");
 }
 
-bool disableMoveCompression()
+bool readDisableMoveCompression()
 {
     return flagValue("LIBREPAINT_L1_DISABLE_MOVE_COMPRESSION");
 }
 
-bool disableUpdateThrottle()
+bool readDisableUpdateThrottle()
 {
     return flagValue("LIBREPAINT_L1_DISABLE_UPDATE_THROTTLE");
 }
 
-QString openGLRenderer()
+QString readOpenGLRenderer()
 {
     const QString value = QString::fromLatin1(qgetenv("LIBREPAINT_L1_OPENGL_RENDERER")).trimmed().toLower();
     if (value == "desktop" || value == "angle" || value == "auto") return value;
     return QString();
+}
+}
+
+// The pen and frame paths call these accessors for every event and every
+// frame. Reading the environment there would add the environment lock and a
+// string allocation to the measured path, so each value is read once per
+// process and kept in the function-local static. The test seam is
+// Detail::read*(), which reads the environment again on every call.
+int maxFrameLatency()
+{
+    static const int value = Detail::readMaxFrameLatency();
+    return value;
+}
+
+int swapInterval()
+{
+    static const int value = Detail::readSwapInterval();
+    return value;
+}
+
+bool waitForGpuBeforeNextFrame()
+{
+    static const bool value = Detail::readWaitForGpuBeforeNextFrame();
+    return value;
+}
+
+QSize windowSize()
+{
+    static const QSize value = Detail::readWindowSize();
+    return value;
+}
+
+bool disableMoveCompression()
+{
+    static const bool value = Detail::readDisableMoveCompression();
+    return value;
+}
+
+bool disableUpdateThrottle()
+{
+    static const bool value = Detail::readDisableUpdateThrottle();
+    return value;
+}
+
+QString openGLRenderer()
+{
+    static const QString value = Detail::readOpenGLRenderer();
+    return value;
 }
 }

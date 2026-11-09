@@ -15,9 +15,11 @@
  * Environment switches for the L1 experiments of Issue #108.
  *
  * L1 (the cause of the about 50 ms delay on Windows) compares one hypothesis
- * at a time on the same build. Every variable below is read when the
- * application uses the value, so unset or an empty value keeps the normal
- * behaviour. These switches are for the L1 measurements only.
+ * at a time on the same build. Every variable below is read once per process,
+ * when the application first asks for the value, so unset or an empty value
+ * keeps the normal behaviour. The pen and frame paths call the accessors
+ * repeatedly; the environment is not read there. These switches are for the
+ * L1 measurements only.
  *
  * Removal condition: when L2 (fixing the Windows delay) makes a switch the
  * default, fold it into the normal path and remove the variable. Delete the
@@ -39,6 +41,20 @@ KRITAGLOBAL_EXPORT bool disableMoveCompression();
 KRITAGLOBAL_EXPORT bool disableUpdateThrottle();
 /// H7 (no ANGLE): "desktop", "angle" or "auto"; empty keeps the kritarc value.
 KRITAGLOBAL_EXPORT QString openGLRenderer();
+
+namespace Detail
+{
+/// Read and validate the environment now, without the process cache. The
+/// accessors above keep the first result; the contract test uses these
+/// functions to check every accepted form in one process.
+KRITAGLOBAL_EXPORT int readMaxFrameLatency();
+KRITAGLOBAL_EXPORT int readSwapInterval();
+KRITAGLOBAL_EXPORT bool readWaitForGpuBeforeNextFrame();
+KRITAGLOBAL_EXPORT QSize readWindowSize();
+KRITAGLOBAL_EXPORT bool readDisableMoveCompression();
+KRITAGLOBAL_EXPORT bool readDisableUpdateThrottle();
+KRITAGLOBAL_EXPORT QString readOpenGLRenderer();
+}
 }
 
 #endif // KIS_L1_SWITCHES_H
