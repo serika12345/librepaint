@@ -54,6 +54,7 @@ let
   ]
   ++ (with pkgs.kdePackages; [
     breeze-icons
+    kcolorscheme
     kcompletion
     kconfig
     kcoreaddons
