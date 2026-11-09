@@ -705,9 +705,13 @@ class MacOSReleaseBundleTest(unittest.TestCase):
                 if copy_mock.call_count > 1:
                     raise AssertionError("repeated copying without progress")
 
+            def inspect(command, **kwargs):
+                return subprocess.CompletedProcess(command, 0, otool_l(str(consumer), ()), "")
+
             with mock.patch.object(Path, "exists", lambda p: p == dependency or original_exists(p)), \
                     mock.patch.object(deploy.shutil, "copy2", side_effect=copy) as copy_mock, \
-                    mock.patch.object(deploy, "getLinkedLibs", return_value=[dependency]):
+                    mock.patch.object(deploy, "getLinkedLibs", return_value=[dependency]), \
+                    mock.patch.object(deploy.subprocess, "run", side_effect=inspect):
                 with self.assertRaisesRegex(RuntimeError, "invalid.dylib"):
                     deploy.copyNixStoreDependencyClosure(app)
 
