@@ -7,9 +7,37 @@ let
   inherit (pkgs) lib;
   pythonPackages = pkgs.python3Packages;
 
-  # Keep this list aligned with nixpkgs' krita-unwrapped recipe.  It is shared
-  # with linux-dependencies so that the source-independent closure can be
-  # fetched or built before the LibrePaint source changes.
+  # The PyQt6 modules LibrePaint's Python plugins use. The build and the
+  # runtime share it, so the Qt modules behind the other bindings (Qt WebEngine
+  # for PDF, Location, Multimedia, Speech) are not built.
+  runtimePyQt =
+    (pythonPackages.pyqt6.override {
+      withLocation = false;
+      withMultimedia = false;
+      withPdf = false;
+      withSerialPort = false;
+      withSpeech = false;
+      withWebSockets = false;
+    }).overrideAttrs
+      (old: {
+        # PyQt6 builds a binding only for the Qt modules it finds. The plugins use
+        # QtCore, QtGui, QtWidgets, QtXml and QtQml, so the Qt Quick 3D, Quick
+        # Timeline and WebChannel modules stay out of the build.
+        nativeBuildInputs = builtins.filter usedPyQtInput old.nativeBuildInputs;
+        buildInputs = builtins.filter usedPyQtInput old.buildInputs;
+      });
+  usedPyQtInput =
+    input:
+    !(builtins.elem (input.pname or "") [
+      "qtquick3d"
+      "qtquicktimeline"
+      "qtwebchannel"
+    ]);
+
+  # Started from nixpkgs' krita-unwrapped recipe, reduced to the libraries the
+  # LibrePaint CMake files find. It is shared with linux-dependencies so that
+  # the source-independent closure can be fetched or built before the
+  # LibrePaint source changes.
   nativeBuildInputs = [
     pkgs.cmake
     pkgs.kdePackages.extra-cmake-modules
@@ -46,23 +74,19 @@ let
     pkgs.libwebp
     pkgs.SDL2
     pkgs.zug
-    pythonPackages.pyqt6
+    runtimePyQt
     pkgs.qt6.qtmultimedia
   ]
   ++ (with pkgs.kdePackages; [
     breeze-icons
-    karchive
     kcompletion
     kconfig
     kcoreaddons
     kcrash
     kguiaddons
     ki18n
-    kio
-    kitemmodels
     kitemviews
     kwidgetsaddons
-    kwindowsystem
     mlt
     poppler
     quazip
@@ -73,14 +97,6 @@ let
     pythonPackages.sip
     pythonPackages.setuptools
   ];
-  runtimePyQt = pythonPackages.pyqt6.override {
-    withLocation = false;
-    withMultimedia = false;
-    withPdf = false;
-    withSerialPort = false;
-    withSpeech = false;
-    withWebSockets = false;
-  };
   runtimePythonPath = lib.makeSearchPath pythonPackages.python.sitePackages [
     runtimePyQt
     pythonPackages.pyqt6-sip

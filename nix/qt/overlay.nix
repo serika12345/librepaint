@@ -46,6 +46,17 @@ in
         }) // {
           inherit (qtPrevious.qtwebengine) meta;
         };
+        # Qt Multimedia only needs Qt Quick 3D for its spatial audio QML types,
+        # which LibrePaint does not use. nixpkgs already builds it without Qt
+        # Quick 3D for Windows; doing the same everywhere keeps Qt Quick 3D out
+        # of the build.
+        qtmultimedia = qtPrevious.qtmultimedia.overrideAttrs (old: {
+          propagatedBuildInputs = builtins.filter (
+            input: (input.pname or "") != "qtquick3d"
+          ) old.propagatedBuildInputs;
+        }) // {
+          inherit (qtPrevious.qtmultimedia) meta;
+        };
         # nixpkgs backports two qtdeclarative fixes that Qt 6.11.3 already
         # contains; applying them again fails. qtModule.nix attaches meta to
         # the derivation after mkDerivation, and overrideAttrs returns a plain

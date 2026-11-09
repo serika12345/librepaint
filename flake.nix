@@ -15,15 +15,20 @@
       system = "aarch64-darwin";
       # Every platform uses the same Qt release (nix/qt/overlay.nix).
       qtOverlay = import ./nix/qt/overlay.nix { inherit nixpkgs; };
+      # The KDE Frameworks are built without their unused Python bindings.
+      # The Windows set leaves it out: its MinGW frameworks never pulled
+      # PySide6, so the overlay would only rebuild them unchanged.
+      kdeOverlay = import ./nix/kde/overlay.nix;
       pkgs = import nixpkgs {
         inherit system;
-        overlays = [ qtOverlay ];
+        overlays = [ qtOverlay kdeOverlay ];
       };
       linuxSystem = "x86_64-linux";
       linuxPkgs = import nixpkgs {
         system = linuxSystem;
         overlays = [
           qtOverlay
+          kdeOverlay
           (_final: previous: {
             opencolorio = previous.opencolorio.overrideAttrs (old: {
               # OpenColorIO prefixes an absolute CMAKE_INSTALL_LIBDIR with
@@ -984,12 +989,12 @@
       linuxAndroidPackages = import ./nix/android {
         pkgs = linuxPkgs;
         source = linuxAndroidCompileSource;
-        overlays = [ qtOverlay ];
+        overlays = [ qtOverlay kdeOverlay ];
       };
       linuxAndroidX86_64Packages = import ./nix/android {
         pkgs = linuxPkgs;
         source = linuxAndroidCompileSource;
-        overlays = [ qtOverlay ];
+        overlays = [ qtOverlay kdeOverlay ];
         androidAbi = "x86_64";
         packageName = "librepaint-android-x86_64";
       };
