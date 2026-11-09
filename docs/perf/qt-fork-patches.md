@@ -50,7 +50,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | 77d2b02daf | Fix flickering when opening dialogs on ANGLE and Qt6 | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/painting/qplatformbackingstore.cpp ほか | なし | 保留 |
 | 70086804f9 | Fix EGL format being reset to 0 alpha instead of 2 | src/gui/opengl/platform | なし | 保留 |
 
-**根拠**
+### 根拠
 
 - まとまりの判定：LibrePaint の Windows 版は既定で ANGLE（`krita/main.cc:656` の `OpenGLRenderer` の既定値 `angle`）を使い、ANGLE 専用の環境変数（`QT_USE_PREMATURE_RESIZE_EVENTS`、`QT_ANGLE_MANUALLY_UPDATE_SURFACE_SIZE`、`QT_PREFILL_RHI_SURFACE`、`krita/main.cc:677-697`）を設定する。f5a65b7761 などの ANGLE 復活の一群は、ANGLE を残すなら必要、やめるなら不要になる。判定は L1 の H7（ANGLE を使わない OpenGL で Windows の遅れが変わるか）で決める。
 - 不要の根拠：
@@ -78,7 +78,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | 71fd8157aa | Add QT_FRAME_RATE_OVERRIDE switch | src/widgets/kernel/qwidgetrepaintmanager.cpp | なし | 保留 |
 | f1cf04e958 | Fix clipping when cutting QOpenGLWidget through the GUI texture | src/widgets/kernel/qwidget.cpp | なし | 保留 |
 
-**根拠**
+### 根拠
 
 - LibrePaint は、この一群があるときは `krita/main.cc:715-726` で `QT_BACKING_STORE_USE_FAST_QIMAGE_TRANSFER` と `QT_FRAME_RATE_OVERRIDE` を設定し、間引きを Qt（`QFrameRateCompressor`）に任せる。ないときは `KisCanvas2` 側の自前の間引き（`libs/ui/canvas/kis_canvas2.cpp:245`、`:355`、`:407`、`:1181`、`:1192`）が働く。この分岐が「描画の更新の仕組みが2系統ある」の実体で、Q4 の完了条件「1系統にする」はここを指す。
 - L1 の H6 の実験で、Windows の現行版（フォーク、間引きあり）を `QT_FRAME_COMPRESSION_MODE=2`（間引きなし）でも測り、遅れへの寄与を求める。同時に、正式版の Qt で `KisCanvas2` 側の間引きが働いた場合の値と比べる。差が 2ms 未満なら「不要」にし、`KisCanvas2` の1系統にまとめる。
@@ -93,7 +93,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | a1fa6f1629 | Create color conversion pipelines on-demand | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h | なし | 保留 |
 | 5da2f94813 | Implement feature QRhi::DynamicBlendSwitch | src/gui/painting/qbackingstoredefaultcompositor.cpp, src/gui/painting/qbackingstoredefaultcompositor_p.h, src/gui/rhi/qrhi.h ほか | なし | 保留 |
 
-**根拠**
+### 根拠
 
 - LibrePaint の HDR 表示は、この一群の上に成り立つ。`CMakeLists.txt:784-793` は `QOpenGLWidget::setTextureColorSpace` の有無を `HAVE_HDR` として調べ、`libs/ui/opengl/kis_opengl.cpp:813`（HDR 形式の判定）、`:920`（16bit のサーフェスの形式の一覧）、`libs/ui/opengl/KisScreenInformationAdapter.cpp:152`（画面の HDR の検出）、`plugins/dockers/lut/lutdocker_dock.cpp:244`、`plugins/dockers/smallcolorselector/KisGLImageWidget.cpp:65-66` がそれに依存する。`QOpenGLWidget::setTextureColorSpace` は正式版の Qt にない。
 - したがって、この一群を外すと Windows の HDR 表示（10bit のキャンバスと色変換）がなくなる。CHARTER の「UI と操作の見かけは旧版から変えない」に照らすと、HDR の画面での見かけが変わるため、判定は Windows の HDR 表示を残すかどうかで決まる。
@@ -118,7 +118,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | a60ed01a25 | [win] Allow explicit accepting of touch events on Windows | src/gui/kernel/qguiapplication.cpp, src/plugins/platforms/windows | なし | 保留 |
 | d918f368da | Windows: implement touchpad gestures using Direct Manipulation | src/gui/configure.cmake, src/gui/kernel/qevent.cpp, src/plugins/platforms/direct2d ほか | なし | 不要 |
 
-**根拠**
+### 根拠
 
 - 必要の根拠（LibrePaint が直接使う、または外すとペンの操作が壊れる）：
   - 051139ed72 は `QT_WINTAB_DESKTOP_RECT` と `QT_IGNORE_WINTAB_MAPPING` を追加する。LibrePaint は `libs/ui/dialogs/KisDlgCustomTabletResolution.cpp:149-161` で両方を設定し、タブレットの対応範囲の設定（Wintab の範囲、仮想画面、任意の矩形）を UI として持つ。この設定は正式版の Qt では効かなくなる。基準機 Surface Pro 7 の内蔵タブレットは主画面にしか対応しないため、この改変がないと座標がずれる。
@@ -152,7 +152,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | eb6579e6d1 | [wayland] Fix flickering when resizing popup windows | src/plugins/platforms/wayland | なし | 不要 |
 | 693de2c4fb | Wayland client: update cursor position after sending QTabletEvent | src/plugins/platforms/wayland | 4332e5e2c4（2026-07-23） | 正式版で解決済み |
 
-**根拠**
+### 根拠
 
 - 正式版で解決済みの3件は、qt/qtbase に同等のコミットがある（ed56d12b50 → f1fbd15105、435e604932 → c3cc50d89d、693de2c4fb → 4332e5e2c4）。6.11.3 以降の正式版を使えば同じ結果になる。
 - 不要の根拠：
@@ -179,7 +179,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | 21d400db4f | Fix unbalanced KeyPress/Release on non-latin keyboard on Linux | src/plugins/platforms/xcb | なし | LibrePaint 側で代替 |
 | 35296972ce | Poison Qt's headers with a mark about presence of KeyPress/Release patches | src/gui/kernel/qevent.h | なし | 不要 |
 
-**根拠**
+### 根拠
 
 - 必要の根拠：
   - 82d2864a8a は、Qt が部分一致のショートカットで ShortcutOverride を食べないようにする。件名に Krita とあり、LibrePaint は独自のショートカット処理 `KisShortcutMatcher`（`libs/input/kis_shortcut_matcher.h:73`）を持つため、この改変がないと独自処理に届かないショートカットが出る。
@@ -208,7 +208,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | d850335b2d | [win] Fix pasting copy-pasting QImages to Chrome | src/plugins/platforms/windows | なし | 不要 |
 | 24ea6b40c2 | Fix QHeaderView failing to init memory mode | src/widgets/itemviews/qheaderview.cpp, tests/auto/widgets/itemviews | e3d05b35b3（2026-10-27） | 正式版で解決済み |
 
-**根拠**
+### 根拠
 
 - 正式版で解決済みの2件は、qt/qtbase に同等のコミットがある（bf2ee30931 → 4292ad0292、24ea6b40c2 → e3d05b35b3）。
 - 不要の根拠：
@@ -239,7 +239,7 @@ Issue #108 フェーズQ2 と Issue #68 の作業資料。Krita の Qt フォー
 | b2cc4909b0 | [macos] Add bundle-local path to GenericDataLocation | src/corelib/io/qstandardpaths_mac.mm | なし | 不要 |
 | 9dc7c77358 | Add a switch to disable accessibility on Windows | src/plugins/platforms/windows | なし | 不要 |
 
-**根拠**
+### 根拠
 
 - LibrePaint 側で代替の1件：f786da6451 の `QMdiArea::AlwaysShowSubwindowNameInTitleBar` は LibrePaint が使う（`libs/application/ui/workspace/KisMainWindow.cpp:250`）。ただし `CMakeLists.txt:817-826` が有無を `HAVE_QMDIAREA_ALWAYS_SHOW_SUBWINDOW_TITLE` として調べ、`KisMainWindow.cpp:249-251` は印がないとき従来の動作（浮いた窓のときだけ子の名前を出す）になる。1.0.3 はタブ表示でも子の名前を窓の題名に出していたため、Q4 で LibrePaint 側から題名を設定する代替を作る（タブの切り替えで題名を更新する処理は `KisMainWindow` に既にある）。
 - 正式版で解決済みの1件：d343ee345f は qt/qtbase の cf8cd71476 に相当する。
