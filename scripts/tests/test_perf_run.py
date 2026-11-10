@@ -105,6 +105,69 @@ def fake_run(state, hover, ink, presentmon_status="present", excluded=None):
     }
 
 
+class DeviceShiftTest(unittest.TestCase):
+    """Runs that cannot be compared because the device changed are marked."""
+
+    def stored(self, name, hover, ink, surface=None):
+        return {
+            "name": name,
+            "metrics": {
+                "hover.input_to_capture": {"n": 100, "p05": hover - 5, "p50": hover, "p95": hover + 10},
+                "ink.input_to_capture": {"n": 100, "p05": ink - 5, "p50": ink, "p95": ink + 10},
+            },
+            "surface_state": surface or {},
+        }
+
+    def test_a_large_change_from_the_previous_run_is_marked(self):
+        notes = run.shift_notes([
+            self.stored("T-20261111-023347-1", 12.5, 18.1),
+            self.stored("T-20261111-023605-1", 14.1, 29.4),
+        ])
+        self.assertTrue(any("T-20261111-023605-1" in note and "ink.input_to_capture" in note for note in notes), notes)
+        self.assertTrue(any("+62%" in note for note in notes), notes)
+
+    def test_a_change_below_the_limit_is_not_marked(self):
+        notes = run.shift_notes([
+            self.stored("T-1", 12.5, 18.1),
+            self.stored("T-2", 12.9, 18.7),
+        ])
+        self.assertEqual(notes, [])
+
+    def test_a_hotter_or_throttled_device_is_marked(self):
+        notes = run.shift_notes([
+            self.stored("T-1", 12.5, 18.1, {"during_max_temp_c": "44.0", "during_min_processor_performance_pct": "77"}),
+            self.stored("T-2", 12.5, 18.1, {"during_max_temp_c": "58.0", "during_min_processor_performance_pct": "60"}),
+        ])
+        self.assertTrue(any("during_max_temp_c 44C -> 58C" in note for note in notes), notes)
+        self.assertTrue(any("during_min_processor_performance_pct 77% -> 60%" in note for note in notes), notes)
+
+    def test_surface_state_is_read_from_meta_txt(self):
+        with tempfile.TemporaryDirectory() as root:
+            with open(os.path.join(root, "meta.txt"), "w") as handle:
+                handle.write("foreground_capture=pid=1 name=LibrePaint visible=True\n")
+                handle.write("surface_state_during_max_temp_c=58.0\n")
+                handle.write("surface_state_during_min_processor_performance_pct=60\n")
+                handle.write("surface_state_top_process=MsMpEng 40%\n")
+            state = run.surface_state(root)
+        self.assertEqual(state["during_max_temp_c"], "58.0")
+        self.assertEqual(state["during_min_processor_performance_pct"], "60")
+        self.assertEqual(state["top_process"], "MsMpEng 40%")
+        self.assertNotIn("foreground_capture", state)
+
+    def test_the_table_notes_carry_the_mark(self):
+        summary = {"hosts": {"h": {"kind": "windows", "targets": {"T": {
+            "runs": [],
+            "metrics": {"hover.input_to_capture": {"median": 40.0, "p95": 45.0, "spread": 0.0, "runs": 2}},
+            "states": {},
+            "excluded": 0,
+            "shifts": ["T-2 ink.input_to_capture +62% (18.1 -> 29.4 ms) from the run before"],
+        }}}}}
+        rows = run.judge(summary, SCENARIO)
+        notes = "; ".join(row[8] for row in rows)
+        self.assertIn("marked: T-2 ink.input_to_capture +62%", notes)
+        self.assertTrue(all(row[7] == "ok" for row in rows))
+
+
 class RunnerCommandTest(unittest.TestCase):
     def test_windows_target_passes_the_presentmon_setting(self):
         scenario = {"trajectory": {}, "name": "test"}

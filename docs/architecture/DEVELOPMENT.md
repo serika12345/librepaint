@@ -192,6 +192,7 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 | `capture_analyze.py` | 取り込み結果から、入力から表示までの時間を集計し、回ごとの中央値のばらつきを出す。速さごとの値と、速さが変わった直後の値も出す |
 | `analyze.py` | WindowsのPresentMonの記録と時刻記録（`LIBREPAINT_LATENCY_LOG`）から、区間ごとの内訳を出す。ストロークの待ち行列から実際に dab を描くまでの時間も出す |
 | `presentmon_command.py` | WindowsのPresentMonの引数とセッション名を組み立てる。WindowsのPowerShellなしで契約を確かめる |
+| `surface_state.ps1` | Windows。計測の前・1秒ごとの計測中・計測の後に、熱ゾーンの温度、`% Processor Performance`、全体のCPU使用率、CPUを多く使う上位5プロセスを記録する |
 | `presentation_check.py` | 表示時刻を通知する参照アプリの記録と取り込みを突き合わせ、取り込みの時刻を検証する |
 | 参照アプリ | 入力を受けたらすぐ描く最小のアプリ。`PenProbe.cs`（Windows）、`reference_app.py`と`wayland_reference_app.c`（Linux）、`macos_reference_app.m`と`macos_metal_reference_app.m`（macOS） |
 | 記録用ライブラリ | ソースを変えずに画面への受け渡しを記録する`gl_swap_trace.c`（Linux、LD_PRELOAD）、`macos_gl_trace.m`（macOS、DYLD_INSERT_LIBRARIES）、GUIスレッドの呼び出し履歴を採る`stack_sampler.c`（Linux） |
@@ -284,7 +285,23 @@ TabletPress（3）、TabletRelease（4）、MouseButtonPress（5）、MouseButto
 （アプリでなければ`SetForegroundWindow`を1回やり直す）を`foreground_inject_start`として
 `meta.txt`に残し、`capture_analyze.py`が`foreground_inject`と`inject-foreground`に出す。
 これで、取り込みの開始時に最前面だったこと（`app_foreground_capture`）と、入力の直前にも
-最前面だったことを分けられる。
+最前面だったことを分けられる。取り込みを使う計測では`windows_capture.exe`が計画を独自に
+再生し`PenInject.cs`を通らないため、`run-surface.ps1`が`Invoke-Capture`の直前に最前面の窓を
+同じ形式で書き、取り込みを使わない計測では`PenInject.cs`の値を使う。
+
+回ごとの端末の状態は`surface_state.ps1`が記録する。熱ゾーンの温度（`root/wmi`の
+`MSAcpi_ThermalZoneTemperature`の最大値）、`% Processor Performance`、全体のCPU使用率、
+CPUを多く使う上位5プロセスを、計測の前・1秒ごとの計測中・計測の後に取り、回の
+ディレクトリーの`surface-state.csv`と`meta.txt`の`surface_state_*`に残す
+（`surface_state_during_max_temp_c`、`surface_state_during_min_processor_performance_pct`、
+`surface_state_during_max_total_cpu_pct`、`surface_state_during_mean_total_cpu_pct`、
+`surface_state_top_process`、計測の前後の値）。カウンターは言語に依存しない
+`Win32_PerfFormattedData_*`のクラスから取る（`Get-Counter`の英語のパスは日本語のWindowsで
+解決しない）。1秒ごとの採取は別の`powershell.exe`で動かし、採取そのもののCPUも上位プロセスに
+現れる。`run.py`は同じ対象の並びで、中央値が前の回から10%以上変わった回、または
+`during_max_temp_c`が5℃以上、`during_min_processor_performance_pct`が10ポイント以上、
+`during_max_total_cpu_pct`が10ポイント以上変わった回に`marked:`の印を付け、
+`== environment changes`に並べる（判定は変えない）。
 
 描画の周期は`paint_cycle`の1行で追う。`paint_interval`は`paintgl_begin`の間隔（4ms未満、
 8ms未満、12ms未満、16ms未満、16ms以上の内訳付き）、`present_interval`はPresentMonの

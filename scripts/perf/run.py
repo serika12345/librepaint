@@ -187,6 +187,97 @@ def metric_needs_presentmon(metric):
     return "input_to_display" in metric or "present_to_display" in metric or metric.startswith("present.")
 
 
+# A change this large between consecutive runs of the same target means the
+# device moved, not the version under test. The runner records the device
+# state in meta.txt (surface_state_*) so the shift can be shown next to the
+# run that made the comparison invalid.
+SHIFT_RELATIVE = 0.10
+SHIFT_TEMP_C = 5.0
+SHIFT_PROCESSOR_PERFORMANCE_PCT = 10.0
+SHIFT_TOTAL_CPU_PCT = 10.0
+
+SURFACE_STATE_KEYS = {
+    "surface_state_before_max_temp_c": "before_max_temp_c",
+    "surface_state_before_processor_performance_pct": "before_processor_performance_pct",
+    "surface_state_before_total_cpu_pct": "before_total_cpu_pct",
+    "surface_state_during_samples": "during_samples",
+    "surface_state_during_max_temp_c": "during_max_temp_c",
+    "surface_state_during_min_processor_performance_pct": "during_min_processor_performance_pct",
+    "surface_state_during_max_total_cpu_pct": "during_max_total_cpu_pct",
+    "surface_state_during_mean_total_cpu_pct": "during_mean_total_cpu_pct",
+    "surface_state_top_process": "top_process",
+    "surface_state_after_max_temp_c": "after_max_temp_c",
+    "surface_state_after_processor_performance_pct": "after_processor_performance_pct",
+    "surface_state_after_total_cpu_pct": "after_total_cpu_pct",
+}
+
+
+def number_or_none(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def surface_state(path):
+    """Read the device state the Windows runner recorded around one run.
+
+    Linux, macOS and runs from an older runner have no surface-state keys;
+    they get an empty dict and never take part in a shift comparison.
+    """
+    meta = os.path.join(path, "meta.txt")
+    state = {}
+    if not os.path.exists(meta):
+        return state
+    with open(meta, errors="replace") as handle:
+        for line in handle:
+            key, _, value = line.strip().partition("=")
+            field = SURFACE_STATE_KEYS.get(key)
+            if field:
+                state[field] = value
+    return state
+
+
+def shift_notes(runs):
+    """Mark the runs whose values jumped from the run before them.
+
+    Returns one line per change of the run medians or of the recorded device
+    state. It is a marker for the reader, not a verdict: the values stay in
+    the table so a comparison across the change can be rejected by eye.
+    """
+    notes = []
+    previous = None
+    for current in runs:
+        if previous is not None:
+            name = current.get("name", "?")
+            for metric, stat in sorted(current.get("metrics", {}).items()):
+                before = (previous.get("metrics", {}).get(metric) or {})
+                if not stat.get("n") or not before.get("n"):
+                    continue
+                base, value = before.get("p50"), stat.get("p50")
+                if not base or value is None:
+                    continue
+                change = (value - base) / base
+                if abs(change) >= SHIFT_RELATIVE:
+                    notes.append("%s %s %+.0f%% (%.1f -> %.1f ms) from the run before" % (
+                        name, metric, 100 * change, base, value))
+            before_state = previous.get("surface_state") or {}
+            state = current.get("surface_state") or {}
+            for field, limit, unit in (
+                    ("during_max_temp_c", SHIFT_TEMP_C, "C"),
+                    ("during_min_processor_performance_pct", SHIFT_PROCESSOR_PERFORMANCE_PCT, "%"),
+                    ("during_max_total_cpu_pct", SHIFT_TOTAL_CPU_PCT, "%")):
+                base = number_or_none(before_state.get(field))
+                value = number_or_none(state.get(field))
+                if base is None or value is None:
+                    continue
+                if abs(value - base) >= limit:
+                    notes.append("%s %s %.0f%s -> %.0f%s from the run before" % (
+                        name, field, base, unit, value, unit))
+        previous = current
+    return notes
+
+
 def aggregate(runs, metrics):
     """Median, P95 and spread of the run medians for every metric.
 
@@ -234,18 +325,21 @@ def summarize(run_root, hosts, scenario):
             result = capture_analyze.analyze_run(path)
             data = entry["targets"].setdefault(target, {"runs": []})
             data["runs"].append({
+                "name": run_name,
                 "metrics": {metric: shifted(result.get(metric, {"n": 0}), offset) for metric in scenario["metrics"]},
                 "state": result.get("state", {"label": "unknown"}),
                 "presentmon": result.get("presentmon", {"present": False}),
                 "foreground": result.get("foreground", {}),
                 "foreground_inject": result.get("foreground_inject", {}),
                 "excluded": result.get("excluded"),
+                "surface_state": surface_state(path),
                 "speed_groups": result.get("ink.speed_groups", []),
                 "speed_change": result.get("ink.speed_change", []),
             })
         for target, data in entry["targets"].items():
             valid = usable_runs(data)
             data["excluded"] = len(data["runs"]) - len(valid)
+            data["shifts"] = shift_notes(valid)
             data["foreground_inject_lost"] = sum(
                 1 for run in valid if (run.get("foreground_inject") or {}).get("foreground") is False)
             data["metrics"] = aggregate(valid, scenario["metrics"])
@@ -317,6 +411,8 @@ def judge(summary, scenario, baseline=None):
                         notes.append("%d run(s) left out: app not foreground or not presenting" % data["excluded"])
                     if data.get("foreground_inject_lost"):
                         notes.append("%d run(s) lost the foreground before input" % data["foreground_inject_lost"])
+                    for shift in data.get("shifts", []):
+                        notes.append("marked: " + shift)
                     partial = sum(1 for run in valid if presentmon_status(run) == "partial")
                     if metric_needs_presentmon(metric) and partial:
                         notes.append("%d partial PresentMon run(s) left out" % partial)
@@ -459,6 +555,14 @@ def main(argv):
     if present_lines:
         print("== PresentMon records")
         print("\n".join(present_lines))
+    shift_lines = []
+    for host, entry in summary["hosts"].items():
+        for target, data in entry["targets"].items():
+            for shift in data.get("shifts", []):
+                shift_lines.append("   %s/%s: %s" % (host, target, shift))
+    if shift_lines:
+        print("== environment changes")
+        print("\n".join(shift_lines))
     speed_lines = []
     for host, entry in summary["hosts"].items():
         for target, data in entry["targets"].items():

@@ -55,7 +55,7 @@ python3 -I "$here/run_request.py" "$target" "$runs" "$app" "$inject" "$capture" 
     "$target_display_check" > "$work/request.json"
 
 ssh "$host" "New-Item -ItemType Directory -Force $remote | Out-Null; Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $remote/runs, $remote/status.txt; exit 0"
-scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/PenInject.cs" "$here/PenProbe.cs" "$work/request.json" ${extra[@]+"${extra[@]}"} "$host:$remote/"
+scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/surface_state.ps1" "$here/PenInject.cs" "$here/PenProbe.cs" "$work/request.json" ${extra[@]+"${extra[@]}"} "$host:$remote/"
 ssh "$host" "schtasks /run /tn LibrePaintPenLatency | Out-Null"
 
 state=""

@@ -81,13 +81,14 @@ function Get-Foreground {
         $name = ''
         try { $name = (Get-Process -Id $ownerPid -ErrorAction Stop).ProcessName } catch { }
         return [pscustomobject]@{
+            hwnd = $window
             pid = $ownerPid
             name = $name
             visible = [L1Probe]::IsWindowVisible($window)
             iconic = [L1Probe]::IsIconic($window)
         }
     } catch {
-        return [pscustomobject]@{ pid = 0; name = 'unavailable'; visible = $false; iconic = $false }
+        return [pscustomobject]@{ hwnd = [IntPtr]::Zero; pid = 0; name = 'unavailable'; visible = $false; iconic = $false }
     }
 }
 
@@ -104,6 +105,44 @@ function Write-LaunchFacts($dir, $stage, $app) {
             $lines += "app_affinity_$stage=$($app.ProcessorAffinity)"
         } catch { }
     }
+    Add-Content -Path (Join-Path $dir 'meta.txt') -Value $lines
+}
+
+# The device state decides whether two runs can be compared: on 2026-11-11 the
+# reference target's ink latency jumped from 17.8-18.1 to 29-33 ms in the
+# middle of one session and the runs after the change were not comparable
+# (progress.md, q4-focus-gate). surface_state.ps1 samples the temperatures,
+# the processor performance, the total CPU use and the busiest processes; this
+# writes the numbers a later analysis reads from meta.txt.
+function Write-SurfaceStateSummary($dir, $csv) {
+    if (-not (Test-Path $csv)) { return }
+    $rows = @(Import-Csv $csv)
+    $during = @($rows | Where-Object { $_.phase -eq 'during' })
+    $lines = @()
+    foreach ($phase in @('before', 'after')) {
+        $row = $rows | Where-Object { $_.phase -eq $phase } | Select-Object -First 1
+        $lines += "surface_state_${phase}_max_temp_c=$(if ($row) { $row.max_temp_c } else { 'unavailable' })"
+        $lines += "surface_state_${phase}_processor_performance_pct=$(if ($row) { $row.processor_performance_pct } else { 'unavailable' })"
+        $lines += "surface_state_${phase}_total_cpu_pct=$(if ($row) { $row.total_cpu_pct } else { 'unavailable' })"
+    }
+    $temps = @($during | Where-Object { $_.max_temp_c -match '^-?[0-9]+(\.[0-9]+)?$' } | ForEach-Object { [double]$_.max_temp_c })
+    $performance = @($during | Where-Object { $_.processor_performance_pct -match '^[0-9]+$' } | ForEach-Object { [int]$_.processor_performance_pct })
+    $cpu = @($during | Where-Object { $_.total_cpu_pct -match '^[0-9]+$' } | ForEach-Object { [int]$_.total_cpu_pct })
+    $lines += "surface_state_during_samples=$($during.Count)"
+    $lines += "surface_state_during_max_temp_c=$(if ($temps.Count) { ($temps | Measure-Object -Maximum).Maximum } else { 'unavailable' })"
+    $lines += "surface_state_during_min_processor_performance_pct=$(if ($performance.Count) { ($performance | Measure-Object -Minimum).Minimum } else { 'unavailable' })"
+    $lines += "surface_state_during_max_total_cpu_pct=$(if ($cpu.Count) { ($cpu | Measure-Object -Maximum).Maximum } else { 'unavailable' })"
+    $lines += "surface_state_during_mean_total_cpu_pct=$(if ($cpu.Count) { [math]::Round(($cpu | Measure-Object -Average).Average, 1) } else { 'unavailable' })"
+    $names = @()
+    foreach ($row in $during) {
+        if ($row.top_processes -and $row.top_processes -notmatch '^(unavailable|none)$') {
+            $names += ($row.top_processes -split ';')[0].Trim()
+        }
+    }
+    $top = if ($names.Count) {
+        ($names | Group-Object | Sort-Object -Property Count -Descending | Select-Object -First 1).Name
+    } else { 'unavailable' }
+    $lines += "surface_state_top_process=$top"
     Add-Content -Path (Join-Path $dir 'meta.txt') -Value $lines
 }
 
@@ -425,6 +464,31 @@ try {
             $effectiveLines += "kritarc_effective.$key=$value"
         }
         Add-Content -Path (Join-Path $dir 'meta.txt') -Value $effectiveLines
+        # Device state: one sample before the application starts, one per
+        # second while the run happens, and one after the application exits.
+        # The sampler is a separate process so it keeps sampling while this
+        # script waits for the capture tool.
+        $surfaceScript = Join-Path $here 'surface_state.ps1'
+        $surfaceCsv = Join-Path $dir 'surface-state.csv'
+        $surfaceStop = Join-Path $dir 'surface-state.stop'
+        $surfaceSampler = $null
+        if (Test-Path $surfaceScript) {
+            try {
+                & $surfaceScript -Out $surfaceCsv -Phase before -Samples 1
+            } catch {
+                Log ("surface state before failed: " + $_.Exception.Message)
+            }
+            try {
+                $surfaceSampler = Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden `
+                    -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$surfaceScript`"",
+                        '-Out', "`"$surfaceCsv`"", '-Phase', 'during', '-IntervalMs', '1000',
+                        '-StopFile', "`"$surfaceStop`"") `
+                    -RedirectStandardOutput (Join-Path $dir 'surface-state.out') `
+                    -RedirectStandardError (Join-Path $dir 'surface-state.err')
+            } catch {
+                Log ("surface state sampler did not start: " + $_.Exception.Message)
+            }
+        }
         $appImage = if ($displayCheck) { [string]$displayCheck.image } else { $canvas }
         $app = $null
         $appOut = Join-Path $dir 'app.out'
@@ -469,7 +533,19 @@ try {
             Start-Sleep -Seconds $settle
             Write-LaunchFacts $dir 'capture' $app
             if ($displayCheck) { Invoke-DisplayCheck $dir $app ([string]$displayCheck.image) }
-            elseif ($capture) { Invoke-Capture $dir }
+            elseif ($capture) {
+                # The capture tool injects the pointer itself (it replays the
+                # plan without PenInject.cs), so the foreground has to be read
+                # here, right before the tool starts its first sample. Without
+                # this, every capture-mode run reported foreground_inject
+                # unknown and a run that lost the foreground looked like a tool
+                # that dropped the press.
+                $injectForeground = Get-Foreground
+                Add-Content -Path (Join-Path $dir 'meta.txt') -Value ("foreground_inject_start=pid={0} name={1} visible={2} same_window={3} app={4} retried=False" -f `
+                    $injectForeground.pid, $injectForeground.name, $injectForeground.visible,
+                    ($injectForeground.hwnd -eq $hwnd), ($injectForeground.pid -eq $app.Id))
+                Invoke-Capture $dir
+            }
             else {
                 [PenInject]::Run($hwnd, (Join-Path $dir 'inject.csv'), $options) | Out-Null
                 # PenInject records the window in front right before the first
@@ -503,6 +579,29 @@ try {
                 $pmStoppedAt = Get-Date
             }
             Restore-TargetKritarc $dir $kritarcState
+            # Stop the device sampler after the application is gone, so the
+            # last samples describe the end of the run.
+            if ($surfaceSampler) {
+                try { Set-Content -Path $surfaceStop -Value 'stop' } catch { }
+                try {
+                    if (-not $surfaceSampler.WaitForExit(15000)) {
+                        Stop-Process -Id $surfaceSampler.Id -Force -ErrorAction SilentlyContinue
+                        [void]$surfaceSampler.WaitForExit(5000)
+                    }
+                } catch { }
+            }
+        }
+        if (Test-Path $surfaceScript) {
+            try {
+                & $surfaceScript -Out $surfaceCsv -Phase after -Samples 1
+            } catch {
+                Log ("surface state after failed: " + $_.Exception.Message)
+            }
+            try {
+                Write-SurfaceStateSummary $dir $surfaceCsv
+            } catch {
+                Log ("surface state summary failed: " + $_.Exception.Message)
+            }
         }
         # State the application left in kritarc, after the overrides are
         # restored: the canvas writes canvasState and the chosen renderer.
