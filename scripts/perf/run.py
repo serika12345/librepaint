@@ -24,7 +24,10 @@ over all runs. A Windows target can set "presentmon": "off" to leave
 PresentMon out for a comparison, "env" to pass environment variables to the
 measured application (run-surface.ps1 records them in meta.txt), and
 "kritarc" to set root kritarc keys for one run (the file is restored after
-the run). A run
+the run). A Windows target records the device state (surface_state.ps1) only
+when it sets "surface_state": "on" (one WMI sample per second) or "light"
+(one Get-Counter call per five seconds, no per-second process list); the
+default is off, so the recording tool does not perturb the measurement. A run
 whose PresentMon CSV covers too little of the injected trajectory is
 reported as partial and left out of PresentMon-based metrics. A run whose
 application was not the foreground window when the capture began and that
@@ -72,6 +75,7 @@ def run_command(argv, env=None, cwd=None):
 
 ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 KRITARC_KEY = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]*$")
+SURFACE_STATE_MODES = ("off", "on", "light")
 
 
 def target_environment(target):
@@ -111,6 +115,24 @@ def target_kritarc(target):
     return checked
 
 
+def target_surface_state(target):
+    """Return how the Windows runner records the device state for this target.
+
+    "off" (the default) records nothing: the per-second WMI samples were
+    suspected of changing the device's power state during a measurement
+    (2026-11-11 05:40). "on" keeps the per-second samples of temperature,
+    processor performance, total CPU and the busiest processes. "light" reads
+    only the CPU counters, with one Get-Counter call per five seconds, and
+    samples the temperature and the busiest processes before and after the
+    run.
+    """
+    mode = target.get("surface_state", "off")
+    if not isinstance(mode, str) or mode not in SURFACE_STATE_MODES:
+        raise SystemExit("target %s: surface_state must be one of %s" % (
+            target["name"], ", ".join(SURFACE_STATE_MODES)))
+    return mode
+
+
 def runner_for(host, target, scenario, run_root):
     """Return (argv, env, collect) to run one measurement of target on host."""
     trajectory = json.dumps(scenario["trajectory"])
@@ -122,6 +144,7 @@ def runner_for(host, target, scenario, run_root):
                 target.get("app", "none"), out]
         env = {"CAPTURE_TOOL": host["capture_tool"], "TRAJECTORY_JSON": trajectory, "RUN_NAME": target["name"],
                "PRESENTMON": target.get("presentmon", "on"),
+               "SURFACE_STATE": target_surface_state(target),
                "TARGET_ENV": json.dumps(target_environment(target), sort_keys=True),
                "TARGET_KRITARC": json.dumps(target_kritarc(target), sort_keys=True)}
         return argv, env, None
@@ -129,6 +152,8 @@ def runner_for(host, target, scenario, run_root):
         raise SystemExit("target %s: env is supported only for Windows targets" % target["name"])
     if kind in ("linux", "macos") and target.get("kritarc"):
         raise SystemExit("target %s: kritarc is supported only for Windows targets" % target["name"])
+    if kind in ("linux", "macos") and target.get("surface_state"):
+        raise SystemExit("target %s: surface_state is supported only for Windows targets" % target["name"])
     if kind == "linux":
         command = " ".join(shlex.quote(a) for a in target["command"])
         remote_out = host["remote_out"] + "/" + scenario["name"]
@@ -197,6 +222,7 @@ SHIFT_PROCESSOR_PERFORMANCE_PCT = 10.0
 SHIFT_TOTAL_CPU_PCT = 10.0
 
 SURFACE_STATE_KEYS = {
+    "surface_state_mode": "mode",
     "surface_state_before_max_temp_c": "before_max_temp_c",
     "surface_state_before_processor_performance_pct": "before_processor_performance_pct",
     "surface_state_before_total_cpu_pct": "before_total_cpu_pct",
@@ -346,6 +372,11 @@ def summarize(run_root, hosts, scenario):
             data["presentmon"] = {
                 status: sum(1 for run in valid if presentmon_status(run) == status)
                 for status in ("present", "partial", "none")
+            }
+            data["surface_state_modes"] = {
+                mode: sum(1 for run in data["runs"]
+                          if (run.get("surface_state") or {}).get("mode") == mode)
+                for mode in SURFACE_STATE_MODES
             }
             groups = {}
             for run in valid:
@@ -555,6 +586,20 @@ def main(argv):
     if present_lines:
         print("== PresentMon records")
         print("\n".join(present_lines))
+    device_lines = []
+    for host, entry in summary["hosts"].items():
+        if entry.get("kind") != "windows":
+            continue
+        for target, data in entry["targets"].items():
+            modes = data.get("surface_state_modes") or {}
+            if not (modes.get("on") or modes.get("light")):
+                continue
+            counts = ", ".join("%s %d" % (mode, modes[mode])
+                               for mode in ("on", "light") if modes.get(mode))
+            device_lines.append("   %s/%s: device state recorded (on/light): %s" % (host, target, counts))
+    if device_lines:
+        print("== device state records")
+        print("\n".join(device_lines))
     shift_lines = []
     for host, entry in summary["hosts"].items():
         for target, data in entry["targets"].items():

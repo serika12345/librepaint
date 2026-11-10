@@ -145,10 +145,12 @@ class DeviceShiftTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             with open(os.path.join(root, "meta.txt"), "w") as handle:
                 handle.write("foreground_capture=pid=1 name=LibrePaint visible=True\n")
+                handle.write("surface_state_mode=light\n")
                 handle.write("surface_state_during_max_temp_c=58.0\n")
                 handle.write("surface_state_during_min_processor_performance_pct=60\n")
                 handle.write("surface_state_top_process=MsMpEng 40%\n")
             state = run.surface_state(root)
+        self.assertEqual(state["mode"], "light")
         self.assertEqual(state["during_max_temp_c"], "58.0")
         self.assertEqual(state["during_min_processor_performance_pct"], "60")
         self.assertEqual(state["top_process"], "MsMpEng 40%")
@@ -179,6 +181,34 @@ class RunnerCommandTest(unittest.TestCase):
             target["presentmon"] = "off"
             _, env, _ = run.runner_for(host, target, scenario, root)
             self.assertEqual(env["PRESENTMON"], "off")
+
+    def test_device_state_recording_is_off_unless_the_target_asks_for_it(self):
+        scenario = {"trajectory": {}, "name": "test"}
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe"}
+        with tempfile.TemporaryDirectory() as root:
+            _, env, _ = run.runner_for(host, target, scenario, root)
+            self.assertEqual(env["SURFACE_STATE"], "off")
+            for mode in ("on", "light"):
+                target["surface_state"] = mode
+                _, env, _ = run.runner_for(host, target, scenario, root)
+                self.assertEqual(env["SURFACE_STATE"], mode)
+
+    def test_invalid_surface_state_is_rejected(self):
+        host = {"name": "w", "kind": "windows", "ssh": "host", "capture_tool": "/tmp/capture"}
+        target = {"name": "T", "runner_target": "LibrePaint", "app": "C:/LibrePaint.exe",
+                  "surface_state": "heavy"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
+
+    def test_surface_state_on_a_non_windows_target_is_rejected(self):
+        host = {"name": "l", "kind": "linux", "ssh": "host", "repo": "/r", "work": "/w",
+                "remote_out": "/o", "capture_offset_ms": 16}
+        target = {"name": "T", "command": ["app"], "surface_state": "on"}
+        with tempfile.TemporaryDirectory() as root:
+            with self.assertRaises(SystemExit):
+                run.runner_for(host, target, {"trajectory": {}, "name": "test"}, root)
 
     def test_windows_target_passes_environment_to_the_runner(self):
         scenario = {"trajectory": {}, "name": "test"}
@@ -301,6 +331,22 @@ class StateSummaryTest(unittest.TestCase):
         ])
         data = summary["hosts"]["h"]["targets"]["T"]
         self.assertEqual(data["presentmon"], {"present": 2, "partial": 1, "none": 1})
+
+    def test_device_state_recording_modes_are_counted(self):
+        with tempfile.TemporaryDirectory() as root:
+            modes = ("off", "on", "light")
+            for n, mode in enumerate(modes, start=1):
+                path = os.path.join(root, "h", "T-20261108-120000-%d" % n)
+                os.makedirs(path)
+                open(os.path.join(path, "capture.csv"), "w").close()
+                with open(os.path.join(path, "meta.txt"), "w") as handle:
+                    handle.write("surface_state_mode=%s\n" % mode)
+            host = {"name": "h", "kind": "windows", "capture_offset_ms": 0, "targets": [{"name": "T"}]}
+            with mock.patch.object(run.capture_analyze, "analyze_run",
+                                   side_effect=[fake_run("low", 55.0, 61.0) for _ in modes]):
+                summary = run.summarize(root, [host], self.SCENARIO)
+        self.assertEqual(summary["hosts"]["h"]["targets"]["T"]["surface_state_modes"],
+                         {"off": 1, "on": 1, "light": 1})
 
     def test_a_run_whose_app_was_not_in_front_is_left_out(self):
         summary = self.summarize([

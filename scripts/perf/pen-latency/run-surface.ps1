@@ -347,14 +347,15 @@ function Invoke-DisplayCheck($dir, $app, [string]$image) {
     Log 'display check captured 100 and 400'
 }
 
-function Write-Meta($dir, $request, $target) {
+function Write-Meta($dir, $request, $target, $surfaceStateMode) {
     $lines = @(
         "target=$target",
         "app=$($request.app)",
         "date=$(Get-Date -Format o)",
         "computer=$((Get-CimInstance Win32_ComputerSystem).Model)",
         "os=$([System.Environment]::OSVersion.VersionString)",
-        "presentmon=$(if ($request.presentmon) { $request.presentmon } else { 'on' })"
+        "presentmon=$(if ($request.presentmon) { $request.presentmon } else { 'on' })",
+        "surface_state_mode=$surfaceStateMode"
     )
     if ($request.env) {
         foreach ($property in $request.env.PSObject.Properties) {
@@ -399,6 +400,14 @@ try {
     }
     $presentMon = Join-Path (Split-Path -Parent $here) 'PresentMon.exe'
     $presentMonEnabled = (-not ([string]$request.presentmon -eq 'off')) -and (-not $displayCheck)
+    # Device-state recording is off unless the target asks for it: the
+    # per-second WMI samples were suspected of changing the device's power
+    # state during a measurement (2026-11-11 05:40).
+    $surfaceStateMode = if ($request.surface_state) { [string]$request.surface_state } else { 'off' }
+    if ($surfaceStateMode -notin @('off', 'on', 'light')) {
+        Log ("unknown surface_state '" + $surfaceStateMode + "', recording nothing")
+        $surfaceStateMode = 'off'
+    }
     $runName = if ($request.name) { [string]$request.name } else { $target }
     $id = '{0}-{1}' -f $runName, (Get-Date -Format 'yyyyMMdd-HHmmss')
 
@@ -408,7 +417,7 @@ try {
         $script:runStatus = Join-Path $dir 'status.txt'
         Set-Content -Path $script:runStatus -Value 'starting'
         Log "run $n $dir"
-        Write-Meta $dir $request $target
+        Write-Meta $dir $request $target $surfaceStateMode
         Write-LaunchFacts $dir 'start' $null
 
         if ($target -eq 'PenProbe') {
@@ -472,7 +481,7 @@ try {
         $surfaceCsv = Join-Path $dir 'surface-state.csv'
         $surfaceStop = Join-Path $dir 'surface-state.stop'
         $surfaceSampler = $null
-        if (Test-Path $surfaceScript) {
+        if ($surfaceStateMode -ne 'off' -and (Test-Path $surfaceScript)) {
             try {
                 & $surfaceScript -Out $surfaceCsv -Phase before -Samples 1
             } catch {
@@ -481,7 +490,7 @@ try {
             try {
                 $surfaceSampler = Start-Process -FilePath 'powershell.exe' -PassThru -WindowStyle Hidden `
                     -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$surfaceScript`"",
-                        '-Out', "`"$surfaceCsv`"", '-Phase', 'during', '-IntervalMs', '1000',
+                        '-Out', "`"$surfaceCsv`"", '-Phase', 'during', '-IntervalMs', '1000', '-Mode', $surfaceStateMode,
                         '-StopFile', "`"$surfaceStop`"") `
                     -RedirectStandardOutput (Join-Path $dir 'surface-state.out') `
                     -RedirectStandardError (Join-Path $dir 'surface-state.err')
@@ -591,7 +600,7 @@ try {
                 } catch { }
             }
         }
-        if (Test-Path $surfaceScript) {
+        if ($surfaceStateMode -ne 'off' -and (Test-Path $surfaceScript)) {
             try {
                 & $surfaceScript -Out $surfaceCsv -Phase after -Samples 1
             } catch {

@@ -64,6 +64,20 @@ class RequestTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe", display_check={"image": ""})
 
+    def test_device_state_recording_is_off_by_default(self):
+        request = request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe", name="T")
+        self.assertEqual(request["surface_state"], "off")
+
+    def test_device_state_recording_modes_reach_the_request(self):
+        for mode in ("on", "light"):
+            request = request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe", surface_state=mode)
+            self.assertEqual(request["surface_state"], mode)
+
+    def test_unknown_device_state_recording_mode_is_rejected(self):
+        for mode in ("heavy", "ON", 1):
+            with self.assertRaises(ValueError):
+                request_module.build_request("LibrePaint", 1, "C:/LibrePaint.exe", surface_state=mode)
+
 
 if __name__ == "__main__":
     unittest.main()

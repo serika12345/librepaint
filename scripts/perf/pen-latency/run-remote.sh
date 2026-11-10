@@ -17,6 +17,9 @@
 # RUN_NAME names the run directories (default: TARGET), so that two
 # versions of one application can be told apart.
 # PRESENTMON=off skips PresentMon for one measurement; the default is on.
+# SURFACE_STATE is off (the default), on or light: whether run-surface.ps1
+# records the device state around the run. run.py fills it from the target's
+# "surface_state" in hosts.json.
 # TARGET_ENV is a JSON object of environment variables for the measured
 # application; run.py fills it from the target's "env" in hosts.json.
 # TARGET_KRITARC is a JSON object of root kritarc keys (for example the hidden
@@ -28,7 +31,7 @@
 set -euo pipefail
 
 if [ "$#" -lt 5 ]; then
-  sed -n '4,21p' "$0" >&2
+  sed -n '4,28p' "$0" >&2
   exit 2
 fi
 host=$1 target=$2 runs=$3 app=$4 out=$5 inject=${6:-'{}'}
@@ -41,6 +44,7 @@ capture=false
 target_env=${TARGET_ENV:-'{}'}
 target_kritarc=${TARGET_KRITARC:-'{}'}
 target_display_check=${TARGET_DISPLAY_CHECK:-'{}'}
+surface_state=${SURFACE_STATE:-off}
 extra=()
 if [ -n "${CAPTURE_TOOL:-}" ]; then
   capture=true
@@ -52,7 +56,7 @@ fi
 python3 -I "$here/run_request.py" "$target" "$runs" "$app" "$inject" "$capture" \
     "${RUN_NAME:-$target}" "${PRESENTMON:-on}" \
     "$(python3 -I "$here/presentmon_command.py")" "$target_env" "$target_kritarc" \
-    "$target_display_check" > "$work/request.json"
+    "$target_display_check" "$surface_state" > "$work/request.json"
 
 ssh "$host" "New-Item -ItemType Directory -Force $remote | Out-Null; Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $remote/runs, $remote/status.txt; exit 0"
 scp -q "$here/run-surface.ps1" "$here/setup-surface.ps1" "$here/surface_state.ps1" "$here/PenInject.cs" "$here/PenProbe.cs" "$work/request.json" ${extra[@]+"${extra[@]}"} "$host:$remote/"
