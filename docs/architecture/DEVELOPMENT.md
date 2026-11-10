@@ -221,7 +221,7 @@ L1の仮説は、同じ版のまま環境変数で切り替える。変数がな
 
 | 変数 | 仮説 | 値 | 効果 |
 | --- | --- | --- | --- |
-| `LIBREPAINT_L1_MAX_FRAME_LATENCY` | H1（先積みのフレーム数） | 1〜3 | ANGLEのD3D11デバイスに`SetMaximumFrameLatency`を設定する |
+| `LIBREPAINT_L1_MAX_FRAME_LATENCY` | H1（先積みのフレーム数） | 1〜3 | ANGLEのD3D11デバイスに`SetMaximumFrameLatency`を設定する。EGLコンテキストとデバイスの取得、`IDXGIDevice1`の成否、設定のHRESULT、読み戻した値を`l1_h1_*`として時刻記録に残し、`analyze.py`が`l1_h1 egl=… set=… readback=…`と出す |
 | `LIBREPAINT_L1_WAIT_FOR_GPU` | H2（表示待ちの歯止め） | 1 | 前のフレームのGPU完了を待ってから次を描く。時刻記録に`gpu_wait_begin`/`gpu_wait_end`を出す |
 | `LIBREPAINT_L1_SWAP_INTERVAL` | H3（垂直同期） | 0または1 | サーフェスの交換間隔を上書きする |
 | `LIBREPAINT_L1_WINDOW_SIZE` | H4（1フレームのGPU負荷） | `幅x高さ` | 起動後の窓の大きさを変える |

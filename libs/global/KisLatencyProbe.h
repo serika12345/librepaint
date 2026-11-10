@@ -35,6 +35,14 @@ class QCoreApplication;
  * compressor deferred a paint), qt_update_deferred_skipped (H6 (frame update
  * throttle) painted despite the previous frame), gpu_wait_begin and
  * gpu_wait_end (H2 (waiting for the display handoff)).
+ *
+ * H1 (frames queued ahead) records whether its D3D11 call took effect:
+ * l1_h1_egl_context (extra = 1 when Qt exposes the EGL context),
+ * l1_h1_device (extra = 1 when the ANGLE D3D11 device was found),
+ * l1_h1_query_interface (extra = HRESULT for IDXGIDevice1),
+ * l1_h1_set_max_frame_latency (x = requested latency, extra = HRESULT) and
+ * l1_h1_get_max_frame_latency (x = requested latency, extra = read-back
+ * latency, -1 when the read failed).
  */
 namespace KisLatencyProbe
 {

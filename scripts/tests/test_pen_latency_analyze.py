@@ -37,8 +37,10 @@ def write_run(directory, probe_rows, presents):
     with open(os.path.join(directory, "probe.csv"), "w") as handle:
         handle.write("# frequency=%d\n" % (TICKS_PER_MS * 1000))
         handle.write("time,event,x,y,extra,thread\n")
-        for time, event, extra in probe_rows:
-            handle.write("%d,%s,0.00,0.00,%d,1\n" % (time, event, extra))
+        for row in probe_rows:
+            time, event, extra = row[:3]
+            x = row[3] if len(row) > 3 else 0.0
+            handle.write("%d,%s,%.2f,0.00,%d,1\n" % (time, event, x, extra))
     with open(os.path.join(directory, "presentmon.csv"), "w") as handle:
         handle.write(PRESENTMON_HEADER)
         for present, until_displayed in presents:
@@ -194,6 +196,91 @@ class L1SignalTest(unittest.TestCase):
         self.assertIn("qt_update_deferred_skipped=1868", text)
         self.assertIn("completed=100/1968 (5.1%)", text)
         self.assertNotIn("l1_events                                    n=0", text)
+
+
+class L1MaxFrameLatencyTest(unittest.TestCase):
+    """H1 (frames queued ahead) outcome from the probe log.
+
+    A working call records the EGL context, the D3D11 device, the
+    IDXGIDevice1 query, the requested latency and the value read back. A
+    failed device lookup stops after l1_h1_device, and a run without the
+    switch records nothing.
+    """
+
+    def write_outcome(self, directory, rows):
+        write_run(directory, rows, [])
+
+    def test_records_every_step_and_the_read_back(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_outcome(directory, [
+                (ms(1000), "l1_h1_egl_context", 1),
+                (ms(1001), "l1_h1_device", 1),
+                (ms(1002), "l1_h1_query_interface", 0),
+                (ms(1003), "l1_h1_set_max_frame_latency", 0, 1),
+                (ms(1004), "l1_h1_get_max_frame_latency", 1, 1),
+            ])
+            result = analyze.Run(directory).analyze()
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(analyze.main([directory]), 0)
+        self.assertEqual(result["l1_h1"], {
+            "egl_context": 1,
+            "device": 1,
+            "query_interface_hresult": 0,
+            "set_hresult": 0,
+            "requested": 1,
+            "readback": 1,
+        })
+        self.assertIn(
+            "egl=1 device=1 query_interface=0x00000000 set=0x00000000 requested=1 readback=1",
+            output.getvalue())
+
+    def test_failed_device_lookup_stops_before_the_set_call(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_outcome(directory, [
+                (ms(1000), "l1_h1_egl_context", 0),
+            ])
+            result = analyze.Run(directory).analyze()
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                analyze.main([directory])
+        self.assertEqual(result["l1_h1"], {
+            "egl_context": 0,
+            "device": None,
+            "query_interface_hresult": None,
+            "set_hresult": None,
+            "requested": None,
+            "readback": None,
+        })
+        self.assertIn("egl=0 device=none query_interface=none set=none", output.getvalue())
+
+    def test_the_newest_call_describes_the_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self.write_outcome(directory, [
+                (ms(1000), "l1_h1_egl_context", 1),
+                (ms(1001), "l1_h1_device", 1),
+                (ms(1002), "l1_h1_query_interface", 0),
+                (ms(1003), "l1_h1_set_max_frame_latency", 0, 1),
+                (ms(1004), "l1_h1_get_max_frame_latency", 1, 1),
+                (ms(2000), "l1_h1_egl_context", 1),
+                (ms(2001), "l1_h1_device", 1),
+                (ms(2002), "l1_h1_query_interface", 0),
+                (ms(2003), "l1_h1_set_max_frame_latency", -2147024891, 1),
+                (ms(2004), "l1_h1_get_max_frame_latency", 2, 1),
+            ])
+            result = analyze.Run(directory).analyze()
+        self.assertEqual(result["l1_h1"]["set_hresult"], -2147024891)
+        self.assertEqual(result["l1_h1"]["readback"], 2)
+
+    def test_a_run_without_the_switch_reports_no_h1_entry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            write_run(directory, [(ms(1000), "paintgl_begin", 0)], [])
+            result = analyze.Run(directory).analyze()
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                analyze.main([directory])
+        self.assertNotIn("l1_h1", result)
+        self.assertNotIn("l1_h1", output.getvalue())
 
 
 class RunComparisonTest(unittest.TestCase):

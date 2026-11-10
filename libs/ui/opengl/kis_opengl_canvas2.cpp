@@ -79,26 +79,45 @@ void applyMaximumFrameLatency(QOpenGLContext *context)
     // fewer frames in flight. The value comes from
     // LIBREPAINT_L1_MAX_FRAME_LATENCY (KisL1Switches.h owns the removal
     // condition); 0 leaves the driver default.
+    //
+    // Every step is recorded in the latency log, so a run can tell a failed
+    // device lookup or call apart from a setting that had no effect on the
+    // wait: l1_h1_egl_context (1 when Qt exposes the EGL context),
+    // l1_h1_device (1 when the D3D11 device could be queried),
+    // l1_h1_query_interface (extra = HRESULT of IDXGIDevice1),
+    // l1_h1_set_max_frame_latency (x = requested, extra = HRESULT) and
+    // l1_h1_get_max_frame_latency (x = requested, extra = read-back value,
+    // -1 when the read failed).
     const int latency = KisL1Switches::maxFrameLatency();
     if (latency <= 0 || !context) return;
 
     auto *egl = context->nativeInterface<QNativeInterface::QEGLContext>();
+    KisLatencyProbe::mark("l1_h1_egl_context", 0, 0, egl ? 1 : 0);
     if (!egl) return;
 
     using QueryDisplayAttribEXT = unsigned int (*)(EGLDisplay, unsigned int, qintptr *);
     auto query = reinterpret_cast<QueryDisplayAttribEXT>(context->getProcAddress("eglQueryDisplayAttribEXT"));
-    if (!query) return;
-
     constexpr unsigned int EGL_D3D11_DEVICE_ANGLE = 0x33A1;
     qintptr deviceValue = 0;
-    if (!query(egl->display(), EGL_D3D11_DEVICE_ANGLE, &deviceValue) || !deviceValue) return;
+    const bool queried = query && query(egl->display(), EGL_D3D11_DEVICE_ANGLE, &deviceValue);
+    KisLatencyProbe::mark("l1_h1_device", 0, 0, queried && deviceValue ? 1 : 0);
+    if (!queried || !deviceValue) return;
 
     auto *device = reinterpret_cast<ID3D11Device *>(deviceValue);
     IDXGIDevice1 *dxgiDevice = nullptr;
-    if (SUCCEEDED(device->QueryInterface(__uuidof(IDXGIDevice1), reinterpret_cast<void **>(&dxgiDevice))) && dxgiDevice) {
-        dxgiDevice->SetMaximumFrameLatency(latency);
-        dxgiDevice->Release();
-    }
+    const HRESULT queryResult =
+        device->QueryInterface(__uuidof(IDXGIDevice1), reinterpret_cast<void **>(&dxgiDevice));
+    KisLatencyProbe::mark("l1_h1_query_interface", 0, 0, queryResult);
+    if (FAILED(queryResult) || !dxgiDevice) return;
+
+    const HRESULT setResult = dxgiDevice->SetMaximumFrameLatency(latency);
+    KisLatencyProbe::mark("l1_h1_set_max_frame_latency", latency, 0, setResult);
+
+    UINT readBack = 0;
+    const HRESULT getResult = dxgiDevice->GetMaximumFrameLatency(&readBack);
+    KisLatencyProbe::mark("l1_h1_get_max_frame_latency", latency, 0,
+                         SUCCEEDED(getResult) ? static_cast<qint64>(readBack) : -1);
+    dxgiDevice->Release();
 }
 }
 #endif

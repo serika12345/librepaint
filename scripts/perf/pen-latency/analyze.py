@@ -168,6 +168,30 @@ def probe_frequency(directory):
     return frequency
 
 
+def l1_max_frame_latency(events):
+    """Last outcome of the H1 (frames queued ahead) D3D11 call, if recorded.
+
+    The probe events carry the requested latency in x and the HRESULT or the
+    read-back value in extra. The last event of each kind wins: the canvas can
+    initialize more than once, and the newest call describes the run.
+    """
+    egl = events.get("l1_h1_egl_context")
+    if not egl:
+        return None
+    device = events.get("l1_h1_device")
+    query = events.get("l1_h1_query_interface")
+    setter = events.get("l1_h1_set_max_frame_latency")
+    getter = events.get("l1_h1_get_max_frame_latency")
+    return {
+        "egl_context": int(egl[-1][3]),
+        "device": int(device[-1][3]) if device else None,
+        "query_interface_hresult": query[-1][3] if query else None,
+        "set_hresult": setter[-1][3] if setter else None,
+        "requested": int(setter[-1][1]) if setter else None,
+        "readback": getter[-1][3] if getter else None,
+    }
+
+
 def percentile(values, fraction):
     ordered = sorted(values)
     return ordered[min(len(ordered) - 1, int(fraction * len(ordered)))]
@@ -301,6 +325,9 @@ class Run:
                     "n": len(completed),
                     "completed": sum(1 for entry in completed if entry[3] == 1),
                 }
+            h1 = l1_max_frame_latency(self.events)
+            if h1:
+                result["l1_h1"] = h1
         if self.inject:
             result["inject"] = {
                 "n": len(self.inject),
@@ -409,6 +436,21 @@ def format_l1_last_frame_completed(entry):
     return "completed=%d/%d (%.1f%%)" % (entry.get("completed", 0), n, 100.0 * entry.get("completed", 0) / n)
 
 
+def format_l1_h1(entry):
+    """Outcome of the H1 (frames queued ahead) D3D11 call from the probe log."""
+    def flag(value):
+        return "none" if value is None else str(int(value))
+
+    def hresult(value):
+        return "none" if value is None else "0x%08X" % (value & 0xFFFFFFFF)
+
+    return ("egl=%s device=%s query_interface=%s set=%s requested=%s readback=%s"
+            % (flag(entry.get("egl_context")), flag(entry.get("device")),
+               hresult(entry.get("query_interface_hresult")),
+               hresult(entry.get("set_hresult")), flag(entry.get("requested")),
+               flag(entry.get("readback"))))
+
+
 def main(argv):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("runs", nargs="+", help="run directories")
@@ -437,6 +479,9 @@ def main(argv):
                 continue
             if key == "l1_last_frame_completed":
                 print("   %-44s %s" % (key, format_l1_last_frame_completed(stat)))
+                continue
+            if key == "l1_h1":
+                print("   %-44s %s" % (key, format_l1_h1(stat)))
                 continue
             print("   %-44s %s" % (key, format_stat(stat)))
 
