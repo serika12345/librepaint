@@ -39,6 +39,11 @@ import analyze  # noqa: E402  (describe, compare)
 EDGE_PX = 12  # ignore positions this close to the dwell positions
 MAX_LATENCY_NS = 300_000_000
 
+# Below this speed the pen tip to line end distance stays in pixels: the
+# milliseconds conversion would divide by a near-zero speed and report a
+# meaningless time (docs/perf/l2p-prediction.md).
+MIN_SPEED_FOR_MS = 0.2
+
 # Hover latency alternates between two states from one launch to the next
 # (L1 of Issue #108). The states are recognised by when the capture tool
 # receives a frame after its present time and by whether Qt receives the pen
@@ -131,6 +136,34 @@ class Pass:
         return None if located is None else located[0]
 
 
+def pen_tip_at(inject_times, inject_xs, time_ns):
+    """Return (pointer x, pointer speed in px/ms) at a capture frame time.
+
+    The pointer position comes from the two injected samples that bracket the
+    frame time, so it is the pen tip when the display was captured rather
+    than the older position the frame shows. The speed is measured over the
+    same two samples, as the milliseconds conversion of the pen tip to line
+    end distance requires (docs/perf/l2p-prediction.md).
+    """
+    if not inject_times:
+        return None, 0.0
+    index = bisect.bisect_right(inject_times, time_ns)
+    if index <= 0:
+        first, second = 0, min(1, len(inject_times) - 1)
+        x = inject_xs[first]
+    elif index >= len(inject_times):
+        first, second = max(0, len(inject_times) - 2), len(inject_times) - 1
+        x = inject_xs[-1]
+    else:
+        first, second = index - 1, index
+        t0, t1 = inject_times[first], inject_times[second]
+        x0, x1 = inject_xs[first], inject_xs[second]
+        x = x0 + (x1 - x0) * (time_ns - t0) / (t1 - t0) if t1 != t0 else x0
+    duration_ms = (inject_times[second] - inject_times[first]) / 1e6
+    speed = abs(inject_xs[second] - inject_xs[first]) / duration_ms if duration_ms > 0 else 0.0
+    return x, speed
+
+
 def passes(samples):
     parts = segments(samples)
     found = []
@@ -176,14 +209,19 @@ def dwell_offsets(pass_, frames, frame_times):
 def frame_samples(directory):
     """Return (frames, offsets, samples) for a run.
 
-    samples lists (kind, frame_ns, crossed_ns, arrival_ns, speed_px_ms): a
-    captured frame, the time at which the injected pointer was at the
-    position the frame shows, and the pointer's speed then.
+    samples lists (kind, frame_ns, crossed_ns, arrival_ns, speed_px_ms,
+    pen_x, pen_speed_px_ms, signed_gap_px). The last three describe the pen
+    tip at the capture frame time: its x, its speed there, and the signed
+    distance from the displayed line end to the pen tip. A positive signed
+    gap means the line end is behind the pen tip (latency left); a negative
+    one means it is ahead (prediction overshoot).
     """
     injected = read_inject(os.path.join(directory, "inject.csv"))
     frames = read_capture(os.path.join(directory, "capture.csv"))
     frame_times = list(frames)
     all_passes = passes(injected)
+    inject_times = [sample[0] for sample in injected]
+    inject_xs = [sample[3] for sample in injected]
 
     offsets = {"hover": [], "ink": []}
     for pass_ in all_passes:
@@ -208,7 +246,11 @@ def frame_samples(directory):
             crossed, speed = located
             if not 0 <= t - crossed < MAX_LATENCY_NS:
                 continue
-            samples.append((pass_.kind, t, crossed, detection["arrival"], speed))
+            pen_x, pen_speed = pen_tip_at(inject_times, inject_xs, t)
+            line_end = value - offset[pass_.kind]
+            signed_gap = pass_.direction * (pen_x - line_end) if pen_x is not None else None
+            samples.append((pass_.kind, t, crossed, detection["arrival"], speed,
+                            pen_x, pen_speed, signed_gap))
     return frame_times, offsets, offset, samples
 
 
@@ -381,15 +423,17 @@ def analyze_run(directory):
     frame_times, offsets, offset, samples = frame_samples(directory)
     stats = collections.defaultdict(list)
     ink_samples = []
-    for kind, t, crossed, arrival, speed in samples:
+    for sample in samples:
+        kind, t, crossed, arrival, speed = sample[:5]
         stats[kind + ".input_to_capture"].append((t - crossed) / 1e6)
         stats[kind + ".frame_to_arrival"].append((arrival - t) / 1e6)
         if kind == "ink":
-            ink_samples.append((kind, t, crossed, arrival, speed))
+            ink_samples.append(sample)
             stats["ink.pen_tip_to_edge_px"].append((t - crossed) / 1e6 * speed)
 
     intervals = [(b - a) / 1e6 for a, b in zip(frame_times, frame_times[1:]) if b - a < 100_000_000]
     result = {key: analyze.describe(values) for key, values in sorted(stats.items())}
+    result.update(l2p_summary(samples))
     result["frames"] = {"n": len(frame_times), "interval": analyze.describe(intervals)}
     result["calibration"] = {
         kind: {"offset_px": offset[kind], "spread_px": (max(v) - min(v)) if v else None, "n": len(v)}
@@ -397,7 +441,10 @@ def analyze_run(directory):
     }
     if ink_samples:
         result["ink.speed_groups"] = ink_speed_groups(ink_samples)
-        result["ink.speed_change"] = speed_change_entries(ink_samples)
+        changes = speed_change_entries(ink_samples)
+        result["ink.speed_change"] = changes
+        result["l2p.speed_groups"] = l2p_speed_groups(samples)
+        result["l2p.speed_change"] = changes
     frame_to_arrival = result.get("hover.frame_to_arrival", {}).get("p50")
     tablet_interval = tablet_move_interval_p05(directory)
     label, reason = classify_hover_state(frame_to_arrival, tablet_interval)
@@ -431,15 +478,48 @@ SPEED_STEADY_END_MS = 250.0
 SPEED_SETTLE_THRESHOLD_MS = 3.0
 
 
+def l2p_summary(samples):
+    """Pen tip to displayed line end distance for the ink frames.
+
+    The distance uses the pen tip position at the capture frame time from
+    inject.csv and the displayed line end from capture.csv. A positive signed
+    gap means the line end is behind the pen tip (latency remains); a negative
+    one means it is ahead (prediction overshoot). The milliseconds variant
+    divides by the pointer speed at the frame time and is omitted below
+    MIN_SPEED_FOR_MS.
+    """
+    gaps = []
+    gaps_ms = []
+    for sample in samples:
+        if sample[0] != "ink" or sample[7] is None:
+            continue
+        gaps.append(sample[7])
+        if sample[6] is not None and sample[6] >= MIN_SPEED_FOR_MS:
+            gaps_ms.append(sample[7] / sample[6])
+    if not gaps:
+        return {}
+    result = {
+        "l2p.signed_gap_px": analyze.describe(gaps),
+        "l2p.residual_px": analyze.describe([max(0.0, gap) for gap in gaps]),
+        "l2p.overshoot_px": analyze.describe([max(0.0, -gap) for gap in gaps]),
+    }
+    if gaps_ms:
+        result["l2p.signed_gap_ms"] = analyze.describe(gaps_ms)
+    return result
+
+
 def ink_speed_groups(samples):
     """Latency and pen-tip-to-edge distance grouped by pointer speed.
 
     A constant-speed stroke gives one group; a stroke that changes speed
     gives one group per speed. The distance is the pointer's travel during
-    the measured delay, in captured pixels.
+    the measured delay, in captured pixels. The direct pen tip to line end
+    distance is reported separately by l2p_speed_groups(), which groups by
+    the pointer speed at the capture frame time.
     """
     entries = []
-    for _, frame, crossed, _, speed in samples:
+    for sample in samples:
+        frame, crossed, speed = sample[1], sample[2], sample[4]
         latency = (frame - crossed) / 1e6
         entries.append((speed, (latency, latency * speed)))
     groups = []
@@ -455,12 +535,43 @@ def ink_speed_groups(samples):
     return groups
 
 
+def l2p_speed_groups(samples):
+    """Pen tip to line end distance grouped by pointer speed at frame time.
+
+    The group speed is the speed that applied when the frame was captured,
+    so the milliseconds conversion uses the same interval as the distance.
+    """
+    entries = []
+    for sample in samples:
+        if (sample[0] != "ink" or sample[7] is None or sample[6] is None
+                or sample[6] < MIN_SPEED_FOR_MS):
+            continue
+        gap = sample[7]
+        gap_ms = gap / sample[6]
+        entries.append((sample[6], (gap, gap_ms)))
+    groups = []
+    for cluster in analyze.speed_clusters(entries):
+        gaps = [payload[0] for payload in cluster["payloads"]]
+        gaps_ms = [payload[1] for payload in cluster["payloads"] if payload[1] is not None]
+        groups.append({
+            "speed_px_ms": cluster["speed"],
+            "n": len(gaps),
+            "l2p_signed_gap_px": analyze.describe(gaps),
+            "l2p_signed_gap_ms": analyze.describe(gaps_ms),
+            "l2p_residual_px": analyze.describe([max(0.0, gap) for gap in gaps]),
+            "l2p_overshoot_px": analyze.describe([max(0.0, -gap) for gap in gaps]),
+        })
+    return groups
+
+
 def speed_change_entries(samples):
     """Delay just after each speed change and the time to its steady value.
 
     The pointer speed is smoothed over five injected samples so that the one
     interval that straddles a change does not look like a change of its own.
-    A change is a sustained doubling or halving of the speed.
+    A change is a sustained doubling or halving of the speed. Each entry also
+    carries the pen tip to line end distance in the 80 ms window after the
+    change, so the value is reported without mixing it with a steady stretch.
     """
     ordered = sorted(samples, key=lambda sample: sample[2])
     if len(ordered) < 10:
@@ -508,6 +619,9 @@ def speed_change_entries(samples):
                    for offset in range(3)):
                 settle_ms = (after[index][2] - at) / 1e6
                 break
+        gaps = [s[7] for s in after if s[7] is not None]
+        gaps_ms = [s[7] / s[6] for s in after
+                   if s[7] is not None and s[6] is not None and s[6] >= MIN_SPEED_FOR_MS]
         result.append({
             "at_ms": (at - ordered[0][2]) / 1e6,
             "before_speed_px_ms": statistics.median([s[4] for s in before]) if before else None,
@@ -516,9 +630,30 @@ def speed_change_entries(samples):
             "steady_latency_ms": steady_ms,
             "settle_ms": settle_ms,
             "max_pen_tip_to_edge_px": max((s[1] - s[2]) / 1e6 * s[4] for s in after),
+            "l2p_signed_gap_px": analyze.describe(gaps),
+            "l2p_signed_gap_ms": analyze.describe(gaps_ms),
+            "l2p_speed_change_residual_px": max([max(0.0, gap) for gap in gaps], default=0.0),
+            "l2p_speed_change_overshoot_px": max([max(0.0, -gap) for gap in gaps], default=0.0),
             "n": len(after),
         })
     return result
+
+
+def display_gap_metrics(directory):
+    """Pen tip to line end metrics for a run, without the rest of the analysis.
+
+    analyze.py reads the same capture.csv and inject.csv columns and adds
+    these keys to its own result, so both scripts report the distance for the
+    same run.
+    """
+    _, _, _, samples = frame_samples(directory)
+    result = l2p_summary(samples)
+    ink_samples = [sample for sample in samples if sample[0] == "ink"]
+    if ink_samples:
+        result["l2p.speed_groups"] = l2p_speed_groups(samples)
+        result["l2p.speed_change"] = speed_change_entries(ink_samples)
+    return result
+
 
 
 
@@ -587,6 +722,12 @@ def main(argv):
                 continue
             if key == "ink.speed_change":
                 print("   %-28s %s" % (key, format_speed_changes(stat)))
+                continue
+            if key == "l2p.speed_groups":
+                print("   %-28s %s" % (key, analyze.format_l2p_speed_groups(stat)))
+                continue
+            if key == "l2p.speed_change":
+                print("   %-28s %s" % (key, analyze.format_l2p_speed_changes(stat)))
                 continue
             print("   %-28s %s" % (key, analyze.format_stat(stat)))
     comparison = analyze.compare(results, PRIMARY, require_presentmon=False)

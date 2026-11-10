@@ -262,6 +262,13 @@ class SimulatedDisplayTest(unittest.TestCase):
             # display showed the older position.
             self.assertAlmostEqual(group["pen_tip_to_edge_px"]["p50"],
                                    group["input_to_capture"]["p50"] * group["speed_px_ms"], delta=1.0)
+        for group in result["l2p.speed_groups"]:
+            # The direct pen tip to line end distance uses the frame time,
+            # so it also equals the speed times the display delay.
+            self.assertAlmostEqual(group["l2p_signed_gap_px"]["p50"],
+                                   group["speed_px_ms"] * 50.0, delta=2.0)
+            self.assertAlmostEqual(group["l2p_signed_gap_ms"]["p50"],
+                                   50.0, delta=1.0)
         changes = result["ink.speed_change"]
         self.assertEqual(len(changes), 1)
         self.assertLess(changes[0]["before_speed_px_ms"], 0.5)
@@ -270,6 +277,37 @@ class SimulatedDisplayTest(unittest.TestCase):
         self.assertGreaterEqual(changes[0]["steady_latency_ms"], 48.5)
         self.assertIsNotNone(changes[0]["settle_ms"])
         self.assertLessEqual(changes[0]["settle_ms"], 50.0)
+        # The distance just after the change belongs to the fast interval.
+        self.assertGreater(changes[0]["l2p_signed_gap_px"]["n"], 2)
+        self.assertAlmostEqual(changes[0]["l2p_signed_gap_px"]["p50"], 150.0, delta=2.0)
+        self.assertAlmostEqual(changes[0]["l2p_signed_gap_ms"]["p50"], 50.0, delta=1.0)
+        self.assertAlmostEqual(changes[0]["l2p_speed_change_overshoot_px"], 0.0)
+
+
+class DisplayGapTest(unittest.TestCase):
+    """Pen tip to displayed line end distance from synthetic frames and input.
+
+    A constant 0.5 px/ms stroke shown 50 ms late leaves the line end 25 px
+    behind the pen tip (50 ms of travel). The capture analysis and analyze.py
+    both report that known distance, in pixels and in milliseconds.
+    """
+
+    def test_a_known_distance_appears_in_both_analyzers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            result = capture_analyze.analyze_run(directory)
+            # analyze.py needs the probe clock to read the time_ns injection.
+            write_probe(directory, [4_170_000] * 10)
+            run_result = load("analyze").Run(directory).analyze()
+        for entry in (result, run_result):
+            self.assertAlmostEqual(entry["l2p.signed_gap_px"]["p50"], 25.0, delta=0.5)
+            self.assertAlmostEqual(entry["l2p.signed_gap_px"]["p95"], 25.5, delta=0.5)
+            self.assertAlmostEqual(entry["l2p.signed_gap_ms"]["p50"], 50.0, delta=0.5)
+            self.assertEqual(entry["l2p.overshoot_px"]["p50"], 0.0)
+        group = result["l2p.speed_groups"][0]
+        self.assertAlmostEqual(group["speed_px_ms"], 0.5, delta=0.05)
+        self.assertAlmostEqual(group["l2p_signed_gap_px"]["p50"], 25.0, delta=0.5)
+        self.assertAlmostEqual(group["l2p_signed_gap_ms"]["p50"], 50.0, delta=0.5)
 
 
 class PresentationCheckTest(unittest.TestCase):

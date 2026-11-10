@@ -215,6 +215,21 @@ def percentile(values, fraction):
     return ordered[min(len(ordered) - 1, int(fraction * len(ordered)))]
 
 
+def capture_gap_metrics(directory):
+    """Pen tip to line end metrics from capture.csv and inject.csv.
+
+    The capture analyzer owns the mapping between a displayed frame and the
+    injected pointer. Importing it here keeps one implementation of the
+    distance (docs/perf/l2p-prediction.md) and lets analyze.py report the same
+    value for runs that also hold the capture columns.
+    """
+    if not (os.path.exists(os.path.join(directory, "capture.csv"))
+            and os.path.exists(os.path.join(directory, "inject.csv"))):
+        return {}
+    import capture_analyze
+    return capture_analyze.display_gap_metrics(directory)
+
+
 def describe(values):
     if not values:
         return {"n": 0}
@@ -572,6 +587,7 @@ class Run:
                 "n": len(self.inject),
                 "failed": sum(1 for sample in self.inject if not sample["ok"]),
             }
+        result.update(capture_gap_metrics(self.directory))
         return result
 
     def analyze_probe(self, stats, in_contact, link):
@@ -673,6 +689,37 @@ def format_stat(stat):
     if not stat.get("n"):
         return "n=0"
     return "p05=%6.1f p50=%6.1f p95=%6.1f n=%d" % (stat["p05"], stat["p50"], stat["p95"], stat["n"])
+
+
+def format_l2p_speed_groups(groups):
+    """Pen tip to line end distance per pointer speed from the capture."""
+    if not groups:
+        return "none"
+    return " ; ".join(
+        "%.2f px/ms n=%d gap_px=%s gap_ms=%s residual=%s overshoot=%s" % (
+            group["speed_px_ms"], group["n"],
+            format_stat(group.get("l2p_signed_gap_px", {})),
+            format_stat(group.get("l2p_signed_gap_ms", {})),
+            format_stat(group.get("l2p_residual_px", {})),
+            format_stat(group.get("l2p_overshoot_px", {})))
+        for group in groups)
+
+
+def format_l2p_speed_changes(changes):
+    """Distance just after each speed change from the capture."""
+    if not changes:
+        return "none"
+    return " ; ".join(
+        "at %.0fms %.2f->%.2f px/ms gap_px=%s gap_ms=%s residual %.0fpx overshoot %.0fpx n=%d" % (
+            change["at_ms"],
+            change["before_speed_px_ms"] if change["before_speed_px_ms"] is not None else 0.0,
+            change["after_speed_px_ms"],
+            format_stat(change.get("l2p_signed_gap_px", {})),
+            format_stat(change.get("l2p_signed_gap_ms", {})),
+            change.get("l2p_speed_change_residual_px", 0.0),
+            change.get("l2p_speed_change_overshoot_px", 0.0),
+            change["n"])
+        for change in changes)
 
 
 def format_paint_cycle(entry):
@@ -998,6 +1045,12 @@ def main(argv):
                 continue
             if key == "contact.stroke_paint_to_dab_speed":
                 print("   %-44s %s" % (key, format_stroke_queue_by_speed(stat)))
+                continue
+            if key == "l2p.speed_groups":
+                print("   %-44s %s" % (key, format_l2p_speed_groups(stat)))
+                continue
+            if key == "l2p.speed_change":
+                print("   %-44s %s" % (key, format_l2p_speed_changes(stat)))
                 continue
             if key == "stroke_queue":
                 print("   %-44s paint=%d dab=%d paired=%d" % (

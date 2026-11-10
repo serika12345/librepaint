@@ -450,6 +450,14 @@ scripts/perf/run.py --scenario ... --hosts ... --analyze-only <計測結果の�
   安定値+max(3ms, 10%)以下）を出す。`run.py`は回をまたいで速さごとの中央値とばらつきを
   「ink speed groups」に出す。80msと250msの窓は、半本を3.0で描く時間（約167ms）に収まる
   解析上の値である。
+- `capture_analyze.py`と`analyze.py`は、ペン先と表示された線の端の距離を`l2p`の指標として出す。
+  フレームの時刻のペン先の位置は`inject.csv`の注入の位置と時刻から補間し、線の端は
+  `capture.csv`の`dense_xmax`から校正のオフセットを引いて求める。`l2p.signed_gap_px`は
+  正が線の端がペン先より後ろ（遅れが残る）、負が前（予測の行き過ぎ）を表す。
+  `l2p.signed_gap_ms`はフレームの時刻を挟む注入の2点から求めた速さで割り、0.2px/ms未満の
+  フレームはpxだけを出す。`l2p.residual_px`と`l2p.overshoot_px`は符号を分けた距離である。
+  `l2p.speed_groups`はフレームの時刻の速さごとの中央値とP95、`l2p.speed_change`は速さが
+  変わった直後の80msの窓の距離を出す。
 - ストロークの待ち行列の遅れは、`stroke_paint`（点を待ち行列に入れた時刻）と`stroke_dab`
   （ストロークの処理がペイントデバイスに dab を描いた時刻）の組で測る。`analyze.py`は
   先入れ先出しで組にし、`contact.stroke_paint_to_dab`と、待ち行列に入れた時点の
