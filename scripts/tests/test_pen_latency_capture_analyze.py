@@ -129,6 +129,28 @@ class HoverStateTest(unittest.TestCase):
         self.assertLess(result["presentmon"]["coverage"], 0.05)
 
 
+class ForegroundStateTest(unittest.TestCase):
+    def analyze(self, meta_lines):
+        with tempfile.TemporaryDirectory() as directory:
+            simulate(directory, 50_000_000)
+            if meta_lines is not None:
+                with open(os.path.join(directory, "meta.txt"), "w") as handle:
+                    handle.write("\n".join(meta_lines) + "\n")
+            return capture_analyze.analyze_run(directory)["foreground"]
+
+    def test_a_run_whose_app_was_not_in_front_is_excluded(self):
+        state = self.analyze(["presentmon_result=present", "app_foreground_capture=False"])
+        self.assertEqual(state, {"known": True, "foreground": False, "excluded": True})
+
+    def test_a_foreground_run_stays_usable(self):
+        state = self.analyze(["app_foreground_capture=True"])
+        self.assertEqual(state, {"known": True, "foreground": True, "excluded": False})
+
+    def test_a_run_without_the_line_stays_usable(self):
+        state = self.analyze(None)
+        self.assertEqual(state, {"known": False, "foreground": None, "excluded": False})
+
+
 class SimulatedDisplayTest(unittest.TestCase):
     def test_recovers_known_delay_for_outline_and_ink(self):
         with tempfile.TemporaryDirectory() as directory:

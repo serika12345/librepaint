@@ -24,7 +24,10 @@ over all runs. A Windows target can set "presentmon": "off" to leave
 PresentMon out for a comparison, and "env" to pass environment variables to
 the measured application (run-surface.ps1 records them in meta.txt). A run
 whose PresentMon CSV covers too little of the injected trajectory is
-reported as partial and left out of PresentMon-based metrics.
+reported as partial and left out of PresentMon-based metrics. A run whose
+application was not the foreground window when the capture began
+(app_foreground_capture=False in meta.txt) measures another window; it is
+left out of every metric and counted in the table.
 
 Usage:
   run.py --scenario scripts/perf/scenarios/pen-light.json --hosts build/perf/hosts.json \
@@ -141,6 +144,16 @@ def presentmon_status(run):
     return status
 
 
+def run_foreground_excluded(run):
+    """Whether a run measured another window because the app was not in front."""
+    return bool((run.get("foreground") or {}).get("excluded"))
+
+
+def usable_runs(data):
+    """Runs of one target that took part in the measurement and can be aggregated."""
+    return [run for run in data.get("runs", []) if not run_foreground_excluded(run)]
+
+
 def metric_needs_presentmon(metric):
     """Whether a metric reads presentmon.csv (so a partial log cannot be used)."""
     return "input_to_display" in metric or "present_to_display" in metric or metric.startswith("present.")
@@ -196,15 +209,18 @@ def summarize(run_root, hosts, scenario):
                 "metrics": {metric: shifted(result.get(metric, {"n": 0}), offset) for metric in scenario["metrics"]},
                 "state": result.get("state", {"label": "unknown"}),
                 "presentmon": result.get("presentmon", {"present": False}),
+                "foreground": result.get("foreground", {}),
             })
         for target, data in entry["targets"].items():
-            data["metrics"] = aggregate(data["runs"], scenario["metrics"])
+            valid = usable_runs(data)
+            data["excluded"] = len(data["runs"]) - len(valid)
+            data["metrics"] = aggregate(valid, scenario["metrics"])
             data["presentmon"] = {
-                status: sum(1 for run in data["runs"] if presentmon_status(run) == status)
+                status: sum(1 for run in valid if presentmon_status(run) == status)
                 for status in ("present", "partial", "none")
             }
             groups = {}
-            for run in data["runs"]:
+            for run in valid:
                 groups.setdefault(run["state"].get("label", "unknown"), []).append(run)
             data["states"] = {}
             for state, state_runs in sorted(groups.items()):
@@ -237,6 +253,7 @@ def judge(summary, scenario, baseline=None):
     limit = scenario.get("spread_limit", 0.05)
     for host, entry in summary["hosts"].items():
         for target, data in entry["targets"].items():
+            valid = usable_runs(data) if isinstance(data.get("runs"), list) else []
             states = [state for state in data.get("states", {}) if state in ("low", "high")]
             for metric, stat in data.get("metrics", {}).items():
                 grouped = states if metric.startswith("hover.") else []
@@ -254,15 +271,17 @@ def judge(summary, scenario, baseline=None):
                     notes, problems = [], []
                     if state is not None:
                         notes.append("%s state: %d of %d runs" % (
-                            state, group_runs, len(data["runs"])))
+                            state, group_runs, len(valid) if valid else len(data["runs"])))
                         if group_stat["runs"] < 2:
                             problems.append("only %d run in state" % group_stat["runs"])
                     if group_stat["spread"] is not None and group_stat["spread"] >= limit:
                         problems.append("spread %.1f%% >= %.0f%%" % (100 * group_stat["spread"], 100 * limit))
-                    total_runs = len(data.get("runs", [])) if isinstance(data.get("runs"), list) else stat["runs"]
+                    total_runs = len(valid) if valid else stat["runs"]
                     if total_runs < scenario["runs"]:
                         problems.append("%d of %d runs" % (total_runs, scenario["runs"]))
-                    partial = sum(1 for run in data.get("runs", []) if presentmon_status(run) == "partial")
+                    if data.get("excluded"):
+                        notes.append("%d run(s) left out: app not foreground" % data["excluded"])
+                    partial = sum(1 for run in valid if presentmon_status(run) == "partial")
                     if metric_needs_presentmon(metric) and partial:
                         notes.append("%d partial PresentMon run(s) left out" % partial)
                     base_stat = baseline_metric(baseline, host, target, metric, state)
@@ -339,15 +358,19 @@ def main(argv):
         if entry.get("kind") != "windows":
             continue
         for target, data in entry["targets"].items():
-            runs = data.get("runs", [])
+            valid = usable_runs(data)
             counts = data.get("presentmon") or {
-                "present": sum(1 for run in runs if presentmon_status(run) == "present"),
-                "partial": sum(1 for run in runs if presentmon_status(run) == "partial"),
-                "none": sum(1 for run in runs if presentmon_status(run) == "none"),
+                "present": sum(1 for run in valid if presentmon_status(run) == "present"),
+                "partial": sum(1 for run in valid if presentmon_status(run) == "partial"),
+                "none": sum(1 for run in valid if presentmon_status(run) == "none"),
             }
             present_lines.append(
                 "   %s/%s: PresentMon present %d of %d runs (partial %d, none %d)" % (
-                    host, target, counts["present"], len(runs), counts["partial"], counts["none"]))
+                    host, target, counts["present"], len(valid), counts["partial"], counts["none"]))
+            if data.get("excluded"):
+                present_lines.append(
+                    "   %s/%s: %d run(s) left out: app not foreground" % (
+                        host, target, data["excluded"]))
     if present_lines:
         print("== PresentMon records")
         print("\n".join(present_lines))

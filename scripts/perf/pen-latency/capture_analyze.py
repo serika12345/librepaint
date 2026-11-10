@@ -192,6 +192,37 @@ def frame_samples(directory):
     return frame_times, offsets, offset, samples
 
 
+META_FOREGROUND = "app_foreground_capture"
+
+
+def read_meta(directory):
+    """Return the key=value lines of a run's meta.txt (empty when absent)."""
+    path = os.path.join(directory, "meta.txt")
+    values = {}
+    if not os.path.exists(path):
+        return values
+    with open(path, encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            name, separator, value = line.partition("=")
+            if separator:
+                values[name.strip()] = value.strip()
+    return values
+
+
+def foreground_state(directory):
+    """Whether the application was the foreground window when capture began.
+
+    run-surface.ps1 records app_foreground_capture=True or False. A run whose
+    application was not in front measures another window, so it is left out of
+    the aggregation. Runs before that line existed stay usable (known False).
+    """
+    value = read_meta(directory).get(META_FOREGROUND)
+    if value is None:
+        return {"known": False, "foreground": None, "excluded": False}
+    foreground = value.lower() == "true"
+    return {"known": True, "foreground": foreground, "excluded": not foreground}
+
+
 def presentmon_state(directory):
     """PresentMon coverage of the injected trajectory for one run.
 
@@ -279,6 +310,7 @@ def analyze_run(directory):
         "tablet_move_interval_p05_ms": tablet_interval,
     }
     result["presentmon"] = presentmon_state(directory)
+    result["foreground"] = foreground_state(directory)
     return result
 
 
@@ -300,8 +332,12 @@ def main(argv):
         coverage = result["presentmon"].get("coverage")
         if coverage is not None and presentmon == "partial":
             presentmon += " (coverage %.1f%%)" % (100 * coverage)
-        print("== %s  frames=%d interval %s  state=%s  PresentMon=%s" % (
-            name, frames["n"], analyze.format_stat(frames["interval"]), result["state"]["label"], presentmon))
+        foreground = result["foreground"]
+        foreground_text = "-" if not foreground["known"] else (
+            "ok" if foreground["foreground"] else "not-foreground")
+        print("== %s  frames=%d interval %s  state=%s  PresentMon=%s  foreground=%s" % (
+            name, frames["n"], analyze.format_stat(frames["interval"]), result["state"]["label"],
+            presentmon, foreground_text))
         print("   state: %s" % result["state"]["reason"])
         for kind, entry in result["calibration"].items():
             print("   calibration %-5s offset=%s px spread=%s px n=%d" % (kind, entry["offset_px"], entry["spread_px"], entry["n"]))
